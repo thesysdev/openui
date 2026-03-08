@@ -1,28 +1,35 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Volume1Icon, Volume2Icon } from "lucide-react";
-import { useState } from "react";
-import { Slider, SliderProps } from "../Slider";
+import { SliderBlock, SliderBlockProps } from "../SliderBlock";
 
-const meta: Meta<SliderProps> = {
+const meta: Meta<SliderBlockProps> = {
   title: "Components/Slider",
-  component: Slider,
+  component: SliderBlock,
   parameters: {
     layout: "centered",
     docs: {
       description: {
-        component: "```tsx\nimport { Slider } from '@openui-ui/react-ui';\n```",
+        component:
+          "A slider component with a label, inline value editing (text input for continuous, select dropdown for discrete), range support, and validation.\n\n```tsx\nimport { SliderBlock } from '@openui-ui/react-ui';\n```",
       },
     },
   },
   tags: ["!dev", "autodocs"],
 
   argTypes: {
+    label: {
+      control: "text",
+      description: "Label displayed above the slider",
+      table: {
+        category: "Content",
+        type: { summary: "string" },
+        required: true,
+      },
+    },
     variant: {
-      control: false,
+      control: "radio",
       options: ["continuous", "discrete"],
       description:
-        "The type of slider - continuous for smooth sliding, or discrete for stepped values. Range functionality is enabled by passing an array with multiple values to `value` or `defaultValue`.",
-      defaultValue: "continuous",
+        "Continuous shows a text input for value editing. Discrete shows a select dropdown with stepped options.",
       table: {
         category: "Appearance",
         type: { summary: "'continuous' | 'discrete'" },
@@ -32,97 +39,52 @@ const meta: Meta<SliderProps> = {
     min: {
       control: "number",
       description: "Minimum value of the slider",
-      defaultValue: 0,
       table: {
         category: "Value",
         type: { summary: "number" },
-        required: true,
+        defaultValue: { summary: "0" },
       },
     },
     max: {
       control: "number",
       description: "Maximum value of the slider",
-      defaultValue: 100,
       table: {
         category: "Value",
         type: { summary: "number" },
-        required: true,
+        defaultValue: { summary: "100" },
       },
     },
     step: {
       control: "number",
-      description: "Step increment (required for discrete variant)",
-      defaultValue: 1,
+      description: "Step increment. For discrete variant, defaults to 1 if not provided.",
       table: {
         category: "Value",
         type: { summary: "number" },
+      },
+    },
+    defaultValue: {
+      control: false,
+      description:
+        "Initial value(s). Pass a single-element array for single slider, two-element array for range.",
+      table: {
+        category: "Value",
+        type: { summary: "number[]" },
       },
     },
     disabled: {
       control: "boolean",
       description: "Whether the slider is disabled",
       table: {
-        type: { summary: "boolean" },
-        defaultValue: { summary: "true" },
         category: "State",
+        type: { summary: "boolean" },
       },
     },
-    value: {
-      control: false,
-      description:
-        "Controlled value(s) of the slider. Single number for continuous/discrete, array of two numbers for range",
-      table: {
-        category: "Value",
-        type: { summary: "number[]" },
-      },
-    },
-    defaultValue: {
-      description:
-        "Default value(s) of the slider. Single number for continuous/discrete, array of two numbers for range",
-      control: false,
-      table: {
-        category: "Value",
-        type: { summary: "number[]" },
-      },
-    },
-    onValueChange: {
-      control: false,
-      description: "Callback when the value changes",
-      table: {
-        category: "Events",
-        type: { summary: "(value: number[]) => void" },
-      },
-    },
-    className: {
+    name: {
       control: "text",
-      description: "Additional CSS class names",
+      description: "Form field name",
       table: {
-        category: "Appearance",
+        category: "Form",
         type: { summary: "string" },
-      },
-    },
-    style: {
-      control: "object",
-      description: "Additional inline styles",
-      table: {
-        category: "Appearance",
-        type: { summary: "React.CSSProperties" },
-      },
-    },
-    leftContent: {
-      control: "text",
-      description: "Content to display on the left side of the slider",
-      table: {
-        category: "Appearance",
-        type: { summary: "React.ReactNode" },
-      },
-    },
-    rightContent: {
-      control: "text",
-      description: "Content to display on the right side of the slider",
-      table: {
-        category: "Appearance",
-        type: { summary: "React.ReactNode" },
       },
     },
   },
@@ -134,56 +96,61 @@ const meta: Meta<SliderProps> = {
       </div>
     ),
   ],
-} satisfies Meta<typeof Slider>;
+} satisfies Meta<typeof SliderBlock>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Continuous: Story = {
+export const ContinuousSingle: Story = {
   args: {
+    label: "Brightness",
     variant: "continuous",
     min: 0,
     max: 100,
-    defaultValue: [25],
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: "A continuous slider allows smooth, precise value selection across its range.",
-      },
-    },
-  },
-};
-
-export const Discrete: Story = {
-  args: {
-    variant: "discrete",
-    min: 0,
-    max: 100,
-    step: 10,
     defaultValue: [50],
   },
   parameters: {
     docs: {
       description: {
         story:
-          "A discrete slider shows step markers and snaps to specific values. Useful for selecting from predefined options.",
+          "A continuous single-value slider with a text input for precise value entry. Validates that the input is within the min/max range.",
       },
     },
   },
 };
 
-export const Range: Story = {
+export const ContinuousRange: Story = {
   args: {
+    label: "Price Range",
     variant: "continuous",
     min: 0,
-    max: 100,
-    defaultValue: [20, 80],
+    max: 1000,
+    defaultValue: [200, 800],
   },
   parameters: {
     docs: {
       description: {
-        story: "A range slider allows selection of a value range using two handles.",
+        story:
+          "A continuous range slider with two text inputs for min and max values. Shows validation errors for out-of-range or invalid values.",
+      },
+    },
+  },
+};
+
+export const DiscreteSingle: Story = {
+  args: {
+    label: "Team Size",
+    variant: "discrete",
+    min: 1,
+    max: 10,
+    step: 1,
+    defaultValue: [5],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "A discrete single-value slider with a select dropdown showing all valid step values.",
       },
     },
   },
@@ -191,81 +158,72 @@ export const Range: Story = {
 
 export const DiscreteRange: Story = {
   args: {
+    label: "Experience (years)",
+    variant: "discrete",
+    min: 0,
+    max: 20,
+    step: 2,
+    defaultValue: [4, 14],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "A discrete range slider with two select dropdowns. Each dropdown filters out values that would create an invalid range.",
+      },
+    },
+  },
+};
+
+export const CustomStep: Story = {
+  args: {
+    label: "Volume",
     variant: "discrete",
     min: 0,
     max: 100,
-    step: 10,
-    defaultValue: [20, 80],
+    step: 25,
+    defaultValue: [50],
   },
   parameters: {
     docs: {
       description: {
         story:
-          "A discrete range slider combines the features of a discrete slider and a range slider.",
+          "A discrete slider with a custom step of 25, creating options at 0, 25, 50, 75, 100.",
       },
     },
   },
 };
 
-export const Controlled: Story = {
-  render: () => {
-    const [value, setValue] = useState([50]);
-    return (
-      <Slider
-        variant="continuous"
-        min={0}
-        max={100}
-        step={1}
-        value={value}
-        onValueChange={setValue}
-        disabled={false}
-      />
-    );
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "A controlled slider where the value is managed by component state via the `value` prop.",
-      },
-    },
-  },
-  name: "Controlled (with value prop)",
-};
-
-export const UncontrolledWithoutDefault: Story = {
-  name: "Without Value or DefaultValue",
+export const LargeRange: Story = {
   args: {
+    label: "Salary Range ($K)",
+    variant: "continuous",
+    min: 0,
+    max: 500,
+    defaultValue: [80, 250],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "A continuous range slider demonstrating larger value ranges with text inputs.",
+      },
+    },
+  },
+};
+
+export const Disabled: Story = {
+  args: {
+    label: "Locked Setting",
     variant: "continuous",
     min: 0,
     max: 100,
-    step: 1,
-    disabled: false,
+    defaultValue: [75],
+    disabled: true,
   },
   parameters: {
     docs: {
       description: {
-        story:
-          "A slider without an initial `value` or `defaultValue` prop. It defaults to the minimum value.",
-      },
-    },
-  },
-};
-
-export const WithIcons: Story = {
-  name: "With Icons",
-  args: {
-    variant: "continuous",
-    min: 0,
-    max: 100,
-    defaultValue: [40],
-    leftContent: <Volume1Icon />,
-    rightContent: <Volume2Icon />,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: "A slider can have icons or other content on either side.",
+        story: "A disabled slider block. The slider track and thumb are non-interactive.",
       },
     },
   },
