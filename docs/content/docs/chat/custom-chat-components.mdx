@@ -49,11 +49,7 @@ function UserBubble({ message }) {
   return <div>{String(message.content)}</div>;
 }
 
-<Copilot
-  apiUrl="/api/chat"
-  assistantMessage={AssistantBubble}
-  userMessage={UserBubble}
-/>;
+<Copilot apiUrl="/api/chat" assistantMessage={AssistantBubble} userMessage={UserBubble} />;
 ```
 
 The `message` prop is the full `AssistantMessage` or `UserMessage` object from `@openuidev/react-headless`.

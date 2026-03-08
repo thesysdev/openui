@@ -109,7 +109,7 @@ export const Default = {
         title: "test",
         createdAt: Date.now(),
       })}
-      deleteThread={async () => { }}
+      deleteThread={async () => {}}
       updateThread={async (t: Thread) => t}
       loadThread={async (threadId) => {
         if (!threadId) return [];
@@ -161,7 +161,7 @@ export const WithConversationStarter = {
         title: "New Chat",
         createdAt: Date.now(),
       })}
-      deleteThread={async () => { }}
+      deleteThread={async () => {}}
       updateThread={async (t: Thread) => t}
       loadThread={async () => []}
     >
@@ -203,7 +203,7 @@ export const LongVariant = {
         title: "New Chat",
         createdAt: Date.now(),
       })}
-      deleteThread={async () => { }}
+      deleteThread={async () => {}}
       updateThread={async (t: Thread) => t}
       loadThread={async () => []}
     >
@@ -246,7 +246,7 @@ export const WithWelcomeScreen = {
         title: "New Chat",
         createdAt: Date.now(),
       })}
-      deleteThread={async () => { }}
+      deleteThread={async () => {}}
       updateThread={async (t: Thread) => t}
       loadThread={async () => []}
     >
@@ -296,7 +296,7 @@ export const WithCustomWelcomeScreen = {
         title: "New Chat",
         createdAt: Date.now(),
       })}
-      deleteThread={async () => { }}
+      deleteThread={async () => {}}
       updateThread={async (t: Thread) => t}
       loadThread={async () => []}
     >

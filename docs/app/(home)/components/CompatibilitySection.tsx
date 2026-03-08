@@ -22,7 +22,6 @@ const LLMS: CompatibilityItem[] = [
   { name: "Anthropic", slug: "anthropic", iconColor: "ffffff", badgeBg: "bg-[#D4A574]" },
   { name: "Gemini", slug: "googlegemini", iconColor: "000000", badgeBg: "bg-white", border: true },
   { name: "Mistral", slug: "mistralai", iconColor: "ffffff", badgeBg: "bg-[#FF7000]" },
-  { name: "Ollama", slug: "ollama", iconColor: "000000", badgeBg: "bg-white", border: true },
 ];
 
 const FRAMEWORKS: CompatibilityItem[] = [

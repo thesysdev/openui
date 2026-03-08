@@ -1,14 +1,14 @@
 export { ChatProvider } from "./ChatProvider";
 export { useThread, useThreadList } from "./hooks";
 export type {
-  ChatStore,
   ChatProviderProps,
-  Thread,
-  ThreadState,
-  ThreadActions,
-  ThreadListState,
-  ThreadListActions,
-  Message,
-  UserMessage,
+  ChatStore,
   CreateMessage,
+  Message,
+  Thread,
+  ThreadActions,
+  ThreadListActions,
+  ThreadListState,
+  ThreadState,
+  UserMessage,
 } from "./types";

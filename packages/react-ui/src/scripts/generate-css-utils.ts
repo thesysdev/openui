@@ -115,4 +115,4 @@ lines.push("");
 
 const outputPath = path.resolve(__dirname, "../cssUtils.scss");
 fs.writeFileSync(outputPath, lines.join("\n"));
-console.log(`Generated cssUtils.scss at ${outputPath}`);
+console.info(`Generated cssUtils.scss at ${outputPath}`);

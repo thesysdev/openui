@@ -39,7 +39,7 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
     process.exit(1);
   }
 
-  console.log(`\nScaffolding OpenUI Chat app into "${name}"...\n`);
+  console.info(`\nScaffolding OpenUI Chat app into "${name}"...\n`);
 
   fs.cpSync(templateDir, targetDir, { recursive: true });
 
@@ -68,7 +68,7 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
           ? "bun install"
           : "npm install";
 
-  console.log(`Installing dependencies with: ${installCmd}\n`);
+  console.info(`Installing dependencies with: ${installCmd}\n`);
 
   try {
     execSync(installCmd, { stdio: "inherit", cwd: targetDir });
@@ -78,7 +78,13 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
   }
 
   const devCmd =
-    runner === "pnpm dlx" ? "pnpm" : runner === "yarn dlx" ? "yarn" : runner === "bunx" ? "bun" : "npm";
+    runner === "pnpm dlx"
+      ? "pnpm"
+      : runner === "yarn dlx"
+        ? "yarn"
+        : runner === "bunx"
+          ? "bun"
+          : "npm";
 
-  console.log(`\nDone! Get started:\n\n  cd ${name}\n  ${devCmd} run dev\n`);
+  console.info(`\nDone! Get started:\n\n  cd ${name}\n  ${devCmd} run dev\n`);
 }

@@ -3,10 +3,10 @@ import { useShallow } from "zustand/react/shallow";
 import { useChatStore } from "./ChatContext";
 import type {
   ChatStore,
-  ThreadState,
   ThreadActions,
-  ThreadListState,
   ThreadListActions,
+  ThreadListState,
+  ThreadState,
 } from "./types";
 
 type ThreadSlice = ThreadState & ThreadActions;

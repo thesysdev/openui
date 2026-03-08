@@ -1,14 +1,14 @@
-import { HeroSection } from './components/HeroSection';
-import { ShiroMascot } from './components/ShiroMascot';
-import { StepsSection } from './components/StepsSection';
-import { GradientDivider } from './components/GradientDivider';
-import { PossibilitiesSection } from './components/PossibilitiesSection';
-import { UILibrariesSection } from './components/UILibrariesSection';
+import { BuildChatSection } from "./components/BuildChatSection";
 import { CompatibilitySection } from "./components/CompatibilitySection";
-import { FadeInSection } from './components/FadeInSection';
-import { FeaturesSection } from './components/FeaturesSection';
-import { BuildChatSection } from './components/BuildChatSection';
-import { Footer } from './components/Footer';
+import { FadeInSection } from "./components/FadeInSection";
+import { FeaturesSection } from "./components/FeaturesSection";
+import { Footer } from "./components/Footer";
+import { GradientDivider } from "./components/GradientDivider";
+import { HeroSection } from "./components/HeroSection";
+import { PossibilitiesSection } from "./components/PossibilitiesSection";
+import { ShiroMascot } from "./components/ShiroMascot";
+import { StepsSection } from "./components/StepsSection";
+import { UILibrariesSection } from "./components/UILibrariesSection";
 
 export default function HomePage() {
   return (

@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { ThemeProvider, swatchTokens } from "@openuidev/react-ui/ThemeProvider";
 import type { ThemeMode } from "@components/types";
+import { ThemeProvider, swatchTokens } from "@openuidev/react-ui/ThemeProvider";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 const FONT_FAMILY = 'var(--font-inter), "Inter", "Segoe UI", Arial, sans-serif';
 
@@ -158,7 +158,8 @@ const ALIASES: Record<string, string> = {
   "--text-body-default": "var(--openui-text-body-default)",
   "--text-body-default-letter-spacing": "var(--openui-text-body-default-letter-spacing)",
   "--text-body-default-heavy": "var(--openui-text-body-default-heavy)",
-  "--text-body-default-heavy-letter-spacing": "var(--openui-text-body-default-heavy-letter-spacing)",
+  "--text-body-default-heavy-letter-spacing":
+    "var(--openui-text-body-default-heavy-letter-spacing)",
   "--text-body-lg": "var(--openui-text-body-lg)",
   "--text-body-lg-letter-spacing": "var(--openui-text-body-lg-letter-spacing)",
   "--text-body-lg-heavy": "var(--openui-text-body-lg-heavy)",
@@ -184,7 +185,8 @@ const ALIASES: Record<string, string> = {
   "--text-label-default": "var(--openui-text-label-default)",
   "--text-label-default-letter-spacing": "var(--openui-text-label-default-letter-spacing)",
   "--text-label-default-heavy": "var(--openui-text-label-default-heavy)",
-  "--text-label-default-heavy-letter-spacing": "var(--openui-text-label-default-heavy-letter-spacing)",
+  "--text-label-default-heavy-letter-spacing":
+    "var(--openui-text-label-default-heavy-letter-spacing)",
   "--text-label-lg": "var(--openui-text-label-lg)",
   "--text-label-lg-letter-spacing": "var(--openui-text-label-lg-letter-spacing)",
   "--text-label-lg-heavy": "var(--openui-text-label-lg-heavy)",
@@ -213,7 +215,8 @@ const ALIASES: Record<string, string> = {
   "--text-code-default": "var(--openui-text-code-default)",
   "--text-code-default-letter-spacing": "var(--openui-text-code-default-letter-spacing)",
   "--text-code-default-heavy": "var(--openui-text-code-default-heavy)",
-  "--text-code-default-heavy-letter-spacing": "var(--openui-text-code-default-heavy-letter-spacing)",
+  "--text-code-default-heavy-letter-spacing":
+    "var(--openui-text-code-default-heavy-letter-spacing)",
   "--motion-duration-fast": "120ms",
   "--motion-duration-default": "200ms",
   "--motion-duration-slow": "320ms",

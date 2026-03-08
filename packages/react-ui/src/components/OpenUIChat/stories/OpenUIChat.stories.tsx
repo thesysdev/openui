@@ -94,7 +94,7 @@ const sharedProps = {
     title: "New Chat",
     createdAt: Date.now(),
   }),
-  deleteThread: async () => { },
+  deleteThread: async () => {},
   updateThread: async (t: any) => t,
   loadThread: async (threadId: string) => {
     if (!threadId) return [];

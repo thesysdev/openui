@@ -10,7 +10,8 @@ const meta = {
     layout: "centered",
     docs: {
       description: {
-        component: "```tsx\nimport { CheckBoxGroup, CheckBoxItem } from '@openuidev/react-ui';\n```",
+        component:
+          "```tsx\nimport { CheckBoxGroup, CheckBoxItem } from '@openuidev/react-ui';\n```",
       },
     },
   },

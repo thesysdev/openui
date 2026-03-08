@@ -25,11 +25,7 @@ export function App() {
 ## Controlled open state
 
 ```tsx
-<BottomTray
-  apiUrl="/api/chat"
-  isOpen={isOpen}
-  onOpenChange={setIsOpen}
-/>
+<BottomTray apiUrl="/api/chat" isOpen={isOpen} onOpenChange={setIsOpen} />
 ```
 
 Use the same backend configuration props as the other layouts. The only layout-specific props are the open-state controls.

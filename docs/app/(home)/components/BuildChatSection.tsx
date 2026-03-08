@@ -1,7 +1,9 @@
 "use client";
 
-const dashboardImg = "/images/home/d67b5e94653944c1d0d4998c6b169c37f98060ad.png";
+import { useEffect, useRef, useState } from "react";
 import { CopyIcon } from "./shared";
+
+const dashboardImg = "/images/home/d67b5e94653944c1d0d4998c6b169c37f98060ad.png";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -33,16 +35,57 @@ function SectionDescription() {
 }
 
 function CtaButton() {
-  const handleClick = () => {
-    navigator.clipboard.writeText("npx create openui-app chat");
+  const [copied, setCopied] = useState(false);
+  const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (resetTimeoutRef.current) {
+        clearTimeout(resetTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleClick = async () => {
+    if (copied) return;
+
+    try {
+      await navigator.clipboard.writeText("npx create openui-app chat");
+      setCopied(true);
+      resetTimeoutRef.current = setTimeout(() => {
+        setCopied(false);
+      }, 3000);
+    } catch {
+      setCopied(false);
+    }
   };
+
   return (
-    <div
-      className="flex items-center justify-center lg:justify-start mt-6 lg:mt-0 pt-4"
-      onClick={handleClick}
-    >
-      <button className="bg-black rounded-full h-12 px-5 flex items-center gap-2.5 cursor-pointer relative transition-all duration-200 hover:scale-105 w-full max-w-[280px] lg:max-w-none lg:w-auto justify-center lg:justify-start">
-        <CopyIcon />
+    <div className="flex items-center justify-center lg:justify-start mt-6 lg:mt-0 pt-4">
+      <button
+        onClick={handleClick}
+        className="bg-black rounded-full h-12 px-5 flex items-center gap-2.5 cursor-pointer relative transition-all duration-200 hover:scale-105 w-full max-w-[280px] lg:max-w-none lg:w-auto justify-center lg:justify-start"
+      >
+        <span className="relative size-4 flex items-center justify-center">
+          <span
+            className={`absolute transition-all duration-300 ${copied ? "opacity-0 scale-50" : "opacity-100 scale-100"}`}
+          >
+            <CopyIcon />
+          </span>
+          <svg
+            className={`size-4 absolute transition-all duration-300 ${copied ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}
+            fill="none"
+            viewBox="0 0 14 14"
+          >
+            <path
+              d="M11.6667 3.5L5.25 9.91667L2.33334 7"
+              stroke="white"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
+            />
+          </svg>
+        </span>
         <span className="font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-white relative whitespace-nowrap">
           npx create openui-app chat
         </span>

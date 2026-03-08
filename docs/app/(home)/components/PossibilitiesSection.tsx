@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 const listCardImg = "/images/home/0ea99cfd72e99c55c9511d4e0c3fbb08d37fbafd.png";
 const chartsCardImg = "/images/home/9fbf5ad1316183d81279510b9fceb2bd1b538523.png";
 const formsCardImg = "/images/home/8ae798233176b4d64e44605bb283d7a9886fed7a.png";
@@ -55,7 +55,7 @@ function Card({ title }: { title: string }) {
 
 // Pre-build the repeated card list so it's not re-created on every render
 const MARQUEE_CARDS = Array.from({ length: MARQUEE_COPIES }, (_, copy) =>
-  CARD_TITLES.map((title) => ({ title, key: `${title}-${copy}` }))
+  CARD_TITLES.map((title) => ({ title, key: `${title}-${copy}` })),
 ).flat();
 
 // ---------------------------------------------------------------------------
@@ -133,8 +133,12 @@ export function PossibilitiesSection() {
     }
   }, []);
 
-  const pauseScroll = useCallback(() => { isPausedRef.current = true; }, []);
-  const resumeScroll = useCallback(() => { isPausedRef.current = false; }, []);
+  const pauseScroll = useCallback(() => {
+    isPausedRef.current = true;
+  }, []);
+  const resumeScroll = useCallback(() => {
+    isPausedRef.current = false;
+  }, []);
 
   return (
     <div className="w-full">

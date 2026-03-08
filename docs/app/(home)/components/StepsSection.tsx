@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useRef, useEffect, type ComponentType } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import YouRegisterComponents from "@/imports/YouRegisterComponents-43-365";
-import OpenUiGeneratesSchema from "@/imports/OpenUiGeneratesSchema";
 import LlmRespondsInOpenUiLang from "@/imports/LlmRespondsInOpenUiLang";
+import OpenUiGeneratesSchema from "@/imports/OpenUiGeneratesSchema";
 import OpenUiRendererRendersIt from "@/imports/OpenUiRendererRendersIt-43-427";
+import YouRegisterComponents from "@/imports/YouRegisterComponents-43-365";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
 
 // ---------------------------------------------------------------------------
 // Types & data
@@ -15,33 +15,35 @@ interface Step {
   number: number;
   title: string;
   description: string;
+  detailsTitle?: string;
   details: string[];
 }
 
 const STEPS: Step[] = [
   {
     number: 1,
-    title: "You register components",
-    description: "Instead of markdown, the LLM\nreturns structured UI spec.",
-    details: ["You declare:", "What components exist", "What props they accept", "What structure is valid"],
+    title: "You define your library",
+    description: "Register components with defineComponent and createLibrary.",
+    details: [],
   },
   {
     number: 2,
-    title: "OpenUI generates schema",
-    description: "OpenUI converts your component registry into a structured schema.",
-    details: ["Model understands:", "Available components", "Required props", "Valid types"],
+    title: "OpenUI generates system prompt",
+    description:
+      "Generate a system prompt from your library with OpenUI SDK and send it to the LLM.",
+    details: [],
   },
   {
     number: 3,
-    title: "LLMs responds in OpenUI lang",
-    description: "Instead of markdown, the LLM\nreturns structured UI spec.",
-    details: ["The response contains:", "Structured UI composition", "Only registered components", "No arbitrary code"],
+    title: "LLM responds in OpenUI Lang",
+    description: "The model returns token-efficient, line-oriented OpenUI Lang (not markdown).",
+    details: [],
   },
   {
     number: 4,
-    title: "The OpenUI renderer renders it",
-    description: "Accurately turns xq spec into interactive UI.",
-    details: ["The Renderer:", "Parses structured output", "Validates against schema", "Streams the responses"],
+    title: "Renderer parses and renders UI",
+    description: "Renderer parses the output and renders interactive UI in real time.",
+    details: [],
   },
 ];
 
@@ -101,14 +103,17 @@ function Divider() {
 function StepDetails({ step, hideDetails }: { step: Step; hideDetails?: boolean }) {
   return (
     <div className="flex flex-col gap-6">
-      <p className="font-['Inter_Display',sans-serif] text-lg text-black/40 leading-[1.2] whitespace-pre-line">
+      <p className="font-['Inter_Display',sans-serif] text-lg text-black/40 leading-[1.2]">
         {step.description}
       </p>
       {!hideDetails && step.details.length > 0 && (
         <div className="font-['Inter_Display',sans-serif] text-lg text-black/40 leading-[1.2]">
-          {step.details.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
+          {step.detailsTitle && <p className="mb-2">{step.detailsTitle}</p>}
+          <ul className="list-disc pl-6 space-y-1">
+            {step.details.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
@@ -137,8 +142,14 @@ function StepIllustration({ stepNumber, mobile }: { stepNumber: number; mobile?:
 
   if (mobile) {
     return (
-      <div ref={containerRef} className="w-full rounded-2xl overflow-hidden relative aspect-[610/432]">
-        <div className="absolute inset-0 origin-top-left" style={{ width: 610, height: 432, transform: `scale(${scale})` }}>
+      <div
+        ref={containerRef}
+        className="w-full rounded-2xl overflow-hidden relative aspect-[610/432]"
+      >
+        <div
+          className="absolute inset-0 origin-top-left"
+          style={{ width: 610, height: 432, transform: `scale(${scale})` }}
+        >
           <Illustration />
         </div>
       </div>

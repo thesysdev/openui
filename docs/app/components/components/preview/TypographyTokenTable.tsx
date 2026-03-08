@@ -1,6 +1,6 @@
 import FoundationTable from "@components/components/preview/FoundationTable";
-import styles from "./FoundationTokenTable.module.css";
 import type { TableColumn, TypographyPreviewItem } from "@components/types";
+import styles from "./FoundationTokenTable.module.css";
 
 const columns: TableColumn[] = [
   { key: "preview", label: "Aa Example" },

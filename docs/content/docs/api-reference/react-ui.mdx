@@ -1,6 +1,6 @@
 ---
 title: "@openuidev/react-ui"
-description: API reference for documented prebuilt chat layouts and standard component library exports.
+description: API reference for prebuilt chat layouts and default component library exports.
 ---
 
 Use this package for prebuilt chat UIs and default component library primitives.
@@ -95,16 +95,28 @@ interface ConversationStartersConfig {
 }
 ```
 
-## Standard component library exports
+## Default component library exports
 
-Documented in Generative UI guides as the "standard/default component library".
+The default library and prompt helpers for OpenUI Lang:
 
 ```ts
-import { defaultLibrary, defaultExamples, defaultComponentGroups } from "@openuidev/react-ui";
+import {
+  defaultLibrary,
+  defaultPromptOptions,
+  defaultExamples,
+  defaultAdditionalRules,
+  defaultComponentGroups,
+} from "@openuidev/react-ui";
 ```
 
-These exports are built with `createLibrary(...)` from `@openuidev/lang-react` and are ready to pass to:
+These exports are built with `createLibrary(...)` from `@openuidev/lang-react` and are ready to use:
 
 ```tsx
-<Renderer text={message} library={defaultLibrary} />
+<Renderer response={message} library={defaultLibrary} />
+```
+
+Generate the system prompt with:
+
+```ts
+const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
 ```

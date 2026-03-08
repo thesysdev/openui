@@ -98,7 +98,6 @@
   color: var(--text-neutral-primary);
 }
 
-
 /* Right: fixed, does not scroll */
 .rightPanel {
   border: 1px solid var(--border-default);

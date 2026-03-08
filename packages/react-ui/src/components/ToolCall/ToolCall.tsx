@@ -39,12 +39,12 @@ export const ToolCallComponent = ({
   const plainArgs =
     !hasRequest && !hasResponse && toolCall.function.arguments
       ? (() => {
-        try {
-          return JSON.stringify(JSON.parse(toolCall.function.arguments), null, 2);
-        } catch {
-          return toolCall.function.arguments;
-        }
-      })()
+          try {
+            return JSON.stringify(JSON.parse(toolCall.function.arguments), null, 2);
+          } catch {
+            return toolCall.function.arguments;
+          }
+        })()
       : null;
 
   return (

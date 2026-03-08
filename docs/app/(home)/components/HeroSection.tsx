@@ -1,15 +1,13 @@
-'use client';
+"use client";
 
-import { motion } from "motion/react";
-import { useRef, useState, useEffect, lazy, Suspense } from "react";
-import svgHeroPaths from "@/imports/svg-a5kdrdeeao";
-import svgMascotPaths from "@/imports/svg-148i9mcxjn";
 import HeroPreviewFrame from "@/imports/Frame2147239423";
-import { BUTTON_SHADOW, CopyIcon } from "./shared";
+import svgMascotPaths from "@/imports/svg-148i9mcxjn";
+import svgHeroPaths from "@/imports/svg-a5kdrdeeao";
+import { motion } from "motion/react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { CopyIcon } from "./shared";
 
-const LazyMobileActionFigure = lazy(
-  () => import("@/imports/MobileActionFigure")
-);
+const LazyMobileActionFigure = lazy(() => import("@/imports/MobileActionFigure"));
 
 // ---------------------------------------------------------------------------
 // Animation config
@@ -18,10 +16,18 @@ const LazyMobileActionFigure = lazy(
 const EASE = [0.25, 0.1, 0.25, 1] as const;
 
 /** Desktop: slower, more dramatic stagger */
-const DESKTOP = { duration: 0.7, lines: 0, title: 0.5, subtitle: 1.0, cta: 1.5, image: 2.0 } as const;
+const DESKTOP = {
+  duration: 0.7,
+  lines: 0,
+  title: 0.5,
+  subtitle: 1.0,
+  cta: 1.5,
+  image: 2.0,
+} as const;
 
 /** Mobile: snappier with tighter stagger */
 const MOBILE = { duration: 0.5, mascot: 0, title: 0.25, subtitle: 0.5, cta: 0.75 } as const;
+const HERO_BUTTON_SHADOW = "0 8px 16px -4px rgba(22, 34, 51, 0.08)";
 
 // ---------------------------------------------------------------------------
 // Animation helpers
@@ -46,43 +52,127 @@ const mobileFadeUp = (delay: number) => ({
   style: { willChange: "auto" } as const,
 });
 
-
 // CTAs
 const primaryCTA = "npm install @openuidev/lang-react @openuidev/react-ui";
-const secondaryCTA = "Playground";
+const secondaryCTA = "Try Playground";
+const COPIED_FEEDBACK_MS = 3000;
 // ---------------------------------------------------------------------------
 // Buttons
 // ---------------------------------------------------------------------------
 
-function PrimaryButton({ className = "" }: { className?: string }) {
+function NpmButton({ className = "" }: { className?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(primaryCTA);
+      setCopied(true);
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
+      copiedTimeoutRef.current = setTimeout(() => {
+        setCopied(false);
+      }, COPIED_FEEDBACK_MS);
+    } catch {
+      setCopied(false);
+    }
+  };
+
   return (
-    <button
-      className={`bg-black flex gap-2.5 h-12 items-center justify-center px-5 rounded-full shrink-0 cursor-pointer transition-all duration-200 hover:scale-105 hover:bg-black/85 active:bg-black/75 ${className}`}
-      onClick={() => {
-        navigator.clipboard.writeText(primaryCTA);
-      }}
-    >
-      <CopyIcon />
-      <span className="font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-white whitespace-nowrap">
-        {primaryCTA}
-      </span>
-    </button>
+    <>
+      <button
+        className={`flex h-12 items-center justify-center gap-2.5 pl-5 pr-2 shrink-0 cursor-pointer rounded-[999px] border-[1.25px] border-black/8 bg-white transition-all duration-200 hover:scale-105 ${className}`}
+        style={{ boxShadow: HERO_BUTTON_SHADOW }}
+        onClick={onCopy}
+      >
+        <span className="hidden lg:inline font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-black whitespace-nowrap">
+          {primaryCTA}
+        </span>
+        <span className="lg:hidden relative flex-1 min-w-0 overflow-hidden">
+          <span className="npmTicker flex w-max items-center">
+            <span className="font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-black whitespace-nowrap pr-8">
+              {primaryCTA}
+            </span>
+            <span
+              aria-hidden="true"
+              className="font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-black whitespace-nowrap pr-8"
+            >
+              {primaryCTA}
+            </span>
+          </span>
+        </span>
+        <span className="size-8 rounded-full bg-black flex items-center justify-center shrink-0">
+          <span className="relative size-4 flex items-center justify-center">
+            <span
+              className={`absolute transition-all duration-300 ${copied ? "opacity-0 scale-50" : "opacity-100 scale-100"}`}
+            >
+              <CopyIcon color="white" />
+            </span>
+            <svg
+              className={`size-4 absolute transition-all duration-300 ${copied ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}
+              fill="none"
+              viewBox="0 0 14 14"
+            >
+              <path
+                d="M11.6667 3.5L5.25 9.91667L2.33334 7"
+                stroke="white"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.5"
+              />
+            </svg>
+          </span>
+        </span>
+      </button>
+      <style jsx>{`
+        .npmTicker {
+          animation: npmTickerScroll 10s linear infinite;
+        }
+        @keyframes npmTickerScroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+      `}</style>
+    </>
   );
 }
 
-function SecondaryButton({ className = "" }: { className?: string }) {
+function DesktopPlaygroundButton({ className = "" }: { className?: string }) {
+  return (
+    <a
+      href="/playground"
+      className={`flex h-12 items-center justify-center gap-2 rounded-[999px] px-5 font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-black cursor-pointer transition-all duration-200 hover:scale-105 ${className}`}
+    >
+      <span>{secondaryCTA}</span>
+      <span aria-hidden="true">→</span>
+    </a>
+  );
+}
+
+function MobilePlaygroundButton({ className = "" }: { className?: string }) {
   return (
     <a href="/playground">
       <button
-        className={`bg-white flex gap-2.5 h-12 items-center justify-center px-4 rounded-full shrink-0 cursor-pointer relative transition-all duration-200 hover:scale-105 ${className}`}
+        className={`flex h-12 items-center justify-center gap-2 rounded-[100px] bg-black px-5 shrink-0 cursor-pointer transition-all duration-200 hover:bg-black/85 ${className}`}
       >
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none rounded-full border-[1.25px] border-black/8"
-          style={{ boxShadow: BUTTON_SHADOW }}
-        />
-        <span className="font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-black relative whitespace-nowrap">
+        <span className="font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-white whitespace-nowrap">
           {secondaryCTA}
+        </span>
+        <span aria-hidden="true" className="text-white text-[20px] leading-none">
+          →
         </span>
       </button>
     </a>
@@ -192,7 +282,11 @@ function DesktopHero() {
           {...fadeUp(DESKTOP.subtitle)}
         >
           <svg className="w-full h-full" fill="none" viewBox="0 0 1600 376">
-            <path d={svgHeroPaths.p38a6ed80} fill="black" fillOpacity="0.4" />
+            <g transform="translate(180 0)">
+              <g transform="translate(880 75) scale(1.5) translate(-980 -108)">
+                <path d={svgHeroPaths.p38a6ed80} fill="black" fillOpacity="0.4" />
+              </g>
+            </g>
           </svg>
         </motion.div>
 
@@ -202,12 +296,14 @@ function DesktopHero() {
 
         {/* CTA buttons */}
         <motion.div
-          className="absolute flex gap-1.5 will-change-[transform,opacity]"
-          style={{ left: "51.125%", top: "71.19%" }}
+          className="absolute will-change-[transform,opacity]"
+          style={{ left: "50%", top: "71.19%" }}
           {...fadeUp(DESKTOP.cta)}
         >
-          <PrimaryButton />
-          <SecondaryButton />
+          <div className="relative -translate-x-1/2 flex flex-col items-center gap-2 pt-14">
+            <NpmButton />
+            <DesktopPlaygroundButton />
+          </div>
         </motion.div>
       </div>
     </div>
@@ -261,8 +357,8 @@ function MobileHero() {
         className="relative flex flex-col items-center gap-3 px-10 pt-5 pb-20"
         {...mobileFadeUp(MOBILE.cta)}
       >
-        <SecondaryButton className="w-full max-w-[280px]" />
-        <PrimaryButton className="w-full max-w-[280px]" />
+        <MobilePlaygroundButton className="w-[320px] max-w-full" />
+        <NpmButton className="w-[320px] max-w-full" />
       </motion.div>
 
       {/* Full-width hero illustration */}
@@ -344,8 +440,7 @@ function Tagline() {
     <div className="px-5 lg:px-8 mt-5 lg:mt-10 lg:py-10">
       <div className="max-w-[1200px] mx-auto">
         <p className="font-['Inter_Display',sans-serif] font-medium text-[22px] lg:text-[28px] text-black/40 leading-[1.4] text-center">
-          An open source toolkit to make your{" "}
-          <br className="hidden lg:inline" />
+          An open source toolkit to make your <br className="hidden lg:inline" />
           AI apps respond with your UI.
         </p>
       </div>

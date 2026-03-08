@@ -1,18 +1,42 @@
 // @ts-nocheck
-import { PreviewPage, PreviewSection, TypographyTokenTable } from "@design-system/components/preview";
+import {
+  PreviewPage,
+  PreviewSection,
+  TypographyTokenTable,
+} from "@design-system/components/preview";
 
 const typographySections = [
-  { id: "heading", label: "Heading", description: "Display and hierarchy titles across pages and sections." },
-  { id: "body", label: "Body", description: "Long-form and supporting copy styles for content readability." },
-  { id: "label", label: "Label", description: "Compact labels for form controls, badges, and field metadata." },
-  { id: "numbers", label: "Numbers", description: "Numerical values for stats, metrics, and tabular data." },
-  { id: "code", label: "Code", description: "Monospace styles for snippets, tokens, and command text." },
+  {
+    id: "heading",
+    label: "Heading",
+    description: "Display and hierarchy titles across pages and sections.",
+  },
+  {
+    id: "body",
+    label: "Body",
+    description: "Long-form and supporting copy styles for content readability.",
+  },
+  {
+    id: "label",
+    label: "Label",
+    description: "Compact labels for form controls, badges, and field metadata.",
+  },
+  {
+    id: "numbers",
+    label: "Numbers",
+    description: "Numerical values for stats, metrics, and tabular data.",
+  },
+  {
+    id: "code",
+    label: "Code",
+    description: "Monospace styles for snippets, tokens, and command text.",
+  },
 ];
 
 const typographyPreviewRows = {
   heading: [
     { token: "--text-heading-xl", sample: "Make something people want" },
-    { token: "--text-heading-lg", sample: "Make something people want" },  
+    { token: "--text-heading-lg", sample: "Make something people want" },
     { token: "--text-heading-md", sample: "Make something people want" },
     { token: "--text-heading-sm", sample: "Make something people want" },
     { token: "--text-heading-xs", sample: "Make something people want" },
@@ -20,35 +44,43 @@ const typographyPreviewRows = {
   body: [
     {
       token: "--text-body-lg",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--text-body-lg-heavy",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--text-body-default",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--text-body-default-heavy",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--text-body-sm",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--text-body-sm-heavy",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--text-body-xs",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--text-body-xs-heavy",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
   ],
   label: [
@@ -115,7 +147,9 @@ export default function TypographyPreviewPage() {
             items={(typographyPreviewRows[section.id] ?? []).map((row) => ({
               token: row.token,
               preview:
-                section.id === "heading" ? row.sample : row.sample ?? formatTypographyPreviewLabel(row.token),
+                section.id === "heading"
+                  ? row.sample
+                  : (row.sample ?? formatTypographyPreviewLabel(row.token)),
               className: row.token,
               style: getTypographyTokenStyle(row.token),
             }))}

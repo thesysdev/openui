@@ -1,5 +1,5 @@
-import svgPaths from "@/imports/svg-urruvoh2be";
 import mascotSvgPaths from "@/imports/svg-10waxq0xyc";
+import svgPaths from "@/imports/svg-urruvoh2be";
 
 // ---------------------------------------------------------------------------
 // Data

@@ -28,6 +28,7 @@ ThemeProvider mounts
 ```
 
 **Key internals:**
+
 - `cssSafeId(useId())` — strips CSS-unsafe characters (colons from React 18's `:r0:` format) for use in class names and selectors.
 - `InternalContext` with a `Symbol` sentinel detects whether this provider is nested inside another. Nested providers auto-scope via a `<div style="display: contents">` wrapper instead of targeting `body`.
 - `cssUtils.scss` is auto-generated at build time by `src/scripts/generate-css-utils.ts` from `defaultLightTheme`, including fallback values.

@@ -1,177 +1,115 @@
 ---
 title: Defining Components
-description: Learn how to define components for OpenUI using Zod schemas.
+description: Define OpenUI components with Zod and React renderers.
 ---
 
-To let the LLM render UI, you don't write complex prompt instructions manually. Instead, you define a **Library** using Zod schemas. OpenUI converts these schemas into the system prompt that teaches the model how to use your components.
+Use `defineComponent(...)` to register each component and `createLibrary(...)` to assemble the library.
 
-### The `defineComponent` + `createLibrary` API
-
-Every component is first defined with `defineComponent`, then collected into a library with `createLibrary`.
-
-```typescript
-import { defineComponent, createLibrary } from '@openuidev/lang-react';
-import { z } from 'zod';
-
-const MyCard = defineComponent({
-  name: 'MyCard',
-  description: 'Displays a titled content card.',
-  props: z.object({
-    title: z.string(),
-  }),
-  component: ({ props }) => <div>{props.title}</div>,
-});
-
-export const myLibrary = createLibrary({
-  components: [MyCard],
-});
-```
-
-### The Component Definition
-
-Every call to `defineComponent` needs four things:
-
-1. **`name`:** The identifier the LLM will use in generated code.
-2. **`props` (Zod Schema):** Defines the data structure and types.
-3. **`description`:** A natural language explanation for the LLM.
-4. **`component` (React):** The actual React implementation.
-
-#### Example: A "Stat Card"
-
-Let's build a simple card that shows a metric (like "Revenue") and a trend.
+## Core API
 
 ```tsx
-import { defineComponent, createLibrary } from '@openuidev/lang-react';
-import { z } from 'zod';
+import { defineComponent, createLibrary } from "@openuidev/lang-react";
+import { z } from "zod";
 
-// 1. Define with defineComponent
-// The order of keys in z.object determines the argument order for the LLM.
 const StatCard = defineComponent({
-  name: 'StatCard',
-  description: 'Displays a key metric with a trend indicator.',
+  name: "StatCard",
+  description: "Displays a metric label and value.",
   props: z.object({
-    label: z.string().describe("The name of the metric, e.g. 'Daily Active Users'"),
-    value: z.string().describe("The formatted value, e.g. '1,234'"),
-    trend: z.enum(['up', 'down', 'neutral']).describe('Visual indicator direction'),
+    label: z.string(),
+    value: z.string(),
   }),
   component: ({ props }) => (
-    <div className="p-4 border rounded shadow-sm bg-white dark:bg-slate-800">
-      <div className="text-sm text-gray-500">{props.label}</div>
-      <div className="text-2xl font-bold">{props.value}</div>
-      <span className={`trend-${props.trend}`} />
+    <div>
+      <strong>{props.label}</strong>
+      <div>{props.value}</div>
     </div>
   ),
 });
 
-// 2. Collect into a library
 export const myLibrary = createLibrary({
+  root: "StatCard",
   components: [StatCard],
 });
 ```
 
----
+## Required fields in `defineComponent`
 
-### Best Practices for Zod Schemas
+1. `name`: component call name in OpenUI Lang.
+2. `props`: `z.object(...)` schema. Key order defines positional argument order.
+3. `description`: used in prompt component signature lines.
+4. `component`: React renderer receiving `{ props, renderNode }`.
 
-The quality of your Zod schema directly impacts the quality of the LLM's output.
-
-#### 1. Use `describe()` everywhere
-The `.describe()` string is injected into the system prompt. Treat it as a mini-instruction to the model.
-
-```typescript
-// ❌ Bad
-z.string()
-
-// ✅ Good
-z.string().describe("ISO 8601 date string, e.g. '2023-01-01'")
-```
-
-#### 2. Prefer Enums over Strings
-If a prop has a finite set of options, use `z.enum()`. This prevents the LLM from hallucinating invalid variants (e.g., passing "red" instead of "danger").
-
-```typescript
-// ❌ Risky
-variant: z.string()
-
-// ✅ Safe
-variant: z.enum(['primary', 'secondary', 'ghost'])
-```
-
-#### 3. Key Order Matters
-OpenUI Lang uses **positional arguments** to save tokens. The order of keys in your `z.object` definition determines the order the LLM must generate them.
-
-```typescript
-// Definition
-z.object({
-  title: z.string(),
-  isActive: z.boolean()
-})
-
-// LLM Output (OpenUI Lang)
-// card = Card("Title First", true)
-```
-
-<Callout type="warning">
-  If you change the order of keys in your schema, the generated system prompt changes. Ensure your LLM session is refreshed if you modify schemas during development.
-</Callout>
-
-### Nesting Components
-
-Components can reference each other using `.ref`. Define child components first, then use `ChildComponent.ref` in parent schemas.
+## Nesting pattern with `.ref`
 
 ```tsx
-import { defineComponent, createLibrary } from '@openuidev/lang-react';
-import { useRenderNode } from '@openuidev/lang-react';
-import { z } from 'zod';
+import { defineComponent } from "@openuidev/lang-react";
+import { z } from "zod";
 
-const StatCard = defineComponent({
-  name: 'StatCard',
-  description: 'A metric card.',
-  props: z.object({ label: z.string(), value: z.string() }),
-  component: ({ props }) => <div>{props.label}: {props.value}</div>,
+const Item = defineComponent({
+  name: "Item",
+  description: "Simple item",
+  props: z.object({ label: z.string() }),
+  component: ({ props }) => <div>{props.label}</div>,
 });
 
-const Dashboard = defineComponent({
-  name: 'Dashboard',
-  description: 'A dashboard containing stat cards.',
+const List = defineComponent({
+  name: "List",
+  description: "List of items",
   props: z.object({
-    cards: z.array(StatCard.ref),
+    items: z.array(Item.ref),
   }),
-  component: ({ props, renderNode }) => (
-    <div className="grid grid-cols-3 gap-4">
-      {props.cards.map((card, i) => renderNode(card))}
-    </div>
-  ),
-});
-
-export const myLibrary = createLibrary({
-  components: [StatCard, Dashboard],
+  component: ({ props, renderNode }) => <div>{renderNode(props.items)}</div>,
 });
 ```
 
-### Grouping Components
+## Union multiple component types pattern
 
-As your library grows, you can organize components into logical groups using `componentGroups`. This helps structure the system prompt, making it easier for the LLM to find the right tool.
+To define container components that accepts multiple child components, you can use the `z.union` function to define the child components.
 
-```typescript
-export const myLibrary = createLibrary({
-  componentGroups: [
-    { name: 'Charts', components: ['BarChart', 'LineChart'] },
-    { name: 'Forms', components: ['Input', 'Select', 'Button'] },
+```tsx
+import { defineComponent } from "@openuidev/lang-react";
+import { z } from "zod";
+
+const TextBlock = defineComponent({
+  /* ... */
+});
+const CalloutBlock = defineComponent({
+  /* ... */
+});
+
+const TabItemSchema = z.object({
+  value: z.string(),
+  trigger: z.string(),
+  content: z.array(z.union([TextBlock.ref, CalloutBlock.ref])),
+});
+```
+
+## Notes on schema metadata
+
+- Positional mapping is driven by Zod object key order.
+- Required/optional state is used by parser validation.
+
+## Grouping components in prompt output
+
+```ts
+const library = createLibrary({
+  root: "Stack",
+  components: [
+    /* ... */
   ],
-  components: [BarChart, LineChart, Input, Select, Button],
+  componentGroups: [
+    { name: "Forms", components: ["Form", "FormControl", "Input", "Button", "Buttons"] },
+  ],
 });
 ```
 
-### Next Steps
-
-Now that you have defined your library, you need to generate the System Prompt to tell the LLM about it.
+## Next Steps
 
 <Cards>
   <Card title="System Prompts" href="/docs/openui-lang/system-prompts">
-    See how these definitions are converted into instructions for the LLM.
+    Generate instructions from your library.
   </Card>
-  <Card title="The Renderer" href="/docs/openui-lang/renderer">
-    Learn how to render this library in your application.
+  <Card title="Renderer" href="/docs/openui-lang/renderer">
+    Parse and render model output.
   </Card>
 </Cards>

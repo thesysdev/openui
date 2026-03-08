@@ -143,7 +143,6 @@ export const YearsDropdown = (
     botType,
   } = props;
 
-  const [containerWidth, setContainerWidth] = useState(0);
   const [containerHeight, setContainerHeight] = useState(0);
 
   useEffect(() => {
@@ -154,8 +153,7 @@ export const YearsDropdown = (
 
     const resizeObserver = new ResizeObserver(
       debounce((entries) => {
-        const { width, height } = entries[0]?.contentRect || {};
-        setContainerWidth(width || 0);
+        const { height } = entries[0]?.contentRect || {};
         setContainerHeight(height || 0);
       }, 100),
     );

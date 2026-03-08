@@ -1,8 +1,8 @@
 "use client";
 
+import ClientOnly from "@components/blocks/_components/ClientOnly";
 import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
 import { AreaChart, ScrollableAreaChart } from "@openuidev/react-ui";
-import ClientOnly from "@components/blocks/_components/ClientOnly";
 
 const areaData = [
   { month: "Jan", desktop: 150, mobile: 90 },
@@ -46,7 +46,11 @@ function ScrollableAreaChartPreview() {
 export default function BlocksAreaChartPage() {
   return (
     <PreviewPage>
-      <PreviewSection title="Area" headingLevel="h1" description="Preview for the Area chart block.">
+      <PreviewSection
+        title="Area"
+        headingLevel="h1"
+        description="Preview for the Area chart block."
+      >
         <BlockVariantPreview
           title="Default"
           description="Default area chart variant."

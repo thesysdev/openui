@@ -15,9 +15,7 @@ type SelectPromptConfig = {
 
 type PromptConfig = InputPromptConfig | SelectPromptConfig;
 
-export type ArgDef<T> =
-  | { value: T }
-  | { prompt: PromptConfig; required: true };
+export type ArgDef<T> = { value: T } | { prompt: PromptConfig; required: true };
 
 type ResolvedArgs<T extends Record<string, ArgDef<unknown>>> = {
   [K in keyof T]: T[K] extends { value: infer V } ? V : string;

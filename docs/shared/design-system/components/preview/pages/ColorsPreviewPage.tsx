@@ -1,4 +1,9 @@
-import { ColorSwatchesPreviewSection, ColorTokenTable, PreviewPage, PreviewSection } from "@design-system/components/preview";
+import {
+  ColorSwatchesPreviewSection,
+  ColorTokenTable,
+  PreviewPage,
+  PreviewSection,
+} from "@design-system/components/preview";
 import tableStyles from "@design-system/components/preview/FoundationTokenTable.module.css";
 
 const surfaceItems = [
@@ -30,10 +35,19 @@ const interactiveBrandItems = [
 ];
 
 const interactiveDestructiveItems = [
-  { token: "--interactive-destructive-accent-default", useCase: "Destructive action default fill." },
+  {
+    token: "--interactive-destructive-accent-default",
+    useCase: "Destructive action default fill.",
+  },
   { token: "--interactive-destructive-accent-hover", useCase: "Destructive action hover fill." },
-  { token: "--interactive-destructive-accent-pressed", useCase: "Destructive action pressed fill." },
-  { token: "--interactive-destructive-accent-disabled", useCase: "Destructive action disabled fill." },
+  {
+    token: "--interactive-destructive-accent-pressed",
+    useCase: "Destructive action pressed fill.",
+  },
+  {
+    token: "--interactive-destructive-accent-disabled",
+    useCase: "Destructive action disabled fill.",
+  },
 ];
 
 const borderItems = [
@@ -70,8 +84,40 @@ const swatchFamilies = [
   "pink",
 ];
 
-const alphaScale = ["a02", "a04", "a06", "a08", "a10", "a12", "a20", "a30", "a40", "a50", "a60", "a70", "a80", "a90", "a100"];
-const familyAlphaScale = ["a02", "a04", "a06", "a08", "a10", "a12", "a20", "a30", "a40", "a50", "a60", "a70", "a80", "a90", "a100"];
+const alphaScale = [
+  "a02",
+  "a04",
+  "a06",
+  "a08",
+  "a10",
+  "a12",
+  "a20",
+  "a30",
+  "a40",
+  "a50",
+  "a60",
+  "a70",
+  "a80",
+  "a90",
+  "a100",
+];
+const familyAlphaScale = [
+  "a02",
+  "a04",
+  "a06",
+  "a08",
+  "a10",
+  "a12",
+  "a20",
+  "a30",
+  "a40",
+  "a50",
+  "a60",
+  "a70",
+  "a80",
+  "a90",
+  "a100",
+];
 const toTitleCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 const familyTitleByFamily = {
   gray: "Steel",
@@ -94,7 +140,8 @@ const buildFamilyAlphaRow = (family: string) => ({
   id: `swatch-alpha-${family}`,
   title: `${(familyTitleByFamily as Record<string, string>)[family] ?? toTitleCase(family)} alpha`,
   tokens: familyAlphaScale.map(
-    (step) => `--swatch-${family}-${(familyAlphaBaseByFamily as Record<string, number>)[family] ?? 600}-${step}`,
+    (step) =>
+      `--swatch-${family}-${(familyAlphaBaseByFamily as Record<string, number>)[family] ?? 600}-${step}`,
   ),
 });
 
@@ -140,12 +187,19 @@ export default function ColorsPreviewPage() {
         description="Surface tokens establish depth, contrast, and baseline backgrounds."
       >
         <ColorTokenTable items={surfaceItems} />
-        <div className={tableStyles.foundationComponentsPlaceholder}>Surface components preview coming soon.</div>
+        <div className={tableStyles.foundationComponentsPlaceholder}>
+          Surface components preview coming soon.
+        </div>
       </PreviewSection>
 
-      <PreviewSection title="Text" description="Text tokens support hierarchy and semantic messaging states.">
+      <PreviewSection
+        title="Text"
+        description="Text tokens support hierarchy and semantic messaging states."
+      >
         <ColorTokenTable items={textItems} />
-        <div className={tableStyles.foundationComponentsPlaceholder}>Text components preview coming soon.</div>
+        <div className={tableStyles.foundationComponentsPlaceholder}>
+          Text components preview coming soon.
+        </div>
       </PreviewSection>
 
       <PreviewSection
@@ -153,7 +207,9 @@ export default function ColorsPreviewPage() {
         description="Accent interaction tokens define visual states for primary actions."
       >
         <ColorTokenTable items={interactiveBrandItems} />
-        <div className={tableStyles.foundationComponentsPlaceholder}>Accent components preview coming soon.</div>
+        <div className={tableStyles.foundationComponentsPlaceholder}>
+          Accent components preview coming soon.
+        </div>
       </PreviewSection>
 
       <PreviewSection
@@ -161,7 +217,9 @@ export default function ColorsPreviewPage() {
         description="Destructive interaction tokens define visual states for destructive actions."
       >
         <ColorTokenTable items={interactiveDestructiveItems} />
-        <div className={tableStyles.foundationComponentsPlaceholder}>Destructive components preview coming soon.</div>
+        <div className={tableStyles.foundationComponentsPlaceholder}>
+          Destructive components preview coming soon.
+        </div>
       </PreviewSection>
 
       <PreviewSection
@@ -169,7 +227,9 @@ export default function ColorsPreviewPage() {
         description="Stroke tokens define default and semantic borders across components."
       >
         <ColorTokenTable items={borderItems} />
-        <div className={tableStyles.foundationComponentsPlaceholder}>Stroke components preview coming soon.</div>
+        <div className={tableStyles.foundationComponentsPlaceholder}>
+          Stroke components preview coming soon.
+        </div>
       </PreviewSection>
 
       <ColorSwatchesPreviewSection

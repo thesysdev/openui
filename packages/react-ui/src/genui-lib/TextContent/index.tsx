@@ -26,9 +26,9 @@ export const TextContent = defineComponent({
       size === "default"
         ? undefined
         : ({
-          "--openui-text-body-default": `var(${varName})`,
-          "--openui-text-body-default-letter-spacing": `var(${varName}-letter-spacing)`,
-        } as React.CSSProperties);
+            "--openui-text-body-default": `var(${varName})`,
+            "--openui-text-body-default-letter-spacing": `var(${varName}-letter-spacing)`,
+          } as React.CSSProperties);
     return (
       <div style={style}>
         <MarkDownRenderer textMarkdown={props.text as string} />

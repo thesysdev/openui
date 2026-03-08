@@ -1,14 +1,14 @@
 import { createStore } from "zustand";
 import { processStreamedMessage } from "../stream/processStreamedMessage";
 import { identityMessageFormat } from "../types/messageFormat";
-import type { ChatStore, ChatProviderProps, Thread, UserMessage, Message } from "./types";
+import type { ChatProviderProps, ChatStore, Message, Thread, UserMessage } from "./types";
 
 type StoreConfig = Omit<ChatProviderProps, "children">;
 
 const mergeThreadList = (existing: Thread[], incoming: Thread[]): Thread[] =>
-  Array.from(
-    new Map([...existing, ...incoming].map((t) => [t.id, t])).values(),
-  ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  Array.from(new Map([...existing, ...incoming].map((t) => [t.id, t])).values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
 export const createChatStore = (config: StoreConfig) => {
   const {
@@ -26,65 +26,77 @@ export const createChatStore = (config: StoreConfig) => {
 
   // ── Default implementations (when threadApiUrl is provided) ──
 
-  const fetchThreadList = userFetchThreadList ?? (async (cursor?: any) => {
-    if (!threadApiUrl) return { threads: [] };
-    const url = cursor ? `${threadApiUrl}/get?cursor=${cursor}` : `${threadApiUrl}/get`;
-    const res = await fetch(url);
-    return res.json();
-  });
-
-  const createThread = userCreateThread ?? (async (firstMessage: UserMessage) => {
-    if (!threadApiUrl) throw new Error("threadApiUrl or createThread required");
-    const res = await fetch(`${threadApiUrl}/create`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: messageFormat.toApi([firstMessage]) }),
+  const fetchThreadList =
+    userFetchThreadList ??
+    (async (cursor?: any) => {
+      if (!threadApiUrl) return { threads: [] };
+      const url = cursor ? `${threadApiUrl}/get?cursor=${cursor}` : `${threadApiUrl}/get`;
+      const res = await fetch(url);
+      return res.json();
     });
-    return res.json();
-  });
 
-  const deleteThreadFn = userDeleteThread ?? (async (id: string) => {
-    if (!threadApiUrl) return;
-    await fetch(`${threadApiUrl}/delete/${id}`, { method: "DELETE" });
-  });
-
-  const updateThreadFn = userUpdateThread ?? (async (updated: Thread) => {
-    if (!threadApiUrl) return updated;
-    const res = await fetch(`${threadApiUrl}/update/${updated.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updated),
+  const createThread =
+    userCreateThread ??
+    (async (firstMessage: UserMessage) => {
+      if (!threadApiUrl) throw new Error("threadApiUrl or createThread required");
+      const res = await fetch(`${threadApiUrl}/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: messageFormat.toApi([firstMessage]) }),
+      });
+      return res.json();
     });
-    return res.json();
-  });
 
-  const loadThread = userLoadThread ?? (async (threadId: string): Promise<Message[]> => {
-    if (!threadApiUrl) return [];
-    const res = await fetch(`${threadApiUrl}/get/${threadId}`);
-    const raw: unknown = await res.json();
-    return messageFormat.fromApi(raw);
-  });
-
-  const sendMessage = userProcessMessage ?? (async ({
-    threadId,
-    messages,
-    abortController,
-  }: {
-    threadId: string;
-    messages: Message[];
-    abortController: AbortController;
-  }) => {
-    if (!apiUrl) throw new Error("apiUrl or processMessage required");
-    return fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        threadId,
-        messages: messageFormat.toApi(messages),
-      }),
-      signal: abortController.signal,
+  const deleteThreadFn =
+    userDeleteThread ??
+    (async (id: string) => {
+      if (!threadApiUrl) return;
+      await fetch(`${threadApiUrl}/delete/${id}`, { method: "DELETE" });
     });
-  });
+
+  const updateThreadFn =
+    userUpdateThread ??
+    (async (updated: Thread) => {
+      if (!threadApiUrl) return updated;
+      const res = await fetch(`${threadApiUrl}/update/${updated.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+      return res.json();
+    });
+
+  const loadThread =
+    userLoadThread ??
+    (async (threadId: string): Promise<Message[]> => {
+      if (!threadApiUrl) return [];
+      const res = await fetch(`${threadApiUrl}/get/${threadId}`);
+      const raw: unknown = await res.json();
+      return messageFormat.fromApi(raw);
+    });
+
+  const sendMessage =
+    userProcessMessage ??
+    (async ({
+      threadId,
+      messages,
+      abortController,
+    }: {
+      threadId: string;
+      messages: Message[];
+      abortController: AbortController;
+    }) => {
+      if (!apiUrl) throw new Error("apiUrl or processMessage required");
+      return fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          threadId,
+          messages: messageFormat.toApi(messages),
+        }),
+        signal: abortController.signal,
+      });
+    });
 
   // ── Store ──
 
@@ -240,8 +252,7 @@ export const createChatStore = (config: StoreConfig) => {
             set((s) => ({
               messages: s.messages.map((m) => (m.id === msg.id ? msg : m)),
             })),
-          deleteMessage: (id) =>
-            set((s) => ({ messages: s.messages.filter((m) => m.id !== id) })),
+          deleteMessage: (id) => set((s) => ({ messages: s.messages.filter((m) => m.id !== id) })),
           adapter: streamProtocol,
         });
       } catch (e) {

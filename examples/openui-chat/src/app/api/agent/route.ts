@@ -2,13 +2,6 @@ import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-});
-
-const MODEL = "anthropic/claude-sonnet-4.6";
-
 // ── Tool implementations ──
 
 function getWeather({ location }: { location: string }): Promise<string> {
@@ -247,6 +240,12 @@ function sseToolCallArgs(
 
 export async function POST(req: NextRequest) {
   const { messages, systemPrompt } = await req.json();
+
+  const client = new OpenAI({
+    apiKey: process.env.OPENROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1",
+  });
+  const MODEL = "anthropic/claude-sonnet-4.6";
 
   const chatMessages: ChatCompletionMessageParam[] = [
     ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),

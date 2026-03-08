@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 
-const client = new OpenAI();
 
 export async function POST(req: NextRequest) {
+  const client = new OpenAI();
   try {
     const { messages, systemPrompt } = await req.json();
 

@@ -1,6 +1,6 @@
-import type { UserMessage, Message } from "../types/message";
-import type { StreamProtocolAdapter } from "../types/stream";
+import type { Message, UserMessage } from "../types/message";
 import type { MessageFormat } from "../types/messageFormat";
+import type { StreamProtocolAdapter } from "../types/stream";
 
 export type { Message, UserMessage } from "../types/message";
 export type CreateMessage = Omit<UserMessage, "id">;

@@ -1,14 +1,14 @@
-export type { NavItem, NestedNavItem, NavGroup, NavSection } from "./navigation";
+export type { NavGroup, NavItem, NavSection, NestedNavItem } from "./navigation";
 export type {
-  ThemeMode,
-  HeadingLevel,
-  TableColumn,
+  BlockVariantConfig,
   ColorTokenItem,
-  SwatchToken,
+  FoundationTokenItem,
+  HeadingLevel,
   SwatchInput,
   SwatchRow,
-  FoundationTokenItem,
+  SwatchToken,
+  TableColumn,
+  ThemeMode,
   TypographyPreviewItem,
   TypographyRow,
-  BlockVariantConfig,
 } from "./tokens";

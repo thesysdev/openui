@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createChatStore } from "../createChatStore";
-import type { Thread, Message, UserMessage } from "../types";
+import type { Message, Thread, UserMessage } from "../types";
 
 // ── Helpers ──
 
@@ -212,7 +212,10 @@ describe("createChatStore", () => {
     it("sets isPending during operation", async () => {
       let resolveDelete: () => void;
       const deleteThread = vi.fn().mockImplementation(
-        () => new Promise<void>((r) => { resolveDelete = r; }),
+        () =>
+          new Promise<void>((r) => {
+            resolveDelete = r;
+          }),
       );
 
       const store = createChatStore({ deleteThread, processMessage: vi.fn() });
@@ -287,9 +290,7 @@ describe("createChatStore", () => {
 
   describe("processMessage", () => {
     it("appends optimistic user message and calls processMessage", async () => {
-      const processMessage = vi.fn().mockResolvedValue(
-        new Response("", { status: 200 }),
-      );
+      const processMessage = vi.fn().mockResolvedValue(new Response("", { status: 200 }));
 
       const store = createChatStore({
         processMessage,
@@ -309,9 +310,7 @@ describe("createChatStore", () => {
     it("creates thread when none selected", async () => {
       const newThread = makeThread("t-auto");
       const createThread = vi.fn().mockResolvedValue(newThread);
-      const processMessage = vi.fn().mockResolvedValue(
-        new Response("", { status: 200 }),
-      );
+      const processMessage = vi.fn().mockResolvedValue(new Response("", { status: 200 }));
 
       const store = createChatStore({
         createThread,
@@ -326,9 +325,7 @@ describe("createChatStore", () => {
     });
 
     it("no-ops when already running", async () => {
-      const processMessage = vi.fn().mockResolvedValue(
-        new Response("", { status: 200 }),
-      );
+      const processMessage = vi.fn().mockResolvedValue(new Response("", { status: 200 }));
 
       const store = createChatStore({
         processMessage,
@@ -376,7 +373,7 @@ describe("createChatStore", () => {
       });
       store.setState({ selectedThreadId: "t1" });
 
-      const promise = store.getState().processMessage({ role: "user", content: "hello" });
+      const _promise = store.getState().processMessage({ role: "user", content: "hello" });
 
       await flushPromises();
       expect(store.getState().isRunning).toBe(true);
@@ -404,7 +401,10 @@ describe("createChatStore", () => {
     it("sends POST to apiUrl with threadId and messages", async () => {
       const sseBody = `data: ${JSON.stringify({ type: "TEXT_MESSAGE_CONTENT", delta: "hi" })}\n\ndata: [DONE]\n\n`;
       const stream = new ReadableStream({
-        start(c) { c.enqueue(new TextEncoder().encode(sseBody)); c.close(); },
+        start(c) {
+          c.enqueue(new TextEncoder().encode(sseBody));
+          c.close();
+        },
       });
       fetchSpy.mockResolvedValue(new Response(stream));
 
@@ -440,7 +440,10 @@ describe("createChatStore", () => {
     it("streams response via processStreamedMessage", async () => {
       const sseBody = `data: ${JSON.stringify({ type: "TEXT_MESSAGE_CONTENT", delta: "response text" })}\n\ndata: [DONE]\n\n`;
       const stream = new ReadableStream({
-        start(c) { c.enqueue(new TextEncoder().encode(sseBody)); c.close(); },
+        start(c) {
+          c.enqueue(new TextEncoder().encode(sseBody));
+          c.close();
+        },
       });
       fetchSpy.mockResolvedValue(new Response(stream));
 
@@ -468,7 +471,10 @@ describe("createChatStore", () => {
     it("applies messageFormat.toApi to outbound messages", async () => {
       const sseBody = `data: [DONE]\n\n`;
       const stream = new ReadableStream({
-        start(c) { c.enqueue(new TextEncoder().encode(sseBody)); c.close(); },
+        start(c) {
+          c.enqueue(new TextEncoder().encode(sseBody));
+          c.close();
+        },
       });
       fetchSpy.mockResolvedValue(new Response(stream));
 
@@ -490,7 +496,10 @@ describe("createChatStore", () => {
     it("uses ephemeral threadId when no thread selected and no createThread", async () => {
       const sseBody = `data: [DONE]\n\n`;
       const stream = new ReadableStream({
-        start(c) { c.enqueue(new TextEncoder().encode(sseBody)); c.close(); },
+        start(c) {
+          c.enqueue(new TextEncoder().encode(sseBody));
+          c.close();
+        },
       });
       fetchSpy.mockResolvedValue(new Response(stream));
 
@@ -529,7 +538,9 @@ describe("createChatStore", () => {
 
     it("loadMoreThreads passes cursor as query param", async () => {
       fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify({ threads: [makeThread("t1")], nextCursor: "abc" })))
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ threads: [makeThread("t1")], nextCursor: "abc" })),
+        )
         .mockResolvedValueOnce(new Response(JSON.stringify({ threads: [makeThread("t2", 1)] })));
 
       const store = createChatStore({ threadApiUrl: "/api/threads", apiUrl: "/api/chat" });
@@ -550,7 +561,9 @@ describe("createChatStore", () => {
       const store = createChatStore({ threadApiUrl: "/api/threads", apiUrl: "/api/chat" });
 
       const result = await store.getState().createThread({
-        id: "m1", role: "user", content: "hello",
+        id: "m1",
+        role: "user",
+        content: "hello",
       } as UserMessage);
 
       const [url, opts] = fetchSpy.mock.calls[0];
@@ -612,11 +625,16 @@ describe("createChatStore", () => {
 
     it("processMessage auto-creates thread via threadApiUrl when none selected", async () => {
       const thread = makeThread("t-auto");
-      fetchSpy
-        .mockResolvedValueOnce(new Response(JSON.stringify(thread)))
-        .mockResolvedValueOnce(new Response(
-          new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode("data: [DONE]\n\n")); c.close(); } }),
-        ));
+      fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify(thread))).mockResolvedValueOnce(
+        new Response(
+          new ReadableStream({
+            start(c) {
+              c.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+              c.close();
+            },
+          }),
+        ),
+      );
 
       const store = createChatStore({ threadApiUrl: "/api/threads", apiUrl: "/api/chat" });
 
@@ -737,9 +755,7 @@ describe("createChatStore", () => {
       fetchSpy
         .mockResolvedValueOnce(new Response(JSON.stringify(thread)))
         .mockResolvedValueOnce(new Response(doneStream()))
-        .mockResolvedValueOnce(
-          new Response(JSON.stringify([{ r: "user", c: "round-trip" }])),
-        );
+        .mockResolvedValueOnce(new Response(JSON.stringify([{ r: "user", c: "round-trip" }])));
 
       const store = createChatStore({
         apiUrl: "/api/chat",

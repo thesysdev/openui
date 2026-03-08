@@ -1,5 +1,5 @@
 {
-  "name": "docs-v3",
+  "name": "@openuidev/docs",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -8,7 +8,9 @@
     "start": "next start",
     "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
     "postinstall": "fumadocs-mdx",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format:fix": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@openuidev/lang-react": "workspace:^",
@@ -22,6 +24,7 @@
     "lucide-react": "^0.570.0",
     "motion": "^12.34.3",
     "next": "16.1.6",
+    "posthog-js": "^1.358.1",
     "prism-react-renderer": "^2.4.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

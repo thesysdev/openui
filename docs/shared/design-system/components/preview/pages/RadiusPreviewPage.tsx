@@ -1,9 +1,14 @@
 // @ts-nocheck
 "use client";
 
-import { useMemo } from "react";
-import { FoundationTable, PreviewCode, PreviewPage, PreviewSection } from "@design-system/components/preview";
+import {
+  FoundationTable,
+  PreviewCode,
+  PreviewPage,
+  PreviewSection,
+} from "@design-system/components/preview";
 import tableStyles from "@design-system/components/preview/FoundationTokenTable.module.css";
+import { useMemo } from "react";
 
 function formatRadiusLabel(token) {
   const rawLabel = token.replace("--radius-", "");
@@ -91,7 +96,9 @@ export default function RadiusPreviewPage() {
             </tr>
           ))}
         </FoundationTable>
-        <div className={tableStyles.foundationComponentsPlaceholder}>Radius components preview coming soon.</div>
+        <div className={tableStyles.foundationComponentsPlaceholder}>
+          Radius components preview coming soon.
+        </div>
         <PreviewCode code={radiusCode} />
       </PreviewSection>
     </PreviewPage>

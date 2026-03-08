@@ -168,7 +168,7 @@ export const ThemeProvider = ({
   // ---------------------------------------------------------------------------
   // Dev-mode warnings
   // ---------------------------------------------------------------------------
-  if (process.env["NODE_ENV"] !== "production") {
+  if (typeof process !== "undefined" && process.env?.["NODE_ENV"] !== "production") {
     if (deprecatedTheme !== undefined && lightTheme !== undefined) {
       warnOnce(
         "theme+lightTheme",

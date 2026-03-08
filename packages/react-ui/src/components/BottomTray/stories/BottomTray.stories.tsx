@@ -94,7 +94,7 @@ const BottomTrayStory = ({
           title: "test",
           createdAt: Date.now(),
         })}
-        deleteThread={async () => { }}
+        deleteThread={async () => {}}
         updateThread={async (t) => t}
         loadThread={async (threadId) => {
           if (!threadId) return [];
@@ -212,7 +212,7 @@ const CustomTriggerStory = ({
           title: "test",
           createdAt: Date.now(),
         })}
-        deleteThread={async () => { }}
+        deleteThread={async () => {}}
         updateThread={async (t) => t}
         loadThread={async (threadId) => {
           if (!threadId) return [];
@@ -318,7 +318,7 @@ const WelcomeScreenStory = ({
           title: "New Chat",
           createdAt: Date.now(),
         })}
-        deleteThread={async () => { }}
+        deleteThread={async () => {}}
         updateThread={async (t) => t}
         loadThread={async () => []}
       >
@@ -405,7 +405,7 @@ const CustomWelcomeScreenStory = ({
           title: "New Chat",
           createdAt: Date.now(),
         })}
-        deleteThread={async () => { }}
+        deleteThread={async () => {}}
         updateThread={async (t) => t}
         loadThread={async () => []}
       >

@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import svgPaths from "@/imports/svg-urruvoh2be";
-import { BUTTON_SHADOW } from "./shared";
 import {
-  ThesysLogo,
-  OpenUILogo,
-  GitHubStarButton,
   GitHubIcon,
+  GitHubStarButton,
+  OpenUILogo,
   StarCountBadge,
+  ThesysLogo,
   useGitHubStarCount,
 } from "@/components/brand-logo";
+import svgPaths from "@/imports/svg-urruvoh2be";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useState } from "react";
+import { BUTTON_SHADOW } from "./shared";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -67,7 +67,15 @@ function DesktopNavTabs() {
 
 function HamburgerIcon({ isOpen }: { isOpen: boolean }) {
   return (
-    <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      className="size-5"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       {isOpen ? (
         <>
           <path d="M18 6L6 18" />

@@ -2,7 +2,6 @@ export { ChatProvider } from "./v2/ChatProvider";
 export { useThread, useThreadList } from "./v2/hooks";
 
 export { MessageContext, MessageProvider, useMessage } from "./hooks/useMessage";
-export { processStreamedMessage } from "./stream/processStreamedMessage";
 export {
   agUIAdapter,
   openAIAdapter,
@@ -11,16 +10,17 @@ export {
   openAIReadableStreamAdapter,
   openAIResponsesAdapter,
 } from "./stream/adapters";
+export { processStreamedMessage } from "./stream/processStreamedMessage";
 
 export type {
-  ChatStore,
   ChatProviderProps,
-  Thread,
+  ChatStore,
   CreateMessage,
-  ThreadState,
+  Thread,
   ThreadActions,
-  ThreadListState,
   ThreadListActions,
+  ThreadListState,
+  ThreadState,
 } from "./v2/types";
 
 export type {
@@ -39,7 +39,7 @@ export type {
   UserMessage,
 } from "./types/message";
 
-export type { MessageFormat } from "./types/messageFormat";
 export { identityMessageFormat } from "./types/messageFormat";
-export type { StreamProtocolAdapter, AGUIEvent } from "./types/stream";
+export type { MessageFormat } from "./types/messageFormat";
 export { EventType } from "./types/stream";
+export type { AGUIEvent, StreamProtocolAdapter } from "./types/stream";

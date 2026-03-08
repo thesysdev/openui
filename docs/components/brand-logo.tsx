@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import svgPaths from "@/imports/svg-urruvoh2be";
 import mascotSvgPaths from "@/imports/svg-kl5jpwq8km";
+import svgPaths from "@/imports/svg-urruvoh2be";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 
 const COUNT_UP_DURATION = 3000;
 const BUTTON_SHADOW = "0px 8px 16px 0px rgba(22,34,51,0.08)";
@@ -136,7 +136,9 @@ export function useGitHubStarCount(repo: string) {
         };
 
         requestAnimationFrame(tick);
-        return () => { cancelled = true; };
+        return () => {
+          cancelled = true;
+        };
       })
       .catch(() => {});
   }, [repo]);
@@ -148,7 +150,12 @@ export function GitHubIcon() {
   return (
     <div className="overflow-clip relative shrink-0 size-5">
       <div className="absolute inset-[1.67%_1.67%_4.05%_1.67%]">
-        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.3333 18.8561">
+        <svg
+          className="absolute block size-full"
+          fill="none"
+          preserveAspectRatio="none"
+          viewBox="0 0 19.3333 18.8561"
+        >
           <path d={svgPaths.p294daf00} fill="black" stroke="black" />
         </svg>
       </div>
@@ -156,7 +163,13 @@ export function GitHubIcon() {
   );
 }
 
-export function StarCountBadge({ count, isHighlighted }: { count: number; isHighlighted: boolean }) {
+export function StarCountBadge({
+  count,
+  isHighlighted,
+}: {
+  count: number;
+  isHighlighted: boolean;
+}) {
   return (
     <div
       className="rounded-full h-7 flex items-center justify-center px-2 transition-colors duration-200"
