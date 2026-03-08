@@ -16,4 +16,7 @@ export type { D3RadialChartData, D3RadialChartProps } from "./D3RadialChart/type
 export { D3RadarChart } from "./D3RadarChart";
 export type { D3RadarChartData, D3RadarChartProps } from "./D3RadarChart/types";
 
+export { D3ScatterChart } from "./D3ScatterChart";
+export type { D3ScatterChartData, D3ScatterChartProps } from "./D3ScatterChart/types";
+
 export type { BaseChartProps, ChartData, LegendItem, XAxisTickVariant } from "./types";

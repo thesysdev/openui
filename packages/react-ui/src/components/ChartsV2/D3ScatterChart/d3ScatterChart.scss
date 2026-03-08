@@ -1,0 +1,53 @@
+@use "../../../cssUtils" as cssUtils;
+
+.openui-d3-scatter-chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.openui-d3-scatter-chart-grid line {
+  stroke: cssUtils.$border-default;
+  stroke-dasharray: 3 3;
+}
+
+.openui-d3-scatter-chart-grid-vertical line {
+  stroke: cssUtils.$border-default;
+  stroke-dasharray: 3 3;
+}
+
+.openui-d3-scatter-chart-y-tick {
+  @include cssUtils.typography(label, extra-small);
+  fill: cssUtils.$text-neutral-secondary;
+}
+
+.openui-d3-scatter-chart-x-tick {
+  @include cssUtils.typography(label, extra-small);
+  fill: cssUtils.$text-neutral-secondary;
+}
+
+.openui-d3-scatter-chart-dot {
+  stroke: cssUtils.$foreground;
+  stroke-width: 1.5;
+  transition:
+    r 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.openui-d3-scatter-chart-dot--animated {
+  opacity: 0;
+  transform-origin: center center;
+  animation: openui-d3-scatter-dot-appear 0.4s ease-out forwards;
+}
+
+@keyframes openui-d3-scatter-dot-appear {
+  from {
+    opacity: 0;
+    r: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

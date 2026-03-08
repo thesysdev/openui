@@ -9,4 +9,5 @@ export * from "./useXAxisHeight";
 export * from "./useXBandScale";
 export * from "./useXScale";
 export * from "./useYAxisWidth";
+export * from "./useScatterChartOrchestrator";
 export * from "./useYScale";
