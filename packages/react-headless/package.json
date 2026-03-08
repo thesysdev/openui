@@ -20,13 +20,13 @@
   },
   "peerDependencies": {
     "eventsource-parser": "^3.0.0",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0",
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0",
     "tiny-invariant": "^1.3.3",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@types/react": ">=18.0.0",
+    "@types/react": ">=19.0.0",
     "openai": "^6.22.0",
     "vitest": "^4.0.18"
   },
