@@ -3,7 +3,9 @@ title: FullScreen
 description: The full-page, ChatGPT-style chat layout.
 ---
 
-`FullScreen` renders a complete chat experience, including thread list and message area.
+`FullScreen` provides a full-page chat layout with the built-in thread list and main conversation area.
+
+This page covers the complete built-in layout. For a sidebar inside an existing app screen, see [Copilot](/docs/chat/copilot). For a floating widget, see [BottomTray](/docs/chat/bottom-tray).
 
 ```tsx
 import { FullScreen } from "@openuidev/react-ui";
@@ -17,7 +19,9 @@ export function App() {
 }
 ```
 
-### Common configuration
+{/* add visual: image showing the FullScreen layout with sidebar, thread list, and main conversation area */}
+
+## Common configuration
 
 ```tsx
 <FullScreen
@@ -28,13 +32,24 @@ export function App() {
 />
 ```
 
-### Related guides
+`FullScreen` is the best starting point for end-to-end setup because it exercises both the message surface and thread UI. See the [End-to-End Guide](/docs/chat/from-scratch) if you want to wire the whole flow manually.
+
+## Related guides
 
 <Cards>
   <Card title="Connecting to LLM" href="/docs/chat/connecting">
     Configure endpoint, streaming adapters, and auth.
   </Card>
-  <Card title="Persistence (Threads)" href="/docs/chat/persistence">
-    Configure thread storage and loading.
+  <Card title="Connect Thread History" href="/docs/chat/persistence">
+    Load thread lists and message history from your backend.
+  </Card>
+  <Card title="Welcome & Starters" href="/docs/chat/welcome">
+    Customize the empty-state experience.
+  </Card>
+  <Card title="Theming" href="/docs/chat/theming">
+    Control colors, mode, and theme overrides.
+  </Card>
+  <Card title="Custom Chat Components" href="/docs/chat/custom-chat-components">
+    Override the built-in composer and message rendering.
   </Card>
 </Cards>

@@ -3,4 +3,69 @@ title: Theming
 description: Customize colors, typography, and branding for Chat components.
 ---
 
-Coming soon.
+Built-in chat layouts mount their own `ThemeProvider` by default. Use the `theme` prop to control mode and token overrides, or disable the built-in provider if your app already wraps the UI in its own theme scope.
+
+There are two common theming paths:
+
+- set `theme.mode` when you only need light or dark mode
+- pass `lightTheme` and `darkTheme` when you need token-level visual customization
+
+## Set the mode
+
+```tsx
+import { FullScreen } from "@openuidev/react-ui";
+
+<FullScreen
+  apiUrl="/api/chat"
+  theme={{ mode: "dark" }}
+  agentName="Assistant"
+/>;
+```
+
+## Override theme tokens
+
+Use `lightTheme` and `darkTheme` inside the `theme` prop to override the built-in token sets.
+
+```tsx
+import { FullScreen, createTheme } from "@openuidev/react-ui";
+
+<FullScreen
+  apiUrl="/api/chat"
+  theme={{
+    mode: "dark",
+    lightTheme: createTheme({
+      interactiveAccentDefault: "oklch(0.62 0.22 260)",
+    }),
+    darkTheme: createTheme({
+      interactiveAccentDefault: "oklch(0.72 0.18 260)",
+    }),
+  }}
+  agentName="Assistant"
+/>;
+```
+
+If you only pass `lightTheme`, those overrides are also used as the fallback for dark mode.
+
+## Use your own app-level theme provider
+
+If your app already wraps the page in `ThemeProvider`, disable the built-in wrapper on the chat layout.
+
+```tsx
+import { FullScreen } from "@openuidev/react-ui";
+
+<FullScreen
+  apiUrl="/api/chat"
+  disableThemeProvider
+  agentName="Assistant"
+/>;
+```
+
+`disableThemeProvider` only skips the wrapper. It does not remove any chat functionality.
+
+{/* add visual: image showing the default chat theme beside a custom dark theme override */}
+
+## Related guides
+
+- [FullScreen](/docs/chat/fullscreen)
+- [Copilot](/docs/chat/copilot)
+- [BottomTray](/docs/chat/bottom-tray)

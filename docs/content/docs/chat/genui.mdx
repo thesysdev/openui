@@ -3,71 +3,104 @@ title: GenUI
 description: Use Generative UI with Chat components.
 ---
 
-OpenUI Chat components support **GenUI** out of the box.
+GenUI lets assistant messages render structured UI instead of plain text. To make it work, you need both sides of the setup:
 
-If your backend streams OpenUI Lang responses and provides a component library prompt, chat messages can render rich UI (cards, charts, forms, layouts) directly in the conversation.
+- `componentLibrary` on the frontend so OpenUI knows how to render components
+- a generated `systemPrompt` in the request so the model knows what it is allowed to emit
 
-## Two ways to enable GenUI
+Passing `componentLibrary` alone is not enough.
 
-### 1) Use `defaultLibrary` from `react-ui` (recommended)
+The frontend and backend have different jobs here:
 
-This is the fastest path and the one used in the OpenUI Lang quick start.
+- the frontend renders structured responses through `componentLibrary`
+- the backend sends the generated `systemPrompt` to the model with each request
 
-- Import `defaultLibrary` from `@openuidev/react-ui`
-- Pass it to the chat component via `componentLibrary`
-- Use the generated system prompt on your backend so the model knows what components it can emit
+If either side is missing, the model falls back to plain text or emits components the UI cannot render.
 
-`defaultLibrary` includes 40+ ready-to-use components and examples, so you can ship quickly without defining schemas first.
+## Use the default library
+
+`defaultLibrary` is the fastest way to enable GenUI because it ships with ready-to-use components and example prompt rules.
 
 ```tsx
-import { Copilot } from "@openuidev/react-ui";
-import { defaultLibrary } from "@openuidev/react-ui";
+import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
+import { FullScreen } from "@openuidev/react-ui";
+import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui/genui-lib";
 
-export function App() {
-  return <Copilot apiUrl="/api/chat" componentLibrary={defaultLibrary} />;
+const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+
+export default function Page() {
+  return (
+    <FullScreen
+      processMessage={async ({ messages, abortController }) => {
+        return fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages,
+            systemPrompt,
+          }),
+          signal: abortController.signal,
+        });
+      }}
+      messageFormat={openAIMessageFormat}
+      streamProtocol={openAIReadableStreamAdapter()}
+      componentLibrary={defaultLibrary}
+      agentName="Assistant"
+    />
+  );
 }
 ```
 
-### 2) Create your own custom library
+In this setup:
 
-If you need domain-specific components, define your own library and pass it as `componentLibrary`.
+- `defaultLibrary.prompt(defaultPromptOptions)` creates the system prompt
+- `systemPrompt` is sent with every request
+- `messageFormat={openAIMessageFormat}` converts messages to the backend format
+- `componentLibrary={defaultLibrary}` tells the UI how to render the model output
 
-See [Define Components](/docs/openui-lang/defining-components) for the full setup.
+This is the minimal complete pattern for GenUI with the built-in library.
 
-```tsx
-import { Copilot } from "@openuidev/react-ui";
-import { myLibrary } from "@/lib/my-library";
+{/* add visual: image showing the difference between a plain text assistant response and a GenUI-rendered component response */}
 
-export function App() {
-  return <Copilot apiUrl="/api/chat" componentLibrary={myLibrary} />;
-}
-```
+## Use your own library
 
-## Use the standard library with all chat layouts
-
-The same `defaultLibrary` works across all built-in chat UIs:
+If you need domain-specific components, keep the same request flow and swap in your own library definition:
 
 ```tsx
-import { Copilot, FullScreen, BottomTray, defaultLibrary } from "@openuidev/react-ui";
+import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
+import { FullScreen } from "@openuidev/react-ui";
+import { myLibrary, myPromptOptions } from "@/lib/my-library";
 
-<Copilot apiUrl="/api/chat" componentLibrary={defaultLibrary} />;
-<FullScreen apiUrl="/api/chat" componentLibrary={defaultLibrary} />;
-<BottomTray apiUrl="/api/chat" componentLibrary={defaultLibrary} />;
+const systemPrompt = myLibrary.prompt(myPromptOptions);
+
+<FullScreen
+  processMessage={async ({ messages, abortController }) => {
+    return fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages,
+        systemPrompt,
+      }),
+      signal: abortController.signal,
+    });
+  }}
+  messageFormat={openAIMessageFormat}
+  streamProtocol={openAIReadableStreamAdapter()}
+  componentLibrary={myLibrary}
+  agentName="Assistant"
+/>;
 ```
 
-### Related pages
+This example assumes `myLibrary` is already defined elsewhere in your app. The key rule is that your custom library still has to provide two things:
 
-<Cards>
-  <Card title="Copilot" href="/docs/chat/copilot">
-    Sidebar layout with GenUI enabled via `componentLibrary`.
-  </Card>
-  <Card title="FullScreen" href="/docs/chat/fullscreen">
-    Full-page chat layout with the same GenUI setup.
-  </Card>
-  <Card title="BottomTray" href="/docs/chat/bottom-tray">
-    Floating widget layout with standard library support.
-  </Card>
-  <Card title="Define Components" href="/docs/openui-lang/defining-components">
-    Build and use a custom library for domain-specific UI.
-  </Card>
-</Cards>
+- a prompt generator, so the backend can tell the model what components it may emit
+- component definitions, so the frontend can render those emitted components
+
+Your backend does not need a special GenUI endpoint. It only needs to receive the generated `systemPrompt` and pass it to the model alongside the message history.
+
+## Related guides
+
+- [End-to-End Guide](/docs/chat/from-scratch)
+- [Connecting to LLM](/docs/chat/connecting)
+- [Define Components](/docs/openui-lang/defining-components)
