@@ -45,18 +45,9 @@ $text-alert-inverted: var(--openui-text-alert-inverted, oklch(0.973 0.069 103.19
 $text-danger-primary: var(--openui-text-danger-primary, oklch(0.505 0.19 27.518 / 1));
 $text-danger-secondary: var(--openui-text-danger-secondary, oklch(0.711 0.166 22.216 / 1));
 $text-danger-tertiary: var(--openui-text-danger-tertiary, oklch(0.808 0.103 19.571 / 1));
-$text-danger-inverted-primary: var(
-  --openui-text-danger-inverted-primary,
-  oklch(0.982 0.009 17.303 / 1)
-);
-$text-danger-inverted-secondary: var(
-  --openui-text-danger-inverted-secondary,
-  oklch(0.982 0.009 17.303 / 0.5)
-);
-$text-danger-inverted-tertiary: var(
-  --openui-text-danger-inverted-tertiary,
-  oklch(0.982 0.009 17.303 / 0.3)
-);
+$text-danger-inverted-primary: var(--openui-text-danger-inverted-primary, oklch(0.982 0.009 17.303 / 1));
+$text-danger-inverted-secondary: var(--openui-text-danger-inverted-secondary, oklch(0.982 0.009 17.303 / 0.5));
+$text-danger-inverted-tertiary: var(--openui-text-danger-inverted-tertiary, oklch(0.982 0.009 17.303 / 0.3));
 $text-info-primary: var(--openui-text-info-primary, oklch(0.424 0.181 265.638 / 1));
 $text-info-inverted: var(--openui-text-info-inverted, oklch(0.932 0.032 255.585 / 1));
 $text-pink-primary: var(--openui-text-pink-primary, oklch(0.459 0.17 3.815 / 1));
@@ -70,38 +61,14 @@ $interactive-accent-default: var(--openui-interactive-accent-default, oklch(0.09
 $interactive-accent-hover: var(--openui-interactive-accent-hover, oklch(0.097 0 0 / 0.8));
 $interactive-accent-disabled: var(--openui-interactive-accent-disabled, oklch(0.097 0 0 / 0.4));
 $interactive-accent-pressed: var(--openui-interactive-accent-pressed, oklch(0.097 0 0 / 1));
-$interactive-destructive-default: var(
-  --openui-interactive-destructive-default,
-  oklch(0.577 0.215 27.325 / 0.02)
-);
-$interactive-destructive-hover: var(
-  --openui-interactive-destructive-hover,
-  oklch(0.577 0.215 27.325 / 0.08)
-);
-$interactive-destructive-disabled: var(
-  --openui-interactive-destructive-disabled,
-  oklch(0.577 0.215 27.325 / 0.02)
-);
-$interactive-destructive-pressed: var(
-  --openui-interactive-destructive-pressed,
-  oklch(0.577 0.215 27.325 / 0.1)
-);
-$interactive-destructive-accent-default: var(
-  --openui-interactive-destructive-accent-default,
-  oklch(0.577 0.215 27.325 / 1)
-);
-$interactive-destructive-accent-hover: var(
-  --openui-interactive-destructive-accent-hover,
-  oklch(0.637 0.208 25.331 / 1)
-);
-$interactive-destructive-accent-pressed: var(
-  --openui-interactive-destructive-accent-pressed,
-  oklch(0.505 0.19 27.518 / 1)
-);
-$interactive-destructive-accent-disabled: var(
-  --openui-interactive-destructive-accent-disabled,
-  oklch(0.577 0.215 27.325 / 0.4)
-);
+$interactive-destructive-default: var(--openui-interactive-destructive-default, oklch(0.577 0.215 27.325 / 0.02));
+$interactive-destructive-hover: var(--openui-interactive-destructive-hover, oklch(0.577 0.215 27.325 / 0.08));
+$interactive-destructive-disabled: var(--openui-interactive-destructive-disabled, oklch(0.577 0.215 27.325 / 0.02));
+$interactive-destructive-pressed: var(--openui-interactive-destructive-pressed, oklch(0.577 0.215 27.325 / 0.1));
+$interactive-destructive-accent-default: var(--openui-interactive-destructive-accent-default, oklch(0.577 0.215 27.325 / 1));
+$interactive-destructive-accent-hover: var(--openui-interactive-destructive-accent-hover, oklch(0.637 0.208 25.331 / 1));
+$interactive-destructive-accent-pressed: var(--openui-interactive-destructive-accent-pressed, oklch(0.505 0.19 27.518 / 1));
+$interactive-destructive-accent-disabled: var(--openui-interactive-destructive-accent-disabled, oklch(0.577 0.215 27.325 / 0.4));
 
 // Chat Colors
 
@@ -225,11 +192,7 @@ $text-label-sm-heavy: var(--openui-text-label-sm-heavy, 500 14px/1.25 "Inter", s
 $text-label-sm-heavy-letter-spacing: var(--openui-text-label-sm-heavy-letter-spacing, 0);
 $text-label-default: var(--openui-text-label-default, 400 16px/1.25 "Inter", sans-serif);
 $text-label-default-letter-spacing: var(--openui-text-label-default-letter-spacing, 0);
-$text-label-default-heavy: var(
-  --openui-text-label-default-heavy,
-  500 16px/1.25 "Inter",
-  sans-serif
-);
+$text-label-default-heavy: var(--openui-text-label-default-heavy, 500 16px/1.25 "Inter", sans-serif);
 $text-label-default-heavy-letter-spacing: var(--openui-text-label-default-heavy-letter-spacing, 0);
 $text-label-lg: var(--openui-text-label-lg, 400 18px/1.25 "Inter", sans-serif);
 $text-label-lg-letter-spacing: var(--openui-text-label-lg-letter-spacing, 0);
@@ -245,76 +208,30 @@ $text-numbers-sm-heavy: var(--openui-text-numbers-sm-heavy, 500 14px/1.5 "Inter"
 $text-numbers-sm-heavy-letter-spacing: var(--openui-text-numbers-sm-heavy-letter-spacing, 0);
 $text-numbers-default: var(--openui-text-numbers-default, 400 16px/1.5 "Inter", sans-serif);
 $text-numbers-default-letter-spacing: var(--openui-text-numbers-default-letter-spacing, 0);
-$text-numbers-default-heavy: var(
-  --openui-text-numbers-default-heavy,
-  500 16px/1.5 "Inter",
-  sans-serif
-);
-$text-numbers-default-heavy-letter-spacing: var(
-  --openui-text-numbers-default-heavy-letter-spacing,
-  0
-);
+$text-numbers-default-heavy: var(--openui-text-numbers-default-heavy, 500 16px/1.5 "Inter", sans-serif);
+$text-numbers-default-heavy-letter-spacing: var(--openui-text-numbers-default-heavy-letter-spacing, 0);
 $text-numbers-lg: var(--openui-text-numbers-lg, 400 18px/1.5 "Inter", sans-serif);
 $text-numbers-lg-letter-spacing: var(--openui-text-numbers-lg-letter-spacing, 0);
 $text-numbers-lg-heavy: var(--openui-text-numbers-lg-heavy, 500 18px/1.5 "Inter", sans-serif);
 $text-numbers-lg-heavy-letter-spacing: var(--openui-text-numbers-lg-heavy-letter-spacing, 0);
 $text-code-sm: var(--openui-text-code-sm, 400 12px/1.5 "SFMono-Regular", Menlo, monospace);
 $text-code-sm-letter-spacing: var(--openui-text-code-sm-letter-spacing, 0);
-$text-code-sm-heavy: var(
-  --openui-text-code-sm-heavy,
-  700 12px/1.5 "SFMono-Regular",
-  Menlo,
-  monospace
-);
+$text-code-sm-heavy: var(--openui-text-code-sm-heavy, 700 12px/1.5 "SFMono-Regular", Menlo, monospace);
 $text-code-sm-heavy-letter-spacing: var(--openui-text-code-sm-heavy-letter-spacing, 0);
-$text-code-default: var(
-  --openui-text-code-default,
-  400 14px/1.5 "SFMono-Regular",
-  Menlo,
-  monospace
-);
+$text-code-default: var(--openui-text-code-default, 400 14px/1.5 "SFMono-Regular", Menlo, monospace);
 $text-code-default-letter-spacing: var(--openui-text-code-default-letter-spacing, 0);
-$text-code-default-heavy: var(
-  --openui-text-code-default-heavy,
-  700 14px/1.5 "SFMono-Regular",
-  Menlo,
-  monospace
-);
+$text-code-default-heavy: var(--openui-text-code-default-heavy, 700 14px/1.5 "SFMono-Regular", Menlo, monospace);
 $text-code-default-heavy-letter-spacing: var(--openui-text-code-default-heavy-letter-spacing, 0);
 
 // Shadows
 
 $shadow-0: var(--openui-shadow-0, none);
-$shadow-s: var(
-  --openui-shadow-s,
-  0 1px 3px -2px oklch(0 0 0 / 0.02),
-  0 2px 5px -2px oklch(0 0 0 / 0.04)
-);
-$shadow-m: var(
-  --openui-shadow-m,
-  0 4px 6px -2px oklch(0 0 0 / 0.025),
-  0 2px 2px -2px oklch(0 0 0 / 0.05)
-);
-$shadow-l: var(
-  --openui-shadow-l,
-  0 4px 4px -2px oklch(0 0 0 / 0.05),
-  0 4px 8px -2px oklch(0 0 0 / 0.04)
-);
-$shadow-xl: var(
-  --openui-shadow-xl,
-  0 8px 16px -4px oklch(0 0 0 / 0.08),
-  0 16px 32px -6px oklch(0 0 0 / 0.12)
-);
-$shadow-2xl: var(
-  --openui-shadow-2xl,
-  0 12px 24px -6px oklch(0 0 0 / 0.12),
-  0 24px 48px -8px oklch(0 0 0 / 0.16)
-);
-$shadow-3xl: var(
-  --openui-shadow-3xl,
-  0 16px 32px -8px oklch(0 0 0 / 0.16),
-  0 32px 64px -12px oklch(0 0 0 / 0.22)
-);
+$shadow-s: var(--openui-shadow-s, 0 1px 3px -2px oklch(0 0 0 / 0.02), 0 2px 5px -2px oklch(0 0 0 / 0.04));
+$shadow-m: var(--openui-shadow-m, 0 4px 6px -2px oklch(0 0 0 / 0.025), 0 2px 2px -2px oklch(0 0 0 / 0.05));
+$shadow-l: var(--openui-shadow-l, 0 4px 4px -2px oklch(0 0 0 / 0.05), 0 4px 8px -2px oklch(0 0 0 / 0.04));
+$shadow-xl: var(--openui-shadow-xl, 0 8px 16px -4px oklch(0 0 0 / 0.08), 0 16px 32px -6px oklch(0 0 0 / 0.12));
+$shadow-2xl: var(--openui-shadow-2xl, 0 12px 24px -6px oklch(0 0 0 / 0.12), 0 24px 48px -8px oklch(0 0 0 / 0.16));
+$shadow-3xl: var(--openui-shadow-3xl, 0 16px 32px -8px oklch(0 0 0 / 0.16), 0 32px 64px -12px oklch(0 0 0 / 0.22));
 
 $chat-container-bg: $background;
 
