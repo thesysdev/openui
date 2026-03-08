@@ -6,9 +6,8 @@ description: Add OpenUI Chat to your existing React application.
 Add OpenUI Chat to your existing React application.
 
 <Callout type="info">
-  **Starting a new project?**
-  Skip this guide and use our scaffold command instead:
-  `npx create-openui-chat my-app`
+  **Starting a new project?** Skip this guide and use our scaffold command instead: `npx
+  create-openui-chat my-app`
 </Callout>
 
 ### 1. Install Dependencies
@@ -17,24 +16,16 @@ Install the UI package and the headless core. We also recommend `lucide-react` f
 
 <Tabs items={["npm", "pnpm", "yarn", "bun"]}>
   <Tab value="npm">
-    ```bash
-    npm install @openuidev/react-ui @openuidev/react-headless lucide-react
-    ```
+    ```bash npm install @openuidev/react-ui @openuidev/react-headless lucide-react ```
   </Tab>
   <Tab value="pnpm">
-    ```bash
-    pnpm add @openuidev/react-ui @openuidev/react-headless lucide-react
-    ```
+    ```bash pnpm add @openuidev/react-ui @openuidev/react-headless lucide-react ```
   </Tab>
   <Tab value="yarn">
-    ```bash
-    yarn add @openuidev/react-ui @openuidev/react-headless lucide-react
-    ```
+    ```bash yarn add @openuidev/react-ui @openuidev/react-headless lucide-react ```
   </Tab>
   <Tab value="bun">
-    ```bash
-    bun add @openuidev/react-ui @openuidev/react-headless lucide-react
-    ```
+    ```bash bun add @openuidev/react-ui @openuidev/react-headless lucide-react ```
   </Tab>
 </Tabs>
 
@@ -57,7 +48,6 @@ export default function RootLayout({ children }) {
 }
 ```
 
-
 ### 3. Render chat component on a page
 
 Render a basic `Copilot` component to ensure everything is working.
@@ -74,10 +64,7 @@ export default function Page() {
       </main>
 
       {/* The Chat Sidebar */}
-      <Copilot
-        apiUrl="/api/chat"
-        agentName="Assistant"
-      />
+      <Copilot apiUrl="/api/chat" agentName="Assistant" />
     </div>
   );
 }
@@ -92,7 +79,7 @@ import { NextRequest } from "next/server";
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(req: NextRequest) {
@@ -127,7 +114,6 @@ export async function POST(req: NextRequest) {
   }
 }
 ```
-
 
 ### Next Steps
 

@@ -2,13 +2,13 @@
 
 import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
 import {
-  Tag,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
+  Tag,
 } from "@openuidev/react-ui";
 
 function TablePreview() {

@@ -1,116 +1,60 @@
 ---
 title: Using the Standard Library
-description: Learn how to use the pre-built OpenUI Standard Library.
+description: Use the built-in default library from @openuidev/react-ui.
 ---
 
-# Using the Standard Library
+OpenUI ships with a prebuilt `defaultLibrary` for common layouts, forms, content, and charts.
 
-OpenUI comes with a **"Batteries Included"** Standard Library containing 40+ pre-built components (Charts, Forms, Layouts). This is the fastest way to get started.
-
-### Installation
-
-The standard library is part of the `react-ui` package, but the logic lives in `react-headless`.
+## Install
 
 ```bash
-npm install @openuidev/react-ui @openuidev/react-headless
+npm install @openuidev/lang-react @openuidev/react-ui
 ```
 
-### Usage
-
-You don't need to define any schemas. Just import `standardLibrary` and pass it to the Renderer.
+## Render with default library
 
 ```tsx
-import { Renderer } from '@openuidev/react-headless';
-import { standardLibrary } from '@openuidev/react-ui';
+import "@openuidev/react-ui/components.css";
+import { Renderer } from "@openuidev/lang-react";
+import { defaultLibrary } from "@openuidev/react-ui";
 
-// In your chat component
-<Renderer 
-  library={standardLibrary} 
-  text={streamedText} 
-/>
+<Renderer library={defaultLibrary} response={streamedText} isStreaming={isStreaming} />;
 ```
 
-### Generating the Prompt
+## Generate prompt
 
-To make the LLM "aware" of these components, you need to inject the system prompt. The standard library comes with a pre-generated prompt and examples.
+```ts
+import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui";
 
-```typescript
-// app/api/chat/route.ts
-import { standardLibrary } from '@openuidev/react-ui';
-
-export async function POST(req: Request) {
-  // 1. Get the system prompt
-  const systemPrompt = standardLibrary.prompt({
-    includeExamples: true // Adds "Show me a chart" -> "BarChart(...)" examples
-  });
-
-  // 2. Send to LLM
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      { role: "system", content: systemPrompt },
-      ...req.body.messages
-    ],
-    stream: true
-  });
-  
-  // ... handle stream
-}
+const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
 ```
 
-### What's Included?
+## Extend it
 
-The Standard Library covers most common UI patterns:
+```ts
+import { createLibrary, defineComponent } from "@openuidev/lang-react";
+import { defaultLibrary } from "@openuidev/react-ui";
+import { z } from "zod";
 
-<div className="grid md:grid-cols-2 gap-4 my-6">
-  <div className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
-    **📊 Data Visualization**
-    BarChart, LineChart, PieChart, ScatterPlot, StatsCard.
-  </div>
-  <div className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
-    **📝 Forms & Inputs**
-    Form, Input, Select, DatePicker, Slider, Toggle.
-  </div>
-  <div className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
-    **📐 Layouts**
-    Section, Tabs, Accordion, Steps, Card.
-  </div>
-  <div className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
-    **⚡️ Actions**
-    Button, ButtonGroup, Link, Tooltip.
-  </div>
-</div>
-
-<Callout type="info">
-  **View the Gallery:** Check out the [Component Library](/docs/components) tab to see visual examples and props for every component.
-</Callout>
-
-### Extending the Library
-
-Ideally, you want to mix the Standard Library with your own domain-specific components (e.g., a `ProductCard` or `FlightTicket`).
-
-You can merge libraries easily:
-
-```typescript
-import { createLibrary } from '@openuidev/react-headless';
-import { standardLibrary } from '@openuidev/react-ui';
+const ProductCard = defineComponent({
+  name: "ProductCard",
+  description: "Product tile",
+  props: z.object({
+    name: z.string(),
+    price: z.number(),
+  }),
+  component: ({ props }) => <div>{props.name}: ${props.price}</div>,
+});
 
 const myLibrary = createLibrary({
-  name: "Hybrid Library",
-  // Merge standard components with your own
-  components: {
-    ...standardLibrary.components,
-    // Your custom components go here
-  }
+  root: defaultLibrary.root ?? "Stack",
+  componentGroups: defaultLibrary.componentGroups,
+  components: [...Object.values(defaultLibrary.components), ProductCard],
 });
 ```
 
-### Next Steps
+## Notes
 
-Ready to build your own custom components?
-
-<Cards>
-  <Card title="Defining Components" href="/docs/openui-lang/defining-components">
-    Learn how to build custom components using Zod.
-  </Card>
-</Cards>
+- Default root component is `Stack`.
+- `Form` requires explicit `buttons`.
+- Signature truth source is `defaultLibrary.prompt(defaultPromptOptions)`.

@@ -1,5 +1,5 @@
-import styles from "./PreviewLayout.module.css";
 import type { ThemeMode } from "@design-system/types";
+import styles from "./PreviewLayout.module.css";
 
 interface PreviewThemeToggleProps {
   value: ThemeMode;

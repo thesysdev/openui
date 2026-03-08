@@ -51,6 +51,7 @@ Use the `composer` prop to replace the built-in message input with your own comp
       );
     }
     ```
+
   </Tab>
   <Tab value="FullScreen">
     ```tsx
@@ -95,6 +96,7 @@ Use the `composer` prop to replace the built-in message input with your own comp
       );
     }
     ```
+
   </Tab>
   <Tab value="BottomTray">
     ```tsx
@@ -139,6 +141,7 @@ Use the `composer` prop to replace the built-in message input with your own comp
       );
     }
     ```
+
   </Tab>
 </Tabs>
 
@@ -146,12 +149,12 @@ Use the `composer` prop to replace the built-in message input with your own comp
 
 OpenUI passes these props to your custom composer component:
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `onSend` | `(message: string) => void` | Call this with the user's input to send a message |
-| `onCancel` | `() => void` | Cancel the in-progress response |
-| `isRunning` | `boolean` | `true` while the assistant is streaming a response |
-| `isLoadingMessages` | `boolean` | `true` while conversation history is being loaded |
+| Prop                | Type                        | Description                                        |
+| ------------------- | --------------------------- | -------------------------------------------------- |
+| `onSend`            | `(message: string) => void` | Call this with the user's input to send a message  |
+| `onCancel`          | `() => void`                | Cancel the in-progress response                    |
+| `isRunning`         | `boolean`                   | `true` while the assistant is streaming a response |
+| `isLoadingMessages` | `boolean`                   | `true` while conversation history is being loaded  |
 
 ```typescript
 type ComposerProps = {
@@ -188,6 +191,7 @@ By default, OpenUI renders assistant messages as [GenUI](/docs/chat/genui) compo
       );
     }
     ```
+
   </Tab>
   <Tab value="FullScreen">
     ```tsx
@@ -208,6 +212,7 @@ By default, OpenUI renders assistant messages as [GenUI](/docs/chat/genui) compo
       );
     }
     ```
+
   </Tab>
   <Tab value="BottomTray">
     ```tsx
@@ -228,6 +233,7 @@ By default, OpenUI renders assistant messages as [GenUI](/docs/chat/genui) compo
       );
     }
     ```
+
   </Tab>
 </Tabs>
 
@@ -282,6 +288,7 @@ By default, OpenUI renders user messages as plain text bubbles. Use the `userMes
       );
     }
     ```
+
   </Tab>
   <Tab value="FullScreen">
     ```tsx
@@ -305,6 +312,7 @@ By default, OpenUI renders user messages as plain text bubbles. Use the `userMes
       );
     }
     ```
+
   </Tab>
   <Tab value="BottomTray">
     ```tsx
@@ -328,6 +336,7 @@ By default, OpenUI renders user messages as plain text bubbles. Use the `userMes
       );
     }
     ```
+
   </Tab>
 </Tabs>
 

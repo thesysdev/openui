@@ -24,6 +24,7 @@ The simplest approach — pass a base URL and OpenUI handles the rest:
       );
     }
     ```
+
   </Tab>
   <Tab value="FullScreen">
     ```tsx
@@ -39,6 +40,7 @@ The simplest approach — pass a base URL and OpenUI handles the rest:
       );
     }
     ```
+
   </Tab>
   <Tab value="BottomTray">
     ```tsx
@@ -54,18 +56,19 @@ The simplest approach — pass a base URL and OpenUI handles the rest:
       );
     }
     ```
+
   </Tab>
 </Tabs>
 
 OpenUI expects the following endpoints at your `threadApiUrl`:
 
-| Action | Method | URL | Body | Response |
-|--------|--------|-----|------|----------|
-| List threads | `GET` | `/api/threads` | — | `{ threads: Thread[], nextCursor?: any }` |
-| Create thread | `POST` | `/api/threads` | `{ firstMessage }` | `Thread` |
-| Delete thread | `DELETE` | `/api/threads/:id` | — | — |
-| Update thread | `PUT` | `/api/threads/:id` | `Thread` | `Thread` |
-| Load messages | `GET` | `/api/threads/:id/messages` | — | `Message[]` |
+| Action        | Method   | URL                         | Body               | Response                                  |
+| ------------- | -------- | --------------------------- | ------------------ | ----------------------------------------- |
+| List threads  | `GET`    | `/api/threads`              | —                  | `{ threads: Thread[], nextCursor?: any }` |
+| Create thread | `POST`   | `/api/threads`              | `{ firstMessage }` | `Thread`                                  |
+| Delete thread | `DELETE` | `/api/threads/:id`          | —                  | —                                         |
+| Update thread | `PUT`    | `/api/threads/:id`          | `Thread`           | `Thread`                                  |
+| Load messages | `GET`    | `/api/threads/:id/messages` | —                  | `Message[]`                               |
 
 A `Thread` object looks like:
 
@@ -123,6 +126,7 @@ If your API doesn't follow the REST pattern above — for example, you need auth
       );
     }
     ```
+
   </Tab>
   <Tab value="FullScreen">
     ```tsx
@@ -163,6 +167,7 @@ If your API doesn't follow the REST pattern above — for example, you need auth
       );
     }
     ```
+
   </Tab>
   <Tab value="BottomTray">
     ```tsx
@@ -203,15 +208,16 @@ If your API doesn't follow the REST pattern above — for example, you need auth
       );
     }
     ```
+
   </Tab>
 </Tabs>
 
 ### Function reference
 
-| Function | Signature | Purpose |
-|----------|-----------|---------|
-| `fetchThreadList` | `(cursor?) => Promise<{ threads: Thread[]; nextCursor? }>` | Load the list of conversations (supports pagination via cursor) |
-| `createThread` | `(firstMessage: UserMessage) => Promise<Thread>` | Create a new conversation when the user sends their first message |
-| `deleteThread` | `(id: string) => Promise<void>` | Delete a conversation |
-| `updateThread` | `(thread: Thread) => Promise<Thread>` | Update a conversation (e.g. rename) |
-| `loadThread` | `(threadId: string) => Promise<Message[]>` | Load all messages for a conversation |
+| Function          | Signature                                                  | Purpose                                                           |
+| ----------------- | ---------------------------------------------------------- | ----------------------------------------------------------------- |
+| `fetchThreadList` | `(cursor?) => Promise<{ threads: Thread[]; nextCursor? }>` | Load the list of conversations (supports pagination via cursor)   |
+| `createThread`    | `(firstMessage: UserMessage) => Promise<Thread>`           | Create a new conversation when the user sends their first message |
+| `deleteThread`    | `(id: string) => Promise<void>`                            | Delete a conversation                                             |
+| `updateThread`    | `(thread: Thread) => Promise<Thread>`                      | Update a conversation (e.g. rename)                               |
+| `loadThread`      | `(threadId: string) => Promise<Message[]>`                 | Load all messages for a conversation                              |

@@ -8,7 +8,9 @@
     "start": "next start",
     "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
     "postinstall": "fumadocs-mdx",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format:fix": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@openuidev/lang-react": "workspace:^",

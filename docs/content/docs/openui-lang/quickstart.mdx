@@ -1,117 +1,76 @@
 ---
 title: Quick Start
-description: Use the pre-built default library to render UI immediately.
+description: Use the default library to render OpenUI Lang immediately.
 ---
 
-OpenUI comes with a **"Batteries Included"** Default Library containing 40+ pre-built components (charts, forms, layouts). This is the fastest way to get started.
+This is the fastest path: use `defaultLibrary` from `@openuidev/react-ui` and render LLM output with `@openuidev/lang-react`.
 
-<Callout type="info">
-  Building a chat experience? Start with the [Chat](/docs/chat) section first. It includes the full chat flow plus OpenUI/GenUI integration.
-</Callout>
-
-### Installation
+## Installation
 
 ```bash
 npm install @openuidev/lang-react @openuidev/react-ui
 ```
 
-### Usage
-
-You do not need to define any schemas. Just import `defaultLibrary` and pass it to the renderer.
+## Render output
 
 ```tsx
-import '@openuidev/react-ui/styles.css';
-import { Renderer } from '@openuidev/lang-react';
-import { defaultLibrary } from '@openuidev/react-ui';
+import "@openuidev/react-ui/components.css";
+import { Renderer } from "@openuidev/lang-react";
+import { defaultLibrary } from "@openuidev/react-ui";
 
-// In your chat component
-<Renderer
-  library={defaultLibrary}
-  response={streamedText}
-/>
+<Renderer library={defaultLibrary} response={streamedText} isStreaming={isStreaming} />;
 ```
 
-### Generating the Prompt
+## Generate prompt
 
-To make the LLM aware of these components, inject the system prompt on your backend.
+```ts
+import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui";
 
-```typescript
-// app/api/chat/route.ts
-import { defaultLibrary } from '@openuidev/react-ui';
+const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+```
+
+Use `systemPrompt` as your model system message.
+
+## Backend example
+
+```ts
+import OpenAI from "openai";
+import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui";
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+  const response = await client.chat.completions.create({
+    model: "gpt-5.2",
+    stream: true,
     messages: [
-      { role: 'system', content: defaultLibrary.prompt() },
+      { role: "system", content: defaultLibrary.prompt(defaultPromptOptions) },
       ...messages,
     ],
-    stream: true,
   });
 
-  // ... handle stream
+  return new Response("stream here");
 }
 ```
 
-### What's Included?
+## Included component families
 
-The default library covers most common UI patterns:
+- Layout: `Stack`, `Tabs`, `Accordion`, `Steps`, `Carousel`
+- Content: `Card`, `CardHeader`, `TextContent`, `Callout`, `Image`, `CodeBlock`
+- Data: `Table`, `TagBlock`
+- Charts: `BarChart`, `LineChart`, `AreaChart`, `RadarChart`, `HorizontalBarChart`, `PieChart`, `RadialChart`, `SingleStackedBarChart`, `ScatterChart`
+- Forms: `Form`, `FormControl`, `Input`, `Select`, `DatePicker`, `Slider`
+- Actions: `Button`
 
-<div className="grid md:grid-cols-2 gap-4 my-6">
-  <div className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
-    **Data Visualization**
-    BarChart, LineChart, PieChart, ScatterPlot.
-  </div>
-  <div className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
-    **Forms & Inputs**
-    Form, Input, Select, DatePicker, Slider, Toggle.
-  </div>
-  <div className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
-    **Layouts**
-    Stack, Tabs, Accordion, Card.
-  </div>
-  <div className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
-    **Actions**
-    Button, ButtonGroup, RadioGroup.
-  </div>
-</div>
+## Next Steps
 
-<Callout type="info">
-  **View the Gallery:** Check out the [Component Library](/docs/components) tab to see visual examples and props for every component.
-</Callout>
-
-### Extending the Library
-
-As you grow, you can combine the default library with your own domain-specific components.
-
-```typescript
-import { defineComponent, createLibrary } from '@openuidev/lang-react';
-import { defaultLibrary } from '@openuidev/react-ui';
-import { z } from 'zod';
-
-const ProductCard = defineComponent({
-  name: 'ProductCard',
-  description: 'Displays a product with name, price, and image.',
-  props: z.object({
-    name: z.string(),
-    price: z.number(),
-    imageUrl: z.string().describe('URL of the product image'),
-  }),
-  component: ({ props }) => (
-    <div className="border rounded p-4">
-      <img src={props.imageUrl} alt={props.name} />
-      <div>{props.name}</div>
-      <div>${props.price}</div>
-    </div>
-  ),
-});
-
-const myLibrary = createLibrary({
-  components: [
-    ...Object.values(defaultLibrary.components),
-    ProductCard,
-  ],
-});
-```
+<Cards>
+  <Card title="Defining Components" href="/docs/openui-lang/defining-components">
+    Build custom component contracts.
+  </Card>
+  <Card title="Renderer" href="/docs/openui-lang/renderer">
+    Handle streaming and actions.
+  </Card>
+</Cards>

@@ -144,7 +144,7 @@ export const defaultComponentGroups: ComponentGroup[] = [
     notes: [
       "- For Form fields, define EACH FormControl as its own reference — do NOT inline all controls in one array. This allows progressive field-by-field streaming.",
       "- NEVER nest Form inside Form — each Form should be a standalone container.",
-      "- Form wraps fields with validation context and always renders a submit button if no buttons are provided",
+      "- Form requires explicit buttons. Always pass a Buttons(...) reference as the third Form argument.",
       '- rules is an optional array of validation strings: ["required", "email", "min:8", "maxLength:100"]',
       "- Available rules: required, email, min:N, max:N, minLength:N, maxLength:N, pattern:REGEX, url, numeric",
       "- The renderer shows error messages automatically — do NOT generate error text in the UI",
@@ -202,6 +202,7 @@ vueContent = [TextContent("Vue is a progressive framework by Evan You."), Callou
 export const defaultAdditionalRules: string[] = [
   'For grid-like layouts, use Stack with direction "row" and wrap=true. Avoid justify="between" unless you specifically want large gutters.',
   "For forms, define one FormControl reference per field so controls can stream progressively.",
+  "For forms, always provide the third Form argument with Buttons(...) actions.",
   "Never nest Form inside Form.",
 ];
 

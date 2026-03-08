@@ -1,5 +1,5 @@
-import styles from "./PreviewLayout.module.css";
 import type { HeadingLevel } from "@components/types";
+import styles from "./PreviewLayout.module.css";
 
 interface PreviewSectionHeaderProps {
   title?: string;

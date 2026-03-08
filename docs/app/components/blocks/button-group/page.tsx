@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
-import { SegmentedToggle } from "@components/components/preview";
+import {
+  BlockVariantPreview,
+  PreviewPage,
+  PreviewSection,
+  SegmentedToggle,
+} from "@components/components/preview";
 import {
   Button,
   Buttons,
@@ -13,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@openuidev/react-ui";
+import { useState } from "react";
 import styles from "./page.module.css";
 
 type ButtonType = "normal" | "destructive";
@@ -122,7 +126,10 @@ function ButtonControls({
       </div>
 
       <div className={styles.controlSection}>
-        <Select value={buttonVariant} onValueChange={(value) => onButtonVariantChange(value as ButtonVariant)}>
+        <Select
+          value={buttonVariant}
+          onValueChange={(value) => onButtonVariantChange(value as ButtonVariant)}
+        >
           <SelectTrigger size="md" style={{ width: "100%" }}>
             <SelectValue placeholder="Variant" />
           </SelectTrigger>

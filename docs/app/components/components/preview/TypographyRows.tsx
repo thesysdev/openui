@@ -1,6 +1,6 @@
+import type { TypographyRow } from "@components/types";
 import type { CSSProperties } from "react";
 import styles from "./PreviewLayout.module.css";
-import type { TypographyRow } from "@components/types";
 
 interface TypographyRowsProps {
   rows: TypographyRow[];

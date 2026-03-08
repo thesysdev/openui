@@ -15,17 +15,18 @@ import { FullScreen } from "@openuidev/react-ui";
 
 Expected endpoints under `/api/threads`:
 
-| Action | Method | URL |
-| :--- | :--- | :--- |
-| List threads | `GET` | `/api/threads` |
-| Create thread | `POST` | `/api/threads` |
-| Update thread | `PUT` | `/api/threads/:id` |
-| Delete thread | `DELETE` | `/api/threads/:id` |
-| Load messages | `GET` | `/api/threads/:id/messages` |
+| Action        | Method   | URL                         |
+| :------------ | :------- | :-------------------------- |
+| List threads  | `GET`    | `/api/threads`              |
+| Create thread | `POST`   | `/api/threads`              |
+| Update thread | `PUT`    | `/api/threads/:id`          |
+| Delete thread | `DELETE` | `/api/threads/:id`          |
+| Load messages | `GET`    | `/api/threads/:id/messages` |
 
 ### Custom functions
 
 If your API is non-REST or needs custom auth, pass:
+
 - `fetchThreadList`
 - `createThread`
 - `updateThread`

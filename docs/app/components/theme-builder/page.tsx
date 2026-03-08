@@ -1,14 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import dynamic from "next/dynamic";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@openuidev/react-ui";
+import { useAppTheme } from "@components/components/AppThemeProvider/AppThemeProvider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@openuidev/react-ui";
 import {
   ThemeProvider,
   swatch,
@@ -17,7 +10,8 @@ import {
   type NeutralSwatchName,
   type Theme,
 } from "@openuidev/react-ui/ThemeProvider";
-import { useAppTheme } from "@components/components/AppThemeProvider/AppThemeProvider";
+import dynamic from "next/dynamic";
+import { useMemo, useState } from "react";
 import styles from "./page.module.css";
 
 const RealBlocksCanvas = dynamic(
@@ -123,10 +117,10 @@ const RADIUS_PRESET_BASE: Record<RadiusScaleOption, number> = {
 
 const getBrandBaseShade = (brandSwatch: BrandSwatchName): 600 | 1000 =>
   brandSwatch === "neutral" ||
-    brandSwatch === "slate" ||
-    brandSwatch === "gray" ||
-    brandSwatch === "zinc" ||
-    brandSwatch === "stone"
+  brandSwatch === "slate" ||
+  brandSwatch === "gray" ||
+  brandSwatch === "zinc" ||
+  brandSwatch === "stone"
     ? 1000
     : 600;
 
@@ -212,7 +206,12 @@ function buildThemeOverrides({
         : swatch(baseColor, 1000)
       : swatch(accentColor, getBrandBaseShade(accentColor));
 
-  const accentText = accentColor === "neutral" ? (isDark ? swatch(baseColor, 1000) : swatch(baseColor, 25)) : swatch(baseColor, 25);
+  const accentText =
+    accentColor === "neutral"
+      ? isDark
+        ? swatch(baseColor, 1000)
+        : swatch(baseColor, 25)
+      : swatch(baseColor, 25);
 
   const spacingBase = 2 * SPACING_SCALE_MULTIPLIER[spacingScale];
   const radiusBase = RADIUS_PRESET_BASE[radiusScale];
@@ -290,7 +289,9 @@ export default function ThemeBuilderPage() {
         mode,
         baseColor,
         accentColor,
-        fontFamily: FONT_OPTIONS.find((option) => option.value === fontFamily)?.family ?? FONT_OPTIONS[0].family,
+        fontFamily:
+          FONT_OPTIONS.find((option) => option.value === fontFamily)?.family ??
+          FONT_OPTIONS[0].family,
         spacingScale,
         radiusScale,
       }),
@@ -314,7 +315,10 @@ export default function ThemeBuilderPage() {
 
           <div className={styles.controlsGroup}>
             <label className={styles.controlLabel}>Base color</label>
-            <Select value={baseColor} onValueChange={(value) => setBaseColor(value as NeutralSwatchName)}>
+            <Select
+              value={baseColor}
+              onValueChange={(value) => setBaseColor(value as NeutralSwatchName)}
+            >
               <SelectTrigger size="md" style={{ width: "100%" }}>
                 <SelectValue placeholder="Choose base color" />
               </SelectTrigger>
@@ -330,7 +334,10 @@ export default function ThemeBuilderPage() {
 
           <div className={styles.controlsGroup}>
             <label className={styles.controlLabel}>Accent</label>
-            <Select value={accentColor} onValueChange={(value) => setAccentColor(value as BrandSwatchName)}>
+            <Select
+              value={accentColor}
+              onValueChange={(value) => setAccentColor(value as BrandSwatchName)}
+            >
               <SelectTrigger size="md" style={{ width: "100%" }}>
                 <SelectValue placeholder="Choose accent color" />
               </SelectTrigger>
@@ -346,7 +353,10 @@ export default function ThemeBuilderPage() {
 
           <div className={styles.controlsGroup}>
             <label className={styles.controlLabel}>Font</label>
-            <Select value={fontFamily} onValueChange={(value) => setFontFamily(value as FontOption)}>
+            <Select
+              value={fontFamily}
+              onValueChange={(value) => setFontFamily(value as FontOption)}
+            >
               <SelectTrigger size="md" style={{ width: "100%" }}>
                 <SelectValue placeholder="Choose font" />
               </SelectTrigger>
@@ -381,7 +391,10 @@ export default function ThemeBuilderPage() {
 
           <div className={styles.controlsGroup}>
             <label className={styles.controlLabel}>Spacing</label>
-            <Select value={spacingScale} onValueChange={(value) => setSpacingScale(value as ScaleOption)}>
+            <Select
+              value={spacingScale}
+              onValueChange={(value) => setSpacingScale(value as ScaleOption)}
+            >
               <SelectTrigger size="md" style={{ width: "100%" }}>
                 <SelectValue placeholder="Choose spacing scale" />
               </SelectTrigger>

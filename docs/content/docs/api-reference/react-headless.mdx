@@ -1,6 +1,6 @@
 ---
 title: "@openuidev/react-headless"
-description: API reference for documented chat state, hooks, and streaming adapters.
+description: API reference for chat state, hooks, streaming adapters, and message types.
 ---
 
 Use this package when you want headless chat state + streaming, with or without prebuilt UI.
@@ -14,8 +14,14 @@ import {
   useThreadList,
   openAIAdapter,
   openAIResponsesAdapter,
+  openAIReadableStreamAdapter,
+  agUIAdapter,
   openAIMessageFormat,
   openAIConversationMessageFormat,
+  identityMessageFormat,
+  processStreamedMessage,
+  MessageProvider,
+  useMessage,
 } from "@openuidev/react-headless";
 ```
 
@@ -80,6 +86,16 @@ function useThreadList(): ThreadListState & ThreadListActions;
 function useThreadList<T>(selector: (state: ThreadListState & ThreadListActions) => T): T;
 ```
 
+## `useMessage()`
+
+Access the current message inside a message component.
+
+```ts
+function useMessage(): Message;
+```
+
+Provided via `MessageProvider` / `MessageContext`.
+
 ## Stream adapters
 
 Adapters referenced in integration guides:
@@ -87,6 +103,8 @@ Adapters referenced in integration guides:
 ```ts
 function openAIAdapter(): StreamProtocolAdapter; // OpenAI Chat Completions stream
 function openAIResponsesAdapter(): StreamProtocolAdapter; // OpenAI Responses stream
+function openAIReadableStreamAdapter(): StreamProtocolAdapter; // OpenAI ReadableStream
+function agUIAdapter(): StreamProtocolAdapter; // AG-UI protocol stream
 ```
 
 Related type:
@@ -104,6 +122,7 @@ Converters referenced in integration guides:
 ```ts
 const openAIMessageFormat: MessageFormat; // Chat Completions format
 const openAIConversationMessageFormat: MessageFormat; // Responses/Conversations item format
+const identityMessageFormat: MessageFormat; // Pass-through (no conversion)
 ```
 
 Base type:
@@ -114,3 +133,41 @@ interface MessageFormat {
   fromApi(data: unknown): Message[];
 }
 ```
+
+## Message types
+
+```ts
+type Message =
+  | UserMessage
+  | AssistantMessage
+  | SystemMessage
+  | DeveloperMessage
+  | ToolMessage
+  | ActivityMessage
+  | ReasoningMessage;
+```
+
+Key message shapes:
+
+```ts
+interface UserMessage {
+  role: "user";
+  id: string;
+  content: InputContent[];
+}
+
+interface AssistantMessage {
+  role: "assistant";
+  id: string;
+  content: string | null;
+  toolCalls?: ToolCall[];
+}
+```
+
+## Streaming utilities
+
+```ts
+function processStreamedMessage(/* ... */): Promise<void>;
+```
+
+Low-level utility for processing a streamed response outside of `ChatProvider`.

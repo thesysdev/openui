@@ -1,8 +1,8 @@
 "use client";
 
+import ClientOnly from "@components/blocks/_components/ClientOnly";
 import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
 import { BarChart, ScrollableBarChart } from "@openuidev/react-ui";
-import ClientOnly from "@components/blocks/_components/ClientOnly";
 
 const barData = [
   { month: "Jan", desktop: 150, mobile: 90 },

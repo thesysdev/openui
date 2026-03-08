@@ -11,13 +11,13 @@ This guide walks you through building that API step by step using Next.js.
 
 OpenUI expects five RESTful endpoints. When you pass `threadApiUrl="/api/threads"` to a chat component, it calls these automatically:
 
-| Action | Method | URL | Request body | Response |
-|--------|--------|-----|-------------|----------|
-| List threads | `GET` | `/api/threads` | — | `{ threads: Thread[], nextCursor?: any }` |
-| Create thread | `POST` | `/api/threads` | `{ firstMessage }` | `Thread` |
-| Delete thread | `DELETE` | `/api/threads/:id` | — | — |
-| Update thread | `PUT` | `/api/threads/:id` | `Thread` | `Thread` |
-| Load messages | `GET` | `/api/threads/:id/messages` | — | `Message[]` |
+| Action        | Method   | URL                         | Request body       | Response                                  |
+| ------------- | -------- | --------------------------- | ------------------ | ----------------------------------------- |
+| List threads  | `GET`    | `/api/threads`              | —                  | `{ threads: Thread[], nextCursor?: any }` |
+| Create thread | `POST`   | `/api/threads`              | `{ firstMessage }` | `Thread`                                  |
+| Delete thread | `DELETE` | `/api/threads/:id`          | —                  | —                                         |
+| Update thread | `PUT`    | `/api/threads/:id`          | `Thread`           | `Thread`                                  |
+| Load messages | `GET`    | `/api/threads/:id/messages` | —                  | `Message[]`                               |
 
 Every `Thread` object must have this shape:
 
@@ -37,11 +37,11 @@ Your backend can store messages in any format — OpenAI's `{ id, role, content 
 
 OpenUI ships with built-in converters for common formats:
 
-| Converter | Your backend stores messages as... |
-|-----------|-----------------------------------|
-| Default (AG-UI) | OpenUI's native format: `{ id, role, content, ... }` |
-| `openAIMessageFormat` | OpenAI chat completions: `{ id, role, content }` |
-| `openAIConversationMessageFormat` | OpenAI Responses API items list with id |
+| Converter                         | Your backend stores messages as...                   |
+| --------------------------------- | ---------------------------------------------------- |
+| Default (AG-UI)                   | OpenUI's native format: `{ id, role, content, ... }` |
+| `openAIMessageFormat`             | OpenAI chat completions: `{ id, role, content }`     |
+| `openAIConversationMessageFormat` | OpenAI Responses API items list with id              |
 
 If your backend uses a different shape, you can write a custom converter for Ag-UI:
 
@@ -57,7 +57,6 @@ const myCustomFormat: MessageFormat = {
   },
 };
 ```
-
 
 The examples below use `openAIMessageFormat`, so the message endpoints return and accept OpenAI's `{ role, content, id }` shape.
 
@@ -111,19 +110,13 @@ This file handles deleting and updating a specific thread:
 import { db } from "@/lib/db";
 
 // DELETE /api/threads/:id — Delete a thread
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   await db.threads.delete({ where: { id: params.id } });
   return new Response(null, { status: 204 });
 }
 
 // PUT /api/threads/:id — Update a thread (e.g. rename)
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
+export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const body = await req.json();
 
   const thread = await db.threads.update({
@@ -149,18 +142,13 @@ Since we're using `openAIMessageFormat`, we return messages as `{ role, content,
 import { db } from "@/lib/db";
 
 // GET /api/threads/:id/messages — Load message history
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   const messages = await db.messages.findMany({
     where: { threadId: params.id },
     orderBy: { createdAt: "asc" },
   });
 
-  return Response.json(
-    messages,
-  );
+  return Response.json(messages);
 }
 ```
 
@@ -186,6 +174,7 @@ Now that the backend is ready, point your chat component to it using `threadApiU
       );
     }
     ```
+
   </Tab>
   <Tab value="FullScreen">
     ```tsx
@@ -204,6 +193,7 @@ Now that the backend is ready, point your chat component to it using `threadApiU
       );
     }
     ```
+
   </Tab>
   <Tab value="BottomTray">
     ```tsx
@@ -222,6 +212,7 @@ Now that the backend is ready, point your chat component to it using `threadApiU
       );
     }
     ```
+
   </Tab>
   <Tab value="ChatProvider">
     ```tsx
@@ -240,10 +231,12 @@ Now that the backend is ready, point your chat component to it using `threadApiU
       );
     }
     ```
+
   </Tab>
 </Tabs>
 
 The two key props:
+
 - **`threadApiUrl`** — points to the REST API you just built
 - **`messageFormat`** — tells OpenUI how to translate messages to/from your backend's format
 

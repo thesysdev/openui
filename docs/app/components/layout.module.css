@@ -78,7 +78,9 @@
   font: var(--openui-text-label-sm);
   border: 1px solid transparent;
   text-decoration: none;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .topNavLink:hover {
@@ -131,5 +133,4 @@
   .topBarControls {
     margin-left: 0;
   }
-
 }

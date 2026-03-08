@@ -22,7 +22,11 @@ export default function BlocksDocPage({
     <PreviewPage>
       <PreviewSection title={title} headingLevel="h1" description={description}>
         {beforePreview}
-        <BlockVariantPreview title={variantTitle} description={variantDescription} preview={preview} />
+        <BlockVariantPreview
+          title={variantTitle}
+          description={variantDescription}
+          preview={preview}
+        />
         {afterPreview}
       </PreviewSection>
     </PreviewPage>

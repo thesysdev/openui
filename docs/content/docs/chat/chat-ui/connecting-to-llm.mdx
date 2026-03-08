@@ -18,6 +18,7 @@ The simplest way is to pass the URL of your backend endpoint:
       return <Copilot apiUrl="/api/chat" agentName="My Agent" />;
     }
     ```
+
   </Tab>
   <Tab value="FullScreen">
     ```tsx
@@ -27,6 +28,7 @@ The simplest way is to pass the URL of your backend endpoint:
       return <FullScreen apiUrl="/api/chat" agentName="My Agent" />;
     }
     ```
+
   </Tab>
   <Tab value="BottomTray">
     ```tsx
@@ -36,6 +38,7 @@ The simplest way is to pass the URL of your backend endpoint:
       return <BottomTray apiUrl="/api/chat" agentName="My Agent" />;
     }
     ```
+
   </Tab>
 </Tabs>
 
@@ -47,7 +50,7 @@ See [Backend Implementation](/docs/chat/backend/nextjs) for how to build this en
 
 If you need to customize the request — add **Authorization headers**, change the URL structure (e.g., path parameters), or transform the payload — use `processMessage` instead of `apiUrl`:
 
-<Tabs groupId="layout" items={['Copilot', 'FullScreen', 'BottomTray']} persist>
+<Tabs groupId="layout" items={["Copilot", "FullScreen", "BottomTray"]} persist>
   <Tab value="Copilot">
     ```tsx
     <Copilot
@@ -57,7 +60,7 @@ If you need to customize the request — add **Authorization headers**, change t
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${getToken()}`,
+            Authorization: `Bearer ${getToken()}`,
           },
           body: JSON.stringify({ messages }),
           signal: abortController.signal,
@@ -75,7 +78,7 @@ If you need to customize the request — add **Authorization headers**, change t
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${getToken()}`,
+            Authorization: `Bearer ${getToken()}`,
           },
           body: JSON.stringify({ messages }),
           signal: abortController.signal,
@@ -93,7 +96,7 @@ If you need to customize the request — add **Authorization headers**, change t
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${getToken()}`,
+            Authorization: `Bearer ${getToken()}`,
           },
           body: JSON.stringify({ messages }),
           signal: abortController.signal,
@@ -107,11 +110,11 @@ If you need to customize the request — add **Authorization headers**, change t
 
 The function receives:
 
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
-| **`threadId`** | `string` | The current conversation's ID (if persistence is enabled). |
-| **`messages`** | `Message[]` | The full message history. |
-| **`abortController`** | `AbortController` | Signal to cancel the request if the user clicks "Stop". |
+| Parameter             | Type              | Description                                                |
+| :-------------------- | :---------------- | :--------------------------------------------------------- |
+| **`threadId`**        | `string`          | The current conversation's ID (if persistence is enabled). |
+| **`messages`**        | `Message[]`       | The full message history.                                  |
+| **`abortController`** | `AbortController` | Signal to cancel the request if the user clicks "Stop".    |
 
 It must return a standard `Response` object (the result of `fetch`).
 
@@ -122,18 +125,14 @@ By default, OpenUI uses its own **OpenUI Protocol**. If your backend streams in 
 ```tsx
 import { openAIAdapter } from "@openuidev/react-headless";
 
-<Copilot
-  apiUrl="/api/chat"
-  streamProtocol={openAIAdapter()}
-  agentName="My Agent"
-/>
+<Copilot apiUrl="/api/chat" streamProtocol={openAIAdapter()} agentName="My Agent" />;
 ```
 
-| Adapter | Use when... |
-| :--- | :--- |
-| **Default** | Backend uses the OpenUI Protocol (Standard). |
-| **`openAIAdapter()`** | Backend uses `openai.chat.completions.create` with `stream: true`. |
-| **`openAIResponsesAdapter()`** | Backend uses `openai.responses.create` (Realtime API). |
+| Adapter                        | Use when...                                                        |
+| :----------------------------- | :----------------------------------------------------------------- |
+| **Default**                    | Backend uses the OpenUI Protocol (Standard).                       |
+| **`openAIAdapter()`**          | Backend uses `openai.chat.completions.create` with `stream: true`. |
+| **`openAIResponsesAdapter()`** | Backend uses `openai.responses.create` (Realtime API).             |
 
 See [Backend & Integrations](/docs/chat/backend/providers) for full setup guides.
 
@@ -144,15 +143,11 @@ By default, OpenUI uses its internal message structure. If your backend expects 
 ```tsx
 import { openAIMessageFormat } from "@openuidev/react-headless";
 
-<Copilot
-  apiUrl="/api/chat"
-  messageFormat={openAIMessageFormat}
-  agentName="My Agent"
-/>
+<Copilot apiUrl="/api/chat" messageFormat={openAIMessageFormat} agentName="My Agent" />;
 ```
 
-| Format | Use when... |
-| :--- | :--- |
-| **Default** | Backend expects OpenUI message format. |
-| **`openAIMessageFormat`** | Backend expects standard OpenAI `{role, content}` objects. |
-| **`openAIConversationMessageFormat`** | Backend expects OpenAI Responses API items. |
+| Format                                | Use when...                                                |
+| :------------------------------------ | :--------------------------------------------------------- |
+| **Default**                           | Backend expects OpenUI message format.                     |
+| **`openAIMessageFormat`**             | Backend expects standard OpenAI `{role, content}` objects. |
+| **`openAIConversationMessageFormat`** | Backend expects OpenAI Responses API items.                |

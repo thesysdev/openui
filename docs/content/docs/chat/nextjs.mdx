@@ -41,11 +41,7 @@ If you stream raw OpenAI chunks, configure frontend adapters:
 import { Copilot } from "@openuidev/react-ui";
 import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
 
-<Copilot
-  apiUrl="/api/chat"
-  streamProtocol={openAIAdapter()}
-  messageFormat={openAIMessageFormat}
-/>;
+<Copilot apiUrl="/api/chat" streamProtocol={openAIAdapter()} messageFormat={openAIMessageFormat} />;
 ```
 
 For provider-specific options, see [Providers](/docs/chat/providers).

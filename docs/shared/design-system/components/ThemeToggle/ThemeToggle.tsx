@@ -1,8 +1,8 @@
 "use client";
 
+import type { ThemeMode } from "@design-system/types";
 import { useEffect, useState } from "react";
 import styles from "./ThemeToggle.module.css";
-import type { ThemeMode } from "@design-system/types";
 
 const getInitialTheme = (): ThemeMode => {
   if (typeof window === "undefined") return "dark";

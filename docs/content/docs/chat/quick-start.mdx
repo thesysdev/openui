@@ -7,31 +7,11 @@ description: Get a working chat UI running in under 5 minutes.
 
 Run the create command. This sets up a Next.js app with **OpenUI Chat** and the **Standard Component Library** pre-configured.
 
-<Tabs groupId="pkg" items={['npx', 'pnpm', 'yarn', 'bun']} persist>
-  <Tab value="npx">
-    ```bash
-    npx create-openui-chat my-chat-app
-    cd my-chat-app
-    ```
-  </Tab>
-  <Tab value="pnpm">
-    ```bash
-    pnpm create openui-chat my-chat-app
-    cd my-chat-app
-    ```
-  </Tab>
-  <Tab value="yarn">
-    ```bash
-    yarn create openui-chat my-chat-app
-    cd my-chat-app
-    ```
-  </Tab>
-  <Tab value="bun">
-    ```bash
-    bun create openui-chat my-chat-app
-    cd my-chat-app
-    ```
-  </Tab>
+<Tabs groupId="pkg" items={["npx", "pnpm", "yarn", "bun"]} persist>
+  <Tab value="npx">```bash npx create-openui-chat my-chat-app cd my-chat-app ```</Tab>
+  <Tab value="pnpm">```bash pnpm create openui-chat my-chat-app cd my-chat-app ```</Tab>
+  <Tab value="yarn">```bash yarn create openui-chat my-chat-app cd my-chat-app ```</Tab>
+  <Tab value="bun">```bash bun create openui-chat my-chat-app cd my-chat-app ```</Tab>
 </Tabs>
 
 ## 2. Add your API key
@@ -44,27 +24,11 @@ OPENAI_API_KEY=sk-your-key-here
 
 ## 3. Start the dev server
 
-<Tabs groupId="pkg" items={['npx', 'pnpm', 'yarn', 'bun']} persist>
-  <Tab value="npx">
-    ```bash
-    npm run dev
-    ```
-  </Tab>
-  <Tab value="pnpm">
-    ```bash
-    pnpm dev
-    ```
-  </Tab>
-  <Tab value="yarn">
-    ```bash
-    yarn dev
-    ```
-  </Tab>
-  <Tab value="bun">
-    ```bash
-    bun dev
-    ```
-  </Tab>
+<Tabs groupId="pkg" items={["npx", "pnpm", "yarn", "bun"]} persist>
+  <Tab value="npx">```bash npm run dev ```</Tab>
+  <Tab value="pnpm">```bash pnpm dev ```</Tab>
+  <Tab value="yarn">```bash yarn dev ```</Tab>
+  <Tab value="bun">```bash bun dev ```</Tab>
 </Tabs>
 
 Open [http://localhost:3000](http://localhost:3000) in your browser. You should see the **Copilot** interface. Try sending a message!
@@ -85,9 +49,9 @@ import { standardLibrary } from "@openuidev/react-ui";
 
 export default function Page() {
   return (
-    <Copilot 
-      apiUrl="/api/chat" 
-      agentName="Assistant" 
+    <Copilot
+      apiUrl="/api/chat"
+      agentName="Assistant"
       componentLibrary={standardLibrary} // Enables Generative UI
     />
   );

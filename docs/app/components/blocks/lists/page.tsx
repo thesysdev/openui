@@ -1,10 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
-import { SegmentedToggle } from "@components/components/preview";
+import {
+  BlockVariantPreview,
+  PreviewPage,
+  PreviewSection,
+  SegmentedToggle,
+} from "@components/components/preview";
 import { ListBlock, ListItem } from "@openuidev/react-ui";
 import { ChevronRight, FileText, Globe, LayoutPanelTop } from "lucide-react";
+import { useMemo, useState } from "react";
 import styles from "./page.module.css";
 
 type ListVariant = "number" | "icon" | "image";

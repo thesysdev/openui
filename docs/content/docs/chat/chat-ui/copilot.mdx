@@ -15,9 +15,7 @@ import { Copilot } from "@openuidev/react-ui";
 function App() {
   return (
     <div style={{ display: "flex", height: "100vh" }}>
-      <main style={{ flex: 1 }}>
-        {/* Your app content */}
-      </main>
+      <main style={{ flex: 1 }}>{/* Your app content */}</main>
       <Copilot apiUrl="/api/chat" agentName="My Agent" logoUrl="/logo.png" />
     </div>
   );
@@ -58,16 +56,16 @@ function App() {
 
 Copilot accepts all shared chat config and UI props. See [Overview](/docs/chat/chat-ui) for the full list.
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `apiUrl` | `string` | Endpoint that receives messages and returns a streamed response |
-| `threadApiUrl` | `string` | Base URL for thread persistence endpoints |
-| `agentName` | `string` | Name shown in the chat header |
-| `logoUrl` | `string` | Logo image shown in the chat header |
-| `welcomeMessage` | `WelcomeMessageConfig` | Heading and body for the empty-chat screen |
-| `conversationStarters` | `ConversationStartersConfig` | Suggested prompts shown on the welcome screen |
-| `assistantMessage` | `AssistantMessageComponent` | Custom renderer for assistant messages |
-| `userMessage` | `UserMessageComponent` | Custom renderer for user messages |
-| `processMessage` | `function` | Custom fetch function (use instead of `apiUrl`) |
-| `streamProtocol` | `StreamProtocolAdapter` | Parser for the backend's streaming format |
-| `messageFormat` | `MessageFormat` | Converter for the backend's message format |
+| Prop                   | Type                         | Description                                                     |
+| ---------------------- | ---------------------------- | --------------------------------------------------------------- |
+| `apiUrl`               | `string`                     | Endpoint that receives messages and returns a streamed response |
+| `threadApiUrl`         | `string`                     | Base URL for thread persistence endpoints                       |
+| `agentName`            | `string`                     | Name shown in the chat header                                   |
+| `logoUrl`              | `string`                     | Logo image shown in the chat header                             |
+| `welcomeMessage`       | `WelcomeMessageConfig`       | Heading and body for the empty-chat screen                      |
+| `conversationStarters` | `ConversationStartersConfig` | Suggested prompts shown on the welcome screen                   |
+| `assistantMessage`     | `AssistantMessageComponent`  | Custom renderer for assistant messages                          |
+| `userMessage`          | `UserMessageComponent`       | Custom renderer for user messages                               |
+| `processMessage`       | `function`                   | Custom fetch function (use instead of `apiUrl`)                 |
+| `streamProtocol`       | `StreamProtocolAdapter`      | Parser for the backend's streaming format                       |
+| `messageFormat`        | `MessageFormat`              | Converter for the backend's message format                      |

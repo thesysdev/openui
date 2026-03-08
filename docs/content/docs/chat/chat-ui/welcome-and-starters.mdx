@@ -27,6 +27,7 @@ Use the `welcomeMessage` prop to set a heading and body text for the empty-chat 
       );
     }
     ```
+
   </Tab>
   <Tab value="FullScreen">
     ```tsx
@@ -45,6 +46,7 @@ Use the `welcomeMessage` prop to set a heading and body text for the empty-chat 
       );
     }
     ```
+
   </Tab>
   <Tab value="BottomTray">
     ```tsx
@@ -63,6 +65,7 @@ Use the `welcomeMessage` prop to set a heading and body text for the empty-chat 
       );
     }
     ```
+
   </Tab>
 </Tabs>
 
@@ -118,6 +121,7 @@ Conversation starters are clickable prompts shown below the welcome message. Whe
       );
     }
     ```
+
   </Tab>
   <Tab value="FullScreen">
     ```tsx
@@ -152,6 +156,7 @@ Conversation starters are clickable prompts shown below the welcome message. Whe
       );
     }
     ```
+
   </Tab>
   <Tab value="BottomTray">
     ```tsx
@@ -186,6 +191,7 @@ Conversation starters are clickable prompts shown below the welcome message. Whe
       );
     }
     ```
+
   </Tab>
 </Tabs>
 
@@ -193,11 +199,11 @@ Conversation starters are clickable prompts shown below the welcome message. Whe
 
 ```typescript
 interface ConversationStartersConfig {
-  variant?: "short" | "long";  // "short" for pill buttons (default), "long" for list items
+  variant?: "short" | "long"; // "short" for pill buttons (default), "long" for list items
   options: Array<{
-    displayText: string;       // Text shown on the button
-    prompt: string;            // Message sent when clicked
-    icon?: ReactNode;          // Optional icon
+    displayText: string; // Text shown on the button
+    prompt: string; // Message sent when clicked
+    icon?: ReactNode; // Optional icon
   }>;
 }
 ```

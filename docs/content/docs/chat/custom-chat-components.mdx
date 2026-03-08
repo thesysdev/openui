@@ -30,11 +30,7 @@ function UserBubble({ message }) {
   return <div>{String(message.content)}</div>;
 }
 
-<Copilot
-  apiUrl="/api/chat"
-  assistantMessage={AssistantBubble}
-  userMessage={UserBubble}
-/>;
+<Copilot apiUrl="/api/chat" assistantMessage={AssistantBubble} userMessage={UserBubble} />;
 ```
 
 For full control over all layout pieces, move to [Headless Introduction](/docs/chat/headless-intro).

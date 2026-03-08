@@ -41,6 +41,7 @@ export async function POST(req: Request) {
 ```
 
 This endpoint:
+
 1. Reads the `messages` array from the request body
 2. Calls OpenAI's chat completions API with streaming enabled
 3. Forwards each chunk as newline-delimited JSON back to the client
@@ -66,6 +67,7 @@ Since this endpoint returns OpenAI's streaming format (not AG-UI), you need to t
       );
     }
     ```
+
   </Tab>
   <Tab value="FullScreen">
     ```tsx
@@ -83,6 +85,7 @@ Since this endpoint returns OpenAI's streaming format (not AG-UI), you need to t
       );
     }
     ```
+
   </Tab>
   <Tab value="BottomTray">
     ```tsx
@@ -100,6 +103,7 @@ Since this endpoint returns OpenAI's streaming format (not AG-UI), you need to t
       );
     }
     ```
+
   </Tab>
   <Tab value="ChatProvider">
     ```tsx
@@ -118,6 +122,7 @@ Since this endpoint returns OpenAI's streaming format (not AG-UI), you need to t
       );
     }
     ```
+
   </Tab>
 </Tabs>
 
@@ -128,11 +133,11 @@ These two props handle the translation between your backend and OpenUI's interna
 - **`streamProtocol`** — parses the raw streaming response from your endpoint into OpenUI events. Different LLM providers stream in different formats.
 - **`messageFormat`** — converts messages between OpenUI's internal format and the format your backend expects in the request body (and returns in loaded threads).
 
-| Backend format | `streamProtocol` | `messageFormat` |
-|----------------|------------------|-----------------|
-| AG-UI (default) | Not needed | Not needed |
-| OpenAI Chat Completions | `openAIAdapter()` | `openAIMessageFormat` |
-| OpenAI Responses API | `openAIResponsesAdapter()` | `openAIConversationMessageFormat` |
+| Backend format          | `streamProtocol`           | `messageFormat`                   |
+| ----------------------- | -------------------------- | --------------------------------- |
+| AG-UI (default)         | Not needed                 | Not needed                        |
+| OpenAI Chat Completions | `openAIAdapter()`          | `openAIMessageFormat`             |
+| OpenAI Responses API    | `openAIResponsesAdapter()` | `openAIConversationMessageFormat` |
 
 If your backend uses AG-UI, you don't need to set either prop — they default to AG-UI.
 

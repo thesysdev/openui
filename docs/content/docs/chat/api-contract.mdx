@@ -9,13 +9,13 @@ OpenUI Chat can work with any backend stack as long as the API contract is respe
 
 When using `threadApiUrl="/api/threads"`, OpenUI expects:
 
-| Action | Method | URL |
-| :--- | :--- | :--- |
-| List threads | `GET` | `/api/threads` |
-| Create thread | `POST` | `/api/threads` |
-| Update thread | `PUT` | `/api/threads/:id` |
-| Delete thread | `DELETE` | `/api/threads/:id` |
-| Load messages | `GET` | `/api/threads/:id/messages` |
+| Action        | Method   | URL                         |
+| :------------ | :------- | :-------------------------- |
+| List threads  | `GET`    | `/api/threads`              |
+| Create thread | `POST`   | `/api/threads`              |
+| Update thread | `PUT`    | `/api/threads/:id`          |
+| Delete thread | `DELETE` | `/api/threads/:id`          |
+| Load messages | `GET`    | `/api/threads/:id/messages` |
 
 ### Thread shape
 
@@ -30,6 +30,7 @@ type Thread = {
 ### Message formats
 
 Your backend message shape can vary. Use `messageFormat` to map to/from OpenUI internal shape:
+
 - default OpenUI format
 - OpenAI Chat Completions format
 - OpenAI Responses conversation-item format
@@ -39,5 +40,6 @@ Your backend message shape can vary. Use `messageFormat` to map to/from OpenUI i
 Use `streamProtocol` when your backend stream shape is not OpenUI default.
 
 See:
+
 - [Next.js Implementation](/docs/chat/nextjs)
 - [Providers](/docs/chat/providers)

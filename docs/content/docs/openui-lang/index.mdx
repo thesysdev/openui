@@ -1,140 +1,75 @@
 ---
 title: OpenUI Lang
-description: The native language of Generative UI.
+description: Streaming-first UI language for typed component rendering.
 ---
 
-<div className="mb-12">
-  <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed">
-    The native language of Generative UI. A token-efficient, streaming-first DSL designed for LLMs to describe interactive React interfaces.
-  </p>
-</div>
+OpenUI Lang is a compact, line-oriented language for LLM-generated UI.
 
-## Why a new language?
+It is designed for:
 
-Most AI tools force you to choose between **Text** (easy but unstructured) and **JSON** (structured but brittle/slow). OpenUI Lang is built specifically for the way LLMs generate tokens.
-
-<div className="grid md:grid-cols-3 gap-6 my-8">
-  <div className="p-6 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/40">
-    <div className="font-bold text-lg mb-2 flex items-center gap-2">
-      ⚡️ Streaming First
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      Line-oriented syntax means the UI renders line-by-line. No waiting for valid JSON closing braces.
-    </p>
-  </div>
-
-  <div className="p-6 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/40">
-    <div className="font-bold text-lg mb-2 flex items-center gap-2">
-      📉 Token Efficient
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      Uses ~50% fewer tokens than JSON-based streaming formats, significantly reducing inference cost and latency.
-    </p>
-  </div>
-
-  <div className="p-6 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/40">
-    <div className="font-bold text-lg mb-2 flex items-center gap-2">
-      🛡 Hallucination Resistant
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      Strictly typed against your Zod schemas. If the generated code doesn't match your definition, it doesn't render.
-    </p>
-  </div>
-</div>
+- Streaming output (`identifier = Expression` per line)
+- Token efficiency vs verbose JSON payloads
+- Safe rendering against your registered component library
 
 ## How it works
 
-OpenUI Lang acts as the bridge between your **Zod Definitions** and your **React Components**.
+1. Define components with `defineComponent(...)` and group them with `createLibrary(...)`.
+2. Generate instructions with `library.prompt(...)` and send them as your system message.
+3. LLM returns OpenUI Lang text.
+4. `<Renderer />` parses and renders React components from that output.
 
-<div className="grid md:grid-cols-2 gap-8 my-12">
-  
-  {/* Step 1 */}
-  <div className="space-y-3">
-    <div className="flex items-center gap-3">
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold text-sm">1</div>
-      <h3 className="text-lg font-semibold m-0">You Define (Zod)</h3>
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      Describe your component props using standard Zod schemas.
-    </p>
-    <div className="relative">
-      ```typescript
-      const Chart = z.object({
-        title: z.string(),
-        data: z.array(z.number())
-      });
-      ```
-    </div>
-  </div>
+## Why OpenUI Lang
 
-  {/* Step 2 */}
-  <div className="space-y-3">
-    <div className="flex items-center gap-3">
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-bold text-sm">2</div>
-      <h3 className="text-lg font-semibold m-0">We Generate (Prompt)</h3>
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      OpenUI converts this into a compact system instruction.
-    </p>
-    <div className="relative">
-      ```text
-      // System Prompt (Auto-generated)
-      Component: Chart(title: string, data: number[])
-      ```
-    </div>
-  </div>
+- Renders progressively while text streams.
+- Uses positional arguments derived from your Zod object key order.
+- Drops invalid nodes with missing required props instead of rendering broken UI.
 
-  {/* Step 3 */}
-  <div className="space-y-3">
-    <div className="flex items-center gap-3">
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-600 font-bold text-sm">3</div>
-      <h3 className="text-lg font-semibold m-0">LLM Streams (Syntax)</h3>
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      The model responds in OpenUI Lang, a concise declarative syntax.
-    </p>
-    <div className="relative">
-      ```text
-      root = Root([chart])
-      chart = Chart("Q3 Revenue", [10, 20, 30])
-      ```
-    </div>
-  </div>
+<Callout type="info">
+  The parser currently validates required field presence/nullability from schema metadata. It does
+  not perform full runtime Zod type validation of every prop value.
+</Callout>
 
-  {/* Step 4 */}
-  <div className="space-y-3">
-    <div className="flex items-center gap-3">
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 font-bold text-sm">4</div>
-      <h3 className="text-lg font-semibold m-0">React Renders</h3>
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      The `<Renderer />` parses the stream and updates the UI instantly.
-    </p>
-    <div className="relative">
-      ```tsx
-      <BarChart title="Q3 Revenue" data={[10, 20, 30]} />
-      ```
-    </div>
-  </div>
+## Minimal example
 
-</div>
+```tsx
+import "@openuidev/react-ui/components.css";
+import { Renderer } from "@openuidev/lang-react";
+import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui";
+
+const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+
+<Renderer library={defaultLibrary} response={openuiLangText} isStreaming={isStreaming} />;
+```
+
+Example OpenUI Lang output:
+
+```text
+root = Stack([title, form])
+title = TextContent("Contact", "large-heavy")
+form = Form("contact", [nameField, emailField], actions)
+nameField = FormControl("Name", Input("name", "Your name", "text", ["required"]))
+emailField = FormControl("Email", Input("email", "you@example.com", "email", ["required", "email"]))
+actions = Buttons([submitBtn, cancelBtn], "row")
+submitBtn = Button("Submit", "submit:contact", "primary")
+cancelBtn = Button("Cancel", "action:cancel_contact", "secondary")
+```
 
 ## Next Steps
 
 <Cards>
-  <Card title="Define Components" href="/docs/openui-lang/defining-components">
-    Learn how to build your own component library using Zod.
+  <Card title="Quick Start" href="/docs/openui-lang/quickstart">
+    Start with the default library and render immediately.
   </Card>
-  
-  <Card title="The Renderer" href="/docs/openui-lang/renderer">
-    Deep dive into the `<Renderer />` component and streaming behavior.
+  <Card title="Defining Components" href="/docs/openui-lang/defining-components">
+    Build custom component contracts with Zod.
   </Card>
-  
   <Card title="System Prompts" href="/docs/openui-lang/system-prompts">
-    How to generate and customize the instructions for the LLM.
+    Generate and customize model instructions.
   </Card>
-
-  <Card title="Benchmarks" href="/docs/openui-lang/benchmarks">
-    Token efficiency and latency results vs Vercel JSON-Render and C1 JSON.
+  <Card title="Renderer" href="/docs/openui-lang/renderer">
+    Parse, stream, and handle actions.
+  </Card>
+  <Card title="Language Specification" href="/docs/openui-lang/specification">
+    Formal grammar and parser behavior.
   </Card>
 </Cards>

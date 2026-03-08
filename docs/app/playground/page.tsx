@@ -128,12 +128,7 @@ export default function PlaygroundPage() {
 
   return (
     <div className="app">
-      <Header
-        theme={theme}
-        onThemeToggle={cycleTheme}
-        hasApiKey={false}
-        onChangeKey={() => { }}
-      />
+      <Header theme={theme} onThemeToggle={cycleTheme} hasApiKey={false} onChangeKey={() => {}} />
 
       <div className="app-body">
         <CatalogPanel />
@@ -172,11 +167,7 @@ export default function PlaygroundPage() {
                     Stop
                   </button>
                 ) : (
-                  <button
-                    className="send-btn"
-                    onClick={handleSubmit}
-                    disabled={!prompt.trim()}
-                  >
+                  <button className="send-btn" onClick={handleSubmit} disabled={!prompt.trim()}>
                     <Send size={14} />
                     Generate
                   </button>

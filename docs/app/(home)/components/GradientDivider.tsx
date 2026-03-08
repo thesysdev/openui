@@ -1,6 +1,8 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties } from "react";
 
-const BAR_HEIGHTS = [60, 48, 32, 20.942, 16.754, 12.565, 10.471, 8.377, 6.283, 4.188, 3.141, 2.094, 1.047];
+const BAR_HEIGHTS = [
+  60, 48, 32, 20.942, 16.754, 12.565, 10.471, 8.377, 6.283, 4.188, 3.141, 2.094, 1.047,
+];
 
 export function GradientDivider({ direction = "down" }: { direction?: "down" | "up" }) {
   const bars = direction === "up" ? [...BAR_HEIGHTS].reverse() : BAR_HEIGHTS;
@@ -11,7 +13,7 @@ export function GradientDivider({ direction = "down" }: { direction?: "down" | "
         <div
           key={h}
           className="bg-black/4 w-full shrink-0 h-[var(--bar-h-mobile)] lg:h-[var(--bar-h)]"
-          style={{ '--bar-h-mobile': `${h / 2}px`, '--bar-h': `${h}px` } as CSSProperties}
+          style={{ "--bar-h-mobile": `${h / 2}px`, "--bar-h": `${h}px` } as CSSProperties}
         />
       ))}
     </div>

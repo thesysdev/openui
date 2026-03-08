@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import {
   DM_Sans,
   Lato,
@@ -10,6 +9,7 @@ import {
   Roboto,
   Source_Sans_3,
 } from "next/font/google";
+import type { ReactNode } from "react";
 
 const roboto = Roboto({
   variable: "--font-roboto",

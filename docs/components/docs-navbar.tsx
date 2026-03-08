@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { OpenUILogo } from './brand-logo';
-import { useSearchContext } from 'fumadocs-ui/contexts/search';
-import { SidebarTrigger } from 'fumadocs-ui/components/sidebar/base';
-import { siteConfig } from '@/lib/layout.shared';
+import { siteConfig } from "@/lib/layout.shared";
+import { SidebarTrigger } from "fumadocs-ui/components/sidebar/base";
+import { useSearchContext } from "fumadocs-ui/contexts/search";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { OpenUILogo } from "./brand-logo";
 
 const tabs = [
-  { title: 'Introduction', url: '/docs/introduction' },
-  { title: 'OpenUI Lang', url: '/docs/openui-lang' },
-  { title: 'Chat', url: '/docs/chat' },
-  { title: 'API Reference', url: '/docs/api-reference' },
+  { title: "Introduction", url: "/docs/introduction" },
+  { title: "OpenUI Lang", url: "/docs/openui-lang" },
+  { title: "Chat", url: "/docs/chat" },
+  { title: "API Reference", url: "/docs/api-reference" },
 ];
 
 function SearchBar() {
@@ -20,18 +20,18 @@ function SearchBar() {
   const [isMac, setIsMac] = useState(false);
 
   useEffect(() => {
-    setIsMac(navigator.platform.toUpperCase().includes('MAC'));
+    setIsMac(navigator.platform.toUpperCase().includes("MAC"));
   }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setOpenSearch(true);
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [setOpenSearch]);
 
   return (
@@ -41,13 +41,24 @@ function SearchBar() {
       aria-label="Search documentation"
       className="flex items-center gap-2.5 h-9 pl-3.5 pr-2.5 rounded-lg border border-fd-border bg-fd-background text-fd-muted-foreground cursor-pointer w-64 hover:border-fd-ring transition-colors"
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="shrink-0"
+      >
         <circle cx="11" cy="11" r="8" />
         <line x1="21" y1="21" x2="16.65" y2="16.65" />
       </svg>
       <span className="text-sm flex-1 text-left">Search...</span>
       <kbd className="hidden sm:flex items-center gap-0.5 text-[11px] font-medium text-fd-muted-foreground border border-fd-border rounded px-1.5 py-0.5 leading-none">
-        {isMac ? '⌘' : 'Ctrl'}<span>K</span>
+        {isMac ? "⌘" : "Ctrl"}
+        <span>K</span>
       </kbd>
     </button>
   );
@@ -62,7 +73,16 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
       <div className="flex items-center h-16 max-w-[97rem] mx-auto px-8">
         {showSidebarToggle && (
           <SidebarTrigger className="docs-nav-sidebar-toggle flex items-center justify-center size-9 rounded-lg text-fd-muted-foreground bg-transparent border-none cursor-pointer mr-3">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="21" y2="12" />
               <line x1="3" y1="18" x2="21" y2="18" />
@@ -118,8 +138,8 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
                 href={tab.url}
                 className={`flex items-center px-4 py-2.5 text-sm font-medium whitespace-nowrap no-underline transition-colors duration-150 border-b-2 -mb-px ${
                   isActive
-                    ? 'text-fd-foreground border-fd-primary'
-                    : 'text-fd-muted-foreground border-transparent hover:text-fd-foreground'
+                    ? "text-fd-foreground border-fd-primary"
+                    : "text-fd-muted-foreground border-transparent hover:text-fd-foreground"
                 }`}
               >
                 {tab.title}

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
 import svgPaths from "@/imports/svg-urruvoh2be";
 import { motion, useInView } from "motion/react";
+import Link from "next/link";
 import { useRef } from "react";
 import { BUTTON_SHADOW } from "./shared";
-import Link from "next/link";
 
 // ---------------------------------------------------------------------------
 // Data
@@ -185,7 +185,8 @@ export function FeaturesSection() {
   const lastRowInView = lastRowDesktopInView || lastRowMobileInView;
 
   // Button appears after the last row's elements finish animating
-  const lastRowTotalDelay = (FEATURES.length - 1) * ROW_STAGGER + ELEMENT_STAGGER * 2 + FADE_DURATION;
+  const lastRowTotalDelay =
+    (FEATURES.length - 1) * ROW_STAGGER + ELEMENT_STAGGER * 2 + FADE_DURATION;
   const buttonDelay = lastRowTotalDelay * 0.6; // overlap slightly so it feels connected
 
   return (

@@ -6,7 +6,11 @@ import { CheckBoxGroup, CheckBoxItem } from "@openuidev/react-ui";
 function CheckboxGroupPreview() {
   return (
     <CheckBoxGroup variant="card">
-      <CheckBoxItem value="email" label="Email notifications" description="Receive updates by email" />
+      <CheckBoxItem
+        value="email"
+        label="Email notifications"
+        description="Receive updates by email"
+      />
       <CheckBoxItem value="slack" label="Slack alerts" description="Receive updates in Slack" />
       <CheckBoxItem value="sms" label="SMS alerts" description="Receive urgent updates by SMS" />
     </CheckBoxGroup>
