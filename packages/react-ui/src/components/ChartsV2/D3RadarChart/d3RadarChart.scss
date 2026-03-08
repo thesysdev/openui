@@ -1,0 +1,66 @@
+@use "../../../cssUtils" as cssUtils;
+
+.openui-d3-radar-chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.openui-d3-radar-chart-svg-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.openui-d3-radar-chart-grid-ring {
+  stroke: cssUtils.$border-default;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.openui-d3-radar-chart-grid-spoke {
+  stroke: cssUtils.$border-default;
+  stroke-width: 1;
+  stroke-opacity: 0.5;
+}
+
+.openui-d3-radar-chart-polygon-area {
+  transition: opacity 0.2s ease;
+}
+
+.openui-d3-radar-chart-polygon-stroke {
+  fill: none;
+  stroke-width: 2;
+}
+
+.openui-d3-radar-chart-dot {
+  stroke: cssUtils.$foreground;
+  stroke-width: 1.5;
+  transition:
+    r 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.openui-d3-radar-chart-axis-label {
+  @include cssUtils.typography(label, extra-small);
+  fill: cssUtils.$text-neutral-secondary;
+}
+
+.openui-d3-radar-chart-polygon--animated {
+  opacity: 0;
+  transform-origin: center center;
+  animation: openui-d3-radar-polygon-appear 0.5s ease-out forwards;
+}
+
+@keyframes openui-d3-radar-polygon-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

@@ -13,4 +13,7 @@ export type { D3PieChartData, D3PieChartProps } from "./D3PieChart/types";
 export { D3RadialChart } from "./D3RadialChart";
 export type { D3RadialChartData, D3RadialChartProps } from "./D3RadialChart/types";
 
+export { D3RadarChart } from "./D3RadarChart";
+export type { D3RadarChartData, D3RadarChartProps } from "./D3RadarChart/types";
+
 export type { BaseChartProps, ChartData, LegendItem, XAxisTickVariant } from "./types";
