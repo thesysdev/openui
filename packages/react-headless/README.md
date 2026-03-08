@@ -1,10 +1,10 @@
-# @openuidev/react-core
+# @openuidev/react-headless
 
 The **React state-management and streaming layer** for OpenUI's Generative UI SDK. This package gives you everything needed to wire up a multi-threaded chat UI to any LLM backend — thread/message CRUD, real-time SSE streaming, and pluggable adapters for different API formats — all powered by a single Zustand store exposed through ergonomic React hooks.
 
 ## Table of Contents
 
-- [@openuidev/react-core](#openuidevreact-core)
+- [@openuidev/react-headless](#openuidevreact-headless)
   - [Table of Contents](#table-of-contents)
   - [Architecture Overview](#architecture-overview)
   - [Installation](#installation)
@@ -24,7 +24,6 @@ The **React state-management and streaming layer** for OpenUI's Generative UI SD
     - [`stream/` — Streaming Engine](#stream--streaming-engine)
     - [`types/` — Type Definitions](#types--type-definitions)
     - [`hooks/` — Message Context](#hooks--message-context)
-    - [`polyfills/` — React 17 Compatibility](#polyfills--react-17-compatibility)
   - [API Reference](#api-reference)
     - [ChatProviderProps](#chatproviderprops)
       - [Thread API (choose one):](#thread-api-choose-one)
@@ -93,13 +92,13 @@ The **React state-management and streaming layer** for OpenUI's Generative UI SD
 ## Installation
 
 ```bash
-pnpm add @openuidev/react-core
+pnpm add @openuidev/react-headless
 ```
 
 ### Peer dependencies
 
 ```bash
-pnpm add react react-dom zustand eventsource-parser tiny-invariant tailwind-merge tailwindcss-animate
+pnpm add react react-dom zustand eventsource-parser tiny-invariant
 ```
 
 ---
@@ -109,7 +108,7 @@ pnpm add react react-dom zustand eventsource-parser tiny-invariant tailwind-merg
 ### Minimal setup (URL-based)
 
 ```tsx
-import { ChatProvider, useThread, useThreadList } from "@openuidev/react-core";
+import { ChatProvider, useThread, useThreadList } from "@openuidev/react-headless";
 
 function App() {
   return (
@@ -225,6 +224,7 @@ Built-in adapters:
 | `agUIAdapter()` | AG-UI SSE format (default). Lines are `data: {JSON}\n` with `[DONE]` sentinel. |
 | `openAIAdapter()` | OpenAI Chat Completions streaming format (`ChatCompletionChunk`). |
 | `openAIResponsesAdapter()` | OpenAI Responses API streaming format (`ResponseStreamEvent`). |
+| `openAIReadableStreamAdapter()` | OpenAI SDK's `Stream.toReadableStream()` NDJSON format (no SSE prefix). |
 
 ---
 
@@ -295,12 +295,6 @@ Key behaviors:
 | File             | Purpose                                                                                                                                                                                                                                               |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `useMessage.tsx` | `MessageContext`, `MessageProvider`, and `useMessage` hook. Provides a React context for passing the current `Message` down to child components (used by `react-ui` when rendering individual messages). Uses `useShallow` for stable context values. |
-
-### `polyfills/` — React 17 Compatibility
-
-| File          | Purpose                                                                                                            |
-| ------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `react-17.ts` | Polyfill for `useId` (which is React 18+). Uses a global counter with `useRef` to generate stable `uid-N` strings. |
 
 ---
 
@@ -414,7 +408,12 @@ Low-level utility that consumes an SSE response via the given adapter and calls 
 ### Stream Adapters
 
 ```tsx
-import { agUIAdapter, openAIAdapter, openAIResponsesAdapter } from "@openuidev/react-core";
+import {
+  agUIAdapter,
+  openAIAdapter,
+  openAIReadableStreamAdapter,
+  openAIResponsesAdapter,
+} from "@openuidev/react-headless";
 
 // Use with ChatProvider
 <ChatProvider streamProtocol={openAIAdapter()} apiUrl="/api/chat">
@@ -429,7 +428,7 @@ import {
   openAIMessageFormat,
   openAIConversationMessageFormat,
   identityMessageFormat,
-} from "@openuidev/react-core";
+} from "@openuidev/react-headless";
 
 // For OpenAI Chat Completions backends
 <ChatProvider messageFormat={openAIMessageFormat} streamProtocol={openAIAdapter()} apiUrl="/api/chat">

@@ -1,18 +1,18 @@
-# react-core — Agent Guide
+# react-headless — Agent Guide
 
 ## Build / Test / Lint
 
 ```bash
-# From js/ workspace root:
-pnpm --filter @openuidev/react-core run build    # tsc → dist/
-pnpm --filter @openuidev/react-core run test     # vitest
-pnpm --filter @openuidev/react-core run ci       # lint:check + format:check
+# From monorepo root:
+pnpm --filter @openuidev/react-headless run build    # tsc → dist/
+pnpm --filter @openuidev/react-headless run test     # vitest
+pnpm --filter @openuidev/react-headless run ci       # lint:check + format:check
 
 # Or from this directory:
 pnpm build && pnpm test
 ```
 
-Build order: `stream` → **`react-core`** → `react-ui`. This package has no upstream JS workspace deps (only `@ag-ui/core` from npm), so it can always build independently.
+Build order: **`react-headless`** → `lang-react` → `react-ui`. This package has no upstream workspace deps (only `@ag-ui/core` and `zod` from npm), so it can always build independently.
 
 ## File Map
 
@@ -29,11 +29,11 @@ Build order: `stream` → **`react-core`** → `react-ui`. This package has no u
 | `src/stream/adapters/ag-ui.ts`                              | Default SSE adapter — parses `data: {json}\n` lines.                                                                                        |
 | `src/stream/adapters/openai-completions.ts`                 | Adapter for OpenAI Chat Completions streaming (`ChatCompletionChunk`).                                                                      |
 | `src/stream/adapters/openai-responses.ts`                   | Adapter for OpenAI Responses API streaming (`ResponseStreamEvent`).                                                                         |
+| `src/stream/adapters/openai-readable-stream.ts`             | Adapter for OpenAI SDK's `Stream.toReadableStream()` — parses NDJSON (no SSE prefix) `ChatCompletionChunk` objects.                         |
 | `src/stream/adapters/openai-message-format.ts`              | `MessageFormat` for OpenAI Completions (`ChatCompletionMessageParam[]` ↔ AG-UI).                                                           |
 | `src/stream/adapters/openai-conversation-message-format.ts` | `MessageFormat` for OpenAI Responses/Conversations API (`ResponseInputItem[]` ↔ AG-UI).                                                    |
 | `src/types/`                                                | Shared types: `message.ts` (re-exports from `@ag-ui/core`), `messageFormat.ts`, `stream.ts`, `chatManager.ts` (legacy v1 types).            |
 | `src/hooks/useMessage.tsx`                                  | `MessageContext` / `MessageProvider` / `useMessage` — per-message React context used by `react-ui`.                                         |
-| `src/polyfills/react-17.ts`                                 | `useId` polyfill for React 17 compatibility.                                                                                                |
 
 ## Key Patterns
 

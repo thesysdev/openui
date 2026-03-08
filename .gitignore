@@ -21,6 +21,11 @@
 .cursor/plans
 .cursor/agents
 
+# Claude
+Claude.md
+.claude/
+CLAUDE.local.md
+
 # Dependencies
 node_modules
 .pnpm-store/
