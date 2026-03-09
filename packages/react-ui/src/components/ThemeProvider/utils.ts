@@ -66,7 +66,7 @@ const _warnedKeys = new Set<string>();
  * @returns The same `theme` object, unmodified.
  */
 export function createTheme(theme: Theme): Theme {
-  if (process.env["NODE_ENV"] !== "production") {
+  if (typeof process !== "undefined" && process.env?.["NODE_ENV"] !== "production") {
     const knownKeys = Object.keys(defaultLightTheme);
     for (const key of Object.keys(theme)) {
       if (knownKeys.includes(key) || _warnedKeys.has(key)) continue;

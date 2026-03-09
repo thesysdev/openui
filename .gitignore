@@ -33,3 +33,9 @@ typings
 
 # Logs
 *storybook.log
+
+# scripts and tools
+clean-install.sh
+lint-fix.sh
+
+draft/
