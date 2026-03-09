@@ -107,7 +107,7 @@
 
 :root[data-theme="dark"] {
   /* Surface colors */
-  --background: var(--swatch-neutral-900);
+  --background: #0b0b0f;
   --foreground: var(--swatch-neutral-800);
   --popover-background: var(--swatch-neutral-800);
   --sunk-light: var(--swatch-white-a02);
@@ -131,12 +131,12 @@
   --pink-background: var(--swatch-pink-500);
 
   /* Text / Neutral */
-  --text-neutral-primary: var(--swatch-white);
+  --text-neutral-primary: #e2e1e6;
   --text-neutral-secondary: var(--swatch-white-a50);
   --text-neutral-tertiary: var(--swatch-white-a20);
-  --text-neutral-link: var(--swatch-white);
+  --text-neutral-link: #e2e1e6;
 
-  --text-brand: var(--swatch-white);
+  --text-brand: #e2e1e6;
 
   --text-white: var(--swatch-white);
   --text-black: var(--swatch-black);

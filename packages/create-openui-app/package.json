@@ -10,13 +10,13 @@
   ],
   "scripts": {
     "build:cli": "tsc -p .",
-    "build:templates": "mkdir -p dist/templates && rsync -a --delete --exclude='.next' --exclude='node_modules' ../../examples/openui-chat/ dist/templates/openui-chat",
+    "build:templates": "mkdir -p dist/templates && cp -r src/templates/openui-chat dist/templates/openui-chat",
     "build": "pnpm run build:cli && pnpm run build:templates",
     "build:exec": "node dist/index.js",
-    "lint:check": "eslint ./src",
-    "lint:fix": "eslint ./src --fix",
-    "format:fix": "prettier --write ./src",
-    "format:check": "prettier --check ./src",
+    "lint:check": "eslint ./src --ignore-pattern 'src/templates/**'",
+    "lint:fix": "eslint ./src --fix --ignore-pattern 'src/templates/**'",
+    "format:fix": "prettier --write './src/**' '!./src/templates/**'",
+    "format:check": "prettier --check './src/**' '!./src/templates/**'",
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "devDependencies": {
