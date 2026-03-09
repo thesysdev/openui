@@ -22,9 +22,9 @@ export function InlineButton({
     primary:
       "bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100",
     secondary:
-      "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700",
+      "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-[var(--color-doc-surface)] dark:text-slate-300 dark:hover:bg-[var(--color-doc-surface-raised)]",
     outline:
-      "border border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800",
+      "border border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-[var(--color-doc-border)] dark:text-slate-300 dark:hover:bg-[var(--color-doc-surface)]",
   };
 
   return (

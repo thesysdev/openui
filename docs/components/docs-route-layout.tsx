@@ -102,6 +102,7 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
         ),
       }}
       searchToggle={{ enabled: false }}
+      themeSwitch={{ enabled: false }}
     >
       {children}
     </DocsLayout>

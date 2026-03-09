@@ -16,6 +16,5 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: "OpenUI",
     },
-    githubUrl: siteConfig.githubUrl,
   };
 }
