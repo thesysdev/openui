@@ -19,10 +19,13 @@ export const FormControl = defineComponent({
     const fieldName =
       inputObj?.type === "element" ? (inputObj.props?.name as string | undefined) : undefined;
     const error = fieldName ? formValidation?.errors[fieldName] : undefined;
+    const isRequired = inputObj?.type === "element" && inputObj.props?.rules?.required === true;
 
     return (
       <OpenUIFormControl>
-        <OpenUILabel className="text-sm font-medium">{props.label as string}</OpenUILabel>
+        <OpenUILabel className="text-sm font-medium" required={isRequired}>
+          {props.label as string}
+        </OpenUILabel>
         {renderNode(props.input)}
         {error ? (
           <OpenUIHint hasError={true}>

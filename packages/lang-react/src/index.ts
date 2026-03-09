@@ -42,8 +42,5 @@ export {
 } from "./hooks/useFormValidation";
 export type { FormValidationContextValue } from "./hooks/useFormValidation";
 
-export { builtInValidators, parseRules, validate } from "./utils/validation";
+export { builtInValidators, parseRules, parseStructuredRules, validate } from "./utils/validation";
 export type { ParsedRule, ValidatorFn } from "./utils/validation";
-
-// openui-lang message context utilities (for building custom backends)
-export { separateContentAndContext, wrapContent, wrapContext } from "./utils/contentParser";

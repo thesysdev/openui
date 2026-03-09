@@ -7,14 +7,31 @@ function syntaxRules(rootName: string): string {
   return `## Syntax Rules
 
 1. Each statement is on its own line: \`identifier = Expression\`
-2. The first statement is the entry point and must be a ${rootName} component
+2. \`root\` is the entry point — every program must define \`root = ${rootName}(...)\`
 3. Expressions are: strings ("..."), numbers, booleans (true/false), arrays ([...]), objects ({...}), or component calls TypeName(arg1, arg2, ...)
 4. Use references for readability: define \`name = ...\` on one line, then use \`name\` later
-5. EVERY variable (except the root) MUST be referenced by at least one other variable. Unreferenced variables are silently dropped and will NOT render. Always include defined variables in their parent's children/items array.
+5. EVERY variable (except root) MUST be referenced by at least one other variable. Unreferenced variables are silently dropped and will NOT render. Always include defined variables in their parent's children/items array.
 6. Arguments are POSITIONAL (order matters, not names)
 7. Optional arguments can be omitted from the end
 8. No operators, no logic, no variables — only declarations
 9. Strings use double quotes with backslash escaping`;
+}
+
+function criticalRestrictions(): string {
+  return `## CRITICAL RESTRICTIONS
+
+openui-lang is NOT a programming language. It is a declarative UI language.
+DO NOT USE any of the following — they do not exist:
+- Method calls: .length, .toFixed(), .toString(), .map(), .filter(), etc.
+- Built-in functions: parseInt(), Math.round(), JSON.stringify(), etc.
+- Comments: // or /* */
+- Lambdas, arrow functions, or callbacks
+- Loops (for, while), variable declarations (let/const/var)
+- Template literals (\`\`), destructuring, type annotations
+- Semicolons at end of statements
+- import/export statements
+
+If you cannot express something without these, simplify the UI.`;
 }
 
 function streamingRules(rootName: string): string {
@@ -22,7 +39,14 @@ function streamingRules(rootName: string): string {
 
 openui-lang supports hoisting: a reference can be used BEFORE it is defined. The parser resolves all references after the full input is parsed.
 
-During streaming, the output is re-parsed on every chunk. Undefined references are temporarily unresolved and appear once their definitions stream in. This creates a progressive top-down reveal — structure first, then data fills in. Always write the root = ${rootName}(...) statement first so the UI shell appears immediately, even before child data has streamed in.`;
+During streaming, the output is re-parsed on every chunk. Undefined references are temporarily unresolved and appear once their definitions stream in. This creates a progressive top-down reveal — structure first, then data fills in.
+
+**Recommended statement order for optimal streaming:**
+1. \`root = ${rootName}(...)\` — UI shell appears immediately
+2. Component definitions — fill in as they stream
+3. Data values — leaf content last
+
+Always write the root = ${rootName}(...) statement first so the UI shell appears immediately, even before child data has streamed in.`;
 }
 
 function importantRules(rootName: string): string {
@@ -239,6 +263,7 @@ function generateComponentSignatures(library: Library): string {
     "## Component Signatures",
     "",
     "Arguments marked with ? are optional. Sub-components can be inline or referenced; prefer references for better streaming.",
+    "The `action` prop type accepts: ContinueConversation (sends message to LLM), OpenUrl (navigates to URL), or Custom (app-defined).",
   ];
 
   if (library.componentGroups?.length) {
@@ -299,6 +324,8 @@ export function generatePrompt(library: Library, options?: PromptOptions): strin
   parts.push(options?.preamble ?? PREAMBLE);
   parts.push("");
   parts.push(syntaxRules(rootName));
+  parts.push("");
+  parts.push(criticalRestrictions());
   parts.push("");
   parts.push(generateComponentSignatures(library));
   parts.push("");

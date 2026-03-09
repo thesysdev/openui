@@ -1,6 +1,6 @@
 "use client";
 
-import { defaultExamples, defaultLibrary } from "@openuidev/react-ui";
+import { openuiExamples, openuiLibrary } from "@openuidev/react-ui";
 import { Send, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CatalogPanel } from "./components/CatalogPanel/CatalogPanel";
@@ -9,7 +9,7 @@ import { Header } from "./components/Header/Header";
 import { PreviewPanel } from "./components/PreviewPanel/PreviewPanel";
 import { MODELS, STARTER_PROMPTS, type Model, type Status, type Theme } from "./constants";
 
-const SYSTEM_PROMPT = defaultLibrary.prompt({ examples: defaultExamples });
+const SYSTEM_PROMPT = openuiLibrary.prompt({ examples: openuiExamples });
 
 export default function PlaygroundPage() {
   const [theme, setTheme] = useState<Theme>("system");

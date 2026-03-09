@@ -219,13 +219,3 @@ function parseRules(rules: unknown): ParsedRule[];
 const builtInValidators: Record<string, ValidatorFn>;
 ```
 
-## Message/context utilities
-
-```ts
-function wrapContent(text: string): string;
-function wrapContext(json: string): string;
-function separateContentAndContext(raw: string): {
-  content: string;
-  contextString: string | null;
-};
-```

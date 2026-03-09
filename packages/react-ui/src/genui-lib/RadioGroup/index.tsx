@@ -2,18 +2,18 @@
 
 import {
   defineComponent,
-  parseRules,
+  parseStructuredRules,
   useFormName,
   useFormValidation,
   useGetFieldValue,
   useIsStreaming,
-  useSetDefaultValue,
   useSetFieldValue,
 } from "@openuidev/lang-react";
 import React from "react";
 import { z } from "zod";
 import { RadioGroup as OpenUIRadioGroup } from "../../components/RadioGroup";
 import { RadioItem as OpenUIRadioItem } from "../../components/RadioItem";
+import { rulesSchema } from "../rules";
 import { RadioItemSchema } from "./schema";
 
 export { RadioItemSchema } from "./schema";
@@ -31,7 +31,7 @@ export const RadioGroup = defineComponent({
     name: z.string(),
     items: z.array(RadioItem.ref),
     defaultValue: z.string().optional(),
-    rules: z.array(z.string()).optional(),
+    rules: rulesSchema,
   }),
   description: "",
   component: ({ props }) => {
@@ -41,36 +41,32 @@ export const RadioGroup = defineComponent({
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
 
-    const rules = React.useMemo(() => parseRules(props.rules), [props.rules]);
-    const existingValue = getFieldValue(formName, props.name);
+    const fieldName = props.name as string;
+    const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
+    const items = (props.items ?? []) as Array<{
+      props: { value: string; label?: string; description?: string };
+    }>;
 
-    useSetDefaultValue({
-      formName,
-      componentType: "RadioGroup",
-      name: props.name,
-      existingValue,
-      defaultValue: props.defaultValue,
-    });
+    const value = (getFieldValue(formName, fieldName) ?? props.defaultValue) as string | undefined;
 
     React.useEffect(() => {
       if (!isStreaming && rules.length > 0 && formValidation) {
-        formValidation.registerField(props.name, rules, () => getFieldValue(formName, props.name));
-        return () => formValidation.unregisterField(props.name);
+        formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
+        return () => formValidation.unregisterField(fieldName);
       }
       return undefined;
     }, [isStreaming, rules.length > 0]);
 
-    const items = props.items ?? [];
     if (!items.length) return null;
 
     return (
       <OpenUIRadioGroup
-        name={props.name}
-        value={existingValue ?? props.defaultValue}
+        name={fieldName}
+        value={value ?? ""}
         onValueChange={(val: string) => {
-          setFieldValue(formName, "RadioGroup", props.name, val, true);
+          setFieldValue(formName, "RadioGroup", fieldName, val, true);
           if (rules.length > 0) {
-            formValidation?.validateField(props.name, val, rules);
+            formValidation?.validateField(fieldName, val, rules);
           }
         }}
         disabled={isStreaming}

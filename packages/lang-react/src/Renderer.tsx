@@ -5,7 +5,7 @@ import type { ComponentRenderer, Library } from "./library";
 import type { ActionEvent, ElementNode, ParseResult } from "./parser/types";
 
 export interface RendererProps {
-  /** Raw response text (openui-lang code, possibly with <context> tag). */
+  /** Raw response text (openui-lang code). */
   response: string | null;
   /** Component library from createLibrary(). */
   library: Library;
@@ -13,8 +13,12 @@ export interface RendererProps {
   isStreaming?: boolean;
   /** Callback when a component triggers an action. */
   onAction?: (event: ActionEvent) => void;
-  /** Persist message content with form state on field change. */
-  updateMessage?: (message: string) => void;
+  /**
+   * Called whenever a form field value changes. Receives a full message string
+   * with embedded context — pass this to your thread's updateMessage to persist
+   * form state into the conversation.
+   */
+  onStateUpdate?: (message: string) => void;
   /** Called whenever the parse result changes. */
   onParseResult?: (result: ParseResult | null) => void;
 }
@@ -115,7 +119,26 @@ function RenderNode({ node }: { node: ElementNode }) {
  */
 function RenderNodeInner({ el, Comp }: { el: ElementNode; Comp: ComponentRenderer<any> }) {
   const renderNode = useRenderNode();
-  return <Comp props={el.props} renderNode={renderNode} />;
+  const { library } = useOpenUI();
+
+  // Handle elements that have positional `args` instead of named `props`
+  let props = el.props;
+  if (!props) {
+    const args = (el as any).args as unknown[] | undefined;
+    if (args) {
+      const def = library.components[el.typeName];
+      if (def) {
+        const fieldNames = Object.keys(def.props.shape);
+        props = {};
+        for (let i = 0; i < fieldNames.length && i < args.length; i++) {
+          props[fieldNames[i]] = args[i];
+        }
+      }
+    }
+    props = props ?? {};
+  }
+
+  return <Comp props={props} renderNode={renderNode} />;
 }
 
 // ─── Public component ───
@@ -125,7 +148,7 @@ export function Renderer({
   library,
   isStreaming = false,
   onAction,
-  updateMessage,
+  onStateUpdate,
   onParseResult,
 }: RendererProps) {
   const { result, contextValue } = useOpenUIState(
@@ -134,7 +157,7 @@ export function Renderer({
       library,
       isStreaming,
       onAction,
-      updateMessage,
+      updateMessage: onStateUpdate,
     },
     renderDeep,
   );

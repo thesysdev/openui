@@ -1,9 +1,8 @@
 import { z } from "zod";
-
-const validationRules = z.array(z.string()).optional();
+import { rulesSchema } from "../rules";
 
 export const DatePickerSchema = z.object({
   name: z.string(),
   mode: z.enum(["single", "range"]),
-  rules: validationRules,
+  rules: rulesSchema,
 });

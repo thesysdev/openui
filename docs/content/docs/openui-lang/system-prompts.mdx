@@ -8,9 +8,9 @@ description: Generate and customize prompt instructions from your OpenUI library
 ## Generate prompt
 
 ```ts
-import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
 
-const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 ```
 
 ## Prompt options
@@ -24,7 +24,7 @@ const options: PromptOptions = {
   examples: [`root = Stack([title])\ntitle = TextContent("Hello")`],
 };
 
-const prompt = defaultLibrary.prompt(options);
+const prompt = openuiLibrary.prompt(options);
 ```
 
 ## What gets generated
@@ -46,7 +46,7 @@ The generated prompt includes:
 
 ```ts
 import OpenAI from "openai";
-import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     model: "gpt-5.2",
     stream: true,
     messages: [
-      { role: "system", content: defaultLibrary.prompt(defaultPromptOptions) },
+      { role: "system", content: openuiLibrary.prompt(openuiPromptOptions) },
       ...messages,
     ],
   });

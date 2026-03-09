@@ -35,9 +35,9 @@ With `apiUrl`, OpenUI sends the message history to your endpoint for you. If you
 ```tsx
 import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui/genui-lib";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui/genui-lib";
 
-const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 
 <FullScreen
   processMessage={async ({ messages, abortController }) => {
@@ -55,7 +55,7 @@ const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
     });
   }}
   streamProtocol={openAIReadableStreamAdapter()}
-  componentLibrary={defaultLibrary}
+  componentLibrary={openuiLibrary}
   agentName="Assistant"
 />;
 ```

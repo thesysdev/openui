@@ -10,12 +10,11 @@ import {
   CarouselNext as OpenUICarouselNext,
   CarouselPrevious as OpenUICarouselPrevious,
 } from "../../components/Carousel";
-import { Stack } from "../Stack";
 
 export const Carousel = defineComponent({
   name: "Carousel",
   props: z.object({
-    children: z.array(Stack.ref),
+    children: z.array(z.any()),
 
     variant: z.enum(["card", "sunk"]).optional(),
   }),

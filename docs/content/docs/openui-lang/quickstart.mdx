@@ -3,7 +3,7 @@ title: Quick Start
 description: Use the default library to render OpenUI Lang immediately.
 ---
 
-This is the fastest path: use `defaultLibrary` from `@openuidev/react-ui` and render LLM output with `@openuidev/lang-react`.
+This is the fastest path: use `openuiLibrary` from `@openuidev/react-ui` and render LLM output with `@openuidev/lang-react`.
 
 ## Installation
 
@@ -16,17 +16,17 @@ npm install @openuidev/lang-react @openuidev/react-ui
 ```tsx
 import "@openuidev/react-ui/components.css";
 import { Renderer } from "@openuidev/lang-react";
-import { defaultLibrary } from "@openuidev/react-ui";
+import { openuiLibrary } from "@openuidev/react-ui";
 
-<Renderer library={defaultLibrary} response={streamedText} isStreaming={isStreaming} />;
+<Renderer library={openuiLibrary} response={streamedText} isStreaming={isStreaming} />;
 ```
 
 ## Generate prompt
 
 ```ts
-import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
 
-const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 ```
 
 Use `systemPrompt` as your model system message.
@@ -35,7 +35,7 @@ Use `systemPrompt` as your model system message.
 
 ```ts
 import OpenAI from "openai";
-import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     model: "gpt-5.2",
     stream: true,
     messages: [
-      { role: "system", content: defaultLibrary.prompt(defaultPromptOptions) },
+      { role: "system", content: openuiLibrary.prompt(openuiPromptOptions) },
       ...messages,
     ],
   });

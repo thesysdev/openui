@@ -17,16 +17,16 @@ The frontend and backend have different jobs here:
 
 If either side is missing, the model falls back to plain text or emits components the UI cannot render.
 
-## Use the default library
+## Use the chat library
 
-`defaultLibrary` is the fastest way to enable GenUI because it ships with ready-to-use components and example prompt rules.
+`openuiChatLibrary` is optimised for conversational chat: every response is wrapped in a `Card`, and it includes chat-specific components like `FollowUpBlock`, `ListBlock`, and `SectionBlock`.
 
 ```tsx
-import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
+import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui/genui-lib";
+import { openuiChatLibrary, openuiChatPromptOptions } from "@openuidev/react-ui/genui-lib";
 
-const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+const systemPrompt = openuiChatLibrary.prompt(openuiChatPromptOptions);
 
 export default function Page() {
   return (
@@ -36,15 +36,14 @@ export default function Page() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            messages,
+            messages: openAIMessageFormat.toApi(messages),
             systemPrompt,
           }),
           signal: abortController.signal,
         });
       }}
-      messageFormat={openAIMessageFormat}
-      streamProtocol={openAIReadableStreamAdapter()}
-      componentLibrary={defaultLibrary}
+      streamProtocol={openAIAdapter()}
+      componentLibrary={openuiChatLibrary}
       agentName="Assistant"
     />
   );
@@ -53,12 +52,13 @@ export default function Page() {
 
 In this setup:
 
-- `defaultLibrary.prompt(defaultPromptOptions)` creates the system prompt
+- `openuiChatLibrary.prompt(openuiChatPromptOptions)` creates the system prompt
 - `systemPrompt` is sent with every request
-- `messageFormat={openAIMessageFormat}` converts messages to the backend format
-- `componentLibrary={defaultLibrary}` tells the UI how to render the model output
+- `openAIMessageFormat.toApi(messages)` converts messages before sending
+- `componentLibrary={openuiChatLibrary}` tells the UI how to render the model output
+- `openAIAdapter()` parses raw SSE chunks from the backend
 
-This is the minimal complete pattern for GenUI with the built-in library.
+This is the minimal complete pattern for GenUI in a chat interface. For a non-chat renderer or custom layout, use `openuiLibrary` and `openuiPromptOptions` from the same import path.
 
 {/* add visual: image showing the difference between a plain text assistant response and a GenUI-rendered component response */}
 

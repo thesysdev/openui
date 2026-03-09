@@ -1,3 +1,5 @@
+"use client";
+
 import type { ActionEvent, Library } from "@openuidev/lang-react";
 import { BuiltinActionType, Renderer } from "@openuidev/lang-react";
 import type { AssistantMessage, ToolMessage } from "@openuidev/react-headless";
@@ -17,7 +19,6 @@ export const GenUIAssistantMessage = ({
   const messages = useThread((s) => s.messages);
   const isRunning = useThread((s) => s.isRunning);
   const processMessage = useThread((s) => s.processMessage);
-  const updateMessage = useThread((s) => s.updateMessage);
 
   const isStreaming = useMemo(() => {
     if (!isRunning) return false;
@@ -55,18 +56,16 @@ export const GenUIAssistantMessage = ({
       if (event.type === BuiltinActionType.ContinueConversation) {
         processMessage({
           role: "user",
-          content: event.humanFriendlyMessage,
+          content: event.llmFriendlyMessage ?? event.humanFriendlyMessage,
         });
+      } else if (event.type === BuiltinActionType.OpenUrl) {
+        const url = event.params?.["url"] as string | undefined;
+        if (typeof window !== "undefined" && url) {
+          window.open(url, "_blank");
+        }
       }
     },
     [processMessage],
-  );
-
-  const handleUpdateMessage = useCallback(
-    (updatedContent: string) => {
-      updateMessage({ ...message, content: updatedContent });
-    },
-    [updateMessage, message],
   );
 
   const hasToolActivity =
@@ -95,7 +94,6 @@ export const GenUIAssistantMessage = ({
         library={library}
         isStreaming={isStreaming}
         onAction={handleAction}
-        updateMessage={handleUpdateMessage}
       />
     </AssistantMessageContainer>
   );

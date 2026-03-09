@@ -19,6 +19,8 @@ export interface ParamDef {
   name: string;
   /** Whether the parameter is required by the component. */
   required: boolean;
+  /** Default value from JSON Schema — used when the required field is missing/null. */
+  defaultValue?: unknown;
 }
 
 /**
@@ -544,21 +546,30 @@ function mapNode(
     for (let i = 0; i < def.params.length && i < args.length; i++)
       props[def.params[i].name] = toJson(args[i], partial, errors, cat);
 
-    // Validate required props
-    const invalidRequired = def.params.filter(
+    // Validate required props — try defaultValue first before dropping
+    const missingRequired = def.params.filter(
       (p) => p.required && (!(p.name in props) || props[p.name] === null),
     );
-    if (invalidRequired.length) {
-      for (const p of invalidRequired)
-        errors.push({
-          component: name,
-          path: `/${p.name}`,
-          message:
-            p.name in props
-              ? `required field "${p.name}" cannot be null`
-              : `missing required field "${p.name}"`,
-        });
-      return null; // drop invalid nodes on validation failure
+    if (missingRequired.length) {
+      const stillInvalid = missingRequired.filter((p) => {
+        if (p.defaultValue !== undefined) {
+          props[p.name] = p.defaultValue as JsonVal;
+          return false;
+        }
+        return true;
+      });
+      if (stillInvalid.length) {
+        for (const p of stillInvalid)
+          errors.push({
+            component: name,
+            path: `/${p.name}`,
+            message:
+              p.name in props
+                ? `required field "${p.name}" cannot be null`
+                : `missing required field "${p.name}"`,
+          });
+        return null;
+      }
     }
   } else {
     // No library entry for this component — preserve all args under _args
@@ -740,6 +751,7 @@ function compileSchema(schema: LibraryJSONSchema): ParamMap {
     const params = Object.keys(properties).map((k) => ({
       name: k,
       required: required.includes(k),
+      defaultValue: (properties[k] as any)?.default,
     }));
     map.set(name, { params });
   }

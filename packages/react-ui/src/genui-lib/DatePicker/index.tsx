@@ -2,7 +2,7 @@
 
 import {
   defineComponent,
-  parseRules,
+  parseStructuredRules,
   useFormName,
   useFormValidation,
   useGetFieldValue,
@@ -28,7 +28,7 @@ export const DatePicker = defineComponent({
 
     const fieldName = (props.name as string) || "date";
     const mode = (props.mode as "single" | "range") || "single";
-    const rules = React.useMemo(() => parseRules(props.rules), [props.rules]);
+    const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
     const value = getFieldValue(formName, fieldName);
 
     React.useEffect(() => {

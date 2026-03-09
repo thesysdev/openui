@@ -9,7 +9,7 @@ description: Parse and render OpenUI Lang streams in React.
 
 ```tsx
 import { Renderer } from "@openuidev/lang-react";
-import { defaultLibrary } from "@openuidev/react-ui";
+import { openuiLibrary } from "@openuidev/react-ui";
 
 export function AssistantMessage({
   content,
@@ -18,7 +18,7 @@ export function AssistantMessage({
   content: string | null;
   isStreaming: boolean;
 }) {
-  return <Renderer library={defaultLibrary} response={content} isStreaming={isStreaming} />;
+  return <Renderer library={openuiLibrary} response={content} isStreaming={isStreaming} />;
 }
 ```
 
@@ -44,7 +44,7 @@ export function AssistantMessage({
 
 ```tsx
 <Renderer
-  library={defaultLibrary}
+  library={openuiLibrary}
   response={content}
   onAction={(event) => {
     if (event.type === "continue_conversation") {

@@ -2,7 +2,7 @@
 
 import {
   defineComponent,
-  parseRules,
+  parseStructuredRules,
   useFormName,
   useFormValidation,
   useGetFieldValue,
@@ -28,7 +28,7 @@ export const Slider = defineComponent({
     const formValidation = useFormValidation();
 
     const fieldName = props.name as string;
-    const rules = React.useMemo(() => parseRules(props.rules), [props.rules]);
+    const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
     const existingValue = getFieldValue(formName, fieldName);
     const defaultVal = props.defaultValue as number | undefined;
 

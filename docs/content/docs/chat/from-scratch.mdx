@@ -27,9 +27,9 @@ If you want Generative UI, generate a system prompt from the component library a
 If you only want plain text chat, you can skip this step and omit `componentLibrary` and `systemPrompt` in the next examples.
 
 ```tsx
-import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui/genui-lib";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui/genui-lib";
 
-const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 ```
 
 This prompt tells the model which UI components it is allowed to emit.
@@ -88,9 +88,9 @@ This guide uses `processMessage` instead of `apiUrl` so the request body stays e
 ```tsx
 import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui/genui-lib";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui/genui-lib";
 
-const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 
 export default function Page() {
   return (
@@ -109,7 +109,7 @@ export default function Page() {
         }}
         messageFormat={openAIMessageFormat}
         streamProtocol={openAIReadableStreamAdapter()}
-        componentLibrary={defaultLibrary}
+        componentLibrary={openuiLibrary}
         agentName="Assistant"
       />
     </div>
@@ -122,7 +122,7 @@ Why this setup matters:
 - `processMessage` gives you control over the request body
 - `messageFormat={openAIMessageFormat}` converts the messages before they reach your route
 - `openAIReadableStreamAdapter()` matches `response.toReadableStream()`
-- `componentLibrary={defaultLibrary}` lets the UI render structured responses
+- `componentLibrary={openuiLibrary}` lets the UI render structured responses
 
 ### Checkpoint
 
@@ -154,7 +154,7 @@ If you want the UI to load saved threads and previous messages, add `threadApiUr
   threadApiUrl="/api/threads"
   streamProtocol={openAIReadableStreamAdapter()}
   messageFormat={openAIMessageFormat}
-  componentLibrary={defaultLibrary}
+  componentLibrary={openuiLibrary}
   agentName="Assistant"
 />
 ```

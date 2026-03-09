@@ -128,3 +128,23 @@ export function validate(
   }
   return undefined;
 }
+
+/**
+ * Parse a structured rules object into ParsedRule[].
+ * Accepts: { required: true, minLength: 5, email: true, max: 100 }
+ * Skips keys with false/undefined values.
+ */
+export function parseStructuredRules(rules: unknown): ParsedRule[] {
+  if (!rules || typeof rules !== "object" || Array.isArray(rules)) return [];
+  const obj = rules as Record<string, any>;
+  const result: ParsedRule[] = [];
+  for (const [key, val] of Object.entries(obj)) {
+    if (val === false || val === undefined || val === null) continue;
+    if (val === true) {
+      result.push({ type: key });
+    } else {
+      result.push({ type: key, arg: val });
+    }
+  }
+  return result;
+}

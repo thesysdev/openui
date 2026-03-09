@@ -95,28 +95,33 @@ interface ConversationStartersConfig {
 }
 ```
 
-## Default component library exports
+## Component library exports
 
-The default library and prompt helpers for OpenUI Lang:
+Two ready-to-use libraries ship with `@openuidev/react-ui`. Import from the `genui-lib` subpath:
 
 ```ts
 import {
-  defaultLibrary,
-  defaultPromptOptions,
-  defaultExamples,
-  defaultAdditionalRules,
-  defaultComponentGroups,
-} from "@openuidev/react-ui";
+  // Chat-optimised (root = Card, includes FollowUpBlock, ListBlock, SectionBlock)
+  openuiChatLibrary,
+  openuiChatPromptOptions,
+
+  // General-purpose (root = Stack, full component suite)
+  openuiLibrary,
+  openuiPromptOptions,
+  openuiExamples,
+  openuiAdditionalRules,
+  openuiComponentGroups,
+} from "@openuidev/react-ui/genui-lib";
 ```
 
-These exports are built with `createLibrary(...)` from `@openuidev/lang-react` and are ready to use:
+Use `openuiChatLibrary` with `FullScreen` / `BottomTray` chat interfaces. Use `openuiLibrary` with the standalone `Renderer` or any non-chat layout.
 
 ```tsx
-<Renderer response={message} library={defaultLibrary} />
-```
+// Chat interface
+const systemPrompt = openuiChatLibrary.prompt(openuiChatPromptOptions);
+<FullScreen componentLibrary={openuiChatLibrary} ... />
 
-Generate the system prompt with:
-
-```ts
-const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+// Standalone renderer
+const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
+<Renderer response={message} library={openuiLibrary} />
 ```

@@ -67,9 +67,9 @@ Use `processMessage` here because the client needs to send both `messages` and `
 ```tsx
 import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui/genui-lib";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui/genui-lib";
 
-const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 
 <FullScreen
   processMessage={async ({ messages, abortController }) => {
@@ -85,7 +85,7 @@ const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
   }}
   messageFormat={openAIMessageFormat}
   streamProtocol={openAIReadableStreamAdapter()}
-  componentLibrary={defaultLibrary}
+  componentLibrary={openuiLibrary}
   agentName="Assistant"
 />;
 ```
