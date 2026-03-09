@@ -40,8 +40,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build projects
-        run: pnpm -r run ci
+      - name: Run package checks
+        working-directory: ./packages/${{ inputs.package }}
+        run: pnpm run ci
 
       - name: Publish package
         working-directory: ./packages/${{ inputs.package }}
