@@ -73,9 +73,6 @@ export function useOpenUIState(
   // Log the final parsed tree once streaming ends (dev debugging).
   const prevIsStreaming = useRef(isStreaming);
   useEffect(() => {
-    if (prevIsStreaming.current && !isStreaming && result) {
-      console.info("[openui] parsed output:", JSON.stringify(result, null, 2));
-    }
     prevIsStreaming.current = isStreaming;
   }, [isStreaming, result]);
 
