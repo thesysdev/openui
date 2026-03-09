@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod";
 import { AreaChart as AreaChartCondensedComponent } from "../../components/Charts";

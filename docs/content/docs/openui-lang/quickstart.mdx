@@ -3,19 +3,19 @@ title: Quick Start
 description: Use the OpenUI library to render OpenUI Lang immediately.
 ---
 
-This is the fastest path: use `openuiLibrary` from `@openuidev/react-ui` and render LLM output with `@openuidev/lang-react`.
+This is the fastest path: use `openuiLibrary` from `@openuidev/react-ui` and render LLM output with `@openuidev/react-lang`.
 
 ## Installation
 
 ```bash
-npm install @openuidev/lang-react @openuidev/react-ui
+npm install @openuidev/react-lang @openuidev/react-ui
 ```
 
 ## Render output
 
 ```tsx
 import "@openuidev/react-ui/components.css";
-import { Renderer } from "@openuidev/lang-react";
+import { Renderer } from "@openuidev/react-lang";
 import { openuiLibrary } from "@openuidev/react-ui";
 
 <Renderer library={openuiLibrary} response={streamedText} isStreaming={isStreaming} />;

@@ -1,5 +1,5 @@
 {
   "title": "API Reference",
   "root": true,
-  "pages": ["index", "lang-react", "react-headless", "react-ui"]
+  "pages": ["index", "react-lang", "react-headless", "react-ui"]
 }

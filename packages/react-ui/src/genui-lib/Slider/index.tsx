@@ -9,7 +9,7 @@ import {
   useIsStreaming,
   useSetDefaultValue,
   useSetFieldValue,
-} from "@openuidev/lang-react";
+} from "@openuidev/react-lang";
 import React from "react";
 import { Slider as OpenUISlider } from "../../components/Slider";
 import { SliderSchema } from "./schema";

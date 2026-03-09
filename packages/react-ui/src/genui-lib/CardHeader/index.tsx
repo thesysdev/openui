@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { CardHeader as OpenUICardHeader } from "../../components/CardHeader";
 import { CardHeaderSchema } from "./schema";
 

@@ -23,7 +23,7 @@ const steps = [
   {
     title: "Define Library",
     description: "Create your component library with Zod schemas and generate the system prompt",
-    code: `import { defineComponent, createLibrary } from '@openuidev/lang-react';
+    code: `import { defineComponent, createLibrary } from '@openuidev/react-lang';
 import { z } from 'zod';
 
 const Card = defineComponent({

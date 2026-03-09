@@ -1,5 +1,5 @@
 {
-  "name": "@openuidev/lang-react",
+  "name": "@openuidev/react-lang",
   "version": "0.1.1",
   "description": "OpenUI-lang renderer and standard library for React",
   "license": "MIT",

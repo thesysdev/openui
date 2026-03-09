@@ -1,7 +1,7 @@
 "use client";
 
-import type { ActionEvent, Library } from "@openuidev/lang-react";
-import { BuiltinActionType, Renderer } from "@openuidev/lang-react";
+import type { ActionEvent, Library } from "@openuidev/react-lang";
+import { BuiltinActionType, Renderer } from "@openuidev/react-lang";
 import type { AssistantMessage, ToolMessage } from "@openuidev/react-headless";
 import { useThread } from "@openuidev/react-headless";
 import { useCallback, useMemo } from "react";

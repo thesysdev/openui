@@ -1,4 +1,4 @@
-import type { Library } from "@openuidev/lang-react";
+import type { Library } from "@openuidev/react-lang";
 import type { AssistantMessage, ChatProviderProps, UserMessage } from "@openuidev/react-headless";
 import { ChatProvider } from "@openuidev/react-headless";
 import { useMemo } from "react";
