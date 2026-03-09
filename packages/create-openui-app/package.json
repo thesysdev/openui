@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "build:cli": "tsc -p .",
-    "build:templates": "mkdir -p dist/templates && rsync -a --delete --exclude='.next' --exclude='node_modules' ../../examples/openui-chat/ dist/templates/openui-chat",
+    "build:templates": "mkdir -p dist/templates && cp -r src/templates/openui-chat dist/templates/openui-chat",
     "build": "pnpm run build:cli && pnpm run build:templates",
     "build:exec": "node dist/index.js",
     "lint:check": "eslint ./src",
