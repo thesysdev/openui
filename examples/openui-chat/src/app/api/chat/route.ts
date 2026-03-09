@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
     apiKey: process.env.OPENROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",
   });
-  const MODEL = "anthropic/claude-sonnet-4-6";
+  const MODEL = "openai/gpt-5.4";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cleanMessages = (messages as any[])
@@ -243,8 +243,7 @@ export async function POST(req: NextRequest) {
         model: MODEL,
         messages: chatMessages,
         tools,
-        stream: true,
-        provider: { order: ["anthropic"] },
+        stream: true
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
