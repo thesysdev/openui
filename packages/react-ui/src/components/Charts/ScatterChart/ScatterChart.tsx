@@ -113,9 +113,6 @@ export const ScatterChart = ({
   }, [containerWidth, yAxisWidth]);
 
   const chartHeight = useMemo(() => {
-    if (!chartWrapperRef.current) {
-      return 0;
-    }
     const legendHeight = legendContainerRef.current?.offsetHeight ?? 0;
     const xAxisHeight = xAxisContainerRef.current?.offsetHeight ?? 0;
 
@@ -130,7 +127,7 @@ export const ScatterChart = ({
       }
     }
 
-    if (!height) {
+    if (!height || !chartWrapperRef.current) {
       return DEFAULT_CHART_HEIGHT;
     }
 
@@ -317,7 +314,7 @@ export const ScatterChart = ({
         data-openui-chart={exportData}
         style={{
           width: typeof width === "number" ? `${width}px` : width || "100%",
-          height: isFixedNumericHeight ? "auto" : height || "100%",
+          height: isFixedNumericHeight ? "auto" : (height ?? "auto"),
         }}
         ref={chartWrapperRef}
       >
