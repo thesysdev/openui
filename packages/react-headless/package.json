@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@types/react": ">=17.0.0",
+    "ai": "^6.0.108",
     "openai": "^6.22.0",
     "vitest": "^4.0.18"
   },

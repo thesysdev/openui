@@ -92,7 +92,7 @@ export const processStreamedMessage = async ({
         break;
 
       case EventType.RUN_ERROR:
-        console.error("Stream error:", (event as any).error);
+        console.error("Stream error:", (event as any).message);
         break;
     }
 

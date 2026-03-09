@@ -9,6 +9,8 @@ export {
   openAIMessageFormat,
   openAIReadableStreamAdapter,
   openAIResponsesAdapter,
+  vercelAIAdapter,
+  vercelAIMessageFormat,
 } from "./stream/adapters";
 export { processStreamedMessage } from "./stream/processStreamedMessage";
 
