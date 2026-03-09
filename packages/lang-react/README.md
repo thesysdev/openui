@@ -1,11 +1,11 @@
-# @openuidev/react-ui
+# @openuidev/lang-react
 
-React UI components and default libraries for OpenUI.
+React renderer for OpenUI Lang.
 
 ## Install
 
 ```bash
-pnpm add @openuidev/react-ui
+pnpm add @openuidev/lang-react
 ```
 
 ## Docs

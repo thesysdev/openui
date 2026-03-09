@@ -1,4 +1,5 @@
 export { CodeBlock } from "./code-block";
+export { FeatureCard, FeatureCards } from "./feature-card";
 export { InlineButton } from "./inline-button";
 export { OverviewPage } from "./overview-page";
 export { Separator } from "./separator";

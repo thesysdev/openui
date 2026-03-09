@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import dashboardImg from "@/public/images/home/d67b5e94653944c1d0d4998c6b169c37f98060ad.png";
 import { CopyIcon } from "./shared";
-
-const dashboardImg = "/images/home/d67b5e94653944c1d0d4998c6b169c37f98060ad.png";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -96,10 +96,11 @@ function CtaButton() {
 
 function DashboardIllustration() {
   return (
-    <img
+    <Image
       src={dashboardImg}
       alt="AI chat dashboard illustration"
-      className="w-full h-auto rounded-[12px] object-contain"
+      className="w-full h-auto rounded-xl object-contain"
+      placeholder="blur"
     />
   );
 }

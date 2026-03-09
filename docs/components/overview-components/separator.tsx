@@ -3,5 +3,9 @@ interface SeparatorProps {
 }
 
 export function Separator({ className }: SeparatorProps) {
-  return <hr className={`border-slate-200 dark:border-slate-800 ${className ?? ""}`} />;
+  return (
+    <hr
+      className={`border-slate-200 dark:border-[var(--color-doc-border)] ${className ?? ""}`}
+    />
+  );
 }
