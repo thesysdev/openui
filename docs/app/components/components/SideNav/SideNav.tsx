@@ -1,10 +1,10 @@
 "use client";
 
+import StarIcon from "@components/components/StarIcon";
+import type { NavSection, NestedNavItem } from "@components/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import StarIcon from "@components/components/StarIcon";
 import styles from "./SideNav.module.css";
-import type { NavSection, NestedNavItem } from "@components/types";
 
 interface SideNavProps {
   title?: string;
@@ -14,7 +14,9 @@ interface SideNavProps {
 const isActive = (pathname: string, href: string): boolean =>
   pathname === href || pathname.startsWith(`${href}/`);
 
-const isGroupedSection = (section: NavSection): section is NavSection & { items: NestedNavItem[] } =>
+const isGroupedSection = (
+  section: NavSection,
+): section is NavSection & { items: NestedNavItem[] } =>
   Array.isArray((section as NavSection & { items?: NestedNavItem[] }).items);
 
 const hasChildren = (item: NestedNavItem): boolean =>
@@ -55,7 +57,9 @@ export default function SideNav({ title, sections }: SideNavProps) {
             <span>{item.label}</span>
             {(item.badgeText || item.isPro) && (
               <span className={styles.linkMeta}>
-                {item.badgeText ? <span className={styles.alertBadge}>{item.badgeText}</span> : null}
+                {item.badgeText ? (
+                  <span className={styles.alertBadge}>{item.badgeText}</span>
+                ) : null}
                 {item.isPro ? (
                   <StarIcon
                     className={styles.proIcon}

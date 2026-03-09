@@ -1,9 +1,9 @@
 "use client";
 
+import type { NavSection, NestedNavItem } from "@design-system/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./SideNav.module.css";
-import type { NavSection, NestedNavItem } from "@design-system/types";
 
 interface SideNavProps {
   title?: string;
@@ -13,7 +13,9 @@ interface SideNavProps {
 const isActive = (pathname: string, href: string): boolean =>
   pathname === href || pathname.startsWith(`${href}/`);
 
-const isGroupedSection = (section: NavSection): section is NavSection & { items: NestedNavItem[] } =>
+const isGroupedSection = (
+  section: NavSection,
+): section is NavSection & { items: NestedNavItem[] } =>
   Array.isArray((section as NavSection & { items?: NestedNavItem[] }).items);
 
 const hasChildren = (item: NestedNavItem): boolean =>

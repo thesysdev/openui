@@ -6,7 +6,6 @@
   --font-label: "Inter", "Segoe UI", Arial, sans-serif;
   --font-numbers: var(--font-geist-mono), "Inter", "Segoe UI", Arial, sans-serif;
 
-
   /* Font sizes */
   --font-size-2xs: 10px;
   --font-size-xs: 12px;
@@ -19,13 +18,11 @@
   --font-size-4xl: 32px;
   --font-size-5xl: 36px;
 
-
   /* Font weights */
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-bold: 600;
   --font-weight-heavy: 700;
-
 
   /* Line heights */
   --line-height-body: 1.5;
@@ -34,12 +31,10 @@
   --line-height-label: 1.25;
   --line-height-code: 1.5;
 
-
   /* Letter spacing */
   --letter-spacing-normal: 0;
   --letter-spacing-tight: -0.1px;
   --letter-spacing-tighter: -0.2px;
-
 
   /* Compound typography: body */
   /* Body: extra small */
@@ -71,15 +66,14 @@
     var(--font-body);
   --text-body-lg-heavy-letter-spacing: var(--letter-spacing-normal);
 
-
   /* Compound typography: heading */
   /* Heading: extra small */
   --text-heading-xs: var(--font-weight-bold) var(--font-size-md) / var(--line-height-heading)
-  var(--font-heading);
+    var(--font-heading);
   --text-heading-xs-letter-spacing: var(--letter-spacing-normal);
   /* Heading: small */
   --text-heading-sm: var(--font-weight-bold) var(--font-size-lg) / var(--line-height-heading)
-  var(--font-heading);
+    var(--font-heading);
   --text-heading-sm-letter-spacing: var(--letter-spacing-normal);
   /* Heading: medium */
   --text-heading-md: var(--font-weight-bold) var(--font-size-2xl) / var(--line-height-heading-large)
@@ -90,10 +84,9 @@
     var(--font-heading);
   --text-heading-lg-letter-spacing: var(--letter-spacing-tight);
   /* Heading: extra large */
-  --text-heading-xl: var(--font-weight-heavy) var(--font-size-4xl) / var(--line-height-heading-large)
-  var(--font-heading);
+  --text-heading-xl: var(--font-weight-heavy) var(--font-size-4xl) /
+    var(--line-height-heading-large) var(--font-heading);
   --text-heading-xl-letter-spacing: var(--letter-spacing-tight);
-
 
   /* Compound typography: label */
   /* Label: extra small */
@@ -114,8 +107,8 @@
   --text-label-default: var(--font-weight-regular) var(--font-size-md) / var(--line-height-label)
     var(--font-label);
   --text-label-default-letter-spacing: var(--letter-spacing-normal);
-  --text-label-default-heavy: var(--font-weight-medium) var(--font-size-md) / var(--line-height-label)
-    var(--font-label);
+  --text-label-default-heavy: var(--font-weight-medium) var(--font-size-md) /
+    var(--line-height-label) var(--font-label);
   --text-label-default-heavy-letter-spacing: var(--letter-spacing-normal);
   /* Label: large */
   --text-label-lg: var(--font-weight-regular) var(--font-size-lg) / var(--line-height-label)
@@ -124,7 +117,6 @@
   --text-label-lg-heavy: var(--font-weight-medium) var(--font-size-lg) / var(--line-height-label)
     var(--font-label);
   --text-label-lg-heavy-letter-spacing: var(--letter-spacing-normal);
-
 
   /* Compound typography: numbers */
   /* Number variables:
@@ -150,8 +142,8 @@
   --text-numbers-default: var(--font-weight-regular) var(--font-size-md) / var(--line-height-body)
     var(--font-numbers);
   --text-numbers-default-letter-spacing: var(--letter-spacing-normal);
-  --text-numbers-default-heavy: var(--font-weight-medium) var(--font-size-md) / var(--line-height-body)
-    var(--font-numbers);
+  --text-numbers-default-heavy: var(--font-weight-medium) var(--font-size-md) /
+    var(--line-height-body) var(--font-numbers);
   --text-numbers-default-heavy-letter-spacing: var(--letter-spacing-normal);
   /* Numbers: large */
   --text-numbers-lg: var(--font-weight-regular) var(--font-size-lg) / var(--line-height-body)
@@ -160,7 +152,6 @@
   --text-numbers-lg-heavy: var(--font-weight-medium) var(--font-size-lg) / var(--line-height-body)
     var(--font-numbers);
   --text-numbers-lg-heavy-letter-spacing: var(--letter-spacing-normal);
-
 
   /* Compound typography: code */
   /* Code: small */

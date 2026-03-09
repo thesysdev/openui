@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRef, type ReactNode } from "react";
 import { motion, useInView } from "motion/react";
+import { useRef, type ReactNode } from "react";
 
 interface FadeInSectionProps {
   children: ReactNode;

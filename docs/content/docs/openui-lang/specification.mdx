@@ -1,6 +1,6 @@
 ---
 title: Language Specification
-description: Syntax, grammar, and streaming behavior of OpenUI Lang.
+description: Grammar, resolution, and parser semantics for OpenUI Lang.
 ---
 
 OpenUI Lang is the output format the LLM generates. It is a compact, declarative, line-oriented DSL designed specifically for streaming and token efficiency.
@@ -20,7 +20,7 @@ s1 = Series("Product A", [10, 20, 30])
 s2 = Series("Product B", [5, 15, 25])
 ```
 
-### Core Rules
+## Core Rules
 
 1. **One statement per line:** `identifier = Expression`
 2. **Root Entry Point:** The first statement **must** assign to the identifier `root` (or call the Root component).
@@ -33,16 +33,16 @@ s2 = Series("Product B", [5, 15, 25])
 
 OpenUI Lang supports a strict subset of JavaScript values.
 
-| Type | Syntax | Example |
-| :--- | :--- | :--- |
-| **Component Call** | `Type(arg1, arg2)` | `Header("Title", "Subtitle")` |
-| **String** | `"text"` | `"Hello world"` |
-| **Number** | `123`, `12.5`, `-5` | `42` |
-| **Boolean** | `true` / `false` | `true` |
-| **Null** | `null` | `null` |
-| **Array** | `[a, b, c]` | `["Jan", "Feb", "Mar"]` |
-| **Object** | `{key: val}` | `{variant: "info", id: 1}` |
-| **Reference** | `identifier` | `myTableData` |
+| Type               | Syntax              | Example                       |
+| :----------------- | :------------------ | :---------------------------- |
+| **Component Call** | `Type(arg1, arg2)`  | `Header("Title", "Subtitle")` |
+| **String**         | `"text"`            | `"Hello world"`               |
+| **Number**         | `123`, `12.5`, `-5` | `42`                          |
+| **Boolean**        | `true` / `false`    | `true`                        |
+| **Null**           | `null`              | `null`                        |
+| **Array**          | `[a, b, c]`         | `["Jan", "Feb", "Mar"]`       |
+| **Object**         | `{key: val}`        | `{variant: "info", id: 1}`    |
+| **Reference**      | `identifier`        | `myTableData`                 |
 
 ---
 
@@ -50,24 +50,27 @@ OpenUI Lang supports a strict subset of JavaScript values.
 
 The parser maps **Positional Arguments** in OpenUI Lang to **Named Props** in React using your Zod definitions.
 
-### The Mapping Logic
+## The Mapping Logic
 
 The order of keys in your `z.object` schema defines the expected argument order.
 
 **1. The Schema (Zod)**
+
 ```typescript
 const HeaderSchema = z.object({
   title: z.string(), // Position 0
-  subtitle: z.string().optional() // Position 1
+  subtitle: z.string().optional(), // Position 1
 });
 ```
 
 **2. The Output (OpenUI Lang)**
+
 ```text
 h1 = Header("Dashboard", "Overview")
 ```
 
 **3. The Result (React Props)**
+
 ```json
 {
   "title": "Dashboard",
@@ -75,7 +78,7 @@ h1 = Header("Dashboard", "Overview")
 }
 ```
 
-### Optional Arguments
+## Optional Arguments
 
 Optional arguments (trailing) can be omitted.
 
@@ -88,9 +91,9 @@ h1 = Header("Dashboard")
 
 ## Streaming & Hoisting
 
-OpenUI Lang allows **Forward References** (Hoisting). An identifier can be used as an argument *before* it is defined in the stream. This is critical for progressive rendering.
+OpenUI Lang allows **Forward References** (Hoisting). An identifier can be used as an argument _before_ it is defined in the stream. This is critical for progressive rendering.
 
-### How it works
+## How it works
 
 ```text
 root = Root([table]) // "table" is referenced here...
@@ -100,12 +103,6 @@ table = Table(rows)  // ...but defined here.
 
 1. **Step 1:** The renderer parses `root`. It sees `table` is undefined. It renders a **Skeleton/Placeholder** for the table.
 2. **Step 2:** The `table` definition arrives. The renderer updates the React tree, replacing the skeleton with the actual `Table` component.
-
-### The `nodePlaceholder` Prop
-
-You control what the user sees during this "resolution gap" using the `nodePlaceholder` prop on the `<Renderer />`.
-
----
 
 ## Complete Syntax Example
 

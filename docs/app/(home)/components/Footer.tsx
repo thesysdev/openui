@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import svgPaths from "@/imports/svg-urruvoh2be";
 import mascotSvgPaths from "@/imports/svg-xeurqn3j1r";
@@ -121,7 +121,13 @@ export function Footer() {
       <div className="w-full px-5 lg:px-8">
         <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-2.5 py-16">
           <div className="relative shrink-0 size-[140px]">
-            <svg className="absolute block" style={{ inset: '9.29% 0 10% 0' }} fill="none" preserveAspectRatio="xMidYMid meet" viewBox="0 0 141.2 114.2">
+            <svg
+              className="absolute block"
+              style={{ inset: "9.29% 0 10% 0" }}
+              fill="none"
+              preserveAspectRatio="xMidYMid meet"
+              viewBox="0 0 141.2 114.2"
+            >
               <path d={mascotSvgPaths.p395b3c00} fill="black" stroke="black" strokeWidth="0.6" />
               <path d={mascotSvgPaths.p3b251e80} fill="black" />
               <path d={mascotSvgPaths.p2718bc80} fill="black" stroke="black" strokeWidth="0.6" />

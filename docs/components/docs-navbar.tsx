@@ -1,37 +1,37 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { OpenUILogo } from './brand-logo';
-import { useSearchContext } from 'fumadocs-ui/contexts/search';
-import { SidebarTrigger } from 'fumadocs-ui/components/sidebar/base';
-import { siteConfig } from '@/lib/layout.shared';
+import { siteConfig } from "@/lib/layout.shared";
+import { SidebarTrigger } from "fumadocs-ui/components/sidebar/base";
+import { useSearchContext } from "fumadocs-ui/contexts/search";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
+import { OpenUILogo, ThesysLogo } from "./brand-logo";
+import { ThemeToggle } from "./theme-toggle";
 
 const tabs = [
-  { title: 'Introduction', url: '/docs/introduction' },
-  { title: 'OpenUI Lang', url: '/docs/openui-lang' },
-  { title: 'Chat', url: '/docs/chat' },
-  { title: 'API Reference', url: '/docs/api-reference' },
+  { title: "Introduction", url: "/docs/introduction" },
+  { title: "OpenUI Lang", url: "/docs/openui-lang" },
+  { title: "Chat", url: "/docs/chat" },
+  { title: "API Reference", url: "/docs/api-reference" },
 ];
 
 function SearchBar() {
   const { setOpenSearch } = useSearchContext();
-  const [isMac, setIsMac] = useState(false);
-
-  useEffect(() => {
-    setIsMac(navigator.platform.toUpperCase().includes('MAC'));
-  }, []);
+  const [isMac, setIsMac] = useState(
+    () => typeof navigator !== "undefined" && /mac/i.test(navigator.userAgent),
+  );
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setOpenSearch(true);
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [setOpenSearch]);
 
   return (
@@ -41,13 +41,24 @@ function SearchBar() {
       aria-label="Search documentation"
       className="flex items-center gap-2.5 h-9 pl-3.5 pr-2.5 rounded-lg border border-fd-border bg-fd-background text-fd-muted-foreground cursor-pointer w-64 hover:border-fd-ring transition-colors"
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="shrink-0"
+      >
         <circle cx="11" cy="11" r="8" />
         <line x1="21" y1="21" x2="16.65" y2="16.65" />
       </svg>
       <span className="text-sm flex-1 text-left">Search...</span>
       <kbd className="hidden sm:flex items-center gap-0.5 text-[11px] font-medium text-fd-muted-foreground border border-fd-border rounded px-1.5 py-0.5 leading-none">
-        {isMac ? '⌘' : 'Ctrl'}<span>K</span>
+        {isMac ? "⌘" : "Ctrl"}
+        <span>K</span>
       </kbd>
     </button>
   );
@@ -55,14 +66,30 @@ function SearchBar() {
 
 export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: boolean }) {
   const pathname = usePathname();
+  const [isThesysHovered, setIsThesysHovered] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const logoVariant = mounted && resolvedTheme === "dark" ? "dark" : "light";
 
   return (
     <header className="fixed top-0 inset-x-0 z-40 w-full border-b border-fd-border bg-fd-background/80 backdrop-blur-xl">
       {/* Top row: logo left, actions right */}
-      <div className="flex items-center h-16 max-w-[97rem] mx-auto px-8">
+      <div className="flex items-center h-16 max-w-[97rem] mx-auto px-3 md:px-8">
         {showSidebarToggle && (
           <SidebarTrigger className="docs-nav-sidebar-toggle flex items-center justify-center size-9 rounded-lg text-fd-muted-foreground bg-transparent border-none cursor-pointer mr-3">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="21" y2="12" />
               <line x1="3" y1="18" x2="21" y2="18" />
@@ -72,11 +99,17 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
 
         {/* Brand */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <OpenUILogo />
+          <ThesysLogo
+            isHovered={isThesysHovered}
+            onHoverChange={setIsThesysHovered}
+            variant={logoVariant}
+          />
+          <span className="text-fd-muted-foreground text-[15px] select-none px-0.5">|</span>
+          <OpenUILogo variant={logoVariant} />
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-3 ml-auto shrink-0">
+        <div className="hidden md:flex items-center gap-3 ml-auto shrink-0">
           <SearchBar />
           <div className="flex items-center gap-0.5">
             {/* Discord */}
@@ -103,12 +136,14 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
                 <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
               </svg>
             </Link>
+            {/* Theme toggle */}
+            <ThemeToggle />
           </div>
         </div>
       </div>
 
       {/* Bottom row: tabs */}
-      <div className="max-w-[97rem] mx-auto px-8">
+      <div className="max-w-388 mx-auto px-8">
         <nav className="docs-nav-tabs flex items-center overflow-x-auto">
           {tabs.map((tab) => {
             const isActive = pathname.startsWith(tab.url);
@@ -118,8 +153,8 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
                 href={tab.url}
                 className={`flex items-center px-4 py-2.5 text-sm font-medium whitespace-nowrap no-underline transition-colors duration-150 border-b-2 -mb-px ${
                   isActive
-                    ? 'text-fd-foreground border-fd-primary'
-                    : 'text-fd-muted-foreground border-transparent hover:text-fd-foreground'
+                    ? "text-fd-foreground border-fd-primary"
+                    : "text-fd-muted-foreground border-transparent hover:text-fd-foreground"
                 }`}
               >
                 {tab.title}

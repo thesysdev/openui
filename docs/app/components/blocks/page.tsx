@@ -8,8 +8,8 @@ export default function BlocksPage() {
         <div className={styles.body}>
           <p>
             Blocks are the core building units of OpenUI. Think of them like LEGO pieces for
-            generative interfaces: small, self-contained UI primitives that can be combined to create
-            rich, structured experiences.
+            generative interfaces: small, self-contained UI primitives that can be combined to
+            create rich, structured experiences.
           </p>
           <p>
             Each block is designed to represent a specific pattern of structured data, such as
@@ -28,14 +28,12 @@ export default function BlocksPage() {
           <p>Composition is how individual blocks come together to form complete interfaces.</p>
           <p>
             AI is responsible for assembling blocks based on its understanding of the content and
-            context. Given structured data and intent, the model selects the blocks that best fit the
-            information hierarchy and user experience. This allows interfaces to be generated
+            context. Given structured data and intent, the model selects the blocks that best fit
+            the information hierarchy and user experience. This allows interfaces to be generated
             dynamically while still maintaining strong visual and structural consistency.
           </p>
           <p>However, this behavior is not a black box, you remain in control.</p>
-          <p>
-            You can guide composition through system prompts and usage rules, for example:
-          </p>
+          <p>You can guide composition through system prompts and usage rules, for example:</p>
           <ul>
             <li>defining when a particular block should be preferred</li>
             <li>specifying which block to use for specific contexts</li>

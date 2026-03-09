@@ -1,6 +1,6 @@
+import type { TableColumn } from "@components/types";
 import type { ReactNode } from "react";
 import styles from "./FoundationTokenTable.module.css";
-import type { TableColumn } from "@components/types";
 
 interface FoundationTableProps {
   columns: TableColumn[];

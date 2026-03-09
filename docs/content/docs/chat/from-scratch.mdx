@@ -1,0 +1,186 @@
+---
+title: End-to-End Guide
+description: Build a complete OpenUI Chat setup from an existing app.
+---
+
+This guide shows a complete OpenUI Chat setup in an existing Next.js App Router project.
+
+This path covers:
+
+- a built-in chat layout
+- an OpenAI-backed route handler
+- frontend request wiring with `processMessage`
+- the correct stream adapter and message format
+- optional thread history
+- optional headless customization
+
+{/* add visual: flow-chart showing frontend page -> processMessage -> /api/chat route -> OpenAI -> toReadableStream() -> openAIReadableStreamAdapter() -> rendered UI with componentLibrary */}
+
+## Prerequisites
+
+Complete [Installation](/docs/chat/installation) first, then return here to wire the chat flow.
+
+## 1. Generate the component-library prompt
+
+If you want Generative UI, generate a system prompt from the component library and send it with each request.
+
+If you only want plain text chat, you can skip this step and omit `componentLibrary` and `systemPrompt` in the next examples.
+
+```tsx
+import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui/genui-lib";
+
+const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+```
+
+This prompt tells the model which UI components it is allowed to emit.
+
+## 2. Create the streaming backend route
+
+Create `app/api/chat/route.ts`:
+
+```ts
+import { NextRequest } from "next/server";
+import OpenAI from "openai";
+
+const client = new OpenAI();
+
+export async function POST(req: NextRequest) {
+  try {
+    const { messages, systemPrompt } = await req.json();
+
+    const chatMessages: OpenAI.ChatCompletionMessageParam[] = [
+      ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),
+      ...messages,
+    ];
+
+    const response = await client.chat.completions.create({
+      model: "gpt-5.2",
+      messages: chatMessages,
+      stream: true,
+    });
+
+    return new Response(response.toReadableStream(), {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+```
+
+This route expects OpenAI chat-completion messages and returns the OpenAI SDK readable stream.
+
+## 3. Render a layout and connect it to the route
+
+`FullScreen` is a good baseline because it includes both the thread list and the main chat surface.
+
+This guide uses `processMessage` instead of `apiUrl` so the request body stays explicit and you can pass `systemPrompt`.
+
+```tsx
+import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
+import { FullScreen } from "@openuidev/react-ui";
+import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui/genui-lib";
+
+const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+
+export default function Page() {
+  return (
+    <div className="h-screen">
+      <FullScreen
+        processMessage={async ({ messages, abortController }) => {
+          return fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              messages,
+              systemPrompt,
+            }),
+            signal: abortController.signal,
+          });
+        }}
+        messageFormat={openAIMessageFormat}
+        streamProtocol={openAIReadableStreamAdapter()}
+        componentLibrary={defaultLibrary}
+        agentName="Assistant"
+      />
+    </div>
+  );
+}
+```
+
+Why this setup matters:
+
+- `processMessage` gives you control over the request body
+- `messageFormat={openAIMessageFormat}` converts the messages before they reach your route
+- `openAIReadableStreamAdapter()` matches `response.toReadableStream()`
+- `componentLibrary={defaultLibrary}` lets the UI render structured responses
+
+### Checkpoint
+
+At this point, you should be able to send a message and receive streamed responses in the UI.
+
+Guides: [Connecting to LLM](/docs/chat/connecting), [Next.js Implementation](/docs/chat/nextjs), [Providers](/docs/chat/providers)
+
+## 4. Connect Thread History (optional)
+
+Stop here if you only need a working streamed chat UI.
+
+Continue with this section only if your app also needs saved threads and message history from the backend.
+
+If you want the UI to load saved threads and previous messages, add `threadApiUrl` and implement the default thread contract described in [Connect Thread History](/docs/chat/persistence).
+
+```tsx
+<FullScreen
+  processMessage={async ({ messages, abortController }) => {
+    return fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages,
+        systemPrompt,
+      }),
+      signal: abortController.signal,
+    });
+  }}
+  threadApiUrl="/api/threads"
+  streamProtocol={openAIReadableStreamAdapter()}
+  messageFormat={openAIMessageFormat}
+  componentLibrary={defaultLibrary}
+  agentName="Assistant"
+/>
+```
+
+Add `messageFormat={openAIMessageFormat}` if your thread endpoints also store and return OpenAI-style messages. That keeps both chat requests and thread-history loading aligned without manually calling `openAIMessageFormat.toApi(messages)` in `processMessage`.
+
+## 5. Switch layouts or go headless (optional)
+
+This step does not change your backend contract. It only changes the UI layer that sits on top of the same chat and thread wiring.
+
+Once the backend contract is working, you can keep the same chat wiring and swap the UI layer.
+
+- Use [Copilot](/docs/chat/copilot) for a sidebar layout
+- Use [BottomTray](/docs/chat/bottom-tray) for a floating widget
+- Use [Headless Intro](/docs/chat/headless-intro) and [Custom UI Guide](/docs/chat/custom-ui-guide) for full UI control
+
+## You now have
+
+- a streaming `/api/chat` route
+- a connected chat layout
+- the correct OpenAI message conversion and stream adapter
+- optional GenUI support
+- a clear path to thread history and headless customization
+
+## Next steps
+
+- [Connect Thread History](/docs/chat/persistence)
+- [GenUI](/docs/chat/genui)
+- [Custom UI Guide](/docs/chat/custom-ui-guide)

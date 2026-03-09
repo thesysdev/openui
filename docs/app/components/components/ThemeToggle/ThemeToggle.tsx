@@ -1,8 +1,8 @@
 "use client";
 
+import { useAppTheme } from "@components/components/AppThemeProvider/AppThemeProvider";
 import { IconButton } from "@openuidev/react-ui/IconButton";
 import { Contrast } from "lucide-react";
-import { useAppTheme } from "@components/components/AppThemeProvider/AppThemeProvider";
 
 export default function ThemeToggle() {
   const { mode, toggleMode } = useAppTheme();

@@ -75,7 +75,10 @@
   overflow: hidden;
   transform: translateY(calc(var(--openui-space-2xs) * -1));
   pointer-events: none;
-  transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+  transition:
+    max-height 0.4s ease,
+    opacity 0.4s ease,
+    transform 0.4s ease;
 }
 
 .parentItem:hover > .nestedList {
@@ -96,7 +99,9 @@
   border: 1px solid transparent;
   color: var(--openui-text-neutral-primary);
   font: var(--openui-text-label-sm);
-  transition: background-color 0.1s ease, color 0.1s ease;
+  transition:
+    background-color 0.1s ease,
+    color 0.1s ease;
 }
 
 .nestedLink {

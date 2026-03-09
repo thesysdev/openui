@@ -10,7 +10,12 @@ interface CodeBlockProps {
   className?: string;
 }
 
-export function CodeBlock({ code, title, codeBlockClassName = "", className = "" }: CodeBlockProps) {
+export function CodeBlock({
+  code,
+  title,
+  codeBlockClassName = "",
+  className = "",
+}: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -20,9 +25,9 @@ export function CodeBlock({ code, title, codeBlockClassName = "", className = ""
   };
 
   return (
-    <div className={`overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 flex flex-col ${className}`}>
+    <div className={`overflow-hidden rounded-lg border border-slate-200 dark:border-[var(--color-doc-border)] flex flex-col ${className}`}>
       {title && (
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900/50">
+        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-[var(--color-doc-border)] dark:bg-[var(--color-doc-surface)]">
           <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
             {title}
           </span>
@@ -34,7 +39,7 @@ export function CodeBlock({ code, title, codeBlockClassName = "", className = ""
           </button>
         </div>
       )}
-      <pre className={`grow-1 overflow-x-auto bg-slate-950 p-4 text-sm leading-relaxed text-slate-300 ${codeBlockClassName}`}>
+      <pre className={`grow-1 overflow-x-auto bg-[var(--color-doc-code-bg)] p-4 text-sm leading-relaxed text-slate-700 dark:text-slate-300 ${codeBlockClassName}`}>
         <code>{code}</code>
       </pre>
     </div>

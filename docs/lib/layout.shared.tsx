@@ -1,4 +1,4 @@
-import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 
 export const gitConfig = {
   user: "thesysdev",
@@ -16,6 +16,5 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: "OpenUI",
     },
-    githubUrl: siteConfig.githubUrl,
   };
 }

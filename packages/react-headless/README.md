@@ -1,7 +1,8 @@
 # @openuidev/react-headless
 
-The **React state-management and streaming layer** for OpenUI's Generative UI SDK. This package gives you everything needed to wire up a multi-threaded chat UI to any LLM backend — thread/message CRUD, real-time SSE streaming, and pluggable adapters for different API formats — all powered by a single Zustand store exposed through ergonomic React hooks.
+Headless React primitives, streaming adapters, and state management for OpenUI.
 
+<<<<<<< nit/react-headless
 ## Table of Contents
 
 - [@openuidev/react-headless](#openuidevreact-headless)
@@ -501,5 +502,14 @@ import {
 5. **The `MessageFormat` layer** handles serialization differences between AG-UI's internal format and your backend (OpenAI Completions, Responses API, or custom).
 6. **The `StreamProtocolAdapter` layer** handles parsing differences between SSE protocols.
 7. **Everything is cancellable** via `AbortController` — switching threads or calling `cancelMessage()` cleanly aborts in-flight streams.
+=======
+## Install
 
-This layered design means you can swap backends (AG-UI, OpenAI Completions, OpenAI Responses, custom) just by changing the `streamProtocol` and `messageFormat` props — no changes to your UI code.
+```bash
+pnpm add @openuidev/react-headless
+```
+
+## Docs
+>>>>>>> main
+
+Detailed documentation is available at [openui.com](https://openui.com).

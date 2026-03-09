@@ -1,11 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import {
-  BlockVariantPreview,
-  PreviewPage,
-  PreviewSection,
-} from "@components/components/preview";
+import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
 import {
   Accordion,
   AccordionContent,
@@ -17,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@openuidev/react-ui";
+import { useState } from "react";
 import styles from "./page.module.css";
 
 type VariantMode = "clear" | "card" | "sunk";
@@ -56,12 +52,7 @@ const ACCORDION_ITEMS = [
 function ClearPreview() {
   return (
     <div className={styles.previewWrapper}>
-      <Accordion
-        type="single"
-        collapsible
-        variant="clear"
-        defaultValue="item-1"
-      >
+      <Accordion type="single" collapsible variant="clear" defaultValue="item-1">
         {ACCORDION_ITEMS.map((item) => (
           <AccordionItem key={item.value} value={item.value}>
             <AccordionTrigger text={item.trigger} />
@@ -76,12 +67,7 @@ function ClearPreview() {
 function CardPreview() {
   return (
     <div className={styles.previewWrapper}>
-      <Accordion
-        type="single"
-        collapsible
-        variant="card"
-        defaultValue="item-1"
-      >
+      <Accordion type="single" collapsible variant="card" defaultValue="item-1">
         {ACCORDION_ITEMS.map((item) => (
           <AccordionItem key={item.value} value={item.value}>
             <AccordionTrigger text={item.trigger} />
@@ -96,12 +82,7 @@ function CardPreview() {
 function SunkPreview() {
   return (
     <div className={styles.previewWrapper}>
-      <Accordion
-        type="single"
-        collapsible
-        variant="sunk"
-        defaultValue="item-1"
-      >
+      <Accordion type="single" collapsible variant="sunk" defaultValue="item-1">
         {ACCORDION_ITEMS.map((item) => (
           <AccordionItem key={item.value} value={item.value}>
             <AccordionTrigger text={item.trigger} />
@@ -113,13 +94,7 @@ function SunkPreview() {
   );
 }
 
-function ConfigurableAccordionPreview({
-  variant,
-  type,
-}: {
-  variant: VariantMode;
-  type: TypeMode;
-}) {
+function ConfigurableAccordionPreview({ variant, type }: { variant: VariantMode; type: TypeMode }) {
   if (type === "multiple") {
     return (
       <div className={styles.previewWrapper}>
@@ -137,12 +112,7 @@ function ConfigurableAccordionPreview({
 
   return (
     <div className={styles.previewWrapper}>
-      <Accordion
-        type="single"
-        collapsible
-        variant={variant}
-        defaultValue="item-1"
-      >
+      <Accordion type="single" collapsible variant={variant} defaultValue="item-1">
         {ACCORDION_ITEMS.map((item) => (
           <AccordionItem key={item.value} value={item.value}>
             <AccordionTrigger text={item.trigger} />
@@ -169,10 +139,7 @@ function AccordionControls({
     <div className={styles.controlsPanel}>
       <div className={styles.controlSection}>
         <p className={styles.sectionTitle}>Variant</p>
-        <Select
-          value={variant}
-          onValueChange={(v) => onVariantChange(v as VariantMode)}
-        >
+        <Select value={variant} onValueChange={(v) => onVariantChange(v as VariantMode)}>
           <SelectTrigger size="sm" className={styles.selectWrapper}>
             <SelectValue />
           </SelectTrigger>
@@ -188,10 +155,7 @@ function AccordionControls({
 
       <div className={styles.controlSection}>
         <p className={styles.sectionTitle}>Type</p>
-        <Select
-          value={type}
-          onValueChange={(v) => onTypeChange(v as TypeMode)}
-        >
+        <Select value={type} onValueChange={(v) => onTypeChange(v as TypeMode)}>
           <SelectTrigger size="sm" className={styles.selectWrapper}>
             <SelectValue />
           </SelectTrigger>
@@ -240,9 +204,7 @@ export default function BlocksAccordianPage() {
         <BlockVariantPreview
           title="Configurations"
           description="Customise variant and expand behaviour."
-          preview={
-            <ConfigurableAccordionPreview variant={variant} type={type} />
-          }
+          preview={<ConfigurableAccordionPreview variant={variant} type={type} />}
           rightControls={
             <AccordionControls
               variant={variant}

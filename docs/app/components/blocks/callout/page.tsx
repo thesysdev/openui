@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
 import {
   Select,
@@ -10,6 +9,7 @@ import {
   SelectValue,
   TextCallout,
 } from "@openuidev/react-ui";
+import { useState } from "react";
 
 type CalloutVariant = "neutral" | "info" | "warning" | "success" | "danger";
 
@@ -40,7 +40,10 @@ export default function BlocksCalloutPage() {
           description="A callout with selectable variant."
           headerControl={
             <div style={{ width: "160px" }}>
-              <Select value={variant} onValueChange={(value) => setVariant(value as CalloutVariant)}>
+              <Select
+                value={variant}
+                onValueChange={(value) => setVariant(value as CalloutVariant)}
+              >
                 <SelectTrigger size="sm" style={{ width: "160px" }}>
                   <SelectValue placeholder="Select variant" />
                 </SelectTrigger>

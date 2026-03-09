@@ -8,13 +8,13 @@ on:
   workflow_dispatch:
     inputs:
       package:
-        description: "Package to publish (react-ui, react-core, or stream)"
+        description: "Package to publish (react-ui, react-headless, or lang-react)"
         required: true
         type: choice
         options:
           - react-ui
-          - react-core
-          - stream
+          - react-headless
+          - lang-react
 
 jobs:
   publish:

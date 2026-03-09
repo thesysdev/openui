@@ -113,7 +113,7 @@
   cursor: pointer;
   transition:
     background-color 0.2s ease-in-out,
-    border-color 0.2s ease-in-out ,
+    border-color 0.2s ease-in-out,
     border-radius 0.2s ease-in-out,
     border-left-width 0.2s ease-in-out,
     padding-left 0.2s ease-in-out;
