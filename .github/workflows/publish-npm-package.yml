@@ -19,9 +19,6 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: js
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,6 +44,6 @@ jobs:
         run: pnpm -r run ci
 
       - name: Publish package
-        working-directory: ./js/packages/${{ inputs.package }}
+        working-directory: ./packages/${{ inputs.package }}
         run: pnpm publish --access public
         # Note: provenance is automatically generated with trusted publishing
