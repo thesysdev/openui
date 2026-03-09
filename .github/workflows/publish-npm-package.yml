@@ -46,5 +46,5 @@ jobs:
 
       - name: Publish package
         working-directory: ./packages/${{ inputs.package }}
-        run: pnpm publish --access public --dry-run
+        run: pnpm publish --access public
         # Note: provenance is automatically generated with trusted publishing
