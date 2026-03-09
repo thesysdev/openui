@@ -8,20 +8,17 @@ on:
   workflow_dispatch:
     inputs:
       package:
-        description: "Package to publish (react-ui, react-core, or stream)"
+        description: "Package to publish (react-ui, react-headless, or lang-react)"
         required: true
         type: choice
         options:
           - react-ui
-          - react-core
-          - stream
+          - react-headless
+          - lang-react
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: js
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,10 +40,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build projects
-        run: pnpm -r run ci
+      - name: Run package checks
+        working-directory: ./packages/${{ inputs.package }}
+        run: pnpm run ci
 
       - name: Publish package
-        working-directory: ./js/packages/${{ inputs.package }}
+        working-directory: ./packages/${{ inputs.package }}
         run: pnpm publish --access public
         # Note: provenance is automatically generated with trusted publishing

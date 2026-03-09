@@ -1,12 +1,13 @@
 {
   "name": "@openuidev/react-headless",
-  "version": "0.7.7",
+  "version": "0.7.8",
   "description": "Generative UI SDK",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "test": "vitest run",
@@ -19,14 +20,12 @@
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "peerDependencies": {
-    "eventsource-parser": "^3.0.0",
-    "react": ">=17.0.0",
-    "react-dom": ">=17.0.0",
-    "tiny-invariant": "^1.3.3",
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@types/react": ">=17.0.0",
+    "@types/react": ">=19.0.0",
     "openai": "^6.22.0",
     "vitest": "^4.0.18"
   },
@@ -46,7 +45,6 @@
     "directory": "js/packages/react-headless"
   },
   "dependencies": {
-    "@ag-ui/core": "^0.0.45",
-    "zod": "^3.24.1"
+    "@ag-ui/core": "^0.0.45"
   }
 }

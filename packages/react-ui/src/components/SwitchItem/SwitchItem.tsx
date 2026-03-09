@@ -1,7 +1,6 @@
 import * as Switch from "@radix-ui/react-switch";
 import clsx from "clsx";
-import { CSSProperties, forwardRef, ReactNode } from "react";
-import { useId } from "../../polyfills";
+import { CSSProperties, forwardRef, ReactNode, useId } from "react";
 
 interface SwitchItemProps {
   label?: ReactNode;

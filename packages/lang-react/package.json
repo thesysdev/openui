@@ -1,13 +1,14 @@
 {
   "name": "@openuidev/lang-react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OpenUI-lang renderer and standard library for React",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "exports": {
     ".": {
@@ -29,7 +30,7 @@
     "zod": "^4.0.0"
   },
   "peerDependencies": {
-    "react": ">=18.0.0"
+    "react": ">=19.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0"
