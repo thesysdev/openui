@@ -62,6 +62,16 @@ export const CheckBoxGroup = defineComponent({
     }, [formName, fieldName, items, getFieldValue]);
 
     React.useEffect(() => {
+      if (!isStreaming && items.length > 0 && getFieldValue(formName, fieldName) == null) {
+        const initial: Record<string, boolean> = {};
+        for (const item of items) {
+          initial[item.props.name] = item.props.defaultChecked ?? false;
+        }
+        setFieldValue(formName, "CheckBoxGroup", fieldName, initial, false);
+      }
+    }, [isStreaming]);
+
+    React.useEffect(() => {
       if (!isStreaming && rules.length > 0 && formValidation) {
         formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
         return () => formValidation.unregisterField(fieldName);

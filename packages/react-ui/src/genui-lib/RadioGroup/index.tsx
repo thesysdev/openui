@@ -50,6 +50,16 @@ export const RadioGroup = defineComponent({
     const value = (getFieldValue(formName, fieldName) ?? props.defaultValue) as string | undefined;
 
     React.useEffect(() => {
+      if (
+        !isStreaming &&
+        props.defaultValue != null &&
+        getFieldValue(formName, fieldName) == null
+      ) {
+        setFieldValue(formName, "RadioGroup", fieldName, props.defaultValue, false);
+      }
+    }, [isStreaming]);
+
+    React.useEffect(() => {
       if (!isStreaming && rules.length > 0 && formValidation) {
         formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
         return () => formValidation.unregisterField(fieldName);

@@ -1,29 +1,7 @@
-import { BuiltinActionType } from "@openuidev/lang-react";
 import { z } from "zod";
+import { actionSchema } from "../Action/schema";
 
-// Action schemas for Button component
-const continueConversationAction = z.object({
-  type: z.literal(BuiltinActionType.ContinueConversation),
-  /** Extra context string passed to the LLM — useful for carousel/list item data. */
-  context: z.string().optional(),
-});
-
-const openUrlAction = z.object({
-  type: z.literal(BuiltinActionType.OpenUrl),
-  url: z.string(),
-});
-
-const customAction = z.object({
-  type: z.string(),
-  params: z.record(z.string(), z.any()).optional(),
-});
-
-// Union: check specific types first, then custom fallback
-export const actionSchema = z
-  .union([openUrlAction, continueConversationAction, customAction])
-  .optional();
-
-export type ActionSchema = z.infer<typeof actionSchema>;
+export { actionSchema, type ActionSchema } from "../Action/schema";
 
 export const ButtonSchema = z.object({
   label: z.string(),

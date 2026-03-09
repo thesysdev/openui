@@ -28,8 +28,8 @@
   }
 
   &-trigger {
+    background-color: transparent;
     border: none;
-    background: transparent;
     padding: cssUtils.$space-m 0 cssUtils.$space-xs 0;
     width: 100%;
     flex: 1;
@@ -43,19 +43,19 @@
       display: flex;
       flex-direction: column;
       gap: cssUtils.$space-l;
-      align-items: flex-start;
+      align-items: start;
       justify-content: center;
       width: 100%;
     }
 
     &-content-separator {
-      margin: cssUtils.$space-2xs;
+      margin: cssUtils.$space-3xs;
     }
 
     &-content-icon-button-wrapper {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: start;
       gap: cssUtils.$space-s;
       width: 100%;
     }
@@ -79,7 +79,7 @@
       flex-grow: 1;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: start;
       padding: 0;
       margin: 0;
     }
@@ -89,7 +89,7 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: cssUtils.$space-l;
+    gap: cssUtils.$space-xl;
     padding: 0 0 0 28px;
 
     &[data-state="open"] {
@@ -98,7 +98,6 @@
 
     &[data-state="closed"] {
       height: 0;
-      overflow: hidden;
     }
   }
 }

@@ -70,10 +70,7 @@ export const SwitchGroup = defineComponent({
             description={item.props.description || ""}
             checked={aggregate[item.props.name] ?? item.props.defaultChecked ?? false}
             onChange={(val: boolean) => {
-              const newAggregate =
-                items.length === 1
-                  ? val // single item: store boolean directly
-                  : { ...getAggregate(), [item.props.name]: val };
+              const newAggregate = { ...getAggregate(), [item.props.name]: val };
               setFieldValue(formName, "SwitchGroup", fieldName, newAggregate, true);
             }}
             disabled={isStreaming}
