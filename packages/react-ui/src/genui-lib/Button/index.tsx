@@ -46,7 +46,11 @@ export const Button = defineComponent({
           // Only validate for primary buttons with continue_conversation action (form submit).
           // Secondary/tertiary buttons (e.g. "Ask to customize") skip validation.
           const variant = (props.variant as string) || "primary";
-          if (formValidation && variant === "primary" && actionType === BuiltinActionType.ContinueConversation) {
+          if (
+            formValidation &&
+            variant === "primary" &&
+            actionType === BuiltinActionType.ContinueConversation
+          ) {
             const valid = formValidation.validateForm();
             if (!valid) return;
           }
