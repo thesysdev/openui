@@ -1,131 +1,22 @@
 ---
-title: System Prompts
-description: How to generate and customize the instructions for the LLM.
+title: Prompts
+description: Legacy prompt page kept for compatibility; use System Prompts.
 ---
 
-You have defined your components with Zod, but the LLM doesn't know about them yet. To fix this, OpenUI generates a specialized **System Prompt** that teaches the model your component syntax, rules, and available props.
+This page is maintained for older links.
 
-### Generating the Prompt
+The canonical prompt documentation is:
 
-Use the `library.prompt()` method to generate the instructions string. This string should be injected as the **System Message** in your LLM call.
+- [System Prompts](/docs/openui-lang/system-prompts)
 
-```typescript
-import { myLibrary } from "./registry";
+Quick example:
 
-// Generate the instruction manual
-const systemPrompt = myLibrary.prompt();
+```ts
+import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui";
 
-console.log(systemPrompt);
-// Output:
-// "You are an AI that renders UI...
-//  Available Components:
-//  - StatCard(label: string, value: string, trend: "up" | "down")
-//  ..."
-```
-
-### Prompt Customization
-
-You can customize the prompt to fit your app's persona or specific rules using `PromptOptions`.
-
-```typescript
-const systemPrompt = myLibrary.prompt({
-  preamble: "You are a helpful financial assistant.",
-  additionalRules: [
-    "Always show a StatCard for revenue queries.",
-    "Never use red colors for positive trends."
-  ],
-  examples: [
-    // Few-shot examples improve reliability significantly
-    `User: Show me Q3 revenue
-Assistant:
-root = Root([card])
-card = StatCard("Q3 Revenue", "$1.2M", "up")`
-  ]
-});
-```
-
-#### `preamble` (string)
-
-Overrides the default opening line. Use this to set the "Persona" (e.g., "You are a medical assistant...").
-
-#### `additionalRules` (string[])
-
-Appends bullet points to the end of the prompt. Use this for business logic or style constraints.
-
-#### `examples` (string[])
-
-**Crucial for reliability.** Providing 2-3 examples of user input to OpenUI Lang output (few-shot prompting) drastically reduces hallucinations and improves syntax accuracy.
-
-### Integration Examples
-
-#### 1. OpenAI SDK
-
-```typescript
-import OpenAI from "openai";
-import { myLibrary } from "./registry";
-
-const client = new OpenAI();
-
-export async function POST(req: Request) {
-  const { messages } = await req.json();
-
-  const response = await client.chat.completions.create({
-    model: "gpt-4o", // Recommended model
-    messages: [
-      { role: "system", content: myLibrary.prompt() },
-      ...messages
-    ],
-    stream: true
-  });
-
-  // ... handle stream
-}
-```
-
-#### 2. Vercel AI SDK (Core)
-
-```typescript
-import { streamText } from "ai";
-import { openai } from "@ai-sdk/openai";
-import { myLibrary } from "./registry";
-
-export async function POST(req: Request) {
-  const { messages } = await req.json();
-
-  const result = await streamText({
-    model: openai("gpt-4o"),
-    system: myLibrary.prompt(), // Inject here
-    messages
-  });
-
-  return result.toDataStreamResponse();
-}
-```
-
-### Debugging Prompts
-
-If the LLM is making mistakes (e.g., using the wrong prop name), it helps to inspect exactly what OpenUI is telling the model.
-
-You can log the prompt during development:
-
-```typescript
-if (process.env.NODE_ENV === "development") {
-  console.log("--- System Prompt ---");
-  console.log(myLibrary.prompt());
-  console.log("---------------------");
-}
+const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
 ```
 
 <Callout type="info">
-  **Tip:** The generated prompt includes the description strings from your `z.describe()` calls. If the model misunderstands a prop, try improving the Zod description first.
+  Prompt generation behavior is documented in detail on the System Prompts page.
 </Callout>
-
-### Next Steps
-
-Now that the LLM knows *what* to write, let's see how to render it.
-
-<Cards>
-  <Card title="The Renderer" href="/docs/openui-lang/renderer">
-    Learn how the `<Renderer />` component parses and displays the output.
-  </Card>
-</Cards>

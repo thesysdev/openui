@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Playwrite+US+Trad&family=Geist:wght@400;500;600;700&display=swap');
-@import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
-@import 'fumadocs-ui/css/preset.css';
-@import '../shared/design-system/styles/variables/index.css';
-@import '../../packages/react-ui/dist/styles/index.css';
+@import url("https://fonts.googleapis.com/css2?family=Playwrite+US+Trad&family=Geist:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+@import "../shared/design-system/styles/variables/index.css";
+@import "../../packages/react-ui/dist/styles/index.css";
 
 @media (prefers-color-scheme: light) {
   :root {

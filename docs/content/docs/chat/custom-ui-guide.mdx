@@ -1,35 +1,144 @@
 ---
-title: Building Custom UI
+title: Custom UI Guide
 description: Build a chat interface from scratch using headless hooks.
 ---
 
-This guide shows the typical headless composition:
+This guide shows a complete headless composition with:
 
-1. `ThreadSidebar` from `useThreadList()`
-2. `MessageList` from `useThread()`
-3. `Composer` using `processMessage()` and `cancelMessage()`
+1. `ChatProvider` for backend configuration
+2. `useThreadList()` for the sidebar
+3. `useThread()` for messages and the composer
+
+The goal is to show how those pieces fit together in one working example, not to prescribe a specific visual design.
 
 ```tsx
-import { ChatProvider, useThread, useThreadList } from "@openuidev/react-headless";
+import { useState } from "react";
+import {
+  ChatProvider,
+  openAIMessageFormat,
+  openAIReadableStreamAdapter,
+  useThread,
+  useThreadList,
+} from "@openuidev/react-headless";
+
+function ThreadSidebar() {
+  const {
+    threads,
+    selectedThreadId,
+    isLoadingThreads,
+    selectThread,
+    switchToNewThread,
+  } = useThreadList();
+
+  return (
+    <aside>
+      <button onClick={switchToNewThread}>New chat</button>
+      {isLoadingThreads ? <p>Loading threads...</p> : null}
+      {threads.map((thread) => (
+        <button
+          key={thread.id}
+          onClick={() => selectThread(thread.id)}
+          aria-pressed={thread.id === selectedThreadId}
+        >
+          {thread.title}
+        </button>
+      ))}
+    </aside>
+  );
+}
+
+function MessageList() {
+  const { messages, isRunning } = useThread();
+
+  return (
+    <div>
+      {messages.map((message) => (
+        <div key={message.id}>
+          <strong>{message.role}:</strong> {String(message.content ?? "")}
+        </div>
+      ))}
+      {isRunning ? <p>Thinking...</p> : null}
+    </div>
+  );
+}
+
+function Composer() {
+  const { processMessage, cancelMessage, isRunning } = useThread();
+  const [input, setInput] = useState("");
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!input.trim() || isRunning) return;
+        processMessage({ role: "user", content: input });
+        setInput("");
+      }}
+    >
+      <input
+        value={input}
+        onChange={(event) => setInput(event.target.value)}
+        placeholder="Ask anything..."
+      />
+      {isRunning ? (
+        <button type="button" onClick={cancelMessage}>
+          Stop
+        </button>
+      ) : (
+        <button type="submit">Send</button>
+      )}
+    </form>
+  );
+}
 
 function CustomChat() {
-  const { messages, processMessage, isRunning } = useThread();
-  const { threads, selectThread } = useThreadList();
-
-  // Render your own layout here
-  return null;
+  return (
+    <div className="chat-app">
+      <ThreadSidebar />
+      <main>
+        <MessageList />
+        <Composer />
+      </main>
+    </div>
+  );
 }
 
 export default function App() {
   return (
-    <ChatProvider apiUrl="/api/chat" threadApiUrl="/api/threads">
+    <ChatProvider
+      processMessage={async ({ messages, abortController }) => {
+        return fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages,
+          }),
+          signal: abortController.signal,
+        });
+      }}
+      threadApiUrl="/api/threads"
+      streamProtocol={openAIReadableStreamAdapter()}
+      messageFormat={openAIMessageFormat}
+    >
       <CustomChat />
     </ChatProvider>
   );
 }
 ```
 
-Start simple, then layer in:
-- custom rendering
-- optimistic UI
-- auth-aware backend calls with `processMessage`
+This example uses the same backend assumptions as the built-in layouts:
+
+- `messageFormat={openAIMessageFormat}` converts outgoing chat messages and loaded thread history to the backend format
+- `openAIReadableStreamAdapter()` matches `response.toReadableStream()`
+- `threadApiUrl` enables saved thread history
+- `processMessage` keeps the request body explicit while still letting `messageFormat` handle message conversion
+
+If you want Generative UI in a headless build, you also need to render structured assistant content yourself instead of relying on the built-in `componentLibrary` behavior from the layout components.
+
+{/* add visual: flow-chart showing ChatProvider feeding ThreadSidebar, MessageList, and Composer through useThreadList and useThread */}
+
+## Related guides
+
+- [Headless Intro](/docs/chat/headless-intro)
+- [Hooks & State](/docs/chat/hooks)
+- [Connecting to LLM](/docs/chat/connecting)

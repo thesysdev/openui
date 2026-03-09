@@ -10,7 +10,12 @@ interface CodeBlockProps {
   className?: string;
 }
 
-export function CodeBlock({ code, title, codeBlockClassName = "", className = "" }: CodeBlockProps) {
+export function CodeBlock({
+  code,
+  title,
+  codeBlockClassName = "",
+  className = "",
+}: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {

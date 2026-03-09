@@ -1,14 +1,14 @@
-import type { ReactNode } from "react";
+import AppThemeProvider from "@components/components/AppThemeProvider/AppThemeProvider";
+import ThemeToggle from "@components/components/ThemeToggle";
+import TopBarDocsButton from "@components/components/TopBarDocsButton/TopBarDocsButton";
+import TopNav from "@components/components/TopNav";
+import { TOP_NAV_ITEMS } from "@components/config/navigation";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
+import Link from "next/link";
+import type { ReactNode } from "react";
 import "./globals.css";
 import styles from "./layout.module.css";
-import AppThemeProvider from "@components/components/AppThemeProvider/AppThemeProvider";
-import TopNav from "@components/components/TopNav";
-import TopBarDocsButton from "@components/components/TopBarDocsButton/TopBarDocsButton";
-import ThemeToggle from "@components/components/ThemeToggle";
-import { TOP_NAV_ITEMS } from "@components/config/navigation";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,11 +35,7 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
-  const fontClassName = [
-    inter.variable,
-    geistSans.variable,
-    geistMono.variable,
-  ].join(" ");
+  const fontClassName = [inter.variable, geistSans.variable, geistMono.variable].join(" ");
 
   return (
     <AppThemeProvider>

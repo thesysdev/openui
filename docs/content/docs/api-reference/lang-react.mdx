@@ -1,14 +1,15 @@
 ---
 title: "@openuidev/lang-react"
-description: API reference for the documented Generative UI runtime and library APIs.
+description: API reference for the OpenUI Lang runtime, library, parser, and renderer.
 ---
 
-Use this package for Generative UI authoring and rendering.
+Use this package for OpenUI Lang authoring and rendering.
 
 ## Import
 
 ```ts
 import {
+  defineComponent,
   createLibrary,
   Renderer,
   BuiltinActionType,
@@ -17,52 +18,80 @@ import {
 } from "@openuidev/lang-react";
 ```
 
+## `defineComponent(config)`
+
+Defines a single component with name, Zod schema, description, and React renderer. Returns a `DefinedComponent` with a `.ref` for cross-referencing in parent schemas.
+
+```ts
+function defineComponent<T extends z.ZodObject<any>>(config: {
+  name: string;
+  props: T;
+  description: string;
+  component: ComponentRenderer<z.infer<T>>;
+}): DefinedComponent<T>;
+```
+
+```ts
+interface DefinedComponent<T extends z.ZodObject<any> = z.ZodObject<any>> {
+  name: string;
+  props: T;
+  description: string;
+  component: ComponentRenderer<z.infer<T>>;
+  /** Use in parent schemas: `z.array(ChildComponent.ref)` */
+  ref: z.ZodType<SubComponentOf<z.infer<T>>>;
+}
+```
+
 ## `createLibrary(input)`
 
-Creates a `Library` from component definitions.
+Creates a `Library` from an array of defined components.
 
 ```ts
 function createLibrary(input: LibraryDefinition): Library;
 ```
 
-Core types used in docs:
+Core types:
 
 ```ts
 interface LibraryDefinition {
-  components: Record<string, ComponentDefinition>;
+  components: DefinedComponent[];
   componentGroups?: ComponentGroup[];
   root?: string;
 }
 
-interface ComponentDefinition<T extends z.ZodObject<any> = z.ZodObject<any>> {
-  props: T;
-  description: string;
-  component: ComponentRenderer<z.infer<T>>;
+interface ComponentGroup {
+  name: string;
+  components: string[];
+  notes?: string[];
 }
 
 interface Library {
-  components: Record<string, ComponentDefinition>;
-  componentGroups?: ComponentGroup[];
-  root?: string;
+  readonly components: Record<string, DefinedComponent>;
+  readonly componentGroups: ComponentGroup[] | undefined;
+  readonly root: string | undefined;
+
   prompt(options?: PromptOptions): string;
-  toJSONSchemas(): Record<string, object>;
+  toJSONSchema(): object;
+}
+
+interface PromptOptions {
+  preamble?: string;
+  additionalRules?: string[];
+  examples?: string[];
 }
 ```
 
 ## `<Renderer />`
 
-Parses GenUI Lang text and renders nodes with your `Library`.
+Parses OpenUI Lang text and renders nodes with your `Library`.
 
 ```ts
 interface RendererProps {
-  text: string | null;
+  response: string | null;
   library: Library;
   isStreaming?: boolean;
   onAction?: (event: ActionEvent) => void;
   updateMessage?: (message: string) => void;
-  fallback?: ComponentRenderer;
-  placeholder?: React.ReactNode;
-  nodePlaceholder?: React.ReactNode;
   onParseResult?: (result: ParseResult | null) => void;
 }
 ```
@@ -85,18 +114,33 @@ interface ActionEvent {
 
 ## Parser APIs
 
-```ts
-function createParser(library: Library): {
-  parse(input: string): ParseResult;
-};
+Both `createParser` and `createStreamingParser` accept a `LibraryJSONSchema` (from `library.toJSONSchema()`).
 
-function createStreamingParser(library: Library): {
+```ts
+interface LibraryJSONSchema {
+  $defs?: Record<
+    string,
+    {
+      properties?: Record<string, unknown>;
+      required?: string[];
+    }
+  >;
+}
+
+function createParser(schema: LibraryJSONSchema): Parser;
+function createStreamingParser(schema: LibraryJSONSchema): StreamParser;
+
+interface Parser {
+  parse(input: string): ParseResult;
+}
+
+interface StreamParser {
   push(chunk: string): ParseResult;
   getResult(): ParseResult;
-};
+}
 ```
 
-Core parsed types referenced in docs:
+Core parsed types:
 
 ```ts
 interface ElementNode {
@@ -104,6 +148,12 @@ interface ElementNode {
   typeName: string;
   props: Record<string, unknown>;
   partial: boolean;
+}
+
+interface ValidationError {
+  component: string;
+  path: string;
+  message: string;
 }
 
 interface ParseResult {
@@ -165,6 +215,7 @@ function validate(
   rules: ParsedRule[],
   customValidators?: Record<string, ValidatorFn>,
 ): string | undefined;
+function parseRules(rules: unknown): ParsedRule[];
 const builtInValidators: Record<string, ValidatorFn>;
 ```
 

@@ -6,9 +6,9 @@ import { useSearchContext } from "fumadocs-ui/contexts/search";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { OpenUILogo, ThesysLogo } from "./brand-logo";
 import { ThemeToggle } from "./theme-toggle";
-import { useTheme } from "next-themes";
 
 const tabs = [
   { title: "Introduction", url: "/docs/introduction" },

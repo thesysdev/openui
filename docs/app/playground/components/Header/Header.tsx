@@ -1,6 +1,6 @@
+import { OpenUILogo, ThesysLogo } from "@/components/brand-logo";
 import { BookOpen, Github, KeyRound, Monitor, Moon, Sun } from "lucide-react";
 import { useState } from "react";
-import { ThesysLogo, OpenUILogo } from "@/components/brand-logo";
 import { Theme } from "../../constants";
 import "./Header.css";
 
@@ -33,7 +33,12 @@ export function Header({ theme, onThemeToggle, hasApiKey, onChangeKey }: HeaderP
         <span className="header-title">Playground</span>
 
         <div className="header-right">
-          <a className="header-btn" href="https://github.com/thesysdev/openui" target="_blank" rel="noreferrer">
+          <a
+            className="header-btn"
+            href="https://github.com/thesysdev/openui"
+            target="_blank"
+            rel="noreferrer"
+          >
             <Github size={14} />
             GitHub
           </a>

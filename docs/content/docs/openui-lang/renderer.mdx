@@ -1,137 +1,89 @@
 ---
 title: The Renderer
-description: Learn how to parse and render OpenUI Lang streams with the Renderer.
+description: Parse and render OpenUI Lang streams in React.
 ---
 
-The `<Renderer />` component is the heart of OpenUI's client side. It parses the **OpenUI Lang** stream in real-time, resolves component names against your library, and renders the resulting React tree.
+`<Renderer />` converts OpenUI Lang text into React UI using your library.
 
-It handles **incremental parsing**, meaning it renders partial UI (like a chart header) while the rest of the data (the chart bars) is still streaming.
-
-### Basic Usage
-
-Import the renderer from the core package and pass it your library and the LLM's response text.
+## Basic usage
 
 ```tsx
-import { Renderer } from '@openuidev/lang-react';
-import { myLibrary } from './registry';
+import { Renderer } from "@openuidev/lang-react";
+import { defaultLibrary } from "@openuidev/react-ui";
 
-// Inside your Chat Message component
-export function AssistantMessage({ content, isStreaming }) {
-  return (
-    <div className="prose dark:prose-invert max-w-none">
-      <Renderer
-        library={myLibrary}
-        response={content}
-        isStreaming={isStreaming}
-      />
-    </div>
-  );
+export function AssistantMessage({
+  content,
+  isStreaming,
+}: {
+  content: string | null;
+  isStreaming: boolean;
+}) {
+  return <Renderer library={defaultLibrary} response={content} isStreaming={isStreaming} />;
 }
 ```
 
-### Props API
+## Props
 
-| Prop | Type | Description |
-| :--- | :--- | :--- |
-| **`response`** | `string \| null` | The raw OpenUI Lang text from the LLM. Pass `null` to render nothing. |
-| **`library`** | `Library` | The component library created via `createLibrary`. |
-| **`isStreaming`** | `boolean` | Whether the LLM is still streaming. Controls form disabling and partial render behavior. |
-| **`onAction`** | `(event: ActionEvent) => void` | Callback for button clicks or form submissions inside the rendered UI. |
-| **`updateMessage`** | `(message: string) => void` | Persist message content with form state on field change. |
-| **`onParseResult`** | `(result: ParseResult \| null) => void` | Called whenever the parse result changes — useful for debugging or inspecting the AST. |
+| Prop            | Type                                    | Description                                                    |
+| :-------------- | :-------------------------------------- | :------------------------------------------------------------- |
+| `response`      | `string \| null`                        | Raw OpenUI Lang response text.                                 |
+| `library`       | `Library`                               | Library created by `createLibrary(...)`.                       |
+| `isStreaming`   | `boolean`                               | Indicates stream is in progress.                               |
+| `onAction`      | `(event: ActionEvent) => void`          | Receives structured action events from interactive components. |
+| `updateMessage` | `(message: string) => void`             | Persists message + context updates from form interactions.     |
+| `onParseResult` | `(result: ParseResult \| null) => void` | Debug/inspect latest parse result.                             |
 
-### Streaming UX
+## Streaming behavior
 
-OpenUI is designed for **progressive rendering**. Because OpenUI Lang is line-oriented, the renderer starts rendering as soon as the first line arrives — no need to wait for the full response.
+- Parser re-runs as chunks arrive.
+- Forward references resolve when their statements arrive.
+- Missing unresolved references are omitted/null in parsed output until available.
+- There is no `nodePlaceholder` prop in the current renderer API.
 
-```tsx
-<Renderer
-  library={myLibrary}
-  response={streamedText}
-  isStreaming={true}
-/>
-```
-
-The renderer correctly handles **forward references**: if the LLM mentions `chart = BarChart(...)` before the data lines arrive, it will render the component as soon as those lines stream in.
-
-### Handling Actions
-
-Unlike static Markdown, OpenUI components are interactive. Buttons, forms, and links trigger **actions**. You handle these centrally via `onAction`.
+## Actions
 
 ```tsx
 <Renderer
-  library={myLibrary}
+  library={defaultLibrary}
   response={content}
   onAction={(event) => {
-    // Example: a button click
-    if (event.type === 'navigate') {
-      router.push(event.params.url);
-    }
-
-    // Example: a form submission
-    if (event.type === 'submit_order') {
-      submitOrderToBackend(event.params);
+    if (event.type === "continue_conversation") {
+      // event.params has llm/human-friendly messages
     }
   }}
 />
 ```
 
-### Custom Component Hooks
+## Hooks for component authors
 
-If you are building custom components (see [Defining Components](/docs/openui-lang/defining-components)), you can use these hooks to interact with the Renderer context.
+Use these inside components defined with `defineComponent(...)`:
 
-#### `useRenderNode()`
+- `useIsStreaming()`
+- `useTriggerAction()`
+- `useRenderNode()`
+- `useFormValidation()`
+- `useFormName()` / `useGetFieldValue()` / `useSetFieldValue()`
 
-Use this to render **nested children**. If your component accepts a prop that contains other OpenUI components (like a `Dashboard` accepting `cards`), you need this hook.
+In component renderers, `renderNode` is also passed directly as a prop.
+
+## Example with nested children
 
 ```tsx
-import { defineComponent } from '@openuidev/lang-react';
-import { z } from 'zod';
-
-const StatCard = defineComponent({ ... });
-
 const Dashboard = defineComponent({
-  name: 'Dashboard',
-  description: 'A grid of stat cards.',
+  name: "Dashboard",
+  description: "Container",
   props: z.object({ cards: z.array(StatCard.ref) }),
-  component: ({ props, renderNode }) => (
-    <div className="grid grid-cols-3 gap-4">
-      {props.cards.map((card, i) => renderNode(card))}
-    </div>
-  ),
+  component: ({ props, renderNode }) => <div>{renderNode(props.cards)}</div>,
 });
 ```
 
-The `renderNode` function is passed directly to your component — no need to import a hook separately.
-
-#### `useIsStreaming()`
-
-Use this inside a component to disable interactivity while the LLM is still writing.
-
-```tsx
-import { useIsStreaming } from '@openuidev/lang-react';
-
-const SubmitButton = defineComponent({
-  name: 'SubmitButton',
-  description: 'A submit button.',
-  props: z.object({ label: z.string() }),
-  component: ({ props }) => {
-    const isStreaming = useIsStreaming();
-    return (
-      <button disabled={isStreaming}>
-        {props.label}
-      </button>
-    );
-  },
-});
-```
-
-### Next Steps
-
-You have now mastered the **OpenUI Lang** engine. You can define components, generate prompts, and render them.
+## Next Steps
 
 <Cards>
+  <Card title="Language Specification" href="/docs/openui-lang/specification">
+    Grammar and parser semantics.
+  </Card>
   <Card title="Benchmarks" href="/docs/openui-lang/benchmarks">
-    See how OpenUI Lang compares to JSON-based formats in token efficiency and latency.
+    Token and latency comparison.
   </Card>
 </Cards>

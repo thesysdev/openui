@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { FoundationTable, PreviewPage, PreviewSection } from "@components/components/preview";
 import tableStyles from "@components/components/preview/FoundationTokenTable.module.css";
+import { useEffect, useState } from "react";
 
 const SHADOW_TOKENS = [
   { cssVar: "--openui-shadow-0", themeKey: "shadow0" },
@@ -156,7 +156,9 @@ export default function ShadowsPreviewPage() {
             </tr>
           ))}
         </FoundationTable>
-        <div className={tableStyles.foundationComponentsPlaceholder}>Shadow components preview coming soon.</div>
+        <div className={tableStyles.foundationComponentsPlaceholder}>
+          Shadow components preview coming soon.
+        </div>
       </PreviewSection>
     </PreviewPage>
   );

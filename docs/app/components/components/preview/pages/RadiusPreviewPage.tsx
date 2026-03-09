@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { FoundationTable, PreviewPage, PreviewSection } from "@components/components/preview";
 import tableStyles from "@components/components/preview/FoundationTokenTable.module.css";
+import { useEffect, useState } from "react";
 
 function formatRadiusLabel(token: string) {
   const rawLabel = token.replace("--openui-radius-", "");
@@ -77,7 +77,9 @@ export default function RadiusPreviewPage() {
             </tr>
           ))}
         </FoundationTable>
-        <div className={tableStyles.foundationComponentsPlaceholder}>Radius components preview coming soon.</div>
+        <div className={tableStyles.foundationComponentsPlaceholder}>
+          Radius components preview coming soon.
+        </div>
       </PreviewSection>
     </PreviewPage>
   );

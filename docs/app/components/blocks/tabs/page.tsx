@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
-import { SegmentedToggle } from "@components/components/preview";
+import {
+  BlockVariantPreview,
+  PreviewPage,
+  PreviewSection,
+  SegmentedToggle,
+} from "@components/components/preview";
 import { Tabs, TabsList, TabsTrigger } from "@openuidev/react-ui";
+import { useState } from "react";
 import styles from "./page.module.css";
 
 type TabsVariant = "title" | "iconTitle" | "iconTitleSubtext" | "imageTitle" | "imageTitleSubtext";
@@ -66,18 +70,10 @@ function TabsPreview({ variant }: { variant: TabsVariant }) {
   );
 }
 
-function ConfigurableTabsPreview({
-  media,
-  subtext,
-}: {
-  media: MediaMode;
-  subtext: SubtextMode;
-}) {
+function ConfigurableTabsPreview({ media, subtext }: { media: MediaMode; subtext: SubtextMode }) {
   const variant = resolveVariant(media, subtext);
 
-  return (
-    <TabsPreview variant={variant} />
-  );
+  return <TabsPreview variant={variant} />;
 }
 
 function TabsControls({
@@ -140,9 +136,7 @@ export default function BlocksTabsPage() {
         <BlockVariantPreview
           title="Configurations"
           description="Explore different tab variants."
-          preview={
-            <ConfigurableTabsPreview media={media} subtext={subtext} />
-          }
+          preview={<ConfigurableTabsPreview media={media} subtext={subtext} />}
           rightControls={
             <TabsControls
               media={media}
@@ -151,9 +145,10 @@ export default function BlocksTabsPage() {
               onSubtextChange={setSubtext}
             />
           }
-          prompt={media === "none" && subtext === "no"
-            ? "Use default variant of tabs to group related content when <enter use case>."
-            : `Use tabs${promptDescription(media, subtext)} to group related content when <enter use case>.`
+          prompt={
+            media === "none" && subtext === "no"
+              ? "Use default variant of tabs to group related content when <enter use case>."
+              : `Use tabs${promptDescription(media, subtext)} to group related content when <enter use case>.`
           }
         />
       </PreviewSection>

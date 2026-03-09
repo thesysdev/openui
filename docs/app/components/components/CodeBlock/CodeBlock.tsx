@@ -1,6 +1,6 @@
-import styles from "./CodeBlock.module.css";
-import { Highlight, themes } from "prism-react-renderer";
 import type { ThemeMode } from "@components/types";
+import { Highlight, themes } from "prism-react-renderer";
+import styles from "./CodeBlock.module.css";
 
 interface CodeBlockProps {
   code: string;

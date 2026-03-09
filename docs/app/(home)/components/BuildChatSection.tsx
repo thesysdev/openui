@@ -67,7 +67,9 @@ function CtaButton() {
         className="bg-black rounded-full h-12 px-5 flex items-center gap-2.5 cursor-pointer relative transition-all duration-200 hover:scale-105 w-full max-w-[280px] lg:max-w-none lg:w-auto justify-center lg:justify-start"
       >
         <span className="relative size-4 flex items-center justify-center">
-          <span className={`absolute transition-all duration-300 ${copied ? "opacity-0 scale-50" : "opacity-100 scale-100"}`}>
+          <span
+            className={`absolute transition-all duration-300 ${copied ? "opacity-0 scale-50" : "opacity-100 scale-100"}`}
+          >
             <CopyIcon />
           </span>
           <svg

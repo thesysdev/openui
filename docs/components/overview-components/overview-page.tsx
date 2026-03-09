@@ -1,21 +1,19 @@
 "use client";
 
-import { Code2, MessageSquare, Package } from "lucide-react";
 import { Button } from "@/components/button";
 import {
   CodeBlock,
-  SimpleCard,
   Separator,
+  SimpleCard,
   Tabs,
+  TabsContent,
   TabsList,
   TabsTrigger,
-  TabsContent,
   FeatureCard,
   FeatureCards,
 } from "@/components/overview-components";
+import { Code2, MessageSquare, Package } from "lucide-react";
 import { genuiOutput } from "./genui";
-import { defaultLibrary } from "@openuidev/react-ui";
-import { Renderer } from "@openuidev/lang-react";
 
 export function OverviewPage() {
   return (
@@ -69,7 +67,7 @@ export function OverviewPage() {
         <p className="mb-4 text-sm text-slate-600 sm:mb-6 sm:text-base dark:text-slate-400">
           An alternative to{" "}
           <a
-            href="https://sdk.vercel.ai/docs/reference/ai-sdk-rsc/render"
+            href="https://json-render.dev/"
             target="_blank"
             rel="noopener noreferrer"
             className="underline hover:no-underline "
@@ -78,35 +76,38 @@ export function OverviewPage() {
           </a>{" "}
           and{" "}
           <a
-            href="https://a2a.vercel.app/"
+            href="https://a2ui.org/"
             target="_blank"
             rel="noopener noreferrer"
             className="underline hover:no-underline"
           >
             A2UI
           </a>{" "}
-          that reduces token usage by up to 90%. Define your component library with Zod schemas, get
+          that reduces token usage by up to 52%. Define your component library with Zod schemas, get
           automatic system prompts, and parse LLM responses into renderable components.
         </p>
 
         <SimpleCard className="mb-4 border-blue-200 p-3 sm:p-4">
           <p className="text-xs sm:text-sm">
             <strong>Quick start:</strong> Use our{" "}
-            <a href="#library" className="  underlin">
+            <a href="#library" className="underline">
               default component library
             </a>{" "}
             to get started immediately with 50+ pre-built components.
           </p>
         </SimpleCard>
 
-        <h3 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">Interactive Example</h3>
+        <h3 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">Quick Example</h3>
 
         <div className="grid gap-4 lg:grid-cols-2">
           {/* Left: Code Tabs */}
           <Tabs defaultValue="llm-output" className="flex w-full flex-col">
-            <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
+            <TabsList className="grid w-full grid-cols-2 text-xs sm:text-sm">
               <TabsTrigger value="define-library" className="px-1 sm:px-2">
                 Define Lib
+              </TabsTrigger>
+              <TabsTrigger value="render-code" className="px-1 sm:px-2">
+                Render Code
               </TabsTrigger>
               <TabsTrigger value="llm-output" className="px-1 sm:px-2">
                 LLM Output
@@ -122,45 +123,18 @@ import { z } from 'zod';
 
 const MyCard = defineComponent({
   name: 'MyCard',
-  description: 'Displays a titled content card.',
+  description: 'Display a card with multiple children',
   props: z.object({
-    title: z.string(),
+    children: z.array(z.any()),
   }),
-  component: ({ props }) => <div>{props.title}</div>,
+  component: ({ props, renderNode }) => <div>{renderNode(props.children)}</div>,
   ...
 });
 
 export const myLibrary = createLibrary({
-  components: [MyCard],
+  components: [MyCard, ...otherComponents],
 });`}
               />
-            </TabsContent>
-
-            <TabsContent value="llm-output" className="mt-3 flex-1">
-              <CodeBlock title="GenUI Language (Token Efficient)" code={genuiOutput} />
-            </TabsContent>
-          </Tabs>
-
-          {/* Right: Rendered Output */}
-          <Tabs defaultValue="live-render" className="flex w-full flex-col">
-            <TabsList className="grid w-full grid-cols-2 text-xs sm:text-sm">
-              <TabsTrigger value="live-render" className="px-1 sm:px-2">
-                Live Render
-              </TabsTrigger>
-              <TabsTrigger value="render-code" className="px-1 sm:px-2">
-                Render Code
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="live-render" className="mt-3 flex-1">
-              <SimpleCard className="flex h-full flex-col border-2">
-                <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-[var(--color-doc-border)] dark:bg-[var(--color-doc-surface)]">
-                  <span className="text-sm font-medium">Output Preview</span>
-                </div>
-                <div className="p-6">
-                  <Renderer response={genuiOutput} library={defaultLibrary} />
-                </div>
-              </SimpleCard>
             </TabsContent>
 
             <TabsContent value="render-code" className="mt-3 flex-1">
@@ -183,7 +157,19 @@ export function AssistantMessage({ content, isStreaming }) {
 }`}
               />
             </TabsContent>
+
+            <TabsContent value="llm-output" className="mt-3 flex-1">
+              <CodeBlock title="OpenUI Lang (Token Efficient)" code={genuiOutput} />
+            </TabsContent>
           </Tabs>
+          <SimpleCard className="flex h-full flex-col border-2">
+            <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/50">
+              <span className="text-sm font-medium">Output Preview</span>
+            </div>
+            <div className="p-6">
+              <img src="/images/openui-lang/example.png" alt="Quick Example" />
+            </div>
+          </SimpleCard>
         </div>
 
         <div className="mt-4 flex flex-col gap-3 sm:mt-6 sm:flex-row">
@@ -234,10 +220,13 @@ export function AssistantMessage({ content, isStreaming }) {
         <div className="mb-6">
           <CodeBlock
             title="Quick example"
-            code={`import { FullScreen } from 'genui-chat';
+            code={`import "@openuidev/react-ui/components.css";
+import "@openuidev/react-ui/styles/index.css";
+import { FullScreen, defaultLibrary } from "@openuidev/react-ui";
 
 <FullScreen
   apiUrl="/api/chat"
+  componentLibrary={defaultLibrary}
 />
 `}
           />
@@ -301,15 +290,25 @@ export function AssistantMessage({ content, isStreaming }) {
             <TabsContent value="quick-example" className="mt-4">
               <CodeBlock
                 title="Quick example"
-                code={`import { defaultLibrary } from 'genui-default';
+                code={`import { createLibrary, defineComponent } from '@openuidev/lang-react';
+import { defaultLibrary, defaultPromptOptions } from '@openuidev/react-ui';
+import { z } from 'zod';
 
-// Use directly
-const prompt = defaultLibrary.getSystemPrompt();
+const prompt = defaultLibrary.prompt(defaultPromptOptions);
 
-// Or extend with custom components
+const CustomWidget = defineComponent({
+  name: 'CustomWidget',
+  description: 'A simple custom widget',
+  props: z.object({
+    title: z.string(),
+  }),
+  component: () => null,
+});
+
 const customLibrary = createLibrary({
-  ...defaultLibrary.components,
-  CustomWidget: { /* your component */ },
+  root: defaultLibrary.root ?? 'Stack',
+  componentGroups: defaultLibrary.componentGroups,
+  components: [...Object.values(defaultLibrary.components), CustomWidget],
 });`}
               />
             </TabsContent>
@@ -317,22 +316,14 @@ const customLibrary = createLibrary({
             <TabsContent value="usage-with-chat" className="mt-4">
               <CodeBlock
                 title="Using with Chat UI"
-                code={`import { ChatProvider, Copilot } from 'genui-chat';
-import { defaultLibrary} from 'genui-default';
+                code={`import { Copilot, defaultLibrary } from '@openuidev/react-ui';
 
 function App() {
-  const handleMessage = async (message) => {
-    const prompt = defaultLibrary.getSystemPrompt();
-    const response = await llm.generate(prompt, message);
-    const components = defaultLibrary.parse(response);
-    return components;
-  };
-
   return (
-    <ChatProvider>
-      <YourApp />
-      <Copilot onSendMessage={handleMessage} />
-    </ChatProvider>
+    <Copilot
+      apiUrl="/api/chat"
+      componentLibrary={defaultLibrary}
+    />
   );
 }`}
               />

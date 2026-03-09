@@ -1,9 +1,9 @@
 ---
 title: Installation
-description: Add OpenUI Chat to your existing React application.
+description: Add OpenUI Chat to an existing Next.js App Router application.
 ---
 
-Add OpenUI Chat to your existing React application.
+This page covers package installation, style imports, and a basic render check for an existing Next.js App Router app.
 
 <Callout type="info">
   **Starting a new project?**
@@ -11,9 +11,17 @@ Add OpenUI Chat to your existing React application.
   `npx create-openui-chat my-app`
 </Callout>
 
-### 1. Install Dependencies
+## Prerequisites
 
-Install the UI package and the headless core. We also recommend `lucide-react` for icons if you are not using it already.
+This guide assumes:
+
+- Next.js App Router
+- React 18 or newer
+- a page where you can mount a chat layout
+
+## 1. Install dependencies
+
+Install the UI package, the headless core, and the icons package used by the built-in layouts.
 
 <Tabs items={["npm", "pnpm", "yarn", "bun"]}>
   <Tab value="npm">
@@ -38,17 +46,20 @@ Install the UI package and the headless core. We also recommend `lucide-react` f
   </Tab>
 </Tabs>
 
-### 2. Configure Styles
+## 2. Import the styles
 
-OpenUI components come with a default theme. Import the CSS in your root layout file.
-
-**Next.js App Router (`app/layout.tsx`):**
+Import the component and theme styles in your root layout.
 
 ```tsx
-import "@openuidev/react-ui/styles.css"; // 👈 Add this line
+import "@openuidev/react-ui/components.css";
+import "@openuidev/react-ui/styles/index.css";
 import "./globals.css";
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>{children}</body>
@@ -57,88 +68,39 @@ export default function RootLayout({ children }) {
 }
 ```
 
+These imports give you the default chat layout styling and theme tokens.
 
-### 3. Render chat component on a page
+## 3. Render a layout to verify setup
 
-Render a basic `Copilot` component to ensure everything is working.
+Render one of the built-in layouts on a page to confirm the package is installed correctly.
 
 ```tsx
 // app/page.tsx
-import { Copilot } from "@openuidev/react-ui";
+import { FullScreen } from "@openuidev/react-ui";
 
 export default function Page() {
   return (
-    <div className="h-screen w-full flex">
-      <main className="flex-1 p-8">
-        <h1 className="text-2xl font-bold">My App</h1>
-      </main>
-
-      {/* The Chat Sidebar */}
-      <Copilot
-        apiUrl="/api/chat"
-        agentName="Assistant"
-      />
+    <div className="h-screen">
+      <FullScreen apiUrl="/api/chat" agentName="Assistant" />
     </div>
   );
 }
 ```
 
-### 4. Create an LLM endpoint
+At this stage, the page should render the layout shell. It will not send working chat requests until you add a backend.
 
-```ts
-// app/api/chat/route.ts
+{/* add visual: image showing the expected baseline render after styles are imported and a built-in layout is mounted */}
 
-import { NextRequest } from "next/server";
-import OpenAI from "openai";
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-export async function POST(req: NextRequest) {
-  try {
-    const { messages, systemPrompt } = await req.json();
-
-    const chatMessages: OpenAI.ChatCompletionMessageParam[] = [
-      ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),
-      ...messages,
-    ];
-
-    const response = await client.chat.completions.create({
-      model: "gpt-5.2",
-      messages: chatMessages,
-      stream: true,
-    });
-
-    return new Response(response.toReadableStream(), {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache, no-transform",
-        Connection: "keep-alive",
-      },
-    });
-  } catch (err) {
-    console.error(err);
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-}
-```
-
-
-### Next Steps
-
-Now that you have the library installed, choose a layout or configure your backend.
+## Related guides
 
 <Cards>
-  <Card title="Explore Layouts" href="/docs/chat/copilot">
-    See the Copilot, FullScreen, and BottomTray components.
+  <Card title="End-to-End Guide" href="/docs/chat/from-scratch">
+    Add the backend route, message conversion, stream adapter, and optional persistence.
   </Card>
-
-  <Card title="Connect Backend" href="/docs/chat/connecting">
-    Set up the API route to handle streaming responses.
+  <Card title="Explore Layouts" href="/docs/chat/fullscreen">
+    Compare the built-in layouts and choose the one you want to ship.
+  </Card>
+  <Card title="Quick Start" href="/docs/chat/quick-start">
+    Prefer a generated app instead of wiring everything manually.
   </Card>
 </Cards>

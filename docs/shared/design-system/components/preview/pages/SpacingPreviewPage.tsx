@@ -1,9 +1,14 @@
 // @ts-nocheck
 "use client";
 
-import { useMemo } from "react";
-import { FoundationTable, PreviewCode, PreviewPage, PreviewSection } from "@design-system/components/preview";
+import {
+  FoundationTable,
+  PreviewCode,
+  PreviewPage,
+  PreviewSection,
+} from "@design-system/components/preview";
 import tableStyles from "@design-system/components/preview/FoundationTokenTable.module.css";
+import { useMemo } from "react";
 
 function formatSpacingLabel(token) {
   const raw = token.replace("--space-", "");
@@ -89,7 +94,9 @@ export default function SpacingPreviewPage() {
             </tr>
           ))}
         </FoundationTable>
-        <div className={tableStyles.foundationComponentsPlaceholder}>Spacing components preview coming soon.</div>
+        <div className={tableStyles.foundationComponentsPlaceholder}>
+          Spacing components preview coming soon.
+        </div>
         <PreviewCode code={spacingCode} />
       </PreviewSection>
     </PreviewPage>
