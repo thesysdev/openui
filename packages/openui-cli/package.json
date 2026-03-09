@@ -1,12 +1,13 @@
 {
-  "name": "openui-cli",
+  "name": "@openuidev/cli",
   "version": "0.0.1",
   "description": "CLI for OpenUI",
   "bin": {
     "openui": "dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build:cli": "tsc -p .",

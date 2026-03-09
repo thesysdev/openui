@@ -53,10 +53,7 @@ function isLibrary(value: unknown): value is Library {
   return typeof obj["prompt"] === "function" && typeof obj["toJSONSchema"] === "function";
 }
 
-function findLibrary(
-  mod: Record<string, unknown>,
-  exportName?: string,
-): Library | undefined {
+function findLibrary(mod: Record<string, unknown>, exportName?: string): Library | undefined {
   if (exportName) {
     const val = mod[exportName];
     return isLibrary(val) ? val : undefined;
@@ -128,9 +125,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const output = jsonSchema
-    ? JSON.stringify(library.toJSONSchema(), null, 2)
-    : library.prompt();
+  const output = jsonSchema ? JSON.stringify(library.toJSONSchema(), null, 2) : library.prompt();
 
   process.stdout.write(output);
 }

@@ -8,10 +8,7 @@ export interface GenerateOptions {
   export?: string;
 }
 
-export async function runGenerate(
-  entry: string,
-  options: GenerateOptions,
-): Promise<void> {
+export async function runGenerate(entry: string, options: GenerateOptions): Promise<void> {
   const entryPath = path.resolve(process.cwd(), entry);
 
   if (!fs.existsSync(entryPath)) {
@@ -33,7 +30,7 @@ export async function runGenerate(
       stdio: ["inherit", "pipe", "inherit"],
     });
   } catch (err) {
-    // stderr was already piped to parent, just exit
+    console.error(err);
     process.exit(1);
   }
 
