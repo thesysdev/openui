@@ -53,6 +53,7 @@ import { Buttons } from "./Buttons";
 import { Accordion, AccordionItem } from "./Accordion";
 import { Carousel } from "./Carousel";
 import { Separator } from "./Separator";
+import { Stack } from "./Stack";
 import { Steps, StepsItem } from "./Steps";
 import { TabItem, Tabs } from "./Tabs";
 
@@ -67,6 +68,7 @@ export const openuiComponentGroups: ComponentGroup[] = [
   {
     name: "Layout",
     components: [
+      "Stack",
       "Tabs",
       "TabItem",
       "Accordion",
@@ -77,8 +79,9 @@ export const openuiComponentGroups: ComponentGroup[] = [
       "Separator",
     ],
     notes: [
-      "- Use Tabs to organize multiple views or sections within a single Card.",
-      "- Use Separator to visually divide sections within a Card.",
+      '- For grid-like layouts, use Stack with direction "row" and wrap set to true.',
+      '- Prefer justify "start" (or omit justify) with wrap=true for stable columns instead of uneven gutters.',
+      "- Use nested Stacks when you need explicit rows/sections.",
     ],
   },
   {
@@ -109,12 +112,6 @@ export const openuiComponentGroups: ComponentGroup[] = [
       "RadarChart",
       "HorizontalBarChart",
       "Series",
-    ],
-    notes: [
-      "- **Tabular format (for Query data):** Pass `data.columns` as labels and `data.results` as series directly — no Series() needed.",
-      '  `chart = AreaChart(data.columns, data.results)` where columns=["day","views","users"] and results=[["Mon",100,50],["Tue",200,75]]',
-      "  Column 0 becomes category labels, columns 1+ become series. ALWAYS prefer this format when charting Query results.",
-      '- **Static format:** `BarChart(["Oct","Nov"], [Series("Revenue",[120,150])])`',
     ],
   },
   {
@@ -148,8 +145,8 @@ export const openuiComponentGroups: ComponentGroup[] = [
       "- For Form fields, define EACH FormControl as its own reference — do NOT inline all controls in one array. This allows progressive field-by-field streaming.",
       "- NEVER nest Form inside Form — each Form should be a standalone container.",
       "- Form requires explicit buttons. Always pass a Buttons(...) reference as the third Form argument.",
-      "- rules is an optional object: { required: true, email: true, min: 8, maxLength: 100 }",
-      "- Available rule keys: required, email, url, numeric, min (number), max (number), minLength (number), maxLength (number), pattern (regex string)",
+      '- rules is an optional array of validation strings: ["required", "email", "min:8", "maxLength:100"]',
+      "- Available rules: required, email, min:N, max:N, minLength:N, maxLength:N, pattern:REGEX, url, numeric",
       "- The renderer shows error messages automatically — do NOT generate error text in the UI",
     ],
   },
@@ -167,14 +164,14 @@ export const openuiComponentGroups: ComponentGroup[] = [
 
 export const openuiExamples: string[] = [
   `Example 1 — Table:
-root = Card([title, tbl])
+root = Stack([title, tbl])
 title = TextContent("Top Languages", "large-heavy")
 tbl = Table(cols, rows)
 cols = [Col("Language", "string"), Col("Users (M)", "number"), Col("Year", "number")]
 rows = [["Python", 15.7, 1991], ["JavaScript", 14.2, 1995], ["Java", 12.1, 1995], ["TypeScript", 8.5, 2012], ["Go", 5.2, 2009]]`,
 
   `Example 2 — Bar chart:
-root = Card([title, chart])
+root = Stack([title, chart])
 title = TextContent("Q4 Revenue", "large-heavy")
 chart = BarChart(labels, [s1, s2], "grouped")
 labels = ["Oct", "Nov", "Dec"]
@@ -182,18 +179,18 @@ s1 = Series("Product A", [120, 150, 180])
 s2 = Series("Product B", [90, 110, 140])`,
 
   `Example 3 — Form with validation:
-root = Card([title, form])
+root = Stack([title, form])
 title = TextContent("Contact Us", "large-heavy")
 form = Form("contact", [nameField, emailField, countryField, msgField], btns)
-nameField = FormControl("Name", Input("name", "Your name", "text", { required: true, minLength: 2 }))
-emailField = FormControl("Email", Input("email", "you@example.com", "email", { required: true, email: true }))
-countryField = FormControl("Country", Select("country", countryOpts, "Select...", { required: true }))
-msgField = FormControl("Message", TextArea("message", "Tell us more...", 4, { required: true, minLength: 10 }))
+nameField = FormControl("Name", Input("name", "Your name", "text", ["required", "minLength:2"]))
+emailField = FormControl("Email", Input("email", "you@example.com", "email", ["required", "email"]))
+countryField = FormControl("Country", Select("country", countryOpts, "Select...", ["required"]))
+msgField = FormControl("Message", TextArea("message", "Tell us more...", 4, ["required", "minLength:10"]))
 countryOpts = [SelectItem("us", "United States"), SelectItem("uk", "United Kingdom"), SelectItem("de", "Germany")]
-btns = Buttons([Button("Submit", { type: "continue_conversation" }, "primary"), Button("Cancel", { type: "continue_conversation" }, "secondary")])`,
+btns = Buttons([Button("Submit", "submit:contact", "primary"), Button("Cancel", "action:cancel_contact", "secondary")])`,
 
   `Example 4 — Tabs with mixed content:
-root = Card([title, tabs])
+root = Stack([title, tabs])
 title = TextContent("React vs Vue", "large-heavy")
 tabs = Tabs([tabReact, tabVue])
 tabReact = TabItem("react", "React", reactContent)
@@ -203,7 +200,7 @@ vueContent = [TextContent("Vue is a progressive framework by Evan You."), Callou
 ];
 
 export const openuiAdditionalRules: string[] = [
-  "Card is the only layout container. Children always stack vertically. Use Tabs to switch between sections, Separator to divide them.",
+  'For grid-like layouts, use Stack with direction "row" and wrap=true. Avoid justify="between" unless you specifically want large gutters.',
   "For forms, define one FormControl reference per field so controls can stream progressively.",
   "For forms, always provide the third Form argument with Buttons(...) actions.",
   "Never nest Form inside Form.",
@@ -217,7 +214,7 @@ export const openuiPromptOptions: PromptOptions = {
 // ── Library ──
 
 export const openuiLibrary = createLibrary({
-  root: "Card",
+  root: "Stack",
   componentGroups: openuiComponentGroups,
   components: [
     // Content
@@ -250,6 +247,7 @@ export const openuiLibrary = createLibrary({
     ScatterChart,
     ScatterSeries,
     Point,
+
     // Forms
     Form,
     FormControl,
@@ -270,6 +268,7 @@ export const openuiLibrary = createLibrary({
     Button,
     Buttons,
     // Layout
+    Stack,
     Tabs,
     TabItem,
     Accordion,

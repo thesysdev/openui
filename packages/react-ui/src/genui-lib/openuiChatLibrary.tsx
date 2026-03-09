@@ -54,7 +54,6 @@ import { Buttons } from "./Buttons";
 // Layout (no Stack)
 import { Accordion, AccordionItem } from "./Accordion";
 import { Carousel } from "./Carousel";
-import { Slide } from "./Slide";
 import { Steps, StepsItem } from "./Steps";
 import { TabItem, Tabs } from "./Tabs";
 
@@ -85,7 +84,7 @@ const ChatCard = defineComponent({
     children: z.array(ChatCardChildUnion),
   }),
   description:
-    "Vertical container for all content in a chat response. Children stack top to bottom automatically — no layout params needed.",
+    "Vertical container for all content in a chat response. Children stack top to bottom automatically.",
   component: ({ props, renderNode }) => (
     <OpenUICard
       width="full"
@@ -194,21 +193,12 @@ export const openuiChatComponentGroups: ComponentGroup[] = [
   },
   {
     name: "Layout",
-    components: [
-      "Tabs",
-      "TabItem",
-      "Accordion",
-      "AccordionItem",
-      "Steps",
-      "StepsItem",
-      "Carousel",
-      "Slide",
-    ],
+    components: ["Tabs", "TabItem", "Accordion", "AccordionItem", "Steps", "StepsItem", "Carousel"],
     notes: [
       "- Use Tabs to present alternative views — each TabItem has a value id, trigger label, and content array.",
-      "- Use Carousel with Slide items for horizontal scrolling content: carousel = Carousel([slide1, slide2])  slide1 = Slide([content...])",
-      "- IMPORTANT: Every Slide in a Carousel must have the same structure — same component types in the same order. Inconsistent slides break the visual layout.",
-      "- For image carousels use: Slide([title, image, description, tags]) — every slide must follow this exact pattern.",
+      "- Carousel takes an array of slides, where each slide is an array of content: carousel = Carousel([[t1, img1], [t2, img2]])",
+      "- IMPORTANT: Every slide in a Carousel must have the same structure — same component types in the same order.",
+      "- For image carousels use: [[title, image, description, tags], ...] — every slide must follow this exact pattern.",
       "- Use real, publicly accessible image URLs (e.g. https://picsum.photos/seed/KEYWORD/800/500). Never hallucinate image URLs.",
     ],
   },
@@ -242,18 +232,15 @@ item3 = ListItem("Troubleshooting", "Common issues and how to fix them.")`,
   `Example 3 — Image carousel with consistent slides + follow-ups:
 root = Card([header, carousel, followups])
 header = CardHeader("Featured Destinations", "Discover highlights and best time to visit")
-carousel = Carousel([slide1, slide2, slide3], "card")
-slide1 = Slide([t1, img1, d1, tags1])
+carousel = Carousel([[t1, img1, d1, tags1], [t2, img2, d2, tags2], [t3, img3, d3, tags3]], "card")
 t1 = TextContent("Paris, France", "large-heavy")
 img1 = ImageBlock("https://picsum.photos/seed/paris/800/500", "Eiffel Tower at night")
 d1 = TextContent("City of light — best Apr–Jun and Sep–Oct.", "default")
 tags1 = TagBlock(["Landmark", "City Break", "Culture"])
-slide2 = Slide([t2, img2, d2, tags2])
 t2 = TextContent("Kyoto, Japan", "large-heavy")
 img2 = ImageBlock("https://picsum.photos/seed/kyoto/800/500", "Bamboo grove in Arashiyama")
 d2 = TextContent("Temples and bamboo groves — best Mar–Apr and Nov.", "default")
 tags2 = TagBlock(["Temples", "Autumn", "Culture"])
-slide3 = Slide([t3, img3, d3, tags3])
 t3 = TextContent("Machu Picchu, Peru", "large-heavy")
 img3 = ImageBlock("https://picsum.photos/seed/machupicchu/800/500", "Inca citadel in the clouds")
 d3 = TextContent("High-altitude Inca citadel — best May–Sep.", "default")
@@ -279,8 +266,8 @@ export const openuiChatAdditionalRules: string[] = [
   "Use ListBlock when presenting a set of options or steps the user can click to select.",
   "Use SectionBlock to group long responses into collapsible sections — good for reports, FAQs, and structured content.",
   "Use SectionItem inside SectionBlock: each item needs a unique value id, a trigger (header label), and a content array.",
-  "For Carousel, use Slide items: carousel = Carousel([slide1, slide2])  slide1 = Slide([content...])",
-  "IMPORTANT: Every Slide in a Carousel must use the same component structure in the same order — e.g. all slides: Slide([title, image, description, tags]).",
+  "Carousel takes an array of slides, where each slide is an array of content: carousel = Carousel([[t1, img1], [t2, img2]])",
+  "IMPORTANT: Every slide in a Carousel must use the same component structure in the same order — e.g. all slides: [title, image, description, tags].",
   "For image carousels, always use real accessible URLs like https://picsum.photos/seed/KEYWORD/800/500. Never hallucinate or invent image URLs.",
   "For forms, define one FormControl reference per field so controls can stream progressively.",
   "For forms, always provide the third Form argument with Buttons(...) actions.",
@@ -365,7 +352,6 @@ export const openuiChatLibrary = createLibrary({
     Steps,
     StepsItem,
     Carousel,
-    Slide,
     // Data Display
     TagBlock,
     Tag,
