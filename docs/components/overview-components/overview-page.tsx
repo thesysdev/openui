@@ -83,7 +83,7 @@ export function OverviewPage() {
           >
             A2UI
           </a>{" "}
-          that reduces token usage by up to 52%. Define your component library with Zod schemas, get
+          that reduces token usage by up to 67.1%. Define your component library with Zod schemas, get
           automatic system prompts, and parse LLM responses into renderable components.
         </p>
 

@@ -1,0 +1,131 @@
+---
+title: Interactivity
+description: Handle actions, forms, and state in OpenUI components.
+---
+
+OpenUI components can be interactive. The `Renderer` manages form state automatically and exposes callbacks for actions and persistence.
+
+## Actions
+
+When a user clicks a button or follow-up, the component calls `triggerAction`. The `Renderer` wraps this into an `ActionEvent` and fires `onAction`.
+
+```tsx
+<Renderer
+  library={myLibrary}
+  response={content}
+  onAction={(event) => {
+    if (event.type === "continue_conversation") {
+      // event.humanFriendlyMessage — button label or follow-up text
+      // event.formState — field values at time of click
+      // event.formName — scoping form name, if any
+    }
+  }}
+/>
+```
+
+### `ActionEvent`
+
+| Field                  | Type                            | Description                                    |
+| :--------------------- | :------------------------------ | :--------------------------------------------- |
+| `type`                 | `string`                        | Action type (see built-in types below).        |
+| `params`               | `Record<string, any>`           | Extra parameters from the component.           |
+| `humanFriendlyMessage` | `string`                        | Display label for the action.                  |
+| `formState`            | `Record<string, any> \| undefined` | Raw field state at time of action.          |
+| `formName`             | `string \| undefined`           | Form that scoped the action, if any.           |
+
+### Built-in action types
+
+```ts
+enum BuiltinActionType {
+  ContinueConversation = "continue_conversation",
+  OpenUrl = "open_url",
+}
+```
+
+- `ContinueConversation` — sends the user's intent back to the LLM.
+- `OpenUrl` — opens a URL in a new tab. Expects `params.url`.
+
+### Using `triggerAction` in components
+
+Inside `defineComponent`, use the `useTriggerAction` hook:
+
+```tsx
+const MyButton = defineComponent({
+  name: "MyButton",
+  description: "A clickable button.",
+  props: z.object({ label: z.string() }),
+  component: ({ props }) => {
+    const triggerAction = useTriggerAction();
+    return <button onClick={() => triggerAction(props.label)}>{props.label}</button>;
+  },
+});
+```
+
+`triggerAction(userMessage, formName?, action?)` — the second and third arguments are optional.
+
+---
+
+## Form state
+
+The `Renderer` tracks field values automatically. Components use `useSetFieldValue` and `useGetFieldValue` to read and write state.
+
+### Persistence
+
+Use `onStateUpdate` to persist field state (e.g. to a message in your thread store) and `initialState` to hydrate it on load.
+
+```tsx
+<Renderer
+  library={myLibrary}
+  response={content}
+  onStateUpdate={(state) => {
+    // state is a raw Record<string, any> of all field values
+    saveToBackend(state);
+  }}
+  initialState={loadedState}
+/>
+```
+
+`onStateUpdate` fires on every field change. The state format is opaque — persist and hydrate it as-is.
+
+### Field hooks
+
+Use these inside `defineComponent` renderers:
+
+| Hook                | Signature                                                                                          | Description                        |
+| :------------------ | :------------------------------------------------------------------------------------------------- | :--------------------------------- |
+| `useGetFieldValue`  | `(formName: string \| undefined, name: string) => any`                                             | Read a field's current value.      |
+| `useSetFieldValue`  | `(formName: string \| undefined, componentType: string \| undefined, name: string, value: any, shouldTriggerSaveCallback?: boolean) => void` | Write a field value.               |
+| `useFormName`       | `() => string \| undefined`                                                                        | Get the enclosing form's name.     |
+| `useSetDefaultValue`| `(options: { formName?, componentType, name, existingValue, defaultValue, shouldTriggerSaveCallback? }) => void` | Set a default if no value exists.  |
+
+---
+
+## Validation
+
+Form fields can declare validation rules. The `Form` component provides a validation context via `useFormValidation`.
+
+```ts
+interface FormValidationContextValue {
+  errors: Record<string, string | undefined>;
+  validateField: (name: string, value: unknown, rules: ParsedRule[]) => boolean;
+  registerField: (name: string, rules: ParsedRule[], getValue: () => unknown) => void;
+  unregisterField: (name: string) => void;
+  validateForm: () => boolean;
+  clearFieldError: (name: string) => void;
+}
+```
+
+Built-in validators include `required`, `minLength`, `maxLength`, `min`, `max`, `pattern`, and `email`. Custom validators can be added via `builtInValidators`.
+
+---
+
+## Next Steps
+
+<Cards>
+  <Card title="Renderer" href="/docs/openui-lang/renderer">
+    Full Renderer props reference.
+  </Card>
+  <Card title="API Reference" href="/docs/api-reference/lang-react">
+    Complete lang-react API.
+  </Card>
+</Cards>
