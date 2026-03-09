@@ -17,23 +17,6 @@ function syntaxRules(rootName: string): string {
 9. Strings use double quotes with backslash escaping`;
 }
 
-function criticalRestrictions(): string {
-  return `## CRITICAL RESTRICTIONS
-
-openui-lang is NOT a programming language. It is a declarative UI language.
-DO NOT USE any of the following — they do not exist:
-- Method calls: .length, .toFixed(), .toString(), .map(), .filter(), etc.
-- Built-in functions: parseInt(), Math.round(), JSON.stringify(), etc.
-- Comments: // or /* */
-- Lambdas, arrow functions, or callbacks
-- Loops (for, while), variable declarations (let/const/var)
-- Template literals (\`\`), destructuring, type annotations
-- Semicolons at end of statements
-- import/export statements
-
-If you cannot express something without these, simplify the UI.`;
-}
-
 function streamingRules(rootName: string): string {
   return `## Hoisting & Streaming (CRITICAL)
 
@@ -324,8 +307,6 @@ export function generatePrompt(library: Library, options?: PromptOptions): strin
   parts.push(options?.preamble ?? PREAMBLE);
   parts.push("");
   parts.push(syntaxRules(rootName));
-  parts.push("");
-  parts.push(criticalRestrictions());
   parts.push("");
   parts.push(generateComponentSignatures(library));
   parts.push("");
