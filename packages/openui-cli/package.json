@@ -1,7 +1,7 @@
 {
-  "name": "create-openui-app",
+  "name": "openui-cli",
   "version": "0.0.1",
-  "description": "CLI for creating OpenUI apps",
+  "description": "CLI for OpenUI",
   "bin": {
     "openui": "dist/index.js"
   },
@@ -20,8 +20,7 @@
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "devDependencies": {
-    "@types/node": "^22.15.32",
-    "tsx": "^4.19.2"
+    "@types/node": "^22.15.32"
   },
   "keywords": [],
   "author": "engineering@thesys.dev",
@@ -29,6 +28,7 @@
   "dependencies": {
     "@inquirer/core": "^11.1.5",
     "@inquirer/prompts": "^8.3.0",
-    "commander": "^14.0.3"
+    "commander": "^14.0.3",
+    "esbuild": "^0.25.10"
   }
 }
