@@ -101,7 +101,7 @@ export default function OpenUILangOverview() {
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button
             href="/docs/openui-lang/quickstart"
-            text="Build with Default Library"
+            text="Build with OpenUI Library"
             variant="primary"
           />
           <Button
