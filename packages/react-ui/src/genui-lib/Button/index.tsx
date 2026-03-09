@@ -38,14 +38,18 @@ export const Button = defineComponent({
         buttonType={props.type as "normal" | "destructive"}
         disabled={isStreaming}
         onClick={() => {
-          if (formValidation) {
-            const valid = formValidation.validateForm();
-            if (!valid) return;
-          }
           const action = props.action as
             | { type?: string; url?: string; context?: string; params?: Record<string, any> }
             | undefined;
           const actionType = action?.type ?? BuiltinActionType.ContinueConversation;
+
+          // Only validate for primary buttons with continue_conversation action (form submit).
+          // Secondary/tertiary buttons (e.g. "Ask to customize") skip validation.
+          const variant = (props.variant as string) || "primary";
+          if (formValidation && variant === "primary" && actionType === BuiltinActionType.ContinueConversation) {
+            const valid = formValidation.validateForm();
+            if (!valid) return;
+          }
           const actionParams =
             actionType === BuiltinActionType.OpenUrl
               ? { url: action?.url }
