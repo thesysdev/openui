@@ -54,7 +54,6 @@ export const TabsList = forwardRef<React.ComponentRef<typeof TabsPrimitive.List>
   ({ className, style, variant = "title", ...props }, ref) => {
     const listRef = useRef<HTMLDivElement>(null);
     const indicatorRef = useRef<HTMLDivElement>(null);
-    const userClickedRef = useRef(false);
     const [showLeftButton, setShowLeftButton] = useState(false);
     const [showRightButton, setShowRightButton] = useState(false);
 
@@ -113,16 +112,12 @@ export const TabsList = forwardRef<React.ComponentRef<typeof TabsPrimitive.List>
       return () => {};
     }, [updateIndicator]);
 
-    // Watch for active tab changes — only animate on user clicks, snap on programmatic changes
+    // Watch for active tab changes and animate indicator
     useEffect(() => {
       const list = listRef.current;
       if (!list) return;
 
-      const observer = new MutationObserver(() => {
-        const shouldAnimate = userClickedRef.current;
-        userClickedRef.current = false;
-        updateIndicator(shouldAnimate);
-      });
+      const observer = new MutationObserver(() => updateIndicator(true));
       observer.observe(list, {
         attributes: true,
         subtree: true,
@@ -140,8 +135,6 @@ export const TabsList = forwardRef<React.ComponentRef<typeof TabsPrimitive.List>
       const handleClick = (e: MouseEvent) => {
         const trigger = (e.target as HTMLElement).closest('[role="tab"]') as HTMLElement;
         if (!trigger) return;
-
-        userClickedRef.current = true;
 
         const listWidth = list.clientWidth;
         const triggerLeft = trigger.offsetLeft;
