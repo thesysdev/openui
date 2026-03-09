@@ -252,7 +252,7 @@ fu2 = FollowUpItem("Turn this into a comparison table")`,
   `Example 4 — Form with validation:
 root = Card([title, form])
 title = TextContent("Contact Us", "large-heavy")
-form = Form("contact", [nameField, emailField, msgField], btns)
+form = Form("contact", btns, [nameField, emailField, msgField])
 nameField = FormControl("Name", Input("name", "Your name", "text", { required: true, minLength: 2 }))
 emailField = FormControl("Email", Input("email", "you@example.com", "email", { required: true, email: true }))
 msgField = FormControl("Message", TextArea("message", "Tell us more...", 4, { required: true, minLength: 10 }))
@@ -270,7 +270,7 @@ export const openuiChatAdditionalRules: string[] = [
   "IMPORTANT: Every slide in a Carousel must use the same component structure in the same order — e.g. all slides: [title, image, description, tags].",
   "For image carousels, always use real accessible URLs like https://picsum.photos/seed/KEYWORD/800/500. Never hallucinate or invent image URLs.",
   "For forms, define one FormControl reference per field so controls can stream progressively.",
-  "For forms, always provide the third Form argument with Buttons(...) actions.",
+  "For forms, always provide the second Form argument with Buttons(...) actions: Form(name, buttons, fields).",
   "Never nest Form inside Form.",
 ];
 
