@@ -31,8 +31,8 @@ At the center of OpenUI is **OpenUI Lang**: a compact, streaming-first language 
 ## Quick Start
 
 ```bash
-npx create-openui-chat my-chat-app
-cd my-chat-app
+npx @openuidev/cli@latest create
+cd genui-chat-app
 npm run dev
 ```
 
@@ -95,7 +95,7 @@ OpenUI also includes ready-made chat surfaces and integration patterns, but chat
 If you want a complete starting point with backend wiring, streaming, and a built-in UI, use:
 
 ```bash
-npx create-openui-chat my-chat-app
+npx @openuidev/cli@latest create
 ```
 
 From there, you can keep the built-in experience or move toward more custom OpenUI Lang-driven interfaces.

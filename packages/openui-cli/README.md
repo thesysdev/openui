@@ -22,7 +22,7 @@ bunx @openuidev/cli --help
 Create a new chat app:
 
 ```bash
-npx @openuidev/cli create
+npx @openuidev/cli@latest create
 ```
 
 Generate a prompt from a library file:
@@ -63,8 +63,8 @@ Examples:
 
 ```bash
 openui create
-openui create --name my-chat-app
-openui create --name my-chat-app --no-interactive
+openui create
+openui create --no-interactive
 ```
 
 ### `openui generate`
