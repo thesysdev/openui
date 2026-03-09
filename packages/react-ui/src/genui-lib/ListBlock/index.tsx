@@ -28,7 +28,7 @@ export const ListBlock = defineComponent({
               title={title}
               subtitle={subtitle}
               listHasSubtitle={listHasSubtitle}
-              onClick={() => triggerAction(title, `User selected: ${title}`)}
+              onClick={() => triggerAction(title)}
             />
           );
         })}

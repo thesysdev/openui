@@ -14,11 +14,15 @@ export interface RendererProps {
   /** Callback when a component triggers an action. */
   onAction?: (event: ActionEvent) => void;
   /**
-   * Called whenever a form field value changes. Receives a full message string
-   * with embedded context — pass this to your thread's updateMessage to persist
-   * form state into the conversation.
+   * Called whenever a form field value changes. Receives the raw form state map.
+   * The consumer decides how to persist this (e.g. embed in message, store separately).
    */
-  onStateUpdate?: (message: string) => void;
+  onStateUpdate?: (state: Record<string, any>) => void;
+  /**
+   * Initial form state to hydrate on load (e.g. from a previously persisted message).
+   * Shape: { formName: { fieldName: { value, componentType } } }
+   */
+  initialState?: Record<string, any>;
   /** Called whenever the parse result changes. */
   onParseResult?: (result: ParseResult | null) => void;
 }
@@ -149,6 +153,7 @@ export function Renderer({
   isStreaming = false,
   onAction,
   onStateUpdate,
+  initialState,
   onParseResult,
 }: RendererProps) {
   const { result, contextValue } = useOpenUIState(
@@ -157,7 +162,8 @@ export function Renderer({
       library,
       isStreaming,
       onAction,
-      updateMessage: onStateUpdate,
+      onStateUpdate,
+      initialState,
     },
     renderDeep,
   );

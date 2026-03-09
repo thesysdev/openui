@@ -53,7 +53,7 @@ export const Button = defineComponent({
                   ...(action?.params ?? {}),
                   ...(action?.context ? { context: action.context } : {}),
                 };
-          triggerAction(label, `User clicked: ${label}`, formName, {
+          triggerAction(label, formName, {
             type: actionType,
             params: actionParams,
           });

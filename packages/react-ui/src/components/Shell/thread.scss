@@ -264,68 +264,6 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   }
 }
 
-.openui-genui-user-message {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: cssUtils.$space-s;
-  max-width: 85%;
-
-  &__form-state {
-    background-color: cssUtils.$foreground;
-    border: 1px solid cssUtils.$border-default;
-    border-radius: cssUtils.$radius-l;
-    overflow: hidden;
-    width: 100%;
-  }
-
-  &__form-state-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: cssUtils.$space-s cssUtils.$space-m;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: cssUtils.$font-size-xs;
-    font-weight: cssUtils.$font-weight-medium;
-    color: cssUtils.$text-neutral-secondary;
-    text-align: left;
-  }
-
-  &__form-state-chevron {
-    transition: transform 0.2s ease;
-    flex-shrink: 0;
-    &--open {
-      transform: rotate(180deg);
-    }
-  }
-
-  &__form-state-content {
-    padding: cssUtils.$space-xs cssUtils.$space-m cssUtils.$space-m;
-    display: flex;
-    flex-direction: column;
-    gap: cssUtils.$space-xs;
-  }
-
-  &__form-field {
-    display: flex;
-    gap: cssUtils.$space-xs;
-    font-size: cssUtils.$font-size-xs;
-  }
-
-  &__form-field-label {
-    color: cssUtils.$text-neutral-secondary;
-    white-space: nowrap;
-  }
-
-  &__form-field-value {
-    color: cssUtils.$text-neutral-primary;
-    overflow-wrap: break-word;
-  }
-}
-
 .openui-shell-thread-message-loading {
   display: flex;
   padding: 0 $center-align-spacing;

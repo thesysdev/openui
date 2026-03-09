@@ -20,13 +20,7 @@ export const FollowUpBlock = defineComponent({
       <OpenUIFollowUpBlock>
         {items.map((item, i) => {
           const text = String(item?.props?.text ?? "");
-          return (
-            <OpenUIFollowUpItem
-              key={i}
-              text={text}
-              onClick={() => triggerAction(text, `User selected follow-up: ${text}`)}
-            />
-          );
+          return <OpenUIFollowUpItem key={i} text={text} onClick={() => triggerAction(text)} />;
         })}
       </OpenUIFollowUpBlock>
     );

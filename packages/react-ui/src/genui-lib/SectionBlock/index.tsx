@@ -39,15 +39,15 @@ export const SectionBlock = defineComponent({
       if (isStreaming && items.length > prevLengthRef.current && !userSelected.current) {
         const last = items[items.length - 1];
         const lastValue = last?.props?.value as string | undefined;
-        if (lastValue && !openItems.includes(lastValue)) {
-          setOpenItems((prev) => [...prev, lastValue]);
+        if (lastValue) {
+          setOpenItems((prev) => (prev.includes(lastValue) ? prev : [...prev, lastValue]));
         }
-      } else if (openItems.length === 0 && firstItemValue) {
-        setOpenItems([firstItemValue]);
+      } else {
+        setOpenItems((prev) => (prev.length === 0 && firstItemValue ? [firstItemValue] : prev));
       }
 
       prevLengthRef.current = items.length;
-    }, [items.length, isStreaming]);
+    }, [items.length, isStreaming, firstItemValue]);
 
     // When streaming ends: collapse back to first item (unless user interacted)
     React.useEffect(() => {

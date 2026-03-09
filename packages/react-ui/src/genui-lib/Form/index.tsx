@@ -17,6 +17,7 @@ export const Form = defineComponent({
   component: ({ props, renderNode }) => {
     const formValidation = useCreateFormValidation();
     const formName = props.name as string;
+    console.log("Form", props);
 
     return (
       <FormValidationContext.Provider value={formValidation}>

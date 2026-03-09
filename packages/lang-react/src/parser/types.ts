@@ -42,18 +42,18 @@ export enum BuiltinActionType {
 
 /**
  * Structured action event fired by interactive components.
- *
- * Follows C1's action event format for compatibility.
  */
 export interface ActionEvent {
   /** Action type. See `BuiltinActionType` for built-in types. */
   type: string;
-  /** Action-specific params. For continue_conversation: { humanFriendlyMessage, llmFriendlyMessage }. */
+  /** Action-specific params (e.g. { url } for OpenUrl, custom params for Custom). */
   params: Record<string, any>;
   /** Human-readable label for the action (displayed as user message in chat). */
   humanFriendlyMessage: string;
-  /** Full message with context tags, sent to the LLM. */
-  llmFriendlyMessage: string;
+  /** Raw form state at the time of the action — all field values. */
+  formState?: Record<string, any>;
+  /** The form name that triggered this action, if any. */
+  formName?: string;
 }
 
 /**
