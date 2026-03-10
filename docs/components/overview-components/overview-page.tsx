@@ -118,7 +118,7 @@ export function OverviewPage() {
               <CodeBlock
                 className="h-full"
                 title="Component Library Definition"
-                code={`import { defineComponent, createLibrary } from '@openuidev/lang-react';
+                code={`import { defineComponent, createLibrary } from '@openuidev/react-lang';
 import { z } from 'zod';
 
 const MyCard = defineComponent({
@@ -140,7 +140,7 @@ export const myLibrary = createLibrary({
             <TabsContent value="render-code" className="mt-3 flex-1">
               <CodeBlock
                 title="Rendering Code"
-                code={`import { Renderer } from '@openuidev/lang-react';
+                code={`import { Renderer } from '@openuidev/react-lang';
 import { myLibrary } from './library';
 
 // Inside your Chat Message component
@@ -290,7 +290,7 @@ import { FullScreen, openuiLibrary } from "@openuidev/react-ui";
             <TabsContent value="quick-example" className="mt-4">
               <CodeBlock
                 title="Quick example"
-                code={`import { createLibrary, defineComponent } from '@openuidev/lang-react';
+                code={`import { createLibrary, defineComponent } from '@openuidev/react-lang';
 import { openuiLibrary, openuiPromptOptions } from '@openuidev/react-ui';
 import { z } from 'zod';
 

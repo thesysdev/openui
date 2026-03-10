@@ -13,7 +13,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@openuidev/lang-react": "workspace:^",
+    "@openuidev/react-lang": "workspace:^",
     "@openuidev/react-headless": "workspace:^",
     "@openuidev/react-ui": "workspace:^",
     "@takumi-rs/image-response": "^0.68.17",

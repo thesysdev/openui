@@ -12,7 +12,7 @@ pnpm --filter @openuidev/react-headless run ci       # lint:check + format:check
 pnpm build && pnpm test
 ```
 
-Build order: **`react-headless`** → `lang-react` → `react-ui`. This package has no upstream workspace deps (only `@ag-ui/core` from npm), so it can always build independently.
+Build order: **`react-headless`** → `react-lang` → `react-ui`. This package has no upstream workspace deps (only `@ag-ui/core` from npm), so it can always build independently.
 
 ## File Map
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent, useTriggerAction } from "@openuidev/lang-react";
+import { defineComponent, useTriggerAction } from "@openuidev/react-lang";
 import { z } from "zod";
 import { FollowUpBlock as OpenUIFollowUpBlock } from "../../components/FollowUpBlock";
 import { FollowUpItem as OpenUIFollowUpItem } from "../../components/FollowUpItem";

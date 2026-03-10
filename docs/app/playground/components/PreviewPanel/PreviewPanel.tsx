@@ -1,5 +1,5 @@
-import type { ParseResult } from "@openuidev/lang-react";
-import { Renderer } from "@openuidev/lang-react";
+import type { ParseResult } from "@openuidev/react-lang";
+import { Renderer } from "@openuidev/react-lang";
 import { openuiLibrary, ThemeProvider } from "@openuidev/react-ui";
 import { Loader2, Maximize2, Monitor } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";

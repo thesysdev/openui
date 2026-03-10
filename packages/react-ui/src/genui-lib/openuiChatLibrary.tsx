@@ -1,7 +1,7 @@
 "use client";
 
-import type { ComponentGroup, PromptOptions } from "@openuidev/lang-react";
-import { createLibrary, defineComponent } from "@openuidev/lang-react";
+import type { ComponentGroup, PromptOptions } from "@openuidev/react-lang";
+import { createLibrary, defineComponent } from "@openuidev/react-lang";
 import { z } from "zod";
 import { Card as OpenUICard } from "../components/Card";
 

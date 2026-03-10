@@ -9,7 +9,7 @@ import {
   useIsStreaming,
   useSetFieldValue,
   type SubComponentOf,
-} from "@openuidev/lang-react";
+} from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod";
 import { CheckBoxGroup as OpenUICheckBoxGroup } from "../../components/CheckBoxGroup";

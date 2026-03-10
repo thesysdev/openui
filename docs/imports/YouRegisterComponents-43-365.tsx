@@ -135,7 +135,7 @@ export default function YouRegisterComponents() {
       <p className="absolute font-['Andale_Mono:Regular',sans-serif] h-[262px] leading-none left-[73px] not-italic text-[10px] text-white top-[71px] w-[254px] whitespace-pre-wrap">{`
 import { z } from "zod"
 import { Carousel, CarouselCard } from "components/Carousel"
-import { defineComponent, createLibrary } from "@openuidev/lang-react"
+import { defineComponent, createLibrary } from "@openuidev/react-lang"
 
 const CarouselCard = defineComponent({
   name: "CarouselCard",

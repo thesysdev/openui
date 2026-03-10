@@ -1,6 +1,6 @@
-import type { Library } from "@openuidev/lang-react";
 import type { AssistantMessage, ChatProviderProps, UserMessage } from "@openuidev/react-headless";
 import { ChatProvider } from "@openuidev/react-headless";
+import type { Library } from "@openuidev/react-lang";
 import { useMemo } from "react";
 import { ThemeProps, ThemeProvider } from "../ThemeProvider";
 import { GenUIAssistantMessage } from "./GenUIAssistantMessage";

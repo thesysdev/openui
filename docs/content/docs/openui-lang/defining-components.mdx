@@ -8,7 +8,7 @@ Use `defineComponent(...)` to register each component and `createLibrary(...)` t
 ## Core API
 
 ```tsx
-import { defineComponent, createLibrary } from "@openuidev/lang-react";
+import { defineComponent, createLibrary } from "@openuidev/react-lang";
 import { z } from "zod";
 
 const StatCard = defineComponent({
@@ -42,7 +42,7 @@ export const myLibrary = createLibrary({
 ## Nesting pattern with `.ref`
 
 ```tsx
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod";
 
 const Item = defineComponent({
@@ -67,7 +67,7 @@ const List = defineComponent({
 To define container components that accepts multiple child components, you can use the `z.union` function to define the child components.
 
 ```tsx
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod";
 
 const TextBlock = defineComponent({

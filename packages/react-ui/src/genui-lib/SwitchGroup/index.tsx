@@ -7,7 +7,7 @@ import {
   useIsStreaming,
   useSetFieldValue,
   type SubComponentOf,
-} from "@openuidev/lang-react";
+} from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod";
 import { SwitchGroup as OpenUISwitchGroup } from "../../components/SwitchGroup";
