@@ -1,6 +1,6 @@
 # OpenUI
 
-[Docs](https://openui.com) · [Example App](./examples/openui-chat) · [Contributing](./CONTRIBUTING.md) · [License](./LICENSE)
+[Docs](https://www.openui.com) · [Example App](./examples/openui-chat) · [Contributing](./CONTRIBUTING.md) · [License](./LICENSE)
 
 Build **LLM-powered user interfaces** with OpenUI Lang, streaming rendering, and generative UI.
 
