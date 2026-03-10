@@ -1,16 +1,17 @@
 {
-  "name": "create-openui-app",
-  "version": "0.0.1",
-  "description": "CLI for creating OpenUI apps",
+  "name": "@openuidev/cli",
+  "version": "0.0.2",
+  "description": "CLI for OpenUI",
   "bin": {
     "openui": "dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build:cli": "tsc -p .",
-    "build:templates": "mkdir -p dist/templates && cp -r src/templates/openui-chat dist/templates/openui-chat",
+    "build:templates": "rm -rf dist/templates/openui-chat && mkdir -p dist/templates && cp -R src/templates/openui-chat dist/templates/openui-chat",
     "build": "pnpm run build:cli && pnpm run build:templates",
     "build:exec": "node dist/index.js",
     "lint:check": "eslint ./src --ignore-pattern 'src/templates/**'",
@@ -20,8 +21,7 @@
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "devDependencies": {
-    "@types/node": "^22.15.32",
-    "tsx": "^4.19.2"
+    "@types/node": "^22.15.32"
   },
   "keywords": [],
   "author": "engineering@thesys.dev",
@@ -29,6 +29,7 @@
   "dependencies": {
     "@inquirer/core": "^11.1.5",
     "@inquirer/prompts": "^8.3.0",
-    "commander": "^14.0.3"
+    "commander": "^14.0.3",
+    "esbuild": "^0.25.10"
   }
 }

@@ -1,4 +1,4 @@
-This is an [OpenUI](https://openui.com) Agent Chat project bootstrapped with [`create-openui-app`](https://openui.com/docs/chat/quick-start).
+This is an [OpenUI](https://openui.com) Agent Chat project bootstrapped with [`openui-cli`](https://openui.com/docs/chat/quick-start).
 
 ## Getting Started
 
