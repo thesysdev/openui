@@ -1,5 +1,5 @@
-import type { Library } from "@openuidev/react-lang";
 import type { AssistantMessage, UserMessage } from "@openuidev/react-headless";
+import type { Library } from "@openuidev/react-lang";
 import { ReactNode } from "react";
 import { ScrollVariant } from "../../hooks/useScrollToBottom";
 import { ConversationStarterProps } from "../../types/ConversationStarter";
