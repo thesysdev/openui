@@ -4,16 +4,19 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./global.css";
 import { PHProvider } from "./providers";
+import { BASE_URL } from "../lib/source";
 
 const inter = Inter({
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
   title: {
     default: "OpenUI",
     template: "%s | OpenUI",
   },
+  description: "The Open Standard for Generative UI",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
