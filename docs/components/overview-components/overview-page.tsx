@@ -83,7 +83,7 @@ export function OverviewPage() {
           >
             A2UI
           </a>{" "}
-          that reduces token usage by up to 52%. Define your component library with Zod schemas, get
+          that reduces token usage by up to 67.1%. Define your component library with Zod schemas, get
           automatic system prompts, and parse LLM responses into renderable components.
         </p>
 
@@ -244,7 +244,7 @@ import { FullScreen, openuiLibrary } from "@openuidev/react-ui";
 
       <Separator className="my-8 sm:my-16" />
 
-      {/* Default Library Section */}
+      {/* OpenUI Library Section */}
       <div id="library" className="mb-12 sm:mb-20">
         <div className="mb-4 flex items-start gap-3 sm:mb-6 sm:gap-4">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-fd-muted sm:size-12">

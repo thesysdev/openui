@@ -94,14 +94,14 @@ export default function OpenUILangOverview() {
           >
             A2UI
           </Link>{" "}
-          that uses ~52% fewer tokens than equivalent JSON structures. Define your component library
+          that uses up to 67.1% fewer tokens than equivalent JSON structures. Define your component library
           with Zod schemas and parse LLM responses into renderable components.
         </p>
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button
             href="/docs/openui-lang/quickstart"
-            text="Build with Default Library"
+            text="Build with OpenUI Library"
             variant="primary"
           />
           <Button
@@ -127,7 +127,7 @@ export default function OpenUILangOverview() {
           <FeatureCard
             icon={<Zap />}
             title="Token Efficient"
-            description="Uses ~52% fewer tokens than equivalent JSON structures, significantly reducing inference cost and latency."
+            description="Uses up to 67.1% fewer tokens than equivalent JSON structures, significantly reducing inference cost and latency."
           />
           <FeatureCard
             icon={<Shield />}
