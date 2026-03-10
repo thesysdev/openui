@@ -83,7 +83,7 @@ export function OverviewPage() {
           >
             A2UI
           </a>{" "}
-          that reduces token usage by up to 52%. Define your component library with Zod schemas, get
+          that reduces token usage by up to 67.1%. Define your component library with Zod schemas, get
           automatic system prompts, and parse LLM responses into renderable components.
         </p>
 
@@ -118,7 +118,7 @@ export function OverviewPage() {
               <CodeBlock
                 className="h-full"
                 title="Component Library Definition"
-                code={`import { defineComponent, createLibrary } from '@openuidev/lang-react';
+                code={`import { defineComponent, createLibrary } from '@openuidev/react-lang';
 import { z } from 'zod';
 
 const MyCard = defineComponent({
@@ -140,7 +140,7 @@ export const myLibrary = createLibrary({
             <TabsContent value="render-code" className="mt-3 flex-1">
               <CodeBlock
                 title="Rendering Code"
-                code={`import { Renderer } from '@openuidev/lang-react';
+                code={`import { Renderer } from '@openuidev/react-lang';
 import { myLibrary } from './library';
 
 // Inside your Chat Message component
@@ -244,7 +244,7 @@ import { FullScreen, openuiLibrary } from "@openuidev/react-ui";
 
       <Separator className="my-8 sm:my-16" />
 
-      {/* Default Library Section */}
+      {/* OpenUI Library Section */}
       <div id="library" className="mb-12 sm:mb-20">
         <div className="mb-4 flex items-start gap-3 sm:mb-6 sm:gap-4">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-fd-muted sm:size-12">
@@ -290,7 +290,7 @@ import { FullScreen, openuiLibrary } from "@openuidev/react-ui";
             <TabsContent value="quick-example" className="mt-4">
               <CodeBlock
                 title="Quick example"
-                code={`import { createLibrary, defineComponent } from '@openuidev/lang-react';
+                code={`import { createLibrary, defineComponent } from '@openuidev/react-lang';
 import { openuiLibrary, openuiPromptOptions } from '@openuidev/react-ui';
 import { z } from 'zod';
 

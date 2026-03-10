@@ -1,4 +1,4 @@
-import { BuiltinActionType } from "@openuidev/lang-react";
+import { BuiltinActionType } from "@openuidev/react-lang";
 import { z } from "zod";
 
 const continueConversationAction = z.object({

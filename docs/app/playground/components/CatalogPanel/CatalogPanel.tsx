@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentGroup } from "@openuidev/lang-react";
+import type { ComponentGroup } from "@openuidev/react-lang";
 import { openuiLibrary } from "@openuidev/react-ui";
 import { ChevronLeft, ChevronRight, LayoutList } from "lucide-react";
 import { useState } from "react";
@@ -66,9 +66,9 @@ export function CatalogPanel() {
   return (
     <aside className={`catalog-panel${isCollapsed ? " catalog-panel--collapsed" : ""}`}>
       <div className="catalog-panel-header">
-        {!isCollapsed && <span className="catalog-panel-title">Catalog: Default Library</span>}
+        {!isCollapsed && <span className="catalog-panel-title">Library: OpenUI Library</span>}
         {isCollapsed && (
-          <span className="catalog-panel-icon-only" title="Catalog: Default Library">
+          <span className="catalog-panel-icon-only" title="Library: OpenUI Library">
             <LayoutList size={16} />
           </span>
         )}

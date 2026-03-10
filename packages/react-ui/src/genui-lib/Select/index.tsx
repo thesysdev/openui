@@ -8,7 +8,7 @@ import {
   useGetFieldValue,
   useIsStreaming,
   useSetFieldValue,
-} from "@openuidev/lang-react";
+} from "@openuidev/react-lang";
 import React from "react";
 import {
   Select as OpenUISelect,

@@ -1,4 +1,5 @@
 import { type NextRequest } from "next/server";
+import { BASE_URL } from "@/lib/source";
 
 export async function POST(req: NextRequest) {
   const { model, prompt, systemPrompt } = await req.json();
@@ -8,7 +9,7 @@ export async function POST(req: NextRequest) {
     headers: {
       Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://openui.com/playground",
+      "HTTP-Referer": `${BASE_URL}/playground`,
       "X-Title": "OpenUI Playground",
     },
     body: JSON.stringify({

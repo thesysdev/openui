@@ -8,7 +8,7 @@ export const gitConfig = {
 
 export const siteConfig = {
   githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
-  discordUrl: "https://discord.gg/ZeSTyHZTEV",
+  discordUrl: "https://discord.com/invite/Pbv5PsqUSv",
 };
 
 export function baseOptions(): BaseLayoutProps {

@@ -50,7 +50,7 @@ function CtaButton() {
     if (copied) return;
 
     try {
-      await navigator.clipboard.writeText("npx create openui-app chat");
+      await navigator.clipboard.writeText("npx @openuidev/cli@latest create");
       setCopied(true);
       resetTimeoutRef.current = setTimeout(() => {
         setCopied(false);
@@ -87,7 +87,7 @@ function CtaButton() {
           </svg>
         </span>
         <span className="font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-white relative whitespace-nowrap">
-          npx create openui-app chat
+          npx @openuidev/cli@latest create
         </span>
       </button>
     </div>
