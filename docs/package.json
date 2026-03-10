@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "generate:prompts": "pnpm --filter @openuidev/cli build && pnpm exec openui generate lib/chat-library.ts --out generated/chat-system-prompt.txt && pnpm exec openui generate lib/playground-library.ts --out generated/playground-system-prompt.txt",
-    "build": "pnpm generate:prompts && next build",
+    "build": "next build",
     "dev": "pnpm generate:prompts && next dev",
     "start": "next start",
     "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
