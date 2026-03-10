@@ -11,7 +11,6 @@ import { OpenUILogo, ThesysLogo } from "./brand-logo";
 import { ThemeToggle } from "./theme-toggle";
 
 const tabs = [
-  { title: "Introduction", url: "/docs/introduction" },
   { title: "OpenUI Lang", url: "/docs/openui-lang" },
   { title: "Chat", url: "/docs/chat" },
   { title: "API Reference", url: "/docs/api-reference" },
@@ -77,7 +76,7 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
   return (
     <header className="fixed top-0 inset-x-0 z-40 w-full border-b border-fd-border bg-fd-background/80 backdrop-blur-xl">
       {/* Top row: logo left, actions right */}
-      <div className="flex items-center h-16 max-w-[97rem] mx-auto px-3 md:px-8">
+      <div className="flex items-center h-16 max-w-388 mx-auto px-3 md:px-8">
         {showSidebarToggle && (
           <SidebarTrigger className="docs-nav-sidebar-toggle flex items-center justify-center size-9 rounded-lg text-fd-muted-foreground bg-transparent border-none cursor-pointer mr-3">
             <svg
@@ -151,11 +150,10 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
               <Link
                 key={tab.url}
                 href={tab.url}
-                className={`flex items-center px-4 py-2.5 text-sm font-medium whitespace-nowrap no-underline transition-colors duration-150 border-b-2 -mb-px ${
-                  isActive
+                className={`flex items-center px-4 py-2.5 text-sm font-medium whitespace-nowrap no-underline transition-colors duration-150 border-b-2 -mb-px ${isActive
                     ? "text-fd-foreground border-fd-primary"
                     : "text-fd-muted-foreground border-transparent hover:text-fd-foreground"
-                }`}
+                  }`}
               >
                 {tab.title}
               </Link>

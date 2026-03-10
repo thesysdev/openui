@@ -1,8 +1,0 @@
-:global(#nd-docs-layout:not(:has(#nd-sidebar))) {
-  grid-template-columns: 1fr !important;
-  grid-template-areas: "main" !important;
-}
-
-:global(#nd-docs-layout:not(:has(#nd-sidebar))) > * {
-  grid-area: main !important;
-}

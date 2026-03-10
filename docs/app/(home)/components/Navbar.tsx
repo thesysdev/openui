@@ -17,9 +17,8 @@ import { BUTTON_SHADOW } from "./shared";
 // Constants
 // ---------------------------------------------------------------------------
 
-const NAV_TABS = ["Introduction", "OpenUI Lang", "Chat", "Playground", "API Reference"] as const;
+const NAV_TABS = ["OpenUI Lang", "Chat", "Playground", "API Reference"] as const;
 const TAB_URLS: Record<string, string> = {
-  Introduction: "/docs/introduction",
   "OpenUI Lang": "/docs/openui-lang",
   Chat: "/docs/chat",
   Playground: "/playground",

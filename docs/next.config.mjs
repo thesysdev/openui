@@ -19,7 +19,7 @@ const config = {
     return [
       {
         source: "/docs",
-        destination: "/docs/introduction",
+        destination: "/docs/openui-lang",
         permanent: false,
       },
     ];
