@@ -3,15 +3,15 @@
 import { siteConfig } from "@/lib/layout.shared";
 import { SidebarTrigger } from "fumadocs-ui/components/sidebar/base";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
 import { OpenUILogo, ThesysLogo } from "./brand-logo";
 import { ThemeToggle } from "./theme-toggle";
 
 const tabs = [
-  { title: "OpenUI Lang", url: "/docs/openui-lang" },
+  { title: "OpenUI", url: "/docs/openui-lang" },
   { title: "Chat", url: "/docs/chat" },
   { title: "API Reference", url: "/docs/api-reference" },
 ];
@@ -150,10 +150,11 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
               <Link
                 key={tab.url}
                 href={tab.url}
-                className={`flex items-center px-4 py-2.5 text-sm font-medium whitespace-nowrap no-underline transition-colors duration-150 border-b-2 -mb-px ${isActive
+                className={`flex items-center px-4 py-2.5 text-sm font-medium whitespace-nowrap no-underline transition-colors duration-150 border-b-2 -mb-px ${
+                  isActive
                     ? "text-fd-foreground border-fd-primary"
                     : "text-fd-muted-foreground border-transparent hover:text-fd-foreground"
-                  }`}
+                }`}
               >
                 {tab.title}
               </Link>

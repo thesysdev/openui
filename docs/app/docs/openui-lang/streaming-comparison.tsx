@@ -1,7 +1,7 @@
 "use client";
 
+import { Check, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RotateCcw, Check } from "lucide-react";
 
 const JSON_CODE = `{
   "component": {
@@ -194,7 +194,7 @@ formButtons = Buttons([submitBtn, cancelBtn], "row")
 submitBtn = Button("Submit", "submit:contact", "primary")
 cancelBtn = Button("Cancel", "action:cancel_contact", "secondary")`;
 
-// Calculated using openai tokenizer, https://platform.openai.com/tokenizer 
+// Calculated using openai tokenizer, https://platform.openai.com/tokenizer
 const JSON_TOKENS = 849;
 const OPENUI_TOKENS = 294;
 const TOKEN_RATE = 60; // tokens per second
@@ -235,20 +235,24 @@ function StreamingCodeBlock({
     }
   }, [charCount, state]);
 
-  const pillBg = variant === "red"
-    ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
-    : "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400";
+  const pillBg =
+    variant === "red"
+      ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
+      : "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400";
 
-  const doneBg = variant === "red"
-    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-    : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300";
+  const doneBg =
+    variant === "red"
+      ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300";
 
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-base font-semibold sm:text-lg">{label}</h3>
         <div className="flex items-center gap-2">
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isDone ? doneBg : pillBg}`}>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${isDone ? doneBg : pillBg}`}
+          >
             {state === "streaming"
               ? `${currentTokens}/${totalTokens} tokens`
               : `${totalTokens} tokens`}
@@ -404,7 +408,10 @@ export function StreamingComparison() {
             <strong>{JSON_TOKENS - OPENUI_TOKENS} fewer tokens</strong>.
           </p>
           <button
-            onClick={() => { hasAutoPlayed.current = true; play(); }}
+            onClick={() => {
+              hasAutoPlayed.current = true;
+              play();
+            }}
             className="ml-3 flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
             title="Replay streaming demo"
           >

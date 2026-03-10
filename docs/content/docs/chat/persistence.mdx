@@ -16,13 +16,13 @@ This config only affects thread history. Your live chat request still comes from
 
 When you pass `threadApiUrl="/api/threads"`, OpenUI appends its own path segments. The default requests look like this:
 
-| Action | Method | URL | Request body | Expected response |
-| :--- | :--- | :--- | :--- | :--- |
-| List threads | `GET` | `/api/threads/get` | — | `{ threads: Thread[], nextCursor?: any }` |
-| Create thread | `POST` | `/api/threads/create` | `{ messages }` | `Thread` |
-| Update thread | `PATCH` | `/api/threads/update/:id` | `Thread` | `Thread` |
-| Delete thread | `DELETE` | `/api/threads/delete/:id` | — | empty response is fine |
-| Load messages | `GET` | `/api/threads/get/:id` | — | message array in your backend format |
+| Action        | Method   | URL                       | Request body   | Expected response                         |
+| :------------ | :------- | :------------------------ | :------------- | :---------------------------------------- |
+| List threads  | `GET`    | `/api/threads/get`        | —              | `{ threads: Thread[], nextCursor?: any }` |
+| Create thread | `POST`   | `/api/threads/create`     | `{ messages }` | `Thread`                                  |
+| Update thread | `PATCH`  | `/api/threads/update/:id` | `Thread`       | `Thread`                                  |
+| Delete thread | `DELETE` | `/api/threads/delete/:id` | —              | empty response is fine                    |
+| Load messages | `GET`    | `/api/threads/get/:id`    | —              | message array in your backend format      |
 
 ```tsx
 import { FullScreen } from "@openuidev/react-ui";
@@ -99,7 +99,7 @@ then provide the individual thread functions instead of relying on the default `
     return res.json();
   }}
   agentName="Assistant"
-/>;
+/>
 ```
 
 {/* add visual: flow-chart showing how threadApiUrl maps to list, create, update, delete, and load requests, and where messageFormat affects create/load payloads */}

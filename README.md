@@ -1,6 +1,6 @@
 # OpenUI
 
-[Docs](https://www.openui.com) · [Example App](./examples/openui-chat) · [Contributing](./CONTRIBUTING.md) · [License](./LICENSE)
+[Docs](https://openui.com) · [Example App](./examples/openui-chat) · [Discord](https://discord.com/invite/Pbv5PsqUSv) · [Contributing](./CONTRIBUTING.md) · [License](./LICENSE)
 
 Build **LLM-powered user interfaces** with OpenUI Lang, streaming rendering, and generative UI.
 
@@ -19,11 +19,12 @@ At the center of OpenUI is **OpenUI Lang**: a compact, streaming-first language 
 
 **Core capabilities:**
 
-- **OpenUI Lang** - A compact language for structured UI generation that is designed for streaming output.
-- **Prompt generation from your component library** - Generate model instructions directly from the components you allow.
-- **Streaming renderer** - Parse and render model output progressively in React as tokens arrive.
-- **Generative UI** - Turn model output into real UI components instead of plain text responses.
+- **OpenUI Lang** — A compact language for structured UI generation designed for streaming output.
+- **Built-in component libraries** — Charts, forms, tables, layouts, and more — ready to use or extend.
+- **Prompt generation from your component library** — Generate model instructions directly from the components you allow.
+- **Streaming renderer** — Parse and render model output progressively in React as tokens arrive.
 - **Chat and app surfaces** - Use the same foundation for assistants, copilots, and broader interactive product flows.
+
 
 <!-- Product overview video placeholder -->
 <!-- https://openui.com/assets/readme/overview-demo.mp4 -->
@@ -31,8 +32,9 @@ At the center of OpenUI is **OpenUI Lang**: a compact, streaming-first language 
 ## Quick Start
 
 ```bash
-npx @openuidev/cli@latest create
+npx @openuidev/cli@latest create --name genui-chat-app
 cd genui-chat-app
+echo "OPENAI_API_KEY=sk-your-key-here" > .env
 npm run dev
 ```
 
@@ -65,53 +67,40 @@ This creates a direct path from model output to UI without relying on brittle te
 <!-- Architecture diagram placeholder -->
 <!-- ![OpenUI Architecture](./docs/static/readme/architecture.png) -->
 
+## Packages
+
+| Package | Description |
+| :--- | :--- |
+| [`@openuidev/react-lang`](./packages/react-lang) | Core runtime — component definitions, parser, renderer, prompt generation |
+| [`@openuidev/react-headless`](./packages/react-headless) | Headless chat state, streaming adapters, message format converters |
+| [`@openuidev/react-ui`](./packages/react-ui) | Prebuilt chat layouts and two built-in component libraries |
+| [`@openuidev/cli`](./packages/openui-cli) | CLI for scaffolding apps and generating system prompts |
+
+```bash
+npm install @openuidev/react-lang @openuidev/react-ui
+```
+
 ## Why OpenUI Lang
 
 OpenUI Lang is designed for model-generated UI that needs to be both structured and streamable.
 
-It is built for:
-
-- **Streaming output** - Emit UI incrementally as tokens arrive.
-- **Token efficiency** - Use a compact representation instead of verbose JSON payloads.
-- **Controlled rendering** - Restrict output to the components you define and register.
-- **Typed component contracts** - Define component props and structure up front.
+- **Streaming output** — Emit UI incrementally as tokens arrive.
+- **Token efficiency** — Up to 67% fewer tokens than equivalent JSON.
+- **Controlled rendering** — Restrict output to the components you define and register.
+- **Typed component contracts** — Define component props and structure up front with Zod schemas.
 
 ## Built for real product surfaces
 
-OpenUI is intended for more than demo chat windows.
+OpenUI is intended for more than demo chat windows. Use it to build:
 
-Use it to build:
-
-- structured AI interfaces
-- assistants that render forms, charts, tables, and actions
-- embedded copilots inside existing products
-- full-page AI workflows
-- custom applications backed by your own model APIs
-
-## Chat is one application layer
-
-OpenUI also includes ready-made chat surfaces and integration patterns, but chat is only one way to use the platform.
-
-If you want a complete starting point with backend wiring, streaming, and a built-in UI, use:
-
-```bash
-npx @openuidev/cli@latest create
-```
-
-From there, you can keep the built-in experience or move toward more custom OpenUI Lang-driven interfaces.
+- Assistants that render forms, charts, tables, and actions
+- Embedded copilots inside existing products
+- Full-page AI workflows
+- Custom applications backed by your own model APIs
 
 ## Documentation
 
 Detailed documentation is available at [openui.com](https://openui.com).
-
-The docs cover:
-
-- OpenUI Lang quick start
-- component definitions and library design
-- prompt generation and customization
-- renderer behavior and streaming semantics
-- end-to-end app setup
-- backend connection patterns and API contracts
 
 ## Explore the repo
 

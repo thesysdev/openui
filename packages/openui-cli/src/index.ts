@@ -26,11 +26,21 @@ program
   .option("-o, --out <file>", "Write output to a file instead of stdout")
   .option("--json-schema", "Output JSON schema instead of the system prompt")
   .option("--export <name>", "Name of the export to use (auto-detected by default)")
+  .option(
+    "--prompt-options <name>",
+    "Name of the PromptOptions export to use (auto-detected by default)",
+  )
   .option("--no-interactive", "Fail with error if required args are missing")
   .action(
     async (
       entry: string | undefined,
-      options: { out?: string; jsonSchema?: boolean; export?: string; interactive: boolean },
+      options: {
+        out?: string;
+        jsonSchema?: boolean;
+        export?: string;
+        promptOptions?: string;
+        interactive: boolean;
+      },
     ) => {
       const args = await resolveArgs(
         {

@@ -2,9 +2,9 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import { BASE_URL } from "../lib/source";
 import "./global.css";
 import { PHProvider } from "./providers";
-import { BASE_URL } from "../lib/source";
 
 const inter = Inter({
   subsets: ["latin"],

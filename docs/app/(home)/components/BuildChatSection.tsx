@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import dashboardImg from "@/public/images/home/d67b5e94653944c1d0d4998c6b169c37f98060ad.png";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { CopyIcon } from "./shared";
 
 // ---------------------------------------------------------------------------

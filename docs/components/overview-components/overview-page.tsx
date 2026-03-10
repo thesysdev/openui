@@ -3,14 +3,14 @@
 import { Button } from "@/components/button";
 import {
   CodeBlock,
+  FeatureCard,
+  FeatureCards,
   Separator,
   SimpleCard,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-  FeatureCard,
-  FeatureCards,
 } from "@/components/overview-components";
 import { ArrowUpRight, Code2, MessageSquare, Package } from "lucide-react";
 import { useState } from "react";
@@ -87,8 +87,8 @@ export function OverviewPage() {
           >
             A2UI
           </a>{" "}
-          that reduces token usage by up to 67.1%. Define your component library with Zod schemas, get
-          automatic system prompts, and parse LLM responses into renderable components.
+          that reduces token usage by up to 67.1%. Define your component library with Zod schemas,
+          get automatic system prompts, and parse LLM responses into renderable components.
         </p>
 
         <SimpleCard className="mb-4 border-blue-200 p-3 sm:p-4">
@@ -324,10 +324,10 @@ import { FullScreen, openuiLibrary } from "@openuidev/react-ui";
               <CodeBlock
                 title="Quick example"
                 code={`import { createLibrary, defineComponent } from '@openuidev/react-lang';
-import { openuiLibrary, openuiPromptOptions } from '@openuidev/react-ui';
+import { openuiLibrary } from '@openuidev/react-ui';
 import { z } from 'zod';
 
-const prompt = openuiLibrary.prompt(openuiPromptOptions);
+// Generate prompt with CLI: openui generate ./src/library.ts
 
 const CustomWidget = defineComponent({
   name: 'CustomWidget',

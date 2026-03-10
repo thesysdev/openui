@@ -102,6 +102,9 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
+      '@openuidev/cli':
+        specifier: workspace:*
+        version: link:../packages/openui-cli
       '@tailwindcss/postcss':
         specifier: ^4.1.18
         version: 4.2.1
@@ -154,6 +157,9 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
     devDependencies:
+      '@openuidev/cli':
+        specifier: workspace:*
+        version: link:../../packages/openui-cli
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.2.1

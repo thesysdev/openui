@@ -1,28 +1,65 @@
 ---
 title: Quick Start
-description: Use the OpenUI library to render OpenUI Lang immediately.
+description: Bootstrap a Generative UI chat app in under a minute.
 ---
 
-
-#### Bootstrap a GenUI Chat app
+## Bootstrap a GenUI Chat app
 
 ```bash
 npx @openuidev/cli@latest create --name genui-chat-app
 cd genui-chat-app
 ```
 
-#### Add your API key
+## Add your API key
+
+The generated app uses OpenAI by default, but works with any OpenAI-compatible provider (e.g., OpenRouter, Azure OpenAI, Anthropic via proxy).
 
 ```bash
 echo "OPENAI_API_KEY=sk-your-key-here" > .env
 ```
 
-#### Start the dev server
+## Start the dev server
 
 ```bash
 npm run dev
 ```
 
-The generated app wires up a predefined component library in `src/app/page.tsx`.
+## What's included
 
-Follow guide: [Define Your Components](/docs/openui-lang/defining-components) to learn how to create your own component library.
+The CLI generates a Next.js app with everything wired up:
+
+```
+src/
+  app/
+    page.tsx          # FullScreen chat layout with the built-in component library
+    api/chat/
+      route.ts        # Backend route with OpenAI streaming + example tools
+  library.ts          # Re-exports openuiChatLibrary and openuiChatPromptOptions
+  generated/
+    system-prompt.txt  # Auto-generated at build time via `openui generate`
+```
+
+- **`page.tsx`** — Renders the `FullScreen` chat layout with `openuiChatLibrary` for Generative UI rendering and `openAIAdapter()` for streaming.
+- **`route.ts`** — A backend API route that sends the system prompt to the LLM and streams the response back.
+- **`library.ts`** — Your component library entrypoint. The `openui generate` CLI reads this file to produce the system prompt.
+
+The `dev` and `build` scripts automatically regenerate the system prompt before starting:
+
+```json
+"generate:prompt": "openui generate src/library.ts --out src/generated/system-prompt.txt",
+"dev": "pnpm generate:prompt && next dev"
+```
+
+## Next Steps
+
+<Cards>
+  <Card title="Overview" href="/docs/openui-lang/overview">
+    Understand the key building blocks and built-in component libraries.
+  </Card>
+  <Card title="Defining Components" href="/docs/openui-lang/defining-components">
+    Create your own custom component library.
+  </Card>
+  <Card title="Chat Quick Start" href="/docs/chat/quick-start">
+    Explore chat-specific layouts and configurations.
+  </Card>
+</Cards>

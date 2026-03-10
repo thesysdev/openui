@@ -1,9 +1,9 @@
 "use client";
-import { SimpleCard } from "@/components/overview-components/simple-card";
-import { useState } from "react";
 import { CodeBlock } from "@/components/overview-components/code-block";
 import { InlineButton } from "@/components/overview-components/inline-button";
+import { SimpleCard } from "@/components/overview-components/simple-card";
 import { ArrowRight } from "lucide-react";
+import { useState } from "react";
 
 const steps = [
   {
@@ -45,7 +45,6 @@ learnMoreBtn = Button("Learn more", "action:learn_more", "secondary")
   },
 ];
 
-
 export const HowItWorks = () => {
   const [activeStep, setActiveStep] = useState(0);
   return (
@@ -59,10 +58,11 @@ export const HowItWorks = () => {
           <button
             key={index}
             onClick={() => setActiveStep(index)}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${activeStep === index
-              ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-              : "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-              }`}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              activeStep === index
+                ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                : "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+            }`}
           >
             {index + 1}. {step.title}
           </button>
@@ -104,4 +104,4 @@ export const HowItWorks = () => {
       </SimpleCard>
     </div>
   );
-}
+};

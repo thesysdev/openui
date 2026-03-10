@@ -5,13 +5,11 @@ import "./chat-modal.css";
 
 import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { openuiChatLibrary, openuiChatPromptOptions } from "@openuidev/react-ui/genui-lib";
+import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
 import { X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
-
-const systemPrompt = openuiChatLibrary.prompt(openuiChatPromptOptions);
 
 interface ChatModalProps {
   onClose: () => void;
@@ -51,7 +49,6 @@ export function ChatModal({ onClose }: ChatModalProps) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   messages: openAIMessageFormat.toApi(messages),
-                  systemPrompt,
                 }),
                 signal: abortController.signal,
               });
@@ -63,10 +60,26 @@ export function ChatModal({ onClose }: ChatModalProps) {
             conversationStarters={{
               variant: "short",
               options: [
-                { displayText: "Weather in Tokyo", prompt: "What's the weather like in Tokyo right now?" },
-                { displayText: "AAPL stock price", prompt: "What's the current Apple stock price?" },
-                { displayText: "Contact form", prompt: "Build me a contact form with name, email, topic, and message fields." },
-                { displayText: "Data table", prompt: "Show me a table of the top 5 programming languages by popularity with year created." },
+                {
+                  displayText: "Revenue dashboard",
+                  prompt:
+                    "Build a revenue dashboard with a bar chart showing monthly revenue for Q4, key metrics, and a summary table.",
+                },
+                {
+                  displayText: "Signup form",
+                  prompt:
+                    "Create a user registration form with name, email, password, and country fields with validation.",
+                },
+                {
+                  displayText: "Compare React vs Vue",
+                  prompt:
+                    "Show me a comparison of React and Vue frameworks using tabs with pros, cons, and a feature comparison table.",
+                },
+                {
+                  displayText: "Travel destinations",
+                  prompt:
+                    "Show me a carousel of 3 popular travel destinations with images, descriptions, and best time to visit.",
+                },
               ],
             }}
           />

@@ -22,13 +22,8 @@ import {
 } from "@openuidev/react-headless";
 
 function ThreadSidebar() {
-  const {
-    threads,
-    selectedThreadId,
-    isLoadingThreads,
-    selectThread,
-    switchToNewThread,
-  } = useThreadList();
+  const { threads, selectedThreadId, isLoadingThreads, selectThread, switchToNewThread } =
+    useThreadList();
 
   return (
     <aside>
@@ -111,7 +106,7 @@ export default function App() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            messages,
+            messages: openAIMessageFormat.toApi(messages),
           }),
           signal: abortController.signal,
         });
@@ -128,10 +123,10 @@ export default function App() {
 
 This example uses the same backend assumptions as the built-in layouts:
 
-- `messageFormat={openAIMessageFormat}` converts outgoing chat messages and loaded thread history to the backend format
+- `openAIMessageFormat.toApi(messages)` is called explicitly in `processMessage` to convert messages to OpenAI format — the `messageFormat` prop does not transform messages for `processMessage`
+- `messageFormat={openAIMessageFormat}` is still needed here because `threadApiUrl` is set — it tells the UI how to convert messages when loading saved thread history
 - `openAIReadableStreamAdapter()` matches `response.toReadableStream()`
 - `threadApiUrl` enables saved thread history
-- `processMessage` keeps the request body explicit while still letting `messageFormat` handle message conversion
 
 If you want Generative UI in a headless build, you also need to render structured assistant content yourself instead of relying on the built-in `componentLibrary` behavior from the layout components.
 

@@ -1,7 +1,6 @@
 import { Button } from "@/components/button";
 import { HeroBadge } from "@/components/hero-badge";
-import { FeatureCard, FeatureCards } from "@/components/overview-components";
-import { CodeBlock } from "@/components/overview-components";
+import { CodeBlock, FeatureCard, FeatureCards } from "@/components/overview-components";
 import {
   Code2,
   Database,
@@ -73,9 +72,24 @@ export default function ChatOverviewPage() {
         </div>
 
         <FeatureCards>
-          <FeatureCard icon={<PanelRightOpen />} title="Copilot" description="A sidebar assistant that lives alongside your main application content." href="/docs/chat/copilot" />
-          <FeatureCard icon={<Maximize2 />} title="Full Screen" description="A standalone, immersive chat page similar to ChatGPT or Claude." href="/docs/chat/fullscreen" />
-          <FeatureCard icon={<MessageCircle />} title="Bottom Tray" description="A floating support-style widget that expands from the bottom corner." href="/docs/chat/bottom-tray" />
+          <FeatureCard
+            icon={<PanelRightOpen />}
+            title="Copilot"
+            description="A sidebar assistant that lives alongside your main application content."
+            href="/docs/chat/copilot"
+          />
+          <FeatureCard
+            icon={<Maximize2 />}
+            title="Full Screen"
+            description="A standalone, immersive chat page similar to ChatGPT or Claude."
+            href="/docs/chat/fullscreen"
+          />
+          <FeatureCard
+            icon={<MessageCircle />}
+            title="Bottom Tray"
+            description="A floating support-style widget that expands from the bottom corner."
+            href="/docs/chat/bottom-tray"
+          />
         </FeatureCards>
       </section>
 
@@ -89,9 +103,24 @@ export default function ChatOverviewPage() {
           </div>
 
           <FeatureCards direction="horizontal">
-            <FeatureCard direction="horizontal" icon={<MessageSquare />} title="Streaming Native" description="Handles text deltas, optimistic updates, and loading states automatically." />
-            <FeatureCard direction="horizontal" icon={<Database />} title="Thread Persistence" description="Built-in support for saving and loading conversation history via simple API contracts." />
-            <FeatureCard direction="horizontal" icon={<Palette />} title="Theming" description="Customize every color, radius, and font using CSS variables or Tailwind." />
+            <FeatureCard
+              direction="horizontal"
+              icon={<MessageSquare />}
+              title="Streaming Native"
+              description="Handles text deltas, optimistic updates, and loading states automatically."
+            />
+            <FeatureCard
+              direction="horizontal"
+              icon={<Database />}
+              title="Thread Persistence"
+              description="Built-in support for saving and loading conversation history via simple API contracts."
+            />
+            <FeatureCard
+              direction="horizontal"
+              icon={<Palette />}
+              title="Theming"
+              description="Customize every color, radius, and font using CSS variables or Tailwind."
+            />
           </FeatureCards>
         </div>
 

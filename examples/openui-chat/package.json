@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "generate:prompt": "openui generate src/library.ts --out src/generated/system-prompt.txt",
+    "dev": "pnpm generate:prompt && next dev",
+    "build": "pnpm generate:prompt && next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -19,6 +20,7 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@openuidev/cli": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

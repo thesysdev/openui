@@ -9,8 +9,8 @@ import {
   TabsTrigger,
 } from "@/components/overview-components";
 import { genuiOutput } from "@/components/overview-components/genui";
-import { openuiLibrary } from "@openuidev/react-ui";
 import { Renderer } from "@openuidev/react-lang";
+import { openuiLibrary } from "@openuidev/react-ui";
 
 const renderableOutput = `root = Stack([welcomeCard])
 welcomeCard = Card([welcomeHeader, welcomeBody])
@@ -119,5 +119,5 @@ const completion = await client.chat.completions.create({
         </div>
       </SimpleCard>
     </div>
-  )
-}
+  );
+};

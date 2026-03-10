@@ -9,7 +9,13 @@ interface FeatureCardProps {
   direction?: "vertical" | "horizontal";
 }
 
-export function FeatureCard({ icon, title, description, href, direction = "vertical" }: FeatureCardProps) {
+export function FeatureCard({
+  icon,
+  title,
+  description,
+  href,
+  direction = "vertical",
+}: FeatureCardProps) {
   let content;
 
   if (direction === "horizontal") {
@@ -18,7 +24,9 @@ export function FeatureCard({ icon, title, description, href, direction = "verti
         <div className="flex items-start gap-4">
           {icon && (
             <div className="flex shrink-0 size-9 items-center justify-center rounded-lg bg-fd-muted">
-              <div className="flex size-4 items-center justify-center text-fd-foreground">{icon}</div>
+              <div className="flex size-4 items-center justify-center text-fd-foreground">
+                {icon}
+              </div>
             </div>
           )}
           <div>
@@ -67,7 +75,12 @@ const colsMap: Record<number, string> = {
   4: "sm:grid-cols-4",
 };
 
-export function FeatureCards({ children, direction = "vertical", cols, className }: FeatureCardsProps) {
+export function FeatureCards({
+  children,
+  direction = "vertical",
+  cols,
+  className,
+}: FeatureCardsProps) {
   let gridClass: string;
 
   if (direction === "horizontal") {
@@ -77,9 +90,5 @@ export function FeatureCards({ children, direction = "vertical", cols, className
     gridClass = "grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 items-stretch";
   }
 
-  return (
-    <div className={`${gridClass} ${className ?? ""}`}>
-      {children}
-    </div>
-  );
+  return <div className={`${gridClass} ${className ?? ""}`}>{children}</div>;
 }

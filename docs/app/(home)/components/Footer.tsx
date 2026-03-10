@@ -31,7 +31,6 @@ const SOCIAL_LINKS: SocialLink[] = [
     href: "https://discord.com/invite/Pbv5PsqUSv",
     viewBox: "0 0 21.9611 17",
     path: svgPaths.p3885cd00,
-
   },
   {
     label: "YouTube",
@@ -76,7 +75,13 @@ function SocialIcon({ link }: { link: SocialLink }) {
   );
 
   return (
-    <a href={link.href} target="_blank" rel="noopener noreferrer" className="size-6 relative" aria-label={link.label}>
+    <a
+      href={link.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="size-6 relative"
+      aria-label={link.label}
+    >
       {link.wrapperClass ? (
         <div className={`absolute ${link.wrapperClass}`}>{svgContent}</div>
       ) : (
