@@ -44,12 +44,12 @@ importers:
 
   docs:
     dependencies:
-      '@openuidev/lang-react':
-        specifier: workspace:^
-        version: link:../packages/lang-react
       '@openuidev/react-headless':
         specifier: workspace:^
         version: link:../packages/react-headless
+      '@openuidev/react-lang':
+        specifier: workspace:^
+        version: link:../packages/react-lang
       '@openuidev/react-ui':
         specifier: workspace:^
         version: link:../packages/react-ui
@@ -80,6 +80,9 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      openai:
+        specifier: ^6.22.0
+        version: 6.22.0(ws@8.18.2)(zod@4.3.6)
       posthog-js:
         specifier: ^1.358.1
         version: 1.358.1
@@ -126,12 +129,12 @@ importers:
 
   examples/openui-chat:
     dependencies:
-      '@openuidev/lang-react':
-        specifier: workspace:*
-        version: link:../../packages/lang-react
       '@openuidev/react-headless':
         specifier: workspace:*
         version: link:../../packages/react-headless
+      '@openuidev/react-lang':
+        specifier: workspace:*
+        version: link:../../packages/react-lang
       '@openuidev/react-ui':
         specifier: workspace:*
         version: link:../../packages/react-ui
@@ -175,19 +178,6 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
-
-  packages/lang-react:
-    dependencies:
-      react:
-        specifier: '>=19.0.0'
-        version: 19.2.4
-      zod:
-        specifier: ^4.0.0
-        version: 4.3.6
-    devDependencies:
-      '@types/react':
-        specifier: ^19.0.0
-        version: 19.2.14
 
   packages/openui-cli:
     dependencies:
@@ -233,17 +223,30 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.3.2)(jiti@2.6.1)(jsdom@28.1.0)(lightningcss@1.31.1)(sass@1.89.2)(terser@5.43.0)(tsx@4.20.3)(yaml@2.8.0)
 
+  packages/react-lang:
+    dependencies:
+      react:
+        specifier: '>=19.0.0'
+        version: 19.2.4
+      zod:
+        specifier: ^4.0.0
+        version: 4.3.6
+    devDependencies:
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+
   packages/react-ui:
     dependencies:
       '@floating-ui/react-dom':
         specifier: ^2.1.2
         version: 2.1.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@openuidev/lang-react':
-        specifier: workspace:^
-        version: link:../lang-react
       '@openuidev/react-headless':
         specifier: workspace:^
         version: link:../react-headless
+      '@openuidev/react-lang':
+        specifier: workspace:^
+        version: link:../react-lang
       '@radix-ui/react-accordion':
         specifier: ^1.2.2
         version: 1.2.11(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)

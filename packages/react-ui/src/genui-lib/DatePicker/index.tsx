@@ -8,7 +8,7 @@ import {
   useGetFieldValue,
   useIsStreaming,
   useSetFieldValue,
-} from "@openuidev/lang-react";
+} from "@openuidev/react-lang";
 import React from "react";
 import { DatePicker as OpenUIDatePicker } from "../../components/DatePicker";
 import { DatePickerSchema } from "./schema";

@@ -7,7 +7,7 @@ import {
   useFormValidation,
   useIsStreaming,
   useTriggerAction,
-} from "@openuidev/lang-react";
+} from "@openuidev/react-lang";
 import { Button as OpenUIButton } from "../../components/Button";
 import { ButtonSchema } from "./schema";
 

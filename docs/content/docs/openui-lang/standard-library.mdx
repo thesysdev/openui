@@ -8,14 +8,14 @@ OpenUI ships with a prebuilt `openuiLibrary` for common layouts, forms, content,
 ## Install
 
 ```bash
-npm install @openuidev/lang-react @openuidev/react-ui
+npm install @openuidev/react-lang @openuidev/react-ui
 ```
 
 ## Render with OpenUI library
 
 ```tsx
 import "@openuidev/react-ui/components.css";
-import { Renderer } from "@openuidev/lang-react";
+import { Renderer } from "@openuidev/react-lang";
 import { openuiLibrary } from "@openuidev/react-ui";
 
 <Renderer library={openuiLibrary} response={streamedText} isStreaming={isStreaming} />;
@@ -32,7 +32,7 @@ const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 ## Extend it
 
 ```ts
-import { createLibrary, defineComponent } from "@openuidev/lang-react";
+import { createLibrary, defineComponent } from "@openuidev/react-lang";
 import { openuiLibrary } from "@openuidev/react-ui";
 import { z } from "zod";
 

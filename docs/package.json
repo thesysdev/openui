@@ -13,9 +13,10 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@openuidev/lang-react": "workspace:^",
+    "@openuidev/react-lang": "workspace:^",
     "@openuidev/react-headless": "workspace:^",
     "@openuidev/react-ui": "workspace:^",
+    "openai": "^6.22.0",
     "@takumi-rs/image-response": "^0.68.17",
     "fumadocs-core": "16.6.5",
     "fumadocs-mdx": "14.2.8",

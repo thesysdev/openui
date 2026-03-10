@@ -1,5 +1,5 @@
-import type { Library } from "@openuidev/lang-react";
 import type { AssistantMessage, UserMessage } from "@openuidev/react-headless";
+import type { Library } from "@openuidev/react-lang";
 import { ReactNode } from "react";
 import { ScrollVariant } from "../../hooks/useScrollToBottom";
 import { ConversationStarterProps } from "../../types/ConversationStarter";
@@ -132,7 +132,7 @@ export interface SharedChatUIProps {
   userMessage?: UserMessageComponent;
   composer?: ComposerComponent;
   /**
-   * Component library created via `createLibrary()` from `@openuidev/lang-react`.
+   * Component library created via `createLibrary()` from `@openuidev/react-lang`.
    * When provided, assistant messages are rendered using the GenUI `Renderer`
    * instead of the default markdown renderer. If `assistantMessage` is also
    * provided, `assistantMessage` takes priority.

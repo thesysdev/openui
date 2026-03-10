@@ -1,0 +1,91 @@
+.chat-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: chat-modal-overlay-in 0.15s ease;
+}
+
+@keyframes chat-modal-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.chat-modal-container {
+  position: relative;
+  width: min(1400px, 95vw);
+  height: 90vh;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: chat-modal-in 0.2s ease;
+}
+
+@keyframes chat-modal-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.chat-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 210;
+  background: rgba(128, 128, 128, 0.2);
+  backdrop-filter: blur(8px);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: inherit;
+  transition: background 0.15s;
+}
+
+.chat-modal-close:hover {
+  background: rgba(128, 128, 128, 0.4);
+}
+
+.chat-modal-body {
+  width: 100%;
+  height: 100%;
+}
+
+/* Override Shell container sizing to fit within the modal */
+.chat-modal-body .openui-shell-container {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* Hide the sidebar in the modal */
+.chat-modal-body .openui-shell-sidebar-container {
+  display: none !important;
+}
+
+/* ─── Mobile ─────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .chat-modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .chat-modal-container {
+    width: 100vw;
+    height: 95dvh;
+    border-radius: 16px 16px 0 0;
+    animation: chat-modal-mobile-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+@keyframes chat-modal-mobile-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

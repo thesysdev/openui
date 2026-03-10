@@ -1,6 +1,6 @@
 {
-  "name": "@openuidev/lang-react",
-  "version": "0.1.1",
+  "name": "@openuidev/react-lang",
+  "version": "0.1.2",
   "description": "OpenUI-lang renderer and standard library for React",
   "license": "MIT",
   "type": "module",
