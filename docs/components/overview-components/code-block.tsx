@@ -40,7 +40,7 @@ export function CodeBlock({
         </div>
       )}
       <pre className={`grow-1 overflow-x-auto bg-[var(--color-doc-code-bg)] p-4 text-sm leading-relaxed text-slate-700 dark:text-slate-300 ${codeBlockClassName}`}>
-        <code>{code}</code>
+        <code className="border-0! bg-transparent!">{code}</code>
       </pre>
     </div>
   );

@@ -270,7 +270,7 @@ function StreamingCodeBlock({
           ref={preRef}
           className="h-100 overflow-y-auto bg-[--color-doc-code-bg] p-4 text-sm leading-relaxed text-slate-700 dark:text-slate-300"
         >
-          <code>
+          <code className="border-0! bg-transparent!">
             {displayedCode}
             {state === "streaming" && (
               <span className="inline-block h-4 w-0.5 animate-pulse bg-slate-500 align-text-bottom dark:bg-slate-400" />
@@ -363,7 +363,6 @@ export function StreamingComparison() {
 
   return (
     <div ref={sectionRef} className="mb-12 sm:mb-20">
-      <h2 className="mb-3 text-2xl font-bold sm:mb-4 sm:text-3xl">JSON vs OpenUI Lang</h2>
       <p className="mb-6 text-sm text-slate-600 sm:mb-8 sm:text-base dark:text-slate-400">
         Same UI component, both streaming at {TOKEN_RATE} tokens/sec. OpenUI Lang finishes in{" "}
         <strong>{OPENUI_DURATION.toFixed(1)}s</strong> vs JSON&apos;s{" "}
