@@ -9,7 +9,11 @@ You can customize specific UI surfaces without rebuilding the full chat stack:
 - `assistantMessage`
 - `userMessage`
 
-### Custom composer
+These props replace the built-in UI entirely for that surface. If you override them, your component becomes responsible for rendering the message or composer state correctly.
+
+Use these props when you want to swap a specific surface while keeping the built-in layout and state model. If you need to redesign the whole chat shell, use the headless APIs instead.
+
+## Custom composer
 
 ```tsx
 function MyComposer({ onSend, onCancel, isRunning }) {
@@ -19,7 +23,22 @@ function MyComposer({ onSend, onCancel, isRunning }) {
 <Copilot apiUrl="/api/chat" composer={MyComposer} />;
 ```
 
-### Custom assistant/user messages
+### `ComposerProps`
+
+```ts
+type ComposerProps = {
+  onSend: (message: string) => void;
+  onCancel: () => void;
+  isRunning: boolean;
+  isLoadingMessages: boolean;
+};
+```
+
+Call `onSend(text)` when the user submits. Use `onCancel()` to stop a running response.
+
+Even a simple custom composer should still account for both `isRunning` and `isLoadingMessages`, because the composer may need to disable input while streaming or while history is still loading.
+
+## Custom assistant and user messages
 
 ```tsx
 function AssistantBubble({ message }) {
@@ -33,4 +52,20 @@ function UserBubble({ message }) {
 <Copilot apiUrl="/api/chat" assistantMessage={AssistantBubble} userMessage={UserBubble} />;
 ```
 
-For full control over all layout pieces, move to [Headless Introduction](/docs/chat/headless-intro).
+The `message` prop is the full `AssistantMessage` or `UserMessage` object from `@openuidev/react-headless`.
+
+## Important behavior notes
+
+- `assistantMessage` replaces the default assistant wrapper, including the avatar/container UI.
+- `userMessage` replaces the default user bubble wrapper.
+- If you pass `componentLibrary` and also pass `assistantMessage`, your custom component takes priority. That means you are responsible for rendering any structured assistant content yourself.
+- `composer` should handle both `isRunning` and `isLoadingMessages` so the input behaves correctly while streaming or loading history.
+- If your custom assistant renderer only handles plain text, document that constraint in your app and avoid assuming `message.content` is always a simple string.
+
+{/* add visual: image showing the default assistant bubble beside a custom assistant bubble implementation */}
+
+## Related guides
+
+- [Headless Intro](/docs/chat/headless-intro)
+- [Custom UI Guide](/docs/chat/custom-ui-guide)
+- [GenUI](/docs/chat/genui)

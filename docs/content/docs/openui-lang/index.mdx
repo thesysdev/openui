@@ -34,11 +34,11 @@ It is designed for:
 ```tsx
 import "@openuidev/react-ui/components.css";
 import { Renderer } from "@openuidev/lang-react";
-import { defaultLibrary, defaultPromptOptions } from "@openuidev/react-ui";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
 
-const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 
-<Renderer library={defaultLibrary} response={openuiLangText} isStreaming={isStreaming} />;
+<Renderer library={openuiLibrary} response={openuiLangText} isStreaming={isStreaming} />;
 ```
 
 Example OpenUI Lang output:
@@ -58,7 +58,7 @@ cancelBtn = Button("Cancel", "action:cancel_contact", "secondary")
 
 <Cards>
   <Card title="Quick Start" href="/docs/openui-lang/quickstart">
-    Start with the default library and render immediately.
+    Start with the OpenUI library and render immediately.
   </Card>
   <Card title="Defining Components" href="/docs/openui-lang/defining-components">
     Build custom component contracts with Zod.

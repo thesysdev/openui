@@ -1,0 +1,103 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-foldable-section {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+
+  &-root {
+    display: flex;
+    flex-direction: column;
+    gap: cssUtils.$space-l;
+  }
+
+  &-item {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: cssUtils.$space-l;
+  }
+
+  &-header {
+    display: flex;
+    margin-block-start: 0;
+    margin-block-end: 0;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+  }
+
+  &-trigger {
+    background-color: transparent;
+    border: none;
+    padding: cssUtils.$space-m 0 cssUtils.$space-xs 0;
+    width: 100%;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: cssUtils.$text-neutral-primary;
+    cursor: pointer;
+
+    &-content-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: cssUtils.$space-l;
+      align-items: start;
+      justify-content: center;
+      width: 100%;
+    }
+
+    &-content-separator {
+      margin: cssUtils.$space-3xs;
+    }
+
+    &-content-icon-button-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: start;
+      gap: cssUtils.$space-s;
+      width: 100%;
+    }
+
+    &-content-icon-button {
+      flex-shrink: 0;
+
+      &-icon {
+        transition: transform 300ms cubic-bezier(0.87, 0, 0.13, 1);
+      }
+    }
+
+    &[data-state="open"] {
+      .openui-foldable-section-trigger-content-icon-button-icon {
+        transform: rotate(90deg);
+      }
+    }
+
+    &-content-text {
+      @include cssUtils.typography(heading, small);
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: start;
+      padding: 0;
+      margin: 0;
+    }
+  }
+
+  &-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: cssUtils.$space-xl;
+    padding: 0 0 0 28px;
+
+    &[data-state="open"] {
+      height: fit-content;
+    }
+
+    &[data-state="closed"] {
+      height: 0;
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 import {
   defineComponent,
-  parseRules,
+  parseStructuredRules,
   useFormName,
   useFormValidation,
   useGetFieldValue,
@@ -28,9 +28,9 @@ export const Slider = defineComponent({
     const formValidation = useFormValidation();
 
     const fieldName = props.name as string;
-    const rules = React.useMemo(() => parseRules(props.rules), [props.rules]);
+    const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
     const existingValue = getFieldValue(formName, fieldName);
-    const defaultVal = props.defaultValue as number | undefined;
+    const defaultVal = props.defaultValue;
 
     useSetDefaultValue({
       formName,
@@ -49,7 +49,6 @@ export const Slider = defineComponent({
     }, [isStreaming, rules.length > 0]);
 
     const value = existingValue ?? defaultVal;
-    const defaultValue = value != null ? [value as number] : undefined;
 
     return (
       <OpenUISliderBlock
@@ -59,9 +58,9 @@ export const Slider = defineComponent({
         min={props.min as number}
         max={props.max as number}
         step={props.step as number | undefined}
-        defaultValue={defaultValue}
+        defaultValue={value != null ? value : undefined}
         onValueCommit={(vals: number[]) => {
-          setFieldValue(formName, "Slider", fieldName, vals[0], true);
+          setFieldValue(formName, "Slider", fieldName, vals, true);
           if (rules.length > 0) {
             formValidation?.validateField(fieldName, vals[0], rules);
           }

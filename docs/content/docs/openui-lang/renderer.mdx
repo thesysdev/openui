@@ -9,7 +9,7 @@ description: Parse and render OpenUI Lang streams in React.
 
 ```tsx
 import { Renderer } from "@openuidev/lang-react";
-import { defaultLibrary } from "@openuidev/react-ui";
+import { openuiLibrary } from "@openuidev/react-ui";
 
 export function AssistantMessage({
   content,
@@ -18,20 +18,21 @@ export function AssistantMessage({
   content: string | null;
   isStreaming: boolean;
 }) {
-  return <Renderer library={defaultLibrary} response={content} isStreaming={isStreaming} />;
+  return <Renderer library={openuiLibrary} response={content} isStreaming={isStreaming} />;
 }
 ```
 
 ## Props
 
-| Prop            | Type                                    | Description                                                    |
-| :-------------- | :-------------------------------------- | :------------------------------------------------------------- |
-| `response`      | `string \| null`                        | Raw OpenUI Lang response text.                                 |
-| `library`       | `Library`                               | Library created by `createLibrary(...)`.                       |
-| `isStreaming`   | `boolean`                               | Indicates stream is in progress.                               |
-| `onAction`      | `(event: ActionEvent) => void`          | Receives structured action events from interactive components. |
-| `updateMessage` | `(message: string) => void`             | Persists message + context updates from form interactions.     |
-| `onParseResult` | `(result: ParseResult \| null) => void` | Debug/inspect latest parse result.                             |
+| Prop             | Type                                    | Description                                                    |
+| :--------------- | :-------------------------------------- | :------------------------------------------------------------- |
+| `response`       | `string \| null`                        | Raw OpenUI Lang response text.                                 |
+| `library`        | `Library`                               | Library created by `createLibrary(...)`.                       |
+| `isStreaming`    | `boolean`                               | Indicates stream is in progress.                               |
+| `onAction`       | `(event: ActionEvent) => void`          | Receives structured action events from interactive components. |
+| `onStateUpdate`  | `(state: Record<string, any>) => void`  | Called on form field changes with the raw field state map.      |
+| `initialState`   | `Record<string, any>`                   | Hydrates form state on load (e.g. from persisted message).     |
+| `onParseResult`  | `(result: ParseResult \| null) => void` | Debug/inspect latest parse result.                             |
 
 ## Streaming behavior
 
@@ -44,11 +45,12 @@ export function AssistantMessage({
 
 ```tsx
 <Renderer
-  library={defaultLibrary}
+  library={openuiLibrary}
   response={content}
   onAction={(event) => {
     if (event.type === "continue_conversation") {
-      // event.params has llm/human-friendly messages
+      // event.humanFriendlyMessage — display label
+      // event.formState — raw field values at time of action
     }
   }}
 />

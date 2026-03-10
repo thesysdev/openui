@@ -4,6 +4,6 @@ import { FormControl } from "../FormControl";
 
 export const FormSchema = z.object({
   name: z.string(),
-  fields: z.array(FormControl.ref),
   buttons: Buttons.ref,
+  fields: z.array(FormControl.ref).default([]),
 });

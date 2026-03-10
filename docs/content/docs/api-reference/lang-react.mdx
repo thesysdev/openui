@@ -91,7 +91,8 @@ interface RendererProps {
   library: Library;
   isStreaming?: boolean;
   onAction?: (event: ActionEvent) => void;
-  updateMessage?: (message: string) => void;
+  onStateUpdate?: (state: Record<string, any>) => void;
+  initialState?: Record<string, any>;
   onParseResult?: (result: ParseResult | null) => void;
 }
 ```
@@ -108,7 +109,8 @@ interface ActionEvent {
   type: string;
   params: Record<string, any>;
   humanFriendlyMessage: string;
-  llmFriendlyMessage: string;
+  formState?: Record<string, any>;
+  formName?: string;
 }
 ```
 
@@ -173,7 +175,6 @@ interface ParseResult {
 function useRenderNode(): (value: unknown) => React.ReactNode;
 function useTriggerAction(): (
   userMessage: string,
-  actionContext: string,
   formName?: string,
   action?: { type?: string; params?: Record<string, any> },
 ) => void;
@@ -219,13 +220,3 @@ function parseRules(rules: unknown): ParsedRule[];
 const builtInValidators: Record<string, ValidatorFn>;
 ```
 
-## Message/context utilities
-
-```ts
-function wrapContent(text: string): string;
-function wrapContext(json: string): string;
-function separateContentAndContext(raw: string): {
-  content: string;
-  contextString: string | null;
-};
-```

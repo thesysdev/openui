@@ -3,45 +3,99 @@ title: Next.js Implementation
 description: Build a Route Handler for streaming chat responses.
 ---
 
-Create a Route Handler at `app/api/chat/route.ts` and stream model output back to the client.
+This page covers the Route Handler pattern and matching frontend configuration for a Next.js App Router setup.
+
+If you want the full install-and-render walkthrough, use the [End-to-End Guide](/docs/chat/from-scratch) instead.
+
+This page focuses on one specific backend pattern:
+
+- `processMessage` on the frontend so you can add `systemPrompt`
+- `openAIMessageFormat` to send OpenAI chat messages
+- `openAIReadableStreamAdapter()` because `response.toReadableStream()` emits NDJSON, not raw SSE
+
+## Route handler
+
+Create `app/api/chat/route.ts`:
 
 ```ts
+import { NextRequest } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI();
 
-export async function POST(req: Request) {
-  const { messages } = await req.json();
+export async function POST(req: NextRequest) {
+  try {
+    const { messages, systemPrompt } = await req.json();
 
-  const stream = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages,
-    stream: true,
-  });
+    const chatMessages: OpenAI.ChatCompletionMessageParam[] = [
+      ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),
+      ...messages,
+    ];
 
-  const encoder = new TextEncoder();
-  const readable = new ReadableStream({
-    async start(controller) {
-      for await (const chunk of stream) {
-        controller.enqueue(encoder.encode(JSON.stringify(chunk) + "\n"));
-      }
-      controller.close();
-    },
-  });
+    const response = await client.chat.completions.create({
+      model: "gpt-5.2",
+      messages: chatMessages,
+      stream: true,
+    });
 
-  return new Response(readable, {
-    headers: { "Content-Type": "text/event-stream" },
-  });
+    return new Response(response.toReadableStream(), {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }
 ```
 
-If you stream raw OpenAI chunks, configure frontend adapters:
+This route expects `messages` to already be in OpenAI chat format and optionally prepends a `systemPrompt`.
+
+## Matching frontend configuration
+
+Because `toReadableStream()` produces newline-delimited JSON, pair it with `openAIReadableStreamAdapter()` on the frontend.
+
+Use `processMessage` here because the client needs to send both `messages` and `systemPrompt` explicitly. `messageFormat={openAIMessageFormat}` handles the message conversion before the request is sent.
 
 ```tsx
-import { Copilot } from "@openuidev/react-ui";
-import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
+import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
+import { FullScreen } from "@openuidev/react-ui";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui/genui-lib";
 
-<Copilot apiUrl="/api/chat" streamProtocol={openAIAdapter()} messageFormat={openAIMessageFormat} />;
+const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
+
+<FullScreen
+  processMessage={async ({ messages, abortController }) => {
+    return fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages,
+        systemPrompt,
+      }),
+      signal: abortController.signal,
+    });
+  }}
+  messageFormat={openAIMessageFormat}
+  streamProtocol={openAIReadableStreamAdapter()}
+  componentLibrary={openuiLibrary}
+  agentName="Assistant"
+/>;
 ```
 
-For provider-specific options, see [Providers](/docs/chat/providers).
+Use `openAIAdapter()` only if your backend emits raw SSE chunks instead of the OpenAI SDK readable stream.
+
+{/* add visual: flow-chart showing request from FullScreen -> /api/chat route -> OpenAI chat completions -> toReadableStream() -> openAIReadableStreamAdapter() -> rendered assistant message */}
+
+## Related guides
+
+- [Connecting to LLM](/docs/chat/connecting)
+- [Providers](/docs/chat/providers)
+- [End-to-End Guide](/docs/chat/from-scratch)

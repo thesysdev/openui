@@ -30,7 +30,7 @@ interface TabsListProps {
 export function TabsList({ children, className }: TabsListProps) {
   return (
     <div
-      className={`inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1 dark:border-slate-800 dark:bg-slate-900 ${className ?? ""}`}
+      className={`inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1 dark:border-[var(--color-doc-border)] dark:bg-[var(--color-doc-surface)] ${className ?? ""}`}
     >
       {children}
     </div>
@@ -51,7 +51,7 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
       onClick={() => ctx.onChange(value)}
       className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
         active
-          ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white"
+          ? "bg-white text-slate-900 shadow-sm dark:bg-[var(--color-doc-surface-raised)] dark:text-white"
           : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
       } ${className ?? ""}`}
     >

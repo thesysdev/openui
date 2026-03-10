@@ -13,6 +13,3 @@ export type {
   ToolMessage,
   UserMessage,
 } from "@ag-ui/core";
-
-import type { UserMessage } from "@ag-ui/core";
-export type CreateMessage = Omit<UserMessage, "id">;

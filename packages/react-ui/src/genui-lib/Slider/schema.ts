@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { rulesSchema } from "../rules";
 
 export const SliderSchema = z.object({
   name: z.string(),
@@ -7,6 +8,6 @@ export const SliderSchema = z.object({
   min: z.number(),
   max: z.number(),
   step: z.number().optional(),
-  defaultValue: z.number().optional(),
-  rules: z.array(z.string()).optional(),
+  defaultValue: z.array(z.number()).optional(),
+  rules: rulesSchema,
 });

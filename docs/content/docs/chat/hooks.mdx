@@ -5,32 +5,162 @@ description: Deep dive into useThread, useThreadList, and related headless state
 
 All headless hooks must run inside `ChatProvider`.
 
-### `useThread()`
+Use `useThread()` for the active conversation and `useThreadList()` for thread navigation. Most custom UIs need both.
 
-Handles active conversation state:
-
-- `messages`
-- `isRunning`
-- `processMessage()`
-- `cancelMessage()`
-- message mutation helpers
+## Start with `ChatProvider`
 
 ```tsx
-const { messages, isRunning, processMessage, cancelMessage } = useThread();
+import {
+  ChatProvider,
+  openAIMessageFormat,
+  openAIReadableStreamAdapter,
+} from "@openuidev/react-headless";
+
+export function App() {
+  return (
+    <ChatProvider
+      apiUrl="/api/chat"
+      threadApiUrl="/api/threads"
+      streamProtocol={openAIReadableStreamAdapter()}
+      messageFormat={openAIMessageFormat}
+    >
+      <MyCustomChat />
+    </ChatProvider>
+  );
+}
 ```
 
-### `useThreadList()`
+That provider owns the shared state. The hooks below read from and write to that state.
 
-Handles thread sidebar state:
+## `useThread()`
 
-- `threads`
-- `selectedThreadId`
-- `loadThreads()`
-- `selectThread()`
-- `createThread()` / `deleteThread()`
+Use `useThread()` for the currently selected conversation: messages, send state, loading state, and message mutations.
 
 ```tsx
-const { threads, selectedThreadId, selectThread, switchToNewThread } = useThreadList();
+const {
+  messages,
+  isRunning,
+  isLoadingMessages,
+  threadError,
+  processMessage,
+  cancelMessage,
+  appendMessages,
+  updateMessage,
+  setMessages,
+  deleteMessage,
+} = useThread();
 ```
 
-Use selectors when needed to minimize re-renders, for example `useThread((s) => s.messages)`.
+### Common send flow
+
+```tsx
+function Composer() {
+  const { processMessage, cancelMessage, isRunning } = useThread();
+  const [input, setInput] = useState("");
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!input.trim() || isRunning) return;
+        processMessage({ role: "user", content: input });
+        setInput("");
+      }}
+    >
+      <input value={input} onChange={(event) => setInput(event.target.value)} />
+      {isRunning ? (
+        <button type="button" onClick={cancelMessage}>
+          Stop
+        </button>
+      ) : (
+        <button type="submit">Send</button>
+      )}
+    </form>
+  );
+}
+```
+
+Use `isLoadingMessages` to show a loading state when a saved thread is being hydrated, and use `threadError` to render request or load failures near the conversation surface.
+
+## `useThreadList()`
+
+Use `useThreadList()` for the sidebar: thread loading, selection, creation, pagination, and thread-level mutations.
+
+```tsx
+const {
+  threads,
+  isLoadingThreads,
+  threadListError,
+  selectedThreadId,
+  hasMoreThreads,
+  loadThreads,
+  loadMoreThreads,
+  switchToNewThread,
+  createThread,
+  selectThread,
+  updateThread,
+  deleteThread,
+} = useThreadList();
+```
+
+### Common sidebar flow
+
+```tsx
+function ThreadSidebar() {
+  const {
+    threads,
+    selectedThreadId,
+    hasMoreThreads,
+    isLoadingThreads,
+    loadMoreThreads,
+    switchToNewThread,
+    selectThread,
+    deleteThread,
+  } = useThreadList();
+
+  return (
+    <aside>
+      <button onClick={switchToNewThread}>New chat</button>
+
+      {threads.map((thread) => (
+        <div key={thread.id}>
+          <button
+            onClick={() => selectThread(thread.id)}
+            aria-pressed={thread.id === selectedThreadId}
+          >
+            {thread.title}
+          </button>
+          <button onClick={() => deleteThread(thread.id)}>Delete</button>
+        </div>
+      ))}
+
+      {hasMoreThreads ? (
+        <button onClick={() => loadMoreThreads()} disabled={isLoadingThreads}>
+          Load more
+        </button>
+      ) : null}
+    </aside>
+  );
+}
+```
+
+`switchToNewThread()` clears the current selection so the next user message starts a new conversation. `updateThread()` is useful when you want to rename or otherwise patch thread metadata after creation.
+
+## Selectors
+
+Use selectors to minimize re-renders when you only need a small part of the store.
+
+```tsx
+const messages = useThread((state) => state.messages);
+const selectedThreadId = useThreadList((state) => state.selectedThreadId);
+```
+
+This is especially useful when your sidebar and message list are separate components and you do not want unrelated state updates to rerender both.
+
+{/* add visual: flow-chart showing how useThread maps to the active conversation and useThreadList maps to the thread sidebar */}
+
+## Related guides
+
+- [Headless Intro](/docs/chat/headless-intro)
+- [Custom UI Guide](/docs/chat/custom-ui-guide)
+- [Connect Thread History](/docs/chat/persistence)

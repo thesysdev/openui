@@ -18,13 +18,11 @@ export interface OpenUIContextValue {
    * Trigger an action. Components call this to fire structured ActionEvents.
    *
    * @param userMessage  Human-readable label ("Submit Application")
-   * @param actionContext  Description of the interaction ("User clicked on Button: submit-onboarding")
    * @param formName  Optional form name — if provided, form state for this form is included
    * @param action  Optional custom action config { type, params }
    */
   triggerAction: (
     userMessage: string,
-    actionContext: string,
     formName?: string,
     action?: { type?: string; params?: Record<string, any> },
   ) => void;
@@ -81,7 +79,7 @@ export function useRenderNode() {
  * @example
  * ```tsx
  * const triggerAction = useTriggerAction();
- * <button onClick={() => triggerAction("Submit", "User clicked Button: submit", "myForm")}>
+ * <button onClick={() => triggerAction("Submit", "myForm")}>
  * ```
  */
 export function useTriggerAction() {

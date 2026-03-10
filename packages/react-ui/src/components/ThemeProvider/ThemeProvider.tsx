@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useId, useInsertionEffect, useMemo } from "react"; // eslint-disable-line no-restricted-imports
+import React, { createContext, useContext, useId, useInsertionEffect, useMemo } from "react";
 import { defaultDarkTheme, defaultLightTheme } from "./defaultTheme";
 import { Theme, ThemeMode } from "./types";
 import { themeToCssVars } from "./utils";

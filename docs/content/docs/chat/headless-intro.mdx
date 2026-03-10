@@ -1,16 +1,17 @@
 ---
-title: Introduction
+title: Headless Introduction
 description: Why and when to use headless mode with ChatProvider.
 ---
 
-Use headless mode when pre-built layouts are not enough and you need full UI control.
+This page introduces headless mode and the role of `ChatProvider` in a custom chat UI.
+
+The trade-off is simple: you get full control over rendering, but you become responsible for composing the sidebar, message list, and composer yourself.
 
 At the center is `ChatProvider`, which manages:
-
 - streaming state
 - thread list and selection
 - message sending/cancelation
-- persistence hooks
+- thread-history hooks
 
 ```tsx
 import { ChatProvider } from "@openuidev/react-headless";
@@ -24,7 +25,26 @@ export function App() {
 }
 ```
 
-Next:
+`ChatProvider` accepts the same backend props as the built-in layouts:
+
+- `apiUrl` or `processMessage`
+- `streamProtocol`
+- `messageFormat`
+- `threadApiUrl` or custom thread functions
+
+Thread history is not automatic. To load and save threads, you still need `threadApiUrl` or the custom thread handlers.
+
+The usual build order is:
+
+1. configure `ChatProvider` with your backend connection
+2. read state with `useThread()` and `useThreadList()`
+3. render your own sidebar, messages, and composer components
+
+{/* add visual: flow-chart showing ChatProvider at the center with hooks, backend config, and custom UI components around it */}
+
+## Related guides
 
 - [Hooks & State](/docs/chat/hooks)
-- [Building Custom UI](/docs/chat/custom-ui-guide)
+- [Custom UI Guide](/docs/chat/custom-ui-guide)
+- [Connecting to LLM](/docs/chat/connecting)
+- [Connect Thread History](/docs/chat/persistence)

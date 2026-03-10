@@ -12,6 +12,7 @@ const FollowUpBlock = forwardRef<HTMLDivElement, FollowUpBlockProps>((props, ref
   const { children, className, style, ...rest } = props;
   return (
     <div ref={ref} className={clsx("openui-follow-up-block", className)} style={style} {...rest}>
+      <div className="openui-follow-up-block__header">Related Queries</div>
       {children}
     </div>
   );

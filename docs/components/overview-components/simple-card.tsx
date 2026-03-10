@@ -8,7 +8,7 @@ interface SimpleCardProps {
 export function SimpleCard({ children, className }: SimpleCardProps) {
   return (
     <div
-      className={`rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 ${className ?? ""}`}
+      className={`rounded-xl border border-slate-200 bg-white dark:border-[var(--color-doc-border)] dark:bg-[var(--color-doc-surface)] ${className ?? ""}`}
     >
       {children}
     </div>

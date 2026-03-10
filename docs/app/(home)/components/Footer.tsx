@@ -20,21 +20,22 @@ interface SocialLink {
 
 const SOCIAL_LINKS: SocialLink[] = [
   {
-    label: "Discord",
-    href: "#",
+    label: "Twitter",
+    href: "https://x.com/thesysdev",
     viewBox: "0 0 24 24",
     path: svgPaths.pa1e7100,
-  },
-  {
-    label: "Twitter",
-    href: "#",
-    viewBox: "0 0 21.9611 17",
-    path: svgPaths.p3885cd00,
     wrapperClass: "inset-[10.82%_4.33%_18.35%_4.17%]",
   },
   {
+    label: "Discord",
+    href: "https://discord.com/invite/Pbv5PsqUSv",
+    viewBox: "0 0 21.9611 17",
+    path: svgPaths.p3885cd00,
+
+  },
+  {
     label: "YouTube",
-    href: "#",
+    href: "https://www.youtube.com/@thesysdev",
     viewBox: "0 0 22 15.4688",
     path: svgPaths.p23dbbd00,
     wrapperClass: "-translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 h-[15.469px] w-[22px]",
@@ -43,7 +44,7 @@ const SOCIAL_LINKS: SocialLink[] = [
   },
   {
     label: "LinkedIn",
-    href: "#",
+    href: "https://www.linkedin.com/company/thesysdev/",
     viewBox: "0 0 19 19",
     path: svgPaths.p26fc3100,
     wrapperClass: "-translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 size-[19px]",
@@ -75,7 +76,7 @@ function SocialIcon({ link }: { link: SocialLink }) {
   );
 
   return (
-    <a href={link.href} className="size-6 relative" aria-label={link.label}>
+    <a href={link.href} target="_blank" rel="noopener noreferrer" className="size-6 relative" aria-label={link.label}>
       {link.wrapperClass ? (
         <div className={`absolute ${link.wrapperClass}`}>{svgContent}</div>
       ) : (

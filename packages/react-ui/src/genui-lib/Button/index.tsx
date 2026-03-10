@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BuiltinActionType,
   defineComponent,
   useFormName,
   useFormValidation,
@@ -28,6 +29,7 @@ export const Button = defineComponent({
     const formName = useFormName();
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
+    const label = props.label as string;
 
     return (
       <OpenUIButton
@@ -36,16 +38,36 @@ export const Button = defineComponent({
         buttonType={props.type as "normal" | "destructive"}
         disabled={isStreaming}
         onClick={() => {
-          if (formValidation) {
+          const action = props.action as
+            | { type?: string; url?: string; context?: string; params?: Record<string, any> }
+            | undefined;
+          const actionType = action?.type ?? BuiltinActionType.ContinueConversation;
+
+          // Only validate for primary buttons with continue_conversation action (form submit).
+          // Secondary/tertiary buttons (e.g. "Ask to customize") skip validation.
+          const variant = (props.variant as string) || "primary";
+          if (
+            formValidation &&
+            variant === "primary" &&
+            actionType === BuiltinActionType.ContinueConversation
+          ) {
             const valid = formValidation.validateForm();
             if (!valid) return;
           }
-          const label = props.label as string;
-          const action = props.action as string;
-          triggerAction(label, `User clicked on Button: ${action}`, formName);
+          const actionParams =
+            actionType === BuiltinActionType.OpenUrl
+              ? { url: action?.url }
+              : {
+                  ...(action?.params ?? {}),
+                  ...(action?.context ? { context: action.context } : {}),
+                };
+          triggerAction(label, formName, {
+            type: actionType,
+            params: actionParams,
+          });
         }}
       >
-        {props.label as string}
+        {label}
       </OpenUIButton>
     );
   },

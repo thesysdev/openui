@@ -8,6 +8,9 @@ const reactHooks = require("eslint-plugin-react-hooks");
 
 module.exports = [
   {
+    ignores: ["**/src/templates/**"],
+  },
+  {
     files: ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
     languageOptions: {
       parser: typescript,
@@ -66,18 +69,6 @@ module.exports = [
         "error",
         {
           allow: ["error", "warn", "info"],
-        },
-      ],
-      "no-restricted-imports": [
-        "error",
-        {
-          paths: [
-            {
-              name: "react",
-              importNames: ["useId"],
-              message: "import of useId is allowed only using polyfills",
-            },
-          ],
         },
       ],
       ...eslintPluginPrettier.configs.recommended.rules,

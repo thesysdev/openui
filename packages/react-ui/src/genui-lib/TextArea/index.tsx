@@ -2,7 +2,7 @@
 
 import {
   defineComponent,
-  parseRules,
+  parseStructuredRules,
   useFormName,
   useFormValidation,
   useGetFieldValue,
@@ -27,7 +27,7 @@ export const TextArea = defineComponent({
     const formValidation = useFormValidation();
 
     const fieldName = props.name as string;
-    const rules = React.useMemo(() => parseRules(props.rules), [props.rules]);
+    const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
     const savedValue = getFieldValue(formName, fieldName) ?? "";
 
     React.useEffect(() => {
