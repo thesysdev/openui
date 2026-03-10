@@ -60,7 +60,16 @@ In this setup:
 
 This is the minimal complete pattern for GenUI in a chat interface. For a non-chat renderer or custom layout, use `openuiLibrary` and `openuiPromptOptions` from the same import path.
 
-{/* add visual: image showing the difference between a plain text assistant response and a GenUI-rendered component response */}
+<div className="grid md:grid-cols-2 gap-6 my-6">
+  <div>
+    <p className="text-sm text-center font-medium mb-2">Plain text response</p>
+    ![Plain text response](/docs/images/chat/genui-text-response.png)
+  </div>
+  <div>
+    <p className="text-sm text-center font-medium mb-2">GenUI response</p>
+    ![GenUI rendered response](/docs/images/chat/genui-response.png)
+  </div>
+</div>
 
 ## Use your own library
 
