@@ -10,6 +10,14 @@ export interface CreateChatAppOptions {
   noInteractive?: boolean;
 }
 
+function shouldCopyTemplatePath(templateDir: string, src: string): boolean {
+  const relativePath = path.relative(templateDir, src);
+
+  if (!relativePath) return true;
+
+  return relativePath !== "openui-chat" && !relativePath.startsWith(`openui-chat${path.sep}`);
+}
+
 export async function runCreateChatApp(options: CreateChatAppOptions): Promise<void> {
   const args = await resolveArgs(
     {
@@ -41,7 +49,15 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
 
   console.info(`\nScaffolding OpenUI Chat app into "${name}"...\n`);
 
-  fs.cpSync(templateDir, targetDir, { recursive: true });
+  const nestedTemplateDir = path.join(templateDir, "openui-chat");
+  if (fs.existsSync(nestedTemplateDir)) {
+    console.warn("Warning: Ignoring nested template directory left by a previous CLI build.");
+  }
+
+  fs.cpSync(templateDir, targetDir, {
+    recursive: true,
+    filter: (src) => shouldCopyTemplatePath(templateDir, src),
+  });
 
   const pkgPath = path.join(targetDir, "package.json");
   const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as {
