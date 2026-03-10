@@ -14,6 +14,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@openuidev/cli": "workspace:*",
     "@openuidev/react-lang": "workspace:^",
     "@openuidev/react-headless": "workspace:^",
     "@openuidev/react-ui": "workspace:^",
@@ -35,7 +36,6 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openuidev/cli": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/mdx": "^2.0.13",
     "@types/node": "^25.2.3",
