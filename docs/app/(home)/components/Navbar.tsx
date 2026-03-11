@@ -131,7 +131,12 @@ function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => 
 
         {/* GitHub button — centered, 80px below tray, scaled up 140% */}
         <div className="flex justify-center pt-[80px] pointer-events-auto">
-          <button className="bg-white flex items-center gap-1.5 h-[38px] pl-3 pr-2 rounded-full relative cursor-pointer scale-[1.17]">
+          <a
+            href="https://github.com/thesysdev/openui"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white flex items-center gap-1.5 h-[38px] pl-3 pr-2 rounded-full relative cursor-pointer scale-[1.17] no-underline"
+          >
             <div
               aria-hidden="true"
               className="absolute inset-0 pointer-events-none rounded-full border border-black/10"
@@ -139,7 +144,7 @@ function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => 
             />
             <GitHubIcon />
             <StarCountBadge count={starCount} isHighlighted={false} />
-          </button>
+          </a>
         </div>
       </motion.div>
     </>
