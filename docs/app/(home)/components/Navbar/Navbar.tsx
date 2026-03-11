@@ -8,7 +8,6 @@ import {
   ThesysLogo,
   useGitHubStarCount,
 } from "@/components/brand-logo";
-import svgPaths from "@/imports/svg-urruvoh2be";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { BUTTON_SHADOW } from "../shared/shared";
@@ -29,23 +28,6 @@ const NAVBAR_BORDER_COLOR = "rgba(0,0,0,0.1)";
 const MOBILE_GITHUB_BUTTON_STYLE = {
   "--mobile-github-button-shadow": BUTTON_SHADOW,
 } as CSSProperties;
-
-// Shared SVG icons
-// ---------------------------------------------------------------------------
-
-function ChevronDownIcon() {
-  return (
-    <svg className={styles.chevronIcon} fill="none" viewBox="0 0 20 20">
-      <path
-        d={svgPaths.p2709b200}
-        stroke="black"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.25"
-      />
-    </svg>
-  );
-}
 
 // Sub-components
 // ---------------------------------------------------------------------------
@@ -117,7 +99,7 @@ function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => 
         {/* Tray */}
         <div className={styles.mobileTray}>
           <div className={styles.mobileTrayInner}>
-            {[...NAV_TABS, "Components"].map((tab, index) => (
+            {NAV_TABS.map((tab, index) => (
               <div key={tab}>
                 {index > 0 && <div className={styles.mobileTrayDivider} />}
                 <a
@@ -125,7 +107,6 @@ function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => 
                   className={styles.mobileTrayLink}
                 >
                   {tab}
-                  {tab === "Components" && <ChevronDownIcon />}
                 </a>
               </div>
             ))}
