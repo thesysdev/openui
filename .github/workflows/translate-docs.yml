@@ -1,0 +1,21 @@
+name: Translate Documentation
+
+on:
+  push:
+    paths:
+      - README.md
+      - docs/content/docs/**
+  workflow_dispatch:
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Co-op Translator
+        uses: azure/co-op-translator@v1
+        with:
+          languages: zh-Hans
