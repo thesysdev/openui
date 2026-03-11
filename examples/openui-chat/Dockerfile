@@ -1,30 +1,32 @@
-# Build stage
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 RUN corepack enable
 
-# Copy the whole monorepo
+# copy whole repo
 COPY . .
 
-# Install workspace dependencies
+# install workspace deps
 RUN pnpm install
 
-# Build the example app
+# move to example app
 WORKDIR /app/examples/openui-chat
+
+# build the app
 RUN pnpm build
 
 
-# Production stage
 FROM node:20-alpine
 
 WORKDIR /app
-ENV NODE_ENV=production
 
 RUN corepack enable
+ENV NODE_ENV=production
 
 COPY --from=builder /app ./
+
+WORKDIR /app/examples/openui-chat
 
 EXPOSE 3000
 
