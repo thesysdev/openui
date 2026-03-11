@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/react-headless",
   "version": "0.7.8",
-  "description": "Generative UI SDK",
+  "description": "Headless React primitives for AI chat — state management, streaming adapters for OpenAI and AG-UI, message format converters, and thread management for OpenUI generative UI apps",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,17 +32,31 @@
   "keywords": [
     "openui",
     "react",
-    "core",
-    "generative",
+    "headless",
+    "chat",
+    "streaming",
     "ai",
+    "generative-ui",
+    "llm",
+    "openai",
+    "zustand",
+    "state-management",
+    "sse",
+    "server-sent-events",
+    "chatbot",
+    "copilot",
     "agentic",
-    "framework"
+    "ag-ui"
   ],
+  "homepage": "https://openui.com",
   "author": "engineering@thesys.dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/thesysdev/openui.git",
-    "directory": "js/packages/react-headless"
+    "directory": "packages/react-headless"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
   },
   "dependencies": {
     "@ag-ui/core": "^0.0.45"

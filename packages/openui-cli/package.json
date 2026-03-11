@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/cli",
   "version": "0.0.3",
-  "description": "CLI for OpenUI",
+  "description": "CLI for OpenUI — scaffold generative UI chat apps and generate LLM system prompts from component libraries",
   "bin": {
     "openui": "dist/index.js"
   },
@@ -23,9 +23,30 @@
   "devDependencies": {
     "@types/node": "^22.15.32"
   },
-  "keywords": [],
+  "keywords": [
+    "openui",
+    "cli",
+    "scaffolding",
+    "generative-ui",
+    "ai",
+    "llm",
+    "system-prompt",
+    "nextjs",
+    "react",
+    "chatbot",
+    "code-generator"
+  ],
+  "homepage": "https://openui.com",
   "author": "engineering@thesys.dev",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "packages/openui-cli"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
   "dependencies": {
     "@inquirer/core": "^11.1.5",
     "@inquirer/prompts": "^8.3.0",
