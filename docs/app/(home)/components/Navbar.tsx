@@ -8,7 +8,6 @@ import {
   ThesysLogo,
   useGitHubStarCount,
 } from "@/components/brand-logo";
-import svgPaths from "@/imports/svg-urruvoh2be";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { BUTTON_SHADOW } from "./shared";
@@ -24,24 +23,6 @@ const TAB_URLS: Record<string, string> = {
   "API Reference": "/docs/api-reference",
 };
 const NAVBAR_BORDER_COLOR = "rgba(0,0,0,0.1)";
-
-// ---------------------------------------------------------------------------
-// Shared SVG icons
-// ---------------------------------------------------------------------------
-
-function ChevronDownIcon() {
-  return (
-    <svg className="size-5" fill="none" viewBox="0 0 20 20">
-      <path
-        d={svgPaths.p2709b200}
-        stroke="black"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.25"
-      />
-    </svg>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -114,7 +95,7 @@ function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => 
         {/* Tray */}
         <div className="bg-white border-t border-black/5 rounded-b-[18px] shadow-lg pointer-events-auto">
           <div className="flex flex-col px-7 pt-3 pb-5 gap-0 max-w-[1200px] mx-auto">
-            {[...NAV_TABS, "Components"].map((tab, index) => (
+            {NAV_TABS.map((tab, index) => (
               <div key={tab}>
                 {index > 0 && <div className="h-px bg-black/5 mx-3" />}
                 <a
@@ -122,7 +103,6 @@ function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => 
                   className="h-14 px-3 rounded-md font-['Inter',sans-serif] text-black leading-6 hover:bg-black/5 transition-colors text-left w-full text-[18px] flex items-center gap-1 no-underline"
                 >
                   {tab}
-                  {tab === "Components" && <ChevronDownIcon />}
                 </a>
               </div>
             ))}
