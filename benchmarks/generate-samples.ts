@@ -1,5 +1,5 @@
 import { OpenAI } from "openai";
-import { createParser } from "../packages/lang-react/src/parser/parser.js";
+import { createParser } from "../packages/react-lang/src/parser/parser.js";
 import { writeFileSync, mkdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { astToVercelJsonl } from "./vercel-jsonl-converter.js";

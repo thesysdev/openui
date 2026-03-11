@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
 import { PreviewCode, PreviewPage, PreviewSection } from "@design-system/components/preview";
 import styles from "@design-system/components/preview/PreviewLayout.module.css";
+import { useMemo } from "react";
 
 export default function MotionPreviewPage() {
   const motionTokens = useMemo(
@@ -69,12 +69,16 @@ export default function MotionPreviewPage() {
           ))}
           <article className={styles.tokenRow}>
             <code className={styles.tokenName}>--motion-ease-standard</code>
-            <code className={styles.tokenValue}>{tokenValues["--motion-ease-standard"] ?? "..."}</code>
+            <code className={styles.tokenValue}>
+              {tokenValues["--motion-ease-standard"] ?? "..."}
+            </code>
             <div className={styles.tokenPreview}>Primary easing curve</div>
           </article>
           <article className={styles.tokenRow}>
             <code className={styles.tokenName}>--motion-ease-emphasized</code>
-            <code className={styles.tokenValue}>{tokenValues["--motion-ease-emphasized"] ?? "..."}</code>
+            <code className={styles.tokenValue}>
+              {tokenValues["--motion-ease-emphasized"] ?? "..."}
+            </code>
             <div className={styles.tokenPreview}>Emphasized easing curve</div>
           </article>
         </div>

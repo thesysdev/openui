@@ -1,140 +1,47 @@
 ---
-title: OpenUI Lang
-description: The native language of Generative UI.
+title: Introduction
 ---
 
-<div className="mb-12">
-  <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed">
-    The native language of Generative UI. A token-efficient, streaming-first DSL designed for LLMs to describe interactive React interfaces.
-  </p>
-</div>
+import { StreamingComparison } from "@/app/docs/openui-lang/streaming-comparison";
+import { TryItOut } from "./components/try-it-out";
 
-## Why a new language?
+OpenUI is a full-stack Generative UI framework — a compact streaming-first language, a React runtime with built-in component libraries, and ready-to-use chat interfaces — that is up to **[67% more token-efficient](/docs/openui-lang/benchmarks)** than JSON.
 
-Most AI tools force you to choose between **Text** (easy but unstructured) and **JSON** (structured but brittle/slow). OpenUI Lang is built specifically for the way LLMs generate tokens.
+## What is Generative UI?
 
-<div className="grid md:grid-cols-3 gap-6 my-8">
-  <div className="p-6 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/40">
-    <div className="font-bold text-lg mb-2 flex items-center gap-2">
-      ⚡️ Streaming First
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      Line-oriented syntax means the UI renders line-by-line. No waiting for valid JSON closing braces.
-    </p>
-  </div>
+Most AI applications are limited to returning text (as markdown) or rendering pre-built UI responses. Markdown isn't interactive, and pre-built responses are rigid (they don't adapt to the context of the conversation).
 
-  <div className="p-6 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/40">
-    <div className="font-bold text-lg mb-2 flex items-center gap-2">
-      📉 Token Efficient
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      Uses ~50% fewer tokens than JSON-based streaming formats, significantly reducing inference cost and latency.
-    </p>
-  </div>
+Generative UI fundamentally changes this relationship. Instead of merely providing content, the AI composes the interface itself. It dynamically selects, configures, and composes components from a predefined library to create a purpose-built interface tailored to the user's immediate request, be it an interactive chart, a complex form, or a multi-tab dashboard.
 
-  <div className="p-6 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/40">
-    <div className="font-bold text-lg mb-2 flex items-center gap-2">
-      🛡 Hallucination Resistant
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      Strictly typed against your Zod schemas. If the generated code doesn't match your definition, it doesn't render.
-    </p>
-  </div>
-</div>
+<TryItOut />
+## OpenUI Lang
 
-## How it works
+OpenUI Lang is a compact, line-oriented language designed specifically for Large Language Models (LLMs) to generate user interfaces. It serves as a more efficient, predictable, and stream-friendly alternative to verbose formats like JSON. For the complete syntax reference, see the [Language Specification](/docs/openui-lang/specification).
 
-OpenUI Lang acts as the bridge between your **Zod Definitions** and your **React Components**.
+### Why a New Language?
 
-<div className="grid md:grid-cols-2 gap-8 my-12">
-  
-  {/* Step 1 */}
-  <div className="space-y-3">
-    <div className="flex items-center gap-3">
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold text-sm">1</div>
-      <h3 className="text-lg font-semibold m-0">You Define (Zod)</h3>
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      Describe your component props using standard Zod schemas.
-    </p>
-    <div className="relative">
-      ```typescript
-      const Chart = z.object({
-        title: z.string(),
-        data: z.array(z.number())
-      });
-      ```
-    </div>
-  </div>
+While JSON is a common data interchange format, it has significant drawbacks when streamed directly from an LLM for UI generation. And there are mutliple implementations around it, like Vercel [JSON-Render](https://json-render.dev/) and [A2UI](https://a2ui.org/).
 
-  {/* Step 2 */}
-  <div className="space-y-3">
-    <div className="flex items-center gap-3">
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 font-bold text-sm">2</div>
-      <h3 className="text-lg font-semibold m-0">We Generate (Prompt)</h3>
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      OpenUI converts this into a compact system instruction.
-    </p>
-    <div className="relative">
-      ```text
-      // System Prompt (Auto-generated)
-      Component: Chart(title: string, data: number[])
-      ```
-    </div>
-  </div>
+OpenUI Lang was created to solve these core issues:
 
-  {/* Step 3 */}
-  <div className="space-y-3">
-    <div className="flex items-center gap-3">
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-600 font-bold text-sm">3</div>
-      <h3 className="text-lg font-semibold m-0">LLM Streams (Syntax)</h3>
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      The model responds in OpenUI Lang, a concise declarative syntax.
-    </p>
-    <div className="relative">
-      ```text
-      root = Root([chart])
-      chart = Chart("Q3 Revenue", [10, 20, 30])
-      ```
-    </div>
-  </div>
+- **Token Efficiency:** JSON is extremely verbose. Keys like `"component"`, `"props"`, and `"children"` are repeated for every single element, consuming a large number of tokens. This directly increases API costs and latency. OpenUI Lang uses a concise, positional syntax that drastically reduces the token count. Benchmarks show it is up to **[67% more token-efficient](/docs/openui-lang/benchmarks)** than JSON.
 
-  {/* Step 4 */}
-  <div className="space-y-3">
-    <div className="flex items-center gap-3">
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 font-bold text-sm">4</div>
-      <h3 className="text-lg font-semibold m-0">React Renders</h3>
-    </div>
-    <p className="text-sm text-slate-600 dark:text-slate-400">
-      The `<Renderer />` parses the stream and updates the UI instantly.
-    </p>
-    <div className="relative">
-      ```tsx
-      <BarChart title="Q3 Revenue" data={[10, 20, 30]} />
-      ```
-    </div>
-  </div>
+- **Streaming-First Design:** The language is line-oriented (`identifier = Expression`), making it trivial to parse and render progressively. As each line arrives from the model, a new piece of the UI can be rendered immediately. This provides a superior user experience with much better perceived performance compared to waiting for a complete JSON object to download and parse.
 
-</div>
+- **Robustness:** The LLMs are unpredictable. They can hallucinate component names, produce invalid structures. OpenUI Lang is designed to be robust against this by validating the output and drops the invalid portion of response from rendering.
 
-## Next Steps
+<StreamingComparison />
 
-<Cards>
-  <Card title="Define Components" href="/docs/openui-lang/defining-components">
-    Learn how to build your own component library using Zod.
-  </Card>
-  
-  <Card title="The Renderer" href="/docs/openui-lang/renderer">
-    Deep dive into the `<Renderer />` component and streaming behavior.
-  </Card>
-  
-  <Card title="System Prompts" href="/docs/openui-lang/system-prompts">
-    How to generate and customize the instructions for the LLM.
-  </Card>
+## How It Works
 
-  <Card title="Benchmarks" href="/docs/openui-lang/benchmarks">
-    Token efficiency and latency results vs Vercel JSON-Render and C1 JSON.
-  </Card>
-</Cards>
+<img src="/images/openui-lang/openui-chart-flow.png" alt="Architecture diagram" />
+
+The key difference from a standard chat app is what happens at the LLM and rendering layers:
+
+1.  **System prompt includes OpenUI Lang spec** — Your backend appends the generated component library prompt alongside your system prompt, instructing the LLM to respond in OpenUI Lang instead of plain text or JSON.
+
+2.  **LLM generates OpenUI Lang** — Instead of returning markdown, the model outputs a compact, line-oriented syntax (e.g., `root = Stack([chart])`) constrained to your component library.
+
+3.  **Streaming render** — On the client, the `<Renderer />` component parses each line as it arrives and maps it to your React components in real-time — structure first, then data fills in progressively.
+
+The result is a native UI — like the "Total expenses" card and interactive pie chart above — dynamically composed by the AI, streamed efficiently, and rendered safely from your own components.

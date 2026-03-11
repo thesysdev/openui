@@ -1,4 +1,0 @@
-{
-  "title": "Backend",
-  "pages": ["llm-chat-endpoint", "thread-conversation-api"]
-}

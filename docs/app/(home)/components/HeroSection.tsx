@@ -1,15 +1,13 @@
-'use client';
+"use client";
 
-import { motion } from "motion/react";
-import { useRef, useState, useEffect, lazy, Suspense } from "react";
-import svgHeroPaths from "@/imports/svg-a5kdrdeeao";
-import svgMascotPaths from "@/imports/svg-148i9mcxjn";
 import HeroPreviewFrame from "@/imports/Frame2147239423";
+import svgMascotPaths from "@/imports/svg-148i9mcxjn";
+import svgHeroPaths from "@/imports/svg-a5kdrdeeao";
+import { motion } from "motion/react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { CopyIcon } from "./shared";
 
-const LazyMobileActionFigure = lazy(
-  () => import("@/imports/MobileActionFigure")
-);
+const LazyMobileActionFigure = lazy(() => import("@/imports/MobileActionFigure"));
 
 // ---------------------------------------------------------------------------
 // Animation config
@@ -18,7 +16,14 @@ const LazyMobileActionFigure = lazy(
 const EASE = [0.25, 0.1, 0.25, 1] as const;
 
 /** Desktop: slower, more dramatic stagger */
-const DESKTOP = { duration: 0.7, lines: 0, title: 0.5, subtitle: 1.0, cta: 1.5, image: 2.0 } as const;
+const DESKTOP = {
+  duration: 0.7,
+  lines: 0,
+  title: 0.5,
+  subtitle: 1.0,
+  cta: 1.5,
+  image: 2.0,
+} as const;
 
 /** Mobile: snappier with tighter stagger */
 const MOBILE = { duration: 0.5, mascot: 0, title: 0.25, subtitle: 0.5, cta: 0.75 } as const;
@@ -47,9 +52,8 @@ const mobileFadeUp = (delay: number) => ({
   style: { willChange: "auto" } as const,
 });
 
-
 // CTAs
-const primaryCTA = "npm install @openuidev/lang-react @openuidev/react-ui";
+const primaryCTA = "npx @openuidev/cli@latest create";
 const secondaryCTA = "Try Playground";
 const COPIED_FEEDBACK_MS = 3000;
 // ---------------------------------------------------------------------------
@@ -108,7 +112,9 @@ function NpmButton({ className = "" }: { className?: string }) {
         </span>
         <span className="size-8 rounded-full bg-black flex items-center justify-center shrink-0">
           <span className="relative size-4 flex items-center justify-center">
-            <span className={`absolute transition-all duration-300 ${copied ? "opacity-0 scale-50" : "opacity-100 scale-100"}`}>
+            <span
+              className={`absolute transition-all duration-300 ${copied ? "opacity-0 scale-50" : "opacity-100 scale-100"}`}
+            >
               <CopyIcon color="white" />
             </span>
             <svg
@@ -165,7 +171,9 @@ function MobilePlaygroundButton({ className = "" }: { className?: string }) {
         <span className="font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-white whitespace-nowrap">
           {secondaryCTA}
         </span>
-        <span aria-hidden="true" className="text-white text-[20px] leading-none">→</span>
+        <span aria-hidden="true" className="text-white text-[20px] leading-none">
+          →
+        </span>
       </button>
     </a>
   );
@@ -432,8 +440,7 @@ function Tagline() {
     <div className="px-5 lg:px-8 mt-5 lg:mt-10 lg:py-10">
       <div className="max-w-[1200px] mx-auto">
         <p className="font-['Inter_Display',sans-serif] font-medium text-[22px] lg:text-[28px] text-black/40 leading-[1.4] text-center">
-          An open source toolkit to make your{" "}
-          <br className="hidden lg:inline" />
+          An open source toolkit to make your <br className="hidden lg:inline" />
           AI apps respond with your UI.
         </p>
       </div>

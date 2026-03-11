@@ -1,6 +1,6 @@
 import { Button } from "@/components/button";
 import { HeroBadge } from "@/components/hero-badge";
-import { Card, Cards } from "fumadocs-ui/components/card";
+import { CodeBlock, FeatureCard, FeatureCards } from "@/components/overview-components";
 import {
   Code2,
   Database,
@@ -19,6 +19,26 @@ export const metadata = {
   description:
     "Production-ready chat UI for AI agents. Drop-in layouts, streaming, and state management.",
 };
+
+const headlessCode = `import { useChat } from '@openuidev/react';
+
+function CustomChat() {
+  const { messages, append, isLoading } = useChat();
+
+  return (
+    <div>
+      {messages.map(m => (
+        <div key={m.id}>
+          {m.content}
+        </div>
+      ))}
+
+      <input
+        onChange={e => append(e.target.value)}
+      />
+    </div>
+  );
+}`;
 
 export default function ChatOverviewPage() {
   return (
@@ -47,32 +67,30 @@ export default function ChatOverviewPage() {
       {/* --- Layouts Showcase --- */}
       <section>
         <div className="flex items-center gap-2 mb-8">
-          <Layout className="text-blue-600" />
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Batteries-Included Layouts
-          </h2>
+          <Layout className="text-fd-foreground" />
+          <h2 className="text-2xl font-bold">Batteries-Included Layouts</h2>
         </div>
 
-        <Cards className="lg:grid-cols-3">
-          <Card
-            icon={<PanelRightOpen className="text-slate-600 dark:text-slate-400" size={20} />}
+        <FeatureCards>
+          <FeatureCard
+            icon={<PanelRightOpen />}
             title="Copilot"
             description="A sidebar assistant that lives alongside your main application content."
             href="/docs/chat/copilot"
           />
-          <Card
-            icon={<Maximize2 className="text-slate-600 dark:text-slate-400" size={20} />}
+          <FeatureCard
+            icon={<Maximize2 />}
             title="Full Screen"
             description="A standalone, immersive chat page similar to ChatGPT or Claude."
             href="/docs/chat/fullscreen"
           />
-          <Card
-            icon={<MessageCircle className="text-slate-600 dark:text-slate-400" size={20} />}
+          <FeatureCard
+            icon={<MessageCircle />}
             title="Bottom Tray"
             description="A floating support-style widget that expands from the bottom corner."
             href="/docs/chat/bottom-tray"
           />
-        </Cards>
+        </FeatureCards>
       </section>
 
       {/* --- Headless / Features Split --- */}
@@ -80,34 +98,37 @@ export default function ChatOverviewPage() {
         {/* Left: Core Features */}
         <div className="space-y-8">
           <div className="flex items-center gap-2">
-            <Zap className="text-amber-500" />
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Core Capabilities</h2>
+            <Zap className="text-fd-foreground" />
+            <h2 className="text-2xl font-bold">Core Capabilities</h2>
           </div>
 
-          <Cards>
-            <Card
-              icon={<MessageSquare className="text-slate-400" size={20} />}
+          <FeatureCards direction="horizontal">
+            <FeatureCard
+              direction="horizontal"
+              icon={<MessageSquare />}
               title="Streaming Native"
               description="Handles text deltas, optimistic updates, and loading states automatically."
             />
-            <Card
-              icon={<Database className="text-slate-400" size={20} />}
+            <FeatureCard
+              direction="horizontal"
+              icon={<Database />}
               title="Thread Persistence"
               description="Built-in support for saving and loading conversation history via simple API contracts."
             />
-            <Card
-              icon={<Palette className="text-slate-400" size={20} />}
+            <FeatureCard
+              direction="horizontal"
+              icon={<Palette />}
               title="Theming"
               description="Customize every color, radius, and font using CSS variables or Tailwind."
             />
-          </Cards>
+          </FeatureCards>
         </div>
 
         {/* Right: Headless Code Snippet */}
         <div className="space-y-6">
           <div className="flex items-center gap-2">
-            <Code2 className="text-purple-500" />
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Go Headless</h2>
+            <Code2 className="text-fd-foreground" />
+            <h2 className="text-2xl font-bold">Go Headless</h2>
           </div>
 
           <p className="text-slate-600 dark:text-slate-400">
@@ -115,36 +136,7 @@ export default function ChatOverviewPage() {
             state.
           </p>
 
-          <div className="relative rounded-xl overflow-hidden bg-slate-900 shadow-xl border border-slate-800">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-800 bg-slate-900/50">
-              <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
-              <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
-            </div>
-            <div className="p-4 overflow-x-auto">
-              <pre className="text-sm font-mono text-slate-300">
-                {`import { useChat } from '@openuidev/react';
-
-function CustomChat() {
-  const { messages, append, isLoading } = useChat();
-
-  return (
-    <div>
-      {messages.map(m => (
-        <div key={m.id}>
-          {m.content}
-        </div>
-      ))}
-
-      <input
-        onChange={e => append(e.target.value)}
-      />
-    </div>
-  );
-}`}
-              </pre>
-            </div>
-          </div>
+          <CodeBlock code={headlessCode} title="CustomChat.tsx" />
 
           <div className="text-right">
             <Link

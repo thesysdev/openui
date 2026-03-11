@@ -1,8 +1,8 @@
+export { default as BlockVariantPreview } from "./BlockVariantPreview";
+export { default as ColorSwatchesPreviewSection } from "./ColorSwatchesPreviewSection";
 export { default as ColorTokenPreviewSection } from "./ColorTokenPreviewSection";
 export { default as ColorTokenTable } from "./ColorTokenTable";
-export { default as ColorSwatchesPreviewSection } from "./ColorSwatchesPreviewSection";
 export { default as FoundationTable } from "./FoundationTable";
-export { default as BlockVariantPreview } from "./BlockVariantPreview";
 export { default as PreviewCode } from "./PreviewCode";
 export { default as PreviewPage } from "./PreviewPage";
 export { default as PreviewSection } from "./PreviewSection";

@@ -1,9 +1,14 @@
 // @ts-nocheck
 "use client";
 
-import { useMemo } from "react";
-import { FoundationTable, PreviewCode, PreviewPage, PreviewSection } from "@design-system/components/preview";
+import {
+  FoundationTable,
+  PreviewCode,
+  PreviewPage,
+  PreviewSection,
+} from "@design-system/components/preview";
 import tableStyles from "@design-system/components/preview/FoundationTokenTable.module.css";
+import { useMemo } from "react";
 
 function formatShadowLabel(token) {
   const rawLabel = token.replace("--shadow-", "");
@@ -151,8 +156,9 @@ function normalizeShadowValueToOklch(value) {
   if (!value || value === "none") return value;
 
   let normalized = value;
-  normalized = normalized.replace(/#(?:[\da-fA-F]{3}|[\da-fA-F]{4}|[\da-fA-F]{6}|[\da-fA-F]{8})\b/g, (hex) =>
-    hexToOklchDisplay(hex),
+  normalized = normalized.replace(
+    /#(?:[\da-fA-F]{3}|[\da-fA-F]{4}|[\da-fA-F]{6}|[\da-fA-F]{8})\b/g,
+    (hex) => hexToOklchDisplay(hex),
   );
   normalized = normalized.replace(/rgba?\([^)]+\)/gi, (rgb) => rgbStringToOklchDisplay(rgb));
   return normalized;
@@ -160,7 +166,15 @@ function normalizeShadowValueToOklch(value) {
 
 export default function ShadowsPreviewPage() {
   const shadowTokens = useMemo(
-    () => ["--shadow-none", "--shadow-s", "--shadow-m", "--shadow-l", "--shadow-xl", "--shadow-2xl", "--shadow-3xl"],
+    () => [
+      "--shadow-none",
+      "--shadow-s",
+      "--shadow-m",
+      "--shadow-l",
+      "--shadow-xl",
+      "--shadow-2xl",
+      "--shadow-3xl",
+    ],
     [],
   );
 
@@ -220,7 +234,9 @@ export default function ShadowsPreviewPage() {
             </tr>
           ))}
         </FoundationTable>
-        <div className={tableStyles.foundationComponentsPlaceholder}>Shadow components preview coming soon.</div>
+        <div className={tableStyles.foundationComponentsPlaceholder}>
+          Shadow components preview coming soon.
+        </div>
         <PreviewCode code={shadowCode} />
       </PreviewSection>
     </PreviewPage>

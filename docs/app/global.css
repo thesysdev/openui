@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Playwrite+US+Trad&family=Geist:wght@400;500;600;700&display=swap');
-@import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
-@import 'fumadocs-ui/css/preset.css';
-@import '../shared/design-system/styles/variables/index.css';
-@import '../../packages/react-ui/dist/styles/index.css';
+@import url("https://fonts.googleapis.com/css2?family=Playwrite+US+Trad&family=Geist:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+@import "../shared/design-system/styles/variables/index.css";
+@import "../../packages/react-ui/dist/styles/index.css";
 
 @media (prefers-color-scheme: light) {
   :root {
@@ -13,6 +13,27 @@
 
 .light {
   --color-fd-background: hsl(0, 0%, 100%);
+  --color-doc-surface: #f8f8fa;
+  --color-doc-surface-raised: #ffffff;
+  --color-doc-surface-sunken: #f0f0f4;
+  --color-doc-border: rgba(0, 0, 0, 0.08);
+  --color-doc-code-bg: #f4f4f8;
+}
+
+.dark {
+  --color-fd-background: #0b0b0f;
+  --color-fd-foreground: #e2e1e6;
+  --color-fd-muted: #141418;
+  --color-fd-popover: #131317;
+  --color-fd-card: #111115;
+  --color-fd-secondary: #141418;
+
+  /* Doc component surface tokens */
+  --color-doc-surface: #111115;
+  --color-doc-surface-raised: #16161b;
+  --color-doc-surface-sunken: #0e0e12;
+  --color-doc-border: rgba(255, 255, 255, 0.08);
+  --color-doc-code-bg: #0d0d11;
 }
 
 #nd-docs-layout {
@@ -24,12 +45,6 @@
 #nd-docs-layout:not(:has(#nd-sidebar)) {
   --fd-sidebar-width: 0px !important;
   --fd-toc-width: 0px !important;
-  grid-template-columns: 1fr !important;
-  grid-template-areas: "main" !important;
-}
-
-#nd-docs-layout:not(:has(#nd-sidebar)) > * {
-  grid-area: main !important;
 }
 
 #nd-sidebar {

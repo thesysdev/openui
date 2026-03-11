@@ -1,8 +1,8 @@
 "use client";
 
+import ClientOnly from "@components/blocks/_components/ClientOnly";
 import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
 import { LineChart, ScrollableLineChart } from "@openuidev/react-ui";
-import ClientOnly from "@components/blocks/_components/ClientOnly";
 
 const lineData = [
   { month: "Jan", desktop: 150, mobile: 90 },
@@ -46,7 +46,11 @@ function ScrollableLineChartPreview() {
 export default function BlocksLineChartPage() {
   return (
     <PreviewPage>
-      <PreviewSection title="Line" headingLevel="h1" description="Preview for the Line chart block.">
+      <PreviewSection
+        title="Line"
+        headingLevel="h1"
+        description="Preview for the Line chart block."
+      >
         <BlockVariantPreview
           title="Default"
           description="Default line chart variant."

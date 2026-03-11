@@ -32,6 +32,7 @@ export * from "./components/Portal";
 export * from "./components/OpenUIChat";
 export * from "./components/RadioGroup";
 export * from "./components/RadioItem";
+export * from "./components/SectionBlock";
 export * from "./components/Select";
 export * from "./components/Separator";
 export * as Shell from "./components/Shell";
@@ -59,11 +60,16 @@ export * from "./components/ToolResult";
 
 // Genui-lib standard library
 export {
-  defaultAdditionalRules,
-  defaultComponentGroups,
-  defaultExamples,
-  defaultLibrary,
-  defaultPromptOptions,
+  openuiAdditionalRules,
+  openuiChatAdditionalRules,
+  openuiChatComponentGroups,
+  openuiChatExamples,
+  openuiChatLibrary,
+  openuiChatPromptOptions,
+  openuiComponentGroups,
+  openuiExamples,
+  openuiLibrary,
+  openuiPromptOptions,
 } from "./genui-lib";
 
 // this is the context providers that are used in the shell

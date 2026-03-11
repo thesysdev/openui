@@ -1,8 +1,11 @@
-import type { ActionEvent, Library } from "@openuidev/lang-react";
-import { BuiltinActionType, Renderer } from "@openuidev/lang-react";
+"use client";
+
 import type { AssistantMessage, ToolMessage } from "@openuidev/react-headless";
 import { useThread } from "@openuidev/react-headless";
+import type { ActionEvent, Library } from "@openuidev/react-lang";
+import { BuiltinActionType, Renderer } from "@openuidev/react-lang";
 import { useCallback, useMemo } from "react";
+import { separateContentAndContext, wrapContent, wrapContext } from "../../utils/contentParser";
 import { AssistantMessageContainer } from "../Shell";
 import { BehindTheScenes, ToolCallComponent } from "../ToolCall";
 import { ToolResult } from "../ToolResult";
@@ -29,6 +32,24 @@ export const GenUIAssistantMessage = ({
     return false;
   }, [isRunning, messages, message.id]);
 
+  // Separate openui-lang code from persisted form state
+  const { content: openuiCode, contextString } = useMemo(() => {
+    if (!message.content) return { content: null, contextString: null };
+    return separateContentAndContext(message.content);
+  }, [message.content]);
+
+  const initialState = useMemo(() => {
+    if (!contextString) return undefined;
+    try {
+      const parsed = JSON.parse(contextString);
+      if (Array.isArray(parsed) && typeof parsed[0] === "object") return parsed[0];
+      if (typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
+      return undefined;
+    } catch {
+      return undefined;
+    }
+  }, [contextString]);
+
   const toolMessages = useMemo(() => {
     const result: ToolMessage[] = [];
     const msgIndex = messages.findIndex((m) => m.id === message.id);
@@ -50,23 +71,43 @@ export const GenUIAssistantMessage = ({
     return toolCall?.function.name;
   };
 
+  // Persist form state into the message content (XML-wrapped)
+  const handleStateUpdate = useCallback(
+    (state: Record<string, any>) => {
+      const code = openuiCode ?? "";
+      const contextJson = JSON.stringify([state]);
+      const fullMessage = code + "\n" + wrapContext(contextJson);
+      updateMessage({ ...message, content: fullMessage });
+    },
+    [updateMessage, message, openuiCode],
+  );
+
+  // Build LLM-friendly message from action + form state, then dispatch
   const handleAction = useCallback(
     (event: ActionEvent) => {
       if (event.type === BuiltinActionType.ContinueConversation) {
+        const contentPart = event.humanFriendlyMessage
+          ? wrapContent(event.humanFriendlyMessage)
+          : "";
+        const messageCtx: (string | object)[] = [`User clicked: ${event.humanFriendlyMessage}`];
+        if (event.formState) {
+          messageCtx.push(event.formState);
+        }
+        const contextPart = wrapContext(JSON.stringify(messageCtx));
+        const llmMessage = `${contentPart}${contextPart}`;
+
         processMessage({
           role: "user",
-          content: event.humanFriendlyMessage,
+          content: llmMessage,
         });
+      } else if (event.type === BuiltinActionType.OpenUrl) {
+        const url = event.params?.["url"] as string | undefined;
+        if (typeof window !== "undefined" && url) {
+          window.open(url, "_blank");
+        }
       }
     },
     [processMessage],
-  );
-
-  const handleUpdateMessage = useCallback(
-    (updatedContent: string) => {
-      updateMessage({ ...message, content: updatedContent });
-    },
-    [updateMessage, message],
   );
 
   const hasToolActivity =
@@ -91,11 +132,12 @@ export const GenUIAssistantMessage = ({
         </BehindTheScenes>
       )}
       <Renderer
-        response={message.content ?? null}
+        response={openuiCode}
         library={library}
         isStreaming={isStreaming}
         onAction={handleAction}
-        updateMessage={handleUpdateMessage}
+        onStateUpdate={handleStateUpdate}
+        initialState={initialState}
       />
     </AssistantMessageContainer>
   );

@@ -1,6 +1,5 @@
 import { z } from "zod";
-
-const validationRules = z.array(z.string()).optional();
+import { rulesSchema } from "../rules";
 
 export const SliderSchema = z.object({
   name: z.string(),
@@ -8,6 +7,6 @@ export const SliderSchema = z.object({
   min: z.number(),
   max: z.number(),
   step: z.number().optional(),
-  defaultValue: z.number().optional(),
-  rules: validationRules,
+  defaultValue: z.array(z.number()).optional(),
+  rules: rulesSchema,
 });

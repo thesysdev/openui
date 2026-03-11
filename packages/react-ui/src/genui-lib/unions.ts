@@ -31,6 +31,10 @@ import { Form } from "./Form";
 
 import { Steps } from "./Steps";
 
+import { FollowUpBlock } from "./FollowUpBlock";
+import { ListBlock } from "./ListBlock";
+import { SectionBlock } from "./SectionBlock";
+
 export const ContentChildUnion = z.union([
   TextContent.ref,
   MarkDownRenderer.ref,
@@ -56,4 +60,14 @@ export const ContentChildUnion = z.union([
   Form.ref,
   Buttons.ref,
   Steps.ref,
+]);
+
+// Chat-specific content union — no Stack, adds ListBlock / FollowUpBlock / SectionBlock
+// Note: Tabs and Carousel are NOT included here to avoid circular deps (Tabs/schema.ts imports ContentChildUnion).
+// ChatCardChildUnion (which adds Tabs + Carousel) is defined in openuiChatLibrary.tsx.
+export const ChatContentChildUnion = z.union([
+  ...ContentChildUnion.options,
+  ListBlock.ref,
+  FollowUpBlock.ref,
+  SectionBlock.ref,
 ]);

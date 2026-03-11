@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
 import Tooltip from "@design-system/components/Tooltip/Tooltip";
 import PreviewCode from "@design-system/components/preview/PreviewCode";
 import PreviewSection from "@design-system/components/preview/PreviewSection";
-import styles from "./PreviewLayout.module.css";
 import type { HeadingLevel, SwatchRow } from "@design-system/types";
+import { useMemo } from "react";
+import styles from "./PreviewLayout.module.css";
 
 const getSwatchStep = (tokenName = ""): string => {
   const step = tokenName.replace(/^--swatch-[a-z]+-?/, "");
@@ -79,12 +79,11 @@ export default function ColorSwatchesPreviewSection({
                 {row.title ? <h4 className={styles.foundationRowTitle}>{row.title}</h4> : null}
                 <div className={styles.colorSwatchTrack}>
                   {(row.tokens ?? []).map((swatch) => {
-                    const tokenName =
-                      typeof swatch === "string" ? swatch : swatch.token;
+                    const tokenName = typeof swatch === "string" ? swatch : swatch.token;
                     const swatchStep = getSwatchStep(tokenName);
                     const swatchValue =
                       typeof swatch === "string"
-                        ? tokenValues[tokenName] ?? "var(...)"
+                        ? (tokenValues[tokenName] ?? "var(...)")
                         : swatch.value;
                     const tooltipContent = `${swatchStep} · ${swatchValue}`;
 

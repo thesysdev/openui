@@ -1,4 +1,4 @@
 {
   "title": "OpenUI",
-  "pages": ["introduction", "openui-lang", "components", "chat", "api-reference"]
+  "pages": ["openui-lang", "components", "chat", "api-reference"]
 }

@@ -2,13 +2,13 @@
 
 import {
   defineComponent,
-  parseRules,
+  parseStructuredRules,
   useFormName,
   useFormValidation,
   useGetFieldValue,
   useIsStreaming,
   useSetFieldValue,
-} from "@openuidev/lang-react";
+} from "@openuidev/react-lang";
 import React from "react";
 import { Input as OpenUIInput } from "../../components/Input";
 import { InputSchema } from "./schema";
@@ -27,7 +27,7 @@ export const Input = defineComponent({
     const formValidation = useFormValidation();
 
     const fieldName = props.name as string;
-    const rules = React.useMemo(() => parseRules(props.rules), [props.rules]);
+    const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
     const savedValue = getFieldValue(formName, fieldName) ?? "";
 
     React.useEffect(() => {

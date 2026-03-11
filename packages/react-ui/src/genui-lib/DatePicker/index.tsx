@@ -2,13 +2,13 @@
 
 import {
   defineComponent,
-  parseRules,
+  parseStructuredRules,
   useFormName,
   useFormValidation,
   useGetFieldValue,
   useIsStreaming,
   useSetFieldValue,
-} from "@openuidev/lang-react";
+} from "@openuidev/react-lang";
 import React from "react";
 import { DatePicker as OpenUIDatePicker } from "../../components/DatePicker";
 import { DatePickerSchema } from "./schema";
@@ -28,7 +28,7 @@ export const DatePicker = defineComponent({
 
     const fieldName = (props.name as string) || "date";
     const mode = (props.mode as "single" | "range") || "single";
-    const rules = React.useMemo(() => parseRules(props.rules), [props.rules]);
+    const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
     const value = getFieldValue(formName, fieldName);
 
     React.useEffect(() => {

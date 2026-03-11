@@ -1,8 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
 import SideNav from "@components/components/SideNav";
 import { FOUNDATION_NAV_ITEMS } from "@components/config/navigation";
+import type { ReactNode } from "react";
 import styles from "./layout.module.css";
 
 interface FoundationLayoutProps {

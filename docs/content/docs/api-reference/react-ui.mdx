@@ -1,6 +1,6 @@
 ---
 title: "@openuidev/react-ui"
-description: API reference for documented prebuilt chat layouts and standard component library exports.
+description: API reference for prebuilt chat layouts and default component library exports.
 ---
 
 Use this package for prebuilt chat UIs and default component library primitives.
@@ -60,7 +60,7 @@ All three layouts accept:
   - `assistantMessage?: AssistantMessageComponent`
   - `userMessage?: UserMessageComponent`
   - `composer?: ComposerComponent`
-  - `componentLibrary?: Library` (from `@openuidev/lang-react`)
+  - `componentLibrary?: Library` (from `@openuidev/react-lang`)
 - Theme wrapper props:
   - `theme?: ThemeProps`
   - `disableThemeProvider?: boolean`
@@ -95,16 +95,42 @@ interface ConversationStartersConfig {
 }
 ```
 
-## Standard component library exports
+## Component library exports
 
-Documented in Generative UI guides as the "standard/default component library".
+Two ready-to-use libraries ship with `@openuidev/react-ui`. Import from the `genui-lib` subpath:
 
 ```ts
-import { defaultLibrary, defaultExamples, defaultComponentGroups } from "@openuidev/react-ui";
+import {
+  // Chat-optimised (root = Card, includes FollowUpBlock, ListBlock, SectionBlock)
+  openuiChatLibrary,
+  openuiChatPromptOptions,
+  openuiChatExamples,
+  openuiChatAdditionalRules,
+  openuiChatComponentGroups,
+
+  // General-purpose (root = Stack, full component suite)
+  openuiLibrary,
+  openuiPromptOptions,
+  openuiExamples,
+  openuiAdditionalRules,
+  openuiComponentGroups,
+} from "@openuidev/react-ui/genui-lib";
 ```
 
-These exports are built with `createLibrary(...)` from `@openuidev/lang-react` and are ready to pass to:
+**`openuiChatLibrary`** — Root is `Card` (vertical, no layout params). Includes chat-specific components: `FollowUpBlock`, `ListBlock`, `SectionBlock`. Does not include `Stack`. Use with `FullScreen` / `BottomTray` / `Copilot` chat interfaces.
+
+**`openuiLibrary`** — Root is `Stack`. Full layout suite with `Stack`, `Tabs`, `Carousel`, `Accordion`, etc. Use with the standalone `Renderer` or any non-chat layout (e.g., playground, embedded widgets).
+
+Generate the system prompt at build time with the CLI:
+
+```bash
+npx @openuidev/cli generate ./src/library.ts --out src/generated/system-prompt.txt
+```
 
 ```tsx
-<Renderer text={message} library={defaultLibrary} />
+// Chat interface — system prompt stays on the server
+<FullScreen componentLibrary={openuiChatLibrary} ... />
+
+// Standalone renderer
+<Renderer response={message} library={openuiLibrary} />
 ```

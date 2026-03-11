@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
-import { useCallback, useEffect } from "react";
 import type { ReactNode } from "react";
+import { useCallback, useEffect } from "react";
 import "./Modal.css";
 
 type ModalProps = {

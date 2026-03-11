@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { z } from "zod";
 import {
@@ -10,23 +10,22 @@ import {
   CarouselNext as OpenUICarouselNext,
   CarouselPrevious as OpenUICarouselPrevious,
 } from "../../components/Carousel";
-import { Stack } from "../Stack";
+import { ContentChildUnion } from "../unions";
 
 export const Carousel = defineComponent({
   name: "Carousel",
   props: z.object({
-    children: z.array(Stack.ref),
-
+    children: z.array(z.array(ContentChildUnion)),
     variant: z.enum(["card", "sunk"]).optional(),
   }),
-  description: "Horizontal scrollable carousel of Stack slides",
+  description: "Horizontal scrollable carousel",
   component: ({ props, renderNode }) => {
     const items = props.children ?? [];
     return (
       <OpenUICarousel showButtons={true} variant={props.variant}>
         <OpenUICarouselContent>
           {items.map((item, i) => (
-            <OpenUICarouselItem key={i}>{renderNode(item.props.children)}</OpenUICarouselItem>
+            <OpenUICarouselItem key={i}>{renderNode(item)}</OpenUICarouselItem>
           ))}
         </OpenUICarouselContent>
         <OpenUICarouselPrevious icon={<ChevronLeft />} />

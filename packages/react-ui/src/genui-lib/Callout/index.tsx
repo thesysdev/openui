@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { Callout as OpenUICallout } from "../../components/Callout";
 import { MarkDownRenderer } from "../../components/MarkDownRenderer";
 import { CalloutSchema } from "./schema";

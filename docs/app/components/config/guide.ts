@@ -287,9 +287,10 @@ const CUSTOMIZING_STEPS: GuideStep[] = [
   },
 ];
 
-const CUSTOMIZING_GOAL: Record<string, string> = CUSTOMIZING_STEPS.reduce<
-  Record<string, string>
->((acc, step) => ({ ...acc, ...step.themeOverrides }), {});
+const CUSTOMIZING_GOAL: Record<string, string> = CUSTOMIZING_STEPS.reduce<Record<string, string>>(
+  (acc, step) => ({ ...acc, ...step.themeOverrides }),
+  {},
+);
 
 const INTER = '"Inter", sans-serif';
 
@@ -374,8 +375,7 @@ export const GUIDE_EXAMPLES: GuideExample[] = [
     id: "prompt-control",
     title: "Controlling compositions",
     description: "Shaping generations and outputs with prompts",
-    summary:
-      "Compare prompt variants to guide formatting, specificity, and behavior.",
+    summary: "Compare prompt variants to guide formatting, specificity, and behavior.",
     steps: [
       {
         id: "prompt-step-1",
@@ -386,14 +386,12 @@ export const GUIDE_EXAMPLES: GuideExample[] = [
           {
             id: "prompt-step-1-option-1",
             title: "Clarity-first intent",
-            description:
-              "Prompt optimized for user comprehension and concise explanation.",
+            description: "Prompt optimized for user comprehension and concise explanation.",
           },
           {
             id: "prompt-step-1-option-2",
             title: "Execution-first intent",
-            description:
-              "Prompt optimized for rapid implementation and immediate action.",
+            description: "Prompt optimized for rapid implementation and immediate action.",
           },
         ],
       },
@@ -406,14 +404,12 @@ export const GUIDE_EXAMPLES: GuideExample[] = [
           {
             id: "prompt-step-2-option-1",
             title: "Strict section template",
-            description:
-              "Require fixed sections with specific headings and ordering.",
+            description: "Require fixed sections with specific headings and ordering.",
           },
           {
             id: "prompt-step-2-option-2",
             title: "Length-bounded response",
-            description:
-              "Enforce concise output with a short summary plus action bullets.",
+            description: "Enforce concise output with a short summary plus action bullets.",
           },
         ],
       },
@@ -426,14 +422,12 @@ export const GUIDE_EXAMPLES: GuideExample[] = [
           {
             id: "prompt-step-3-option-1",
             title: "Domain glossary",
-            description:
-              "Embed required terms and naming conventions for consistency.",
+            description: "Embed required terms and naming conventions for consistency.",
           },
           {
             id: "prompt-step-3-option-2",
             title: "Constraint block",
-            description:
-              "List hard restrictions the response must never violate.",
+            description: "List hard restrictions the response must never violate.",
           },
         ],
       },
@@ -446,14 +440,12 @@ export const GUIDE_EXAMPLES: GuideExample[] = [
           {
             id: "prompt-step-4-option-1",
             title: "Teammate mode",
-            description:
-              "Friendly, practical tone with concise but complete implementation notes.",
+            description: "Friendly, practical tone with concise but complete implementation notes.",
           },
           {
             id: "prompt-step-4-option-2",
             title: "Expert mode",
-            description:
-              "Technical depth with explicit trade-offs and assumptions.",
+            description: "Technical depth with explicit trade-offs and assumptions.",
           },
         ],
       },
@@ -466,14 +458,12 @@ export const GUIDE_EXAMPLES: GuideExample[] = [
           {
             id: "prompt-step-5-option-1",
             title: "Fallback behavior",
-            description:
-              "Instruct safe default behavior when context is incomplete.",
+            description: "Instruct safe default behavior when context is incomplete.",
           },
           {
             id: "prompt-step-5-option-2",
             title: "Clarification loop",
-            description:
-              "Prompt the model to ask targeted follow-ups before finalizing output.",
+            description: "Prompt the model to ask targeted follow-ups before finalizing output.",
           },
         ],
       },
@@ -481,17 +471,11 @@ export const GUIDE_EXAMPLES: GuideExample[] = [
   },
 ];
 
-export const getGuideExampleById = (
-  exampleId: string,
-): GuideExample | undefined =>
+export const getGuideExampleById = (exampleId: string): GuideExample | undefined =>
   GUIDE_EXAMPLES.find((example) => example.id === exampleId);
 
-export const getNextGuideExampleId = (
-  exampleId: string,
-): string | undefined => {
-  const index = GUIDE_EXAMPLES.findIndex(
-    (example) => example.id === exampleId,
-  );
+export const getNextGuideExampleId = (exampleId: string): string | undefined => {
+  const index = GUIDE_EXAMPLES.findIndex((example) => example.id === exampleId);
   if (index < 0 || index >= GUIDE_EXAMPLES.length - 1) {
     return undefined;
   }

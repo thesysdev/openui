@@ -66,7 +66,11 @@ c3 = CarouselCard(
 function Frame({ imageSrc }: { imageSrc: string }) {
   return (
     <div className="aspect-[296/196] bg-[#dbdbdb] overflow-clip relative shrink-0 w-full rounded-[4px]">
-      <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imageSrc} />
+      <img
+        alt=""
+        className="absolute inset-0 max-w-none object-cover pointer-events-none size-full"
+        src={imageSrc}
+      />
     </div>
   );
 }
@@ -74,8 +78,13 @@ function Frame({ imageSrc }: { imageSrc: string }) {
 function Frame3({ tag, tagClassName }: Pick<CardPreviewData, "tag" | "tagClassName">) {
   return (
     <div className="content-stretch flex items-start relative shrink-0">
-      <div className={`content-stretch flex gap-[2.888px] h-[23.1px] items-center px-[5.775px] py-[4.331px] relative shrink-0 ${tagClassName}`} data-name="Tag">
-        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[1.2] not-italic relative shrink-0 text-[10.11px]">{tag}</p>
+      <div
+        className={`content-stretch flex gap-[2.888px] h-[23.1px] items-center px-[5.775px] py-[4.331px] relative shrink-0 ${tagClassName}`}
+        data-name="Tag"
+      >
+        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[1.2] not-italic relative shrink-0 text-[10.11px]">
+          {tag}
+        </p>
       </div>
     </div>
   );
@@ -84,28 +93,60 @@ function Frame3({ tag, tagClassName }: Pick<CardPreviewData, "tag" | "tagClassNa
 function Frame1({ title, description }: Pick<CardPreviewData, "title" | "description">) {
   return (
     <div className="content-stretch flex flex-col items-start leading-[1.5] not-italic relative shrink-0 text-[11.55px] w-full">
-      <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-black">{title}</p>
-      <p className="font-['Inter:Regular',sans-serif] font-normal min-w-full relative shrink-0 text-[rgba(0,0,0,0.4)] w-[min-content] whitespace-pre-wrap">{description}</p>
+      <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-black">
+        {title}
+      </p>
+      <p className="font-['Inter:Regular',sans-serif] font-normal min-w-full relative shrink-0 text-[rgba(0,0,0,0.4)] w-[min-content] whitespace-pre-wrap">
+        {description}
+      </p>
     </div>
   );
 }
 
 function Frame2({ className, data }: { className?: string; data: CardPreviewData }) {
   return (
-    <div className={`relative bg-white content-stretch flex flex-col gap-[8.663px] items-start p-[8.663px] w-[231px] ${className ?? ""}`}>
-      <div aria-hidden="true" className="absolute border-[#e4e4e4] border-[1.023px] border-solid inset-0 pointer-events-none shadow-[-4px_0px_10.1px_0px_rgba(0,0,0,0.25)]" />
+    <div
+      className={`relative bg-white content-stretch flex flex-col gap-[8.663px] items-start p-[8.663px] w-[231px] ${className ?? ""}`}
+    >
+      <div
+        aria-hidden="true"
+        className="absolute border-[#e4e4e4] border-[1.023px] border-solid inset-0 pointer-events-none shadow-[-4px_0px_10.1px_0px_rgba(0,0,0,0.25)]"
+      />
       <Frame imageSrc={data.imageSrc} />
       <Frame3 tag={data.tag} tagClassName={data.tagClassName} />
       <Frame1 title={data.title} description={data.description} />
-      <div className="bg-black content-stretch flex h-[25.988px] items-center justify-between px-[8.663px] py-[5.775px] relative shrink-0 w-[213.675px]" data-name="Primary Button">
-        <div aria-hidden="true" className="absolute border-[0.722px] border-[rgba(255,255,255,0.08)] border-solid inset-0 pointer-events-none" />
-        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[1.5] not-italic relative shrink-0 text-[11.55px] text-white">Book</p>
+      <div
+        className="bg-black content-stretch flex h-[25.988px] items-center justify-between px-[8.663px] py-[5.775px] relative shrink-0 w-[213.675px]"
+        data-name="Primary Button"
+      >
+        <div
+          aria-hidden="true"
+          className="absolute border-[0.722px] border-[rgba(255,255,255,0.08)] border-solid inset-0 pointer-events-none"
+        />
+        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[1.5] not-italic relative shrink-0 text-[11.55px] text-white">
+          Book
+        </p>
         <div className="relative shrink-0 size-[11.55px]" data-name="Icon Container">
-          <div className="absolute left-0 overflow-clip size-[11.55px] top-0" data-name="16 arrow-right">
+          <div
+            className="absolute left-0 overflow-clip size-[11.55px] top-0"
+            data-name="16 arrow-right"
+          >
             <div className="absolute inset-[20.83%]" data-name="Vector">
               <div className="absolute inset-[-5.36%]">
-                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7.45938 7.45938">
-                  <path d={svgPaths.p104fe640} id="Vector" stroke="var(--stroke-0, white)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="0.721875" />
+                <svg
+                  className="block size-full"
+                  fill="none"
+                  preserveAspectRatio="none"
+                  viewBox="0 0 7.45938 7.45938"
+                >
+                  <path
+                    d={svgPaths.p104fe640}
+                    id="Vector"
+                    stroke="var(--stroke-0, white)"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="0.721875"
+                  />
                 </svg>
               </div>
             </div>
@@ -119,47 +160,130 @@ function Frame2({ className, data }: { className?: string; data: CardPreviewData
 function Group1() {
   return (
     <div className="absolute inset-[3.7%_0_0_35.9%]">
-      <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 391 416">
+      <svg
+        className="absolute block size-full"
+        fill="none"
+        preserveAspectRatio="none"
+        viewBox="0 0 391 416"
+      >
         <g id="Group 10">
-          <path d="M317 1.31134e-08L317 416" id="Vector" stroke="url(#paint0_linear_38_926)" strokeOpacity="0.1" strokeWidth="0.6" />
-          <path d="M391 92L-3.80158e-06 92" id="Vector_2" stroke="url(#paint1_linear_38_926)" strokeOpacity="0.1" strokeWidth="0.6" />
-          <path d="M391 101L-3.80158e-06 101" id="Vector_3" stroke="url(#paint2_linear_38_926)" strokeOpacity="0.1" strokeWidth="0.6" />
-          <path d="M391 325L-3.80158e-06 325" id="Vector_4" stroke="url(#paint3_linear_38_926)" strokeOpacity="0.1" strokeWidth="0.6" />
-          <path d="M391 351L-3.80158e-06 351" id="Vector_5" stroke="url(#paint4_linear_38_926)" strokeOpacity="0.1" strokeWidth="0.6" />
-          <path d="M391 360L-3.80158e-06 360" id="Vector_6" stroke="url(#paint5_linear_38_926)" strokeOpacity="0.1" strokeWidth="0.6" />
+          <path
+            d="M317 1.31134e-08L317 416"
+            id="Vector"
+            stroke="url(#paint0_linear_38_926)"
+            strokeOpacity="0.1"
+            strokeWidth="0.6"
+          />
+          <path
+            d="M391 92L-3.80158e-06 92"
+            id="Vector_2"
+            stroke="url(#paint1_linear_38_926)"
+            strokeOpacity="0.1"
+            strokeWidth="0.6"
+          />
+          <path
+            d="M391 101L-3.80158e-06 101"
+            id="Vector_3"
+            stroke="url(#paint2_linear_38_926)"
+            strokeOpacity="0.1"
+            strokeWidth="0.6"
+          />
+          <path
+            d="M391 325L-3.80158e-06 325"
+            id="Vector_4"
+            stroke="url(#paint3_linear_38_926)"
+            strokeOpacity="0.1"
+            strokeWidth="0.6"
+          />
+          <path
+            d="M391 351L-3.80158e-06 351"
+            id="Vector_5"
+            stroke="url(#paint4_linear_38_926)"
+            strokeOpacity="0.1"
+            strokeWidth="0.6"
+          />
+          <path
+            d="M391 360L-3.80158e-06 360"
+            id="Vector_6"
+            stroke="url(#paint5_linear_38_926)"
+            strokeOpacity="0.1"
+            strokeWidth="0.6"
+          />
         </g>
         <defs>
-          <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_38_926" x1="342.501" x2="339.441" y1="411.021" y2="-4.97452">
+          <linearGradient
+            gradientUnits="userSpaceOnUse"
+            id="paint0_linear_38_926"
+            x1="342.501"
+            x2="339.441"
+            y1="411.021"
+            y2="-4.97452"
+          >
             <stop stopOpacity="0" />
             <stop offset="0.0913462" stopOpacity="0.940594" />
             <stop offset="0.716346" />
             <stop offset="1" stopOpacity="0" />
           </linearGradient>
-          <linearGradient gradientUnits="userSpaceOnUse" id="paint1_linear_38_926" x1="4.67954" x2="395.678" y1="117.5" y2="114.798">
+          <linearGradient
+            gradientUnits="userSpaceOnUse"
+            id="paint1_linear_38_926"
+            x1="4.67954"
+            x2="395.678"
+            y1="117.5"
+            y2="114.798"
+          >
             <stop stopOpacity="0" />
             <stop offset="0.283654" stopOpacity="0.940594" />
             <stop offset="0.716346" />
             <stop offset="1" stopOpacity="0" />
           </linearGradient>
-          <linearGradient gradientUnits="userSpaceOnUse" id="paint2_linear_38_926" x1="4.67954" x2="395.678" y1="126.5" y2="123.798">
+          <linearGradient
+            gradientUnits="userSpaceOnUse"
+            id="paint2_linear_38_926"
+            x1="4.67954"
+            x2="395.678"
+            y1="126.5"
+            y2="123.798"
+          >
             <stop stopOpacity="0" />
             <stop offset="0.283654" stopOpacity="0.940594" />
             <stop offset="0.716346" />
             <stop offset="1" stopOpacity="0" />
           </linearGradient>
-          <linearGradient gradientUnits="userSpaceOnUse" id="paint3_linear_38_926" x1="4.67954" x2="395.678" y1="350.5" y2="347.798">
+          <linearGradient
+            gradientUnits="userSpaceOnUse"
+            id="paint3_linear_38_926"
+            x1="4.67954"
+            x2="395.678"
+            y1="350.5"
+            y2="347.798"
+          >
             <stop stopOpacity="0" />
             <stop offset="0.283654" stopOpacity="0.940594" />
             <stop offset="0.716346" />
             <stop offset="1" stopOpacity="0" />
           </linearGradient>
-          <linearGradient gradientUnits="userSpaceOnUse" id="paint4_linear_38_926" x1="4.67954" x2="395.678" y1="376.5" y2="373.798">
+          <linearGradient
+            gradientUnits="userSpaceOnUse"
+            id="paint4_linear_38_926"
+            x1="4.67954"
+            x2="395.678"
+            y1="376.5"
+            y2="373.798"
+          >
             <stop stopOpacity="0" />
             <stop offset="0.283654" stopOpacity="0.940594" />
             <stop offset="0.716346" />
             <stop offset="1" stopOpacity="0" />
           </linearGradient>
-          <linearGradient gradientUnits="userSpaceOnUse" id="paint5_linear_38_926" x1="4.67954" x2="395.678" y1="385.5" y2="382.798">
+          <linearGradient
+            gradientUnits="userSpaceOnUse"
+            id="paint5_linear_38_926"
+            x1="4.67954"
+            x2="395.678"
+            y1="385.5"
+            y2="382.798"
+          >
             <stop stopOpacity="0" />
             <stop offset="0.283654" stopOpacity="0.940594" />
             <stop offset="0.716346" />
@@ -182,14 +306,34 @@ function Group2() {
 
 export default function LlmRespondsInOpenUiLang() {
   return (
-    <div className="overflow-clip relative rounded-[16px] size-full" data-name="LLM responds in OpenUI lang">
+    <div
+      className="overflow-clip relative rounded-[16px] size-full"
+      data-name="LLM responds in OpenUI lang"
+    >
       <Group />
       <div className="absolute bottom-0 left-1/2 right-1/2 top-[3.7%]" data-name="Vector">
         <div className="absolute inset-[0_-0.5px]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 1 416">
-            <path d="M0.5 0V416" id="Vector" stroke="url(#paint0_linear_36_432)" strokeOpacity="0.1" />
+          <svg
+            className="block size-full"
+            fill="none"
+            preserveAspectRatio="none"
+            viewBox="0 0 1 416"
+          >
+            <path
+              d="M0.5 0V416"
+              id="Vector"
+              stroke="url(#paint0_linear_36_432)"
+              strokeOpacity="0.1"
+            />
             <defs>
-              <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_36_432" x1="26.0005" x2="22.9412" y1="411.021" y2="-4.97452">
+              <linearGradient
+                gradientUnits="userSpaceOnUse"
+                id="paint0_linear_36_432"
+                x1="26.0005"
+                x2="22.9412"
+                y1="411.021"
+                y2="-4.97452"
+              >
                 <stop stopOpacity="0" />
                 <stop offset="0.0913462" stopOpacity="0.940594" />
                 <stop offset="0.716346" />
@@ -203,10 +347,27 @@ export default function LlmRespondsInOpenUiLang() {
         <div className="flex-none h-[391px] rotate-90 w-px">
           <div className="relative size-full" data-name="Vector">
             <div className="absolute inset-[0_-0.5px]">
-              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 1 391">
-                <path d="M0.5 0V391" id="Vector" stroke="url(#paint0_linear_36_428)" strokeOpacity="0.1" />
+              <svg
+                className="block size-full"
+                fill="none"
+                preserveAspectRatio="none"
+                viewBox="0 0 1 391"
+              >
+                <path
+                  d="M0.5 0V391"
+                  id="Vector"
+                  stroke="url(#paint0_linear_36_428)"
+                  strokeOpacity="0.1"
+                />
                 <defs>
-                  <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_36_428" x1="26.0005" x2="23.2978" y1="386.32" y2="-4.67803">
+                  <linearGradient
+                    gradientUnits="userSpaceOnUse"
+                    id="paint0_linear_36_428"
+                    x1="26.0005"
+                    x2="23.2978"
+                    y1="386.32"
+                    y2="-4.67803"
+                  >
                     <stop stopOpacity="0" />
                     <stop offset="0.283654" stopOpacity="0.940594" />
                     <stop offset="0.716346" />
@@ -219,7 +380,9 @@ export default function LlmRespondsInOpenUiLang() {
         </div>
       </div>
       <Group2 />
-      <p className="absolute font-['Geist_Mono:Medium',sans-serif] font-medium leading-none left-[58px] text-[12px] text-[rgba(0,0,0,0.4)] top-[366px]">OPENUI LANG (TOKEN EFFICIENT)</p>
+      <p className="absolute font-['Geist_Mono:Medium',sans-serif] font-medium leading-none left-[58px] text-[12px] text-[rgba(0,0,0,0.4)] top-[366px]">
+        OPENUI LANG (TOKEN EFFICIENT)
+      </p>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod";
 
 export const SeriesSchema = z.object({

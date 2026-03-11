@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { rulesSchema } from "../rules";
 
 type RefComponent = { ref: z.ZodTypeAny };
 
@@ -12,6 +13,6 @@ export function createSelectSchema(SelectItem: RefComponent) {
     name: z.string(),
     items: z.array(SelectItem.ref),
     placeholder: z.string().optional(),
-    rules: z.array(z.string()).optional(),
+    rules: rulesSchema,
   });
 }

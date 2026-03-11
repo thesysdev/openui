@@ -1,146 +1,96 @@
 ---
 title: System Prompts
-description: Learn how to generate and customize system prompts for your OpenUI library.
+description: Generate and customize prompt instructions from your OpenUI library.
 ---
 
-You have defined your components with Zod, but the LLM doesn't know about them yet. To fix this, OpenUI generates a specialized **System Prompt** that teaches the model your component syntax, rules, and available props.
+`library.prompt(...)` generates the instruction text your model needs to output valid OpenUI Lang. You can generate it programmatically or with the CLI.
 
-### The `library.prompt()` API
+## Generate with the CLI
 
-The core method is `library.prompt()`. It generates a string containing the OpenUI Lang definition for every component in your library, including their descriptions and prop types.
+The fastest way to generate a system prompt — works with any backend language:
 
-```typescript
-import { myLibrary } from './registry';
-
-// Generate the instruction manual
-const systemPrompt = myLibrary.prompt();
-
-console.log(systemPrompt);
-// Output:
-// "You are an AI that renders UI...
-//  Available Components:
-//  - StatCard(label: string, value: string, trend: "up" | "down")
-//  ..."
+```bash
+npx @openuidev/cli generate ./src/library.ts
 ```
 
-### Customizing the Prompt
+Write to a file:
 
-You can pass options to `library.prompt()` to customize the output while keeping the auto-generated component definitions intact.
-
-```typescript
-const systemPrompt = myLibrary.prompt({
-  // 1. Set the Persona (overrides the default intro)
-  preamble: 'You are a helpful financial assistant named Fin.',
-
-  // 2. Add Business Rules (appended to the prompt)
-  additionalRules: [
-    'Always show a StatCard for revenue queries.',
-    'Never use red colors for positive trends.',
-    'If the user asks for "help", show the SupportForm.',
-  ],
-
-  // 3. Provide few-shot examples (see below)
-  examples: [
-    `User: Show me Q3 revenue
-Assistant:
-root = Root([card])
-card = StatCard("Q3 Revenue", "$1.2M", "up")`,
-  ],
-});
+```bash
+npx @openuidev/cli generate ./src/library.ts --out system-prompt.txt
 ```
 
-### Few-Shot Examples (Highly Recommended)
+Generate JSON Schema instead:
 
-Providing 2–3 examples of `User Input → OpenUI Lang Output` drastically reduces hallucinations and improves syntax accuracy. Each example is a plain string appended under an `## Examples` heading in the prompt.
-
-```typescript
-const systemPrompt = myLibrary.prompt({
-  examples: [
-    `User: I need to contact support
-Assistant:
-root = Root([form])
-form = ContactForm("support@example.com")`,
-
-    `User: Show me sales for last quarter
-Assistant:
-root = Root([chart])
-chart = BarChart("Q3 Sales", labels, values)
-labels = ["Jul", "Aug", "Sep"]
-values = [42000, 51000, 47000]`,
-  ],
-});
+```bash
+npx @openuidev/cli generate ./src/library.ts --json-schema
 ```
 
-### Backend Integration
+The CLI auto-detects exported `PromptOptions` (examples, rules) alongside your library. Use `--prompt-options <name>` to pick a specific export.
 
-This string must be sent as the **System Message** to your LLM. Here is how to do it with common SDKs.
+## Generate programmatically
 
-#### 1. OpenAI SDK
+```ts
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
 
-```typescript
-import OpenAI from 'openai';
-import { myLibrary } from './registry';
+const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
+```
 
-const client = new OpenAI();
+## Prompt options
+
+```ts
+import type { PromptOptions } from "@openuidev/react-lang";
+
+const options: PromptOptions = {
+  preamble: "You are an assistant that outputs only OpenUI Lang.",
+  additionalRules: ["Always produce actionable controls for forms.", "Prefer concise layouts."],
+  examples: [`root = Stack([title])\ntitle = TextContent("Hello")`],
+};
+
+const prompt = openuiLibrary.prompt(options);
+```
+
+## What gets generated
+
+The generated prompt includes:
+
+- syntax rules
+- component signatures (from your registered components)
+- hoisting/streaming rules
+- important output constraints
+- your optional examples/rules
+
+## Important behavior notes
+
+- Root component requirement comes from the library `root` passed to `createLibrary`.
+- Prompt signatures include component descriptions, argument names, and required/optional structure.
+
+## Backend usage example
+
+```ts
+import OpenAI from "openai";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui/genui-lib";
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
-  const response = await client.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      { role: 'system', content: myLibrary.prompt() },
-      ...messages,
-    ],
+  const completion = await client.chat.completions.create({
+    model: "gpt-5.2",
     stream: true,
+    messages: [{ role: "system", content: openuiLibrary.prompt(openuiPromptOptions) }, ...messages],
   });
 
-  // Return the stream...
-}
-```
-
-#### 2. Vercel AI SDK
-
-```typescript
-import { streamText } from 'ai';
-import { openai } from '@ai-sdk/openai';
-import { myLibrary } from './registry';
-
-export async function POST(req: Request) {
-  const { messages } = await req.json();
-
-  const result = await streamText({
-    model: openai('gpt-5.2'),
-    system: myLibrary.prompt(), // Inject here
-    messages,
+  return new Response(completion.toReadableStream(), {
+    headers: { "Content-Type": "text/event-stream" },
   });
-
-  return result.toDataStreamResponse();
 }
 ```
 
-### Debugging
-
-If the LLM is hallucinating props or using components incorrectly, inspect the generated prompt.
-
-```typescript
-if (process.env.NODE_ENV === 'development') {
-  console.log("--- System Prompt ---");
-  console.log(myLibrary.prompt());
-  console.log("---------------------");
-}
-```
-
-<Callout type="info">
-  **Tip:** The generated prompt uses the strings from your `.describe()` Zod calls. If the model misuses a prop, try making your Zod description more specific.
-</Callout>
-
-### Next Steps
-
-Now that the backend is configured, you need to set up the frontend to render the response.
+## Next Steps
 
 <Cards>
-  <Card title="The Renderer" href="/docs/openui-lang/renderer">
-    Learn how to parse and display the LLM's response.
+  <Card title="Renderer" href="/docs/openui-lang/renderer">
+    Render streamed OpenUI Lang in React.
   </Card>
 </Cards>

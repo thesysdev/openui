@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { FoundationTable, PreviewPage, PreviewSection } from "@components/components/preview";
 import tableStyles from "@components/components/preview/FoundationTokenTable.module.css";
+import { useEffect, useState } from "react";
 
 function formatSpacingLabel(token: string) {
   const raw = token.replace("--openui-space-", "");
@@ -70,7 +70,9 @@ export default function SpacingPreviewPage() {
             </tr>
           ))}
         </FoundationTable>
-        <div className={tableStyles.foundationComponentsPlaceholder}>Spacing components preview coming soon.</div>
+        <div className={tableStyles.foundationComponentsPlaceholder}>
+          Spacing components preview coming soon.
+        </div>
       </PreviewSection>
     </PreviewPage>
   );
