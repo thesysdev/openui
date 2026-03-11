@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/react-lang",
   "version": "0.1.2",
-  "description": "OpenUI-lang renderer and standard library for React",
+  "description": "Define component libraries, generate LLM system prompts, and render streaming OpenUI Lang output in React — the core runtime for OpenUI generative UI",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
@@ -26,6 +26,32 @@
     "prepare": "pnpm run build",
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
+  "keywords": [
+    "openui",
+    "generative-ui",
+    "react",
+    "llm",
+    "streaming",
+    "renderer",
+    "parser",
+    "ai",
+    "components",
+    "prompt-generation",
+    "zod",
+    "ui-generation",
+    "model-driven-ui",
+    "openui-lang"
+  ],
+  "homepage": "https://openui.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "packages/react-lang"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "author": "engineering@thesys.dev",
   "dependencies": {
     "zod": "^4.0.0"
   },

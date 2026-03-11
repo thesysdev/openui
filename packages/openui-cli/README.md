@@ -1,6 +1,9 @@
-# OpenUI CLI
+# @openuidev/cli
 
-The OpenUI CLI helps you get started with OpenUI faster.
+Command-line tool for [OpenUI](https://openui.com) — scaffold AI-powered generative UI chat apps and generate LLM system prompts from your React component libraries.
+
+[![npm](https://img.shields.io/npm/v/@openuidev/cli)](https://www.npmjs.com/package/@openuidev/cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/thesysdev/openui/blob/main/LICENSE)
 
 It currently supports two workflows:
 
@@ -148,3 +151,11 @@ node dist/index.js generate --help
 - interactive prompts can be cancelled without creating output
 - `create` requires the template files to be present in the built package
 - `generate` exits with a non-zero code if the file is missing or no valid library export is found
+
+## Documentation
+
+Full documentation and guides are available at **[openui.com](https://openui.com)**.
+
+## License
+
+[MIT](https://github.com/thesysdev/openui/blob/main/LICENSE)
