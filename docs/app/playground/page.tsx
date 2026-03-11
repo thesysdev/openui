@@ -1,15 +1,11 @@
 "use client";
 
-import { defaultExamples, defaultLibrary } from "@openuidev/react-ui";
 import { Send, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CatalogPanel } from "./components/CatalogPanel/CatalogPanel";
 import { CodePanel } from "./components/CodePanel/CodePanel";
 import { Header } from "./components/Header/Header";
 import { PreviewPanel } from "./components/PreviewPanel/PreviewPanel";
 import { MODELS, STARTER_PROMPTS, type Model, type Status, type Theme } from "./constants";
-
-const SYSTEM_PROMPT = defaultLibrary.prompt({ examples: defaultExamples });
 
 export default function PlaygroundPage() {
   const [theme, setTheme] = useState<Theme>("system");
@@ -63,7 +59,7 @@ export default function PlaygroundPage() {
       const res = await fetch("/api/playground/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model, prompt: prompt.trim(), systemPrompt: SYSTEM_PROMPT }),
+        body: JSON.stringify({ model, prompt: prompt.trim() }),
         signal: controller.signal,
       });
 
@@ -131,7 +127,6 @@ export default function PlaygroundPage() {
       <Header theme={theme} onThemeToggle={cycleTheme} hasApiKey={false} onChangeKey={() => {}} />
 
       <div className="app-body">
-        <CatalogPanel />
         <div className="content-wrapper">
           <div className="prompt-section">
             <h1 className="prompt-heading">What do you want to build?</h1>

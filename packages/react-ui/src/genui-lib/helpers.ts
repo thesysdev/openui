@@ -25,6 +25,26 @@ export function buildChartData(
   series: unknown,
 ): Record<string, string | number>[] {
   const lbls = asArray(labels) as string[];
+
+  // Tabular format: labels = column names, series = 2D rows from Query results
+  // e.g. AreaChart(data.columns, data.results) where columns=["day","views","users"]
+  // and results=[["Mon",100,50],["Tue",200,75]]
+  const rows = asArray(series);
+  if (rows.length > 0 && Array.isArray(rows[0])) {
+    // Column 0 = category labels, columns 1+ = series values
+    const seriesNames = lbls.slice(1);
+    return rows.map((row) => {
+      const cells = row as unknown[];
+      const point: Record<string, string | number> = { category: String(cells[0] ?? "") };
+      seriesNames.forEach((name, si) => {
+        const val = cells[si + 1];
+        point[name] = typeof val === "number" ? val : Number(val) || 0;
+      });
+      return point;
+    });
+  }
+
+  // Original format: labels = x-axis values, series = Series() elements
   const seriesNodes = asElementNodes(series);
   return lbls.map((label, i) => {
     const point: Record<string, string | number> = { category: label };

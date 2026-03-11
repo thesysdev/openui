@@ -31,7 +31,7 @@ const STEPS: Step[] = [
     number: 2,
     title: "OpenUI generates system prompt",
     description:
-      "Generate a system prompt from your library with OpenUI SDK and send it to the LLM.",
+      "Generate a system prompt from your library with the OpenUI CLI or library.prompt() and send it to the LLM.",
     details: [],
   },
   {

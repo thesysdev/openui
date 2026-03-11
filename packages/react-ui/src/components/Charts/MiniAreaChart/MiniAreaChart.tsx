@@ -1,8 +1,7 @@
 import clsx from "clsx";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Area, AreaChart as RechartsAreaChart, XAxis } from "recharts";
 import { usePrintContext } from "../../../context/PrintContext";
-import { useId } from "../../../polyfills";
 import { AreaChartVariant } from "../AreaChart/types";
 import { ChartConfig, ChartContainer } from "../Charts";
 import {

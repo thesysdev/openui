@@ -21,21 +21,21 @@ interface SocialLink {
 
 const SOCIAL_LINKS: SocialLink[] = [
   {
-    label: "Discord",
-    href: "#",
+    label: "Twitter",
+    href: "https://x.com/thesysdev",
     viewBox: "0 0 24 24",
     path: svgPaths.pa1e7100,
-  },
-  {
-    label: "Twitter",
-    href: "#",
-    viewBox: "0 0 21.9611 17",
-    path: svgPaths.p3885cd00,
     wrapperStyle: { inset: "10.82% 4.33% 18.35% 4.17%" },
   },
   {
+    label: "Discord",
+    href: "https://discord.com/invite/Pbv5PsqUSv",
+    viewBox: "0 0 21.9611 17",
+    path: svgPaths.p3885cd00,
+  },
+  {
     label: "YouTube",
-    href: "#",
+    href: "https://www.youtube.com/@thesysdev",
     viewBox: "0 0 22 15.4688",
     path: svgPaths.p23dbbd00,
     wrapperStyle: {
@@ -50,7 +50,7 @@ const SOCIAL_LINKS: SocialLink[] = [
   },
   {
     label: "LinkedIn",
-    href: "#",
+    href: "https://www.linkedin.com/company/thesysdev/",
     viewBox: "0 0 19 19",
     path: svgPaths.p26fc3100,
     wrapperStyle: {
@@ -88,7 +88,13 @@ function SocialIcon({ link }: { link: SocialLink }) {
   );
 
   return (
-    <a href={link.href} className={styles.socialLink} aria-label={link.label}>
+    <a
+      href={link.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={styles.socialLink}
+      aria-label={link.label}
+    >
       {link.wrapperStyle ? (
         <div className={styles.socialIconWrap} style={link.wrapperStyle}>
           {svgContent}

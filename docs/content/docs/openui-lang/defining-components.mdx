@@ -8,7 +8,7 @@ Use `defineComponent(...)` to register each component and `createLibrary(...)` t
 ## Core API
 
 ```tsx
-import { defineComponent, createLibrary } from "@openuidev/lang-react";
+import { defineComponent, createLibrary } from "@openuidev/react-lang";
 import { z } from "zod";
 
 const StatCard = defineComponent({
@@ -42,7 +42,7 @@ export const myLibrary = createLibrary({
 ## Nesting pattern with `.ref`
 
 ```tsx
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod";
 
 const Item = defineComponent({
@@ -67,7 +67,7 @@ const List = defineComponent({
 To define container components that accepts multiple child components, you can use the `z.union` function to define the child components.
 
 ```tsx
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod";
 
 const TextBlock = defineComponent({
@@ -83,6 +83,26 @@ const TabItemSchema = z.object({
   content: z.array(z.union([TextBlock.ref, CalloutBlock.ref])),
 });
 ```
+
+## The `root` field
+
+The `root` option in `createLibrary` specifies which component the LLM must use as the entry point. The generated system prompt instructs the model to always start with `root = <RootName>(...)`.
+
+```ts
+const library = createLibrary({
+  root: "Stack", // → prompt tells LLM: "every program must define root = Stack(...)"
+  components: [Stack, Card, TextContent],
+});
+```
+
+This serves two purposes:
+
+1. **Constrains the LLM** — the model always wraps its output in a known top-level component, making output predictable.
+2. **Enables streaming** — because the root statement comes first, the UI shell renders immediately while child components stream in.
+
+The `root` must match the `name` of one of the components in your library. If omitted, the prompt uses "Root" as a placeholder.
+
+For the built-in libraries: `openuiLibrary` uses `Stack` (flexible layout container), while `openuiChatLibrary` uses `Card` (vertical container optimized for chat responses).
 
 ## Notes on schema metadata
 
@@ -102,6 +122,67 @@ const library = createLibrary({
   ],
 });
 ```
+
+### Why group components?
+
+`componentGroups` organize the generated system prompt into named sections (e.g., Layout, Forms, Charts). This helps the LLM locate relevant components quickly instead of scanning a flat list. Without groups, all component signatures appear under a single "Ungrouped" heading.
+
+Groups also let you co-locate related components so the LLM understands which components work together (e.g., `Form` with `FormControl`, `Input`, `Select`).
+
+### Adding group notes
+
+Each group can include a `notes` array — these strings are appended directly after the group's component signatures in the generated prompt. Use notes to give the LLM usage hints and constraints:
+
+```ts
+componentGroups: [
+  {
+    name: "Forms",
+    components: ["Form", "FormControl", "Input", "TextArea", "Select"],
+    notes: [
+      "- Define EACH FormControl as its own reference for progressive streaming.",
+      "- NEVER nest Form inside Form.",
+      "- Form requires explicit buttons: Form(name, buttons, fields).",
+    ],
+  },
+  {
+    name: "Layout",
+    components: ["Stack", "Tabs", "TabItem", "Accordion", "AccordionItem"],
+    notes: [
+      '- For grid-like layouts, use Stack with direction "row" and wrap=true.',
+    ],
+  },
+],
+```
+
+Notes appear in the prompt output like this:
+
+```
+### Forms
+Form(id: string, buttons: Buttons, controls: FormControl[]) — Form container
+FormControl(label: string, field: Input | TextArea | Select) — Single field
+...
+- Define EACH FormControl as its own reference for progressive streaming.
+- NEVER nest Form inside Form.
+- Form requires explicit buttons: Form(name, buttons, fields).
+```
+
+### Prompt options
+
+When generating the system prompt, you can pass `PromptOptions` to customize the output further:
+
+```ts
+import type { PromptOptions } from "@openuidev/react-lang";
+
+const options: PromptOptions = {
+  preamble: "You are an assistant that outputs only OpenUI Lang.",
+  additionalRules: ["Always use Card as the root for chat responses."],
+  examples: [`root = Stack([title])\ntitle = TextContent("Hello", "large-heavy")`],
+};
+
+const prompt = library.prompt(options);
+```
+
+See [System Prompts](/docs/openui-lang/system-prompts) for full details on prompt generation.
 
 ## Next Steps
 

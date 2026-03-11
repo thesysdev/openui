@@ -2,7 +2,7 @@
   "type": "module",
   "name": "@openuidev/react-ui",
   "license": "MIT",
-  "version": "0.9.16",
+  "version": "0.9.18",
   "description": "Component library for Generative UI SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -34,7 +34,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -58,10 +59,10 @@
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "peerDependencies": {
-    "@openuidev/lang-react": "workspace:^",
+    "@openuidev/react-lang": "workspace:^",
     "@openuidev/react-headless": "workspace:^",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0",
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0",
     "zustand": "^4.5.5"
   },
   "dependencies": {
@@ -140,16 +141,32 @@
     "react",
     "ui",
     "components",
-    "generative",
+    "generative-ui",
     "ai",
-    "agentic",
-    "framework"
+    "chat",
+    "chatbot",
+    "copilot",
+    "charts",
+    "forms",
+    "tables",
+    "theming",
+    "design-system",
+    "llm",
+    "streaming",
+    "tailwind",
+    "radix",
+    "recharts",
+    "markdown"
   ],
+  "homepage": "https://openui.com",
   "author": "engineering@thesys.dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/thesysdev/openui.git",
-    "directory": "js/packages/react-ui"
+    "directory": "packages/react-ui"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
   },
   "eslintConfig": {
     "extends": [

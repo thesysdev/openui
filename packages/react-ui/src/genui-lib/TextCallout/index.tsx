@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { TextCallout as OpenUITextCallout } from "../../components/TextCallout";
 import { TextCalloutSchema } from "./schema";
 

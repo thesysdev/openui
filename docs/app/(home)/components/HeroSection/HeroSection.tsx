@@ -16,7 +16,7 @@ const HERO_BUTTON_STYLE = {
 } as CSSProperties;
 
 // CTAs
-const primaryCTA = "npm install @openuidev/lang-react @openuidev/react-ui";
+const primaryCTA = "npx @openuidev/cli@latest create";
 const secondaryCTA = "Try Playground";
 const COPIED_FEEDBACK_MS = 3000;
 // ---------------------------------------------------------------------------

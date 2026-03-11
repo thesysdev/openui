@@ -9,6 +9,7 @@ import {
   useGitHubStarCount,
 } from "@/components/brand-logo";
 import svgPaths from "@/imports/svg-urruvoh2be";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { BUTTON_SHADOW } from "../shared/shared";
 import styles from "./Navbar.module.css";
@@ -17,11 +18,9 @@ import styles from "./Navbar.module.css";
 // Constants
 // ---------------------------------------------------------------------------
 
-const NAV_TABS = ["Introduction", "OpenUI Lang", "Chat", "Playground", "API Reference"] as const;
+const NAV_TABS = ["OpenUI Lang", "Playground", "API Reference"] as const;
 const TAB_URLS: Record<string, string> = {
-  Introduction: "/docs/introduction",
   "OpenUI Lang": "/docs/openui-lang",
-  Chat: "/docs/chat",
   Playground: "/playground",
   "API Reference": "/docs/api-reference",
   Components: "/docs/components",
@@ -31,7 +30,6 @@ const MOBILE_GITHUB_BUTTON_STYLE = {
   "--mobile-github-button-shadow": BUTTON_SHADOW,
 } as CSSProperties;
 
-// ---------------------------------------------------------------------------
 // Shared SVG icons
 // ---------------------------------------------------------------------------
 
@@ -49,7 +47,6 @@ function ChevronDownIcon() {
   );
 }
 
-// ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
 
@@ -100,13 +97,23 @@ function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => 
   return (
     <>
       {/* Backdrop overlay — below navbar (absolute top-full), covers rest of viewport */}
-      <div
+      <motion.div
         className={styles.mobileBackdrop}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
         onClick={onClose}
       />
 
       {/* Tray + floating GitHub button */}
-      <div className={styles.mobileTrayWrap}>
+      <motion.div
+        className={styles.mobileTrayWrap}
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.2 }}
+      >
         {/* Tray */}
         <div className={styles.mobileTray}>
           <div className={styles.mobileTrayInner}>
@@ -127,7 +134,12 @@ function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => 
 
         {/* GitHub button — centered, 80px below tray, scaled up 140% */}
         <div className={styles.mobileGithubButtonWrap}>
-          <button className={styles.mobileGithubButton}>
+          <a
+            href="https://github.com/thesysdev/openui"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.mobileGithubButton}
+          >
             <div
               aria-hidden="true"
               className={styles.mobileGithubButtonOverlay}
@@ -135,9 +147,9 @@ function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => 
             />
             <GitHubIcon />
             <StarCountBadge count={starCount} isHighlighted={false} />
-          </button>
+          </a>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }
@@ -197,7 +209,9 @@ export function Navbar() {
       </div>
 
       {/* Mobile dropdown menu */}
-      {isMobileMenuOpen && <MobileMenu starCount={starCount} onClose={toggleMobileMenu} />}
+      <AnimatePresence>
+        {isMobileMenuOpen && <MobileMenu starCount={starCount} onClose={toggleMobileMenu} />}
+      </AnimatePresence>
     </nav>
   );
 }

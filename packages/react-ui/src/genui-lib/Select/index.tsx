@@ -2,15 +2,14 @@
 
 import {
   defineComponent,
-  parseRules,
+  parseStructuredRules,
   useFormName,
   useFormValidation,
   useGetFieldValue,
   useIsStreaming,
   useSetFieldValue,
-} from "@openuidev/lang-react";
+} from "@openuidev/react-lang";
 import React from "react";
-import { z } from "zod";
 import {
   Select as OpenUISelect,
   SelectContent as OpenUISelectContent,
@@ -18,7 +17,7 @@ import {
   SelectTrigger as OpenUISelectTrigger,
   SelectValue as OpenUISelectValue,
 } from "../../components/Select";
-import { SelectItemSchema } from "./schema";
+import { SelectItemSchema, createSelectSchema } from "./schema";
 
 export { SelectItemSchema } from "./schema";
 
@@ -31,12 +30,7 @@ export const SelectItem = defineComponent({
 
 export const Select = defineComponent({
   name: "Select",
-  props: z.object({
-    name: z.string(),
-    items: z.array(SelectItem.ref),
-    placeholder: z.string().optional(),
-    rules: z.array(z.string()).optional(),
-  }),
+  props: createSelectSchema(SelectItem),
   description: "",
   component: ({ props }) => {
     const formName = useFormName();
@@ -45,8 +39,10 @@ export const Select = defineComponent({
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
 
-    const rules = React.useMemo(() => parseRules(props.rules), [props.rules]);
-    const items = (props.items ?? []).filter((item) => item.props.value);
+    const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
+    const items = (
+      (props.items ?? []) as Array<{ props: { value: string; label?: string } }>
+    ).filter((item) => item.props.value);
     const value = getFieldValue(formName, props.name);
 
     React.useEffect(() => {

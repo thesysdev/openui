@@ -1,0 +1,40 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-section-v2 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: cssUtils.$space-xl;
+  margin-top: cssUtils.$space-m;
+
+  &-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    gap: cssUtils.$space-xl;
+  }
+
+  &-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: cssUtils.$space-s;
+    margin-bottom: cssUtils.$space-2xs;
+
+    &-trigger {
+      @include cssUtils.typography(heading, small);
+      color: cssUtils.$text-neutral-primary;
+    }
+  }
+
+  &-content {
+    width: 100%;
+    gap: cssUtils.$space-xl;
+    display: flex;
+    flex-direction: column;
+  }
+}

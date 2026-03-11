@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent, useFormValidation } from "@openuidev/lang-react";
+import { defineComponent, useFormValidation } from "@openuidev/react-lang";
 import { AlertCircle } from "lucide-react";
 import { FormControl as OpenUIFormControl } from "../../components/FormControl";
 import { Hint as OpenUIHint } from "../../components/FormControl/Hint";
@@ -19,10 +19,13 @@ export const FormControl = defineComponent({
     const fieldName =
       inputObj?.type === "element" ? (inputObj.props?.name as string | undefined) : undefined;
     const error = fieldName ? formValidation?.errors[fieldName] : undefined;
+    const isRequired = inputObj?.type === "element" && inputObj.props?.rules?.required === true;
 
     return (
       <OpenUIFormControl>
-        <OpenUILabel className="text-sm font-medium">{props.label as string}</OpenUILabel>
+        <OpenUILabel className="text-sm font-medium" required={isRequired}>
+          {props.label as string}
+        </OpenUILabel>
         {renderNode(props.input)}
         {error ? (
           <OpenUIHint hasError={true}>

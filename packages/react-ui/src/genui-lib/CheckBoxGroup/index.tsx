@@ -2,70 +2,29 @@
 
 import {
   defineComponent,
-  parseRules,
+  parseStructuredRules,
   useFormName,
   useFormValidation,
   useGetFieldValue,
   useIsStreaming,
-  useSetDefaultValue,
   useSetFieldValue,
   type SubComponentOf,
-} from "@openuidev/lang-react";
+} from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod";
 import { CheckBoxGroup as OpenUICheckBoxGroup } from "../../components/CheckBoxGroup";
 import { CheckBoxItem as OpenUICheckBoxItem } from "../../components/CheckBoxItem";
+import { rulesSchema } from "../rules";
 import { CheckBoxItemSchema } from "./schema";
 
 export { CheckBoxItemSchema } from "./schema";
 
-type CheckBoxItemProps = z.infer<typeof CheckBoxItemSchema>;
-
-function CheckBoxItemControlled({
-  item,
-  formName,
-  getFieldValue,
-  setFieldValue,
-  isStreaming,
-  onChangeExtra,
-}: {
-  item: SubComponentOf<CheckBoxItemProps>;
-  formName: string | undefined;
-  getFieldValue: (formName: string | undefined, name: string) => any;
-  setFieldValue: (
-    formName: string | undefined,
-    componentType: string | undefined,
-    name: string,
-    value: any,
-    shouldTriggerSaveCallback?: boolean,
-  ) => void;
-  isStreaming: boolean;
-  onChangeExtra?: (childName: string, newVal: boolean) => void;
-}) {
-  const existingValue = getFieldValue(formName, item.props.name);
-
-  useSetDefaultValue({
-    formName,
-    componentType: "CheckBoxItem",
-    name: item.props.name,
-    existingValue,
-    defaultValue: item.props.defaultChecked,
-  });
-
-  return (
-    <OpenUICheckBoxItem
-      name={item.props.name}
-      label={item.props.label}
-      description={item.props.description || ""}
-      checked={existingValue ?? item.props.defaultChecked}
-      onChange={(val: boolean) => {
-        setFieldValue(formName, "CheckBoxItem", item.props.name, val, true);
-        onChangeExtra?.(item.props.name, val);
-      }}
-      disabled={isStreaming}
-    />
-  );
-}
+type CheckBoxItemProps = {
+  name: string;
+  label: string;
+  description: string;
+  defaultChecked?: boolean;
+};
 
 export const CheckBoxItem = defineComponent({
   name: "CheckBoxItem",
@@ -79,7 +38,7 @@ export const CheckBoxGroup = defineComponent({
   props: z.object({
     name: z.string(),
     items: z.array(CheckBoxItem.ref),
-    rules: z.array(z.string()).optional(),
+    rules: rulesSchema,
   }),
   description: "",
   component: ({ props }) => {
@@ -89,44 +48,58 @@ export const CheckBoxGroup = defineComponent({
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
 
-    const rules = React.useMemo(() => parseRules(props.rules), [props.rules]);
-    const items = props.items ?? [];
+    const fieldName = props.name as string;
+    const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
+    const items = (props.items ?? []) as Array<SubComponentOf<CheckBoxItemProps>>;
 
-    const getAggregateValue = React.useCallback(() => {
-      const aggregate: Record<string, boolean> = {};
+    const getAggregate = React.useCallback((): Record<string, boolean> => {
+      const stored = getFieldValue(formName, fieldName) as Record<string, boolean> | undefined;
+      const result: Record<string, boolean> = {};
       for (const item of items) {
-        aggregate[item.props.name] = !!getFieldValue(formName, item.props.name);
+        result[item.props.name] = stored?.[item.props.name] ?? item.props.defaultChecked ?? false;
       }
-      return aggregate;
-    }, [items, formName, getFieldValue]);
+      return result;
+    }, [formName, fieldName, items, getFieldValue]);
+
+    React.useEffect(() => {
+      if (!isStreaming && items.length > 0 && getFieldValue(formName, fieldName) == null) {
+        const initial: Record<string, boolean> = {};
+        for (const item of items) {
+          initial[item.props.name] = item.props.defaultChecked ?? false;
+        }
+        setFieldValue(formName, "CheckBoxGroup", fieldName, initial, false);
+      }
+    }, [isStreaming]);
 
     React.useEffect(() => {
       if (!isStreaming && rules.length > 0 && formValidation) {
-        formValidation.registerField(props.name, rules, getAggregateValue);
-        return () => formValidation.unregisterField(props.name);
+        formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
+        return () => formValidation.unregisterField(fieldName);
       }
       return undefined;
     }, [isStreaming, rules.length > 0]);
 
     if (!items.length) return null;
 
+    const aggregate = getAggregate();
+
     return (
       <OpenUICheckBoxGroup>
         {items.map((item, i) => (
-          <CheckBoxItemControlled
+          <OpenUICheckBoxItem
             key={i}
-            item={item}
-            formName={formName}
-            getFieldValue={getFieldValue}
-            setFieldValue={setFieldValue}
-            isStreaming={isStreaming}
-            onChangeExtra={(childName: string, newVal: boolean) => {
+            name={item.props.name}
+            label={item.props.label}
+            description={item.props.description || ""}
+            checked={aggregate[item.props.name] ?? item.props.defaultChecked ?? false}
+            onChange={(val: boolean) => {
+              const newAggregate = { ...getAggregate(), [item.props.name]: val };
+              setFieldValue(formName, "CheckBoxGroup", fieldName, newAggregate, true);
               if (rules.length > 0) {
-                const aggregate = getAggregateValue();
-                aggregate[childName] = newVal;
-                formValidation?.validateField(props.name, aggregate, rules);
+                formValidation?.validateField(fieldName, newAggregate, rules);
               }
             }}
+            disabled={isStreaming}
           />
         ))}
       </OpenUICheckBoxGroup>

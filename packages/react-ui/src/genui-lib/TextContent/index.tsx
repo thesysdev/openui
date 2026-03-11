@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { MarkDownRenderer } from "../../components/MarkDownRenderer";
 import { TextContentSchema } from "./schema";
@@ -29,9 +29,10 @@ export const TextContent = defineComponent({
             "--openui-text-body-default": `var(${varName})`,
             "--openui-text-body-default-letter-spacing": `var(${varName}-letter-spacing)`,
           } as React.CSSProperties);
+    const text = props.text == null ? "" : String(props.text);
     return (
       <div style={style}>
-        <MarkDownRenderer textMarkdown={props.text as string} />
+        <MarkDownRenderer textMarkdown={text} />
       </div>
     );
   },

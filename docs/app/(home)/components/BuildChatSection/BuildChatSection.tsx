@@ -1,10 +1,10 @@
 "use client";
 
+import dashboardImg from "@/public/images/home/d67b5e94653944c1d0d4998c6b169c37f98060ad.png";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { CopyIcon } from "../shared/shared";
 import styles from "./BuildChatSection.module.css";
-
-const dashboardImg = "/images/home/d67b5e94653944c1d0d4998c6b169c37f98060ad.png";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -36,7 +36,7 @@ function CtaButton() {
     if (copied) return;
 
     try {
-      await navigator.clipboard.writeText("npx create openui-app chat");
+      await navigator.clipboard.writeText("npx @openuidev/cli@latest create");
       setCopied(true);
       resetTimeoutRef.current = setTimeout(() => {
         setCopied(false);
@@ -73,7 +73,7 @@ function CtaButton() {
           </svg>
         </span>
         <span className={styles.ctaLabel}>
-          npx create openui-app chat
+          npx @openuidev/cli@latest create
         </span>
       </button>
     </div>
@@ -82,10 +82,11 @@ function CtaButton() {
 
 function DashboardIllustration() {
   return (
-    <img
+    <Image
       src={dashboardImg}
       alt="AI chat dashboard illustration"
       className={styles.dashboardImage}
+      placeholder="blur"
     />
   );
 }

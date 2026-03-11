@@ -60,7 +60,7 @@ All three layouts accept:
   - `assistantMessage?: AssistantMessageComponent`
   - `userMessage?: UserMessageComponent`
   - `composer?: ComposerComponent`
-  - `componentLibrary?: Library` (from `@openuidev/lang-react`)
+  - `componentLibrary?: Library` (from `@openuidev/react-lang`)
 - Theme wrapper props:
   - `theme?: ThemeProps`
   - `disableThemeProvider?: boolean`
@@ -95,28 +95,42 @@ interface ConversationStartersConfig {
 }
 ```
 
-## Default component library exports
+## Component library exports
 
-The default library and prompt helpers for OpenUI Lang:
+Two ready-to-use libraries ship with `@openuidev/react-ui`. Import from the `genui-lib` subpath:
 
 ```ts
 import {
-  defaultLibrary,
-  defaultPromptOptions,
-  defaultExamples,
-  defaultAdditionalRules,
-  defaultComponentGroups,
-} from "@openuidev/react-ui";
+  // Chat-optimised (root = Card, includes FollowUpBlock, ListBlock, SectionBlock)
+  openuiChatLibrary,
+  openuiChatPromptOptions,
+  openuiChatExamples,
+  openuiChatAdditionalRules,
+  openuiChatComponentGroups,
+
+  // General-purpose (root = Stack, full component suite)
+  openuiLibrary,
+  openuiPromptOptions,
+  openuiExamples,
+  openuiAdditionalRules,
+  openuiComponentGroups,
+} from "@openuidev/react-ui/genui-lib";
 ```
 
-These exports are built with `createLibrary(...)` from `@openuidev/lang-react` and are ready to use:
+**`openuiChatLibrary`** — Root is `Card` (vertical, no layout params). Includes chat-specific components: `FollowUpBlock`, `ListBlock`, `SectionBlock`. Does not include `Stack`. Use with `FullScreen` / `BottomTray` / `Copilot` chat interfaces.
+
+**`openuiLibrary`** — Root is `Stack`. Full layout suite with `Stack`, `Tabs`, `Carousel`, `Accordion`, etc. Use with the standalone `Renderer` or any non-chat layout (e.g., playground, embedded widgets).
+
+Generate the system prompt at build time with the CLI:
+
+```bash
+npx @openuidev/cli generate ./src/library.ts --out src/generated/system-prompt.txt
+```
 
 ```tsx
-<Renderer response={message} library={defaultLibrary} />
-```
+// Chat interface — system prompt stays on the server
+<FullScreen componentLibrary={openuiChatLibrary} ... />
 
-Generate the system prompt with:
-
-```ts
-const systemPrompt = defaultLibrary.prompt(defaultPromptOptions);
+// Standalone renderer
+<Renderer response={message} library={openuiLibrary} />
 ```

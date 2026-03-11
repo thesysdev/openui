@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { ImageBlock as OpenUIImageBlock } from "../../components/ImageBlock";
 import { ImageBlockSchema } from "./schema";
 

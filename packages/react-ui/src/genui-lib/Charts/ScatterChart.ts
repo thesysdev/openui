@@ -1,10 +1,10 @@
 "use client";
 
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod";
 import { ScatterChart as ScatterChartComponent } from "../../components/Charts";
-import { hasAllProps } from "../helpers";
+import { asArray, hasAllProps } from "../helpers";
 import { ScatterSeriesSchema } from "./ScatterSeries";
 
 export const ScatterChartSchema = z.object({
@@ -13,21 +13,30 @@ export const ScatterChartSchema = z.object({
   yLabel: z.string().optional(),
 });
 
+const unwrap = (node: any) => (node?.type === "element" ? node.props : node);
+
 export const ScatterChart = defineComponent({
   name: "ScatterChart",
   props: ScatterChartSchema,
   description: "X/Y scatter plot; use for correlations, distributions, and clustering",
   component: ({ props }) => {
     if (!hasAllProps(props as Record<string, unknown>, "datasets")) return null;
-    const datasets = (props as any).datasets as any[];
-    const data = datasets.map((ds: any) => ({
-      name: ds.name as string,
-      data: ((ds.points ?? []) as any[]).map((pt: any) => ({
-        x: pt.x as number,
-        y: pt.y as number,
-        ...(pt.z != null ? { z: pt.z as number } : {}),
-      })),
-    }));
+    const rawDatasets = asArray((props as any).datasets);
+    const data = rawDatasets.map((ds: any) => {
+      const dsProps = unwrap(ds);
+      const rawPoints = asArray(dsProps?.points);
+      return {
+        name: (dsProps?.name ?? "") as string,
+        data: rawPoints.map((pt: any) => {
+          const ptProps = unwrap(pt);
+          return {
+            x: Number(ptProps?.x),
+            y: Number(ptProps?.y),
+            ...(ptProps?.z != null ? { z: Number(ptProps.z) } : {}),
+          };
+        }),
+      };
+    });
     if (!data.length) return null;
     return React.createElement(ScatterChartComponent, {
       data,

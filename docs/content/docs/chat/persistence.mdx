@@ -1,36 +1,111 @@
 ---
-title: Persistence (Threads)
-description: Configure threadApiUrl and load/save chat history.
+title: Connect Thread History
+description: Configure threadApiUrl and load thread lists and message history.
 ---
 
-To persist conversations, pass `threadApiUrl` or provide custom thread functions.
+This page explains how to connect thread lists and previous messages from a backend.
 
-### REST-style setup
+To connect thread history, either:
+
+- pass `threadApiUrl` and implement the default endpoint contract used by OpenUI
+- provide custom thread functions if your API shape is different
+
+This config only affects thread history. Your live chat request still comes from `apiUrl` or `processMessage`.
+
+## Default `threadApiUrl` contract
+
+When you pass `threadApiUrl="/api/threads"`, OpenUI appends its own path segments. The default requests look like this:
+
+| Action        | Method   | URL                       | Request body   | Expected response                         |
+| :------------ | :------- | :------------------------ | :------------- | :---------------------------------------- |
+| List threads  | `GET`    | `/api/threads/get`        | —              | `{ threads: Thread[], nextCursor?: any }` |
+| Create thread | `POST`   | `/api/threads/create`     | `{ messages }` | `Thread`                                  |
+| Update thread | `PATCH`  | `/api/threads/update/:id` | `Thread`       | `Thread`                                  |
+| Delete thread | `DELETE` | `/api/threads/delete/:id` | —              | empty response is fine                    |
+| Load messages | `GET`    | `/api/threads/get/:id`    | —              | message array in your backend format      |
 
 ```tsx
 import { FullScreen } from "@openuidev/react-ui";
 
-<FullScreen apiUrl="/api/chat" threadApiUrl="/api/threads" />;
+<FullScreen apiUrl="/api/chat" threadApiUrl="/api/threads" agentName="Assistant" />;
 ```
 
-Expected endpoints under `/api/threads`:
+`createThread` sends the first user message as `messages`, already converted through your current `messageFormat`. `loadThread` expects the response body to be something `messageFormat.fromApi()` can read.
 
-| Action        | Method   | URL                         |
-| :------------ | :------- | :-------------------------- |
-| List threads  | `GET`    | `/api/threads`              |
-| Create thread | `POST`   | `/api/threads`              |
-| Update thread | `PUT`    | `/api/threads/:id`          |
-| Delete thread | `DELETE` | `/api/threads/:id`          |
-| Load messages | `GET`    | `/api/threads/:id/messages` |
+## When to add `messageFormat`
 
-### Custom functions
+If your thread API stores messages in OpenUI's default shape, you do not need any extra config.
 
-If your API is non-REST or needs custom auth, pass:
+If your thread API stores messages in OpenAI chat format, add `messageFormat={openAIMessageFormat}` so both chat requests and thread loading stay aligned.
 
-- `fetchThreadList`
-- `createThread`
-- `updateThread`
-- `deleteThread`
-- `loadThread`
+In other words:
 
-For the full payload spec, see [The API Contract](/docs/chat/api-contract).
+- `apiUrl` or `processMessage` handles sending new chat requests
+- `threadApiUrl` handles listing threads and loading saved messages
+- `messageFormat` keeps both paths aligned when your backend does not use the default AG-UI message shape
+
+```tsx
+import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
+import { FullScreen } from "@openuidev/react-ui";
+
+<FullScreen
+  apiUrl="/api/chat"
+  threadApiUrl="/api/threads"
+  streamProtocol={openAIReadableStreamAdapter()}
+  messageFormat={openAIMessageFormat}
+  agentName="Assistant"
+/>;
+```
+
+## Use custom thread functions when your API differs
+
+If your backend already uses a different shape, such as:
+
+- REST routes like `/api/threads/:id/messages`
+- GraphQL
+- auth-protected endpoints with custom headers
+- a different request body for creating threads
+
+then provide the individual thread functions instead of relying on the default `threadApiUrl` behavior.
+
+```tsx
+<FullScreen
+  apiUrl="/api/chat"
+  fetchThreadList={async (cursor) => {
+    const res = await fetch(`/api/conversations?cursor=${cursor ?? ""}`);
+    return res.json();
+  }}
+  createThread={async (firstMessage) => {
+    const res = await fetch("/api/conversations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ firstMessage }),
+    });
+    return res.json();
+  }}
+  updateThread={async (thread) => {
+    const res = await fetch(`/api/conversations/${thread.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(thread),
+    });
+    return res.json();
+  }}
+  deleteThread={async (id) => {
+    await fetch(`/api/conversations/${id}`, { method: "DELETE" });
+  }}
+  loadThread={async (threadId) => {
+    const res = await fetch(`/api/conversations/${threadId}/messages`);
+    return res.json();
+  }}
+  agentName="Assistant"
+/>
+```
+
+{/* add visual: flow-chart showing how threadApiUrl maps to list, create, update, delete, and load requests, and where messageFormat affects create/load payloads */}
+
+## Related guides
+
+- [The API Contract](/docs/chat/api-contract)
+- [Connecting to LLM](/docs/chat/connecting)
+- [End-to-End Guide](/docs/chat/from-scratch)
