@@ -24,20 +24,8 @@ export const openAIAdapter = (): StreamProtocolAdapter => ({
         if (!data || data === "[DONE]") continue;
 
         try {
-          const json = JSON.parse(data);
-
-          if (json.error) {
-            yield {
-              type: EventType.RUN_ERROR,
-              message:
-                typeof json.error === "string"
-                  ? json.error
-                  : json.error.message || "Unknown stream error",
-            } as AGUIEvent;
-            continue;
-          }
-
-          const choice = (json as ChatCompletionChunk).choices?.[0];
+          const json = JSON.parse(data) as ChatCompletionChunk;
+          const choice = json.choices?.[0];
           const delta = choice?.delta;
 
           if (!delta) continue;
