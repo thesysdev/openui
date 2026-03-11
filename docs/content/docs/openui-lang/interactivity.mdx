@@ -25,13 +25,13 @@ When a user clicks a button or follow-up, the component calls `triggerAction`. T
 
 ### `ActionEvent`
 
-| Field                  | Type                            | Description                                    |
-| :--------------------- | :------------------------------ | :--------------------------------------------- |
-| `type`                 | `string`                        | Action type (see built-in types below).        |
-| `params`               | `Record<string, any>`           | Extra parameters from the component.           |
-| `humanFriendlyMessage` | `string`                        | Display label for the action.                  |
-| `formState`            | `Record<string, any> \| undefined` | Raw field state at time of action.          |
-| `formName`             | `string \| undefined`           | Form that scoped the action, if any.           |
+| Field                  | Type                               | Description                             |
+| :--------------------- | :--------------------------------- | :-------------------------------------- |
+| `type`                 | `string`                           | Action type (see built-in types below). |
+| `params`               | `Record<string, any>`              | Extra parameters from the component.    |
+| `humanFriendlyMessage` | `string`                           | Display label for the action.           |
+| `formState`            | `Record<string, any> \| undefined` | Raw field state at time of action.      |
+| `formName`             | `string \| undefined`              | Form that scoped the action, if any.    |
 
 ### Built-in action types
 
@@ -91,12 +91,12 @@ Use `onStateUpdate` to persist field state (e.g. to a message in your thread sto
 
 Use these inside `defineComponent` renderers:
 
-| Hook                | Signature                                                                                          | Description                        |
-| :------------------ | :------------------------------------------------------------------------------------------------- | :--------------------------------- |
-| `useGetFieldValue`  | `(formName: string \| undefined, name: string) => any`                                             | Read a field's current value.      |
-| `useSetFieldValue`  | `(formName: string \| undefined, componentType: string \| undefined, name: string, value: any, shouldTriggerSaveCallback?: boolean) => void` | Write a field value.               |
-| `useFormName`       | `() => string \| undefined`                                                                        | Get the enclosing form's name.     |
-| `useSetDefaultValue`| `(options: { formName?, componentType, name, existingValue, defaultValue, shouldTriggerSaveCallback? }) => void` | Set a default if no value exists.  |
+| Hook                 | Signature                                                                                                                                    | Description                       |
+| :------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------- |
+| `useGetFieldValue`   | `(formName: string \| undefined, name: string) => any`                                                                                       | Read a field's current value.     |
+| `useSetFieldValue`   | `(formName: string \| undefined, componentType: string \| undefined, name: string, value: any, shouldTriggerSaveCallback?: boolean) => void` | Write a field value.              |
+| `useFormName`        | `() => string \| undefined`                                                                                                                  | Get the enclosing form's name.    |
+| `useSetDefaultValue` | `(options: { formName?, componentType, name, existingValue, defaultValue, shouldTriggerSaveCallback? }) => void`                             | Set a default if no value exists. |
 
 ---
 

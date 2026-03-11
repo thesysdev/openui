@@ -24,15 +24,15 @@ export function AssistantMessage({
 
 ## Props
 
-| Prop             | Type                                    | Description                                                    |
-| :--------------- | :-------------------------------------- | :------------------------------------------------------------- |
-| `response`       | `string \| null`                        | Raw OpenUI Lang response text.                                 |
-| `library`        | `Library`                               | Library created by `createLibrary(...)`.                       |
-| `isStreaming`    | `boolean`                               | Indicates stream is in progress.                               |
-| `onAction`       | `(event: ActionEvent) => void`          | Receives structured action events from interactive components. |
-| `onStateUpdate`  | `(state: Record<string, any>) => void`  | Called on form field changes with the raw field state map.      |
-| `initialState`   | `Record<string, any>`                   | Hydrates form state on load (e.g. from persisted message).     |
-| `onParseResult`  | `(result: ParseResult \| null) => void` | Debug/inspect latest parse result.                             |
+| Prop            | Type                                    | Description                                                    |
+| :-------------- | :-------------------------------------- | :------------------------------------------------------------- |
+| `response`      | `string \| null`                        | Raw OpenUI Lang response text.                                 |
+| `library`       | `Library`                               | Library created by `createLibrary(...)`.                       |
+| `isStreaming`   | `boolean`                               | Indicates stream is in progress.                               |
+| `onAction`      | `(event: ActionEvent) => void`          | Receives structured action events from interactive components. |
+| `onStateUpdate` | `(state: Record<string, any>) => void`  | Called on form field changes with the raw field state map.     |
+| `initialState`  | `Record<string, any>`                   | Hydrates form state on load (e.g. from persisted message).     |
+| `onParseResult` | `(result: ParseResult \| null) => void` | Debug/inspect latest parse result.                             |
 
 ## Streaming behavior
 

@@ -1,11 +1,11 @@
 {
-  "title": "OpenUI Lang",
+  "title": "OpenUI",
   "root": true,
   "pages": [
-    "---Getting Started---",
     "index",
     "quickstart",
     "---Core Concepts---",
+    "overview",
     "defining-components",
     "system-prompts",
     "renderer",

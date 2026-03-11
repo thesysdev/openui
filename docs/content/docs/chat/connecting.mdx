@@ -29,15 +29,13 @@ With `apiUrl`, OpenUI sends the message history to your endpoint for you. If you
 
 - add auth headers
 - build a dynamic URL
-- include extra request fields like `systemPrompt`
+- include extra request fields
 - convert `messages` before sending them
 
 ```tsx
 import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui/genui-lib";
-
-const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 
 <FullScreen
   processMessage={async ({ messages, abortController }) => {
@@ -49,7 +47,6 @@ const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
       },
       body: JSON.stringify({
         messages: openAIMessageFormat.toApi(messages),
-        systemPrompt,
       }),
       signal: abortController.signal,
     });
@@ -66,12 +63,12 @@ const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 
 `streamProtocol` tells OpenUI how to parse the response stream. By default, OpenUI expects the OpenUI Protocol, so only set this when your backend streams a different format.
 
-| Backend output | Frontend config |
-| :--- | :--- |
-| OpenUI Protocol | No adapter required |
-| Raw OpenAI Chat Completions SSE | `streamProtocol={openAIAdapter()}` |
+| Backend output                           | Frontend config                                  |
+| :--------------------------------------- | :----------------------------------------------- |
+| OpenUI Protocol                          | No adapter required                              |
+| Raw OpenAI Chat Completions SSE          | `streamProtocol={openAIAdapter()}`               |
 | OpenAI SDK `toReadableStream()` / NDJSON | `streamProtocol={openAIReadableStreamAdapter()}` |
-| OpenAI Responses API | `streamProtocol={openAIResponsesAdapter()}` |
+| OpenAI Responses API                     | `streamProtocol={openAIResponsesAdapter()}`      |
 
 ```tsx
 import { openAIReadableStreamAdapter } from "@openuidev/react-headless";
@@ -87,10 +84,10 @@ import { openAIReadableStreamAdapter } from "@openuidev/react-headless";
 
 `messageFormat` controls the shape of the `messages` array sent to your backend and the shape expected when loading thread history.
 
-| Backend message shape | Frontend config |
-| :--- | :--- |
-| AG-UI message shape | No converter required |
-| OpenAI chat completions messages | `messageFormat={openAIMessageFormat}` |
+| Backend message shape               | Frontend config                                   |
+| :---------------------------------- | :------------------------------------------------ |
+| AG-UI message shape                 | No converter required                             |
+| OpenAI chat completions messages    | `messageFormat={openAIMessageFormat}`             |
 | OpenAI Responses conversation items | `messageFormat={openAIConversationMessageFormat}` |
 
 ```tsx

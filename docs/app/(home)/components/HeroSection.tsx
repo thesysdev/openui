@@ -53,7 +53,7 @@ const mobileFadeUp = (delay: number) => ({
 });
 
 // CTAs
-const primaryCTA = "npm install @openuidev/react-lang @openuidev/react-ui";
+const primaryCTA = "npx @openuidev/cli@latest create";
 const secondaryCTA = "Try Playground";
 const COPIED_FEEDBACK_MS = 3000;
 // ---------------------------------------------------------------------------

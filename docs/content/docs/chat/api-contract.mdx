@@ -14,9 +14,7 @@ When you pass `apiUrl`, OpenUI sends a `POST` request with this shape:
 ```json
 {
   "threadId": "thread_123",
-  "messages": [
-    { "id": "msg_1", "role": "user", "content": "Hello" }
-  ]
+  "messages": [{ "id": "msg_1", "role": "user", "content": "Hello" }]
 }
 ```
 
@@ -33,24 +31,24 @@ If your backend already accepts the default AG-UI message shape, each message ca
 
 Your response stream must match one of these cases:
 
-| Backend response shape | Frontend config |
-| :--- | :--- |
-| OpenUI Protocol | No `streamProtocol` needed |
-| Raw OpenAI Chat Completions SSE | `streamProtocol={openAIAdapter()}` |
+| Backend response shape                   | Frontend config                                  |
+| :--------------------------------------- | :----------------------------------------------- |
+| OpenUI Protocol                          | No `streamProtocol` needed                       |
+| Raw OpenAI Chat Completions SSE          | `streamProtocol={openAIAdapter()}`               |
 | OpenAI SDK `toReadableStream()` / NDJSON | `streamProtocol={openAIReadableStreamAdapter()}` |
-| OpenAI Responses API | `streamProtocol={openAIResponsesAdapter()}` |
+| OpenAI Responses API                     | `streamProtocol={openAIResponsesAdapter()}`      |
 
 ## Default thread API contract
 
 When using `threadApiUrl="/api/threads"`, OpenUI expects the base URL plus these default path segments:
 
-| Action | Method | URL | Request body | Response |
-| :--- | :--- | :--- | :--- | :--- |
-| List threads | `GET` | `/api/threads/get` | — | `{ threads: Thread[], nextCursor?: any }` |
-| Create thread | `POST` | `/api/threads/create` | `{ messages }` | `Thread` |
-| Update thread | `PATCH` | `/api/threads/update/:id` | `Thread` | `Thread` |
-| Delete thread | `DELETE` | `/api/threads/delete/:id` | — | empty response is fine |
-| Load messages | `GET` | `/api/threads/get/:id` | — | message array in your backend format |
+| Action        | Method   | URL                       | Request body   | Response                                  |
+| :------------ | :------- | :------------------------ | :------------- | :---------------------------------------- |
+| List threads  | `GET`    | `/api/threads/get`        | —              | `{ threads: Thread[], nextCursor?: any }` |
+| Create thread | `POST`   | `/api/threads/create`     | `{ messages }` | `Thread`                                  |
+| Update thread | `PATCH`  | `/api/threads/update/:id` | `Thread`       | `Thread`                                  |
+| Delete thread | `DELETE` | `/api/threads/delete/:id` | —              | empty response is fine                    |
+| Load messages | `GET`    | `/api/threads/get/:id`    | —              | message array in your backend format      |
 
 `messages` in the create request is the first user message, already converted through `messageFormat.toApi([firstMessage])`.
 
@@ -73,11 +71,11 @@ type Thread = {
 
 OpenUI ships with these built-in message converters:
 
-| Converter | Use when your backend expects or returns... |
-| :--- | :--- |
-| Default | AG-UI message objects |
-| `openAIMessageFormat` | OpenAI chat completion messages |
-| `openAIConversationMessageFormat` | OpenAI Responses conversation items |
+| Converter                         | Use when your backend expects or returns... |
+| :-------------------------------- | :------------------------------------------ |
+| Default                           | AG-UI message objects                       |
+| `openAIMessageFormat`             | OpenAI chat completion messages             |
+| `openAIConversationMessageFormat` | OpenAI Responses conversation items         |
 
 Every persisted message should include a unique `id`. Without stable message IDs, history hydration and message updates become unreliable.
 
