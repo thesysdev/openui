@@ -93,7 +93,7 @@ Try it yourself in the [Playground](https://www.openui.com/playground) — gener
 | [`@openuidev/cli`](./packages/openui-cli) | CLI for scaffolding apps and generating system prompts |
 
 ```bash
-npm install @openuidev/react-lang @openuidev/react-ui
+npx @openuidev/cli@latest create
 ```
 
 ## Why OpenUI Lang

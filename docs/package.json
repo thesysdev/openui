@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/docs",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "generate:prompts": "pnpm --filter @openuidev/cli build && pnpm exec openui generate lib/chat-library.ts --out generated/chat-system-prompt.txt && pnpm exec openui generate lib/playground-library.ts --out generated/playground-system-prompt.txt",
