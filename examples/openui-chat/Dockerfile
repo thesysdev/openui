@@ -4,16 +4,11 @@ WORKDIR /app
 
 RUN corepack enable
 
-# copy whole repo
 COPY . .
 
-# install workspace deps
 RUN pnpm install
 
-# move to example app
 WORKDIR /app/examples/openui-chat
-
-# build the app
 RUN pnpm build
 
 
