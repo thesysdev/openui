@@ -17,6 +17,13 @@ export const metadata: Metadata = {
     template: "%s | OpenUI",
   },
   description: "The Open Standard for Generative UI",
+  openGraph: {
+    images: ["/meta-image.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/meta-image.png"],
+  },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
