@@ -3,26 +3,96 @@ title: Providers
 description: Provider-specific setup for OpenAI, Vercel AI SDK, and LangGraph.
 ---
 
-Use these adapters and message converters based on your backend provider.
+Choose config based on the stream format and message shape your backend emits, not just the provider name.
+
+This page maps common provider and backend patterns to the matching `streamProtocol` and `messageFormat` configuration.
+
+For the core connection concepts, see [Connecting to LLM](/docs/chat/connecting).
+
+## Common mappings
+
+| Backend pattern                          | `streamProtocol`                | `messageFormat`                               | Use this when...                                                                 |
+| :--------------------------------------- | :------------------------------ | :-------------------------------------------- | :------------------------------------------------------------------------------- |
+| OpenUI Protocol                          | none                            | none                                          | Your backend already emits the default OpenUI stream and accepts OpenUI messages |
+| Raw OpenAI Chat Completions SSE          | `openAIAdapter()`               | `openAIMessageFormat` when needed             | You forward raw `data:` SSE chunks from Chat Completions                         |
+| OpenAI SDK `toReadableStream()` / NDJSON | `openAIReadableStreamAdapter()` | `openAIMessageFormat` when needed             | You return `response.toReadableStream()` from the OpenAI SDK                     |
+| OpenAI Responses API                     | `openAIResponsesAdapter()`      | `openAIConversationMessageFormat` when needed | Your backend uses `openai.responses.create()`                                    |
+
+Start with the backend output format. Then add `messageFormat` only if the request or stored-history message shape also differs from the OpenUI default.
 
 ## OpenAI Chat Completions
 
-- Stream adapter: `openAIAdapter()`
-- Message converter (optional): `openAIMessageFormat`
+There are two common OpenAI Chat Completions patterns.
+
+### Raw SSE
+
+Use `openAIAdapter()` if your server forwards raw Chat Completions SSE events.
+
+```tsx
+import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
+import { FullScreen } from "@openuidev/react-ui";
+
+<FullScreen
+  apiUrl="/api/chat"
+  streamProtocol={openAIAdapter()}
+  messageFormat={openAIMessageFormat}
+  agentName="Assistant"
+/>;
+```
+
+### OpenAI SDK `toReadableStream()`
+
+Use `openAIReadableStreamAdapter()` if your route returns `response.toReadableStream()`.
+
+```tsx
+import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
+import { FullScreen } from "@openuidev/react-ui";
+
+<FullScreen
+  apiUrl="/api/chat"
+  streamProtocol={openAIReadableStreamAdapter()}
+  messageFormat={openAIMessageFormat}
+  agentName="Assistant"
+/>;
+```
 
 ## OpenAI Responses API
 
-- Stream adapter: `openAIResponsesAdapter()`
-- Message converter (optional): `openAIConversationMessageFormat`
+Use `openAIResponsesAdapter()` for the Responses API event stream.
+
+Add `openAIConversationMessageFormat` only if your backend also expects or stores Responses conversation items instead of the default AG-UI message shape.
+
+```tsx
+import { openAIConversationMessageFormat, openAIResponsesAdapter } from "@openuidev/react-headless";
+import { FullScreen } from "@openuidev/react-ui";
+
+<FullScreen
+  apiUrl="/api/chat"
+  streamProtocol={openAIResponsesAdapter()}
+  messageFormat={openAIConversationMessageFormat}
+  agentName="Assistant"
+/>;
+```
 
 ## Vercel AI SDK
 
-Use your Vercel AI SDK backend route as `apiUrl`, then set `streamProtocol` only if your stream shape differs from OpenUI defaults.
+Ignore the SDK name at first and inspect what your route actually returns.
+
+- If the route already speaks the OpenUI Protocol, `apiUrl` is usually enough.
+- If it returns a different stream format, keep `apiUrl` or switch to `processMessage`, then add the matching `streamProtocol`.
+- If the route expects a custom request body, use `processMessage`.
 
 ## LangGraph
 
-Use your LangGraph endpoint as `apiUrl`. Provide `processMessage` if you need custom auth, routing, or payload transformation.
+Use the same decision rules:
 
-<Callout type="info">
-  Detailed provider walkthroughs are being consolidated into this page.
-</Callout>
+- start with `apiUrl` when the endpoint already matches the request and stream shape your frontend expects
+- switch to `processMessage` when you need auth headers, a custom body, dynamic routing, or provider-specific metadata
+
+{/* add visual: flow-chart showing provider choice splitting first by emitted stream format, then by whether messageFormat is needed */}
+
+## Related guides
+
+- [Connecting to LLM](/docs/chat/connecting)
+- [Next.js Implementation](/docs/chat/nextjs)
+- [The API Contract](/docs/chat/api-contract)

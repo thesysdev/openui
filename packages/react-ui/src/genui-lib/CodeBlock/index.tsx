@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { CodeBlock as OpenUICodeBlock } from "../../components/CodeBlock";
 import { CodeBlockSchema } from "./schema";
 

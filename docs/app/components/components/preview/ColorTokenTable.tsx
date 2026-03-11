@@ -1,6 +1,6 @@
 import FoundationTable from "@components/components/preview/FoundationTable";
-import styles from "./FoundationTokenTable.module.css";
 import type { ColorTokenItem, TableColumn } from "@components/types";
+import styles from "./FoundationTokenTable.module.css";
 
 const columns: TableColumn[] = [
   { key: "token", label: "Color token" },

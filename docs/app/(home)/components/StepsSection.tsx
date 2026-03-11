@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useRef, useEffect, type ComponentType } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import YouRegisterComponents from "@/imports/YouRegisterComponents-43-365";
-import OpenUiGeneratesSchema from "@/imports/OpenUiGeneratesSchema";
 import LlmRespondsInOpenUiLang from "@/imports/LlmRespondsInOpenUiLang";
+import OpenUiGeneratesSchema from "@/imports/OpenUiGeneratesSchema";
 import OpenUiRendererRendersIt from "@/imports/OpenUiRendererRendersIt-43-427";
+import YouRegisterComponents from "@/imports/YouRegisterComponents-43-365";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
 
 // ---------------------------------------------------------------------------
 // Types & data
@@ -28,8 +28,9 @@ const STEPS: Step[] = [
   },
   {
     number: 2,
-    title: "Generate and send system prompt",
-    description: "Generate a system prompt from your library with OpenUI SDK and send it to the LLM.",
+    title: "OpenUI generates system prompt",
+    description:
+      "Generate a system prompt from your library with the OpenUI CLI or library.prompt() and send it to the LLM.",
     details: [],
   },
   {
@@ -141,8 +142,14 @@ function StepIllustration({ stepNumber, mobile }: { stepNumber: number; mobile?:
 
   if (mobile) {
     return (
-      <div ref={containerRef} className="w-full rounded-2xl overflow-hidden relative aspect-[610/432]">
-        <div className="absolute inset-0 origin-top-left" style={{ width: 610, height: 432, transform: `scale(${scale})` }}>
+      <div
+        ref={containerRef}
+        className="w-full rounded-2xl overflow-hidden relative aspect-[610/432]"
+      >
+        <div
+          className="absolute inset-0 origin-top-left"
+          style={{ width: 610, height: 432, transform: `scale(${scale})` }}
+        >
           <Illustration />
         </div>
       </div>

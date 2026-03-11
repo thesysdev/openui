@@ -1,17 +1,37 @@
 import { PreviewPage, PreviewSection, TypographyTokenTable } from "@components/components/preview";
 
 const typographySections = [
-  { id: "heading", label: "Heading", description: "Display and hierarchy titles across pages and sections." },
-  { id: "body", label: "Body", description: "Long-form and supporting copy styles for content readability." },
-  { id: "label", label: "Label", description: "Compact labels for form controls, badges, and field metadata." },
-  { id: "numbers", label: "Numbers", description: "Numerical values for stats, metrics, and tabular data." },
-  { id: "code", label: "Code", description: "Monospace styles for snippets, tokens, and command text." },
+  {
+    id: "heading",
+    label: "Heading",
+    description: "Display and hierarchy titles across pages and sections.",
+  },
+  {
+    id: "body",
+    label: "Body",
+    description: "Long-form and supporting copy styles for content readability.",
+  },
+  {
+    id: "label",
+    label: "Label",
+    description: "Compact labels for form controls, badges, and field metadata.",
+  },
+  {
+    id: "numbers",
+    label: "Numbers",
+    description: "Numerical values for stats, metrics, and tabular data.",
+  },
+  {
+    id: "code",
+    label: "Code",
+    description: "Monospace styles for snippets, tokens, and command text.",
+  },
 ];
 
 const typographyPreviewRows = {
   heading: [
     { token: "--openui-text-heading-xl", sample: "Make something people want" },
-    { token: "--openui-text-heading-lg", sample: "Make something people want" },  
+    { token: "--openui-text-heading-lg", sample: "Make something people want" },
     { token: "--openui-text-heading-md", sample: "Make something people want" },
     { token: "--openui-text-heading-sm", sample: "Make something people want" },
     { token: "--openui-text-heading-xs", sample: "Make something people want" },
@@ -19,35 +39,43 @@ const typographyPreviewRows = {
   body: [
     {
       token: "--openui-text-body-lg",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--openui-text-body-lg-heavy",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--openui-text-body-default",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--openui-text-body-default-heavy",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--openui-text-body-sm",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--openui-text-body-sm-heavy",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--openui-text-body-xs",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
     {
       token: "--openui-text-body-xs-heavy",
-      sample: "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
+      sample:
+        "Body copy should stay comfortable to scan on long paragraphs and dense content surfaces.",
     },
   ],
   label: [
@@ -74,7 +102,10 @@ const typographyPreviewRows = {
     { token: "--openui-text-code-default", sample: "<Button variant='secondary' />" },
     { token: "--openui-text-code-default-heavy", sample: "pnpm run build && pnpm run start" },
     { token: "--openui-text-code-sm", sample: "const tokenName = '--openui-text-code-sm';" },
-    { token: "--openui-text-code-sm-heavy", sample: "const tokenName = '--openui-text-code-sm-heavy';" },
+    {
+      token: "--openui-text-code-sm-heavy",
+      sample: "const tokenName = '--openui-text-code-sm-heavy';",
+    },
   ],
 };
 
@@ -114,7 +145,9 @@ export default function TypographyPreviewPage() {
             items={(typographyPreviewRows[section.id] ?? []).map((row) => ({
               token: row.token,
               preview:
-                section.id === "heading" ? row.sample : row.sample ?? formatTypographyPreviewLabel(row.token),
+                section.id === "heading"
+                  ? row.sample
+                  : (row.sample ?? formatTypographyPreviewLabel(row.token)),
               className: row.token,
               style: getTypographyTokenStyle(row.token),
             }))}

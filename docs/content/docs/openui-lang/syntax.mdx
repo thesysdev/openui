@@ -1,225 +1,68 @@
 ---
-title: GenUI Lang
-description: The language the LLM writes to respond with UI — a streaming-friendly subset of JavaScript.
+title: OpenUI Lang Syntax
+description: Expression grammar and common component signatures.
 ---
 
-GenUI Lang is the output format the LLM uses when Generative UI is enabled. It's a compact, line-oriented declarative language. Every statement binds a name to a component or value. The renderer parses and renders it incrementally as the stream arrives.
+OpenUI Lang is line-oriented:
 
-## Syntax at a glance
-
-```
-root = Root([header, chart])           ← entry point
-header = Header("Q4 Revenue", "YTD")  ← component call, positional args
-chart = BarChart(labels, [s1, s2])     ← forward reference to labels, s1, s2
-labels = ["Jan", "Feb", "Mar"]
-s1 = Series("Product A", [120, 150, 180])
-s2 = Series("Product B", [90, 110, 140])
+```text
+identifier = Expression
 ```
 
-**Rules:**
-- One statement per line: `identifier = Expression`
-- The **first statement is the entry point** — it must call the root component
-- Statements are written top-down (root → components → data) for best streaming behavior
-- Arguments are **positional** — order is defined by the key order in the Zod schema
+Example:
 
----
-
-## Expressions
-
-| Type | Syntax | Example |
-|---|---|---|
-| Component call | `TypeName(arg1, arg2, ...)` | `Header("Title", "Subtitle")` |
-| String | `"text"` | `"Hello world"` |
-| Number | `42`, `3.14`, `-5` | `42` |
-| Boolean | `true` / `false` | `true` |
-| Null | `null` | `null` |
-| Array | `[expr, expr, ...]` | `["Jan", "Feb", "Mar"]` |
-| Object | `{key: expr, ...}` | `{text: "Hi", variant: "info"}` |
-| Reference | `identifier` | `myTable` |
-
----
-
-## Positional arguments
-
-Arguments map to props by position, not by name. The library defines the order.
-
-```
-Header("My Dashboard", "Subtitle here")
-  ↓ ComponentDefinition says: props: z.object({ title, subtitle? })
-  ↓ Maps to: { title: "My Dashboard", subtitle: "Subtitle here" }
+```text
+root = Stack([title, form])
+title = TextContent("Sign up", "large-heavy")
+form = Form("signup", [nameField, emailField], actions)
+nameField = FormControl("Name", Input("name", "Your name", "text", ["required"]))
+emailField = FormControl("Email", Input("email", "you@example.com", "email", ["required", "email"]))
+actions = Buttons([submitBtn, cancelBtn], "row")
+submitBtn = Button("Submit", "submit:signup", "primary")
+cancelBtn = Button("Cancel", "action:cancel", "secondary")
 ```
 
-Optional arguments can be omitted from the end:
+## Supported expression types
 
-```
-Header("My Dashboard")         ← subtitle omitted, that's fine
-```
+| Type           | Syntax                 | Example                           |
+| -------------- | ---------------------- | --------------------------------- |
+| Component call | `TypeName(arg1, arg2)` | `CardHeader("Title", "Subtitle")` |
+| String         | `"text"`               | `"hello"`                         |
+| Number         | `42`, `3.14`, `-1`     | `3.14`                            |
+| Boolean        | `true` / `false`       | `true`                            |
+| Null           | `null`                 | `null`                            |
+| Array          | `[a, b, c]`            | `[col1, col2]`                    |
+| Object         | `{key: value}`         | `{variant: "info"}`               |
+| Reference      | `identifier`           | `nameField`                       |
 
----
+## Rules
 
-## References and hoisting
+- First statement is the entry point.
+- For OpenUI library prompts, start with `root = Stack(...)`.
+- Arguments are positional, based on Zod key order.
+- Optional args can be omitted from the end.
+- Forward references are allowed.
 
-Lowercase names are references. They can be used **before** they're defined — the renderer resolves them after the full statement arrives.
+## Common default-library signatures
 
-```
-root = Root([header, table])        ← table used before it's defined
-header = Header("Users")
-table = Table(cols, rows)           ← cols, rows used before defined
-cols = [Col("Name"), Col("Email")]
-rows = [["Alice", "alice@example.com"], ["Bob", "bob@example.com"]]
-```
+| Component     | Signature                                                             |
+| ------------- | --------------------------------------------------------------------- |
+| `Stack`       | `Stack(children, direction?, gap?, align?, justify?, wrap?)`          |
+| `Card`        | `Card(children, variant?, direction?, gap?, align?, justify?, wrap?)` |
+| `TextContent` | `TextContent(text, size?)`                                            |
+| `Form`        | `Form(name, fields, buttons)`                                         |
+| `FormControl` | `FormControl(label, input, hint?)`                                    |
+| `Input`       | `Input(name, placeholder?, type?, rules?)`                            |
+| `Select`      | `Select(name, items, placeholder?, rules?)`                           |
+| `Button`      | `Button(label, action, variant?, type?, size?)`                       |
+| `Buttons`     | `Buttons(buttons, direction?)`                                        |
+| `Tabs`        | `Tabs(items)`                                                         |
+| `TabItem`     | `TabItem(value, trigger, content)`                                    |
+| `Table`       | `Table(columns, rows)`                                                |
+| `BarChart`    | `BarChart(labels, series, variant?, xLabel?, yLabel?)`                |
 
-You can also inline components directly — LLMs choose whichever is cleaner:
+For full generated signatures, inspect:
 
-```
-root = Root([Header("Users"), Table([Col("Name"), Col("Email")], rows)])
-rows = [["Alice", "alice@example.com"], ["Bob", "bob@example.com"]]
-```
-
----
-
-## Streaming behavior
-
-The renderer re-parses on every chunk update. References that point to statements not yet received render as `nodePlaceholder` (a loading state) until the definition arrives.
-
-**Top-down order = best progressive reveal:**
-
-```
-root = Root([header, tbl])       ← renders immediately with placeholders for header, tbl
-header = Header("Sales")         ← header resolves, renders
-tbl = Table(cols, rows)          ← tbl resolves with placeholders for cols, rows
-cols = [Col("Name"), ...]        ← cols resolves
-rows = [["Alice", ...], ...]     ← rows resolves, table fully rendered
-```
-
----
-
-## Standard components
-
-All components from `standardLibrary`, organized by group. Arguments are **positional** — order shown here is the order the LLM uses.
-
-### Root
-
-| Component | Signature | Description |
-|---|---|---|
-| `Root` | `Root(children)` | Top-level wrapper. Always the first statement. |
-
-### Content
-
-| Component | Signature | Description |
-|---|---|---|
-| `Header` | `Header(title, subtitle?)` | Page or section heading with optional subtitle |
-| `InlineHeader` | `InlineHeader(title, subtitle?)` | Compact inline heading |
-| `Text` | `Text(content)` | Body text or markdown content |
-| `Callout` | `Callout(variant, title, body)` | Highlighted block. `variant`: `"info"` \| `"success"` \| `"warning"` \| `"danger"` |
-| `Image` | `Image(src, alt?, width?, height?)` | Image with optional dimensions |
-
-### Tables
-
-| Component | Signature | Description |
-|---|---|---|
-| `Table` | `Table(cols, rows)` | Data table. `cols` is `Col[]`, `rows` is a 2D array `[["val1", "val2"], ...]` |
-| `Col` | `Col(label, type?)` | Column header. `type`: `"string"` \| `"number"` \| `"action"` |
-
-### Charts (2D)
-
-| Component | Signature | Description |
-|---|---|---|
-| `BarChart` | `BarChart(labels, series, variant?)` | Bar chart. `variant`: `"grouped"` \| `"stacked"` |
-| `LineChart` | `LineChart(labels, series, variant?)` | Line chart. `variant`: `"linear"` \| `"natural"` \| `"step"` |
-| `AreaChart` | `AreaChart(labels, series, variant?)` | Area chart. Same variants as LineChart |
-| `RadarChart` | `RadarChart(labels, series)` | Radar/spider chart |
-| `Series` | `Series(category, values)` | A data series for 2D charts |
-
-### Charts (1D)
-
-| Component | Signature | Description |
-|---|---|---|
-| `PieChart` | `PieChart(slices)` | Pie chart |
-| `RadialChart` | `RadialChart(slices)` | Radial/donut chart |
-| `Slice` | `Slice(category, value)` | A single slice for pie/radial charts |
-
-### Charts (Scatter)
-
-| Component | Signature | Description |
-|---|---|---|
-| `ScatterChart` | `ScatterChart(series)` | Scatter plot |
-| `ScatterSeries` | `ScatterSeries(category, points)` | A series of scatter points |
-| `Point` | `Point(x, y)` | A single scatter point |
-
-### Forms
-
-Forms manage their own field state. Each field is a named reference for best streaming behavior.
-
-| Component | Signature | Description |
-|---|---|---|
-| `Form` | `Form(name, fields, actions?)` | Form container. `name` is used for state scoping |
-| `FormField` | `FormField(label, input, hint?)` | Wraps a field with a label and optional hint |
-| `Input` | `Input(name, placeholder?, type?, rules?)` | Text input. `type`: `"text"` \| `"email"` \| `"password"` \| `"number"` \| ... |
-| `TextArea` | `TextArea(name, placeholder?, rows?, rules?)` | Multi-line text input |
-| `Select` | `Select(name, options, placeholder?, rules?)` | Dropdown select |
-| `SelectItem` | `SelectItem(value, label)` | An option within a `Select` |
-| `DatePicker` | `DatePicker(name, placeholder?, rules?)` | Date picker |
-| `Slider` | `Slider(name, min?, max?, step?, defaultValue?, rules?)` | Range slider |
-| `CheckBoxGroup` | `CheckBoxGroup(name, items, rules?)` | Group of checkboxes |
-| `CheckBoxItem` | `CheckBoxItem(value, label)` | A single checkbox option |
-| `RadioGroup` | `RadioGroup(name, items, rules?)` | Group of radio buttons |
-| `RadioItem` | `RadioItem(value, label)` | A single radio option |
-
-**Validation rules** (`rules` is `string[]`):
-
-| Rule | Example | Description |
-|---|---|---|
-| `"required"` | `["required"]` | Field must have a value |
-| `"email"` | `["email"]` | Valid email format |
-| `"url"` | `["url"]` | Valid URL |
-| `"numeric"` | `["numeric"]` | Must be a number |
-| `"min:N"` | `["min:0"]` | Minimum numeric value |
-| `"max:N"` | `["max:100"]` | Maximum numeric value |
-| `"minLength:N"` | `["minLength:8"]` | Minimum string length |
-| `"maxLength:N"` | `["maxLength:256"]` | Maximum string length |
-| `"pattern:REGEX"` | `["pattern:^[A-Z]"]` | Must match regex |
-
-### Buttons
-
-| Component | Signature | Description |
-|---|---|---|
-| `Button` | `Button(label, action, variant?)` | Clickable button. `variant`: `"primary"` \| `"secondary"` \| `"destructive"` \| `"ghost"` |
-| `ButtonGroup` | `ButtonGroup(buttons)` | Horizontal group of buttons |
-| `FollowUp` | `FollowUp(items)` | Follow-up suggestion chips below the response |
-
-### Layout
-
-| Component | Signature | Description |
-|---|---|---|
-| `Tabs` | `Tabs(items)` | Tabbed layout |
-| `TabItem` | `TabItem(value, label, content)` | A single tab with its content |
-| `Accordion` | `Accordion(items)` | Collapsible accordion |
-| `AccordionItem` | `AccordionItem(title, content)` | A single accordion panel |
-| `SectionBlock` | `SectionBlock(items)` | Vertical section with a list of content blocks |
-| `SectionBlockItem` | `SectionBlockItem(title, content)` | A labeled item within a section block |
-| `Steps` | `Steps(items)` | Numbered step list |
-| `StepsItem` | `StepsItem(title, description?)` | A single step |
-
-### Data Display
-
-| Component | Signature | Description |
-|---|---|---|
-| `List` | `List(items, variant?)` | Bulleted, ordered, or check list. `variant`: `"bullet"` \| `"ordered"` \| `"check"` |
-| `TagBlock` | `TagBlock(tags)` | Row of text tags. `tags` is `string[]` |
-| `Icon` | `Icon(name)` | Lucide icon by name, e.g. `"Star"`, `"Heart"`, `"Check"` |
-
----
-
-## Complete example
-
-```
-root = Root([Header("Contact Form"), form])
-form = Form("contact", [nameField, emailField, countryField, msgField], btns)
-nameField    = FormField("Name",    Input("name",    "Your name",        "text",  ["required", "minLength:2"]))
-emailField   = FormField("Email",   Input("email",   "you@example.com",  "email", ["required", "email"]))
-countryField = FormField("Country", Select("country", countryOpts, "Select...", ["required"]))
-msgField     = FormField("Message", TextArea("message", "Tell us more...", 4, ["required", "minLength:10"]))
-countryOpts  = [SelectItem("us", "United States"), SelectItem("uk", "United Kingdom"), SelectItem("de", "Germany")]
-btns         = ButtonGroup([Button("Submit", "submit_form", "primary"), Button("Cancel", "cancel", "secondary")])
+```ts
+openuiLibrary.prompt(openuiPromptOptions);
 ```

@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Tooltip from "@design-system/components/Tooltip/Tooltip";
 import PreviewCode from "@design-system/components/preview/PreviewCode";
 import PreviewSection from "@design-system/components/preview/PreviewSection";
 import PreviewThemeToggle from "@design-system/components/preview/PreviewThemeToggle";
-import styles from "./PreviewLayout.module.css";
 import type { HeadingLevel, SwatchInput, SwatchRow, ThemeMode } from "@design-system/types";
+import { useMemo, useState } from "react";
+import styles from "./PreviewLayout.module.css";
 
 const getDefaultLabel = (tokenName = ""): string =>
   tokenName
@@ -71,12 +71,10 @@ export default function PreviewSwatchesSection({
                 ) : null}
                 <div className={styles.previewGrid}>
                   {(row.tokens ?? []).map((swatch) => {
-                    const tokenName =
-                      typeof swatch === "string" ? swatch : swatch.token;
+                    const tokenName = typeof swatch === "string" ? swatch : swatch.token;
                     const tokenLabel =
                       typeof swatch === "string" ? getDefaultLabel(tokenName) : swatch.label;
-                    const tokenValue =
-                      typeof swatch === "string" ? undefined : swatch.value;
+                    const tokenValue = typeof swatch === "string" ? undefined : swatch.value;
                     const toneClassName =
                       typeof swatch === "string"
                         ? styles.semanticCardToneDark

@@ -277,3 +277,81 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   display: flex;
   padding: 0 $center-align-spacing;
 }
+
+// =============================================================================
+// GenUI User Message — form data accordion above the user bubble
+// =============================================================================
+
+.openui-genui-user-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: cssUtils.$space-s;
+  max-width: 85%;
+}
+
+.openui-genui-user-message__form-state {
+  border: 1px solid cssUtils.$border-interactive;
+  border-radius: cssUtils.$radius-m;
+  overflow: hidden;
+  background-color: cssUtils.$foreground;
+  width: 100%;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: cssUtils.$border-interactive-emphasis;
+  }
+}
+
+.openui-genui-user-message__form-state-header {
+  @include cssUtils.button-reset;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: cssUtils.$space-s cssUtils.$space-m;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.openui-genui-user-message__form-state-label {
+  @include cssUtils.typography(label, small);
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.openui-genui-user-message__form-state-chevron {
+  flex-shrink: 0;
+  color: cssUtils.$text-neutral-secondary;
+  transition: transform 0.2s ease;
+
+  &--expanded {
+    transform: rotate(180deg);
+  }
+}
+
+.openui-genui-user-message__form-state-content {
+  border-top: 1px solid cssUtils.$border-default;
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-xs;
+  padding: cssUtils.$space-s cssUtils.$space-m;
+}
+
+.openui-genui-user-message__form-field {
+  display: flex;
+  gap: cssUtils.$space-xs;
+  align-items: baseline;
+}
+
+.openui-genui-user-message__form-field-label {
+  @include cssUtils.typography(label, small);
+  color: cssUtils.$text-neutral-secondary;
+  flex-shrink: 0;
+}
+
+.openui-genui-user-message__form-field-value {
+  @include cssUtils.typography(label, small);
+  color: cssUtils.$text-neutral-primary;
+  overflow-wrap: break-word;
+  min-width: 0;
+}

@@ -3,7 +3,9 @@ title: Copilot
 description: The sidebar assistant layout for in-app chat experiences.
 ---
 
-The `Copilot` component renders a chat sidebar next to your app content.
+`Copilot` provides a sidebar assistant layout that stays visible alongside the rest of your application.
+
+This layout keeps the main app screen in view while chat stays available at the side. For a full-page chat surface, see [FullScreen](/docs/chat/fullscreen). For a floating widget, see [BottomTray](/docs/chat/bottom-tray).
 
 ```tsx
 import { Copilot } from "@openuidev/react-ui";
@@ -18,7 +20,9 @@ export function App() {
 }
 ```
 
-### Common configuration
+![Copilot sidebar layout example](/docs/images/chat/copilot.png)
+
+## Common configuration
 
 ```tsx
 <Copilot
@@ -29,14 +33,24 @@ export function App() {
 />
 ```
 
-### Related guides
+`Copilot` only handles the UI layer. It is a good fit for support panels, assistant sidebars, and workflows where users need to keep the main screen visible while chatting.
+
+Set up your backend connection in [Connecting to LLM](/docs/chat/connecting), connect thread history in [Connect Thread History](/docs/chat/persistence), and customize the empty state in [Welcome & Starters](/docs/chat/welcome).
+
+## Related guides
 
 <Cards>
   <Card title="Connecting to LLM" href="/docs/chat/connecting">
     Configure `apiUrl`, adapters, and auth.
   </Card>
-  <Card title="Persistence (Threads)" href="/docs/chat/persistence">
-    Save and restore conversation history.
+  <Card title="Connect Thread History" href="/docs/chat/persistence">
+    Load thread lists and previous messages from your backend.
+  </Card>
+  <Card title="Welcome & Starters" href="/docs/chat/welcome">
+    Configure the empty-state experience.
+  </Card>
+  <Card title="Theming" href="/docs/chat/theming">
+    Adjust colors, mode, and theme overrides.
   </Card>
   <Card title="Custom Chat Components" href="/docs/chat/custom-chat-components">
     Override assistant, user, and composer UI.

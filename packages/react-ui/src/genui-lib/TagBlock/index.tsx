@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent } from "@openuidev/lang-react";
+import { defineComponent } from "@openuidev/react-lang";
 import { Tag as OpenUITag } from "../../components/Tag";
 import { TagBlock as OpenUITagBlock } from "../../components/TagBlock";
 import { asArray } from "../helpers";

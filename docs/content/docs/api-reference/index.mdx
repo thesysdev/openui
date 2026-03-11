@@ -1,18 +1,29 @@
 ---
 title: OpenUI SDK
-description: API reference for the documented surfaces of @openuidev/lang-react, @openuidev/react-headless, and @openuidev/react-ui.
+description: API reference for the documented surfaces of @openuidev/react-lang, @openuidev/react-headless, and @openuidev/react-ui.
 ---
+
+The OpenUI SDK is split into three packages that build on each other:
+
+- **`@openuidev/react-lang`** — Core runtime. Define component libraries with Zod schemas, generate system prompts, parse OpenUI Lang, and render streamed output to React. This is the foundation — you need it for any OpenUI integration.
+
+- **`@openuidev/react-headless`** — Headless chat state management. Provides `ChatProvider`, thread/message hooks, streaming protocol adapters (OpenAI, AG-UI), and message format converters. Use this when you want full control over your chat UI.
+
+- **`@openuidev/react-ui`** — Prebuilt chat layouts (`Copilot`, `FullScreen`, `BottomTray`) and two ready-to-use component libraries (general-purpose and chat-optimized). Depends on both packages above. Use this for the fastest path to a working chat interface.
 
 ## Packages
 
 <Cards>
-  <Card title="@openuidev/lang-react" href="/docs/api-reference/lang-react">
-    createLibrary, Renderer, parser APIs, action types, and renderer/form hooks.
+  <Card title="@openuidev/react-lang" href="/docs/api-reference/react-lang">
+    defineComponent, createLibrary, Renderer, parser APIs, action types, context hooks, and form
+    validation.
   </Card>
   <Card title="@openuidev/react-headless" href="/docs/api-reference/react-headless">
-    ChatProvider, useThread/useThreadList, stream adapters, and message formats.
+    ChatProvider, useThread/useThreadList, stream protocol adapters (OpenAI, AG-UI), and message
+    format converters.
   </Card>
   <Card title="@openuidev/react-ui" href="/docs/api-reference/react-ui">
-    Copilot, FullScreen, BottomTray, and default GenUI component library exports.
+    Copilot, FullScreen, BottomTray chat layouts, and two built-in component libraries
+    (general-purpose and chat-optimized).
   </Card>
 </Cards>

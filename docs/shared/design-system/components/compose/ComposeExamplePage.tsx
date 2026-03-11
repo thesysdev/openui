@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import styles from "./ComposeExamplePage.module.css";
 import type { ComposeExample } from "@design-system/config/compose";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import styles from "./ComposeExamplePage.module.css";
 
 interface ComposeExamplePageProps {
   example: ComposeExample;
@@ -40,9 +40,7 @@ export default function ComposeExamplePage({ example, nextExampleId }: ComposeEx
           return;
         }
 
-        const best = visible.reduce((a, b) =>
-          b.intersectionRatio > a.intersectionRatio ? b : a,
-        );
+        const best = visible.reduce((a, b) => (b.intersectionRatio > a.intersectionRatio ? b : a));
         const id = best.target.getAttribute("id");
         if (!id) {
           return;
@@ -111,9 +109,7 @@ export default function ComposeExamplePage({ example, nextExampleId }: ComposeEx
           </ul>
         </div>
 
-        <div className={styles.rightPanel}>
-          {/* Preview components will be added per step */}
-        </div>
+        <div className={styles.rightPanel}>{/* Preview components will be added per step */}</div>
       </div>
     </div>
   );

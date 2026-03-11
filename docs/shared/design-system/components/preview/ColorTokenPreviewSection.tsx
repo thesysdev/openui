@@ -1,5 +1,5 @@
-import type { ComponentProps } from "react";
 import PreviewSwatchesSection from "@design-system/components/preview/PreviewSwatchesSection";
+import type { ComponentProps } from "react";
 
 type ColorTokenPreviewSectionProps = ComponentProps<typeof PreviewSwatchesSection>;
 

@@ -1,4 +1,4 @@
-import type { NavItem, NavGroup } from "@components/types";
+import type { NavGroup, NavItem } from "@components/types";
 
 export const TOP_NAV_ITEMS: NavItem[] = [
   { id: "customize", label: "Customize", href: "/components/customize" },
@@ -38,13 +38,23 @@ export const BLOCKS_NAV_ITEMS: NavGroup[] = [
     id: "individual-blocks",
     label: "Individual blocks",
     items: [
-      { id: "accordian", label: "Accordian", href: "/components/blocks/accordian", badgeText: "Fixing" },
+      {
+        id: "accordian",
+        label: "Accordian",
+        href: "/components/blocks/accordian",
+        badgeText: "Fixing",
+      },
       { id: "button-group", label: "Buttons", href: "/components/blocks/button-group" },
       { id: "callout", label: "Callout", href: "/components/blocks/callout" },
       { id: "image-items", label: "Image", href: "/components/blocks/image-items" },
       { id: "lists", label: "Lists", href: "/components/blocks/lists" },
       { id: "tables", label: "Tables", href: "/components/blocks/tables", badgeText: "Fixing" },
-      { id: "text-items", label: "Text items", href: "/components/blocks/text-items", badgeText: "Fixing" },
+      {
+        id: "text-items",
+        label: "Text items",
+        href: "/components/blocks/text-items",
+        badgeText: "Fixing",
+      },
       { id: "tag-item", label: "Tag item", href: "/components/blocks/tag-item" },
     ],
   },

@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ThemeProvider, type Theme } from "@openuidev/react-ui/ThemeProvider";
 import { useAppTheme } from "@components/components/AppThemeProvider/AppThemeProvider";
 import SegmentedToggle from "@components/components/preview/SegmentedToggle";
-import styles from "./ComposeExamplePage.module.css";
 import type { GuideExample } from "@components/config/guide";
+import { ThemeProvider, type Theme } from "@openuidev/react-ui/ThemeProvider";
+import styles from "./ComposeExamplePage.module.css";
 
 const RealBlocksCanvas = dynamic(
   () => import("@components/components/ThemeBuilder/realBlocksCanvas"),
@@ -36,18 +36,13 @@ function buildCssLines(
   }));
 }
 
-export default function ComposeExamplePage({
-  example,
-}: ComposeExamplePageProps) {
+export default function ComposeExamplePage({ example }: ComposeExamplePageProps) {
   const { mode } = useAppTheme();
   const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
-  const [rightPanelMode, setRightPanelMode] = useState<"preview" | "css">(
-    "preview",
-  );
+  const [rightPanelMode, setRightPanelMode] = useState<"preview" | "css">("preview");
 
   const hasThemeGuide = example.goalTheme != null;
-  const activeStep =
-    activeStepIndex != null ? example.steps[activeStepIndex] : null;
+  const activeStep = activeStepIndex != null ? example.steps[activeStepIndex] : null;
 
   const leftPanelRef = useRef<HTMLDivElement>(null);
 
@@ -58,9 +53,7 @@ export default function ComposeExamplePage({
     const panel = leftPanelRef.current;
     if (!panel) return;
     setCanScrollUp(panel.scrollTop > 2);
-    setCanScrollDown(
-      panel.scrollTop + panel.clientHeight < panel.scrollHeight - 2,
-    );
+    setCanScrollDown(panel.scrollTop + panel.clientHeight < panel.scrollHeight - 2);
   }, []);
 
   useEffect(() => {
@@ -82,10 +75,7 @@ export default function ComposeExamplePage({
     }
     return example.steps
       .slice(0, activeStepIndex + 1)
-      .reduce<Record<string, string>>(
-        (acc, step) => ({ ...acc, ...step.themeOverrides }),
-        {},
-      );
+      .reduce<Record<string, string>>((acc, step) => ({ ...acc, ...step.themeOverrides }), {});
   }, [activeStepIndex, example.steps]);
 
   const previousCumulativeCss = useMemo(() => {
@@ -94,10 +84,7 @@ export default function ComposeExamplePage({
     }
     return example.steps
       .slice(0, activeStepIndex)
-      .reduce<Record<string, string>>(
-        (acc, step) => ({ ...acc, ...step.cssVariables }),
-        {},
-      );
+      .reduce<Record<string, string>>((acc, step) => ({ ...acc, ...step.cssVariables }), {});
   }, [activeStepIndex, example.steps]);
 
   const previewTheme = useMemo((): Partial<Theme> => {
@@ -111,13 +98,7 @@ export default function ComposeExamplePage({
       return {};
     }
     return cumulativeTheme as Partial<Theme>;
-  }, [
-    hasThemeGuide,
-    activeStepIndex,
-    rightPanelMode,
-    example.goalTheme,
-    cumulativeTheme,
-  ]);
+  }, [hasThemeGuide, activeStepIndex, rightPanelMode, example.goalTheme, cumulativeTheme]);
 
   const toggleValue = rightPanelMode;
   const toggleLabels =
@@ -143,9 +124,7 @@ export default function ComposeExamplePage({
   };
 
   const showCodeBlock =
-    rightPanelMode === "css" &&
-    activeStepIndex != null &&
-    activeStep?.cssVariables;
+    rightPanelMode === "css" && activeStepIndex != null && activeStep?.cssVariables;
 
   return (
     <div className={styles.shell}>
@@ -172,7 +151,8 @@ export default function ComposeExamplePage({
                   >
                     <span className={styles.stepTitle}>Spotting the differences</span>
                     <span className={styles.stepDescription}>
-                      First, let&rsquo;s compare the starting theme with the final goal side by side to understand what we&rsquo;re aiming for.
+                      First, let&rsquo;s compare the starting theme with the final goal side by side
+                      to understand what we&rsquo;re aiming for.
                     </span>
                   </button>
                 </section>
@@ -195,9 +175,7 @@ export default function ComposeExamplePage({
                     >
                       <span className={styles.stepNumber}>{index + 1}</span>
                       <span className={styles.stepTitle}>{step.title}</span>
-                      <span className={styles.stepDescription}>
-                        {step.description}
-                      </span>
+                      <span className={styles.stepDescription}>{step.description}</span>
                     </button>
                   </section>
                 </li>
@@ -211,9 +189,7 @@ export default function ComposeExamplePage({
           className={styles.rightPanel}
           role="region"
           aria-label={
-            activeStep
-              ? `Preview for step ${activeStepIndex! + 1}: ${activeStep.title}`
-              : "Preview"
+            activeStep ? `Preview for step ${activeStepIndex! + 1}: ${activeStep.title}` : "Preview"
           }
         >
           {hasThemeGuide && (

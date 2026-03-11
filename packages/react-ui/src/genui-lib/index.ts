@@ -1,7 +1,15 @@
 export {
-  defaultAdditionalRules,
-  defaultComponentGroups,
-  defaultExamples,
-  defaultLibrary,
-  defaultPromptOptions,
-} from "./defaultLibrary";
+  openuiAdditionalRules,
+  openuiComponentGroups,
+  openuiExamples,
+  openuiLibrary,
+  openuiPromptOptions,
+} from "./openuiLibrary";
+
+export {
+  openuiChatAdditionalRules,
+  openuiChatComponentGroups,
+  openuiChatExamples,
+  openuiChatLibrary,
+  openuiChatPromptOptions,
+} from "./openuiChatLibrary";

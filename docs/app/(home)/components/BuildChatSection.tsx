@@ -1,8 +1,8 @@
 "use client";
 
+import dashboardImg from "@/public/images/home/d67b5e94653944c1d0d4998c6b169c37f98060ad.png";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-
-const dashboardImg = "/images/home/d67b5e94653944c1d0d4998c6b169c37f98060ad.png";
 import { CopyIcon } from "./shared";
 
 // ---------------------------------------------------------------------------
@@ -50,7 +50,7 @@ function CtaButton() {
     if (copied) return;
 
     try {
-      await navigator.clipboard.writeText("npx create openui-app chat");
+      await navigator.clipboard.writeText("npx @openuidev/cli@latest create");
       setCopied(true);
       resetTimeoutRef.current = setTimeout(() => {
         setCopied(false);
@@ -67,7 +67,9 @@ function CtaButton() {
         className="bg-black rounded-full h-12 px-5 flex items-center gap-2.5 cursor-pointer relative transition-all duration-200 hover:scale-105 w-full max-w-[280px] lg:max-w-none lg:w-auto justify-center lg:justify-start"
       >
         <span className="relative size-4 flex items-center justify-center">
-          <span className={`absolute transition-all duration-300 ${copied ? "opacity-0 scale-50" : "opacity-100 scale-100"}`}>
+          <span
+            className={`absolute transition-all duration-300 ${copied ? "opacity-0 scale-50" : "opacity-100 scale-100"}`}
+          >
             <CopyIcon />
           </span>
           <svg
@@ -85,7 +87,7 @@ function CtaButton() {
           </svg>
         </span>
         <span className="font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-white relative whitespace-nowrap">
-          npx create openui-app chat
+          npx @openuidev/cli@latest create
         </span>
       </button>
     </div>
@@ -94,10 +96,11 @@ function CtaButton() {
 
 function DashboardIllustration() {
   return (
-    <img
+    <Image
       src={dashboardImg}
       alt="AI chat dashboard illustration"
-      className="w-full h-auto rounded-[12px] object-contain"
+      className="w-full h-auto rounded-xl object-contain"
+      placeholder="blur"
     />
   );
 }

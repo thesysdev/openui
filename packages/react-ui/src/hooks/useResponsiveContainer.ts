@@ -45,7 +45,10 @@ export function useResponsiveContainer(containerRef: RefObject<HTMLElement | nul
     const updateSize = () => {
       const width = element.clientWidth;
       const height = element.clientHeight;
-      setSize({ width, height, breakpoint: getBreakpoint(width) });
+      setSize((prev) => {
+        if (prev.width === width && prev.height === height) return prev;
+        return { width, height, breakpoint: getBreakpoint(width) };
+      });
     };
 
     const rafUpdateSize = () => requestAnimationFrame(updateSize);

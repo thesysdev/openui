@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import styles from "@components/layout.module.css";
 import type { NavItem } from "@components/types";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface TopNavProps {
   items: NavItem[];

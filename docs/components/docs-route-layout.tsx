@@ -4,7 +4,6 @@ import { DocsNavbar } from "@/components/docs-navbar";
 import { baseOptions, siteConfig } from "@/lib/layout.shared";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 function SidebarBannerLink({
@@ -39,18 +38,14 @@ type DocsRouteLayoutProps = {
 };
 
 export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
-  const pathname = usePathname();
-  const isIntroductionRoute =
-    pathname === "/docs/introduction" || pathname.startsWith("/docs/introduction/");
-
   return (
     <DocsLayout
       tree={tree}
       {...baseOptions()}
-      nav={{ component: <DocsNavbar showSidebarToggle={!isIntroductionRoute} /> }}
+      nav={{ component: <DocsNavbar showSidebarToggle /> }}
       sidebar={{
         tabs: false,
-        enabled: !isIntroductionRoute,
+        enabled: true,
         collapsible: false,
         banner: (
           <div className="flex flex-col mb-2">
@@ -72,23 +67,6 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
               }
             />
             <SidebarBannerLink
-              href="/docs/mcp"
-              label="Docs MCP Server"
-              icon={
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="2" y="3" width="20" height="14" rx="2" />
-                  <path d="M8 21h8M12 17v4" />
-                </svg>
-              }
-            />
-            <SidebarBannerLink
               href={siteConfig.discordUrl}
               label="Discord"
               external
@@ -102,6 +80,7 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
         ),
       }}
       searchToggle={{ enabled: false }}
+      themeSwitch={{ enabled: false }}
     >
       {children}
     </DocsLayout>

@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import dynamic from "next/dynamic";
 import {
   Accordion,
   AccordionContent,
@@ -36,6 +34,8 @@ import {
   Tag,
   TextCallout,
 } from "@openuidev/react-ui";
+import dynamic from "next/dynamic";
+import { useState } from "react";
 import styles from "./realBlocksCanvas.module.css";
 
 const ChartsSection = dynamic(() => import("./ChartsSection"), { ssr: false });
@@ -44,11 +44,7 @@ const PREVIEW_IMAGE =
   "https://images.unsplash.com/photo-1738168246881-40f35f8aba0a?w=900&auto=format&fit=crop&q=60";
 
 function Block({ title: _title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <article className={styles.block}>
-      {children}
-    </article>
-  );
+  return <article className={styles.block}>{children}</article>;
 }
 
 export default function RealBlocksCanvas() {
@@ -69,7 +65,12 @@ export default function RealBlocksCanvas() {
             </Tabs>
             <Tabs defaultValue="insights">
               <TabsList variant="iconTitleSubtext">
-                <TabsTrigger value="insights" text="Insights" icon={<span>📊</span>} subtext="KPIs" />
+                <TabsTrigger
+                  value="insights"
+                  text="Insights"
+                  icon={<span>📊</span>}
+                  subtext="KPIs"
+                />
                 <TabsTrigger value="revenue" text="Revenue" icon={<span>💰</span>} subtext="MRR" />
                 <TabsTrigger value="users" text="Users" icon={<span>👥</span>} subtext="MAU" />
               </TabsList>
@@ -84,11 +85,15 @@ export default function RealBlocksCanvas() {
           <Accordion type="single" collapsible variant="clear" defaultValue="item-1">
             <AccordionItem value="item-1">
               <AccordionTrigger text="What is OpenUI UI?" />
-              <AccordionContent>OpenUI UI is a design system for polished interfaces.</AccordionContent>
+              <AccordionContent>
+                OpenUI UI is a design system for polished interfaces.
+              </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-2">
               <AccordionTrigger text="Can I customise the theme?" />
-              <AccordionContent>Yes, theme tokens are applied through ThemeProvider variables.</AccordionContent>
+              <AccordionContent>
+                Yes, theme tokens are applied through ThemeProvider variables.
+              </AccordionContent>
             </AccordionItem>
           </Accordion>
         </Block>
@@ -154,7 +159,10 @@ export default function RealBlocksCanvas() {
         </Block>
         <Block title="Text items">
           <div className={styles.inlineStack}>
-            <TextCallout title="Text item title" description="Supporting description for text item." />
+            <TextCallout
+              title="Text item title"
+              description="Supporting description for text item."
+            />
             <TextCallout title="3.7%" description="Conversion rate" variant="success" />
           </div>
         </Block>
@@ -173,8 +181,16 @@ export default function RealBlocksCanvas() {
         <h2 className={styles.sectionTitle}>Forms</h2>
         <Block title="Checkbox group">
           <CheckBoxGroup variant="card">
-            <CheckBoxItem value="email" label="Email notifications" description="Receive updates by email" />
-            <CheckBoxItem value="slack" label="Slack alerts" description="Receive updates in Slack" />
+            <CheckBoxItem
+              value="email"
+              label="Email notifications"
+              description="Receive updates by email"
+            />
+            <CheckBoxItem
+              value="slack"
+              label="Slack alerts"
+              description="Receive updates in Slack"
+            />
           </CheckBoxGroup>
         </Block>
         <Block title="Date picker">
@@ -188,7 +204,11 @@ export default function RealBlocksCanvas() {
         <Block title="Toggle group">
           <SwitchGroup variant="card">
             <SwitchItem value="left" label="Left align" description="Align content to the left" />
-            <SwitchItem value="center" label="Center align" description="Align content to the center" />
+            <SwitchItem
+              value="center"
+              label="Center align"
+              description="Align content to the center"
+            />
           </SwitchGroup>
         </Block>
         <Block title="Radio button group">

@@ -1,6 +1,6 @@
+import type { FoundationTokenItem } from "@components/types";
 import type { ReactNode } from "react";
 import styles from "./PreviewLayout.module.css";
-import type { FoundationTokenItem } from "@components/types";
 
 interface TokenRowsProps {
   items: FoundationTokenItem[];

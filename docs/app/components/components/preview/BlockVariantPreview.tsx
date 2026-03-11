@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
-import PromptCopyButton from "./PromptCopyButton";
 import styles from "./BlockVariantPreview.module.css";
+import PromptCopyButton from "./PromptCopyButton";
 
 interface BlockVariantPreviewProps {
   title?: string;

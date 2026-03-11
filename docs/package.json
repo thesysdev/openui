@@ -3,17 +3,22 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "generate:prompts": "pnpm --filter @openuidev/cli build && pnpm exec openui generate lib/chat-library.ts --out generated/chat-system-prompt.txt && pnpm exec openui generate lib/playground-library.ts --out generated/playground-system-prompt.txt",
     "build": "next build",
-    "dev": "next dev",
+    "dev": "pnpm generate:prompts && next dev",
     "start": "next start",
     "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
     "postinstall": "fumadocs-mdx",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format:fix": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@openuidev/lang-react": "workspace:^",
+    "@openuidev/cli": "workspace:*",
+    "@openuidev/react-lang": "workspace:^",
     "@openuidev/react-headless": "workspace:^",
     "@openuidev/react-ui": "workspace:^",
+    "openai": "^6.22.0",
     "@takumi-rs/image-response": "^0.68.17",
     "fumadocs-core": "16.6.5",
     "fumadocs-mdx": "14.2.8",
@@ -23,6 +28,7 @@
     "motion": "^12.34.3",
     "next": "16.1.6",
     "posthog-js": "^1.358.1",
+    "next-themes": "^0.4.6",
     "prism-react-renderer": "^2.4.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

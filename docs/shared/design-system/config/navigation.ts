@@ -1,4 +1,4 @@
-import type { NavItem, NavGroup } from "@design-system/types";
+import type { NavGroup, NavItem } from "@design-system/types";
 
 const BASE = "/docs/design-system";
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { PreviewPage, PreviewSection } from "@components/components/preview";
 import styles from "@components/components/preview/PreviewLayout.module.css";
+import { useEffect, useState } from "react";
 
 const MOTION_TOKENS = [
   "--motion-duration-fast",
@@ -57,12 +57,16 @@ export default function MotionPreviewPage() {
           ))}
           <article className={styles.tokenRow}>
             <code className={styles.tokenName}>--motion-ease-standard</code>
-            <code className={styles.tokenValue}>{tokenValues["--motion-ease-standard"] ?? "..."}</code>
+            <code className={styles.tokenValue}>
+              {tokenValues["--motion-ease-standard"] ?? "..."}
+            </code>
             <div className={styles.tokenPreview}>Primary easing curve</div>
           </article>
           <article className={styles.tokenRow}>
             <code className={styles.tokenName}>--motion-ease-emphasized</code>
-            <code className={styles.tokenValue}>{tokenValues["--motion-ease-emphasized"] ?? "..."}</code>
+            <code className={styles.tokenValue}>
+              {tokenValues["--motion-ease-emphasized"] ?? "..."}
+            </code>
             <div className={styles.tokenPreview}>Emphasized easing curve</div>
           </article>
         </div>
