@@ -29,18 +29,18 @@ function cachePromise<T>(key: string, setPromise: () => Promise<T>): Promise<T> 
   return promise;
 }
 
-export function Mermaid({ chart }: { chart: string }) {
+export function Mermaid({ chart, initialZoom = 1 }: { chart: string; initialZoom?: number }) {
   const isClient = useIsClient();
   if (!isClient) return null;
-  return <MermaidContent chart={chart} />;
+  return <MermaidContent chart={chart} initialZoom={initialZoom} />;
 }
 
-function MermaidContent({ chart }: { chart: string }) {
+function MermaidContent({ chart, initialZoom = 1 }: { chart: string; initialZoom?: number }) {
   const id = useId();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(initialZoom);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
 
@@ -145,7 +145,7 @@ function MermaidContent({ chart }: { chart: string }) {
         <button
           style={{ ...btnBase, width: "auto", padding: "0 10px", fontSize: 11 }}
           onClick={() => {
-            setZoom(1);
+            setZoom(initialZoom);
             setPosition({ x: 0, y: 0 });
           }}
           title="Reset"

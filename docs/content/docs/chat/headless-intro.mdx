@@ -41,8 +41,7 @@ The usual build order is:
 2. read state with `useThread()` and `useThreadList()`
 3. render your own sidebar, messages, and composer components
 
-```mermaid
-flowchart TD
+<Mermaid initialZoom={2.4} chart={`flowchart TD
     subgraph Backend["Backend Config"]
         A1["apiUrl / processMessage"]
         A2["streamProtocol"]
@@ -76,7 +75,7 @@ flowchart TD
     H1 --> U1
     H1 --> U2
     H2 --> U3
-```
+`} />
 
 ## Related guides
 

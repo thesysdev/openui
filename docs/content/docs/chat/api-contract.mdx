@@ -99,8 +99,7 @@ const myCustomFormat = {
 };
 ```
 
-```mermaid
-flowchart TD
+<Mermaid initialZoom={1.25} chart={`flowchart TD
     subgraph Converters["Built-in Converters"]
         C1["Default — AG-UI message shape"]
         C2["openAIMessageFormat — OpenAI chat messages"]
@@ -120,7 +119,7 @@ flowchart TD
     subgraph IN["Incoming — messageFormat.fromApi()"]
         I1["Thread load — threadApiUrl/get/:id"]
     end
-```
+`} />
 
 ## Related guides
 

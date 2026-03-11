@@ -157,8 +157,7 @@ const selectedThreadId = useThreadList((state) => state.selectedThreadId);
 
 This is especially useful when your sidebar and message list are separate components and you do not want unrelated state updates to rerender both.
 
-```mermaid
-flowchart TD
+<Mermaid initialZoom={2.8} chart={`flowchart TD
     CP["ChatProvider (shared state)"]
 
     subgraph T["useThread() — Active Conversation"]
@@ -179,7 +178,7 @@ flowchart TD
     T1 --> U1["MessageList"]
     T2 --> U2["Composer"]
     TL1 & TL2 & TL3 --> U3["ThreadSidebar"]
-```
+`} />
 
 ## Related guides
 

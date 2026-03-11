@@ -130,12 +130,11 @@ This example uses the same backend assumptions as the built-in layouts:
 
 If you want Generative UI in a headless build, you also need to render structured assistant content yourself instead of relying on the built-in `componentLibrary` behavior from the layout components.
 
-```mermaid
-flowchart TD
+<Mermaid initialZoom={2.7} chart={`flowchart TD
     subgraph Config["Backend Config"]
         PM["processMessage"]
-        SP["streamProtocol\nopenAIReadableStreamAdapter()"]
-        MF["messageFormat\nopenAIMessageFormat"]
+        SP["streamProtocol\\nopenAIReadableStreamAdapter()"]
+        MF["messageFormat\\nopenAIMessageFormat"]
         TA["threadApiUrl"]
     end
 
@@ -146,12 +145,12 @@ flowchart TD
     MF --> CP
     TA --> CP
 
-    CP -->|"useThreadList()"| TS["ThreadSidebar\nthreads · selectedThreadId · isLoadingThreads\nselectThread() · switchToNewThread()"]
-    CP -->|"useThread()"| ML["MessageList\nmessages · isRunning"]
-    CP -->|"useThread()"| CM["Composer\nprocessMessage() · cancelMessage() · isRunning"]
+    CP -->|"useThreadList()"| TS["ThreadSidebar\\nthreads · selectedThreadId · isLoadingThreads\\nselectThread() · switchToNewThread()"]
+    CP -->|"useThread()"| ML["MessageList\\nmessages · isRunning"]
+    CP -->|"useThread()"| CM["Composer\\nprocessMessage() · cancelMessage() · isRunning"]
 
     TS & ML & CM --> CC["CustomChat"]
-```
+`} />
 
 ## Related guides
 

@@ -102,19 +102,18 @@ then provide the individual thread functions instead of relying on the default `
 />
 ```
 
-```mermaid
-flowchart TD
+<Mermaid initialZoom={2.6} chart={`flowchart TD
     TA["threadApiUrl — /api/threads"]
 
-    TA --> LIST["LIST\nGET /api/threads/get\nreturns threads + nextCursor"]
-    TA --> CREATE["CREATE\nPOST /api/threads/create\nbody: messages"]
-    TA --> UPDATE["UPDATE\nPATCH /api/threads/update/:id\nbody: Thread"]
-    TA --> DELETE["DELETE\nDELETE /api/threads/delete/:id"]
-    TA --> LOAD["LOAD\nGET /api/threads/get/:id\nreturns message array"]
+    TA --> LIST["LIST\\nGET /api/threads/get\\nreturns threads + nextCursor"]
+    TA --> CREATE["CREATE\\nPOST /api/threads/create\\nbody: messages"]
+    TA --> UPDATE["UPDATE\\nPATCH /api/threads/update/:id\\nbody: Thread"]
+    TA --> DELETE["DELETE\\nDELETE /api/threads/delete/:id"]
+    TA --> LOAD["LOAD\\nGET /api/threads/get/:id\\nreturns message array"]
 
-    CREATE --> MF_TO["messageFormat.toApi()\nconverts outgoing messages"]
-    LOAD --> MF_FROM["messageFormat.fromApi()\nparses loaded messages"]
-```
+    CREATE --> MF_TO["messageFormat.toApi()\\nconverts outgoing messages"]
+    LOAD --> MF_FROM["messageFormat.fromApi()\\nparses loaded messages"]
+`} />
 
 ## Related guides
 
