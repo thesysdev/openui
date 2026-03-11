@@ -6,16 +6,24 @@ description: Use Generative UI with Chat components.
 GenUI lets assistant messages render structured UI instead of plain text. To make it work, you need both sides of the setup:
 
 - `componentLibrary` on the frontend so OpenUI knows how to render components
-- a generated `systemPrompt` in the request so the model knows what it is allowed to emit
+- a generated system prompt on the backend so the model knows what it is allowed to emit
 
 Passing `componentLibrary` alone is not enough.
 
 The frontend and backend have different jobs here:
 
 - the frontend renders structured responses through `componentLibrary`
-- the backend sends the generated `systemPrompt` to the model with each request
+- the backend loads the generated system prompt and sends it to the model with each request
 
 If either side is missing, the model falls back to plain text or emits components the UI cannot render.
+
+Generate the system prompt with the CLI:
+
+```bash
+npx @openuidev/cli generate ./src/library.ts --out src/generated/system-prompt.txt
+```
+
+The CLI auto-detects exported `PromptOptions` alongside your library, so examples and rules are included automatically. See [System Prompts](/docs/openui-lang/system-prompts) for details.
 
 ## Use the chat library
 
@@ -24,9 +32,7 @@ If either side is missing, the model falls back to plain text or emits component
 ```tsx
 import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { openuiChatLibrary, openuiChatPromptOptions } from "@openuidev/react-ui/genui-lib";
-
-const systemPrompt = openuiChatLibrary.prompt(openuiChatPromptOptions);
+import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
 
 export default function Page() {
   return (
@@ -37,7 +43,6 @@ export default function Page() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messages: openAIMessageFormat.toApi(messages),
-            systemPrompt,
           }),
           signal: abortController.signal,
         });
@@ -52,8 +57,7 @@ export default function Page() {
 
 In this setup:
 
-- `openuiChatLibrary.prompt(openuiChatPromptOptions)` creates the system prompt
-- `systemPrompt` is sent with every request
+- The system prompt is generated at build time via the CLI and loaded by the backend
 - `openAIMessageFormat.toApi(messages)` converts messages before sending
 - `componentLibrary={openuiChatLibrary}` tells the UI how to render the model output
 - `openAIAdapter()` parses raw SSE chunks from the backend
@@ -66,12 +70,18 @@ This is the minimal complete pattern for GenUI in a chat interface. For a non-ch
 
 If you need domain-specific components, keep the same request flow and swap in your own library definition:
 
+First, generate the system prompt from your custom library:
+
+```bash
+npx @openuidev/cli generate ./src/lib/my-library.ts --out src/generated/system-prompt.txt
+```
+
+Then wire up the frontend — it only needs the component library for rendering:
+
 ```tsx
 import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { myLibrary, myPromptOptions } from "@/lib/my-library";
-
-const systemPrompt = myLibrary.prompt(myPromptOptions);
+import { myLibrary } from "@/lib/my-library";
 
 <FullScreen
   processMessage={async ({ messages, abortController }) => {
@@ -79,25 +89,23 @@ const systemPrompt = myLibrary.prompt(myPromptOptions);
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        messages,
-        systemPrompt,
+        messages: openAIMessageFormat.toApi(messages),
       }),
       signal: abortController.signal,
     });
   }}
-  messageFormat={openAIMessageFormat}
   streamProtocol={openAIReadableStreamAdapter()}
   componentLibrary={myLibrary}
   agentName="Assistant"
 />;
 ```
 
-This example assumes `myLibrary` is already defined elsewhere in your app. The key rule is that your custom library still has to provide two things:
+Your custom library needs two things:
 
-- a prompt generator, so the backend can tell the model what components it may emit
-- component definitions, so the frontend can render those emitted components
+- a `createLibrary()` result, so the CLI can generate the system prompt and the frontend can render components
+- optional `PromptOptions` export for examples and rules (auto-detected by the CLI)
 
-Your backend does not need a special GenUI endpoint. It only needs to receive the generated `systemPrompt` and pass it to the model alongside the message history.
+Your backend loads the generated prompt file and sends it to the model alongside the message history.
 
 ## Related guides
 

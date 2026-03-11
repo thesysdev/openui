@@ -1,8 +1,15 @@
-import { type NextRequest } from "next/server";
 import { BASE_URL } from "@/lib/source";
+import { readFileSync } from "fs";
+import { type NextRequest } from "next/server";
+import { join } from "path";
+
+const systemPrompt = readFileSync(
+  join(process.cwd(), "generated/playground-system-prompt.txt"),
+  "utf-8",
+);
 
 export async function POST(req: NextRequest) {
-  const { model, prompt, systemPrompt } = await req.json();
+  const { model, prompt } = await req.json();
 
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",

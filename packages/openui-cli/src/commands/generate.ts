@@ -6,6 +6,7 @@ export interface GenerateOptions {
   out?: string;
   jsonSchema?: boolean;
   export?: string;
+  promptOptions?: string;
 }
 
 export async function runGenerate(entry: string, options: GenerateOptions): Promise<void> {
@@ -21,6 +22,7 @@ export async function runGenerate(entry: string, options: GenerateOptions): Prom
   const workerArgs = [workerPath, entryPath];
   if (options.export) workerArgs.push(options.export);
   if (options.jsonSchema) workerArgs.push("--json-schema");
+  if (options.promptOptions) workerArgs.push("--prompt-options", options.promptOptions);
 
   let output: string;
   try {

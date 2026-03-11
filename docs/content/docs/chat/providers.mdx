@@ -11,12 +11,12 @@ For the core connection concepts, see [Connecting to LLM](/docs/chat/connecting)
 
 ## Common mappings
 
-| Backend pattern | `streamProtocol` | `messageFormat` | Use this when... |
-| :--- | :--- | :--- | :--- |
-| OpenUI Protocol | none | none | Your backend already emits the default OpenUI stream and accepts OpenUI messages |
-| Raw OpenAI Chat Completions SSE | `openAIAdapter()` | `openAIMessageFormat` when needed | You forward raw `data:` SSE chunks from Chat Completions |
-| OpenAI SDK `toReadableStream()` / NDJSON | `openAIReadableStreamAdapter()` | `openAIMessageFormat` when needed | You return `response.toReadableStream()` from the OpenAI SDK |
-| OpenAI Responses API | `openAIResponsesAdapter()` | `openAIConversationMessageFormat` when needed | Your backend uses `openai.responses.create()` |
+| Backend pattern                          | `streamProtocol`                | `messageFormat`                               | Use this when...                                                                 |
+| :--------------------------------------- | :------------------------------ | :-------------------------------------------- | :------------------------------------------------------------------------------- |
+| OpenUI Protocol                          | none                            | none                                          | Your backend already emits the default OpenUI stream and accepts OpenUI messages |
+| Raw OpenAI Chat Completions SSE          | `openAIAdapter()`               | `openAIMessageFormat` when needed             | You forward raw `data:` SSE chunks from Chat Completions                         |
+| OpenAI SDK `toReadableStream()` / NDJSON | `openAIReadableStreamAdapter()` | `openAIMessageFormat` when needed             | You return `response.toReadableStream()` from the OpenAI SDK                     |
+| OpenAI Responses API                     | `openAIResponsesAdapter()`      | `openAIConversationMessageFormat` when needed | Your backend uses `openai.responses.create()`                                    |
 
 Start with the backend output format. Then add `messageFormat` only if the request or stored-history message shape also differs from the OpenUI default.
 
@@ -63,10 +63,7 @@ Use `openAIResponsesAdapter()` for the Responses API event stream.
 Add `openAIConversationMessageFormat` only if your backend also expects or stores Responses conversation items instead of the default AG-UI message shape.
 
 ```tsx
-import {
-  openAIConversationMessageFormat,
-  openAIResponsesAdapter,
-} from "@openuidev/react-headless";
+import { openAIConversationMessageFormat, openAIResponsesAdapter } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
 
 <FullScreen

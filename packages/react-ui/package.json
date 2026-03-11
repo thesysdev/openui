@@ -141,16 +141,32 @@
     "react",
     "ui",
     "components",
-    "generative",
+    "generative-ui",
     "ai",
-    "agentic",
-    "framework"
+    "chat",
+    "chatbot",
+    "copilot",
+    "charts",
+    "forms",
+    "tables",
+    "theming",
+    "design-system",
+    "llm",
+    "streaming",
+    "tailwind",
+    "radix",
+    "recharts",
+    "markdown"
   ],
+  "homepage": "https://openui.com",
   "author": "engineering@thesys.dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/thesysdev/openui.git",
-    "directory": "js/packages/react-ui"
+    "directory": "packages/react-ui"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
   },
   "eslintConfig": {
     "extends": [

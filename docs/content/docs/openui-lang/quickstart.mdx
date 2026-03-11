@@ -1,76 +1,65 @@
 ---
 title: Quick Start
-description: Use the OpenUI library to render OpenUI Lang immediately.
+description: Bootstrap a Generative UI chat app in under a minute.
 ---
 
-This is the fastest path: use `openuiLibrary` from `@openuidev/react-ui` and render LLM output with `@openuidev/react-lang`.
-
-## Installation
+## Bootstrap a GenUI Chat app
 
 ```bash
-npm install @openuidev/react-lang @openuidev/react-ui
+npx @openuidev/cli@latest create --name genui-chat-app
+cd genui-chat-app
 ```
 
-## Render output
+## Add your API key
 
-```tsx
-import "@openuidev/react-ui/components.css";
-import { Renderer } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui";
+The generated app uses OpenAI by default, but works with any OpenAI-compatible provider (e.g., OpenRouter, Azure OpenAI, Anthropic via proxy).
 
-<Renderer library={openuiLibrary} response={streamedText} isStreaming={isStreaming} />;
+```bash
+echo "OPENAI_API_KEY=sk-your-key-here" > .env
 ```
 
-## Generate prompt
+## Start the dev server
 
-```ts
-import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
-
-const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
+```bash
+npm run dev
 ```
 
-Use `systemPrompt` as your model system message.
+## What's included
 
-## Backend example
+The CLI generates a Next.js app with everything wired up:
 
-```ts
-import OpenAI from "openai";
-import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
-
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-export async function POST(req: Request) {
-  const { messages } = await req.json();
-
-  const response = await client.chat.completions.create({
-    model: "gpt-5.2",
-    stream: true,
-    messages: [
-      { role: "system", content: openuiLibrary.prompt(openuiPromptOptions) },
-      ...messages,
-    ],
-  });
-
-  return new Response("stream here");
-}
+```
+src/
+  app/
+    page.tsx          # FullScreen chat layout with the built-in component library
+    api/chat/
+      route.ts        # Backend route with OpenAI streaming + example tools
+  library.ts          # Re-exports openuiChatLibrary and openuiChatPromptOptions
+  generated/
+    system-prompt.txt  # Auto-generated at build time via `openui generate`
 ```
 
-## Included component families
+- **`page.tsx`** — Renders the `FullScreen` chat layout with `openuiChatLibrary` for Generative UI rendering and `openAIAdapter()` for streaming.
+- **`route.ts`** — A backend API route that sends the system prompt to the LLM and streams the response back.
+- **`library.ts`** — Your component library entrypoint. The `openui generate` CLI reads this file to produce the system prompt.
 
-- Layout: `Stack`, `Tabs`, `Accordion`, `Steps`, `Carousel`
-- Content: `Card`, `CardHeader`, `TextContent`, `Callout`, `Image`, `CodeBlock`
-- Data: `Table`, `TagBlock`
-- Charts: `BarChart`, `LineChart`, `AreaChart`, `RadarChart`, `HorizontalBarChart`, `PieChart`, `RadialChart`, `SingleStackedBarChart`, `ScatterChart`
-- Forms: `Form`, `FormControl`, `Input`, `Select`, `DatePicker`, `Slider`
-- Actions: `Button`
+The `dev` and `build` scripts automatically regenerate the system prompt before starting:
+
+```json
+"generate:prompt": "openui generate src/library.ts --out src/generated/system-prompt.txt",
+"dev": "pnpm generate:prompt && next dev"
+```
 
 ## Next Steps
 
 <Cards>
-  <Card title="Defining Components" href="/docs/openui-lang/defining-components">
-    Build custom component contracts.
+  <Card title="Overview" href="/docs/openui-lang/overview">
+    Understand the key building blocks and built-in component libraries.
   </Card>
-  <Card title="Renderer" href="/docs/openui-lang/renderer">
-    Handle streaming and actions.
+  <Card title="Defining Components" href="/docs/openui-lang/defining-components">
+    Create your own custom component library.
+  </Card>
+  <Card title="Chat Quick Start" href="/docs/chat/quick-start">
+    Explore chat-specific layouts and configurations.
   </Card>
 </Cards>

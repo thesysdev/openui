@@ -1,6 +1,10 @@
+import { readFileSync } from "fs";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
+import { join } from "path";
+
+const systemPrompt = readFileSync(join(process.cwd(), "src/generated/system-prompt.txt"), "utf-8");
 
 // ── Tool implementations ──
 
@@ -193,7 +197,7 @@ function sseToolCallArgs(
 // ── Route handler ──
 
 export async function POST(req: NextRequest) {
-  const { messages, systemPrompt } = await req.json();
+  const { messages } = await req.json();
 
   const client = new OpenAI({
     apiKey: process.env.OPENROUTER_API_KEY,
@@ -215,7 +219,7 @@ export async function POST(req: NextRequest) {
     });
 
   const chatMessages: ChatCompletionMessageParam[] = [
-    ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),
+    { role: "system", content: systemPrompt },
     ...cleanMessages,
   ];
 

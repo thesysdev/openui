@@ -1,7 +1,7 @@
 {
   "name": "OpenUI",
   "version": "1.0.0",
-  "description": "Monorepo for OpenUI's JavaScript packages. See https://openui.com for more information.",
+  "description": "The open standard for generative UI — a streaming-first language, React runtime, and component libraries for building AI-powered chat and copilot interfaces",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -19,7 +19,26 @@
     "prettier-plugin-organize-imports": "^3.2.4",
     "typescript": "^5.9.3"
   },
-  "keywords": [],
+  "keywords": [
+    "openui",
+    "generative-ui",
+    "react",
+    "ai",
+    "llm",
+    "streaming",
+    "chat",
+    "copilot",
+    "components",
+    "ui-framework"
+  ],
+  "homepage": "https://openui.com",
   "author": "engineering@openui.com",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  }
 }

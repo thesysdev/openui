@@ -102,5 +102,20 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
           ? "bun"
           : "npm";
 
-  console.info(`\nDone! Get started:\n\n  cd ${name}\n  ${devCmd} run dev\n`);
+  console.info(getStartedMessage(name, devCmd));
 }
+
+const getStartedMessage = (name: string, devCmd: string) =>
+  `
+Done!
+Get started: 
+
+cd ${name}
+
+touch .env
+
+Add your API key to .env:
+OPENAI_API_KEY=sk-your-key-here
+
+${devCmd} run dev
+`;

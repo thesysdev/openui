@@ -3,7 +3,7 @@
  * prompt or JSON schema. Asset imports are stubbed during bundling so React
  * component modules can be evaluated without CSS/image/font loaders.
  *
- * argv: [entryPath, exportName?, "--json-schema"?]
+ * argv: [entryPath, exportName?, "--json-schema"?, "--prompt-options", name?]
  * stdout: the prompt string or JSON schema
  */
 
@@ -70,16 +70,61 @@ function findLibrary(mod: Record<string, unknown>, exportName?: string): Library
   return undefined;
 }
 
+interface PromptOptions {
+  preamble?: string;
+  additionalRules?: string[];
+  examples?: string[];
+}
+
+function isPromptOptions(value: unknown): value is PromptOptions {
+  if (typeof value !== "object" || value === null) return false;
+  const obj = value as Record<string, unknown>;
+  const hasExamples = Array.isArray(obj["examples"]);
+  const hasRules = Array.isArray(obj["additionalRules"]);
+  const hasPreamble = typeof obj["preamble"] === "string";
+  return hasExamples || hasRules || hasPreamble;
+}
+
+function findPromptOptions(
+  mod: Record<string, unknown>,
+  exportName?: string,
+): PromptOptions | undefined {
+  if (exportName) {
+    const val = mod[exportName];
+    return isPromptOptions(val) ? val : undefined;
+  }
+
+  // Check well-known names first
+  for (const name of ["promptOptions", "options"]) {
+    if (isPromptOptions(mod[name])) return mod[name] as PromptOptions;
+  }
+
+  // Check any export ending with "PromptOptions" or "promptOptions"
+  for (const [key, val] of Object.entries(mod)) {
+    if (/[Pp]rompt[Oo]ptions$/.test(key) && isPromptOptions(val)) return val;
+  }
+
+  return undefined;
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const entryPath = args[0];
   if (!entryPath) {
-    console.error("Usage: generate-worker <entryPath> [exportName] [--json-schema]");
+    console.error(
+      "Usage: generate-worker <entryPath> [exportName] [--json-schema] [--prompt-options <name>]",
+    );
     process.exit(1);
   }
 
   const jsonSchema = args.includes("--json-schema");
-  const exportName = args.find((a) => a !== entryPath && a !== "--json-schema");
+  const promptOptionsIdx = args.indexOf("--prompt-options");
+  const promptOptionsName = promptOptionsIdx !== -1 ? args[promptOptionsIdx + 1] : undefined;
+  const reserved = new Set(["--json-schema", "--prompt-options"]);
+  if (promptOptionsName) reserved.add(promptOptionsName);
+  const exportName = args.find(
+    (a, i) => a !== entryPath && !reserved.has(a) && !(i > 0 && args[i - 1] === "--prompt-options"),
+  );
 
   const bundleDir = fs.mkdtempSync(path.join(os.tmpdir(), "openui-generate-"));
   const bundlePath = path.join(bundleDir, "entry.cjs");
@@ -125,7 +170,13 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const output = jsonSchema ? JSON.stringify(library.toJSONSchema(), null, 2) : library.prompt();
+  let output: string;
+  if (jsonSchema) {
+    output = JSON.stringify(library.toJSONSchema(), null, 2);
+  } else {
+    const promptOptions = findPromptOptions(mod, promptOptionsName);
+    output = library.prompt(promptOptions);
+  }
 
   process.stdout.write(output);
 }

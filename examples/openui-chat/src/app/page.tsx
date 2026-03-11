@@ -3,10 +3,8 @@ import "@openuidev/react-ui/components.css";
 
 import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { openuiChatLibrary, openuiChatPromptOptions } from "@openuidev/react-ui/genui-lib";
+import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
 import { useState } from "react";
-
-const systemPrompt = openuiChatLibrary.prompt(openuiChatPromptOptions);
 
 export default function Page() {
   const [mode, setMode] = useState<"light" | "dark">("light");
@@ -46,7 +44,6 @@ export default function Page() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               messages: openAIMessageFormat.toApi(messages),
-              systemPrompt,
             }),
             signal: abortController.signal,
           });

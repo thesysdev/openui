@@ -6,9 +6,8 @@ description: Add OpenUI Chat to an existing Next.js App Router application.
 This page covers package installation, style imports, and a basic render check for an existing Next.js App Router app.
 
 <Callout type="info">
-  **Starting a new project?**
-  Skip this guide and use our scaffold command instead:
-  `npx @openuidev/cli@latest create --name my-app`
+  **Starting a new project?** Skip this guide and use our scaffold command instead: `npx
+  @openuidev/cli@latest create --name my-app`
 </Callout>
 
 ## Prerequisites
@@ -25,24 +24,16 @@ Install the UI package, the headless core, and the icons package used by the bui
 
 <Tabs items={["npm", "pnpm", "yarn", "bun"]}>
   <Tab value="npm">
-    ```bash
-    npm install @openuidev/react-ui @openuidev/react-headless lucide-react
-    ```
+    ```bash npm install @openuidev/react-ui @openuidev/react-headless lucide-react ```
   </Tab>
   <Tab value="pnpm">
-    ```bash
-    pnpm add @openuidev/react-ui @openuidev/react-headless lucide-react
-    ```
+    ```bash pnpm add @openuidev/react-ui @openuidev/react-headless lucide-react ```
   </Tab>
   <Tab value="yarn">
-    ```bash
-    yarn add @openuidev/react-ui @openuidev/react-headless lucide-react
-    ```
+    ```bash yarn add @openuidev/react-ui @openuidev/react-headless lucide-react ```
   </Tab>
   <Tab value="bun">
-    ```bash
-    bun add @openuidev/react-ui @openuidev/react-headless lucide-react
-    ```
+    ```bash bun add @openuidev/react-ui @openuidev/react-headless lucide-react ```
   </Tab>
 </Tabs>
 
@@ -55,11 +46,7 @@ import "@openuidev/react-ui/components.css";
 import "@openuidev/react-ui/styles/index.css";
 import "./globals.css";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>{children}</body>
