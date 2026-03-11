@@ -43,6 +43,7 @@ function MermaidContent({ chart, initialZoom = 1 }: { chart: string; initialZoom
   const [zoom, setZoom] = useState(initialZoom);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<HTMLDivElement>(null);
@@ -72,15 +73,20 @@ function MermaidContent({ chart, initialZoom = 1 }: { chart: string; initialZoom
     ),
   );
 
-  // Ctrl + scroll to zoom
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      setHasInteracted(true);
       if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
         const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
         setZoom((prev) => Math.min(Math.max(prev + delta, MIN_ZOOM), MAX_ZOOM));
+      } else {
+        setPosition((prev) => ({
+          x: prev.x - e.deltaX,
+          y: prev.y - e.deltaY,
+        }));
       }
     };
     el.addEventListener("wheel", onWheel, { passive: false });
@@ -92,6 +98,7 @@ function MermaidContent({ chart, initialZoom = 1 }: { chart: string; initialZoom
     if (e.button !== 0) return;
     e.stopPropagation();
     setIsDragging(true);
+    setHasInteracted(true);
     dragStart.current = {
       x: e.clientX - positionRef.current.x,
       y: e.clientY - positionRef.current.y,
@@ -216,18 +223,20 @@ function MermaidContent({ chart, initialZoom = 1 }: { chart: string; initialZoom
         >
           {Math.round(zoom * 100)}%
         </span>
-        <span
-          style={{
-            padding: "3px 8px",
-            borderRadius: 6,
-            border: `1px solid ${border}`,
-            background: badgeBg,
-            color: badgeColor,
-            fontSize: 10,
-          }}
-        >
-          Drag to pan · Ctrl+Scroll to zoom
-        </span>
+        {!hasInteracted && (
+          <span
+            style={{
+              padding: "3px 8px",
+              borderRadius: 6,
+              border: `1px solid ${border}`,
+              background: badgeBg,
+              color: badgeColor,
+              fontSize: 10,
+            }}
+          >
+            Scroll to pan · Pinch or Ctrl+Scroll to zoom
+          </span>
+        )}
       </div>
     </div>
   );
