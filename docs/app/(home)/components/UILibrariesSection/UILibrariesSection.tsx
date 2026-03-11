@@ -1,5 +1,7 @@
+import type { CSSProperties } from "react";
 import mascotSvgPaths from "@/imports/svg-10waxq0xyc";
 import svgPaths from "@/imports/svg-urruvoh2be";
+import styles from "./UILibrariesSection.module.css";
 
 // ---------------------------------------------------------------------------
 // Data
@@ -11,10 +13,9 @@ interface UILibrary {
   desktopName?: string;
   /** Mobile-only name override (optional) */
   mobileName?: string;
-  iconBg: string;
-  iconSize: string;
-  iconOffset: string;
-  iconDesktopOffset: string;
+  iconBackground: string;
+  iconSize?: { mobile: number; desktop: number };
+  iconPosition?: { mobile: { left: number; top: number }; desktop: { left: number; top: number } };
   iconViewBox: string;
   iconPath: string;
   iconFill: string;
@@ -26,10 +27,7 @@ interface UILibrary {
 const LIBRARIES: UILibrary[] = [
   {
     name: "OpenUI Design system",
-    iconBg: "bg-black/8",
-    iconSize: "",
-    iconOffset: "",
-    iconDesktopOffset: "",
+    iconBackground: "rgb(0 0 0 / 8%)",
     iconViewBox: "",
     iconPath: "",
     iconFill: "black",
@@ -37,10 +35,9 @@ const LIBRARIES: UILibrary[] = [
   },
   {
     name: "ShadCN",
-    iconBg: "bg-black",
-    iconSize: "size-4 lg:size-6",
-    iconOffset: "left-2 lg:left-3 top-2 lg:top-3",
-    iconDesktopOffset: "",
+    iconBackground: "#000000",
+    iconSize: { mobile: 16, desktop: 24 },
+    iconPosition: { mobile: { left: 8, top: 8 }, desktop: { left: 12, top: 12 } },
     iconViewBox: "0 0 24 24",
     iconPath: svgPaths.p46a4800,
     iconFill: "white",
@@ -50,10 +47,9 @@ const LIBRARIES: UILibrary[] = [
   {
     name: "Material Design system",
     mobileName: "Material Design system Guidelines",
-    iconBg: "bg-[#a485ff]",
-    iconSize: "size-5 lg:size-[30px]",
-    iconOffset: "left-1.5 lg:left-[9px] top-1.5 lg:top-[9px]",
-    iconDesktopOffset: "",
+    iconBackground: "#a485ff",
+    iconSize: { mobile: 20, desktop: 30 },
+    iconPosition: { mobile: { left: 6, top: 6 }, desktop: { left: 9, top: 9 } },
     iconViewBox: "0 0 30 30",
     iconPath: svgPaths.p3a7bdd80,
     iconFill: "white",
@@ -67,17 +63,29 @@ const LIBRARIES: UILibrary[] = [
 // ---------------------------------------------------------------------------
 
 function LibraryCard({ lib }: { lib: UILibrary }) {
+  const iconStyle =
+    lib.iconSize && lib.iconPosition
+      ? ({
+          "--icon-mobile-left": `${lib.iconPosition.mobile.left}px`,
+          "--icon-mobile-top": `${lib.iconPosition.mobile.top}px`,
+          "--icon-mobile-size": `${lib.iconSize.mobile}px`,
+          "--icon-desktop-left": `${lib.iconPosition.desktop.left}px`,
+          "--icon-desktop-top": `${lib.iconPosition.desktop.top}px`,
+          "--icon-desktop-size": `${lib.iconSize.desktop}px`,
+        } as CSSProperties)
+      : undefined;
+
   const displayName = lib.mobileName ? (
     <>
-      <span className="lg:hidden">{lib.mobileName}</span>
-      <span className="hidden lg:inline">{lib.desktopName ?? lib.name}</span>
+      <span className={styles.mobileOnly}>{lib.mobileName}</span>
+      <span className={styles.desktopOnly}>{lib.desktopName ?? lib.name}</span>
     </>
   ) : (
     lib.name
   );
 
   const iconContent = lib.clipId ? (
-    <svg className="absolute block size-full" fill="none" viewBox={lib.iconViewBox}>
+    <svg className={styles.iconSvg} fill="none" viewBox={lib.iconViewBox}>
       <g clipPath={`url(#${lib.clipId})`}>
         <path d={lib.iconPath} fill={lib.iconFill} />
       </g>
@@ -88,24 +96,25 @@ function LibraryCard({ lib }: { lib: UILibrary }) {
       </defs>
     </svg>
   ) : (
-    <svg className="absolute block size-full" fill="none" viewBox={lib.iconViewBox}>
+    <svg className={styles.iconSvg} fill="none" viewBox={lib.iconViewBox}>
       <path d={lib.iconPath} fill={lib.iconFill} />
     </svg>
   );
 
   return (
-    <div className="bg-white h-14 lg:h-20 rounded-[14px] lg:rounded-2xl relative border border-black/10 shadow-[0px_8px_16px_-4px_rgba(22,34,51,0.08)] flex-1">
-      <div className="flex items-center gap-4 p-3 lg:p-4 h-full">
+    <div className={styles.card}>
+      <div className={styles.cardContent}>
         {/* Icon */}
         <div
-          className={`${lib.iconBg} rounded-[6.4px] lg:rounded-[9.6px] size-8 lg:size-12 shrink-0 relative overflow-hidden`}
+          className={styles.iconBadge}
+          style={{ backgroundColor: lib.iconBackground }}
         >
           {lib.isMascot ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="rotate-[-16.49deg] size-[22px] lg:size-[37px] relative">
-                <div className="absolute inset-[-1.16%_-0.94%]">
+            <div className={styles.mascotCenter}>
+              <div className={styles.mascotFrame}>
+                <div className={styles.mascotSvgWrap}>
                   <svg
-                    className="block size-full"
+                    className={styles.mascotSvg}
                     fill="none"
                     preserveAspectRatio="xMidYMid meet"
                     viewBox="0 0 37.6937 30.558"
@@ -148,12 +157,14 @@ function LibraryCard({ lib }: { lib: UILibrary }) {
               </div>
             </div>
           ) : (
-            <div className={`absolute ${lib.iconOffset} ${lib.iconSize}`}>{iconContent}</div>
+            <div className={styles.iconPlacement} style={iconStyle}>
+              {iconContent}
+            </div>
           )}
         </div>
 
         {/* Name */}
-        <span className="font-['Inter_Display',sans-serif] font-medium text-base lg:text-[22px] text-black leading-[1.4]">
+        <span className={styles.name}>
           {displayName}
         </span>
       </div>
@@ -167,22 +178,22 @@ function LibraryCard({ lib }: { lib: UILibrary }) {
 
 export function UILibrariesSection() {
   return (
-    <div className="w-full px-5 lg:px-8">
-      <div className="max-w-[1200px] mx-auto">
+    <div className={styles.section}>
+      <div className={styles.container}>
         {/* Header */}
-        <div className="mb-6 lg:mb-8">
-          <h2 className="font-['Inter',sans-serif] font-semibold text-[22px] lg:text-[32px] text-black leading-[1.25]">
-            <span className="lg:hidden">
+        <div className={styles.header}>
+          <h2 className={styles.title}>
+            <span className={styles.mobileOnly}>
               Works with any UI library.
               <br />
               Including yours.
             </span>
-            <span className="hidden lg:inline">Works with any UI library. Including yours.</span>
+            <span className={styles.desktopOnly}>Works with any UI library. Including yours.</span>
           </h2>
         </div>
 
         {/* Library cards */}
-        <div className="flex flex-col lg:flex-row gap-3">
+        <div className={styles.cardGrid}>
           {LIBRARIES.map((lib) => (
             <LibraryCard key={lib.name} lib={lib} />
           ))}

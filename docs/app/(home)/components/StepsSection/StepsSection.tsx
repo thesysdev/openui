@@ -6,6 +6,7 @@ import OpenUiRendererRendersIt from "@/imports/OpenUiRendererRendersIt-43-427";
 import YouRegisterComponents from "@/imports/YouRegisterComponents-43-365";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
+import styles from "./StepsSection.module.css";
 
 // ---------------------------------------------------------------------------
 // Types & data
@@ -64,7 +65,7 @@ const COLLAPSED_HEIGHT = 84;
 const LAST_STEP_INDEX = STEPS.length - 1;
 const TOTAL_DESKTOP_HEIGHT = EXPANDED_HEIGHT + LAST_STEP_INDEX * COLLAPSED_HEIGHT + LAST_STEP_INDEX;
 
-const CARD_SHADOW = "0px 4px 8px 0px rgba(22,34,51,0.08), 0px 16px 24px 0px rgba(22,34,51,0.08)";
+const CARD_SHADOW = "0px 1px 3px 0px rgba(22,34,51,0.08), 0px 12px 24px 0px rgba(22,34,51,0.04)";
 const CARD_BORDER = "0.391px solid rgba(0,0,0,0.08)";
 
 // ---------------------------------------------------------------------------
@@ -85,11 +86,9 @@ const TRANSITION = {
 function StepBadge({ num, isActive }: { num: number; isActive: boolean }) {
   return (
     <div
-      className={`shrink-0 rounded-full flex items-center justify-center size-[30px] lg:size-9 border border-black/10 ${
-        isActive ? "bg-black text-white" : "bg-white text-black"
-      }`}
+      className={`${styles.stepBadge} ${isActive ? styles.stepBadgeActive : styles.stepBadgeInactive}`}
     >
-      <span className="font-['Inter',sans-serif] font-medium text-[15px] lg:text-lg leading-5 lg:leading-6">
+      <span className={styles.stepBadgeLabel}>
         {num}
       </span>
     </div>
@@ -97,19 +96,19 @@ function StepBadge({ num, isActive }: { num: number; isActive: boolean }) {
 }
 
 function Divider() {
-  return <div className="w-full h-px bg-black/8" />;
+  return <div className={styles.divider} />;
 }
 
 function StepDetails({ step, hideDetails }: { step: Step; hideDetails?: boolean }) {
   return (
-    <div className="flex flex-col gap-6">
-      <p className="font-['Inter_Display',sans-serif] text-lg text-black/40 leading-[1.2]">
+    <div className={styles.stepDetails}>
+      <p className={styles.stepDescription}>
         {step.description}
       </p>
       {!hideDetails && step.details.length > 0 && (
-        <div className="font-['Inter_Display',sans-serif] text-lg text-black/40 leading-[1.2]">
-          {step.detailsTitle && <p className="mb-2">{step.detailsTitle}</p>}
-          <ul className="list-disc pl-6 space-y-1">
+        <div className={styles.stepDescription}>
+          {step.detailsTitle && <p className={styles.stepDetailsTitle}>{step.detailsTitle}</p>}
+          <ul className={styles.stepDetailsList}>
             {step.details.map((line) => (
               <li key={line}>{line}</li>
             ))}
@@ -138,16 +137,16 @@ function StepIllustration({ stepNumber, mobile }: { stepNumber: number; mobile?:
     return () => ro.disconnect();
   }, [mobile]);
 
-  if (!Illustration) return <div className="bg-[#f1f1f1] rounded-2xl w-full h-full" />;
+  if (!Illustration) return <div className={styles.illustrationFallback} />;
 
   if (mobile) {
     return (
       <div
         ref={containerRef}
-        className="w-full rounded-2xl overflow-hidden relative aspect-[610/432]"
+        className={styles.mobileIllustrationFrame}
       >
         <div
-          className="absolute inset-0 origin-top-left"
+          className={styles.mobileIllustrationScale}
           style={{ width: 610, height: 432, transform: `scale(${scale})` }}
         >
           <Illustration />
@@ -157,7 +156,7 @@ function StepIllustration({ stepNumber, mobile }: { stepNumber: number; mobile?:
   }
 
   return (
-    <div className="w-full h-full rounded-2xl overflow-hidden relative">
+    <div className={styles.desktopIllustrationFrame}>
       <Illustration />
     </div>
   );
@@ -178,10 +177,12 @@ function DesktopStep({
 }) {
   return (
     <motion.div
-      className="flex items-start p-6 overflow-hidden cursor-pointer relative"
+      className={styles.desktopStep}
       animate={{
         height: isActive ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT,
-        boxShadow: isActive ? "0px 4px 12px rgba(0,0,0,0.06)" : "0px 0px 0px rgba(0,0,0,0)",
+        boxShadow: isActive
+          ? "0px 1px 3px rgba(22,34,51,0.08), 0px 10px 20px rgba(22,34,51,0.03)"
+          : "0px 0px 0px rgba(0,0,0,0)",
         zIndex: isActive ? 2 : 1,
       }}
       transition={TRANSITION.expand}
@@ -189,11 +190,11 @@ function DesktopStep({
       onMouseEnter={onActivate}
     >
       {/* Left: number + text */}
-      <div className="flex gap-3 w-[45%] shrink-0">
+      <div className={styles.desktopStepLead}>
         <StepBadge num={step.number} isActive={isActive} />
 
-        <div className="flex flex-col gap-6 flex-1 pr-[60px]">
-          <h3 className="font-['Inter_Display',sans-serif] font-medium text-[24px] text-black leading-[1.25] py-1">
+        <div className={styles.desktopStepCopy}>
+          <h3 className={styles.desktopStepTitle}>
             {step.title}
           </h3>
 
@@ -216,7 +217,7 @@ function DesktopStep({
       <AnimatePresence>
         {isActive && (
           <motion.div
-            className="flex-1 h-full ml-6"
+            className={styles.desktopStepPreview}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -245,9 +246,9 @@ function MobileStep({
 }) {
   return (
     <div>
-      <button className="w-full flex items-center gap-3 p-3 cursor-pointer" onClick={onToggle}>
+      <button className={styles.mobileStepButton} onClick={onToggle}>
         <StepBadge num={step.number} isActive={isActive} />
-        <span className="font-['Inter',sans-serif] font-medium text-base text-black leading-[1.25] text-left flex-1">
+        <span className={styles.mobileStepTitle}>
           {step.title}
         </span>
       </button>
@@ -255,17 +256,17 @@ function MobileStep({
       <AnimatePresence>
         {isActive && (
           <motion.div
-            className="overflow-hidden"
+            className={styles.mobileStepPanel}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={TRANSITION.mobile}
           >
-            <div className="px-3 pb-3">
-              <div className="ml-[42px] flex flex-col gap-6">
+            <div className={styles.mobileStepContent}>
+              <div className={styles.mobileStepDetails}>
                 <StepDetails step={step} hideDetails />
               </div>
-              <div className="rounded-2xl w-full overflow-hidden relative mt-6">
+              <div className={styles.mobileStepIllustrationWrap}>
                 <StepIllustration stepNumber={step.number} mobile />
               </div>
             </div>
@@ -285,14 +286,14 @@ export function StepsSection() {
   const activate = useCallback((n: number) => setActiveStep(n), []);
 
   return (
-    <section className="w-full px-5 lg:px-8">
-      <div className="max-w-[1200px] mx-auto">
+    <section className={styles.section}>
+      <div className={styles.container}>
         <div
-          className="bg-white rounded-[18px]"
+          className={styles.card}
           style={{ border: CARD_BORDER, boxShadow: CARD_SHADOW }}
         >
           {/* Desktop */}
-          <div className="hidden lg:block overflow-hidden" style={{ height: TOTAL_DESKTOP_HEIGHT }}>
+          <div className={styles.desktopSteps} style={{ height: TOTAL_DESKTOP_HEIGHT }}>
             {STEPS.map((step, i) => (
               <div key={step.number}>
                 <DesktopStep
@@ -306,7 +307,7 @@ export function StepsSection() {
           </div>
 
           {/* Mobile */}
-          <div className="lg:hidden">
+          <div className={styles.mobileSteps}>
             {STEPS.map((step, i) => (
               <div key={step.number}>
                 <MobileStep

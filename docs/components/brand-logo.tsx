@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 const COUNT_UP_DURATION = 3000;
-const BUTTON_SHADOW = "0px 8px 16px 0px rgba(22,34,51,0.08)";
+const BUTTON_SHADOW = "0px 1px 3px 0px rgba(22,34,51,0.08), 0px 12px 24px 0px rgba(22,34,51,0.04)";
 
 const LOGO_SPRING = { type: "spring", stiffness: 400, damping: 15 } as const;
 const LOGO_COLOR_TRANSITION = { duration: 0.25 } as const;
@@ -204,14 +204,14 @@ export function GitHubStarButton({
       href={`https://github.com/${repo}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="bg-white flex items-center gap-1.5 h-10 pl-2.5 pr-1.5 rounded-full relative cursor-pointer transition-all duration-200 hover:scale-105 no-underline"
+      className="bg-white flex items-center gap-1.5 h-10 pl-2.5 pr-1.5 rounded-full relative cursor-pointer transition-all duration-200 hover:scale-[0.995] no-underline"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
         aria-hidden="true"
-        className="absolute inset-0 pointer-events-none rounded-full border border-black/10"
-        style={{ boxShadow: isScrolled ? "none" : BUTTON_SHADOW }}
+        className="absolute inset-0 pointer-events-none rounded-full border border-black/6"
+        style={{ boxShadow: isScrolled || isHovered ? "none" : BUTTON_SHADOW }}
       />
       <GitHubIcon />
       <StarCountBadge count={starCount} isHighlighted={isHovered} />

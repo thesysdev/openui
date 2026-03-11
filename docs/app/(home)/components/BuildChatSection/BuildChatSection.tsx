@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CopyIcon } from "./shared";
+import { CopyIcon } from "../shared/shared";
+import styles from "./BuildChatSection.module.css";
 
 const dashboardImg = "/images/home/d67b5e94653944c1d0d4998c6b169c37f98060ad.png";
 
@@ -16,22 +17,7 @@ const CARD_SHADOW = "0px 8px 16px -4px rgba(22,34,51,0.08)";
 // ---------------------------------------------------------------------------
 
 function SectionTitle() {
-  return (
-    <p className="font-['Inter',sans-serif] font-semibold text-[22px] lg:text-4xl text-black leading-[1.25] max-w-[430px]">
-      Build an AI chat in minutes
-    </p>
-  );
-}
-
-function SectionDescription() {
-  return (
-    <div className="max-w-[357px]">
-      <p className="font-['Inter_Display',sans-serif] text-lg text-black/40 leading-[1.4]">
-        This scaffolds a Reference chat interface with a beautiful Component library and a fully
-        functional OpenUI lang and Renderer.
-      </p>
-    </div>
-  );
+  return <p className={styles.title}>Build a Generative UI chat in minutes</p>;
 }
 
 function CtaButton() {
@@ -61,19 +47,19 @@ function CtaButton() {
   };
 
   return (
-    <div className="flex items-center justify-center lg:justify-start mt-6 lg:mt-0 pt-4">
+    <div className={styles.ctaWrap}>
       <button
         onClick={handleClick}
-        className="bg-black rounded-full h-12 px-5 flex items-center gap-2.5 cursor-pointer relative transition-all duration-200 hover:scale-105 w-full max-w-[280px] lg:max-w-none lg:w-auto justify-center lg:justify-start"
+        className={styles.ctaButton}
       >
-        <span className="relative size-4 flex items-center justify-center">
+        <span className={styles.iconFrame}>
           <span
-            className={`absolute transition-all duration-300 ${copied ? "opacity-0 scale-50" : "opacity-100 scale-100"}`}
+            className={`${styles.iconLayer} ${copied ? styles.iconHidden : styles.iconVisible}`}
           >
             <CopyIcon />
           </span>
           <svg
-            className={`size-4 absolute transition-all duration-300 ${copied ? "opacity-100 scale-100" : "opacity-0 scale-50"}`}
+            className={`${styles.iconLayer} ${copied ? styles.iconVisible : styles.iconHidden}`}
             fill="none"
             viewBox="0 0 14 14"
           >
@@ -86,7 +72,7 @@ function CtaButton() {
             />
           </svg>
         </span>
-        <span className="font-['Inter_Display',sans-serif] font-medium text-[18px] leading-6 text-white relative whitespace-nowrap">
+        <span className={styles.ctaLabel}>
           npx create openui-app chat
         </span>
       </button>
@@ -99,7 +85,7 @@ function DashboardIllustration() {
     <img
       src={dashboardImg}
       alt="AI chat dashboard illustration"
-      className="w-full h-auto rounded-[12px] object-contain"
+      className={styles.dashboardImage}
     />
   );
 }
@@ -110,28 +96,27 @@ function DashboardIllustration() {
 
 export function BuildChatSection() {
   return (
-    <div className="w-full px-5 lg:px-8">
-      <div className="max-w-[1200px] mx-auto">
-        <div className="bg-white rounded-[16px] relative overflow-hidden">
+    <div className={styles.section}>
+      <div className={styles.container}>
+        <div className={styles.card}>
           {/* Border + shadow overlay */}
           <div
             aria-hidden="true"
-            className="absolute border border-[rgba(0,0,0,0.1)] border-solid inset-0 pointer-events-none rounded-[16px]"
+            className={styles.overlay}
             style={{ boxShadow: CARD_SHADOW }}
           />
 
-          <div className="flex flex-col lg:flex-row p-6 gap-6 lg:gap-0">
+          <div className={styles.content}>
             {/* Left: text content */}
-            <div className="flex flex-col flex-1 justify-between min-h-[240px] lg:min-h-0">
-              <div className="flex flex-col gap-3">
+            <div className={styles.copyColumn}>
+              <div className={styles.copyStack}>
                 <SectionTitle />
-                <SectionDescription />
               </div>
               <CtaButton />
             </div>
 
             {/* Right: illustration */}
-            <div className="w-full lg:w-[600px] shrink-0">
+            <div className={styles.mediaColumn}>
               <DashboardIllustration />
             </div>
           </div>

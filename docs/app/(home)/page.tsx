@@ -1,28 +1,29 @@
-import { BuildChatSection } from "./components/BuildChatSection";
-import { CompatibilitySection } from "./components/CompatibilitySection";
-import { FadeInSection } from "./components/FadeInSection";
-import { FeaturesSection } from "./components/FeaturesSection";
-import { Footer } from "./components/Footer";
-import { GradientDivider } from "./components/GradientDivider";
-import { HeroSection } from "./components/HeroSection";
-import { PossibilitiesSection } from "./components/PossibilitiesSection";
-import { ShiroMascot } from "./components/ShiroMascot";
-import { StepsSection } from "./components/StepsSection";
-import { UILibrariesSection } from "./components/UILibrariesSection";
+import { BuildChatSection } from "./components/BuildChatSection/BuildChatSection";
+import { CompatibilitySection } from "./components/CompatibilitySection/CompatibilitySection";
+import { FadeInSection } from "./components/FadeInSection/FadeInSection";
+import { FeaturesSection } from "./components/FeaturesSection/FeaturesSection";
+import { Footer } from "./components/Footer/Footer";
+import { GradientDivider } from "./components/GradientDivider/GradientDivider";
+import { HeroSection } from "./components/HeroSection/HeroSection";
+import { PossibilitiesSection } from "./components/PossibilitiesSection/PossibilitiesSection";
+import { ShiroMascot } from "./components/ShiroMascot/ShiroMascot";
+import { StepsSection } from "./components/StepsSection/StepsSection";
+import { UILibrariesSection } from "./components/UILibrariesSection/UILibrariesSection";
+import styles from "./page.module.css";
 
 export default function HomePage() {
   return (
-    <div className="bg-white min-h-screen w-full overflow-x-clip relative">
+    <div className={styles.page}>
       <HeroSection />
-      <div className="mt-16 lg:mt-24">
+      <div className={styles.mascotSection}>
         <ShiroMascot />
       </div>
       <StepsSection />
-      <div className="mt-16 lg:mt-24 relative">
+      <div className={styles.contentSection}>
         <GradientDivider direction="down" />
-        <div className="bg-black/4 py-20 flex flex-col gap-30 md:gap-60">
+        <div className={styles.contentShell}>
           <PossibilitiesSection />
-          <div className="flex flex-col gap-8 lg:gap-10">
+          <div className={styles.compatibilityStack}>
             <UILibrariesSection />
             <CompatibilitySection />
           </div>

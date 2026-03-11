@@ -1,0 +1,135 @@
+.section {
+  width: 100%;
+}
+
+.headerContainer {
+  max-width: 75rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  max-width: 673px;
+  font-family: "Inter", sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #000;
+}
+
+.trackViewport {
+  overflow: hidden;
+  margin-block: -2rem;
+  padding-block: 2rem;
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  gap: 1rem;
+  padding-left: 1rem;
+  user-select: none;
+  will-change: transform;
+}
+
+.trackIdle {
+  cursor: grab;
+}
+
+.trackDragging {
+  cursor: grabbing;
+}
+
+.card {
+  position: relative;
+  width: 240px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.cardInner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.cardImage,
+.cardImagePlaceholder {
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+.cardImage {
+  object-fit: cover;
+}
+
+.cardImagePlaceholder {
+  background: rgb(0 0 0 / 4%);
+}
+
+.cardBody {
+  width: 100%;
+  padding: 1rem;
+}
+
+.cardTitle {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #000;
+}
+
+.cardOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 2px 0 rgb(22 34 51 / 4%),
+    0 8px 16px 0 rgb(22 34 51 / 4%);
+}
+
+@media (min-width: 1024px) {
+  .headerContainer {
+    padding-inline: 2rem;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .card {
+    width: 300px;
+    border-radius: 18px;
+  }
+
+  .cardImage,
+  .cardImagePlaceholder {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+  }
+
+  .cardBody {
+    padding: 1.5rem;
+  }
+
+  .cardTitle {
+    font-family: "Inter Display", sans-serif;
+    font-size: 22px;
+  }
+
+  .cardOverlay {
+    border-radius: 18px;
+  }
+}

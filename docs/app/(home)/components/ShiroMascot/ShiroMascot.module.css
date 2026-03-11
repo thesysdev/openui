@@ -1,0 +1,21 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.figure {
+  position: relative;
+  height: 87px;
+  width: 133px;
+  overflow: hidden;
+}
+
+.svg {
+  position: absolute;
+  display: block;
+  top: 15.49%;
+  left: 8%;
+  width: 83.84%;
+  height: 115.47%;
+}

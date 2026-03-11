@@ -1,19 +1,14 @@
 import svgPaths from "@/imports/svg-k4s4rxtkj0";
+import styles from "./ShiroMascot.module.css";
 
 export function ShiroMascot() {
   return (
-    <div className="flex items-center justify-center">
-      <div className="w-[133px] h-[87px] relative overflow-hidden">
+    <div className={styles.root}>
+      <div className={styles.figure}>
         <svg
-          className="absolute block"
+          className={styles.svg}
           fill="none"
           viewBox="0 0 111.502 100.458"
-          style={{
-            top: "15.49%",
-            left: "8%",
-            width: "83.84%",
-            height: "115.47%",
-          }}
         >
           <path d={svgPaths.p1ea82800} fill="black" />
           <path d={svgPaths.p372c6800} fill="black" />
