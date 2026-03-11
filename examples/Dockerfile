@@ -3,15 +3,16 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Enable pnpm
 RUN corepack enable
 
-# Install dependencies
-COPY package.json pnpm-lock.yaml* ./
+# Copy the whole monorepo
+COPY . .
+
+# Install workspace dependencies
 RUN pnpm install
 
-# Copy source and build
-COPY . .
+# Build the example app
+WORKDIR /app/examples/openui-chat
 RUN pnpm build
 
 
@@ -23,7 +24,6 @@ ENV NODE_ENV=production
 
 RUN corepack enable
 
-# Copy built app
 COPY --from=builder /app ./
 
 EXPOSE 3000
