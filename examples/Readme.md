@@ -18,15 +18,16 @@ http://localhost:3000
 
 The OpenUI chat example should now be running.
 
-Environment Variables
+## Environment Variables
 
 The following environment variables are supported:
-```bash
-Variable	Description	Required
-OPENAI_API_KEY	Your OpenAI API key used by the chat backend	Yes
-OPENAI_MODEL	Optional model override (e.g. gpt-4o)	No
-OPENAI_BASE_URL	Optional custom API endpoint	No
-```
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| OPENAI_API_KEY | Your OpenAI API key used by the chat backend | Yes |
+| OPENAI_MODEL | Optional model override (e.g. `gpt-4o`) | No |
+| OPENAI_BASE_URL | Optional custom API endpoint | No |
+
 Example:
 ```bash
 docker run -p 3000:3000 \
