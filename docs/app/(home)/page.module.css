@@ -1,0 +1,47 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: clip;
+  background: #fff;
+}
+
+.mascotSection {
+  margin-top: 4rem;
+}
+
+.contentSection {
+  position: relative;
+  margin-top: 4rem;
+}
+
+.contentShell {
+  display: flex;
+  flex-direction: column;
+  gap: 7.5rem;
+  padding-block: 5rem;
+  background: rgb(0 0 0 / 4%);
+}
+
+.compatibilityStack {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .contentShell {
+    gap: 15rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mascotSection,
+  .contentSection {
+    margin-top: 6rem;
+  }
+
+  .compatibilityStack {
+    gap: 2.5rem;
+  }
+}

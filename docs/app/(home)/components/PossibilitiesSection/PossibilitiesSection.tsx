@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import styles from "./PossibilitiesSection.module.css";
+
 const listCardImg = "/images/home/0ea99cfd72e99c55c9511d4e0c3fbb08d37fbafd.png";
 const chartsCardImg = "/images/home/9fbf5ad1316183d81279510b9fceb2bd1b538523.png";
 const formsCardImg = "/images/home/8ae798233176b4d64e44605bb283d7a9886fed7a.png";
@@ -30,25 +32,25 @@ const IMAGE_MAP: Record<string, string> = {
 function Card({ title }: { title: string }) {
   const img = IMAGE_MAP[title];
   return (
-    <div className="bg-white rounded-[14px] lg:rounded-[18px] shrink-0 w-[240px] lg:w-[300px] relative">
-      <div className="flex flex-col items-start overflow-hidden rounded-[inherit]">
+    <div className={styles.card}>
+      <div className={styles.cardInner}>
         {img ? (
           <img
             src={img}
             alt={`${title} illustration`}
-            className="w-full aspect-[5/4] rounded-t-[14px] lg:rounded-t-2xl object-cover"
+            className={styles.cardImage}
             draggable={false}
           />
         ) : (
-          <div className="bg-black/4 w-full aspect-[5/4] rounded-t-[14px] lg:rounded-t-2xl" />
+          <div className={styles.cardImagePlaceholder} />
         )}
-        <div className="p-4 lg:p-6 w-full">
-          <p className="font-['Inter',sans-serif] font-medium text-sm lg:font-['Inter_Display',sans-serif] lg:text-[22px] text-black leading-[1.4]">
+        <div className={styles.cardBody}>
+          <p className={styles.cardTitle}>
             {title}
           </p>
         </div>
       </div>
-      <div className="absolute inset-0 border border-black/8 rounded-[14px] lg:rounded-[18px] shadow-[0px_4px_8px_-4px_rgba(22,34,51,0.08),0px_16px_24px_0px_rgba(22,34,51,0.08)] pointer-events-none" />
+      <div className={styles.cardOverlay} />
     </div>
   );
 }
@@ -73,7 +75,7 @@ export function PossibilitiesSection() {
 
   const [isDragging, setIsDragging] = useState(false);
 
-  // ── Auto-scroll loop ──────────────────────────────────────────────────
+  // Auto-scroll loop
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -100,7 +102,7 @@ export function PossibilitiesSection() {
     return () => cancelAnimationFrame(rafRef.current);
   }, []);
 
-  // ── Drag handlers ─────────────────────────────────────────────────────
+  // Drag handlers
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const el = scrollRef.current;
     if (!el) return;
@@ -141,22 +143,21 @@ export function PossibilitiesSection() {
   }, []);
 
   return (
-    <div className="w-full">
+    <div className={styles.section}>
       {/* Header */}
-      <div className="max-w-[1200px] mx-auto px-5 lg:px-8">
-        <div className="mb-8">
-          <h2 className="font-['Inter',sans-serif] font-semibold text-[22px] lg:text-[32px] text-black leading-[1.25] max-w-[673px]">
+      <div className={styles.headerContainer}>
+        <div className={styles.header}>
+          <h2 className={styles.title}>
             Endless possibilities. Built in realtime.
           </h2>
         </div>
       </div>
 
       {/* Marquee track */}
-      <div className="overflow-hidden py-8 -my-8">
+      <div className={styles.trackViewport}>
         <div
           ref={scrollRef}
-          className="flex gap-4 w-max pl-4 select-none"
-          style={{ cursor: isDragging ? "grabbing" : "grab", willChange: "transform" }}
+          className={`${styles.track} ${isDragging ? styles.trackDragging : styles.trackIdle}`}
           onMouseEnter={pauseScroll}
           onMouseLeave={resumeScroll}
           onPointerDown={handlePointerDown}
