@@ -101,37 +101,3 @@
     height: fit-content;
   }
 }
-
-.openui-bottom-tray-thread-composer {
-  width: 100%;
-  padding: 0 cssUtils.$space-s cssUtils.$space-s;
-
-  &__input-wrapper {
-    background-color: cssUtils.$foreground;
-    border: 1.256px solid cssUtils.$border-default;
-    display: flex;
-    align-items: flex-end;
-    gap: cssUtils.$space-s;
-    padding: cssUtils.$space-m;
-    border-radius: cssUtils.$radius-xl;
-  }
-
-  &__input {
-    flex-grow: 1;
-    padding: 0;
-    resize: none;
-    margin: auto 0px;
-    min-height: 1lh;
-    max-height: 154px;
-    outline: none;
-    border: none;
-    background: transparent;
-    overflow: hidden;
-
-    @include cssUtils.typography(primary, default);
-    color: cssUtils.$text-neutral-primary;
-    &::placeholder {
-      color: cssUtils.$text-neutral-tertiary;
-    }
-  }
-}

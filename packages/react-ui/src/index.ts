@@ -29,6 +29,7 @@ export * from "./components/ListItem";
 export * from "./components/MarkDownRenderer";
 export * from "./components/MessageLoading";
 export * from "./components/OpenUIChat";
+export * from "./components/Portal";
 export * from "./components/RadioGroup";
 export * from "./components/RadioItem";
 export * from "./components/SectionBlock";

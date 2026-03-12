@@ -1,11 +1,20 @@
 import { ChatProvider, Message, type Thread } from "@openuidev/react-headless";
-import { MessageSquare, Sparkles, Zap } from "lucide-react";
+import { MessageSquare, Share, Sparkles, Zap } from "lucide-react";
+import { Button } from "../../Button";
+import { IconButton } from "../../IconButton";
 import { Container } from "../Container";
 import { ConversationStarter } from "../ConversationStarter";
 import { MobileHeader } from "../MobileHeader";
 import { NewChatButton } from "../NewChatButton";
 import { SidebarContainer, SidebarContent, SidebarHeader, SidebarSeparator } from "../Sidebar";
-import { Composer, MessageLoading, Messages, ScrollArea, ThreadContainer } from "../Thread";
+import {
+  Composer,
+  MessageLoading,
+  Messages,
+  ScrollArea,
+  ThreadContainer,
+  ThreadHeader,
+} from "../Thread";
 import { ThreadList } from "../ThreadList";
 import { WelcomeScreen } from "../WelcomeScreen";
 import logoUrl from "./thesysdev_logo.jpeg";
@@ -52,7 +61,6 @@ const SAMPLE_STARTERS = [
   {
     displayText: "What can you do?",
     prompt: "What can you do?",
-    // icon undefined = shows default lightbulb
   },
   {
     displayText: "Tell me about your features",
@@ -62,7 +70,7 @@ const SAMPLE_STARTERS = [
   {
     displayText: "Show me some examples (no icon)",
     prompt: "Show me some examples",
-    icon: <></>, // Empty fragment = no icon
+    icon: <></>,
   },
 ];
 
@@ -80,7 +88,6 @@ const LONG_STARTERS = [
   {
     displayText: "Tell me about your advanced features and how I can use them effectively",
     prompt: "Tell me about your features",
-    // Default lightbulb icon
   },
 ];
 
@@ -125,15 +132,30 @@ export const Default = {
     >
       <Container logoUrl={logoUrl} agentName="OpenUI">
         <SidebarContainer>
-          <SidebarHeader />
-          <SidebarContent>
+          <SidebarHeader>
             <NewChatButton />
+          </SidebarHeader>
+          <SidebarContent>
             <SidebarSeparator />
             <ThreadList />
           </SidebarContent>
         </SidebarContainer>
         <ThreadContainer>
-          <MobileHeader />
+          <MobileHeader
+            rightChildren={
+              <IconButton
+                icon={<Share size={16} />}
+                aria-label="Share"
+                size="medium"
+                variant="secondary"
+              />
+            }
+          />
+          <ThreadHeader>
+            <Button iconLeft={<Share size={16} />} variant="secondary" size="small">
+              Share
+            </Button>
+          </ThreadHeader>
           <ScrollArea>
             <Messages loader={<MessageLoading />} />
           </ScrollArea>
@@ -167,15 +189,25 @@ export const WithConversationStarter = {
     >
       <Container logoUrl={logoUrl} agentName="OpenUI">
         <SidebarContainer>
-          <SidebarHeader />
-          <SidebarContent>
+          <SidebarHeader>
             <NewChatButton />
+          </SidebarHeader>
+          <SidebarContent>
             <SidebarSeparator />
             <ThreadList />
           </SidebarContent>
         </SidebarContainer>
         <ThreadContainer>
-          <MobileHeader />
+          <MobileHeader
+            rightChildren={
+              <IconButton
+                icon={<Share size={16} />}
+                aria-label="Share"
+                size="medium"
+                variant="secondary"
+              />
+            }
+          />
           <ScrollArea>
             <Messages loader={<MessageLoading />} />
           </ScrollArea>
@@ -209,15 +241,25 @@ export const LongVariant = {
     >
       <Container logoUrl={logoUrl} agentName="OpenUI">
         <SidebarContainer>
-          <SidebarHeader />
-          <SidebarContent>
+          <SidebarHeader>
             <NewChatButton />
+          </SidebarHeader>
+          <SidebarContent>
             <SidebarSeparator />
             <ThreadList />
           </SidebarContent>
         </SidebarContainer>
         <ThreadContainer>
-          <MobileHeader />
+          <MobileHeader
+            rightChildren={
+              <IconButton
+                icon={<Share size={16} />}
+                aria-label="Share"
+                size="medium"
+                variant="secondary"
+              />
+            }
+          />
           <ScrollArea>
             <Messages loader={<MessageLoading />} />
           </ScrollArea>
@@ -229,7 +271,6 @@ export const LongVariant = {
   ),
 };
 
-// WelcomeScreen with props-based content
 export const WithWelcomeScreen = {
   args: {
     variant: "short",
@@ -252,15 +293,25 @@ export const WithWelcomeScreen = {
     >
       <Container logoUrl={logoUrl} agentName="OpenUI Assistant">
         <SidebarContainer>
-          <SidebarHeader />
-          <SidebarContent>
+          <SidebarHeader>
             <NewChatButton />
+          </SidebarHeader>
+          <SidebarContent>
             <SidebarSeparator />
             <ThreadList />
           </SidebarContent>
         </SidebarContainer>
         <ThreadContainer>
-          <MobileHeader />
+          <MobileHeader
+            rightChildren={
+              <IconButton
+                icon={<Share size={16} />}
+                aria-label="Share"
+                size="medium"
+                variant="secondary"
+              />
+            }
+          />
           <WelcomeScreen
             title="Hi, I'm OpenUI Assistant"
             description="I can help you with questions about your account, products, and more."
@@ -279,7 +330,6 @@ export const WithWelcomeScreen = {
   ),
 };
 
-// WelcomeScreen with custom children
 export const WithCustomWelcomeScreen = {
   args: {
     variant: "short",
@@ -302,15 +352,25 @@ export const WithCustomWelcomeScreen = {
     >
       <Container logoUrl={logoUrl} agentName="OpenUI Assistant">
         <SidebarContainer>
-          <SidebarHeader />
-          <SidebarContent>
+          <SidebarHeader>
             <NewChatButton />
+          </SidebarHeader>
+          <SidebarContent>
             <SidebarSeparator />
             <ThreadList />
           </SidebarContent>
         </SidebarContainer>
         <ThreadContainer>
-          <MobileHeader />
+          <MobileHeader
+            rightChildren={
+              <IconButton
+                icon={<Share size={16} />}
+                aria-label="Share"
+                size="medium"
+                variant="secondary"
+              />
+            }
+          />
           <WelcomeScreen>
             <div style={{ textAlign: "center" }}>
               <div

@@ -264,6 +264,22 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   }
 }
 
+// =============================================================================
+// Thread Header
+// =============================================================================
+
+.openui-shell-thread-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: cssUtils.$space-m cssUtils.$space-s cssUtils.$space-xs;
+  flex-shrink: 0;
+
+  .openui-shell-container--mobile & {
+    display: none;
+  }
+}
+
 .openui-shell-thread-message-loading {
   display: flex;
   padding: 0 $center-align-spacing;

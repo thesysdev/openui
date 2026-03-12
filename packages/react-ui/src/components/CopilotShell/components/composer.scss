@@ -1,28 +1,13 @@
 @use "../../../cssUtils" as cssUtils;
 
-$center-align-spacing: calc(32px + cssUtils.$space-s);
-
-.openui-shell-thread-composer {
-  max-width: 880px;
+.openui-copilot-shell-thread-composer {
   width: 100%;
-  margin: 0 auto cssUtils.$space-m;
-  padding: 0 $center-align-spacing;
-
-  .openui-shell-container--mobile & {
-    margin: 0;
-    padding: cssUtils.$space-m 14px;
-    background-color: cssUtils.$foreground;
-  }
-
-  .openui-shell-thread-container--artifact-active & {
-    padding-left: 0;
-    padding-right: cssUtils.$space-m;
-  }
+  padding: cssUtils.$space-m cssUtils.$space-l cssUtils.$space-l;
+  background-color: cssUtils.$foreground;
 
   &__input-wrapper {
-    background-color: cssUtils.$foreground;
     border: 1px solid cssUtils.$border-interactive;
-    border-radius: cssUtils.$radius-2xl;
+    border-radius: cssUtils.$radius-l;
     box-shadow: cssUtils.$shadow-s;
     overflow: clip;
     display: flex;

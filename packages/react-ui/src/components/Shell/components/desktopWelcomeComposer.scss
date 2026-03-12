@@ -1,34 +1,43 @@
 @use "../../../cssUtils" as cssUtils;
 
 .openui-shell-desktop-welcome-composer {
-  display: flex;
-  flex-direction: column;
-  gap: cssUtils.$space-m;
-  padding: cssUtils.$space-m;
   background-color: cssUtils.$foreground;
   border: 1px solid cssUtils.$border-interactive;
   border-radius: cssUtils.$radius-2xl;
   box-shadow: cssUtils.$shadow-s;
+  overflow: clip;
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-m;
+  padding: cssUtils.$space-m;
   width: 100%;
   max-width: 800px;
 
-  // Input container
-  &__input-container {
-    display: flex;
-    padding-left: cssUtils.$space-3xs;
-  }
-
-  // Textarea input
   &__input {
-    flex: 1;
-    padding: 0;
+    scrollbar-width: thin;
+    scrollbar-color: cssUtils.$elevated transparent;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: cssUtils.$elevated;
+      border-radius: cssUtils.$radius-full;
+    }
+
+    padding: 0 cssUtils.$space-3xs;
     resize: none;
     max-height: 200px;
     min-height: 24px;
     outline: none;
     border: none;
     background: transparent;
-    overflow: hidden;
+    overflow-y: auto;
     @include cssUtils.typography(body, default);
     color: cssUtils.$text-neutral-primary;
 
@@ -37,24 +46,12 @@
     }
   }
 
-  // Actions row (attachment + submit)
-  &__actions {
+  &__action-bar {
     display: flex;
-    flex-direction: row-reverse;
     align-items: center;
-    justify-content: space-between;
   }
 
-  // Action buttons base
-  &__action-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: cssUtils.$radius-m;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    flex-shrink: 0;
+  &__submit-button {
+    margin-left: auto;
   }
 }
