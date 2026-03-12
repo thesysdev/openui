@@ -8,5 +8,6 @@ export const SliderSchema = z.object({
   max: z.number(),
   step: z.number().optional(),
   defaultValue: z.array(z.number()).optional(),
+  label: z.string().optional(),
   rules: rulesSchema,
 });

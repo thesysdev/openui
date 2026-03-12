@@ -1,2 +1,2 @@
-const dependencies = ["Slider"];
+const dependencies = ["Slider", "SliderBlock"];
 export default dependencies;

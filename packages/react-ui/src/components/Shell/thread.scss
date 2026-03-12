@@ -264,6 +264,15 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   }
 }
 
+.openui-shell-thread-error {
+  padding: 0 $center-align-spacing;
+  min-height: auto !important;
+
+  .openui-shell-container--mobile & {
+    padding: 0;
+  }
+}
+
 .openui-shell-thread-message-loading {
   display: flex;
   padding: 0 $center-align-spacing;
