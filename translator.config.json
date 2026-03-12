@@ -1,0 +1,6 @@
+{
+  "sourceLanguage": "en",
+  "targetLanguages": ["zh-Hans"],
+  "sourceDirectory": ".",
+  "targetDirectory": "translations"
+}
