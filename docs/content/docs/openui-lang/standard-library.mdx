@@ -23,6 +23,14 @@ import { openuiLibrary } from "@openuidev/react-ui";
 
 ## Generate prompt
 
+Use the CLI to generate the system prompt at build time:
+
+```bash
+npx @openuidev/cli generate ./src/library.ts --out src/generated/system-prompt.txt
+```
+
+Or generate programmatically:
+
 ```ts
 import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
 

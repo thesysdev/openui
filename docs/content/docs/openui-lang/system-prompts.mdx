@@ -3,9 +3,31 @@ title: System Prompts
 description: Generate and customize prompt instructions from your OpenUI library.
 ---
 
-`library.prompt(...)` generates the instruction text your model needs to output valid OpenUI Lang.
+`library.prompt(...)` generates the instruction text your model needs to output valid OpenUI Lang. You can generate it programmatically or with the CLI.
 
-## Generate prompt
+## Generate with the CLI
+
+The fastest way to generate a system prompt — works with any backend language:
+
+```bash
+npx @openuidev/cli generate ./src/library.ts
+```
+
+Write to a file:
+
+```bash
+npx @openuidev/cli generate ./src/library.ts --out system-prompt.txt
+```
+
+Generate JSON Schema instead:
+
+```bash
+npx @openuidev/cli generate ./src/library.ts --json-schema
+```
+
+The CLI auto-detects exported `PromptOptions` (examples, rules) alongside your library. Use `--prompt-options <name>` to pick a specific export.
+
+## Generate programmatically
 
 ```ts
 import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
@@ -46,7 +68,7 @@ The generated prompt includes:
 
 ```ts
 import OpenAI from "openai";
-import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui/genui-lib";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -56,13 +78,12 @@ export async function POST(req: Request) {
   const completion = await client.chat.completions.create({
     model: "gpt-5.2",
     stream: true,
-    messages: [
-      { role: "system", content: openuiLibrary.prompt(openuiPromptOptions) },
-      ...messages,
-    ],
+    messages: [{ role: "system", content: openuiLibrary.prompt(openuiPromptOptions) }, ...messages],
   });
 
-  return new Response("stream here");
+  return new Response(completion.toReadableStream(), {
+    headers: { "Content-Type": "text/event-stream" },
+  });
 }
 ```
 

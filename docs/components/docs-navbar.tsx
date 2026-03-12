@@ -3,16 +3,15 @@
 import { siteConfig } from "@/lib/layout.shared";
 import { SidebarTrigger } from "fumadocs-ui/components/sidebar/base";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
 import { OpenUILogo, ThesysLogo } from "./brand-logo";
 import { ThemeToggle } from "./theme-toggle";
 
 const tabs = [
-  { title: "Introduction", url: "/docs/introduction" },
-  { title: "OpenUI Lang", url: "/docs/openui-lang" },
+  { title: "OpenUI", url: "/docs/openui-lang" },
   { title: "Chat", url: "/docs/chat" },
   { title: "API Reference", url: "/docs/api-reference" },
 ];
@@ -77,7 +76,7 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
   return (
     <header className="fixed top-0 inset-x-0 z-40 w-full border-b border-fd-border bg-fd-background/80 backdrop-blur-xl">
       {/* Top row: logo left, actions right */}
-      <div className="flex items-center h-16 max-w-[97rem] mx-auto px-3 md:px-8">
+      <div className="flex items-center h-16 max-w-388 mx-auto px-3 md:px-8">
         {showSidebarToggle && (
           <SidebarTrigger className="docs-nav-sidebar-toggle flex items-center justify-center size-9 rounded-lg text-fd-muted-foreground bg-transparent border-none cursor-pointer mr-3">
             <svg

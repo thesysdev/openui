@@ -15,11 +15,7 @@ There are two common theming paths:
 ```tsx
 import { FullScreen } from "@openuidev/react-ui";
 
-<FullScreen
-  apiUrl="/api/chat"
-  theme={{ mode: "dark" }}
-  agentName="Assistant"
-/>;
+<FullScreen apiUrl="/api/chat" theme={{ mode: "dark" }} agentName="Assistant" />;
 ```
 
 ## Override theme tokens
@@ -53,16 +49,21 @@ If your app already wraps the page in `ThemeProvider`, disable the built-in wrap
 ```tsx
 import { FullScreen } from "@openuidev/react-ui";
 
-<FullScreen
-  apiUrl="/api/chat"
-  disableThemeProvider
-  agentName="Assistant"
-/>;
+<FullScreen apiUrl="/api/chat" disableThemeProvider agentName="Assistant" />;
 ```
 
 `disableThemeProvider` only skips the wrapper. It does not remove any chat functionality.
 
-{/* add visual: image showing the default chat theme beside a custom dark theme override */}
+<div className="grid md:grid-cols-2 gap-6 my-6">
+  <div>
+    <p className="text-sm text-center font-medium mb-2">Light (default)</p>
+    ![FullScreen light theme](/docs/images/chat/fullscreen.png)
+  </div>
+  <div>
+    <p className="text-sm text-center font-medium mb-2">Dark</p>
+    ![FullScreen dark theme](/docs/images/chat/fullscreen-dark.png)
+  </div>
+</div>
 
 ## Related guides
 

@@ -2,6 +2,7 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import { BASE_URL } from "../lib/source";
 import "./global.css";
 import { PHProvider } from "./providers";
 
@@ -10,9 +11,18 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
   title: {
     default: "OpenUI",
     template: "%s | OpenUI",
+  },
+  description: "The Open Standard for Generative UI",
+  openGraph: {
+    images: ["/meta-image.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/meta-image.png"],
   },
   icons: {
     icon: "/favicon.svg",

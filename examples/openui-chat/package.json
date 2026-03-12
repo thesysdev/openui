@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "generate:prompt": "pnpm --filter @openuidev/cli build && pnpm exec openui generate src/library.ts --out src/generated/system-prompt.txt",
+    "dev": "pnpm generate:prompt && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@openuidev/cli": "workspace:*",
     "@openuidev/react-ui": "workspace:*",
     "@openuidev/react-headless": "workspace:*",
     "@openuidev/react-lang": "workspace:*",

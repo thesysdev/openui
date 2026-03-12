@@ -1,75 +1,47 @@
 ---
-title: OpenUI Lang
-description: Streaming-first UI language for typed component rendering.
+title: Introduction
 ---
 
-OpenUI Lang is a compact, line-oriented language for LLM-generated UI.
+import { StreamingComparison } from "@/app/docs/openui-lang/streaming-comparison";
+import { TryItOut } from "./components/try-it-out";
 
-It is designed for:
+OpenUI is a full-stack Generative UI framework — a compact streaming-first language, a React runtime with built-in component libraries, and ready-to-use chat interfaces — that is up to **[67% more token-efficient](/docs/openui-lang/benchmarks)** than JSON.
 
-- Streaming output (`identifier = Expression` per line)
-- Token efficiency vs verbose JSON payloads
-- Safe rendering against your registered component library
+## What is Generative UI?
 
-## How it works
+Most AI applications are limited to returning text (as markdown) or rendering pre-built UI responses. Markdown isn't interactive, and pre-built responses are rigid (they don't adapt to the context of the conversation).
 
-1. Define components with `defineComponent(...)` and group them with `createLibrary(...)`.
-2. Generate instructions with `library.prompt(...)` and send them as your system message.
-3. LLM returns OpenUI Lang text.
-4. `<Renderer />` parses and renders React components from that output.
+Generative UI fundamentally changes this relationship. Instead of merely providing content, the AI composes the interface itself. It dynamically selects, configures, and composes components from a predefined library to create a purpose-built interface tailored to the user's immediate request, be it an interactive chart, a complex form, or a multi-tab dashboard.
 
-## Why OpenUI Lang
+<TryItOut />
+## OpenUI Lang
 
-- Renders progressively while text streams.
-- Uses positional arguments derived from your Zod object key order.
-- Drops invalid nodes with missing required props instead of rendering broken UI.
+OpenUI Lang is a compact, line-oriented language designed specifically for Large Language Models (LLMs) to generate user interfaces. It serves as a more efficient, predictable, and stream-friendly alternative to verbose formats like JSON. For the complete syntax reference, see the [Language Specification](/docs/openui-lang/specification).
 
-<Callout type="info">
-  The parser currently validates required field presence/nullability from schema metadata. It does
-  not perform full runtime Zod type validation of every prop value.
-</Callout>
+### Why a New Language?
 
-## Minimal example
+While JSON is a common data interchange format, it has significant drawbacks when streamed directly from an LLM for UI generation. And there are mutliple implementations around it, like Vercel [JSON-Render](https://json-render.dev/) and [A2UI](https://a2ui.org/).
 
-```tsx
-import "@openuidev/react-ui/components.css";
-import { Renderer } from "@openuidev/react-lang";
-import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
+OpenUI Lang was created to solve these core issues:
 
-const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
+- **Token Efficiency:** JSON is extremely verbose. Keys like `"component"`, `"props"`, and `"children"` are repeated for every single element, consuming a large number of tokens. This directly increases API costs and latency. OpenUI Lang uses a concise, positional syntax that drastically reduces the token count. Benchmarks show it is up to **[67% more token-efficient](/docs/openui-lang/benchmarks)** than JSON.
 
-<Renderer library={openuiLibrary} response={openuiLangText} isStreaming={isStreaming} />;
-```
+- **Streaming-First Design:** The language is line-oriented (`identifier = Expression`), making it trivial to parse and render progressively. As each line arrives from the model, a new piece of the UI can be rendered immediately. This provides a superior user experience with much better perceived performance compared to waiting for a complete JSON object to download and parse.
 
-Example OpenUI Lang output:
+- **Robustness:** The LLMs are unpredictable. They can hallucinate component names, produce invalid structures. OpenUI Lang is designed to be robust against this by validating the output and drops the invalid portion of response from rendering.
 
-```text
-root = Stack([title, form])
-title = TextContent("Contact", "large-heavy")
-form = Form("contact", [nameField, emailField], actions)
-nameField = FormControl("Name", Input("name", "Your name", "text", ["required"]))
-emailField = FormControl("Email", Input("email", "you@example.com", "email", ["required", "email"]))
-actions = Buttons([submitBtn, cancelBtn], "row")
-submitBtn = Button("Submit", "submit:contact", "primary")
-cancelBtn = Button("Cancel", "action:cancel_contact", "secondary")
-```
+<StreamingComparison />
 
-## Next Steps
+## How It Works
 
-<Cards>
-  <Card title="Quick Start" href="/docs/openui-lang/quickstart">
-    Start with the OpenUI library and render immediately.
-  </Card>
-  <Card title="Defining Components" href="/docs/openui-lang/defining-components">
-    Build custom component contracts with Zod.
-  </Card>
-  <Card title="System Prompts" href="/docs/openui-lang/system-prompts">
-    Generate and customize model instructions.
-  </Card>
-  <Card title="Renderer" href="/docs/openui-lang/renderer">
-    Parse, stream, and handle actions.
-  </Card>
-  <Card title="Language Specification" href="/docs/openui-lang/specification">
-    Formal grammar and parser behavior.
-  </Card>
-</Cards>
+<img src="/images/openui-lang/openui-chart-flow.png" alt="Architecture diagram" />
+
+The key difference from a standard chat app is what happens at the LLM and rendering layers:
+
+1.  **System prompt includes OpenUI Lang spec** — Your backend appends the generated component library prompt alongside your system prompt, instructing the LLM to respond in OpenUI Lang instead of plain text or JSON.
+
+2.  **LLM generates OpenUI Lang** — Instead of returning markdown, the model outputs a compact, line-oriented syntax (e.g., `root = Stack([chart])`) constrained to your component library.
+
+3.  **Streaming render** — On the client, the `<Renderer />` component parses each line as it arrives and maps it to your React components in real-time — structure first, then data fills in progressively.
+
+The result is a native UI — like the "Total expenses" card and interactive pie chart above — dynamically composed by the AI, streamed efficiently, and rendered safely from your own components.

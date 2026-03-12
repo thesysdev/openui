@@ -1,6 +1,9 @@
-# OpenUI CLI
+# @openuidev/cli
 
-The OpenUI CLI helps you get started with OpenUI faster.
+Command-line tool for [OpenUI](https://openui.com) — scaffold AI-powered generative UI chat apps and generate LLM system prompts from your React component libraries.
+
+[![npm](https://img.shields.io/npm/v/@openuidev/cli)](https://www.npmjs.com/package/@openuidev/cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/thesysdev/openui/blob/main/LICENSE)
 
 It currently supports two workflows:
 
@@ -84,6 +87,7 @@ Options:
 - `-o, --out <file>`: Write output to a file instead of stdout
 - `--json-schema`: Output JSON Schema instead of the system prompt
 - `--export <name>`: Use a specific export name instead of auto-detecting the library export
+- `--prompt-options <name>`: Use a specific `PromptOptions` export name (auto-detected by default)
 - `--no-interactive`: Fail instead of prompting for a missing `entry`
 
 What it does:
@@ -93,6 +97,7 @@ What it does:
 - supports both TypeScript and JavaScript entry files
 - stubs common asset imports such as CSS, SVG, images, and fonts during bundling
 - auto-detects the exported library by checking `library`, `default`, and then all exports
+- auto-detects a `PromptOptions` export (with `examples`, `additionalRules`, or `preamble`) and passes it to `library.prompt()`
 
 Examples:
 
@@ -101,6 +106,7 @@ openui generate ./src/library.ts
 openui generate ./src/library.ts --json-schema
 openui generate ./src/library.ts --export library
 openui generate ./src/library.ts --out ./artifacts/system-prompt.txt
+openui generate ./src/library.ts --prompt-options myPromptOptions
 openui generate --no-interactive ./src/library.ts
 ```
 
@@ -113,6 +119,16 @@ If `--export` is not provided, it looks for exports in this order:
 1. `library`
 2. `default`
 3. any other export that matches the expected library shape
+
+### PromptOptions auto-detection
+
+If `--prompt-options` is not provided, the CLI looks for a `PromptOptions` export in this order:
+
+1. `promptOptions`
+2. `options`
+3. any export whose name ends with `PromptOptions` (case-insensitive)
+
+A valid `PromptOptions` object has at least one of: `examples` (string array), `additionalRules` (string array), or `preamble` (string).
 
 ## Local Development
 
@@ -135,3 +151,11 @@ node dist/index.js generate --help
 - interactive prompts can be cancelled without creating output
 - `create` requires the template files to be present in the built package
 - `generate` exits with a non-zero code if the file is missing or no valid library export is found
+
+## Documentation
+
+Full documentation and guides are available at **[openui.com](https://openui.com)**.
+
+## License
+
+[MIT](https://github.com/thesysdev/openui/blob/main/LICENSE)

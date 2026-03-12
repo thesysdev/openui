@@ -211,12 +211,20 @@ interface FormValidationContextValue {
 }
 
 function useFormValidation(): FormValidationContextValue | null;
+function useCreateFormValidation(): FormValidationContextValue;
 function validate(
   value: unknown,
   rules: ParsedRule[],
   customValidators?: Record<string, ValidatorFn>,
 ): string | undefined;
 function parseRules(rules: unknown): ParsedRule[];
+function parseStructuredRules(rules: unknown): ParsedRule[];
 const builtInValidators: Record<string, ValidatorFn>;
 ```
 
+Context providers for advanced usage:
+
+```ts
+const FormValidationContext: React.Context<FormValidationContextValue | null>;
+const FormNameContext: React.Context<string | undefined>;
+```
