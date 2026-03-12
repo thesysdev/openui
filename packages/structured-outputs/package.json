@@ -1,0 +1,59 @@
+{
+  "name": "@openuidev/structured-output",
+  "version": "0.1.0",
+  "description": "A standalone, framework-agnostic library for using OpenUI Lang as a general-purpose structured output format — schema definition, prompt generation, parsing, and Zod validation",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./src",
+    "format:check": "prettier --check ./src",
+    "prepare": "pnpm run build",
+    "ci": "pnpm run lint:check && pnpm run format:check",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "openui",
+    "structured-outputs",
+    "llm",
+    "parser",
+    "zod",
+    "schema",
+    "ai",
+    "data-extraction",
+    "prompt-generation",
+    "openui-lang"
+  ],
+  "homepage": "https://openui.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "packages/structured-outputs"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "author": "engineering@thesys.dev",
+  "dependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0",
+    "typescript": "^5.9.3"
+  }
+}
