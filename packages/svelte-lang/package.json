@@ -1,0 +1,61 @@
+{
+  "name": "@openuidev/svelte-lang",
+  "version": "0.1.0",
+  "description": "Define component libraries, generate prompts, and render streaming OpenUI Lang output in Svelte",
+  "license": "MIT",
+  "type": "module",
+  "svelte": "./dist/index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "svelte-package",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run",
+    "format:check": "prettier --check ./src",
+    "ci": "pnpm run check && pnpm run test && pnpm run format:check"
+  },
+  "keywords": [
+    "openui",
+    "svelte",
+    "generative-ui",
+    "renderer",
+    "parser",
+    "streaming",
+    "llm",
+    "zod"
+  ],
+  "homepage": "https://openui.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "packages/svelte-lang"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "author": "engineering@thesys.dev",
+  "dependencies": {
+    "zod": "^4.0.0"
+  },
+  "peerDependencies": {
+    "svelte": ">=5.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/package": "^2.3.7",
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "jsdom": "^28.1.0",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "vitest": "^4.0.18"
+  }
+}
