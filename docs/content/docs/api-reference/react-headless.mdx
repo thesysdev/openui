@@ -108,6 +108,11 @@ function openAIReadableStreamAdapter(): StreamProtocolAdapter; // OpenAI Readabl
 function agUIAdapter(): StreamProtocolAdapter; // AG-UI protocol stream
 ```
 
+`agUIAdapter()` expects standard **SSE framing** (blank-line delimited events, one or more `data:` lines per event). It is resilient to arbitrary network chunk boundaries (partial lines / partial JSON), CRLF line endings, and comment keepalive lines.
+
+If your server emits a single JSON object per newline (NDJSON) rather than SSE, use `openAIReadableStreamAdapter()` (or implement a custom adapter).
+
+
 Related type:
 
 ```ts
