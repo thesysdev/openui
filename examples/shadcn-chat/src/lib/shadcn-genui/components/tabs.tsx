@@ -1,12 +1,8 @@
 "use client";
 
-import {
-  Tabs as ShadcnTabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs as ShadcnTabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { defineComponent } from "@openuidev/react-lang";
+import * as React from "react";
 import { z } from "zod";
 import { ContentChildUnion } from "../unions";
 
@@ -35,11 +31,20 @@ export const Tabs = defineComponent({
   component: ({ props, renderNode }) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const items = (props.items ?? []) as any[];
-    const defaultVal =
-      props.defaultValue ?? (items[0]?.props?.value as string | undefined) ?? "0";
+
+    const firstValue = items[0]?.props?.value as string | undefined;
+    const resolvedDefault = props.defaultValue ?? firstValue;
+
+    const [activeTab, setActiveTab] = React.useState<string | undefined>(resolvedDefault);
+
+    React.useEffect(() => {
+      if (!activeTab && resolvedDefault) {
+        setActiveTab(resolvedDefault);
+      }
+    }, [activeTab, resolvedDefault]);
 
     return (
-      <ShadcnTabs defaultValue={defaultVal}>
+      <ShadcnTabs value={activeTab ?? ""} onValueChange={setActiveTab}>
         <TabsList>
           {items.map((item, i) => (
             <TabsTrigger key={i} value={String(item?.props?.value ?? i)}>
@@ -48,11 +53,7 @@ export const Tabs = defineComponent({
           ))}
         </TabsList>
         {items.map((item, i) => (
-          <TabsContent
-            key={i}
-            value={String(item?.props?.value ?? i)}
-            className="space-y-3"
-          >
+          <TabsContent key={i} value={String(item?.props?.value ?? i)} className="space-y-3">
             {renderNode(item?.props?.content)}
           </TabsContent>
         ))}
