@@ -39,9 +39,7 @@ export const Input = defineComponent({
 
     React.useEffect(() => {
       if (!isStreaming && rules.length > 0 && formValidation) {
-        formValidation.registerField(fieldName, rules, () =>
-          getFieldValue(formName, fieldName),
-        );
+        formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
         return () => formValidation.unregisterField(fieldName);
       }
       return undefined;

@@ -12,7 +12,5 @@ export const Separator = defineComponent({
   name: "Separator",
   props: SeparatorSchema,
   description: 'Horizontal or vertical rule. orientation: "horizontal" | "vertical".',
-  component: ({ props }) => (
-    <ShadcnSeparator orientation={props.orientation ?? "horizontal"} />
-  ),
+  component: ({ props }) => <ShadcnSeparator orientation={props.orientation ?? "horizontal"} />,
 });

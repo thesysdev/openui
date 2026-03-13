@@ -16,9 +16,7 @@ export const Buttons = defineComponent({
   component: ({ props, renderNode }) => {
     const dir = props.direction ?? "row";
     return (
-      <div
-        className={`flex gap-2 ${dir === "column" ? "flex-col" : "flex-row flex-wrap"}`}
-      >
+      <div className={`flex gap-2 ${dir === "column" ? "flex-col" : "flex-row flex-wrap"}`}>
         {renderNode(props.buttons)}
       </div>
     );

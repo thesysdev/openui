@@ -30,16 +30,12 @@ export const DialogBlock = defineComponent({
   component: ({ props, renderNode }) => (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={props.triggerVariant ?? "outline"}>
-          {props.triggerLabel}
-        </Button>
+        <Button variant={props.triggerVariant ?? "outline"}>{props.triggerLabel}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{props.title}</DialogTitle>
-          {props.description && (
-            <DialogDescription>{props.description}</DialogDescription>
-          )}
+          {props.description && <DialogDescription>{props.description}</DialogDescription>}
         </DialogHeader>
         <div className="space-y-3">{renderNode(props.content)}</div>
       </DialogContent>

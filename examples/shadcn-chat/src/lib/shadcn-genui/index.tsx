@@ -16,7 +16,6 @@ import { Image, ImageBlock } from "./components/image";
 import { MarkDownRenderer } from "./components/markdown-renderer";
 import { Progress } from "./components/progress";
 import { Separator } from "./components/separator";
-import { Skeleton } from "./components/skeleton";
 import { TextContent } from "./components/text-content";
 
 // Charts
@@ -46,7 +45,6 @@ import { Select, SelectItem } from "./components/select";
 import { Slider } from "./components/slider";
 import { SwitchGroup, SwitchItem } from "./components/switch-group";
 import { TextArea } from "./components/textarea";
-import { ToggleGroup, ToggleGroupItem } from "./components/toggle-group";
 
 // Buttons
 import { Button } from "./components/button";
@@ -63,22 +61,13 @@ import { Tag, TagBlock } from "./components/tag";
 
 // Chat-specific
 import { FollowUpBlock, FollowUpItem } from "./components/follow-up-block";
-import { ListBlock, ListItem } from "./components/list-block";
-import { SectionBlock, SectionItem } from "./components/section-block";
 
 // New components
 import { AlertDialogBlock } from "./components/alert-dialog-block";
-import { Breadcrumb, BreadcrumbItemDef } from "./components/breadcrumb";
 import { CalendarBlock } from "./components/calendar-block";
 import { DialogBlock } from "./components/dialog-block";
 import { DrawerBlock } from "./components/drawer-block";
-import { EmptyState } from "./components/empty-state";
-import { HoverInfo } from "./components/hover-info";
-import { InputOTPField } from "./components/input-otp-field";
-import { Kbd } from "./components/kbd";
 import { PaginationBlock } from "./components/pagination-block";
-import { Spinner } from "./components/spinner";
-import { TooltipText } from "./components/tooltip-text";
 import { Blockquote, Heading, InlineCode } from "./components/typography";
 
 import { ChatContentChildUnion } from "./unions";
@@ -93,7 +82,7 @@ const ChatCard = defineComponent({
   description:
     "Vertical container for all content in a chat response. Children stack top to bottom automatically.",
   component: ({ props, renderNode }) => (
-    <Card className="border-0 shadow-none bg-transparent">
+    <Card>
       <CardContent className="p-0 space-y-3">{renderNode(props.children)}</CardContent>
     </Card>
   ),
@@ -115,7 +104,6 @@ export const shadcnComponentGroups: ComponentGroup[] = [
       "Image",
       "ImageBlock",
       "Progress",
-      "Skeleton",
       "Separator",
     ],
   },
@@ -153,9 +141,6 @@ export const shadcnComponentGroups: ComponentGroup[] = [
       "RadioItem",
       "SwitchGroup",
       "SwitchItem",
-      "ToggleGroup",
-      "ToggleGroupItem",
-      "InputOTPField",
     ],
     notes: [
       "- Define EACH FormControl as its own reference — do NOT inline all controls in one array.",
@@ -170,21 +155,11 @@ export const shadcnComponentGroups: ComponentGroup[] = [
     components: ["Button", "Buttons"],
   },
   {
-    name: "Lists & Follow-ups",
-    components: ["ListBlock", "ListItem", "FollowUpBlock", "FollowUpItem"],
+    name: "Follow-ups",
+    components: ["FollowUpBlock", "FollowUpItem"],
     notes: [
-      "- Use ListBlock with ListItem references for numbered, clickable lists.",
       "- Use FollowUpBlock with FollowUpItem references at the end of a response to suggest next actions.",
-      "- Clicking a ListItem or FollowUpItem sends its text to the LLM as a user message.",
-    ],
-  },
-  {
-    name: "Sections",
-    components: ["SectionBlock", "SectionItem"],
-    notes: [
-      "- SectionBlock renders collapsible accordion sections that auto-open as they stream.",
-      "- Each section needs a unique `value` id, a `trigger` label, and a `content` array.",
-      "- Set isFoldable=false to render sections as flat headers instead of accordion.",
+      "- Clicking a FollowUpItem sends its text to the LLM as a user message.",
     ],
   },
   {
@@ -219,20 +194,9 @@ export const shadcnComponentGroups: ComponentGroup[] = [
     ],
   },
   {
-    name: "Feedback & Status",
-    components: ["Spinner", "EmptyState"],
-    notes: [
-      '- Spinner for loading indicators. size: "sm" | "default" | "lg". Optional label.',
-      '- EmptyState for placeholder when no data exists. icon: "inbox" | "search" | "file" | "image" | "users".',
-    ],
-  },
-  {
     name: "Navigation",
-    components: ["Breadcrumb", "BreadcrumbItem", "PaginationBlock"],
-    notes: [
-      "- Breadcrumb takes an array of BreadcrumbItem refs. Last item is shown as current page.",
-      "- PaginationBlock takes currentPage and totalPages.",
-    ],
+    components: ["PaginationBlock"],
+    notes: ["- PaginationBlock takes currentPage and totalPages."],
   },
   {
     name: "Overlays",
@@ -241,15 +205,6 @@ export const shadcnComponentGroups: ComponentGroup[] = [
       "- DialogBlock renders a button that opens a modal dialog with content inside.",
       "- AlertDialogBlock renders a confirmation dialog with cancel/confirm actions.",
       "- DrawerBlock renders a bottom drawer panel triggered by a button.",
-    ],
-  },
-  {
-    name: "Interactive Text",
-    components: ["TooltipText", "HoverInfo", "Kbd"],
-    notes: [
-      "- TooltipText shows a hover tooltip on text. Good for definitions/abbreviations.",
-      "- HoverInfo shows a rich hover card with title and description.",
-      "- Kbd displays keyboard shortcuts. keys: array of key labels joined with +.",
     ],
   },
 ];
@@ -267,15 +222,7 @@ followUps = FollowUpBlock([fu1, fu2])
 fu1 = FollowUpItem("Tell me more about Python")
 fu2 = FollowUpItem("Show me a JavaScript comparison")`,
 
-  `Example 2 — Clickable list:
-root = Card([title, list])
-title = TextContent("Choose a topic", "large-heavy")
-list = ListBlock([item1, item2, item3])
-item1 = ListItem("Getting started", "New to the platform? Start here.")
-item2 = ListItem("Advanced features", "Deep dives into powerful capabilities.")
-item3 = ListItem("Troubleshooting", "Common issues and how to fix them.")`,
-
-  `Example 3 — Form with validation:
+  `Example 2 — Form with validation:
 root = Card([title, form])
 title = TextContent("Contact Us", "large-heavy")
 form = Form("contact", btns, [nameField, emailField, msgField])
@@ -284,14 +231,14 @@ emailField = FormControl("Email", Input("email", "you@example.com", "email", { r
 msgField = FormControl("Message", TextArea("message", "Tell us more...", 4, { required: true, minLength: 10 }))
 btns = Buttons([Button("Submit", { type: "continue_conversation" }, "default")])`,
 
-  `Example 4 — Alert variants:
+  `Example 3 — Alert variants:
 root = Card([info, success, warning, danger])
 info = Alert("Update available", "A new version is available for download.", "info")
 success = Alert("Payment confirmed", "Your transaction was successful.", "success")
 warning = Alert("Disk almost full", "You have less than 10% storage remaining.", "warning")
 danger = Alert("Account suspended", "Please contact support immediately.", "destructive")`,
 
-  `Example 5 — Bar chart with badges:
+  `Example 4 — Bar chart with badges:
 root = Card([header, badges, chart, followUps])
 header = CardHeader("Monthly Revenue", "Q4 2024 performance across regions")
 badges = TagBlock([Tag("Live data", "default"), Tag("USD", "secondary"), Tag("Grouped", "outline")])
@@ -300,7 +247,7 @@ s1 = Series("North America", [420, 380, 510])
 s2 = Series("Europe", [310, 290, 340])
 followUps = FollowUpBlock([FollowUpItem("Show as line chart"), FollowUpItem("Add Asia-Pacific")])`,
 
-  `Example 6 — Buttons with all variants:
+  `Example 5 — Buttons with all variants:
 root = Card([title, btns])
 title = TextContent("Button Styles", "large-heavy")
 btns = Buttons([b1, b2, b3, b4, b5, b6])
@@ -311,21 +258,7 @@ b4 = Button("Ghost", { type: "continue_conversation" }, "ghost")
 b5 = Button("Link", { type: "continue_conversation" }, "link")
 b6 = Button("Destructive", { type: "continue_conversation" }, "destructive")`,
 
-  `Example 7 — Collapsible sections with mixed content:
-root = Card([header, sections])
-header = CardHeader("Getting Started Guide")
-sections = SectionBlock([s1, s2, s3])
-s1 = SectionItem("install", "Installation", [s1text, s1code])
-s1text = TextContent("Install the package using your preferred package manager.")
-s1code = CodeBlock("npm install @acme/sdk", "bash", "Terminal")
-s2 = SectionItem("config", "Configuration", [s2text, s2alert])
-s2text = MarkDownRenderer("Create a **config.json** file in your project root.")
-s2alert = Alert("Important", "Make sure to set your API key before proceeding.", "warning")
-s3 = SectionItem("usage", "Usage", [s3text, s3code])
-s3text = TextContent("Import and initialize the client.")
-s3code = CodeBlock("import { Client } from '@acme/sdk';\\nconst client = new Client({ apiKey: '...' });", "typescript", "client.ts")`,
-
-  `Example 8 — Tabs with charts:
+  `Example 6 — Tabs with charts:
 root = Card([header, tabs])
 header = CardHeader("Sales Dashboard", "Compare metrics across time periods")
 tabs = Tabs([tab1, tab2, tab3])
@@ -336,7 +269,7 @@ revChart = BarChart(["Jan", "Feb", "Mar", "Apr"], [Series("Revenue", [45, 52, 61
 usersChart = LineChart(["Jan", "Feb", "Mar", "Apr"], [Series("Active", [1200, 1350, 1500, 1420]), Series("New", [300, 420, 380, 450])], "Month", "Users")
 pieChart = PieChart([Slice("Desktop", 62), Slice("Mobile", 31), Slice("Tablet", 7)])`,
 
-  `Example 9 — Typography showcase:
+  `Example 7 — Typography showcase:
 root = Card([h1, h2, h3, quote, codeEx, sep, text])
 h1 = Heading("Welcome to the Platform", "h1")
 h2 = Heading("Getting Started", "h2")
@@ -346,16 +279,7 @@ codeEx = InlineCode("npm install @acme/sdk")
 sep = Separator()
 text = TextContent("Follow the steps below to get up and running.")`,
 
-  `Example 10 — Breadcrumb navigation:
-root = Card([breadcrumb, title, text])
-breadcrumb = Breadcrumb([bc1, bc2, bc3])
-bc1 = BreadcrumbItem("Home", "/")
-bc2 = BreadcrumbItem("Products", "/products")
-bc3 = BreadcrumbItem("Widget Pro")
-title = TextContent("Widget Pro Details", "large-heavy")
-text = TextContent("The Widget Pro is our premium offering.")`,
-
-  `Example 11 — Dialog and AlertDialog:
+  `Example 8 — Dialog and AlertDialog:
 root = Card([title, btns])
 title = TextContent("Actions Demo", "large-heavy")
 btns = Buttons([viewBtn, deleteBtn])
@@ -364,53 +288,25 @@ detailText = TextContent("Here are the complete specifications:")
 detailTable = Table([Col("Spec", "string"), Col("Value", "string")], [["Weight", "2.5 kg"], ["Dimensions", "30x20x10 cm"]])
 deleteBtn = AlertDialogBlock("Delete Item", "Are you sure?", "This action cannot be undone. This will permanently delete the item.", "Delete", "Cancel", "destructive")`,
 
-  `Example 12 — Keyboard shortcuts:
-root = Card([title, shortcuts])
-title = TextContent("Keyboard Shortcuts", "large-heavy")
-shortcuts = Table([Col("Action", "string"), Col("Shortcut", "string")], [["Copy", "⌘+C"], ["Paste", "⌘+V"], ["Undo", "⌘+Z"], ["Save", "⌘+S"]])`,
-
-  `Example 13 — Empty state:
-root = Card([empty, followUp])
-empty = EmptyState("No results found", "Try adjusting your search or filter to find what you're looking for.", "search")
-followUp = FollowUpBlock([FollowUpItem("Clear filters"), FollowUpItem("Browse all items")])`,
-
-  `Example 14 — Pagination:
+  `Example 9 — Pagination:
 root = Card([title, table, pagination])
 title = TextContent("Search Results", "large-heavy")
 table = Table([Col("Name", "string"), Col("Status", "string")], [["Item 1", "Active"], ["Item 2", "Pending"], ["Item 3", "Active"]])
 pagination = PaginationBlock(2, 10)`,
 
-  `Example 15 — Tooltip and HoverCard:
-root = Card([title, text])
-title = TextContent("Glossary", "large-heavy")
-text = MarkDownRenderer("The system uses **TCP/IP** for network communication.")`,
-
-  `Example 16 — Spinner loading state:
-root = Card([spinner, text])
-spinner = Spinner("Loading your data...", "lg")
-text = TextContent("Please wait while we fetch the latest information.", "small")`,
-
-  `Example 17 — Drawer with content:
+  `Example 10 — Drawer with content:
 root = Card([title, drawerBtn])
 title = TextContent("Report Summary", "large-heavy")
 drawerBtn = DrawerBlock("View Full Report", "Quarterly Report Q4 2024", "Detailed breakdown of performance metrics", [chart, summary])
 chart = BarChart(["Oct", "Nov", "Dec"], [Series("Revenue", [42, 38, 51])], "grouped", "Month", "Revenue ($K)")
 summary = TextContent("Overall revenue increased by 12% compared to Q3.")`,
 
-  `Example 18 — OTP verification form:
-root = Card([title, desc, form])
-title = TextContent("Verify Your Email", "large-heavy")
-desc = TextContent("Enter the 6-digit code sent to your email address.", "small")
-form = Form("otp-verify", btns, [otpField])
-otpField = FormControl("Verification Code", InputOTPField("otp", 6, 3))
-btns = Buttons([Button("Verify", { type: "continue_conversation" }, "default")])`,
-
-  `Example 19 — Standalone calendar:
+  `Example 11 — Standalone calendar:
 root = Card([title, cal])
 title = TextContent("Pick a Date", "large-heavy")
 cal = CalendarBlock("single", "2025-01-01", 1)`,
 
-  `Example 20 — Range calendar with two months:
+  `Example 12 — Range calendar with two months:
 root = Card([title, desc, cal])
 title = TextContent("Select Travel Dates", "large-heavy")
 desc = TextContent("Choose your check-in and check-out dates.", "small")
@@ -421,8 +317,6 @@ export const shadcnAdditionalRules: string[] = [
   "Every response is a single Card(children) — children stack vertically automatically.",
   "Card is the only layout container. Do NOT use Stack. Use Tabs to switch between sections, Carousel for horizontal scroll.",
   "Use FollowUpBlock at the END of a Card to suggest what the user can do or ask next.",
-  "Use ListBlock when presenting a set of options or steps the user can click to select.",
-  "Use SectionBlock to group long responses into collapsible sections — good for reports, FAQs, and structured content.",
   "Carousel takes an array of slides, where each slide is an array of content.",
   "IMPORTANT: Every slide in a Carousel must use the same component structure in the same order.",
   "For forms, define one FormControl reference per field so controls can stream progressively.",
@@ -435,18 +329,13 @@ export const shadcnAdditionalRules: string[] = [
   "When the user asks for a specific component (e.g. 'show me an accordion'), generate a realistic, fully-populated example of that component with sample data.",
   "Use CardHeader for section titles. Use TextContent for body text. Use MarkDownRenderer for rich formatted text with links, bold, lists.",
   "Use CodeBlock with a language prop for code snippets. Always set the language for syntax context.",
-  "Use Progress for completion/loading indicators. Use Skeleton for loading placeholders.",
+  "Use Progress for completion/loading indicators.",
   "Use Avatar for user/profile images. Use Image/ImageBlock for content images.",
   'Use Heading for section titles with level: "h1" | "h2" | "h3" | "h4". Use Blockquote for quotes. Use InlineCode for inline code.',
-  "Use Breadcrumb with BreadcrumbItem refs to show navigation paths. Last item has no href (current page).",
   "Use DialogBlock to show a button that opens a modal dialog with content inside. Good for details/previews.",
   "Use AlertDialogBlock for confirmation dialogs (delete, logout, etc). Confirm action sends message to LLM.",
   "Use DrawerBlock for bottom panels with additional content. Good for details/reports.",
-  "Use Spinner for loading states. Use EmptyState when no data is available — pick the right icon for context.",
   "Use PaginationBlock for paginated data. currentPage/totalPages are required.",
-  "Use TooltipText to add hover tooltips on terms. Use HoverInfo for richer hover previews.",
-  "Use Kbd to display keyboard shortcuts as styled key caps.",
-  "Use InputOTPField in forms for OTP/verification code entry. length and groupSize control the layout.",
   'Use CalendarBlock for standalone calendar display. mode: "single" (pick one date), "multiple" (pick many), "range" (date range). Use numberOfMonths to show side-by-side months.',
 ];
 
@@ -474,7 +363,6 @@ export const shadcnChatLibrary = createLibrary({
     Image,
     ImageBlock,
     Progress,
-    Skeleton,
     Separator,
     // Tables
     Table,
@@ -509,19 +397,12 @@ export const shadcnChatLibrary = createLibrary({
     RadioItem,
     SwitchGroup,
     SwitchItem,
-    ToggleGroup,
-    ToggleGroupItem,
     // Buttons
     Button,
     Buttons,
-    // Lists & Follow-ups
-    ListBlock,
-    ListItem,
+    // Follow-ups
     FollowUpBlock,
     FollowUpItem,
-    // Sections
-    SectionBlock,
-    SectionItem,
     // Layout
     Tabs,
     TabItem,
@@ -535,24 +416,13 @@ export const shadcnChatLibrary = createLibrary({
     Heading,
     Blockquote,
     InlineCode,
-    // Feedback & Status
-    Spinner,
-    EmptyState,
     // Navigation
-    Breadcrumb,
-    BreadcrumbItemDef,
     PaginationBlock,
     // Overlays
     DialogBlock,
     AlertDialogBlock,
     DrawerBlock,
-    // Interactive Text
-    TooltipText,
-    HoverInfo,
-    Kbd,
     // Calendar
     CalendarBlock,
-    // Form extras
-    InputOTPField,
   ],
 });

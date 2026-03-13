@@ -6,9 +6,7 @@ import { z } from "zod";
 
 const BadgeSchema = z.object({
   text: z.string(),
-  variant: z
-    .enum(["default", "secondary", "destructive", "outline", "ghost", "link"])
-    .optional(),
+  variant: z.enum(["default", "secondary", "destructive", "outline", "ghost", "link"]).optional(),
 });
 
 export const ShadcnBadgeComponent = defineComponent({

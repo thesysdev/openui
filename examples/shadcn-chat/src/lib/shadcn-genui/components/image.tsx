@@ -14,7 +14,6 @@ export const Image = defineComponent({
   description: "Displays an image with optional alt text.",
   component: ({ props }) => (
     <div className="overflow-hidden rounded-lg">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={props.src}
         alt={props.alt ?? ""}
@@ -37,7 +36,6 @@ export const ImageBlock = defineComponent({
   component: ({ props }) => (
     <figure className="space-y-2">
       <div className="overflow-hidden rounded-lg">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={props.src}
           alt={props.alt ?? ""}

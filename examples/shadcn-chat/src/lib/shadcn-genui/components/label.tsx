@@ -13,7 +13,5 @@ export const Label = defineComponent({
   name: "Label",
   props: LabelSchema,
   description: "Form label. Optionally links to an input via htmlFor.",
-  component: ({ props }) => (
-    <ShadcnLabel htmlFor={props.htmlFor}>{props.text}</ShadcnLabel>
-  ),
+  component: ({ props }) => <ShadcnLabel htmlFor={props.htmlFor}>{props.text}</ShadcnLabel>,
 });

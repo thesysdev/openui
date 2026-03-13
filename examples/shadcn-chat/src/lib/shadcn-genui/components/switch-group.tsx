@@ -50,16 +50,12 @@ export const SwitchGroup = defineComponent({
           const checked = current.includes(val);
           return (
             <div key={i} className="flex items-center justify-between">
-              <ShadcnLabel htmlFor={`${fieldName}-${val}`}>
-                {item.props.label || val}
-              </ShadcnLabel>
+              <ShadcnLabel htmlFor={`${fieldName}-${val}`}>{item.props.label || val}</ShadcnLabel>
               <Switch
                 id={`${fieldName}-${val}`}
                 checked={checked}
                 onCheckedChange={(c) => {
-                  const next = c
-                    ? [...current, val]
-                    : current.filter((v: string) => v !== val);
+                  const next = c ? [...current, val] : current.filter((v: string) => v !== val);
                   setFieldValue(formName, "SwitchGroup", fieldName, next, true);
                 }}
                 disabled={isStreaming}

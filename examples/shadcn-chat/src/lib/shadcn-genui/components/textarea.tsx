@@ -38,9 +38,7 @@ export const TextArea = defineComponent({
 
     React.useEffect(() => {
       if (!isStreaming && rules.length > 0 && formValidation) {
-        formValidation.registerField(fieldName, rules, () =>
-          getFieldValue(formName, fieldName),
-        );
+        formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
         return () => formValidation.unregisterField(fieldName);
       }
       return undefined;
@@ -55,8 +53,7 @@ export const TextArea = defineComponent({
         defaultValue={savedValue as string}
         onBlur={(e) => {
           const val = e.target.value;
-          if (val !== savedValue)
-            setFieldValue(formName, "TextArea", fieldName, val, true);
+          if (val !== savedValue) setFieldValue(formName, "TextArea", fieldName, val, true);
           if (rules.length > 0 && formValidation)
             formValidation.validateField(fieldName, val, rules);
         }}

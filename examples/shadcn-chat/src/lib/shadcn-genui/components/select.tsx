@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  Select as ShadcnSelect,
   SelectContent,
-  SelectItem as ShadcnSelectItem,
   SelectTrigger,
   SelectValue,
+  Select as ShadcnSelect,
+  SelectItem as ShadcnSelectItem,
 } from "@/components/ui/select";
 import {
   defineComponent,
@@ -56,9 +56,7 @@ export const Select = defineComponent({
 
     React.useEffect(() => {
       if (!isStreaming && rules.length > 0 && formValidation) {
-        formValidation.registerField(fieldName, rules, () =>
-          getFieldValue(formName, fieldName),
-        );
+        formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
         return () => formValidation.unregisterField(fieldName);
       }
       return undefined;

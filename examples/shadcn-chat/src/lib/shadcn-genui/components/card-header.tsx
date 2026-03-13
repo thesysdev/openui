@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  CardDescription,
-  CardHeader as ShadcnCardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardDescription, CardTitle, CardHeader as ShadcnCardHeader } from "@/components/ui/card";
 import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod";
 

@@ -46,10 +46,7 @@ export const Table = defineComponent({
           <TableHeader>
             <TableRow>
               {columns.map((col, i) => (
-                <TableHead
-                  key={i}
-                  className={col.type === "number" ? "text-right" : ""}
-                >
+                <TableHead key={i} className={col.type === "number" ? "text-right" : ""}>
                   {col.header}
                 </TableHead>
               ))}

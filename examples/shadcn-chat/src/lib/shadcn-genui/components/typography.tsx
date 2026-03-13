@@ -23,10 +23,14 @@ export const Heading = defineComponent({
     const level = props.level ?? "h2";
     const cls = headingClasses[level];
     switch (level) {
-      case "h1": return <h1 className={cls}>{props.text}</h1>;
-      case "h3": return <h3 className={cls}>{props.text}</h3>;
-      case "h4": return <h4 className={cls}>{props.text}</h4>;
-      default: return <h2 className={cls}>{props.text}</h2>;
+      case "h1":
+        return <h1 className={cls}>{props.text}</h1>;
+      case "h3":
+        return <h3 className={cls}>{props.text}</h3>;
+      case "h4":
+        return <h4 className={cls}>{props.text}</h4>;
+      default:
+        return <h2 className={cls}>{props.text}</h2>;
     }
   },
 });
@@ -46,9 +50,7 @@ export const Blockquote = defineComponent({
         {props.text}
       </blockquote>
       {props.cite && (
-        <figcaption className="mt-1 pl-6 text-sm text-muted-foreground">
-          — {props.cite}
-        </figcaption>
+        <figcaption className="mt-1 pl-6 text-sm text-muted-foreground">— {props.cite}</figcaption>
       )}
     </figure>
   ),

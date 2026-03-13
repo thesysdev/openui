@@ -20,9 +20,7 @@ export const CodeBlock = defineComponent({
         {props.title && (
           <div className="border-b px-4 py-2 text-xs font-medium text-muted-foreground">
             {props.title}
-            {props.language && (
-              <span className="ml-2 text-xs opacity-60">{props.language}</span>
-            )}
+            {props.language && <span className="ml-2 text-xs opacity-60">{props.language}</span>}
           </div>
         )}
         <pre className="overflow-x-auto p-4">

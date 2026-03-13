@@ -13,9 +13,7 @@ export const Tag = defineComponent({
   name: "Tag",
   props: TagSchema,
   description: "Styled tag/badge. Used inside TagBlock.",
-  component: ({ props }) => (
-    <Badge variant={props.variant ?? "secondary"}>{props.text}</Badge>
-  ),
+  component: ({ props }) => <Badge variant={props.variant ?? "secondary"}>{props.text}</Badge>,
 });
 
 export const TagBlock = defineComponent({

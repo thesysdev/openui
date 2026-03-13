@@ -34,9 +34,7 @@ export const DrawerBlock = defineComponent({
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>{props.title}</DrawerTitle>
-          {props.description && (
-            <DrawerDescription>{props.description}</DrawerDescription>
-          )}
+          {props.description && <DrawerDescription>{props.description}</DrawerDescription>}
         </DrawerHeader>
         <div className="px-4 pb-4 space-y-3">{renderNode(props.content)}</div>
         <DrawerFooter>

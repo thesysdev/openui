@@ -54,16 +54,12 @@ export const CheckBoxGroup = defineComponent({
                 id={`${fieldName}-${val}`}
                 checked={checked}
                 onCheckedChange={(c) => {
-                  const next = c
-                    ? [...current, val]
-                    : current.filter((v: string) => v !== val);
+                  const next = c ? [...current, val] : current.filter((v: string) => v !== val);
                   setFieldValue(formName, "CheckBoxGroup", fieldName, next, true);
                 }}
                 disabled={isStreaming}
               />
-              <ShadcnLabel htmlFor={`${fieldName}-${val}`}>
-                {item.props.label || val}
-              </ShadcnLabel>
+              <ShadcnLabel htmlFor={`${fieldName}-${val}`}>{item.props.label || val}</ShadcnLabel>
             </div>
           );
         })}

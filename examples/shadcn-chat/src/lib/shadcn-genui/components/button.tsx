@@ -15,9 +15,7 @@ import { actionSchema, type ActionSchema } from "../action";
 const ButtonSchema = z.object({
   label: z.string(),
   action: actionSchema,
-  variant: z
-    .enum(["default", "destructive", "outline", "secondary", "ghost", "link"])
-    .optional(),
+  variant: z.enum(["default", "destructive", "outline", "secondary", "ghost", "link"]).optional(),
   size: z.enum(["default", "xs", "sm", "lg", "icon"]).optional(),
 });
 
