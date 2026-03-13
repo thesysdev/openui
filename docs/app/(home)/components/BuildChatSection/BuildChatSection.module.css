@@ -81,7 +81,8 @@
   justify-content: center;
   gap: 0.625rem;
   height: 3rem;
-  padding-inline: 1.25rem;
+  padding-left: 1.25rem;
+  padding-right: 0.5rem;
   border: 0;
   border-radius: 999px;
   background: #000;
@@ -92,6 +93,52 @@
 .ctaButton:hover {
   transform: scale(0.99);
   box-shadow: none;
+}
+
+.ctaDesktopLabel {
+  display: none;
+  white-space: nowrap;
+  font-family: "Inter Display", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5rem;
+  color: #fff;
+}
+
+.ctaMobileLabel {
+  position: relative;
+  display: block;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.ctaTicker {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  animation: ctaTickerScroll 10s linear infinite;
+}
+
+.ctaTickerText {
+  white-space: nowrap;
+  padding-right: 2rem;
+  font-family: "Inter Display", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5rem;
+  color: #fff;
+}
+
+.iconBadge {
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 15%);
 }
 
 .iconFrame {
@@ -120,14 +167,13 @@
   transform: scale(0.5);
 }
 
-.ctaLabel {
-  position: relative;
-  white-space: nowrap;
-  font-family: "Inter Display", sans-serif;
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.5rem;
-  color: #fff;
+@keyframes ctaTickerScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .mediaColumn {
@@ -154,9 +200,8 @@
 
   .copyColumn {
     min-height: 0;
-    padding:16px;
+    padding: 16px;
   }
-
 
   .title {
     max-width: 430px;
@@ -178,6 +223,14 @@
     width: auto;
     max-width: none;
     justify-content: flex-start;
+  }
+
+  .ctaDesktopLabel {
+    display: inline;
+  }
+
+  .ctaMobileLabel {
+    display: none;
   }
 
   .mediaColumn {
