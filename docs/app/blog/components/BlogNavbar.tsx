@@ -7,12 +7,10 @@ import {
   ThesysLogo,
   useGitHubStarCount,
 } from "@/components/brand-logo";
-// GitHubIcon & StarCountBadge used in mobile menu
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AnimatePresence, motion } from "motion/react";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
-import styles from "./BlogNavbar.module.css";
 
 const BUTTON_SHADOW = "0px 1px 3px 0px rgba(22,34,51,0.08), 0px 12px 24px 0px rgba(22,34,51,0.04)";
 
@@ -26,9 +24,13 @@ const TAB_URLS: Record<string, string> = {
 
 function DesktopNavTabs() {
   return (
-    <div className={styles.desktopTabs}>
+    <div className="hidden lg:flex items-center gap-2">
       {NAV_TABS.map((tab) => (
-        <a key={tab} href={TAB_URLS[tab]} className={styles.desktopTabLink}>
+        <a
+          key={tab}
+          href={TAB_URLS[tab]}
+          className="flex h-8 items-center px-2 rounded-md text-[var(--blog-nav-text)] no-underline transition-colors duration-200 font-['Inter_Display',sans-serif] text-[15px] leading-6 hover:bg-[var(--blog-nav-hover)]"
+        >
           {tab}
         </a>
       ))}
@@ -39,7 +41,7 @@ function DesktopNavTabs() {
 function HamburgerIcon({ isOpen }: { isOpen: boolean }) {
   return (
     <svg
-      className={styles.hamburgerIcon}
+      className="size-5"
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -71,7 +73,7 @@ function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => 
   return (
     <>
       <motion.div
-        className={styles.mobileBackdrop}
+        className="absolute top-full left-0 right-0 z-40 h-screen cursor-pointer bg-black/60 backdrop-blur-[12px]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -79,34 +81,37 @@ function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => 
         onClick={onClose}
       />
       <motion.div
-        className={styles.mobileTrayWrap}
+        className="absolute top-full left-0 right-0 z-50 pointer-events-none lg:hidden"
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.2 }}
       >
-        <div className={styles.mobileTray}>
-          <div className={styles.mobileTrayInner}>
+        <div className="pointer-events-auto border-t border-[var(--blog-nav-border)] rounded-b-[18px] bg-[var(--blog-nav-bg)] shadow-[0_10px_20px_rgb(0_0_0/0.1)]">
+          <div className="flex max-w-[75rem] mx-auto flex-col gap-0 pt-3 px-[1.75rem] pb-5">
             {NAV_TABS.map((tab, index) => (
               <div key={tab}>
-                {index > 0 && <div className={styles.mobileTrayDivider} />}
-                <a href={TAB_URLS[tab]} className={styles.mobileTrayLink}>
+                {index > 0 && <div className="h-px mx-3 bg-[var(--blog-nav-border)]" />}
+                <a
+                  href={TAB_URLS[tab]}
+                  className="flex w-full h-14 items-center gap-1 px-3 rounded-md text-[var(--blog-nav-text)] text-left no-underline transition-colors duration-200 font-['Inter',sans-serif] text-lg leading-6 hover:bg-[var(--blog-nav-hover)]"
+                >
                   {tab}
                 </a>
               </div>
             ))}
           </div>
         </div>
-        <div className={styles.mobileGithubButtonWrap}>
+        <div className="flex justify-center pt-20 pointer-events-auto">
           <a
             href="https://github.com/thesysdev/openui"
             target="_blank"
             rel="noopener noreferrer"
-            className={styles.mobileGithubButton}
+            className="group relative flex h-[38px] items-center gap-1.5 pl-3 pr-2 border-0 rounded-full bg-[var(--blog-nav-bg)] cursor-pointer scale-[1.17]"
           >
             <div
               aria-hidden="true"
-              className={styles.mobileGithubButtonOverlay}
+              className="absolute inset-0 pointer-events-none border border-[var(--blog-nav-border)] rounded-full shadow-[var(--mobile-github-button-shadow,none)] transition-shadow duration-200 group-hover:shadow-none"
               style={mobileGithubStyle}
             />
             <GitHubIcon />
@@ -154,21 +159,24 @@ export function BlogNavbar() {
   } as CSSProperties;
 
   return (
-    <nav className={styles.nav} style={navStyle}>
-      <div className={styles.navInner}>
-        <div className={styles.logoCluster}>
+    <nav
+      className="sticky top-0 z-50 w-full py-3 px-8 bg-[var(--blog-nav-bg)] transition-[border-color] duration-200 ease-in-out"
+      style={navStyle}
+    >
+      <div className="flex max-w-[75rem] mx-auto items-center justify-between">
+        <div className="flex items-center gap-2">
           <ThesysLogo
             isHovered={isLogoHovered}
             onHoverChange={setIsLogoHovered}
             variant={logoVariant}
           />
-          <div className={styles.logoDivider} />
+          <div className="h-4 w-px bg-[var(--blog-nav-border)]" />
           <OpenUILogo variant={logoVariant} />
         </div>
 
         <DesktopNavTabs />
 
-        <div className={styles.desktopGithub}>
+        <div className="hidden lg:flex items-center gap-2">
           <a
             href="https://github.com/thesysdev/openui"
             target="_blank"
@@ -184,7 +192,7 @@ export function BlogNavbar() {
         </div>
 
         <button
-          className={styles.mobileMenuButton}
+          className="flex size-10 items-center justify-center border-0 rounded-lg bg-transparent text-[var(--blog-nav-text)] cursor-pointer transition-colors duration-200 hover:bg-[var(--blog-nav-hover)] lg:hidden"
           onClick={toggleMobileMenu}
           aria-label="Toggle menu"
         >
