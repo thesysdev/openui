@@ -10,7 +10,7 @@
 
 </div>
 
-OpenUI is a full-stack generative UI framework — a compact streaming-first language, a React runtime with built-in component libraries, and ready-to-use chat interfaces — that is up to 67% more token-efficient than JSON.
+OpenUI is a full-stack generative UI framework a compact streaming-first language, a React runtime with built-in component libraries, and ready-to-use chat interfaces — that is up to 67% more token-efficient than JSON.
 
 ---
 
