@@ -88,7 +88,9 @@ Try it yourself in the [Playground](https://www.openui.com/playground) — gener
 | Package | Description |
 | :--- | :--- |
 | [`@openuidev/react-lang`](./packages/react-lang) | Core runtime — component definitions, parser, renderer, prompt generation |
+| [`@openuidev/svelte-lang`](./packages/svelte-lang) | Svelte runtime — component definitions, parser, renderer, prompt generation |
 | [`@openuidev/react-headless`](./packages/react-headless) | Headless chat state, streaming adapters, message format converters |
+| [`@openuidev/svelte-headless`](./packages/svelte-headless) | Headless Svelte chat state, streaming adapters, message format converters |
 | [`@openuidev/react-ui`](./packages/react-ui) | Prebuilt chat layouts and two built-in component libraries |
 | [`@openuidev/cli`](./packages/openui-cli) | CLI for scaffolding apps and generating system prompts |
 
@@ -132,7 +134,9 @@ Detailed documentation is available at [openui.com](https://openui.com).
 openui/
 ├── packages/
 │   ├── react-lang/       # Core runtime (parser, renderer, prompt generation)
+│   ├── svelte-lang/      # Svelte runtime (parser, renderer, prompt generation)
 │   ├── react-headless/   # Headless chat state & streaming adapters
+│   ├── svelte-headless/  # Headless chat state & streaming adapters for Svelte
 │   ├── react-ui/         # Prebuilt chat layouts & component libraries
 │   └── openui-cli/       # CLI for scaffolding & prompt generation
 ├── examples/
