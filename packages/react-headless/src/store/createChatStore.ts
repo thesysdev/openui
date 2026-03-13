@@ -245,6 +245,8 @@ export const createChatStore = (config: StoreConfig) => {
           throw new Error(`Request failed: ${response.status} ${response.statusText}`);
         }
 
+        const messageCountBefore = get().messages.length;
+
         await processStreamedMessage({
           response,
           createMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
@@ -255,9 +257,15 @@ export const createChatStore = (config: StoreConfig) => {
           deleteMessage: (id) => set((s) => ({ messages: s.messages.filter((m) => m.id !== id) })),
           adapter: streamProtocol,
         });
+
+        if (get().messages.length === messageCountBefore) {
+          throw new Error("Failed to get a response. Please check your connection and try again.");
+        }
       } catch (e) {
         if (!abortController.signal.aborted) {
-          set({ threadError: e instanceof Error ? e : new Error(String(e)) });
+          const error = e instanceof Error ? e : new Error(String(e));
+          console.error("[OpenUI] processMessage failed:", error);
+          set({ threadError: error });
         }
       } finally {
         set({ _abortController: null, isRunning: false });

@@ -68,7 +68,7 @@ const ConversationStartersRenderer = ({
 };
 
 const BottomTrayInner = ({
-  logoUrl = "https://crayonai.org/img/logo.png",
+  logoUrl = "https://www.openui.com/favicon.svg",
   agentName = "My Agent",
   messageLoading: MessageLoadingComponent = MessageLoading,
   scrollVariant = "user-message-anchor",
