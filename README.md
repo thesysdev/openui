@@ -147,7 +147,8 @@ Good places to start:
 
 ## Contributing
 
-## Contributions are welcome. See `CONTRIBUTING.md` for contribution guidelines and ways to get involved.  
-⁠![Edit badge](https://badge.get-colibri.com/)License
+Contributions are welcome. See `CONTRIBUTING.md` for contribution guidelines and ways to get involved.<br>&#8203;
+
+## ⁠![Edit badge](https://badge.get-colibri.com/)License
 
 This project is available under the terms described in `[LICENSE](https://github.com/thesysdev/openui/blob/main/LICENSE)`.
