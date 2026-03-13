@@ -1,6 +1,6 @@
 ---
 title: Rewriting our Rust WASM Parser in TypeScript
-description: We rewrote Our Rust WASM Parser in TypeScript - and it got 3x Faster
+description: We rewrote our Rust WASM Parser in TypeScript - and it got 3x Faster
 author: Thesys Engineering Team
 date: 2026-03-13
 ---
@@ -16,7 +16,7 @@ Turns out we were optimising the wrong thing.
 
 The openui-lang parser converts a custom DSL emitted by an LLM into a React component tree. It runs on every streaming chunk — so latency matters a lot. The pipeline has six stages:
 
-```mermaid
+```
 autocloser → lexer → splitter → parser → resolver → mapper → ParseResult
 ```
 
@@ -155,7 +155,7 @@ The one-shot table shows 13.4µs for `contact-form`; the streaming table shows 3
 | TypeScript (naïve re-parse) | 9-19µs | 69-840µs | No boundary, but O(N²) streaming |
 | TypeScript (incremental) | 9-19µs | 69-255µs | No boundary + O(N) streaming |
 
-**End result: 3-4.6x faster per call and 2.6-3.3x lower total streaming cost.**
+**End result: 2.2-4.6x faster per call and 2.6-3.3x lower total streaming cost.**
 
 ## When WASM Actually Helps
 
