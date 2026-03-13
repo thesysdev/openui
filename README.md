@@ -17,7 +17,7 @@ OpenUI is a full-stack generative UI framework: a compact streaming-first langua
 [Docs](https://openui.com) · [Playground](https://www.openui.com/playground) · [Sample Chat App](./examples/openui-chat) · [Discord](https://discord.com/invite/Pbv5PsqUSv) · [Contributing](./CONTRIBUTING.md) · [Code of Conduct](./CODE_OF_CONDUCT.md) · [Security](./SECURITY.md) · [License](./LICENSE)
 ---
 
-What is OpenUI
+What Is OpenUI
 <div align="center">
 
 <img src="./assets/demo.gif" alt="OpenUI Demo" width="100%">
@@ -45,7 +45,7 @@ npm run dev
 
 This is the fastest way to start with OpenUI. The scaffolded app gives you an end-to-end starting point with streaming, built-in UI, and OpenUI Lang support.
 
-It pro:
+It provides:
 
 - **OpenUI Lang support** - Start with structured UI generation built into the app flow.
 - **Library-driven prompts** - Generate instructions from your allowed component set.
