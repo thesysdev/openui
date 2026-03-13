@@ -67,7 +67,4 @@ export const ContentChildUnion = z.union([
   CalendarBlock.ref,
 ]);
 
-export const ChatContentChildUnion = z.union([
-  ...ContentChildUnion.options,
-  FollowUpBlock.ref,
-]);
+export const ChatContentChildUnion = z.union([...ContentChildUnion.options, FollowUpBlock.ref]);
