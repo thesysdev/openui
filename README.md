@@ -17,7 +17,7 @@ OpenUI is a full-stack generative UI framework: a compact streaming-first langua
 [Docs](https://openui.com) · [Playground](https://www.openui.com/playground) · [Sample Chat App](./examples/openui-chat) · [Discord](https://discord.com/invite/Pbv5PsqUSv) · [Contributing](./CONTRIBUTING.md) · [Code of Conduct](./CODE_OF_CONDUCT.md) · [Security](./SECURITY.md) · [License](./LICENSE)
 ---
 
-What Is OpenUI
+What is OpenUI
 <div align="center">
 
 <img src="./assets/demo.gif" alt="OpenUI Demo" width="100%">
@@ -52,7 +52,7 @@ It provides:
 - **Streaming support** - Update the UI progressively as output arrives.
 - **Working app foundation** - Start from a ready-to-run example instead of wiring everything manually.
 
-## How It works
+## How it works
 
 Your components define what the model can generate.
 
