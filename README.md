@@ -160,3 +160,48 @@ Contributions are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for contri
 ## License
 
 This project is available under the terms described in [`LICENSE`](./LICENSE).
+
+
+## 安装
+
+### 使用pip安装
+```bash
+pip install package-name
+```
+
+### 使用conda安装
+```bash
+conda install -c conda-forge package-name
+```
+
+### 从源码安装
+```bash
+git clone https://github.com/username/repo-name.git
+cd repo-name
+pip install -e .
+```
+
+## 使用示例
+
+### 基本用法
+```python
+import package_name
+
+# 初始化
+client = package_name.Client()
+
+# 调用功能
+result = client.process()
+print(f"结果: {result}")
+```
+
+### 高级用法
+```python
+# 配置参数
+config = {
+    'setting': 'value',
+    'timeout': 30
+}
+
+client = package_name.Client(**config)
+```
