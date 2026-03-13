@@ -147,7 +147,7 @@ Good places to start:
 
 ## Contributing
 
-Contributions are welcome. See `CONTRIBUTING.md` for contribution guidelines and ways to get involved.
+Contributions are welcome. See `CONTRIBUTING.md` for contribution guidelines and ways to get involved.<br>&#8203;
 
 ## License
 
