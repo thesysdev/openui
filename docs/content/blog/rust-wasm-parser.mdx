@@ -1,0 +1,186 @@
+---
+title: Rewriting our Rust WASM Parser in TypeScript
+description: We rewrote Our Rust WASM Parser in TypeScript - and it got 3x Faster
+author: Thesys Engineering Team
+date: 2026-03-13
+---
+
+We built the openui-lang parser in Rust and compiled it to WASM.
+The logic was sound: Rust is fast, WASM gives you near-native speed in the browser,
+and our parser is a reasonably complex multi-stage pipeline.
+Why wouldn't you want that in Rust?
+
+Turns out we were optimising the wrong thing.
+
+## The Pipeline
+
+The openui-lang parser converts a custom DSL emitted by an LLM into a React component tree. It runs on every streaming chunk — so latency matters a lot. The pipeline has six stages:
+
+```mermaid
+autocloser → lexer → splitter → parser → resolver → mapper → ParseResult
+```
+
+- **Autocloser**: makes partial (mid-stream) text syntactically valid by appending minimal closing brackets/quotes
+- **Lexer**: single-pass character scanner, emits typed tokens
+- **Splitter**: cuts the token stream into `id = expression` statements
+- **Parser**: recursive-descent expression parser, builds an AST
+- **Resolver**: inline all variable references (hoisting support, circular ref detection)
+- **Mapper**: converts internal AST into the public `OutputNode` format consumed by the React renderer
+
+## The WASM Boundary Tax
+
+Every call to the WASM parser pays a mandatory overhead regardless of how fast the Rust code itself runs:
+
+```
+JS world                              WASM world
+────────────────────────────────────────────────────────
+wasmParse(input)
+  │
+  ├─ copy string: JS heap → WASM linear memory   (allocation + memcpy)
+  │
+  │                                 Rust parses   ✓ fast
+  │                                 serde_json::to_string()  ← serialize result
+  │
+  ├─ copy JSON string: WASM → JS heap             (allocation + memcpy)
+  │
+  JSON.parse(jsonString)                          ← deserialize result
+  │
+  return ParseResult
+```
+
+The Rust parsing itself was never the slow part. The overhead was entirely in the boundary: copy string in, serialize result to JSON string, copy JSON string out, then V8 deserializes it back into a JS object.
+
+## Attempted Fix: Skip the JSON Round-Trip
+
+The natural question was: what if WASM returned a JS object directly, skipping the JSON serialization step? We integrated `serde-wasm-bindgen` which does exactly this — it converts the Rust struct into a `JsValue` and returns it directly.
+
+It was **30% slower**.
+
+Here's why. JS cannot read a Rust struct's bytes from WASM linear memory as a native JS object — the two runtimes use completely different memory layouts. To construct a JS object from Rust data, `serde-wasm-bindgen` must recursively materialise Rust data into real JS arrays and objects, which involves many fine-grained conversions across the runtime boundary per `parse()` invocation.
+
+Compare that to the JSON approach: `serde_json::to_string()` runs in pure Rust with zero boundary crossings, produces one string, one `memcpy` copies it to the JS heap, then V8's native C++ `JSON.parse` processes it in a single optimised pass. Fewer, larger, and more optimised operations win over many small ones.
+
+### Benchmark: JSON string vs direct JsValue (1000 runs, µs per call)
+
+| Fixture | JSON round-trip | serde-wasm-bindgen | Change |
+|---|---|---|---|
+| simple-table | 20.5 | 22.5 | -9% slower |
+| contact-form | 61.4 | 79.4 | -29% slower |
+| dashboard | 57.9 | 74.0 | -28% slower |
+
+We reverted this change immediately.
+
+## The Real Fix: Eliminate the Boundary Entirely
+
+We ported the full parser pipeline to TypeScript. Same six-stage architecture, same `ParseResult` output shape — no WASM, no boundary, runs entirely in the V8 heap.
+
+### Benchmark Method: One-Shot Parse
+
+**What is measured:** A single `parse(completeString)` call on the finished output string. This isolates per-call parser cost.
+
+**How it was run:** 30 warm-up iterations to stabilise JIT, then 1000 timed iterations using `performance.now()` (µs precision). The median is reported. Fixtures are real LLM-generated component trees serialised in each format's real streaming syntax.
+
+**Fixtures:**
+- `simple-table` — root + one Table with 3 columns and 5 rows (~180 chars)
+- `contact-form` — root + form layout with 6 input fields + submit button (~400 chars)
+- `dashboard` — root + sidebar nav + 3 metric cards + chart + data table (~950 chars)
+
+### Results: One-Shot Parse (median µs, 1000 runs)
+
+| Fixture | TypeScript | WASM | Speedup |
+|---|---|---|---|
+| simple-table | 9.3 | 20.5 | **2.2x** |
+| contact-form | 13.4 | 61.4 | **4.6x** |
+| dashboard | 19.4 | 57.9 | **3.0x** |
+
+## The Algorithmic Problem: O(N²) Streaming
+
+Eliminating WASM fixed the per-call cost, but the streaming architecture still had a deeper inefficiency.
+
+The parser is called on every LLM chunk. The naïve approach accumulates chunks and re-parses the entire string from scratch each time:
+
+```
+Chunk 1:  parse("root = Root([t")              → 14 chars
+Chunk 2:  parse("root = Root([tbl])\ntbl = T") → 27 chars
+Chunk 3:  parse(full_accumulated_string)        → ...
+```
+
+For a 1000-char output delivered in 20-char chunks: 50 parse calls processing a cumulative total of ~25,000 characters. O(N²) in the number of chunks.
+
+### The Fix: Statement-Level Incremental Caching
+
+Statements terminated by a depth-0 newline are **immutable** — the LLM will never come back and modify them. We added a streaming parser that caches completed statement ASTs:
+
+```
+State: { buf, completedEnd, completedSyms, firstId }
+
+On each push(chunk):
+  1. Scan buf from completedEnd for depth-0 newlines
+  2. For each complete statement found: parse + cache AST → advance completedEnd
+  3. Pending (last, incomplete) statement: autoclose + parse fresh
+  4. Merge cached + pending → resolve + map → return ParseResult
+```
+
+Completed statements are never re-parsed. Only the trailing in-progress statement is re-parsed per chunk. O(total_length) instead of O(N²).
+
+### Benchmark Method: Full-Stream Total Parse Cost
+
+**What is measured:** The **total parse overhead accumulated across every chunk call for one complete document**. This is different from the one-shot benchmark — it measures the sum of all parse calls during a real stream, not a single call. This is the number that affects actual user-perceived responsiveness.
+
+**How it was run:** Documents are replayed in 20-char chunks. Each chunk triggers a `parse()` (naïve) or `push()` (incremental) call. Total time across all calls is recorded. 100 full-stream replays, median taken.
+
+### Results: Full-Stream Total Parse Cost (median µs across all chunks)
+
+| Fixture | Naïve TS (re-parse every chunk) | Incremental TS (cache completed) | Speedup |
+|---|---|---|---|
+| simple-table | 69 | 77 | none (single statement, no cache benefit) |
+| contact-form | 316 | 122 | **2.6x** |
+| dashboard | 840 | 255 | **3.3x** |
+
+The `simple-table` fixture is a single statement — there's nothing to cache, so both approaches are equivalent. The benefit scales with the number of statements because more of the document gets cached and skipped on each chunk.
+
+### Why the two TS numbers look different
+
+The one-shot table shows 13.4µs for `contact-form`; the streaming table shows 316µs (naïve). These are not contradictory — they measure different things:
+
+- **13.4µs** = cost of one `parse()` call on the complete 400-char string
+- **316µs** = total cost of ~20 `parse()` calls during the stream (chunk 1 parses 20 chars, chunk 2 parses 40 chars, ..., chunk 20 parses 400 chars — cumulative sum of all those growing calls)
+
+## Summary
+
+| Approach | Per-call cost | Full-stream total | Notes |
+|---|---|---|---|
+| WASM + JSON round-trip | 20-61µs | baseline | Copy overhead each call |
+| WASM + serde-wasm-bindgen | 22-79µs | +9-29% slower | Hundreds of internal boundary crossings |
+| TypeScript (naïve re-parse) | 9-19µs | 69-840µs | No boundary, but O(N²) streaming |
+| TypeScript (incremental) | 9-19µs | 69-255µs | No boundary + O(N) streaming |
+
+**End result: 3-4.6x faster per call and 2.6-3.3x lower total streaming cost.**
+
+## When WASM Actually Helps
+
+This experience sharpened our thinking on the right use cases for WASM:
+
+✅ **Compute-bound with minimal interop**: image/video processing, cryptography, physics simulations, audio codecs. Large input → scalar output or in-place mutation. The boundary is crossed rarely.
+
+✅ **Portable native libraries**: shipping C/C++ libraries (SQLite, OpenCV, libpng) to the browser without a full JS rewrite.
+
+❌ **Parsing structured text into JS objects**: you pay the serialization cost either way. The parsing computation is fast enough that V8's JIT eliminates any Rust advantage. The boundary overhead dominates.
+
+❌ **Frequently-called functions on small inputs**: if the function is called 50 times per stream and the computation takes 5µs, you cannot amortise the boundary cost.
+
+## Key Takeaways
+
+1. **Profile where time is actually spent before choosing the implementation language.**
+  For us, the cost was never in the computation - it was always in data transfer across the WASM-JS boundary.
+
+2. **"Direct object passing" through `serde-wasm-bindgen` is not cheaper.**
+  Constructing a JS object field-by-field from Rust involves more boundary crossings than a single JSON string transfer, not fewer.
+  The boundary crossings happen inside the single FFI call, invisibly.
+
+3. **Algorithmic complexity improvements dominate language-level optimisations.**
+  Going from O(N²) to O(N) in the streaming case had a larger practical impact than switching from WASM to TypeScript.
+
+4. **WASM and JS do not share a heap.**
+  WASM has a flat linear memory (`WebAssembly.Memory`) that JS can read as raw bytes, but those bytes are Rust's internal layout - pointers, enum discriminants, alignment padding - completely opaque to the JS runtime.
+  Conversion is always required and always costs something.
