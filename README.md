@@ -151,4 +151,4 @@ Contributions are welcome. See `CONTRIBUTING.md` for contribution guidelines and
 
 ## License
 
-This project is available under the terms described in `LICENSE`.
+This project is available under the terms described in `[LICENSE](https://github.com/thesysdev/openui/blob/main/LICENSE)`.
