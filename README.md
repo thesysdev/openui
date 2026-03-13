@@ -45,7 +45,7 @@ npm run dev
 
 This is the fastest way to start with OpenUI. The scaffolded app gives you an end-to-end starting point with streaming, built-in UI, and OpenUI Lang support.
 
-What this gives you:
+It :
 
 - **OpenUI Lang support** - Start with structured UI generation built into the app flow.
 - **Library-driven prompts** - Generate instructions from your allowed component set.
