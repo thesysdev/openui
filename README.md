@@ -94,7 +94,7 @@ OpenUI Lang is designed for model-generated UI that needs to be both structured 
 
 - **Streaming output** — Emit UI incrementally as tokens arrive.
 - **Token efficiency** — Up to 67% fewer tokens than equivalent JSON (see [benchmarks](./benchmarks)).
-- **Controlled rendering** — Restrict output to the components you define and register.
+- **Controlled rendering** — Restricts output to only the registered components you define.
 - **Typed component contracts** — Define component props and structure up front with Zod schemas.
 
 ### Token efficiency benchmarks
