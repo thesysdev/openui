@@ -138,7 +138,7 @@ Good places to start:
 
 - [openui.com](https://openui.com) for the full docs
 - `examples/openui-chat` for a working app
-- `CONTRIBUTING.md` if you want to contribute
+
 
 ## Community
 
