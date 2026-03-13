@@ -11,6 +11,7 @@ import styles from "./BuildChatSection.module.css";
 // ---------------------------------------------------------------------------
 
 const CARD_SHADOW = "0px 8px 16px -4px rgba(22,34,51,0.08)";
+const COMMAND = "npx @openuidev/cli@latest create";
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -36,7 +37,7 @@ function CtaButton() {
     if (copied) return;
 
     try {
-      await navigator.clipboard.writeText("npx @openuidev/cli@latest create");
+      await navigator.clipboard.writeText(COMMAND);
       setCopied(true);
       resetTimeoutRef.current = setTimeout(() => {
         setCopied(false);
@@ -48,32 +49,37 @@ function CtaButton() {
 
   return (
     <div className={styles.ctaWrap}>
-      <button
-        onClick={handleClick}
-        className={styles.ctaButton}
-      >
-        <span className={styles.iconFrame}>
-          <span
-            className={`${styles.iconLayer} ${copied ? styles.iconHidden : styles.iconVisible}`}
-          >
-            <CopyIcon />
+      <button onClick={handleClick} className={styles.ctaButton}>
+        <span className={styles.ctaDesktopLabel}>{COMMAND}</span>
+        <span className={styles.ctaMobileLabel}>
+          <span className={styles.ctaTicker}>
+            <span className={styles.ctaTickerText}>{COMMAND}</span>
+            <span aria-hidden="true" className={styles.ctaTickerText}>
+              {COMMAND}
+            </span>
           </span>
-          <svg
-            className={`${styles.iconLayer} ${copied ? styles.iconVisible : styles.iconHidden}`}
-            fill="none"
-            viewBox="0 0 14 14"
-          >
-            <path
-              d="M11.6667 3.5L5.25 9.91667L2.33334 7"
-              stroke="white"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.5"
-            />
-          </svg>
         </span>
-        <span className={styles.ctaLabel}>
-          npx @openuidev/cli@latest create
+        <span className={styles.iconBadge}>
+          <span className={styles.iconFrame}>
+            <span
+              className={`${styles.iconLayer} ${copied ? styles.iconHidden : styles.iconVisible}`}
+            >
+              <CopyIcon color="white" />
+            </span>
+            <svg
+              className={`${styles.iconLayer} ${copied ? styles.iconVisible : styles.iconHidden}`}
+              fill="none"
+              viewBox="0 0 14 14"
+            >
+              <path
+                d="M11.6667 3.5L5.25 9.91667L2.33334 7"
+                stroke="white"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.5"
+              />
+            </svg>
+          </span>
         </span>
       </button>
     </div>
@@ -101,11 +107,7 @@ export function BuildChatSection() {
       <div className={styles.container}>
         <div className={styles.card}>
           {/* Border + shadow overlay */}
-          <div
-            aria-hidden="true"
-            className={styles.overlay}
-            style={{ boxShadow: CARD_SHADOW }}
-          />
+          <div aria-hidden="true" className={styles.overlay} style={{ boxShadow: CARD_SHADOW }} />
 
           <div className={styles.content}>
             {/* Left: text content */}
