@@ -52,7 +52,7 @@ It provides:
 - **Streaming support** - Update the UI progressively as output arrives.
 - **Working app foundation** - Start from a ready-to-run example instead of wiring everything manually.
 
-## How it works
+## How It works
 
 Your components define what the model can generate.
 
