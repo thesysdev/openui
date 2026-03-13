@@ -31,7 +31,7 @@ At the center of OpenUI is **OpenUI Lang**: a compact, streaming-first language 
 - **Built-in component libraries** — Charts, forms, tables, layouts, and more — ready to use or extend.
 - **Prompt generation from your component library** — Generate model instructions directly from the components you allow.
 - **Streaming renderer** — Parse and render model output progressively in React as tokens arrive.
-- **Chat and app surfaces** - Use the same foundation for assistants, copilots, and broader interactive product flows.
+- **Chat and app surfaces** – Use the same foundation for assistants, copilots, and broader interactive product flows.
 
 ## Quick Start
 
