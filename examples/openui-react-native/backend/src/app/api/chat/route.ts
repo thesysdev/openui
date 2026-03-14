@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import { join } from "path";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY ?? "" });
 
 const SYSTEM_PROMPT = readFileSync(join(process.cwd(), "src", "system-prompt.txt"), "utf-8");
 
