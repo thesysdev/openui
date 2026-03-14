@@ -64,8 +64,6 @@ const CopilotInner = ({
   agentName = "My Agent",
   messageLoading: MessageLoadingComponent = MessageLoading,
   scrollVariant = "user-message-anchor",
-  isArtifactActive,
-  renderArtifact,
   welcomeMessage,
   conversationStarters,
   assistantMessage,
@@ -74,7 +72,7 @@ const CopilotInner = ({
 }: SharedChatUIProps) => {
   return (
     <Container logoUrl={logoUrl} agentName={agentName}>
-      <ThreadContainer isArtifactActive={isArtifactActive} renderArtifact={renderArtifact}>
+      <ThreadContainer>
         <Header />
         <WelcomeMessageRenderer welcomeMessage={welcomeMessage} />
         <ScrollArea scrollVariant={scrollVariant}>

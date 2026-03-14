@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { SquarePen, X } from "lucide-react";
 import { ReactNode } from "react";
 import { IconButton } from "../IconButton";
-import { useShellStore } from "../Shell/store";
+import { useShellStore } from "../_shared/store";
 import { ThreadListContainer } from "./ThreadListContainer";
 
 export const BottomTrayNewChatButton = () => {

@@ -1,4 +1,3 @@
-import { Message } from "@openuidev/react-headless";
 import { WelcomeMessageConfig } from "../types";
 
 /**
@@ -26,12 +25,4 @@ export const isWelcomeComponent = (
   return typeof config === "function";
 };
 
-export const isChatEmpty = ({
-  isLoadingMessages,
-  messages,
-}: {
-  isLoadingMessages: boolean | undefined;
-  messages: Message[];
-}) => {
-  return !isLoadingMessages && messages.length === 0;
-};
+export { isChatEmpty } from "../../_shared/utils";

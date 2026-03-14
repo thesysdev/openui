@@ -1,6 +1,10 @@
+export { useActiveArtifact } from "./hooks/useActiveArtifact";
+export { useArtifact } from "./hooks/useArtifact";
+export { useArtifactPortalTarget } from "./hooks/useArtifactPortalTarget";
 export { MessageContext, MessageProvider, useMessage } from "./hooks/useMessage";
 export { useThread, useThreadList } from "./hooks/useThread";
 
+export { ArtifactContext, useArtifactStore } from "./store/ArtifactContext";
 export { ChatProvider } from "./store/ChatProvider";
 export {
   agUIAdapter,
@@ -10,6 +14,13 @@ export {
 } from "./stream/adapters";
 export { openAIConversationMessageFormat, openAIMessageFormat } from "./stream/formats";
 export { processStreamedMessage } from "./stream/processStreamedMessage";
+
+export type {
+  ArtifactActions,
+  ArtifactMeta,
+  ArtifactMetaInput,
+  ArtifactState,
+} from "./store/artifactTypes";
 
 export type {
   ChatProviderProps,

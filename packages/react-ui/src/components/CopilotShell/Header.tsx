@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { ReactNode } from "react";
-import { useShellStore } from "../Shell/store";
+import { useShellStore } from "../_shared/store";
 
 interface HeaderProps {
   className?: string;

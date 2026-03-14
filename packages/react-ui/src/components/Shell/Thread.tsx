@@ -1,43 +1,33 @@
 import type { AssistantMessage, Message, ToolMessage } from "@openuidev/react-headless";
-import { MessageProvider, useThread } from "@openuidev/react-headless";
+import { MessageProvider, useActiveArtifact, useThread } from "@openuidev/react-headless";
 import clsx from "clsx";
-import React, { memo, useEffect, useRef } from "react";
+import React, { memo, useRef } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
 import { ScrollVariant, useScrollToBottom } from "../../hooks/useScrollToBottom";
+import { ArtifactOverlay, ArtifactPortalTarget } from "../_shared/artifact";
+import { useShellStore } from "../_shared/store";
+import type { AssistantMessageComponent, UserMessageComponent } from "../_shared/types";
 import { MarkDownRenderer } from "../MarkDownRenderer";
 import { MessageLoading as MessageLoadingComponent } from "../MessageLoading";
-import type { AssistantMessageComponent, UserMessageComponent } from "../OpenUIChat/types";
 import { ToolCallComponent } from "../ToolCall";
 import { ToolResult } from "../ToolResult";
 import { ResizableSeparator } from "./ResizableSeparator";
-import { useShellStore } from "./store";
 import { useArtifactResize } from "./useArtifactResize";
 
 export const ThreadContainer = ({
   children,
   className,
-  isArtifactActive = false,
-  renderArtifact = () => null,
 }: {
   children?: React.ReactNode;
   className?: string;
-  isArtifactActive?: boolean;
-  renderArtifact?: () => React.ReactNode;
 }) => {
   const { layout } = useLayoutContext();
   const isMobile = layout === "mobile";
+  const { isArtifactActive } = useActiveArtifact();
 
-  const { setIsSidebarOpen, setIsArtifactActive, setArtifactRenderer } = useShellStore((state) => ({
+  const { setIsSidebarOpen } = useShellStore((state) => ({
     setIsSidebarOpen: state.setIsSidebarOpen,
-    setIsArtifactActive: state.setIsArtifactActive,
-    setArtifactRenderer: state.setArtifactRenderer,
   }));
-
-  // Sync artifact state and renderer with store
-  useEffect(() => {
-    setIsArtifactActive(isArtifactActive);
-    setArtifactRenderer(renderArtifact);
-  }, [isArtifactActive, renderArtifact, setIsArtifactActive, setArtifactRenderer]);
 
   const isLoadingMessages = useThread((s) => s.isLoadingMessages);
 
@@ -73,6 +63,7 @@ export const ThreadContainer = ({
           })}
         >
           {children}
+          {isMobile && <ArtifactOverlay />}
         </div>
 
         {/* Desktop only: Resizable separator and artifact panel */}
@@ -89,7 +80,7 @@ export const ThreadContainer = ({
                 "openui-shell-thread-artifact-panel--animating": !isDragging,
               })}
             >
-              {renderArtifact?.()}
+              <ArtifactPortalTarget />
             </div>
           </>
         )}
@@ -116,16 +107,10 @@ export const ScrollArea = ({
   userMessageSelector?: string;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const { layout } = useLayoutContext();
-  const isMobile = layout === "mobile";
 
   const messages = useThread((s) => s.messages);
   const isRunning = useThread((s) => s.isRunning);
   const isLoadingMessages = useThread((s) => s.isLoadingMessages);
-  const { isArtifactActive, artifactRenderer } = useShellStore((store) => ({
-    isArtifactActive: store.isArtifactActive,
-    artifactRenderer: store.artifactRenderer,
-  }));
 
   useScrollToBottom({
     ref,
@@ -151,9 +136,6 @@ export const ScrollArea = ({
       >
         {children}
       </div>
-      {isMobile && isArtifactActive && (
-        <div className="openui-shell-thread-artifact-panel--mobile">{artifactRenderer()}</div>
-      )}
     </div>
   );
 };
