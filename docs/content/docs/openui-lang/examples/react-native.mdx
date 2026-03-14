@@ -194,27 +194,3 @@ for await (const chunk of completion) {
 ```
 
 The response uses `Content-Type: text/plain; charset=utf-8` and permissive CORS headers so the Expo app can call it during development.
-
-## Adapting this pattern
-
-Use this example as a template when you want to build a production app that:
-
-- keeps model access on the server
-- streams partial UI to React Native clients
-- defines a shared component contract for both prompt generation and rendering
-
-In your own app, the most important rule is to keep the backend prompt library and the mobile rendering library aligned. If they drift apart, the model can emit components that the client does not know how to render.
-
-## Next Steps
-
-<Cards>
-  <Card title="Defining Components" href="/docs/openui-lang/defining-components">
-    Build a custom component library with Zod schemas and React renderers.
-  </Card>
-  <Card title="The Renderer" href="/docs/openui-lang/renderer">
-    How &lt;Renderer /&gt; parses and renders streamed OpenUI Lang.
-  </Card>
-  <Card title="System Prompts" href="/docs/openui-lang/system-prompts">
-    Generate LLM instructions from your library definition.
-  </Card>
-</Cards>
