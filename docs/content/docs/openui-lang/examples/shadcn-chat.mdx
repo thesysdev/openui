@@ -7,14 +7,14 @@ A full-stack example that streams [OpenUI Lang](/docs/openui-lang/overview) into
 
 [View source on GitHub →](https://github.com/thesysdev/crayon/tree/main/examples/shadcn-chat)
 
-<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl p-2">
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl h-[500px] flex  p-2">
   <video
     src="/videos/shadcn-demo-chat.mp4"
     noControls
     playsInline
     muted
     preload="metadata"
-    className="w-full rounded-lg"
+    className="w-full rounded-lg m-auto"
     autoPlay
     loop
   />
@@ -23,13 +23,13 @@ A full-stack example that streams [OpenUI Lang](/docs/openui-lang/overview) into
 The example includes:
 
 - A **Next.js frontend** with a FullScreen chat layout that adapts to the system light/dark theme
-- A **Next.js API route** that calls an OpenAI-compatible provider with streaming and server-side tool execution
+- A **Next.js API route** that calls OpenAI with streaming and server-side tool execution
 - A **shadcn-genui component library** with 40+ components covering content, charts, forms, tables, buttons, layout, overlays, and more
 
 ## Architecture
 
 ```
-Browser (FullScreen) -- POST /api/chat --> Next.js route --> OpenRouter (OpenAI)
+Browser (FullScreen) -- POST /api/chat --> Next.js route --> OpenAI
                      <-- SSE stream --                       (OpenUI Lang + tool calls)
 ```
 
@@ -41,7 +41,8 @@ The API route also supports **server-side tool execution**. When the model invok
 
 ```
 examples/shadcn-chat/
-|- src/app/              # Next.js app (page + API route)
+|- src/app/              # Next.js app (layout, page, API route)
+|- src/hooks/            # Theme detection and context
 |- src/components/ui/    # Base shadcn/ui primitives
 |- src/lib/shadcn-genui/ # Generative UI component library (40+ components)
 |- src/generated/        # Generated system prompt
@@ -61,10 +62,8 @@ pnpm install
 2. Create a `.env.local` file with your API key:
 
 ```bash
-OPENROUTER_API_KEY=sk-or-...
+OPENAI_API_KEY=sk-...
 ```
-
-The example uses [OpenRouter](https://openrouter.ai/) as the provider. You can switch to any OpenAI-compatible endpoint by changing the `baseURL` and `MODEL` in `src/app/api/chat/route.ts`.
 
 3. Start the dev server:
 
@@ -78,18 +77,23 @@ This automatically generates the system prompt from the library definition befor
 
 Open the app and try one of the built-in conversation starters:
 
-- "Weather in Tokyo"
-- "AAPL stock price"
-- "Contact form"
-- "Data table"
+- "Startup dashboard" — analytics dashboard with charts, tables, and progress bars
+- "Travel planner" — calendar, accordion destinations, and a preferences form
+- "Market watch" — fetches live stock prices and renders a comparison table with charts
+- "Event RSVP" — a rich form with every input type
+- "Chart showcase" — six chart types (Bar, Line, Area, Pie, Radar, Scatter) in tabbed view
 
 Instead of rendering plain markdown, the assistant response appears progressively as shadcn/ui components — cards, charts, forms, tables, badges, and more — all styled with the shadcn/ui design system and responsive to your system theme.
 
 ## Key files
 
+### `src/hooks/use-system-theme.tsx` — theme detection
+
+A `ThemeProvider` wraps the app at the root layout. It detects the system color scheme via `prefers-color-scheme`, sets a `data-theme` attribute on `<body>`, and exposes the resolved `"light"` or `"dark"` mode through a `useTheme()` hook. CSS variables in `globals.css` switch via the `[data-theme="dark"]` selector, and Tailwind's dark variant is configured to match.
+
 ### `src/app/page.tsx` — FullScreen chat setup
 
-The page uses the `FullScreen` layout from `@openuidev/react-ui`, wiring up the chat endpoint, stream adapter, component library, and conversation starters:
+The page calls `useTheme()` to get the current mode and passes it to the `FullScreen` layout:
 
 ```tsx
 <FullScreen
@@ -110,8 +114,8 @@ The page uses the `FullScreen` layout from `@openuidev/react-ui`, wiring up the 
   conversationStarters={{
     variant: "short",
     options: [
-      { displayText: "Weather in Tokyo", prompt: "What's the weather like in Tokyo right now?" },
-      { displayText: "AAPL stock price", prompt: "What's the current Apple stock price?" },
+      { displayText: "Startup dashboard", prompt: "Build a startup analytics dashboard ..." },
+      { displayText: "Market watch", prompt: "Fetch stock prices for AAPL, NVDA ..." },
       // ...
     ],
   }}
@@ -129,13 +133,24 @@ export const shadcnChatLibrary = createLibrary({
   root: "Card",
   componentGroups: shadcnComponentGroups,
   components: [
-    ChatCard, CardHeader,
-    TextContent, MarkDownRenderer, Alert, /* ... */
-    Table, Col,
-    BarChartCondensed, LineChartCondensed, /* ... */
-    Form, FormControl, Input, Select, /* ... */
-    Button, Buttons,
-    Tabs, Accordion, Carousel,
+    ChatCard,
+    CardHeader,
+    TextContent,
+    MarkDownRenderer,
+    Alert /* ... */,
+    Table,
+    Col,
+    BarChartCondensed,
+    LineChartCondensed /* ... */,
+    Form,
+    FormControl,
+    Input,
+    Select /* ... */,
+    Button,
+    Buttons,
+    Tabs,
+    Accordion,
+    Carousel,
     // ... 40+ components total
   ],
 });
@@ -143,22 +158,22 @@ export const shadcnChatLibrary = createLibrary({
 
 The component groups organize components by category and include notes that become part of the generated system prompt:
 
-| Group | Components |
-|---|---|
-| Content | CardHeader, TextContent, MarkDownRenderer, Alert, Badge, Avatar, CodeBlock, Image, Progress, Separator |
-| Tables | Table, Col |
-| Charts (2D) | BarChart, LineChart, AreaChart, RadarChart, Series |
-| Charts (1D) | PieChart, RadialChart, Slice |
-| Charts (Scatter) | ScatterChart, ScatterSeries, Point |
-| Forms | Form, FormControl, Label, Input, TextArea, Select, DatePicker, Slider, CheckBoxGroup, RadioGroup, SwitchGroup |
-| Buttons | Button, Buttons |
-| Follow-ups | FollowUpBlock, FollowUpItem |
-| Layout | Tabs, Accordion, Carousel |
-| Data Display | TagBlock, Tag |
-| Typography | Heading, Blockquote, InlineCode |
-| Calendar | CalendarBlock |
-| Navigation | PaginationBlock |
-| Overlays | DialogBlock, AlertDialogBlock, DrawerBlock |
+| Group            | Components                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| Content          | CardHeader, TextContent, MarkDownRenderer, Alert, Badge, Avatar, CodeBlock, Image, Progress, Separator        |
+| Tables           | Table, Col                                                                                                    |
+| Charts (2D)      | BarChart, LineChart, AreaChart, RadarChart, Series                                                            |
+| Charts (1D)      | PieChart, RadialChart, Slice                                                                                  |
+| Charts (Scatter) | ScatterChart, ScatterSeries, Point                                                                            |
+| Forms            | Form, FormControl, Label, Input, TextArea, Select, DatePicker, Slider, CheckBoxGroup, RadioGroup, SwitchGroup |
+| Buttons          | Button, Buttons                                                                                               |
+| Follow-ups       | FollowUpBlock, FollowUpItem                                                                                   |
+| Layout           | Tabs, Accordion, Carousel                                                                                     |
+| Data Display     | TagBlock, Tag                                                                                                 |
+| Typography       | Heading, Blockquote, InlineCode                                                                               |
+| Calendar         | CalendarBlock                                                                                                 |
+| Navigation       | PaginationBlock                                                                                               |
+| Overlays         | DialogBlock, AlertDialogBlock, DrawerBlock                                                                    |
 
 See [Defining Components](/docs/openui-lang/defining-components) for the full `defineComponent` API.
 
@@ -167,6 +182,11 @@ See [Defining Components](/docs/openui-lang/defining-components) for the full `d
 The API route reads the generated system prompt, calls the LLM with `runTools()` for server-side tool execution, and streams the response as SSE:
 
 ```ts
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const MODEL = "gpt-5.4";
+
 const runner = client.chat.completions.runTools({
   model: MODEL,
   messages: chatMessages,
@@ -188,12 +208,12 @@ When the model calls a tool, the route executes it and enriches the response wit
 
 The API route defines four server-side tools that the LLM can invoke during a conversation:
 
-| Tool | Description |
-|---|---|
-| `get_weather` | Returns temperature, conditions, humidity, wind, and a 2-day forecast for a given city |
-| `get_stock_price` | Returns price, change, volume, and day range for a ticker symbol |
-| `calculate` | Evaluates a math expression and returns the result |
-| `search_web` | Returns mock search results for a query |
+| Tool              | Description                                                                            |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| `get_weather`     | Returns temperature, conditions, humidity, wind, and a 2-day forecast for a given city |
+| `get_stock_price` | Returns price, change, volume, and day range for a ticker symbol                       |
+| `calculate`       | Evaluates a math expression and returns the result                                     |
+| `search_web`      | Returns mock search results for a query                                                |
 
 These are demo implementations with simulated data. In a production app, you would replace them with real API calls.
 
