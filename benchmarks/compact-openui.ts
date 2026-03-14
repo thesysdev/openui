@@ -17,11 +17,25 @@ interface CanonStat {
 
 const HOIST_MIN_SIZE = 32;
 
-function deriveCompactAliases(componentNames: string[]): Map<string, string> {
+function deriveCompactAliases(
+  componentNames: string[],
+  explicitAliases: Map<string, string>,
+): Map<string, string> {
   const aliases = new Map<string, string>();
   const occupied = new Set(componentNames);
 
   const sorted = [...componentNames].sort((a, b) => b.length - a.length || a.localeCompare(b));
+
+  // 0) Respect valid explicit aliases from schema metadata.
+  for (const name of sorted) {
+    const alias = explicitAliases.get(name);
+    if (!alias) continue;
+    const startsWithUpper = alias[0] >= "A" && alias[0] <= "Z";
+    if (!startsWithUpper || alias.length >= name.length || occupied.has(alias)) continue;
+
+    occupied.add(alias);
+    aliases.set(name, alias);
+  }
 
   const acronymByName = new Map<string, string>();
   const acronymCount = new Map<string, number>();
@@ -32,7 +46,10 @@ function deriveCompactAliases(componentNames: string[]): Map<string, string> {
     acronymCount.set(acronym, (acronymCount.get(acronym) ?? 0) + 1);
   }
 
+  // 1) Unique acronyms.
   for (const name of sorted) {
+    if (aliases.has(name)) continue;
+
     const acronym = acronymByName.get(name)!;
     const startsWithUpper = acronym[0] >= "A" && acronym[0] <= "Z";
     if (!startsWithUpper || acronym.length >= name.length) continue;
@@ -43,6 +60,7 @@ function deriveCompactAliases(componentNames: string[]): Map<string, string> {
     aliases.set(name, acronym);
   }
 
+  // 2) Shortest unique prefix fallback.
   for (const name of sorted) {
     if (aliases.has(name)) continue;
 
@@ -63,13 +81,20 @@ function deriveCompactAliases(componentNames: string[]): Map<string, string> {
 function createSerializeConfig(schema: LibraryJSONSchema): SerializeConfig {
   const propOrder = new Map<string, string[]>();
   const defs = schema.$defs ?? {};
+
+  const explicitAliases = new Map<string, string>();
   for (const [name, def] of Object.entries(defs)) {
     propOrder.set(name, Object.keys(def.properties ?? {}));
+
+    const alias = (def as any)["x-openui-alias"];
+    if (typeof alias === "string" && alias.trim()) {
+      explicitAliases.set(name, alias.trim());
+    }
   }
 
   return {
     propOrder,
-    aliasByCanonical: deriveCompactAliases(Object.keys(defs)),
+    aliasByCanonical: deriveCompactAliases(Object.keys(defs), explicitAliases),
     hoistedRefByCanonical: new Map(),
   };
 }

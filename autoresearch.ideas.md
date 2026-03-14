@@ -1,3 +1,3 @@
-- Implement a collision-safe global alias optimizer (e.g., bipartite matching over candidate aliases with token-cost objective) instead of greedy prefix aliases; this should unlock shorter aliases like `TC`, `CH`, `BC` without fidelity regressions.
-- Add token-aware (tiktoken-based) hoist selection that computes exact gain/loss per candidate expression before emitting refs, including interaction effects between nested candidates.
-- Explore schema-level explicit compact aliases (`x-openui-alias`) so libraries can ship stable human-curated short names, and compactor/parser can consume them deterministically.
+- Implement a true global alias optimizer (e.g., weighted bipartite assignment) to minimize expected token cost under collision constraints, then feed the chosen aliases to both parser and compactor.
+- Explore schema-level explicit compact aliases (`x-openui-alias`) so component libraries can ship stable, human-curated short names instead of relying only on inferred heuristics.
+- Add a canonicalization step that regenerates `.oui` from canonical AST/C1 before compaction when alias strategy changes, preventing alias-migration artifacts from biasing benchmark comparisons.

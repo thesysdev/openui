@@ -366,7 +366,8 @@
         "children"
       ],
       "additionalProperties": false,
-      "id": "Card"
+      "id": "Card",
+      "x-openui-alias": "C"
     },
     "TextContent": {
       "type": "object",
@@ -389,7 +390,8 @@
         "text"
       ],
       "additionalProperties": false,
-      "id": "TextContent"
+      "id": "TextContent",
+      "x-openui-alias": "T"
     },
     "MarkDownRenderer": {
       "type": "object",
@@ -423,7 +425,8 @@
         }
       },
       "additionalProperties": false,
-      "id": "CardHeader"
+      "id": "CardHeader",
+      "x-openui-alias": "H"
     },
     "Callout": {
       "type": "object",
@@ -951,7 +954,8 @@
         "label"
       ],
       "additionalProperties": false,
-      "id": "Col"
+      "id": "Col",
+      "x-openui-alias": "L"
     },
     "TagBlock": {
       "type": "object",
@@ -1032,7 +1036,8 @@
         "input"
       ],
       "additionalProperties": false,
-      "id": "FormControl"
+      "id": "FormControl",
+      "x-openui-alias": "F"
     },
     "Input": {
       "type": "object",
@@ -1135,7 +1140,8 @@
         "label"
       ],
       "additionalProperties": false,
-      "id": "SelectItem"
+      "id": "SelectItem",
+      "x-openui-alias": "I"
     },
     "DatePicker": {
       "type": "object",
@@ -1367,7 +1373,8 @@
         "action"
       ],
       "additionalProperties": false,
-      "id": "Button"
+      "id": "Button",
+      "x-openui-alias": "B"
     },
     "Steps": {
       "type": "object",
@@ -1593,7 +1600,8 @@
         "children"
       ],
       "additionalProperties": false,
-      "id": "Stack"
+      "id": "Stack",
+      "x-openui-alias": "S"
     },
     "Label": {
       "type": "object",
