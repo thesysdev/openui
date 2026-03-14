@@ -17,12 +17,13 @@ import styles from "./Navbar.module.css";
 // Constants
 // ---------------------------------------------------------------------------
 
-const NAV_TABS = ["OpenUI Lang", "Playground", "API Reference"] as const;
+const NAV_TABS = ["OpenUI Lang", "Playground", "API Reference", "Blog"] as const;
 const TAB_URLS: Record<string, string> = {
   "OpenUI Lang": "/docs/openui-lang",
   Playground: "/playground",
   "API Reference": "/docs/api-reference",
   Components: "/docs/components",
+  Blog: "/blog",
 };
 const NAVBAR_BORDER_COLOR = "rgba(0,0,0,0.1)";
 const MOBILE_GITHUB_BUTTON_STYLE = {
