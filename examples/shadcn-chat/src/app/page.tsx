@@ -2,15 +2,15 @@
 import "@openuidev/react-ui/components.css";
 
 import { useSystemTheme } from "@/hooks/use-system-theme";
+import { shadcnChatLibrary } from "@/lib/shadcn-genui";
 import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
 
 export default function Page() {
   const mode = useSystemTheme();
 
   return (
-    <div className="h-screen w-screen overflow-hidden relative">
+    <div className={`h-screen w-screen overflow-hidden relative ${mode === "dark" ? "dark" : ""}`}>
       <FullScreen
         processMessage={async ({ messages, abortController }) => {
           return fetch("/api/chat", {
@@ -23,8 +23,8 @@ export default function Page() {
           });
         }}
         streamProtocol={openAIAdapter()}
-        componentLibrary={openuiChatLibrary}
-        agentName="OpenUI Chat"
+        componentLibrary={shadcnChatLibrary}
+        agentName="shadcn/ui Chat"
         theme={{ mode }}
         conversationStarters={{
           variant: "short",
