@@ -1,0 +1,5 @@
+{"type":"config","name":"Optimize benchmarks/run-benchmark.ts runtime","metricName":"benchmark_wall_time","metricUnit":"s","bestDirection":"lower"}
+{"run":1,"commit":"5571b57","metric":0,"metrics":{},"status":"crash","description":"Baseline run failed: benchmarks dependencies missing in benchmarks/node_modules (missing tiktoken/tsx resolution).","timestamp":1773448968919,"segment":0}
+{"run":2,"commit":"5571b57","metric":0,"metrics":{},"status":"crash","description":"Second baseline attempt still crashes with missing benchmarks/node_modules dependency resolution for tiktoken.","timestamp":1773449000022,"segment":0}
+{"run":3,"commit":"5571b57","metric":0.3,"metrics":{},"status":"discard","description":"Harness test with pnpm --filter benchmarks bench returned immediately with no matched projects; invalid benchmark command.","timestamp":1773449035260,"segment":0}
+{"type":"config","name":"Optimize @openuidev/react-lang build runtime","metricName":"build_wall_time","metricUnit":"s","bestDirection":"lower"}
