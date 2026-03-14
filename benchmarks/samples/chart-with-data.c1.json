@@ -58,27 +58,13 @@
                     {
                       "component": "BarChart",
                       "props": {
-                        "labels": [
-                          "Oct",
-                          "Nov",
-                          "Dec",
-                          "Jan",
-                          "Feb",
-                          "Mar"
-                        ],
+                        "labels": ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"],
                         "series": [
                           {
                             "component": "Series",
                             "props": {
                               "category": "Revenue",
-                              "values": [
-                                198000,
-                                205000,
-                                214000,
-                                210000,
-                                223000,
-                                234000
-                              ]
+                              "values": [198000, 205000, 214000, 210000, 223000, 234000]
                             }
                           }
                         ],

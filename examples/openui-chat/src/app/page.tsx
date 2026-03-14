@@ -1,13 +1,13 @@
 "use client";
 import "@openuidev/react-ui/components.css";
 
-import { useSystemTheme } from "@/hooks/use-system-theme";
+import { useTheme } from "@/hooks/use-system-theme";
 import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
 import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
 
 export default function Page() {
-  const mode = useSystemTheme();
+  const mode = useTheme();
 
   return (
     <div className="h-screen w-screen overflow-hidden relative">

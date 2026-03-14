@@ -200,9 +200,7 @@
                                           }
                                         ],
                                         "placeholder": "Select your size...",
-                                        "rules": [
-                                          "required"
-                                        ]
+                                        "rules": ["required"]
                                       }
                                     }
                                   }
@@ -259,9 +257,7 @@
                                       }
                                     ],
                                     "defaultValue": "black_white",
-                                    "rules": [
-                                      "required"
-                                    ]
+                                    "rules": ["required"]
                                   }
                                 }
                               ],
@@ -388,30 +384,12 @@
                                 }
                               ],
                               "rows": [
-                                [
-                                  "Weight",
-                                  "9.8 oz (US 9)"
-                                ],
-                                [
-                                  "Drop",
-                                  "8 mm"
-                                ],
-                                [
-                                  "Upper",
-                                  "Engineered mesh"
-                                ],
-                                [
-                                  "Midsole",
-                                  "EVA-based foam"
-                                ],
-                                [
-                                  "Outsole",
-                                  "High-abrasion rubber"
-                                ],
-                                [
-                                  "Care",
-                                  "Spot clean; air dry"
-                                ]
+                                ["Weight", "9.8 oz (US 9)"],
+                                ["Drop", "8 mm"],
+                                ["Upper", "Engineered mesh"],
+                                ["Midsole", "EVA-based foam"],
+                                ["Outsole", "High-abrasion rubber"],
+                                ["Care", "Spot clean; air dry"]
                               ]
                             }
                           }

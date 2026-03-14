@@ -1,16 +1,16 @@
 "use client";
 import "@openuidev/react-ui/components.css";
 
-import { useSystemTheme } from "@/hooks/use-system-theme";
+import { useTheme } from "@/hooks/use-system-theme";
 import { shadcnChatLibrary } from "@/lib/shadcn-genui";
 import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
 
 export default function Page() {
-  const mode = useSystemTheme();
+  const mode = useTheme();
 
   return (
-    <div className={`h-screen w-screen overflow-hidden relative ${mode === "dark" ? "dark" : ""}`}>
+    <div className="h-screen w-screen overflow-hidden relative">
       <FullScreen
         processMessage={async ({ messages, abortController }) => {
           return fetch("/api/chat", {

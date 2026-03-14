@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "generate": "tsx generate-samples.ts",
-    "bench": "tsx run-benchmark.ts"
+    "bench": "tsx run-benchmark.ts",
+    "format:fix": "prettier --write ."
   },
   "dependencies": {
     "@openuidev/react-lang": "workspace:*",
     "@openuidev/react-ui": "workspace:*",
     "openai": "^6.22.0",
-    "tiktoken": "^1.0.14"
+    "tiktoken": "^1.0.14",
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "tsx": "^4.20.3"
