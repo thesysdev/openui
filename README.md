@@ -10,22 +10,14 @@
 
 </div>
 
-
-OpenUI is a full-stack Generative UI framework — a compact streaming-first language, a React runtime with built-in component libraries, and ready-to-use chat interfaces — that is up to 67% more token-efficient than JSON.
-
-
+OpenUI is a full-stack generative UI framework: a compact streaming-first language, a React runtime with built-in component libraries, and ready-to-use chat interfaces — that is up to 67% more token-efficient than JSON.
 
 ---
-
-
 
 [Docs](https://openui.com) · [Playground](https://www.openui.com/playground) · [Sample Chat App](./examples/openui-chat) · [Discord](https://discord.com/invite/Pbv5PsqUSv) · [Contributing](./CONTRIBUTING.md) · [Code of Conduct](./CODE_OF_CONDUCT.md) · [Security](./SECURITY.md) · [License](./LICENSE)
-
-
 ---
 
-## What is OpenUI
-
+What is OpenUI
 <div align="center">
 
 <img src="./assets/demo.gif" alt="OpenUI Demo" width="100%">
@@ -39,10 +31,10 @@ At the center of OpenUI is **OpenUI Lang**: a compact, streaming-first language 
 - **Built-in component libraries** — Charts, forms, tables, layouts, and more — ready to use or extend.
 - **Prompt generation from your component library** — Generate model instructions directly from the components you allow.
 - **Streaming renderer** — Parse and render model output progressively in React as tokens arrive.
-- **Chat and app surfaces** - Use the same foundation for assistants, copilots, and broader interactive product flows.
-
+- **Chat and app surface****s** – Use the same foundation for assistants, copilots, and broader interactive product flows.
 
 ## Quick Start
+
 
 ```bash
 npx @openuidev/cli@latest create --name genui-chat-app
@@ -53,18 +45,17 @@ npm run dev
 
 This is the fastest way to start with OpenUI. The scaffolded app gives you an end-to-end starting point with streaming, built-in UI, and OpenUI Lang support.
 
-What this gives you:
+It provides:
 
 - **OpenUI Lang support** - Start with structured UI generation built into the app flow.
 - **Library-driven prompts** - Generate instructions from your allowed component set.
 - **Streaming support** - Update the UI progressively as output arrives.
 - **Working app foundation** - Start from a ready-to-run example instead of wiring everything manually.
 
-
-
 ## How it works
 
 Your components define what the model can generate.
+
 
 ```mermaid
 flowchart LR
@@ -85,12 +76,13 @@ Try it yourself in the [Playground](https://www.openui.com/playground) — gener
 
 ## Packages
 
-| Package | Description |
-| :--- | :--- |
-| [`@openuidev/react-lang`](./packages/react-lang) | Core runtime — component definitions, parser, renderer, prompt generation |
-| [`@openuidev/react-headless`](./packages/react-headless) | Headless chat state, streaming adapters, message format converters |
-| [`@openuidev/react-ui`](./packages/react-ui) | Prebuilt chat layouts and two built-in component libraries |
-| [`@openuidev/cli`](./packages/openui-cli) | CLI for scaffolding apps and generating system prompts |
+| Package                     | Description                                                               |
+| :-------------------------- | :------------------------------------------------------------------------ |
+| `@openuidev/react-lang`     | Core runtime — component definitions, parser, renderer, prompt generation |
+| `@openuidev/react-headless` | Headless chat state, streaming adapters, message format converters        |
+| `@openuidev/react-ui`       | Prebuilt chat layouts and two built-in component libraries                |
+| `@openuidev/cli`            | CLI for scaffolding apps and generating system prompts                    |
+
 
 ```bash
 npm install @openuidev/react-lang @openuidev/react-ui
@@ -102,7 +94,7 @@ OpenUI Lang is designed for model-generated UI that needs to be both structured 
 
 - **Streaming output** — Emit UI incrementally as tokens arrive.
 - **Token efficiency** — Up to 67% fewer tokens than equivalent JSON (see [benchmarks](./benchmarks)).
-- **Controlled rendering** — Restrict output to the components you define and register.
+- **Controlled rendering** — Restricts output to only the registered components you define.
 - **Typed component contracts** — Define component props and structure up front with Zod schemas.
 
 ### Token efficiency benchmarks
@@ -120,13 +112,14 @@ Measured with `tiktoken` (GPT-5 encoder). OpenUI Lang vs two JSON-based streamin
 | e-commerce-product |               2449 |           2381 |        1166 |     -52.4% |     -51.0% |
 | **TOTAL**          |          **10180** |       **9948** |    **4800** | **-52.8%** | **-51.7%** |
 
-Full methodology and reproduction steps in [`benchmarks/`](./benchmarks).
+Full methodology and reproduction steps in `benchmarks/`.
 
 ## Documentation
 
 Detailed documentation is available at [openui.com](https://openui.com).
 
 ## Repository structure
+
 
 ```
 openui/
@@ -144,19 +137,18 @@ openui/
 Good places to start:
 
 - [openui.com](https://openui.com) for the full docs
-- [`examples/openui-chat`](./examples/openui-chat) for a working app
-- [`CONTRIBUTING.md`](./CONTRIBUTING.md) if you want to contribute
+- `examples/openui-chat` for a working app
+
 
 ## Community
 
 - [Discord](https://discord.com/invite/Pbv5PsqUSv) — Ask questions, share what you're building
 - [GitHub Issues](https://github.com/thesysdev/openui/issues) — Report bugs or request features
 
-
 ## Contributing
 
-Contributions are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for contribution guidelines and ways to get involved.
+Contributions are welcome. See `CONTRIBUTING.md` for contribution guidelines and ways to get involved.<br>&#8203;
 
-## License
+## [⁠![Edit badge](https://badge.get-colibri.com/)](https://app.get-colibri.com/?room_id=github.com/thesysdev/openui/blob/main/README.md)License
 
-This project is available under the terms described in [`LICENSE`](./LICENSE).
+This project is available under the terms described in `[LICENSE](https://github.com/thesysdev/openui/blob/main/LICENSE)`.
