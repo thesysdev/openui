@@ -23,7 +23,29 @@ function deriveCompactAliases(componentNames: string[]): Map<string, string> {
 
   const sorted = [...componentNames].sort((a, b) => b.length - a.length || a.localeCompare(b));
 
+  const acronymByName = new Map<string, string>();
+  const acronymCount = new Map<string, number>();
+  for (const name of componentNames) {
+    const words = name.match(/[A-Z][a-z0-9]*/g) ?? [name];
+    const acronym = words.map((w) => w[0]).join("");
+    acronymByName.set(name, acronym);
+    acronymCount.set(acronym, (acronymCount.get(acronym) ?? 0) + 1);
+  }
+
   for (const name of sorted) {
+    const acronym = acronymByName.get(name)!;
+    const startsWithUpper = acronym[0] >= "A" && acronym[0] <= "Z";
+    if (!startsWithUpper || acronym.length >= name.length) continue;
+    if ((acronymCount.get(acronym) ?? 0) !== 1) continue;
+    if (occupied.has(acronym)) continue;
+
+    occupied.add(acronym);
+    aliases.set(name, acronym);
+  }
+
+  for (const name of sorted) {
+    if (aliases.has(name)) continue;
+
     for (let len = 1; len < name.length; len++) {
       const alias = name.slice(0, len);
       const startsWithUpper = alias[0] >= "A" && alias[0] <= "Z";
