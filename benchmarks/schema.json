@@ -412,7 +412,8 @@
         "textMarkdown"
       ],
       "additionalProperties": false,
-      "id": "MarkDownRenderer"
+      "id": "MarkDownRenderer",
+      "x-openui-alias": "M"
     },
     "CardHeader": {
       "type": "object",
@@ -630,7 +631,8 @@
         "values"
       ],
       "additionalProperties": false,
-      "id": "Series"
+      "id": "Series",
+      "x-openui-alias": "R"
     },
     "RadarChart": {
       "type": "object",
@@ -693,7 +695,8 @@
         "value"
       ],
       "additionalProperties": false,
-      "id": "Slice"
+      "id": "Slice",
+      "x-openui-alias": "P"
     },
     "RadialChart": {
       "type": "object",
@@ -933,7 +936,8 @@
         "rows"
       ],
       "additionalProperties": false,
-      "id": "Table"
+      "id": "Table",
+      "x-openui-alias": "A"
     },
     "Col": {
       "type": "object",
@@ -1069,7 +1073,8 @@
         "name"
       ],
       "additionalProperties": false,
-      "id": "Input"
+      "id": "Input",
+      "x-openui-alias": "N"
     },
     "TextArea": {
       "type": "object",
@@ -1332,7 +1337,8 @@
         "buttons"
       ],
       "additionalProperties": false,
-      "id": "Buttons"
+      "id": "Buttons",
+      "x-openui-alias": "U"
     },
     "Button": {
       "type": "object",
@@ -1666,7 +1672,8 @@
         }
       },
       "additionalProperties": false,
-      "id": "SwitchItem"
+      "id": "SwitchItem",
+      "x-openui-alias": "W"
     },
     "Accordion": {
       "type": "object",
@@ -1779,7 +1786,8 @@
         "content"
       ],
       "additionalProperties": false,
-      "id": "AccordionItem"
+      "id": "AccordionItem",
+      "x-openui-alias": "O"
     },
     "Tag": {
       "type": "object",
