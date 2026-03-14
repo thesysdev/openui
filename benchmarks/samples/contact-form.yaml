@@ -1,0 +1,150 @@
+root: stack-1
+elements:
+  textcontent-2:
+    type: TextContent
+    props:
+      text: Contact Us
+      size: large-heavy
+  input-5:
+    type: Input
+    props:
+      name: name
+      placeholder: Your full name
+      type: text
+      rules:
+        - required
+        - minLength:2
+  formcontrol-4:
+    type: FormControl
+    props:
+      label: Name
+    children:
+      - input-5
+  input-7:
+    type: Input
+    props:
+      name: email
+      placeholder: you@example.com
+      type: email
+      rules:
+        - required
+        - email
+  formcontrol-6:
+    type: FormControl
+    props:
+      label: Email
+    children:
+      - input-7
+  input-9:
+    type: Input
+    props:
+      name: phone
+      placeholder: e.g., +1 555 123 4567
+      type: text
+      rules:
+        - required
+        - minLength:7
+        - maxLength:20
+  formcontrol-8:
+    type: FormControl
+    props:
+      label: Phone
+    children:
+      - input-9
+  selectitem-12:
+    type: SelectItem
+    props:
+      value: general
+      label: General inquiry
+  selectitem-13:
+    type: SelectItem
+    props:
+      value: support
+      label: Support
+  selectitem-14:
+    type: SelectItem
+    props:
+      value: sales
+      label: Sales
+  selectitem-15:
+    type: SelectItem
+    props:
+      value: billing
+      label: Billing
+  selectitem-16:
+    type: SelectItem
+    props:
+      value: feedback
+      label: Feedback
+  select-11:
+    type: Select
+    props:
+      name: subject
+      placeholder: Select a subject...
+      rules:
+        - required
+    children:
+      - selectitem-12
+      - selectitem-13
+      - selectitem-14
+      - selectitem-15
+      - selectitem-16
+  formcontrol-10:
+    type: FormControl
+    props:
+      label: Subject
+    children:
+      - select-11
+  textarea-18:
+    type: TextArea
+    props:
+      name: message
+      placeholder: How can we help?
+      rows: 6
+      rules:
+        - required
+        - minLength:10
+  formcontrol-17:
+    type: FormControl
+    props:
+      label: Message
+    children:
+      - textarea-18
+  button-20:
+    type: Button
+    props:
+      label: Submit
+      action: submit:contact
+      variant: primary
+  button-21:
+    type: Button
+    props:
+      label: Cancel
+      action: action:cancel_contact
+      variant: secondary
+  buttons-19:
+    type: Buttons
+    props:
+      direction: row
+    children:
+      - button-20
+      - button-21
+  form-3:
+    type: Form
+    props:
+      name: contact
+    children:
+      - formcontrol-4
+      - formcontrol-6
+      - formcontrol-8
+      - formcontrol-10
+      - formcontrol-17
+      - buttons-19
+  stack-1:
+    type: Stack
+    props:
+      direction: column
+      gap: l
+    children:
+      - textcontent-2
+      - form-3

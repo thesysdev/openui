@@ -1,0 +1,358 @@
+root: stack-1
+elements:
+  textcontent-3:
+    type: TextContent
+    props:
+      text: Product Details
+      size: large-heavy
+  card-2:
+    type: Card
+    props:
+      variant: clear
+    children:
+      - textcontent-3
+  cardheader-7:
+    type: CardHeader
+    props:
+      title: AeroStride Runner Sneakers
+      subtitle: Lightweight daily trainers with responsive cushioning
+  imagegallery-8:
+    type: ImageGallery
+    props:
+      images:
+        - src: https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80
+          alt: Sneakers angled side view
+          details: Side profile showing breathable mesh and cushioned midsole
+        - src: https://images.unsplash.com/photo-1528701800489-20be3c1ea3b1?auto=format&fit=crop&w=1200&q=80
+          alt: Sneakers top view
+          details: Top view highlighting laces and padded tongue
+        - src: https://images.unsplash.com/photo-1600269452121-4f2416e55c28?auto=format&fit=crop&w=1200&q=80
+          alt: Sneakers outsole view
+          details: Rubber outsole pattern for traction
+        - src: https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80
+          alt: Sneakers lifestyle shot
+          details: Everyday styling in an urban setting
+  card-6:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-7
+      - imagegallery-8
+  cardheader-10:
+    type: CardHeader
+    props:
+      title: AeroStride Runner
+      subtitle: Men's / Women's • Road & casual
+  textcontent-12:
+    type: TextContent
+    props:
+      text: $129.00
+      size: large-heavy
+  tag-13:
+    type: Tag
+    props:
+      text: In stock
+      icon: check
+      size: md
+      variant: success
+  stack-11:
+    type: Stack
+    props:
+      direction: row
+      gap: m
+      align: center
+      justify: between
+      wrap: true
+    children:
+      - textcontent-12
+      - tag-13
+  separator-14:
+    type: Separator
+    props:
+      orientation: horizontal
+      decorative: true
+  selectitem-18:
+    type: SelectItem
+    props:
+      value: "7"
+      label: US 7
+  selectitem-19:
+    type: SelectItem
+    props:
+      value: "7.5"
+      label: US 7.5
+  selectitem-20:
+    type: SelectItem
+    props:
+      value: "8"
+      label: US 8
+  selectitem-21:
+    type: SelectItem
+    props:
+      value: "8.5"
+      label: US 8.5
+  selectitem-22:
+    type: SelectItem
+    props:
+      value: "9"
+      label: US 9
+  selectitem-23:
+    type: SelectItem
+    props:
+      value: "9.5"
+      label: US 9.5
+  selectitem-24:
+    type: SelectItem
+    props:
+      value: "10"
+      label: US 10
+  selectitem-25:
+    type: SelectItem
+    props:
+      value: "10.5"
+      label: US 10.5
+  selectitem-26:
+    type: SelectItem
+    props:
+      value: "11"
+      label: US 11
+  selectitem-27:
+    type: SelectItem
+    props:
+      value: "12"
+      label: US 12
+  select-17:
+    type: Select
+    props:
+      name: size
+      placeholder: Select your size...
+      rules:
+        - required
+    children:
+      - selectitem-18
+      - selectitem-19
+      - selectitem-20
+      - selectitem-21
+      - selectitem-22
+      - selectitem-23
+      - selectitem-24
+      - selectitem-25
+      - selectitem-26
+      - selectitem-27
+  formcontrol-16:
+    type: FormControl
+    props:
+      label: Size
+    children:
+      - select-17
+  form-15:
+    type: Form
+    props:
+      name: select_size
+    children:
+      - formcontrol-16
+  separator-28:
+    type: Separator
+    props:
+      orientation: horizontal
+      decorative: true
+  textcontent-30:
+    type: TextContent
+    props:
+      text: Color
+      size: small-heavy
+  radioitem-32:
+    type: RadioItem
+    props:
+      label: Black / White
+      description: Classic contrast with white midsole
+      value: black_white
+  radioitem-33:
+    type: RadioItem
+    props:
+      label: Sand / Gum
+      description: Neutral upper with gum outsole
+      value: sand_gum
+  radioitem-34:
+    type: RadioItem
+    props:
+      label: Slate / Neon
+      description: Cool tones with neon accents
+      value: slate_neon
+  radiogroup-31:
+    type: RadioGroup
+    props:
+      name: color
+      defaultValue: black_white
+      rules:
+        - required
+    children:
+      - radioitem-32
+      - radioitem-33
+      - radioitem-34
+  stack-29:
+    type: Stack
+    props:
+      direction: column
+      gap: s
+    children:
+      - textcontent-30
+      - radiogroup-31
+  separator-35:
+    type: Separator
+    props:
+      orientation: horizontal
+      decorative: true
+  button-37:
+    type: Button
+    props:
+      label: Add to Cart
+      action: action:add_to_cart_sneakers
+      variant: primary
+  button-38:
+    type: Button
+    props:
+      label: Save
+      action: action:save_sneakers
+      variant: secondary
+  buttons-36:
+    type: Buttons
+    props:
+      direction: row
+    children:
+      - button-37
+      - button-38
+  textcontent-39:
+    type: TextContent
+    props:
+      text: Free returns within 30 days. Ships in 1–2 business days.
+      size: small
+  card-9:
+    type: Card
+    props:
+      variant: card
+    children:
+      - cardheader-10
+      - stack-11
+      - separator-14
+      - form-15
+      - separator-28
+      - stack-29
+      - separator-35
+      - buttons-36
+      - textcontent-39
+  stack-5:
+    type: Stack
+    props:
+      direction: row
+      gap: l
+      align: start
+      justify: start
+      wrap: true
+    children:
+      - card-6
+      - card-9
+  cardheader-42:
+    type: CardHeader
+    props:
+      title: About this item
+      subtitle: Built for comfort from morning commutes to weekend miles
+  markdownrenderer-43:
+    type: MarkDownRenderer
+    props:
+      textMarkdown: >-
+        The **AeroStride Runner** blends breathable mesh with a supportive heel
+        counter for a secure fit. A responsive foam midsole delivers soft
+        landings and quick transitions, while the durable rubber outsole adds
+        traction on city streets.
+
+
+        **Fit note:** True to size. If you’re between sizes, consider going up
+        0.5.
+      variant: clear
+  tagblock-44:
+    type: TagBlock
+    props:
+      tags:
+        - Breathable mesh upper
+        - Responsive foam cushioning
+        - Rubber traction outsole
+        - Padded collar & tongue
+        - Everyday training
+  card-41:
+    type: Card
+    props:
+      variant: sunk
+    children:
+      - cardheader-42
+      - markdownrenderer-43
+      - tagblock-44
+  cardheader-46:
+    type: CardHeader
+    props:
+      title: Specs
+      subtitle: Materials, weight, and care
+  col-48:
+    type: Col
+    props:
+      label: Detail
+      type: string
+  col-49:
+    type: Col
+    props:
+      label: Value
+      type: string
+  table-47:
+    type: Table
+    props:
+      rows:
+        - - Weight
+          - 9.8 oz (US 9)
+        - - Drop
+          - 8 mm
+        - - Upper
+          - Engineered mesh
+        - - Midsole
+          - EVA-based foam
+        - - Outsole
+          - High-abrasion rubber
+        - - Care
+          - Spot clean; air dry
+    children:
+      - col-48
+      - col-49
+  card-45:
+    type: Card
+    props:
+      variant: sunk
+    children:
+      - cardheader-46
+      - table-47
+  stack-40:
+    type: Stack
+    props:
+      direction: row
+      gap: l
+      align: start
+      justify: start
+      wrap: true
+    children:
+      - card-41
+      - card-45
+  stack-4:
+    type: Stack
+    props:
+      direction: column
+      gap: l
+    children:
+      - stack-5
+      - stack-40
+  stack-1:
+    type: Stack
+    props:
+      direction: column
+      gap: l
+    children:
+      - card-2
+      - stack-4
