@@ -17,10 +17,10 @@ export type { RendererProps } from "./Renderer";
 
 // openui-lang action types
 export { BuiltinActionType } from "./parser/types";
-export type { ActionEvent, ElementNode, ParseResult } from "./parser/types";
+export type { ActionEvent, ElementNode, ParseResult, ValidationError } from "./parser/types";
 
 // openui-lang parser (server-side use)
-export { createParser, createStreamingParser, type LibraryJSONSchema } from "./parser";
+export { createParser, createStreamingParser, generatePrompt, type LibraryJSONSchema } from "./parser";
 
 // openui-lang context hooks (for use inside component renderers)
 export {
