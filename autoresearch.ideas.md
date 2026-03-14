@@ -1,0 +1,3 @@
+- Implement a collision-safe global alias optimizer (e.g., bipartite matching over candidate aliases with token-cost objective) instead of greedy prefix aliases; this should unlock shorter aliases like `TC`, `CH`, `BC` without fidelity regressions.
+- Add token-aware (tiktoken-based) hoist selection that computes exact gain/loss per candidate expression before emitting refs, including interaction effects between nested candidates.
+- Explore schema-level explicit compact aliases (`x-openui-alias`) so libraries can ship stable human-curated short names, and compactor/parser can consume them deterministically.

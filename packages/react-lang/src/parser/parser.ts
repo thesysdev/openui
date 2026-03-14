@@ -749,7 +749,7 @@ function deriveCompactAliases(componentNames: string[]): Map<string, string> {
   const aliases = new Map<string, string>();
   const occupied = new Set(componentNames);
 
-  const sorted = [...componentNames].sort((a, b) => a.length - b.length || a.localeCompare(b));
+  const sorted = [...componentNames].sort((a, b) => b.length - a.length || a.localeCompare(b));
 
   for (const name of sorted) {
     for (let len = 1; len < name.length; len++) {
