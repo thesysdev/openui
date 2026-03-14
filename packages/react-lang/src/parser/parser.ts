@@ -24,9 +24,12 @@ export interface ParamDef {
 }
 
 /**
- * Internal parameter map.
+ * Internal component lookup map.
+ *
+ * Keys include canonical component names and optional compact aliases.
+ * Values always point to the canonical component metadata.
  */
-export type ParamMap = Map<string, { params: ParamDef[] }>;
+export type ParamMap = Map<string, { params: ParamDef[]; canonicalName: string }>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AST node types
@@ -539,6 +542,7 @@ function mapNode(
 
   const { name, args } = node;
   const def = cat?.get(name);
+  const canonicalName = def?.canonicalName ?? name;
   const props: { [k: string]: JsonVal } = {};
 
   if (def) {
@@ -561,7 +565,7 @@ function mapNode(
       if (stillInvalid.length) {
         for (const p of stillInvalid)
           errors.push({
-            component: name,
+            component: canonicalName,
             path: `/${p.name}`,
             message:
               p.name in props
@@ -576,7 +580,7 @@ function mapNode(
     props._args = args.map((a) => toJson(a, partial, errors, cat));
   }
 
-  return { type: "element", typeName: name, props, partial };
+  return { type: "element", typeName: canonicalName, props, partial };
 }
 
 function emptyResult(incomplete = true): ParseResult {
@@ -741,9 +745,31 @@ export interface Parser {
   parse(input: string): ParseResult;
 }
 
+function deriveCompactAliases(componentNames: string[]): Map<string, string> {
+  const aliases = new Map<string, string>();
+  const occupied = new Set(componentNames);
+
+  const sorted = [...componentNames].sort((a, b) => a.length - b.length || a.localeCompare(b));
+
+  for (const name of sorted) {
+    for (let len = 1; len < name.length; len++) {
+      const alias = name.slice(0, len);
+      const startsWithUpper = alias[0] >= "A" && alias[0] <= "Z";
+      if (!startsWithUpper || occupied.has(alias)) continue;
+
+      occupied.add(alias);
+      aliases.set(name, alias);
+      break;
+    }
+  }
+
+  return aliases;
+}
+
 function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const map: ParamMap = new Map();
   const defs = schema.$defs ?? {};
+  const aliases = deriveCompactAliases(Object.keys(defs));
 
   for (const [name, def] of Object.entries(defs)) {
     const properties = def.properties ?? {};
@@ -753,7 +779,14 @@ function compileSchema(schema: LibraryJSONSchema): ParamMap {
       required: required.includes(k),
       defaultValue: (properties[k] as any)?.default,
     }));
-    map.set(name, { params });
+
+    const entry = { params, canonicalName: name };
+    map.set(name, entry);
+
+    const alias = aliases.get(name);
+    if (alias) {
+      map.set(alias, entry);
+    }
   }
 
   return map;
