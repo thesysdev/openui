@@ -20,7 +20,7 @@ export function useStreamingChat(apiUrl: string) {
 
   function sendMessage(
     history: StreamMessage[],
-    onChunk: (accumulated: string, isDone: boolean) => void
+    onChunk: (accumulated: string, isDone: boolean) => void,
   ): Promise<void> {
     xhrRef.current?.abort();
 

@@ -4,11 +4,11 @@
   "scripts": {
     "dev:backend": "pnpm --filter backend dev",
     "dev:mobile": "pnpm --filter react-native-openui start",
-    "generate:prompt": "pnpm --filter backend generate:prompt"
-  },
-  "pnpm": {
-    "overrides": {
-      "react-dom": "19.2.0"
-    }
+    "generate:prompt": "pnpm --filter backend generate:prompt",
+    "lint": "eslint",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./*",
+    "format:check": "prettier --check ./*"
   }
 }

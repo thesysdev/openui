@@ -6,8 +6,8 @@
  * Used only by the @openuidev/cli to generate system-prompt.txt.
  * The backend API route never imports this file at runtime.
  */
-import { defineComponent, createLibrary } from "@openuidev/react-lang";
 import type { PromptOptions } from "@openuidev/react-lang";
+import { createLibrary, defineComponent } from "@openuidev/react-lang";
 import { z } from "zod";
 
 const DataPointSchema = z.object({
@@ -30,34 +30,28 @@ const TextComponent = defineComponent({
 
 const BarChartComponent = defineComponent({
   name: "BarChart",
-  description:
-    "Renders a vertical bar chart for comparing discrete values across categories.",
+  description: "Renders a vertical bar chart for comparing discrete values across categories.",
   props: z.object({
-    data: z
-      .array(DataPointSchema)
-      .describe("Array of { label, value } data points"),
+    data: z.array(DataPointSchema).describe("Array of { label, value } data points"),
     title: z.string().optional().describe("Chart title displayed above the bars"),
     color: z
       .string()
       .optional()
-      .describe("Hex color for bars, e.g. \"#6366f1\". Defaults to indigo."),
+      .describe('Hex color for bars, e.g. "#6366f1". Defaults to indigo.'),
   }),
   component: () => null,
 });
 
 const LineChartComponent = defineComponent({
   name: "LineChart",
-  description:
-    "Renders a line chart to visualise trends across an ordered sequence of values.",
+  description: "Renders a line chart to visualise trends across an ordered sequence of values.",
   props: z.object({
-    data: z
-      .array(DataPointSchema)
-      .describe("Ordered array of { label, value } data points"),
+    data: z.array(DataPointSchema).describe("Ordered array of { label, value } data points"),
     title: z.string().optional().describe("Chart title"),
     color: z
       .string()
       .optional()
-      .describe("Hex color for the line, e.g. \"#10b981\". Defaults to emerald."),
+      .describe('Hex color for the line, e.g. "#10b981". Defaults to emerald.'),
   }),
   component: () => null,
 });
@@ -71,10 +65,7 @@ const PieChartComponent = defineComponent({
         z.object({
           label: z.string().describe("Slice label shown in the legend"),
           value: z.number().describe("Numeric value for this slice"),
-          color: z
-            .string()
-            .optional()
-            .describe("Hex color override for this slice"),
+          color: z.string().optional().describe("Hex color override for this slice"),
         }),
       )
       .describe("Array of { label, value, color? } slices"),
@@ -85,8 +76,7 @@ const PieChartComponent = defineComponent({
 
 const CardComponent = defineComponent({
   name: "Card",
-  description:
-    "A container card that holds a list of child components.",
+  description: "A container card that holds a list of child components.",
   props: z.object({
     children: z
       .array(
@@ -120,7 +110,7 @@ export const promptOptions: PromptOptions = {
   additionalRules: [
     "Always wrap your entire response inside a single root Card.",
     "Use Text components for all textual content.",
-    "Use variant=\"heading\" for the main topic, variant=\"caption\" for secondary info, and the default body variant for regular text.",
+    'Use variant="heading" for the main topic, variant="caption" for secondary info, and the default body variant for regular text.',
     "Use BarChart to compare discrete categories, LineChart for trends over time, and PieChart for part-to-whole proportions.",
     "Always provide meaningful labels for every data point.",
     "Only include a chart when the user's query involves data that genuinely benefits from visualisation.",

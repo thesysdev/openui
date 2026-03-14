@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, SafeAreaView } from "react-native";
+import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 
 type Props = {
   title?: string;
@@ -7,11 +7,7 @@ type Props = {
   hint?: string;
 };
 
-export default function ErrorScreen({
-  title = "Configuration Error",
-  message,
-  hint,
-}: Props) {
+export default function ErrorScreen({ title = "Configuration Error", message, hint }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>

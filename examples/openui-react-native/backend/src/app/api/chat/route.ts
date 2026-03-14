@@ -1,23 +1,19 @@
 import { readFileSync } from "fs";
-import { join } from "path";
-import OpenAI from "openai";
 import { NextRequest } from "next/server";
+import OpenAI from "openai";
+import { join } from "path";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const SYSTEM_PROMPT = readFileSync(
-  join(process.cwd(), "src", "system-prompt.txt"),
-  "utf-8"
-);
+const SYSTEM_PROMPT = readFileSync(join(process.cwd(), "src", "system-prompt.txt"), "utf-8");
 
 export async function POST(req: NextRequest) {
   const { messages } = await req.json();
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-5-mini",
+    model: "gpt-4o",
     stream: true,
     messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-    reasoning_effort: "low",
   });
 
   // Stream raw text chunks — simpler for React Native to consume than SSE

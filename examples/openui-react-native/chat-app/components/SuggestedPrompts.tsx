@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  ScrollView,
-  TouchableOpacity,
-  Text,
-  View,
-  StyleSheet,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface Prompt {
   label: string;
@@ -17,22 +11,22 @@ const PROMPTS: Prompt[] = [
   {
     icon: "📊",
     label: "Top languages 2025",
-    text: "Show me the top 6 programming languages in 2025 by popularity as a bar chart.",
+    text: "Show me the top 6 programming languages in 2025 by popularity.",
   },
   {
     icon: "📈",
     label: "Revenue trend",
-    text: "Show Apple's annual revenue from 2019 to 2024 as a line chart.",
+    text: "Show Apple's annual revenue from 2019 to 2024.",
   },
   {
     icon: "🥧",
     label: "Energy mix",
-    text: "Break down global electricity generation by source (coal, gas, nuclear, hydro, solar, wind) as a pie chart.",
+    text: "Break down global electricity generation by source (coal, gas, nuclear, hydro, solar, wind).",
   },
   {
     icon: "📉",
     label: "Crypto 6-month trend",
-    text: "Show Bitcoin's monthly closing price trend over the last 6 months as a line chart.",
+    text: "Show Bitcoin's monthly closing price trend over the last 6 months.",
   },
   {
     icon: "🏆",
@@ -42,12 +36,12 @@ const PROMPTS: Prompt[] = [
   {
     icon: "🥧",
     label: "Market share",
-    text: "Show the global smartphone OS market share between Android, iOS, and others as a pie chart.",
+    text: "Show the global smartphone OS market share between Android, iOS, and others.",
   },
   {
     icon: "📊",
     label: "Coffee shop sales",
-    text: "Show fictional monthly sales figures for a coffee shop from January to June as a bar chart.",
+    text: "Show fictional monthly sales figures for a coffee shop from January to June.",
   },
   {
     icon: "🌤️",

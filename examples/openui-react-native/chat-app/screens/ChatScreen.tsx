@@ -1,21 +1,12 @@
-import React, { useState, useCallback, useRef } from "react";
-import {
-  FlatList,
-  View,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import {
-  SafeAreaProvider,
-  SafeAreaView,
-} from "react-native-safe-area-context";
-import { useStreamingChat, StreamMessage } from "../hooks/useStreamingChat";
-import { pushStream } from "../store/streamStore";
+import React, { useCallback, useRef, useState } from "react";
+import { FlatList, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { BotBubble } from "../components/BotBubble";
-import { UserBubble } from "../components/UserBubble";
 import { ChatInput } from "../components/ChatInput";
 import { SuggestedPrompts } from "../components/SuggestedPrompts";
+import { UserBubble } from "../components/UserBubble";
+import { StreamMessage, useStreamingChat } from "../hooks/useStreamingChat";
+import { pushStream } from "../store/streamStore";
 
 // ─── Message types ────────────────────────────────────────────────────────────
 
@@ -42,10 +33,7 @@ export default function ChatScreen({ backendUrl }: Props) {
       setMessages((prev) => [{ id: uid(), type: "user", text }, ...prev]);
 
       // 2. Conversation history
-      const newHistory: StreamMessage[] = [
-        ...historyRef.current,
-        { role: "user", content: text },
-      ];
+      const newHistory: StreamMessage[] = [...historyRef.current, { role: "user", content: text }];
       historyRef.current = newHistory;
 
       // 3. Bot placeholder — content lives in the stream store, not here
@@ -59,14 +47,11 @@ export default function ChatScreen({ backendUrl }: Props) {
         pushStream(botId, { openui: accumulated, isStreaming: !isDone });
         if (isDone) {
           setIsStreaming(false);
-          historyRef.current = [
-            ...newHistory,
-            { role: "assistant", content: accumulated },
-          ];
+          historyRef.current = [...newHistory, { role: "assistant", content: accumulated }];
         }
       });
     },
-    [sendMessage]
+    [sendMessage],
   );
 
   const renderItem = useCallback(({ item }: { item: ChatMessage }) => {
@@ -92,9 +77,7 @@ export default function ChatScreen({ backendUrl }: Props) {
             contentContainerStyle={styles.list}
             keyboardShouldPersistTaps="handled"
           />
-          {messages.length === 0 && (
-            <SuggestedPrompts onSelect={handleSend} />
-          )}
+          <SuggestedPrompts onSelect={handleSend} />
           <ChatInput onSend={handleSend} disabled={isStreaming} />
         </KeyboardAvoidingView>
       </SafeAreaView>
