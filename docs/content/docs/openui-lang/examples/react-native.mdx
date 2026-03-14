@@ -1,0 +1,196 @@
+---
+title: React Native
+description: Stream OpenUI Lang to a React Native (Expo) app using a Next.js backend.
+---
+
+A full-stack example that streams [OpenUI Lang](/docs/openui-lang/overview) into an Expo app using a Next.js backend, then renders it as native React Native UI with `<Renderer />` from `@openuidev/react-lang`.
+
+[View source on GitHub →](https://github.com/thesysdev/crayon/tree/main/examples/openui-react-native)
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl p-2">
+  <video
+    src="/videos/react-native-demo.mp4"
+    noControls
+    playsInline
+    muted
+    preload="metadata"
+    className="h-[600px] rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+The example includes two modules:
+
+- `backend`: a Next.js backend that calls OpenAI and streams raw OpenUI Lang
+- `chat-app`: an Expo app that progressively parses that stream and renders native components
+
+## Architecture
+
+```
+Expo app -- POST /api/chat --> Next.js backend --> OpenAI
+         <-- text/plain stream --                  (OpenUI Lang)
+```
+
+The backend loads a pre-generated `system-prompt.txt`, forwards the conversation to OpenAI with streaming enabled, and returns raw `text/plain` chunks. The mobile app accumulates those chunks and passes the growing string into `<Renderer />`, which progressively parses and renders native UI as the response arrives.
+
+Using plain text keeps the transport simple. React Native does not expose the same browser streaming primitives you would normally use with `fetch()` plus `ReadableStream` or `EventSource`, so this example uses `XMLHttpRequest` and `onprogress` instead.
+
+## Project layout
+
+```
+examples/openui-react-native/
+|- backend/    # Next.js API that talks to OpenAI
+\- chat-app/   # Expo app that renders streamed OpenUI Lang
+```
+
+## Run the example
+
+Run these commands from `examples/openui-react-native`.
+
+1. Install dependencies:
+
+```bash
+cd examples/openui-react-native
+pnpm install
+```
+
+2. Configure the backend:
+
+```bash
+cp backend/env.example backend/.env.local
+```
+
+Then add your OpenAI key to `backend/.env.local`:
+
+```bash
+OPENAI_API_KEY=sk-...
+```
+
+3. Generate the prompt file used by the backend:
+
+```bash
+pnpm generate:prompt
+```
+
+This generates `backend/src/system-prompt.txt` from `backend/src/library.ts`. Re-run it any time you change the component names, schemas, descriptions, or prompt rules.
+
+4. Start the Next.js backend:
+
+```bash
+pnpm dev:backend
+```
+
+5. Start the Expo app in a second terminal:
+
+```bash
+pnpm dev:mobile
+```
+
+By default, `chat-app/metro.config.js` auto-detects your local IP address and sets `EXPO_PUBLIC_BACKEND_URL` to `http://<your-ip>:3000/api/chat`. If you need to point the app somewhere else, set `EXPO_PUBLIC_BACKEND_URL` yourself before starting Expo.
+
+If you are testing on a physical device, make sure the phone and your development machine are on the same network.
+
+## What to expect
+
+Open the Expo app and try one of the built-in prompt chips such as:
+
+- "Top languages 2025"
+- "Revenue trend"
+- "Energy mix"
+
+The assistant response should appear progressively. Instead of rendering markdown, the app parses the streamed OpenUI Lang and turns it into native `Text`, `BarChart`, `LineChart`, `PieChart`, and `Card` components.
+
+## Request and render flow
+
+1. The user sends a message from `chat-app/screens/ChatScreen.tsx`.
+2. `chat-app/hooks/useStreamingChat.ts` posts the chat history to the backend with `XMLHttpRequest`.
+3. `backend/src/app/api/chat/route.ts` forwards that history to OpenAI using the generated `system-prompt.txt`.
+4. The backend streams raw OpenUI Lang text back to the phone.
+5. `chat-app/store/streamStore.ts` keeps the accumulated response outside the main message list state.
+6. `chat-app/components/BotBubble.tsx` subscribes to that stream and renders it with `<Renderer />`.
+
+This separation is important: the message list only stores chat items, while the streamed OpenUI Lang lives in a dedicated store so each bot bubble can update independently.
+
+## Key files
+
+### `chat-app/library.tsx` - React Native renderers
+
+Defines the React Native component library. It includes real renderers for `Text`, `BarChart`, `LineChart`, `PieChart`, and `Card`, using `react-native-svg` for the chart components.
+
+This file must stay in sync with `backend/src/library.ts`: same component names, same prop schemas, same root component.
+
+```tsx
+export const library = createLibrary({
+  components: [
+    TextComponent,
+    BarChartComponent,
+    LineChartComponent,
+    PieChartComponent,
+    CardComponent,
+  ],
+  root: "Card",
+});
+```
+
+The mobile version contains the real React Native renderers. It is the code that actually turns parsed OpenUI Lang nodes into UI on screen.
+
+See [Defining Components](/docs/openui-lang/defining-components) for the full `defineComponent` API and [The Renderer](/docs/openui-lang/renderer) for how the library is used at runtime.
+
+### `chat-app/hooks/useStreamingChat.ts` - progressive streaming via XHR
+
+React Native's `fetch()` does not expose `response.body` as a `ReadableStream`, so the hook uses `XMLHttpRequest` instead. `onprogress` fires repeatedly as chunks arrive:
+
+```ts
+xhr.onprogress = () => {
+  const newData = xhr.responseText.slice(lastLength);
+  lastLength = xhr.responseText.length;
+  accumulated += newData;
+  onChunk(accumulated, false);
+};
+```
+
+Each callback receives the full accumulated OpenUI Lang string so far, which makes it easy to hand the entire in-progress document to `<Renderer />`. This is the main React Native-specific detail in the example.
+
+### `chat-app/components/BotBubble.tsx` - rendering the in-progress response
+
+Each bot message reads from its own entry in `streamStore` and passes the accumulated OpenUI Lang into `<Renderer />`:
+
+```tsx
+const content = useStreamContent(messageId);
+const openui = content?.openui ?? "";
+const isStreaming = content?.isStreaming ?? true;
+
+<Renderer response={openui} library={library} isStreaming={isStreaming} />
+```
+
+Keeping streamed content in a separate store means each bubble can update independently instead of forcing the entire message list to re-render on every chunk.
+
+See [The Renderer](/docs/openui-lang/renderer) for the full `<Renderer />` API.
+
+### `backend/src/library.ts` - Node-compatible prompt source
+
+This file mirrors the mobile library, but every `component` returns `null`. That lets the OpenUI CLI inspect the component definitions in a Node environment and generate `system-prompt.txt` without importing React Native.
+
+Run `pnpm generate:prompt` any time you change:
+
+- component names
+- prop schemas
+- descriptions
+- prompt rules or examples
+
+See [System Prompts](/docs/openui-lang/system-prompts) for how prompt generation works.
+
+### `backend/src/app/api/chat/route.ts` - raw text streaming endpoint
+
+The backend route reads `system-prompt.txt`, calls OpenAI with `stream: true`, and writes each `delta.content` chunk into a `ReadableStream` response:
+
+```ts
+for await (const chunk of completion) {
+  const text = chunk.choices[0]?.delta?.content ?? "";
+  if (text) {
+    controller.enqueue(new TextEncoder().encode(text));
+  }
+}
+```
+
+The response uses `Content-Type: text/plain; charset=utf-8` and permissive CORS headers so the Expo app can call it during development.
