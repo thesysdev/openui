@@ -12,6 +12,8 @@
     "interactivity",
     "---Advanced---",
     "specification",
-    "benchmarks"
+    "benchmarks",
+    "---Examples---",
+    "examples/react-native"
   ]
 }

@@ -2,6 +2,16 @@
 
 A full-stack example that demonstrates using `@openuidev/react-lang` in a React Native (Expo) app with a Next.js API backend. The LLM streams responses in [OpenUI Lang](https://www.openui.com/docs/openui-lang/overview) and the mobile client renders them as native components in real time.
 
+<video src="../../docs/public/videos/react-native-demo.mp4" 
+    noControls
+    playsInline
+    muted
+    preload="metadata"
+    className="h-[600px] rounded-lg m-auto"
+    autoPlay
+    loop
+/>
+
 ## Architecture
 
 ```
