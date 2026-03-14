@@ -25,10 +25,7 @@
                       "name": "name",
                       "placeholder": "Your full name",
                       "type": "text",
-                      "rules": [
-                        "required",
-                        "minLength:2"
-                      ]
+                      "rules": ["required", "minLength:2"]
                     }
                   }
                 }
@@ -43,10 +40,7 @@
                       "name": "email",
                       "placeholder": "you@example.com",
                       "type": "email",
-                      "rules": [
-                        "required",
-                        "email"
-                      ]
+                      "rules": ["required", "email"]
                     }
                   }
                 }
@@ -61,11 +55,7 @@
                       "name": "phone",
                       "placeholder": "e.g., +1 555 123 4567",
                       "type": "text",
-                      "rules": [
-                        "required",
-                        "minLength:7",
-                        "maxLength:20"
-                      ]
+                      "rules": ["required", "minLength:7", "maxLength:20"]
                     }
                   }
                 }
@@ -116,9 +106,7 @@
                         }
                       ],
                       "placeholder": "Select a subject...",
-                      "rules": [
-                        "required"
-                      ]
+                      "rules": ["required"]
                     }
                   }
                 }
@@ -133,10 +121,7 @@
                       "name": "message",
                       "placeholder": "How can we help?",
                       "rows": 6,
-                      "rules": [
-                        "required",
-                        "minLength:10"
-                      ]
+                      "rules": ["required", "minLength:10"]
                     }
                   }
                 }

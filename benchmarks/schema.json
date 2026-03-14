@@ -312,59 +312,29 @@
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "card",
-            "sunk",
-            "clear"
-          ]
+          "enum": ["card", "sunk", "clear"]
         },
         "direction": {
           "type": "string",
-          "enum": [
-            "row",
-            "column"
-          ]
+          "enum": ["row", "column"]
         },
         "gap": {
           "type": "string",
-          "enum": [
-            "none",
-            "xs",
-            "s",
-            "m",
-            "l",
-            "xl",
-            "2xl"
-          ]
+          "enum": ["none", "xs", "s", "m", "l", "xl", "2xl"]
         },
         "align": {
           "type": "string",
-          "enum": [
-            "start",
-            "center",
-            "end",
-            "stretch",
-            "baseline"
-          ]
+          "enum": ["start", "center", "end", "stretch", "baseline"]
         },
         "justify": {
           "type": "string",
-          "enum": [
-            "start",
-            "center",
-            "end",
-            "between",
-            "around",
-            "evenly"
-          ]
+          "enum": ["start", "center", "end", "between", "around", "evenly"]
         },
         "wrap": {
           "type": "boolean"
         }
       },
-      "required": [
-        "children"
-      ],
+      "required": ["children"],
       "additionalProperties": false,
       "id": "Card"
     },
@@ -376,18 +346,10 @@
         },
         "size": {
           "type": "string",
-          "enum": [
-            "small",
-            "default",
-            "large",
-            "small-heavy",
-            "large-heavy"
-          ]
+          "enum": ["small", "default", "large", "small-heavy", "large-heavy"]
         }
       },
-      "required": [
-        "text"
-      ],
+      "required": ["text"],
       "additionalProperties": false,
       "id": "TextContent"
     },
@@ -399,16 +361,10 @@
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "clear",
-            "card",
-            "sunk"
-          ]
+          "enum": ["clear", "card", "sunk"]
         }
       },
-      "required": [
-        "textMarkdown"
-      ],
+      "required": ["textMarkdown"],
       "additionalProperties": false,
       "id": "MarkDownRenderer"
     },
@@ -430,13 +386,7 @@
       "properties": {
         "variant": {
           "type": "string",
-          "enum": [
-            "info",
-            "warning",
-            "error",
-            "success",
-            "neutral"
-          ]
+          "enum": ["info", "warning", "error", "success", "neutral"]
         },
         "title": {
           "type": "string"
@@ -445,11 +395,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "variant",
-        "title",
-        "description"
-      ],
+      "required": ["variant", "title", "description"],
       "additionalProperties": false,
       "id": "Callout"
     },
@@ -458,13 +404,7 @@
       "properties": {
         "variant": {
           "type": "string",
-          "enum": [
-            "neutral",
-            "info",
-            "warning",
-            "success",
-            "danger"
-          ]
+          "enum": ["neutral", "info", "warning", "success", "danger"]
         },
         "title": {
           "type": "string"
@@ -486,10 +426,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "language",
-        "codeString"
-      ],
+      "required": ["language", "codeString"],
       "additionalProperties": false,
       "id": "CodeBlock"
     },
@@ -503,9 +440,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "alt"
-      ],
+      "required": ["alt"],
       "additionalProperties": false,
       "id": "Image"
     },
@@ -519,9 +454,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "src"
-      ],
+      "required": ["src"],
       "additionalProperties": false,
       "id": "ImageBlock"
     },
@@ -543,16 +476,12 @@
                 "type": "string"
               }
             },
-            "required": [
-              "src"
-            ],
+            "required": ["src"],
             "additionalProperties": false
           }
         }
       },
-      "required": [
-        "images"
-      ],
+      "required": ["images"],
       "additionalProperties": false,
       "id": "ImageGallery"
     },
@@ -561,10 +490,7 @@
       "properties": {
         "orientation": {
           "type": "string",
-          "enum": [
-            "horizontal",
-            "vertical"
-          ]
+          "enum": ["horizontal", "vertical"]
         },
         "decorative": {
           "type": "boolean"
@@ -590,10 +516,7 @@
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "grouped",
-            "stacked"
-          ]
+          "enum": ["grouped", "stacked"]
         },
         "xLabel": {
           "type": "string"
@@ -602,10 +525,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "labels",
-        "series"
-      ],
+      "required": ["labels", "series"],
       "additionalProperties": false,
       "id": "HorizontalBarChart"
     },
@@ -622,10 +542,7 @@
           }
         }
       },
-      "required": [
-        "category",
-        "values"
-      ],
+      "required": ["category", "values"],
       "additionalProperties": false,
       "id": "Series"
     },
@@ -645,10 +562,7 @@
           }
         }
       },
-      "required": [
-        "labels",
-        "series"
-      ],
+      "required": ["labels", "series"],
       "additionalProperties": false,
       "id": "RadarChart"
     },
@@ -663,15 +577,10 @@
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "pie",
-            "donut"
-          ]
+          "enum": ["pie", "donut"]
         }
       },
-      "required": [
-        "slices"
-      ],
+      "required": ["slices"],
       "additionalProperties": false,
       "id": "PieChart"
     },
@@ -685,10 +594,7 @@
           "type": "number"
         }
       },
-      "required": [
-        "category",
-        "value"
-      ],
+      "required": ["category", "value"],
       "additionalProperties": false,
       "id": "Slice"
     },
@@ -702,9 +608,7 @@
           }
         }
       },
-      "required": [
-        "slices"
-      ],
+      "required": ["slices"],
       "additionalProperties": false,
       "id": "RadialChart"
     },
@@ -718,9 +622,7 @@
           }
         }
       },
-      "required": [
-        "slices"
-      ],
+      "required": ["slices"],
       "additionalProperties": false,
       "id": "SingleStackedBarChart"
     },
@@ -740,9 +642,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "datasets"
-      ],
+      "required": ["datasets"],
       "additionalProperties": false,
       "id": "ScatterChart"
     },
@@ -759,10 +659,7 @@
           }
         }
       },
-      "required": [
-        "name",
-        "points"
-      ],
+      "required": ["name", "points"],
       "additionalProperties": false,
       "id": "ScatterSeries"
     },
@@ -779,10 +676,7 @@
           "type": "number"
         }
       },
-      "required": [
-        "x",
-        "y"
-      ],
+      "required": ["x", "y"],
       "additionalProperties": false,
       "id": "Point"
     },
@@ -803,11 +697,7 @@
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "linear",
-            "natural",
-            "step"
-          ]
+          "enum": ["linear", "natural", "step"]
         },
         "xLabel": {
           "type": "string"
@@ -816,10 +706,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "labels",
-        "series"
-      ],
+      "required": ["labels", "series"],
       "additionalProperties": false,
       "id": "AreaChart"
     },
@@ -840,10 +727,7 @@
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "grouped",
-            "stacked"
-          ]
+          "enum": ["grouped", "stacked"]
         },
         "xLabel": {
           "type": "string"
@@ -852,10 +736,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "labels",
-        "series"
-      ],
+      "required": ["labels", "series"],
       "additionalProperties": false,
       "id": "BarChart"
     },
@@ -876,11 +757,7 @@
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "linear",
-            "natural",
-            "step"
-          ]
+          "enum": ["linear", "natural", "step"]
         },
         "xLabel": {
           "type": "string"
@@ -889,10 +766,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "labels",
-        "series"
-      ],
+      "required": ["labels", "series"],
       "additionalProperties": false,
       "id": "LineChart"
     },
@@ -925,10 +799,7 @@
           }
         }
       },
-      "required": [
-        "columns",
-        "rows"
-      ],
+      "required": ["columns", "rows"],
       "additionalProperties": false,
       "id": "Table"
     },
@@ -940,16 +811,10 @@
         },
         "type": {
           "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "action"
-          ]
+          "enum": ["string", "number", "action"]
         }
       },
-      "required": [
-        "label"
-      ],
+      "required": ["label"],
       "additionalProperties": false,
       "id": "Col"
     },
@@ -963,9 +828,7 @@
           }
         }
       },
-      "required": [
-        "tags"
-      ],
+      "required": ["tags"],
       "additionalProperties": false,
       "id": "TagBlock"
     },
@@ -985,10 +848,7 @@
           "$ref": "#/$defs/Buttons"
         }
       },
-      "required": [
-        "name",
-        "fields"
-      ],
+      "required": ["name", "fields"],
       "additionalProperties": false,
       "id": "Form"
     },
@@ -1027,10 +887,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "label",
-        "input"
-      ],
+      "required": ["label", "input"],
       "additionalProperties": false,
       "id": "FormControl"
     },
@@ -1045,13 +902,7 @@
         },
         "type": {
           "type": "string",
-          "enum": [
-            "text",
-            "email",
-            "password",
-            "number",
-            "url"
-          ]
+          "enum": ["text", "email", "password", "number", "url"]
         },
         "rules": {
           "type": "array",
@@ -1060,9 +911,7 @@
           }
         }
       },
-      "required": [
-        "name"
-      ],
+      "required": ["name"],
       "additionalProperties": false,
       "id": "Input"
     },
@@ -1085,9 +934,7 @@
           }
         }
       },
-      "required": [
-        "name"
-      ],
+      "required": ["name"],
       "additionalProperties": false,
       "id": "TextArea"
     },
@@ -1113,10 +960,7 @@
           }
         }
       },
-      "required": [
-        "name",
-        "items"
-      ],
+      "required": ["name", "items"],
       "additionalProperties": false,
       "id": "Select"
     },
@@ -1130,10 +974,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "value",
-        "label"
-      ],
+      "required": ["value", "label"],
       "additionalProperties": false,
       "id": "SelectItem"
     },
@@ -1145,10 +986,7 @@
         },
         "mode": {
           "type": "string",
-          "enum": [
-            "single",
-            "range"
-          ]
+          "enum": ["single", "range"]
         },
         "rules": {
           "type": "array",
@@ -1157,10 +995,7 @@
           }
         }
       },
-      "required": [
-        "name",
-        "mode"
-      ],
+      "required": ["name", "mode"],
       "additionalProperties": false,
       "id": "DatePicker"
     },
@@ -1172,10 +1007,7 @@
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "continuous",
-            "discrete"
-          ]
+          "enum": ["continuous", "discrete"]
         },
         "min": {
           "type": "number"
@@ -1196,12 +1028,7 @@
           }
         }
       },
-      "required": [
-        "name",
-        "variant",
-        "min",
-        "max"
-      ],
+      "required": ["name", "variant", "min", "max"],
       "additionalProperties": false,
       "id": "Slider"
     },
@@ -1224,10 +1051,7 @@
           }
         }
       },
-      "required": [
-        "name",
-        "items"
-      ],
+      "required": ["name", "items"],
       "additionalProperties": false,
       "id": "CheckBoxGroup"
     },
@@ -1247,11 +1071,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "label",
-        "description",
-        "name"
-      ],
+      "required": ["label", "description", "name"],
       "additionalProperties": false,
       "id": "CheckBoxItem"
     },
@@ -1277,10 +1097,7 @@
           }
         }
       },
-      "required": [
-        "name",
-        "items"
-      ],
+      "required": ["name", "items"],
       "additionalProperties": false,
       "id": "RadioGroup"
     },
@@ -1297,11 +1114,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "label",
-        "description",
-        "value"
-      ],
+      "required": ["label", "description", "value"],
       "additionalProperties": false,
       "id": "RadioItem"
     },
@@ -1316,15 +1129,10 @@
         },
         "direction": {
           "type": "string",
-          "enum": [
-            "row",
-            "column"
-          ]
+          "enum": ["row", "column"]
         }
       },
-      "required": [
-        "buttons"
-      ],
+      "required": ["buttons"],
       "additionalProperties": false,
       "id": "Buttons"
     },
@@ -1339,33 +1147,18 @@
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "primary",
-            "secondary",
-            "tertiary"
-          ]
+          "enum": ["primary", "secondary", "tertiary"]
         },
         "type": {
           "type": "string",
-          "enum": [
-            "normal",
-            "destructive"
-          ]
+          "enum": ["normal", "destructive"]
         },
         "size": {
           "type": "string",
-          "enum": [
-            "extra-small",
-            "small",
-            "medium",
-            "large"
-          ]
+          "enum": ["extra-small", "small", "medium", "large"]
         }
       },
-      "required": [
-        "label",
-        "action"
-      ],
+      "required": ["label", "action"],
       "additionalProperties": false,
       "id": "Button"
     },
@@ -1379,9 +1172,7 @@
           }
         }
       },
-      "required": [
-        "items"
-      ],
+      "required": ["items"],
       "additionalProperties": false,
       "id": "Steps"
     },
@@ -1395,10 +1186,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "title",
-        "details"
-      ],
+      "required": ["title", "details"],
       "additionalProperties": false,
       "id": "StepsItem"
     },
@@ -1412,9 +1200,7 @@
           }
         }
       },
-      "required": [
-        "items"
-      ],
+      "required": ["items"],
       "additionalProperties": false,
       "id": "Tabs"
     },
@@ -1507,11 +1293,7 @@
           }
         }
       },
-      "required": [
-        "value",
-        "trigger",
-        "content"
-      ],
+      "required": ["value", "trigger", "content"],
       "additionalProperties": false,
       "id": "TabItem"
     },
@@ -1526,15 +1308,10 @@
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "card",
-            "sunk"
-          ]
+          "enum": ["card", "sunk"]
         }
       },
-      "required": [
-        "children"
-      ],
+      "required": ["children"],
       "additionalProperties": false,
       "id": "Carousel"
     },
@@ -1547,51 +1324,25 @@
         },
         "direction": {
           "type": "string",
-          "enum": [
-            "row",
-            "column"
-          ]
+          "enum": ["row", "column"]
         },
         "gap": {
           "type": "string",
-          "enum": [
-            "none",
-            "xs",
-            "s",
-            "m",
-            "l",
-            "xl",
-            "2xl"
-          ]
+          "enum": ["none", "xs", "s", "m", "l", "xl", "2xl"]
         },
         "align": {
           "type": "string",
-          "enum": [
-            "start",
-            "center",
-            "end",
-            "stretch",
-            "baseline"
-          ]
+          "enum": ["start", "center", "end", "stretch", "baseline"]
         },
         "justify": {
           "type": "string",
-          "enum": [
-            "start",
-            "center",
-            "end",
-            "between",
-            "around",
-            "evenly"
-          ]
+          "enum": ["start", "center", "end", "between", "around", "evenly"]
         },
         "wrap": {
           "type": "boolean"
         }
       },
-      "required": [
-        "children"
-      ],
+      "required": ["children"],
       "additionalProperties": false,
       "id": "Stack"
     },
@@ -1602,9 +1353,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "text"
-      ],
+      "required": ["text"],
       "additionalProperties": false,
       "id": "Label"
     },
@@ -1619,16 +1368,10 @@
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "clear",
-            "card",
-            "sunk"
-          ]
+          "enum": ["clear", "card", "sunk"]
         }
       },
-      "required": [
-        "items"
-      ],
+      "required": ["items"],
       "additionalProperties": false,
       "id": "SwitchGroup"
     },
@@ -1670,9 +1413,7 @@
           }
         }
       },
-      "required": [
-        "items"
-      ],
+      "required": ["items"],
       "additionalProperties": false,
       "id": "Accordion"
     },
@@ -1765,11 +1506,7 @@
           }
         }
       },
-      "required": [
-        "value",
-        "trigger",
-        "content"
-      ],
+      "required": ["value", "trigger", "content"],
       "additionalProperties": false,
       "id": "AccordionItem"
     },
@@ -1784,26 +1521,14 @@
         },
         "size": {
           "type": "string",
-          "enum": [
-            "sm",
-            "md",
-            "lg"
-          ]
+          "enum": ["sm", "md", "lg"]
         },
         "variant": {
           "type": "string",
-          "enum": [
-            "neutral",
-            "info",
-            "success",
-            "warning",
-            "danger"
-          ]
+          "enum": ["neutral", "info", "success", "warning", "danger"]
         }
       },
-      "required": [
-        "text"
-      ],
+      "required": ["text"],
       "additionalProperties": false,
       "id": "Tag"
     }
