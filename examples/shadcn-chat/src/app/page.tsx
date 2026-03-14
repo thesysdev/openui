@@ -1,33 +1,16 @@
 "use client";
 import "@openuidev/react-ui/components.css";
 
+import { useSystemTheme } from "@/hooks/use-system-theme";
 import { shadcnChatLibrary } from "@/lib/shadcn-genui";
 import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { useState } from "react";
 
 export default function Page() {
-  const [mode, setMode] = useState<"light" | "dark">("light");
+  const mode = useSystemTheme();
+
   return (
     <div className={`h-screen w-screen overflow-hidden relative ${mode === "dark" ? "dark" : ""}`}>
-      <nav
-        style={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          zIndex: 50,
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-        }}
-      >
-        <button
-          onClick={() => setMode((m) => (m === "light" ? "dark" : "light"))}
-          className="text-sm px-3 py-1.5 rounded-md border border-border bg-background text-foreground hover:bg-accent transition-colors backdrop-blur-sm"
-        >
-          {mode === "light" ? "Switch to Dark" : "Switch to Light"}
-        </button>
-      </nav>
       <FullScreen
         processMessage={async ({ messages, abortController }) => {
           return fetch("/api/chat", {
