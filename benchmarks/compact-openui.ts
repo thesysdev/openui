@@ -6,7 +6,16 @@ type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]:
 interface SerializeConfig {
   propOrder: Map<string, string[]>;
   aliasByCanonical: Map<string, string>;
+  hoistedRefByCanonical: Map<string, string>;
 }
+
+interface CanonStat {
+  count: number;
+  sample: unknown;
+  size: number;
+}
+
+const HOIST_MIN_SIZE = 32;
 
 function deriveCompactAliases(componentNames: string[]): Map<string, string> {
   const aliases = new Map<string, string>();
@@ -39,6 +48,7 @@ function createSerializeConfig(schema: LibraryJSONSchema): SerializeConfig {
   return {
     propOrder,
     aliasByCanonical: deriveCompactAliases(Object.keys(defs)),
+    hoistedRefByCanonical: new Map(),
   };
 }
 
@@ -46,24 +56,94 @@ function isElementNode(value: unknown): value is ElementNode {
   return !!value && typeof value === "object" && (value as ElementNode).type === "element";
 }
 
-function serializeObject(value: { [k: string]: JsonValue }, cfg: SerializeConfig): string {
-  return `{${Object.entries(value)
-    .map(([k, v]) => `${JSON.stringify(k)}:${serializeValue(v, cfg)}`)
-    .join(",")}}`;
+function isHoistable(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (Array.isArray(value)) return true;
+  if (isElementNode(value)) return true;
+  return typeof value === "object";
 }
 
-function serializeValue(value: unknown, cfg: SerializeConfig): string {
+function canonicalize(value: unknown): string {
   if (value === null || value === undefined) return "null";
   if (typeof value === "string") return JSON.stringify(value);
   if (typeof value === "number") return Number.isFinite(value) ? String(value) : "null";
   if (typeof value === "boolean") return value ? "true" : "false";
-  if (Array.isArray(value)) return `[${value.map(v => serializeValue(v, cfg)).join(",")}]`;
-  if (isElementNode(value)) return serializeElement(value, cfg);
-  if (typeof value === "object") return serializeObject(value as { [k: string]: JsonValue }, cfg);
+  if (Array.isArray(value)) return `[${value.map(canonicalize).join(",")}]`;
+  if (isElementNode(value)) {
+    const entries = Object.entries(value.props ?? {}).map(([k, v]) => `${k}:${canonicalize(v)}`);
+    return `@${value.typeName}(${entries.join(",")})`;
+  }
+  if (typeof value === "object") {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .map(([k, v]) => `${JSON.stringify(k)}:${canonicalize(v)}`)
+      .join(",")}}`;
+  }
   return "null";
 }
 
-function serializeElement(node: ElementNode, cfg: SerializeConfig): string {
+function collectHoistStats(value: unknown, stats: Map<string, CanonStat>): void {
+  if (!isHoistable(value)) return;
+
+  const canon = canonicalize(value);
+  const prev = stats.get(canon);
+  if (prev) {
+    prev.count += 1;
+  } else {
+    stats.set(canon, { count: 1, sample: value, size: canon.length });
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) collectHoistStats(item, stats);
+    return;
+  }
+
+  if (isElementNode(value)) {
+    for (const propValue of Object.values(value.props ?? {})) collectHoistStats(propValue, stats);
+    return;
+  }
+
+  for (const v of Object.values(value as Record<string, unknown>)) collectHoistStats(v, stats);
+}
+
+function* refNames(): Generator<string> {
+  const chars = "abcdefghijklmnopqrstuvwxyz";
+  let index = 0;
+  while (true) {
+    let n = index;
+    let out = "";
+    do {
+      out = chars[n % 26] + out;
+      n = Math.floor(n / 26) - 1;
+    } while (n >= 0);
+    index++;
+    yield out;
+  }
+}
+
+function selectHoists(root: ElementNode): { canonical: string; ref: string; sample: unknown }[] {
+  const stats = new Map<string, CanonStat>();
+  collectHoistStats(root, stats);
+
+  const candidates = [...stats.entries()]
+    .filter(([, s]) => s.count > 1 && s.size >= HOIST_MIN_SIZE)
+    .map(([canonical, s]) => ({ canonical, sample: s.sample, score: s.count * s.size, size: s.size }))
+    .sort((a, b) => b.score - a.score || b.size - a.size || a.canonical.localeCompare(b.canonical));
+
+  const refs = refNames();
+  return candidates.map(c => ({ canonical: c.canonical, ref: refs.next().value!, sample: c.sample }));
+}
+
+function serializeObject(
+  value: { [k: string]: JsonValue },
+  cfg: SerializeConfig,
+  hoistsEnabled: boolean,
+): string {
+  return `{${Object.entries(value)
+    .map(([k, v]) => `${JSON.stringify(k)}:${serializeValue(v, cfg, hoistsEnabled)}`)
+    .join(",")}}`;
+}
+
+function serializeElement(node: ElementNode, cfg: SerializeConfig, hoistsEnabled: boolean): string {
   const props = node.props ?? {};
   const order = cfg.propOrder.get(node.typeName) ?? Object.keys(props);
 
@@ -81,7 +161,7 @@ function serializeElement(node: ElementNode, cfg: SerializeConfig): string {
   for (let i = 0; i <= lastPresentIndex; i++) {
     const key = order[i];
     if (Object.prototype.hasOwnProperty.call(props, key)) {
-      args.push(serializeValue(props[key], cfg));
+      args.push(serializeValue(props[key], cfg, hoistsEnabled));
     } else {
       // Keep positional alignment for later arguments.
       args.push("null");
@@ -91,7 +171,35 @@ function serializeElement(node: ElementNode, cfg: SerializeConfig): string {
   return `${emittedType}(${args.join(",")})`;
 }
 
+function serializeValue(value: unknown, cfg: SerializeConfig, hoistsEnabled: boolean): string {
+  if (hoistsEnabled && isHoistable(value)) {
+    const ref = cfg.hoistedRefByCanonical.get(canonicalize(value));
+    if (ref) return ref;
+  }
+
+  if (value === null || value === undefined) return "null";
+  if (typeof value === "string") return JSON.stringify(value);
+  if (typeof value === "number") return Number.isFinite(value) ? String(value) : "null";
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (Array.isArray(value)) return `[${value.map(v => serializeValue(v, cfg, hoistsEnabled)).join(",")}]`;
+  if (isElementNode(value)) return serializeElement(value, cfg, hoistsEnabled);
+  if (typeof value === "object")
+    return serializeObject(value as { [k: string]: JsonValue }, cfg, hoistsEnabled);
+  return "null";
+}
+
 export function toCompactOpenUI(root: ElementNode, schema: LibraryJSONSchema): string {
   const cfg = createSerializeConfig(schema);
-  return `root=${serializeElement(root, cfg)}\n`;
+  const hoists = selectHoists(root);
+  for (const h of hoists) cfg.hoistedRefByCanonical.set(h.canonical, h.ref);
+
+  const lines: string[] = [];
+  lines.push(`root=${serializeElement(root, cfg, true)}`);
+
+  // Definitions are emitted without hoist replacement to avoid accidental self-reference cycles.
+  for (const h of hoists) {
+    lines.push(`${h.ref}=${serializeValue(h.sample, cfg, false)}`);
+  }
+
+  return `${lines.join("\n")}\n`;
 }
