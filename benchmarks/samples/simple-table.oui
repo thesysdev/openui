@@ -1,5 +1,1 @@
-root = Stack([title, tbl])
-title = TextContent("Employees (Sample)", "large-heavy")
-tbl = Table(cols, rows)
-cols = [Col("Name", "string"), Col("Department", "string"), Col("Salary", "number"), Col("YoY change (%)", "number")]
-rows = [["Ava Patel", "Engineering", 132000, 6.5], ["Marcus Lee", "Sales", 98000, 4.2], ["Sofia Ramirez", "Marketing", 105000, 3.1], ["Ethan Brooks", "Finance", 118500, 5.0], ["Nina Chen", "HR", 89000, 2.4]]
+root=Stack([TextContent("Employees (Sample)","large-heavy"),Table([Col("Name","string"),Col("Department","string"),Col("Salary","number"),Col("YoY change (%)","number")],[["Ava Patel","Engineering",132000,6.5],["Marcus Lee","Sales",98000,4.2],["Sofia Ramirez","Marketing",105000,3.1],["Ethan Brooks","Finance",118500,5],["Nina Chen","HR",89000,2.4]])])

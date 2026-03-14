@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "generate": "tsx generate-samples.ts",
+    "compact": "tsx compact-samples.ts",
     "bench": "tsx run-benchmark.ts"
   },
   "dependencies": {

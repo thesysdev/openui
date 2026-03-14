@@ -1,12 +1,1 @@
-root = Stack([title, form], "column", "l")
-title = TextContent("Contact Us", "large-heavy")
-form = Form("contact", [nameField, emailField, phoneField, subjectField, messageField], formButtons)
-nameField = FormControl("Name", Input("name", "Your full name", "text", ["required", "minLength:2"]))
-emailField = FormControl("Email", Input("email", "you@example.com", "email", ["required", "email"]))
-phoneField = FormControl("Phone", Input("phone", "e.g., +1 555 123 4567", "text", ["required", "minLength:7", "maxLength:20"]))
-subjectField = FormControl("Subject", Select("subject", subjectOptions, "Select a subject...", ["required"]))
-messageField = FormControl("Message", TextArea("message", "How can we help?", 6, ["required", "minLength:10"]))
-subjectOptions = [SelectItem("general", "General inquiry"), SelectItem("support", "Support"), SelectItem("sales", "Sales"), SelectItem("billing", "Billing"), SelectItem("feedback", "Feedback")]
-formButtons = Buttons([submitBtn, cancelBtn], "row")
-submitBtn = Button("Submit", "submit:contact", "primary")
-cancelBtn = Button("Cancel", "action:cancel_contact", "secondary")
+root=Stack([TextContent("Contact Us","large-heavy"),Form("contact",[FormControl("Name",Input("name","Your full name","text",["required","minLength:2"])),FormControl("Email",Input("email","you@example.com","email",["required","email"])),FormControl("Phone",Input("phone","e.g., +1 555 123 4567","text",["required","minLength:7","maxLength:20"])),FormControl("Subject",Select("subject",[SelectItem("general","General inquiry"),SelectItem("support","Support"),SelectItem("sales","Sales"),SelectItem("billing","Billing"),SelectItem("feedback","Feedback")],"Select a subject...",["required"])),FormControl("Message",TextArea("message","How can we help?",6,["required","minLength:10"]))],Buttons([Button("Submit","submit:contact","primary"),Button("Cancel","action:cancel_contact","secondary")],"row"))],"column","l")
