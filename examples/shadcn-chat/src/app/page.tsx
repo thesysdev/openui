@@ -5,12 +5,17 @@ import { useSystemTheme } from "@/hooks/use-system-theme";
 import { shadcnChatLibrary } from "@/lib/shadcn-genui";
 import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
+import { useEffect } from "react";
 
 export default function Page() {
   const mode = useSystemTheme();
 
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", mode === "dark");
+  }, [mode]);
+
   return (
-    <div className={`h-screen w-screen overflow-hidden relative ${mode === "dark" ? "dark" : ""}`}>
+    <div className="h-screen w-screen overflow-hidden relative">
       <FullScreen
         processMessage={async ({ messages, abortController }) => {
           return fetch("/api/chat", {

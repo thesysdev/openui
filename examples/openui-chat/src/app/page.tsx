@@ -5,9 +5,14 @@ import { useSystemTheme } from "@/hooks/use-system-theme";
 import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
 import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
+import { useEffect } from "react";
 
 export default function Page() {
   const mode = useSystemTheme();
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", mode === "dark");
+  }, [mode]);
 
   return (
     <div className="h-screen w-screen overflow-hidden relative">
