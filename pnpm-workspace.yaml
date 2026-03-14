@@ -2,4 +2,5 @@ packages:
   - "packages/*"
   - "examples/*"
   - "docs/"
+  - "benchmarks/"
   - "!**/src/templates/**"
