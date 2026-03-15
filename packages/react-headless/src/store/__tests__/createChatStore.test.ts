@@ -174,7 +174,7 @@ describe("createChatStore", () => {
 
       expect(result).toEqual(newThread);
       expect(store.getState().threads).toHaveLength(2);
-      expect(store.getState().threads.map((t) => t.id)).toContain("t-new");
+      expect(store.getState().threads.map((t: Thread) => t.id)).toContain("t-new");
     });
   });
 
@@ -362,10 +362,12 @@ describe("createChatStore", () => {
   describe("cancelMessage", () => {
     it("aborts in-flight request", async () => {
       let capturedAbort: AbortController;
-      const processMessage = vi.fn().mockImplementation(({ abortController }) => {
-        capturedAbort = abortController;
-        return new Promise(() => {}); // never resolves
-      });
+      const processMessage = vi.fn().mockImplementation(
+        ({ abortController }: { abortController: AbortController }) => {
+          capturedAbort = abortController;
+          return new Promise(() => {}); // never resolves
+        },
+      );
 
       const store = createChatStore({
         processMessage,
@@ -373,7 +375,7 @@ describe("createChatStore", () => {
       });
       store.setState({ selectedThreadId: "t1" });
 
-      const _promise = store.getState().processMessage({ role: "user", content: "hello" });
+      store.getState().processMessage({ role: "user", content: "hello" });
 
       await flushPromises();
       expect(store.getState().isRunning).toBe(true);
@@ -456,6 +458,93 @@ describe("createChatStore", () => {
       expect(store.getState().messages[0].role).toBe("user");
       expect(store.getState().messages[1].role).toBe("assistant");
       expect((store.getState().messages[1] as any).content).toBe("response text");
+    });
+
+    it("handles SSE events split across arbitrary chunks", async () => {
+      const encoder = new TextEncoder();
+
+      const part1 = "data: {\"type\": \"TEXT_MESSAGE_CONTENT\", \"delta\": \"split";
+      const part2 = " over chunks\"}\n\n";
+      const done = "data: [DONE]\n\n";
+
+      const stream = new ReadableStream({
+        start(c) {
+          c.enqueue(encoder.encode(part1));
+          c.enqueue(encoder.encode(part2));
+          c.enqueue(encoder.encode(done));
+          c.close();
+        },
+      });
+
+      fetchSpy.mockResolvedValue(new Response(stream));
+
+      const store = createChatStore({ apiUrl: "/api/chat" });
+      store.setState({ selectedThreadId: "t1" });
+
+      await store.getState().processMessage({ role: "user", content: "hello" });
+
+      expect(store.getState().messages).toHaveLength(2);
+      expect((store.getState().messages[1] as any).content).toBe("split over chunks");
+    });
+
+    it("supports CRLF + multi-line data fields", async () => {
+      const encoder = new TextEncoder();
+
+      // SSE spec: multiple `data:` lines are joined with `\n`.
+      // Newlines between JSON tokens are valid whitespace.
+      const sse =
+        "data: {\"type\":\"TEXT_MESSAGE_CONTENT\",\r\n" +
+        "data: \"delta\":\"multiline\"}\r\n" +
+        "\r\n" +
+        "data: [DONE]\r\n\r\n";
+
+      const stream = new ReadableStream({
+        start(c) {
+          c.enqueue(encoder.encode(sse));
+          c.close();
+        },
+      });
+
+      fetchSpy.mockResolvedValue(new Response(stream));
+
+      const store = createChatStore({ apiUrl: "/api/chat" });
+      store.setState({ selectedThreadId: "t1" });
+
+      await store.getState().processMessage({ role: "user", content: "hello" });
+
+      expect(store.getState().messages).toHaveLength(2);
+      expect((store.getState().messages[1] as any).content).toBe("multiline");
+    });
+
+    it("skips malformed events and continues streaming", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const encoder = new TextEncoder();
+
+      const sse =
+        "data: {\"type\":\"TEXT_MESSAGE_CONTENT\",\"delta\":\"ok\"}\n\n" +
+        // malformed JSON
+        "data: {\"type\":\"TEXT_MESSAGE_CONTENT\",\"delta\":\"bad\"\n\n" +
+        "data: {\"type\":\"TEXT_MESSAGE_CONTENT\",\"delta\":\"still ok\"}\n\n" +
+        "data: [DONE]\n\n";
+
+      const stream = new ReadableStream({
+        start(c) {
+          c.enqueue(encoder.encode(sse));
+          c.close();
+        },
+      });
+
+      fetchSpy.mockResolvedValue(new Response(stream));
+
+      const store = createChatStore({ apiUrl: "/api/chat" });
+      store.setState({ selectedThreadId: "t1" });
+
+      await store.getState().processMessage({ role: "user", content: "hello" });
+
+      expect(store.getState().messages).toHaveLength(2);
+      expect((store.getState().messages[1] as any).content).toBe("okstill ok");
+
+      warnSpy.mockRestore();
     });
 
     it("throws when neither apiUrl nor processMessage provided", async () => {
@@ -801,10 +890,12 @@ describe("createChatStore", () => {
   describe("selectThread while streaming", () => {
     it("cancels current stream and loads new thread", async () => {
       let capturedAbort: AbortController;
-      const processMessage = vi.fn().mockImplementation(({ abortController }) => {
-        capturedAbort = abortController;
-        return new Promise(() => {}); // never resolves
-      });
+      const processMessage = vi.fn().mockImplementation(
+        ({ abortController }: { abortController: AbortController }) => {
+          capturedAbort = abortController;
+          return new Promise(() => {}); // never resolves
+        },
+      );
       const newMessages = [makeMessage("new-m1")];
       const loadThread = vi.fn().mockResolvedValue(newMessages);
 
