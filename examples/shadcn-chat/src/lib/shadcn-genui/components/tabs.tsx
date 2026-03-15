@@ -30,33 +30,43 @@ export const Tabs = defineComponent({
   description: "Tabbed content. items: TabItem[]. defaultValue: initially active tab.",
   component: ({ props, renderNode }) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const items = (props.items ?? []) as any[];
+    const rawItems = (props.items ?? []) as any[];
+
+    const items = rawItems.filter(
+      (item) => item?.props?.value != null && item?.props?.trigger != null,
+    );
+
+    const [userSelected, setUserSelected] = React.useState<string | null>(null);
 
     const firstValue = items[0]?.props?.value as string | undefined;
-    const resolvedDefault = props.defaultValue ?? firstValue;
+    const preferredDefault = props.defaultValue ?? firstValue;
 
-    const [activeTab, setActiveTab] = React.useState<string | undefined>(resolvedDefault);
+    const userSelectionValid =
+      userSelected != null && items.some((item) => String(item?.props?.value) === userSelected);
+    const activeTab = userSelectionValid ? userSelected : (preferredDefault ?? "");
 
-    React.useEffect(() => {
-      if (!activeTab && resolvedDefault) {
-        setActiveTab(resolvedDefault);
-      }
-    }, [activeTab, resolvedDefault]);
+    if (items.length === 0) return null;
 
     return (
-      <ShadcnTabs value={activeTab ?? ""} onValueChange={setActiveTab}>
+      <ShadcnTabs value={activeTab} onValueChange={setUserSelected}>
         <TabsList>
-          {items.map((item, i) => (
-            <TabsTrigger key={i} value={String(item?.props?.value ?? i)}>
-              {String(item?.props?.trigger ?? "")}
-            </TabsTrigger>
-          ))}
+          {items.map((item) => {
+            const val = String(item.props.value);
+            return (
+              <TabsTrigger key={val} value={val}>
+                {String(item.props.trigger)}
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
-        {items.map((item, i) => (
-          <TabsContent key={i} value={String(item?.props?.value ?? i)} className="space-y-3">
-            {renderNode(item?.props?.content)}
-          </TabsContent>
-        ))}
+        {items.map((item) => {
+          const val = String(item.props.value);
+          return (
+            <TabsContent key={val} value={val} className="space-y-3">
+              {renderNode(item.props.content)}
+            </TabsContent>
+          );
+        })}
       </ShadcnTabs>
     );
   },
