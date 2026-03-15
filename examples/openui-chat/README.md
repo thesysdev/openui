@@ -19,6 +19,30 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `src/app/api/route.ts` and improving your agent
 by adding system prompts or tools.
 
+
+## Run with Docker
+
+You can run the OpenUI chat example using Docker without installing Node.js or dependencies locally.
+
+### Build the Docker image
+
+From the repository root:
+
+```bash
+docker build -f examples/openui-chat/Dockerfile -t openui-chat .
+```
+
+### Run the container
+```bash
+docker run -p 3000:3000 \
+-e OPENAI_API_KEY=sk-your-key \
+openui-chat
+```
+
+### Then open your browser at:
+
+http://localhost:3000
+
 ## Learn More
 
 To learn more about OpenUI, take a look at the following resources:
