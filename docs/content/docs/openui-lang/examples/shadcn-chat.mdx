@@ -20,19 +20,6 @@ OpenUI Lang is not tied to any component library. The LLM generates abstract UI 
   />
 </div>
 
-## Architecture
-
-```
-Browser (FullScreen) -- POST /api/chat --> Next.js route --> OpenAI
-                     <-- SSE stream --                       (OpenUI Lang + tool calls)
-```
-
-The client sends a conversation to `/api/chat`. The API route loads a generated `system-prompt.txt`, forwards the messages to the LLM with streaming and tool definitions, and returns SSE events. On the client, `openAIAdapter()` parses the SSE stream and `shadcnChatLibrary` maps each OpenUI Lang node to a shadcn/ui component that renders progressively as tokens arrive.
-
-The key decoupling: the server streams OpenUI Lang — an abstract description of UI structure. The client's `shadcnChatLibrary` decides how each node renders. That's where shadcn/ui enters, and that's also where you'd plug in any other design system.
-
-The API route also supports **server-side tool execution**. When the model invokes a tool (weather, stock price, calculator, or web search), the route runs it and feeds the result back into the completion loop before streaming the final UI response.
-
 ## Bringing your own component library
 
 The bridge between OpenUI Lang and shadcn/ui is built with two primitives: `defineComponent` and `createLibrary` from `@openuidev/react-lang`.
@@ -73,6 +60,20 @@ export const shadcnChatLibrary = createLibrary({
 Swap `shadcnChatLibrary` for a library built on any other design system — Material UI, Radix, your own primitives — and the rest of the stack stays the same.
 
 See [Defining Components](/docs/openui-lang/defining-components) for the full `defineComponent` API.
+
+
+## Architecture
+
+```
+Browser (FullScreen) -- POST /api/chat --> Next.js route --> OpenAI
+                     <-- SSE stream --                       (OpenUI Lang + tool calls)
+```
+
+The client sends a conversation to `/api/chat`. The API route loads a generated `system-prompt.txt`, forwards the messages to the LLM with streaming and tool definitions, and returns SSE events. On the client, `openAIAdapter()` parses the SSE stream and `shadcnChatLibrary` maps each OpenUI Lang node to a shadcn/ui component that renders progressively as tokens arrive.
+
+The key decoupling: the server streams OpenUI Lang — an abstract description of UI structure. The client's `shadcnChatLibrary` decides how each node renders. That's where shadcn/ui enters, and that's also where you'd plug in any other design system.
+
+The API route also supports **server-side tool execution**. When the model invokes a tool (weather, stock price, calculator, or web search), the route runs it and feeds the result back into the completion loop before streaming the final UI response.
 
 ## Project layout
 

@@ -20,15 +20,6 @@ OpenUI Lang runs on React Native. This example streams LLM-generated UI to an Ex
   />
 </div>
 
-## Architecture
-
-```
-Expo app -- POST /api/chat --> Next.js backend --> OpenAI
-         <-- text/plain stream --                  (OpenUI Lang)
-```
-
-The backend loads a pre-generated `system-prompt.txt`, forwards the conversation to OpenAI with streaming enabled, and returns raw `text/plain` chunks. The Expo app accumulates those chunks and passes the growing string into `<Renderer />`, which progressively parses and renders native UI as the response arrives.
-
 ## What changes on native
 
 Three things differ from a web OpenUI Lang integration:
@@ -53,6 +44,15 @@ component: ({ props }) => (
 | `backend/src/library.ts` | Null renderers (`() => null`) — used only to generate `system-prompt.txt` |
 
 Keep these in sync: same component names, same prop schemas, same root component.
+
+## Architecture
+
+```
+Expo app -- POST /api/chat --> Next.js backend --> OpenAI
+         <-- text/plain stream --                  (OpenUI Lang)
+```
+
+The backend loads a pre-generated `system-prompt.txt`, forwards the conversation to OpenAI with streaming enabled, and returns raw `text/plain` chunks. The Expo app accumulates those chunks and passes the growing string into `<Renderer />`, which progressively parses and renders native UI as the response arrives.
 
 ## Project layout
 
