@@ -1,0 +1,68 @@
+{
+  "name": "@openuidev/svelte-lang",
+  "version": "0.1.0",
+  "description": "Define component libraries, generate LLM system prompts, and render streaming OpenUI Lang output in Svelte — the core runtime for OpenUI generative UI",
+  "license": "MIT",
+  "type": "module",
+  "svelte": "./dist/index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "svelte": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "svelte-package -i src -o dist",
+    "watch": "svelte-package -i src -o dist --watch",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./src",
+    "format:check": "prettier --check ./src",
+    "prepare": "pnpm run build",
+    "ci": "pnpm run lint:check && pnpm run format:check"
+  },
+  "keywords": [
+    "openui",
+    "generative-ui",
+    "svelte",
+    "llm",
+    "streaming",
+    "renderer",
+    "parser",
+    "ai",
+    "components",
+    "prompt-generation",
+    "zod",
+    "ui-generation",
+    "model-driven-ui",
+    "openui-lang"
+  ],
+  "homepage": "https://openui.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "packages/svelte-lang"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "author": "engineering@thesys.dev",
+  "dependencies": {
+    "zod": "^4.0.0"
+  },
+  "peerDependencies": {
+    "svelte": ">=5.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/package": "^2.3.0",
+    "svelte": "^5.0.0",
+    "typescript": "^5.9.3"
+  }
+}
