@@ -521,6 +521,7 @@ function emptyResult(incomplete = true): ParseResult {
   return {
     root: null,
     meta: {
+      rootType: null,
       incomplete,
       unresolved: [],
       statementCount: 0,
@@ -543,10 +544,12 @@ function buildResult(
   const resolved = resolveNode(syms.get(firstId)!, syms, unres, new Set());
   const errors: ValidationError[] = [];
   const root = mapNode(resolved, wasIncomplete, errors, cat, zodSchemas);
+  const rootType = resolved.k === "Comp" ? resolved.name : null;
 
   return {
     root,
     meta: {
+      rootType,
       incomplete: wasIncomplete,
       unresolved: unres,
       statementCount: stmtCount,

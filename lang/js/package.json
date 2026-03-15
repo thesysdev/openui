@@ -1,19 +1,17 @@
 {
-  "name": "@openuidev/structured-output",
+  "name": "@openuidev/lang",
   "version": "0.1.0",
-  "description": "A standalone, framework-agnostic library for using OpenUI Lang as a general-purpose structured output format — schema definition, prompt generation, parsing, and Zod validation",
+  "description": "OpenUI Lang — schema definition, prompt generation, parsing, and Zod validation for structured outputs and generative UI",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "README.md"
   ],
   "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+    "./structured-outputs": {
+      "import": "./dist/structured-outputs/index.js",
+      "types": "./dist/structured-outputs/index.d.ts"
     }
   },
   "scripts": {
@@ -30,6 +28,7 @@
   "keywords": [
     "openui",
     "structured-outputs",
+    "generative-ui",
     "llm",
     "parser",
     "zod",
@@ -43,7 +42,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/thesysdev/openui.git",
-    "directory": "packages/structured-outputs"
+    "directory": "lang/js"
   },
   "bugs": {
     "url": "https://github.com/thesysdev/openui/issues"

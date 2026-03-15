@@ -6,7 +6,7 @@
   "compilerOptions": {
     "moduleResolution": "bundler",
     "module": "ESNext",
-    "outDir": "./dist",
+    "outDir": "./dist/structured-outputs",
     "rootDir": "./src",
     "declaration": true,
     "noPropertyAccessFromIndexSignature": false,

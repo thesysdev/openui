@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createSchema, defineType } from "../index";
+import { createSchema, defineModel } from "../index";
 
 describe("prompt generation", () => {
   it("uses 'Type Signatures' section header instead of 'Component Signatures'", () => {
-    const T1 = defineType({
+    const T1 = defineModel({
       name: "PromptT1",
       description: "Type one",
-      props: z.object({ a: z.string() }),
+      schema: z.object({ a: z.string() }),
     });
 
-    const schema = createSchema({ types: [T1] });
+    const schema = createSchema([T1]);
     const prompt = schema.prompt();
 
     expect(prompt).toContain("## Type Signatures");
@@ -18,17 +18,17 @@ describe("prompt generation", () => {
   });
 
   it("includes type signatures with descriptions", () => {
-    const Contact = defineType({
+    const Contact = defineModel({
       name: "PromptContact",
       description: "Contact information",
-      props: z.object({
+      schema: z.object({
         name: z.string(),
         email: z.string(),
         phone: z.string().optional(),
       }),
     });
 
-    const schema = createSchema({ types: [Contact], root: "PromptContact" });
+    const schema = createSchema([Contact]);
     const prompt = schema.prompt();
 
     expect(prompt).toContain("PromptContact(");
@@ -39,13 +39,13 @@ describe("prompt generation", () => {
   });
 
   it("does not include action prop or UI rendering notes", () => {
-    const T = defineType({
+    const T = defineModel({
       name: "PromptNoAction",
       description: "No action",
-      props: z.object({ v: z.string() }),
+      schema: z.object({ v: z.string() }),
     });
 
-    const schema = createSchema({ types: [T] });
+    const schema = createSchema([T]);
     const prompt = schema.prompt();
 
     expect(prompt).not.toContain("action` prop");
@@ -55,13 +55,13 @@ describe("prompt generation", () => {
   });
 
   it("supports custom preamble", () => {
-    const T = defineType({
+    const T = defineModel({
       name: "PromptCustom",
       description: "Custom",
-      props: z.object({ x: z.string() }),
+      schema: z.object({ x: z.string() }),
     });
 
-    const schema = createSchema({ types: [T] });
+    const schema = createSchema([T]);
     const prompt = schema.prompt({ preamble: "You are a custom assistant." });
 
     expect(prompt).toContain("You are a custom assistant.");
@@ -69,13 +69,13 @@ describe("prompt generation", () => {
   });
 
   it("includes examples when provided", () => {
-    const T = defineType({
+    const T = defineModel({
       name: "PromptEx",
       description: "Ex",
-      props: z.object({ x: z.string() }),
+      schema: z.object({ x: z.string() }),
     });
 
-    const schema = createSchema({ types: [T], root: "PromptEx" });
+    const schema = createSchema([T]);
     const prompt = schema.prompt({
       examples: ['root = PromptEx("hello")'],
     });
@@ -85,13 +85,13 @@ describe("prompt generation", () => {
   });
 
   it("includes additional rules when provided", () => {
-    const T = defineType({
+    const T = defineModel({
       name: "PromptRules",
       description: "Rules",
-      props: z.object({ x: z.string() }),
+      schema: z.object({ x: z.string() }),
     });
 
-    const schema = createSchema({ types: [T] });
+    const schema = createSchema([T]);
     const prompt = schema.prompt({
       additionalRules: ["Always use ISO dates", "Prefer metric units"],
     });
@@ -100,82 +100,90 @@ describe("prompt generation", () => {
     expect(prompt).toContain("- Prefer metric units");
   });
 
-  it("supports typeGroups", () => {
-    const A = defineType({
-      name: "PromptGroupA",
-      description: "Type A",
-      props: z.object({ x: z.string() }),
-    });
-    const B = defineType({
-      name: "PromptGroupB",
-      description: "Type B",
-      props: z.object({ y: z.number() }),
-    });
-
-    const schema = createSchema({
-      types: [A, B],
-      typeGroups: [
-        { name: "Primary", types: ["PromptGroupA"] },
-        { name: "Secondary", types: ["PromptGroupB"], notes: ["Use sparingly"] },
-      ],
-    });
-
-    const prompt = schema.prompt();
-    expect(prompt).toContain("### Primary");
-    expect(prompt).toContain("### Secondary");
-    expect(prompt).toContain("Use sparingly");
-  });
-
-  it("generates correct root reference in syntax rules", () => {
-    const Root = defineType({
+  it("generates correct root reference in syntax rules for single root", () => {
+    const Root = defineModel({
       name: "MyRoot",
       description: "Root",
-      props: z.object({ title: z.string() }),
+      schema: z.object({ title: z.string() }),
     });
 
-    const schema = createSchema({ types: [Root], root: "MyRoot" });
+    const schema = createSchema([Root]);
     const prompt = schema.prompt();
 
     expect(prompt).toContain("root = MyRoot(...)");
   });
 
-  it("generates JSON schema", () => {
-    const T = defineType({
-      name: "PromptJsonSchema",
-      description: "JSON Schema test",
-      props: z.object({ x: z.string(), y: z.number().optional() }),
+  it("generates multi-root syntax rules containing 'one of'", () => {
+    const Invoice = defineModel({
+      name: "PromptInvoice",
+      description: "An invoice",
+      schema: z.object({ number: z.string() }),
     });
 
-    const schema = createSchema({ types: [T] });
+    const Receipt = defineModel({
+      name: "PromptReceipt",
+      description: "A receipt",
+      schema: z.object({ store: z.string() }),
+    });
+
+    const schema = createSchema([Invoice, Receipt]);
+    const prompt = schema.prompt();
+
+    expect(prompt).toContain("one of");
+    expect(prompt).toContain("PromptInvoice(...)");
+    expect(prompt).toContain("PromptReceipt(...)");
+  });
+
+  it("generates multi-root streaming and important rules with joined names", () => {
+    const A = defineModel({
+      name: "MultiA",
+      description: "Multi A",
+      schema: z.object({ x: z.string() }),
+    });
+    const B = defineModel({
+      name: "MultiB",
+      description: "Multi B",
+      schema: z.object({ y: z.string() }),
+    });
+
+    const schema = createSchema([A, B]);
+    const prompt = schema.prompt();
+
+    // Both roots should appear in the prompt
+    expect(prompt).toContain("MultiA | MultiB");
+  });
+
+  it("generates JSON schema", () => {
+    const T = defineModel({
+      name: "PromptJsonSchema",
+      description: "JSON Schema test",
+      schema: z.object({ x: z.string(), y: z.number().optional() }),
+    });
+
+    const schema = createSchema([T]);
     const jsonSchema = schema.toJSONSchema();
 
     expect(jsonSchema).toHaveProperty("$defs");
   });
 
-  it("falls back to 'Root' when no root type is specified", () => {
-    const T = defineType({
-      name: "PromptNoRoot",
-      description: "No root",
-      props: z.object({ v: z.string() }),
-    });
-
-    const schema = createSchema({ types: [T] });
+  it("falls back to 'Root' when no root model is specified", () => {
+    const schema = createSchema([]);
     const prompt = schema.prompt();
 
     expect(prompt).toContain("root = Root(...)");
   });
 
   it("includes enum annotations in type signatures", () => {
-    const EnumType = defineType({
+    const EnumType = defineModel({
       name: "PromptEnum",
       description: "Enum type",
-      props: z.object({
+      schema: z.object({
         status: z.enum(["active", "inactive", "pending"]),
         label: z.string(),
       }),
     });
 
-    const schema = createSchema({ types: [EnumType] });
+    const schema = createSchema([EnumType]);
     const prompt = schema.prompt();
 
     expect(prompt).toContain('"active" | "inactive" | "pending"');
@@ -183,43 +191,44 @@ describe("prompt generation", () => {
   });
 
   it("includes array annotations in type signatures", () => {
-    const ChildType = defineType({
+    const ChildType = defineModel({
       name: "PromptArrChild",
       description: "Array child",
-      props: z.object({ v: z.string() }),
+      schema: z.object({ v: z.string() }),
     });
 
-    const ParentType = defineType({
+    const ParentType = defineModel({
       name: "PromptArrParent",
       description: "Array parent",
-      props: z.object({
+      schema: z.object({
         name: z.string(),
         children: z.array(ChildType.ref),
       }),
     });
 
-    const schema = createSchema({ types: [ChildType, ParentType] });
+    // Only pass ParentType — ChildType auto-discovered
+    const schema = createSchema([ParentType]);
     const prompt = schema.prompt();
 
     expect(prompt).toContain("PromptArrChild[]");
   });
 
   it("includes optional array annotations", () => {
-    const ItemType = defineType({
+    const ItemType = defineModel({
       name: "PromptOptItem",
       description: "Item",
-      props: z.object({ v: z.string() }),
+      schema: z.object({ v: z.string() }),
     });
 
-    const OptArr = defineType({
+    const OptArr = defineModel({
       name: "PromptOptArr",
       description: "Optional array",
-      props: z.object({
+      schema: z.object({
         items: z.array(ItemType.ref).optional(),
       }),
     });
 
-    const schema = createSchema({ types: [ItemType, OptArr] });
+    const schema = createSchema([OptArr]);
     const prompt = schema.prompt();
 
     expect(prompt).toContain("items?:");
@@ -227,13 +236,13 @@ describe("prompt generation", () => {
   });
 
   it("includes hoisting and streaming rules section", () => {
-    const T = defineType({
+    const T = defineModel({
       name: "PromptHoist",
       description: "Hoist test",
-      props: z.object({ v: z.string() }),
+      schema: z.object({ v: z.string() }),
     });
 
-    const schema = createSchema({ types: [T], root: "PromptHoist" });
+    const schema = createSchema([T]);
     const prompt = schema.prompt();
 
     expect(prompt).toContain("## Hoisting & Forward References");
@@ -241,13 +250,13 @@ describe("prompt generation", () => {
   });
 
   it("includes important rules section", () => {
-    const T = defineType({
+    const T = defineModel({
       name: "PromptImportant",
       description: "Important",
-      props: z.object({ v: z.string() }),
+      schema: z.object({ v: z.string() }),
     });
 
-    const schema = createSchema({ types: [T], root: "PromptImportant" });
+    const schema = createSchema([T]);
     const prompt = schema.prompt();
 
     expect(prompt).toContain("## Important Rules");
@@ -255,53 +264,30 @@ describe("prompt generation", () => {
   });
 
   it("does not include Examples section when no examples provided", () => {
-    const T = defineType({
+    const T = defineModel({
       name: "PromptNoEx",
       description: "No examples",
-      props: z.object({ v: z.string() }),
+      schema: z.object({ v: z.string() }),
     });
 
-    const schema = createSchema({ types: [T] });
+    const schema = createSchema([T]);
     const prompt = schema.prompt();
 
     expect(prompt).not.toContain("## Examples");
   });
 
-  it("lists ungrouped types when some types are not in any group", () => {
-    const A = defineType({
-      name: "PromptUngroupedA",
-      description: "Grouped",
-      props: z.object({ x: z.string() }),
-    });
-    const B = defineType({
-      name: "PromptUngroupedB",
-      description: "Ungrouped",
-      props: z.object({ y: z.number() }),
-    });
-
-    const schema = createSchema({
-      types: [A, B],
-      typeGroups: [{ name: "Group1", types: ["PromptUngroupedA"] }],
-    });
-
-    const prompt = schema.prompt();
-    expect(prompt).toContain("### Group1");
-    expect(prompt).toContain("### Ungrouped");
-    expect(prompt).toContain("PromptUngroupedB(");
-  });
-
   it("generates JSON schema with correct structure", () => {
-    const T = defineType({
+    const T = defineModel({
       name: "PromptJsonDetail",
       description: "Detailed JSON schema",
-      props: z.object({
+      schema: z.object({
         name: z.string(),
         count: z.number().optional(),
         active: z.boolean(),
       }),
     });
 
-    const schema = createSchema({ types: [T] });
+    const schema = createSchema([T]);
     const jsonSchema = schema.toJSONSchema() as any;
 
     expect(jsonSchema.$defs).toBeDefined();
@@ -315,13 +301,13 @@ describe("prompt generation", () => {
   });
 
   it("includes syntax rules section", () => {
-    const T = defineType({
+    const T = defineModel({
       name: "PromptSyntax",
       description: "Syntax",
-      props: z.object({ v: z.string() }),
+      schema: z.object({ v: z.string() }),
     });
 
-    const schema = createSchema({ types: [T], root: "PromptSyntax" });
+    const schema = createSchema([T]);
     const prompt = schema.prompt();
 
     expect(prompt).toContain("## Syntax Rules");
@@ -330,13 +316,13 @@ describe("prompt generation", () => {
   });
 
   it("supports multiple examples", () => {
-    const T = defineType({
+    const T = defineModel({
       name: "PromptMultiEx",
       description: "Multi example",
-      props: z.object({ x: z.string() }),
+      schema: z.object({ x: z.string() }),
     });
 
-    const schema = createSchema({ types: [T], root: "PromptMultiEx" });
+    const schema = createSchema([T]);
     const prompt = schema.prompt({
       examples: ['root = PromptMultiEx("first")', 'root = PromptMultiEx("second")'],
     });

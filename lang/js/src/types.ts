@@ -23,6 +23,8 @@ export interface ParseResult<T = unknown> {
   /** The root data object, or null if parsing hasn't produced one yet. */
   root: T | null;
   meta: {
+    /** The type name of the root model that was matched, or null if none. */
+    rootType: string | null;
     /** True if the parser detected truncated/incomplete input. */
     incomplete: boolean;
     /** Names of references used but not yet defined (dropped as null in output). */

@@ -1,30 +1,28 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createSchema, defineType } from "../index";
+import { createSchema, defineModel } from "../index";
 
 describe("parser — plain object output", () => {
-  const Item = defineType({
+  const Item = defineModel({
     name: "PItem",
     description: "A simple item",
-    props: z.object({
+    schema: z.object({
       name: z.string(),
       value: z.number(),
     }),
   });
 
-  const Container = defineType({
+  const Container = defineModel({
     name: "PContainer",
     description: "Holds items",
-    props: z.object({
+    schema: z.object({
       title: z.string(),
       items: z.array(Item.ref),
     }),
   });
 
-  const schema = createSchema({
-    types: [Item, Container],
-    root: "PContainer",
-  });
+  // Item is auto-discovered from Container.schema
+  const schema = createSchema([Container]);
 
   it("parses a flat type to a plain object", () => {
     const result = schema.parse('root = PItem("test", 42)');
@@ -50,6 +48,7 @@ b = PItem("Gadget", 20)`;
     const result = schema.parse("");
     expect(result.root).toBeNull();
     expect(result.meta.incomplete).toBe(true);
+    expect(result.meta.rootType).toBeNull();
   });
 
   it("handles hoisting (forward references)", () => {
@@ -76,39 +75,38 @@ a = PItem("Y", 1)`;
     expect(result.meta.statementCount).toBe(2);
   });
 
+  it("populates meta.rootType from the root Comp node name", () => {
+    const result = schema.parse('root = PContainer("Test", [])');
+    expect(result.meta.rootType).toBe("PContainer");
+  });
+
   it("handles boolean and null values", () => {
-    const BoolType = defineType({
+    const BoolType = defineModel({
       name: "BoolType",
       description: "Bool test",
-      props: z.object({
+      schema: z.object({
         flag: z.boolean(),
         label: z.string(),
       }),
     });
 
-    const boolSchema = createSchema({
-      types: [BoolType],
-      root: "BoolType",
-    });
+    const boolSchema = createSchema([BoolType]);
 
     const result = boolSchema.parse('root = BoolType(true, "test")');
     expect(result.root).toEqual({ flag: true, label: "test" });
   });
 
   it("handles objects as prop values", () => {
-    const MetaType = defineType({
+    const MetaType = defineModel({
       name: "MetaType",
       description: "Has metadata object",
-      props: z.object({
+      schema: z.object({
         name: z.string(),
         meta: z.record(z.string(), z.unknown()).optional(),
       }),
     });
 
-    const metaSchema = createSchema({
-      types: [MetaType],
-      root: "MetaType",
-    });
+    const metaSchema = createSchema([MetaType]);
 
     const result = metaSchema.parse('root = MetaType("test", {key: "value"})');
     expect(result.root).toEqual({
@@ -118,13 +116,13 @@ a = PItem("Y", 1)`;
   });
 
   it("parses escaped strings (quotes, newlines, backslashes)", () => {
-    const EscType = defineType({
+    const EscType = defineModel({
       name: "EscType",
       description: "Escaped string test",
-      props: z.object({ text: z.string() }),
+      schema: z.object({ text: z.string() }),
     });
 
-    const escSchema = createSchema({ types: [EscType], root: "EscType" });
+    const escSchema = createSchema([EscType]);
 
     const withQuotes = escSchema.parse('root = EscType("say \\"hello\\"")');
     expect(withQuotes.root).toEqual({ text: 'say "hello"' });
@@ -137,13 +135,13 @@ a = PItem("Y", 1)`;
   });
 
   it("parses negative numbers", () => {
-    const NumType = defineType({
+    const NumType = defineModel({
       name: "NegNumType",
       description: "Negative number test",
-      props: z.object({ value: z.number() }),
+      schema: z.object({ value: z.number() }),
     });
 
-    const numSchema = createSchema({ types: [NumType], root: "NegNumType" });
+    const numSchema = createSchema([NumType]);
 
     const result = numSchema.parse("root = NegNumType(-42)");
     expect(result.root).toEqual({ value: -42 });
@@ -153,13 +151,13 @@ a = PItem("Y", 1)`;
   });
 
   it("parses scientific notation numbers", () => {
-    const SciType = defineType({
+    const SciType = defineModel({
       name: "SciType",
       description: "Sci notation test",
-      props: z.object({ value: z.number() }),
+      schema: z.object({ value: z.number() }),
     });
 
-    const sciSchema = createSchema({ types: [SciType], root: "SciType" });
+    const sciSchema = createSchema([SciType]);
 
     const result = sciSchema.parse("root = SciType(1e5)");
     expect(result.root).toEqual({ value: 100000 });
@@ -172,29 +170,29 @@ a = PItem("Y", 1)`;
   });
 
   it("parses explicit null arguments", () => {
-    const NullType = defineType({
+    const NullType = defineModel({
       name: "NullableType",
       description: "Nullable test",
-      props: z.object({
+      schema: z.object({
         label: z.string(),
         extra: z.string().nullable().optional(),
       }),
     });
 
-    const nullSchema = createSchema({ types: [NullType], root: "NullableType" });
+    const nullSchema = createSchema([NullType]);
 
     const result = nullSchema.parse('root = NullableType("hello", null)');
     expect(result.root).toEqual({ label: "hello", extra: null });
   });
 
   it("handles circular references without infinite loop", () => {
-    const NodeType = defineType({
+    const NodeType = defineModel({
       name: "CircNode",
       description: "Node with potential cycle",
-      props: z.object({ label: z.string() }),
+      schema: z.object({ label: z.string() }),
     });
 
-    const circSchema = createSchema({ types: [NodeType], root: "CircNode" });
+    const circSchema = createSchema([NodeType]);
 
     const input = `root = CircNode(a)\na = b\nb = a`;
     const result = circSchema.parse(input);
@@ -202,13 +200,13 @@ a = PItem("Y", 1)`;
   });
 
   it("handles malformed input gracefully", () => {
-    const MalType = defineType({
+    const MalType = defineModel({
       name: "MalType",
       description: "Malformed test",
-      props: z.object({ x: z.string() }),
+      schema: z.object({ x: z.string() }),
     });
 
-    const malSchema = createSchema({ types: [MalType], root: "MalType" });
+    const malSchema = createSchema([MalType]);
 
     const garbage = malSchema.parse("!!!???");
     expect(garbage.root).toBeNull();
@@ -221,13 +219,13 @@ a = PItem("Y", 1)`;
   });
 
   it("uses the first statement as root when multiple root= lines exist", () => {
-    const MultiRoot = defineType({
+    const MultiRoot = defineModel({
       name: "MultiRootType",
       description: "Multi root test",
-      props: z.object({ val: z.string() }),
+      schema: z.object({ val: z.string() }),
     });
 
-    const mrSchema = createSchema({ types: [MultiRoot], root: "MultiRootType" });
+    const mrSchema = createSchema([MultiRoot]);
 
     const input = `root = MultiRootType("first")\nroot = MultiRootType("second")`;
     const result = mrSchema.parse(input);
@@ -252,26 +250,24 @@ a = PItem("Y", 1)`;
   });
 
   it("handles deeply nested arrays", () => {
-    const LeafType = defineType({
+    const LeafType = defineModel({
       name: "DeepLeaf",
       description: "Leaf",
-      props: z.object({ v: z.string() }),
+      schema: z.object({ v: z.string() }),
     });
-    const MidType = defineType({
+    const MidType = defineModel({
       name: "DeepMid",
       description: "Mid",
-      props: z.object({ children: z.array(LeafType.ref) }),
+      schema: z.object({ children: z.array(LeafType.ref) }),
     });
-    const TopType = defineType({
+    const TopType = defineModel({
       name: "DeepTop",
       description: "Top",
-      props: z.object({ mids: z.array(MidType.ref) }),
+      schema: z.object({ mids: z.array(MidType.ref) }),
     });
 
-    const deepSchema = createSchema({
-      types: [LeafType, MidType, TopType],
-      root: "DeepTop",
-    });
+    // TopType → MidType → LeafType, all auto-discovered
+    const deepSchema = createSchema([TopType]);
 
     const input = `root = DeepTop([m1, m2])
 m1 = DeepMid([l1])
@@ -291,19 +287,16 @@ l3 = DeepLeaf("c")`;
   });
 
   it("returns specific validation error paths and messages", () => {
-    const StrictType = defineType({
+    const StrictType = defineModel({
       name: "StrictValType",
       description: "Strict validation",
-      props: z.object({
+      schema: z.object({
         email: z.string().email(),
         age: z.number().min(0),
       }),
     });
 
-    const strictSchema = createSchema({
-      types: [StrictType],
-      root: "StrictValType",
-    });
+    const strictSchema = createSchema([StrictType]);
 
     const result = strictSchema.parse('root = StrictValType("not-email", -5)');
     expect(result.root).toBeNull();
@@ -316,16 +309,13 @@ l3 = DeepLeaf("c")`;
 
 describe("streamingParser — plain object output", () => {
   it("progressively builds the result", () => {
-    const Simple = defineType({
+    const Simple = defineModel({
       name: "SItem",
       description: "Simple",
-      props: z.object({ name: z.string() }),
+      schema: z.object({ name: z.string() }),
     });
 
-    const schema = createSchema({
-      types: [Simple],
-      root: "SItem",
-    });
+    const schema = createSchema([Simple]);
 
     const parser = schema.streamingParser();
 
@@ -338,25 +328,22 @@ describe("streamingParser — plain object output", () => {
   });
 
   it("resolves references as they stream in", () => {
-    const Child = defineType({
+    const Child = defineModel({
       name: "SChild",
       description: "Child",
-      props: z.object({ val: z.string() }),
+      schema: z.object({ val: z.string() }),
     });
 
-    const Parent = defineType({
+    const Parent = defineModel({
       name: "SParent",
       description: "Parent",
-      props: z.object({
+      schema: z.object({
         name: z.string(),
         children: z.array(Child.ref),
       }),
     });
 
-    const schema = createSchema({
-      types: [Child, Parent],
-      root: "SParent",
-    });
+    const schema = createSchema([Parent]);
 
     const parser = schema.streamingParser();
 
@@ -373,13 +360,13 @@ describe("streamingParser — plain object output", () => {
   });
 
   it("getResult returns the latest without consuming new data", () => {
-    const Simple2 = defineType({
+    const Simple2 = defineModel({
       name: "S2",
       description: "S2",
-      props: z.object({ x: z.string() }),
+      schema: z.object({ x: z.string() }),
     });
 
-    const schema = createSchema({ types: [Simple2], root: "S2" });
+    const schema = createSchema([Simple2]);
     const parser = schema.streamingParser();
 
     parser.push('root = S2("test")');
@@ -389,13 +376,13 @@ describe("streamingParser — plain object output", () => {
   });
 
   it("handles character-by-character streaming", () => {
-    const CharType = defineType({
+    const CharType = defineModel({
       name: "CharStream",
       description: "Char-by-char",
-      props: z.object({ v: z.string() }),
+      schema: z.object({ v: z.string() }),
     });
 
-    const schema = createSchema({ types: [CharType], root: "CharStream" });
+    const schema = createSchema([CharType]);
     const parser = schema.streamingParser();
 
     const full = 'root = CharStream("hi")';
@@ -407,24 +394,21 @@ describe("streamingParser — plain object output", () => {
   });
 
   it("handles multi-statement streaming across chunks", () => {
-    const StreamChild = defineType({
+    const StreamChild = defineModel({
       name: "StreamChild",
       description: "Child",
-      props: z.object({ v: z.string() }),
+      schema: z.object({ v: z.string() }),
     });
-    const StreamParent = defineType({
+    const StreamParent = defineModel({
       name: "StreamParent",
       description: "Parent",
-      props: z.object({
+      schema: z.object({
         title: z.string(),
         items: z.array(StreamChild.ref),
       }),
     });
 
-    const schema = createSchema({
-      types: [StreamChild, StreamParent],
-      root: "StreamParent",
-    });
+    const schema = createSchema([StreamParent]);
     const parser = schema.streamingParser();
 
     let result = parser.push('root = StreamParent("List", [a, b])\n');
@@ -444,13 +428,13 @@ describe("streamingParser — plain object output", () => {
   });
 
   it("returns incomplete=false for fully closed streaming input", () => {
-    const DoneType = defineType({
+    const DoneType = defineModel({
       name: "StreamDone",
       description: "Done",
-      props: z.object({ x: z.string() }),
+      schema: z.object({ x: z.string() }),
     });
 
-    const schema = createSchema({ types: [DoneType], root: "StreamDone" });
+    const schema = createSchema([DoneType]);
     const parser = schema.streamingParser();
 
     parser.push('root = StreamDone("done")\n');
@@ -460,13 +444,13 @@ describe("streamingParser — plain object output", () => {
   });
 
   it("handles empty push calls", () => {
-    const EmptyPush = defineType({
+    const EmptyPush = defineModel({
       name: "EmptyPush",
       description: "EP",
-      props: z.object({ x: z.string() }),
+      schema: z.object({ x: z.string() }),
     });
 
-    const schema = createSchema({ types: [EmptyPush], root: "EmptyPush" });
+    const schema = createSchema([EmptyPush]);
     const parser = schema.streamingParser();
 
     let result = parser.push("");
