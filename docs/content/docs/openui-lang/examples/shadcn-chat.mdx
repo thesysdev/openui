@@ -1,9 +1,9 @@
 ---
 title: Shadcn Chat
-description: A generative UI chat app that streams OpenUI Lang and renders it as shadcn/ui components.
+description: An example of connecting OpenUI Lang to a custom component library, using shadcn/ui as the design system.
 ---
 
-A full-stack example that streams [OpenUI Lang](/docs/openui-lang/overview) into a Next.js chat interface using `@openuidev/react-ui`'s [FullScreen](/docs/chat/fullscreen) layout, then renders every response as rich [shadcn/ui](https://ui.shadcn.com/) components via a custom `shadcnChatLibrary`.
+OpenUI Lang is not tied to any component library. The LLM generates abstract UI structure; your library definition decides how that structure renders. This example wires OpenUI Lang to [shadcn/ui](https://ui.shadcn.com/) — swapping in a custom `shadcnChatLibrary` in place of the built-in libraries — to show that any design system can sit behind the same protocol.
 
 [View source on GitHub →](https://github.com/thesysdev/crayon/tree/main/examples/shadcn-chat)
 
@@ -20,12 +20,6 @@ A full-stack example that streams [OpenUI Lang](/docs/openui-lang/overview) into
   />
 </div>
 
-The example includes:
-
-- A **Next.js frontend** with a FullScreen chat layout that adapts to the system light/dark theme
-- A **Next.js API route** that calls OpenAI with streaming and server-side tool execution
-- A **shadcn-genui component library** with 40+ components covering content, charts, forms, tables, buttons, layout, overlays, and more
-
 ## Architecture
 
 ```
@@ -33,9 +27,52 @@ Browser (FullScreen) -- POST /api/chat --> Next.js route --> OpenAI
                      <-- SSE stream --                       (OpenUI Lang + tool calls)
 ```
 
-The client sends a conversation to `/api/chat`. The API route loads a generated `system-prompt.txt`, forwards the messages to the LLM with streaming and tool definitions, and returns SSE events. On the client side, `openAIAdapter()` parses the SSE stream, and `shadcnChatLibrary` maps each OpenUI Lang node to a shadcn/ui component that renders progressively as tokens arrive.
+The client sends a conversation to `/api/chat`. The API route loads a generated `system-prompt.txt`, forwards the messages to the LLM with streaming and tool definitions, and returns SSE events. On the client, `openAIAdapter()` parses the SSE stream and `shadcnChatLibrary` maps each OpenUI Lang node to a shadcn/ui component that renders progressively as tokens arrive.
+
+The key decoupling: the server streams OpenUI Lang — an abstract description of UI structure. The client's `shadcnChatLibrary` decides how each node renders. That's where shadcn/ui enters, and that's also where you'd plug in any other design system.
 
 The API route also supports **server-side tool execution**. When the model invokes a tool (weather, stock price, calculator, or web search), the route runs it and feeds the result back into the completion loop before streaming the final UI response.
+
+## Bringing your own component library
+
+The bridge between OpenUI Lang and shadcn/ui is built with two primitives: `defineComponent` and `createLibrary` from `@openuidev/react-lang`.
+
+`defineComponent` maps a single OpenUI Lang node to a React component. Here's the root `Card` component from `shadcn-genui/index.tsx`:
+
+```tsx
+const ChatCard = defineComponent({
+  name: "Card",
+  props: z.object({
+    children: z.array(ChatCardChildUnion),
+  }),
+  description:
+    "Vertical container for all content in a chat response. Children stack top to bottom automatically.",
+  component: ({ props, renderNode }) => (
+    <Card>
+      <CardContent className="p-0 space-y-3">{renderNode(props.children)}</CardContent>
+    </Card>
+  ),
+});
+```
+
+- `name` — the OpenUI Lang node name the LLM will emit
+- `props` — a Zod schema that validates the node's props as they stream in
+- `description` — included in the generated system prompt so the LLM knows when and how to use the component
+- `component` — the React component that renders it; `renderNode` recursively renders children
+
+Once you've defined your components, `createLibrary` assembles them into a library you pass to the renderer:
+
+```tsx
+export const shadcnChatLibrary = createLibrary({
+  root: "Card",
+  componentGroups: shadcnComponentGroups,
+  components: [ChatCard, CardHeader, TextContent, Alert /* ... */],
+});
+```
+
+Swap `shadcnChatLibrary` for a library built on any other design system — Material UI, Radix, your own primitives — and the rest of the stack stays the same.
+
+See [Defining Components](/docs/openui-lang/defining-components) for the full `defineComponent` API.
 
 ## Project layout
 
@@ -73,27 +110,15 @@ pnpm dev
 
 This automatically generates the system prompt from the library definition before starting Next.js.
 
-## What to expect
-
-Open the app and try one of the built-in conversation starters:
-
-- "Startup dashboard" — analytics dashboard with charts, tables, and progress bars
-- "Travel planner" — calendar, accordion destinations, and a preferences form
-- "Market watch" — fetches live stock prices and renders a comparison table with charts
-- "Event RSVP" — a rich form with every input type
-- "Chart showcase" — six chart types (Bar, Line, Area, Pie, Radar, Scatter) in tabbed view
-
-Instead of rendering plain markdown, the assistant response appears progressively as shadcn/ui components — cards, charts, forms, tables, badges, and more — all styled with the shadcn/ui design system and responsive to your system theme.
-
 ## Key files
 
-### `src/hooks/use-system-theme.tsx` — theme detection
+### `src/lib/shadcn-genui/index.tsx` — where shadcn/ui connects to OpenUI Lang
 
-A `ThemeProvider` wraps the app at the root layout. It detects the system color scheme via `prefers-color-scheme`, sets a `data-theme` attribute on `<body>`, and exposes the resolved `"light"` or `"dark"` mode through a `useTheme()` hook. CSS variables in `globals.css` switch via the `[data-theme="dark"]` selector, and Tailwind's dark variant is configured to match.
+Defines every component using `defineComponent`, then assembles them into `shadcnChatLibrary` with `createLibrary`. This is the only file in the project that imports from `shadcn/ui` — the rest of the stack has no knowledge of it.
 
-### `src/app/page.tsx` — FullScreen chat setup
+### `src/app/page.tsx` — where the library is passed to the renderer
 
-The page calls `useTheme()` to get the current mode and passes it to the `FullScreen` layout:
+The `componentLibrary` prop is the single handoff point:
 
 ```tsx
 <FullScreen
@@ -124,69 +149,11 @@ The page calls `useTheme()` to get the current mode and passes it to the `FullSc
 
 See [Chat FullScreen Layout](/docs/chat/fullscreen) and [Connecting to a Backend](/docs/chat/connecting) for the full API.
 
-### `src/lib/shadcn-genui/index.tsx` — component library
+### `src/app/api/chat/route.ts` — server with zero shadcn knowledge
 
-Defines the complete generative UI library using `createLibrary()` from `@openuidev/react-lang`. The library declares a `Card` root component, 13 component groups, 12 prompt examples, and additional rules that guide the LLM:
-
-```tsx
-export const shadcnChatLibrary = createLibrary({
-  root: "Card",
-  componentGroups: shadcnComponentGroups,
-  components: [
-    ChatCard,
-    CardHeader,
-    TextContent,
-    MarkDownRenderer,
-    Alert /* ... */,
-    Table,
-    Col,
-    BarChartCondensed,
-    LineChartCondensed /* ... */,
-    Form,
-    FormControl,
-    Input,
-    Select /* ... */,
-    Button,
-    Buttons,
-    Tabs,
-    Accordion,
-    Carousel,
-    // ... 40+ components total
-  ],
-});
-```
-
-The component groups organize components by category and include notes that become part of the generated system prompt:
-
-| Group            | Components                                                                                                    |
-| ---------------- | ------------------------------------------------------------------------------------------------------------- |
-| Content          | CardHeader, TextContent, MarkDownRenderer, Alert, Badge, Avatar, CodeBlock, Image, Progress, Separator        |
-| Tables           | Table, Col                                                                                                    |
-| Charts (2D)      | BarChart, LineChart, AreaChart, RadarChart, Series                                                            |
-| Charts (1D)      | PieChart, RadialChart, Slice                                                                                  |
-| Charts (Scatter) | ScatterChart, ScatterSeries, Point                                                                            |
-| Forms            | Form, FormControl, Label, Input, TextArea, Select, DatePicker, Slider, CheckBoxGroup, RadioGroup, SwitchGroup |
-| Buttons          | Button, Buttons                                                                                               |
-| Follow-ups       | FollowUpBlock, FollowUpItem                                                                                   |
-| Layout           | Tabs, Accordion, Carousel                                                                                     |
-| Data Display     | TagBlock, Tag                                                                                                 |
-| Typography       | Heading, Blockquote, InlineCode                                                                               |
-| Calendar         | CalendarBlock                                                                                                 |
-| Navigation       | PaginationBlock                                                                                               |
-| Overlays         | DialogBlock, AlertDialogBlock, DrawerBlock                                                                    |
-
-See [Defining Components](/docs/openui-lang/defining-components) for the full `defineComponent` API.
-
-### `src/app/api/chat/route.ts` — SSE streaming with tool execution
-
-The API route reads the generated system prompt, calls the LLM with `runTools()` for server-side tool execution, and streams the response as SSE:
+The API route loads the generated system prompt, calls the LLM via `runTools()` for server-side tool execution, and streams SSE. It has no import or reference to shadcn/ui — it only knows OpenUI Lang syntax, which it learned from the generated system prompt:
 
 ```ts
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const MODEL = "gpt-5.4";
-
 const runner = client.chat.completions.runTools({
   model: MODEL,
   messages: chatMessages,
@@ -206,7 +173,7 @@ When the model calls a tool, the route executes it and enriches the response wit
 
 ## Tools
 
-The API route defines four server-side tools that the LLM can invoke during a conversation:
+The API route defines four server-side tools the LLM can invoke during a conversation:
 
 | Tool              | Description                                                                            |
 | ----------------- | -------------------------------------------------------------------------------------- |
@@ -215,17 +182,8 @@ The API route defines four server-side tools that the LLM can invoke during a co
 | `calculate`       | Evaluates a math expression and returns the result                                     |
 | `search_web`      | Returns mock search results for a query                                                |
 
-These are demo implementations with simulated data. In a production app, you would replace them with real API calls.
-
-### `src/lib/shadcn-genui/helpers.ts` — chart data builders
-
-Utility functions that normalize chart data from OpenUI Lang element nodes into the format expected by Recharts:
-
-- `buildChartData(labels, series)` — transforms labels and series nodes into row-based chart data for 2D charts (bar, line, area, radar)
-- `buildSliceData(slices)` — transforms slice nodes into data for 1D charts (pie, radial)
+These are demo implementations with simulated data. In a production app you would replace them with real API calls.
 
 ## System prompt generation
 
-The `pnpm generate:prompt` script inspects the library definition in `src/lib/shadcn-genui/index.tsx` and generates `src/generated/system-prompt.txt`. This prompt tells the LLM about every available component, its props, and the OpenUI Lang syntax. Re-run it whenever you change component definitions, prop schemas, descriptions, or prompt rules.
-
-See [System Prompts](/docs/openui-lang/system-prompts) for how prompt generation works.
+Run `pnpm generate:prompt` to regenerate `src/generated/system-prompt.txt` whenever you change component definitions. See [System Prompts](/docs/openui-lang/system-prompts).
