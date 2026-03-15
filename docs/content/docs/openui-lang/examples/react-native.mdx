@@ -1,6 +1,6 @@
 ---
 title: React Native
-description: Run OpenUI Lang on native mobile — stream LLM-generated UI to an Expo app that renders real native components.
+description: stream LLM-generated UI to an Expo app that renders real native components.
 ---
 
 OpenUI Lang runs on React Native. This example streams LLM-generated UI to an Expo app, where `<Renderer />` turns it into real native components — not a webview, not markdown, native `Text`, `View`, and SVG charts. The stack is an Expo app paired with a Next.js backend that handles the OpenAI call.
@@ -45,7 +45,7 @@ component: ({ props }) => (
 
 ### 2. Two mirror libraries
 
-`@openuidev/cli` runs in Node.js to generate the system prompt, but it can't import React Native. The solution is two files with identical schemas — one with real renderers for the app, one with null renderers for the backend:
+`@openuidev/cli` runs in Node.js to generate the system prompt, but it can't import React Native. This will be fixed in future versions of the CLI. The solution is two files with identical schemas — one with real renderers for the app, one with null renderers for the backend:
 
 | File | Purpose |
 | ---- | ------- |
