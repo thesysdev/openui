@@ -24,11 +24,7 @@
               {
                 "component": "TagBlock",
                 "props": {
-                  "tags": [
-                    "Monthly billing",
-                    "Annual discounts available",
-                    "No hidden fees"
-                  ]
+                  "tags": ["Monthly billing", "Annual discounts available", "No hidden fees"]
                 }
               }
             ],
@@ -303,84 +299,19 @@
               }
             ],
             "rows": [
-              [
-                "Price (monthly)",
-                "$12",
-                "$29",
-                "Custom"
-              ],
-              [
-                "Workspaces",
-                "1",
-                "5",
-                "Unlimited"
-              ],
-              [
-                "Projects",
-                "Up to 3",
-                "Unlimited",
-                "Unlimited"
-              ],
-              [
-                "Storage",
-                "5 GB",
-                "100 GB",
-                "Unlimited (fair use)"
-              ],
-              [
-                "Team members",
-                "1",
-                "Up to 25",
-                "Unlimited"
-              ],
-              [
-                "Roles & permissions",
-                "—",
-                "Yes",
-                "Advanced (custom roles)"
-              ],
-              [
-                "Automations",
-                "—",
-                "1,000 runs/mo",
-                "Unlimited (policy-based)"
-              ],
-              [
-                "Integrations",
-                "Limited",
-                "Standard",
-                "Standard + custom"
-              ],
-              [
-                "Analytics",
-                "Basic",
-                "Advanced",
-                "Advanced + exports"
-              ],
-              [
-                "SSO (SAML)",
-                "—",
-                "—",
-                "Yes"
-              ],
-              [
-                "SCIM provisioning",
-                "—",
-                "—",
-                "Yes"
-              ],
-              [
-                "Audit logs",
-                "—",
-                "—",
-                "Yes"
-              ],
-              [
-                "Support",
-                "Community",
-                "Priority email",
-                "Dedicated + SLA"
-              ]
+              ["Price (monthly)", "$12", "$29", "Custom"],
+              ["Workspaces", "1", "5", "Unlimited"],
+              ["Projects", "Up to 3", "Unlimited", "Unlimited"],
+              ["Storage", "5 GB", "100 GB", "Unlimited (fair use)"],
+              ["Team members", "1", "Up to 25", "Unlimited"],
+              ["Roles & permissions", "—", "Yes", "Advanced (custom roles)"],
+              ["Automations", "—", "1,000 runs/mo", "Unlimited (policy-based)"],
+              ["Integrations", "Limited", "Standard", "Standard + custom"],
+              ["Analytics", "Basic", "Advanced", "Advanced + exports"],
+              ["SSO (SAML)", "—", "—", "Yes"],
+              ["SCIM provisioning", "—", "—", "Yes"],
+              ["Audit logs", "—", "—", "Yes"],
+              ["Support", "Community", "Priority email", "Dedicated + SLA"]
             ]
           }
         },

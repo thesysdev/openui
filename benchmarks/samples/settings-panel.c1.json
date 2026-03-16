@@ -46,11 +46,7 @@
                                         "name": "display_name",
                                         "placeholder": "e.g., Alex Johnson",
                                         "type": "text",
-                                        "rules": [
-                                          "required",
-                                          "minLength:2",
-                                          "maxLength:60"
-                                        ]
+                                        "rules": ["required", "minLength:2", "maxLength:60"]
                                       }
                                     }
                                   }
@@ -65,9 +61,7 @@
                                         "name": "avatar_url",
                                         "placeholder": "https://example.com/avatar.png",
                                         "type": "url",
-                                        "rules": [
-                                          "url"
-                                        ]
+                                        "rules": ["url"]
                                       }
                                     }
                                   }

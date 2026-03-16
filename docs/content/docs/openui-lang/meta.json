@@ -12,6 +12,9 @@
     "interactivity",
     "---Advanced---",
     "specification",
-    "benchmarks"
+    "benchmarks",
+    "---Examples---",
+    "examples/react-native",
+    "examples/shadcn-chat"
   ]
 }

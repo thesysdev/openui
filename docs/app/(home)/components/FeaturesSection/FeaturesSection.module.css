@@ -1,0 +1,191 @@
+.section {
+  width: 100%;
+  padding-inline: 1.25rem;
+}
+
+.container {
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+.featureIcon {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 999px;
+  background: #fff;
+}
+
+.featureIconSvg {
+  height: 18px;
+  width: 18px;
+}
+
+.desktopList {
+  display: none;
+}
+
+.mobileList {
+  display: block;
+}
+
+.desktopRow {
+  display: flex;
+  height: 72px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.desktopRowLead {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.desktopTitle,
+.desktopDescription {
+  font-family: "Inter Display", sans-serif;
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+.desktopTitle {
+  color: #000;
+}
+
+.desktopDescription {
+  text-align: right;
+  color: rgb(0 0 0 / 40%);
+}
+
+.mobileRow {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding-block: 1rem;
+}
+
+.mobileCopy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobileTitle,
+.mobileDescription {
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+}
+
+.mobileTitle {
+  font-weight: 500;
+  line-height: 1.25;
+  color: #000;
+}
+
+.mobileDescription {
+  line-height: 1.4;
+  color: rgb(0 0 0 / 40%);
+}
+
+.divider {
+  height: 1px;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+}
+
+.desktopDivider {
+  background: rgb(0 0 0 / 10%);
+}
+
+.mobileDivider {
+  background: rgb(0 0 0 / 8%);
+}
+
+.ctaWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+
+.ctaLink {
+  width: 100%;
+  max-width: 280px;
+  text-decoration: none;
+}
+
+.ctaButton {
+  display: flex;
+  height: 3rem;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 1rem;
+  border: 1.25px solid rgb(0 0 0 / 8%);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--features-cta-shadow, none);
+  color: #000;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5rem;
+}
+
+.ctaButton:hover {
+  transform: scale(0.99);
+  box-shadow: none;
+}
+
+.mobileLabel {
+  display: inline;
+}
+
+.desktopLabel {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding-inline: 2rem;
+  }
+
+  .desktopList {
+    display: block;
+  }
+
+  .mobileList {
+    display: none;
+  }
+
+  .ctaWrap {
+    margin-top: 5rem;
+  }
+
+  .ctaLink {
+    width: auto;
+    max-width: none;
+  }
+
+  .ctaButton {
+    width: auto;
+    font-size: 18px;
+  }
+
+  .mobileLabel {
+    display: none;
+  }
+
+  .desktopLabel {
+    display: inline;
+  }
+}

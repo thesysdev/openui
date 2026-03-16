@@ -11,7 +11,7 @@ import {
   useSetFieldValue,
 } from "@openuidev/react-lang";
 import React from "react";
-import { Slider as OpenUISlider } from "../../components/Slider";
+import { SliderBlock as OpenUISliderBlock } from "../../components/Slider";
 import { SliderSchema } from "./schema";
 
 export { SliderSchema } from "./schema";
@@ -51,7 +51,8 @@ export const Slider = defineComponent({
     const value = existingValue ?? defaultVal;
 
     return (
-      <OpenUISlider
+      <OpenUISliderBlock
+        label={(props.label as string) || fieldName}
         name={fieldName}
         variant={(props.variant as "continuous" | "discrete") || "continuous"}
         min={props.min as number}
@@ -59,7 +60,7 @@ export const Slider = defineComponent({
         step={props.step as number | undefined}
         defaultValue={value != null ? value : undefined}
         onValueCommit={(vals: number[]) => {
-          setFieldValue(formName, "Slider", fieldName, vals[0], true);
+          setFieldValue(formName, "Slider", fieldName, vals, true);
           if (rules.length > 0) {
             formValidation?.validateField(fieldName, vals[0], rules);
           }

@@ -33,6 +33,10 @@
       "default": "./dist/components/*/index.js"
     }
   },
+  "sideEffects": [
+    "*.css",
+    "*.scss"
+  ],
   "files": [
     "dist",
     "README.md"
