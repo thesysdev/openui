@@ -38,8 +38,9 @@ export const DesktopWelcomeComposer = ({
     const input = inputRef.current;
     if (!input) return;
 
-    input.style.height = "auto";
-    input.style.height = `${input.scrollHeight}px`;
+    // Reset to 0 (not "auto") so scrollHeight reflects content, not container
+    input.style.height = "0px";
+    input.style.height = `${Math.max(input.scrollHeight, 24)}px`;
   }, [textContent]);
 
   return (

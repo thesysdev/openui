@@ -167,6 +167,67 @@ export const Default = {
   ),
 };
 
+export const WithThreadHeader = {
+  args: {
+    variant: "short",
+  },
+  render: ({ variant }: { variant: "short" | "long" }) => (
+    <ChatProvider
+      processMessage={async ({ messages }: { messages: Message[] }) => {
+        const content = getLastUserContent(messages);
+        return mockSSEResponse(`You asked: "${content}"`, 1000);
+      }}
+      fetchThreadList={async () => ({ threads: [] })}
+      createThread={async () => ({
+        id: crypto.randomUUID(),
+        title: "New Chat",
+        createdAt: Date.now(),
+      })}
+      deleteThread={async () => {}}
+      updateThread={async (t: Thread) => t}
+      loadThread={async () => []}
+    >
+      <Container logoUrl={logoUrl} agentName="OpenUI">
+        <SidebarContainer>
+          <SidebarHeader>
+            <NewChatButton />
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarSeparator />
+            <ThreadList />
+          </SidebarContent>
+        </SidebarContainer>
+        <ThreadContainer>
+          <MobileHeader />
+          <ThreadHeader>
+            <select
+              style={{
+                padding: "4px 8px",
+                borderRadius: "6px",
+                border: "1px solid var(--openui-stroke-default, #ccc)",
+                background: "var(--openui-bg-fill, #fff)",
+                fontSize: "13px",
+              }}
+            >
+              <option>GPT-4o</option>
+              <option>Claude 3.5 Sonnet</option>
+              <option>Gemini Pro</option>
+            </select>
+            <Button iconLeft={<Share size={16} />} variant="secondary" size="small">
+              Share
+            </Button>
+          </ThreadHeader>
+          <ScrollArea>
+            <Messages loader={<MessageLoading />} />
+          </ScrollArea>
+          <ConversationStarter starters={SAMPLE_STARTERS} variant={variant} />
+          <Composer />
+        </ThreadContainer>
+      </Container>
+    </ChatProvider>
+  ),
+};
+
 export const WithConversationStarter = {
   args: {
     variant: "short",

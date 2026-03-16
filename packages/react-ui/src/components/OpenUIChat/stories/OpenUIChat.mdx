@@ -190,6 +190,82 @@ function App() {
 }
 ```
 
+## Header Customization
+
+Each layout provides a way to inject custom actions into its header area.
+
+### FullScreen
+
+FullScreen has two header slots:
+
+- **`threadHeader`** — Desktop-only header bar rendered above the message area. Hidden on mobile.
+- **`mobileHeaderActions`** — Content injected into the right side of the mobile header, before the "new chat" button.
+
+```tsx
+import { FullScreen } from "@openuidev/react-ui";
+import { Button, IconButton } from "@openuidev/react-ui";
+import { ChevronDown, Share, ThumbsUp } from "lucide-react";
+
+<FullScreen
+  processMessage={...}
+  threadHeader={
+    <>
+      <Button iconLeft={<ChevronDown size={14} />} variant="secondary" size="small">
+        GPT-4o
+      </Button>
+      <div style={{ display: "flex", gap: "4px" }}>
+        <IconButton icon={<ThumbsUp size={16} />} aria-label="Feedback" size="small" variant="secondary" />
+        <Button iconLeft={<Share size={14} />} variant="secondary" size="small">Share</Button>
+      </div>
+    </>
+  }
+  mobileHeaderActions={
+    <IconButton icon={<Share size={16} />} aria-label="Share" size="medium" variant="secondary" />
+  }
+/>
+```
+
+### Copilot
+
+Copilot has a single header with a right-side slot:
+
+- **`headerActions`** — Content rendered on the right side of the header, next to the logo and agent name.
+
+```tsx
+import { Copilot } from "@openuidev/react-ui";
+import { IconButton } from "@openuidev/react-ui";
+import { Download, Share } from "lucide-react";
+
+<Copilot
+  processMessage={...}
+  headerActions={
+    <>
+      <IconButton icon={<Download size={16} />} aria-label="Export" size="small" variant="secondary" />
+      <IconButton icon={<Share size={16} />} aria-label="Share" size="small" variant="secondary" />
+    </>
+  }
+/>
+```
+
+### BottomTray
+
+BottomTray has a header with built-in thread list, new chat, and minimize buttons. Custom actions are inserted before these:
+
+- **`headerActions`** — Content rendered on the right side of the header, before the thread list and new chat buttons.
+
+```tsx
+import { BottomTray } from "@openuidev/react-ui";
+import { IconButton } from "@openuidev/react-ui";
+import { Share } from "lucide-react";
+
+<BottomTray
+  processMessage={...}
+  headerActions={
+    <IconButton icon={<Share size={16} />} aria-label="Share" size="small" variant="tertiary" />
+  }
+/>
+```
+
 ## Props
 
 ### Core Props
@@ -251,15 +327,33 @@ interface ConversationStartersConfig {
 - `<Sparkles size={16} />` - Custom icon
 - `<></>` (empty fragment) - No icon
 
+### FullScreen Props
+
+These props only apply to the `standalone` (FullScreen) layout:
+
+| Prop                  | Type             | Description                                                        |
+| --------------------- | ---------------- | ------------------------------------------------------------------ |
+| `threadHeader`        | `ReactNode`      | Custom content for the desktop thread header (hidden on mobile)    |
+| `mobileHeaderActions` | `ReactNode`      | Custom content for the right side of the mobile header             |
+
+### Copilot Props
+
+These props only apply to the `copilot` layout:
+
+| Prop            | Type        | Description                                          |
+| --------------- | ----------- | ---------------------------------------------------- |
+| `headerActions` | `ReactNode` | Custom content for the right side of the header      |
+
 ### Bottom Tray Props
 
 These props only apply when `type="bottom-tray"`. The tray includes a built-in trigger button, so these are optional for controlled mode:
 
-| Prop           | Type                        | Description                                     |
-| -------------- | --------------------------- | ----------------------------------------------- |
-| `isOpen`       | `boolean`                   | Controlled open state (optional)                |
-| `onOpenChange` | `(isOpen: boolean) => void` | Callback when open state changes (optional)     |
-| `defaultOpen`  | `boolean`                   | Initial open state, default: `false` (optional) |
+| Prop            | Type                        | Description                                                          |
+| --------------- | --------------------------- | -------------------------------------------------------------------- |
+| `isOpen`        | `boolean`                   | Controlled open state (optional)                                     |
+| `onOpenChange`  | `(isOpen: boolean) => void` | Callback when open state changes (optional)                          |
+| `defaultOpen`   | `boolean`                   | Initial open state, default: `false` (optional)                      |
+| `headerActions` | `ReactNode`                 | Custom content for the right side of the header (before built-in buttons) |
 
 ### Advanced Props
 
