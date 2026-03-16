@@ -33,6 +33,7 @@ node_modules
 # Build output
 dist
 .next
+.svelte-kit
 *.tsbuildinfo
 typings
 
