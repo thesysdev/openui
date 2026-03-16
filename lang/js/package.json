@@ -1,0 +1,58 @@
+{
+  "name": "@openuidev/lang",
+  "version": "0.1.0",
+  "description": "OpenUI Lang — schema definition, prompt generation, parsing, and Zod validation for structured outputs and generative UI",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    "./structured-outputs": {
+      "import": "./dist/structured-outputs/index.js",
+      "types": "./dist/structured-outputs/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./src",
+    "format:check": "prettier --check ./src",
+    "prepare": "pnpm run build",
+    "ci": "pnpm run lint:check && pnpm run format:check",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "openui",
+    "structured-outputs",
+    "generative-ui",
+    "llm",
+    "parser",
+    "zod",
+    "schema",
+    "ai",
+    "data-extraction",
+    "prompt-generation",
+    "openui-lang"
+  ],
+  "homepage": "https://openui.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "lang/js"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "author": "engineering@thesys.dev",
+  "dependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0",
+    "typescript": "^5.9.3"
+  }
+}
