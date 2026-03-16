@@ -1,0 +1,110 @@
+---
+title: React Native
+description: stream LLM-generated UI to an Expo app that renders real native components.
+---
+
+OpenUI Lang runs on React Native. This example streams LLM-generated UI to an Expo app, where `<Renderer />` turns it into real native components — not a webview, not markdown, native `Text`, `View`, and SVG charts. The stack is an Expo app paired with a Next.js backend that handles the OpenAI call.
+
+[View source on GitHub →](https://github.com/thesysdev/crayon/tree/main/examples/openui-react-native)
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl p-2">
+  <video
+    src="/videos/react-native-demo.mp4"
+    noControls
+    playsInline
+    muted
+    preload="metadata"
+    className="h-[600px] rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
+## What changes on native
+
+Three things differ from a web OpenUI Lang integration:
+
+### 1. Native primitives only
+
+There is no DOM, no HTML, no CSS. Components use `Text`, `View`, `StyleSheet` from `react-native`, and `react-native-svg` for charts:
+
+```tsx
+component: ({ props }) => (
+  <RNText style={styles.textBody}>{props.content}</RNText>
+)
+```
+
+### 2. Two mirror libraries
+
+`@openuidev/cli` runs in Node.js to generate the system prompt, but it can't import React Native. This will be fixed in future versions of the CLI. The solution is two files with identical schemas — one with real renderers for the app, one with null renderers for the backend:
+
+| File | Purpose |
+| ---- | ------- |
+| `chat-app/library.tsx` | Real React Native renderers — what runs on device |
+| `backend/src/library.ts` | Null renderers (`() => null`) — used only to generate `system-prompt.txt` |
+
+Keep these in sync: same component names, same prop schemas, same root component.
+
+## Architecture
+
+```
+Expo app -- POST /api/chat --> Next.js backend --> OpenAI
+         <-- text/plain stream --                  (OpenUI Lang)
+```
+
+The backend loads a pre-generated `system-prompt.txt`, forwards the conversation to OpenAI with streaming enabled, and returns raw `text/plain` chunks. The Expo app accumulates those chunks and passes the growing string into `<Renderer />`, which progressively parses and renders native UI as the response arrives.
+
+## Project layout
+
+```
+examples/openui-react-native/
+|- backend/    # Next.js API that talks to OpenAI
+\- chat-app/   # Expo app that renders streamed OpenUI Lang
+```
+
+## Run the example
+
+Run these commands from `examples/openui-react-native`.
+
+1. Install dependencies:
+
+```bash
+cd examples/openui-react-native
+pnpm install
+```
+
+2. Configure the backend:
+
+```bash
+cp backend/env.example backend/.env.local
+```
+
+Then add your OpenAI key to `backend/.env.local`:
+
+```bash
+OPENAI_API_KEY=sk-...
+```
+
+3. Generate the prompt file used by the backend:
+
+```bash
+pnpm generate:prompt
+```
+
+This generates `backend/src/system-prompt.txt` from `backend/src/library.ts`. Re-run it any time you change component names, schemas, descriptions, or prompt rules.
+
+4. Start the Next.js backend:
+
+```bash
+pnpm dev:backend
+```
+
+5. Start the Expo app in a second terminal:
+
+```bash
+pnpm dev:mobile
+```
+
+By default, `chat-app/metro.config.js` auto-detects your local IP address and sets `EXPO_PUBLIC_BACKEND_URL` to `http://<your-ip>:3000/api/chat`. If you need to point the app somewhere else, set `EXPO_PUBLIC_BACKEND_URL` yourself before starting Expo.
+
+If you are testing on a physical device, make sure the phone and your development machine are on the same network.

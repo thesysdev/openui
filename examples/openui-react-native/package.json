@@ -1,0 +1,14 @@
+{
+  "name": "chat-app",
+  "private": true,
+  "scripts": {
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:mobile": "pnpm --filter react-native-openui start",
+    "generate:prompt": "pnpm --filter backend generate:prompt",
+    "lint": "eslint",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./*",
+    "format:check": "prettier --check ./*"
+  }
+}

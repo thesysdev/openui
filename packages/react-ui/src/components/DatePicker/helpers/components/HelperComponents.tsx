@@ -11,7 +11,6 @@ import {
   useState,
 } from "react";
 import { ClassNames, CustomComponents, DropdownOption } from "react-day-picker";
-import "react-day-picker/style.css";
 import { IconButton } from "../../../IconButton";
 import { Select, SelectItem, SelectTrigger, SelectValue } from "../../../Select";
 import { useTheme } from "../../../ThemeProvider";

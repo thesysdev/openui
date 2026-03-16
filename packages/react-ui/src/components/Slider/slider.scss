@@ -1,5 +1,7 @@
 @use "../../cssUtils" as cssUtils;
 
+// ─── Base Slider ────────────────────────────────────────────────────────────
+
 .openui-slider {
   &-wrapper {
     display: flex;
@@ -67,6 +69,7 @@
 
   &-thumb {
     outline: none;
+
     &-handle {
       display: block;
       width: 20px;
@@ -104,17 +107,15 @@
       position: absolute;
       top: -35px;
       left: 50%;
-      border-radius: cssUtils.$radius-2xs;
       transform: translateX(-50%);
       background-color: cssUtils.$foreground;
       color: cssUtils.$text-neutral-primary;
       padding: cssUtils.$space-2xs;
       border-radius: cssUtils.$radius-s;
-      box-shadow: cssUtils.$shadow-m;
+      box-shadow: cssUtils.$shadow-s;
       opacity: 0;
       transition: opacity 0.2s;
       border: 1px solid cssUtils.$border-interactive;
-      box-shadow: cssUtils.$shadow-s;
 
       .openui-slider-thumb-handle:hover &,
       .openui-slider-thumb-handle:focus & {
@@ -155,5 +156,110 @@
   &--disabled {
     opacity: 0.5;
     pointer-events: none;
+  }
+}
+
+// ─── Slider Block ───────────────────────────────────────────────────────────
+
+.openui-slider-block {
+  width: 100%;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: calc(cssUtils.$space-s + cssUtils.$space-xs);
+
+    &--with-error {
+      align-items: flex-start;
+      margin-bottom: cssUtils.$space-s;
+    }
+  }
+
+  &__label {
+    @include cssUtils.typography(label, default);
+    color: cssUtils.$text-neutral-primary;
+    padding-top: cssUtils.$space-xs;
+  }
+
+  &__controls {
+    display: flex;
+    gap: cssUtils.$space-xs;
+    position: relative;
+    flex-direction: column;
+    align-items: flex-end;
+
+    input,
+    button {
+      height: 36px;
+    }
+
+    &.is-range {
+      .openui-slider-block__validated-input input {
+        width: 64px;
+      }
+
+      button {
+        width: 80px;
+      }
+    }
+
+    &.is-single {
+      .openui-slider-block__validated-input input {
+        width: 80px;
+      }
+
+      button {
+        width: 100px;
+      }
+    }
+  }
+
+  &__content {
+    display: flex;
+    align-items: center;
+  }
+
+  &__validated-input-container {
+    display: flex;
+    gap: cssUtils.$space-xs;
+    align-items: center;
+  }
+
+  &__validated-select-container {
+    display: flex;
+    align-items: center;
+    gap: cssUtils.$space-xs;
+  }
+
+  &__validated-input {
+    position: relative;
+
+    .openui-slider-block__input-error {
+      border-color: cssUtils.$border-danger-emphasis !important;
+    }
+  }
+
+  &__input {
+    text-align: right !important;
+    padding-left: cssUtils.$space-s !important;
+    padding-right: cssUtils.$space-s !important;
+  }
+
+  &__error-message {
+    display: flex;
+    gap: cssUtils.$space-2xs;
+    align-items: center;
+    @include cssUtils.typography(label, small);
+    color: cssUtils.$text-danger-primary;
+    white-space: nowrap;
+    padding-right: cssUtils.$space-2xs;
+  }
+
+  &__separator {
+    width: 8px;
+    height: 2px;
+    background-color: cssUtils.$text-neutral-secondary;
+    flex-shrink: 0;
   }
 }

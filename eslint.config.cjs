@@ -8,7 +8,7 @@ const reactHooks = require("eslint-plugin-react-hooks");
 
 module.exports = [
   {
-    ignores: ["**/src/templates/**"],
+    ignores: ["**/src/templates/**", "**/.storybook/**"],
   },
   {
     files: ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],

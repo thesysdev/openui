@@ -91,9 +91,10 @@ export const processStreamedMessage = async ({
         }
         break;
 
-      case EventType.RUN_ERROR:
-        console.error("Stream error:", (event as any).error);
-        break;
+      case EventType.RUN_ERROR: {
+        const msg = (event as any).message || (event as any).error || "Stream error";
+        throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+      }
     }
 
     if (isFirst) {

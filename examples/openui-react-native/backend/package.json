@@ -1,0 +1,25 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "generate:prompt": "npx @openuidev/cli generate ./src/library.ts --out ./src/system-prompt.txt"
+  },
+  "dependencies": {
+    "next": "^15.2.3",
+    "openai": "^4.90.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@openuidev/react-lang": "^0.1.3",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5",
+    "zod": "^4.0.0"
+  }
+}
