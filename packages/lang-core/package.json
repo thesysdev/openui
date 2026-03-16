@@ -1,0 +1,39 @@
+{
+  "name": "@openuidev/lang-core",
+  "version": "0.1.0",
+  "description": "Framework-agnostic core for OpenUI Lang: parser, prompt generation, validation, and type definitions",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "README.md"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./src",
+    "format:check": "prettier --check ./src",
+    "prepare": "pnpm run build",
+    "ci": "pnpm run lint:check && pnpm run format:check"
+  },
+  "dependencies": {
+    "zod": "^4.0.0"
+  },
+  "keywords": ["openui", "openui-lang", "parser", "prompt-generation", "validation", "zod", "llm", "generative-ui", "framework-agnostic"],
+  "homepage": "https://openui.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "packages/lang-core"
+  },
+  "bugs": { "url": "https://github.com/thesysdev/openui/issues" },
+  "author": "engineering@thesys.dev"
+}
