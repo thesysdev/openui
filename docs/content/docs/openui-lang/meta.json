@@ -14,6 +14,7 @@
     "specification",
     "benchmarks",
     "---Examples---",
+    "examples/vercel-ai-chat",
     "examples/react-native",
     "examples/shadcn-chat"
   ]

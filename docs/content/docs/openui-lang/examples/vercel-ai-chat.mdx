@@ -1,0 +1,479 @@
+---
+title: Vercel AI Chat
+description: A full-featured chatbot using the Vercel AI SDK for streaming and tool execution, with OpenUI Renderer for generative UI.
+---
+
+This example pairs the [Vercel AI SDK](https://ai-sdk.dev/) (`ai`, `@ai-sdk/react`, `@ai-sdk/openai`) with OpenUI's `<Renderer />` to build a chat application where the LLM streams richly structured UI — not just plain text — using the built-in `openuiChatLibrary`. It includes multi-step tool calling, conversation threading with localStorage persistence, and automatic light/dark theme support.
+
+[View source on GitHub →](https://github.com/thesysdev/crayon/tree/main/examples/vercel-ai-chat)
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl h-[500px] flex p-2">
+  <video
+    src="/videos/vercel-ai-chat.mp4"
+    noControls
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
+## How Vercel AI SDK and OpenUI work together
+
+The Vercel AI SDK handles the transport layer — streaming chat completions, managing message state, executing tools — while OpenUI handles the presentation layer — parsing the LLM's structured output and rendering it as interactive React components.
+
+### Backend: `streamText` + tools
+
+The API route uses `streamText` from the AI SDK to call OpenAI with a system prompt generated from the OpenUI component library. Tool definitions use the AI SDK's `tool()` helper with Zod schemas:
+
+```tsx
+import { streamText, convertToModelMessages, stepCountIs } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { tools } from "@/lib/tools";
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+  const modelMessages = await convertToModelMessages(messages);
+
+  const result = streamText({
+    model: openai("gpt-5.4"),
+    system: systemPrompt,
+    messages: modelMessages,
+    tools,
+    stopWhen: stepCountIs(5),
+  });
+
+  return result.toUIMessageStreamResponse();
+}
+```
+
+`convertToModelMessages` bridges the client's `UIMessage` format to the server's `ModelMessage` format. `toUIMessageStreamResponse` streams the result back in a format that `useChat` on the client understands.
+
+### Frontend: `useChat` + `<Renderer />`
+
+On the client, `useChat` from `@ai-sdk/react` manages the conversation state and streaming. Each assistant message is passed to OpenUI's `<Renderer />`, which progressively renders the LLM's structured output as real UI components:
+
+```tsx
+import { useChat } from "@ai-sdk/react";
+import { Renderer } from "@openuidev/react-lang";
+import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
+
+// In the page component:
+const { messages, sendMessage, status, stop } = useChat({
+  id: activeThreadId,
+});
+
+// In the assistant message component:
+<Renderer
+  response={textContent}
+  library={openuiChatLibrary}
+  isStreaming={isStreaming}
+  onAction={handleAction}
+/>
+```
+
+The `openuiChatLibrary` maps OpenUI Lang nodes to the built-in component set (cards, tables, charts, forms, etc.). The `onAction` handler captures interactive events like button clicks and feeds them back into the conversation.
+
+## Tool calling
+
+The example includes four mock tools that the LLM can invoke mid-conversation:
+
+| Tool | Description |
+| ---- | ----------- |
+| `get_weather` | Returns temperature, conditions, and a two-day forecast for a city |
+| `get_stock_price` | Returns price, change, and volume for a ticker symbol |
+| `calculate` | Evaluates a math expression |
+| `search_web` | Returns mock search results for a query |
+
+Tools are defined with `tool()` from the AI SDK and use `inputSchema` (Zod) for type-safe parameter validation. The AI SDK handles multi-step execution automatically — when the LLM calls a tool, the result is fed back and the model continues generating UI with the data.
+
+## Conversation threads
+
+Chat history is persisted to `localStorage` via a sidebar. Each thread stores its full message array, title (derived from the first user message), and timestamps. The `useThreads` hook manages thread CRUD, and `useChat` is scoped to the active thread via its `id` prop.
+
+Threads are grouped by date in the sidebar (Today, Yesterday, Last 7 days, Older) and can be created, switched, or deleted.
+
+## Components
+
+The chat UI is split into small, focused components. Here's what each one does and how they connect.
+
+### `Page` — orchestrator
+
+`src/app/page.tsx` is the root client component. It wires everything together:
+
+- Calls `useThreads()` for sidebar/thread state and `useChat()` for AI conversation state.
+- Derives `isLoading` from `status` (`"submitted"` or `"streaming"`).
+- Auto-saves messages to `localStorage` whenever they change.
+- Renders the `Sidebar`, `ChatHeader`, message list, and `ChatInput` in a responsive layout that shifts when the sidebar opens.
+
+```tsx
+const {
+  threads, activeThreadId, activeThread,
+  sidebarOpen, setSidebarOpen,
+  persistMessages, createThread, switchThread, deleteThread,
+} = useThreads();
+
+const { messages, sendMessage, status, stop } = useChat({
+  id: activeThreadId,
+  messages: activeThread?.messages,
+});
+
+const isLoading = status === "submitted" || status === "streaming";
+
+useEffect(() => {
+  if (messages.length > 0) persistMessages(messages);
+}, [messages, persistMessages]);
+```
+
+The `id` prop scopes `useChat` to the active thread, and `messages` hydrates it with saved history when switching threads.
+
+### `AssistantMessage` — the OpenUI bridge
+
+`src/components/assistant-message.tsx` is where the Vercel AI SDK meets OpenUI. It receives a `UIMessage` from `useChat`, extracts text and tool parts from `message.parts`, and passes the text content into the `<Renderer />`:
+
+```tsx
+export function AssistantMessage({ message, isStreaming, onSend }: AssistantMessageProps) {
+  const textContent = message.parts
+    .filter((p): p is { type: "text"; text: string } => p.type === "text")
+    .map((p) => p.text)
+    .join("");
+
+  const toolParts = message.parts.filter(isToolPart);
+
+  const handleAction = (event: ActionEvent) => {
+    if (event.type === BuiltinActionType.ContinueConversation && event.humanFriendlyMessage) {
+      onSend(event.humanFriendlyMessage);
+    }
+  };
+
+  return (
+    <div className="flex gap-3 max-w-3xl">
+      {/* Bot avatar */}
+      <div className="flex-1 min-w-0 space-y-2">
+        {toolParts.map((tp) => (
+          <ToolCallIndicator key={tp.toolCallId} name={getToolName(tp)} isDone={...} />
+        ))}
+        {textContent && (
+          <Renderer
+            response={textContent}
+            library={openuiChatLibrary}
+            isStreaming={isStreaming}
+            onAction={handleAction}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+- **`response`** — the raw text from the LLM, which contains OpenUI Lang markup.
+- **`library`** — `openuiChatLibrary` maps that markup to the built-in React component set.
+- **`isStreaming`** — tells the renderer to expect more tokens.
+- **`onAction`** — captures interactive events (e.g. a `ContinueConversation` button click) and feeds them back into `sendMessage`.
+
+Tool call parts are rendered above the text as `ToolCallIndicator` pills.
+
+### `UserMessage`
+
+`src/components/user-message.tsx` renders user messages as right-aligned dark bubbles. It extracts text from `message.parts` (the AI SDK v6 `UIMessage` format) via a helper that filters for `type: "text"` parts.
+
+```tsx
+function extractText(message: UIMessage): string {
+  return message.parts
+    .filter((p): p is { type: "text"; text: string } => p.type === "text")
+    .map((p) => p.text)
+    .join("");
+}
+
+export function UserMessage({ message }: { message: UIMessage }) {
+  const text = extractText(message);
+  return (
+    <div className="flex gap-3 max-w-3xl justify-end ml-auto">
+      <div className="px-4 py-2.5 rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm">
+        {text}
+      </div>
+      {/* User avatar */}
+    </div>
+  );
+}
+```
+
+### `ChatInput`
+
+`src/components/chat-input.tsx` is a controlled textarea with auto-resize. It handles Enter-to-send (with Shift+Enter for newlines), IME composition awareness, and swaps between a send button and a stop button based on `isLoading`.
+
+```tsx
+export function ChatInput({ input, isLoading, onInputChange, onSend, onStop }: ChatInputProps) {
+  const [composing, setComposing] = useState(false);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey && !composing) {
+      e.preventDefault();
+      onSend(input);
+    }
+  };
+
+  return (
+    <div className="shrink-0 border-t border-zinc-200 dark:border-zinc-800 px-4 py-3">
+      <form onSubmit={(e) => { e.preventDefault(); onSend(input); }}>
+        <textarea
+          value={input}
+          onChange={(e) => onInputChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onCompositionStart={() => setComposing(true)}
+          onCompositionEnd={() => setComposing(false)}
+          placeholder="Send a message…"
+        />
+        {isLoading ? (
+          <button type="button" onClick={onStop}><Square size={16} /></button>
+        ) : (
+          <button type="submit" disabled={!input.trim()}><SendHorizonal size={16} /></button>
+        )}
+      </form>
+    </div>
+  );
+}
+```
+
+### `ChatHeader`
+
+`src/components/chat-header.tsx` renders the top bar with the app title, a gradient icon, and the `SidebarToggle` button.
+
+```tsx
+export function ChatHeader({ isSidebarOpen, onToggleSidebar }: ChatHeaderProps) {
+  return (
+    <header className="shrink-0 border-b border-zinc-200 dark:border-zinc-800 px-4 py-3">
+      <div className="flex items-center gap-2">
+        <SidebarToggle isOpen={isSidebarOpen} onToggle={onToggleSidebar} />
+        {/* Gradient icon */}
+        <h1>Vercel AI Chat</h1>
+        <span>Vercel AI SDK + OpenUI Renderer</span>
+      </div>
+    </header>
+  );
+}
+```
+
+### `ConversationStarters`
+
+`src/components/conversation-starters.tsx` displays a welcome screen with four preset prompts (weather, stocks, contact form, data table) when the conversation is empty. Clicking one fires the full prompt text into `sendMessage`.
+
+```tsx
+const STARTERS = [
+  { displayText: "Weather in Tokyo", prompt: "What's the weather like in Tokyo right now?" },
+  { displayText: "AAPL stock price", prompt: "What's the current Apple stock price?" },
+  { displayText: "Contact form", prompt: "Build me a contact form with name, email, topic, and message fields." },
+  { displayText: "Data table", prompt: "Show me a table of the top 5 programming languages by popularity." },
+];
+
+export function ConversationStarters({ onSelect }: { onSelect: (prompt: string) => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-full px-4">
+      <h2>What can I help you with?</h2>
+      <div className="grid grid-cols-2 gap-2 w-full max-w-md">
+        {STARTERS.map((s) => (
+          <button key={s.prompt} onClick={() => onSelect(s.prompt)}>{s.displayText}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+### `ThinkingIndicator`
+
+`src/components/thinking-indicator.tsx` shows a spinning loader with "Thinking..." next to the bot avatar. It appears when the last message is from the user and the model hasn't started streaming yet.
+
+```tsx
+export function ThinkingIndicator() {
+  return (
+    <div className="flex gap-3 max-w-3xl">
+      {/* Bot avatar */}
+      <div className="flex items-center gap-2 text-sm text-zinc-400">
+        <Loader2 size={14} className="animate-spin" />
+        Thinking…
+      </div>
+    </div>
+  );
+}
+```
+
+### `ToolCallIndicator`
+
+`src/components/tool-call-indicator.tsx` renders a small status pill for each tool call. It shows a spinner while the tool is executing and a green checkmark when the result is available.
+
+```tsx
+export function ToolCallIndicator({ name, isDone }: { name: string; isDone: boolean }) {
+  const label = name.replace(/_/g, " ");
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg bg-zinc-100 dark:bg-zinc-800 w-fit">
+      {isDone ? <CheckCircle2 size={14} className="text-emerald-500" /> : <Loader2 size={14} className="animate-spin" />}
+      <Wrench size={12} />
+      <span className="capitalize">{label}</span>
+    </div>
+  );
+}
+```
+
+### `Sidebar` and `SidebarToggle`
+
+`src/components/sidebar.tsx` is a fixed-position panel that lists all conversation threads grouped by date (Today, Yesterday, Last 7 days, Older). Each thread shows its title, relative time, and a delete button on hover. On mobile it overlays with a backdrop; on desktop the main content margin shifts to accommodate it.
+
+```tsx
+export function Sidebar({ threads, activeThreadId, isOpen, onNewChat, onSelectThread, onDeleteThread, onClose }: SidebarProps) {
+  const groups = groupByDate(threads);
+  return (
+    <>
+      {isOpen && <div className="fixed inset-0 z-40 bg-black/30 md:hidden" onClick={onClose} />}
+      <aside className={`fixed z-50 top-0 left-0 h-full w-[280px] ... ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <button onClick={() => { onNewChat(); onClose(); }}>
+          <Plus size={16} /> New Chat
+        </button>
+        {groups.map((group) => (
+          <div key={group.label}>
+            <h3>{group.label}</h3>
+            {group.threads.map((thread) => (
+              <div key={thread.id} onClick={() => { onSelectThread(thread.id); onClose(); }}>
+                <p>{thread.title}</p>
+                <button onClick={(e) => { e.stopPropagation(); onDeleteThread(thread.id); }}>
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ))}
+      </aside>
+    </>
+  );
+}
+```
+
+`src/components/sidebar-toggle.tsx` is the button in the header that opens/closes the sidebar, switching between a panel icon and an X.
+
+```tsx
+export function SidebarToggle({ isOpen, onToggle }: SidebarToggleProps) {
+  return (
+    <button onClick={onToggle} aria-label={isOpen ? "Close sidebar" : "Open sidebar"}>
+      {isOpen ? <X size={18} /> : <PanelLeft size={18} />}
+    </button>
+  );
+}
+```
+
+### `ThemeProvider` and `useTheme`
+
+`src/hooks/use-system-theme.tsx` detects the OS light/dark preference, applies Tailwind's `dark` class to `<html>`, and wraps children in OpenUI's `<ThemeProvider mode={mode}>` so that rendered components pick up the correct color tokens. The `useTheme` hook exposes the current mode to any component that needs it.
+
+```tsx
+import { ThemeProvider as OpenUIThemeProvider } from "@openuidev/react-ui";
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [mode, setMode] = useState<ThemeMode>(getSystemMode);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e: MediaQueryListEvent) => setMode(e.matches ? "dark" : "light");
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", mode === "dark");
+  }, [mode]);
+
+  return (
+    <ThemeContext.Provider value={{ mode }}>
+      <OpenUIThemeProvider mode={mode}>{children}</OpenUIThemeProvider>
+    </ThemeContext.Provider>
+  );
+}
+```
+
+Wrapping with `OpenUIThemeProvider` is what injects the CSS custom properties that OpenUI's built-in components need for correct light/dark rendering.
+
+### `useThreads`
+
+`src/hooks/use-threads.ts` manages conversation threads backed by `localStorage`. It exposes `threads`, `activeThreadId`, sidebar state, and CRUD callbacks (`persistMessages`, `createThread`, `switchThread`, `deleteThread`). The `thread-store.ts` module under `src/lib/` handles the raw read/write/delete operations against `localStorage`.
+
+```tsx
+export function useThreads() {
+  const [threads, setThreads] = useState<Thread[]>(() => getThreads());
+  const [activeThreadId, setActiveThreadId] = useState<string>(() => generateId());
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const persistMessages = useCallback((messages: UIMessage[]) => {
+    if (messages.length === 0) return;
+    const existing = getThread(activeThreadId);
+    saveThread({
+      id: activeThreadId,
+      title: titleFromMessages(messages),
+      messages,
+      createdAt: existing?.createdAt ?? Date.now(),
+      updatedAt: Date.now(),
+    });
+    refreshThreads();
+  }, [activeThreadId]);
+
+  const createThread = useCallback(() => setActiveThreadId(generateId()), []);
+  const switchThread = useCallback((id: string) => setActiveThreadId(id), []);
+  const deleteThread = useCallback((id: string) => {
+    removeThread(id);
+    refreshThreads();
+    if (id === activeThreadId) setActiveThreadId(generateId());
+  }, [activeThreadId]);
+
+  return { threads, activeThreadId, activeThread, sidebarOpen, setSidebarOpen, persistMessages, createThread, switchThread, deleteThread };
+}
+```
+
+## Architecture
+
+```
+Browser (useChat) -- POST /api/chat --> Next.js API route --> OpenAI
+                  <-- UIMessage stream --                     (OpenUI Lang + tool results)
+```
+
+1. The client sends the conversation via `useChat` to `/api/chat`.
+2. The API route converts messages to model format, calls OpenAI with `streamText`, the system prompt, and tool definitions.
+3. When the LLM invokes a tool, the AI SDK executes it server-side and feeds the result back (up to 5 steps).
+4. The response streams back as `UIMessage` events.
+5. On the client, `<Renderer />` with `openuiChatLibrary` progressively renders each token into interactive UI components.
+
+## Project layout
+
+```
+examples/vercel-ai-chat/
+├─ src/app/                  # Next.js app (layout, page, API route)
+├─ src/components/           # Chat UI components (messages, input, sidebar)
+├─ src/hooks/                # Theme detection, thread management
+├─ src/lib/                  # Tool definitions, localStorage thread store
+├─ src/generated/            # Generated system prompt
+```
+
+## Run the example
+
+Run these commands from the repository root.
+
+1. Install dependencies:
+
+```bash
+pnpm install
+```
+
+2. Create a `.env.local` file in `examples/vercel-ai-chat/` with your API key:
+
+```bash
+OPENAI_API_KEY=sk-...
+```
+
+3. Start the dev server:
+
+```bash
+cd examples/vercel-ai-chat
+pnpm dev
+```
+
+This generates the system prompt from the OpenUI component library and starts the Next.js dev server.
