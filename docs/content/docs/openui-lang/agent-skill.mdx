@@ -1,0 +1,48 @@
+---
+title: Agent Skill
+description: Install the OpenUI agent skill to get AI-assisted help with component design, OpenUI Lang, and debugging across Claude Code, Cursor, Copilot, and more.
+---
+
+OpenUI ships an [Agent Skill](https://agentskills.io) that teaches AI coding assistants how to build Generative UI apps with OpenUI Lang. Once installed, your AI assistant can scaffold projects, define components, generate system prompts, wire up the `Renderer`, and debug malformed LLM output.
+
+Works with Claude Code, Cursor, GitHub Copilot, Codex, and any agent that supports the [agentskills.io](https://agentskills.io) standard.
+
+## Install
+
+### Via the skills CLI (recommended)
+
+The skills CLI works across all supported agents:
+
+```bash
+npx skills add thesysdev/openui --skill openui
+```
+
+### Manual copy
+
+If you already have the OpenUI repo cloned:
+
+```bash
+mkdir -p .claude/skills
+cp -r /path/to/openui/skills/openui .claude/skills/openui
+```
+
+## What the skill covers
+
+| Area               | Details                                                                       |
+| :----------------- | :---------------------------------------------------------------------------- |
+| Component design   | `defineComponent`, `createLibrary`, `.ref` composition, schema ordering       |
+| OpenUI Lang syntax | Expression types, positional args, forward references, streaming rules        |
+| System prompts     | `library.prompt()`, `preamble`, `additionalRules`, `examples`, CLI generation |
+| Rendering          | `<Renderer />`, progressive rendering, `onAction`, `onParseResult`            |
+| SDK packages       | `react-lang`, `react-headless`, `react-ui` — when to use each                 |
+| Debugging          | Diagnosing malformed output, validation errors, unresolved forward refs       |
+
+### Example prompts
+
+Once installed, you can ask your AI assistant things like:
+
+- _"Scaffold a new OpenUI app with a hotel search component library"_
+- _"The LLM is generating `root = Stack(...)` but the Renderer isn't showing anything — what's wrong?"_
+- _"What's the difference between `openuiLibrary` and `openuiChatLibrary`?"_
+- _"Write a `PricingTable` component with a flat Zod schema and positional args"_
+- _"Generate a system prompt from my library and explain the `additionalRules` option"_
