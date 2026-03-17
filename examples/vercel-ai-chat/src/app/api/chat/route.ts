@@ -1,8 +1,8 @@
+import { tools } from "@/lib/tools";
+import { openai } from "@ai-sdk/openai";
+import { convertToModelMessages, stepCountIs, streamText } from "ai";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { streamText, convertToModelMessages, stepCountIs } from "ai";
-import { openai } from "@ai-sdk/openai";
-import { tools } from "@/lib/tools";
 
 const systemPrompt = readFileSync(join(process.cwd(), "src/generated/system-prompt.txt"), "utf-8");
 
