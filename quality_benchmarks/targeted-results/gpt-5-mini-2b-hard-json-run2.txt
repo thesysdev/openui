@@ -1,0 +1,190 @@
+{
+  "steps": [
+    {
+      "id": "s1_fetch_projects",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "extract": "$.projects"
+    },
+    {
+      "id": "s2_filter_active",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "dependsOn": [
+        "s1_fetch_projects"
+      ],
+      "condition": "$.projects != null",
+      "extract": "$.projects[?(@.status=='active')]"
+    },
+    {
+      "id": "s3_for_each_active_project",
+      "method": "GET",
+      "endpoint": "/api/projects/{project_id}",
+      "forEach": "s2_filter_active",
+      "dependsOn": [
+        "s2_filter_active"
+      ],
+      "extract": "$"
+    },
+    {
+      "id": "s4_fetch_project_teams",
+      "method": "GET",
+      "endpoint": "/api/teams/{team_id}",
+      "forEach": "s2_filter_active[*].team_ids",
+      "dependsOn": [
+        "s2_filter_active"
+      ],
+      "extract": "$"
+    },
+    {
+      "id": "s5_fetch_time_entries",
+      "method": "GET",
+      "endpoint": "/api/projects/{id}/time-entries",
+      "queryParams": {
+        "start_date": "2025-10-01",
+        "end_date": "2025-12-31"
+      },
+      "forEach": "s2_filter_active[*].id",
+      "dependsOn": [
+        "s2_filter_active"
+      ],
+      "extract": "$.entries"
+    },
+    {
+      "id": "s6_fetch_project_risks",
+      "method": "GET",
+      "endpoint": "/api/projects/{id}/risks",
+      "forEach": "s2_filter_active[*].id",
+      "dependsOn": [
+        "s2_filter_active"
+      ],
+      "extract": "$.risks"
+    },
+    {
+      "id": "s7_aggregate_project_metrics",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "dependsOn": [
+        "s2_filter_active",
+        "s4_fetch_project_teams",
+        "s5_fetch_time_entries",
+        "s6_fetch_project_risks"
+      ],
+      "extract": "compute_metrics(s2_filter_active, s5_fetch_time_entries, s6_fetch_project_risks)",
+      "condition": "true"
+    },
+    {
+      "id": "s8_fetch_contributor_rates",
+      "method": "GET",
+      "endpoint": "/api/users/{user_id}",
+      "forEach": "s7_aggregate_project_metrics[*].unique_contributor_ids",
+      "dependsOn": [
+        "s7_aggregate_project_metrics"
+      ],
+      "extract": "$"
+    },
+    {
+      "id": "s9_compute_budget_consumption",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "dependsOn": [
+        "s7_aggregate_project_metrics",
+        "s8_fetch_contributor_rates"
+      ],
+      "extract": "compute_budget_consumed_percent(s7_aggregate_project_metrics, s8_fetch_contributor_rates)"
+    },
+    {
+      "id": "s10_classify_projects",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "dependsOn": [
+        "s9_compute_budget_consumption"
+      ],
+      "extract": "classify_projects(s9_compute_budget_consumption)"
+    },
+    {
+      "id": "s11_fetch_owner_details",
+      "method": "GET",
+      "endpoint": "/api/users/{owner_id}",
+      "forEach": "s10_classify_projects[?(@.classification=='at-risk' || @.classification=='critical')].owner_id",
+      "dependsOn": [
+        "s10_classify_projects"
+      ],
+      "extract": "$"
+    },
+    {
+      "id": "s12_fetch_team_leads",
+      "method": "GET",
+      "endpoint": "/api/teams/{team_id}",
+      "forEach": "s10_classify_projects[?(@.classification=='at-risk' || @.classification=='critical')].team_ids[]",
+      "dependsOn": [
+        "s10_classify_projects"
+      ],
+      "extract": "$"
+    },
+    {
+      "id": "s13_fetch_team_lead_users",
+      "method": "GET",
+      "endpoint": "/api/users/{lead_id}",
+      "forEach": "s12_fetch_team_leads[*].lead_id",
+      "dependsOn": [
+        "s12_fetch_team_leads"
+      ],
+      "extract": "$"
+    },
+    {
+      "id": "s14_prepare_report_sections",
+      "method": "POST",
+      "endpoint": "/api/reports/generate",
+      "dependsOn": [
+        "s10_classify_projects",
+        "s11_fetch_owner_details",
+        "s13_fetch_team_lead_users"
+      ],
+      "body": {
+        "title": "Q4 2025 Project Health Report",
+        "sections": "build_sections(s10_classify_projects, s11_fetch_owner_details, s13_fetch_team_lead_users)",
+        "recipients": "collect_recipients(s11_fetch_owner_details, s13_fetch_team_lead_users)"
+      },
+      "extract": "$"
+    },
+    {
+      "id": "s15_send_slack_notification",
+      "method": "POST",
+      "endpoint": "/api/notifications/slack",
+      "dependsOn": [
+        "s14_prepare_report_sections"
+      ],
+      "body": {
+        "channel": "#project-health",
+        "message": "Q4 Project Health Report generated: {s14_prepare_report_sections.url}. {s14_prepare_report_sections.flagged_count} projects flagged."
+      },
+      "extract": "$"
+    },
+    {
+      "id": "s16_final_output",
+      "method": "GET",
+      "endpoint": "/api/reports/generate",
+      "dependsOn": [
+        "s14_prepare_report_sections",
+        "s15_send_slack_notification"
+      ],
+      "extract": "{" +
+        "\"report_id\": s14_prepare_report_sections.report_id," +
+        "\"report_url\": s14_prepare_report_sections.url," +
+        "\"flagged_project_count\": s14_prepare_report_sections.flagged_count," +
+        "\"flagged_projects\": s10_classify_projects[?(@.classification=='at-risk' || @.classification=='critical')].map(p => {" +
+          "project_name: p.name," +
+          "classification: p.classification," +
+          "owner_name: lookup(s11_fetch_owner_details, p.owner_id).name," +
+          "utilization_percent: p.utilization_percent," +
+          "budget_consumed_percent: p.budget_consumed_percent," +
+          "open_high_risks: p.open_high_risks" +
+        "})" +
+      "}"
+    }
+  ],
+  "output": {
+    "format": "{s14_prepare_report_sections.report_id, s14_prepare_report_sections.url, s14_prepare_report_sections.flagged_count, s10_classify_projects[?(@.classification=='at-risk' || @.classification=='critical')].{project_name:name, classification:classification, owner_name:owner_name, utilization_percent:utilization_percent, budget_consumed_percent:budget_consumed_percent, open_high_risks:open_high_risks}}"
+  }
+}

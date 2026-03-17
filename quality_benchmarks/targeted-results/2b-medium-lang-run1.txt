@@ -1,0 +1,6 @@
+usersStep = ApiCall("get_users", "GET", "/api/users", null, null, null, null, null, "$.users")
+purchasesStep = ApiCall("get_purchases", "GET", "/api/users/{id}/purchases", {"since": "2025-01-01", "min_amount": "500"}, null, ["get_users"], "$.get_users[?(@.active==true)]", null, "$.purchases")
+departmentsStep = ApiCall("get_department", "GET", "/api/departments/{department_id}", null, null, ["get_purchases"], "$.get_purchases[?(@.purchases.length>=3)]", null, "$")
+emailStep = ApiCall("send_email", "POST", "/api/notifications/email", null, {"to": "{email}", "subject": "Loyalty Reward — {$.get_department.name}", "body": "Hi {name}, you have made {$.get_purchases.purchases.length} qualifying purchases. You are eligible for our loyalty program."}, ["get_department"], "$.get_purchases[?(@.purchases.length>=3)]", null, "$.notification_id")
+output = WorkflowOutput("[].{user_name: $.get_purchases.name, email: $.get_purchases.email, department_name: $.get_department.name, purchase_count: $.get_purchases.purchases.length, notification_id: $.send_email}")
+root = Workflow([usersStep, purchasesStep, departmentsStep, emailStep], output)

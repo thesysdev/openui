@@ -4,41 +4,52 @@ import { chk, type FunctionalTestCase, type FunctionalTestSuite, type Verificati
 
 // ---- Schema ----
 
-const TransformStep = z.object({
-  operation: z.enum(["filter", "compute", "aggregate", "sort", "join"]),
-  params: z.object({
-    // filter
-    column: z.string().optional(),
-    operator: z.enum(["eq", "neq", "gt", "gte", "lt", "lte", "before", "after"]).optional(),
-    value: z.union([z.string(), z.number()]).optional(),
-    // compute
-    newColumn: z.string().optional(),
-    expression: z.string().optional().describe("JavaScript-like expression using column names as variables"),
-    conditions: z.array(
-      z.object({
-        when: z.string().describe("Boolean expression using column names"),
-        then: z.string().describe("Value expression using column names"),
-      })
-    ).optional(),
-    otherwise: z.string().optional().describe("Default value expression if no condition matches"),
-    // aggregate
-    groupBy: z.union([z.string(), z.array(z.string())]).optional().describe("Column(s) to group by — can be a single string or an array for composite grouping"),
-    metrics: z.array(
-      z.object({
-        name: z.string(),
-        function: z.enum(["count", "count_distinct", "sum", "avg", "min", "max", "argmax"]),
-        column: z.string().optional().describe("Column to aggregate; not needed for count"),
-        orderBy: z.string().optional().describe("For argmax: return the value of 'column' from the row with the max value of 'orderBy'"),
-        round: z.number().optional().describe("Decimal places to round to"),
-      })
-    ).optional(),
-    // sort
-    sortBy: z.string().optional(),
-    direction: z.enum(["asc", "desc"]).optional(),
-    // join
-    on: z.string().optional(),
-  }),
+const ConditionSchema = z.object({
+  when: z.string().describe("Boolean expression using column names"),
+  then: z.string().describe("Value expression using column names"),
 });
+
+const MetricSchema = z.object({
+  name: z.string(),
+  function: z.enum(["count", "count_distinct", "sum", "avg", "min", "max", "argmax"]),
+  column: z.string().optional().describe("Column to aggregate; not needed for count"),
+  orderBy: z.string().optional().describe("For argmax: return the value of 'column' from the row with the max value of 'orderBy'"),
+  round: z.number().optional().describe("Decimal places to round to"),
+});
+
+const FilterStep = z.object({
+  operation: z.literal("filter"),
+  column: z.string(),
+  operator: z.enum(["eq", "neq", "gt", "gte", "lt", "lte", "before", "after"]).describe("Use before/after for date columns, gte/lte for numeric columns"),
+  value: z.union([z.string(), z.number()]),
+});
+
+const ComputeStep = z.object({
+  operation: z.literal("compute"),
+  newColumn: z.string(),
+  expression: z.string().optional().describe("JavaScript-like expression using column names as variables"),
+  conditions: z.array(ConditionSchema).optional(),
+  otherwise: z.string().optional().describe("Default value expression if no condition matches"),
+});
+
+const AggregateStep = z.object({
+  operation: z.literal("aggregate"),
+  groupBy: z.string().describe("Column(s) to group by, comma-separated for multiple"),
+  metrics: z.array(MetricSchema),
+});
+
+const SortStep = z.object({
+  operation: z.literal("sort"),
+  sortBy: z.string(),
+  direction: z.enum(["asc", "desc"]),
+});
+
+const JoinStep = z.object({
+  operation: z.literal("join"),
+  on: z.string().describe("Column to join on"),
+});
+
+const TransformStep = z.union([FilterStep, ComputeStep, AggregateStep, SortStep, JoinStep]);
 
 const PipelineSchema = z.object({
   steps: z.array(TransformStep),
@@ -87,9 +98,11 @@ function executePipeline(
   let data: Record<string, unknown>[] = [...primaryData];
 
   for (const step of steps) {
-    const p = step.params;
+    // Support both flat shape (new) and nested params shape (old JSON schema)
+    const s = step as any;
+    const p = s.params ?? s;
 
-    if (step.operation === "join") {
+    if (s.operation === "join") {
       if (!secondaryData || !p.on) continue;
       const onCol = p.on;
       const lookup = new Map<unknown, Record<string, unknown>>();
@@ -103,7 +116,7 @@ function executePipeline(
         }
         return row;
       });
-    } else if (step.operation === "filter") {
+    } else if (s.operation === "filter") {
       const { column, operator, value } = p;
       if (!column || !operator) continue;
       data = data.filter((row) => {
@@ -114,7 +127,6 @@ function executePipeline(
         if (operator === "after") {
           return String(cell) > String(value);
         }
-        // Numeric comparison when both are numbers
         const numCell = Number(cell);
         const numVal = Number(value);
         if (!isNaN(numCell) && !isNaN(numVal) && value !== "") {
@@ -125,7 +137,6 @@ function executePipeline(
           if (operator === "lt") return numCell < numVal;
           if (operator === "lte") return numCell <= numVal;
         }
-        // String / loose equality
         if (operator === "eq") return String(cell) === String(value);
         if (operator === "neq") return String(cell) !== String(value);
         if (operator === "gt") return String(cell) > String(value);
@@ -134,7 +145,7 @@ function executePipeline(
         if (operator === "lte") return String(cell) <= String(value);
         return false;
       });
-    } else if (step.operation === "compute") {
+    } else if (s.operation === "compute") {
       const { newColumn, expression, conditions, otherwise } = p;
       if (!newColumn) continue;
       data = data.map((row) => {
@@ -157,14 +168,13 @@ function executePipeline(
         }
         return { ...row, [newColumn]: val };
       });
-    } else if (step.operation === "aggregate") {
+    } else if (s.operation === "aggregate") {
       const { groupBy, metrics } = p;
       if (!groupBy || !metrics) continue;
-      // Support composite groupBy (array or comma-separated string)
       const groupCols: string[] = Array.isArray(groupBy)
         ? groupBy
         : groupBy.includes(",")
-        ? groupBy.split(",").map((s) => s.trim())
+        ? groupBy.split(",").map((x: string) => x.trim())
         : [groupBy];
       const groups = new Map<string, Record<string, unknown>[]>();
       for (const row of data) {
@@ -182,7 +192,6 @@ function executePipeline(
           } else if (m.function === "count_distinct") {
             outRow[m.name] = new Set(rows.map((r) => r[m.column!])).size;
           } else if (m.function === "argmax") {
-            // Return value of m.column from the row with max value of m.orderBy
             const orderCol = m.orderBy ?? m.column!;
             const best = rows.reduce((best, r) => Number(r[orderCol]) > Number(best[orderCol]) ? r : best, rows[0]);
             outRow[m.name] = best[m.column!];
@@ -195,7 +204,6 @@ function executePipeline(
             } else if (m.function === "min") {
               result = Math.min(...rows.map((r) => Number(r[m.column!]) || 0));
             } else {
-              // max
               result = Math.max(...rows.map((r) => Number(r[m.column!]) || 0));
             }
             if (m.round !== undefined) result = parseFloat(result.toFixed(m.round));
@@ -204,7 +212,7 @@ function executePipeline(
         }
         data.push(outRow);
       }
-    } else if (step.operation === "sort") {
+    } else if (s.operation === "sort") {
       const { sortBy, direction } = p;
       if (!sortBy) continue;
       data = [...data].sort((a, b) => {
@@ -409,7 +417,7 @@ function verifyHardPipeline(parsed: unknown): VerificationResult {
 
 const ConditionModel = defineModel({
   name: "Condition",
-  description: "A conditional branch with a when expression and a then value expression",
+  description: "A conditional branch",
   schema: z.object({
     when: z.string().describe("Boolean expression using column names"),
     then: z.string().describe("Value expression using column names"),
@@ -418,7 +426,7 @@ const ConditionModel = defineModel({
 
 const MetricModel = defineModel({
   name: "Metric",
-  description: "An aggregation metric to compute",
+  description: "An aggregation metric",
   schema: z.object({
     name: z.string(),
     function: z.enum(["count", "count_distinct", "sum", "avg", "min", "max", "argmax"]),
@@ -428,39 +436,63 @@ const MetricModel = defineModel({
   }),
 });
 
-const TransformParamsModel = defineModel({
-  name: "TransformParams",
-  description: "Parameters for a transform step",
+const FilterStepModel = defineModel({
+  name: "FilterStep",
+  description: "Filter rows by a condition",
   schema: z.object({
-    column: z.string().optional(),
-    operator: z.enum(["eq", "neq", "gt", "gte", "lt", "lte", "before", "after"]).optional(),
-    value: z.union([z.string(), z.number()]).optional(),
-    newColumn: z.string().optional(),
-    expression: z.string().optional().describe("JavaScript-like expression using column names as variables"),
-    conditions: z.array(ConditionModel.ref).optional(),
-    otherwise: z.string().optional().describe("Default value expression if no condition matches"),
-    groupBy: z.string().optional().describe("Column(s) to group by"),
-    metrics: z.array(MetricModel.ref).optional(),
-    sortBy: z.string().optional(),
-    direction: z.enum(["asc", "desc"]).optional(),
-    on: z.string().optional(),
+    operation: z.literal("filter"),
+    column: z.string(),
+    operator: z.enum(["eq", "neq", "gt", "gte", "lt", "lte", "before", "after"]).describe("Use before/after for date columns, gte/lte for numeric columns"),
+    value: z.union([z.string(), z.number()]),
   }),
 });
 
-const TransformStepModel = defineModel({
-  name: "TransformStep",
-  description: "A single step in a data transformation pipeline",
+const ComputeStepModel = defineModel({
+  name: "ComputeStep",
+  description: "Compute a new column",
   schema: z.object({
-    operation: z.enum(["filter", "compute", "aggregate", "sort", "join"]),
-    params: TransformParamsModel.ref,
+    operation: z.literal("compute"),
+    newColumn: z.string(),
+    expression: z.string().optional().describe("JavaScript-like expression using column names as variables"),
+    conditions: z.array(ConditionModel.ref).optional(),
+    otherwise: z.string().optional().describe("Default value if no condition matches"),
+  }),
+});
+
+const AggregateStepModel = defineModel({
+  name: "AggregateStep",
+  description: "Group rows and compute aggregate metrics",
+  schema: z.object({
+    operation: z.literal("aggregate"),
+    groupBy: z.string().describe("Column(s) to group by, comma-separated for multiple"),
+    metrics: z.array(MetricModel.ref),
+  }),
+});
+
+const SortStepModel = defineModel({
+  name: "SortStep",
+  description: "Sort rows by a column",
+  schema: z.object({
+    operation: z.literal("sort"),
+    sortBy: z.string(),
+    direction: z.enum(["asc", "desc"]),
+  }),
+});
+
+const JoinStepModel = defineModel({
+  name: "JoinStep",
+  description: "Join with secondary dataset on a column",
+  schema: z.object({
+    operation: z.literal("join"),
+    on: z.string().describe("Column to join on"),
   }),
 });
 
 const PipelineModel = defineModel({
   name: "Pipeline",
-  description: "A data transformation pipeline with steps and output columns",
+  description: "A data transformation pipeline",
   schema: z.object({
-    steps: z.array(TransformStepModel.ref),
+    steps: z.array(z.union([FilterStepModel.ref, ComputeStepModel.ref, AggregateStepModel.ref, SortStepModel.ref, JoinStepModel.ref])),
     outputColumns: z.array(z.string()),
   }),
 });

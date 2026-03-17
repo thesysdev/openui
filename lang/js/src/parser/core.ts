@@ -573,7 +573,9 @@ export function parse(input: string, cat?: ParamMap, zodSchemas?: ZodSchemaMap):
     if (!firstId) firstId = s.id;
   }
 
-  return buildResult(syms, firstId, wasIncomplete, stmts.length, cat, zodSchemas);
+  // Prefer "root" identifier if it exists, regardless of statement order
+  const entryId = syms.has("root") ? "root" : firstId;
+  return buildResult(syms, entryId, wasIncomplete, stmts.length, cat, zodSchemas);
 }
 
 export function createStreamParser(cat?: ParamMap, zodSchemas?: ZodSchemaMap): StreamingParser {
@@ -633,7 +635,8 @@ export function createStreamParser(cat?: ParamMap, zodSchemas?: ZodSchemaMap): S
 
     if (!pendingText) {
       if (completedCount === 0) return emptyResult();
-      return buildResult(completedSyms, firstId, false, completedCount, cat, zodSchemas);
+      const entryId = completedSyms.has("root") ? "root" : firstId;
+      return buildResult(completedSyms, entryId, false, completedCount, cat, zodSchemas);
     }
 
     const { text: closed, wasIncomplete } = autoClose(pendingText);
@@ -641,14 +644,16 @@ export function createStreamParser(cat?: ParamMap, zodSchemas?: ZodSchemaMap): S
 
     if (!stmts.length) {
       if (completedCount === 0) return emptyResult(wasIncomplete);
-      return buildResult(completedSyms, firstId, wasIncomplete, completedCount, cat, zodSchemas);
+      const entryId = completedSyms.has("root") ? "root" : firstId;
+      return buildResult(completedSyms, entryId, wasIncomplete, completedCount, cat, zodSchemas);
     }
 
     const allSyms = new Map(completedSyms);
     for (const s of stmts) allSyms.set(s.id, parseTokens(s.tokens));
 
     const fid = firstId || stmts[0].id;
-    return buildResult(allSyms, fid, wasIncomplete, completedCount + stmts.length, cat, zodSchemas);
+    const entryId = allSyms.has("root") ? "root" : fid;
+    return buildResult(allSyms, entryId, wasIncomplete, completedCount + stmts.length, cat, zodSchemas);
   }
 
   function nullRootIfUnresolved(result: ParseResult): ParseResult {

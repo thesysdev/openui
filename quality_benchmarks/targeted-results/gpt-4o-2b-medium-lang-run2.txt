@@ -1,0 +1,9 @@
+```
+root = Workflow([a1, a2, a3, a4, a5], w6)
+a1 = ApiCall("fetch_users", "GET", "/api/users", null, null, null, null, null, "$.users[?(@.active == true)]")
+a2 = ApiCall("fetch_purchases", "GET", "/api/users/{id}/purchases", { "since": "2025-01-01", "min_amount": "500" }, null, ["fetch_users"], "$.id", null, "$.purchases[?(@.length >= 3)]")
+a3 = ApiCall("fetch_department", "GET", "/api/departments/{id}", null, null, ["fetch_purchases"], "$.department_id", null, "$.name")
+a4 = ApiCall("send_email", "POST", "/api/notifications/email", null, { "to": "$.email", "subject": "Loyalty Reward — {$.department_name}", "body": "Hi {$.name}, you have made {$.purchase_count} qualifying purchases. You are eligible for our loyalty program." }, ["fetch_department"], null, null, "$.notification_id")
+a5 = ApiCall("compile_summary", "GET", "compile_summary", null, null, ["send_email"], null, null, "{ 'user_name': $.name, 'email': $.email, 'department_name': $.department_name, 'purchase_count': $.purchase_count, 'notification_id': $.notification_id }")
+w6 = WorkflowOutput("$.compile_summary")
+```

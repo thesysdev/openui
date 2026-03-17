@@ -1,0 +1,110 @@
+{
+  "steps": [
+    {
+      "id": "fetch_projects",
+      "method": "GET",
+      "endpoint": "/api/projects"
+    },
+    {
+      "id": "filter_active_projects",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "dependsOn": ["fetch_projects"],
+      "extract": "$.projects[?(@.status=='active')]"
+    },
+    {
+      "id": "fetch_project_teams",
+      "method": "GET",
+      "endpoint": "/api/teams/{id}",
+      "forEach": "filter_active_projects[*].team_ids[]",
+      "extract": "$"
+    },
+    {
+      "id": "fetch_time_entries",
+      "method": "GET",
+      "endpoint": "/api/projects/{id}/time-entries",
+      "queryParams": {
+        "start_date": "2025-10-01",
+        "end_date": "2025-12-31"
+      },
+      "forEach": "filter_active_projects[*].id",
+      "extract": "$.entries"
+    },
+    {
+      "id": "fetch_project_risks",
+      "method": "GET",
+      "endpoint": "/api/projects/{id}/risks",
+      "forEach": "filter_active_projects[*].id",
+      "extract": "$.risks"
+    },
+    {
+      "id": "collect_unique_contributors",
+      "method": "GET",
+      "endpoint": "/api/users/{id}",
+      "forEach": "fetch_time_entries[*].user_id",
+      "extract": "$"
+    },
+    {
+      "id": "compute_project_metrics",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "dependsOn": [
+        "filter_active_projects",
+        "fetch_time_entries",
+        "fetch_project_risks",
+        "collect_unique_contributors"
+      ],
+      "extract": "$" 
+    },
+    {
+      "id": "classify_projects",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "dependsOn": ["compute_project_metrics"],
+      "extract": "$"
+    },
+    {
+      "id": "fetch_flagged_owners",
+      "method": "GET",
+      "endpoint": "/api/users/{id}",
+      "forEach": "classify_projects[?(@.classification=='at-risk'||@.classification=='critical')].owner_id",
+      "extract": "$"
+    },
+    {
+      "id": "fetch_flagged_team_leads",
+      "method": "GET",
+      "endpoint": "/api/users/{id}",
+      "forEach": "fetch_project_teams[?(@.id in classify_projects[?(@.classification=='at-risk'||@.classification=='critical')].team_ids)].lead_id",
+      "extract": "$"
+    },
+    {
+      "id": "generate_report",
+      "method": "POST",
+      "endpoint": "/api/reports/generate",
+      "body": {
+        "title": "Q4 2025 Project Health Report",
+        "sections": "${classify_projects[?(@.classification=='at-risk'||@.classification=='critical')].map(p => ({ heading: p.name, content: `Classification: ${p.classification}\nTotal Hours: ${p.total_hours}\nUtilization: ${p.utilization_percent}%\nOpen High Risks: ${p.open_high_risks}\nBudget Consumed: ${p.budget_consumed_percent}%\nOwner: ${fetch_flagged_owners[?(@.id==p.owner_id)].name}\nTeam Leads: ${fetch_flagged_team_leads[?(@.id in fetch_project_teams[?(@.id in p.team_ids)].lead_id)].map(l=>l.name).join(', ')}` }))}",
+        "recipients": "${[...new Set([ ...fetch_flagged_owners.map(o=>o.email), ...fetch_flagged_team_leads.map(l=>l.email) ])]}"
+      },
+      "dependsOn": [
+        "classify_projects",
+        "fetch_flagged_owners",
+        "fetch_flagged_team_leads"
+      ],
+      "extract": "$"
+    },
+    {
+      "id": "send_slack_notification",
+      "method": "POST",
+      "endpoint": "/api/notifications/slack",
+      "body": {
+        "channel": "#project-health",
+        "message": "Q4 Project Health Report generated: ${generate_report.url}. ${classify_projects.filter(p=>p.classification=='at-risk'||p.classification=='critical').length} projects flagged."
+      },
+      "dependsOn": ["generate_report"]
+    }
+  ],
+  "output": {
+    "format": "{ \"report_id\": generate_report.report_id, \"report_url\": generate_report.url, \"flagged_project_count\": classify_projects.filter(p=>p.classification=='at-risk'||p.classification=='critical').length, \"flagged_projects\": classify_projects.filter(p=>p.classification=='at-risk'||p.classification=='critical').map(p=>({ \"project_name\": p.name, \"classification\": p.classification, \"owner_name\": fetch_flagged_owners.find(o=>o.id==p.owner_id).name, \"utilization_percent\": p.utilization_percent, \"budget_consumed_percent\": p.budget_consumed_percent, \"open_high_risks\": p.open_high_risks })) }"
+  }
+}

@@ -1,0 +1,16 @@
+root = Workflow([getProjects, processActiveProjects, generateReport, sendSlack], finalOutput)
+getProjects = ApiCall("getProjects", "GET", "/api/projects", null, null, null, null, null, "$.projects")
+processActiveProjects = ApiCall("processActiveProjects", "POST", "/internal/process-projects", null, null, ["getProjects"], null, null, "$.processed") 
+// Note: /internal/process-projects is a logical placeholder step to represent orchestration logic:
+// It receives projects list from getProjects and performs filtering, per-project calls, calculations, classification,
+// owner/team lead fetches, and prepares payload for report generation and final output.
+// The orchestration details below reference the individual API calls that this logical step depends on.
+getTeams = ApiCall("getTeams", "GET", "/api/teams/{id}", null, null, ["getProjects"], "processActiveProjects.for_each_team_id", null, "$")
+getTimeEntries = ApiCall("getTimeEntries", "GET", "/api/projects/{id}/time-entries", {"start_date":"2025-10-01","end_date":"2025-12-31"}, null, ["getProjects"], "processActiveProjects.for_each_project_id", null, "$.entries")
+getRisks = ApiCall("getRisks", "GET", "/api/projects/{id}/risks", null, null, ["getProjects"], "processActiveProjects.for_each_project_id", null, "$.risks")
+getUser = ApiCall("getUser", "GET", "/api/users/{id}", null, null, ["processActiveProjects"], "processActiveProjects.for_each_user_id", null, "$")
+getProjectOwner = ApiCall("getProjectOwner", "GET", "/api/users/{id}", null, null, ["processActiveProjects"], "processActiveProjects.for_each_owner_id", null, "$")
+getTeamLead = ApiCall("getTeamLead", "GET", "/api/users/{id}", null, null, ["processActiveProjects"], "processActiveProjects.for_each_team_lead_id", null, "$")
+generateReport = ApiCall("generateReport", "POST", "/api/reports/generate", null, {"title":"Q4 2025 Project Health Report","sections":"processActiveProjects.report_sections","recipients":"processActiveProjects.report_recipients"}, ["processActiveProjects"], null, null, "$")
+sendSlack = ApiCall("sendSlack", "POST", "/api/notifications/slack", null, {"channel":"#project-health","message":"Q4 Project Health Report generated: {report_url}. {count} projects flagged."}, ["generateReport","processActiveProjects"], null, null, "$")
+finalOutput = WorkflowOutput("{\"report_id\": \"$.generateReport.report_id\", \"report_url\": \"$.generateReport.url\", \"flagged_project_count\": \"$.processActiveProjects.flagged_count\", \"flagged_projects\": \"$.processActiveProjects.flagged_summaries\"}")

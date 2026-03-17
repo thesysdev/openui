@@ -1,0 +1,43 @@
+```
+root = Pipeline([j1, f1, f2, c1, c2, c3, a1, f3, a2, s1], ["category", "regions_active", "combined_revenue", "combined_profit", "best_region", "best_region_revenue"])
+
+j1 = JoinStep("join", "product_id")
+
+f1 = FilterStep("filter", "order_date", "after", "2025-06-30")
+
+f2 = FilterStep("filter", "order_date", "before", "2026-01-01")
+
+f3 = FilterStep("filter", "order_count", "gte", 2)
+
+c1 = ComputeStep("compute", "revenue", "quantity * unit_price * (1 - discount_percent / 100)")
+
+c2 = ComputeStep("compute", "cost", "quantity * unit_cost")
+
+c3 = ComputeStep("compute", "profit", "revenue - cost")
+
+c4 = ComputeStep("compute", "margin_percent", "(profit / revenue) * 100", null, "0")
+
+a1 = AggregateStep("aggregate", "category,region", [m1, m2, m3, m4])
+
+a2 = AggregateStep("aggregate", "category", [m5, m6, m7, m8, m9])
+
+s1 = SortStep("sort", "combined_profit", "desc")
+
+m1 = Metric("order_count", "count")
+
+m2 = Metric("total_revenue", "sum", "revenue", null, 2)
+
+m3 = Metric("total_profit", "sum", "profit", null, 2)
+
+m4 = Metric("avg_margin", "avg", "margin_percent", null, 1)
+
+m5 = Metric("regions_active", "count_distinct", "region")
+
+m6 = Metric("combined_revenue", "sum", "total_revenue", null, 2)
+
+m7 = Metric("combined_profit", "sum", "total_profit", null, 2)
+
+m8 = Metric("best_region", "argmax", "total_revenue", "region")
+
+m9 = Metric("best_region_revenue", "argmax", "total_revenue", "total_revenue", 2)
+```

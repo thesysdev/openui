@@ -1,0 +1,8 @@
+root = Workflow([step_get_users, step_filter_active, step_for_each_active_fetch_purchases, step_filter_qualifying_users, step_fetch_department_for_each, step_send_notifications], output_summary)
+step_get_users = ApiCall("get_users", "GET", "/api/users", null, null, null, null, null, "$.users")
+step_filter_active = ApiCall("filter_active", "GET", "/api/users", null, null, ["get_users"], null, null, "$.users[?(@.active==true)]")
+step_for_each_active_fetch_purchases = ApiCall("fetch_purchases", "GET", "/api/users/{user_id}/purchases", {"since": "2025-01-01", "min_amount": "500"}, null, ["filter_active"], "{users}", null, "$.purchases")
+step_filter_qualifying_users = ApiCall("filter_qualifying", "GET", "/api/users", null, null, ["fetch_purchases"], null, null, "$[?(@.purchases.length>=3)]")
+step_fetch_department_for_each = ApiCall("get_department", "GET", "/api/departments/{id}", null, null, ["filter_qualifying"], "{departments}", null, "$")
+step_send_notifications = ApiCall("send_email", "POST", "/api/notifications/email", null, {"to": "{email}", "subject": "Loyalty Reward — {department_name}", "body": "Hi {user_name}, you have made {purchase_count} qualifying purchases. You are eligible for our loyalty program."}, ["get_department"], null, null, "$")
+output_summary = WorkflowOutput("[{user_name: \"{user_name}\", email: \"{email}\", department_name: \"{department_name}\", purchase_count: \"{purchase_count}\", notification_id: \"{notification_id}\"}]")

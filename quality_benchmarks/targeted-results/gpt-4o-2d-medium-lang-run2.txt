@@ -1,0 +1,47 @@
+```
+root = DeploymentConfig("TaskBoard", [webFrontend, apiServer, backgroundWorker, database, cache], [webIngress], [dbVolume], [webNetworkPolicy, apiNetworkPolicy, workerNetworkPolicy], [taskboardSecrets])
+
+webFrontend = ContainerSpec("web-frontend", "taskboard/web:3.2.1", 2, webResources, [webPort], [webApiUrlEnv, webNodeEnv], webHealthCheck, "public")
+webResources = Resources(512, 0.5)
+webPort = Port(3000, "TCP")
+webApiUrlEnv = EnvVar("API_URL", null, "api-server")
+webNodeEnv = EnvVar("NODE_ENV", "production")
+webHealthCheck = HealthCheck("http", "/health", 3000, 30, 5, 3)
+
+apiServer = ContainerSpec("api-server", "taskboard/api:3.2.1", 3, apiResources, [apiPort], [apiDbUrlEnv, apiRedisUrlEnv, apiJwtSecretEnv], apiHealthCheck, "internal")
+apiResources = Resources(1024, 1)
+apiPort = Port(8080, "TCP")
+apiDbUrlEnv = EnvVar("DATABASE_URL", null, "database")
+apiRedisUrlEnv = EnvVar("REDIS_URL", null, "cache")
+apiJwtSecretEnv = EnvVar("JWT_SECRET", null, null, jwtSecretRef)
+jwtSecretRef = SecretRef("taskboard-secrets", "jwt-secret")
+apiHealthCheck = HealthCheck("http", "/api/health", 8080, 15, 3, 2)
+
+backgroundWorker = ContainerSpec("background-worker", "taskboard/worker:3.2.1", 2, workerResources, [], [workerDbUrlEnv, workerRedisUrlEnv, workerConcurrencyEnv], null, "internal")
+workerResources = Resources(768, 0.5)
+workerDbUrlEnv = EnvVar("DATABASE_URL", null, "database")
+workerRedisUrlEnv = EnvVar("REDIS_URL", null, "cache")
+workerConcurrencyEnv = EnvVar("WORKER_CONCURRENCY", "5")
+
+database = ContainerSpec("database", "postgres:16", 1, dbResources, [dbPort], [dbNameEnv, dbUserEnv, dbPasswordEnv], null, "internal")
+dbResources = Resources(2048, 1)
+dbPort = Port(5432, "TCP")
+dbNameEnv = EnvVar("POSTGRES_DB", "taskboard")
+dbUserEnv = EnvVar("POSTGRES_USER", "taskboard")
+dbPasswordEnv = EnvVar("POSTGRES_PASSWORD", null, null, dbPasswordRef)
+dbPasswordRef = SecretRef("taskboard-secrets", "db-password")
+
+cache = ContainerSpec("cache", "redis:7.2", 1, cacheResources, [cachePort], [], null, "internal")
+cacheResources = Resources(512, 0.25)
+cachePort = Port(6379, "TCP")
+
+webIngress = IngressRule("taskboard.example.com", "web-frontend", 3000, true)
+
+dbVolume = PersistentVolume("db-volume", "database", 20, "standard", "/var/lib/postgresql/data")
+
+webNetworkPolicy = NetworkPolicy("web-policy", "web-frontend", ["api-server"], [])
+apiNetworkPolicy = NetworkPolicy("api-policy", "api-server", ["web-frontend"], ["database", "cache"])
+workerNetworkPolicy = NetworkPolicy("worker-policy", "background-worker", [], ["database", "cache"])
+
+taskboardSecrets = Secret("taskboard-secrets", ["jwt-secret", "db-password"])
+```

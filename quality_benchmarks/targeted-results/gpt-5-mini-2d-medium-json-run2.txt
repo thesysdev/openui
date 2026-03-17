@@ -1,0 +1,250 @@
+{
+  "appName": "TaskBoard",
+  "services": [
+    {
+      "name": "web-frontend",
+      "image": "taskboard/web:3.2.1",
+      "replicas": 2,
+      "resources": {
+        "memoryMb": 512,
+        "cpuCores": 0.5
+      },
+      "ports": [
+        {
+          "containerPort": 3000,
+          "protocol": "TCP"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "API_URL",
+          "serviceRef": "http://api-server:8080"
+        },
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        }
+      ],
+      "healthCheck": {
+        "type": "http",
+        "path": "/health",
+        "port": 3000,
+        "intervalSeconds": 30,
+        "timeoutSeconds": 5,
+        "failureThreshold": 3
+      },
+      "expose": "public"
+    },
+    {
+      "name": "api-server",
+      "image": "taskboard/api:3.2.1",
+      "replicas": 3,
+      "resources": {
+        "memoryMb": 1024,
+        "cpuCores": 1
+      },
+      "ports": [
+        {
+          "containerPort": 8080,
+          "protocol": "TCP"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "DATABASE_URL",
+          "serviceRef": "postgresql:5432"
+        },
+        {
+          "name": "REDIS_URL",
+          "serviceRef": "redis:6379"
+        },
+        {
+          "name": "JWT_SECRET",
+          "valueFrom": {
+            "secretName": "taskboard-secrets",
+            "key": "jwt-secret"
+          }
+        }
+      ],
+      "healthCheck": {
+        "type": "http",
+        "path": "/api/health",
+        "port": 8080,
+        "intervalSeconds": 15,
+        "timeoutSeconds": 3,
+        "failureThreshold": 2
+      },
+      "expose": "internal"
+    },
+    {
+      "name": "background-worker",
+      "image": "taskboard/worker:3.2.1",
+      "replicas": 2,
+      "resources": {
+        "memoryMb": 768,
+        "cpuCores": 0.5
+      },
+      "ports": [],
+      "envVars": [
+        {
+          "name": "DATABASE_URL",
+          "serviceRef": "postgresql:5432"
+        },
+        {
+          "name": "REDIS_URL",
+          "serviceRef": "redis:6379"
+        },
+        {
+          "name": "WORKER_CONCURRENCY",
+          "value": "5"
+        }
+      ],
+      "expose": "internal"
+    },
+    {
+      "name": "postgresql",
+      "image": "postgres:16",
+      "replicas": 1,
+      "resources": {
+        "memoryMb": 2048,
+        "cpuCores": 1
+      },
+      "ports": [
+        {
+          "containerPort": 5432,
+          "protocol": "TCP"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "POSTGRES_DB",
+          "value": "taskboard"
+        },
+        {
+          "name": "POSTGRES_USER",
+          "value": "taskboard"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "valueFrom": {
+            "secretName": "taskboard-secrets",
+            "key": "db-password"
+          }
+        }
+      ],
+      "healthCheck": {
+        "type": "tcp",
+        "port": 5432,
+        "intervalSeconds": 30,
+        "timeoutSeconds": 5,
+        "failureThreshold": 3
+      },
+      "expose": "internal"
+    },
+    {
+      "name": "redis",
+      "image": "redis:7.2",
+      "replicas": 1,
+      "resources": {
+        "memoryMb": 512,
+        "cpuCores": 0.25
+      },
+      "ports": [
+        {
+          "containerPort": 6379,
+          "protocol": "TCP"
+        }
+      ],
+      "envVars": [],
+      "healthCheck": {
+        "type": "tcp",
+        "port": 6379,
+        "intervalSeconds": 30,
+        "timeoutSeconds": 5,
+        "failureThreshold": 3
+      },
+      "expose": "internal"
+    }
+  ],
+  "ingress": [
+    {
+      "domain": "taskboard.example.com",
+      "serviceName": "web-frontend",
+      "servicePort": 3000,
+      "tlsEnabled": true
+    }
+  ],
+  "volumes": [
+    {
+      "name": "postgres-data",
+      "serviceName": "postgresql",
+      "sizeGb": 20,
+      "storageClass": "standard",
+      "mountPath": "/var/lib/postgresql/data"
+    }
+  ],
+  "networkPolicies": [
+    {
+      "name": "allow-web-to-api",
+      "target": "api-server",
+      "allowIngressFrom": [
+        "web-frontend"
+      ],
+      "allowEgressTo": []
+    },
+    {
+      "name": "api-egress-db-redis",
+      "target": "api-server",
+      "allowIngressFrom": [],
+      "allowEgressTo": [
+        "postgresql",
+        "redis"
+      ]
+    },
+    {
+      "name": "worker-egress-db-redis",
+      "target": "background-worker",
+      "allowIngressFrom": [],
+      "allowEgressTo": [
+        "postgresql",
+        "redis"
+      ]
+    },
+    {
+      "name": "deny-web-to-db-redis",
+      "target": "postgresql",
+      "allowIngressFrom": [
+        "api-server",
+        "background-worker"
+      ],
+      "allowEgressTo": []
+    },
+    {
+      "name": "deny-web-access-to-redis",
+      "target": "redis",
+      "allowIngressFrom": [
+        "api-server",
+        "background-worker"
+      ],
+      "allowEgressTo": []
+    },
+    {
+      "name": "isolate-background-worker",
+      "target": "background-worker",
+      "allowIngressFrom": [],
+      "allowEgressTo": [
+        "postgresql",
+        "redis"
+      ]
+    }
+  ],
+  "secrets": [
+    {
+      "name": "taskboard-secrets",
+      "keys": [
+        "jwt-secret",
+        "db-password"
+      ]
+    }
+  ]
+}

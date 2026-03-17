@@ -1,0 +1,15 @@
+root = Workflow([step_get_users, step_filter_active_users, step_fetch_purchases, step_filter_qualifying_users, step_fetch_department, step_send_email], output_summary)
+step_get_users = ApiCall("get_users", "GET", "/api/users", null, null, null, null, null, "$.users")
+step_filter_active_users = ApiCall("filter_active", "GET", "/internal/filter_active", null, null, ["get_users"], null, null, "$.users[?(@.active==true)]")
+step_fetch_purchases = ApiCall("fetch_purchases", "GET", "/api/users/{user_id}/purchases", {"since":"2025-01-01","min_amount":"500"}, null, ["filter_active"], "get_users.users[?(@.active==true)].id", null, "$.purchases")
+step_filter_qualifying_users = ApiCall("qualify_users", "GET", "/internal/select_qualifying", null, null, ["fetch_purchases","filter_active"], null, null, "$[?(@.purchases.length>=3)]")
+step_fetch_department = ApiCall("get_department", "GET", "/api/departments/{id}", null, null, ["qualify_users"], "qualify_users[].department_id", null, "$")
+step_send_email = ApiCall("send_emails", "POST", "/api/notifications/email", null, null, ["qualify_users","get_department"], "qualify_users[]", null, "$")
+output_summary = WorkflowOutput("$.qualify_users.map(function(u,i){ return { user_name: u.name, email: u.email, department_name: $.get_department[i].name || u.department_name, purchase_count: u.purchases.length, notification_id: $.send_emails[i].notification_id } })")
+
+get_users = step_get_users
+filter_active = step_filter_active_users
+fetch_purchases = step_fetch_purchases
+qualify_users = step_filter_qualifying_users
+get_department = step_fetch_department
+send_emails = step_send_email

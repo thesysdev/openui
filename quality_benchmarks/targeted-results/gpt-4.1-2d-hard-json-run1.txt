@@ -1,0 +1,773 @@
+{
+  "appName": "ShopFlow",
+  "services": [
+    {
+      "name": "api-gateway",
+      "image": "shopflow/gateway:2.0.4",
+      "replicas": 3,
+      "resources": {
+        "memoryMb": 1024,
+        "cpuCores": 1
+      },
+      "ports": [
+        {
+          "containerPort": 8443,
+          "protocol": "TCP",
+          "name": "https"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "RATE_LIMIT_RPS",
+          "value": "100"
+        },
+        {
+          "name": "AUTH_SERVICE_URL",
+          "serviceRef": "auth-service"
+        },
+        {
+          "name": "CATALOG_SERVICE_URL",
+          "serviceRef": "catalog-service"
+        },
+        {
+          "name": "ORDER_SERVICE_URL",
+          "serviceRef": "order-service"
+        },
+        {
+          "name": "LOG_LEVEL",
+          "value": "info"
+        }
+      ],
+      "healthCheck": {
+        "type": "http",
+        "path": "/gateway/health",
+        "port": 8443,
+        "intervalSeconds": 10,
+        "timeoutSeconds": 3,
+        "failureThreshold": 2
+      },
+      "expose": "public",
+      "autoscaling": {
+        "minReplicas": 3,
+        "maxReplicas": 10,
+        "targetCpuPercent": 65
+      }
+    },
+    {
+      "name": "auth-service",
+      "image": "shopflow/auth:2.0.4",
+      "replicas": 2,
+      "resources": {
+        "memoryMb": 512,
+        "cpuCores": 0.5
+      },
+      "ports": [
+        {
+          "containerPort": 8081,
+          "protocol": "TCP",
+          "name": "http"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "DATABASE_URL",
+          "serviceRef": "auth-db"
+        },
+        {
+          "name": "JWT_PRIVATE_KEY",
+          "valueFrom": {
+            "secretName": "auth-keys",
+            "key": "private-key"
+          }
+        },
+        {
+          "name": "JWT_PUBLIC_KEY",
+          "valueFrom": {
+            "secretName": "auth-keys",
+            "key": "public-key"
+          }
+        },
+        {
+          "name": "TOKEN_EXPIRY_SECONDS",
+          "value": "3600"
+        },
+        {
+          "name": "REDIS_URL",
+          "serviceRef": "session-cache"
+        }
+      ],
+      "healthCheck": {
+        "type": "http",
+        "path": "/auth/health",
+        "port": 8081,
+        "intervalSeconds": 15,
+        "timeoutSeconds": 3,
+        "failureThreshold": 3
+      },
+      "expose": "internal"
+    },
+    {
+      "name": "catalog-service",
+      "image": "shopflow/catalog:2.0.4",
+      "replicas": 2,
+      "resources": {
+        "memoryMb": 768,
+        "cpuCores": 0.5
+      },
+      "ports": [
+        {
+          "containerPort": 8082,
+          "protocol": "TCP",
+          "name": "http"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "DATABASE_URL",
+          "serviceRef": "catalog-db"
+        },
+        {
+          "name": "SEARCH_URL",
+          "serviceRef": "search-engine"
+        },
+        {
+          "name": "CDN_BASE_URL",
+          "value": "https://cdn.shop.example.com"
+        },
+        {
+          "name": "CACHE_TTL_SECONDS",
+          "value": "300"
+        }
+      ],
+      "healthCheck": {
+        "type": "http",
+        "path": "/catalog/health",
+        "port": 8082,
+        "intervalSeconds": 15,
+        "timeoutSeconds": 3,
+        "failureThreshold": 3
+      },
+      "expose": "internal",
+      "autoscaling": {
+        "minReplicas": 2,
+        "maxReplicas": 6,
+        "targetCpuPercent": 75
+      }
+    },
+    {
+      "name": "order-service",
+      "image": "shopflow/orders:2.0.4",
+      "replicas": 3,
+      "resources": {
+        "memoryMb": 1024,
+        "cpuCores": 1
+      },
+      "ports": [
+        {
+          "containerPort": 8083,
+          "protocol": "TCP",
+          "name": "http"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "DATABASE_URL",
+          "serviceRef": "order-db"
+        },
+        {
+          "name": "PAYMENT_GATEWAY_URL",
+          "valueFrom": {
+            "secretName": "payment-config",
+            "key": "gateway-url"
+          }
+        },
+        {
+          "name": "PAYMENT_API_KEY",
+          "valueFrom": {
+            "secretName": "payment-config",
+            "key": "api-key"
+          }
+        },
+        {
+          "name": "INVENTORY_SERVICE_URL",
+          "serviceRef": "inventory-service"
+        },
+        {
+          "name": "NOTIFICATION_SERVICE_URL",
+          "serviceRef": "notification-service"
+        },
+        {
+          "name": "EVENT_BUS_URL",
+          "serviceRef": "event-bus"
+        }
+      ],
+      "healthCheck": {
+        "type": "http",
+        "path": "/orders/health",
+        "port": 8083,
+        "intervalSeconds": 10,
+        "timeoutSeconds": 3,
+        "failureThreshold": 2
+      },
+      "expose": "internal",
+      "autoscaling": {
+        "minReplicas": 3,
+        "maxReplicas": 8,
+        "targetCpuPercent": 70
+      }
+    },
+    {
+      "name": "inventory-service",
+      "image": "shopflow/inventory:2.0.4",
+      "replicas": 2,
+      "resources": {
+        "memoryMb": 512,
+        "cpuCores": 0.5
+      },
+      "ports": [
+        {
+          "containerPort": 8084,
+          "protocol": "TCP",
+          "name": "http"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "DATABASE_URL",
+          "serviceRef": "inventory-db"
+        },
+        {
+          "name": "EVENT_BUS_URL",
+          "serviceRef": "event-bus"
+        },
+        {
+          "name": "LOW_STOCK_THRESHOLD",
+          "value": "10"
+        }
+      ],
+      "healthCheck": {
+        "type": "http",
+        "path": "/inventory/health",
+        "port": 8084,
+        "intervalSeconds": 15,
+        "timeoutSeconds": 3,
+        "failureThreshold": 3
+      },
+      "expose": "internal"
+    },
+    {
+      "name": "notification-service",
+      "image": "shopflow/notifications:2.0.4",
+      "replicas": 2,
+      "resources": {
+        "memoryMb": 512,
+        "cpuCores": 0.5
+      },
+      "ports": [
+        {
+          "containerPort": 8085,
+          "protocol": "TCP",
+          "name": "http"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "SMTP_HOST",
+          "valueFrom": {
+            "secretName": "email-config",
+            "key": "smtp-host"
+          }
+        },
+        {
+          "name": "SMTP_PORT",
+          "valueFrom": {
+            "secretName": "email-config",
+            "key": "smtp-port"
+          }
+        },
+        {
+          "name": "SMTP_USER",
+          "valueFrom": {
+            "secretName": "email-config",
+            "key": "smtp-user"
+          }
+        },
+        {
+          "name": "SMTP_PASSWORD",
+          "valueFrom": {
+            "secretName": "email-config",
+            "key": "smtp-password"
+          }
+        },
+        {
+          "name": "SMS_API_KEY",
+          "valueFrom": {
+            "secretName": "sms-config",
+            "key": "api-key"
+          }
+        },
+        {
+          "name": "EVENT_BUS_URL",
+          "serviceRef": "event-bus"
+        }
+      ],
+      "healthCheck": {
+        "type": "http",
+        "path": "/notifications/health",
+        "port": 8085,
+        "intervalSeconds": 20,
+        "timeoutSeconds": 5,
+        "failureThreshold": 3
+      },
+      "expose": "internal"
+    },
+    {
+      "name": "event-bus",
+      "image": "shopflow/eventbus:1.5.0",
+      "replicas": 3,
+      "resources": {
+        "memoryMb": 512,
+        "cpuCores": 0.5
+      },
+      "ports": [
+        {
+          "containerPort": 4222,
+          "protocol": "TCP",
+          "name": "client"
+        },
+        {
+          "containerPort": 6222,
+          "protocol": "TCP",
+          "name": "cluster"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "CLUSTER_SIZE",
+          "value": "3"
+        },
+        {
+          "name": "MAX_PAYLOAD_MB",
+          "value": "8"
+        }
+      ],
+      "healthCheck": {
+        "type": "tcp",
+        "port": 4222,
+        "intervalSeconds": 10,
+        "timeoutSeconds": 2,
+        "failureThreshold": 3
+      },
+      "expose": "internal"
+    },
+    {
+      "name": "auth-db",
+      "image": "postgres:16",
+      "replicas": 1,
+      "resources": {
+        "memoryMb": 1024,
+        "cpuCores": 0.5
+      },
+      "ports": [
+        {
+          "containerPort": 5432,
+          "protocol": "TCP",
+          "name": "postgres"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "POSTGRES_DB",
+          "value": "shopflow_auth"
+        },
+        {
+          "name": "POSTGRES_USER",
+          "value": "auth_user"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "valueFrom": {
+            "secretName": "db-passwords",
+            "key": "auth-db-password"
+          }
+        }
+      ],
+      "expose": "internal"
+    },
+    {
+      "name": "catalog-db",
+      "image": "postgres:16",
+      "replicas": 1,
+      "resources": {
+        "memoryMb": 2048,
+        "cpuCores": 1
+      },
+      "ports": [
+        {
+          "containerPort": 5432,
+          "protocol": "TCP",
+          "name": "postgres"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "POSTGRES_DB",
+          "value": "shopflow_catalog"
+        },
+        {
+          "name": "POSTGRES_USER",
+          "value": "catalog_user"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "valueFrom": {
+            "secretName": "db-passwords",
+            "key": "catalog-db-password"
+          }
+        }
+      ],
+      "expose": "internal"
+    },
+    {
+      "name": "order-db",
+      "image": "postgres:16",
+      "replicas": 1,
+      "resources": {
+        "memoryMb": 2048,
+        "cpuCores": 1
+      },
+      "ports": [
+        {
+          "containerPort": 5432,
+          "protocol": "TCP",
+          "name": "postgres"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "POSTGRES_DB",
+          "value": "shopflow_orders"
+        },
+        {
+          "name": "POSTGRES_USER",
+          "value": "orders_user"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "valueFrom": {
+            "secretName": "db-passwords",
+            "key": "orders-db-password"
+          }
+        }
+      ],
+      "expose": "internal"
+    },
+    {
+      "name": "inventory-db",
+      "image": "postgres:16",
+      "replicas": 1,
+      "resources": {
+        "memoryMb": 1024,
+        "cpuCores": 0.5
+      },
+      "ports": [
+        {
+          "containerPort": 5432,
+          "protocol": "TCP",
+          "name": "postgres"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "POSTGRES_DB",
+          "value": "shopflow_inventory"
+        },
+        {
+          "name": "POSTGRES_USER",
+          "value": "inventory_user"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "valueFrom": {
+            "secretName": "db-passwords",
+            "key": "inventory-db-password"
+          }
+        }
+      ],
+      "expose": "internal"
+    },
+    {
+      "name": "session-cache",
+      "image": "redis:7.2",
+      "replicas": 1,
+      "resources": {
+        "memoryMb": 1024,
+        "cpuCores": 0.5
+      },
+      "ports": [
+        {
+          "containerPort": 6379,
+          "protocol": "TCP",
+          "name": "redis"
+        }
+      ],
+      "envVars": [],
+      "expose": "internal"
+    },
+    {
+      "name": "search-engine",
+      "image": "elasticsearch:8.12",
+      "replicas": 2,
+      "resources": {
+        "memoryMb": 4096,
+        "cpuCores": 2
+      },
+      "ports": [
+        {
+          "containerPort": 9200,
+          "protocol": "TCP",
+          "name": "http"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "discovery.type",
+          "value": "single-node"
+        },
+        {
+          "name": "ES_JAVA_OPTS",
+          "value": "-Xms2g -Xmx2g"
+        },
+        {
+          "name": "xpack.security.enabled",
+          "value": "false"
+        }
+      ],
+      "expose": "internal"
+    }
+  ],
+  "ingress": [
+    {
+      "domain": "shop.example.com",
+      "serviceName": "api-gateway",
+      "servicePort": 8443,
+      "tlsEnabled": true
+    },
+    {
+      "domain": "api.shop.example.com",
+      "serviceName": "api-gateway",
+      "servicePort": 8443,
+      "tlsEnabled": true
+    }
+  ],
+  "volumes": [
+    {
+      "name": "eventbus-data",
+      "serviceName": "event-bus",
+      "sizeGb": 10,
+      "storageClass": "fast",
+      "mountPath": "/data/jetstream"
+    },
+    {
+      "name": "auth-db-data",
+      "serviceName": "auth-db",
+      "sizeGb": 10,
+      "storageClass": "standard",
+      "mountPath": "/var/lib/postgresql/data"
+    },
+    {
+      "name": "catalog-db-data",
+      "serviceName": "catalog-db",
+      "sizeGb": 30,
+      "storageClass": "standard",
+      "mountPath": "/var/lib/postgresql/data"
+    },
+    {
+      "name": "order-db-data",
+      "serviceName": "order-db",
+      "sizeGb": 50,
+      "storageClass": "fast",
+      "mountPath": "/var/lib/postgresql/data"
+    },
+    {
+      "name": "inventory-db-data",
+      "serviceName": "inventory-db",
+      "sizeGb": 15,
+      "storageClass": "standard",
+      "mountPath": "/var/lib/postgresql/data"
+    },
+    {
+      "name": "search-engine-data",
+      "serviceName": "search-engine",
+      "sizeGb": 50,
+      "storageClass": "fast",
+      "mountPath": "/usr/share/elasticsearch/data"
+    }
+  ],
+  "networkPolicies": [
+    {
+      "name": "api-gateway-egress",
+      "target": "api-gateway",
+      "allowIngressFrom": [],
+      "allowEgressTo": [
+        "auth-service",
+        "catalog-service",
+        "order-service"
+      ]
+    },
+    {
+      "name": "auth-service-policy",
+      "target": "auth-service",
+      "allowIngressFrom": [
+        "api-gateway"
+      ],
+      "allowEgressTo": [
+        "auth-db",
+        "session-cache"
+      ]
+    },
+    {
+      "name": "catalog-service-policy",
+      "target": "catalog-service",
+      "allowIngressFrom": [
+        "api-gateway"
+      ],
+      "allowEgressTo": [
+        "catalog-db",
+        "search-engine"
+      ]
+    },
+    {
+      "name": "order-service-policy",
+      "target": "order-service",
+      "allowIngressFrom": [
+        "api-gateway"
+      ],
+      "allowEgressTo": [
+        "order-db",
+        "inventory-service",
+        "notification-service",
+        "event-bus"
+      ]
+    },
+    {
+      "name": "inventory-service-policy",
+      "target": "inventory-service",
+      "allowIngressFrom": [
+        "order-service"
+      ],
+      "allowEgressTo": [
+        "inventory-db",
+        "event-bus"
+      ]
+    },
+    {
+      "name": "notification-service-policy",
+      "target": "notification-service",
+      "allowIngressFrom": [
+        "order-service"
+      ],
+      "allowEgressTo": [
+        "event-bus"
+      ]
+    },
+    {
+      "name": "event-bus-policy",
+      "target": "event-bus",
+      "allowIngressFrom": [
+        "order-service",
+        "inventory-service",
+        "notification-service"
+      ],
+      "allowEgressTo": []
+    },
+    {
+      "name": "auth-db-policy",
+      "target": "auth-db",
+      "allowIngressFrom": [
+        "auth-service"
+      ],
+      "allowEgressTo": []
+    },
+    {
+      "name": "catalog-db-policy",
+      "target": "catalog-db",
+      "allowIngressFrom": [
+        "catalog-service"
+      ],
+      "allowEgressTo": []
+    },
+    {
+      "name": "order-db-policy",
+      "target": "order-db",
+      "allowIngressFrom": [
+        "order-service"
+      ],
+      "allowEgressTo": []
+    },
+    {
+      "name": "inventory-db-policy",
+      "target": "inventory-db",
+      "allowIngressFrom": [
+        "inventory-service"
+      ],
+      "allowEgressTo": []
+    },
+    {
+      "name": "session-cache-policy",
+      "target": "session-cache",
+      "allowIngressFrom": [
+        "auth-service"
+      ],
+      "allowEgressTo": []
+    },
+    {
+      "name": "search-engine-policy",
+      "target": "search-engine",
+      "allowIngressFrom": [
+        "catalog-service"
+      ],
+      "allowEgressTo": []
+    }
+  ],
+  "secrets": [
+    {
+      "name": "auth-keys",
+      "keys": [
+        "private-key",
+        "public-key"
+      ]
+    },
+    {
+      "name": "payment-config",
+      "keys": [
+        "gateway-url",
+        "api-key"
+      ]
+    },
+    {
+      "name": "email-config",
+      "keys": [
+        "smtp-host",
+        "smtp-port",
+        "smtp-user",
+        "smtp-password"
+      ]
+    },
+    {
+      "name": "sms-config",
+      "keys": [
+        "api-key"
+      ]
+    },
+    {
+      "name": "db-passwords",
+      "keys": [
+        "auth-db-password",
+        "catalog-db-password",
+        "orders-db-password",
+        "inventory-db-password"
+      ]
+    }
+  ]
+}

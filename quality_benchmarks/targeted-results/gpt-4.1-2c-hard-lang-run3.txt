@@ -1,0 +1,98 @@
+root = HardStateMachine("ci_cd_pipeline", "idle", ["prod_validated", "pipeline_aborted", "rollback_complete"], states, transitions, [build_join], [build_fork])
+states = ["idle", "source_checkout", "checkout_failed", "build_started", "unit_tests", "lint", "unit_tests_passed", "unit_tests_failed", "lint_passed", "lint_failed", "build_complete", "build_failed", "integration_tests", "integration_passed", "integration_failed", "staging_deploy", "staging_deployed", "staging_deploy_failed", "staging_validation", "staging_validated", "staging_validation_failed", "approval_pending", "approval_granted", "approval_rejected", "prod_deploy", "prod_deployed", "prod_deploy_failed", "prod_validation", "prod_validated", "prod_validation_failed", "rollback_initiated", "rollback_complete", "pipeline_aborted"]
+transitions = [
+  t_idle_checkout,
+  t_checkout_success,
+  t_checkout_error,
+  t_checkout_retry,
+  t_build_started_unit_tests,
+  t_build_started_lint,
+  t_unit_tests_pass,
+  t_unit_tests_fail,
+  t_lint_pass,
+  t_lint_fail,
+  t_build_failed_reset,
+  t_build_complete_integration,
+  t_unit_tests_abort,
+  t_lint_abort,
+  t_build_started_abort,
+  t_checkout_abort,
+  t_integration_tests_pass,
+  t_integration_tests_fail,
+  t_integration_failed_retry,
+  t_integration_tests_abort,
+  t_integration_passed_staging_deploy,
+  t_staging_deploy_success,
+  t_staging_deploy_error,
+  t_staging_deploy_failed_retry,
+  t_staging_deploy_abort,
+  t_staging_deployed_validation,
+  t_staging_validation_pass,
+  t_staging_validation_fail,
+  t_staging_validation_failed_redeploy,
+  t_staging_validation_abort,
+  t_staging_validated_approval_pending,
+  t_approval_pending_granted,
+  t_approval_pending_rejected,
+  t_approval_pending_abort,
+  t_approval_rejected_reset,
+  t_approval_granted_prod_deploy,
+  t_prod_deploy_success,
+  t_prod_deploy_error,
+  t_prod_deploy_failed_rollback,
+  t_prod_deploy_abort,
+  t_prod_deployed_validation,
+  t_prod_validation_pass,
+  t_prod_validation_fail,
+  t_prod_validation_failed_rollback,
+  t_rollback_initiated_success,
+  t_rollback_complete_reset
+]
+t_idle_checkout = Transition("idle", "source_checkout", "trigger_pipeline", "branch is not empty")
+t_checkout_success = Transition("source_checkout", "build_started", "checkout_success")
+t_checkout_error = Transition("source_checkout", "checkout_failed", "checkout_error")
+t_checkout_retry = Transition("checkout_failed", "source_checkout", "retry", "retry_count < 2")
+t_build_started_unit_tests = Transition("build_started", "unit_tests", "start_parallel_build")
+t_build_started_lint = Transition("build_started", "lint", "start_parallel_build")
+t_unit_tests_pass = Transition("unit_tests", "unit_tests_passed", "tests_pass")
+t_unit_tests_fail = Transition("unit_tests", "unit_tests_failed", "tests_fail")
+t_lint_pass = Transition("lint", "lint_passed", "lint_pass")
+t_lint_fail = Transition("lint", "lint_failed", "lint_fail")
+t_build_failed_reset = Transition("build_failed", "idle", "reset_pipeline")
+t_build_complete_integration = Transition("build_complete", "integration_tests", "start_integration")
+t_unit_tests_abort = Transition("unit_tests", "pipeline_aborted", "abort")
+t_lint_abort = Transition("lint", "pipeline_aborted", "abort")
+t_build_started_abort = Transition("build_started", "pipeline_aborted", "abort")
+t_checkout_abort = Transition("source_checkout", "pipeline_aborted", "abort")
+t_integration_tests_pass = Transition("integration_tests", "integration_passed", "integration_pass")
+t_integration_tests_fail = Transition("integration_tests", "integration_failed", "integration_fail")
+t_integration_failed_retry = Transition("integration_failed", "integration_tests", "retry", "retry_count < 2")
+t_integration_tests_abort = Transition("integration_tests", "pipeline_aborted", "abort")
+t_integration_passed_staging_deploy = Transition("integration_passed", "staging_deploy", "deploy_staging")
+t_staging_deploy_success = Transition("staging_deploy", "staging_deployed", "staging_deploy_success")
+t_staging_deploy_error = Transition("staging_deploy", "staging_deploy_failed", "staging_deploy_error")
+t_staging_deploy_failed_retry = Transition("staging_deploy_failed", "staging_deploy", "retry", "retry_count < 2")
+t_staging_deploy_abort = Transition("staging_deploy", "pipeline_aborted", "abort")
+t_staging_deployed_validation = Transition("staging_deployed", "staging_validation", "validate_staging")
+t_staging_validation_pass = Transition("staging_validation", "staging_validated", "staging_checks_pass")
+t_staging_validation_fail = Transition("staging_validation", "staging_validation_failed", "staging_checks_fail")
+t_staging_validation_failed_redeploy = Transition("staging_validation_failed", "staging_deploy", "redeploy_staging")
+t_staging_validation_abort = Transition("staging_validation", "pipeline_aborted", "abort")
+t_staging_validated_approval_pending = Transition("staging_validated", "approval_pending", "request_approval")
+t_approval_pending_granted = Transition("approval_pending", "approval_granted", "approve", "approver_role == \"lead\" OR approver_role == \"admin\"")
+t_approval_pending_rejected = Transition("approval_pending", "approval_rejected", "reject")
+t_approval_pending_abort = Transition("approval_pending", "pipeline_aborted", "abort")
+t_approval_rejected_reset = Transition("approval_rejected", "idle", "reset_pipeline")
+t_approval_granted_prod_deploy = Transition("approval_granted", "prod_deploy", "deploy_production")
+t_prod_deploy_success = Transition("prod_deploy", "prod_deployed", "prod_deploy_success")
+t_prod_deploy_error = Transition("prod_deploy", "prod_deploy_failed", "prod_deploy_error")
+t_prod_deploy_failed_rollback = Transition("prod_deploy_failed", "rollback_initiated", "initiate_rollback")
+t_prod_deploy_abort = Transition("prod_deploy", "pipeline_aborted", "abort")
+t_prod_deployed_validation = Transition("prod_deployed", "prod_validation", "validate_production")
+t_prod_validation_pass = Transition("prod_validation", "prod_validated", "prod_checks_pass")
+t_prod_validation_fail = Transition("prod_validation", "prod_validation_failed", "prod_checks_fail")
+t_prod_validation_failed_rollback = Transition("prod_validation_failed", "rollback_initiated", "initiate_rollback")
+t_rollback_initiated_success = Transition("rollback_initiated", "rollback_complete", "rollback_success")
+t_rollback_complete_reset = Transition("rollback_complete", "idle", "reset_pipeline")
+build_fork = ForkTransition("build_started", ["unit_tests", "lint"], "start_parallel_build")
+build_join = JoinCondition("build_complete", ["unit_tests_passed", "lint_passed"], "build_failed", ["unit_tests_failed", "lint_failed"])

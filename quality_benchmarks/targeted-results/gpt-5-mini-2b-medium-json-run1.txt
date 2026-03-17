@@ -1,0 +1,83 @@
+{
+  "steps": [
+    {
+      "id": "fetch_users",
+      "method": "GET",
+      "endpoint": "/api/users"
+    },
+    {
+      "id": "filter_active_users",
+      "method": "GET",
+      "endpoint": "/api/users",
+      "dependsOn": [
+        "fetch_users"
+      ],
+      "condition": "$.fetch_users.users != null",
+      "extract": "$.fetch_users.users[?(@.active==true)]"
+    },
+    {
+      "id": "fetch_user_purchases",
+      "method": "GET",
+      "endpoint": "/api/users/{user_id}/purchases",
+      "forEach": "$.filter_active_users",
+      "queryParams": {
+        "since": "2025-01-01T00:00:00Z",
+        "min_amount": "500"
+      },
+      "dependsOn": [
+        "filter_active_users"
+      ],
+      "extract": "$.purchases"
+    },
+    {
+      "id": "count_qualifying_purchases",
+      "method": "GET",
+      "endpoint": "/api/users/{user_id}/purchases",
+      "dependsOn": [
+        "fetch_user_purchases"
+      ],
+      "forEach": "$.fetch_user_purchases",
+      "extract": "length($.fetch_user_purchases)"
+    },
+    {
+      "id": "select_qualifying_users",
+      "method": "GET",
+      "endpoint": "/api/users",
+      "dependsOn": [
+        "count_qualifying_purchases",
+        "filter_active_users",
+        "fetch_user_purchases"
+      ],
+      "extract": "$.filter_active_users[?(@ && $.fetch_user_purchases[?(@.user_id==@.id)] && $.fetch_user_purchases[?(@.user_id==@.id)].length >= 3)]"
+    },
+    {
+      "id": "fetch_department_for_user",
+      "method": "GET",
+      "endpoint": "/api/departments/{department_id}",
+      "forEach": "$.select_qualifying_users",
+      "dependsOn": [
+        "select_qualifying_users"
+      ],
+      "extract": "$.department"
+    },
+    {
+      "id": "send_notification_email",
+      "method": "POST",
+      "endpoint": "/api/notifications/email",
+      "forEach": "$.select_qualifying_users",
+      "dependsOn": [
+        "fetch_department_for_user",
+        "fetch_user_purchases"
+      ],
+      "body": {
+        "to": "{email}",
+        "subject": "Loyalty Reward — {department_name}",
+        "body": "Hi {name}, you have made {purchase_count} qualifying purchases. You are eligible for our loyalty program."
+      },
+      "extract": "$.notification_id"
+    }
+  ],
+  "output": {
+    "format": "map($.select_qualifying_users, user -> { user_name: user.name, email: user.email, department_name: $.fetch_department_for_user[?(@.id==user.department_id)].name, purchase_count: $.fetch_user_purchases[?(@.user_id==user.id)].length, notification_id: $.send_notification_email[?(@.to==user.email)].notification_id })"
+  }
+}

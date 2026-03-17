@@ -1,0 +1,113 @@
+{
+  "steps": [
+    {
+      "id": "fetch_projects",
+      "method": "GET",
+      "endpoint": "/api/projects"
+    },
+    {
+      "id": "filter_active_projects",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "dependsOn": ["fetch_projects"],
+      "extract": "$.projects[?(@.status=='active')]"
+    },
+    {
+      "id": "fetch_project_teams",
+      "method": "GET",
+      "endpoint": "/api/teams/{id}",
+      "forEach": "filter_active_projects[*].team_ids[]",
+      "extract": "$"
+    },
+    {
+      "id": "fetch_time_entries",
+      "method": "GET",
+      "endpoint": "/api/projects/{id}/time-entries",
+      "forEach": "filter_active_projects[*].id",
+      "queryParams": {
+        "start_date": "2025-10-01",
+        "end_date": "2025-12-31"
+      },
+      "extract": "$"
+    },
+    {
+      "id": "fetch_project_risks",
+      "method": "GET",
+      "endpoint": "/api/projects/{id}/risks",
+      "forEach": "filter_active_projects[*].id",
+      "extract": "$"
+    },
+    {
+      "id": "collect_unique_contributors",
+      "method": "GET",
+      "endpoint": "/api/users/{id}",
+      "forEach": "fetch_time_entries[*].entries[*].user_id",
+      "extract": "$"
+    },
+    {
+      "id": "compute_project_metrics",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "dependsOn": [
+        "filter_active_projects",
+        "fetch_time_entries",
+        "fetch_project_risks",
+        "collect_unique_contributors"
+      ],
+      "extract": "$.projects[*]", 
+      "condition": "true"
+    },
+    {
+      "id": "classify_projects",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "dependsOn": ["compute_project_metrics"],
+      "extract": "$.projects[*]",
+      "condition": "true"
+    },
+    {
+      "id": "fetch_flagged_project_owners",
+      "method": "GET",
+      "endpoint": "/api/users/{id}",
+      "forEach": "classify_projects[?(@.classification=='at-risk'||@.classification=='critical')].owner_id",
+      "extract": "$"
+    },
+    {
+      "id": "fetch_flagged_team_leads",
+      "method": "GET",
+      "endpoint": "/api/users/{id}",
+      "forEach": "fetch_project_teams[?(@.id in classify_projects[?(@.classification=='at-risk'||@.classification=='critical')].team_ids)].lead_id",
+      "extract": "$"
+    },
+    {
+      "id": "generate_report",
+      "method": "POST",
+      "endpoint": "/api/reports/generate",
+      "dependsOn": [
+        "classify_projects",
+        "fetch_flagged_project_owners",
+        "fetch_flagged_team_leads"
+      ],
+      "body": {
+        "title": "Q4 2025 Project Health Report",
+        "sections": "<one section per flagged project: {project_name, classification, total_hours, utilization_percent, open_high_risks, budget_consumed_percent, owner_name, team_lead_names}>",
+        "recipients": "<deduplicated emails of all owners and team leads of flagged projects>"
+      },
+      "extract": "$"
+    },
+    {
+      "id": "send_slack_notification",
+      "method": "POST",
+      "endpoint": "/api/notifications/slack",
+      "dependsOn": ["generate_report"],
+      "body": {
+        "channel": "#project-health",
+        "message": "Q4 Project Health Report generated: {generate_report.url}. {classify_projects[?(@.classification=='at-risk'||@.classification=='critical')].length} projects flagged."
+      },
+      "extract": "$"
+    }
+  ],
+  "output": {
+    "format": "{ report_id: generate_report.report_id, report_url: generate_report.url, flagged_project_count: classify_projects[?(@.classification=='at-risk'||@.classification=='critical')].length, flagged_projects: [ { project_name, classification, owner_name, utilization_percent, budget_consumed_percent, open_high_risks } for each flagged project ] }"
+  }
+}

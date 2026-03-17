@@ -1,0 +1,118 @@
+{
+  "name": "ecommerce_order_lifecycle",
+  "initialState": "draft",
+  "terminalStates": [
+    "delivered",
+    "cancelled",
+    "refunded"
+  ],
+  "states": [
+    "draft",
+    "submitted",
+    "payment_pending",
+    "payment_failed",
+    "confirmed",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+    "refund_pending",
+    "refunded"
+  ],
+  "transitions": [
+    {
+      "source": "draft",
+      "target": "submitted",
+      "event": "place_order",
+      "guard": "items_count > 0",
+      "action": "validate_order_and_create_submission"
+    },
+    {
+      "source": "submitted",
+      "target": "payment_pending",
+      "event": "initiate_payment",
+      "action": "charge_payment"
+    },
+    {
+      "source": "payment_pending",
+      "target": "confirmed",
+      "event": "payment_success",
+      "action": "send_confirmation_email"
+    },
+    {
+      "source": "payment_pending",
+      "target": "payment_failed",
+      "event": "payment_declined",
+      "action": "notify_payment_failure"
+    },
+    {
+      "source": "payment_failed",
+      "target": "payment_pending",
+      "event": "retry_payment",
+      "guard": "retry_count < 3",
+      "action": "retry_charge_payment"
+    },
+    {
+      "source": "payment_failed",
+      "target": "cancelled",
+      "event": "cancel_order",
+      "action": "release_inventory"
+    },
+    {
+      "source": "confirmed",
+      "target": "processing",
+      "event": "start_processing",
+      "action": "allocate_inventory_and_prepare_fulfillment"
+    },
+    {
+      "source": "processing",
+      "target": "shipped",
+      "event": "ship_order",
+      "guard": "tracking_number is not empty",
+      "action": "send_shipping_notification"
+    },
+    {
+      "source": "shipped",
+      "target": "delivered",
+      "event": "confirm_delivery",
+      "action": "mark_order_delivered"
+    },
+    {
+      "source": "delivered",
+      "target": "refund_pending",
+      "event": "request_refund",
+      "guard": "days_since_delivery <= 30",
+      "action": "create_refund_request"
+    },
+    {
+      "source": "refund_pending",
+      "target": "refunded",
+      "event": "process_refund",
+      "action": "issue_refund"
+    },
+    {
+      "source": "refund_pending",
+      "target": "delivered",
+      "event": "deny_refund",
+      "action": "notify_refund_denial"
+    },
+    {
+      "source": "submitted",
+      "target": "cancelled",
+      "event": "cancel_order",
+      "action": "cancel_order_and_release_inventory"
+    },
+    {
+      "source": "payment_pending",
+      "target": "cancelled",
+      "event": "cancel_order",
+      "action": "void_payment_and_release_inventory"
+    },
+    {
+      "source": "confirmed",
+      "target": "cancelled",
+      "event": "cancel_order",
+      "action": "initiate_cancellation_and_refund"
+    }
+  ]
+}

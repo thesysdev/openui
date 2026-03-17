@@ -1,0 +1,20 @@
+```
+root = StateMachine("ecommerce_order_lifecycle", "draft", ["delivered", "cancelled", "refunded"], ["draft", "submitted", "payment_pending", "payment_failed", "confirmed", "processing", "shipped", "delivered", "cancelled", "refund_pending", "refunded"], [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16])
+
+t1 = Transition("draft", "submitted", "place_order", "items_count > 0", "validate_order")
+t2 = Transition("submitted", "payment_pending", "initiate_payment", null, "charge_payment")
+t3 = Transition("payment_pending", "confirmed", "payment_success", null, "send_confirmation_email")
+t4 = Transition("payment_pending", "payment_failed", "payment_declined", null, "notify_payment_failure")
+t5 = Transition("payment_failed", "payment_pending", "retry_payment", "retry_count < 3", "retry_payment_process")
+t6 = Transition("payment_failed", "cancelled", "cancel_order", null, "release_inventory")
+t7 = Transition("confirmed", "processing", "start_processing", null, "prepare_order")
+t8 = Transition("processing", "shipped", "ship_order", "tracking_number is not empty", "notify_shipping")
+t9 = Transition("shipped", "delivered", "confirm_delivery", null, "confirm_order_delivery")
+t10 = Transition("delivered", "refund_pending", "request_refund", "days_since_delivery <= 30", "initiate_refund_process")
+t11 = Transition("refund_pending", "refunded", "process_refund", null, "complete_refund")
+t12 = Transition("refund_pending", "delivered", "deny_refund", null, "notify_refund_denial")
+t13 = Transition("submitted", "cancelled", "cancel_order", null, "release_inventory")
+t14 = Transition("payment_pending", "cancelled", "cancel_order", null, "release_inventory")
+t15 = Transition("confirmed", "cancelled", "cancel_order", null, "release_inventory")
+t16 = Transition("draft", "cancelled", "cancel_order", null, "release_inventory")
+```

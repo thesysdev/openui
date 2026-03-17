@@ -1,0 +1,308 @@
+root = HardDeploymentConfig("ShopFlow", [api_gateway, auth_service, catalog_service, order_service, inventory_service, notification_service, event_bus, auth_db, catalog_db, order_db, inventory_db, session_cache, search_engine], [ingress_gateway_main, ingress_gateway_api], [pv_eventbus, pv_authdb, pv_catalogdb, pv_orderdb, pv_inventorydb, pv_search], [np_gateway, np_auth, np_catalog, np_order, np_inventory, np_notification, np_eventbus, np_authdb, np_catalogdb, np_orderdb, np_inventorydb, np_sessioncache, np_search], [secret_auth_keys, secret_payment_config, secret_email_config, secret_sms_config, secret_db_passwords])
+
+# --- Container Specs ---
+
+api_gateway = ContainerSpecHard(
+  "api-gateway",
+  "shopflow/gateway:2.0.4",
+  3,
+  res_gateway,
+  [port_gateway],
+  [
+    EnvVar("RATE_LIMIT_RPS", "100"),
+    EnvVar("AUTH_SERVICE_URL", null, "auth-service"),
+    EnvVar("CATALOG_SERVICE_URL", null, "catalog-service"),
+    EnvVar("ORDER_SERVICE_URL", null, "order-service"),
+    EnvVar("LOG_LEVEL", "info")
+  ],
+  hc_gateway,
+  "public",
+  as_gateway
+)
+
+auth_service = ContainerSpecHard(
+  "auth-service",
+  "shopflow/auth:2.0.4",
+  2,
+  res_auth,
+  [port_auth],
+  [
+    EnvVar("DATABASE_URL", null, "auth-db"),
+    EnvVar("JWT_PRIVATE_KEY", null, null, sr_auth_private),
+    EnvVar("JWT_PUBLIC_KEY", null, null, sr_auth_public),
+    EnvVar("TOKEN_EXPIRY_SECONDS", "3600"),
+    EnvVar("REDIS_URL", null, "session-cache")
+  ],
+  hc_auth,
+  "internal"
+)
+
+catalog_service = ContainerSpecHard(
+  "catalog-service",
+  "shopflow/catalog:2.0.4",
+  2,
+  res_catalog,
+  [port_catalog],
+  [
+    EnvVar("DATABASE_URL", null, "catalog-db"),
+    EnvVar("SEARCH_URL", null, "search-engine"),
+    EnvVar("CDN_BASE_URL", "https://cdn.shop.example.com"),
+    EnvVar("CACHE_TTL_SECONDS", "300")
+  ],
+  hc_catalog,
+  "internal",
+  as_catalog
+)
+
+order_service = ContainerSpecHard(
+  "order-service",
+  "shopflow/orders:2.0.4",
+  3,
+  res_order,
+  [port_order],
+  [
+    EnvVar("DATABASE_URL", null, "order-db"),
+    EnvVar("PAYMENT_GATEWAY_URL", null, null, sr_payment_gateway_url),
+    EnvVar("PAYMENT_API_KEY", null, null, sr_payment_api_key),
+    EnvVar("INVENTORY_SERVICE_URL", null, "inventory-service"),
+    EnvVar("NOTIFICATION_SERVICE_URL", null, "notification-service"),
+    EnvVar("EVENT_BUS_URL", null, "event-bus")
+  ],
+  hc_order,
+  "internal",
+  as_order
+)
+
+inventory_service = ContainerSpecHard(
+  "inventory-service",
+  "shopflow/inventory:2.0.4",
+  2,
+  res_inventory,
+  [port_inventory],
+  [
+    EnvVar("DATABASE_URL", null, "inventory-db"),
+    EnvVar("EVENT_BUS_URL", null, "event-bus"),
+    EnvVar("LOW_STOCK_THRESHOLD", "10")
+  ],
+  hc_inventory,
+  "internal"
+)
+
+notification_service = ContainerSpecHard(
+  "notification-service",
+  "shopflow/notifications:2.0.4",
+  2,
+  res_notification,
+  [port_notification],
+  [
+    EnvVar("SMTP_HOST", null, null, sr_email_host),
+    EnvVar("SMTP_PORT", null, null, sr_email_port),
+    EnvVar("SMTP_USER", null, null, sr_email_user),
+    EnvVar("SMTP_PASSWORD", null, null, sr_email_password),
+    EnvVar("SMS_API_KEY", null, null, sr_sms_api_key),
+    EnvVar("EVENT_BUS_URL", null, "event-bus")
+  ],
+  hc_notification,
+  "internal"
+)
+
+event_bus = ContainerSpecHard(
+  "event-bus",
+  "shopflow/eventbus:1.5.0",
+  3,
+  res_eventbus,
+  [port_eventbus_client, port_eventbus_cluster],
+  [
+    EnvVar("CLUSTER_SIZE", "3"),
+    EnvVar("MAX_PAYLOAD_MB", "8")
+  ],
+  hc_eventbus,
+  "internal"
+)
+
+auth_db = ContainerSpecHard(
+  "auth-db",
+  "postgres:16",
+  1,
+  res_authdb,
+  [port_pg],
+  [
+    EnvVar("POSTGRES_DB", "shopflow_auth"),
+    EnvVar("POSTGRES_USER", "auth_user"),
+    EnvVar("POSTGRES_PASSWORD", null, null, sr_db_auth)
+  ],
+  hc_pg,
+  "internal"
+)
+
+catalog_db = ContainerSpecHard(
+  "catalog-db",
+  "postgres:16",
+  1,
+  res_catalogdb,
+  [port_pg],
+  [
+    EnvVar("POSTGRES_DB", "shopflow_catalog"),
+    EnvVar("POSTGRES_USER", "catalog_user"),
+    EnvVar("POSTGRES_PASSWORD", null, null, sr_db_catalog)
+  ],
+  hc_pg,
+  "internal"
+)
+
+order_db = ContainerSpecHard(
+  "order-db",
+  "postgres:16",
+  1,
+  res_orderdb,
+  [port_pg],
+  [
+    EnvVar("POSTGRES_DB", "shopflow_orders"),
+    EnvVar("POSTGRES_USER", "orders_user"),
+    EnvVar("POSTGRES_PASSWORD", null, null, sr_db_orders)
+  ],
+  hc_pg,
+  "internal"
+)
+
+inventory_db = ContainerSpecHard(
+  "inventory-db",
+  "postgres:16",
+  1,
+  res_inventorydb,
+  [port_pg],
+  [
+    EnvVar("POSTGRES_DB", "shopflow_inventory"),
+    EnvVar("POSTGRES_USER", "inventory_user"),
+    EnvVar("POSTGRES_PASSWORD", null, null, sr_db_inventory)
+  ],
+  hc_pg,
+  "internal"
+)
+
+session_cache = ContainerSpecHard(
+  "session-cache",
+  "redis:7.2",
+  1,
+  res_sessioncache,
+  [port_redis],
+  [],
+  hc_redis,
+  "internal"
+)
+
+search_engine = ContainerSpecHard(
+  "search-engine",
+  "elasticsearch:8.12",
+  2,
+  res_search,
+  [port_es],
+  [
+    EnvVar("discovery.type", "single-node"),
+    EnvVar("ES_JAVA_OPTS", "-Xms2g -Xmx2g"),
+    EnvVar("xpack.security.enabled", "false")
+  ],
+  hc_search,
+  "internal"
+)
+
+# --- Resources ---
+
+res_gateway = Resources(1024, 1)
+res_auth = Resources(512, 0.5)
+res_catalog = Resources(768, 0.5)
+res_order = Resources(1024, 1)
+res_inventory = Resources(512, 0.5)
+res_notification = Resources(512, 0.5)
+res_eventbus = Resources(512, 0.5)
+res_authdb = Resources(1024, 0.5)
+res_catalogdb = Resources(2048, 1)
+res_orderdb = Resources(2048, 1)
+res_inventorydb = Resources(1024, 0.5)
+res_sessioncache = Resources(1024, 0.5)
+res_search = Resources(4096, 2)
+
+# --- Ports ---
+
+port_gateway = PortHard(8443, "TCP", "https")
+port_auth = PortHard(8081, "TCP", "http")
+port_catalog = PortHard(8082, "TCP", "http")
+port_order = PortHard(8083, "TCP", "http")
+port_inventory = PortHard(8084, "TCP", "http")
+port_notification = PortHard(8085, "TCP", "http")
+port_eventbus_client = PortHard(4222, "TCP", "client")
+port_eventbus_cluster = PortHard(6222, "TCP", "cluster")
+port_pg = PortHard(5432, "TCP", "postgres")
+port_redis = PortHard(6379, "TCP", "redis")
+port_es = PortHard(9200, "TCP", "http")
+
+# --- Health Checks ---
+
+hc_gateway = HealthCheck("http", "/gateway/health", 8443, 10, 3, 2)
+hc_auth = HealthCheck("http", "/auth/health", 8081, 15, 3, 3)
+hc_catalog = HealthCheck("http", "/catalog/health", 8082, 15, 3, 3)
+hc_order = HealthCheck("http", "/orders/health", 8083, 10, 3, 2)
+hc_inventory = HealthCheck("http", "/inventory/health", 8084, 15, 3, 3)
+hc_notification = HealthCheck("http", "/notifications/health", 8085, 20, 5, 3)
+hc_eventbus = HealthCheck("tcp", null, 4222, 10, 2, 3)
+hc_pg = HealthCheck("tcp", null, 5432, 15, 3, 3)
+hc_redis = HealthCheck("tcp", null, 6379, 10, 2, 3)
+hc_search = HealthCheck("http", "/", 9200, 20, 5, 3)
+
+# --- Autoscaling ---
+
+as_gateway = Autoscaling(3, 10, 65)
+as_order = Autoscaling(3, 8, 70)
+as_catalog = Autoscaling(2, 6, 75)
+
+# --- Ingress Rules ---
+
+ingress_gateway_main = IngressRule("shop.example.com", "api-gateway", 8443, true)
+ingress_gateway_api = IngressRule("api.shop.example.com", "api-gateway", 8443, true)
+
+# --- Persistent Volumes ---
+
+pv_eventbus = PersistentVolume("eventbus-data", "event-bus", 10, "fast", "/data/jetstream")
+pv_authdb = PersistentVolume("authdb-data", "auth-db", 10, "standard", "/var/lib/postgresql/data")
+pv_catalogdb = PersistentVolume("catalogdb-data", "catalog-db", 30, "standard", "/var/lib/postgresql/data")
+pv_orderdb = PersistentVolume("orderdb-data", "order-db", 50, "fast", "/var/lib/postgresql/data")
+pv_inventorydb = PersistentVolume("inventorydb-data", "inventory-db", 15, "standard", "/var/lib/postgresql/data")
+pv_search = PersistentVolume("search-data", "search-engine", 50, "fast", "/usr/share/elasticsearch/data")
+
+# --- Network Policies ---
+
+np_gateway = NetworkPolicy("api-gateway-egress", "api-gateway", [], ["auth-service", "catalog-service", "order-service"])
+np_auth = NetworkPolicy("auth-service-egress", "auth-service", [], ["auth-db", "session-cache"])
+np_catalog = NetworkPolicy("catalog-service-egress", "catalog-service", [], ["catalog-db", "search-engine"])
+np_order = NetworkPolicy("order-service-egress", "order-service", [], ["order-db", "inventory-service", "notification-service", "event-bus"])
+np_inventory = NetworkPolicy("inventory-service-egress", "inventory-service", [], ["inventory-db", "event-bus"])
+np_notification = NetworkPolicy("notification-service-egress", "notification-service", [], ["event-bus"])
+np_eventbus = NetworkPolicy("event-bus-ingress", "event-bus", ["order-service", "inventory-service", "notification-service"], [])
+np_authdb = NetworkPolicy("auth-db-ingress", "auth-db", ["auth-service"], [])
+np_catalogdb = NetworkPolicy("catalog-db-ingress", "catalog-db", ["catalog-service"], [])
+np_orderdb = NetworkPolicy("order-db-ingress", "order-db", ["order-service"], [])
+np_inventorydb = NetworkPolicy("inventory-db-ingress", "inventory-db", ["inventory-service"], [])
+np_sessioncache = NetworkPolicy("session-cache-ingress", "session-cache", ["auth-service"], [])
+np_search = NetworkPolicy("search-engine-ingress", "search-engine", ["catalog-service"], [])
+
+# --- Secrets and SecretRefs ---
+
+secret_auth_keys = Secret("auth-keys", ["private-key", "public-key"])
+secret_payment_config = Secret("payment-config", ["gateway-url", "api-key"])
+secret_email_config = Secret("email-config", ["smtp-host", "smtp-port", "smtp-user", "smtp-password"])
+secret_sms_config = Secret("sms-config", ["api-key"])
+secret_db_passwords = Secret("db-passwords", ["auth-db-password", "catalog-db-password", "orders-db-password", "inventory-db-password"])
+
+sr_auth_private = SecretRef("auth-keys", "private-key")
+sr_auth_public = SecretRef("auth-keys", "public-key")
+sr_payment_gateway_url = SecretRef("payment-config", "gateway-url")
+sr_payment_api_key = SecretRef("payment-config", "api-key")
+sr_email_host = SecretRef("email-config", "smtp-host")
+sr_email_port = SecretRef("email-config", "smtp-port")
+sr_email_user = SecretRef("email-config", "smtp-user")
+sr_email_password = SecretRef("email-config", "smtp-password")
+sr_sms_api_key = SecretRef("sms-config", "api-key")
+sr_db_auth = SecretRef("db-passwords", "auth-db-password")
+sr_db_catalog = SecretRef("db-passwords", "catalog-db-password")
+sr_db_orders = SecretRef("db-passwords", "orders-db-password")
+sr_db_inventory = SecretRef("db-passwords", "inventory-db-password")

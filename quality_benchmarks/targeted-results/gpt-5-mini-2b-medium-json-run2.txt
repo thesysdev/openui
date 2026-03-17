@@ -1,0 +1,77 @@
+{
+  "steps": [
+    {
+      "id": "fetch_users",
+      "method": "GET",
+      "endpoint": "/api/users",
+      "extract": "$.users"
+    },
+    {
+      "id": "filter_active_users",
+      "method": "GET",
+      "endpoint": "/api/users",
+      "dependsOn": [
+        "fetch_users"
+      ],
+      "forEach": "fetch_users", 
+      "condition": "item.active == true",
+      "extract": "$"
+    },
+    {
+      "id": "fetch_user_purchases",
+      "method": "GET",
+      "endpoint": "/api/users/{user_id}/purchases",
+      "dependsOn": [
+        "filter_active_users"
+      ],
+      "forEach": "filter_active_users",
+      "queryParams": {
+        "since": "2025-01-01",
+        "min_amount": "500"
+      },
+      "extract": "$.purchases"
+    },
+    {
+      "id": "identify_qualifying_users",
+      "method": "GET",
+      "endpoint": "/api/users",
+      "dependsOn": [
+        "fetch_user_purchases",
+        "filter_active_users"
+      ],
+      "forEach": "filter_active_users",
+      "condition": "length(fetch_user_purchases[item.id]) >= 3",
+      "extract": "$"
+    },
+    {
+      "id": "fetch_department",
+      "method": "GET",
+      "endpoint": "/api/departments/{department_id}",
+      "dependsOn": [
+        "identify_qualifying_users"
+      ],
+      "forEach": "identify_qualifying_users",
+      "extract": "$"
+    },
+    {
+      "id": "send_notification",
+      "method": "POST",
+      "endpoint": "/api/notifications/email",
+      "dependsOn": [
+        "fetch_department",
+        "fetch_user_purchases",
+        "identify_qualifying_users"
+      ],
+      "forEach": "identify_qualifying_users",
+      "body": {
+        "to": "{item.email}",
+        "subject": "Loyalty Reward — {fetch_department[item.department_id].name}",
+        "body": "Hi {item.name}, you have made {length(fetch_user_purchases[item.id])} qualifying purchases. You are eligible for our loyalty program."
+      },
+      "extract": "$.notification_id"
+    }
+  ],
+  "output": {
+    "format": "map(identify_qualifying_users, item -> { \"user_name\": item.name, \"email\": item.email, \"department_name\": fetch_department[item.department_id].name, \"purchase_count\": length(fetch_user_purchases[item.id]), \"notification_id\": send_notification[item.id] })"
+  }
+}

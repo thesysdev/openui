@@ -1,0 +1,129 @@
+{
+  "name": "ecommerce_order_lifecycle",
+  "initialState": "draft",
+  "terminalStates": [
+    "delivered",
+    "cancelled",
+    "refunded"
+  ],
+  "states": [
+    "draft",
+    "submitted",
+    "payment_pending",
+    "payment_failed",
+    "confirmed",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+    "refund_pending",
+    "refunded"
+  ],
+  "transitions": [
+    {
+      "source": "draft",
+      "target": "submitted",
+      "event": "place_order",
+      "guard": "items_count > 0",
+      "action": "validate_order_contents; reserve_items; send_order_received_ack"
+    },
+    {
+      "source": "submitted",
+      "target": "payment_pending",
+      "event": "initiate_payment",
+      "guard": "",
+      "action": "create_payment_intent; send_payment_instructions"
+    },
+    {
+      "source": "payment_pending",
+      "target": "confirmed",
+      "event": "payment_success",
+      "guard": "",
+      "action": "capture_payment; send_payment_confirmation; update_financial_records"
+    },
+    {
+      "source": "payment_pending",
+      "target": "payment_failed",
+      "event": "payment_declined",
+      "guard": "",
+      "action": "log_payment_failure; notify_customer_payment_failed; increment_retry_count"
+    },
+    {
+      "source": "payment_failed",
+      "target": "payment_pending",
+      "event": "retry_payment",
+      "guard": "retry_count < 3",
+      "action": "attempt_payment_again; send_retry_notification"
+    },
+    {
+      "source": "payment_failed",
+      "target": "cancelled",
+      "event": "cancel_order",
+      "guard": "",
+      "action": "release_reserved_items; refund_if_any; send_order_cancellation"
+    },
+    {
+      "source": "confirmed",
+      "target": "processing",
+      "event": "start_processing",
+      "guard": "",
+      "action": "allocate_inventory; create_pick_pack_ticket; notify_warehouse"
+    },
+    {
+      "source": "processing",
+      "target": "shipped",
+      "event": "ship_order",
+      "guard": "tracking_number is not empty",
+      "action": "generate_shipment_record; send_shipment_notification; publish_tracking_info"
+    },
+    {
+      "source": "shipped",
+      "target": "delivered",
+      "event": "confirm_delivery",
+      "guard": "",
+      "action": "mark_as_delivered; notify_customer_delivery_confirmed; close_shipment"
+    },
+    {
+      "source": "delivered",
+      "target": "refund_pending",
+      "event": "request_refund",
+      "guard": "days_since_delivery <= 30",
+      "action": "create_refund_request; notify_support_team; acknowledge_refund_request"
+    },
+    {
+      "source": "refund_pending",
+      "target": "refunded",
+      "event": "process_refund",
+      "guard": "",
+      "action": "issue_refund; update_financial_records; notify_customer_refund_complete"
+    },
+    {
+      "source": "refund_pending",
+      "target": "delivered",
+      "event": "deny_refund",
+      "guard": "",
+      "action": "deny_refund_request; notify_customer_refund_denied; close_refund_case"
+    },
+    {
+      "source": "submitted",
+      "target": "cancelled",
+      "event": "cancel_order",
+      "guard": "",
+      "action": "release_reserved_items; cancel_payment_intent_if_any; send_order_cancellation"
+    },
+    {
+      "source": "payment_pending",
+      "target": "cancelled",
+      "event": "cancel_order",
+      "guard": "",
+      "action": "cancel_payment_intent; release_reserved_items; send_order_cancellation"
+    },
+    {
+      "source": "confirmed",
+      "target": "cancelled",
+      "event": "cancel_order",
+      "guard": "",
+      "action": "attempt_refund_or_void; release_inventory_if_possible; send_order_cancellation"
+    }
+  ]
+}

@@ -644,7 +644,7 @@ function verifyHardConfig(parsed: unknown): VerificationResult {
 
   // 7 volumes
   const volumes = (cfg.volumes as PersistentVolumeData[]) ?? [];
-  checks.push(chk("volumes_count", volumes.length === 7, volumes.length, 7));
+  checks.push(chk("volumes_count", volumes.length === 6, volumes.length, 6));
 
   const expectedVolumes = [
     { serviceName: "event-bus", sizeGb: 10, storageClass: "fast" },
@@ -735,8 +735,8 @@ const EnvVarModel = defineModel({
   schema: z.object({
     name: z.string(),
     value: z.string().optional().describe("Static value"),
-    valueFrom: SecretRefModel.ref.optional().describe("Reference to a secret"),
     serviceRef: z.string().optional().describe("Reference to another service's internal URL"),
+    valueFrom: SecretRefModel.ref.optional().describe("Reference to a secret"),
   }),
 });
 

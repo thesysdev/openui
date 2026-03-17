@@ -1,0 +1,112 @@
+{
+  "steps": [
+    {
+      "id": "get_users",
+      "method": "GET",
+      "endpoint": "/api/users",
+      "extract": "$.users"
+    },
+    {
+      "id": "filter_active_users",
+      "method": "POST",
+      "endpoint": "/api/placeholder/filter", 
+      "dependsOn": [
+        "get_users"
+      ],
+      "body": {
+        "input_ref": "get_users.extract",
+        "filter_expression": "$[?(@.active==true)]"
+      },
+      "extract": "$"
+    },
+    {
+      "id": "fetch_user_purchases",
+      "method": "GET",
+      "endpoint": "/api/users/{user_id}/purchases",
+      "forEach": "filter_active_users.extract",
+      "queryParams": {
+        "since": "2025-01-01",
+        "min_amount": "500"
+      },
+      "dependsOn": [
+        "filter_active_users"
+      ],
+      "extract": "$.purchases"
+    },
+    {
+      "id": "count_qualifying_purchases",
+      "method": "POST",
+      "endpoint": "/api/placeholder/count",
+      "dependsOn": [
+        "fetch_user_purchases"
+      ],
+      "forEach": "filter_active_users.extract",
+      "body": {
+        "user_ref": "current", 
+        "purchases_ref": "fetch_user_purchases.extract",
+        "count_expression": "length(purchases_ref)"
+      },
+      "extract": "$.count"
+    },
+    {
+      "id": "select_qualifying_users",
+      "method": "POST",
+      "endpoint": "/api/placeholder/select",
+      "dependsOn": [
+        "count_qualifying_purchases"
+      ],
+      "body": {
+        "users_ref": "filter_active_users.extract",
+        "counts_ref": "count_qualifying_purchases.extract",
+        "condition_expression": "count >= 3"
+      },
+      "extract": "$"
+    },
+    {
+      "id": "fetch_department_for_user",
+      "method": "GET",
+      "endpoint": "/api/departments/{department_id}",
+      "forEach": "select_qualifying_users.extract",
+      "dependsOn": [
+        "select_qualifying_users"
+      ],
+      "extract": "$"
+    },
+    {
+      "id": "send_notification_email",
+      "method": "POST",
+      "endpoint": "/api/notifications/email",
+      "forEach": "select_qualifying_users.extract",
+      "dependsOn": [
+        "fetch_department_for_user",
+        "select_qualifying_users"
+      ],
+      "body": {
+        "to": "{current.email}",
+        "subject": "Loyalty Reward — {current.department.name}",
+        "body": "Hi {current.name}, you have made {current.purchase_count} qualifying purchases. You are eligible for our loyalty program."
+      },
+      "extract": "$.notification_id"
+    },
+    {
+      "id": "assemble_summary",
+      "method": "POST",
+      "endpoint": "/api/placeholder/assemble",
+      "dependsOn": [
+        "select_qualifying_users",
+        "fetch_department_for_user",
+        "send_notification_email"
+      ],
+      "body": {
+        "users_ref": "select_qualifying_users.extract",
+        "departments_ref": "fetch_department_for_user.extract",
+        "notifications_ref": "send_notification_email.extract",
+        "assemble_expression": "for each qualifying user produce { user_name: user.name, email: user.email, department_name: departments[user.department_id].name, purchase_count: user.purchase_count, notification_id: notifications[user.id] }"
+      },
+      "extract": "$"
+    }
+  ],
+  "output": {
+    "format": "assemble_summary.extract"
+  }
+}

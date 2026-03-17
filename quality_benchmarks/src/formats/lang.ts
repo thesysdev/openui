@@ -16,7 +16,9 @@ export function parseLangOutput(
   error: string | null;
   validationErrors: string[];
 } {
-  const result = schema.parse(output);
+  // Strip markdown code fences if model wraps output in them
+  const stripped = output.trim().replace(/^```(?:\w*)\s*\n?/, "").replace(/\n?```\s*$/, "");
+  const result = schema.parse(stripped);
   if (!result.root) {
     return {
       original: output,

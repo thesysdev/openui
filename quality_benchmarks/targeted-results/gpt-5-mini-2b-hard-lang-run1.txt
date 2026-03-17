@@ -1,0 +1,39 @@
+root = Workflow([step_get_projects, step_process_projects, step_generate_report, step_notify_slack], output)
+step_get_projects = ApiCall("get_projects", "GET", "/api/projects", null, null, null, null, null, "$.projects")
+step_process_projects = ApiCall("process_projects", "POST", "/internal/process-projects", null, null, ["get_projects"], null, null, null)
+process_logic = Workflow([step_fetch_team, step_fetch_time_entries, step_fetch_risks, step_fetch_contributor_rates, step_compile_flagged], w_out)
+step_fetch_team = ApiCall("fetch_team", "GET", "/api/teams/{id}", null, null, ["process_projects"], "process_projects.active_project_team_ids", null, "$")
+step_fetch_time_entries = ApiCall("fetch_time_entries", "GET", "/api/projects/{id}/time-entries", {"start_date": "2025-10-01","end_date":"2025-12-31"}, null, ["process_projects"], "process_projects.active_project_ids", null, "$.entries")
+step_fetch_risks = ApiCall("fetch_risks", "GET", "/api/projects/{id}/risks", null, null, ["process_projects"], "process_projects.active_project_ids", null, "$.risks")
+step_fetch_contributor_rates = ApiCall("fetch_user", "GET", "/api/users/{id}", null, null, ["process_projects"], "process_projects.unique_contributor_ids", null, "$")
+step_compile_flagged = ApiCall("compile_flagged", "POST", "/internal/compile-flagged", null, null, ["fetch_time_entries","fetch_risks","fetch_user","fetch_team"], null, null, "$")
+w_out = WorkflowOutput("$.flagged_projects")
+step_generate_report = ApiCall("generate_report", "POST", "/api/reports/generate", null, {"title":"Q4 2025 Project Health Report","sections":"{{process_projects.report_sections}}","recipients":"{{process_projects.recipients}}"}, ["process_projects"], null, null, "$")
+step_notify_slack = ApiCall("notify_slack", "POST", "/api/notifications/slack", null, {"channel":"#project-health","message":"Q4 Project Health Report generated: {{generate_report.url}}. {{process_projects.flagged_count}} projects flagged."}, ["generate_report"], null, null, "$")
+output = WorkflowOutput("{\"report_id\": \"{{generate_report.report_id}}\", \"report_url\": \"{{generate_report.url}}\", \"flagged_project_count\": {{process_projects.flagged_count}}, \"flagged_projects\": {{process_projects.flagged_projects}} }")
+process_projects = ApiCall("process_projects_internal", "POST", "/internal/process-projects", null, null, ["get_projects"], null, null, "$")
+process_projects_input = {
+  "start_date": "2025-10-01",
+  "end_date": "2025-12-31"
+}
+internal_processing = {
+  "description": "This internal step represents orchestration logic executed server-side to compute aggregates, classifications, fetch teams/users, and prepare report sections and recipients",
+  "behavior": "1) Filter projects with status==\"active\" from get_projects response. 2) For each active project (id, name, budget, owner_id): fetch teams (/api/teams/{id}) for each team_id in project.team_ids. 3) Fetch time entries for project using /api/projects/{id}/time-entries with start_date/end_date. 4) Fetch risks for project using /api/projects/{id}/risks. 5) Compute total_hours, billable_hours, utilization_percent (round 1 decimal), unique_contributors, open_high_risks. 6) For unique contributors, fetch their user via /api/users/{id} to obtain hourly_rate, compute cost = sum(hourly_rate * contributor_billable_hours). 7) budget_consumed_percent = (cost / budget) * 100 rounded 1 decimal. 8) Classify per rules. 9) For at-risk or critical projects, fetch owner and team lead user details. 10) Build report sections and recipients deduplicated.",
+  "computed_fields": ["active_project_ids","active_project_team_ids","unique_contributor_ids","report_sections","recipients","flagged_projects","flagged_count"]
+}
+process_projects_result = {
+  "active_project_ids": "{{from get_projects.projects where status==\"active\" map id}}",
+  "active_project_team_ids": "{{from get_projects.projects where status==\"active\" flat_map team_ids}}",
+  "unique_contributor_ids": "{{from fetch_time_entries.entries map user_id dedupe}}",
+  "report_sections": "{{array of sections for each flagged project with heading and content}}",
+  "recipients": "{{deduplicated emails of owners and team leads}}",
+  "flagged_projects": "{{array of {project_name,classification,owner_name,utilization_percent,budget_consumed_percent,open_high_risks}}}",
+  "flagged_count": "{{length of flagged_projects}}"
+}
+final_placeholders = {
+  "generate_report.title": "Q4 2025 Project Health Report",
+  "generate_report.sections": "{{process_projects.report_sections}}",
+  "generate_report.recipients": "{{process_projects.recipients}}",
+  "generate_report.report_id": "{{generate_report.report_id}}",
+  "generate_report.url": "{{generate_report.url}}"
+}

@@ -1,0 +1,73 @@
+{
+  "steps": [
+    {
+      "operation": "filter",
+      "column": "status",
+      "operator": "eq",
+      "value": "active"
+    },
+    {
+      "operation": "filter",
+      "column": "hire_date",
+      "operator": "before",
+      "value": "2024-01-01"
+    },
+    {
+      "operation": "compute",
+      "newColumn": "full_name",
+      "expression": "first_name + ' ' + last_name"
+    },
+    {
+      "operation": "compute",
+      "newColumn": "annual_bonus",
+      "conditions": [
+        {
+          "when": "performance_rating >= 4.5",
+          "then": "salary * 0.15"
+        },
+        {
+          "when": "performance_rating >= 3.5",
+          "then": "salary * 0.10"
+        },
+        {
+          "when": "performance_rating >= 2.5",
+          "then": "salary * 0.05"
+        }
+      ],
+      "otherwise": "0"
+    },
+    {
+      "operation": "aggregate",
+      "groupBy": "department",
+      "metrics": [
+        {
+          "name": "employee_count",
+          "function": "count"
+        },
+        {
+          "name": "avg_salary",
+          "function": "avg",
+          "column": "salary",
+          "round": 0
+        },
+        {
+          "name": "total_bonus",
+          "function": "sum",
+          "column": "annual_bonus",
+          "round": 0
+        }
+      ]
+    },
+    {
+      "operation": "sort",
+      "sortBy": "total_bonus",
+      "direction": "desc"
+    }
+  ],
+  "outputColumns": [
+    "department",
+    "employee_count",
+    "avg_salary",
+    "total_bonus"
+  ]
+}

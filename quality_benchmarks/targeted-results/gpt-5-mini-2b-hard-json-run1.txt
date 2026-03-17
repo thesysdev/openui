@@ -1,0 +1,217 @@
+{
+  "steps": [
+    {
+      "id": "fetch_projects",
+      "method": "GET",
+      "endpoint": "/api/projects",
+      "extract": "$.projects"
+    },
+    {
+      "id": "filter_active_projects",
+      "method": "GET",
+      "endpoint": "/noop",
+      "dependsOn": [
+        "fetch_projects"
+      ],
+      "condition": "true",
+      "extract": "$[?(@.status=='active')]"
+    },
+    {
+      "id": "for_each_active_project",
+      "method": "GET",
+      "endpoint": "/noop",
+      "dependsOn": [
+        "filter_active_projects"
+      ],
+      "forEach": "$.fetch_projects[?(@.status=='active')]",
+      "extract": "$"
+    },
+    {
+      "id": "fetch_project_teams",
+      "method": "GET",
+      "endpoint": "/api/teams/{team_id}",
+      "dependsOn": [
+        "for_each_active_project"
+      ],
+      "forEach": "$.for_each_active_project.team_ids",
+      "extract": "$"
+    },
+    {
+      "id": "fetch_project_time_entries",
+      "method": "GET",
+      "endpoint": "/api/projects/{id}/time-entries",
+      "queryParams": {
+        "start_date": "2025-10-01",
+        "end_date": "2025-12-31"
+      },
+      "dependsOn": [
+        "for_each_active_project"
+      ],
+      "extract": "$.entries"
+    },
+    {
+      "id": "fetch_project_risks",
+      "method": "GET",
+      "endpoint": "/api/projects/{id}/risks",
+      "dependsOn": [
+        "for_each_active_project"
+      ],
+      "extract": "$.risks"
+    },
+    {
+      "id": "aggregate_project_metrics",
+      "method": "GET",
+      "endpoint": "/noop",
+      "dependsOn": [
+        "fetch_project_time_entries",
+        "fetch_project_risks",
+        "fetch_project_teams",
+        "for_each_active_project"
+      ],
+      "extract": "{\n  \"project_id\": \"$.for_each_active_project.id\",\n  \"project_name\": \"$.for_each_active_project.name\",\n  \"budget\": \"$.for_each_active_project.budget\",\n  \"time_entries\": \"$.fetch_project_time_entries\",\n  \"risks\": \"$.fetch_project_risks\",\n  \"teams\": \"$.for_each_active_project.team_ids\"\n}"
+    },
+    {
+      "id": "compute_metrics",
+      "method": "GET",
+      "endpoint": "/noop",
+      "dependsOn": [
+        "aggregate_project_metrics"
+      ],
+      "extract": "{\n  \"project_id\": \"$.aggregate_project_metrics.project_id\",\n  \"project_name\": \"$.aggregate_project_metrics.project_name\",\n  \"budget\": \"$.aggregate_project_metrics.budget\",\n  \"total_hours\": \"sum($.aggregate_project_metrics.time_entries[*].hours)\",\n  \"billable_hours\": \"sum($.aggregate_project_metrics.time_entries[?(@.billable==true)].hours)\",\n  \"utilization_percent\": \"round(( (sum($.aggregate_project_metrics.time_entries[?(@.billable==true)].hours) / (sum($.aggregate_project_metrics.time_entries[*].hours) == 0 ? 1 : sum($.aggregate_project_metrics.time_entries[*].hours)) ) * 100) , 1)\",\n  \"unique_contributors\": \"count(unique($.aggregate_project_metrics.time_entries[*].user_id))\",\n  \"open_high_risks\": \"count($.aggregate_project_metrics.risks[?(@.severity=='high' && @.status=='open')])\",\n  \"contributors_billable_hours\": \"groupBy($.aggregate_project_metrics.time_entries[?(@.billable==true)], 'user_id', sum(@.hours))\"\n}"
+    },
+    {
+      "id": "fetch_contributor_rates",
+      "method": "GET",
+      "endpoint": "/api/users/{id}",
+      "dependsOn": [
+        "compute_metrics"
+      ],
+      "forEach": "$.compute_metrics.contributors_billable_hours[*].user_id",
+      "extract": "$"
+    },
+    {
+      "id": "compute_budget_consumed",
+      "method": "GET",
+      "endpoint": "/noop",
+      "dependsOn": [
+        "fetch_contributor_rates",
+        "compute_metrics"
+      ],
+      "extract": "{\n  \"project_id\": \"$.compute_metrics.project_id\",\n  \"cost_by_contributor\": \"map($.compute_metrics.contributors_billable_hours[*], function(c){ user = $.fetch_contributor_rates[?(@.id==c.user_id)]; return { user_id: c.user_id, hours: c.sum, rate: user.hourly_rate, cost: c.sum * user.hourly_rate } })\",\n  \"total_cost\": \"sum(map($.compute_metrics.contributors_billable_hours[*], function(c){ user = $.fetch_contributor_rates[?(@.id==c.user_id)]; return c.sum * user.hourly_rate }))\",\n  \"budget_consumed_percent\": \"round(( (sum(map($.compute_metrics.contributors_billable_hours[*], function(c){ user = $.fetch_contributor_rates[?(@.id==c.user_id)]; return c.sum * user.hourly_rate })) / ($.compute_metrics.budget == 0 ? 1 : $.compute_metrics.budget) ) * 100) , 1)\"\n}"
+    },
+    {
+      "id": "classify_project",
+      "method": "GET",
+      "endpoint": "/noop",
+      "dependsOn": [
+        "compute_budget_consumed"
+      ],
+      "extract": "{\n  \"project_id\": \"$.compute_budget_consumed.project_id\",\n  \"project_name\": \"$.compute_metrics.project_name\",\n  \"total_hours\": \"$.compute_metrics.total_hours\",\n  \"billable_hours\": \"$.compute_metrics.billable_hours\",\n  \"utilization_percent\": \"$.compute_metrics.utilization_percent\",\n  \"unique_contributors\": \"$.compute_metrics.unique_contributors\",\n  \"open_high_risks\": \"$.compute_metrics.open_high_risks\",\n  \"budget_consumed_percent\": \"$.compute_budget_consumed.budget_consumed_percent\",\n  \"classification\": \"( $.compute_metrics.utilization_percent >= 70 && $.compute_metrics.open_high_risks == 0 && $.compute_budget_consumed.budget_consumed_percent <= 85 ) ? 'on-track' : ( ($.compute_metrics.utilization_percent >= 50 && ($.compute_metrics.open_high_risks > 0 || $.compute_budget_consumed.budget_consumed_percent > 85)) ? 'at-risk' : 'critical' )\"\n}"
+    },
+    {
+      "id": "filter_flagged_projects",
+      "method": "GET",
+      "endpoint": "/noop",
+      "dependsOn": [
+        "classify_project"
+      ],
+      "extract": "$[?(@.classification=='at-risk' || @.classification=='critical')]"
+    },
+    {
+      "id": "fetch_owner_details",
+      "method": "GET",
+      "endpoint": "/api/users/{id}",
+      "dependsOn": [
+        "filter_flagged_projects",
+        "for_each_active_project"
+      ],
+      "forEach": "$.filter_flagged_projects.owner_id || $.for_each_active_project.owner_id",
+      "extract": "$"
+    },
+    {
+      "id": "fetch_flagged_team_leads",
+      "method": "GET",
+      "endpoint": "/api/teams/{id}",
+      "dependsOn": [
+        "filter_flagged_projects",
+        "for_each_active_project"
+      ],
+      "forEach": "$.filter_flagged_projects.teams || $.for_each_active_project.team_ids",
+      "extract": "$"
+    },
+    {
+      "id": "fetch_team_lead_users",
+      "method": "GET",
+      "endpoint": "/api/users/{id}",
+      "dependsOn": [
+        "fetch_flagged_team_leads"
+      ],
+      "forEach": "$.fetch_flagged_team_leads.lead_id",
+      "extract": "$"
+    },
+    {
+      "id": "assemble_report_sections",
+      "method": "GET",
+      "endpoint": "/noop",
+      "dependsOn": [
+        "filter_flagged_projects",
+        "fetch_owner_details",
+        "fetch_team_lead_users",
+        "compute_budget_consumed",
+        "classify_project"
+      ],
+      "extract": "map($.filter_flagged_projects[*], function(p){ owners = $.fetch_owner_details[?(@.id==p.owner_id)]; team_ids = p.teams || []; team_leads = map(team_ids, function(tid){ team = $.fetch_flagged_team_leads[?(@.id==tid)]; return $.fetch_team_lead_users[?(@.id==team.lead_id)].name || '' }); recipients = concat([owners.email], unique(map(team_leads, function(n){ lead = $.fetch_team_lead_users[?(@.name==n)]; return lead.email || '' }))); return { heading: p.name + ' - ' + ($.classify_project[?(@.project_id==p.id)].classification), content: 'Project: ' + p.name + '\\nClassification: ' + ($.classify_project[?(@.project_id==p.id)].classification) + '\\nTotal Hours: ' + ($.classify_project[?(@.project_id==p.id)].total_hours) + '\\nUtilization (%): ' + ($.classify_project[?(@.project_id==p.id)].utilization_percent) + '\\nOpen High Risks: ' + ($.classify_project[?(@.project_id==p.id)].open_high_risks) + '\\nBudget Consumed (%): ' + ($.classify_project[?(@.project_id==p.id)].budget_consumed_percent) + '\\nOwner: ' + (owners.name || '') + '\\nTeam Leads: ' + join(team_leads, ', '), recipients: recipients, owner_name: owners.name, team_leads: team_leads } )"
+    },
+    {
+      "id": "collect_recipients",
+      "method": "GET",
+      "endpoint": "/noop",
+      "dependsOn": [
+        "assemble_report_sections"
+      ],
+      "extract": "unique(flatMap($.assemble_report_sections[*].recipients))"
+    },
+    {
+      "id": "generate_report",
+      "method": "POST",
+      "endpoint": "/api/reports/generate",
+      "body": {
+        "title": "Q4 2025 Project Health Report",
+        "sections": "$.assemble_report_sections[*].{heading: heading, content: content}",
+        "recipients": "$.collect_recipients"
+      },
+      "dependsOn": [
+        "collect_recipients",
+        "assemble_report_sections"
+      ],
+      "extract": "$"
+    },
+    {
+      "id": "send_slack_notification",
+      "method": "POST",
+      "endpoint": "/api/notifications/slack",
+      "body": {
+        "channel": "#project-health",
+        "message": "Q4 Project Health Report generated: {$.generate_report.url}. {$.assemble_report_sections.length} projects flagged."
+      },
+      "dependsOn": [
+        "generate_report",
+        "assemble_report_sections"
+      ],
+      "extract": "$"
+    },
+    {
+      "id": "final_output",
+      "method": "GET",
+      "endpoint": "/noop",
+      "dependsOn": [
+        "generate_report",
+        "assemble_report_sections"
+      ],
+      "extract": "{\n  \"report_id\": \"$.generate_report.report_id\",\n  \"report_url\": \"$.generate_report.url\",\n  \"flagged_project_count\": \"$.assemble_report_sections.length\",\n  \"flagged_projects\": \"map($.assemble_report_sections[*], function(s){ p = $.filter_flagged_projects[?(@.name==split(s.heading, ' - ')[0])]; classification = split(s.heading, ' - ')[1]; return { project_name: split(s.heading, ' - ')[0], classification: classification, owner_name: s.owner_name, utilization_percent: $.classify_project[?(@.project_id==p.id)].utilization_percent, budget_consumed_percent: $.classify_project[?(@.project_id==p.id)].budget_consumed_percent, open_high_risks: $.classify_project[?(@.project_id==p.id)].open_high_risks } })\n}"
+    }
+  ],
+  "output": {
+    "format": "{ $.final_output }"
+  }
+}

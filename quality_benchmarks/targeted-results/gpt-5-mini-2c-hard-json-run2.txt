@@ -1,0 +1,352 @@
+{
+  "name": "ci_cd_pipeline",
+  "initialState": "idle",
+  "terminalStates": [
+    "prod_validated",
+    "pipeline_aborted",
+    "rollback_complete"
+  ],
+  "states": [
+    "idle",
+    "source_checkout",
+    "checkout_failed",
+    "build_started",
+    "unit_tests",
+    "lint",
+    "unit_tests_passed",
+    "unit_tests_failed",
+    "lint_passed",
+    "lint_failed",
+    "build_complete",
+    "build_failed",
+    "integration_tests",
+    "integration_passed",
+    "integration_failed",
+    "staging_deploy",
+    "staging_deployed",
+    "staging_deploy_failed",
+    "staging_validation",
+    "staging_validated",
+    "staging_validation_failed",
+    "approval_pending",
+    "approval_granted",
+    "approval_rejected",
+    "prod_deploy",
+    "prod_deployed",
+    "prod_deploy_failed",
+    "prod_validation",
+    "prod_validated",
+    "prod_validation_failed",
+    "rollback_initiated",
+    "rollback_complete",
+    "pipeline_aborted"
+  ],
+  "transitions": [
+    {
+      "source": "idle",
+      "target": "source_checkout",
+      "event": "trigger_pipeline",
+      "guard": "branch != \"\"",
+      "action": "initialize_pipeline_context; reset_retry_counts"
+    },
+    {
+      "source": "source_checkout",
+      "target": "build_started",
+      "event": "checkout_success",
+      "action": "record_commit; prepare_build_env"
+    },
+    {
+      "source": "source_checkout",
+      "target": "checkout_failed",
+      "event": "checkout_error",
+      "action": "log_error; notify_team"
+    },
+    {
+      "source": "checkout_failed",
+      "target": "source_checkout",
+      "event": "retry",
+      "guard": "retry_count < 2",
+      "action": "increment_retry_count; attempt_checkout"
+    },
+    {
+      "source": "build_started",
+      "target": "unit_tests",
+      "event": "start_parallel_build",
+      "action": "start_unit_test_runner"
+    },
+    {
+      "source": "build_started",
+      "target": "lint",
+      "event": "start_parallel_build",
+      "action": "start_linter"
+    },
+    {
+      "source": "unit_tests",
+      "target": "unit_tests_passed",
+      "event": "tests_pass",
+      "action": "record_unit_test_results"
+    },
+    {
+      "source": "unit_tests",
+      "target": "unit_tests_failed",
+      "event": "tests_fail",
+      "action": "record_unit_test_results; report_failure"
+    },
+    {
+      "source": "lint",
+      "target": "lint_passed",
+      "event": "lint_pass",
+      "action": "record_lint_results"
+    },
+    {
+      "source": "lint",
+      "target": "lint_failed",
+      "event": "lint_fail",
+      "action": "record_lint_results; report_failure"
+    },
+    {
+      "source": "build_complete",
+      "target": "integration_tests",
+      "event": "start_integration",
+      "action": "provision_integration_env; start_integration_tests"
+    },
+    {
+      "source": "build_failed",
+      "target": "idle",
+      "event": "reset_pipeline",
+      "action": "cleanup_build_artifacts; notify_failure"
+    },
+    {
+      "source": "integration_tests",
+      "target": "integration_passed",
+      "event": "integration_pass",
+      "action": "record_integration_results"
+    },
+    {
+      "source": "integration_tests",
+      "target": "integration_failed",
+      "event": "integration_fail",
+      "action": "record_integration_results; notify_team"
+    },
+    {
+      "source": "integration_failed",
+      "target": "integration_tests",
+      "event": "retry",
+      "guard": "retry_count < 2",
+      "action": "increment_retry_count; rerun_integration_tests"
+    },
+    {
+      "source": "integration_passed",
+      "target": "staging_deploy",
+      "event": "deploy_staging",
+      "action": "start_staging_deployment"
+    },
+    {
+      "source": "staging_deploy",
+      "target": "staging_deployed",
+      "event": "staging_deploy_success",
+      "action": "record_staging_deploy"
+    },
+    {
+      "source": "staging_deploy",
+      "target": "staging_deploy_failed",
+      "event": "staging_deploy_error",
+      "action": "record_deploy_error; notify_oncall"
+    },
+    {
+      "source": "staging_deploy_failed",
+      "target": "staging_deploy",
+      "event": "retry",
+      "guard": "retry_count < 2",
+      "action": "increment_retry_count; retry_staging_deploy"
+    },
+    {
+      "source": "staging_deployed",
+      "target": "staging_validation",
+      "event": "validate_staging",
+      "action": "run_staging_smoke_tests"
+    },
+    {
+      "source": "staging_validation",
+      "target": "staging_validated",
+      "event": "staging_checks_pass",
+      "action": "record_staging_validation"
+    },
+    {
+      "source": "staging_validation",
+      "target": "staging_validation_failed",
+      "event": "staging_checks_fail",
+      "action": "record_validation_failure; notify_team"
+    },
+    {
+      "source": "staging_validation_failed",
+      "target": "staging_deploy",
+      "event": "redeploy_staging",
+      "action": "rollback_staging_changes; redeploy_to_staging"
+    },
+    {
+      "source": "staging_validated",
+      "target": "approval_pending",
+      "event": "request_approval",
+      "action": "create_approval_request; notify_approvers"
+    },
+    {
+      "source": "approval_pending",
+      "target": "approval_granted",
+      "event": "approve",
+      "guard": "approver_role == \"lead\" || approver_role == \"admin\"",
+      "action": "record_approval"
+    },
+    {
+      "source": "approval_pending",
+      "target": "approval_rejected",
+      "event": "reject",
+      "action": "record_rejection; notify_team"
+    },
+    {
+      "source": "approval_rejected",
+      "target": "idle",
+      "event": "reset_pipeline",
+      "action": "cleanup_and_reset"
+    },
+    {
+      "source": "approval_granted",
+      "target": "prod_deploy",
+      "event": "deploy_production",
+      "action": "start_production_deployment"
+    },
+    {
+      "source": "prod_deploy",
+      "target": "prod_deployed",
+      "event": "prod_deploy_success",
+      "action": "record_prod_deploy"
+    },
+    {
+      "source": "prod_deploy",
+      "target": "prod_deploy_failed",
+      "event": "prod_deploy_error",
+      "action": "record_prod_deploy_error; alert_oncall"
+    },
+    {
+      "source": "prod_deploy_failed",
+      "target": "rollback_initiated",
+      "event": "initiate_rollback",
+      "action": "start_rollback_procedure"
+    },
+    {
+      "source": "prod_deployed",
+      "target": "prod_validation",
+      "event": "validate_production",
+      "action": "run_production_health_checks"
+    },
+    {
+      "source": "prod_validation",
+      "target": "prod_validated",
+      "event": "prod_checks_pass",
+      "action": "mark_pipeline_success; notify_stakeholders"
+    },
+    {
+      "source": "prod_validation",
+      "target": "prod_validation_failed",
+      "event": "prod_checks_fail",
+      "action": "record_prod_checks_failure; alert_oncall"
+    },
+    {
+      "source": "prod_validation_failed",
+      "target": "rollback_initiated",
+      "event": "initiate_rollback",
+      "action": "start_rollback_procedure"
+    },
+    {
+      "source": "rollback_initiated",
+      "target": "rollback_complete",
+      "event": "rollback_success",
+      "action": "record_rollback; restore_state"
+    },
+    {
+      "source": "rollback_complete",
+      "target": "idle",
+      "event": "reset_pipeline",
+      "action": "cleanup_and_reset"
+    },
+    {
+      "source": "source_checkout",
+      "target": "pipeline_aborted",
+      "event": "abort",
+      "action": "abort_pipeline; cleanup"
+    },
+    {
+      "source": "build_started",
+      "target": "pipeline_aborted",
+      "event": "abort",
+      "action": "abort_pipeline; cleanup"
+    },
+    {
+      "source": "unit_tests",
+      "target": "pipeline_aborted",
+      "event": "abort",
+      "action": "abort_pipeline; cleanup"
+    },
+    {
+      "source": "lint",
+      "target": "pipeline_aborted",
+      "event": "abort",
+      "action": "abort_pipeline; cleanup"
+    },
+    {
+      "source": "integration_tests",
+      "target": "pipeline_aborted",
+      "event": "abort",
+      "action": "abort_pipeline; cleanup"
+    },
+    {
+      "source": "staging_deploy",
+      "target": "pipeline_aborted",
+      "event": "abort",
+      "action": "abort_pipeline; cleanup"
+    },
+    {
+      "source": "staging_validation",
+      "target": "pipeline_aborted",
+      "event": "abort",
+      "action": "abort_pipeline; cleanup"
+    },
+    {
+      "source": "approval_pending",
+      "target": "pipeline_aborted",
+      "event": "abort",
+      "action": "abort_pipeline; cleanup"
+    },
+    {
+      "source": "prod_deploy",
+      "target": "pipeline_aborted",
+      "event": "abort",
+      "action": "abort_pipeline; cleanup"
+    }
+  ],
+  "joinConditions": [
+    {
+      "targetState": "build_complete",
+      "requiredStates": [
+        "unit_tests_passed",
+        "lint_passed"
+      ],
+      "failState": "build_failed",
+      "failStates": [
+        "unit_tests_failed",
+        "lint_failed"
+      ]
+    }
+  ],
+  "forkTransitions": [
+    {
+      "source": "build_started",
+      "targets": [
+        "unit_tests",
+        "lint"
+      ],
+      "event": "start_parallel_build",
+      "action": "fork_unit_tests_and_lint"
+    }
+  ]
+}

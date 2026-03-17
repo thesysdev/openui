@@ -1,0 +1,41 @@
+root = Workflow([step_fetch_projects, step_filter_active, step_process_projects], output)
+step_fetch_projects = ApiCall("fetch_projects", "GET", "/api/projects", null, null, null, null, null, "$.projects")
+step_filter_active = ApiCall("filter_active", "GET", "/api/projects", null, null, ["fetch_projects"], null, null, "$.projects[?(@.status==\"active\")]")
+step_process_projects = ApiCall("process_projects", "POST", "/api/reports/generate", null, null, ["filter_active"], "filter_active", null, "$")
+output = WorkflowOutput("{{report_id: $.report_id, report_url: $.url, flagged_project_count: $.flagged_count, flagged_projects: $.flagged_projects}}")
+
+# Note: The orchestration below uses synthetic intermediate ApiCall steps to represent iterative processing,
+# extraction, user/team fetches, computations, and final report/notification. Each ApiCall's 'extract' points
+# to the expected value produced by that step so later steps can reference them.
+
+# Step: expand active projects into per-project processing array
+step_expand_projects = ApiCall("expand_projects", "GET", "/api/projects", null, null, ["filter_active"], null, null, "$.projects_active")
+step_fetch_teams_for_project = ApiCall("fetch_teams", "GET", "/api/teams/{id}", null, null, ["expand_projects"], "expand_projects", null, "$")
+step_fetch_time_entries_for_project = ApiCall("fetch_time_entries", "GET", "/api/projects/{id}/time-entries", {"start_date":"2025-10-01","end_date":"2025-12-31"}, null, ["expand_projects"], "expand_projects", null, "$.entries")
+step_fetch_risks_for_project = ApiCall("fetch_risks", "GET", "/api/projects/{id}/risks", null, null, ["expand_projects"], "expand_projects", null, "$.risks")
+
+# Compute per-project aggregates (synthetic processing step that produces computed fields)
+step_compute_project_metrics = ApiCall("compute_metrics", "POST", "/api/reports/generate", null, null, ["fetch_time_entries","fetch_risks","fetch_teams"], "expand_projects", null, "$")
+# The above POST is a synthetic compute step: it will not actually generate a report here but is used to carry computed metrics forward via its extract.
+
+# Fetch unique contributors' user details (iterates over contributor IDs)
+step_fetch_contributor_user = ApiCall("fetch_contributor_user", "GET", "/api/users/{id}", null, null, ["compute_metrics"], "compute_metrics", null, "$")
+
+# Fetch project owner details for flagged projects
+step_fetch_owner_user = ApiCall("fetch_owner_user", "GET", "/api/users/{id}", null, null, ["compute_metrics"], "compute_metrics", null, "$")
+
+# Fetch team lead user details for flagged projects' teams
+step_fetch_team_lead = ApiCall("fetch_team_lead", "GET", "/api/users/{id}", null, null, ["fetch_teams"], "fetch_teams", null, "$")
+
+# Generate final report with sections and recipients assembled from flagged projects
+step_generate_report = ApiCall("generate_report", "POST", "/api/reports/generate", null, {
+  "title":"Q4 2025 Project Health Report",
+  "sections":"{{sections}}",
+  "recipients":"{{recipients}}"
+}, ["compute_metrics","fetch_owner_user","fetch_team_lead","fetch_contributor_user"], null, null, "$")
+
+# Send Slack notification after report generation
+step_notify_slack = ApiCall("notify_slack", "POST", "/api/notifications/slack", null, {"channel":"#project-health","message":"Q4 Project Health Report generated: {{generate_report.url}}. {{generate_report.flagged_count}} projects flagged."}, ["generate_report"], null, null, "$")
+
+# Final synthetic extraction step to assemble required return values
+step_assemble_output = ApiCall("assemble_output", "POST", "/api/reports/generate", null, null, ["generate_report"], null, null, "{{report_id: $.generate_report.report_id, report_url: $.generate_report.url, flagged_project_count: $.generate_report.flagged_count, flagged_projects: $.generate_report.flagged_projects}}")

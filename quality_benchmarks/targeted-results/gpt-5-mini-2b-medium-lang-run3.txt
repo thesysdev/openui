@@ -1,0 +1,8 @@
+root = Workflow([step_get_users, step_filter_active, step_for_each_active_user_purchases, step_filter_qualifying_users, step_fetch_department_for_each_qualifying_user, step_send_email_for_each_qualifying_user], output_summary)
+step_get_users = ApiCall("get_users", "GET", "/api/users", null, null, null, null, null, "$.users")
+step_filter_active = ApiCall("filter_active_users", "POST", "/internal/filter", null, {"items": "$ref:get_users", "predicate": "item.active == true"}, ["get_users"], null, null, "$.items")
+step_for_each_active_user_purchases = ApiCall("user_purchases", "GET", "/api/users/{user_id}/purchases", {"since": "2025-01-01", "min_amount": "500"}, null, ["filter_active_users"], "{user_id: $.id}", null, "$.purchases")
+step_filter_qualifying_users = ApiCall("qualifying_users", "POST", "/internal/filter", null, {"users": "$ref:user_purchases", "predicate": "item.purchases.length >= 3"}, ["user_purchases"], null, null, "$.users")
+step_fetch_department_for_each_qualifying_user = ApiCall("fetch_department", "GET", "/api/departments/{id}", null, null, ["qualifying_users"], "{id: $.department_id}", null, "$")
+step_send_email_for_each_qualifying_user = ApiCall("send_email", "POST", "/api/notifications/email", null, {"to": "$.email", "subject": "Loyalty Reward — $.department.name", "body": "Hi $.name, you have made $.purchase_count qualifying purchases. You are eligible for our loyalty program."}, ["fetch_department"], null, null, "$")
+output_summary = WorkflowOutput("$.qualifying_users.map(u => ({user_name: u.name, email: u.email, department_name: $.fetch_department[u.department_id].name, purchase_count: u.purchases.length, notification_id: $.send_email[u.id].notification_id}))")
