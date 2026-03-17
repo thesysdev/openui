@@ -15,6 +15,7 @@
     "benchmarks",
     "---Examples---",
     "examples/react-native",
-    "examples/shadcn-chat"
+    "examples/shadcn-chat",
+    "examples/analytics-demo"
   ]
 }
