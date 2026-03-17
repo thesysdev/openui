@@ -3,9 +3,7 @@ title: Vercel AI Chat
 description: A full-featured chatbot using the Vercel AI SDK for streaming and tool execution, with OpenUI Renderer for generative UI.
 ---
 
-OpenUI's `<Renderer />` is transport-agnostic. It takes a string of OpenUI Lang markup and renders it as interactive React components — it doesn't care how that string arrived. Any framework that produces streaming text works: raw `fetch`, LangChain, LlamaIndex, a custom SSE endpoint, or — as in this example — the [Vercel AI SDK](https://ai-sdk.dev/).
-
-This example uses the Vercel AI SDK (`ai`, `@ai-sdk/react`, `@ai-sdk/openai`) as the transport layer, paired with OpenUI's `<Renderer />` and the built-in `openuiChatLibrary` as the presentation layer. It includes multi-step tool calling, conversation threading with localStorage persistence, and automatic light/dark theme support.
+OpenUI's `<Renderer />` is transport-agnostic — it takes a string of OpenUI Lang markup and renders it as interactive React components, regardless of how that string arrived. This example uses the Vercel AI SDK (`ai`, `@ai-sdk/react`, `@ai-sdk/openai`) as the transport layer, paired with the built-in `openuiChatLibrary` of `OpenUI` as the presentation layer. It includes multi-step tool calling, conversation threading with localStorage persistence, and automatic light/dark theme support.
 
 [View source on GitHub →](https://github.com/thesysdev/crayon/tree/main/examples/vercel-ai-chat)
 
@@ -24,30 +22,7 @@ This example uses the Vercel AI SDK (`ai`, `@ai-sdk/react`, `@ai-sdk/openai`) as
 
 ## How OpenUI plugs into any chat framework
 
-Every chat framework divides into two layers:
-
-- **Transport layer** — streaming chat completions, managing message state, executing tools. This is framework-specific: Vercel AI SDK, LangChain, raw `fetch`, etc.
-- **Presentation layer** — parsing the LLM's structured output and rendering it as UI. This is OpenUI: `<Renderer />` + `openuiChatLibrary`.
-
-The two layers meet at a single point: the accumulated text string from the LLM. Whatever your transport layer looks like, the OpenUI integration is always:
-
-```tsx
-import { Renderer } from "@openuidev/react-lang";
-import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
-
-<Renderer
-  response={accumulatedText}
-  library={openuiChatLibrary}
-  isStreaming={isStreaming}
-  onAction={handleAction}
-/>;
-```
-
-`accumulatedText` is the raw text the LLM has streamed so far. `<Renderer />` parses it progressively as tokens arrive and renders it as real components.
-
-### Backend: streaming OpenUI Lang
-
-The API route calls the LLM with a system prompt generated from the OpenUI component library (via `generateSystemPrompt`). The system prompt instructs the model to respond in OpenUI Lang syntax — that's what `<Renderer />` will later parse. Tool definitions use the AI SDK's `tool()` helper with Zod schemas:
+The backend API route reads a pre-generated system prompt from `src/generated/system-prompt.txt` and calls the LLM with `streamText`. Tool definitions use the AI SDK's `tool()` helper with Zod schemas:
 
 ```tsx
 import { streamText, convertToModelMessages, stepCountIs } from "ai";
@@ -70,20 +45,16 @@ export async function POST(req: Request) {
 }
 ```
 
-`convertToModelMessages` bridges the client's `UIMessage` format to the server's `ModelMessage` format. `toUIMessageStreamResponse` streams the result back in a format that `useChat` on the client understands.
-
-### Frontend: `<Renderer />` as the display layer
-
-On the client, `useChat` from `@ai-sdk/react` manages conversation state and streaming. Each assistant message hands its accumulated text content to `<Renderer />`:
+On the client, `useChat` from `@ai-sdk/react` manages conversation state and streaming. Each assistant message passes its accumulated text to `<Renderer />`:
 
 ```tsx
 import { useChat } from "@ai-sdk/react";
 import { Renderer } from "@openuidev/react-lang";
 import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
 
-// In the page component:
 const { messages, sendMessage, status, stop } = useChat({
   id: activeThreadId,
+  messages: activeThread?.messages,
 });
 
 // In the assistant message component:
@@ -92,74 +63,50 @@ const { messages, sendMessage, status, stop } = useChat({
   library={openuiChatLibrary}
   isStreaming={isStreaming}
   onAction={handleAction}
-/>;
+/>
 ```
 
-The `openuiChatLibrary` maps OpenUI Lang nodes to the built-in component set (cards, tables, charts, forms, etc.). The `onAction` handler captures interactive events like button clicks and feeds them back into the conversation.
+- `response` — the accumulated text the LLM has streamed so far; `<Renderer />` parses it progressively as tokens arrive
+- `library` — maps OpenUI Lang nodes to the built-in component set (cards, tables, charts, forms, etc.)
+- `isStreaming` — tells the renderer to keep expecting more tokens
+- `onAction` — captures interactive events like button clicks and feeds them back into the conversation
 
-With a different transport — say, a raw `EventSource` or a LangChain streaming response — you'd replace `useChat` with your own state management and accumulate the text string manually. The `<Renderer />` call above stays unchanged.
-
-## Adapting to other frameworks
-
-| Layer                | This example                       | With another framework            |
-| -------------------- | ---------------------------------- | --------------------------------- |
-| LLM call             | `streamText` (Vercel AI SDK)       | Any streaming LLM client          |
-| Client state         | `useChat` from `@ai-sdk/react`     | Custom hook, Zustand, Redux, etc. |
-| Text accumulation    | Handled by `useChat`               | Accumulate tokens manually        |
-| **OpenUI rendering** | **`<Renderer response={text} />`** | **Unchanged**                     |
-
-The only contract OpenUI imposes on your transport layer: the LLM must be prompted with a system prompt from `generateSystemPrompt`, and the accumulated response text must be passed to `<Renderer response={...} />`.
-
-## Tool calling
-
-The example includes four mock tools that the LLM can invoke mid-conversation:
-
-| Tool              | Description                                                        |
-| ----------------- | ------------------------------------------------------------------ |
-| `get_weather`     | Returns temperature, conditions, and a two-day forecast for a city |
-| `get_stock_price` | Returns price, change, and volume for a ticker symbol              |
-| `calculate`       | Evaluates a math expression                                        |
-| `search_web`      | Returns mock search results for a query                            |
-
-Tools are defined with `tool()` from the AI SDK and use `inputSchema` (Zod) for type-safe parameter validation. The AI SDK handles multi-step execution automatically — when the LLM calls a tool, the result is fed back and the model continues generating UI with the data.
+Swap out `useChat` and the API route for any other transport — raw `fetch`, LangChain, LlamaIndex — and the `<Renderer />` call stays unchanged.
 
 ## Architecture
 
 ```
-Browser (any chat hook) -- POST /api/chat --> Any chat backend --> LLM
-                        <-- streaming text --                     (OpenUI Lang markup)
-
-Browser: <Renderer response={accumulatedText} library={openuiChatLibrary} />
+Browser (useChat) -- POST /api/chat --> Next.js route --> LLM
+                  <-- streaming text --                   (OpenUI Lang markup)
 ```
 
-1. The client sends the conversation to the API route.
-2. The API route calls the LLM with `streamText`, the system prompt, and tool definitions.
-3. When the LLM invokes a tool, the AI SDK executes it server-side and feeds the result back (up to 5 steps).
-4. The response streams back as text containing OpenUI Lang markup.
-5. On the client, `<Renderer />` with `openuiChatLibrary` renders the markup as interactive UI components as tokens stream in.
+The API route calls the LLM with `streamText`, the system prompt, and tool definitions. When the LLM invokes a tool (weather, stock price, calculator, or web search), the AI SDK executes it server-side and feeds the result back — up to 5 steps. The response streams back as OpenUI Lang markup.
+
+On the client, `<Renderer />` and `openuiChatLibrary` progressively render each token into interactive UI components as the response arrives.
 
 ## Project layout
 
 ```
 examples/vercel-ai-chat/
-├─ src/app/                  # Next.js app (layout, page, API route)
-├─ src/components/           # Chat UI components (messages, input, sidebar)
-├─ src/hooks/                # Theme detection, thread management
-├─ src/lib/                  # Tool definitions, localStorage thread store
-├─ src/generated/            # Generated system prompt
+|- src/app/        # Next.js app (layout, page, API route)
+|- src/components/ # Chat UI components (messages, input, sidebar)
+|- src/hooks/      # Theme detection, thread management
+|- src/lib/        # Tool definitions, localStorage thread store
+|- src/generated/  # Generated system prompt
 ```
 
 ## Run the example
 
-Run these commands from the repository root.
+Run these commands from `examples/vercel-ai-chat`.
 
 1. Install dependencies:
 
 ```bash
+cd examples/vercel-ai-chat
 pnpm install
 ```
 
-2. Create a `.env.local` file in `examples/vercel-ai-chat/` with your API key:
+2. Create a `.env.local` file with your API key:
 
 ```bash
 OPENAI_API_KEY=sk-...
@@ -168,7 +115,6 @@ OPENAI_API_KEY=sk-...
 3. Start the dev server:
 
 ```bash
-cd examples/vercel-ai-chat
 pnpm dev
 ```
 
