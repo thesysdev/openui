@@ -14,7 +14,7 @@ Features: 45+ custom shadcn/ui components, multi-step tool calling, Server-Sent 
     loop
 />
 
-[View source on GitHub →](https://github.com/thesysdev/crayon/tree/main/examples/shadcn-chat)
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/shadcn-chat)
 
 ---
 

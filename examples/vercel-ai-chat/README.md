@@ -14,7 +14,7 @@ Features: multi-step tool calling, persistent conversation threads (localStorage
     loop
 />
 
-[View source on GitHub →](https://github.com/thesysdev/crayon/tree/main/examples/vercel-ai-chat)
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/vercel-ai-chat)
 
 ---
 
