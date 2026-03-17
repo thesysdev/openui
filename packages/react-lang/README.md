@@ -119,6 +119,37 @@ function AssistantMessage({ response, isStreaming }) {
 | `createParser(library)` | Create a one-shot parser for complete OpenUI Lang text |
 | `createStreamingParser(library)` | Create an incremental parser for streaming input |
 
+The streaming parser exposes three methods:
+
+| Method | Description |
+| :--- | :--- |
+| `push(chunk)` | Feed the next chunk; returns the latest `ParseResult` |
+| `getResult()` | Get the latest result without consuming new data |
+| `finalize()` | Signal stream completion; promotes unresolved references to `validationErrors` |
+
+Call `finalize()` once after the last chunk to get the definitive result with all validation errors. Forward references are valid mid-stream, so `unresolved-ref` errors are only added at finalization.
+
+#### Validation errors
+
+`ParseResult.meta.validationErrors` contains structured errors from the parser. Each error includes a `rule` field for consumer-side filtering:
+
+| Rule | Meaning |
+| :--- | :--- |
+| `missing-required` | Required prop absent with no default |
+| `null-required` | Required prop explicitly null with no default |
+| `unknown-component` | Component name not found in the library schema |
+| `excess-args` | More positional args passed than the schema defines |
+| `unresolved-ref` | Identifier referenced but never assigned (after `finalize()`) |
+
+Validation errors do not affect rendering — the parser stays permissive and renders what it can. Use `rule` to decide how to surface or log errors:
+
+```ts
+const result = parser.parse(output);
+const critical = result.meta.validationErrors.filter(
+  (e) => e.rule === "unknown-component" || e.rule === "unresolved-ref"
+);
+```
+
 ### Context Hooks
 
 Use these inside component renderers to interact with the rendering context:
@@ -157,6 +188,8 @@ import type {
   ActionEvent,
   ElementNode,
   ParseResult,
+  ValidationError,
+  ValidationRule,
   LibraryJSONSchema,
 } from "@openuidev/react-lang";
 ```

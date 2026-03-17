@@ -139,6 +139,14 @@ interface Parser {
 interface StreamParser {
   push(chunk: string): ParseResult;
   getResult(): ParseResult;
+  /**
+   * Signal that the stream is complete.
+   * Promotes any still-unresolved references from `meta.unresolved` into
+   * `meta.validationErrors` as `unresolved-ref` errors.
+   * During streaming, forward references are valid — only call this when
+   * you know no more chunks are coming.
+   */
+  finalize(): ParseResult;
 }
 ```
 
@@ -152,10 +160,30 @@ interface ElementNode {
   partial: boolean;
 }
 
+/**
+ * Identifies which validation rule produced the error.
+ * Use this to filter or categorize errors on the consumer side.
+ *
+ * - missing-required  — required prop absent with no default
+ * - null-required     — required prop explicitly null with no default
+ * - unknown-component — PascalCase name not in the library schema
+ * - excess-args       — more positional args than the schema defines
+ * - unresolved-ref    — identifier referenced but never assigned (stream-end only)
+ */
+type ValidationRule =
+  | "missing-required"
+  | "null-required"
+  | "unknown-component"
+  | "excess-args"
+  | "unresolved-ref";
+
 interface ValidationError {
+  /** Component name, or ref name for unresolved-ref errors. */
   component: string;
+  /** JSON Pointer path within props, e.g. "/title". Empty string for structural errors. */
   path: string;
   message: string;
+  rule: ValidationRule;
 }
 
 interface ParseResult {
