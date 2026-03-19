@@ -14,6 +14,9 @@
     "./components.css": {
       "default": "./dist/components/index.css"
     },
+    "./defaults.css": {
+      "default": "./dist/styles/openui-defaults.css"
+    },
     "./styles/*": {
       "default": "./dist/styles/*"
     },

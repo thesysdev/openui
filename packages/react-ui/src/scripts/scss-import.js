@@ -9,7 +9,7 @@ const dirname = path.dirname(new URL(import.meta.url).pathname);
 function generateScssIndex() {
   // Go up one directory to reach src, then into components
   const srcDir = path.join(dirname, "..", "components");
-  let indexScssContent = "";
+  let indexScssContent = '@use "../openui-defaults.scss";\n\n';
 
   // Read all component directories
   // this produces an array of all the component directories
