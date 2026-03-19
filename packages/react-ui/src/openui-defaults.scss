@@ -233,3 +233,240 @@
   --openui-shadow-2xl: 0 12px 24px -6px oklch(0 0 0 / 0.12), 0 24px 48px -8px oklch(0 0 0 / 0.16);
   --openui-shadow-3xl: 0 16px 32px -8px oklch(0 0 0 / 0.16), 0 32px 64px -12px oklch(0 0 0 / 0.22);
 }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+
+    // Surface / Background Colors
+
+    --openui-background: oklch(0.145 0 0 / 1);
+    --openui-foreground: oklch(0.205 0 0 / 1);
+    --openui-popover-background: oklch(0.205 0 0 / 1);
+    --openui-sunk-light: oklch(0.994 0 89.876 / 0.02);
+    --openui-sunk: oklch(0.994 0 89.876 / 0.04);
+    --openui-sunk-deep: oklch(0.994 0 89.876 / 0.08);
+    --openui-elevated-light: oklch(0.994 0 89.876 / 0.04);
+    --openui-elevated: oklch(0.994 0 89.876 / 0.08);
+    --openui-elevated-strong: oklch(0.994 0 89.876 / 0.16);
+    --openui-elevated-intense: oklch(0.994 0 89.876 / 0.32);
+    --openui-overlay: oklch(0 0 0 / 0.6);
+    --openui-highlight-subtle: oklch(0.994 0 89.876 / 0.02);
+    --openui-highlight: oklch(0.994 0 89.876 / 0.04);
+    --openui-highlight-strong: oklch(0.994 0 89.876 / 0.08);
+    --openui-highlight-intense: oklch(0.994 0 89.876 / 0.3);
+    --openui-inverted-background: oklch(0.994 0 89.876 / 1);
+    --openui-info-background: oklch(0.623 0.188 259.815 / 0.12);
+    --openui-success-background: oklch(0.627 0.17 149.214 / 0.12);
+    --openui-alert-background: oklch(0.795 0.162 86.047 / 0.16);
+    --openui-danger-background: oklch(0.577 0.215 27.325 / 0.12);
+    --openui-purple-background: oklch(0.627 0.233 303.9 / 0.12);
+    --openui-pink-background: oklch(0.592 0.218 0.584 / 0.12);
+
+    // Text Colors
+
+    --openui-text-neutral-primary: oklch(0.985 0 89.876 / 1);
+    --openui-text-neutral-secondary: oklch(0.985 0 89.876 / 0.5);
+    --openui-text-neutral-tertiary: oklch(0.985 0 89.876 / 0.2);
+    --openui-text-neutral-link: oklch(0.985 0 89.876 / 1);
+    --openui-text-brand: oklch(0.994 0 89.876 / 1);
+    --openui-text-white: oklch(1 0 89.876 / 1);
+    --openui-text-black: oklch(0 0 0 / 1);
+    --openui-text-accent-primary: oklch(0.097 0 0 / 1);
+    --openui-text-accent-secondary: oklch(0.097 0 0 / 0.5);
+    --openui-text-accent-tertiary: oklch(0.097 0 0 / 0.2);
+    --openui-text-success-primary: oklch(0.871 0.136 154.449 / 1);
+    --openui-text-success-inverted: oklch(0.962 0.043 156.743 / 1);
+    --openui-text-alert-primary: oklch(0.905 0.166 98.111 / 1);
+    --openui-text-alert-inverted: oklch(0.973 0.069 103.193 / 1);
+    --openui-text-danger-primary: oklch(0.808 0.103 19.571 / 1);
+    --openui-text-danger-secondary: oklch(0.885 0.059 18.334 / 1);
+    --openui-text-danger-tertiary: oklch(0.936 0.031 17.717 / 1);
+    --openui-text-danger-inverted-primary: oklch(0.982 0.009 17.303 / 1);
+    --openui-text-danger-inverted-secondary: oklch(0.982 0.009 17.303 / 0.5);
+    --openui-text-danger-inverted-tertiary: oklch(0.982 0.009 17.303 / 0.3);
+    --openui-text-info-primary: oklch(0.809 0.096 251.813 / 1);
+    --openui-text-info-inverted: oklch(0.932 0.032 255.585 / 1);
+    --openui-text-pink-primary: oklch(0.823 0.11 346.018 / 1);
+    --openui-text-pink-inverted: oklch(0.948 0.028 342.258 / 1);
+    --openui-text-purple-primary: oklch(0.827 0.108 306.383 / 1);
+    --openui-text-purple-inverted: oklch(0.946 0.033 307.174 / 1);
+
+    // Interactive Colors
+
+    --openui-interactive-accent-default: oklch(0.994 0 89.876 / 1);
+    --openui-interactive-accent-hover: oklch(0.994 0 89.876 / 0.8);
+    --openui-interactive-accent-disabled: oklch(0.994 0 89.876 / 0.4);
+    --openui-interactive-accent-pressed: oklch(0.994 0 89.876 / 1);
+    --openui-interactive-destructive-default: oklch(0.577 0.215 27.325 / 0.02);
+    --openui-interactive-destructive-hover: oklch(0.577 0.215 27.325 / 0.08);
+    --openui-interactive-destructive-disabled: oklch(0.577 0.215 27.325 / 0.02);
+    --openui-interactive-destructive-pressed: oklch(0.577 0.215 27.325 / 0.1);
+    --openui-interactive-destructive-accent-default: oklch(0.577 0.215 27.325 / 1);
+    --openui-interactive-destructive-accent-hover: oklch(0.637 0.208 25.331 / 1);
+    --openui-interactive-destructive-accent-pressed: oklch(0.505 0.19 27.518 / 1);
+    --openui-interactive-destructive-accent-disabled: oklch(0.577 0.215 27.325 / 0.4);
+
+    // Chat Colors
+
+    --openui-chat-user-response-bg: oklch(0.994 0 89.876 / 1);
+    --openui-chat-user-response-text: oklch(0.097 0 0 / 1);
+
+    // Border Colors
+
+    --openui-border-default: oklch(0.994 0 89.876 / 0.12);
+    --openui-border-interactive: oklch(0.994 0 89.876 / 0.2);
+    --openui-border-interactive-emphasis: oklch(0.994 0 89.876 / 0.4);
+    --openui-border-interactive-selected: oklch(0.985 0 89.876 / 1);
+    --openui-border-accent: oklch(0.994 0 89.876 / 0.2);
+    --openui-border-accent-emphasis: oklch(0.994 0 89.876 / 0.4);
+    --openui-border-info: oklch(0.623 0.188 259.815 / 0.08);
+    --openui-border-info-emphasis: oklch(0.546 0.215 262.881 / 1);
+    --openui-border-alert: oklch(0.861 0.173 91.936 / 0.08);
+    --openui-border-alert-emphasis: oklch(0.681 0.142 75.834 / 1);
+    --openui-border-success: oklch(0.627 0.17 149.214 / 0.08);
+    --openui-border-success-emphasis: oklch(0.627 0.17 149.214 / 1);
+    --openui-border-danger: oklch(0.577 0.215 27.325 / 0.08);
+    --openui-border-danger-emphasis: oklch(0.577 0.215 27.325 / 1);
+
+    // Spacing
+
+    --openui-space-000: 0;
+    --openui-space-3xs: 2px;
+    --openui-space-2xs: 4px;
+    --openui-space-xs: 6px;
+    --openui-space-s: 8px;
+    --openui-space-s-m: 10px;
+    --openui-space-m: 12px;
+    --openui-space-m-l: 16px;
+    --openui-space-l: 18px;
+    --openui-space-xl: 24px;
+    --openui-space-2xl: 36px;
+    --openui-space-3xl: 48px;
+
+    // Border Radius
+
+    --openui-radius-none: 0;
+    --openui-radius-3xs: 1px;
+    --openui-radius-2xs: 2px;
+    --openui-radius-xs: 4px;
+    --openui-radius-s: 6px;
+    --openui-radius-m: 8px;
+    --openui-radius-l: 10px;
+    --openui-radius-xl: 12px;
+    --openui-radius-2xl: 14px;
+    --openui-radius-3xl: 16px;
+    --openui-radius-4xl: 20px;
+    --openui-radius-5xl: 24px;
+    --openui-radius-6xl: 28px;
+    --openui-radius-7xl: 32px;
+    --openui-radius-8xl: 40px;
+    --openui-radius-9xl: 48px;
+    --openui-radius-full: 9999px;
+
+    // Typography Tokens
+
+    --openui-font-body: "Inter", sans-serif;
+    --openui-font-code: "SFMono-Regular", Menlo, monospace;
+    --openui-font-heading: "Inter", sans-serif;
+    --openui-font-label: "Inter", sans-serif;
+    --openui-font-numbers: "Inter", sans-serif;
+    --openui-font-size-2xs: 10px;
+    --openui-font-size-xs: 12px;
+    --openui-font-size-sm: 14px;
+    --openui-font-size-md: 16px;
+    --openui-font-size-lg: 18px;
+    --openui-font-size-xl: 20px;
+    --openui-font-size-2xl: 24px;
+    --openui-font-size-3xl: 28px;
+    --openui-font-size-4xl: 32px;
+    --openui-font-size-5xl: 36px;
+    --openui-font-weight-regular: 400;
+    --openui-font-weight-medium: 500;
+    --openui-font-weight-bold: 600;
+    --openui-font-weight-heavy: 700;
+    --openui-line-height-body: 1.5;
+    --openui-line-height-heading: 1.25;
+    --openui-line-height-heading-large: 1.1;
+    --openui-line-height-label: 1.25;
+    --openui-line-height-code: 1.5;
+    --openui-letter-spacing-normal: 0;
+    --openui-letter-spacing-tight: -0.1px;
+    --openui-letter-spacing-tighter: -0.2px;
+    --openui-text-body-xs: 400 12px/1.5 "Inter", sans-serif;
+    --openui-text-body-xs-letter-spacing: 0;
+    --openui-text-body-xs-heavy: 500 12px/1.5 "Inter", sans-serif;
+    --openui-text-body-xs-heavy-letter-spacing: 0;
+    --openui-text-body-sm: 400 14px/1.5 "Inter", sans-serif;
+    --openui-text-body-sm-letter-spacing: 0;
+    --openui-text-body-sm-heavy: 500 14px/1.5 "Inter", sans-serif;
+    --openui-text-body-sm-heavy-letter-spacing: 0;
+    --openui-text-body-default: 400 16px/1.5 "Inter", sans-serif;
+    --openui-text-body-default-letter-spacing: 0;
+    --openui-text-body-default-heavy: 500 16px/1.5 "Inter", sans-serif;
+    --openui-text-body-default-heavy-letter-spacing: 0;
+    --openui-text-body-lg: 400 18px/1.5 "Inter", sans-serif;
+    --openui-text-body-lg-letter-spacing: 0;
+    --openui-text-body-lg-heavy: 500 18px/1.5 "Inter", sans-serif;
+    --openui-text-body-lg-heavy-letter-spacing: 0;
+    --openui-text-heading-xs: 600 16px/1.25 "Inter", sans-serif;
+    --openui-text-heading-xs-letter-spacing: 0;
+    --openui-text-heading-sm: 600 18px/1.25 "Inter", sans-serif;
+    --openui-text-heading-sm-letter-spacing: 0;
+    --openui-text-heading-md: 600 24px/1.1 "Inter", sans-serif;
+    --openui-text-heading-md-letter-spacing: 0;
+    --openui-text-heading-lg: 600 28px/1.1 "Inter", sans-serif;
+    --openui-text-heading-lg-letter-spacing: -0.1px;
+    --openui-text-heading-xl: 700 32px/1.1 "Inter", sans-serif;
+    --openui-text-heading-xl-letter-spacing: -0.1px;
+    --openui-text-label-xs: 400 12px/1.25 "Inter", sans-serif;
+    --openui-text-label-xs-letter-spacing: 0;
+    --openui-text-label-xs-heavy: 500 12px/1.25 "Inter", sans-serif;
+    --openui-text-label-xs-heavy-letter-spacing: 0;
+    --openui-text-label-sm: 400 14px/1.25 "Inter", sans-serif;
+    --openui-text-label-sm-letter-spacing: 0;
+    --openui-text-label-sm-heavy: 500 14px/1.25 "Inter", sans-serif;
+    --openui-text-label-sm-heavy-letter-spacing: 0;
+    --openui-text-label-default: 400 16px/1.25 "Inter", sans-serif;
+    --openui-text-label-default-letter-spacing: 0;
+    --openui-text-label-default-heavy: 500 16px/1.25 "Inter", sans-serif;
+    --openui-text-label-default-heavy-letter-spacing: 0;
+    --openui-text-label-lg: 400 18px/1.25 "Inter", sans-serif;
+    --openui-text-label-lg-letter-spacing: 0;
+    --openui-text-label-lg-heavy: 500 18px/1.25 "Inter", sans-serif;
+    --openui-text-label-lg-heavy-letter-spacing: 0;
+    --openui-text-numbers-xs: 400 12px/1.5 "Inter", sans-serif;
+    --openui-text-numbers-xs-letter-spacing: 0;
+    --openui-text-numbers-xs-heavy: 500 12px/1.5 "Inter", sans-serif;
+    --openui-text-numbers-xs-heavy-letter-spacing: 0;
+    --openui-text-numbers-sm: 400 14px/1.5 "Inter", sans-serif;
+    --openui-text-numbers-sm-letter-spacing: 0;
+    --openui-text-numbers-sm-heavy: 500 14px/1.5 "Inter", sans-serif;
+    --openui-text-numbers-sm-heavy-letter-spacing: 0;
+    --openui-text-numbers-default: 400 16px/1.5 "Inter", sans-serif;
+    --openui-text-numbers-default-letter-spacing: 0;
+    --openui-text-numbers-default-heavy: 500 16px/1.5 "Inter", sans-serif;
+    --openui-text-numbers-default-heavy-letter-spacing: 0;
+    --openui-text-numbers-lg: 400 18px/1.5 "Inter", sans-serif;
+    --openui-text-numbers-lg-letter-spacing: 0;
+    --openui-text-numbers-lg-heavy: 500 18px/1.5 "Inter", sans-serif;
+    --openui-text-numbers-lg-heavy-letter-spacing: 0;
+    --openui-text-code-sm: 400 12px/1.5 "SFMono-Regular", Menlo, monospace;
+    --openui-text-code-sm-letter-spacing: 0;
+    --openui-text-code-sm-heavy: 700 12px/1.5 "SFMono-Regular", Menlo, monospace;
+    --openui-text-code-sm-heavy-letter-spacing: 0;
+    --openui-text-code-default: 400 14px/1.5 "SFMono-Regular", Menlo, monospace;
+    --openui-text-code-default-letter-spacing: 0;
+    --openui-text-code-default-heavy: 700 14px/1.5 "SFMono-Regular", Menlo, monospace;
+    --openui-text-code-default-heavy-letter-spacing: 0;
+
+    // Shadows
+
+    --openui-shadow-0: none;
+    --openui-shadow-s: 0 1px 3px -2px oklch(0 0 0 / 0.06), 0 2px 5px -2px oklch(0 0 0 / 0.10);
+    --openui-shadow-m: 0 4px 6px -2px oklch(0 0 0 / 0.08), 0 2px 2px -2px oklch(0 0 0 / 0.12);
+    --openui-shadow-l: 0 4px 4px -2px oklch(0 0 0 / 0.12), 0 4px 8px -2px oklch(0 0 0 / 0.10);
+    --openui-shadow-xl: 0 8px 16px -4px oklch(0 0 0 / 0.16), 0 16px 32px -6px oklch(0 0 0 / 0.20);
+    --openui-shadow-2xl: 0 12px 24px -6px oklch(0 0 0 / 0.20), 0 24px 48px -8px oklch(0 0 0 / 0.24);
+    --openui-shadow-3xl: 0 16px 32px -8px oklch(0 0 0 / 0.24), 0 32px 64px -12px oklch(0 0 0 / 0.28);
+  }
+}

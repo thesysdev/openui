@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { defaultLightTheme } from "../components/ThemeProvider/defaultTheme.js";
+import { defaultDarkTheme, defaultLightTheme } from "../components/ThemeProvider/defaultTheme.js";
 import { camelToKebab } from "../components/ThemeProvider/utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -135,6 +135,28 @@ for (const [key, value] of entries) {
   defaultsLines.push(`  --openui-${kebab}: ${value};`);
 }
 
+defaultsLines.push("}");
+defaultsLines.push("");
+
+// ─── Dark mode defaults via prefers-color-scheme ─────────────────────────────
+const darkEntries = Object.entries(defaultDarkTheme).filter(
+  ([, value]) => typeof value === "string",
+) as [string, string][];
+
+defaultsLines.push("@media (prefers-color-scheme: dark) {");
+defaultsLines.push("  :root {");
+
+for (const [key, value] of darkEntries) {
+  if (sectionHeaders[key]) {
+    defaultsLines.push("");
+    defaultsLines.push(`    ${sectionHeaders[key]}`);
+    defaultsLines.push("");
+  }
+  const kebab = camelToKebab(key);
+  defaultsLines.push(`    --openui-${kebab}: ${value};`);
+}
+
+defaultsLines.push("  }");
 defaultsLines.push("}");
 defaultsLines.push("");
 
