@@ -11,6 +11,9 @@
 /build
 *.tsbuildinfo
 
+# Ai Planning
+/adr
+
 # misc
 .DS_Store
 *.pem
