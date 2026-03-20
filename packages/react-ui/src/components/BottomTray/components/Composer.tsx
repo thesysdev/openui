@@ -41,7 +41,14 @@ export const Composer = ({ className, placeholder = "Type your message..." }: Co
   }, [textContent]);
 
   return (
-    <div className={clsx("openui-bottom-tray-thread-composer", className)}>
+    <div
+      className={clsx("openui-bottom-tray-thread-composer", className)}
+      onClick={(e) => {
+        if (!(e.target as HTMLElement).closest("button, a, [role='button']")) {
+          inputRef.current?.focus();
+        }
+      }}
+    >
       <div className="openui-bottom-tray-thread-composer__input-wrapper">
         <textarea
           ref={inputRef}

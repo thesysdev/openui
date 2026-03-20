@@ -8,8 +8,12 @@ const systemPrompt = readFileSync(
   "utf-8",
 );
 
+const conversationLog: Array<{ role: string; content: string }> = [];
+
 export async function POST(req: NextRequest) {
   const { model, prompt } = await req.json();
+
+  conversationLog.push({ role: "user", content: prompt });
 
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -42,7 +46,43 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  return new Response(res.body, {
+  const [streamForClient, streamForLog] = res.body!.tee();
+
+  const reader = streamForLog.getReader();
+  const decoder = new TextDecoder();
+  let fullResponse = "";
+  (async () => {
+    let done = false;
+    while (!done) {
+      const result = await reader.read();
+      done = result.done;
+      if (result.value) {
+        const text = decoder.decode(result.value, { stream: true });
+        for (const line of text.split("\n")) {
+          if (line.startsWith("data: ") && line !== "data: [DONE]") {
+            try {
+              const json = JSON.parse(line.slice(6));
+              const content = json.choices?.[0]?.delta?.content;
+              if (content) fullResponse += content;
+            } catch {
+              /* skip non-JSON lines */
+            }
+          }
+        }
+      }
+    }
+    conversationLog.push({ role: "assistant", content: fullResponse });
+    console.info(
+      "[OpenUI Lang] Conversation:\n",
+      JSON.stringify(
+        conversationLog.map((m) => ({ ...m, content: m.content.replace(/\n/g, " ") })),
+        null,
+        2,
+      ),
+    );
+  })();
+
+  return new Response(streamForClient, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
