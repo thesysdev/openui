@@ -1,0 +1,182 @@
+.footer {
+  width: 100%;
+}
+
+.absoluteSvg {
+  position: absolute;
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.handcraftedSection {
+  width: 100%;
+  padding-inline: var(--home-section-padding-inline);
+}
+
+.handcraftedContainer {
+  display: flex;
+  max-width: 75rem;
+  margin-inline: auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  padding-block: 4rem;
+}
+
+.mascotWrap {
+  position: relative;
+  height: 140px;
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.handcraftedMascot {
+  position: absolute;
+  inset: 9.29% 0 10% 0;
+  display: block;
+}
+
+.handcraftedCopy {
+  text-align: center;
+  font-family: "Playwrite US Trad", serif;
+  font-size: 16px;
+  line-height: 1.2;
+  color: #000;
+}
+
+.contentSection {
+  padding: 60px var(--home-section-padding-inline) 1rem;
+  background: var(--home-color-surface);
+}
+
+.contentContainer {
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+.desktopLogoRow {
+  display: none;
+}
+
+.mobileLogoRow {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logoWrap {
+  position: relative;
+  height: 3rem;
+  width: 124px;
+}
+
+.bottomBar {
+  margin-top: 2.5rem;
+  padding-block: 1rem;
+  border-top: 1px solid rgb(0 0 0 / 4%);
+}
+
+.desktopBottomBar {
+  display: none;
+}
+
+.desktopMetaLeft,
+.desktopMetaRight {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--home-color-text-muted);
+}
+
+.desktopMetaLeft {
+  text-align: left;
+}
+
+.desktopMetaRight {
+  text-align: right;
+}
+
+.mobileBottomBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2.5rem 0 1.25rem;
+}
+
+.socialIcons {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.socialLink {
+  position: relative;
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.socialIconWrap {
+  position: absolute;
+}
+
+.socialIconTwitter {
+  inset: 10.82% 4.33% 18.35% 4.17%;
+}
+
+.socialIconYoutube {
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 15.469px;
+  transform: translate(-50%, -50%);
+}
+
+.socialIconLinkedIn {
+  left: 50%;
+  top: 50%;
+  width: 19px;
+  height: 19px;
+  transform: translate(-50%, -50%);
+}
+
+.mobileMeta {
+  margin-top: 2.5rem;
+  text-align: center;
+}
+
+.mobileMetaText {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--home-color-text-muted);
+}
+
+@media (min-width: 1024px) {
+  .handcraftedCopy {
+    font-size: 22px;
+  }
+
+  .desktopLogoRow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .mobileLogoRow,
+  .mobileBottomBar {
+    display: none;
+  }
+
+  .bottomBar {
+    margin-top: 60px;
+  }
+
+  .desktopBottomBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+}

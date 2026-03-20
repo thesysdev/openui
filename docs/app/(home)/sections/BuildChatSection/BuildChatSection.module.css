@@ -1,0 +1,157 @@
+.section {
+  width: 100%;
+  padding-inline: var(--home-section-padding-inline);
+}
+
+.container {
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 32px;
+  background: var(--home-color-surface);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid var(--home-border-default);
+  border-radius: 32px;
+  box-shadow: var(--home-shadow-elevated);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.copyColumn {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.copyStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.title {
+  max-width: 430px;
+  font-family: "Inter", sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #000;
+  margin: auto;
+  text-align: center;
+}
+
+.descriptionWrap {
+  max-width: 357px;
+}
+
+.description {
+  font-family: "Inter Display", sans-serif;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--home-color-text-muted);
+}
+
+.ctaWrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 1rem;
+  margin-top: 1.5rem;
+}
+
+.ctaButton {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 280px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  height: 3rem;
+  padding-inline: var(--home-pill-padding-inline);
+  border: 0;
+  border-radius: 999px;
+  background: #000;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.ctaButton:hover {
+  transform: scale(0.99);
+  box-shadow: none;
+}
+
+.ctaLabel {
+  position: relative;
+  white-space: nowrap;
+  font-family: "Inter Display", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5rem;
+  color: #fff;
+}
+
+.mediaColumn {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.dashboardImage {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+@media (min-width: 1024px) {
+  .content {
+    flex-direction: row;
+    gap: 0;
+  }
+
+  .copyColumn {
+    min-height: 0;
+    padding:16px;
+  }
+
+
+  .title {
+    max-width: 430px;
+    font-family: "Inter", sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #000;
+    margin: 4px 0 0 4px;
+    text-align: left;
+  }
+
+  .ctaWrap {
+    justify-content: flex-start;
+    margin-top: 0;
+  }
+
+  .ctaButton {
+    width: auto;
+    max-width: none;
+    justify-content: flex-start;
+  }
+
+  .mediaColumn {
+    width: 600px;
+  }
+}

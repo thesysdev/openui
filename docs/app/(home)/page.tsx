@@ -1,13 +1,13 @@
-import { BuildChatSection } from "./components/BuildChatSection/BuildChatSection";
-import { CompatibilitySection } from "./components/CompatibilitySection/CompatibilitySection";
-import { FeaturesSection } from "./components/FeaturesSection/FeaturesSection";
-import { Footer } from "./components/Footer/Footer";
-import { GradientDivider } from "./components/GradientDivider/GradientDivider";
-import { HeroSection } from "./components/HeroSection/HeroSection";
-import { PossibilitiesSection } from "./components/PossibilitiesSection/PossibilitiesSection";
-import { ShiroMascot } from "./components/ShiroMascot/ShiroMascot";
-import { StepsSection } from "./components/StepsSection/StepsSection";
-import { UILibrariesSection } from "./components/UILibrariesSection/UILibrariesSection";
+import { BuildChatSection } from "./sections/BuildChatSection/BuildChatSection";
+import { CompatibilitySection } from "./sections/CompatibilitySection/CompatibilitySection";
+import { FeaturesSection } from "./sections/FeaturesSection/FeaturesSection";
+import { Footer } from "./sections/Footer/Footer";
+import { GradientDivider } from "./sections/GradientDivider/GradientDivider";
+import { HeroSection } from "./sections/HeroSection/HeroSection";
+import { PossibilitiesSection } from "./sections/PossibilitiesSection/PossibilitiesSection";
+import { ShiroMascot } from "./sections/ShiroMascot/ShiroMascot";
+import { StepsSection } from "./sections/StepsSection/StepsSection";
+import { UILibrariesSection } from "./sections/UILibrariesSection/UILibrariesSection";
 import styles from "./page.module.css";
 
 export default function HomePage() {
