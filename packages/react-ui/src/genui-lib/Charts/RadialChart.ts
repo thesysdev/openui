@@ -1,3 +1,4 @@
+
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
@@ -17,8 +18,15 @@ export const RadialChart = defineComponent({
   description: "Radial bars showing proportional distribution across named segments",
   component: ({ props }) => {
     if (!hasAllProps(props as Record<string, unknown>, "slices")) return null;
+
+    // FIX: guard against partial streaming data
+    if (!Array.isArray((props as any).slices)) return null;
+
     const data = buildSliceData((props as any).slices);
-    if (!data.length) return null;
+
+    // FIX: ensure valid data before rendering (prevents recharts crash)
+    if (!Array.isArray(data) || data.length === 0) return null;
+
     return React.createElement(RadialChartComponent, {
       data,
       categoryKey: "category",

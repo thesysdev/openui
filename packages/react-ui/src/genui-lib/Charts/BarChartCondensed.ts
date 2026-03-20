@@ -1,3 +1,4 @@
+
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
@@ -21,8 +22,15 @@ export const BarChartCondensed = defineComponent({
   description: "Vertical bars; use for comparing values across categories with one or more series",
   component: ({ props }) => {
     if (!hasAllProps(props as Record<string, unknown>, "labels", "series")) return null;
+
+    // FIX: guard against partial streaming data
+    if (!Array.isArray(props.labels) || !Array.isArray(props.series)) return null;
+
     const data = buildChartData(props.labels, props.series);
-    if (!data.length) return null;
+
+    // FIX: ensure valid data before rendering (prevents recharts crash)
+    if (!Array.isArray(data) || data.length === 0) return null;
+
     return React.createElement(BarChartCondensedComponent, {
       data,
       categoryKey: "category",
