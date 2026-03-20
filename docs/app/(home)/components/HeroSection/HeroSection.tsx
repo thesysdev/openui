@@ -5,121 +5,77 @@ import HeroPreviewFrame from "@/imports/Frame2147239423";
 import svgMascotPaths from "@/imports/svg-148i9mcxjn";
 import svgHeroPaths from "@/imports/svg-a5kdrdeeao";
 import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
-import { CopyIcon } from "../shared/shared";
+import { ClipboardCommandButton, PillLink } from "../shared/buttons";
+import { BUTTON_SHADOW } from "../shared/shared";
 import styles from "./HeroSection.module.css";
 
 const LazyMobileActionFigure = lazy(() => import("@/imports/MobileActionFigure"));
 
-const HERO_BUTTON_SHADOW = "0 1.5px 5px 0 rgba(22, 34, 51, 0.06), 0 12px 24px 0 rgba(22, 34, 51, 0.04)";
 const HERO_BUTTON_STYLE = {
-  "--hero-button-shadow": HERO_BUTTON_SHADOW,
+  "--hero-button-shadow": BUTTON_SHADOW,
 } as CSSProperties;
 
 // CTAs
 const primaryCTA = "npx @openuidev/cli@latest create";
 const secondaryCTA = "Try Playground";
-const COPIED_FEEDBACK_MS = 3000;
 // ---------------------------------------------------------------------------
 // Buttons
 // ---------------------------------------------------------------------------
 
 function NpmButton({ className = "" }: { className?: string }) {
-  const [copied, setCopied] = useState(false);
-  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (copiedTimeoutRef.current) {
-        clearTimeout(copiedTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(primaryCTA);
-      setCopied(true);
-      if (copiedTimeoutRef.current) {
-        clearTimeout(copiedTimeoutRef.current);
-      }
-      copiedTimeoutRef.current = setTimeout(() => {
-        setCopied(false);
-      }, COPIED_FEEDBACK_MS);
-    } catch {
-      setCopied(false);
-    }
-  };
-
   return (
-    <>
-      <button
-        className={`${styles.npmButton} ${className}`.trim()}
-        style={HERO_BUTTON_STYLE}
-        onClick={onCopy}
-      >
-        <span className={styles.npmDesktopLabel}>
-          {primaryCTA}
-        </span>
-        <span className={styles.npmMobileLabel}>
-          <span className={styles.npmTicker}>
-            <span className={styles.npmTickerText}>
-              {primaryCTA}
-            </span>
-            <span
-              aria-hidden="true"
-              className={styles.npmTickerText}
-            >
-              {primaryCTA}
-            </span>
+    <ClipboardCommandButton
+      command={primaryCTA}
+      className={`${styles.npmButton} ${className}`.trim()}
+      style={HERO_BUTTON_STYLE}
+      iconContainerClassName={styles.npmIconBadge}
+      copyIconColor="white"
+    >
+      <span className={styles.npmDesktopLabel}>
+        {primaryCTA}
+      </span>
+      <span className={styles.npmMobileLabel}>
+        <span className={styles.npmTicker}>
+          <span className={styles.npmTickerText}>
+            {primaryCTA}
+          </span>
+          <span
+            aria-hidden="true"
+            className={styles.npmTickerText}
+          >
+            {primaryCTA}
           </span>
         </span>
-        <span className={styles.npmIconBadge}>
-          <span className={styles.npmIconFrame}>
-            <span
-              className={`${styles.iconLayer} ${copied ? styles.iconHidden : styles.iconVisible}`}
-            >
-              <CopyIcon color="white" />
-            </span>
-            <svg
-              className={`${styles.iconLayer} ${copied ? styles.iconVisible : styles.iconHidden}`}
-              fill="none"
-              viewBox="0 0 14 14"
-            >
-              <path
-                d="M11.6667 3.5L5.25 9.91667L2.33334 7"
-                stroke="white"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.5"
-              />
-            </svg>
-          </span>
-        </span>
-      </button>
-    </>
+      </span>
+    </ClipboardCommandButton>
   );
 }
 
 function DesktopPlaygroundButton({ className = "" }: { className?: string }) {
   return (
-    <a
+    <PillLink
       href="/playground"
       className={`${styles.desktopPlaygroundButton} ${className}`.trim()}
+      arrow={<span aria-hidden="true">→</span>}
     >
       <span>{secondaryCTA}</span>
-      <span aria-hidden="true">→</span>
-    </a>
+    </PillLink>
   );
 }
 
 function MobilePlaygroundButton({ className = "" }: { className?: string }) {
   return (
-    <a href="/playground" className={`${styles.mobilePlaygroundButton} ${className}`.trim()}>
+    <PillLink
+      href="/playground"
+      className={`${styles.mobilePlaygroundButton} ${className}`.trim()}
+      arrow={
+        <span aria-hidden="true" className={styles.mobilePlaygroundArrow}>
+          →
+        </span>
+      }
+    >
       <span className={styles.mobilePlaygroundLabel}>{secondaryCTA}</span>
-      <span aria-hidden="true" className={styles.mobilePlaygroundArrow}>
-        →
-      </span>
-    </a>
+    </PillLink>
   );
 }
 

@@ -6,6 +6,8 @@ import OpenUiRendererRendersIt from "@/imports/OpenUiRendererRendersIt-43-427";
 import YouRegisterComponents from "@/imports/YouRegisterComponents-43-365";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
+import { CollapsiblePanel, ExpandableItem } from "../shared/accordion";
+import { CARD_SHADOW } from "../shared/shared";
 import styles from "./StepsSection.module.css";
 
 // ---------------------------------------------------------------------------
@@ -65,8 +67,8 @@ const COLLAPSED_HEIGHT = 84;
 const LAST_STEP_INDEX = STEPS.length - 1;
 const TOTAL_DESKTOP_HEIGHT = EXPANDED_HEIGHT + LAST_STEP_INDEX * COLLAPSED_HEIGHT + LAST_STEP_INDEX;
 
-const CARD_SHADOW = "0px 1px 3px 0px rgba(22,34,51,0.08), 0px 12px 24px 0px rgba(22,34,51,0.04)";
 const CARD_BORDER = "0.391px solid rgba(0,0,0,0.08)";
+const ACTIVE_STEP_SHADOW = "0px 1px 3px rgba(22,34,51,0.08), 0px 10px 20px rgba(22,34,51,0.03)";
 
 // ---------------------------------------------------------------------------
 // Animation presets
@@ -176,15 +178,12 @@ function DesktopStep({
   onActivate: () => void;
 }) {
   return (
-    <motion.div
+    <ExpandableItem
+      open={isActive}
+      expandedHeight={EXPANDED_HEIGHT}
+      collapsedHeight={COLLAPSED_HEIGHT}
       className={styles.desktopStep}
-      animate={{
-        height: isActive ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT,
-        boxShadow: isActive
-          ? "0px 1px 3px rgba(22,34,51,0.08), 0px 10px 20px rgba(22,34,51,0.03)"
-          : "0px 0px 0px rgba(0,0,0,0)",
-        zIndex: isActive ? 2 : 1,
-      }}
+      activeShadow={ACTIVE_STEP_SHADOW}
       transition={TRANSITION.expand}
       onClick={onActivate}
       onMouseEnter={onActivate}
@@ -227,7 +226,7 @@ function DesktopStep({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </ExpandableItem>
   );
 }
 
@@ -253,26 +252,20 @@ function MobileStep({
         </span>
       </button>
 
-      <AnimatePresence>
-        {isActive && (
-          <motion.div
-            className={styles.mobileStepPanel}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={TRANSITION.mobile}
-          >
-            <div className={styles.mobileStepContent}>
-              <div className={styles.mobileStepDetails}>
-                <StepDetails step={step} hideDetails />
-              </div>
-              <div className={styles.mobileStepIllustrationWrap}>
-                <StepIllustration stepNumber={step.number} mobile />
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <CollapsiblePanel
+        open={isActive}
+        className={styles.mobileStepPanel}
+        transition={TRANSITION.mobile}
+      >
+        <div className={styles.mobileStepContent}>
+          <div className={styles.mobileStepDetails}>
+            <StepDetails step={step} hideDetails />
+          </div>
+          <div className={styles.mobileStepIllustrationWrap}>
+            <StepIllustration stepNumber={step.number} mobile />
+          </div>
+        </div>
+      </CollapsiblePanel>
     </div>
   );
 }

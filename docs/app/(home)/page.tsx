@@ -1,6 +1,5 @@
 import { BuildChatSection } from "./components/BuildChatSection/BuildChatSection";
 import { CompatibilitySection } from "./components/CompatibilitySection/CompatibilitySection";
-import { FadeInSection } from "./components/FadeInSection/FadeInSection";
 import { FeaturesSection } from "./components/FeaturesSection/FeaturesSection";
 import { Footer } from "./components/Footer/Footer";
 import { GradientDivider } from "./components/GradientDivider/GradientDivider";
@@ -15,9 +14,7 @@ export default function HomePage() {
   return (
     <div className={styles.page}>
       <HeroSection />
-      <div className={styles.mascotSection}>
-        <ShiroMascot />
-      </div>
+      <ShiroMascot />
       <StepsSection />
       <div className={styles.contentSection}>
         <GradientDivider direction="down" />
@@ -27,9 +24,7 @@ export default function HomePage() {
             <UILibrariesSection />
             <CompatibilitySection />
           </div>
-          <FadeInSection>
-            <FeaturesSection />
-          </FadeInSection>
+          <FeaturesSection />
           <BuildChatSection />
         </div>
         <GradientDivider direction="up" />

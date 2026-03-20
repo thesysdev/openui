@@ -2,23 +2,6 @@
   width: 100%;
 }
 
-.iconLayer {
-  position: absolute;
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
-}
-
-.iconVisible {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.iconHidden {
-  opacity: 0;
-  transform: scale(0.5);
-}
-
 .npmButton {
   display: flex;
   height: 3rem;
@@ -93,15 +76,6 @@
   justify-content: center;
   border-radius: 999px;
   background: #000;
-}
-
-.npmIconFrame {
-  position: relative;
-  display: flex;
-  height: 1rem;
-  width: 1rem;
-  align-items: center;
-  justify-content: center;
 }
 
 .desktopPlaygroundButton,

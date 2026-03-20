@@ -1,8 +1,8 @@
 "use client";
 
 import svgPaths from "@/imports/svg-urruvoh2be";
-import Link from "next/link";
 import type { CSSProperties } from "react";
+import { PillLink } from "../shared/buttons";
 import { BUTTON_SHADOW } from "../shared/shared";
 import styles from "./FeaturesSection.module.css";
 
@@ -151,12 +151,16 @@ export function FeaturesSection() {
 
         {/* CTA button */}
         <div className={styles.ctaWrap}>
-          <Link href="/docs/openui-lang/benchmarks" className={styles.ctaLink}>
-            <span className={styles.ctaButton} style={FEATURES_CTA_STYLE}>
+          <PillLink
+            href="/docs/openui-lang/benchmarks"
+            className={`${styles.ctaLink} ${styles.ctaButton}`}
+            style={FEATURES_CTA_STYLE}
+          >
+            <span>
               <span className={styles.mobileLabel}>Detailed comparison</span>
               <span className={styles.desktopLabel}>View Comparison</span>
             </span>
-          </Link>
+          </PillLink>
         </div>
       </div>
     </div>
