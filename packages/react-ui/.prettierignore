@@ -1,4 +1,4 @@
 # Auto-generated file, do not format
 src/cssUtils.scss
 src/openui-defaults.scss
-components/index.scss
+src/components/index.scss
