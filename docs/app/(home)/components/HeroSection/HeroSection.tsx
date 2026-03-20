@@ -10,7 +10,8 @@ import styles from "./HeroSection.module.css";
 
 const LazyMobileActionFigure = lazy(() => import("@/imports/MobileActionFigure"));
 
-const HERO_BUTTON_SHADOW = "0 1.5px 5px 0 rgba(22, 34, 51, 0.06), 0 12px 24px 0 rgba(22, 34, 51, 0.04)";
+const HERO_BUTTON_SHADOW =
+  "0 1.5px 5px 0 rgba(22, 34, 51, 0.06), 0 12px 24px 0 rgba(22, 34, 51, 0.04)";
 const HERO_BUTTON_STYLE = {
   "--hero-button-shadow": HERO_BUTTON_SHADOW,
 } as CSSProperties;
@@ -57,18 +58,11 @@ function NpmButton({ className = "" }: { className?: string }) {
         style={HERO_BUTTON_STYLE}
         onClick={onCopy}
       >
-        <span className={styles.npmDesktopLabel}>
-          {primaryCTA}
-        </span>
+        <span className={styles.npmDesktopLabel}>{primaryCTA}</span>
         <span className={styles.npmMobileLabel}>
           <span className={styles.npmTicker}>
-            <span className={styles.npmTickerText}>
-              {primaryCTA}
-            </span>
-            <span
-              aria-hidden="true"
-              className={styles.npmTickerText}
-            >
+            <span className={styles.npmTickerText}>{primaryCTA}</span>
+            <span aria-hidden="true" className={styles.npmTickerText}>
               {primaryCTA}
             </span>
           </span>
@@ -102,10 +96,7 @@ function NpmButton({ className = "" }: { className?: string }) {
 
 function DesktopPlaygroundButton({ className = "" }: { className?: string }) {
   return (
-    <a
-      href="/playground"
-      className={`${styles.desktopPlaygroundButton} ${className}`.trim()}
-    >
+    <a href="/playground" className={`${styles.desktopPlaygroundButton} ${className}`.trim()}>
       <span>{secondaryCTA}</span>
       <span aria-hidden="true">→</span>
     </a>
@@ -143,11 +134,7 @@ const MASCOT_FILLED_PATHS = [
 
 function MascotSvg() {
   return (
-    <svg
-      className={styles.mobileMascotSvg}
-      fill="none"
-      viewBox="0 0 107.917 87.2814"
-    >
+    <svg className={styles.mobileMascotSvg} fill="none" viewBox="0 0 107.917 87.2814">
       {MASCOT_STROKED_PATHS.map((d) => (
         <path key={d.slice(0, 20)} d={d} fill="black" stroke="black" strokeWidth="0.458571" />
       ))}
@@ -232,10 +219,7 @@ function DesktopHero() {
         <div className={styles.rightFade} />
 
         {/* CTA buttons */}
-        <div
-          className={styles.desktopCtaLayer}
-          style={{ left: "50%", top: "71.19%" }}
-        >
+        <div className={styles.desktopCtaLayer} style={{ left: "50%", top: "71.19%" }}>
           <div className={styles.desktopCtaStack}>
             <NpmButton />
             <DesktopPlaygroundButton />

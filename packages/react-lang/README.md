@@ -40,9 +40,7 @@ const Greeting = defineComponent({
     mood: z.enum(["happy", "excited"]).optional().describe("Tone of the greeting"),
   }),
   component: ({ name, mood }) => (
-    <div className={mood === "excited" ? "text-xl font-bold" : ""}>
-      Hello, {name}!
-    </div>
+    <div className={mood === "excited" ? "text-xl font-bold" : ""}>Hello, {name}!</div>
   ),
 });
 ```
@@ -89,58 +87,58 @@ function AssistantMessage({ response, isStreaming }) {
 
 ### Component Definition
 
-| Export | Description |
-| :--- | :--- |
-| `defineComponent(config)` | Define a single component with a name, Zod props schema, description, and React renderer |
-| `createLibrary(definition)` | Create a library from an array of defined components |
+| Export                      | Description                                                                              |
+| :-------------------------- | :--------------------------------------------------------------------------------------- |
+| `defineComponent(config)`   | Define a single component with a name, Zod props schema, description, and React renderer |
+| `createLibrary(definition)` | Create a library from an array of defined components                                     |
 
 ### Rendering
 
-| Export | Description |
-| :--- | :--- |
+| Export     | Description                                                |
+| :--------- | :--------------------------------------------------------- |
 | `Renderer` | React component that parses and renders OpenUI Lang output |
 
 **`RendererProps`:**
 
-| Prop | Type | Description |
-| :--- | :--- | :--- |
-| `response` | `string \| null` | Raw OpenUI Lang text from the model |
-| `library` | `Library` | Component library from `createLibrary()` |
-| `isStreaming` | `boolean` | Whether the model is still streaming (disables form interactions) |
-| `onAction` | `(event: ActionEvent) => void` | Callback when a component triggers an action |
-| `onStateUpdate` | `(state: Record<string, any>) => void` | Callback when form field values change |
-| `initialState` | `Record<string, any>` | Initial form state for hydration |
-| `onParseResult` | `(result: ParseResult \| null) => void` | Callback when the parse result changes |
+| Prop            | Type                                    | Description                                                       |
+| :-------------- | :-------------------------------------- | :---------------------------------------------------------------- |
+| `response`      | `string \| null`                        | Raw OpenUI Lang text from the model                               |
+| `library`       | `Library`                               | Component library from `createLibrary()`                          |
+| `isStreaming`   | `boolean`                               | Whether the model is still streaming (disables form interactions) |
+| `onAction`      | `(event: ActionEvent) => void`          | Callback when a component triggers an action                      |
+| `onStateUpdate` | `(state: Record<string, any>) => void`  | Callback when form field values change                            |
+| `initialState`  | `Record<string, any>`                   | Initial form state for hydration                                  |
+| `onParseResult` | `(result: ParseResult \| null) => void` | Callback when the parse result changes                            |
 
 ### Parser (Server-Side)
 
-| Export | Description |
-| :--- | :--- |
-| `createParser(library)` | Create a one-shot parser for complete OpenUI Lang text |
-| `createStreamingParser(library)` | Create an incremental parser for streaming input |
+| Export                           | Description                                            |
+| :------------------------------- | :----------------------------------------------------- |
+| `createParser(library)`          | Create a one-shot parser for complete OpenUI Lang text |
+| `createStreamingParser(library)` | Create an incremental parser for streaming input       |
 
 ### Context Hooks
 
 Use these inside component renderers to interact with the rendering context:
 
-| Hook | Description |
-| :--- | :--- |
-| `useIsStreaming()` | Whether the model is still streaming |
-| `useRenderNode()` | Render child element nodes |
-| `useTriggerAction()` | Trigger an action event |
-| `useGetFieldValue()` | Get a form field's current value |
-| `useSetFieldValue()` | Set a form field's value |
-| `useSetDefaultValue()` | Set a field's default value |
-| `useFormName()` | Get the current form's name |
+| Hook                   | Description                          |
+| :--------------------- | :----------------------------------- |
+| `useIsStreaming()`     | Whether the model is still streaming |
+| `useRenderNode()`      | Render child element nodes           |
+| `useTriggerAction()`   | Trigger an action event              |
+| `useGetFieldValue()`   | Get a form field's current value     |
+| `useSetFieldValue()`   | Set a form field's value             |
+| `useSetDefaultValue()` | Set a field's default value          |
+| `useFormName()`        | Get the current form's name          |
 
 ### Form Validation
 
-| Export | Description |
-| :--- | :--- |
-| `useFormValidation()` | Access form validation state |
-| `useCreateFormValidation()` | Create a form validation context |
-| `validate(value, rules)` | Run validation rules against a value |
-| `builtInValidators` | Built-in validators (required, email, min, max, etc.) |
+| Export                      | Description                                           |
+| :-------------------------- | :---------------------------------------------------- |
+| `useFormValidation()`       | Access form validation state                          |
+| `useCreateFormValidation()` | Create a form validation context                      |
+| `validate(value, rules)`    | Run validation rules against a value                  |
+| `builtInValidators`         | Built-in validators (required, email, min, max, etc.) |
 
 ### Types
 

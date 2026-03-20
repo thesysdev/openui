@@ -12,23 +12,32 @@ function getWeather({ location }: { location: string }): Promise<string> {
   return new Promise((resolve) => {
     setTimeout(() => {
       const knownTemps: Record<string, number> = {
-        tokyo: 22, "san francisco": 18, london: 14, "new york": 25,
-        paris: 19, sydney: 27, mumbai: 33, berlin: 16,
+        tokyo: 22,
+        "san francisco": 18,
+        london: 14,
+        "new york": 25,
+        paris: 19,
+        sydney: 27,
+        mumbai: 33,
+        berlin: 16,
       };
       const conditions = ["Sunny", "Partly Cloudy", "Cloudy", "Light Rain", "Clear Skies"];
       const temp = knownTemps[location.toLowerCase()] ?? Math.floor(Math.random() * 30 + 5);
       const condition = conditions[Math.floor(Math.random() * conditions.length)];
-      resolve(JSON.stringify({
-        location, temperature_celsius: temp,
-        temperature_fahrenheit: Math.round(temp * 1.8 + 32),
-        condition,
-        humidity_percent: Math.floor(Math.random() * 40 + 40),
-        wind_speed_kmh: Math.floor(Math.random() * 25 + 5),
-        forecast: [
-          { day: "Tomorrow", high: temp + 2, low: temp - 4, condition: "Partly Cloudy" },
-          { day: "Day After", high: temp + 1, low: temp - 3, condition: "Sunny" },
-        ],
-      }));
+      resolve(
+        JSON.stringify({
+          location,
+          temperature_celsius: temp,
+          temperature_fahrenheit: Math.round(temp * 1.8 + 32),
+          condition,
+          humidity_percent: Math.floor(Math.random() * 40 + 40),
+          wind_speed_kmh: Math.floor(Math.random() * 25 + 5),
+          forecast: [
+            { day: "Tomorrow", high: temp + 2, low: temp - 4, condition: "Partly Cloudy" },
+            { day: "Day After", high: temp + 1, low: temp - 3, condition: "Sunny" },
+          ],
+        }),
+      );
     }, 800);
   });
 }
@@ -38,19 +47,27 @@ function getStockPrice({ symbol }: { symbol: string }): Promise<string> {
     setTimeout(() => {
       const s = symbol.toUpperCase();
       const knownPrices: Record<string, number> = {
-        AAPL: 189.84, GOOGL: 141.8, TSLA: 248.42, MSFT: 378.91,
-        AMZN: 178.25, NVDA: 875.28, META: 485.58,
+        AAPL: 189.84,
+        GOOGL: 141.8,
+        TSLA: 248.42,
+        MSFT: 378.91,
+        AMZN: 178.25,
+        NVDA: 875.28,
+        META: 485.58,
       };
       const price = knownPrices[s] ?? Math.floor(Math.random() * 500 + 20);
       const change = parseFloat((Math.random() * 8 - 4).toFixed(2));
-      resolve(JSON.stringify({
-        symbol: s,
-        price: parseFloat((price + change).toFixed(2)),
-        change, change_percent: parseFloat(((change / price) * 100).toFixed(2)),
-        volume: `${(Math.random() * 50 + 10).toFixed(1)}M`,
-        day_high: parseFloat((price + Math.abs(change) + 1.5).toFixed(2)),
-        day_low: parseFloat((price - Math.abs(change) - 1.2).toFixed(2)),
-      }));
+      resolve(
+        JSON.stringify({
+          symbol: s,
+          price: parseFloat((price + change).toFixed(2)),
+          change,
+          change_percent: parseFloat(((change / price) * 100).toFixed(2)),
+          volume: `${(Math.random() * 50 + 10).toFixed(1)}M`,
+          day_high: parseFloat((price + Math.abs(change) + 1.5).toFixed(2)),
+          day_low: parseFloat((price - Math.abs(change) - 1.2).toFixed(2)),
+        }),
+      );
     }, 600);
   });
 }
@@ -59,8 +76,11 @@ function calculate({ expression }: { expression: string }): Promise<string> {
   return new Promise((resolve) => {
     setTimeout(() => {
       try {
-        const sanitized = expression.replace(/[^0-9+\-*/().%\s,Math.sqrtpowabsceilfloorround]/g, "");
-         
+        const sanitized = expression.replace(
+          /[^0-9+\-*/().%\s,Math.sqrtpowabsceilfloorround]/g,
+          "",
+        );
+
         const result = new Function(`return (${sanitized})`)();
         resolve(JSON.stringify({ expression, result: Number(result) }));
       } catch {
@@ -73,14 +93,25 @@ function calculate({ expression }: { expression: string }): Promise<string> {
 function searchWeb({ query }: { query: string }): Promise<string> {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(JSON.stringify({
-        query,
-        results: [
-          { title: `Top result for "${query}"`, snippet: `Comprehensive overview of ${query} with the latest information.` },
-          { title: `${query} - Latest News`, snippet: `Recent developments and updates related to ${query}.` },
-          { title: `Understanding ${query}`, snippet: `An in-depth guide explaining everything about ${query}.` },
-        ],
-      }));
+      resolve(
+        JSON.stringify({
+          query,
+          results: [
+            {
+              title: `Top result for "${query}"`,
+              snippet: `Comprehensive overview of ${query} with the latest information.`,
+            },
+            {
+              title: `${query} - Latest News`,
+              snippet: `Recent developments and updates related to ${query}.`,
+            },
+            {
+              title: `Understanding ${query}`,
+              snippet: `An in-depth guide explaining everything about ${query}.`,
+            },
+          ],
+        }),
+      );
     }, 1000);
   });
 }
@@ -158,13 +189,22 @@ function sseToolCallStart(
     `data: ${JSON.stringify({
       id: `chatcmpl-tc-${tc.id}`,
       object: "chat.completion.chunk",
-      choices: [{
-        index: 0,
-        delta: {
-          tool_calls: [{ index, id: tc.id, type: "function", function: { name: tc.function.name, arguments: "" } }],
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index,
+                id: tc.id,
+                type: "function",
+                function: { name: tc.function.name, arguments: "" },
+              },
+            ],
+          },
+          finish_reason: null,
         },
-        finish_reason: null,
-      }],
+      ],
     })}\n\n`,
   );
 }
@@ -177,7 +217,10 @@ function sseToolCallArgs(
 ) {
   let enrichedArgs: string;
   try {
-    enrichedArgs = JSON.stringify({ _request: JSON.parse(tc.function.arguments), _response: JSON.parse(result) });
+    enrichedArgs = JSON.stringify({
+      _request: JSON.parse(tc.function.arguments),
+      _response: JSON.parse(result),
+    });
   } catch {
     enrichedArgs = tc.function.arguments;
   }
@@ -185,11 +228,13 @@ function sseToolCallArgs(
     `data: ${JSON.stringify({
       id: `chatcmpl-tc-${tc.id}-args`,
       object: "chat.completion.chunk",
-      choices: [{
-        index: 0,
-        delta: { tool_calls: [{ index, function: { arguments: enrichedArgs } }] },
-        finish_reason: null,
-      }],
+      choices: [
+        {
+          index: 0,
+          delta: { tool_calls: [{ index, function: { arguments: enrichedArgs } }] },
+          finish_reason: null,
+        },
+      ],
     })}\n\n`,
   );
 }
@@ -229,12 +274,20 @@ export async function POST(req: NextRequest) {
     start(controller) {
       const enqueue = (data: Uint8Array) => {
         if (controllerClosed) return;
-        try { controller.enqueue(data); } catch { /* already closed */ }
+        try {
+          controller.enqueue(data);
+        } catch {
+          /* already closed */
+        }
       };
       const close = () => {
         if (controllerClosed) return;
         controllerClosed = true;
-        try { controller.close(); } catch { /* already closed */ }
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
       };
 
       const pendingCalls: Array<{ id: string; name: string; arguments: string }> = [];
@@ -246,7 +299,7 @@ export async function POST(req: NextRequest) {
         model: MODEL,
         messages: chatMessages,
         tools,
-        stream: true
+        stream: true,
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -260,7 +313,14 @@ export async function POST(req: NextRequest) {
       runner.on("functionToolCallResult", (result: string) => {
         const tc = pendingCalls[resultIdx];
         if (tc) {
-          enqueue(sseToolCallArgs(encoder, { id: tc.id, function: { arguments: tc.arguments } }, result, resultIdx));
+          enqueue(
+            sseToolCallArgs(
+              encoder,
+              { id: tc.id, function: { arguments: tc.arguments } },
+              result,
+              resultIdx,
+            ),
+          );
         }
         resultIdx++;
       });

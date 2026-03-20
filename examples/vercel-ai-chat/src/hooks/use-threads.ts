@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import type { UIMessage } from "ai";
 import {
-  getThreads,
-  getThread,
-  saveThread,
-  deleteThread as removeThread,
   generateId,
+  getThread,
+  getThreads,
+  deleteThread as removeThread,
+  saveThread,
   titleFromMessages,
   type Thread,
 } from "@/lib/thread-store";
+import type { UIMessage } from "ai";
+import { useCallback, useState } from "react";
 
 export function useThreads() {
   const [threads, setThreads] = useState<Thread[]>(() => getThreads());

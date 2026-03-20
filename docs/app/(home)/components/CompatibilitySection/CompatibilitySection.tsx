@@ -54,17 +54,9 @@ function Chip({ item }: { item: CompatibilityItem }) {
         style={{ backgroundColor: item.badgeBg }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imgSrc}
-          alt={item.name}
-          width={14}
-          height={14}
-          className={styles.badgeImage}
-        />
+        <img src={imgSrc} alt={item.name} width={14} height={14} className={styles.badgeImage} />
       </div>
-      <span className={styles.chipLabel}>
-        {item.name}
-      </span>
+      <span className={styles.chipLabel}>{item.name}</span>
     </div>
   );
 }
@@ -80,16 +72,12 @@ export function CompatibilitySection() {
         <div className={styles.stack}>
           {/* LLMs row */}
           <div className={styles.row}>
-            <span className={styles.label}>
-              Any LLM
-            </span>
+            <span className={styles.label}>Any LLM</span>
             <div className={styles.chips}>
               {LLMS.map((item) => (
                 <Chip key={item.name} item={item} />
               ))}
-              <span className={styles.more}>
-                + more
-              </span>
+              <span className={styles.more}>+ more</span>
             </div>
           </div>
 
@@ -98,16 +86,12 @@ export function CompatibilitySection() {
 
           {/* Frameworks row */}
           <div className={styles.row}>
-            <span className={styles.label}>
-              Any Framework
-            </span>
+            <span className={styles.label}>Any Framework</span>
             <div className={styles.chips}>
               {FRAMEWORKS.map((item) => (
                 <Chip key={item.name} item={item} />
               ))}
-              <span className={styles.more}>
-                + more
-              </span>
+              <span className={styles.more}>+ more</span>
             </div>
           </div>
         </div>

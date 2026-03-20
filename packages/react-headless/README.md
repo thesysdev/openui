@@ -36,10 +36,7 @@ import { ChatProvider } from "@openuidev/react-headless";
 
 function App() {
   return (
-    <ChatProvider
-      apiUrl="/api/chat"
-      threadApiUrl="/api/threads"
-    >
+    <ChatProvider apiUrl="/api/chat" threadApiUrl="/api/threads">
       <YourChatUI />
     </ChatProvider>
   );
@@ -104,18 +101,18 @@ function ChatMessages() {
 
 **Returns:** `ThreadState & ThreadActions`
 
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `messages` | `Message[]` | Messages in the current thread |
-| `isRunning` | `boolean` | Whether the model is currently streaming |
-| `isLoadingMessages` | `boolean` | Whether messages are being fetched |
-| `threadError` | `Error \| null` | Error from the last operation |
-| `processMessage(msg)` | `(msg) => Promise<void>` | Send a message and stream the response |
-| `cancelMessage()` | `() => void` | Abort the current stream |
-| `appendMessages(...msgs)` | `(...msgs) => void` | Append messages locally |
-| `updateMessage(msg)` | `(msg) => void` | Update a message in place |
-| `deleteMessage(id)` | `(id) => void` | Remove a message |
-| `setMessages(msgs)` | `(msgs) => void` | Replace all messages |
+| Field                     | Type                     | Description                              |
+| :------------------------ | :----------------------- | :--------------------------------------- |
+| `messages`                | `Message[]`              | Messages in the current thread           |
+| `isRunning`               | `boolean`                | Whether the model is currently streaming |
+| `isLoadingMessages`       | `boolean`                | Whether messages are being fetched       |
+| `threadError`             | `Error \| null`          | Error from the last operation            |
+| `processMessage(msg)`     | `(msg) => Promise<void>` | Send a message and stream the response   |
+| `cancelMessage()`         | `() => void`             | Abort the current stream                 |
+| `appendMessages(...msgs)` | `(...msgs) => void`      | Append messages locally                  |
+| `updateMessage(msg)`      | `(msg) => void`          | Update a message in place                |
+| `deleteMessage(id)`       | `(id) => void`           | Remove a message                         |
+| `setMessages(msgs)`       | `(msgs) => void`         | Replace all messages                     |
 
 ### `useThreadList()`
 
@@ -144,19 +141,19 @@ function ThreadSidebar() {
 
 **Returns:** `ThreadListState & ThreadListActions`
 
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `threads` | `Thread[]` | All loaded threads |
-| `selectedThreadId` | `string \| null` | Currently selected thread |
-| `isLoadingThreads` | `boolean` | Whether the thread list is loading |
-| `hasMoreThreads` | `boolean` | Whether more threads can be loaded |
-| `loadThreads()` | `() => void` | Fetch the thread list |
-| `loadMoreThreads()` | `() => void` | Load the next page of threads |
-| `selectThread(id)` | `(id) => void` | Select a thread |
-| `switchToNewThread()` | `() => void` | Deselect and start a new conversation |
-| `createThread(msg)` | `(msg) => Promise<Thread>` | Create a thread with a first message |
-| `updateThread(thread)` | `(thread) => void` | Update thread metadata |
-| `deleteThread(id)` | `(id) => void` | Delete a thread |
+| Field                  | Type                       | Description                           |
+| :--------------------- | :------------------------- | :------------------------------------ |
+| `threads`              | `Thread[]`                 | All loaded threads                    |
+| `selectedThreadId`     | `string \| null`           | Currently selected thread             |
+| `isLoadingThreads`     | `boolean`                  | Whether the thread list is loading    |
+| `hasMoreThreads`       | `boolean`                  | Whether more threads can be loaded    |
+| `loadThreads()`        | `() => void`               | Fetch the thread list                 |
+| `loadMoreThreads()`    | `() => void`               | Load the next page of threads         |
+| `selectThread(id)`     | `(id) => void`             | Select a thread                       |
+| `switchToNewThread()`  | `() => void`               | Deselect and start a new conversation |
+| `createThread(msg)`    | `(msg) => Promise<Thread>` | Create a thread with a first message  |
+| `updateThread(thread)` | `(thread) => void`         | Update thread metadata                |
+| `deleteThread(id)`     | `(id) => void`             | Delete a thread                       |
 
 ### `useMessage()`
 
@@ -180,15 +177,15 @@ import { ChatProvider, openAIAdapter } from "@openuidev/react-headless";
 
 <ChatProvider apiUrl="/api/chat" streamProtocol={openAIAdapter}>
   {children}
-</ChatProvider>
+</ChatProvider>;
 ```
 
-| Adapter | Description |
-| :--- | :--- |
-| `agUIAdapter` | Default — parses AG-UI SSE events (`data: {json}\n`) |
-| `openAIAdapter` | Parses OpenAI Chat Completions streaming (`ChatCompletionChunk`) |
-| `openAIResponsesAdapter` | Parses OpenAI Responses API streaming (`ResponseStreamEvent`) |
-| `openAIReadableStreamAdapter` | Parses OpenAI SDK's `Stream.toReadableStream()` NDJSON output |
+| Adapter                       | Description                                                      |
+| :---------------------------- | :--------------------------------------------------------------- |
+| `agUIAdapter`                 | Default — parses AG-UI SSE events (`data: {json}\n`)             |
+| `openAIAdapter`               | Parses OpenAI Chat Completions streaming (`ChatCompletionChunk`) |
+| `openAIResponsesAdapter`      | Parses OpenAI Responses API streaming (`ResponseStreamEvent`)    |
+| `openAIReadableStreamAdapter` | Parses OpenAI SDK's `Stream.toReadableStream()` NDJSON output    |
 
 ### Custom adapter
 
@@ -213,13 +210,13 @@ import { ChatProvider, openAIMessageFormat } from "@openuidev/react-headless";
 
 <ChatProvider apiUrl="/api/chat" messageFormat={openAIMessageFormat}>
   {children}
-</ChatProvider>
+</ChatProvider>;
 ```
 
-| Format | Description |
-| :--- | :--- |
-| `identityMessageFormat` | Default — no conversion (messages are already AG-UI format) |
-| `openAIMessageFormat` | Converts to/from OpenAI `ChatCompletionMessageParam[]` |
+| Format                            | Description                                                 |
+| :-------------------------------- | :---------------------------------------------------------- |
+| `identityMessageFormat`           | Default — no conversion (messages are already AG-UI format) |
+| `openAIMessageFormat`             | Converts to/from OpenAI `ChatCompletionMessageParam[]`      |
 | `openAIConversationMessageFormat` | Converts to/from OpenAI Responses API `ResponseInputItem[]` |
 
 ### Custom format

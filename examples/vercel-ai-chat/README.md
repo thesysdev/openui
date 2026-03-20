@@ -32,6 +32,7 @@ Card([
 On the client, `<Renderer />` from `@openuidev/react-lang` parses this markup token-by-token as it streams in and renders it as real React components. The user sees UI building up live — not a wall of text.
 
 The Vercel AI SDK handles the streaming transport on both ends:
+
 - **Backend**: `streamText` calls the LLM, executes tools, and streams the response.
 - **Frontend**: `useChat` manages message state, accumulates the streamed text, and triggers re-renders.
 
@@ -149,13 +150,13 @@ pnpm generate:prompt
 
 The API route uses the Vercel AI SDK's `streamText` with five arguments:
 
-| Argument | Value | Purpose |
-| -------- | ----- | ------- |
-| `model` | `openai("gpt-5.4")` | The LLM to call |
-| `system` | contents of `system-prompt.txt` | Teaches the model OpenUI Lang and the available components |
-| `messages` | conversation history from client | The full thread so far |
-| `tools` | four tool definitions | Functions the LLM can call mid-generation |
-| `stopWhen` | `stepCountIs(5)` | Stops the tool-call loop after 5 steps maximum |
+| Argument   | Value                            | Purpose                                                    |
+| ---------- | -------------------------------- | ---------------------------------------------------------- |
+| `model`    | `openai("gpt-5.4")`              | The LLM to call                                            |
+| `system`   | contents of `system-prompt.txt`  | Teaches the model OpenUI Lang and the available components |
+| `messages` | conversation history from client | The full thread so far                                     |
+| `tools`    | four tool definitions            | Functions the LLM can call mid-generation                  |
+| `stopWhen` | `stepCountIs(5)`                 | Stops the tool-call loop after 5 steps maximum             |
 
 `convertToModelMessages` bridges the Vercel AI SDK's `UIMessage` client format to the `ModelMessage` server format. `toUIMessageStreamResponse()` serializes the stream in the format `useChat` on the client expects.
 
@@ -184,12 +185,12 @@ Conversations are organized into threads. Each thread has an `id`, `title` (deri
 
 The hook exposes:
 
-| Function | Description |
-| -------- | ----------- |
-| `createThread()` | Creates a new empty thread and makes it active |
-| `switchThread(id)` | Loads a previous thread's messages into `useChat` |
-| `deleteThread(id)` | Removes a thread; switches to a new one if it was active |
-| `persistMessages(messages)` | Saves the current `useChat` messages to localStorage |
+| Function                    | Description                                              |
+| --------------------------- | -------------------------------------------------------- |
+| `createThread()`            | Creates a new empty thread and makes it active           |
+| `switchThread(id)`          | Loads a previous thread's messages into `useChat`        |
+| `deleteThread(id)`          | Removes a thread; switches to a new one if it was active |
+| `persistMessages(messages)` | Saves the current `useChat` messages to localStorage     |
 
 ### `src/lib/tools.ts` — Mock Tools
 
@@ -203,14 +204,14 @@ Returns current conditions and a two-day forecast for a city.
 - **Simulated delay**: 800ms
 - **Returns**:
 
-| Field | Example |
-| ----- | ------- |
-| `temperature_celsius` | `22` |
-| `temperature_fahrenheit` | `72` |
-| `condition` | `"Sunny"` |
-| `humidity_percent` | `65` |
-| `wind_speed_kmh` | `12` |
-| `forecast` | `[{ day, high, low, condition }, ...]` (2 days) |
+| Field                    | Example                                         |
+| ------------------------ | ----------------------------------------------- |
+| `temperature_celsius`    | `22`                                            |
+| `temperature_fahrenheit` | `72`                                            |
+| `condition`              | `"Sunny"`                                       |
+| `humidity_percent`       | `65`                                            |
+| `wind_speed_kmh`         | `12`                                            |
+| `forecast`               | `[{ day, high, low, condition }, ...]` (2 days) |
 
 Hardcoded temperatures for: Tokyo (22°C), San Francisco (18°C), London (14°C), New York (25°C), Paris (19°C), Sydney (27°C), Mumbai (33°C), Berlin (16°C). Any other city gets a random temperature between 5–35°C.
 
@@ -222,14 +223,14 @@ Returns current price data for a stock ticker.
 - **Simulated delay**: 600ms
 - **Returns**:
 
-| Field | Example |
-| ----- | ------- |
-| `price` | `190.12` |
-| `change` | `+0.28` |
-| `change_percent` | `+0.15%` |
-| `volume` | `"42.3M"` |
-| `day_high` | `191.50` |
-| `day_low` | `188.90` |
+| Field            | Example   |
+| ---------------- | --------- |
+| `price`          | `190.12`  |
+| `change`         | `+0.28`   |
+| `change_percent` | `+0.15%`  |
+| `volume`         | `"42.3M"` |
+| `day_high`       | `191.50`  |
+| `day_low`        | `188.90`  |
 
 Hardcoded prices for: AAPL ($189.84), GOOGL ($141.80), TSLA ($248.42), MSFT ($378.91), AMZN ($178.25), NVDA ($875.28), META ($485.58). Other tickers get a random price.
 
@@ -254,12 +255,12 @@ Returns mock search results for any query.
 
 ## Scripts
 
-| Script | Description |
-| ------ | ----------- |
-| `pnpm dev` | Generate system prompt, then start the Next.js dev server |
+| Script                 | Description                                                    |
+| ---------------------- | -------------------------------------------------------------- |
+| `pnpm dev`             | Generate system prompt, then start the Next.js dev server      |
 | `pnpm generate:prompt` | Recompile `src/library.ts` → `src/generated/system-prompt.txt` |
-| `pnpm build` | Build for production |
-| `pnpm start` | Start the production server |
+| `pnpm build`           | Build for production                                           |
+| `pnpm start`           | Start the production server                                    |
 
 ---
 

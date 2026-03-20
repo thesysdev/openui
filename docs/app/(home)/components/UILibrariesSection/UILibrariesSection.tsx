@@ -1,6 +1,6 @@
-import type { CSSProperties } from "react";
 import mascotSvgPaths from "@/imports/svg-10waxq0xyc";
 import svgPaths from "@/imports/svg-urruvoh2be";
+import type { CSSProperties } from "react";
 import styles from "./UILibrariesSection.module.css";
 
 // ---------------------------------------------------------------------------
@@ -105,10 +105,7 @@ function LibraryCard({ lib }: { lib: UILibrary }) {
     <div className={styles.card}>
       <div className={styles.cardContent}>
         {/* Icon */}
-        <div
-          className={styles.iconBadge}
-          style={{ backgroundColor: lib.iconBackground }}
-        >
+        <div className={styles.iconBadge} style={{ backgroundColor: lib.iconBackground }}>
           {lib.isMascot ? (
             <div className={styles.mascotCenter}>
               <div className={styles.mascotFrame}>
@@ -164,9 +161,7 @@ function LibraryCard({ lib }: { lib: UILibrary }) {
         </div>
 
         {/* Name */}
-        <span className={styles.name}>
-          {displayName}
-        </span>
+        <span className={styles.name}>{displayName}</span>
       </div>
     </div>
   );

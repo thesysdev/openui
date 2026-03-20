@@ -88,9 +88,7 @@ function StepBadge({ num, isActive }: { num: number; isActive: boolean }) {
     <div
       className={`${styles.stepBadge} ${isActive ? styles.stepBadgeActive : styles.stepBadgeInactive}`}
     >
-      <span className={styles.stepBadgeLabel}>
-        {num}
-      </span>
+      <span className={styles.stepBadgeLabel}>{num}</span>
     </div>
   );
 }
@@ -102,9 +100,7 @@ function Divider() {
 function StepDetails({ step, hideDetails }: { step: Step; hideDetails?: boolean }) {
   return (
     <div className={styles.stepDetails}>
-      <p className={styles.stepDescription}>
-        {step.description}
-      </p>
+      <p className={styles.stepDescription}>{step.description}</p>
       {!hideDetails && step.details.length > 0 && (
         <div className={styles.stepDescription}>
           {step.detailsTitle && <p className={styles.stepDetailsTitle}>{step.detailsTitle}</p>}
@@ -141,10 +137,7 @@ function StepIllustration({ stepNumber, mobile }: { stepNumber: number; mobile?:
 
   if (mobile) {
     return (
-      <div
-        ref={containerRef}
-        className={styles.mobileIllustrationFrame}
-      >
+      <div ref={containerRef} className={styles.mobileIllustrationFrame}>
         <div
           className={styles.mobileIllustrationScale}
           style={{ width: 610, height: 432, transform: `scale(${scale})` }}
@@ -194,9 +187,7 @@ function DesktopStep({
         <StepBadge num={step.number} isActive={isActive} />
 
         <div className={styles.desktopStepCopy}>
-          <h3 className={styles.desktopStepTitle}>
-            {step.title}
-          </h3>
+          <h3 className={styles.desktopStepTitle}>{step.title}</h3>
 
           <AnimatePresence>
             {isActive && (
@@ -248,9 +239,7 @@ function MobileStep({
     <div>
       <button className={styles.mobileStepButton} onClick={onToggle}>
         <StepBadge num={step.number} isActive={isActive} />
-        <span className={styles.mobileStepTitle}>
-          {step.title}
-        </span>
+        <span className={styles.mobileStepTitle}>{step.title}</span>
       </button>
 
       <AnimatePresence>
@@ -288,10 +277,7 @@ export function StepsSection() {
   return (
     <section className={styles.section}>
       <div className={styles.container}>
-        <div
-          className={styles.card}
-          style={{ border: CARD_BORDER, boxShadow: CARD_SHADOW }}
-        >
+        <div className={styles.card} style={{ border: CARD_BORDER, boxShadow: CARD_SHADOW }}>
           {/* Desktop */}
           <div className={styles.desktopSteps} style={{ height: TOTAL_DESKTOP_HEIGHT }}>
             {STEPS.map((step, i) => (

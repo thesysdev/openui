@@ -136,11 +136,11 @@ The route uses `client.chat.completions.runTools()` from the OpenAI SDK, which h
 
 The response is streamed as **Server-Sent Events (SSE)**. Three types of SSE events are emitted:
 
-| Event type | When emitted | What it carries |
-| ---------- | ------------ | --------------- |
-| Tool call start | LLM invokes a tool | Tool name and ID |
-| Tool call result | Tool execution completes | Enriched JSON with `_request` and `_response` |
-| Text chunk | LLM generates text tokens | The OpenUI Lang markup delta |
+| Event type       | When emitted              | What it carries                               |
+| ---------------- | ------------------------- | --------------------------------------------- |
+| Tool call start  | LLM invokes a tool        | Tool name and ID                              |
+| Tool call result | Tool execution completes  | Enriched JSON with `_request` and `_response` |
+| Text chunk       | LLM generates text tokens | The OpenUI Lang markup delta                  |
 
 Messages are cleaned before sending to the API: `tool` role messages are stripped, and `tool_calls` are removed from assistant messages (since `runTools` reruns the agentic loop server-side on each request).
 
@@ -148,25 +148,25 @@ Messages are cleaned before sending to the API: `tool` role messages are strippe
 
 The entire chat interface is the `<FullScreen />` component from `@openuidev/react-ui`. You configure it with three things:
 
-| Prop | Value | Purpose |
-| ---- | ----- | ------- |
-| `processMessage` | `fetch("/api/chat", ...)` | How to call your backend |
-| `streamProtocol` | `openAIAdapter()` | How to parse the SSE stream |
-| `componentLibrary` | `shadcnChatLibrary` | Which components to render OpenUI Lang nodes with |
+| Prop               | Value                     | Purpose                                           |
+| ------------------ | ------------------------- | ------------------------------------------------- |
+| `processMessage`   | `fetch("/api/chat", ...)` | How to call your backend                          |
+| `streamProtocol`   | `openAIAdapter()`         | How to parse the SSE stream                       |
+| `componentLibrary` | `shadcnChatLibrary`       | Which components to render OpenUI Lang nodes with |
 
 `openAIAdapter()` is imported from `@openuidev/react-headless`. It knows how to parse the OpenAI-style SSE format emitted by this route. `openAIMessageFormat.toApi()` converts the internal message objects into the format the OpenAI API expects.
 
 The page also includes 7 built-in conversation starters to showcase the component library:
 
-| Starter | What it demonstrates |
-| ------- | -------------------- |
-| Startup dashboard | Tabs, BarChart, LineChart, PieChart, Table, Progress, Tags |
-| Travel planner | CalendarBlock, Accordion, Tags, Form (Select, Slider, Checkboxes) |
-| Market watch | Tool calling (get_stock_price), Table, Alert, DrawerBlock, BarChart |
-| Event RSVP | Form (Input, Select, RadioGroup, DatePicker, Slider, Checkboxes, Switches) |
-| Team standup | Progress, Table, Alert, Accordion, DialogBlock, PieChart |
-| Recipe card | Tabs, Accordion, PieChart, Button, DialogBlock |
-| Chart showcase | All 6 chart types: Bar, Line, Area, Pie, Radar, Scatter + RadialChart |
+| Starter           | What it demonstrates                                                       |
+| ----------------- | -------------------------------------------------------------------------- |
+| Startup dashboard | Tabs, BarChart, LineChart, PieChart, Table, Progress, Tags                 |
+| Travel planner    | CalendarBlock, Accordion, Tags, Form (Select, Slider, Checkboxes)          |
+| Market watch      | Tool calling (get_stock_price), Table, Alert, DrawerBlock, BarChart        |
+| Event RSVP        | Form (Input, Select, RadioGroup, DatePicker, Slider, Checkboxes, Switches) |
+| Team standup      | Progress, Table, Alert, Accordion, DialogBlock, PieChart                   |
+| Recipe card       | Tabs, Accordion, PieChart, Button, DialogBlock                             |
+| Chart showcase    | All 6 chart types: Bar, Line, Area, Pie, Radar, Scatter + RadialChart      |
 
 ### `src/lib/shadcn-genui/` — Custom Component Library
 
@@ -181,22 +181,22 @@ The full library (`shadcnChatLibrary`) is assembled with `createLibrary({ root: 
 
 #### Component Groups
 
-| Group | Components |
-| ----- | ---------- |
-| **Content** | `Card`, `CardHeader`, `TextContent`, `MarkDownRenderer`, `Alert`, `Badge`, `Avatar`, `CodeBlock`, `Image`, `Progress`, `Separator` |
-| **Tables** | `Table`, `Col` |
-| **Charts (2D)** | `BarChart`, `LineChart`, `AreaChart`, `RadarChart`, `Series` |
-| **Charts (1D)** | `PieChart`, `RadialChart`, `Slice` |
-| **Charts (Scatter)** | `ScatterChart`, `ScatterSeries`, `Point` |
-| **Forms** | `Form`, `FormControl`, `Label`, `Input`, `TextArea`, `Select`, `SelectItem`, `DatePicker`, `Slider`, `CheckBoxGroup`, `CheckBoxItem`, `RadioGroup`, `RadioItem`, `SwitchGroup`, `SwitchItem` |
-| **Buttons** | `Button`, `Buttons` |
-| **Follow-ups** | `FollowUpBlock`, `FollowUpItem` |
-| **Layout** | `Tabs`, `TabItem`, `Accordion`, `AccordionItemDef`, `Carousel` |
-| **Data Display** | `TagBlock`, `Tag` |
-| **Typography** | `Heading`, `Blockquote`, `InlineCode` |
-| **Navigation** | `PaginationBlock` |
-| **Overlays** | `DialogBlock`, `AlertDialogBlock`, `DrawerBlock` |
-| **Calendar** | `CalendarBlock` |
+| Group                | Components                                                                                                                                                                                   |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Content**          | `Card`, `CardHeader`, `TextContent`, `MarkDownRenderer`, `Alert`, `Badge`, `Avatar`, `CodeBlock`, `Image`, `Progress`, `Separator`                                                           |
+| **Tables**           | `Table`, `Col`                                                                                                                                                                               |
+| **Charts (2D)**      | `BarChart`, `LineChart`, `AreaChart`, `RadarChart`, `Series`                                                                                                                                 |
+| **Charts (1D)**      | `PieChart`, `RadialChart`, `Slice`                                                                                                                                                           |
+| **Charts (Scatter)** | `ScatterChart`, `ScatterSeries`, `Point`                                                                                                                                                     |
+| **Forms**            | `Form`, `FormControl`, `Label`, `Input`, `TextArea`, `Select`, `SelectItem`, `DatePicker`, `Slider`, `CheckBoxGroup`, `CheckBoxItem`, `RadioGroup`, `RadioItem`, `SwitchGroup`, `SwitchItem` |
+| **Buttons**          | `Button`, `Buttons`                                                                                                                                                                          |
+| **Follow-ups**       | `FollowUpBlock`, `FollowUpItem`                                                                                                                                                              |
+| **Layout**           | `Tabs`, `TabItem`, `Accordion`, `AccordionItemDef`, `Carousel`                                                                                                                               |
+| **Data Display**     | `TagBlock`, `Tag`                                                                                                                                                                            |
+| **Typography**       | `Heading`, `Blockquote`, `InlineCode`                                                                                                                                                        |
+| **Navigation**       | `PaginationBlock`                                                                                                                                                                            |
+| **Overlays**         | `DialogBlock`, `AlertDialogBlock`, `DrawerBlock`                                                                                                                                             |
+| **Calendar**         | `CalendarBlock`                                                                                                                                                                              |
 
 ### Mock Tools
 
@@ -210,14 +210,14 @@ Returns current conditions and a two-day forecast for a city.
 - **Simulated delay**: 800ms
 - **Returns**:
 
-| Field | Example |
-| ----- | ------- |
-| `temperature_celsius` | `22` |
-| `temperature_fahrenheit` | `72` |
-| `condition` | `"Sunny"` |
-| `humidity_percent` | `65` |
-| `wind_speed_kmh` | `12` |
-| `forecast` | 2-day array with `high`, `low`, `condition` |
+| Field                    | Example                                     |
+| ------------------------ | ------------------------------------------- |
+| `temperature_celsius`    | `22`                                        |
+| `temperature_fahrenheit` | `72`                                        |
+| `condition`              | `"Sunny"`                                   |
+| `humidity_percent`       | `65`                                        |
+| `wind_speed_kmh`         | `12`                                        |
+| `forecast`               | 2-day array with `high`, `low`, `condition` |
 
 Hardcoded temperatures for: Tokyo (22°C), San Francisco (18°C), London (14°C), New York (25°C), Paris (19°C), Sydney (27°C), Mumbai (33°C), Berlin (16°C). Other cities get a random value.
 
@@ -229,14 +229,14 @@ Returns current price data for a stock ticker.
 - **Simulated delay**: 600ms
 - **Returns**:
 
-| Field | Example |
-| ----- | ------- |
-| `price` | `190.12` |
-| `change` | `+0.28` |
-| `change_percent` | `+0.15%` |
-| `volume` | `"42.3M"` |
-| `day_high` | `191.50` |
-| `day_low` | `188.90` |
+| Field            | Example   |
+| ---------------- | --------- |
+| `price`          | `190.12`  |
+| `change`         | `+0.28`   |
+| `change_percent` | `+0.15%`  |
+| `volume`         | `"42.3M"` |
+| `day_high`       | `191.50`  |
+| `day_low`        | `188.90`  |
 
 Hardcoded prices for: AAPL ($189.84), GOOGL ($141.80), TSLA ($248.42), MSFT ($378.91), AMZN ($178.25), NVDA ($875.28), META ($485.58). Other tickers get a random price.
 
@@ -261,12 +261,12 @@ Returns mock search results for any query.
 
 ## Scripts
 
-| Script | Description |
-| ------ | ----------- |
-| `pnpm dev` | Generate system prompt, then start the Next.js dev server |
+| Script                 | Description                                                  |
+| ---------------------- | ------------------------------------------------------------ |
+| `pnpm dev`             | Generate system prompt, then start the Next.js dev server    |
 | `pnpm generate:prompt` | Recompile `shadcn-genui` → `src/generated/system-prompt.txt` |
-| `pnpm build` | Build for production |
-| `pnpm start` | Start the production server |
+| `pnpm build`           | Build for production                                         |
+| `pnpm start`           | Start the production server                                  |
 
 ---
 

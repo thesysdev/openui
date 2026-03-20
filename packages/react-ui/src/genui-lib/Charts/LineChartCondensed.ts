@@ -1,4 +1,3 @@
-
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";

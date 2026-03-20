@@ -39,22 +39,17 @@ import { FullScreen } from "@openuidev/react-ui";
 import "@openuidev/react-ui/components.css";
 
 function App() {
-  return (
-    <FullScreen
-      apiUrl="/api/chat"
-      threadApiUrl="/api/threads"
-    />
-  );
+  return <FullScreen apiUrl="/api/chat" threadApiUrl="/api/threads" />;
 }
 ```
 
 ### Chat Layouts
 
-| Component | Description |
-| :--- | :--- |
+| Component    | Description                          |
+| :----------- | :----------------------------------- |
 | `FullScreen` | Full-page chat with a thread sidebar |
-| `Copilot` | Side-panel copilot overlay |
-| `BottomTray` | Collapsible bottom tray chat |
+| `Copilot`    | Side-panel copilot overlay           |
+| `BottomTray` | Collapsible bottom tray chat         |
 
 All chat layouts accept `apiUrl`, `threadApiUrl`, and theming props. See the [chat docs](https://openui.com/docs/chat) for full configuration.
 
@@ -77,10 +72,10 @@ function App() {
 
 The package ships with two preconfigured OpenUI Lang libraries:
 
-| Export | Description |
-| :--- | :--- |
-| `openuiLibrary` | Full component library — charts, tables, forms, cards, images, and more |
-| `openuiChatLibrary` | Chat-optimized subset with follow-ups, steps, and callouts |
+| Export              | Description                                                             |
+| :------------------ | :---------------------------------------------------------------------- |
+| `openuiLibrary`     | Full component library — charts, tables, forms, cards, images, and more |
+| `openuiChatLibrary` | Chat-optimized subset with follow-ups, steps, and callouts              |
 
 Use them directly when building custom chat experiences:
 
@@ -89,13 +84,7 @@ import { Renderer } from "@openuidev/react-lang";
 import { openuiLibrary } from "@openuidev/react-ui";
 
 function AssistantMessage({ content, isStreaming }) {
-  return (
-    <Renderer
-      response={content}
-      library={openuiLibrary}
-      isStreaming={isStreaming}
-    />
-  );
+  return <Renderer response={content} library={openuiLibrary} isStreaming={isStreaming} />;
 }
 ```
 
@@ -129,27 +118,27 @@ function App() {
 }
 ```
 
-| Export | Description |
-| :--- | :--- |
-| `ThemeProvider` | Context provider for theming |
+| Export                   | Description                                 |
+| :----------------------- | :------------------------------------------ |
+| `ThemeProvider`          | Context provider for theming                |
 | `createTheme(overrides)` | Create a theme with validation and defaults |
-| `defaultLightTheme` | Built-in light theme |
-| `defaultDarkTheme` | Built-in dark theme |
-| `swatchTokens` | Token palette for use in theme builders |
+| `defaultLightTheme`      | Built-in light theme                        |
+| `defaultDarkTheme`       | Built-in dark theme                         |
+| `swatchTokens`           | Token palette for use in theme builders     |
 
 ## Components
 
 All components are available as individual imports:
 
-| Category | Components |
-| :--- | :--- |
-| **Layout** | `Card`, `CardHeader`, `SectionBlock`, `Tabs`, `Accordion`, `Carousel`, `Separator`, `Steps` |
-| **Data Display** | `Table`, `Charts` (bar, line, area, pie, radar, scatter), `ListBlock`, `ListItem`, `Tag`, `TagBlock`, `CodeBlock`, `Image`, `ImageBlock`, `ImageGallery` |
-| **Forms** | `Input`, `TextArea`, `Select`, `CheckBoxGroup`, `CheckBoxItem`, `RadioGroup`, `RadioItem`, `SwitchGroup`, `SwitchItem`, `Slider`, `DatePicker`, `FormControl`, `Label` |
-| **Actions** | `Button`, `Buttons`, `IconButton`, `FollowUpBlock`, `FollowUpItem` |
-| **Feedback** | `Callout`, `TextCallout`, `MessageLoading` |
-| **Content** | `TextContent`, `MarkDownRenderer` |
-| **Chat** | `FullScreen`, `Copilot`, `BottomTray`, `Shell.*`, `CopilotShell.*`, `ToolCall`, `ToolResult` |
+| Category         | Components                                                                                                                                                             |
+| :--------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Layout**       | `Card`, `CardHeader`, `SectionBlock`, `Tabs`, `Accordion`, `Carousel`, `Separator`, `Steps`                                                                            |
+| **Data Display** | `Table`, `Charts` (bar, line, area, pie, radar, scatter), `ListBlock`, `ListItem`, `Tag`, `TagBlock`, `CodeBlock`, `Image`, `ImageBlock`, `ImageGallery`               |
+| **Forms**        | `Input`, `TextArea`, `Select`, `CheckBoxGroup`, `CheckBoxItem`, `RadioGroup`, `RadioItem`, `SwitchGroup`, `SwitchItem`, `Slider`, `DatePicker`, `FormControl`, `Label` |
+| **Actions**      | `Button`, `Buttons`, `IconButton`, `FollowUpBlock`, `FollowUpItem`                                                                                                     |
+| **Feedback**     | `Callout`, `TextCallout`, `MessageLoading`                                                                                                                             |
+| **Content**      | `TextContent`, `MarkDownRenderer`                                                                                                                                      |
+| **Chat**         | `FullScreen`, `Copilot`, `BottomTray`, `Shell.*`, `CopilotShell.*`, `ToolCall`, `ToolResult`                                                                           |
 
 ### Per-component imports
 
@@ -163,20 +152,19 @@ import { Charts } from "@openuidev/react-ui/Charts";
 
 ## Subpath Exports
 
-| Import path | Description |
-| :--- | :--- |
-| `@openuidev/react-ui` | All components and libraries |
-| `@openuidev/react-ui/components.css` | Compiled component styles |
-| `@openuidev/react-ui/genui-lib` | OpenUI Lang libraries and prompt options |
-| `@openuidev/react-ui/tailwind` | Tailwind CSS plugin |
-| `@openuidev/react-ui/styles/*` | SCSS utilities |
-| `@openuidev/react-ui/scssUtils` | SCSS utility functions |
-| `@openuidev/react-ui/<Component>` | Per-component entry points |
+| Import path                          | Description                              |
+| :----------------------------------- | :--------------------------------------- |
+| `@openuidev/react-ui`                | All components and libraries             |
+| `@openuidev/react-ui/components.css` | Compiled component styles                |
+| `@openuidev/react-ui/genui-lib`      | OpenUI Lang libraries and prompt options |
+| `@openuidev/react-ui/tailwind`       | Tailwind CSS plugin                      |
+| `@openuidev/react-ui/styles/*`       | SCSS utilities                           |
+| `@openuidev/react-ui/scssUtils`      | SCSS utility functions                   |
+| `@openuidev/react-ui/<Component>`    | Per-component entry points               |
 
 ## Documentation
 
 Full documentation, component guides, and live examples are available at **[openui.com](https://openui.com)**.
-
 
 ## License
 

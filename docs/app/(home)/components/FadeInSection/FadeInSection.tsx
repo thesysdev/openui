@@ -9,9 +9,5 @@ interface FadeInSectionProps {
 }
 
 export function FadeInSection({ children, className = "" }: FadeInSectionProps) {
-  return (
-    <div className={`${styles.root} ${className}`.trim()}>
-      {children}
-    </div>
-  );
+  return <div className={`${styles.root} ${className}`.trim()}>{children}</div>;
 }

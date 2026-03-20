@@ -2,17 +2,17 @@
 
 import "@openuidev/react-ui/components.css";
 
-import { useChat } from "@ai-sdk/react";
-import { useRef, useEffect, useState } from "react";
-import { useTheme } from "@/hooks/use-system-theme";
-import { useThreads } from "@/hooks/use-threads";
+import { AssistantMessage } from "@/components/assistant-message";
 import { ChatHeader } from "@/components/chat-header";
 import { ChatInput } from "@/components/chat-input";
 import { ConversationStarters } from "@/components/conversation-starters";
-import { AssistantMessage } from "@/components/assistant-message";
-import { UserMessage } from "@/components/user-message";
-import { ThinkingIndicator } from "@/components/thinking-indicator";
 import { Sidebar } from "@/components/sidebar";
+import { ThinkingIndicator } from "@/components/thinking-indicator";
+import { UserMessage } from "@/components/user-message";
+import { useTheme } from "@/hooks/use-system-theme";
+import { useThreads } from "@/hooks/use-threads";
+import { useChat } from "@ai-sdk/react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Page() {
   useTheme();
@@ -78,10 +78,7 @@ export default function Page() {
           sidebarOpen ? "md:ml-[280px]" : "ml-0"
         }`}
       >
-        <ChatHeader
-          isSidebarOpen={sidebarOpen}
-          onToggleSidebar={() => setSidebarOpen((o) => !o)}
-        />
+        <ChatHeader isSidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen((o) => !o)} />
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto">
           {isEmpty ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Thread } from "@/lib/thread-store";
-import { Plus, Trash2, MessageSquare } from "lucide-react";
+import { MessageSquare, Plus, Trash2 } from "lucide-react";
 
 interface SidebarProps {
   threads: Thread[];
@@ -65,12 +65,7 @@ export function Sidebar({
   return (
     <>
       {/* Backdrop for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/30 md:hidden"
-          onClick={onClose}
-        />
-      )}
+      {isOpen && <div className="fixed inset-0 z-40 bg-black/30 md:hidden" onClick={onClose} />}
 
       <aside
         className={`

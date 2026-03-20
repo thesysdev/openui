@@ -5,7 +5,8 @@ import styles from "./shared.module.css";
 // Design tokens shared across multiple sections
 // ---------------------------------------------------------------------------
 
-export const BUTTON_SHADOW = "0px 1px 3px 0px rgba(22,34,51,0.08), 0px 12px 24px 0px rgba(22,34,51,0.04)";
+export const BUTTON_SHADOW =
+  "0px 1px 3px 0px rgba(22,34,51,0.08), 0px 12px 24px 0px rgba(22,34,51,0.04)";
 
 // ---------------------------------------------------------------------------
 // Shared components

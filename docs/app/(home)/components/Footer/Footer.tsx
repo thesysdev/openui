@@ -1,8 +1,8 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import svgPaths from "@/imports/svg-urruvoh2be";
 import mascotSvgPaths from "@/imports/svg-xeurqn3j1r";
+import type { CSSProperties } from "react";
 import styles from "./Footer.module.css";
 
 // ---------------------------------------------------------------------------
@@ -158,9 +158,7 @@ export function Footer() {
               <path d={mascotSvgPaths.p4076200} fill="black" stroke="black" strokeWidth="0.6" />
             </svg>
           </div>
-          <p className={styles.handcraftedCopy}>
-            Handcrafted with a lot of love.
-          </p>
+          <p className={styles.handcraftedCopy}>Handcrafted with a lot of love.</p>
         </div>
       </div>
 
@@ -179,9 +177,7 @@ export function Footer() {
           {/* Bottom bar */}
           <div className={styles.bottomBar}>
             <div className={styles.desktopBottomBar}>
-              <p className={styles.desktopMetaLeft}>
-                355 Bryant St, San Francisco, CA 94107
-              </p>
+              <p className={styles.desktopMetaLeft}>355 Bryant St, San Francisco, CA 94107</p>
               <SocialIcons />
               <p className={styles.desktopMetaRight}>
                 © {new Date().getFullYear()} Thesys Inc. All Rights Reserved
@@ -194,9 +190,7 @@ export function Footer() {
                 <p className={styles.mobileMetaText}>
                   © {new Date().getFullYear()} Thesys Inc. All Rights Reserved
                 </p>
-                <p className={styles.mobileMetaText}>
-                  355 Bryant St, San Francisco, CA 94107
-                </p>
+                <p className={styles.mobileMetaText}>355 Bryant St, San Francisco, CA 94107</p>
               </div>
             </div>
           </div>

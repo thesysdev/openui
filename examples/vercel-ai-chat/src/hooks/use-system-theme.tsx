@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
 import { ThemeProvider as OpenUIThemeProvider } from "@openuidev/react-ui";
+import { createContext, useContext, useEffect, useState } from "react";
 
 type ThemeMode = "light" | "dark";
 

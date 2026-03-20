@@ -4,7 +4,7 @@ Describe the change and why it is needed.
 
 ## Changes
 
-- 
+-
 
 ## Test Plan
 

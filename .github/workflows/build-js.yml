@@ -2,9 +2,9 @@ name: Build JS
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: 'pnpm-lock.yaml'
+          cache-dependency-path: "pnpm-lock.yaml"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

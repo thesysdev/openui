@@ -1,11 +1,8 @@
 import type { Preview } from "@storybook/react";
 import { themes } from "@storybook/theming";
 import "../src/components/index.scss";
-import {
-  ThemeProvider,
-} from "../src/components/ThemeProvider";
+import { ThemeProvider } from "../src/components/ThemeProvider";
 import "./preflight.css";
-import React from "react";
 
 const preview: Preview = {
   parameters: {
@@ -102,18 +99,17 @@ const preview: Preview = {
           `}
           </style>
           {/* {selectedThemePreset ? ( */}
-            {/* <ThemeProvider
+          {/* <ThemeProvider
               mode={selectedMode}
               theme={selectedThemePreset.theme}
               darkTheme={selectedThemePreset.darkTheme}
             >
               <Story />
             </ThemeProvider> */}
-        
-            <ThemeProvider mode={selectedMode}>
-              <Story />
-            </ThemeProvider>
-        
+
+          <ThemeProvider mode={selectedMode}>
+            <Story />
+          </ThemeProvider>
         </>
       );
     },

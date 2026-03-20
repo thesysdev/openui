@@ -5,11 +5,7 @@ export function ShiroMascot() {
   return (
     <div className={styles.root}>
       <div className={styles.figure}>
-        <svg
-          className={styles.svg}
-          fill="none"
-          viewBox="0 0 111.502 100.458"
-        >
+        <svg className={styles.svg} fill="none" viewBox="0 0 111.502 100.458">
           <path d={svgPaths.p1ea82800} fill="black" />
           <path d={svgPaths.p372c6800} fill="black" />
           <path d={svgPaths.p183f7dc0} fill="black" />

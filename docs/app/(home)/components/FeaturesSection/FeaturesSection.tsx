@@ -88,13 +88,9 @@ function DesktopFeatureRow({ feature, index }: { feature: Feature; index: number
         <div>
           <FeatureIcon path={feature.iconPath} index={index} />
         </div>
-        <span className={styles.desktopTitle}>
-          {feature.title}
-        </span>
+        <span className={styles.desktopTitle}>{feature.title}</span>
       </div>
-      <span className={styles.desktopDescription}>
-        {feature.description}
-      </span>
+      <span className={styles.desktopDescription}>{feature.description}</span>
     </div>
   );
 }
@@ -103,12 +99,8 @@ function MobileFeatureRow({ feature, index }: { feature: Feature; index: number 
   return (
     <div className={styles.mobileRow}>
       <div className={styles.mobileCopy}>
-        <span className={styles.mobileTitle}>
-          {feature.title}
-        </span>
-        <span className={styles.mobileDescription}>
-          {feature.description}
-        </span>
+        <span className={styles.mobileTitle}>{feature.title}</span>
+        <span className={styles.mobileDescription}>{feature.description}</span>
       </div>
       <div>
         <FeatureIcon path={feature.iconPath} index={index + FEATURES.length} />
