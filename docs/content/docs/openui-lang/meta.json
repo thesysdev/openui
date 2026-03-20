@@ -16,6 +16,7 @@
     "---Examples---",
     "examples/shadcn-chat",
     "examples/react-native",
+    "examples/analytics-demo",
     "examples/vercel-ai-chat"
   ]
 }
