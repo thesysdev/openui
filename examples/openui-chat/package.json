@@ -10,10 +10,9 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@openuidev/cli": "workspace:*",
-    "@openuidev/react-ui": "workspace:*",
     "@openuidev/react-headless": "workspace:*",
     "@openuidev/react-lang": "workspace:*",
+    "@openuidev/react-ui": "workspace:*",
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "openai": "^6.22.0",
@@ -21,6 +20,7 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@openuidev/cli": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
