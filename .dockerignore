@@ -1,0 +1,7 @@
+node_modules
+.next
+.git
+*.md
+LICENSE
+.turbo
+.env*.local
