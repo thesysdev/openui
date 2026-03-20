@@ -40,6 +40,7 @@ export const Input = defineComponent({
 
     return (
       <OpenUIInput
+        id={fieldName}
         name={fieldName}
         placeholder={(props.placeholder as string) || ""}
         type={(props.type as string) || "text"}
