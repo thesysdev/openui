@@ -1,21 +1,15 @@
-import { readFileSync } from "fs";
-import { join } from "path";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 
 const client = new OpenAI();
-const systemPrompt = readFileSync(join(process.cwd(), "src/generated/system-prompt.txt"), "utf-8");
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json();
+    const { messages, systemPrompt } = await req.json();
 
     const response = await client.chat.completions.create({
       model: "gpt-5.2",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...messages,
-      ],
+      messages: [{ role: "system", content: systemPrompt }, ...messages],
       stream: true,
     });
 

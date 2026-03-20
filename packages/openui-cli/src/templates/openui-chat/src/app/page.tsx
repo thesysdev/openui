@@ -4,7 +4,9 @@ import "@openuidev/react-ui/styles/index.css";
 
 import { openAIMessageFormat, openAIReadableStreamAdapter } from "@openuidev/react-headless";
 import { FullScreen } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui/genui-lib";
+
+const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 
 export default function Home() {
   return (
@@ -15,6 +17,7 @@ export default function Home() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+              systemPrompt,
               messages: openAIMessageFormat.toApi(messages),
             }),
             signal: abortController.signal,
