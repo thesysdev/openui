@@ -21,8 +21,15 @@ export const AreaChartCondensed = defineComponent({
   description: "Filled area under lines; use for cumulative totals or volume trends over time",
   component: ({ props }) => {
     if (!hasAllProps(props as Record<string, unknown>, "labels", "series")) return null;
+
+    // FIX: guard against partial streaming data
+    if (!Array.isArray(props.labels) || !Array.isArray(props.series)) return null;
+
     const data = buildChartData(props.labels, props.series);
-    if (!data.length) return null;
+
+    // FIX: ensure valid data before rendering (prevents recharts crash)
+    if (!Array.isArray(data) || data.length === 0) return null;
+
     return React.createElement(AreaChartCondensedComponent, {
       data,
       categoryKey: "category",

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
@@ -18,8 +19,15 @@ export const PieChart = defineComponent({
   description: "Circular slices showing part-to-whole proportions; supports pie and donut variants",
   component: ({ props }) => {
     if (!hasAllProps(props as Record<string, unknown>, "slices")) return null;
+
+    // FIX: guard against partial streaming data
+    if (!Array.isArray(props.slices)) return null;
+
     const data = buildSliceData(props.slices);
-    if (!data.length) return null;
+
+    // FIX: ensure valid data before rendering (prevents recharts crash)
+    if (!Array.isArray(data) || data.length === 0) return null;
+
     return React.createElement(PieChartComponent, {
       data,
       categoryKey: "category",

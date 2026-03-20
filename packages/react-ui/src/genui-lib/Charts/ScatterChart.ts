@@ -1,3 +1,4 @@
+
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
@@ -21,10 +22,18 @@ export const ScatterChart = defineComponent({
   description: "X/Y scatter plot; use for correlations, distributions, and clustering",
   component: ({ props }) => {
     if (!hasAllProps(props as Record<string, unknown>, "datasets")) return null;
+
+    // FIX: guard against partial streaming data
+    if (!Array.isArray((props as any).datasets)) return null;
+
     const rawDatasets = asArray((props as any).datasets);
+
     const data = rawDatasets.map((ds: any) => {
       const dsProps = unwrap(ds);
-      const rawPoints = asArray(dsProps?.points);
+
+      // FIX: ensure points is always array
+      const rawPoints = Array.isArray(dsProps?.points) ? dsProps.points : [];
+
       return {
         name: (dsProps?.name ?? "") as string,
         data: rawPoints.map((pt: any) => {
@@ -37,7 +46,10 @@ export const ScatterChart = defineComponent({
         }),
       };
     });
-    if (!data.length) return null;
+
+    // FIX: ensure valid data before rendering
+    if (!Array.isArray(data) || data.length === 0) return null;
+
     return React.createElement(ScatterChartComponent, {
       data,
       xAxisDataKey: "x",
