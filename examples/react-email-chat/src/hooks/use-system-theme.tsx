@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useSyncExternalStore } from "react";
 
 type ThemeMode = "light" | "dark";
 
@@ -10,20 +10,22 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-function getSystemMode(): ThemeMode {
-  if (typeof window === "undefined") return "light";
+function subscribeToColorScheme(callback: () => void) {
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  mq.addEventListener("change", callback);
+  return () => mq.removeEventListener("change", callback);
+}
+
+function getSnapshot(): ThemeMode {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>(getSystemMode);
+function getServerSnapshot(): ThemeMode {
+  return "light";
+}
 
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = (e: MediaQueryListEvent) => setMode(e.matches ? "dark" : "light");
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const mode = useSyncExternalStore(subscribeToColorScheme, getSnapshot, getServerSnapshot);
 
   useEffect(() => {
     document.body.setAttribute("data-theme", mode);

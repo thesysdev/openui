@@ -60,9 +60,15 @@ export async function POST(req: NextRequest) {
 
       try {
         for await (const chunk of stream) {
-          enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-          if (chunk.choices?.[0]?.finish_reason === "stop") {
-            break;
+          const choice = chunk.choices?.[0];
+          const delta = choice?.delta;
+
+          // Only send chunks that have content or signal completion
+          if (delta?.content) {
+            enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+          }
+          if (choice?.finish_reason === "stop") {
+            enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
           }
         }
       } catch (err) {
