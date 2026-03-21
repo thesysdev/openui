@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "@/hooks/use-system-theme";
 import type { ComponentGroup, PromptOptions } from "@openuidev/react-lang";
 import {
   BuiltinActionType,
@@ -7,23 +8,18 @@ import {
   defineComponent,
   useTriggerAction,
 } from "@openuidev/react-lang";
-import { useTheme } from "@/hooks/use-system-theme";
-// @ts-expect-error — genui-lib subpath not in package exports; accessing dist directly
-import { Form } from "@openuidev/react-ui/dist/genui-lib/Form";
-// @ts-expect-error — genui-lib subpath not in package exports
-import { FormControl } from "@openuidev/react-ui/dist/genui-lib/FormControl";
-// @ts-expect-error — genui-lib subpath not in package exports
-import { Input } from "@openuidev/react-ui/dist/genui-lib/Input";
-// @ts-expect-error — genui-lib subpath not in package exports
-import { TextArea } from "@openuidev/react-ui/dist/genui-lib/TextArea";
-// @ts-expect-error — genui-lib subpath not in package exports
-import { Select, SelectItem } from "@openuidev/react-ui/dist/genui-lib/Select";
-// @ts-expect-error — genui-lib subpath not in package exports
-import { RadioGroup, RadioItem } from "@openuidev/react-ui/dist/genui-lib/RadioGroup";
-// @ts-expect-error — genui-lib subpath not in package exports
-import { Button } from "@openuidev/react-ui/dist/genui-lib/Button";
-// @ts-expect-error — genui-lib subpath not in package exports
-import { Buttons } from "@openuidev/react-ui/dist/genui-lib/Buttons";
+import {
+  Button,
+  Buttons,
+  Form,
+  FormControl,
+  Input,
+  RadioGroup,
+  RadioItem,
+  Select,
+  SelectItem,
+  TextArea,
+} from "@openuidev/react-ui/genui-lib";
 import { z } from "zod";
 
 import { EmailArticle } from "./components/EmailArticle";
@@ -78,8 +74,7 @@ const FollowUpItem = defineComponent({
   props: z.object({
     text: z.string(),
   }),
-  description:
-    "Clickable follow-up suggestion — when clicked, sends text as user message",
+  description: "Clickable follow-up suggestion — when clicked, sends text as user message",
   component: () => null,
 });
 
@@ -88,8 +83,7 @@ const FollowUpBlock = defineComponent({
   props: z.object({
     items: z.array(FollowUpItem.ref),
   }),
-  description:
-    "List of clickable follow-up suggestions placed at the end of a response",
+  description: "List of clickable follow-up suggestions placed at the end of a response",
   component: function FollowUpBlockView({ props }) {
     const triggerAction = useTriggerAction();
     const isDark = useTheme() === "dark";
@@ -140,19 +134,13 @@ const TextContent = defineComponent({
   name: "TextContent",
   props: z.object({
     text: z.string(),
-    size: z
-      .enum(["small", "default", "large", "small-heavy", "large-heavy"])
-      .optional(),
+    size: z.enum(["small", "default", "large", "small-heavy", "large-heavy"]).optional(),
   }),
   description: "Text block for chat messages outside the email preview.",
   component: function TextContentView({ props }) {
     const isDark = useTheme() === "dark";
     const size = (props.size as string) ?? "default";
-    const fontSize = size.includes("large")
-      ? "18px"
-      : size.includes("small")
-        ? "13px"
-        : "15px";
+    const fontSize = size.includes("large") ? "18px" : size.includes("small") ? "13px" : "15px";
     const fontWeight = size.includes("heavy") ? "600" : "400";
     return (
       <p
@@ -230,10 +218,7 @@ export const emailChatComponentGroups: ComponentGroup[] = [
   },
   {
     name: "Email Footers",
-    components: [
-      "EmailFooterCentered",
-      "EmailFooterTwoColumn",
-    ],
+    components: ["EmailFooterCentered", "EmailFooterTwoColumn"],
     notes: [
       "- EmailFooterCentered: Centered footer with logo, company name, tagline, social icons, address, and contact info.",
       "- EmailFooterTwoColumn: Two-column footer with logo and company info on the left, social icons and address on the right.",
@@ -336,12 +321,7 @@ export const emailChatComponentGroups: ComponentGroup[] = [
   },
   {
     name: "Email Social Proof & Surveys",
-    components: [
-      "EmailTestimonial",
-      "EmailSurveyRating",
-      "EmailStatItem",
-      "EmailStats",
-    ],
+    components: ["EmailTestimonial", "EmailSurveyRating", "EmailStatItem", "EmailStats"],
     notes: [
       "- EmailTestimonial: Centered testimonial quote with avatar, name, and role.",
       "- EmailSurveyRating: Rating survey with question and 1-5 numbered buttons. Great for feedback/NPS emails.",
@@ -359,11 +339,7 @@ export const emailChatComponentGroups: ComponentGroup[] = [
   },
   {
     name: "Email Avatars",
-    components: [
-      "EmailAvatar",
-      "EmailAvatarGroup",
-      "EmailAvatarWithText",
-    ],
+    components: ["EmailAvatar", "EmailAvatarGroup", "EmailAvatarWithText"],
     notes: [
       "- EmailAvatar: Single avatar image. Supports circular (rounded='full') or rounded-square (rounded='md') shapes, and configurable size.",
       "- EmailAvatarGroup: Overlapping stacked avatars. Pass EmailAvatar items. Great for showing team members or participants.",

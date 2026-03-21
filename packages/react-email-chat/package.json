@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@openuidev/cli": "^0.0.5",
-    "@openuidev/react-ui": "^0.9.19",
-    "@openuidev/react-headless": "^0.7.9",
-    "@openuidev/react-lang": "^0.1.3",
+    "@openuidev/react-ui": "workspace:*",
+    "@openuidev/react-headless": "workspace:*",
+    "@openuidev/react-lang": "workspace:*",
     "@react-email/components": "^0.0.41",
     "@react-email/render": "^1.0.6",
     "lucide-react": "^0.575.0",

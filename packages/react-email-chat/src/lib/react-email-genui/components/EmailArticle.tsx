@@ -1,7 +1,7 @@
 "use client";
 
-import { Button, Heading, Img, Section, Text } from "@react-email/components";
 import { defineComponent } from "@openuidev/react-lang";
+import { Button, Heading, Img, Section, Text } from "@react-email/components";
 import { z } from "zod";
 
 export const EmailArticle = defineComponent({
@@ -56,9 +56,7 @@ export const EmailArticle = defineComponent({
           >
             {props.title as string}
           </Heading>
-          <Text
-            style={{ fontSize: 16, lineHeight: "24px", color: "#6B7280" }}
-          >
+          <Text style={{ fontSize: 16, lineHeight: "24px", color: "#6B7280" }}>
             {props.description as string}
           </Text>
           <Button

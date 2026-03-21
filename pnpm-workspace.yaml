@@ -1,6 +1,5 @@
 packages:
   - "packages/*"
   - "examples/**/*"
-  - "!packages/react-email-chat"
   - "docs/"
   - "!**/src/templates/**"
