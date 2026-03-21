@@ -8,18 +8,14 @@ import {
   defineComponent,
   useTriggerAction,
 } from "@openuidev/react-lang";
-import {
-  Button,
-  Buttons,
-  Form,
-  FormControl,
-  Input,
-  RadioGroup,
-  RadioItem,
-  Select,
-  SelectItem,
-  TextArea,
-} from "@openuidev/react-ui/genui-lib";
+import { Button } from "@/openui/genui-lib/Button";
+import { Buttons } from "@/openui/genui-lib/Buttons";
+import { Form } from "@/openui/genui-lib/Form";
+import { FormControl } from "@/openui/genui-lib/FormControl";
+import { Input } from "@/openui/genui-lib/Input";
+import { RadioGroup, RadioItem } from "@/openui/genui-lib/RadioGroup";
+import { Select, SelectItem } from "@/openui/genui-lib/Select";
+import { TextArea } from "@/openui/genui-lib/TextArea";
 import { z } from "zod";
 
 import { EmailArticle } from "./components/EmailArticle";

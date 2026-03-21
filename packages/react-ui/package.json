@@ -21,6 +21,10 @@
       "types": "./dist/genui-lib/index.d.ts",
       "default": "./dist/genui-lib/index.js"
     },
+    "./genui-lib/*": {
+      "types": "./dist/genui-lib/*/index.d.ts",
+      "default": "./dist/genui-lib/*/index.js"
+    },
     "./tailwind": {
       "types": "./dist/lib/tailwind/tailwind.d.ts",
       "default": "./dist/lib/tailwind/tailwind.js"
