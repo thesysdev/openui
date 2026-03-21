@@ -1,13 +1,25 @@
 "use client";
 
 import { useTheme } from "@/hooks/use-system-theme";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SendIcon } from "./icons";
 import { STARTERS } from "./starters";
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 export function ComposePage({ onSend }: { onSend: (message: string) => void }) {
   const [input, setInput] = useState("");
   const isDark = useTheme() === "dark";
+  const isMobile = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,16 +43,17 @@ export function ComposePage({ onSend }: { onSend: (message: string) => void }) {
         alignItems: "center",
         justifyContent: "center",
         height: "100%",
-        padding: "24px",
-        gap: "32px",
+        padding: isMobile ? "16px" : "24px",
+        gap: isMobile ? "24px" : "32px",
         backgroundColor: isDark ? "#0a0a0a" : "#fafafa",
+        overflow: "auto",
       }}
     >
       {/* Heading */}
-      <div style={{ textAlign: "center" }}>
+      <div style={{ textAlign: "center", maxWidth: isMobile ? "100%" : undefined }}>
         <h1
           style={{
-            fontSize: "48px",
+            fontSize: isMobile ? "28px" : "48px",
             fontWeight: 700,
             color: isDark ? "#f5f5f5" : "#111827",
             margin: "0 0 12px 0",
@@ -52,22 +65,24 @@ export function ComposePage({ onSend }: { onSend: (message: string) => void }) {
         </h1>
         <p
           style={{
-            fontSize: "17px",
+            fontSize: isMobile ? "14px" : "17px",
             color: isDark ? "#9CA3AF" : "#6B7280",
             margin: 0,
             lineHeight: 1.5,
           }}
         >
-          Turn a simple prompt into a complete email template with layout, copy, and CTAs included.
+          {isMobile
+            ? "Turn a prompt into a complete email template."
+            : "Turn a simple prompt into a complete email template with layout, copy, and CTAs included."}
         </p>
       </div>
 
-      {/* Conversation starters — card grid */}
+      {/* Conversation starters — responsive grid */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "12px",
+          gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)",
+          gap: isMobile ? "8px" : "12px",
           maxWidth: "700px",
           width: "100%",
         }}
@@ -81,9 +96,9 @@ export function ComposePage({ onSend }: { onSend: (message: string) => void }) {
               flexDirection: "column",
               alignItems: "flex-start",
               justifyContent: "space-between",
-              padding: "16px",
-              minHeight: "140px",
-              borderRadius: "16px",
+              padding: isMobile ? "12px" : "16px",
+              minHeight: isMobile ? "100px" : "140px",
+              borderRadius: isMobile ? "12px" : "16px",
               border: `1px solid ${isDark ? "#222" : "#e5e7eb"}`,
               backgroundColor: isDark ? "#111111" : "#ffffff",
               cursor: "pointer",
@@ -101,22 +116,22 @@ export function ComposePage({ onSend }: { onSend: (message: string) => void }) {
           >
             <div
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: "10px",
+                width: isMobile ? 28 : 36,
+                height: isMobile ? 28 : 36,
+                borderRadius: isMobile ? "8px" : "10px",
                 backgroundColor: isDark ? starter.iconBg : "#f3f4f6",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "18px",
-                marginBottom: "16px",
+                fontSize: isMobile ? "14px" : "18px",
+                marginBottom: isMobile ? "10px" : "16px",
               }}
             >
               {starter.icon}
             </div>
             <span
               style={{
-                fontSize: "14px",
+                fontSize: isMobile ? "12px" : "14px",
                 fontWeight: 500,
                 color: isDark ? "#e5e7eb" : "#111827",
                 lineHeight: "1.4",
@@ -139,7 +154,7 @@ export function ComposePage({ onSend }: { onSend: (message: string) => void }) {
       >
         <div
           style={{
-            borderRadius: "16px",
+            borderRadius: isMobile ? "12px" : "16px",
             border: `1px solid ${isDark ? "#1f1f1f" : "#e5e7eb"}`,
             backgroundColor: isDark ? "#111111" : "#ffffff",
             overflow: "hidden",
@@ -150,12 +165,16 @@ export function ComposePage({ onSend }: { onSend: (message: string) => void }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={`Create a product launch email for our new [product], highlight 3 key features, and add a "Shop now" button.`}
-            rows={4}
+            placeholder={
+              isMobile
+                ? "Describe the email you want..."
+                : `Create a product launch email for our new [product], highlight 3 key features, and add a "Shop now" button.`
+            }
+            rows={isMobile ? 3 : 4}
             style={{
               width: "100%",
-              padding: "20px 20px 48px 20px",
-              fontSize: "15px",
+              padding: isMobile ? "14px 14px 40px 14px" : "20px 20px 48px 20px",
+              fontSize: isMobile ? "14px" : "15px",
               lineHeight: "1.6",
               border: "none",
               backgroundColor: "transparent",
@@ -186,7 +205,7 @@ export function ComposePage({ onSend }: { onSend: (message: string) => void }) {
             style={{
               display: "flex",
               justifyContent: "flex-end",
-              padding: "0 12px 12px 12px",
+              padding: "0 10px 10px 10px",
             }}
           >
             <button

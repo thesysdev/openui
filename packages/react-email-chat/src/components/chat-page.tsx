@@ -16,6 +16,17 @@ import {
   separateContentAndContext,
 } from "./content-parser";
 
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 export function ChatPage({
   onNewEmail,
 }: {
@@ -23,6 +34,8 @@ export function ChatPage({
 }) {
   const [input, setInput] = useState("");
   const isDark = useTheme() === "dark";
+  const isMobile = useIsMobile();
+  const [mobileTab, setMobileTab] = useState<"html" | "preview">("preview");
   const previewRef = useRef<HTMLDivElement>(null);
 
   const messages = useThread((s) => s.messages);
@@ -337,7 +350,68 @@ export function ChatPage({
         </button>
       </div>
 
-      {/* ── Split: HTML code (left) + Preview (right) ── */}
+      {/* ── Mobile toggle (only on mobile when content exists) ── */}
+      {isMobile && hasContent && (
+        <div
+          style={{
+            display: "flex",
+            padding: "8px 16px",
+            gap: "4px",
+            borderBottom: `1px solid ${isDark ? "#1a1a1a" : "#e5e7eb"}`,
+            backgroundColor: isDark ? "#0a0a0a" : "#ffffff",
+            flexShrink: 0,
+          }}
+        >
+          <button
+            onClick={() => setMobileTab("html")}
+            style={{
+              flex: 1,
+              padding: "8px",
+              fontSize: "13px",
+              fontWeight: 600,
+              borderRadius: "8px",
+              border: "none",
+              cursor: "pointer",
+              backgroundColor:
+                mobileTab === "html"
+                  ? isDark ? "#1a1a2e" : "#EEF2FF"
+                  : "transparent",
+              color:
+                mobileTab === "html"
+                  ? isDark ? "#818cf8" : "#5F51E8"
+                  : isDark ? "#6B7280" : "#9CA3AF",
+              transition: "all 0.15s",
+            }}
+          >
+            HTML
+          </button>
+          <button
+            onClick={() => setMobileTab("preview")}
+            style={{
+              flex: 1,
+              padding: "8px",
+              fontSize: "13px",
+              fontWeight: 600,
+              borderRadius: "8px",
+              border: "none",
+              cursor: "pointer",
+              backgroundColor:
+                mobileTab === "preview"
+                  ? isDark ? "#1a1a2e" : "#EEF2FF"
+                  : "transparent",
+              color:
+                mobileTab === "preview"
+                  ? isDark ? "#818cf8" : "#5F51E8"
+                  : isDark ? "#6B7280" : "#9CA3AF",
+              transition: "all 0.15s",
+            }}
+          >
+            Preview
+          </button>
+        </div>
+      )}
+
+      {/* ── Content area ── */}
       <div
         style={{
           flex: 1,
@@ -345,14 +419,14 @@ export function ChatPage({
           display: "flex",
         }}
       >
-        {/* Left — HTML code */}
-        {hasContent && (
+        {/* Left — HTML code (desktop always, mobile when tab=html) */}
+        {hasContent && (!isMobile || mobileTab === "html") && (
           <div
             style={{
-              width: "45%",
+              width: isMobile ? "100%" : "45%",
               flexShrink: 0,
               backgroundColor: isDark ? "#0a0a0a" : "#fafafa",
-              borderRight: `1px solid ${isDark ? "#1a1a1a" : "#e5e7eb"}`,
+              borderRight: isMobile ? "none" : `1px solid ${isDark ? "#1a1a1a" : "#e5e7eb"}`,
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
@@ -475,7 +549,8 @@ export function ChatPage({
           </div>
         )}
 
-        {/* Right — Preview */}
+        {/* Right — Preview (desktop always, mobile when tab=preview) */}
+        {(!isMobile || mobileTab === "preview" || !hasContent) && (
         <div
           ref={previewRef}
           style={{
@@ -486,7 +561,7 @@ export function ChatPage({
             flexDirection: "column",
           }}
         >
-          {hasContent && (
+          {hasContent && !isMobile && (
             <div
               style={{
                 padding: "12px 20px",
@@ -616,31 +691,67 @@ export function ChatPage({
             ) : null}
           </div>
         </div>
+        )}
       </div>
 
       {/* ── Bottom input ── */}
       <div
         style={{
           flexShrink: 0,
-          padding: "16px 24px",
+          padding: isMobile ? "8px 12px" : "16px 24px",
           backgroundColor: isDark ? "#0a0a0a" : "#ffffff",
           borderTop: `1px solid ${isDark ? "#1a1a1a" : "#e5e7eb"}`,
         }}
       >
         <form
           onSubmit={handleSubmit}
-          style={{ margin: "0 auto" }}
+          style={{ margin: "0 auto", maxWidth: isMobile ? "100%" : "800px" }}
         >
           <div
             style={{
-              borderRadius: "14px",
+              borderRadius: isMobile ? "10px" : "14px",
               border: `1px solid ${isDark ? "#1f1f1f" : "#e5e7eb"}`,
               backgroundColor: isDark ? "#111111" : "#f9fafb",
               overflow: "hidden",
               transition: "border-color 0.2s, box-shadow 0.2s",
               opacity: isRunning ? 0.5 : 1,
+              display: isMobile ? "flex" : undefined,
+              alignItems: isMobile ? "center" : undefined,
             }}
           >
+            {isMobile ? (
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask for changes..."
+                disabled={isRunning}
+                style={{
+                  flex: 1,
+                  padding: "12px 14px",
+                  fontSize: "14px",
+                  border: "none",
+                  backgroundColor: "transparent",
+                  color: isDark ? "#f5f5f5" : "#111827",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                }}
+                onFocus={(e) => {
+                  if (!isRunning) {
+                    const container = e.currentTarget.parentElement;
+                    if (container) {
+                      container.style.borderColor = "#5F51E8";
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  const container = e.currentTarget.parentElement;
+                  if (container) {
+                    container.style.borderColor = isDark ? "#1f1f1f" : "#e5e7eb";
+                  }
+                }}
+              />
+            ) : (
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -680,19 +791,20 @@ export function ChatPage({
                 }
               }}
             />
+            )}
             <div
               style={{
                 display: "flex",
                 justifyContent: "flex-end",
-                padding: "0 10px 10px 10px",
+                padding: isMobile ? "0 6px 0 0" : "0 10px 10px 10px",
               }}
             >
               <button
                 type="submit"
                 disabled={isRunning}
                 style={{
-                  width: "36px",
-                  height: "36px",
+                  width: isMobile ? "32px" : "36px",
+                  height: isMobile ? "32px" : "36px",
                   borderRadius: "50%",
                   border: "none",
                   backgroundColor:
