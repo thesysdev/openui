@@ -8,18 +8,22 @@ import {
   useTriggerAction,
 } from "@openuidev/react-lang";
 import { useTheme } from "@/hooks/use-system-theme";
-import {
-  Form,
-  FormControl,
-  Input,
-  TextArea,
-  Select,
-  SelectItem,
-  RadioGroup,
-  RadioItem,
-  Button,
-  Buttons,
-} from "@openuidev/react-ui/genui-lib";
+// @ts-expect-error — genui-lib subpath not in package exports; accessing dist directly
+import { Form } from "@openuidev/react-ui/dist/genui-lib/Form";
+// @ts-expect-error — genui-lib subpath not in package exports
+import { FormControl } from "@openuidev/react-ui/dist/genui-lib/FormControl";
+// @ts-expect-error — genui-lib subpath not in package exports
+import { Input } from "@openuidev/react-ui/dist/genui-lib/Input";
+// @ts-expect-error — genui-lib subpath not in package exports
+import { TextArea } from "@openuidev/react-ui/dist/genui-lib/TextArea";
+// @ts-expect-error — genui-lib subpath not in package exports
+import { Select, SelectItem } from "@openuidev/react-ui/dist/genui-lib/Select";
+// @ts-expect-error — genui-lib subpath not in package exports
+import { RadioGroup, RadioItem } from "@openuidev/react-ui/dist/genui-lib/RadioGroup";
+// @ts-expect-error — genui-lib subpath not in package exports
+import { Button } from "@openuidev/react-ui/dist/genui-lib/Button";
+// @ts-expect-error — genui-lib subpath not in package exports
+import { Buttons } from "@openuidev/react-ui/dist/genui-lib/Buttons";
 import { z } from "zod";
 
 import { EmailArticle } from "./components/EmailArticle";

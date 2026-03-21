@@ -3,17 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate:prompt": "pnpm --filter @openuidev/cli build && pnpm exec openui generate src/library.ts --out src/generated/system-prompt.txt",
+    "generate:prompt": "pnpm exec openui generate src/library.ts --out src/generated/system-prompt.txt",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
-    "@openuidev/cli": "workspace:*",
-    "@openuidev/react-ui": "workspace:*",
-    "@openuidev/react-headless": "workspace:*",
-    "@openuidev/react-lang": "workspace:*",
+    "@openuidev/cli": "^0.0.5",
+    "@openuidev/react-ui": "^0.9.19",
+    "@openuidev/react-headless": "^0.7.9",
+    "@openuidev/react-lang": "^0.1.3",
     "@react-email/components": "^0.0.41",
     "@react-email/render": "^1.0.6",
     "lucide-react": "^0.575.0",
