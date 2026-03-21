@@ -276,42 +276,65 @@ export function ChatPage({
             Email Generator
           </span>
           {isRunning && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "4px 12px",
-                borderRadius: "16px",
-                backgroundColor: isDark ? "#1a1a2e" : "#EEF2FF",
-                marginLeft: "4px",
-              }}
-            >
-              <style>{`
-                @keyframes email-pulse {
-                  0%, 100% { opacity: 1; }
-                  50% { opacity: 0.3; }
-                }
-              `}</style>
+            isMobile ? (
+              <>
+                <style>{`
+                  @keyframes email-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                  }
+                `}</style>
+                <div
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    border: "2px solid transparent",
+                    borderTopColor: "#5F51E8",
+                    borderRightColor: "#5F51E8",
+                    animation: "email-spin 0.8s linear infinite",
+                    marginLeft: "6px",
+                  }}
+                />
+              </>
+            ) : (
               <div
                 style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  backgroundColor: "#5F51E8",
-                  animation: "email-pulse 1.5s ease-in-out infinite",
-                }}
-              />
-              <span
-                style={{
-                  fontSize: "12px",
-                  fontWeight: 500,
-                  color: isDark ? "#818cf8" : "#5F51E8",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "4px 12px",
+                  borderRadius: "16px",
+                  backgroundColor: isDark ? "#1a1a2e" : "#EEF2FF",
+                  marginLeft: "4px",
                 }}
               >
-                Generating...
-              </span>
-            </div>
+                <style>{`
+                  @keyframes email-pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.3; }
+                  }
+                `}</style>
+                <div
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    backgroundColor: "#5F51E8",
+                    animation: "email-pulse 1.5s ease-in-out infinite",
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    color: isDark ? "#818cf8" : "#5F51E8",
+                  }}
+                >
+                  Generating...
+                </span>
+              </div>
+            )
           )}
         </div>
 
@@ -321,9 +344,10 @@ export function ChatPage({
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "6px",
-            padding: "8px 16px",
-            borderRadius: "10px",
+            justifyContent: "center",
+            gap: isMobile ? 0 : "6px",
+            padding: isMobile ? "8px" : "8px 16px",
+            borderRadius: isMobile ? "8px" : "10px",
             border: `1px solid ${isDark ? "#1f1f1f" : "#e5e7eb"}`,
             backgroundColor: isDark ? "#111111" : "#ffffff",
             color: isDark ? "#e5e7eb" : "#374151",
@@ -331,6 +355,8 @@ export function ChatPage({
             fontWeight: 500,
             cursor: "pointer",
             transition: "all 0.2s",
+            width: isMobile ? "36px" : undefined,
+            height: isMobile ? "36px" : undefined,
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = "#5F51E8";
@@ -345,8 +371,8 @@ export function ChatPage({
               : "#ffffff";
           }}
         >
-          <PlusIcon size={14} color={isDark ? "#e5e7eb" : "#374151"} />
-          New Email
+          <PlusIcon size={isMobile ? 16 : 14} color={isDark ? "#e5e7eb" : "#374151"} />
+          {!isMobile && "New Email"}
         </button>
       </div>
 
