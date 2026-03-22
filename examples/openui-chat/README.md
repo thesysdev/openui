@@ -19,6 +19,21 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `src/app/api/route.ts` and improving your agent
 by adding system prompts or tools.
 
+## Docker
+
+Build and run with Docker (from the repo root):
+
+```bash
+docker build -t openui-chat -f examples/openui-chat/Dockerfile .
+docker run -p 3000:3000 -e OPENAI_API_KEY=sk-... openui-chat
+```
+
+### Environment Variables
+
+| Variable | Description | Required |
+| --- | --- | --- |
+| `OPENAI_API_KEY` | Your OpenAI API key | Yes |
+
 ## Learn More
 
 To learn more about OpenUI, take a look at the following resources:

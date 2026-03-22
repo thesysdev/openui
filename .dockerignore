@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+*.md
+!README.md
+.vercel
+.turbo
+dist
+*.tsbuildinfo
+.pnpm-debug.log
