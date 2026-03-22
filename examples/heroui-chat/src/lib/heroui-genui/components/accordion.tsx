@@ -36,6 +36,7 @@ function AccordionRenderer({
   useEffect(() => {
     const first = items[0];
     if (items.length && expandedKeys.size === 0 && first) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedKeys(new Set([first.props.value]));
     }
   }, [items.length, expandedKeys.size]);
@@ -58,6 +59,7 @@ function AccordionRenderer({
     prevContentSizes.current = nextSizes;
 
     if (candidate && !expandedKeys.has(candidate)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedKeys(new Set([candidate]));
     }
   });

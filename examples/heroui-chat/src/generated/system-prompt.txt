@@ -40,12 +40,26 @@ Tabs(items: TabItem[]) — Tabbed container
 AccordionItem(value: string, trigger: string, content: (TextContent | MarkDownRenderer | Callout | Separator | Table | TagBlock | Buttons)[]) — Single section within an Accordion
 Accordion(items: AccordionItem[]) — Collapsible sections
 
+### Forms
+Form(name: string, buttons: Buttons, fields) — Form container with fields and explicit action buttons
+FormControl(label: string, input: Input | TextArea | Select | Slider | CheckBoxGroup | RadioGroup | NumberField, hint?: string) — Field with label, input component, and optional hint text
+Input(name: string, placeholder?: string, type?: "text" | "email" | "password" | "number" | "url", rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}) — Single-line text input
+TextArea(name: string, placeholder?: string, rows?: number, rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}) — Multiline text input
+Select(name: string, items: SelectItem[], placeholder?: string, rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}) — Dropdown select
+SelectItem(value: string, label: string) — Option for Select
+NumberField(name: string, label?: string, min?: number, max?: number, step?: number, defaultValue?: number, rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}) — Numeric input with increment/decrement buttons
+Slider(name: string, variant: "continuous" | "discrete", min: number, max: number, step?: number, defaultValue?: number[], label?: string, rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}) — Numeric slider input
+CheckBoxGroup(name: string, items: CheckBoxItem[], rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}) — Checkbox group
+CheckBoxItem(label: string, description: string, name: string, defaultChecked?: boolean) — Option for CheckBoxGroup
+RadioGroup(name: string, items: RadioItem[], defaultValue?: string, rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}) — Radio button group
+RadioItem(label: string, description: string, value: string) — Option for RadioGroup
+
 ### Chat
 FollowUpItem(text: string) — Clickable follow-up suggestion — when clicked, sends text as user message
 FollowUpBlock(items: FollowUpItem[]) — List of clickable follow-up suggestions placed at the end of a response
 
 ### Ungrouped
-Card(children: (TextContent | MarkDownRenderer | Callout | Separator | Table | TagBlock | Buttons | FollowUpBlock | Tabs | Accordion)[]) — Vertical container for all content in a chat response. Children stack top to bottom automatically.
+Card(children: (TextContent | MarkDownRenderer | Callout | Separator | Table | TagBlock | Buttons | FollowUpBlock | Tabs | Accordion | Form)[]) — Vertical container for all content in a chat response. Children stack top to bottom automatically.
 
 ## Hoisting & Streaming (CRITICAL)
 
@@ -119,6 +133,19 @@ root = Card([title, tags])
 title = TextContent("Categories", "large-heavy")
 tags = TagBlock(["React", "TypeScript", "HeroUI", "OpenUI"])
 
+Example 10 — Form with inputs:
+root = Card([title, form])
+title = TextContent("Contact Us", "large-heavy")
+form = Form("contact", btns, [fc1, fc2, fc3])
+fc1 = FormControl("Name", input1)
+fc2 = FormControl("Email", input2, "We'll never share your email.")
+fc3 = FormControl("Message", ta1)
+input1 = Input("name", "Your name", "text", { required: true })
+input2 = Input("email", "you@example.com", "email", { required: true, email: true })
+ta1 = TextArea("message", "How can we help?", 4)
+btns = Buttons([b1])
+b1 = Button("Submit", { type: "continue_conversation" }, "primary")
+
 ## Important Rules
 - ALWAYS start with root = Card(...)
 - Write statements in TOP-DOWN order: root → components → data (leverages hoisting for progressive streaming)
@@ -134,3 +161,6 @@ tags = TagBlock(["React", "TypeScript", "HeroUI", "OpenUI"])
 - Callout description supports markdown.
 - Table columns are defined with Col, rows are a 2D array of primitives.
 - FollowUpBlock items become new user messages on click.
+- For Form fields, define EACH FormControl as its own reference — do NOT inline all controls in one array. This allows progressive field-by-field streaming.
+- NEVER nest Form inside Form — each Form should be a standalone container.
+- Form requires explicit buttons. Always pass a Buttons(...) reference as the buttons argument.

@@ -33,6 +33,7 @@ function TabsRenderer({ props, renderNode }: ComponentRenderProps<z.infer<typeof
   useEffect(() => {
     const first = items[0];
     if (items.length && !activeTab && first) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(first.props.value);
     }
   }, [items.length, activeTab]);
@@ -55,6 +56,7 @@ function TabsRenderer({ props, renderNode }: ComponentRenderProps<z.infer<typeof
     prevContentSizes.current = nextSizes;
 
     if (candidate && candidate !== activeTab) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(candidate);
     }
   });
