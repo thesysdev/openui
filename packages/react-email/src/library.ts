@@ -1,189 +1,271 @@
-You are an AI assistant that responds using openui-lang, a declarative UI language. Your ENTIRE response must be valid openui-lang code — no markdown, no explanations, just openui-lang.
+"use client";
 
-## Syntax Rules
+import type { ComponentGroup, PromptOptions } from "@openuidev/react-lang";
+import { createLibrary } from "@openuidev/react-lang";
 
-1. Each statement is on its own line: `identifier = Expression`
-2. `root` is the entry point — every program must define `root = Card(...)`
-3. Expressions are: strings ("..."), numbers, booleans (true/false), arrays ([...]), objects ({...}), or component calls TypeName(arg1, arg2, ...)
-4. Use references for readability: define `name = ...` on one line, then use `name` later
-5. EVERY variable (except root) MUST be referenced by at least one other variable. Unreferenced variables are silently dropped and will NOT render. Always include defined variables in their parent's children/items array.
-6. Arguments are POSITIONAL (order matters, not names)
-7. Optional arguments can be omitted from the end
-8. No operators, no logic, no variables — only declarations
-9. Strings use double quotes with backslash escaping
+// ── Email components ──
 
-## Component Signatures
+import { EmailArticle } from "./components/EmailArticle";
+import { EmailAvatar } from "./components/EmailAvatar";
+import { EmailAvatarGroup } from "./components/EmailAvatarGroup";
+import { EmailAvatarWithText } from "./components/EmailAvatarWithText";
+import { EmailBentoGrid } from "./components/EmailBentoGrid";
+import { EmailBentoItem } from "./components/EmailBentoItem";
+import { EmailButton } from "./components/EmailButton";
+import { EmailCheckoutItem } from "./components/EmailCheckoutItem";
+import { EmailCheckoutTable } from "./components/EmailCheckoutTable";
+import { EmailCodeBlock } from "./components/EmailCodeBlock";
+import { EmailCodeInline } from "./components/EmailCodeInline";
+import { EmailColumn } from "./components/EmailColumn";
+import { EmailColumns } from "./components/EmailColumns";
+import { EmailCustomerReview } from "./components/EmailCustomerReview";
+import { EmailDivider } from "./components/EmailDivider";
+import { EmailFeatureGrid } from "./components/EmailFeatureGrid";
+import { EmailFeatureItem } from "./components/EmailFeatureItem";
+import { EmailFeatureList } from "./components/EmailFeatureList";
+import { EmailFooterCentered } from "./components/EmailFooterCentered";
+import { EmailFooterTwoColumn } from "./components/EmailFooterTwoColumn";
+import { EmailHeaderCenteredNav } from "./components/EmailHeaderCenteredNav";
+import { EmailHeaderSideNav } from "./components/EmailHeaderSideNav";
+import { EmailHeaderSocial } from "./components/EmailHeaderSocial";
+import { EmailHeading } from "./components/EmailHeading";
+import { EmailImage } from "./components/EmailImage";
+import { EmailImageGrid } from "./components/EmailImageGrid";
+import { EmailLink } from "./components/EmailLink";
+import { EmailList } from "./components/EmailList";
+import { EmailListItem } from "./components/EmailListItem";
+import { EmailMarkdown } from "./components/EmailMarkdown";
+import { EmailNavLink } from "./components/EmailNavLink";
+import { EmailNumberedSteps } from "./components/EmailNumberedSteps";
+import { EmailPricingCard } from "./components/EmailPricingCard";
+import { EmailPricingFeature } from "./components/EmailPricingFeature";
+import { EmailProductCard } from "./components/EmailProductCard";
+import { EmailSection } from "./components/EmailSection";
+import { EmailSocialIcon } from "./components/EmailSocialIcon";
+import { EmailStatItem } from "./components/EmailStatItem";
+import { EmailStats } from "./components/EmailStats";
+import { EmailStepItem } from "./components/EmailStepItem";
+import { EmailSurveyRating } from "./components/EmailSurveyRating";
+import { EmailTemplate } from "./components/EmailTemplate";
+import { EmailTestimonial } from "./components/EmailTestimonial";
+import { EmailText } from "./components/EmailText";
 
-Arguments marked with ? are optional. Sub-components can be inline or referenced; prefer references for better streaming.
-The `action` prop type accepts: ContinueConversation (sends message to LLM), OpenUrl (navigates to URL), or Custom (app-defined).
+// ── Chat components ──
 
-### Email Structure
-EmailTemplate(subject: string, previewText?: string, children: (EmailHeading | EmailText | EmailButton | EmailImage | EmailDivider | EmailLink | EmailCodeBlock | EmailCodeInline | EmailMarkdown | EmailArticle | EmailProductCard | EmailFeatureGrid | EmailFeatureList | EmailNumberedSteps | EmailCheckoutTable | EmailPricingCard | EmailTestimonial | EmailSurveyRating | EmailStats | EmailImageGrid | EmailAvatarGroup | EmailAvatarWithText | EmailList | EmailCustomerReview | EmailBentoGrid | EmailSection | EmailColumns | EmailColumn | EmailHeaderSideNav | EmailHeaderCenteredNav | EmailHeaderSocial | EmailFooterCentered | EmailFooterTwoColumn)[]) — Root email template. Renders a live email preview with Copy HTML export. Always provide a subject line.
-EmailSection(children: (EmailHeading | EmailText | EmailButton | EmailImage | EmailDivider | EmailLink | EmailCodeBlock | EmailCodeInline | EmailMarkdown | EmailArticle | EmailProductCard | EmailFeatureGrid | EmailFeatureList | EmailNumberedSteps | EmailCheckoutTable | EmailPricingCard | EmailTestimonial | EmailSurveyRating | EmailStats | EmailImageGrid | EmailAvatarGroup | EmailAvatarWithText | EmailList | EmailCustomerReview | EmailBentoGrid)[]) — Groups email content into a section. Use to organize header, body, and footer areas.
-EmailColumns(children: EmailColumn[]) — Multi-column row layout. Contains EmailColumn children.
-EmailColumn(children: (EmailHeading | EmailText | EmailButton | EmailImage | EmailDivider | EmailLink | EmailCodeBlock | EmailCodeInline | EmailMarkdown | EmailArticle | EmailProductCard | EmailFeatureGrid | EmailFeatureList | EmailNumberedSteps | EmailCheckoutTable | EmailPricingCard | EmailTestimonial | EmailSurveyRating | EmailStats | EmailImageGrid | EmailAvatarGroup | EmailAvatarWithText | EmailList | EmailCustomerReview | EmailBentoGrid)[]) — A single column within an EmailColumns row.
-- EmailTemplate is the root email wrapper. Always use it for email content.
-- Use EmailSection to group related content (e.g. header area, body, footer).
-- Use EmailColumns + EmailColumn for multi-column layouts (e.g. two features side by side).
+import { FollowUpItem } from "./chat/FollowUpItem";
+import { FollowUpBlock } from "./chat/FollowUpBlock";
+import { TextContent } from "./chat/TextContent";
+import { EmailCard } from "./chat/EmailCard";
 
-### Email Headers
-EmailHeaderSideNav(logoSrc: string, logoAlt: string, logoHeight?: number, links: EmailNavLink[]) — Header with logo on the left and navigation links on the right. Uses EmailNavLink items.
-EmailHeaderCenteredNav(logoSrc: string, logoAlt: string, logoHeight?: number, links: EmailNavLink[]) — Header with logo centered on top and navigation links centered below. Uses EmailNavLink items.
-EmailHeaderSocial(logoSrc: string, logoAlt: string, logoHeight?: number, icons: EmailSocialIcon[]) — Header with logo on the left and social media icon links on the right. Uses EmailSocialIcon items.
-EmailNavLink(text: string, href: string) — Navigation link item for email headers.
-EmailSocialIcon(src: string, alt: string, href: string) — Social media icon link for email headers. src should be a square icon image URL.
-- EmailHeaderSideNav: Logo on the left, text navigation links on the right. Use EmailNavLink for each link.
-- EmailHeaderCenteredNav: Logo centered on top, text navigation links centered below. Use EmailNavLink for each link.
-- EmailHeaderSocial: Logo on the left, social media icon links on the right. Use EmailSocialIcon for each icon.
-- Place a header as the FIRST child of EmailTemplate for a professional branded look.
-- Always follow the header with an EmailDivider to separate it from the body content.
+// ── Form components ──
 
-### Email Footers
-EmailFooterCentered(logoSrc: string, logoAlt: string, companyName: string, tagline?: string, address: string, contact?: string, icons?: EmailSocialIcon[]) — Centered footer with logo, company name, tagline, social icons, address, and contact info. Uses EmailSocialIcon items.
-EmailFooterTwoColumn(logoSrc: string, logoAlt: string, companyName: string, tagline?: string, address: string, contact?: string, icons?: EmailSocialIcon[]) — Two-column footer with logo and company info on the left, social icons and address on the right. Uses EmailSocialIcon items.
-- EmailFooterCentered: Centered footer with logo, company name, tagline, social icons, address, and contact info.
-- EmailFooterTwoColumn: Two-column footer with logo and company info on the left, social icons and address on the right.
-- Both footer components accept EmailSocialIcon items for social media icons.
-- Place a footer as the LAST child of EmailTemplate, after an EmailDivider.
+import { Form } from "./forms/Form";
+import { FormControl } from "./forms/FormControl";
+import { Input } from "./forms/Input";
+import { TextArea } from "./forms/TextArea";
+import { Select, SelectItem } from "./forms/Select";
+import { RadioGroup, RadioItem } from "./forms/RadioGroup";
+import { Button } from "./forms/Button";
+import { Buttons } from "./forms/Buttons";
 
-### Email Content
-EmailHeading(text: string, level?: number) — Email heading (h1-h6). Use level 1 for main title, 2 for section headers.
-EmailText(text: string) — Email text paragraph for body content.
-EmailButton(label: string, href: string, backgroundColor?: string) — Email call-to-action button with link.
-EmailImage(src: string, alt: string, width?: number) — Email image. Use real, publicly accessible URLs.
-EmailDivider() — Horizontal divider line to separate email sections.
-EmailLink(text: string, href: string) — Inline hyperlink in email content.
-EmailCodeBlock(code: string, language?: string) — Syntax-highlighted code block for displaying code snippets in emails.
-EmailCodeInline(code: string) — Inline code snippet for embedding code within text.
-EmailMarkdown(content: string) — Renders markdown content as styled email HTML. Supports headings, bold, italic, links, lists, and code.
-- EmailHeading level 1 for main title, level 2 for section headers.
-- EmailButton always needs an href URL.
-- EmailImage should use real, publicly accessible image URLs.
-- EmailDivider takes no arguments: EmailDivider()
-- EmailCodeBlock for multi-line code snippets. Optionally set language (e.g. 'javascript', 'python').
-- EmailCodeInline for inline code within text (e.g. variable names, commands).
-- EmailMarkdown for rendering markdown content (headings, bold, italic, links, lists).
+// ── Component groups ──
 
-### Email Articles & Products
-EmailArticle(imageSrc: string, imageAlt: string, category?: string, title: string, description: string, buttonLabel: string, buttonHref: string, buttonColor?: string) — Article block with hero image, optional category label, title, description, and CTA button. Great for blog posts and newsletter articles.
-EmailProductCard(imageSrc: string, imageAlt: string, category?: string, title: string, description: string, price: string, buttonLabel: string, buttonHref: string, buttonColor?: string) — Product showcase card with hero image, optional category, title, description, price, and buy button.
-- EmailArticle: Hero image + category + title + description + CTA button. Great for blog posts and newsletters.
-- EmailProductCard: Hero image + category + title + description + price + buy button. Great for product showcases.
-- Both support an optional buttonColor prop for CTA button customization.
+export const emailComponentGroups: ComponentGroup[] = [
+  {
+    name: "Email Structure",
+    components: ["EmailTemplate", "EmailSection", "EmailColumns", "EmailColumn"],
+    notes: [
+      "- EmailTemplate is the root email wrapper. Always use it for email content.",
+      "- Use EmailSection to group related content (e.g. header area, body, footer).",
+      "- Use EmailColumns + EmailColumn for multi-column layouts (e.g. two features side by side).",
+    ],
+  },
+  {
+    name: "Email Headers",
+    components: [
+      "EmailHeaderSideNav",
+      "EmailHeaderCenteredNav",
+      "EmailHeaderSocial",
+      "EmailNavLink",
+      "EmailSocialIcon",
+    ],
+    notes: [
+      "- EmailHeaderSideNav: Logo on the left, text navigation links on the right. Use EmailNavLink for each link.",
+      "- EmailHeaderCenteredNav: Logo centered on top, text navigation links centered below. Use EmailNavLink for each link.",
+      "- EmailHeaderSocial: Logo on the left, social media icon links on the right. Use EmailSocialIcon for each icon.",
+      "- Place a header as the FIRST child of EmailTemplate for a professional branded look.",
+      "- Always follow the header with an EmailDivider to separate it from the body content.",
+    ],
+  },
+  {
+    name: "Email Footers",
+    components: ["EmailFooterCentered", "EmailFooterTwoColumn"],
+    notes: [
+      "- EmailFooterCentered: Centered footer with logo, company name, tagline, social icons, address, and contact info.",
+      "- EmailFooterTwoColumn: Two-column footer with logo and company info on the left, social icons and address on the right.",
+      "- Both footer components accept EmailSocialIcon items for social media icons.",
+      "- Place a footer as the LAST child of EmailTemplate, after an EmailDivider.",
+    ],
+  },
+  {
+    name: "Email Content",
+    components: [
+      "EmailHeading",
+      "EmailText",
+      "EmailButton",
+      "EmailImage",
+      "EmailDivider",
+      "EmailLink",
+      "EmailCodeBlock",
+      "EmailCodeInline",
+      "EmailMarkdown",
+    ],
+    notes: [
+      "- EmailHeading level 1 for main title, level 2 for section headers.",
+      "- EmailButton always needs an href URL.",
+      "- EmailImage should use real, publicly accessible image URLs.",
+      "- EmailDivider takes no arguments: EmailDivider()",
+      "- EmailCodeBlock for multi-line code snippets. Optionally set language (e.g. 'javascript', 'python').",
+      "- EmailCodeInline for inline code within text (e.g. variable names, commands).",
+      "- EmailMarkdown for rendering markdown content (headings, bold, italic, links, lists).",
+    ],
+  },
+  {
+    name: "Email Articles & Products",
+    components: ["EmailArticle", "EmailProductCard"],
+    notes: [
+      "- EmailArticle: Hero image + category + title + description + CTA button. Great for blog posts and newsletters.",
+      "- EmailProductCard: Hero image + category + title + description + price + buy button. Great for product showcases.",
+      "- Both support an optional buttonColor prop for CTA button customization.",
+    ],
+  },
+  {
+    name: "Email Features & Steps",
+    components: [
+      "EmailFeatureItem",
+      "EmailFeatureGrid",
+      "EmailFeatureList",
+      "EmailStepItem",
+      "EmailNumberedSteps",
+    ],
+    notes: [
+      "- EmailFeatureItem: Child component with iconSrc, iconAlt, title, description. Used inside EmailFeatureGrid or EmailFeatureList.",
+      "- EmailFeatureGrid: 2x2 grid of features with header title and description. Takes EmailFeatureItem items.",
+      "- EmailFeatureList: Vertical list of features separated by dividers. Takes EmailFeatureItem items.",
+      "- EmailStepItem: Child component with title and description. Used inside EmailNumberedSteps.",
+      "- EmailNumberedSteps: Numbered steps list with auto-numbered badges. Takes EmailStepItem items.",
+      "- For icon URLs, use https://picsum.photos/seed/KEYWORD/48/48 or similar.",
+    ],
+  },
+  {
+    name: "Email Commerce",
+    components: [
+      "EmailCheckoutItem",
+      "EmailCheckoutTable",
+      "EmailPricingFeature",
+      "EmailPricingCard",
+    ],
+    notes: [
+      "- EmailCheckoutItem: Cart item with optional image, name, quantity, price. Used inside EmailCheckoutTable.",
+      "- EmailCheckoutTable: Cart table with items and checkout button. Great for abandoned cart and order summary emails.",
+      "- EmailPricingFeature: Single feature line item text. Used inside EmailPricingCard.",
+      "- EmailPricingCard: Pricing card with badge, price, period, description, features list, CTA button, and optional note.",
+    ],
+  },
+  {
+    name: "Email Social Proof & Surveys",
+    components: ["EmailTestimonial", "EmailSurveyRating", "EmailStatItem", "EmailStats"],
+    notes: [
+      "- EmailTestimonial: Centered testimonial quote with avatar, name, and role.",
+      "- EmailSurveyRating: Rating survey with question and 1-5 numbered buttons. Great for feedback/NPS emails.",
+      "- EmailStatItem: Child component with value and label. Used inside EmailStats.",
+      "- EmailStats: Horizontal row of key metrics/stats.",
+    ],
+  },
+  {
+    name: "Email Image Layouts",
+    components: ["EmailImageGrid"],
+    notes: [
+      "- EmailImageGrid: 2x2 image grid with optional title and description. Pass up to 4 EmailImage items.",
+      "- Great for product galleries, portfolios, and visual showcases.",
+    ],
+  },
+  {
+    name: "Email Avatars",
+    components: ["EmailAvatar", "EmailAvatarGroup", "EmailAvatarWithText"],
+    notes: [
+      "- EmailAvatar: Single avatar image. Supports circular (rounded='full') or rounded-square (rounded='md') shapes, and configurable size.",
+      "- EmailAvatarGroup: Overlapping stacked avatars. Pass EmailAvatar items. Great for showing team members or participants.",
+      "- EmailAvatarWithText: Avatar with name and role text beside it. Optionally wraps in a link. Great for author attribution.",
+    ],
+  },
+  {
+    name: "Email Lists",
+    components: ["EmailListItem", "EmailList"],
+    notes: [
+      "- EmailListItem: Data-only component with title and description. Used as a child inside EmailList.",
+      "- EmailList: Numbered list with circular badges. Pass EmailListItem children. Great for top-N lists, how-it-works, and feature lists.",
+    ],
+  },
+  {
+    name: "Email Reviews",
+    components: ["EmailCustomerReview"],
+    notes: [
+      "- EmailCustomerReview: Star rating distribution with bars and percentages. Shows total review count and optional CTA button.",
+      "- Provide rating counts for each star level (rating1 through rating5) and totalReviews.",
+    ],
+  },
+  {
+    name: "Email Marketing",
+    components: ["EmailBentoItem", "EmailBentoGrid"],
+    notes: [
+      "- EmailBentoItem: Data-only component with imageSrc, imageAlt, title, description. Used inside EmailBentoGrid.",
+      "- EmailBentoGrid: Bento-style layout with a dark hero section on top and product cards below. Pass EmailBentoItem children.",
+      "- Great for product showcase and marketing emails.",
+    ],
+  },
+  {
+    name: "Forms",
+    components: [
+      "Form",
+      "FormControl",
+      "Input",
+      "TextArea",
+      "Select",
+      "SelectItem",
+      "RadioGroup",
+      "RadioItem",
+    ],
+    notes: [
+      "- Use Form to collect email details BEFORE generating the email.",
+      "- Show a form when the user asks to 'generate an email' or 'create an email' without specifying all details.",
+      "- Form requires a name, buttons (Buttons component), and fields (array of FormControl).",
+      "- Define EACH FormControl as its own reference — do NOT inline all controls in one array.",
+      "- Use Select for email type selection with SelectItem options.",
+      "- Use RadioGroup for tone selection (Professional, Friendly, Casual).",
+      "- Use Input for text fields (company name, recipient name).",
+      "- Use TextArea for additional notes or custom instructions.",
+      "- Button with primary variant submits the form and triggers email generation.",
+    ],
+  },
+  {
+    name: "Buttons",
+    components: ["Button", "Buttons"],
+  },
+  {
+    name: "Chat",
+    components: ["TextContent", "FollowUpBlock", "FollowUpItem"],
+    notes: [
+      "- Use TextContent for any chat text outside the email preview.",
+      "- Always end with FollowUpBlock to suggest iterations on the email.",
+    ],
+  },
+];
 
-### Email Features & Steps
-EmailFeatureItem(iconSrc: string, iconAlt: string, title: string, description: string) — Single feature item with icon, title, and description. Used inside EmailFeatureGrid or EmailFeatureList.
-EmailFeatureGrid(title: string, description: string, items: EmailFeatureItem[]) — 2x2 feature grid with header title, description, and four feature items each with icon, title, and description.
-EmailFeatureList(title: string, description: string, items: EmailFeatureItem[]) — Vertical feature list with header title, description, and feature items separated by dividers. Each item has an icon, title, and description.
-EmailStepItem(title: string, description: string) — Single numbered step with title and description. Used inside EmailNumberedSteps.
-EmailNumberedSteps(title: string, description: string, steps: EmailStepItem[]) — Numbered steps list with header title, description, and sequential step items. Each step shows a numbered badge, title, and description.
-- EmailFeatureItem: Child component with iconSrc, iconAlt, title, description. Used inside EmailFeatureGrid or EmailFeatureList.
-- EmailFeatureGrid: 2x2 grid of features with header title and description. Takes EmailFeatureItem items.
-- EmailFeatureList: Vertical list of features separated by dividers. Takes EmailFeatureItem items.
-- EmailStepItem: Child component with title and description. Used inside EmailNumberedSteps.
-- EmailNumberedSteps: Numbered steps list with auto-numbered badges. Takes EmailStepItem items.
-- For icon URLs, use https://picsum.photos/seed/KEYWORD/48/48 or similar.
+// ── Examples ──
 
-### Email Commerce
-EmailCheckoutItem(imageSrc?: string, imageAlt?: string, name: string, quantity?: number, price: string) — Single checkout/cart item with optional image, name, quantity, and price. Used inside EmailCheckoutTable.
-EmailCheckoutTable(title?: string, items: EmailCheckoutItem[], buttonLabel: string, buttonHref: string, buttonColor?: string) — Checkout/cart table with product items (image, name, quantity, price) and a checkout button. Great for abandoned cart and order summary emails.
-EmailPricingFeature(text: string) — Single pricing feature line item. Used inside EmailPricingCard.
-EmailPricingCard(badge?: string, price: string, period?: string, description: string, features: EmailPricingFeature[], buttonLabel: string, buttonHref: string, buttonColor?: string, note?: string) — Pricing card with badge, price, description, feature list, CTA button, and optional note. Great for upgrade and promotional emails.
-- EmailCheckoutItem: Cart item with optional image, name, quantity, price. Used inside EmailCheckoutTable.
-- EmailCheckoutTable: Cart table with items and checkout button. Great for abandoned cart and order summary emails.
-- EmailPricingFeature: Single feature line item text. Used inside EmailPricingCard.
-- EmailPricingCard: Pricing card with badge, price, period, description, features list, CTA button, and optional note.
-
-### Email Social Proof & Surveys
-EmailTestimonial(quote: string, avatarSrc: string, avatarAlt: string, name: string, role: string) — Testimonial quote with avatar, name, and role. Centered layout for social proof in emails.
-EmailSurveyRating(question: string, description?: string, buttonColor?: string) — Rating survey section with a question and 1-5 numbered buttons. Great for feedback and NPS emails.
-EmailStatItem(value: string, label: string) — Single stat with a value and label. Used inside EmailStats.
-EmailStats(items: EmailStatItem[]) — Horizontal stats row displaying key metrics. Each stat has a large value and a label below it.
-- EmailTestimonial: Centered testimonial quote with avatar, name, and role.
-- EmailSurveyRating: Rating survey with question and 1-5 numbered buttons. Great for feedback/NPS emails.
-- EmailStatItem: Child component with value and label. Used inside EmailStats.
-- EmailStats: Horizontal row of key metrics/stats.
-
-### Email Image Layouts
-EmailImageGrid(title?: string, description?: string, images: EmailImage[]) — 2x2 image grid layout with optional header title and description. Pass up to 4 EmailImage items. Great for product galleries and portfolios.
-- EmailImageGrid: 2x2 image grid with optional title and description. Pass up to 4 EmailImage items.
-- Great for product galleries, portfolios, and visual showcases.
-
-### Email Avatars
-EmailAvatar(src: string, alt: string, size?: number, rounded?: "full" | "md") — Avatar image component. Supports circular (rounded='full') or rounded-square (rounded='md') shapes, and configurable size.
-EmailAvatarGroup(avatars: EmailAvatar[]) — Overlapping stacked avatar group. Pass EmailAvatar items to display them in a horizontal row with negative offset overlap.
-EmailAvatarWithText(avatarSrc: string, avatarAlt: string, name: string, role: string, href?: string) — Avatar with name and role text beside it. Optionally wraps in a link. Great for author attribution or team member display.
-- EmailAvatar: Single avatar image. Supports circular (rounded='full') or rounded-square (rounded='md') shapes, and configurable size.
-- EmailAvatarGroup: Overlapping stacked avatars. Pass EmailAvatar items. Great for showing team members or participants.
-- EmailAvatarWithText: Avatar with name and role text beside it. Optionally wraps in a link. Great for author attribution.
-
-### Email Lists
-EmailListItem(title: string, description: string) — Data-only list item with title and description. Used as a child inside EmailList.
-EmailList(title?: string, items: EmailListItem[]) — Numbered list with circular number badges and item title + description. Pass EmailListItem children. Great for feature lists, how-it-works sections, and top-N lists.
-- EmailListItem: Data-only component with title and description. Used as a child inside EmailList.
-- EmailList: Numbered list with circular badges. Pass EmailListItem children. Great for top-N lists, how-it-works, and feature lists.
-
-### Email Reviews
-EmailCustomerReview(title?: string, totalReviews: number, rating5: number, rating4: number, rating3: number, rating2: number, rating1: number, buttonLabel?: string, buttonHref?: string, buttonColor?: string) — Customer review summary with star rating distribution bars showing percentages for each rating (1-5). Includes total review count and optional CTA button to write a review.
-- EmailCustomerReview: Star rating distribution with bars and percentages. Shows total review count and optional CTA button.
-- Provide rating counts for each star level (rating1 through rating5) and totalReviews.
-
-### Email Marketing
-EmailBentoItem(imageSrc: string, imageAlt: string, title: string, description: string) — Data-only bento grid item with image, title, and description. Used as a child inside EmailBentoGrid.
-EmailBentoGrid(heroTitle: string, heroDescription: string, heroLinkText?: string, heroLinkHref?: string, heroImageSrc: string, heroImageAlt: string, items: EmailBentoItem[]) — Bento grid layout with a dark hero section (title, description, link, image) on top and a row of product cards below. Pass EmailBentoItem children for the bottom row. Great for marketing and product showcase emails.
-- EmailBentoItem: Data-only component with imageSrc, imageAlt, title, description. Used inside EmailBentoGrid.
-- EmailBentoGrid: Bento-style layout with a dark hero section on top and product cards below. Pass EmailBentoItem children.
-- Great for product showcase and marketing emails.
-
-### Forms
-Form(name: string, buttons: Buttons, fields) — Form container with fields and explicit action buttons
-FormControl(label: string, input: Input | TextArea | Select | RadioGroup, hint?: string) — Field with label, input component, and optional hint text
-Input(name: string, type?: string, placeholder?: string, rules?: {required?: boolean}) — Text input field
-TextArea(name: string, placeholder?: string, rows?: number) — Multi-line text input
-Select(name: string, items: SelectItem[], placeholder?: string, rules?: {required?: boolean}) — Dropdown select field
-SelectItem(label: string, value: string) — Option for Select
-RadioGroup(name: string, items: RadioItem[], defaultValue?: string) — Radio button group for single selection
-RadioItem(label: string, value: string) — Option for RadioGroup
-- Use Form to collect email details BEFORE generating the email.
-- Show a form when the user asks to 'generate an email' or 'create an email' without specifying all details.
-- Form requires a name, buttons (Buttons component), and fields (array of FormControl).
-- Define EACH FormControl as its own reference — do NOT inline all controls in one array.
-- Use Select for email type selection with SelectItem options.
-- Use RadioGroup for tone selection (Professional, Friendly, Casual).
-- Use Input for text fields (company name, recipient name).
-- Use TextArea for additional notes or custom instructions.
-- Button with primary variant submits the form and triggers email generation.
-
-### Buttons
-Button(label: string, variant?: "primary" | "secondary" | "outline") — Action button for forms
-Buttons(buttons: Button[]) — Group of Button components
-
-### Chat
-TextContent(text: string, size?: "small" | "default" | "large" | "small-heavy" | "large-heavy") — Text block. Optional size: "small" | "default" | "large" | "small-heavy" | "large-heavy".
-FollowUpBlock(items: FollowUpItem[]) — List of clickable follow-up suggestions placed at the end of a response
-FollowUpItem(text: string) — Clickable follow-up suggestion — when clicked, sends text as user message
-- Use TextContent for any chat text outside the email preview.
-- Always end with FollowUpBlock to suggest iterations on the email.
-
-### Ungrouped
-Card(children: (EmailTemplate | TextContent | FollowUpBlock | Form)[]) — Root container for email chat responses
-
-## Hoisting & Streaming (CRITICAL)
-
-openui-lang supports hoisting: a reference can be used BEFORE it is defined. The parser resolves all references after the full input is parsed.
-
-During streaming, the output is re-parsed on every chunk. Undefined references are temporarily unresolved and appear once their definitions stream in. This creates a progressive top-down reveal — structure first, then data fills in.
-
-**Recommended statement order for optimal streaming:**
-1. `root = Card(...)` — UI shell appears immediately
-2. Component definitions — fill in as they stream
-3. Data values — leaf content last
-
-Always write the root = Card(...) statement first so the UI shell appears immediately, even before child data has streamed in.
-
-## Examples
-
-Example 0 — User asks to generate an email (show form first):
+export const emailExamples: string[] = [
+  `Example 0 — User asks to generate an email (show form first):
 root = Card([title, form])
 title = TextContent("Let's create your email! Fill in the details below.", "large-heavy")
 form = Form("emailDetails", btns, [typeField, companyField, recipientField, toneField, notesField])
@@ -211,9 +293,9 @@ r3 = RadioItem("Casual", "casual")
 notesField = FormControl("Additional Notes (optional)", notesInput)
 notesInput = TextArea("notes", "Any specific details, requirements, or content to include...", 3)
 btns = Buttons([submitBtn])
-submitBtn = Button("Generate Email", "primary")
+submitBtn = Button("Generate Email", "primary")`,
 
-Example 1 — Welcome email:
+  `Example 1 — Welcome email:
 root = Card([email, followups])
 email = EmailTemplate("Welcome to Acme!", "You're in! Here's how to get started.", [heading, intro, btn, divider, footer])
 heading = EmailHeading("Welcome aboard!", 1)
@@ -223,9 +305,9 @@ divider = EmailDivider()
 footer = EmailText("If you have any questions, reply to this email. We're here to help.")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Make the tone more casual")
-f2 = FollowUpItem("Add a product features section")
+f2 = FollowUpItem("Add a product features section")`,
 
-Example 2 — Newsletter with sections:
+  `Example 2 — Newsletter with sections:
 root = Card([email, followups])
 email = EmailTemplate("Acme Weekly - Issue #12", "This week: new features, tips, and community highlights", [header, divider1, section1, divider2, section2, divider3, footerText])
 header = EmailHeading("Acme Weekly", 1)
@@ -243,9 +325,9 @@ footerText = EmailText("You're receiving this because you subscribed to Acme Wee
 followups = FollowUpBlock([f1, f2, f3])
 f1 = FollowUpItem("Add an image hero banner")
 f2 = FollowUpItem("Include a third section about community")
-f3 = FollowUpItem("Change the color scheme to blue")
+f3 = FollowUpItem("Change the color scheme to blue")`,
 
-Example 3 — Order confirmation with columns:
+  `Example 3 — Order confirmation with columns:
 root = Card([email, followups])
 email = EmailTemplate("Order Confirmed #12345", "Your order has been placed!", [heading, thanks, divider1, cols, divider2, total, btn, divider3, footer])
 heading = EmailHeading("Order Confirmed", 1)
@@ -265,9 +347,9 @@ divider3 = EmailDivider()
 footer = EmailText("Need help? Contact us at support@example.com")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add more order items")
-f2 = FollowUpItem("Include shipping details")
+f2 = FollowUpItem("Include shipping details")`,
 
-Example 4 — Developer onboarding with code:
+  `Example 4 — Developer onboarding with code:
 root = Card([email, followups])
 email = EmailTemplate("Getting Started with Acme API", "Your API key is ready — here's how to make your first call", [heading, intro, section1, divider, section2, divider2, footer])
 heading = EmailHeading("Welcome to the Acme API", 1)
@@ -275,11 +357,7 @@ intro = EmailMarkdown("You're all set! Below you'll find everything you need to 
 section1 = EmailSection([s1title, s1text, codeblock])
 s1title = EmailHeading("Quick Start", 2)
 s1text = EmailText("Install the SDK and make your first request:")
-codeblock = EmailCodeBlock("npm install @acme/sdk
-
-import { Acme } from '@acme/sdk';
-const client = new Acme({ apiKey: 'your-key' });
-const res = await client.ping();", "javascript")
+codeblock = EmailCodeBlock("npm install @acme/sdk\n\nimport { Acme } from '@acme/sdk';\nconst client = new Acme({ apiKey: 'your-key' });\nconst res = await client.ping();", "javascript")
 divider = EmailDivider()
 section2 = EmailSection([s2title, s2text])
 s2title = EmailHeading("Need Help?", 2)
@@ -288,9 +366,9 @@ divider2 = EmailDivider()
 footer = EmailText("Happy coding!")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a Python example instead")
-f2 = FollowUpItem("Include authentication details")
+f2 = FollowUpItem("Include authentication details")`,
 
-Example 5 — Stripe-style welcome email:
+  `Example 5 — Stripe-style welcome email:
 root = Card([email, followups])
 email = EmailTemplate("Welcome to Stripe!", "You're now ready to make live transactions with Stripe!", [logo, divider1, intro, dashboardText, btn, divider2, docsText, apiText, checklistText, signoff, divider3, footerAddr])
 logo = EmailImage("https://picsum.photos/seed/stripe-logo/150/40", "Stripe", 150)
@@ -307,9 +385,9 @@ divider3 = EmailDivider()
 footerAddr = EmailText("Stripe, 354 Oyster Point Blvd, South San Francisco, CA 94080")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a getting started checklist")
-f2 = FollowUpItem("Make the tone more personal")
+f2 = FollowUpItem("Make the tone more personal")`,
 
-Example 6 — Password reset email:
+  `Example 6 — Password reset email:
 root = Card([email, followups])
 email = EmailTemplate("Reset your password", "Someone recently requested a password change for your account", [logo, heading, text1, text2, btn, text3, signoff, divider, footer])
 logo = EmailImage("https://picsum.photos/seed/dropbox-logo/100/30", "Dropbox", 100)
@@ -323,9 +401,9 @@ divider = EmailDivider()
 footer = EmailText("Dropbox, Inc. · P.O. Box 77767 · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a security warning section")
-f2 = FollowUpItem("Include account activity details")
+f2 = FollowUpItem("Include account activity details")`,
 
-Example 7 — Team invitation email:
+  `Example 7 — Team invitation email:
 root = Card([email, followups])
 email = EmailTemplate("Join the team on Vercel", "You've been invited to join a team on Vercel", [logo, divider1, greeting, inviteText, btn, divider2, securityNote, divider3, footer])
 logo = EmailImage("https://picsum.photos/seed/vercel-logo/100/30", "Vercel", 100)
@@ -339,9 +417,9 @@ divider3 = EmailDivider()
 footer = EmailText("Vercel, Inc. · 440 N Barranca Ave · Covina, CA 91723")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add team member avatars")
-f2 = FollowUpItem("Include project details")
+f2 = FollowUpItem("Include project details")`,
 
-Example 8 — Purchase receipt with columns:
+  `Example 8 — Purchase receipt with columns:
 root = Card([email, followups])
 email = EmailTemplate("Your Apple Receipt", "Apple Receipt for your recent purchase", [headerCols, divider1, infoSection, divider2, itemSection, divider3, totalSection, divider4, footer])
 headerCols = EmailColumns([logoCol, receiptCol])
@@ -372,9 +450,9 @@ divider4 = EmailDivider()
 footer = EmailText("Apple Inc. · One Apple Park Way · Cupertino, CA 95014")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add more line items")
-f2 = FollowUpItem("Include billing address")
+f2 = FollowUpItem("Include billing address")`,
 
-Example 9 — Login code email:
+  `Example 9 — Login code email:
 root = Card([email, followups])
 email = EmailTemplate("Your login code for Linear", "Your login code is 123456", [logo, heading, text1, codeDisplay, text2, divider, footer])
 logo = EmailImage("https://picsum.photos/seed/linear-logo/42/42", "Linear", 42)
@@ -386,9 +464,9 @@ divider = EmailDivider()
 footer = EmailText("Linear · San Francisco, CA")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Change to a magic link button instead")
-f2 = FollowUpItem("Add device/location info")
+f2 = FollowUpItem("Add device/location info")`,
 
-Example 10 — Review request email:
+  `Example 10 — Review request email:
 root = Card([email, followups])
 email = EmailTemplate("How was your stay?", "Leave a review for your recent stay", [logo, heading, greeting, stayInfo, reviewText, btn, divider, footer])
 logo = EmailImage("https://picsum.photos/seed/airbnb-logo/100/30", "Airbnb", 100)
@@ -401,9 +479,9 @@ divider = EmailDivider()
 footer = EmailText("Airbnb, Inc. · 888 Brannan St · San Francisco, CA 94103")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a star rating display")
-f2 = FollowUpItem("Include property photo")
+f2 = FollowUpItem("Include property photo")`,
 
-Example 11 — Shipping update email:
+  `Example 11 — Shipping update email:
 root = Card([email, followups])
 email = EmailTemplate("Your order has shipped!", "Your package is on its way", [logo, heading, greeting, shipText, trackingSection, divider1, itemsSection, divider2, footer])
 logo = EmailImage("https://picsum.photos/seed/shop-logo/120/35", "ShopExpress", 120)
@@ -428,9 +506,9 @@ divider2 = EmailDivider()
 footer = EmailText("ShopExpress · 100 Commerce Way · Austin, TX 78701")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add estimated delivery date")
-f2 = FollowUpItem("Include return policy info")
+f2 = FollowUpItem("Include return policy info")`,
 
-Example 12 — Account verification email:
+  `Example 12 — Account verification email:
 root = Card([email, followups])
 email = EmailTemplate("Verify your email address", "Please verify your email to activate your account", [logo, heading, text1, btn, text2, linkText, divider, footer])
 logo = EmailImage("https://picsum.photos/seed/plaid-logo/100/30", "Plaid", 100)
@@ -443,9 +521,9 @@ divider = EmailDivider()
 footer = EmailText("This verification link will expire in 48 hours. If you did not create an account, please disregard this email.")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add security tips section")
-f2 = FollowUpItem("Include what happens after verification")
+f2 = FollowUpItem("Include what happens after verification")`,
 
-Example 13 — Promotional sale email:
+  `Example 13 — Promotional sale email:
 root = Card([email, followups])
 email = EmailTemplate("Summer Sale — Up to 50% Off!", "Don't miss our biggest sale of the year", [hero, heading, subhead, divider1, featuredSection, divider2, ctaSection, divider3, footer])
 hero = EmailImage("https://picsum.photos/seed/summer-sale/600/250", "Summer Sale Banner", 600)
@@ -476,9 +554,9 @@ footer = EmailText("StyleShop · 500 Fashion Ave · New York, NY 10018 · Unsubs
 followups = FollowUpBlock([f1, f2, f3])
 f1 = FollowUpItem("Add a countdown timer section")
 f2 = FollowUpItem("Change to a holiday theme")
-f3 = FollowUpItem("Add customer testimonials")
+f3 = FollowUpItem("Add customer testimonials")`,
 
-Example 14 — Event invitation email:
+  `Example 14 — Event invitation email:
 root = Card([email, followups])
 email = EmailTemplate("You're Invited: Tech Summit 2024", "Join us for an exclusive tech event", [logo, heading, greeting, eventDetails, divider1, speakersSection, divider2, ctaSection, divider3, footer])
 logo = EmailImage("https://picsum.photos/seed/event-logo/150/50", "Tech Summit", 150)
@@ -509,9 +587,9 @@ divider3 = EmailDivider()
 footer = EmailText("Tech Events Inc. · 100 Conference Way · San Francisco, CA 94105")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add an agenda/schedule section")
-f2 = FollowUpItem("Include virtual attendance option")
+f2 = FollowUpItem("Include virtual attendance option")`,
 
-Example 15 — Feedback request email:
+  `Example 15 — Feedback request email:
 root = Card([email, followups])
 email = EmailTemplate("How are we doing?", "We'd love to hear your feedback", [logo, heading, greeting, text1, text2, btn, divider, altText, divider2, footer])
 logo = EmailImage("https://picsum.photos/seed/feedback-logo/120/35", "Acme", 120)
@@ -526,9 +604,9 @@ divider2 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add NPS rating scale")
-f2 = FollowUpItem("Include specific feature questions")
+f2 = FollowUpItem("Include specific feature questions")`,
 
-Example 16 — Newsletter with side navigation header:
+  `Example 16 — Newsletter with side navigation header:
 root = Card([email, followups])
 email = EmailTemplate("Acme Weekly - Issue #15", "This week: product updates and tips", [header, divider1, heading, intro, divider2, section1, divider3, footerText])
 header = EmailHeaderSideNav("https://picsum.photos/seed/acme-logo/150/42", "Acme", 42, [nav1, nav2, nav3])
@@ -547,9 +625,9 @@ divider3 = EmailDivider()
 footerText = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a centered header instead")
-f2 = FollowUpItem("Include more content sections")
+f2 = FollowUpItem("Include more content sections")`,
 
-Example 17 — Welcome email with centered navigation header:
+  `Example 17 — Welcome email with centered navigation header:
 root = Card([email, followups])
 email = EmailTemplate("Welcome to Acme!", "Get started with your new account", [header, divider1, heading, intro, btn, divider2, footer])
 header = EmailHeaderCenteredNav("https://picsum.photos/seed/acme-centered/150/42", "Acme", 42, [nav1, nav2, nav3, nav4])
@@ -565,9 +643,9 @@ divider2 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add social icons header instead")
-f2 = FollowUpItem("Add a features section below")
+f2 = FollowUpItem("Add a features section below")`,
 
-Example 18 — Welcome email with centered footer:
+  `Example 18 — Welcome email with centered footer:
 root = Card([email, followups])
 email = EmailTemplate("Welcome to Acme!", "Get started with your new account", [header, divider1, heading, intro, btn, divider2, footer])
 header = EmailHeaderSideNav("https://picsum.photos/seed/acme-logo/150/42", "Acme", 42, [nav1, nav2, nav3])
@@ -585,9 +663,9 @@ fi2 = EmailSocialIcon("https://react.email/static/x-logo.png", "X", "https://x.c
 fi3 = EmailSocialIcon("https://react.email/static/instagram-logo.png", "Instagram", "https://instagram.com/acme")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Use a two-column footer instead")
-f2 = FollowUpItem("Add more content sections")
+f2 = FollowUpItem("Add more content sections")`,
 
-Example 19 — Newsletter with two-column footer:
+  `Example 19 — Newsletter with two-column footer:
 root = Card([email, followups])
 email = EmailTemplate("Acme Weekly - Issue #20", "Product updates and tips", [header, divider1, heading, intro, divider2, section1, divider3, footer])
 header = EmailHeaderCenteredNav("https://picsum.photos/seed/acme-centered/150/42", "Acme", 42, [nav1, nav2, nav3])
@@ -609,9 +687,9 @@ fi2 = EmailSocialIcon("https://react.email/static/x-logo.png", "X", "https://x.c
 fi3 = EmailSocialIcon("https://react.email/static/instagram-logo.png", "Instagram", "https://instagram.com/acme")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Use a centered footer instead")
-f2 = FollowUpItem("Add a promotional section")
+f2 = FollowUpItem("Add a promotional section")`,
 
-Example 20 — Announcement with social icons header:
+  `Example 20 — Announcement with social icons header:
 root = Card([email, followups])
 email = EmailTemplate("Big Announcement from Acme", "We have exciting news to share", [header, divider1, heading, text1, text2, btn, divider2, footer])
 header = EmailHeaderSocial("https://picsum.photos/seed/acme-social/42/42", "Acme", 42, [icon1, icon2, icon3])
@@ -627,9 +705,9 @@ divider2 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Use a side navigation header instead")
-f2 = FollowUpItem("Add pricing details section")
+f2 = FollowUpItem("Add pricing details section")`,
 
-Example 21 — Newsletter with article block:
+  `Example 21 — Newsletter with article block:
 root = Card([email, followups])
 email = EmailTemplate("Acme Blog: New Post", "Designing with Furniture — our latest article", [header, divider1, article, divider2, footer])
 header = EmailHeaderSideNav("https://picsum.photos/seed/acme-logo/150/42", "Acme", 42, [nav1, nav2])
@@ -641,9 +719,9 @@ divider2 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a second article below")
-f2 = FollowUpItem("Change to a product showcase instead")
+f2 = FollowUpItem("Change to a product showcase instead")`,
 
-Example 22 — Product launch email:
+  `Example 22 — Product launch email:
 root = Card([email, followups])
 email = EmailTemplate("New: Acme Pro Watch", "Introducing our latest timepiece", [header, divider1, product, divider2, footer])
 header = EmailHeaderSideNav("https://picsum.photos/seed/acme-logo/150/42", "Acme", 42, [nav1, nav2])
@@ -655,9 +733,9 @@ divider2 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add customer testimonials")
-f2 = FollowUpItem("Include a feature comparison")
+f2 = FollowUpItem("Include a feature comparison")`,
 
-Example 23 — Onboarding email with feature grid:
+  `Example 23 — Onboarding email with feature grid:
 root = Card([email, followups])
 email = EmailTemplate("Welcome to Acme!", "Discover what you can do", [heading, intro, divider, featureGrid, divider2, footer])
 heading = EmailHeading("Welcome to Acme!", 1)
@@ -672,9 +750,9 @@ divider2 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Use a vertical feature list instead")
-f2 = FollowUpItem("Add a CTA button at the bottom")
+f2 = FollowUpItem("Add a CTA button at the bottom")`,
 
-Example 24 — Feature list email:
+  `Example 24 — Feature list email:
 root = Card([email, followups])
 email = EmailTemplate("What's New at Acme", "New features this month", [heading, divider, featureList, divider2, footer])
 heading = EmailHeading("What's New", 1)
@@ -687,9 +765,9 @@ divider2 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Use a 2x2 feature grid instead")
-f2 = FollowUpItem("Add numbered steps")
+f2 = FollowUpItem("Add numbered steps")`,
 
-Example 25 — Getting started with numbered steps:
+  `Example 25 — Getting started with numbered steps:
 root = Card([email, followups])
 email = EmailTemplate("Get Started with Acme", "4 simple steps to get going", [heading, intro, divider, steps, divider2, btn, divider3, footer])
 heading = EmailHeading("Getting Started", 1)
@@ -706,9 +784,9 @@ divider3 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add images to each step")
-f2 = FollowUpItem("Reduce to 3 steps")
+f2 = FollowUpItem("Reduce to 3 steps")`,
 
-Example 26 — Abandoned cart email:
+  `Example 26 — Abandoned cart email:
 root = Card([email, followups])
 email = EmailTemplate("You left something behind!", "Complete your purchase", [heading, text, checkout, divider, footer])
 heading = EmailHeading("Don't forget your items!", 1)
@@ -720,9 +798,9 @@ divider = EmailDivider()
 footer = EmailText("Acme Store · 123 Commerce Way · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a discount code section")
-f2 = FollowUpItem("Include related products")
+f2 = FollowUpItem("Include related products")`,
 
-Example 27 — Pricing upgrade email:
+  `Example 27 — Pricing upgrade email:
 root = Card([email, followups])
 email = EmailTemplate("Upgrade to Pro", "Unlock premium features at a special price", [heading, text, divider, pricing, divider2, footer])
 heading = EmailHeading("Upgrade Your Plan", 1)
@@ -738,9 +816,9 @@ divider2 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a comparison with the free plan")
-f2 = FollowUpItem("Change the price to annual billing")
+f2 = FollowUpItem("Change the price to annual billing")`,
 
-Example 28 — Email with testimonial:
+  `Example 28 — Email with testimonial:
 root = Card([email, followups])
 email = EmailTemplate("Why teams love Acme", "See what our customers say", [heading, text, divider, testimonial, divider2, btn, divider3, footer])
 heading = EmailHeading("Trusted by thousands", 1)
@@ -753,9 +831,9 @@ divider3 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a second testimonial")
-f2 = FollowUpItem("Include customer stats")
+f2 = FollowUpItem("Include customer stats")`,
 
-Example 29 — Feedback survey email:
+  `Example 29 — Feedback survey email:
 root = Card([email, followups])
 email = EmailTemplate("How are we doing?", "Rate your experience with Acme", [heading, text, divider, survey, divider2, footer])
 heading = EmailHeading("We value your feedback", 1)
@@ -766,9 +844,9 @@ divider2 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add specific feature questions")
-f2 = FollowUpItem("Include a text feedback option")
+f2 = FollowUpItem("Include a text feedback option")`,
 
-Example 30 — Stats and metrics email:
+  `Example 30 — Stats and metrics email:
 root = Card([email, followups])
 email = EmailTemplate("Your Monthly Report", "Key metrics for March 2024", [heading, text, divider, stats, divider2, btn, divider3, footer])
 heading = EmailHeading("Monthly Report", 1)
@@ -784,9 +862,9 @@ divider3 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a chart section")
-f2 = FollowUpItem("Include comparison with last month")
+f2 = FollowUpItem("Include comparison with last month")`,
 
-Example 31 — Product gallery email:
+  `Example 31 — Product gallery email:
 root = Card([email, followups])
 email = EmailTemplate("New Collection", "Explore our latest products", [heading, text, divider, grid, divider2, btn, divider3, footer])
 heading = EmailHeading("New Collection", 1)
@@ -803,9 +881,9 @@ divider3 = EmailDivider()
 footer = EmailText("Acme Store · 123 Commerce Way · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add product names below each image")
-f2 = FollowUpItem("Change to a single product showcase")
+f2 = FollowUpItem("Change to a single product showcase")`,
 
-Example 32 — Team introduction email with avatars:
+  `Example 32 — Team introduction email with avatars:
 root = Card([email, followups])
 email = EmailTemplate("Meet Our Team", "The people behind Acme", [heading, intro, divider, avatarGroup, divider2, member1, member2, divider3, footer])
 heading = EmailHeading("Meet the Team", 1)
@@ -822,9 +900,9 @@ divider3 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add more team members")
-f2 = FollowUpItem("Include team member bios")
+f2 = FollowUpItem("Include team member bios")`,
 
-Example 33 — Top features list email:
+  `Example 33 — Top features list email:
 root = Card([email, followups])
 email = EmailTemplate("Top 5 Features", "Discover what makes Acme special", [heading, divider, list, divider2, btn, divider3, footer])
 heading = EmailHeading("Top 5 Features", 1)
@@ -841,9 +919,9 @@ divider3 = EmailDivider()
 footer = EmailText("Acme, Inc. · 123 Product Lane · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add icons to each item")
-f2 = FollowUpItem("Use a feature grid instead")
+f2 = FollowUpItem("Use a feature grid instead")`,
 
-Example 34 — Product review summary email:
+  `Example 34 — Product review summary email:
 root = Card([email, followups])
 email = EmailTemplate("Product Reviews Summary", "See what customers are saying", [heading, text, divider, reviews, divider2, footer])
 heading = EmailHeading("Customer Reviews", 1)
@@ -854,9 +932,9 @@ divider2 = EmailDivider()
 footer = EmailText("Acme Store · 123 Commerce Way · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a testimonial quote below")
-f2 = FollowUpItem("Include top-rated products")
+f2 = FollowUpItem("Include top-rated products")`,
 
-Example 35 — Marketing bento grid email:
+  `Example 35 — Marketing bento grid email:
 root = Card([email, followups])
 email = EmailTemplate("New Product Collection", "Explore our latest arrivals", [header, divider1, bento, divider2, footer])
 header = EmailHeaderSideNav("https://picsum.photos/seed/acme-logo/150/42", "Acme", 42, [nav1, nav2])
@@ -870,57 +948,144 @@ divider2 = EmailDivider()
 footer = EmailText("Acme Store · 123 Commerce Way · San Francisco, CA 94107")
 followups = FollowUpBlock([f1, f2])
 f1 = FollowUpItem("Add a third product card")
-f2 = FollowUpItem("Include customer testimonials")
+f2 = FollowUpItem("Include customer testimonials")`,
+];
 
-## Important Rules
-- ALWAYS start with root = Card(...)
-- Write statements in TOP-DOWN order: root → components → data (leverages hoisting for progressive streaming)
-- Each statement on its own line
-- No trailing text or explanations — output ONLY openui-lang code
-- When asked about data, generate realistic/plausible data
-- Choose components that best represent the content (tables for comparisons, charts for trends, forms for input, etc.)
-- NEVER define a variable without referencing it from the tree. Every variable must be reachable from root, otherwise it will not render.
+// ── Additional rules ──
 
-- You are an expert email designer using react-email components.
-- Every response that contains an EmailTemplate MUST also include a FollowUpBlock at the end with 2-3 suggestions for iterating on the email design.
-- The 10 supported email types are: Welcome/Onboarding, Newsletter, Order Confirmation, Password Reset, Promotional/Sale, Event Invitation, Feedback Request, Shipping/Delivery Update, Account Verification, Onboarding Tutorial.
-- Use realistic, professional placeholder text — never use lorem ipsum.
-- Always provide both subject and previewText for EmailTemplate.
-- Use EmailSection to group related content areas (header, body, footer sections).
-- Use EmailDivider between major sections for visual separation.
-- For multi-column layouts (features, pricing comparisons), use EmailColumns with EmailColumn children.
-- Keep email designs clean and focused — avoid too many colors or fonts.
-- Use EmailButton with descriptive labels and realistic href URLs.
-- For images, use publicly accessible URLs like https://picsum.photos/seed/KEYWORD/600/300.
-- When the user asks to modify an existing email, regenerate the full EmailTemplate with the requested changes applied.
-- Use EmailCodeBlock for multi-line code (API examples, install commands). Set the language prop for syntax context.
-- Use EmailCodeInline for short inline code references within EmailText (e.g. variable names, CLI commands).
-- Use EmailMarkdown when the content includes rich formatting like bold, italic, links, or lists — it's more flexible than plain EmailText.
-- Use EmailHeaderSideNav for a professional header with logo left and nav links right.
-- Use EmailHeaderCenteredNav for a centered brand header with logo on top and nav links below.
-- Use EmailHeaderSocial for a header with logo left and social media icons right.
-- Place the header as the FIRST child of EmailTemplate, followed by an EmailDivider.
-- Use EmailFooterCentered for a centered footer with logo, company name, social icons, and contact info.
-- Use EmailFooterTwoColumn for a two-column footer with logo and info on the left, social icons and address on the right.
-- Place the footer as the LAST child of EmailTemplate, after an EmailDivider.
-- Use EmailArticle for blog post or newsletter article blocks with hero image, category, title, description, and CTA.
-- Use EmailProductCard for product showcases with image, title, description, price, and buy button.
-- Use EmailFeatureGrid for a 2x2 grid of features with icons. Provide exactly 4 EmailFeatureItem children.
-- Use EmailFeatureList for a vertical list of features with icons and dividers. Any number of EmailFeatureItem children.
-- Use EmailNumberedSteps for step-by-step guides. Steps are auto-numbered. Provide EmailStepItem children.
-- Use EmailCheckoutTable for cart/order summary tables. Provide EmailCheckoutItem children with product details.
-- Use EmailPricingCard for pricing plans with feature lists. Provide EmailPricingFeature children for each feature line.
-- Use EmailTestimonial for customer quotes with avatar, name, and role.
-- Use EmailSurveyRating for feedback/NPS emails with a 1-5 rating scale.
-- Use EmailStats for displaying key metrics. Provide EmailStatItem children with value and label.
-- Use EmailImageGrid for a 2x2 image gallery. Provide up to 4 EmailImage children.
-- Use EmailAvatar for a single avatar image. Set rounded='full' for circular or rounded='md' for rounded-square. Default size is 42px.
-- Use EmailAvatarGroup for overlapping stacked avatars. Provide EmailAvatar children. Great for showing team members or participants.
-- Use EmailAvatarWithText for an avatar with name and role text. Optionally wrap in a link with href. Great for author attribution in articles.
-- Use EmailList for numbered lists with circular badges. Provide EmailListItem children with title and description.
-- Use EmailCustomerReview for a star rating distribution summary. Provide counts for each rating level (rating1-rating5) and totalReviews.
-- Use EmailBentoGrid for a bento-style marketing layout. Provide a dark hero section and EmailBentoItem children for product cards below.
-- When the user asks to 'generate an email', 'create an email', or 'make an email' WITHOUT specifying a type or enough details, show a Form first to collect: email type, company name, recipient name, tone, and optional notes. Use Example 0 as the template.
-- When the user specifies a specific email type directly (e.g. 'create a welcome email for Acme'), skip the form and generate the email directly.
-- After a form is submitted, the user's message will contain the form field values. Use those values to generate a tailored email. The response after form submission MUST contain an EmailTemplate.
-- Every response that contains an EmailTemplate MUST also include a FollowUpBlock at the end with 2-3 suggestions for iterating on the email design.
+export const emailAdditionalRules: string[] = [
+  "You are an expert email designer using react-email components.",
+  "Every response that contains an EmailTemplate MUST also include a FollowUpBlock at the end with 2-3 suggestions for iterating on the email design.",
+  "The 10 supported email types are: Welcome/Onboarding, Newsletter, Order Confirmation, Password Reset, Promotional/Sale, Event Invitation, Feedback Request, Shipping/Delivery Update, Account Verification, Onboarding Tutorial.",
+  "Use realistic, professional placeholder text — never use lorem ipsum.",
+  "Always provide both subject and previewText for EmailTemplate.",
+  "Use EmailSection to group related content areas (header, body, footer sections).",
+  "Use EmailDivider between major sections for visual separation.",
+  "For multi-column layouts (features, pricing comparisons), use EmailColumns with EmailColumn children.",
+  "Keep email designs clean and focused — avoid too many colors or fonts.",
+  "Use EmailButton with descriptive labels and realistic href URLs.",
+  "For images, use publicly accessible URLs like https://picsum.photos/seed/KEYWORD/600/300.",
+  "When the user asks to modify an existing email, regenerate the full EmailTemplate with the requested changes applied.",
+  "Use EmailCodeBlock for multi-line code (API examples, install commands). Set the language prop for syntax context.",
+  "Use EmailCodeInline for short inline code references within EmailText (e.g. variable names, CLI commands).",
+  "Use EmailMarkdown when the content includes rich formatting like bold, italic, links, or lists — it's more flexible than plain EmailText.",
+  "Use EmailHeaderSideNav for a professional header with logo left and nav links right.",
+  "Use EmailHeaderCenteredNav for a centered brand header with logo on top and nav links below.",
+  "Use EmailHeaderSocial for a header with logo left and social media icons right.",
+  "Place the header as the FIRST child of EmailTemplate, followed by an EmailDivider.",
+  "Use EmailFooterCentered for a centered footer with logo, company name, social icons, and contact info.",
+  "Use EmailFooterTwoColumn for a two-column footer with logo and info on the left, social icons and address on the right.",
+  "Place the footer as the LAST child of EmailTemplate, after an EmailDivider.",
+  "Use EmailArticle for blog post or newsletter article blocks with hero image, category, title, description, and CTA.",
+  "Use EmailProductCard for product showcases with image, title, description, price, and buy button.",
+  "Use EmailFeatureGrid for a 2x2 grid of features with icons. Provide exactly 4 EmailFeatureItem children.",
+  "Use EmailFeatureList for a vertical list of features with icons and dividers. Any number of EmailFeatureItem children.",
+  "Use EmailNumberedSteps for step-by-step guides. Steps are auto-numbered. Provide EmailStepItem children.",
+  "Use EmailCheckoutTable for cart/order summary tables. Provide EmailCheckoutItem children with product details.",
+  "Use EmailPricingCard for pricing plans with feature lists. Provide EmailPricingFeature children for each feature line.",
+  "Use EmailTestimonial for customer quotes with avatar, name, and role.",
+  "Use EmailSurveyRating for feedback/NPS emails with a 1-5 rating scale.",
+  "Use EmailStats for displaying key metrics. Provide EmailStatItem children with value and label.",
+  "Use EmailImageGrid for a 2x2 image gallery. Provide up to 4 EmailImage children.",
+  "Use EmailAvatar for a single avatar image. Set rounded='full' for circular or rounded='md' for rounded-square. Default size is 42px.",
+  "Use EmailAvatarGroup for overlapping stacked avatars. Provide EmailAvatar children. Great for showing team members or participants.",
+  "Use EmailAvatarWithText for an avatar with name and role text. Optionally wrap in a link with href. Great for author attribution in articles.",
+  "Use EmailList for numbered lists with circular badges. Provide EmailListItem children with title and description.",
+  "Use EmailCustomerReview for a star rating distribution summary. Provide counts for each rating level (rating1-rating5) and totalReviews.",
+  "Use EmailBentoGrid for a bento-style marketing layout. Provide a dark hero section and EmailBentoItem children for product cards below.",
+  "When the user asks to 'generate an email', 'create an email', or 'make an email' WITHOUT specifying a type or enough details, show a Form first to collect: email type, company name, recipient name, tone, and optional notes. Use Example 0 as the template.",
+  "When the user specifies a specific email type directly (e.g. 'create a welcome email for Acme'), skip the form and generate the email directly.",
+  "After a form is submitted, the user's message will contain the form field values. Use those values to generate a tailored email. The response after form submission MUST contain an EmailTemplate.",
+  "Every response that contains an EmailTemplate MUST also include a FollowUpBlock at the end with 2-3 suggestions for iterating on the email design.",
+];
+
+// ── Prompt options ──
+
+export const emailPromptOptions: PromptOptions = {
+  examples: emailExamples,
+  additionalRules: emailAdditionalRules,
+};
+
+// ── Library ──
+
+export const emailLibrary = createLibrary({
+  root: "Card",
+  componentGroups: emailComponentGroups,
+  components: [
+    // Root
+    EmailCard,
+    // Email structure
+    EmailTemplate,
+    EmailSection,
+    EmailColumns,
+    EmailColumn,
+    // Email headers
+    EmailHeaderSideNav,
+    EmailHeaderCenteredNav,
+    EmailHeaderSocial,
+    EmailNavLink,
+    EmailSocialIcon,
+    // Email footers
+    EmailFooterCentered,
+    EmailFooterTwoColumn,
+    // Email content
+    EmailHeading,
+    EmailText,
+    EmailButton,
+    EmailImage,
+    EmailDivider,
+    EmailLink,
+    EmailCodeBlock,
+    EmailCodeInline,
+    EmailMarkdown,
+    // Email articles & products
+    EmailArticle,
+    EmailProductCard,
+    // Email features & steps
+    EmailFeatureItem,
+    EmailFeatureGrid,
+    EmailFeatureList,
+    EmailStepItem,
+    EmailNumberedSteps,
+    // Email commerce
+    EmailCheckoutItem,
+    EmailCheckoutTable,
+    EmailPricingFeature,
+    EmailPricingCard,
+    // Email social proof & surveys
+    EmailTestimonial,
+    EmailSurveyRating,
+    EmailStatItem,
+    EmailStats,
+    // Email image layouts
+    EmailImageGrid,
+    // Email avatars
+    EmailAvatar,
+    EmailAvatarGroup,
+    EmailAvatarWithText,
+    // Email lists
+    EmailListItem,
+    EmailList,
+    // Email reviews
+    EmailCustomerReview,
+    // Email marketing
+    EmailBentoItem,
+    EmailBentoGrid,
+    // Forms
+    Form,
+    FormControl,
+    Input,
+    TextArea,
+    Select,
+    SelectItem,
+    RadioGroup,
+    RadioItem,
+    Button,
+    Buttons,
+    // Chat
+    TextContent,
+    FollowUpBlock,
+    FollowUpItem,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ] as any[],
+});

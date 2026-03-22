@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate:prompt": "pnpm --filter @openuidev/cli build && pnpm exec openui generate src/lib/chat-library.tsx --out src/generated/system-prompt.txt",
+    "generate:prompt": "pnpm --filter @openuidev/cli build && pnpm exec openui generate src/lib/library.ts --out src/generated/system-prompt.txt",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -12,7 +12,6 @@
   "dependencies": {
     "@openuidev/cli": "workspace:*",
     "@openuidev/react-email": "workspace:*",
-    "@openuidev/react-ui": "workspace:*",
     "@openuidev/react-headless": "workspace:*",
     "@openuidev/react-lang": "workspace:*",
     "@react-email/components": "^0.0.41",

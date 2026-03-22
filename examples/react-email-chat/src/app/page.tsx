@@ -1,15 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTheme } from "@/hooks/use-system-theme";
 import {
   ChatProvider,
   openAIAdapter,
   openAIMessageFormat,
   useThread,
 } from "@openuidev/react-headless";
-import { ThemeProvider as OpenUIThemeProvider } from "@openuidev/react-ui";
-import "@openuidev/react-ui/components.css";
 
 import { ComposePage } from "@/components/compose-page";
 import { ChatPage } from "@/components/chat-page";
@@ -79,27 +76,23 @@ function EmailApp() {
 // ── Page Root ──
 
 export default function Page() {
-  const mode = useTheme();
-
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
-      <OpenUIThemeProvider mode={mode}>
-        <ChatProvider
-          processMessage={async ({ messages, abortController }) => {
-            return fetch("/api/chat", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                messages: openAIMessageFormat.toApi(messages),
-              }),
-              signal: abortController.signal,
-            });
-          }}
-          streamProtocol={openAIAdapter()}
-        >
-          <EmailApp />
-        </ChatProvider>
-      </OpenUIThemeProvider>
+      <ChatProvider
+        processMessage={async ({ messages, abortController }) => {
+          return fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              messages: openAIMessageFormat.toApi(messages),
+            }),
+            signal: abortController.signal,
+          });
+        }}
+        streamProtocol={openAIAdapter()}
+      >
+        <EmailApp />
+      </ChatProvider>
     </div>
   );
 }
