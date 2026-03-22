@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "generate:prompt": "npx @openuidev/cli generate ./src/library.ts --out ./src/system-prompt.txt"
+    "generate:prompt": "npx @openuidev/cli@latest generate ./src/library.ts --out ./src/system-prompt.txt"
   },
   "dependencies": {
     "next": "^15.2.3",
