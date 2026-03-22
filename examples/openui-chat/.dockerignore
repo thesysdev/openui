@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+.env*
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+.pnpm-debug.log*
