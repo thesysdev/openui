@@ -2,8 +2,19 @@
 
 import { ButtonGroup } from "@heroui/react";
 import { defineComponent } from "@openuidev/react-lang";
+import { type ReactNode } from "react";
 import { z } from "zod";
 import { Button } from "./button";
+
+function GroupSlot({
+  __button_group_child,
+  children,
+}: {
+  __button_group_child?: boolean;
+  children: ReactNode;
+}) {
+  return <>{children}</>;
+}
 
 const ButtonsSchema = z.object({
   buttons: z.array(Button.ref),
@@ -13,20 +24,30 @@ const ButtonsSchema = z.object({
 export const Buttons = defineComponent({
   name: "Buttons",
   props: ButtonsSchema,
-  description:
-    'Row of Button components. grouped: true joins buttons into a connected group with a separator between them.',
+  description: "Row of Button components",
   component: ({ props, renderNode }) => {
+    const buttons = props.buttons ?? [];
     if (props.grouped) {
       return (
         <ButtonGroup>
-          <ButtonGroup.Separator />
-          {renderNode(props.buttons)}
+          {buttons.flatMap((btn, i) => {
+            const els = [];
+            if (i > 0) {
+              els.push(
+                <GroupSlot key={`sep-${i}`}>
+                  <ButtonGroup.Separator />
+                </GroupSlot>,
+              );
+            }
+            els.push(<GroupSlot key={i}>{renderNode(btn)}</GroupSlot>);
+            return els;
+          })}
         </ButtonGroup>
       );
     }
     return (
       <div className="flex flex-row flex-wrap gap-2">
-        {renderNode(props.buttons)}
+        {renderNode(buttons)}
       </div>
     );
   },

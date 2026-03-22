@@ -11,7 +11,7 @@ import {
   useTriggerAction,
 } from "@openuidev/react-lang";
 import { z } from "zod";
-import { actionSchema, type ActionSchema } from "../action";
+import { actionSchema } from "../action";
 
 const ButtonSchema = z.object({
   label: z.string(),
@@ -28,7 +28,7 @@ function ButtonRenderer({ props }: ComponentRenderProps<z.infer<typeof ButtonSch
   const isStreaming = useIsStreaming();
 
   const label = String(props.label ?? "");
-  const action = props.action as ActionSchema;
+  const action = props.action;
   const variant = props.variant ?? "primary";
   const size = props.size ?? "md";
 
@@ -50,8 +50,10 @@ function ButtonRenderer({ props }: ComponentRenderProps<z.infer<typeof ButtonSch
         }
         const actionParams =
           action?.type === BuiltinActionType.OpenUrl
-            ? { url: (action as { url: string }).url }
-            : (action as { params?: Record<string, unknown> })?.params;
+            ? { url: action.url }
+            : action?.type === BuiltinActionType.ContinueConversation
+              ? { context: action.context }
+              : undefined;
         triggerAction(label, formName, { type: actionType, params: actionParams });
       }}
     >

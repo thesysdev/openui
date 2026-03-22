@@ -19,12 +19,11 @@ const sizeClasses: Record<string, string> = {
 export const TextContent = defineComponent({
   name: "TextContent",
   props: TextContentSchema,
-  description:
-    'Plain text block. size: "small" | "default" | "large" | "small-heavy" | "large-heavy".',
+  description: "Plain text block",
   component: ({ props }) => {
     const text = props.text == null ? "" : String(props.text);
-    const size = (props.size as string) ?? "default";
-    const cls = sizeClasses[size] ?? sizeClasses["default"];
+    const size = props.size ?? "default";
+    const cls = sizeClasses[size];
     return <p className={cls}>{text}</p>;
   },
 });

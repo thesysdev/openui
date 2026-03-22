@@ -19,15 +19,33 @@ Arguments marked with ? are optional. Sub-components can be inline or referenced
 The `action` prop type accepts: ContinueConversation (sends message to LLM), OpenUrl (navigates to URL), or Custom (app-defined).
 
 ### Content
-TextContent(text: string, size?: "small" | "default" | "large" | "small-heavy" | "large-heavy") — Plain text block. size: "small" | "default" | "large" | "small-heavy" | "large-heavy".
+TextContent(text: string, size?: "small" | "default" | "large" | "small-heavy" | "large-heavy") — Plain text block
 MarkDownRenderer(textMarkdown: string, variant?: "clear" | "card" | "sunk") — Renders markdown text with optional container variant
+Callout(status: "default" | "accent" | "warning" | "danger" | "success", title: string, description: string) — Callout banner with status, title, and description
+Separator(orientation?: "horizontal" | "vertical", decorative?: boolean) — Visual divider between content sections
 
 ### Buttons
 Button(label: string, action?: {type: "open_url", url: string} | {type: "continue_conversation", context?: string}, variant?: "primary" | "secondary" | "tertiary" | "outline" | "ghost" | "danger", size?: "sm" | "md" | "lg", fullWidth?: boolean) — Clickable button
-Buttons(buttons: Button[]) — Group of Button components rendered together with consistent spacing.
+Buttons(buttons: Button[], grouped?: boolean) — Row of Button components
+
+### Data
+Col(label: string, type?: "string" | "number" | "action") — Column definition
+Table(columns: Col[], rows: (string | number | boolean)[][]) — Data table
+Tag(text: string, icon?: string, size?: "sm" | "md" | "lg", variant?: "neutral" | "info" | "success" | "warning" | "danger") — Styled tag/badge
+TagBlock(tags: string[]) — Group of plain string tags
+
+### Layout
+TabItem(value: string, trigger: string, content: (TextContent | MarkDownRenderer | Callout | Separator | Table | TagBlock | Buttons)[]) — Single tab within a Tabs container
+Tabs(items: TabItem[]) — Tabbed container
+AccordionItem(value: string, trigger: string, content: (TextContent | MarkDownRenderer | Callout | Separator | Table | TagBlock | Buttons)[]) — Single section within an Accordion
+Accordion(items: AccordionItem[]) — Collapsible sections
+
+### Chat
+FollowUpItem(text: string) — Clickable follow-up suggestion — when clicked, sends text as user message
+FollowUpBlock(items: FollowUpItem[]) — List of clickable follow-up suggestions placed at the end of a response
 
 ### Ungrouped
-Card(children: (TextContent | MarkDownRenderer | Buttons)[]) — Vertical container for all content in a chat response. Children stack top to bottom automatically.
+Card(children: (TextContent | MarkDownRenderer | Callout | Separator | Table | TagBlock | Buttons | FollowUpBlock | Tabs | Accordion)[]) — Vertical container for all content in a chat response. Children stack top to bottom automatically.
 
 ## Hoisting & Streaming (CRITICAL)
 
@@ -41,6 +59,66 @@ During streaming, the output is re-parsed on every chunk. Undefined references a
 3. Data values — leaf content last
 
 Always write the root = Card(...) statement first so the UI shell appears immediately, even before child data has streamed in.
+
+## Examples
+
+Example 1 — Simple text response:
+root = Card([text])
+text = TextContent("Here is the information you requested.", "default")
+
+Example 2 — Markdown with formatting:
+root = Card([md])
+md = MarkDownRenderer("## Summary\n\nHere are the key points:\n\n- **First** item\n- **Second** item\n- [Learn more](https://example.com)")
+
+Example 3 — Text with action buttons:
+root = Card([text, btns])
+text = TextContent("Select one of the actions below to continue.")
+btns = Buttons([b1, b2])
+b1 = Button("Continue", { type: "continue_conversation" }, "primary")
+b2 = Button("Cancel", { type: "continue_conversation" }, "outline")
+
+Example 4 — Card header with callout:
+root = Card([hdr, callout])
+hdr = CardHeader("Important Update", "Please read carefully")
+callout = Callout("accent", "New feature", "We've added **dark mode** support.")
+
+Example 5 — Data table:
+root = Card([title, tbl])
+title = TextContent("Sales Report", "large-heavy")
+tbl = Table([c1, c2, c3], [["Widget A", 150, true], ["Widget B", 230, false]])
+c1 = Col("Product")
+c2 = Col("Units", "number")
+c3 = Col("In Stock")
+
+Example 6 — Tabs:
+root = Card([tabs])
+tabs = Tabs([t1, t2])
+t1 = TabItem("overview", "Overview", [md1])
+t2 = TabItem("details", "Details", [md2])
+md1 = MarkDownRenderer("## Overview\nHigh-level summary.")
+md2 = MarkDownRenderer("## Details\nDetailed breakdown.")
+
+Example 7 — Accordion:
+root = Card([acc])
+acc = Accordion([a1, a2])
+a1 = AccordionItem("faq1", "What is OpenUI?", [text1])
+a2 = AccordionItem("faq2", "How does it work?", [text2])
+text1 = TextContent("OpenUI is a generative UI framework.")
+text2 = TextContent("It streams structured component trees from an LLM.")
+
+Example 8 — Follow-up suggestions:
+root = Card([text, followups])
+text = TextContent("Here's what I found. Want to explore more?")
+followups = FollowUpBlock([f1, f2, f3])
+f1 = FollowUpItem("Tell me more about pricing")
+f2 = FollowUpItem("Show me alternatives")
+f3 = FollowUpItem("Compare features")
+
+Example 9 — Tags:
+root = Card([title, tags])
+title = TextContent("Categories", "large-heavy")
+tags = TagBlock(["React", "TypeScript", "HeroUI", "OpenUI"])
+
 ## Important Rules
 - ALWAYS start with root = Card(...)
 - Write statements in TOP-DOWN order: root → components → data (leverages hoisting for progressive streaming)
@@ -52,3 +130,7 @@ Always write the root = Card(...) statement first so the UI shell appears immedi
 
 - Every response is a single Card(children) — children stack vertically automatically.
 - Card is the only layout container.
+- Use TextContent for titles and short plain text. Use MarkDownRenderer for formatted content with links, bold, lists, tables, code.
+- Callout description supports markdown.
+- Table columns are defined with Col, rows are a 2D array of primitives.
+- FollowUpBlock items become new user messages on click.

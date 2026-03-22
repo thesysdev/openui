@@ -16,7 +16,7 @@ export const MarkDownRenderer = defineComponent({
   description: "Renders markdown text with optional container variant",
   component: ({ props }) => {
     const text = props.textMarkdown == null ? "" : String(props.textMarkdown);
-    const variant = (props.variant as string) ?? "clear";
+    const variant = props.variant ?? "clear";
     const variantClass =
       variant === "card"
         ? "bg-content2 rounded-lg p-4"
