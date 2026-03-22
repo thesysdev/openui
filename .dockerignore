@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+*.md
+!README.md
+.turbo
+dist
+.DS_Store
+.vscode
+.idea
