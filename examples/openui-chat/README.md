@@ -19,6 +19,26 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `src/app/api/route.ts` and improving your agent
 by adding system prompts or tools.
 
+## Docker
+
+Build and run the chat app with a single command (from the **monorepo root**):
+
+```bash
+# Build the image
+docker build -f examples/openui-chat/Dockerfile -t openui-chat .
+
+# Run it
+docker run -p 3000:3000 -e OPENAI_API_KEY=sk-... openui-chat
+```
+
+Open [http://localhost:3000](http://localhost:3000) to use the chat interface.
+
+### Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `OPENAI_API_KEY` | Yes | Your OpenAI API key |
+
 ## Learn More
 
 To learn more about OpenUI, take a look at the following resources:

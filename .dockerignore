@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+LICENSE
+.eslintrc*
+.prettierrc*
+tsconfig*.json
+*.tsbuildinfo
+dist
