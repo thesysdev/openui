@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/react-email",
   "version": "0.1.0",
-  "description": "React Email components for OpenUI — 44 email building blocks with defineComponent",
+  "description": "React Email components for OpenUI \u2014 44 email building blocks with defineComponent",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -22,7 +22,6 @@
   "dependencies": {
     "@react-email/components": "^0.0.41",
     "@react-email/render": "^1.0.6",
-    "lucide-react": "^0.575.0",
     "zod": "^4.3.6"
   },
   "peerDependencies": {

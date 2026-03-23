@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate:prompt": "pnpm --filter @openuidev/cli build && pnpm exec openui generate src/lib/library.ts --out src/generated/system-prompt.txt",
+    "generate:prompt": "echo 'System prompt is generated from the @openuidev/react-email package'",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -16,7 +16,6 @@
     "@openuidev/react-lang": "workspace:*",
     "@react-email/components": "^0.0.41",
     "@react-email/render": "^1.0.6",
-    "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "openai": "^6.22.0",
     "react": "19.2.3",

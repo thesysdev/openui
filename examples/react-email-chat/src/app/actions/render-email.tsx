@@ -203,28 +203,6 @@ function buildElement(node: ElementNode): ReactElement | null {
           {node.props.content as string}
         </Markdown>
       );
-    case "EmailRow": {
-      const children = (node.props.children as ElementNode[]) ?? [];
-      return (
-        <Row style={{ margin: "0 0 16px 0" }}>
-          {children.map((child, i) => {
-            const el = buildElement(child);
-            return el ? <span key={i}>{el}</span> : null;
-          })}
-        </Row>
-      );
-    }
-    case "EmailContainer": {
-      const children = (node.props.children as ElementNode[]) ?? [];
-      return (
-        <Container style={{ maxWidth: "600px", margin: "0 auto", padding: "0 20px" }}>
-          {children.map((child, i) => {
-            const el = buildElement(child);
-            return el ? <span key={i}>{el}</span> : null;
-          })}
-        </Container>
-      );
-    }
     case "EmailHeaderSideNav": {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const links = (node.props.links ?? []) as any[];
