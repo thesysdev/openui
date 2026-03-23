@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod";
-import { EmailTemplate } from "../components/EmailTemplate";
+import { EmailTemplate } from "@openuidev/react-email";
 import { Form } from "../forms/Form";
 import { FollowUpBlock } from "./FollowUpBlock";
 import { TextContent } from "./TextContent";

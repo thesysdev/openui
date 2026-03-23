@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "@/hooks/use-system-theme";
-import { emailLibrary } from "@openuidev/react-email";
+import { emailChatLibrary } from "@/lib/chat-library";
 import { renderEmailToHtml } from "@/app/actions/render-email";
 import { useThread } from "@openuidev/react-headless";
 import type { ActionEvent, ParseResult } from "@openuidev/react-lang";
@@ -658,7 +658,7 @@ export function ChatPage({
             {openuiCode ? (
               <Renderer
                 response={openuiCode}
-                library={emailLibrary}
+                library={emailChatLibrary}
                 isStreaming={isStreaming}
                 onAction={handleAction}
                 onStateUpdate={handleStateUpdate}
@@ -707,7 +707,7 @@ export function ChatPage({
             ) : lastAssistantMessage ? (
               <Renderer
                 response={openuiCode}
-                library={emailLibrary}
+                library={emailChatLibrary}
                 isStreaming={false}
                 onAction={handleAction}
                 onStateUpdate={handleStateUpdate}
