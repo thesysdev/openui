@@ -22,15 +22,13 @@ import {
 
 function EmailApp() {
   const [view, setView] = useState<"compose" | "chat">("compose");
-  const [ready, setReady] = useState(false);
   const messages = useThread((s) => s.messages);
   const processMessage = useThread((s) => s.processMessage);
   const setMessages = useThread((s) => s.setMessages);
-  const restoredRef = useRef(false);
+  const restoredRef = useRef<boolean | null>(null);
 
-  // Restore view and messages from session on mount
-  useEffect(() => {
-    if (restoredRef.current) return;
+  // Restore view and messages synchronously on first render (not in effect)
+  if (restoredRef.current === null) {
     restoredRef.current = true;
     const savedView = loadView();
     if (savedView === "chat") setView("chat");
@@ -38,8 +36,7 @@ function EmailApp() {
     if (saved && saved.length > 0) {
       setMessages(saved as Parameters<typeof setMessages>[0]);
     }
-    setReady(true);
-  }, [setMessages]);
+  }
 
   // Persist messages to session whenever they change
   useEffect(() => {
@@ -62,9 +59,6 @@ function EmailApp() {
     setView("compose");
     clearSession();
   }, [setMessages]);
-
-  // Don't render until session is restored to avoid hydration mismatch
-  if (!ready) return null;
 
   if (view === "compose") {
     return <ComposePage onSend={handleSend} />;
