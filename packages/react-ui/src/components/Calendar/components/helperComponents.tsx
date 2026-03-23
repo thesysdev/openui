@@ -3,7 +3,6 @@ import clsx from "clsx";
 import debounce from "lodash-es/debounce";
 import { DetailedHTMLProps, forwardRef, SelectHTMLAttributes, useEffect, useState } from "react";
 import { ClassNames, CustomComponents, DropdownOption } from "react-day-picker";
-import "react-day-picker/style.css";
 import { Select, SelectItem, SelectTrigger, SelectValue } from "../../Select";
 import { getMonthName, getMonthNumber } from "../utils/helperFn";
 

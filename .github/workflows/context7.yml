@@ -1,0 +1,20 @@
+name: Refresh Context7 docs
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: rennf93/upsert-context7@v1.1
+        with:
+          operation: refresh
+
+      - name: Show result
+        run: |
+          echo "Success: ${{ steps.refresh.outputs.success }}"
+          echo "Status: ${{ steps.refresh.outputs.status-code }}"
+          echo "Message: ${{ steps.refresh.outputs.message }}"

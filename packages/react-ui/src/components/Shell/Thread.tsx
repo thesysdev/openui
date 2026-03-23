@@ -371,5 +371,15 @@ export const Messages = ({
   );
 };
 
+export const ThreadHeader = ({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) => {
+  return <div className={clsx("openui-shell-thread-header", className)}>{children}</div>;
+};
+
 // Re-export Composer from components
 export { Composer } from "./components";

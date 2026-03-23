@@ -12,16 +12,17 @@ export interface DesktopWelcomeComposerProps {
 
 export const DesktopWelcomeComposer = ({
   className,
-  placeholder = "Type your message...",
+  placeholder = "Type your query here",
 }: DesktopWelcomeComposerProps) => {
   const { textContent, setTextContent } = useComposerState();
   const processMessage = useThread((s) => s.processMessage);
   const cancelMessage = useThread((s) => s.cancelMessage);
   const isRunning = useThread((s) => s.isRunning);
+  const isLoadingMessages = useThread((s) => s.isLoadingMessages);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = () => {
-    if (!textContent.trim() || isRunning) {
+    if (!textContent.trim() || isRunning || isLoadingMessages) {
       return;
     }
 
@@ -35,38 +36,38 @@ export const DesktopWelcomeComposer = ({
 
   useLayoutEffect(() => {
     const input = inputRef.current;
-    if (!input) {
-      return;
-    }
+    if (!input) return;
 
-    input.style.height = "auto";
-    input.style.height = `${input.scrollHeight}px`;
+    // Reset to 0 (not "auto") so scrollHeight reflects content, not container
+    input.style.height = "0px";
+    input.style.height = `${Math.max(input.scrollHeight, 24)}px`;
   }, [textContent]);
 
   return (
     <div className={clsx("openui-shell-desktop-welcome-composer", className)}>
-      <div className="openui-shell-desktop-welcome-composer__input-container">
-        <textarea
-          autoFocus
-          ref={inputRef}
-          rows={1}
-          value={textContent}
-          onChange={(e) => setTextContent(e.target.value)}
-          className="openui-shell-desktop-welcome-composer__input"
-          placeholder={placeholder}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit();
-            }
-          }}
-        />
-      </div>
-      <div className="openui-shell-desktop-welcome-composer__actions">
+      <textarea
+        ref={inputRef}
+        value={textContent}
+        onChange={(e) => setTextContent(e.target.value)}
+        className="openui-shell-desktop-welcome-composer__input"
+        placeholder={placeholder}
+        rows={1}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit();
+          }
+        }}
+      />
+      <div className="openui-shell-desktop-welcome-composer__action-bar">
         <IconButton
           onClick={isRunning ? cancelMessage : handleSubmit}
           disabled={!textContent.trim() && !isRunning}
+          aria-label={isRunning ? "Cancel" : "Send"}
           icon={isRunning ? <Square size="1em" fill="currentColor" /> : <ArrowUp size="1em" />}
+          size="medium"
+          variant="primary"
+          className="openui-shell-desktop-welcome-composer__submit-button"
         />
       </div>
     </div>

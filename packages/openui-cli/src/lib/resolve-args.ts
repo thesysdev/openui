@@ -1,6 +1,3 @@
-import { ExitPromptError } from "@inquirer/core";
-import { input, select } from "@inquirer/prompts";
-
 type InputPromptConfig = {
   type: "input";
   message: string;
@@ -22,6 +19,7 @@ type ResolvedArgs<T extends Record<string, ArgDef<unknown>>> = {
 };
 
 async function resolveOne(prompt: PromptConfig): Promise<string> {
+  const { input, select } = await import("@inquirer/prompts");
   if (prompt.type === "select") {
     return select({ message: prompt.message, choices: prompt.choices });
   }
@@ -48,6 +46,7 @@ export async function resolveArgs<T extends Record<string, ArgDef<unknown>>>(
     try {
       result[key] = await resolveOne(def.prompt);
     } catch (err) {
+      const { ExitPromptError } = await import("@inquirer/core");
       if (err instanceof ExitPromptError) {
         process.exit(0);
       }

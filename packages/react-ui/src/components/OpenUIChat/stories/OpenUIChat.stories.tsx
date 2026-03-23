@@ -1,7 +1,9 @@
 import type { Message } from "@openuidev/react-headless";
-import { Sparkles, Zap } from "lucide-react";
+import { ChevronDown, Download, Share, Sparkles, ThumbsUp, Zap } from "lucide-react";
 import { useState } from "react";
 import logoUrl from "../../BottomTray/stories/thesysdev_logo.jpeg";
+import { Button } from "../../Button";
+import { IconButton } from "../../IconButton";
 import { BottomTray } from "../ComposedBottomTray.js";
 import { Copilot } from "../ComposedCopilot.js";
 import { FullScreen } from "../ComposedStandalone.js";
@@ -143,6 +145,42 @@ export const StandaloneLongStarters = {
   ),
 };
 
+export const StandaloneWithThreadHeader = {
+  render: () => (
+    <div style={{ minHeight: "100vh", background: "var(--openui-bg-fill, #f5f5f5)" }}>
+      <FullScreen
+        {...sharedProps}
+        welcomeMessage={SAMPLE_WELCOME_MESSAGE}
+        conversationStarters={SAMPLE_STARTERS}
+        threadHeader={
+          <>
+            <Button iconLeft={<ChevronDown size={14} />} variant="secondary" size="small">
+              GPT-4o
+            </Button>
+            <div style={{ display: "flex", gap: "4px" }}>
+              <IconButton
+                icon={<ThumbsUp size={16} />}
+                aria-label="Feedback"
+                size="small"
+                variant="secondary"
+              />
+              <IconButton
+                icon={<Download size={16} />}
+                aria-label="Export"
+                size="small"
+                variant="secondary"
+              />
+              <Button iconLeft={<Share size={14} />} variant="secondary" size="small">
+                Share
+              </Button>
+            </div>
+          </>
+        }
+      />
+    </div>
+  ),
+};
+
 export const CopilotDefault = {
   render: () => (
     <div style={{ minHeight: "100vh", background: "var(--openui-bg-fill, #f5f5f5)" }}>
@@ -158,6 +196,33 @@ export const CopilotWithWelcome = {
         {...sharedProps}
         welcomeMessage={SAMPLE_WELCOME_MESSAGE}
         conversationStarters={SAMPLE_STARTERS}
+      />
+    </div>
+  ),
+};
+
+export const CopilotWithHeaderActions = {
+  render: () => (
+    <div style={{ minHeight: "100vh", background: "var(--openui-bg-fill, #f5f5f5)" }}>
+      <Copilot
+        {...sharedProps}
+        welcomeMessage={SAMPLE_WELCOME_MESSAGE}
+        headerActions={
+          <>
+            <IconButton
+              icon={<Download size={16} />}
+              aria-label="Export"
+              size="small"
+              variant="secondary"
+            />
+            <IconButton
+              icon={<Share size={16} />}
+              aria-label="Share"
+              size="small"
+              variant="secondary"
+            />
+          </>
+        }
       />
     </div>
   ),
@@ -214,6 +279,19 @@ export const BottomTrayLongStarters = {
       defaultOpen
       welcomeMessage={SAMPLE_WELCOME_MESSAGE}
       conversationStarters={LONG_STARTERS}
+    />
+  ),
+};
+
+export const BottomTrayWithHeaderActions = {
+  render: () => (
+    <BottomTrayStory
+      defaultOpen
+      welcomeMessage={SAMPLE_WELCOME_MESSAGE}
+      conversationStarters={SAMPLE_STARTERS}
+      headerActions={
+        <IconButton icon={<Share size={16} />} aria-label="Share" size="small" variant="tertiary" />
+      }
     />
   ),
 };

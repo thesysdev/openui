@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useLayoutEffect, useState } from "react";
 
 type ThemeMode = "light" | "dark";
 
@@ -18,14 +18,14 @@ function getSystemMode(): ThemeMode {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>(getSystemMode);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = (e: MediaQueryListEvent) => setMode(e.matches ? "dark" : "light");
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.body.setAttribute("data-theme", mode);
   }, [mode]);
 

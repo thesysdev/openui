@@ -21,6 +21,7 @@ interface BottomTraySpecificProps extends SharedChatUIProps {
   isOpen?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
   defaultOpen?: boolean;
+  headerActions?: React.ReactNode;
 }
 
 const WelcomeMessageRenderer = ({ welcomeMessage }: Pick<SharedChatUIProps, "welcomeMessage">) => {
@@ -82,6 +83,7 @@ const BottomTrayInner = ({
   assistantMessage,
   userMessage,
   composer: ComposerComponent,
+  headerActions,
 }: BottomTraySpecificProps) => {
   const [uncontrolledIsOpen, setUncontrolledIsOpen] = useState(defaultOpen);
 
@@ -104,7 +106,7 @@ const BottomTrayInner = ({
 
       <Container logoUrl={logoUrl} agentName={agentName} isOpen={isOpen}>
         <ThreadContainer isArtifactActive={isArtifactActive} renderArtifact={renderArtifact}>
-          <Header onMinimize={() => handleOpenChange(false)} />
+          <Header onMinimize={() => handleOpenChange(false)} rightChildren={headerActions} />
           <WelcomeMessageRenderer welcomeMessage={welcomeMessage} />
           <ScrollArea scrollVariant={scrollVariant}>
             <Messages
@@ -129,4 +131,5 @@ export const BottomTray = withChatProvider<{
   isOpen?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
   defaultOpen?: boolean;
+  headerActions?: React.ReactNode;
 }>(BottomTrayInner);

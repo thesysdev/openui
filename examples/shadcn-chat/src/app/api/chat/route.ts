@@ -6,6 +6,39 @@ import { join } from "path";
 
 const systemPrompt = readFileSync(join(process.cwd(), "src/generated/system-prompt.txt"), "utf-8");
 
+const conversationLog: Array<{ role: string; content: string }> = [];
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function extractText(msg: any): string {
+  const content = msg?.content;
+  if (typeof content === "string") {
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed?.parts)
+        return parsed.parts
+          .filter((p: any) => p.type === "text")
+          .map((p: any) => p.text)
+          .join("");
+    } catch {
+      /* plain string */
+    }
+    return content;
+  }
+  if (Array.isArray(content))
+    return content
+      .filter((p: any) => p.type === "text")
+      .map((p: any) => p.text)
+      .join("");
+  if (Array.isArray(msg?.parts))
+    return msg.parts
+      .filter((p: any) => p.type === "text")
+      .map((p: any) => p.text)
+      .join("");
+  if (typeof msg?.text === "string") return msg.text;
+  return JSON.stringify(msg);
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 // ── Tool implementations ──
 
 function getWeather({ location }: { location: string }): Promise<string> {
@@ -244,6 +277,10 @@ function sseToolCallArgs(
 export async function POST(req: NextRequest) {
   const { messages } = await req.json();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lastUserMsg = (messages as any[]).filter((m: any) => m.role === "user").pop();
+  if (lastUserMsg) conversationLog.push({ role: "user", content: extractText(lastUserMsg) });
+
   const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
@@ -290,6 +327,7 @@ export async function POST(req: NextRequest) {
         }
       };
 
+      let fullResponse = "";
       const pendingCalls: Array<{ id: string; name: string; arguments: string }> = [];
       let callIdx = 0;
       let resultIdx = 0;
@@ -331,6 +369,7 @@ export async function POST(req: NextRequest) {
         const delta = choice?.delta;
         if (!delta) return;
         if (delta.content) {
+          fullResponse += delta.content;
           enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
         }
         if (choice?.finish_reason === "stop") {
@@ -339,6 +378,15 @@ export async function POST(req: NextRequest) {
       });
 
       runner.on("end", () => {
+        conversationLog.push({ role: "assistant", content: fullResponse });
+        console.info(
+          "[OpenUI Lang] Conversation:\n",
+          JSON.stringify(
+            conversationLog.map((m) => ({ ...m, content: m.content.replace(/\n/g, " ") })),
+            null,
+            2,
+          ),
+        );
         enqueue(encoder.encode("data: [DONE]\n\n"));
         close();
       });

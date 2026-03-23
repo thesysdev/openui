@@ -1,0 +1,121 @@
+---
+title: Vercel AI Chat
+description: A full-featured chatbot using the Vercel AI SDK for streaming and tool execution, with OpenUI Renderer for generative UI.
+---
+
+OpenUI's `<Renderer />` is transport-agnostic — it takes a string of OpenUI Lang markup and renders it as interactive React components, regardless of how that string arrived. This example uses the Vercel AI SDK (`ai`, `@ai-sdk/react`, `@ai-sdk/openai`) as the transport layer, paired with the built-in `openuiChatLibrary` of `OpenUI` as the presentation layer. It includes multi-step tool calling, conversation threading with localStorage persistence, and automatic light/dark theme support.
+
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/vercel-ai-chat)
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl h-[500px] flex p-2">
+  <video
+    src="/videos/vercel-ai-chat.mp4"
+    noControls
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
+## How OpenUI plugs into any chat framework
+
+The backend API route reads a pre-generated system prompt from `src/generated/system-prompt.txt` and calls the LLM with `streamText`. Tool definitions use the AI SDK's `tool()` helper with Zod schemas:
+
+```tsx
+import { streamText, convertToModelMessages, stepCountIs } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { tools } from "@/lib/tools";
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+  const modelMessages = await convertToModelMessages(messages);
+
+  const result = streamText({
+    model: openai("gpt-5.4"),
+    system: systemPrompt,
+    messages: modelMessages,
+    tools,
+    stopWhen: stepCountIs(5),
+  });
+
+  return result.toUIMessageStreamResponse();
+}
+```
+
+On the client, `useChat` from `@ai-sdk/react` manages conversation state and streaming. Each assistant message passes its accumulated text to `<Renderer />`:
+
+```tsx
+import { useChat } from "@ai-sdk/react";
+import { Renderer } from "@openuidev/react-lang";
+import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
+
+const { messages, sendMessage, status, stop } = useChat({
+  id: activeThreadId,
+  messages: activeThread?.messages,
+});
+
+// In the assistant message component:
+<Renderer
+  response={textContent}
+  library={openuiChatLibrary}
+  isStreaming={isStreaming}
+  onAction={handleAction}
+/>
+```
+
+- `response` — the accumulated text the LLM has streamed so far; `<Renderer />` parses it progressively as tokens arrive
+- `library` — maps OpenUI Lang nodes to the built-in component set (cards, tables, charts, forms, etc.)
+- `isStreaming` — tells the renderer to keep expecting more tokens
+- `onAction` — captures interactive events like button clicks and feeds them back into the conversation
+
+Swap out `useChat` and the API route for any other transport — raw `fetch`, LangChain, LlamaIndex — and the `<Renderer />` call stays unchanged.
+
+## Architecture
+
+```
+Browser (useChat) -- POST /api/chat --> Next.js route --> LLM
+                  <-- streaming text --                   (OpenUI Lang markup)
+```
+
+The API route calls the LLM with `streamText`, the system prompt, and tool definitions. When the LLM invokes a tool (weather, stock price, calculator, or web search), the AI SDK executes it server-side and feeds the result back — up to 5 steps. The response streams back as OpenUI Lang markup.
+
+On the client, `<Renderer />` and `openuiChatLibrary` progressively render each token into interactive UI components as the response arrives.
+
+## Project layout
+
+```
+examples/vercel-ai-chat/
+|- src/app/        # Next.js app (layout, page, API route)
+|- src/components/ # Chat UI components (messages, input, sidebar)
+|- src/hooks/      # Theme detection, thread management
+|- src/lib/        # Tool definitions, localStorage thread store
+|- src/generated/  # Generated system prompt
+```
+
+## Run the example
+
+Run these commands from `examples/vercel-ai-chat`.
+
+1. Install dependencies:
+
+```bash
+cd examples/vercel-ai-chat
+pnpm install
+```
+
+2. Create a `.env.local` file with your API key:
+
+```bash
+OPENAI_API_KEY=sk-...
+```
+
+3. Start the dev server:
+
+```bash
+pnpm dev
+```
+
+This generates the system prompt from the OpenUI component library and starts the Next.js dev server.

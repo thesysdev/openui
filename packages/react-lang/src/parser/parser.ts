@@ -499,7 +499,7 @@ type JsonVal = string | number | boolean | null | JsonVal[] | { [k: string]: Jso
 function toJson(
   node: ASTNode,
   partial: boolean,
-  errors: ParseResult["meta"]["validationErrors"],
+  errors: ParseResult["meta"]["errors"],
   cat: ParamMap | undefined,
 ): JsonVal {
   if (node.k === "Str") return node.v;
@@ -531,7 +531,7 @@ function toJson(
 function mapNode(
   node: ASTNode,
   partial: boolean,
-  errors: ParseResult["meta"]["validationErrors"],
+  errors: ParseResult["meta"]["errors"],
   cat: ParamMap | undefined,
 ): ParseResult["root"] {
   if (node.k === "Ph") return null;
@@ -545,6 +545,17 @@ function mapNode(
     // Map positional args → named props using library param order
     for (let i = 0; i < def.params.length && i < args.length; i++)
       props[def.params[i].name] = toJson(args[i], partial, errors, cat);
+
+    // Report extra positional args that have no corresponding param
+    if (args.length > def.params.length) {
+      errors.push({
+        type: "validation",
+        code: "excess-args",
+        component: name,
+        path: "",
+        message: `${name} takes ${def.params.length} arg(s), got ${args.length}`,
+      });
+    }
 
     // Validate required props — try defaultValue first before dropping
     const missingRequired = def.params.filter(
@@ -561,6 +572,8 @@ function mapNode(
       if (stillInvalid.length) {
         for (const p of stillInvalid)
           errors.push({
+            type: "validation",
+            code: p.name in props ? "null-required" : "missing-required",
             component: name,
             path: `/${p.name}`,
             message:
@@ -572,7 +585,14 @@ function mapNode(
       }
     }
   } else {
-    // No library entry for this component — preserve all args under _args
+    // Component name not found in schema — report and preserve args for debugging
+    errors.push({
+      type: "validation",
+      code: "unknown-component",
+      component: name,
+      path: "",
+      message: `unknown component "${name}"`,
+    });
     props._args = args.map((a) => toJson(a, partial, errors, cat));
   }
 
@@ -586,7 +606,7 @@ function emptyResult(incomplete = true): ParseResult {
       incomplete,
       unresolved: [],
       statementCount: 0,
-      validationErrors: [],
+      errors: [],
     },
   };
 }
@@ -602,7 +622,7 @@ function buildResult(
 
   const unres: string[] = [];
   const resolved = resolveNode(syms.get(firstId)!, syms, unres, new Set());
-  const errors: ParseResult["meta"]["validationErrors"] = [];
+  const errors: ParseResult["meta"]["errors"] = [];
   const root = mapNode(resolved, wasIncomplete, errors, cat);
 
   return {
@@ -611,7 +631,7 @@ function buildResult(
       incomplete: wasIncomplete,
       unresolved: unres,
       statementCount: stmtCount,
-      validationErrors: errors,
+      errors,
     },
   };
 }

@@ -1,6 +1,5 @@
 import React from "react";
 import { Separator } from "../Separator";
-import "./sectionV2.scss";
 
 interface SectionV2Props {
   trigger: string;
