@@ -88,7 +88,7 @@ EmailNumberedSteps(title: string, description: string, steps: EmailStepItem[]) �
 EmailCheckoutItem(imageSrc?: string, imageAlt?: string, name: string, quantity?: number, price: string) — Single checkout/cart item with optional image, name, quantity, and price. Used inside EmailCheckoutTable.
 EmailCheckoutTable(title?: string, items: EmailCheckoutItem[], buttonLabel: string, buttonHref: string, buttonColor?: string) — Checkout/cart table with product items (image, name, quantity, price) and a checkout button. Great for abandoned cart and order summary emails.
 EmailPricingFeature(text: string) — Single pricing feature line item. Used inside EmailPricingCard.
-EmailPricingCard(badge?: string, price: string, period?: string, description: string, features: EmailPricingFeature[], buttonLabel: string, buttonHref: string, buttonColor?: string, note?: string) — Pricing card with badge, price, description, feature list, CTA button, and optional note. Great for upgrade and promotional emails.
+EmailPricingCard(badge?: string, price: string, period?: string, description: string, features: EmailPricingFeature[], buttonLabel: string, buttonHref: string, buttonColor?: string, note?: string, subNote?: string) — Pricing card with badge, price, description, feature list, CTA button, and optional note. Great for upgrade and promotional emails.
 - EmailCheckoutItem: Cart item with optional image, name, quantity, price. Used inside EmailCheckoutTable.
 - EmailCheckoutTable: Cart table with items and checkout button. Great for abandoned cart and order summary emails.
 - EmailPricingFeature: Single feature line item text. Used inside EmailPricingCard.

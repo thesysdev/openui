@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate:prompt": "echo 'System prompt is generated from the @openuidev/react-email package'",
-    "dev": "next dev",
-    "build": "next build",
+    "generate:prompt": "node --import tsx -e \"import{emailChatLibrary,emailPromptOptions}from'./src/lib/chat-library.tsx';import{writeFileSync,mkdirSync}from'fs';mkdirSync('src/generated',{recursive:true});writeFileSync('src/generated/system-prompt.txt',emailChatLibrary.prompt(emailPromptOptions));console.log('Prompt generated')\"",
+    "dev": "pnpm generate:prompt && next dev",
+    "build": "pnpm generate:prompt && next build",
     "start": "next start",
     "lint": "eslint"
   },

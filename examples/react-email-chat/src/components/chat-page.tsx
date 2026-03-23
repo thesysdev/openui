@@ -132,11 +132,49 @@ export function ChatPage({
     }
   };
 
+  const userScrolledRef = useRef(false);
+  const isUserScrollingRef = useRef(false);
+
   useEffect(() => {
-    if (previewRef.current) {
+    const el = previewRef.current;
+    if (!el) return;
+
+    // Track user-initiated interactions (not programmatic scrolls)
+    const onUserStart = () => { isUserScrollingRef.current = true; };
+    const onUserEnd = () => { isUserScrollingRef.current = false; };
+    const onScroll = () => {
+      if (isUserScrollingRef.current) {
+        userScrolledRef.current = true;
+      }
+    };
+
+    el.addEventListener("mousedown", onUserStart);
+    el.addEventListener("touchstart", onUserStart);
+    el.addEventListener("wheel", onUserStart);
+    el.addEventListener("click", onUserEnd);
+    el.addEventListener("scroll", onScroll);
+
+    return () => {
+      el.removeEventListener("mousedown", onUserStart);
+      el.removeEventListener("touchstart", onUserStart);
+      el.removeEventListener("wheel", onUserStart);
+      el.removeEventListener("click", onUserEnd);
+      el.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (previewRef.current && !userScrolledRef.current) {
       previewRef.current.scrollTop = previewRef.current.scrollHeight;
     }
   }, [lastAssistantMessage?.content]);
+
+  // Reset when a new generation starts
+  useEffect(() => {
+    if (isRunning) {
+      userScrolledRef.current = false;
+    }
+  }, [isRunning]);
 
   // ── Render HTML from parsed result ──
   const [renderedHtml, setRenderedHtml] = useState<string | null>(null);
