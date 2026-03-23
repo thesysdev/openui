@@ -1,0 +1,34 @@
+{
+  "name": "react-email-example",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate:prompt": "node --import tsx -e \"import{emailLibrary,emailPromptOptions}from'@openuidev/react-email';import{writeFileSync,mkdirSync}from'fs';mkdirSync('src/generated',{recursive:true});writeFileSync('src/generated/system-prompt.txt',emailLibrary.prompt(emailPromptOptions));console.log('Prompt generated')\"",
+    "dev": "pnpm generate:prompt && next dev",
+    "build": "pnpm generate:prompt && next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@openuidev/cli": "workspace:*",
+    "@openuidev/react-email": "workspace:*",
+    "@openuidev/react-headless": "workspace:*",
+    "@openuidev/react-lang": "workspace:*",
+    "@react-email/components": "^0.0.41",
+    "@react-email/render": "^1.0.6",
+    "next": "16.1.6",
+    "openai": "^6.22.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

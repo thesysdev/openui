@@ -1,0 +1,148 @@
+---
+title: React Email
+description: An AI-powered email generator that uses OpenUI Lang to render 44 React Email components from natural language descriptions.
+---
+
+OpenUI Lang isn't limited to chat interfaces — it can power any domain-specific UI generator. This example uses [React Email](https://react.email) components as the rendering target, letting users describe emails in plain English and see them rendered live. The AI streams OpenUI Lang markup, and the `<Renderer />` progressively builds the email from 44 purpose-built components — headers, footers, feature grids, pricing cards, checkout tables, testimonials, and more.
+
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/react-email)
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl h-[500px] flex p-2">
+  <video
+    src="/videos/react-email.mp4"
+    noControls
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
+## Building an email component library with OpenUI Lang
+
+The `@openuidev/react-email` package defines 44 email components using `defineComponent` from `@openuidev/react-lang`. Each component wraps a React Email primitive with inline styles optimized for email clients:
+
+```tsx
+import { defineComponent } from "@openuidev/react-lang";
+import { Button } from "@react-email/components";
+import { z } from "zod";
+
+export const EmailButton = defineComponent({
+  name: "EmailButton",
+  props: z.object({
+    label: z.string(),
+    href: z.string(),
+    backgroundColor: z.string().optional(),
+  }),
+  description: "Email call-to-action button with link.",
+  component: ({ props }) => (
+    <Button
+      href={props.href as string}
+      style={{
+        backgroundColor: (props.backgroundColor as string) ?? "#5F51E8",
+        color: "#ffffff",
+        borderRadius: "6px",
+        padding: "12px 24px",
+        fontSize: "16px",
+        fontWeight: "bold",
+      }}
+    >
+      {props.label as string}
+    </Button>
+  ),
+});
+```
+
+Email components use inline styles instead of CSS classes because email clients (Gmail, Outlook) strip `<style>` tags. The `description` field tells the LLM when and how to use each component — this is included in the auto-generated system prompt.
+
+All 44 components are assembled into a ready-to-use library:
+
+```tsx
+import { emailLibrary, emailPromptOptions } from "@openuidev/react-email";
+
+// Generate the system prompt for the LLM
+const systemPrompt = emailLibrary.prompt(emailPromptOptions);
+
+// Render streamed OpenUI Lang into email components
+<Renderer
+  response={openuiCode}
+  library={emailLibrary}
+  isStreaming={isStreaming}
+/>
+```
+
+The library includes component groups, 10 usage examples, and email design rules — all fed into the system prompt so the LLM generates well-structured emails.
+
+## Architecture
+
+```
+Browser (split view) -- POST /api/chat --> Next.js route --> OpenAI
+                      <-- SSE stream --                       (OpenUI Lang)
+                                        |
+                      -- renderEmailToHtml() --> @react-email/render --> HTML export
+```
+
+The client sends the conversation to `/api/chat`. The API route loads the pre-generated system prompt (built from the email component library), forwards messages to the LLM with streaming, and returns SSE events. On the client, the `<Renderer />` progressively renders each token into email components.
+
+Once streaming completes, a server action uses `@react-email/render` to convert the component tree into email-client-compatible HTML that can be copied and pasted into any email service.
+
+The UI is a split view: rendered HTML code on the left, live email preview on the right.
+
+## Available components
+
+The library ships 44 components organized into groups:
+
+| Group | Components |
+|-------|-----------|
+| **Structure** | Template, Section, Columns, Column |
+| **Headers** | HeaderSideNav, HeaderCenteredNav, HeaderSocial, NavLink, SocialIcon |
+| **Footers** | FooterCentered, FooterTwoColumn |
+| **Content** | Heading, Text, Button, Image, Divider, Link, CodeBlock, CodeInline, Markdown |
+| **Articles** | Article, ProductCard |
+| **Features** | FeatureItem, FeatureGrid, FeatureList, StepItem, NumberedSteps |
+| **Commerce** | CheckoutItem, CheckoutTable, PricingFeature, PricingCard |
+| **Social Proof** | Testimonial, SurveyRating, StatItem, Stats, CustomerReview |
+| **Media** | ImageGrid, Avatar, AvatarGroup, AvatarWithText |
+| **Lists** | ListItem, List, BentoItem, BentoGrid |
+
+## Project layout
+
+```
+examples/react-email/
+|- src/app/              # Next.js app (layout, page, API route)
+|- src/app/actions/      # Server action for HTML rendering
+|- src/components/       # Chat UI (compose page, split view, starters)
+|- src/hooks/            # Theme detection
+|- src/generated/        # Auto-generated system prompt
+
+packages/react-email/
+|- src/components/       # 44 email components (defineComponent)
+|- src/index.ts          # Library, groups, examples, rules
+|- src/unions.ts         # Component type unions
+```
+
+## Run the example
+
+Run these commands from the monorepo root.
+
+1. Install dependencies:
+
+```bash
+pnpm install
+```
+
+2. Create a `.env.local` file in `examples/react-email/`:
+
+```bash
+OPENAI_API_KEY=sk-...
+```
+
+3. Start the dev server:
+
+```bash
+pnpm --filter react-email-example dev
+```
+
+This generates the system prompt from the email component library and starts the Next.js dev server.
