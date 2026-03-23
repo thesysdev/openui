@@ -19,7 +19,8 @@ ChatProvider
     │       ├── SidebarSeparator
     │       └── ThreadList
     └── ThreadContainer          (main chat area)
-        ├── MobileHeader         (mobile-only header)
+        ├── MobileHeader         (mobile-only header, supports rightChildren)
+        ├── ThreadHeader         (desktop-only header for custom actions)
         ├── ScrollArea           (scrollable message area)
         │   └── Messages
         ├── ConversationStarter  (optional, shown when empty)
@@ -161,11 +162,49 @@ Wrapper for the main chat area with optional artifact panel support.
 
 ### MobileHeader
 
-Header shown only on mobile devices with sidebar toggle.
+Header shown only on mobile devices with sidebar toggle and optional custom actions.
 
 ```tsx
-<MobileHeader />
+<MobileHeader
+  rightChildren={
+    <IconButton icon={<Share size={16} />} aria-label="Share" size="medium" variant="secondary" />
+  }
+/>
 ```
+
+**Props:**
+
+- `className` - Optional additional CSS class
+- `rightChildren` - Custom content rendered on the right side, before the "new chat" button
+
+### ThreadHeader
+
+Desktop-only header bar for custom actions (model selector, share button, etc.). Automatically hidden on mobile.
+
+```tsx
+import { ThreadHeader } from "@openuidev/react-ui/Shell";
+
+<ThreadContainer>
+  <MobileHeader />
+  <ThreadHeader>
+    <Button iconLeft={<ChevronDown size={14} />} variant="secondary" size="small">
+      GPT-4o
+    </Button>
+    <Button iconLeft={<Share size={14} />} variant="secondary" size="small">
+      Share
+    </Button>
+  </ThreadHeader>
+  <ScrollArea>
+    <Messages loader={<MessageLoading />} />
+  </ScrollArea>
+  <Composer />
+</ThreadContainer>;
+```
+
+**Props:**
+
+- `children` - Content to render inside the header (uses flexbox with `justify-content: flex-end`)
+- `className` - Optional additional CSS class
 
 ### ScrollArea
 
@@ -349,6 +388,7 @@ All Shell components use the `openui-shell-` prefix:
 - `.openui-shell-thread-messages`
 - `.openui-shell-thread-message-user`
 - `.openui-shell-thread-message-assistant`
+- `.openui-shell-thread-header`
 - `.openui-shell-thread-composer`
 - `.openui-shell-conversation-starter`
 - `.openui-shell-conversation-starter-item`

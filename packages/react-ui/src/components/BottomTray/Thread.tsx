@@ -1,11 +1,8 @@
 import type { AssistantMessage, Message, ToolMessage } from "@openuidev/react-headless";
 import { MessageProvider, useThread } from "@openuidev/react-headless";
 import clsx from "clsx";
-import { ArrowUp, Square } from "lucide-react";
-import React, { memo, useEffect, useLayoutEffect, useRef } from "react";
-import { useComposerState } from "../../hooks/useComposerState";
+import React, { memo, useEffect, useRef } from "react";
 import { ScrollVariant, useScrollToBottom } from "../../hooks/useScrollToBottom";
-import { IconButton } from "../IconButton";
 import { MarkDownRenderer } from "../MarkDownRenderer";
 import { MessageLoading as MessageLoadingComponent } from "../MessageLoading";
 import type { AssistantMessageComponent, UserMessageComponent } from "../OpenUIChat/types";
@@ -292,59 +289,5 @@ export const Messages = ({
   );
 };
 
-export const Composer = ({ className }: { className?: string }) => {
-  const { textContent, setTextContent } = useComposerState();
-  const processMessage = useThread((s) => s.processMessage);
-  const cancelMessage = useThread((s) => s.cancelMessage);
-  const isRunning = useThread((s) => s.isRunning);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  const handleSubmit = () => {
-    if (!textContent.trim() || isRunning) {
-      return;
-    }
-
-    processMessage({
-      role: "user",
-      content: textContent,
-    });
-
-    setTextContent("");
-  };
-
-  useLayoutEffect(() => {
-    const input = inputRef.current;
-    if (!input) {
-      return;
-    }
-
-    input.style.height = "auto";
-    input.style.height = `${input.scrollHeight}px`;
-  }, [textContent]);
-
-  return (
-    <div className={clsx("openui-bottom-tray-thread-composer", className)}>
-      <div className="openui-bottom-tray-thread-composer__input-wrapper">
-        <textarea
-          ref={inputRef}
-          rows={1}
-          value={textContent}
-          autoFocus
-          onChange={(e) => setTextContent(e.target.value)}
-          className="openui-bottom-tray-thread-composer__input"
-          placeholder="Type your message..."
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit();
-            }
-          }}
-        />
-        <IconButton
-          onClick={isRunning ? cancelMessage : handleSubmit}
-          icon={isRunning ? <Square size="1em" fill="currentColor" /> : <ArrowUp size="1em" />}
-        />
-      </div>
-    </div>
-  );
-};
+// Re-export Composer from components
+export { Composer } from "./components";

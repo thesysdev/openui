@@ -14,7 +14,6 @@
   position: relative;
   height: 100dvh;
   width: 100dvw;
-  padding: cssUtils.$space-m;
   overflow: hidden;
 
   background: cssUtils.$chat-container-bg;
@@ -31,4 +30,8 @@
 .openui-shell-new-chat-button {
   width: 100%;
   justify-content: space-between;
+
+  .openui-shell-sidebar-header--collapsed & {
+    width: auto;
+  }
 }

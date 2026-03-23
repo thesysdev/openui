@@ -26,3 +26,9 @@
   @include cssUtils.typography(title, medium);
   color: cssUtils.$text-neutral-primary;
 }
+
+.openui-copilot-shell-header-right-content {
+  display: flex;
+  align-items: center;
+  gap: cssUtils.$space-s;
+}

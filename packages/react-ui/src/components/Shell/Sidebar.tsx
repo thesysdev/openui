@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { PanelLeft, PanelRight } from "lucide-react";
+import { ArrowLeftFromLine, ArrowRightFromLine } from "lucide-react";
 import { useEffect } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
 import { IconButton } from "../IconButton";
@@ -56,7 +56,13 @@ export const SidebarContainer = ({
   );
 };
 
-export const SidebarHeader = ({ className }: { className?: string }) => {
+export const SidebarHeader = ({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) => {
   const { agentName, logoUrl, setIsSidebarOpen, isSidebarOpen } = useShellStore((state) => ({
     agentName: state.agentName,
     logoUrl: state.logoUrl,
@@ -65,18 +71,29 @@ export const SidebarHeader = ({ className }: { className?: string }) => {
   }));
 
   return (
-    <div className={clsx("openui-shell-sidebar-header", className)}>
-      <img src={logoUrl} alt={agentName} className="openui-shell-sidebar-header__logo" />
-      <div className="openui-shell-sidebar-header__agent-name">{agentName}</div>
-      <IconButton
-        icon={isSidebarOpen ? <PanelRight size="1em" /> : <PanelLeft size="1em" />}
-        onClick={() => {
-          setIsSidebarOpen(!isSidebarOpen);
-        }}
-        size="large"
-        variant="secondary"
-        className="openui-shell-sidebar-header__toggle-button"
-      />
+    <div
+      className={clsx(
+        "openui-shell-sidebar-header",
+        { "openui-shell-sidebar-header--collapsed": !isSidebarOpen },
+        className,
+      )}
+    >
+      <div className="openui-shell-sidebar-header__top-row">
+        <img src={logoUrl} alt={agentName} className="openui-shell-sidebar-header__logo" />
+        <div className="openui-shell-sidebar-header__agent-name">{agentName}</div>
+        <IconButton
+          icon={
+            isSidebarOpen ? <ArrowLeftFromLine size="1em" /> : <ArrowRightFromLine size="1em" />
+          }
+          onClick={() => {
+            setIsSidebarOpen(!isSidebarOpen);
+          }}
+          size="small"
+          variant="secondary"
+          className="openui-shell-sidebar-header__toggle-button"
+        />
+      </div>
+      {children}
     </div>
   );
 };

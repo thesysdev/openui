@@ -1,8 +1,67 @@
 ---
-title: MCP Server
-description: Docs MCP Server — coming soon.
+title: AI-Assisted Development
+description: Connect OpenUI documentation to your AI coding tools via MCP, agent skills, or LLM-friendly doc formats.
 ---
 
-## Coming Soon
+## MCP Server
 
-The Docs MCP Server is under construction. Check back soon.
+OpenUI docs are available through [Context7](https://context7.com), which provides a Model Context Protocol (MCP) server that AI coding tools can query directly.
+
+Add `use context7` to any prompt, or reference the library explicitly:
+
+```
+use library /thesysdev/openui
+```
+
+### Quick setup
+
+The fastest way to get started — authenticates via OAuth, generates an API key, and installs the appropriate skill:
+
+```bash
+npx ctx7 setup
+```
+
+Use `--cursor`, `--claude`, or `--opencode` to target a specific agent.
+
+### Manual setup
+
+For manual installation instructions for 30+ clients (Cursor, VS Code, Claude Desktop, Windsurf, ChatGPT, Lovable, Replit, JetBrains, and more), see the [Context7 MCP Clients](https://context7.com/docs/resources/all-clients) page.
+
+## Agent Skill
+
+OpenUI ships an [Agent Skill](https://agentskills.io) that teaches AI coding assistants how to build Generative UI apps with OpenUI Lang. Once installed, your AI assistant can scaffold projects, define components, generate system prompts, wire up the `Renderer`, and debug malformed LLM output.
+
+Works with Claude Code, Cursor, GitHub Copilot, Codex, and any agent that supports the [agentskills.io](https://agentskills.io) standard.
+
+### Install via the skills CLI (recommended)
+
+```bash
+npx skills add thesysdev/openui --skill openui
+```
+
+### Manual copy
+
+If you already have the OpenUI repo cloned:
+
+```bash
+mkdir -p .claude/skills
+cp -r /path/to/openui/skills/openui .claude/skills/openui
+```
+
+### What the skill covers
+
+| Area               | Details                                                                       |
+| :----------------- | :---------------------------------------------------------------------------- |
+| Component design   | `defineComponent`, `createLibrary`, `.ref` composition, schema ordering       |
+| OpenUI Lang syntax | Expression types, positional args, forward references, streaming rules        |
+| System prompts     | `library.prompt()`, `preamble`, `additionalRules`, `examples`, CLI generation |
+| Rendering          | `<Renderer />`, progressive rendering, `onAction`, `onParseResult`            |
+| SDK packages       | `react-lang`, `react-headless`, `react-ui` — when to use each                 |
+| Debugging          | Diagnosing malformed output, validation errors, unresolved forward refs       |
+
+## LLM-friendly docs
+
+For tools that support `llms.txt`, or if you want to load docs directly into context:
+
+- [`/llms.txt`](/llms.txt) — index of all doc pages
+- [`/llms-full.txt`](/llms-full.txt) — full documentation in a single file
