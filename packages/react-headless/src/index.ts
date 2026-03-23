@@ -15,12 +15,7 @@ export {
 export { openAIConversationMessageFormat, openAIMessageFormat } from "./stream/formats";
 export { processStreamedMessage } from "./stream/processStreamedMessage";
 
-export type {
-  ArtifactActions,
-  ArtifactMeta,
-  ArtifactMetaInput,
-  ArtifactState,
-} from "./store/artifactTypes";
+export type { ArtifactActions, ArtifactState } from "./store/artifactTypes";
 
 export type {
   ChatProviderProps,

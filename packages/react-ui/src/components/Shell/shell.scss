@@ -8,7 +8,6 @@
 @use "./welcomeScreen.scss";
 @use "./components/desktopWelcomeComposer.scss";
 @use "./components/composer.scss";
-@use "../_shared/artifact/artifactPanel.scss";
 
 .openui-shell-container {
   display: flex;

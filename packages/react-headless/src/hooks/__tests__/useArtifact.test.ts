@@ -15,85 +15,45 @@ describe("useArtifact behavior (store-level)", () => {
     expect(store.getState().activeArtifactId === "art-2").toBe(true);
   });
 
-  it("open() adds artifact to store", () => {
+  it("open() activates the artifact", () => {
     const store = createArtifactStore();
 
-    store.getState().openArtifact("art-1", { title: "Code Editor" });
-
+    store.getState().openArtifact("art-1");
     expect(store.getState().activeArtifactId).toBe("art-1");
-    expect(store.getState().artifacts["art-1"]?.title).toBe("Code Editor");
   });
 
-  it("close() deactivates artifact but preserves entry in registry", () => {
+  it("close() deactivates the artifact", () => {
     const store = createArtifactStore();
 
-    store.getState().openArtifact("art-1", { title: "Code Editor" });
+    store.getState().openArtifact("art-1");
     expect(store.getState().activeArtifactId).toBe("art-1");
 
     store.getState().closeArtifact("art-1");
-
     expect(store.getState().activeArtifactId).toBeNull();
-    expect(Object.keys(store.getState().artifacts).length).toBe(1);
-    expect(store.getState().artifacts["art-1"]?.title).toBe("Code Editor");
-  });
-
-  it("remove() deletes artifact from registry", () => {
-    const store = createArtifactStore();
-
-    store.getState().openArtifact("art-1", { title: "Code Editor" });
-    expect(store.getState().activeArtifactId).toBe("art-1");
-
-    store.getState().removeArtifact("art-1");
-
-    expect(store.getState().activeArtifactId).toBeNull();
-    expect(Object.keys(store.getState().artifacts).length).toBe(0);
   });
 
   it("toggle() opens when closed and closes when open", () => {
     const store = createArtifactStore();
 
-    // Toggle open
-    const state1 = store.getState();
-    if (state1.activeArtifactId === "art-1") {
-      state1.closeArtifact("art-1");
-    } else {
-      state1.openArtifact("art-1");
-    }
+    // Open
+    store.getState().openArtifact("art-1");
     expect(store.getState().activeArtifactId).toBe("art-1");
 
-    // Toggle close — entry stays in registry
-    const state2 = store.getState();
-    if (state2.activeArtifactId === "art-1") {
-      state2.closeArtifact("art-1");
-    } else {
-      state2.openArtifact("art-1");
-    }
+    // Close
+    store.getState().closeArtifact("art-1");
     expect(store.getState().activeArtifactId).toBeNull();
-    expect(Object.keys(store.getState().artifacts).length).toBe(1);
+
+    // Re-open
+    store.getState().openArtifact("art-1");
+    expect(store.getState().activeArtifactId).toBe("art-1");
   });
 
-  it("meta returns artifact metadata from store", () => {
+  it("only one artifact can be active at a time", () => {
     const store = createArtifactStore();
-
-    expect(store.getState().artifacts["art-1"] ?? null).toBeNull();
-
-    store.getState().openArtifact("art-1", { title: "Preview" });
-
-    const meta = store.getState().artifacts["art-1"];
-    expect(meta).toBeDefined();
-    expect(meta!.id).toBe("art-1");
-    expect(meta!.title).toBe("Preview");
-  });
-
-  it("triggerProps.aria-expanded matches isActive", () => {
-    const store = createArtifactStore();
-
-    const isActiveBefore = store.getState().activeArtifactId === "art-1";
-    expect(isActiveBefore).toBe(false);
 
     store.getState().openArtifact("art-1");
+    store.getState().openArtifact("art-2");
 
-    const isActiveAfter = store.getState().activeArtifactId === "art-1";
-    expect(isActiveAfter).toBe(true);
+    expect(store.getState().activeArtifactId).toBe("art-2");
   });
 });

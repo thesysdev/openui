@@ -12,43 +12,19 @@ export const createArtifactStore = () => {
   return createStore<ArtifactStore>()(
     subscribeWithSelector((set, get) => ({
       activeArtifactId: null,
-      artifacts: {},
 
-      openArtifact: (id, meta) => {
-        const existing = get().artifacts[id];
-        if (existing && get().activeArtifactId === id) {
-          if (meta) {
-            set({ artifacts: { ...get().artifacts, [id]: { ...existing, ...meta } } });
-          }
-          return;
-        }
-        set({
-          activeArtifactId: id,
-          artifacts: {
-            ...get().artifacts,
-            [id]: { ...(existing ?? {}), ...meta, id, activatedAt: Date.now() },
-          },
-        });
+      openArtifact: (id) => {
+        set({ activeArtifactId: id });
       },
 
       closeArtifact: (id) => {
-        if (!(id in get().artifacts)) return;
-        set({
-          activeArtifactId: get().activeArtifactId === id ? null : get().activeArtifactId,
-        });
-      },
-
-      removeArtifact: (id) => {
-        if (!(id in get().artifacts)) return;
-        const { [id]: _, ...rest } = get().artifacts;
-        set({
-          artifacts: rest,
-          activeArtifactId: get().activeArtifactId === id ? null : get().activeArtifactId,
-        });
+        if (get().activeArtifactId === id) {
+          set({ activeArtifactId: null });
+        }
       },
 
       resetArtifacts: () => {
-        set({ activeArtifactId: null, artifacts: {} });
+        set({ activeArtifactId: null });
       },
 
       _artifactPanelNode: null,

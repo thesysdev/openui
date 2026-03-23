@@ -47,17 +47,17 @@ export type ArtifactPanelProps = {
   artifactId: string;
   /** Content rendered inside the panel when this artifact is active. */
   children: ReactNode;
+  /** Display title for the panel header and aria-label. Defaults to `"Artifact"`. */
+  title?: string;
   /** Additional CSS class name(s) applied to the panel container. */
   className?: string;
   /** Fallback UI rendered if children throw during rendering. Defaults to `null`. */
   errorFallback?: ReactNode;
   /**
    * Controls the panel header.
-   * - `true` (default): built-in header with title from meta + close button
+   * - `true` (default): built-in header with title + close button
    * - `false`: no header, raw children only
    * - `ReactNode`: custom header replacing the built-in one
-   *
-   * Note: closing an artifact deactivates it but preserves its metadata in the store.
    */
   header?: boolean | ReactNode;
 };
@@ -87,8 +87,8 @@ const DefaultHeader = ({ title, onClose }: { title: string; onClose: () => void 
  * @category Components
  */
 export const ArtifactPanel = forwardRef<HTMLDivElement, ArtifactPanelProps>(
-  ({ artifactId, children, className, errorFallback, header = true }, ref) => {
-    const { isActive, meta, close } = useArtifact(artifactId);
+  ({ artifactId, children, title, className, errorFallback, header = true }, ref) => {
+    const { isActive, close } = useArtifact(artifactId);
     const { node: panelNode } = useArtifactPortalTarget();
     const { portalThemeClassName } = useTheme();
 
@@ -110,7 +110,7 @@ export const ArtifactPanel = forwardRef<HTMLDivElement, ArtifactPanelProps>(
 
     let headerContent: ReactNode = null;
     if (header === true) {
-      headerContent = <DefaultHeader title={meta?.title ?? "Artifact"} onClose={handleClose} />;
+      headerContent = <DefaultHeader title={title ?? "Artifact"} onClose={handleClose} />;
     } else if (header !== false) {
       headerContent = header;
     }
@@ -121,7 +121,7 @@ export const ArtifactPanel = forwardRef<HTMLDivElement, ArtifactPanelProps>(
         id={`openui-artifact-panel-${artifactId}`}
         className={clsx("openui-artifact-panel", portalThemeClassName, className)}
         role="region"
-        aria-label={meta?.title ?? "Artifact panel"}
+        aria-label={title ?? "Artifact panel"}
       >
         {headerContent}
         <ArtifactErrorBoundary fallback={errorFallback}>{children}</ArtifactErrorBoundary>

@@ -4,7 +4,6 @@ export * from "./components/Accordion";
 
 // Artifact exports (ArtifactPanel/ArtifactPortalTarget also available as Shell.*)
 export { useActiveArtifact, useArtifact } from "@openuidev/react-headless";
-export type { ArtifactMeta, ArtifactMetaInput } from "@openuidev/react-headless";
 export {
   ArtifactOverlay,
   ArtifactPanel,

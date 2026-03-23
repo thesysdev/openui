@@ -17,22 +17,21 @@ describe("artifact thread-switch cleanup", () => {
     return { chatStore, artifactStore, unsubscribe };
   };
 
-  it("clears artifacts when selectThread is called", async () => {
+  it("clears active artifact when selectThread is called", async () => {
     const { chatStore, artifactStore, unsubscribe } = setupStores();
 
-    artifactStore.getState().openArtifact("art-1", { title: "Code" });
+    artifactStore.getState().openArtifact("art-1");
     expect(artifactStore.getState().activeArtifactId).toBe("art-1");
 
     chatStore.getState().selectThread("thread-2");
     await flushPromises();
 
     expect(artifactStore.getState().activeArtifactId).toBeNull();
-    expect(Object.keys(artifactStore.getState().artifacts).length).toBe(0);
 
     unsubscribe();
   });
 
-  it("clears artifacts when switchToNewThread is called", async () => {
+  it("clears active artifact when switchToNewThread is called", async () => {
     const { chatStore, artifactStore, unsubscribe } = setupStores();
 
     chatStore.setState({ selectedThreadId: "thread-1" });
@@ -42,12 +41,11 @@ describe("artifact thread-switch cleanup", () => {
     await flushPromises();
 
     expect(artifactStore.getState().activeArtifactId).toBeNull();
-    expect(Object.keys(artifactStore.getState().artifacts).length).toBe(0);
 
     unsubscribe();
   });
 
-  it("clears artifacts when active thread is deleted", async () => {
+  it("clears active artifact when active thread is deleted", async () => {
     const deleteThread = vi.fn().mockResolvedValue(undefined);
     const chatStore = createChatStore({ deleteThread, processMessage: vi.fn() });
     const artifactStore = createArtifactStore();
@@ -74,29 +72,23 @@ describe("artifact thread-switch cleanup", () => {
     await flushPromises();
 
     expect(artifactStore.getState().activeArtifactId).toBeNull();
-    expect(Object.keys(artifactStore.getState().artifacts).length).toBe(0);
 
     unsubscribe();
   });
 
-  it("does not clear artifacts when re-selecting the same thread", async () => {
+  it("does not clear active artifact when re-selecting the same thread", async () => {
     const { chatStore, artifactStore, unsubscribe } = setupStores();
 
-    // Set initial thread
     chatStore.setState({ selectedThreadId: "thread-1" });
     await flushPromises();
 
-    // Open artifact after initial subscription fires
-    artifactStore.getState().openArtifact("art-1", { title: "Code" });
+    artifactStore.getState().openArtifact("art-1");
     expect(artifactStore.getState().activeArtifactId).toBe("art-1");
 
-    // Re-select the same thread
     chatStore.getState().selectThread("thread-1");
     await flushPromises();
 
-    // Artifacts should still be present
     expect(artifactStore.getState().activeArtifactId).toBe("art-1");
-    expect(Object.keys(artifactStore.getState().artifacts).length).toBe(1);
 
     unsubscribe();
   });
@@ -119,7 +111,6 @@ describe("artifact thread-switch cleanup", () => {
     await flushPromises();
 
     expect(artifactStore.getState().activeArtifactId).toBeNull();
-    expect(Object.keys(artifactStore.getState().artifacts).length).toBe(0);
     expect(chatStore.getState().selectedThreadId).toBe("thread-3");
 
     unsubscribe();
