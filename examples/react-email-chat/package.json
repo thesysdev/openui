@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate:prompt": "node --import tsx -e \"import{emailChatLibrary,emailPromptOptions}from'./src/lib/chat-library.tsx';import{writeFileSync,mkdirSync}from'fs';mkdirSync('src/generated',{recursive:true});writeFileSync('src/generated/system-prompt.txt',emailChatLibrary.prompt(emailPromptOptions));console.log('Prompt generated')\"",
+    "generate:prompt": "node --import tsx -e \"import{emailLibrary,emailPromptOptions}from'@openuidev/react-email';import{writeFileSync,mkdirSync}from'fs';mkdirSync('src/generated',{recursive:true});writeFileSync('src/generated/system-prompt.txt',emailLibrary.prompt(emailPromptOptions));console.log('Prompt generated')\"",
     "dev": "pnpm generate:prompt && next dev",
     "build": "pnpm generate:prompt && next build",
     "start": "next start",
@@ -19,8 +19,7 @@
     "next": "16.1.6",
     "openai": "^6.22.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "zod": "^4.3.6"
+    "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

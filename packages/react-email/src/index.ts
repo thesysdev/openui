@@ -3,51 +3,98 @@ import { createLibrary } from "@openuidev/react-lang";
 
 // ── Email components ──
 
-export { EmailArticle } from "./components/Article";
-export { EmailAvatar } from "./components/Avatar";
-export { EmailAvatarGroup } from "./components/AvatarGroup";
-export { EmailAvatarWithText } from "./components/AvatarWithText";
-export { EmailBentoGrid } from "./components/BentoGrid";
-export { EmailBentoItem } from "./components/BentoItem";
-export { EmailButton } from "./components/Button";
-export { EmailCheckoutItem } from "./components/CheckoutItem";
-export { EmailCheckoutTable } from "./components/CheckoutTable";
-export { EmailCodeBlock } from "./components/CodeBlock";
-export { EmailCodeInline } from "./components/CodeInline";
-export { EmailColumn } from "./components/Column";
-export { EmailColumns } from "./components/Columns";
-export { EmailCustomerReview } from "./components/CustomerReview";
-export { EmailDivider } from "./components/Divider";
-export { EmailFeatureGrid } from "./components/FeatureGrid";
-export { EmailFeatureItem } from "./components/FeatureItem";
-export { EmailFeatureList } from "./components/FeatureList";
-export { EmailFooterCentered } from "./components/FooterCentered";
-export { EmailFooterTwoColumn } from "./components/FooterTwoColumn";
-export { EmailHeaderCenteredNav } from "./components/HeaderCenteredNav";
-export { EmailHeaderSideNav } from "./components/HeaderSideNav";
-export { EmailHeaderSocial } from "./components/HeaderSocial";
-export { EmailHeading } from "./components/Heading";
-export { EmailImage } from "./components/Image";
-export { EmailImageGrid } from "./components/ImageGrid";
-export { EmailLink } from "./components/Link";
-export { EmailList } from "./components/List";
-export { EmailListItem } from "./components/ListItem";
-export { EmailMarkdown } from "./components/Markdown";
-export { EmailNavLink } from "./components/NavLink";
-export { EmailNumberedSteps } from "./components/NumberedSteps";
-export { EmailPricingCard } from "./components/PricingCard";
-export { EmailPricingFeature } from "./components/PricingFeature";
-export { EmailProductCard } from "./components/ProductCard";
-export { EmailSection } from "./components/Section";
-export { EmailSocialIcon } from "./components/SocialIcon";
-export { EmailStatItem } from "./components/StatItem";
-export { EmailStats } from "./components/Stats";
-export { EmailStepItem } from "./components/StepItem";
-export { EmailSurveyRating } from "./components/SurveyRating";
-export { EmailTemplate } from "./components/Template";
-export { EmailTestimonial } from "./components/Testimonial";
-export { EmailText } from "./components/Text";
+import { EmailArticle } from "./components/Article";
+import { EmailAvatar } from "./components/Avatar";
+import { EmailAvatarGroup } from "./components/AvatarGroup";
+import { EmailAvatarWithText } from "./components/AvatarWithText";
+import { EmailBentoGrid } from "./components/BentoGrid";
+import { EmailBentoItem } from "./components/BentoItem";
+import { EmailButton } from "./components/Button";
+import { EmailCheckoutItem } from "./components/CheckoutItem";
+import { EmailCheckoutTable } from "./components/CheckoutTable";
+import { EmailCodeBlock } from "./components/CodeBlock";
+import { EmailCodeInline } from "./components/CodeInline";
+import { EmailColumn } from "./components/Column";
+import { EmailColumns } from "./components/Columns";
+import { EmailCustomerReview } from "./components/CustomerReview";
+import { EmailDivider } from "./components/Divider";
+import { EmailFeatureGrid } from "./components/FeatureGrid";
+import { EmailFeatureItem } from "./components/FeatureItem";
+import { EmailFeatureList } from "./components/FeatureList";
+import { EmailFooterCentered } from "./components/FooterCentered";
+import { EmailFooterTwoColumn } from "./components/FooterTwoColumn";
+import { EmailHeaderCenteredNav } from "./components/HeaderCenteredNav";
+import { EmailHeaderSideNav } from "./components/HeaderSideNav";
+import { EmailHeaderSocial } from "./components/HeaderSocial";
+import { EmailHeading } from "./components/Heading";
+import { EmailImage } from "./components/Image";
+import { EmailImageGrid } from "./components/ImageGrid";
+import { EmailLink } from "./components/Link";
+import { EmailList } from "./components/List";
+import { EmailListItem } from "./components/ListItem";
+import { EmailMarkdown } from "./components/Markdown";
+import { EmailNavLink } from "./components/NavLink";
+import { EmailNumberedSteps } from "./components/NumberedSteps";
+import { EmailPricingCard } from "./components/PricingCard";
+import { EmailPricingFeature } from "./components/PricingFeature";
+import { EmailProductCard } from "./components/ProductCard";
+import { EmailSection } from "./components/Section";
+import { EmailSocialIcon } from "./components/SocialIcon";
+import { EmailStatItem } from "./components/StatItem";
+import { EmailStats } from "./components/Stats";
+import { EmailStepItem } from "./components/StepItem";
+import { EmailSurveyRating } from "./components/SurveyRating";
+import { EmailTemplate } from "./components/Template";
+import { EmailTestimonial } from "./components/Testimonial";
+import { EmailText } from "./components/Text";
+
 export { EmailLeafChildUnion } from "./unions";
+export {
+  EmailArticle,
+  EmailAvatar,
+  EmailAvatarGroup,
+  EmailAvatarWithText,
+  EmailBentoGrid,
+  EmailBentoItem,
+  EmailButton,
+  EmailCheckoutItem,
+  EmailCheckoutTable,
+  EmailCodeBlock,
+  EmailCodeInline,
+  EmailColumn,
+  EmailColumns,
+  EmailCustomerReview,
+  EmailDivider,
+  EmailFeatureGrid,
+  EmailFeatureItem,
+  EmailFeatureList,
+  EmailFooterCentered,
+  EmailFooterTwoColumn,
+  EmailHeaderCenteredNav,
+  EmailHeaderSideNav,
+  EmailHeaderSocial,
+  EmailHeading,
+  EmailImage,
+  EmailImageGrid,
+  EmailLink,
+  EmailList,
+  EmailListItem,
+  EmailMarkdown,
+  EmailNavLink,
+  EmailNumberedSteps,
+  EmailPricingCard,
+  EmailPricingFeature,
+  EmailProductCard,
+  EmailSection,
+  EmailSocialIcon,
+  EmailStatItem,
+  EmailStats,
+  EmailStepItem,
+  EmailSurveyRating,
+  EmailTemplate,
+  EmailTestimonial,
+  EmailText,
+};
 
 // ── Component groups (email only) ──
 
@@ -441,51 +488,6 @@ export const emailPromptOptions: PromptOptions = {
 };
 
 // ── Ready-to-use library ──
-
-import { EmailArticle } from "./components/Article";
-import { EmailAvatar } from "./components/Avatar";
-import { EmailAvatarGroup } from "./components/AvatarGroup";
-import { EmailAvatarWithText } from "./components/AvatarWithText";
-import { EmailBentoGrid } from "./components/BentoGrid";
-import { EmailBentoItem } from "./components/BentoItem";
-import { EmailButton } from "./components/Button";
-import { EmailCheckoutItem } from "./components/CheckoutItem";
-import { EmailCheckoutTable } from "./components/CheckoutTable";
-import { EmailCodeBlock } from "./components/CodeBlock";
-import { EmailCodeInline } from "./components/CodeInline";
-import { EmailColumn } from "./components/Column";
-import { EmailColumns } from "./components/Columns";
-import { EmailCustomerReview } from "./components/CustomerReview";
-import { EmailDivider } from "./components/Divider";
-import { EmailFeatureGrid } from "./components/FeatureGrid";
-import { EmailFeatureItem } from "./components/FeatureItem";
-import { EmailFeatureList } from "./components/FeatureList";
-import { EmailFooterCentered } from "./components/FooterCentered";
-import { EmailFooterTwoColumn } from "./components/FooterTwoColumn";
-import { EmailHeaderCenteredNav } from "./components/HeaderCenteredNav";
-import { EmailHeaderSideNav } from "./components/HeaderSideNav";
-import { EmailHeaderSocial } from "./components/HeaderSocial";
-import { EmailHeading } from "./components/Heading";
-import { EmailImage } from "./components/Image";
-import { EmailImageGrid } from "./components/ImageGrid";
-import { EmailLink } from "./components/Link";
-import { EmailList } from "./components/List";
-import { EmailListItem } from "./components/ListItem";
-import { EmailMarkdown } from "./components/Markdown";
-import { EmailNavLink } from "./components/NavLink";
-import { EmailNumberedSteps } from "./components/NumberedSteps";
-import { EmailPricingCard } from "./components/PricingCard";
-import { EmailPricingFeature } from "./components/PricingFeature";
-import { EmailProductCard } from "./components/ProductCard";
-import { EmailSection } from "./components/Section";
-import { EmailSocialIcon } from "./components/SocialIcon";
-import { EmailStatItem } from "./components/StatItem";
-import { EmailStats } from "./components/Stats";
-import { EmailStepItem } from "./components/StepItem";
-import { EmailSurveyRating } from "./components/SurveyRating";
-import { EmailTemplate } from "./components/Template";
-import { EmailTestimonial } from "./components/Testimonial";
-import { EmailText } from "./components/Text";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const emailLibrary = createLibrary({
