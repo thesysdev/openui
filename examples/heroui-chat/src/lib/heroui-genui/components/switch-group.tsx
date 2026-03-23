@@ -43,24 +43,23 @@ function SwitchGroupRenderer({ props }: ComponentRenderProps<z.infer<typeof Swit
   const isStreaming = useIsStreaming();
 
   const fieldName = props.name;
-  const items = props.items ?? [];
 
   const getAggregate = useCallback((): Record<string, boolean> => {
     const stored = getFieldValue(formName, fieldName) as Record<string, boolean> | undefined;
     const result: Record<string, boolean> = {};
-    for (const item of items) {
+    for (const item of props.items) {
       result[item.props.name] = stored?.[item.props.name] ?? item.props.defaultChecked ?? false;
     }
     return result;
-  }, [formName, fieldName, items, getFieldValue]);
+  }, [formName, fieldName, props.items, getFieldValue]);
 
-  if (!items.length) return null;
+  if (!props.items.length) return null;
 
   const aggregate = getAggregate();
 
   return (
     <HeroUISwitchGroup>
-      {items.map((item) => (
+      {props.items.map((item) => (
         <Switch
           key={item.props.name}
           isSelected={aggregate[item.props.name] ?? item.props.defaultChecked ?? false}
@@ -75,9 +74,7 @@ function SwitchGroupRenderer({ props }: ComponentRenderProps<z.infer<typeof Swit
           </Switch.Control>
           <Switch.Content>
             {item.props.label && <Label>{item.props.label}</Label>}
-            {item.props.description && (
-              <Description>{item.props.description}</Description>
-            )}
+            {item.props.description && <Description>{item.props.description}</Description>}
           </Switch.Content>
         </Switch>
       ))}

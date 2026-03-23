@@ -178,6 +178,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.2.1
+      '@tailwindcss/typography':
+        specifier: ^0.5.19
+        version: 0.5.19(tailwindcss@4.2.1)
       '@types/node':
         specifier: ^20
         version: 20.19.35
@@ -233,6 +236,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.2.1
+      '@tailwindcss/typography':
+        specifier: ^0.5.19
+        version: 0.5.19(tailwindcss@4.2.1)
       '@types/node':
         specifier: ^20
         version: 20.19.35
@@ -5210,6 +5216,11 @@ packages:
   '@tailwindcss/postcss@4.2.1':
     resolution: {integrity: sha512-OEwGIBnXnj7zJeonOh6ZG9woofIjGrd2BORfvE5p9USYKDCZoQmfqLcfNiRWoJlRWLdNPn2IgVZuWAOM4iTYMw==}
 
+  '@tailwindcss/typography@0.5.19':
+    resolution: {integrity: sha512-w31dd8HOx3k9vPtcQh5QHP9GwKcgbMp87j58qi6xgiBnFFtKEAgCWnDw4qUT8aHwkCp8bKvb/KGKWWHedP0AAg==}
+    peerDependencies:
+      tailwindcss: '>=3.0.0 || insiders || >=4.0.0-alpha.20 || >=4.0.0-beta.1'
+
   '@takumi-rs/core-darwin-arm64@0.68.17':
     resolution: {integrity: sha512-toMlVnB19J+eUVDOV3mhVOqFn+fMazycMZoeQSJQR/GXtog2peRp2dKqSE8w6gi7nGUOrZzX4u4L+eX+vwnfww==}
     engines: {node: '>= 12.22.0 < 13 || >= 14.17.0 < 15 || >= 15.12.0 < 16 || >= 16.0.0'}
@@ -8969,6 +8980,10 @@ packages:
     resolution: {integrity: sha512-VImaiZvSTs2E0DeJ1QAFhgfWx1zi8SobgpsauLQt9Ixy5B9gtRi943IMYvVgOkFYFjcXJ1FQWEaC1iv7Y75ckw==}
     peerDependencies:
       postcss: ^8.4
+
+  postcss-selector-parser@6.0.10:
+    resolution: {integrity: sha512-IQ7TZdoaqbT+LCpShg46jnZVlhWD2w6iQYAcYXfHARZ7X1t/UGhhceQDs5X0cGqKvYlHNOuv7Oa1xmb0oQuA3w==}
+    engines: {node: '>=4'}
 
   postcss-selector-parser@6.1.2:
     resolution: {integrity: sha512-Q8qQfPiZ+THO/3ZrOrO0cJJKfpYCagtMUkXbnEfmgUjwXg6z/WBeOyS9APBBPCTSiDV+s4SwQGu8yFsiMRIudg==}
@@ -16329,6 +16344,11 @@ snapshots:
       postcss: 8.5.6
       tailwindcss: 4.2.1
 
+  '@tailwindcss/typography@0.5.19(tailwindcss@4.2.1)':
+    dependencies:
+      postcss-selector-parser: 6.0.10
+      tailwindcss: 4.2.1
+
   '@takumi-rs/core-darwin-arm64@0.68.17':
     optional: true
 
@@ -21027,6 +21047,11 @@ snapshots:
   postcss-remove-duplicate-values@1.0.0(postcss@8.5.6):
     dependencies:
       postcss: 8.5.6
+
+  postcss-selector-parser@6.0.10:
+    dependencies:
+      cssesc: 3.0.0
+      util-deprecate: 1.0.2
 
   postcss-selector-parser@6.1.2:
     dependencies:

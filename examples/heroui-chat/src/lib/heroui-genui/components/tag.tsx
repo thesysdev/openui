@@ -4,13 +4,13 @@ import { Chip } from "@heroui/react";
 import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod";
 
-const variantToColor = {
+const variantToColor: Record<string, React.ComponentProps<typeof Chip>["color"]> = {
   neutral: "default",
   info: "accent",
   success: "success",
   warning: "warning",
   danger: "danger",
-} satisfies Record<string, "default" | "accent" | "success" | "warning" | "danger">;
+};
 
 const TagSchema = z.object({
   text: z.string(),

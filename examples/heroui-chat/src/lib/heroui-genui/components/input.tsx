@@ -55,19 +55,16 @@ function InputRenderer({ props }: ComponentRenderProps<z.infer<typeof InputSchem
       name={fieldName}
       placeholder={props.placeholder ?? ""}
       type={props.type ?? "text"}
-      value={savedValue ?? ""}
-      isInvalid={!!error}
+      value={savedValue}
+      aria-invalid={!!error}
+      data-invalid={error ? "true" : undefined}
       onChange={(e) => {
         setFieldValue(formName, "Input", fieldName, e.target.value, true);
       }}
       onFocus={() => formValidation?.clearFieldError(fieldName)}
       onBlur={() => {
         if (rules.length > 0) {
-          formValidation?.validateField(
-            fieldName,
-            getFieldValue(formName, fieldName),
-            rules,
-          );
+          formValidation?.validateField(fieldName, getFieldValue(formName, fieldName), rules);
         }
       }}
       disabled={isStreaming}

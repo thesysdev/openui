@@ -1,7 +1,11 @@
 "use client";
 
-import { Description, FieldError, Label } from "@heroui/react";
-import { defineComponent, useFormValidation } from "@openuidev/react-lang";
+import { Description, Label } from "@heroui/react";
+import {
+  type ComponentRenderProps,
+  defineComponent,
+  useFormValidation,
+} from "@openuidev/react-lang";
 import { z } from "zod";
 
 import { CheckBoxGroup } from "./checkbox-group";
@@ -34,38 +38,45 @@ function getFieldNameFromInput(input: unknown): string | undefined {
   return obj?.type === "element" ? obj.props?.name : undefined;
 }
 
+type FormControlProps = z.infer<typeof FormControlSchema>;
+
+function FormControlRenderer({
+  props,
+  renderNode,
+}: ComponentRenderProps<FormControlProps>) {
+  const formValidation = useFormValidation();
+  const inputObj = props.input as {
+    type?: string;
+    props?: { name?: string; rules?: { required?: boolean } };
+  };
+  const fieldName = getFieldNameFromInput(props.input);
+  const error = fieldName ? formValidation?.errors[fieldName] : undefined;
+  const isRequired =
+    inputObj?.type === "element" && inputObj.props?.rules?.required === true;
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label className="text-sm font-medium" htmlFor={fieldName}>
+        {props.label}
+        {isRequired && <span className="text-danger ml-0.5">*</span>}
+      </Label>
+      {renderNode(props.input)}
+      {error ? (
+        <p className="text-danger text-sm mt-0.5" role="alert">
+          {error}
+        </p>
+      ) : props.hint ? (
+        <Description className="text-sm text-default-500 mt-0.5">
+          {props.hint}
+        </Description>
+      ) : null}
+    </div>
+  );
+}
+
 export const FormControl = defineComponent({
   name: "FormControl",
   props: FormControlSchema,
   description: "Field with label, input component, and optional hint text",
-  component: ({ props, renderNode }) => {
-    const formValidation = useFormValidation();
-    const inputObj = props.input as {
-      type?: string;
-      props?: { name?: string; rules?: { required?: boolean } };
-    };
-    const fieldName = getFieldNameFromInput(props.input);
-    const error = fieldName ? formValidation?.errors[fieldName] : undefined;
-    const isRequired =
-      inputObj?.type === "element" && inputObj.props?.rules?.required === true;
-
-    return (
-      <div className="flex flex-col gap-1.5">
-        <Label className="text-sm font-medium" htmlFor={fieldName}>
-          {props.label}
-          {isRequired && <span className="text-danger ml-0.5">*</span>}
-        </Label>
-        {renderNode(props.input)}
-        {error ? (
-          <p className="text-danger text-sm mt-0.5" role="alert">
-            {error}
-          </p>
-        ) : props.hint ? (
-          <Description className="text-sm text-default-500 mt-0.5">
-            {props.hint}
-          </Description>
-        ) : null}
-      </div>
-    );
-  },
+  component: FormControlRenderer,
 });

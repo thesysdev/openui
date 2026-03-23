@@ -55,18 +55,15 @@ function TextAreaRenderer({ props }: ComponentRenderProps<z.infer<typeof TextAre
       placeholder={props.placeholder ?? ""}
       rows={props.rows ?? 3}
       value={savedValue ?? ""}
-      isInvalid={!!error}
+      aria-invalid={!!error}
+      data-invalid={error ? "true" : undefined}
       onChange={(e) => {
         setFieldValue(formName, "TextArea", fieldName, e.target.value, true);
       }}
       onFocus={() => formValidation?.clearFieldError(fieldName)}
       onBlur={() => {
         if (rules.length > 0) {
-          formValidation?.validateField(
-            fieldName,
-            getFieldValue(formName, fieldName),
-            rules,
-          );
+          formValidation?.validateField(fieldName, getFieldValue(formName, fieldName), rules);
         }
       }}
       disabled={isStreaming}

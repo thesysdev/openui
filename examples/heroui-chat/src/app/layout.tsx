@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "OpenUI Chat",
-  description: "Generative UI Chat with OpenAI SDK",
+  title: "OpenUI + HeroUI Chat",
+  description: "Generative UI Chat with OpenAI SDK + HeroUI components",
 };
 
 export default function RootLayout({
