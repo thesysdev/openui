@@ -4,6 +4,7 @@ export { useThread, useThreadList } from "./hooks/useThread";
 export { ChatProvider } from "./store/ChatProvider";
 export {
   agUIAdapter,
+  langGraphAdapter,
   openAIAdapter,
   openAIReadableStreamAdapter,
   openAIResponsesAdapter,
@@ -42,3 +43,4 @@ export { identityMessageFormat } from "./types/messageFormat";
 export type { MessageFormat } from "./types/messageFormat";
 export { EventType } from "./types/stream";
 export type { AGUIEvent, StreamProtocolAdapter } from "./types/stream";
+export type { LangGraphAdapterOptions } from "./stream/adapters/langgraph";
