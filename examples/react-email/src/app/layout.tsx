@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ThemeProvider } from "@/hooks/use-system-theme";
+import { ThemeProvider } from "@/hooks/useSystemTheme";
 import "./globals.css";
 
 export const metadata: Metadata = {

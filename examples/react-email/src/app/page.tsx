@@ -8,8 +8,8 @@ import {
   useThread,
 } from "@openuidev/react-headless";
 
-import { ComposePage } from "@/components/compose-page";
-import { EmailEditor } from "@/components/email-editor";
+import { ComposePage } from "@/components/composePage";
+import { EmailEditor } from "@/components/emailEditor";
 import {
   saveView,
   loadView,

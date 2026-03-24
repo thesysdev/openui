@@ -1,20 +1,10 @@
 "use client";
 
-import { useTheme } from "@/hooks/use-system-theme";
-import { useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { useTheme } from "@/hooks/useSystemTheme";
 import { Send as SendIcon } from "lucide-react";
+import { useState } from "react";
 import { STARTERS } from "./starters";
-
-function useIsMobile(breakpoint = 768) {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < breakpoint);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, [breakpoint]);
-  return isMobile;
-}
 
 export function ComposePage({ onSend }: { onSend: (message: string) => void }) {
   const [input, setInput] = useState("");
