@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   ];
 
   const stream = await client.chat.completions.create({
-    model: "gpt-4.1",
+    model: "gpt-5.4",
     messages: chatMessages,
     stream: true,
   });

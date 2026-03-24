@@ -8,11 +8,6 @@
     linear-gradient(90deg, rgb(0 0 0 / 0.04) 1px, transparent 1px);
   background-size: 24px 24px;
 }
-.dark .form-canvas {
-  background-image:
-    linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px);
-}
 
 /* Remove all strokes/shadows from HeroUI form fields */
 [data-slot="input-wrapper"],
