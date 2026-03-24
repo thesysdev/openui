@@ -130,7 +130,7 @@ importers:
         specifier: ^4.1.18
         version: 4.2.1
 
-  examples/heroui-chat:
+  examples/form-generator:
     dependencies:
       '@heroui/react':
         specifier: ^3.0.1

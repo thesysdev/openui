@@ -4,7 +4,7 @@ A full-stack **generative form builder** that demonstrates wiring [OpenUI Lang](
 
 Describe a form in plain language, get a live preview built from HeroUI components. Refine it with follow-up instructions — each iteration streams a fresh updated form.
 
-[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/heroui-chat)
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/form-generator)
 
 ---
 
@@ -66,7 +66,7 @@ Click **Reset** to clear history and start a fresh form.
 ## Project Structure
 
 ```
-heroui-chat/
+form-generator/
 ├── src/
 │   ├── app/
 │   │   ├── api/chat/route.ts      # Streaming endpoint (OpenAI SDK + SSE, no tools)
@@ -98,13 +98,13 @@ heroui-chat/
 ### 1. Install dependencies
 
 ```bash
-cd examples/heroui-chat
+cd examples/form-generator
 pnpm install
 ```
 
 ### 2. Configure environment
 
-Create a `.env.local` file in the `examples/heroui-chat/` directory:
+Create a `.env.local` file in the `examples/form-generator/` directory:
 
 ```
 OPENAI_API_KEY=sk-...
