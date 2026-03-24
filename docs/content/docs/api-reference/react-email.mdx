@@ -1,191 +1,58 @@
 ---
 title: "@openuidev/react-email"
-description: API reference for React Email components, library, and prompt options for LLM-driven email generation.
+description: API reference for the pre-built email templates library and prompt options.
 ---
 
 Use this package for LLM-driven email template generation with 44 email building blocks.
 
-## Import
+## Install
 
-```ts
-import { emailLibrary, emailPromptOptions } from "@openuidev/react-email";
+```bash tab="npm"
+npm install @openuidev/react-email @openuidev/react-lang @react-email/render
+```
+
+```bash tab="pnpm"
+pnpm add @openuidev/react-email @openuidev/react-lang @react-email/render
 ```
 
 ## `emailLibrary`
 
-Pre-configured `Library` instance (from `createLibrary()`) with all 44 email components registered. Root component is `EmailTemplate`.
+Pre-configured `Library` instance with all 44 email components registered. Root component is `EmailTemplate`.
+
+Use `emailLibrary.prompt()` to generate a system prompt for your LLM:
 
 ```ts
-const emailLibrary: Library;
-```
+import { emailLibrary, emailPromptOptions } from "@openuidev/react-email";
 
-Generate a system prompt:
-
-```ts
+// With examples and rules (recommended)
 const systemPrompt = emailLibrary.prompt(emailPromptOptions);
-```
 
-Render email output:
-
-```tsx
-import { Renderer } from "@openuidev/react-lang";
-
-<Renderer response={response} library={emailLibrary} isStreaming={isStreaming} />;
+// Without — schema only, no examples or rules
+const minimalPrompt = emailLibrary.prompt();
 ```
 
 ## `emailPromptOptions`
 
-Prompt configuration with 10 complete email template examples and 30+ rules for email design generation.
+Pre-built `PromptOptions` containing 10 complete email template examples and 30+ rules for high-quality email generation. Passing it to `emailLibrary.prompt()` includes these in the system prompt. Without it, the prompt contains only the component schema.
 
-```ts
-const emailPromptOptions: PromptOptions;
-// { examples: emailExamples, additionalRules: emailAdditionalRules }
+## Generating HTML
+
+Convert the rendered output to an email-safe HTML string with [`@react-email/render`](https://www.npmjs.com/package/@react-email/render):
+
+```tsx
+import { Renderer } from "@openuidev/react-lang";
+import { emailLibrary } from "@openuidev/react-email";
+import { render } from "@react-email/render";
+
+const html = await render(
+  <Renderer response={llmResponse} library={emailLibrary} isStreaming={false} />,
+  { pretty: true },
+);
 ```
 
-## Additional exports
-
-These are also exported from `./library` for advanced customization:
-
-```ts
-import {
-  emailLibrary,
-  emailPromptOptions,
-  emailComponentGroups,
-  emailExamples,
-  emailAdditionalRules,
-} from "@openuidev/react-email";
-```
+## Exports
 
 | Export | Type | Description |
 | :--- | :--- | :--- |
-| `emailLibrary` | `Library` | Ready-to-use library with all 44 components |
-| `emailPromptOptions` | `PromptOptions` | Combined examples + rules for `library.prompt()` |
-| `emailComponentGroups` | `ComponentGroup[]` | 13 category groups with component names and usage notes |
-| `emailExamples` | `string[]` | 10 complete email template examples in OpenUI Lang |
-| `emailAdditionalRules` | `string[]` | 30+ rules for high-quality email generation |
-
-## Components (44)
-
-### Email Structure
-
-| Component | Description |
-| :--- | :--- |
-| `EmailTemplate` | Root email wrapper. Renders a live preview with Copy HTML export. **Root component.** |
-| `EmailSection` | Groups content into a section (header, body, footer areas) |
-| `EmailColumns` | Multi-column row layout. Contains `EmailColumn` children |
-| `EmailColumn` | Single column within an `EmailColumns` row |
-
-### Email Headers
-
-| Component | Description |
-| :--- | :--- |
-| `EmailHeaderSideNav` | Logo left, nav links right. Uses `EmailNavLink` items |
-| `EmailHeaderCenteredNav` | Logo centered top, nav links centered below. Uses `EmailNavLink` items |
-| `EmailHeaderSocial` | Logo left, social media icons right. Uses `EmailSocialIcon` items |
-| `EmailNavLink` | Navigation link item for headers. *Data-only* |
-| `EmailSocialIcon` | Social media icon link. *Data-only* |
-
-### Email Footers
-
-| Component | Description |
-| :--- | :--- |
-| `EmailFooterCentered` | Centered footer with logo, company name, tagline, social icons, address, contact |
-| `EmailFooterTwoColumn` | Two-column footer with logo/info left, social icons/address right |
-
-### Email Content
-
-| Component | Description |
-| :--- | :--- |
-| `EmailHeading` | Heading (h1-h6). Level 1 for main title, 2 for section headers |
-| `EmailText` | Text paragraph for body content |
-| `EmailButton` | CTA button with link |
-| `EmailImage` | Image with publicly accessible URL |
-| `EmailDivider` | Horizontal divider line between sections |
-| `EmailLink` | Inline hyperlink |
-| `EmailCodeBlock` | Syntax-highlighted code block with optional `language` prop |
-| `EmailCodeInline` | Inline code snippet within text |
-| `EmailMarkdown` | Renders markdown as styled email HTML (headings, bold, italic, links, lists) |
-
-### Email Articles & Products
-
-| Component | Description |
-| :--- | :--- |
-| `EmailArticle` | Hero image + category + title + description + CTA button |
-| `EmailProductCard` | Hero image + category + title + description + price + buy button |
-
-### Email Features & Steps
-
-| Component | Description |
-| :--- | :--- |
-| `EmailFeatureItem` | Icon + title + description. Used inside `EmailFeatureGrid` or `EmailFeatureList`. *Data-only* |
-| `EmailFeatureGrid` | 2x2 feature grid with header. Takes `EmailFeatureItem` children |
-| `EmailFeatureList` | Vertical feature list with dividers. Takes `EmailFeatureItem` children |
-| `EmailStepItem` | Title + description. Used inside `EmailNumberedSteps`. *Data-only* |
-| `EmailNumberedSteps` | Numbered steps with auto-numbered badges. Takes `EmailStepItem` children |
-
-### Email Commerce
-
-| Component | Description |
-| :--- | :--- |
-| `EmailCheckoutItem` | Cart item with image, name, quantity, price. Used inside `EmailCheckoutTable`. *Data-only* |
-| `EmailCheckoutTable` | Cart table with items and checkout button |
-| `EmailPricingFeature` | Feature line item. Used inside `EmailPricingCard`. *Data-only* |
-| `EmailPricingCard` | Pricing card with badge, price, features, CTA, optional note |
-
-### Email Social Proof & Surveys
-
-| Component | Description |
-| :--- | :--- |
-| `EmailTestimonial` | Testimonial quote with avatar, name, and role |
-| `EmailSurveyRating` | Rating survey with question and 1-5 numbered buttons |
-| `EmailStatItem` | Single stat with value + label. Used inside `EmailStats`. *Data-only* |
-| `EmailStats` | Horizontal stats row displaying key metrics |
-
-### Email Image Layouts
-
-| Component | Description |
-| :--- | :--- |
-| `EmailImageGrid` | 2x2 image grid with optional header. Takes up to 4 `EmailImage` children |
-
-### Email Avatars
-
-| Component | Description |
-| :--- | :--- |
-| `EmailAvatar` | Avatar image. Circular (`rounded='full'`) or rounded-square (`rounded='md'`) |
-| `EmailAvatarGroup` | Overlapping stacked avatars. Takes `EmailAvatar` children |
-| `EmailAvatarWithText` | Avatar with name and role text. Optional link wrapper |
-
-### Email Lists
-
-| Component | Description |
-| :--- | :--- |
-| `EmailListItem` | Title + description. Used inside `EmailList`. *Data-only* |
-| `EmailList` | Numbered list with circular badges. Takes `EmailListItem` children |
-
-### Email Reviews
-
-| Component | Description |
-| :--- | :--- |
-| `EmailCustomerReview` | Star rating distribution bars with percentages, total count, optional CTA |
-
-### Email Marketing
-
-| Component | Description |
-| :--- | :--- |
-| `EmailBentoItem` | Image + title + description. Used inside `EmailBentoGrid`. *Data-only* |
-| `EmailBentoGrid` | Bento layout with dark hero section + product cards below |
-
-## Supported email types
-
-The built-in examples and rules cover 10 email types:
-
-1. Welcome / Onboarding
-2. Newsletter
-3. Order Confirmation
-4. Password Reset
-5. Promotional / Sale
-6. Event Invitation
-7. Feedback Request
-8. Shipping / Delivery Update
-9. Account Verification
-10. Onboarding Tutorial
+| `emailLibrary` | `Library` | Ready-to-use library with all 44 email components |
+| `emailPromptOptions` | `PromptOptions` | Examples + rules for `emailLibrary.prompt()` |
