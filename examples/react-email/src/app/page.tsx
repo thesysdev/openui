@@ -9,7 +9,7 @@ import {
 } from "@openuidev/react-headless";
 
 import { ComposePage } from "@/components/compose-page";
-import { ChatPage } from "@/components/chat-page";
+import { EmailEditor } from "@/components/email-editor";
 import {
   saveView,
   loadView,
@@ -64,7 +64,7 @@ function EmailApp() {
     return <ComposePage onSend={handleSend} />;
   }
 
-  return <ChatPage onNewEmail={handleNewEmail} />;
+  return <EmailEditor onNewEmail={handleNewEmail} />;
 }
 
 // ── Page Root ──

@@ -3,7 +3,7 @@ title: React Email
 description: An AI-powered email generator that uses OpenUI Lang to render 44 React Email components from natural language descriptions.
 ---
 
-OpenUI Lang isn't limited to chat interfaces — it can power any domain-specific UI generator. This example uses [React Email](https://react.email) components as the rendering target, letting users describe emails in plain English and see them rendered live. The AI streams OpenUI Lang markup, and the `<Renderer />` progressively builds the email from 44 purpose-built components — headers, footers, feature grids, pricing cards, checkout tables, testimonials, and more.
+OpenUI Lang isn't limited to chat interfaces — it can power any domain-specific UI generator. This example uses [React Email](https://react.email) components as the rendering target, letting users describe emails in plain English and see them rendered live. The `@openuidev/react-email` package ships 44 email components built with `defineComponent`, a ready-to-use `emailLibrary`, and a system prompt with examples and design rules — so the LLM generates well-structured, email-client-compatible HTML out of the box.
 
 [View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/react-email)
 
@@ -20,16 +20,12 @@ OpenUI Lang isn't limited to chat interfaces — it can power any domain-specifi
   />
 </div>
 
-## Building an email component library with OpenUI Lang
+## Building an email library with OpenUI Lang
 
-The `@openuidev/react-email` package defines 44 email components using `defineComponent` from `@openuidev/react-lang`. Each component wraps a React Email primitive with inline styles optimized for email clients:
+Each email component wraps a React Email primitive with inline styles (required by email clients that strip `<style>` tags). Here's a simplified example:
 
 ```tsx
-import { defineComponent } from "@openuidev/react-lang";
-import { Button } from "@react-email/components";
-import { z } from "zod";
-
-export const EmailButton = defineComponent({
+const EmailButton = defineComponent({
   name: "EmailButton",
   props: z.object({
     label: z.string(),
@@ -45,8 +41,6 @@ export const EmailButton = defineComponent({
         color: "#ffffff",
         borderRadius: "6px",
         padding: "12px 24px",
-        fontSize: "16px",
-        fontWeight: "bold",
       }}
     >
       {props.label as string}
@@ -55,65 +49,40 @@ export const EmailButton = defineComponent({
 });
 ```
 
-Email components use inline styles instead of CSS classes because email clients (Gmail, Outlook) strip `<style>` tags. The `description` field tells the LLM when and how to use each component — this is included in the auto-generated system prompt.
-
-All 44 components are assembled into a ready-to-use library:
+All 44 components are assembled into `emailLibrary` via `createLibrary`. Consumers import the library and prompt options — individual components are internal:
 
 ```tsx
 import { emailLibrary, emailPromptOptions } from "@openuidev/react-email";
 
-// Generate the system prompt for the LLM
+// Generate the system prompt (includes examples + design rules)
 const systemPrompt = emailLibrary.prompt(emailPromptOptions);
 
 // Render streamed OpenUI Lang into email components
-<Renderer
-  response={openuiCode}
-  library={emailLibrary}
-  isStreaming={isStreaming}
-/>
+<Renderer response={openuiCode} library={emailLibrary} isStreaming={isStreaming} />;
 ```
 
-The library includes component groups, 10 usage examples, and email design rules — all fed into the system prompt so the LLM generates well-structured emails.
+Once streaming completes, a server action calls `@react-email/render` with `{ pretty: true }` to produce formatted HTML for the "Copy HTML" button.
+
+See [Defining Components](/docs/openui-lang/defining-components) for the full `defineComponent` API.
 
 ## Architecture
 
 ```
-Browser (split view) -- POST /api/chat --> Next.js route --> OpenAI
-                      <-- SSE stream --                       (OpenUI Lang)
-                                        |
-                      -- renderEmailToHtml() --> @react-email/render --> HTML export
+Browser (email editor) -- POST /api/chat --> Next.js route --> OpenAI
+                        <-- SSE stream --                       (OpenUI Lang)
 ```
 
-The client sends the conversation to `/api/chat`. The API route loads the pre-generated system prompt (built from the email component library), forwards messages to the LLM with streaming, and returns SSE events. On the client, the `<Renderer />` progressively renders each token into email components.
+The client sends a conversation to `/api/chat`. The API route loads a pre-generated `system-prompt.txt` (built from `emailLibrary.prompt(emailPromptOptions)`), forwards messages to the LLM with streaming, and returns SSE events. On the client, `emailLibrary` maps each OpenUI Lang node to a React Email component that renders progressively as tokens arrive.
 
-Once streaming completes, a server action uses `@react-email/render` to convert the component tree into email-client-compatible HTML that can be copied and pasted into any email service.
-
-The UI is a split view: rendered HTML code on the left, live email preview on the right.
-
-## Available components
-
-The library ships 44 components organized into groups:
-
-| Group | Components |
-|-------|-----------|
-| **Structure** | Template, Section, Columns, Column |
-| **Headers** | HeaderSideNav, HeaderCenteredNav, HeaderSocial, NavLink, SocialIcon |
-| **Footers** | FooterCentered, FooterTwoColumn |
-| **Content** | Heading, Text, Button, Image, Divider, Link, CodeBlock, CodeInline, Markdown |
-| **Articles** | Article, ProductCard |
-| **Features** | FeatureItem, FeatureGrid, FeatureList, StepItem, NumberedSteps |
-| **Commerce** | CheckoutItem, CheckoutTable, PricingFeature, PricingCard |
-| **Social Proof** | Testimonial, SurveyRating, StatItem, Stats, CustomerReview |
-| **Media** | ImageGrid, Avatar, AvatarGroup, AvatarWithText |
-| **Lists** | ListItem, List, BentoItem, BentoGrid |
+The key difference from other examples: the output isn't interactive UI — it's static email content. The split-view editor shows a live preview on the right and formatted HTML on the left, with copy buttons for both the HTML and the subject line.
 
 ## Project layout
 
 ```
 examples/react-email/
 |- src/app/              # Next.js app (layout, page, API route)
-|- src/app/actions/      # Server action for HTML rendering
-|- src/components/       # Chat UI (compose page, split view, starters)
+|- src/app/actions/      # Server action — email to HTML conversion
+|- src/components/       # Email editor UI (compose page, split view, starters)
 |- src/hooks/            # Theme detection
 |- src/generated/        # Auto-generated system prompt
 
@@ -145,4 +114,4 @@ OPENAI_API_KEY=sk-...
 pnpm --filter react-email-example dev
 ```
 
-This generates the system prompt from the email component library and starts the Next.js dev server.
+This auto-generates the system prompt from the email component library and starts the Next.js dev server.

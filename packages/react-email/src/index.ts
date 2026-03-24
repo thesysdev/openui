@@ -48,54 +48,6 @@ import { EmailTemplate } from "./components/Template";
 import { EmailTestimonial } from "./components/Testimonial";
 import { EmailText } from "./components/Text";
 
-export { EmailLeafChildUnion } from "./unions";
-export {
-  EmailArticle,
-  EmailAvatar,
-  EmailAvatarGroup,
-  EmailAvatarWithText,
-  EmailBentoGrid,
-  EmailBentoItem,
-  EmailButton,
-  EmailCheckoutItem,
-  EmailCheckoutTable,
-  EmailCodeBlock,
-  EmailCodeInline,
-  EmailColumn,
-  EmailColumns,
-  EmailCustomerReview,
-  EmailDivider,
-  EmailFeatureGrid,
-  EmailFeatureItem,
-  EmailFeatureList,
-  EmailFooterCentered,
-  EmailFooterTwoColumn,
-  EmailHeaderCenteredNav,
-  EmailHeaderSideNav,
-  EmailHeaderSocial,
-  EmailHeading,
-  EmailImage,
-  EmailImageGrid,
-  EmailLink,
-  EmailList,
-  EmailListItem,
-  EmailMarkdown,
-  EmailNavLink,
-  EmailNumberedSteps,
-  EmailPricingCard,
-  EmailPricingFeature,
-  EmailProductCard,
-  EmailSection,
-  EmailSocialIcon,
-  EmailStatItem,
-  EmailStats,
-  EmailStepItem,
-  EmailSurveyRating,
-  EmailTemplate,
-  EmailTestimonial,
-  EmailText,
-};
-
 // ── Component groups (email only) ──
 
 export const emailComponentGroups: ComponentGroup[] = [

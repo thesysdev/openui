@@ -2,7 +2,7 @@
 
 import { useTheme } from "@/hooks/use-system-theme";
 import { useEffect, useState } from "react";
-import { SendIcon } from "./icons";
+import { Send as SendIcon } from "lucide-react";
 import { STARTERS } from "./starters";
 
 function useIsMobile(breakpoint = 768) {
