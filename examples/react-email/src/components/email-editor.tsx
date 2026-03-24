@@ -1,11 +1,11 @@
 "use client";
 
-import { renderEmailToHtml } from "@/app/actions/render-email";
 import { useTheme } from "@/hooks/use-system-theme";
 import { emailLibrary } from "@openuidev/react-email";
 import { useThread } from "@openuidev/react-headless";
 import type { ParseResult } from "@openuidev/react-lang";
 import { Renderer } from "@openuidev/react-lang";
+import { render } from "@react-email/render";
 import {
   Check as CheckIcon,
   Copy as CopyIcon,
@@ -138,15 +138,39 @@ export function EmailEditor({ onNewEmail }: { onNewEmail: () => void }) {
     return null;
   }
 
-  const handleParseResult = useCallback((result: ParseResult | null) => {
-    lastParsedRef.current = result;
-  }, []);
+  const handleParseResult = useCallback(
+    (result: ParseResult | null) => {
+      lastParsedRef.current = result;
+
+      // On refresh (not streaming, no HTML yet), render HTML as soon as parse completes
+      if (result?.root && openuiCode && !isStreaming && !renderingRef.current) {
+        const template = findTemplate(result.root);
+        if (template && !renderedHtml) {
+          renderingRef.current = true;
+          requestAnimationFrame(() => {
+            setHtmlLoading(true);
+            setEmailSubject(String(template.props?.subject ?? ""));
+            render(<Renderer response={openuiCode} library={emailLibrary} isStreaming={false} />, {
+              pretty: true,
+            })
+              .then((html) => setRenderedHtml(html))
+              .catch(() => setRenderedHtml(null))
+              .finally(() => {
+                setHtmlLoading(false);
+                renderingRef.current = false;
+              });
+          });
+        }
+      }
+    },
+    [openuiCode, isStreaming, renderedHtml],
+  );
 
   // Track previous streaming state to detect transitions
   const wasStreamingRef = useRef(false);
   const wasRunningRef = useRef(false);
 
-  // Handle streaming completion and new generation start via event-style callbacks
+  // Handle streaming completion — render HTML from parsed component tree
   const onStreamingEnd = useCallback(() => {
     if (renderingRef.current) return;
     const result = lastParsedRef.current;
@@ -158,22 +182,18 @@ export function EmailEditor({ onNewEmail }: { onNewEmail: () => void }) {
     renderingRef.current = true;
     setHtmlLoading(true);
 
-    const subject = String(template.props?.subject ?? "");
-    setEmailSubject(subject);
-    const previewText = String(template.props?.previewText ?? "");
-    const children = (template.props?.children ?? []) as Array<{
-      typeName: string;
-      props: Record<string, unknown>;
-    }>;
+    setEmailSubject(String(template.props?.subject ?? ""));
 
-    renderEmailToHtml(subject, previewText, children)
+    render(<Renderer response={openuiCode!} library={emailLibrary} isStreaming={false} />, {
+      pretty: true,
+    })
       .then((html) => setRenderedHtml(html))
       .catch(() => setRenderedHtml(null))
       .finally(() => {
         setHtmlLoading(false);
         renderingRef.current = false;
       });
-  }, []);
+  }, [openuiCode]);
 
   const onGenerationStart = useCallback(() => {
     setRenderedHtml(null);
