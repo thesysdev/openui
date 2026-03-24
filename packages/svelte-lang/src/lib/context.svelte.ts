@@ -89,11 +89,12 @@ export function getTriggerAction() {
 }
 
 /**
- * Whether the LLM is currently streaming content.
- * Returns a getter — use as `getIsStreaming()` for reactive reads.
+ * Returns a getter for the streaming state.
+ * Use as: `const isStreaming = getIsStreaming(); ... disabled={isStreaming()}`
  */
-export function getIsStreaming(): boolean {
-  return getOpenUIContext().isStreaming;
+export function getIsStreaming(): () => boolean {
+  const ctx = getOpenUIContext();
+  return () => ctx.isStreaming;
 }
 
 /**
@@ -123,28 +124,30 @@ export function getFormName(): string | undefined {
 /**
  * Persists a component's default/initial value into form state once streaming
  * finishes — but only if the user hasn't already set a value.
+ *
+ * Reads the current field value directly from form state inside the effect
+ * so that Svelte tracks it as a reactive dependency (unlike a snapshot
+ * parameter that would be captured once at call time).
  */
 export function useSetDefaultValue({
   formName,
   componentType,
   name,
-  existingValue,
   defaultValue,
   shouldTriggerSaveCallback = false,
 }: {
   formName?: string;
   componentType: string;
   name: string;
-  existingValue: any;
   defaultValue: any;
   shouldTriggerSaveCallback?: boolean;
 }): void {
-  const setFieldValue = getSetFieldValue();
   const ctx = getOpenUIContext();
 
   $effect(() => {
-    if (!ctx.isStreaming && existingValue === undefined && defaultValue !== undefined) {
-      setFieldValue(formName, componentType, name, defaultValue, shouldTriggerSaveCallback);
+    const existing = ctx.getFieldValue(formName, name);
+    if (!ctx.isStreaming && existing === undefined && defaultValue !== undefined) {
+      ctx.setFieldValue(formName, componentType, name, defaultValue, shouldTriggerSaveCallback);
     }
   });
 }
