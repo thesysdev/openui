@@ -12,6 +12,7 @@
     "@ai-sdk/svelte": "^3.0.0",
     "@openuidev/svelte-lang": "workspace:*",
     "ai": "^6.0.116",
+    "chart.js": "^4.5.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
