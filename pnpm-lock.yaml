@@ -175,9 +175,6 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.2.1
-      '@tailwindcss/typography':
-        specifier: ^0.5.19
-        version: 0.5.19(tailwindcss@4.2.1)
       '@types/node':
         specifier: ^20
         version: 20.19.35

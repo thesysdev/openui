@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 @import "@heroui/styles";
 
 /* Subtle grid canvas for the form preview area */

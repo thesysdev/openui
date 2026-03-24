@@ -13,14 +13,12 @@ Describe a form in plain language, get a live preview built from HeroUI componen
 The LLM is prompted with a form-focused system prompt that describes every available form component — name, props, and when to use it. Instead of returning prose, the model responds in **OpenUI Lang**: a declarative markup syntax that maps directly to React components. For example:
 
 ```
-root = Card([title, form])
-title = TextContent("Contact Us", "h2")
-form = Form("contact", btns, [fc1, fc2, fc3])
+root = Form("contact", "Contact Us", btns, [fc1, fc2, fc3])
 fc1 = FormControl("Name", input1)
-fc2 = FormControl("Email", input2)
+fc2 = FormControl("Email", input2, "We'll never share your email.")
 fc3 = FormControl("Message", ta1)
 input1 = Input("name", "Your name", "text", { required: true })
-input2 = Input("email", "you@example.com", "email", { required: true })
+input2 = Input("email", "you@example.com", "email", { required: true, email: true })
 ta1 = TextArea("message", "How can we help?", 4)
 btns = Buttons([b1])
 b1 = Button("Submit", { type: "continue_conversation" }, "primary")
@@ -58,7 +56,7 @@ On the client, `<Renderer>` from `@openuidev/react-lang` parses the incoming SSE
 Submit a follow-up instruction (e.g. "add a phone number field" or "rename the submit button to 'Send'") and the page:
 
 - Optionally prefixes the new user message with a JSON snapshot of current form values from `onStateUpdate`.
-- POSTs the **full** message list so the model can see the previous form spec and return one complete updated `Card`/`Form`.
+- POSTs the **full** message list so the model can see the previous form spec and return one complete updated `Form`.
 - `<Renderer initialState={formFieldSnapshot}>` hydrates the preview with the latest field values, so filled data is not lost on re-render.
 
 Click **Reset** to clear history and start a fresh form.
@@ -80,7 +78,6 @@ heroui-chat/
 │   │       ├── index.tsx          # Library + herouiFormPromptOptions export
 │   │       ├── action.ts          # Button action Zod schemas
 │   │       ├── rules.ts           # Form validation rule schemas
-│   │       ├── unions.ts          # Zod union types for component children
 │   │       └── components/        # One file per component
 │   ├── generated/
 │   │   └── system-prompt.txt      # Auto-generated — do not edit manually
@@ -132,8 +129,8 @@ Component definitions and form-focused prompt options live in `src/lib/heroui-ge
 When you run `pnpm dev` or `pnpm generate:prompt`, the CLI generates `src/generated/system-prompt.txt` — a file listing every form component's name, prop schema, description, and examples. This is the LLM's system prompt.
 
 `herouiFormPromptOptions` includes:
-- **Two form examples** (contact form, registration with select + checkbox)
-- **Rules** that instruct the model to: always wrap in `Card`, always include `Buttons` with a primary submit, define each `FormControl` as its own reference for streaming, treat follow-up instructions as refinements of the current form
+- **No inline examples** — the system prompt is derived purely from component signatures and the additional rules below
+- **Rules** that instruct the model to: always use `Form` as the root element, always include `Buttons` with a primary submit, define each `FormControl` as its own reference for streaming, treat follow-up instructions as refinements of the current form
 
 Re-run generation any time you change component definitions:
 
@@ -178,7 +175,8 @@ Each component is defined with `defineComponent()` from `@openuidev/react-lang`:
 
 | Component | HeroUI Backing | Purpose |
 | --------- | -------------- | ------- |
-| `Form` | div | Container with validation context |
+| `Form` | `Form`, `Surface` | Root container with title, validation context, and surface background |
+| `FormRow` | `div` | Horizontal row for side-by-side fields |
 | `FormControl` | `Label`, `Description` | Labeled field wrapper |
 | `Input` | `Input` | Text, email, password, etc. |
 | `TextArea` | `TextArea` | Multi-line text |
@@ -187,6 +185,7 @@ Each component is defined with `defineComponent()` from `@openuidev/react-lang`:
 | `Slider` | `Slider` | Range input |
 | `CheckBoxGroup` / `CheckBoxItem` | `CheckboxGroup`, `Checkbox` | Multi-select |
 | `RadioGroup` / `RadioItem` | `RadioGroup`, `Radio` | Single-select |
+| `SwitchGroup` / `SwitchItem` | `Switch` | Toggle switches |
 | `Button` / `Buttons` | `Button`, `ButtonGroup` | Submit and action buttons |
 
 ---
