@@ -4,11 +4,4 @@
 	let { props }: { props: { text?: string }; renderNode: Snippet<[unknown]> } = $props();
 </script>
 
-<p class="text-content">{props.text ?? ""}</p>
-
-<style>
-	.text-content {
-		line-height: 1.5;
-		color: #333;
-	}
-</style>
+<p class="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{props.text ?? ""}</p>

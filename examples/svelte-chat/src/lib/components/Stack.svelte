@@ -7,16 +7,8 @@
 	}: { props: { children?: unknown }; renderNode: Snippet<[unknown]> } = $props();
 </script>
 
-<div class="stack">
+<div class="flex flex-col gap-4">
 	{#if props.children}
 		{@render renderNode(props.children)}
 	{/if}
 </div>
-
-<style>
-	.stack {
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-	}
-</style>

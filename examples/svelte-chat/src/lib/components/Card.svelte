@@ -7,26 +7,13 @@
 	}: { props: { title?: string; children?: unknown }; renderNode: Snippet<[unknown]> } = $props();
 </script>
 
-<div class="card">
+<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm">
 	{#if props.title}
-		<h3 class="card-title">{props.title}</h3>
+		<h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">{props.title}</h3>
 	{/if}
 	{#if props.children}
-		{@render renderNode(props.children)}
+		<div class="space-y-2">
+			{@render renderNode(props.children)}
+		</div>
 	{/if}
 </div>
-
-<style>
-	.card {
-		background: white;
-		border-radius: 8px;
-		padding: 16px;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-	}
-
-	.card-title {
-		font-size: 1.1rem;
-		font-weight: 600;
-		margin-bottom: 8px;
-	}
-</style>

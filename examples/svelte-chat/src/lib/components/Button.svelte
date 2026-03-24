@@ -9,25 +9,13 @@
 </script>
 
 <button
-	class="btn"
+	class="inline-flex items-center rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
 	onclick={() =>
-		triggerAction(props.label ?? "Click", undefined, props.action ? { type: props.action } : undefined)}
+		triggerAction(
+			props.label ?? "Click",
+			undefined,
+			props.action ? { type: props.action } : undefined,
+		)}
 >
 	{props.label ?? "Button"}
 </button>
-
-<style>
-	.btn {
-		padding: 8px 16px;
-		background: #2563eb;
-		color: white;
-		border: none;
-		border-radius: 6px;
-		cursor: pointer;
-		font-size: 0.9rem;
-	}
-
-	.btn:hover {
-		background: #1d4ed8;
-	}
-</style>

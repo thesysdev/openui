@@ -1,215 +1,220 @@
 <script lang="ts">
-	import { Renderer, type ActionEvent } from "@openuidev/svelte-lang";
+	import { Chat } from "@ai-sdk/svelte";
+	import { Renderer, BuiltinActionType, type ActionEvent } from "@openuidev/svelte-lang";
 	import { library } from "$lib/library";
-	import "../app.css";
 
-	// Mock responses in openui-lang format
-	const MOCK_RESPONSES: Record<string, string> = {
-		default: `root = Stack(
-  Card("Welcome to OpenUI",
-    TextContent("This is a demo of @openuidev/svelte-lang — a Svelte 5 renderer for structured LLM output."),
-    TextContent("Try typing a message below to see the streaming parser in action."),
-    Button("Get Started")
-  )
-)`,
-		greeting: `root = Stack(
-  Card("Hello!",
-    TextContent("Nice to meet you! I can render structured UI from LLM streams."),
-    Button("Tell me more")
-  )
-)`,
-		more: `root = Stack(
-  Card("How It Works",
-    TextContent("1. Define components with Zod schemas"),
-    TextContent("2. Create a library from those components"),
-    TextContent("3. Pass LLM streaming text to the Renderer"),
-    TextContent("4. The parser converts it to a live component tree")
-  ),
-  Card("Features",
-    TextContent("Real-time streaming parser"),
-    TextContent("Error boundaries for resilient rendering"),
-    TextContent("Form state management"),
-    TextContent("Action event system"),
-    Button("Cool!")
-  )
-)`,
-	};
-
-	let messages: Array<{ role: "user" | "assistant"; content: string }> = $state([]);
 	let input = $state("");
-	let isStreaming = $state(false);
-	let currentResponse = $state<string | null>(null);
+	let messagesEnd = $state<HTMLDivElement>();
+	const chat = new Chat({});
 
-	async function simulateStream(text: string) {
-		isStreaming = true;
-		currentResponse = "";
-		for (let i = 0; i < text.length; i++) {
-			currentResponse += text[i];
-			await new Promise((r) => setTimeout(r, 5));
-		}
-		isStreaming = false;
+	const isLoading = $derived(chat.status === "submitted" || chat.status === "streaming");
+
+	function handleSubmit(e: SubmitEvent) {
+		e.preventDefault();
+		const text = input.trim();
+		if (!text || isLoading) return;
+		input = "";
+		chat.sendMessage({ text });
 	}
 
-	async function sendMessage() {
-		const text = input.trim();
-		if (!text || isStreaming) return;
-		input = "";
-		messages = [...messages, { role: "user", content: text }];
-
-		// Pick a response based on keywords
-		let responseKey = "default";
-		const lower = text.toLowerCase();
-		if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey")) {
-			responseKey = "greeting";
-		}
-		if (lower.includes("more") || lower.includes("how") || lower.includes("feature")) {
-			responseKey = "more";
-		}
-
-		const responseText = MOCK_RESPONSES[responseKey] ?? MOCK_RESPONSES.default;
-		await simulateStream(responseText);
-		messages = [...messages, { role: "assistant", content: responseText }];
-		currentResponse = null;
+	function handleSend(text: string) {
+		if (!text.trim() || isLoading) return;
+		chat.sendMessage({ text: text.trim() });
 	}
 
 	function handleAction(event: ActionEvent) {
-		const msg = event.humanFriendlyMessage;
-		input = msg;
-		sendMessage();
+		if (event.type === BuiltinActionType.ContinueConversation && event.humanFriendlyMessage) {
+			handleSend(event.humanFriendlyMessage);
+		}
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
-			sendMessage();
+			handleSubmit(new SubmitEvent("submit"));
 		}
 	}
 
-	// Show initial response on load
+	function getTextContent(parts: any[]): string {
+		return parts
+			.filter((p: any) => p.type === "text")
+			.map((p: any) => p.text)
+			.join("");
+	}
+
+	function isToolPart(part: any): boolean {
+		return part.type?.startsWith("tool-") || part.type === "dynamic-tool";
+	}
+
+	function getToolName(part: any): string {
+		if (part.type === "dynamic-tool" && "toolName" in part) return part.toolName;
+		return part.type?.replace(/^tool-/, "") ?? "";
+	}
+
 	$effect(() => {
-		simulateStream(MOCK_RESPONSES.default);
+		messagesEnd?.scrollIntoView({ behavior: "smooth" });
 	});
+
+	const starters = [
+		"What is Svelte 5?",
+		"What's the weather in Tokyo?",
+		"Compare React and Svelte",
+		"Look up NVDA stock price",
+	];
 </script>
 
-<div class="chat-container">
-	<header class="chat-header">
-		<h1>OpenUI Svelte Chat</h1>
-		<p>Powered by @openuidev/svelte-lang</p>
+<div class="h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
+	<header
+		class="shrink-0 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-4"
+	>
+		<h1 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">OpenUI Svelte Chat</h1>
+		<p class="text-xs text-zinc-500 dark:text-zinc-400">
+			Powered by @openuidev/svelte-lang & Vercel AI SDK
+		</p>
 	</header>
 
-	<div class="chat-messages">
-		{#each messages as msg}
-			{#if msg.role === "user"}
-				<div class="message user-message">
-					<p>{msg.content}</p>
+	<div class="flex-1 overflow-y-auto">
+		{#if chat.messages.length === 0}
+			<div class="flex flex-col items-center justify-center h-full px-4">
+				<div class="text-center mb-8">
+					<h2 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+						Welcome to OpenUI Chat
+					</h2>
+					<p class="text-zinc-500 dark:text-zinc-400">
+						Ask anything — responses are rendered as structured UI components.
+					</p>
 				</div>
-			{:else}
-				<div class="message assistant-message">
-					<Renderer response={msg.content} {library} onAction={handleAction} />
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg w-full">
+					{#each starters as starter}
+						<button
+							class="text-left rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+							onclick={() => handleSend(starter)}
+						>
+							{starter}
+						</button>
+					{/each}
 				</div>
-			{/if}
-		{/each}
+			</div>
+		{:else}
+			<div class="max-w-3xl mx-auto px-4 py-6 space-y-6">
+				{#each chat.messages as message, i}
+					{#if message.role === "user"}
+						<div class="flex justify-end">
+							<div
+								class="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%]"
+							>
+								{#each message.parts as part}
+									{#if part.type === "text"}
+										<p class="text-sm">{part.text}</p>
+									{/if}
+								{/each}
+							</div>
+						</div>
+					{:else if message.role === "assistant"}
+						{@const textContent = getTextContent(message.parts)}
+						{@const toolParts = message.parts.filter(isToolPart)}
+						{@const isLast = i === chat.messages.length - 1}
+						<div class="flex gap-3">
+							<div
+								class="shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center"
+							>
+								<span class="text-[10px] font-bold text-white">AI</span>
+							</div>
+							<div class="flex-1 min-w-0 space-y-2">
+								{#each toolParts as tp}
+									{@const state = (tp as any).state}
+									{@const done = state === "output-available"}
+									<div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+										{#if done}
+											<svg
+												class="w-3.5 h-3.5 text-green-500"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2.5"
+													d="M5 13l4 4L19 7"
+												/>
+											</svg>
+										{:else}
+											<div
+												class="w-3.5 h-3.5 border-2 border-zinc-300 dark:border-zinc-600 border-t-transparent rounded-full animate-spin"
+											></div>
+										{/if}
+										<span class="font-medium">{getToolName(tp)}</span>
+									</div>
+								{/each}
+								{#if textContent}
+									<Renderer
+										response={textContent}
+										{library}
+										isStreaming={isLoading && isLast}
+										onAction={handleAction}
+									/>
+								{/if}
+							</div>
+						</div>
+					{/if}
+				{/each}
 
-		{#if currentResponse !== null}
-			<div class="message assistant-message">
-				<Renderer response={currentResponse} {library} {isStreaming} onAction={handleAction} />
+				{#if isLoading && (chat.messages.length === 0 || chat.messages[chat.messages.length - 1]?.role === "user")}
+					<div class="flex gap-3">
+						<div
+							class="shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center"
+						>
+							<span class="text-[10px] font-bold text-white">AI</span>
+						</div>
+						<div class="flex items-center gap-1.5 py-2">
+							<div
+								class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce"
+							></div>
+							<div
+								class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:0.15s]"
+							></div>
+							<div
+								class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:0.3s]"
+							></div>
+						</div>
+					</div>
+				{/if}
+
+				<div bind:this={messagesEnd}></div>
 			</div>
 		{/if}
 	</div>
 
-	<div class="chat-input-area">
-		<input
-			type="text"
-			placeholder="Type a message..."
-			bind:value={input}
-			onkeydown={handleKeydown}
-			disabled={isStreaming}
-		/>
-		<button onclick={sendMessage} disabled={isStreaming || !input.trim()}>Send</button>
+	<div
+		class="shrink-0 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4"
+	>
+		<form class="max-w-3xl mx-auto flex gap-2" onsubmit={handleSubmit}>
+			<input
+				type="text"
+				placeholder="Type a message..."
+				bind:value={input}
+				onkeydown={handleKeydown}
+				disabled={isLoading}
+				class="flex-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent disabled:opacity-50"
+			/>
+			{#if isLoading}
+				<button
+					type="button"
+					onclick={() => chat.stop()}
+					class="rounded-xl bg-zinc-200 dark:bg-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
+				>
+					Stop
+				</button>
+			{:else}
+				<button
+					type="submit"
+					disabled={!input.trim()}
+					class="rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+				>
+					Send
+				</button>
+			{/if}
+		</form>
 	</div>
 </div>
-
-<style>
-	.chat-container {
-		max-width: 640px;
-		margin: 0 auto;
-		height: 100vh;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.chat-header {
-		padding: 16px;
-		text-align: center;
-		border-bottom: 1px solid #e5e5e5;
-		background: white;
-	}
-
-	.chat-header h1 {
-		font-size: 1.2rem;
-	}
-
-	.chat-header p {
-		font-size: 0.8rem;
-		color: #666;
-	}
-
-	.chat-messages {
-		flex: 1;
-		overflow-y: auto;
-		padding: 16px;
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-	}
-
-	.message {
-		max-width: 85%;
-	}
-
-	.user-message {
-		align-self: flex-end;
-		background: #2563eb;
-		color: white;
-		padding: 8px 12px;
-		border-radius: 12px 12px 0 12px;
-	}
-
-	.user-message p {
-		margin: 0;
-	}
-
-	.assistant-message {
-		align-self: flex-start;
-	}
-
-	.chat-input-area {
-		padding: 12px;
-		border-top: 1px solid #e5e5e5;
-		background: white;
-		display: flex;
-		gap: 8px;
-	}
-
-	.chat-input-area input {
-		flex: 1;
-		padding: 8px 12px;
-		border: 1px solid #d1d5db;
-		border-radius: 6px;
-		font-size: 0.9rem;
-	}
-
-	.chat-input-area button {
-		padding: 8px 16px;
-		background: #2563eb;
-		color: white;
-		border: none;
-		border-radius: 6px;
-		cursor: pointer;
-	}
-
-	.chat-input-area button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-</style>
