@@ -14,7 +14,7 @@ import { NumberField } from "./number-field";
 import { RadioGroup } from "./radio-group";
 import { Select } from "./select";
 import { Slider } from "./slider";
-// import { SwitchGroup } from "./switch-group"; // disabled: scroll/layout issue on long forms
+import { SwitchGroup } from "./switch-group";
 import { TextArea } from "./textarea";
 
 const FormControlSchema = z.object({
@@ -26,7 +26,7 @@ const FormControlSchema = z.object({
     Slider.ref,
     CheckBoxGroup.ref,
     RadioGroup.ref,
-    // SwitchGroup.ref, // disabled: scroll/layout issue on long forms
+    SwitchGroup.ref,
     NumberField.ref,
   ]),
   hint: z.string().optional(),

@@ -1,6 +1,6 @@
 "use client";
 
-import { Label, Slider as HeroUISlider } from "@heroui/react";
+import { Slider as HeroUISlider } from "@heroui/react";
 import {
   type ComponentRenderProps,
   defineComponent,
@@ -73,7 +73,6 @@ function SliderRenderer({ props }: ComponentRenderProps<z.infer<typeof SliderSch
         }
       }}
     >
-      <Label>{props.label ?? fieldName}</Label>
       <HeroUISlider.Output />
       <HeroUISlider.Track>
         <HeroUISlider.Fill />

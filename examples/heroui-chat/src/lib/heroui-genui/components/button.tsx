@@ -17,8 +17,6 @@ const ButtonSchema = z.object({
   label: z.string(),
   action: actionSchema,
   variant: z.enum(["primary", "secondary", "tertiary", "outline", "ghost", "danger"]).optional(),
-  size: z.enum(["sm", "md", "lg"]).optional(),
-  fullWidth: z.boolean().optional(),
 });
 
 function ButtonRenderer({ props }: ComponentRenderProps<z.infer<typeof ButtonSchema>>) {
@@ -30,13 +28,10 @@ function ButtonRenderer({ props }: ComponentRenderProps<z.infer<typeof ButtonSch
   const label = String(props.label ?? "");
   const action = props.action;
   const variant = props.variant ?? "primary";
-  const size = props.size ?? "md";
 
   return (
     <HeroUIButton
       variant={variant}
-      size={size}
-      fullWidth={props.fullWidth}
       isDisabled={isStreaming}
       onPress={() => {
         const actionType = action?.type ?? BuiltinActionType.ContinueConversation;

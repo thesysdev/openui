@@ -1,6 +1,6 @@
 "use client";
 
-import { Label, NumberField as HeroUINumberField } from "@heroui/react";
+import { NumberField as HeroUINumberField } from "@heroui/react";
 import {
   type ComponentRenderProps,
   defineComponent,
@@ -78,7 +78,6 @@ function NumberFieldRenderer({ props }: ComponentRenderProps<z.infer<typeof Numb
         }
       }}
     >
-      <Label>{props.label ?? fieldName}</Label>
       <HeroUINumberField.Group>
         <HeroUINumberField.DecrementButton />
         <HeroUINumberField.Input />

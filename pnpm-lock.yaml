@@ -144,9 +144,6 @@ importers:
       '@openuidev/react-lang':
         specifier: workspace:*
         version: link:../../packages/react-lang
-      '@openuidev/react-ui':
-        specifier: workspace:*
-        version: link:../../packages/react-ui
       lucide-react:
         specifier: ^0.575.0
         version: 0.575.0(react@19.2.3)
