@@ -42,7 +42,8 @@ export const EmailCustomerReview = defineComponent({
         <Section style={{ marginTop: 24, marginBottom: 24 }}>
           {ratings.map(({ rating, count }) => {
             const pct = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0;
-            const filledPct = totalReviews > 0 ? `${Math.round((count / totalReviews) * 100)}%` : "0%";
+            const filledPct =
+              totalReviews > 0 ? `${Math.round((count / totalReviews) * 100)}%` : "0%";
 
             return (
               <Row
@@ -65,10 +66,7 @@ export const EmailCustomerReview = defineComponent({
                 >
                   {rating}
                 </Column>
-                <Column
-                  valign="middle"
-                  style={{ paddingLeft: 4 }}
-                >
+                <Column valign="middle" style={{ paddingLeft: 4 }}>
                   <div
                     style={{
                       width: "100%",

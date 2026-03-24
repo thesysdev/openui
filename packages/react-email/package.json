@@ -17,7 +17,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
-    "lint": "eslint"
+    "lint": "eslint",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./src",
+    "format:check": "prettier --check ./src",
+    "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "dependencies": {
     "@react-email/components": "^0.0.41",
