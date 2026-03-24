@@ -5,6 +5,7 @@
   flex: 1;
   overflow: hidden;
   flex-direction: column;
+  position: relative;
 }
 
 .openui-bottom-tray-thread-scroll-container {
@@ -34,29 +35,6 @@
     & .openui-bottom-tray-thread-messages > *:last-child {
       min-height: calc(-200px + 100dvh);
     }
-  }
-}
-
-// Artifact panel (overlay style)
-.openui-bottom-tray-thread-artifact-panel--mobile {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
-  background-color: cssUtils.$foreground;
-  animation: openui-bottom-tray-slide-in-from-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes openui-bottom-tray-slide-in-from-bottom {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 

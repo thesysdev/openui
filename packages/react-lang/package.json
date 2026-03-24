@@ -18,6 +18,7 @@
     }
   },
   "scripts": {
+    "test": "vitest run",
     "build": "tsc -p .",
     "watch": "tsc -p . --watch",
     "lint:check": "eslint ./src",
@@ -61,6 +62,7 @@
     "react": ">=19.0.0"
   },
   "devDependencies": {
-    "@types/react": "^19.0.0"
+    "@types/react": "^19.0.0",
+    "vitest": "^4.0.18"
   }
 }

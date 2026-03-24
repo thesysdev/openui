@@ -11,7 +11,6 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   .openui-shell-container--mobile & {
     margin: 0;
     padding: cssUtils.$space-m 14px;
-    background-color: cssUtils.$foreground;
   }
 
   .openui-shell-thread-container--artifact-active & {

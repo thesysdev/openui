@@ -23,7 +23,7 @@ s2 = Series("Product B", [5, 15, 25])
 ## Core Rules
 
 1. **One statement per line:** `identifier = Expression`
-2. **Root Entry Point:** The first statement **must** assign to the identifier `root` (or call the Root component).
+2. **Root Entry Point:** The first statement **must** assign to the identifier `root` (or call the Root component). If missing, nothing renders.
 3. **Top-Down Generation:** Statements are generally written top-down (Layout -> Components -> Data) to maximize perceived performance during streaming.
 4. **Positional Arguments:** Arguments are mapped to component props by position, defined by the order of keys in your Zod schema.
 
@@ -78,6 +78,12 @@ h1 = Header("Dashboard", "Overview")
 }
 ```
 
+### Critical implications for component design
+
+- **Key order in z.object is the API contract.** Changing key order breaks all existing LLM outputs.
+- **Required props must come before optional props** in the schema, since trailing optional args can be omitted.
+- **The LLM learns positions from the auto-generated system prompt.** If the prompt and schema disagree (e.g., after a schema change without regenerating the prompt), output will be garbled.
+
 ## Optional Arguments
 
 Optional arguments (trailing) can be omitted.
@@ -103,6 +109,7 @@ table = Table(rows)  // ...but defined here.
 
 1. **Step 1:** The renderer parses `root`. It sees `table` is undefined. It renders a **Skeleton/Placeholder** for the table.
 2. **Step 2:** The `table` definition arrives. The renderer updates the React tree, replacing the skeleton with the actual `Table` component.
+3. **Step 3:** `rows` arrives → Table fills in with data.
 
 ## Complete Syntax Example
 

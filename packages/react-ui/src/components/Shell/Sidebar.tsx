@@ -1,9 +1,10 @@
+import { useActiveArtifact } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { ArrowLeftFromLine, ArrowRightFromLine } from "lucide-react";
 import { useEffect } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
 import { IconButton } from "../IconButton";
-import { useShellStore } from "./store";
+import { useShellStore } from "../_shared/store";
 
 export const SidebarContainer = ({
   children,
@@ -12,11 +13,11 @@ export const SidebarContainer = ({
   children?: React.ReactNode;
   className?: string;
 }) => {
-  const { isSidebarOpen, setIsSidebarOpen, isArtifactActive } = useShellStore((state) => ({
+  const { isSidebarOpen, setIsSidebarOpen } = useShellStore((state) => ({
     isSidebarOpen: state.isSidebarOpen,
     setIsSidebarOpen: state.setIsSidebarOpen,
-    isArtifactActive: state.isArtifactActive,
   }));
+  const { isArtifactActive } = useActiveArtifact();
   const { layout } = useLayoutContext() || {};
   const isMobile = layout === "mobile";
 

@@ -184,6 +184,38 @@ const prompt = library.prompt(options);
 
 See [System Prompts](/docs/openui-lang/system-prompts) for full details on prompt generation.
 
+## Best practices for LLM generation
+
+Since LLMs are the ones writing OpenUI Lang, component design choices directly affect generation quality.
+
+### Keep schemas flat
+
+Deeply nested object props burn tokens and increase error rates. Prefer multiple simple components over one deeply nested one.
+
+### Order Zod keys deliberately
+
+Required props first, optional props last. The most important or distinctive prop should be position 0 — the LLM sees it first during generation.
+
+### Use descriptive component names
+
+The LLM picks components by name. `PricingTable` is clearer than `Table3`. The `description` field reinforces this.
+
+### Limit library size
+
+Every component adds to the system prompt. Include only components the LLM actually needs for the use case. Fewer components means less confusion and better output.
+
+### Use `.ref` for composition, not deep nesting
+
+`z.array(ChildComponent.ref)` is the idiomatic way to compose. The LLM generates each child as a separate line, which streams and validates independently.
+
+### Provide examples in `PromptOptions`
+
+One or two concrete examples dramatically improve output quality, especially for complex or unusual component shapes. See [System Prompts](/docs/openui-lang/system-prompts) for details.
+
+### Use `componentGroups` with notes
+
+Group related components and add notes like "Use BarChart for comparisons, LineChart for trends" to guide the LLM's choices. See [Grouping components](#grouping-components-in-prompt-output) above.
+
 ## Next Steps
 
 <Cards>

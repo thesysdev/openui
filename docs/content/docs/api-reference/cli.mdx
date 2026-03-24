@@ -1,0 +1,154 @@
+---
+title: "@openuidev/cli"
+description: API reference for the OpenUI CLI to scaffold apps and generate system prompts.
+---
+
+A command-line tool for scaffolding OpenUI chat apps and generating system prompts or JSON schemas from library definitions.
+
+## Installation
+
+```bash
+# Run without installing
+npx @openuidev/cli@latest <command>
+
+# Or install globally
+npm install -g @openuidev/cli
+pnpm add -g @openuidev/cli
+yarn global add @openuidev/cli
+bun add -g @openuidev/cli
+```
+
+## `openui create`
+
+Scaffolds a new Next.js app pre-configured with OpenUI Chat.
+
+```
+openui create [options]
+```
+
+**Options**
+
+| Flag | Description |
+|---|---|
+| `-n, --name <string>` | Project name (directory to create) |
+| `--no-interactive` | Fail instead of prompting for missing input |
+
+When run interactively (default), the CLI prompts for any missing options. Pass `--no-interactive` in CI or scripted environments to surface missing required flags as errors instead.
+
+**What it does**
+
+1. Copies the bundled `openui-chat` Next.js template into `<name>/`
+2. Rewrites `workspace:*` dependency versions to `latest`
+3. Auto-detects your package manager (npm, pnpm, yarn, bun)
+4. Installs dependencies
+
+The generated project includes a `generate:prompt` script that runs `openui generate` as part of `dev` and `build`.
+
+**Examples**
+
+```bash
+# Interactive — prompts for project name
+openui create
+
+# Non-interactive
+openui create --name my-app
+openui create --no-interactive --name my-app
+```
+
+## `openui generate`
+
+Generates a system prompt or JSON schema from a file that exports a `createLibrary()` result.
+
+```
+openui generate [entry] [options]
+```
+
+**Arguments**
+
+| Argument | Description |
+|---|---|
+| `[entry]` | Path to a `.ts`, `.tsx`, `.js`, or `.jsx` file that exports a `Library` |
+
+**Options**
+
+| Flag | Description |
+|---|---|
+| `-o, --out <file>` | Write output to a file instead of stdout |
+| `--json-schema` | Output JSON schema instead of a system prompt |
+| `--export <name>` | Name of the export to use (auto-detected by default) |
+| `--prompt-options <name>` | Name of the `PromptOptions` export to use (auto-detected by default) |
+| `--no-interactive` | Fail instead of prompting for missing `entry` |
+
+**Examples**
+
+```bash
+# Print system prompt to stdout
+openui generate ./src/library.ts
+
+# Write system prompt to a file
+openui generate ./src/library.ts --out ./src/generated/system-prompt.txt
+
+# Output JSON schema instead
+openui generate ./src/library.ts --json-schema
+
+# Explicit export names
+openui generate ./src/library.ts --export myLibrary --prompt-options myOptions
+```
+
+### Export auto-detection
+
+The CLI bundles the entry file with esbuild before evaluating it. CSS, SVG, image, and font imports are stubbed automatically.
+
+If `--export` is not provided, the CLI searches the module's exports in this order:
+
+1. An export named `library`
+2. The `default` export
+3. Any export whose value has both a `.prompt()` method and a `.toJSONSchema()` method
+
+If `--prompt-options` is not provided, the CLI looks for:
+
+1. An export named `promptOptions`
+2. An export named `options`
+3. Any export whose name ends with `PromptOptions` (case-insensitive)
+
+A valid `PromptOptions` value has at least one of: `examples` (string array), `additionalRules` (string array), or `preamble` (string).
+
+### `PromptOptions` type
+
+```ts
+interface PromptOptions {
+  preamble?: string;
+  additionalRules?: string[];
+  examples?: string[];
+}
+```
+
+Pass this as a named export alongside your library to customise the generated system prompt without hard-coding it into `createLibrary`.
+
+```ts
+// src/library.ts
+import { createLibrary } from "@openuidev/react-lang";
+import type { PromptOptions } from "@openuidev/react-lang";
+
+export const library = createLibrary({ components: [...] });
+
+export const promptOptions: PromptOptions = {
+  preamble: "You are a dashboard builder...",
+  additionalRules: ["Always use compact variants for table cells."],
+};
+```
+
+```bash
+openui generate ./src/library.ts --out src/generated/system-prompt.txt
+```
+
+## See also
+
+<Cards>
+  <Card title="Quick Start" href="/docs/chat/quick-start">
+    Scaffold and run a new OpenUI chat app with `openui create` in under 5 minutes.
+  </Card>
+  <Card title="@openuidev/react-lang" href="/docs/api-reference/react-lang">
+    `createLibrary`, `PromptOptions`, and the `Library` interface that `openui generate` reads.
+  </Card>
+</Cards>

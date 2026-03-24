@@ -23,7 +23,7 @@ export const FormControl = defineComponent({
 
     return (
       <OpenUIFormControl>
-        <OpenUILabel className="text-sm font-medium" required={isRequired}>
+        <OpenUILabel className="text-sm font-medium" required={isRequired} htmlFor={fieldName}>
           {props.label as string}
         </OpenUILabel>
         {renderNode(props.input)}

@@ -540,9 +540,6 @@ importers:
       react:
         specifier: '>=19.0.0'
         version: 19.2.4
-      react-dom:
-        specifier: '>=19.0.0'
-        version: 19.2.4(react@19.2.4)
       zustand:
         specifier: ^4.5.5
         version: 4.5.7(@types/react@19.2.14)(react@19.2.4)
@@ -572,6 +569,9 @@ importers:
       '@types/react':
         specifier: ^19.0.0
         version: 19.2.14
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.3.2)(jiti@2.6.1)(jsdom@28.1.0)(lightningcss@1.31.1)(sass@1.89.2)(terser@5.43.0)(tsx@4.20.3)(yaml@2.8.0)
 
   packages/react-ui:
     dependencies:

@@ -2,7 +2,7 @@ import { useThread } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { ReactNode } from "react";
 import { ConversationStarterProps } from "../../types/ConversationStarter";
-import { isChatEmpty } from "../OpenUIChat/utils";
+import { isChatEmpty } from "../_shared/utils";
 import { DesktopWelcomeComposer } from "./components";
 import { ConversationStarter, ConversationStarterVariant } from "./ConversationStarter";
 

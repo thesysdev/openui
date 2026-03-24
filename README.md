@@ -137,6 +137,8 @@ openui/
 │   ├── react-headless/   # Headless chat state & streaming adapters
 │   ├── react-ui/         # Prebuilt chat layouts & component libraries
 │   └── openui-cli/       # CLI for scaffolding & prompt generation
+├── skills/
+│   └── openui/           # Claude Code skill for AI-assisted development
 ├── examples/
 │   └── openui-chat/      # Full working example app (Next.js)
 ├── docs/                 # Documentation site (openui.com)
@@ -158,6 +160,22 @@ Good places to start:
 ## Contributing
 
 Contributions are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for contribution guidelines and ways to get involved.
+
+## Agent Skill
+ 
+OpenUI ships an [Agent Skill](https://agentskills.io) so AI coding assistants (Claude Code, Codex, Cursor, Copilot, etc.) can help you scaffold, build, and debug Generative UI apps using OpenUI Lang.
+ 
+### Install
+ 
+```bash
+# With the skills CLI (works across all agents)
+npx skills add thesysdev/openui --skill openui
+ 
+# Manual — copy into your project
+cp -r skills/openui .claude/skills/openui
+```
+ 
+The skill covers component library design, OpenUI Lang syntax, system prompt generation, the Renderer, SDK packages, and debugging malformed LLM output.
 
 ## License
 

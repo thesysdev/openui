@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
 import { Fragment, useEffect } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
-import { useShellStore } from "./store";
+import { useShellStore } from "../_shared/store";
 
 export const ThreadButton = ({
   id,
