@@ -4,7 +4,6 @@ import { useAutoScroll } from "@/hooks/useAutoScroll";
 import { useClipboard } from "@/hooks/useClipboard";
 import { useEmailRendering } from "@/hooks/useEmailRendering";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useTheme } from "@/hooks/useSystemTheme";
 import { useThread } from "@openuidev/react-headless";
 import { useMemo, useState } from "react";
 import { HtmlPanel } from "./htmlPanel";
@@ -15,7 +14,7 @@ import { TopBar } from "./topBar";
 
 export function EmailEditor({ onNewEmail }: { onNewEmail: () => void }) {
   const [input, setInput] = useState("");
-  const isDark = useTheme() === "dark";
+  const isDark = true;
   const isMobile = useIsMobile();
   const [mobileTab, setMobileTab] = useState<"html" | "preview">("preview");
 

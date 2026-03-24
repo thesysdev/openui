@@ -91,7 +91,7 @@ export function useEmailRendering(openuiCode: string | null, isStreaming: boolea
       if (wasStreamingRef.current && !isStreaming) {
         onStreamingEnd();
       }
-      if (!wasRunningRef.current && isRunning && !openuiCode) {
+      if (!wasRunningRef.current && isRunning) {
         onGenerationStart();
       }
       wasStreamingRef.current = isStreaming;

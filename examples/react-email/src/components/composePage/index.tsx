@@ -1,14 +1,13 @@
 "use client";
 
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useTheme } from "@/hooks/useSystemTheme";
 import { Send as SendIcon } from "lucide-react";
 import { useState } from "react";
 import { STARTERS } from "./starters";
 
 export function ComposePage({ onSend }: { onSend: (message: string) => void }) {
   const [input, setInput] = useState("");
-  const isDark = useTheme() === "dark";
+  const isDark = true;
   const isMobile = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
