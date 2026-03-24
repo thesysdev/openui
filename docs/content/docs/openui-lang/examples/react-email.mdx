@@ -61,7 +61,7 @@ const systemPrompt = emailLibrary.prompt(emailPromptOptions);
 <Renderer response={openuiCode} library={emailLibrary} isStreaming={isStreaming} />;
 ```
 
-Once streaming completes, a server action calls `@react-email/render` with `{ pretty: true }` to produce formatted HTML for the "Copy HTML" button.
+Once streaming completes, the `useEmailRendering` hook calls `render()` from `@react-email/render` with `{ pretty: true }` client-side to produce formatted HTML for the "Copy HTML" button.
 
 See [Defining Components](/docs/openui-lang/defining-components) for the full `defineComponent` API.
 
@@ -80,29 +80,33 @@ The key difference from other examples: the output isn't interactive UI — it's
 
 ```
 examples/react-email/
-|- src/app/              # Next.js app (layout, page, API route)
-|- src/app/actions/      # Server action — email to HTML conversion
-|- src/components/       # Email editor UI (compose page, split view, starters)
-|- src/hooks/            # Theme detection
-|- src/generated/        # Auto-generated system prompt
+|- src/app/                 # Next.js app (layout, page, API route)
+|- src/components/
+|  |- composePage/          # Landing page with conversation starters
+|  |- emailEditor/          # Split view (top bar, HTML panel, preview, input)
+|  |- loadingDots.tsx       # Loading animation (shared)
+|  |- session.ts            # Session persistence (shared)
+|- src/hooks/               # Theme, clipboard, auto-scroll, email rendering
+|- src/generated/           # Auto-generated system prompt
 
 packages/react-email/
-|- src/components/       # 44 email components (defineComponent)
-|- src/index.ts          # Library, groups, examples, rules
-|- src/unions.ts         # Component type unions
+|- src/components/          # 44 email components (defineComponent)
+|- src/index.ts             # Library, groups, examples, rules
+|- src/unions.ts            # Component type unions
 ```
 
 ## Run the example
 
-Run these commands from the monorepo root.
+Run these commands from `examples/react-email`.
 
 1. Install dependencies:
 
 ```bash
+cd examples/react-email
 pnpm install
 ```
 
-2. Create a `.env.local` file in `examples/react-email/`:
+2. Create a `.env.local` file with your API key:
 
 ```bash
 OPENAI_API_KEY=sk-...
@@ -111,7 +115,7 @@ OPENAI_API_KEY=sk-...
 3. Start the dev server:
 
 ```bash
-pnpm --filter react-email-example dev
+pnpm dev
 ```
 
 This auto-generates the system prompt from the email component library and starts the Next.js dev server.

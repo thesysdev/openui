@@ -14,45 +14,93 @@ Describe an email in natural language, and the AI generates a live preview with 
 - **Iterative design** — refine the email through follow-up messages
 - **Dark mode** — automatic system theme detection
 
+## Prerequisites
+
+- Node.js 20+
+- [pnpm](https://pnpm.io/) (this example lives inside the OpenUI monorepo)
+- An [OpenAI API key](https://platform.openai.com/api-keys)
+
 ## Getting Started
 
-1. Copy `.env.example` to `.env.local` and add your OpenAI API key:
+1. Clone the repo and install dependencies from the monorepo root:
 
 ```bash
-cp .env.example .env.local
+git clone https://github.com/thesysdev/openui.git
+cd openui
+pnpm install
 ```
 
-2. Install dependencies from the monorepo root:
+2. Copy `.env.example` to `.env.local` and add your OpenAI API key:
 
 ```bash
-pnpm install
+cp examples/react-email/.env.example examples/react-email/.env.local
+```
+
+Edit `examples/react-email/.env.local`:
+
+```
+OPENAI_API_KEY=sk-your-api-key-here
 ```
 
 3. Start the development server:
 
 ```bash
-pnpm --filter react-email-example dev
+cd examples/react-email
+pnpm dev
 ```
+
+The app will be available at [http://localhost:3000](http://localhost:3000).
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start dev server (auto-generates system prompt) |
+| `pnpm build` | Production build |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run ESLint |
+
+## Key Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `@openuidev/react-email` | 44 email components + system prompt generation |
+| `@openuidev/react-lang` | `Renderer` — parses OpenUI Lang and renders components |
+| `@openuidev/react-headless` | Chat thread state management |
+| `@react-email/components` | Email-compatible HTML primitives |
+| `@react-email/render` | Converts React components to email HTML |
+| `next` | App framework (Next.js 16) |
+| `openai` | OpenAI streaming API client |
 
 ## Project Structure
 
 ```
 src/
   app/
-    page.tsx                    # Main app — compose + editor views
-    layout.tsx                  # Root layout with theme provider
-    api/chat/route.ts           # OpenAI streaming API route
-    actions/render-email.tsx    # Server action — converts email to copyable HTML
+    page.tsx                          # Main app — compose + editor views
+    layout.tsx                        # Root layout with theme provider
+    api/chat/route.ts                 # OpenAI streaming API route
   components/
-    compose-page.tsx            # Landing page with conversation starters
-    email-editor.tsx            # Split view — HTML code + live preview
-    starters.ts                 # Conversation starter prompts
-    session.ts                  # Session persistence (sessionStorage)
-    loading-dots.tsx            # Loading animation
+    composePage/
+      index.tsx                       # Landing page with conversation starters
+      starters.ts                     # Conversation starter prompts
+    emailEditor/
+      index.tsx                       # Split view orchestrator
+      topBar.tsx                      # Header with title + generating indicator
+      htmlPanel.tsx                   # Left panel — HTML code output
+      previewPanel.tsx                # Right panel — live email preview
+      messageInput.tsx                # Bottom input form
+      mobileTabToggle.tsx             # Mobile HTML/Preview tab switcher
+    loadingDots.tsx                   # Loading animation (shared)
+    session.ts                        # Session persistence (shared)
   hooks/
-    use-system-theme.tsx        # Dark/light theme detection
+    useSystemTheme.tsx                # Dark/light theme detection
+    useIsMobile.ts                    # Responsive breakpoint hook
+    useClipboard.ts                   # Copy-to-clipboard hook
+    useAutoScroll.ts                  # Auto-scroll with user override
+    useEmailRendering.tsx             # HTML rendering + streaming lifecycle
   generated/
-    system-prompt.txt           # Auto-generated from @openuidev/react-email
+    system-prompt.txt                 # Auto-generated from @openuidev/react-email
 ```
 
 ## How It Works
@@ -61,7 +109,7 @@ src/
 2. User describes an email (or clicks a starter)
 3. The AI responds in OpenUI Lang format
 4. The `Renderer` from `@openuidev/react-lang` parses and renders the email components in real time using `emailLibrary`
-5. Once streaming completes, the server action calls `renderEmailToHtml()` with `{ pretty: true }` to produce copyable, formatted HTML
+5. Once streaming completes, `useEmailRendering` calls `render()` from `@react-email/render` with `{ pretty: true }` client-side to produce copyable, formatted HTML
 
 ## What the package provides
 
