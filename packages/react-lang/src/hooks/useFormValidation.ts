@@ -53,7 +53,16 @@ export function useCreateFormValidation(): FormValidationContextValue {
     const newErrors: Record<string, string | undefined> = {};
 
     for (const [name, reg] of Object.entries(fieldsRef.current)) {
-      const value = reg.getValue();
+      let value = reg.getValue();
+      // Normalize: form state stores { value, componentType }; extract actual value if needed
+      if (
+        value != null &&
+        typeof value === "object" &&
+        "value" in value &&
+        "componentType" in value
+      ) {
+        value = (value as { value: unknown }).value;
+      }
       const error = validate(value, reg.rules);
       newErrors[name] = error;
       if (error) allValid = false;

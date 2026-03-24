@@ -30,6 +30,19 @@ export type ValidatorFn = (value: unknown, arg?: number | string) => string | un
 function isEmpty(value: unknown): boolean {
   if (value === null || value === undefined || value === "") return true;
   if (Array.isArray(value) && value.length === 0) return true;
+  // Form state stores { value, componentType } — extract actual value for validation
+  if (value && typeof value === "object" && !Array.isArray(value) && "value" in value) {
+    return isEmpty((value as { value: unknown }).value);
+  }
+  // Empty plain object (e.g. CheckBoxGroup with no selection)
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.keys(value).length === 0
+  ) {
+    return true;
+  }
   return false;
 }
 
