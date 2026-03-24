@@ -1,1 +1,1 @@
-export { herouiChatLibrary as library, herouiPromptOptions as promptOptions } from "@/lib/heroui-genui";
+export { herouiChatLibrary as library, herouiFormPromptOptions as promptOptions } from "@/lib/heroui-genui";

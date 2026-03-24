@@ -11,11 +11,12 @@ import { z } from "zod";
 
 import { Buttons } from "./buttons";
 import { FormControl } from "./form-control";
+import { FormRow } from "./form-row";
 
 const FormSchema = z.object({
   name: z.string(),
   buttons: Buttons.ref,
-  fields: z.array(FormControl.ref).default([]),
+  fields: z.array(z.union([FormControl.ref, FormRow.ref])).default([]),
 });
 
 type FormProps = z.infer<typeof FormSchema>;

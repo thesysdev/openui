@@ -1,10 +1,9 @@
-import { ThemeProvider } from "@openuidev/react-ui";
 import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "OpenUI + HeroUI Chat",
-  description: "Generative UI Chat with OpenAI SDK + HeroUI components",
+  title: "OpenUI Form Generator",
+  description: "Generate and refine forms from natural language prompts using OpenUI + HeroUI",
 };
 
 export default function RootLayout({
@@ -14,9 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

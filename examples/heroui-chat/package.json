@@ -14,7 +14,6 @@
     "@heroui/styles": "^3.0.1",
     "@openuidev/react-headless": "workspace:*",
     "@openuidev/react-lang": "workspace:*",
-    "@openuidev/react-ui": "workspace:*",
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "openai": "^6.22.0",
