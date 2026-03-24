@@ -1,23 +1,23 @@
 # Analytics Demo
 
-A conversational analytics app that streams OpenUI Lang charts, tables, and metric cards using Google Gemini and server-side tool execution.
+A conversational analytics app that streams OpenUI Lang charts, tables, and metric cards using OpenAI and server-side tool execution.
 
 It uses `@openuidev/react-ui`'s FullScreen layout and the built-in `openuiChatLibrary` — no custom component definitions needed — to render charts, tables, and metric cards from live tool data.
 
 The example includes:
 
 - A **Next.js frontend** with a FullScreen chat layout and built-in conversation starters
-- A **Next.js API route** that calls Google Gemini with streaming and a multi-round tool execution loop
+- A **Next.js API route** that calls OpenAI with streaming and automatic tool execution via `runTools()`
 - **Four mock analytics tools** with built-in sample data, so nothing external is required
 
 ## Architecture
 
 ```
-Browser (FullScreen) -- POST /api/chat --> Next.js route --> Gemini
+Browser (FullScreen) -- POST /api/chat --> Next.js route --> OpenAI
                      <-- SSE stream --                       (OpenUI Lang + tool calls)
 ```
 
-The client sends a conversation to `/api/chat`. The API route loads a generated `system-prompt.txt`, runs a tool-calling loop against Gemini (up to 5 rounds), and streams the final OpenUI Lang response as SSE. On the client side, `openAIAdapter()` parses the stream, and `openuiChatLibrary` maps each node to a chart, table, or metric card that renders progressively as tokens arrive.
+The client sends a conversation to `/api/chat`. The API route loads a generated `system-prompt.txt`, uses OpenAI's `runTools()` to handle multi-round tool calling automatically, and streams the response as SSE. On the client side, `openAIAdapter()` parses the stream, and `openuiChatLibrary` maps each node to a chart, table, or metric card that renders progressively as tokens arrive.
 
 ## Project layout
 
@@ -39,10 +39,10 @@ cd examples/analytics-demo
 pnpm install
 ```
 
-2. Set your Gemini API key:
+2. Set your OpenAI API key:
 
 ```bash
-export GEMINI_API_KEY=your-key-here
+export OPENAI_API_KEY=your-key-here
 ```
 
 3. Start the dev server:
@@ -134,48 +134,33 @@ export {
 
 The `generate:prompt` script points the CLI at this file. The exported names `library` and `promptOptions` are the convention the CLI uses for auto-detection.
 
-### `src/app/api/chat/route.ts` — Gemini streaming with tool execution
+### `src/app/api/chat/route.ts` — OpenAI streaming with tool execution
 
-The API route implements a multi-round tool-calling loop against the Gemini API, then streams the final text response as OpenAI-compatible SSE:
+The API route uses the OpenAI SDK's `runTools()` to handle multi-round tool calling automatically, streaming content and tool call events as SSE:
 
 ```ts
-const MAX_TOOL_ROUNDS = 5;
-for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-  const response = await ai.models.generateContentStream({ model, contents, config });
+const runner = (client.chat.completions as any).runTools({
+  model,
+  messages: chatMessages,
+  tools,
+  stream: true,
+});
 
-  let hasToolCalls = false;
-  const functionResponses = [];
+runner.on("functionToolCall", (fc) => {
+  enqueue(sseToolCallStart(encoder, { id, function: { name: fc.name } }, callIdx));
+});
 
-  for await (const chunk of response) {
-    if (chunk.text) enqueue(sseContentChunk(encoder, chunk.text));
+runner.on("functionToolCallResult", (result) => {
+  enqueue(sseToolCallArgs(encoder, { id: tc.id, function: { arguments: tc.arguments } }, result, resultIdx));
+});
 
-    if (chunk.functionCalls?.length) {
-      hasToolCalls = true;
-      for (const fc of chunk.functionCalls) {
-        const result = await toolImpls[fc.name](fc.args ?? {});
-        functionResponses.push({ name: fc.name, response: JSON.parse(result) });
-      }
-    }
-  }
-
-  if (hasToolCalls) {
-    contents.push({
-      role: "model",
-      parts: functionResponses.map((fr) => ({ functionCall: { name: fr.name, args: {} } })),
-    });
-    contents.push({
-      role: "user",
-      parts: functionResponses.map((fr) => ({
-        functionResponse: { name: fr.name, response: fr.response },
-      })),
-    });
-    continue;
-  }
-  break;
-}
+runner.on("chunk", (chunk) => {
+  const delta = chunk.choices?.[0]?.delta;
+  if (delta?.content) enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+});
 ```
 
-The response is formatted as OpenAI-compatible SSE so the client-side `openAIAdapter()` can parse it without modification — this is a useful pattern when switching between providers.
+`runTools()` handles the full tool-calling loop internally — calling tools, feeding results back to the model, and repeating until a final text response is produced.
 
 ### `src/tools/analytics-tools.ts` — tool definitions
 

@@ -10,7 +10,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@google/genai": "^1.45.0",
+    "openai": "^6.22.0",
     "@openuidev/cli": "workspace:*",
     "@openuidev/react-headless": "workspace:*",
     "@openuidev/react-lang": "workspace:*",
