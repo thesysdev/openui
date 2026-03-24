@@ -1,18 +1,20 @@
 {
   "name": "@openuidev/react-email",
-  "version": "0.1.0",
-  "description": "React Email components for OpenUI \u2014 44 email building blocks with defineComponent",
+  "version": "0.1.3",
+  "description": "React Email components for OpenUI — 44 email building blocks with defineComponent",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -22,6 +24,7 @@
     "lint:fix": "eslint ./src --fix",
     "format:fix": "prettier --write ./src",
     "format:check": "prettier --check ./src",
+    "prepare": "pnpm run build",
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "dependencies": {
