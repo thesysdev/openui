@@ -6,7 +6,10 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -15,6 +18,7 @@
     }
   },
   "scripts": {
+    "test": "vitest run",
     "build": "tsc -p .",
     "watch": "tsc -p . --watch",
     "lint:check": "eslint ./src",
@@ -27,13 +31,28 @@
   "dependencies": {
     "zod": "^4.0.0"
   },
-  "keywords": ["openui", "openui-lang", "parser", "prompt-generation", "validation", "zod", "llm", "generative-ui", "framework-agnostic"],
+  "keywords": [
+    "openui",
+    "openui-lang",
+    "parser",
+    "prompt-generation",
+    "validation",
+    "zod",
+    "llm",
+    "generative-ui",
+    "framework-agnostic"
+  ],
   "homepage": "https://openui.com",
   "repository": {
     "type": "git",
     "url": "https://github.com/thesysdev/openui.git",
     "directory": "packages/lang-core"
   },
-  "bugs": { "url": "https://github.com/thesysdev/openui/issues" },
-  "author": "engineering@thesys.dev"
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "author": "engineering@thesys.dev",
+  "devDependencies": {
+    "vitest": "^4.0.18"
+  }
 }

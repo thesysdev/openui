@@ -27,7 +27,7 @@ const schema: ParamMap = new Map([
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const errors = (input: string) => parse(input, schema).meta.errors;
-const codes = (input: string) => errors(input).map((e) => e.code);
+const codes = (input: string) => errors(input).map((e: { code: string }) => e.code);
 
 // ── unknown-component ────────────────────────────────────────────────────────
 
