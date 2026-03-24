@@ -28,15 +28,27 @@ To learn more about OpenUI, take a look at the following resources:
 
 ## Docker Usage
 
-Run these commands from the repository root.
+You can build the image either from the example directory or from the repository root.
+
+### Option 1: From examples/openui-chat
+
+```bash
+cd examples/openui-chat
+docker build -f Dockerfile -t openui-chat ../..
+docker run --rm -p 3000:3000 -e OPENAI_API_KEY=your_api_key openui-chat
+```
+
+### Option 2: From repository root
 
 ```bash
 docker build -f examples/openui-chat/Dockerfile -t openui-chat .
 docker run --rm -p 3000:3000 -e OPENAI_API_KEY=your_api_key openui-chat
 ```
 
+⚠️ The build context must be the repository root (either `.` or `../..`) because this example depends on pnpm workspace packages.
+
 Notes:
 
-- The Dockerfile uses pnpm workspace packages from the monorepo root build context.
+- The Docker build uses pnpm workspace dependencies from the monorepo.
 - Runtime uses Next.js standalone output (`node examples/openui-chat/server.js`).
-- A placeholder API key will start the app but chat requests return `401`.
+- A placeholder API key will start the app, but chat requests will return `401`.

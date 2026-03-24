@@ -13,6 +13,7 @@ RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.json ./
+
 COPY packages/openui-cli/package.json ./packages/openui-cli/
 COPY packages/react-ui/package.json ./packages/react-ui/
 COPY packages/react-headless/package.json ./packages/react-headless/
