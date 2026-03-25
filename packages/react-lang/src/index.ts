@@ -42,5 +42,10 @@ export {
 } from "./hooks/useFormValidation";
 export type { FormValidationContextValue } from "./hooks/useFormValidation";
 
-export { builtInValidators, parseRules, parseStructuredRules, validate } from "@openuidev/lang-core";
+export {
+  builtInValidators,
+  parseRules,
+  parseStructuredRules,
+  validate,
+} from "@openuidev/lang-core";
 export type { ParsedRule, ValidatorFn } from "@openuidev/lang-core";

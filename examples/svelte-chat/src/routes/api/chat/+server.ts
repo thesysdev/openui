@@ -1,10 +1,10 @@
-import { OPENAI_API_KEY } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import { library, promptOptions } from "$lib/library";
 import { tools } from "$lib/tools";
 import { createOpenAI } from "@ai-sdk/openai";
 import { convertToModelMessages, stepCountIs, streamText } from "ai";
 
-const openai = createOpenAI({ apiKey: OPENAI_API_KEY });
+const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY ?? "" });
 
 const systemPrompt = library.prompt(promptOptions);
 

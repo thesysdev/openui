@@ -1,20 +1,21 @@
-import type { ReactNode } from "react";
-import { z } from "zod";
 import {
   createLibrary as coreCreateLibrary,
   defineComponent as coreDefineComponent,
-  type ComponentRenderProps as CoreRenderProps,
   type DefinedComponent as CoreDefinedComponent,
   type Library as CoreLibrary,
   type LibraryDefinition as CoreLibraryDefinition,
+  type ComponentRenderProps as CoreRenderProps,
 } from "@openuidev/lang-core";
+import type { ReactNode } from "react";
+import { z } from "zod";
 
 // Re-export framework-agnostic types unchanged
 export type { ComponentGroup, PromptOptions, SubComponentOf } from "@openuidev/lang-core";
 
 // ─── React-specific types ───────────────────────────────────────────────────
 
-export interface ComponentRenderProps<P = Record<string, unknown>> extends CoreRenderProps<P, ReactNode> {}
+export interface ComponentRenderProps<P = Record<string, unknown>>
+  extends CoreRenderProps<P, ReactNode> {}
 
 export type ComponentRenderer<P = Record<string, unknown>> = React.FC<ComponentRenderProps<P>>;
 
