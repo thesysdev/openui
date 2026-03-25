@@ -1,10 +1,13 @@
+import {
+  BuiltinActionType,
+  createParser,
+  type ActionEvent,
+  type ParseResult,
+} from "@openuidev/lang-core";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { OpenUIContextValue } from "../context";
 import type { Library } from "../library";
-import { createParser } from "../parser/parser";
-import type { ActionEvent, ParseResult } from "../parser/types";
-import { BuiltinActionType } from "../parser/types";
 
 export interface UseOpenUIStateOptions {
   response: string | null;

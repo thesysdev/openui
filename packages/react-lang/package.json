@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/react-lang",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Define component libraries, generate LLM system prompts, and render streaming OpenUI Lang output in React — the core runtime for OpenUI generative UI",
   "license": "MIT",
   "type": "module",
@@ -18,6 +18,7 @@
     }
   },
   "scripts": {
+    "test": "vitest run",
     "build": "tsc -p .",
     "watch": "tsc -p . --watch",
     "lint:check": "eslint ./src",
@@ -54,12 +55,14 @@
   },
   "author": "engineering@thesys.dev",
   "dependencies": {
+    "@openuidev/lang-core": "workspace:^",
     "zod": "^4.0.0"
   },
   "peerDependencies": {
     "react": ">=19.0.0"
   },
   "devDependencies": {
-    "@types/react": "^19.0.0"
+    "@types/react": "^19.0.0",
+    "vitest": "^4.0.18"
   }
 }

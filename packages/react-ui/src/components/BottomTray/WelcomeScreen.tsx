@@ -1,7 +1,7 @@
 import { useThread } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { ReactNode } from "react";
-import { isChatEmpty } from "../OpenUIChat/utils";
+import { isChatEmpty } from "../_shared/utils";
 
 interface WelcomeScreenBaseProps {
   /**

@@ -1,0 +1,82 @@
+"use client";
+
+import { defineComponent } from "@openuidev/react-lang";
+import { Button, Heading, Img, Section, Text } from "@react-email/components";
+import { z } from "zod";
+
+export const EmailArticle = defineComponent({
+  name: "EmailArticle",
+  props: z.object({
+    imageSrc: z.string(),
+    imageAlt: z.string(),
+    category: z.string().optional(),
+    title: z.string(),
+    description: z.string(),
+    buttonLabel: z.string(),
+    buttonHref: z.string(),
+    buttonColor: z.string().optional(),
+  }),
+  description:
+    "Article block with hero image, optional category label, title, description, and CTA button. Great for blog posts and newsletter articles.",
+  component: ({ props }) => {
+    const bg = (props.buttonColor as string) ?? "#4F46E5";
+    return (
+      <Section style={{ marginTop: 16, marginBottom: 16 }}>
+        <Img
+          alt={props.imageAlt as string}
+          height="320"
+          src={props.imageSrc as string}
+          style={{ width: "100%", borderRadius: 12, objectFit: "cover" }}
+        />
+        <Section style={{ marginTop: 32, textAlign: "center" }}>
+          {props.category && (
+            <Text
+              style={{
+                marginTop: 16,
+                marginBottom: 16,
+                fontSize: 18,
+                lineHeight: "28px",
+                fontWeight: 600,
+                color: "#4F46E5",
+              }}
+            >
+              {props.category as string}
+            </Text>
+          )}
+          <Heading
+            as="h1"
+            style={{
+              margin: "0px",
+              marginTop: 8,
+              fontSize: 36,
+              lineHeight: "36px",
+              fontWeight: 600,
+              color: "#111827",
+            }}
+          >
+            {props.title as string}
+          </Heading>
+          <Text style={{ fontSize: 16, lineHeight: "24px", color: "#6B7280" }}>
+            {props.description as string}
+          </Text>
+          <Button
+            href={props.buttonHref as string}
+            style={{
+              marginTop: 16,
+              borderRadius: 8,
+              backgroundColor: bg,
+              paddingLeft: 40,
+              paddingRight: 40,
+              paddingTop: 12,
+              paddingBottom: 12,
+              fontWeight: 600,
+              color: "#ffffff",
+            }}
+          >
+            {props.buttonLabel as string}
+          </Button>
+        </Section>
+      </Section>
+    );
+  },
+});
