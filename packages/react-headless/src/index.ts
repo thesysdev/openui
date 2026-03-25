@@ -9,7 +9,11 @@ export {
   openAIReadableStreamAdapter,
   openAIResponsesAdapter,
 } from "./stream/adapters";
-export { openAIConversationMessageFormat, openAIMessageFormat } from "./stream/formats";
+export {
+  langGraphMessageFormat,
+  openAIConversationMessageFormat,
+  openAIMessageFormat,
+} from "./stream/formats";
 export { processStreamedMessage } from "./stream/processStreamedMessage";
 
 export type {
@@ -39,8 +43,9 @@ export type {
   UserMessage,
 } from "./types/message";
 
+export type { LangGraphAdapterOptions } from "./stream/adapters/langgraph";
+export type { LangGraphMessageFormat } from "./stream/formats/langgraph-message-format";
 export { identityMessageFormat } from "./types/messageFormat";
 export type { MessageFormat } from "./types/messageFormat";
 export { EventType } from "./types/stream";
 export type { AGUIEvent, StreamProtocolAdapter } from "./types/stream";
-export type { LangGraphAdapterOptions } from "./stream/adapters/langgraph";

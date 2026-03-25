@@ -60,9 +60,7 @@ export interface LangGraphAdapterOptions {
  * />
  * ```
  */
-export const langGraphAdapter = (
-  options?: LangGraphAdapterOptions,
-): StreamProtocolAdapter => ({
+export const langGraphAdapter = (options?: LangGraphAdapterOptions): StreamProtocolAdapter => ({
   async *parse(response: Response): AsyncIterable<AGUIEvent> {
     const reader = response.body?.getReader();
     if (!reader) throw new Error("No response body");
@@ -116,16 +114,10 @@ export const langGraphAdapter = (
               | [LangGraphAIMessage, LangGraphMessageMetadata]
               | LangGraphAIMessage;
 
-            const msg: LangGraphAIMessage = Array.isArray(tuple)
-              ? tuple[0]
-              : tuple;
+            const msg: LangGraphAIMessage = Array.isArray(tuple) ? tuple[0] : tuple;
 
             // Only handle AI messages
-            if (
-              msg.type !== "ai" &&
-              msg.type !== "AIMessageChunk" &&
-              msg.type !== "AIMessage"
-            ) {
+            if (msg.type !== "ai" && msg.type !== "AIMessageChunk" && msg.type !== "AIMessage") {
               break;
             }
 
@@ -193,10 +185,7 @@ export const langGraphAdapter = (
                     toolCallName: tc.name,
                   };
 
-                  const argsStr =
-                    typeof tc.args === "string"
-                      ? tc.args
-                      : JSON.stringify(tc.args);
+                  const argsStr = typeof tc.args === "string" ? tc.args : JSON.stringify(tc.args);
                   yield {
                     type: EventType.TOOL_CALL_ARGS,
                     toolCallId,
@@ -218,10 +207,7 @@ export const langGraphAdapter = (
             // Payload: { [node_name]: node_output }
             // Check for interrupts
             const updates = parsed as Record<string, unknown>;
-            if (
-              "__interrupt__" in updates &&
-              options?.onInterrupt
-            ) {
+            if ("__interrupt__" in updates && options?.onInterrupt) {
               options.onInterrupt(updates["__interrupt__"]);
             }
             break;
@@ -310,9 +296,7 @@ function parseSSEBlock(block: string): { event: string; data: string } {
  * Extract text content from a LangGraph message content field.
  * Content can be a plain string or an array of typed content blocks.
  */
-function extractTextContent(
-  content: string | Array<{ type: string; text?: string }>,
-): string {
+function extractTextContent(content: string | Array<{ type: string; text?: string }>): string {
   if (typeof content === "string") return content;
 
   return content
