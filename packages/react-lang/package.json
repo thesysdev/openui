@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/react-lang",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Define component libraries, generate LLM system prompts, and render streaming OpenUI Lang output in React — the core runtime for OpenUI generative UI",
   "license": "MIT",
   "type": "module",
