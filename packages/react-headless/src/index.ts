@@ -4,11 +4,12 @@ export { useThread, useThreadList } from "./hooks/useThread";
 export { ChatProvider } from "./store/ChatProvider";
 export {
   agUIAdapter,
+  mastraAdapter,
   openAIAdapter,
   openAIReadableStreamAdapter,
   openAIResponsesAdapter,
 } from "./stream/adapters";
-export { openAIConversationMessageFormat, openAIMessageFormat } from "./stream/formats";
+export { mastraMessageFormat, openAIConversationMessageFormat, openAIMessageFormat } from "./stream/formats";
 export { processStreamedMessage } from "./stream/processStreamedMessage";
 
 export type {
