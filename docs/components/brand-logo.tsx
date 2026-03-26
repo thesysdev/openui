@@ -7,10 +7,8 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+const COUNT_UP_DURATION = 1500;
 const BUTTON_SHADOW = "0px 1px 3px 0px rgba(22,34,51,0.08), 0px 12px 24px 0px rgba(22,34,51,0.04)";
-const STAR_COUNT_FALLBACKS: Record<string, number> = {
-  "thesysdev/openui": 2752,
-};
 
 const LOGO_SPRING = { type: "spring", stiffness: 400, damping: 15 } as const;
 const LOGO_COLOR_TRANSITION = { duration: 0.25 } as const;
@@ -164,7 +162,7 @@ export function OpenUILogo({ variant = "light" }: { variant?: LogoVariant }) {
 // ---------------------------------------------------------------------------
 
 export function useGitHubStarCount(repo: string) {
-  const [count, setCount] = useState<number | null>(STAR_COUNT_FALLBACKS[repo] ?? null);
+  const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -180,14 +178,27 @@ export function useGitHubStarCount(repo: string) {
         const target: unknown = data.stargazers_count;
         if (typeof target !== "number") return;
         if (!cancelled) {
-          setCount(target);
+          const startCount = Math.max(target - 50, 0);
+          const startTime = performance.now();
+
+          setCount(startCount);
+
+          const tick = () => {
+            if (cancelled) return;
+
+            const progress = Math.min((performance.now() - startTime) / COUNT_UP_DURATION, 1);
+            const nextCount = Math.round(startCount + (target - startCount) * progress);
+            setCount(nextCount);
+
+            if (progress < 1) {
+              requestAnimationFrame(tick);
+            }
+          };
+
+          requestAnimationFrame(tick);
         }
       })
-      .catch(() => {
-        if (!cancelled) {
-          setCount((prev) => prev ?? STAR_COUNT_FALLBACKS[repo] ?? null);
-        }
-      });
+      .catch(() => {});
 
     return () => {
       cancelled = true;
@@ -221,18 +232,17 @@ export function StarCountBadge({
   count: number | null;
   isHighlighted: boolean;
 }) {
-  if (count === null) return null;
-
   return (
     <div
-      className="rounded-full h-7 flex items-center justify-center px-2 transition-colors duration-200"
+      className="rounded-full h-7 min-w-14 flex items-center justify-center px-2 transition-colors duration-200"
       style={{ backgroundColor: isHighlighted ? "black" : "rgba(0,0,0,0.06)" }}
     >
       <span
-        className="font-['Inter',sans-serif] font-medium text-[15px] leading-6 tabular-nums transition-colors duration-200"
+        className="font-['Inter',sans-serif] font-medium text-[15px] leading-6 tabular-nums transition-[color,opacity] duration-200"
         style={{ color: isHighlighted ? "white" : "black" }}
+        aria-hidden={count === null}
       >
-        {count ?? ""}
+        <span className={count === null ? "opacity-0" : "opacity-100"}>{count ?? "0000"}</span>
       </span>
     </div>
   );
