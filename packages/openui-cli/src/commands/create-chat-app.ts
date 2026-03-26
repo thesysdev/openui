@@ -102,7 +102,33 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
           ? "bun"
           : "npm";
 
-  console.info(getStartedMessage(name, devCmd));
+  if (!options.noInteractive) {
+    const apiKeyArgs = await resolveArgs(
+      {
+        openaiApiKey: {
+          prompt: {
+            type: "input",
+            message: "Enter your OpenAI API key (leave blank to skip):",
+          },
+          required: true,
+        },
+      },
+      true,
+    );
+
+    const apiKey = (apiKeyArgs as { openaiApiKey: string }).openaiApiKey.trim();
+
+    if (apiKey) {
+      const envPath = path.join(targetDir, ".env");
+      fs.writeFileSync(envPath, `OPENAI_API_KEY=${apiKey}\n`);
+      console.info("\n✅ .env file created with your API key.\n");
+      console.info(`Get started:\n\ncd ${name}\n${devCmd} run dev\n`);
+    } else {
+      console.info(getStartedMessage(name, devCmd));
+    }
+  } else {
+    console.info(getStartedMessage(name, devCmd));
+  }
 }
 
 const getStartedMessage = (name: string, devCmd: string) =>
