@@ -73,17 +73,6 @@
   }
 }
 
-// Mobile artifact panel (absolute overlay)
-.openui-shell-thread-artifact-panel--mobile {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
-  animation: slideInFromBottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 // =============================================================================
 // Animations
 // =============================================================================
@@ -96,17 +85,6 @@
   to {
     opacity: 1;
     transform: translateX(0);
-  }
-}
-
-@keyframes slideInFromBottom {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -261,6 +239,31 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
     overflow-wrap: break-word;
     max-width: 100%;
     height: fit-content;
+  }
+}
+
+.openui-shell-thread-error {
+  padding: 0 $center-align-spacing;
+  min-height: auto !important;
+
+  .openui-shell-container--mobile & {
+    padding: 0;
+  }
+}
+
+// =============================================================================
+// Thread Header
+// =============================================================================
+
+.openui-shell-thread-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: cssUtils.$space-m cssUtils.$space-s cssUtils.$space-xs;
+  flex-shrink: 0;
+
+  .openui-shell-container--mobile & {
+    display: none;
   }
 }
 

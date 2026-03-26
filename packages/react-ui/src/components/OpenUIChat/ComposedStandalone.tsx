@@ -13,6 +13,7 @@ import {
   SidebarHeader,
   SidebarSeparator,
   ThreadContainer,
+  ThreadHeader,
   ThreadList,
   WelcomeScreen,
 } from "../Shell";
@@ -70,19 +71,24 @@ const ConversationStartersRenderer = ({
   );
 };
 
+interface FullScreenSpecificProps extends SharedChatUIProps {
+  threadHeader?: React.ReactNode;
+  mobileHeaderActions?: React.ReactNode;
+}
+
 const FullScreenInner = ({
-  logoUrl = "https://crayonai.org/img/logo.png",
+  logoUrl = "https://www.openui.com/favicon.svg",
   agentName = "My Agent",
   messageLoading: MessageLoadingComponent = MessageLoading,
   scrollVariant = "user-message-anchor",
-  isArtifactActive,
-  renderArtifact,
   welcomeMessage,
   conversationStarters,
   assistantMessage,
   userMessage,
   composer: ComposerComponent,
-}: SharedChatUIProps) => {
+  threadHeader,
+  mobileHeaderActions,
+}: FullScreenSpecificProps) => {
   return (
     <Container logoUrl={logoUrl} agentName={agentName}>
       <SidebarContainer>
@@ -93,8 +99,9 @@ const FullScreenInner = ({
           <ThreadList />
         </SidebarContent>
       </SidebarContainer>
-      <ThreadContainer isArtifactActive={isArtifactActive} renderArtifact={renderArtifact}>
-        <MobileHeader />
+      <ThreadContainer>
+        <MobileHeader rightChildren={mobileHeaderActions} />
+        {threadHeader && <ThreadHeader>{threadHeader}</ThreadHeader>}
         <WelcomeMessageRenderer
           welcomeMessage={welcomeMessage}
           conversationStarters={conversationStarters}
@@ -117,4 +124,7 @@ const FullScreenInner = ({
   );
 };
 
-export const FullScreen = withChatProvider(FullScreenInner);
+export const FullScreen = withChatProvider<{
+  threadHeader?: React.ReactNode;
+  mobileHeaderActions?: React.ReactNode;
+}>(FullScreenInner);

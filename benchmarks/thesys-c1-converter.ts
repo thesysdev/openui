@@ -4,12 +4,10 @@ function isRecord(value: unknown): value is JsonRecord {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function isElementNode(value: unknown): value is { type: "element"; typeName: string; props?: unknown } {
-  return (
-    isRecord(value) &&
-    value['type'] === "element" &&
-    typeof value['typeName'] === "string"
-  );
+function isElementNode(
+  value: unknown,
+): value is { type: "element"; typeName: string; props?: unknown } {
+  return isRecord(value) && value["type"] === "element" && typeof value["typeName"] === "string";
 }
 
 function convertValue(value: unknown): unknown {
@@ -44,6 +42,6 @@ export function astToThesysC1Json(astRoot: unknown): string {
       error: null,
     },
     null,
-    2
+    2,
   );
 }

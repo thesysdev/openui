@@ -59,23 +59,26 @@ const ConversationStartersRenderer = ({
   );
 };
 
+interface CopilotSpecificProps extends SharedChatUIProps {
+  headerActions?: React.ReactNode;
+}
+
 const CopilotInner = ({
-  logoUrl = "https://crayonai.org/img/logo.png",
+  logoUrl = "https://www.openui.com/favicon.svg",
   agentName = "My Agent",
   messageLoading: MessageLoadingComponent = MessageLoading,
   scrollVariant = "user-message-anchor",
-  isArtifactActive,
-  renderArtifact,
   welcomeMessage,
   conversationStarters,
   assistantMessage,
   userMessage,
   composer: ComposerComponent,
-}: SharedChatUIProps) => {
+  headerActions,
+}: CopilotSpecificProps) => {
   return (
     <Container logoUrl={logoUrl} agentName={agentName}>
-      <ThreadContainer isArtifactActive={isArtifactActive} renderArtifact={renderArtifact}>
-        <Header />
+      <ThreadContainer>
+        <Header rightChildren={headerActions} />
         <WelcomeMessageRenderer welcomeMessage={welcomeMessage} />
         <ScrollArea scrollVariant={scrollVariant}>
           <Messages
@@ -95,4 +98,6 @@ const CopilotInner = ({
   );
 };
 
-export const Copilot = withChatProvider(CopilotInner);
+export const Copilot = withChatProvider<{
+  headerActions?: React.ReactNode;
+}>(CopilotInner);

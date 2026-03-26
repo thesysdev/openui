@@ -11,7 +11,6 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   .openui-shell-container--mobile & {
     margin: 0;
     padding: cssUtils.$space-m 14px;
-    background-color: cssUtils.$foreground;
   }
 
   .openui-shell-thread-container--artifact-active & {
@@ -20,30 +19,55 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   }
 
   &__input-wrapper {
-    border: 1.256px solid cssUtils.$border-default;
-    border-radius: cssUtils.$radius-xl;
+    background-color: cssUtils.$foreground;
+    border: 1px solid cssUtils.$border-interactive;
+    border-radius: cssUtils.$radius-2xl;
+    box-shadow: cssUtils.$shadow-s;
+    overflow: clip;
     display: flex;
-    align-items: flex-end;
+    flex-direction: column;
     gap: cssUtils.$space-s;
-    padding: cssUtils.$space-m;
+    padding: cssUtils.$space-s;
   }
 
   &__input {
-    flex-grow: 1;
-    padding: 0;
+    scrollbar-width: thin;
+    scrollbar-color: cssUtils.$elevated transparent;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: cssUtils.$elevated;
+      border-radius: cssUtils.$radius-full;
+    }
+
+    padding: 0 cssUtils.$space-3xs;
     resize: none;
-    margin: auto 0px;
-    min-height: 1lh;
-    max-height: 154px;
+    max-height: 200px;
     outline: none;
     border: none;
     background: transparent;
-    overflow: hidden;
+    overflow-y: auto;
     @include cssUtils.typography(body, default);
     color: cssUtils.$text-neutral-primary;
 
     &::placeholder {
-      color: cssUtils.$text-neutral-tertiary;
+      color: cssUtils.$text-neutral-secondary;
     }
+  }
+
+  &__action-bar {
+    display: flex;
+    align-items: center;
+  }
+
+  &__submit-button {
+    margin-left: auto;
   }
 }

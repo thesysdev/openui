@@ -1,0 +1,58 @@
+---
+title: "@openuidev/react-email"
+description: API reference for the pre-built email templates library and prompt options.
+---
+
+Use this package for LLM-driven email template generation with 44 email building blocks.
+
+## Install
+
+```bash tab="npm"
+npm install @openuidev/react-email @openuidev/react-lang @react-email/render
+```
+
+```bash tab="pnpm"
+pnpm add @openuidev/react-email @openuidev/react-lang @react-email/render
+```
+
+## `emailLibrary`
+
+Pre-configured `Library` instance with all 44 email components registered. Root component is `EmailTemplate`.
+
+Use `emailLibrary.prompt()` to generate a system prompt for your LLM:
+
+```ts
+import { emailLibrary, emailPromptOptions } from "@openuidev/react-email";
+
+// With examples and rules (recommended)
+const systemPrompt = emailLibrary.prompt(emailPromptOptions);
+
+// Without — schema only, no examples or rules
+const minimalPrompt = emailLibrary.prompt();
+```
+
+## `emailPromptOptions`
+
+Pre-built `PromptOptions` containing 10 complete email template examples and 30+ rules for high-quality email generation. Passing it to `emailLibrary.prompt()` includes these in the system prompt. Without it, the prompt contains only the component schema.
+
+## Generating HTML
+
+Convert the rendered output to an email-safe HTML string with [`@react-email/render`](https://www.npmjs.com/package/@react-email/render):
+
+```tsx
+import { Renderer } from "@openuidev/react-lang";
+import { emailLibrary } from "@openuidev/react-email";
+import { render } from "@react-email/render";
+
+const html = await render(
+  <Renderer response={llmResponse} library={emailLibrary} isStreaming={false} />,
+  { pretty: true },
+);
+```
+
+## Exports
+
+| Export | Type | Description |
+| :--- | :--- | :--- |
+| `emailLibrary` | `Library` | Ready-to-use library with all 44 email components |
+| `emailPromptOptions` | `PromptOptions` | Examples + rules for `emailLibrary.prompt()` |

@@ -8,6 +8,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-Chat-7289da?logo=discord&logoColor=white)](https://discord.com/invite/Pbv5PsqUSv)
 
+<a href="https://trendshift.io/repositories/22357" target="_blank"><img src="https://trendshift.io/api/badge/repositories/22357" alt="thesysdev%2Fopenui | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
 </div>
 
 
@@ -135,6 +137,8 @@ openui/
 │   ├── react-headless/   # Headless chat state & streaming adapters
 │   ├── react-ui/         # Prebuilt chat layouts & component libraries
 │   └── openui-cli/       # CLI for scaffolding & prompt generation
+├── skills/
+│   └── openui/           # Claude Code skill for AI-assisted development
 ├── examples/
 │   └── openui-chat/      # Full working example app (Next.js)
 ├── docs/                 # Documentation site (openui.com)
@@ -156,6 +160,22 @@ Good places to start:
 ## Contributing
 
 Contributions are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for contribution guidelines and ways to get involved.
+
+## Agent Skill
+ 
+OpenUI ships an [Agent Skill](https://agentskills.io) so AI coding assistants (Claude Code, Codex, Cursor, Copilot, etc.) can help you scaffold, build, and debug Generative UI apps using OpenUI Lang.
+ 
+### Install
+ 
+```bash
+# With the skills CLI (works across all agents)
+npx skills add thesysdev/openui --skill openui
+ 
+# Manual — copy into your project
+cp -r skills/openui .claude/skills/openui
+```
+ 
+The skill covers component library design, OpenUI Lang syntax, system prompt generation, the Renderer, SDK packages, and debugging malformed LLM output.
 
 ## License
 

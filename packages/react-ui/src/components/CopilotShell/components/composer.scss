@@ -1,0 +1,59 @@
+@use "../../../cssUtils" as cssUtils;
+
+.openui-copilot-shell-thread-composer {
+  width: 100%;
+  padding: cssUtils.$space-m cssUtils.$space-l cssUtils.$space-l;
+  background-color: cssUtils.$foreground;
+
+  &__input-wrapper {
+    border: 1px solid cssUtils.$border-interactive;
+    border-radius: cssUtils.$radius-l;
+    box-shadow: cssUtils.$shadow-s;
+    overflow: clip;
+    display: flex;
+    flex-direction: column;
+    gap: cssUtils.$space-s;
+    padding: cssUtils.$space-s;
+  }
+
+  &__input {
+    scrollbar-width: thin;
+    scrollbar-color: cssUtils.$elevated transparent;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: cssUtils.$elevated;
+      border-radius: cssUtils.$radius-full;
+    }
+
+    padding: 0 cssUtils.$space-3xs;
+    resize: none;
+    max-height: 200px;
+    outline: none;
+    border: none;
+    background: transparent;
+    overflow-y: auto;
+    @include cssUtils.typography(body, default);
+    color: cssUtils.$text-neutral-primary;
+
+    &::placeholder {
+      color: cssUtils.$text-neutral-secondary;
+    }
+  }
+
+  &__action-bar {
+    display: flex;
+    align-items: center;
+  }
+
+  &__submit-button {
+    margin-left: auto;
+  }
+}

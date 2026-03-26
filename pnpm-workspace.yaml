@@ -1,5 +1,5 @@
 packages:
   - "packages/*"
-  - "examples/*"
+  - "examples/**/*"
   - "docs/"
   - "!**/src/templates/**"

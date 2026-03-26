@@ -1,4 +1,5 @@
 import { createStore } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
 import { processStreamedMessage } from "../stream/processStreamedMessage";
 import { identityMessageFormat } from "../types/messageFormat";
 import type { ChatProviderProps, ChatStore, Message, Thread, UserMessage } from "./types";
@@ -100,192 +101,195 @@ export const createChatStore = (config: StoreConfig) => {
 
   // ── Store ──
 
-  const store = createStore<ChatStore>((set, get) => ({
-    // Thread List State
-    threads: [],
-    isLoadingThreads: false,
-    threadListError: null,
-    selectedThreadId: null,
-    hasMoreThreads: false,
-    _nextCursor: undefined,
+  const store = createStore<ChatStore>()(
+    subscribeWithSelector((set, get) => ({
+      // Thread List State
+      threads: [],
+      isLoadingThreads: false,
+      threadListError: null,
+      selectedThreadId: null,
+      hasMoreThreads: false,
+      _nextCursor: undefined,
 
-    // Thread State
-    messages: [],
-    isRunning: false,
-    isLoadingMessages: false,
-    threadError: null,
-    _abortController: null,
+      // Thread State
+      messages: [],
+      isRunning: false,
+      isLoadingMessages: false,
+      threadError: null,
+      _abortController: null,
 
-    // ── Thread List Actions ──
+      // ── Thread List Actions ──
 
-    loadThreads: () => {
-      set({ isLoadingThreads: true, threadListError: null });
-      fetchThreadList(undefined)
-        .then(({ threads = [], nextCursor }) => {
-          set({
-            threads,
-            isLoadingThreads: false,
-            _nextCursor: nextCursor,
-            hasMoreThreads: nextCursor !== undefined,
+      loadThreads: () => {
+        set({ isLoadingThreads: true, threadListError: null });
+        fetchThreadList(undefined)
+          .then(({ threads = [], nextCursor }) => {
+            set({
+              threads,
+              isLoadingThreads: false,
+              _nextCursor: nextCursor,
+              hasMoreThreads: nextCursor !== undefined,
+            });
+          })
+          .catch((e) => {
+            set({ isLoadingThreads: false, threadListError: e });
           });
-        })
-        .catch((e) => {
-          set({ isLoadingThreads: false, threadListError: e });
-        });
-    },
+      },
 
-    loadMoreThreads: () => {
-      const cursor = get()._nextCursor;
-      if (cursor === undefined) return;
-      fetchThreadList(cursor)
-        .then(({ threads = [], nextCursor }) => {
-          set((s) => ({
-            threads: mergeThreadList(s.threads, threads),
-            _nextCursor: nextCursor,
-            hasMoreThreads: nextCursor !== undefined,
-          }));
-        })
-        .catch((e) => {
-          set({ threadListError: e });
-        });
-    },
-
-    switchToNewThread: () => {
-      get().cancelMessage();
-      set({ selectedThreadId: null, messages: [], threadError: null });
-    },
-
-    createThread: async (firstMessage: UserMessage) => {
-      const thread = await createThread(firstMessage);
-      set((s) => ({ threads: mergeThreadList(s.threads, [thread]) }));
-      return thread;
-    },
-
-    selectThread: (threadId: string) => {
-      get().cancelMessage();
-      set({
-        selectedThreadId: threadId,
-        messages: [],
-        isLoadingMessages: true,
-        threadError: null,
-      });
-      loadThread(threadId)
-        .then((messages) => set({ messages, isLoadingMessages: false }))
-        .catch((e) => set({ threadError: e, isLoadingMessages: false }));
-    },
-
-    updateThread: (thread: Thread) => {
-      const setPending = (id: string, isPending: boolean) =>
-        set((s) => ({ threads: s.threads.map((t) => (t.id === id ? { ...t, isPending } : t)) }));
-      setPending(thread.id, true);
-      updateThreadFn(thread)
-        .then((updated) => {
-          set((s) => ({
-            threads: s.threads.map((t) => (t.id === updated.id ? updated : t)),
-          }));
-        })
-        .catch(() => setPending(thread.id, false));
-    },
-
-    deleteThread: (threadId: string) => {
-      const setPending = (id: string, isPending: boolean) =>
-        set((s) => ({ threads: s.threads.map((t) => (t.id === id ? { ...t, isPending } : t)) }));
-      setPending(threadId, true);
-      deleteThreadFn(threadId)
-        .then(() => {
-          const state = get();
-          set({ threads: state.threads.filter((t) => t.id !== threadId) });
-          if (state.selectedThreadId === threadId) {
-            state.switchToNewThread();
-          }
-        })
-        .catch(() => setPending(threadId, false));
-    },
-
-    // ── Thread Actions ──
-
-    processMessage: async (message) => {
-      const state = get();
-      if (state.isRunning) return;
-
-      const abortController = new AbortController();
-      const optimisticMessage: UserMessage = {
-        ...message,
-        id: crypto.randomUUID(),
-        role: "user",
-      };
-
-      set({ _abortController: abortController, isRunning: true, threadError: null });
-      set((s) => ({ messages: [...s.messages, optimisticMessage] }));
-
-      abortController.signal.addEventListener("abort", () => {
-        set({ _abortController: null, isRunning: false });
-      });
-
-      try {
-        let threadId = get().selectedThreadId;
-
-        if (!threadId) {
-          if (userCreateThread || threadApiUrl) {
-            const created = await get().createThread(optimisticMessage);
-            threadId = created.id;
-            set({ selectedThreadId: threadId });
-          } else {
-            threadId = "ephemeral";
-          }
-        }
-
-        const response = await sendMessage({
-          threadId,
-          messages: get().messages,
-          abortController,
-        });
-
-        if (response instanceof Response && !response.ok) {
-          throw new Error(`Request failed: ${response.status} ${response.statusText}`);
-        }
-
-        await processStreamedMessage({
-          response,
-          createMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
-          updateMessage: (msg) =>
+      loadMoreThreads: () => {
+        const cursor = get()._nextCursor;
+        if (cursor === undefined) return;
+        fetchThreadList(cursor)
+          .then(({ threads = [], nextCursor }) => {
             set((s) => ({
-              messages: s.messages.map((m) => (m.id === msg.id ? msg : m)),
-            })),
-          deleteMessage: (id) => set((s) => ({ messages: s.messages.filter((m) => m.id !== id) })),
-          adapter: streamProtocol,
+              threads: mergeThreadList(s.threads, threads),
+              _nextCursor: nextCursor,
+              hasMoreThreads: nextCursor !== undefined,
+            }));
+          })
+          .catch((e) => {
+            set({ threadListError: e });
+          });
+      },
+
+      switchToNewThread: () => {
+        get().cancelMessage();
+        set({ selectedThreadId: null, messages: [], threadError: null });
+      },
+
+      createThread: async (firstMessage: UserMessage) => {
+        const thread = await createThread(firstMessage);
+        set((s) => ({ threads: mergeThreadList(s.threads, [thread]) }));
+        return thread;
+      },
+
+      selectThread: (threadId: string) => {
+        get().cancelMessage();
+        set({
+          selectedThreadId: threadId,
+          messages: [],
+          isLoadingMessages: true,
+          threadError: null,
         });
-      } catch (e) {
-        if (!abortController.signal.aborted) {
-          set({ threadError: e instanceof Error ? e : new Error(String(e)) });
+        loadThread(threadId)
+          .then((messages) => set({ messages, isLoadingMessages: false }))
+          .catch((e) => set({ threadError: e, isLoadingMessages: false }));
+      },
+
+      updateThread: (thread: Thread) => {
+        const setPending = (id: string, isPending: boolean) =>
+          set((s) => ({ threads: s.threads.map((t) => (t.id === id ? { ...t, isPending } : t)) }));
+        setPending(thread.id, true);
+        updateThreadFn(thread)
+          .then((updated) => {
+            set((s) => ({
+              threads: s.threads.map((t) => (t.id === updated.id ? updated : t)),
+            }));
+          })
+          .catch(() => setPending(thread.id, false));
+      },
+
+      deleteThread: (threadId: string) => {
+        const setPending = (id: string, isPending: boolean) =>
+          set((s) => ({ threads: s.threads.map((t) => (t.id === id ? { ...t, isPending } : t)) }));
+        setPending(threadId, true);
+        deleteThreadFn(threadId)
+          .then(() => {
+            const state = get();
+            set({ threads: state.threads.filter((t) => t.id !== threadId) });
+            if (state.selectedThreadId === threadId) {
+              state.switchToNewThread();
+            }
+          })
+          .catch(() => setPending(threadId, false));
+      },
+
+      // ── Thread Actions ──
+
+      processMessage: async (message) => {
+        const state = get();
+        if (state.isRunning) return;
+
+        const abortController = new AbortController();
+        const optimisticMessage: UserMessage = {
+          ...message,
+          id: crypto.randomUUID(),
+          role: "user",
+        };
+
+        set({ _abortController: abortController, isRunning: true, threadError: null });
+        set((s) => ({ messages: [...s.messages, optimisticMessage] }));
+
+        abortController.signal.addEventListener("abort", () => {
+          set({ _abortController: null, isRunning: false });
+        });
+
+        try {
+          let threadId = get().selectedThreadId;
+
+          if (!threadId) {
+            if (userCreateThread || threadApiUrl) {
+              const created = await get().createThread(optimisticMessage);
+              threadId = created.id;
+              set({ selectedThreadId: threadId });
+            } else {
+              threadId = "ephemeral";
+            }
+          }
+
+          const response = await sendMessage({
+            threadId,
+            messages: get().messages,
+            abortController,
+          });
+
+          if (response instanceof Response && !response.ok) {
+            throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+          }
+
+          await processStreamedMessage({
+            response,
+            createMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
+            updateMessage: (msg) =>
+              set((s) => ({
+                messages: s.messages.map((m) => (m.id === msg.id ? msg : m)),
+              })),
+            deleteMessage: (id) =>
+              set((s) => ({ messages: s.messages.filter((m) => m.id !== id) })),
+            adapter: streamProtocol,
+          });
+        } catch (e) {
+          if (!abortController.signal.aborted) {
+            set({ threadError: e instanceof Error ? e : new Error(String(e)) });
+          }
+        } finally {
+          set({ _abortController: null, isRunning: false });
         }
-      } finally {
-        set({ _abortController: null, isRunning: false });
-      }
-    },
+      },
 
-    appendMessages: (...newMessages: Message[]) => {
-      set((s) => ({ messages: [...s.messages, ...newMessages] }));
-    },
+      appendMessages: (...newMessages: Message[]) => {
+        set((s) => ({ messages: [...s.messages, ...newMessages] }));
+      },
 
-    updateMessage: (message: Message) => {
-      set((s) => ({
-        messages: s.messages.map((m) => (m.id === message.id ? message : m)),
-      }));
-    },
+      updateMessage: (message: Message) => {
+        set((s) => ({
+          messages: s.messages.map((m) => (m.id === message.id ? message : m)),
+        }));
+      },
 
-    setMessages: (messages: Message[]) => {
-      set({ messages });
-    },
+      setMessages: (messages: Message[]) => {
+        set({ messages });
+      },
 
-    deleteMessage: (messageId: string) => {
-      set((s) => ({ messages: s.messages.filter((m) => m.id !== messageId) }));
-    },
+      deleteMessage: (messageId: string) => {
+        set((s) => ({ messages: s.messages.filter((m) => m.id !== messageId) }));
+      },
 
-    cancelMessage: () => {
-      get()._abortController?.abort();
-    },
-  }));
+      cancelMessage: () => {
+        get()._abortController?.abort();
+      },
+    })),
+  );
 
   return store;
 };

@@ -25,6 +25,7 @@
 Claude.md
 .claude/
 CLAUDE.local.md
+.workspace/
 
 # Dependencies
 node_modules
@@ -33,6 +34,7 @@ node_modules
 # Build output
 dist
 .next
+.svelte-kit
 *.tsbuildinfo
 typings
 

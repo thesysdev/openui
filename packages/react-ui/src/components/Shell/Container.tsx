@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useRef } from "react";
 import { LayoutContextProvider } from "../../context/LayoutContext";
 import { useElementSize } from "../../hooks/useElementSize";
-import { ShellStoreProvider } from "./store";
+import { ShellStoreProvider } from "../_shared/store";
 
 interface ContainerProps {
   children?: React.ReactNode;

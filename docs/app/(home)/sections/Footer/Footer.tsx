@@ -1,5 +1,4 @@
 "use client";
-
 import svgPaths from "@/imports/svg-urruvoh2be";
 import mascotSvgPaths from "@/imports/svg-xeurqn3j1r";
 import styles from "./Footer.module.css";

@@ -16,11 +16,13 @@ import styles from "./Navbar.module.css";
 // Constants
 // ---------------------------------------------------------------------------
 
-const NAV_TABS = ["OpenUI Lang", "Playground", "API Reference"] as const;
+const NAV_TABS = ["OpenUI Lang", "Playground", "API Reference", "Blog"] as const;
 const TAB_URLS: Record<string, string> = {
   "OpenUI Lang": "/docs/openui-lang",
   Playground: "/playground",
   "API Reference": "/docs/api-reference",
+  Components: "/docs/components",
+  Blog: "/blog",
 };
 
 // Sub-components
@@ -115,10 +117,7 @@ function MobileMenu({ starCount, onClose }: { starCount: number | null; onClose:
             rel="noopener noreferrer"
             className={styles.mobileGithubButton}
           >
-            <div
-              aria-hidden="true"
-              className={styles.mobileGithubButtonOverlay}
-            />
+            <div aria-hidden="true" className={styles.mobileGithubButtonOverlay} />
             <GitHubIcon />
             <StarCountBadge count={starCount} isHighlighted={false} />
           </a>

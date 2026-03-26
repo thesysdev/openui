@@ -1,6 +1,6 @@
-import { BASE_URL, source } from "@/lib/source";
+import { BASE_URL, blog, source } from "@/lib/source";
 
-const STATIC_PATHS = ["/", "/playground"];
+const STATIC_PATHS = ["/", "/playground", "/blog"];
 
 export default async function sitemap() {
   const staticRoutes = STATIC_PATHS.map((path) => ({
@@ -15,5 +15,11 @@ export default async function sitemap() {
     changeFrequency: "weekly" as const,
   }));
 
-  return [...staticRoutes, ...docsRoutes];
+  const blogRoutes = blog.getPages().map((page) => ({
+    url: `${BASE_URL}${page.url}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+  }));
+
+  return [...staticRoutes, ...docsRoutes, ...blogRoutes];
 }

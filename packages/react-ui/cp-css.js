@@ -66,6 +66,11 @@ function copyCssFiles() {
   const cssUtilsSrc = fs.readFileSync(path.join(dirname, "src", "cssUtils.scss"), "utf8");
   fs.writeFileSync(path.join(distDir, "cssUtils.scss"), cssUtilsSrc);
 
+  const defaultsCssPath = path.join(dirname, "dist", "openui-defaults.css");
+  if (fs.existsSync(defaultsCssPath)) {
+    fs.copyFileSync(defaultsCssPath, path.join(distDir, "openui-defaults.css"));
+  }
+
   // Fix .scss imports in compiled JS to point to .css files instead
   fixScssImportsInJs(path.join(dirname, "dist"));
 }

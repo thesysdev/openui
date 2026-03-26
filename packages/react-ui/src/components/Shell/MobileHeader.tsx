@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { Menu, Plus } from "lucide-react";
 import { ReactNode } from "react";
 import { IconButton } from "../IconButton";
-import { useShellStore } from "./store";
+import { useShellStore } from "../_shared/store";
 
 interface MobileHeaderProps {
   className?: string;

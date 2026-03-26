@@ -4,7 +4,6 @@ import { ChevronRight } from "lucide-react";
 import React, { forwardRef } from "react";
 import { IconButton } from "../IconButton";
 import { Separator } from "../Separator";
-import "./foldableSection.scss";
 
 export type FoldableSectionRootProps = AccordionPrimitive.AccordionMultipleProps;
 

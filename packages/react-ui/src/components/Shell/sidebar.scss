@@ -6,11 +6,9 @@ $sidebar-mobile-width: 294px;
 $sidebar-mobile-padding: cssUtils.$space-l;
 
 .openui-shell-sidebar-container {
-  background: cssUtils.$foreground;
-  border: 1px solid cssUtils.$border-default;
+  border-right: 1px solid cssUtils.$border-default;
   height: 100%;
   width: $sidebar-width;
-  border-radius: cssUtils.$radius-m;
   padding: $sidebar-padding;
   display: flex;
   flex-direction: column;
@@ -34,16 +32,15 @@ $sidebar-mobile-padding: cssUtils.$space-l;
   }
 
   &--collapsed {
-    width: 104px; // Fixed width for collapsed state (logo:36px + button:40px + gaps:12px + padding:16px)
-    height: min-content;
+    width: 52px;
     transform: translateX(0);
-    gap: 0;
+    gap: cssUtils.$space-xs;
 
     .openui-shell-container--mobile & {
       width: $sidebar-mobile-width;
       height: 100%;
       left: -$sidebar-mobile-width;
-      transform: none; // Reset transform for mobile
+      transform: none;
     }
   }
 
@@ -54,13 +51,22 @@ $sidebar-mobile-padding: cssUtils.$space-l;
 
 .openui-shell-sidebar-header {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: cssUtils.$space-s;
+
+  &__top-row {
+    display: flex;
+    align-items: center;
+    gap: cssUtils.$space-s;
+  }
 
   &__logo {
     width: 36px;
     height: 36px;
     border-radius: cssUtils.$radius-s;
+    transition:
+      width 0.3s ease-in-out,
+      height 0.3s ease-in-out;
   }
 
   &__agent-name {
@@ -70,6 +76,20 @@ $sidebar-mobile-padding: cssUtils.$space-l;
 
     .openui-shell-sidebar-container--collapsed & {
       display: none;
+    }
+  }
+
+  &--collapsed {
+    align-items: center;
+
+    .openui-shell-sidebar-header__top-row {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .openui-shell-sidebar-header__logo {
+      width: 28px;
+      height: 28px;
     }
   }
 }
@@ -95,7 +115,7 @@ $sidebar-mobile-padding: cssUtils.$space-l;
     display: none;
     transition:
       opacity 0.2s ease-in-out,
-      display 0s 0.5s; // Delay display:none until after transitions complete
+      display 0s 0.5s;
   }
 }
 

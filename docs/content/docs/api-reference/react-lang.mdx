@@ -152,19 +152,42 @@ interface ElementNode {
   partial: boolean;
 }
 
-interface ValidationError {
+/**
+ * Validation error codes for schema-related issues.
+ *
+ * - missing-required  — required prop absent with no default
+ * - null-required     — required prop explicitly null with no default
+ * - unknown-component — PascalCase name not in the library schema
+ * - excess-args       — more positional args than the schema defines
+ */
+type ValidationErrorCode =
+  | "missing-required"
+  | "null-required"
+  | "unknown-component"
+  | "excess-args";
+
+/**
+ * Structured error from the parser.
+ * Use `type` to distinguish error categories and `code` to filter
+ * or categorize errors on the consumer side.
+ */
+type OpenUIError = {
+  type: "validation";
+  code: ValidationErrorCode;
   component: string;
+  /** JSON Pointer path within props, e.g. "/title". Empty string for structural errors. */
   path: string;
   message: string;
-}
+};
 
 interface ParseResult {
   root: ElementNode | null;
   meta: {
     incomplete: boolean;
+    /** Identifiers referenced but not yet defined. Check after streaming completes. */
     unresolved: string[];
     statementCount: number;
-    validationErrors: ValidationError[];
+    errors: OpenUIError[];
   };
 }
 ```
