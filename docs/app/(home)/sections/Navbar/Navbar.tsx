@@ -69,7 +69,7 @@ function HamburgerIcon({ isOpen }: { isOpen: boolean }) {
   );
 }
 
-function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => void }) {
+function MobileMenu({ starCount, onClose }: { starCount: number | null; onClose: () => void }) {
   return (
     <>
       {/* Backdrop overlay — below navbar (absolute top-full), covers rest of viewport */}

@@ -162,32 +162,36 @@ export function OpenUILogo({ variant = "light" }: { variant?: LogoVariant }) {
 // ---------------------------------------------------------------------------
 
 export function useGitHubStarCount(repo: string) {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     fetch(`https://api.github.com/repos/${repo}`)
       .then((res) => res.json())
       .then((data) => {
         const target: unknown = data.stargazers_count;
         if (typeof target !== "number") return;
 
-        let cancelled = false;
         const startTime = performance.now();
+        const startCount = Math.max(target - 100, 0);
 
         const tick = () => {
           if (cancelled) return;
           const progress = Math.min((performance.now() - startTime) / COUNT_UP_DURATION, 1);
           const eased = 1 - Math.pow(1 - progress, 3);
-          setCount(Math.round(eased * target));
+          setCount(Math.round(startCount + (target - startCount) * eased));
           if (progress < 1) requestAnimationFrame(tick);
         };
 
+        setCount(startCount);
         requestAnimationFrame(tick);
-        return () => {
-          cancelled = true;
-        };
       })
       .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
   }, [repo]);
 
   return count;
@@ -214,7 +218,7 @@ export function StarCountBadge({
   count,
   isHighlighted,
 }: {
-  count: number;
+  count: number | null;
   isHighlighted: boolean;
 }) {
   return (
@@ -226,7 +230,7 @@ export function StarCountBadge({
         className="font-['Inter',sans-serif] font-medium text-[15px] leading-6 tabular-nums transition-colors duration-200"
         style={{ color: isHighlighted ? "white" : "black" }}
       >
-        {count}
+        {count ?? ""}
       </span>
     </div>
   );

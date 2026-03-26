@@ -1,5 +1,6 @@
 .homeTheme {
   --home-color-text-primary: #000;
+  --home-color-text-inverse: #fff;
   --home-color-text-muted: rgb(0 0 0 / 40%);
   --home-color-text-subtle: rgb(0 0 0 / 30%);
   --home-color-text-secondary: rgb(0 0 0 / 60%);

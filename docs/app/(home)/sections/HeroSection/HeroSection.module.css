@@ -31,19 +31,24 @@
 }
 
 .npmDesktopLabel,
-.desktopPlaygroundButton,
 .npmTickerText,
+.desktopPlaygroundButton,
 .mobilePlaygroundLabel {
-  font-family: "Inter Display", sans-serif;
   font-size: 18px;
   font-weight: 500;
   line-height: 1.5rem;
 }
 
+.desktopPlaygroundButton,
+.mobilePlaygroundLabel {
+  font-family: "Inter Display", sans-serif;
+}
+
 .npmDesktopLabel {
   display: none;
+  font-family: var(--font-geist-mono);
   white-space: nowrap;
-  color: #000;
+  color: var(--home-color-text-primary);
 }
 
 .npmMobileLabel {
@@ -62,9 +67,10 @@
 }
 
 .npmTickerText {
+  font-family: var(--font-geist-mono);
   white-space: nowrap;
   padding-right: 2rem;
-  color: #000;
+  color: var(--home-color-text-primary);
 }
 
 .npmIconBadge {
@@ -75,7 +81,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: #000;
+  background: var(--home-color-surface-inverse);
 }
 
 .desktopPlaygroundButton,
@@ -91,7 +97,7 @@
 
 .desktopPlaygroundButton {
   padding-inline: var(--home-pill-padding-inline);
-  color: #000;
+  color: var(--home-color-text-primary);
   transition: background-color 0.2s ease;
 }
 
@@ -99,7 +105,7 @@
   flex-shrink: 0;
   padding-inline: var(--home-pill-padding-inline);
   border-radius: 100px;
-  background: #000;
+  background: var(--home-color-surface-inverse);
   transition: background-color 0.2s ease;
 }
 
@@ -109,11 +115,11 @@
 
 .mobilePlaygroundLabel {
   white-space: nowrap;
-  color: #fff;
+  color: var(--home-color-text-inverse);
 }
 
 .mobilePlaygroundArrow {
-  color: #fff;
+  color: var(--home-color-text-inverse);
   font-size: 20px;
   line-height: 1;
 }
@@ -181,7 +187,7 @@
 
 .mobileHeroIntro {
   position: relative;
-  padding: 60px var(--home-section-padding-inline) var(--home-section-padding-inline);
+  padding: 32px var(--home-section-padding-inline) var(--home-section-padding-inline);
 }
 
 .mobileHeroStack {
@@ -193,6 +199,13 @@
   align-items: center;
   gap: 1.25rem;
   padding-block: 2.5rem;
+}
+
+.mobileBrandGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0rem;
 }
 
 .mobileGithubBanner {
@@ -237,8 +250,8 @@
 
 .mobileMascotWrap {
   position: relative;
-  height: 140px;
-  width: 140px;
+  height: 120px;
+  width: 120px;
   flex-shrink: 0;
 }
 
@@ -248,7 +261,7 @@
   font-size: 80px;
   font-weight: 600;
   line-height: 1.25;
-  color: #000;
+  color: var(--home-color-text-primary);
 }
 
 .mobileSubtitle {

@@ -26,8 +26,8 @@
 
 .mascotWrap {
   position: relative;
-  height: 140px;
-  width: 140px;
+  height: 96px;
+  width: 96px;
   flex-shrink: 0;
 }
 
@@ -39,10 +39,17 @@
 
 .handcraftedCopy {
   text-align: center;
-  font-family: "Playwrite US Trad", serif;
-  font-size: 16px;
+  font-family: var(--font-geist-mono);
+  font-size: 18px;
   line-height: 1.2;
-  color: #000;
+  color: var(--home-color-text-primary);
+  margin-top: 12px;
+}
+
+.handcraftedCursor {
+  display: inline-block;
+  margin-left: 0.06em;
+  animation: handcraftedCursorBlink 1s steps(1, end) infinite;
 }
 
 .contentSection {
@@ -153,10 +160,19 @@
   color: var(--home-color-text-muted);
 }
 
-@media (min-width: 1024px) {
-  .handcraftedCopy {
-    font-size: 22px;
+@keyframes handcraftedCursorBlink {
+  0%,
+  49% {
+    opacity: 1;
   }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (min-width: 1024px) {
 
   .desktopLogoRow {
     display: flex;

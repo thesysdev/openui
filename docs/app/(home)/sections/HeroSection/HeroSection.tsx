@@ -181,14 +181,17 @@ function MobileHero() {
               →
             </span>
           </a>
-          <div className={styles.mobileMascotWrap}>
-            <MascotSvg />
-          </div>
 
-          {/* Title */}
-          <p className={styles.mobileTitle}>
-            OpenUI
-          </p>
+          <div className={styles.mobileBrandGroup}>
+            <div className={styles.mobileMascotWrap}>
+              <MascotSvg />
+            </div>
+
+            {/* Title */}
+            <p className={styles.mobileTitle}>
+              OpenUI
+            </p>
+          </div>
 
           {/* Subtitle */}
           <p className={styles.mobileSubtitle}>

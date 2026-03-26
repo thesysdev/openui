@@ -1,3 +1,7 @@
+.clipboardCommandButton {
+  font-family: var(--font-geist-mono);
+}
+
 .copyIcon {
   height: 1rem;
   width: 1rem;

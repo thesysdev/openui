@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, Copy } from "lucide-react";
 import Link from "next/link";
 import {
   useEffect,
@@ -8,38 +9,17 @@ import {
   type ButtonHTMLAttributes,
   type ReactNode,
 } from "react";
-import svgPaths from "@/imports/svg-urruvoh2be";
 import styles from "./Button.module.css";
 
 type ButtonType = ButtonHTMLAttributes<HTMLButtonElement>["type"];
 const COPY_FEEDBACK_MS = 3000;
 
 function CopyIcon({ color = "white" }: { color?: string }) {
-  return (
-    <svg className={styles.copyIcon} fill="none" viewBox="0 0 14.6667 14.6667">
-      <path
-        d={svgPaths.p102ea840}
-        stroke={color}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.33333"
-      />
-    </svg>
-  );
+  return <Copy className={styles.copyIcon} color={color} strokeWidth={1.75} />;
 }
 
 function CheckIcon({ color = "white" }: { color?: string }) {
-  return (
-    <svg className={styles.copyIcon} fill="none" viewBox="0 0 14 14">
-      <path
-        d="M11.6667 3.5L5.25 9.91667L2.33334 7"
-        stroke={color}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
+  return <Check className={styles.copyIcon} color={color} strokeWidth={2} />;
 }
 
 interface CopyStatusIconProps {
@@ -142,7 +122,7 @@ export function ClipboardCommandButton({
     <button
       type={type}
       onClick={handleClick}
-      className={className}
+      className={[styles.clipboardCommandButton, className].filter(Boolean).join(" ")}
     >
       {iconPosition === "start" ? icon : null}
       {children}

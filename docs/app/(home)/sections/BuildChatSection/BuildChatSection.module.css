@@ -50,7 +50,7 @@
   font-size: 32px;
   font-weight: 600;
   line-height: 1.2;
-  color: #000;
+  color: var(--home-color-text-primary);
   margin: auto;
   text-align: center;
 }
@@ -85,7 +85,7 @@
   padding-inline: var(--home-pill-padding-inline);
   border: 0;
   border-radius: 999px;
-  background: #000;
+  background: var(--home-color-surface-inverse);
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -98,11 +98,11 @@
 .ctaLabel {
   position: relative;
   white-space: nowrap;
-  font-family: "Inter Display", sans-serif;
-  font-size: 18px;
-  font-weight: 500;
+  font-family: var(--font-geist-mono);
+  font-size: 12px;
+  font-weight: 400;
   line-height: 1.5rem;
-  color: #fff;
+  color: var(--home-color-text-inverse);
 }
 
 .mediaColumn {
@@ -135,7 +135,7 @@
     font-size: 36px;
     font-weight: 600;
     line-height: 1.2;
-    color: #000;
+    color: var(--home-color-text-primary);
     margin: 4px 0 0 4px;
     text-align: left;
   }
@@ -149,6 +149,10 @@
     width: auto;
     max-width: none;
     justify-content: flex-start;
+  }
+
+  .ctaLabel {
+    font-size: 16px;
   }
 
   .mediaColumn {

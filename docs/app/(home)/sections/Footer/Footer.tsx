@@ -146,7 +146,10 @@ export function Footer() {
             </svg>
           </div>
           <p className={styles.handcraftedCopy}>
-            Handcrafted with a lot of love.
+            Handcrafted with a lot of love
+            <span aria-hidden="true" className={styles.handcraftedCursor}>
+              _
+            </span>
           </p>
         </div>
       </div>
