@@ -7,8 +7,10 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const COUNT_UP_DURATION = 3000;
 const BUTTON_SHADOW = "0px 1px 3px 0px rgba(22,34,51,0.08), 0px 12px 24px 0px rgba(22,34,51,0.04)";
+const STAR_COUNT_FALLBACKS: Record<string, number> = {
+  "thesysdev/openui": 2752,
+};
 
 const LOGO_SPRING = { type: "spring", stiffness: 400, damping: 15 } as const;
 const LOGO_COLOR_TRANSITION = { duration: 0.25 } as const;
@@ -162,32 +164,30 @@ export function OpenUILogo({ variant = "light" }: { variant?: LogoVariant }) {
 // ---------------------------------------------------------------------------
 
 export function useGitHubStarCount(repo: string) {
-  const [count, setCount] = useState<number | null>(null);
+  const [count, setCount] = useState<number | null>(STAR_COUNT_FALLBACKS[repo] ?? null);
 
   useEffect(() => {
     let cancelled = false;
 
     fetch(`https://api.github.com/repos/${repo}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`GitHub star count fetch failed: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
         const target: unknown = data.stargazers_count;
         if (typeof target !== "number") return;
-
-        const startTime = performance.now();
-        const startCount = Math.max(target - 100, 0);
-
-        const tick = () => {
-          if (cancelled) return;
-          const progress = Math.min((performance.now() - startTime) / COUNT_UP_DURATION, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          setCount(Math.round(startCount + (target - startCount) * eased));
-          if (progress < 1) requestAnimationFrame(tick);
-        };
-
-        setCount(startCount);
-        requestAnimationFrame(tick);
+        if (!cancelled) {
+          setCount(target);
+        }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) {
+          setCount((prev) => prev ?? STAR_COUNT_FALLBACKS[repo] ?? null);
+        }
+      });
 
     return () => {
       cancelled = true;
@@ -221,6 +221,8 @@ export function StarCountBadge({
   count: number | null;
   isHighlighted: boolean;
 }) {
+  if (count === null) return null;
+
   return (
     <div
       className="rounded-full h-7 flex items-center justify-center px-2 transition-colors duration-200"
