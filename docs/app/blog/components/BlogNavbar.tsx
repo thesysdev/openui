@@ -65,7 +65,7 @@ function HamburgerIcon({ isOpen }: { isOpen: boolean }) {
   );
 }
 
-function MobileMenu({ starCount, onClose }: { starCount: number; onClose: () => void }) {
+function MobileMenu({ starCount, onClose }: { starCount: number | null; onClose: () => void }) {
   const mobileGithubStyle = {
     "--mobile-github-button-shadow": BUTTON_SHADOW,
   } as CSSProperties;
