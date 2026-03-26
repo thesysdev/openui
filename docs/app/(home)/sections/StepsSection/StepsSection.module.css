@@ -1,0 +1,10 @@
+.section {
+  width: 100%;
+  padding-inline: var(--home-section-padding-inline);
+}
+
+.container {
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
