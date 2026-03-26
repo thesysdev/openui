@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 const SITE_TITLE = "OpenUI — The Open Standard for Generative UI";
 const SITE_DESCRIPTION =
-  "OpenUI is a full-stack Generative UI framework — a compact streaming-first language, a React runtime with built-in component libraries, and ready-to-use chat interfaces — that is up to 67% more token-efficient than JSON.";
+  "OpenUI is a full-stack Generative UI framework with a compact streaming-first language, a React runtime with built-in components, and ready-to-use chat interfaces—using up to 67% fewer tokens than JSON.";
 const SITE_IMAGE = "/docs/images/home/meta-image.png";
 
 export const metadata: Metadata = {
