@@ -1,0 +1,95 @@
+---
+title: Troubleshooting
+description: Common issues and fixes when working with OpenUI Lang and the Renderer.
+---
+
+## LLM Output Issues
+
+### Why is nothing rendering?
+
+The first statement must assign to `root`. Without it, nothing renders.
+
+```text
+// Wrong — no root
+header = Header("Title")
+body = TextContent("Content")
+
+// Correct
+root = Stack([header, body])
+header = Header("Title")
+body = TextContent("Content")
+```
+
+### Why are extra arguments being dropped?
+
+Providing more arguments than the schema defines causes the extra arguments to be dropped or the statement to fail validation.
+
+```text
+// Schema: z.object({ title: z.string(), subtitle: z.string() })
+
+// Wrong — 3 args for a 2-prop schema
+h1 = Header("Title", "Sub", "extra")
+
+// Correct
+h1 = Header("Title", "Sub")
+```
+
+### Why is a component not appearing?
+
+The LLM may invent component names that are not in the library. The parser drops any statement that references an unknown component.
+
+```text
+// Wrong — "Paragraph" is not registered
+text = Paragraph("Hello world")
+
+// Correct — use the registered name
+text = TextContent("Hello world")
+```
+
+### Can I nest children inline or do I need references?
+
+Both are valid — inline children or references work.
+
+```text
+// Inline
+root = Stack([Header("Title"), TextContent("Body")])
+
+// References
+root = Stack([h, t])
+h = Header("Title")
+t = TextContent("Body")
+```
+
+## Renderer Issues
+
+### How do I inspect what went wrong?
+
+Pass an `onParseResult` callback to `<Renderer />`. Inspect `meta.errors` for schema mismatches and `meta.unresolved` for identifiers that were referenced but never defined.
+
+```tsx
+<Renderer
+  library={library}
+  response={content}
+  isStreaming={isStreaming}
+  onParseResult={(result) => {
+    if (result) {
+      console.log("Validation errors:", result.meta.errors);
+      console.log("Unresolved refs:", result.meta.unresolved);
+    }
+  }}
+/>
+```
+
+### Why are props appearing in the wrong position?
+
+The key order in your `z.object({...})` is the contract for positional arguments. If you changed the key order without regenerating the system prompt, the LLM's arguments will map incorrectly.
+
+Call `library.toJSONSchema()` to see exactly what the parser expects, and compare it against what the LLM is generating.
+
+### Why are parts of the UI missing?
+
+The parser drops invalid portions and renders everything else. If parts of the UI are missing, log the raw streamed text before parsing and look for:
+
+- Missing `root` assignment
+- Typos in component names
+- Wrong argument count

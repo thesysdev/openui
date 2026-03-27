@@ -1,0 +1,80 @@
+.section {
+  width: 100%;
+  padding-inline: var(--home-section-padding-inline);
+}
+
+.container {
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+.ctaWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+
+.ctaLink {
+  width: 100%;
+  max-width: 280px;
+  text-decoration: none;
+}
+
+.ctaButton {
+  display: flex;
+  height: 3rem;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 1rem;
+  border: 1.25px solid var(--home-border-subtle);
+  border-radius: var(--home-radius-pill);
+  background: var(--home-color-surface);
+  box-shadow: var(--home-shadow-elevated);
+  color: var(--home-color-text-primary);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5rem;
+}
+
+.ctaButton:hover {
+  transform: scale(0.99);
+  box-shadow: none;
+}
+
+.mobileLabel {
+  display: inline;
+}
+
+.desktopLabel {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .ctaWrap {
+    margin-top: 5rem;
+  }
+
+  .ctaLink {
+    width: auto;
+    max-width: none;
+  }
+
+  .ctaButton {
+    width: auto;
+    font-size: 18px;
+  }
+
+  .mobileLabel {
+    display: none;
+  }
+
+  .desktopLabel {
+    display: inline;
+  }
+}

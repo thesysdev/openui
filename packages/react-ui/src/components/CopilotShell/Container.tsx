@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { LayoutContextProvider } from "../../context/LayoutContext";
-import { ShellStoreProvider } from "../Shell/store";
+import { ShellStoreProvider } from "../_shared/store";
 
 interface ContainerProps {
   children?: React.ReactNode;

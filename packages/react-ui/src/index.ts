@@ -1,6 +1,20 @@
 "use client";
 
 export * from "./components/Accordion";
+
+// Artifact exports (ArtifactPanel/ArtifactPortalTarget also available as Shell.*)
+export { useActiveArtifact, useArtifact } from "@openuidev/react-headless";
+export {
+  ArtifactOverlay,
+  ArtifactPanel,
+  ArtifactPortalTarget,
+} from "./components/_shared/artifact";
+export type {
+  ArtifactOverlayProps,
+  ArtifactPanelProps,
+  ArtifactPortalTargetProps,
+} from "./components/_shared/artifact";
+
 export * from "./components/Button";
 export * from "./components/Buttons";
 export * from "./components/Calendar";
