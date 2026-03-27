@@ -94,8 +94,7 @@ describe("langGraphAdapter", () => {
             id: "msg-1",
           },
           { langgraph_node: "agent" },
-        ]) +
-        sse("end", null);
+        ]) + sse("end", null);
 
       const adapter = langGraphAdapter();
       const events = await collect(adapter.parse(makeSSEResponse(body)));
@@ -108,8 +107,7 @@ describe("langGraphAdapter", () => {
 
     it("handles non-tuple message format (plain object)", async () => {
       const body =
-        sse("messages", { type: "ai", content: "plain", id: "msg-1" }) +
-        sse("end", null);
+        sse("messages", { type: "ai", content: "plain", id: "msg-1" }) + sse("end", null);
 
       const adapter = langGraphAdapter();
       const events = await collect(adapter.parse(makeSSEResponse(body)));
@@ -126,8 +124,7 @@ describe("langGraphAdapter", () => {
         sse("messages", [
           { type: "human", content: "user input", id: "hmsg-1" },
           { langgraph_node: "agent" },
-        ]) +
-        sse("end", null);
+        ]) + sse("end", null);
 
       const adapter = langGraphAdapter();
       const events = await collect(adapter.parse(makeSSEResponse(body)));
@@ -144,9 +141,7 @@ describe("langGraphAdapter", () => {
           {
             type: "AIMessageChunk",
             content: "",
-            tool_call_chunks: [
-              { id: "tc-1", name: "get_weather", args: '{"loc', index: 0 },
-            ],
+            tool_call_chunks: [{ id: "tc-1", name: "get_weather", args: '{"loc', index: 0 }],
           },
           { langgraph_node: "agent" },
         ]) +
@@ -154,9 +149,7 @@ describe("langGraphAdapter", () => {
           {
             type: "AIMessageChunk",
             content: "",
-            tool_call_chunks: [
-              { id: undefined, name: undefined, args: 'ation":"NYC"}', index: 0 },
-            ],
+            tool_call_chunks: [{ id: undefined, name: undefined, args: 'ation":"NYC"}', index: 0 }],
           },
           { langgraph_node: "agent" },
         ]) +
@@ -185,13 +178,10 @@ describe("langGraphAdapter", () => {
           {
             type: "AIMessageChunk",
             content: "",
-            tool_calls: [
-              { id: "tc-1", name: "search", args: { query: "test" } },
-            ],
+            tool_calls: [{ id: "tc-1", name: "search", args: { query: "test" } }],
           },
           { langgraph_node: "agent" },
-        ]) +
-        sse("end", null);
+        ]) + sse("end", null);
 
       const adapter = langGraphAdapter();
       const events = await collect(adapter.parse(makeSSEResponse(body)));
@@ -274,8 +264,7 @@ describe("langGraphAdapter", () => {
       const body =
         sse("updates", {
           __interrupt__: { value: "need input" },
-        }) +
-        sse("end", null);
+        }) + sse("end", null);
 
       const adapter = langGraphAdapter();
       // Should not throw
@@ -286,8 +275,7 @@ describe("langGraphAdapter", () => {
   describe("metadata event", () => {
     it("does not emit events for metadata", async () => {
       const body =
-        sse("metadata", { run_id: "run-123", thread_id: "thread-456" }) +
-        sse("end", null);
+        sse("metadata", { run_id: "run-123", thread_id: "thread-456" }) + sse("end", null);
 
       const adapter = langGraphAdapter();
       const events = await collect(adapter.parse(makeSSEResponse(body)));
@@ -303,8 +291,7 @@ describe("langGraphAdapter", () => {
         sse("messages", [
           { type: "AIMessageChunk", content: "done", id: "msg-1" },
           { langgraph_node: "agent" },
-        ]) +
-        sse("end", null);
+        ]) + sse("end", null);
 
       const adapter = langGraphAdapter();
       const events = await collect(adapter.parse(makeSSEResponse(body)));
@@ -336,7 +323,9 @@ describe("langGraphAdapter", () => {
         JSON.stringify([
           { type: "AIMessageChunk", content: "split", id: "msg-1" },
           { langgraph_node: "agent" },
-        ]) + "\n\n" + sse("end", null);
+        ]) +
+        "\n\n" +
+        sse("end", null);
 
       const stream = new ReadableStream({
         start(controller) {
