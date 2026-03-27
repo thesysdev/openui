@@ -161,7 +161,7 @@ export function BlogNavbar() {
 
   return (
     <nav
-      className="sticky top-0 z-50 w-full py-3 px-8 bg-[var(--blog-nav-bg)] transition-[border-color] duration-200 ease-in-out"
+      className="sticky top-0 z-50 w-full px-4 py-3 bg-[var(--blog-nav-bg)] transition-[border-color] duration-200 ease-in-out md:px-8"
       style={navStyle}
     >
       <div className="flex max-w-[75rem] mx-auto items-center justify-between">
