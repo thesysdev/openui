@@ -13,6 +13,7 @@ import {
   WelcomeScreen,
 } from "../BottomTray";
 import { CustomComposerAdapter } from "./CustomComposerAdapter";
+import { ShareThread } from "./ShareThread";
 import type { SharedChatUIProps } from "./types";
 import { isChatEmpty, isWelcomeComponent } from "./utils";
 import { withChatProvider } from "./withChatProvider";
@@ -82,6 +83,7 @@ const BottomTrayInner = ({
   userMessage,
   composer: ComposerComponent,
   headerActions,
+  generateShareLink,
 }: BottomTraySpecificProps) => {
   const [uncontrolledIsOpen, setUncontrolledIsOpen] = useState(defaultOpen);
 
@@ -94,6 +96,10 @@ const BottomTrayInner = ({
     onOpenChange?.(newIsOpen);
   };
 
+  const shareButton = generateShareLink ? (
+    <ShareThread generateShareLink={generateShareLink} />
+  ) : null;
+
   return (
     <>
       <Trigger onClick={() => handleOpenChange(!isOpen)} isOpen={isOpen}>
@@ -104,7 +110,15 @@ const BottomTrayInner = ({
 
       <Container logoUrl={logoUrl} agentName={agentName} isOpen={isOpen}>
         <ThreadContainer>
-          <Header onMinimize={() => handleOpenChange(false)} rightChildren={headerActions} />
+          <Header
+            onMinimize={() => handleOpenChange(false)}
+            rightChildren={
+              <>
+                {shareButton}
+                {headerActions}
+              </>
+            }
+          />
           <WelcomeMessageRenderer welcomeMessage={welcomeMessage} />
           <ScrollArea scrollVariant={scrollVariant}>
             <Messages

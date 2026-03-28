@@ -1,3 +1,4 @@
+import type { Message } from "@openuidev/react-headless";
 import type { Library } from "@openuidev/react-lang";
 import { ReactNode } from "react";
 import { ScrollVariant } from "../../hooks/useScrollToBottom";
@@ -106,4 +107,9 @@ export interface SharedChatUIProps {
    * provided, `assistantMessage` takes priority.
    */
   componentLibrary?: Library;
+  /**
+   * Async function that receives the current messages and returns a shareable URL.
+   * When provided, a share button appears in the chat header.
+   */
+  generateShareLink?: (messages: Message[]) => Promise<string>;
 }

@@ -14,6 +14,7 @@ import type { AssistantMessage, UserMessage } from "@openuidev/react-headless";
  */
 export type AssistantMessageComponent = React.ComponentType<{
   message: AssistantMessage;
+  isStreaming: boolean;
 }>;
 
 /**

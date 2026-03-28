@@ -11,6 +11,7 @@ import {
   WelcomeScreen,
 } from "../CopilotShell";
 import { CustomComposerAdapter } from "./CustomComposerAdapter";
+import { ShareThread } from "./ShareThread";
 import type { SharedChatUIProps } from "./types";
 import { isChatEmpty, isWelcomeComponent } from "./utils";
 import { withChatProvider } from "./withChatProvider";
@@ -74,11 +75,23 @@ const CopilotInner = ({
   userMessage,
   composer: ComposerComponent,
   headerActions,
+  generateShareLink,
 }: CopilotSpecificProps) => {
+  const shareButton = generateShareLink ? (
+    <ShareThread generateShareLink={generateShareLink} />
+  ) : null;
+
   return (
     <Container logoUrl={logoUrl} agentName={agentName}>
       <ThreadContainer>
-        <Header rightChildren={headerActions} />
+        <Header
+          rightChildren={
+            <>
+              {shareButton}
+              {headerActions}
+            </>
+          }
+        />
         <WelcomeMessageRenderer welcomeMessage={welcomeMessage} />
         <ScrollArea scrollVariant={scrollVariant}>
           <Messages

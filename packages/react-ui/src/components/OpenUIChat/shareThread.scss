@@ -1,0 +1,111 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-share-thread-modal {
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 9999;
+    background-color: cssUtils.$overlay;
+  }
+
+  &__content {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100%;
+    max-width: 32rem;
+    transform: translate(-50%, -50%);
+    border-radius: cssUtils.$radius-2xl;
+    background-color: cssUtils.$elevated;
+    padding: cssUtils.$space-l;
+    box-shadow: cssUtils.$shadow-m;
+    border: 1px solid cssUtils.$border-interactive;
+    z-index: 10001;
+
+    &--mobile {
+      max-width: 20rem;
+      padding: cssUtils.$space-l;
+    }
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: cssUtils.$space-m;
+  }
+
+  &__title {
+    color: cssUtils.$text-neutral-primary;
+    @include cssUtils.typography(heading, small);
+    margin: 0;
+  }
+
+  &__body {
+    color: cssUtils.$text-neutral-primary;
+    display: flex;
+    flex-direction: column;
+    gap: cssUtils.$space-m;
+  }
+
+  &__description {
+    @include cssUtils.typography(body, small);
+    color: cssUtils.$text-neutral-secondary;
+    margin: 0;
+  }
+
+  &__input-section {
+    display: flex;
+    flex-direction: column;
+    gap: cssUtils.$space-s;
+  }
+
+  &__input-wrapper {
+    display: flex;
+    gap: cssUtils.$space-s;
+    padding: cssUtils.$space-xs;
+    border: 1px solid cssUtils.$border-default;
+    border-radius: cssUtils.$radius-l;
+    background-color: cssUtils.$elevated-strong;
+    color: cssUtils.$text-neutral-primary;
+
+    &:focus-within {
+      border-color: cssUtils.$border-interactive;
+      outline: 2px solid cssUtils.$border-interactive;
+      outline-offset: -1px;
+    }
+  }
+
+  &__input {
+    padding: 0 cssUtils.$space-xs;
+    border: none;
+    background: transparent;
+    @include cssUtils.typography(body, default);
+  }
+
+  &__button-container {
+    display: flex;
+    align-items: flex-start;
+    flex-shrink: 0;
+  }
+
+  &__loading-icon {
+    height: 1rem;
+    width: 1rem;
+    animation: openui-share-spin 1s linear infinite;
+  }
+
+  &__error-message {
+    @include cssUtils.typography(body, small);
+    color: cssUtils.$text-danger-primary;
+  }
+}
+
+@keyframes openui-share-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
