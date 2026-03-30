@@ -12,9 +12,9 @@
  *   - Plain objects with embedded AST (e.g. table row data) → recurse
  */
 
-import type { Library } from "../library";
-import { isASTNode } from "@openuidev/lang-core";
 import type { ElementNode } from "@openuidev/lang-core";
+import { isASTNode } from "@openuidev/lang-core";
+import type { Library } from "../library";
 import type { EvaluationContext } from "./evaluator";
 import { evaluate, isReactiveAssign } from "./evaluator";
 import { isReactiveSchema } from "./reactive";

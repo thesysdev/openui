@@ -1,8 +1,13 @@
+import type {
+  ComponentGroup,
+  ComponentPromptSpec,
+  LibraryJSONSchema,
+  McpToolSpec,
+  PromptSpec,
+} from "@openuidev/lang-core";
+import { generatePrompt } from "@openuidev/lang-core";
 import type { ReactNode } from "react";
 import { z } from "zod";
-import type { ComponentGroup, ComponentPromptSpec, McpToolSpec, PromptSpec } from "@openuidev/lang-core";
-import { generatePrompt } from "@openuidev/lang-core";
-import type { LibraryJSONSchema } from "@openuidev/lang-core";
 import { isReactiveSchema } from "./runtime/reactive";
 
 // Re-export ComponentGroup from lang-core (canonical definition)

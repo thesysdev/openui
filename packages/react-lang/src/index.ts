@@ -18,7 +18,13 @@ export type { OpenUIPersistedState, RendererProps } from "./Renderer";
 
 // openui-lang action types
 export { ACTION_STEPS, BuiltinActionType } from "@openuidev/lang-core";
-export type { ActionEvent, ActionPlan, ActionStep, ElementNode, ParseResult } from "@openuidev/lang-core";
+export type {
+  ActionEvent,
+  ActionPlan,
+  ActionStep,
+  ElementNode,
+  ParseResult,
+} from "@openuidev/lang-core";
 
 // openui-lang parser (server-side use)
 export { createParser, createStreamingParser, type LibraryJSONSchema } from "@openuidev/lang-core";
@@ -66,5 +72,10 @@ export {
 } from "./hooks/useFormValidation";
 export type { FormValidationContextValue } from "./hooks/useFormValidation";
 
-export { builtInValidators, parseRules, parseStructuredRules, validate } from "./utils/validation";
-export type { ParsedRule, ValidatorFn } from "./utils/validation";
+export {
+  builtInValidators,
+  parseRules,
+  parseStructuredRules,
+  validate,
+} from "@openuidev/lang-core";
+export type { ParsedRule, ValidatorFn } from "@openuidev/lang-core";

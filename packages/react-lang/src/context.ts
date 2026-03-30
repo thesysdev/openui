@@ -1,7 +1,7 @@
+import type { ActionPlan } from "@openuidev/lang-core";
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect } from "react";
 import type { Library } from "./library";
-import type { ActionPlan } from "@openuidev/lang-core";
 
 /** Shared context provided by <Renderer /> to all rendered components. */
 import type { EvaluationContext } from "./runtime/evaluator";
