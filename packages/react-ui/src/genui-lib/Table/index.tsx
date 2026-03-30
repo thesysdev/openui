@@ -32,11 +32,14 @@ export const Table = defineComponent({
     const columns = props.columns ?? [];
     if (!columns.length) return null;
 
-    // Extract column data arrays and labels
-    const colDefs = columns.map((c: any) => ({
-      label: c.props?.label ?? "",
-      data: asArray(c.props?.data ?? []),
-    }));
+    // Extract column data arrays and labels (filter null children from streaming)
+    const colDefs = columns
+      .filter((c: any) => c != null && c.props)
+      .map((c: any) => ({
+        label: c.props?.label ?? "",
+        data: asArray(c.props?.data ?? []),
+      }));
+    if (!colDefs.length) return null;
 
     // Transpose columns → rows: row count = max column length
     const rowCount = Math.max(...colDefs.map((c) => c.data.length), 0);

@@ -8,6 +8,7 @@ export interface Store {
   subscribe(listener: () => void): () => void;
   getSnapshot(): Record<string, unknown>;
   initialize(defaults: Record<string, unknown>, persisted: Record<string, unknown>): void;
+  dispose(): void;
 }
 
 export function createStore(): Store {
@@ -31,7 +32,31 @@ export function createStore(): Store {
   }
 
   function set(name: string, value: unknown): void {
-    if (Object.is(state.get(name), value)) return; // skip no-op updates (handles NaN)
+    const existing = state.get(name);
+    if (Object.is(existing, value)) return;
+    // Shallow-compare plain objects (form data)
+    if (
+      value &&
+      existing &&
+      typeof value === "object" &&
+      typeof existing === "object" &&
+      !Array.isArray(value) &&
+      !Array.isArray(existing)
+    ) {
+      const nk = Object.keys(value as Record<string, unknown>);
+      const ok = Object.keys(existing as Record<string, unknown>);
+      if (
+        nk.length === ok.length &&
+        nk.every((k) =>
+          Object.is(
+            (value as Record<string, unknown>)[k],
+            (existing as Record<string, unknown>)[k],
+          ),
+        )
+      ) {
+        return;
+      }
+    }
     state.set(name, value);
     rebuildSnapshot();
     notify();
@@ -49,8 +74,13 @@ export function createStore(): Store {
   }
 
   function initialize(defaults: Record<string, unknown>, persisted: Record<string, unknown>): void {
-    // Clear stale keys so removed bindings don't linger
-    state.clear();
+    // Remove stale $binding keys not present in new declarations
+    for (const key of [...state.keys()]) {
+      if (key.startsWith("$") && !(key in defaults) && !(key in persisted)) {
+        state.delete(key);
+      }
+    }
+    // Set all binding defaults and persisted values
     const allKeys = new Set([...Object.keys(defaults), ...Object.keys(persisted)]);
     for (const key of allKeys) {
       state.set(key, key in persisted ? persisted[key] : defaults[key]);
@@ -59,5 +89,11 @@ export function createStore(): Store {
     notify();
   }
 
-  return { get, set, subscribe, getSnapshot, initialize };
+  function dispose(): void {
+    state.clear();
+    listeners.clear();
+    snapshot = {};
+  }
+
+  return { get, set, subscribe, getSnapshot, initialize, dispose };
 }

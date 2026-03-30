@@ -50,8 +50,8 @@ export interface MutationResult {
 }
 
 export interface QuerySnapshot extends Record<string, unknown> {
-  __loading: string[];
-  __refetching: string[];
+  __openui_loading: string[];
+  __openui_refetching: string[];
 }
 
 export interface QueryManager {
@@ -90,6 +90,13 @@ function stableStringify(value: unknown): string {
       }
       return sorted;
     }
+    // Serialize non-JSON-safe primitives to stable strings
+    if (val === undefined) return "__undefined__";
+    if (typeof val === "number") {
+      if (Number.isNaN(val)) return "__NaN__";
+      if (val === Infinity) return "__Inf__";
+      if (val === -Infinity) return "__-Inf__";
+    }
     return val;
   });
 }
@@ -116,9 +123,12 @@ export function createQueryManager(transport: Transport | null): QueryManager {
   // ── Mutation state ───
   const mutationMeta = new Map<string, { toolName: string }>();
   const mutationResults = new Map<string, MutationResult>();
-  let snapshot: QuerySnapshot = { __loading: [], __refetching: [] };
+  let snapshot: QuerySnapshot = { __openui_loading: [], __openui_refetching: [] };
   let snapshotJson = JSON.stringify(snapshot);
   let disposed = false;
+  let generation = 0;
+  const needsRefetch = new Map<string, boolean>();
+  const removedQueryIds = new Set<string>();
 
   /**
    * Rebuild the snapshot from current state. Returns true if snapshot content
@@ -126,7 +136,7 @@ export function createQueryManager(transport: Transport | null): QueryManager {
    * infinite re-render loops with useSyncExternalStore.
    */
   function rebuildSnapshot(): boolean {
-    const out: QuerySnapshot = { __loading: [], __refetching: [] };
+    const out: QuerySnapshot = { __openui_loading: [], __openui_refetching: [] };
     for (const [sid, cacheKey] of lastKeys) {
       if (results.has(cacheKey)) {
         out[sid] = results.get(cacheKey);
@@ -145,14 +155,20 @@ export function createQueryManager(transport: Transport | null): QueryManager {
       out[sid] = mr;
     }
     // Include loading state in snapshot so React detects changes
-    out.__loading = [...loadingStmts];
-    out.__refetching = [...loadingStmts].filter((id) => hasEverFetched.has(id));
+    out.__openui_loading = [...loadingStmts];
+    out.__openui_refetching = [...loadingStmts].filter((id) => hasEverFetched.has(id));
 
     // Compare against cached JSON string (avoids double-stringify)
-    const outJson = JSON.stringify(out);
-    if (outJson === snapshotJson) return false;
-    snapshot = out;
-    snapshotJson = outJson;
+    try {
+      const outJson = JSON.stringify(out);
+      if (outJson === snapshotJson) return false;
+      snapshot = out;
+      snapshotJson = outJson;
+    } catch {
+      // Circular refs or other serialization issues — force a new snapshot identity
+      snapshot = out;
+      snapshotJson = "";
+    }
     return true;
   }
 
@@ -168,15 +184,23 @@ export function createQueryManager(transport: Transport | null): QueryManager {
     toolName: string,
     args: unknown,
   ) {
+    // Check transport before setting loading state to prevent loading flash
+    if (!transport) return;
+
     pending.add(cacheKey);
     loadingStmts.add(statementId);
     rebuildSnapshot();
     notify();
     try {
-      if (!transport) return;
       const data = await transport.callTool(toolName, (args as Record<string, unknown>) ?? {});
       if (disposed) return;
-      results.set(cacheKey, data);
+      // Skip result write if this query was removed while fetch was in-flight
+      if (removedQueryIds.has(statementId)) {
+        removedQueryIds.delete(statementId);
+        return;
+      }
+      // Normalize undefined results to null
+      results.set(cacheKey, data ?? null);
       hasEverFetched.add(statementId);
       // Clean up old cached result now that new one has arrived
       const prev = prevKeys.get(statementId);
@@ -190,11 +214,22 @@ export function createQueryManager(transport: Transport | null): QueryManager {
       pending.delete(cacheKey);
       loadingStmts.delete(statementId);
       if (rebuildSnapshot()) notify();
+      // If invalidation occurred while this fetch was in-flight, re-fetch
+      if (needsRefetch.get(statementId)) {
+        needsRefetch.delete(statementId);
+        const meta = queryMeta.get(statementId);
+        const key = lastKeys.get(statementId);
+        if (meta && key) {
+          executeFetch(key, statementId, meta.toolName, meta.args);
+        }
+      }
     }
   }
 
   function evaluateQueries(queryNodes: QueryNode[]) {
     if (disposed) return;
+
+    removedQueryIds.clear();
 
     // Clean up timers and state for queries that no longer exist
     const activeIds = new Set(queryNodes.map((n) => n.statementId));
@@ -215,6 +250,7 @@ export function createQueryManager(transport: Transport | null): QueryManager {
     }
     for (const sid of [...lastKeys.keys()]) {
       if (!activeIds.has(sid)) {
+        removedQueryIds.add(sid);
         const key = lastKeys.get(sid);
         if (key && !activeCacheKeys.has(key)) results.delete(key);
         const prevKey = prevKeys.get(sid);
@@ -327,7 +363,10 @@ export function createQueryManager(transport: Transport | null): QueryManager {
       const cacheKey = lastKeys.get(sid);
       const meta = queryMeta.get(sid);
       if (!cacheKey || !meta) continue;
-      if (!pending.has(cacheKey)) {
+      if (pending.has(cacheKey)) {
+        // Fetch is already in-flight — flag for re-fetch when it completes
+        needsRefetch.set(sid, true);
+      } else {
         executeFetch(cacheKey, sid, meta.toolName, meta.args);
       }
     }
@@ -346,6 +385,11 @@ export function createQueryManager(transport: Transport | null): QueryManager {
     }
     // Register active mutations
     for (const node of nodes) {
+      const prev = mutationMeta.get(node.statementId);
+      // Reset result when the backing tool changes (declaration was edited)
+      if (prev && prev.toolName !== node.toolName) {
+        mutationResults.set(node.statementId, { status: "idle", data: null, error: null });
+      }
       mutationMeta.set(node.statementId, { toolName: node.toolName });
       if (!mutationResults.has(node.statementId)) {
         mutationResults.set(node.statementId, { status: "idle" });
@@ -363,6 +407,9 @@ export function createQueryManager(transport: Transport | null): QueryManager {
     const meta = mutationMeta.get(statementId);
     if (!meta) return false;
 
+    // Capture generation to detect stale writes after dispose/re-activate
+    const gen = generation;
+
     // Set loading state
     mutationResults.set(statementId, { status: "loading" });
     rebuildSnapshot();
@@ -371,11 +418,11 @@ export function createQueryManager(transport: Transport | null): QueryManager {
     let success = false;
     try {
       const data = await transport.callTool(meta.toolName, evaluatedArgs);
-      if (disposed) return false;
+      if (disposed || gen !== generation) return false;
       mutationResults.set(statementId, { status: "success", data });
       success = true;
     } catch (err: any) {
-      if (disposed) return false;
+      if (disposed || gen !== generation) return false;
       mutationResults.set(statementId, {
         status: "error",
         error: err?.message ?? String(err),
@@ -403,11 +450,13 @@ export function createQueryManager(transport: Transport | null): QueryManager {
 
   function dispose() {
     disposed = true;
+    generation++;
     loadingStmts.clear();
     listeners.clear();
     timers.forEach((t) => clearInterval(t));
     timers.clear();
-    lastIntervals.clear();
+    // Preserve lastIntervals across dispose/activate so timers can be
+    // correctly reconfigured on re-mount (React Strict Mode).
     mutationResults.clear();
     mutationMeta.clear();
     // Keep results, defaults, lastKeys, prevKeys, queryMeta for Strict Mode re-attach

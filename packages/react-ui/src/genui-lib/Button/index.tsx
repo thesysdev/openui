@@ -1,5 +1,6 @@
 "use client";
 
+import type { ActionPlan } from "@openuidev/react-lang";
 import {
   ACTION_STEPS,
   defineComponent,
@@ -8,7 +9,6 @@ import {
   useIsStreaming,
   useTriggerAction,
 } from "@openuidev/react-lang";
-import type { ActionPlan } from "@openuidev/react-lang";
 import { Button as OpenUIButton } from "../../components/Button";
 import { ButtonSchema } from "./schema";
 
@@ -41,13 +41,13 @@ export const Button = defineComponent({
         onClick={() => {
           const action = props.action as ActionPlan | undefined;
 
-          // Validate form for primary buttons with mutation/ToLLM steps
+          // Validate form for primary buttons with mutation/ToAssistant steps
           if (action?.steps && formValidation) {
             const variant = (props.variant as string) || "primary";
             if (variant === "primary") {
               const needsValidation = action.steps.some(
                 (s) =>
-                  s.type === ACTION_STEPS.ToLLM ||
+                  s.type === ACTION_STEPS.ToAssistant ||
                   (s.type === ACTION_STEPS.Run && s.refType === "mutation"),
               );
               if (needsValidation && !formValidation.validateForm()) return;

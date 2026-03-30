@@ -3,6 +3,7 @@ import { validate, type ParsedRule } from "../utils/validation";
 
 export interface FormValidationContextValue {
   errors: Record<string, string | undefined>;
+  getFieldError: (name: string) => string | undefined;
   validateField: (name: string, value: unknown, rules: ParsedRule[]) => boolean;
   registerField: (name: string, rules: ParsedRule[], getValue: () => unknown) => void;
   unregisterField: (name: string) => void;
@@ -12,7 +13,7 @@ export interface FormValidationContextValue {
 
 export const FormValidationContext = createContext<FormValidationContextValue | null>(null);
 
-export function useFormValidation() {
+export function useFormValidation(): FormValidationContextValue | null {
   return useContext(FormValidationContext);
 }
 
@@ -23,7 +24,11 @@ interface FieldRegistration {
 
 export function useCreateFormValidation(): FormValidationContextValue {
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
+  const errorsRef = useRef(errors);
+  errorsRef.current = errors;
   const fieldsRef = useRef<Record<string, FieldRegistration>>({});
+
+  const getFieldError = useCallback((name: string) => errorsRef.current[name], []);
 
   const validateField = useCallback(
     (name: string, value: unknown, rules: ParsedRule[]): boolean => {
@@ -70,15 +75,24 @@ export function useCreateFormValidation(): FormValidationContextValue {
     });
   }, []);
 
-  return useMemo(
+  return useMemo<FormValidationContextValue>(
     () => ({
       errors,
+      getFieldError,
       validateField,
       registerField,
       unregisterField,
       validateForm,
       clearFieldError,
     }),
-    [errors, validateField, registerField, unregisterField, validateForm, clearFieldError],
+    [
+      errors,
+      getFieldError,
+      validateField,
+      registerField,
+      unregisterField,
+      validateForm,
+      clearFieldError,
+    ],
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { defineComponent, useTriggerAction } from "@openuidev/react-lang";
 import type { ActionPlan } from "@openuidev/react-lang";
+import { defineComponent, useTriggerAction } from "@openuidev/react-lang";
 import { ChevronRight } from "lucide-react";
 import { z } from "zod";
 import { ListBlock as OpenUIListBlock } from "../../components/ListBlock";

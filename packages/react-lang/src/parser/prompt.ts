@@ -1,7 +1,96 @@
-import { z } from "zod";
-import type { DefinedComponent, Library, PromptOptions } from "../library";
-import { isReactiveSchema } from "../runtime/reactive";
-import { BUILTINS } from "./builtins";
+import { BUILTINS, LAZY_BUILTIN_DEFS } from "./builtins";
+
+// ─── PromptSpec types (JSON-serializable, no Zod deps) ──────────────────────
+
+export interface McpToolSpec {
+  name: string;
+  description?: string;
+  inputSchema?: Record<string, unknown>;
+  outputSchema?: Record<string, unknown>;
+  annotations?: { readOnlyHint?: boolean; destructiveHint?: boolean };
+}
+
+export interface ComponentPromptSpec {
+  signature: string; // pre-built: "Card(children: Component[], title?: string)"
+  description?: string;
+}
+
+export interface ComponentGroup {
+  name: string;
+  components: string[];
+  notes?: string[];
+}
+
+export interface PromptSpec {
+  root?: string;
+  components: Record<string, ComponentPromptSpec>;
+  componentGroups?: ComponentGroup[];
+  tools?: (string | McpToolSpec)[];
+  editMode?: boolean;
+  inlineMode?: boolean;
+  preamble?: string;
+  /** Examples shown when no tools are present (static/layout patterns). */
+  examples?: string[];
+  /** Examples shown when tools ARE present (Query/Mutation patterns). Takes priority over `examples` when tools exist. */
+  toolExamples?: string[];
+  additionalRules?: string[];
+}
+
+// ─── JSON Schema → type string helper ───────────────────────────────────────
+
+function jsonSchemaTypeStr(schema: Record<string, unknown>): string {
+  const type = schema.type as string | undefined;
+
+  if (type === "string") {
+    const enumVals = schema.enum as string[] | undefined;
+    if (enumVals) return enumVals.map((v) => `"${v}"`).join(" | ");
+    return "string";
+  }
+  if (type === "number" || type === "integer") return "number";
+  if (type === "boolean") return "boolean";
+  if (type === "array") {
+    const items = schema.items as Record<string, unknown> | undefined;
+    if (items) return `${jsonSchemaTypeStr(items)}[]`;
+    return "any[]";
+  }
+  if (type === "object") {
+    const props = schema.properties as Record<string, Record<string, unknown>> | undefined;
+    if (props && Object.keys(props).length > 0) {
+      const required = (schema.required as string[]) ?? [];
+      const fields = Object.entries(props).map(([k, v]) => {
+        const opt = required.includes(k) ? "" : "?";
+        return `${k}${opt}: ${jsonSchemaTypeStr(v)}`;
+      });
+      return `{${fields.join(", ")}}`;
+    }
+    return "object";
+  }
+
+  return "any";
+}
+
+/** Generate a default-values hint object for an output schema. */
+function defaultForSchema(schema: Record<string, unknown>): unknown {
+  const type = schema.type as string | undefined;
+  if (type === "string") return "";
+  if (type === "number" || type === "integer") return 0;
+  if (type === "boolean") return false;
+  if (type === "array") return [];
+  if (type === "object") {
+    const props = schema.properties as Record<string, Record<string, unknown>> | undefined;
+    if (props && Object.keys(props).length > 0) {
+      const result: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(props)) {
+        result[k] = defaultForSchema(v);
+      }
+      return result;
+    }
+    return {};
+  }
+  return null;
+}
+
+// ─── Section generators ─────────────────────────────────────────────────────
 
 const PREAMBLE = `You are an AI assistant that responds using openui-lang, a declarative UI language. Your ENTIRE response must be valid openui-lang code — no markdown, no explanations, just openui-lang.`;
 
@@ -46,25 +135,23 @@ function syntaxRules(rootName: string, hasBindings: boolean): string {
 
 function builtinFunctionsSection(): string {
   // Auto-generated from shared builtin registry — single source of truth
-  const lines = Object.values(BUILTINS)
-    .map((b) => `${b.signature} — ${b.description}`)
-    .join("\n");
+  const builtinLines = Object.values(BUILTINS).map((b) => `${b.signature} — ${b.description}`);
+  const lazyLines = Object.values(LAZY_BUILTIN_DEFS).map(
+    (b) => `${b.signature} — ${b.description}`,
+  );
+  const lines = [...builtinLines, ...lazyLines].join("\n");
 
   return `## Built-in Functions
 
 Pure data functions. Use PascalCase like components. These are the ONLY functions available.
+Use built-in functions (Count, Sum, Avg, Min, Max, Round) on Query results — do NOT hardcode computed values.
 
 ${lines}
-Each(array, varName, template) — Render a component for each element. varName is the iterator variable (your choice of name). Access fields via varName.field.
 
-Example: Count(metrics.data), Sum(endpoints.endpoints.requests), Filter(items, "status", "==", "active")
-
-Each examples:
-- Render cards per issue: Each(issues, issue, Card([TextContent(issue.title, "small-heavy"), Tag(issue.priority)]))
-- Funnel bars: Each(funnelData.steps, step, Stack([TextContent(step.name), TextContent("" + step.users + " users")], "row"))
-- With Filter: Each(Filter(tickets, "status", "==", "open"), ticket, Card([TextContent(ticket.title)]))
-
-IMPORTANT: Use Each() to render components per array item. Do NOT use .map(), =>, or JavaScript. Use dot access for field extraction (data.rows.title), Each() for per-item rendering.`;
+Builtins compose — output of one is input to the next:
+\`Count(Filter(data.rows, "field", "==", "val"))\` for KPIs/chart values, \`Round(Avg(data.rows.score), 1)\`, \`Each(data.rows, "item", Comp(item.field))\` for per-item rendering.
+Array pluck: \`data.rows.field\` extracts a field from every row → use with Sum, Avg, charts, tables.
+Do NOT use .map(), =>, or JavaScript.`;
 }
 
 function querySection(): string {
@@ -82,7 +169,7 @@ metrics = Query("tool_name", {arg1: value, arg2: $binding}, {defaultField: 0, de
 - Fourth arg (optional): refresh interval in seconds (e.g. 30 for auto-refresh every 30s)
 - Use dot access on results: metrics.totalEvents, metrics.data.day (array pluck)
 - Query results must use regular identifiers: \`metrics = Query(...)\`, NOT \`$metrics = Query(...)\`
-- Manual refresh: \`Button("Refresh", Action([Run(metrics)]))\` — re-fetches the named query
+- Manual refresh: \`Button("Refresh", Action([Run(query1), Run(query2)]), "secondary")\` — re-fetches the listed queries
 - Refresh all queries: create Action with Run for each query`;
 }
 
@@ -108,43 +195,29 @@ function actionSection(): string {
   return `## Action — Button Behavior (only used as Button's action prop)
 
 Action([steps...]) wires button clicks to operations. Steps execute in order. Halts if a mutation fails.
-Only use Action when a button needs to trigger a Mutation, re-fetch a Query, or navigate. Buttons without an action prop default to sending their label to the LLM.
+Only use Action when a button needs to trigger a Mutation, re-fetch a Query, navigate, or reset form fields.
 
 Available steps:
 - Run(queryOrMutationRef) — Execute a Mutation or re-fetch a Query (ref must be a declared Query/Mutation)
-- ToLLM("message") or ToLLM("label", "context") — Send a message to the LLM. First arg is displayed as user message, optional second arg is context passed to the host app.
+- Set($variable, value) — Set a $variable to a value. Use after mutations to reset form fields.
 - OpenUrl("https://...") — Navigate to a URL
+- ToAssistant("message") — Send a message to the assistant (ONLY for conversational buttons like "Tell me more", "Explain this"). This is NOT needed for form submits or mutations — use mutation status for feedback instead.
 
-Example — create + refresh:
+Buttons without an explicit Action prop automatically send their label to the assistant (equivalent to Action([ToAssistant(label)])).
+
+Example — create + refresh + reset form (PREFERRED pattern for mutations):
 \`\`\`
-createResult = Mutation("create_ticket", {title: $title})
+$priority = "medium"
+createResult = Mutation("create_ticket", {title: $title, priority: $priority})
 tickets = Query("list_tickets", {}, {columns: [], results: []})
-onSubmit = Action([Run(createResult), Run(tickets)])
+onSubmit = Action([Run(createResult), Run(tickets), Set($title, ""), Set($priority, "medium")])
 submitBtn = Button("Create", onSubmit)
-\`\`\`
-
-Example — mutation + refresh + notify:
-\`\`\`
-createResult = Mutation("create_issue", {title: $title})
-issues = Query("list_issues", {}, {columns: [], results: []})
-onSubmit = Action([Run(createResult), Run(issues), ToLLM("Issue created")])
-submitBtn = Button("Create", onSubmit)
+statusMsg = createResult.status == "success" ? Callout("success", "Ticket created", "Your ticket was added.") : createResult.status == "error" ? Callout("danger", "Failed", createResult.error) : null
 \`\`\`
 
 Example — simple nav:
 \`\`\`
 viewBtn = Button("View", Action([OpenUrl("https://example.com")]))
-\`\`\`
-
-Example — form submit with context:
-\`\`\`
-submitBtn = Button("Submit", Action([ToLLM("Submit", "User submitted the contact form")]))
-\`\`\`
-
-Buttons without an action default to ToLLM with their label:
-\`\`\`
-Button("Tell me more")
-// equivalent to: Button("Tell me more", Action([ToLLM("Tell me more")]))
 \`\`\`
 
 - Action can be assigned to a variable or inlined: Button("Go", onSubmit) and Button("Go", Action([...])) both work
@@ -162,6 +235,8 @@ To let the user filter data with a dropdown:
 4. Pass $dateRange in Query args: \`Query("tool", {dateRange: $dateRange}, {defaults})\`
 5. When the user changes the Select, $dateRange updates and the Query automatically re-fetches
 
+FILTER WIRING RULE: If a $binding filter is visible in the UI, EVERY relevant Query MUST reference that $binding in its args. Never show a filter dropdown while hardcoding the query args.
+
 Rules for $variables:
 - $variables hold simple values (strings or numbers), NOT arrays or objects
 - $variables must be bound to a Select/Input component via the value argument to be interactive
@@ -173,8 +248,8 @@ Rules for $variables:
 Simple form — no $bindings needed. Field values are managed internally by the Form via the name prop:
 \`\`\`
 contactForm = Form("contact", submitBtn, [nameField, emailField])
-nameField = FormControl("Name", Input("name"))
-emailField = FormControl("Email", Input("email", "email"))
+nameField = FormControl("Name", Input("name", null, "Your name", "text", {required: true}))
+emailField = FormControl("Email", Input("email", null, "your@email.com", "email", {required: true, email: true}))
 submitBtn = Button("Submit")
 \`\`\`
 
@@ -182,27 +257,15 @@ Use $bindings when you need to read field values elsewhere (in Action context, Q
 \`\`\`
 $role = "engineer"
 contactForm = Form("contact", submitBtn, [nameField, emailField, roleField])
-nameField = FormControl("Name", Input("name", $name, "Enter your name"))
-emailField = FormControl("Email", Input("email", $email, "Enter your email"))
-roleField = FormControl("Role", Select("role", $role, [SelectItem("engineer", "Engineer"), SelectItem("designer", "Designer"), SelectItem("pm", "PM")]))
-submitBtn = Button("Submit", Action([ToLLM("Contact form", "name: " + $name + ", email: " + $email + ", role: " + $role)]))
+nameField = FormControl("Name", Input("name", $name, "Enter your name", "text", {required: true}))
+emailField = FormControl("Email", Input("email", $email, "Enter your email", "email", {required: true, email: true}))
+roleField = FormControl("Role", Select("role", $role, [SelectItem("engineer", "Engineer"), SelectItem("designer", "Designer"), SelectItem("pm", "PM")], null, {required: true}))
+submitBtn = Button("Submit")
 \`\`\`
 
-Form with mutation (saves to backend then refreshes a query):
-\`\`\`
-$priority = "medium"
-saveResult = Mutation("create_ticket", {title: $title, priority: $priority})
-tickets = Query("list_tickets", {}, {columns: [], results: []})
-createForm = Form("ticket", submitBtn, [titleField, priorityField])
-titleField = FormControl("Title", Input("title", $title, "Ticket title"))
-priorityField = FormControl("Priority", Select("priority", $priority, [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")]))
-submitBtn = Button("Create", Action([Run(saveResult), Run(tickets), ToLLM("Ticket created")]))
-\`\`\`
+For form + mutation patterns (create, refresh, reset), see the Action section example above.
 
-Field component syntax: \`Input(name, value?, placeholder?, type?, rules?)\`
-- name: string — field identity
-- value: $binding — reactive binding for the field value
-- placeholder: string — hint text`;
+IMPORTANT: Always add validation rules to form fields used with Mutations. Use OBJECT syntax: {required: true, email: true, minLength: 8}. The renderer shows error messages automatically and blocks submit when validation fails.`;
 }
 
 function editModeSection(): string {
@@ -212,14 +275,13 @@ The runtime merges by statement name: same name = replace, new name = append.
 Output ONLY statements that changed or are new. Everything else is kept automatically.
 
 ### Delete
-To remove a component, just update the parent to exclude it. Orphaned statements are automatically garbage-collected.
-Example — remove chart: \`root = Stack([header, kpiRow, table])\` — the chart and any statements only it referenced are auto-deleted.
-You can also explicitly delete: \`chart = null\`
+To remove a component, update the parent to exclude it from its children array. Orphaned statements are automatically garbage-collected.
+Example — remove chart: \`root = Stack([header, kpiRow, table])\` — chart is no longer in the children list, so it and any statements only it referenced are auto-deleted.
 
 ### Patch size guide
 - Changing a title or label: 1 statement
 - Adding a component: 2-3 statements (the new component + parent update)
-- Removing a component: 1 statement (update parent to exclude it)
+- Removing a component: 1 statement (re-declare parent without the removed child)
 - Adding a filter + wiring to query: 3-5 statements
 - Restructuring into tabs: 5-10 statements
 
@@ -249,273 +311,249 @@ During streaming, the output is re-parsed on every chunk. Undefined references a
 Always write the root = ${rootName}(...) statement first so the UI shell appears immediately, even before child data has streamed in.`;
 }
 
-function importantRules(rootName: string): string {
+function inlineModeSection(): string {
+  return `## Inline Mode
+
+You are in inline mode. You can respond in two ways:
+
+### 1. Code response (when the user wants to CREATE or CHANGE the dashboard)
+Wrap openui-lang code in triple-backtick fences. You can include explanatory text before/after:
+
+\`\`\`
+Here's your dashboard:
+
+\`\`\`openui-lang
+root = Stack([header, content])
+header = CardHeader("My Dashboard")
+content = TextContent("Hello world")
+\`\`\`
+
+I created a simple dashboard with a header.
+\`\`\`
+
+### 2. Text-only response (when the user asks a QUESTION)
+If the user asks "what is this?", "explain the chart", "how does this work", etc. — respond with plain text. Do NOT output any openui-lang code. The existing dashboard stays unchanged.
+
+### Rules
+- When the user asks for changes, output ONLY the changed/new statements in a fenced block
+- When the user asks a question, respond with text only — NO code. The dashboard stays unchanged.
+- The parser extracts code from fences automatically. Text outside fences is shown as chat.`;
+}
+
+function toolWorkflowSection(): string {
+  return `## Data Workflow
+
+When tools are available, follow this workflow:
+1. FIRST: Call the most relevant tool to inspect the real data shape before generating code
+2. ALWAYS use Query() for data that should stay live — NEVER hardcode tool results as literal arrays
+3. Use the real data from step 1 as condensed Query defaults (3-5 rows) so the UI renders immediately
+4. Use builtins (Count, Filter, Sort, Sum) on Query results for KPIs and aggregations — the runtime evaluates these live on every refresh
+5. Hardcoded arrays are ONLY for static display data (labels, options) where no tool exists
+
+WRONG — you called a tool and got data back, but you inlined the results:
+\`\`\`
+openCount = 2
+item1 = SomeComp("first item title")
+item2 = SomeComp("second item title")
+list = Stack([item1, item2])
+chart = SomeChart(["A", "B"], [12, 8])
+\`\`\`
+This is static — it shows stale data and won't update. Creating item1, item2, item3... manually is ALWAYS wrong when a tool exists.
+
+RIGHT — use Query() for live data, builtins to derive values, Each() to render per item:
+\`\`\`
+data = Query("tool_name", {}, {rows: []})
+openCount = Count(Filter(data.rows, "field", "==", "value"))
+list = Each(data.rows, "item", SomeComp(item.title, item.field))
+chart = SomeChart(["A", "B"], [Count(Filter(data.rows, "cat", "==", "A")), Count(Filter(data.rows, "cat", "==", "B"))])
+\`\`\`
+Everything derives from the Query — when data refreshes, the entire dashboard updates automatically.`;
+}
+
+function importantRules(rootName: string, inlineMode?: boolean): string {
+  const outputRule = inlineMode
+    ? "- When generating code, wrap it in \\`\\`\\`openui-lang fences. You may include explanatory text outside the fences."
+    : "- No trailing text or explanations — output ONLY openui-lang code";
+
+  const verifyRule = inlineMode
+    ? "6. If you included code, verify it's inside \\`\\`\\`openui-lang fences."
+    : "6. No markdown, prose, or comments — only openui-lang.";
+
   return `## Important Rules
-- ALWAYS start with root = ${rootName}(...)
-- Write statements in TOP-DOWN order: root → components → data (leverages hoisting for progressive streaming)
-- Each statement on its own line
-- No trailing text or explanations — output ONLY openui-lang code
-- Use ONLY the built-in functions listed above — do not invent others
+${outputRule}
 - When asked about data, generate realistic/plausible data
 - Choose components that best represent the content (tables for comparisons, charts for trends, forms for input, etc.)
-- NEVER define a variable without referencing it from the tree. Every variable must be reachable from root, otherwise it will not render.
-- Do not fabricate tool names — only use tools from the available list
 
 ## Final Verification
 Before finishing, walk your output and verify:
-1. root = ${rootName}([...]) is the FIRST line.
-2. Every name in root's children list is defined below.
-3. Every defined name (other than root) appears in at least one other reachable statement. If not, delete it.
-4. Every Query result is referenced by at least one component. If not, delete the Query.
-5. Every $binding appears in at least one component or expression. $bindings used only for conditional display (e.g. $tab == "chart" ? ...) do not need a Query.
-6. No markdown, prose, or comments — only openui-lang.`;
+1. root = ${rootName}(...) is the FIRST line.
+2. Every referenced name is defined. Every defined name (other than root) is reachable from root.
+3. Every Query result is referenced by at least one component.
+4. Every $binding appears in at least one component or expression.
+${verifyRule}`;
 }
 
-function getZodDef(schema: unknown): any {
-  return (schema as any)?._zod?.def;
+// ─── Tool rendering ─────────────────────────────────────────────────────────
+
+function isMutationTool(tool: McpToolSpec): boolean {
+  if (tool.annotations?.readOnlyHint === true) return false;
+  // Destructive hint is explicitly mutation
+  if (tool.annotations?.destructiveHint === true) return true;
+  // Name-based heuristic
+  return /^(create|update|delete|remove)/i.test(tool.name);
 }
 
-function getZodType(schema: unknown): string | undefined {
-  return getZodDef(schema)?.type;
-}
-
-function isOptionalType(schema: unknown): boolean {
-  return getZodType(schema) === "optional";
-}
-
-function unwrapOptional(schema: unknown): unknown {
-  const def = getZodDef(schema);
-  if (def?.type === "optional") return def.innerType;
-  return schema;
-}
-
-/** Strip optional wrapper to reach the core schema. */
-function unwrap(schema: unknown): unknown {
-  return unwrapOptional(schema);
-}
-
-function isArrayType(schema: unknown): boolean {
-  const s = unwrap(schema);
-  return getZodType(s) === "array";
-}
-
-function getArrayInnerType(schema: unknown): unknown | undefined {
-  const s = unwrap(schema);
-  const def = getZodDef(s);
-  if (def?.type === "array") return def.element ?? def.innerType;
-  return undefined;
-}
-
-function getEnumValues(schema: unknown): string[] | undefined {
-  const s = unwrap(schema);
-  const def = getZodDef(s);
-  if (def?.type !== "enum") return undefined;
-  if (Array.isArray(def.values)) return def.values;
-  if (def.entries && typeof def.entries === "object") return Object.keys(def.entries);
-  return undefined;
-}
-
-function getSchemaId(schema: unknown): string | undefined {
-  try {
-    const meta = z.globalRegistry.get(schema as z.ZodType);
-    return meta?.id;
-  } catch {
-    return undefined;
-  }
-}
-
-function getUnionOptions(schema: unknown): unknown[] | undefined {
-  const def = getZodDef(schema);
-  if (def?.type === "union" && Array.isArray(def.options)) return def.options;
-  return undefined;
-}
-
-function getObjectShape(schema: unknown): Record<string, unknown> | undefined {
-  const def = getZodDef(schema);
-  if (def?.type === "object" && def.shape && typeof def.shape === "object")
-    return def.shape as Record<string, unknown>;
-  return undefined;
-}
-
-/**
- * Resolve the type annotation for a schema field.
- * Returns a human-readable type string for the schema.
- * If the schema is marked reactive(), prefixes with "$binding<...>".
- */
-function resolveTypeAnnotation(schema: unknown): string | undefined {
-  // Check for reactive marker
-  const isReactive = isReactiveSchema(schema);
-  const inner = unwrap(schema);
-
-  const baseType = resolveBaseType(inner);
-  if (!baseType) return undefined;
-  return isReactive ? `$binding<${baseType}>` : baseType;
-}
-
-function resolveBaseType(inner: unknown): string | undefined {
-  const directId = getSchemaId(inner);
-  if (directId) return directId;
-
-  const unionOpts = getUnionOptions(inner);
-  if (unionOpts) {
-    const resolved = unionOpts.map((o) => resolveTypeAnnotation(o));
-    const names = resolved.filter(Boolean) as string[];
-    if (names.length > 0) return names.join(" | ");
-  }
-
-  if (isArrayType(inner)) {
-    const arrayInner = getArrayInnerType(inner);
-    if (!arrayInner) return undefined;
-    const innerType = resolveTypeAnnotation(arrayInner);
-    if (innerType) {
-      const isUnion = getUnionOptions(unwrap(arrayInner)) !== undefined;
-      return isUnion ? `(${innerType})[]` : `${innerType}[]`;
-    }
-    return undefined;
-  }
-
-  const zodType = getZodType(inner);
-  if (zodType === "string") return "string";
-  if (zodType === "number") return "number";
-  if (zodType === "boolean") return "boolean";
-
-  const enumVals = getEnumValues(inner);
-  if (enumVals) return enumVals.map((v) => `"${v}"`).join(" | ");
-
-  if (zodType === "literal") {
-    const vals = getZodDef(inner)?.values;
-    if (Array.isArray(vals) && vals.length === 1) {
-      const v = vals[0];
-      return typeof v === "string" ? `"${v}"` : String(v);
+function renderToolSignature(tool: McpToolSpec): string {
+  let args = "";
+  if (tool.inputSchema) {
+    const props = (tool.inputSchema as any).properties as
+      | Record<string, Record<string, unknown>>
+      | undefined;
+    const required = ((tool.inputSchema as any).required as string[]) ?? [];
+    if (props && Object.keys(props).length > 0) {
+      args = Object.entries(props)
+        .map(([k, v]) => {
+          const opt = required.includes(k) ? "" : "?";
+          return `${k}${opt}: ${jsonSchemaTypeStr(v)}`;
+        })
+        .join(", ");
     }
   }
 
-  const shape = getObjectShape(inner);
-  if (shape) {
-    const fields = Object.entries(shape).map(([name, fieldSchema]) => {
-      const opt = isOptionalType(fieldSchema) ? "?" : "";
-      const fieldType = resolveTypeAnnotation(fieldSchema as z.ZodType);
-      return fieldType ? `${name}${opt}: ${fieldType}` : `${name}${opt}`;
-    });
-    return `{${fields.join(", ")}}`;
+  let returnType = "";
+  if (tool.outputSchema) {
+    returnType = ` → ${jsonSchemaTypeStr(tool.outputSchema as Record<string, unknown>)}`;
   }
 
-  return undefined;
-}
-
-// ─── Field analysis ───
-
-interface FieldInfo {
-  name: string;
-  isOptional: boolean;
-  isArray: boolean;
-  typeAnnotation?: string;
-}
-
-function analyzeFields(shape: Record<string, z.ZodType>): FieldInfo[] {
-  return Object.entries(shape).map(([name, schema]) => ({
-    name,
-    isOptional: isOptionalType(schema),
-    isArray: isArrayType(schema),
-    typeAnnotation: resolveTypeAnnotation(schema),
-  }));
-}
-
-// ─── Signature generation ───
-
-function buildSignature(componentName: string, fields: FieldInfo[]): string {
-  const params = fields.map((f) => {
-    if (f.typeAnnotation) {
-      return f.isOptional ? `${f.name}?: ${f.typeAnnotation}` : `${f.name}: ${f.typeAnnotation}`;
-    }
-    if (f.isArray) {
-      return f.isOptional ? `[${f.name}]?` : `[${f.name}]`;
-    }
-    return f.isOptional ? `${f.name}?` : f.name;
-  });
-  return `${componentName}(${params.join(", ")})`;
-}
-
-function buildComponentLine(componentName: string, def: DefinedComponent): string {
-  const fields = analyzeFields(def.props.shape);
-  const sig = buildSignature(componentName, fields);
-  if (def.description) {
-    return `${sig} — ${def.description}`;
+  let line = `- ${tool.name}(${args})${returnType}`;
+  if (tool.description) {
+    line += `\n  ${tool.description}`;
   }
-  return sig;
+  return line;
 }
 
-// ─── Prompt assembly ───
+function renderToolsSection(tools: (string | McpToolSpec)[]): string {
+  const lines: string[] = [];
 
-function generateComponentSignatures(library: Library): string {
-  const lines: string[] = [
-    "## Component Signatures",
-    "",
-    "Arguments marked with ? are optional. Sub-components can be inline or referenced; prefer references for better streaming.",
-    "Props typed `ActionExpression` accept an Action([steps...]) expression. See the Action section for available steps (Run, ToLLM, OpenUrl).",
-    "Props marked `$binding<type>` accept a `$variable` reference for two-way binding.",
-  ];
+  const stringTools: string[] = [];
+  const queryTools: McpToolSpec[] = [];
+  const mutationTools: McpToolSpec[] = [];
 
-  if (library.componentGroups?.length) {
-    const groupedComponents = new Set<string>();
-
-    for (const group of library.componentGroups) {
-      lines.push("");
-      lines.push(`### ${group.name}`);
-      for (const name of group.components) {
-        if (groupedComponents.has(name)) continue;
-        const def = library.components[name];
-        if (!def) continue;
-        groupedComponents.add(name);
-        lines.push(buildComponentLine(name, def));
-      }
-      if (group.notes?.length) {
-        for (const note of group.notes) {
-          lines.push(note);
-        }
-      }
+  for (const tool of tools) {
+    if (typeof tool === "string") {
+      stringTools.push(tool);
+    } else if (isMutationTool(tool)) {
+      mutationTools.push(tool);
+    } else {
+      queryTools.push(tool);
     }
+  }
 
-    const ungrouped = Object.keys(library.components).filter(
-      (name) => !groupedComponents.has(name),
-    );
-    if (ungrouped.length) {
-      lines.push("");
-      lines.push("### Ungrouped");
-      for (const name of ungrouped) {
-        const def = library.components[name];
-        lines.push(buildComponentLine(name, def));
-      }
-    }
-  } else {
+  if (queryTools.length > 0 || stringTools.length > 0) {
+    lines.push("## Available Query Tools");
     lines.push("");
-    for (const [name, def] of Object.entries(library.components)) {
-      lines.push(buildComponentLine(name, def));
+    for (const t of stringTools) {
+      lines.push(`- ${t}`);
+    }
+    for (const t of queryTools) {
+      lines.push(renderToolSignature(t));
     }
   }
+
+  if (mutationTools.length > 0) {
+    lines.push("");
+    lines.push("## Available Mutation Tools");
+    lines.push("");
+    for (const t of mutationTools) {
+      lines.push(renderToolSignature(t));
+    }
+  }
+
+  // Default values hint for McpToolSpec tools with outputSchema
+  const toolsWithOutput = [...queryTools, ...mutationTools].filter((t) => t.outputSchema);
+  if (toolsWithOutput.length > 0) {
+    lines.push("");
+    lines.push("### Default values for Query results");
+    lines.push("");
+    lines.push("Use these shapes as minimal Query defaults:");
+    for (const t of toolsWithOutput) {
+      const defaults = defaultForSchema(t.outputSchema as Record<string, unknown>);
+      lines.push(`- ${t.name}: \`${JSON.stringify(defaults)}\``);
+    }
+  }
+
+  lines.push("");
+  lines.push(
+    "CRITICAL: Use ONLY the tools listed above in Query() and Mutation() calls. Do NOT invent or guess tool names. If the user asks for functionality that doesn't match any available tool, use realistic mock data instead of fabricating a tool call.",
+  );
 
   return lines.join("\n");
 }
 
-export function generatePrompt(library: Library, options?: PromptOptions): string {
-  const rootName = library.root ?? "Root";
-  const hasBindings = !!options?.tools?.length;
+// ─── Component signatures ───────────────────────────────────────────────────
+
+function generateComponentSignatures(spec: PromptSpec): string {
+  const lines = [
+    "## Component Signatures",
+    "",
+    "Arguments marked with ? are optional. Sub-components can be inline or referenced; prefer references for better streaming.",
+    "Props typed `ActionExpression` accept an Action([steps...]) expression. See the Action section for available steps (Run, ToAssistant, OpenUrl, Set).",
+    "Props marked `$binding<type>` accept a `$variable` reference for two-way binding.",
+  ];
+
+  if (spec.componentGroups?.length) {
+    const grouped = new Set<string>();
+    for (const group of spec.componentGroups) {
+      lines.push("", `### ${group.name}`);
+      for (const name of group.components) {
+        if (grouped.has(name)) continue;
+        const comp = spec.components[name];
+        if (!comp) continue;
+        grouped.add(name);
+        lines.push(comp.description ? `${comp.signature} — ${comp.description}` : comp.signature);
+      }
+      if (group.notes?.length) {
+        for (const note of group.notes) lines.push(note);
+      }
+    }
+    const ungrouped = Object.keys(spec.components).filter((n) => !grouped.has(n));
+    if (ungrouped.length) {
+      lines.push("", "### Other");
+      for (const name of ungrouped) {
+        const comp = spec.components[name];
+        lines.push(comp.description ? `${comp.signature} — ${comp.description}` : comp.signature);
+      }
+    }
+  } else {
+    lines.push("");
+    for (const [, comp] of Object.entries(spec.components)) {
+      lines.push(comp.description ? `${comp.signature} — ${comp.description}` : comp.signature);
+    }
+  }
+  return lines.join("\n");
+}
+
+// ─── Prompt assembly ────────────────────────────────────────────────────────
+
+export function generatePrompt(spec: PromptSpec): string {
+  const rootName = spec.root ?? "Root";
+  const hasTools = !!spec.tools?.length;
   const parts: string[] = [];
 
-  parts.push(options?.preamble ?? PREAMBLE);
+  parts.push(spec.preamble ?? PREAMBLE);
   parts.push("");
-  parts.push(syntaxRules(rootName, hasBindings));
+  parts.push(syntaxRules(rootName, hasTools));
   parts.push("");
-  parts.push(generateComponentSignatures(library));
+  parts.push(generateComponentSignatures(spec));
 
   // Built-in functions
-  if (hasBindings) {
+  if (hasTools) {
     parts.push("");
     parts.push(builtinFunctionsSection());
   }
 
   // Query + Mutation + Action sections
-  if (hasBindings) {
+  if (hasTools) {
     parts.push("");
     parts.push(querySection());
     parts.push("");
@@ -526,36 +564,23 @@ export function generatePrompt(library: Library, options?: PromptOptions): strin
     parts.push(interactiveFiltersSection());
   }
 
+  // Tool workflow
+  if (hasTools) {
+    parts.push("");
+    parts.push(toolWorkflowSection());
+  }
+
   // Tools list
-  if (options?.tools?.length) {
+  if (spec.tools?.length) {
     parts.push("");
-    parts.push("## Available Query Tools");
-    parts.push("");
-    for (const tool of options.tools) {
-      if (typeof tool === "string") {
-        parts.push(`- ${tool}`);
-      } else {
-        // inputSchema may be a JSON Schema object ({ type, properties }) or a flat { param: type } map
-        let args = "";
-        if (tool.inputSchema) {
-          const props = (tool.inputSchema as any).properties ?? tool.inputSchema;
-          args = Object.entries(props)
-            .filter(([k]) => k !== "type" && k !== "required" && k !== "properties")
-            .map(([k, v]) => {
-              const t = typeof v === "string" ? v : ((v as any)?.type ?? "any");
-              return `${k}: ${t}`;
-            })
-            .join(", ");
-        }
-        parts.push(`- ${tool.name}(${args})${tool.description ? ` — ${tool.description}` : ""}`);
-      }
-    }
+    parts.push(renderToolsSection(spec.tools));
   }
 
   parts.push("");
   parts.push(streamingRules(rootName));
 
-  const examples = options?.examples;
+  // Show tool examples when tools are present, otherwise show general examples
+  const examples = hasTools && spec.toolExamples?.length ? spec.toolExamples : spec.examples;
   if (examples?.length) {
     parts.push("");
     parts.push("## Examples");
@@ -567,16 +592,22 @@ export function generatePrompt(library: Library, options?: PromptOptions): strin
   }
 
   // Edit mode instructions
-  if (options?.editMode) {
+  if (spec.editMode) {
     parts.push("");
     parts.push(editModeSection());
   }
 
-  parts.push(importantRules(rootName));
-
-  if (options?.additionalRules?.length) {
+  // Inline mode instructions
+  if (spec.inlineMode) {
     parts.push("");
-    for (const rule of options.additionalRules) {
+    parts.push(inlineModeSection());
+  }
+
+  parts.push(importantRules(rootName, spec.inlineMode));
+
+  if (spec.additionalRules?.length) {
+    parts.push("");
+    for (const rule of spec.additionalRules) {
       parts.push(`- ${rule}`);
     }
   }

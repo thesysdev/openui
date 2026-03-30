@@ -92,18 +92,38 @@ export function split(tokens: Token[]): RawStmt[] {
     }
     pos++;
 
-    // Collect expression tokens until a depth-0 newline or EOF
+    // Collect expression tokens until a depth-0 newline or EOF.
+    // Track both bracket depth and ternary depth so that multiline
+    // ternary expressions (condition on one line, ? ... : on the next)
+    // are not incorrectly split into separate statements.
     const expr: Token[] = [];
     let depth = 0;
+    let ternaryDepth = 0;
     while (pos < tokens.length && tokens[pos].t !== T.EOF) {
       const tt = tokens[pos].t;
-      if (tt === T.Newline && depth <= 0) break; // statement boundary
+      if (tt === T.Newline && depth <= 0 && ternaryDepth <= 0) {
+        // Before breaking, look ahead past whitespace/newlines to see if
+        // the next meaningful token is `?` or `:` — if so, the ternary
+        // continues on the next line and we should NOT split here.
+        let peek = pos + 1;
+        while (peek < tokens.length && tokens[peek].t === T.Newline) peek++;
+        const nextT = peek < tokens.length ? tokens[peek].t : T.EOF;
+        if (nextT === T.Question || (nextT === T.Colon && ternaryDepth > 0)) {
+          // Ternary continuation — skip the newline and keep collecting
+          pos++;
+          continue;
+        }
+        break; // statement boundary
+      }
       if (tt === T.Newline) {
         pos++;
         continue;
-      } // newline inside bracket — skip
+      } // newline inside bracket/ternary — skip
       if (tt === T.LParen || tt === T.LBrack || tt === T.LBrace) depth++;
       else if ((tt === T.RParen || tt === T.RBrack || tt === T.RBrace) && depth > 0) depth--;
+      // Track ternary ? and : at bracket depth 0 (colons inside {} are object key separators)
+      else if (tt === T.Question && depth === 0) ternaryDepth++;
+      else if (tt === T.Colon && depth === 0 && ternaryDepth > 0) ternaryDepth--;
       expr.push(tokens[pos++]);
     }
 

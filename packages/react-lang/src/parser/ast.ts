@@ -79,10 +79,31 @@ export function isRuntimeExpr(node: ASTNode): node is RuntimeExprNode {
   }
 }
 
-/** Check if a value is an AST node (has a `k` discriminant field). */
+/** Valid AST discriminant values. */
+const AST_KINDS = new Set([
+  "Comp",
+  "Ref",
+  "StateRef",
+  "RuntimeRef",
+  "BinOp",
+  "UnaryOp",
+  "Ternary",
+  "Member",
+  "Index",
+  "Assign",
+  "Str",
+  "Num",
+  "Bool",
+  "Null",
+  "Arr",
+  "Obj",
+  "Ph",
+]);
+
+/** Check if a value is an AST node (has a valid `k` discriminant field). */
 export function isASTNode(value: unknown): value is ASTNode {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-  return typeof (value as Record<string, unknown>).k === "string";
+  return AST_KINDS.has((value as Record<string, unknown>).k as string);
 }
 
 export function walkAST(node: ASTNode, visit: (node: ASTNode) => void): void {
@@ -142,5 +163,5 @@ export interface CallNode {
 export type Statement =
   | { kind: "value"; id: string; expr: ASTNode }
   | { kind: "state"; id: string; init: ASTNode }
-  | { kind: "query"; id: string; call: CallNode; deps?: string[] }
-  | { kind: "mutation"; id: string; call: CallNode };
+  | { kind: "query"; id: string; call: CallNode; expr: ASTNode; deps?: string[] }
+  | { kind: "mutation"; id: string; call: CallNode; expr: ASTNode };

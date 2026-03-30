@@ -29,6 +29,9 @@ function emptyResult(incomplete = true): ParseResult {
       statementCount: 0,
       validationErrors: [],
     },
+    stateDeclarations: {},
+    queryStatements: [],
+    mutationStatements: [],
   };
 }
 
@@ -57,6 +60,7 @@ function classifyStatement(raw: RawStmt, expr: ASTNode): Statement {
       kind: "query",
       id: raw.id,
       call: { callee: RESERVED_CALLS.Query, args: expr.args },
+      expr,
       deps: deps.length > 0 ? deps : undefined,
     };
   }
@@ -66,6 +70,7 @@ function classifyStatement(raw: RawStmt, expr: ASTNode): Statement {
       kind: "mutation",
       id: raw.id,
       call: { callee: RESERVED_CALLS.Mutation, args: expr.args },
+      expr,
     };
   }
   // $variables → state declaration
@@ -88,10 +93,10 @@ function buildSymbolTable(stmtMap: Map<string, Statement>): Map<string, ASTNode>
         m.set(id, stmt.init);
         break;
       case "query":
-        m.set(id, { k: "Comp", name: stmt.call.callee, args: stmt.call.args });
+        m.set(id, stmt.expr);
         break;
       case "mutation":
-        m.set(id, { k: "Comp", name: stmt.call.callee, args: stmt.call.args });
+        m.set(id, stmt.expr);
         break;
     }
   }
@@ -228,9 +233,6 @@ function buildResult(
     ctx,
   );
 
-  const qs = queryStatements.length > 0 ? queryStatements : undefined;
-  const ms = mutationStatements.length > 0 ? mutationStatements : undefined;
-
   return {
     root,
     meta: {
@@ -239,9 +241,9 @@ function buildResult(
       statementCount: stmtCount,
       validationErrors: errors,
     },
-    stateDeclarations: Object.keys(stateDeclarations).length > 0 ? stateDeclarations : undefined,
-    queryStatements: qs,
-    mutationStatements: ms,
+    stateDeclarations,
+    queryStatements,
+    mutationStatements,
   };
 }
 
@@ -249,31 +251,116 @@ function buildResult(
 // Public API
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Extract code from markdown fences, or return as-is if no fences found. */
+/** Extract code from markdown fences, or return as-is if no fences found.
+ *  String-context-aware: skips ``` inside double-quoted strings. */
 export function stripFences(input: string): string {
-  const fencePattern = /```(?:openui-lang|openui)?[ \t]*\n([\s\S]*?)```/g;
   const blocks: string[] = [];
-  let match: RegExpExecArray | null;
-  while ((match = fencePattern.exec(input)) !== null) {
-    blocks.push(match[1]);
+  let i = 0;
+
+  while (i < input.length) {
+    // Look for opening ```
+    const fenceStart = input.indexOf("```", i);
+    if (fenceStart === -1) break;
+
+    // Skip language tag until newline
+    let j = fenceStart + 3;
+    while (j < input.length && input[j] !== "\n") j++;
+    if (j >= input.length) {
+      // No newline after opening fence (streaming) — take everything after fence marker + lang tag
+      blocks.push(input.slice(fenceStart + 3).replace(/^[^\n]*\n?/, ""));
+      i = input.length;
+      break;
+    }
+    j++; // skip the newline
+
+    // Scan for closing ``` while tracking string context
+    let inStr = false;
+    let closePos = -1;
+    let k = j;
+    while (k < input.length) {
+      const c = input[k];
+      if (inStr) {
+        if (c === "\\" && k + 1 < input.length) {
+          k += 2; // skip escaped character
+          continue;
+        }
+        if (c === '"') inStr = false;
+        k++;
+        continue;
+      }
+      // Not in string
+      if (c === '"') {
+        inStr = true;
+        k++;
+        continue;
+      }
+      if (
+        c === "`" &&
+        k + 1 < input.length &&
+        input[k + 1] === "`" &&
+        k + 2 < input.length &&
+        input[k + 2] === "`"
+      ) {
+        closePos = k;
+        break;
+      }
+      k++;
+    }
+
+    if (closePos !== -1) {
+      blocks.push(input.slice(j, closePos));
+      i = closePos + 3;
+    } else {
+      // No closing fence found (streaming) — take everything after opening fence
+      blocks.push(input.slice(j));
+      i = input.length;
+    }
   }
+
   if (blocks.length > 0) return blocks.join("\n");
-  if (/^```/.test(input)) {
-    return input.replace(/^```[^\n]*\n?/, "").replace(/\n?```\s*$/, "");
+
+  // Fallback: if input starts with ``` but wasn't matched (e.g. no newline after fence)
+  if (input.startsWith("```")) {
+    let j = 3;
+    while (j < input.length && input[j] !== "\n") j++;
+    const start = j < input.length ? j + 1 : 3;
+    // Try to strip trailing ```
+    const body = input.slice(start);
+    const trailingFence = body.lastIndexOf("```");
+    if (trailingFence !== -1) {
+      return body.slice(0, trailingFence);
+    }
+    return body;
   }
+
   return input;
 }
 
-/** Strip // line comments outside of strings. */
+/** Strip // and # line comments outside of strings. */
 function stripComments(input: string): string {
   return input
     .split("\n")
     .map((line) => {
       let inStr = false;
       for (let i = 0; i < line.length; i++) {
-        if (line[i] === '"' && (i === 0 || line[i - 1] !== "\\")) inStr = !inStr;
-        if (!inStr && line[i] === "/" && line[i + 1] === "/") {
-          return line.substring(0, i).trimEnd();
+        if (line[i] === '"') {
+          let backslashes = 0;
+          let bi = i - 1;
+          while (bi >= 0 && line[bi] === "\\") {
+            backslashes++;
+            bi--;
+          }
+          if (backslashes % 2 === 0) inStr = !inStr;
+        }
+        if (!inStr) {
+          // // style comments
+          if (line[i] === "/" && line[i + 1] === "/") {
+            return line.substring(0, i).trimEnd();
+          }
+          // # style comments (Python/YAML style — LLMs sometimes use these)
+          if (line[i] === "#") {
+            return line.substring(0, i).trimEnd();
+          }
         }
       }
       return line;
@@ -306,13 +393,18 @@ export function parse(input: string, cat?: ParamMap, rootName?: string): ParseRe
   for (const s of stmts) {
     const expr = parseExpression(s.tokens);
     const stmt = classifyStatement(s, expr);
+    if (stmtMap.has(s.id)) {
+      console.warn(
+        `[openui parse] Duplicate statement ID "${s.id}" — later definition overwrites earlier one.`,
+      );
+    }
     stmtMap.set(s.id, stmt);
     if (!firstId) firstId = s.id;
   }
   // Derive from map to deduplicate — Map.set overwrites duplicates
   const typedStmts = [...stmtMap.values()];
 
-  return buildResult(stmtMap, typedStmts, firstId, wasIncomplete, stmts.length, cat, rootName);
+  return buildResult(stmtMap, typedStmts, firstId, wasIncomplete, stmtMap.size, cat, rootName);
 }
 
 export interface StreamParser {
@@ -348,6 +440,7 @@ export function createStreamParser(cat?: ParamMap, rootName?: string): StreamPar
 
   function scanNewCompleted(): number {
     let depth = 0,
+      ternaryDepth = 0,
       inStr = false,
       esc = false;
     let stmtStart = completedEnd;
@@ -369,8 +462,22 @@ export function createStreamParser(cat?: ParamMap, rootName?: string): StreamPar
       if (inStr) continue;
 
       if (c === "(" || c === "[" || c === "{") depth++;
-      else if (c === ")" || c === "]" || c === "}") depth--;
-      else if (c === "\n" && depth <= 0) {
+      else if (c === ")" || c === "]" || c === "}") depth = Math.max(0, depth - 1);
+      // Track ternary ? and : at bracket depth 0 (colons inside {} are object key separators)
+      else if (c === "?" && depth === 0) ternaryDepth++;
+      else if (c === ":" && depth === 0 && ternaryDepth > 0) ternaryDepth--;
+      else if (c === "\n" && depth <= 0 && ternaryDepth <= 0) {
+        // Before splitting, look ahead past whitespace to see if the next
+        // meaningful character is `?` or `:` — ternary continuation.
+        let peek = i + 1;
+        while (
+          peek < buf.length &&
+          (buf[peek] === " " || buf[peek] === "\t" || buf[peek] === "\r" || buf[peek] === "\n")
+        )
+          peek++;
+        if (peek < buf.length && (buf[peek] === "?" || (buf[peek] === ":" && ternaryDepth > 0))) {
+          continue; // ternary continuation — don't split
+        }
         // Depth-0 newline = end of a statement
         const t = buf.slice(stmtStart, i).trim();
         if (t) addStmt(t);

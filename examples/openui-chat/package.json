@@ -3,26 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate:prompt": "pnpm --filter @openuidev/cli build && pnpm exec openui generate src/library.ts --out src/generated/system-prompt.txt && pnpm exec openui generate src/dashboard-library.ts --out src/generated/dashboard-prompt.txt",
+    "generate:prompt": "pnpm --filter @openuidev/cli build && pnpm exec openui generate src/library.ts --out src/generated/system-prompt.txt",
     "dev": "pnpm generate:prompt && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
-    "@openuidev/cli": "workspace:*",
-    "@openuidev/react-ui": "workspace:*",
     "@openuidev/react-headless": "workspace:*",
-    "@modelcontextprotocol/sdk": "^1.27.1",
     "@openuidev/react-lang": "workspace:*",
+    "@openuidev/react-ui": "workspace:*",
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "openai": "^6.22.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "zod": "^4.0.0"
+    "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@openuidev/cli": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

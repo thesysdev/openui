@@ -16,7 +16,7 @@ import type { Library } from "../library";
 import { isASTNode } from "../parser/ast";
 import type { ElementNode } from "../parser/types";
 import type { EvaluationContext } from "./evaluator";
-import { evaluate } from "./evaluator";
+import { evaluate, isReactiveAssign } from "./evaluator";
 import { isReactiveSchema } from "./reactive";
 import type { Store } from "./store";
 
@@ -54,7 +54,12 @@ function evaluatePropValue(
         expr: { k: "StateRef" as const, n: "$value" },
       };
     }
-    return evaluate(value, evalCtx.ctx);
+    const result = evaluate(value, evalCtx.ctx);
+    // Strip ReactiveAssign from non-reactive props — resolve to current state value
+    if (isReactiveAssign(result) && !(reactiveSchema && isReactiveSchema(reactiveSchema))) {
+      return evalCtx.ctx.getState(result.target) ?? null;
+    }
+    return result;
   }
 
   // Non-reactive string on a reactive schema — pass through as-is.

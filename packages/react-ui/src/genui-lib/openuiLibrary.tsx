@@ -98,10 +98,17 @@ export const openuiComponentGroups: ComponentGroup[] = [
       "ImageGallery",
       "CodeBlock",
     ],
+    notes: [
+      '- Use Cards to group related KPIs or sections. Stack with direction "row" for side-by-side layouts.',
+    ],
   },
   {
     name: "Tables",
     components: ["Table", "Col"],
+    notes: [
+      '- Table is COLUMN-oriented: Table([Col("Label", dataArray), Col("Count", countArray, "number")]). Use array pluck for data: data.rows.fieldName',
+      '- Col data can be component arrays for styled cells: Col("Status", Each(data.rows, "item", Tag(item.status, null, "sm", item.status == "open" ? "success" : "danger")))',
+    ],
   },
   {
     name: "Charts (2D)",
@@ -113,10 +120,19 @@ export const openuiComponentGroups: ComponentGroup[] = [
       "HorizontalBarChart",
       "Series",
     ],
+    notes: [
+      '- Charts accept column arrays: LineChart(labels, [Series("Name", values)]). Use array pluck: LineChart(data.rows.day, [Series("Views", data.rows.views)])',
+      "- Use Cards to wrap charts with CardHeader for titled sections",
+    ],
   },
   {
     name: "Charts (1D)",
     components: ["PieChart", "RadialChart", "SingleStackedBarChart", "Slice"],
+    notes: [
+      "- PieChart and BarChart need NUMBERS, not objects. For list data, use Count(Filter(...)) to aggregate:",
+      '- PieChart from list: `PieChart(["Low", "Med", "High"], [Count(Filter(data.rows, "priority", "==", "low")), Count(Filter(data.rows, "priority", "==", "medium")), Count(Filter(data.rows, "priority", "==", "high"))], "donut")`',
+      '- KPI from count: `TextContent("" + Count(Filter(data.rows, "status", "==", "open")), "large-heavy")`',
+    ],
   },
   {
     name: "Charts (Scatter)",
@@ -145,8 +161,8 @@ export const openuiComponentGroups: ComponentGroup[] = [
       "- For Form fields, define EACH FormControl as its own reference — do NOT inline all controls in one array. This allows progressive field-by-field streaming.",
       "- NEVER nest Form inside Form — each Form should be a standalone container.",
       "- Form requires explicit buttons. Always pass a Buttons(...) reference as the third Form argument.",
-      '- rules is an optional array of validation strings: ["required", "email", "min:8", "maxLength:100"]',
-      "- Available rules: required, email, min:N, max:N, minLength:N, maxLength:N, pattern:REGEX, url, numeric",
+      "- rules is an optional object: {required: true, email: true, minLength: 8, maxLength: 100}",
+      "- Available rules: required, email, min, max, minLength, maxLength, pattern, url, numeric",
       "- The renderer shows error messages automatically — do NOT generate error text in the UI",
     ],
   },
@@ -191,7 +207,7 @@ emailField = FormControl("Email", Input("email", "you@example.com", "email", { r
 countryField = FormControl("Country", Select("country", countryOpts, "Select...", { required: true }))
 msgField = FormControl("Message", TextArea("message", "Tell us more...", 4, { required: true, minLength: 10 }))
 countryOpts = [SelectItem("us", "United States"), SelectItem("uk", "United Kingdom"), SelectItem("de", "Germany")]
-btns = Buttons([Button("Submit", Action([ToLLM("Submit")]), "primary"), Button("Cancel", Action([ToLLM("Cancel")]), "secondary")])`,
+btns = Buttons([Button("Submit", Action([ToAssistant("Submit")]), "primary"), Button("Cancel", Action([ToAssistant("Cancel")]), "secondary")])`,
 
   `Example 4 — Tabs with mixed content:
 

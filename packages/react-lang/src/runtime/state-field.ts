@@ -35,7 +35,7 @@ export function resolveStateField<T = unknown>(
 
   return {
     name,
-    value: fieldGetter(name) as T,
+    value: (fieldGetter(name) ?? bindingValue) as T,
     setValue: (value: T) => fieldSetter(name, value),
     isReactive: false,
   };

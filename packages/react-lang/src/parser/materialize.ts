@@ -52,13 +52,16 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
     return { k: "RuntimeRef", n: name, refType };
   }
   ctx.visited.add(name);
-  const result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
-  ctx.visited.delete(name);
-  // Tag ElementNode with its source statement name
-  if (mode === "value" && isElementNode(result)) {
-    (result as import("./types").ElementNode).statementId = name;
+  try {
+    const result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
+    // Tag ElementNode with its source statement name
+    if (mode === "value" && isElementNode(result)) {
+      (result as import("./types").ElementNode).statementId = name;
+    }
+    return result;
+  } finally {
+    ctx.visited.delete(name);
   }
-  return result;
 }
 
 /**
@@ -218,10 +221,20 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
       const { name, args } = node;
 
       // Builtins (Sum, Count, Filter, Action, etc.) → preserve as ASTNode for runtime
-      if (isBuiltin(name) || isReservedCall(name)) {
+      if (isBuiltin(name)) {
         const lazy = materializeLazyBuiltin(node, ctx, new Set());
         if (lazy) return lazy;
         return { ...node, args: args.map((a) => materializeExpr(a, ctx)) };
+      }
+
+      // Inline Query/Mutation (not from a statement-level declaration) → validation error
+      if (isReservedCall(name)) {
+        ctx.errors.push({
+          component: name,
+          path: "",
+          message: `${name}() must be declared as a top-level statement, not used inline as a value`,
+        });
+        return null;
       }
 
       const def = ctx.cat?.get(name);
@@ -260,8 +273,17 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
           }
         }
       } else {
-        // Unknown component: preserve all args under _args
-        props._args = args.map((a) => materializeValue(a, ctx));
+        // Unknown component: push validation warning, use indexed arg keys for graceful degradation
+        if (!isBuiltin(name) && !isReservedCall(name)) {
+          ctx.errors.push({
+            component: name,
+            path: "",
+            message: `Unknown component "${name}" — not found in catalog or builtins`,
+          });
+        }
+        for (let i = 0; i < args.length; i++) {
+          props[`arg${i}`] = materializeValue(args[i], ctx);
+        }
       }
 
       const hasDynamicProps = Object.values(props).some((v) => containsDynamicValue(v));

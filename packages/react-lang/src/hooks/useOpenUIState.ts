@@ -1,5 +1,6 @@
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import type { OpenUIPersistedState } from "../Renderer";
 import type { OpenUIContextValue } from "../context";
 import type { Library } from "../library";
 import { ACTION_STEPS } from "../parser/builtins";
@@ -20,7 +21,7 @@ export interface UseOpenUIStateOptions {
   isStreaming: boolean;
   onAction?: (event: ActionEvent) => void;
   onStateUpdate?: (state: Record<string, unknown>) => void;
-  initialState?: Record<string, unknown>;
+  initialState?: OpenUIPersistedState;
   /** Transport for Query data fetching — MCP, REST, GraphQL, or any backend. */
   transport?: Transport | null;
 }
@@ -40,7 +41,7 @@ export interface OpenUIState {
  * management, and context assembly out of the Renderer component.
  *
  * Store holds everything: $bindings as top-level keys, form fields nested
- * under formName as FieldSlot objects ({ source: "local"|"global", ... }).
+ * under formName as plain values.
  */
 export function useOpenUIState(
   {
@@ -55,10 +56,7 @@ export function useOpenUIState(
   renderDeep: (value: unknown) => React.ReactNode,
 ): OpenUIState {
   // ─── Streaming parser (incremental — caches completed statements) ───
-  const sp = useMemo(
-    () => createStreamingParser(library.toJSONSchema(), library.root),
-    [library],
-  );
+  const sp = useMemo(() => createStreamingParser(library.toJSONSchema(), library.root), [library]);
 
   // ─── Parse result ───
   const result = useMemo<ParseResult | null>(() => {
@@ -88,19 +86,17 @@ export function useOpenUIState(
   // ─── Initialize Store ───
   const storeInitKeyRef = useRef<unknown>(Symbol());
   useEffect(() => {
-    if (!result?.stateDeclarations) return;
-    const key = `${JSON.stringify(result.stateDeclarations)}::${JSON.stringify(initialState?.bindings)}`;
+    if (!result?.stateDeclarations && !initialState?.forms) return;
+    const key = `${JSON.stringify(result?.stateDeclarations)}::${JSON.stringify(initialState?.bindings)}::${JSON.stringify(initialState?.forms)}`;
     if (storeInitKeyRef.current === key) return;
     storeInitKeyRef.current = key;
 
-    const persisted = (initialState?.bindings as Record<string, unknown> | undefined) ?? {};
-    store.initialize(result.stateDeclarations, persisted);
+    const persisted = initialState?.bindings ?? {};
+    store.initialize(result?.stateDeclarations ?? {}, persisted);
 
     // Also restore persisted form field state
     if (initialState?.forms) {
-      for (const [formName, fields] of Object.entries(
-        initialState.forms as Record<string, unknown>,
-      )) {
+      for (const [formName, fields] of Object.entries(initialState.forms)) {
         store.set(formName, fields);
       }
     }
@@ -124,7 +120,7 @@ export function useOpenUIState(
         return queryManager.getResult(name);
       },
     }),
-    [store, queryManager, storeSnapshot, querySnapshot],
+    [store, queryManager],
   );
 
   // ─── Evaluate and submit queries ───
@@ -159,7 +155,6 @@ export function useOpenUIState(
   useEffect(() => {
     if (isStreaming) return;
     if (!result?.mutationStatements?.length) {
-      queryManager.registerMutations([]);
       return;
     }
     const nodes = result.mutationStatements.map((mn) => ({
@@ -172,6 +167,9 @@ export function useOpenUIState(
   // ─── Ref for stable callbacks ───
   const propsRef = useRef({ onAction, onStateUpdate });
   propsRef.current = { onAction, onStateUpdate };
+
+  const resultRef = useRef(result);
+  resultRef.current = result;
 
   // ─── Fire onStateUpdate when Store changes ───
   const lastInitSnapshotRef = useRef<Record<string, unknown> | null>(null);
@@ -187,58 +185,30 @@ export function useOpenUIState(
   }, [store]);
 
   // ─── getFieldValue ───
-  // Reads from Store: global ($binding) → top-level key, form field → nested under formName
   const getFieldValue = useCallback(
     (formName: string | undefined, name: string) => {
-      if (!formName) {
-        // Outside form → read from Store top-level
-        return store.get(name);
-      }
+      if (!formName) return store.get(name);
       const formData = store.get(formName);
-      if (!formData || typeof formData !== "object" || Array.isArray(formData)) {
-        return undefined;
-      }
-      const slot = (formData as Record<string, unknown>)[name];
-      if (slot && typeof slot === "object" && !Array.isArray(slot)) {
-        const record = slot as Record<string, unknown>;
-        if (record.source === "global" && typeof record.key === "string") {
-          return store.get(record.key);
-        }
-        if (record.source === "local") {
-          return record.value;
-        }
-      }
-      return slot;
+      if (!formData || typeof formData !== "object" || Array.isArray(formData)) return undefined;
+      return (formData as Record<string, unknown>)[name];
     },
     [store],
   );
 
   // ─── setFieldValue ───
-  // Writes to Store: global → Store top-level, local → nested form object
   const setFieldValue = useCallback(
     (formName: string | undefined, name: string, value: unknown) => {
       if (!formName) {
-        // Outside form → write to Store top-level
         store.set(name, value);
         return;
       }
-      const rawFormData = store.get(formName);
+      const raw = store.get(formName);
       const formData =
-        rawFormData && typeof rawFormData === "object" && !Array.isArray(rawFormData)
-          ? (rawFormData as Record<string, unknown>)
+        raw && typeof raw === "object" && !Array.isArray(raw)
+          ? (raw as Record<string, unknown>)
           : {};
-      const slot = formData[name];
-      if (slot && typeof slot === "object" && !Array.isArray(slot)) {
-        const record = slot as Record<string, unknown>;
-        if (record.source === "global" && typeof record.key === "string") {
-          store.set(record.key, value);
-          return;
-        }
-      }
-      store.set(formName, {
-        ...formData,
-        [name]: { source: "local", value },
-      });
+      if (Object.is(formData[name], value)) return;
+      store.set(formName, { ...formData, [name]: value });
     },
     [store],
   );
@@ -247,27 +217,11 @@ export function useOpenUIState(
   const getFormPayload = useCallback(
     (formName?: string): Record<string, unknown> | undefined => {
       if (formName) {
-        const rawFormData = store.get(formName);
-        if (rawFormData && typeof rawFormData === "object" && !Array.isArray(rawFormData)) {
-          const resolved: Record<string, unknown> = {};
-          for (const [fieldName, slot] of Object.entries(rawFormData as Record<string, unknown>)) {
-            if (slot && typeof slot === "object" && !Array.isArray(slot)) {
-              const record = slot as Record<string, unknown>;
-              if (record.source === "global" && typeof record.key === "string") {
-                resolved[fieldName] = store.get(record.key);
-                continue;
-              }
-              if (record.source === "local") {
-                resolved[fieldName] = record.value;
-                continue;
-              }
-            }
-            resolved[fieldName] = slot;
-          }
-          return { [formName]: resolved };
+        const raw = store.get(formName);
+        if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+          return { [formName]: raw };
         }
       }
-      // No form → send full store snapshot
       return store.getSnapshot();
     },
     [store],
@@ -285,7 +239,7 @@ export function useOpenUIState(
           switch (step.type) {
             case ACTION_STEPS.Run: {
               if (step.refType === "mutation") {
-                const mn = result?.mutationStatements?.find(
+                const mn = resultRef.current?.mutationStatements?.find(
                   (m) => m.statementId === step.statementId,
                 );
                 const evaluatedArgs = mn?.argsAST
@@ -298,7 +252,7 @@ export function useOpenUIState(
               }
               break;
             }
-            case ACTION_STEPS.ToLLM:
+            case ACTION_STEPS.ToAssistant:
               handler?.({
                 type: BuiltinActionType.ContinueConversation,
                 params: step.context ? { context: step.context } : {},
@@ -316,6 +270,11 @@ export function useOpenUIState(
                 formName,
               });
               break;
+            case ACTION_STEPS.Set: {
+              const value = evaluate(step.valueAST, evaluationContext);
+              store.set(step.target, value);
+              break;
+            }
           }
         }
         return;
@@ -330,7 +289,7 @@ export function useOpenUIState(
         formName,
       });
     },
-    [queryManager, result?.mutationStatements, evaluationContext, getFormPayload],
+    [queryManager, evaluationContext, getFormPayload],
   );
 
   // ─── Context value ───
@@ -352,7 +311,6 @@ export function useOpenUIState(
       triggerAction,
       getFieldValue,
       setFieldValue,
-      storeSnapshot,
       store,
       evaluationContext,
     ],
@@ -377,9 +335,9 @@ export function useOpenUIState(
       console.error("[openui] Prop evaluation error:", e);
       return result;
     }
-  }, [result, evalContext]);
+  }, [result, evalContext, storeSnapshot, querySnapshot]);
 
-  const isQueryLoading = querySnapshot.__loading.length > 0;
+  const isQueryLoading = querySnapshot.__openui_loading.length > 0;
 
   return { result: evaluatedResult, parseResult: result, contextValue, isQueryLoading };
 }

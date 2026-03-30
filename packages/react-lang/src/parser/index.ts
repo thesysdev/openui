@@ -15,6 +15,7 @@ export { createParser, createStreamingParser, parse } from "./parser";
 export type { Parser, StreamParser } from "./parser";
 
 export { generatePrompt } from "./prompt";
+export type { ComponentGroup, ComponentPromptSpec, McpToolSpec, PromptSpec } from "./prompt";
 
 export { mergeStatements } from "./merge";
 

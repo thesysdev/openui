@@ -69,7 +69,7 @@ export function parseExpression(tokens: Token[]): ASTNode {
   function parseExpr(minPrec: number = 0): ASTNode {
     let left = parsePrefix();
     while (getInfixPrec(cur()) > minPrec) {
-      left = parseInfix(left, getInfixPrec(cur()));
+      left = parseInfix(left);
     }
     return left;
   }
@@ -164,7 +164,7 @@ export function parseExpression(tokens: Token[]): ASTNode {
   }
 
   // ── Infix / postfix ────────────────────────────────────────────────────
-  function parseInfix(left: ASTNode, _prec: number): ASTNode {
+  function parseInfix(left: ASTNode): ASTNode {
     const tok = cur();
 
     // Arithmetic: + -
@@ -245,9 +245,14 @@ export function parseExpression(tokens: Token[]): ASTNode {
       adv(); // consume .
       const fieldTok = cur();
       const field =
-        fieldTok.t === T.Ident || fieldTok.t === T.Type || fieldTok.t === T.Str
+        fieldTok.t === T.Ident ||
+        fieldTok.t === T.Type ||
+        fieldTok.t === T.Str ||
+        fieldTok.t === T.Num
           ? (adv(), String(fieldTok.v))
-          : (adv(), "?");
+          : fieldTok.t === T.StateVar
+            ? (adv(), (fieldTok.v as string).replace(/^\$/, ""))
+            : (adv(), "?");
       return { k: "Member", obj: left, field };
     }
 
@@ -300,7 +305,9 @@ export function parseExpression(tokens: Token[]): ASTNode {
       const key =
         kt.t === T.Ident || kt.t === T.Str || kt.t === T.Type || kt.t === T.Num
           ? (adv(), String(kt.v))
-          : (adv(), "?");
+          : kt.t === T.StateVar
+            ? (adv(), (kt.v as string).replace(/^\$/, ""))
+            : (adv(), "?");
       eat(T.Colon);
       entries.push([key, parseExpr(0)]);
       if (cur().t === T.Comma) adv();

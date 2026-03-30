@@ -93,7 +93,8 @@ export enum BuiltinActionType {
 export type ActionStep =
   | { type: "run"; statementId: string; refType: "query" | "mutation" }
   | { type: "continue_conversation"; message: string; context?: string }
-  | { type: "open_url"; url: string };
+  | { type: "open_url"; url: string }
+  | { type: "set"; target: string; valueAST: ASTNode };
 
 /**
  * An ordered sequence of steps to execute when a button is clicked.
@@ -108,7 +109,7 @@ export interface ActionPlan {
  */
 export interface ActionEvent {
   /** Action type. See `BuiltinActionType` for built-in types. */
-  type: string;
+  type: BuiltinActionType | (string & {});
   /** Action-specific params (e.g. { url } for OpenUrl, custom params for Custom). */
   params: Record<string, unknown>;
   /** Human-readable label for the action (displayed as user message in chat). */
@@ -175,9 +176,9 @@ export interface ParseResult {
     validationErrors: ValidationError[];
   };
   /** $variable declarations — maps "$varName" to its materialized default value. */
-  stateDeclarations?: Record<string, unknown>;
+  stateDeclarations: Record<string, unknown>;
   /** Extracted Query() calls with their positional args as AST nodes. */
-  queryStatements?: QueryStatementInfo[];
+  queryStatements: QueryStatementInfo[];
   /** Extracted Mutation() calls with their positional args as AST nodes. */
-  mutationStatements?: MutationStatementInfo[];
+  mutationStatements: MutationStatementInfo[];
 }

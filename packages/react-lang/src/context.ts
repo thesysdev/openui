@@ -29,17 +29,17 @@ export interface OpenUIContextValue {
   /** Whether the LLM is currently streaming content. */
   isStreaming: boolean;
 
-  /** Get a resolved field value. Local slots return the value; global slots resolve from Store. */
+  /** Get a field value. Top-level for $bindings, nested under formName for form fields. */
   getFieldValue: (formName: string | undefined, name: string) => unknown;
 
-  /** Set a field value. Routes to the correct canonical source (local slot or Store). */
+  /** Set a field value. Top-level for $bindings, nested under formName for form fields. */
   setFieldValue: (formName: string | undefined, name: string, value: unknown) => void;
 
-  /** Reactive binding store for $variables and form-backed field slots. */
-  store?: Store;
+  /** Reactive binding store for $variables and form data. */
+  store: Store;
 
   /** AST evaluation context used by runtime expression evaluation. */
-  evaluationContext?: EvaluationContext;
+  evaluationContext: EvaluationContext;
 }
 
 export const OpenUIContext = createContext<OpenUIContextValue | null>(null);

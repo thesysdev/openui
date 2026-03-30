@@ -125,7 +125,8 @@ export function tokenize(src: string): Token[] {
         tokens.push({ t: T.And });
         i += 2;
       } else {
-        i++; // skip single &
+        tokens.push({ t: T.And });
+        i++;
       }
       continue;
     }
@@ -136,7 +137,8 @@ export function tokenize(src: string): Token[] {
         tokens.push({ t: T.Or });
         i += 2;
       } else {
-        i++; // skip single |
+        tokens.push({ t: T.Or });
+        i++;
       }
       continue;
     }
@@ -215,6 +217,37 @@ export function tokenize(src: string): Token[] {
       continue;
     }
 
+    // ── String literal: '...' (single quotes) ────────────────────────
+    if (c === "'") {
+      i++; // skip opening quote
+      let result = "";
+      let isClosed = false;
+      while (i < n) {
+        if (src[i] === "\\") {
+          i++; // skip backslash
+          if (i < n) {
+            const esc = src[i];
+            if (esc === "'") result += "'";
+            else if (esc === "\\") result += "\\";
+            else if (esc === "n") result += "\n";
+            else if (esc === "t") result += "\t";
+            else result += esc; // pass through other escaped chars
+            i++;
+          }
+        } else if (src[i] === "'") {
+          i++; // skip closing quote
+          isClosed = true;
+          break;
+        } else {
+          result += src[i];
+          i++;
+        }
+      }
+      void isClosed; // consumed for streaming parity with double-quote path
+      tokens.push({ t: T.Str, v: result });
+      continue;
+    }
+
     // ── Minus: negative number literal or subtraction operator ────────
     if (c === "-") {
       const prev = tokens.length > 0 ? tokens[tokens.length - 1] : null;
@@ -248,8 +281,8 @@ export function tokenize(src: string): Token[] {
       const start = i;
       if (src[i] === "-") i++; // optional minus
       while (i < n && src[i] >= "0" && src[i] <= "9") i++; // integer part
-      if (i < n && src[i] === ".") {
-        // optional decimal
+      if (i < n && src[i] === "." && i + 1 < n && src[i + 1] >= "0" && src[i + 1] <= "9") {
+        // optional decimal — only if a digit follows the dot
         i++;
         while (i < n && src[i] >= "0" && src[i] <= "9") i++;
       }

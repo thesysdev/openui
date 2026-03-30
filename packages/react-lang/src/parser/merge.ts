@@ -40,7 +40,7 @@ function splitStatementSource(input: string): string[] {
     if (inStr) continue;
 
     if (c === "(" || c === "[" || c === "{") depth++;
-    else if (c === ")" || c === "]" || c === "}") depth--;
+    else if (c === ")" || c === "]" || c === "}") depth = Math.max(0, depth - 1);
     else if (c === "\n" && depth <= 0) {
       const stmt = input.slice(start, i).trim();
       if (stmt) stmts.push(stmt);
@@ -77,6 +77,7 @@ function parseStatements(input: string): ParsedStatement[] {
 function collectRefs(node: ASTNode, out: Set<string>): void {
   walkAST(node, (current) => {
     if (current.k === "Ref") out.add(current.n);
+    if (current.k === "RuntimeRef") out.add(current.n);
   });
 }
 

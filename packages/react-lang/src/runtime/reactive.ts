@@ -7,22 +7,23 @@ import type { StateField } from "./state-field";
 
 // ── reactive() schema marker ────────────────────────────────────────────────
 
-const REACTIVE_SYMBOL = Symbol.for("openui:reactive");
+/** WeakSet tracks reactive schemas without mutating the schema objects. */
+const reactiveSchemas = new WeakSet<object>();
 
 /**
  * Mark a schema prop as reactive so runtime evaluation can preserve $bindings.
  *
- * This mutates the Zod schema instance by attaching a hidden Symbol flag that
- * `isReactiveSchema()` checks later in `evaluate-tree.ts`.
+ * Uses a module-level WeakSet instead of mutating the Zod schema instance,
+ * avoiding side effects on shared schema objects.
  *
  * The widened return type carries the eventual value shape into helpers like
  * `useStateField()`. The actual bound value is still resolved at render time.
  */
 export function reactive<T extends z.ZodType>(schema: T): z.ZodType<StateField<z.infer<T>>> {
-  (schema as z.ZodType & Record<symbol, unknown>)[REACTIVE_SYMBOL] = true;
+  reactiveSchemas.add(schema);
   return schema as unknown as z.ZodType<StateField<z.infer<T>>>;
 }
 
 export function isReactiveSchema(schema: unknown): boolean {
-  return typeof schema === "object" && schema !== null && (schema as any)[REACTIVE_SYMBOL] === true;
+  return typeof schema === "object" && schema !== null && reactiveSchemas.has(schema as object);
 }

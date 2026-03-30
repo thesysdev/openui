@@ -9,19 +9,24 @@ export type {
   LibraryDefinition,
   PromptOptions,
   SubComponentOf,
+  ToolDescriptor,
 } from "./library";
 
 // openui-lang renderer
 export { Renderer } from "./Renderer";
-export type { RendererProps } from "./Renderer";
+export type { OpenUIPersistedState, RendererProps } from "./Renderer";
 
 // openui-lang action types
-export { BuiltinActionType } from "./parser/types";
 export { ACTION_STEPS } from "./parser/builtins";
+export { BuiltinActionType } from "./parser/types";
 export type { ActionEvent, ActionPlan, ActionStep, ElementNode, ParseResult } from "./parser/types";
 
 // openui-lang parser (server-side use)
 export { createParser, createStreamingParser, type LibraryJSONSchema } from "./parser";
+
+// Standalone prompt generation (no Zod deps — usable on backend)
+export { generatePrompt } from "./parser/prompt";
+export type { ComponentPromptSpec, McpToolSpec, PromptSpec } from "./parser/prompt";
 
 // openui-lang edit/merge
 export { mergeStatements } from "./parser/merge";
@@ -39,8 +44,17 @@ export {
 } from "./context";
 
 // Runtime — reactive bindings, store, evaluator, query manager, field binding
-export { createMcpTransport, reactive } from "./runtime";
-export type { McpConnection, StateField, Transport } from "./runtime";
+export { createMcpTransport, isReactiveAssign, reactive } from "./runtime";
+export type {
+  EvaluationContext,
+  McpClientLike,
+  McpConnection,
+  McpTool,
+  McpTransportConfig,
+  ReactiveAssign,
+  StateField,
+  Transport,
+} from "./runtime";
 
 // Unified field state hook — component authors use this
 export { useStateField } from "./hooks/useStateField";

@@ -1,7 +1,7 @@
 export { createStore } from "./store";
 export type { Store } from "./store";
 
-export { evaluate, isReactiveAssign } from "./evaluator";
+export { evaluate, isReactiveAssign, stripReactiveAssign } from "./evaluator";
 export type { EvaluationContext, ReactiveAssign } from "./evaluator";
 
 export { isReactiveSchema, reactive } from "./reactive";

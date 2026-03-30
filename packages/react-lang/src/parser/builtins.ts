@@ -1,8 +1,8 @@
 /**
- * Shared builtin registry — single source of truth for:
- *   - Runtime evaluation (evaluator.ts imports .fn)
- *   - Prompt generation (prompt.ts imports .signature + .description)
- *   - Parser identification (`isBuiltin`, `isReservedCall`, `RESERVED_CALLS`)
+ * Shared parser/runtime registry hub for:
+ *   - Runtime data builtins (evaluator.ts imports `.fn`)
+ *   - Prompt builtin docs (prompt.ts imports `.signature` + `.description`)
+ *   - Parser/runtime call classification (`isBuiltin`, action names, reserved calls)
  */
 
 export interface BuiltinDef {
@@ -62,7 +62,7 @@ export const BUILTINS: Record<string, BuiltinDef> = {
     signature: "Sum(numbers[]) → number",
     description: "Sum of numeric array",
     fn: (arr) =>
-      Array.isArray(arr) ? arr.reduce((a: number, b: unknown) => a + (Number(b) || 0), 0) : 0,
+      Array.isArray(arr) ? arr.reduce((a: number, b: unknown) => a + toNumber(b), 0) : 0,
   },
   Avg: {
     name: "Avg",
@@ -70,20 +70,26 @@ export const BUILTINS: Record<string, BuiltinDef> = {
     description: "Average of numeric array",
     fn: (arr) =>
       Array.isArray(arr) && arr.length
-        ? (arr.reduce((a: number, b: unknown) => a + (Number(b) || 0), 0) as number) / arr.length
+        ? (arr.reduce((a: number, b: unknown) => a + toNumber(b), 0) as number) / arr.length
         : 0,
   },
   Min: {
     name: "Min",
     signature: "Min(numbers[]) → number",
     description: "Minimum value in array",
-    fn: (arr) => (Array.isArray(arr) && arr.length ? Math.min(...arr.map(Number)) : 0),
+    fn: (arr) =>
+      Array.isArray(arr) && arr.length
+        ? arr.reduce((acc: number, b: unknown) => Math.min(acc, toNumber(b)), toNumber(arr[0]))
+        : 0,
   },
   Max: {
     name: "Max",
     signature: "Max(numbers[]) → number",
     description: "Maximum value in array",
-    fn: (arr) => (Array.isArray(arr) && arr.length ? Math.max(...arr.map(Number)) : 0),
+    fn: (arr) =>
+      Array.isArray(arr) && arr.length
+        ? arr.reduce((acc: number, b: unknown) => Math.max(acc, toNumber(b)), toNumber(arr[0]))
+        : 0,
   },
   Sort: {
     name: "Sort",
@@ -96,9 +102,16 @@ export const BUILTINS: Record<string, BuiltinDef> = {
       return [...arr].sort((a: any, b: any) => {
         const av = f ? resolveField(a, f) : a;
         const bv = f ? resolveField(b, f) : b;
-        if (av > bv) return desc ? -1 : 1;
-        if (av < bv) return desc ? 1 : -1;
-        return 0;
+        const aIsNumeric =
+          typeof av === "number" || (typeof av === "string" && !isNaN(Number(av)) && av !== "");
+        const bIsNumeric =
+          typeof bv === "number" || (typeof bv === "string" && !isNaN(Number(bv)) && bv !== "");
+        if (aIsNumeric && bIsNumeric) {
+          const diff = toNumber(av) - toNumber(bv);
+          return desc ? -diff : diff;
+        }
+        const cmp = String(av ?? "").localeCompare(String(bv ?? ""));
+        return desc ? -cmp : cmp;
       });
     },
   },
@@ -115,9 +128,11 @@ export const BUILTINS: Record<string, BuiltinDef> = {
         const v = f ? resolveField(item, f) : item;
         switch (o) {
           case "==":
-            return v === value;
+            // eslint-disable-next-line eqeqeq
+            return v == value;
           case "!=":
-            return v !== value;
+            // eslint-disable-next-line eqeqeq
+            return v != value;
           case ">":
             return toNumber(v) > toNumber(value);
           case "<":
@@ -126,7 +141,6 @@ export const BUILTINS: Record<string, BuiltinDef> = {
             return toNumber(v) >= toNumber(value);
           case "<=":
             return toNumber(v) <= toNumber(value);
-          case "in":
           case "contains":
             return String(v ?? "").includes(String(value ?? ""));
           default:
@@ -172,11 +186,20 @@ export const BUILTINS: Record<string, BuiltinDef> = {
  */
 export const LAZY_BUILTINS: Set<string> = new Set(["Each"]);
 
+export const LAZY_BUILTIN_DEFS: Record<string, { signature: string; description: string }> = {
+  Each: {
+    signature: "Each(array, varName, template)",
+    description:
+      "Evaluate template for each element. Produces components (for rendering) or values (for data transformation). varName is the loop variable.",
+  },
+};
+
 /** Maps parser-level action step names → runtime step type values. Single source of truth. */
 export const ACTION_STEPS = {
   Run: "run",
-  ToLLM: "continue_conversation",
+  ToAssistant: "continue_conversation",
   OpenUrl: "open_url",
+  Set: "set",
 } as const;
 
 /** All action expression names (steps + the Action container) */

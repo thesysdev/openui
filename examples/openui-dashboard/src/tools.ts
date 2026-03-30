@@ -1,11 +1,10 @@
 /**
- * MCP Server — exposes all tools (PostHog + mock) via MCP protocol.
+ * Shared tool registry — single source of truth for all tools.
  *
- * Stateless per-request: creates McpServer + transport per request.
- * Frontend connects via createMcpTransport({ url: "/api/mcp" }).
+ * Consumed by:
+ *   - /api/mcp/route.ts  (MCP server, uses Zod inputSchema directly)
+ *   - /api/chat/route.ts (OpenAI function-calling, converts to JSON Schema)
  */
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
 
 // ── PostHog config ───────────────────────────────────────────────────────────
@@ -38,7 +37,7 @@ async function executePostHogQuery(sql: string) {
     if (!res.ok) {
       const err = await res.text();
       if (err.includes("504") && attempt < 2) continue;
-      console.error("[mcp/posthog] API error:", err.substring(0, 300));
+      console.error("[tools/posthog] API error:", err.substring(0, 300));
       return { error: `PostHog API error ${res.status}` };
     }
     break;
@@ -230,137 +229,158 @@ function getInventoryStatus() {
   };
 }
 
-// ── MCP Server factory ───────────────────────────────────────────────────────
+// ── Issue tracker mock data (stateful per-process for testing mutations) ─────
 
-function createServer(): McpServer {
-  const server = new McpServer(
-    { name: "openui-tools", version: "1.0.0" },
-  );
+let mockTickets: Array<Record<string, unknown>> = [
+  { id: "T-1001", title: "Fix login timeout", priority: "high", status: "open", created: "2026-03-27" },
+  { id: "T-1002", title: "Update dashboard layout", priority: "medium", status: "open", created: "2026-03-27" },
+  { id: "T-1003", title: "Add export button", priority: "low", status: "closed", created: "2026-03-26" },
+];
+let nextTicketId = 1004;
 
-  // Live PostHog tool
-  server.registerTool("posthog_query", {
+function listTickets(args: Record<string, unknown>) {
+  const status = args.status as string | undefined;
+  const filtered = status ? mockTickets.filter(t => t.status === status) : mockTickets;
+  return {
+    columns: ["id", "title", "priority", "status", "created"],
+    rows: filtered,
+    total: filtered.length,
+  };
+}
+
+function createTicket(args: Record<string, unknown>) {
+  const ticket = {
+    id: `T-${nextTicketId++}`,
+    title: args.title ?? "Untitled",
+    priority: args.priority ?? "medium",
+    status: "open",
+    created: new Date().toISOString().slice(0, 10),
+  };
+  mockTickets.unshift(ticket);
+  return { success: true, ticket };
+}
+
+function updateTicket(args: Record<string, unknown>) {
+  const ticket = mockTickets.find(t => t.id === args.id);
+  if (!ticket) return { success: false, error: `Ticket ${args.id} not found` };
+  if (args.title) ticket.title = args.title;
+  if (args.priority) ticket.priority = args.priority;
+  if (args.status) ticket.status = args.status;
+  return { success: true, ticket };
+}
+
+// ── Tool registry ───────────────────────────────────────────────────────────
+
+export interface ToolDef {
+  name: string;
+  description: string;
+  inputSchema: Record<string, z.ZodType>;
+  execute: (args: Record<string, unknown>) => Promise<unknown>;
+}
+
+export const tools: ToolDef[] = [
+  {
+    name: "posthog_query",
     description: "Run a HogQL SQL query against PostHog analytics",
     inputSchema: { sql: z.string().describe("HogQL SQL query to execute") },
-  }, async ({ sql }) => ({
-    content: [{ type: "text" as const, text: JSON.stringify(await executePostHogQuery(sql)) }],
-  }));
-
-  // Mock tools for testing
-  server.registerTool("get_usage_metrics", {
+    execute: async (args) => executePostHogQuery(args.sql as string),
+  },
+  {
+    name: "get_usage_metrics",
     description: "Get usage metrics for the specified date range",
     inputSchema: { dateRange: z.string().optional(), days: z.string().optional(), resource: z.string().optional() },
-  }, async (args) => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getUsageMetrics(args)) }],
-  }));
-
-  server.registerTool("get_top_endpoints", {
+    execute: async (args) => getUsageMetrics(args),
+  },
+  {
+    name: "get_top_endpoints",
     description: "Get top API endpoints by request count",
     inputSchema: { limit: z.number().optional(), dateRange: z.string().optional() },
-  }, async (args) => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getTopEndpoints(args)) }],
-  }));
-
-  server.registerTool("get_resource_breakdown", {
+    execute: async (args) => getTopEndpoints(args),
+  },
+  {
+    name: "get_resource_breakdown",
     description: "Get resource usage breakdown by type",
     inputSchema: {},
-  }, async () => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getResourceBreakdown()) }],
-  }));
-
-  server.registerTool("get_error_breakdown", {
+    execute: async () => getResourceBreakdown(),
+  },
+  {
+    name: "get_error_breakdown",
     description: "Get error breakdown by category",
     inputSchema: {},
-  }, async () => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getErrorBreakdown()) }],
-  }));
-
-  server.registerTool("get_server_health", {
+    execute: async () => getErrorBreakdown(),
+  },
+  {
+    name: "get_server_health",
     description: "Get current server health metrics (CPU, memory, latency)",
     inputSchema: {},
-  }, async () => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getServerHealth()) }],
-  }));
-
-  server.registerTool("get_customer_segments", {
+    execute: async () => getServerHealth(),
+  },
+  {
+    name: "get_customer_segments",
     description: "Get customer segment breakdown",
     inputSchema: {},
-  }, async () => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getCustomerSegments()) }],
-  }));
-
-  server.registerTool("get_sales_summary", {
+    execute: async () => getCustomerSegments(),
+  },
+  {
+    name: "get_sales_summary",
     description: "Get sales summary with revenue and orders",
     inputSchema: { dateRange: z.string().optional(), days: z.string().optional() },
-  }, async (args) => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getSalesSummary(args)) }],
-  }));
-
-  server.registerTool("get_experiment_results", {
+    execute: async (args) => getSalesSummary(args),
+  },
+  {
+    name: "get_experiment_results",
     description: "Get A/B experiment results with conversion rates",
     inputSchema: {},
-  }, async () => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getExperimentResults()) }],
-  }));
-
-  server.registerTool("get_ticket_summary", {
+    execute: async () => getExperimentResults(),
+  },
+  {
+    name: "get_ticket_summary",
     description: "Get support ticket summary and recent tickets",
     inputSchema: {},
-  }, async () => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getTicketSummary()) }],
-  }));
-
-  server.registerTool("get_geo_usage", {
+    execute: async () => getTicketSummary(),
+  },
+  {
+    name: "get_geo_usage",
     description: "Get geographic usage breakdown by region",
     inputSchema: {},
-  }, async () => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getGeoUsage()) }],
-  }));
-
-  server.registerTool("get_funnel_metrics", {
+    execute: async () => getGeoUsage(),
+  },
+  {
+    name: "get_funnel_metrics",
     description: "Get conversion funnel metrics",
     inputSchema: {},
-  }, async () => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getFunnelMetrics()) }],
-  }));
-
-  server.registerTool("get_inventory_status", {
+    execute: async () => getFunnelMetrics(),
+  },
+  {
+    name: "get_inventory_status",
     description: "Get inventory status for all products",
     inputSchema: {},
-  }, async () => ({
-    content: [{ type: "text" as const, text: JSON.stringify(getInventoryStatus()) }],
-  }));
-
-  return server;
-}
-
-// ── Request handler ──────────────────────────────────────────────────────────
-
-async function handleMcpRequest(request: Request): Promise<Response> {
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: undefined, // stateless
-    enableJsonResponse: true,
-  });
-  const server = createServer();
-  await server.connect(transport);
-
-  try {
-    return await transport.handleRequest(request);
-  } finally {
-    await transport.close();
-    await server.close();
-  }
-}
-
-// ── Next.js route exports ────────────────────────────────────────────────────
-
-export async function POST(req: Request) {
-  return handleMcpRequest(req);
-}
-
-export async function GET(req: Request) {
-  return handleMcpRequest(req);
-}
-
-export async function DELETE(req: Request) {
-  return handleMcpRequest(req);
-}
+    execute: async () => getInventoryStatus(),
+  },
+  {
+    name: "list_tickets",
+    description: "List all tickets. Optionally filter by status.",
+    inputSchema: { status: z.string().optional().describe("Filter by status: open, closed") },
+    execute: async (args) => listTickets(args),
+  },
+  {
+    name: "create_ticket",
+    description: "Create a new ticket. Returns the created ticket.",
+    inputSchema: {
+      title: z.string().describe("Ticket title"),
+      priority: z.enum(["low", "medium", "high"]).optional().describe("Priority level"),
+    },
+    execute: async (args) => createTicket(args),
+  },
+  {
+    name: "update_ticket",
+    description: "Update an existing ticket's status, title, or priority.",
+    inputSchema: {
+      id: z.string().describe("Ticket ID (e.g. T-1001)"),
+      title: z.string().optional(),
+      priority: z.enum(["low", "medium", "high"]).optional(),
+      status: z.enum(["open", "closed", "in_progress"]).optional(),
+    },
+    execute: async (args) => updateTicket(args),
+  },
+];

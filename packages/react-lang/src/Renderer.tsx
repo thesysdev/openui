@@ -1,9 +1,14 @@
-import React, { Component, Fragment, useEffect } from "react";
+import React, { Component, Fragment, useEffect, useInsertionEffect, useRef } from "react";
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
 import type { ActionEvent, ElementNode, ParseResult } from "./parser/types";
 import type { Transport } from "./runtime/queryManager";
+
+export interface OpenUIPersistedState {
+  bindings?: Record<string, unknown>;
+  forms?: Record<string, Record<string, unknown>>;
+}
 
 export interface RendererProps {
   /** Raw response text (openui-lang code). */
@@ -21,9 +26,9 @@ export interface RendererProps {
   onStateUpdate?: (state: Record<string, unknown>) => void;
   /**
    * Initial form state to hydrate on load (e.g. from a previously persisted message).
-   * Shape: { bindings?: {...}, forms?: { formName: { fieldName: { source, ... } } } }
+   * Shape: { bindings?: { $var: value }, forms?: { formName: { fieldName: value } } }
    */
-  initialState?: Record<string, unknown>;
+  initialState?: OpenUIPersistedState;
   /** Called whenever the parse result changes. */
   onParseResult?: (result: ParseResult | null) => void;
   /** Transport for Query() data fetching — MCP, REST, GraphQL, or any backend. */
@@ -40,6 +45,12 @@ interface ErrorBoundaryState {
   hasError: boolean;
 }
 
+/**
+ * Error boundary that intentionally shows the last successfully rendered
+ * children when a render error occurs. This "show last good state" behavior
+ * prevents the UI from going blank during streaming or transient evaluation
+ * errors, and auto-recovers when new valid children arrive.
+ */
 class ElementErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   private lastValidChildren: React.ReactNode = null;
 
@@ -169,7 +180,12 @@ export function Renderer({
   onParseResult,
   transport,
 }: RendererProps) {
-  ensureLoadingStyle();
+  useInsertionEffect(() => {
+    ensureLoadingStyle();
+  }, []);
+
+  const onParseResultRef = useRef(onParseResult);
+  onParseResultRef.current = onParseResult;
 
   const { result, parseResult, contextValue, isQueryLoading } = useOpenUIState(
     {
@@ -187,8 +203,8 @@ export function Renderer({
   // Fire onParseResult with the RAW parse result (not evaluated),
   // so hosts only see changes when the parser output actually changes.
   useEffect(() => {
-    onParseResult?.(parseResult);
-  }, [parseResult, onParseResult]);
+    onParseResultRef.current?.(parseResult);
+  }, [parseResult]);
 
   if (!result?.root) {
     return null;

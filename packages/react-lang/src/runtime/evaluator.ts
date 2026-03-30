@@ -116,13 +116,18 @@ export function evaluate(node: ASTNode, context: EvaluationContext): unknown {
         case "*":
           return toNumber(left) * toNumber(right);
         case "/":
+          // DSL design choice: division by zero returns 0 instead of JavaScript's Infinity/NaN.
           return toNumber(right) === 0 ? 0 : toNumber(left) / toNumber(right);
         case "%":
           return toNumber(right) === 0 ? 0 : toNumber(left) % toNumber(right);
         case "==":
-          return left === right;
+          // Use loose equality so that e.g. 5 == "5" is true,
+          // consistent with the toNumber coercion used by comparison operators.
+          // eslint-disable-next-line eqeqeq
+          return left == right;
         case "!=":
-          return left !== right;
+          // eslint-disable-next-line eqeqeq
+          return left != right;
         case ">":
           return toNumber(left) > toNumber(right);
         case "<":
@@ -158,6 +163,7 @@ export function evaluate(node: ASTNode, context: EvaluationContext): unknown {
       if (obj == null) return null;
       // Array pluck: if obj is an array, extract field from every element
       if (Array.isArray(obj)) {
+        if (node.field === "length") return obj.length;
         return obj.map((item: any) => item?.[node.field] ?? null);
       }
       return obj[node.field];
@@ -185,7 +191,17 @@ export function evaluate(node: ASTNode, context: EvaluationContext): unknown {
 }
 
 /**
- * Evaluate Action/Run/ToLLM/OpenUrl Comp nodes into ActionPlan/ActionStep values.
+ * Strip a ReactiveAssign to its current value in a non-reactive context.
+ * When transport args or non-reactive props contain a ReactiveAssign, this
+ * resolves it to the current state value (or null if getState is unavailable).
+ */
+export function stripReactiveAssign(value: unknown, context: EvaluationContext): unknown {
+  if (!isReactiveAssign(value)) return value;
+  return context.getState(value.target) ?? null;
+}
+
+/**
+ * Evaluate Action/Run/ToAssistant/OpenUrl Comp nodes into ActionPlan/ActionStep values.
  */
 function evaluateActionCall(
   name: string,
@@ -212,16 +228,25 @@ function evaluateActionCall(
       // Unresolved Ref — skip (filtered out by Action's step array)
       return null;
     }
-    case "ToLLM": {
-      // ToLLM("message") or ToLLM("message", "context")
+    case "ToAssistant": {
+      // ToAssistant("message") or ToAssistant("message", "context")
       const message = args.length > 0 ? String(evaluate(args[0], context) ?? "") : "";
       const ctx = args.length > 1 ? String(evaluate(args[1], context) ?? "") : undefined;
-      return { type: ACTION_STEPS.ToLLM, message, context: ctx };
+      return { type: ACTION_STEPS.ToAssistant, message, context: ctx };
     }
     case "OpenUrl": {
       // OpenUrl("url")
       const url = args.length > 0 ? String(evaluate(args[0], context) ?? "") : "";
       return { type: ACTION_STEPS.OpenUrl, url };
+    }
+    case "Set": {
+      // Set($varName, value) → ActionStep { type: "set", target, valueAST }
+      // First arg must be a StateRef (the $variable), second arg is the value expression.
+      // valueAST is preserved as-is and evaluated at click time by triggerAction.
+      if (args.length < 2) return null;
+      const targetNode = args[0];
+      if (targetNode.k !== "StateRef") return null;
+      return { type: ACTION_STEPS.Set, target: targetNode.n, valueAST: args[1] };
     }
     default:
       return null;
