@@ -58,7 +58,7 @@ const starters = [
           <UserMessage v-if="message.role === 'user'" :parts="message.parts" />
           <AssistantMessage
             v-else-if="message.role === 'assistant'"
-            :parts="message.parts"
+            :parts="[...message.parts]"
             :library="library"
             :is-streaming="isLoading && i === messages.length - 1"
             :on-action="handleAction"
