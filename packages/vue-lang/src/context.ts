@@ -14,8 +14,7 @@ export interface ActionConfig {
 /**
  * Shared context provided by <Renderer /> to all rendered components.
  *
- * Unlike Svelte (where `renderNode` is a snippet prop), Vue passes
- * `renderNode` via context — idiomatic for Vue's provide/inject model.
+ * Vue passes `renderNode` via context, idiomatic for Vue's provide/inject model.
  */
 export interface OpenUIContextValue {
   /** The active component library (schema + renderers). */
