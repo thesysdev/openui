@@ -1,15 +1,12 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { createOpenAI } from "@ai-sdk/openai";
 import { convertToModelMessages, stepCountIs, streamText } from "ai";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { tools } from "~/lib/tools";
 
 const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY ?? "" });
 
-const systemPrompt = readFileSync(
-  resolve(process.cwd(), "generated/system-prompt.txt"),
-  "utf-8",
-);
+const systemPrompt = readFileSync(resolve(process.cwd(), "generated/system-prompt.txt"), "utf-8");
 
 export default defineEventHandler(async (event) => {
   const { messages } = await readBody(event);

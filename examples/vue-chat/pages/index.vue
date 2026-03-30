@@ -33,11 +33,15 @@ function handleAction(event: ActionEvent) {
   }
 }
 
-watch(messages, () => {
-  nextTick(() => {
-    messagesEnd.value?.scrollIntoView({ behavior: "smooth" });
-  });
-}, { deep: true });
+watch(
+  messages,
+  () => {
+    nextTick(() => {
+      messagesEnd.value?.scrollIntoView({ behavior: "smooth" });
+    });
+  },
+  { deep: true },
+);
 
 const starters = [
   "What is Vue 3.5?",
@@ -66,7 +70,9 @@ const starters = [
         </template>
 
         <LoadingIndicator
-          v-if="isLoading && (messages.length === 0 || messages[messages.length - 1]?.role === 'user')"
+          v-if="
+            isLoading && (messages.length === 0 || messages[messages.length - 1]?.role === 'user')
+          "
         />
 
         <div ref="messagesEnd"></div>

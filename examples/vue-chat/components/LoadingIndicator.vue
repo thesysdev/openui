@@ -7,7 +7,9 @@
     </div>
     <div class="flex items-center gap-1.5 py-2">
       <div class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce"></div>
-      <div class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:0.15s]"></div>
+      <div
+        class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:0.15s]"
+      ></div>
       <div class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:0.3s]"></div>
     </div>
   </div>

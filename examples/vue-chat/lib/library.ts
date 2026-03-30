@@ -1,10 +1,10 @@
 import { createLibrary, defineComponent, type PromptOptions } from "@openuidev/vue-lang";
 import { z } from "zod";
-import TextContent from "~/components/openui/TextContent.vue";
 import Button from "~/components/openui/Button.vue";
-import Chart from "~/components/openui/Chart.vue";
 import Card from "~/components/openui/Card.vue";
+import Chart from "~/components/openui/Chart.vue";
 import Stack from "~/components/openui/Stack.vue";
+import TextContent from "~/components/openui/TextContent.vue";
 
 const TextContentDef = defineComponent({
   name: "TextContent",

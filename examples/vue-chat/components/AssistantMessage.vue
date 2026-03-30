@@ -40,12 +40,24 @@ function getToolName(part: any): string {
         class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400"
       >
         <template v-if="(tp as any).state === 'output-available'">
-          <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          <svg
+            class="w-3.5 h-3.5 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.5"
+              d="M5 13l4 4L19 7"
+            />
           </svg>
         </template>
         <template v-else>
-          <div class="w-3.5 h-3.5 border-2 border-zinc-300 dark:border-zinc-600 border-t-transparent rounded-full animate-spin"></div>
+          <div
+            class="w-3.5 h-3.5 border-2 border-zinc-300 dark:border-zinc-600 border-t-transparent rounded-full animate-spin"
+          ></div>
         </template>
         <span class="font-medium">{{ getToolName(tp) }}</span>
       </div>

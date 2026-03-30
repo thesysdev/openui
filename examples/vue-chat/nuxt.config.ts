@@ -7,10 +7,7 @@ export default defineNuxtConfig({
     // lang-core uses bundler-style extensionless imports in dist/
     // so Nitro must bundle (not externalize) it for Node ESM compat
     externals: {
-      inline: [
-        "@openuidev/lang-core",
-        "@openuidev/vue-lang",
-      ],
+      inline: ["@openuidev/lang-core", "@openuidev/vue-lang"],
     },
   },
   vite: {

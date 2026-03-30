@@ -2,10 +2,10 @@
  * Generates the system prompt from the library definition.
  * Uses jiti (shipped with Nuxt) to handle lang-core's bundler-style imports.
  */
-import { writeFileSync, mkdirSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import { createJiti } from "jiti";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const jiti = createJiti(import.meta.url);
