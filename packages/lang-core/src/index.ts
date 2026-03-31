@@ -1,6 +1,7 @@
 // ── Library (framework-generic) ──
 export { createLibrary, defineComponent } from "./library";
 export type {
+  ArtifactMeta,
   ComponentGroup,
   ComponentRenderProps,
   DefinedComponent,

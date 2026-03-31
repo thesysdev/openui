@@ -13,6 +13,14 @@ export type SubComponentOf<P> = {
   partial: boolean;
 };
 
+// ─── Artifact metadata ──────────────────────────────────────────────────────
+
+/**
+ * Metadata that marks a component as an artifact.
+ * Enables prompt generation and tooling to identify artifact components.
+ */
+export type ArtifactMeta = { enabled: true };
+
 // ─── Renderer types (framework-generic) ──────────────────────────────────────
 
 /**
@@ -43,6 +51,8 @@ export interface DefinedComponent<T extends z.ZodObject<any> = z.ZodObject<any>,
   component: C;
   /** Use in parent schemas: `z.array(ChildComponent.ref)` */
   ref: z.ZodType<SubComponentOf<z.infer<T>>>;
+  /** When set, marks this component as an artifact for prompt generation and tooling. */
+  artifact?: ArtifactMeta;
 }
 
 /**
@@ -54,6 +64,7 @@ export function defineComponent<T extends z.ZodObject<any>, C>(config: {
   props: T;
   description: string;
   component: C;
+  artifact?: ArtifactMeta;
 }): DefinedComponent<T, C> {
   (config.props as any).register(z.globalRegistry, { id: config.name });
   return {

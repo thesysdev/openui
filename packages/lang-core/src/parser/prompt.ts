@@ -233,10 +233,11 @@ function buildSignature(componentName: string, fields: FieldInfo[]): string {
 function buildComponentLine(componentName: string, def: DefinedComponent): string {
   const fields = analyzeFields(def.props.shape);
   const sig = buildSignature(componentName, fields);
+  const artifactTag = def.artifact ? " [artifact]" : "";
   if (def.description) {
-    return `${sig} — ${def.description}`;
+    return `${sig} — ${def.description}${artifactTag}`;
   }
-  return sig;
+  return `${sig}${artifactTag}`;
 }
 
 // ─── Prompt assembly ───

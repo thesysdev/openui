@@ -1,22 +1,14 @@
 "use client";
 
-import { useArtifact } from "@openuidev/react-headless";
-
 interface InlinePreviewProps {
-  artifactId: string;
   language: string;
   title: string;
   codeString: string;
+  open: () => void;
+  isActive: boolean;
 }
 
-export function InlinePreview({
-  artifactId,
-  language,
-  title,
-  codeString,
-}: InlinePreviewProps) {
-  const { open, isActive } = useArtifact(artifactId);
-
+export function InlinePreview({ language, title, codeString, open, isActive }: InlinePreviewProps) {
   const truncatedCode = codeString.split("\n").slice(0, 6).join("\n");
 
   return (

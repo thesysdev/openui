@@ -2,6 +2,10 @@
 
 export * from "./components/Accordion";
 
+// defineArtifact — high-level API for artifact components
+export { defineArtifact } from "./artifact";
+export type { ArtifactControls, DefineArtifactConfig } from "./artifact";
+
 // Artifact exports (ArtifactPanel/ArtifactPortalTarget also available as Shell.*)
 export { useActiveArtifact, useArtifact } from "@openuidev/react-headless";
 export {

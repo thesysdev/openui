@@ -1,6 +1,7 @@
 import {
   createLibrary as coreCreateLibrary,
   defineComponent as coreDefineComponent,
+  type ArtifactMeta,
   type DefinedComponent as CoreDefinedComponent,
   type Library as CoreLibrary,
   type LibraryDefinition as CoreLibraryDefinition,
@@ -58,6 +59,7 @@ export function defineComponent<T extends z.ZodObject<any>>(config: {
   props: T;
   description: string;
   component: ComponentRenderer<z.infer<T>>;
+  artifact?: ArtifactMeta;
 }): DefinedComponent<T> {
   return coreDefineComponent<T, ComponentRenderer<z.infer<T>>>(config);
 }

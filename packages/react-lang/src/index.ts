@@ -1,4 +1,5 @@
 // define library
+export type { ArtifactMeta } from "@openuidev/lang-core";
 export { createLibrary, defineComponent } from "./library";
 export type {
   ComponentGroup,
