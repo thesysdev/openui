@@ -1,0 +1,197 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  transition: border-color 0.2s ease;
+}
+
+.navScrolled {
+  border-bottom: 1px solid var(--home-border-default);
+}
+
+.navInner {
+  display: flex;
+  max-width: 75rem;
+  margin-inline: auto;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logoCluster {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logoDivider {
+  height: 1rem;
+  width: 1px;
+  background: var(--home-border-default);
+}
+
+.desktopTabs,
+.desktopGithub {
+  display: none;
+}
+
+.desktopTabs {
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.desktopTabLink {
+  display: flex;
+  height: 2rem;
+  align-items: center;
+  padding-inline: 0.5rem;
+  border-radius: 0.375rem;
+  color: #000;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  font-family: "Inter Display", sans-serif;
+  font-size: 15px;
+  line-height: 1.5rem;
+}
+
+.desktopTabLink:hover,
+.mobileTrayLink:hover,
+.mobileMenuButton:hover {
+  background: rgb(0 0 0 / 5%);
+}
+
+.chevronIcon,
+.hamburgerIcon {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.mobileMenuButton {
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.mobileBackdrop {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  height: 100vh;
+  cursor: pointer;
+  background: rgb(0 0 0 / 60%);
+  backdrop-filter: blur(12px);
+}
+
+.mobileTrayWrap {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.mobileTray {
+  pointer-events: auto;
+  border-top: 1px solid rgb(0 0 0 / 5%);
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+  background: #fff;
+  box-shadow: var(--home-shadow-panel);
+}
+
+.mobileTrayInner {
+  display: flex;
+  max-width: 75rem;
+  margin-inline: auto;
+  flex-direction: column;
+  gap: 0;
+  padding: 0.75rem 1.75rem 1.25rem;
+}
+
+.mobileTrayDivider {
+  height: 1px;
+  margin-inline: 0.75rem;
+  background: rgb(0 0 0 / 5%);
+}
+
+.mobileTrayLink {
+  display: flex;
+  width: 100%;
+  height: 3.5rem;
+  align-items: center;
+  gap: 0.25rem;
+  padding-inline: 0.75rem;
+  border-radius: 0.375rem;
+  color: #000;
+  text-align: left;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  font-family: "Inter", sans-serif;
+  font-size: 18px;
+  line-height: 1.5rem;
+}
+
+.mobileGithubButtonWrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 80px;
+  pointer-events: auto;
+}
+
+.mobileGithubButton {
+  position: relative;
+  display: flex;
+  height: 38px;
+  align-items: center;
+  gap: 0.375rem;
+  padding-left: 0.75rem;
+  padding-right: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+  transform: scale(1.17);
+}
+
+.mobileGithubButton:hover .mobileGithubButtonOverlay {
+  box-shadow: none;
+}
+
+.mobileGithubButtonOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid var(--home-border-default);
+  border-radius: var(--home-radius-pill);
+  box-shadow: var(--home-shadow-elevated);
+  transition: box-shadow 0.2s ease;
+}
+
+@media (min-width: 1024px) {
+  .nav {
+    padding: 0.75rem 2rem;
+  }
+
+  .desktopTabs,
+  .desktopGithub {
+    display: flex;
+  }
+
+  .mobileMenuButton,
+  .mobileBackdrop,
+  .mobileTrayWrap {
+    display: none;
+  }
+}

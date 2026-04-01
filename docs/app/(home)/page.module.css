@@ -6,10 +6,6 @@
   background: #fff;
 }
 
-.mascotSection {
-  margin-top: 4rem;
-}
-
 .contentSection {
   position: relative;
   margin-top: 4rem;
@@ -36,7 +32,6 @@
 }
 
 @media (min-width: 1024px) {
-  .mascotSection,
   .contentSection {
     margin-top: 6rem;
   }
