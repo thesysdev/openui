@@ -175,6 +175,9 @@ export async function POST(req: NextRequest) {
         messages: chatMessages,
         tools,
         stream: true,
+        reasoning: {
+          effort: 'low'
+        }
       };
       const runner = (client.chat.completions as any).runTools(runOpts);
 

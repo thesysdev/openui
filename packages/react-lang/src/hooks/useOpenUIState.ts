@@ -1,23 +1,38 @@
-import type { ActionPlan } from "@openuidev/lang-core";
 import {
   ACTION_STEPS,
   BuiltinActionType,
+  createQueryManager,
+  createStore,
   createStreamingParser,
+  evaluate,
+  evaluateElementProps,
   type ActionEvent,
+  type ActionPlan,
+  type EvalContext,
+  type EvaluationContext,
   type ParseResult,
+  type QueryManager,
+  type QuerySnapshot,
+  type Store,
+  type Transport,
 } from "@openuidev/lang-core";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import type { OpenUIPersistedState } from "../Renderer";
 import type { OpenUIContextValue } from "../context";
 import type { Library } from "../library";
-import { evaluateElementProps, type EvalContext } from "../runtime/evaluate-tree";
-import type { EvaluationContext } from "../runtime/evaluator";
-import { evaluate } from "../runtime/evaluator";
-import type { QueryManager, QuerySnapshot, Transport } from "../runtime/queryManager";
-import { createQueryManager } from "../runtime/queryManager";
-import type { Store } from "../runtime/store";
-import { createStore } from "../runtime/store";
+
+/** Unwrap { value, componentType } wrapper from form field entries. Returns raw value. */
+function unwrapFieldValue(v: unknown): unknown {
+  if (
+    v &&
+    typeof v === "object" &&
+    !Array.isArray(v) &&
+    "value" in (v as Record<string, unknown>)
+  ) {
+    return (v as Record<string, unknown>).value;
+  }
+  return v;
+}
 
 export interface UseOpenUIStateOptions {
   response: string | null;
@@ -25,7 +40,7 @@ export interface UseOpenUIStateOptions {
   isStreaming: boolean;
   onAction?: (event: ActionEvent) => void;
   onStateUpdate?: (state: Record<string, unknown>) => void;
-  initialState?: OpenUIPersistedState;
+  initialState?: Record<string, any>;
   /** Transport for Query data fetching — MCP, REST, GraphQL, or any backend. */
   transport?: Transport | null;
 }
@@ -90,20 +105,24 @@ export function useOpenUIState(
   // ─── Initialize Store ───
   const storeInitKeyRef = useRef<unknown>(Symbol());
   useEffect(() => {
-    if (!result?.stateDeclarations && !initialState?.forms) return;
-    const key = `${JSON.stringify(result?.stateDeclarations)}::${JSON.stringify(initialState?.bindings)}::${JSON.stringify(initialState?.forms)}`;
+    if (!result?.stateDeclarations && !initialState) return;
+    const key = `${JSON.stringify(result?.stateDeclarations)}::${JSON.stringify(initialState)}`;
     if (storeInitKeyRef.current === key) return;
     storeInitKeyRef.current = key;
 
-    const persisted = initialState?.bindings ?? {};
-    store.initialize(result?.stateDeclarations ?? {}, persisted);
-
-    // Also restore persisted form field state
-    if (initialState?.forms) {
-      for (const [formName, fields] of Object.entries(initialState.forms)) {
-        store.set(formName, fields);
+    // Split initialState: $-prefixed keys are bindings, everything else is form state
+    const bindingDefaults: Record<string, unknown> = {};
+    if (initialState) {
+      for (const [key, value] of Object.entries(initialState)) {
+        if (key.startsWith("$")) {
+          bindingDefaults[key] = value;
+        } else {
+          // Form state — restore as-is (preserves { value, componentType } wrapper)
+          store.set(key, value);
+        }
       }
     }
+    store.initialize(result?.stateDeclarations ?? {}, bindingDefaults);
   }, [result?.stateDeclarations, store, initialState]);
 
   // ─── Subscribe to Store and QueryManager for re-renders ───
@@ -117,7 +136,7 @@ export function useOpenUIState(
   // ─── Build EvaluationContext ───
   const evaluationContext = useMemo<EvaluationContext>(
     () => ({
-      getState: (name: string) => store.get(name),
+      getState: (name: string) => unwrapFieldValue(store.get(name)),
       resolveRef: (name: string) => {
         const mutResult = queryManager.getMutationResult(name);
         if (mutResult) return mutResult;
@@ -191,28 +210,37 @@ export function useOpenUIState(
   // ─── getFieldValue ───
   const getFieldValue = useCallback(
     (formName: string | undefined, name: string) => {
-      if (!formName) return store.get(name);
+      if (!formName) return unwrapFieldValue(store.get(name));
       const formData = store.get(formName);
       if (!formData || typeof formData !== "object" || Array.isArray(formData)) return undefined;
-      return (formData as Record<string, unknown>)[name];
+      return unwrapFieldValue((formData as Record<string, unknown>)[name]);
     },
     [store],
   );
 
   // ─── setFieldValue ───
   const setFieldValue = useCallback(
-    (formName: string | undefined, name: string, value: unknown) => {
+    (
+      formName: string | undefined,
+      componentType: string | undefined,
+      name: string,
+      value: unknown,
+      shouldTriggerSaveCallback: boolean = true,
+    ) => {
+      const wrapped = { value, componentType };
       if (!formName) {
-        store.set(name, value);
-        return;
+        store.set(name, wrapped);
+      } else {
+        const raw = store.get(formName);
+        const formData =
+          raw && typeof raw === "object" && !Array.isArray(raw)
+            ? (raw as Record<string, unknown>)
+            : {};
+        store.set(formName, { ...formData, [name]: wrapped });
       }
-      const raw = store.get(formName);
-      const formData =
-        raw && typeof raw === "object" && !Array.isArray(raw)
-          ? (raw as Record<string, unknown>)
-          : {};
-      if (Object.is(formData[name], value)) return;
-      store.set(formName, { ...formData, [name]: value });
+      if (shouldTriggerSaveCallback) {
+        propsRef.current.onStateUpdate?.(store.getSnapshot());
+      }
     },
     [store],
   );
@@ -233,11 +261,29 @@ export function useOpenUIState(
 
   // ─── triggerAction ───
   const triggerAction = useCallback(
-    async (userMessage: string, formName?: string, actionPlan?: ActionPlan) => {
+    async (
+      userMessage: string,
+      formName?: string,
+      action?: ActionPlan | { type?: string; params?: Record<string, any> },
+    ) => {
       const formPayload = getFormPayload(formName);
       const { onAction: handler } = propsRef.current;
 
-      // ActionPlan path — sequential steps with halt-on-mutation-failure
+      // Legacy action config path (v0.4 compat) — { type?, params? }
+      if (action && !("steps" in action)) {
+        const actionType = action.type || BuiltinActionType.ContinueConversation;
+        handler?.({
+          type: actionType,
+          params: action.params || {},
+          humanFriendlyMessage: userMessage,
+          formState: formPayload,
+          formName,
+        });
+        return;
+      }
+
+      // ActionPlan path (v0.5) — sequential steps with halt-on-mutation-failure
+      const actionPlan = action as ActionPlan | undefined;
       if (actionPlan?.steps) {
         for (const step of actionPlan.steps) {
           switch (step.type) {
@@ -275,8 +321,19 @@ export function useOpenUIState(
               });
               break;
             case ACTION_STEPS.Set: {
+              if (!step.valueAST) {
+                console.warn(`[openui] Set action for ${step.target} has no valueAST — skipping`);
+                break;
+              }
               const value = evaluate(step.valueAST, evaluationContext);
               store.set(step.target, value);
+              break;
+            }
+            case ACTION_STEPS.Reset: {
+              const decls = resultRef.current?.stateDeclarations ?? {};
+              for (const target of step.targets) {
+                store.set(target, decls[target] ?? null);
+              }
               break;
             }
           }

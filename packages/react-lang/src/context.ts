@@ -1,11 +1,7 @@
-import type { ActionPlan } from "@openuidev/lang-core";
+import type { ActionPlan, EvaluationContext, Store } from "@openuidev/lang-core";
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect } from "react";
 import type { Library } from "./library";
-
-/** Shared context provided by <Renderer /> to all rendered components. */
-import type { EvaluationContext } from "./runtime/evaluator";
-import type { Store } from "./runtime/store";
 
 export interface OpenUIContextValue {
   /** The active component library (schema + renderers). */
@@ -17,13 +13,15 @@ export interface OpenUIContextValue {
   renderNode: (value: unknown) => ReactNode;
 
   /**
-   * Trigger an action. If actionPlan is provided, runs its steps sequentially
-   * (halts on mutation failure). Otherwise fires ContinueConversation with the label.
+   * Trigger an action. Accepts either:
+   * - ActionPlan (v0.5): runs steps sequentially (Run, Set, ToAssistant, OpenUrl)
+   * - Legacy action config (v0.4): { type?: string, params?: Record<string, any> }
+   * - Nothing: fires ContinueConversation with the label
    */
   triggerAction: (
     userMessage: string,
     formName?: string,
-    actionPlan?: ActionPlan,
+    action?: ActionPlan | { type?: string; params?: Record<string, any> },
   ) => void | Promise<void>;
 
   /** Whether the LLM is currently streaming content. */
@@ -32,8 +30,24 @@ export interface OpenUIContextValue {
   /** Get a field value. Top-level for $bindings, nested under formName for form fields. */
   getFieldValue: (formName: string | undefined, name: string) => unknown;
 
-  /** Set a field value. Top-level for $bindings, nested under formName for form fields. */
-  setFieldValue: (formName: string | undefined, name: string, value: unknown) => void;
+  /**
+   * Set a form field value.
+   *
+   * @param formName  The form's name prop
+   * @param componentType  The component type (e.g. "Input", "Select") — optional
+   * @param name  The field's name prop
+   * @param value  The new value
+   * @param shouldTriggerSaveCallback  When true, persists state via onStateUpdate.
+   *   Text inputs should pass `false` on change and `true` on blur.
+   *   Discrete inputs (Select, RadioGroup, etc.) should always pass `true`.
+   */
+  setFieldValue: (
+    formName: string | undefined,
+    componentType: string | undefined,
+    name: string,
+    value: unknown,
+    shouldTriggerSaveCallback?: boolean,
+  ) => void;
 
   /** Reactive binding store for $variables and form data. */
   store: Store;
@@ -101,7 +115,7 @@ export function useGetFieldValue() {
  * @example
  * ```tsx
  * const setFieldValue = useSetFieldValue();
- * <input onChange={(e) => setFieldValue("contactForm", "name", e.target.value)} />
+ * <input onChange={(e) => setFieldValue("contactForm", "Input", "name", e.target.value, false)} />
  * ```
  */
 export function useSetFieldValue() {
@@ -134,21 +148,34 @@ export function useFormName(): string | undefined {
  */
 export function useSetDefaultValue({
   formName,
+  componentType,
   name,
   existingValue,
   defaultValue,
+  shouldTriggerSaveCallback = false,
 }: {
   formName?: string;
+  componentType?: string;
   name: string;
   existingValue: unknown;
   defaultValue: unknown;
+  shouldTriggerSaveCallback?: boolean;
 }) {
   const setFieldValue = useSetFieldValue();
   const isStreaming = useIsStreaming();
 
   useEffect(() => {
     if (!isStreaming && existingValue === undefined && defaultValue !== undefined) {
-      setFieldValue(formName, name, defaultValue);
+      setFieldValue(formName, componentType, name, defaultValue, shouldTriggerSaveCallback);
     }
-  }, [defaultValue, existingValue, formName, isStreaming, name, setFieldValue]);
+  }, [
+    defaultValue,
+    existingValue,
+    formName,
+    componentType,
+    name,
+    isStreaming,
+    setFieldValue,
+    shouldTriggerSaveCallback,
+  ]);
 }

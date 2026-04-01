@@ -7,6 +7,8 @@ export interface CalloutProps extends Omit<React.HTMLAttributes<HTMLDivElement>,
   variant?: CalloutVariant;
   title?: React.ReactNode;
   description?: React.ReactNode;
+  /** Auto-dismiss after N milliseconds. CSS-only fade + collapse. */
+  duration?: number;
 }
 
 const variantMap: Record<CalloutVariant, string> = {
@@ -18,10 +20,24 @@ const variantMap: Record<CalloutVariant, string> = {
 };
 
 export const Callout = React.forwardRef<HTMLDivElement, CalloutProps>((props, ref) => {
-  const { className, variant = "neutral", title, description, ...rest } = props;
+  const { className, variant = "neutral", title, description, duration, style, ...rest } = props;
+
+  const dismissStyle = duration
+    ? ({ ...style, "--callout-duration": `${duration}ms` } as React.CSSProperties)
+    : style;
 
   return (
-    <div ref={ref} className={clsx("openui-callout", variantMap[variant], className)} {...rest}>
+    <div
+      ref={ref}
+      className={clsx(
+        "openui-callout",
+        variantMap[variant],
+        duration && "openui-callout-autodismiss",
+        className,
+      )}
+      style={dismissStyle}
+      {...rest}
+    >
       {title && <span className="openui-callout-title">{title}</span>}
       {description && <span className="openui-callout-description">{description}</span>}
     </div>

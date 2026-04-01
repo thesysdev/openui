@@ -41,7 +41,7 @@ function wrapTransport(inner: Transport): Transport {
 
 // ── Streaming SSE ───────────────────────────────────────────────────────────
 
-type LLMToolCall = { id: string; name: string; status: "calling" | "done" };
+type LLMToolCall = { id: string; name: string; status: "calling" | "done"; result?: string };
 type LLMToolCallListener = (calls: LLMToolCall[]) => void;
 let llmToolCallListener: LLMToolCallListener | null = null;
 const llmActiveCalls: LLMToolCall[] = [];
@@ -109,7 +109,16 @@ async function streamChat(
               notifyLLMToolCalls();
             } else if (tc.function?.arguments) {
               const existing = llmActiveCalls[tc.index];
-              if (existing) { existing.status = "done"; notifyLLMToolCalls(); }
+              if (existing) {
+                existing.status = "done";
+                try {
+                  const parsed = JSON.parse(tc.function.arguments);
+                  if (parsed._response) {
+                    existing.result = JSON.stringify(parsed._response).slice(0, 2000);
+                  }
+                } catch { /* ignore parse errors */ }
+                notifyLLMToolCalls();
+              }
             }
           }
         }
@@ -283,9 +292,10 @@ export default function LLMTestPage() {
       // Build API messages — append current dashboard state to the latest user message
       const apiMessages = updated.map((m, i) => {
         if (m.role === "assistant" && m.llmTools?.length) {
-          const toolSummary = m.llmTools.map(tc =>
-            `[Tool call: ${tc.name} → completed]`
-          ).join("\n");
+          const toolSummary = m.llmTools.map(tc => {
+            const resultSnippet = tc.result ? ` → ${tc.result.slice(0, 500)}` : " → completed";
+            return `[Tool: ${tc.name}${resultSnippet}]`;
+          }).join("\n");
           return { role: m.role, content: `${toolSummary}\n\n${m.content}` };
         }
         // Append current dashboard state to the LAST user message

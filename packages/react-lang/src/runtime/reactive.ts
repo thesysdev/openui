@@ -2,9 +2,9 @@
 // Reactive schema marker for openui-lang (React adapter)
 // ─────────────────────────────────────────────────────────────────────────────
 
+import type { StateField } from "@openuidev/lang-core";
 import { markReactive } from "@openuidev/lang-core";
 import type { z } from "zod";
-import type { StateField } from "./state-field";
 
 // Re-export for internal use
 export { isReactiveSchema } from "@openuidev/lang-core";

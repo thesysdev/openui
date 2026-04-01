@@ -1,9 +1,9 @@
-import { useFormName, useOpenUI } from "../context";
 import {
   resolveStateField,
   type InferStateFieldValue,
   type StateField,
-} from "../runtime/state-field";
+} from "@openuidev/lang-core";
+import { useFormName, useOpenUI } from "../context";
 
 export function useStateField<T = unknown>(
   name: string,
@@ -18,6 +18,6 @@ export function useStateField<T = unknown>(
     ctx.store ?? null,
     ctx.evaluationContext ?? null,
     (fieldName) => ctx.getFieldValue(formName, fieldName),
-    (fieldName, nextValue) => ctx.setFieldValue(formName, fieldName, nextValue),
+    (fieldName, nextValue) => ctx.setFieldValue(formName, undefined, fieldName, nextValue),
   );
 }

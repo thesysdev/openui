@@ -114,7 +114,8 @@ export type ActionStep =
   | { type: "run"; statementId: string; refType: "query" | "mutation" }
   | { type: "continue_conversation"; message: string; context?: string }
   | { type: "open_url"; url: string }
-  | { type: "set"; target: string; valueAST: ASTNode };
+  | { type: "set"; target: string; valueAST: ASTNode }
+  | { type: "reset"; targets: string[] };
 
 /**
  * An ordered sequence of steps to execute when a button is clicked.

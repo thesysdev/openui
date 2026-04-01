@@ -18,14 +18,14 @@ header = CardHeader("Analytics Dashboard", "Live data from PostHog")
 $days = "7"
 controls = Stack([filterRow, refreshBtn], "row", "m", "end", "between")
 filterRow = FormControl("Date Range", Select("days", $days, [r7, r14, r30]))
-refreshBtn = Button("Refresh", Action([Run(daily), Run(topEventsData)]), "secondary")
+refreshBtn = Button("Refresh", Action([@Run(daily), @Run(topEventsData)]), "secondary")
 r7 = SelectItem("7", "Last 7 days")
 r14 = SelectItem("14", "Last 14 days")
 r30 = SelectItem("30", "Last 30 days")
 daily = Query("posthog_query", {sql: "SELECT toDate(timestamp) as day, count() as events, count(distinct distinct_id) as users FROM events WHERE event = '$pageview' AND timestamp > now() - interval " + $days + " day GROUP BY day ORDER BY day"}, {columns: [], rows: []})
 kpiRow = Stack([kpi1, kpi2], "row")
-kpi1 = Card([TextContent("Total Pageviews", "small"), TextContent("" + Sum(daily.rows.events), "large-heavy")])
-kpi2 = Card([TextContent("Unique Users", "small"), TextContent("" + Sum(daily.rows.users), "large-heavy")])
+kpi1 = Card([TextContent("Total Pageviews", "small"), TextContent("" + @Sum(daily.rows.events), "large-heavy")])
+kpi2 = Card([TextContent("Unique Users", "small"), TextContent("" + @Sum(daily.rows.users), "large-heavy")])
 chart = LineChart(daily.rows.day, [Series("Pageviews", daily.rows.events), Series("Users", daily.rows.users)])
 topEventsData = Query("posthog_query", {sql: "SELECT event, count() as count FROM events WHERE timestamp > now() - interval " + $days + " day GROUP BY event ORDER BY count DESC LIMIT 10"}, {columns: [], rows: []})
 topEvents = Table([Col("Event", topEventsData.rows.event), Col("Count", topEventsData.rows.count, "number")])`,
@@ -34,11 +34,29 @@ root = Stack([header, kpiRow, trendCard])
 header = CardHeader("Server Monitoring Dashboard", "Auto-refreshes every 30 seconds")
 health = Query("get_server_health", {}, {cpu: 0, memory: 0, latencyP95: 0, errorRate: 0, timeseries: []}, 30)
 kpiRow = Stack([cpuCard, memoryCard, latencyCard, errorRateCard], "row", "m", "stretch", "start", true)
-cpuCard = Card([TextContent("CPU", "small"), TextContent("" + Round(health.cpu, 1) + "%", "large-heavy")])
-memoryCard = Card([TextContent("Memory", "small"), TextContent("" + Round(health.memory, 1) + "%", "large-heavy")])
-latencyCard = Card([TextContent("Latency", "small"), TextContent("" + Round(health.latencyP95, 0) + " ms", "large-heavy")])
-errorRateCard = Card([TextContent("Error Rate", "small"), TextContent("" + Round(health.errorRate, 2) + "%", "large-heavy")])
+cpuCard = Card([TextContent("CPU", "small"), TextContent("" + @Round(health.cpu, 1) + "%", "large-heavy")])
+memoryCard = Card([TextContent("Memory", "small"), TextContent("" + @Round(health.memory, 1) + "%", "large-heavy")])
+latencyCard = Card([TextContent("Latency", "small"), TextContent("" + @Round(health.latencyP95, 0) + " ms", "large-heavy")])
+errorRateCard = Card([TextContent("Error Rate", "small"), TextContent("" + @Round(health.errorRate, 2) + "%", "large-heavy")])
 trendCard = Card([CardHeader("24-Hour Trend"), LineChart(health.timeseries.time, [Series("CPU", health.timeseries.cpu), Series("Memory", health.timeseries.memory), Series("Latency", health.timeseries.latencyP95)])])`,
+    `Example — CRUD form with edit modal:
+$title = ""
+$priority = "medium"
+$showEdit = false
+$editId = ""
+createResult = Mutation("create_ticket", {title: $title, priority: $priority})
+tickets = Query("list_tickets", {}, {rows: []})
+submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Set($createSuccess, true), @Reset($title, $priority)]))
+form = Form("create", submitBtn, [FormControl("Title", Input("title", $title, "Description", "text", {required: true})), FormControl("Priority", Select("priority", $priority, [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")]))])
+$createSuccess = false
+statusMsg = Callout("success", "Created", "Ticket added.", $createSuccess)
+errorMsg = createResult.status == "error" ? Callout("error", "Failed", createResult.error) : null
+tbl = Table([Col("Title", tickets.rows.title), Col("Priority", @Each(tickets.rows, "t", Tag(t.priority, null, "sm", t.priority == "high" ? "danger" : "neutral"))), Col("Actions", @Each(tickets.rows, "t", Button("Edit", Action([@Set($showEdit, true), @Set($editId, t.id)]))))])
+updateResult = Mutation("update_ticket", {id: $editId, title: $editTitle, priority: $editPriority})
+editBtns = Buttons([Button("Save", Action([@Run(updateResult), @Run(tickets), @Set($showEdit, false)]), "primary"), Button("Cancel", Action([@Set($showEdit, false)]), "secondary")])
+editForm = Form("edit", editBtns, [FormControl("Title", Input("editTitle", $editTitle, "Title", "text", {required: true})), FormControl("Priority", Select("editPriority", $editPriority, [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")]))])
+editModal = Modal("Edit Ticket", $showEdit, [editForm])
+root = Stack([CardHeader("Tickets"), form, statusMsg, errorMsg, tbl, editModal])`,
   ],
   additionalRules: [
     "For analytics, prefer posthog_query with HogQL SQL",

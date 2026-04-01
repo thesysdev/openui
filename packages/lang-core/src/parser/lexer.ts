@@ -262,7 +262,8 @@ export function tokenize(src: string): Token[] {
           prev.t === T.True ||
           prev.t === T.False ||
           prev.t === T.Null ||
-          prev.t === T.StateVar);
+          prev.t === T.StateVar ||
+          prev.t === T.BuiltinCall);
 
       if (!afterValue && i + 1 < n && src[i + 1] >= "0" && src[i + 1] <= "9") {
         // Negative number literal — fall through to number parsing below
@@ -349,7 +350,29 @@ export function tokenize(src: string): Token[] {
       continue;
     }
 
-    i++; // skip any other character (e.g. @, #, emojis)
+    // ── Builtin call: @identifier ───────────────────────────────────
+    if (
+      c === "@" &&
+      i + 1 < n &&
+      ((src[i + 1] >= "a" && src[i + 1] <= "z") ||
+        (src[i + 1] >= "A" && src[i + 1] <= "Z") ||
+        src[i + 1] === "_")
+    ) {
+      i++; // skip @
+      const start = i;
+      while (
+        i < n &&
+        ((src[i] >= "a" && src[i] <= "z") ||
+          (src[i] >= "A" && src[i] <= "Z") ||
+          (src[i] >= "0" && src[i] <= "9") ||
+          src[i] === "_")
+      )
+        i++;
+      tokens.push({ t: T.BuiltinCall, v: src.slice(start, i) });
+      continue;
+    }
+
+    i++; // skip any other character (e.g. #, emojis)
   }
 
   tokens.push({ t: T.EOF });

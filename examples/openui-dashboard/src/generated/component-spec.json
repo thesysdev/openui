@@ -18,8 +18,8 @@
       "description": "Renders markdown text with optional container variant"
     },
     "Callout": {
-      "signature": "Callout(variant: \"info\" | \"warning\" | \"error\" | \"success\" | \"neutral\", title: string, description: string)",
-      "description": "Callout banner with variant, title, and description"
+      "signature": "Callout(variant: \"info\" | \"warning\" | \"error\" | \"success\" | \"neutral\", title: string, description: string, visible?: $binding<boolean>)",
+      "description": "Callout banner. Optional visible is a reactive $boolean — auto-dismisses after 3s by setting $visible to false."
     },
     "TextCallout": {
       "signature": "TextCallout(variant?: \"neutral\" | \"info\" | \"warning\" | \"success\" | \"danger\", title?: string, description?: string)",
@@ -212,6 +212,10 @@
     "Tag": {
       "signature": "Tag(text: string, icon?: string, size?: \"sm\" | \"md\" | \"lg\", variant?: \"neutral\" | \"info\" | \"success\" | \"warning\" | \"danger\")",
       "description": "Styled tag/badge with optional icon and variant"
+    },
+    "Modal": {
+      "signature": "Modal(title: string, open?: $binding<boolean>, children: (TextContent | MarkDownRenderer | CardHeader | Callout | TextCallout | CodeBlock | Image | ImageBlock | ImageGallery | Separator | HorizontalBarChart | RadarChart | PieChart | RadialChart | SingleStackedBarChart | ScatterChart | AreaChart | BarChart | LineChart | Table | TagBlock | Form | Buttons | Steps)[], size?: \"sm\" | \"md\" | \"lg\")",
+      "description": "Modal dialog. open is a reactive $boolean binding — set to true to open, X/Escape/backdrop auto-closes. Put Form with buttons inside children."
     }
   },
   "componentGroups": [
@@ -226,12 +230,17 @@
         "Steps",
         "StepsItem",
         "Carousel",
-        "Separator"
+        "Separator",
+        "Modal"
       ],
       "notes": [
         "- For grid-like layouts, use Stack with direction \"row\" and wrap set to true.",
         "- Prefer justify \"start\" (or omit justify) with wrap=true for stable columns instead of uneven gutters.",
-        "- Use nested Stacks when you need explicit rows/sections."
+        "- Use nested Stacks when you need explicit rows/sections.",
+        "- Show/hide sections: $editId != \"\" ? Card([editForm]) : null",
+        "- Modal: Modal(\"Title\", $showModal, [content]) — $showModal is boolean, X/Escape auto-closes. Put Form with its own buttons inside children.",
+        "- Use Tabs for alternative views (chart types, data sections) — no $variable needed",
+        "- Shared filter across Tabs: same $days binding in Query args works across all TabItems"
       ]
     },
     {
@@ -249,7 +258,9 @@
         "CodeBlock"
       ],
       "notes": [
-        "- Use Cards to group related KPIs or sections. Stack with direction \"row\" for side-by-side layouts."
+        "- Use Cards to group related KPIs or sections. Stack with direction \"row\" for side-by-side layouts.",
+        "- Success toast: Callout(\"success\", \"Saved\", \"Done.\", $showSuccess) — use @Set($showSuccess, true) in save action, auto-dismisses after 3s. For errors: result.status == \"error\" ? Callout(\"error\", \"Failed\", result.error) : null",
+        "- KPI card: Card([TextContent(\"Label\", \"small\"), TextContent(\"\" + @Count(@Filter(data.rows, \"field\", \"==\", \"value\")), \"large-heavy\")])"
       ]
     },
     {
@@ -260,7 +271,12 @@
       ],
       "notes": [
         "- Table is COLUMN-oriented: Table([Col(\"Label\", dataArray), Col(\"Count\", countArray, \"number\")]). Use array pluck for data: data.rows.fieldName",
-        "- Col data can be component arrays for styled cells: Col(\"Status\", Each(data.rows, \"item\", Tag(item.status, null, \"sm\", item.status == \"open\" ? \"success\" : \"danger\")))"
+        "- Col data can be component arrays for styled cells: Col(\"Status\", @Each(data.rows, \"item\", Tag(item.status, null, \"sm\", item.status == \"open\" ? \"success\" : \"danger\")))",
+        "- Row actions: Col(\"Actions\", @Each(data.rows, \"t\", Button(\"Edit\", Action([@Set($showEdit, true), @Set($editId, t.id)]))))",
+        "- Sortable: sorted = @Sort(data.rows, $sortField, \"desc\"). Bind $sortField to Select. Use sorted.fieldName for Col data",
+        "- Searchable: filtered = @Filter(data.rows, \"title\", \"contains\", $search). Bind $search to Input",
+        "- Chain sort + filter: filtered = @Filter(...) then sorted = @Sort(filtered, ...) — use sorted for both Table and Charts",
+        "- Empty state: @Count(data.rows) > 0 ? Table([...]) : TextContent(\"No data yet\")"
       ]
     },
     {
@@ -275,7 +291,9 @@
       ],
       "notes": [
         "- Charts accept column arrays: LineChart(labels, [Series(\"Name\", values)]). Use array pluck: LineChart(data.rows.day, [Series(\"Views\", data.rows.views)])",
-        "- Use Cards to wrap charts with CardHeader for titled sections"
+        "- Use Cards to wrap charts with CardHeader for titled sections",
+        "- Chart + Table from same source: use @Sort or @Filter result for both LineChart and Table Col data",
+        "- Multiple chart views: use Tabs — Tabs([TabItem(\"line\", \"Line\", [LineChart(...)]), TabItem(\"bar\", \"Bar\", [BarChart(...)])])"
       ]
     },
     {
@@ -287,9 +305,9 @@
         "Slice"
       ],
       "notes": [
-        "- PieChart and BarChart need NUMBERS, not objects. For list data, use Count(Filter(...)) to aggregate:",
-        "- PieChart from list: `PieChart([\"Low\", \"Med\", \"High\"], [Count(Filter(data.rows, \"priority\", \"==\", \"low\")), Count(Filter(data.rows, \"priority\", \"==\", \"medium\")), Count(Filter(data.rows, \"priority\", \"==\", \"high\"))], \"donut\")`",
-        "- KPI from count: `TextContent(\"\" + Count(Filter(data.rows, \"status\", \"==\", \"open\")), \"large-heavy\")`"
+        "- PieChart and BarChart need NUMBERS, not objects. For list data, use @Count(@Filter(...)) to aggregate:",
+        "- PieChart from list: `PieChart([\"Low\", \"Med\", \"High\"], [@Count(@Filter(data.rows, \"priority\", \"==\", \"low\")), @Count(@Filter(data.rows, \"priority\", \"==\", \"medium\")), @Count(@Filter(data.rows, \"priority\", \"==\", \"high\"))], \"donut\")`",
+        "- KPI from count: `TextContent(\"\" + @Count(@Filter(data.rows, \"status\", \"==\", \"open\")), \"large-heavy\")`"
       ]
     },
     {
@@ -325,7 +343,9 @@
         "- Form requires explicit buttons. Always pass a Buttons(...) reference as the third Form argument.",
         "- rules is an optional object: {required: true, email: true, minLength: 8, maxLength: 100}",
         "- Available rules: required, email, min, max, minLength, maxLength, pattern, url, numeric",
-        "- The renderer shows error messages automatically — do NOT generate error text in the UI"
+        "- The renderer shows error messages automatically — do NOT generate error text in the UI",
+        "- Conditional fields: $country == \"US\" ? stateField : $country == \"UK\" ? postcodeField : addressField",
+        "- Edit form in Modal: Modal(\"Edit\", $showEdit, [Form(\"edit\", Buttons([saveBtn, cancelBtn]), [fields...])]). Save button should include @Set($showEdit, false) to close modal."
       ]
     },
     {
@@ -333,6 +353,9 @@
       "components": [
         "Button",
         "Buttons"
+      ],
+      "notes": [
+        "- Toggle in @Each: @Each(rows, \"t\", Button(t.status == \"open\" ? \"Close\" : \"Reopen\", Action([...])))"
       ]
     },
     {
@@ -340,6 +363,9 @@
       "components": [
         "TagBlock",
         "Tag"
+      ],
+      "notes": [
+        "- Color-mapped Tag: Tag(value, null, \"sm\", value == \"high\" ? \"danger\" : value == \"medium\" ? \"warning\" : \"neutral\")"
       ]
     }
   ]

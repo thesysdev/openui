@@ -1,0 +1,117 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-modal-root {
+  position: relative;
+  z-index: 9999;
+}
+
+.openui-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: cssUtils.$overlay;
+  z-index: 9999;
+  animation: openui-modal-fade-in 0.15s ease-out;
+}
+
+.openui-modal-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  background: cssUtils.$foreground;
+  border: 1px solid cssUtils.$border-default;
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  animation: openui-modal-slide-in 0.15s ease-out;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.openui-modal-sm {
+  width: 400px;
+  max-width: 90vw;
+}
+.openui-modal-md {
+  width: 560px;
+  max-width: 90vw;
+}
+.openui-modal-lg {
+  width: 720px;
+  max-width: 90vw;
+}
+
+.openui-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: cssUtils.$space-m;
+  border-bottom: 1px solid cssUtils.$border-default;
+}
+
+.openui-modal-title {
+  @include cssUtils.typography(body, heavy);
+  margin: 0;
+}
+
+.openui-modal-close {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: cssUtils.$text-neutral-secondary;
+
+  &:hover {
+    color: cssUtils.$text-neutral-primary;
+  }
+}
+
+.openui-modal-body {
+  padding: cssUtils.$space-m;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-m;
+}
+
+.openui-modal-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes openui-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes openui-modal-slide-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}

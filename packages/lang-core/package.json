@@ -31,6 +31,14 @@
   "dependencies": {
     "zod": "^4.0.0"
   },
+  "peerDependencies": {
+    "@modelcontextprotocol/sdk": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@modelcontextprotocol/sdk": {
+      "optional": true
+    }
+  },
   "keywords": [
     "openui",
     "openui-lang",
@@ -53,6 +61,7 @@
   },
   "author": "engineering@thesys.dev",
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "vitest": "^4.0.18"
   }
 }

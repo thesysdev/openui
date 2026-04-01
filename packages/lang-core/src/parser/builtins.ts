@@ -8,7 +8,7 @@
 export interface BuiltinDef {
   /** PascalCase name matching the openui-lang syntax: Count, Sum, etc. */
   name: string;
-  /** Signature for prompt docs: "Count(array) → number" */
+  /** Signature for prompt docs: "@Count(array) → number" */
   signature: string;
   /** One-line description for prompt docs */
   description: string;
@@ -190,7 +190,7 @@ export const LAZY_BUILTIN_DEFS: Record<string, { signature: string; description:
   Each: {
     signature: "Each(array, varName, template)",
     description:
-      "Evaluate template for each element. Produces components (for rendering) or values (for data transformation). varName is the loop variable.",
+      "Evaluate template for each element. varName is the loop variable — use it ONLY inside the template expression (inline). Do NOT create a separate statement for the template.",
   },
 };
 
@@ -200,6 +200,7 @@ export const ACTION_STEPS = {
   ToAssistant: "continue_conversation",
   OpenUrl: "open_url",
   Set: "set",
+  Reset: "reset",
 } as const;
 
 /** All action expression names (steps + the Action container) */

@@ -103,7 +103,7 @@ function syntaxRules(rootName: string, hasTools: boolean): string {
     '3. Expressions are: strings ("..."), numbers, booleans (true/false), null, arrays ([...]), objects ({...}), or component calls TypeName(arg1, arg2, ...)',
     "4. Use references for readability: define `name = ...` on one line, then use `name` later",
     "5. EVERY variable (except root) MUST be referenced by at least one other variable. Unreferenced variables are silently dropped and will NOT render. Always include defined variables in their parent's children/items array.",
-    "6. Arguments are POSITIONAL (order matters, not names)",
+    '6. Arguments are POSITIONAL (order matters, not names). Write `Stack([children], "row", "l")` NOT `Stack([children], direction: "row", gap: "l")` — colon syntax is NOT supported and silently breaks',
     "7. Optional arguments can be omitted from the end",
   ];
 
@@ -128,22 +128,26 @@ function syntaxRules(rootName: string, hasTools: boolean): string {
 
 function builtinFunctionsSection(): string {
   // Auto-generated from shared builtin registry — single source of truth
-  const builtinLines = Object.values(BUILTINS).map((b) => `${b.signature} — ${b.description}`);
+  const builtinLines = Object.values(BUILTINS).map((b) => `@${b.signature} — ${b.description}`);
   const lazyLines = Object.values(LAZY_BUILTIN_DEFS).map(
-    (b) => `${b.signature} — ${b.description}`,
+    (b) => `@${b.signature} — ${b.description}`,
   );
   const lines = [...builtinLines, ...lazyLines].join("\n");
 
   return `## Built-in Functions
 
-Pure data functions. Use PascalCase like components. These are the ONLY functions available.
-Use built-in functions (Count, Sum, Avg, Min, Max, Round) on Query results — do NOT hardcode computed values.
+Data functions prefixed with \`@\` to distinguish from components. These are the ONLY functions available — do NOT invent new ones.
+Use @-prefixed built-in functions (@Count, @Sum, @Avg, @Min, @Max, @Round) on Query results — do NOT hardcode computed values.
 
 ${lines}
 
 Builtins compose — output of one is input to the next:
-\`Count(Filter(data.rows, "field", "==", "val"))\` for KPIs/chart values, \`Round(Avg(data.rows.score), 1)\`, \`Each(data.rows, "item", Comp(item.field))\` for per-item rendering.
-Array pluck: \`data.rows.field\` extracts a field from every row → use with Sum, Avg, charts, tables.`;
+\`@Count(@Filter(data.rows, "field", "==", "val"))\` for KPIs/chart values, \`@Round(@Avg(data.rows.score), 1)\`, \`@Each(data.rows, "item", Comp(item.field))\` for per-item rendering.
+Array pluck: \`data.rows.field\` extracts a field from every row → use with @Sum, @Avg, charts, tables.
+
+IMPORTANT @Each rule: The loop variable (e.g. "item") is ONLY available inside the @Each template expression. Always inline the template — do NOT extract it to a separate statement.
+CORRECT: \`Col("Actions", @Each(rows, "t", Button("Edit", Action([@Set($id, t.id)]))))\`
+WRONG: \`myBtn = Button("Edit", Action([@Set($id, t.id)]))\` then \`Col("Actions", @Each(rows, "t", myBtn))\` — t is undefined in myBtn.`;
 }
 
 function querySection(): string {
@@ -161,8 +165,8 @@ metrics = Query("tool_name", {arg1: value, arg2: $binding}, {defaultField: 0, de
 - Fourth arg (optional): refresh interval in seconds (e.g. 30 for auto-refresh every 30s)
 - Use dot access on results: metrics.totalEvents, metrics.data.day (array pluck)
 - Query results must use regular identifiers: \`metrics = Query(...)\`, NOT \`$metrics = Query(...)\`
-- Manual refresh: \`Button("Refresh", Action([Run(query1), Run(query2)]), "secondary")\` — re-fetches the listed queries
-- Refresh all queries: create Action with Run for each query`;
+- Manual refresh: \`Button("Refresh", Action([@Run(query1), @Run(query2)]), "secondary")\` — re-fetches the listed queries
+- Refresh all queries: create Action with @Run for each query`;
 }
 
 function mutationSection(): string {
@@ -185,49 +189,48 @@ result = Mutation("tool_name", {arg1: $binding, arg2: "value"})
 
 function actionSection(hasTools: boolean): string {
   const steps = [
-    "- ToAssistant(\"message\") — Send a message to the assistant (for conversational buttons like \"Tell me more\", \"Explain this\")",
-    "- OpenUrl(\"https://...\") — Navigate to a URL",
-    "- Set($variable, value) — Set a $variable to a value (e.g. reset form fields)",
+    '- @ToAssistant("message") — Send a message to the assistant (for conversational buttons like "Tell me more", "Explain this")',
+    '- @OpenUrl("https://...") — Navigate to a URL',
+    "- @Set($variable, value) — Set a $variable to a specific value",
+    '- @Reset($var1, $var2, ...) — Reset $variables to their declared defaults (e.g. @Reset($title, $priority) restores $title="" and $priority="medium")',
   ];
 
   if (hasTools) {
     steps.unshift(
-      "- Run(queryOrMutationRef) — Execute a Mutation or re-fetch a Query (ref must be a declared Query/Mutation)",
+      "- @Run(queryOrMutationRef) — Execute a Mutation or re-fetch a Query (ref must be a declared Query/Mutation)",
     );
   }
 
   const examples: string[] = [];
   if (hasTools) {
-    examples.push(`Example — create + refresh + reset form (PREFERRED pattern for mutations):
+    examples.push(`Example — mutation + refresh + reset (PREFERRED pattern):
 \`\`\`
-$priority = "medium"
-createResult = Mutation("create_ticket", {title: $title, priority: $priority})
-tickets = Query("list_tickets", {}, {columns: [], results: []})
-onSubmit = Action([Run(createResult), Run(tickets), Set($title, ""), Set($priority, "medium")])
-submitBtn = Button("Create", onSubmit)
-statusMsg = createResult.status == "success" ? Callout("success", "Ticket created", "Your ticket was added.") : createResult.status == "error" ? Callout("danger", "Failed", createResult.error) : null
+$binding = "default"
+result = Mutation("tool_name", {field: $binding})
+data = Query("tool_name", {}, {rows: []})
+onSubmit = Action([@Run(result), @Run(data), @Reset($binding)])
 \`\`\``);
   }
 
   examples.push(`Example — simple nav:
 \`\`\`
-viewBtn = Button("View", Action([OpenUrl("https://example.com")]))
+viewBtn = Button("View", Action([@OpenUrl("https://example.com")]))
 \`\`\``);
 
   const rules = [
-    "- Action can be assigned to a variable or inlined: Button(\"Go\", onSubmit) and Button(\"Go\", Action([...])) both work",
+    '- Action can be assigned to a variable or inlined: Button("Go", onSubmit) and Button("Go", Action([...])) both work',
   ];
   if (hasTools) {
     rules.push(
-      "- If a Run(mutation) step fails, remaining steps are skipped (halt on failure)",
-      "- Run(queryRef) re-fetches the query (fire-and-forget, cannot fail)",
+      "- If a @Run(mutation) step fails, remaining steps are skipped (halt on failure)",
+      "- @Run(queryRef) re-fetches the query (fire-and-forget, cannot fail)",
     );
   }
 
   return `## Action — Button Behavior
 
-Action([steps...]) wires button clicks to operations. Steps execute in order.
-Buttons without an explicit Action prop automatically send their label to the assistant (equivalent to Action([ToAssistant(label)])).
+Action([@steps...]) wires button clicks to operations. Steps are @-prefixed built-in actions. Steps execute in order.
+Buttons without an explicit Action prop automatically send their label to the assistant (equivalent to Action([@ToAssistant(label)])).
 
 Available steps:
 ${steps.join("\n")}
@@ -356,9 +359,9 @@ function toolWorkflowSection(): string {
 When tools are available, follow this workflow:
 1. FIRST: Call the most relevant tool to inspect the real data shape before generating code
 2. Use Query() for READ operations (data that should stay live) — NEVER hardcode tool results as literal arrays or objects
-3. Use Mutation() for WRITE operations (create, update, delete) — triggered by button clicks via Action([Run(mutationRef)])
+3. Use Mutation() for WRITE operations (create, update, delete) — triggered by button clicks via Action([@Run(mutationRef)])
 4. Use the real data from step 1 as condensed Query defaults (3-5 rows) so the UI renders immediately
-5. Use builtins (Count, Filter, Sort, Sum) on Query results for KPIs and aggregations — the runtime evaluates these live on every refresh
+5. Use @-prefixed builtins (@Count, @Filter, @Sort, @Sum) on Query results for KPIs and aggregations — the runtime evaluates these live on every refresh
 6. Hardcoded arrays are ONLY for static display data (labels, options) where no tool exists
 
 WRONG — you called a tool and got data back, but you inlined the results:
@@ -371,13 +374,13 @@ chart = SomeChart(["A", "B"], [12, 8])
 \`\`\`
 This is static — it shows stale data and won't update. Creating item1, item2, item3... manually is ALWAYS wrong when a tool exists.
 
-RIGHT — use Query() for live data, Mutation() for writes, builtins to derive values:
+RIGHT — use Query() for live data, Mutation() for writes, @builtins to derive values:
 \`\`\`
 data = Query("tool_name", {}, {rows: []})
-openCount = Count(Filter(data.rows, "field", "==", "value"))
-list = Each(data.rows, "item", SomeComp(item.title, item.field))
+openCount = @Count(@Filter(data.rows, "field", "==", "value"))
+list = @Each(data.rows, "item", SomeComp(item.title, item.field))
 createResult = Mutation("create_tool", {title: $title})
-submitBtn = Button("Create", Action([Run(createResult), Run(data), Set($title, "")]))
+submitBtn = Button("Create", Action([@Run(createResult), @Run(data), @Reset($title)]))
 \`\`\`
 Everything derives from the Query — when data refreshes, the entire dashboard updates automatically.`;
 }
@@ -450,7 +453,9 @@ function renderToolsSection(tools: (string | McpToolSpec)[]): string {
 
   lines.push("## Available Tools");
   lines.push("");
-  lines.push("Use these with Query() for read operations or Mutation() for write operations. The LLM decides which is appropriate based on the tool's purpose.");
+  lines.push(
+    "Use these with Query() for read operations or Mutation() for write operations. The LLM decides which is appropriate based on the tool's purpose.",
+  );
   lines.push("");
   for (const t of stringTools) {
     lines.push(`- ${t}`);
@@ -485,8 +490,8 @@ function renderToolsSection(tools: (string | McpToolSpec)[]): string {
 function generateComponentSignatures(spec: PromptSpec): string {
   const hasTools = !!spec.tools?.length;
   const actionHint = hasTools
-    ? "Props typed `ActionExpression` accept an Action([steps...]) expression. See the Action section for available steps (Run, ToAssistant, OpenUrl, Set)."
-    : "Props typed `ActionExpression` accept an Action([steps...]) expression. See the Action section for available steps (ToAssistant, OpenUrl, Set).";
+    ? "Props typed `ActionExpression` accept an Action([@steps...]) expression. See the Action section for available steps (@Run, @ToAssistant, @OpenUrl, @Set, @Reset)."
+    : "Props typed `ActionExpression` accept an Action([@steps...]) expression. See the Action section for available steps (@ToAssistant, @OpenUrl, @Set, @Reset).";
 
   const lines = [
     "## Component Signatures",

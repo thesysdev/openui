@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { ASTNode } from "./ast";
+import { isBuiltin } from "./builtins";
 import { T, type Token } from "./tokens";
 
 // ── Precedence levels (from spec Section 2.11) ─────────────────────────────
@@ -127,6 +128,16 @@ export function parseExpression(tokens: Token[]): ASTNode {
 
     // PascalCase — component call or reference
     if (tok.t === T.Type) {
+      const name = tok.v as string;
+      // Builtins (Count, Each, Set, Run, etc.) require @-prefix — only Action is exempt
+      if (tokens[pos + 1]?.t === T.LParen && (!isBuiltin(name) || name === "Action"))
+        return parseComp();
+      adv();
+      return { k: "Ref", n: name };
+    }
+
+    // @-prefixed builtin call: @Count(...), @Each(...), @Set(...), etc.
+    if (tok.t === T.BuiltinCall) {
       if (tokens[pos + 1]?.t === T.LParen) return parseComp();
       adv();
       return { k: "Ref", n: tok.v as string };

@@ -43,6 +43,7 @@ export const enum T {
   Or = 32, // ||
   Not = 33, // !
   Question = 34, // ?
+  BuiltinCall = 35, // @identifier — builtin function call
 }
 
 export type Token = {

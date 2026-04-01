@@ -1,14 +1,8 @@
-import type { ActionEvent, ElementNode, ParseResult } from "@openuidev/lang-core";
+import type { ActionEvent, ElementNode, ParseResult, Transport } from "@openuidev/lang-core";
 import React, { Component, Fragment, useEffect, useInsertionEffect, useRef } from "react";
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
-import type { Transport } from "./runtime/queryManager";
-
-export interface OpenUIPersistedState {
-  bindings?: Record<string, unknown>;
-  forms?: Record<string, Record<string, unknown>>;
-}
 
 export interface RendererProps {
   /** Raw response text (openui-lang code). */
@@ -26,9 +20,10 @@ export interface RendererProps {
   onStateUpdate?: (state: Record<string, unknown>) => void;
   /**
    * Initial form state to hydrate on load (e.g. from a previously persisted message).
-   * Shape: { bindings?: { $var: value }, forms?: { formName: { fieldName: value } } }
+   * Shape: { formName: { fieldName: { value, componentType } }, $varName: value }
+   * $-prefixed keys are treated as reactive bindings, everything else is form state.
    */
-  initialState?: OpenUIPersistedState;
+  initialState?: Record<string, any>;
   /** Called whenever the parse result changes. */
   onParseResult?: (result: ParseResult | null) => void;
   /** Transport for Query() data fetching — MCP, REST, GraphQL, or any backend. */

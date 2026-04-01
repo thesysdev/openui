@@ -14,7 +14,7 @@ export type {
 
 // openui-lang renderer
 export { Renderer } from "./Renderer";
-export type { OpenUIPersistedState, RendererProps } from "./Renderer";
+export type { RendererProps } from "./Renderer";
 
 // openui-lang action types
 export { ACTION_STEPS, BuiltinActionType } from "@openuidev/lang-core";
@@ -49,7 +49,7 @@ export {
 } from "./context";
 
 // Runtime — reactive bindings, store, evaluator, query manager, field binding
-export { createMcpTransport, isReactiveAssign, reactive } from "./runtime";
+export { createMcpTransport, isReactiveAssign } from "@openuidev/lang-core";
 export type {
   EvaluationContext,
   McpClientLike,
@@ -59,7 +59,8 @@ export type {
   ReactiveAssign,
   StateField,
   Transport,
-} from "./runtime";
+} from "@openuidev/lang-core";
+export { reactive } from "./runtime";
 
 // Unified field state hook — component authors use this
 export { useStateField } from "./hooks/useStateField";
