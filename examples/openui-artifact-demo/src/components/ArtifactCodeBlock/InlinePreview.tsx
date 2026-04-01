@@ -1,22 +1,14 @@
 "use client";
 
-import { useArtifact } from "@openuidev/react-headless";
-
 interface InlinePreviewProps {
-  artifactId: string;
   language: string;
   title: string;
   codeString: string;
+  open: () => void;
+  isActive: boolean;
 }
 
-export function InlinePreview({
-  artifactId,
-  language,
-  title,
-  codeString,
-}: InlinePreviewProps) {
-  const { open, isActive } = useArtifact(artifactId);
-
+export function InlinePreview({ language, title, codeString, open, isActive }: InlinePreviewProps) {
   const truncatedCode = codeString.split("\n").slice(0, 6).join("\n");
 
   return (
@@ -49,7 +41,7 @@ export function InlinePreview({
           <code className="text-zinc-300">{truncatedCode}</code>
         </pre>
         {/* Gradient fade */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-zinc-900 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-zinc-900 to-transparent" />
       </div>
 
       {/* Footer */}

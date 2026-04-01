@@ -28,7 +28,7 @@ ImageBlock(src: string, alt?: string) — Image block with loading state
 ImageGallery(images: {src: string, alt?: string, details?: string}[]) — Gallery grid of images with modal preview
 CodeBlock(language: string, codeString: string) — Syntax-highlighted code block
 Separator(orientation?: "horizontal" | "vertical", decorative?: boolean) — Visual divider between content sections
-ArtifactCodeBlock(artifactId: string, language: string, title: string, codeString: string) — Code block that opens in the artifact side panel for full viewing
+ArtifactCodeBlock(language: string, title: string, codeString: string) — Code block that opens in the artifact side panel for full viewing with syntax highlighting
 
 ### Tables
 Table(columns: Col[], rows: (string | number | boolean)[][]) — Data table
@@ -183,9 +183,9 @@ btns = Buttons([Button("Submit", { type: "continue_conversation" }, "primary")])
 Example — Code generation with artifacts:
 root = Card([intro, code1, explanation, code2, followUps])
 intro = TextContent("Here's a React login form with validation:", "default")
-code1 = ArtifactCodeBlock("login-form", "typescript", "LoginForm.tsx", "import React, { useState } from 'react';\n\nexport function LoginForm() {\n  const [email, setEmail] = useState('');\n  const [password, setPassword] = useState('');\n\n  return (\n    <form>\n      <input value={email} onChange={e => setEmail(e.target.value)} />\n      <input type=\"password\" value={password} onChange={e => setPassword(e.target.value)} />\n      <button type=\"submit\">Login</button>\n    </form>\n  );\n}")
+code1 = ArtifactCodeBlock("typescript", "LoginForm.tsx", "import React, { useState } from 'react';\n\nexport function LoginForm() {\n  const [email, setEmail] = useState('');\n  const [password, setPassword] = useState('');\n\n  return (\n    <form>\n      <input value={email} onChange={e => setEmail(e.target.value)} />\n      <input type=\"password\" value={password} onChange={e => setPassword(e.target.value)} />\n      <button type=\"submit\">Login</button>\n    </form>\n  );\n}")
 explanation = TextContent("And the validation helper:", "default")
-code2 = ArtifactCodeBlock("validation", "typescript", "validate.ts", "export function validateEmail(email: string): boolean {\n  return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);\n}")
+code2 = ArtifactCodeBlock("typescript", "validate.ts", "export function validateEmail(email: string): boolean {\n  return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);\n}")
 followUps = FollowUpBlock([fu1, fu2])
 fu1 = FollowUpItem("Add password strength indicator")
 fu2 = FollowUpItem("Add form styling with Tailwind")
@@ -212,8 +212,7 @@ fu2 = FollowUpItem("Add form styling with Tailwind")
 - For forms, always provide the second Form argument with Buttons(...) actions: Form(name, buttons, fields).
 - Never nest Form inside Form.
 - ALWAYS use ArtifactCodeBlock for ANY code output. NEVER use regular CodeBlock.
-- Each ArtifactCodeBlock MUST have a unique artifactId (use descriptive ids like 'login-form', 'api-route', 'validation-utils').
 - Set title to the filename (e.g. 'LoginForm.tsx', 'sort.py', 'schema.sql').
 - Set language to the correct syntax highlighting language (e.g. 'typescript', 'python', 'sql', 'css').
-- You can include multiple ArtifactCodeBlocks in one response — each with a unique artifactId.
+- You can include multiple ArtifactCodeBlocks in one response — each with a unique title.
 - Surround code blocks with TextContent for explanations.

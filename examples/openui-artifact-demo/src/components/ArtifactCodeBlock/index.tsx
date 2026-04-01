@@ -1,10 +1,10 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { ArtifactPanel } from "@openuidev/react-ui";
-import { ArtifactCodeBlockSchema } from "./schema";
-import { InlinePreview } from "./InlinePreview";
+import { Artifact } from "@openuidev/react-ui";
 import { ArtifactView } from "./ArtifactView";
+import { InlinePreview } from "./InlinePreview";
+import { ArtifactCodeBlockSchema } from "./schema";
 
 export { ArtifactCodeBlockSchema } from "./schema";
 export type { ArtifactCodeBlockProps } from "./schema";
@@ -13,25 +13,24 @@ export const ArtifactCodeBlock = defineComponent({
   name: "ArtifactCodeBlock",
   props: ArtifactCodeBlockSchema,
   description:
-    "Code block that opens in the artifact side panel for full viewing",
-  component: ({ props }) => (
-    <>
+    "Code block that opens in the artifact side panel for full viewing with syntax highlighting",
+  component: Artifact({
+    title: (props) => props.title as string,
+    preview: (props, { open, isActive }) => (
       <InlinePreview
-        artifactId={props.artifactId as string}
         language={props.language as string}
         title={props.title as string}
         codeString={props.codeString as string}
+        open={open}
+        isActive={isActive}
       />
-      <ArtifactPanel
-        artifactId={props.artifactId as string}
+    ),
+    panel: (props) => (
+      <ArtifactView
+        language={props.language as string}
+        codeString={props.codeString as string}
         title={props.title as string}
-      >
-        <ArtifactView
-          language={props.language as string}
-          codeString={props.codeString as string}
-          title={props.title as string}
-        />
-      </ArtifactPanel>
-    </>
-  ),
+      />
+    ),
+  }),
 });
