@@ -413,6 +413,10 @@ const typographyTheme: TypographyTheme = {
   textLabelLgHeavyLetterSpacing: "0",
 
   // Numbers
+  textNumbers2xs: `400 10px/1.5 ${FONT_NUMBERS}`,
+  textNumbers2xsLetterSpacing: "0",
+  textNumbers2xsHeavy: `500 10px/1.5 ${FONT_NUMBERS}`,
+  textNumbers2xsHeavyLetterSpacing: "0",
   textNumbersXs: `400 12px/1.5 ${FONT_NUMBERS}`,
   textNumbersXsLetterSpacing: "0",
   textNumbersXsHeavy: `500 12px/1.5 ${FONT_NUMBERS}`,
@@ -429,6 +433,10 @@ const typographyTheme: TypographyTheme = {
   textNumbersLgLetterSpacing: "0",
   textNumbersLgHeavy: `500 18px/1.5 ${FONT_NUMBERS}`,
   textNumbersLgHeavyLetterSpacing: "0",
+  textNumbersHeadingLg: `600 28px/1.1 ${FONT_NUMBERS}`,
+  textNumbersHeadingLgLetterSpacing: "0",
+  textNumbersHeadingMd: `600 24px/1.1 ${FONT_NUMBERS}`,
+  textNumbersHeadingMdLetterSpacing: "0",
 
   // Code
   textCodeSm: `400 12px/1.5 ${FONT_CODE}`,

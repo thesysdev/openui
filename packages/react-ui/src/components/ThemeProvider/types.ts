@@ -246,6 +246,10 @@ export interface TypographyTheme {
   textHeadingXlLetterSpacing?: string;
 
   // Compound typography: label
+  textLabel2xs?: string;
+  textLabel2xsLetterSpacing?: string;
+  textLabel2xsHeavy?: string;
+  textLabel2xsHeavyLetterSpacing?: string;
   textLabelXs?: string;
   textLabelXsLetterSpacing?: string;
   textLabelXsHeavy?: string;
@@ -264,6 +268,11 @@ export interface TypographyTheme {
   textLabelLgHeavyLetterSpacing?: string;
 
   // Compound typography: numbers
+
+  textNumbers2xs?: string;
+  textNumbers2xsLetterSpacing?: string;
+  textNumbers2xsHeavy?: string;
+  textNumbers2xsHeavyLetterSpacing?: string;
   textNumbersXs?: string;
   textNumbersXsLetterSpacing?: string;
   textNumbersXsHeavy?: string;
@@ -280,6 +289,10 @@ export interface TypographyTheme {
   textNumbersLgLetterSpacing?: string;
   textNumbersLgHeavy?: string;
   textNumbersLgHeavyLetterSpacing?: string;
+  textNumbersHeadingLg?: string;
+  textNumbersHeadingLgLetterSpacing?: string;
+  textNumbersHeadingMd?: string;
+  textNumbersHeadingMdLetterSpacing?: string;
 
   // Compound typography: code
   textCodeSm?: string;
