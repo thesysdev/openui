@@ -50,17 +50,3 @@
 #nd-sidebar {
   background-color: transparent !important;
 }
-
-.docs-nav-sidebar-toggle {
-  display: none;
-}
-
-@media (max-width: 767px) {
-  .docs-nav-sidebar-toggle {
-    display: flex;
-  }
-
-  .docs-nav-tabs {
-    display: none !important;
-  }
-}

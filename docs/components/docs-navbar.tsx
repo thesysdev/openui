@@ -6,8 +6,9 @@ import { useSearchContext } from "fumadocs-ui/contexts/search";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GitHubStarButton, OpenUILogo, ThesysLogo } from "./brand-logo";
+import styles from "./docs-navbar.module.css";
 import { ThemeToggle } from "./theme-toggle";
 
 const tabs = [
@@ -38,7 +39,7 @@ function SearchBar() {
       type="button"
       onClick={() => setOpenSearch(true)}
       aria-label="Search documentation"
-      className="flex items-center gap-2.5 h-9 pl-3.5 pr-2.5 rounded-lg border border-fd-border bg-fd-background text-fd-muted-foreground cursor-pointer w-64 hover:border-fd-ring transition-colors"
+      className={styles.searchButton}
     >
       <svg
         width="14"
@@ -49,13 +50,13 @@ function SearchBar() {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="shrink-0"
+        className={styles.searchIcon}
       >
         <circle cx="11" cy="11" r="8" />
         <line x1="21" y1="21" x2="16.65" y2="16.65" />
       </svg>
-      <span className="text-sm flex-1 text-left">Search...</span>
-      <kbd className="hidden sm:flex items-center gap-0.5 text-[11px] font-medium text-fd-muted-foreground border border-fd-border rounded px-1.5 py-0.5 leading-none">
+      <span className={styles.searchLabel}>Search...</span>
+      <kbd className={styles.searchShortcut}>
         {isMac ? "⌘" : "Ctrl"}
         <span>K</span>
       </kbd>
@@ -68,17 +69,66 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
   const [isThesysHovered, setIsThesysHovered] = useState(false);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const tabsRef = useRef<HTMLElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+  const tabRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
   useEffect(() => {
     setMounted(true);
   }, []);
   const logoVariant = mounted && resolvedTheme === "dark" ? "dark" : "light";
+  const activeTab = tabs.find((tab) => pathname.startsWith(tab.url)) ?? tabs[0];
+
+  const updateIndicator = useCallback(
+    (animated: boolean) => {
+      const tabsElement = tabsRef.current;
+      const indicatorElement = indicatorRef.current;
+      const activeTabElement = tabRefs.current[activeTab.url];
+      if (!tabsElement || !indicatorElement || !activeTabElement) return;
+
+      const left = activeTabElement.offsetLeft - tabsElement.scrollLeft;
+      const width = activeTabElement.offsetWidth;
+
+      indicatorElement.style.transition = animated
+        ? "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease"
+        : "none";
+      indicatorElement.style.width = `${width}px`;
+      indicatorElement.style.transform = `translateX(${left}px)`;
+      indicatorElement.style.opacity = "1";
+    },
+    [activeTab.url],
+  );
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => updateIndicator(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, [updateIndicator]);
+
+  useEffect(() => {
+    const tabsElement = tabsRef.current;
+    if (!tabsElement) return;
+
+    const handleScroll = () => updateIndicator(false);
+    tabsElement.addEventListener("scroll", handleScroll);
+
+    const resizeObserver = new ResizeObserver(() => updateIndicator(false));
+    resizeObserver.observe(tabsElement);
+
+    Object.values(tabRefs.current).forEach((tabElement) => {
+      if (tabElement) resizeObserver.observe(tabElement);
+    });
+
+    return () => {
+      tabsElement.removeEventListener("scroll", handleScroll);
+      resizeObserver.disconnect();
+    };
+  }, [updateIndicator]);
 
   return (
-    <header className="fixed top-0 inset-x-0 z-40 w-full border-b border-fd-border bg-fd-background/80 backdrop-blur-xl">
+    <header className={styles.header}>
       {/* Top row: logo left, actions right */}
-      <div className="flex items-center h-16 max-w-388 mx-auto px-3 md:px-8">
+      <div className={styles.topRow}>
         {showSidebarToggle && (
-          <SidebarTrigger className="docs-nav-sidebar-toggle flex items-center justify-center size-9 rounded-lg text-fd-muted-foreground bg-transparent border-none cursor-pointer mr-3">
+          <SidebarTrigger className={styles.sidebarToggle}>
             <svg
               width="20"
               height="20"
@@ -97,26 +147,26 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
         )}
 
         {/* Brand */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className={styles.brand}>
           <ThesysLogo
             isHovered={isThesysHovered}
             onHoverChange={setIsThesysHovered}
             variant={logoVariant}
           />
-          <span className="text-fd-muted-foreground text-[15px] select-none px-0.5">|</span>
+          <span className={styles.brandDivider}>|</span>
           <OpenUILogo variant={logoVariant} />
         </div>
 
         {/* Actions */}
-        <div className="hidden md:flex items-center gap-3 ml-auto shrink-0">
+        <div className={styles.actions}>
           <SearchBar />
-          <div className="flex items-center gap-2">
+          <div className={styles.actionButtons}>
             {/* Discord */}
             <Link
               href={siteConfig.discordUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center size-9 rounded-lg text-fd-muted-foreground no-underline hover:text-fd-foreground hover:bg-fd-accent transition-colors"
+              className={styles.iconLink}
               aria-label="Discord"
             >
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
@@ -131,25 +181,25 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
       </div>
 
       {/* Bottom row: tabs */}
-      <div className="max-w-388 mx-auto px-8">
-        <nav className="docs-nav-tabs flex items-center overflow-x-auto">
+      <div className={styles.tabsContainer}>
+        <nav ref={tabsRef} className={styles.tabs}>
           {tabs.map((tab) => {
             const isActive = pathname.startsWith(tab.url);
             return (
               <Link
                 key={tab.url}
                 href={tab.url}
-                className={`flex items-center px-4 py-2.5 text-sm font-medium whitespace-nowrap no-underline transition-colors duration-150 border-b-2 -mb-px ${
-                  isActive
-                    ? "text-fd-foreground border-fd-primary"
-                    : "text-fd-muted-foreground border-transparent hover:text-fd-foreground"
-                }`}
+                ref={(element) => {
+                  tabRefs.current[tab.url] = element;
+                }}
+                className={`${styles.tabLink} ${isActive ? styles.tabLinkActive : styles.tabLinkInactive}`}
               >
                 {tab.title}
               </Link>
             );
           })}
         </nav>
+        <span ref={indicatorRef} className={styles.tabsIndicator} aria-hidden="true" />
       </div>
     </header>
   );
