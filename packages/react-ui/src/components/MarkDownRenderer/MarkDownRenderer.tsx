@@ -41,7 +41,6 @@ export interface MarkDownRendererProps {
   textMarkdown: string;
   options?: Options;
   className?: string;
-  isStreaming?: boolean;
 }
 
 export const MarkDownRenderer = memo((props: MarkDownRendererProps) => {
@@ -94,7 +93,6 @@ export const MarkDownRenderer = memo((props: MarkDownRendererProps) => {
       className={clsx(
         props["variant"] && variantStyles[props["variant"] as keyof typeof variantStyles],
         "openui-markdown-renderer",
-        props.isStreaming && "openui-markdown-renderer--streaming",
         props.className,
       )}
     >

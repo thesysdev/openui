@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent, useIsStreaming } from "@openuidev/react-lang";
+import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { MarkDownRenderer } from "../../components/MarkDownRenderer";
 import { TextContentSchema } from "./schema";
@@ -30,10 +30,9 @@ export const TextContent = defineComponent({
             "--openui-text-body-default-letter-spacing": `var(${varName}-letter-spacing)`,
           } as React.CSSProperties);
     const text = props.text == null ? "" : String(props.text);
-    const isStreaming = useIsStreaming();
     return (
       <div style={style}>
-        <MarkDownRenderer textMarkdown={text} isStreaming={isStreaming} />
+        <MarkDownRenderer textMarkdown={text} />
       </div>
     );
   },
