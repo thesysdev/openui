@@ -1,7 +1,7 @@
 import { MastraAgent } from "@ag-ui/mastra";
 import { Agent } from "@mastra/core/agent";
 import { createTool } from "@mastra/core/tools";
-import { EventType, type Message, type TextInputContent } from "@openuidev/react-headless";
+import { EventType, type Message, type TextInputContent } from "@ag-ui/core";
 import { readFileSync } from "fs";
 import { NextRequest } from "next/server";
 import { join } from "path";

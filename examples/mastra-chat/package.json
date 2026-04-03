@@ -10,6 +10,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ag-ui/core": "^0.0.45",
     "@ag-ui/mastra": "^1.0.1",
     "@mastra/core": "1.15.0",
     "@openuidev/react-headless": "workspace:*",
