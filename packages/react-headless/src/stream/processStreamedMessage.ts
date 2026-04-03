@@ -46,6 +46,10 @@ export const processStreamedMessage = async ({
 
   for await (const event of adapter.parse(response)) {
     switch (event.type) {
+      // TEXT_MESSAGE_CHUNK and TEXT_MESSAGE_CONTENT are very similar events but TEXT_MESSAGE_CHUNK
+      // optionally allows for a role change. Since we don't support role changes in processMessage
+      // right now, we treat both the same.
+      case EventType.TEXT_MESSAGE_CHUNK:
       case EventType.TEXT_MESSAGE_CONTENT:
         currentMessage = {
           ...currentMessage,
