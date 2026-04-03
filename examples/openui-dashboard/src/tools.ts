@@ -275,6 +275,7 @@ export interface ToolDef {
   name: string;
   description: string;
   inputSchema: Record<string, z.ZodType>;
+  outputSchema: z.ZodType;
   execute: (args: Record<string, unknown>) => Promise<unknown>;
 }
 
@@ -283,84 +284,98 @@ export const tools: ToolDef[] = [
     name: "posthog_query",
     description: "Run a HogQL SQL query against PostHog analytics",
     inputSchema: { sql: z.string().describe("HogQL SQL query to execute") },
+    outputSchema: z.object({ columns: z.array(z.string()), rows: z.array(z.record(z.unknown())) }),
     execute: async (args) => executePostHogQuery(args.sql as string),
   },
   {
     name: "get_usage_metrics",
     description: "Get usage metrics for the specified date range",
     inputSchema: { dateRange: z.string().optional(), days: z.string().optional(), resource: z.string().optional() },
+    outputSchema: z.object({ totalEvents: z.number(), totalUsers: z.number(), totalErrors: z.number(), totalCost: z.number(), data: z.array(z.object({ day: z.string(), events: z.number(), users: z.number(), errors: z.number(), cost: z.number() })) }),
     execute: async (args) => getUsageMetrics(args),
   },
   {
     name: "get_top_endpoints",
     description: "Get top API endpoints by request count",
     inputSchema: { limit: z.number().optional(), dateRange: z.string().optional() },
+    outputSchema: z.object({ endpoints: z.array(z.object({ path: z.string(), requests: z.number(), avgLatency: z.number(), errorRate: z.number() })) }),
     execute: async (args) => getTopEndpoints(args),
   },
   {
     name: "get_resource_breakdown",
     description: "Get resource usage breakdown by type",
     inputSchema: {},
+    outputSchema: z.object({ resources: z.array(z.object({ name: z.string(), events: z.number(), users: z.number(), cost: z.number() })) }),
     execute: async () => getResourceBreakdown(),
   },
   {
     name: "get_error_breakdown",
     description: "Get error breakdown by category",
     inputSchema: {},
+    outputSchema: z.object({ errors: z.array(z.object({ category: z.string(), count: z.number() })) }),
     execute: async () => getErrorBreakdown(),
   },
   {
     name: "get_server_health",
     description: "Get current server health metrics (CPU, memory, latency)",
     inputSchema: {},
+    outputSchema: z.object({ cpu: z.number(), memory: z.number(), latencyP95: z.number(), errorRate: z.number(), timeseries: z.array(z.object({ time: z.string(), cpu: z.number(), memory: z.number(), latencyP95: z.number() })) }),
     execute: async () => getServerHealth(),
   },
   {
     name: "get_customer_segments",
     description: "Get customer segment breakdown",
     inputSchema: {},
+    outputSchema: z.object({ segments: z.array(z.object({ segment: z.string(), customers: z.number(), revenue: z.number() })) }),
     execute: async () => getCustomerSegments(),
   },
   {
     name: "get_sales_summary",
     description: "Get sales summary with revenue and orders",
     inputSchema: { dateRange: z.string().optional(), days: z.string().optional() },
+    outputSchema: z.object({ revenue: z.number(), orders: z.number(), avgOrderValue: z.number(), trend: z.array(z.object({ period: z.string(), revenue: z.number(), orders: z.number() })) }),
     execute: async (args) => getSalesSummary(args),
   },
   {
     name: "get_experiment_results",
     description: "Get A/B experiment results with conversion rates",
     inputSchema: {},
+    outputSchema: z.object({ variants: z.array(z.object({ variant: z.string(), conversionRate: z.number(), users: z.number() })) }),
     execute: async () => getExperimentResults(),
   },
   {
     name: "get_ticket_summary",
     description: "Get support ticket summary and recent tickets",
     inputSchema: {},
+    outputSchema: z.object({ totalOpen: z.number(), totalClosed: z.number(), avgResolutionHours: z.number(), byPriority: z.array(z.object({ priority: z.string(), count: z.number() })), recentTickets: z.array(z.object({ id: z.string(), title: z.string(), priority: z.string(), status: z.string() })) }),
     execute: async () => getTicketSummary(),
   },
   {
     name: "get_geo_usage",
     description: "Get geographic usage breakdown by region",
     inputSchema: {},
+    outputSchema: z.object({ regions: z.array(z.object({ region: z.string(), users: z.number(), events: z.number() })) }),
     execute: async () => getGeoUsage(),
   },
   {
     name: "get_funnel_metrics",
     description: "Get conversion funnel metrics",
     inputSchema: {},
+    outputSchema: z.object({ steps: z.array(z.object({ step: z.string(), users: z.number() })) }),
     execute: async () => getFunnelMetrics(),
   },
   {
     name: "get_inventory_status",
     description: "Get inventory status for all products",
     inputSchema: {},
+    outputSchema: z.object({ items: z.array(z.object({ sku: z.string(), name: z.string(), category: z.string(), stock: z.number(), reorderPoint: z.number(), status: z.string() })) }),
     execute: async () => getInventoryStatus(),
   },
   {
     name: "list_tickets",
     description: "List all tickets. Optionally filter by status.",
     inputSchema: { status: z.string().optional().describe("Filter by status: open, closed") },
+    outputSchema: z.object({ columns: z.array(z.string()), rows: z.array(z.object({ id: z.string(), title: z.string(), priority: z.string(), status: z.string(), created: z.string() })), total: z.number() }),
     execute: async (args) => listTickets(args),
   },
   {
@@ -370,6 +385,7 @@ export const tools: ToolDef[] = [
       title: z.string().describe("Ticket title"),
       priority: z.enum(["low", "medium", "high"]).optional().describe("Priority level"),
     },
+    outputSchema: z.object({ success: z.boolean(), ticket: z.object({ id: z.string(), title: z.string(), priority: z.string(), status: z.string(), created: z.string() }) }),
     execute: async (args) => createTicket(args),
   },
   {
@@ -381,6 +397,7 @@ export const tools: ToolDef[] = [
       priority: z.enum(["low", "medium", "high"]).optional(),
       status: z.enum(["open", "closed", "in_progress"]).optional(),
     },
+    outputSchema: z.object({ success: z.boolean(), ticket: z.object({ id: z.string(), title: z.string(), priority: z.string(), status: z.string() }) }),
     execute: async (args) => updateTicket(args),
   },
 ];
