@@ -9,7 +9,6 @@ const withMDX = createMDX();
 /** @type {import('next').NextConfig} */
 const config = {
   serverExternalPackages: ["@takumi-rs/image-response"],
-  transpilePackages: ["@openuidev/react-ui", "@openuidev/react-lang", "@openuidev/react-headless"],
   turbopack: {
     root: dirname(dirname(__dirname)),
   },

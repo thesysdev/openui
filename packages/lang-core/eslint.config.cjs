@@ -22,6 +22,7 @@ module.exports = [
       "**/__tests__/**/*.{ts,tsx}",
       "**/*.test.{ts,tsx}",
       "**/*.spec.{ts,tsx}",
+      "*.config.ts",
     ],
     languageOptions: {
       parser: typescript,

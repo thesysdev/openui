@@ -8,7 +8,7 @@
     "module": "ESNext",
     "outDir": "./dist",
     "rootDir": "./src",
-    "declaration": true,
+    "noEmit": true,
     "noPropertyAccessFromIndexSignature": false,
     "noUncheckedIndexedAccess": false,
     "noImplicitReturns": false,

@@ -3,19 +3,37 @@
   "version": "0.7.11",
   "description": "Headless React primitives for AI chat — state management, streaming adapters for OpenAI and AG-UI, message format converters, and thread management for OpenUI generative UI apps",
   "license": "MIT",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.cts",
+  "sideEffects": false,
   "files": [
     "dist",
     "README.md"
   ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
   "scripts": {
     "test": "vitest run",
-    "build": "tsc -p .",
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
     "lint:check": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "format:fix": "prettier --write ./src",
     "format:check": "prettier --check ./src",
+    "check:publint": "publint",
+    "check:attw": "attw --pack .",
     "prepare": "pnpm run build",
     "ci": "pnpm run lint:check && pnpm run format:check"
   },

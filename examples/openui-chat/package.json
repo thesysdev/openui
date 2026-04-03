@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "generate:prompt": "pnpm --filter @openuidev/cli build && pnpm exec openui generate src/library.ts --out src/generated/system-prompt.txt",
-    "dev": "pnpm generate:prompt && next dev",
+    "dev": " next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

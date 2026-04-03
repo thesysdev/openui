@@ -1,11 +1,5 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  transpilePackages: [
-    "@openuidev/react-headless",
-    "@openuidev/react-lang",
-    "@openuidev/react-email",
-  ],
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

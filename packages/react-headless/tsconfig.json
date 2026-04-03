@@ -1,10 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "../../tsconfig.json",
+  "include": ["src/**/*"],
   "compilerOptions": {
+    "moduleResolution": "bundler",
+    "module": "ESNext",
     "outDir": "./dist",
     "rootDir": "./src",
-    "declaration": true
+    "noEmit": true
   },
   "exclude": ["vitest.config.ts", "src/**/__tests__", "dist", "node_modules"]
 }

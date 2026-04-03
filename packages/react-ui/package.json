@@ -4,12 +4,19 @@
   "license": "MIT",
   "version": "0.9.20",
   "description": "Component library for Generative UI SDK",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./components.css": {
       "default": "./dist/components/index.css"
@@ -21,8 +28,14 @@
       "default": "./dist/styles/*"
     },
     "./genui-lib": {
-      "types": "./dist/genui-lib/index.d.ts",
-      "default": "./dist/genui-lib/index.js"
+      "import": {
+        "types": "./dist/genui-lib/index.d.ts",
+        "default": "./dist/genui-lib/index.js"
+      },
+      "require": {
+        "types": "./dist/genui-lib/index.d.ts",
+        "default": "./dist/genui-lib/index.cjs"
+      }
     },
     "./tailwind": {
       "types": "./dist/lib/tailwind/tailwind.d.ts",
@@ -51,8 +64,10 @@
     "copy-css": "node cp-css.js",
     "generate-scss-index": "node src/scripts/scss-import.js",
     "generate:css-utils": "tsx src/scripts/generate-css-utils.ts",
-    "build": "rm -rf dist && pnpm generate:css-utils && pnpm build:scss && pnpm build:tsc && pnpm cleanup && pnpm run copy-css",
+    "build": "rm -rf dist && pnpm generate:css-utils && pnpm build:scss && pnpm build:tsc && pnpm build:cjs && pnpm cleanup && pnpm run copy-css",
+    "typecheck": "tsc --noEmit",
     "build:tsc": "tsc -p . || true",
+    "build:cjs": "tsdown",
     "build:scss": "sass src:dist --style compressed --no-source-map",
     "build:plugin": "tsc src/lib/tailwind/tailwind --outDir dist/lib/tailwind --module esnext --allowSyntheticDefaultImports --moduleResolution bundler --declaration",
     "storybook": "storybook dev -p 6006",
@@ -62,6 +77,7 @@
     "lint:fix": "eslint ./src --fix",
     "format:fix": "prettier --write ./src",
     "format:check": "prettier --check ./src",
+    "check:publint": "publint",
     "prepare": "pnpm run build",
     "ci": "pnpm run lint:check && pnpm run format:check"
   },

@@ -20,7 +20,4 @@ export default defineNuxtConfig({
       "@tailwindcss/postcss": {},
     },
   },
-  build: {
-    transpile: ["@openuidev/vue-lang", "@openuidev/lang-core"],
-  },
 });

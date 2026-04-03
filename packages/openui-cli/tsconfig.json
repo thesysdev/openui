@@ -6,10 +6,11 @@
   "compilerOptions": {
     "target": "es2022",
     "lib": ["es2022"],
-    "module": "node16",
-    "moduleResolution": "node16",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "outDir": "./dist",
     "rootDir": "./src",
+    "noEmit": true,
     "types": ["node"]
   }
 }

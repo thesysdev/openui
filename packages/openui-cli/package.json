@@ -1,16 +1,18 @@
 {
   "name": "@openuidev/cli",
   "version": "0.0.6",
+  "type": "module",
   "description": "CLI for OpenUI — scaffold generative UI chat apps and generate LLM system prompts from component libraries",
   "bin": {
-    "openui": "dist/index.js"
+    "openui": "dist/index.mjs"
   },
   "files": [
     "dist",
     "README.md"
   ],
   "scripts": {
-    "build:cli": "tsc -p .",
+    "build:cli": "tsdown",
+    "typecheck": "tsc --noEmit",
     "build:templates": "rm -rf dist/templates/openui-chat && mkdir -p dist/templates && cp -R src/templates/openui-chat dist/templates/openui-chat",
     "build": "pnpm run build:cli && pnpm run build:templates",
     "build:exec": "node dist/index.js",

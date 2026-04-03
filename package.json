@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.1.8",
@@ -17,6 +18,8 @@
     "eslint-plugin-unused-imports": "^4.4.1",
     "prettier": "^3.2.5",
     "prettier-plugin-organize-imports": "^3.2.4",
+    "publint": "^0.3.18",
+    "tsdown": "^0.21.7",
     "typescript": "^5.9.3"
   },
   "keywords": [
