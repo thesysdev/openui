@@ -7,6 +7,10 @@
   gap: cssUtils.$space-s;
   padding: cssUtils.$space-s cssUtils.$space-m;
   border-bottom: 1px solid cssUtils.$border-default;
+  background-color: cssUtils.$foreground;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .openui-artifact-panel__title {

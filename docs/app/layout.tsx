@@ -15,10 +15,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_TITLE = "OpenUI — The Open Standard for Generative UI";
+const SITE_TITLE = "OpenUI - The Open Standard for Generative UI";
 const SITE_DESCRIPTION =
-  "OpenUI is a full-stack Generative UI framework with a compact streaming-first language, a React runtime with built-in components, and ready-to-use chat interfaces—using up to 67% fewer tokens than JSON.";
-const SITE_IMAGE = "/docs/images/home/meta-image.png";
+  "OpenUI is a full-stack Generative UI framework with a compact streaming-first language, a React runtime with built-in components, and ready-to-use chat interfaces - using up to 67% fewer tokens than JSON.";
+const SITE_IMAGE = "/meta-image.png";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

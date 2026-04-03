@@ -3,10 +3,12 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { detectPackageManager } from "../lib/detect-package-manager";
+import { runSkillInstall, shouldInstallSkill } from "../lib/install-skill";
 import { resolveArgs } from "../lib/resolve-args";
 
 export interface CreateChatAppOptions {
   name?: string;
+  skill?: boolean;
   noInteractive?: boolean;
 }
 
@@ -93,6 +95,11 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
     process.exit(1);
   }
 
+  const installSkill = await shouldInstallSkill(options.skill, !options.noInteractive);
+  if (installSkill) {
+    runSkillInstall(targetDir);
+  }
+
   const devCmd =
     runner === "pnpm dlx"
       ? "pnpm"
@@ -102,6 +109,7 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
           ? "bun"
           : "npm";
 
+  let apiKeyWritten = false;
   if (!options.noInteractive) {
     const { input } = await import("@inquirer/prompts");
     const apiKey = (
@@ -112,26 +120,38 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
       const envPath = path.join(targetDir, ".env");
       fs.writeFileSync(envPath, `OPENAI_API_KEY=${apiKey}\n`);
       console.info("\n✅ .env file created with your API key.\n");
-      console.info(`Get started:\n\ncd ${name}\n${devCmd} run dev\n`);
-    } else {
-      console.info(getStartedMessage(name, devCmd));
+      apiKeyWritten = true;
     }
-  } else {
-    console.info(getStartedMessage(name, devCmd));
   }
+
+  console.info(getStartedMessage(name, devCmd, installSkill, apiKeyWritten));
 }
 
-const getStartedMessage = (name: string, devCmd: string) =>
-  `
-Done!
-Get started: 
-
-cd ${name}
-
+const getStartedMessage = (
+  name: string,
+  devCmd: string,
+  skillInstalled: boolean,
+  apiKeyWritten: boolean,
+) => {
+  const envInstructions = apiKeyWritten
+    ? ""
+    : `
 touch .env
 
 Add your API key to .env:
 OPENAI_API_KEY=sk-your-key-here
-
-${devCmd} run dev
 `;
+
+  const skillMessage = skillInstalled
+    ? "\nThe OpenUI agent skill was installed.\nAI coding assistants will use it to help you build with OpenUI.\n"
+    : "";
+
+  return `
+Done!
+Get started:
+
+cd ${name}
+${envInstructions}
+${devCmd} run dev
+${skillMessage}`;
+};

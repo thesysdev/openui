@@ -8,11 +8,16 @@ export { ArtifactContext, useArtifactStore } from "./store/ArtifactContext";
 export { ChatProvider } from "./store/ChatProvider";
 export {
   agUIAdapter,
+  langGraphAdapter,
   openAIAdapter,
   openAIReadableStreamAdapter,
   openAIResponsesAdapter,
 } from "./stream/adapters";
-export { openAIConversationMessageFormat, openAIMessageFormat } from "./stream/formats";
+export {
+  langGraphMessageFormat,
+  openAIConversationMessageFormat,
+  openAIMessageFormat,
+} from "./stream/formats";
 export { processStreamedMessage } from "./stream/processStreamedMessage";
 
 export type { ArtifactActions, ArtifactState } from "./store/artifactTypes";
@@ -44,6 +49,8 @@ export type {
   UserMessage,
 } from "./types/message";
 
+export type { LangGraphAdapterOptions } from "./stream/adapters/langgraph";
+export type { LangGraphMessageFormat } from "./stream/formats/langgraph-message-format";
 export { identityMessageFormat } from "./types/messageFormat";
 export type { MessageFormat } from "./types/messageFormat";
 export { EventType } from "./types/stream";

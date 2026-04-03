@@ -3,7 +3,7 @@
   top: 0;
   z-index: 50;
   width: 100%;
-  padding: 0.75rem 2rem;
+  padding: 0.75rem 1rem;
   background: #fff;
   transition: border-color 0.2s ease;
 }
@@ -180,6 +180,10 @@
 }
 
 @media (min-width: 1024px) {
+  .nav {
+    padding: 0.75rem 2rem;
+  }
+
   .desktopTabs,
   .desktopGithub {
     display: flex;
