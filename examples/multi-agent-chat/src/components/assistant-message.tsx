@@ -32,6 +32,7 @@ function getOpenUiToolOutput(part: UIMessage["parts"][number]): string | null {
   return typeof openuiSpec === "string" ? openuiSpec : null;
 }
 
+
 function isOpenUiToolOutputStreaming(part: UIMessage["parts"][number]): boolean {
   if (!("output" in part)) return false;
   const output = (part as { output?: unknown }).output;
@@ -66,7 +67,10 @@ export function AssistantMessage({ message, onSend }: AssistantMessageProps) {
           const toolState = (tp as { state: string }).state;
           const toolName = getToolName(tp);
           const openUiSpec = getOpenUiToolOutput(tp);
+<<<<<<< HEAD
           const isOpenUiStreaming = isOpenUiToolOutputStreaming(tp);
+=======
+>>>>>>> 5e51dcdf (added multi-agent exampl)
 
           return (
             <div key={(tp as { toolCallId: string }).toolCallId} className="space-y-2">
@@ -92,4 +96,6 @@ export function AssistantMessage({ message, onSend }: AssistantMessageProps) {
       </div>
     </div>
   );
+
 }
+
