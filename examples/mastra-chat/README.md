@@ -1,20 +1,19 @@
 # mastra-chat
 
-An [OpenUI](https://openui.com) example showing how to wire a [Mastra](https://mastra.ai) agent backend to OpenUI's generative UI frontend.
+An [OpenUI](https://openui.com) example showing how to wire a [Mastra](https://mastra.ai) agent backend to OpenUI's generative UI frontend using the [AG-UI protocol](https://docs.ag-ui.com).
 
 ## What this demonstrates
 
-- Using `mastraAdapter` as the `streamProtocol` on OpenUI's `ChatProvider`
-- Using `mastraMessageFormat` to keep the chat history compatible with Mastra's expected message shape
-- A real Mastra `Agent` with `createTool` tools (weather and stock price) running in a Next.js API route
+- Using `agUIAdapter()` as the `streamProtocol` on OpenUI's `<FullScreen />` component
+- A Mastra `Agent` with `createTool` tools (weather and stock price) running in a Next.js API route
+- Streaming AG-UI protocol events from the server to the client via SSE
 
 ## Getting started
 
-1. Copy the example environment file and add your OpenAI key:
+1. Create a `.env.local` file with your OpenAI key:
 
 ```bash
-cp .env.example .env.local
-# then edit .env.local and set OPENAI_API_KEY=sk-...
+echo "OPENAI_API_KEY=sk-..." > .env.local
 ```
 
 2. Install dependencies from the monorepo root:
@@ -33,7 +32,9 @@ Open [http://localhost:3000](http://localhost:3000) to see the chat interface.
 
 ## How it works
 
-The frontend (`src/app/page.tsx`) passes `streamProtocol={mastraAdapter()}` and `mastraMessageFormat` to `<FullScreen />`. Mastra handles the agentic loop (including multi-step tool calls) on the server, and the adapter converts the AI SDK SSE stream into OpenUI's internal event format.
+The server (`src/app/api/chat/route.ts`) wraps a Mastra `Agent` with `@ag-ui/mastra`'s `MastraAgent`, which emits AG-UI protocol events. These events are serialized as SSE and streamed to the client.
+
+The frontend (`src/app/page.tsx`) uses `agUIAdapter()` from `@openuidev/react-headless` as the `streamProtocol` for the `<FullScreen />` component. The adapter parses the SSE stream into internal chat events that drive the UI.
 
 To add more tools, define them with `createTool` in `src/app/api/chat/route.ts` and pass them to the `Agent`.
 
@@ -41,3 +42,4 @@ To add more tools, define them with `createTool` in `src/app/api/chat/route.ts` 
 
 - [OpenUI documentation](https://openui.com/docs)
 - [Mastra documentation](https://mastra.ai/docs)
+- [AG-UI protocol](https://docs.ag-ui.com)
