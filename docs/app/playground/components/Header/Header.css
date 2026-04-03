@@ -17,14 +17,55 @@
   height: 56px;
 }
 
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: center;
+}
+
 .header-title {
   font-size: 13px;
   font-weight: 500;
   color: rgba(0, 0, 0, 0.4);
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  justify-self: center;
   white-space: nowrap;
+}
+
+.header-github-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 6px;
+  border-radius: 20px;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+}
+
+.header-disconnect-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #15803d;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+.header-disconnect-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .header-left {

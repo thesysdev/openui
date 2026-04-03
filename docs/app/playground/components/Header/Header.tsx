@@ -15,9 +15,11 @@ type HeaderProps = {
   onThemeToggle: () => void;
   hasApiKey: boolean;
   onChangeKey: () => void;
+  githubUsername?: string | null;
+  onDisconnect?: () => void;
 };
 
-export function Header({ theme, onThemeToggle, hasApiKey, onChangeKey }: HeaderProps) {
+export function Header({ theme, onThemeToggle, hasApiKey, onChangeKey, githubUsername, onDisconnect }: HeaderProps) {
   const themeLabel = { system: "System", light: "Light", dark: "Dark" }[theme];
   const [isLogoHovered, setIsLogoHovered] = useState(false);
 

@@ -72,30 +72,54 @@ export type ValidationErrorCode =
   | "missing-required"
   | "null-required"
   | "unknown-component"
-  | "excess-args";
-
-/**
- * Structured error from the parser.
- */
-export type OpenUIError = {
-  type: "validation";
-  code: ValidationErrorCode;
-  component: string;
-  path: string;
-  message: string;
-};
+  | "excess-args"
+  | "inline-reserved";
 
 /**
  * A prop validation error. Components with missing required props are
  * dropped from the output tree and errors are recorded here.
  */
 export interface ValidationError {
+  /** Machine-readable error code. */
+  code: ValidationErrorCode;
   /** Component type name, e.g. "Header", "BarChart". */
   component: string;
   /** JSON Pointer path within the props object, e.g. "/title", "". */
   path: string;
   /** Human-readable error message. */
   message: string;
+  /** Statement name that triggered the error (e.g. "header", "chart"). */
+  statementId?: string;
+}
+
+/**
+ * Error sources across the openui-lang pipeline.
+ */
+export type OpenUIErrorSource = "parser" | "runtime" | "query" | "mutation";
+
+/**
+ * Structured, LLM-friendly error from the openui-lang pipeline.
+ *
+ * Designed for an automated correction loop: send these to the LLM so it can
+ * generate patches. Only includes errors that are fixable by changing the
+ * openui-lang code — transient streaming errors, network failures, and tool
+ * execution errors are excluded.
+ */
+export interface OpenUIError {
+  /** Where the error originated. */
+  source: OpenUIErrorSource;
+  /** Machine-readable error code (e.g. "unknown-component", "tool-not-found"). */
+  code: string;
+  /** Human/LLM-readable description of what went wrong. */
+  message: string;
+  /** Statement name (e.g. "header", "metrics") — tells the LLM which statement to patch. */
+  statementId?: string;
+  /** Component type name (e.g. "BarChart", "Query"). */
+  component?: string;
+  /** Prop path (e.g. "/title"). */
+  path?: string;
+  /** Actionable fix context for the LLM (e.g. available components, correct signature). */
+  hint?: string;
 }
 
 /**

@@ -14,8 +14,8 @@ export const CheckBoxItemSchema = z.object({
 export function createCheckBoxGroupSchema(CheckBoxItem: RefComponent) {
   return z.object({
     name: z.string(),
-    value: reactive(z.record(z.string(), z.boolean()).optional()),
     items: z.array(CheckBoxItem.ref),
     rules: rulesSchema,
+    value: reactive(z.record(z.string(), z.boolean()).optional()),
   });
 }

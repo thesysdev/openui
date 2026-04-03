@@ -13,8 +13,8 @@ export const SwitchItemSchema = z.object({
 export function createSwitchGroupSchema(SwitchItem: RefComponent) {
   return z.object({
     name: z.string(),
-    value: reactive(z.record(z.string(), z.boolean()).optional()),
     items: z.array(SwitchItem.ref),
     variant: z.enum(["clear", "card", "sunk"]).optional(),
+    value: reactive(z.record(z.string(), z.boolean()).optional()),
   });
 }

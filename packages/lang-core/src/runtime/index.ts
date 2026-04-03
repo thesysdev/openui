@@ -11,7 +11,7 @@ export type {
   QueryManager,
   QueryNode,
   QuerySnapshot,
-  Transport,
+  ToolProvider,
 } from "./queryManager";
 
 export { evaluateElementProps } from "./evaluate-tree";
@@ -20,5 +20,7 @@ export type { EvalContext } from "./evaluate-tree";
 export { resolveStateField } from "./state-field";
 export type { InferStateFieldValue, StateField } from "./state-field";
 
-export { createMcpTransport } from "./mcp-transport";
-export type { McpClientLike, McpConnection, McpTool, McpTransportConfig } from "./mcp-transport";
+export { connectMcp } from "./mcp";
+export type { McpClientLike, McpConnection, McpConnectionConfig, McpTool } from "./mcp";
+
+export { ToolNotFoundError } from "./toolProvider";

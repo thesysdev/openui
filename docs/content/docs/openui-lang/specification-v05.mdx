@@ -1,0 +1,156 @@
+---
+title: v0.5 (Latest)
+description: Full language specification for OpenUI Lang v0.5 — reactive state, queries, mutations, and built-in functions.
+---
+
+OpenUI Lang v0.5 extends the [v0.1 specification](/docs/openui-lang/specification-v01) with reactive state, data fetching, and built-in functions. See the [Evolution Guide](/docs/openui-lang/evolution-guide) to understand how the language evolved from static UI generation to interactive apps.
+
+## Syntax Overview
+
+The language consists of **assignment statements** — one per line.
+
+```text
+identifier = Expression
+```
+
+Three types of statements:
+
+| Statement | Syntax | Example |
+|-----------|--------|---------|
+| Component | `name = Component(args...)` | `header = CardHeader("Title")` |
+| State declaration | `$name = defaultValue` | `$days = "7"` |
+| Data statement | `name = Query(...)` / `name = Mutation(...)` | `data = Query("tool", {}, {rows: []})` |
+
+## Expressions & Types
+
+| Type | Syntax | Example |
+|------|--------|---------|
+| Component call | `Type(arg1, arg2)` | `Header("Title", "Subtitle")` |
+| Built-in call | `@Name(args)` | `@Count(data.rows)` |
+| String | `"text"` | `"Hello"` |
+| Number | `123`, `12.5`, `-5` | `42` |
+| Boolean | `true` / `false` | `true` |
+| Null | `null` | `null` |
+| Array | `[a, b, c]` | `["Jan", "Feb"]` |
+| Object | `{key: val}` | `{sql: "SELECT *"}` |
+| Reference | `identifier` | `myHeader` |
+| State ref | `$identifier` | `$days` |
+| Member access | `a.b.c` | `data.rows.title` |
+| Ternary | `cond ? a : b` | `$show ? form : null` |
+| Binary ops | `a + b`, `a == b` | `"" + $days + " days"` |
+
+### Binary operators
+
+| Category | Operators |
+|----------|-----------|
+| Arithmetic | `+` |
+| Comparison | `==`, `!=`, `>`, `<`, `>=`, `<=` |
+| Logical | `&&`, `\|\|` |
+
+### Member access and array pluck
+
+`data.rows.title` on an array extracts the `title` field from every element — column pluck.
+
+```text
+data = Query("list", {}, {rows: []})
+tbl = Table([Col("Title", data.rows.title)])   // plucks title from each row
+kpi = TextContent("" + data.total)              // access a single field
+```
+
+## Core Rules
+
+1. **One statement per line:** `identifier = Expression`
+2. **Root entry point:** `root = RootComponent([children])`. If missing, nothing renders.
+3. **Top-down generation:** Layout → Components → Data for progressive streaming.
+4. **Positional arguments:** Mapped to props by Zod schema key order.
+5. **Forward references allowed:** `root = Stack([chart])` can appear before `chart = ...` is defined.
+6. **Positional only:** Write `Stack([children], "row", "l")` NOT `Stack([children], direction: "row", gap: "l")`.
+
+## Reactive State (`$variables`)
+
+Declare with `$name = default`:
+
+```text
+$days = "7"
+$title = ""
+$showEdit = false
+```
+
+Two-way binding: passing `$days` to `Select("days", $days, [...])` binds the variable to the input. User changes → variable updates → all expressions referencing it re-evaluate.
+
+## Built-in Functions
+
+All built-in functions use the `@` prefix. Using bare names (`Count(...)`) is **not supported** — only `@Count(...)`.
+
+### Data builtins
+
+| Function | Signature |
+|----------|-----------|
+| `@Count` | `@Count(array) → number` |
+| `@Sum` | `@Sum(numbers[]) → number` |
+| `@Avg` | `@Avg(numbers[]) → number` |
+| `@Min` | `@Min(numbers[]) → number` |
+| `@Max` | `@Max(numbers[]) → number` |
+| `@First` | `@First(array) → element` |
+| `@Last` | `@Last(array) → element` |
+| `@Filter` | `@Filter(array, field, op, value) → filtered array` |
+| `@Sort` | `@Sort(array, field, direction?) → sorted array` |
+| `@Round` | `@Round(number, decimals?) → number` |
+| `@Abs` | `@Abs(number) → number` |
+| `@Floor` | `@Floor(number) → number` |
+| `@Ceil` | `@Ceil(number) → number` |
+
+### Iteration
+
+`@Each(array, varName, template)` — render template for each element. Loop variable is only available inline.
+
+### Action steps (inside `Action([...])`)
+
+| Step | Description |
+|------|-------------|
+| `@Run(ref)` | Execute a Mutation or re-fetch a Query |
+| `@Set($var, value)` | Set a `$variable` to a value |
+| `@Reset($var1, $var2)` | Restore `$variables` to declared defaults |
+| `@ToAssistant("msg")` | Send message to the LLM |
+| `@OpenUrl("url")` | Open URL in new tab |
+
+## Query and Mutation
+
+### Query (read data)
+
+```text
+data = Query("tool_name", {arg: value}, {rows: []}, 30)
+```
+
+| Position | Type | Description |
+|----------|------|-------------|
+| 1 | string | Tool name |
+| 2 | object | Arguments (can reference `$variables`) |
+| 3 | object | Defaults (renders before data arrives) |
+| 4 | number (optional) | Refresh interval in seconds |
+
+Queries execute on load. When `$variables` in args change, the query re-fetches automatically.
+
+### Mutation (write data)
+
+```text
+result = Mutation("tool_name", {title: $title})
+```
+
+Mutations do NOT execute on load. Triggered via `@Run(result)` inside an `Action`.
+
+### Action composition
+
+```text
+submitBtn = Button("Create", Action([@Run(mutation), @Run(query), @Reset($title)]))
+```
+
+Steps execute in order. If `@Run(mutation)` fails, remaining steps are skipped.
+
+## Component Resolution
+
+Positional arguments map to named props via Zod schema key order. See [v0.1 spec](/docs/openui-lang/specification-v01#component-resolution) for the full mapping logic.
+
+## Streaming & Hoisting
+
+Forward references are allowed. See [v0.1 spec](/docs/openui-lang/specification-v01#streaming--hoisting) for details.

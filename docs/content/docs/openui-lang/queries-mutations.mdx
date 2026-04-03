@@ -1,0 +1,127 @@
+---
+title: Queries & Mutations
+description: Fetch and write data from your tools — the LLM generates the wiring, the runtime executes it.
+---
+
+OpenUI Lang connects to your backend through **tools**. A tool is any function your server
+exposes — a database query, an API call, a calculation. The LLM generates `Query` and `Mutation`
+statements that call these tools. The runtime executes them directly and feeds the results into your UI.
+
+## Reading data with Query
+
+```text
+data = Query("list_tickets", {}, {rows: []})
+```
+
+What each argument means:
+
+1. `"list_tickets"` — the tool name (matches what your server exposes)
+2. `{}` — arguments to pass to the tool
+3. `{rows: []}` — default value (what renders before the tool responds)
+
+The default value is important — it lets the UI render immediately while data loads.
+
+## Using Query results
+
+Query results are just data. Access fields with dot notation:
+
+```text
+tbl = Table([Col("Title", data.rows.title), Col("Status", data.rows.status)])
+chart = LineChart(data.rows.day, [Series("Views", data.rows.views)])
+```
+
+`data.rows.title` extracts the `title` field from every row — like a column pluck.
+
+## Reactive queries
+
+Pass a `$variable` in the query args — the query re-runs when the variable changes:
+
+```text
+$days = "7"
+data = Query("analytics", {days: $days}, {rows: []})
+filter = Select("days", $days, [SelectItem("7", "7 days"), SelectItem("30", "30 days")])
+```
+
+User picks "30" → `$days` updates → Query re-fetches with `{days: "30"}` → chart updates.
+
+## Auto-refresh
+
+Add a fourth argument for periodic refresh (in seconds):
+
+```text
+health = Query("get_server_health", {}, {cpu: 0, memory: 0}, 30)
+```
+
+This re-fetches every 30 seconds — great for monitoring dashboards.
+
+## Writing data with Mutation
+
+```text
+createResult = Mutation("create_ticket", {title: $title, priority: $priority})
+```
+
+Mutations are NOT executed on page load. They only run when triggered by `@Run`:
+
+```text
+submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Reset($title)]))
+```
+
+This button does three things in order:
+
+1. `@Run(createResult)` — executes the mutation (creates the ticket)
+2. `@Run(tickets)` — re-fetches the tickets query (refreshes the table)
+3. `@Reset($title)` — clears the form
+
+## Error handling
+
+Check `result.status` for mutation feedback:
+
+```text
+createResult.status == "error" ? Callout("error", "Failed", createResult.error) : null
+createResult.status == "success" ? Callout("success", "Created", "Ticket added.") : null
+```
+
+## How tools connect to the runtime
+
+```
+  openui-lang code                    Runtime                        Your Tools
+  ┌──────────────────┐     ┌────────────────────────┐     ┌──────────────────────┐
+  │ tickets = Query( │     │ Parser extracts Query   │     │ toolProvider         │
+  │   "list_tickets",│────▶│ nodes at parse time     │────▶│   .callTool(         │
+  │   {},            │     │                          │     │     "list_tickets",  │
+  │   {rows: []}     │     │ QueryManager evaluates   │     │     {}               │
+  │ )                │     │ args, calls toolProvider │     │   )                  │
+  └──────────────────┘     └────────────┬─────────────┘     └──────────┬───────────┘
+                                        │                              │
+                                        │◀──── { rows: [...data] } ────┘
+                                        │
+                                        ▼
+                              Components render with
+                              live data from results
+```
+
+`[placeholder image: Data flow diagram — Parser extracts Query/Mutation nodes from openui-lang code → Runtime calls toolProvider.callTool("list_tickets", {}) → Your MCP server executes the tool → Data flows back → Components render with live results]`
+
+The Renderer accepts a `toolProvider` prop that handles tool execution. Pass an [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) connection or a plain function map:
+
+```tsx
+// MCP connection
+const mcp = await connectMcp({ url: "/api/mcp" });
+<Renderer toolProvider={mcp} response={code} library={library} />
+
+// Or a simple function map
+<Renderer toolProvider={{
+  list_tickets: async (args) => fetch('/api/tickets').then(r => r.json()),
+}} response={code} library={library} />
+```
+
+## Next steps
+
+<Cards>
+  <Card title="Incremental Editing" href="/docs/openui-lang/incremental-editing">
+    Edit existing UIs — the LLM patches only what changed.
+  </Card>
+  <Card title="Built-in Functions" href="/docs/openui-lang/builtins">
+    @Count, @Filter, @Sort — transform query results inline.
+  </Card>
+</Cards>

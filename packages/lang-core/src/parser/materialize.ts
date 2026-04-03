@@ -29,6 +29,8 @@ export interface MaterializeCtx {
   unres: string[];
   visited: Set<string>;
   partial: boolean;
+  /** Tracks which statement is currently being materialized (for error attribution). */
+  currentStatementId?: string;
 }
 
 /**
@@ -52,6 +54,8 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
     return { k: "RuntimeRef", n: name, refType };
   }
   ctx.visited.add(name);
+  const prevStatementId = ctx.currentStatementId;
+  ctx.currentStatementId = name;
   try {
     const result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
     // Tag ElementNode with its source statement name
@@ -60,6 +64,7 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
     }
     return result;
   } finally {
+    ctx.currentStatementId = prevStatementId;
     ctx.visited.delete(name);
   }
 }
@@ -230,9 +235,11 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
       // Inline Query/Mutation (not from a statement-level declaration) → validation error
       if (isReservedCall(name)) {
         ctx.errors.push({
+          code: "inline-reserved",
           component: name,
           path: "",
           message: `${name}() must be declared as a top-level statement, not used inline as a value`,
+          statementId: ctx.currentStatementId,
         });
         return null;
       }
@@ -260,13 +267,15 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
           });
           if (stillInvalid.length) {
             for (const p of stillInvalid) {
+              const isNull = p.name in props;
               ctx.errors.push({
+                code: isNull ? "null-required" : "missing-required",
                 component: name,
                 path: `/${p.name}`,
-                message:
-                  p.name in props
-                    ? `required field "${p.name}" cannot be null`
-                    : `missing required field "${p.name}"`,
+                message: isNull
+                  ? `required field "${p.name}" cannot be null`
+                  : `missing required field "${p.name}"`,
+                statementId: ctx.currentStatementId,
               });
             }
             return null;
@@ -276,9 +285,11 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
         // Unknown component: push validation warning, use indexed arg keys for graceful degradation
         if (!isBuiltin(name) && !isReservedCall(name)) {
           ctx.errors.push({
+            code: "unknown-component",
             component: name,
             path: "",
             message: `Unknown component "${name}" — not found in catalog or builtins`,
+            statementId: ctx.currentStatementId,
           });
         }
         for (let i = 0; i < args.length; i++) {

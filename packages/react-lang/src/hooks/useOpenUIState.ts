@@ -10,16 +10,30 @@ import {
   type ActionPlan,
   type EvalContext,
   type EvaluationContext,
+  type OpenUIError,
   type ParseResult,
   type QueryManager,
   type QuerySnapshot,
   type Store,
-  type Transport,
+  type ToolProvider,
 } from "@openuidev/lang-core";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import type { OpenUIContextValue } from "../context";
 import type { Library } from "../library";
+
+/** Build a signature hint like "Header(title*, subtitle, icon)" from JSON schema. */
+function buildSignatureHint(
+  componentName: string,
+  schema: { properties?: Record<string, unknown>; required?: string[] } | undefined,
+): string | undefined {
+  if (!schema?.properties) return undefined;
+  const required = new Set(schema.required ?? []);
+  const params = Object.keys(schema.properties)
+    .map((k) => (required.has(k) ? `${k}*` : k))
+    .join(", ");
+  return `Signature: ${componentName}(${params}) — * marks required`;
+}
 
 /** Unwrap { value, componentType } wrapper from form field entries. Returns raw value. */
 function unwrapFieldValue(v: unknown): unknown {
@@ -41,8 +55,10 @@ export interface UseOpenUIStateOptions {
   onAction?: (event: ActionEvent) => void;
   onStateUpdate?: (state: Record<string, unknown>) => void;
   initialState?: Record<string, any>;
-  /** Transport for Query data fetching — MCP, REST, GraphQL, or any backend. */
-  transport?: Transport | null;
+  /** ToolProvider for Query data fetching — MCP, REST, GraphQL, or any backend. */
+  toolProvider?: ToolProvider | null;
+  /** Callback for structured, LLM-friendly errors. See OpenUIError type. */
+  onError?: (errors: OpenUIError[]) => void;
 }
 
 export interface OpenUIState {
@@ -70,7 +86,8 @@ export function useOpenUIState(
     onAction,
     onStateUpdate,
     initialState,
-    transport,
+    toolProvider,
+    onError,
   }: UseOpenUIStateOptions,
   renderDeep: (value: unknown) => React.ReactNode,
 ): OpenUIState {
@@ -93,8 +110,8 @@ export function useOpenUIState(
 
   // ─── QueryManager ───
   const queryManager = useMemo<QueryManager>(
-    () => createQueryManager(transport ?? null),
-    [transport],
+    () => createQueryManager(toolProvider ?? null),
+    [toolProvider],
   );
 
   useEffect(() => {
@@ -149,9 +166,9 @@ export function useOpenUIState(
   // ─── Evaluate and submit queries ───
   useEffect(() => {
     if (isStreaming) return;
-    if (!result?.queryStatements?.length) return;
 
-    const evaluatedNodes = result.queryStatements.map((qn) => {
+    const queryStmts = result?.queryStatements ?? [];
+    const evaluatedNodes = queryStmts.map((qn) => {
       const relevantDeps: Record<string, unknown> = {};
       if (qn.deps) {
         for (const ref of qn.deps) {
@@ -171,25 +188,26 @@ export function useOpenUIState(
       };
     });
 
+    // Always call — empty array clears removed queries and their errors
     queryManager.evaluateQueries(evaluatedNodes);
   }, [isStreaming, result?.queryStatements, evaluationContext, queryManager, storeSnapshot]);
 
   // ─── Register mutations ───
   useEffect(() => {
     if (isStreaming) return;
-    if (!result?.mutationStatements?.length) {
-      return;
-    }
-    const nodes = result.mutationStatements.map((mn) => ({
+
+    const mutStmts = result?.mutationStatements ?? [];
+    const nodes = mutStmts.map((mn) => ({
       statementId: mn.statementId,
       toolName: mn.toolAST ? (evaluate(mn.toolAST, evaluationContext) as string) : "",
     }));
+    // Always call — empty array clears removed mutations and their errors
     queryManager.registerMutations(nodes);
   }, [isStreaming, result?.mutationStatements, evaluationContext, queryManager]);
 
   // ─── Ref for stable callbacks ───
-  const propsRef = useRef({ onAction, onStateUpdate });
-  propsRef.current = { onAction, onStateUpdate };
+  const propsRef = useRef({ onAction, onStateUpdate, onError });
+  propsRef.current = { onAction, onStateUpdate, onError };
 
   const resultRef = useRef(result);
   resultRef.current = result;
@@ -272,9 +290,13 @@ export function useOpenUIState(
       // Legacy action config path (v0.4 compat) — { type?, params? }
       if (action && !("steps" in action)) {
         const actionType = action.type || BuiltinActionType.ContinueConversation;
+        const params = { ...(action.params || {}) };
+        // v0.4 compat — url and context were top-level, not in params
+        if ((action as any).url) params.url = (action as any).url;
+        if ((action as any).context) params.context = (action as any).context;
         handler?.({
           type: actionType,
-          params: action.params || {},
+          params,
           humanFriendlyMessage: userMessage,
           formState: formPayload,
           formName,
@@ -399,6 +421,78 @@ export function useOpenUIState(
   }, [result, evalContext, storeSnapshot, querySnapshot]);
 
   const isQueryLoading = querySnapshot.__openui_loading.length > 0;
+
+  // ─── Collect and fire onError ───
+  const lastErrorKeyRef = useRef<string>("");
+  useEffect(() => {
+    if (isStreaming) {
+      // Clear stale errors from previous session so the correction loop
+      // gets a clean signal when this streaming session completes.
+      if (lastErrorKeyRef.current !== "") {
+        lastErrorKeyRef.current = "";
+        propsRef.current.onError?.([]);
+      }
+      return;
+    }
+    const errors: OpenUIError[] = [];
+
+    // Parse failure — response exists but produced no renderable root
+    if (response && !result?.root) {
+      errors.push({
+        source: "parser",
+        code: "parse-failed",
+        message: result
+          ? "Code parsed but produced no renderable root component"
+          : "Response could not be parsed as valid openui-lang",
+        hint: "The entire response must be valid openui-lang code starting with root = RootComponent(...)",
+      });
+    }
+
+    // Parser validation errors → OpenUIError
+    if (result?.meta.validationErrors.length) {
+      const componentNames = Object.keys(library.components);
+      const jsonSchema = library.toJSONSchema();
+      for (const ve of result.meta.validationErrors) {
+        const error: OpenUIError = {
+          source: "parser",
+          code: ve.code,
+          message: ve.message,
+          component: ve.component,
+          path: ve.path || undefined,
+          statementId: ve.statementId,
+        };
+        // Enrich with hints based on error code
+        if (ve.code === "unknown-component" && componentNames.length) {
+          error.hint = `Available components: ${componentNames.join(", ")}`;
+        } else if (ve.code === "missing-required" || ve.code === "null-required") {
+          error.hint = buildSignatureHint(ve.component, jsonSchema.$defs?.[ve.component]);
+        } else if (ve.code === "inline-reserved") {
+          error.hint = `Declare as a top-level statement: myVar = ${ve.component}(...)`;
+        }
+        errors.push(error);
+      }
+    }
+
+    // Query/mutation tool errors
+    const qErrors = querySnapshot.__openui_errors ?? [];
+    for (const qe of qErrors) {
+      errors.push({
+        source: qe.source,
+        code: qe.code,
+        message: qe.message,
+        statementId: qe.statementId,
+        component: qe.source === "query" ? "Query" : "Mutation",
+        hint: qe.hint,
+      });
+    }
+
+    // Deduplicate — only fire when errors actually change
+    const key = JSON.stringify(errors);
+    if (key === lastErrorKeyRef.current) return;
+    lastErrorKeyRef.current = key;
+
+    propsRef.current.onError?.(errors);
+  }, [isStreaming, result?.meta.validationErrors, querySnapshot, library]);
 
   return { result: evaluatedResult, parseResult: result, contextValue, isQueryLoading };
 }

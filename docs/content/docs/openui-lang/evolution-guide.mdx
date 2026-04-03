@@ -1,0 +1,119 @@
+---
+title: Evolution Guide
+description: How OpenUI Lang evolved from static UI generation to interactive, data-driven apps.
+---
+
+## v0.1 → v0.5
+
+OpenUI Lang started as a way to generate static UI from LLM output — a token-efficient alternative to JSON for rendering chat responses. v0.5 turns it into a language for building **standalone interactive apps** that run independently of the LLM.
+
+## The shift
+
+| | v0.1 | v0.5 |
+|--|------|------|
+| **Purpose** | Generate UI responses in chat | Build interactive apps with live data |
+| **Data** | Hardcoded in the output | Fetched from your tools via `Query` / `Mutation` |
+| **State** | None — static render | Reactive `$variables` with two-way binding |
+| **Interactivity** | Send message back to LLM | Buttons call tools directly via `@Run`, update state via `@Set` |
+| **LLM role** | Generates UI on every turn | Generates UI once, then gets out of the way |
+| **Data transforms** | None | `@Count`, `@Filter`, `@Sort`, `@Each`, `@Sum`, etc. |
+| **Components** | Layout + content | + `Modal`, auto-dismiss `Callout` |
+
+## From chat response to standalone app
+
+### v0.1: Static UI generation
+
+The LLM generates a component tree. It renders once. User wants changes? Ask the LLM again.
+
+```text
+root = Stack([header, chart])
+header = CardHeader("Q4 Revenue")
+chart = BarChart(["Oct", "Nov", "Dec"], [Series("Revenue", [120, 150, 180])])
+```
+
+Data is hardcoded. No interactivity beyond clicking a button to send a message back to the LLM.
+
+### v0.5: Interactive app with live data
+
+The LLM generates code that **connects to your tools**. The runtime fetches data, handles user interactions, and updates the UI — all without going back to the LLM.
+
+```text
+$days = "7"
+filter = Select("days", $days, [SelectItem("7", "7 days"), SelectItem("30", "30 days")])
+data = Query("analytics", {days: $days}, {rows: []})
+chart = LineChart(data.rows.day, [Series("Revenue", data.rows.revenue)])
+kpi = Card([TextContent("Total", "small"), TextContent("" + @Sum(data.rows.revenue), "large-heavy")])
+root = Stack([CardHeader("Revenue Dashboard"), filter, Stack([kpi], "row"), chart])
+```
+
+What's different:
+- `$days` is reactive state — user changes the Select, chart updates
+- `Query("analytics", {days: $days})` fetches live data from your MCP tools
+- `@Sum(data.rows.revenue)` computes the KPI from live data
+- No LLM roundtrip when the user changes the filter
+
+## What v0.5 adds
+
+### Reactive state
+
+Declare variables, bind them to inputs, reference them in expressions. Everything updates automatically.
+
+```text
+$search = ""
+searchBox = Input("search", $search, "Search...")
+filtered = @Filter(data.rows, "title", "contains", $search)
+```
+
+See [Reactive State](/docs/openui-lang/reactive-state).
+
+### Data fetching
+
+`Query` reads data from your tools. `Mutation` writes. The runtime calls your MCP endpoint directly — no LLM involved.
+
+```text
+tickets = Query("list_tickets", {}, {rows: []})
+createResult = Mutation("create_ticket", {title: $title})
+```
+
+See [Queries & Mutations](/docs/openui-lang/queries-mutations).
+
+### Built-in functions
+
+`@`-prefixed functions for transforming data inline: `@Count`, `@Filter`, `@Sort`, `@Sum`, `@Each`, `@Round`, and more.
+
+```text
+openCount = @Count(@Filter(tickets.rows, "status", "==", "open"))
+sorted = @Sort(tickets.rows, "created", "desc")
+```
+
+See [Built-in Functions](/docs/openui-lang/builtins).
+
+### Action composition
+
+Buttons can run mutations, refresh queries, set state, and reset forms — all in a single action.
+
+```text
+submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Set($success, true), @Reset($title)]))
+```
+
+### Reactive component props (`$binding`)
+
+Components can accept `$variables` as props for reactive binding. For example, a Modal's `open` prop or a Callout's `visible` prop can be bound to a `$variable` — the component reads and writes the variable directly.
+
+This is a library-level feature (component authors use `useStateField`), not a language change. The language just passes the `$variable` as a positional argument.
+
+### Incremental editing
+
+LLM outputs only changed statements. The parser merges by name — existing code stays intact.
+
+See [Incremental Editing](/docs/openui-lang/incremental-editing).
+
+## What stayed the same
+
+The core language is unchanged:
+- Line-oriented assignment syntax: `identifier = Expression`
+- Positional arguments mapped by Zod schema key order
+- Forward references and streaming-first rendering
+- Component resolution and validation
+
+v0.5 is a superset — all v0.1 code is valid v0.5 code.

@@ -1,13 +1,13 @@
 "use client";
 
 import "@openuidev/react-ui/components.css";
-import { Renderer, createMcpTransport, mergeStatements } from "@openuidev/react-lang";
-import type { Transport, McpConnection } from "@openuidev/react-lang";
+import { Renderer, connectMcp, mergeStatements } from "@openuidev/react-lang";
+import type { ToolProvider, McpConnection } from "@openuidev/react-lang";
 import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ThemeProvider, MarkDownRenderer } from "@openuidev/react-ui";
 
-// ── MCP Transport with tool call tracking ────────────────────────────────────
+// ── MCP ToolProvider with tool call tracking ────────────────────────────────
 
 type ToolCallEntry = { tool: string; status: "pending" | "done" | "error" };
 type ToolCallListener = (calls: ToolCallEntry[]) => void;
@@ -19,7 +19,7 @@ function notifyToolCalls() {
   toolCallListener?.([...activeCalls]);
 }
 
-function wrapTransport(inner: Transport): Transport {
+function wrapToolProvider(inner: ToolProvider): ToolProvider {
   return {
     callTool: async (toolName, args) => {
       const entry: ToolCallEntry = { tool: toolName, status: "pending" };
@@ -227,16 +227,16 @@ export default function LLMTestPage() {
   const responseRef = useRef("");
   const inputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const [transport, setTransport] = useState<Transport | null>(null);
+  const [toolProvider, setToolProvider] = useState<ToolProvider | null>(null);
   const mcpRef = useRef<McpConnection | null>(null);
 
   // MCP setup
   useEffect(() => {
     let cancelled = false;
-    createMcpTransport({ url: "/api/mcp" }).then((mcp) => {
+    connectMcp({ url: "/api/mcp" }).then((mcp) => {
       if (cancelled) { mcp.disconnect(); return; }
       mcpRef.current = mcp;
-      setTransport(wrapTransport(mcp.transport));
+      setToolProvider(wrapToolProvider(mcp));
     }).catch((err) => console.error("[mcp] Failed:", err));
     return () => { cancelled = true; mcpRef.current?.disconnect(); };
   }, []);
@@ -470,7 +470,7 @@ export default function LLMTestPage() {
                   response={dashboardCode!}
                   library={openuiLibrary}
                   isStreaming={isStreaming}
-                  transport={transport}
+                  toolProvider={toolProvider}
                   queryLoader={
                     <div style={{
                       position: "absolute", top: 0, left: 0, right: 0, height: "3px",

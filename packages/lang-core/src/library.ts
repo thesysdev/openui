@@ -91,6 +91,10 @@ export interface PromptOptions {
   editMode?: boolean;
   /** Enable inline mode — LLM can respond with text + optional openui-lang fenced code. */
   inlineMode?: boolean;
+  /** Enable Query(), Mutation(), @Run, tool workflow. Default: true if tools provided. */
+  toolCalls?: boolean;
+  /** Enable $variables, @Set, @Reset, interactive filters. Default: true if toolCalls. */
+  bindings?: boolean;
 }
 
 // ─── Zod introspection ──────────────────────────────────────────────────────

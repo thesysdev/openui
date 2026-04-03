@@ -4,7 +4,6 @@ import { rulesSchema } from "../rules";
 
 export const SliderSchema = z.object({
   name: z.string(),
-  value: reactive(z.array(z.number()).optional()),
   variant: z.enum(["continuous", "discrete"]),
   min: z.number(),
   max: z.number(),
@@ -12,4 +11,5 @@ export const SliderSchema = z.object({
   defaultValue: z.array(z.number()).optional(),
   label: z.string().optional(),
   rules: rulesSchema,
+  value: reactive(z.array(z.number()).optional()),
 });

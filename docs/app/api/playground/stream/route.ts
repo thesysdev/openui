@@ -1,24 +1,84 @@
 import { BASE_URL } from "@/lib/source";
+import { generatePrompt, type PromptSpec } from "@openuidev/lang-core";
 import { readFileSync } from "fs";
 import { type NextRequest } from "next/server";
 import { join } from "path";
+import {
+  GITHUB_PREAMBLE,
+  GITHUB_TOOL_EXAMPLES,
+  GITHUB_ADDITIONAL_RULES,
+} from "../../../playground/github/prompt-config";
+import { GITHUB_TOOL_SPECS } from "../../../playground/github/types";
 
-const systemPrompt = readFileSync(
+// ── Static system prompt (generic mode) ────────────────────────────────────
+
+const staticPrompt = readFileSync(
   join(process.cwd(), "generated/playground-system-prompt.txt"),
   "utf-8",
 );
 
-const conversationLog: Array<{ role: string; content: string }> = [];
+// ── Component spec from generated JSON (server-safe, no React) ─────────────
+
+const componentSpec = JSON.parse(
+  readFileSync(
+    join(process.cwd(), "generated/playground-component-spec.json"),
+    "utf-8",
+  ),
+) as PromptSpec;
+
+// ── GitHub system prompt (dynamic) ─────────────────────────────────────────
+
+function buildGitHubPrompt(): string {
+  return generatePrompt({
+    ...componentSpec,
+    tools: GITHUB_TOOL_SPECS,
+    toolExamples: GITHUB_TOOL_EXAMPLES,
+    additionalRules: GITHUB_ADDITIONAL_RULES,
+    preamble: GITHUB_PREAMBLE,
+    editMode: true,
+    inlineMode: true,
+    toolCalls: true,
+    bindings: true,
+  });
+}
+
+let cachedGitHubPrompt: string | null = null;
+function getGitHubPrompt(): string {
+  if (!cachedGitHubPrompt) cachedGitHubPrompt = buildGitHubPrompt();
+  return cachedGitHubPrompt;
+}
+
+// ── Route handler ──────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
-  const { model, prompt } = await req.json();
+  const { model, prompt, dataSource, messages } = await req.json();
 
-  conversationLog.push({ role: "user", content: prompt });
+  const systemPrompt =
+    dataSource === "github" ? getGitHubPrompt() : staticPrompt;
+
+  // Build message array — support multi-turn via messages[]
+  const chatMessages: Array<{ role: string; content: string }> = [
+    { role: "system", content: systemPrompt },
+  ];
+  if (messages && Array.isArray(messages)) {
+    for (const m of messages) {
+      chatMessages.push({ role: m.role, content: m.content });
+    }
+  }
+  chatMessages.push({ role: "user", content: prompt });
+
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    return Response.json(
+      { error: { message: "OPENROUTER_API_KEY not configured" } },
+      { status: 500 },
+    );
+  }
 
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
       "HTTP-Referer": `${BASE_URL}/playground`,
       "X-Title": "OpenUI Playground",
@@ -26,10 +86,7 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify({
       model,
       stream: true,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: prompt },
-      ],
+      messages: chatMessages,
     }),
     signal: req.signal,
   });
@@ -46,43 +103,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const [streamForClient, streamForLog] = res.body!.tee();
-
-  const reader = streamForLog.getReader();
-  const decoder = new TextDecoder();
-  let fullResponse = "";
-  (async () => {
-    let done = false;
-    while (!done) {
-      const result = await reader.read();
-      done = result.done;
-      if (result.value) {
-        const text = decoder.decode(result.value, { stream: true });
-        for (const line of text.split("\n")) {
-          if (line.startsWith("data: ") && line !== "data: [DONE]") {
-            try {
-              const json = JSON.parse(line.slice(6));
-              const content = json.choices?.[0]?.delta?.content;
-              if (content) fullResponse += content;
-            } catch {
-              /* skip non-JSON lines */
-            }
-          }
-        }
-      }
-    }
-    conversationLog.push({ role: "assistant", content: fullResponse });
-    console.info(
-      "[OpenUI Lang] Conversation:\n",
-      JSON.stringify(
-        conversationLog.map((m) => ({ ...m, content: m.content.replace(/\n/g, " ") })),
-        null,
-        2,
-      ),
-    );
-  })();
-
-  return new Response(streamForClient, {
+  return new Response(res.body, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",

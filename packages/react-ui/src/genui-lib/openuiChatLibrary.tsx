@@ -261,7 +261,7 @@ form = Form("contact", btns, [nameField, emailField, msgField])
 nameField = FormControl("Name", Input("name", "Your name", "text", { required: true, minLength: 2 }))
 emailField = FormControl("Email", Input("email", "you@example.com", "email", { required: true, email: true }))
 msgField = FormControl("Message", TextArea("message", "Tell us more...", 4, { required: true, minLength: 10 }))
-btns = Buttons([Button("Submit", Action([ToAssistant("Submit")]), "primary")])`,
+btns = Buttons([Button("Submit", Action([@ToAssistant("Submit")]), "primary")])`,
 ];
 
 export const openuiChatAdditionalRules: string[] = [

@@ -1,0 +1,231 @@
+.conv-panel {
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  min-width: 360px;
+  border-left: 1px solid var(--input-border);
+  background: var(--page-bg);
+}
+
+.conv-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--input-border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.conv-messages {
+  flex: 1;
+  overflow: auto;
+  padding: 12px 16px;
+}
+
+.conv-msg {
+  margin-bottom: 12px;
+}
+
+/* User message */
+.conv-user-bubble {
+  background: var(--surface);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-left: 40px;
+  font-family: var(--font-sans);
+}
+
+/* Assistant message */
+.conv-assistant {
+  margin-right: 20px;
+}
+
+.conv-assistant-bubble {
+  background: var(--surface);
+  border: 1px solid var(--input-border);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+/* Tool call badges */
+.conv-tools-badge {
+  padding: 6px 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-family: var(--font-sans);
+}
+
+.conv-tools-runtime {
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+.conv-tools-live {
+  background: var(--surface);
+  border: 1px solid var(--input-border);
+}
+
+.conv-tools-label {
+  color: #15803d;
+  font-weight: 600;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.conv-tools-label-text {
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 10px;
+}
+
+.conv-tools-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+}
+
+.conv-tool-chip {
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+
+.conv-tool-done {
+  background: rgba(74, 222, 128, 0.12);
+  color: #166534;
+}
+
+.conv-tool-pending {
+  background: rgba(250, 204, 21, 0.12);
+  color: #92400e;
+}
+
+.conv-tool-error {
+  background: rgba(248, 113, 113, 0.12);
+  color: #991b1b;
+}
+
+/* Code badge */
+.conv-code-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  background: rgba(74, 222, 128, 0.1);
+  color: #059669;
+  margin-top: 4px;
+  font-family: var(--font-sans);
+}
+
+.conv-code-updating {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+
+/* Thinking state */
+.conv-thinking {
+  background: var(--surface);
+  border: 1px solid var(--input-border);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #059669;
+  font-family: var(--font-sans);
+}
+
+.conv-empty {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* Input area */
+.conv-input-area {
+  padding: 12px 16px;
+  border-top: 1px solid var(--input-border);
+}
+
+.conv-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.conv-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  transition: border-color 0.15s;
+}
+
+.conv-input:focus {
+  border-color: var(--input-focus-ring);
+}
+
+.conv-send-btn,
+.conv-stop-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.conv-send-btn {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+.conv-send-btn:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
+}
+
+.conv-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.conv-stop-btn {
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--input-border);
+}
+
+.conv-stop-btn:hover {
+  background: var(--surface-hover);
+}
+
+@media (max-width: 768px) {
+  .conv-panel {
+    width: 100%;
+    min-width: 0;
+    border-left: none;
+    border-top: 1px solid var(--input-border);
+    max-height: 300px;
+  }
+}

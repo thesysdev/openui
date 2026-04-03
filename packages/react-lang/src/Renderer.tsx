@@ -1,4 +1,11 @@
-import type { ActionEvent, ElementNode, ParseResult, Transport } from "@openuidev/lang-core";
+import type {
+  ActionEvent,
+  ElementNode,
+  OpenUIError,
+  ParseResult,
+  ToolProvider,
+} from "@openuidev/lang-core";
+import { ToolNotFoundError } from "@openuidev/lang-core";
 import React, { Component, Fragment, useEffect, useInsertionEffect, useRef } from "react";
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
@@ -26,10 +33,20 @@ export interface RendererProps {
   initialState?: Record<string, any>;
   /** Called whenever the parse result changes. */
   onParseResult?: (result: ParseResult | null) => void;
-  /** Transport for Query() data fetching — MCP, REST, GraphQL, or any backend. */
-  transport?: Transport | null;
+  /** ToolProvider for Query()/Mutation() — accepts ToolProvider object, function map, or null. */
+  toolProvider?:
+    | ToolProvider
+    | Record<string, (args: Record<string, unknown>) => Promise<unknown>>
+    | null;
   /** Custom loading indicator shown while queries are fetching. Defaults to a spinner. */
   queryLoader?: React.ReactNode;
+  /**
+   * Called with structured, LLM-friendly errors from the parser and query system.
+   * Only includes errors fixable by changing the openui-lang code (unknown components,
+   * missing required props, tool-not-found). Suitable for an automated LLM correction loop.
+   * Called with [] when all errors are resolved.
+   */
+  onError?: (errors: OpenUIError[]) => void;
 }
 
 // ─── Error boundary ───
@@ -176,8 +193,9 @@ export function Renderer({
   onStateUpdate,
   initialState,
   onParseResult,
-  transport,
+  toolProvider,
   queryLoader,
+  onError,
 }: RendererProps) {
   useInsertionEffect(() => {
     ensureLoadingStyle();
@@ -185,6 +203,28 @@ export function Renderer({
 
   const onParseResultRef = useRef(onParseResult);
   onParseResultRef.current = onParseResult;
+
+  // Stable ToolProvider wrapper — identity never changes, so QueryManager
+  // is created once. callTool() reads the latest input from a ref on every
+  // call, so function map updates, closure changes, and provider swaps
+  // are always observed without triggering re-creation.
+  const toolProviderInputRef = useRef(toolProvider);
+  toolProviderInputRef.current = toolProvider;
+
+  const stableToolProvider = useRef<ToolProvider>({
+    async callTool(toolName: string, args: Record<string, unknown>): Promise<unknown> {
+      const current = toolProviderInputRef.current ?? null;
+      if (current == null) throw new Error("[openui] toolProvider is null");
+      if (typeof (current as any).callTool === "function") {
+        return (current as ToolProvider).callTool(toolName, args);
+      }
+      const map = current as Record<string, (a: Record<string, unknown>) => Promise<unknown>>;
+      const fn = map[toolName];
+      if (!fn) throw new ToolNotFoundError(toolName, Object.keys(map));
+      return fn(args);
+    },
+  });
+  const resolvedToolProvider = toolProvider != null ? stableToolProvider.current : null;
 
   const { result, parseResult, contextValue, isQueryLoading } = useOpenUIState(
     {
@@ -194,7 +234,8 @@ export function Renderer({
       onAction,
       onStateUpdate,
       initialState,
-      transport,
+      toolProvider: resolvedToolProvider,
+      onError,
     },
     renderDeep,
   );

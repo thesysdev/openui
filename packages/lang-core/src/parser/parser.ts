@@ -222,6 +222,7 @@ function buildResult(
     unres,
     visited: new Set(),
     partial: wasIncomplete,
+    currentStatementId: entryId,
   };
   const materialized = materializeValue(syms.get(entryId)!, ctx);
 

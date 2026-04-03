@@ -23,6 +23,7 @@ export type {
   ActionPlan,
   ActionStep,
   ElementNode,
+  OpenUIError,
   ParseResult,
 } from "@openuidev/lang-core";
 
@@ -49,16 +50,16 @@ export {
 } from "./context";
 
 // Runtime — reactive bindings, store, evaluator, query manager, field binding
-export { createMcpTransport, isReactiveAssign } from "@openuidev/lang-core";
+export { ToolNotFoundError, connectMcp, isReactiveAssign } from "@openuidev/lang-core";
 export type {
   EvaluationContext,
   McpClientLike,
   McpConnection,
+  McpConnectionConfig,
   McpTool,
-  McpTransportConfig,
   ReactiveAssign,
   StateField,
-  Transport,
+  ToolProvider,
 } from "@openuidev/lang-core";
 export { reactive } from "./runtime";
 

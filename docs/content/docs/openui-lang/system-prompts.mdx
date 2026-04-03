@@ -49,15 +49,56 @@ const options: PromptOptions = {
 const prompt = openuiLibrary.prompt(options);
 ```
 
+## PromptSpec (advanced)
+
+For data-driven apps, use `PromptSpec` to control which language features the prompt includes:
+
+```ts
+import type { PromptSpec } from "@openuidev/react-lang";
+import componentSpec from "./generated/component-spec.json";
+
+const spec: PromptSpec = {
+  ...componentSpec,
+
+  // Tool descriptions — passed to generatePrompt so the LLM knows what tools exist
+  tools: await mcp.listTools(),
+
+  // Examples showing how to use your tools with Query/Mutation
+  toolExamples: [`tickets = Query("list_tickets", {}, {rows: []})\n...`],
+
+  // Feature flags
+  toolCalls: true,   // Enable Query(), Mutation(), @Run (default: true if tools provided)
+  bindings: true,    // Enable $variables, @Set, @Reset (default: true if toolCalls)
+  editMode: true,    // Enable incremental editing (LLM outputs patches, not full regen)
+  inlineMode: true,  // Enable text + code responses (LLM can answer questions without code)
+
+  // Custom instructions
+  preamble: "You build dashboards using openui-lang.",
+  additionalRules: ["Use @Reset after form submit, not @Set($var, \"\")"],
+};
+```
+
+| Flag | What it enables | Default |
+|------|----------------|---------|
+| `toolCalls` | `Query()`, `Mutation()`, `@Run`, tool workflow rules | `true` if `tools` provided |
+| `bindings` | `$variables`, `@Set`, `@Reset`, reactive filters | `true` if `toolCalls` is true |
+| `editMode` | Incremental editing — LLM outputs only changed statements | `false` |
+| `inlineMode` | Text + fenced code responses — LLM can answer questions without generating UI | `false` |
+
 ## What gets generated
 
 The generated prompt includes:
 
-- syntax rules
-- component signatures (from your registered components)
-- hoisting/streaming rules
-- important output constraints
-- your optional examples/rules
+- Syntax rules and expression types
+- Component signatures (from your registered components)
+- Built-in function reference (`@Count`, `@Filter`, `@Sort`, etc.)
+- Query/Mutation/Action workflow (if `toolCalls` enabled)
+- `$variable` and reactive binding rules (if `bindings` enabled)
+- Tool descriptions and tool examples (if `tools` provided)
+- Edit mode instructions (if `editMode` enabled)
+- Inline mode instructions (if `inlineMode` enabled)
+- Hoisting/streaming rules
+- Your optional examples and rules
 
 ## Important behavior notes
 

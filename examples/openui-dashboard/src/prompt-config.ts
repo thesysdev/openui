@@ -17,7 +17,7 @@ root = Stack([header, controls, kpiRow, chart, topEvents])
 header = CardHeader("Analytics Dashboard", "Live data from PostHog")
 $days = "7"
 controls = Stack([filterRow, refreshBtn], "row", "m", "end", "between")
-filterRow = FormControl("Date Range", Select("days", $days, [r7, r14, r30]))
+filterRow = FormControl("Date Range", Select("days", [r7, r14, r30], null, null, $days))
 refreshBtn = Button("Refresh", Action([@Run(daily), @Run(topEventsData)]), "secondary")
 r7 = SelectItem("7", "Last 7 days")
 r14 = SelectItem("14", "Last 14 days")
@@ -47,14 +47,14 @@ $editId = ""
 createResult = Mutation("create_ticket", {title: $title, priority: $priority})
 tickets = Query("list_tickets", {}, {rows: []})
 submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Set($createSuccess, true), @Reset($title, $priority)]))
-form = Form("create", submitBtn, [FormControl("Title", Input("title", $title, "Description", "text", {required: true})), FormControl("Priority", Select("priority", $priority, [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")]))])
+form = Form("create", submitBtn, [FormControl("Title", Input("title", "Description", "text", {required: true}, $title)), FormControl("Priority", Select("priority", [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")], null, null, $priority))])
 $createSuccess = false
 statusMsg = Callout("success", "Created", "Ticket added.", $createSuccess)
 errorMsg = createResult.status == "error" ? Callout("error", "Failed", createResult.error) : null
 tbl = Table([Col("Title", tickets.rows.title), Col("Priority", @Each(tickets.rows, "t", Tag(t.priority, null, "sm", t.priority == "high" ? "danger" : "neutral"))), Col("Actions", @Each(tickets.rows, "t", Button("Edit", Action([@Set($showEdit, true), @Set($editId, t.id)]))))])
 updateResult = Mutation("update_ticket", {id: $editId, title: $editTitle, priority: $editPriority})
 editBtns = Buttons([Button("Save", Action([@Run(updateResult), @Run(tickets), @Set($showEdit, false)]), "primary"), Button("Cancel", Action([@Set($showEdit, false)]), "secondary")])
-editForm = Form("edit", editBtns, [FormControl("Title", Input("editTitle", $editTitle, "Title", "text", {required: true})), FormControl("Priority", Select("editPriority", $editPriority, [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")]))])
+editForm = Form("edit", editBtns, [FormControl("Title", Input("editTitle", "Title", "text", {required: true}, $editTitle)), FormControl("Priority", Select("editPriority", [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")], null, null, $editPriority))])
 editModal = Modal("Edit Ticket", $showEdit, [editForm])
 root = Stack([CardHeader("Tickets"), form, statusMsg, errorMsg, tbl, editModal])`,
   ],

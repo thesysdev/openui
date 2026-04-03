@@ -38,6 +38,7 @@ export type {
   ElementNode,
   MutationStatementInfo,
   OpenUIError,
+  OpenUIErrorSource,
   ParseResult,
   QueryStatementInfo,
   ValidationError,
@@ -52,26 +53,23 @@ export { evaluateElementProps } from "./runtime/evaluate-tree";
 export type { EvalContext } from "./runtime/evaluate-tree";
 export { evaluate, isReactiveAssign, stripReactiveAssign } from "./runtime/evaluator";
 export type { EvaluationContext, ReactiveAssign } from "./runtime/evaluator";
-export { createMcpTransport } from "./runtime/mcp-transport";
-export type {
-  McpClientLike,
-  McpConnection,
-  McpTool,
-  McpTransportConfig,
-} from "./runtime/mcp-transport";
+export { connectMcp } from "./runtime/mcp";
+export type { McpClientLike, McpConnection, McpConnectionConfig, McpTool } from "./runtime/mcp";
 export { createQueryManager } from "./runtime/queryManager";
 export type {
   MutationNode,
   MutationResult,
+  QueryError,
   QueryManager,
   QueryNode,
   QuerySnapshot,
-  Transport,
+  ToolProvider,
 } from "./runtime/queryManager";
 export { resolveStateField } from "./runtime/state-field";
 export type { InferStateFieldValue, StateField } from "./runtime/state-field";
 export { createStore } from "./runtime/store";
 export type { Store } from "./runtime/store";
+export { ToolNotFoundError } from "./runtime/toolProvider";
 
 // ── Validation ──
 export { builtInValidators, parseRules, parseStructuredRules, validate } from "./utils/validation";

@@ -64,7 +64,7 @@ t = TextContent("Body")
 
 ### How do I inspect what went wrong?
 
-Pass an `onParseResult` callback to `<Renderer />`. Inspect `meta.errors` for schema mismatches and `meta.unresolved` for identifiers that were referenced but never defined.
+Pass an `onParseResult` callback to `<Renderer />`. Inspect `meta.validationErrors` for schema mismatches and `meta.unresolved` for identifiers that were referenced but never defined.
 
 ```tsx
 <Renderer
@@ -73,7 +73,7 @@ Pass an `onParseResult` callback to `<Renderer />`. Inspect `meta.errors` for sc
   isStreaming={isStreaming}
   onParseResult={(result) => {
     if (result) {
-      console.log("Validation errors:", result.meta.errors);
+      console.log("Validation errors:", result.meta.validationErrors);
       console.log("Unresolved refs:", result.meta.unresolved);
     }
   }}
@@ -93,3 +93,75 @@ The parser drops invalid portions and renders everything else. If parts of the U
 - Missing `root` assignment
 - Typos in component names
 - Wrong argument count
+
+---
+
+## v0.5 Issues
+
+### Why doesn't `Count(arr)` work?
+
+Built-in functions require the `@` prefix in v0.5. Use `@Count(arr)`, not `Count(arr)`.
+
+```text
+// Wrong
+count = Count(items)
+
+// Correct
+count = @Count(items)
+```
+
+### Why isn't my Query fetching data?
+
+Check that:
+1. The `toolProvider` prop is set on `<Renderer />`
+2. Your MCP endpoint or function map includes the tool name used in `Query("tool_name", ...)`
+3. The tool name in the code matches exactly (case-sensitive)
+
+### Why is my Modal not opening?
+
+The `$open` variable must be a boolean. Make sure the declaration uses `false`, not `"false"`:
+
+```text
+// Wrong — string, not boolean
+$showEdit = "false"
+
+// Correct
+$showEdit = false
+```
+
+### Query or Mutation used inline
+
+`Query` and `Mutation` must be top-level statements — not inside component arguments.
+
+```text
+// Wrong — Query inside Table
+tbl = Table([Col("Title", Query("list", {}).rows.title)])
+
+// Correct — Query as a separate statement
+data = Query("list", {}, {rows: []})
+tbl = Table([Col("Title", data.rows.title)])
+```
+
+### Using `onError` for structured debugging
+
+The `<Renderer />` accepts an `onError` callback that surfaces structured, LLM-friendly errors:
+
+```tsx
+<Renderer
+  library={library}
+  response={code}
+  toolProvider={tp}
+  onError={(errors) => {
+    for (const e of errors) {
+      console.log(`[${e.source}] ${e.message}`);
+      if (e.hint) console.log(`Hint: ${e.hint}`);
+    }
+  }}
+/>
+```
+
+Error types include:
+- `unknown-component` — wrong component name (hint lists available components)
+- `missing-required` — required prop not provided
+- `inline-reserved` — Query/Mutation used inline instead of top-level
+- `tool-not-found` — Query/Mutation references a tool that doesn't exist (hint lists available tools)

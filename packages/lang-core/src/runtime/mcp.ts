@@ -1,8 +1,8 @@
 /**
- * MCP Transport — connects openui-lang Query() to any MCP server.
+ * MCP ToolProvider — connects openui-lang Query() to any MCP server.
  *
  * Two modes:
- *   1. URL mode: pass a URL, we create the MCP Client + transport internally
+ *   1. URL mode: pass a URL, we create the MCP Client internally
  *   2. Client mode: pass a pre-configured MCP Client
  *
  * Both speak proper MCP protocol (JSON-RPC). Both provide tool discovery
@@ -11,26 +11,21 @@
  * @example
  * ```tsx
  * // Mode 1: URL (we handle everything)
- * const mcp = await createMcpTransport({ url: "https://my-api.com/mcp" });
+ * const mcp = await connectMcp({ url: "https://my-api.com/mcp" });
  *
- * // Mode 2: Pre-configured client (you handle auth, transport choice)
- * import { Client } from "@modelcontextprotocol/sdk/client";
- * import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp";
- * const client = new Client({ name: "my-app", version: "1.0.0" });
- * await client.connect(new StreamableHTTPClientTransport(new URL("https://my-api.com/mcp")));
- * const mcp = await createMcpTransport({ client });
+ * // Mode 2: Pre-configured client
+ * const mcp = await connectMcp({ client: myMcpClient });
  *
- * // Use with Renderer
+ * // Use with Renderer — mcp satisfies ToolProvider directly
  * const tools = await mcp.listTools();
- * const prompt = library.prompt({ tools: tools.map(t => ({ name: t.name, description: t.description })) });
- * <Renderer transport={mcp.transport} library={library} response={content} />
+ * <Renderer toolProvider={mcp} library={library} response={content} />
  *
  * // Cleanup
  * await mcp.disconnect();
  * ```
  */
 
-import type { Transport } from "./queryManager";
+import type { ToolProvider } from "./queryManager";
 
 /** Tool schema from MCP server — used for prompt generation */
 export interface McpTool {
@@ -39,7 +34,7 @@ export interface McpTool {
   inputSchema?: Record<string, unknown>;
 }
 
-export interface McpTransportConfig {
+export interface McpConnectionConfig {
   /** MCP server URL — creates Client + StreamableHTTPClientTransport internally */
   url?: string;
   /** Pre-configured MCP Client instance (from @modelcontextprotocol/sdk) */
@@ -48,10 +43,10 @@ export interface McpTransportConfig {
   headers?: Record<string, string>;
 }
 
-/** Result of createMcpTransport — transport + tool discovery + cleanup */
+/** Result of connectMcp — satisfies ToolProvider directly, plus tool discovery + cleanup */
 export interface McpConnection {
-  /** Transport for Renderer/QueryManager — just callTool() */
-  transport: Transport;
+  /** Satisfies ToolProvider directly — pass to <Renderer toolProvider={mcp} /> */
+  callTool(toolName: string, args: Record<string, unknown>): Promise<unknown>;
   /** Discover available tools for prompt generation */
   listTools(): Promise<McpTool[]>;
   /** Disconnect from MCP server */
@@ -116,23 +111,19 @@ function extractToolResult(result: {
 }
 
 /**
- * Create an MCP connection with transport + tool discovery.
+ * Connect to an MCP server — returns a ToolProvider + tool discovery + cleanup.
  *
  * @param config - URL or pre-configured MCP Client
- * @returns McpConnection with transport, listTools(), and disconnect()
+ * @returns McpConnection (satisfies ToolProvider directly)
  */
-export async function createMcpTransport(config: McpTransportConfig): Promise<McpConnection> {
+export async function connectMcp(config: McpConnectionConfig): Promise<McpConnection> {
   let client: McpClientLike;
   let ownsClient = false;
 
   if (config.client) {
-    // Mode 2: User provides pre-configured client
     client = config.client;
   } else if (config.url) {
-    // Mode 1: Create client + transport from URL
     try {
-      // Dynamic import — @modelcontextprotocol/sdk is an optional peer dep
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const clientMod = await import("@modelcontextprotocol/sdk/client/index.js");
       const transportMod = await import("@modelcontextprotocol/sdk/client/streamableHttp.js");
       const { Client } = clientMod;
@@ -142,28 +133,27 @@ export async function createMcpTransport(config: McpTransportConfig): Promise<Mc
       const base =
         typeof globalThis.location !== "undefined" ? globalThis.location.href : undefined;
       const url = new URL(config.url, base);
-      const transportOpts: Record<string, unknown> = {};
+      const connectOpts: Record<string, unknown> = {};
       if (config.headers) {
-        transportOpts.requestInit = { headers: config.headers };
+        connectOpts.requestInit = { headers: config.headers };
       }
-      const mcpTransport = new StreamableHTTPClientTransport(url, transportOpts);
+      const mcpTransport = new StreamableHTTPClientTransport(url, connectOpts);
       await mcpClient.connect(mcpTransport);
 
       client = mcpClient as unknown as McpClientLike;
       ownsClient = true;
     } catch (err: any) {
       throw new Error(
-        `Failed to create MCP transport. Make sure @modelcontextprotocol/sdk is installed:\n` +
+        `Failed to connect to MCP server. Make sure @modelcontextprotocol/sdk is installed:\n` +
           `  pnpm add @modelcontextprotocol/sdk\n\n` +
           `Original error: ${err.message}`,
       );
     }
   } else {
-    throw new Error("createMcpTransport requires either { url } or { client }");
+    throw new Error("connectMcp requires either { url } or { client }");
   }
 
-  // Build the Transport interface for QueryManager
-  const transport: Transport = {
+  const toolProvider: ToolProvider = {
     async callTool(toolName: string, args: Record<string, unknown>): Promise<unknown> {
       const result = await client.callTool({ name: toolName, arguments: args });
       return extractToolResult(result);
@@ -171,7 +161,7 @@ export async function createMcpTransport(config: McpTransportConfig): Promise<Mc
   };
 
   return {
-    transport,
+    callTool: toolProvider.callTool.bind(toolProvider),
 
     async listTools(): Promise<McpTool[]> {
       const allTools: McpTool[] = [];
@@ -185,7 +175,7 @@ export async function createMcpTransport(config: McpTransportConfig): Promise<Mc
         allTools.push(...result.tools);
         cursor = result.nextCursor;
         if (cursor) {
-          if (seenCursors.has(cursor)) break; // cursor loop detected
+          if (seenCursors.has(cursor)) break;
           seenCursors.add(cursor);
         }
       } while (cursor);

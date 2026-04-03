@@ -2,29 +2,33 @@
 // Query Manager — reactive data fetching for openui-lang
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { ToolNotFoundError } from "./toolProvider";
+
 /**
- * Transport interface for Query() and Mutation() tool calls.
+ * ToolProvider interface for Query() and Mutation() tool calls.
  * Framework-agnostic — works with MCP, REST, GraphQL, or any backend.
  *
  * @example
  * ```ts
  * // MCP
- * const transport: Transport = createMcpTransport({ url: "https://api.com/mcp/sse" });
+ * const tp = await connectMcp({ url: "https://api.com/mcp" });
  *
- * // REST
- * const transport: Transport = {
- *   callTool: (name, args) => fetch(`/api/${name}`, { method: "POST", body: JSON.stringify(args) }).then(r => r.json()),
- * };
+ * // Function map (Renderer normalizes this automatically)
+ * <Renderer toolProvider={{
+ *   get_users: (args) => fetch(`/api/users`).then(r => r.json()),
+ * }} />
  *
- * // Mock
- * const transport: Transport = {
+ * // Direct implementation
+ * const tp: ToolProvider = {
  *   callTool: async (name, args) => ({ items: [{ id: 1, name: "Test" }] }),
  * };
  * ```
  */
-export interface Transport {
+export interface ToolProvider {
   callTool(toolName: string, args: Record<string, unknown>): Promise<unknown>;
 }
+
+// ── Public types ─────────────────────────────────────────────────────────────
 
 export interface QueryNode {
   statementId: string;
@@ -49,36 +53,68 @@ export interface MutationResult {
   error?: unknown;
 }
 
+export interface QueryError {
+  source: "query" | "mutation";
+  statementId: string;
+  toolName: string;
+  code: string;
+  message: string;
+  hint?: string;
+}
+
 export interface QuerySnapshot extends Record<string, unknown> {
   __openui_loading: string[];
   __openui_refetching: string[];
+  __openui_errors: QueryError[];
 }
 
 export interface QueryManager {
   evaluateQueries(queryNodes: QueryNode[]): void;
   getResult(statementId: string): unknown;
-  /** Returns true if the given statement is currently fetching. */
   isLoading(statementId: string): boolean;
-  /** Returns true if ANY query is currently fetching. */
   isAnyLoading(): boolean;
-  /** Re-fetch specific queries by statementId, or all if no ids provided. */
   invalidate(statementIds?: string[]): void;
-  /** Register mutation declarations from the parser. */
   registerMutations(nodes: MutationNode[]): void;
-  /** Fire a mutation with evaluated args. Called on button click. Returns true on success, false on error. */
   fireMutation(
     statementId: string,
     evaluatedArgs: Record<string, unknown>,
     refreshQueryIds?: string[],
   ): Promise<boolean>;
-  /** Get the current result of a mutation (idle/loading/success/error). */
   getMutationResult(statementId: string): MutationResult | null;
   subscribe(listener: () => void): () => void;
   getSnapshot(): QuerySnapshot;
-  /** Re-activate after dispose (needed for React Strict Mode double-mount). */
   activate(): void;
   dispose(): void;
 }
+
+// ── Internal types ───────────────────────────────────────────────────────────
+
+interface QueryEntry {
+  toolName: string;
+  args: unknown;
+  defaults: unknown;
+  cacheKey: string;
+  prevCacheKey?: string;
+  loading: boolean;
+  everFetched: boolean;
+  refreshInterval: number;
+  timer?: ReturnType<typeof setInterval>;
+  needsRefetch: boolean;
+  error?: QueryError;
+}
+
+interface MutationEntry {
+  toolName: string;
+  result: MutationResult;
+  error?: QueryError;
+}
+
+interface CacheEntry {
+  data: unknown;
+  inFlight: boolean;
+}
+
+// ── Utilities ────────────────────────────────────────────────────────────────
 
 /** JSON.stringify with stable key ordering at all nesting levels. */
 function stableStringify(value: unknown): string {
@@ -90,7 +126,9 @@ function stableStringify(value: unknown): string {
       }
       return sorted;
     }
-    // Serialize non-JSON-safe primitives to stable strings
+    // Serialize non-JSON-safe primitives to stable strings.
+    // evaluate() can pull arbitrary values from store/ref state,
+    // including undefined in object literals and edge-case numbers.
     if (val === undefined) return "__undefined__";
     if (typeof val === "number") {
       if (Number.isNaN(val)) return "__NaN__";
@@ -101,71 +139,70 @@ function stableStringify(value: unknown): string {
   });
 }
 
+function buildCacheKey(toolName: string, args: unknown, deps: unknown): string {
+  const depsKey = deps != null ? "::" + stableStringify(deps) : "";
+  return toolName + "::" + stableStringify(args) + depsKey;
+}
+
 // ── Factory ──────────────────────────────────────────────────────────────────
 
-export function createQueryManager(transport: Transport | null): QueryManager {
-  const results = new Map<string, unknown>();
-  const defaults = new Map<string, unknown>();
-  const pending = new Set<string>();
-  /** Maps statementId → current cache key */
-  const lastKeys = new Map<string, string>();
-  /** Maps statementId → previous cache key (for fallback while loading) */
-  const prevKeys = new Map<string, string>();
-  /** Maps statementId → {toolName, args} for reliable invalidation (avoids parsing cache keys) */
-  const queryMeta = new Map<string, { toolName: string; args: unknown }>();
-  /** Tracks which statementIds are currently loading */
-  const loadingStmts = new Set<string>();
-  /** Tracks which stmtIds have completed at least one successful fetch */
-  const hasEverFetched = new Set<string>();
+export function createQueryManager(toolProvider: ToolProvider | null): QueryManager {
+  const queries = new Map<string, QueryEntry>();
+  const mutations = new Map<string, MutationEntry>();
+  const cache = new Map<string, CacheEntry>();
   const listeners = new Set<() => void>();
-  const timers = new Map<string, ReturnType<typeof setInterval>>();
-  const lastIntervals = new Map<string, number>();
-  // ── Mutation state ───
-  const mutationMeta = new Map<string, { toolName: string }>();
-  const mutationResults = new Map<string, MutationResult>();
-  let snapshot: QuerySnapshot = { __openui_loading: [], __openui_refetching: [] };
+
+  let snapshot: QuerySnapshot = {
+    __openui_loading: [],
+    __openui_refetching: [],
+    __openui_errors: [],
+  };
   let snapshotJson = JSON.stringify(snapshot);
   let disposed = false;
   let generation = 0;
-  const needsRefetch = new Map<string, boolean>();
-  const removedQueryIds = new Set<string>();
 
-  /**
-   * Rebuild the snapshot from current state. Returns true if snapshot content
-   * changed. Preserves snapshot identity when content is unchanged to avoid
-   * infinite re-render loops with useSyncExternalStore.
-   */
+  // ── Snapshot & notification ──────────────────────────────────────────────
+
   function rebuildSnapshot(): boolean {
-    const out: QuerySnapshot = { __openui_loading: [], __openui_refetching: [] };
-    for (const [sid, cacheKey] of lastKeys) {
-      if (results.has(cacheKey)) {
-        out[sid] = results.get(cacheKey);
-      } else {
-        // Fall back to previous result while new fetch is in-flight
-        const prev = prevKeys.get(sid);
-        if (prev && results.has(prev)) {
-          out[sid] = results.get(prev);
-        } else {
-          out[sid] = defaults.get(sid) ?? null;
-        }
-      }
-    }
-    // Include mutation results in snapshot (keyed by statementId)
-    for (const [sid, mr] of mutationResults) {
-      out[sid] = mr;
-    }
-    // Include loading state in snapshot so React detects changes
-    out.__openui_loading = [...loadingStmts];
-    out.__openui_refetching = [...loadingStmts].filter((id) => hasEverFetched.has(id));
+    const out: QuerySnapshot = {
+      __openui_loading: [],
+      __openui_refetching: [],
+      __openui_errors: [],
+    };
 
-    // Compare against cached JSON string (avoids double-stringify)
+    for (const [sid, q] of queries) {
+      const entry = cache.get(q.cacheKey);
+      if (entry && entry.data !== undefined) {
+        // Use settled data (even while refetching — shows last good value)
+        out[sid] = entry.data;
+      } else if (q.prevCacheKey) {
+        const prev = cache.get(q.prevCacheKey);
+        if (prev && prev.data !== undefined) {
+          out[sid] = prev.data;
+        } else {
+          out[sid] = q.defaults;
+        }
+      } else {
+        out[sid] = q.defaults;
+      }
+      if (q.loading) {
+        out.__openui_loading.push(sid);
+        if (q.everFetched) out.__openui_refetching.push(sid);
+      }
+      if (q.error) out.__openui_errors.push(q.error);
+    }
+
+    for (const [sid, m] of mutations) {
+      out[sid] = m.result;
+      if (m.error) out.__openui_errors.push(m.error);
+    }
+
     try {
       const outJson = JSON.stringify(out);
       if (outJson === snapshotJson) return false;
       snapshot = out;
       snapshotJson = outJson;
     } catch {
-      // Circular refs or other serialization issues — force a new snapshot identity
       snapshot = out;
       snapshotJson = "";
     }
@@ -178,196 +215,217 @@ export function createQueryManager(transport: Transport | null): QueryManager {
     }
   }
 
-  async function executeFetch(
-    cacheKey: string,
-    statementId: string,
-    toolName: string,
-    args: unknown,
-  ) {
-    // Check transport before setting loading state to prevent loading flash
-    if (!transport) return;
+  // ── Fetch execution ──────────────────────────────────────────────────────
 
-    pending.add(cacheKey);
-    loadingStmts.add(statementId);
+  async function executeFetch(cacheKey: string, statementId: string) {
+    if (!toolProvider) return;
+
+    const q = queries.get(statementId);
+    if (!q) return;
+
+    // Capture the cache key at fetch start — if the query's key changes
+    // while we're in-flight (deps changed), this fetch is stale.
+    const fetchKey = cacheKey;
+    const toolName = q.toolName;
+    const args = q.args;
+
+    // Mark in-flight — use undefined as "no data yet" sentinel (distinct from null)
+    let entry = cache.get(fetchKey);
+    if (!entry) {
+      entry = { data: undefined, inFlight: true };
+      cache.set(fetchKey, entry);
+    } else {
+      entry.inFlight = true;
+    }
+    q.loading = true;
     rebuildSnapshot();
     notify();
+
     try {
-      const data = await transport.callTool(toolName, (args as Record<string, unknown>) ?? {});
+      const data = await toolProvider.callTool(toolName, (args as Record<string, unknown>) ?? {});
       if (disposed) return;
-      // Skip result write if this query was removed while fetch was in-flight
-      if (removedQueryIds.has(statementId)) {
-        removedQueryIds.delete(statementId);
+      // Query removed or moved to a different cache key while in-flight — discard
+      const current = queries.get(statementId);
+      if (!current || current.cacheKey !== fetchKey) {
+        entry.inFlight = false;
         return;
       }
-      // Normalize undefined results to null
-      results.set(cacheKey, data ?? null);
-      hasEverFetched.add(statementId);
-      // Clean up old cached result now that new one has arrived
-      const prev = prevKeys.get(statementId);
-      if (prev && prev !== cacheKey) {
-        results.delete(prev);
+
+      entry.data = data ?? null;
+      current.everFetched = true;
+      current.error = undefined;
+
+      // Clean up previous cache entry — clear prevCacheKey FIRST so
+      // cleanupCacheEntry doesn't see this query as a live reference.
+      if (current.prevCacheKey && current.prevCacheKey !== fetchKey) {
+        const prevKey = current.prevCacheKey;
+        current.prevCacheKey = undefined;
+        cleanupCacheEntry(prevKey);
       }
-      prevKeys.delete(statementId);
     } catch (err) {
+      // Only update error state if this fetch is still current
+      const current = queries.get(statementId);
+      if (current && current.cacheKey === fetchKey) {
+        if (err instanceof ToolNotFoundError) {
+          current.error = {
+            source: "query",
+            statementId,
+            toolName,
+            code: "tool-not-found",
+            message: `Query tool "${toolName}" not found`,
+            hint: err.availableTools.length
+              ? `Available tools: ${err.availableTools.join(", ")}`
+              : undefined,
+          };
+        }
+      }
       console.error(`Query "${toolName}" failed:`, err);
     } finally {
-      pending.delete(cacheKey);
-      loadingStmts.delete(statementId);
-      if (rebuildSnapshot()) notify();
-      // If invalidation occurred while this fetch was in-flight, re-fetch
-      if (needsRefetch.get(statementId)) {
-        needsRefetch.delete(statementId);
-        const meta = queryMeta.get(statementId);
-        const key = lastKeys.get(statementId);
-        if (meta && key) {
-          executeFetch(key, statementId, meta.toolName, meta.args);
+      entry.inFlight = false;
+      const current = queries.get(statementId);
+      // Only clear loading if this fetch is still current
+      if (current && current.cacheKey === fetchKey) {
+        current.loading = false;
+        if (rebuildSnapshot()) notify();
+        // Re-fetch if invalidation occurred while in-flight
+        if (current.needsRefetch) {
+          current.needsRefetch = false;
+          executeFetch(current.cacheKey, statementId);
         }
+      } else {
+        if (rebuildSnapshot()) notify();
       }
     }
   }
 
+  /** Remove a cache entry if no query references it. */
+  function cleanupCacheEntry(cacheKey: string) {
+    for (const q of queries.values()) {
+      if (q.cacheKey === cacheKey || q.prevCacheKey === cacheKey) return;
+    }
+    cache.delete(cacheKey);
+  }
+
+  // ── Query evaluation ─────────────────────────────────────────────────────
+
   function evaluateQueries(queryNodes: QueryNode[]) {
     if (disposed) return;
 
-    removedQueryIds.clear();
-
-    // Clean up timers and state for queries that no longer exist
     const activeIds = new Set(queryNodes.map((n) => n.statementId));
-    for (const [sid, timer] of timers) {
+
+    // Clean up removed queries
+    for (const [sid, q] of queries) {
       if (!activeIds.has(sid)) {
-        clearInterval(timer);
-        timers.delete(sid);
-      }
-    }
-    // Remove all state for deleted queries.
-    // Collect active cache keys first so we don't delete shared entries.
-    const activeCacheKeys = new Set<string>();
-    for (const [sid, key] of lastKeys) {
-      if (activeIds.has(sid)) activeCacheKeys.add(key);
-    }
-    for (const [sid, key] of prevKeys) {
-      if (activeIds.has(sid)) activeCacheKeys.add(key);
-    }
-    for (const sid of [...lastKeys.keys()]) {
-      if (!activeIds.has(sid)) {
-        removedQueryIds.add(sid);
-        const key = lastKeys.get(sid);
-        if (key && !activeCacheKeys.has(key)) results.delete(key);
-        const prevKey = prevKeys.get(sid);
-        if (prevKey && !activeCacheKeys.has(prevKey)) results.delete(prevKey);
-        lastKeys.delete(sid);
-        prevKeys.delete(sid);
-        queryMeta.delete(sid);
-        defaults.delete(sid);
-        loadingStmts.delete(sid);
-        hasEverFetched.delete(sid);
-        lastIntervals.delete(sid);
+        if (q.timer) clearInterval(q.timer);
+        queries.delete(sid);
+        // Clean up cache entries that are no longer referenced
+        cleanupCacheEntry(q.cacheKey);
+        if (q.prevCacheKey) cleanupCacheEntry(q.prevCacheKey);
       }
     }
 
+    // Process active queries
     for (const node of queryNodes) {
       if (!node.complete) continue;
 
-      const depsKey = node.deps != null ? "::" + stableStringify(node.deps) : "";
-      const cacheKey = node.toolName + "::" + stableStringify(node.args) + depsKey;
+      const cacheKey = buildCacheKey(node.toolName, node.args, node.deps);
+      const existing = queries.get(node.statementId);
 
-      defaults.set(node.statementId, node.defaults);
-      queryMeta.set(node.statementId, { toolName: node.toolName, args: node.args });
-
-      // Track previous key for fallback (keep old data visible while loading)
-      const prevKey = lastKeys.get(node.statementId);
-      if (prevKey && prevKey !== cacheKey) {
-        prevKeys.set(node.statementId, prevKey);
-        // DON'T delete old result — keep it for fallback display
-      }
-      lastKeys.set(node.statementId, cacheKey);
-
-      // Fire fetch if not cached, not pending, and transport is available
-      if (transport && !results.has(cacheKey) && !pending.has(cacheKey)) {
-        executeFetch(cacheKey, node.statementId, node.toolName, node.args);
-      }
-
-      // Setup / reconfigure auto-refresh timer
-      const currentInterval = node.refreshInterval ?? 0;
-      const previousInterval = lastIntervals.get(node.statementId) ?? 0;
-
-      if (currentInterval !== previousInterval) {
-        // Clear old timer if it exists
-        const existingTimer = timers.get(node.statementId);
-        if (existingTimer) {
-          clearInterval(existingTimer);
-          timers.delete(node.statementId);
+      if (existing) {
+        // Track previous cache key for fallback display
+        if (existing.cacheKey !== cacheKey) {
+          existing.prevCacheKey = existing.cacheKey;
         }
+        existing.toolName = node.toolName;
+        existing.args = node.args;
+        existing.defaults = node.defaults;
+        existing.cacheKey = cacheKey;
+      } else {
+        queries.set(node.statementId, {
+          toolName: node.toolName,
+          args: node.args,
+          defaults: node.defaults,
+          cacheKey,
+          loading: false,
+          everFetched: false,
+          refreshInterval: 0,
+          needsRefetch: false,
+        });
+      }
 
-        // Create new timer if interval is positive
-        if (currentInterval > 0) {
-          timers.set(
-            node.statementId,
-            setInterval(() => {
-              if (disposed || !transport) return;
-              const k = lastKeys.get(node.statementId);
-              if (k && !pending.has(k)) {
-                const meta = queryMeta.get(node.statementId);
-                if (meta) {
-                  executeFetch(k, node.statementId, meta.toolName, meta.args);
-                }
-              }
-            }, currentInterval * 1000),
-          );
+      const q = queries.get(node.statementId)!;
+
+      // Fire fetch if no settled data and not already in-flight
+      const entry = cache.get(cacheKey);
+      const hasSettledData = entry && entry.data !== undefined && !entry.inFlight;
+      if (toolProvider && !hasSettledData && !entry?.inFlight) {
+        executeFetch(cacheKey, node.statementId);
+      }
+
+      // Configure auto-refresh timer
+      const newInterval = node.refreshInterval ?? 0;
+      if (newInterval !== q.refreshInterval) {
+        if (q.timer) {
+          clearInterval(q.timer);
+          q.timer = undefined;
         }
-
-        lastIntervals.set(node.statementId, currentInterval);
+        if (newInterval > 0) {
+          q.timer = setInterval(() => {
+            if (disposed || !toolProvider) return;
+            const entry = cache.get(q.cacheKey);
+            if (!entry?.inFlight) {
+              executeFetch(q.cacheKey, node.statementId);
+            }
+          }, newInterval * 1000);
+        }
+        q.refreshInterval = newInterval;
       }
     }
 
     if (rebuildSnapshot()) notify();
   }
 
+  // ── Query accessors ──────────────────────────────────────────────────────
+
   function getResult(statementId: string): unknown {
-    const key = lastKeys.get(statementId);
-    if (key && results.has(key)) return results.get(key);
-    // Fall back to previous result while loading
-    const prev = prevKeys.get(statementId);
-    if (prev && results.has(prev)) return results.get(prev);
-    return defaults.get(statementId) ?? null;
+    const q = queries.get(statementId);
+    if (!q) return null;
+    const entry = cache.get(q.cacheKey);
+    if (entry && entry.data !== undefined) return entry.data;
+    // Fall back to previous cache entry while loading
+    if (q.prevCacheKey) {
+      const prev = cache.get(q.prevCacheKey);
+      if (prev && prev.data !== undefined) return prev.data;
+    }
+    return q.defaults;
   }
 
   function isLoading(statementId: string): boolean {
-    return loadingStmts.has(statementId);
+    return queries.get(statementId)?.loading ?? false;
   }
 
   function isAnyLoading(): boolean {
-    return loadingStmts.size > 0;
-  }
-
-  function subscribe(listener: () => void): () => void {
-    listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
-    };
-  }
-
-  function getSnapshot(): QuerySnapshot {
-    return snapshot;
+    for (const q of queries.values()) {
+      if (q.loading) return true;
+    }
+    return false;
   }
 
   function invalidate(statementIds?: string[]) {
-    if (disposed || !transport) return;
-    // Re-fetch targeted queries (or all if no ids provided).
-    // Keep old data visible until new fetches complete.
+    if (disposed || !toolProvider) return;
+
     const targets = statementIds?.length
-      ? statementIds.filter((sid) => lastKeys.has(sid))
-      : [...lastKeys.keys()];
+      ? statementIds.filter((sid) => queries.has(sid))
+      : [...queries.keys()];
 
     for (const sid of targets) {
-      const cacheKey = lastKeys.get(sid);
-      const meta = queryMeta.get(sid);
-      if (!cacheKey || !meta) continue;
-      if (pending.has(cacheKey)) {
-        // Fetch is already in-flight — flag for re-fetch when it completes
-        needsRefetch.set(sid, true);
+      const q = queries.get(sid);
+      if (!q) continue;
+      const entry = cache.get(q.cacheKey);
+      if (entry?.inFlight) {
+        q.needsRefetch = true;
       } else {
-        executeFetch(cacheKey, sid, meta.toolName, meta.args);
+        executeFetch(q.cacheKey, sid);
       }
     }
   }
@@ -375,26 +433,30 @@ export function createQueryManager(transport: Transport | null): QueryManager {
   // ── Mutation methods ─────────────────────────────────────────────────────
 
   function registerMutations(nodes: MutationNode[]) {
-    // Clean up removed mutations
     const activeIds = new Set(nodes.map((n) => n.statementId));
-    for (const sid of [...mutationMeta.keys()]) {
-      if (!activeIds.has(sid)) {
-        mutationMeta.delete(sid);
-        mutationResults.delete(sid);
-      }
+
+    // Clean up removed mutations
+    for (const sid of mutations.keys()) {
+      if (!activeIds.has(sid)) mutations.delete(sid);
     }
-    // Register active mutations
+
+    // Register/update active mutations
     for (const node of nodes) {
-      const prev = mutationMeta.get(node.statementId);
-      // Reset result when the backing tool changes (declaration was edited)
-      if (prev && prev.toolName !== node.toolName) {
-        mutationResults.set(node.statementId, { status: "idle", data: null, error: null });
-      }
-      mutationMeta.set(node.statementId, { toolName: node.toolName });
-      if (!mutationResults.has(node.statementId)) {
-        mutationResults.set(node.statementId, { status: "idle" });
+      const existing = mutations.get(node.statementId);
+      if (existing) {
+        if (existing.toolName !== node.toolName) {
+          existing.toolName = node.toolName;
+          existing.result = { status: "idle", data: null, error: null };
+          existing.error = undefined;
+        }
+      } else {
+        mutations.set(node.statementId, {
+          toolName: node.toolName,
+          result: { status: "idle" },
+        });
       }
     }
+
     if (rebuildSnapshot()) notify();
   }
 
@@ -403,36 +465,43 @@ export function createQueryManager(transport: Transport | null): QueryManager {
     evaluatedArgs: Record<string, unknown>,
     refreshQueryIds?: string[],
   ): Promise<boolean> {
-    if (disposed || !transport) return false;
-    const meta = mutationMeta.get(statementId);
-    if (!meta) return false;
+    if (disposed || !toolProvider) return false;
+    const m = mutations.get(statementId);
+    if (!m) return false;
 
-    // Capture generation to detect stale writes after dispose/re-activate
     const gen = generation;
 
-    // Set loading state
-    mutationResults.set(statementId, { status: "loading" });
+    m.result = { status: "loading" };
     rebuildSnapshot();
     notify();
 
     let success = false;
     try {
-      const data = await transport.callTool(meta.toolName, evaluatedArgs);
+      const data = await toolProvider.callTool(m.toolName, evaluatedArgs);
       if (disposed || gen !== generation) return false;
-      mutationResults.set(statementId, { status: "success", data });
+      m.result = { status: "success", data };
+      m.error = undefined;
       success = true;
     } catch (err: any) {
       if (disposed || gen !== generation) return false;
-      mutationResults.set(statementId, {
-        status: "error",
-        error: err?.message ?? String(err),
-      });
+      m.result = { status: "error", error: err?.message ?? String(err) };
+      if (err instanceof ToolNotFoundError) {
+        m.error = {
+          source: "mutation",
+          statementId,
+          toolName: m.toolName,
+          code: "tool-not-found",
+          message: `Mutation tool "${m.toolName}" not found`,
+          hint: err.availableTools.length
+            ? `Available tools: ${err.availableTools.join(", ")}`
+            : undefined,
+        };
+      }
     }
 
     rebuildSnapshot();
     notify();
 
-    // Auto-refresh queries after mutation completes
     if (success && refreshQueryIds?.length) {
       invalidate(refreshQueryIds);
     }
@@ -441,8 +510,21 @@ export function createQueryManager(transport: Transport | null): QueryManager {
   }
 
   function getMutationResult(statementId: string): MutationResult | null {
-    return mutationResults.get(statementId) ?? null;
+    return mutations.get(statementId)?.result ?? null;
   }
+
+  // ── Pub/sub ──────────────────────────────────────────────────────────────
+
+  function subscribe(listener: () => void): () => void {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  }
+
+  function getSnapshot(): QuerySnapshot {
+    return snapshot;
+  }
+
+  // ── Lifecycle ────────────────────────────────────────────────────────────
 
   function activate() {
     disposed = false;
@@ -451,15 +533,17 @@ export function createQueryManager(transport: Transport | null): QueryManager {
   function dispose() {
     disposed = true;
     generation++;
-    loadingStmts.clear();
     listeners.clear();
-    timers.forEach((t) => clearInterval(t));
-    timers.clear();
-    // Preserve lastIntervals across dispose/activate so timers can be
-    // correctly reconfigured on re-mount (React Strict Mode).
-    mutationResults.clear();
-    mutationMeta.clear();
-    // Keep results, defaults, lastKeys, prevKeys, queryMeta for Strict Mode re-attach
+    // Clear timers and transient state, preserve cache + query entries for Strict Mode re-attach
+    for (const q of queries.values()) {
+      if (q.timer) {
+        clearInterval(q.timer);
+        q.timer = undefined;
+      }
+      q.loading = false;
+      q.needsRefetch = false;
+    }
+    mutations.clear();
   }
 
   return {

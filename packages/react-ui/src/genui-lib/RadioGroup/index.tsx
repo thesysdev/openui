@@ -28,10 +28,10 @@ export const RadioGroup = defineComponent({
   name: "RadioGroup",
   props: z.object({
     name: z.string(),
-    value: reactive(z.string().optional()),
     items: z.array(RadioItem.ref),
     defaultValue: z.string().optional(),
     rules: rulesSchema,
+    value: reactive(z.string().optional()),
   }),
   description: "",
   component: ({ props }) => {

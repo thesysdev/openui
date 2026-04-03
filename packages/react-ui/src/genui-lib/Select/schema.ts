@@ -12,9 +12,9 @@ export const SelectItemSchema = z.object({
 export function createSelectSchema(SelectItem: RefComponent) {
   return z.object({
     name: z.string(),
-    value: reactive(z.string().optional()),
     items: z.array(SelectItem.ref),
     placeholder: z.string().optional(),
     rules: rulesSchema,
+    value: reactive(z.string().optional()),
   });
 }

@@ -33,6 +33,55 @@ export function AssistantMessage({
 | `onStateUpdate` | `(state: Record<string, any>) => void`  | Called on form field changes with the raw field state map.     |
 | `initialState`  | `Record<string, any>`                   | Hydrates form state on load (e.g. from persisted message).     |
 | `onParseResult` | `(result: ParseResult \| null) => void` | Debug/inspect latest parse result.                             |
+| `toolProvider`  | `ToolProvider \| Record<string, (args: Record<string, unknown>) => Promise<unknown>> \| null` | Handles `Query()` / `Mutation()` tool calls. Accepts a `ToolProvider` object, a plain function map, or an MCP connection from `connectMcp()`. |
+| `queryLoader`   | `React.ReactNode`                       | Custom loading indicator shown while queries are fetching. Defaults to a spinner. |
+| `onError`       | `(errors: OpenUIError[]) => void`       | Structured, LLM-friendly errors from the parser and query system. Suitable for automated correction loops. Called with `[]` when resolved. |
+
+## Connecting tools
+
+For UIs that use `Query()` and `Mutation()`, pass a `toolProvider`. It accepts a function map, an [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) connection, or a custom `ToolProvider` object:
+
+```tsx
+// Function map (simplest — tools are just async functions)
+<Renderer
+  toolProvider={{
+    list_tickets: async (args) => fetch('/api/tickets').then(r => r.json()),
+    create_ticket: async (args) => fetch('/api/tickets', { method: 'POST', body: JSON.stringify(args) }).then(r => r.json()),
+  }}
+  library={library}
+  response={code}
+/>
+
+// MCP connection (for server-side tools)
+import { connectMcp } from "@openuidev/react-lang";
+const mcp = await connectMcp({ url: "/api/mcp" });
+<Renderer toolProvider={mcp} library={library} response={code} />
+
+// Custom ToolProvider
+<Renderer toolProvider={{ callTool: async (name, args) => { /* ... */ } }} library={library} response={code} />
+```
+
+## Error handling
+
+`onError` receives structured errors suitable for sending back to the LLM for correction:
+
+```tsx
+<Renderer
+  library={library}
+  response={code}
+  toolProvider={mcp}
+  onError={(errors) => {
+    if (!errors.length) return;
+    const msg = errors.map(e =>
+      `[${e.source}] ${e.statementId ? `"${e.statementId}": ` : ""}${e.message}${e.hint ? `\nHint: ${e.hint}` : ""}`
+    ).join("\n\n");
+    // Send back to LLM for self-correction
+    sendToLLM(`Fix these errors:\n\n${msg}`);
+  }}
+/>
+```
+
+Error types: `unknown-component`, `missing-required`, `null-required`, `inline-reserved`, `tool-not-found`.
 
 ## Streaming behavior
 
@@ -60,6 +109,7 @@ export function AssistantMessage({
 
 Use these inside components defined with `defineComponent(...)`:
 
+- `useStateField(name, value?)` — reactive `$variable` binding (preferred for inputs)
 - `useIsStreaming()`
 - `useTriggerAction()`
 - `useRenderNode()`
@@ -82,10 +132,13 @@ const Dashboard = defineComponent({
 ## Next Steps
 
 <Cards>
-  <Card title="Language Specification" href="/docs/openui-lang/specification">
-    Grammar and parser semantics.
+  <Card title="Interactivity" href="/docs/openui-lang/interactivity">
+    Actions, form state, validation, and reactive binding hooks.
   </Card>
-  <Card title="Benchmarks" href="/docs/openui-lang/benchmarks">
-    Token and latency comparison.
+  <Card title="Troubleshooting" href="/docs/openui-lang/troubleshooting">
+    Common issues and debugging tips.
+  </Card>
+  <Card title="API Reference" href="/docs/api-reference/react-lang">
+    Complete react-lang API.
   </Card>
 </Cards>

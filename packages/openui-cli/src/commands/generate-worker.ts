@@ -75,15 +75,26 @@ interface PromptOptions {
   preamble?: string;
   additionalRules?: string[];
   examples?: string[];
+  toolExamples?: string[];
+  editMode?: boolean;
+  inlineMode?: boolean;
+  toolCalls?: boolean;
+  bindings?: boolean;
 }
 
 function isPromptOptions(value: unknown): value is PromptOptions {
   if (typeof value !== "object" || value === null) return false;
   const obj = value as Record<string, unknown>;
-  const hasExamples = Array.isArray(obj["examples"]);
-  const hasRules = Array.isArray(obj["additionalRules"]);
-  const hasPreamble = typeof obj["preamble"] === "string";
-  return hasExamples || hasRules || hasPreamble;
+  return (
+    Array.isArray(obj["examples"]) ||
+    Array.isArray(obj["additionalRules"]) ||
+    Array.isArray(obj["toolExamples"]) ||
+    typeof obj["preamble"] === "string" ||
+    typeof obj["editMode"] === "boolean" ||
+    typeof obj["inlineMode"] === "boolean" ||
+    typeof obj["toolCalls"] === "boolean" ||
+    typeof obj["bindings"] === "boolean"
+  );
 }
 
 function findPromptOptions(

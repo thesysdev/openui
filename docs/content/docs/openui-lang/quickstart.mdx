@@ -1,9 +1,9 @@
 ---
 title: Quick Start
-description: Bootstrap a Generative UI chat app in under a minute.
+description: Bootstrap a GenUI chat app or data-driven dashboard in under a minute.
 ---
 
-## Bootstrap a GenUI Chat app
+## Chat App
 
 ```bash
 npx @openuidev/cli@latest create --name genui-chat-app
@@ -50,16 +50,42 @@ The `dev` and `build` scripts automatically regenerate the system prompt before 
 "dev": "pnpm generate:prompt && next dev"
 ```
 
+---
+
+## Dashboard App
+
+```bash
+npx @openuidev/cli@latest create --name my-dashboard --template dashboard
+cd my-dashboard
+```
+
+Add your API key and start:
+
+```bash
+echo "OPENAI_API_KEY=sk-your-key-here" > .env
+npm run dev
+```
+
+The dashboard template includes example tools, MCP endpoint, and a prompt config. Ask it to build a ticket tracker, analytics dashboard, or monitoring tool — the LLM generates the UI, and the runtime calls your tools directly.
+
+`[placeholder image: Screenshot of a generated dashboard — ticket tracker with create form, table, and KPI cards]`
+
+Want to try without installing? [Open the Playground](/playground).
+
+See [How It Works](/docs/openui-lang/how-it-works) to understand the architecture.
+
+---
+
 ## Next Steps
 
 <Cards>
   <Card title="Overview" href="/docs/openui-lang/overview">
     Understand the key building blocks and built-in component libraries.
   </Card>
-  <Card title="Defining Components" href="/docs/openui-lang/defining-components">
-    Create your own custom component library.
+  <Card title="Building Apps" href="/docs/openui-lang/how-it-works">
+    Build dashboards and CRUD apps with live data.
   </Card>
-  <Card title="Chat Quick Start" href="/docs/chat/quick-start">
+  <Card title="Chat Layouts" href="/docs/chat/quick-start">
     Explore chat-specific layouts and configurations.
   </Card>
 </Cards>

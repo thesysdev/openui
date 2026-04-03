@@ -28,6 +28,10 @@ export interface PromptSpec {
   tools?: (string | McpToolSpec)[];
   editMode?: boolean;
   inlineMode?: boolean;
+  /** Enable Query(), Mutation(), @Run, tool workflow. Default: true if tools provided. */
+  toolCalls?: boolean;
+  /** Enable $variables, @Set, @Reset, interactive filters. Default: true if toolCalls. */
+  bindings?: boolean;
   preamble?: string;
   /** Examples shown when no tools are present (static/layout patterns). */
   examples?: string[];
@@ -94,7 +98,10 @@ function defaultForSchema(schema: Record<string, unknown>): unknown {
 
 const PREAMBLE = `You are an AI assistant that responds using openui-lang, a declarative UI language. Your ENTIRE response must be valid openui-lang code — no markdown, no explanations, just openui-lang.`;
 
-function syntaxRules(rootName: string, hasTools: boolean): string {
+function syntaxRules(
+  rootName: string,
+  flags: { supportsExpressions: boolean; bindings: boolean },
+): string {
   const lines = [
     "## Syntax Rules",
     "",
@@ -107,17 +114,22 @@ function syntaxRules(rootName: string, hasTools: boolean): string {
     "7. Optional arguments can be omitted from the end",
   ];
 
-  if (hasTools) {
+  let ruleNum = 8;
+  if (flags.bindings) {
     lines.push(
-      "8. Declare mutable state with `$varName = defaultValue`. Components marked with `$binding` can read/write these. Undeclared $variables are auto-created with null default.",
-      '9. String concatenation: `"text" + $var + "more"`',
-      "10. Dot member access: `query.field` reads a field; on arrays it extracts that field from every element",
-      "11. Index access: `arr[0]`, `data[index]`",
-      "12. Arithmetic operators: +, -, *, /, % (work on numbers; + is string concat when either side is a string)",
-      "13. Comparison: ==, !=, >, <, >=, <=",
-      "14. Logical: &&, ||, ! (prefix)",
-      "15. Ternary: `condition ? valueIfTrue : valueIfFalse`",
-      "16. Parentheses for grouping: `(a + b) * c`",
+      `${ruleNum++}. Declare mutable state with \`$varName = defaultValue\`. Components marked with \`$binding\` can read/write these. Undeclared $variables are auto-created with null default.`,
+    );
+  }
+  if (flags.supportsExpressions) {
+    lines.push(
+      `${ruleNum++}. String concatenation: \`"text" + $var + "more"\``,
+      `${ruleNum++}. Dot member access: \`query.field\` reads a field; on arrays it extracts that field from every element`,
+      `${ruleNum++}. Index access: \`arr[0]\`, \`data[index]\``,
+      `${ruleNum++}. Arithmetic operators: +, -, *, /, % (work on numbers; + is string concat when either side is a string)`,
+      `${ruleNum++}. Comparison: ==, !=, >, <, >=, <=`,
+      `${ruleNum++}. Logical: &&, ||, ! (prefix)`,
+      `${ruleNum++}. Ternary: \`condition ? valueIfTrue : valueIfFalse\``,
+      `${ruleNum++}. Parentheses for grouping: \`(a + b) * c\``,
     );
   }
 
@@ -187,22 +199,27 @@ result = Mutation("tool_name", {arg1: $binding, arg2: "value"})
 - Show loading state: \`result.status == "loading" ? TextContent("Saving...") : null\``;
 }
 
-function actionSection(hasTools: boolean): string {
+function actionSection(flags: { toolCalls: boolean; bindings: boolean }): string {
   const steps = [
     '- @ToAssistant("message") — Send a message to the assistant (for conversational buttons like "Tell me more", "Explain this")',
     '- @OpenUrl("https://...") — Navigate to a URL',
-    "- @Set($variable, value) — Set a $variable to a specific value",
-    '- @Reset($var1, $var2, ...) — Reset $variables to their declared defaults (e.g. @Reset($title, $priority) restores $title="" and $priority="medium")',
   ];
 
-  if (hasTools) {
+  if (flags.bindings) {
+    steps.push(
+      "- @Set($variable, value) — Set a $variable to a specific value",
+      '- @Reset($var1, $var2, ...) — Reset $variables to their declared defaults (e.g. @Reset($title, $priority) restores $title="" and $priority="medium")',
+    );
+  }
+
+  if (flags.toolCalls) {
     steps.unshift(
       "- @Run(queryOrMutationRef) — Execute a Mutation or re-fetch a Query (ref must be a declared Query/Mutation)",
     );
   }
 
   const examples: string[] = [];
-  if (hasTools) {
+  if (flags.toolCalls) {
     examples.push(`Example — mutation + refresh + reset (PREFERRED pattern):
 \`\`\`
 $binding = "default"
@@ -220,7 +237,7 @@ viewBtn = Button("View", Action([@OpenUrl("https://example.com")]))
   const rules = [
     '- Action can be assigned to a variable or inlined: Button("Go", onSubmit) and Button("Go", Action([...])) both work',
   ];
-  if (hasTools) {
+  if (flags.toolCalls) {
     rules.push(
       "- If a @Run(mutation) step fails, remaining steps are skipped (halt on failure)",
       "- @Run(queryRef) re-fetches the query (fire-and-forget, cannot fail)",
@@ -245,7 +262,7 @@ function interactiveFiltersSection(): string {
 
 To let the user filter data with a dropdown:
 1. Declare a $variable with a default: \`$dateRange = "14"\`
-2. Create a Select with name, binding, and items: \`Select("dateRange", $dateRange, [SelectItem("7", "Last 7 days"), ...])\`
+2. Create a Select with name, items, and binding: \`Select("dateRange", [SelectItem("7", "Last 7 days"), ...], null, null, $dateRange)\`
 3. Wrap in FormControl for a label: \`FormControl("Date Range", Select(...))\`
 4. Pass $dateRange in Query args: \`Query("tool", {dateRange: $dateRange}, {defaults})\`
 5. When the user changes the Select, $dateRange updates and the Query automatically re-fetches
@@ -254,7 +271,7 @@ FILTER WIRING RULE: If a $binding filter is visible in the UI, EVERY relevant Qu
 
 Rules for $variables:
 - $variables hold simple values (strings or numbers), NOT arrays or objects
-- $variables must be bound to a Select/Input component via the value argument to be interactive
+- $variables must be bound to a Select/Input component via the value argument (last positional arg) to be interactive
 - Queries must use regular identifiers (NOT $variables): \`metrics = Query(...)\` not \`$metrics = Query(...)\`
 - **Auto-declare**: You do NOT need to explicitly declare $variables. If you use \`$foo\` without declaring it, the parser auto-creates \`$foo = null\`. You can still declare explicitly to set a default: \`$days = "14"\`
 
@@ -263,8 +280,8 @@ Rules for $variables:
 Simple form — no $bindings needed. Field values are managed internally by the Form via the name prop:
 \`\`\`
 contactForm = Form("contact", submitBtn, [nameField, emailField])
-nameField = FormControl("Name", Input("name", null, "Your name", "text", {required: true}))
-emailField = FormControl("Email", Input("email", null, "your@email.com", "email", {required: true, email: true}))
+nameField = FormControl("Name", Input("name", "Your name", "text", {required: true}))
+emailField = FormControl("Email", Input("email", "your@email.com", "email", {required: true, email: true}))
 submitBtn = Button("Submit")
 \`\`\`
 
@@ -272,9 +289,9 @@ Use $bindings when you need to read field values elsewhere (in Action context, Q
 \`\`\`
 $role = "engineer"
 contactForm = Form("contact", submitBtn, [nameField, emailField, roleField])
-nameField = FormControl("Name", Input("name", $name, "Enter your name", "text", {required: true}))
-emailField = FormControl("Email", Input("email", $email, "Enter your email", "email", {required: true, email: true}))
-roleField = FormControl("Role", Select("role", $role, [SelectItem("engineer", "Engineer"), SelectItem("designer", "Designer"), SelectItem("pm", "PM")], null, {required: true}))
+nameField = FormControl("Name", Input("name", "Enter your name", "text", {required: true}, $name))
+emailField = FormControl("Email", Input("email", "Enter your email", "email", {required: true, email: true}, $email))
+roleField = FormControl("Role", Select("role", [SelectItem("engineer", "Engineer"), SelectItem("designer", "Designer"), SelectItem("pm", "PM")], null, {required: true}, $role))
 submitBtn = Button("Submit")
 \`\`\`
 
@@ -385,15 +402,20 @@ submitBtn = Button("Create", Action([@Run(createResult), @Run(data), @Reset($tit
 Everything derives from the Query — when data refreshes, the entire dashboard updates automatically.`;
 }
 
-function importantRules(rootName: string, hasTools: boolean): string {
+function importantRules(
+  rootName: string,
+  flags: { toolCalls: boolean; bindings: boolean },
+): string {
   const verifyLines = [
     `1. root = ${rootName}(...) is the FIRST line (for optimal streaming).`,
     "2. Every referenced name is defined. Every defined name (other than root) is reachable from root.",
   ];
-  if (hasTools) {
+  if (flags.toolCalls) {
+    verifyLines.push("3. Every Query result is referenced by at least one component.");
+  }
+  if (flags.bindings) {
     verifyLines.push(
-      "3. Every Query result is referenced by at least one component.",
-      "4. Every $binding appears in at least one component or expression.",
+      `${flags.toolCalls ? "4" : "3"}. Every $binding appears in at least one component or expression.`,
     );
   }
 
@@ -488,10 +510,16 @@ function renderToolsSection(tools: (string | McpToolSpec)[]): string {
 // ─── Component signatures ───────────────────────────────────────────────────
 
 function generateComponentSignatures(spec: PromptSpec): string {
-  const hasTools = !!spec.tools?.length;
-  const actionHint = hasTools
-    ? "Props typed `ActionExpression` accept an Action([@steps...]) expression. See the Action section for available steps (@Run, @ToAssistant, @OpenUrl, @Set, @Reset)."
-    : "Props typed `ActionExpression` accept an Action([@steps...]) expression. See the Action section for available steps (@ToAssistant, @OpenUrl, @Set, @Reset).";
+  const toolCalls = spec.toolCalls ?? !!spec.tools?.length;
+  const bindings = spec.bindings ?? toolCalls;
+  const allSteps = [
+    toolCalls ? "@Run" : "",
+    "@ToAssistant",
+    "@OpenUrl",
+    bindings ? "@Set" : "",
+    bindings ? "@Reset" : "",
+  ].filter(Boolean);
+  const actionHint = `Props typed \`ActionExpression\` accept an Action([@steps...]) expression. See the Action section for available steps (${allSteps.join(", ")}).`;
 
   const lines = [
     "## Component Signatures",
@@ -538,11 +566,17 @@ function generateComponentSignatures(spec: PromptSpec): string {
 export function generatePrompt(spec: PromptSpec): string {
   const rootName = spec.root ?? "Root";
   const hasTools = !!spec.tools?.length;
+
+  // Resolve prompt flags — defaults preserve backward compat
+  const toolCalls = spec.toolCalls ?? hasTools;
+  const bindings = spec.bindings ?? toolCalls;
+  const supportsExpressions = toolCalls || bindings;
+
   const parts: string[] = [];
 
   parts.push(spec.preamble ?? PREAMBLE);
   parts.push("");
-  parts.push(syntaxRules(rootName, hasTools));
+  parts.push(syntaxRules(rootName, { supportsExpressions, bindings }));
   parts.push("");
   parts.push(generateComponentSignatures(spec));
 
@@ -550,31 +584,31 @@ export function generatePrompt(spec: PromptSpec): string {
   parts.push("");
   parts.push(builtinFunctionsSection());
 
-  // Query + Mutation sections (only with tools)
-  if (hasTools) {
+  // Query + Mutation sections
+  if (toolCalls) {
     parts.push("");
     parts.push(querySection());
     parts.push("");
     parts.push(mutationSection());
   }
 
-  // Action section — always included (ToAssistant, OpenUrl, Set work without tools)
+  // Action section — always included (ToAssistant, OpenUrl always; @Run/@Set/@Reset gated)
   parts.push("");
-  parts.push(actionSection(hasTools));
+  parts.push(actionSection({ toolCalls, bindings }));
 
-  // Interactive filters + forms (only with tools)
-  if (hasTools) {
+  // Interactive filters (needs both toolCalls and bindings)
+  if (toolCalls && bindings) {
     parts.push("");
     parts.push(interactiveFiltersSection());
   }
 
   // Tool workflow
-  if (hasTools) {
+  if (toolCalls) {
     parts.push("");
     parts.push(toolWorkflowSection());
   }
 
-  // Tools list
+  // Tools list (only if actual tools provided)
   if (spec.tools?.length) {
     parts.push("");
     parts.push(renderToolsSection(spec.tools));
@@ -583,8 +617,8 @@ export function generatePrompt(spec: PromptSpec): string {
   parts.push("");
   parts.push(streamingRules(rootName));
 
-  // Show tool examples when tools are present, otherwise show general examples
-  const examples = hasTools && spec.toolExamples?.length ? spec.toolExamples : spec.examples;
+  // Show tool examples when toolCalls are on, otherwise show general examples
+  const examples = toolCalls && spec.toolExamples?.length ? spec.toolExamples : spec.examples;
   if (examples?.length) {
     parts.push("");
     parts.push("## Examples");
@@ -607,7 +641,7 @@ export function generatePrompt(spec: PromptSpec): string {
     parts.push(inlineModeSection());
   }
 
-  parts.push(importantRules(rootName, hasTools));
+  parts.push(importantRules(rootName, { toolCalls, bindings }));
 
   if (spec.additionalRules?.length) {
     parts.push("");
