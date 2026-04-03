@@ -1,36 +1,22 @@
 import type { AssistantMessage, Message, ToolMessage } from "@openuidev/react-headless";
 import { MessageProvider, useThread } from "@openuidev/react-headless";
 import clsx from "clsx";
-import React, { memo, useEffect, useRef } from "react";
+import React, { memo, useRef } from "react";
 import { ScrollVariant, useScrollToBottom } from "../../hooks/useScrollToBottom";
+import { ArtifactOverlay } from "../_shared/artifact";
+import type { AssistantMessageComponent, UserMessageComponent } from "../_shared/types";
 import { MarkDownRenderer } from "../MarkDownRenderer";
 import { MessageLoading as MessageLoadingComponent } from "../MessageLoading";
-import type { AssistantMessageComponent, UserMessageComponent } from "../OpenUIChat/types";
-import { useShellStore } from "../Shell/store";
 import { ToolCallComponent } from "../ToolCall";
 import { ToolResult } from "../ToolResult";
 
 export const ThreadContainer = ({
   children,
   className,
-  isArtifactActive = false,
-  renderArtifact = () => null,
 }: {
   children?: React.ReactNode;
   className?: string;
-  isArtifactActive?: boolean;
-  renderArtifact?: () => React.ReactNode;
 }) => {
-  const { setIsArtifactActive, setArtifactRenderer } = useShellStore((state) => ({
-    setIsArtifactActive: state.setIsArtifactActive,
-    setArtifactRenderer: state.setArtifactRenderer,
-  }));
-
-  useEffect(() => {
-    setIsArtifactActive(isArtifactActive);
-    setArtifactRenderer(renderArtifact);
-  }, [isArtifactActive, renderArtifact, setIsArtifactActive, setArtifactRenderer]);
-
   const isLoadingMessages = useThread((s) => s.isLoadingMessages);
 
   return (
@@ -41,6 +27,7 @@ export const ThreadContainer = ({
       }}
     >
       {children}
+      <ArtifactOverlay />
     </div>
   );
 };
@@ -67,10 +54,6 @@ export const ScrollArea = ({
   const messages = useThread((s) => s.messages);
   const isRunning = useThread((s) => s.isRunning);
   const isLoadingMessages = useThread((s) => s.isLoadingMessages);
-  const { isArtifactActive, artifactRenderer } = useShellStore((store) => ({
-    isArtifactActive: store.isArtifactActive,
-    artifactRenderer: store.artifactRenderer,
-  }));
 
   useScrollToBottom({
     ref,
@@ -98,9 +81,6 @@ export const ScrollArea = ({
       </div>
       {/* Gradient to hide the bottom of the scroll area */}
       <div className="openui-bottom-tray-thread-scroll-gradient" />
-      {isArtifactActive && (
-        <div className="openui-bottom-tray-thread-artifact-panel--mobile">{artifactRenderer()}</div>
-      )}
     </div>
   );
 };

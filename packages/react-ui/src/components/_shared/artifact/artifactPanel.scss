@@ -1,0 +1,46 @@
+@use "../../../cssUtils" as cssUtils;
+
+.openui-artifact-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: cssUtils.$space-s;
+  padding: cssUtils.$space-s cssUtils.$space-m;
+  border-bottom: 1px solid cssUtils.$border-default;
+  background-color: cssUtils.$foreground;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.openui-artifact-panel__title {
+  @include cssUtils.typography(body, default);
+  color: cssUtils.$text-neutral-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.openui-artifact-panel__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: cssUtils.$radius-s;
+  background: transparent;
+  color: cssUtils.$text-neutral-secondary;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: cssUtils.$highlight;
+    color: cssUtils.$text-neutral-primary;
+  }
+}

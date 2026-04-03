@@ -1,0 +1,205 @@
+.card {
+  border: 1px solid var(--home-border-subtle);
+  border-radius: 18px;
+  background: var(--home-color-surface);
+  box-shadow: var(--home-shadow-elevated);
+}
+
+.desktopSteps {
+  display: none;
+  height: 733px;
+  overflow: hidden;
+}
+
+.mobileSteps {
+  display: block;
+}
+
+.stepBadge {
+  display: flex;
+  height: 30px;
+  width: 30px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--home-border-default);
+  border-radius: var(--home-radius-pill);
+}
+
+.stepBadgeActive {
+  background: var(--home-color-surface-inverse);
+  color: #fff;
+}
+
+.stepBadgeInactive {
+  background: var(--home-color-surface);
+  color: var(--home-color-text-primary);
+}
+
+.stepBadgeLabel {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+
+.divider {
+  height: 1px;
+  width: 100%;
+  background: var(--home-color-surface-muted);
+}
+
+.stepDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stepDescription {
+  font-family: "Inter Display", sans-serif;
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--home-color-text-muted);
+}
+
+.stepDetailsTitle {
+  margin-bottom: 0.5rem;
+}
+
+.stepDetailsList {
+  padding-left: 1.5rem;
+}
+
+.illustrationFallback,
+.desktopIllustrationFrame,
+.mobileIllustrationFrame {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  border-radius: 16px;
+}
+
+.illustrationFallback {
+  height: 100%;
+  background: #f1f1f1;
+}
+
+.desktopIllustrationFrame {
+  height: 100%;
+}
+
+.mobileIllustrationFrame {
+  aspect-ratio: 610 / 432;
+}
+
+.mobileIllustrationScale {
+  position: absolute;
+  inset: 0;
+  width: 610px;
+  height: 432px;
+  transform: scale(var(--mobile-illustration-scale, 1));
+  transform-origin: top left;
+}
+
+.desktopStep {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden;
+  padding: 1.5rem;
+  cursor: pointer;
+}
+
+.desktopStepLead {
+  display: flex;
+  width: 45%;
+  flex-shrink: 0;
+  gap: 0.75rem;
+}
+
+.desktopStepCopy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-right: 60px;
+}
+
+.desktopStepTitle {
+  padding-block: 0.25rem;
+  font-family: "Inter Display", sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: #000;
+}
+
+.desktopStepPreview {
+  height: 100%;
+  flex: 1;
+  margin-left: 1.5rem;
+}
+
+.mobileStepButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mobileStepTitle {
+  flex: 1;
+  text-align: left;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: #000;
+}
+
+.mobileStepPanel {
+  overflow: hidden;
+}
+
+.mobileStepContent {
+  padding: 0 0.75rem 0.75rem;
+}
+
+.mobileStepDetails {
+  display: flex;
+  margin-left: 42px;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mobileStepIllustrationWrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin-top: 1.5rem;
+  border-radius: 16px;
+}
+
+@media (min-width: 1024px) {
+  .desktopSteps {
+    display: block;
+  }
+
+  .mobileSteps {
+    display: none;
+  }
+
+  .stepBadge {
+    height: 36px;
+    width: 36px;
+  }
+
+  .stepBadgeLabel {
+    font-size: 18px;
+    line-height: 1.5rem;
+  }
+}

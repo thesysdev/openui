@@ -35,6 +35,15 @@ export const processStreamedMessage = async ({
 
   let isFirst = true;
 
+  let rafId: number | null = null;
+  const debouncedUpdate = (msg: AssistantMessage) => {
+    if (rafId !== null) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      updateMessage(msg);
+      rafId = null;
+    });
+  };
+
   for await (const event of adapter.parse(response)) {
     switch (event.type) {
       case EventType.TEXT_MESSAGE_CONTENT:
@@ -101,8 +110,15 @@ export const processStreamedMessage = async ({
       createMessage(currentMessage);
       isFirst = false;
     } else {
-      updateMessage(currentMessage);
+      // debounce the message update using raf
+      debouncedUpdate(currentMessage);
     }
+  }
+
+  if (rafId !== null) {
+    // flush any update
+    cancelAnimationFrame(rafId);
+    updateMessage(currentMessage);
   }
 
   return currentMessage;

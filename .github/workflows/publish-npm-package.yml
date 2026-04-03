@@ -8,14 +8,17 @@ on:
   workflow_dispatch:
     inputs:
       package:
-        description: "Package to publish (react-ui, react-headless, openui-cli or react-lang)"
+        description: "Package to publish"
         required: true
         type: choice
         options:
           - react-ui
           - react-headless
           - react-lang
+          - react-email
           - openui-cli
+          - svelte-lang
+          - vue-lang
 
 jobs:
   publish:

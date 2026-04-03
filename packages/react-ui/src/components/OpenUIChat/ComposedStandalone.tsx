@@ -81,8 +81,6 @@ const FullScreenInner = ({
   agentName = "My Agent",
   messageLoading: MessageLoadingComponent = MessageLoading,
   scrollVariant = "user-message-anchor",
-  isArtifactActive,
-  renderArtifact,
   welcomeMessage,
   conversationStarters,
   assistantMessage,
@@ -101,7 +99,7 @@ const FullScreenInner = ({
           <ThreadList />
         </SidebarContent>
       </SidebarContainer>
-      <ThreadContainer isArtifactActive={isArtifactActive} renderArtifact={renderArtifact}>
+      <ThreadContainer>
         <MobileHeader rightChildren={mobileHeaderActions} />
         {threadHeader && <ThreadHeader>{threadHeader}</ThreadHeader>}
         <WelcomeMessageRenderer

@@ -1,0 +1,29 @@
+{
+  "name": "vue-chat",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "generate:prompt": "node scripts/generate-prompt.mjs"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^3.0.41",
+    "@ai-sdk/vue": "^3.0.0",
+    "@openuidev/lang-core": "workspace:*",
+    "@openuidev/vue-lang": "workspace:*",
+    "ai": "^6.0.116",
+    "chart.js": "^4.5.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4",
+    "jiti": "^2.0.0",
+    "nuxt": "^3.17.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0"
+  }
+}

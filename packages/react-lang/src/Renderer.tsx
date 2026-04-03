@@ -1,8 +1,8 @@
+import type { ActionEvent, ElementNode, ParseResult } from "@openuidev/lang-core";
 import React, { Component, Fragment, useEffect } from "react";
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
-import type { ActionEvent, ElementNode, ParseResult } from "./parser/types";
 
 export interface RendererProps {
   /** Raw response text (openui-lang code). */

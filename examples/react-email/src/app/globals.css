@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* Placeholder color for compose textarea */
+textarea::placeholder,
+input::placeholder {
+  color: #6B7280 !important;
+  opacity: 1;
+}
+
+[data-theme="dark"] textarea::placeholder,
+[data-theme="dark"] input::placeholder {
+  color: #4B5563 !important;
+  opacity: 1;
+}

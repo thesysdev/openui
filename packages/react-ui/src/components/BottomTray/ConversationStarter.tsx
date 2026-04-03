@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { ArrowUp, Lightbulb } from "lucide-react";
 import { Fragment, ReactNode } from "react";
 import { ConversationStarterIcon, ConversationStarterProps } from "../../types/ConversationStarter";
-import { isChatEmpty } from "../OpenUIChat/utils";
+import { isChatEmpty } from "../_shared/utils";
 import { Separator } from "../Separator";
 
 export type ConversationStarterVariant = "short" | "long";

@@ -3,10 +3,12 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { detectPackageManager } from "../lib/detect-package-manager";
+import { runSkillInstall, shouldInstallSkill } from "../lib/install-skill";
 import { resolveArgs } from "../lib/resolve-args";
 
 export interface CreateChatAppOptions {
   name?: string;
+  skill?: boolean;
   noInteractive?: boolean;
 }
 
@@ -93,6 +95,11 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
     process.exit(1);
   }
 
+  const installSkill = await shouldInstallSkill(options.skill, !options.noInteractive);
+  if (installSkill) {
+    runSkillInstall(targetDir);
+  }
+
   const devCmd =
     runner === "pnpm dlx"
       ? "pnpm"
@@ -102,13 +109,13 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
           ? "bun"
           : "npm";
 
-  console.info(getStartedMessage(name, devCmd));
+  console.info(getStartedMessage(name, devCmd, installSkill));
 }
 
-const getStartedMessage = (name: string, devCmd: string) =>
+const getStartedMessage = (name: string, devCmd: string, skillInstalled: boolean) =>
   `
 Done!
-Get started: 
+Get started:
 
 cd ${name}
 
@@ -118,4 +125,4 @@ Add your API key to .env:
 OPENAI_API_KEY=sk-your-key-here
 
 ${devCmd} run dev
-`;
+${skillInstalled ? "\nThe OpenUI agent skill was installed.\nAI coding assistants will use it to help you build with OpenUI.\n" : ""}`;

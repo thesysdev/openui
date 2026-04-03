@@ -14,9 +14,15 @@ program
   .command("create")
   .description("Scaffold a new Next.js app with OpenUI Chat")
   .option("-n, --name <string>", "Project name")
+  .option("--skill", "Install the OpenUI agent skill for AI coding assistants")
+  .option("--no-skill", "Skip installing the OpenUI agent skill")
   .option("--no-interactive", "Fail with error if required args are missing")
-  .action(async (options: { name?: string; interactive: boolean }) => {
-    await runCreateChatApp({ name: options.name, noInteractive: !options.interactive });
+  .action(async (options: { name?: string; skill?: boolean; interactive: boolean }) => {
+    await runCreateChatApp({
+      name: options.name,
+      skill: options.skill,
+      noInteractive: !options.interactive,
+    });
   });
 
 program

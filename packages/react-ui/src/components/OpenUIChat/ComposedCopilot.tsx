@@ -68,8 +68,6 @@ const CopilotInner = ({
   agentName = "My Agent",
   messageLoading: MessageLoadingComponent = MessageLoading,
   scrollVariant = "user-message-anchor",
-  isArtifactActive,
-  renderArtifact,
   welcomeMessage,
   conversationStarters,
   assistantMessage,
@@ -79,7 +77,7 @@ const CopilotInner = ({
 }: CopilotSpecificProps) => {
   return (
     <Container logoUrl={logoUrl} agentName={agentName}>
-      <ThreadContainer isArtifactActive={isArtifactActive} renderArtifact={renderArtifact}>
+      <ThreadContainer>
         <Header rightChildren={headerActions} />
         <WelcomeMessageRenderer welcomeMessage={welcomeMessage} />
         <ScrollArea scrollVariant={scrollVariant}>

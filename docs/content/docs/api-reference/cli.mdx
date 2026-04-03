@@ -31,6 +31,8 @@ openui create [options]
 | Flag | Description |
 |---|---|
 | `-n, --name <string>` | Project name (directory to create) |
+| `--skill` | Install the OpenUI agent skill for AI coding assistants |
+| `--no-skill` | Skip installing the OpenUI agent skill |
 | `--no-interactive` | Fail instead of prompting for missing input |
 
 When run interactively (default), the CLI prompts for any missing options. Pass `--no-interactive` in CI or scripted environments to surface missing required flags as errors instead.
@@ -41,18 +43,29 @@ When run interactively (default), the CLI prompts for any missing options. Pass 
 2. Rewrites `workspace:*` dependency versions to `latest`
 3. Auto-detects your package manager (npm, pnpm, yarn, bun)
 4. Installs dependencies
+5. Optionally installs the [OpenUI agent skill](/docs/openui-lang/agent-skill) for AI coding assistants (e.g. Claude, Cursor, Copilot)
 
 The generated project includes a `generate:prompt` script that runs `openui generate` as part of `dev` and `build`.
+
+**Agent skill**
+
+When run interactively, `openui create` asks whether to install the OpenUI agent skill. The skill teaches AI coding assistants how to build with OpenUI Lang — covering component definitions, system prompts, the Renderer, and debugging.
+
+Pass `--skill` or `--no-skill` to skip the prompt. In `--no-interactive` mode the skill is skipped unless `--skill` is explicitly passed.
 
 **Examples**
 
 ```bash
-# Interactive — prompts for project name
+# Interactive — prompts for project name and skill installation
 openui create
 
 # Non-interactive
 openui create --name my-app
 openui create --no-interactive --name my-app
+
+# Explicitly install or skip the agent skill
+openui create --name my-app --skill
+openui create --name my-app --no-skill
 ```
 
 ## `openui generate`

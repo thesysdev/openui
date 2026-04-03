@@ -1,0 +1,28 @@
+{
+  "name": "svelte-chat",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^3.0.41",
+    "@ai-sdk/svelte": "^3.0.0",
+    "@openuidev/svelte-lang": "workspace:*",
+    "ai": "^6.0.116",
+    "chart.js": "^4.5.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "^4.0.0",
+    "@sveltejs/kit": "^2.0.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@tailwindcss/vite": "^4",
+    "svelte": "^5.0.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vite": "^6.0.0"
+  }
+}

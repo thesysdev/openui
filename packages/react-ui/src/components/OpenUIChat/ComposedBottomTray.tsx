@@ -73,8 +73,6 @@ const BottomTrayInner = ({
   agentName = "My Agent",
   messageLoading: MessageLoadingComponent = MessageLoading,
   scrollVariant = "user-message-anchor",
-  isArtifactActive,
-  renderArtifact,
   isOpen: controlledIsOpen,
   onOpenChange,
   defaultOpen = false,
@@ -105,7 +103,7 @@ const BottomTrayInner = ({
       </Trigger>
 
       <Container logoUrl={logoUrl} agentName={agentName} isOpen={isOpen}>
-        <ThreadContainer isArtifactActive={isArtifactActive} renderArtifact={renderArtifact}>
+        <ThreadContainer>
           <Header onMinimize={() => handleOpenChange(false)} rightChildren={headerActions} />
           <WelcomeMessageRenderer welcomeMessage={welcomeMessage} />
           <ScrollArea scrollVariant={scrollVariant}>

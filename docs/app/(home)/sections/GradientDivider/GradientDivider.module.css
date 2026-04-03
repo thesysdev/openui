@@ -1,0 +1,123 @@
+.divider {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 2px;
+  transform: rotate(180deg);
+}
+
+.bar {
+  width: 100%;
+  flex-shrink: 0;
+  background: rgb(0 0 0 / 4%);
+}
+
+.barHeight60 {
+  height: 30px;
+}
+
+.barHeight48 {
+  height: 24px;
+}
+
+.barHeight32 {
+  height: 16px;
+}
+
+.barHeight20942 {
+  height: 10.471px;
+}
+
+.barHeight16754 {
+  height: 8.377px;
+}
+
+.barHeight12565 {
+  height: 6.2825px;
+}
+
+.barHeight10471 {
+  height: 5.2355px;
+}
+
+.barHeight8377 {
+  height: 4.1885px;
+}
+
+.barHeight6283 {
+  height: 3.1415px;
+}
+
+.barHeight4188 {
+  height: 2.094px;
+}
+
+.barHeight3141 {
+  height: 1.5705px;
+}
+
+.barHeight2094 {
+  height: 1.047px;
+}
+
+.barHeight1047 {
+  height: 0.5235px;
+}
+
+@media (min-width: 1024px) {
+  .divider {
+    gap: 6px;
+  }
+
+  .barHeight60 {
+    height: 60px;
+  }
+
+  .barHeight48 {
+    height: 48px;
+  }
+
+  .barHeight32 {
+    height: 32px;
+  }
+
+  .barHeight20942 {
+    height: 20.942px;
+  }
+
+  .barHeight16754 {
+    height: 16.754px;
+  }
+
+  .barHeight12565 {
+    height: 12.565px;
+  }
+
+  .barHeight10471 {
+    height: 10.471px;
+  }
+
+  .barHeight8377 {
+    height: 8.377px;
+  }
+
+  .barHeight6283 {
+    height: 6.283px;
+  }
+
+  .barHeight4188 {
+    height: 4.188px;
+  }
+
+  .barHeight3141 {
+    height: 3.141px;
+  }
+
+  .barHeight2094 {
+    height: 2.094px;
+  }
+
+  .barHeight1047 {
+    height: 1.047px;
+  }
+}
