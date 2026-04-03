@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { generateText, tool } from "ai";
+import { streamText, tool } from "ai";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { z } from "zod";
@@ -40,7 +40,7 @@ export const tools = {
         .optional()
         .describe("Optional additional context, such as prior conversation details."),
     }),
-    execute: async ({ task, context }, { abortSignal }) => {
+    execute: async function* ({ task, context }, { abortSignal }) {
       const prompt = context
         ? `Analytics task:
 ${task}
@@ -63,20 +63,30 @@ Output contract (strict):
       console.info("[analytics_subagent] Input:\n", JSON.stringify({ task, context }, null, 2));
       console.info("[analytics_subagent] Prompt:\n", prompt);
 
-      const result = await generateText({
+      const result = streamText({
         model: openai("gpt-5.4"),
         system: analyticsSubagentSystemPrompt,
         prompt,
         abortSignal,
       });
 
-      const sanitizedOpenUiSpec = sanitizeOpenUiSpec(result.text);
+      let accumulated = "";
+      for await (const chunk of result.textStream) {
+        accumulated += chunk;
+        yield {
+          openuiSpec: sanitizeOpenUiSpec(accumulated),
+          complete: false,
+        };
+      }
 
-      console.info("[analytics_subagent] Raw output:\n", result.text);
+      const sanitizedOpenUiSpec = sanitizeOpenUiSpec(accumulated);
+
+      console.info("[analytics_subagent] Raw output:\n", accumulated);
       console.info("[analytics_subagent] Sanitized output:\n", sanitizedOpenUiSpec);
 
-      return {
+      yield {
         openuiSpec: sanitizedOpenUiSpec,
+        complete: true,
       };
     },
   }),

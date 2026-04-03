@@ -32,6 +32,14 @@ function getOpenUiToolOutput(part: UIMessage["parts"][number]): string | null {
   return typeof openuiSpec === "string" ? openuiSpec : null;
 }
 
+function isOpenUiToolOutputStreaming(part: UIMessage["parts"][number]): boolean {
+  if (!("output" in part)) return false;
+  const output = (part as { output?: unknown }).output;
+  if (!output || typeof output !== "object") return false;
+
+  return (output as { complete?: unknown }).complete === false;
+}
+
 export function AssistantMessage({ message, onSend }: AssistantMessageProps) {
   const textContent = message.parts
     .filter((p): p is { type: "text"; text: string } => p.type === "text")
@@ -58,6 +66,7 @@ export function AssistantMessage({ message, onSend }: AssistantMessageProps) {
           const toolState = (tp as { state: string }).state;
           const toolName = getToolName(tp);
           const openUiSpec = getOpenUiToolOutput(tp);
+          const isOpenUiStreaming = isOpenUiToolOutputStreaming(tp);
 
           return (
             <div key={(tp as { toolCallId: string }).toolCallId} className="space-y-2">
@@ -67,7 +76,7 @@ export function AssistantMessage({ message, onSend }: AssistantMessageProps) {
                   <Renderer
                     response={openUiSpec}
                     library={openuiChatLibrary}
-                    isStreaming={false}
+                    isStreaming={isOpenUiStreaming}
                     onAction={handleAction}
                   />
                 </div>
