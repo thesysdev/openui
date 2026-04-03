@@ -117,9 +117,7 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
     ).trim();
 
     if (apiKey) {
-      const envPath = path.join(targetDir, ".env");
-      fs.writeFileSync(envPath, `OPENAI_API_KEY=${apiKey}\n`);
-      console.info("\n✅ .env file created with your API key.\n");
+      fs.writeFileSync(path.join(targetDir, ".env"), `OPENAI_API_KEY=${apiKey}\n`);
       apiKeyWritten = true;
     }
   }
@@ -134,24 +132,24 @@ const getStartedMessage = (
   apiKeyWritten: boolean,
 ) => {
   const envInstructions = apiKeyWritten
-    ? ""
-    : `
-touch .env
+    ? "✅ .env file created with your API key."
+    : `touch .env
 
 Add your API key to .env:
-OPENAI_API_KEY=sk-your-key-here
-`;
+OPENAI_API_KEY=sk-your-key-here`;
 
   const skillMessage = skillInstalled
-    ? "\nThe OpenUI agent skill was installed.\nAI coding assistants will use it to help you build with OpenUI.\n"
+    ? "The OpenUI agent skill was installed.\nAI coding assistants will use it to help you build with OpenUI."
     : "";
 
-  return `
+  return `${skillMessage}
+
 Done!
 Get started:
 
-cd ${name}
 ${envInstructions}
-${devCmd} run dev
-${skillMessage}`;
+
+> cd ${name}
+> ${devCmd} run dev
+`;
 };
