@@ -52,31 +52,20 @@ const getStockPrice = createTool({
 });
 // ================================
 
-function createAgent() {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "OPENAI_API_KEY is not set. Please provide it in your environment variables to run this example.",
-    );
-  }
-
-  return new MastraAgent({
-    agent: new Agent({
-      id: "openui-agent",
-      name: "OpenUI Agent",
-      instructions: `You are a helpful assistant. Use tools when relevant and help the user with their requests. Always format your responses cleanly.\n\n${systemPromptFile}`,
-      model: {
-        id: (process.env.OPENAI_MODEL as `${string}/${string}`) || "openai/gpt-4o",
-        apiKey,
-        url: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
-      },
-      tools: { getWeather, getStockPrice },
-    }),
-    resourceId: "chat-user",
-  });
-}
-
-const agent = createAgent();
+const agent = new MastraAgent({
+  agent: new Agent({
+    id: "openui-agent",
+    name: "OpenUI Agent",
+    instructions: `You are a helpful assistant. Use tools when relevant and help the user with their requests. Always format your responses cleanly.\n\n${systemPromptFile}`,
+    model: {
+      id: (process.env.OPENAI_MODEL as `${string}/${string}`) || "openai/gpt-4o",
+      apiKey: process.env.OPENAI_API_KEY,
+      url: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
+    },
+    tools: { getWeather, getStockPrice },
+  }),
+  resourceId: "chat-user",
+});
 
 export async function POST(req: NextRequest) {
   try {
