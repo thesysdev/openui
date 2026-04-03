@@ -67,10 +67,8 @@ export function AssistantMessage({ message, onSend }: AssistantMessageProps) {
           const toolState = (tp as { state: string }).state;
           const toolName = getToolName(tp);
           const openUiSpec = getOpenUiToolOutput(tp);
-<<<<<<< HEAD
           const isOpenUiStreaming = isOpenUiToolOutputStreaming(tp);
-=======
->>>>>>> 5e51dcdf (added multi-agent exampl)
+
 
           return (
             <div key={(tp as { toolCallId: string }).toolCallId} className="space-y-2">
