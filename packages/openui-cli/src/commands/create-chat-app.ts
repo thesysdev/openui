@@ -103,20 +103,10 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
           : "npm";
 
   if (!options.noInteractive) {
-    const apiKeyArgs = await resolveArgs(
-      {
-        openaiApiKey: {
-          prompt: {
-            type: "input",
-            message: "Enter your OpenAI API key (leave blank to skip):",
-          },
-          required: true,
-        },
-      },
-      true,
-    );
-
-    const apiKey = (apiKeyArgs as { openaiApiKey: string }).openaiApiKey.trim();
+    const { input } = await import("@inquirer/prompts");
+    const apiKey = (
+      await input({ message: "Enter your OpenAI API key (leave blank to skip):" })
+    ).trim();
 
     if (apiKey) {
       const envPath = path.join(targetDir, ".env");
