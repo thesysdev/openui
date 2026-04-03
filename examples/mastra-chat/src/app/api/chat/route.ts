@@ -1,7 +1,7 @@
 import { MastraAgent } from "@ag-ui/mastra";
 import { Agent } from "@mastra/core/agent";
 import { createTool } from "@mastra/core/tools";
-import { EventType, type Message, type TextInputContent } from "@ag-ui/core";
+import type { Message } from "@ag-ui/core";
 import { readFileSync } from "fs";
 import { NextRequest } from "next/server";
 import { join } from "path";
@@ -12,6 +12,7 @@ const systemPromptFile = readFileSync(
   "utf-8",
 );
 
+// ========== Mock tools ==========
 const getWeather = createTool({
   id: "get_weather",
   description: "Get current weather for a city.",
@@ -49,24 +50,9 @@ const getStockPrice = createTool({
     return { symbol: s, price };
   },
 });
+// ================================
 
-type AgentRunInput = Parameters<MastraAgent["run"]>[0];
-type AgentMessage = AgentRunInput["messages"][number];
-
-const agentTools: AgentRunInput["tools"] = [
-  {
-    name: getWeather.id,
-    description: getWeather.description,
-    parameters: getWeather.inputSchema,
-  },
-  {
-    name: getStockPrice.id,
-    description: getStockPrice.description,
-    parameters: getStockPrice.inputSchema,
-  },
-];
-
-function getAgent() {
+function createAgent() {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error(
@@ -74,121 +60,57 @@ function getAgent() {
     );
   }
 
-  const baseAgent = new Agent({
-    id: "openui-agent",
-    name: "OpenUI Agent",
-    instructions: `You are a helpful assistant. Use tools when relevant and help the user with their requests. Always format your responses cleanly.\n\n${systemPromptFile}`,
-    model: {
-      id: (process.env.OPENAI_MODEL as `${string}/${string}`) || "openai/gpt-4o",
-      apiKey: apiKey,
-      url: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
-    },
-    tools: { getWeather, getStockPrice },
-  });
-
   return new MastraAgent({
-    agent: baseAgent,
+    agent: new Agent({
+      id: "openui-agent",
+      name: "OpenUI Agent",
+      instructions: `You are a helpful assistant. Use tools when relevant and help the user with their requests. Always format your responses cleanly.\n\n${systemPromptFile}`,
+      model: {
+        id: (process.env.OPENAI_MODEL as `${string}/${string}`) || "openai/gpt-4o",
+        apiKey,
+        url: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
+      },
+      tools: { getWeather, getStockPrice },
+    }),
     resourceId: "chat-user",
   });
 }
 
-function toAgentMessage(message: Message): AgentMessage | null {
-  switch (message.role) {
-    case "developer":
-    case "system":
-      return {
-        id: message.id,
-        role: message.role,
-        content: message.content,
-      };
-    case "user":
-      return {
-        id: message.id,
-        role: "user",
-        content:
-          typeof message.content === "string"
-            ? message.content
-            : message.content.find(
-                (content): content is TextInputContent => content.type === "text",
-              )?.text || "",
-      };
-    case "assistant":
-      return {
-        id: message.id,
-        role: "assistant",
-        content: message.content,
-        toolCalls: message.toolCalls,
-      };
-    case "tool":
-      return {
-        id: message.id,
-        role: "tool",
-        content: message.content,
-        toolCallId: message.toolCallId,
-        error: message.error,
-      };
-    default:
-      return null;
-  }
-}
+const agent = createAgent();
 
 export async function POST(req: NextRequest) {
   try {
     const { messages, threadId }: { messages: Message[]; threadId: string } = await req.json();
-
-    const convertedMessages = messages
-      .map(toAgentMessage)
-      .filter((message): message is AgentMessage => message !== null);
-
-    const agent = getAgent();
     const encoder = new TextEncoder();
 
     const readable = new ReadableStream({
       start(controller) {
+        let closed = false;
+        const close = () => {
+          if (closed) return;
+          closed = true;
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        };
+
         const subscription = agent
           .run({
-            messages: convertedMessages,
+            messages,
             threadId,
             runId: crypto.randomUUID(),
-            tools: agentTools,
+            tools: [],
             context: [],
           })
           .subscribe({
             next: (event) => {
-              if (
-                (event.type === EventType.TEXT_MESSAGE_CHUNK ||
-                  event.type === EventType.TEXT_MESSAGE_CONTENT) &&
-                event.delta
-              ) {
-                const translatedEvent = {
-                  type: EventType.TEXT_MESSAGE_CONTENT,
-                  messageId: event.messageId || "current-message",
-                  delta: event.delta,
-                };
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify(translatedEvent)}\n\n`));
-              } else if (event.type === EventType.RUN_ERROR) {
-                controller.enqueue(
-                  encoder.encode(
-                    `data: ${JSON.stringify({
-                      type: EventType.RUN_ERROR,
-                      message: event.message || "An error occurred during the agent run",
-                    })}\n\n`,
-                  ),
-                );
-                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-              }
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
             },
-            complete: () => {
-              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-              controller.close();
-            },
-            error: (error: unknown) => {
-              const message =
-                error instanceof Error ? error.message : "Unknown Mastra stream error";
+            complete: close,
+            error: (error: Error) => {
+              const msg = error.message;
               console.error("Mastra stream error:", error);
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`));
-              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-              controller.close();
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
+              close();
             },
           });
 

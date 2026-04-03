@@ -22,7 +22,7 @@ export default function Page() {
         }}
         streamProtocol={agUIAdapter()}
         componentLibrary={openuiChatLibrary}
-        agentName="OpenUI Chat"
+        agentName="OpenUI + Mastra Chat"
         theme={{ mode }}
         conversationStarters={{
           variant: "short",
