@@ -372,7 +372,7 @@ export function useOpenUIState(
         formName,
       });
     },
-    [queryManager, evaluationContext, getFormPayload],
+    [queryManager, evaluationContext, getFormPayload, store],
   );
 
   // ─── Context value ───
@@ -418,6 +418,7 @@ export function useOpenUIState(
       console.error("[openui] Prop evaluation error:", e);
       return result;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- storeSnapshot/querySnapshot are reactive triggers
   }, [result, evalContext, storeSnapshot, querySnapshot]);
 
   const isQueryLoading = querySnapshot.__openui_loading.length > 0;
@@ -492,7 +493,7 @@ export function useOpenUIState(
     lastErrorKeyRef.current = key;
 
     propsRef.current.onError?.(errors);
-  }, [isStreaming, result?.meta.validationErrors, querySnapshot, library]);
+  }, [isStreaming, response, result, querySnapshot, library]);
 
   return { result: evaluatedResult, parseResult: result, contextValue, isQueryLoading };
 }

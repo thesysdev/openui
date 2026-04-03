@@ -1,24 +1,21 @@
 "use client";
 
 import { mergeStatements } from "@openuidev/react-lang";
-import { Send, Square, Code2, X } from "lucide-react";
+import { Code2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CodePanel } from "./components/CodePanel/CodePanel";
 import { ConversationPanel } from "./components/ConversationPanel/ConversationPanel";
 import { GitHubConnect } from "./components/GitHubConnect/GitHubConnect";
 import { Header } from "./components/Header/Header";
 import { PreviewPanel } from "./components/PreviewPanel/PreviewPanel";
-import { createGitHubToolProvider, getRateLimit, clearCache } from "./github/tools";
 import {
   GITHUB_STARTERS,
-  MODELS,
-  STARTER_PROMPTS,
   type ChatMessage,
   type Model,
   type Status,
   type Theme,
   type ToolCallEntry,
 } from "./constants";
+import { clearCache, createGitHubToolProvider } from "./github/tools";
 
 // ── Helpers (from dashboard example) ─────────────────────────────────────
 
@@ -40,9 +37,7 @@ function extractCodeOnly(response: string): string | null {
 
 function extractText(response: string): string {
   const withoutFences = response.replace(/```[\w-]*\n[\s\S]*?```/g, "").trim();
-  const withoutUnclosed = withoutFences
-    .replace(/```[\w-]*\n[\s\S]*$/g, "")
-    .trim();
+  const withoutUnclosed = withoutFences.replace(/```[\w-]*\n[\s\S]*$/g, "").trim();
   if (withoutUnclosed && isPureCode(withoutUnclosed)) return "";
   return withoutUnclosed;
 }
@@ -73,10 +68,7 @@ function wrapToolProvider(
   listener: ToolCallListener,
 ): Record<string, (args: Record<string, unknown>) => Promise<unknown>> {
   const activeCalls: ToolCallEntry[] = [];
-  const wrapped: Record<
-    string,
-    (args: Record<string, unknown>) => Promise<unknown>
-  > = {};
+  const wrapped: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {};
 
   for (const [name, fn] of Object.entries(inner)) {
     wrapped[name] = async (args) => {
@@ -212,9 +204,7 @@ export default function PlaygroundPage() {
   }, [theme]);
 
   const cycleTheme = () =>
-    setTheme((t) =>
-      t === "system" ? "light" : t === "light" ? "dark" : "system",
-    );
+    setTheme((t) => (t === "system" ? "light" : t === "light" ? "dark" : "system"));
 
   // Timer
   useEffect(() => {
@@ -322,8 +312,7 @@ export default function PlaygroundPage() {
             setStatus("done");
             abortRef.current = null;
             setStreamingText("");
-            if (streamStartTime)
-              setElapsed(Date.now() - streamStartTime);
+            if (streamStartTime) setElapsed(Date.now() - streamStartTime);
 
             const raw = responseRef.current;
             const hasCode = responseHasCode(raw);
@@ -335,17 +324,14 @@ export default function PlaygroundPage() {
               content: raw,
               text,
               hasCode,
-              runtimeTools:
-                toolCalls.length > 0 ? [...toolCalls] : undefined,
+              runtimeTools: toolCalls.length > 0 ? [...toolCalls] : undefined,
             };
             setConversation((prev) => [...prev, assistantMsg]);
 
             if (hasCode) {
               const newCode = pureCode ? raw : extractCodeOnly(raw);
               if (newCode) {
-                const merged = existingCode
-                  ? mergeStatements(existingCode, newCode)
-                  : newCode;
+                const merged = existingCode ? mergeStatements(existingCode, newCode) : newCode;
                 setDashboardCode(merged);
               }
             }
@@ -448,10 +434,7 @@ export default function PlaygroundPage() {
                     className="gh-connected-avatar"
                   />
                   <span>@{githubUsername}</span>
-                  <button
-                    className="gh-connected-change"
-                    onClick={handleDisconnect}
-                  >
+                  <button className="gh-connected-change" onClick={handleDisconnect}>
                     Change
                   </button>
                 </div>
@@ -472,8 +455,7 @@ export default function PlaygroundPage() {
                         }}
                       />
                     </span>
-                    Connected as <strong>@{githubUsername}</strong>. What do you
-                    want to build?
+                    Connected as <strong>@{githubUsername}</strong>. What do you want to build?
                   </div>
                   <div className="gh-starters-grid" style={{ maxWidth: 600 }}>
                     {GITHUB_STARTERS.map((s) => (
@@ -486,9 +468,7 @@ export default function PlaygroundPage() {
                         <span className="gh-starter-icon">{s.icon}</span>
                         <div className="gh-starter-label">{s.label}</div>
                         <div className="gh-starter-desc">
-                          {s.prompt.length > 60
-                            ? s.prompt.slice(0, 60) + "..."
-                            : s.prompt}
+                          {s.prompt.length > 60 ? s.prompt.slice(0, 60) + "..." : s.prompt}
                         </div>
                       </button>
                     ))}
@@ -500,9 +480,7 @@ export default function PlaygroundPage() {
               {hasDashboard && !isStreaming && (
                 <div className="dashboard-meta">
                   {elapsed && (
-                    <span className="dashboard-elapsed">
-                      {(elapsed / 1000).toFixed(1)}s
-                    </span>
+                    <span className="dashboard-elapsed">{(elapsed / 1000).toFixed(1)}s</span>
                   )}
                   <button
                     className="dashboard-source-toggle"
@@ -525,17 +503,13 @@ export default function PlaygroundPage() {
                   <PreviewPanel
                     code={dashboardCode!}
                     isStreaming={isStreaming}
-                    onParseResult={(r) =>
-                      setParsedJson(r ? JSON.stringify(r, null, 2) : null)
-                    }
+                    onParseResult={(r) => setParsedJson(r ? JSON.stringify(r, null, 2) : null)}
                     theme={theme}
                     toolProvider={toolProvider}
                     onAction={(event) => {
                       if (event.type === "continue_conversation") {
                         const text =
-                          (typeof event.params?.context === "string"
-                            ? event.params.context
-                            : "") ||
+                          (typeof event.params?.context === "string" ? event.params.context : "") ||
                           event.humanFriendlyMessage ||
                           "";
                         if (text) send(text);
@@ -548,13 +522,9 @@ export default function PlaygroundPage() {
               {/* Streaming placeholder (before first code arrives) */}
               {isStreaming && !hasDashboard && (
                 <div className="dashboard-loading">
-                  <div className="dashboard-loading-text">
-                    Generating dashboard...
-                  </div>
+                  <div className="dashboard-loading-text">Generating dashboard...</div>
                   {elapsed && (
-                    <div className="dashboard-loading-timer">
-                      {(elapsed / 1000).toFixed(1)}s
-                    </div>
+                    <div className="dashboard-loading-timer">{(elapsed / 1000).toFixed(1)}s</div>
                   )}
                 </div>
               )}
@@ -579,9 +549,7 @@ export default function PlaygroundPage() {
       </div>
 
       {/* Error banner */}
-      {status === "error" && errorMsg && (
-        <div className="error-banner">{errorMsg}</div>
-      )}
+      {status === "error" && errorMsg && <div className="error-banner">{errorMsg}</div>}
     </div>
   );
 }

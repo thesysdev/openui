@@ -9,15 +9,15 @@ OpenUI Lang started as a way to generate static UI from LLM output — a token-e
 
 ## The shift
 
-| | v0.1 | v0.5 |
-|--|------|------|
-| **Purpose** | Generate UI responses in chat | Build interactive apps with live data |
-| **Data** | Hardcoded in the output | Fetched from your tools via `Query` / `Mutation` |
-| **State** | None — static render | Reactive `$variables` with two-way binding |
-| **Interactivity** | Send message back to LLM | Buttons call tools directly via `@Run`, update state via `@Set` |
-| **LLM role** | Generates UI on every turn | Generates UI once, then gets out of the way |
-| **Data transforms** | None | `@Count`, `@Filter`, `@Sort`, `@Each`, `@Sum`, etc. |
-| **Components** | Layout + content | + `Modal`, auto-dismiss `Callout` |
+|                     | v0.1                          | v0.5                                                            |
+| ------------------- | ----------------------------- | --------------------------------------------------------------- |
+| **Purpose**         | Generate UI responses in chat | Build interactive apps with live data                           |
+| **Data**            | Hardcoded in the output       | Fetched from your tools via `Query` / `Mutation`                |
+| **State**           | None — static render          | Reactive `$variables` with two-way binding                      |
+| **Interactivity**   | Send message back to LLM      | Buttons call tools directly via `@Run`, update state via `@Set` |
+| **LLM role**        | Generates UI on every turn    | Generates UI once, then gets out of the way                     |
+| **Data transforms** | None                          | `@Count`, `@Filter`, `@Sort`, `@Each`, `@Sum`, etc.             |
+| **Components**      | Layout + content              | + `Modal`, auto-dismiss `Callout`                               |
 
 ## From chat response to standalone app
 
@@ -47,6 +47,7 @@ root = Stack([CardHeader("Revenue Dashboard"), filter, Stack([kpi], "row"), char
 ```
 
 What's different:
+
 - `$days` is reactive state — user changes the Select, chart updates
 - `Query("analytics", {days: $days})` fetches live data from your MCP tools
 - `@Sum(data.rows.revenue)` computes the KPI from live data
@@ -111,6 +112,7 @@ See [Incremental Editing](/docs/openui-lang/incremental-editing).
 ## What stayed the same
 
 The core language is unchanged:
+
 - Line-oriented assignment syntax: `identifier = Expression`
 - Positional arguments mapped by Zod schema key order
 - Forward references and streaming-first rendering

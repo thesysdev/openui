@@ -67,23 +67,23 @@ const spec: PromptSpec = {
   toolExamples: [`tickets = Query("list_tickets", {}, {rows: []})\n...`],
 
   // Feature flags
-  toolCalls: true,   // Enable Query(), Mutation(), @Run (default: true if tools provided)
-  bindings: true,    // Enable $variables, @Set, @Reset (default: true if toolCalls)
-  editMode: true,    // Enable incremental editing (LLM outputs patches, not full regen)
-  inlineMode: true,  // Enable text + code responses (LLM can answer questions without code)
+  toolCalls: true, // Enable Query(), Mutation(), @Run (default: true if tools provided)
+  bindings: true, // Enable $variables, @Set, @Reset (default: true if toolCalls)
+  editMode: true, // Enable incremental editing (LLM outputs patches, not full regen)
+  inlineMode: true, // Enable text + code responses (LLM can answer questions without code)
 
   // Custom instructions
   preamble: "You build dashboards using openui-lang.",
-  additionalRules: ["Use @Reset after form submit, not @Set($var, \"\")"],
+  additionalRules: ['Use @Reset after form submit, not @Set($var, "")'],
 };
 ```
 
-| Flag | What it enables | Default |
-|------|----------------|---------|
-| `toolCalls` | `Query()`, `Mutation()`, `@Run`, tool workflow rules | `true` if `tools` provided |
-| `bindings` | `$variables`, `@Set`, `@Reset`, reactive filters | `true` if `toolCalls` is true |
-| `editMode` | Incremental editing — LLM outputs only changed statements | `false` |
-| `inlineMode` | Text + fenced code responses — LLM can answer questions without generating UI | `false` |
+| Flag         | What it enables                                                               | Default                       |
+| ------------ | ----------------------------------------------------------------------------- | ----------------------------- |
+| `toolCalls`  | `Query()`, `Mutation()`, `@Run`, tool workflow rules                          | `true` if `tools` provided    |
+| `bindings`   | `$variables`, `@Set`, `@Reset`, reactive filters                              | `true` if `toolCalls` is true |
+| `editMode`   | Incremental editing — LLM outputs only changed statements                     | `false`                       |
+| `inlineMode` | Text + fenced code responses — LLM can answer questions without generating UI | `false`                       |
 
 ## What gets generated
 

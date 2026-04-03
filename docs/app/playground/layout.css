@@ -594,7 +594,9 @@ body {
   padding: 2px 6px;
   border-radius: 4px;
   font-family: var(--font-sans);
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
 
 .gh-connected-change:hover {

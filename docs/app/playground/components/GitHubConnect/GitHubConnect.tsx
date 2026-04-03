@@ -87,16 +87,13 @@ export function GitHubConnect({
         </div>
         <h1 className="gh-connect-title">Explore Your GitHub</h1>
         <p className="gh-connect-subtitle">
-          Connect your profile to build live, interactive dashboards with real
-          data
+          Connect your profile to build live, interactive dashboards with real data
         </p>
       </div>
 
       <div className="gh-connect-form">
         <div className="gh-input-row">
-          {avatarUrl && (
-            <img src={avatarUrl} alt="" className="gh-avatar-preview" />
-          )}
+          {avatarUrl && <img src={avatarUrl} alt="" className="gh-avatar-preview" />}
           <input
             ref={inputRef}
             className="gh-input"
@@ -110,11 +107,7 @@ export function GitHubConnect({
             }}
             placeholder="Enter your GitHub username"
           />
-          <button
-            className="gh-connect-btn"
-            onClick={handleConnect}
-            disabled={!username.trim()}
-          >
+          <button className="gh-connect-btn" onClick={handleConnect} disabled={!username.trim()}>
             Connect
           </button>
         </div>
@@ -126,11 +119,7 @@ export function GitHubConnect({
         <div className="gh-demo-label">or try with a popular developer</div>
         <div className="gh-demo-users">
           {DEMO_USERS.map((u) => (
-            <button
-              key={u.username}
-              className="gh-demo-chip"
-              onClick={() => onConnect(u.username)}
-            >
+            <button key={u.username} className="gh-demo-chip" onClick={() => onConnect(u.username)}>
               <img
                 src={`https://github.com/${u.username}.png?size=24`}
                 alt=""
@@ -145,9 +134,7 @@ export function GitHubConnect({
 
       {/* GitHub starter prompts — connect + prompt in one click */}
       <div className="gh-starters">
-        <div className="gh-starters-label">
-          Quick start with @torvalds
-        </div>
+        <div className="gh-starters-label">Quick start with @torvalds</div>
         <div className="gh-starters-grid">
           {GITHUB_STARTERS.map((s) => (
             <button
@@ -158,9 +145,7 @@ export function GitHubConnect({
               <span className="gh-starter-icon">{s.icon}</span>
               <div className="gh-starter-label">{s.label}</div>
               <div className="gh-starter-desc">
-                {s.prompt.length > 60
-                  ? s.prompt.slice(0, 60) + "..."
-                  : s.prompt}
+                {s.prompt.length > 60 ? s.prompt.slice(0, 60) + "..." : s.prompt}
               </div>
             </button>
           ))}

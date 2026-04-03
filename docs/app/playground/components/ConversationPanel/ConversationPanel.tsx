@@ -69,15 +69,8 @@ export function ConversationPanel({
                     </div>
                     <div className="conv-tools-list">
                       {msg.runtimeTools.map((tc, j) => (
-                        <span
-                          key={j}
-                          className={`conv-tool-chip conv-tool-${tc.status}`}
-                        >
-                          {tc.status === "done"
-                            ? "✓"
-                            : tc.status === "error"
-                              ? "✗"
-                              : "⏳"}{" "}
+                        <span key={j} className={`conv-tool-chip conv-tool-${tc.status}`}>
+                          {tc.status === "done" ? "✓" : tc.status === "error" ? "✗" : "⏳"}{" "}
                           {tc.tool}
                         </span>
                       ))}
@@ -86,14 +79,10 @@ export function ConversationPanel({
                 )}
 
                 {/* Text response */}
-                {msg.text && (
-                  <div className="conv-assistant-bubble">{msg.text}</div>
-                )}
+                {msg.text && <div className="conv-assistant-bubble">{msg.text}</div>}
 
                 {/* Dashboard updated badge */}
-                {msg.hasCode && (
-                  <span className="conv-code-badge">✓ dashboard updated</span>
-                )}
+                {msg.hasCode && <span className="conv-code-badge">✓ dashboard updated</span>}
 
                 {/* Empty response */}
                 {!msg.text && !msg.hasCode && !msg.runtimeTools?.length && (
@@ -116,10 +105,7 @@ export function ConversationPanel({
                       {pendingTools.length > 0 ? "Fetching" : "Loaded"}
                     </span>
                     {toolCalls.map((tc, j) => (
-                      <span
-                        key={j}
-                        className={`conv-tool-chip conv-tool-${tc.status}`}
-                      >
+                      <span key={j} className={`conv-tool-chip conv-tool-${tc.status}`}>
                         {tc.status === "pending" ? "⏳" : "✓"} {tc.tool}
                       </span>
                     ))}
@@ -140,9 +126,7 @@ export function ConversationPanel({
 
               {/* Dashboard updating indicator */}
               {responseHasCode && (
-                <span className="conv-code-badge conv-code-updating">
-                  ⟳ updating dashboard...
-                </span>
+                <span className="conv-code-badge conv-code-updating">⟳ updating dashboard...</span>
               )}
             </div>
           </div>
@@ -170,11 +154,7 @@ export function ConversationPanel({
               <Square size={12} fill="currentColor" />
             </button>
           ) : (
-            <button
-              className="conv-send-btn"
-              onClick={handleSend}
-              disabled={!canSend}
-            >
+            <button className="conv-send-btn" onClick={handleSend} disabled={!canSend}>
               <Send size={14} />
             </button>
           )}

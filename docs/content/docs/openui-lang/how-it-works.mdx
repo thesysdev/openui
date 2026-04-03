@@ -86,8 +86,9 @@ The Renderer accepts a `toolProvider` prop — how the runtime calls your tools.
 ```tsx
 <Renderer
   toolProvider={{
-    list_tickets: async (args) => fetch('/api/tickets').then(r => r.json()),
-    create_ticket: async (args) => fetch('/api/tickets', { method: 'POST', body: JSON.stringify(args) }).then(r => r.json()),
+    list_tickets: async (args) => fetch("/api/tickets").then((r) => r.json()),
+    create_ticket: async (args) =>
+      fetch("/api/tickets", { method: "POST", body: JSON.stringify(args) }).then((r) => r.json()),
   }}
   response={code}
   library={library}
@@ -98,14 +99,16 @@ The Renderer accepts a `toolProvider` prop — how the runtime calls your tools.
 
 ```tsx
 const mcp = await connectMcp({ url: "/api/mcp" });
-<Renderer toolProvider={mcp} response={code} library={library} />
+<Renderer toolProvider={mcp} response={code} library={library} />;
 ```
 
 **Custom ToolProvider** — implement the `callTool` interface for full control:
 
 ```tsx
 const provider: ToolProvider = {
-  callTool: async (name, args) => { /* route to any backend */ },
+  callTool: async (name, args) => {
+    /* route to any backend */
+  },
 };
 ```
 
@@ -122,7 +125,7 @@ Define a tool:
 }
 ```
 
-Connect it to the Renderer (via function map, MCP, or custom provider). Ask the LLM: *"Build a ticket tracker with a create form and table"*
+Connect it to the Renderer (via function map, MCP, or custom provider). Ask the LLM: _"Build a ticket tracker with a create form and table"_
 
 The LLM generates:
 
@@ -143,6 +146,7 @@ root = Stack([CardHeader("Ticket Tracker"), form, tbl])
 ```
 
 What happens at runtime:
+
 - `Query("list_tickets")` → runtime calls your MCP tool → table fills with data
 - User types a title, picks a priority, clicks "Create"
 - `@Run(createResult)` → runtime calls `create_ticket` tool directly

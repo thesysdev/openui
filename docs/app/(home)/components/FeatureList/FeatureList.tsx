@@ -31,13 +31,7 @@ function FeatureIcon({ path, index }: { path: string; index: number }) {
   );
 }
 
-function DesktopFeatureRow({
-  item,
-  index,
-}: {
-  item: FeatureListItem;
-  index: number;
-}) {
+function DesktopFeatureRow({ item, index }: { item: FeatureListItem; index: number }) {
   return (
     <div className={styles.desktopRow}>
       <div className={styles.desktopRowLead}>

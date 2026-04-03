@@ -24,18 +24,18 @@ export function AssistantMessage({
 
 ## Props
 
-| Prop            | Type                                    | Description                                                    |
-| :-------------- | :-------------------------------------- | :------------------------------------------------------------- |
-| `response`      | `string \| null`                        | Raw OpenUI Lang response text.                                 |
-| `library`       | `Library`                               | Library created by `createLibrary(...)`.                       |
-| `isStreaming`   | `boolean`                               | Indicates stream is in progress.                               |
-| `onAction`      | `(event: ActionEvent) => void`          | Receives structured action events from interactive components. |
-| `onStateUpdate` | `(state: Record<string, any>) => void`  | Called on form field changes with the raw field state map.     |
-| `initialState`  | `Record<string, any>`                   | Hydrates form state on load (e.g. from persisted message).     |
-| `onParseResult` | `(result: ParseResult \| null) => void` | Debug/inspect latest parse result.                             |
+| Prop            | Type                                                                                          | Description                                                                                                                                   |
+| :-------------- | :-------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `response`      | `string \| null`                                                                              | Raw OpenUI Lang response text.                                                                                                                |
+| `library`       | `Library`                                                                                     | Library created by `createLibrary(...)`.                                                                                                      |
+| `isStreaming`   | `boolean`                                                                                     | Indicates stream is in progress.                                                                                                              |
+| `onAction`      | `(event: ActionEvent) => void`                                                                | Receives structured action events from interactive components.                                                                                |
+| `onStateUpdate` | `(state: Record<string, any>) => void`                                                        | Called on form field changes with the raw field state map.                                                                                    |
+| `initialState`  | `Record<string, any>`                                                                         | Hydrates form state on load (e.g. from persisted message).                                                                                    |
+| `onParseResult` | `(result: ParseResult \| null) => void`                                                       | Debug/inspect latest parse result.                                                                                                            |
 | `toolProvider`  | `ToolProvider \| Record<string, (args: Record<string, unknown>) => Promise<unknown>> \| null` | Handles `Query()` / `Mutation()` tool calls. Accepts a `ToolProvider` object, a plain function map, or an MCP connection from `connectMcp()`. |
-| `queryLoader`   | `React.ReactNode`                       | Custom loading indicator shown while queries are fetching. Defaults to a spinner. |
-| `onError`       | `(errors: OpenUIError[]) => void`       | Structured, LLM-friendly errors from the parser and query system. Suitable for automated correction loops. Called with `[]` when resolved. |
+| `queryLoader`   | `React.ReactNode`                                                                             | Custom loading indicator shown while queries are fetching. Defaults to a spinner.                                                             |
+| `onError`       | `(errors: OpenUIError[]) => void`                                                             | Structured, LLM-friendly errors from the parser and query system. Suitable for automated correction loops. Called with `[]` when resolved.    |
 
 ## Connecting tools
 
@@ -72,9 +72,12 @@ const mcp = await connectMcp({ url: "/api/mcp" });
   toolProvider={mcp}
   onError={(errors) => {
     if (!errors.length) return;
-    const msg = errors.map(e =>
-      `[${e.source}] ${e.statementId ? `"${e.statementId}": ` : ""}${e.message}${e.hint ? `\nHint: ${e.hint}` : ""}`
-    ).join("\n\n");
+    const msg = errors
+      .map(
+        (e) =>
+          `[${e.source}] ${e.statementId ? `"${e.statementId}": ` : ""}${e.message}${e.hint ? `\nHint: ${e.hint}` : ""}`,
+      )
+      .join("\n\n");
     // Send back to LLM for self-correction
     sendToLLM(`Fix these errors:\n\n${msg}`);
   }}

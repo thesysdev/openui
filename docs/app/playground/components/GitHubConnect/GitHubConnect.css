@@ -71,7 +71,9 @@
   background: var(--input-bg);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .gh-input:focus {

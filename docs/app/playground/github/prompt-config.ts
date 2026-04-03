@@ -73,7 +73,7 @@ export const GITHUB_ADDITIONAL_RULES: string[] = [
   "get_profile returns: {login, name, bio, avatar_url, public_repos, followers, following, created_at}",
   "get_languages returns: rows[].{language, bytes, repos_count} sorted by bytes descending",
   "get_events returns: {rows[].{type, repo, date}, summary.{total, push, pr, issues, reviews}}. Event types: Push, PullRequest, Issues, Create, Watch, Fork",
-  "get_commit_activity({repo}) returns: rows[].{week, total} — 52 weeks. Needs repo name, e.g. {repo: \"linux\"}",
+  'get_commit_activity({repo}) returns: rows[].{week, total} — 52 weeks. Needs repo name, e.g. {repo: "linux"}',
   "get_star_history({repo}) returns: rows[].{starred_at, cumulative} for LineChart. Needs repo name.",
   "get_contributors({repo}) returns: rows[].{login, avatar_url, total_commits}. Needs repo name.",
   "Bookmark tools: save_bookmark({repo, note?, tag?}), get_bookmarks({}), delete_bookmark({repo}). Use Mutation + @Run pattern.",

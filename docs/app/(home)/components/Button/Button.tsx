@@ -2,13 +2,7 @@
 
 import { Check, Copy } from "lucide-react";
 import Link from "next/link";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ButtonHTMLAttributes,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import styles from "./Button.module.css";
 
 type ButtonType = ButtonHTMLAttributes<HTMLButtonElement>["type"];
@@ -38,20 +32,16 @@ function CopyStatusIcon({
   return (
     <span className={[styles.copyIconFrame, frameClassName].filter(Boolean).join(" ")}>
       <span
-        className={[
-          styles.iconLayer,
-          copied ? styles.iconHidden : styles.iconVisible,
-          className,
-        ].filter(Boolean).join(" ")}
+        className={[styles.iconLayer, copied ? styles.iconHidden : styles.iconVisible, className]
+          .filter(Boolean)
+          .join(" ")}
       >
         <CopyIcon color={color} />
       </span>
       <span
-        className={[
-          styles.iconLayer,
-          copied ? styles.iconVisible : styles.iconHidden,
-          className,
-        ].filter(Boolean).join(" ")}
+        className={[styles.iconLayer, copied ? styles.iconVisible : styles.iconHidden, className]
+          .filter(Boolean)
+          .join(" ")}
       >
         <CheckIcon color={color} />
       </span>
@@ -110,11 +100,7 @@ export function ClipboardCommandButton({
 
   const icon = (
     <span className={iconContainerClassName || undefined}>
-      <CopyStatusIcon
-        copied={copied}
-        frameClassName={iconFrameClassName}
-        color={copyIconColor}
-      />
+      <CopyStatusIcon copied={copied} frameClassName={iconFrameClassName} color={copyIconColor} />
     </span>
   );
 
@@ -155,12 +141,7 @@ export function PillLink({
 
   if (external) {
     return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-      >
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
         {content}
       </a>
     );

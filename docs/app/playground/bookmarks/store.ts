@@ -39,10 +39,7 @@ export function saveBookmark(
   return bookmark;
 }
 
-export function deleteBookmark(
-  username: string,
-  repo: string,
-): { success: boolean } {
+export function deleteBookmark(username: string, repo: string): { success: boolean } {
   const bookmarks = getBookmarks(username);
   const filtered = bookmarks.filter((b) => b.repo !== repo);
   localStorage.setItem(storageKey(username), JSON.stringify(filtered));

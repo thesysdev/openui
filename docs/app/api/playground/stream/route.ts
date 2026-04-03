@@ -4,9 +4,9 @@ import { readFileSync } from "fs";
 import { type NextRequest } from "next/server";
 import { join } from "path";
 import {
+  GITHUB_ADDITIONAL_RULES,
   GITHUB_PREAMBLE,
   GITHUB_TOOL_EXAMPLES,
-  GITHUB_ADDITIONAL_RULES,
 } from "../../../playground/github/prompt-config";
 import { GITHUB_TOOL_SPECS } from "../../../playground/github/types";
 
@@ -20,10 +20,7 @@ const staticPrompt = readFileSync(
 // ── Component spec from generated JSON (server-safe, no React) ─────────────
 
 const componentSpec = JSON.parse(
-  readFileSync(
-    join(process.cwd(), "generated/playground-component-spec.json"),
-    "utf-8",
-  ),
+  readFileSync(join(process.cwd(), "generated/playground-component-spec.json"), "utf-8"),
 ) as PromptSpec;
 
 // ── GitHub system prompt (dynamic) ─────────────────────────────────────────
@@ -53,8 +50,7 @@ function getGitHubPrompt(): string {
 export async function POST(req: NextRequest) {
   const { model, prompt, dataSource, messages } = await req.json();
 
-  const systemPrompt =
-    dataSource === "github" ? getGitHubPrompt() : staticPrompt;
+  const systemPrompt = dataSource === "github" ? getGitHubPrompt() : staticPrompt;
 
   // Build message array — support multi-turn via messages[]
   const chatMessages: Array<{ role: string; content: string }> = [

@@ -99,7 +99,10 @@ interface RendererProps {
   onStateUpdate?: (state: Record<string, unknown>) => void;
   initialState?: Record<string, any>;
   onParseResult?: (result: ParseResult | null) => void;
-  toolProvider?: ToolProvider | Record<string, (args: Record<string, unknown>) => Promise<unknown>> | null;
+  toolProvider?:
+    | ToolProvider
+    | Record<string, (args: Record<string, unknown>) => Promise<unknown>>
+    | null;
   queryLoader?: React.ReactNode;
   onError?: (errors: OpenUIError[]) => void;
 }
@@ -180,13 +183,13 @@ type ActionStep =
   | { type: "reset"; targets: string[] };
 ```
 
-| Step type | Triggered by | Description |
-|-----------|-------------|-------------|
-| `"run"` | `@Run(ref)` | Execute a Mutation or re-fetch a Query. `refType` indicates which. |
-| `"set"` | `@Set($var, val)` | Change a `$variable`. `valueAST` is evaluated at click time. |
-| `"reset"` | `@Reset($a, $b)` | Restore `$variables` to declared defaults. |
-| `"continue_conversation"` | `@ToAssistant("msg")` | Send message to LLM. Optional `context`. |
-| `"open_url"` | `@OpenUrl("url")` | Open URL in new tab. |
+| Step type                 | Triggered by          | Description                                                        |
+| ------------------------- | --------------------- | ------------------------------------------------------------------ |
+| `"run"`                   | `@Run(ref)`           | Execute a Mutation or re-fetch a Query. `refType` indicates which. |
+| `"set"`                   | `@Set($var, val)`     | Change a `$variable`. `valueAST` is evaluated at click time.       |
+| `"reset"`                 | `@Reset($a, $b)`      | Restore `$variables` to declared defaults.                         |
+| `"continue_conversation"` | `@ToAssistant("msg")` | Send message to LLM. Optional `context`.                           |
+| `"open_url"`              | `@OpenUrl("url")`     | Open URL in new tab.                                               |
 
 ## Parser APIs
 
@@ -265,7 +268,10 @@ interface ParseResult {
 
 ```ts
 // Reactive state binding — preferred for form inputs and $variable-bound components
-function useStateField(name: string, value?: unknown): {
+function useStateField(
+  name: string,
+  value?: unknown,
+): {
   value: unknown;
   setValue: (value: unknown) => void;
 };

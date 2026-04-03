@@ -31,8 +31,7 @@ export const GITHUB_STARTERS = [
   },
   {
     label: "Star History",
-    prompt:
-      "Show star history charts for my most popular repos with a comparison view",
+    prompt: "Show star history charts for my most popular repos with a comparison view",
     icon: "⭐",
   },
   {

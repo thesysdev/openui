@@ -168,9 +168,7 @@ export function Footer() {
           {/* Bottom bar */}
           <div className={styles.bottomBar}>
             <div className={styles.desktopBottomBar}>
-              <p className={styles.desktopMetaLeft}>
-                355 Bryant St, San Francisco, CA 94107
-              </p>
+              <p className={styles.desktopMetaLeft}>355 Bryant St, San Francisco, CA 94107</p>
               <SocialIcons />
               <p className={styles.desktopMetaRight}>
                 © {new Date().getFullYear()} Thesys Inc. All Rights Reserved
@@ -183,9 +181,7 @@ export function Footer() {
                 <p className={styles.mobileMetaText}>
                   © {new Date().getFullYear()} Thesys Inc. All Rights Reserved
                 </p>
-                <p className={styles.mobileMetaText}>
-                  355 Bryant St, San Francisco, CA 94107
-                </p>
+                <p className={styles.mobileMetaText}>355 Bryant St, San Francisco, CA 94107</p>
               </div>
             </div>
           </div>

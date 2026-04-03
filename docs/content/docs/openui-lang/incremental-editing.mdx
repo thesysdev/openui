@@ -31,7 +31,7 @@ tickets = Query("list_tickets", {}, {rows: []})
 tbl = Table([Col("Title", tickets.rows.title), Col("Status", tickets.rows.status)])
 ```
 
-**User says:** *"add a pie chart showing ticket status breakdown"*
+**User says:** _"add a pie chart showing ticket status breakdown"_
 
 **LLM outputs only the patch:**
 
@@ -44,6 +44,7 @@ chart = PieChart(["Open", "Closed"], [
 ```
 
 The parser merges by statement name:
+
 - `root` is redefined → new definition wins (now includes `chart`)
 - `chart` is new → added
 - `header`, `tickets`, `tbl` → kept from original (not in the patch, so unchanged)
@@ -85,7 +86,7 @@ Set `editMode: true` in your prompt config so the LLM knows it can output partia
 const config: PromptSpec = {
   ...componentSpec,
   editMode: true,
-  inlineMode: true,  // allows text + code responses
+  inlineMode: true, // allows text + code responses
 };
 ```
 

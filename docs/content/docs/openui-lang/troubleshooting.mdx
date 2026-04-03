@@ -113,6 +113,7 @@ count = @Count(items)
 ### Why isn't my Query fetching data?
 
 Check that:
+
 1. The `toolProvider` prop is set on `<Renderer />`
 2. Your MCP endpoint or function map includes the tool name used in `Query("tool_name", ...)`
 3. The tool name in the code matches exactly (case-sensitive)
@@ -161,6 +162,7 @@ The `<Renderer />` accepts an `onError` callback that surfaces structured, LLM-f
 ```
 
 Error types include:
+
 - `unknown-component` — wrong component name (hint lists available components)
 - `missing-required` — required prop not provided
 - `inline-reserved` — Query/Mutation used inline instead of top-level

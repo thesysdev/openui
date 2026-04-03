@@ -63,6 +63,7 @@ See [Reactive State](/docs/openui-lang/reactive-state) for `$variables` and [Que
 ### Inline mode
 
 When `inlineMode` is enabled in the prompt config, the LLM can respond with either:
+
 - **Code** (fenced in triple backticks) — for creating or changing the UI
 - **Text only** — for answering questions without modifying the UI
 
@@ -149,13 +150,13 @@ Use `onStateUpdate` to persist field state (e.g. to a message in your thread sto
 
 Use these inside `defineComponent` renderers:
 
-| Hook                 | Signature                                                                                                                                    | Description                       |
-| :------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------- |
-| `useStateField`      | `(name: string, value?: unknown) => { value: unknown, setValue: (v: unknown) => void }`                                                     | **Preferred.** Unified form state + reactive `$variable` binding. |
-| `useGetFieldValue`   | `(formName: string \| undefined, name: string) => any`                                                                                       | Read a field's current value.     |
-| `useSetFieldValue`   | `(formName: string \| undefined, componentType: string \| undefined, name: string, value: any, shouldTriggerSaveCallback?: boolean) => void` | Write a field value.              |
-| `useFormName`        | `() => string \| undefined`                                                                                                                  | Get the enclosing form's name.    |
-| `useSetDefaultValue` | `(options: { formName?, componentType, name, existingValue, defaultValue, shouldTriggerSaveCallback? }) => void`                             | Set a default if no value exists. |
+| Hook                 | Signature                                                                                                                                    | Description                                                       |
+| :------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
+| `useStateField`      | `(name: string, value?: unknown) => { value: unknown, setValue: (v: unknown) => void }`                                                      | **Preferred.** Unified form state + reactive `$variable` binding. |
+| `useGetFieldValue`   | `(formName: string \| undefined, name: string) => any`                                                                                       | Read a field's current value.                                     |
+| `useSetFieldValue`   | `(formName: string \| undefined, componentType: string \| undefined, name: string, value: any, shouldTriggerSaveCallback?: boolean) => void` | Write a field value.                                              |
+| `useFormName`        | `() => string \| undefined`                                                                                                                  | Get the enclosing form's name.                                    |
+| `useSetDefaultValue` | `(options: { formName?, componentType, name, existingValue, defaultValue, shouldTriggerSaveCallback? }) => void`                             | Set a default if no value exists.                                 |
 
 ---
 

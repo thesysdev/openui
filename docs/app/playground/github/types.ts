@@ -99,8 +99,7 @@ export const GITHUB_TOOL_SPECS: McpToolSpec[] = [
         },
         language: {
           type: "string",
-          description:
-            "Filter by programming language (e.g. 'TypeScript'). Omit or empty for all.",
+          description: "Filter by programming language (e.g. 'TypeScript'). Omit or empty for all.",
         },
       },
     },
@@ -188,8 +187,7 @@ export const GITHUB_TOOL_SPECS: McpToolSpec[] = [
   },
   {
     name: "get_commit_activity",
-    description:
-      "Get weekly commit counts for a specific repo over the past year (52 weeks).",
+    description: "Get weekly commit counts for a specific repo over the past year (52 weeks).",
     inputSchema: {
       type: "object",
       properties: {
@@ -251,8 +249,7 @@ export const GITHUB_TOOL_SPECS: McpToolSpec[] = [
   },
   {
     name: "get_contributors",
-    description:
-      "Get contributor stats for a repo — login, avatar, total commits.",
+    description: "Get contributor stats for a repo — login, avatar, total commits.",
     inputSchema: {
       type: "object",
       properties: {

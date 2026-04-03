@@ -1,17 +1,13 @@
 import { Octokit } from "octokit";
+import { deleteBookmark, getBookmarks, saveBookmark } from "../bookmarks/store";
 import type {
-  RepoRow,
-  LanguageRow,
-  EventRow,
   CommitWeek,
-  StarPoint,
   ContributorRow,
+  EventRow,
+  LanguageRow,
+  RepoRow,
+  StarPoint,
 } from "./types";
-import {
-  getBookmarks,
-  saveBookmark,
-  deleteBookmark,
-} from "../bookmarks/store";
 
 // ── Cache ──────────────────────────────────────────────────────────────────
 
@@ -134,7 +130,16 @@ export function createGitHubToolProvider(
 
     get_profile: () =>
       cached(`profile:${username}`, async () => {
-        const empty = { login: "", name: "", bio: "", avatar_url: "", public_repos: 0, followers: 0, following: 0, created_at: "" };
+        const empty = {
+          login: "",
+          name: "",
+          bio: "",
+          avatar_url: "",
+          public_repos: 0,
+          followers: 0,
+          following: 0,
+          created_at: "",
+        };
         const limitErr = checkRateLimit();
         if (limitErr) return { ...empty, error: limitErr };
 
@@ -168,17 +173,19 @@ export function createGitHubToolProvider(
           // Client-side language filter
           const lang = args.language as string | undefined;
           if (lang && lang !== "all" && lang !== "") {
-            rows = rows.filter(
-              (r) => r.language.toLowerCase() === lang.toLowerCase(),
-            );
+            rows = rows.filter((r) => r.language.toLowerCase() === lang.toLowerCase());
           }
 
           // Client-side sort
           const sort = (args.sort as string) ?? "stars";
-          const sortKey = sort === "forks" ? "forks"
-            : sort === "updated" ? "updated_at"
-            : sort === "created" ? "updated_at"
-            : "stars";
+          const sortKey =
+            sort === "forks"
+              ? "forks"
+              : sort === "updated"
+                ? "updated_at"
+                : sort === "created"
+                  ? "updated_at"
+                  : "stars";
           rows = [...rows].sort((a, b) => {
             const av = (a as any)[sortKey];
             const bv = (b as any)[sortKey];
@@ -210,9 +217,7 @@ export function createGitHubToolProvider(
           }
 
           // Fetch detailed language bytes for top 5 repos (by stars)
-          const topRepos = [...repos]
-            .sort((a, b) => b.stars - a.stars)
-            .slice(0, 5);
+          const topRepos = [...repos].sort((a, b) => b.stars - a.stars).slice(0, 5);
 
           const limitErr = checkRateLimit();
           if (!limitErr) {
@@ -254,7 +259,12 @@ export function createGitHubToolProvider(
     get_events: () =>
       cached(`events:${username}`, async () => {
         const limitErr = checkRateLimit();
-        if (limitErr) return { error: limitErr, rows: [], summary: { total: 0, push: 0, pr: 0, issues: 0, reviews: 0 } };
+        if (limitErr)
+          return {
+            error: limitErr,
+            rows: [],
+            summary: { total: 0, push: 0, pr: 0, issues: 0, reviews: 0 },
+          };
 
         try {
           const res = await octokit.rest.activity.listPublicEventsForUser({
@@ -281,7 +291,11 @@ export function createGitHubToolProvider(
 
           return { rows, summary };
         } catch (err: any) {
-          return { error: err.message, rows: [], summary: { total: 0, push: 0, pr: 0, issues: 0, reviews: 0 } };
+          return {
+            error: err.message,
+            rows: [],
+            summary: { total: 0, push: 0, pr: 0, issues: 0, reviews: 0 },
+          };
         }
       }),
 
@@ -304,12 +318,10 @@ export function createGitHubToolProvider(
 
           if (!Array.isArray(data)) return data; // error object
 
-          const rows: CommitWeek[] = data.map(
-            (w: { week: number; total: number }) => ({
-              week: new Date(w.week * 1000).toISOString().slice(0, 10),
-              total: w.total,
-            }),
-          );
+          const rows: CommitWeek[] = data.map((w: { week: number; total: number }) => ({
+            week: new Date(w.week * 1000).toISOString().slice(0, 10),
+            total: w.total,
+          }));
 
           return { rows };
         } catch (err: any) {
@@ -328,15 +340,12 @@ export function createGitHubToolProvider(
         if (limitErr) return { error: limitErr, rows: [] };
 
         try {
-          const res = await octokit.request(
-            "GET /repos/{owner}/{repo}/stargazers",
-            {
-              owner: username,
-              repo,
-              per_page: 100,
-              headers: { accept: "application/vnd.github.star+json" },
-            },
-          );
+          const res = await octokit.request("GET /repos/{owner}/{repo}/stargazers", {
+            owner: username,
+            repo,
+            per_page: 100,
+            headers: { accept: "application/vnd.github.star+json" },
+          });
           updateRateLimit(res);
 
           const stargazers = res.data as Array<{

@@ -12,14 +12,18 @@ type PreviewPanelProps = {
   isStreaming: boolean;
   onParseResult?: (result: ParseResult | null) => void;
   theme: Theme;
-  toolProvider?: Record<
-    string,
-    (args: Record<string, unknown>) => Promise<unknown>
-  > | null;
+  toolProvider?: Record<string, (args: Record<string, unknown>) => Promise<unknown>> | null;
   onAction?: (event: ActionEvent) => void;
 };
 
-export function PreviewPanel({ code, isStreaming, onParseResult, theme, toolProvider, onAction }: PreviewPanelProps) {
+export function PreviewPanel({
+  code,
+  isStreaming,
+  onParseResult,
+  theme,
+  toolProvider,
+  onAction,
+}: PreviewPanelProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [systemDark, setSystemDark] = useState(false);

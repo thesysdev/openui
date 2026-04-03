@@ -28,7 +28,7 @@ export interface OpenUIContextValue {
   isStreaming: boolean;
 
   /** Get a field value. Top-level for $bindings, nested under formName for form fields. */
-  getFieldValue: (formName: string | undefined, name: string) => unknown;
+  getFieldValue: (formName: string | undefined, name: string) => any;
 
   /**
    * Set a form field value.

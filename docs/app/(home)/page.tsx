@@ -1,3 +1,4 @@
+import styles from "./page.module.css";
 import { BuildChatSection } from "./sections/BuildChatSection/BuildChatSection";
 import { CompatibilitySection } from "./sections/CompatibilitySection/CompatibilitySection";
 import { FeaturesSection } from "./sections/FeaturesSection/FeaturesSection";
@@ -8,7 +9,6 @@ import { PossibilitiesSection } from "./sections/PossibilitiesSection/Possibilit
 import { ShiroMascot } from "./sections/ShiroMascot/ShiroMascot";
 import { StepsSection } from "./sections/StepsSection/StepsSection";
 import { UILibrariesSection } from "./sections/UILibrariesSection/UILibrariesSection";
-import styles from "./page.module.css";
 
 export default function HomePage() {
   return (

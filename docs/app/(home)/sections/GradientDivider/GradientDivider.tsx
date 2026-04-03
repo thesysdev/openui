@@ -22,10 +22,7 @@ export function GradientDivider({ direction = "down" }: { direction?: "down" | "
   return (
     <div className={styles.divider}>
       {bars.map((barClassName) => (
-        <div
-          key={barClassName}
-          className={`${styles.bar} ${barClassName}`.trim()}
-        />
+        <div key={barClassName} className={`${styles.bar} ${barClassName}`.trim()} />
       ))}
     </div>
   );

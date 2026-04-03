@@ -7,22 +7,22 @@ Built-in functions start with `@` — this tells the LLM "this is a function, no
 
 ## Aggregation
 
-| Function | What it does | Example |
-|----------|-------------|---------|
-| `@Count(array)` | Length of array | `@Count(tickets.rows)` → `42` |
-| `@Sum(array)` | Sum of numbers | `@Sum(data.rows.amount)` → `1250` |
-| `@Avg(array)` | Average | `@Avg(data.rows.score)` → `4.2` |
-| `@Min(array)` | Smallest value | `@Min(data.rows.price)` → `9.99` |
-| `@Max(array)` | Largest value | `@Max(data.rows.price)` → `99.99` |
-| `@First(array)` | First element | `@First(data.rows)` |
-| `@Last(array)` | Last element | `@Last(data.rows)` |
+| Function        | What it does    | Example                           |
+| --------------- | --------------- | --------------------------------- |
+| `@Count(array)` | Length of array | `@Count(tickets.rows)` → `42`     |
+| `@Sum(array)`   | Sum of numbers  | `@Sum(data.rows.amount)` → `1250` |
+| `@Avg(array)`   | Average         | `@Avg(data.rows.score)` → `4.2`   |
+| `@Min(array)`   | Smallest value  | `@Min(data.rows.price)` → `9.99`  |
+| `@Max(array)`   | Largest value   | `@Max(data.rows.price)` → `99.99` |
+| `@First(array)` | First element   | `@First(data.rows)`               |
+| `@Last(array)`  | Last element    | `@Last(data.rows)`                |
 
 ## Filtering & Sorting
 
-| Function | What it does |
-|----------|-------------|
+| Function                           | What it does                                                                      |
+| ---------------------------------- | --------------------------------------------------------------------------------- |
 | `@Filter(array, field, op, value)` | Keep items where field matches. Ops: `==`, `!=`, `>`, `<`, `>=`, `<=`, `contains` |
-| `@Sort(array, field, direction?)` | Sort by field. Direction: `"asc"` (default) or `"desc"` |
+| `@Sort(array, field, direction?)`  | Sort by field. Direction: `"asc"` (default) or `"desc"`                           |
 
 Examples:
 
@@ -50,12 +50,12 @@ kpi = Card([
 
 ## Math
 
-| Function | What it does |
-|----------|-------------|
+| Function                    | What it does              |
+| --------------------------- | ------------------------- |
 | `@Round(number, decimals?)` | Round to N decimal places |
-| `@Abs(number)` | Absolute value |
-| `@Floor(number)` | Round down |
-| `@Ceil(number)` | Round up |
+| `@Abs(number)`              | Absolute value            |
+| `@Floor(number)`            | Round down                |
+| `@Ceil(number)`             | Round up                  |
 
 ## Iteration with @Each
 
@@ -83,13 +83,13 @@ Col("Tags", @Each(rows, "t", myTag))
 
 These are used inside `Action([...])` to wire button clicks:
 
-| Step | What it does |
-|------|-------------|
-| `@Run(ref)` | Execute a Mutation or re-fetch a Query |
-| `@Set($var, value)` | Change a `$variable` |
-| `@Reset($var1, $var2)` | Restore `$variables` to defaults |
-| `@ToAssistant("msg")` | Send a message to the LLM |
-| `@OpenUrl("url")` | Open a URL in a new tab |
+| Step                   | What it does                           |
+| ---------------------- | -------------------------------------- |
+| `@Run(ref)`            | Execute a Mutation or re-fetch a Query |
+| `@Set($var, value)`    | Change a `$variable`                   |
+| `@Reset($var1, $var2)` | Restore `$variables` to defaults       |
+| `@ToAssistant("msg")`  | Send a message to the LLM              |
+| `@OpenUrl("url")`      | Open a URL in a new tab                |
 
 ```text
 submitBtn = Button("Create", Action([@Run(mutation), @Run(query), @Reset($title)]))
