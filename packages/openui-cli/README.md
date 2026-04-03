@@ -15,9 +15,9 @@ It currently supports two workflows:
 Run the CLI with your package manager of choice:
 
 ```bash
-npx @openuidev/cli --help
-pnpm dlx @openuidev/cli --help
-bunx @openuidev/cli --help
+npx @openuidev/cli@latest --help
+pnpm dlx @openuidev/cli@latest --help
+bunx @openuidev/cli@latest --help
 ```
 
 ## Quick Start
@@ -31,13 +31,13 @@ npx @openuidev/cli@latest create
 Generate a prompt from a library file:
 
 ```bash
-npx @openuidev/cli generate ./src/library.ts
+npx @openuidev/cli@latest generate ./src/library.ts
 ```
 
 Generate JSON Schema instead:
 
 ```bash
-npx @openuidev/cli generate ./src/library.ts --json-schema
+npx @openuidev/cli@latest generate ./src/library.ts --json-schema
 ```
 
 ## Commands

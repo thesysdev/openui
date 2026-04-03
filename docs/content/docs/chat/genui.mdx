@@ -20,7 +20,7 @@ If either side is missing, the model falls back to plain text or emits component
 Generate the system prompt with the CLI:
 
 ```bash
-npx @openuidev/cli generate ./src/library.ts --out src/generated/system-prompt.txt
+npx @openuidev/cli@latest generate ./src/library.ts --out src/generated/system-prompt.txt
 ```
 
 The CLI auto-detects exported `PromptOptions` alongside your library, so examples and rules are included automatically. See [System Prompts](/docs/openui-lang/system-prompts) for details.
@@ -82,7 +82,7 @@ If you need domain-specific components, keep the same request flow and swap in y
 First, generate the system prompt from your custom library:
 
 ```bash
-npx @openuidev/cli generate ./src/lib/my-library.ts --out src/generated/system-prompt.txt
+npx @openuidev/cli@latest generate ./src/lib/my-library.ts --out src/generated/system-prompt.txt
 ```
 
 Then wire up the frontend — it only needs the component library for rendering:
