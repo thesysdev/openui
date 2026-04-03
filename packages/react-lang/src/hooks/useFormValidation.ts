@@ -1,5 +1,5 @@
+import { validate, type ParsedRule } from "@openuidev/lang-core";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
-import { validate, type ParsedRule } from "../utils/validation";
 
 export interface FormValidationContextValue {
   errors: Record<string, string | undefined>;

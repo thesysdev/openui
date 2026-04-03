@@ -3,10 +3,12 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { detectPackageManager } from "../lib/detect-package-manager";
+import { runSkillInstall, shouldInstallSkill } from "../lib/install-skill";
 import { resolveArgs } from "../lib/resolve-args";
 
 export interface CreateChatAppOptions {
   name?: string;
+  skill?: boolean;
   noInteractive?: boolean;
 }
 
@@ -93,6 +95,11 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
     process.exit(1);
   }
 
+  const installSkill = await shouldInstallSkill(options.skill, !options.noInteractive);
+  if (installSkill) {
+    runSkillInstall(targetDir);
+  }
+
   const devCmd =
     runner === "pnpm dlx"
       ? "pnpm"
@@ -102,20 +109,47 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
           ? "bun"
           : "npm";
 
-  console.info(getStartedMessage(name, devCmd));
+  let apiKeyWritten = false;
+  if (!options.noInteractive) {
+    const { input } = await import("@inquirer/prompts");
+    const apiKey = (
+      await input({ message: "Enter your OpenAI API key (leave blank to skip):" })
+    ).trim();
+
+    if (apiKey) {
+      fs.writeFileSync(path.join(targetDir, ".env"), `OPENAI_API_KEY=${apiKey}\n`);
+      apiKeyWritten = true;
+    }
+  }
+
+  console.info(getStartedMessage(name, devCmd, installSkill, apiKeyWritten));
 }
 
-const getStartedMessage = (name: string, devCmd: string) =>
-  `
-Done!
-Get started: 
-
-cd ${name}
-
-touch .env
+const getStartedMessage = (
+  name: string,
+  devCmd: string,
+  skillInstalled: boolean,
+  apiKeyWritten: boolean,
+) => {
+  const envInstructions = apiKeyWritten
+    ? "✅ .env file created with your API key."
+    : `touch .env
 
 Add your API key to .env:
-OPENAI_API_KEY=sk-your-key-here
+OPENAI_API_KEY=sk-your-key-here`;
 
-${devCmd} run dev
+  const skillMessage = skillInstalled
+    ? "The OpenUI agent skill was installed.\nAI coding assistants will use it to help you build with OpenUI."
+    : "";
+
+  return `${skillMessage}
+
+Done!
+Get started:
+
+${envInstructions}
+
+> cd ${name}
+> ${devCmd} run dev
 `;
+};

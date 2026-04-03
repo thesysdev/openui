@@ -10,19 +10,19 @@ description: Generate and customize prompt instructions from your OpenUI library
 The fastest way to generate a system prompt — works with any backend language:
 
 ```bash
-npx @openuidev/cli generate ./src/library.ts
+npx @openuidev/cli@latest generate ./src/library.ts
 ```
 
 Write to a file:
 
 ```bash
-npx @openuidev/cli generate ./src/library.ts --out system-prompt.txt
+npx @openuidev/cli@latest generate ./src/library.ts --out system-prompt.txt
 ```
 
 Generate JSON Schema instead:
 
 ```bash
-npx @openuidev/cli generate ./src/library.ts --json-schema
+npx @openuidev/cli@latest generate ./src/library.ts --json-schema
 ```
 
 The CLI auto-detects exported `PromptOptions` (examples, rules) alongside your library. Use `--prompt-options <name>` to pick a specific export.

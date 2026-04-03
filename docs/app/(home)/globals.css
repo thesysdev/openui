@@ -1,0 +1,27 @@
+.homeTheme {
+  --home-color-text-primary: #000;
+  --home-color-text-inverse: #fff;
+  --home-color-text-muted: rgb(0 0 0 / 40%);
+  --home-color-text-subtle: rgb(0 0 0 / 30%);
+  --home-color-text-secondary: rgb(0 0 0 / 60%);
+  --home-color-surface: #fff;
+  --home-color-surface-inverse: #000;
+  --home-color-surface-soft: rgb(0 0 0 / 5%);
+  --home-color-surface-muted: rgb(0 0 0 / 8%);
+  --home-color-surface-subtle: rgb(0 0 0 / 4%);
+  --home-border-soft: rgb(0 0 0 / 6%);
+  --home-border-subtle: rgb(0 0 0 / 8%);
+  --home-border-default: rgb(0 0 0 / 10%);
+  --home-shadow-elevated: 0 1px 3px 0 rgb(22 34 51 / 8%), 0 12px 24px 0 rgb(22 34 51 / 4%);
+  --home-shadow-soft-card: 0 1px 2px 0 rgb(22 34 51 / 4%), 0 8px 16px 0 rgb(22 34 51 / 4%);
+  --home-shadow-panel: 0 10px 20px rgb(0 0 0 / 10%);
+  --home-radius-pill: 999px;
+  --home-pill-padding-inline: 1.25rem;
+  --home-section-padding-inline: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .homeTheme {
+    --home-section-padding-inline: 2rem;
+  }
+}

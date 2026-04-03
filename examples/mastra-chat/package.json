@@ -1,0 +1,36 @@
+{
+  "name": "mastra-chat",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate:prompt": "pnpm --filter @openuidev/cli build && node ../../packages/openui-cli/dist/index.js generate src/library.ts --out src/generated/system-prompt.txt",
+    "dev": "pnpm generate:prompt && next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@ag-ui/core": "^0.0.45",
+    "@ag-ui/mastra": "^1.0.1",
+    "@mastra/core": "1.15.0",
+    "@openuidev/react-headless": "workspace:*",
+    "@openuidev/react-lang": "workspace:*",
+    "@openuidev/react-ui": "workspace:*",
+    "lucide-react": "^0.575.0",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@openuidev/cli": "workspace:*",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,197 @@
+.section {
+  width: 100%;
+  padding-inline: var(--home-section-padding-inline);
+}
+
+.container {
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-family: "Inter", sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #000;
+}
+
+.mobileOnly {
+  display: inline;
+}
+
+.desktopOnly {
+  display: none;
+}
+
+.cardGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex: 1;
+  height: 3.5rem;
+  border: 1px solid var(--home-border-default);
+  border-radius: 14px;
+  background: var(--home-color-surface);
+  box-shadow: 0 4px 10px -4px rgb(22 34 51 / 5%);
+}
+
+.cardContent {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+}
+
+.iconBadge {
+  position: relative;
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 6.4px;
+}
+
+.iconBadgeOpenUi {
+  background: var(--home-color-surface-muted);
+}
+
+.iconBadgeShadcn {
+  background: #000;
+}
+
+.iconBadgeMaterial {
+  background: #a485ff;
+}
+
+.mascotCenter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mascotFrame {
+  position: relative;
+  height: 22px;
+  width: 22px;
+  transform: rotate(-16.49deg);
+}
+
+.mascotSvgWrap {
+  position: absolute;
+  inset: -1.16% -0.94%;
+}
+
+.mascotSvg,
+.iconSvg {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.iconSvg {
+  position: absolute;
+}
+
+.iconPlacement {
+  position: absolute;
+}
+
+.iconPlacementShadcn {
+  left: 8px;
+  top: 8px;
+  height: 16px;
+  width: 16px;
+}
+
+.iconPlacementMaterial {
+  left: 6px;
+  top: 6px;
+  height: 20px;
+  width: 20px;
+}
+
+.name {
+  font-family: "Inter Display", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #000;
+}
+
+@media (min-width: 1024px) {
+  .header {
+    margin-bottom: 2rem;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .mobileOnly {
+    display: none;
+  }
+
+  .desktopOnly {
+    display: inline;
+  }
+
+  .cardGrid {
+    flex-direction: row;
+  }
+
+  .card {
+    height: 5rem;
+    border-radius: 16px;
+  }
+
+  .cardContent {
+    padding: 1rem;
+  }
+
+  .iconBadge {
+    height: 3rem;
+    width: 3rem;
+    border-radius: 9.6px;
+  }
+
+  .mascotFrame {
+    height: 37px;
+    width: 37px;
+  }
+
+  .iconPlacement {
+  }
+
+  .iconPlacementShadcn {
+    left: 12px;
+    top: 12px;
+    height: 24px;
+    width: 24px;
+  }
+
+  .iconPlacementMaterial {
+    left: 9px;
+    top: 9px;
+    height: 30px;
+    width: 30px;
+  }
+
+  .name {
+    font-size: 22px;
+  }
+}

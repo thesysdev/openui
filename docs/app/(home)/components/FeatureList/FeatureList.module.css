@@ -1,0 +1,108 @@
+.featureIcon {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--home-border-default);
+  border-radius: var(--home-radius-pill);
+  background: var(--home-color-surface);
+}
+
+.featureIconSvg {
+  height: 18px;
+  width: 18px;
+}
+
+.desktopList {
+  display: none;
+}
+
+.mobileList {
+  display: block;
+}
+
+.desktopRow {
+  display: flex;
+  height: 72px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.desktopRowLead {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.desktopTitle,
+.desktopDescription {
+  font-family: "Inter Display", sans-serif;
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+.desktopTitle {
+  color: #000;
+}
+
+.desktopDescription {
+  text-align: right;
+  color: var(--home-color-text-muted);
+}
+
+.mobileRow {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding-block: 1rem;
+}
+
+.mobileCopy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobileTitle,
+.mobileDescription {
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+}
+
+.mobileTitle {
+  font-weight: 500;
+  line-height: 1.25;
+  color: #000;
+}
+
+.mobileDescription {
+  line-height: 1.4;
+  color: var(--home-color-text-muted);
+}
+
+.divider {
+  height: 1px;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+}
+
+.desktopDivider {
+  background: var(--home-border-default);
+}
+
+.mobileDivider {
+  background: var(--home-color-surface-muted);
+}
+
+@media (min-width: 1024px) {
+  .desktopList {
+    display: block;
+  }
+
+  .mobileList {
+    display: none;
+  }
+}

@@ -2,6 +2,10 @@
 
 export * from "./components/Accordion";
 
+// Artifact() factory — generates a ComponentRenderer with artifact wiring
+export { Artifact } from "./artifact";
+export type { ArtifactConfig, ArtifactControls } from "./artifact";
+
 // Artifact exports (ArtifactPanel/ArtifactPortalTarget also available as Shell.*)
 export { useActiveArtifact, useArtifact } from "@openuidev/react-headless";
 export {
