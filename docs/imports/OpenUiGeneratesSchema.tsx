@@ -14,7 +14,7 @@ function Group() {
         </svg>
       </div>
       <p className="absolute font-['Andale_Mono:Regular',sans-serif] h-[262px] leading-none left-[73px] not-italic text-[10px] text-white top-[71px] w-[254px] whitespace-pre-wrap">{`# generate system prompt from library
-npx @openuidev/cli generate ./src/library.ts
+npx @openuidev/cli@latest generate ./src/library.ts
 
 # use in your backend
 const completion = await client.chat.completions.create({
