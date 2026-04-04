@@ -1,5 +1,9 @@
 "use client";
 
+import "@openuidev/react-ui/components.css";
+
+import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
+import { Copilot } from "@openuidev/react-ui";
 import { useCallback, useEffect, useState } from "react";
 import { Filter, SlidersHorizontal, LayoutGrid, LayoutList, Search } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
@@ -16,6 +20,7 @@ export default function TangentialApp() {
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [showCopilot, setShowCopilot] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -147,7 +152,10 @@ export default function TangentialApp() {
               <span className="bottom-bar-help-icon">?</span>
             </button>
           </div>
-          <button className="ask-tangential-btn">
+          <button
+            className={`ask-tangential-btn ${showCopilot ? "active" : ""}`}
+            onClick={() => setShowCopilot((current) => !current)}
+          >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M3 13L13 3M13 3H6M13 3V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -155,6 +163,23 @@ export default function TangentialApp() {
           </button>
         </div>
       </main>
+      {showCopilot && (
+        <Copilot
+          processMessage={async ({ messages, abortController }) => {
+            return fetch("/api/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                messages: openAIMessageFormat.toApi(messages),
+              }),
+              signal: abortController.signal,
+            });
+          }}
+          streamProtocol={openAIAdapter()}
+          agentName="Tangential"
+          theme={{ mode: "dark" }}
+        />
+      )}
     </div>
   );
 }

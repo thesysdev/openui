@@ -672,3 +672,14 @@ a {
   background: var(--bg-hover);
   color: var(--text-primary);
 }
+
+.ask-tangential-btn.active {
+  background: var(--bg-active);
+  color: var(--text-primary);
+}
+
+.openui-copilot-shell-container {
+  height: 100%;
+  border-right: none;
+  flex-shrink: 0;
+}
