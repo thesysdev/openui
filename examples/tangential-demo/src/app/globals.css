@@ -683,3 +683,88 @@ a {
   border-right: none;
   flex-shrink: 0;
 }
+
+.tangential-inline-dashboard {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-content);
+  overflow: hidden;
+}
+
+.tangential-inline-dashboard__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+
+.tangential-pin-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  background: var(--bg-app);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.tangential-pin-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.tangential-pin-btn.active {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #c4b5fd;
+}
+
+.pinned-dashboard {
+  margin: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-content);
+}
+
+.pinned-dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+
+.pinned-dashboard-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.pinned-dashboard-unpin {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  background: var(--bg-app);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.pinned-dashboard-unpin:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}

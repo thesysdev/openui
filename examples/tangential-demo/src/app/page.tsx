@@ -2,17 +2,23 @@
 
 import "@openuidev/react-ui/components.css";
 
+import type { AssistantMessage } from "@openuidev/react-headless";
+import type { McpClientLike } from "@openuidev/react-lang";
+import { Renderer } from "@openuidev/react-lang";
 import { openAIAdapter, openAIMessageFormat } from "@openuidev/react-headless";
-import { Copilot } from "@openuidev/react-ui";
-import { useCallback, useEffect, useState } from "react";
+import { Copilot, ThemeProvider } from "@openuidev/react-ui";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Filter, SlidersHorizontal, LayoutGrid, LayoutList, Search } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import IssueList from "@/components/IssueList";
+import { DashboardAssistantMessage } from "@/components/DashboardAssistantMessage";
+import { DashboardPinProvider, useDashboardPin } from "@/context/DashboardPinContext";
 import type { Team, IssueWithRelations } from "@/data/types";
 
 type TabFilter = "all" | "active" | "backlog";
 
-export default function TangentialApp() {
+function TangentialAppContent() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [activeTeamId, setActiveTeamId] = useState("t1");
   const [issues, setIssues] = useState<IssueWithRelations[]>([]);
@@ -21,6 +27,9 @@ export default function TangentialApp() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showCopilot, setShowCopilot] = useState(false);
+  const [toolProvider, setToolProvider] = useState<McpClientLike | null>(null);
+  const clientRef = useRef<McpClientLike | null>(null);
+  const { pinnedDashboard, unpinDashboard } = useDashboardPin();
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -36,6 +45,45 @@ export default function TangentialApp() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { Client } = await import("@modelcontextprotocol/sdk/client/index.js");
+        const { StreamableHTTPClientTransport } = await import(
+          "@modelcontextprotocol/sdk/client/streamableHttp.js"
+        );
+        const client = new Client({ name: "tangential-demo", version: "1.0.0" });
+        const transport = new StreamableHTTPClientTransport(
+          new URL("/api/mcp", globalThis.location.href),
+        );
+        await client.connect(transport);
+        if (cancelled) {
+          client.close?.();
+          return;
+        }
+        const mcpClient = client as unknown as McpClientLike;
+        clientRef.current = mcpClient;
+        setToolProvider(mcpClient);
+      } catch (error) {
+        console.error("[mcp] Failed:", error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      clientRef.current?.close?.();
+    };
+  }, []);
+
+  const assistantMessage = useMemo(
+    () =>
+      ({ message }: { message: AssistantMessage }) =>
+        <DashboardAssistantMessage message={message} toolProvider={toolProvider} />,
+    [toolProvider],
+  );
 
   const activeTeam = teams.find((t) => t.id === activeTeamId);
   const states = activeTeam?.states ?? [];
@@ -135,6 +183,23 @@ export default function TangentialApp() {
 
         {/* Issue list */}
         <div className="main-body">
+          {pinnedDashboard && (
+            <div className="pinned-dashboard">
+              <div className="pinned-dashboard-header">
+                <div className="pinned-dashboard-title">Pinned Dashboard</div>
+                <button className="pinned-dashboard-unpin" onClick={unpinDashboard}>
+                  Unpin
+                </button>
+              </div>
+              <ThemeProvider mode="dark">
+                <Renderer
+                  response={pinnedDashboard.code}
+                  library={openuiLibrary}
+                  toolProvider={toolProvider ?? undefined}
+                />
+              </ThemeProvider>
+            </div>
+          )}
           {loading ? (
             <div className="loading-state">
               <div className="loading-spinner" />
@@ -178,8 +243,17 @@ export default function TangentialApp() {
           streamProtocol={openAIAdapter()}
           agentName="Tangential"
           theme={{ mode: "dark" }}
+          assistantMessage={assistantMessage}
         />
       )}
     </div>
+  );
+}
+
+export default function TangentialApp() {
+  return (
+    <DashboardPinProvider>
+      <TangentialAppContent />
+    </DashboardPinProvider>
   );
 }
