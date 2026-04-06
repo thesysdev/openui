@@ -27,6 +27,7 @@ export {
   toNumber,
 } from "./parser/builtins";
 export type { BuiltinDef } from "./parser/builtins";
+export { enrichErrors } from "./parser/enrich-errors";
 export { mergeStatements } from "./parser/merge";
 export { generatePrompt } from "./parser/prompt";
 export type { ComponentPromptSpec, PromptSpec, ToolSpec } from "./parser/prompt";
@@ -38,6 +39,7 @@ export type {
   ElementNode,
   MutationStatementInfo,
   OpenUIError,
+  OpenUIErrorCode,
   OpenUIErrorSource,
   ParseResult,
   QueryStatementInfo,
@@ -53,13 +55,12 @@ export { evaluateElementProps } from "./runtime/evaluate-tree";
 export type { EvalContext } from "./runtime/evaluate-tree";
 export { evaluate, isReactiveAssign, stripReactiveAssign } from "./runtime/evaluator";
 export type { EvaluationContext, ReactiveAssign } from "./runtime/evaluator";
-export { extractToolResult } from "./runtime/mcp";
-export type { McpClientLike, McpTool } from "./runtime/mcp";
+export { McpToolError, extractToolResult } from "./runtime/mcp";
+export type { McpClientLike } from "./runtime/mcp";
 export { createQueryManager } from "./runtime/queryManager";
 export type {
   MutationNode,
   MutationResult,
-  QueryError,
   QueryManager,
   QueryNode,
   QuerySnapshot,

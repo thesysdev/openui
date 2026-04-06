@@ -155,7 +155,10 @@ export function TweetWall() {
       const updateMetrics = () => {
         const singleHeight = track.scrollHeight / MARQUEE_COPIES;
         if (singleHeight <= 0) return;
-        const duration = columnCount === MOBILE_COLUMN_COUNT ? MOBILE_COLUMN_DURATION : (COLUMN_DURATIONS[index] ?? 32);
+        const duration =
+          columnCount === MOBILE_COLUMN_COUNT
+            ? MOBILE_COLUMN_DURATION
+            : (COLUMN_DURATIONS[index] ?? 32);
 
         track.style.setProperty("--loop-distance", `${singleHeight}px`);
         track.style.setProperty("--loop-duration", `${duration}s`);

@@ -27,7 +27,7 @@ function emptyResult(incomplete = true): ParseResult {
       incomplete,
       unresolved: [],
       statementCount: 0,
-      validationErrors: [],
+      errors: [],
     },
     stateDeclarations: {},
     queryStatements: [],
@@ -79,28 +79,6 @@ function classifyStatement(raw: RawStmt, expr: ASTNode): Statement {
   }
   // Everything else → value declaration
   return { kind: "value", id: raw.id, expr };
-}
-
-/** Build a symbol table (Map<id, ASTNode>) from typed statements for materializeValue. */
-function buildSymbolTable(stmtMap: Map<string, Statement>): Map<string, ASTNode> {
-  const m = new Map<string, ASTNode>();
-  for (const [id, stmt] of stmtMap) {
-    switch (stmt.kind) {
-      case "value":
-        m.set(id, stmt.expr);
-        break;
-      case "state":
-        m.set(id, stmt.init);
-        break;
-      case "query":
-        m.set(id, stmt.expr);
-        break;
-      case "mutation":
-        m.set(id, stmt.expr);
-        break;
-    }
-  }
-  return m;
 }
 
 /**
@@ -212,7 +190,10 @@ function buildResult(
   const entryId = pickEntryId(stmtMap, typedStmts, firstId, rootName);
   if (!stmtMap.has(entryId)) return emptyResult(wasIncomplete);
 
-  const syms = buildSymbolTable(stmtMap);
+  const syms = new Map<string, ASTNode>();
+  for (const [id, stmt] of stmtMap) {
+    syms.set(id, stmt.kind === "state" ? stmt.init : stmt.expr);
+  }
   const unres: string[] = [];
   const errors: ValidationError[] = [];
   const ctx: MaterializeCtx = {
@@ -240,7 +221,7 @@ function buildResult(
       incomplete: wasIncomplete,
       unresolved: unres,
       statementCount: stmtCount,
-      validationErrors: errors,
+      errors: errors,
     },
     stateDeclarations,
     queryStatements,
@@ -380,10 +361,10 @@ function preprocess(input: string): string {
  * Parse a complete openui-lang string in one pass.
  *
  * @param input  - Full openui-lang source text (may be partial/streaming)
- * @param cat    - Optional param map for positional-arg → named-prop mapping
+ * @param cat    - Param map for positional-arg → named-prop mapping
  * @returns      ParseResult with root ElementNode (or null) and metadata
  */
-export function parse(input: string, cat?: ParamMap, rootName?: string): ParseResult {
+export function parse(input: string, cat: ParamMap, rootName?: string): ParseResult {
   const trimmed = preprocess(input);
   if (!trimmed) return emptyResult();
 
@@ -415,7 +396,7 @@ export interface StreamParser {
   getResult(): ParseResult;
 }
 
-export function createStreamParser(cat?: ParamMap, rootName?: string): StreamParser {
+export function createStreamParser(cat: ParamMap, rootName?: string): StreamParser {
   let buf = "";
   let completedEnd = 0;
   const completedStmtMap = new Map<string, Statement>();

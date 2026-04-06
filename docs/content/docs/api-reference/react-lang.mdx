@@ -72,6 +72,7 @@ interface Library {
 
   prompt(options?: PromptOptions): string;
   toJSONSchema(): object;
+  toSpec(): PromptSpec;
 }
 
 interface PromptOptions {
@@ -221,15 +222,14 @@ type ValidationErrorCode =
   | "missing-required"
   | "null-required"
   | "unknown-component"
-  | "excess-args"
   | "inline-reserved";
 
 interface ValidationError {
-  type: "validation";
   code: ValidationErrorCode;
   component: string;
   path: string;
   message: string;
+  statementId?: string;
 }
 
 interface ParseResult {

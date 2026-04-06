@@ -12,7 +12,7 @@ Build rich, visually impressive dashboards with:
 - Tables with sorting and filtering via $variables
 - Interactive controls (Select dropdowns, search Input) wired to $variables
 
-Your ENTIRE response must be valid openui-lang code — no markdown, no explanations, just openui-lang.`;
+After the openui-lang code block, write a brief friendly message describing what you built and suggesting what the user could iterate on next. Keep it conversational, like you're talking to the user. For example: "Here's your dashboard with KPIs and language breakdown. You could try adding a search filter to the repos table, or ask me to add an activity timeline chart."`;
 
 export const GITHUB_TOOL_EXAMPLES: string[] = [
   `Example — GitHub Profile Dashboard (PREFERRED pattern):

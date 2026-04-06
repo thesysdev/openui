@@ -60,7 +60,7 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
     const result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
     // Tag ElementNode with its source statement name
     if (mode === "value" && isElementNode(result)) {
-      (result as import("./types").ElementNode).statementId = name;
+      result.statementId = name;
     }
     return result;
   } finally {
@@ -288,20 +288,16 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
             return null;
           }
         }
-      } else {
-        // Unknown component: push validation warning, use indexed arg keys for graceful degradation
-        if (!isBuiltin(name) && !isReservedCall(name)) {
-          ctx.errors.push({
-            code: "unknown-component",
-            component: name,
-            path: "",
-            message: `Unknown component "${name}" — not found in catalog or builtins`,
-            statementId: ctx.currentStatementId,
-          });
-        }
-        for (let i = 0; i < args.length; i++) {
-          props[`arg${i}`] = materializeValue(args[i], ctx);
-        }
+      } else if (!isBuiltin(name) && !isReservedCall(name)) {
+        // Unknown component: error and drop from tree
+        ctx.errors.push({
+          code: "unknown-component",
+          component: name,
+          path: "",
+          message: `Unknown component "${name}" — not found in catalog or builtins`,
+          statementId: ctx.currentStatementId,
+        });
+        return null;
       }
 
       const hasDynamicProps = Object.values(props).some((v) => containsDynamicValue(v));

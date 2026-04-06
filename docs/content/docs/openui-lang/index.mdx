@@ -36,15 +36,13 @@ OpenUI Lang was created to solve these core issues:
 
 <img src="/images/openui-lang/openui-chart-flow.png" alt="Architecture diagram" />
 
-The key difference from a standard chat app is what happens at the LLM and rendering layers:
-
 1.  **System prompt includes OpenUI Lang spec**: Your backend appends the generated component library prompt alongside your system prompt, instructing the LLM to respond in OpenUI Lang instead of plain text or JSON.
 
 2.  **LLM generates OpenUI Lang**: Instead of returning markdown, the model outputs a compact, line-oriented syntax (e.g., `root = Stack([chart])`) constrained to your component library.
 
 3.  **Streaming render**: On the client, the `<Renderer />` component parses each line as it arrives and maps it to your React components in real-time. Structure renders first, then data fills in progressively.
 
-The result is a native UI (like the "Total expenses" card and interactive pie chart above) dynamically composed by the AI, streamed efficiently, and rendered safely from your own components.
+The result is a native UI dynamically composed by the AI, streamed efficiently, and rendered safely from your own components. For data-driven apps with live tools and reactive state, see [Architecture](/docs/openui-lang/how-it-works).
 
 ## What can you build?
 
@@ -58,4 +56,4 @@ The result is a native UI (like the "Total expenses" card and interactive pie ch
   </Card>
 </Cards>
 
-Want to try it? [Open the Playground](/playground) or follow the Quick Start for [Chat](/docs/openui-lang/quickstart-chat) or [Dashboard](/docs/openui-lang/quickstart-dashboard).
+Want to try it? [Open the Playground](/playground) or follow the [Quick Start](/docs/openui-lang/quickstart).

@@ -26,7 +26,9 @@
   pointer-events: none;
   border: 1px solid rgb(0 0 0 / 6%);
   border-radius: 999px;
-  box-shadow: 0 1px 3px 0 rgb(22 34 51 / 8%), 0 12px 24px 0 rgb(22 34 51 / 4%);
+  box-shadow:
+    0 1px 3px 0 rgb(22 34 51 / 8%),
+    0 12px 24px 0 rgb(22 34 51 / 4%);
 }
 
 .githubButtonOverlayFlat {

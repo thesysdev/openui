@@ -1,7 +1,7 @@
 "use client";
 
-import type { ThemeMode } from "@components/types";
 import { fontOverrides, legacyVarCss, swatchVarCss } from "@/shared/theme/openuiThemeBridge";
+import type { ThemeMode } from "@components/types";
 import { ThemeProvider } from "@openuidev/react-ui/ThemeProvider";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 

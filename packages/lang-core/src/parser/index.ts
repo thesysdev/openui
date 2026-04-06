@@ -16,6 +16,8 @@ export type {
 export { createParser, createStreamingParser, parse } from "./parser";
 export type { Parser, StreamParser } from "./parser";
 
+export { enrichErrors } from "./enrich-errors";
+
 export { generatePrompt } from "./prompt";
 export type { ComponentGroup, ComponentPromptSpec, PromptSpec, ToolSpec } from "./prompt";
 

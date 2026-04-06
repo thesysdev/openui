@@ -18,11 +18,18 @@
  * ```
  */
 
-/** Tool schema from MCP server — used for prompt generation */
-export interface McpTool {
-  name: string;
-  description?: string;
-  inputSchema?: Record<string, unknown>;
+/**
+ * Error thrown when an MCP tool call returns `isError: true`.
+ * Preserves the raw error content from the MCP response for structured handling.
+ */
+export class McpToolError extends Error {
+  readonly toolErrorText: string;
+
+  constructor(errorText: string) {
+    super(`MCP tool error: ${errorText || "Unknown error"}`);
+    this.name = "McpToolError";
+    this.toolErrorText = errorText;
+  }
 }
 
 /**
@@ -39,11 +46,6 @@ export interface McpClientLike {
     structuredContent?: unknown;
     isError?: boolean;
   }>;
-  listTools?(params?: { cursor?: string }): Promise<{
-    tools: McpTool[];
-    nextCursor?: string;
-  }>;
-  close?(): Promise<void>;
 }
 
 /**
@@ -60,7 +62,7 @@ export function extractToolResult(result: {
       ?.filter((c) => c.type === "text")
       .map((c) => c.text)
       .join("\n");
-    throw new Error(`MCP tool error: ${errorText || "Unknown error"}`);
+    throw new McpToolError(errorText || "Unknown error");
   }
 
   // Prefer structuredContent (JSON data, no parsing needed)

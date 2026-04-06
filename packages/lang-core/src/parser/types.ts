@@ -72,7 +72,6 @@ export type ValidationErrorCode =
   | "missing-required"
   | "null-required"
   | "unknown-component"
-  | "excess-args"
   | "inline-reserved";
 
 /**
@@ -98,6 +97,24 @@ export interface ValidationError {
 export type OpenUIErrorSource = "parser" | "runtime" | "query" | "mutation";
 
 /**
+ * Machine-readable error codes for the openui-lang pipeline.
+ *
+ * - Parser: "unknown-component", "missing-required", "null-required", "inline-reserved",
+ *   "parse-exception", "parse-failed"
+ * - Runtime: "runtime-error" (prop evaluation), "render-error" (React render)
+ * - Query/Mutation: "tool-not-found", "tool-error", "mcp-error"
+ */
+export type OpenUIErrorCode =
+  | ValidationErrorCode
+  | "runtime-error"
+  | "render-error"
+  | "parse-exception"
+  | "parse-failed"
+  | "tool-not-found"
+  | "tool-error"
+  | "mcp-error";
+
+/**
  * Structured, LLM-friendly error from the openui-lang pipeline.
  *
  * Designed for an automated correction loop: send these to the LLM so it can
@@ -108,8 +125,8 @@ export type OpenUIErrorSource = "parser" | "runtime" | "query" | "mutation";
 export interface OpenUIError {
   /** Where the error originated. */
   source: OpenUIErrorSource;
-  /** Machine-readable error code (e.g. "unknown-component", "tool-not-found"). */
-  code: string;
+  /** Machine-readable error code. */
+  code: OpenUIErrorCode;
   /** Human/LLM-readable description of what went wrong. */
   message: string;
   /** Statement name (e.g. "header", "metrics") — tells the LLM which statement to patch. */
@@ -118,6 +135,8 @@ export interface OpenUIError {
   component?: string;
   /** Prop path (e.g. "/title"). */
   path?: string;
+  /** Tool name for query/mutation errors (e.g. "get_users", "create_item"). */
+  toolName?: string;
   /** Actionable fix context for the LLM (e.g. available components, correct signature). */
   hint?: string;
 }
@@ -218,7 +237,7 @@ export interface ParseResult {
      * Prop validation errors. Components with missing required props are
      * redacted (dropped as null) and listed here.
      */
-    validationErrors: ValidationError[];
+    errors: ValidationError[];
   };
   /** $variable declarations — maps "$varName" to its materialized default value. */
   stateDeclarations: Record<string, unknown>;

@@ -54,7 +54,6 @@ export { ToolNotFoundError, extractToolResult, isReactiveAssign } from "@openuid
 export type {
   EvaluationContext,
   McpClientLike,
-  McpTool,
   ReactiveAssign,
   StateField,
   ToolProvider,

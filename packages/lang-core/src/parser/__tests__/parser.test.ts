@@ -36,18 +36,14 @@ describe("unknown-component", () => {
     const result = parse('root = DataTable("col")', schema);
     expect(result.meta.errors).toHaveLength(1);
     expect(result.meta.errors[0]).toMatchObject({
-      type: "validation",
       code: "unknown-component",
       component: "DataTable",
-      path: "",
     });
   });
 
-  it("still renders the element with _args when unknown", () => {
+  it("drops unknown component from tree (returns null)", () => {
     const result = parse('root = DataTable("col")', schema);
-    expect(result.root).not.toBeNull();
-    expect(result.root?.typeName).toBe("DataTable");
-    expect((result.root?.props as any)._args).toEqual(["col"]);
+    expect(result.root).toBeNull();
   });
 
   it("reports all unknown components in a tree", () => {
@@ -65,20 +61,10 @@ describe("unknown-component", () => {
 // ── excess-args ───────────────────────────────────────────────────────────────
 
 describe("excess-args", () => {
-  it("reports when more args are passed than params", () => {
+  it("silently accepts extra args (no excess-args error emitted)", () => {
     const result = parse('root = Title("hello", "extra")', schema);
-    expect(result.meta.errors).toHaveLength(1);
-    expect(result.meta.errors[0]).toMatchObject({
-      type: "validation",
-      code: "excess-args",
-      component: "Title",
-      path: "",
-    });
-    expect(result.meta.errors[0].message).toMatch(/takes 1 arg/);
-  });
-
-  it("still renders the component despite excess args", () => {
-    const result = parse('root = Title("hello", "extra")', schema);
+    expect(codes('root = Title("hello", "extra")')).not.toContain("excess-args");
+    // Extra args are ignored; first arg maps to the defined param
     expect(result.root).not.toBeNull();
     expect(result.root?.props.text).toBe("hello");
   });
@@ -144,8 +130,8 @@ describe("existing errors carry type and code", () => {
     const result = parse("root = Stack()", schema);
     expect(result.meta.errors).toHaveLength(1);
     expect(result.meta.errors[0]).toMatchObject({
-      type: "validation",
       code: "missing-required",
+      component: "Stack",
     });
   });
 
@@ -153,8 +139,8 @@ describe("existing errors carry type and code", () => {
     const result = parse("root = Stack(null)", schema);
     expect(result.meta.errors).toHaveLength(1);
     expect(result.meta.errors[0]).toMatchObject({
-      type: "validation",
       code: "null-required",
+      component: "Stack",
     });
   });
 });

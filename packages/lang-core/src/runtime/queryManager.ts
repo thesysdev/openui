@@ -2,6 +2,8 @@
 // Query Manager — reactive data fetching for openui-lang
 // ─────────────────────────────────────────────────────────────────────────────
 
+import type { OpenUIError } from "../parser/types";
+import { McpToolError } from "./mcp";
 import { ToolNotFoundError } from "./toolProvider";
 
 /**
@@ -48,19 +50,10 @@ export interface MutationResult {
   error?: unknown;
 }
 
-export interface QueryError {
-  source: "query" | "mutation";
-  statementId: string;
-  toolName: string;
-  code: string;
-  message: string;
-  hint?: string;
-}
-
 export interface QuerySnapshot extends Record<string, unknown> {
   __openui_loading: string[];
   __openui_refetching: string[];
-  __openui_errors: QueryError[];
+  __openui_errors: OpenUIError[];
 }
 
 export interface QueryManager {
@@ -95,13 +88,13 @@ interface QueryEntry {
   refreshInterval: number;
   timer?: ReturnType<typeof setInterval>;
   needsRefetch: boolean;
-  error?: QueryError;
+  error?: OpenUIError;
 }
 
 interface MutationEntry {
   toolName: string;
   result: MutationResult;
-  error?: QueryError;
+  error?: OpenUIError;
 }
 
 interface CacheEntry {
@@ -264,13 +257,33 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
         if (err instanceof ToolNotFoundError) {
           current.error = {
             source: "query",
-            statementId,
-            toolName,
             code: "tool-not-found",
             message: `Query tool "${toolName}" not found`,
+            statementId,
+            component: "Query",
+            toolName,
             hint: err.availableTools.length
               ? `Available tools: ${err.availableTools.join(", ")}`
               : undefined,
+          };
+        } else if (err instanceof McpToolError) {
+          current.error = {
+            source: "query",
+            code: "mcp-error",
+            message: `Query "${toolName}" returned an error: ${err.toolErrorText}`,
+            statementId,
+            component: "Query",
+            toolName,
+          };
+        } else {
+          const msg = err instanceof Error ? err.message : String(err);
+          current.error = {
+            source: "query",
+            code: "tool-error",
+            message: `Query "${toolName}" failed: ${msg}`,
+            statementId,
+            component: "Query",
+            toolName,
           };
         }
       }
@@ -480,19 +493,39 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       m.result = { status: "success", data };
       m.error = undefined;
       success = true;
-    } catch (err: any) {
+    } catch (err) {
       if (disposed || gen !== generation) return false;
-      m.result = { status: "error", error: err?.message ?? String(err) };
+      const msg = err instanceof Error ? err.message : String(err);
+      m.result = { status: "error", error: msg };
       if (err instanceof ToolNotFoundError) {
         m.error = {
           source: "mutation",
-          statementId,
-          toolName: m.toolName,
           code: "tool-not-found",
           message: `Mutation tool "${m.toolName}" not found`,
+          statementId,
+          component: "Mutation",
+          toolName: m.toolName,
           hint: err.availableTools.length
             ? `Available tools: ${err.availableTools.join(", ")}`
             : undefined,
+        };
+      } else if (err instanceof McpToolError) {
+        m.error = {
+          source: "mutation",
+          code: "mcp-error",
+          message: `Mutation "${m.toolName}" returned an error: ${err.toolErrorText}`,
+          statementId,
+          component: "Mutation",
+          toolName: m.toolName,
+        };
+      } else {
+        m.error = {
+          source: "mutation",
+          code: "tool-error",
+          message: `Mutation "${m.toolName}" failed: ${msg}`,
+          statementId,
+          component: "Mutation",
+          toolName: m.toolName,
         };
       }
     }

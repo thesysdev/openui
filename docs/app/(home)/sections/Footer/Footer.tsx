@@ -152,14 +152,39 @@ function HandcraftedMascot({ isDark }: { isDark: boolean }) {
       preserveAspectRatio="xMidYMid meet"
       viewBox="0 0 141.2 114.2"
     >
-      <path d={mascotSvgPaths.p395b3c00} fill="currentColor" stroke="currentColor" strokeWidth="0.6" />
+      <path
+        d={mascotSvgPaths.p395b3c00}
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.6"
+      />
       <path d={mascotSvgPaths.p3b251e80} fill="currentColor" />
-      <path d={mascotSvgPaths.p2718bc80} fill="currentColor" stroke="currentColor" strokeWidth="0.6" />
-      <path d={mascotSvgPaths.p37ab5b0} fill="currentColor" stroke="currentColor" strokeWidth="0.6" />
+      <path
+        d={mascotSvgPaths.p2718bc80}
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.6"
+      />
+      <path
+        d={mascotSvgPaths.p37ab5b0}
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.6"
+      />
       <path d={mascotSvgPaths.p2ac89300} fill="currentColor" />
       <path d={mascotSvgPaths.p2b8b4380} fill="currentColor" />
-      <path d={mascotSvgPaths.p15c14e00} fill="currentColor" stroke="currentColor" strokeWidth="0.6" />
-      <path d={mascotSvgPaths.p4076200} fill="currentColor" stroke="currentColor" strokeWidth="0.6" />
+      <path
+        d={mascotSvgPaths.p15c14e00}
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.6"
+      />
+      <path
+        d={mascotSvgPaths.p4076200}
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.6"
+      />
     </svg>
   );
 }

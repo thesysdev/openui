@@ -12,12 +12,7 @@ type HeaderProps = {
   onChangeKey: () => void;
 };
 
-export function Header({
-  theme,
-  onThemeToggle,
-  hasApiKey,
-  onChangeKey,
-}: HeaderProps) {
+export function Header({ theme, onThemeToggle, hasApiKey, onChangeKey }: HeaderProps) {
   const themeLabel = { system: "System", light: "Light", dark: "Dark" }[theme];
   const extraActions: ReactNode = hasApiKey ? (
     <IconButton

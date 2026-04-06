@@ -3,8 +3,13 @@ title: Queries & Mutations
 description: Fetch and write data from your tools - the LLM generates the wiring, the runtime executes it.
 ---
 
+<img
+  src="/images/openui-lang/query-flow.png"
+  alt="Data flow: openui-lang code → Runtime → Your Tools → Live data back to components"
+/>
+
 OpenUI Lang connects to your backend through **tools**. A tool is any function your server
-exposes - a database query, an API call, a calculation. The LLM generates `Query` and `Mutation`
+exposes (a database query, an API call, a calculation). The LLM generates `Query` and `Mutation`
 statements that call these tools. The runtime executes them directly and feeds the results into your UI.
 
 ## Reading data with Query
@@ -32,7 +37,7 @@ chart = LineChart(data.rows.day, [Series("Views", data.rows.views)])
 
 `data.rows.title` extracts the `title` field from every row - like a column pluck.
 
-## Reactive queries
+### Reactive queries
 
 Pass a `$variable` in the query args - the query re-runs when the variable changes:
 
@@ -44,7 +49,7 @@ filter = Select("days", $days, [SelectItem("7", "7 days"), SelectItem("30", "30 
 
 User picks "30" → `$days` updates → Query re-fetches with `{days: "30"}` → chart updates.
 
-## Auto-refresh
+### Auto-refresh
 
 Add a fourth argument for periodic refresh (in seconds):
 
@@ -72,7 +77,7 @@ This button does three things in order:
 2. `@Run(tickets)` - re-fetches the tickets query (refreshes the table)
 3. `@Reset($title)` - clears the form
 
-## Error handling
+### Error handling
 
 Check `result.status` for mutation feedback:
 
@@ -82,25 +87,6 @@ createResult.status == "success" ? Callout("success", "Created", "Ticket added."
 ```
 
 ## How tools connect to the runtime
-
-```
-  openui-lang code                    Runtime                        Your Tools
-  ┌──────────────────┐     ┌────────────────────────┐     ┌──────────────────────┐
-  │ tickets = Query( │     │ Parser extracts Query   │     │ toolProvider         │
-  │   "list_tickets",│────▶│ nodes at parse time     │────▶│   .callTool(         │
-  │   {},            │     │                          │     │     "list_tickets",  │
-  │   {rows: []}     │     │ QueryManager evaluates   │     │     {}               │
-  │ )                │     │ args, calls toolProvider │     │   )                  │
-  └──────────────────┘     └────────────┬─────────────┘     └──────────┬───────────┘
-                                        │                              │
-                                        │◀──── { rows: [...data] } ────┘
-                                        │
-                                        ▼
-                              Components render with
-                              live data from results
-```
-
-`[placeholder image: Data flow diagram - Parser extracts Query/Mutation nodes from openui-lang code → Runtime calls toolProvider.callTool("list_tickets", {}) → Your MCP server executes the tool → Data flows back → Components render with live results]`
 
 The Renderer accepts a `toolProvider` prop that handles tool execution. Pass a function map or an [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) client:
 

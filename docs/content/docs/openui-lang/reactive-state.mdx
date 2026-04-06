@@ -3,7 +3,16 @@ title: Reactive State
 description: Make your UI interactive with $variables that update automatically.
 ---
 
-Every UI needs state - which tab is selected, what the user typed, whether a modal is open.
+<video
+  src="/videos/openui-lang/reactive.mp4"
+  autoPlay
+  loop
+  muted
+  playsInline
+  className="w-full rounded-lg"
+/>
+
+Every UI needs state: which tab is selected, what the user typed, whether a modal is open.
 In OpenUI Lang, state is declared with `$variables`.
 
 ## Declaring a variable
@@ -27,20 +36,6 @@ The user changes the input, the variable updates. The variable changes, the inpu
 $days = "7"
 filter = Select("days", $days, [SelectItem("7", "7 days"), SelectItem("30", "30 days")])
 ```
-
-```
-  ┌─────────────────┐        ┌─────────────┐
-  │ Select          │        │  $days      │
-  │ ┌─────────────┐ │  ───▶  │  "7" → "30" │
-  │ │ ▾ 30 days   │ │        └─────────────┘
-  │ └─────────────┘ │
-  │   7 days        │   User picks "30 days"
-  │ ● 30 days       │   → $days updates to "30"
-  │   90 days       │   → everything referencing $days re-evaluates
-  └─────────────────┘
-```
-
-`[placeholder image: Select dropdown showing "7 days" selected, with arrow showing $days updating from "7" to "30" when user picks a different option]`
 
 ## Using variables in expressions
 
@@ -91,25 +86,10 @@ status == "error" ? Callout("error", "Failed", errorMsg) : null
 
 ## How reactivity works
 
-```
-  User picks "30" in Select
-          │
-          ▼
-     ┌─────────┐
-     │  $days   │ ← updates to "30"
-     │  = "30"  │
-     └────┬─────┘
-          │
-          ├──▶ Select("days", $days, [...])         → display updates to "30 days"
-          │
-          ├──▶ Query("analytics", {days: $days})    → re-fetches with {days: "30"}
-          │
-          ├──▶ TextContent("Last " + $days + " d")  → re-evaluates to "Last 30 d"
-          │
-          └──▶ LineChart(data.rows.day, [...])       → re-renders with new data
-```
-
-`[placeholder image: Reactivity chain diagram - $days changes → Select updates display, Query re-fetches with new args, TextContent re-evaluates, Chart re-renders. All automatic, no wiring.]`
+<img
+  src="/images/openui-lang/reactive.png"
+  alt="Reactivity chain: $days changes, Query re-fetches, TextContent re-evaluates, Chart re-renders"
+/>
 
 When a `$variable` changes:
 

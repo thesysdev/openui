@@ -20,7 +20,7 @@ export type { EvalContext } from "./evaluate-tree";
 export { resolveStateField } from "./state-field";
 export type { InferStateFieldValue, StateField } from "./state-field";
 
-export { extractToolResult } from "./mcp";
-export type { McpClientLike, McpTool } from "./mcp";
+export { McpToolError, extractToolResult } from "./mcp";
+export type { McpClientLike } from "./mcp";
 
 export { ToolNotFoundError } from "./toolProvider";

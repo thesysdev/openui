@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
+import { useEffect, useRef } from "react";
 import styles from "./PossibilitiesSection.module.css";
 
 const bottomTraysLightImg = "/homepage/tray-light.png";
@@ -58,7 +58,12 @@ function Card({ title, image }: { title: string; image: string }) {
   return (
     <div className={styles.card}>
       <div className={styles.cardInner}>
-        <img src={image} alt={`${title} illustration`} className={styles.cardImage} draggable={false} />
+        <img
+          src={image}
+          alt={`${title} illustration`}
+          className={styles.cardImage}
+          draggable={false}
+        />
         <div className={styles.cardBody}>
           <p className={styles.cardTitle}>{title}</p>
         </div>

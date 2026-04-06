@@ -20,7 +20,14 @@ It outputs only the changed and new statements. The parser merges them into the 
  LLM only output 2 lines (root + chart). Parser merged by name.
 ```
 
-`[placeholder gif: User has a dashboard with a table. Types "add a pie chart". LLM streams just 2-3 new lines. Chart appears next to existing table - rest of UI stays intact.]`
+<video
+  src="/videos/openui-lang/incremental-editing.mp4"
+  autoPlay
+  loop
+  muted
+  playsInline
+  className="w-full rounded-lg"
+/>
 
 **Initial generation** - LLM outputs full code:
 
@@ -63,34 +70,24 @@ The parser merges by statement name:
 - **Preserves context** - existing queries, state, and bindings stay intact
 - **Works with streaming** - each patched line renders as it arrives
 
-```
-  ┌─────────────────────────┐     ┌─────────────────────────┐
-  │ Full regeneration       │     │ Incremental patch       │
-  │                         │     │                         │
-  │ 20 statements           │     │ 2 statements            │
-  │ ~400 tokens             │     │ ~60 tokens              │
-  │ ~2s streaming           │     │ ~0.3s streaming         │
-  │                         │     │                         │
-  │ ████████████████████    │     │ ███                     │
-  └─────────────────────────┘     └─────────────────────────┘
-                Same result - up to 85% fewer tokens.
-```
-
-`[placeholder image: Side-by-side comparison - Full regen: 20 lines, ~400 tokens vs Patch: 3 lines, ~60 tokens. Same result, 85% fewer tokens.]`
+Full regeneration: 20 statements, ~400 tokens, ~2s streaming.
+Incremental patch: 2 statements, ~60 tokens, ~0.3s streaming.
+Same result, up to **85% fewer tokens**.
 
 ## Enabling edit mode
 
-Set `editMode: true` in your prompt config so the LLM knows it can output partial patches:
+Two flags control this behavior in your prompt config:
 
 ```ts
 const config: PromptSpec = {
   ...componentSpec,
-  editMode: true,
-  inlineMode: true, // allows text + code responses
+  editMode: true, // LLM outputs patches instead of full regenerations
+  inlineMode: true, // LLM can mix text and code in the same response
 };
 ```
 
-The `inlineMode` flag lets the LLM respond with explanation text alongside the code patch,
-so it can say "I added a pie chart" before the code block.
+**`editMode`** tells the LLM it can output partial patches. Without it, the LLM regenerates the entire UI on every turn, even for small changes. With it enabled, the LLM only outputs the statements that changed or were added.
 
-See [System Prompts](/docs/openui-lang/system-prompts) for the full `PromptSpec` reference.
+**`inlineMode`** lets the LLM respond with explanation text alongside the code. The parser extracts code from fenced blocks (` ```openui-lang `) and ignores everything else. This way the LLM can say "I added a pie chart for the status breakdown" before the patch, which gives the user context about what changed.
+
+Both flags are passed to `generatePrompt()` via your `PromptSpec`. See [System Prompts](/docs/openui-lang/system-prompts) for the full reference.

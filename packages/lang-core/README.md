@@ -22,7 +22,7 @@ pnpm add @openuidev/lang-core
 - **Evaluate** reactive expressions, `$variables`, and query results at runtime
 - **Merge** incremental edits into existing programs
 
-If you're building a framework-specific app, use `@openuidev/react-lang` or `@openuidev/vue-lang` or `@openuidev/svelte-lang` instead. It re-exports everything from this package plus framework-specific components and hooks.
+If you're building a framework-specific app, use `@openuidev/react-lang`, `@openuidev/vue-lang` or `@openuidev/svelte-lang` instead. It re-exports everything from this package plus framework-specific components and hooks.
 
 ## Quick Start
 

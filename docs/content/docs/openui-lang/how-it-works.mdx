@@ -3,8 +3,6 @@ title: Architecture
 description: Build dashboards, CRUD interfaces, and monitoring tools. The LLM generates the UI once, then your app runs independently.
 ---
 
-`[placeholder image: Hero - a data-driven dashboard with charts, KPI cards, and live table, built with OpenUI]`
-
 ## The problem today
 
 In most AI-powered applications, when a user interacts with a generated UI (filtering data, submitting a form, refreshing a view), the request goes back through the LLM. The model re-processes the context, calls tools, and regenerates the response. Every click costs tokens. Every interaction adds latency.
@@ -13,31 +11,10 @@ In most AI-powered applications, when a user interacts with a generated UI (filt
 
 OpenUI separates **generation** from **execution**. The LLM generates the interface once. After that, the UI runs on its own: fetching data, handling state, and responding to user actions without any LLM involvement.
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  GENERATE (one-time)                                                │
-│                                                                     │
-│  User prompt ──▶ Backend ──▶ LLM Provider ──▶ openui-lang code     │
-│                  (System       (OpenAI,          (streamed)         │
-│                   Prompt +      Anthropic,                          │
-│                   Tool Specs)   etc.)                                │
-└─────────────────────────────────────┬───────────────────────────────┘
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│  EXECUTE (ongoing, no LLM)                                         │
-│                                                                     │
-│  Renderer ──▶ Runtime ──▶ Your Tools ──▶ Data ──▶ UI               │
-│  (parses       (evaluates    (function map,                         │
-│   code)         queries)      MCP, or custom)                       │
-│                                                                     │
-│  User clicks / filters / submits                                    │
-│       └──▶ Runtime calls tools directly ──▶ UI updates              │
-│            No LLM. No tokens. Instant.                              │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-`[placeholder image: Architecture diagram showing two phases - GENERATE (one-time): User prompt → Backend builds system prompt with tool specs → LLM generates openui-lang code. EXECUTE (ongoing, no LLM): Renderer parses code → Runtime extracts Query/Mutation → Calls your tools via MCP directly → Data flows into components → User interacts → Runtime calls tools again. Emphasize: no LLM in the execute loop.]`
+<img
+  src="/images/openui-lang/architecture.png"
+  alt="Architecture diagram showing two phases: GENERATE (one-time) and EXECUTE (ongoing, no LLM)"
+/>
 
 ### Generate
 
@@ -56,8 +33,6 @@ The LLM generated the wiring. The runtime executes it.
 - **Monitoring tools** with periodic refresh, server health metrics, and error rate tracking
 - **Any tool-connected UI.** If you can expose it as a tool (via [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) or function map), the LLM can wire it into a UI
 
-`[placeholder image: 2x2 grid of example screenshots - GitHub Profile Dashboard (from /playground), Ticket Tracker CRUD, Server Monitoring, Analytics Explorer]`
-
 Try it live: [Open the Playground](/playground)
 
 ## Iterate and refine
@@ -75,7 +50,14 @@ tbl = Table([...])                      @Count(@Filter(..., "closed"))
   20 lines, ~400 tokens               3 lines, ~60 tokens (85% fewer)
 ```
 
-`[placeholder gif: User has a ticket table → types "add a pie chart for priority breakdown" → LLM streams 3 lines → chart appears next to existing table. Existing data stays live.]`
+<video
+  src="/videos/openui-lang/incremental-editing.mp4"
+  autoPlay
+  loop
+  muted
+  playsInline
+  className="w-full rounded-lg"
+/>
 
 ## Connecting tools
 
@@ -112,18 +94,85 @@ The [GitHub Playground](/playground) uses a function map where tools run entirel
 
 ## A concrete example
 
-Define a tool:
+Here's the full flow for a ticket tracker: define tools, generate the prompt, render the output.
+
+### 1. Define your tools
 
 ```ts
-{
-  name: "list_tickets",
-  execute: async (args) => db.query("SELECT * FROM tickets")
-}
+// tools.ts
+const tools: ToolSpec[] = [
+  {
+    name: "list_tickets",
+    description: "List all tickets",
+    inputSchema: { type: "object", properties: {} },
+    outputSchema: {
+      type: "object",
+      properties: {
+        rows: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: { title: { type: "string" }, priority: { type: "string" } },
+          },
+        },
+      },
+    },
+  },
+  {
+    name: "create_ticket",
+    description: "Create a new ticket",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string" },
+        priority: { type: "string" },
+      },
+    },
+    outputSchema: { type: "object", properties: { success: { type: "boolean" } } },
+  },
+];
 ```
 
-Connect it to the Renderer (via function map, MCP, or custom provider). Ask the LLM: _"Build a ticket tracker with a create form and table"_
+### 2. Generate the prompt and call the LLM
 
-The LLM generates:
+```ts
+// route.ts
+import { generatePrompt } from "@openuidev/lang-core";
+import componentSpec from "./generated/component-spec.json";
+
+const systemPrompt = generatePrompt({
+  ...componentSpec,
+  tools,
+  toolCalls: true,
+  bindings: true,
+});
+
+const completion = await openai.chat.completions.create({
+  model: "gpt-4o",
+  stream: true,
+  messages: [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: "Build a ticket tracker with a create form and table" },
+  ],
+});
+```
+
+### 3. Render the response
+
+```tsx
+// page.tsx
+<Renderer
+  library={library}
+  response={streamedText}
+  isStreaming={isStreaming}
+  toolProvider={{
+    list_tickets: async () => db.query("SELECT * FROM tickets"),
+    create_ticket: async (args) => db.query("INSERT INTO tickets ...", args),
+  }}
+/>
+```
+
+### What the LLM generates
 
 ```text
 $title = ""
@@ -141,12 +190,21 @@ tbl = Table([Col("Title", tickets.rows.title), Col("Priority", tickets.rows.prio
 root = Stack([CardHeader("Ticket Tracker"), form, tbl])
 ```
 
-What happens at runtime:
+<video
+  src="/videos/openui-lang/ticket-tracker.mp4"
+  autoPlay
+  loop
+  muted
+  playsInline
+  className="w-full rounded-lg"
+/>
 
-- `Query("list_tickets")` → runtime calls your MCP tool → table fills with data
-- User types a title, picks a priority, clicks "Create"
-- `@Run(createResult)` → runtime calls `create_ticket` tool directly
-- `@Run(tickets)` → runtime re-fetches `list_tickets` → table updates
-- `@Reset($title, $priority)` → form clears
+### What happens at runtime
+
+1. `Query("list_tickets")` → runtime calls your tool → table fills with data
+2. User types a title, picks a priority, clicks "Create"
+3. `@Run(createResult)` → runtime calls `create_ticket` directly
+4. `@Run(tickets)` → runtime re-fetches `list_tickets` → table updates
+5. `@Reset($title, $priority)` → form clears
 
 All without the LLM.

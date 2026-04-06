@@ -62,29 +62,13 @@ export function SiteHeaderFrame({
       <div className={styles.frame}>
         <div className={styles.row}>
           <div className={styles.start}>
-            {leading ? (
-              <div className={styles.leading}>
-                {leading}
-              </div>
-            ) : null}
+            {leading ? <div className={styles.leading}>{leading}</div> : null}
             <SiteHeaderBrand variant={brandVariant} />
           </div>
-          {center ? (
-            <div className={styles.center}>
-              {center}
-            </div>
-          ) : null}
+          {center ? <div className={styles.center}>{center}</div> : null}
           <div className={styles.right}>
-            {end ? (
-              <div className={styles.end}>
-                {end}
-              </div>
-            ) : null}
-            {mobileEnd ? (
-              <div className={styles.mobileEnd}>
-                {mobileEnd}
-              </div>
-            ) : null}
+            {end ? <div className={styles.end}>{end}</div> : null}
+            {mobileEnd ? <div className={styles.mobileEnd}>{mobileEnd}</div> : null}
           </div>
         </div>
       </div>

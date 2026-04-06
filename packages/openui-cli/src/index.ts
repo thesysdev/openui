@@ -8,7 +8,7 @@ import { resolveArgs } from "./lib/resolve-args";
 
 const program = new Command();
 
-program.name("openui").description("CLI for OpenUI").version("0.0.1");
+program.name("openui").description("CLI for OpenUI").version("0.0.6");
 
 program
   .command("create")

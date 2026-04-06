@@ -53,6 +53,8 @@ openui create [options]
 Options:
 
 - `-n, --name <string>`: Project name
+- `--skill`: Install the OpenUI agent skill for AI coding assistants
+- `--no-skill`: Skip installing the OpenUI agent skill
 - `--no-interactive`: Fail instead of prompting for missing required input
 
 What it does:
@@ -61,13 +63,16 @@ What it does:
 - copies the bundled `openui-chat` template into a new directory
 - rewrites `workspace:*` dependencies in the generated `package.json` to `latest`
 - installs dependencies automatically using the detected package manager
+- optionally installs the OpenUI agent skill for AI coding assistants
+- prompts for your OpenAI API key and writes it to `.env` (interactive mode only)
 
 Examples:
 
 ```bash
 openui create
-openui create
-openui create --no-interactive
+openui create --name my-app
+openui create --name my-app --no-skill
+openui create --no-interactive --name my-app
 ```
 
 ### `openui generate`

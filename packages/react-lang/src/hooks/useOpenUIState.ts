@@ -4,6 +4,7 @@ import {
   createQueryManager,
   createStore,
   createStreamingParser,
+  enrichErrors,
   evaluate,
   evaluateElementProps,
   type ActionEvent,
@@ -21,19 +22,6 @@ import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import type { OpenUIContextValue } from "../context";
 import type { Library } from "../library";
-
-/** Build a signature hint like "Header(title*, subtitle, icon)" from JSON schema. */
-function buildSignatureHint(
-  componentName: string,
-  schema: { properties?: Record<string, unknown>; required?: string[] } | undefined,
-): string | undefined {
-  if (!schema?.properties) return undefined;
-  const required = new Set(schema.required ?? []);
-  const params = Object.keys(schema.properties)
-    .map((k) => (required.has(k) ? `${k}*` : k))
-    .join(", ");
-  return `Signature: ${componentName}(${params}) — * marks required`;
-}
 
 /** Unwrap { value, componentType } wrapper from form field entries. Returns raw value. */
 function unwrapFieldValue(v: unknown): unknown {
@@ -385,7 +373,11 @@ export function useOpenUIState(
 
   // ─── reportError (for error boundary) ───
   const renderErrorsRef = useRef<OpenUIError[]>([]);
+  const isStreamingRef = useRef(isStreaming);
+  isStreamingRef.current = isStreaming;
   const reportError = useCallback((error: OpenUIError) => {
+    // Skip during streaming — render errors are transient and onError won't fire until streaming stops
+    if (isStreamingRef.current) return;
     renderErrorsRef.current.push(error);
   }, []);
 
@@ -417,36 +409,29 @@ export function useOpenUIState(
 
   // ─── Evaluate props ───
   const runtimeErrorsRef = useRef<OpenUIError[]>([]);
-  const evalContext = useMemo<EvalContext>(
-    () => ({
-      ctx: evaluationContext,
-      library,
-      store,
-      errors: runtimeErrorsRef.current,
-    }),
-    [evaluationContext, library, store],
-  );
 
   const evaluatedResult = useMemo<ParseResult | null>(() => {
     if (!result?.root) return result;
-    // Clear previous runtime errors before each evaluation pass
-    runtimeErrorsRef.current = [];
-    evalContext.errors = runtimeErrorsRef.current;
+    // Fresh errors array each pass — avoids mutating memoized context
+    const errors: OpenUIError[] = [];
+    const evalCtx: EvalContext = { ctx: evaluationContext, library, store, errors };
     try {
-      const evaluatedRoot = evaluateElementProps(result.root, evalContext);
+      const evaluatedRoot = evaluateElementProps(result.root, evalCtx);
+      runtimeErrorsRef.current = errors;
       return { ...result, root: evaluatedRoot };
     } catch (e) {
       // Safety net — per-prop catch in evaluateElementProps handles most cases
       const msg = e instanceof Error ? e.message : String(e);
-      runtimeErrorsRef.current.push({
+      errors.push({
         source: "runtime",
         code: "runtime-error",
         message: `Prop evaluation failed: ${msg}`,
       });
+      runtimeErrorsRef.current = errors;
       return result;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- storeSnapshot/querySnapshot are reactive triggers
-  }, [result, evalContext, storeSnapshot, querySnapshot]);
+  }, [result, evaluationContext, library, store, storeSnapshot, querySnapshot]);
 
   const isQueryLoading = querySnapshot.__openui_loading.length > 0;
 
@@ -481,54 +466,26 @@ export function useOpenUIState(
       });
     }
 
-    // Parser validation errors → OpenUIError
-    if (result?.meta.validationErrors.length) {
-      const componentNames = Object.keys(library.components);
-      const jsonSchema = library.toJSONSchema();
-      for (const ve of result.meta.validationErrors) {
-        const error: OpenUIError = {
-          source: "parser",
-          code: ve.code,
-          message: ve.message,
-          component: ve.component,
-          path: ve.path || undefined,
-          statementId: ve.statementId,
-        };
-        // Enrich with hints based on error code
-        if (ve.code === "unknown-component" && componentNames.length) {
-          error.hint = `Available components: ${componentNames.join(", ")}`;
-        } else if (ve.code === "missing-required" || ve.code === "null-required") {
-          error.hint = buildSignatureHint(ve.component, jsonSchema.$defs?.[ve.component]);
-        } else if (ve.code === "inline-reserved") {
-          error.hint = `Declare as a top-level statement: myVar = ${ve.component}(...)`;
-        }
-        errors.push(error);
-      }
+    // Parser validation errors → enriched OpenUIError (with hints)
+    if (result?.meta?.errors?.length) {
+      errors.push(
+        ...enrichErrors(
+          result.meta.errors,
+          library.toJSONSchema(),
+          Object.keys(library.components),
+        ),
+      );
     }
 
     // Runtime eval errors (collected per-prop by evaluateElementProps)
-    for (const re of runtimeErrorsRef.current) {
-      errors.push(re);
-    }
+    errors.push(...runtimeErrorsRef.current);
 
     // Render errors (collected by error boundary via reportError)
-    for (const re of renderErrorsRef.current) {
-      errors.push(re);
-    }
+    errors.push(...renderErrorsRef.current);
     renderErrorsRef.current = [];
 
-    // Query/mutation tool errors
-    const qErrors = querySnapshot.__openui_errors ?? [];
-    for (const qe of qErrors) {
-      errors.push({
-        source: qe.source,
-        code: qe.code,
-        message: qe.message,
-        statementId: qe.statementId,
-        component: qe.source === "query" ? "Query" : "Mutation",
-        hint: qe.hint,
-      });
-    }
+    // Query/mutation tool errors — already OpenUIError, pass through directly
+    errors.push(...(querySnapshot.__openui_errors ?? []));
 
     // Deduplicate — only fire when errors actually change
     const key = JSON.stringify(errors);

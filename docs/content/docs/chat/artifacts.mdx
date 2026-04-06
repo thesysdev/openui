@@ -45,19 +45,19 @@ An artifact component has two parts:
 import { Artifact } from "@openuidev/react-ui";
 
 Artifact({
-  title,       // string | (props) => string
-  preview,     // (props, controls) => ReactNode
-  panel,       // (props, controls) => ReactNode
-  panelProps,  // optional — className, errorFallback, header
+  title, // string | (props) => string
+  preview, // (props, controls) => ReactNode
+  panel, // (props, controls) => ReactNode
+  panelProps, // optional — className, errorFallback, header
 });
 ```
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `title` | `string \| (props: P) => string` | Panel header title. Static string or derived from props. |
-| `preview` | `(props: P, controls: ArtifactControls) => ReactNode` | Inline preview rendered in the chat message. |
-| `panel` | `(props: P, controls: ArtifactControls) => ReactNode` | Content rendered inside the side panel. |
-| `panelProps` | `{ className?, errorFallback?, header? }` | Optional overrides forwarded to `ArtifactPanel`. |
+| Option       | Type                                                  | Description                                              |
+| ------------ | ----------------------------------------------------- | -------------------------------------------------------- |
+| `title`      | `string \| (props: P) => string`                      | Panel header title. Static string or derived from props. |
+| `preview`    | `(props: P, controls: ArtifactControls) => ReactNode` | Inline preview rendered in the chat message.             |
+| `panel`      | `(props: P, controls: ArtifactControls) => ReactNode` | Content rendered inside the side panel.                  |
+| `panelProps` | `{ className?, errorFallback?, header? }`             | Optional overrides forwarded to `ArtifactPanel`.         |
 
 Both `preview` and `panel` receive the full Zod-inferred props as the first argument and `ArtifactControls` as the second.
 
@@ -67,9 +67,9 @@ The controls object passed to `preview` and `panel` render functions.
 
 ```ts
 interface ArtifactControls {
-  isActive: boolean;  // whether this artifact's panel is currently open
-  open: () => void;   // activate this artifact
-  close: () => void;  // deactivate this artifact
+  isActive: boolean; // whether this artifact's panel is currently open
+  open: () => void; // activate this artifact
+  close: () => void; // deactivate this artifact
   toggle: () => void; // toggle open/close
 }
 ```

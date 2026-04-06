@@ -1,5 +1,9 @@
 import svgPaths from "@/imports/svg-urruvoh2be";
-import { StackChip, stackChipStyles, type StackChipItem } from "../../components/StackChip/StackChip";
+import {
+  StackChip,
+  stackChipStyles,
+  type StackChipItem,
+} from "../../components/StackChip/StackChip";
 import styles from "./CompatibilitySection.module.css";
 
 interface StackRow {
@@ -184,7 +188,10 @@ export function CompatibilitySection() {
                       {chipRows.map((chipRow, rowIndex) => (
                         <div key={`${row.label}-row-${rowIndex}`} className={styles.chipRow}>
                           {chipRow.map((item, itemIndex) => (
-                            <StackChip key={`${row.label}-${item.name}-${rowIndex}-${itemIndex}`} item={item} />
+                            <StackChip
+                              key={`${row.label}-${item.name}-${rowIndex}-${itemIndex}`}
+                              item={item}
+                            />
                           ))}
                         </div>
                       ))}
