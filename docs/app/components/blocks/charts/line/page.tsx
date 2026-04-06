@@ -2,7 +2,7 @@
 
 import ClientOnly from "@components/blocks/_components/ClientOnly";
 import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
-import { LineChart, ScrollableLineChart } from "@openuidev/react-ui";
+import { LineChartCondensed, LineChart } from "@openuidev/react-ui";
 
 const lineData = [
   { month: "Jan", desktop: 150, mobile: 90 },
@@ -33,11 +33,11 @@ function DefaultLineChartPreview() {
   );
 }
 
-function ScrollableLineChartPreview() {
+function LineChartCondensedPreview() {
   return (
     <ClientOnly>
       <div style={{ width: "600px" }}>
-        <ScrollableLineChart data={scrollableLineData} categoryKey="month" />
+        <LineChartCondensed data={scrollableLineData} categoryKey="month" />
       </div>
     </ClientOnly>
   );
@@ -52,14 +52,14 @@ export default function BlocksLineChartPage() {
         description="Preview for the Line chart block."
       >
         <BlockVariantPreview
-          title="Default"
-          description="Default line chart variant."
+          title="Scrollable"
+          description="Scrollable line chart variant."
           preview={<DefaultLineChartPreview />}
         />
         <BlockVariantPreview
           title="Scrollable"
-          description="Scrollable line chart variant."
-          preview={<ScrollableLineChartPreview />}
+          description="Condensed line chart variant."
+          preview={<LineChartCondensedPreview />}
         />
       </PreviewSection>
     </PreviewPage>
