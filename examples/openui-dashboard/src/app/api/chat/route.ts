@@ -29,21 +29,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) });
-
-  const cleanMessages = messages
-    .filter((m) => m.role !== "tool")
-    .map((m) => {
-      if (m.role === "assistant" && m.tool_calls?.length) {
-        const { tool_calls: _tc, ...rest } = m;
-        return rest;
-      }
-      return m;
-    });
-
+  const client = new OpenAI({ apiKey, baseURL });
   const runner = client.chat.completions.runTools({
     model,
-    messages: [{ role: "system" as const, content: buildSystemPrompt() }, ...cleanMessages],
+    messages: [{ role: "system" as const, content: buildSystemPrompt() }, ...messages],
     tools,
     stream: true,
     // reasoning: { effort: "low" },
