@@ -1,3 +1,4 @@
+import { reactive } from "@openuidev/react-lang";
 import { z } from "zod";
 import { rulesSchema } from "../rules";
 
@@ -10,4 +11,5 @@ export const SliderSchema = z.object({
   defaultValue: z.array(z.number()).optional(),
   label: z.string().optional(),
   rules: rulesSchema,
+  value: reactive(z.array(z.number()).optional()),
 });

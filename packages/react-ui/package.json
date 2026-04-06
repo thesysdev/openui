@@ -66,8 +66,8 @@
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "peerDependencies": {
-    "@openuidev/react-lang": "workspace:^",
     "@openuidev/react-headless": "workspace:^",
+    "@openuidev/react-lang": "workspace:^",
     "react": ">=19.0.0",
     "react-dom": ">=19.0.0",
     "zustand": "^4.5.5"

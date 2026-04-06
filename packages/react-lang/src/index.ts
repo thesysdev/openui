@@ -9,6 +9,7 @@ export type {
   LibraryDefinition,
   PromptOptions,
   SubComponentOf,
+  ToolDescriptor,
 } from "./library";
 
 // openui-lang renderer
@@ -16,11 +17,25 @@ export { Renderer } from "./Renderer";
 export type { RendererProps } from "./Renderer";
 
 // openui-lang action types
-export { BuiltinActionType } from "@openuidev/lang-core";
-export type { ActionEvent, ElementNode, ParseResult } from "@openuidev/lang-core";
+export { ACTION_STEPS, BuiltinActionType } from "@openuidev/lang-core";
+export type {
+  ActionEvent,
+  ActionPlan,
+  ActionStep,
+  ElementNode,
+  OpenUIError,
+  ParseResult,
+} from "@openuidev/lang-core";
 
 // openui-lang parser (server-side use)
-export { createParser, createStreamingParser, type LibraryJSONSchema } from "@openuidev/lang-core";
+export { createParser, createStreamingParser } from "@openuidev/lang-core";
+
+// Standalone prompt generation (no Zod deps — usable on backend)
+export { generatePrompt } from "@openuidev/lang-core";
+export type { ComponentPromptSpec, PromptSpec, ToolSpec } from "@openuidev/lang-core";
+
+// openui-lang edit/merge
+export { mergeStatements } from "@openuidev/lang-core";
 
 // openui-lang context hooks (for use inside component renderers)
 export {
@@ -33,6 +48,21 @@ export {
   useSetFieldValue,
   useTriggerAction,
 } from "./context";
+
+// Runtime — reactive bindings, store, evaluator, query manager, field binding
+export { ToolNotFoundError, extractToolResult, isReactiveAssign } from "@openuidev/lang-core";
+export type {
+  EvaluationContext,
+  McpClientLike,
+  McpTool,
+  ReactiveAssign,
+  StateField,
+  ToolProvider,
+} from "@openuidev/lang-core";
+export { reactive } from "./runtime";
+
+// Unified field state hook — component authors use this
+export { useStateField } from "./hooks/useStateField";
 
 // openui-lang form validation
 export {

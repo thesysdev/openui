@@ -66,7 +66,7 @@
 .openui-select-content {
   box-sizing: border-box;
   position: relative;
-  z-index: 50;
+  z-index: 99999;
   max-height: 372px;
   min-width: var(--radix-select-trigger-width);
   overflow: hidden;

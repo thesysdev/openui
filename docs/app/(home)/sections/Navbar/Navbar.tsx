@@ -32,11 +32,7 @@ function DesktopNavTabs() {
   return (
     <div className={styles.desktopTabs}>
       {NAV_TABS.map((tab) => (
-        <a
-          key={tab}
-          href={TAB_URLS[tab]}
-          className={styles.desktopTabLink}
-        >
+        <a key={tab} href={TAB_URLS[tab]} className={styles.desktopTabLink}>
           {tab}
         </a>
       ))}
@@ -98,10 +94,7 @@ function MobileMenu({ starCount, onClose }: { starCount: number | null; onClose:
             {NAV_TABS.map((tab, index) => (
               <div key={tab}>
                 {index > 0 && <div className={styles.mobileTrayDivider} />}
-                <a
-                  href={TAB_URLS[tab]}
-                  className={styles.mobileTrayLink}
-                >
+                <a href={TAB_URLS[tab]} className={styles.mobileTrayLink}>
                   {tab}
                 </a>
               </div>

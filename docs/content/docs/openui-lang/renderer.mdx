@@ -24,15 +24,84 @@ export function AssistantMessage({
 
 ## Props
 
-| Prop            | Type                                    | Description                                                    |
-| :-------------- | :-------------------------------------- | :------------------------------------------------------------- |
-| `response`      | `string \| null`                        | Raw OpenUI Lang response text.                                 |
-| `library`       | `Library`                               | Library created by `createLibrary(...)`.                       |
-| `isStreaming`   | `boolean`                               | Indicates stream is in progress.                               |
-| `onAction`      | `(event: ActionEvent) => void`          | Receives structured action events from interactive components. |
-| `onStateUpdate` | `(state: Record<string, any>) => void`  | Called on form field changes with the raw field state map.     |
-| `initialState`  | `Record<string, any>`                   | Hydrates form state on load (e.g. from persisted message).     |
-| `onParseResult` | `(result: ParseResult \| null) => void` | Debug/inspect latest parse result.                             |
+| Prop            | Type                                                                                       | Description                                                                                                                                      |
+| :-------------- | :----------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `response`      | `string \| null`                                                                           | Raw OpenUI Lang response text.                                                                                                                   |
+| `library`       | `Library`                                                                                  | Library created by `createLibrary(...)`.                                                                                                         |
+| `isStreaming`   | `boolean`                                                                                  | Indicates stream is in progress.                                                                                                                 |
+| `onAction`      | `(event: ActionEvent) => void`                                                             | Receives structured action events from interactive components.                                                                                   |
+| `onStateUpdate` | `(state: Record<string, any>) => void`                                                     | Called on form field changes with the raw field state map.                                                                                       |
+| `initialState`  | `Record<string, any>`                                                                      | Hydrates form state on load (e.g. from persisted message).                                                                                       |
+| `onParseResult` | `(result: ParseResult \| null) => void`                                                    | Debug/inspect latest parse result.                                                                                                               |
+| `toolProvider`  | `Record<string, (args: Record<string, unknown>) => Promise<unknown>> \| McpClient \| null` | Handles `Query()` / `Mutation()` tool calls. Pass a function map or an [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) client. |
+| `queryLoader`   | `React.ReactNode`                                                                          | Custom loading indicator shown while queries are fetching. Defaults to a spinner.                                                                |
+| `onError`       | `(errors: OpenUIError[]) => void`                                                          | Structured, LLM-friendly errors from the parser and query system. Suitable for automated correction loops. Called with `[]` when resolved.       |
+
+## Connecting tools
+
+For UIs that use `Query()` and `Mutation()`, pass a `toolProvider`. Two options:
+
+```tsx
+// Function map — tools are just async functions
+<Renderer
+  toolProvider={{
+    list_tickets: async (args) => fetch("/api/tickets").then((r) => r.json()),
+    create_ticket: async (args) =>
+      fetch("/api/tickets", { method: "POST", body: JSON.stringify(args) }).then((r) => r.json()),
+  }}
+  library={library}
+  response={code}
+/>;
+
+// MCP client — pass a configured MCP client directly
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+
+const client = new Client({ name: "my-app", version: "1.0.0" });
+await client.connect(new StreamableHTTPClientTransport(new URL("/api/mcp")));
+<Renderer toolProvider={client} library={library} response={code} />;
+```
+
+These examples are simplified for demonstration. In production, you'll need to handle authentication, error boundaries, and connection lifecycle.
+
+## Error handling
+
+`onError` receives structured errors suitable for sending back to the LLM for correction:
+
+```tsx
+<Renderer
+  library={library}
+  response={code}
+  toolProvider={mcp}
+  onError={(errors) => {
+    if (!errors.length) return;
+    const msg = errors
+      .map(
+        (e) =>
+          `[${e.source}] ${e.statementId ? `"${e.statementId}": ` : ""}${e.message}${e.hint ? `\nHint: ${e.hint}` : ""}`,
+      )
+      .join("\n\n");
+    // Send back to LLM for self-correction
+    sendToLLM(`Fix these errors:\n\n${msg}`);
+  }}
+/>
+```
+
+Error codes:
+
+| Code                | Source         | Description                                     |
+| :------------------ | :------------- | :---------------------------------------------- |
+| `unknown-component` | parser         | Component name not in the library               |
+| `missing-required`  | parser         | Required prop not provided                      |
+| `null-required`     | parser         | Required prop explicitly null                   |
+| `inline-reserved`   | parser         | Query/Mutation used inline instead of top-level |
+| `parse-failed`      | parser         | Response produced no renderable root            |
+| `parse-exception`   | parser         | Parser crashed on malformed input               |
+| `tool-not-found`    | query/mutation | Tool name not found in toolProvider             |
+| `runtime-error`     | runtime        | Expression evaluation failed on a prop          |
+| `render-error`      | runtime        | React component threw during render             |
+
+If no `onError` callback is provided, errors are logged to `console.warn` instead of being silently swallowed.
 
 ## Streaming behavior
 
@@ -58,8 +127,9 @@ export function AssistantMessage({
 
 ## Hooks for component authors
 
-Use these inside components defined with `defineComponent(...)`:
+Use these inside components defined with `defineComponent(...)`. See [Reactive State](/docs/openui-lang/reactive-state) for how `$variables` work in the language.
 
+- `useStateField(name, value?)` - reactive `$variable` binding (preferred for inputs)
 - `useIsStreaming()`
 - `useTriggerAction()`
 - `useRenderNode()`
@@ -78,14 +148,3 @@ const Dashboard = defineComponent({
   component: ({ props, renderNode }) => <div>{renderNode(props.cards)}</div>,
 });
 ```
-
-## Next Steps
-
-<Cards>
-  <Card title="Language Specification" href="/docs/openui-lang/specification">
-    Grammar and parser semantics.
-  </Card>
-  <Card title="Benchmarks" href="/docs/openui-lang/benchmarks">
-    Token and latency comparison.
-  </Card>
-</Cards>

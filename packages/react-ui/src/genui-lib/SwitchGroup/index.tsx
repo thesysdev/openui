@@ -2,17 +2,14 @@
 
 import {
   defineComponent,
-  useFormName,
-  useGetFieldValue,
   useIsStreaming,
-  useSetFieldValue,
+  useStateField,
   type SubComponentOf,
 } from "@openuidev/react-lang";
 import React from "react";
-import { z } from "zod";
 import { SwitchGroup as OpenUISwitchGroup } from "../../components/SwitchGroup";
 import { SwitchItem as OpenUISwitchItem } from "../../components/SwitchItem";
-import { SwitchItemSchema } from "./schema";
+import { SwitchItemSchema, createSwitchGroupSchema } from "./schema";
 
 export { SwitchItemSchema } from "./schema";
 
@@ -32,29 +29,23 @@ export const SwitchItem = defineComponent({
 
 export const SwitchGroup = defineComponent({
   name: "SwitchGroup",
-  props: z.object({
-    name: z.string(),
-    items: z.array(SwitchItem.ref),
-    variant: z.enum(["clear", "card", "sunk"]).optional(),
-  }),
+  props: createSwitchGroupSchema(SwitchItem),
   description: "Group of switch toggles",
   component: ({ props }) => {
-    const formName = useFormName();
-    const getFieldValue = useGetFieldValue();
-    const setFieldValue = useSetFieldValue();
     const isStreaming = useIsStreaming();
 
-    const fieldName = props.name as string;
+    const field = useStateField(props.name, props.value);
     const items = (props.items ?? []) as Array<SubComponentOf<SwitchItemProps>>;
 
+    // Aggregate: map of item name → checked boolean
     const getAggregate = React.useCallback((): Record<string, boolean> => {
-      const stored = getFieldValue(formName, fieldName) as Record<string, boolean> | undefined;
+      const stored = field.value;
       const result: Record<string, boolean> = {};
       for (const item of items) {
         result[item.props.name] = stored?.[item.props.name] ?? item.props.defaultChecked ?? false;
       }
       return result;
-    }, [formName, fieldName, items, getFieldValue]);
+    }, [field.value, items]);
 
     if (!items.length) return null;
 
@@ -71,7 +62,7 @@ export const SwitchGroup = defineComponent({
             checked={aggregate[item.props.name] ?? item.props.defaultChecked ?? false}
             onChange={(val: boolean) => {
               const newAggregate = { ...getAggregate(), [item.props.name]: val };
-              setFieldValue(formName, "SwitchGroup", fieldName, newAggregate, true);
+              field.setValue(newAggregate);
             }}
             disabled={isStreaming}
           />

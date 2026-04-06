@@ -18,7 +18,7 @@ export { ColSchema } from "./schema";
 export const Col = defineComponent({
   name: "Col",
   props: ColSchema,
-  description: "Column definition",
+  description: "Column definition — holds label + data array",
   component: () => null,
 });
 
@@ -26,39 +26,48 @@ export const Table = defineComponent({
   name: "Table",
   props: z.object({
     columns: z.array(Col.ref),
-    rows: z.array(z.array(z.union([z.string(), z.number(), z.boolean()]))),
   }),
-  description: "Data table",
+  description: "Data table — column-oriented. Each Col holds its own data array.",
   component: ({ props, renderNode }) => {
     const columns = props.columns ?? [];
-    const rows = asArray(props.rows) as unknown[][];
-
     if (!columns.length) return null;
+
+    // Extract column data arrays and labels (filter null children from streaming)
+    const colDefs = columns
+      .filter((c: any) => c != null && c.props)
+      .map((c: any) => ({
+        label: c.props?.label ?? "",
+        data: asArray(c.props?.data ?? []),
+      }));
+    if (!colDefs.length) return null;
+
+    // Transpose columns → rows: row count = max column length
+    const rowCount = Math.max(...colDefs.map((c) => c.data.length), 0);
 
     return (
       <OpenUITable>
         <OpenUITableHeader>
           <OpenUITableRow>
-            {columns.map((c, i) => (
-              <OpenUITableHead key={i}>{c.props.label}</OpenUITableHead>
+            {colDefs.map((c, i) => (
+              <OpenUITableHead key={i}>{c.label}</OpenUITableHead>
             ))}
           </OpenUITableRow>
         </OpenUITableHeader>
         <OpenUITableBody>
-          {rows.map((row, ri) => {
-            const cells = asArray(row);
-            return (
-              <OpenUITableRow key={ri}>
-                {cells.map((cell, ci) => (
+          {Array.from({ length: rowCount }, (_, ri) => (
+            <OpenUITableRow key={ri}>
+              {colDefs.map((col, ci) => {
+                const cell = col.data[ri];
+                return (
                   <OpenUITableCell key={ci}>
                     {typeof cell === "object" && cell !== null
                       ? renderNode(cell)
                       : String(cell ?? "")}
                   </OpenUITableCell>
-                ))}
-              </OpenUITableRow>
-            );
-          })}
+                );
+              })}
+            </OpenUITableRow>
+          ))}
         </OpenUITableBody>
       </OpenUITable>
     );

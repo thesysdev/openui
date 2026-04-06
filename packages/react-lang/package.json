@@ -59,9 +59,16 @@
     "zod": "^4.0.0"
   },
   "peerDependencies": {
+    "@modelcontextprotocol/sdk": ">=1.0.0",
     "react": ">=19.0.0"
   },
+  "peerDependenciesMeta": {
+    "@modelcontextprotocol/sdk": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@types/react": "^19.0.0",
     "vitest": "^4.0.18"
   }

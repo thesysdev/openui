@@ -173,7 +173,6 @@
 }
 
 @media (min-width: 1024px) {
-
   .desktopLogoRow {
     display: flex;
     flex-direction: column;

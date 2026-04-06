@@ -145,9 +145,7 @@ function LibraryCard({ lib }: { lib: UILibrary }) {
         </div>
 
         {/* Name */}
-        <span className={styles.name}>
-          {displayName}
-        </span>
+        <span className={styles.name}>{displayName}</span>
       </div>
     </div>
   );

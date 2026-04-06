@@ -1,0 +1,121 @@
+---
+title: Reactive State
+description: Make your UI interactive with $variables that update automatically.
+---
+
+Every UI needs state - which tab is selected, what the user typed, whether a modal is open.
+In OpenUI Lang, state is declared with `$variables`.
+
+## Declaring a variable
+
+A `$variable` is a line that starts with `$`:
+
+```text
+$days = "7"
+$title = ""
+$showEdit = false
+```
+
+That's it. The value on the right is the default.
+
+## Binding to inputs
+
+When you pass a `$variable` to an input component, it creates a two-way binding.
+The user changes the input, the variable updates. The variable changes, the input updates.
+
+```text
+$days = "7"
+filter = Select("days", $days, [SelectItem("7", "7 days"), SelectItem("30", "30 days")])
+```
+
+```
+  ┌─────────────────┐        ┌─────────────┐
+  │ Select          │        │  $days      │
+  │ ┌─────────────┐ │  ───▶  │  "7" → "30" │
+  │ │ ▾ 30 days   │ │        └─────────────┘
+  │ └─────────────┘ │
+  │   7 days        │   User picks "30 days"
+  │ ● 30 days       │   → $days updates to "30"
+  │   90 days       │   → everything referencing $days re-evaluates
+  └─────────────────┘
+```
+
+`[placeholder image: Select dropdown showing "7 days" selected, with arrow showing $days updating from "7" to "30" when user picks a different option]`
+
+## Using variables in expressions
+
+Any expression can read a `$variable`:
+
+```text
+title = TextContent("Showing last " + $days + " days")
+data = Query("analytics", {days: $days}, {rows: []})
+```
+
+When `$days` changes (user picks "30" in the Select), the title updates and the Query
+re-fetches with the new value. This happens automatically - no wiring needed.
+
+## Changing state from buttons
+
+Use `@Set` inside an `Action` to change a variable when a button is clicked:
+
+```text
+btn = Button("Show 30 days", Action([@Set($days, "30")]))
+```
+
+You can set multiple variables at once:
+
+```text
+saveBtn = Button("Save", Action([@Set($showEdit, false), @Set($saved, true)]))
+```
+
+## Resetting to defaults
+
+`@Reset` restores variables to their declared defaults:
+
+```text
+$title = ""
+$priority = "medium"
+resetBtn = Button("Clear", Action([@Reset($title, $priority)]))
+```
+
+After click: `$title` goes back to `""`, `$priority` goes back to `"medium"`.
+
+## Conditional rendering
+
+Use ternary expressions to show/hide UI based on state:
+
+```text
+$showEdit ? editForm : null
+status == "error" ? Callout("error", "Failed", errorMsg) : null
+```
+
+## How reactivity works
+
+```
+  User picks "30" in Select
+          │
+          ▼
+     ┌─────────┐
+     │  $days   │ ← updates to "30"
+     │  = "30"  │
+     └────┬─────┘
+          │
+          ├──▶ Select("days", $days, [...])         → display updates to "30 days"
+          │
+          ├──▶ Query("analytics", {days: $days})    → re-fetches with {days: "30"}
+          │
+          ├──▶ TextContent("Last " + $days + " d")  → re-evaluates to "Last 30 d"
+          │
+          └──▶ LineChart(data.rows.day, [...])       → re-renders with new data
+```
+
+`[placeholder image: Reactivity chain diagram - $days changes → Select updates display, Query re-fetches with new args, TextContent re-evaluates, Chart re-renders. All automatic, no wiring.]`
+
+When a `$variable` changes:
+
+1. All inputs bound to it update their display
+2. All `Query` calls that reference it in their args re-fetch
+3. All expressions that reference it re-evaluate
+4. The UI re-renders with new values
+
+No event listeners. No useEffect. No wiring. Just declare and reference.

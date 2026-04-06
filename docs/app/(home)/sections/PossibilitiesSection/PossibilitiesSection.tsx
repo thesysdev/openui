@@ -45,9 +45,7 @@ function Card({ title }: { title: string }) {
           <div className={styles.cardImagePlaceholder} />
         )}
         <div className={styles.cardBody}>
-          <p className={styles.cardTitle}>
-            {title}
-          </p>
+          <p className={styles.cardTitle}>{title}</p>
         </div>
       </div>
       <div className={styles.cardOverlay} />
@@ -147,9 +145,7 @@ export function PossibilitiesSection() {
       {/* Header */}
       <div className={styles.headerContainer}>
         <div className={styles.header}>
-          <h2 className={styles.title}>
-            Endless possibilities. Built in realtime.
-          </h2>
+          <h2 className={styles.title}>Endless possibilities. Built in realtime.</h2>
         </div>
       </div>
 

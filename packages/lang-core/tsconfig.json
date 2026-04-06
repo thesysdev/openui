@@ -4,8 +4,8 @@
   "include": ["src/**/*"],
   "exclude": ["src/**/__tests__/**", "src/**/*.test.ts"],
   "compilerOptions": {
-    "moduleResolution": "bundler",
-    "module": "ESNext",
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
     "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true,

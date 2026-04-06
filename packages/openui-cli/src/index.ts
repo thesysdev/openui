@@ -30,7 +30,10 @@ program
   .description("Generate system prompt or JSON schema from a library definition")
   .argument("[entry]", "Path to a file that exports a createLibrary() result")
   .option("-o, --out <file>", "Write output to a file instead of stdout")
-  .option("--json-schema", "Output JSON schema instead of the system prompt")
+  .option(
+    "--json-schema",
+    "Output JSON schema with component signatures for standalone prompt generation",
+  )
   .option("--export <name>", "Name of the export to use (auto-detected by default)")
   .option(
     "--prompt-options <name>",

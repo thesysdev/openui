@@ -4,7 +4,10 @@ import LlmRespondsInOpenUiLang from "@/imports/LlmRespondsInOpenUiLang";
 import OpenUiGeneratesSchema from "@/imports/OpenUiGeneratesSchema";
 import OpenUiRendererRendersIt from "@/imports/OpenUiRendererRendersIt-43-427";
 import YouRegisterComponents from "@/imports/YouRegisterComponents-43-365";
-import { StepsAccordion, type StepsAccordionItem } from "../../components/StepsAccordion/StepsAccordion";
+import {
+  StepsAccordion,
+  type StepsAccordionItem,
+} from "../../components/StepsAccordion/StepsAccordion";
 import styles from "./StepsSection.module.css";
 
 // ---------------------------------------------------------------------------

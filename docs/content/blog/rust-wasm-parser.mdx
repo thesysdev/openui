@@ -62,11 +62,11 @@ Compare that to the JSON approach: `serde_json::to_string()` runs in pure Rust w
 
 ### Benchmark: JSON string vs direct JsValue (1000 runs, µs per call)
 
-| Fixture | JSON round-trip | serde-wasm-bindgen | Change |
-|---|---|---|---|
-| simple-table | 20.5 | 22.5 | -9% slower |
-| contact-form | 61.4 | 79.4 | -29% slower |
-| dashboard | 57.9 | 74.0 | -28% slower |
+| Fixture      | JSON round-trip | serde-wasm-bindgen | Change      |
+| ------------ | --------------- | ------------------ | ----------- |
+| simple-table | 20.5            | 22.5               | -9% slower  |
+| contact-form | 61.4            | 79.4               | -29% slower |
+| dashboard    | 57.9            | 74.0               | -28% slower |
 
 We reverted this change immediately.
 
@@ -81,17 +81,18 @@ We ported the full parser pipeline to TypeScript. Same six-stage architecture, s
 **How it was run:** 30 warm-up iterations to stabilise JIT, then 1000 timed iterations using `performance.now()` (µs precision). The median is reported. Fixtures are real LLM-generated component trees serialised in each format's real streaming syntax.
 
 **Fixtures:**
+
 - `simple-table` — root + one Table with 3 columns and 5 rows (~180 chars)
 - `contact-form` — root + form layout with 6 input fields + submit button (~400 chars)
 - `dashboard` — root + sidebar nav + 3 metric cards + chart + data table (~950 chars)
 
 ### Results: One-Shot Parse (median µs, 1000 runs)
 
-| Fixture | TypeScript | WASM | Speedup |
-|---|---|---|---|
-| simple-table | 9.3 | 20.5 | **2.2x** |
-| contact-form | 13.4 | 61.4 | **4.6x** |
-| dashboard | 19.4 | 57.9 | **3.0x** |
+| Fixture      | TypeScript | WASM | Speedup  |
+| ------------ | ---------- | ---- | -------- |
+| simple-table | 9.3        | 20.5 | **2.2x** |
+| contact-form | 13.4       | 61.4 | **4.6x** |
+| dashboard    | 19.4       | 57.9 | **3.0x** |
 
 ## The Algorithmic Problem: O(N²) Streaming
 
@@ -131,11 +132,11 @@ Completed statements are never re-parsed. Only the trailing in-progress statemen
 
 ### Results: Full-Stream Total Parse Cost (median µs across all chunks)
 
-| Fixture | Naïve TS (re-parse every chunk) | Incremental TS (cache completed) | Speedup |
-|---|---|---|---|
-| simple-table | 69 | 77 | none (single statement, no cache benefit) |
-| contact-form | 316 | 122 | **2.6x** |
-| dashboard | 840 | 255 | **3.3x** |
+| Fixture      | Naïve TS (re-parse every chunk) | Incremental TS (cache completed) | Speedup                                   |
+| ------------ | ------------------------------- | -------------------------------- | ----------------------------------------- |
+| simple-table | 69                              | 77                               | none (single statement, no cache benefit) |
+| contact-form | 316                             | 122                              | **2.6x**                                  |
+| dashboard    | 840                             | 255                              | **3.3x**                                  |
 
 The `simple-table` fixture is a single statement — there's nothing to cache, so both approaches are equivalent. The benefit scales with the number of statements because more of the document gets cached and skipped on each chunk.
 
@@ -148,12 +149,12 @@ The one-shot table shows 13.4µs for `contact-form`; the streaming table shows 3
 
 ## Summary
 
-| Approach | Per-call cost | Full-stream total | Notes |
-|---|---|---|---|
-| WASM + JSON round-trip | 20-61µs | baseline | Copy overhead each call |
-| WASM + serde-wasm-bindgen | 22-79µs | +9-29% slower | Hundreds of internal boundary crossings |
-| TypeScript (naïve re-parse) | 9-19µs | 69-840µs | No boundary, but O(N²) streaming |
-| TypeScript (incremental) | 9-19µs | 69-255µs | No boundary + O(N) streaming |
+| Approach                    | Per-call cost | Full-stream total | Notes                                   |
+| --------------------------- | ------------- | ----------------- | --------------------------------------- |
+| WASM + JSON round-trip      | 20-61µs       | baseline          | Copy overhead each call                 |
+| WASM + serde-wasm-bindgen   | 22-79µs       | +9-29% slower     | Hundreds of internal boundary crossings |
+| TypeScript (naïve re-parse) | 9-19µs        | 69-840µs          | No boundary, but O(N²) streaming        |
+| TypeScript (incremental)    | 9-19µs        | 69-255µs          | No boundary + O(N) streaming            |
 
 **End result: 2.2-4.6x faster per call and 2.6-3.3x lower total streaming cost.**
 
@@ -172,15 +173,15 @@ This experience sharpened our thinking on the right use cases for WASM:
 ## Key Takeaways
 
 1. **Profile where time is actually spent before choosing the implementation language.**
-  For us, the cost was never in the computation - it was always in data transfer across the WASM-JS boundary.
+   For us, the cost was never in the computation - it was always in data transfer across the WASM-JS boundary.
 
 2. **"Direct object passing" through `serde-wasm-bindgen` is not cheaper.**
-  Constructing a JS object field-by-field from Rust involves more boundary crossings than a single JSON string transfer, not fewer.
-  The boundary crossings happen inside the single FFI call, invisibly.
+   Constructing a JS object field-by-field from Rust involves more boundary crossings than a single JSON string transfer, not fewer.
+   The boundary crossings happen inside the single FFI call, invisibly.
 
 3. **Algorithmic complexity improvements dominate language-level optimisations.**
-  Going from O(N²) to O(N) in the streaming case had a larger practical impact than switching from WASM to TypeScript.
+   Going from O(N²) to O(N) in the streaming case had a larger practical impact than switching from WASM to TypeScript.
 
 4. **WASM and JS do not share a heap.**
-  WASM has a flat linear memory (`WebAssembly.Memory`) that JS can read as raw bytes, but those bytes are Rust's internal layout - pointers, enum discriminants, alignment padding - completely opaque to the JS runtime.
-  Conversion is always required and always costs something.
+   WASM has a flat linear memory (`WebAssembly.Memory`) that JS can read as raw bytes, but those bytes are Rust's internal layout - pointers, enum discriminants, alignment padding - completely opaque to the JS runtime.
+   Conversion is always required and always costs something.

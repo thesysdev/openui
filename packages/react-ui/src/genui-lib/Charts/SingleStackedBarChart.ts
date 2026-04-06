@@ -4,26 +4,44 @@ import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod";
 import { SingleStackedBar as SingleStackedBarChartComponent } from "../../components/Charts";
-import { buildSliceData, hasAllProps } from "../helpers";
-import { SliceSchema } from "./Slice";
+import { asArray, buildSliceData } from "../helpers";
 
 export const SingleStackedBarChartSchema = z.object({
-  slices: z.array(SliceSchema),
+  labels: z.array(z.string()),
+  values: z.array(z.number()),
 });
 
 export const SingleStackedBarChart = defineComponent({
   name: "SingleStackedBarChart",
   props: SingleStackedBarChartSchema,
   description:
-    "Single horizontal stacked bar; use for showing part-to-whole proportions in one row",
+    "Single horizontal stacked bar; use plucked arrays: SingleStackedBarChart(data.categories, data.values)",
   component: ({ props }) => {
-    if (!hasAllProps(props as Record<string, unknown>, "slices")) return null;
-    const data = buildSliceData((props as any).slices);
-    if (!data.length) return null;
-    return React.createElement(SingleStackedBarChartComponent, {
-      data,
-      categoryKey: "category",
-      dataKey: "value",
-    });
+    const labels = asArray(props.labels) as string[];
+    const values = asArray(props.values) as number[];
+
+    if (labels.length > 0 && values.length > 0) {
+      const data = labels.map((cat, i) => ({
+        category: cat,
+        value: typeof values[i] === "number" ? values[i] : 0,
+      }));
+      if (!data.length) return null;
+      return React.createElement(SingleStackedBarChartComponent, {
+        data,
+        categoryKey: "category",
+        dataKey: "value",
+      });
+    }
+
+    const sliceData = buildSliceData(props.labels);
+    if (sliceData.length) {
+      return React.createElement(SingleStackedBarChartComponent, {
+        data: sliceData,
+        categoryKey: "category",
+        dataKey: "value",
+      });
+    }
+
+    return null;
   },
 });

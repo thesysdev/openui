@@ -1,0 +1,152 @@
+---
+title: Architecture
+description: Build dashboards, CRUD interfaces, and monitoring tools. The LLM generates the UI once, then your app runs independently.
+---
+
+`[placeholder image: Hero - a data-driven dashboard with charts, KPI cards, and live table, built with OpenUI]`
+
+## The problem today
+
+In most AI-powered applications, when a user interacts with a generated UI (filtering data, submitting a form, refreshing a view), the request goes back through the LLM. The model re-processes the context, calls tools, and regenerates the response. Every click costs tokens. Every interaction adds latency.
+
+## How OpenUI changes this
+
+OpenUI separates **generation** from **execution**. The LLM generates the interface once. After that, the UI runs on its own: fetching data, handling state, and responding to user actions without any LLM involvement.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  GENERATE (one-time)                                                │
+│                                                                     │
+│  User prompt ──▶ Backend ──▶ LLM Provider ──▶ openui-lang code     │
+│                  (System       (OpenAI,          (streamed)         │
+│                   Prompt +      Anthropic,                          │
+│                   Tool Specs)   etc.)                                │
+└─────────────────────────────────────┬───────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  EXECUTE (ongoing, no LLM)                                         │
+│                                                                     │
+│  Renderer ──▶ Runtime ──▶ Your Tools ──▶ Data ──▶ UI               │
+│  (parses       (evaluates    (function map,                         │
+│   code)         queries)      MCP, or custom)                       │
+│                                                                     │
+│  User clicks / filters / submits                                    │
+│       └──▶ Runtime calls tools directly ──▶ UI updates              │
+│            No LLM. No tokens. Instant.                              │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+`[placeholder image: Architecture diagram showing two phases - GENERATE (one-time): User prompt → Backend builds system prompt with tool specs → LLM generates openui-lang code. EXECUTE (ongoing, no LLM): Renderer parses code → Runtime extracts Query/Mutation → Calls your tools via MCP directly → Data flows into components → User interacts → Runtime calls tools again. Emphasize: no LLM in the execute loop.]`
+
+### Generate
+
+The user describes what they want. Your backend sends the request to an LLM along with a system prompt that includes your component library and tool descriptions. The LLM responds with openui-lang code, a compact declarative format that describes the UI layout, data sources, and interactions.
+
+### Execute
+
+The Renderer parses the generated code. When it encounters a `Query("list_tickets")`, the runtime calls your tool directly, no LLM roundtrip. When the user clicks a button that triggers `@Run(createResult)`, the runtime executes the mutation against your tool. When a `$variable` changes from a dropdown, all dependent queries re-fetch automatically.
+
+The LLM generated the wiring. The runtime executes it.
+
+## What this enables
+
+- **Reactive dashboards** with date range filters, auto-refresh, and live KPIs computed from query results
+- **CRUD interfaces** with create forms, edit modals, tables with search and sort
+- **Monitoring tools** with periodic refresh, server health metrics, and error rate tracking
+- **Any tool-connected UI.** If you can expose it as a tool (via [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) or function map), the LLM can wire it into a UI
+
+`[placeholder image: 2x2 grid of example screenshots - GitHub Profile Dashboard (from /playground), Ticket Tracker CRUD, Server Monitoring, Analytics Explorer]`
+
+Try it live: [Open the Playground](/playground)
+
+## Iterate and refine
+
+The LLM doesn't have to get it right the first time. With [incremental editing](/docs/openui-lang/incremental-editing), the user says "add a pie chart" and the LLM outputs only the 2-3 changed statements and the parser merges them into the existing code. Existing queries, state, and bindings stay intact.
+
+```
+Turn 1:                              Turn 2 (patch only):
+
+root = Stack([header, tbl])          root = Stack([header, chart, tbl])  ← updated
+header = CardHeader("Tickets")       chart = PieChart(["Open","Closed"], ← new
+tickets = Query(...)                   [@Count(@Filter(..., "open")),
+tbl = Table([...])                      @Count(@Filter(..., "closed"))
+                                       ], "donut")
+  20 lines, ~400 tokens               3 lines, ~60 tokens (85% fewer)
+```
+
+`[placeholder gif: User has a ticket table → types "add a pie chart for priority breakdown" → LLM streams 3 lines → chart appears next to existing table. Existing data stays live.]`
+
+## Connecting tools
+
+The Renderer accepts a `toolProvider` prop that tells the runtime how to call your tools. Two options:
+
+**Function map**, a plain object of async functions:
+
+```tsx
+<Renderer
+  toolProvider={{
+    list_tickets: async (args) => fetch("/api/tickets").then((r) => r.json()),
+    create_ticket: async (args) =>
+      fetch("/api/tickets", { method: "POST", body: JSON.stringify(args) }).then((r) => r.json()),
+  }}
+  response={code}
+  library={library}
+/>
+```
+
+**[MCP](https://modelcontextprotocol.io/docs/getting-started/intro) client** for server-side tools:
+
+```tsx
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+
+const client = new Client({ name: "my-app", version: "1.0.0" });
+await client.connect(new StreamableHTTPClientTransport(new URL("/api/mcp")));
+<Renderer toolProvider={client} response={code} library={library} />;
+```
+
+These examples are simplified for demonstration. In production, you'll need to handle authentication, error boundaries, and connection lifecycle.
+
+The [GitHub Playground](/playground) uses a function map where tools run entirely client-side, calling the GitHub API directly from the browser. The [Dashboard example](https://github.com/thesysdev/openui/tree/main/examples/openui-dashboard) uses MCP with server-side tools.
+
+## A concrete example
+
+Define a tool:
+
+```ts
+{
+  name: "list_tickets",
+  execute: async (args) => db.query("SELECT * FROM tickets")
+}
+```
+
+Connect it to the Renderer (via function map, MCP, or custom provider). Ask the LLM: _"Build a ticket tracker with a create form and table"_
+
+The LLM generates:
+
+```text
+$title = ""
+$priority = "medium"
+createResult = Mutation("create_ticket", {title: $title, priority: $priority})
+tickets = Query("list_tickets", {}, {rows: []})
+submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Reset($title, $priority)]))
+form = Form("create", submitBtn, [
+  FormControl("Title", Input("title", $title)),
+  FormControl("Priority", Select("priority", $priority, [
+    SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")
+  ]))
+])
+tbl = Table([Col("Title", tickets.rows.title), Col("Priority", tickets.rows.priority)])
+root = Stack([CardHeader("Ticket Tracker"), form, tbl])
+```
+
+What happens at runtime:
+
+- `Query("list_tickets")` → runtime calls your MCP tool → table fills with data
+- User types a title, picks a priority, clicks "Create"
+- `@Run(createResult)` → runtime calls `create_ticket` tool directly
+- `@Run(tickets)` → runtime re-fetches `list_tickets` → table updates
+- `@Reset($title, $priority)` → form clears
+
+All without the LLM.

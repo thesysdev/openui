@@ -3,12 +3,9 @@
 import {
   defineComponent,
   parseStructuredRules,
-  useFormName,
   useFormValidation,
-  useGetFieldValue,
   useIsStreaming,
-  useSetDefaultValue,
-  useSetFieldValue,
+  useStateField,
 } from "@openuidev/react-lang";
 import React from "react";
 import { SliderBlock as OpenUISliderBlock } from "../../components/Slider";
@@ -21,48 +18,35 @@ export const Slider = defineComponent({
   props: SliderSchema,
   description: "Numeric slider input; supports continuous and discrete (stepped) variants",
   component: ({ props }) => {
-    const formName = useFormName();
-    const getFieldValue = useGetFieldValue();
-    const setFieldValue = useSetFieldValue();
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
 
-    const fieldName = props.name as string;
+    const field = useStateField(props.name, props.value);
     const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
-    const existingValue = getFieldValue(formName, fieldName);
-    const defaultVal = props.defaultValue;
-
-    useSetDefaultValue({
-      formName,
-      componentType: "Slider",
-      name: fieldName,
-      existingValue,
-      defaultValue: defaultVal,
-    });
+    const hasRules = rules.length > 0;
+    const value = field.value ?? props.defaultValue;
 
     React.useEffect(() => {
-      if (!isStreaming && rules.length > 0 && formValidation) {
-        formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
-        return () => formValidation.unregisterField(fieldName);
+      if (!isStreaming && hasRules && formValidation) {
+        formValidation.registerField(field.name, rules, () => field.value);
+        return () => formValidation.unregisterField(field.name);
       }
       return undefined;
-    }, [isStreaming, rules.length > 0]);
-
-    const value = existingValue ?? defaultVal;
+    }, [field.name, field.value, formValidation, hasRules, isStreaming, rules]);
 
     return (
       <OpenUISliderBlock
-        label={(props.label as string) || fieldName}
-        name={fieldName}
+        label={(props.label as string) || field.name}
+        name={field.name}
         variant={(props.variant as "continuous" | "discrete") || "continuous"}
         min={props.min as number}
         max={props.max as number}
         step={props.step as number | undefined}
-        defaultValue={value != null ? value : undefined}
+        defaultValue={value != null ? (value as number[]) : undefined}
         onValueCommit={(vals: number[]) => {
-          setFieldValue(formName, "Slider", fieldName, vals, true);
-          if (rules.length > 0) {
-            formValidation?.validateField(fieldName, vals[0], rules);
+          field.setValue(vals);
+          if (hasRules) {
+            formValidation?.validateField(field.name, vals[0], rules);
           }
         }}
         disabled={isStreaming}

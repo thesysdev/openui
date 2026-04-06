@@ -1,4 +1,7 @@
+import { reactive } from "@openuidev/react-lang";
 import { z } from "zod";
+
+type RefComponent = { ref: z.ZodTypeAny };
 
 export const SwitchItemSchema = z.object({
   label: z.string().optional(),
@@ -7,8 +10,11 @@ export const SwitchItemSchema = z.object({
   defaultChecked: z.boolean().optional(),
 });
 
-export const SwitchGroupSchema = z.object({
-  name: z.string(),
-  items: z.array(z.any()), // filled by SwitchItem.ref in index
-  variant: z.enum(["clear", "card", "sunk"]).optional(),
-});
+export function createSwitchGroupSchema(SwitchItem: RefComponent) {
+  return z.object({
+    name: z.string(),
+    items: z.array(SwitchItem.ref),
+    variant: z.enum(["clear", "card", "sunk"]).optional(),
+    value: reactive(z.record(z.string(), z.boolean()).optional()),
+  });
+}

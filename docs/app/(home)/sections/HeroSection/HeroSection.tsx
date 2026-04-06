@@ -25,18 +25,11 @@ function NpmButton({ className = "" }: { className?: string }) {
       iconContainerClassName={styles.npmIconBadge}
       copyIconColor="white"
     >
-      <span className={styles.npmDesktopLabel}>
-        {primaryCTA}
-      </span>
+      <span className={styles.npmDesktopLabel}>{primaryCTA}</span>
       <span className={styles.npmMobileLabel}>
         <span className={styles.npmTicker}>
-          <span className={styles.npmTickerText}>
-            {primaryCTA}
-          </span>
-          <span
-            aria-hidden="true"
-            className={styles.npmTickerText}
-          >
+          <span className={styles.npmTickerText}>{primaryCTA}</span>
+          <span aria-hidden="true" className={styles.npmTickerText}>
             {primaryCTA}
           </span>
         </span>
@@ -93,11 +86,7 @@ const MASCOT_FILLED_PATHS = [
 
 function MascotSvg() {
   return (
-    <svg
-      className={styles.mobileMascotSvg}
-      fill="none"
-      viewBox="0 0 107.917 87.2814"
-    >
+    <svg className={styles.mobileMascotSvg} fill="none" viewBox="0 0 107.917 87.2814">
       {MASCOT_STROKED_PATHS.map((d) => (
         <path key={d.slice(0, 20)} d={d} fill="black" stroke="black" strokeWidth="0.458571" />
       ))}
@@ -188,9 +177,7 @@ function MobileHero() {
             </div>
 
             {/* Title */}
-            <p className={styles.mobileTitle}>
-              OpenUI
-            </p>
+            <p className={styles.mobileTitle}>OpenUI</p>
           </div>
 
           {/* Subtitle */}

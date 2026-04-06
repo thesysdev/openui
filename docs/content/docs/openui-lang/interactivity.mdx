@@ -36,14 +36,38 @@ When a user clicks a button or follow-up, the component calls `triggerAction`. T
 ### Built-in action types
 
 ```ts
+// Dispatched via onAction callback
 enum BuiltinActionType {
   ContinueConversation = "continue_conversation",
   OpenUrl = "open_url",
 }
 ```
 
-- `ContinueConversation` — sends the user's intent back to the LLM.
-- `OpenUrl` — opens a URL in a new tab. Expects `params.url`.
+- `ContinueConversation`: sends the user's intent back to the LLM (`@ToAssistant`).
+- `OpenUrl`: opens a URL in a new tab (`@OpenUrl`).
+
+The following action steps are handled internally by the runtime (not dispatched to `onAction`):
+
+- `@Run(ref)`: executes a Mutation or re-fetches a Query
+- `@Set($var, value)`: changes a reactive `$variable`
+- `@Reset($var1, $var2)`: restores `$variables` to their declared defaults
+
+In openui-lang, actions are composed with `Action([...])`:
+
+```text
+submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Reset($title)]))
+```
+
+See [Reactive State](/docs/openui-lang/reactive-state) for `$variables` and [Queries & Mutations](/docs/openui-lang/queries-mutations) for `@Run`.
+
+### Inline mode
+
+When `inlineMode` is enabled in the prompt config, the LLM can respond with either:
+
+- **Code** (fenced in triple backticks), for creating or changing the UI
+- **Text only**, for answering questions without modifying the UI
+
+The parser extracts code from fences automatically. Text outside fences is shown as chat.
 
 ### Using `triggerAction` in components
 
@@ -61,13 +85,48 @@ const MyButton = defineComponent({
 });
 ```
 
-`triggerAction(userMessage, formName?, action?)` — the second and third arguments are optional.
+`triggerAction(userMessage, formName?, action?)` accepts optional second and third arguments.
+
+---
+
+## Reactive state (`$variables`)
+
+In openui-lang, `$variables` create reactive state that components can read and write. When the LLM generates `$days = "7"` and passes it to a Select, the runtime creates a two-way binding automatically.
+
+For component authors building custom libraries, the `useStateField` hook provides this binding:
+
+```tsx
+import { useStateField, reactive } from "@openuidev/react-lang";
+
+const MySelect = defineComponent({
+  name: "MySelect",
+  props: z.object({
+    name: z.string(),
+    value: reactive(z.string().optional()), // reactive() marks this prop as accepting $variable binding
+    items: z.array(SelectItem.ref),
+  }),
+  component: ({ props }) => {
+    const field = useStateField(props.name, props.value);
+    // field.value — current value (reads from $variable or form state)
+    // field.setValue(val) — updates the $variable and triggers re-evaluation
+    return (
+      <select value={field.value ?? ""} onChange={(e) => field.setValue(e.target.value)}>
+        {/* ... */}
+      </select>
+    );
+  },
+});
+```
+
+`useStateField` unifies form state and reactive `$variable` binding. When the prop is a `$variable`, `setValue` updates the store and triggers all dependent queries and expressions to re-evaluate.
+
+See [Reactive State](/docs/openui-lang/reactive-state) for the language-level documentation.
 
 ---
 
 ## Form state
 
-The `Renderer` tracks field values automatically. Components use `useSetFieldValue` and `useGetFieldValue` to read and write state.
+The `Renderer` tracks field values automatically. Components use `useStateField` (preferred) or the lower-level `useSetFieldValue` and `useGetFieldValue` to read and write state.
 
 ### Persistence
 
@@ -85,18 +144,19 @@ Use `onStateUpdate` to persist field state (e.g. to a message in your thread sto
 />
 ```
 
-`onStateUpdate` fires on every field change. The state format is opaque — persist and hydrate it as-is.
+`onStateUpdate` fires on every field change. The state format is opaque, so persist and hydrate it as-is.
 
 ### Field hooks
 
 Use these inside `defineComponent` renderers:
 
-| Hook                 | Signature                                                                                                                                    | Description                       |
-| :------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------- |
-| `useGetFieldValue`   | `(formName: string \| undefined, name: string) => any`                                                                                       | Read a field's current value.     |
-| `useSetFieldValue`   | `(formName: string \| undefined, componentType: string \| undefined, name: string, value: any, shouldTriggerSaveCallback?: boolean) => void` | Write a field value.              |
-| `useFormName`        | `() => string \| undefined`                                                                                                                  | Get the enclosing form's name.    |
-| `useSetDefaultValue` | `(options: { formName?, componentType, name, existingValue, defaultValue, shouldTriggerSaveCallback? }) => void`                             | Set a default if no value exists. |
+| Hook                 | Signature                                                                                                                                    | Description                                                       |
+| :------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
+| `useStateField`      | `(name: string, value?: unknown) => { value: unknown, setValue: (v: unknown) => void }`                                                      | **Preferred.** Unified form state + reactive `$variable` binding. |
+| `useGetFieldValue`   | `(formName: string \| undefined, name: string) => any`                                                                                       | Read a field's current value.                                     |
+| `useSetFieldValue`   | `(formName: string \| undefined, componentType: string \| undefined, name: string, value: any, shouldTriggerSaveCallback?: boolean) => void` | Write a field value.                                              |
+| `useFormName`        | `() => string \| undefined`                                                                                                                  | Get the enclosing form's name.                                    |
+| `useSetDefaultValue` | `(options: { formName?, componentType, name, existingValue, defaultValue, shouldTriggerSaveCallback? }) => void`                             | Set a default if no value exists.                                 |
 
 ---
 
@@ -118,14 +178,3 @@ interface FormValidationContextValue {
 Built-in validators include `required`, `minLength`, `maxLength`, `min`, `max`, `pattern`, and `email`. Custom validators can be added via `builtInValidators`.
 
 ---
-
-## Next Steps
-
-<Cards>
-  <Card title="Renderer" href="/docs/openui-lang/renderer">
-    Full Renderer props reference.
-  </Card>
-  <Card title="API Reference" href="/docs/api-reference/react-lang">
-    Complete react-lang API.
-  </Card>
-</Cards>

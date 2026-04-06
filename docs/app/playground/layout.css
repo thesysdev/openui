@@ -477,6 +477,157 @@ body {
   line-height: 1.5;
 }
 
+/* ─── Artifact Layout (GitHub connected mode) ──────────────────────────────── */
+.artifact-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dashboard-area {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 20px;
+  min-width: 0;
+}
+
+.dashboard-renderer {
+  min-height: 200px;
+}
+
+.dashboard-renderer .panel {
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-meta {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  align-items: center;
+}
+
+.dashboard-elapsed {
+  font-family: var(--font-mono);
+}
+
+.dashboard-source-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6366f1;
+  font-size: 12px;
+  padding: 0;
+  font-family: var(--font-sans);
+}
+
+.dashboard-source-toggle:hover {
+  text-decoration: underline;
+}
+
+.dashboard-source {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  overflow: auto;
+  white-space: pre-wrap;
+  max-height: 250px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  color: var(--text-tertiary);
+  gap: 6px;
+}
+
+.dashboard-loading-text {
+  font-size: 14px;
+}
+
+.dashboard-loading-timer {
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+/* Connected user bar */
+.gh-connected-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+}
+
+.gh-connected-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.gh-connected-change {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-sans);
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.gh-connected-change:hover {
+  color: var(--text-primary);
+  background: var(--btn-ghost-hover);
+}
+
+/* GitHub starters welcome (inside artifact layout) */
+.gh-starters-welcome {
+  max-width: 600px;
+  margin: 48px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.gh-welcome-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+}
+
+.gh-welcome-avatar {
+  display: flex;
+  align-items: center;
+}
+
 /* ─── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .app {
@@ -525,5 +676,13 @@ body {
   .chip {
     font-size: 12px;
     padding: 5px 12px;
+  }
+
+  .artifact-layout {
+    flex-direction: column;
+  }
+
+  .dashboard-area {
+    padding: 12px 16px;
   }
 }

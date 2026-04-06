@@ -1,0 +1,96 @@
+---
+title: Incremental Editing
+description: Edit existing UIs efficiently - the LLM patches only what changed, the parser merges it.
+---
+
+When a user says "add a pie chart" to an existing dashboard, the LLM doesn't regenerate everything.
+It outputs only the changed and new statements. The parser merges them into the existing code.
+
+## How it works
+
+```
+ Before (4 statements):                After merge (5 statements):
+
+ root = Stack([header, tbl])           root = Stack([header, chart, tbl])  ← replaced
+ header = CardHeader("Tickets")        header = CardHeader("Tickets")      ← kept
+ tickets = Query("list_tickets",...)   tickets = Query("list_tickets",...) ← kept
+ tbl = Table([...])                    tbl = Table([...])                  ← kept
+                                       chart = PieChart(...)               ← added
+
+ LLM only output 2 lines (root + chart). Parser merged by name.
+```
+
+`[placeholder gif: User has a dashboard with a table. Types "add a pie chart". LLM streams just 2-3 new lines. Chart appears next to existing table - rest of UI stays intact.]`
+
+**Initial generation** - LLM outputs full code:
+
+```text
+root = Stack([header, tbl])
+header = CardHeader("Tickets")
+tickets = Query("list_tickets", {}, {rows: []})
+tbl = Table([Col("Title", tickets.rows.title), Col("Status", tickets.rows.status)])
+```
+
+**User says:** _"add a pie chart showing ticket status breakdown"_
+
+**LLM outputs only the patch:**
+
+```text
+root = Stack([header, chart, tbl])
+chart = PieChart(["Open", "Closed"], [
+  @Count(@Filter(tickets.rows, "status", "==", "open")),
+  @Count(@Filter(tickets.rows, "status", "==", "closed"))
+], "donut")
+```
+
+The parser merges by statement name:
+
+- `root` is redefined → new definition wins (now includes `chart`)
+- `chart` is new → added
+- `header`, `tickets`, `tbl` → kept from original (not in the patch, so unchanged)
+
+## Merge rules
+
+- **Same name** → new definition replaces old
+- **New name** → added to the program
+- **Missing from patch** → kept from original (not deleted)
+- **Explicit deletion** → remove a statement from the `root` children list, it becomes unreachable and gets garbage-collected
+
+## Why this matters
+
+- **Fewer tokens** - LLM outputs 2-3 lines instead of regenerating 20+
+- **Faster** - less to stream, less to parse
+- **Preserves context** - existing queries, state, and bindings stay intact
+- **Works with streaming** - each patched line renders as it arrives
+
+```
+  ┌─────────────────────────┐     ┌─────────────────────────┐
+  │ Full regeneration       │     │ Incremental patch       │
+  │                         │     │                         │
+  │ 20 statements           │     │ 2 statements            │
+  │ ~400 tokens             │     │ ~60 tokens              │
+  │ ~2s streaming           │     │ ~0.3s streaming         │
+  │                         │     │                         │
+  │ ████████████████████    │     │ ███                     │
+  └─────────────────────────┘     └─────────────────────────┘
+                Same result - up to 85% fewer tokens.
+```
+
+`[placeholder image: Side-by-side comparison - Full regen: 20 lines, ~400 tokens vs Patch: 3 lines, ~60 tokens. Same result, 85% fewer tokens.]`
+
+## Enabling edit mode
+
+Set `editMode: true` in your prompt config so the LLM knows it can output partial patches:
+
+```ts
+const config: PromptSpec = {
+  ...componentSpec,
+  editMode: true,
+  inlineMode: true, // allows text + code responses
+};
+```
+
+The `inlineMode` flag lets the LLM respond with explanation text alongside the code patch,
+so it can say "I added a pie chart" before the code block.
+
+See [System Prompts](/docs/openui-lang/system-prompts) for the full `PromptSpec` reference.

@@ -63,7 +63,7 @@ const { messages, sendMessage, status, stop } = useChat({
   library={openuiChatLibrary}
   isStreaming={isStreaming}
   onAction={handleAction}
-/>
+/>;
 ```
 
 - `response` — the accumulated text the LLM has streamed so far; `<Renderer />` parses it progressively as tokens arrive

@@ -3,11 +3,9 @@
 import {
   defineComponent,
   parseStructuredRules,
-  useFormName,
   useFormValidation,
-  useGetFieldValue,
   useIsStreaming,
-  useSetFieldValue,
+  useStateField,
 } from "@openuidev/react-lang";
 import React from "react";
 import { DatePicker as OpenUIDatePicker } from "../../components/DatePicker";
@@ -20,29 +18,26 @@ export const DatePicker = defineComponent({
   props: DatePickerSchema,
   description: "",
   component: ({ props }) => {
-    const formName = useFormName();
-    const getFieldValue = useGetFieldValue();
-    const setFieldValue = useSetFieldValue();
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
 
-    const fieldName = (props.name as string) || "date";
+    const field = useStateField(props.name, props.value);
     const mode = (props.mode as "single" | "range") || "single";
     const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
-    const value = getFieldValue(formName, fieldName);
+    const hasRules = rules.length > 0;
 
     React.useEffect(() => {
-      if (!isStreaming && rules.length > 0 && formValidation) {
-        formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
-        return () => formValidation.unregisterField(fieldName);
+      if (!isStreaming && hasRules && formValidation) {
+        formValidation.registerField(field.name, rules, () => field.value);
+        return () => formValidation.unregisterField(field.name);
       }
       return undefined;
-    }, [isStreaming, rules.length > 0]);
+    }, [field.name, field.value, formValidation, hasRules, isStreaming, rules]);
 
     const handleChange = (val: unknown) => {
-      setFieldValue(formName, "DatePicker", fieldName, val, true);
-      if (rules.length > 0) {
-        formValidation?.validateField(fieldName, val, rules);
+      field.setValue(val);
+      if (hasRules) {
+        formValidation?.validateField(field.name, val, rules);
       }
     };
 
@@ -50,7 +45,7 @@ export const DatePicker = defineComponent({
       return (
         <OpenUIDatePicker
           mode="range"
-          selectedRangeDates={value}
+          selectedRangeDates={field.value as any}
           setSelectedRangeDates={handleChange}
         />
       );
@@ -59,7 +54,7 @@ export const DatePicker = defineComponent({
     return (
       <OpenUIDatePicker
         mode="single"
-        selectedSingleDate={value}
+        selectedSingleDate={field.value as any}
         setSelectedSingleDate={handleChange}
       />
     );

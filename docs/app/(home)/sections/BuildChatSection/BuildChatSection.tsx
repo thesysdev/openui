@@ -21,9 +21,7 @@ function CtaButton() {
         className={styles.ctaButton}
         iconPosition="start"
       >
-        <span className={styles.ctaLabel}>
-          npx @openuidev/cli@latest create
-        </span>
+        <span className={styles.ctaLabel}>npx @openuidev/cli@latest create</span>
       </ClipboardCommandButton>
     </div>
   );

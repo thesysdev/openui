@@ -1,4 +1,4 @@
-import type { ParseResult } from "@openuidev/react-lang";
+import type { ActionEvent, ParseResult } from "@openuidev/react-lang";
 import { Renderer } from "@openuidev/react-lang";
 import { openuiLibrary, ThemeProvider } from "@openuidev/react-ui";
 import { Loader2, Maximize2, Monitor } from "lucide-react";
@@ -12,9 +12,18 @@ type PreviewPanelProps = {
   isStreaming: boolean;
   onParseResult?: (result: ParseResult | null) => void;
   theme: Theme;
+  toolProvider?: Record<string, (args: Record<string, unknown>) => Promise<unknown>> | null;
+  onAction?: (event: ActionEvent) => void;
 };
 
-export function PreviewPanel({ code, isStreaming, onParseResult, theme }: PreviewPanelProps) {
+export function PreviewPanel({
+  code,
+  isStreaming,
+  onParseResult,
+  theme,
+  toolProvider,
+  onAction,
+}: PreviewPanelProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [systemDark, setSystemDark] = useState(false);
@@ -42,6 +51,8 @@ export function PreviewPanel({ code, isStreaming, onParseResult, theme }: Previe
           library={openuiLibrary}
           isStreaming={isStreaming}
           onParseResult={onParseResult}
+          toolProvider={toolProvider}
+          onAction={onAction}
         />
       </ThemeProvider>
     </div>

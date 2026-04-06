@@ -7,13 +7,13 @@ import { LangExample } from "./components/lang-example";
 
 OpenUI is built around four core building blocks that work together to turn LLM output into rendered UI:
 
-- **Library** — A collection of components defined with Zod schemas and React renderers. The library is the contract between your app and the AI — it defines what components the LLM can use and how they render.
+- **Library**: A collection of components defined with Zod schemas and React renderers. The library is the contract between your app and the AI, defining what components the LLM can use and how they render.
 
-- **Prompt Generator** — Converts your library into a system prompt that instructs the LLM to output valid OpenUI Lang. Includes syntax rules, component signatures, streaming guidelines, and your custom examples/rules.
+- **Prompt Generator**: Converts your library into a system prompt that instructs the LLM to output valid OpenUI Lang. Includes syntax rules, component signatures, streaming guidelines, and your custom examples/rules.
 
-- **Parser** — Parses OpenUI Lang text (line-by-line, streaming-compatible) into a typed element tree. Validates against your library's JSON Schema and gracefully handles partial/invalid output.
+- **Parser**: Parses OpenUI Lang text (line-by-line, streaming-compatible) into a typed element tree. Validates against your library's JSON Schema and gracefully handles partial/invalid output.
 
-- **Renderer** — The `<Renderer />` React component takes parsed output and maps each element to your library's React components, rendering the UI progressively as the stream arrives.
+- **Renderer**: The `<Renderer />` React component takes parsed output and maps each element to your library's React components, rendering the UI progressively as the stream arrives.
 
 ## Built-in Component Libraries
 
@@ -36,7 +36,7 @@ const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 
 ### Chat-optimized library (`openuiChatLibrary`)
 
-Root component is `Card` (vertical container, no layout params). Adds chat-specific components like `FollowUpBlock`, `ListBlock`, and `SectionBlock`. Does not include `Stack` — responses are always single-card, vertically stacked.
+Root component is `Card` (vertical container, no layout params). Adds chat-specific components like `FollowUpBlock`, `ListBlock`, and `SectionBlock`. Does not include `Stack`; responses are always single-card, vertically stacked.
 
 ```ts
 import { openuiChatLibrary, openuiChatPromptOptions } from "@openuidev/react-ui/genui-lib";
@@ -79,20 +79,3 @@ const myLibrary = createLibrary({
 ## Usage Example
 
 <LangExample />
-
-## Next Steps
-
-<Cards>
-  <Card title="Defining Components" href="/docs/openui-lang/defining-components">
-    Create custom components with Zod schemas and React renderers.
-  </Card>
-  <Card title="System Prompts" href="/docs/openui-lang/system-prompts">
-    Generate and customize LLM instructions from your library.
-  </Card>
-  <Card title="The Renderer" href="/docs/openui-lang/renderer">
-    Parse and render streamed OpenUI Lang in React.
-  </Card>
-  <Card title="Chat Integration" href="/docs/chat">
-    Build AI chat interfaces with prebuilt layouts.
-  </Card>
-</Cards>

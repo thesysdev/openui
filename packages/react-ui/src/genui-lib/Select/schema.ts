@@ -1,3 +1,4 @@
+import { reactive } from "@openuidev/react-lang";
 import { z } from "zod";
 import { rulesSchema } from "../rules";
 
@@ -14,5 +15,6 @@ export function createSelectSchema(SelectItem: RefComponent) {
     items: z.array(SelectItem.ref),
     placeholder: z.string().optional(),
     rules: rulesSchema,
+    value: reactive(z.string().optional()),
   });
 }

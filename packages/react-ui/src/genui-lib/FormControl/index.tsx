@@ -16,8 +16,10 @@ export const FormControl = defineComponent({
   component: ({ props, renderNode }) => {
     const formValidation = useFormValidation();
     const inputObj = props.input as any;
+    // Extract the field name from the rendered input element props.
+    const rawName = inputObj?.type === "element" ? inputObj.props?.name : undefined;
     const fieldName =
-      inputObj?.type === "element" ? (inputObj.props?.name as string | undefined) : undefined;
+      typeof rawName === "object" && rawName?.name ? rawName.name : (rawName as string | undefined);
     const error = fieldName ? formValidation?.errors[fieldName] : undefined;
     const isRequired = inputObj?.type === "element" && inputObj.props?.rules?.required === true;
 
