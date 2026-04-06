@@ -193,11 +193,11 @@ function isPureCode(response: string): boolean {
 // ── Starters ────────────────────────────────────────────────────────────────
 
 const STARTERS = [
-  { label: "Web Analytics", prompt: "Show me pageviews and unique users over the last 14 days with a date range filter", icon: "📊" },
-  { label: "Top Events", prompt: "What are the top 10 events by volume this week?", icon: "🔥" },
-  { label: "Full Dashboard", prompt: "Build a web analytics dashboard with KPIs, trend chart, top pages table, and traffic sources", icon: "📈" },
-  { label: "Ticket Tracker", prompt: "Build a ticket tracker with a create form (title + priority dropdown) and a table of all tickets below that refreshes after creating one", icon: "🎫" },
-  { label: "Server Health", prompt: "Create a server monitoring dashboard that auto-refreshes every 30 seconds showing CPU, memory, and latency", icon: "🖥️" },
+  { label: "Usage Overview", prompt: "Build a usage overview dashboard with KPI cards (events, users, errors, cost) and a daily trend chart with a date range selector", icon: "📊" },
+  { label: "Server Health", prompt: "Create a server monitoring dashboard that auto-refreshes every 30 seconds showing CPU, memory, latency P95 and a 24-hour trend chart", icon: "🖥️" },
+  { label: "Top Endpoints", prompt: "Build a dashboard showing the top 10 API endpoints by request count alongside an error breakdown pie chart", icon: "🔥" },
+  { label: "Geo & Funnel", prompt: "Create a dashboard with a geographic usage table by region and a conversion funnel bar chart", icon: "🌍" },
+  { label: "Full Analytics", prompt: "Build a full analytics dashboard with usage KPIs, top endpoints, error breakdown, geo usage, funnel metrics, and A/B experiment results", icon: "📈" },
 ];
 
 // ── Types ───────────────────────────────────────────────────────────────────

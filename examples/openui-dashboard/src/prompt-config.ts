@@ -12,73 +12,67 @@ export const promptSpec: PromptSpec = {
   editMode: true,
   inlineMode: true,
   toolExamples: [
-    `Example — PostHog Dashboard (PREFERRED pattern):
-root = Stack([header, controls, kpiRow, chart, topEvents])
-header = CardHeader("Analytics Dashboard", "Live data from PostHog")
-$days = "7"
-controls = Stack([filterRow, refreshBtn], "row", "m", "end", "between")
+    `Example — Usage Overview Dashboard:
+root = Stack([header, controls, kpiRow, trendCard])
+header = CardHeader("Usage Overview", "Events, users and errors over time")
+$days = "14"
+controls = Stack([filterRow], "row", "m", "end", "between")
 filterRow = FormControl("Date Range", Select("days", [r7, r14, r30], null, null, $days))
-refreshBtn = Button("Refresh", Action([@Run(daily), @Run(topEventsData)]), "secondary")
 r7 = SelectItem("7", "Last 7 days")
 r14 = SelectItem("14", "Last 14 days")
 r30 = SelectItem("30", "Last 30 days")
-daily = Query("posthog_query", {sql: "SELECT toDate(timestamp) as day, count() as events, count(distinct distinct_id) as users FROM events WHERE event = '$pageview' AND timestamp > now() - interval " + $days + " day GROUP BY day ORDER BY day"}, {columns: [], rows: []})
-kpiRow = Stack([kpi1, kpi2], "row")
-kpi1 = Card([TextContent("Total Pageviews", "small"), TextContent("" + @Sum(daily.rows.events), "large-heavy")])
-kpi2 = Card([TextContent("Unique Users", "small"), TextContent("" + @Sum(daily.rows.users), "large-heavy")])
-chart = LineChart(daily.rows.day, [Series("Pageviews", daily.rows.events), Series("Users", daily.rows.users)])
-topEventsData = Query("posthog_query", {sql: "SELECT event, count() as count FROM events WHERE timestamp > now() - interval " + $days + " day GROUP BY event ORDER BY count DESC LIMIT 10"}, {columns: [], rows: []})
-topEvents = Table([Col("Event", topEventsData.rows.event), Col("Count", topEventsData.rows.count, "number")])`,
-    `Example — Server Health (SPECIALIZED tool, not PostHog SQL):
+metrics = Query("get_usage_metrics", {dateRange: $days}, {totalEvents: 0, totalUsers: 0, totalErrors: 0, totalCost: 0, data: []})
+kpiRow = Stack([kpi1, kpi2, kpi3, kpi4], "row", "m", "stretch", "start", true)
+kpi1 = Card([TextContent("Total Events", "small"), TextContent("" + metrics.totalEvents, "large-heavy")])
+kpi2 = Card([TextContent("Total Users", "small"), TextContent("" + metrics.totalUsers, "large-heavy")])
+kpi3 = Card([TextContent("Errors", "small"), TextContent("" + metrics.totalErrors, "large-heavy")])
+kpi4 = Card([TextContent("Cost", "small"), TextContent("$" + @Round(metrics.totalCost, 2), "large-heavy")])
+trendCard = Card([CardHeader("Daily Trend"), LineChart(metrics.data.day, [Series("Events", metrics.data.events), Series("Users", metrics.data.users), Series("Errors", metrics.data.errors)])])`,
+
+    `Example — Server Health Dashboard:
 root = Stack([header, kpiRow, trendCard])
-header = CardHeader("Server Monitoring Dashboard", "Auto-refreshes every 30 seconds")
+header = CardHeader("Server Monitoring", "Auto-refreshes every 30 seconds")
 health = Query("get_server_health", {}, {cpu: 0, memory: 0, latencyP95: 0, errorRate: 0, timeseries: []}, 30)
-kpiRow = Stack([cpuCard, memoryCard, latencyCard, errorRateCard], "row", "m", "stretch", "start", true)
+kpiRow = Stack([cpuCard, memCard, latCard, errCard], "row", "m", "stretch", "start", true)
 cpuCard = Card([TextContent("CPU", "small"), TextContent("" + @Round(health.cpu, 1) + "%", "large-heavy")])
-memoryCard = Card([TextContent("Memory", "small"), TextContent("" + @Round(health.memory, 1) + "%", "large-heavy")])
-latencyCard = Card([TextContent("Latency", "small"), TextContent("" + @Round(health.latencyP95, 0) + " ms", "large-heavy")])
-errorRateCard = Card([TextContent("Error Rate", "small"), TextContent("" + @Round(health.errorRate, 2) + "%", "large-heavy")])
+memCard = Card([TextContent("Memory", "small"), TextContent("" + @Round(health.memory, 1) + "%", "large-heavy")])
+latCard = Card([TextContent("Latency P95", "small"), TextContent("" + @Round(health.latencyP95, 0) + " ms", "large-heavy")])
+errCard = Card([TextContent("Error Rate", "small"), TextContent("" + @Round(health.errorRate, 2) + "%", "large-heavy")])
 trendCard = Card([CardHeader("24-Hour Trend"), LineChart(health.timeseries.time, [Series("CPU", health.timeseries.cpu), Series("Memory", health.timeseries.memory), Series("Latency", health.timeseries.latencyP95)])])`,
-    `Example — CRUD form with edit modal:
-$title = ""
-$priority = "medium"
-$showEdit = false
-$editId = ""
-createResult = Mutation("create_ticket", {title: $title, priority: $priority})
-tickets = Query("list_tickets", {}, {rows: []})
-submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Set($createSuccess, true), @Reset($title, $priority)]))
-form = Form("create", submitBtn, [FormControl("Title", Input("title", "Description", "text", {required: true}, $title)), FormControl("Priority", Select("priority", [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")], null, null, $priority))])
-$createSuccess = false
-statusMsg = Callout("success", "Created", "Ticket added.", $createSuccess)
-errorMsg = createResult.status == "error" ? Callout("error", "Failed", createResult.error) : null
-tbl = Table([Col("Title", tickets.rows.title), Col("Priority", @Each(tickets.rows, "t", Tag(t.priority, null, "sm", t.priority == "high" ? "danger" : "neutral"))), Col("Actions", @Each(tickets.rows, "t", Button("Edit", Action([@Set($showEdit, true), @Set($editId, t.id)]))))])
-updateResult = Mutation("update_ticket", {id: $editId, title: $editTitle, priority: $editPriority})
-editBtns = Buttons([Button("Save", Action([@Run(updateResult), @Run(tickets), @Set($showEdit, false)]), "primary"), Button("Cancel", Action([@Set($showEdit, false)]), "secondary")])
-editForm = Form("edit", editBtns, [FormControl("Title", Input("editTitle", "Title", "text", {required: true}, $editTitle)), FormControl("Priority", Select("editPriority", [SelectItem("low", "Low"), SelectItem("medium", "Medium"), SelectItem("high", "High")], null, null, $editPriority))])
-editModal = Modal("Edit Ticket", $showEdit, [editForm])
-root = Stack([CardHeader("Tickets"), form, statusMsg, errorMsg, tbl, editModal])`,
+
+    `Example — Analytics deep-dive (endpoints, errors, geo, funnel):
+root = Stack([header, row1, row2])
+header = CardHeader("Analytics Deep-Dive", "Endpoints, errors, geography and conversion")
+endpoints = Query("get_top_endpoints", {limit: 10}, {endpoints: []})
+errors = Query("get_error_breakdown", {}, {errors: []})
+geo = Query("get_geo_usage", {}, {regions: []})
+funnel = Query("get_funnel_metrics", {}, {steps: []})
+row1 = Stack([endpointsCard, errorsCard], "row", "m", "stretch")
+endpointsCard = Card([CardHeader("Top Endpoints"), Table([Col("Path", endpoints.endpoints.path), Col("Requests", endpoints.endpoints.requests, "number"), Col("Avg Latency (ms)", endpoints.endpoints.avgLatency, "number"), Col("Error Rate", endpoints.endpoints.errorRate, "number")])])
+errorsCard = Card([CardHeader("Error Breakdown"), PieChart(errors.errors.category, errors.errors.count)])
+row2 = Stack([geoCard, funnelCard], "row", "m", "stretch")
+geoCard = Card([CardHeader("Geographic Usage"), Table([Col("Region", geo.regions.region), Col("Users", geo.regions.users, "number"), Col("Events", geo.regions.events, "number")])])
+funnelCard = Card([CardHeader("Conversion Funnel"), BarChart(funnel.steps.step, [Series("Users", funnel.steps.users)])])`,
   ],
   additionalRules: [
-    "For analytics, prefer posthog_query with HogQL SQL",
-    "For server monitoring / CPU / memory / latency requests, use get_server_health instead of SQL",
+    "For time-series analytics, use get_usage_metrics with dateRange as a numeric string (\"7\", \"14\", \"30\")",
+    "For server monitoring / CPU / memory / latency, use get_server_health — it returns a 24h timeseries",
+    "For endpoint performance, use get_top_endpoints; for error categories, use get_error_breakdown",
+    "For geographic breakdown, use get_geo_usage; for conversion funnel, use get_funnel_metrics",
+    "For A/B testing results, use get_experiment_results; for resource cost breakdown, use get_resource_breakdown",
+    "Prefer including a date range selector for dashboards that use get_usage_metrics or get_top_endpoints",
     'dateRange values are numeric strings: "7", "14", "30", "90". Do not use suffixes like "d" or "h".',
-    "For dynamic date ranges, concatenate $days into the SQL: \"... interval \" + $days + \" day ...\"",
-    "Prefer including a date range filter by default for analytics dashboards",
   ],
   preamble: `You are an AI assistant that builds dashboards using openui-lang, a declarative UI language.
 
-## PostHog HogQL Reference
+## Available Tools
 
-HogQL is SQL for PostHog. Key tables:
-- \`events\` — all tracked events. Columns: event (string), timestamp (datetime), distinct_id (string), properties (object)
-- Common event types: "$pageview", "$autocapture", "$pageleave", "$screen", custom events
-
-Useful patterns:
-- Daily counts: \`SELECT toDate(timestamp) as day, count() as cnt FROM events WHERE event = '$pageview' AND timestamp > now() - interval 7 day GROUP BY day ORDER BY day\`
-- Unique users: \`count(distinct distinct_id)\`
-- Top events: \`SELECT event, count() as cnt FROM events WHERE timestamp > now() - interval 7 day GROUP BY event ORDER BY cnt DESC LIMIT 10\`
-- Filter by days: use \`now() - interval N day\` where N comes from $dateRange binding via string concat
-
-IMPORTANT for dynamic date range: Build the SQL string using concatenation with $dateRange:
-\`{sql: "SELECT toDate(timestamp) as day, count() as cnt FROM events WHERE event = '$pageview' AND timestamp > now() - interval " + $days + " day GROUP BY day ORDER BY day"}\``,
+- **get_usage_metrics** — events, users, errors, cost over time. Returns \`totalEvents\`, \`totalUsers\`, \`totalErrors\`, \`totalCost\`, and \`data[]\` (per-day rows with \`day\`, \`events\`, \`users\`, \`errors\`, \`cost\`). Accepts optional \`dateRange\` (numeric string of days).
+- **get_top_endpoints** — top API endpoints by request count. Returns \`endpoints[]\` with \`path\`, \`requests\`, \`avgLatency\`, \`errorRate\`. Accepts optional \`limit\` and \`dateRange\`.
+- **get_resource_breakdown** — usage split by resource type (API, Web App, Mobile, Webhook). Returns \`resources[]\` with \`name\`, \`events\`, \`users\`, \`cost\`.
+- **get_error_breakdown** — errors by category. Returns \`errors[]\` with \`category\` and \`count\`.
+- **get_server_health** — current CPU, memory, latency, error rate plus 24h timeseries. Returns scalar fields and \`timeseries[]\` with \`time\`, \`cpu\`, \`memory\`, \`latencyP95\`.
+- **get_experiment_results** — A/B test variants. Returns \`variants[]\` with \`variant\`, \`conversionRate\`, \`users\`.
+- **get_geo_usage** — usage by region. Returns \`regions[]\` with \`region\`, \`users\`, \`events\`.
+- **get_funnel_metrics** — conversion funnel steps. Returns \`steps[]\` with \`step\` and \`users\`.`,
 };

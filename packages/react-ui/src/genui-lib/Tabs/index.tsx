@@ -27,7 +27,7 @@ export const Tabs = defineComponent({
   }),
   description: "Tabbed container",
   component: ({ props, renderNode }) => {
-    const items = props.items ?? [];
+    const items = (props.items ?? []).filter((item) => item != null);
     const [activeTab, setActiveTab] = React.useState("");
     const userHasInteracted = React.useRef(false);
     const prevContentSizes = React.useRef<Record<string, number>>({});
