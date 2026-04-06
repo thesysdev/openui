@@ -90,6 +90,7 @@ Try it yourself in the [Playground](https://www.openui.com/playground) — gener
 | Package | Description |
 | :--- | :--- |
 | [`@openuidev/react-lang`](./packages/react-lang) | Core runtime — component definitions, parser, renderer, prompt generation |
+| [`@openuidev/solid-lang`](./packages/solid-lang) | SolidJS runtime — component definitions, parser, renderer, prompt generation |
 | [`@openuidev/react-headless`](./packages/react-headless) | Headless chat state, streaming adapters, message format converters |
 | [`@openuidev/react-ui`](./packages/react-ui) | Prebuilt chat layouts and two built-in component libraries |
 | [`@openuidev/cli`](./packages/openui-cli) | CLI for scaffolding apps and generating system prompts |
@@ -133,7 +134,8 @@ Detailed documentation is available at [openui.com](https://openui.com).
 ```
 openui/
 ├── packages/
-│   ├── react-lang/       # Core runtime (parser, renderer, prompt generation)
+│   ├── react-lang/       # React runtime (parser, renderer, prompt generation)
+│   ├── solid-lang/       # SolidJS runtime (parser, renderer, prompt generation)
 │   ├── react-headless/   # Headless chat state & streaming adapters
 │   ├── react-ui/         # Prebuilt chat layouts & component libraries
 │   └── openui-cli/       # CLI for scaffolding & prompt generation
