@@ -1,4 +1,3 @@
-import { IconButton } from "@openuidev/react-ui";
 import { encode } from "gpt-tokenizer";
 import { Check, Copy, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -42,7 +41,7 @@ export function CodePanel({ code, status, parsedJson }: CodePanelProps) {
   return (
     <div className="panel code-panel">
       <div className="panel-header">
-        <div className="code-panel-header-main">
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span
             className={`status-dot ${status === "streaming" ? "streaming" : status === "error" ? "error" : ""}`}
           />
@@ -88,15 +87,9 @@ export function CodePanel({ code, status, parsedJson }: CodePanelProps) {
         </div>
         {activeContent && (
           <div className="panel-actions">
-            <IconButton
-              className="panel-icon-btn"
-              icon={copied ? <Check size={14} /> : <Copy size={14} />}
-              variant="tertiary"
-              size="extra-small"
-              onClick={handleCopy}
-              title="Copy"
-              aria-label={copied ? "Copied output" : "Copy output"}
-            />
+            <button className="panel-icon-btn" onClick={handleCopy} title="Copy">
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+            </button>
           </div>
         )}
       </div>

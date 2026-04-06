@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentGroup } from "@openuidev/react-lang";
-import { IconButton, openuiLibrary } from "@openuidev/react-ui";
+import { openuiLibrary } from "@openuidev/react-ui";
 import { ChevronLeft, ChevronRight, LayoutList } from "lucide-react";
 import { useState } from "react";
 import "./CatalogPanel.css";
@@ -72,15 +72,14 @@ export function CatalogPanel() {
             <LayoutList size={16} />
           </span>
         )}
-        <IconButton
+        <button
           className="catalog-panel-toggle"
-          icon={isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-          variant="tertiary"
-          size="2-extra-small"
           onClick={() => setIsCollapsed((v) => !v)}
           aria-label={isCollapsed ? "Expand catalog" : "Collapse catalog"}
           title={isCollapsed ? "Expand catalog" : "Collapse catalog"}
-        />
+        >
+          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
       </div>
       <div className={`catalog-panel-body${isCollapsed ? " catalog-panel-body--hidden" : ""}`}>
         {openuiLibrary.componentGroups!.map((group: ComponentGroup) => {

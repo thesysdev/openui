@@ -14,6 +14,76 @@
   font-weight: 600;
   color: var(--openui-text-neutral-primary);
   font-family: var(--openui-font-body);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.conv-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  border-radius: var(--openui-radius-s);
+  color: var(--openui-text-neutral-tertiary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.conv-collapse-btn:hover {
+  background: var(--openui-highlight);
+  color: var(--openui-text-neutral-primary);
+}
+
+/* Collapsed state */
+.conv-collapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--openui-space-m) var(--openui-space-xs);
+  border-left: 1px solid var(--openui-border-default);
+  background: var(--openui-background);
+}
+
+.conv-expand-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--openui-space-s);
+  padding: var(--openui-space-s);
+  background: transparent;
+  border: none;
+  border-radius: var(--openui-radius-m);
+  color: var(--openui-text-neutral-tertiary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.conv-expand-btn:hover {
+  background: var(--openui-highlight);
+  color: var(--openui-text-neutral-primary);
+}
+
+.conv-badge {
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--openui-interactive-accent-default);
+  color: var(--openui-text-accent-primary);
+  border-radius: var(--openui-radius-full);
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  font-family: var(--openui-font-body);
 }
 
 .conv-messages {
@@ -243,5 +313,9 @@
     border-left: none;
     border-top: 1px solid var(--openui-border-default);
     max-height: 300px;
+  }
+
+  .conv-collapsed {
+    display: none;
   }
 }

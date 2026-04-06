@@ -1,4 +1,46 @@
-.openui-icon-button.header-btn,
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  backdrop-filter: blur(12px);
+}
+
+.header-inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px 0 24px;
+  margin: 0 auto;
+  height: 56px;
+}
+
+.header-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  justify-self: center;
+  white-space: nowrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: end;
+  padding-right: 24px;
+}
+
 .header-btn {
   display: flex;
   align-items: center;
@@ -7,8 +49,8 @@
   background: transparent;
   border: none;
   border-radius: 6px;
-  color: var(--openui-text-neutral-secondary);
-  font-family: var(--openui-font-body);
+  color: rgba(0, 0, 0, 0.55);
+  font-family: var(--font-sans);
   font-size: 13px;
   cursor: pointer;
   text-decoration: none;
@@ -18,37 +60,16 @@
   white-space: nowrap;
 }
 
-.openui-icon-button.header-btn:hover:not(:disabled),
 .header-btn:hover {
-  background: var(--openui-highlight);
-  color: var(--openui-text-neutral-primary);
+  background: rgba(0, 0, 0, 0.06);
+  color: #0a0a0a;
 }
 
 .header-btn svg {
   flex-shrink: 0;
 }
 
-.openui-icon-button.header-icon-btn,
 .header-icon-btn {
   padding: 6px;
   border-radius: 6px;
-}
-
-@media (max-width: 1023px) {
-  .header-btn {
-    padding: 6px 8px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 767px) {
-  .header-btn {
-    gap: 0;
-    min-width: 32px;
-    padding: 6px;
-  }
-
-  .header-btn span {
-    display: none;
-  }
 }

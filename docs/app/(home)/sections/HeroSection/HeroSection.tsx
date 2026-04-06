@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
 import { GitHubIcon } from "@/components/brand-logo";
-import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useTheme } from "next-themes";
+import Link from "next/link";
 import { ClipboardCommandButton, PillLink } from "../../components/Button/Button";
 import styles from "./HeroSection.module.css";
 
@@ -30,7 +30,9 @@ type HeroTheme = "light" | "dark";
 // ---------------------------------------------------------------------------
 
 function TrailingArrow() {
-  return <ArrowRight aria-hidden="true" className={styles.mobileCtaArrow} size={18} strokeWidth={2} />;
+  return (
+    <ArrowRight aria-hidden="true" className={styles.mobileCtaArrow} size={18} strokeWidth={2} />
+  );
 }
 
 function NpmButton({ className = "" }: { className?: string }) {

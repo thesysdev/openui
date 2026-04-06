@@ -37,9 +37,9 @@ export interface PromptSpec {
   /** Enable $variables, @Set, @Reset, interactive filters. Default: true if toolCalls. */
   bindings?: boolean;
   preamble?: string;
-  /** Examples shown when no tools are present (static/layout patterns). */
+  /** General examples (static/layout patterns). Both `examples` and `toolExamples` are included when present. */
   examples?: string[];
-  /** Examples shown when tools ARE present (Query/Mutation patterns). Takes priority over `examples` when tools exist. */
+  /** Tool-specific examples (Query/Mutation patterns). Both `examples` and `toolExamples` are included when present. */
   toolExamples?: string[];
   additionalRules?: string[];
 }
@@ -621,13 +621,13 @@ export function generatePrompt(spec: PromptSpec): string {
   parts.push("");
   parts.push(streamingRules(rootName));
 
-  // Show tool examples when toolCalls are on, otherwise show general examples
-  const examples = toolCalls && spec.toolExamples?.length ? spec.toolExamples : spec.examples;
-  if (examples?.length) {
+  // Append both examples and toolExamples when both are present
+  const allExamples = [...(spec.examples ?? []), ...(spec.toolExamples ?? [])];
+  if (allExamples.length) {
     parts.push("");
     parts.push("## Examples");
     parts.push("");
-    for (const ex of examples) {
+    for (const ex of allExamples) {
       parts.push(ex);
       parts.push("");
     }

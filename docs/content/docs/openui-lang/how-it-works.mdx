@@ -33,7 +33,7 @@ The LLM generated the wiring. The runtime executes it.
 - **Monitoring tools** with periodic refresh, server health metrics, and error rate tracking
 - **Any tool-connected UI.** If you can expose it as a tool (via [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) or function map), the LLM can wire it into a UI
 
-Try it live: [Open the Playground](/playground)
+Try it live: [Open the GitHub Demo](/demo/github)
 
 ## Iterate and refine
 
@@ -90,7 +90,7 @@ await client.connect(new StreamableHTTPClientTransport(new URL("/api/mcp")));
 
 These examples are simplified for demonstration. In production, you'll need to handle authentication, error boundaries, and connection lifecycle.
 
-The [GitHub Playground](/playground) uses a function map where tools run entirely client-side, calling the GitHub API directly from the browser. The [Dashboard example](https://github.com/thesysdev/openui/tree/main/examples/openui-dashboard) uses MCP with server-side tools.
+The [GitHub Demo](/demo/github) uses a function map where tools run entirely client-side, calling the GitHub API directly from the browser. The [Dashboard example](https://github.com/thesysdev/openui/tree/main/examples/openui-dashboard) uses MCP with server-side tools.
 
 ## A concrete example
 
@@ -148,7 +148,7 @@ const systemPrompt = generatePrompt({
 });
 
 const completion = await openai.chat.completions.create({
-  model: "gpt-4o",
+  model: "gpt-5.4-mini",
   stream: true,
   messages: [
     { role: "system", content: systemPrompt },

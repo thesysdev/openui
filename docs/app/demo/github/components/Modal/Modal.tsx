@@ -1,3 +1,4 @@
+import { IconButton } from "@openuidev/react-ui";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect } from "react";
@@ -37,14 +38,15 @@ export function Modal({ title, titleAdornment, onClose, children, className }: M
             {titleAdornment}
           </div>
           {onClose && (
-            <button
+            <IconButton
               className="panel-icon-btn"
+              icon={<X size={16} />}
+              variant="tertiary"
+              size="extra-small"
               onClick={onClose}
               title="Close"
               aria-label="Close modal"
-            >
-              <X size={16} />
-            </button>
+            />
           )}
         </div>
         <div className="modal-container-body">{children}</div>

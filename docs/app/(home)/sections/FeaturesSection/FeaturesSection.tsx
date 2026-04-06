@@ -12,7 +12,7 @@ import styles from "./FeaturesSection.module.css";
 const FEATURES: FeatureListItem[] = [
   {
     title: "Performance Optimized",
-    description: "Up to 3.0x faster rendering than json-render",
+    description: "3x faster rendering than json-render",
     iconPath: svgPaths.p7658f00,
   },
   {
@@ -21,23 +21,23 @@ const FEATURES: FeatureListItem[] = [
     iconPath: svgPaths.p2a8ddd80,
   },
   {
-    title: "Native Types",
-    description: "Performant and memory safe",
+    title: "Live data",
+    description: "Query your tools and MCP servers at runtime",
     iconPath: svgPaths.p10e86100,
   },
   {
     title: "Works across platforms",
-    description: "JS Runtime. Native support for iOS & Android coming soon",
+    description: "React, React Native, Vue, etc",
     iconPath: svgPaths.p2cbb5d00,
   },
   {
-    title: "Streaming Native",
-    description: "Streaming and partial responses",
+    title: "Native Streaming",
+    description: "UI renders in real time",
     iconPath: svgPaths.p33780400,
   },
   {
     title: "Interactive",
-    description: "Handles inputs and interactive flows",
+    description: "Reactive state, inputs, and tool-connected actions",
     iconPath: svgPaths.p17c7f700,
   },
   {

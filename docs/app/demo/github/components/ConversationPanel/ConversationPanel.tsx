@@ -1,7 +1,7 @@
 "use client";
 
 import { IconButton } from "@openuidev/react-ui";
-import { Send, Square } from "lucide-react";
+import { ChevronRight, MessageSquare, Send, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { ChatMessage, ToolCallEntry } from "../../constants";
 import "./ConversationPanel.css";
@@ -30,6 +30,7 @@ export function ConversationPanel({
   responseHasCode,
 }: ConversationPanelProps) {
   const [input, setInput] = useState("");
+  const [collapsed, setCollapsed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -51,9 +52,29 @@ export function ConversationPanel({
 
   const pendingTools = toolCalls.filter((t) => t.status === "pending");
 
+  if (collapsed) {
+    return (
+      <div className="conv-collapsed">
+        <button
+          className="conv-expand-btn"
+          onClick={() => setCollapsed(false)}
+          title="Expand conversation"
+        >
+          <MessageSquare size={16} />
+          {messages.length > 0 && <span className="conv-badge">{messages.length}</span>}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="conv-panel">
-      <div className="conv-header">Conversation</div>
+      <div className="conv-header">
+        <span>Conversation</span>
+        <button className="conv-collapse-btn" onClick={() => setCollapsed(true)} title="Collapse">
+          <ChevronRight size={16} />
+        </button>
+      </div>
 
       <div className="conv-messages">
         {messages.map((msg, i) => (

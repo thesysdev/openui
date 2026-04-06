@@ -1,0 +1,604 @@
+/* Scope playground resets so they do not leak into other routes after navigation.
+   Use `:where()` to keep specificity at zero and avoid overriding react-ui classes. */
+:where(.app, .app *, .app *::before, .app *::after) {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Global ────────────────────────────────────────────────────────────────── */
+.app {
+  font-family: var(--openui-font-body);
+  background-color: var(--openui-foreground);
+  color: var(--openui-text-neutral-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
+.app::-webkit-scrollbar,
+.app ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.app::-webkit-scrollbar-track,
+.app ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.app::-webkit-scrollbar-thumb,
+.app ::-webkit-scrollbar-thumb {
+  background: var(--openui-text-neutral-tertiary);
+  border-radius: 3px;
+}
+
+/* ─── App Layout ────────────────────────────────────────────────────────────── */
+.app {
+  --playground-focus-ring: color-mix(
+    in srgb,
+    var(--openui-border-accent-emphasis) 24%,
+    transparent
+  );
+  --playground-code-background: var(--openui-inverted-background);
+  --playground-code-foreground: var(--openui-text-accent-primary);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--openui-foreground);
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--openui-space-2xl) var(--openui-space-xl);
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ─── Split Screen ──────────────────────────────────────────────────────────── */
+.split-screen {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ─── Shared Panel ──────────────────────────────────────────────────────────── */
+.panel {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--openui-border-default);
+  border-radius: var(--openui-radius-xl);
+  overflow: hidden;
+  background: var(--openui-foreground);
+  min-height: 0;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--openui-space-s-m) var(--openui-space-m-l);
+  background: var(--openui-highlight-subtle);
+  border-bottom: 1px solid var(--openui-border-default);
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--openui-text-neutral-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.panel-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--openui-space-2xs);
+}
+
+.openui-icon-button.panel-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: var(--openui-radius-s);
+  color: var(--openui-text-neutral-tertiary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.openui-icon-button.panel-icon-btn:hover:not(:disabled) {
+  background-color: var(--openui-highlight);
+  color: var(--openui-text-neutral-primary);
+}
+
+.openui-icon-button.panel-icon-btn:focus-visible,
+.openui-button-base.send-btn:focus-visible,
+.openui-button-base.stop-btn:focus-visible,
+.openui-button-base.chip:focus-visible,
+.openui-button-base.dashboard-source-toggle:focus-visible,
+.openui-button-base.gh-connected-change:focus-visible {
+  outline: 2px solid var(--openui-border-accent);
+  outline-offset: 2px;
+}
+
+/* ─── Shared Empty State ────────────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--openui-space-s);
+  padding: var(--openui-space-2xl) var(--openui-space-xl);
+  text-align: center;
+  color: var(--openui-text-neutral-tertiary);
+  height: 100%;
+}
+
+.empty-state-icon {
+  opacity: 0.3;
+  margin-bottom: 4px;
+}
+
+.empty-state-text {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ─── Prompt Section ────────────────────────────────────────────────────────── */
+.prompt-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--openui-space-m-l);
+  padding: var(--openui-space-3xl) 0 var(--openui-space-2xl);
+}
+
+.prompt-heading {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--openui-text-neutral-primary);
+  text-align: center;
+}
+
+.prompt-container {
+  width: 100%;
+  max-width: 760px;
+  background: var(--openui-foreground);
+  border: 1px solid var(--openui-border-interactive);
+  border-radius: var(--openui-radius-2xl);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s;
+  box-shadow: var(--openui-shadow-m);
+}
+
+.prompt-container:focus-within {
+  border-color: var(--openui-border-accent-emphasis);
+  box-shadow: 0 0 0 3px var(--playground-focus-ring);
+}
+
+.prompt-textarea {
+  width: 100%;
+  padding: var(--openui-space-m-l) var(--openui-space-m-l) 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--openui-font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--openui-text-neutral-primary);
+  min-height: 64px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.prompt-textarea::placeholder {
+  color: var(--openui-text-neutral-tertiary);
+}
+
+.prompt-textarea:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.prompt-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--openui-space-s-m) var(--openui-space-m);
+  gap: var(--openui-space-s);
+}
+
+.model-select {
+  background: var(--openui-highlight-subtle);
+  border: 1px solid var(--openui-border-default);
+  border-radius: var(--openui-radius-m);
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--openui-font-body);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 8px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
+
+.model-select:focus {
+  border-color: var(--openui-border-interactive);
+}
+
+.model-select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.openui-button-base.send-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--openui-space-xs);
+  padding: var(--openui-space-xs) var(--openui-space-m);
+  background: var(--openui-interactive-accent-default);
+  color: var(--openui-text-accent-primary);
+  border: none;
+  border-radius: var(--openui-radius-m);
+  font-family: var(--openui-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.openui-button-base.send-btn:hover:not(:disabled) {
+  background: var(--openui-interactive-accent-hover);
+}
+
+.openui-button-base.send-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.openui-button-base.stop-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--openui-space-xs);
+  padding: var(--openui-space-xs) var(--openui-space-m);
+  background: transparent;
+  color: var(--openui-text-neutral-secondary);
+  border: 1px solid var(--openui-border-interactive);
+  border-radius: var(--openui-radius-m);
+  font-family: var(--openui-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.openui-button-base.stop-btn:hover:not(:disabled) {
+  background-color: var(--openui-highlight);
+  color: var(--openui-text-neutral-primary);
+  border-color: var(--openui-border-interactive-emphasis);
+}
+
+/* ─── Chips ─────────────────────────────────────────────────────────────────── */
+.chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--openui-space-s);
+  justify-content: center;
+  max-width: 760px;
+  width: 100%;
+}
+
+.openui-button-base.chip {
+  padding: var(--openui-space-s-m) var(--openui-space-m-l);
+  background: var(--openui-highlight-subtle);
+  border: 1px solid var(--openui-border-interactive);
+  border-radius: var(--openui-radius-full);
+  color: var(--openui-text-neutral-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.openui-button-base.chip:hover:not(:disabled),
+.openui-button-base.chip:active:not(:disabled) {
+  background-color: var(--openui-highlight);
+  color: var(--openui-text-neutral-primary);
+  border-color: var(--openui-border-interactive);
+}
+
+.openui-button-base.chip-selected,
+.openui-button-base.chip-selected:hover:not(:disabled),
+.openui-button-base.chip-selected:active:not(:disabled) {
+  border-color: var(--openui-border-interactive-selected);
+}
+
+.openui-button-base.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Error Banner ──────────────────────────────────────────────────────────── */
+.error-banner {
+  margin: 0 0 var(--openui-space-m-l);
+  padding: var(--openui-space-m) var(--openui-space-m-l);
+  background: var(--openui-danger-background);
+  border: 1px solid var(--openui-border-danger);
+  border-radius: var(--openui-radius-m);
+  font-size: 13px;
+  color: var(--openui-text-danger-primary);
+  line-height: 1.5;
+}
+
+/* ─── Artifact Layout (GitHub connected mode) ──────────────────────────────── */
+.artifact-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dashboard-area {
+  flex: 1;
+  overflow: auto;
+  padding: var(--openui-space-m-l) var(--openui-space-xl);
+  min-width: 0;
+}
+
+.dashboard-renderer {
+  min-height: 200px;
+}
+
+.dashboard-renderer .panel {
+  border-radius: var(--openui-radius-xl);
+  box-shadow: var(--openui-shadow-s);
+}
+
+.dashboard-meta {
+  display: flex;
+  gap: var(--openui-space-m);
+  margin-bottom: var(--openui-space-s);
+  font-size: 12px;
+  color: var(--openui-text-neutral-tertiary);
+  align-items: center;
+}
+
+.dashboard-elapsed {
+  font-family: var(--openui-font-code);
+}
+
+.openui-button-base.dashboard-source-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--openui-space-2xs);
+  padding: var(--openui-space-2xs) var(--openui-space-s);
+  background: var(--openui-highlight-subtle);
+  border: 1px solid var(--openui-border-default);
+  border-radius: var(--openui-radius-full);
+  cursor: pointer;
+  color: var(--openui-text-neutral-secondary);
+  font-size: 12px;
+  font-family: var(--openui-font-body);
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.openui-button-base.dashboard-source-toggle:hover:not(:disabled) {
+  background: var(--openui-highlight);
+  border-color: var(--openui-border-interactive);
+  color: var(--openui-text-neutral-primary);
+}
+
+.dashboard-source {
+  background: var(--playground-code-background);
+  color: var(--playground-code-foreground);
+  padding: var(--openui-space-m);
+  border: 1px solid var(--openui-border-default);
+  border-radius: var(--openui-radius-m);
+  font-size: 11px;
+  font-family: var(--openui-font-code);
+  overflow: auto;
+  white-space: pre-wrap;
+  max-height: 250px;
+  line-height: 1.4;
+  margin-bottom: var(--openui-space-m);
+}
+
+.dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px var(--openui-space-xl);
+  color: var(--openui-text-neutral-tertiary);
+  gap: var(--openui-space-xs);
+}
+
+.dashboard-loading-text {
+  font-size: 14px;
+}
+
+.dashboard-loading-timer {
+  font-size: 12px;
+  font-family: var(--openui-font-code);
+}
+
+/* Connected user bar */
+.gh-connected-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--openui-space-s);
+  padding: var(--openui-space-s) var(--openui-space-m);
+  margin-bottom: var(--openui-space-m);
+  border: 1px solid var(--openui-border-default);
+  border-radius: var(--openui-radius-m);
+  background: var(--openui-highlight-subtle);
+  font-size: 13px;
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--openui-font-body);
+}
+
+.gh-connected-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.openui-button-base.gh-connected-change {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: var(--openui-text-neutral-tertiary);
+  font-size: 12px;
+  cursor: pointer;
+  padding: var(--openui-space-2xs) var(--openui-space-xs);
+  border-radius: var(--openui-radius-s);
+  font-family: var(--openui-font-body);
+  box-shadow: none;
+  transition:
+    color 0.15s,
+    background-color 0.15s;
+}
+
+.openui-button-base.gh-connected-change:hover:not(:disabled) {
+  color: var(--openui-text-neutral-primary);
+  background: var(--openui-highlight);
+}
+
+/* GitHub starters welcome (inside artifact layout) */
+.gh-starters-welcome {
+  max-width: 600px;
+  margin: var(--openui-space-3xl) auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--openui-space-xl);
+}
+
+.gh-welcome-text {
+  display: flex;
+  align-items: center;
+  gap: var(--openui-space-s);
+  font-size: 15px;
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--openui-font-body);
+  text-align: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.gh-welcome-avatar {
+  display: flex;
+  align-items: center;
+}
+
+.gh-welcome-avatar-image {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--openui-radius-full);
+}
+
+.gh-starters-grid-compact {
+  width: min(100%, 600px);
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .app {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .app-body {
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .content-wrapper {
+    flex: none;
+    overflow: visible;
+    padding: 20px var(--openui-space-m-l) var(--openui-space-2xl);
+  }
+
+  .split-screen {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .panel {
+    height: 380px;
+    flex-shrink: 0;
+  }
+
+  .prompt-section {
+    padding: 24px 0 20px;
+    gap: 12px;
+  }
+
+  .prompt-heading {
+    font-size: 20px;
+  }
+
+  .chips-row {
+    gap: 6px;
+  }
+
+  .chip {
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+
+  .artifact-layout {
+    flex-direction: column;
+  }
+
+  .dashboard-area {
+    padding: var(--openui-space-m) var(--openui-space-m-l);
+  }
+}

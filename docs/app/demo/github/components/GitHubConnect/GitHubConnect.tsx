@@ -1,15 +1,12 @@
 "use client";
 
 import { Button } from "@openuidev/react-ui";
-import { ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { GITHUB_STARTERS, STARTER_PROMPTS } from "../../constants";
+import { GITHUB_STARTERS } from "../../constants";
 import "./GitHubConnect.css";
 
 type GitHubConnectProps = {
-  onConnect: (username: string) => void;
   onConnectAndPrompt: (username: string, prompt: string) => void;
-  onGenericPrompt: (prompt: string) => void;
 };
 
 const RANDOM_SENTINEL = "__random__";
@@ -21,11 +18,7 @@ const DEMO_USERS = [
   { username: "rauchg", label: "Guillermo Rauch" },
 ];
 
-export function GitHubConnect({
-  onConnect: _onConnect,
-  onConnectAndPrompt,
-  onGenericPrompt,
-}: GitHubConnectProps) {
+export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -114,13 +107,30 @@ export function GitHubConnect({
     inputRef.current?.focus();
   }, []);
 
-  const handleStartGenerating = () => {
-    if (selectedGithubPrompt) {
-      if (!validate(username)) return;
-      const prompt =
-        selectedGithubPrompt === RANDOM_SENTINEL ? pickRandomPrompt() : selectedGithubPrompt;
-      onConnectAndPrompt(trimmedUsername, prompt);
+  const [validating, setValidating] = useState(false);
+
+  const handleStartGenerating = async () => {
+    if (!selectedGithubPrompt) return;
+    if (!validate(username)) return;
+
+    setValidating(true);
+    try {
+      const res = await fetch(`https://api.github.com/users/${trimmedUsername}`);
+      if (!res.ok) {
+        setError("GitHub user not found");
+        setValidating(false);
+        return;
+      }
+    } catch {
+      setError("Could not verify username");
+      setValidating(false);
+      return;
     }
+    setValidating(false);
+
+    const prompt =
+      selectedGithubPrompt === RANDOM_SENTINEL ? pickRandomPrompt() : selectedGithubPrompt;
+    onConnectAndPrompt(trimmedUsername, prompt);
   };
 
   return (
@@ -232,39 +242,9 @@ export function GitHubConnect({
         <Button variant="secondary" onClick={handleReset} disabled={!canReset}>
           Reset
         </Button>
-        <Button onClick={handleStartGenerating} disabled={!canStart}>
-          Start generating
+        <Button onClick={handleStartGenerating} disabled={!canStart || validating}>
+          {validating ? "Verifying..." : "Start generating"}
         </Button>
-      </div>
-
-      <div className="gh-connect-secondary">
-        <h2 className="gh-connect-secondary-title">or try other use-cases</h2>
-        <div className="gh-connect-section">
-          <div className="gh-chip-scroll">
-            <div className="gh-generic-chips">
-              {[0, 1].map((row) => (
-                <div key={row} className="gh-chip-row">
-                  {STARTER_PROMPTS.slice(
-                    row * Math.ceil(STARTER_PROMPTS.length / 2),
-                    (row + 1) * Math.ceil(STARTER_PROMPTS.length / 2),
-                  ).map((p) => (
-                    <Button
-                      key={p}
-                      className="chip gh-generic-chip"
-                      variant="tertiary"
-                      size="small"
-                      iconRight={<ArrowRight size={14} />}
-                      onMouseDown={preventMouseSelection}
-                      onClick={() => onGenericPrompt(p)}
-                    >
-                      {p}
-                    </Button>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

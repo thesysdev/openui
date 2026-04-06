@@ -38,27 +38,6 @@
   text-wrap: balance;
 }
 
-.gh-connect-secondary {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--openui-space-xl);
-  margin-top: var(--openui-space-3xl);
-}
-
-.gh-connect-secondary-title {
-  margin: var(--openui-space-xl) 0 0;
-  color: var(--openui-text-neutral-primary);
-  font-family: var(--openui-font-body);
-  font-size: 32px;
-  font-weight: 600;
-  line-height: 1.25;
-  letter-spacing: -0.04em;
-  text-align: center;
-  text-wrap: balance;
-}
-
 .gh-connect-section {
   width: 100%;
   max-width: 960px;
@@ -147,8 +126,7 @@
 }
 
 .gh-demo-users,
-.gh-starters-inline,
-.gh-generic-chips {
+.gh-starters-inline {
   display: flex;
   flex-wrap: nowrap;
   justify-content: center;
@@ -248,16 +226,6 @@
   margin-top: var(--openui-space-3xl);
 }
 
-.openui-button-base.gh-generic-chip {
-  border-radius: var(--openui-radius-l);
-  gap: var(--openui-space-xs);
-}
-
-.openui-button-base.gh-generic-chip .openui-button-icon-right,
-.openui-button-base.gh-generic-chip svg {
-  flex-shrink: 0;
-}
-
 @media (max-width: 768px) {
   .gh-connect {
     margin-top: var(--openui-space-2xl);
@@ -266,10 +234,6 @@
 
   .gh-connect-title {
     font-size: 30px;
-  }
-
-  .gh-connect-secondary-title {
-    font-size: 26px;
   }
 
   .gh-input-row {
@@ -282,11 +246,6 @@
 
   .gh-starters {
     margin-top: var(--openui-space-m-l);
-  }
-
-  .gh-connect-secondary {
-    margin-top: var(--openui-space-xl);
-    gap: var(--openui-space-l);
   }
 
   .gh-connect-title {
@@ -304,8 +263,7 @@
   }
 
   .gh-demo-users,
-  .gh-starters-inline,
-  .gh-generic-chips {
+  .gh-starters-inline {
     flex-direction: column;
     gap: var(--openui-space-s);
     width: max-content;

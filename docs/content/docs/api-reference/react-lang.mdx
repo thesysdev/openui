@@ -238,7 +238,7 @@ interface ParseResult {
     incomplete: boolean;
     unresolved: string[];
     statementCount: number;
-    validationErrors: ValidationError[];
+    errors: ValidationError[];
   };
   /** Extracted Query() statements with tool name, args AST, defaults AST */
   queryStatements: QueryStatementInfo[];

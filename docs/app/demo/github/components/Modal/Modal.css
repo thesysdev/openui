@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: var(--modal-backdrop);
+  background: var(--openui-overlay);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -21,10 +21,10 @@
 }
 
 .modal-container {
-  background: var(--modal-bg);
-  border: 1px solid var(--modal-border);
+  background: var(--openui-foreground);
+  border: 1px solid var(--openui-border-interactive);
   border-radius: 16px;
-  box-shadow: var(--modal-shadow);
+  box-shadow: var(--openui-shadow-2xl);
   width: min(1400px, 95vw);
   height: 95vh;
   display: flex;
@@ -49,8 +49,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background: var(--panel-header-bg);
-  border-bottom: 1px solid var(--panel-header-border);
+  background: var(--openui-highlight-subtle);
+  border-bottom: 1px solid var(--openui-border-default);
   flex-shrink: 0;
 }
 

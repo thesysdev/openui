@@ -1,32 +1,6 @@
-.code-panel {
-  --code-panel-foreground: var(--openui-text-accent-primary);
-  --code-panel-muted: color-mix(in srgb, var(--code-panel-foreground) 32%, transparent);
-  --code-panel-muted-strong: color-mix(in srgb, var(--code-panel-foreground) 58%, transparent);
-  --code-panel-border: color-mix(in srgb, var(--code-panel-foreground) 10%, transparent);
-  --code-panel-border-strong: color-mix(in srgb, var(--code-panel-foreground) 18%, transparent);
-  --code-panel-surface: color-mix(in srgb, var(--code-panel-foreground) 6%, transparent);
-  --code-panel-surface-strong: color-mix(in srgb, var(--code-panel-foreground) 10%, transparent);
-  --code-panel-header-background: color-mix(
-    in srgb,
-    var(--openui-inverted-background) 92%,
-    var(--openui-foreground)
-  );
-  --code-panel-tooltip-background: color-mix(
-    in srgb,
-    var(--openui-inverted-background) 84%,
-    var(--openui-foreground)
-  );
-}
-
 .code-panel .panel-header {
-  background: var(--code-panel-header-background);
-  border-bottom: 1px solid var(--code-panel-border);
-}
-
-.code-panel-header-main {
-  display: flex;
-  align-items: center;
-  gap: var(--openui-space-s);
+  background: #0f0f0f;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* ─── Tabs ───────────────────────────────────────────────────────────────────── */
@@ -39,33 +13,28 @@
 .code-tab {
   background: transparent;
   border: none;
-  padding: var(--openui-space-2xs) var(--openui-space-s-m);
-  border-radius: var(--openui-radius-s);
-  font-family: var(--openui-font-body);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: var(--font-sans);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: var(--code-panel-muted);
+  color: rgba(255, 255, 255, 0.3);
   cursor: pointer;
   transition:
-    background-color 0.15s,
+    background 0.15s,
     color 0.15s;
 }
 
 .code-tab:hover {
-  color: var(--code-panel-muted-strong);
-  background: var(--code-panel-surface);
-}
-
-.code-tab:focus-visible {
-  outline: 2px solid var(--openui-border-accent);
-  outline-offset: 2px;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .code-tab.active {
-  color: var(--code-panel-foreground);
-  background: var(--code-panel-surface-strong);
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* ─── Token Count Badge (on tabs) ───────────────────────────────────────────── */
@@ -74,52 +43,52 @@
   align-items: center;
   margin-left: 5px;
   padding: 1px 5px;
-  border-radius: var(--openui-radius-xs);
-  background: var(--code-panel-surface);
-  color: var(--code-panel-muted);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.35);
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   line-height: 1.5;
-  font-family: var(--openui-font-code);
+  font-family: var(--font-mono);
 }
 
 .code-tab.active .token-count {
-  background: var(--code-panel-surface-strong);
-  color: var(--code-panel-muted-strong);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 /* ─── Tooltip ────────────────────────────────────────────────────────────────── */
-.code-panel [data-tooltip] {
+[data-tooltip] {
   position: relative;
 }
 
-.code-panel [data-tooltip]::after {
+[data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
   top: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--code-panel-tooltip-background);
-  border: 1px solid var(--code-panel-border-strong);
-  color: var(--code-panel-foreground);
+  background: #1e1e1e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.75);
   font-size: 11px;
   font-weight: 400;
-  font-family: var(--openui-font-body);
+  font-family: var(--font-sans);
   letter-spacing: 0;
   text-transform: none;
   white-space: nowrap;
   padding: 4px 8px;
-  border-radius: var(--openui-radius-s);
+  border-radius: 5px;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s;
-  box-shadow: var(--openui-shadow-l);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   z-index: 100;
 }
 
-.code-panel [data-tooltip]:hover::after {
+[data-tooltip]:hover::after {
   opacity: 1;
 }
 
@@ -127,12 +96,12 @@
 .token-saving-badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--openui-space-2xs);
-  padding: var(--openui-space-3xs) 7px;
-  border-radius: var(--openui-radius-full);
-  background: var(--openui-success-background);
-  border: 1px solid var(--openui-border-success);
-  color: var(--openui-text-success-primary);
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  color: #4ade80;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -141,35 +110,35 @@
 }
 
 .code-panel .panel-title {
-  color: var(--code-panel-muted);
+  color: rgba(255, 255, 255, 0.4);
 }
 
-.code-panel .openui-icon-button.panel-icon-btn {
-  color: var(--code-panel-muted);
+.code-panel .panel-icon-btn {
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.code-panel .openui-icon-button.panel-icon-btn:hover:not(:disabled) {
-  background: var(--code-panel-surface);
-  color: var(--code-panel-foreground);
+.code-panel .panel-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .code-panel .empty-state {
-  color: var(--code-panel-muted);
+  color: rgba(255, 255, 255, 0.2);
 }
 
 .code-body {
   flex: 1;
   overflow: auto;
-  background: var(--openui-inverted-background);
+  background: var(--code-bg);
 }
 
 .code-pre {
   padding: 20px;
   margin: 0;
-  font-family: var(--openui-font-code);
+  font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.65;
-  color: var(--openui-text-accent-primary);
+  color: var(--code-text);
   white-space: pre-wrap;
   word-break: break-word;
   min-height: 100%;
@@ -180,17 +149,17 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--code-panel-muted);
+  background: var(--text-tertiary);
   flex-shrink: 0;
 }
 
 .status-dot.streaming {
-  background: var(--openui-text-success-primary);
+  background: #4ade80;
   animation: pulse 1s ease-in-out infinite;
 }
 
 .status-dot.error {
-  background: var(--openui-text-danger-primary);
+  background: #f87171;
 }
 
 @keyframes pulse {

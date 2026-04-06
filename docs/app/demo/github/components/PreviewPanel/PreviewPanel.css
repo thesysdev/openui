@@ -7,12 +7,12 @@
 .panel-title-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--openui-space-s);
 }
 
 .preview-spinner {
   animation: preview-spin 1s linear infinite;
-  color: #6366f1;
+  color: var(--openui-text-purple-primary);
   flex-shrink: 0;
 }
 
@@ -22,10 +22,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--openui-highlight-subtle);
 }
 
 .preview-content {
   width: 100%;
-  padding: 16px;
+  padding: var(--openui-space-m-l);
   align-self: flex-start;
 }

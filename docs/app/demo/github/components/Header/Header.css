@@ -1,0 +1,54 @@
+.openui-icon-button.header-btn,
+.header-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--openui-font-body);
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  white-space: nowrap;
+}
+
+.openui-icon-button.header-btn:hover:not(:disabled),
+.header-btn:hover {
+  background: var(--openui-highlight);
+  color: var(--openui-text-neutral-primary);
+}
+
+.header-btn svg {
+  flex-shrink: 0;
+}
+
+.openui-icon-button.header-icon-btn,
+.header-icon-btn {
+  padding: 6px;
+  border-radius: 6px;
+}
+
+@media (max-width: 1023px) {
+  .header-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .header-btn {
+    gap: 0;
+    min-width: 32px;
+    padding: 6px;
+  }
+
+  .header-btn span {
+    display: none;
+  }
+}

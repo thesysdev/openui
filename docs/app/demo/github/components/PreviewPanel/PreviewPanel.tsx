@@ -1,9 +1,8 @@
-import type { ParseResult } from "@openuidev/react-lang";
+import type { ActionEvent, ParseResult } from "@openuidev/react-lang";
 import { Renderer } from "@openuidev/react-lang";
-import { openuiLibrary, ThemeProvider } from "@openuidev/react-ui";
+import { IconButton, openuiLibrary, ThemeProvider } from "@openuidev/react-ui";
 import { Loader2, Maximize2, Monitor } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Theme } from "../../constants";
+import { useCallback, useState } from "react";
 import { Modal } from "../Modal/Modal";
 import "./PreviewPanel.css";
 
@@ -11,37 +10,33 @@ type PreviewPanelProps = {
   code: string;
   isStreaming: boolean;
   onParseResult?: (result: ParseResult | null) => void;
-  theme: Theme;
+  mode: "light" | "dark";
+  toolProvider?: Record<string, (args: Record<string, unknown>) => Promise<unknown>> | null;
+  onAction?: (event: ActionEvent) => void;
 };
 
-export function PreviewPanel({ code, isStreaming, onParseResult, theme }: PreviewPanelProps) {
+export function PreviewPanel({
+  code,
+  isStreaming,
+  onParseResult,
+  mode,
+  toolProvider,
+  onAction,
+}: PreviewPanelProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [systemDark, setSystemDark] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    setSystemDark(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  const resolvedMode = useMemo(() => {
-    if (theme === "system") return systemDark ? "dark" : "light";
-    return theme;
-  }, [theme, systemDark]);
 
   const closeModal = useCallback(() => setIsModalOpen(false), []);
 
   const previewContent = code ? (
     <div className="preview-content">
-      <ThemeProvider mode={resolvedMode}>
+      <ThemeProvider mode={mode}>
         <Renderer
           response={code}
           library={openuiLibrary}
           isStreaming={isStreaming}
           onParseResult={onParseResult}
+          toolProvider={toolProvider}
+          onAction={onAction}
         />
       </ThemeProvider>
     </div>
@@ -63,14 +58,15 @@ export function PreviewPanel({ code, isStreaming, onParseResult, theme }: Previe
             {isStreaming && <Loader2 size={14} className="preview-spinner" />}
           </div>
           <div className="panel-actions">
-            <button
+            <IconButton
               className="panel-icon-btn"
+              icon={<Maximize2 size={14} />}
+              variant="tertiary"
+              size="extra-small"
               onClick={() => setIsModalOpen(true)}
               title="Open fullscreen preview"
               aria-label="Open fullscreen preview"
-            >
-              <Maximize2 size={14} />
-            </button>
+            />
           </div>
         </div>
         <div className="preview-body">{previewContent}</div>
