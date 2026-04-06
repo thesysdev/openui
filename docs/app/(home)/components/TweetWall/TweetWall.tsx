@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import Script from "next/script";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { HOME_TWEETS, type HomeTweetEmbed } from "../../data/home-tweet-embeds";
@@ -42,13 +41,12 @@ function TweetEmbed({
 export function TweetWall() {
   const rootRef = useRef<HTMLDivElement>(null);
   const columnTracksRef = useRef<(HTMLDivElement | null)[]>([]);
-  const { resolvedTheme } = useTheme();
 
   const [scriptReady, setScriptReady] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [columnCount, setColumnCount] = useState(DESKTOP_COLUMN_COUNT);
   const [isWallReady, setIsWallReady] = useState(false);
-  const embedTheme = resolvedTheme === "dark" ? "dark" : "light";
+  const embedTheme = "light";
 
   useEffect(() => {
     const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");

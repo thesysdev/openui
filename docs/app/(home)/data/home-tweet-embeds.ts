@@ -12,4 +12,6 @@ export const HOME_TWEETS: HomeTweetEmbed[] = [
   { id: "2034668122691735612", conversation: "none" },
   { id: "2034668644115107891", conversation: "none" },
   { id: "2039548793960681815", conversation: "none" },
+  { id: "2032387346616758375", conversation: "none" },
+  { id: "2034284259805176222", conversation: "none" },
 ];

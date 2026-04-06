@@ -1,15 +1,22 @@
 "use client";
 
 import { Button } from "@openuidev/react-ui";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Check, ChevronDown } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { GITHUB_STARTERS } from "../../constants";
 import "./GitHubConnect.css";
 
 type GitHubConnectProps = {
   onConnectAndPrompt: (username: string, prompt: string) => void;
 };
-
-const RANDOM_SENTINEL = "__random__";
 
 const DEMO_USERS = [
   { username: "torvalds", label: "Linus Torvalds" },
@@ -18,11 +25,167 @@ const DEMO_USERS = [
   { username: "rauchg", label: "Guillermo Rauch" },
 ];
 
+type DropdownOption = {
+  value: string;
+  label: string;
+  description?: string;
+  leading?: ReactNode;
+};
+
+const DEVELOPER_OPTIONS: DropdownOption[] = DEMO_USERS.map((user) => ({
+  value: user.username,
+  label: user.label,
+  description: `@${user.username}`,
+  leading: (
+    <img
+      src={`https://github.com/${user.username}.png?size=40`}
+      alt=""
+      className="gh-dropdown-avatar"
+    />
+  ),
+}));
+
+const FOCUS_AREA_OPTIONS: DropdownOption[] = GITHUB_STARTERS.map((starter) => ({
+  value: starter.prompt,
+  label: starter.label,
+  leading: <span className="gh-dropdown-icon">{starter.icon}</span>,
+}));
+
+function getRandomStarterPrompt() {
+  const idx = Math.floor(Math.random() * GITHUB_STARTERS.length);
+  return GITHUB_STARTERS[idx].prompt;
+}
+
+type InlineDropdownProps = {
+  id: string;
+  ariaLabel: string;
+  placeholder: string;
+  options: DropdownOption[];
+  value: string | null;
+  onChange: (value: string) => void;
+  showSelectedDescription?: boolean;
+};
+
+function InlineDropdown({
+  id,
+  ariaLabel,
+  placeholder,
+  options,
+  value,
+  onChange,
+  showSelectedDescription = false,
+}: InlineDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen]);
+
+  const selectedOption = options.find((option) => option.value === value) ?? null;
+
+  return (
+    <div
+      ref={containerRef}
+      className={`gh-inline-select-wrap gh-inline-select-dropdown ${isOpen ? "gh-inline-select-wrap-open" : ""}`}
+    >
+      <button
+        id={id}
+        type="button"
+        className={`gh-inline-selectButton ${selectedOption ? "gh-inline-selectButton-filled" : ""}`}
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {selectedOption ? (
+          <span className="gh-inline-selectValue">
+            {selectedOption.leading && (
+              <span className="gh-inline-selectLeading" aria-hidden="true">
+                {selectedOption.leading}
+              </span>
+            )}
+            <span className="gh-inline-selectText">
+              <span className="gh-inline-selectLabel">{selectedOption.label}</span>
+              {showSelectedDescription && selectedOption.description && (
+                <span className="gh-inline-selectDescription">{selectedOption.description}</span>
+              )}
+            </span>
+          </span>
+        ) : (
+          <span className="gh-inline-selectPlaceholder">{placeholder}</span>
+        )}
+        <ChevronDown
+          aria-hidden="true"
+          size={18}
+          className={`gh-inline-selectChevron ${isOpen ? "gh-inline-selectChevron-open" : ""}`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="gh-dropdownMenu" role="listbox" aria-labelledby={id}>
+          {options.map((option) => {
+            const isSelected = option.value === value;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={`gh-dropdownOption ${isSelected ? "gh-dropdownOption-selected" : ""}`}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+              >
+                <span className="gh-dropdownOptionContent">
+                  {option.leading && <span className="gh-dropdownOptionLeading">{option.leading}</span>}
+                  <span className="gh-dropdownOptionCopy">
+                    <span className="gh-dropdownOptionLabel">{option.label}</span>
+                    {option.description && (
+                      <span className="gh-dropdownOptionDescription">{option.description}</span>
+                    )}
+                  </span>
+                </span>
+                {isSelected && <Check size={16} className="gh-dropdownOptionCheck" aria-hidden="true" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
+  const initialGithubPrompt = useMemo(() => getRandomStarterPrompt(), []);
   const [username, setUsername] = useState("");
+  const [selectedDeveloperUsername, setSelectedDeveloperUsername] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [selectedGithubPrompt, setSelectedGithubPrompt] = useState<string | null>(null);
+  const [defaultGithubPrompt, setDefaultGithubPrompt] = useState(initialGithubPrompt);
+  const [selectedGithubPrompt, setSelectedGithubPrompt] = useState(initialGithubPrompt);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -34,7 +197,6 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (!username.trim() || username.trim().length < 2) {
-      setAvatarUrl(null);
       return;
     }
 
@@ -69,41 +231,35 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
     return true;
   }, []);
 
-  const preventMouseSelection = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-  }, []);
-
-  const pickRandomPrompt = useCallback(() => {
-    const idx = Math.floor(Math.random() * GITHUB_STARTERS.length);
-    return GITHUB_STARTERS[idx].prompt;
-  }, []);
-
   const handlePopularDeveloperSelect = useCallback(
     (nextUsername: string) => {
-      setUsername(nextUsername);
+      setSelectedDeveloperUsername(nextUsername);
+      setUsername("");
+      setAvatarUrl(null);
       setError("");
-      if (!selectedGithubPrompt) {
-        setSelectedGithubPrompt(RANDOM_SENTINEL);
-      }
     },
-    [selectedGithubPrompt],
+    [],
   );
 
   const trimmedUsername = username.trim();
+  const effectiveUsername = trimmedUsername || selectedDeveloperUsername || "";
   const hasValidUsername =
-    trimmedUsername.length > 0 &&
-    trimmedUsername.length <= 39 &&
-    /^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(trimmedUsername);
+    effectiveUsername.length > 0 &&
+    effectiveUsername.length <= 39 &&
+    /^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(effectiveUsername);
   const canStart = selectedGithubPrompt !== null && hasValidUsername;
-  const selectedDemoUsername =
-    DEMO_USERS.find((user) => user.username === trimmedUsername)?.username ?? null;
-  const canReset = Boolean(trimmedUsername || selectedGithubPrompt || error);
+  const canReset = Boolean(
+    trimmedUsername || selectedDeveloperUsername || error || selectedGithubPrompt !== defaultGithubPrompt,
+  );
 
   const handleReset = useCallback(() => {
+    const nextDefaultPrompt = getRandomStarterPrompt();
     setUsername("");
+    setSelectedDeveloperUsername(null);
     setAvatarUrl(null);
     setError("");
-    setSelectedGithubPrompt(null);
+    setDefaultGithubPrompt(nextDefaultPrompt);
+    setSelectedGithubPrompt(nextDefaultPrompt);
     inputRef.current?.focus();
   }, []);
 
@@ -111,11 +267,11 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
 
   const handleStartGenerating = async () => {
     if (!selectedGithubPrompt) return;
-    if (!validate(username)) return;
+    if (!validate(effectiveUsername)) return;
 
     setValidating(true);
     try {
-      const res = await fetch(`https://api.github.com/users/${trimmedUsername}`);
+      const res = await fetch(`https://api.github.com/users/${effectiveUsername}`);
       if (!res.ok) {
         setError("GitHub user not found");
         setValidating(false);
@@ -128,124 +284,97 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
     }
     setValidating(false);
 
-    const prompt =
-      selectedGithubPrompt === RANDOM_SENTINEL ? pickRandomPrompt() : selectedGithubPrompt;
-    onConnectAndPrompt(trimmedUsername, prompt);
+    onConnectAndPrompt(effectiveUsername, selectedGithubPrompt);
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void handleStartGenerating();
   };
 
   return (
     <div className="gh-connect">
-      <div className="gh-connect-hero">
-        <h1 className="gh-connect-title">Try a live &amp; interactive dashboard of GitHub</h1>
-      </div>
-
-      <div className="gh-connect-section gh-connect-form">
-        <div className="gh-section-label">Enter your GitHub username</div>
-        <div className="gh-input-row">
-          {avatarUrl && <img src={avatarUrl} alt="" className="gh-avatar-preview" />}
-          <input
-            ref={inputRef}
-            className="gh-input"
-            value={username}
-            onChange={(e) => {
-              setUsername(e.target.value);
-              setError("");
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && canStart) handleStartGenerating();
-            }}
-            placeholder="Type here"
-          />
+      <form className="gh-builder" onSubmit={handleSubmit}>
+        <div className="gh-builder-copy">
+          <h1 className="gh-builder-title">
+            <span>Create an interactive GitHub dashboard for</span>
+            <span className="gh-builder-inline">
+              <label className="gh-visually-hidden" htmlFor="gh-username-input">
+                GitHub username
+              </label>
+              <span className={`gh-inline-input ${avatarUrl ? "gh-inline-input-with-avatar" : ""}`}>
+                {avatarUrl && <img src={avatarUrl} alt="" className="gh-inline-avatar" />}
+                <span className="gh-inline-inputControl">
+                  <span aria-hidden="true" className="gh-inline-inputSizer">
+                    {username || "your username"}
+                  </span>
+                  <input
+                    id="gh-username-input"
+                    ref={inputRef}
+                    className="gh-inline-input-field"
+                    value={username}
+                    onChange={(e) => {
+                      setSelectedDeveloperUsername(null);
+                      setUsername(e.target.value);
+                      setAvatarUrl(null);
+                      setError("");
+                    }}
+                    placeholder="username"
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                </span>
+              </span>
+              <span className="gh-inline-copy">or</span>
+              <label className="gh-visually-hidden" htmlFor="gh-developer-select">
+                Popular developer
+              </label>
+              <InlineDropdown
+                id="gh-developer-select"
+                ariaLabel="Select a developer"
+                placeholder="select a developer"
+                options={DEVELOPER_OPTIONS}
+                value={selectedDeveloperUsername}
+                onChange={handlePopularDeveloperSelect}
+              />
+            </span>
+            <span>that focuses on</span>
+            <span className="gh-builder-inline gh-builder-inline-single">
+              <label className="gh-visually-hidden" htmlFor="gh-focus-area-select">
+                Focus area
+              </label>
+              <InlineDropdown
+                id="gh-focus-area-select"
+                ariaLabel="Select a focus area"
+                placeholder="focus area"
+                options={FOCUS_AREA_OPTIONS}
+                value={selectedGithubPrompt}
+                onChange={(nextPrompt) => {
+                  setSelectedGithubPrompt(nextPrompt);
+                  setError("");
+                }}
+              />
+            </span>
+          </h1>
         </div>
+
         {error && <div className="gh-error">{error}</div>}
-      </div>
 
-      <div className="gh-connect-section gh-demo-section">
-        <div className="gh-section-label">or try with any of these popular developers</div>
-        <div className="gh-chip-scroll">
-          <div className="gh-demo-users">
-            {[0, 1].map((row) => (
-              <div key={row} className="gh-chip-row">
-                {DEMO_USERS.slice(
-                  row * Math.ceil(DEMO_USERS.length / 2),
-                  (row + 1) * Math.ceil(DEMO_USERS.length / 2),
-                ).map((u) => (
-                  <Button
-                    key={u.username}
-                    className={`gh-demo-chip ${selectedDemoUsername === u.username ? "gh-demo-chip-selected" : ""}`}
-                    variant="tertiary"
-                    size="small"
-                    onMouseDown={preventMouseSelection}
-                    onClick={() => handlePopularDeveloperSelect(u.username)}
-                  >
-                    <img
-                      src={`https://github.com/${u.username}.png?size=24`}
-                      alt=""
-                      className="gh-demo-avatar"
-                    />
-                    <span className="gh-demo-copy">
-                      <span className="gh-demo-name">{u.label}</span>
-                      <span className="gh-demo-handle">@{u.username}</span>
-                    </span>
-                  </Button>
-                ))}
-              </div>
-            ))}
-          </div>
+        <div className="gh-start-actions">
+          <Button
+            className="gh-reset-button"
+            variant="secondary"
+            type="button"
+            onClick={handleReset}
+            disabled={!canReset}
+          >
+            Reset
+          </Button>
+          <Button className="gh-generate-button" type="submit" disabled={!canStart || validating}>
+            {validating ? "Verifying..." : "Generate"}
+          </Button>
         </div>
-      </div>
-
-      <div className="gh-connect-section gh-starters">
-        <div className="gh-section-label">Pick a prompt</div>
-        <div className="gh-chip-scroll">
-          <div className="gh-starters-inline">
-            {(() => {
-              const allStarters = [
-                { key: RANDOM_SENTINEL, icon: "🎲", label: "Random", prompt: RANDOM_SENTINEL },
-                ...GITHUB_STARTERS.map((s) => ({ key: s.prompt, ...s })),
-              ];
-              const mid = Math.ceil(allStarters.length / 2);
-              return [0, 1].map((row) => (
-                <div key={row} className="gh-chip-row">
-                  {allStarters.slice(row * mid, (row + 1) * mid).map((s) => (
-                    <Button
-                      key={s.key}
-                      className={`gh-starter-chip ${
-                        s.prompt === RANDOM_SENTINEL
-                          ? selectedGithubPrompt === RANDOM_SENTINEL
-                            ? "gh-starter-chip-selected"
-                            : ""
-                          : selectedGithubPrompt === s.prompt
-                            ? "gh-starter-chip-selected"
-                            : ""
-                      }`}
-                      variant="tertiary"
-                      size="small"
-                      onMouseDown={preventMouseSelection}
-                      onClick={() => {
-                        setSelectedGithubPrompt(s.prompt);
-                        setError("");
-                      }}
-                    >
-                      <span className="gh-starter-icon">{s.icon}</span>
-                      <span className="gh-starter-chip-label">{s.label}</span>
-                    </Button>
-                  ))}
-                </div>
-              ));
-            })()}
-          </div>
-        </div>
-      </div>
-
-      <div className="gh-start-actions">
-        <Button variant="secondary" onClick={handleReset} disabled={!canReset}>
-          Reset
-        </Button>
-        <Button onClick={handleStartGenerating} disabled={!canStart || validating}>
-          {validating ? "Verifying..." : "Start generating"}
-        </Button>
-      </div>
+      </form>
     </div>
   );
 }

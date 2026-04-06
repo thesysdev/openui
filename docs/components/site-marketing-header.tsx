@@ -3,6 +3,7 @@
 import {
   GitHubIcon,
   GitHubStarButton,
+  type LogoVariant,
   StarCountBadge,
   useGitHubStarCount,
 } from "@/components/brand-logo";
@@ -26,7 +27,8 @@ type ThemeToggleConfig = {
 type SiteMarketingHeaderProps = {
   borderMode?: "always" | "scroll";
   extraActions?: ReactNode;
-  themeToggle?: ThemeToggleConfig;
+  themeToggle?: ThemeToggleConfig | null;
+  brandVariant?: LogoVariant;
 };
 
 function HamburgerIcon({ isOpen }: { isOpen: boolean }) {
@@ -115,12 +117,13 @@ export function SiteMarketingHeader({
   borderMode = "scroll",
   extraActions,
   themeToggle,
+  brandVariant,
 }: SiteMarketingHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(borderMode === "always");
   const starCount = useGitHubStarCount("thesysdev/openui");
   const { resolvedTheme } = useTheme();
-  const brandVariant = resolvedTheme === "dark" ? "dark" : "light";
+  const resolvedBrandVariant = brandVariant ?? (resolvedTheme === "dark" ? "dark" : "light");
 
   useEffect(() => {
     if (borderMode === "always") {
@@ -150,15 +153,17 @@ export function SiteMarketingHeader({
         bordered={isBordered}
         borderColor="var(--openui-border-interactive)"
         dividerColor="var(--openui-border-interactive)"
-        brandVariant={brandVariant}
+        brandVariant={resolvedBrandVariant}
         center={<SitePrimaryNav />}
         end={
           <div className={styles.desktopActions}>
-            <ThemeToggle
-              onToggle={themeToggle?.onToggle}
-              title={themeToggle?.title}
-              ariaLabel={themeToggle?.ariaLabel}
-            />
+            {themeToggle !== null && (
+              <ThemeToggle
+                onToggle={themeToggle?.onToggle}
+                title={themeToggle?.title}
+                ariaLabel={themeToggle?.ariaLabel}
+              />
+            )}
             {extraActions}
             <GitHubStarButton repo="thesysdev/openui" isScrolled={isBordered} />
           </div>

@@ -17,14 +17,45 @@ const fontOverrides = {
 
 type WebsiteThemeProviderProps = {
   children: ReactNode;
+  forcedTheme?: "light" | "dark";
 };
 
-export function WebsiteThemeProvider({ children }: WebsiteThemeProviderProps) {
+function WebsiteThemeBridge({
+  children,
+  forcedTheme,
+}: {
+  children: ReactNode;
+  forcedTheme?: "light" | "dark";
+}) {
   const { resolvedTheme } = useTheme();
-  const mode = resolvedTheme === "dark" ? "dark" : "light";
+  const mode = forcedTheme ?? (resolvedTheme === "dark" ? "dark" : "light");
 
   useEffect(() => {
-    document.documentElement.style.colorScheme = mode;
+    const root = document.documentElement;
+    const body = document.body;
+    const previousRootTheme = root.getAttribute("data-theme");
+    const previousBodyTheme = body.getAttribute("data-theme");
+    const previousColorScheme = root.style.colorScheme;
+
+    root.setAttribute("data-theme", mode);
+    body.setAttribute("data-theme", mode);
+    root.style.colorScheme = mode;
+
+    return () => {
+      if (previousRootTheme === null) {
+        root.removeAttribute("data-theme");
+      } else {
+        root.setAttribute("data-theme", previousRootTheme);
+      }
+
+      if (previousBodyTheme === null) {
+        body.removeAttribute("data-theme");
+      } else {
+        body.setAttribute("data-theme", previousBodyTheme);
+      }
+
+      root.style.colorScheme = previousColorScheme;
+    };
   }, [mode]);
 
   return (
@@ -32,4 +63,8 @@ export function WebsiteThemeProvider({ children }: WebsiteThemeProviderProps) {
       {children}
     </ThemeProvider>
   );
+}
+
+export function WebsiteThemeProvider({ children, forcedTheme }: WebsiteThemeProviderProps) {
+  return <WebsiteThemeBridge forcedTheme={forcedTheme}>{children}</WebsiteThemeBridge>;
 }

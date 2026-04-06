@@ -5,14 +5,15 @@ import "./Header.css";
 type HeaderProps = {
   theme: Theme;
   onThemeToggle: () => void;
+  borderMode?: "always" | "scroll";
 };
 
-export function Header({ theme, onThemeToggle }: HeaderProps) {
+export function Header({ theme, onThemeToggle, borderMode = "always" }: HeaderProps) {
   const themeLabel = { system: "System", light: "Light", dark: "Dark" }[theme];
 
   return (
     <SiteMarketingHeader
-      borderMode="always"
+      borderMode={borderMode}
       themeToggle={{
         onToggle: onThemeToggle,
         title: `Theme: ${themeLabel}`,

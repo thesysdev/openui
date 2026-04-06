@@ -55,6 +55,31 @@
   background: var(--openui-foreground);
 }
 
+.cardLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.cardLink:hover {
+  transform: translateY(-2px);
+}
+
+.cardLink:focus-visible {
+  outline: 2px solid var(--openui-border-accent);
+  outline-offset: 4px;
+}
+
+.cardLink:hover .cardOverlay,
+.cardLink:focus-visible .cardOverlay {
+  border-color: var(--openui-border-accent);
+  box-shadow: var(--openui-shadow-l);
+}
+
 .cardInner {
   display: flex;
   flex-direction: column;

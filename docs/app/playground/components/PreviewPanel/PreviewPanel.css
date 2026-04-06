@@ -12,7 +12,7 @@
 
 .preview-spinner {
   animation: preview-spin 1s linear infinite;
-  color: #6366f1;
+  color: var(--openui-interactive-accent-default);
   flex-shrink: 0;
 }
 

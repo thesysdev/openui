@@ -56,6 +56,10 @@
   overflow: hidden;
 }
 
+.app-body-home {
+  overflow-y: auto;
+}
+
 .content-wrapper {
   flex: 1;
   display: flex;
@@ -63,6 +67,12 @@
   padding: var(--openui-space-2xl) var(--openui-space-xl);
   overflow: hidden;
   min-width: 0;
+}
+
+.content-wrapper-home {
+  justify-content: center;
+  padding: 0;
+  overflow: visible;
 }
 
 /* ─── Split Screen ──────────────────────────────────────────────────────────── */
@@ -561,6 +571,10 @@
     flex: none;
     overflow: visible;
     padding: 20px var(--openui-space-m-l) var(--openui-space-2xl);
+  }
+
+  .content-wrapper-home {
+    padding: 0;
   }
 
   .split-screen {

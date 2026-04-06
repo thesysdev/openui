@@ -2,7 +2,6 @@
 
 import { GitHubIcon } from "@/components/brand-logo";
 import { ArrowRight } from "lucide-react";
-import { useTheme } from "next-themes";
 import Link from "next/link";
 import { ClipboardCommandButton, PillLink } from "../../components/Button/Button";
 import styles from "./HeroSection.module.css";
@@ -10,7 +9,7 @@ import styles from "./HeroSection.module.css";
 // CTAs
 const primaryCTA = "npx @openuidev/cli@latest create";
 const secondaryCTA = "Try Playground";
-const openUiLangV05Href = "/docs/openui-lang/specification-v05";
+const architectureHref = "/docs/openui-lang/how-it-works";
 const DESKTOP_HERO_IMAGE = {
   light: "/homepage/hero-web.png",
   dark: "/homepage/hero-web-dark.png",
@@ -82,10 +81,22 @@ function MobilePlaygroundButton({ className = "" }: { className?: string }) {
 
 function AnnouncementBanner({ className = "" }: { className?: string }) {
   return (
-    <Link href={openUiLangV05Href} className={`${styles.heroBanner} ${className}`.trim()}>
-      <span className={styles.heroBannerLabel}>We&apos;re introducing OpenUI Lang v0.5</span>
-      <TrailingArrow />
-    </Link>
+    <>
+      <div className={`${styles.heroBanner} ${styles.heroBannerDesktop} ${className}`.trim()}>
+        <span className={styles.heroBannerLabel}>We&apos;re introducing OpenUI Lang v0.5</span>
+        <div className={styles.heroBannerActions}>
+          <Link href="/playground" className={`${styles.heroBannerButton} ${styles.heroBannerButtonPrimary}`}>
+            <span>Try now</span>
+          </Link>
+          <Link href={architectureHref} className={styles.heroBannerButton}>
+            <span>Read more</span>
+          </Link>
+        </div>
+      </div>
+      <Link href={architectureHref} className={`${styles.heroBanner} ${styles.heroBannerMobile} ${className}`.trim()}>
+        <span className={styles.heroBannerLabel}>We&apos;re introducing OpenUI Lang v0.5</span>
+      </Link>
+    </>
   );
 }
 
@@ -234,8 +245,7 @@ function Tagline() {
 // ---------------------------------------------------------------------------
 
 export function HeroSection() {
-  const { resolvedTheme } = useTheme();
-  const theme: HeroTheme = resolvedTheme === "dark" ? "dark" : "light";
+  const theme: HeroTheme = "light";
 
   return (
     <section className={styles.section}>

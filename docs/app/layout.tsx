@@ -90,7 +90,7 @@ export default function Layout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${inter.className} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="flex flex-col min-h-screen">
         <PHProvider>
-          <RootProvider>{children}</RootProvider>
+          <RootProvider theme={{ defaultTheme: "light" }}>{children}</RootProvider>
         </PHProvider>
       </body>
       <Script

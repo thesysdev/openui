@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { useEffect, useRef } from "react";
 import styles from "./PossibilitiesSection.module.css";
 
@@ -15,16 +14,18 @@ type CardImageSet = {
   title: string;
   lightImage: string;
   darkImage: string;
+  href?: string;
 };
 
 const MOBILE_CAROUSEL_COPIES = 3;
 const MOBILE_SCROLL_SPEED = 0.35;
 
-const CARDS = [
+const CARDS: readonly CardImageSet[] = [
   {
     title: "Conversational Apps",
     lightImage: "/homepage/conversational-apps-light.png",
     darkImage: "/homepage/conversational-apps-dark.png",
+    href: "https://github.com/thesysdev/openui/tree/main/examples/openui-chat",
   },
   {
     title: "Dashboards & Web-apps",
@@ -35,13 +36,14 @@ const CARDS = [
     title: "Mobile Apps",
     lightImage: "/homepage/mobile-light.png",
     darkImage: "/homepage/mobile-dark.png",
+    href: "https://github.com/thesysdev/openui/tree/main/examples/openui-react-native",
   },
   {
     title: "Bottom trays",
     lightImage: bottomTraysLightImg,
     darkImage: bottomTraysDarkImg,
   },
-] as const satisfies readonly CardImageSet[];
+];
 
 const MOBILE_CAROUSEL_CARDS = Array.from({ length: MOBILE_CAROUSEL_COPIES }, (_, copyIndex) =>
   CARDS.map((card) => ({
@@ -54,9 +56,9 @@ const MOBILE_CAROUSEL_CARDS = Array.from({ length: MOBILE_CAROUSEL_COPIES }, (_,
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function Card({ title, image }: { title: string; image: string }) {
-  return (
-    <div className={styles.card}>
+function Card({ title, image, href }: { title: string; image: string; href?: string }) {
+  const content = (
+    <>
       <div className={styles.cardInner}>
         <img
           src={image}
@@ -69,7 +71,23 @@ function Card({ title, image }: { title: string; image: string }) {
         </div>
       </div>
       <div className={styles.cardOverlay} />
-    </div>
+    </>
+  );
+
+  if (!href) {
+    return <div className={styles.card}>{content}</div>;
+  }
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`Open ${title} example on GitHub`}
+      className={`${styles.card} ${styles.cardLink}`}
+    >
+      {content}
+    </a>
   );
 }
 
@@ -78,8 +96,6 @@ function Card({ title, image }: { title: string; image: string }) {
 // ---------------------------------------------------------------------------
 
 export function PossibilitiesSection() {
-  const { resolvedTheme } = useTheme();
-  const theme = resolvedTheme === "dark" ? "dark" : "light";
   const mobileTrackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -143,7 +159,8 @@ export function PossibilitiesSection() {
               <Card
                 key={card.key}
                 title={card.title}
-                image={theme === "dark" ? card.darkImage : card.lightImage}
+                image={card.lightImage}
+                href={card.href}
               />
             ))}
           </div>
@@ -154,7 +171,8 @@ export function PossibilitiesSection() {
             <Card
               key={card.title}
               title={card.title}
-              image={theme === "dark" ? card.darkImage : card.lightImage}
+              image={card.lightImage}
+              href={card.href}
             />
           ))}
         </div>

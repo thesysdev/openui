@@ -203,13 +203,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   min-height: 2.5rem;
-  padding-inline: 1rem;
+  padding: 0.875rem 1rem 0.875rem 1rem;
   border-radius: var(--openui-radius-full);
   background: var(--openui-highlight-strong);
   color: var(--openui-text-neutral-primary);
-  text-decoration: none;
   font-family: "Inter Display", sans-serif;
   font-size: 16px;
   font-weight: 500;
@@ -217,6 +216,15 @@
   transition: background-color 0.2s ease;
   text-align: center;
   margin-bottom: 24px;
+}
+
+.heroBannerDesktop {
+  display: none;
+}
+
+.heroBannerMobile {
+  display: inline-flex;
+  text-decoration: none;
 }
 
 .heroBanner:hover {
@@ -227,6 +235,45 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.heroBannerActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.heroBannerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding-inline: 1rem;
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-foreground);
+  color: var(--openui-text-neutral-primary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25rem;
+  border: 1px solid var(--openui-border-default);
+  transition:
+    border-color 0.2s ease,
+}
+
+.heroBannerButton:hover {
+  border: 1px solid var(--openui-border-interactive);
+}
+
+.heroBannerButtonPrimary {
+  background: var(--openui-inverted-background);
+  color: var(--openui-text-accent-primary);
+}
+
+.heroBannerButtonPrimary:hover {
+  background: rgb(0 0 0 / 85%);
 }
 
 .heroBannerLead {
@@ -387,6 +434,25 @@
     width: 100%;
     overflow: hidden;
     padding: 8rem 2rem 0rem 2rem;
+  }
+
+  .heroBanner {
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0.75rem 0.5rem 1rem;
+  }
+
+  .heroBannerDesktop {
+    display: inline-flex;
+  }
+
+  .heroBannerMobile {
+    display: none;
+  }
+
+  .heroBannerActions {
+    flex-direction: row;
+    align-items: center;
   }
 
   .previewSection {

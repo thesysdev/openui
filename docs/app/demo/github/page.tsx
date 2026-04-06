@@ -176,6 +176,7 @@ export default function GitHubDemoPage() {
   const [conversation, setConversation] = useState<ChatMessage[]>([]);
   const [streamingText, setStreamingText] = useState("");
   const [toolCalls, setToolCalls] = useState<ToolCallEntry[]>([]);
+  const [streamResponseHasCode, setStreamResponseHasCode] = useState(false);
 
   // Streaming
   const [status, setStatus] = useState<Status>("idle");
@@ -190,6 +191,7 @@ export default function GitHubDemoPage() {
   const isStreaming = status === "streaming";
   const hasDashboard = dashboardCode !== null;
   const isGitHub = githubUsername !== null;
+  const isHomeState = !isGitHub && !hasDashboard && conversation.length === 0;
 
   // Theme
   const currentTheme = useMemo<Theme>(() => {
@@ -239,6 +241,7 @@ export default function GitHubDemoPage() {
     setStatus("idle");
     setStreamingText("");
     setToolCalls([]);
+    setStreamResponseHasCode(false);
     setElapsed(null);
     setShowSource(false);
     setParsedJson(null);
@@ -259,6 +262,7 @@ export default function GitHubDemoPage() {
       responseRef.current = "";
       setStreamingText("");
       setToolCalls([]);
+      setStreamResponseHasCode(false);
       let streamStartTime: number | null = null;
 
       const userMsg: ChatMessage = {
@@ -294,6 +298,7 @@ export default function GitHubDemoPage() {
             responseRef.current += chunk;
             const raw = responseRef.current;
             setStreamingText(extractText(raw) || "");
+            setStreamResponseHasCode(responseHasCode(raw));
             if (existingCode) {
               setDashboardCode(existingCode + "\n" + raw);
             } else {
@@ -304,6 +309,7 @@ export default function GitHubDemoPage() {
             setStatus("done");
             abortRef.current = null;
             setStreamingText("");
+            setStreamResponseHasCode(false);
             if (streamStartTime) setElapsed(Date.now() - streamStartTime);
 
             const raw = responseRef.current;
@@ -336,14 +342,16 @@ export default function GitHubDemoPage() {
         );
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") {
+          setStreamResponseHasCode(false);
           setStatus("idle");
           return;
         }
         setErrorMsg(err instanceof Error ? err.message : "Unknown error");
+        setStreamResponseHasCode(false);
         setStatus("error");
       }
     },
-    [isStreaming, conversation, dashboardCode],
+    [isStreaming, conversation, dashboardCode, toolCalls],
   );
 
   // Process pending prompt after GitHub connect
@@ -357,6 +365,7 @@ export default function GitHubDemoPage() {
 
   const handleStop = () => {
     abortRef.current?.abort();
+    setStreamResponseHasCode(false);
     setStatus("idle");
   };
 
@@ -373,13 +382,17 @@ export default function GitHubDemoPage() {
   const showConversation = conversation.length > 0 || isStreaming;
 
   return (
-    <div className="app">
-      <Header theme={currentTheme} onThemeToggle={cycleTheme} />
+    <div className={`app ${isHomeState ? "app-home" : "app-artifact"}`}>
+      <Header
+        theme={currentTheme}
+        onThemeToggle={cycleTheme}
+        borderMode={isHomeState ? "scroll" : "always"}
+      />
 
-      <div className="app-body">
+      <div className={`app-body ${isHomeState ? "app-body-home" : ""}`}>
         {/* Phase 1: Connect Screen */}
-        {!isGitHub && !hasDashboard && conversation.length === 0 && (
-          <div className="content-wrapper">
+        {isHomeState && (
+          <div className="content-wrapper content-wrapper-home">
             <GitHubConnect onConnectAndPrompt={handleConnectAndPrompt} />
           </div>
         )}
@@ -510,7 +523,7 @@ export default function GitHubDemoPage() {
                 onSend={send}
                 onStop={handleStop}
                 hasDashboard={hasDashboard}
-                responseHasCode={responseHasCode(responseRef.current)}
+                responseHasCode={streamResponseHasCode}
               />
             )}
           </div>

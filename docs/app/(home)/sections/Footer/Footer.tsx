@@ -2,7 +2,6 @@
 import mascotDarkSvgPaths from "@/imports/svg-mascot-dark";
 import svgPaths from "@/imports/svg-urruvoh2be";
 import mascotSvgPaths from "@/imports/svg-xeurqn3j1r";
-import { useTheme } from "next-themes";
 import { useId } from "react";
 import styles from "./Footer.module.css";
 
@@ -194,8 +193,7 @@ function HandcraftedMascot({ isDark }: { isDark: boolean }) {
 // ---------------------------------------------------------------------------
 
 export function Footer() {
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+  const isDark = false;
 
   return (
     <footer className={styles.footer}>

@@ -3,7 +3,7 @@ import { Navbar } from "./sections/Navbar/Navbar";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <WebsiteThemeProvider>
+    <WebsiteThemeProvider forcedTheme="light">
       <Navbar />
       {children}
     </WebsiteThemeProvider>
