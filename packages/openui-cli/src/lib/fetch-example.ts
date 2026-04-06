@@ -72,7 +72,7 @@ export async function fetchExample(exampleName: string, targetDir: string): Prom
     fs.rmSync(targetDir, { recursive: true, force: true });
     throw new Error(
       `Example "${exampleName}" was not found in the repository.\n` +
-        `Run \`openui create --list-examples\` to see available examples.`,
+        `Run \`npx @openuidev/cli create --list-examples\` to see available examples.`,
     );
   }
 }

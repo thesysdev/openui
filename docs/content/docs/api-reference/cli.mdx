@@ -31,15 +31,17 @@ openui create [options]
 | Flag | Description |
 |---|---|
 | `-n, --name <string>` | Project name (directory to create) |
+| `-e, --example <name>` | Scaffold from a repo example instead of the default template (e.g. `heroui-chat`) |
+| `--list-examples` | Print all available examples and exit |
 | `--skill` | Install the OpenUI agent skill for AI coding assistants |
 | `--no-skill` | Skip installing the OpenUI agent skill |
 | `--no-interactive` | Fail instead of prompting for missing input |
 
-When run interactively (default), the CLI prompts for any missing options. Pass `--no-interactive` in CI or scripted environments to surface missing required flags as errors instead.
+When run interactively (default), the CLI first asks whether to start from the clean template or an example from the repo. Pass `--no-interactive` in CI or scripted environments to surface missing required flags as errors instead.
 
 **What it does**
 
-1. Copies the bundled `openui-chat` Next.js template into `<name>/`
+1. Copies the bundled `openui-chat` Next.js template into `<name>/`, or downloads the chosen example from GitHub
 2. Rewrites `workspace:*` dependency versions to `latest`
 3. Auto-detects your package manager (npm, pnpm, yarn, bun)
 4. Installs dependencies
@@ -56,12 +58,19 @@ Pass `--skill` or `--no-skill` to skip the prompt. In `--no-interactive` mode th
 **Examples**
 
 ```bash
-# Interactive — prompts for project name and skill installation
+# Interactive — prompts for template vs example, then project name and skill installation
 openui create
 
 # Non-interactive
 openui create --name my-app
 openui create --no-interactive --name my-app
+
+# Start from a repo example
+openui create --example heroui-chat
+openui create --example heroui-chat --name my-app
+
+# List all available examples
+openui create --list-examples
 
 # Explicitly install or skip the agent skill
 openui create --name my-app --skill
