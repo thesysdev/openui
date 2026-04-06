@@ -430,7 +430,6 @@ export function useOpenUIState(
       runtimeErrorsRef.current = errors;
       return result;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- storeSnapshot/querySnapshot are reactive triggers
   }, [result, evaluationContext, library, store, storeSnapshot, querySnapshot]);
 
   const isQueryLoading = querySnapshot.__openui_loading.length > 0;
