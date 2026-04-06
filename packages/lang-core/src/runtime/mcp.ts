@@ -46,6 +46,7 @@ export interface McpClientLike {
     structuredContent?: unknown;
     isError?: boolean;
   }>;
+  close?(): Promise<void>;
 }
 
 /**
