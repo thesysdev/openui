@@ -85,7 +85,7 @@ function AnnouncementBanner({ className = "" }: { className?: string }) {
       <div className={`${styles.heroBanner} ${styles.heroBannerDesktop} ${className}`.trim()}>
         <span className={styles.heroBannerLabel}>We&apos;re introducing OpenUI Lang v0.5</span>
         <div className={styles.heroBannerActions}>
-          <Link href="/playground" className={`${styles.heroBannerButton} ${styles.heroBannerButtonPrimary}`}>
+          <Link href="/demo/github" target="_blank" className={`${styles.heroBannerButton} ${styles.heroBannerButtonPrimary}`}>
             <span>Try now</span>
           </Link>
           <Link href={architectureHref} className={styles.heroBannerButton}>
