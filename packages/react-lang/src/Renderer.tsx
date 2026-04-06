@@ -145,8 +145,13 @@ function renderDeep(value: unknown): React.ReactNode {
 
 /**
  * Renders a single ElementNode.
+ *
+ * Memoized on `node` reference equality so that structural sharing from the
+ * streaming parser prevents re-renders for unchanged components. When the
+ * parser returns the same ElementNode object (same ===), this component and
+ * its entire subtree are skipped by React's reconciler.
  */
-function RenderNode({ node }: { node: ElementNode }) {
+const RenderNode = React.memo(function RenderNode({ node }: { node: ElementNode }) {
   const { library, reportError } = useOpenUI();
   const Comp = library.components[node.typeName]?.component;
 
@@ -157,16 +162,26 @@ function RenderNode({ node }: { node: ElementNode }) {
       <RenderNodeInner el={node} Comp={Comp} />
     </ElementErrorBoundary>
   );
-}
+});
 
 /**
  * Renders a resolved element using its renderer.
  * Props are already evaluated by evaluate-tree — no AST awareness needed.
+ *
+ * Memoized as a second layer of defense: if ElementErrorBoundary (class
+ * component) re-renders, RenderNodeInner still bails out when `el` and
+ * `Comp` are the same references.
  */
-function RenderNodeInner({ el, Comp }: { el: ElementNode; Comp: ComponentRenderer<any> }) {
+const RenderNodeInner = React.memo(function RenderNodeInner({
+  el,
+  Comp,
+}: {
+  el: ElementNode;
+  Comp: ComponentRenderer<any>;
+}) {
   const renderNode = useRenderNode();
   return <Comp props={el.props} renderNode={renderNode} />;
-}
+});
 
 // ─── Loading style injection (once per document) ───
 

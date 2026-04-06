@@ -3,7 +3,7 @@ import { isASTNode, walkAST } from "./ast";
 import { isBuiltin, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
-import { materializeValue, type MaterializeCtx } from "./materialize";
+import { materializeValue, type MaterializeCtx, type NodeCacheEntry } from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
@@ -208,6 +208,7 @@ function buildResult(
   stmtCount: number,
   cat: ParamMap | undefined,
   rootName?: string,
+  nodeCache?: Map<string, NodeCacheEntry>,
 ): ParseResult {
   const entryId = pickEntryId(stmtMap, typedStmts, firstId, rootName);
   if (!stmtMap.has(entryId)) return emptyResult(wasIncomplete);
@@ -223,6 +224,8 @@ function buildResult(
     visited: new Set(),
     partial: wasIncomplete,
     currentStatementId: entryId,
+    nodeCache,
+    stmtTokens: stmtMap,
   };
   const materialized = materializeValue(syms.get(entryId)!, ctx);
 
@@ -419,6 +422,10 @@ export function createStreamParser(cat?: ParamMap, rootName?: string): StreamPar
   let buf = "";
   let completedEnd = 0;
   const completedStmtMap = new Map<string, Statement>();
+  // Structural sharing cache: stmtId → cached NodeCacheEntry.
+  // Persists across push/set calls so unchanged completed-statement nodes
+  // are reused by reference in the output tree.
+  const nodeCache = new Map<string, NodeCacheEntry>();
 
   let completedCount = 0;
   let firstId = "";
@@ -505,6 +512,7 @@ export function createStreamParser(cat?: ParamMap, rootName?: string): StreamPar
         completedCount,
         cat,
         rootName,
+        nodeCache,
       );
     }
 
@@ -520,6 +528,7 @@ export function createStreamParser(cat?: ParamMap, rootName?: string): StreamPar
         completedCount,
         cat,
         rootName,
+        nodeCache,
       );
     }
     // Autoclose the incomplete last statement so it's syntactically valid
@@ -536,6 +545,7 @@ export function createStreamParser(cat?: ParamMap, rootName?: string): StreamPar
         completedCount,
         cat,
         rootName,
+        nodeCache,
       );
     }
 
@@ -562,6 +572,7 @@ export function createStreamParser(cat?: ParamMap, rootName?: string): StreamPar
       completedCount + stmts.length,
       cat,
       rootName,
+      nodeCache,
     );
   }
 
@@ -569,6 +580,7 @@ export function createStreamParser(cat?: ParamMap, rootName?: string): StreamPar
     buf = "";
     completedEnd = 0;
     completedStmtMap.clear();
+    nodeCache.clear();
     completedCount = 0;
     firstId = "";
   }

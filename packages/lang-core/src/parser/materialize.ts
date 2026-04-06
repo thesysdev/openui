@@ -2,7 +2,7 @@
 // Schema-aware materialization — single-pass lowering
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { ASTNode } from "./ast";
+import type { ASTNode, Statement } from "./ast";
 import { isASTNode, isRuntimeExpr } from "./ast";
 import { isBuiltin, isReservedCall, LAZY_BUILTINS, RESERVED_CALLS } from "./builtins";
 import { isElementNode, type ParamMap, type ValidationError } from "./types";
@@ -22,6 +22,18 @@ export function containsDynamicValue(v: unknown): boolean {
   return Object.values(obj).some(containsDynamicValue);
 }
 
+/**
+ * A cached materialization result for one statement.
+ * `token` is the Statement object reference used for identity comparison —
+ * if the same Statement object is still in the symbol table, the result is valid.
+ */
+export interface NodeCacheEntry {
+  token: Statement;
+  result: unknown;
+  errors: ValidationError[];
+  unres: string[];
+}
+
 export interface MaterializeCtx {
   syms: Map<string, ASTNode>;
   cat: ParamMap | undefined;
@@ -31,11 +43,25 @@ export interface MaterializeCtx {
   partial: boolean;
   /** Tracks which statement is currently being materialized (for error attribution). */
   currentStatementId?: string;
+  /**
+   * Structural sharing cache: stmtId → cached NodeCacheEntry.
+   * When present, resolveRef checks this before materializing a referenced statement.
+   */
+  nodeCache?: Map<string, NodeCacheEntry>;
+  /**
+   * Map from stmtId → Statement object (used as identity token).
+   * A cache entry is valid when its token === stmtTokens.get(id).
+   */
+  stmtTokens?: Map<string, Statement>;
 }
 
 /**
  * Resolve a Ref node: inline from symbol table, detect cycles, emit RuntimeRef
  * for Query/Mutation declarations. Shared by materializeValue and materializeExpr.
+ *
+ * In value mode, checks the structural sharing cache before materializing.
+ * If the Statement token matches the cached entry, returns the cached result
+ * directly — keeping the same ElementNode reference across parse calls.
  */
 function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): unknown | ASTNode {
   if (ctx.visited.has(name)) {
@@ -46,21 +72,62 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
     ctx.unres.push(name);
     return mode === "expr" ? { k: "Ph", n: name } : null;
   }
+
+  // Structural sharing cache check (value mode only).
+  // The token is the Statement object reference — stable for completed statements.
+  if (mode === "value" && ctx.nodeCache && ctx.stmtTokens) {
+    const entry = ctx.nodeCache.get(name);
+    const token = ctx.stmtTokens.get(name);
+    if (entry !== undefined && token !== undefined && entry.token === token) {
+      ctx.errors.push(...entry.errors);
+      for (const u of entry.unres) {
+        if (!ctx.unres.includes(u)) ctx.unres.push(u);
+      }
+      return entry.result;
+    }
+  }
+
   const target = ctx.syms.get(name)!;
   // Query/Mutation declarations → RuntimeRef (resolved at runtime by evaluator)
   if (target.k === "Comp" && isReservedCall(target.name)) {
     const refType =
       target.name === RESERVED_CALLS.Mutation ? ("mutation" as const) : ("query" as const);
-    return { k: "RuntimeRef", n: name, refType };
+    const runtimeRef: ASTNode = { k: "RuntimeRef", n: name, refType };
+    if (mode === "value" && ctx.nodeCache && ctx.stmtTokens) {
+      const token = ctx.stmtTokens.get(name);
+      if (token !== undefined) {
+        ctx.nodeCache.set(name, { token, result: runtimeRef, errors: [], unres: [] });
+      }
+    }
+    return runtimeRef;
   }
   ctx.visited.add(name);
   const prevStatementId = ctx.currentStatementId;
   ctx.currentStatementId = name;
+  const errLenBefore = ctx.errors.length;
+  const unresLenBefore = ctx.unres.length;
   try {
     const result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
     // Tag ElementNode with its source statement name
     if (mode === "value" && isElementNode(result)) {
       (result as import("./types").ElementNode).statementId = name;
+    }
+    // Store in structural sharing cache — only when fully resolved (no new unresolved refs).
+    // If a node has unresolved deps, it must be re-materialized each time so that when
+    // those deps become available the result reflects them correctly.
+    if (mode === "value" && ctx.nodeCache && ctx.stmtTokens) {
+      const newUnres = ctx.unres.slice(unresLenBefore);
+      if (newUnres.length === 0) {
+        const token = ctx.stmtTokens.get(name);
+        if (token !== undefined) {
+          ctx.nodeCache.set(name, {
+            token,
+            result,
+            errors: ctx.errors.slice(errLenBefore),
+            unres: newUnres,
+          });
+        }
+      }
     }
     return result;
   } finally {

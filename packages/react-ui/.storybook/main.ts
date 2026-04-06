@@ -41,10 +41,12 @@ const config: StorybookConfig = {
       resolve: {
         alias: {
           "@openuidev/react-headless": path.resolve(__dirname, "../../react-headless/src/index.ts"),
+          "@openuidev/react-lang": path.resolve(__dirname, "../../react-lang/src/index.ts"),
+          "@openuidev/lang-core": path.resolve(__dirname, "../../lang-core/src/index.ts"),
         },
       },
       optimizeDeps: {
-        exclude: ["@openuidev/react-headless"],
+        exclude: ["@openuidev/react-headless", "@openuidev/react-lang", "@openuidev/lang-core"],
         include: ["react", "react-dom"],
       },
       build: {
