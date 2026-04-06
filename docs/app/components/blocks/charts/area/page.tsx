@@ -2,7 +2,7 @@
 
 import ClientOnly from "@components/blocks/_components/ClientOnly";
 import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
-import { AreaChart, ScrollableAreaChart } from "@openuidev/react-ui";
+import { AreaChart, AreaChartCondensed } from "@openuidev/react-ui";
 
 const areaData = [
   { month: "Jan", desktop: 150, mobile: 90 },
@@ -33,11 +33,11 @@ function DefaultAreaChartPreview() {
   );
 }
 
-function ScrollableAreaChartPreview() {
+function AreaChartCondensedPreview() {
   return (
     <ClientOnly>
       <div style={{ width: "600px" }}>
-        <ScrollableAreaChart data={scrollableAreaData} categoryKey="month" />
+        <AreaChartCondensed data={scrollableAreaData} categoryKey="month" />
       </div>
     </ClientOnly>
   );
@@ -52,14 +52,14 @@ export default function BlocksAreaChartPage() {
         description="Preview for the Area chart block."
       >
         <BlockVariantPreview
-          title="Default"
-          description="Default area chart variant."
+          title="Scrollable"
+          description="Scrollable area chart variant."
           preview={<DefaultAreaChartPreview />}
         />
         <BlockVariantPreview
-          title="Scrollable"
-          description="Scrollable area chart variant."
-          preview={<ScrollableAreaChartPreview />}
+          title="Condensed"
+          description="Condensed area chart variant."
+          preview={<AreaChartCondensedPreview />}
         />
       </PreviewSection>
     </PreviewPage>

@@ -75,6 +75,11 @@ const LONG_STARTERS: ConversationStartersConfig = {
   ],
 };
 
+const mockGenerateShareLink = async (threadId: string) => {
+  await new Promise((r) => setTimeout(r, 1000));
+  return `https://example.com/shared/${threadId}`;
+};
+
 const mockProcessMessage = async ({ messages }: { messages: Message[] }) => {
   const lastMsg = messages[messages.length - 1];
   const content =
@@ -145,6 +150,19 @@ export const StandaloneLongStarters = {
   ),
 };
 
+export const StandaloneWithShareLink = {
+  render: () => (
+    <div style={{ minHeight: "100vh", background: "var(--openui-bg-fill, #f5f5f5)" }}>
+      <FullScreen
+        {...sharedProps}
+        welcomeMessage={SAMPLE_WELCOME_MESSAGE}
+        conversationStarters={SAMPLE_STARTERS}
+        generateShareLink={mockGenerateShareLink}
+      />
+    </div>
+  ),
+};
+
 export const StandaloneWithThreadHeader = {
   render: () => (
     <div style={{ minHeight: "100vh", background: "var(--openui-bg-fill, #f5f5f5)" }}>
@@ -196,6 +214,19 @@ export const CopilotWithWelcome = {
         {...sharedProps}
         welcomeMessage={SAMPLE_WELCOME_MESSAGE}
         conversationStarters={SAMPLE_STARTERS}
+      />
+    </div>
+  ),
+};
+
+export const CopilotWithShareLink = {
+  render: () => (
+    <div style={{ minHeight: "100vh", background: "var(--openui-bg-fill, #f5f5f5)" }}>
+      <Copilot
+        {...sharedProps}
+        welcomeMessage={SAMPLE_WELCOME_MESSAGE}
+        conversationStarters={SAMPLE_STARTERS}
+        generateShareLink={mockGenerateShareLink}
       />
     </div>
   ),
@@ -279,6 +310,17 @@ export const BottomTrayLongStarters = {
       defaultOpen
       welcomeMessage={SAMPLE_WELCOME_MESSAGE}
       conversationStarters={LONG_STARTERS}
+    />
+  ),
+};
+
+export const BottomTrayWithShareLink = {
+  render: () => (
+    <BottomTrayStory
+      defaultOpen
+      welcomeMessage={SAMPLE_WELCOME_MESSAGE}
+      conversationStarters={SAMPLE_STARTERS}
+      generateShareLink={mockGenerateShareLink}
     />
   ),
 };

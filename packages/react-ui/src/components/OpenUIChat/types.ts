@@ -106,4 +106,9 @@ export interface SharedChatUIProps {
    * provided, `assistantMessage` takes priority.
    */
   componentLibrary?: Library;
+  /**
+   * Async function that receives the selected threadId and returns a shareable URL.
+   * When provided, a share button appears in the chat header.
+   */
+  generateShareLink?: (threadId: string) => Promise<string>;
 }

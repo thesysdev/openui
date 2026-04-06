@@ -17,6 +17,7 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.json ./
 COPY packages/openui-cli/package.json ./packages/openui-cli/
 COPY packages/react-ui/package.json ./packages/react-ui/
 COPY packages/react-headless/package.json ./packages/react-headless/
+COPY packages/lang-core/package.json ./packages/lang-core/
 COPY packages/react-lang/package.json ./packages/react-lang/
 COPY examples/openui-chat/package.json ./examples/openui-chat/
 
@@ -26,19 +27,19 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 COPY packages/openui-cli ./packages/openui-cli
 COPY packages/react-ui ./packages/react-ui
 COPY packages/react-headless ./packages/react-headless
+COPY packages/lang-core ./packages/lang-core
 COPY packages/react-lang ./packages/react-lang
 COPY examples/openui-chat ./examples/openui-chat
 
 RUN pnpm --filter @openuidev/cli build
 RUN pnpm --filter @openuidev/react-ui build
 RUN pnpm --filter @openuidev/react-headless build
+RUN pnpm --filter @openuidev/lang-core build
 RUN pnpm --filter @openuidev/react-lang build
 
 WORKDIR /app/examples/openui-chat
 RUN node /app/packages/openui-cli/dist/index.js generate src/library.ts --out src/generated/system-prompt.txt \
   && pnpm build
-
-
 
 # --------------------------------------------------
 # Runtime stage
@@ -55,7 +56,7 @@ ENV PORT=3000 HOSTNAME=0.0.0.0
 
 RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
 USER nextjs
- 
+
 # Copy full standalone output to avoid brittle partial-copy assumptions
 COPY --from=builder --chown=nextjs:nodejs /app/examples/openui-chat/.next/standalone ./
 

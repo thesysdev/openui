@@ -1,13 +1,10 @@
-export { AreaChart as ScrollableAreaChart } from "./AreaChart";
+export * from "./AreaChart";
 export * from "./AreaChartCondensed";
-export { AreaChartCondensed as AreaChart } from "./AreaChartCondensed";
-export { BarChart as ScrollableBarChart } from "./BarChart";
+export * from "./BarChart";
 export * from "./BarChartCondensed";
-export { BarChartCondensed as BarChart } from "./BarChartCondensed";
 export * from "./HorizontalBarChart";
-export { LineChart as ScrollableLineChart } from "./LineChart";
+export * from "./LineChart";
 export * from "./LineChartCondensed";
-export { LineChartCondensed as LineChart } from "./LineChartCondensed";
 export * from "./MiniAreaChart";
 export * from "./MiniBarChart";
 export * from "./MiniLineChart";
