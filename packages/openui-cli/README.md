@@ -53,12 +53,15 @@ openui create [options]
 Options:
 
 - `-n, --name <string>`: Project name
+- `-e, --example <name>`: Scaffold from a repo example instead of the default template (e.g. `heroui-chat`)
+- `--list-examples`: Print all available examples and exit
 - `--no-interactive`: Fail instead of prompting for missing required input
 
 What it does:
 
+- prompts whether to start from the clean template or a repo example (interactive mode only)
 - prompts for the project name if you do not pass `--name`
-- copies the bundled `openui-chat` template into a new directory
+- copies the bundled `openui-chat` template, or downloads the chosen example from GitHub
 - rewrites `workspace:*` dependencies in the generated `package.json` to `latest`
 - installs dependencies automatically using the detected package manager
 
@@ -66,7 +69,9 @@ Examples:
 
 ```bash
 openui create
-openui create
+openui create --example heroui-chat
+openui create --example heroui-chat --name my-app
+openui create --list-examples
 openui create --no-interactive
 ```
 

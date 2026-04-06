@@ -14,16 +14,39 @@ program
   .command("create")
   .description("Scaffold a new Next.js app with OpenUI Chat")
   .option("-n, --name <string>", "Project name")
+  .option(
+    "-e, --example <name>",
+    "Scaffold from a repo example instead of the default template (e.g. heroui-chat). Use --list-examples to see all options.",
+  )
+  .option("--list-examples", "List all available examples and exit")
   .option("--skill", "Install the OpenUI agent skill for AI coding assistants")
   .option("--no-skill", "Skip installing the OpenUI agent skill")
   .option("--no-interactive", "Fail with error if required args are missing")
-  .action(async (options: { name?: string; skill?: boolean; interactive: boolean }) => {
-    await runCreateChatApp({
-      name: options.name,
-      skill: options.skill,
-      noInteractive: !options.interactive,
-    });
-  });
+  .action(
+    async (options: {
+      name?: string;
+      example?: string;
+      listExamples?: boolean;
+      skill?: boolean;
+      interactive: boolean;
+    }) => {
+      if (options.listExamples) {
+        const { KNOWN_EXAMPLES } = await import("./generated/known-examples.js");
+        console.info("Available examples:\n");
+        for (const ex of KNOWN_EXAMPLES) {
+          console.info(`  ${ex}`);
+        }
+        process.exit(0);
+      }
+
+      await runCreateChatApp({
+        name: options.name,
+        example: options.example,
+        skill: options.skill,
+        noInteractive: !options.interactive,
+      });
+    },
+  );
 
 program
   .command("generate")

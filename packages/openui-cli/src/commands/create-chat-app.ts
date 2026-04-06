@@ -2,12 +2,15 @@ import { execSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
+import { KNOWN_EXAMPLES } from "../generated/known-examples";
 import { detectPackageManager } from "../lib/detect-package-manager";
+import { fetchExample } from "../lib/fetch-example";
 import { runSkillInstall, shouldInstallSkill } from "../lib/install-skill";
 import { resolveArgs } from "../lib/resolve-args";
 
 export interface CreateChatAppOptions {
   name?: string;
+  example?: string;
   skill?: boolean;
   noInteractive?: boolean;
 }
@@ -21,6 +24,30 @@ function shouldCopyTemplatePath(templateDir: string, src: string): boolean {
 }
 
 export async function runCreateChatApp(options: CreateChatAppOptions): Promise<void> {
+  let useExample: boolean;
+
+  if (options.example) {
+    useExample = true;
+  } else if (!options.noInteractive) {
+    try {
+      const { select } = await import("@inquirer/prompts");
+      useExample = (await select({
+        message: "Start from:",
+        choices: [
+          { value: false, name: "Clean template (default)" },
+          { value: true, name: "Example from the repo" },
+        ],
+        default: false,
+      })) as boolean;
+    } catch (err) {
+      const { ExitPromptError } = await import("@inquirer/core");
+      if (err instanceof ExitPromptError) process.exit(0);
+      throw err;
+    }
+  } else {
+    useExample = false;
+  }
+
   const args = await resolveArgs(
     {
       name: options.name
@@ -29,11 +56,37 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
             prompt: { type: "input", message: "Project name?" },
             required: true,
           },
+      ...(useExample
+        ? {
+            example: options.example
+              ? { value: options.example }
+              : {
+                  prompt: {
+                    type: "select",
+                    message: "Which example?",
+                    choices: KNOWN_EXAMPLES.map((e) => ({ value: e })),
+                  },
+                  required: true as const,
+                },
+          }
+        : {}),
     },
     !options.noInteractive,
   );
 
-  const { name } = args as { name: string };
+  const { name } = args as { name: string; example?: string };
+  const resolvedExample = useExample ? (args as { example: string }).example : undefined;
+
+  if (
+    resolvedExample &&
+    !KNOWN_EXAMPLES.includes(resolvedExample as (typeof KNOWN_EXAMPLES)[number])
+  ) {
+    console.error(
+      `Error: Unknown example "${resolvedExample}".\n\nAvailable examples:\n${KNOWN_EXAMPLES.map((e) => `  ${e}`).join("\n")}`,
+    );
+    process.exit(1);
+  }
+
   const targetDir = path.resolve(process.cwd(), name);
 
   if (fs.existsSync(targetDir)) {
@@ -43,39 +96,45 @@ export async function runCreateChatApp(options: CreateChatAppOptions): Promise<v
 
   const runner = detectPackageManager();
 
-  const templateDir = path.join(__dirname, "..", "templates", "openui-chat");
-  if (!fs.existsSync(templateDir)) {
-    console.error("Error: Template not found. Please rebuild the CLI with `pnpm build`.");
-    process.exit(1);
+  if (resolvedExample) {
+    await fetchExample(resolvedExample, targetDir);
+  } else {
+    const templateDir = path.join(__dirname, "..", "templates", "openui-chat");
+    if (!fs.existsSync(templateDir)) {
+      console.error("Error: Template not found. Please rebuild the CLI with `pnpm build`.");
+      process.exit(1);
+    }
+
+    console.info(`\nScaffolding OpenUI Chat app into "${name}"...\n`);
+
+    const nestedTemplateDir = path.join(templateDir, "openui-chat");
+    if (fs.existsSync(nestedTemplateDir)) {
+      console.warn("Warning: Ignoring nested template directory left by a previous CLI build.");
+    }
+
+    fs.cpSync(templateDir, targetDir, {
+      recursive: true,
+      filter: (src) => shouldCopyTemplatePath(templateDir, src),
+    });
   }
-
-  console.info(`\nScaffolding OpenUI Chat app into "${name}"...\n`);
-
-  const nestedTemplateDir = path.join(templateDir, "openui-chat");
-  if (fs.existsSync(nestedTemplateDir)) {
-    console.warn("Warning: Ignoring nested template directory left by a previous CLI build.");
-  }
-
-  fs.cpSync(templateDir, targetDir, {
-    recursive: true,
-    filter: (src) => shouldCopyTemplatePath(templateDir, src),
-  });
 
   const pkgPath = path.join(targetDir, "package.json");
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as {
-    name: string;
-    dependencies?: Record<string, string>;
-    devDependencies?: Record<string, string>;
-  };
-  pkg.name = name;
-  for (const section of ["dependencies", "devDependencies"] as const) {
-    for (const key of Object.keys(pkg[section] ?? {})) {
-      if (pkg[section]![key] === "workspace:*") {
-        pkg[section]![key] = "latest";
+  if (fs.existsSync(pkgPath)) {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as {
+      name: string;
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    pkg.name = name;
+    for (const section of ["dependencies", "devDependencies"] as const) {
+      for (const key of Object.keys(pkg[section] ?? {})) {
+        if (pkg[section]![key] === "workspace:*") {
+          pkg[section]![key] = "latest";
+        }
       }
     }
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
   }
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 
   const installCmd =
     runner === "pnpm dlx"

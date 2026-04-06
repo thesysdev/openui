@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/cli",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "CLI for OpenUI — scaffold generative UI chat apps and generate LLM system prompts from component libraries",
   "bin": {
     "openui": "dist/index.js"
@@ -12,7 +12,8 @@
   "scripts": {
     "build:cli": "tsc -p .",
     "build:templates": "rm -rf dist/templates/openui-chat && mkdir -p dist/templates && cp -R src/templates/openui-chat dist/templates/openui-chat",
-    "build": "pnpm run build:cli && pnpm run build:templates",
+    "build:examples-list": "node scripts/gen-examples-list.mjs",
+    "build": "pnpm run build:examples-list && pnpm run build:cli && pnpm run build:templates",
     "build:exec": "node dist/index.js",
     "lint:check": "eslint ./src --ignore-pattern 'src/templates/**'",
     "lint:fix": "eslint ./src --fix --ignore-pattern 'src/templates/**'",
@@ -22,7 +23,8 @@
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "devDependencies": {
-    "@types/node": "^22.15.32"
+    "@types/node": "^22.15.32",
+    "@types/tar": "^7.0.87"
   },
   "keywords": [
     "openui",
@@ -52,6 +54,7 @@
     "@inquirer/core": "^11.1.5",
     "@inquirer/prompts": "^8.3.0",
     "commander": "^14.0.3",
-    "esbuild": "^0.25.10"
+    "esbuild": "^0.25.10",
+    "tar": "^7.5.13"
   }
 }

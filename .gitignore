@@ -37,6 +37,7 @@ dist
 .svelte-kit
 *.tsbuildinfo
 typings
+packages/openui-cli/src/generated/
 
 # Logs
 *storybook.log
