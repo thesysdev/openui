@@ -348,8 +348,7 @@ export const Messages = ({
               allMessages={messages}
               assistantMessage={assistantMessage}
               userMessage={userMessage}
-              isStreaming={isRunning && i === messages.length - 1} // TODO: This is a hack to determine if the message is the last one in the stream, need to adstruct this
-              // is streaming should be a boolean prop on the message object or some thing else ask @abhithesys
+              isStreaming={isRunning && i === messages.length - 1}
             />
           </MessageProvider>
         );
