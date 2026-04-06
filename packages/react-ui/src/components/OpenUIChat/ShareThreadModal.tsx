@@ -59,6 +59,7 @@ export const ShareThreadModal = forwardRef<HTMLDivElement, ShareThreadModalProps
         setGeneratedLink(link);
       } catch (_error) {
         // Consumer handles errors in their generateLink callback
+        console.error(_error);
       } finally {
         setIsLoading(false);
       }
