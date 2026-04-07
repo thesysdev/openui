@@ -15,7 +15,7 @@ export function ChatHeader({ isSidebarOpen, onToggleSidebar }: ChatHeaderProps) 
           <Sparkles size={14} className="text-white" />
         </div>
         <div className="flex flex-col items-start">
-        <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Vercel AI Chat</h1>
+        <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Multi Agent Chat</h1>
         <span className="text-xs text-zinc-400 dark:text-zinc-500">
           Vercel AI SDK + OpenUI Renderer
         </span>

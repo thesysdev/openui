@@ -1,15 +1,25 @@
 import { Sparkles } from "lucide-react";
 
 const STARTERS = [
-  { displayText: "Weather in Tokyo", prompt: "What's the weather like in Tokyo right now?" },
-  { displayText: "AAPL stock price", prompt: "What's the current Apple stock price?" },
   {
-    displayText: "Contact form",
-    prompt: "Build me a contact form with name, email, topic, and message fields.",
+    displayText: "Sales dashboard",
+    prompt:
+      "Use the analytics subagent to render a sales dashboard with a bar chart of monthly revenue for Jan–Jun (Jan: $12k, Feb: $15k, Mar: $11k, Apr: $18k, May: $22k, Jun: $19k) and a total revenue summary card.",
   },
   {
-    displayText: "Data table",
-    prompt: "Show me a table of the top 5 programming languages by popularity with year created.",
+    displayText: "User signup form",
+    prompt:
+      "Use the analytics subagent to render a user signup form with fields for full name, email, password, and a role selector dropdown with options: Admin, Editor, Viewer.",
+  },
+  {
+    displayText: "Expense tracker",
+    prompt:
+      "Use the analytics subagent to render a pie chart breaking down monthly expenses: Rent $1200, Food $450, Transport $150, Entertainment $200, Utilities $180.",
+  },
+  {
+    displayText: "Team directory",
+    prompt:
+      "Use the analytics subagent to render a team directory table with 5 members showing name, role, department, and status (active/away). Use sample data.",
   },
 ];
 
@@ -23,8 +33,8 @@ export function ConversationStarters({ onSelect }: { onSelect: (prompt: string) 
         What can I help you with?
       </h2>
       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 text-center max-w-md">
-        Ask me anything — I can check weather, look up stocks, do math, search the web, and build
-        interactive UI.
+        Ask me anything — I can build charts, dashboards, forms, tables, and interactive UI powered
+        by OpenUI.
       </p>
       <div className="grid grid-cols-2 gap-2 w-full max-w-md">
         {STARTERS.map((s) => (

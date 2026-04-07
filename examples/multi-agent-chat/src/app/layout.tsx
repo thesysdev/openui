@@ -3,7 +3,7 @@ import { ThemeProvider } from "@/hooks/use-system-theme";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Vercel AI Chat",
+  title: "Multi Agent Chat",
   description: "Generative UI Chat with Vercel AI SDK + OpenUI Renderer",
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { UIMessage } from "ai";
 import {
   getThreads,
@@ -13,9 +13,13 @@ import {
 } from "@/lib/thread-store";
 
 export function useThreads() {
-  const [threads, setThreads] = useState<Thread[]>(() => getThreads());
+  const [threads, setThreads] = useState<Thread[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string>(() => generateId());
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    setThreads(getThreads());
+  }, []);
 
   const refreshThreads = useCallback(() => {
     setThreads(getThreads());
@@ -33,9 +37,8 @@ export function useThreads() {
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       });
-      refreshThreads();
     },
-    [activeThreadId, refreshThreads],
+    [activeThreadId],
   );
 
   const createThread = useCallback(() => {
@@ -66,6 +69,7 @@ export function useThreads() {
     sidebarOpen,
     setSidebarOpen,
     persistMessages,
+    refreshThreads,
     createThread,
     switchThread,
     deleteThread,

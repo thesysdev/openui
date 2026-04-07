@@ -26,6 +26,7 @@ export default function Page() {
     sidebarOpen,
     setSidebarOpen,
     persistMessages,
+    refreshThreads,
     createThread,
     switchThread,
     deleteThread,
@@ -38,12 +39,21 @@ export default function Page() {
 
   const isLoading = status === "submitted" || status === "streaming";
 
-  // Auto-save messages to localStorage
+  // Auto-save messages to localStorage (no state updates to avoid render loops)
   useEffect(() => {
     if (messages.length > 0) {
       persistMessages(messages);
     }
   }, [messages, persistMessages]);
+
+  // Refresh sidebar thread list only when streaming finishes
+  const prevStatusRef = useRef(status);
+  useEffect(() => {
+    if (prevStatusRef.current !== "ready" && status === "ready") {
+      refreshThreads();
+    }
+    prevStatusRef.current = status;
+  }, [status, refreshThreads]);
 
   useEffect(() => {
     if (scrollRef.current) {
