@@ -21,7 +21,7 @@
   max-width: 900px;
   flex-direction: column;
   align-items: center;
-  gap: var(--openui-space-s);
+  gap: var(--openui-space-2xl);
   text-align: center;
 }
 
@@ -29,7 +29,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--openui-space-s);
+  gap: var(--openui-space-m);
   margin: 0;
   color: var(--openui-text-neutral-primary);
   font-family: var(--openui-font-body);
@@ -50,6 +50,7 @@
 
 .gh-builder-inline-single {
   width: 100%;
+  justify-content: center;
 }
 
 .gh-inline-copy {
@@ -82,6 +83,41 @@
 
 .gh-inline-input-with-avatar {
   padding-left: var(--openui-space-s);
+}
+
+.gh-inline-chip {
+  display: inline-flex;
+  max-width: min(100%, 28rem);
+  align-items: center;
+  gap: var(--openui-space-s);
+  padding: var(--openui-space-xs) var(--openui-space-m);
+  border: 1px solid var(--openui-border-default);
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-highlight-subtle);
+}
+
+.gh-inline-chipLeading {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.gh-inline-chipLabel {
+  color: var(--openui-text-neutral-primary);
+  white-space: nowrap;
+}
+
+.gh-inline-chipClear {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--openui-text-neutral-secondary);
+  cursor: pointer;
 }
 
 .gh-inline-inputControl {
@@ -126,10 +162,72 @@
   color: var(--openui-text-neutral-tertiary);
 }
 
-.gh-inline-select-dropdown {
-  width: fit-content;
-  min-width: 0;
-  max-width: min(22ch, 48vw);
+.gh-step {
+  width: min(100%, 420px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--openui-space-m);
+}
+
+.gh-step-appear {
+  animation: gh-step-fade-in 220ms ease;
+}
+
+.gh-step-focus {
+  width: min(100%, 520px);
+}
+
+.gh-step-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--openui-space-xs);
+}
+
+.gh-step-title {
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--openui-font-body);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.gh-step-caption {
+  margin: 0;
+  color: var(--openui-text-neutral-secondary);
+  font: var(--openui-text-label-default-heavy);
+  letter-spacing: var(--openui-text-label-sm-heavy-letter-spacing);
+}
+
+.gh-inline-display {
+  display: inline-flex;
+  min-width: 6ch;
+  min-height: 1.4em;
+  align-items: center;
+  justify-content: center;
+  padding: var(--openui-space-xs) 0 var(--openui-space-s);
+  border-bottom: 1px solid var(--openui-border-interactive);
+  color: var(--openui-text-neutral-tertiary);
+  font-family: var(--openui-font-body);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.gh-inline-display-filled {
+  border-bottom-color: var(--openui-border-interactive-emphasis);
+  color: var(--openui-text-neutral-primary);
+}
+
+.gh-choiceList {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--openui-space-s);
 }
 
 .gh-error {
@@ -141,151 +239,109 @@
 
 .gh-reset-button:focus-visible,
 .gh-generate-button:focus-visible,
-.gh-inline-input-field:focus-visible,
-.gh-inline-selectButton:focus-visible,
-.gh-dropdownOption:focus-visible {
+.gh-inline-chipClear:focus-visible,
+.gh-choiceOption:focus-visible {
   outline: 2px solid var(--openui-border-accent);
   outline-offset: 3px;
 }
 
-.gh-inline-selectButton {
-  display: inline-flex;
-  width: fit-content;
-  max-width: 100%;
-  min-width: 0;
-  align-items: center;
-  justify-content: center;
-  gap: var(--openui-space-s);
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--openui-text-neutral-tertiary);
-  cursor: pointer;
-  font: inherit;
-  line-height: inherit;
-}
-
-.gh-inline-selectButton-filled {
-  color: var(--openui-text-neutral-primary);
-}
-
-.gh-inline-selectValue {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: var(--openui-space-s);
-  white-space: nowrap;
-}
-
-.gh-inline-selectLeading {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.gh-inline-selectText {
-  display: inline-flex;
-  min-width: 0;
-  align-items: baseline;
-  gap: var(--openui-space-xs);
-}
-
-.gh-inline-selectPlaceholder {
-  color: var(--openui-text-neutral-tertiary);
-}
-
-.gh-inline-selectLabel {
-  color: inherit;
-}
-
-.gh-inline-selectDescription {
-  color: var(--openui-text-neutral-tertiary);
-  font: var(--openui-text-body-sm);
-  letter-spacing: var(--openui-text-body-sm-letter-spacing);
-}
-
-.gh-inline-selectChevron {
-  flex-shrink: 0;
-  color: var(--openui-text-neutral-tertiary);
-  transition: transform 0.15s ease;
-}
-
-.gh-inline-selectChevron-open {
-  transform: rotate(180deg);
-}
-
-.gh-dropdownMenu {
-  position: absolute;
-  top: calc(100% + var(--openui-space-s));
-  left: 50%;
-  z-index: 20;
-  width: max-content;
-  min-width: min(360px, 88vw);
-  max-width: min(420px, 92vw);
-  padding: var(--openui-space-s);
-  border: 1px solid var(--openui-border-default);
-  border-radius: calc(var(--openui-radius-3xl) + 6px);
-  background: var(--openui-foreground);
-  box-shadow: var(--openui-shadow-xl);
-  transform: translateX(-50%);
-}
-
-.gh-dropdownOption {
+.gh-choiceOption {
+  position: relative;
   display: flex;
-  width: 100%;
+  width: min(100%, 24rem);
   align-items: center;
   justify-content: space-between;
   gap: var(--openui-space-s);
   padding: var(--openui-space-s) var(--openui-space-m);
-  border: none;
-  border-radius: var(--openui-radius-2xl);
-  background: transparent;
+  border: 1px solid var(--openui-border-default);
+  border-radius: calc(var(--openui-radius-3xl) + 6px);
+  background: var(--openui-foreground);
   color: var(--openui-text-neutral-primary);
   cursor: pointer;
   text-align: left;
-  transition: background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 
-.gh-dropdownOption:hover,
-.gh-dropdownOption-selected {
+.gh-choiceOption:hover,
+.gh-choiceOption-selected {
+  border-color: var(--openui-border-interactive-emphasis);
   background: var(--openui-highlight-subtle);
 }
 
-.gh-dropdownOptionContent {
+.gh-step-focus .gh-choiceOption {
+  width: min(90%, 360px);
+}
+
+.gh-choiceOptionLabelWrap {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.gh-choiceOptionPrimary {
   display: inline-flex;
   min-width: 0;
   align-items: center;
   gap: var(--openui-space-s);
 }
 
-.gh-dropdownOptionLeading {
+.gh-choiceOptionTrailing {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--openui-space-s);
+  margin-left: auto;
+}
+
+.gh-choiceOptionLeading {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
 }
 
-.gh-dropdownOptionCopy {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.gh-dropdownOptionLabel {
+.gh-choiceOptionLabel {
   color: var(--openui-text-neutral-primary);
   font: var(--openui-text-body-default-heavy);
   letter-spacing: var(--openui-text-body-default-heavy-letter-spacing);
+  text-align: center;
 }
 
-.gh-dropdownOptionDescription {
+.gh-choiceOptionDescription {
+  flex-shrink: 0;
   color: var(--openui-text-neutral-secondary);
   font: var(--openui-text-body-sm);
   letter-spacing: var(--openui-text-body-sm-letter-spacing);
+  text-align: right;
 }
 
-.gh-dropdownOptionCheck {
+.gh-choiceOption-developer {
+  justify-content: space-between;
+}
+
+.gh-choiceOption-developer .gh-choiceOptionLabel {
+  text-align: left;
+}
+
+.gh-choiceOption-focus {
+  justify-content: center;
+}
+
+.gh-choiceOption-focus .gh-choiceOptionPrimary {
+  margin: 0 auto;
+}
+
+.gh-choiceOption-focus .gh-choiceOptionCheck {
+  position: absolute;
+  right: var(--openui-space-m);
+}
+
+.gh-choiceOptionCheck {
   flex-shrink: 0;
   color: var(--openui-text-neutral-secondary);
 }
@@ -334,6 +390,18 @@
   border: 0;
 }
 
+@keyframes gh-step-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 900px) {
   .gh-builder-title {
     font-size: clamp(34px, 7vw, 48px);
@@ -343,8 +411,8 @@
     max-width: min(12ch, 36vw);
   }
 
-  .gh-inline-select-dropdown {
-    max-width: min(20ch, 60vw);
+  .gh-step-title {
+    font-size: clamp(34px, 7vw, 48px);
   }
 }
 
@@ -359,13 +427,20 @@
 
   .gh-builder-title {
     gap: var(--openui-space-xs);
-    font-size:28px;
+    font-size: 28px;
     line-height: 1.4;
     letter-spacing: -0.02em;
   }
 
+  .gh-step-title {
+    font-size: 28px;
+  }
+
+  .gh-inline-display {
+    font-size: 28px;
+  }
+
   .gh-builder-inline {
-    flex-direction: column;
     gap: var(--openui-space-xs);
   }
 
@@ -378,13 +453,13 @@
     max-width: min(12ch, 68vw);
   }
 
-  .gh-inline-select-dropdown {
-    max-width: min(18ch, 72vw);
+  .gh-inline-chip {
+    max-width: 100%;
   }
 
-  .gh-dropdownMenu {
-    min-width: min(280px, 82vw);
-    max-width: min(320px, 86vw);
+  .gh-step,
+  .gh-step-focus {
+    width: 100%;
   }
 
   .gh-start-actions {

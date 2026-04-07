@@ -70,7 +70,7 @@
 }
 
 .content-wrapper-home {
-  justify-content: center;
+  justify-content: flex-start;
   padding: 0;
   overflow: visible;
 }
