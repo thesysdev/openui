@@ -330,13 +330,8 @@ Example — remove chart: \`root = Stack([header, kpiRow, table])\` — chart is
 - If you are about to output more than 10 statements, reconsider — most edits need fewer`;
 }
 
-function streamingRules(
-  rootName: string,
-  flags: { supportsExpressions: boolean },
-): string {
-  const steps = [
-    `1. \`root = ${rootName}(...)\` — UI shell appears immediately`,
-  ];
+function streamingRules(rootName: string, flags: { supportsExpressions: boolean }): string {
+  const steps = [`1. \`root = ${rootName}(...)\` — UI shell appears immediately`];
   if (flags.supportsExpressions) {
     steps.push("2. $variable declarations — state ready for bindings");
     steps.push("3. Query statements — defaults resolve immediately so components render with data");
@@ -546,9 +541,8 @@ function generateComponentSignatures(
       `Props typed \`ActionExpression\` accept an Action([@steps...]) expression. See the Action section for available steps (${allSteps.join(", ")}).`,
     );
   }
-  const usesBindings = flags.bindings || Object.values(spec.components).some(
-    (c) => c.signature?.includes("$binding"),
-  );
+  const usesBindings =
+    flags.bindings || Object.values(spec.components).some((c) => c.signature?.includes("$binding"));
   if (usesBindings) {
     lines.push("Props marked `$binding<type>` accept a `$variable` reference for two-way binding.");
   }
@@ -600,8 +594,8 @@ export function generatePrompt(spec: PromptSpec): string {
   const supportsExpressions = toolCalls || bindings;
 
   // Detect component-level feature usage
-  const usesActionExpression = Object.values(spec.components).some(
-    (c) => c.signature?.includes("ActionExpression"),
+  const usesActionExpression = Object.values(spec.components).some((c) =>
+    c.signature?.includes("ActionExpression"),
   );
 
   const parts: string[] = [];
