@@ -15,7 +15,7 @@ export interface OpenUIContextValue {
   /**
    * Trigger an action. Accepts either:
    * - ActionPlan (v0.5): runs steps sequentially (Run, Set, ToAssistant, OpenUrl)
-   * - Legacy action config (v0.4): { type?: string, params?: Record<string, any> }
+   * - Legacy action config (v0.1): { type?: string, params?: Record<string, any> }
    * - Nothing: fires ContinueConversation with the label
    */
   triggerAction: (

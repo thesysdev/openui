@@ -283,11 +283,11 @@ export function useOpenUIState(
       const formPayload = getFormPayload(formName);
       const { onAction: handler } = propsRef.current;
 
-      // Legacy action config path (v0.4 compat) — { type?, params? }
+      // Legacy action config path (v0.1 compat) — { type?, params? }
       if (action && !("steps" in action)) {
         const actionType = action.type || BuiltinActionType.ContinueConversation;
         const params = { ...(action.params || {}) };
-        // v0.4 compat — url and context were top-level, not in params
+        // v0.1 compat — url and context were top-level, not in params
         if ((action as any).url) params.url = (action as any).url;
         if ((action as any).context) params.context = (action as any).context;
         handler?.({

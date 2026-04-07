@@ -5,6 +5,8 @@ description: Transform, filter, and aggregate data with @-prefixed built-in func
 
 Built-in functions start with `@` - this tells the LLM "this is a function, not a component."
 
+Built-ins are included in the system prompt when `toolCalls` or `bindings` is enabled. They are primarily used with `Query` results for data transformation, filtering, and aggregation.
+
 ## Aggregation
 
 | Function        | What it does    | Example                           |

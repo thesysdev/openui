@@ -330,7 +330,23 @@ Example — remove chart: \`root = Stack([header, kpiRow, table])\` — chart is
 - If you are about to output more than 10 statements, reconsider — most edits need fewer`;
 }
 
-function streamingRules(rootName: string): string {
+function streamingRules(
+  rootName: string,
+  flags: { supportsExpressions: boolean },
+): string {
+  const steps = [
+    `1. \`root = ${rootName}(...)\` — UI shell appears immediately`,
+  ];
+  if (flags.supportsExpressions) {
+    steps.push("2. $variable declarations — state ready for bindings");
+    steps.push("3. Query statements — defaults resolve immediately so components render with data");
+    steps.push("4. Component definitions — fill in with data already available");
+    steps.push("5. Data values — leaf content last");
+  } else {
+    steps.push("2. Component definitions — fill in as they stream");
+    steps.push("3. Data values — leaf content last");
+  }
+
   return `## Hoisting & Streaming (CRITICAL)
 
 openui-lang supports hoisting: a reference can be used BEFORE it is defined. The parser resolves all references after the full input is parsed.
@@ -338,11 +354,7 @@ openui-lang supports hoisting: a reference can be used BEFORE it is defined. The
 During streaming, the output is re-parsed on every chunk. Undefined references are temporarily unresolved and appear once their definitions stream in. This creates a progressive top-down reveal — structure first, then data fills in.
 
 **Recommended statement order for optimal streaming:**
-1. \`root = ${rootName}(...)\` — UI shell appears immediately
-2. $variable declarations — state ready for bindings
-3. Query statements — defaults resolve immediately so components render with data
-4. Component definitions — fill in with data already available
-5. Data values — leaf content last
+${steps.join("\n")}
 
 Always write the root = ${rootName}(...) statement first so the UI shell appears immediately, even before child data has streamed in.`;
 }
@@ -513,25 +525,36 @@ function renderToolsSection(tools: (string | ToolSpec)[]): string {
 
 // ─── Component signatures ───────────────────────────────────────────────────
 
-function generateComponentSignatures(spec: PromptSpec): string {
-  const toolCalls = spec.toolCalls ?? !!spec.tools?.length;
-  const bindings = spec.bindings ?? toolCalls;
-  const allSteps = [
-    toolCalls ? "@Run" : "",
-    "@ToAssistant",
-    "@OpenUrl",
-    bindings ? "@Set" : "",
-    bindings ? "@Reset" : "",
-  ].filter(Boolean);
-  const actionHint = `Props typed \`ActionExpression\` accept an Action([@steps...]) expression. See the Action section for available steps (${allSteps.join(", ")}).`;
-
+function generateComponentSignatures(
+  spec: PromptSpec,
+  flags: { toolCalls: boolean; bindings: boolean; usesActionExpression: boolean },
+): string {
   const lines = [
     "## Component Signatures",
     "",
     "Arguments marked with ? are optional. Sub-components can be inline or referenced; prefer references for better streaming.",
-    actionHint,
-    "Props marked `$binding<type>` accept a `$variable` reference for two-way binding.",
   ];
+  if (flags.usesActionExpression) {
+    const allSteps = [
+      flags.toolCalls ? "@Run" : "",
+      "@ToAssistant",
+      "@OpenUrl",
+      flags.bindings ? "@Set" : "",
+      flags.bindings ? "@Reset" : "",
+    ].filter(Boolean);
+    lines.push(
+      `Props typed \`ActionExpression\` accept an Action([@steps...]) expression. See the Action section for available steps (${allSteps.join(", ")}).`,
+    );
+  }
+  const usesBindings = flags.bindings || Object.values(spec.components).some(
+    (c) => c.signature?.includes("$binding"),
+  );
+  if (usesBindings) {
+    lines.push("Props marked `$binding<type>` accept a `$variable` reference for two-way binding.");
+  }
+
+  const formatSig = (comp: { signature: string; description?: string }) =>
+    comp.description ? `${comp.signature} — ${comp.description}` : comp.signature;
 
   if (spec.componentGroups?.length) {
     const grouped = new Set<string>();
@@ -542,7 +565,7 @@ function generateComponentSignatures(spec: PromptSpec): string {
         const comp = spec.components[name];
         if (!comp) continue;
         grouped.add(name);
-        lines.push(comp.description ? `${comp.signature} — ${comp.description}` : comp.signature);
+        lines.push(formatSig(comp));
       }
       if (group.notes?.length) {
         for (const note of group.notes) lines.push(note);
@@ -553,13 +576,13 @@ function generateComponentSignatures(spec: PromptSpec): string {
       lines.push("", "### Other");
       for (const name of ungrouped) {
         const comp = spec.components[name];
-        lines.push(comp.description ? `${comp.signature} — ${comp.description}` : comp.signature);
+        lines.push(formatSig(comp));
       }
     }
   } else {
     lines.push("");
     for (const [, comp] of Object.entries(spec.components)) {
-      lines.push(comp.description ? `${comp.signature} — ${comp.description}` : comp.signature);
+      lines.push(formatSig(comp));
     }
   }
   return lines.join("\n");
@@ -576,17 +599,24 @@ export function generatePrompt(spec: PromptSpec): string {
   const bindings = spec.bindings ?? toolCalls;
   const supportsExpressions = toolCalls || bindings;
 
+  // Detect component-level feature usage
+  const usesActionExpression = Object.values(spec.components).some(
+    (c) => c.signature?.includes("ActionExpression"),
+  );
+
   const parts: string[] = [];
 
   parts.push(spec.preamble ?? PREAMBLE);
   parts.push("");
   parts.push(syntaxRules(rootName, { supportsExpressions, bindings }));
   parts.push("");
-  parts.push(generateComponentSignatures(spec));
+  parts.push(generateComponentSignatures(spec, { toolCalls, bindings, usesActionExpression }));
 
-  // Built-in functions — always included
-  parts.push("");
-  parts.push(builtinFunctionsSection());
+  // Built-in functions — only when expressions are enabled (Query/reactive state)
+  if (supportsExpressions) {
+    parts.push("");
+    parts.push(builtinFunctionsSection());
+  }
 
   // Query + Mutation sections
   if (toolCalls) {
@@ -596,9 +626,11 @@ export function generatePrompt(spec: PromptSpec): string {
     parts.push(mutationSection());
   }
 
-  // Action section — always included (ToAssistant, OpenUrl always; @Run/@Set/@Reset gated)
-  parts.push("");
-  parts.push(actionSection({ toolCalls, bindings }));
+  // Action section — only when components use ActionExpression (v0.5 action syntax)
+  if (usesActionExpression) {
+    parts.push("");
+    parts.push(actionSection({ toolCalls, bindings }));
+  }
 
   // Interactive filters (needs both toolCalls and bindings)
   if (toolCalls && bindings) {
@@ -619,7 +651,7 @@ export function generatePrompt(spec: PromptSpec): string {
   }
 
   parts.push("");
-  parts.push(streamingRules(rootName));
+  parts.push(streamingRules(rootName, { supportsExpressions }));
 
   // Append both examples and toolExamples when both are present
   const allExamples = [...(spec.examples ?? []), ...(spec.toolExamples ?? [])];

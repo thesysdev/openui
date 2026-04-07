@@ -40,17 +40,21 @@ export const Button = defineComponent({
         disabled={isStreaming}
         onClick={() => {
           const action = props.action as ActionPlan | undefined;
+          const variant = (props.variant as string) || "primary";
 
-          // Validate form for primary buttons with mutation/ToAssistant steps
-          if (action?.steps && formValidation) {
-            const variant = (props.variant as string) || "primary";
-            if (variant === "primary") {
+          // Validate form for primary buttons before firing action
+          if (formValidation && variant === "primary") {
+            if (action?.steps) {
+              // v0.5 ActionPlan — validate if any step is ToAssistant or mutation
               const needsValidation = action.steps.some(
                 (s) =>
                   s.type === ACTION_STEPS.ToAssistant ||
                   (s.type === ACTION_STEPS.Run && s.refType === "mutation"),
               );
               if (needsValidation && !formValidation.validateForm()) return;
+            } else {
+              // v0.1 legacy or no action — always validate for primary buttons
+              if (!formValidation.validateForm()) return;
             }
           }
 

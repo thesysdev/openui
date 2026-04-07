@@ -82,7 +82,9 @@ interface PromptOptions {
   toolExamples?: string[];
   editMode?: boolean;
   inlineMode?: boolean;
+  /** Enable Query(), Mutation(), @Run, built-in functions. Default: true if tools provided. */
   toolCalls?: boolean;
+  /** Enable $variables, @Set, @Reset, built-in functions. Default: true if toolCalls. */
   bindings?: boolean;
 }
 ```

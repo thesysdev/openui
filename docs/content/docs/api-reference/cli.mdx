@@ -133,8 +133,17 @@ interface PromptOptions {
   preamble?: string;
   additionalRules?: string[];
   examples?: string[];
+  toolExamples?: string[];
+  editMode?: boolean;
+  inlineMode?: boolean;
+  /** Enable Query(), Mutation(), @Run, built-in functions. Default: true if tools provided. */
+  toolCalls?: boolean;
+  /** Enable $variables, @Set, @Reset, built-in functions. Default: true if toolCalls. */
+  bindings?: boolean;
 }
 ```
+
+Built-in functions (`@Count`, `@Filter`, `@Sort`, `@Each`, etc.) are included in the prompt only when `toolCalls` or `bindings` is enabled. For static UI examples without data fetching, they are omitted to keep the prompt focused.
 
 Pass this as a named export alongside your library to customise the generated system prompt without hard-coding it into `createLibrary`.
 
