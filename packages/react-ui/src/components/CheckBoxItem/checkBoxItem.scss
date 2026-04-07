@@ -25,6 +25,7 @@
   border: 1px solid cssUtils.$border-interactive;
   cursor: pointer;
   margin-top: cssUtils.$space-2xs;
+  background-color: transparent;
 
   &[data-state="checked"] {
     background-color: cssUtils.$interactive-accent-default;
