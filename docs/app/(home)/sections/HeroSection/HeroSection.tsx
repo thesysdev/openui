@@ -137,9 +137,7 @@ function DesktopHero() {
           <AnnouncementBanner />
           <h1 className={styles.desktopTitle}>OpenUI</h1>
           <p className={styles.desktopSubtitle}>
-            The Open Standard
-            <br />
-            for Generative UI
+            The Open Standard for Generative UI
           </p>
         </div>
 
@@ -171,9 +169,7 @@ function MobileHero({ theme }: { theme: HeroTheme }) {
 
           {/* Subtitle */}
           <p className={styles.mobileSubtitle}>
-            The Open Standard
-            <br />
-            for Generative UI
+            The Open Standard for Generative UI
           </p>
         </div>
       </div>

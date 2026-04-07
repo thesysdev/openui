@@ -2,6 +2,102 @@
   width: 100%;
 }
 
+/* ── Shared typography ── */
+
+.desktopTitle,
+.mobileTitle {
+  margin: 0;
+  font-family: "Inter Display", sans-serif;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--openui-text-neutral-primary);
+}
+
+.desktopTitle {
+  font-size: 10rem;
+  letter-spacing: -3px;
+}
+
+.mobileTitle {
+  text-align: center;
+  font-size: clamp(96px, 25vw, 120px);
+  letter-spacing: -2px;
+}
+
+.desktopSubtitle,
+.mobileSubtitle,
+.tagline {
+  margin: 0;
+  font-family: "Inter Display", sans-serif;
+  font-weight: 500;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.desktopSubtitle {
+  font-size: 1.75rem;
+  line-height: 1.25;
+  margin-top: 1.5rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.mobileSubtitle {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.tagline {
+  text-align: center;
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+.taglineBreak {
+  display: none;
+}
+
+/* ── Shared label typography ── */
+
+.npmDesktopLabel,
+.npmTickerText,
+.desktopPlaygroundButton,
+.mobilePlaygroundLabel {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5rem;
+}
+
+.desktopPlaygroundButton,
+.mobilePlaygroundLabel {
+  font-family: "Inter Display", sans-serif;
+}
+
+/* ── Shared inline-flex icon helper ── */
+
+.npmIconBadge,
+.heroBannerIcon,
+.mobileCtaArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.npmIconBadge {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-inverted-background);
+}
+
+.mobileCtaArrow {
+  color: currentColor;
+}
+
+/* ── NPM button ── */
+
 .npmButton {
   display: flex;
   height: 3rem;
@@ -16,32 +112,12 @@
   background: var(--openui-foreground);
   box-shadow: var(--openui-shadow-l);
   cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .npmButton:hover {
   transform: scale(0.99);
   box-shadow: none;
-}
-
-.desktopPlaygroundButton:hover {
-  background: var(--openui-highlight);
-}
-
-.npmDesktopLabel,
-.npmTickerText,
-.desktopPlaygroundButton,
-.mobilePlaygroundLabel {
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.5rem;
-}
-
-.desktopPlaygroundButton,
-.mobilePlaygroundLabel {
-  font-family: "Inter Display", sans-serif;
 }
 
 .npmDesktopLabel {
@@ -73,16 +149,7 @@
   color: var(--openui-text-neutral-primary);
 }
 
-.npmIconBadge {
-  display: flex;
-  height: 2rem;
-  width: 2rem;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: var(--openui-inverted-background);
-}
+/* ── CTA pill buttons (shared base) ── */
 
 .desktopPlaygroundButton,
 .mobilePlaygroundButton {
@@ -91,23 +158,24 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 999px;
+  padding-inline: 1.25rem;
+  border-radius: var(--openui-radius-full);
   text-decoration: none;
+  transition: background-color 0.2s ease;
 }
 
 .desktopPlaygroundButton {
-  padding-inline: 1.25rem;
   color: var(--openui-text-neutral-primary);
-  transition: background-color 0.2s ease;
+}
+
+.desktopPlaygroundButton:hover {
+  background: var(--openui-highlight);
 }
 
 .mobilePlaygroundButton {
   flex-shrink: 0;
-  padding-inline: 1.25rem;
-  border-radius: 100px;
   background: var(--openui-highlight-strong);
   color: var(--openui-text-neutral-primary);
-  transition: background-color 0.2s ease;
 }
 
 .mobilePlaygroundButton:hover {
@@ -119,86 +187,7 @@
   color: inherit;
 }
 
-.desktopHero {
-  display: none;
-}
-
-.desktopHeroInner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  max-width: 75rem;
-  margin-inline: auto;
-}
-
-.desktopHeroLockup {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 1rem;
-  width: 100%;
-  text-align: left;
-}
-
-.desktopCtaStack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.desktopTitle {
-  margin: 0;
-  font-family: "Inter Display", sans-serif;
-  font-size: 10rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -3px;
-  color: var(--openui-text-neutral-primary);
-}
-
-.desktopSubtitle {
-  margin: 0;
-  font-family: "Inter Display", sans-serif;
-  font-size: 1.75rem;
-  font-weight: 500;
-  line-height: 1.25;
-  margin-top: 1rem;
-  text-align: center;
-  color: var(--openui-text-neutral-secondary);
-}
-
-.mobileHero {
-  position: relative;
-  overflow: hidden;
-  padding-top: 2rem;
-}
-
-.mobileHeroIntro {
-  position: relative;
-  padding: 24px 1.25rem 0;
-}
-
-.mobileHeroStack {
-  display: flex;
-  width: 100%;
-  max-width: 345px;
-  margin-inline: auto;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.875rem;
-  padding: 1rem 0 0.5rem;
-}
-
-.mobileBrandGroup {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
+/* ── Hero banner ── */
 
 .heroBanner {
   display: inline-flex;
@@ -206,7 +195,7 @@
   justify-content: center;
   gap: 0.75rem;
   min-height: 2.75rem;
-  padding: 0.875rem 1rem 0.875rem 1rem;
+  padding: 0.875rem 1rem;
   border-radius: var(--openui-radius-full);
   background: var(--openui-highlight-strong);
   color: var(--openui-text-neutral-primary);
@@ -214,9 +203,13 @@
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5rem;
-  transition: background-color 0.2s ease;
   text-align: center;
   margin-bottom: 24px;
+  transition: background-color 0.2s ease;
+}
+
+.heroBanner:hover {
+  background: var(--openui-highlight-strong);
 }
 
 .heroBannerDesktop {
@@ -226,10 +219,6 @@
 .heroBannerMobile {
   display: inline-flex;
   text-decoration: none;
-}
-
-.heroBanner:hover {
-  background: var(--openui-highlight-strong);
 }
 
 .heroBannerLabel {
@@ -278,12 +267,11 @@
   font-weight: 500;
   line-height: 1.25rem;
   border: 1px solid var(--openui-border-default);
-  transition:
-    border-color 0.2s ease,
+  transition: border-color 0.2s ease;
 }
 
 .heroBannerButton:hover {
-  border: 1px solid var(--openui-border-interactive);
+  border-color: var(--openui-border-interactive);
 }
 
 .heroBannerButtonPrimary {
@@ -302,17 +290,12 @@
   min-width: 0;
 }
 
-.heroBannerIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
+/* ── Mobile GitHub button ── */
 
 .mobileGithubButton {
   min-height: 3rem;
   padding-inline: 1.25rem;
-  border-radius: 100px;
+  border-radius: var(--openui-radius-full);
   background: var(--openui-inverted-background);
   color: var(--openui-text-accent-primary);
   font-size: 18px;
@@ -324,30 +307,66 @@
   background: rgb(0 0 0 / 85%);
 }
 
-.mobileCtaArrow {
-  display: inline-flex;
+/* ── Desktop hero layout ── */
+
+.desktopHero {
+  display: none;
+}
+
+.desktopHeroInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+.desktopHeroLockup {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: currentColor;
-  flex-shrink: 0;
+  gap: 1rem;
+  width: 100%;
 }
 
-.mobileTitle {
-  text-align: center;
-  font-family: "Inter Display", sans-serif;
-  font-size: 80px;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--openui-text-neutral-primary);
+.desktopCtaStack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
-.mobileSubtitle {
-  text-align: center;
-  font-family: "Inter Display", sans-serif;
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 1.2;
-  color: var(--openui-text-neutral-secondary);
+/* ── Mobile hero layout ── */
+
+.mobileHero {
+  position: relative;
+  overflow: hidden;
+  padding-top: 2rem;
+}
+
+.mobileHeroIntro {
+  position: relative;
+  padding: 24px 1.25rem 0;
+}
+
+.mobileHeroStack {
+  display: flex;
+  width: 100%;
+  max-width: 345px;
+  margin-inline: auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem 0 0.5rem;
+}
+
+.mobileBrandGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .mobileCtaStack {
@@ -366,17 +385,28 @@
   justify-content: space-between;
 }
 
-.mobileIllustrationViewport {
+/* ── Illustration / preview ── */
+
+.mobileIllustrationViewport,
+.previewFrame {
   position: relative;
   width: 100%;
-  max-width: 402px;
   margin-inline: auto;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
 }
 
-.mobileIllustrationImage {
+.mobileIllustrationViewport {
+  max-width: 402px;
+}
+
+.previewFrame {
+  max-width: 75rem;
+}
+
+.mobileIllustrationImage,
+.previewImage {
   display: block;
   width: 100%;
   height: auto;
@@ -395,21 +425,7 @@
   justify-content: center;
 }
 
-.previewFrame {
-  position: relative;
-  width: 100%;
-  max-width: 75rem;
-  margin-inline: auto;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
-}
-
-.previewImage {
-  display: block;
-  width: 100%;
-  height: auto;
-}
+/* ── Tagline section ── */
 
 .taglineSection {
   margin-top: 1.25rem;
@@ -421,28 +437,22 @@
   margin-inline: auto;
 }
 
-.tagline {
-  text-align: center;
-  font-family: "Inter Display", sans-serif;
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--openui-text-neutral-secondary);
-}
-
-.taglineBreak {
-  display: none;
-}
+/* ── Animation ── */
 
 @keyframes npmTickerScroll {
-  0% {
-    transform: translateX(0);
-  }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
 
-  100% {
-    transform: translateX(-50%);
+/* ── Responsive: subtitle no-wrap on wider phones ── */
+
+@media (min-width: 480px) {
+  .mobileSubtitle {
+    white-space: nowrap;
   }
 }
+
+/* ── Responsive: desktop (≥1024px) ── */
 
 @media (min-width: 1024px) {
   .npmDesktopLabel {
@@ -459,11 +469,10 @@
     position: relative;
     width: 100%;
     overflow: hidden;
-    padding: 8rem 2rem 0rem 2rem;
+    padding: 8rem 2rem 0;
   }
 
   .heroBanner {
-    align-items: center;
     gap: 1.5rem;
     padding: 0.6rem 0.75rem 0.6rem 1rem;
   }
