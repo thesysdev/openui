@@ -217,11 +217,11 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
     case "Arr": {
       const items: unknown[] = [];
       for (const e of node.els) {
-        // Drop unresolved references from arrays to avoid null entries
+        // Drop unresolved placeholders from arrays
         if (e.k === "Ph") continue;
         const value = materializeValue(e, ctx);
-        // Drop invalid component entries (e.g. incomplete required props while streaming)
-        if (e.k === "Comp" && value === null) continue;
+        // Drop null entries from component/ref resolution (incomplete props, unresolved refs, unknown components)
+        if (value === null && (e.k === "Comp" || e.k === "Ref")) continue;
         items.push(value);
       }
       return items;
