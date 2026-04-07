@@ -1,0 +1,26 @@
+{
+  "name": "solid-chat",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "generate:prompt": "node scripts/generate-prompt.mjs"
+  },
+  "dependencies": {
+    "@ark-ui/solid": "^5.35.0",
+    "echarts": "^5.6.0",
+    "@openuidev/lang-core": "workspace:*",
+    "lucide-solid": "^0.542.0",
+    "@openuidev/solid-lang": "workspace:*",
+    "solid-js": "^1.9.9",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "jiti": "^2.6.1",
+    "typescript": "^5.9.2",
+    "vite": "^6.4.1",
+    "vite-plugin-solid": "^2.11.8"
+  }
+}
