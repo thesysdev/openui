@@ -265,10 +265,7 @@
     },
     {
       "name": "Tables",
-      "components": [
-        "Table",
-        "Col"
-      ],
+      "components": ["Table", "Col"],
       "notes": [
         "- Table is COLUMN-oriented: Table([Col(\"Label\", dataArray), Col(\"Count\", countArray, \"number\")]). Use array pluck for data: data.rows.fieldName",
         "- Col data can be component arrays for styled cells: Col(\"Status\", @Each(data.rows, \"item\", Tag(item.status, null, \"sm\", item.status == \"open\" ? \"success\" : \"danger\")))",
@@ -298,12 +295,7 @@
     },
     {
       "name": "Charts (1D)",
-      "components": [
-        "PieChart",
-        "RadialChart",
-        "SingleStackedBarChart",
-        "Slice"
-      ],
+      "components": ["PieChart", "RadialChart", "SingleStackedBarChart", "Slice"],
       "notes": [
         "- PieChart and BarChart need NUMBERS, not objects. For list data, use @Count(@Filter(...)) to aggregate:",
         "- PieChart from list: `PieChart([\"Low\", \"Med\", \"High\"], [@Count(@Filter(data.rows, \"priority\", \"==\", \"low\")), @Count(@Filter(data.rows, \"priority\", \"==\", \"medium\")), @Count(@Filter(data.rows, \"priority\", \"==\", \"high\"))], \"donut\")`",
@@ -312,11 +304,7 @@
     },
     {
       "name": "Charts (Scatter)",
-      "components": [
-        "ScatterChart",
-        "ScatterSeries",
-        "Point"
-      ]
+      "components": ["ScatterChart", "ScatterSeries", "Point"]
     },
     {
       "name": "Forms",
@@ -350,20 +338,14 @@
     },
     {
       "name": "Buttons",
-      "components": [
-        "Button",
-        "Buttons"
-      ],
+      "components": ["Button", "Buttons"],
       "notes": [
         "- Toggle in @Each: @Each(rows, \"t\", Button(t.status == \"open\" ? \"Close\" : \"Reopen\", Action([...])))"
       ]
     },
     {
       "name": "Data Display",
-      "components": [
-        "TagBlock",
-        "Tag"
-      ],
+      "components": ["TagBlock", "Tag"],
       "notes": [
         "- Color-mapped Tag: Tag(value, null, \"sm\", value == \"high\" ? \"danger\" : value == \"medium\" ? \"warning\" : \"neutral\")"
       ]
