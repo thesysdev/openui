@@ -17,15 +17,20 @@ Arguments marked with ? are optional. Sub-components can be inline or referenced
 Props typed `ActionExpression` accept an Action([@steps...]) expression. See the Action section for available steps (@ToAssistant, @OpenUrl).
 Props marked `$binding<type>` accept a `$variable` reference for two-way binding.
 
-TextContent(text: string, tone?: "normal" | "muted" | "strong") — Displays a block of text.
-Button(label: string, action?: string, variant?: "primary" | "secondary" | "ghost") — A clickable button.
+TextContent(text: string, tone?: "normal" | "muted" | "strong" | "success" | "warning" | "danger" | "info") — Displays a block of text.
+Button(label: string, action?: string | {type: "open_url", url: string} | {type: "continue_conversation", context?: string}, variant?: "primary" | "secondary" | "ghost") — A clickable button.
 Chart(title: string, type: "bar" | "line" | "pie" | "doughnut", labels: string[], values: number[], datasetLabel?: string) — Renders a chart.
 Badge(label: string, tone?: "neutral" | "success" | "warning" | "danger" | "info") — Small status pill.
 KpiTile(label: string, value: string, delta?: string, trend?: "up" | "down" | "neutral") — Compact KPI tile with value and trend.
 MetricList(title: string, items: {label: string, value: string}[]) — Two-column labeled metric list.
 Timeline(title: string, items: {title: string, detail: string, status?: "done" | "active" | "next"}[]) — Progress timeline with status dots.
-Card(title: string, children: (TextContent | Button | Chart | Badge | KpiTile | MetricList | Timeline)[], subtitle?: string, variant?: "default" | "glass" | "accent", highlight?: string) — Card container with title and children.
-Stack(children: (Card | TextContent | Button | Chart | Badge | KpiTile | MetricList | Timeline)[]) — Dashboard layout container. Use as root.
+InputField(label: string, placeholder?: string, value?: string, type?: "text" | "email" | "password" | "number" | "url") — Single-line text input with label.
+TextAreaField(label: string, placeholder?: string, value?: string, rows?: number) — Multi-line text input with label.
+SelectField(label: string, options: string[], selected?: string) — Dropdown-style field with selectable options.
+ToggleField(label: string, checked?: boolean) — On/off setting toggle with label.
+Divider(label?: string) — Visual divider line with optional label.
+Card(title: string, children: (TextContent | Button | Chart | Badge | KpiTile | MetricList | Timeline | InputField | TextAreaField | SelectField | ToggleField | Divider)[], subtitle?: string, variant?: "default" | "glass" | "accent", highlight?: string) — Card container with title and children.
+Stack(children: (Card | TextContent | Button | Chart | Badge | KpiTile | MetricList | Timeline | InputField | TextAreaField | SelectField | ToggleField | Divider)[]) — Dashboard layout container. Use as root.
 
 ## Built-in Functions
 
@@ -88,22 +93,19 @@ Always write the root = Stack(...) statement first so the UI shell appears immed
 
 ## Examples
 
-User: Build a SaaS KPI dashboard
+User: Build a weekly product status view
 
-root = Stack([title, healthy, m1, m2, m3, m4, mainCard, action1, action2])
-title = TextContent("Q2 Growth Pulse", "strong")
-healthy = Badge("Healthy", "success")
-m1 = KpiTile("MRR", "$128.4k", "+8.2% MoM", "up")
-m2 = KpiTile("New Users", "1,248", "+12.6% WoW", "up")
-m3 = KpiTile("Churn", "2.4%", "-0.3pp", "up")
-m4 = KpiTile("NPS", "47", "+2", "up")
-trend = Chart("Revenue Trend", "line", ["Jan", "Feb", "Mar", "Apr", "May"], [92, 98, 107, 119, 128], "$k")
-mix = Chart("Traffic Sources", "pie", ["Organic", "Paid", "Referral", "Social"], [44, 28, 18, 10], "%")
-ops = MetricList("Ops Snapshot", [{"label":"Avg response", "value":"4.9h"}, {"label":"Backlog", "value":"31"}])
-flow = Timeline("Delivery Steps", [{"title":"Design", "detail":"Completed", "status":"done"}, {"title":"Dev", "detail":"In progress", "status":"active"}, {"title":"Launch", "detail":"Planned", "status":"next"}])
-mainCard = Card("Executive Dashboard", [trend, mix, ops, flow], "Weekly status and channel mix", "glass", "Live")
-action1 = Button("Show risk drivers", "continue-conversation", "primary")
-action2 = Button("Compare with previous quarter", "continue-conversation", "ghost")
+root = Stack([title, summary, panel, action])
+title = TextContent("Product Delivery Overview", "strong")
+summary = TextContent("Current sprint highlights, blockers, and next actions.", "muted")
+state = Badge("On Track", "success")
+velocity = Chart("Story Points", "bar", ["W1", "W2", "W3", "W4"], [28, 31, 35, 33], "pts")
+burn = Chart("Defect Trend", "line", ["W1", "W2", "W3", "W4"], [14, 11, 9, 7], "count")
+metrics = MetricList("Team Metrics", [{"label":"Cycle time", "value":"3.2d"}, {"label":"PR review", "value":"6.8h"}, {"label":"Escaped bugs", "value":"2"}])
+steps = Timeline("Release Steps", [{"title":"Scope lock", "detail":"Done", "status":"done"}, {"title":"UAT", "detail":"In progress", "status":"active"}, {"title":"Launch", "detail":"Scheduled Friday", "status":"next"}])
+panel = Card("Delivery Health", [state, velocity, burn, metrics, steps], "Sprint 18 status", "glass", "Updated")
+action = Button("Generate rollback checklist", "continue-conversation", "primary")
+
 
 ## Important Rules
 - When asked about data, generate realistic/plausible data
@@ -115,12 +117,20 @@ Before finishing, walk your output and verify:
 2. Every referenced name is defined. Every defined name (other than root) is reachable from root.
 
 - Always use Stack as the root component.
+- The FIRST line must be exactly a root assignment: root = Stack(...).
+- Do not output any statement before root = Stack(...).
 - Use Stack only as root. Never place Stack inside Card children.
 - Output openui-lang code only. No markdown fences, no explanations, no think blocks.
 - All visible text must be English.
+- Start directly with openui-lang code. Do not add preface text.
+- Keep syntax valid while streaming: no TODO bullets, no pseudo-code, no planning sections.
+- Match the requested UI type; do not force dashboard layouts for every request.
 - Use references for readability and better streaming behavior.
-- For dashboards, include at least four KpiTile components and at least two charts.
-- Prefer Card with subtitle and highlight for richer hierarchy.
-- Use Badge, MetricList, and Timeline when relevant instead of plain text-only layouts.
+- Prefer Card subtitle/highlight only when it improves hierarchy.
+- Use Badge, MetricList, Timeline, Chart, and KpiTile when relevant.
+- Use InputField, TextAreaField, SelectField, ToggleField, and Divider for form or settings UIs.
+- Use state bindings in forms when needed (e.g. InputField("Email", "name@example.com", $email, "email")).
+- Button action supports both simple action type strings and structured action objects.
 - Use positional arguments only.
+- Prefer inline composition in Stack/Card to reduce forward-reference errors.
 - Never output reasoning or markdown.

@@ -45,10 +45,15 @@ OPENAI_API_KEY=sk-...
 - OpenUI components live in `src/components` and are registered in `src/lib/library.tsx`.
 - Chat input uses `@ark-ui/solid` (`Field`).
 - The `Chart` component uses `echarts` (bar/line/pie/doughnut).
+- Form-like rendering components are also available: `InputField`, `TextAreaField`, `SelectField`, `ToggleField`, and `Divider`.
+- Form fields support `$state` binding (for example, `InputField("Email", "name@example.com", $email, "email")`) and will write values back into renderer form state.
+- `Button` supports both simple action type strings and structured action objects from `Action(...)` expressions.
 - The system prompt is generated into `examples/solid-chat/generated/system-prompt.txt` for easier review and iteration.
 
-## Example Dashboard Prompts
+## Example Prompts
 
 - `Build a weekly SaaS business dashboard with KPIs, revenue trend, and channel mix charts`
 - `Create a support operations dashboard with ticket volume, SLA trend, and follow-up actions`
-- `Create a Q1 executive dashboard with 3 metric cards and 2 charts`
+- `Build a release readiness view with milestones, blockers, and next actions`
+- `Create an onboarding status page with progress timeline and action buttons`
+- `Create an account settings form with profile inputs, notification toggles, and save actions`

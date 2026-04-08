@@ -51,7 +51,13 @@ export default defineConfig(({ mode }) => {
                     { role: "system", content: SYSTEM_PROMPT },
                     { role: "user", content: message },
                   ],
-                  temperature: 0.2,
+                  temperature: 0.5,
+                  top_p: 0.9,
+                  presence_penalty: 0.1,
+                  seed: 642832912,
+                  chat_template_kwargs: {
+                    enable_thinking: false,
+                  },
                   stream: true,
                 }),
               });
@@ -108,12 +114,25 @@ export default defineConfig(({ mode }) => {
                     try {
                       const parsed = JSON.parse(payload) as {
                         choices?: Array<{
-                          delta?: { content?: string; reasoning_content?: string };
+                          delta?: {
+                            content?: string;
+                            reasoning_content?: string;
+                            reasoning?: string;
+                          };
                         }>;
                       };
+                      const thinkingDelta =
+                        parsed.choices?.[0]?.delta?.reasoning_content ??
+                        parsed.choices?.[0]?.delta?.reasoning ??
+                        "";
+                      if (thinkingDelta) {
+                        res.write(`data: ${JSON.stringify({ thinkingDelta })}\n\n`);
+                      }
+
                       const delta = parsed.choices?.[0]?.delta?.content ?? "";
-                      if (!delta) continue;
-                      res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+                      if (delta) {
+                        res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+                      }
                     } catch {
                       res.write(`data: ${JSON.stringify({ delta: payload })}\n\n`);
                     }

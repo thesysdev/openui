@@ -22,6 +22,11 @@ export function Stack(props: { props: StackProps; renderNode: (value: unknown) =
     KpiTile: "span 3",
     MetricList: "span 6",
     Timeline: "span 6",
+    InputField: "span 6",
+    TextAreaField: "span 6",
+    SelectField: "span 4",
+    ToggleField: "span 4",
+    Divider: "1 / -1",
     Badge: "span 2",
     Button: "span 3",
   };
