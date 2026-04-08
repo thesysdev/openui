@@ -45,8 +45,14 @@
       "default": "./dist/styles/cssUtils.scss"
     },
     "./*": {
-      "types": "./dist/components/*/index.d.ts",
-      "default": "./dist/components/*/index.js"
+      "import": {
+        "types": "./dist/components/*/index.d.ts",
+        "default": "./dist/components/*/index.js"
+      },
+      "require": {
+        "types": "./dist/components/*/index.d.ts",
+        "default": "./dist/components/*/index.cjs"
+      }
     }
   },
   "sideEffects": [
