@@ -38,11 +38,9 @@
     "prepare": "pnpm run build",
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
-  "dependencies": {
-    "zod": "^4.0.0"
-  },
   "peerDependencies": {
-    "@modelcontextprotocol/sdk": ">=1.0.0"
+    "@modelcontextprotocol/sdk": ">=1.0.0",
+    "zod": "^4.0.0"
   },
   "peerDependenciesMeta": {
     "@modelcontextprotocol/sdk": {

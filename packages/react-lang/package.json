@@ -65,12 +65,12 @@
   },
   "author": "engineering@thesys.dev",
   "dependencies": {
-    "@openuidev/lang-core": "workspace:^",
-    "zod": "^4.0.0"
+    "@openuidev/lang-core": "workspace:^"
   },
   "peerDependencies": {
     "@modelcontextprotocol/sdk": ">=1.0.0",
-    "react": ">=19.0.0"
+    "react": ">=19.0.0",
+    "zod": "^4.0.0"
   },
   "peerDependenciesMeta": {
     "@modelcontextprotocol/sdk": {

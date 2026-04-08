@@ -86,7 +86,8 @@
     "@openuidev/react-lang": "workspace:^",
     "react": ">=19.0.0",
     "react-dom": ">=19.0.0",
-    "zustand": "^4.5.5"
+    "zustand": "^4.5.5",
+    "zod": "^4.3.6"
   },
   "dependencies": {
     "@floating-ui/react-dom": "^2.1.2",
@@ -117,8 +118,7 @@
     "remark-emoji": "^5.0.1",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
-    "tiny-invariant": "^1.3.3",
-    "zod": "^4.3.6"
+    "tiny-invariant": "^1.3.3"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.4",
