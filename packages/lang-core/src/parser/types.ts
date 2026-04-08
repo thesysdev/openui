@@ -72,7 +72,8 @@ export type ValidationErrorCode =
   | "missing-required"
   | "null-required"
   | "unknown-component"
-  | "inline-reserved";
+  | "inline-reserved"
+  | "excess-args";
 
 /**
  * A prop validation error. Components with missing required props are
@@ -231,6 +232,8 @@ export interface ParseResult {
     incomplete: boolean;
     /** Names of references used but not yet defined (dropped as null in output). */
     unresolved: string[];
+    /** Names of value statements defined but not reachable from root. Excludes $state, Query, and Mutation declarations. */
+    orphaned: string[];
     /** Total number of `identifier = Expression` statements parsed. */
     statementCount: number;
     /**

@@ -31,6 +31,8 @@ export interface MaterializeCtx {
   partial: boolean;
   /** Tracks which statement is currently being materialized (for error attribution). */
   currentStatementId?: string;
+  /** Statement IDs not yet reached — delete as they're touched. Remaining = orphaned. */
+  unreached?: Set<string>;
 }
 
 /**
@@ -47,6 +49,7 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
     return mode === "expr" ? { k: "Ph", n: name } : null;
   }
   const target = ctx.syms.get(name)!;
+  ctx.unreached?.delete(name);
   // Query/Mutation declarations → RuntimeRef (resolved at runtime by evaluator)
   if (target.k === "Comp" && isReservedCall(target.name)) {
     const refType =
@@ -262,6 +265,18 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
         // Catalog component: map positional args → named props
         for (let i = 0; i < def.params.length && i < args.length; i++) {
           props[def.params[i].name] = materializeValue(args[i], ctx);
+        }
+
+        // Report excess positional args (extra args are silently dropped)
+        if (args.length > def.params.length) {
+          const excessCount = args.length - def.params.length;
+          ctx.errors.push({
+            code: "excess-args",
+            component: name,
+            path: "",
+            message: `${name} takes ${def.params.length} arg(s), got ${args.length} (${excessCount} excess dropped)`,
+            statementId: ctx.currentStatementId,
+          });
         }
 
         // Validate required props — try defaultValue first before dropping
