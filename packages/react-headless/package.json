@@ -35,6 +35,7 @@
     "check:publint": "publint",
     "check:attw": "attw --pack .",
     "prepare": "pnpm run build",
+    "prepublishOnly": "pnpm run check:publint && pnpm run check:attw",
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "peerDependencies": {

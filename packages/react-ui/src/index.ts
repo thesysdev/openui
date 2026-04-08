@@ -65,12 +65,12 @@ export * from "./components/TextArea";
 export * from "./components/TextCallout";
 export * from "./components/TextContent";
 export {
-  Theme,
   ThemeProvider,
   createTheme,
   defaultDarkTheme,
   defaultLightTheme,
   swatchTokens,
+  type Theme,
 } from "./components/ThemeProvider";
 export type { ThemeProps } from "./components/ThemeProvider/ThemeProvider";
 export type { ThemeMode } from "./components/ThemeProvider/types";
