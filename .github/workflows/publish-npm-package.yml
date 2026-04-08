@@ -18,6 +18,7 @@ on:
           - react-email
           - openui-cli
           - svelte-lang
+          - solid-lang
           - vue-lang
 
 jobs:
