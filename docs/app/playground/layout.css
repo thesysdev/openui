@@ -58,7 +58,11 @@
   --scrollbar-thumb: var(--openui-text-neutral-tertiary);
   --font-sans: var(--openui-font-body);
   --font-mono: var(--openui-font-code);
-  --playground-focus-ring: color-mix(in srgb, var(--openui-border-accent-emphasis) 24%, transparent);
+  --playground-focus-ring: color-mix(
+    in srgb,
+    var(--openui-border-accent-emphasis) 24%,
+    transparent
+  );
   --playground-success-tint: color-mix(in srgb, var(--openui-success-background) 16%, transparent);
   --playground-success-border: color-mix(
     in srgb,

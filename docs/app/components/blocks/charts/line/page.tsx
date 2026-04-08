@@ -2,7 +2,7 @@
 
 import ClientOnly from "@components/blocks/_components/ClientOnly";
 import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
-import { LineChartCondensed, LineChart } from "@openuidev/react-ui";
+import { LineChart, LineChartCondensed } from "@openuidev/react-ui";
 
 const lineData = [
   { month: "Jan", desktop: 150, mobile: 90 },

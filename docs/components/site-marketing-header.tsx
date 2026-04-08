@@ -3,9 +3,9 @@
 import {
   GitHubIcon,
   GitHubStarButton,
-  type LogoVariant,
   StarCountBadge,
   useGitHubStarCount,
+  type LogoVariant,
 } from "@/components/brand-logo";
 import { SiteHeaderFrame } from "@/components/site-header";
 import { PRIMARY_SITE_NAV_ITEMS, SitePrimaryNav } from "@/components/site-primary-nav";

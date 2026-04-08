@@ -117,34 +117,6 @@ Tag(text: string, icon?: string, size?: "sm" | "md" | "lg", variant?: "neutral" 
 ### Other
 Card(children: (TextContent | MarkDownRenderer | CardHeader | Callout | TextCallout | CodeBlock | Image | ImageBlock | ImageGallery | Separator | HorizontalBarChart | RadarChart | PieChart | RadialChart | SingleStackedBarChart | ScatterChart | AreaChart | BarChart | LineChart | Table | TagBlock | Form | Buttons | Steps | ListBlock | FollowUpBlock | SectionBlock | Tabs | Carousel)[]) — Vertical container for all content in a chat response. Children stack top to bottom automatically.
 
-## Built-in Functions
-
-Data functions prefixed with `@` to distinguish from components. These are the ONLY functions available — do NOT invent new ones.
-Use @-prefixed built-in functions (@Count, @Sum, @Avg, @Min, @Max, @Round) on Query results — do NOT hardcode computed values.
-
-@Count(array) → number — Returns array length
-@First(array) → element — Returns first element of array
-@Last(array) → element — Returns last element of array
-@Sum(numbers[]) → number — Sum of numeric array
-@Avg(numbers[]) → number — Average of numeric array
-@Min(numbers[]) → number — Minimum value in array
-@Max(numbers[]) → number — Maximum value in array
-@Sort(array, field, direction?) → sorted array — Sort array by field. Direction: "asc" (default) or "desc"
-@Filter(array, field, operator: "==" | "!=" | ">" | "<" | ">=" | "<=" | "contains", value) → filtered array — Filter array by field value
-@Round(number, decimals?) → number — Round to N decimal places (default 0)
-@Abs(number) → number — Absolute value
-@Floor(number) → number — Round down to nearest integer
-@Ceil(number) → number — Round up to nearest integer
-@Each(array, varName, template) — Evaluate template for each element. varName is the loop variable — use it ONLY inside the template expression (inline). Do NOT create a separate statement for the template.
-
-Builtins compose — output of one is input to the next:
-`@Count(@Filter(data.rows, "field", "==", "val"))` for KPIs/chart values, `@Round(@Avg(data.rows.score), 1)`, `@Each(data.rows, "item", Comp(item.field))` for per-item rendering.
-Array pluck: `data.rows.field` extracts a field from every row → use with @Sum, @Avg, charts, tables.
-
-IMPORTANT @Each rule: The loop variable (e.g. "item") is ONLY available inside the @Each template expression. Always inline the template — do NOT extract it to a separate statement.
-CORRECT: `Col("Actions", @Each(rows, "t", Button("Edit", Action([@Set($id, t.id)]))))`
-WRONG: `myBtn = Button("Edit", Action([@Set($id, t.id)]))` then `Col("Actions", @Each(rows, "t", myBtn))` — t is undefined in myBtn.
-
 ## Action — Button Behavior
 
 Action([@steps...]) wires button clicks to operations. Steps are @-prefixed built-in actions. Steps execute in order.
@@ -169,10 +141,8 @@ During streaming, the output is re-parsed on every chunk. Undefined references a
 
 **Recommended statement order for optimal streaming:**
 1. `root = Card(...)` — UI shell appears immediately
-2. $variable declarations — state ready for bindings
-3. Query statements — defaults resolve immediately so components render with data
-4. Component definitions — fill in with data already available
-5. Data values — leaf content last
+2. Component definitions — fill in as they stream
+3. Data values — leaf content last
 
 Always write the root = Card(...) statement first so the UI shell appears immediately, even before child data has streamed in.
 

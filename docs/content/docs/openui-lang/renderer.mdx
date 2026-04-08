@@ -89,18 +89,18 @@ These examples are simplified for demonstration. In production, you'll need to h
 
 Error codes:
 
-| Code                | Source         | Description                                                              |
-| :------------------ | :------------- | :----------------------------------------------------------------------- |
-| `unknown-component` | parser         | Component name not in the library                                        |
-| `missing-required`  | parser         | Required prop not provided                                               |
-| `null-required`     | parser         | Required prop explicitly null                                            |
-| `excess-args`       | parser         | More positional args than schema params (extras dropped, still renders)  |
-| `inline-reserved`   | parser         | Query/Mutation used inline instead of top-level                          |
-| `parse-failed`      | parser         | Response produced no renderable root                                     |
-| `parse-exception`   | parser         | Parser crashed on malformed input                                        |
-| `tool-not-found`    | query/mutation | Tool name not found in toolProvider                                      |
-| `runtime-error`     | runtime        | Expression evaluation failed on a prop                                   |
-| `render-error`      | runtime        | React component threw during render                                      |
+| Code                | Source         | Description                                                             |
+| :------------------ | :------------- | :---------------------------------------------------------------------- |
+| `unknown-component` | parser         | Component name not in the library                                       |
+| `missing-required`  | parser         | Required prop not provided                                              |
+| `null-required`     | parser         | Required prop explicitly null                                           |
+| `excess-args`       | parser         | More positional args than schema params (extras dropped, still renders) |
+| `inline-reserved`   | parser         | Query/Mutation used inline instead of top-level                         |
+| `parse-failed`      | parser         | Response produced no renderable root                                    |
+| `parse-exception`   | parser         | Parser crashed on malformed input                                       |
+| `tool-not-found`    | query/mutation | Tool name not found in toolProvider                                     |
+| `runtime-error`     | runtime        | Expression evaluation failed on a prop                                  |
+| `render-error`      | runtime        | React component threw during render                                     |
 
 If no `onError` callback is provided, errors are logged to `console.warn` instead of being silently swallowed.
 

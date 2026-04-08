@@ -112,7 +112,9 @@
   background: var(--openui-foreground);
   box-shadow: var(--openui-shadow-l);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .npmButton:hover {
@@ -440,8 +442,12 @@
 /* ── Animation ── */
 
 @keyframes npmTickerScroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 /* ── Responsive: subtitle no-wrap on wider phones ── */

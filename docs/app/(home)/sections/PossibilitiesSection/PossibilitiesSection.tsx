@@ -156,24 +156,14 @@ export function PossibilitiesSection() {
         <div className={styles.mobileCarouselViewport}>
           <div ref={mobileTrackRef} className={styles.mobileCarouselTrack}>
             {MOBILE_CAROUSEL_CARDS.map((card) => (
-              <Card
-                key={card.key}
-                title={card.title}
-                image={card.lightImage}
-                href={card.href}
-              />
+              <Card key={card.key} title={card.title} image={card.lightImage} href={card.href} />
             ))}
           </div>
         </div>
 
         <div className={styles.cardsGrid}>
           {CARDS.map((card) => (
-            <Card
-              key={card.title}
-              title={card.title}
-              image={card.lightImage}
-              href={card.href}
-            />
+            <Card key={card.title} title={card.title} image={card.lightImage} href={card.href} />
           ))}
         </div>
       </div>

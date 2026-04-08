@@ -66,8 +66,8 @@ const systemPrompt = generatePrompt({
 
 | Flag         | What it enables                                                               | Default                       |
 | ------------ | ----------------------------------------------------------------------------- | ----------------------------- |
-| `toolCalls`  | `Query()`, `Mutation()`, `@Run`, built-in functions, tool workflow rules       | `true` if `tools` provided    |
-| `bindings`   | `$variables`, `@Set`, `@Reset`, built-in functions, reactive filters           | `true` if `toolCalls` is true |
+| `toolCalls`  | `Query()`, `Mutation()`, `@Run`, built-in functions, tool workflow rules      | `true` if `tools` provided    |
+| `bindings`   | `$variables`, `@Set`, `@Reset`, built-in functions, reactive filters          | `true` if `toolCalls` is true |
 | `editMode`   | Incremental editing - LLM outputs only changed statements                     | `false`                       |
 | `inlineMode` | Text + fenced code responses - LLM can answer questions without generating UI | `false`                       |
 

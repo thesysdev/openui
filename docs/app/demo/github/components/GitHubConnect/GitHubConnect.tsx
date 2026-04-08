@@ -48,8 +48,9 @@ const STARTER_ICON_MAP: Record<GitHubStarterIconKey, LucideIcon> = {
 const DEMO_USERS = [
   { username: "torvalds", tone: "peach" },
   { username: "yyx990803", tone: "mint" },
-  { username: "sindresorhus", tone: "violet" },
+  { username: "rauchg", tone: "violet" },
   { username: "gaearon", tone: "rose" },
+  { username: "ctate", tone: "mint" },
 ] as const satisfies ReadonlyArray<{ username: string; tone: DeveloperTone }>;
 
 const DEVELOPER_OPTIONS: PickerOption[] = DEMO_USERS.map((user) => ({
@@ -184,9 +185,18 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
 
   const validate = useCallback((name: string): boolean => {
     const trimmed = name.trim();
-    if (!trimmed) { setError("Enter a GitHub username"); return false; }
-    if (!/^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(trimmed)) { setError("Invalid username format"); return false; }
-    if (trimmed.length > 39) { setError("Username too long"); return false; }
+    if (!trimmed) {
+      setError("Enter a GitHub username");
+      return false;
+    }
+    if (!/^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(trimmed)) {
+      setError("Invalid username format");
+      return false;
+    }
+    if (trimmed.length > 39) {
+      setError("Username too long");
+      return false;
+    }
     setError("");
     return true;
   }, []);
@@ -199,21 +209,42 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
   }, []);
 
   const handleClearIdentity = useCallback(() => handleReset(), [handleReset]);
-  const handleClearSelectedFocus = useCallback(() => { setSelectedGithubPrompt(null); setError(""); }, []);
-  const handleClearTypedUsername = useCallback(() => { setUsername(""); setAvatarUrl(null); setError(""); focusInput(); }, [focusInput]);
+  const handleClearSelectedFocus = useCallback(() => {
+    setSelectedGithubPrompt(null);
+    setError("");
+  }, []);
+  const handleClearTypedUsername = useCallback(() => {
+    setUsername("");
+    setAvatarUrl(null);
+    setError("");
+    focusInput();
+  }, [focusInput]);
 
   const trimmedUsername = username.trim();
   const effectiveUsername = trimmedUsername || selectedDeveloperUsername || "";
-  const selectedDeveloperOption = DEVELOPER_OPTIONS.find((o) => o.value === selectedDeveloperUsername) ?? null;
-  const selectedFocusOption = FOCUS_AREA_OPTIONS.find((o) => o.value === selectedGithubPrompt) ?? null;
-  const selectedDeveloperLeading = selectedDeveloperOption ? renderOptionLeading(selectedDeveloperOption) : null;
-  const selectedFocusLeading = selectedFocusOption ? renderOptionLeading(selectedFocusOption) : null;
-  const hasValidUsername = effectiveUsername.length > 0 && effectiveUsername.length <= 39 && /^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(effectiveUsername);
+  const selectedDeveloperOption =
+    DEVELOPER_OPTIONS.find((o) => o.value === selectedDeveloperUsername) ?? null;
+  const selectedFocusOption =
+    FOCUS_AREA_OPTIONS.find((o) => o.value === selectedGithubPrompt) ?? null;
+  const selectedDeveloperLeading = selectedDeveloperOption
+    ? renderOptionLeading(selectedDeveloperOption)
+    : null;
+  const selectedFocusLeading = selectedFocusOption
+    ? renderOptionLeading(selectedFocusOption)
+    : null;
+  const hasValidUsername =
+    effectiveUsername.length > 0 &&
+    effectiveUsername.length <= 39 &&
+    /^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(effectiveUsername);
   const hasIdentitySelection = Boolean(effectiveUsername);
-  const isTypedIdentityLocked = Boolean(trimmedUsername && selectedGithubPrompt && hasValidUsername);
+  const isTypedIdentityLocked = Boolean(
+    trimmedUsername && selectedGithubPrompt && hasValidUsername,
+  );
   const showDeveloperPicker = !selectedDeveloperOption && !trimmedUsername;
   const canStart = Boolean(selectedGithubPrompt) && hasValidUsername;
-  const canReset = Boolean(trimmedUsername || selectedDeveloperUsername || error || selectedGithubPrompt);
+  const canReset = Boolean(
+    trimmedUsername || selectedDeveloperUsername || error || selectedGithubPrompt,
+  );
 
   const handleStartGenerating = async () => {
     if (!selectedGithubPrompt) return;
@@ -221,9 +252,15 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
     setValidating(true);
     try {
       const res = await fetch(`https://api.github.com/users/${effectiveUsername}`);
-      if (!res.ok) { setError("GitHub user not found"); setValidating(false); return; }
+      if (!res.ok) {
+        setError("GitHub user not found");
+        setValidating(false);
+        return;
+      }
     } catch {
-      setError("Could not verify username"); setValidating(false); return;
+      setError("Could not verify username");
+      setValidating(false);
+      return;
     }
     setValidating(false);
     onConnectAndPrompt(effectiveUsername, selectedGithubPrompt);
@@ -238,9 +275,16 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
     if (selectedDeveloperOption) {
       return (
         <span className={`gh-chip gh-tone-${selectedDeveloperOption.tone}`}>
-          {selectedDeveloperLeading && <span className="gh-chipLeading">{selectedDeveloperLeading}</span>}
+          {selectedDeveloperLeading && (
+            <span className="gh-chipLeading">{selectedDeveloperLeading}</span>
+          )}
           <span className="gh-chipLabel">{selectedDeveloperOption.label}</span>
-          <button type="button" className="gh-chipClear" aria-label="Clear selected developer" onClick={handleClearIdentity}>
+          <button
+            type="button"
+            className="gh-chipClear"
+            aria-label="Clear selected developer"
+            onClick={handleClearIdentity}
+          >
             <X size={14} />
           </button>
         </span>
@@ -250,10 +294,19 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
       return (
         <span className="gh-chip gh-chip-neutral">
           <span className="gh-chipLeading">
-            {avatarUrl ? <img src={avatarUrl} alt="" className="gh-chipAvatar" /> : <span className="gh-chipMonogram">@</span>}
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="gh-chipAvatar" />
+            ) : (
+              <span className="gh-chipMonogram">@</span>
+            )}
           </span>
           <span className="gh-chipLabel">@{effectiveUsername}</span>
-          <button type="button" className="gh-chipClear" aria-label="Clear username" onClick={handleClearIdentity}>
+          <button
+            type="button"
+            className="gh-chipClear"
+            aria-label="Clear username"
+            onClick={handleClearIdentity}
+          >
             <X size={14} />
           </button>
         </span>
@@ -270,14 +323,24 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
             ref={inputRef}
             className="gh-inputField"
             value={username}
-            onChange={(e) => { setSelectedDeveloperUsername(null); setUsername(e.target.value); setAvatarUrl(null); setError(""); }}
+            onChange={(e) => {
+              setSelectedDeveloperUsername(null);
+              setUsername(e.target.value);
+              setAvatarUrl(null);
+              setError("");
+            }}
             placeholder="username"
             autoComplete="off"
             spellCheck={false}
           />
         </span>
         {trimmedUsername && (
-          <button type="button" className="gh-inputClear" aria-label="Clear" onClick={handleClearTypedUsername}>
+          <button
+            type="button"
+            className="gh-inputClear"
+            aria-label="Clear"
+            onClick={handleClearTypedUsername}
+          >
             <X size={14} />
           </button>
         )}
@@ -289,7 +352,9 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
     <div className="gh-connect">
       <form className="gh-builder" onSubmit={handleSubmit}>
         <div className="gh-brand">
-          <span className="gh-brandIcon"><GitHubIcon /></span>
+          <span className="gh-brandIcon">
+            <GitHubIcon />
+          </span>
           <span className="gh-brandLabel">GitPulse</span>
         </div>
 
@@ -302,9 +367,16 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
               that focuses on{" "}
               {selectedFocusOption ? (
                 <span className={`gh-chip gh-chip-focus gh-tone-${selectedFocusOption.tone}`}>
-                  {selectedFocusLeading && <span className="gh-chipLeading">{selectedFocusLeading}</span>}
+                  {selectedFocusLeading && (
+                    <span className="gh-chipLeading">{selectedFocusLeading}</span>
+                  )}
                   <span className="gh-chipLabel">{selectedFocusOption.label}</span>
-                  <button type="button" className="gh-chipClear" aria-label="Clear topic" onClick={handleClearSelectedFocus}>
+                  <button
+                    type="button"
+                    className="gh-chipClear"
+                    aria-label="Clear topic"
+                    onClick={handleClearSelectedFocus}
+                  >
                     <X size={14} />
                   </button>
                 </span>
@@ -335,7 +407,10 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
               ariaLabel="Select a focus area"
               options={FOCUS_AREA_OPTIONS}
               value={selectedGithubPrompt}
-              onChange={(v) => { setSelectedGithubPrompt(v); setError(""); }}
+              onChange={(v) => {
+                setSelectedGithubPrompt(v);
+                setError("");
+              }}
               className="gh-choiceList-focus"
             />
           </div>
@@ -345,10 +420,20 @@ export function GitHubConnect({ onConnectAndPrompt }: GitHubConnectProps) {
 
         {hasIdentitySelection && selectedGithubPrompt && (
           <div className="gh-actions gh-step-appear">
-            <Button className="gh-cta" size="large" type="submit" disabled={!canStart || validating}>
+            <Button
+              className="gh-cta"
+              size="large"
+              type="submit"
+              disabled={!canStart || validating}
+            >
               {validating ? "Verifying..." : "Let's go"}
             </Button>
-            <button type="button" className="gh-startOver" onClick={handleReset} disabled={!canReset}>
+            <button
+              type="button"
+              className="gh-startOver"
+              onClick={handleReset}
+              disabled={!canReset}
+            >
               Start over
             </button>
           </div>

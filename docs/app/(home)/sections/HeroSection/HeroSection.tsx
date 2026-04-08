@@ -88,7 +88,11 @@ function AnnouncementBanner({ className = "" }: { className?: string }) {
           <span>We&apos;re introducing OpenUI Lang v0.5</span>
         </span>
         <div className={styles.heroBannerActions}>
-          <Link href="/demo/github" target="_blank" className={`${styles.heroBannerButton} ${styles.heroBannerButtonPrimary}`}>
+          <Link
+            href="/demo/github"
+            target="_blank"
+            className={`${styles.heroBannerButton} ${styles.heroBannerButtonPrimary}`}
+          >
             <span>Try</span>
           </Link>
           <Link href={architectureHref} className={styles.heroBannerButton}>
@@ -96,7 +100,10 @@ function AnnouncementBanner({ className = "" }: { className?: string }) {
           </Link>
         </div>
       </div>
-      <Link href={architectureHref} className={`${styles.heroBanner} ${styles.heroBannerMobile} ${className}`.trim()}>
+      <Link
+        href={architectureHref}
+        className={`${styles.heroBanner} ${styles.heroBannerMobile} ${className}`.trim()}
+      >
         <span className={styles.heroBannerLabel}>
           <span className={styles.heroBannerBadge}>New</span>
           <span>Introducing OpenUI Lang v0.5</span>
@@ -136,9 +143,7 @@ function DesktopHero() {
         <div className={styles.desktopHeroLockup}>
           <AnnouncementBanner />
           <h1 className={styles.desktopTitle}>OpenUI</h1>
-          <p className={styles.desktopSubtitle}>
-            The Open Standard for Generative UI
-          </p>
+          <p className={styles.desktopSubtitle}>The Open Standard for Generative UI</p>
         </div>
 
         <div className={styles.desktopCtaStack}>
@@ -168,9 +173,7 @@ function MobileHero({ theme }: { theme: HeroTheme }) {
           </div>
 
           {/* Subtitle */}
-          <p className={styles.mobileSubtitle}>
-            The Open Standard for Generative UI
-          </p>
+          <p className={styles.mobileSubtitle}>The Open Standard for Generative UI</p>
         </div>
       </div>
 

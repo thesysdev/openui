@@ -2,22 +2,28 @@
 
 import { mergeStatements } from "@openuidev/react-lang";
 import { Button } from "@openuidev/react-ui";
+import { encode } from "gpt-tokenizer";
 import {
   Activity,
+  Check,
   CircleDot,
   Code2,
+  Copy,
   GitPullRequest,
   Hexagon,
   Search,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { Highlight, themes } from "prism-react-renderer";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ConversationPanel } from "./components/ConversationPanel/ConversationPanel";
 import { GitHubConnect } from "./components/GitHubConnect/GitHubConnect";
 import { Header } from "./components/Header/Header";
 import { PreviewPanel } from "./components/PreviewPanel/PreviewPanel";
 import {
+  GITHUB_DEMO_MODEL_LABEL,
   GITHUB_STARTERS,
   type ChatMessage,
   type GitHubStarterIconKey,
@@ -25,7 +31,7 @@ import {
   type Theme,
   type ToolCallEntry,
 } from "./constants";
-import { clearCache, createGitHubToolProvider } from "./github/tools";
+import { clearCache, createGitHubToolProvider, prefetchAndSummarize } from "./github/tools";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -90,8 +96,11 @@ type ToolCallListener = (calls: ToolCallEntry[]) => void;
 function wrapToolProvider(
   inner: Record<string, (args: Record<string, unknown>) => Promise<unknown>>,
   listener: ToolCallListener,
-): Record<string, (args: Record<string, unknown>) => Promise<unknown>> {
-  const activeCalls: ToolCallEntry[] = [];
+): {
+  tools: Record<string, (args: Record<string, unknown>) => Promise<unknown>>;
+  resetCalls: () => void;
+} {
+  let activeCalls: ToolCallEntry[] = [];
   const wrapped: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {};
 
   for (const [name, fn] of Object.entries(inner)) {
@@ -112,7 +121,12 @@ function wrapToolProvider(
     };
   }
 
-  return wrapped;
+  return {
+    tools: wrapped,
+    resetCalls: () => {
+      activeCalls = [];
+    },
+  };
 }
 
 // ── SSE streaming ────────────────────────────────────────────────────────
@@ -193,7 +207,9 @@ export default function GitHubDemoPage() {
   // Dashboard state
   const [dashboardCode, setDashboardCode] = useState<string | null>(null);
   const [showSource, setShowSource] = useState(false);
+  const [sourceTab, setSourceTab] = useState<"raw" | "json">("raw");
   const [parsedJson, setParsedJson] = useState<string | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   // Conversation
   const [conversation, setConversation] = useState<ChatMessage[]>([]);
@@ -215,6 +231,17 @@ export default function GitHubDemoPage() {
   const hasDashboard = dashboardCode !== null;
   const isGitHub = githubUsername !== null;
   const isHomeState = !isGitHub && !hasDashboard && conversation.length === 0;
+
+  // Token comparison
+  const rawTokens = useMemo(
+    () => (dashboardCode ? encode(dashboardCode).length : 0),
+    [dashboardCode],
+  );
+  const jsonTokens = useMemo(() => (parsedJson ? encode(parsedJson).length : 0), [parsedJson]);
+  const tokenSavingPct =
+    status === "done" && rawTokens > 0 && jsonTokens > 0 && rawTokens < jsonTokens
+      ? Math.round(((jsonTokens - rawTokens) / jsonTokens) * 100)
+      : null;
 
   // Theme
   const currentTheme = useMemo<Theme>(() => {
@@ -238,17 +265,19 @@ export default function GitHubDemoPage() {
 
   // ── GitHub connect ───────────────────────────────────────────────────
 
+  const rawToolsRef = useRef<Record<
+    string,
+    (args: Record<string, unknown>) => Promise<unknown>
+  > | null>(null);
+  const resetToolCallsRef = useRef<(() => void) | null>(null);
+
   const handleConnect = useCallback((username: string) => {
     const rawTools = createGitHubToolProvider(username);
-    const wrapped = wrapToolProvider(rawTools, (calls) => {
+    rawToolsRef.current = rawTools;
+    const { tools: wrapped, resetCalls } = wrapToolProvider(rawTools, (calls) => {
       setToolCalls([...calls]);
-      setConversation((prev) => {
-        if (prev.length === 0) return prev;
-        const last = prev[prev.length - 1];
-        if (last.role !== "assistant") return prev;
-        return [...prev.slice(0, -1), { ...last, runtimeTools: [...calls] }];
-      });
     });
+    resetToolCallsRef.current = resetCalls;
     setGithubUsername(username);
     setToolProvider(wrapped);
   }, []);
@@ -285,6 +314,7 @@ export default function GitHubDemoPage() {
       responseRef.current = "";
       setStreamingText("");
       setToolCalls([]);
+      resetToolCallsRef.current?.();
       setStreamResponseHasCode(false);
       let streamStartTime: number | null = null;
 
@@ -308,13 +338,24 @@ export default function GitHubDemoPage() {
         return { role: m.role, content: m.content };
       });
 
+      // Prefetch GitHub data on first message to warm cache + give LLM context
+      // Use raw (unwrapped) tools to avoid triggering tool-call tracking side effects
+      let githubContext = "";
+      if (conversation.length === 0 && rawToolsRef.current) {
+        try {
+          githubContext = await prefetchAndSummarize(rawToolsRef.current);
+        } catch {
+          // Non-critical — LLM just won't have data context
+        }
+      }
+
       const controller = new AbortController();
       abortRef.current = controller;
 
       try {
         await streamChat(
           {
-            prompt: trimmed,
+            prompt: githubContext ? `${githubContext}\n\n${trimmed}` : trimmed,
             messages: apiMessages.slice(0, -1),
           },
           (chunk) => {
@@ -345,7 +386,6 @@ export default function GitHubDemoPage() {
               content: raw,
               text,
               hasCode,
-              runtimeTools: toolCalls.length > 0 ? [...toolCalls] : undefined,
             };
             setConversation((prev) => [...prev, assistantMsg]);
 
@@ -374,7 +414,7 @@ export default function GitHubDemoPage() {
         setStatus("error");
       }
     },
-    [isStreaming, conversation, dashboardCode, toolCalls],
+    [isStreaming, conversation, dashboardCode],
   );
 
   // Process pending prompt after GitHub connect
@@ -468,7 +508,9 @@ export default function GitHubDemoPage() {
                         onClick={() => send(s.prompt)}
                         disabled={isStreaming}
                       >
-                        <span className={`gh-starter-icon gh-tone-${s.tone}`}>{renderStarterIcon(s.icon)}</span>
+                        <span className={`gh-starter-icon gh-tone-${s.tone}`}>
+                          {renderStarterIcon(s.icon)}
+                        </span>
                         <div className="gh-starter-label">{s.label}</div>
                         <div className="gh-starter-desc">
                           {s.prompt.length > 60 ? s.prompt.slice(0, 60) + "..." : s.prompt}
@@ -479,11 +521,18 @@ export default function GitHubDemoPage() {
                 </div>
               )}
 
-              {/* Meta + source toggle */}
+              {/* Meta + source toggle + token comparison */}
               {hasDashboard && !isStreaming && (
                 <div className="dashboard-meta">
+                  <span className="dashboard-model-label">{GITHUB_DEMO_MODEL_LABEL}</span>
                   {elapsed && (
                     <span className="dashboard-elapsed">{(elapsed / 1000).toFixed(1)}s</span>
+                  )}
+                  {tokenSavingPct !== null && (
+                    <span className="dashboard-token-saving">
+                      <Zap size={10} />
+                      {tokenSavingPct}% fewer tokens
+                    </span>
                   )}
                   <Button
                     className="dashboard-source-toggle"
@@ -497,9 +546,110 @@ export default function GitHubDemoPage() {
                 </div>
               )}
 
-              {/* Source code view */}
-              {hasDashboard && showSource && (
-                <pre className="dashboard-source">{dashboardCode}</pre>
+              {/* Source code view with tabs */}
+              {hasDashboard &&
+                showSource &&
+                (() => {
+                  const activeSource =
+                    sourceTab === "raw"
+                      ? (dashboardCode ?? "")
+                      : (parsedJson ?? "Waiting for parse...");
+                  const handleCopy = async () => {
+                    await navigator.clipboard.writeText(activeSource);
+                    setCodeCopied(true);
+                    setTimeout(() => setCodeCopied(false), 2000);
+                  };
+                  return (
+                    <div className="dashboard-source-panel">
+                      <div className="dashboard-source-header">
+                        <div className="dashboard-source-tabs">
+                          <button
+                            className={`dashboard-source-tab ${sourceTab === "raw" ? "dashboard-source-tab-active" : ""}`}
+                            onClick={() => {
+                              setSourceTab("raw");
+                              setCodeCopied(false);
+                            }}
+                          >
+                            openui-lang
+                            {rawTokens > 0 && (
+                              <span className="dashboard-source-token-count">
+                                {rawTokens.toLocaleString()}
+                              </span>
+                            )}
+                          </button>
+                          <button
+                            className={`dashboard-source-tab ${sourceTab === "json" ? "dashboard-source-tab-active" : ""}`}
+                            onClick={() => {
+                              setSourceTab("json");
+                              setCodeCopied(false);
+                            }}
+                          >
+                            Parsed JSON
+                            {jsonTokens > 0 && (
+                              <span className="dashboard-source-token-count">
+                                {jsonTokens.toLocaleString()}
+                              </span>
+                            )}
+                          </button>
+                        </div>
+                        <button
+                          className="dashboard-source-copy"
+                          onClick={handleCopy}
+                          title="Copy code"
+                        >
+                          {codeCopied ? <Check size={14} /> : <Copy size={14} />}
+                        </button>
+                      </div>
+                      <div className="dashboard-source">
+                        <Highlight
+                          theme={resolvedMode === "dark" ? themes.oneDark : themes.oneLight}
+                          code={activeSource.trim()}
+                          language={sourceTab === "json" ? "json" : "javascript"}
+                        >
+                          {({ className, style, tokens, getLineProps, getTokenProps }) => (
+                            <pre
+                              className={className}
+                              style={{ ...style, margin: 0, background: "transparent" }}
+                            >
+                              <code>
+                                {tokens.map((line, i) => (
+                                  <div key={i} {...getLineProps({ line })}>
+                                    {line.map((token, j) => (
+                                      <span key={j} {...getTokenProps({ token })} />
+                                    ))}
+                                  </div>
+                                ))}
+                              </code>
+                            </pre>
+                          )}
+                        </Highlight>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+              {/* Live data indicator */}
+              {hasDashboard && toolCalls.length > 0 && (
+                <div
+                  className={`dashboard-data-strip ${toolCalls.some((t) => t.status === "pending") ? "dashboard-data-strip-loading" : ""}`}
+                >
+                  <span className="dashboard-data-label">
+                    {toolCalls.some((t) => t.status === "pending")
+                      ? "Fetching live data..."
+                      : "Live data from GitHub"}
+                  </span>
+                  <div className="dashboard-data-chips">
+                    {toolCalls.map((tc, i) => (
+                      <span
+                        key={i}
+                        className={`dashboard-data-chip dashboard-data-chip-${tc.status}`}
+                      >
+                        {tc.status === "done" ? "✓" : tc.status === "error" ? "✗" : "⏳"}{" "}
+                        {tc.tool.replace("get_", "")}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* Dashboard renderer */}
@@ -542,7 +692,6 @@ export default function GitHubDemoPage() {
                 streamingText={streamingText}
                 isStreaming={isStreaming}
                 elapsed={elapsed}
-                toolCalls={toolCalls}
                 onSend={send}
                 onStop={handleStop}
                 hasDashboard={hasDashboard}

@@ -1,6 +1,9 @@
 export type Theme = "system" | "light" | "dark";
 export type Status = "idle" | "streaming" | "done" | "error";
 
+export const GITHUB_DEMO_MODEL = "openai/gpt-5.4-mini";
+export const GITHUB_DEMO_MODEL_LABEL = "GPT-5.4 Mini";
+
 export type GitHubStarterIconKey =
   | "commit-activity"
   | "pull-requests"
@@ -75,5 +78,4 @@ export interface ChatMessage {
   content: string;
   text?: string;
   hasCode: boolean;
-  runtimeTools?: ToolCallEntry[];
 }

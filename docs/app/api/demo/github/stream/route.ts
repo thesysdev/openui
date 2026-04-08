@@ -3,14 +3,13 @@ import { generatePrompt, type PromptSpec } from "@openuidev/lang-core";
 import { readFileSync } from "fs";
 import { type NextRequest } from "next/server";
 import { join } from "path";
+import { GITHUB_DEMO_MODEL } from "../../../../demo/github/constants";
 import {
   GITHUB_ADDITIONAL_RULES,
   GITHUB_PREAMBLE,
   GITHUB_TOOL_EXAMPLES,
 } from "../../../../demo/github/github/prompt-config";
 import { GITHUB_TOOL_SPECS } from "../../../../demo/github/github/types";
-
-const MODEL = "openai/gpt-5.4-mini";
 
 // ── Component spec from generated JSON ────────────────────────────────────
 
@@ -74,7 +73,7 @@ export async function POST(req: NextRequest) {
       "X-Title": "OpenUI GitHub Demo",
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: GITHUB_DEMO_MODEL,
       stream: true,
       messages: chatMessages,
     }),

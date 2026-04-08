@@ -128,7 +128,9 @@
   color: var(--openui-text-neutral-secondary);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s ease, color 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
 }
 
 .gh-inputWrap:hover .gh-inputClear,
@@ -267,13 +269,20 @@
   box-shadow: var(--openui-shadow-s);
   cursor: pointer;
   text-align: left;
-  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .gh-choiceOption:hover,
 .gh-choiceOption-selected {
   transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--gh-tone-fill) 36%, var(--openui-border-interactive-emphasis));
+  border-color: color-mix(
+    in srgb,
+    var(--gh-tone-fill) 36%,
+    var(--openui-border-interactive-emphasis)
+  );
   background: color-mix(in srgb, var(--gh-tone-bg) 54%, var(--openui-foreground));
 }
 
@@ -408,19 +417,22 @@
 
 /* ── Tone tokens ── */
 
-.gh-tone-green, .gh-tone-mint {
+.gh-tone-green,
+.gh-tone-mint {
   --gh-tone-fill: var(--openui-text-success-primary);
   --gh-tone-bg: var(--openui-success-background);
   --gh-tone-border: var(--openui-border-success);
 }
 
-.gh-tone-purple, .gh-tone-violet {
+.gh-tone-purple,
+.gh-tone-violet {
   --gh-tone-fill: var(--openui-text-purple-primary);
   --gh-tone-bg: var(--openui-purple-background);
   --gh-tone-border: var(--openui-border-accent);
 }
 
-.gh-tone-red, .gh-tone-rose {
+.gh-tone-red,
+.gh-tone-rose {
   --gh-tone-fill: var(--openui-text-danger-primary);
   --gh-tone-bg: var(--openui-danger-background);
   --gh-tone-border: var(--openui-border-danger);
@@ -432,7 +444,8 @@
   --gh-tone-border: var(--openui-border-info);
 }
 
-.gh-tone-amber, .gh-tone-peach {
+.gh-tone-amber,
+.gh-tone-peach {
   --gh-tone-fill: var(--openui-text-alert-primary);
   --gh-tone-bg: var(--openui-alert-background);
   --gh-tone-border: var(--openui-border-alert);
@@ -441,7 +454,11 @@
 .gh-tone-pink {
   --gh-tone-fill: var(--openui-text-pink-primary);
   --gh-tone-bg: var(--openui-pink-background);
-  --gh-tone-border: color-mix(in srgb, var(--openui-text-pink-primary) 24%, var(--openui-border-default));
+  --gh-tone-border: color-mix(
+    in srgb,
+    var(--openui-text-pink-primary) 24%,
+    var(--openui-border-default)
+  );
 }
 
 /* ── Visually hidden ── */
@@ -461,8 +478,14 @@
 /* ── Animation ── */
 
 @keyframes gh-step-fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .gh-step-appear {
@@ -503,7 +526,7 @@
   }
 
   .gh-actions {
-    margin-top:32px;
+    margin-top: 32px;
     flex-wrap: wrap;
     align-items: flex-start;
     gap: var(--openui-space-l);

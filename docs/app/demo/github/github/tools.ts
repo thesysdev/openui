@@ -37,6 +37,46 @@ export function clearCache() {
   cache.clear();
 }
 
+/**
+ * Prefetch core GitHub data and return a compact summary for LLM context.
+ * Also warms the cache so Query() nodes resolve instantly on first render.
+ */
+export async function prefetchAndSummarize(
+  tools: Record<string, (args: Record<string, unknown>) => Promise<unknown>>,
+): Promise<string> {
+  const [profile, repos, languages, events] = await Promise.all([
+    tools.get_profile({}),
+    tools.get_repos({ sort: "stars" }),
+    tools.get_languages({}),
+    tools.get_events({}),
+  ]);
+
+  const p = profile as Record<string, unknown>;
+  const repoRows = ((repos as Record<string, unknown>).rows ?? []) as Array<
+    Record<string, unknown>
+  >;
+  const langRows = ((languages as Record<string, unknown>).rows ?? []) as Array<
+    Record<string, unknown>
+  >;
+  const ev = ((events as Record<string, unknown>).summary ?? {}) as Record<string, number>;
+
+  const topRepos = repoRows
+    .slice(0, 8)
+    .map((r) => `${r.name} (${r.stars}★, ${r.language || "unknown"})`)
+    .join(", ");
+  const topLangs = langRows
+    .slice(0, 6)
+    .map((l) => l.language)
+    .join(", ");
+
+  return `<github-data>
+Profile: ${p.name || p.login}, ${p.public_repos} public repos, ${p.followers} followers, joined ${p.created_at}
+Top repos by stars: ${topRepos || "none found"}
+Languages: ${topLangs || "none detected"}
+Recent activity (last 90 days): ${ev.total || 0} events (${ev.push || 0} pushes, ${ev.pr || 0} PRs, ${ev.issues || 0} issues, ${ev.reviews || 0} reviews)
+</github-data>`;
+}
+
 // ── Rate limit tracking ────────────────────────────────────────────────────
 
 let rateLimitRemaining = 60;

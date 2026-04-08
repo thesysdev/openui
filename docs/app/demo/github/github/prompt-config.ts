@@ -82,4 +82,5 @@ export const GITHUB_ADDITIONAL_RULES: string[] = [
   "Use PieChart for language breakdowns (donut variant), BarChart for comparisons, LineChart for trends over time",
   "Rate limit: 60 req/hr per visitor. Prefer get_repos (1 API call) over per-repo endpoints (get_commit_activity, get_star_history, get_contributors)",
   "Per-repo tools (get_commit_activity, get_star_history, get_contributors) are expensive — only use when the user specifically asks about a specific repo",
+  "NEVER use Image() or ImageBlock() components — no external image URLs are available. Use TextContent, Tag, or emoji for visual accents instead.",
 ];
