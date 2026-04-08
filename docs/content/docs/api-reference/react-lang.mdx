@@ -72,12 +72,20 @@ interface Library {
 
   prompt(options?: PromptOptions): string;
   toJSONSchema(): object;
+  toSpec(): PromptSpec;
 }
 
 interface PromptOptions {
   preamble?: string;
   additionalRules?: string[];
   examples?: string[];
+  toolExamples?: string[];
+  editMode?: boolean;
+  inlineMode?: boolean;
+  /** Enable Query(), Mutation(), @Run, built-in functions. Default: true if tools provided. */
+  toolCalls?: boolean;
+  /** Enable $variables, @Set, @Reset, built-in functions. Default: true if toolCalls. */
+  bindings?: boolean;
 }
 ```
 
@@ -91,11 +99,49 @@ interface RendererProps {
   library: Library;
   isStreaming?: boolean;
   onAction?: (event: ActionEvent) => void;
-  onStateUpdate?: (state: Record<string, any>) => void;
+  onStateUpdate?: (state: Record<string, unknown>) => void;
   initialState?: Record<string, any>;
   onParseResult?: (result: ParseResult | null) => void;
+  toolProvider?:
+    | Record<string, (args: Record<string, unknown>) => Promise<unknown>>
+    | McpClientLike
+    | null;
+  queryLoader?: React.ReactNode;
+  onError?: (errors: OpenUIError[]) => void;
 }
 ```
+
+## Tool Provider
+
+Handles `Query()` and `Mutation()` tool calls at runtime. The `toolProvider` prop accepts two forms:
+
+- **Function map** — `Record<string, (args) => Promise<unknown>>` — the simplest option
+- **MCP client** — any object implementing `callTool({ name, arguments })` (e.g. from `@modelcontextprotocol/sdk`)
+
+The Renderer detects which form was passed and normalizes internally.
+
+## Error types
+
+```ts
+type OpenUIErrorSource = "parser" | "runtime" | "query" | "mutation";
+
+interface OpenUIError {
+  source: OpenUIErrorSource;
+  code: string;
+  message: string;
+  statementId?: string;
+  component?: string;
+  path?: string;
+  hint?: string;
+}
+
+class ToolNotFoundError extends Error {
+  toolName: string;
+  availableTools: string[];
+}
+```
+
+Error codes: `unknown-component`, `missing-required`, `null-required`, `inline-reserved`, `tool-not-found`, `parse-failed`, `parse-exception`, `runtime-error`, `render-error`.
 
 ## Actions
 
@@ -113,6 +159,25 @@ interface ActionEvent {
   formName?: string;
 }
 ```
+
+Action steps (runtime types from the evaluator):
+
+```ts
+type ActionStep =
+  | { type: "run"; statementId: string; refType: "query" | "mutation" }
+  | { type: "continue_conversation"; message: string; context?: string }
+  | { type: "open_url"; url: string }
+  | { type: "set"; target: string; valueAST: ASTNode }
+  | { type: "reset"; targets: string[] };
+```
+
+| Step type                 | Triggered by          | Description                                                        |
+| ------------------------- | --------------------- | ------------------------------------------------------------------ |
+| `"run"`                   | `@Run(ref)`           | Execute a Mutation or re-fetch a Query. `refType` indicates which. |
+| `"set"`                   | `@Set($var, val)`     | Change a `$variable`. `valueAST` is evaluated at click time.       |
+| `"reset"`                 | `@Reset($a, $b)`      | Restore `$variables` to declared defaults.                         |
+| `"continue_conversation"` | `@ToAssistant("msg")` | Send message to LLM. Optional `context`.                           |
+| `"open_url"`              | `@OpenUrl("url")`     | Open URL in new tab.                                               |
 
 ## Parser APIs
 
@@ -153,48 +218,62 @@ interface ElementNode {
 }
 
 /**
- * Validation error codes for schema-related issues.
- *
- * - missing-required  — required prop absent with no default
- * - null-required     — required prop explicitly null with no default
- * - unknown-component — PascalCase name not in the library schema
- * - excess-args       — more positional args than the schema defines
+ * Parser-level validation errors (schema mismatches).
  */
 type ValidationErrorCode =
   | "missing-required"
   | "null-required"
   | "unknown-component"
-  | "excess-args";
+  | "inline-reserved";
 
-/**
- * Structured error from the parser.
- * Use `type` to distinguish error categories and `code` to filter
- * or categorize errors on the consumer side.
- */
-type OpenUIError = {
-  type: "validation";
+interface ValidationError {
   code: ValidationErrorCode;
   component: string;
-  /** JSON Pointer path within props, e.g. "/title". Empty string for structural errors. */
   path: string;
   message: string;
-};
+  statementId?: string;
+}
 
 interface ParseResult {
   root: ElementNode | null;
   meta: {
     incomplete: boolean;
-    /** Identifiers referenced but not yet defined. Check after streaming completes. */
+    /** References used but not yet defined (dropped as null in output). */
     unresolved: string[];
+    /** Value statements defined but not reachable from root. Excludes $state, Query, and Mutation. */
+    orphaned: string[];
     statementCount: number;
-    errors: OpenUIError[];
+    /**
+     * Validation errors:
+     * - "missing-required" — required prop not provided
+     * - "null-required" — required prop explicitly null
+     * - "unknown-component" — component not in library schema
+     * - "inline-reserved" — Query/Mutation used inline instead of top-level
+     * - "excess-args" — more positional args than schema params (extras dropped, component still renders)
+     */
+    errors: ValidationError[];
   };
+  /** Extracted Query() statements with tool name, args AST, defaults AST */
+  queryStatements: QueryStatementInfo[];
+  /** Extracted Mutation() statements with tool name, args AST */
+  mutationStatements: MutationStatementInfo[];
+  /** Declared $variables with their default values */
+  stateDeclarations: Record<string, unknown>;
 }
 ```
 
 ## Context hooks (inside renderer components)
 
 ```ts
+// Reactive state binding — preferred for form inputs and $variable-bound components
+function useStateField(
+  name: string,
+  value?: unknown,
+): {
+  value: unknown;
+  setValue: (value: unknown) => void;
+};
+
 function useRenderNode(): (value: unknown) => React.ReactNode;
 function useTriggerAction(): (
   userMessage: string,

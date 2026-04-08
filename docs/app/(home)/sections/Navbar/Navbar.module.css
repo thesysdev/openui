@@ -3,63 +3,17 @@
   top: 0;
   z-index: 50;
   width: 100%;
-  padding: 0.75rem 1rem;
-  background: #fff;
-  transition: border-color 0.2s ease;
+  --site-primary-nav-color: var(--home-color-text-primary);
+  --site-primary-nav-hover-bg: var(--home-color-surface-soft);
 }
 
-.navScrolled {
-  border-bottom: 1px solid var(--home-border-default);
-}
-
-.navInner {
-  display: flex;
-  max-width: 75rem;
-  margin-inline: auto;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.logoCluster {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.logoDivider {
-  height: 1rem;
-  width: 1px;
-  background: var(--home-border-default);
-}
-
-.desktopTabs,
-.desktopGithub {
+.desktopActions {
   display: none;
 }
 
-.desktopTabs {
-  align-items: center;
+.desktopActions {
   gap: 0.5rem;
-}
-
-.desktopTabLink {
-  display: flex;
-  height: 2rem;
   align-items: center;
-  padding-inline: 0.5rem;
-  border-radius: 0.375rem;
-  color: #000;
-  text-decoration: none;
-  transition: background-color 0.2s ease;
-  font-family: "Inter Display", sans-serif;
-  font-size: 15px;
-  line-height: 1.5rem;
-}
-
-.desktopTabLink:hover,
-.mobileTrayLink:hover,
-.mobileMenuButton:hover {
-  background: rgb(0 0 0 / 5%);
 }
 
 .chevronIcon,
@@ -79,6 +33,11 @@
   background: transparent;
   cursor: pointer;
   transition: background-color 0.2s ease;
+}
+
+.mobileTrayLink:hover,
+.mobileMenuButton:hover {
+  background: var(--home-color-surface-soft);
 }
 
 .mobileBackdrop {
@@ -104,10 +63,10 @@
 
 .mobileTray {
   pointer-events: auto;
-  border-top: 1px solid rgb(0 0 0 / 5%);
+  border-top: 1px solid var(--home-border-soft);
   border-bottom-left-radius: 18px;
   border-bottom-right-radius: 18px;
-  background: #fff;
+  background: var(--home-color-surface);
   box-shadow: var(--home-shadow-panel);
 }
 
@@ -123,7 +82,7 @@
 .mobileTrayDivider {
   height: 1px;
   margin-inline: 0.75rem;
-  background: rgb(0 0 0 / 5%);
+  background: var(--home-border-soft);
 }
 
 .mobileTrayLink {
@@ -134,7 +93,7 @@
   gap: 0.25rem;
   padding-inline: 0.75rem;
   border-radius: 0.375rem;
-  color: #000;
+  color: var(--home-color-text-primary);
   text-align: left;
   text-decoration: none;
   transition: background-color 0.2s ease;
@@ -160,7 +119,7 @@
   padding-right: 0.5rem;
   border: 0;
   border-radius: 999px;
-  background: #fff;
+  background: var(--home-color-surface);
   cursor: pointer;
   transform: scale(1.17);
 }
@@ -180,12 +139,7 @@
 }
 
 @media (min-width: 1024px) {
-  .nav {
-    padding: 0.75rem 2rem;
-  }
-
-  .desktopTabs,
-  .desktopGithub {
+  .desktopActions {
     display: flex;
   }
 

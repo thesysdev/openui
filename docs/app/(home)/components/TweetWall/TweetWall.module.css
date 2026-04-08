@@ -1,0 +1,117 @@
+.root {
+  --tweet-wall-height: 48rem;
+  position: relative;
+  width: 100%;
+  height: var(--tweet-wall-height);
+  min-height: var(--tweet-wall-height);
+  overflow: hidden;
+  --tweet-wall-mask: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 4.5rem,
+    #000 calc(100% - 4.5rem),
+    transparent 100%
+  );
+  -webkit-mask-image: var(--tweet-wall-mask);
+  mask-image: var(--tweet-wall-mask);
+}
+
+.columns {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+  justify-content: center;
+  height: var(--tweet-wall-height);
+  padding-block: 0.25rem;
+}
+
+.columnViewport {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.columnTrack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  will-change: transform;
+  transform: translate3d(0, var(--loop-start, 0px), 0);
+  animation-name: tweetWallLoop;
+  animation-duration: var(--loop-duration, 32s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  animation-play-state: paused;
+}
+
+.embedSlot {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  min-height: 12rem;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.embedSlot[data-embedded="pending"] {
+  background: var(--openui-foreground);
+  border: 1px solid var(--openui-border-default);
+  box-shadow: var(--openui-shadow-m);
+}
+
+.embedSlot[data-embedded="error"] {
+  min-height: 0;
+}
+
+.embedSlot :global(iframe) {
+  width: 100% !important;
+  max-width: 100% !important;
+  border-radius: 12px !important;
+}
+
+.rootReady .columnTrack {
+  animation-play-state: running;
+}
+
+/* --- Reduced motion --- */
+
+.staticGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  padding-block: 0.5rem;
+}
+
+.staticCell {
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .staticGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .columns {
+    gap: 1.25rem;
+  }
+
+  .staticGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@keyframes tweetWallLoop {
+  from {
+    transform: translate3d(0, var(--loop-start, 0px), 0);
+  }
+
+  to {
+    transform: translate3d(0, calc(var(--loop-start, 0px) - var(--loop-distance, 0px)), 0);
+  }
+}

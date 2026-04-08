@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "generate:prompts": "pnpm --filter @openuidev/cli build && pnpm exec openui generate lib/chat-library.ts --out generated/chat-system-prompt.txt && pnpm exec openui generate lib/playground-library.ts --out generated/playground-system-prompt.txt",
+    "generate:prompts": "pnpm --filter @openuidev/cli build && pnpm exec openui generate lib/chat-library.ts --out generated/chat-system-prompt.txt && pnpm exec openui generate lib/playground-library.ts --out generated/playground-system-prompt.txt && pnpm exec openui generate lib/playground-library.ts --json-schema --out generated/playground-component-spec.json",
     "build": "next build",
     "dev": "pnpm generate:prompts && next dev",
     "start": "next start",
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@openuidev/cli": "workspace:*",
+    "@openuidev/lang-core": "workspace:^",
     "@openuidev/react-lang": "workspace:^",
     "@openuidev/react-headless": "workspace:^",
     "@openuidev/react-ui": "workspace:^",
@@ -33,6 +34,7 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tailwind-merge": "^3.4.1",
+    "octokit": "^5.0.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

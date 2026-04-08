@@ -1,4 +1,15 @@
+import { HomeIllustrationCode } from "./HomeIllustrationCode";
 import svgPaths from "./svg-pr6qxiizdt";
+
+const SYSTEM_PROMPT_CODE = `# generate system prompt from library
+npx @openuidev/cli@latest generate ./src/library.ts
+
+# use in your backend
+const completion = await client.chat.completions.create({
+  model: "gpt-5.2",
+  stream: true,
+  messages: [{ role: "system", content: systemPrompt }, ...messages]
+})`;
 
 function Group() {
   return (
@@ -13,15 +24,11 @@ function Group() {
           <path d={svgPaths.p1bd62700} fill="var(--fill-0, black)" id="Rectangle 34662625" />
         </svg>
       </div>
-      <p className="absolute font-['Andale_Mono:Regular',sans-serif] h-[262px] leading-none left-[73px] not-italic text-[10px] text-white top-[71px] w-[254px] whitespace-pre-wrap">{`# generate system prompt from library
-npx @openuidev/cli generate ./src/library.ts
-
-# use in your backend
-const completion = await client.chat.completions.create({
-  model: "gpt-5.2",
-  stream: true,
-  messages: [{ role: "system", content: systemPrompt }, ...messages]
-})`}</p>
+      <HomeIllustrationCode
+        className="absolute h-[262px] left-[73px] text-[10px] top-[71px] w-[254px]"
+        code={SYSTEM_PROMPT_CODE}
+        language="typescript"
+      />
       <div className="absolute bg-gradient-to-b from-[rgba(0,0,0,0)] h-[64px] left-[60px] to-black top-[272px] w-[285px]" />
     </div>
   );
@@ -176,9 +183,6 @@ export default function OpenUiGeneratesSchema() {
     >
       <Group />
       <Frame2 />
-      <p className="absolute font-['Geist_Mono:Medium',sans-serif] font-medium leading-none left-[58px] text-[12px] text-[rgba(0,0,0,0.4)] top-[366px]">
-        SEND SYSTEM PROMPT TO LLM
-      </p>
     </div>
   );
 }

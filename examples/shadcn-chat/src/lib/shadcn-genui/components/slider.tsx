@@ -46,11 +46,11 @@ export const Slider = defineComponent({
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span>{fieldName}</span>
-          <span className="text-muted-foreground tabular-nums">{val}</span>
+          <span className="text-muted-foreground">{val}</span>
         </div>
         <ShadcnSlider
           min={props.min ?? 0}
-          max={props.max ?? 100}
+          max={props.max ?? 100} 
           step={props.step ?? 1}
           value={[val]}
           onValueChange={([v]) => {

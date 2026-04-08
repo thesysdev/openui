@@ -1,14 +1,15 @@
 "use client";
 
 import { Send, Square } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
+import { useCallback, useRef, useState } from "react";
 import { CodePanel } from "./components/CodePanel/CodePanel";
 import { Header } from "./components/Header/Header";
 import { PreviewPanel } from "./components/PreviewPanel/PreviewPanel";
 import { MODELS, STARTER_PROMPTS, type Model, type Status, type Theme } from "./constants";
 
 export default function PlaygroundPage() {
-  const [theme, setTheme] = useState<Theme>("system");
+  const { theme, setTheme } = useTheme();
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState<Model>("anthropic/claude-sonnet-4.6");
   const [code, setCode] = useState("");
@@ -19,17 +20,11 @@ export default function PlaygroundPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    const el = document.documentElement;
-    if (theme === "system") {
-      el.removeAttribute("data-theme");
-    } else {
-      el.setAttribute("data-theme", theme);
-    }
-  }, [theme]);
+  const currentTheme: Theme =
+    theme === "light" || theme === "dark" || theme === "system" ? theme : "system";
 
   const cycleTheme = () => {
-    setTheme((t) => (t === "system" ? "light" : t === "light" ? "dark" : "system"));
+    setTheme(currentTheme === "system" ? "light" : currentTheme === "light" ? "dark" : "system");
   };
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -124,7 +119,12 @@ export default function PlaygroundPage() {
 
   return (
     <div className="app">
-      <Header theme={theme} onThemeToggle={cycleTheme} hasApiKey={false} onChangeKey={() => {}} />
+      <Header
+        theme={currentTheme}
+        onThemeToggle={cycleTheme}
+        hasApiKey={false}
+        onChangeKey={() => {}}
+      />
 
       <div className="app-body">
         <div className="content-wrapper">
@@ -192,7 +192,7 @@ export default function PlaygroundPage() {
               code={code}
               isStreaming={status === "streaming"}
               onParseResult={(r) => setParsedJson(r ? JSON.stringify(r, null, 2) : null)}
-              theme={theme}
+              theme={currentTheme}
             />
           </div>
         </div>

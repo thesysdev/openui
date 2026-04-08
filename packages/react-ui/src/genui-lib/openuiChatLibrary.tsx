@@ -212,16 +212,19 @@ export const openuiChatComponentGroups: ComponentGroup[] = [
 
 export const openuiChatExamples: string[] = [
   `Example 1 — Table with follow-ups:
+
 root = Card([title, tbl, followUps])
 title = TextContent("Top Languages", "large-heavy")
-tbl = Table(cols, rows)
-cols = [Col("Language", "string"), Col("Users (M)", "number"), Col("Year", "number")]
-rows = [["Python", 15.7, 1991], ["JavaScript", 14.2, 1995], ["Java", 12.1, 1995]]
+tbl = Table([Col("Language", langs), Col("Users (M)", users), Col("Year", years)])
+langs = ["Python", "JavaScript", "Java"]
+users = [15.7, 14.2, 12.1]
+years = [1991, 1995, 1995]
 followUps = FollowUpBlock([fu1, fu2])
 fu1 = FollowUpItem("Tell me more about Python")
 fu2 = FollowUpItem("Show me a JavaScript comparison")`,
 
   `Example 2 — Clickable list:
+
 root = Card([title, list])
 title = TextContent("Choose a topic", "large-heavy")
 list = ListBlock([item1, item2, item3])
@@ -230,6 +233,7 @@ item2 = ListItem("Advanced features", "Deep dives into powerful capabilities.")
 item3 = ListItem("Troubleshooting", "Common issues and how to fix them.")`,
 
   `Example 3 — Image carousel with consistent slides + follow-ups:
+
 root = Card([header, carousel, followups])
 header = CardHeader("Featured Destinations", "Discover highlights and best time to visit")
 carousel = Carousel([[t1, img1, d1, tags1], [t2, img2, d2, tags2], [t3, img3, d3, tags3]], "card")
@@ -250,13 +254,14 @@ fu1 = FollowUpItem("Show me only beach destinations")
 fu2 = FollowUpItem("Turn this into a comparison table")`,
 
   `Example 4 — Form with validation:
+
 root = Card([title, form])
 title = TextContent("Contact Us", "large-heavy")
 form = Form("contact", btns, [nameField, emailField, msgField])
 nameField = FormControl("Name", Input("name", "Your name", "text", { required: true, minLength: 2 }))
 emailField = FormControl("Email", Input("email", "you@example.com", "email", { required: true, email: true }))
 msgField = FormControl("Message", TextArea("message", "Tell us more...", 4, { required: true, minLength: 10 }))
-btns = Buttons([Button("Submit", { type: "continue_conversation" }, "primary")])`,
+btns = Buttons([Button("Submit", Action([@ToAssistant("Submit")]), "primary")])`,
 ];
 
 export const openuiChatAdditionalRules: string[] = [

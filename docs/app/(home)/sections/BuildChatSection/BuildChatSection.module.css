@@ -1,6 +1,6 @@
 .section {
   width: 100%;
-  padding-inline: var(--home-section-padding-inline);
+  padding-inline: 1.25rem;
 }
 
 .container {
@@ -12,16 +12,16 @@
   position: relative;
   overflow: hidden;
   border-radius: 32px;
-  background: var(--home-color-surface);
+  background: var(--openui-foreground);
 }
 
 .overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border: 1px solid var(--home-border-default);
+  border: 1px solid var(--openui-border-interactive);
   border-radius: 32px;
-  box-shadow: var(--home-shadow-elevated);
+  box-shadow: var(--openui-shadow-l);
 }
 
 .content {
@@ -50,7 +50,7 @@
   font-size: 32px;
   font-weight: 600;
   line-height: 1.2;
-  color: var(--home-color-text-primary);
+  color: var(--openui-text-neutral-primary);
   margin: auto;
   text-align: center;
 }
@@ -63,7 +63,7 @@
   font-family: "Inter Display", sans-serif;
   font-size: 18px;
   line-height: 1.4;
-  color: var(--home-color-text-muted);
+  color: var(--openui-text-neutral-secondary);
 }
 
 .ctaWrap {
@@ -82,10 +82,10 @@
   justify-content: center;
   gap: 0.625rem;
   height: 3rem;
-  padding-inline: var(--home-pill-padding-inline);
+  padding-inline: 1.25rem;
   border: 0;
   border-radius: 999px;
-  background: var(--home-color-surface-inverse);
+  background: var(--openui-inverted-background);
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -102,32 +102,18 @@
   font-size: 12px;
   font-weight: 400;
   line-height: 1.5rem;
-  color: var(--home-color-text-inverse);
-}
-
-.mediaColumn {
-  width: 100%;
-  flex-shrink: 0;
-}
-
-.dashboardImage {
-  width: 100%;
-  height: auto;
-  border-radius: 12px;
-  object-fit: contain;
+  color: var(--openui-text-accent-primary);
 }
 
 @media (min-width: 1024px) {
-  .content {
-    flex-direction: row;
-    gap: 0;
+  .section {
+    padding-inline: 2rem;
   }
 
   .copyColumn {
     min-height: 0;
-    padding:16px;
+    padding: 16px;
   }
-
 
   .title {
     max-width: 430px;
@@ -135,7 +121,7 @@
     font-size: 36px;
     font-weight: 600;
     line-height: 1.2;
-    color: var(--home-color-text-primary);
+    color: var(--openui-text-neutral-primary);
     margin: 4px 0 0 4px;
     text-align: left;
   }
@@ -153,9 +139,5 @@
 
   .ctaLabel {
     font-size: 16px;
-  }
-
-  .mediaColumn {
-    width: 600px;
   }
 }

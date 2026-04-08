@@ -72,6 +72,8 @@ export {
   defaultLightTheme,
   swatchTokens,
 } from "./components/ThemeProvider";
+export type { ThemeProps } from "./components/ThemeProvider/ThemeProvider";
+export type { ThemeMode } from "./components/ThemeProvider/types";
 export * from "./components/ToolCall";
 export * from "./components/ToolResult";
 

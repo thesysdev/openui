@@ -2,33 +2,63 @@
   width: 100%;
 }
 
-.npmButton {
-  display: flex;
-  height: 3rem;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  gap: 0.625rem;
-  padding-left: 1.25rem;
-  padding-right: 0.5rem;
-  border: 1px solid var(--home-border-soft);
-  border-radius: var(--home-radius-pill);
-  background: var(--home-color-surface);
-  box-shadow: var(--home-shadow-elevated);
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+/* ── Shared typography ── */
+
+.desktopTitle,
+.mobileTitle {
+  margin: 0;
+  font-family: "Inter Display", sans-serif;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--openui-text-neutral-primary);
 }
 
-.npmButton:hover {
-  transform: scale(0.99);
-  box-shadow: none;
+.desktopTitle {
+  font-size: 10rem;
+  letter-spacing: -3px;
 }
 
-.desktopPlaygroundButton:hover {
-  background: var(--home-color-surface-soft);
+.mobileTitle {
+  text-align: center;
+  font-size: clamp(96px, 25vw, 120px);
+  letter-spacing: -2px;
 }
+
+.desktopSubtitle,
+.mobileSubtitle,
+.tagline {
+  margin: 0;
+  font-family: "Inter Display", sans-serif;
+  font-weight: 500;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.desktopSubtitle {
+  font-size: 1.75rem;
+  line-height: 1.25;
+  margin-top: 1.5rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.mobileSubtitle {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.tagline {
+  text-align: center;
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+.taglineBreak {
+  display: none;
+}
+
+/* ── Shared label typography ── */
 
 .npmDesktopLabel,
 .npmTickerText,
@@ -44,11 +74,59 @@
   font-family: "Inter Display", sans-serif;
 }
 
+/* ── Shared inline-flex icon helper ── */
+
+.npmIconBadge,
+.heroBannerIcon,
+.mobileCtaArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.npmIconBadge {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-inverted-background);
+}
+
+.mobileCtaArrow {
+  color: currentColor;
+}
+
+/* ── NPM button ── */
+
+.npmButton {
+  display: flex;
+  height: 3rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding-left: 1.25rem;
+  padding-right: 0.5rem;
+  border: 1px solid var(--openui-border-default);
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-foreground);
+  box-shadow: var(--openui-shadow-l);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.npmButton:hover {
+  transform: scale(0.99);
+  box-shadow: none;
+}
+
 .npmDesktopLabel {
   display: none;
   font-family: var(--font-geist-mono);
   white-space: nowrap;
-  color: var(--home-color-text-primary);
+  color: var(--openui-text-neutral-primary);
 }
 
 .npmMobileLabel {
@@ -70,19 +148,10 @@
   font-family: var(--font-geist-mono);
   white-space: nowrap;
   padding-right: 2rem;
-  color: var(--home-color-text-primary);
+  color: var(--openui-text-neutral-primary);
 }
 
-.npmIconBadge {
-  display: flex;
-  height: 2rem;
-  width: 2rem;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: var(--home-color-surface-inverse);
-}
+/* ── CTA pill buttons (shared base) ── */
 
 .desktopPlaygroundButton,
 .mobilePlaygroundButton {
@@ -91,103 +160,198 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 999px;
+  padding-inline: 1.25rem;
+  border-radius: var(--openui-radius-full);
   text-decoration: none;
+  transition: background-color 0.2s ease;
 }
 
 .desktopPlaygroundButton {
-  padding-inline: var(--home-pill-padding-inline);
-  color: var(--home-color-text-primary);
-  transition: background-color 0.2s ease;
+  color: var(--openui-text-neutral-primary);
+}
+
+.desktopPlaygroundButton:hover {
+  background: var(--openui-highlight);
 }
 
 .mobilePlaygroundButton {
   flex-shrink: 0;
-  padding-inline: var(--home-pill-padding-inline);
-  border-radius: 100px;
-  background: var(--home-color-surface-inverse);
-  transition: background-color 0.2s ease;
+  background: var(--openui-highlight-strong);
+  color: var(--openui-text-neutral-primary);
 }
 
 .mobilePlaygroundButton:hover {
-  background: rgb(0 0 0 / 85%);
+  background: var(--openui-highlight);
 }
 
 .mobilePlaygroundLabel {
   white-space: nowrap;
-  color: var(--home-color-text-inverse);
+  color: inherit;
 }
 
-.mobilePlaygroundArrow {
-  color: var(--home-color-text-inverse);
-  font-size: 20px;
+/* ── Hero banner ── */
+
+.heroBanner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-highlight-strong);
+  color: var(--openui-text-neutral-primary);
+  font-family: "Inter Display", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5rem;
+  text-align: center;
+  margin-bottom: 24px;
+  transition: background-color 0.2s ease;
+}
+
+.heroBanner:hover {
+  background: var(--openui-highlight-strong);
+}
+
+.heroBannerDesktop {
+  display: none;
+}
+
+.heroBannerMobile {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.heroBannerLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.heroBannerBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.5rem;
+  padding-inline: 0.4rem;
+  border-radius: var(--openui-radius-s);
+  background: var(--openui-text-info-primary);
+  border: 1px solid var(--openui-border-default);
+  font-size: 0.75rem;
+  font-weight: 600;
   line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--openui-text-info-inverted);
 }
 
-.mobileMascotSvg {
-  position: absolute;
-  inset: 9.29% 0 10% 0;
-  display: block;
-  width: 100%;
-  height: 80.71%;
+.heroBannerActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
+
+.heroBannerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding-inline: 1rem;
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-foreground);
+  color: var(--openui-text-neutral-primary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25rem;
+  border: 1px solid var(--openui-border-default);
+  transition: border-color 0.2s ease;
+}
+
+.heroBannerButton:hover {
+  border-color: var(--openui-border-interactive);
+}
+
+.heroBannerButtonPrimary {
+  background: var(--openui-inverted-background);
+  color: var(--openui-text-accent-primary);
+}
+
+.heroBannerButtonPrimary:hover {
+  background: rgb(0 0 0 / 85%);
+}
+
+.heroBannerLead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+/* ── Mobile GitHub button ── */
+
+.mobileGithubButton {
+  min-height: 3rem;
+  padding-inline: 1.25rem;
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-inverted-background);
+  color: var(--openui-text-accent-primary);
+  font-size: 18px;
+  line-height: 1.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.mobileGithubButton:hover {
+  background: rgb(0 0 0 / 85%);
+}
+
+/* ── Desktop hero layout ── */
 
 .desktopHero {
   display: none;
 }
 
 .desktopHeroInner {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
   max-width: 75rem;
   margin-inline: auto;
 }
 
-.desktopHeroSpacer {
-  display: block;
+.desktopHeroLockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
   width: 100%;
-  height: auto;
-  visibility: hidden;
-}
-
-.heroLayerMotion {
-  position: absolute;
-  inset: 0;
-}
-
-.heroLayerMotion,
-.desktopCtaLayer {
-  will-change: transform, opacity;
-}
-
-.fillSvg {
-  width: 100%;
-  height: 100%;
-}
-
-.desktopCtaLayer {
-  position: absolute;
-  left: 50%;
-  top: 71.19%;
 }
 
 .desktopCtaStack {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  padding-top: 3.5rem;
-  transform: translateX(-50%);
+  margin-top: 1rem;
 }
+
+/* ── Mobile hero layout ── */
 
 .mobileHero {
   position: relative;
   overflow: hidden;
+  padding-top: 2rem;
 }
 
 .mobileHeroIntro {
   position: relative;
-  padding: 32px var(--home-section-padding-inline) var(--home-section-padding-inline);
+  padding: 24px 1.25rem 0;
 }
 
 .mobileHeroStack {
@@ -197,80 +361,14 @@
   margin-inline: auto;
   flex-direction: column;
   align-items: center;
-  gap: 1.25rem;
-  padding-block: 2.5rem;
+  gap: 0.875rem;
+  padding: 1rem 0 0.5rem;
 }
 
 .mobileBrandGroup {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0rem;
-}
-
-.mobileGithubBanner {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 2.5rem;
-  padding-inline: 1rem;
-  border-radius: var(--home-radius-pill);
-  background: var(--home-color-surface-soft);
-  color: var(--home-color-text-primary);
-  text-decoration: none;
-  font-family: "Inter Display", sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.5rem;
-  transition: background-color 0.2s ease;
-}
-
-.mobileGithubBanner:hover {
-  background: var(--home-color-surface-muted);
-}
-
-.mobileGithubBannerLead {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-}
-
-.mobileGithubBannerIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mobileGithubBannerArrow {
-  font-size: 18px;
-  line-height: 1;
-}
-
-.mobileMascotWrap {
-  position: relative;
-  height: 120px;
-  width: 120px;
-  flex-shrink: 0;
-}
-
-.mobileTitle {
-  text-align: center;
-  font-family: "Inter Display", sans-serif;
-  font-size: 80px;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--home-color-text-primary);
-}
-
-.mobileSubtitle {
-  text-align: center;
-  font-family: "Inter Display", sans-serif;
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 1.2;
-  color: var(--home-color-text-muted);
 }
 
 .mobileCtaStack {
@@ -278,64 +376,62 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem 2.5rem 5rem;
+  margin-top: 40px;
+  gap: 1rem;
+  padding: 0.5rem 2.5rem 4rem;
 }
 
 .mobileCtaButtonWidth {
   width: 320px;
   max-width: 100%;
+  justify-content: space-between;
+}
+
+/* ── Illustration / preview ── */
+
+.mobileIllustrationViewport,
+.previewFrame {
+  position: relative;
+  width: 100%;
+  margin-inline: auto;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
 }
 
 .mobileIllustrationViewport {
-  position: relative;
-  left: 50%;
-  width: 100vw;
-  transform: translateX(-50%);
+  max-width: 402px;
 }
 
-.mobileIllustrationFallback {
-  aspect-ratio: 16 / 9;
+.previewFrame {
+  max-width: 75rem;
 }
 
-.previewScaleContainer {
-  position: absolute;
-  inset: 0;
-}
-
-.previewScaleFrame {
-  position: absolute;
-  left: 50%;
-  width: 1600px;
-  height: 518px;
-  transform: translateX(-50%) scale(var(--preview-scale, 1));
-  transform-origin: top center;
+.mobileIllustrationImage,
+.previewImage {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .previewSection {
   width: 100%;
   overflow: hidden;
   margin-top: 2rem;
+  padding-inline: 1rem;
 }
 
 .previewDesktopOnly {
   display: none;
+  width: 100%;
   justify-content: center;
-  overflow: hidden;
 }
 
-.previewFrame {
-  position: relative;
-  width: calc(100% + 240px);
-  max-width: 100vw;
-  aspect-ratio: 1600 / 518;
-  margin-inline: -120px;
-  overflow: hidden;
-}
+/* ── Tagline section ── */
 
 .taglineSection {
   margin-top: 1.25rem;
-  padding-inline: var(--home-section-padding-inline);
+  padding-inline: 1.25rem;
 }
 
 .taglineContainer {
@@ -343,28 +439,26 @@
   margin-inline: auto;
 }
 
-.tagline {
-  text-align: center;
-  font-family: "Inter Display", sans-serif;
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--home-color-text-muted);
-}
-
-.taglineBreak {
-  display: none;
-}
+/* ── Animation ── */
 
 @keyframes npmTickerScroll {
   0% {
     transform: translateX(0);
   }
-
   100% {
     transform: translateX(-50%);
   }
 }
+
+/* ── Responsive: subtitle no-wrap on wider phones ── */
+
+@media (min-width: 480px) {
+  .mobileSubtitle {
+    white-space: nowrap;
+  }
+}
+
+/* ── Responsive: desktop (≥1024px) ── */
 
 @media (min-width: 1024px) {
   .npmDesktopLabel {
@@ -381,11 +475,30 @@
     position: relative;
     width: 100%;
     overflow: hidden;
-    padding: 5.5rem var(--home-section-padding-inline) 5.5rem;
+    padding: 8rem 2rem 0;
+  }
+
+  .heroBanner {
+    gap: 1.5rem;
+    padding: 0.6rem 0.75rem 0.6rem 1rem;
+  }
+
+  .heroBannerDesktop {
+    display: inline-flex;
+  }
+
+  .heroBannerMobile {
+    display: none;
+  }
+
+  .heroBannerActions {
+    flex-direction: row;
+    align-items: center;
   }
 
   .previewSection {
     margin-top: 2.5rem;
+    padding-inline: 2rem;
   }
 
   .previewDesktopOnly {
@@ -394,7 +507,7 @@
 
   .taglineSection {
     margin-top: 2.5rem;
-    padding: 2.5rem var(--home-section-padding-inline) 0;
+    padding: 2.5rem 2rem 0;
   }
 
   .tagline {

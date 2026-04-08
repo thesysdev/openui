@@ -1,0 +1,93 @@
+---
+title: Dashboard App
+description: A data-driven dashboard with tools, MCP, and interactive charts built with OpenUI.
+---
+
+A full dashboard app that connects to backend tools via MCP. The LLM generates interactive UIs with KPI cards, charts, tables, and forms. After generation, the runtime calls your tools directly without the LLM.
+
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/openui-dashboard)
+
+<video
+  src="/videos/openui-lang/dashboard.mp4"
+  autoPlay
+  loop
+  muted
+  playsInline
+  className="w-full rounded-lg"
+/>
+
+## How it works
+
+The app has three layers:
+
+1. **Tools** (`src/tools.ts`): A shared registry of tool definitions with Zod input schemas, output schemas, and execute functions. Includes PostHog analytics queries, server health, ticket CRUD, and more.
+
+2. **MCP server** (`src/app/api/mcp/route.ts`): Registers all tools from the shared registry as MCP endpoints. The Renderer's MCP client calls these at runtime.
+
+3. **Chat + prompt** (`src/app/api/chat/route.ts`): Converts the same tool definitions into `ToolSpec[]` for prompt generation, then streams LLM responses with OpenAI function calling.
+
+```
+  tools.ts (shared source of truth)
+      │
+      ├──▶ /api/mcp    (MCP server, runtime tool execution)
+      │
+      └──▶ /api/chat   (prompt generation + LLM streaming)
+```
+
+## Key files
+
+**`src/tools.ts`** defines each tool once:
+
+```ts
+export const tools: ToolDef[] = [
+  {
+    name: "get_usage_metrics",
+    description: "Get usage metrics for the specified date range",
+    inputSchema: { days: z.string().optional() },
+    outputSchema: z.object({
+      totalEvents: z.number(),
+      data: z.array(z.object({ day: z.string(), events: z.number() })),
+    }),
+    execute: async (args) => getUsageMetrics(args),
+  },
+  // ... more tools
+];
+```
+
+**`src/prompt-config.ts`** configures the prompt with tool examples and PostHog-specific instructions:
+
+```ts
+export const promptSpec: PromptSpec = {
+  ...componentSpec,
+  editMode: true,
+  inlineMode: true,
+  toolExamples: [/* PostHog dashboard example, server health example, CRUD example */],
+  additionalRules: ["For analytics, prefer posthog_query with HogQL SQL", ...],
+};
+```
+
+**`src/app/dashboard/page.tsx`** renders the UI with an MCP client as the tool provider:
+
+```tsx
+const client = new Client({ name: "openui-dashboard", version: "1.0.0" });
+await client.connect(new StreamableHTTPClientTransport(new URL("/api/mcp")));
+
+<Renderer
+  toolProvider={client}
+  library={openuiLibrary}
+  response={streamedCode}
+  isStreaming={isStreaming}
+/>;
+```
+
+## Try it
+
+```bash
+git clone https://github.com/thesysdev/openui.git
+cd openui/examples/openui-dashboard
+pnpm install
+echo "OPENAI_API_KEY=sk-your-key" > .env.local
+pnpm dev
+```
+
+Ask it to build a PostHog analytics dashboard, a ticket tracker, or a server monitoring view.

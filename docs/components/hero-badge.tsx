@@ -12,7 +12,7 @@ export function HeroBadge({ icon, text }: HeroBadgeProps) {
   )[icon];
 
   return (
-    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-medium">
+    <div className="inline-flex items-center gap-2 rounded-full bg-fd-muted px-3 py-1 text-sm font-medium text-fd-foreground">
       {IconComponent && <IconComponent size={14} />}
       <span>{text}</span>
     </div>

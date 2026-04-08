@@ -5,6 +5,6 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [tailwindcss(), sveltekit()],
   ssr: {
-    noExternal: ["@openuidev/svelte-lang"],
+    noExternal: ["@openuidev/svelte-lang", "@openuidev/lang-core"],
   },
 });

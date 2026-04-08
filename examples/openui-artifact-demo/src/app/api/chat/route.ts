@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
   const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
-  const MODEL = process.env.OPENAI_MODEL || "gpt-4o";
+  const MODEL = process.env.OPENAI_MODEL || "gpt-5.4-mini";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cleanMessages = (messages as any[])

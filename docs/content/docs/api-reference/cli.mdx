@@ -28,12 +28,12 @@ openui create [options]
 
 **Options**
 
-| Flag | Description |
-|---|---|
-| `-n, --name <string>` | Project name (directory to create) |
-| `--skill` | Install the OpenUI agent skill for AI coding assistants |
-| `--no-skill` | Skip installing the OpenUI agent skill |
-| `--no-interactive` | Fail instead of prompting for missing input |
+| Flag                  | Description                                             |
+| --------------------- | ------------------------------------------------------- |
+| `-n, --name <string>` | Project name (directory to create)                      |
+| `--skill`             | Install the OpenUI agent skill for AI coding assistants |
+| `--no-skill`          | Skip installing the OpenUI agent skill                  |
+| `--no-interactive`    | Fail instead of prompting for missing input             |
 
 When run interactively (default), the CLI prompts for any missing options. Pass `--no-interactive` in CI or scripted environments to surface missing required flags as errors instead.
 
@@ -78,19 +78,19 @@ openui generate [entry] [options]
 
 **Arguments**
 
-| Argument | Description |
-|---|---|
+| Argument  | Description                                                             |
+| --------- | ----------------------------------------------------------------------- |
 | `[entry]` | Path to a `.ts`, `.tsx`, `.js`, or `.jsx` file that exports a `Library` |
 
 **Options**
 
-| Flag | Description |
-|---|---|
-| `-o, --out <file>` | Write output to a file instead of stdout |
-| `--json-schema` | Output JSON schema instead of a system prompt |
-| `--export <name>` | Name of the export to use (auto-detected by default) |
+| Flag                      | Description                                                          |
+| ------------------------- | -------------------------------------------------------------------- |
+| `-o, --out <file>`        | Write output to a file instead of stdout                             |
+| `--json-schema`           | Output JSON schema instead of a system prompt                        |
+| `--export <name>`         | Name of the export to use (auto-detected by default)                 |
 | `--prompt-options <name>` | Name of the `PromptOptions` export to use (auto-detected by default) |
-| `--no-interactive` | Fail instead of prompting for missing `entry` |
+| `--no-interactive`        | Fail instead of prompting for missing `entry`                        |
 
 **Examples**
 
@@ -133,8 +133,17 @@ interface PromptOptions {
   preamble?: string;
   additionalRules?: string[];
   examples?: string[];
+  toolExamples?: string[];
+  editMode?: boolean;
+  inlineMode?: boolean;
+  /** Enable Query(), Mutation(), @Run, built-in functions. Default: true if tools provided. */
+  toolCalls?: boolean;
+  /** Enable $variables, @Set, @Reset, built-in functions. Default: true if toolCalls. */
+  bindings?: boolean;
 }
 ```
+
+Built-in functions (`@Count`, `@Filter`, `@Sort`, `@Each`, etc.) are included in the prompt only when `toolCalls` or `bindings` is enabled. For static UI examples without data fetching, they are omitted to keep the prompt focused.
 
 Pass this as a named export alongside your library to customise the generated system prompt without hard-coding it into `createLibrary`.
 

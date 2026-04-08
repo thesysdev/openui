@@ -5,7 +5,7 @@ title: Introduction
 import { StreamingComparison } from "@/app/docs/openui-lang/streaming-comparison";
 import { TryItOut } from "./components/try-it-out";
 
-OpenUI is a full-stack Generative UI framework — a compact streaming-first language, a React runtime with built-in component libraries, and ready-to-use chat interfaces — that is up to **[67% more token-efficient](/docs/openui-lang/benchmarks)** than JSON.
+OpenUI is a full-stack Generative UI framework (a compact streaming-first language, a React runtime with built-in component libraries, and ready-to-use chat interfaces) that is up to **[67% more token-efficient](/docs/openui-lang/benchmarks)** than JSON. Generate anything from rich chat responses to [fully interactive dashboards](/docs/openui-lang/how-it-works).
 
 ## What is Generative UI?
 
@@ -16,11 +16,11 @@ Generative UI fundamentally changes this relationship. Instead of merely providi
 <TryItOut />
 ## OpenUI Lang
 
-OpenUI Lang is a compact, line-oriented language designed specifically for Large Language Models (LLMs) to generate user interfaces. It serves as a more efficient, predictable, and stream-friendly alternative to verbose formats like JSON. For the complete syntax reference, see the [Language Specification](/docs/openui-lang/specification).
+OpenUI Lang is a compact, line-oriented language designed specifically for Large Language Models (LLMs) to generate user interfaces. It serves as a more efficient, predictable, and stream-friendly alternative to verbose formats like JSON. For the complete syntax reference, see the [Language Specification](/docs/openui-lang/specification-v05).
 
 ### Why a New Language?
 
-While JSON is a common data interchange format, it has significant drawbacks when streamed directly from an LLM for UI generation. And there are mutliple implementations around it, like Vercel [JSON-Render](https://json-render.dev/) and [A2UI](https://a2ui.org/).
+While JSON is a common data interchange format, it has significant drawbacks when streamed directly from an LLM for UI generation. And there are multiple implementations around it, like Vercel [JSON-Render](https://json-render.dev/) and [A2UI](https://a2ui.org/).
 
 OpenUI Lang was created to solve these core issues:
 
@@ -28,20 +28,32 @@ OpenUI Lang was created to solve these core issues:
 
 - **Streaming-First Design:** The language is line-oriented (`identifier = Expression`), making it trivial to parse and render progressively. As each line arrives from the model, a new piece of the UI can be rendered immediately. This provides a superior user experience with much better perceived performance compared to waiting for a complete JSON object to download and parse.
 
-- **Robustness:** The LLMs are unpredictable. They can hallucinate component names, produce invalid structures. OpenUI Lang is designed to be robust against this by validating the output and drops the invalid portion of response from rendering.
+- **Robustness:** LLMs are unpredictable. They can hallucinate component names or produce invalid structures. OpenUI Lang validates output and drops invalid portions, rendering only what's valid.
 
 <StreamingComparison />
 
-## How It Works
+## Architecture at a Glance
 
 <img src="/images/openui-lang/openui-chart-flow.png" alt="Architecture diagram" />
 
-The key difference from a standard chat app is what happens at the LLM and rendering layers:
+1.  **System prompt includes OpenUI Lang spec**: Your backend appends the generated component library prompt alongside your system prompt, instructing the LLM to respond in OpenUI Lang instead of plain text or JSON.
 
-1.  **System prompt includes OpenUI Lang spec** — Your backend appends the generated component library prompt alongside your system prompt, instructing the LLM to respond in OpenUI Lang instead of plain text or JSON.
+2.  **LLM generates OpenUI Lang**: Instead of returning markdown, the model outputs a compact, line-oriented syntax (e.g., `root = Stack([chart])`) constrained to your component library.
 
-2.  **LLM generates OpenUI Lang** — Instead of returning markdown, the model outputs a compact, line-oriented syntax (e.g., `root = Stack([chart])`) constrained to your component library.
+3.  **Streaming render**: On the client, the `<Renderer />` component parses each line as it arrives and maps it to your React components in real-time. Structure renders first, then data fills in progressively.
 
-3.  **Streaming render** — On the client, the `<Renderer />` component parses each line as it arrives and maps it to your React components in real-time — structure first, then data fills in progressively.
+The result is a native UI dynamically composed by the AI, streamed efficiently, and rendered safely from your own components. For data-driven apps with live tools and reactive state, see [Architecture](/docs/openui-lang/how-it-works).
 
-The result is a native UI — like the "Total expenses" card and interactive pie chart above — dynamically composed by the AI, streamed efficiently, and rendered safely from your own components.
+## What can you build?
+
+<Cards>
+  <Card title="Chat" href="/docs/chat">
+    Conversational AI with generative UI responses, thread history, and prebuilt layouts.
+  </Card>
+  <Card title="Dashboards & Apps" href="/docs/openui-lang/how-it-works">
+    Data-driven dashboards, CRUD interfaces, and monitoring tools, powered by live data from your
+    tools.
+  </Card>
+</Cards>
+
+Want to try it? [Open the Playground](/playground) or follow the [Quick Start](/docs/openui-lang/quickstart).

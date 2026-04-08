@@ -1,0 +1,534 @@
+/* ── Layout ── */
+
+.gh-connect {
+  width: fit-content;
+  margin: 0 auto;
+  padding: 120px 16px;
+}
+
+.gh-builder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--openui-space-2xl);
+}
+
+/* ── Brand ── */
+
+.gh-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--openui-space-s);
+  color: var(--openui-text-neutral-primary);
+  font: var(--openui-text-body-lg-heavy);
+  letter-spacing: var(--openui-text-body-lg-heavy-letter-spacing);
+}
+
+.gh-brandIcon {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Sentence block ── */
+
+.gh-sentence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--openui-space-s);
+}
+
+.gh-sentenceLine {
+  margin: 0;
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--openui-font-body);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.03em;
+}
+
+.gh-sentenceIdentity {
+  font-family: var(--openui-font-body);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.03em;
+}
+
+.gh-sentenceLine-secondary {
+  margin-top: var(--openui-space-m);
+  color: var(--openui-text-neutral-secondary);
+}
+
+/* ── Username input (inline) ── */
+
+.gh-inputWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  padding-bottom: 0.125em;
+  border-bottom: 1.5px solid var(--openui-border-interactive);
+  color: var(--openui-text-neutral-primary);
+  font: inherit;
+  vertical-align: middle;
+  transition: border-color 0.2s ease;
+}
+
+.gh-inputWrap:focus-within {
+  border-bottom-color: var(--openui-border-interactive-emphasis);
+}
+
+.gh-inputPrefix {
+  color: var(--openui-text-neutral-secondary);
+  user-select: none;
+}
+
+.gh-inputSizer {
+  display: inline-grid;
+  min-width: 4ch;
+  max-width: min(16ch, 50vw);
+}
+
+.gh-inputGhost,
+.gh-inputField {
+  grid-area: 1 / 1;
+  font: inherit;
+  line-height: inherit;
+}
+
+.gh-inputGhost {
+  visibility: hidden;
+  white-space: pre;
+}
+
+.gh-inputField {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
+.gh-inputField::placeholder {
+  color: var(--openui-text-neutral-tertiary);
+}
+
+.gh-inputClear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--openui-text-neutral-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+}
+
+.gh-inputWrap:hover .gh-inputClear,
+.gh-inputWrap:focus-within .gh-inputClear {
+  opacity: 1;
+}
+
+.gh-inputClear:hover {
+  color: var(--openui-text-neutral-primary);
+}
+
+/* ── Inline ellipsis hint (before topic is selected) ── */
+
+.gh-selectHintInline {
+  color: var(--openui-text-neutral-tertiary);
+  letter-spacing: 0.1em;
+}
+
+/* ── Chip (selected identity / focus) ── */
+
+.gh-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--openui-space-s);
+  padding: 10px 18px 10px 10px;
+  border: 1px solid color-mix(in srgb, var(--gh-tone-fill) 22%, var(--gh-tone-border));
+  border-radius: var(--openui-radius-full);
+  background: color-mix(in srgb, var(--gh-tone-bg) 52%, var(--openui-foreground));
+  color: var(--openui-text-neutral-primary);
+  box-shadow: var(--openui-shadow-s);
+  font-family: var(--openui-font-body);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.gh-chip-neutral {
+  --gh-tone-fill: var(--openui-text-neutral-secondary);
+  --gh-tone-bg: var(--openui-highlight-subtle);
+  --gh-tone-border: var(--openui-border-default);
+}
+
+.gh-chipLeading {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.gh-chipLabel {
+  white-space: nowrap;
+}
+
+.gh-chipClear {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--openui-text-neutral-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.gh-chipClear:hover {
+  color: var(--openui-text-neutral-primary);
+}
+
+.gh-chipAvatar,
+.gh-chipMonogram {
+  width: 1.25em;
+  height: 1.25em;
+  border-radius: var(--openui-radius-full);
+}
+
+.gh-chipAvatar {
+  flex-shrink: 0;
+}
+
+.gh-chipMonogram {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--openui-highlight);
+  color: var(--openui-text-neutral-secondary);
+  font-size: 0.65em;
+  font-weight: 600;
+}
+
+/* ── Developer picker ── */
+
+.gh-devPicker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--openui-space-m);
+}
+
+.gh-devPickerCaption {
+  margin: 0;
+  color: var(--openui-text-neutral-tertiary);
+  font: var(--openui-text-label-sm-heavy);
+}
+
+/* ── Option list (shared) ── */
+
+.gh-choiceList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.gh-choiceList-developer {
+  max-width: 18rem;
+}
+
+.gh-choiceList-focus {
+  max-width: 20rem;
+}
+
+.gh-choiceOption {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--openui-space-m);
+  padding: 0.75rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--gh-tone-fill) 18%, var(--gh-tone-border));
+  border-radius: calc(var(--openui-radius-3xl) + 4px);
+  background: color-mix(in srgb, var(--gh-tone-bg) 34%, var(--openui-foreground));
+  color: var(--openui-text-neutral-primary);
+  box-shadow: var(--openui-shadow-s);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.gh-choiceOption:hover,
+.gh-choiceOption-selected {
+  transform: translateY(-1px);
+  border-color: color-mix(
+    in srgb,
+    var(--gh-tone-fill) 36%,
+    var(--openui-border-interactive-emphasis)
+  );
+  background: color-mix(in srgb, var(--gh-tone-bg) 54%, var(--openui-foreground));
+}
+
+.gh-choiceOptionPrimary {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--openui-space-s);
+}
+
+.gh-choiceOptionLeading {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.gh-choiceOptionLabel {
+  color: var(--openui-text-neutral-primary);
+  font: var(--openui-text-body-default-heavy);
+  letter-spacing: var(--openui-text-body-default-heavy-letter-spacing);
+}
+
+.gh-choiceOptionCheck {
+  flex-shrink: 0;
+  color: var(--gh-tone-fill);
+}
+
+.gh-choiceAvatar {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: var(--openui-radius-full);
+  flex-shrink: 0;
+}
+
+.gh-choiceIconBubble {
+  display: inline-flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--openui-radius-full);
+  background: color-mix(in srgb, var(--gh-tone-fill) 14%, var(--openui-highlight-subtle));
+  color: var(--gh-tone-fill);
+}
+
+.gh-choiceSwatch {
+  display: inline-flex;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 50%;
+  background: var(--gh-tone-fill);
+}
+
+/* ── Focus picker ── */
+
+.gh-focusPicker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--openui-space-m);
+}
+
+.gh-focusPickerCaption {
+  margin: 0;
+  color: var(--openui-text-neutral-tertiary);
+  font: var(--openui-text-label-sm-heavy);
+}
+
+/* ── Error ── */
+
+.gh-error {
+  color: var(--openui-text-danger-primary);
+  font: var(--openui-text-label-default-heavy);
+  letter-spacing: var(--openui-text-label-default-heavy-letter-spacing);
+}
+
+/* ── Actions ── */
+
+.gh-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--openui-space-m-l);
+}
+
+.openui-button-base.gh-cta {
+  min-height: 3rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-interactive-accent-default);
+  color: var(--openui-text-accent-primary);
+  box-shadow: var(--openui-shadow-l);
+  font: var(--openui-text-body-large-heavy);
+  letter-spacing: var(--openui-text-body-default-heavy-letter-spacing);
+}
+
+.openui-button-base.gh-cta:hover:not(:disabled) {
+  background: var(--openui-interactive-accent-hover);
+}
+
+.gh-startOver {
+  border: none;
+  background: transparent;
+  color: var(--openui-text-neutral-secondary);
+  min-height: 3rem;
+  padding: 0.75rem 0;
+  font: var(--openui-text-body-large-heavy);
+  letter-spacing: var(--openui-text-body-default-heavy-letter-spacing);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.gh-startOver:hover:not(:disabled) {
+  color: var(--openui-text-neutral-primary);
+}
+
+.gh-startOver:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Focus ring ── */
+
+.gh-cta:focus-visible,
+.gh-inputClear:focus-visible,
+.gh-chipClear:focus-visible,
+.gh-choiceOption:focus-visible,
+.gh-startOver:focus-visible {
+  outline: 2px solid var(--openui-border-accent);
+  outline-offset: 3px;
+}
+
+/* ── Tone tokens ── */
+
+.gh-tone-green,
+.gh-tone-mint {
+  --gh-tone-fill: var(--openui-text-success-primary);
+  --gh-tone-bg: var(--openui-success-background);
+  --gh-tone-border: var(--openui-border-success);
+}
+
+.gh-tone-purple,
+.gh-tone-violet {
+  --gh-tone-fill: var(--openui-text-purple-primary);
+  --gh-tone-bg: var(--openui-purple-background);
+  --gh-tone-border: var(--openui-border-accent);
+}
+
+.gh-tone-red,
+.gh-tone-rose {
+  --gh-tone-fill: var(--openui-text-danger-primary);
+  --gh-tone-bg: var(--openui-danger-background);
+  --gh-tone-border: var(--openui-border-danger);
+}
+
+.gh-tone-blue {
+  --gh-tone-fill: var(--openui-text-info-primary);
+  --gh-tone-bg: var(--openui-info-background);
+  --gh-tone-border: var(--openui-border-info);
+}
+
+.gh-tone-amber,
+.gh-tone-peach {
+  --gh-tone-fill: var(--openui-text-alert-primary);
+  --gh-tone-bg: var(--openui-alert-background);
+  --gh-tone-border: var(--openui-border-alert);
+}
+
+.gh-tone-pink {
+  --gh-tone-fill: var(--openui-text-pink-primary);
+  --gh-tone-bg: var(--openui-pink-background);
+  --gh-tone-border: color-mix(
+    in srgb,
+    var(--openui-text-pink-primary) 24%,
+    var(--openui-border-default)
+  );
+}
+
+/* ── Visually hidden ── */
+
+.gh-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Animation ── */
+
+@keyframes gh-step-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gh-step-appear {
+  animation: gh-step-fade-in 200ms ease;
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 768px) {
+  .gh-connect {
+    padding: var(--openui-space-3xl) var(--openui-space-m-l) var(--openui-space-2xl);
+  }
+
+  .gh-builder {
+    gap: var(--openui-space-xl);
+  }
+
+  .gh-sentenceLine {
+    font-size: 32px;
+  }
+
+  .gh-sentenceIdentity {
+    font-size: 32px;
+  }
+
+  .gh-chip {
+    font-size: 24px;
+    padding: 8px 14px 8px 8px;
+  }
+
+  .gh-choiceList-developer,
+  .gh-choiceList-focus {
+    max-width: 100%;
+  }
+
+  .gh-choiceOption {
+    width: 100%;
+  }
+
+  .gh-actions {
+    margin-top: 32px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--openui-space-l);
+  }
+}

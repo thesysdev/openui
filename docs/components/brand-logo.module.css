@@ -1,0 +1,96 @@
+.githubButton {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.375rem;
+  min-inline-size: max-content;
+  height: 2.5rem;
+  padding-left: 0.625rem;
+  padding-right: 0.375rem;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--openui-text-black);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.2s ease;
+}
+
+.githubButton:hover {
+  transform: scale(0.995);
+}
+
+.githubButtonOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 999px;
+  box-shadow:
+    0 1px 3px 0 rgb(22 34 51 / 8%),
+    0 12px 24px 0 rgb(22 34 51 / 4%);
+}
+
+.githubButtonOverlayFlat {
+  box-shadow: none;
+}
+
+.githubIcon {
+  position: relative;
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+  overflow: clip;
+}
+
+.githubIconInner {
+  position: absolute;
+  inset: 1.67% 1.67% 4.05% 1.67%;
+}
+
+.starBadge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 3.5rem;
+  height: 1.75rem;
+  padding-inline: 0.5rem;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 6%);
+  transition: background-color 0.2s ease;
+}
+
+.starBadgeHighlighted {
+  background: #000;
+}
+
+.starCount {
+  color: #000;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.starCountHighlighted {
+  color: #fff;
+}
+
+.starCountValue {
+  display: inline-block;
+  min-inline-size: 4ch;
+  text-align: center;
+}
+
+.starCountHidden {
+  opacity: 0;
+}
+
+.starCountVisible {
+  opacity: 1;
+}

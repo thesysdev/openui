@@ -1,8 +1,8 @@
 .card {
-  border: 1px solid var(--home-border-subtle);
+  border: 1px solid var(--openui-border-interactive);
   border-radius: 18px;
-  background: var(--home-color-surface);
-  box-shadow: var(--home-shadow-elevated);
+  background: var(--openui-foreground);
+  box-shadow: var(--openui-shadow-l);
 }
 
 .desktopSteps {
@@ -22,18 +22,18 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--home-border-default);
-  border-radius: var(--home-radius-pill);
+  border: 1px solid var(--openui-border-interactive);
+  border-radius: var(--openui-radius-full);
 }
 
 .stepBadgeActive {
-  background: var(--home-color-surface-inverse);
-  color: #fff;
+  background: var(--openui-inverted-background);
+  color: var(--openui-text-accent-primary);
 }
 
 .stepBadgeInactive {
-  background: var(--home-color-surface);
-  color: var(--home-color-text-primary);
+  background: var(--openui-foreground);
+  color: var(--openui-text-neutral-primary);
 }
 
 .stepBadgeLabel {
@@ -46,7 +46,7 @@
 .divider {
   height: 1px;
   width: 100%;
-  background: var(--home-color-surface-muted);
+  background: var(--openui-highlight-strong);
 }
 
 .stepDetails {
@@ -59,7 +59,7 @@
   font-family: "Inter Display", sans-serif;
   font-size: 18px;
   line-height: 1.2;
-  color: var(--home-color-text-muted);
+  color: var(--openui-text-neutral-secondary);
 }
 
 .stepDetailsTitle {
@@ -131,7 +131,7 @@
   font-size: 24px;
   font-weight: 500;
   line-height: 1.25;
-  color: #000;
+  color: var(--openui-text-neutral-primary);
 }
 
 .desktopStepPreview {
@@ -158,7 +158,7 @@
   font-size: 16px;
   font-weight: 500;
   line-height: 1.25;
-  color: #000;
+  color: var(--openui-text-neutral-primary);
 }
 
 .mobileStepPanel {

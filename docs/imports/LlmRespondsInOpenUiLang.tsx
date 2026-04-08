@@ -1,7 +1,28 @@
+import { HomeIllustrationCode } from "./HomeIllustrationCode";
 import svgPaths from "./svg-l2c2kzuful";
 const hotelPlazaImg = "/images/home/706ccb488b69a5bdb06bdd002656a2fdfb017071.png";
 const hotelGeorgeVImg = "/images/home/6dea3a71b902a0282d8518928f3b06373b617aba.png";
 const hotelShangriLaImg = "/images/home/d781d9c958cc5cf8f3fc5fd61562ebcf0c7ba0a5.png";
+
+const OPENUI_LANG_CODE = `root = Carousel([c1, c2, c3])
+c1 = CarouselCard(
+  "Hotel Plaza Athenee",
+  "Haute couture suites; courtyard dining; Dior spa.",
+  "https://images.example.com/plaza.jpg",
+  "Book"
+)
+c2 = CarouselCard(
+  "Four Seasons George V",
+  "Landmark hotel with opulent rooms and spa.",
+  "https://images.example.com/george-v.jpg",
+  "Book"
+)
+c3 = CarouselCard(
+  "Shangri-La Hotel",
+  "Stunning Eiffel Tower views and Michelin dining.",
+  "https://images.example.com/shangri-la.jpg",
+  "Book"
+)`;
 
 type CardPreviewData = {
   imageSrc: string;
@@ -39,25 +60,11 @@ function Group() {
   return (
     <div className="absolute contents left-[49px] top-[48px]">
       <div className="absolute bg-black h-[290px] left-[49px] rounded-[16px] top-[48px] w-[443px]" />
-      <p className="absolute font-['Andale_Mono:Regular',sans-serif] h-[198px] leading-none left-[73px] not-italic text-[10px] text-white top-[74px] w-[254px] whitespace-pre-wrap">{`root = Carousel([c1, c2, c3])
-c1 = CarouselCard(
-  "Hotel Plaza Athenee",
-  "Haute couture suites; courtyard dining; Dior spa.",
-  "https://images.example.com/plaza.jpg",
-  "Book"
-)
-c2 = CarouselCard(
-  "Four Seasons George V",
-  "Landmark hotel with opulent rooms and spa.",
-  "https://images.example.com/george-v.jpg",
-  "Book"
-)
-c3 = CarouselCard(
-  "Shangri-La Hotel",
-  "Stunning Eiffel Tower views and Michelin dining.",
-  "https://images.example.com/shangri-la.jpg",
-  "Book"
-)`}</p>
+      <HomeIllustrationCode
+        className="absolute h-[198px] left-[73px] text-[10px] top-[74px] w-[254px]"
+        code={OPENUI_LANG_CODE}
+        language="javascript"
+      />
       <div className="absolute bg-gradient-to-b from-[rgba(0,0,0,0)] h-[65px] left-[60px] to-black top-[272px] w-[285px]" />
     </div>
   );
@@ -380,9 +387,6 @@ export default function LlmRespondsInOpenUiLang() {
         </div>
       </div>
       <Group2 />
-      <p className="absolute font-['Geist_Mono:Medium',sans-serif] font-medium leading-none left-[58px] text-[12px] text-[rgba(0,0,0,0.4)] top-[366px]">
-        OPENUI LANG (TOKEN EFFICIENT)
-      </p>
     </div>
   );
 }

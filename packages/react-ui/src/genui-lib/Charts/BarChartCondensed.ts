@@ -3,7 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod";
-import { BarChart as BarChartCondensedComponent } from "../../components/Charts";
+import { BarChartCondensed as BarChartCondensedComponent } from "../../components/Charts";
 import { buildChartData, hasAllProps } from "../helpers";
 import { SeriesSchema } from "./Series";
 

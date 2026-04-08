@@ -1,5 +1,34 @@
+import { HomeIllustrationCode } from "./HomeIllustrationCode";
 import svgPaths from "./svg-7fdz4sm9ln";
 const hotelPlazaImg = "/images/home/706ccb488b69a5bdb06bdd002656a2fdfb017071.png";
+
+const LIBRARY_CODE = `import { z } from "zod"
+import { Carousel, CarouselCard } from "components/Carousel"
+import { defineComponent, createLibrary } from "@openuidev/react-lang"
+
+const CarouselCard = defineComponent({
+  name: "CarouselCard",
+  props: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    imageUrl: z.string().url(),
+    ctaLabel: z.string(),
+  }),
+  component: ({ props }) => <CarouselCard {...props} />,
+})
+
+const Carousel = defineComponent({
+  name: "Carousel",
+  props: z.object({
+    cards: z.array(CarouselCard.ref),
+  }),
+  component: ({ props }) => <Carousel {...props} />,
+})
+
+export const library = createLibrary({
+  root: "Carousel",
+  components: [Carousel, CarouselCard],
+})`;
 
 function Frame() {
   return (
@@ -132,37 +161,11 @@ export default function YouRegisterComponents() {
         data-name="image 4"
       />
       <div className="absolute bg-black h-[350px] left-[49px] rounded-[16px] top-[48px] w-[443px]" />
-      <p className="absolute font-['Andale_Mono:Regular',sans-serif] h-[262px] leading-none left-[73px] not-italic text-[10px] text-white top-[71px] w-[254px] whitespace-pre-wrap">{`
-import { z } from "zod"
-import { Carousel, CarouselCard } from "components/Carousel"
-import { defineComponent, createLibrary } from "@openuidev/react-lang"
-
-const CarouselCard = defineComponent({
-  name: "CarouselCard",
-  props: z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    imageUrl: z.string().url(),
-    ctaLabel: z.string(),
-  }),
-  component: ({ props }) => <CarouselCard {...props} />,
-})
-
-const Carousel = defineComponent({
-  name: "Carousel",
-  props: z.object({
-    cards: z.array(CarouselCard.ref),
-  }),
-  component: ({ props }) => <Carousel {...props} />,
-})
-
-export const library = createLibrary({
-  root: "Carousel",
-  components: [Carousel, CarouselCard],
-})`}</p>
-      <p className="absolute font-['Geist_Mono:Medium',sans-serif] font-medium leading-none left-[58px] text-[12px] text-[rgba(0,0,0,0.4)] top-[366px]">
-        DEFINE COMPONENT + LIBRARY
-      </p>
+      <HomeIllustrationCode
+        className="absolute h-[262px] left-[73px] text-[10px] top-[71px] w-[254px]"
+        code={LIBRARY_CODE}
+        language="tsx"
+      />
       <Frame2 />
     </div>
   );

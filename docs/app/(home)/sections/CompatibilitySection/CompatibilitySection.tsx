@@ -1,121 +1,208 @@
-// ---------------------------------------------------------------------------
-// Data
-// ---------------------------------------------------------------------------
-
+import svgPaths from "@/imports/svg-urruvoh2be";
+import {
+  StackChip,
+  stackChipStyles,
+  type StackChipItem,
+} from "../../components/StackChip/StackChip";
 import styles from "./CompatibilitySection.module.css";
 
-interface CompatibilityItem {
-  name: string;
-  slug?: string;
-  localSrc?: string;
-  iconColor: string;
-  badgeClassName?: string;
+interface StackRow {
+  label: string;
+  items: StackChipItem[];
 }
 
-const LLMS: CompatibilityItem[] = [
-  {
-    name: "OpenAI",
-    localSrc: "/brand-icons/openai.svg",
-    iconColor: "000000",
-    badgeClassName: `${styles.badgeWhite} ${styles.badgeWithBorder}`,
-  },
-  { name: "Anthropic", slug: "anthropic", iconColor: "ffffff", badgeClassName: styles.badgeAnthropic },
-  {
-    name: "Gemini",
-    slug: "googlegemini",
-    iconColor: "000000",
-    badgeClassName: `${styles.badgeWhite} ${styles.badgeWithBorder}`,
-  },
-  { name: "Mistral", slug: "mistralai", iconColor: "ffffff", badgeClassName: styles.badgeMistral },
-];
+function splitItemsIntoRows(items: StackChipItem[], rowCount: number): StackChipItem[][] {
+  const itemsPerRow = Math.ceil(items.length / rowCount);
 
-const FRAMEWORKS: CompatibilityItem[] = [
-  { name: "Vercel AI SDK", slug: "vercel", iconColor: "ffffff", badgeClassName: styles.badgeBlack },
-  { name: "LangChain", slug: "langchain", iconColor: "ffffff", badgeClassName: styles.badgeLangChain },
-  { name: "CrewAI", slug: "crewai", iconColor: "ffffff", badgeClassName: styles.badgeCrewAi },
-  {
-    name: "OpenAI Agents SDK",
-    localSrc: "/brand-icons/openai.svg",
-    iconColor: "000000",
-    badgeClassName: `${styles.badgeWhite} ${styles.badgeWithBorder}`,
-  },
-  {
-    name: "Anthropic Agents SDK",
-    slug: "anthropic",
-    iconColor: "ffffff",
-    badgeClassName: styles.badgeAnthropic,
-  },
-  { name: "Google ADK", slug: "google", iconColor: "ffffff", badgeClassName: styles.badgeGoogle },
-];
-
-// ---------------------------------------------------------------------------
-// Chip
-// ---------------------------------------------------------------------------
-
-function Chip({ item }: { item: CompatibilityItem }) {
-  const imgSrc = item.localSrc ?? `https://cdn.simpleicons.org/${item.slug}/${item.iconColor}`;
-  return (
-    <div className={styles.chip}>
-      <div className={`${styles.badge} ${item.badgeClassName ?? ""}`.trim()}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imgSrc}
-          alt={item.name}
-          width={14}
-          height={14}
-          className={styles.badgeImage}
-        />
-      </div>
-      <span className={styles.chipLabel}>
-        {item.name}
-      </span>
-    </div>
-  );
+  return Array.from({ length: rowCount }, (_, rowIndex) =>
+    items.slice(rowIndex * itemsPerRow, (rowIndex + 1) * itemsPerRow),
+  ).filter((row) => row.length > 0);
 }
 
-// ---------------------------------------------------------------------------
-// Main component
-// ---------------------------------------------------------------------------
+function createMoreChip(): StackChipItem {
+  return {
+    name: "+ more",
+    iconKind: "more",
+    badgeClassName: stackChipStyles.badgeMore,
+    isBlurred: true,
+  };
+}
+
+const STACK_ROWS: StackRow[] = [
+  {
+    label: "All LLMs",
+    items: [
+      {
+        name: "OpenAI",
+        iconKind: "image",
+        localSrc: "/brand-icons/openai.svg",
+        iconColor: "000000",
+        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
+      },
+      {
+        name: "Anthropic",
+        iconKind: "image",
+        slug: "anthropic",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeAnthropic,
+      },
+      {
+        name: "Gemini",
+        iconKind: "image",
+        slug: "googlegemini",
+        iconColor: "000000",
+        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
+      },
+      {
+        name: "Mistral",
+        iconKind: "image",
+        slug: "mistralai",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeMistral,
+      },
+      {
+        name: "xAI",
+        iconKind: "image",
+        slug: "xai",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeBlack,
+      },
+      {
+        name: "DeepSeek",
+        iconKind: "image",
+        slug: "deepseek",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeDeepSeek,
+      },
+      createMoreChip(),
+    ],
+  },
+  {
+    label: "Any UI Library",
+    items: [
+      {
+        name: "OpenUI Design system",
+        iconKind: "mascot",
+        badgeClassName: stackChipStyles.badgeOpenUi,
+      },
+      {
+        name: "ShadCN",
+        iconKind: "vector",
+        badgeClassName: stackChipStyles.badgeBlack,
+        iconViewBox: "0 0 24 24",
+        iconPath: svgPaths.p46a4800,
+        iconFill: "white",
+        clipId: "clip_shadcn",
+        clipSize: "24",
+      },
+      {
+        name: "Material Design system",
+        iconKind: "vector",
+        badgeClassName: stackChipStyles.badgeMaterial,
+        iconViewBox: "0 0 30 30",
+        iconPath: svgPaths.p3a7bdd80,
+        iconFill: "white",
+        clipId: "clip_material",
+        clipSize: "30",
+      },
+      {
+        name: "DaisyUI",
+        iconKind: "text",
+        iconText: "D",
+        badgeClassName: stackChipStyles.badgeDaisyUi,
+      },
+      {
+        name: "Base UI",
+        iconKind: "text",
+        iconText: "B",
+        badgeClassName: stackChipStyles.badgeBaseUi,
+      },
+      createMoreChip(),
+    ],
+  },
+  {
+    label: "Any Framework",
+    items: [
+      {
+        name: "Vercel AI SDK",
+        iconKind: "image",
+        slug: "vercel",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeBlack,
+      },
+      {
+        name: "LangChain",
+        iconKind: "image",
+        slug: "langchain",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeLangChain,
+      },
+      {
+        name: "CrewAI",
+        iconKind: "image",
+        slug: "crewai",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeCrewAi,
+      },
+      {
+        name: "OpenAI Agents SDK",
+        iconKind: "image",
+        localSrc: "/brand-icons/openai.svg",
+        iconColor: "000000",
+        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
+      },
+      {
+        name: "Anthropic Agents SDK",
+        iconKind: "image",
+        slug: "anthropic",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeAnthropic,
+      },
+      createMoreChip(),
+    ],
+  },
+];
 
 export function CompatibilitySection() {
   return (
-    <div className={styles.section}>
+    <section className={styles.section} aria-labelledby="favorite-stack-title">
       <div className={styles.container}>
         <div className={styles.stack}>
-          {/* LLMs row */}
-          <div className={styles.row}>
-            <span className={styles.label}>
-              Any LLM
-            </span>
-            <div className={styles.chips}>
-              {LLMS.map((item) => (
-                <Chip key={item.name} item={item} />
-              ))}
-              <span className={styles.more}>
-                + more
-              </span>
-            </div>
-          </div>
+          <header className={styles.header}>
+            <h2 id="favorite-stack-title" className={styles.title}>
+              Works effortlessly
+              <br />
+              with your favorite stack.
+            </h2>
+          </header>
 
-          {/* Divider */}
-          <div className={styles.divider} />
+          <div className={styles.rows}>
+            {STACK_ROWS.map((row) => {
+              const chipRows = splitItemsIntoRows(row.items, 2);
 
-          {/* Frameworks row */}
-          <div className={styles.row}>
-            <span className={styles.label}>
-              Any Framework
-            </span>
-            <div className={styles.chips}>
-              {FRAMEWORKS.map((item) => (
-                <Chip key={item.name} item={item} />
-              ))}
-              <span className={styles.more}>
-                + more
-              </span>
-            </div>
+              return (
+                <div key={row.label} className={styles.row}>
+                  <span className={styles.label}>{row.label}</span>
+                  <div className={styles.chipsViewport}>
+                    <div className={styles.chips}>
+                      {chipRows.map((chipRow, rowIndex) => (
+                        <div key={`${row.label}-row-${rowIndex}`} className={styles.chipRow}>
+                          {chipRow.map((item, itemIndex) => (
+                            <StackChip
+                              key={`${row.label}-${item.name}-${rowIndex}-${itemIndex}`}
+                              item={item}
+                            />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

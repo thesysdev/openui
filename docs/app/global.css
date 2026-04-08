@@ -5,62 +5,149 @@
 @import "../shared/design-system/styles/variables/index.css";
 @import "@openuidev/react-ui/styles/index.css";
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --color-fd-background: hsl(0, 0%, 100%);
-  }
-}
+body {
+  --color-fd-background: var(--openui-background);
+  --color-fd-foreground: var(--openui-text-neutral-primary);
+  --color-fd-muted: var(--openui-highlight-subtle);
+  --color-fd-muted-foreground: var(--openui-text-neutral-secondary);
+  --color-fd-popover: var(--openui-popover-background);
+  --color-fd-card: var(--openui-foreground);
+  --color-fd-secondary: var(--openui-highlight);
+  --color-fd-border: var(--openui-border-default);
+  --color-fd-accent: var(--openui-highlight);
+  --color-fd-accent-foreground: var(--openui-text-neutral-primary);
+  --color-fd-ring: var(--openui-border-accent-emphasis);
 
-.light {
-  --color-fd-background: hsl(0, 0%, 100%);
-  --color-doc-surface: #f8f8fa;
-  --color-doc-surface-raised: #ffffff;
-  --color-doc-surface-sunken: #f0f0f4;
-  --color-doc-border: rgba(0, 0, 0, 0.08);
-  --color-doc-code-bg: #f4f4f8;
-}
-
-.dark {
-  --color-fd-background: #0b0b0f;
-  --color-fd-foreground: #e2e1e6;
-  --color-fd-muted: #141418;
-  --color-fd-popover: #131317;
-  --color-fd-card: #111115;
-  --color-fd-secondary: #141418;
-
-  /* Doc component surface tokens */
-  --color-doc-surface: #111115;
-  --color-doc-surface-raised: #16161b;
-  --color-doc-surface-sunken: #0e0e12;
-  --color-doc-border: rgba(255, 255, 255, 0.08);
-  --color-doc-code-bg: #0d0d11;
+  --color-doc-surface: var(--openui-foreground);
+  --color-doc-surface-raised: var(--openui-popover-background);
+  --color-doc-surface-sunken: var(--openui-sunk);
+  --color-doc-border: var(--openui-border-default);
+  --color-doc-code-bg: var(--openui-sunk-light);
+  color: var(--openui-text-neutral-primary);
+  background: var(--openui-background);
+  font-family: var(--openui-font-body);
 }
 
 #nd-docs-layout {
-  --fd-banner-height: 104px !important;
-  min-height: calc(100dvh - 104px) !important;
-  padding-top: 104px !important;
+  --color-fd-background: var(--openui-foreground);
+  --color-doc-surface: var(--openui-foreground);
+  /* 4rem top bar + 0.5rem gap above tabs + ~2.5rem tabs row — keep in sync with `.tabsBar` padding */
+  --fd-banner-height: calc(4rem + 0.5rem + 2.5rem) !important;
+  --fd-layout-width: 1560px !important;
+  width: 100%;
+  min-height: calc(100dvh - (4rem + 0.5rem + 2.5rem)) !important;
+  padding-top: calc(4rem + 0.5rem + 2.5rem) !important;
+  background: var(--openui-foreground);
 }
 
-#nd-docs-layout:not(:has(#nd-sidebar)) {
+/* Override Fumadocs `max-w-[900px]` on `<article id="nd-page">` */
+#nd-page {
+  max-width: 800px !important;
+}
+
+#nd-page > h1,
+#nd-page .docs-page-title,
+.docs-page-title {
+  font-size: 36px !important;
+  line-height: 1.1 !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.03em;
+}
+
+#nd-page[data-full="true"],
+#nd-page[data-full=""] {
+  max-width: 1168px !important;
+}
+
+/*
+ * Sidebar width: set on `#nd-docs-layout` so `--fd-sidebar-col` matches.
+ *
+ * Fumadocs uses `minmax(min-content, 1fr)` for the outer columns. With the sidebar spanning cols 1–2
+ * and content aligned with `items-end`, track 1’s min-content can resolve to 0, so the first `1fr`
+ * collapses and the last `1fr` takes all free space — the shell looks “stuck left”. Use
+ * `minmax(0, 1fr)` for those tracks so left/right gutters stay symmetric and the 1560px shell centers.
+ *
+ * Must set full `grid-template` (not columns alone) so row/area definitions stay intact.
+ */
+@media (min-width: 768px) {
+  #nd-docs-layout:has([data-sidebar-placeholder]) {
+    --fd-sidebar-width: 240px !important;
+
+    grid-template:
+      "sidebar sidebar header toc toc"
+      "sidebar sidebar toc-popover toc toc"
+      "sidebar sidebar main toc toc" 1fr
+      /
+      minmax(0, 1fr)
+      var(--fd-sidebar-col)
+      minmax(0, calc(var(--fd-layout-width, 97rem) - var(--fd-sidebar-width) - var(--fd-toc-width)))
+      var(--fd-toc-width)
+      minmax(0, 1fr) !important;
+  }
+}
+
+/* Pages with no docs sidebar tree (no placeholder) — keep layout vars consistent */
+#nd-docs-layout:not(:has([data-sidebar-placeholder])) {
   --fd-sidebar-width: 0px !important;
   --fd-toc-width: 0px !important;
 }
 
 #nd-sidebar {
   background-color: transparent !important;
+  border-right: none !important;
+  border-inline-end: none !important;
+  border-inline-end-width: 0 !important;
 }
 
-.docs-nav-sidebar-toggle {
-  display: none;
+#nd-sidebar > .flex.flex-col.gap-3.p-4.pb-2,
+#nd-sidebar-mobile > .flex.flex-col.gap-3.p-4.pb-2 {
+  padding: 2rem 0 0.5rem 1rem !important;
+}
+
+/* Sidebar page-tree scroll viewport */
+#nd-sidebar [data-radix-scroll-area-viewport].p-4,
+#nd-sidebar-mobile [data-radix-scroll-area-viewport].p-4 {
+  padding: 1rem 0 1rem 1rem !important;
+}
+
+@media (min-width: 1560px) {
+  #nd-sidebar > .flex.flex-col.gap-3.p-4.pb-2,
+  #nd-sidebar-mobile > .flex.flex-col.gap-3.p-4.pb-2 {
+    padding-left: 0 !important;
+  }
+
+  #nd-sidebar [data-radix-scroll-area-viewport].p-4,
+  #nd-sidebar-mobile [data-radix-scroll-area-viewport].p-4 {
+    padding-left: 0 !important;
+  }
+}
+
+/* Page tree: primary text on links; tertiary on section titles (folders w/o link row, separators) */
+#nd-sidebar [data-radix-scroll-area-viewport] a,
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] a {
+  color: var(--openui-text-neutral-primary) !important;
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] a:hover,
+#nd-sidebar [data-radix-scroll-area-viewport] a[data-active="true"],
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] a:hover,
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] a[data-active="true"] {
+  color: var(--openui-text-neutral-primary) !important;
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] button.w-full,
+#nd-sidebar [data-radix-scroll-area-viewport] div.w-full.rounded-lg.text-start,
+#nd-sidebar [data-radix-scroll-area-viewport] p.inline-flex.items-center.gap-2,
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] button.w-full,
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] div.w-full.rounded-lg.text-start,
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] p.inline-flex.items-center.gap-2 {
+  color: var(--openui-text-neutral-tertiary) !important;
 }
 
 @media (max-width: 767px) {
-  .docs-nav-sidebar-toggle {
-    display: flex;
-  }
-
-  .docs-nav-tabs {
-    display: none !important;
+  #nd-docs-layout {
+    --fd-banner-height: 4rem !important;
+    min-height: calc(100dvh - 4rem) !important;
+    padding-top: 4rem !important;
   }
 }

@@ -1,0 +1,12 @@
+.section {
+  width: min(100%, 1200px);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding-inline: 2rem;
+  }
+}

@@ -1,5 +1,10 @@
 import { z } from "zod";
+import type { ComponentPromptSpec, PromptSpec, ToolSpec } from "./parser/prompt";
 import { generatePrompt } from "./parser/prompt";
+import type { LibraryJSONSchema } from "./parser/types";
+import { isReactiveSchema } from "./reactive";
+
+export type { LibraryJSONSchema } from "./parser/types";
 
 // ─── Sub-component type ──────────────────────────────────────────────────────
 
@@ -62,7 +67,7 @@ export function defineComponent<T extends z.ZodObject<any>, C>(config: {
   };
 }
 
-// ─── Groups & Prompt ──────────────────────────────────────────────────────────
+// ─── Groups & Prompt Options ─────────────────────────────────────────────────
 
 export interface ComponentGroup {
   name: string;
@@ -70,13 +75,206 @@ export interface ComponentGroup {
   notes?: string[];
 }
 
+/** Tool descriptor for prompt generation — simple string or rich ToolSpec. */
+export type ToolDescriptor = string | ToolSpec;
+
 export interface PromptOptions {
   preamble?: string;
   additionalRules?: string[];
+  /** Examples shown when no tools are present (static/layout patterns). */
   examples?: string[];
+  /** Examples shown when tools ARE present (Query/Mutation patterns). Takes priority over `examples`. */
+  toolExamples?: string[];
+  /** Available tools for Query() — string names or rich ToolSpec descriptors injected into the prompt. */
+  tools?: ToolDescriptor[];
+  /** Enable edit-mode instructions in the prompt. */
+  editMode?: boolean;
+  /** Enable inline mode — LLM can respond with text + optional openui-lang fenced code. */
+  inlineMode?: boolean;
+  /** Enable Query(), Mutation(), @Run, tool workflow. Default: true if tools provided. */
+  toolCalls?: boolean;
+  /** Enable $variables, @Set, @Reset, interactive filters. Default: true if toolCalls. */
+  bindings?: boolean;
 }
 
-// ─── Library ──────────────────────────────────────────────────────────────────
+// ─── Zod introspection ──────────────────────────────────────────────────────
+
+function getZodDef(schema: unknown): any {
+  return (schema as any)?._zod?.def;
+}
+
+function getZodType(schema: unknown): string | undefined {
+  return getZodDef(schema)?.type;
+}
+
+function isOptionalType(schema: unknown): boolean {
+  return getZodType(schema) === "optional";
+}
+
+function unwrapOptional(schema: unknown): unknown {
+  const def = getZodDef(schema);
+  if (def?.type === "optional") return def.innerType;
+  return schema;
+}
+
+function unwrap(schema: unknown): unknown {
+  return unwrapOptional(schema);
+}
+
+function isArrayType(schema: unknown): boolean {
+  const s = unwrap(schema);
+  return getZodType(s) === "array";
+}
+
+function getArrayInnerType(schema: unknown): unknown | undefined {
+  const s = unwrap(schema);
+  const def = getZodDef(s);
+  if (def?.type === "array") return def.element ?? def.innerType;
+  return undefined;
+}
+
+function getEnumValues(schema: unknown): string[] | undefined {
+  const s = unwrap(schema);
+  const def = getZodDef(s);
+  if (def?.type !== "enum") return undefined;
+  if (Array.isArray(def.values)) return def.values;
+  if (def.entries && typeof def.entries === "object") return Object.keys(def.entries);
+  return undefined;
+}
+
+function getSchemaId(schema: unknown): string | undefined {
+  try {
+    const meta = z.globalRegistry.get(schema as z.ZodType);
+    return meta?.id;
+  } catch {
+    return undefined;
+  }
+}
+
+function getUnionOptions(schema: unknown): unknown[] | undefined {
+  const def = getZodDef(schema);
+  if (def?.type === "union" && Array.isArray(def.options)) return def.options;
+  return undefined;
+}
+
+function getObjectShape(schema: unknown): Record<string, unknown> | undefined {
+  const def = getZodDef(schema);
+  if (def?.type === "object" && def.shape && typeof def.shape === "object")
+    return def.shape as Record<string, unknown>;
+  return undefined;
+}
+
+/**
+ * Resolve the type annotation for a schema field.
+ * Returns a human-readable type string for the schema.
+ * If the schema is marked reactive(), prefixes with "$binding<...>".
+ */
+function resolveTypeAnnotation(schema: unknown): string | undefined {
+  const isReactive = isReactiveSchema(schema);
+  const inner = unwrap(schema);
+
+  const baseType = resolveBaseType(inner);
+  if (!baseType) return undefined;
+  return isReactive ? `$binding<${baseType}>` : baseType;
+}
+
+function resolveBaseType(inner: unknown): string | undefined {
+  const directId = getSchemaId(inner);
+  if (directId) return directId;
+
+  const unionOpts = getUnionOptions(inner);
+  if (unionOpts) {
+    const resolved = unionOpts.map((o) => resolveTypeAnnotation(o));
+    const names = resolved.filter(Boolean) as string[];
+    if (names.length > 0) return names.join(" | ");
+  }
+
+  if (isArrayType(inner)) {
+    const arrayInner = getArrayInnerType(inner);
+    if (!arrayInner) return undefined;
+    const innerType = resolveTypeAnnotation(arrayInner);
+    if (innerType) {
+      const isUnion = getUnionOptions(unwrap(arrayInner)) !== undefined;
+      return isUnion ? `(${innerType})[]` : `${innerType}[]`;
+    }
+    return undefined;
+  }
+
+  const zodType = getZodType(inner);
+  if (zodType === "string") return "string";
+  if (zodType === "number") return "number";
+  if (zodType === "boolean") return "boolean";
+
+  const enumVals = getEnumValues(inner);
+  if (enumVals) return enumVals.map((v) => `"${v}"`).join(" | ");
+
+  if (zodType === "literal") {
+    const vals = getZodDef(inner)?.values;
+    if (Array.isArray(vals) && vals.length === 1) {
+      const v = vals[0];
+      return typeof v === "string" ? `"${v}"` : String(v);
+    }
+  }
+
+  const shape = getObjectShape(inner);
+  if (shape) {
+    const fields = Object.entries(shape).map(([name, fieldSchema]) => {
+      const opt = isOptionalType(fieldSchema) ? "?" : "";
+      const fieldType = resolveTypeAnnotation(fieldSchema as z.ZodType);
+      return fieldType ? `${name}${opt}: ${fieldType}` : `${name}${opt}`;
+    });
+    return `{${fields.join(", ")}}`;
+  }
+
+  return undefined;
+}
+
+// ─── Field analysis & signature generation ──────────────────────────────────
+
+interface FieldInfo {
+  name: string;
+  isOptional: boolean;
+  isArray: boolean;
+  typeAnnotation?: string;
+}
+
+function analyzeFields(shape: Record<string, z.ZodType>): FieldInfo[] {
+  return Object.entries(shape).map(([name, schema]) => ({
+    name,
+    isOptional: isOptionalType(schema),
+    isArray: isArrayType(schema),
+    typeAnnotation: resolveTypeAnnotation(schema),
+  }));
+}
+
+function buildSignature(componentName: string, fields: FieldInfo[]): string {
+  const params = fields.map((f) => {
+    if (f.typeAnnotation) {
+      return f.isOptional ? `${f.name}?: ${f.typeAnnotation}` : `${f.name}: ${f.typeAnnotation}`;
+    }
+    if (f.isArray) {
+      return f.isOptional ? `[${f.name}]?` : `[${f.name}]`;
+    }
+    return f.isOptional ? `${f.name}?` : f.name;
+  });
+  return `${componentName}(${params.join(", ")})`;
+}
+
+function buildComponentSpecs(
+  components: Record<string, DefinedComponent<any, any>>,
+): Record<string, ComponentPromptSpec> {
+  const specs: Record<string, ComponentPromptSpec> = {};
+  for (const [name, def] of Object.entries(components)) {
+    const fields = analyzeFields(def.props.shape);
+    specs[name] = {
+      signature: buildSignature(name, fields),
+      description: def.description,
+    };
+  }
+  return specs;
+}
+
+// ─── Library ────────────────────────────────────────────────────────────────
 
 export interface Library<C = unknown> {
   readonly components: Record<string, DefinedComponent<any, C>>;
@@ -84,7 +282,8 @@ export interface Library<C = unknown> {
   readonly root: string | undefined;
 
   prompt(options?: PromptOptions): string;
-  toJSONSchema(): object;
+  toSpec(): PromptSpec;
+  toJSONSchema(): LibraryJSONSchema;
 }
 
 export interface LibraryDefinition<C = unknown> {
@@ -118,10 +317,24 @@ export function createLibrary<C = unknown>(input: LibraryDefinition<C>): Library
     root: input.root,
 
     prompt(options?: PromptOptions): string {
-      return generatePrompt(library, options);
+      const spec: PromptSpec = {
+        root: input.root,
+        components: buildComponentSpecs(componentsRecord),
+        componentGroups: input.componentGroups,
+        ...options,
+      };
+      return generatePrompt(spec);
     },
 
-    toJSONSchema(): object {
+    toSpec(): PromptSpec {
+      return {
+        root: input.root,
+        components: buildComponentSpecs(componentsRecord),
+        componentGroups: input.componentGroups,
+      };
+    },
+
+    toJSONSchema(): LibraryJSONSchema {
       const combinedSchema = z.object(
         Object.fromEntries(Object.entries(componentsRecord).map(([k, v]) => [k, v.props])) as any,
       );

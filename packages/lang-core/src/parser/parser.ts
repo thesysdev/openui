@@ -1,603 +1,24 @@
-import type { ParseResult } from "./types";
-
-/**
- * The JSON Schema document produced by `library.toJSONSchema()`.
- * All component schemas live in `$defs`, keyed by component name.
- */
-export interface LibraryJSONSchema {
-  $defs?: Record<
-    string,
-    {
-      properties?: Record<string, unknown>;
-      required?: string[];
-    }
-  >;
-}
-
-export interface ParamDef {
-  /** Parameter name, e.g. "title", "columns". */
-  name: string;
-  /** Whether the parameter is required by the component. */
-  required: boolean;
-  /** Default value from JSON Schema — used when the required field is missing/null. */
-  defaultValue?: unknown;
-}
-
-/**
- * Internal parameter map.
- */
-export type ParamMap = Map<string, { params: ParamDef[] }>;
+import type { ASTNode, Statement } from "./ast";
+import { isASTNode, walkAST } from "./ast";
+import { isBuiltin, RESERVED_CALLS } from "./builtins";
+import { parseExpression } from "./expressions";
+import { tokenize } from "./lexer";
+import { materializeValue, type MaterializeCtx } from "./materialize";
+import { autoClose, split, type RawStmt } from "./statements";
+import { T } from "./tokens";
+import {
+  isElementNode,
+  type LibraryJSONSchema,
+  type MutationStatementInfo,
+  type ParamMap,
+  type ParseResult,
+  type QueryStatementInfo,
+  type ValidationError,
+} from "./types";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AST node types
+// Result building
 // ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Discriminated union representing every value that can appear in an
- * openui-lang expression. The `k` field is the discriminant.
- *
- * - `Comp`  — a component call: `Header("Hello", "Subtitle")`
- * - `Str`   — a string literal: `"hello"`
- * - `Num`   — a number literal: `42` or `3.14`
- * - `Bool`  — a boolean literal: `true` or `false`
- * - `Null`  — the null literal
- * - `Arr`   — an array: `[a, b, c]`
- * - `Obj`   — an object: `{ key: value }`
- * - `Ref`   — a reference to another statement: `myTable` (resolved later)
- * - `Ph`    — a placeholder for an unresolvable reference (dropped as null in output)
- */
-type ASTNode =
-  | { k: "Comp"; name: string; args: ASTNode[] }
-  | { k: "Str"; v: string }
-  | { k: "Num"; v: number }
-  | { k: "Bool"; v: boolean }
-  | { k: "Null" }
-  | { k: "Arr"; els: ASTNode[] }
-  | { k: "Obj"; entries: [string, ASTNode][] }
-  | { k: "Ref"; n: string }
-  | { k: "Ph"; n: string };
-
-const enum T {
-  Newline = 0,
-  LParen = 1, // (
-  RParen = 2, // )
-  LBrack = 3, // [
-  RBrack = 4, // ]
-  LBrace = 5, // {
-  RBrace = 6, // }
-  Comma = 7, // ,
-  Colon = 8, // :
-  Equals = 9, // =
-  True = 10,
-  False = 11,
-  Null = 12,
-  EOF = 13,
-  Str = 14, // carries string value
-  Num = 15, // carries numeric value
-  Ident = 16, // lowercase identifier — becomes a reference
-  Type = 17, // PascalCase identifier — becomes a component name or reference
-}
-
-type Token = { t: T; v?: string | number };
-
-function autoClose(input: string): { text: string; wasIncomplete: boolean } {
-  const stack: string[] = [];
-  let inStr = false,
-    esc = false;
-
-  for (let i = 0; i < input.length; i++) {
-    const c = input[i];
-
-    if (esc) {
-      esc = false;
-      continue;
-    }
-    if (c === "\\" && inStr) {
-      esc = true;
-      continue;
-    }
-    if (c === '"') {
-      inStr = !inStr;
-      continue;
-    }
-    if (inStr) continue;
-
-    if (c === "(" || c === "[" || c === "{") stack.push(c);
-    else if (c === ")" && stack[stack.length - 1] === "(") stack.pop();
-    else if (c === "]" && stack[stack.length - 1] === "[") stack.pop();
-    else if (c === "}" && stack[stack.length - 1] === "{") stack.pop();
-  }
-
-  const wasIncomplete = inStr || stack.length > 0;
-  if (!wasIncomplete) return { text: input, wasIncomplete: false };
-
-  let out = input;
-  if (inStr) {
-    if (esc) out += "\\";
-    out += '"';
-  } // close open string
-  for (
-    let j = stack.length - 1;
-    j >= 0;
-    j-- // close brackets in reverse
-  )
-    out += stack[j] === "(" ? ")" : stack[j] === "[" ? "]" : "}";
-
-  return { text: out, wasIncomplete: true };
-}
-
-// lexer
-function tokenize(src: string): Token[] {
-  const tokens: Token[] = [];
-  let i = 0;
-  const n = src.length;
-
-  while (i < n) {
-    // Skip horizontal whitespace (not newlines — they're significant)
-    while (i < n && (src[i] === " " || src[i] === "\t" || src[i] === "\r")) i++;
-    if (i >= n) break;
-
-    const c = src[i];
-
-    // ── Single-character punctuation ──────────────────────────────────────
-    if (c === "\n") {
-      tokens.push({ t: T.Newline });
-      i++;
-      continue;
-    }
-    if (c === "(") {
-      tokens.push({ t: T.LParen });
-      i++;
-      continue;
-    }
-    if (c === ")") {
-      tokens.push({ t: T.RParen });
-      i++;
-      continue;
-    }
-    if (c === "[") {
-      tokens.push({ t: T.LBrack });
-      i++;
-      continue;
-    }
-    if (c === "]") {
-      tokens.push({ t: T.RBrack });
-      i++;
-      continue;
-    }
-    if (c === "{") {
-      tokens.push({ t: T.LBrace });
-      i++;
-      continue;
-    }
-    if (c === "}") {
-      tokens.push({ t: T.RBrace });
-      i++;
-      continue;
-    }
-    if (c === ",") {
-      tokens.push({ t: T.Comma });
-      i++;
-      continue;
-    }
-    if (c === ":") {
-      tokens.push({ t: T.Colon });
-      i++;
-      continue;
-    }
-    if (c === "=") {
-      tokens.push({ t: T.Equals });
-      i++;
-      continue;
-    }
-
-    // string literal: "..."
-    if (c === '"') {
-      const start = i;
-      i++; // skip opening quote
-
-      let isClosed = false;
-      // Fast-forward to the closing quote, respecting escapes
-      while (i < n) {
-        if (src[i] === "\\") {
-          i += 2; // skip backslash and the escaped character
-        } else if (src[i] === '"') {
-          i++; // include the closing quote
-          isClosed = true;
-          break;
-        } else {
-          i++;
-        }
-      }
-
-      const rawString = src.slice(start, i);
-
-      try {
-        // Let JavaScript's native JSON parser handle all unescaping (\n, \t, \uXXXX, etc.)
-        // If the string is incomplete (streaming), we add a closing quote to parse what we have so far.
-        const validJsonString = isClosed ? rawString : rawString + '"';
-
-        tokens.push({ t: T.Str, v: JSON.parse(validJsonString) });
-      } catch {
-        // Fallback if JSON.parse fails (e.g., malformed unicode escape during streaming)
-        // Strip the quotes and return the raw text so the UI doesn't crash
-        const stripped = rawString.replace(/^"|"$/g, "");
-        tokens.push({ t: T.Str, v: stripped });
-      }
-      continue;
-    }
-
-    // number literal: 42, -3, 1.5
-    const isDigit = c >= "0" && c <= "9";
-    const isNegDigit = c === "-" && i + 1 < n && src[i + 1] >= "0" && src[i + 1] <= "9";
-    if (isDigit || isNegDigit) {
-      const start = i;
-      if (src[i] === "-") i++; // optional minus
-      while (i < n && src[i] >= "0" && src[i] <= "9") i++; // integer part
-      if (i < n && src[i] === ".") {
-        // optional decimal
-        i++;
-        while (i < n && src[i] >= "0" && src[i] <= "9") i++;
-      }
-      if (i < n && (src[i] === "e" || src[i] === "E")) {
-        // optional exponent
-        i++;
-        if (i < n && (src[i] === "+" || src[i] === "-")) i++;
-        while (i < n && src[i] >= "0" && src[i] <= "9") i++;
-      }
-      tokens.push({ t: T.Num, v: +src.slice(start, i) });
-      continue;
-    }
-
-    // keyword or identifier
-    const isAlpha = (c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || c === "_";
-    if (isAlpha) {
-      const start = i;
-      while (
-        i < n &&
-        ((src[i] >= "a" && src[i] <= "z") ||
-          (src[i] >= "A" && src[i] <= "Z") ||
-          (src[i] >= "0" && src[i] <= "9") ||
-          src[i] === "_")
-      )
-        i++;
-
-      const word = src.slice(start, i);
-
-      if (word === "true") {
-        tokens.push({ t: T.True });
-        continue;
-      }
-      if (word === "false") {
-        tokens.push({ t: T.False });
-        continue;
-      }
-      if (word === "null") {
-        tokens.push({ t: T.Null });
-        continue;
-      }
-
-      // PascalCase → component type name; lowercase → variable reference
-      const kind = c >= "A" && c <= "Z" ? T.Type : T.Ident;
-      tokens.push({ t: kind, v: word });
-      continue;
-    }
-
-    i++; // skip any other character (e.g. @, #, emojis)
-  }
-
-  tokens.push({ t: T.EOF });
-  return tokens;
-}
-
-interface RawStmt {
-  id: string;
-  tokens: Token[];
-}
-
-/**
- * Splits the flat token stream into individual statements.
- *
- * Each statement has the form `identifier = expression`. Statements are
- * separated by newlines at depth 0 (newlines inside brackets are ignored).
- *
- * Example input tokens for:
- *   `root = Root([tbl])\ntbl = Table(...)`
- *
- * Produces two RawStmts:
- *   { id: "root", tokens: [Root, (, [, tbl, ], )] }
- *   { id: "tbl",  tokens: [Table, (, ..., )] }
- *
- * Invalid lines (no `=`, or no identifier) are silently skipped.
- */
-function split(tokens: Token[]): RawStmt[] {
-  const stmts: RawStmt[] = [];
-  let pos = 0;
-
-  while (pos < tokens.length) {
-    // Skip blank lines
-    while (pos < tokens.length && tokens[pos].t === T.Newline) pos++;
-    if (pos >= tokens.length || tokens[pos].t === T.EOF) break;
-
-    // Expect: Ident|Type = expression
-    const tok = tokens[pos];
-    if (tok.t !== T.Ident && tok.t !== T.Type) {
-      while (pos < tokens.length && tokens[pos].t !== T.Newline && tokens[pos].t !== T.EOF) pos++;
-      continue;
-    }
-    const id = tok.v as string;
-    pos++;
-
-    // Must be followed by `=`
-    if (pos >= tokens.length || tokens[pos].t !== T.Equals) {
-      while (pos < tokens.length && tokens[pos].t !== T.Newline && tokens[pos].t !== T.EOF) pos++;
-      continue;
-    }
-    pos++;
-
-    // Collect expression tokens until a depth-0 newline or EOF
-    const expr: Token[] = [];
-    let depth = 0;
-    while (pos < tokens.length && tokens[pos].t !== T.EOF) {
-      const tt = tokens[pos].t;
-      if (tt === T.Newline && depth <= 0) break; // statement boundary
-      if (tt === T.Newline) {
-        pos++;
-        continue;
-      } // newline inside bracket — skip
-      if (tt === T.LParen || tt === T.LBrack || tt === T.LBrace) depth++;
-      else if (tt === T.RParen || tt === T.RBrack || tt === T.RBrace) depth--;
-      expr.push(tokens[pos++]);
-    }
-
-    if (expr.length) stmts.push({ id, tokens: expr });
-  }
-
-  return stmts;
-}
-
-function parseTokens(tokens: Token[]): ASTNode {
-  let pos = 0;
-  const cur = (): Token => tokens[pos] ?? { t: T.EOF };
-  const adv = () => pos++;
-  const eat = (kind: T) => {
-    if (cur().t === kind) adv();
-  };
-
-  function parseExpr(): ASTNode {
-    const tok = cur();
-
-    if (tok.t === T.Type) {
-      // PascalCase followed by `(` → component call; otherwise a reference
-      return tokens[pos + 1]?.t === T.LParen
-        ? parseComp()
-        : (adv(), { k: "Ref", n: tok.v as string });
-    }
-    if (tok.t === T.Str) {
-      adv();
-      return { k: "Str", v: tok.v as string };
-    }
-    if (tok.t === T.Num) {
-      adv();
-      return { k: "Num", v: tok.v as number };
-    }
-    if (tok.t === T.True) {
-      adv();
-      return { k: "Bool", v: true };
-    }
-    if (tok.t === T.False) {
-      adv();
-      return { k: "Bool", v: false };
-    }
-    if (tok.t === T.Null) {
-      adv();
-      return { k: "Null" };
-    }
-    if (tok.t === T.LBrack) return parseArr();
-    if (tok.t === T.LBrace) return parseObj();
-    if (tok.t === T.Ident) {
-      adv();
-      return { k: "Ref", n: tok.v as string };
-    }
-
-    adv();
-    return { k: "Null" }; // unknown token — treat as null
-  }
-
-  /** Parse `TypeName(arg1, arg2, ...)` */
-  function parseComp(): ASTNode {
-    const name = cur().v as string;
-    adv();
-    eat(T.LParen);
-    const args: ASTNode[] = [];
-    while (cur().t !== T.RParen && cur().t !== T.EOF) {
-      args.push(parseExpr());
-      if (cur().t === T.Comma) adv();
-    }
-    eat(T.RParen);
-    return { k: "Comp", name, args };
-  }
-
-  /** Parse `[elem1, elem2, ...]` */
-  function parseArr(): ASTNode {
-    adv(); // skip [
-    const els: ASTNode[] = [];
-    while (cur().t !== T.RBrack && cur().t !== T.EOF) {
-      els.push(parseExpr());
-      if (cur().t === T.Comma) adv();
-    }
-    eat(T.RBrack);
-    return { k: "Arr", els };
-  }
-
-  /** Parse `{ key: value, ... }` */
-  function parseObj(): ASTNode {
-    adv(); // skip {
-    const entries: [string, ASTNode][] = [];
-    while (cur().t !== T.RBrace && cur().t !== T.EOF) {
-      const kt = cur();
-      const key =
-        kt.t === T.Ident || kt.t === T.Str || kt.t === T.Type || kt.t === T.Num
-          ? (adv(), String(kt.v))
-          : (adv(), "?");
-      eat(T.Colon);
-      entries.push([key, parseExpr()]);
-      if (cur().t === T.Comma) adv();
-    }
-    eat(T.RBrace);
-    return { k: "Obj", entries };
-  }
-
-  return parseExpr();
-}
-
-function resolveNode(
-  node: ASTNode,
-  syms: Map<string, ASTNode>,
-  unres: string[],
-  visited: Set<string>,
-): ASTNode {
-  if (node.k === "Ref") {
-    const { n } = node;
-    if (visited.has(n)) {
-      unres.push(n);
-      return { k: "Ph", n };
-    } // cycle
-    if (!syms.has(n)) {
-      unres.push(n);
-      return { k: "Ph", n };
-    } // missing
-
-    visited.add(n);
-    const resolved = resolveNode(syms.get(n)!, syms, unres, visited);
-    visited.delete(n);
-    return resolved;
-  }
-
-  if (node.k === "Comp")
-    return {
-      ...node,
-      args: node.args.map((a) => resolveNode(a, syms, unres, visited)),
-    };
-  if (node.k === "Arr")
-    return {
-      ...node,
-      els: node.els.map((e) => resolveNode(e, syms, unres, visited)),
-    };
-  if (node.k === "Obj")
-    return {
-      ...node,
-      entries: node.entries.map(([k, v]) => [k, resolveNode(v, syms, unres, visited)]),
-    };
-
-  // Literals and placeholders pass through unchanged
-  return node;
-}
-
-type JsonVal = string | number | boolean | null | JsonVal[] | { [k: string]: JsonVal };
-
-function toJson(
-  node: ASTNode,
-  partial: boolean,
-  errors: ParseResult["meta"]["errors"],
-  cat: ParamMap | undefined,
-): JsonVal {
-  if (node.k === "Str") return node.v;
-  if (node.k === "Num") return node.v;
-  if (node.k === "Bool") return node.v;
-  if (node.k === "Null") return null;
-  if (node.k === "Arr") {
-    const items: JsonVal[] = [];
-    for (const e of node.els) {
-      // Drop unresolved references from arrays to avoid null entries like [null, element]
-      if (e.k === "Ph") continue;
-      const value = toJson(e, partial, errors, cat);
-      // Drop invalid component entries from arrays (e.g. incomplete required props while streaming)
-      if (e.k === "Comp" && value === null) continue;
-      items.push(value);
-    }
-    return items;
-  }
-  if (node.k === "Obj") {
-    const o: { [k: string]: JsonVal } = {};
-    for (const [k, v] of node.entries) o[k] = toJson(v, partial, errors, cat);
-    return o;
-  }
-  if (node.k === "Comp") return mapNode(node, partial, errors, cat) as unknown as JsonVal;
-  if (node.k === "Ph") return null;
-  return null;
-}
-
-function mapNode(
-  node: ASTNode,
-  partial: boolean,
-  errors: ParseResult["meta"]["errors"],
-  cat: ParamMap | undefined,
-): ParseResult["root"] {
-  if (node.k === "Ph") return null;
-  if (node.k !== "Comp") return null;
-
-  const { name, args } = node;
-  const def = cat?.get(name);
-  const props: { [k: string]: JsonVal } = {};
-
-  if (def) {
-    // Map positional args → named props using library param order
-    for (let i = 0; i < def.params.length && i < args.length; i++)
-      props[def.params[i].name] = toJson(args[i], partial, errors, cat);
-
-    // Report extra positional args that have no corresponding param
-    if (args.length > def.params.length) {
-      errors.push({
-        type: "validation",
-        code: "excess-args",
-        component: name,
-        path: "",
-        message: `${name} takes ${def.params.length} arg(s), got ${args.length}`,
-      });
-    }
-
-    // Validate required props — try defaultValue first before dropping
-    const missingRequired = def.params.filter(
-      (p) => p.required && (!(p.name in props) || props[p.name] === null),
-    );
-    if (missingRequired.length) {
-      const stillInvalid = missingRequired.filter((p) => {
-        if (p.defaultValue !== undefined) {
-          props[p.name] = p.defaultValue as JsonVal;
-          return false;
-        }
-        return true;
-      });
-      if (stillInvalid.length) {
-        for (const p of stillInvalid)
-          errors.push({
-            type: "validation",
-            code: p.name in props ? "null-required" : "missing-required",
-            component: name,
-            path: `/${p.name}`,
-            message:
-              p.name in props
-                ? `required field "${p.name}" cannot be null`
-                : `missing required field "${p.name}"`,
-          });
-        return null;
-      }
-    }
-  } else {
-    // Component name not found in schema — report and preserve args for debugging
-    errors.push({
-      type: "validation",
-      code: "unknown-component",
-      component: name,
-      path: "",
-      message: `unknown component "${name}"`,
-    });
-    props._args = args.map((a) => toJson(a, partial, errors, cat));
-  }
-
-  return { type: "element", typeName: name, props, partial };
-}
 
 function emptyResult(incomplete = true): ParseResult {
   return {
@@ -605,80 +26,405 @@ function emptyResult(incomplete = true): ParseResult {
     meta: {
       incomplete,
       unresolved: [],
+      orphaned: [],
       statementCount: 0,
       errors: [],
     },
+    stateDeclarations: {},
+    queryStatements: [],
+    mutationStatements: [],
   };
 }
 
+/**
+ * Walk an AST node to collect all StateRef ($variable) names referenced
+ * within. Used at parse time to pre-compute per-query state dependencies.
+ */
+export function collectQueryDeps(node: unknown): string[] {
+  if (!isASTNode(node)) return [];
+  const refs = new Set<string>();
+  walkAST(node, (current) => {
+    if (current.k === "StateRef") refs.add(current.n);
+  });
+  return [...refs];
+}
+
+/**
+ * Classify a raw statement + parsed expression into a typed Statement.
+ * Determined at parse time from token type + expression shape.
+ */
+function classifyStatement(raw: RawStmt, expr: ASTNode): Statement {
+  // Query(...) → query declaration — check BEFORE $var to handle `$foo = Query(...)` correctly
+  if (expr.k === "Comp" && expr.name === RESERVED_CALLS.Query) {
+    const deps = collectQueryDeps(expr.args[1]);
+    return {
+      kind: "query",
+      id: raw.id,
+      call: { callee: RESERVED_CALLS.Query, args: expr.args },
+      expr,
+      deps: deps.length > 0 ? deps : undefined,
+    };
+  }
+  // Mutation(...) → mutation declaration
+  if (expr.k === "Comp" && expr.name === RESERVED_CALLS.Mutation) {
+    return {
+      kind: "mutation",
+      id: raw.id,
+      call: { callee: RESERVED_CALLS.Mutation, args: expr.args },
+      expr,
+    };
+  }
+  // $variables → state declaration
+  if (raw.idTokenType === T.StateVar) {
+    return { kind: "state", id: raw.id, init: expr };
+  }
+  // Everything else → value declaration
+  return { kind: "value", id: raw.id, expr };
+}
+
+/**
+ * Extract typed statements from the symbol table.
+ * State defaults are materialized to plain values (no raw AST in output).
+ */
+function extractStatements(
+  stmts: Statement[],
+  ctx: MaterializeCtx,
+): {
+  stateDeclarations: Record<string, unknown>;
+  queryStatements: QueryStatementInfo[];
+  mutationStatements: MutationStatementInfo[];
+} {
+  const stateDeclarations: Record<string, unknown> = {};
+  const queryStatements: QueryStatementInfo[] = [];
+  const mutationStatements: MutationStatementInfo[] = [];
+
+  for (const stmt of stmts) {
+    switch (stmt.kind) {
+      case "state":
+        stateDeclarations[stmt.id] = materializeValue(stmt.init, ctx);
+        break;
+      case "query":
+        queryStatements.push({
+          statementId: stmt.id,
+          toolAST: stmt.call.args[0] ?? null,
+          argsAST: stmt.call.args[1] ?? null,
+          defaultsAST: stmt.call.args[2] ?? null,
+          refreshAST: stmt.call.args[3] ?? null,
+          deps: stmt.deps,
+          complete: true,
+        });
+        break;
+      case "mutation":
+        mutationStatements.push({
+          statementId: stmt.id,
+          toolAST: stmt.call.args[0] ?? null,
+          argsAST: stmt.call.args[1] ?? null,
+        });
+        break;
+    }
+  }
+
+  // Auto-declare: any $var referenced in code but not explicitly declared → null default.
+  // collectQueryDeps already walks AST for StateRef nodes — reuse it here.
+  for (const stmt of stmts) {
+    const nodes =
+      stmt.kind === "state"
+        ? [stmt.init]
+        : stmt.kind === "value"
+          ? [stmt.expr]
+          : stmt.kind === "query" || stmt.kind === "mutation"
+            ? stmt.call.args
+            : [];
+    for (const node of nodes) {
+      for (const dep of collectQueryDeps(node)) {
+        if (!(dep in stateDeclarations)) {
+          stateDeclarations[dep] = null;
+        }
+      }
+    }
+  }
+
+  return { stateDeclarations, queryStatements, mutationStatements };
+}
+
+const DEFAULT_ROOT_STATEMENT_ID = "root";
+
+function isComponentStatement(
+  stmt: Statement,
+): stmt is Extract<Statement, { kind: "value" }> & { expr: Extract<ASTNode, { k: "Comp" }> } {
+  return (
+    stmt.kind === "value" &&
+    stmt.expr.k === "Comp" &&
+    !isBuiltin(stmt.expr.name) &&
+    stmt.expr.name !== RESERVED_CALLS.Query &&
+    stmt.expr.name !== RESERVED_CALLS.Mutation
+  );
+}
+
+function pickEntryId(
+  stmtMap: Map<string, Statement>,
+  typedStmts: Statement[],
+  firstId: string,
+  rootName?: string,
+): string {
+  if (stmtMap.has(DEFAULT_ROOT_STATEMENT_ID)) return DEFAULT_ROOT_STATEMENT_ID;
+  if (rootName && stmtMap.has(rootName)) return rootName;
+
+  const preferredComponent = rootName
+    ? typedStmts.find((stmt) => isComponentStatement(stmt) && stmt.expr.name === rootName)
+    : undefined;
+  if (preferredComponent) return preferredComponent.id;
+
+  const firstComponent = typedStmts.find(isComponentStatement);
+  return firstComponent?.id ?? firstId;
+}
+
 function buildResult(
-  syms: Map<string, ASTNode>,
+  stmtMap: Map<string, Statement>,
+  typedStmts: Statement[],
   firstId: string,
   wasIncomplete: boolean,
   stmtCount: number,
   cat: ParamMap | undefined,
+  rootName?: string,
 ): ParseResult {
-  if (!syms.has(firstId)) return emptyResult(wasIncomplete);
+  const entryId = pickEntryId(stmtMap, typedStmts, firstId, rootName);
+  if (!stmtMap.has(entryId)) return emptyResult(wasIncomplete);
 
+  const syms = new Map<string, ASTNode>();
+  for (const [id, stmt] of stmtMap) {
+    syms.set(id, stmt.kind === "state" ? stmt.init : stmt.expr);
+  }
   const unres: string[] = [];
-  const resolved = resolveNode(syms.get(firstId)!, syms, unres, new Set());
-  const errors: ParseResult["meta"]["errors"] = [];
-  const root = mapNode(resolved, wasIncomplete, errors, cat);
+  const errors: ValidationError[] = [];
+  // Track orphaned: start with value statement IDs, delete as they're reached.
+  // Exclude root, state ($var), query, and mutation declarations — they're consumed separately.
+  const unreached = new Set<string>();
+  for (const [id, stmt] of stmtMap) {
+    if (id === entryId) continue;
+    if (stmt.kind === "state" || stmt.kind === "query" || stmt.kind === "mutation") continue;
+    unreached.add(id);
+  }
+  const ctx: MaterializeCtx = {
+    syms,
+    cat,
+    errors,
+    unres,
+    visited: new Set(),
+    partial: wasIncomplete,
+    currentStatementId: entryId,
+    unreached,
+  };
+  const materialized = materializeValue(syms.get(entryId)!, ctx);
+
+  const root = isElementNode(materialized) ? materialized : null;
+  if (root) root.statementId = entryId;
+
+  const { stateDeclarations, queryStatements, mutationStatements } = extractStatements(
+    typedStmts,
+    ctx,
+  );
+
+  const orphaned = [...unreached];
 
   return {
     root,
     meta: {
       incomplete: wasIncomplete,
       unresolved: unres,
+      orphaned,
       statementCount: stmtCount,
-      errors,
+      errors: errors,
     },
+    stateDeclarations,
+    queryStatements,
+    mutationStatements,
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Public API
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Extract code from markdown fences, or return as-is if no fences found.
+ *  String-context-aware: skips ``` inside double-quoted strings. */
+export function stripFences(input: string): string {
+  const blocks: string[] = [];
+  let i = 0;
+
+  while (i < input.length) {
+    // Look for opening ```
+    const fenceStart = input.indexOf("```", i);
+    if (fenceStart === -1) break;
+
+    // Skip language tag until newline
+    let j = fenceStart + 3;
+    while (j < input.length && input[j] !== "\n") j++;
+    if (j >= input.length) {
+      // No newline after opening fence (streaming) — take everything after fence marker + lang tag
+      blocks.push(input.slice(fenceStart + 3).replace(/^[^\n]*\n?/, ""));
+      i = input.length;
+      break;
+    }
+    j++; // skip the newline
+
+    // Scan for closing ``` while tracking string context
+    let inStr = false;
+    let closePos = -1;
+    let k = j;
+    while (k < input.length) {
+      const c = input[k];
+      if (inStr) {
+        if (c === "\\" && k + 1 < input.length) {
+          k += 2; // skip escaped character
+          continue;
+        }
+        if (c === '"') inStr = false;
+        k++;
+        continue;
+      }
+      // Not in string
+      if (c === '"') {
+        inStr = true;
+        k++;
+        continue;
+      }
+      if (
+        c === "`" &&
+        k + 1 < input.length &&
+        input[k + 1] === "`" &&
+        k + 2 < input.length &&
+        input[k + 2] === "`"
+      ) {
+        closePos = k;
+        break;
+      }
+      k++;
+    }
+
+    if (closePos !== -1) {
+      blocks.push(input.slice(j, closePos));
+      i = closePos + 3;
+    } else {
+      // No closing fence found (streaming) — take everything after opening fence
+      blocks.push(input.slice(j));
+      i = input.length;
+    }
+  }
+
+  if (blocks.length > 0) return blocks.join("\n");
+
+  // Fallback: if input starts with ``` but wasn't matched (e.g. no newline after fence)
+  if (input.startsWith("```")) {
+    let j = 3;
+    while (j < input.length && input[j] !== "\n") j++;
+    const start = j < input.length ? j + 1 : 3;
+    // Try to strip trailing ```
+    const body = input.slice(start);
+    const trailingFence = body.lastIndexOf("```");
+    if (trailingFence !== -1) {
+      return body.slice(0, trailingFence);
+    }
+    return body;
+  }
+
+  return input;
+}
+
+/** Strip // and # line comments outside of strings (handles both " and ' delimiters). */
+function stripComments(input: string): string {
+  return input
+    .split("\n")
+    .map((line) => {
+      let inStr: false | '"' | "'" = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (inStr) {
+          if (c === "\\" && i + 1 < line.length) {
+            i++; // skip escaped char
+            continue;
+          }
+          if (c === inStr) inStr = false;
+          continue;
+        }
+        if (c === '"' || c === "'") {
+          inStr = c;
+          continue;
+        }
+        // // style comments
+        if (c === "/" && line[i + 1] === "/") {
+          return line.substring(0, i).trimEnd();
+        }
+        // # style comments (Python/YAML style — LLMs sometimes use these)
+        if (c === "#") {
+          return line.substring(0, i).trimEnd();
+        }
+      }
+      return line;
+    })
+    .join("\n");
+}
+
+/** Clean LLM response: strip fences, comments, whitespace. */
+function preprocess(input: string): string {
+  return stripComments(stripFences(input.trim())).trim();
 }
 
 /**
  * Parse a complete openui-lang string in one pass.
  *
  * @param input  - Full openui-lang source text (may be partial/streaming)
- * @param cat    - Optional param map for positional-arg → named-prop mapping
+ * @param cat    - Param map for positional-arg → named-prop mapping
  * @returns      ParseResult with root ElementNode (or null) and metadata
  */
-export function parse(input: string, cat?: ParamMap): ParseResult {
-  const trimmed = input.trim();
+export function parse(input: string, cat: ParamMap, rootName?: string): ParseResult {
+  const trimmed = preprocess(input);
   if (!trimmed) return emptyResult();
 
   const { text, wasIncomplete } = autoClose(trimmed);
   const stmts = split(tokenize(text));
   if (!stmts.length) return emptyResult(wasIncomplete);
 
-  const syms = new Map<string, ASTNode>();
+  const stmtMap = new Map<string, Statement>();
   let firstId = "";
   for (const s of stmts) {
-    syms.set(s.id, parseTokens(s.tokens));
+    const expr = parseExpression(s.tokens);
+    const stmt = classifyStatement(s, expr);
+    stmtMap.set(s.id, stmt);
     if (!firstId) firstId = s.id;
   }
+  // Derive from map to deduplicate — Map.set overwrites duplicates
+  const typedStmts = [...stmtMap.values()];
 
-  return buildResult(syms, firstId, wasIncomplete, stmts.length, cat);
+  return buildResult(stmtMap, typedStmts, firstId, wasIncomplete, stmtMap.size, cat, rootName);
 }
 
 export interface StreamParser {
   /** Feed the next SSE/stream chunk and get the latest ParseResult. */
   push(chunk: string): ParseResult;
+  /** Set the full text — diffs against internal buffer, pushes only the delta.
+   *  Resets automatically if the text was replaced (not appended). */
+  set(fullText: string): ParseResult;
   /** Get the latest ParseResult without consuming new data. */
   getResult(): ParseResult;
 }
 
-export function createStreamParser(cat?: ParamMap): StreamParser {
+export function createStreamParser(cat: ParamMap, rootName?: string): StreamParser {
   let buf = "";
   let completedEnd = 0;
-  const completedSyms = new Map<string, ASTNode>();
+  const completedStmtMap = new Map<string, Statement>();
 
   let completedCount = 0;
   let firstId = "";
 
   function addStmt(text: string) {
-    for (const s of split(tokenize(text))) {
-      completedSyms.set(s.id, parseTokens(s.tokens));
+    // Strip comments and skip fence markers
+    const cleaned = stripComments(text).trim();
+    if (!cleaned || /^```/.test(cleaned)) return;
+    for (const s of split(tokenize(cleaned))) {
+      const expr = parseExpression(s.tokens);
+      const stmt = classifyStatement(s, expr);
+      completedStmtMap.set(s.id, stmt);
       completedCount++;
       if (!firstId) firstId = s.id;
     }
@@ -686,7 +432,8 @@ export function createStreamParser(cat?: ParamMap): StreamParser {
 
   function scanNewCompleted(): number {
     let depth = 0,
-      inStr = false,
+      ternaryDepth = 0,
+      inStr: false | '"' | "'" = false,
       esc = false;
     let stmtStart = completedEnd;
 
@@ -700,15 +447,32 @@ export function createStreamParser(cat?: ParamMap): StreamParser {
         esc = true;
         continue;
       }
-      if (c === '"') {
-        inStr = !inStr;
+      if (inStr) {
+        if (c === inStr) inStr = false;
         continue;
       }
-      if (inStr) continue;
+      if (c === '"' || c === "'") {
+        inStr = c;
+        continue;
+      }
 
       if (c === "(" || c === "[" || c === "{") depth++;
-      else if (c === ")" || c === "]" || c === "}") depth--;
-      else if (c === "\n" && depth <= 0) {
+      else if (c === ")" || c === "]" || c === "}") depth = Math.max(0, depth - 1);
+      // Track ternary ? and : at bracket depth 0 (colons inside {} are object key separators)
+      else if (c === "?" && depth === 0) ternaryDepth++;
+      else if (c === ":" && depth === 0 && ternaryDepth > 0) ternaryDepth--;
+      else if (c === "\n" && depth <= 0 && ternaryDepth <= 0) {
+        // Before splitting, look ahead past whitespace to see if the next
+        // meaningful character is `?` or `:` — ternary continuation.
+        let peek = i + 1;
+        while (
+          peek < buf.length &&
+          (buf[peek] === " " || buf[peek] === "\t" || buf[peek] === "\r" || buf[peek] === "\n")
+        )
+          peek++;
+        if (peek < buf.length && (buf[peek] === "?" || (buf[peek] === ":" && ternaryDepth > 0))) {
+          continue; // ternary continuation — don't split
+        }
         // Depth-0 newline = end of a statement
         const t = buf.slice(stmtStart, i).trim();
         if (t) addStmt(t);
@@ -727,30 +491,93 @@ export function createStreamParser(cat?: ParamMap): StreamParser {
     // No pending text — all statements are complete
     if (!pendingText) {
       if (completedCount === 0) return emptyResult();
-      return buildResult(completedSyms, firstId, false, completedCount, cat);
+      return buildResult(
+        completedStmtMap,
+        [...completedStmtMap.values()],
+        firstId,
+        false,
+        completedCount,
+        cat,
+        rootName,
+      );
     }
 
+    // Apply same cleanup as parse() — strip fences, comments, whitespace
+    const cleaned = stripComments(stripFences(pendingText)).trim();
+    if (!cleaned) {
+      if (completedCount === 0) return emptyResult();
+      return buildResult(
+        completedStmtMap,
+        [...completedStmtMap.values()],
+        firstId,
+        false,
+        completedCount,
+        cat,
+        rootName,
+      );
+    }
     // Autoclose the incomplete last statement so it's syntactically valid
-    const { text: closed, wasIncomplete } = autoClose(pendingText);
+    const { text: closed, wasIncomplete } = autoClose(cleaned);
     const stmts = split(tokenize(closed));
 
     if (!stmts.length) {
       if (completedCount === 0) return emptyResult(wasIncomplete);
-      return buildResult(completedSyms, firstId, wasIncomplete, completedCount, cat);
+      return buildResult(
+        completedStmtMap,
+        [...completedStmtMap.values()],
+        firstId,
+        wasIncomplete,
+        completedCount,
+        cat,
+        rootName,
+      );
     }
 
-    // Merge: completed cache + re-parsed pending statement
-    // (Map spread is cheap since completedSyms only grows by one entry at a time)
-    const allSyms = new Map(completedSyms);
-    for (const s of stmts) allSyms.set(s.id, parseTokens(s.tokens));
+    // Merge: completed cache + re-parsed pending statement.
+    // Pending statements can only add NEW IDs — they cannot overwrite completed ones.
+    // This prevents mid-stream partial text (e.g. `root = Card`) from corrupting
+    // existing completed statements during edit streaming.
+    const allStmtMap = new Map(completedStmtMap);
+    for (const s of stmts) {
+      if (completedStmtMap.has(s.id)) continue;
+      const expr = parseExpression(s.tokens);
+      const stmt = classifyStatement(s, expr);
+      allStmtMap.set(s.id, stmt);
+    }
+    // Derive from map to deduplicate
+    const allTypedStmts = [...allStmtMap.values()];
 
     const fid = firstId || stmts[0].id;
-    return buildResult(allSyms, fid, wasIncomplete, completedCount + stmts.length, cat);
+    return buildResult(
+      allStmtMap,
+      allTypedStmts,
+      fid,
+      wasIncomplete,
+      completedCount + stmts.length,
+      cat,
+      rootName,
+    );
+  }
+
+  function reset() {
+    buf = "";
+    completedEnd = 0;
+    completedStmtMap.clear();
+    completedCount = 0;
+    firstId = "";
   }
 
   return {
     push(chunk) {
       buf += chunk;
+      return currentResult();
+    },
+    set(fullText) {
+      if (fullText.length < buf.length || !fullText.startsWith(buf)) {
+        reset();
+      }
+      const delta = fullText.slice(buf.length);
+      if (delta) buf += delta;
       return currentResult();
     },
     getResult: currentResult,
@@ -761,6 +588,13 @@ export interface Parser {
   parse(input: string): ParseResult;
 }
 
+function getSchemaDefaultValue(property: unknown): unknown {
+  if (!property || typeof property !== "object" || Array.isArray(property)) {
+    return undefined;
+  }
+  return (property as { default?: unknown }).default;
+}
+
 function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const map: ParamMap = new Map();
   const defs = schema.$defs ?? {};
@@ -768,10 +602,10 @@ function compileSchema(schema: LibraryJSONSchema): ParamMap {
   for (const [name, def] of Object.entries(defs)) {
     const properties = def.properties ?? {};
     const required = def.required ?? [];
-    const params = Object.keys(properties).map((k) => ({
-      name: k,
-      required: required.includes(k),
-      defaultValue: (properties[k] as any)?.default,
+    const params = Object.keys(properties).map((key) => ({
+      name: key,
+      required: required.includes(key),
+      defaultValue: getSchemaDefaultValue(properties[key]),
     }));
     map.set(name, { params });
   }
@@ -789,11 +623,11 @@ function compileSchema(schema: LibraryJSONSchema): ParamMap {
  * const result = parser.parse(openuiLangString);
  * ```
  */
-export function createParser(schema: LibraryJSONSchema): Parser {
+export function createParser(schema: LibraryJSONSchema, rootName?: string): Parser {
   const paramMap = compileSchema(schema);
   return {
     parse(input: string): ParseResult {
-      return parse(input, paramMap);
+      return parse(input, paramMap, rootName);
     },
   };
 }
@@ -802,6 +636,6 @@ export function createParser(schema: LibraryJSONSchema): Parser {
  * Create a streaming parser from a library JSON Schema document.
  * Pass `library.toJSONSchema()` to get the schema.
  */
-export function createStreamingParser(schema: LibraryJSONSchema): StreamParser {
-  return createStreamParser(compileSchema(schema));
+export function createStreamingParser(schema: LibraryJSONSchema, rootName?: string): StreamParser {
+  return createStreamParser(compileSchema(schema), rootName);
 }

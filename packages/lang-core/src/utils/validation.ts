@@ -10,14 +10,16 @@ export interface ParsedRule {
  *   "minLength:3"    → { type: "minLength", arg: 3 }
  *   "pattern:^[a-z]" → { type: "pattern", arg: "^[a-z]" }
  */
+const NUMERIC_RULES = new Set(["min", "max", "minLength", "maxLength"]);
+
 export function parseRule(rule: string): ParsedRule {
   const colonIdx = rule.indexOf(":");
   if (colonIdx === -1) return { type: rule };
 
   const type = rule.slice(0, colonIdx);
   const rawArg = rule.slice(colonIdx + 1);
-  const num = Number(rawArg);
-  return { type, arg: Number.isFinite(num) && rawArg !== "" ? num : rawArg };
+  const arg = NUMERIC_RULES.has(type) && !Number.isNaN(Number(rawArg)) ? Number(rawArg) : rawArg;
+  return { type, arg };
 }
 
 export function parseRules(rules: unknown): ParsedRule[] {
@@ -135,7 +137,10 @@ export function validate(
 ): string | undefined {
   for (const rule of rules) {
     const validator = customValidators?.[rule.type] ?? builtInValidators[rule.type];
-    if (!validator) continue;
+    if (!validator) {
+      console.warn(`[openui] Unknown validation rule type: "${rule.type}"`);
+      continue;
+    }
     const error = validator(value, rule.arg);
     if (error) return error;
   }

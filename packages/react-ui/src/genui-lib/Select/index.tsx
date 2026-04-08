@@ -3,11 +3,9 @@
 import {
   defineComponent,
   parseStructuredRules,
-  useFormName,
   useFormValidation,
-  useGetFieldValue,
   useIsStreaming,
-  useSetFieldValue,
+  useStateField,
 } from "@openuidev/react-lang";
 import React from "react";
 import {
@@ -33,36 +31,42 @@ export const Select = defineComponent({
   props: createSelectSchema(SelectItem),
   description: "",
   component: ({ props }) => {
-    const formName = useFormName();
-    const getFieldValue = useGetFieldValue();
-    const setFieldValue = useSetFieldValue();
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
 
+    const field = useStateField(props.name, props.value);
+
     const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
+    const hasRules = rules.length > 0;
     const items = (
       (props.items ?? []) as Array<{ props: { value: string; label?: string } }>
-    ).filter((item) => item.props.value);
-    const value = getFieldValue(formName, props.name);
+    ).filter((item) => item?.props?.value);
+
+    const value = field.value ?? "";
+
+    const handleChange = React.useCallback(
+      (val: string) => {
+        field.setValue(val);
+        if (hasRules) {
+          formValidation?.validateField(field.name, val, rules);
+        }
+      },
+      [field, formValidation, hasRules, rules],
+    );
 
     React.useEffect(() => {
-      if (!isStreaming && rules.length > 0 && formValidation) {
-        formValidation.registerField(props.name, rules, () => getFieldValue(formName, props.name));
-        return () => formValidation.unregisterField(props.name);
+      if (!isStreaming && hasRules && formValidation) {
+        formValidation.registerField(field.name, rules, () => field.value);
+        return () => formValidation.unregisterField(field.name);
       }
       return undefined;
-    }, [isStreaming, rules.length > 0]);
+    }, [field.name, field.value, formValidation, hasRules, isStreaming, rules]);
 
     return (
       <OpenUISelect
-        name={props.name}
-        value={value ?? ""}
-        onValueChange={(val: string) => {
-          setFieldValue(formName, "Select", props.name, val, true);
-          if (rules.length > 0) {
-            formValidation?.validateField(props.name, val, rules);
-          }
-        }}
+        name={field.name}
+        value={value}
+        onValueChange={handleChange}
         disabled={isStreaming}
       >
         <OpenUISelectTrigger>

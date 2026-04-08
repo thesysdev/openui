@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/lang-core",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "Framework-agnostic core for OpenUI Lang: parser, prompt generation, validation, and type definitions",
   "license": "MIT",
   "type": "module",
@@ -41,6 +41,14 @@
   "dependencies": {
     "zod": "^4.0.0"
   },
+  "peerDependencies": {
+    "@modelcontextprotocol/sdk": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@modelcontextprotocol/sdk": {
+      "optional": true
+    }
+  },
   "keywords": [
     "openui",
     "openui-lang",
@@ -63,6 +71,7 @@
   },
   "author": "engineering@thesys.dev",
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "vitest": "^4.0.18"
   }
 }

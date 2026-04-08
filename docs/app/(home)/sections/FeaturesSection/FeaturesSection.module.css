@@ -1,6 +1,6 @@
 .section {
   width: 100%;
-  padding-inline: var(--home-section-padding-inline);
+  padding-inline: 1.25rem;
 }
 
 .container {
@@ -27,11 +27,11 @@
   align-items: center;
   justify-content: center;
   padding-inline: 1rem;
-  border: 1.25px solid var(--home-border-subtle);
-  border-radius: var(--home-radius-pill);
-  background: var(--home-color-surface);
-  box-shadow: var(--home-shadow-elevated);
-  color: var(--home-color-text-primary);
+  border: 1.25px solid var(--openui-border-interactive);
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-foreground);
+  box-shadow: var(--openui-shadow-l);
+  color: var(--openui-text-neutral-primary);
   cursor: pointer;
   transition:
     transform 0.2s ease,
@@ -56,6 +56,10 @@
 }
 
 @media (min-width: 1024px) {
+  .section {
+    padding-inline: 2rem;
+  }
+
   .ctaWrap {
     margin-top: 5rem;
   }

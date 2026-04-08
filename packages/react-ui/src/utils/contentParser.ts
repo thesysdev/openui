@@ -26,7 +26,7 @@ export function separateContentAndContext(raw: string): {
     content = raw.slice(0, contextMatch.index!).trimEnd();
   }
 
-  const contentMatch = content.match(/^<content>([\s\S]*)<\/content>\s*$/);
+  const contentMatch = content.match(/^<content[^>]*>([\s\S]*)<\/content>\s*$/);
   if (contentMatch) {
     content = contentMatch[1] ?? content;
   }

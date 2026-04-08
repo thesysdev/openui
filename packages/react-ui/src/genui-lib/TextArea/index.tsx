@@ -3,11 +3,9 @@
 import {
   defineComponent,
   parseStructuredRules,
-  useFormName,
   useFormValidation,
-  useGetFieldValue,
   useIsStreaming,
-  useSetFieldValue,
+  useStateField,
 } from "@openuidev/react-lang";
 import React from "react";
 import { TextArea as OpenUITextArea } from "../../components/TextArea";
@@ -20,38 +18,38 @@ export const TextArea = defineComponent({
   props: TextAreaSchema,
   description: "",
   component: ({ props }) => {
-    const formName = useFormName();
-    const getFieldValue = useGetFieldValue();
-    const setFieldValue = useSetFieldValue();
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
 
-    const fieldName = props.name as string;
+    const field = useStateField(props.name, props.value);
     const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
-    const savedValue = getFieldValue(formName, fieldName) ?? "";
+    const hasRules = rules.length > 0;
 
     React.useEffect(() => {
-      if (!isStreaming && rules.length > 0 && formValidation) {
-        formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
-        return () => formValidation.unregisterField(fieldName);
+      if (!isStreaming && hasRules && formValidation) {
+        formValidation.registerField(field.name, rules, () => field.value);
+        return () => formValidation.unregisterField(field.name);
       }
       return undefined;
-    }, [isStreaming, rules.length > 0]);
+    }, [field.name, field.value, formValidation, hasRules, isStreaming, rules]);
 
     return (
       <OpenUITextArea
-        name={fieldName}
+        name={field.name}
         placeholder={(props.placeholder as string) || ""}
         rows={(props.rows as number) || 3}
-        defaultValue={savedValue}
-        onFocus={() => formValidation?.clearFieldError(fieldName)}
-        onBlur={(e: React.FocusEvent<HTMLTextAreaElement>) => {
+        value={field.value ?? ""}
+        onFocus={() => formValidation?.clearFieldError(field.name)}
+        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
           const val = e.target.value;
-          if (val !== savedValue) {
-            setFieldValue(formName, "TextArea", fieldName, val, true);
+          field.setValue(val);
+          if (hasRules) {
+            formValidation?.clearFieldError(field.name);
           }
-          if (rules.length > 0) {
-            formValidation?.validateField(fieldName, val, rules);
+        }}
+        onBlur={(e: React.FocusEvent<HTMLTextAreaElement>) => {
+          if (hasRules) {
+            formValidation?.validateField(field.name, e.target.value, rules);
           }
         }}
         disabled={isStreaming}

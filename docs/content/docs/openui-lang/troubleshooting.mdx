@@ -5,21 +5,6 @@ description: Common issues and fixes when working with OpenUI Lang and the Rende
 
 ## LLM Output Issues
 
-### Why is nothing rendering?
-
-The first statement must assign to `root`. Without it, nothing renders.
-
-```text
-// Wrong — no root
-header = Header("Title")
-body = TextContent("Content")
-
-// Correct
-root = Stack([header, body])
-header = Header("Title")
-body = TextContent("Content")
-```
-
 ### Why are extra arguments being dropped?
 
 Providing more arguments than the schema defines causes the extra arguments to be dropped or the statement to fail validation.
@@ -48,7 +33,7 @@ text = TextContent("Hello world")
 
 ### Can I nest children inline or do I need references?
 
-Both are valid — inline children or references work.
+Both are valid. Inline children or references work.
 
 ```text
 // Inline
@@ -60,21 +45,93 @@ h = Header("Title")
 t = TextContent("Body")
 ```
 
+### Why doesn't `Count(arr)` work?
+
+Built-in functions require the `@` prefix. Use `@Count(arr)`, not `Count(arr)`.
+
+```text
+// Wrong
+count = Count(items)
+
+// Correct
+count = @Count(items)
+```
+
+### Query or Mutation used inline
+
+`Query` and `Mutation` must be top-level statements, not inside component arguments.
+
+```text
+// Wrong — Query inside Table
+tbl = Table([Col("Title", Query("list", {}).rows.title)])
+
+// Correct — Query as a separate statement
+data = Query("list", {}, {rows: []})
+tbl = Table([Col("Title", data.rows.title)])
+```
+
+---
+
 ## Renderer Issues
 
-### How do I inspect what went wrong?
+### How do I debug errors?
 
-Pass an `onParseResult` callback to `<Renderer />`. Inspect `meta.errors` for schema mismatches and `meta.unresolved` for identifiers that were referenced but never defined.
+Use the `onError` callback. It receives structured errors from the parser, runtime, and query system. Each error includes a `source`, `code`, `message`, and often a `hint` with a suggested fix.
 
 ```tsx
 <Renderer
   library={library}
-  response={content}
-  isStreaming={isStreaming}
+  response={code}
+  toolProvider={tp}
+  onError={(errors) => {
+    for (const e of errors) {
+      console.log(`[${e.source}] ${e.message}`);
+      if (e.hint) console.log(`Hint: ${e.hint}`);
+    }
+  }}
+/>
+```
+
+If you don't provide `onError`, errors are logged to `console.warn` automatically.
+
+For LLM self-correction loops, format the errors and send them back:
+
+```tsx
+onError={(errors) => {
+  if (!errors.length) return;
+  const msg = errors
+    .map((e) => `[${e.source}] ${e.statementId ? `"${e.statementId}": ` : ""}${e.message}${e.hint ? `\nHint: ${e.hint}` : ""}`)
+    .join("\n\n");
+  sendToLLM(`Fix these errors:\n\n${msg}`);
+}}
+```
+
+Error codes:
+
+- `unknown-component`: component name not in the library (hint lists available components)
+- `missing-required`: required prop not provided
+- `null-required`: required prop explicitly set to null
+- `inline-reserved`: Query/Mutation used inline instead of top-level
+- `tool-not-found`: tool name not found in toolProvider (hint lists available tools)
+- `parse-failed`: response produced no renderable root
+- `parse-exception`: parser crashed on malformed input
+- `runtime-error`: expression evaluation failed on a prop (falls back to raw value)
+- `render-error`: React component threw during render (falls back to last good state)
+
+### `onParseResult` vs `onError`
+
+`onError` is for error handling. It collects errors from all layers (parser, runtime, queries) into a single callback.
+
+`onParseResult` is for inspection. It gives you the raw parse tree: the AST, statement count, unresolved references, and orphaned statements. Use it when you need to see what the parser produced, not just what went wrong.
+
+```tsx
+<Renderer
   onParseResult={(result) => {
     if (result) {
-      console.log("Validation errors:", result.meta.errors);
-      console.log("Unresolved refs:", result.meta.unresolved);
+      console.log("Statements:", result.meta.statementCount);
+      console.log("Unresolved:", result.meta.unresolved);
+      console.log("Orphaned:", result.meta.orphaned);
+      console.log("Errors:", result.meta.errors);
     }
   }}
 />
@@ -88,8 +145,12 @@ Call `library.toJSONSchema()` to see exactly what the parser expects, and compar
 
 ### Why are parts of the UI missing?
 
-The parser drops invalid portions and renders everything else. If parts of the UI are missing, log the raw streamed text before parsing and look for:
+The parser drops invalid portions and renders everything else. If parts of the UI are missing, check `onError` for `unknown-component` or `missing-required` errors.
 
-- Missing `root` assignment
-- Typos in component names
-- Wrong argument count
+### Why isn't my Query fetching data?
+
+Check that:
+
+1. The `toolProvider` prop is set on `<Renderer />`
+2. Your tool function or MCP server includes the tool name used in `Query("tool_name", ...)`
+3. The tool name in the code matches exactly (case-sensitive)

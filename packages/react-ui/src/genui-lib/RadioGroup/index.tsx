@@ -3,11 +3,10 @@
 import {
   defineComponent,
   parseStructuredRules,
-  useFormName,
+  reactive,
   useFormValidation,
-  useGetFieldValue,
   useIsStreaming,
-  useSetFieldValue,
+  useStateField,
 } from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod";
@@ -32,51 +31,40 @@ export const RadioGroup = defineComponent({
     items: z.array(RadioItem.ref),
     defaultValue: z.string().optional(),
     rules: rulesSchema,
+    value: reactive(z.string().optional()),
   }),
   description: "",
   component: ({ props }) => {
-    const formName = useFormName();
-    const getFieldValue = useGetFieldValue();
-    const setFieldValue = useSetFieldValue();
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
 
-    const fieldName = props.name as string;
+    const field = useStateField(props.name, props.value);
     const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
+    const hasRules = rules.length > 0;
     const items = (props.items ?? []) as Array<{
       props: { value: string; label?: string; description?: string };
     }>;
 
-    const value = (getFieldValue(formName, fieldName) ?? props.defaultValue) as string | undefined;
+    const value = field.value ?? props.defaultValue;
 
     React.useEffect(() => {
-      if (
-        !isStreaming &&
-        props.defaultValue != null &&
-        getFieldValue(formName, fieldName) == null
-      ) {
-        setFieldValue(formName, "RadioGroup", fieldName, props.defaultValue, false);
-      }
-    }, [isStreaming]);
-
-    React.useEffect(() => {
-      if (!isStreaming && rules.length > 0 && formValidation) {
-        formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
-        return () => formValidation.unregisterField(fieldName);
+      if (!isStreaming && hasRules && formValidation) {
+        formValidation.registerField(field.name, rules, () => field.value);
+        return () => formValidation.unregisterField(field.name);
       }
       return undefined;
-    }, [isStreaming, rules.length > 0]);
+    }, [field.name, field.value, formValidation, hasRules, isStreaming, rules]);
 
     if (!items.length) return null;
 
     return (
       <OpenUIRadioGroup
-        name={fieldName}
+        name={field.name}
         value={value ?? ""}
         onValueChange={(val: string) => {
-          setFieldValue(formName, "RadioGroup", fieldName, val, true);
-          if (rules.length > 0) {
-            formValidation?.validateField(fieldName, val, rules);
+          field.setValue(val);
+          if (hasRules) {
+            formValidation?.validateField(field.name, val, rules);
           }
         }}
         disabled={isStreaming}

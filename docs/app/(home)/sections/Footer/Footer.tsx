@@ -1,6 +1,8 @@
 "use client";
+import mascotDarkSvgPaths from "@/imports/svg-mascot-dark";
 import svgPaths from "@/imports/svg-urruvoh2be";
 import mascotSvgPaths from "@/imports/svg-xeurqn3j1r";
+import { useId } from "react";
 import styles from "./Footer.module.css";
 
 // ---------------------------------------------------------------------------
@@ -56,20 +58,23 @@ const SOCIAL_LINKS: SocialLink[] = [
 // ---------------------------------------------------------------------------
 
 function SocialIcon({ link }: { link: SocialLink }) {
-  const svgContent = link.clipId ? (
+  const uniqueId = useId();
+  const clipPathId = link.clipId ? `${link.clipId}-${uniqueId}` : undefined;
+
+  const svgContent = clipPathId ? (
     <svg className={styles.absoluteSvg} fill="none" viewBox={link.viewBox}>
-      <g clipPath={`url(#${link.clipId})`}>
-        <path d={link.path} fill="black" fillOpacity="0.4" />
+      <g clipPath={`url(#${clipPathId})`}>
+        <path d={link.path} fill="currentColor" />
       </g>
       <defs>
-        <clipPath id={link.clipId}>
+        <clipPath id={clipPathId}>
           <rect fill="white" height={link.clipSize!.height} width={link.clipSize!.width} />
         </clipPath>
       </defs>
     </svg>
   ) : (
     <svg className={styles.absoluteSvg} fill="none" viewBox={link.viewBox}>
-      <path d={link.path} fill="black" fillOpacity="0.4" />
+      <path d={link.path} fill="currentColor" />
     </svg>
   );
 
@@ -106,14 +111,80 @@ function ThesysLogo() {
   return (
     <div className={styles.logoWrap}>
       <svg className={styles.absoluteSvg} fill="none" viewBox="0 0 123.871 49.5484">
-        <path d={svgPaths.p16775200} fill="black" />
-        <path clipRule="evenodd" d={svgPaths.p29abae30} fill="black" fillRule="evenodd" />
-        <path d={svgPaths.p318aaf80} fill="black" />
-        <path d={svgPaths.p3f22cf00} fill="black" />
-        <path d={svgPaths.p27013980} fill="black" />
-        <path d={svgPaths.p21b7f300} fill="black" />
+        <path d={svgPaths.p16775200} fill="currentColor" />
+        <path clipRule="evenodd" d={svgPaths.p29abae30} fill="currentColor" fillRule="evenodd" />
+        <path d={svgPaths.p318aaf80} fill="currentColor" />
+        <path d={svgPaths.p3f22cf00} fill="currentColor" />
+        <path d={svgPaths.p27013980} fill="currentColor" />
+        <path d={svgPaths.p21b7f300} fill="currentColor" />
       </svg>
     </div>
+  );
+}
+
+function HandcraftedMascot({ isDark }: { isDark: boolean }) {
+  if (isDark) {
+    return (
+      <svg
+        className={`${styles.handcraftedMascot} ${styles.handcraftedMascotDark}`.trim()}
+        fill="none"
+        preserveAspectRatio="xMidYMid meet"
+        viewBox="0 0 33 32"
+      >
+        <path d={mascotDarkSvgPaths.pBody} fill="white" />
+        <path d={mascotDarkSvgPaths.pOutline} fill="#464646" stroke="#464646" strokeWidth="0.3" />
+        <path d={mascotDarkSvgPaths.pMouth} fill="#464646" />
+        <path d={mascotDarkSvgPaths.pEarLeft} fill="#464646" stroke="#464646" strokeWidth="0.3" />
+        <path d={mascotDarkSvgPaths.pEarRight} fill="#464646" stroke="#464646" strokeWidth="0.3" />
+        <path d={mascotDarkSvgPaths.pEyeLeft} fill="#464646" />
+        <path d={mascotDarkSvgPaths.pEyeRight} fill="#464646" />
+        <path d={mascotDarkSvgPaths.pHornLeft} fill="#464646" stroke="#464646" strokeWidth="0.3" />
+        <path d={mascotDarkSvgPaths.pHornRight} fill="#464646" stroke="#464646" strokeWidth="0.3" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      className={styles.handcraftedMascot}
+      fill="none"
+      preserveAspectRatio="xMidYMid meet"
+      viewBox="0 0 141.2 114.2"
+    >
+      <path
+        d={mascotSvgPaths.p395b3c00}
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.6"
+      />
+      <path d={mascotSvgPaths.p3b251e80} fill="currentColor" />
+      <path
+        d={mascotSvgPaths.p2718bc80}
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.6"
+      />
+      <path
+        d={mascotSvgPaths.p37ab5b0}
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.6"
+      />
+      <path d={mascotSvgPaths.p2ac89300} fill="currentColor" />
+      <path d={mascotSvgPaths.p2b8b4380} fill="currentColor" />
+      <path
+        d={mascotSvgPaths.p15c14e00}
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.6"
+      />
+      <path
+        d={mascotSvgPaths.p4076200}
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.6"
+      />
+    </svg>
   );
 }
 
@@ -122,27 +193,15 @@ function ThesysLogo() {
 // ---------------------------------------------------------------------------
 
 export function Footer() {
+  const isDark = false;
+
   return (
     <footer className={styles.footer}>
       {/* Handcrafted */}
       <div className={styles.handcraftedSection}>
         <div className={styles.handcraftedContainer}>
           <div className={styles.mascotWrap}>
-            <svg
-              className={styles.handcraftedMascot}
-              fill="none"
-              preserveAspectRatio="xMidYMid meet"
-              viewBox="0 0 141.2 114.2"
-            >
-              <path d={mascotSvgPaths.p395b3c00} fill="black" stroke="black" strokeWidth="0.6" />
-              <path d={mascotSvgPaths.p3b251e80} fill="black" />
-              <path d={mascotSvgPaths.p2718bc80} fill="black" stroke="black" strokeWidth="0.6" />
-              <path d={mascotSvgPaths.p37ab5b0} fill="black" stroke="black" strokeWidth="0.6" />
-              <path d={mascotSvgPaths.p2ac89300} fill="black" />
-              <path d={mascotSvgPaths.p2b8b4380} fill="black" />
-              <path d={mascotSvgPaths.p15c14e00} fill="black" stroke="black" strokeWidth="0.6" />
-              <path d={mascotSvgPaths.p4076200} fill="black" stroke="black" strokeWidth="0.6" />
-            </svg>
+            <HandcraftedMascot isDark={isDark} />
           </div>
           <p className={styles.handcraftedCopy}>
             Handcrafted with a lot of love
@@ -168,9 +227,7 @@ export function Footer() {
           {/* Bottom bar */}
           <div className={styles.bottomBar}>
             <div className={styles.desktopBottomBar}>
-              <p className={styles.desktopMetaLeft}>
-                355 Bryant St, San Francisco, CA 94107
-              </p>
+              <p className={styles.desktopMetaLeft}>355 Bryant St, San Francisco, CA 94107</p>
               <SocialIcons />
               <p className={styles.desktopMetaRight}>
                 © {new Date().getFullYear()} Thesys Inc. All Rights Reserved
@@ -183,9 +240,7 @@ export function Footer() {
                 <p className={styles.mobileMetaText}>
                   © {new Date().getFullYear()} Thesys Inc. All Rights Reserved
                 </p>
-                <p className={styles.mobileMetaText}>
-                  355 Bryant St, San Francisco, CA 94107
-                </p>
+                <p className={styles.mobileMetaText}>355 Bryant St, San Francisco, CA 94107</p>
               </div>
             </div>
           </div>

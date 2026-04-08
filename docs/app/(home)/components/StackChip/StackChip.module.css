@@ -1,0 +1,134 @@
+.chip {
+  display: inline-flex;
+  min-height: 2.875rem;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 12px 24px 12px 12px;
+  border: 1px solid var(--openui-border-default);
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-foreground);
+}
+
+.chipBlurred {
+  opacity: 0.52;
+  filter: blur(2px);
+  pointer-events: none;
+  user-select: none;
+  -webkit-mask-image: linear-gradient(90deg, #000 45%, rgb(0 0 0 / 0.08) 100%);
+  mask-image: linear-gradient(90deg, #000 45%, rgb(0 0 0 / 0.08) 100%);
+}
+
+.badge {
+  display: flex;
+  height: 1.625rem;
+  width: 1.625rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--openui-radius-full);
+}
+
+.badgeOpenUi {
+  background: var(--openui-highlight-strong);
+  color: var(--openui-text-neutral-primary);
+}
+
+.badgeWhite {
+  background: var(--openui-text-white);
+}
+
+.badgeBlack {
+  background: var(--openui-text-black);
+}
+
+.badgeAnthropic {
+  background: #d4a574;
+}
+
+.badgeMistral {
+  background: #ff7000;
+}
+
+.badgeDeepSeek {
+  background: #4d6bfe;
+}
+
+.badgeLangChain {
+  background: #1c3144;
+}
+
+.badgeCrewAi {
+  background: #ff4b4b;
+}
+
+.badgeGoogle {
+  background: #4285f4;
+}
+
+.badgeMaterial {
+  background: #a485ff;
+}
+
+.badgeDaisyUi {
+  background: #f472b6;
+}
+
+.badgeBaseUi {
+  background: var(--openui-highlight-strong);
+}
+
+.badgeMore {
+  background: var(--openui-highlight-subtle);
+}
+
+.badgeWithBorder {
+  border: 1px solid var(--openui-border-interactive);
+}
+
+.badgeImage,
+.iconSvg {
+  display: block;
+  height: 1rem;
+  width: 1rem;
+  object-fit: contain;
+}
+
+.mascotSvg {
+  display: block;
+  height: 1rem;
+  width: 1rem;
+  transform: rotate(-16.49deg);
+}
+
+.moreIcon {
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--openui-text-neutral-tertiary);
+}
+
+.badgeText {
+  font-family: "Inter", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--openui-text-neutral-primary);
+}
+
+.chipLabel {
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--openui-text-neutral-primary);
+}
+
+@media (min-width: 1024px) {
+  .chip {
+    min-height: 3rem;
+    padding-inline: 1rem;
+  }
+}

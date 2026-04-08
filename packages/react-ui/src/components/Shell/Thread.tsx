@@ -4,6 +4,7 @@ import clsx from "clsx";
 import React, { memo, useRef } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
 import { ScrollVariant, useScrollToBottom } from "../../hooks/useScrollToBottom";
+import { separateContentAndContext } from "../../utils/contentParser";
 import { ArtifactOverlay, ArtifactPortalTarget } from "../_shared/artifact";
 import { useShellStore } from "../_shared/store";
 import type { AssistantMessageComponent, UserMessageComponent } from "../_shared/types";
@@ -223,7 +224,9 @@ const UserMessageContent = ({ message }: { message: Message }) => {
   if (message.role !== "user") return null;
   const content = message.content;
   if (typeof content === "string") {
-    return <>{content}</>;
+    // Strip XML wrapper tags (<content>, <context>) so the bubble shows clean text
+    const { content: humanText } = separateContentAndContext(content);
+    return <>{humanText}</>;
   }
   // InputContent[] — render text parts
   return (
@@ -256,12 +259,14 @@ export const RenderMessage = memo(
     allMessages,
     assistantMessage: CustomAssistantMessage,
     userMessage: CustomUserMessage,
+    isStreaming,
   }: {
     message: Message;
     className?: string;
     allMessages: Message[];
     assistantMessage?: AssistantMessageComponent;
     userMessage?: UserMessageComponent;
+    isStreaming: boolean;
   }) => {
     if (message.role === "tool") {
       // Tool messages are rendered inline with their parent assistant message
@@ -270,7 +275,7 @@ export const RenderMessage = memo(
 
     if (message.role === "assistant") {
       if (CustomAssistantMessage) {
-        return <CustomAssistantMessage message={message} />;
+        return <CustomAssistantMessage message={message} isStreaming={isStreaming} />;
       }
       return (
         <AssistantMessageContainer className={className}>
@@ -335,7 +340,7 @@ export const Messages = ({
 
   return (
     <div className={clsx("openui-shell-thread-messages", className)}>
-      {messages.map((message) => {
+      {messages.map((message, i) => {
         return (
           <MessageProvider key={message.id} message={message}>
             <RenderMessage
@@ -343,6 +348,7 @@ export const Messages = ({
               allMessages={messages}
               assistantMessage={assistantMessage}
               userMessage={userMessage}
+              isStreaming={isRunning && i === messages.length - 1}
             />
           </MessageProvider>
         );

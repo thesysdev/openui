@@ -36,18 +36,14 @@ describe("unknown-component", () => {
     const result = parse('root = DataTable("col")', schema);
     expect(result.meta.errors).toHaveLength(1);
     expect(result.meta.errors[0]).toMatchObject({
-      type: "validation",
       code: "unknown-component",
       component: "DataTable",
-      path: "",
     });
   });
 
-  it("still renders the element with _args when unknown", () => {
+  it("drops unknown component from tree (returns null)", () => {
     const result = parse('root = DataTable("col")', schema);
-    expect(result.root).not.toBeNull();
-    expect(result.root?.typeName).toBe("DataTable");
-    expect((result.root?.props as any)._args).toEqual(["col"]);
+    expect(result.root).toBeNull();
   });
 
   it("reports all unknown components in a tree", () => {
@@ -65,22 +61,19 @@ describe("unknown-component", () => {
 // ── excess-args ───────────────────────────────────────────────────────────────
 
 describe("excess-args", () => {
-  it("reports when more args are passed than params", () => {
+  it("reports excess-args error but still renders with valid args", () => {
     const result = parse('root = Title("hello", "extra")', schema);
-    expect(result.meta.errors).toHaveLength(1);
-    expect(result.meta.errors[0]).toMatchObject({
-      type: "validation",
-      code: "excess-args",
-      component: "Title",
-      path: "",
-    });
-    expect(result.meta.errors[0].message).toMatch(/takes 1 arg/);
-  });
-
-  it("still renders the component despite excess args", () => {
-    const result = parse('root = Title("hello", "extra")', schema);
+    expect(codes('root = Title("hello", "extra")')).toContain("excess-args");
+    // Extra args dropped, first arg maps correctly
     expect(result.root).not.toBeNull();
     expect(result.root?.props.text).toBe("hello");
+  });
+
+  it("excess-args message lists count", () => {
+    const errs = errors('root = Title("hello", "extra", "more")');
+    const excess = errs.find((e: { code: string }) => e.code === "excess-args");
+    expect(excess).toBeDefined();
+    expect(excess!.message).toContain("2 excess dropped");
   });
 
   it("does not report when arg count matches param count", () => {
@@ -144,8 +137,8 @@ describe("existing errors carry type and code", () => {
     const result = parse("root = Stack()", schema);
     expect(result.meta.errors).toHaveLength(1);
     expect(result.meta.errors[0]).toMatchObject({
-      type: "validation",
       code: "missing-required",
+      component: "Stack",
     });
   });
 
@@ -153,8 +146,92 @@ describe("existing errors carry type and code", () => {
     const result = parse("root = Stack(null)", schema);
     expect(result.meta.errors).toHaveLength(1);
     expect(result.meta.errors[0]).toMatchObject({
-      type: "validation",
       code: "null-required",
+      component: "Stack",
     });
+  });
+});
+
+// ── array null-dropping ─────────────────────────────────────────────────────
+
+describe("array null-dropping", () => {
+  it("drops unresolved refs from children arrays", () => {
+    const result = parse('root = Stack([missing, t1])\nt1 = Title("ok")', schema);
+    const children = result.root?.props?.children as any[];
+    expect(children).toHaveLength(1);
+    expect(children[0].typeName).toBe("Title");
+  });
+
+  it("drops invalid components (missing required props) from arrays", () => {
+    const result = parse('root = Stack([bad, good])\nbad = Title()\ngood = Title("ok")', schema);
+    const children = result.root?.props?.children as any[];
+    expect(children).toHaveLength(1);
+    expect(children[0].props.text).toBe("ok");
+  });
+
+  it("drops unknown components from arrays", () => {
+    const result = parse('root = Stack([u, t1])\nu = Ghost("x")\nt1 = Title("ok")', schema);
+    const children = result.root?.props?.children as any[];
+    expect(children).toHaveLength(1);
+    expect(children[0].typeName).toBe("Title");
+  });
+
+  it("preserves null literals in arrays", () => {
+    const result = parse("root = Stack([null, null])", schema);
+    const children = result.root?.props?.children as any[];
+    expect(children).toEqual([null, null]);
+  });
+
+  it("streaming: unresolved refs fill in when defined later", () => {
+    const sp = createStreamParser(schema);
+    const p1 = sp.push('root = Stack([t1, t2])\nt1 = Title("first")\n');
+    expect((p1.root?.props?.children as any[]).length).toBe(1);
+    const p2 = sp.push('t2 = Title("second")\n');
+    expect((p2.root?.props?.children as any[]).length).toBe(2);
+  });
+});
+
+// ── orphaned statements ─────────────────────────────────────────────────────
+
+describe("orphaned statements", () => {
+  it("detects unreachable statements on complete parse", () => {
+    const result = parse(
+      'root = Stack([t1])\nt1 = Title("used")\norphan = Title("unused")',
+      schema,
+    );
+    expect(result.meta.orphaned).toContain("orphan");
+    expect(result.meta.orphaned).not.toContain("t1");
+    expect(result.meta.orphaned).not.toContain("root");
+  });
+
+  it("no orphans when all statements are reachable", () => {
+    const result = parse('root = Stack([t1, t2])\nt1 = Title("a")\nt2 = Title("b")', schema);
+    expect(result.meta.orphaned).toHaveLength(0);
+  });
+
+  it("orphaned computed during streaming too", () => {
+    const sp = createStreamParser(schema);
+    // orphan is defined but not referenced from root
+    const p1 = sp.push('root = Stack([t1])\nt1 = Title("a")\norphan = Title("stray")\n');
+    expect(p1.meta.orphaned).toContain("orphan");
+    expect(p1.meta.orphaned).not.toContain("t1");
+  });
+
+  it("detects multiple orphaned statements", () => {
+    const result = parse(
+      'root = Stack([t1])\nt1 = Title("used")\na = Title("x")\nb = Title("y")',
+      schema,
+    );
+    expect(result.meta.orphaned).toContain("a");
+    expect(result.meta.orphaned).toContain("b");
+    expect(result.meta.orphaned).toHaveLength(2);
+  });
+
+  it("deeply nested refs are not orphaned", () => {
+    const result = parse(
+      'root = Stack([t1])\nt1 = Table([col], rows)\ncol = Title("Name")\nrows = [["Alice"]]',
+      schema,
+    );
+    expect(result.meta.orphaned).toHaveLength(0);
   });
 });

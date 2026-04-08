@@ -4,12 +4,13 @@
   flex-direction: column;
   gap: 2px;
   transform: rotate(180deg);
+  background: var(--openui-foreground);
 }
 
 .bar {
   width: 100%;
   flex-shrink: 0;
-  background: rgb(0 0 0 / 4%);
+  background: var(--openui-background);
 }
 
 .barHeight60 {

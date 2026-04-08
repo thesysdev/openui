@@ -1,11 +1,11 @@
-import "./globals.css";
+import { WebsiteThemeProvider } from "@/components/website-theme-provider";
 import { Navbar } from "./sections/Navbar/Navbar";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="homeTheme">
+    <WebsiteThemeProvider forcedTheme="light">
       <Navbar />
       {children}
-    </div>
+    </WebsiteThemeProvider>
   );
 }

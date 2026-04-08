@@ -1,6 +1,6 @@
 .code-panel .panel-header {
-  background: #0f0f0f;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--code-bg);
+  border-bottom: 1px solid var(--code-border);
 }
 
 /* ─── Tabs ───────────────────────────────────────────────────────────────────── */
@@ -20,7 +20,7 @@
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--code-text-tertiary);
   cursor: pointer;
   transition:
     background 0.15s,
@@ -28,13 +28,13 @@
 }
 
 .code-tab:hover {
-  color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--code-text-secondary);
+  background: var(--code-hover);
 }
 
 .code-tab.active {
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--code-text);
+  background: var(--code-hover-strong);
 }
 
 /* ─── Token Count Badge (on tabs) ───────────────────────────────────────────── */
@@ -44,8 +44,8 @@
   margin-left: 5px;
   padding: 1px 5px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.35);
+  background: var(--code-hover);
+  color: var(--code-text-tertiary);
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0;
@@ -55,24 +55,24 @@
 }
 
 .code-tab.active .token-count {
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.55);
+  background: var(--code-hover-strong);
+  color: var(--code-text-secondary);
 }
 
 /* ─── Tooltip ────────────────────────────────────────────────────────────────── */
-[data-tooltip] {
+.code-panel [data-tooltip] {
   position: relative;
 }
 
-[data-tooltip]::after {
+.code-panel [data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
   top: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background: #1e1e1e;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.75);
+  background: color-mix(in srgb, var(--code-bg) 88%, var(--openui-foreground));
+  border: 1px solid var(--code-border);
+  color: var(--code-text-secondary);
   font-size: 11px;
   font-weight: 400;
   font-family: var(--font-sans);
@@ -84,11 +84,11 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--openui-shadow-l);
   z-index: 100;
 }
 
-[data-tooltip]:hover::after {
+.code-panel [data-tooltip]:hover::after {
   opacity: 1;
 }
 
@@ -99,9 +99,9 @@
   gap: 4px;
   padding: 2px 7px;
   border-radius: 20px;
-  background: rgba(74, 222, 128, 0.12);
-  border: 1px solid rgba(74, 222, 128, 0.25);
-  color: #4ade80;
+  background: var(--playground-success-tint);
+  border: 1px solid var(--playground-success-border);
+  color: var(--playground-success-text);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -110,20 +110,20 @@
 }
 
 .code-panel .panel-title {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--code-text-secondary);
 }
 
 .code-panel .panel-icon-btn {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--code-text-tertiary);
 }
 
 .code-panel .panel-icon-btn:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.8);
+  background: var(--code-hover);
+  color: var(--code-text);
 }
 
 .code-panel .empty-state {
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--code-text-tertiary);
 }
 
 .code-body {
@@ -154,12 +154,12 @@
 }
 
 .status-dot.streaming {
-  background: #4ade80;
+  background: var(--openui-border-success-emphasis);
   animation: pulse 1s ease-in-out infinite;
 }
 
 .status-dot.error {
-  background: #f87171;
+  background: var(--openui-border-danger-emphasis);
 }
 
 @keyframes pulse {

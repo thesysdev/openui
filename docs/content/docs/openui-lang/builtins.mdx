@@ -1,0 +1,86 @@
+---
+title: Built-in Functions
+description: Transform, filter, and aggregate data with @-prefixed built-in functions.
+---
+
+Built-in functions start with `@` - this tells the LLM "this is a function, not a component."
+
+Built-ins are included in the system prompt when `toolCalls` or `bindings` is enabled. They are primarily used with `Query` results for data transformation, filtering, and aggregation.
+
+## Aggregation
+
+| Function        | What it does    | Example                           |
+| --------------- | --------------- | --------------------------------- |
+| `@Count(array)` | Length of array | `@Count(tickets.rows)` → `42`     |
+| `@Sum(array)`   | Sum of numbers  | `@Sum(data.rows.amount)` → `1250` |
+| `@Avg(array)`   | Average         | `@Avg(data.rows.score)` → `4.2`   |
+| `@Min(array)`   | Smallest value  | `@Min(data.rows.price)` → `9.99`  |
+| `@Max(array)`   | Largest value   | `@Max(data.rows.price)` → `99.99` |
+| `@First(array)` | First element   | `@First(data.rows)`               |
+| `@Last(array)`  | Last element    | `@Last(data.rows)`                |
+
+## Filtering & Sorting
+
+| Function                           | What it does                                                                      |
+| ---------------------------------- | --------------------------------------------------------------------------------- |
+| `@Filter(array, field, op, value)` | Keep items where field matches. Ops: `==`, `!=`, `>`, `<`, `>=`, `<=`, `contains` |
+| `@Sort(array, field, direction?)`  | Sort by field. Direction: `"asc"` (default) or `"desc"`                           |
+
+Examples:
+
+```text
+openTickets = @Filter(tickets.rows, "status", "==", "open")
+sorted = @Sort(tickets.rows, "created", "desc")
+```
+
+## Composing functions
+
+Functions can be nested:
+
+```text
+openCount = @Count(@Filter(tickets.rows, "status", "==", "open"))
+```
+
+This is the main pattern for KPI cards:
+
+```text
+kpi = Card([
+  TextContent("Open Tickets", "small"),
+  TextContent("" + @Count(@Filter(data.rows, "status", "==", "open")), "large-heavy")
+])
+```
+
+## Math
+
+| Function                    | What it does              |
+| --------------------------- | ------------------------- |
+| `@Round(number, decimals?)` | Round to N decimal places |
+| `@Abs(number)`              | Absolute value            |
+| `@Floor(number)`            | Round down                |
+| `@Ceil(number)`             | Round up                  |
+
+## Iteration with @Each
+
+Render a template for every item in an array:
+
+```text
+@Each(tickets.rows, "t", Tag(t.priority, null, "sm"))
+```
+
+The second argument (`"t"`) is the loop variable name. Use it inside the template.
+
+## Action steps
+
+These are used inside `Action([...])` to wire button clicks:
+
+| Step                   | What it does                           |
+| ---------------------- | -------------------------------------- |
+| `@Run(ref)`            | Execute a Mutation or re-fetch a Query |
+| `@Set($var, value)`    | Change a `$variable`                   |
+| `@Reset($var1, $var2)` | Restore `$variables` to defaults       |
+| `@ToAssistant("msg")`  | Send a message to the LLM              |
+| `@OpenUrl("url")`      | Open a URL in a new tab                |
+
+```text
+submitBtn = Button("Create", Action([@Run(mutation), @Run(query), @Reset($title)]))
+```

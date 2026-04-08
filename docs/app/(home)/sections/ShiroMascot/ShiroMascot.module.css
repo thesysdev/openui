@@ -19,6 +19,7 @@
   left: 8%;
   width: 83.84%;
   height: 115.47%;
+  color: var(--openui-text-neutral-primary);
 }
 
 @media (min-width: 1024px) {

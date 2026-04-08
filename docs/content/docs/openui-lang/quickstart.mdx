@@ -1,9 +1,18 @@
 ---
 title: Quick Start
-description: Bootstrap a Generative UI chat app in under a minute.
+description: Bootstrap a GenUI chat app in under a minute.
 ---
 
-## Bootstrap a GenUI Chat app
+<video
+  src="/videos/openui-lang/chat-quickstart.mp4"
+  autoPlay
+  loop
+  muted
+  playsInline
+  className="w-full rounded-lg"
+/>
+
+## Create the app
 
 ```bash
 npx @openuidev/cli@latest create --name genui-chat-app
@@ -39,9 +48,9 @@ src/
     system-prompt.txt  # Auto-generated at build time via `openui generate`
 ```
 
-- **`page.tsx`** — Renders the `FullScreen` chat layout with `openuiChatLibrary` for Generative UI rendering and `openAIAdapter()` for streaming.
-- **`route.ts`** — A backend API route that sends the system prompt to the LLM and streams the response back.
-- **`library.ts`** — Your component library entrypoint. The `openui generate` CLI reads this file to produce the system prompt.
+- **`page.tsx`**: Renders the `FullScreen` chat layout with `openuiChatLibrary` for Generative UI rendering and `openAIAdapter()` for streaming.
+- **`route.ts`**: A backend API route that sends the system prompt to the LLM and streams the response back.
+- **`library.ts`**: Your component library entrypoint. The `openui generate` CLI reads this file to produce the system prompt.
 
 The `dev` and `build` scripts automatically regenerate the system prompt before starting:
 
@@ -49,17 +58,3 @@ The `dev` and `build` scripts automatically regenerate the system prompt before 
 "generate:prompt": "openui generate src/library.ts --out src/generated/system-prompt.txt",
 "dev": "pnpm generate:prompt && next dev"
 ```
-
-## Next Steps
-
-<Cards>
-  <Card title="Overview" href="/docs/openui-lang/overview">
-    Understand the key building blocks and built-in component libraries.
-  </Card>
-  <Card title="Defining Components" href="/docs/openui-lang/defining-components">
-    Create your own custom component library.
-  </Card>
-  <Card title="Chat Quick Start" href="/docs/chat/quick-start">
-    Explore chat-specific layouts and configurations.
-  </Card>
-</Cards>

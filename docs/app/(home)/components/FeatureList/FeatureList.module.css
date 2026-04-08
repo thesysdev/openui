@@ -5,14 +5,15 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--home-border-default);
-  border-radius: var(--home-radius-pill);
-  background: var(--home-color-surface);
+  border: 1px solid var(--openui-border-interactive);
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-foreground);
 }
 
 .featureIconSvg {
   height: 18px;
   width: 18px;
+  color: var(--openui-text-neutral-primary);
 }
 
 .desktopList {
@@ -44,17 +45,17 @@
 }
 
 .desktopTitle {
-  color: #000;
+  color: var(--openui-text-neutral-primary);
 }
 
 .desktopDescription {
   text-align: right;
-  color: var(--home-color-text-muted);
+  color: var(--openui-text-neutral-secondary);
 }
 
 .mobileRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.375rem;
   padding-block: 1rem;
 }
@@ -75,12 +76,12 @@
 .mobileTitle {
   font-weight: 500;
   line-height: 1.25;
-  color: #000;
+  color: var(--openui-text-neutral-primary);
 }
 
 .mobileDescription {
   line-height: 1.4;
-  color: var(--home-color-text-muted);
+  color: var(--openui-text-neutral-secondary);
 }
 
 .divider {
@@ -90,11 +91,11 @@
 }
 
 .desktopDivider {
-  background: var(--home-border-default);
+  background: var(--openui-border-interactive);
 }
 
 .mobileDivider {
-  background: var(--home-color-surface-muted);
+  background: var(--openui-highlight-strong);
 }
 
 @media (min-width: 1024px) {

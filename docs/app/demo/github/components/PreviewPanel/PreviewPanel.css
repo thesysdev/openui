@@ -1,0 +1,32 @@
+@keyframes preview-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.panel-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--openui-space-s);
+}
+
+.preview-spinner {
+  animation: preview-spin 1s linear infinite;
+  color: var(--openui-text-purple-primary);
+  flex-shrink: 0;
+}
+
+.preview-body {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--openui-highlight-subtle);
+}
+
+.preview-content {
+  width: 100%;
+  padding: var(--openui-space-m-l);
+  align-self: flex-start;
+}

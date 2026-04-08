@@ -1,6 +1,6 @@
 .section {
   width: 100%;
-  padding-inline: var(--home-section-padding-inline);
+  padding-inline: 1.25rem;
 }
 
 .container {
@@ -8,3 +8,8 @@
   margin-inline: auto;
 }
 
+@media (min-width: 1024px) {
+  .section {
+    padding-inline: 2rem;
+  }
+}

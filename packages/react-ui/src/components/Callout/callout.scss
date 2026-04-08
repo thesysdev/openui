@@ -51,4 +51,31 @@
     @include cssUtils.typography(body, default);
     color: cssUtils.$text-neutral-primary;
   }
+
+  &-autodismiss {
+    animation: openui-callout-fadeout 0.4s ease-in forwards;
+    animation-delay: var(--callout-duration, 3000ms);
+  }
+}
+
+@keyframes openui-callout-fadeout {
+  0% {
+    opacity: 1;
+    max-height: 200px;
+    padding-top: cssUtils.$space-000;
+    padding-bottom: cssUtils.$space-000;
+    margin-bottom: 0;
+  }
+  70% {
+    opacity: 0;
+    max-height: 200px;
+  }
+  100% {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+  }
 }

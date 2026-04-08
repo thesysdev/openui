@@ -3,12 +3,17 @@
   min-height: 100vh;
   width: 100%;
   overflow-x: clip;
-  background: #fff;
+  background: var(--openui-foreground);
+}
+
+.heroShell {
+  background: var(--openui-foreground);
 }
 
 .contentSection {
   position: relative;
   margin-top: 4rem;
+  background: var(--openui-background);
 }
 
 .contentShell {
@@ -16,13 +21,7 @@
   flex-direction: column;
   gap: 7.5rem;
   padding-block: 5rem;
-  background: rgb(0 0 0 / 4%);
-}
-
-.compatibilityStack {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  background: var(--openui-background);
 }
 
 @media (min-width: 768px) {
@@ -34,9 +33,5 @@
 @media (min-width: 1024px) {
   .contentSection {
     margin-top: 6rem;
-  }
-
-  .compatibilityStack {
-    gap: 2.5rem;
   }
 }

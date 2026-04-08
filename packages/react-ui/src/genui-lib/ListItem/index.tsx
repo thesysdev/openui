@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod";
-import { actionSchema } from "../Action/schema";
+import { actionPropSchema } from "../Action/schema";
 
 export const ListItem = defineComponent({
   name: "ListItem",
@@ -16,7 +16,7 @@ export const ListItem = defineComponent({
       })
       .optional(),
     actionLabel: z.string().optional(),
-    action: actionSchema,
+    action: actionPropSchema.optional(),
   }),
   description:
     "Item in a ListBlock — displays a title with an optional subtitle and image. When action is provided, the item becomes clickable.",

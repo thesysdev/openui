@@ -97,8 +97,8 @@ const library = createLibrary({
 
 This serves two purposes:
 
-1. **Constrains the LLM** — the model always wraps its output in a known top-level component, making output predictable.
-2. **Enables streaming** — because the root statement comes first, the UI shell renders immediately while child components stream in.
+1. **Constrains the LLM**: the model always wraps its output in a known top-level component, making output predictable.
+2. **Enables streaming**: because the root statement comes first, the UI shell renders immediately while child components stream in.
 
 The `root` must match the `name` of one of the components in your library. If omitted, the prompt uses "Root" as a placeholder.
 
@@ -131,7 +131,7 @@ Groups also let you co-locate related components so the LLM understands which co
 
 ### Adding group notes
 
-Each group can include a `notes` array — these strings are appended directly after the group's component signatures in the generated prompt. Use notes to give the LLM usage hints and constraints:
+Each group can include a `notes` array. These strings are appended directly after the group's component signatures in the generated prompt. Use notes to give the LLM usage hints and constraints:
 
 ```ts
 componentGroups: [
@@ -194,7 +194,7 @@ Deeply nested object props burn tokens and increase error rates. Prefer multiple
 
 ### Order Zod keys deliberately
 
-Required props first, optional props last. The most important or distinctive prop should be position 0 — the LLM sees it first during generation.
+Required props first, optional props last. The most important or distinctive prop should be position 0, since the LLM sees it first during generation.
 
 ### Use descriptive component names
 
@@ -215,14 +215,3 @@ One or two concrete examples dramatically improve output quality, especially for
 ### Use `componentGroups` with notes
 
 Group related components and add notes like "Use BarChart for comparisons, LineChart for trends" to guide the LLM's choices. See [Grouping components](#grouping-components-in-prompt-output) above.
-
-## Next Steps
-
-<Cards>
-  <Card title="System Prompts" href="/docs/openui-lang/system-prompts">
-    Generate instructions from your library.
-  </Card>
-  <Card title="Renderer" href="/docs/openui-lang/renderer">
-    Parse and render model output.
-  </Card>
-</Cards>

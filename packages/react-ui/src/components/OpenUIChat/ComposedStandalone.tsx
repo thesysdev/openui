@@ -18,6 +18,7 @@ import {
   WelcomeScreen,
 } from "../Shell";
 import { CustomComposerAdapter } from "./CustomComposerAdapter";
+import { ShareThread } from "./ShareThread";
 import type { SharedChatUIProps } from "./types";
 import { isChatEmpty, isWelcomeComponent } from "./utils";
 import { withChatProvider } from "./withChatProvider";
@@ -88,7 +89,12 @@ const FullScreenInner = ({
   composer: ComposerComponent,
   threadHeader,
   mobileHeaderActions,
+  generateShareLink,
 }: FullScreenSpecificProps) => {
+  const shareButton = generateShareLink ? (
+    <ShareThread generateShareLink={generateShareLink} />
+  ) : null;
+
   return (
     <Container logoUrl={logoUrl} agentName={agentName}>
       <SidebarContainer>
@@ -100,8 +106,20 @@ const FullScreenInner = ({
         </SidebarContent>
       </SidebarContainer>
       <ThreadContainer>
-        <MobileHeader rightChildren={mobileHeaderActions} />
-        {threadHeader && <ThreadHeader>{threadHeader}</ThreadHeader>}
+        <MobileHeader
+          rightChildren={
+            <>
+              {shareButton}
+              {mobileHeaderActions}
+            </>
+          }
+        />
+        {(threadHeader || shareButton) && (
+          <ThreadHeader>
+            {threadHeader}
+            {shareButton}
+          </ThreadHeader>
+        )}
         <WelcomeMessageRenderer
           welcomeMessage={welcomeMessage}
           conversationStarters={conversationStarters}

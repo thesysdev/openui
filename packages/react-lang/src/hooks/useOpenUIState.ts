@@ -1,89 +1,236 @@
 import {
+  ACTION_STEPS,
   BuiltinActionType,
-  createParser,
+  createQueryManager,
+  createStore,
+  createStreamingParser,
+  enrichErrors,
+  evaluate,
+  evaluateElementProps,
   type ActionEvent,
+  type ActionPlan,
+  type EvalContext,
+  type EvaluationContext,
+  type OpenUIError,
   type ParseResult,
+  type QueryManager,
+  type QuerySnapshot,
+  type Store,
+  type ToolProvider,
 } from "@openuidev/lang-core";
 import type React from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import type { OpenUIContextValue } from "../context";
 import type { Library } from "../library";
+
+/** Unwrap { value, componentType } wrapper from form field entries. Returns raw value. */
+function unwrapFieldValue(v: unknown): unknown {
+  if (
+    v &&
+    typeof v === "object" &&
+    !Array.isArray(v) &&
+    "value" in (v as Record<string, unknown>)
+  ) {
+    return (v as Record<string, unknown>).value;
+  }
+  return v;
+}
 
 export interface UseOpenUIStateOptions {
   response: string | null;
   library: Library;
   isStreaming: boolean;
   onAction?: (event: ActionEvent) => void;
-  onStateUpdate?: (state: Record<string, any>) => void;
+  onStateUpdate?: (state: Record<string, unknown>) => void;
   initialState?: Record<string, any>;
+  /** ToolProvider for Query data fetching — MCP, REST, GraphQL, or any backend. */
+  toolProvider?: ToolProvider | null;
+  /** Callback for structured, LLM-friendly errors. See OpenUIError type. */
+  onError?: (errors: OpenUIError[]) => void;
 }
 
 export interface OpenUIState {
+  /** Evaluated result (props resolved to concrete values). Used by Renderer. */
   result: ParseResult | null;
+  /** Raw parse result (AST nodes in props). Used by onParseResult callback. */
+  parseResult: ParseResult | null;
   contextValue: OpenUIContextValue;
+  /** Whether any Query is currently fetching data. */
+  isQueryLoading: boolean;
 }
 
 /**
  * Core state hook — extracts all form state, action handling, parser
  * management, and context assembly out of the Renderer component.
  *
- * - propsRef avoids stale closures in callbacks
- * - stable getFieldValue/setFieldValue/triggerAction via useCallback([])
- * - setFieldValue accepts shouldTriggerSaveCallback (blur-based persistence for text inputs)
+ * Store holds everything: $bindings as top-level keys, form fields nested
+ * under formName as plain values.
  */
 export function useOpenUIState(
-  { response, library, isStreaming, onAction, onStateUpdate, initialState }: UseOpenUIStateOptions,
+  {
+    response,
+    library,
+    isStreaming,
+    onAction,
+    onStateUpdate,
+    initialState,
+    toolProvider,
+    onError,
+  }: UseOpenUIStateOptions,
   renderDeep: (value: unknown) => React.ReactNode,
 ): OpenUIState {
-  // ─── Parser (synchronous, created once from the library's JSON schema) ───
-  const parser = useMemo(() => createParser(library.toJSONSchema()), []); // intentionally empty deps — parser is created once
+  // ─── Streaming parser (incremental — caches completed statements) ───
+  const sp = useMemo(() => createStreamingParser(library.toJSONSchema(), library.root), [library]);
 
   // ─── Parse result ───
+  const parseExceptionRef = useRef<OpenUIError | null>(null);
   const result = useMemo<ParseResult | null>(() => {
+    parseExceptionRef.current = null;
     if (!response) return null;
     try {
-      return parser.parse(response);
+      return sp.set(response);
     } catch (e) {
-      console.error("[openui] Parse error:", e);
+      const msg = e instanceof Error ? e.message : String(e);
+      parseExceptionRef.current = {
+        source: "parser",
+        code: "parse-exception",
+        message: `Parser crashed: ${msg}`,
+        hint: "The response may contain syntax the parser cannot handle",
+      };
       return null;
     }
-  }, [parser, response]);
+  }, [sp, response]);
 
-  // Log the final parsed tree once streaming ends (dev debugging).
-  const prevIsStreaming = useRef(isStreaming);
+  // ─── Store (holds everything: $bindings + form fields) ───
+  const store = useMemo<Store>(() => createStore(), []);
+
+  // ─── QueryManager ───
+  const queryManager = useMemo<QueryManager>(
+    () => createQueryManager(toolProvider ?? null),
+    [toolProvider],
+  );
+
   useEffect(() => {
-    prevIsStreaming.current = isStreaming;
-  }, [isStreaming, result]);
+    queryManager.activate();
+    return () => queryManager.dispose();
+  }, [queryManager]);
 
-  // ─── Form state ───
-  const [formState, setFormState] = useState<Record<string, any>>(() => initialState ?? {});
-
-  // Sync if initialState changes (e.g. loading a different message)
-  const prevInitialFormState = useRef(initialState);
+  // ─── Initialize Store ───
+  const storeInitKeyRef = useRef<unknown>(Symbol());
   useEffect(() => {
-    if (prevInitialFormState.current !== initialState) {
-      prevInitialFormState.current = initialState;
-      setFormState(initialState ?? {});
+    if (!result?.stateDeclarations && !initialState) return;
+    const key = `${JSON.stringify(result?.stateDeclarations)}::${JSON.stringify(initialState)}`;
+    if (storeInitKeyRef.current === key) return;
+    storeInitKeyRef.current = key;
+
+    // Split initialState: $-prefixed keys are bindings, everything else is form state
+    const bindingDefaults: Record<string, unknown> = {};
+    if (initialState) {
+      for (const [key, value] of Object.entries(initialState)) {
+        if (key.startsWith("$")) {
+          bindingDefaults[key] = value;
+        } else {
+          // Form state — restore as-is (preserves { value, componentType } wrapper)
+          store.set(key, value);
+        }
+      }
     }
-  }, [initialState]);
+    store.initialize(result?.stateDeclarations ?? {}, bindingDefaults);
+  }, [result?.stateDeclarations, store, initialState]);
+
+  // ─── Subscribe to Store and QueryManager for re-renders ───
+  const storeSnapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+  const querySnapshot = useSyncExternalStore(
+    queryManager.subscribe,
+    queryManager.getSnapshot,
+    queryManager.getSnapshot,
+  ) as QuerySnapshot;
+
+  // ─── Build EvaluationContext ───
+  const evaluationContext = useMemo<EvaluationContext>(
+    () => ({
+      getState: (name: string) => unwrapFieldValue(store.get(name)),
+      resolveRef: (name: string) => {
+        const mutResult = queryManager.getMutationResult(name);
+        if (mutResult) return mutResult;
+        return queryManager.getResult(name);
+      },
+    }),
+    [store, queryManager],
+  );
+
+  // ─── Evaluate and submit queries ───
+  useEffect(() => {
+    if (isStreaming) return;
+
+    const queryStmts = result?.queryStatements ?? [];
+    const evaluatedNodes = queryStmts.map((qn) => {
+      const relevantDeps: Record<string, unknown> = {};
+      if (qn.deps) {
+        for (const ref of qn.deps) {
+          relevantDeps[ref] = storeSnapshot[ref];
+        }
+      }
+      return {
+        statementId: qn.statementId,
+        toolName: qn.toolAST ? (evaluate(qn.toolAST, evaluationContext) as string) : "",
+        args: qn.argsAST ? evaluate(qn.argsAST, evaluationContext) : null,
+        defaults: qn.defaultsAST ? evaluate(qn.defaultsAST, evaluationContext) : null,
+        refreshInterval: qn.refreshAST
+          ? (evaluate(qn.refreshAST, evaluationContext) as number)
+          : undefined,
+        deps: Object.keys(relevantDeps).length > 0 ? relevantDeps : undefined,
+        complete: qn.complete,
+      };
+    });
+
+    // Always call — empty array clears removed queries and their errors
+    queryManager.evaluateQueries(evaluatedNodes);
+  }, [isStreaming, result?.queryStatements, evaluationContext, queryManager, storeSnapshot]);
+
+  // ─── Register mutations ───
+  useEffect(() => {
+    if (isStreaming) return;
+
+    const mutStmts = result?.mutationStatements ?? [];
+    const nodes = mutStmts.map((mn) => ({
+      statementId: mn.statementId,
+      toolName: mn.toolAST ? (evaluate(mn.toolAST, evaluationContext) as string) : "",
+    }));
+    // Always call — empty array clears removed mutations and their errors
+    queryManager.registerMutations(nodes);
+  }, [isStreaming, result?.mutationStatements, evaluationContext, queryManager]);
 
   // ─── Ref for stable callbacks ───
-  const propsRef = useRef({
-    formState,
-    onAction,
-    onStateUpdate,
-  });
-  propsRef.current = {
-    formState,
-    onAction,
-    onStateUpdate,
-  };
+  const propsRef = useRef({ onAction, onStateUpdate, onError });
+  propsRef.current = { onAction, onStateUpdate, onError };
+
+  const resultRef = useRef(result);
+  resultRef.current = result;
+
+  // ─── Fire onStateUpdate when Store changes ───
+  const lastInitSnapshotRef = useRef<Record<string, unknown> | null>(null);
+  useEffect(() => {
+    lastInitSnapshotRef.current = store.getSnapshot();
+    const unsub = store.subscribe(() => {
+      const currentSnapshot = store.getSnapshot();
+      if (currentSnapshot === lastInitSnapshotRef.current) return;
+      lastInitSnapshotRef.current = null;
+      propsRef.current.onStateUpdate?.(currentSnapshot);
+    });
+    return unsub;
+  }, [store]);
 
   // ─── getFieldValue ───
-  const getFieldValue = useCallback((formName: string | undefined, name: string) => {
-    const state = propsRef.current.formState;
-    return formName ? state[formName]?.[name]?.value : state[name]?.value;
-  }, []);
+  const getFieldValue = useCallback(
+    (formName: string | undefined, name: string) => {
+      if (!formName) return unwrapFieldValue(store.get(name));
+      const formData = store.get(formName);
+      if (!formData || typeof formData !== "object" || Array.isArray(formData)) return undefined;
+      return unwrapFieldValue((formData as Record<string, unknown>)[name]);
+    },
+    [store],
+  );
 
   // ─── setFieldValue ───
   const setFieldValue = useCallback(
@@ -91,62 +238,148 @@ export function useOpenUIState(
       formName: string | undefined,
       componentType: string | undefined,
       name: string,
-      value: any,
+      value: unknown,
       shouldTriggerSaveCallback: boolean = true,
     ) => {
-      const { formState: currentState } = propsRef.current;
-      const newState = { ...currentState };
-
-      if (formName) {
-        newState[formName] = {
-          ...newState[formName],
-          [name]: { value, componentType },
-        };
+      const wrapped = { value, componentType };
+      if (!formName) {
+        store.set(name, wrapped);
       } else {
-        newState[name] = { value, componentType };
+        const raw = store.get(formName);
+        const formData =
+          raw && typeof raw === "object" && !Array.isArray(raw)
+            ? (raw as Record<string, unknown>)
+            : {};
+        store.set(formName, { ...formData, [name]: wrapped });
       }
-
-      setFormState(newState);
-      propsRef.current.formState = newState;
-
       if (shouldTriggerSaveCallback) {
-        propsRef.current.onStateUpdate?.(newState);
+        propsRef.current.onStateUpdate?.(store.getSnapshot());
       }
     },
-    [],
+    [store],
+  );
+
+  // ─── Materialize form payload ───
+  const getFormPayload = useCallback(
+    (formName?: string): Record<string, unknown> | undefined => {
+      if (formName) {
+        const raw = store.get(formName);
+        if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+          return { [formName]: raw };
+        }
+      }
+      return store.getSnapshot();
+    },
+    [store],
   );
 
   // ─── triggerAction ───
   const triggerAction = useCallback(
-    (
+    async (
       userMessage: string,
       formName?: string,
-      action?: { type?: string; params?: Record<string, any> },
+      action?: ActionPlan | { type?: string; params?: Record<string, any> },
     ) => {
-      const { formState: currentState, onAction: handler } = propsRef.current;
-      const actionType = action?.type || BuiltinActionType.ContinueConversation;
-      const actionParams = action?.params;
+      const formPayload = getFormPayload(formName);
+      const { onAction: handler } = propsRef.current;
 
-      // Collect relevant form state
-      let relevantState: Record<string, any> | undefined;
-      if (formName && currentState[formName]) {
-        relevantState = { [formName]: currentState[formName] };
-      } else if (Object.keys(currentState).length > 0) {
-        relevantState = currentState;
+      // Legacy action config path (v0.1 compat) — { type?, params? }
+      if (action && !("steps" in action)) {
+        const actionType = action.type || BuiltinActionType.ContinueConversation;
+        const params = { ...(action.params || {}) };
+        // v0.1 compat — url and context were top-level, not in params
+        if ((action as any).url) params.url = (action as any).url;
+        if ((action as any).context) params.context = (action as any).context;
+        handler?.({
+          type: actionType,
+          params,
+          humanFriendlyMessage: userMessage,
+          formState: formPayload,
+          formName,
+        });
+        return;
       }
 
-      if (!handler) return;
+      // ActionPlan path (v0.5) — sequential steps with halt-on-mutation-failure
+      const actionPlan = action as ActionPlan | undefined;
+      if (actionPlan?.steps) {
+        for (const step of actionPlan.steps) {
+          switch (step.type) {
+            case ACTION_STEPS.Run: {
+              if (step.refType === "mutation") {
+                const mn = resultRef.current?.mutationStatements?.find(
+                  (m) => m.statementId === step.statementId,
+                );
+                const evaluatedArgs = mn?.argsAST
+                  ? (evaluate(mn.argsAST, evaluationContext) as Record<string, unknown>)
+                  : {};
+                const ok = await queryManager.fireMutation(step.statementId, evaluatedArgs);
+                if (!ok) return; // halt on failure
+              } else {
+                queryManager.invalidate([step.statementId]);
+              }
+              break;
+            }
+            case ACTION_STEPS.ToAssistant:
+              handler?.({
+                type: BuiltinActionType.ContinueConversation,
+                params: step.context ? { context: step.context } : {},
+                humanFriendlyMessage: step.message,
+                formState: formPayload,
+                formName,
+              });
+              break;
+            case ACTION_STEPS.OpenUrl:
+              handler?.({
+                type: BuiltinActionType.OpenUrl,
+                params: { url: step.url },
+                humanFriendlyMessage: "",
+                formState: formPayload,
+                formName,
+              });
+              break;
+            case ACTION_STEPS.Set: {
+              if (!step.valueAST) {
+                console.warn(`[openui] Set action for ${step.target} has no valueAST — skipping`);
+                break;
+              }
+              const value = evaluate(step.valueAST, evaluationContext);
+              store.set(step.target, value);
+              break;
+            }
+            case ACTION_STEPS.Reset: {
+              const decls = resultRef.current?.stateDeclarations ?? {};
+              for (const target of step.targets) {
+                store.set(target, decls[target] ?? null);
+              }
+              break;
+            }
+          }
+        }
+        return;
+      }
 
-      handler({
-        type: actionType,
-        params: actionParams || {},
+      // Default — ContinueConversation with label
+      handler?.({
+        type: BuiltinActionType.ContinueConversation,
+        params: {},
         humanFriendlyMessage: userMessage,
-        formState: relevantState,
+        formState: formPayload,
         formName,
       });
     },
-    [],
+    [queryManager, evaluationContext, getFormPayload, store],
   );
+
+  // ─── reportError (for error boundary) ───
+  const renderErrorsRef = useRef<OpenUIError[]>([]);
+  const isStreamingRef = useRef(isStreaming);
+  isStreamingRef.current = isStreaming;
+  const reportError = useCallback((error: OpenUIError) => {
+    // Skip during streaming — render errors are transient and onError won't fire until streaming stops
+    if (isStreamingRef.current) return;
+    renderErrorsRef.current.push(error);
+  }, []);
 
   // ─── Context value ───
   const contextValue = useMemo<OpenUIContextValue>(
@@ -157,9 +390,116 @@ export function useOpenUIState(
       isStreaming,
       getFieldValue,
       setFieldValue,
+      store,
+      evaluationContext,
+      reportError,
     }),
-    [library, renderDeep, isStreaming, triggerAction, getFieldValue, setFieldValue, formState],
+    [
+      library,
+      renderDeep,
+      isStreaming,
+      triggerAction,
+      getFieldValue,
+      setFieldValue,
+      store,
+      evaluationContext,
+      reportError,
+    ],
   );
 
-  return { result, contextValue };
+  // ─── Evaluate props ───
+  const runtimeErrorsRef = useRef<OpenUIError[]>([]);
+
+  const evaluatedResult = useMemo<ParseResult | null>(() => {
+    if (!result?.root) return result;
+    // Fresh errors array each pass — avoids mutating memoized context
+    const errors: OpenUIError[] = [];
+    const evalCtx: EvalContext = { ctx: evaluationContext, library, store, errors };
+    try {
+      const evaluatedRoot = evaluateElementProps(result.root, evalCtx);
+      runtimeErrorsRef.current = errors;
+      return { ...result, root: evaluatedRoot };
+    } catch (e) {
+      // Safety net — per-prop catch in evaluateElementProps handles most cases
+      const msg = e instanceof Error ? e.message : String(e);
+      errors.push({
+        source: "runtime",
+        code: "runtime-error",
+        message: `Prop evaluation failed: ${msg}`,
+      });
+      runtimeErrorsRef.current = errors;
+      return result;
+    }
+  }, [result, evaluationContext, library, store, storeSnapshot, querySnapshot]);
+
+  const isQueryLoading = querySnapshot.__openui_loading.length > 0;
+
+  // ─── Collect and fire onError ───
+  const lastErrorKeyRef = useRef<string>("");
+  useEffect(() => {
+    if (isStreaming) {
+      // Clear stale errors from previous session so the correction loop
+      // gets a clean signal when this streaming session completes.
+      if (lastErrorKeyRef.current !== "") {
+        lastErrorKeyRef.current = "";
+        propsRef.current.onError?.([]);
+      }
+      return;
+    }
+    const errors: OpenUIError[] = [];
+
+    // Parser exception (parser itself crashed)
+    if (parseExceptionRef.current) {
+      errors.push(parseExceptionRef.current);
+    }
+
+    // Parse failure — response exists but produced no renderable root
+    if (response && !result?.root && !parseExceptionRef.current) {
+      errors.push({
+        source: "parser",
+        code: "parse-failed",
+        message: result
+          ? "Code parsed but produced no renderable root component"
+          : "Response could not be parsed as valid openui-lang",
+        hint: `The entire response must be valid openui-lang code starting with root = ${library.root ?? "Root"}(...)`,
+      });
+    }
+
+    // Parser validation errors → enriched OpenUIError (with hints)
+    if (result?.meta?.errors?.length) {
+      errors.push(
+        ...enrichErrors(
+          result.meta.errors,
+          library.toJSONSchema(),
+          Object.keys(library.components),
+        ),
+      );
+    }
+
+    // Runtime eval errors (collected per-prop by evaluateElementProps)
+    errors.push(...runtimeErrorsRef.current);
+
+    // Render errors (collected by error boundary via reportError)
+    errors.push(...renderErrorsRef.current);
+    renderErrorsRef.current = [];
+
+    // Query/mutation tool errors — already OpenUIError, pass through directly
+    errors.push(...(querySnapshot.__openui_errors ?? []));
+
+    // Deduplicate — only fire when errors actually change
+    const key = JSON.stringify(errors);
+    if (key === lastErrorKeyRef.current) return;
+    lastErrorKeyRef.current = key;
+
+    // Fire onError or fall back to console.warn
+    if (propsRef.current.onError) {
+      propsRef.current.onError(errors);
+    } else if (errors.length > 0) {
+      for (const e of errors) {
+        console.warn(`[openui] ${e.source}/${e.code}: ${e.message}`);
+      }
+    }
+  }, [isStreaming, response, result, evaluatedResult, querySnapshot, library]);
+
+  return { result: evaluatedResult, parseResult: result, contextValue, isQueryLoading };
 }

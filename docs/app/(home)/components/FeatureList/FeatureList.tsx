@@ -19,7 +19,7 @@ function FeatureIcon({ path, index }: { path: string; index: number }) {
     <div className={styles.featureIcon}>
       <svg className={styles.featureIconSvg} fill="none" viewBox="0 0 18 18">
         <g clipPath={`url(#${clipId})`}>
-          <path d={path} fill="black" />
+          <path d={path} fill="currentColor" />
         </g>
         <defs>
           <clipPath id={clipId}>
@@ -31,13 +31,7 @@ function FeatureIcon({ path, index }: { path: string; index: number }) {
   );
 }
 
-function DesktopFeatureRow({
-  item,
-  index,
-}: {
-  item: FeatureListItem;
-  index: number;
-}) {
+function DesktopFeatureRow({ item, index }: { item: FeatureListItem; index: number }) {
   return (
     <div className={styles.desktopRow}>
       <div className={styles.desktopRowLead}>

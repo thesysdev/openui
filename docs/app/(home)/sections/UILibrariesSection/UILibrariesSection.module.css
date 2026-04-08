@@ -1,6 +1,6 @@
 .section {
   width: 100%;
-  padding-inline: var(--home-section-padding-inline);
+  padding-inline: 1.25rem;
 }
 
 .container {
@@ -17,7 +17,7 @@
   font-size: 22px;
   font-weight: 600;
   line-height: 1.25;
-  color: #000;
+  color: var(--openui-text-neutral-primary);
 }
 
 .mobileOnly {
@@ -39,9 +39,9 @@
   display: flex;
   flex: 1;
   height: 3.5rem;
-  border: 1px solid var(--home-border-default);
+  border: 1px solid var(--openui-border-interactive);
   border-radius: 14px;
-  background: var(--home-color-surface);
+  background: var(--openui-foreground);
   box-shadow: 0 4px 10px -4px rgb(22 34 51 / 5%);
 }
 
@@ -65,7 +65,7 @@
 }
 
 .iconBadgeOpenUi {
-  background: var(--home-color-surface-muted);
+  background: var(--openui-highlight-strong);
 }
 
 .iconBadgeShadcn {
@@ -130,10 +130,14 @@
   font-size: 16px;
   font-weight: 500;
   line-height: 1.4;
-  color: #000;
+  color: var(--openui-text-neutral-primary);
 }
 
 @media (min-width: 1024px) {
+  .section {
+    padding-inline: 2rem;
+  }
+
   .header {
     margin-bottom: 2rem;
   }

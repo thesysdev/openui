@@ -2,7 +2,7 @@
 
 import ClientOnly from "@components/blocks/_components/ClientOnly";
 import { BlockVariantPreview, PreviewPage, PreviewSection } from "@components/components/preview";
-import { BarChart, ScrollableBarChart } from "@openuidev/react-ui";
+import { BarChart, BarChartCondensed } from "@openuidev/react-ui";
 
 const barData = [
   { month: "Jan", desktop: 150, mobile: 90 },
@@ -33,11 +33,11 @@ function DefaultBarChartPreview() {
   );
 }
 
-function ScrollableBarChartPreview() {
+function BarChartCondensedPreview() {
   return (
     <ClientOnly>
       <div style={{ width: "600px" }}>
-        <ScrollableBarChart data={scrollableBarData} categoryKey="month" />
+        <BarChartCondensed data={scrollableBarData} categoryKey="month" />
       </div>
     </ClientOnly>
   );
@@ -48,14 +48,14 @@ export default function BlocksBarChartPage() {
     <PreviewPage>
       <PreviewSection title="Bar" headingLevel="h1" description="Preview for the Bar chart block.">
         <BlockVariantPreview
-          title="Default"
-          description="Default bar chart variant."
+          title="Scrollable"
+          description="Scrollable bar chart variant."
           preview={<DefaultBarChartPreview />}
         />
         <BlockVariantPreview
-          title="Scrollable"
-          description="Scrollable bar chart variant."
-          preview={<ScrollableBarChartPreview />}
+          title="Condensed"
+          description="Condensed bar chart variant."
+          preview={<BarChartCondensedPreview />}
         />
       </PreviewSection>
     </PreviewPage>

@@ -3,11 +3,9 @@
 import {
   defineComponent,
   parseStructuredRules,
-  useFormName,
   useFormValidation,
-  useGetFieldValue,
   useIsStreaming,
-  useSetFieldValue,
+  useStateField,
 } from "@openuidev/react-lang";
 import React from "react";
 import { Input as OpenUIInput } from "../../components/Input";
@@ -20,39 +18,39 @@ export const Input = defineComponent({
   props: InputSchema,
   description: "",
   component: ({ props }) => {
-    const formName = useFormName();
-    const getFieldValue = useGetFieldValue();
-    const setFieldValue = useSetFieldValue();
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
 
-    const fieldName = props.name as string;
+    const field = useStateField(props.name, props.value);
     const rules = React.useMemo(() => parseStructuredRules(props.rules), [props.rules]);
-    const savedValue = getFieldValue(formName, fieldName) ?? "";
+    const hasRules = rules.length > 0;
 
     React.useEffect(() => {
-      if (!isStreaming && rules.length > 0 && formValidation) {
-        formValidation.registerField(fieldName, rules, () => getFieldValue(formName, fieldName));
-        return () => formValidation.unregisterField(fieldName);
+      if (!isStreaming && hasRules && formValidation) {
+        formValidation.registerField(field.name, rules, () => field.value);
+        return () => formValidation.unregisterField(field.name);
       }
       return undefined;
-    }, [isStreaming, rules.length > 0]);
+    }, [field.name, field.value, formValidation, hasRules, isStreaming, rules]);
 
     return (
       <OpenUIInput
-        id={fieldName}
-        name={fieldName}
+        id={field.name}
+        name={field.name}
         placeholder={(props.placeholder as string) || ""}
         type={(props.type as string) || "text"}
-        defaultValue={savedValue}
-        onFocus={() => formValidation?.clearFieldError(fieldName)}
-        onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+        value={field.value ?? ""}
+        onFocus={() => formValidation?.clearFieldError(field.name)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           const val = e.target.value;
-          if (val !== savedValue) {
-            setFieldValue(formName, "Input", fieldName, val, true);
+          field.setValue(val);
+          if (hasRules) {
+            formValidation?.clearFieldError(field.name);
           }
-          if (rules.length > 0) {
-            formValidation?.validateField(fieldName, val, rules);
+        }}
+        onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+          if (hasRules) {
+            formValidation?.validateField(field.name, e.target.value, rules);
           }
         }}
         disabled={isStreaming}

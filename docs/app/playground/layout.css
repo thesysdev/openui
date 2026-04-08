@@ -1,135 +1,85 @@
-/* ─── Reset & Base ─────────────────────────────────────────────────────────── */
-*,
-*::before,
-*::after {
+/* Scope playground resets so they do not leak into other routes after navigation.
+   Use `:where()` to keep specificity at zero and avoid overriding shared docs styles. */
+:where(.app, .app *, .app *::before, .app *::after) {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* ─── Theme Tokens ─────────────────────────────────────────────────────────── */
-:root {
-  --header-bg: #ffffff;
-  --header-text: #0a0a0a;
-  --header-border: rgba(0, 0, 0, 0.08);
-
-  --page-bg: #ffffff;
-  --surface: #f5f5f5;
-  --surface-hover: #ebebeb;
-  --border: rgba(0, 0, 0, 0.1);
-  --border-strong: rgba(0, 0, 0, 0.2);
-
-  --text-primary: #0a0a0a;
-  --text-secondary: rgba(0, 0, 0, 0.5);
-  --text-tertiary: rgba(0, 0, 0, 0.35);
-
-  --btn-primary-bg: #0a0a0a;
-  --btn-primary-text: #ffffff;
-  --btn-primary-hover: #1a1a1a;
-
-  --btn-ghost-hover: rgba(0, 0, 0, 0.06);
-
-  --input-bg: #ffffff;
-  --input-border: rgba(0, 0, 0, 0.15);
-  --input-focus-ring: rgba(0, 0, 0, 0.9);
-
-  --chip-bg: rgba(0, 0, 0, 0.05);
-  --chip-hover: rgba(0, 0, 0, 0.1);
-  --chip-border: rgba(0, 0, 0, 0.1);
-
-  --code-bg: #0d0d0d;
-  --code-text: #e5e5e5;
-
-  --panel-header-bg: #f0f0f0;
-  --panel-header-border: rgba(0, 0, 0, 0.08);
-
-  --modal-backdrop: rgba(0, 0, 0, 0.5);
-  --modal-bg: #ffffff;
-  --modal-border: rgba(0, 0, 0, 0.12);
-  --modal-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
-
-  --scrollbar-thumb: rgba(0, 0, 0, 0.2);
-
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
+.app::-webkit-scrollbar,
+.app ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.app::-webkit-scrollbar-track,
+.app ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.app::-webkit-scrollbar-thumb,
+.app ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --page-bg: #0a0a0a;
-    --surface: #111111;
-    --surface-hover: #1a1a1a;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-strong: rgba(255, 255, 255, 0.15);
-
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.5);
-    --text-tertiary: rgba(255, 255, 255, 0.3);
-
-    --btn-primary-bg: #ffffff;
-    --btn-primary-text: #0a0a0a;
-    --btn-primary-hover: #e5e5e5;
-
-    --btn-ghost-hover: rgba(255, 255, 255, 0.07);
-
-    --input-bg: #111111;
-    --input-border: rgba(255, 255, 255, 0.12);
-    --input-focus-ring: rgba(255, 255, 255, 0.9);
-
-    --chip-bg: rgba(255, 255, 255, 0.05);
-    --chip-hover: rgba(255, 255, 255, 0.09);
-    --chip-border: rgba(255, 255, 255, 0.1);
-
-    --panel-header-bg: #0f0f0f;
-    --panel-header-border: rgba(255, 255, 255, 0.06);
-
-    --modal-backdrop: rgba(0, 0, 0, 0.7);
-    --modal-bg: #111111;
-    --modal-border: rgba(255, 255, 255, 0.1);
-    --modal-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
-
-    --scrollbar-thumb: rgba(255, 255, 255, 0.15);
-  }
-}
-
-:root[data-theme="dark"] {
-  --page-bg: #0a0a0a;
-  --surface: #111111;
-  --surface-hover: #1a1a1a;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.15);
-
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.5);
-  --text-tertiary: rgba(255, 255, 255, 0.3);
-
-  --btn-primary-bg: #ffffff;
-  --btn-primary-text: #0a0a0a;
-  --btn-primary-hover: #e5e5e5;
-
-  --btn-ghost-hover: rgba(255, 255, 255, 0.07);
-
-  --input-bg: #111111;
-  --input-border: rgba(255, 255, 255, 0.12);
-  --input-focus-ring: rgba(255, 255, 255, 0.9);
-
-  --chip-bg: rgba(255, 255, 255, 0.05);
-  --chip-hover: rgba(255, 255, 255, 0.09);
-  --chip-border: rgba(255, 255, 255, 0.1);
-
-  --panel-header-bg: #0f0f0f;
-  --panel-header-border: rgba(255, 255, 255, 0.06);
-
-  --modal-backdrop: rgba(0, 0, 0, 0.7);
-  --modal-bg: #111111;
-  --modal-border: rgba(255, 255, 255, 0.1);
-  --modal-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
-
-  --scrollbar-thumb: rgba(255, 255, 255, 0.15);
-}
-
-/* ─── Global ────────────────────────────────────────────────────────────────── */
-body {
+/* ─── App Layout ────────────────────────────────────────────────────────────── */
+.app {
+  --page-bg: var(--openui-foreground);
+  --surface: var(--openui-foreground);
+  --surface-hover: var(--openui-highlight);
+  --border: var(--openui-border-default);
+  --border-strong: var(--openui-border-interactive);
+  --text-primary: var(--openui-text-neutral-primary);
+  --text-secondary: var(--openui-text-neutral-secondary);
+  --text-tertiary: var(--openui-text-neutral-tertiary);
+  --btn-primary-bg: var(--openui-interactive-accent-default);
+  --btn-primary-text: var(--openui-text-accent-primary);
+  --btn-primary-hover: var(--openui-interactive-accent-hover);
+  --btn-ghost-hover: var(--openui-highlight);
+  --input-bg: var(--openui-foreground);
+  --input-border: var(--openui-border-interactive);
+  --input-focus-ring: var(--openui-border-accent-emphasis);
+  --chip-bg: var(--openui-highlight-subtle);
+  --chip-hover: var(--openui-highlight);
+  --chip-border: var(--openui-border-default);
+  --code-bg: var(--openui-inverted-background);
+  --code-text: var(--openui-text-accent-primary);
+  --code-text-secondary: var(--openui-text-accent-secondary);
+  --code-text-tertiary: var(--openui-text-accent-tertiary);
+  --code-hover: color-mix(in srgb, var(--openui-text-accent-primary) 8%, transparent);
+  --code-hover-strong: color-mix(in srgb, var(--openui-text-accent-primary) 14%, transparent);
+  --code-border: color-mix(in srgb, var(--openui-text-accent-primary) 12%, transparent);
+  --panel-header-bg: var(--openui-highlight-subtle);
+  --panel-header-border: var(--openui-border-default);
+  --modal-backdrop: var(--openui-overlay);
+  --modal-bg: var(--openui-foreground);
+  --modal-border: var(--openui-border-default);
+  --modal-shadow: var(--openui-shadow-xl);
+  --scrollbar-thumb: var(--openui-text-neutral-tertiary);
+  --font-sans: var(--openui-font-body);
+  --font-mono: var(--openui-font-code);
+  --playground-focus-ring: color-mix(
+    in srgb,
+    var(--openui-border-accent-emphasis) 24%,
+    transparent
+  );
+  --playground-success-tint: color-mix(in srgb, var(--openui-success-background) 16%, transparent);
+  --playground-success-border: color-mix(
+    in srgb,
+    var(--openui-border-success-emphasis) 36%,
+    transparent
+  );
+  --playground-success-text: var(--openui-text-success-primary);
+  --playground-danger-tint: color-mix(in srgb, var(--openui-danger-background) 14%, transparent);
+  --playground-danger-border: color-mix(
+    in srgb,
+    var(--openui-border-danger-emphasis) 36%,
+    transparent
+  );
+  --playground-danger-text: var(--openui-text-danger-primary);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
   font-family: var(--font-sans);
   background-color: var(--page-bg);
   color: var(--text-primary);
@@ -138,26 +88,6 @@ body {
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
-}
-
-/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 3px;
-}
-
-/* ─── App Layout ────────────────────────────────────────────────────────────── */
-.app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
 }
 
 .app-body {
@@ -291,22 +221,12 @@ body {
   display: flex;
   flex-direction: column;
   transition: border-color 0.15s;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--openui-shadow-m);
 }
 
 .prompt-container:focus-within {
   border-color: var(--input-focus-ring);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
-}
-
-:root[data-theme="dark"] .prompt-container:focus-within {
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .prompt-container:focus-within {
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
-  }
+  box-shadow: 0 0 0 3px var(--playground-focus-ring);
 }
 
 .prompt-textarea {
@@ -363,7 +283,7 @@ body {
 }
 
 .model-select:focus {
-  border-color: var(--border-strong);
+  border-color: var(--openui-border-interactive-emphasis);
 }
 
 .model-select:disabled {
@@ -422,7 +342,7 @@ body {
 .stop-btn:hover {
   background: var(--btn-ghost-hover);
   color: var(--text-primary);
-  border-color: var(--text-primary);
+  border-color: var(--openui-border-interactive-emphasis);
 }
 
 /* ─── Chips ─────────────────────────────────────────────────────────────────── */
@@ -455,7 +375,7 @@ body {
 .chip:hover {
   background: var(--chip-hover);
   color: var(--text-primary);
-  border-color: var(--border-strong);
+  border-color: var(--openui-border-interactive);
   transform: translateY(-1px);
 }
 
@@ -469,11 +389,11 @@ body {
 .error-banner {
   margin: 0 0 16px;
   padding: 12px 16px;
-  background: rgba(248, 113, 113, 0.1);
-  border: 1px solid rgba(248, 113, 113, 0.2);
+  background: var(--playground-danger-tint);
+  border: 1px solid var(--playground-danger-border);
   border-radius: 8px;
   font-size: 13px;
-  color: #f87171;
+  color: var(--playground-danger-text);
   line-height: 1.5;
 }
 

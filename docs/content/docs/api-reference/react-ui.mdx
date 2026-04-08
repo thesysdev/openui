@@ -119,12 +119,14 @@ import {
 
 **`openuiChatLibrary`** — Root is `Card` (vertical, no layout params). Includes chat-specific components: `FollowUpBlock`, `ListBlock`, `SectionBlock`. Does not include `Stack`. Use with `FullScreen` / `BottomTray` / `Copilot` chat interfaces.
 
-**`openuiLibrary`** — Root is `Stack`. Full layout suite with `Stack`, `Tabs`, `Carousel`, `Accordion`, etc. Use with the standalone `Renderer` or any non-chat layout (e.g., playground, embedded widgets).
+**`openuiLibrary`** — Root is `Stack`. Full layout suite with `Stack`, `Tabs`, `Carousel`, `Accordion`, `Modal`, etc. Use with the standalone `Renderer` or any non-chat layout (e.g., playground, embedded widgets, dashboards).
+
+**`openuiPromptOptions`** — includes examples and additional rules for the general-purpose library. Does not include `toolExamples` — pass those in your app-level `PromptSpec` alongside tool descriptions.
 
 Generate the system prompt at build time with the CLI:
 
 ```bash
-npx @openuidev/cli generate ./src/library.ts --out src/generated/system-prompt.txt
+npx @openuidev/cli@latest generate ./src/library.ts --out src/generated/system-prompt.txt
 ```
 
 ```tsx
