@@ -16,6 +16,7 @@ on:
           - react-headless
           - react-lang
           - react-email
+          - lang-core
           - openui-cli
           - svelte-lang
           - vue-lang
