@@ -122,7 +122,7 @@ Error codes:
 
 `onError` is for error handling. It collects errors from all layers (parser, runtime, queries) into a single callback.
 
-`onParseResult` is for inspection. It gives you the raw parse tree: the AST, statement count, unresolved references. Use it when you need to see what the parser produced, not just what went wrong.
+`onParseResult` is for inspection. It gives you the raw parse tree: the AST, statement count, unresolved references, and orphaned statements. Use it when you need to see what the parser produced, not just what went wrong.
 
 ```tsx
 <Renderer
@@ -130,6 +130,8 @@ Error codes:
     if (result) {
       console.log("Statements:", result.meta.statementCount);
       console.log("Unresolved:", result.meta.unresolved);
+      console.log("Orphaned:", result.meta.orphaned);
+      console.log("Errors:", result.meta.errors);
     }
   }}
 />

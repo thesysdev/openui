@@ -238,8 +238,19 @@ interface ParseResult {
   root: ElementNode | null;
   meta: {
     incomplete: boolean;
+    /** References used but not yet defined (dropped as null in output). */
     unresolved: string[];
+    /** Value statements defined but not reachable from root. Excludes $state, Query, and Mutation. */
+    orphaned: string[];
     statementCount: number;
+    /**
+     * Validation errors:
+     * - "missing-required" — required prop not provided
+     * - "null-required" — required prop explicitly null
+     * - "unknown-component" — component not in library schema
+     * - "inline-reserved" — Query/Mutation used inline instead of top-level
+     * - "excess-args" — more positional args than schema params (extras dropped, component still renders)
+     */
     errors: ValidationError[];
   };
   /** Extracted Query() statements with tool name, args AST, defaults AST */

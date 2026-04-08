@@ -26,6 +26,7 @@ function emptyResult(incomplete = true): ParseResult {
     meta: {
       incomplete,
       unresolved: [],
+      orphaned: [],
       statementCount: 0,
       errors: [],
     },
@@ -196,6 +197,14 @@ function buildResult(
   }
   const unres: string[] = [];
   const errors: ValidationError[] = [];
+  // Track orphaned: start with value statement IDs, delete as they're reached.
+  // Exclude root, state ($var), query, and mutation declarations — they're consumed separately.
+  const unreached = new Set<string>();
+  for (const [id, stmt] of stmtMap) {
+    if (id === entryId) continue;
+    if (stmt.kind === "state" || stmt.kind === "query" || stmt.kind === "mutation") continue;
+    unreached.add(id);
+  }
   const ctx: MaterializeCtx = {
     syms,
     cat,
@@ -204,6 +213,7 @@ function buildResult(
     visited: new Set(),
     partial: wasIncomplete,
     currentStatementId: entryId,
+    unreached,
   };
   const materialized = materializeValue(syms.get(entryId)!, ctx);
 
@@ -215,11 +225,14 @@ function buildResult(
     ctx,
   );
 
+  const orphaned = [...unreached];
+
   return {
     root,
     meta: {
       incomplete: wasIncomplete,
       unresolved: unres,
+      orphaned,
       statementCount: stmtCount,
       errors: errors,
     },
