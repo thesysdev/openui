@@ -2,7 +2,7 @@
   "type": "module",
   "name": "@openuidev/react-ui",
   "license": "MIT",
-  "version": "0.10.3",
+  "version": "0.11.0",
   "description": "Component library for Generative UI SDK",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

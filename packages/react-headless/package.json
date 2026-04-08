@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/react-headless",
-  "version": "0.7.11",
+  "version": "0.8.0",
   "description": "Headless React primitives for AI chat — state management, streaming adapters for OpenAI and AG-UI, message format converters, and thread management for OpenUI generative UI apps",
   "license": "MIT",
   "type": "module",
