@@ -1,0 +1,72 @@
+---
+title: "Should Chat be the new homepage for SaaS?"
+description: "Linear, PostHog, Attio replaced their homepages with chat bars. People hated it. But the frustration is aimed at the delivery mechanism, not the thing being delivered. Here is what comes next."
+author: Rabi Guha
+date: 2026-04-07
+---
+
+A tweet I posted last week hit a nerve.
+
+<TweetEmbed id="https://x.com/rabi_guha/status/2040082295563169852" />
+
+Linear, PostHog, Attio — three of the most design-forward SaaS products out there — all quietly replaced their homepage with a chat bar. I pointed it out. More than a million people saw it. And the reaction was loud. CEOs had to publicly defend their decisions, stones were hurled every which way.
+
+While some seemed excited, most were visibly annoyed. Safe to say — people don't love it, **yet**.
+
+## But this isn't really a design trend
+
+It's an admission that an agentic loop is more powerful than any predefined endpoint.
+
+Traditional backends are rigid. Every action maps to a specific API call, every view is a hardcoded query, every workflow is a predefined sequence. You want a new view of your data? Someone has to build it first.
+
+An agentic loop reasons across all your data, all your APIs, all your context. It chains together what used to take 5 clicks, 3 filters, and a saved view. The ceiling of what a user can do is no longer limited by what a product team shipped — it's only limited by what the agent can figure out.
+
+## Chat is a compromise
+
+Until we figure out the ideal UX for an agentic loop, we are left with text-in, text-out chatbars. It's not ideal — you lose visual density, spatial reasoning, direct manipulation — everything that made traditional UI powerful in the first place. It's like replacing Google Maps with a guy giving you turn-by-turn over the phone.
+
+The frustration is valid. But (I think) it's aimed at the delivery mechanism, not the thing being delivered.
+
+## Evolution of the Agentic Interface
+
+### Stage 1: Text
+
+Plain text responses. Markdown at best. This is where most agentic products live today. You ask a question, you get a wall of text back.
+
+### Stage 2: Inline Generative UI
+
+Still chat, but the agent responds with real components — forms, charts, tables, interactive elements.
+
+### Stage 3: Chat as a builder
+
+The agent doesn't just answer questions, it creates persistent views. "Build me a Q3 pipeline dashboard" and it does. The output outlives the conversation.
+
+### Stage 4: Embedded Agentic SDK
+
+Generative UI embedded directly in the product. The agent composes the interface itself, personalized to each user. Software that builds itself around the way you work.
+
+Chat becomes the escape hatch. You interact with the generated UI directly, and only drop into chat when you need something the current interface doesn't cover.
+
+<TweetEmbed id="https://x.com/t_blom/status/2035810283193532873" />
+
+Something like this — except that the best changes might not need to go through a manual step.
+
+## But it still has a problem
+
+This progression has a trap. Every stage starts with the same problem — a blank text box.
+
+Day zero. You open the product. No context, no guidance, just a blinking cursor waiting for you to know what to ask. This is the onboarding problem all over again, except worse. Traditional SaaS solved this with default dashboards, guided tours, templates. Chat throws all of that away.
+
+Generative UI flips this. The agent already has context — your role, your data, your patterns. Day zero isn't blank. It's contextual nudges, links to commonly used views for someone "like you", a notification center of things that need attention, pre-composed dashboards that adapt as you use the product.
+
+The agent doesn't wait for a prompt. It generates a starting point and evolves from there.
+
+## What it takes to get there
+
+Three things: reproducibility, consistency, and latency. The interface needs to be predictable, the output needs to match your software, your design system, and it all needs to happen fast enough to feel like a real app.
+
+For this to become a reality we need a basic level of abstraction beyond text.
+
+For agents to do Generative UI, <abbr title="Large Language Models">LLMs</abbr> need to output UI operations — not just text.
+
+This abstraction between LLMs & UI is why we built [openui.com](https://openui.com), so that we can fall in love with software once again. Try it out, fork it, make it your own.
