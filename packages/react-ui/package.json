@@ -77,7 +77,7 @@
     "format:fix": "prettier --write ./src",
     "format:check": "prettier --check ./src",
     "check:publint": "publint",
-    "check:attw": "attw --pack . --ignore-rules NoResolution",
+    "check:attw": "attw --pack . --ignore-rules no-resolution",
     "prepare": "pnpm run build",
     "prepublishOnly": "pnpm run check:publint && pnpm run check:attw",
     "ci": "pnpm run lint:check && pnpm run format:check"
