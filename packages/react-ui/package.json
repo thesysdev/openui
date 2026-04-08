@@ -14,7 +14,7 @@
         "default": "./dist/index.js"
       },
       "require": {
-        "types": "./dist/index.d.ts",
+        "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
     },
@@ -33,13 +33,9 @@
         "default": "./dist/genui-lib/index.js"
       },
       "require": {
-        "types": "./dist/genui-lib/index.d.ts",
+        "types": "./dist/genui-lib/index.d.cts",
         "default": "./dist/genui-lib/index.cjs"
       }
-    },
-    "./tailwind": {
-      "types": "./dist/lib/tailwind/tailwind.d.ts",
-      "default": "./dist/lib/tailwind/tailwind.js"
     },
     "./scssUtils": {
       "default": "./dist/styles/cssUtils.scss"
@@ -65,17 +61,15 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-tailwind-plugin": "npx tsx src/lib/tailwind/generateTailwindPlugin.ts && pnpm build:plugin",
-    "cleanup": "rm -rf src/lib/tailwind/tailwind.ts",
     "copy-css": "node cp-css.js",
     "generate-scss-index": "node src/scripts/scss-import.js",
     "generate:css-utils": "tsx src/scripts/generate-css-utils.ts",
-    "build": "rm -rf dist && pnpm generate:css-utils && pnpm build:scss && pnpm build:tsc && pnpm build:cjs && pnpm cleanup && pnpm run copy-css",
+    "build": "rm -rf dist && pnpm generate:css-utils && pnpm build:scss && pnpm build:tsc && pnpm build:cjs && pnpm build:dcts && pnpm run copy-css",
     "typecheck": "tsc --noEmit",
     "build:tsc": "tsc -p . || true",
     "build:cjs": "tsdown",
+    "build:dcts": "cp dist/index.d.ts dist/index.d.cts && cp dist/genui-lib/index.d.ts dist/genui-lib/index.d.cts",
     "build:scss": "sass src:dist --style compressed --no-source-map",
-    "build:plugin": "tsc src/lib/tailwind/tailwind --outDir dist/lib/tailwind --module esnext --allowSyntheticDefaultImports --moduleResolution bundler --declaration",
     "storybook": "storybook dev -p 6006",
     "build:storybook": "storybook build -o ../../../docs/static/ui",
     "watch": "concurrently \"pnpm run build --watch\" \"pnpm run build:tsc --watch\" \"pnpm run build:scss --watch\"",
