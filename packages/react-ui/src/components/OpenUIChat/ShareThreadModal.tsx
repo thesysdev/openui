@@ -7,7 +7,6 @@ import { Button } from "../Button";
 import { IconButton } from "../IconButton";
 import { Input } from "../Input";
 import { useTheme } from "../ThemeProvider/ThemeProvider";
-import "./shareThread.scss";
 
 /**
  * Props for {@link ShareThreadModal}.
