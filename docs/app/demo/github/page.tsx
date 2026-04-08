@@ -465,26 +465,6 @@ export default function GitHubDemoPage() {
           <div className="artifact-layout">
             {/* Left: Dashboard */}
             <div className="dashboard-area">
-              {/* Connected user bar */}
-              {isGitHub && (hasDashboard || conversation.length > 0) && (
-                <div className="gh-connected-bar">
-                  <img
-                    src={`https://github.com/${githubUsername}.png?size=32`}
-                    alt=""
-                    className="gh-connected-avatar"
-                  />
-                  <span>@{githubUsername}</span>
-                  <Button
-                    className="gh-connected-change"
-                    variant="tertiary"
-                    size="extra-small"
-                    onClick={handleDisconnect}
-                  >
-                    Change
-                  </Button>
-                </div>
-              )}
-
               {/* GitHub starters (before first generation) */}
               {isGitHub && !hasDashboard && conversation.length === 0 && (
                 <div className="gh-starters-welcome">
@@ -627,6 +607,26 @@ export default function GitHubDemoPage() {
                     </div>
                   );
                 })()}
+
+              {/* Connected user bar */}
+              {isGitHub && (hasDashboard || conversation.length > 0) && (
+                <div className="gh-connected-bar">
+                  <img
+                    src={`https://github.com/${githubUsername}.png?size=32`}
+                    alt=""
+                    className="gh-connected-avatar"
+                  />
+                  <span>@{githubUsername}</span>
+                  <Button
+                    className="gh-connected-change"
+                    variant="tertiary"
+                    size="extra-small"
+                    onClick={handleDisconnect}
+                  >
+                    Change
+                  </Button>
+                </div>
+              )}
 
               {/* Live data indicator */}
               {hasDashboard && toolCalls.length > 0 && (
