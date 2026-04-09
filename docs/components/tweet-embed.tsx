@@ -1,7 +1,7 @@
 "use client";
 
-import Script from "next/script";
 import { useTheme } from "next-themes";
+import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 
 const EMBED_MAX_WIDTH = 550;

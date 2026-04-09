@@ -125,6 +125,29 @@
   font-family: var(--openui-font-body);
 }
 
+.conv-assistant-bubble .openui-markdown-renderer {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.conv-assistant-bubble .openui-markdown-renderer p {
+  margin: 0 0 var(--openui-space-xs) 0;
+}
+
+.conv-assistant-bubble .openui-markdown-renderer p:last-child {
+  margin-bottom: 0;
+}
+
+.conv-assistant-bubble .openui-markdown-renderer ul,
+.conv-assistant-bubble .openui-markdown-renderer ol {
+  margin: 0 0 var(--openui-space-xs) 0;
+  padding-left: var(--openui-space-m-l);
+}
+
+.conv-assistant-bubble .openui-markdown-renderer li {
+  margin-bottom: var(--openui-space-3xs);
+}
+
 /* Code badge */
 .conv-code-badge {
   display: inline-flex;

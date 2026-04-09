@@ -668,6 +668,9 @@ export default function GitHubDemoPage() {
                           event.humanFriendlyMessage ||
                           "";
                         if (text) send(text);
+                      } else if (event.type === "open_url") {
+                        const url = event.params?.["url"] as string | undefined;
+                        if (url) window.open(url, "_blank");
                       }
                     }}
                   />

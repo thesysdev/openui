@@ -1,6 +1,7 @@
 "use client";
 
 import { IconButton } from "@openuidev/react-ui";
+import { MarkDownRenderer } from "@openuidev/react-ui/MarkDownRenderer";
 import { ChevronRight, MessageSquare, Send, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { ChatMessage } from "../../constants";
@@ -80,7 +81,11 @@ export function ConversationPanel({
             ) : (
               <div className="conv-assistant">
                 {/* Text response */}
-                {msg.text && <div className="conv-assistant-bubble">{msg.text}</div>}
+                {msg.text && (
+                  <div className="conv-assistant-bubble">
+                    <MarkDownRenderer textMarkdown={msg.text} />
+                  </div>
+                )}
 
                 {/* Dashboard updated badge */}
                 {msg.hasCode && <span className="conv-code-badge">✓ dashboard updated</span>}
@@ -98,7 +103,9 @@ export function ConversationPanel({
             <div className="conv-assistant">
               {/* Streaming text or thinking indicator */}
               {streamingText ? (
-                <div className="conv-assistant-bubble">{streamingText}</div>
+                <div className="conv-assistant-bubble">
+                  <MarkDownRenderer textMarkdown={streamingText} />
+                </div>
               ) : (
                 <div className="conv-thinking">
                   {elapsed

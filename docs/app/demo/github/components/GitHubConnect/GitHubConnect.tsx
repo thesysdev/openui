@@ -25,7 +25,7 @@ type GitHubConnectProps = {
   onConnectAndPrompt: (username: string, prompt: string) => void;
 };
 
-type DeveloperTone = "peach" | "mint" | "violet" | "rose";
+type DeveloperTone = "peach" | "mint" | "violet" | "rose" | "pink" | "red";
 
 type PickerOption = {
   value: string;
@@ -46,11 +46,11 @@ const STARTER_ICON_MAP: Record<GitHubStarterIconKey, LucideIcon> = {
 };
 
 const DEMO_USERS = [
-  { username: "torvalds", tone: "peach" },
-  { username: "yyx990803", tone: "mint" },
-  { username: "rauchg", tone: "violet" },
-  { username: "gaearon", tone: "rose" },
-  { username: "ctate", tone: "mint" },
+  { username: "garrytan", tone: "peach" },
+  { username: "bradfitz", tone: "mint" },
+  { username: "yyx990803", tone: "violet" },
+  { username: "ctate", tone: "red" },
+  { username: "torvalds", tone: "pink" },
 ] as const satisfies ReadonlyArray<{ username: string; tone: DeveloperTone }>;
 
 const DEVELOPER_OPTIONS: PickerOption[] = DEMO_USERS.map((user) => ({

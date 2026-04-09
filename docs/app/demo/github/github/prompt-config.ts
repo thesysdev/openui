@@ -16,7 +16,7 @@ After the openui-lang code block, write a brief friendly message describing what
 
 export const GITHUB_TOOL_EXAMPLES: string[] = [
   `Example — GitHub Profile Dashboard (PREFERRED pattern):
-root = Stack([header, kpiRow, chartsRow, repoSection])
+root = Stack([header, globalControls, kpiRow, chartsRow, repoSection])
 header = CardHeader("GitHub Dashboard", "Your developer profile at a glance")
 $sortBy = "stars"
 $language = "all"
@@ -24,6 +24,9 @@ profile = Query("get_profile", {}, {login: "", name: "", bio: "", avatar_url: ""
 repos = Query("get_repos", {sort: $sortBy, language: $language}, {rows: []})
 languages = Query("get_languages", {}, {rows: []})
 events = Query("get_events", {}, {rows: [], summary: {total: 0, push: 0, pr: 0, issues: 0, reviews: 0}})
+globalControls = Stack([langFilter, refreshBtn], "row", "m", "end")
+langFilter = FormControl("Language", Select("language", [SelectItem("all", "All"), SelectItem("TypeScript", "TypeScript"), SelectItem("Python", "Python"), SelectItem("JavaScript", "JavaScript"), SelectItem("C", "C"), SelectItem("Go", "Go"), SelectItem("Rust", "Rust")], null, null, $language))
+refreshBtn = Button("Refresh", Action([@Run(repos), @Run(languages), @Run(events)]), "secondary")
 kpiRow = Stack([reposKpi, starsKpi, followersKpi, activityKpi], "row", "m", "stretch", "start", true)
 reposKpi = Card([TextContent("Repositories", "small"), TextContent("" + profile.public_repos, "large-heavy")])
 starsKpi = Card([TextContent("Total Stars", "small"), TextContent("" + @Sum(repos.rows.stars), "large-heavy")])
@@ -32,11 +35,9 @@ activityKpi = Card([TextContent("Recent Events", "small"), TextContent("" + even
 chartsRow = Stack([langCard, activityCard], "row", "m")
 langCard = Card([CardHeader("Languages", "By bytes of code"), PieChart(languages.rows.language, languages.rows.bytes, "donut")])
 activityCard = Card([CardHeader("Activity Mix"), BarChart(["Push", "PR", "Issues", "Reviews"], [Series("Events", [events.summary.push, events.summary.pr, events.summary.issues, events.summary.reviews])])])
-repoSection = Card([CardHeader("Repositories"), controls, repoTable])
-controls = Stack([langFilter, sortFilter, refreshBtn], "row", "m", "end")
-langFilter = FormControl("Language", Select("language", [SelectItem("all", "All"), SelectItem("TypeScript", "TypeScript"), SelectItem("Python", "Python"), SelectItem("JavaScript", "JavaScript"), SelectItem("C", "C"), SelectItem("Go", "Go"), SelectItem("Rust", "Rust")], null, null, $language))
+repoSection = Card([CardHeader("Repositories"), sortControl, repoTable])
+sortControl = Stack([sortFilter], "row", "m", "end")
 sortFilter = FormControl("Sort", Select("sortBy", [SelectItem("stars", "Stars"), SelectItem("forks", "Forks"), SelectItem("updated", "Recent")], null, null, $sortBy))
-refreshBtn = Button("Refresh", Action([@Run(repos), @Run(languages), @Run(events)]), "secondary")
 sorted = @Sort(repos.rows, $sortBy, "desc")
 repoTable = Table([Col("Name", sorted.name), Col("Language", @Each(sorted, "r", Tag(r.language, null, "sm", r.language == "TypeScript" ? "info" : r.language == "Python" ? "success" : "neutral"))), Col("Stars", sorted.stars, "number"), Col("Forks", sorted.forks, "number")])`,
 
@@ -78,6 +79,7 @@ export const GITHUB_ADDITIONAL_RULES: string[] = [
   "get_contributors({repo}) returns: rows[].{login, avatar_url, total_commits}. Needs repo name.",
   "Bookmark tools: save_bookmark({repo, note?, tag?}), get_bookmarks({}), delete_bookmark({repo}). Use Mutation + @Run pattern.",
   "For dashboards, ALWAYS include: 3+ KPI cards with @Sum/@Count, 2+ chart types, 1 data table, 1+ interactive filter ($variable + Select)",
+  "Place GLOBAL filters (language, date range, refresh) at the dashboard level — between header and KPI cards — so they visibly affect all widgets below. Place LOCAL filters (sort, search) inside their specific widget Card, directly above the component they control.",
   "Use @Sum(repos.rows.stars), @Count(repos.rows), @Avg, @Round on Query results for KPIs — NEVER hardcode numbers",
   "Use PieChart for language breakdowns (donut variant), BarChart for comparisons, LineChart for trends over time",
   "Rate limit: 60 req/hr per visitor. Prefer get_repos (1 API call) over per-repo endpoints (get_commit_activity, get_star_history, get_contributors)",
