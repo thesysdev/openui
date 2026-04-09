@@ -32,7 +32,7 @@ ArtifactCodeBlock(language: string, title: string, codeString: string) — Code 
 
 ### Tables
 Table(columns: Col[]) — Data table — column-oriented. Each Col holds its own data array.
-Col(label: string, data, type?: "string" | "number" | "action") — Column definition — holds label + data array
+Col(label: string, data: any, type?: "string" | "number" | "action") — Column definition — holds label + data array
 
 ### Charts (2D)
 BarChart(labels: string[], series: Series[], variant?: "grouped" | "stacked", xLabel?: string, yLabel?: string) — Vertical bars; use for comparing values across categories with one or more series
@@ -54,20 +54,20 @@ ScatterSeries(name: string, points: Point[]) — Named dataset
 Point(x: number, y: number, z?: number) — Data point with numeric coordinates
 
 ### Forms
-Form(name: string, buttons: Buttons, fields) — Form container with fields and explicit action buttons
+Form(name: string, buttons: Buttons, fields?: FormControl[]) — Form container with fields and explicit action buttons
 FormControl(label: string, input: Input | TextArea | Select | DatePicker | Slider | CheckBoxGroup | RadioGroup, hint?: string) — Field with label, input component, and optional hint text
 Label(text: string) — Text label
 Input(name: string, placeholder?: string, type?: "text" | "email" | "password" | "number" | "url", rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?: $binding<string>)
 TextArea(name: string, placeholder?: string, rows?: number, rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?: $binding<string>)
 Select(name: string, items: SelectItem[], placeholder?: string, rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?: $binding<string>)
 SelectItem(value: string, label: string) — Option for Select
-DatePicker(name: string, mode?: "single" | "range", rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?)
+DatePicker(name: string, mode?: "single" | "range", rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?: $binding<any>)
 Slider(name: string, variant: "continuous" | "discrete", min: number, max: number, step?: number, defaultValue?: number[], label?: string, rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?: $binding<number[]>) — Numeric slider input; supports continuous and discrete (stepped) variants
-CheckBoxGroup(name: string, items: CheckBoxItem[], rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?)
+CheckBoxGroup(name: string, items: CheckBoxItem[], rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?: $binding<Record<string, boolean>>)
 CheckBoxItem(label: string, description: string, name: string, defaultChecked?: boolean)
 RadioGroup(name: string, items: RadioItem[], defaultValue?: string, rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?: $binding<string>)
 RadioItem(label: string, description: string, value: string)
-SwitchGroup(name: string, items: SwitchItem[], variant?: "clear" | "card" | "sunk", value?) — Group of switch toggles
+SwitchGroup(name: string, items: SwitchItem[], variant?: "clear" | "card" | "sunk", value?: $binding<Record<string, boolean>>) — Group of switch toggles
 SwitchItem(label?: string, description?: string, name: string, defaultChecked?: boolean) — Individual switch toggle
 - Define EACH FormControl as its own reference — do NOT inline all controls in one array.
 - NEVER nest Form inside Form.

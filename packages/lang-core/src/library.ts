@@ -108,17 +108,18 @@ function getZodType(schema: unknown): string | undefined {
 }
 
 function isOptionalType(schema: unknown): boolean {
-  return getZodType(schema) === "optional";
-}
-
-function unwrapOptional(schema: unknown): unknown {
-  const def = getZodDef(schema);
-  if (def?.type === "optional") return def.innerType;
-  return schema;
+  const type = getZodType(schema);
+  return type === "optional" || type === "default" || type === "nullable";
 }
 
 function unwrap(schema: unknown): unknown {
-  return unwrapOptional(schema);
+  let s = schema;
+  let def = getZodDef(s);
+  while (def?.type === "optional" || def?.type === "default" || def?.type === "nullable") {
+    s = def.innerType;
+    def = getZodDef(s);
+  }
+  return s;
 }
 
 function isArrayType(schema: unknown): boolean {
@@ -204,6 +205,14 @@ function resolveBaseType(inner: unknown): string | undefined {
   if (zodType === "string") return "string";
   if (zodType === "number") return "number";
   if (zodType === "boolean") return "boolean";
+  if (zodType === "any") return "any";
+
+  if (zodType === "record") {
+    const def = getZodDef(inner);
+    const keyType = resolveTypeAnnotation(def?.keyType) ?? "string";
+    const valueType = resolveTypeAnnotation(def?.valueType) ?? "any";
+    return `Record<${keyType}, ${valueType}>`;
+  }
 
   const enumVals = getEnumValues(inner);
   if (enumVals) return enumVals.map((v) => `"${v}"`).join(" | ");
@@ -226,7 +235,9 @@ function resolveBaseType(inner: unknown): string | undefined {
     return `{${fields.join(", ")}}`;
   }
 
-  return undefined;
+  // Fallback for unrecognized Zod types (z.tuple, z.date, etc.)
+  // "any" is safer than undefined — the LLM sees `param: any` instead of bare `param`
+  return "any";
 }
 
 // ─── Field analysis & signature generation ──────────────────────────────────
