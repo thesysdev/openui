@@ -1,22 +1,18 @@
 "use client";
 
-import type { Starter } from "@/starters";
 import type { Library } from "@openuidev/react-lang";
 import "@openuidev/react-ui/components.css";
-import { useRef, useState } from "react";
 import { DashboardProvider, useDashboard } from "./context";
 import { ConversationPanel } from "./ConversationPanel";
 import { DashboardCanvas } from "./DashboardCanvas";
-import { StarterGrid } from "./StarterGrid";
 
 export { useDashboard } from "./context";
 
 // ── Internal layout ───────────────────────────────────────────────────────────
 
-function DashboardLayout({ library, starters }: { library: Library; starters: Starter[] }) {
+function DashboardLayout({ library }: { library: Library }) {
   const { conversation, dashboardCode, isStreaming, clear } = useDashboard();
   const hasDashboard = dashboardCode !== null;
-  const isEmpty = conversation.length === 0 && !hasDashboard;
 
   return (
     <div
@@ -74,85 +70,18 @@ function DashboardLayout({ library, starters }: { library: Library; starters: St
         )}
       </div>
 
-      {/* Main layout */}
+      {/* Main layout: dashboard + always-visible chat sidebar */}
       <div style={{ display: "flex", height: "calc(100vh - 49px)" }}>
         <div
           style={{
-            flex: hasDashboard ? "1 1 60%" : "1 1 100%",
+            flex: "1 1 0%",
             overflow: "auto",
             padding: "20px",
-            transition: "flex 0.3s",
           }}
         >
-          {isEmpty && <StarterGrid starters={starters} />}
           <DashboardCanvas library={library} />
         </div>
-        {(conversation.length > 0 || isStreaming) && <ConversationPanel />}
-      </div>
-
-      {isEmpty && !isStreaming && <CenteredInput />}
-    </div>
-  );
-}
-
-function CenteredInput() {
-  const { send, isStreaming } = useDashboard();
-  const [input, setInput] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const canSend = input.trim().length > 0 && !isStreaming;
-
-  const handleSend = () => {
-    if (!canSend) return;
-    send(input);
-    setInput("");
-  };
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: "24px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: "min(600px, calc(100% - 48px))",
-      }}
-    >
-      <div style={{ display: "flex", gap: "8px" }}>
-        <input
-          ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSend();
-          }}
-          placeholder="Describe a dashboard..."
-          style={{
-            flex: 1,
-            padding: "14px 18px",
-            border: "1px solid #d1d5db",
-            borderRadius: "12px",
-            fontSize: "14px",
-            outline: "none",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-          }}
-        />
-        <button
-          onClick={handleSend}
-          disabled={!canSend}
-          style={{
-            padding: "14px 24px",
-            border: "none",
-            borderRadius: "12px",
-            background: canSend ? "#111" : "#d1d5db",
-            color: "white",
-            cursor: canSend ? "pointer" : "not-allowed",
-            fontSize: "14px",
-            fontWeight: 600,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-          }}
-        >
-          Send
-        </button>
+        <ConversationPanel />
       </div>
     </div>
   );
@@ -162,20 +91,20 @@ function CenteredInput() {
 
 export interface OpenUIDashboardProps {
   library: Library;
-  starters?: Starter[];
+  initialDashboardCode?: string;
   chatEndpoint?: string;
   mcpEndpoint?: string;
 }
 
 export function OpenUIDashboard({
   library,
-  starters = [],
+  initialDashboardCode,
   chatEndpoint = "/api/chat",
   mcpEndpoint = "/api/mcp",
 }: OpenUIDashboardProps) {
   return (
-    <DashboardProvider chatEndpoint={chatEndpoint} mcpEndpoint={mcpEndpoint}>
-      <DashboardLayout library={library} starters={starters} />
+    <DashboardProvider chatEndpoint={chatEndpoint} mcpEndpoint={mcpEndpoint} initialDashboardCode={initialDashboardCode}>
+      <DashboardLayout library={library} />
     </DashboardProvider>
   );
 }

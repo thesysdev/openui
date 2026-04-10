@@ -46,7 +46,7 @@
       "description": "Data table — column-oriented. Each Col holds its own data array."
     },
     "Col": {
-      "signature": "Col(label: string, data, type?: \"string\" | \"number\" | \"action\")",
+      "signature": "Col(label: string, data: any, type?: \"string\" | \"number\" | \"action\")",
       "description": "Column definition — holds label + data array"
     },
     "BarChart": {
@@ -102,7 +102,7 @@
       "description": "Data point with numeric coordinates"
     },
     "Form": {
-      "signature": "Form(name: string, buttons: Buttons, fields)",
+      "signature": "Form(name: string, buttons: Buttons, fields?: FormControl[])",
       "description": "Form container with fields and explicit action buttons"
     },
     "FormControl": {
@@ -130,7 +130,7 @@
       "description": "Option for Select"
     },
     "DatePicker": {
-      "signature": "DatePicker(name: string, mode?: \"single\" | \"range\", rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?)",
+      "signature": "DatePicker(name: string, mode?: \"single\" | \"range\", rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?: $binding<any>)",
       "description": ""
     },
     "Slider": {
@@ -138,7 +138,7 @@
       "description": "Numeric slider input; supports continuous and discrete (stepped) variants"
     },
     "CheckBoxGroup": {
-      "signature": "CheckBoxGroup(name: string, items: CheckBoxItem[], rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?)",
+      "signature": "CheckBoxGroup(name: string, items: CheckBoxItem[], rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?: $binding<Record<string, boolean>>)",
       "description": ""
     },
     "CheckBoxItem": {
@@ -154,7 +154,7 @@
       "description": ""
     },
     "SwitchGroup": {
-      "signature": "SwitchGroup(name: string, items: SwitchItem[], variant?: \"clear\" | \"card\" | \"sunk\", value?)",
+      "signature": "SwitchGroup(name: string, items: SwitchItem[], variant?: \"clear\" | \"card\" | \"sunk\", value?: $binding<Record<string, boolean>>)",
       "description": "Group of switch toggles"
     },
     "SwitchItem": {
@@ -170,7 +170,7 @@
       "description": "Group of Button components. direction: \"row\" (default) | \"column\"."
     },
     "Stack": {
-      "signature": "Stack([children], direction?: \"row\" | \"column\", gap?: \"none\" | \"xs\" | \"s\" | \"m\" | \"l\" | \"xl\" | \"2xl\", align?: \"start\" | \"center\" | \"end\" | \"stretch\" | \"baseline\", justify?: \"start\" | \"center\" | \"end\" | \"between\" | \"around\" | \"evenly\", wrap?: boolean)",
+      "signature": "Stack(children: any[], direction?: \"row\" | \"column\", gap?: \"none\" | \"xs\" | \"s\" | \"m\" | \"l\" | \"xl\" | \"2xl\", align?: \"start\" | \"center\" | \"end\" | \"stretch\" | \"baseline\", justify?: \"start\" | \"center\" | \"end\" | \"between\" | \"around\" | \"evenly\", wrap?: boolean)",
       "description": "Flex container. direction: \"row\"|\"column\" (default \"column\"). gap: \"none\"|\"xs\"|\"s\"|\"m\"|\"l\"|\"xl\"|\"2xl\" (default \"m\"). align: \"start\"|\"center\"|\"end\"|\"stretch\"|\"baseline\". justify: \"start\"|\"center\"|\"end\"|\"between\"|\"around\"|\"evenly\"."
     },
     "Tabs": {
@@ -216,6 +216,10 @@
     "Modal": {
       "signature": "Modal(title: string, open?: $binding<boolean>, children: (TextContent | MarkDownRenderer | CardHeader | Callout | TextCallout | CodeBlock | Image | ImageBlock | ImageGallery | Separator | HorizontalBarChart | RadarChart | PieChart | RadialChart | SingleStackedBarChart | ScatterChart | AreaChart | BarChart | LineChart | Table | TagBlock | Form | Buttons | Steps)[], size?: \"sm\" | \"md\" | \"lg\")",
       "description": "Modal dialog. open is a reactive $boolean binding — set to true to open, X/Escape/backdrop auto-closes. Put Form with buttons inside children."
+    },
+    "CalendarView": {
+      "signature": "CalendarView(events: {summary?: string, start?: any, status?: string}[], title?: string)",
+      "description": "Month-grid calendar view that displays events as dots on day cells. Click a day to see event details. Pass an array of event objects with summary and start (dateTime or date string)."
     }
   },
   "componentGroups": [
@@ -366,6 +370,17 @@
       ],
       "notes": [
         "- Color-mapped Tag: Tag(value, null, \"sm\", value == \"high\" ? \"danger\" : value == \"medium\" ? \"warning\" : \"neutral\")"
+      ]
+    },
+    {
+      "name": "Calendar",
+      "components": [
+        "CalendarView"
+      ],
+      "notes": [
+        "- CalendarView renders a month-grid calendar with event dots. Pass an array of event objects: CalendarView(events)",
+        "- Each event needs summary (string) and start (object with dateTime or date string)",
+        "- Click a day cell to see event details below the calendar"
       ]
     }
   ]

@@ -40,11 +40,12 @@ export function useDashboard(): DashboardContextValue {
 interface DashboardProviderProps {
   chatEndpoint: string;
   mcpEndpoint: string;
+  initialDashboardCode?: string;
   children: ReactNode;
 }
 
-export function DashboardProvider({ chatEndpoint, mcpEndpoint, children }: DashboardProviderProps) {
-  const [dashboardCode, setDashboardCode] = useState<string | null>(null);
+export function DashboardProvider({ chatEndpoint, mcpEndpoint, initialDashboardCode, children }: DashboardProviderProps) {
+  const [dashboardCode, setDashboardCode] = useState<string | null>(initialDashboardCode ?? null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingHasCode, setStreamingHasCode] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -195,7 +196,7 @@ export function DashboardProvider({ chatEndpoint, mcpEndpoint, children }: Dashb
 
   const clear = () => {
     abortRef.current?.abort();
-    setDashboardCode(null);
+    setDashboardCode(initialDashboardCode ?? null);
     setConversation([]);
     setIsStreaming(false);
     setStreamingHasCode(false);

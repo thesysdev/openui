@@ -4,6 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { MarkDownRenderer } from "@openuidev/react-ui";
 import { useDashboard } from "./context";
 
+const SUGGESTIONS = [
+  { label: "Revenue trend", prompt: "Add a revenue trend chart showing Stripe balance transactions over the last 30 days" },
+  { label: "Conversion funnel", prompt: "Add a conversion funnel widget using PostHog with pageview, sign_up, and purchase steps" },
+  { label: "Commit velocity", prompt: "Add a commit activity chart for my most active GitHub repo over the past year" },
+  { label: "Weekly calendar", prompt: "Add a calendar widget showing my events for the next 7 days" },
+  { label: "Recent charges", prompt: "Add a table of the 10 most recent Stripe charges with amount, status, and description" },
+  { label: "Team contributors", prompt: "Add a contributor breakdown chart for my most active GitHub repo" },
+];
+
 export function ConversationPanel() {
   const {
     conversation, isStreaming, streamingText, streamingHasCode,
@@ -16,6 +25,7 @@ export function ConversationPanel() {
   const hasDashboard = dashboardCode !== null;
   const canSend = input.trim().length > 0 && !isStreaming;
   const pendingTools = toolCalls.filter((t) => t.status === "pending");
+  const isEmpty = conversation.length === 0 && !isStreaming;
 
   useEffect(() => { inputRef.current?.focus(); }, [isStreaming]);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [conversation]);
@@ -36,6 +46,43 @@ export function ConversationPanel() {
       </div>
 
       <div style={{ flex: 1, overflow: "auto", padding: "12px 16px" }}>
+        {isEmpty && (
+          <div style={{ marginBottom: "16px" }}>
+            <div style={{ fontSize: "12px", color: "#9ca3af", marginBottom: "10px" }}>
+              Add a widget to your dashboard
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s.label}
+                  onClick={() => send(s.prompt)}
+                  style={{
+                    padding: "5px 10px",
+                    border: "1px solid #e2e5e9",
+                    borderRadius: "16px",
+                    background: "#f9fafb",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    color: "#374151",
+                    transition: "all 0.15s",
+                    lineHeight: "1.3",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#111";
+                    e.currentTarget.style.background = "#f0f4ff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "#e2e5e9";
+                    e.currentTarget.style.background = "#f9fafb";
+                  }}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {conversation.map((msg, i) => (
           <div key={i} style={{ marginBottom: "12px" }}>
             {msg.role === "user" ? (
@@ -177,7 +224,7 @@ export function ConversationPanel() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
-            placeholder={hasDashboard ? "Ask or edit..." : "Describe a dashboard..."}
+            placeholder={hasDashboard ? "Add a widget or ask a question..." : "Describe a dashboard..."}
             disabled={isStreaming}
             style={{
               flex: 1, padding: "8px 12px", border: "1px solid #d1d5db",

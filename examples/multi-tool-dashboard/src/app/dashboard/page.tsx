@@ -1,9 +1,9 @@
 "use client";
 
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { library } from "@/library";
 import { OpenUIDashboard } from "@/components/OpenUIDashboard";
-import { STARTERS } from "@/starters";
+import { DEFAULT_DASHBOARD } from "@/default-dashboard";
 
 export default function DashboardPage() {
-  return <OpenUIDashboard library={openuiLibrary} starters={STARTERS} />;
+  return <OpenUIDashboard library={library} initialDashboardCode={DEFAULT_DASHBOARD} />;
 }
