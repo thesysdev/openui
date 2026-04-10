@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { MarkDownRenderer } from "../../components/MarkDownRenderer";
 import { Steps as OpenUISteps, StepsItem as OpenUIStepsItem } from "../../components/Steps";
 import { StepsItemSchema } from "./schema";

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailArticle } from "./components/Article";
 import { EmailAvatarGroup } from "./components/AvatarGroup";
 import { EmailAvatarWithText } from "./components/AvatarWithText";

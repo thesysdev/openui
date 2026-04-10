@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Column, Heading, Img, Link, Row, Section, Text } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailBentoItem } from "./BentoItem";
 
 export const EmailBentoGrid = defineComponent({

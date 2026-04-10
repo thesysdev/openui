@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { SingleStackedBar as SingleStackedBarChartComponent } from "../../components/Charts";
 import { asArray, buildSliceData } from "../helpers";
 

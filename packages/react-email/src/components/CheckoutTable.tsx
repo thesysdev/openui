@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Button, Column, Heading, Img, Row, Section, Text } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailCheckoutItem } from "./CheckoutItem";
 
 export const EmailCheckoutTable = defineComponent({

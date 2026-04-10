@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { createLibrary, defineComponent } from "../lib/library.js";
 
 // Dummy renderer — never actually called in these tests
 const DummyComponent = (() => null) as any;
 
-function makeComponent(name: string, schema: z.ZodObject<any>, description: string) {
+function makeComponent(name: string, schema: z.ZodObject, description: string) {
   return defineComponent({
     name,
     props: schema,
@@ -33,7 +33,7 @@ describe("defineComponent", () => {
     expect(result.ref).toBeDefined();
   });
 
-  it("registers the Zod schema in the global registry", () => {
+  it("stores the component name for later registration by createLibrary", () => {
     const schema = z.object({ title: z.string() });
     const comp = defineComponent({
       name: "Heading",
@@ -42,8 +42,9 @@ describe("defineComponent", () => {
       component: DummyComponent,
     });
 
-    // After defineComponent, the schema should be in the global registry
-    expect(z.globalRegistry.has(comp.props)).toBe(true);
+    // defineComponent defers registration to createLibrary
+    expect(comp.name).toBe("Heading");
+    expect(comp.props).toBe(schema);
   });
 });
 

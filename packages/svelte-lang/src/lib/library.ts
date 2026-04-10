@@ -6,7 +6,8 @@ import {
   type LibraryDefinition as CoreLibraryDefinition,
 } from "@openuidev/lang-core";
 import type { Component, Snippet } from "svelte";
-import { z } from "zod";
+import type { z } from "zod/v4";
+import type { $ZodObject } from "zod/v4/core";
 
 // Re-export framework-agnostic types unchanged
 export type { ComponentGroup, PromptOptions, SubComponentOf } from "@openuidev/lang-core";
@@ -20,7 +21,7 @@ export interface ComponentRenderProps<P = Record<string, unknown>> {
 
 export type ComponentRenderer<P = Record<string, unknown>> = Component<ComponentRenderProps<P>>;
 
-export type DefinedComponent<T extends z.ZodObject<any> = z.ZodObject<any>> = CoreDefinedComponent<
+export type DefinedComponent<T extends $ZodObject = $ZodObject> = CoreDefinedComponent<
   T,
   ComponentRenderer<z.infer<T>>
 >;
@@ -33,7 +34,7 @@ export type LibraryDefinition = CoreLibraryDefinition<ComponentRenderer<any>>;
 
 /**
  * Define a component with name, schema, description, and renderer.
- * Registers the Zod schema globally and returns a `.ref` for parent schemas.
+ * Returns a `.ref` for parent schemas.
  *
  * @example
  * ```ts
@@ -45,7 +46,7 @@ export type LibraryDefinition = CoreLibraryDefinition<ComponentRenderer<any>>;
  * });
  * ```
  */
-export function defineComponent<T extends z.ZodObject<any>>(config: {
+export function defineComponent<T extends $ZodObject>(config: {
   name: string;
   props: T;
   description: string;

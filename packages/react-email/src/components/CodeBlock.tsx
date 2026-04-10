@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { CodeBlock } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 type PrismLanguage = Parameters<typeof CodeBlock>[0]["language"];
 

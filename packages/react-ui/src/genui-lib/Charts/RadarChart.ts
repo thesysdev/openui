@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { RadarChart as RadarChartComponent } from "../../components/Charts";
 import { buildChartData, hasAllProps } from "../helpers";
 import { SeriesSchema } from "./Series";

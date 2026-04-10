@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { actionPropSchema } from "../Action/schema";
 
 export const ButtonSchema = z.object({

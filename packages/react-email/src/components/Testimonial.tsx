@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Column, Img, Row, Section } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const EmailTestimonial = defineComponent({
   name: "EmailTestimonial",

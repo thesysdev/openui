@@ -9,7 +9,7 @@ import {
   useStateField,
 } from "@openuidev/react-lang";
 import React from "react";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { RadioGroup as OpenUIRadioGroup } from "../../components/RadioGroup";
 import { RadioItem as OpenUIRadioItem } from "../../components/RadioItem";
 import { rulesSchema } from "../rules";

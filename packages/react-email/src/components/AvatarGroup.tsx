@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Column, Img, Row } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailAvatar } from "./Avatar";
 
 export const EmailAvatarGroup = defineComponent({

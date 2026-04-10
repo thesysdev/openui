@@ -1,5 +1,5 @@
 import { reactive } from "@openuidev/react-lang";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { ContentChildUnion } from "../unions";
 
 export const ModalSchema = z.object({

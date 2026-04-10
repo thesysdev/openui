@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Column, Img, Link, Row, Section } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailNavLink } from "./NavLink";
 
 export const EmailHeaderCenteredNav = defineComponent({

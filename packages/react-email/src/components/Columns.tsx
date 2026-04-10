@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Row } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailColumn } from "./Column";
 
 export const EmailColumns = defineComponent({

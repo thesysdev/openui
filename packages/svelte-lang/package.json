@@ -1,6 +1,6 @@
 {
 	"name": "@openuidev/svelte-lang",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Define component libraries, generate LLM system prompts, and render streaming OpenUI Lang output in Svelte 5 — the Svelte runtime for OpenUI generative UI",
 	"license": "MIT",
 	"type": "module",
@@ -58,11 +58,11 @@
 	},
 	"author": "engineering@thesys.dev",
 	"dependencies": {
-		"@openuidev/lang-core": "workspace:^",
-		"zod": "^4.0.0"
+		"@openuidev/lang-core": "workspace:^"
 	},
 	"peerDependencies": {
-		"svelte": ">=5.0.0"
+		"svelte": ">=5.0.0",
+		"zod": "^3.25.0 || ^4.0.0"
 	},
 	"devDependencies": {
 		"@sveltejs/package": "^2.3.0",

@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Hr } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const EmailDivider = defineComponent({
   name: "EmailDivider",
