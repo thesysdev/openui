@@ -1,0 +1,441 @@
+---
+title: "Stop Making AI Write JSON (And No, JavaScript Isn't Better)"
+description: "We shipped a JSON-based generative UI SDK. Then we needed interactivity, and JSON fell apart. But a real programming language would have been worse. Here's what we built instead."
+date: "2026-04-10"
+author: "OpenUI Team"
+---
+
+We shipped a JSON-based generative UI SDK. Fifty-plus components, a streaming parser that could render partial responses, real production traffic. It worked.
+
+Then we tried to make the UI interactive (state, live data, conditional rendering, form submissions) and JSON started fighting us at every step.
+
+This is the story of why we abandoned JSON, what we replaced it with, and why the up to 67% token savings everyone keeps asking about was never actually the point.
+
+## We started with JSON because of course we did
+
+Our first product, Thesys V1, used a straightforward approach. The LLM generates a nested JSON tree, each node a component with props and children:
+
+```json
+{
+  "component": "Card",
+  "props": {
+    "children": [
+      {
+        "component": "CardHeader",
+        "props": { "title": "Q4 Revenue" }
+      },
+      {
+        "component": "BarChart",
+        "props": {
+          "data": [120, 150, 180],
+          "labels": ["Oct", "Nov", "Dec"]
+        }
+      }
+    ]
+  }
+}
+```
+
+This is perfectly fine for what it does. LLMs know JSON intimately. It's one of the most represented structured formats in training data, and models like [GPT](https://platform.openai.com/docs/guides/structured-outputs) and [Claude](https://docs.anthropic.com/en/docs/build-with-claude/structured-output) have dedicated structured output modes that guarantee valid JSON. The structure maps directly to a component tree. You parse it, render it, ship it.
+
+But look at that chart. The data is baked into the output. `[120, 150, 180]` is frozen in time the moment the LLM writes it. There's no filter dropdown, no date range picker, no refresh button. Want to change anything? Go back to the LLM. Every. Single. Time.
+
+We needed UIs that could actually *do* things on their own. Fetch data, manage state, respond to user input, call APIs. And we needed the LLM to wire all of that up in a single generation pass, then get out of the way.
+
+## The JSON approach to interactivity (it gets ugly fast)
+
+We weren't the only ones thinking about this. We launched Thesys V1 on JSON in March 2025 and it's been serving production generative UI since. Vercel's json-render project took the same challenge and pushed it even further: schema-driven catalogs, a clean flat element structure, JSONL streaming, a real answer for state management. Both are serious systems built by teams that understood the problem.
+
+Which is exactly what makes the comparison honest. The issue isn't bad engineering. It's the format hitting a ceiling.
+
+Their format uses a flat element map with a state object and special `$`-prefixed expression objects. Let me walk through what real interactivity looks like.
+
+### State binding
+
+To bind the "new todo" input to a state variable:
+
+```json
+{
+  "type": "Input",
+  "props": {
+    "value": { "$bindState": "/newTodo/title" },
+    "placeholder": "What needs to be done?"
+  }
+}
+```
+
+And to read that title somewhere else:
+
+```json
+{
+  "type": "Text",
+  "props": {
+    "content": { "$state": "/newTodo/title" }
+  }
+}
+```
+
+OK, not terrible. A bit noisy with the wrapper objects and JSON pointer paths, but workable.
+
+### Conditional props
+
+Now try the classic TODO pattern: strike through the title when a todo is completed.
+
+```json
+{
+  "type": "Text",
+  "props": {
+    "text": { "$item": "title" },
+    "style": {
+      "textDecoration": {
+        "$cond": { "$item": "completed" },
+        "$then": "line-through",
+        "$else": "none"
+      }
+    }
+  }
+}
+```
+
+What should be `item.completed ? "line-through" : "none"` is a nested JSON object where the LLM needs to correctly generate `$cond`, `$then`, `$else` as sibling keys, nest the item reference inside the condition, and keep all the brackets balanced. For a single CSS property.
+
+### Visibility conditions
+
+It gets worse. Say you want to show a todo item only when the filter matches. "Show if filter is 'all', or if filter is 'active' and the item isn't completed, or if filter is 'completed' and the item is completed":
+
+```json
+"visible": {
+  "$or": [
+    { "$state": "/filter", "eq": "all" },
+    {
+      "$and": [
+        { "$state": "/filter", "eq": "active" },
+        { "$item": "completed", "eq": false }
+      ]
+    },
+    {
+      "$and": [
+        { "$state": "/filter", "eq": "completed" },
+        { "$item": "completed" }
+      ]
+    }
+  ]
+}
+```
+
+That's a boolean expression. Three conditions joined by OR, two of them with nested ANDs. In any programming language this would be a one-liner. In JSON it's a deeply nested tree of operator objects that the LLM has to construct perfectly.
+
+### Action handlers
+
+A button that creates a todo, then clears the form:
+
+```json
+"on": {
+  "press": {
+    "action": "pushState",
+    "params": {
+      "statePath": "/todos",
+      "value": {
+        "id": { "$computed": "generateId" },
+        "title": { "$state": "/form/title" },
+        "completed": false
+      }
+    },
+    "onSuccess": {
+      "set": { "/form/title": "" }
+    }
+  }
+}
+```
+
+For every button that does something, you need this whole ceremony. An event map, an action name, a params object with state references, success/error handlers with their own nested structures.
+
+### Zoom out
+
+A filterable todo app in this format runs over 100 lines of JSON. Every element sits in its own entry in the flat map. Every prop that touches state needs a wrapper object. Every condition is a tree. Every action is a multi-level handler chain. And the LLM has to produce all of it with perfect bracket matching, correct JSON pointer paths, and properly nested operator schemas.
+
+And this isn't just json-render. Google's [A2UI protocol](https://a2ui.org/specification/v0.9-a2ui/) goes down the same road. Same flat component lists, same JSON Pointer bindings, same nested function call objects for conditions. Their button validation example for "accept terms AND provide email or phone" looks like this:
+
+```json
+{
+  "checks": [{
+    "condition": {
+      "call": "and",
+      "args": {
+        "values": [
+          { "call": "required", "args": { "value": { "path": "/formData/terms" } } },
+          { "call": "or", "args": {
+              "values": [
+                { "call": "required", "args": { "value": { "path": "/formData/email" } } },
+                { "call": "required", "args": { "value": { "path": "/formData/phone" } } }
+              ]
+          }}
+        ]
+      }
+    },
+    "message": "You must accept terms AND provide either email or phone"
+  }]
+}
+```
+
+That's `required(terms) && (required(email) || required(phone))`. Eighteen lines of nested JSON for a boolean expression a first-year CS student could write in one.
+
+## What if the LLM just wrote code instead?
+
+That question led us to OpenUI Lang. Not JSON with extra syntax bolted on. An actual language, purpose-built for LLMs to describe interactive UIs.
+
+Here's a TODO app with live data in OpenUI Lang:
+
+```text
+root = Stack([CardHeader("Todos"), Stack([Input("title", $title, "What needs to be done?"), submitBtn], "row"), tbl, footer])
+todos = Query("list_todos", {}, {rows: []})
+createResult = Mutation("create_todo", {title: $title})
+submitBtn = Button("Add", Action([@Run(createResult), @Run(todos), @Reset($title)]))
+openCount = @Count(@Filter(todos.rows, "completed", "==", false))
+tbl = Table([Col("Title", todos.rows.title), Col("Done", todos.rows.completed)])
+footer = TextContent("" + openCount + " items left", "small")
+```
+
+Seven lines. `root` comes first so the UI shell renders immediately during streaming. `submitBtn`, `tbl`, and `footer` are forward references that fill in as subsequent lines arrive. `$title` is used without declaration because undeclared reactive variables are auto-initialized. The query fetches from your tools, the mutation fires on button press, and `@Count(@Filter(...))` computes the remaining count. User types, clicks Add, and everything updates. No LLM roundtrip.
+
+You already saw what state binding and conditionals look like in JSON above. In OpenUI Lang, passing `$title` to a component binds it (undeclared variables are auto-created), and `item.completed ? "line-through" : "none"` is just a ternary. The LLM already knows how all of these work.
+
+The features that *don't* have clean JSON equivalents are more interesting.
+
+### Data transforms and functional composition
+
+Want to count the incomplete todos? In json-render, you'd use a `$computed` call:
+
+```json
+{
+  "text": {
+    "$computed": "countIncomplete",
+    "args": {
+      "items": { "$state": "/todos" }
+    }
+  }
+}
+```
+
+**OpenUI Lang:**
+
+```text
+openCount = @Count(@Filter(todos.rows, "completed", "==", false))
+```
+
+The real difference isn't just syntax. It's functional composition. `@Count` wraps `@Filter`, output of the inner becomes input of the outer. The LLM has seen this pattern millions of times in training data. And it chains just as naturally:
+
+```text
+filtered = @Filter(todos.rows, "title", "contains", $search)
+sorted = @Sort(filtered, $sortBy, "desc")
+emptyState = @Count(filtered) > 0 ? tbl : TextContent("No results.")
+```
+
+Filter, sort, branch. Three lines, each building on the last. `@Sum`, `@Avg`, `@Round`, `@Each` all compose the same way. The LLM doesn't need to learn a new abstraction. It already knows how function calls work.
+
+### Queries and mutations
+
+This is where the gap gets really wide. json-render doesn't have a native concept of "fetch data from a tool." You wire up data loading through external hooks, state management, and action handlers.
+
+**OpenUI Lang:**
+
+```text
+submitBtn = Button("Add", Action([@Run(createResult), @Run(todos), @Reset($title)]))
+todos = Query("list_todos", {}, {rows: []})
+createResult = Mutation("create_todo", {title: $title})
+```
+
+`Query` fetches on load. `Mutation` fires on demand through `@Run`. Actions compose in a list: run the mutation, refresh the query, reset the form. The runtime calls your tools directly, no LLM involved.
+
+In JSON, you'd need event handlers calling state updates calling computed functions calling more state updates. The LLM spends its tokens on plumbing instead of design.
+
+## Incremental editing is just reassignment
+
+A user has a TODO app. They say "add a filter to show only active items." The LLM needs to add a filter dropdown and update the layout. Not regenerate the whole app. Just patch what changed.
+
+In json-render, the LLM picks from multiple edit modes. Here's JSON Patch (RFC 6902):
+
+```json
+{"op":"add","path":"/elements/opt-all","value":{"type":"SelectItem","props":{"value":"all","label":"All"},"children":[]}}
+{"op":"add","path":"/elements/opt-active","value":{"type":"SelectItem","props":{"value":"active","label":"Active"},"children":[]}}
+{"op":"add","path":"/elements/opt-completed","value":{"type":"SelectItem","props":{"value":"completed","label":"Completed"},"children":[]}}
+{"op":"add","path":"/elements/filter-select","value":{"type":"Select","props":{"value":{"$bindState":"/filter"}},"children":["opt-all","opt-active","opt-completed"]}}
+{"op":"replace","path":"/elements/app/children","value":["header","input-row","filter-select","todo-list","footer"]}
+```
+
+Five patch operations just to add a dropdown. Miss a bracket? Malformed. Wrong element ID? Silent breakage.
+
+**In OpenUI Lang, the LLM just writes the lines that changed:**
+
+```text
+$filter = "all"
+filterBar = Select("filter", $filter, [SelectItem("all", "All"), SelectItem("active", "Active"), SelectItem("completed", "Completed")])
+root = Stack([CardHeader("Todos"), Stack([Input("title", $title, "What needs to be done?"), submitBtn], "row"), filterBar, tbl, footer])
+```
+
+Three lines. If you've ever written code, you already understand what happened here. It's just reassignment. `root` existed before without `filterBar`. Now the LLM redeclares it with `filterBar` included. Same name, new value. Last definition wins. `$filter` and `filterBar` are new names, so they get added. Everything else (`tbl`, `footer`, `submitBtn`) isn't mentioned, so it stays untouched.
+
+That's the entire editing model. No RFC numbers. No edit mode selection. No JSON pointer arithmetic. Just redeclare the variables you want to change. The parser does the rest.
+
+Full regeneration: ~400 tokens, ~6.7 seconds at 60 tok/s.
+Incremental patch: 3 statements, ~80 tokens, ~1.3 seconds.
+Same result. Up to 80% fewer tokens, 5x faster edits.
+
+## Errors got useful, not just fewer
+
+After switching from JSON, structural parse errors dropped to zero. Not "got better." Zero. The reason: there's no document-level nesting to get wrong. In JSON, a missing `}` on line 12 corrupts everything after it. In OpenUI Lang, each line is self-contained. Brackets close within the same line they opened on. The LLM can't accidentally leave a `{` unclosed and wreck 50 lines of output, because nothing on line 13 depends on line 12's brackets.
+
+The LLM still makes mistakes, but they're *semantic* instead of *structural*: wrong component name, missing a required prop, referencing a tool that doesn't exist. And because each statement has a name, our renderer returns diagnostics that read like linter output:
+
+```json
+{
+  "code": "unknown-component",
+  "statementId": "chart",
+  "message": "Unknown component \"DataTable\"",
+  "hint": "Available components: Card, Header, Table, Stack, PieChart, BarChart"
+}
+```
+
+A JSON parse error is "unexpected token at position 4,523." Ours is "statement `chart` used unknown component `DataTable`" with a list of what's available. You feed that back as a user message, the LLM redeclares the broken statement through incremental editing, and the parser merges the fix. Generate, render, lint, fix. It's `eslint --fix` for generated UI.
+
+## Token savings were the byproduct, not the goal
+
+Our [benchmarks](/docs/openui-lang/benchmarks) show OpenUI Lang uses up to 67% fewer tokens than JSON formats across seven real-world UI scenarios. Fewer tokens means faster streaming means the user sees their UI sooner. But we didn't design the format to save tokens. We designed it so LLMs could express interactive UIs without drowning in structural noise. The efficiency is what falls out when you stop fighting the format.
+
+## "So just use JavaScript?"
+
+The obvious retort. If JSON is too constrained, skip the middleman. Have the LLM write React components. Or Python. Any real language. LLMs are incredible at code generation, so why invent a new one?
+
+We thought about this seriously. Here's why it doesn't work for this problem.
+
+**A real language gives the LLM too much rope.** JavaScript has multiple ways to declare a variable, three module systems, infinite patterns for state management, and the ability to write `while(true)`. Every generation becomes unpredictable: will the model use callbacks or async/await? Inline styles or CSS modules? Will it import a library you don't have? These choices introduce variability without adding value to the generated UI.
+
+**Streaming is trivially simple.** OpenUI Lang parses line by line. Each statement is independent, so the renderer paints the first component while the LLM is still generating the last one. Streaming parsers exist for full languages too, but they're complex machinery. A line-oriented format gets progressive rendering for free.
+
+**The right analogy is SQL, not Python.** Nobody writes raw Python to query a database. SQL is less expressive, and that's the point. You know what it can do and what it can't. OpenUI Lang makes the same trade: exactly the primitives the LLM needs (components, state, queries, actions, builtins) and nothing it doesn't. The constraints *are* the feature.
+
+## The full picture: one TODO app, two formats
+
+Here's the same TODO app (add items, mark complete, show count) in both formats. This is what the LLM actually has to generate.
+
+**json-render:**
+
+```json
+{
+  "root": "app",
+  "state": {
+    "newTitle": "",
+    "todos": []
+  },
+  "elements": {
+    "app": {
+      "type": "Stack",
+      "props": { "direction": "vertical" },
+      "children": ["header", "input-row", "todo-list", "footer"]
+    },
+    "header": {
+      "type": "CardHeader",
+      "props": { "title": "Todos" },
+      "children": []
+    },
+    "input-row": {
+      "type": "Stack",
+      "props": { "direction": "horizontal" },
+      "children": ["title-input", "add-button"]
+    },
+    "title-input": {
+      "type": "Input",
+      "props": {
+        "value": { "$bindState": "/newTitle" },
+        "placeholder": "What needs to be done?"
+      },
+      "children": []
+    },
+    "add-button": {
+      "type": "Button",
+      "props": { "label": "Add" },
+      "on": {
+        "press": {
+          "action": "pushState",
+          "params": {
+            "statePath": "/todos",
+            "value": {
+              "title": { "$state": "/newTitle" },
+              "completed": false
+            }
+          },
+          "onSuccess": {
+            "set": { "/newTitle": "" }
+          }
+        }
+      },
+      "children": []
+    },
+    "todo-list": {
+      "type": "Stack",
+      "props": { "direction": "vertical" },
+      "repeat": { "statePath": "/todos" },
+      "children": ["todo-item"]
+    },
+    "todo-item": {
+      "type": "Stack",
+      "props": { "direction": "horizontal" },
+      "children": ["todo-checkbox", "todo-text"]
+    },
+    "todo-checkbox": {
+      "type": "Checkbox",
+      "props": {
+        "checked": { "$bindItem": "completed" }
+      },
+      "children": []
+    },
+    "todo-text": {
+      "type": "Text",
+      "props": {
+        "text": { "$item": "title" },
+        "style": {
+          "textDecoration": {
+            "$cond": { "$item": "completed" },
+            "$then": "line-through",
+            "$else": "none"
+          }
+        }
+      },
+      "children": []
+    },
+    "footer": {
+      "type": "Text",
+      "props": {
+        "text": { "$template": "items left" }
+      },
+      "children": []
+    }
+  }
+}
+```
+
+**OpenUI Lang:**
+
+```text
+root = Stack([CardHeader("Todos"), Stack([Input("title", $title, "What needs to be done?"), submitBtn], "row"), tbl, footer])
+todos = Query("list_todos", {}, {rows: []})
+createResult = Mutation("create_todo", {title: $title})
+submitBtn = Button("Add", Action([@Run(createResult), @Run(todos), @Reset($title)]))
+openCount = @Count(@Filter(todos.rows, "completed", "==", false))
+tbl = Table([Col("Title", todos.rows.title), Col("Done", todos.rows.completed)])
+footer = TextContent("" + openCount + " items left", "small")
+```
+
+Same app. One is 75 lines of nested JSON with pointer paths, wrapper objects, repeat scopes, and conditional expression trees. The other is 7 lines. And the OpenUI Lang version has live data fetching that the JSON version doesn't even attempt.
+
+## The space in between
+
+JSON is a data format pretending to be a language. JavaScript is a language with far more power than this problem needs. The interesting space is in between.
+
+When you bolt language features onto a data format, you end up reinventing programming concepts inside object literals: `{ "$cond": { "$state": "/path", "eq": value }, "$then": x, "$else": y }`. When you hand the LLM a full language, you get security headaches, streaming challenges, and models spending tokens on incidental complexity instead of UI design.
+
+OpenUI Lang sits in the gap. It looks like code because LLMs are trained on code and generate it naturally. But it's constrained like a data format: one assignment per line, positional args mapped from your component schemas, a fixed set of primitives, no escape hatches. The LLM builds with your design system, not whatever it feels like importing. It can't go off-script because there is no off-script.
+
+The token savings (up to 67%) are real, and they matter for latency. But they're a receipt, not the reason. The reason is that `$title` is a better way for an LLM to bind state than `{ "$bindState": "/newTodo/title" }`, and a safer one than `const [title, setTitle] = useState("")`.
+
+[Try it yourself](https://openui.com/) and see if you agree.
