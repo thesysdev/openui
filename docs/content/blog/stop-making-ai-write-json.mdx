@@ -1,19 +1,21 @@
 ---
-title: "Stop Making AI Write JSON (And No, JavaScript Isn't Better)"
-description: "We shipped a JSON-based generative UI SDK. Then we needed interactivity, and JSON fell apart. But a real programming language would have been worse. Here's what we built instead."
+title: "Stop making AI write JSON - Why we built OpenUI"
+description: "We shipped a JSON-based Generative UI SDK. When we tried to add interactivity, JSON fell apart. A full programming language was worse. This is the story behind why we built OpenUI."
 date: "2026-04-10"
-author: "OpenUI Team"
+author: "Thesys Engineering Team"
 ---
 
-We shipped a JSON-based generative UI SDK. Fifty-plus components, a streaming parser that could render partial responses, real production traffic. It worked.
+JSON is a data format pretending to be a language. When you need a UI that can fetch data, manage state, and respond to user input, that distinction stops being theoretical.
+
+We learnt this the hard way. Thesys V1 shipped a JSON-based Generative UI SDK. Fifty-plus components, a streaming parser that could render partial responses, real production traffic. It worked.
 
 Then we tried to make the UI interactive (state, live data, conditional rendering, form submissions) and JSON started fighting us at every step.
 
-This is the story of why we abandoned JSON, what we replaced it with, and why the up to 67% token savings everyone keeps asking about was never actually the point.
+This is the story of why we abandoned JSON, what we replaced it with, and why the up to 67% token savings everyone keeps asking is the receipt, not the reason.
 
-## We started with JSON because of course we did
+## We started with JSON (because of course we did)
 
-Our first product, Thesys V1, used a straightforward approach. The LLM generates a nested JSON tree, each node a component with props and children:
+Thesys V1, our first version, used a straightforward approach. The LLM generates a nested JSON tree, each node a component with props and children:
 
 ```json
 {
@@ -36,7 +38,7 @@ Our first product, Thesys V1, used a straightforward approach. The LLM generates
 }
 ```
 
-This is perfectly fine for what it does. LLMs know JSON intimately. It's one of the most represented structured formats in training data, and models like [GPT](https://platform.openai.com/docs/guides/structured-outputs) and [Claude](https://docs.anthropic.com/en/docs/build-with-claude/structured-output) have dedicated structured output modes that guarantee valid JSON. The structure maps directly to a component tree. You parse it, render it, ship it.
+This is perfectly fine for what it does. LLMs know JSON quite well. It's one of the most represented structured formats in training data, and models like [GPT](https://platform.openai.com/docs/guides/structured-outputs) and [Claude](https://docs.anthropic.com/en/docs/build-with-claude/structured-output) have dedicated structured output modes that guarantee valid JSON. The structure maps directly to a component tree. You parse it, render it, ship it.
 
 But look at that chart. The data is baked into the output. `[120, 150, 180]` is frozen in time the moment the LLM writes it. There's no filter dropdown, no date range picker, no refresh button. Want to change anything? Go back to the LLM. Every. Single. Time.
 
@@ -44,11 +46,12 @@ We needed UIs that could actually *do* things on their own. Fetch data, manage s
 
 ## The JSON approach to interactivity (it gets ugly fast)
 
-We weren't the only ones thinking about this. We launched Thesys V1 on JSON in March 2025 and it's been serving production generative UI since. Vercel's json-render project took the same challenge and pushed it even further: schema-driven catalogs, a clean flat element structure, JSONL streaming, a real answer for state management. Both are serious systems built by teams that understood the problem.
+We weren't the only ones thinking about this. We launched Thesys V1 on JSON in March 2025 and it's been serving production Generative UI traffic since.
+Vercel's [json-render](https://json-render.dev/) project took the same challenge and pushed it even further: schema-driven catalogs, a clean flat element structure, JSONL streaming, a real answer for state management. Both are serious systems built by teams that understood the problem.
 
-Which is exactly what makes the comparison honest. The issue isn't bad engineering. It's the format hitting a ceiling.
+The issue isn't bad engineering. It's the format hitting a ceiling.
 
-Their format uses a flat element map with a state object and special `$`-prefixed expression objects. Let me walk through what real interactivity looks like.
+json-render uses a flat element map with a state object and special `$`-prefixed expression objects. Let me walk through what real interactivity looks like.
 
 ### State binding
 
@@ -150,11 +153,13 @@ A button that creates a todo, then clears the form:
 
 For every button that does something, you need this whole ceremony. An event map, an action name, a params object with state references, success/error handlers with their own nested structures.
 
-### Zoom out
+### Zooming out
 
 A filterable todo app in this format runs over 100 lines of JSON. Every element sits in its own entry in the flat map. Every prop that touches state needs a wrapper object. Every condition is a tree. Every action is a multi-level handler chain. And the LLM has to produce all of it with perfect bracket matching, correct JSON pointer paths, and properly nested operator schemas.
 
-And this isn't just json-render. Google's [A2UI protocol](https://a2ui.org/specification/v0.9-a2ui/) goes down the same road. Same flat component lists, same JSON Pointer bindings, same nested function call objects for conditions. Their button validation example for "accept terms AND provide email or phone" looks like this:
+And this isn't just json-render. Google's [A2UI protocol](https://a2ui.org/specification/v0.9-a2ui/) builds on the same ideas.
+Same flat component lists, same JSON Pointer bindings, same nested function call objects for conditions.
+Their button validation example for "accept terms AND provide email or phone" looks like this:
 
 ```json
 {
@@ -178,7 +183,7 @@ And this isn't just json-render. Google's [A2UI protocol](https://a2ui.org/speci
 }
 ```
 
-That's `required(terms) && (required(email) || required(phone))`. Eighteen lines of nested JSON for a boolean expression a first-year CS student could write in one.
+That's `required(terms) && (required(email) || required(phone))`. Eighteen lines of nested JSON for a boolean expression the LLM could write in one.
 
 ## What if the LLM just wrote code instead?
 
@@ -273,19 +278,21 @@ filterBar = Select("filter", $filter, [SelectItem("all", "All"), SelectItem("act
 root = Stack([CardHeader("Todos"), Stack([Input("title", $title, "What needs to be done?"), submitBtn], "row"), filterBar, tbl, footer])
 ```
 
-Three lines. If you've ever written code, you already understand what happened here. It's just reassignment. `root` existed before without `filterBar`. Now the LLM redeclares it with `filterBar` included. Same name, new value. Last definition wins. `$filter` and `filterBar` are new names, so they get added. Everything else (`tbl`, `footer`, `submitBtn`) isn't mentioned, so it stays untouched.
+Three lines. For those familiar with code, you already understand what happened here. It's just reassignment. `root` existed before without `filterBar`. Now the LLM redeclares it with `filterBar` included. Same name, new value. Last definition wins. `$filter` and `filterBar` are new names, so they get added. Everything else (`tbl`, `footer`, `submitBtn`) isn't mentioned, so it stays untouched.
 
 That's the entire editing model. No RFC numbers. No edit mode selection. No JSON pointer arithmetic. Just redeclare the variables you want to change. The parser does the rest.
 
-Full regeneration: ~400 tokens, ~6.7 seconds at 60 tok/s.
-Incremental patch: 3 statements, ~80 tokens, ~1.3 seconds.
+Full regeneration: ~400 tokens, ~6.7 seconds at 60 tok/s. <br />
+Incremental patch: 3 statements, ~80 tokens, ~1.3 seconds. <br />
 Same result. Up to 80% fewer tokens, 5x faster edits.
 
 ## Errors got useful, not just fewer
 
-After switching from JSON, structural parse errors dropped to zero. Not "got better." Zero. The reason: there's no document-level nesting to get wrong. In JSON, a missing `}` on line 12 corrupts everything after it. In OpenUI Lang, each line is self-contained. Brackets close within the same line they opened on. The LLM can't accidentally leave a `{` unclosed and wreck 50 lines of output, because nothing on line 13 depends on line 12's brackets.
+After switching from JSON, structural parse errors dropped to zero. It didn't just get better, it dropped to **zero**.
+The reason: there's no document-level nesting to get wrong. In JSON, a missing `}` on line 12 corrupts everything after it. In OpenUI Lang, each line is self-contained. Brackets close within the same line they opened on. The LLM can't accidentally leave a `{` unclosed and wreck 50 lines of output, because nothing on line 13 depends on line 12's brackets.
 
-The LLM still makes mistakes, but they're *semantic* instead of *structural*: wrong component name, missing a required prop, referencing a tool that doesn't exist. And because each statement has a name, our renderer returns diagnostics that read like linter output:
+The LLM still makes mistakes, but they're *semantic* instead of *structural*: wrong component name, missing a required prop, referencing a tool that doesn't exist.
+And because each statement has a name, OpenUI renderer returns diagnostics that read like linter output:
 
 ```json
 {
@@ -296,27 +303,45 @@ The LLM still makes mistakes, but they're *semantic* instead of *structural*: wr
 }
 ```
 
-A JSON parse error is "unexpected token at position 4,523." Ours is "statement `chart` used unknown component `DataTable`" with a list of what's available. You feed that back as a user message, the LLM redeclares the broken statement through incremental editing, and the parser merges the fix. Generate, render, lint, fix. It's `eslint --fix` for generated UI.
+A JSON parse error is "unexpected token at position 4,523." OpenUI is "statement `chart` used unknown component `DataTable`" with a list of what's available.
+You feed that back as a user message, the LLM redeclares the broken statement through incremental editing, and the parser merges the fix.
 
-## Token savings were the byproduct, not the goal
+Generate, render, lint, fix. It's `eslint --fix` for generated UI.
+
+## Token savings are the receipt, not the reason
 
 Our [benchmarks](/docs/openui-lang/benchmarks) show OpenUI Lang uses up to 67% fewer tokens than JSON formats across seven real-world UI scenarios. Fewer tokens means faster streaming means the user sees their UI sooner. But we didn't design the format to save tokens. We designed it so LLMs could express interactive UIs without drowning in structural noise. The efficiency is what falls out when you stop fighting the format.
 
-## "So just use JavaScript?"
+## So just use JavaScript?
 
-The obvious retort. If JSON is too constrained, skip the middleman. Have the LLM write React components. Or Python. Any real language. LLMs are incredible at code generation, so why invent a new one?
+Fair question. LLMs are genuinely excellent at writing React.
+Why invent a new language when a battle-tested one already exists?
 
 We thought about this seriously. Here's why it doesn't work for this problem.
 
-**A real language gives the LLM too much rope.** JavaScript has multiple ways to declare a variable, three module systems, infinite patterns for state management, and the ability to write `while(true)`. Every generation becomes unpredictable: will the model use callbacks or async/await? Inline styles or CSS modules? Will it import a library you don't have? These choices introduce variability without adding value to the generated UI.
+**A real language gives the LLM too much rope** <br />
+JavaScript has multiple ways to declare a variable, three module systems, infinite patterns for state management, and the ability to write `while(true)`. Every generation becomes unpredictable: will the model use callbacks or async/await? Inline styles or CSS modules? Will it import a library you don't have? These choices introduce variability without adding value to the generated UI.
 
-**Streaming is trivially simple.** OpenUI Lang parses line by line. Each statement is independent, so the renderer paints the first component while the LLM is still generating the last one. Streaming parsers exist for full languages too, but they're complex machinery. A line-oriented format gets progressive rendering for free.
+**Streaming isn't trivially simple** <br />
+OpenUI Lang parses line by line.
+Each statement is self-contained, so the renderer paints the first component while the LLM is still generating the last one - progressive rendering falls out of the format for free.
+Streaming parsers exist for full languages, but they're non-trivial machinery and they still can't give you a renderable component until the AST closes.
+In a chat interface where perceived speed matters, that gap is felt.
 
-**The right analogy is SQL, not Python.** Nobody writes raw Python to query a database. SQL is less expressive, and that's the point. You know what it can do and what it can't. OpenUI Lang makes the same trade: exactly the primitives the LLM needs (components, state, queries, actions, builtins) and nothing it doesn't. The constraints *are* the feature.
+**Constraints are the contract** <br />
+Nobody writes Python to query a database, not because Python is too powerful, but because SQL makes the contract explicit.
+You know what it can do, what it can't, and what a valid query looks like.
+OpenUI Lang makes the same bet: a fixed set of primitives - components, state, queries, mutations, builtins - with no escape hatches.
+The LLM can't go off-script because there is no off-script.
+
+That's not a limitation. That's the point.
 
 ## The full picture: one TODO app, two formats
 
 Here's the same TODO app (add items, mark complete, show count) in both formats. This is what the LLM actually has to generate.
+
+<div className="grid md:grid-cols-2 gap-4 my-6">
+<div>
 
 **json-render:**
 
@@ -414,6 +439,9 @@ Here's the same TODO app (add items, mark complete, show count) in both formats.
 }
 ```
 
+</div>
+<div>
+
 **OpenUI Lang:**
 
 ```text
@@ -426,11 +454,16 @@ tbl = Table([Col("Title", todos.rows.title), Col("Done", todos.rows.completed)])
 footer = TextContent("" + openCount + " items left", "small")
 ```
 
+</div>
+</div>
+
 Same app. One is 75 lines of nested JSON with pointer paths, wrapper objects, repeat scopes, and conditional expression trees. The other is 7 lines. And the OpenUI Lang version has live data fetching that the JSON version doesn't even attempt.
 
 ## The space in between
 
-JSON is a data format pretending to be a language. JavaScript is a language with far more power than this problem needs. The interesting space is in between.
+*JSON is a data format pretending to be a language.* <br />
+*JavaScript is a language with far more power than this problem needs.* <br />
+The interesting space is in between.
 
 When you bolt language features onto a data format, you end up reinventing programming concepts inside object literals: `{ "$cond": { "$state": "/path", "eq": value }, "$then": x, "$else": y }`. When you hand the LLM a full language, you get security headaches, streaming challenges, and models spending tokens on incidental complexity instead of UI design.
 
@@ -438,4 +471,4 @@ OpenUI Lang sits in the gap. It looks like code because LLMs are trained on code
 
 The token savings (up to 67%) are real, and they matter for latency. But they're a receipt, not the reason. The reason is that `$title` is a better way for an LLM to bind state than `{ "$bindState": "/newTodo/title" }`, and a safer one than `const [title, setTitle] = useState("")`.
 
-[Try it yourself](https://openui.com/) and see if you agree.
+[Try it yourself](/demo/github) and see if you agree.
