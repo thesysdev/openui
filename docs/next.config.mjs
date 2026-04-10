@@ -21,6 +21,11 @@ const config = {
         destination: "/docs/openui-lang",
         permanent: false,
       },
+      {
+        source: "/blog/should-chat-be-the-new-homepage-for-saas",
+        destination: "/blog/beyond-the-chatbar",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
