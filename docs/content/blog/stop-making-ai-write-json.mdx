@@ -345,98 +345,19 @@ Here's the same TODO app (add items, mark complete, show count) in both formats.
 
 **json-render:**
 
-```json
-{
-  "root": "app",
-  "state": {
-    "newTitle": "",
-    "todos": []
-  },
-  "elements": {
-    "app": {
-      "type": "Stack",
-      "props": { "direction": "vertical" },
-      "children": ["header", "input-row", "todo-list", "footer"]
-    },
-    "header": {
-      "type": "CardHeader",
-      "props": { "title": "Todos" },
-      "children": []
-    },
-    "input-row": {
-      "type": "Stack",
-      "props": { "direction": "horizontal" },
-      "children": ["title-input", "add-button"]
-    },
-    "title-input": {
-      "type": "Input",
-      "props": {
-        "value": { "$bindState": "/newTitle" },
-        "placeholder": "What needs to be done?"
-      },
-      "children": []
-    },
-    "add-button": {
-      "type": "Button",
-      "props": { "label": "Add" },
-      "on": {
-        "press": {
-          "action": "pushState",
-          "params": {
-            "statePath": "/todos",
-            "value": {
-              "title": { "$state": "/newTitle" },
-              "completed": false
-            }
-          },
-          "onSuccess": {
-            "set": { "/newTitle": "" }
-          }
-        }
-      },
-      "children": []
-    },
-    "todo-list": {
-      "type": "Stack",
-      "props": { "direction": "vertical" },
-      "repeat": { "statePath": "/todos" },
-      "children": ["todo-item"]
-    },
-    "todo-item": {
-      "type": "Stack",
-      "props": { "direction": "horizontal" },
-      "children": ["todo-checkbox", "todo-text"]
-    },
-    "todo-checkbox": {
-      "type": "Checkbox",
-      "props": {
-        "checked": { "$bindItem": "completed" }
-      },
-      "children": []
-    },
-    "todo-text": {
-      "type": "Text",
-      "props": {
-        "text": { "$item": "title" },
-        "style": {
-          "textDecoration": {
-            "$cond": { "$item": "completed" },
-            "$then": "line-through",
-            "$else": "none"
-          }
-        }
-      },
-      "children": []
-    },
-    "footer": {
-      "type": "Text",
-      "props": {
-        "text": { "$template": "items left" }
-      },
-      "children": []
-    }
-  }
-}
+```jsonl
+{"op":"add","path":"/state","value":{"newTitle":"","todos":[]}}
+{"op":"add","path":"/root","value":"app"}
+{"op":"add","path":"/elements/app","value":{"type":"Stack","props":{"direction":"vertical"},"children":["header","input-row","todo-list","footer"]}}
+{"op":"add","path":"/elements/header","value":{"type":"CardHeader","props":{"title":"Todos"},"children":[]}}
+{"op":"add","path":"/elements/input-row","value":{"type":"Stack","props":{"direction":"horizontal"},"children":["title-input","add-button"]}}
+{"op":"add","path":"/elements/title-input","value":{"type":"Input","props":{"value":{"$bindState":"/newTitle"},"placeholder":"What needs to be done?"},"children":[]}}
+{"op":"add","path":"/elements/add-button","value":{"type":"Button","props":{"label":"Add"},"on":{"press":{"action":"pushState","params":{"statePath":"/todos","value":{"title":{"$state":"/newTitle"},"completed":false}},"onSuccess":{"set":{"/newTitle":""}}}},"children":[]}}
+{"op":"add","path":"/elements/todo-list","value":{"type":"Stack","props":{"direction":"vertical"},"repeat":{"statePath":"/todos"},"children":["todo-item"]}}
+{"op":"add","path":"/elements/todo-item","value":{"type":"Stack","props":{"direction":"horizontal"},"children":["todo-checkbox","todo-text"]}}
+{"op":"add","path":"/elements/todo-checkbox","value":{"type":"Checkbox","props":{"checked":{"$bindItem":"completed"}},"children":[]}}
+{"op":"add","path":"/elements/todo-text","value":{"type":"Text","props":{"text":{"$item":"title"},"style":{"textDecoration":{"$cond":{"$item":"completed"},"$then":"line-through","$else":"none"}}},"children":[]}}
+{"op":"add","path":"/elements/footer","value":{"type":"Text","props":{"text":{"$template":"items left"}},"children":[]}}
 ```
 
 </div>
@@ -457,7 +378,7 @@ footer = TextContent("" + openCount + " items left", "small")
 </div>
 </div>
 
-Same app. One is 75 lines of nested JSON with pointer paths, wrapper objects, repeat scopes, and conditional expression trees. The other is 7 lines. And the OpenUI Lang version has live data fetching that the JSON version doesn't even attempt.
+Same app. One is 12 JSONL patch operations, each a dense line of nested JSON with pointer paths, wrapper objects, repeat scopes, and conditional expression trees. The other is 7 lines. And the OpenUI Lang version has live data fetching that the JSONL version doesn't even attempt.
 
 ## The space in between
 
