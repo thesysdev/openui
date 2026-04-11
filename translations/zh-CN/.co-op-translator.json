@@ -1,0 +1,32 @@
+{
+  "CODE_OF_CONDUCT.md": {
+    "original_hash": "fb4c91192caf84a289053f1cc62c6956",
+    "translation_date": "2026-04-11T02:52:22+00:00",
+    "source_file": "CODE_OF_CONDUCT.md",
+    "language_code": "zh-CN"
+  },
+  "CONTRIBUTING.md": {
+    "original_hash": "81f7f10d015181a5f40d1b46d727a89a",
+    "translation_date": "2026-04-11T02:53:05+00:00",
+    "source_file": "CONTRIBUTING.md",
+    "language_code": "zh-CN"
+  },
+  "README.md": {
+    "original_hash": "f5ba2133cbf2decfe0e443996142747f",
+    "translation_date": "2026-04-11T02:52:57+00:00",
+    "source_file": "README.md",
+    "language_code": "zh-CN"
+  },
+  "SECURITY.md": {
+    "original_hash": "a20186b934f5abceb678bba91868aa7a",
+    "translation_date": "2026-04-11T02:53:13+00:00",
+    "source_file": "SECURITY.md",
+    "language_code": "zh-CN"
+  },
+  "benchmarks/README.md": {
+    "original_hash": "69af6ec2b537d3b78c7f3f638b9aa1b6",
+    "translation_date": "2026-04-11T02:53:50+00:00",
+    "source_file": "benchmarks/README.md",
+    "language_code": "zh-CN"
+  }
+}

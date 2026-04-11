@@ -51,3 +51,4 @@ clean-install.sh
 lint-fix.sh
 
 draft/
+.venv/
