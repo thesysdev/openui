@@ -9,7 +9,7 @@ Use `defineComponent(...)` to register each component and `createLibrary(...)` t
 
 ```tsx
 import { defineComponent, createLibrary } from "@openuidev/react-lang";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const StatCard = defineComponent({
   name: "StatCard",
@@ -32,6 +32,8 @@ export const myLibrary = createLibrary({
 });
 ```
 
+If you want one import path that works with both `zod@3.25.x` and `zod@4`, use `import { z } from "zod/v4"` for OpenUI component schemas.
+
 ## Required fields in `defineComponent`
 
 1. `name`: component call name in OpenUI Lang.
@@ -43,7 +45,7 @@ export const myLibrary = createLibrary({
 
 ```tsx
 import { defineComponent } from "@openuidev/react-lang";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const Item = defineComponent({
   name: "Item",
@@ -68,7 +70,7 @@ To define container components that accepts multiple child components, you can u
 
 ```tsx
 import { defineComponent } from "@openuidev/react-lang";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const TextBlock = defineComponent({
   /* ... */
@@ -83,6 +85,30 @@ const TabItemSchema = z.object({
   content: z.array(z.union([TextBlock.ref, CalloutBlock.ref])),
 });
 ```
+
+## Naming reusable helper schemas
+
+Use `tagSchemaId(...)` when a prop uses a standalone helper schema and you want a readable name in generated prompt signatures instead of `any`.
+
+```tsx
+import { defineComponent, tagSchemaId } from "@openuidev/react-lang";
+import { z } from "zod/v4";
+
+const ActionExpression = z.any();
+tagSchemaId(ActionExpression, "ActionExpression");
+
+const Button = defineComponent({
+  name: "Button",
+  description: "Triggers an action",
+  props: z.object({
+    label: z.string(),
+    action: ActionExpression.optional(),
+  }),
+  component: ({ props }) => <button>{props.label}</button>,
+});
+```
+
+Without `tagSchemaId(...)`, the generated prompt would fall back to `action?: any`. Components already get their names automatically through `defineComponent(...)`, so this is only needed for non-component helper schemas.
 
 ## The `root` field
 
