@@ -1,0 +1,4 @@
+# Auto-generated lockfiles: avoid merge conflicts by always regenerating from the
+# merge result of package.json files. After merging, run `pnpm install` to
+# reconcile the lockfile.
+pnpm-lock.yaml merge=binary
