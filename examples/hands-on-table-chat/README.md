@@ -132,7 +132,7 @@ hands-on-table-chat/
 | [`@openuidev/react-headless`](https://openui.com/docs) | OpenUI adapter and message formatting |
 | [`@openuidev/react-lang`](https://openui.com/docs) | OpenUI Lang component library DSL |
 | [`openai`](https://www.npmjs.com/package/openai) | OpenAI SDK for chat completions with tool calling |
-| [`next`](https://nextjs.org/) | React framework with API routes and SSE streaming |
+| [`next`](https://nextjs.org/) | React framework with API routes and SSE streaming. |
 
 ## Try These Prompts
 
