@@ -2,7 +2,7 @@
 
 import type { ComponentGroup, PromptOptions } from "@openuidev/react-lang";
 import { createLibrary, defineComponent } from "@openuidev/react-lang";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { Card as OpenUICard } from "../components/Card";
 
 // Content

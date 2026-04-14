@@ -1,7 +1,7 @@
 import { reactive } from "@openuidev/react-lang";
-import { z } from "zod";
+import { z } from "zod/v4";
 
-type RefComponent = { ref: z.ZodTypeAny };
+type RefComponent = { ref: any };
 
 export const SwitchItemSchema = z.object({
   label: z.string().optional(),

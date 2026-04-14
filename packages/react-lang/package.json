@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/react-lang",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Define component libraries, generate LLM system prompts, and render streaming OpenUI Lang output in React — the core runtime for OpenUI generative UI",
   "license": "MIT",
   "type": "module",
@@ -71,7 +71,7 @@
   "peerDependencies": {
     "@modelcontextprotocol/sdk": ">=1.0.0",
     "react": ">=19.0.0",
-    "zod": "^4.0.0"
+    "zod": "^3.25.0 || ^4.0.0"
   },
   "peerDependenciesMeta": {
     "@modelcontextprotocol/sdk": {

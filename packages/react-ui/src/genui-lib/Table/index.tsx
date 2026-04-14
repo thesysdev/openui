@@ -3,7 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import React from "react";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { IconButton } from "../../components/IconButton";
 import {
   ScrollableTable as OpenUITable,

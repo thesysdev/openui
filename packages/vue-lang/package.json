@@ -1,6 +1,6 @@
 {
 	"name": "@openuidev/vue-lang",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Define component libraries, generate LLM system prompts, and render streaming OpenUI Lang output in Vue 3 — the Vue runtime for OpenUI generative UI",
 	"license": "MIT",
 	"type": "module",
@@ -55,11 +55,11 @@
 	},
 	"author": "engineering@thesys.dev",
 	"dependencies": {
-		"@openuidev/lang-core": "workspace:^",
-		"zod": "^4.0.0"
+		"@openuidev/lang-core": "workspace:^"
 	},
 	"peerDependencies": {
-		"vue": ">=3.5.0"
+		"vue": ">=3.5.0",
+		"zod": "^3.25.0 || ^4.0.0"
 	},
 	"devDependencies": {
 		"@vitejs/plugin-vue": "^5.0.0",

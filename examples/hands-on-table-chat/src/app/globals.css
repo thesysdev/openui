@@ -1,0 +1,234 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Handsontable dark mode */
+.handsontable {
+  font-size: 13px;
+}
+
+.handsontable th {
+  background-color: #252525 !important;
+  color: #ededed !important;
+  border-color: #404040 !important;
+}
+
+.handsontable td {
+  background-color: #1a1a1a !important;
+  color: #ededed !important;
+  border-color: #333 !important;
+}
+
+.handsontable td.area {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.handsontable .wtBorder {
+  background-color: #3b82f6 !important;
+}
+
+.htContextMenu {
+  background-color: #1a1a1a !important;
+  border-color: #404040 !important;
+}
+
+.htContextMenu td {
+  background-color: #1a1a1a !important;
+  color: #ededed !important;
+}
+
+.htContextMenu td:hover {
+  background-color: #333 !important;
+}
+
+.htContextMenu td.htDisabled {
+  color: #666 !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Layout: spreadsheet + optional chat side-by-side */
+.app-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.spreadsheet-panel {
+  flex: 1 1 0%;
+  min-width: 0;
+  height: 100%;
+  background-color: #0f0f0f;
+  overflow: hidden;
+}
+
+/* Chat panel — flex child, no max-width constraint */
+.chat-panel {
+  flex: 0 0 auto;
+  width: 480px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #0a0a0a;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.chat-panel__close-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 8px 0;
+  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.chat-panel__body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Let tables/charts inside chat scroll horizontally instead of clipping */
+.chat-panel table,
+.chat-panel [class*="recharts-wrapper"] {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.chat-panel [data-openui-component] {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.chat-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 10, 10, 0.8);
+  color: #999;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.chat-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Floating action button to open chat */
+.chat-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #ededed;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.15);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.chat-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.3);
+}
+
+.chat-fab__label {
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .chat-panel {
+    width: 100vw;
+  }
+  .chat-fab__label {
+    display: none;
+  }
+  .chat-fab {
+    padding: 14px;
+    border-radius: 50%;
+  }
+}
+
+/* Persistent spreadsheet */
+.persistent-spreadsheet {
+  background-color: #0f0f0f;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.persistent-spreadsheet > div:first-child {
+  flex-shrink: 0;
+}
+
+.persistent-spreadsheet > div:nth-child(2) {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.persistent-spreadsheet > div:last-child {
+  flex-shrink: 0;
+}
+
+.persistent-spreadsheet .handsontable {
+  position: relative;
+  z-index: 1;
+}

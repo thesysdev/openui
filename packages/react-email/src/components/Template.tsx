@@ -1,7 +1,7 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailLeafChildUnion } from "../unions";
 import { EmailColumn } from "./Column";
 import { EmailColumns } from "./Columns";

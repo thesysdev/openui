@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Column, Row } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailStatItem } from "./StatItem";
 
 export const EmailStats = defineComponent({

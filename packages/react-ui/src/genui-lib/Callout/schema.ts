@@ -1,5 +1,5 @@
 import { reactive } from "@openuidev/react-lang";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const CalloutSchema = z.object({
   variant: z.enum(["info", "warning", "error", "success", "neutral"]),

@@ -1,5 +1,6 @@
 // ─── Component definition ───
 
+export { tagSchemaId } from "@openuidev/lang-core";
 export { createLibrary, defineComponent } from "./library.js";
 export type {
   ComponentGroup,

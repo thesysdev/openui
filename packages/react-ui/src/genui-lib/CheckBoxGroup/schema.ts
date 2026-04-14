@@ -1,8 +1,8 @@
 import { reactive } from "@openuidev/react-lang";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { rulesSchema } from "../rules";
 
-type RefComponent = { ref: z.ZodTypeAny };
+type RefComponent = { ref: any };
 
 export const CheckBoxItemSchema = z.object({
   label: z.string(),

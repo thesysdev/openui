@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { CheckBoxGroup } from "../CheckBoxGroup";
 import { DatePicker } from "../DatePicker";
 import { Input } from "../Input";

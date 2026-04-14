@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Column, Hr, Row, Section, Text } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailStepItem } from "./StepItem";
 
 export const EmailNumberedSteps = defineComponent({

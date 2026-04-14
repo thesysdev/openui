@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Column, Hr, Img, Row, Section, Text } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailFeatureItem } from "./FeatureItem";
 
 export const EmailFeatureList = defineComponent({

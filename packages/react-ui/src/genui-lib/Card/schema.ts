@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { Carousel } from "../Carousel";
 import { Stack } from "../Stack";
 import { FlexPropsSchema } from "../Stack/schema";

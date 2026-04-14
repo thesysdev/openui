@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { ContentChildUnion } from "../unions";
 
 export const AccordionItemSchema = z.object({

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const FlexPropsSchema = z.object({
   direction: z.enum(["row", "column"]).optional(),

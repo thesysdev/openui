@@ -4,7 +4,7 @@
 
 import type { StateField } from "@openuidev/lang-core";
 import { markReactive } from "@openuidev/lang-core";
-import type { z } from "zod";
+import type { z } from "zod/v4";
 
 // Re-export for internal use
 export { isReactiveSchema } from "@openuidev/lang-core";

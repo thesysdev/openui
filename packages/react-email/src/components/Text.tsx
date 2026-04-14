@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Text } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const EmailText = defineComponent({
   name: "EmailText",

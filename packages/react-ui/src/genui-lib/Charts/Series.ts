@@ -1,5 +1,5 @@
 import { defineComponent } from "@openuidev/react-lang";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const SeriesSchema = z.object({
   category: z.string(),

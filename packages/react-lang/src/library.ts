@@ -7,7 +7,8 @@ import {
   type ComponentRenderProps as CoreRenderProps,
 } from "@openuidev/lang-core";
 import type { ReactNode } from "react";
-import { z } from "zod";
+import type { z } from "zod/v4";
+import type { $ZodObject } from "zod/v4/core";
 
 // Re-export framework-agnostic types unchanged
 export type {
@@ -25,7 +26,7 @@ export interface ComponentRenderProps<P = Record<string, unknown>>
 
 export type ComponentRenderer<P = Record<string, unknown>> = React.FC<ComponentRenderProps<P>>;
 
-export type DefinedComponent<T extends z.ZodObject<any> = z.ZodObject<any>> = CoreDefinedComponent<
+export type DefinedComponent<T extends $ZodObject = $ZodObject> = CoreDefinedComponent<
   T,
   ComponentRenderer<z.infer<T>>
 >;
@@ -36,7 +37,7 @@ export type LibraryDefinition = CoreLibraryDefinition<ComponentRenderer<any>>;
 
 // ─── defineComponent (React) ────────────────────────────────────────────────
 
-export function defineComponent<T extends z.ZodObject<any>>(config: {
+export function defineComponent<T extends $ZodObject>(config: {
   name: string;
   props: T;
   description: string;

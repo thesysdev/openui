@@ -1,7 +1,7 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const EmailSocialIcon = defineComponent({
   name: "EmailSocialIcon",

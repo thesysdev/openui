@@ -3,7 +3,7 @@
 import type { ActionPlan } from "@openuidev/react-lang";
 import { defineComponent, useTriggerAction } from "@openuidev/react-lang";
 import { ChevronRight } from "lucide-react";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { ListBlock as OpenUIListBlock } from "../../components/ListBlock";
 import { ListItem as OpenUIListItem } from "../../components/ListItem";
 import { ListItem } from "../ListItem";

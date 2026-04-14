@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Button, Hr, Text } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailPricingFeature } from "./PricingFeature";
 
 export const EmailPricingCard = defineComponent({

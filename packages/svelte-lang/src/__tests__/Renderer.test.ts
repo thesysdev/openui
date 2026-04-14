@@ -1,7 +1,7 @@
 import { render } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 import Renderer from "../lib/Renderer.svelte";
 import { createLibrary, defineComponent } from "../lib/library.js";
 

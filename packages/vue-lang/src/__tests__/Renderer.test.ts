@@ -1,7 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
-import { z } from "zod";
+import { z } from "zod/v4";
 import Renderer from "../Renderer.vue";
 import { createLibrary, defineComponent } from "../library.js";
 

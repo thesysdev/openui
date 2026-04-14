@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import { Section } from "@react-email/components";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { EmailLeafChildUnion } from "../unions";
 
 export const EmailSection = defineComponent({
