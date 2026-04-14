@@ -187,6 +187,30 @@ export function materializeExpr(node: ASTNode, ctx: MaterializeCtx): ASTNode {
 }
 
 /**
+ * Infer the basic type of a literal AST node.
+ * Returns undefined for non-literal nodes (Ref, Comp, expressions) where
+ * the type can't be determined at parse time.
+ */
+function inferASTType(node: ASTNode): string | undefined {
+  switch (node.k) {
+    case "Str":
+      return "string";
+    case "Num":
+      return "number";
+    case "Bool":
+      return "boolean";
+    case "Arr":
+      return "array";
+    case "Obj":
+      return "object";
+    case "Null":
+      return "null";
+    default:
+      return undefined;
+  }
+}
+
+/**
  * Schema-aware materialization: resolves refs, normalizes catalog component args
  * to named props, validates required props, applies defaults, converts literals
  * to plain values, and preserves runtime expressions as AST nodes — all in a
@@ -264,7 +288,21 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
       if (def) {
         // Catalog component: map positional args → named props
         for (let i = 0; i < def.params.length && i < args.length; i++) {
-          props[def.params[i].name] = materializeValue(args[i], ctx);
+          const param = def.params[i];
+          // Type-mismatch check on raw AST before materialization
+          if (param.type) {
+            const actualType = inferASTType(args[i]);
+            if (actualType && actualType !== "null" && actualType !== param.type) {
+              ctx.errors.push({
+                code: "type-mismatch",
+                component: name,
+                path: `/${param.name}`,
+                message: `Arg ${i + 1} (${param.name}) expects ${param.type}, got ${actualType}`,
+                statementId: ctx.currentStatementId,
+              });
+            }
+          }
+          props[param.name] = materializeValue(args[i], ctx);
         }
 
         // Report excess positional args (extra args are silently dropped)

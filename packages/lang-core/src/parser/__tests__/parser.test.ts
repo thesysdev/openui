@@ -235,3 +235,91 @@ describe("orphaned statements", () => {
     expect(result.meta.orphaned).toHaveLength(0);
   });
 });
+
+// ── type-mismatch ───────────────────────────────────────────────────────────
+
+const typedSchema: ParamMap = new Map([
+  [
+    "Header",
+    {
+      params: [
+        { name: "title", required: true, type: "string" },
+        { name: "icon", required: false, type: "string" },
+      ],
+    },
+  ],
+  [
+    "Chart",
+    {
+      params: [
+        { name: "title", required: true, type: "string" },
+        { name: "data", required: true, type: "array" },
+      ],
+    },
+  ],
+]);
+
+describe("type-mismatch", () => {
+  it("reports when literal arg type does not match expected type", () => {
+    // Chart(title: string, data: array) called with (array, string) — both swapped
+    const result = parse('root = Chart([1, 2], "Revenue")', typedSchema);
+    const errs = result.meta.errors.filter((e) => e.code === "type-mismatch");
+    expect(errs).toHaveLength(2);
+    expect(errs[0]).toMatchObject({
+      code: "type-mismatch",
+      component: "Chart",
+      path: "/title",
+    });
+    expect(errs[0].message).toContain("expects string, got array");
+    expect(errs[1]).toMatchObject({
+      code: "type-mismatch",
+      component: "Chart",
+      path: "/data",
+    });
+    expect(errs[1].message).toContain("expects array, got string");
+  });
+
+  it("does not report when types match", () => {
+    const result = parse('root = Chart("Revenue", [1, 2])', typedSchema);
+    expect(result.meta.errors.filter((e) => e.code === "type-mismatch")).toHaveLength(0);
+  });
+
+  it("skips check for non-literal args (Ref)", () => {
+    const result = parse('myData = [1, 2]\nroot = Chart(myData, [1, 2])', typedSchema);
+    // myData is a Ref — can't infer type at parse time
+    expect(result.meta.errors.filter((e) => e.code === "type-mismatch")).toHaveLength(0);
+  });
+
+  it("skips check for null args (handled by null-required)", () => {
+    const result = parse('root = Header(null, "icon")', typedSchema);
+    expect(result.meta.errors.filter((e) => e.code === "type-mismatch")).toHaveLength(0);
+  });
+
+  it("component still renders despite type mismatch (non-fatal)", () => {
+    const result = parse('root = Header(42, "icon")', typedSchema);
+    expect(result.meta.errors.some((e) => e.code === "type-mismatch")).toBe(true);
+    expect(result.root).not.toBeNull();
+    expect(result.root?.props.title).toBe(42);
+  });
+
+  it("reports number where string expected", () => {
+    const result = parse("root = Header(42)", typedSchema);
+    const errs = result.meta.errors.filter((e) => e.code === "type-mismatch");
+    expect(errs).toHaveLength(1);
+    expect(errs[0].message).toContain("expects string, got number");
+  });
+
+  it("reports object where string expected", () => {
+    const result = parse('root = Header({key: "val"})', typedSchema);
+    const errs = result.meta.errors.filter((e) => e.code === "type-mismatch");
+    expect(errs).toHaveLength(1);
+    expect(errs[0].message).toContain("expects string, got object");
+  });
+
+  it("does not check when schema has no type", () => {
+    // Using the base schema (no type) — should never produce type-mismatch
+    const result = parse('root = Stack(42)', schema);
+    expect(result.meta.errors.filter((e) => e.code === "type-mismatch")).toHaveLength(0);
+  });
+});
+

@@ -38,6 +38,8 @@ export function enrichErrors(
       error.hint = buildSignatureHint(ve.component, schema.$defs?.[ve.component]);
     } else if (ve.code === "inline-reserved") {
       error.hint = `Declare as a top-level statement: myVar = ${ve.component}(...)`;
+    } else if (ve.code === "type-mismatch") {
+      error.hint = buildSignatureHint(ve.component, schema.$defs?.[ve.component]);
     }
     return error;
   });
