@@ -47,6 +47,11 @@
     "react-dom": ">=19.0.0",
     "zod": "^4.3.6"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui",
+    "directory": "packages/react-email"
+  },
   "devDependencies": {
     "@types/react": "^19",
     "typescript": "^5"
