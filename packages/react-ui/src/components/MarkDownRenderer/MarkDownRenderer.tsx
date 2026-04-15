@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { memo } from "react";
 import ReactMarkdown, { Components, type Options } from "react-markdown";
-import { oneLight, vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneLight, vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { CodeBlock } from "../CodeBlock";
 import {
   Table,

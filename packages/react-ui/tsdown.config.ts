@@ -1,6 +1,22 @@
 import { existsSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 import { defineConfig } from "tsdown";
+import type { Plugin } from "rolldown";
+
+// Rewrite external import paths in ESM output so they are fully-specified.
+// webpack 5 (CRA) treats .mjs as strict ESM and requires explicit extensions.
+const fixEsmExternalPaths: Plugin = {
+  name: "fix-esm-external-paths",
+  renderChunk(code: string) {
+    const result = code
+      .replace(/from "lodash-es\/([^"]+?)(?:\.js)?"/g, 'from "lodash-es/$1.js"')
+      .replace(
+        /"react-syntax-highlighter\/dist\/cjs\/styles\/prism"/g,
+        '"react-syntax-highlighter/dist/cjs/styles/prism/index.js"',
+      );
+    return { code: result };
+  },
+};
 
 const componentEntries = Object.fromEntries(
   readdirSync("src/components")
@@ -27,7 +43,7 @@ export default defineConfig([
   // Main index — CJS + bundled .d.cts
   { ...shared, format: ["cjs"], dts: true, entry: { index: "src/index.ts" } },
   // Main index — ESM + bundled .d.mts
-  { ...shared, format: ["esm"], dts: true, entry: { index: "src/index.ts" } },
+  { ...shared, format: ["esm"], dts: true, entry: { index: "src/index.ts" }, plugins: [fixEsmExternalPaths] },
   // genui-lib — CJS + .d.cts (own outDir so dts lands at dist/genui-lib/index.d.cts)
   {
     ...shared,
@@ -43,6 +59,7 @@ export default defineConfig([
     dts: true,
     outDir: "dist/genui-lib",
     entry: { index: "src/genui-lib/index.ts" },
+    plugins: [fixEsmExternalPaths],
   },
   // Individual components — CJS only
   { ...shared, format: ["cjs"], entry: componentEntries },
