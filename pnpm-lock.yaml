@@ -11,6 +11,9 @@ importers:
       '@arethetypeswrong/cli':
         specifier: ^0.18.2
         version: 0.18.2
+      '@rolldown/binding-darwin-arm64':
+        specifier: 1.0.0-rc.16
+        version: 1.0.0-rc.16
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.56.1
         version: 8.56.1(@typescript-eslint/parser@8.56.1(eslint@9.29.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.29.0(jiti@2.6.1))(typescript@5.9.3)
@@ -1087,10 +1090,10 @@ importers:
         specifier: ^0.0.41
         version: 0.0.41(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
-        specifier: '>=18.3.1 <20.0.0'
+        specifier: ^18.3.1 || ^19.0.0
         version: 19.2.4
       react-dom:
-        specifier: '>=18.3.1 <20.0.0'
+        specifier: ^18.0.0 || ^19.0.0
         version: 19.2.4(react@19.2.4)
       zod:
         specifier: ^3.25.0 || ^4.0.0
@@ -1109,7 +1112,7 @@ importers:
         specifier: ^0.0.45
         version: 0.0.45
       react:
-        specifier: '>=18.3.1 <20.0.0'
+        specifier: ^18.3.1 || ^19.0.0
         version: 19.2.4
       zustand:
         specifier: ^4.5.5
@@ -1131,7 +1134,7 @@ importers:
         specifier: workspace:^
         version: link:../lang-core
       react:
-        specifier: '>=18.3.1 <20.0.0'
+        specifier: ^18.3.1 || ^19.0.0
         version: 19.2.4
       zod:
         specifier: ^3.25.0 || ^4.0.0
@@ -1213,13 +1216,13 @@ importers:
         specifier: ^0.562.0
         version: 0.562.0(react@19.2.4)
       react:
-        specifier: '>=18.3.1 <20.0.0'
+        specifier: ^18.3.1 || ^19.0.0
         version: 19.2.4
       react-day-picker:
         specifier: ^9.5.1
         version: 9.7.0(react@19.2.4)
       react-dom:
-        specifier: '>=18.3.1 <20.0.0'
+        specifier: ^18.0.0 || ^19.0.0
         version: 19.2.4(react@19.2.4)
       react-markdown:
         specifier: ^10.1.0
@@ -6649,6 +6652,12 @@ packages:
 
   '@rolldown/binding-darwin-arm64@1.0.0-rc.12':
     resolution: {integrity: sha512-cFYr6zTG/3PXXF3pUO+umXxt1wkRK/0AYT8lDwuqvRC+LuKYWSAQAQZjCWDQpAH172ZV6ieYrNnFzVVcnSflAg==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@rolldown/binding-darwin-arm64@1.0.0-rc.16':
+    resolution: {integrity: sha512-rNz0yK078yrNn3DrdgN+PKiMOW8HfQ92jQiXxwX8yW899ayV00MLVdaCNeVBhG/TbH3ouYVObo8/yrkiectkcQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [arm64]
     os: [darwin]
@@ -23185,6 +23194,8 @@ snapshots:
 
   '@rolldown/binding-darwin-arm64@1.0.0-rc.12':
     optional: true
+
+  '@rolldown/binding-darwin-arm64@1.0.0-rc.16': {}
 
   '@rolldown/binding-darwin-x64@1.0.0-rc.12':
     optional: true

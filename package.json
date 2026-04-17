@@ -8,6 +8,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
+    "@rolldown/binding-darwin-arm64": "1.0.0-rc.16",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.1.8",
