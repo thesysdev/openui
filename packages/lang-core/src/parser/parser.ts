@@ -595,6 +595,15 @@ function getSchemaDefaultValue(property: unknown): unknown {
   return (property as { default?: unknown }).default;
 }
 
+function getSchemaType(property: unknown): string | undefined {
+  if (!property || typeof property !== "object" || Array.isArray(property)) return undefined;
+  const type = (property as { type?: unknown }).type;
+  if (typeof type !== "string") return undefined;
+  // Normalize "integer" to "number" to match AST type inference
+  if (type === "integer") return "number";
+  return type;
+}
+
 function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const map: ParamMap = new Map();
   const defs = schema.$defs ?? {};
@@ -606,6 +615,7 @@ function compileSchema(schema: LibraryJSONSchema): ParamMap {
       name: key,
       required: required.includes(key),
       defaultValue: getSchemaDefaultValue(properties[key]),
+      type: getSchemaType(properties[key]),
     }));
     map.set(name, { params });
   }
