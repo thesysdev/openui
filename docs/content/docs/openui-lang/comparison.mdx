@@ -1,0 +1,161 @@
+---
+title: Feature Comparison
+description: How OpenUI compares to other generative UI frameworks like Vercel JSON-Render and Google A2UI.
+---
+
+Building generative UI — where an AI model creates interactive interfaces on the fly — is a new category. Several frameworks have emerged, each with different philosophies. This page compares OpenUI against two prominent alternatives so you can understand the landscape and make an informed choice.
+
+## At a Glance
+
+| Capability | OpenUI | JSON-Render (Vercel) | A2UI (Google) |
+| --- | --- | --- | --- |
+| **What the LLM generates** | Compact DSL (OpenUI Lang) | JSON Patch stream (RFC 6902) | JSON blocks in `<a2ui-json>` tags |
+| **Token efficiency** | Up to **67% fewer tokens** than JSON | Baseline JSON | Baseline JSON |
+| **Streaming** | Line-by-line, progressive render | JSONL patches, progressive render | JSONL, progressive render |
+| **Component guardrails** | Component library with Zod schemas | Catalog with Zod schemas | Catalog with JSON Schema |
+| **Prompt generation** | Automatic from library | Automatic from catalog | Automatic from catalog |
+| **State management** | `$variables` — language-native | JSON Pointer paths + store | JSON Pointer paths + signals |
+| **Data fetching** | `Query()` / `Mutation()` built into language | External (via actions) | External (via agent events) |
+| **Reactive bindings** | `$binding` props, auto re-fetch | `$bindState`, `$state` expressions | `DynamicString`, two-way binding |
+| **Form validation** | Built-in validators | Built-in validators | Built-in checks |
+| **Prebuilt components** | 40+ (charts, tables, forms, layouts) | 36 (shadcn/Radix) | ~25 (basic catalog) |
+| **Chart components** | 6 types (bar, line, area, pie, radar, scatter) | Via custom catalog | Not built-in |
+| **Chat layouts** | 3 ready-to-use (Fullscreen, Copilot, BottomTray) | Custom | Not included |
+| **Web frameworks** | React, Vue, Svelte | React, Vue, Svelte, Solid | React, Angular, Lit |
+| **Mobile** | React Native | React Native, Flutter (via 3rd party) | Flutter, SwiftUI (planned) |
+| **MCP support** | Native — pass MCP client directly | Via integration package | Transport-agnostic |
+| **CLI scaffolding** | `npx @openuidev/cli create` | Manual setup | Manual setup |
+| **License** | MIT | MIT | Apache 2.0 |
+
+## The Core Difference: Language vs JSON
+
+The most important distinction is **what the model actually generates**.
+
+JSON-Render and A2UI both ask the LLM to produce JSON — a format designed for machines, not for streaming generation. JSON requires balanced braces, quoted keys, and rigid nesting. When an LLM is mid-generation, a partially produced JSON object is invalid and unparseable.
+
+OpenUI takes a different approach. The LLM writes in **OpenUI Lang**, a line-oriented DSL where each line is independently valid:
+
+```text
+root = Card([header, chart, controls])
+header = CardHeader("Sales Dashboard")
+chart = BarChart(data.columns, data.results)
+data = Query("getSales", {region: $region}, {columns: [], results: []})
+$region = "US"
+controls = Select($region, ["US", "EU", "APAC"])
+```
+
+Each line parses and renders as soon as it arrives. No waiting for a closing brace. No buffering incomplete objects. The UI appears progressively, token by token.
+
+### Why Token Efficiency Matters
+
+Fewer tokens means:
+- **Faster responses** — the model finishes sooner
+- **Lower cost** — you pay per token
+- **More room for context** — the model can focus on your data, not on JSON syntax
+
+In [our benchmarks](/docs/benchmarks), OpenUI Lang uses **52–67% fewer tokens** than JSON-based formats across real-world UI scenarios like dashboards, forms, and data tables.
+
+## Data Fetching as a Language Primitive
+
+In JSON-Render and A2UI, fetching data requires wiring up actions, event handlers, or external integrations. The model generates UI structure, and you separately connect it to your backend.
+
+In OpenUI, data fetching is part of the language itself:
+
+```text
+users = Query("getUsers", {role: $role}, {rows: []})
+table = Table(users.columns, users.rows)
+$role = "admin"
+roleFilter = Select($role, ["admin", "editor", "viewer"])
+```
+
+This single snippet:
+1. Declares a query that fetches data via your tool provider (REST, MCP, or custom)
+2. Renders results in a table
+3. Binds a filter to `$role` — when the user changes it, the query **automatically re-fetches**
+4. Shows default empty data while loading
+
+No glue code. No event handlers. No action wiring. The model writes it, and it works.
+
+## Reactivity Without Complexity
+
+All three frameworks support reactive state, but the approaches differ significantly in what the LLM needs to generate.
+
+**JSON-Render** uses JSON Pointer expressions:
+```json
+{
+  "type": "Text",
+  "props": {
+    "content": { "$template": "Hello, {{/user/name}}!" }
+  }
+}
+```
+
+**A2UI** uses dynamic value objects:
+```json
+{
+  "type": "Text",
+  "props": {
+    "text": { "$data": "/greeting" }
+  }
+}
+```
+
+**OpenUI** uses simple `$variables`:
+```text
+greeting = TextContent("Hello, " + $name + "!")
+$name = "World"
+nameInput = Input($name, "Enter your name")
+```
+
+The `$` prefix is all the model needs to learn. No pointer syntax, no expression objects, no special wrapper types. When `$name` changes, everything that references it updates.
+
+## Built for Chat and Copilot Experiences
+
+OpenUI ships with production-ready chat layouts — not just a renderer:
+
+- **FullScreen** — full-page chat interface
+- **Copilot** — slide-out panel for assistant experiences
+- **BottomTray** — mobile-friendly bottom sheet
+
+These include threading, message history, streaming indicators, and follow-up suggestions out of the box. JSON-Render and A2UI focus on the rendering layer and leave chat UI to you.
+
+Combined with the headless state management layer (`@openuidev/react-headless`), you get a complete chat application framework — not just a component renderer.
+
+## Component Libraries: Ready to Use
+
+OpenUI includes **40+ prebuilt components** designed for the most common generative UI scenarios:
+
+- **6 chart types** — Bar, Line, Area, Pie, Radar, Scatter — that accept query results directly
+- **Data tables** with sorting and column definitions
+- **Form controls** — inputs, selects, checkboxes, sliders, date pickers
+- **Layout primitives** — cards, stacks, tabs, accordions, carousels
+- **Content blocks** — markdown, code blocks, images, callouts
+
+Charts are particularly important for generative UI. When a user asks "show me last quarter's revenue", the model should be able to generate a chart immediately. In OpenUI:
+
+```text
+chart = BarChart(revenue.columns, revenue.results)
+revenue = Query("getRevenue", {quarter: "Q4"}, {columns: [], results: []})
+```
+
+JSON-Render and A2UI don't include chart components — you'd need to build and register them yourself.
+
+## Getting Started in One Command
+
+```bash
+npx @openuidev/cli@latest create --name my-app
+```
+
+This scaffolds a complete Next.js application with streaming, prebuilt UI, and OpenUI Lang support. You get a working chat interface in under a minute.
+
+JSON-Render and A2UI require manual project setup, dependency configuration, and boilerplate wiring.
+
+## When to Use What
+
+**Choose OpenUI** if you want the fastest path to a production generative UI — with streaming chat, built-in data fetching, charts, and token-efficient generation out of the box.
+
+**Choose JSON-Render** if you need to render the same UI spec across many platforms (web, mobile, email, PDF, video, 3D) from a single JSON definition, and you're willing to trade token efficiency for format universality.
+
+**Choose A2UI** if you're building in a multi-agent ecosystem (A2A protocol) where agents communicate UI across trust boundaries, and you need the strictest security guarantees around declarative-only output.
+
+All three frameworks share the same core insight: LLMs should generate structured UI, not raw HTML. OpenUI optimizes for the developer building a generative AI product today — fewer tokens, less boilerplate, more built-in functionality.
