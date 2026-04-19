@@ -1,17 +1,15 @@
 import { createRequire } from "node:module";
 import { readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
 
 const require = createRequire(import.meta.url);
 
-// Resolve react-ui's package.json through Node's resolver so this works
-// regardless of where pnpm hoists the dependency.
-const reactUiPkg = require.resolve("@openuidev/react-ui/package.json");
-const reactUiRoot = dirname(reactUiPkg);
-
+// Resolve via react-ui's declared subpath exports so we don't depend on
+// pnpm's on-disk layout. We intentionally avoid resolving package.json here
+// because react-ui's "exports" field doesn't expose it and the wildcard
+// fallback mis-resolves the request.
 const inputs = [
-  resolve(reactUiRoot, "dist/styles/openui-defaults.css"),
-  resolve(reactUiRoot, "dist/components/index.css"),
+  require.resolve("@openuidev/react-ui/defaults.css"),
+  require.resolve("@openuidev/react-ui/components.css"),
 ];
 
 const combined = inputs.map((p) => readFileSync(p, "utf8")).join("\n");

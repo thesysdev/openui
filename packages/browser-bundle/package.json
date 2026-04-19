@@ -15,7 +15,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "rm -rf dist && mkdir -p dist && esbuild src/entry.js --bundle --format=iife --minify --outfile=dist/openui-bundle.min.js --define:process.env.NODE_ENV=\"production\" --target=es2020 && node scripts/concat-css.mjs",
+    "build": "rm -rf dist && mkdir -p dist && esbuild src/entry.js --bundle --format=iife --minify --outfile=dist/openui-bundle.min.js '--define:process.env.NODE_ENV=\"production\"' --target=es2020 && node scripts/concat-css.mjs",
     "typecheck": "echo \"(no types to check — IIFE bundle)\"",
     "lint:check": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
