@@ -3,7 +3,8 @@
 $sidebar-width: 272px;
 $sidebar-padding: cssUtils.$space-m;
 $sidebar-collapsed-width: calc(
-  32px + #{cssUtils.$space-m} + #{cssUtils.$space-m} + #{cssUtils.$space-3xs} + #{cssUtils.$space-3xs}
+  32px + #{cssUtils.$space-m} + #{cssUtils.$space-m} + #{cssUtils.$space-3xs} +
+    #{cssUtils.$space-3xs}
 );
 $sidebar-mobile-width: 294px;
 $sidebar-mobile-padding: cssUtils.$space-m-l;
