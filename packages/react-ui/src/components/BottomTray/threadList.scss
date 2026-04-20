@@ -7,7 +7,7 @@
   min-width: 240px;
   max-width: 320px;
   max-height: 296px;
-  padding: cssUtils.$space-s;
+  padding: cssUtils.$space-xs;
   border: 1px solid cssUtils.$border-default;
   border-radius: cssUtils.$radius-2xl;
   background-color: cssUtils.$foreground;
@@ -26,7 +26,7 @@
 .openui-bottom-tray-thread-list-items {
   display: flex;
   flex-direction: column;
-  gap: cssUtils.$space-2xs;
+  gap: cssUtils.$space-3xs;
   overflow-y: auto;
 }
 

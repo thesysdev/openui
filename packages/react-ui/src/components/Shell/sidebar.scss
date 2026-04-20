@@ -2,10 +2,14 @@
 
 $sidebar-width: 272px;
 $sidebar-padding: cssUtils.$space-m;
+$sidebar-collapsed-width: calc(
+  32px + #{cssUtils.$space-m} + #{cssUtils.$space-m} + #{cssUtils.$space-3xs} + #{cssUtils.$space-3xs}
+);
 $sidebar-mobile-width: 294px;
-$sidebar-mobile-padding: cssUtils.$space-m;
+$sidebar-mobile-padding: cssUtils.$space-m-l;
 $sidebar-fade-duration: 90ms;
 $sidebar-resize-duration: 160ms;
+$sidebar-mobile-slide-duration: 400ms;
 $sidebar-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
 .openui-shell-sidebar-container {
@@ -33,11 +37,11 @@ $sidebar-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
     z-index: 1000;
     background-color: cssUtils.$foreground;
     border-radius: 0;
-    transition: left $sidebar-resize-duration $sidebar-motion-ease;
+    transition: left $sidebar-mobile-slide-duration $sidebar-motion-ease;
   }
 
   &--collapsed {
-    width: 52px;
+    width: $sidebar-collapsed-width;
     transform: translateX(0);
     gap: cssUtils.$space-xs;
     cursor: e-resize;
@@ -70,7 +74,6 @@ $sidebar-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   &[data-sidebar-visual-state="collapsing"],
   &[data-sidebar-visual-state="expanding"] {
-    .openui-shell-sidebar-header__top-row,
     .openui-shell-sidebar-content,
     .openui-shell-sidebar-header > :not(.openui-shell-sidebar-header__top-row) {
       opacity: 0;
@@ -103,14 +106,12 @@ $sidebar-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   &__logo {
+    display: block;
     width: 32px;
     height: 32px;
     margin-left: cssUtils.$space-3xs;
     border-radius: cssUtils.$radius-m;
-    transition:
-      width $sidebar-resize-duration $sidebar-motion-ease,
-      height $sidebar-resize-duration $sidebar-motion-ease,
-      opacity $sidebar-fade-duration $sidebar-motion-ease;
+    transition: opacity $sidebar-fade-duration $sidebar-motion-ease;
   }
 
   &__agent-name {
@@ -128,18 +129,21 @@ $sidebar-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   &--collapsed {
-    align-items: center;
+    align-items: stretch;
 
     .openui-shell-sidebar-header__top-row {
-      display: grid;
+      display: block;
+      position: relative;
       min-height: 32px;
-      place-items: center;
+      width: 100%;
     }
 
     .openui-shell-sidebar-header__logo,
     .openui-shell-sidebar-header__toggle-button {
-      grid-area: 1 / 1;
-      margin-left: auto;
+      position: absolute;
+      top: 0;
+      left: cssUtils.$space-3xs;
+      margin-left: 0;
     }
 
     .openui-shell-sidebar-header__logo {
@@ -187,6 +191,8 @@ $sidebar-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .openui-shell-sidebar-header__toggle-button {
+  transition: opacity $sidebar-fade-duration $sidebar-motion-ease;
+
   .openui-shell-container--mobile & {
     display: none;
   }

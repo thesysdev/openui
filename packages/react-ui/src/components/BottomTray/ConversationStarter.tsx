@@ -6,7 +6,6 @@ import { useComposerState } from "../../hooks/useComposerState";
 import { ConversationStarterIcon, ConversationStarterProps } from "../../types/ConversationStarter";
 import { Carousel, CarouselContent } from "../Carousel";
 import { isChatEmpty } from "../_shared/utils";
-import { Separator } from "../Separator";
 
 export type ConversationStarterVariant = "short" | "long";
 
@@ -181,12 +180,6 @@ export const ConversationStarter = ({
             onClick={handleClick}
             variant={variant}
           />
-          {/* Add separator between items in long variant */}
-          {variant === "long" && index < starters.length - 1 && (
-            <div className="openui-bottom-tray-conversation-starter__separator">
-              <Separator />
-            </div>
-          )}
         </Fragment>
       ))}
     </div>

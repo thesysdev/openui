@@ -1,6 +1,6 @@
 import { useActiveArtifact } from "@openuidev/react-headless";
 import clsx from "clsx";
-import { ArrowLeftFromLine, ArrowRightFromLine } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
 import { IconButton } from "../IconButton";
@@ -185,12 +185,11 @@ export const SidebarHeader = ({
         <img src={logoUrl} alt={agentName} className="openui-shell-sidebar-header__logo" />
         <div className="openui-shell-sidebar-header__agent-name">{agentName}</div>
         <IconButton
-          icon={
-            showExpandedIcon ? <ArrowLeftFromLine size="1em" /> : <ArrowRightFromLine size="1em" />
-          }
+          icon={showExpandedIcon ? <PanelLeftClose size="1em" /> : <PanelLeftOpen size="1em" />}
           onClick={() => {
             setIsSidebarOpen(!isSidebarOpen);
           }}
+          aria-label={showExpandedIcon ? "Close sidebar" : "Open sidebar"}
           size="small"
           variant="tertiary"
           className="openui-shell-sidebar-header__toggle-button"

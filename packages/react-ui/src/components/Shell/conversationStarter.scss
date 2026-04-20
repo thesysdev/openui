@@ -24,16 +24,11 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
     display: block;
   }
 
-  // Long variant - vertical stacked list with separators
+  // Long variant - vertical stacked list
   &--long {
     display: flex;
     flex-direction: column;
     gap: cssUtils.$space-2xs;
-  }
-
-  // Separator wrapper for long variant
-  &__separator {
-    padding: cssUtils.$space-3xs cssUtils.$space-xs;
   }
 
   &__carousel-content {

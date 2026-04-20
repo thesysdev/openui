@@ -23,15 +23,10 @@
     display: block;
   }
 
-  // Long variant - vertical list items with separators
+  // Long variant - vertical list items
   &--long {
     flex-direction: column;
     gap: cssUtils.$space-2xs;
-  }
-
-  // Separator wrapper for long variant
-  &__separator {
-    padding: cssUtils.$space-3xs cssUtils.$space-xs;
   }
 
   &__carousel-content {
