@@ -595,7 +595,7 @@ function getSchemaDefaultValue(property: unknown): unknown {
   return (property as { default?: unknown }).default;
 }
 
-function compileSchema(schema: LibraryJSONSchema): ParamMap {
+export function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const map: ParamMap = new Map();
   const defs = schema.$defs ?? {};
 
