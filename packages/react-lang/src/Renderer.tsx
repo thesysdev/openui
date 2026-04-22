@@ -165,7 +165,7 @@ function RenderNode({ node }: { node: ElementNode }) {
  */
 function RenderNodeInner({ el, Comp }: { el: ElementNode; Comp: ComponentRenderer<any> }) {
   const renderNode = useRenderNode();
-  return <Comp props={el.props} renderNode={renderNode} />;
+  return <Comp props={el.props} renderNode={renderNode} statementId={el.statementId} />;
 }
 
 // ─── Loading style injection (once per document) ───
