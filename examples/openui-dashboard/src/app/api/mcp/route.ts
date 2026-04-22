@@ -1,60 +1,66 @@
 /**
- * MCP Server — exposes all tools via MCP protocol.
+ * Proxies MCP (Streamable HTTP) to Linear's hosted server.
+ * Adds Authorization: Bearer from LINEAR_API_KEY / LINEAR_TOKEN / LINEAR_OAUTH_TOKEN
+ * so the token never ships to the browser.
  *
- * Tool definitions live in src/tools.ts (shared with /api/chat).
- * This file only sets up the MCP transport and registers tools.
+ * @see https://linear.app/docs/mcp
  */
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import { tools } from "@/tools";
+import { LINEAR_MCP_URL, getLinearBearerToken } from "@/lib/linear-mcp";
 
-// ── MCP Server factory ───────────────────────────────────────────────────────
+const HOP_BY_HOP = new Set([
+  "connection",
+  "content-length",
+  "host",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+]);
 
-function createServer(): McpServer {
-  const server = new McpServer(
-    { name: "openui-tools", version: "1.0.0" },
-  );
-
-  for (const tool of tools) {
-    server.registerTool(tool.name, {
-      description: tool.description,
-      inputSchema: tool.inputSchema,
-    }, async (args) => ({
-      content: [{ type: "text" as const, text: JSON.stringify(await tool.execute(args)) }],
-    }));
-  }
-
-  return server;
-}
-
-// ── Request handler ──────────────────────────────────────────────────────────
-
-async function handleMcpRequest(request: Request): Promise<Response> {
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: undefined, // stateless
-    enableJsonResponse: true,
+function forwardRequestHeaders(req: Request, bearer: string): Headers {
+  const out = new Headers();
+  req.headers.forEach((value, key) => {
+    if (!HOP_BY_HOP.has(key.toLowerCase())) out.append(key, value);
   });
-  const server = createServer();
-  await server.connect(transport);
-
-  try {
-    return await transport.handleRequest(request);
-  } finally {
-    await transport.close();
-    await server.close();
-  }
+  out.set("Authorization", `Bearer ${bearer}`);
+  return out;
 }
 
-// ── Next.js route exports ────────────────────────────────────────────────────
+async function proxyToLinear(req: Request): Promise<Response> {
+  const token = getLinearBearerToken();
+  if (!token) {
+    return new Response(
+      JSON.stringify({
+        error: "Set LINEAR_API_KEY (or LINEAR_TOKEN / LINEAR_OAUTH_TOKEN) to use Linear MCP.",
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  const headers = forwardRequestHeaders(req, token);
+  const init: RequestInit & { duplex?: "half" } = {
+    method: req.method,
+    headers,
+  };
+  if (req.method !== "GET" && req.method !== "HEAD" && req.body) {
+    init.body = req.body;
+    init.duplex = "half";
+  }
+
+  return fetch(LINEAR_MCP_URL, init);
+}
 
 export async function POST(req: Request) {
-  return handleMcpRequest(req);
+  return proxyToLinear(req);
 }
 
 export async function GET(req: Request) {
-  return handleMcpRequest(req);
+  return proxyToLinear(req);
 }
 
 export async function DELETE(req: Request) {
-  return handleMcpRequest(req);
+  return proxyToLinear(req);
 }

@@ -92,8 +92,10 @@ export function sseResponseFromRunner(
 
       runner.on("chunk", (chunk) => {
         const choice = chunk.choices?.[0];
-        if (!choice?.delta) return;
-        if (choice.delta.content || choice.finish_reason === "stop") {
+        const hasContent =
+          choice?.delta && (Boolean(choice.delta.content) || choice.finish_reason === "stop");
+        // Include usage (stream_options.include_usage) so the client can log tokens.
+        if (chunk.usage || hasContent) {
           send(sseEvent(chunk));
         }
       });

@@ -48,6 +48,9 @@ export async function streamChat(
           if (tc.status === "calling") tc.status = "done";
         }
         onToolCall([...activeCalls]);
+        if (lastUsage) {
+          console.log("[llm] Token usage:", lastUsage);
+        }
         onDone(lastUsage);
         return;
       }
@@ -82,6 +85,9 @@ export async function streamChat(
         if (chunk.usage) lastUsage = chunk.usage;
       } catch { /* skip malformed chunks */ }
     }
+  }
+  if (lastUsage) {
+    console.log("[llm] Token usage:", lastUsage);
   }
   onDone(lastUsage);
 }

@@ -5,5 +5,5 @@ import { OpenUIDashboard } from "@/components/OpenUIDashboard";
 import { STARTERS } from "@/starters";
 
 export default function DashboardPage() {
-  return <OpenUIDashboard library={openuiLibrary} starters={STARTERS} />;
+  return <OpenUIDashboard library={openuiLibrary}  />;
 }

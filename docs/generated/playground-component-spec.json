@@ -46,7 +46,7 @@
       "description": "Data table — column-oriented. Each Col holds its own data array."
     },
     "Col": {
-      "signature": "Col(label: string, data, type?: \"string\" | \"number\" | \"action\")",
+      "signature": "Col(label: string, data: any, type?: \"string\" | \"number\" | \"action\")",
       "description": "Column definition — holds label + data array"
     },
     "BarChart": {
@@ -102,7 +102,7 @@
       "description": "Data point with numeric coordinates"
     },
     "Form": {
-      "signature": "Form(name: string, buttons: Buttons, fields)",
+      "signature": "Form(name: string, buttons: Buttons, fields?: FormControl[])",
       "description": "Form container with fields and explicit action buttons"
     },
     "FormControl": {
@@ -130,7 +130,7 @@
       "description": "Option for Select"
     },
     "DatePicker": {
-      "signature": "DatePicker(name: string, mode?: \"single\" | \"range\", rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?)",
+      "signature": "DatePicker(name: string, mode?: \"single\" | \"range\", rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?: $binding<any>)",
       "description": ""
     },
     "Slider": {
@@ -138,7 +138,7 @@
       "description": "Numeric slider input; supports continuous and discrete (stepped) variants"
     },
     "CheckBoxGroup": {
-      "signature": "CheckBoxGroup(name: string, items: CheckBoxItem[], rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?)",
+      "signature": "CheckBoxGroup(name: string, items: CheckBoxItem[], rules?: {required?: boolean, email?: boolean, url?: boolean, numeric?: boolean, min?: number, max?: number, minLength?: number, maxLength?: number, pattern?: string}, value?: $binding<Record<string, boolean>>)",
       "description": ""
     },
     "CheckBoxItem": {
@@ -154,7 +154,7 @@
       "description": ""
     },
     "SwitchGroup": {
-      "signature": "SwitchGroup(name: string, items: SwitchItem[], variant?: \"clear\" | \"card\" | \"sunk\", value?)",
+      "signature": "SwitchGroup(name: string, items: SwitchItem[], variant?: \"clear\" | \"card\" | \"sunk\", value?: $binding<Record<string, boolean>>)",
       "description": "Group of switch toggles"
     },
     "SwitchItem": {
@@ -170,7 +170,7 @@
       "description": "Group of Button components. direction: \"row\" (default) | \"column\"."
     },
     "Stack": {
-      "signature": "Stack([children], direction?: \"row\" | \"column\", gap?: \"none\" | \"xs\" | \"s\" | \"m\" | \"l\" | \"xl\" | \"2xl\", align?: \"start\" | \"center\" | \"end\" | \"stretch\" | \"baseline\", justify?: \"start\" | \"center\" | \"end\" | \"between\" | \"around\" | \"evenly\", wrap?: boolean)",
+      "signature": "Stack(children: any[], direction?: \"row\" | \"column\", gap?: \"none\" | \"xs\" | \"s\" | \"m\" | \"l\" | \"xl\" | \"2xl\", align?: \"start\" | \"center\" | \"end\" | \"stretch\" | \"baseline\", justify?: \"start\" | \"center\" | \"end\" | \"between\" | \"around\" | \"evenly\", wrap?: boolean)",
       "description": "Flex container. direction: \"row\"|\"column\" (default \"column\"). gap: \"none\"|\"xs\"|\"s\"|\"m\"|\"l\"|\"xl\"|\"2xl\" (default \"m\"). align: \"start\"|\"center\"|\"end\"|\"stretch\"|\"baseline\". justify: \"start\"|\"center\"|\"end\"|\"between\"|\"around\"|\"evenly\"."
     },
     "Tabs": {
@@ -265,7 +265,10 @@
     },
     {
       "name": "Tables",
-      "components": ["Table", "Col"],
+      "components": [
+        "Table",
+        "Col"
+      ],
       "notes": [
         "- Table is COLUMN-oriented: Table([Col(\"Label\", dataArray), Col(\"Count\", countArray, \"number\")]). Use array pluck for data: data.rows.fieldName",
         "- Col data can be component arrays for styled cells: Col(\"Status\", @Each(data.rows, \"item\", Tag(item.status, null, \"sm\", item.status == \"open\" ? \"success\" : \"danger\")))",
@@ -295,7 +298,12 @@
     },
     {
       "name": "Charts (1D)",
-      "components": ["PieChart", "RadialChart", "SingleStackedBarChart", "Slice"],
+      "components": [
+        "PieChart",
+        "RadialChart",
+        "SingleStackedBarChart",
+        "Slice"
+      ],
       "notes": [
         "- PieChart and BarChart need NUMBERS, not objects. For list data, use @Count(@Filter(...)) to aggregate:",
         "- PieChart from list: `PieChart([\"Low\", \"Med\", \"High\"], [@Count(@Filter(data.rows, \"priority\", \"==\", \"low\")), @Count(@Filter(data.rows, \"priority\", \"==\", \"medium\")), @Count(@Filter(data.rows, \"priority\", \"==\", \"high\"))], \"donut\")`",
@@ -304,7 +312,11 @@
     },
     {
       "name": "Charts (Scatter)",
-      "components": ["ScatterChart", "ScatterSeries", "Point"]
+      "components": [
+        "ScatterChart",
+        "ScatterSeries",
+        "Point"
+      ]
     },
     {
       "name": "Forms",
@@ -338,14 +350,20 @@
     },
     {
       "name": "Buttons",
-      "components": ["Button", "Buttons"],
+      "components": [
+        "Button",
+        "Buttons"
+      ],
       "notes": [
         "- Toggle in @Each: @Each(rows, \"t\", Button(t.status == \"open\" ? \"Close\" : \"Reopen\", Action([...])))"
       ]
     },
     {
       "name": "Data Display",
-      "components": ["TagBlock", "Tag"],
+      "components": [
+        "TagBlock",
+        "Tag"
+      ],
       "notes": [
         "- Color-mapped Tag: Tag(value, null, \"sm\", value == \"high\" ? \"danger\" : value == \"medium\" ? \"warning\" : \"neutral\")"
       ]
