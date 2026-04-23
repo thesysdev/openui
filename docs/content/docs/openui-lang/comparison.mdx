@@ -5,7 +5,7 @@ description: OpenUI vs json-render (Vercel), A2UI (Google), and CopilotKit OpenG
 
 # The Generative UI Landscape
 
-**Four frameworks. One question: how should AI talk to your UI?**
+**Four frameworks. Which one ships to production?**
 
 ---
 
@@ -13,73 +13,23 @@ description: OpenUI vs json-render (Vercel), A2UI (Google), and CopilotKit OpenG
 
 |  | **[OpenUI](https://github.com/thesysdev/openui)** | **[json-render](https://github.com/vercel-labs/json-render)** (Vercel) | **[A2UI](https://github.com/google/A2UI)** (Google) | **[CopilotKit OpenGenUI](https://github.com/CopilotKit/OpenGenerativeUI)** |
 |---|---|---|---|---|
-| **Token efficiency** | **Up to 67% fewer than JSON** | Baseline | Similar to JSON | Higher (raw HTML boilerplate) |
-| **Format** | OpenUI Lang (DSL) | JSON (RFC 6902 patches) | Declarative JSON | Raw HTML/SVG |
-| **Streaming** | Line-by-line | JSONL patches | Incremental updates | Sandboxed iframe |
-| **Data fetching** | `Query()` / `Mutation()`, MCP-native in the language | App-level (via `@json-render/mcp`) | Agent roundtrip | Skills + agent tools |
-| **Reactive state** | `$vars` + two-way binding | `$state` / `$computed` | Data model + JSON Pointer | CopilotKit shared state |
-| **Design system adherence** | Enforced via library + Zod | Enforced via catalog + Zod | Enforced via catalog | None; every output is a one-off |
-| **Components** | Out of box (charts, forms, tables, modals, chat shells) + your own library | Out of box (36 shadcn/ui) + your own library | Bring your own | None; agent generates HTML/SVG |
-| **Framework adapters** | React, Vue, Svelte | React, Vue, Svelte, Solid, RN, PDF, email, video, terminal, 3D | Angular, Flutter, Lit, React | React (Next.js) |
-| **Chat UI** | FullScreen, Copilot, BottomTray | Build your own | Build your own | CopilotKit chat |
-| **Agent integrations** | AI SDK, LangGraph, AG-UI, OpenAI | AI SDK | A2A, AG UI | LangGraph, CopilotKit v2 |
+| **Tokens** | **1x** | 3x | 3x | 4x |
+| **Latency (60 tok/s)** | **4.9s** | 14.2s | 14.2s | ~20s |
+| **Streaming** | Yes | Yes | Yes | Partial |
+| **Consistent output** | Yes | Yes | Yes | No |
+| **Design system** | Yes | Yes | Yes | No |
+| **Components** | Library + custom | Library + custom | Custom only | None |
+| **Built-in data fetching** | Yes | No | No | No |
+| **Chat UI included** | Yes | No | No | Yes |
+| **Multi-platform** | Web, mobile, email | Web, mobile, PDF, email, video | Web, iOS, Android | Web |
+| **Security risk** | Minimal | Minimal | Minimal | Medium |
 | **License** | MIT | Apache 2.0 | Apache 2.0 | MIT |
 
 ---
 
-## The Key Differences
+## Best For
 
-### What the LLM writes
-
-OpenUI Lang is a DSL where every line is independently valid, so UIs stream token-by-token with no broken intermediate states. json-render and A2UI use JSON (patch-based and tree-based) that needs balanced braces before a client can parse cleanly. CopilotKit streams raw HTML/SVG, which flickers as partial tags arrive.
-
-```text
-root   = Card([header, chart])
-header = CardHeader("Sales")
-chart  = BarChart(data.columns, data.results)
-data   = Query("getSales", {}, {columns: [], results: []})
-```
-
-Each line renders the moment it arrives. No buffering, no waiting on a closing brace.
-
-### Code generation vs intent
-
-CopilotKit OpenGenerativeUI has the LLM generate raw HTML/SVG into a sandboxed iframe. **Shines for:** creative one-offs (algorithm animations, diagrams, generative art), zero learning curve, fastest demo path. **Breaks down as a product:** no shared design system across outputs, heavy token cost per UI, iframe-based multi-surface is awkward, and partial HTML streams as flickering broken renders.
-
-OpenUI, json-render, and A2UI take the opposite stance: **the model describes intent, the renderer owns the pixels.**
-
-### Data fetching
-
-OpenUI is the only one where the generated UI fetches data directly. No LLM roundtrip per change:
-
-```text
-$days  = "7"
-filter = Select("days", $days, [SelectItem("7", "7 days"), SelectItem("30", "30 days")])
-data   = Query("get_analytics", {days: $days}, {rows: []})
-chart  = LineChart(data.rows.day, [Series("Revenue", data.rows.revenue)])
-```
-
-Dropdown changes → query re-fetches → chart updates. The LLM generates UI once and gets out of the way.
-
-json-render leaves fetching to app code. A2UI routes every data change through the agent. CopilotKit drives updates via agent tool calls.
-
-### Platform coverage
-
-json-render's standout: one catalog renders to web, mobile, PDF, email, video (Remotion), terminal (Ink), and 3D (R3F). Built for teams that need the same UI spec across surfaces.
-
-### Cross-platform reach
-
-A2UI ships native renderers for Angular, Flutter, Lit, and React by keeping the format purely declarative, so every client's runtime is trivial. OpenUI and json-render make the opposite trade: richer format, more runtime per platform. Porting `lang-core` to Swift or Dart is engineering work, not an architectural blocker.
-
-What A2UI genuinely adds is the **A2A transport**: a standard envelope for agents to hand rendered UI to each other across trust boundaries.
-
----
-
-## When to Use What
-
-| Use case | Best fit |
-|---|---|
-| Data-driven chat UIs, dashboards, CRUD with live data | **OpenUI** |
-| Multi-target rendering (web + PDF + email + video + 3D) | **json-render** |
-| Cross-platform native, multi-agent across trust boundaries | **A2UI** |
-| Creative visual output: algorithm animations, generative art | **CopilotKit OpenGenUI** |
+- **Data-driven chat UIs and dashboards** → OpenUI
+- **One UI across web, mobile, PDF, email, and video** → json-render
+- **Multi-agent systems across iOS, Android, and web** → A2UI
+- **Creative one-off visuals (animations, generative art)** → CopilotKit OpenGenUI
