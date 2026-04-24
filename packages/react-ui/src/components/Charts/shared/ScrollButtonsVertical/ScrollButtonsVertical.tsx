@@ -41,6 +41,7 @@ export const ScrollButtonsVertical = React.memo(
           onClick={onScrollUp}
           size="extra-small"
           disabled={!canScrollUp}
+          aria-label="Scroll up"
         />
 
         <IconButton
@@ -56,6 +57,7 @@ export const ScrollButtonsVertical = React.memo(
           size="extra-small"
           onClick={onScrollDown}
           disabled={!canScrollDown}
+          aria-label="Scroll down"
         />
       </div>
     );

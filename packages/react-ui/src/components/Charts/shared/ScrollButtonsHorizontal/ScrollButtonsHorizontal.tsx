@@ -41,6 +41,7 @@ export const ScrollButtonsHorizontal = React.memo(
           onClick={onScrollLeft}
           size="2-extra-small"
           disabled={!canScrollLeft}
+          aria-label="Scroll left"
         />
 
         <IconButton
@@ -56,6 +57,7 @@ export const ScrollButtonsHorizontal = React.memo(
           size="2-extra-small"
           onClick={onScrollRight}
           disabled={!canScrollRight}
+          aria-label="Scroll right"
         />
       </div>
     );
