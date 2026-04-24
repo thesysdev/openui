@@ -70,6 +70,7 @@ export const Composer = ({ className, placeholder = "Type your query here" }: Co
             icon={isRunning ? <Square size="1em" fill="currentColor" /> : <ArrowUp size="1em" />}
             size="medium"
             variant="primary"
+            aria-label={isRunning ? "Cancel message" : "Send message"}
             className="openui-shell-thread-composer__submit-button"
           />
         </div>

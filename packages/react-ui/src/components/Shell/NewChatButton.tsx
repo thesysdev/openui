@@ -18,6 +18,7 @@ export const NewChatButton = ({ className }: { className?: string }) => {
         onClick={switchToNewThread}
         variant="primary"
         size="small"
+        aria-label="New chat"
         className={clsx("openui-shell-new-chat-button_collapsed", className)}
       />
     );
