@@ -224,7 +224,7 @@ const UserMessageContent = ({ message }: { message: Message }) => {
   if (message.role !== "user") return null;
   const content = message.content;
   if (typeof content === "string") {
-    // Strip XML wrapper tags (<content>, <context>) so the bubble shows clean text
+    // Strip inline transport wrappers so the bubble shows clean text
     const { content: humanText } = separateContentAndContext(content);
     return <>{humanText}</>;
   }

@@ -60,7 +60,7 @@ function calculate({ expression }: { expression: string }): Promise<string> {
     setTimeout(() => {
       try {
         const sanitized = expression.replace(/[^0-9+\-*/().%\s,Math.sqrtpowabsceilfloorround]/g, "");
-         
+
         const result = new Function(`return (${sanitized})`)();
         resolve(JSON.stringify({ expression, result: Number(result) }));
       } catch {
@@ -200,9 +200,10 @@ export async function POST(req: NextRequest) {
   const { messages } = await req.json();
 
   const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    baseURL: "http://localhost:3102/v1/managedopenui",
+    apiKey: process.env.THESYS_API_KEY,
   });
-  const MODEL = "gpt-5.4";
+  const MODEL = "c1/openai/gpt-5/v-20260331";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cleanMessages = (messages as any[])

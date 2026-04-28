@@ -6,6 +6,11 @@ export function wrapContent(text: string): string {
   return `${CONTENT_MARKER}\n${text}`;
 }
 
+// Reuse the original assistant header so attrs survive form-state persistence.
+export function wrapContentWithHeader(text: string, contentHeader?: string): string {
+  return contentHeader ? `${contentHeader}\n${text}` : wrapContent(text);
+}
+
 export function wrapContext(json: string): string {
   return `\n${CONTEXT_MARKER}\n${json}`;
 }
@@ -17,6 +22,7 @@ export function wrapContext(json: string): string {
 export function separateContentAndContext(raw: string): {
   content: string;
   contextString: string | null;
+  contentHeader?: string;
 } {
   const lastContentIdx = raw.lastIndexOf(CONTENT_MARKER);
   const lastContextIdx = raw.lastIndexOf(CONTEXT_MARKER);
@@ -39,6 +45,8 @@ export function separateContentAndContext(raw: string): {
     return {
       content: raw.slice(bodyStartIndex(raw, lastContentIdx)),
       contextString: null,
+      // Preserve attrs when this message is rewritten.
+      contentHeader: contentHeader(raw, lastContentIdx),
     };
   }
 
@@ -46,7 +54,15 @@ export function separateContentAndContext(raw: string): {
   return {
     content: stripSectionSeparator(raw.slice(bodyStartIndex(raw, lastContentIdx), lastContextIdx)),
     contextString: raw.slice(bodyStartIndex(raw, lastContextIdx)),
+    // Preserve attrs when this message is rewritten.
+    contentHeader: contentHeader(raw, lastContentIdx),
   };
+}
+
+// Extract the full content header line
+function contentHeader(raw: string, markerIdx: number): string {
+  const headerEndIdx = raw.indexOf("\n", markerIdx);
+  return headerEndIdx === -1 ? raw.slice(markerIdx) : raw.slice(markerIdx, headerEndIdx);
 }
 
 function bodyStartIndex(raw: string, markerIdx: number): number {

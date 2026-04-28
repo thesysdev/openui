@@ -103,7 +103,7 @@ function FormDataAccordion({ state }: { state: Record<string, any> }) {
 
 /**
  * Renders a user message, handling both plain text messages and
- * XML-formatted messages from form submissions (which contain <content> and <context> tags).
+ * inline-formatted messages from form submissions.
  */
 export const GenUIUserMessage = ({ message }: { message: UserMessage }) => {
   const rawContent = typeof message.content === "string" ? message.content : "";

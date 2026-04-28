@@ -5,7 +5,12 @@ import { useThread } from "@openuidev/react-headless";
 import type { ActionEvent, Library } from "@openuidev/react-lang";
 import { BuiltinActionType, Renderer } from "@openuidev/react-lang";
 import { useCallback, useMemo } from "react";
-import { separateContentAndContext, wrapContent, wrapContext } from "../../utils/contentParser";
+import {
+  separateContentAndContext,
+  wrapContent,
+  wrapContentWithHeader,
+  wrapContext,
+} from "../../utils/contentParser";
 import { AssistantMessageContainer } from "../Shell";
 import { BehindTheScenes, ToolCallComponent } from "../ToolCall";
 import { ToolResult } from "../ToolResult";
@@ -33,8 +38,12 @@ export const GenUIAssistantMessage = ({
   }, [isRunning, messages, message.id]);
 
   // Separate openui-lang code from persisted form state
-  const { content: openuiCode, contextString } = useMemo(() => {
-    if (!message.content) return { content: null, contextString: null };
+  const {
+    content: openuiCode,
+    contextString,
+    contentHeader,
+  } = useMemo(() => {
+    if (!message.content) return { content: null, contextString: null, contentHeader: undefined };
     return separateContentAndContext(message.content);
   }, [message.content]);
 
@@ -71,15 +80,18 @@ export const GenUIAssistantMessage = ({
     return toolCall?.function.name;
   };
 
-  // Persist form state into the message content (XML-wrapped)
+  // Persist form state into the inline-wrapped message content.
   const handleStateUpdate = useCallback(
     (state: Record<string, any>) => {
       const code = openuiCode ?? "";
-      const contextJson = JSON.stringify([state]);
-      const fullMessage = code + "\n" + wrapContext(contextJson);
+      const hasState = Object.keys(state).length > 0;
+      const contentPart = wrapContentWithHeader(code, contentHeader);
+      const fullMessage = hasState
+        ? contentPart + wrapContext(JSON.stringify([state]))
+        : contentPart;
       updateMessage({ ...message, content: fullMessage });
     },
-    [updateMessage, message, openuiCode],
+    [updateMessage, message, openuiCode, contentHeader],
   );
 
   // Build LLM-friendly message from action + form state, then dispatch
