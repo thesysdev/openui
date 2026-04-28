@@ -76,6 +76,7 @@ $typography: (
     2-extra-small-heavy: typography(openui-text-label-xs-heavy),
   ),
   heading: (
+    xl: typography(openui-text-heading-xl),
     large: typography(openui-text-heading-lg),
     medium: typography(openui-text-heading-md),
     small: typography(openui-text-heading-sm),
@@ -90,8 +91,11 @@ $typography: (
     small-heavy: typography(openui-text-numbers-sm-heavy),
     extra-small: typography(openui-text-numbers-xs),
     extra-small-heavy: typography(openui-text-numbers-xs-heavy),
-    title: typography(openui-text-heading-lg),
-    title-medium: typography(openui-text-heading-md),
+    heading: typography(openui-text-numbers-heading-lg),
+    heading-small: typography(openui-text-numbers-heading-sm),
+    heading-medium: typography(openui-text-numbers-heading-md),
+    heading-large: typography(openui-text-numbers-heading-lg),
+    heading-xl: typography(openui-text-numbers-heading-xl),
   ),
   code: (
     default: typography(openui-text-code-default),

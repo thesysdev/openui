@@ -12,6 +12,7 @@ import { getCategoricalChartConfig } from "../utils/dataUtils.js";
 import { PaletteName, useChartPalette } from "../utils/PalletUtils.js";
 import { PieChartData } from "./types/index.js";
 import {
+  calculateChartDimensions,
   calculateTwoLevelChartDimensions,
   createAnimationConfig,
   createEventHandlers,
@@ -127,7 +128,15 @@ const PieChartComponent = <T extends PieChartData>({
     return Math.max(minChartSize, size);
   }, [effectiveWidth, effectiveHeight, isRowLayout]);
 
-  const chartSizeStyle = useMemo(() => ({ width: chartSize, height: chartSize }), [chartSize]);
+  const isSemiCircular = appearance === "semiCircular";
+  const chartViewportHeight = useMemo(
+    () => (isSemiCircular ? Math.max(1, Math.ceil(chartSize / 2)) : chartSize),
+    [chartSize, isSemiCircular],
+  );
+  const chartSizeStyle = useMemo(
+    () => ({ width: chartSize, height: chartViewportHeight }),
+    [chartSize, chartViewportHeight],
+  );
   const rechartsProps = useMemo(
     () => ({
       width: "100%",
@@ -263,8 +272,11 @@ const PieChartComponent = <T extends PieChartData>({
     if (variant === "donut") {
       return calculateTwoLevelChartDimensions(chartSize);
     }
+    if (isSemiCircular) {
+      return { ...calculateChartDimensions(chartSize, variant), middleRadius: 0 };
+    }
     return { outerRadius: "90%", innerRadius: 0, middleRadius: 0 };
-  }, [variant, chartSize]);
+  }, [variant, chartSize, isSemiCircular]);
 
   const startAngle = useMemo(() => (appearance === "semiCircular" ? 180 : 0), [appearance]);
   const endAngle = useMemo(() => (appearance === "semiCircular" ? 0 : 360), [appearance]);
@@ -281,6 +293,8 @@ const PieChartComponent = <T extends PieChartData>({
       ...sectorStyle,
       startAngle,
       endAngle,
+      cx: "50%",
+      cy: isSemiCircular ? chartViewportHeight : "50%",
       onMouseEnter: handleChartMouseEnter,
       onMouseLeave: handleChartMouseLeave,
     }),
@@ -293,6 +307,8 @@ const PieChartComponent = <T extends PieChartData>({
       sectorStyle,
       startAngle,
       endAngle,
+      isSemiCircular,
+      chartViewportHeight,
       handleChartMouseEnter,
       handleChartMouseLeave,
     ],

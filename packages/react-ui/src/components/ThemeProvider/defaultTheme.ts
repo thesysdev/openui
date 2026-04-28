@@ -245,12 +245,12 @@ const createColorTheme = ({
     interactiveDestructiveAccentDisabled: withAlpha(swatch(dangerSwatch, 600), 0.4),
 
     // Chat
-    chatUserResponseBg: brandSolid,
-    chatUserResponseText: accentText,
+    chatUserResponseBg: withAlpha(brandSolid, 0.08),
+    chatUserResponseText: neutralPrimary,
 
     // Border
-    borderDefault: withAlpha(overlayBase, isDark ? 0.12 : 0.06),
-    borderInteractive: withAlpha(overlayBase, isDark ? 0.2 : 0.12),
+    borderDefault: withAlpha(overlayBase, isDark ? 0.06 : 0.06),
+    borderInteractive: withAlpha(overlayBase, isDark ? 0.12 : 0.12),
     borderInteractiveEmphasis: withAlpha(overlayBase, isDark ? 0.4 : 0.3),
     borderInteractiveSelected: isDark ? swatch(neutral, 50) : swatch(neutral, 1000),
     borderAccent: withAlpha(brandSolid, isDark ? 0.2 : 0.08),
@@ -429,6 +429,14 @@ const typographyTheme: TypographyTheme = {
   textNumbersLgLetterSpacing: "0",
   textNumbersLgHeavy: `500 18px/1.5 ${FONT_NUMBERS}`,
   textNumbersLgHeavyLetterSpacing: "0",
+  textNumbersHeadingSm: `600 18px/1.25 ${FONT_NUMBERS}`,
+  textNumbersHeadingSmLetterSpacing: "0",
+  textNumbersHeadingMd: `600 24px/1.1 ${FONT_NUMBERS}`,
+  textNumbersHeadingMdLetterSpacing: "0",
+  textNumbersHeadingLg: `600 28px/1.1 ${FONT_NUMBERS}`,
+  textNumbersHeadingLgLetterSpacing: "0",
+  textNumbersHeadingXl: `600 32px/1.1 ${FONT_NUMBERS}`,
+  textNumbersHeadingXlLetterSpacing: "0",
 
   // Code
   textCodeSm: `400 12px/1.5 ${FONT_CODE}`,
