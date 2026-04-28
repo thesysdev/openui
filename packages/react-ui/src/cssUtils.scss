@@ -214,6 +214,14 @@ $text-numbers-lg: var(--openui-text-numbers-lg);
 $text-numbers-lg-letter-spacing: var(--openui-text-numbers-lg-letter-spacing);
 $text-numbers-lg-heavy: var(--openui-text-numbers-lg-heavy);
 $text-numbers-lg-heavy-letter-spacing: var(--openui-text-numbers-lg-heavy-letter-spacing);
+$text-numbers-heading-sm: var(--openui-text-numbers-heading-sm);
+$text-numbers-heading-sm-letter-spacing: var(--openui-text-numbers-heading-sm-letter-spacing);
+$text-numbers-heading-md: var(--openui-text-numbers-heading-md);
+$text-numbers-heading-md-letter-spacing: var(--openui-text-numbers-heading-md-letter-spacing);
+$text-numbers-heading-lg: var(--openui-text-numbers-heading-lg);
+$text-numbers-heading-lg-letter-spacing: var(--openui-text-numbers-heading-lg-letter-spacing);
+$text-numbers-heading-xl: var(--openui-text-numbers-heading-xl);
+$text-numbers-heading-xl-letter-spacing: var(--openui-text-numbers-heading-xl-letter-spacing);
 $text-code-sm: var(--openui-text-code-sm);
 $text-code-sm-letter-spacing: var(--openui-text-code-sm-letter-spacing);
 $text-code-sm-heavy: var(--openui-text-code-sm-heavy);
@@ -265,6 +273,7 @@ $typography: (
     2-extra-small-heavy: typography(openui-text-label-xs-heavy),
   ),
   heading: (
+    xl: typography(openui-text-heading-xl),
     large: typography(openui-text-heading-lg),
     medium: typography(openui-text-heading-md),
     small: typography(openui-text-heading-sm),
@@ -279,8 +288,11 @@ $typography: (
     small-heavy: typography(openui-text-numbers-sm-heavy),
     extra-small: typography(openui-text-numbers-xs),
     extra-small-heavy: typography(openui-text-numbers-xs-heavy),
-    title: typography(openui-text-heading-lg),
-    title-medium: typography(openui-text-heading-md),
+    heading: typography(openui-text-numbers-heading-lg),
+    heading-small: typography(openui-text-numbers-heading-sm),
+    heading-medium: typography(openui-text-numbers-heading-md),
+    heading-large: typography(openui-text-numbers-heading-lg),
+    heading-xl: typography(openui-text-numbers-heading-xl),
   ),
   code: (
     default: typography(openui-text-code-default),

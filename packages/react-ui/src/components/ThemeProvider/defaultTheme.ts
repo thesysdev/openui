@@ -429,6 +429,14 @@ const typographyTheme: TypographyTheme = {
   textNumbersLgLetterSpacing: "0",
   textNumbersLgHeavy: `500 18px/1.5 ${FONT_NUMBERS}`,
   textNumbersLgHeavyLetterSpacing: "0",
+  textNumbersHeadingSm: `600 18px/1.25 ${FONT_NUMBERS}`,
+  textNumbersHeadingSmLetterSpacing: "0",
+  textNumbersHeadingMd: `600 24px/1.1 ${FONT_NUMBERS}`,
+  textNumbersHeadingMdLetterSpacing: "0",
+  textNumbersHeadingLg: `600 28px/1.1 ${FONT_NUMBERS}`,
+  textNumbersHeadingLgLetterSpacing: "0",
+  textNumbersHeadingXl: `700 32px/1.1 ${FONT_NUMBERS}`,
+  textNumbersHeadingXlLetterSpacing: "0",
 
   // Code
   textCodeSm: `400 12px/1.5 ${FONT_CODE}`,

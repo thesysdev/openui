@@ -280,6 +280,14 @@ export interface TypographyTheme {
   textNumbersLgLetterSpacing?: string;
   textNumbersLgHeavy?: string;
   textNumbersLgHeavyLetterSpacing?: string;
+  textNumbersHeadingSm?: string;
+  textNumbersHeadingSmLetterSpacing?: string;
+  textNumbersHeadingMd?: string;
+  textNumbersHeadingMdLetterSpacing?: string;
+  textNumbersHeadingLg?: string;
+  textNumbersHeadingLgLetterSpacing?: string;
+  textNumbersHeadingXl?: string;
+  textNumbersHeadingXlLetterSpacing?: string;
 
   // Compound typography: code
   textCodeSm?: string;

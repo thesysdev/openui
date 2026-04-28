@@ -72,8 +72,8 @@
 
   // Chat Colors
 
-  --openui-chat-user-response-bg: oklch(0.097 0 0 / 1);
-  --openui-chat-user-response-text: oklch(0.994 0 89.876 / 1);
+  --openui-chat-user-response-bg: oklch(0.097 0 0 / 0.08);
+  --openui-chat-user-response-text: oklch(0.097 0 0 / 1);
 
   // Border Colors
 
@@ -214,6 +214,14 @@
   --openui-text-numbers-lg-letter-spacing: 0;
   --openui-text-numbers-lg-heavy: 500 18px/1.5 "Inter", sans-serif;
   --openui-text-numbers-lg-heavy-letter-spacing: 0;
+  --openui-text-numbers-heading-sm: 600 18px/1.25 "Inter", sans-serif;
+  --openui-text-numbers-heading-sm-letter-spacing: 0;
+  --openui-text-numbers-heading-md: 600 24px/1.1 "Inter", sans-serif;
+  --openui-text-numbers-heading-md-letter-spacing: 0;
+  --openui-text-numbers-heading-lg: 600 28px/1.1 "Inter", sans-serif;
+  --openui-text-numbers-heading-lg-letter-spacing: 0;
+  --openui-text-numbers-heading-xl: 700 32px/1.1 "Inter", sans-serif;
+  --openui-text-numbers-heading-xl-letter-spacing: 0;
   --openui-text-code-sm: 400 12px/1.5 "SFMono-Regular", Menlo, monospace;
   --openui-text-code-sm-letter-spacing: 0;
   --openui-text-code-sm-heavy: 700 12px/1.5 "SFMono-Regular", Menlo, monospace;
@@ -308,13 +316,13 @@
 
     // Chat Colors
 
-    --openui-chat-user-response-bg: oklch(0.994 0 89.876 / 1);
-    --openui-chat-user-response-text: oklch(0.097 0 0 / 1);
+    --openui-chat-user-response-bg: oklch(0.994 0 89.876 / 0.08);
+    --openui-chat-user-response-text: oklch(0.985 0 89.876 / 1);
 
     // Border Colors
 
-    --openui-border-default: oklch(0.994 0 89.876 / 0.12);
-    --openui-border-interactive: oklch(0.994 0 89.876 / 0.2);
+    --openui-border-default: oklch(0.994 0 89.876 / 0.06);
+    --openui-border-interactive: oklch(0.994 0 89.876 / 0.12);
     --openui-border-interactive-emphasis: oklch(0.994 0 89.876 / 0.4);
     --openui-border-interactive-selected: oklch(0.985 0 89.876 / 1);
     --openui-border-accent: oklch(0.994 0 89.876 / 0.2);
@@ -450,6 +458,14 @@
     --openui-text-numbers-lg-letter-spacing: 0;
     --openui-text-numbers-lg-heavy: 500 18px/1.5 "Inter", sans-serif;
     --openui-text-numbers-lg-heavy-letter-spacing: 0;
+    --openui-text-numbers-heading-sm: 600 18px/1.25 "Inter", sans-serif;
+    --openui-text-numbers-heading-sm-letter-spacing: 0;
+    --openui-text-numbers-heading-md: 600 24px/1.1 "Inter", sans-serif;
+    --openui-text-numbers-heading-md-letter-spacing: 0;
+    --openui-text-numbers-heading-lg: 600 28px/1.1 "Inter", sans-serif;
+    --openui-text-numbers-heading-lg-letter-spacing: 0;
+    --openui-text-numbers-heading-xl: 700 32px/1.1 "Inter", sans-serif;
+    --openui-text-numbers-heading-xl-letter-spacing: 0;
     --openui-text-code-sm: 400 12px/1.5 "SFMono-Regular", Menlo, monospace;
     --openui-text-code-sm-letter-spacing: 0;
     --openui-text-code-sm-heavy: 700 12px/1.5 "SFMono-Regular", Menlo, monospace;
