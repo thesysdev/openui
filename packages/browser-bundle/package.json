@@ -1,0 +1,61 @@
+{
+  "name": "@openuidev/browser-bundle",
+  "version": "0.1.0",
+  "description": "Prebuilt IIFE browser bundle of @openuidev/react-lang + @openuidev/react-ui for iframe, CDN, and no-build-pipeline embedding (Open WebUI tools, chatbots, widgets, etc.)",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": true,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": "./dist/openui-bundle.min.js",
+    "./styles.css": "./dist/openui-styles.css",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "rm -rf dist && mkdir -p dist && esbuild src/entry.js --bundle --format=iife --minify --outfile=dist/openui-bundle.min.js '--define:process.env.NODE_ENV=\"production\"' --target=es2020 && node scripts/concat-css.mjs",
+    "typecheck": "echo \"(no types to check — IIFE bundle)\"",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./src",
+    "format:check": "prettier --check ./src",
+    "prepare": "pnpm run build",
+    "ci": "pnpm run lint:check && pnpm run format:check"
+  },
+  "keywords": [
+    "openui",
+    "generative-ui",
+    "react",
+    "ai",
+    "llm",
+    "browser",
+    "iife",
+    "cdn",
+    "bundle",
+    "iframe",
+    "embed",
+    "no-build",
+    "open-webui"
+  ],
+  "homepage": "https://openui.com",
+  "author": "engineering@thesys.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "packages/browser-bundle"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "dependencies": {
+    "@openuidev/react-lang": "workspace:^",
+    "@openuidev/react-ui": "workspace:^",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

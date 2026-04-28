@@ -61,6 +61,8 @@ export type SubComponentOf<P> = {
 export interface ComponentRenderProps<P = Record<string, unknown>, RenderNode = unknown> {
   props: P;
   renderNode: (value: unknown) => RenderNode;
+  /** The statement ID from the parsed program (e.g., "header", "prose1"). Undefined for inline components. */
+  statementId?: string;
 }
 
 // ─── DefinedComponent (framework-generic) ────────────────────────────────────

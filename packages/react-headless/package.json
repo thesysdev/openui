@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/react-headless",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Headless React primitives for AI chat — state management, streaming adapters for OpenAI and AG-UI, message format converters, and thread management for OpenUI generative UI apps",
   "license": "MIT",
   "type": "module",
@@ -39,7 +39,7 @@
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "peerDependencies": {
-    "react": ">=19.0.0",
+    "react": "^18.3.1 || ^19.0.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {

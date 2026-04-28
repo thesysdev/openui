@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/react-email",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "React Email components for OpenUI — 44 email building blocks with defineComponent",
   "type": "module",
   "main": "dist/index.cjs",
@@ -43,8 +43,8 @@
   },
   "peerDependencies": {
     "@openuidev/react-lang": "workspace:*",
-    "react": ">=19.0.0",
-    "react-dom": ">=19.0.0",
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
     "zod": "^3.25.0 || ^4.0.0"
   },
   "repository": {

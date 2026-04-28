@@ -571,6 +571,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
         clearInterval(q.timer);
         q.timer = undefined;
       }
+      q.refreshInterval = 0;
       q.loading = false;
       q.needsRefetch = false;
     }
