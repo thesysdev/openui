@@ -119,8 +119,16 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
         aria-labelledby="openui-gallery-modal-heading"
       >
         <div className="openui-gallery__modal-header">
-          <span id="openui-gallery-modal-heading" className="openui-gallery__modal-heading">All Photos</span>
-          <IconButton size="small" variant="secondary" icon={<X />} onClick={onClose} aria-label="Close gallery" />
+          <span id="openui-gallery-modal-heading" className="openui-gallery__modal-heading">
+            All Photos
+          </span>
+          <IconButton
+            size="small"
+            variant="secondary"
+            icon={<X />}
+            onClick={onClose}
+            aria-label="Close gallery"
+          />
         </div>
         <div className="openui-gallery__modal-main">
           <img
