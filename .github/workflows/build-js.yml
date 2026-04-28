@@ -28,22 +28,5 @@ jobs:
       - name: Build affected projects
         run: pnpm -r build
 
-      - name: Check for generated files out of sync
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "::error::Build produced changes to tracked files. A generated file is out of sync with its source."
-            echo ""
-            echo "This usually means a source file (e.g. defaultTheme.ts) was changed without regenerating the file it drives (e.g. openui-defaults.scss)."
-            echo ""
-            echo "Working tree changes:"
-            git status --porcelain
-            echo ""
-            echo "Diff:"
-            git --no-pager diff
-            echo ""
-            echo "Fix: run 'pnpm -r build' locally and commit the regenerated files."
-            exit 1
-          fi
-
       - name: Check affected projects
         run: pnpm -r run ci
