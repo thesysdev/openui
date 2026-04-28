@@ -435,7 +435,7 @@ const typographyTheme: TypographyTheme = {
   textNumbersHeadingMdLetterSpacing: "0",
   textNumbersHeadingLg: `600 28px/1.1 ${FONT_NUMBERS}`,
   textNumbersHeadingLgLetterSpacing: "0",
-  textNumbersHeadingXl: `700 32px/1.1 ${FONT_NUMBERS}`,
+  textNumbersHeadingXl: `600 32px/1.1 ${FONT_NUMBERS}`,
   textNumbersHeadingXlLetterSpacing: "0",
 
   // Code
