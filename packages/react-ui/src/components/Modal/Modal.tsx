@@ -63,7 +63,9 @@ export const Modal: React.FC<ModalProps> = ({
         tabIndex={-1}
       >
         <div className="openui-modal-header">
-          <h2 id="openui-modal-title" className="openui-modal-title">{title}</h2>
+          <h2 id="openui-modal-title" className="openui-modal-title">
+            {title}
+          </h2>
           <button className="openui-modal-close" aria-label="Close" onClick={handleClose}>
             <X size={18} />
           </button>
