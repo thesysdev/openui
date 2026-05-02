@@ -28,38 +28,16 @@ export const Accordion = defineComponent({
   description: "Collapsible sections",
   component: ({ props, renderNode }) => {
     const items = props.items ?? [];
-    const [openItem, setOpenItem] = React.useState("");
+    const [openItem, setOpenItem] = React.useState<string>("");
     const userHasInteracted = React.useRef(false);
-    const prevContentSizes = React.useRef<Record<string, number>>({});
+    const prevItemCount = React.useRef(0);
 
-    React.useEffect(() => {
-      const first = items[0];
-      if (items.length && !openItem && first) {
-        setOpenItem(first.props.value);
-      }
-    }, [items.length, openItem]);
-
-    React.useEffect(() => {
-      if (userHasInteracted.current) return;
-
-      let candidate: string | null = null;
-      const nextSizes: Record<string, number> = {};
-
-      for (const item of items) {
-        const size = JSON.stringify(item.props.content).length;
-        const prevSize = prevContentSizes.current[item.props.value] ?? 0;
-        nextSizes[item.props.value] = size;
-        if (size > prevSize) {
-          candidate = item.props.value;
-        }
-      }
-
-      prevContentSizes.current = nextSizes;
-
-      if (candidate && candidate !== openItem) {
-        setOpenItem(candidate);
-      }
-    });
+    // Auto-open: only when a NEW item arrives during streaming
+    if (!userHasInteracted.current && items.length > prevItemCount.current) {
+      const newest = items[items.length - 1];
+      if (newest) setOpenItem(newest.props.value);
+    }
+    prevItemCount.current = items.length;
 
     const handleValueChange = (value: string) => {
       userHasInteracted.current = true;
