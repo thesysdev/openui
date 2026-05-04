@@ -6,6 +6,9 @@ import { EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
 import { Fragment, useEffect } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
 import { useShellStore } from "../_shared/store";
+import { Button } from "../Button";
+import { IconButton } from "../IconButton";
+import { useTheme } from "../ThemeProvider";
 
 export const ThreadButton = ({
   id,
@@ -19,6 +22,7 @@ export const ThreadButton = ({
   const selectThread = useThreadList((s) => s.selectThread);
   const deleteThread = useThreadList((s) => s.deleteThread);
   const selectedThreadId = useThreadList((s) => s.selectedThreadId);
+  const { portalThemeClassName } = useTheme();
   const { isSidebarOpen, setIsSidebarOpen } = useShellStore((state) => ({
     isSidebarOpen: state.isSidebarOpen,
     setIsSidebarOpen: state.setIsSidebarOpen,
@@ -48,28 +52,37 @@ export const ThreadButton = ({
       </button>
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
-          <button className="openui-shell-thread-button-dropdown-trigger">
-            <EllipsisVerticalIcon size={14} />
-          </button>
+          <IconButton
+            icon={<EllipsisVerticalIcon size="1em" />}
+            aria-label={`More actions for ${title}`}
+            variant="tertiary"
+            size={layout === "mobile" ? "small" : "extra-small"}
+            className="openui-shell-thread-button-dropdown-trigger"
+          />
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="openui-shell-thread-button-dropdown-menu"
+            className={clsx("openui-shell-thread-button-dropdown-menu", portalThemeClassName)}
             side="bottom"
-            align="start"
-            sideOffset={2}
+            align="end"
+            sideOffset={4}
           >
             <DropdownMenu.Item
-              className="openui-shell-thread-button-dropdown-menu-item"
+              asChild
               onSelect={() => {
                 deleteThread(id);
               }}
             >
-              <Trash2Icon
-                size={14}
-                className="openui-shell-thread-button-dropdown-menu-item-icon"
-              />
-              Delete
+              <Button
+                type="button"
+                variant="tertiary"
+                buttonType="destructive"
+                size="small"
+                iconLeft={<Trash2Icon size={14} />}
+                className="openui-shell-thread-button-dropdown-menu-item"
+              >
+                Delete
+              </Button>
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>

@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: space-between;
   padding: cssUtils.$space-m;
-  border-radius: cssUtils.$radius-l cssUtils.$radius-l 0 0;
+  border-radius: cssUtils.$radius-4xl cssUtils.$radius-4xl 0 0;
 
   // Mobile
   @media (max-width: 768px) {
@@ -34,5 +34,5 @@
 .openui-bottom-tray-header-actions {
   display: flex;
   align-items: center;
-  gap: cssUtils.$space-s;
+  gap: cssUtils.$space-2xs;
 }

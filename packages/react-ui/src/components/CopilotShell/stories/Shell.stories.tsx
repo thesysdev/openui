@@ -44,17 +44,17 @@ export default {
 
 const SAMPLE_STARTERS = [
   {
-    displayText: "Tell me about my portfolio",
+    displayText: "My portfolio",
     prompt: "Tell me about the latest stock market trends and how they affect my portfolio",
     icon: <Sparkles size={16} />,
   },
   {
-    displayText: "Who is the president of Venezuela and where is he currently located?",
+    displayText: "Venezuela president",
     prompt: "Who is the president of Venezuela and where is he currently located?",
     // icon undefined = shows default lightbulb
   },
   {
-    displayText: "Tell me about major stock (no icon)",
+    displayText: "Major stocks",
     prompt: "Tell me about major stock",
     icon: <></>, // Empty fragment = no icon
   },

@@ -1,19 +1,22 @@
 @use "../../../cssUtils" as cssUtils;
 
 .openui-bottom-tray-thread-composer {
+  box-sizing: border-box;
+  flex-shrink: 0;
   width: 100%;
-  padding: 0 cssUtils.$space-s cssUtils.$space-s;
+  margin: 0 0 cssUtils.$space-m;
+  padding: 0 cssUtils.$space-m;
 
   &__input-wrapper {
     background-color: cssUtils.$foreground;
     border: 1px solid cssUtils.$border-interactive;
-    border-radius: cssUtils.$radius-l;
-    box-shadow: cssUtils.$shadow-s;
+    border-radius: cssUtils.$radius-2xl;
+    box-shadow: cssUtils.$shadow-m;
     overflow: clip;
     display: flex;
     flex-direction: column;
     gap: cssUtils.$space-s;
-    padding: cssUtils.$space-s;
+    padding: cssUtils.$space-s-m;
   }
 
   &__input {

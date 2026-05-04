@@ -67,6 +67,7 @@ interface CopilotSpecificProps extends SharedChatUIProps {
 const CopilotInner = ({
   logoUrl = "https://www.openui.com/favicon.svg",
   agentName = "My Agent",
+  showAssistantLogo = false,
   messageLoading: MessageLoadingComponent = MessageLoading,
   scrollVariant = "user-message-anchor",
   welcomeMessage,
@@ -82,7 +83,7 @@ const CopilotInner = ({
   ) : null;
 
   return (
-    <Container logoUrl={logoUrl} agentName={agentName}>
+    <Container logoUrl={logoUrl} agentName={agentName} showAssistantLogo={showAssistantLogo}>
       <ThreadContainer>
         <Header
           rightChildren={

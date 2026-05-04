@@ -101,6 +101,30 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   position: relative;
   overflow: hidden;
 
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: cssUtils.$space-xl;
+    background: linear-gradient(to bottom, cssUtils.$background 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: cssUtils.$space-xl;
+    background: linear-gradient(to top, cssUtils.$background 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
   // When WelcomeScreen is present, don't grow so WelcomeScreen can take the space
   .openui-shell-thread-container:has(.openui-shell-welcome-screen) & {
     flex-grow: 0;
@@ -112,6 +136,7 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   height: 100%;
   overflow: auto;
   padding: cssUtils.$space-m $center-align-spacing cssUtils.$space-xl;
+  scroll-padding-top: cssUtils.$space-2xl;
 
   scrollbar-width: thin;
   scrollbar-color: cssUtils.$highlight-strong transparent;
@@ -140,6 +165,7 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
 
   .openui-shell-container--mobile & {
     padding: cssUtils.$space-l;
+    scroll-padding-top: cssUtils.$space-l;
   }
 
   // When artifact is active, reduce padding to maximize space
@@ -162,6 +188,7 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
 .openui-shell-thread-messages {
   max-width: 880px;
   margin: 0 auto;
+  padding-top: cssUtils.$space-l;
   display: flex;
   flex-direction: column;
   gap: calc(2 * cssUtils.$space-l);
@@ -173,6 +200,10 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   gap: cssUtils.$space-s;
   padding-right: $center-align-spacing;
   overflow: hidden;
+
+  &--without-logo {
+    padding-left: $center-align-spacing;
+  }
 
   .openui-shell-container--mobile & {
     padding: 0;
@@ -232,10 +263,10 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
 
   &__content {
     @include cssUtils.typography(primary, default);
-    padding: cssUtils.$space-m cssUtils.$space-l;
+    padding: cssUtils.$space-s cssUtils.$space-m;
     background-color: cssUtils.$chat-user-response-bg;
     color: cssUtils.$chat-user-response-text;
-    border-radius: cssUtils.$radius-2xl;
+    border-radius: cssUtils.$radius-xl;
     overflow-wrap: break-word;
     max-width: 100%;
     height: fit-content;

@@ -8,24 +8,31 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   max-width: 880px;
   margin: 0 auto;
   padding: 0 $center-align-spacing cssUtils.$space-m;
+  box-sizing: border-box;
+  max-height: 480px;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    max-height 0.2s ease,
+    padding-bottom 0.2s ease;
 
   // Short variant - horizontal wrapping buttons
   &--short {
-    display: flex;
-    flex-wrap: wrap;
-    gap: cssUtils.$space-s;
+    display: block;
   }
 
-  // Long variant - vertical stacked list with separators
+  // Long variant - vertical stacked list
   &--long {
     display: flex;
     flex-direction: column;
     gap: cssUtils.$space-2xs;
   }
 
-  // Separator wrapper for long variant
-  &__separator {
-    padding: cssUtils.$space-3xs cssUtils.$space-xs;
+  &__carousel-content {
+    gap: cssUtils.$space-xs;
   }
 
   // Mobile adjustments
@@ -38,6 +45,14 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
     padding-left: 0;
     padding-right: cssUtils.$space-m;
   }
+
+  &--hidden {
+    opacity: 0;
+    transform: translateY(-4px);
+    max-height: 0;
+    padding-bottom: 0;
+    pointer-events: none;
+  }
 }
 
 // Short variant item (pill-style buttons that wrap)
@@ -46,13 +61,14 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   align-items: center;
   gap: cssUtils.$space-xs;
   width: fit-content;
-  padding: cssUtils.$space-s cssUtils.$space-m;
+  flex: 0 0 auto;
+  padding: cssUtils.$space-s cssUtils.$space-s-m;
   background-color: cssUtils.$foreground;
-  border: 1px solid cssUtils.$border-default;
-  border-radius: cssUtils.$radius-m;
+  border: 1px solid cssUtils.$border-interactive;
+  border-radius: cssUtils.$radius-l;
   cursor: pointer;
   transition: all 0.15s ease;
-  @include cssUtils.typography(body, default);
+  @include cssUtils.typography(body, small);
   color: cssUtils.$text-neutral-primary;
   text-align: left;
 
@@ -63,6 +79,11 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
     justify-content: center;
     flex-shrink: 0;
     color: cssUtils.$text-neutral-primary;
+
+    & > svg {
+      width: 14px;
+      height: 14px;
+    }
   }
 
   // Text
@@ -81,7 +102,7 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   }
 
   @media (max-width: 480px) {
-    padding: cssUtils.$space-s cssUtils.$space-m;
+    padding: cssUtils.$space-s cssUtils.$space-s-m;
   }
 }
 
@@ -132,9 +153,11 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   // Arrow icon (shown on hover)
   &__arrow {
     display: flex;
+    align-self: flex-start;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    padding-top: cssUtils.$space-2xs;
     opacity: 0;
     transition: opacity 0.15s ease;
     color: cssUtils.$text-neutral-primary;

@@ -92,6 +92,7 @@ export type ComposerComponent = React.ComponentType<ComposerProps>;
 export interface SharedChatUIProps {
   logoUrl?: string;
   agentName?: string;
+  showAssistantLogo?: boolean;
   messageLoading?: React.ComponentType;
   scrollVariant?: ScrollVariant;
   welcomeMessage?: WelcomeMessageConfig;

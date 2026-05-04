@@ -9,9 +9,16 @@ interface ContainerProps {
   logoUrl: string;
   agentName: string;
   className?: string;
+  showAssistantLogo?: boolean;
 }
 
-export const Container = ({ children, logoUrl, agentName, className }: ContainerProps) => {
+export const Container = ({
+  children,
+  logoUrl,
+  agentName,
+  className,
+  showAssistantLogo = false,
+}: ContainerProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const { width } = useElementSize({ ref }) || {};
   // TODO: revisit this logic
@@ -20,7 +27,11 @@ export const Container = ({ children, logoUrl, agentName, className }: Container
   const layout = isMobile ? "mobile" : isFullScreen ? "fullscreen" : "tray";
 
   return (
-    <ShellStoreProvider logoUrl={logoUrl} agentName={agentName}>
+    <ShellStoreProvider
+      logoUrl={logoUrl}
+      agentName={agentName}
+      showAssistantLogo={showAssistantLogo}
+    >
       <LayoutContextProvider layout={layout}>
         <div
           className={clsx(

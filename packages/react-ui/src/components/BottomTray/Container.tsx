@@ -7,6 +7,7 @@ interface ContainerProps {
   logoUrl: string;
   agentName: string;
   className?: string;
+  showAssistantLogo?: boolean;
   /** Control the open state of the tray */
   isOpen?: boolean;
 }
@@ -16,10 +17,15 @@ export const Container = ({
   logoUrl,
   agentName,
   className,
+  showAssistantLogo = false,
   isOpen = false,
 }: ContainerProps) => {
   return (
-    <ShellStoreProvider logoUrl={logoUrl} agentName={agentName}>
+    <ShellStoreProvider
+      logoUrl={logoUrl}
+      agentName={agentName}
+      showAssistantLogo={showAssistantLogo}
+    >
       <LayoutContextProvider layout="tray">
         <div
           className={clsx(

@@ -7,9 +7,9 @@
   min-width: 240px;
   max-width: 320px;
   max-height: 296px;
-  padding: cssUtils.$space-s;
+  padding: cssUtils.$space-xs;
   border: 1px solid cssUtils.$border-default;
-  border-radius: cssUtils.$radius-l;
+  border-radius: cssUtils.$radius-2xl;
   background-color: cssUtils.$foreground;
   box-shadow: cssUtils.$shadow-l;
   z-index: 9999;
@@ -18,7 +18,7 @@
 
 .openui-bottom-tray-thread-list-header {
   @include cssUtils.typography(label, small);
-  color: cssUtils.$text-neutral-secondary;
+  color: cssUtils.$text-neutral-tertiary;
   padding: cssUtils.$space-xs cssUtils.$space-s;
   padding-bottom: cssUtils.$space-s;
 }
@@ -26,7 +26,7 @@
 .openui-bottom-tray-thread-list-items {
   display: flex;
   flex-direction: column;
-  gap: cssUtils.$space-2xs;
+  gap: cssUtils.$space-3xs;
   overflow-y: auto;
 }
 
@@ -37,23 +37,38 @@
   text-align: center;
 }
 
+.openui-bottom-tray-thread-list-trigger {
+  &[data-state="open"],
+  &[aria-expanded="true"] {
+    background-color: cssUtils.$highlight;
+    border-color: cssUtils.$border-interactive;
+  }
+}
+
 // Thread Item
 .openui-bottom-tray-thread-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  border-radius: cssUtils.$radius-s;
+  border-radius: calc(cssUtils.$radius-s + 1px);
   border: 1px solid transparent;
-  padding-right: cssUtils.$space-xs;
+  transition: all 0.12s ease;
 
   &--selected {
-    background-color: cssUtils.$sunk;
-    border-color: cssUtils.$border-default;
+    background-color: cssUtils.$highlight;
   }
 
   &:hover {
-    background-color: cssUtils.$sunk;
+    background-color: cssUtils.$highlight;
+
+    .openui-bottom-tray-thread-item-menu-trigger {
+      opacity: 1;
+    }
+  }
+
+  &:has(.openui-bottom-tray-thread-item-menu-trigger[data-state="open"]) {
+    background-color: cssUtils.$highlight;
 
     .openui-bottom-tray-thread-item-menu-trigger {
       opacity: 1;
@@ -65,8 +80,8 @@
   @include cssUtils.button-reset;
   @include cssUtils.typography(body, small);
   color: cssUtils.$text-neutral-primary;
-  padding: cssUtils.$space-xs cssUtils.$space-s;
-  flex: 1;
+  padding: calc(cssUtils.$space-xs - 1.75px) cssUtils.$space-s;
+  width: 100%;
   text-align: left;
   cursor: pointer;
   white-space: nowrap;
@@ -75,52 +90,56 @@
 }
 
 .openui-bottom-tray-thread-item-menu-trigger {
-  @include cssUtils.button-reset;
-  outline: none;
-  color: cssUtils.$text-neutral-secondary;
-  padding: cssUtils.$space-xs;
-  flex-shrink: 0;
-  cursor: pointer;
   opacity: 0;
-  border-radius: cssUtils.$radius-xs;
 
-  &:hover {
-    background-color: cssUtils.$highlight;
+  &:focus-visible {
+    opacity: 1;
   }
 
   &[data-state="open"] {
     opacity: 1;
+    background-color: cssUtils.$highlight;
+    border-color: cssUtils.$border-interactive;
   }
 }
 
 .openui-bottom-tray-thread-item-menu {
-  display: flex;
-  flex-direction: column;
-  padding: cssUtils.$space-xs;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 99999;
+  min-width: 160px;
+  overflow: hidden;
   border: 1px solid cssUtils.$border-default;
-  border-radius: cssUtils.$radius-m;
+  border-radius: cssUtils.$radius-xl;
   background-color: cssUtils.$foreground;
   box-shadow: cssUtils.$shadow-m;
-  z-index: 10000;
+  color: cssUtils.$text-neutral-primary;
+  transform-origin: top center;
+  animation: openui-bottom-tray-thread-menu-show 0.18s ease-out forwards;
+  padding: 4px;
 }
 
 .openui-bottom-tray-thread-item-menu-action {
-  @include cssUtils.button-reset;
-  @include cssUtils.typography(body, small);
-  outline: none;
-  color: cssUtils.$text-neutral-primary;
-  padding: cssUtils.$space-xs cssUtils.$space-s;
-  display: flex;
-  align-items: center;
-  gap: cssUtils.$space-xs;
-  cursor: pointer;
-  border-radius: cssUtils.$radius-xs;
+  width: 100%;
+  justify-content: flex-start;
+  padding-left: cssUtils.$space-s;
+  padding-right: cssUtils.$space-s;
 
-  &:hover {
-    background-color: cssUtils.$sunk;
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
 }
 
-.openui-bottom-tray-thread-item-menu-icon {
-  color: cssUtils.$text-neutral-secondary;
+@keyframes openui-bottom-tray-thread-menu-show {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

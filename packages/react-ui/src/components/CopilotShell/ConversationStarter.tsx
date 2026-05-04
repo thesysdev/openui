@@ -1,10 +1,11 @@
 import { useThread } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { ArrowUp, Lightbulb } from "lucide-react";
-import { Fragment, ReactNode } from "react";
+import { Fragment, ReactNode, isValidElement } from "react";
+import { useComposerState } from "../../hooks/useComposerState";
 import { ConversationStarterIcon, ConversationStarterProps } from "../../types/ConversationStarter";
+import { Carousel, CarouselContent } from "../Carousel";
 import { isChatEmpty } from "../_shared/utils";
-import { Separator } from "../Separator";
 
 export type ConversationStarterVariant = "short" | "long";
 
@@ -25,6 +26,18 @@ const renderIcon = (icon: ConversationStarterIcon | undefined): ReactNode => {
   return icon;
 };
 
+const hasRenderableIcon = (icon: ReactNode): boolean => {
+  if (icon === null || icon === undefined || icon === false) {
+    return false;
+  }
+
+  if (isValidElement(icon) && icon.type === Fragment) {
+    return Boolean(icon.props.children);
+  }
+
+  return true;
+};
+
 const ConversationStarterItem = ({
   displayText,
   prompt,
@@ -33,6 +46,7 @@ const ConversationStarterItem = ({
   icon,
 }: ConversationStarterItemProps) => {
   const renderedIcon = renderIcon(icon);
+  const shouldRenderIcon = hasRenderableIcon(renderedIcon);
 
   if (variant === "short") {
     return (
@@ -41,7 +55,7 @@ const ConversationStarterItem = ({
         className="openui-copilot-shell-conversation-starter-item-short"
         onClick={() => onClick(prompt)}
       >
-        {renderedIcon && (
+        {shouldRenderIcon && (
           <span className="openui-copilot-shell-conversation-starter-item-short__icon">
             {renderedIcon}
           </span>
@@ -61,7 +75,7 @@ const ConversationStarterItem = ({
       onClick={() => onClick(prompt)}
     >
       <div className="openui-copilot-shell-conversation-starter-item-long__content">
-        {renderedIcon && (
+        {shouldRenderIcon && (
           <span className="openui-copilot-shell-conversation-starter-item-long__icon">
             {renderedIcon}
           </span>
@@ -93,10 +107,12 @@ export const ConversationStarter = ({
   className,
   variant = "short",
 }: ConversationStarterContainerProps) => {
+  const { textContent } = useComposerState();
   const processMessage = useThread((s) => s.processMessage);
   const isRunning = useThread((s) => s.isRunning);
   const messages = useThread((s) => s.messages);
   const isLoadingMessages = useThread((s) => s.isLoadingMessages);
+  const isDrafting = textContent.length > 0;
 
   const handleClick = (prompt: string) => {
     if (isRunning) return;
@@ -115,11 +131,43 @@ export const ConversationStarter = ({
     return null;
   }
 
+  if (variant === "short") {
+    return (
+      <Carousel
+        showButtons={false}
+        className={clsx(
+          "openui-copilot-shell-conversation-starter",
+          "openui-copilot-shell-conversation-starter--short",
+          {
+            "openui-copilot-shell-conversation-starter--hidden": isDrafting,
+          },
+          className,
+        )}
+      >
+        <CarouselContent className="openui-copilot-shell-conversation-starter__carousel-content">
+          {starters.map((item, index) => (
+            <ConversationStarterItem
+              key={`${item.displayText}-${index}`}
+              displayText={item.displayText}
+              prompt={item.prompt}
+              icon={item.icon}
+              onClick={handleClick}
+              variant={variant}
+            />
+          ))}
+        </CarouselContent>
+      </Carousel>
+    );
+  }
+
   return (
     <div
       className={clsx(
         "openui-copilot-shell-conversation-starter",
         `openui-copilot-shell-conversation-starter--${variant}`,
+        {
+          "openui-copilot-shell-conversation-starter--hidden": isDrafting,
+        },
         className,
       )}
     >
@@ -132,12 +180,6 @@ export const ConversationStarter = ({
             onClick={handleClick}
             variant={variant}
           />
-          {/* Add separator between items in long variant */}
-          {variant === "long" && index < starters.length - 1 && (
-            <div className="openui-copilot-shell-conversation-starter__separator">
-              <Separator />
-            </div>
-          )}
         </Fragment>
       ))}
     </div>

@@ -2,8 +2,10 @@ import type { AssistantMessage, Message, ToolMessage } from "@openuidev/react-he
 import { MessageProvider, useThread } from "@openuidev/react-headless";
 import clsx from "clsx";
 import React, { memo, useRef } from "react";
+import { ComposerStateProvider } from "../../hooks/useComposerState";
 import { ScrollVariant, useScrollToBottom } from "../../hooks/useScrollToBottom";
 import { ArtifactOverlay } from "../_shared/artifact";
+import { useShellStore } from "../_shared/store";
 import type { AssistantMessageComponent, UserMessageComponent } from "../_shared/types";
 import { MarkDownRenderer } from "../MarkDownRenderer";
 import { MessageLoading as MessageLoadingComponent } from "../MessageLoading";
@@ -20,15 +22,17 @@ export const ThreadContainer = ({
   const isLoadingMessages = useThread((s) => s.isLoadingMessages);
 
   return (
-    <div
-      className={clsx("openui-copilot-shell-thread-container", className)}
-      style={{
-        visibility: isLoadingMessages ? "hidden" : undefined,
-      }}
-    >
-      {children}
-      <ArtifactOverlay />
-    </div>
+    <ComposerStateProvider>
+      <div
+        className={clsx("openui-copilot-shell-thread-container", className)}
+        style={{
+          visibility: isLoadingMessages ? "hidden" : undefined,
+        }}
+      >
+        {children}
+        <ArtifactOverlay />
+      </div>
+    </ComposerStateProvider>
   );
 };
 
@@ -90,8 +94,20 @@ export const AssistantMessageContainer = ({
   children?: React.ReactNode;
   className?: string;
 }) => {
+  const { logoUrl, showAssistantLogo } = useShellStore((store) => ({
+    logoUrl: store.logoUrl,
+    showAssistantLogo: store.showAssistantLogo,
+  }));
+
   return (
     <div className={clsx("openui-copilot-shell-thread-message-assistant", className)}>
+      {showAssistantLogo && (
+        <img
+          src={logoUrl}
+          alt="Assistant"
+          className="openui-copilot-shell-thread-message-assistant__logo"
+        />
+      )}
       <div className="openui-copilot-shell-thread-message-assistant__content">{children}</div>
     </div>
   );

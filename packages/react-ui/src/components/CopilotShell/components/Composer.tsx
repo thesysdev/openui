@@ -68,7 +68,7 @@ export const Composer = ({ className, placeholder = "Type your message..." }: Co
           <IconButton
             onClick={isRunning ? cancelMessage : handleSubmit}
             icon={isRunning ? <Square size="1em" fill="currentColor" /> : <ArrowUp size="1em" />}
-            size="medium"
+            size="extra-small"
             variant="primary"
             className="openui-copilot-shell-thread-composer__submit-button"
           />

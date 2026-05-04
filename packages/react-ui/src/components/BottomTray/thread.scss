@@ -13,17 +13,30 @@
   flex: 1;
   position: relative;
   overflow: hidden;
-}
 
-.openui-bottom-tray-thread-scroll-gradient {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(to top, cssUtils.$background 0%, transparent);
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: cssUtils.$space-xl;
+    background: linear-gradient(to bottom, cssUtils.$background 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: cssUtils.$space-xl;
+    background: linear-gradient(to top, cssUtils.$background 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
 }
 
 .openui-bottom-tray-thread-scroll-area {
@@ -31,6 +44,8 @@
   height: 100%;
   overflow: auto;
   padding: cssUtils.$space-m;
+  scroll-padding-top: calc(cssUtils.$space-m + cssUtils.$space-xs);
+
   &--user-message-anchor {
     & .openui-bottom-tray-thread-messages > *:last-child {
       min-height: calc(-200px + 100dvh);
@@ -40,6 +55,7 @@
 
 .openui-bottom-tray-thread-messages {
   margin: 0 auto;
+  padding-top: cssUtils.$space-s;
   display: flex;
   flex-direction: column;
   gap: cssUtils.$space-xl;
@@ -70,10 +86,10 @@
 
   &__content {
     @include cssUtils.typography(primary, default);
-    padding: cssUtils.$space-m cssUtils.$space-l;
+    padding: cssUtils.$space-s cssUtils.$space-m;
     background-color: cssUtils.$chat-user-response-bg;
     color: cssUtils.$chat-user-response-text;
-    border-radius: cssUtils.$radius-2xl;
+    border-radius: cssUtils.$radius-xl;
     overflow-wrap: break-word;
     max-width: 100%;
     height: fit-content;

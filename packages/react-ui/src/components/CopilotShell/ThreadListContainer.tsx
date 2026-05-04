@@ -19,11 +19,11 @@ const ThreadItem = ({
 }) => {
   return (
     <div
-      className={clsx("openui-bottom-tray-thread-item", {
-        "openui-bottom-tray-thread-item--selected": isSelected,
+      className={clsx("openui-copilot-shell-thread-item", {
+        "openui-copilot-shell-thread-item--selected": isSelected,
       })}
     >
-      <button className="openui-bottom-tray-thread-item-title" onClick={onSelect}>
+      <button className="openui-copilot-shell-thread-item-title" onClick={onSelect}>
         {title}
       </button>
       <DropdownMenu.Root>
@@ -33,12 +33,12 @@ const ThreadItem = ({
             aria-label={`More actions for ${title}`}
             variant="tertiary"
             size="extra-small"
-            className="openui-bottom-tray-thread-item-menu-trigger"
+            className="openui-copilot-shell-thread-item-menu-trigger"
           />
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="openui-bottom-tray-thread-item-menu"
+            className="openui-copilot-shell-thread-item-menu"
             side="right"
             align="start"
             sideOffset={4}
@@ -56,7 +56,7 @@ const ThreadItem = ({
                 buttonType="destructive"
                 size="small"
                 iconLeft={<Trash2Icon size={14} />}
-                className="openui-bottom-tray-thread-item-menu-action"
+                className="openui-copilot-shell-thread-item-menu-action"
               >
                 Delete
               </Button>
@@ -86,18 +86,18 @@ export const ThreadListContainer = () => {
           icon={<MenuIcon size="1em" />}
           variant="tertiary"
           aria-label="Thread list"
-          className="openui-bottom-tray-thread-list-trigger"
+          className="openui-copilot-shell-thread-list-trigger"
         />
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content
-          className="openui-bottom-tray-thread-list-dropdown"
+          className="openui-copilot-shell-thread-list-dropdown"
           side="bottom"
           align="end"
           sideOffset={8}
         >
-          <div className="openui-bottom-tray-thread-list-header">All threads</div>
-          <div className="openui-bottom-tray-thread-list-items">
+          <div className="openui-copilot-shell-thread-list-header">All threads</div>
+          <div className="openui-copilot-shell-thread-list-items">
             {threads.map((thread) => (
               <ThreadItem
                 key={thread.id}
@@ -108,7 +108,7 @@ export const ThreadListContainer = () => {
               />
             ))}
             {threads.length === 0 && (
-              <div className="openui-bottom-tray-thread-list-empty">No threads yet</div>
+              <div className="openui-copilot-shell-thread-list-empty">No threads yet</div>
             )}
           </div>
         </DropdownMenu.Content>

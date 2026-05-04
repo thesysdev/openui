@@ -13,13 +13,39 @@
   flex: 1;
   position: relative;
   overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: cssUtils.$space-xl;
+    background: linear-gradient(to bottom, cssUtils.$background 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: cssUtils.$space-xl;
+    background: linear-gradient(to top, cssUtils.$background 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
 }
 
 .openui-copilot-shell-thread-scroll-area {
   width: 100%;
   height: 100%;
   overflow: auto;
-  padding: cssUtils.$space-l;
+  padding: cssUtils.$space-m-l;
+  scroll-padding-top: cssUtils.$space-m-l;
+
   &--user-message-anchor {
     & .openui-copilot-shell-thread-messages > *:last-child {
       min-height: calc(-200px + 100dvh);
@@ -28,6 +54,8 @@
 }
 
 .openui-copilot-shell-thread-messages {
+  width: 100%;
+  max-width: 880px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -36,6 +64,8 @@
 
 .openui-copilot-shell-thread-message-assistant {
   width: 100%;
+  display: flex;
+  gap: cssUtils.$space-s;
   overflow: hidden;
 
   &__content {
@@ -45,6 +75,13 @@
     overflow: hidden;
     overflow-wrap: break-word;
     flex-grow: 1;
+  }
+
+  &__logo {
+    width: 32px;
+    height: 32px;
+    border-radius: cssUtils.$radius-m;
+    flex-shrink: 0;
   }
 
   &__text {
@@ -59,10 +96,10 @@
 
   &__content {
     @include cssUtils.typography(primary, default);
-    padding: cssUtils.$space-m cssUtils.$space-l;
+    padding: cssUtils.$space-s cssUtils.$space-m;
     background-color: cssUtils.$chat-user-response-bg;
     color: cssUtils.$chat-user-response-text;
-    border-radius: cssUtils.$radius-2xl;
+    border-radius: cssUtils.$radius-xl;
     overflow-wrap: break-word;
     max-width: 100%;
     height: fit-content;

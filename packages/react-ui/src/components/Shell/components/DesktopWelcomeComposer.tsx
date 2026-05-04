@@ -65,7 +65,7 @@ export const DesktopWelcomeComposer = ({
           disabled={!textContent.trim() && !isRunning}
           aria-label={isRunning ? "Cancel" : "Send"}
           icon={isRunning ? <Square size="1em" fill="currentColor" /> : <ArrowUp size="1em" />}
-          size="medium"
+          size="extra-small"
           variant="primary"
           className="openui-shell-desktop-welcome-composer__submit-button"
         />

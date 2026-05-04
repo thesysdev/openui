@@ -110,13 +110,17 @@ export const useScrollToBottom = <T extends HTMLElement | null, L extends { id: 
           !wasScrolledToBottomAfterLoading.current) &&
         previousLastMessage.current?.id !== lastMessage.id
       ) {
+        const scrollPaddingTop =
+          Number.parseFloat(window.getComputedStyle(element).scrollPaddingTop || "0") || 0;
+
         // scroll to last user message till there is only 1 more message
         const scrollPosition =
           lastUserMessageDiv.getBoundingClientRect().top -
           element.getBoundingClientRect().top +
-          element.scrollTop;
+          element.scrollTop -
+          scrollPaddingTop;
 
-        element.scrollTo({ top: scrollPosition, behavior: "smooth" });
+        element.scrollTo({ top: Math.max(scrollPosition, 0), behavior: "smooth" });
         lastUserMessage.current = lastUserMessageDiv;
       }
     }

@@ -2,12 +2,21 @@
 
 $sidebar-width: 272px;
 $sidebar-padding: cssUtils.$space-m;
+$sidebar-collapsed-width: calc(
+  32px + #{cssUtils.$space-m} + #{cssUtils.$space-m} + #{cssUtils.$space-3xs} +
+    #{cssUtils.$space-3xs}
+);
 $sidebar-mobile-width: 294px;
-$sidebar-mobile-padding: cssUtils.$space-l;
+$sidebar-mobile-padding: cssUtils.$space-m-l;
+$sidebar-fade-duration: 90ms;
+$sidebar-resize-duration: 160ms;
+$sidebar-mobile-slide-duration: 400ms;
+$sidebar-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
 .openui-shell-sidebar-container {
   border-right: 1px solid cssUtils.$border-default;
   height: 100%;
+  background-color: cssUtils.$foreground;
   width: $sidebar-width;
   padding: $sidebar-padding;
   display: flex;
@@ -15,9 +24,10 @@ $sidebar-mobile-padding: cssUtils.$space-l;
   gap: cssUtils.$space-m;
   z-index: 999;
   transition:
-    width 0.4s ease-in-out,
-    height 0.4s ease-in-out,
-    transform 0.4s ease-in-out;
+    width $sidebar-resize-duration $sidebar-motion-ease,
+    height $sidebar-resize-duration $sidebar-motion-ease,
+    transform $sidebar-resize-duration $sidebar-motion-ease,
+    background-color $sidebar-resize-duration $sidebar-motion-ease;
 
   .openui-shell-container--mobile & {
     width: $sidebar-mobile-width;
@@ -28,51 +38,91 @@ $sidebar-mobile-padding: cssUtils.$space-l;
     z-index: 1000;
     background-color: cssUtils.$foreground;
     border-radius: 0;
-    transition: left 0.3s ease-in-out;
+    transition: left $sidebar-mobile-slide-duration $sidebar-motion-ease;
   }
 
   &--collapsed {
-    width: 52px;
+    width: $sidebar-collapsed-width;
     transform: translateX(0);
     gap: cssUtils.$space-xs;
+    cursor: e-resize;
+    background-color: cssUtils.$background;
 
     .openui-shell-container--mobile & {
       width: $sidebar-mobile-width;
       height: 100%;
       left: -$sidebar-mobile-width;
       transform: none;
+      cursor: default;
+    }
+  }
+
+  &--collapsed[data-sidebar-visual-state="collapsed"]:hover {
+    .openui-shell-sidebar-header__logo {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .openui-shell-sidebar-header__toggle-button {
+      opacity: 1;
+      pointer-events: auto;
     }
   }
 
   &--hidden {
     display: none;
   }
+
+  &[data-sidebar-visual-state="collapsing"],
+  &[data-sidebar-visual-state="expanding"] {
+    .openui-shell-sidebar-content,
+    .openui-shell-sidebar-header > :not(.openui-shell-sidebar-header__top-row) {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  &[data-sidebar-visual-state="expanding"] {
+    .openui-shell-sidebar-header > :not(.openui-shell-sidebar-header__top-row) {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
 }
 
 .openui-shell-sidebar-header {
   display: flex;
   flex-direction: column;
-  gap: cssUtils.$space-s;
+  gap: cssUtils.$space-l;
+
+  & > :not(.openui-shell-sidebar-header__top-row) {
+    transition: opacity $sidebar-fade-duration $sidebar-motion-ease;
+  }
 
   &__top-row {
     display: flex;
     align-items: center;
     gap: cssUtils.$space-s;
+    transition: opacity $sidebar-fade-duration $sidebar-motion-ease;
   }
 
   &__logo {
-    width: 36px;
-    height: 36px;
-    border-radius: cssUtils.$radius-s;
-    transition:
-      width 0.3s ease-in-out,
-      height 0.3s ease-in-out;
+    display: block;
+    width: 32px;
+    height: 32px;
+    margin-left: cssUtils.$space-3xs;
+    border-radius: cssUtils.$radius-m;
+    transition: opacity $sidebar-fade-duration $sidebar-motion-ease;
   }
 
   &__agent-name {
-    @include cssUtils.typography(primary, default);
+    @include cssUtils.typography(label, small);
     flex-grow: 1;
     color: cssUtils.$text-neutral-primary;
+
+    .openui-shell-container--mobile & {
+      @include cssUtils.typography(label, default);
+    }
 
     .openui-shell-sidebar-container--collapsed & {
       display: none;
@@ -80,16 +130,32 @@ $sidebar-mobile-padding: cssUtils.$space-l;
   }
 
   &--collapsed {
-    align-items: center;
+    align-items: stretch;
 
     .openui-shell-sidebar-header__top-row {
-      flex-direction: column;
-      align-items: center;
+      display: block;
+      position: relative;
+      min-height: 32px;
+      width: 100%;
+    }
+
+    .openui-shell-sidebar-header__logo,
+    .openui-shell-sidebar-header__toggle-button {
+      position: absolute;
+      top: 0;
+      left: cssUtils.$space-3xs;
+      margin-left: 0;
     }
 
     .openui-shell-sidebar-header__logo {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
+    }
+
+    .openui-shell-sidebar-header__toggle-button {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity $sidebar-fade-duration $sidebar-motion-ease;
     }
   }
 }
@@ -106,16 +172,16 @@ $sidebar-mobile-padding: cssUtils.$space-l;
   gap: cssUtils.$space-m;
   overflow: hidden;
   opacity: 1;
-  transition:
-    opacity 0.2s ease-in-out 0.3s,
-    display 0.4s 0.5s;
+  transition: opacity $sidebar-fade-duration $sidebar-motion-ease;
 
   &--collapsed {
-    opacity: 0;
-    display: none;
-    transition:
-      opacity 0.2s ease-in-out,
-      display 0s 0.5s;
+    width: 100%;
+    align-items: center;
+    gap: cssUtils.$space-s;
+
+    .openui-shell-thread-list {
+      display: none;
+    }
   }
 }
 
@@ -126,6 +192,8 @@ $sidebar-mobile-padding: cssUtils.$space-l;
 }
 
 .openui-shell-sidebar-header__toggle-button {
+  transition: opacity $sidebar-fade-duration $sidebar-motion-ease;
+
   .openui-shell-container--mobile & {
     display: none;
   }
@@ -138,7 +206,7 @@ $sidebar-mobile-padding: cssUtils.$space-l;
   width: 100%;
   height: 100%;
   background-color: cssUtils.$overlay;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity $sidebar-resize-duration $sidebar-motion-ease;
   z-index: 99;
 
   &--collapsed {

@@ -3,7 +3,7 @@
 .openui-copilot-shell-welcome-screen {
   display: flex;
   flex-direction: column;
-  gap: cssUtils.$space-l;
+  gap: cssUtils.$space-xl;
   height: 100%;
   justify-content: center;
   align-items: center;
@@ -29,13 +29,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: cssUtils.$space-xs;
+    gap: cssUtils.$space-s;
     text-align: center;
   }
 
   // Title/greeting text
   &__title {
-    @include cssUtils.typography(heading, small);
+    @include cssUtils.typography(heading, medium);
     color: cssUtils.$text-neutral-primary;
     margin: 0;
   }

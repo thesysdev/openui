@@ -1,30 +1,50 @@
 @use "../../cssUtils" as cssUtils;
 
-.openui-shell-thread-list {
+.openui-copilot-shell-thread-list-dropdown {
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  max-width: 320px;
+  max-height: 296px;
+  padding: cssUtils.$space-xs;
+  border: 1px solid cssUtils.$border-default;
+  border-radius: cssUtils.$radius-2xl;
+  background-color: cssUtils.$foreground;
+  box-shadow: cssUtils.$shadow-l;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.openui-copilot-shell-thread-list-header {
+  @include cssUtils.typography(label, small);
+  color: cssUtils.$text-neutral-tertiary;
+  padding: cssUtils.$space-xs cssUtils.$space-s;
+  padding-bottom: cssUtils.$space-s;
+}
+
+.openui-copilot-shell-thread-list-items {
   display: flex;
   flex-direction: column;
   gap: cssUtils.$space-3xs;
-  overflow: auto;
-  margin-top: cssUtils.$space-m;
+  overflow-y: auto;
 }
 
-.openui-shell-thread-list-group {
-  display: flex;
-  padding-left: cssUtils.$space-s;
-  color: cssUtils.$text-neutral-tertiary;
-  @include cssUtils.typography(label, small);
-  margin-bottom: cssUtils.$space-2xs;
+.openui-copilot-shell-thread-list-empty {
+  @include cssUtils.typography(body, small);
+  color: cssUtils.$text-neutral-secondary;
+  padding: cssUtils.$space-m;
+  text-align: center;
+}
 
-  .openui-shell-container--mobile & {
-    @include cssUtils.typography(label, default);
-  }
-
-  &:not(:first-child) {
-    margin-top: cssUtils.$space-m;
+.openui-copilot-shell-thread-list-trigger {
+  &[data-state="open"],
+  &[aria-expanded="true"] {
+    background-color: cssUtils.$highlight;
+    border-color: cssUtils.$border-interactive;
   }
 }
 
-.openui-shell-thread-button {
+.openui-copilot-shell-thread-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -39,24 +59,22 @@
 
   &:hover {
     background-color: cssUtils.$highlight;
-  }
 
-  &:hover {
-    .openui-shell-thread-button-dropdown-trigger {
+    .openui-copilot-shell-thread-item-menu-trigger {
       opacity: 1;
     }
   }
 
-  &:has(.openui-shell-thread-button-dropdown-trigger[data-state="open"]) {
+  &:has(.openui-copilot-shell-thread-item-menu-trigger[data-state="open"]) {
     background-color: cssUtils.$highlight;
 
-    .openui-shell-thread-button-dropdown-trigger {
+    .openui-copilot-shell-thread-item-menu-trigger {
       opacity: 1;
     }
   }
 }
 
-.openui-shell-thread-button-title {
+.openui-copilot-shell-thread-item-title {
   @include cssUtils.button-reset;
   @include cssUtils.typography(body, small);
   color: cssUtils.$text-neutral-primary;
@@ -67,19 +85,10 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-
-  .openui-shell-container--mobile & {
-    @include cssUtils.typography(body, default);
-    padding: calc(cssUtils.$space-s - 1.75px) cssUtils.$space-s;
-  }
 }
 
-.openui-shell-thread-button-dropdown-trigger {
+.openui-copilot-shell-thread-item-menu-trigger {
   opacity: 0;
-
-  .openui-shell-container--mobile & {
-    opacity: 1;
-  }
 
   &:focus-visible {
     opacity: 1;
@@ -92,7 +101,7 @@
   }
 }
 
-.openui-shell-thread-button-dropdown-menu {
+.openui-copilot-shell-thread-item-menu {
   box-sizing: border-box;
   position: relative;
   z-index: 99999;
@@ -104,11 +113,11 @@
   box-shadow: cssUtils.$shadow-m;
   color: cssUtils.$text-neutral-primary;
   transform-origin: top center;
-  animation: openui-shell-thread-menu-show 0.18s ease-out forwards;
+  animation: openui-copilot-shell-thread-menu-show 0.18s ease-out forwards;
   padding: 4px;
 }
 
-.openui-shell-thread-button-dropdown-menu-item {
+.openui-copilot-shell-thread-item-menu-action {
   width: 100%;
   justify-content: flex-start;
   padding-left: cssUtils.$space-s;
@@ -121,7 +130,7 @@
   }
 }
 
-@keyframes openui-shell-thread-menu-show {
+@keyframes openui-copilot-shell-thread-menu-show {
   from {
     opacity: 0;
     transform: scale(0.95);

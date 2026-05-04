@@ -3,37 +3,56 @@
 // Container styles
 .openui-copilot-shell-conversation-starter {
   display: flex;
-  padding: 0 cssUtils.$space-l;
+  flex-shrink: 0;
+  width: 100%;
+  padding: 0 cssUtils.$space-m;
   margin-bottom: cssUtils.$space-s;
+  box-sizing: border-box;
+  max-height: 480px;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    max-height 0.2s ease,
+    margin-bottom 0.2s ease;
 
   // Short variant - horizontal pill buttons
   &--short {
-    flex-direction: column;
-    gap: cssUtils.$space-s;
+    display: block;
   }
 
-  // Long variant - vertical list items with separators
+  // Long variant - vertical list items
   &--long {
     flex-direction: column;
     gap: cssUtils.$space-2xs;
   }
 
-  // Separator wrapper for long variant
-  &__separator {
-    padding: cssUtils.$space-3xs cssUtils.$space-xs;
+  &__carousel-content {
+    gap: cssUtils.$space-xs;
+  }
+
+  &--hidden {
+    opacity: 0;
+    transform: translateY(-4px);
+    max-height: 0;
+    margin-bottom: 0;
+    pointer-events: none;
   }
 }
 
 // Short variant item (pill-style buttons)
 .openui-copilot-shell-conversation-starter-item-short {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: cssUtils.$space-xs;
   width: fit-content;
-  padding: cssUtils.$space-s cssUtils.$space-m;
+  flex: 0 0 auto;
+  padding: cssUtils.$space-s cssUtils.$space-s-m;
   background-color: cssUtils.$foreground;
-  border: 1px solid cssUtils.$border-default;
-  border-radius: cssUtils.$radius-m;
+  border: 1px solid cssUtils.$border-interactive;
+  border-radius: cssUtils.$radius-l;
   cursor: pointer;
   transition: all 0.15s ease;
   @include cssUtils.typography(body, small);
@@ -43,29 +62,34 @@
   // Icon container
   &__icon {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    padding-top: cssUtils.$space-3xs;
     color: cssUtils.$text-neutral-primary;
+
+    & > svg {
+      width: 14px;
+      height: 14px;
+    }
   }
 
   // Text
   &__text {
     flex: 1;
+    white-space: nowrap;
   }
 
   &:not(:disabled):hover {
-    background-color: cssUtils.$sunk;
+    background-color: cssUtils.$highlight;
     border-color: cssUtils.$border-interactive-emphasis;
   }
 
   &:not(:disabled):active {
-    background-color: cssUtils.$sunk;
+    background-color: cssUtils.$highlight-subtle;
   }
 
   @media (max-width: 480px) {
-    padding: cssUtils.$space-xs cssUtils.$space-s;
+    padding: cssUtils.$space-s cssUtils.$space-s-m;
   }
 }
 
@@ -75,10 +99,10 @@
   align-items: center;
   gap: cssUtils.$space-000;
   width: 100%;
-  padding: cssUtils.$space-xs cssUtils.$space-s;
+  padding: cssUtils.$space-xs cssUtils.$space-s-m;
   background-color: transparent;
   border: none;
-  border-radius: cssUtils.$radius-m;
+  border-radius: cssUtils.$radius-l;
   cursor: pointer;
   transition: background-color 0.15s ease;
   @include cssUtils.typography(body, default);
@@ -90,7 +114,7 @@
   &__content {
     display: flex;
     align-items: flex-start;
-    gap: cssUtils.$space-s;
+    gap: cssUtils.$space-xs;
     flex: 1;
     min-width: 0;
   }
@@ -116,9 +140,11 @@
   // Arrow icon (shown on hover)
   &__arrow {
     display: flex;
+    align-self: flex-start;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    padding-top: cssUtils.$space-2xs;
     opacity: 0;
     transition: opacity 0.15s ease;
     color: cssUtils.$text-neutral-primary;

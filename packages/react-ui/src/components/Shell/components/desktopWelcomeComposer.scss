@@ -3,13 +3,13 @@
 .openui-shell-desktop-welcome-composer {
   background-color: cssUtils.$foreground;
   border: 1px solid cssUtils.$border-interactive;
-  border-radius: cssUtils.$radius-2xl;
-  box-shadow: cssUtils.$shadow-s;
+  border-radius: cssUtils.$radius-3xl;
+  box-shadow: cssUtils.$shadow-m;
   overflow: clip;
   display: flex;
   flex-direction: column;
   gap: cssUtils.$space-m;
-  padding: cssUtils.$space-m;
+  padding: cssUtils.$space-s-m;
   width: 100%;
   max-width: 800px;
 

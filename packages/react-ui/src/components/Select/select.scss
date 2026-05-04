@@ -120,7 +120,7 @@
 .openui-select-label {
   box-sizing: border-box;
   padding: cssUtils.$space-3xs cssUtils.$space-xs;
-  @include cssUtils.typography(primary, default);
+  @include cssUtils.typography(body, default);
   color: cssUtils.$text-neutral-tertiary;
 }
 
@@ -135,7 +135,7 @@
   border-radius: cssUtils.$radius-s;
   padding-top: cssUtils.$space-2xs;
   padding-bottom: cssUtils.$space-2xs;
-  @include cssUtils.typography(primary, default);
+  @include cssUtils.typography(body, default);
   color: cssUtils.$text-neutral-primary;
   outline: 0;
 
@@ -192,7 +192,7 @@
   // Text content
   &-text {
     flex: 1;
-    @include cssUtils.typography(primary, default);
+    @include cssUtils.typography(body, default);
     color: cssUtils.$text-neutral-secondary;
   }
 

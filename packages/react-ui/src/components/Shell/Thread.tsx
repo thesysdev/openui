@@ -3,6 +3,7 @@ import { MessageProvider, useActiveArtifact, useThread } from "@openuidev/react-
 import clsx from "clsx";
 import React, { memo, useRef } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
+import { ComposerStateProvider } from "../../hooks/useComposerState";
 import { ScrollVariant, useScrollToBottom } from "../../hooks/useScrollToBottom";
 import { separateContentAndContext } from "../../utils/contentParser";
 import { ArtifactOverlay, ArtifactPortalTarget } from "../_shared/artifact";
@@ -48,46 +49,48 @@ export const ThreadContainer = ({
   });
 
   return (
-    <div
-      className={clsx("openui-shell-thread-container", className, {
-        "openui-shell-thread-container--artifact-active": isArtifactActive,
-      })}
-      style={{
-        visibility: isLoadingMessages ? "hidden" : undefined,
-      }}
-    >
-      <div className="openui-shell-thread-wrapper" ref={containerRef}>
-        {/* Chat panel - always visible */}
-        <div
-          ref={chatPanelRef}
-          className={clsx("openui-shell-thread-chat-panel", {
-            "openui-shell-thread-chat-panel--animating": !isDragging,
-          })}
-        >
-          {children}
-          {isMobile && <ArtifactOverlay />}
-        </div>
+    <ComposerStateProvider>
+      <div
+        className={clsx("openui-shell-thread-container", className, {
+          "openui-shell-thread-container--artifact-active": isArtifactActive,
+        })}
+        style={{
+          visibility: isLoadingMessages ? "hidden" : undefined,
+        }}
+      >
+        <div className="openui-shell-thread-wrapper" ref={containerRef}>
+          {/* Chat panel - always visible */}
+          <div
+            ref={chatPanelRef}
+            className={clsx("openui-shell-thread-chat-panel", {
+              "openui-shell-thread-chat-panel--animating": !isDragging,
+            })}
+          >
+            {children}
+            {isMobile && <ArtifactOverlay />}
+          </div>
 
-        {/* Desktop only: Resizable separator and artifact panel */}
-        {!isMobile && isArtifactActive && (
-          <>
-            <ResizableSeparator
-              onResize={handleResize}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            />
-            <div
-              ref={artifactPanelRef}
-              className={clsx("openui-shell-thread-artifact-panel", {
-                "openui-shell-thread-artifact-panel--animating": !isDragging,
-              })}
-            >
-              <ArtifactPortalTarget />
-            </div>
-          </>
-        )}
+          {/* Desktop only: Resizable separator and artifact panel */}
+          {!isMobile && isArtifactActive && (
+            <>
+              <ResizableSeparator
+                onResize={handleResize}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              />
+              <div
+                ref={artifactPanelRef}
+                className={clsx("openui-shell-thread-artifact-panel", {
+                  "openui-shell-thread-artifact-panel--animating": !isDragging,
+                })}
+              >
+                <ArtifactPortalTarget />
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </ComposerStateProvider>
   );
 };
 
@@ -149,13 +152,24 @@ export const AssistantMessageContainer = ({
   children?: React.ReactNode;
   className?: string;
 }) => {
-  const { logoUrl } = useShellStore((store) => ({
+  const { logoUrl, showAssistantLogo } = useShellStore((store) => ({
     logoUrl: store.logoUrl,
+    showAssistantLogo: store.showAssistantLogo,
   }));
 
   return (
-    <div className={clsx("openui-shell-thread-message-assistant", className)}>
-      <img src={logoUrl} alt="Assistant" className="openui-shell-thread-message-assistant__logo" />
+    <div
+      className={clsx("openui-shell-thread-message-assistant", className, {
+        "openui-shell-thread-message-assistant--without-logo": !showAssistantLogo,
+      })}
+    >
+      {showAssistantLogo && (
+        <img
+          src={logoUrl}
+          alt="Assistant"
+          className="openui-shell-thread-message-assistant__logo"
+        />
+      )}
       <div className="openui-shell-thread-message-assistant__content">{children}</div>
     </div>
   );

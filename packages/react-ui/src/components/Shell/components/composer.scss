@@ -21,13 +21,13 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   &__input-wrapper {
     background-color: cssUtils.$foreground;
     border: 1px solid cssUtils.$border-interactive;
-    border-radius: cssUtils.$radius-2xl;
-    box-shadow: cssUtils.$shadow-s;
+    border-radius: cssUtils.$radius-3xl;
+    box-shadow: cssUtils.$shadow-m;
     overflow: clip;
     display: flex;
     flex-direction: column;
     gap: cssUtils.$space-s;
-    padding: cssUtils.$space-s;
+    padding: cssUtils.$space-s-m;
   }
 
   &__input {

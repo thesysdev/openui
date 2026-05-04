@@ -72,6 +72,7 @@ const ConversationStartersRenderer = ({
 const BottomTrayInner = ({
   logoUrl = "https://www.openui.com/favicon.svg",
   agentName = "My Agent",
+  showAssistantLogo = false,
   messageLoading: MessageLoadingComponent = MessageLoading,
   scrollVariant = "user-message-anchor",
   isOpen: controlledIsOpen,
@@ -108,7 +109,12 @@ const BottomTrayInner = ({
         ) : null}
       </Trigger>
 
-      <Container logoUrl={logoUrl} agentName={agentName} isOpen={isOpen}>
+      <Container
+        logoUrl={logoUrl}
+        agentName={agentName}
+        showAssistantLogo={showAssistantLogo}
+        isOpen={isOpen}
+      >
         <ThreadContainer>
           <Header
             onMinimize={() => handleOpenChange(false)}

@@ -2,6 +2,7 @@ import type { AssistantMessage, Message, ToolMessage } from "@openuidev/react-he
 import { MessageProvider, useThread } from "@openuidev/react-headless";
 import clsx from "clsx";
 import React, { memo, useRef } from "react";
+import { ComposerStateProvider } from "../../hooks/useComposerState";
 import { ScrollVariant, useScrollToBottom } from "../../hooks/useScrollToBottom";
 import { ArtifactOverlay } from "../_shared/artifact";
 import type { AssistantMessageComponent, UserMessageComponent } from "../_shared/types";
@@ -20,15 +21,17 @@ export const ThreadContainer = ({
   const isLoadingMessages = useThread((s) => s.isLoadingMessages);
 
   return (
-    <div
-      className={clsx("openui-bottom-tray-thread-container", className)}
-      style={{
-        visibility: isLoadingMessages ? "hidden" : undefined,
-      }}
-    >
-      {children}
-      <ArtifactOverlay />
-    </div>
+    <ComposerStateProvider>
+      <div
+        className={clsx("openui-bottom-tray-thread-container", className)}
+        style={{
+          visibility: isLoadingMessages ? "hidden" : undefined,
+        }}
+      >
+        {children}
+        <ArtifactOverlay />
+      </div>
+    </ComposerStateProvider>
   );
 };
 
@@ -79,8 +82,6 @@ export const ScrollArea = ({
       >
         {children}
       </div>
-      {/* Gradient to hide the bottom of the scroll area */}
-      <div className="openui-bottom-tray-thread-scroll-gradient" />
     </div>
   );
 };
