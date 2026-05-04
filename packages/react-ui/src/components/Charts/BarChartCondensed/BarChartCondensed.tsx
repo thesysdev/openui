@@ -28,6 +28,7 @@ import { LabelTooltipProvider } from "../shared/LabelTooltip/LabelTooltip";
 import { LegendItem } from "../types";
 import { getBarStackInfo, getRadiusArray } from "../utils/BarCharts/BarChartsUtils";
 import {
+  ensureChartData,
   get2dChartConfig,
   getColorForDataKey,
   getDataKeys,
@@ -95,26 +96,27 @@ const BarChartCondensedComponent = <T extends BarChartData>({
 }: BarChartCondensedProps<T>) => {
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
+  const chartData = useMemo(() => ensureChartData<T[number]>(data), [data]);
 
   const dataKeys = useMemo(() => {
-    return getDataKeys(data, categoryKey as string);
-  }, [data, categoryKey]);
+    return getDataKeys(chartData, categoryKey as string);
+  }, [chartData, categoryKey]);
 
-  const { yAxisWidth, setLabelWidth } = useYAxisLabelWidth(data, dataKeys);
+  const { yAxisWidth, setLabelWidth } = useYAxisLabelWidth(chartData, dataKeys);
 
-  const maxLabelWidth = useMaxLabelWidth(data, categoryKey as string);
+  const maxLabelWidth = useMaxLabelWidth(chartData, categoryKey as string);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartContainerWidth, setChartContainerWidth] = useState<number>(0);
 
   const widthOfData = useMemo(() => {
-    if (data.length === 0) {
+    if (chartData.length === 0) {
       return 0;
     }
     // Use passed width if available, otherwise use observed chartContainerWidth
     const chartWidth = width ?? chartContainerWidth;
-    return chartWidth / data.length;
-  }, [chartContainerWidth, data, width]);
+    return chartWidth / chartData.length;
+  }, [chartContainerWidth, chartData, width]);
 
   const { angle: calculatedAngle, height: xAxisHeight } = useAutoAngleCalculation(
     maxLabelWidth,
@@ -150,7 +152,7 @@ const BarChartCondensedComponent = <T extends BarChartData>({
 
   const exportData = useExportChartData({
     type: "bar",
-    data,
+    data: chartData,
     categoryKey: categoryKey as string,
     dataKeys,
     colors,
@@ -224,12 +226,12 @@ const BarChartCondensedComponent = <T extends BarChartData>({
     const availableWidth = explicitChartWidth ?? chartContainerWidth;
 
     // If no width available, return undefined and let Recharts auto-size
-    if (!availableWidth || availableWidth === 0 || data.length === 0) {
+    if (!availableWidth || availableWidth === 0 || chartData.length === 0) {
       return undefined;
     }
 
     // Calculate space per category (Recharts handles gaps automatically via barGap and barCategoryGap props)
-    const spacePerCategory = availableWidth / data.length;
+    const spacePerCategory = availableWidth / chartData.length;
 
     // For grouped charts, multiple bars share the category space
     const barsPerCategory = variant === "stacked" ? 1 : dataKeys.length;
@@ -239,7 +241,7 @@ const BarChartCondensedComponent = <T extends BarChartData>({
 
     // Only apply maximum constraint, let Recharts handle thin bars automatically
     return Math.min(maxBarWidth, barWidth);
-  }, [explicitChartWidth, chartContainerWidth, data.length, dataKeys.length, variant, maxBarWidth]);
+  }, [explicitChartWidth, chartContainerWidth, chartData.length, dataKeys.length, variant, maxBarWidth]);
 
   // Handle mouse events for bar hovering
   const handleChartMouseMove = useCallback((state: any) => {
@@ -325,7 +327,7 @@ const BarChartCondensedComponent = <T extends BarChartData>({
           key={`y-axis-bar-chart-condensed-${id}`}
           width={yAxisWidth}
           height={effectiveHeight}
-          data={data}
+          data={chartData}
           stackOffset="sign"
           margin={{
             top: chartMargin.top,
@@ -359,7 +361,7 @@ const BarChartCondensedComponent = <T extends BarChartData>({
   }, [
     showYAxis,
     effectiveHeight,
-    data,
+    chartData,
     dataKeys,
     variant,
     id,
@@ -464,7 +466,7 @@ const BarChartCondensedComponent = <T extends BarChartData>({
                   stackOffset="sign"
                   accessibilityLayer
                   key={`bar-chart-condensed-${id}`}
-                  data={data}
+                  data={chartData}
                   margin={chartMargin}
                   barGap={BAR_GAP}
                   barCategoryGap={BAR_CATEGORY_GAP}
