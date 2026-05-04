@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "build:cli": "tsc -p .",
-    "build:templates": "rm -rf dist/templates/openui-chat && mkdir -p dist/templates && cp -R src/templates/openui-chat dist/templates/openui-chat",
+    "build:templates": "node scripts/build-templates.mjs",
     "build": "pnpm run build:cli && pnpm run build:templates",
     "build:exec": "node dist/index.js",
     "lint:check": "eslint ./src --ignore-pattern 'src/templates/**'",
