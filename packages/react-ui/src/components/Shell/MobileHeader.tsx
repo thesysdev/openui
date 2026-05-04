@@ -25,6 +25,7 @@ export const MobileHeader = ({ className, rightChildren }: MobileHeaderProps) =>
         icon={<Menu size="1em" />}
         onClick={() => setIsSidebarOpen(true)}
         variant="secondary"
+        aria-label="Open sidebar"
       />
       <div className="openui-shell-mobile-header-logo-container">
         <img className="openui-shell-mobile-header-logo" src={logoUrl} alt="Logo" />
@@ -37,6 +38,7 @@ export const MobileHeader = ({ className, rightChildren }: MobileHeaderProps) =>
           icon={<Plus size="1em" />}
           onClick={switchToNewThread}
           variant="secondary"
+          aria-label="New chat"
         />
       </div>
     </div>
