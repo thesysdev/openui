@@ -32,6 +32,7 @@ export const CodeBlock = ({ language, codeString, theme }: CodeBlockProps) => {
           "openui-code-block-copy-button-copied": copied,
         })}
         icon={copied ? <CheckCheck /> : <Copy />}
+        aria-label={copied ? "Copied to clipboard" : "Copy code"}
       />
       <SyntaxHighlighter
         style={theme ?? vscDarkPlus}
