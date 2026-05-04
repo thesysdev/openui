@@ -111,10 +111,24 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
 
   return createPortal(
     <div className={clsx("openui-gallery__modal", portalThemeClassName)}>
-      <div className="openui-gallery__modal-content" ref={modalContentRef}>
+      <div
+        className="openui-gallery__modal-content"
+        ref={modalContentRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="openui-gallery-modal-heading"
+      >
         <div className="openui-gallery__modal-header">
-          <span className="openui-gallery__modal-heading">All Photos</span>
-          <IconButton size="small" variant="secondary" icon={<X />} onClick={onClose} />
+          <span id="openui-gallery-modal-heading" className="openui-gallery__modal-heading">
+            All Photos
+          </span>
+          <IconButton
+            size="small"
+            variant="secondary"
+            icon={<X />}
+            onClick={onClose}
+            aria-label="Close gallery"
+          />
         </div>
         <div className="openui-gallery__modal-main">
           <img
@@ -152,9 +166,19 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
                   "openui-gallery__modal-thumbnail",
                   index === selectedImageIndex && "openui-gallery__modal-thumbnail--active",
                 )}
+                role="button"
+                tabIndex={0}
+                aria-label={image.alt || `Gallery image ${index + 1}`}
+                aria-pressed={index === selectedImageIndex}
                 onClick={handleThumbnailClick(index)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleThumbnailClick(index)();
+                  }
+                }}
               >
-                <img src={image.src} alt={image.alt || `Gallery thumbnail ${index + 1}`} />
+                <img src={image.src} alt="" aria-hidden="true" />
               </div>
             ))}
           </div>
