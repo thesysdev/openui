@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode 
 import styles from "./Button.module.css";
 
 type ButtonType = ButtonHTMLAttributes<HTMLButtonElement>["type"];
-const COPY_FEEDBACK_MS = 3000;
+const COPY_FEEDBACK_MS = 1800;
 
 function CopyIcon({ color = "white" }: { color?: string }) {
   return <Copy className={styles.copyIcon} color={color} strokeWidth={1.75} />;
@@ -49,6 +49,37 @@ function CopyStatusIcon({
   );
 }
 
+async function copyText(text: string): Promise<boolean> {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // fall through to execCommand fallback
+    }
+  }
+
+  if (typeof document === "undefined") return false;
+
+  try {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.top = "0";
+    textarea.style.left = "0";
+    textarea.style.opacity = "0";
+    textarea.style.pointerEvents = "none";
+    document.body.appendChild(textarea);
+    textarea.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 interface ClipboardCommandButtonProps {
   command: string;
   children: ReactNode;
@@ -58,6 +89,7 @@ interface ClipboardCommandButtonProps {
   iconPosition?: "start" | "end";
   copyIconColor?: string;
   type?: ButtonType;
+  onCopyChange?: (copied: boolean) => void;
 }
 
 export function ClipboardCommandButton({
@@ -69,6 +101,7 @@ export function ClipboardCommandButton({
   iconPosition = "end",
   copyIconColor = "white",
   type = "button",
+  onCopyChange,
 }: ClipboardCommandButtonProps) {
   const [copied, setCopied] = useState(false);
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -82,20 +115,20 @@ export function ClipboardCommandButton({
   }, []);
 
   const handleClick = async () => {
-    if (copied) return;
-
-    try {
-      await navigator.clipboard.writeText(command);
-      setCopied(true);
-      if (resetTimeoutRef.current) {
-        clearTimeout(resetTimeoutRef.current);
-      }
-      resetTimeoutRef.current = setTimeout(() => {
-        setCopied(false);
-      }, COPY_FEEDBACK_MS);
-    } catch {
-      setCopied(false);
+    const ok = await copyText(command);
+    if (!ok) {
+      onCopyChange?.(false);
+      return;
     }
+    setCopied(true);
+    onCopyChange?.(true);
+    if (resetTimeoutRef.current) {
+      clearTimeout(resetTimeoutRef.current);
+    }
+    resetTimeoutRef.current = setTimeout(() => {
+      setCopied(false);
+      onCopyChange?.(false);
+    }, COPY_FEEDBACK_MS);
   };
 
   const icon = (

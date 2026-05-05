@@ -1,6 +1,6 @@
 .section {
   width: 100%;
-  padding-inline: 1.25rem;
+  padding: 2rem 1.25rem;
 }
 
 .container {
@@ -57,7 +57,7 @@
 
 @media (min-width: 1024px) {
   .section {
-    padding-inline: 2rem;
+    padding: 3rem 2rem;
   }
 
   .ctaWrap {

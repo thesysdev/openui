@@ -1,42 +1,32 @@
 "use client";
 
+import type { ReactNode } from "react";
 import styles from "./FeatureList.module.css";
 
 export interface FeatureListItem {
   title: string;
   description: string;
-  iconPath: string;
+  icon: ReactNode;
 }
 
 interface FeatureListProps {
   items: FeatureListItem[];
 }
 
-function FeatureIcon({ path, index }: { path: string; index: number }) {
-  const clipId = `clip_feat_${index}`;
-
+function FeatureIcon({ icon }: { icon: ReactNode }) {
   return (
     <div className={styles.featureIcon}>
-      <svg className={styles.featureIconSvg} fill="none" viewBox="0 0 18 18">
-        <g clipPath={`url(#${clipId})`}>
-          <path d={path} fill="currentColor" />
-        </g>
-        <defs>
-          <clipPath id={clipId}>
-            <rect fill="white" height="18" width="18" />
-          </clipPath>
-        </defs>
-      </svg>
+      <span className={styles.featureIconSvg}>{icon}</span>
     </div>
   );
 }
 
-function DesktopFeatureRow({ item, index }: { item: FeatureListItem; index: number }) {
+function DesktopFeatureRow({ item }: { item: FeatureListItem }) {
   return (
     <div className={styles.desktopRow}>
       <div className={styles.desktopRowLead}>
         <div>
-          <FeatureIcon path={item.iconPath} index={index} />
+          <FeatureIcon icon={item.icon} />
         </div>
         <span className={styles.desktopTitle}>{item.title}</span>
       </div>
@@ -45,15 +35,7 @@ function DesktopFeatureRow({ item, index }: { item: FeatureListItem; index: numb
   );
 }
 
-function MobileFeatureRow({
-  item,
-  index,
-  iconIndexOffset,
-}: {
-  item: FeatureListItem;
-  index: number;
-  iconIndexOffset: number;
-}) {
+function MobileFeatureRow({ item }: { item: FeatureListItem }) {
   return (
     <div className={styles.mobileRow}>
       <div className={styles.mobileCopy}>
@@ -61,7 +43,7 @@ function MobileFeatureRow({
         <span className={styles.mobileDescription}>{item.description}</span>
       </div>
       <div>
-        <FeatureIcon path={item.iconPath} index={index + iconIndexOffset} />
+        <FeatureIcon icon={item.icon} />
       </div>
     </div>
   );
@@ -79,7 +61,7 @@ export function FeatureList({ items }: FeatureListProps) {
       <div className={styles.desktopList}>
         {items.map((item, index) => (
           <div key={item.title}>
-            <DesktopFeatureRow item={item} index={index} />
+            <DesktopFeatureRow item={item} />
             {index < lastItemIndex && <Divider className={styles.desktopDivider} />}
           </div>
         ))}
@@ -88,7 +70,7 @@ export function FeatureList({ items }: FeatureListProps) {
       <div className={styles.mobileList}>
         {items.map((item, index) => (
           <div key={item.title}>
-            <MobileFeatureRow item={item} index={index} iconIndexOffset={items.length} />
+            <MobileFeatureRow item={item} />
             {index < lastItemIndex && <Divider className={styles.mobileDivider} />}
           </div>
         ))}

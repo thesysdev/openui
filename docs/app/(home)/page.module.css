@@ -24,9 +24,17 @@
   background: var(--openui-background);
 }
 
+.contentShellTight {
+  gap: 4rem;
+}
+
 @media (min-width: 768px) {
   .contentShell {
     gap: 15rem;
+  }
+
+  .contentShellTight {
+    gap: 6rem;
   }
 }
 

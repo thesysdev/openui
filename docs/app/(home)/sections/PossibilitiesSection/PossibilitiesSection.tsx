@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import styles from "./PossibilitiesSection.module.css";
 
 const bottomTraysLightImg = "/homepage/tray-light.png";
@@ -45,27 +45,29 @@ const CARDS: readonly CardImageSet[] = [
   },
 ];
 
-const MOBILE_CAROUSEL_CARDS = Array.from({ length: MOBILE_CAROUSEL_COPIES }, (_, copyIndex) =>
-  CARDS.map((card) => ({
-    ...card,
-    key: `${card.title}-${copyIndex}`,
-  })),
-).flat();
-
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function Card({ title, image, href }: { title: string; image: string; href?: string }) {
+type CardProps = { title: string; image?: string; href?: string };
+
+function Card({ title, image, href }: CardProps) {
   const content = (
     <>
       <div className={styles.cardInner}>
-        <img
-          src={image}
-          alt={`${title} illustration`}
-          className={styles.cardImage}
-          draggable={false}
-        />
+        {image ? (
+          <img
+            src={image}
+            alt={`${title} illustration`}
+            className={styles.cardImage}
+            draggable={false}
+          />
+        ) : (
+          <div
+            className={`${styles.cardImage} ${styles.cardImagePlaceholder}`}
+            aria-hidden="true"
+          />
+        )}
         <div className={styles.cardBody}>
           <p className={styles.cardTitle}>{title}</p>
         </div>
@@ -95,8 +97,29 @@ function Card({ title, image, href }: { title: string; image: string; href?: str
 // Main component
 // ---------------------------------------------------------------------------
 
-export function PossibilitiesSection() {
+const DEFAULT_CARDS: CardProps[] = CARDS.map((card) => ({
+  title: card.title,
+  image: card.lightImage,
+  href: card.href,
+}));
+
+export function PossibilitiesSection({
+  title = "Endless possibilities. Built in realtime.",
+  tagline,
+  cards = DEFAULT_CARDS,
+}: {
+  title?: ReactNode;
+  tagline?: ReactNode;
+  cards?: CardProps[];
+} = {}) {
   const mobileTrackRef = useRef<HTMLDivElement>(null);
+
+  const mobileCards = Array.from({ length: MOBILE_CAROUSEL_COPIES }, (_, copyIndex) =>
+    cards.map((card, cardIndex) => ({
+      ...card,
+      key: `${card.title}-${cardIndex}-${copyIndex}`,
+    })),
+  ).flat();
 
   useEffect(() => {
     const track = mobileTrackRef.current;
@@ -148,22 +171,28 @@ export function PossibilitiesSection() {
     <section className={styles.section}>
       <div className={styles.headerContainer}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Endless possibilities. Built in realtime.</h2>
+          <h2 className={styles.title}>{title}</h2>
+          {tagline && <p className={styles.subtitle}>{tagline}</p>}
         </div>
       </div>
 
       <div className={styles.cardsContainer}>
         <div className={styles.mobileCarouselViewport}>
           <div ref={mobileTrackRef} className={styles.mobileCarouselTrack}>
-            {MOBILE_CAROUSEL_CARDS.map((card) => (
-              <Card key={card.key} title={card.title} image={card.lightImage} href={card.href} />
+            {mobileCards.map((card) => (
+              <Card key={card.key} title={card.title} image={card.image} href={card.href} />
             ))}
           </div>
         </div>
 
         <div className={styles.cardsGrid}>
-          {CARDS.map((card) => (
-            <Card key={card.title} title={card.title} image={card.lightImage} href={card.href} />
+          {cards.map((card, index) => (
+            <Card
+              key={`${card.title}-${index}`}
+              title={card.title}
+              image={card.image}
+              href={card.href}
+            />
           ))}
         </div>
       </div>

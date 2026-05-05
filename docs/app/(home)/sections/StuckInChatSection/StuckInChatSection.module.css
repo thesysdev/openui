@@ -1,0 +1,158 @@
+.section {
+  width: 100%;
+  padding-inline: 1.25rem;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+.heading {
+  margin: 0 0 0.75rem;
+  text-align: center;
+  font-family: "Inter Display", sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -1px;
+  color: var(--openui-text-neutral-primary);
+  text-wrap: balance;
+}
+
+.description {
+  margin: 0 0 2.5rem;
+  max-width: 42rem;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--openui-text-neutral-secondary);
+  text-wrap: balance;
+}
+
+.cards {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1.25rem;
+  border: 1px solid var(--openui-border-default);
+  border-radius: 0.875rem;
+  background: var(--openui-foreground);
+  box-shadow: var(--openui-shadow-m);
+}
+
+.cardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--openui-radius-full);
+  background: var(--openui-text-neutral-primary);
+  color: var(--openui-foreground);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: "Inter Display", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--openui-text-neutral-primary);
+}
+
+.cardDescription {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--openui-text-neutral-secondary);
+  text-wrap: balance;
+}
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+.installButton {
+  width: 100%;
+  max-width: 320px;
+  justify-content: space-between;
+}
+
+.ctaSub {
+  margin: 0;
+  text-align: center;
+  font-family: "Inter Display", sans-serif;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--openui-text-neutral-primary);
+}
+
+
+@media (min-width: 1024px) {
+  .section {
+    padding-inline: 2rem;
+  }
+
+  .heading {
+    font-size: 2.5rem;
+    letter-spacing: -2px;
+    margin-bottom: 1rem;
+  }
+
+  .description {
+    font-size: 1.125rem;
+    margin-bottom: 4rem;
+  }
+
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+    gap: 0.75rem;
+  }
+
+  .cardTitle {
+    font-size: 1.0625rem;
+  }
+
+  .cardDescription {
+    font-size: 0.9375rem;
+  }
+
+  .cta {
+    margin-top: 4rem;
+  }
+
+  .ctaSub {
+    font-size: 1.25rem;
+  }
+
+  .installButton {
+    width: auto;
+    max-width: none;
+    justify-content: center;
+  }
+}

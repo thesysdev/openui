@@ -82,14 +82,18 @@ function MobileMenu({ starCount, onClose }: { starCount: number | null; onClose:
       >
         <div className={styles.mobileTray}>
           <div className={styles.mobileTrayInner}>
-            {PRIMARY_SITE_NAV_ITEMS.map((item, index) => (
-              <div key={item.href}>
-                {index > 0 && <div className={styles.mobileTrayDivider} />}
-                <Link href={item.href} className={styles.mobileTrayLink}>
-                  {item.title}
-                </Link>
-              </div>
-            ))}
+            {PRIMARY_SITE_NAV_ITEMS.map((item, index) => {
+              const badge = "badge" in item ? item.badge : undefined;
+              return (
+                <div key={item.href}>
+                  {index > 0 && <div className={styles.mobileTrayDivider} />}
+                  <Link href={item.href} className={styles.mobileTrayLink}>
+                    {item.title}
+                    {badge && <span className={styles.mobileTrayBadge}>{badge}</span>}
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </div>
         <div className={styles.mobileGithubButtonWrap}>

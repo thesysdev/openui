@@ -11,6 +11,9 @@
 }
 
 .featureIconSvg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   height: 18px;
   width: 18px;
   color: var(--openui-text-neutral-primary);

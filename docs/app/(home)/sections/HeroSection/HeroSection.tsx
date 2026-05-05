@@ -3,8 +3,11 @@
 import { GitHubIcon } from "@/components/brand-logo";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ClipboardCommandButton, PillLink } from "../../components/Button/Button";
 import styles from "./HeroSection.module.css";
+
+export const heroStyles = styles;
 
 // CTAs
 const primaryCTA = "npx @openuidev/cli@latest create";
@@ -34,24 +37,58 @@ function TrailingArrow() {
   );
 }
 
-function NpmButton({ className = "" }: { className?: string }) {
+const COPY_TOAST_MS = 1800;
+
+export function NpmButton({ className = "", command }: { className?: string; command: string }) {
+  const [showToast, setShowToast] = useState(false);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleCopyChange = (copied: boolean) => {
+    if (!copied) return;
+    setShowToast(true);
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    toastTimeoutRef.current = setTimeout(() => {
+      setShowToast(false);
+    }, COPY_TOAST_MS);
+  };
+
   return (
-    <ClipboardCommandButton
-      command={primaryCTA}
-      className={`${styles.npmButton} ${className}`.trim()}
-      iconContainerClassName={styles.npmIconBadge}
-      copyIconColor="white"
-    >
-      <span className={styles.npmDesktopLabel}>{primaryCTA}</span>
-      <span className={styles.npmMobileLabel}>
-        <span className={styles.npmTicker}>
-          <span className={styles.npmTickerText}>{primaryCTA}</span>
-          <span aria-hidden="true" className={styles.npmTickerText}>
-            {primaryCTA}
+    <div className={styles.npmButtonWrapper}>
+      <ClipboardCommandButton
+        command={command}
+        className={`${styles.npmButton} ${className}`.trim()}
+        iconContainerClassName={styles.npmIconBadge}
+        copyIconColor="white"
+        onCopyChange={handleCopyChange}
+      >
+        <span className={styles.npmDesktopLabel}>{command}</span>
+        <span className={styles.npmMobileLabel}>
+          <span className={styles.npmTicker}>
+            <span className={styles.npmTickerText}>{command}</span>
+            <span aria-hidden="true" className={styles.npmTickerText}>
+              {command}
+            </span>
           </span>
         </span>
-      </span>
-    </ClipboardCommandButton>
+      </ClipboardCommandButton>
+      <div
+        className={`${styles.copyToast} ${showToast ? styles.copyToastVisible : ""}`.trim()}
+        role="status"
+        aria-live="polite"
+      >
+        Copied. Paste in your terminal to install.
+      </div>
+    </div>
   );
 }
 
@@ -136,19 +173,41 @@ function GitHubBanner({ className = "" }: { className?: string }) {
 // Desktop hero
 // ---------------------------------------------------------------------------
 
-function DesktopHero() {
+function DesktopHero({
+  title,
+  subtitle,
+  command,
+  compact,
+  showBanner,
+  showPlaygroundButton,
+}: {
+  title: ReactNode;
+  subtitle: ReactNode;
+  command: string;
+  compact: boolean;
+  showBanner: boolean;
+  showPlaygroundButton: boolean;
+}) {
   return (
     <div className={styles.desktopHero}>
       <div className={styles.desktopHeroInner}>
         <div className={styles.desktopHeroLockup}>
-          <AnnouncementBanner />
-          <h1 className={styles.desktopTitle}>OpenUI</h1>
-          <p className={styles.desktopSubtitle}>The Open Standard for Generative UI</p>
+          {showBanner && <AnnouncementBanner />}
+          <h1
+            className={`${styles.desktopTitle} ${compact ? styles.desktopTitleCompact : ""}`.trim()}
+          >
+            {title}
+          </h1>
+          <p className={styles.desktopSubtitle}>{subtitle}</p>
         </div>
 
-        <div className={styles.desktopCtaStack}>
-          <NpmButton />
-          <DesktopPlaygroundButton />
+        <div
+          className={`${styles.desktopCtaStack} ${
+            !showPlaygroundButton ? styles.desktopCtaStackShadowRoom : ""
+          }`.trim()}
+        >
+          <NpmButton command={command} />
+          {showPlaygroundButton && <DesktopPlaygroundButton />}
         </div>
       </div>
     </div>
@@ -159,39 +218,82 @@ function DesktopHero() {
 // Mobile hero
 // ---------------------------------------------------------------------------
 
-function MobileHero({ theme }: { theme: HeroTheme }) {
-  const mobileHeroImage = theme === "dark" ? MOBILE_HERO_IMAGE.dark : MOBILE_HERO_IMAGE.light;
+function MobileHero({
+  theme,
+  title,
+  subtitle,
+  command,
+  compact,
+  showBanner,
+  showPlaygroundButton,
+  showGitHubBanner,
+  mobileImageOverride,
+  mobileImageAlt,
+  mobileImageWidth,
+  mobileImageHeight,
+  mobileImageCropTopPercent = 0,
+}: {
+  theme: HeroTheme;
+  title: ReactNode;
+  subtitle: ReactNode;
+  command: string;
+  compact: boolean;
+  showBanner: boolean;
+  showPlaygroundButton: boolean;
+  showGitHubBanner: boolean;
+  mobileImageOverride?: string;
+  mobileImageAlt?: string;
+  mobileImageWidth?: number;
+  mobileImageHeight?: number;
+  mobileImageCropTopPercent?: number;
+}) {
+  const mobileHeroImage =
+    mobileImageOverride ?? (theme === "dark" ? MOBILE_HERO_IMAGE.dark : MOBILE_HERO_IMAGE.light);
+
+  const naturalWidth = mobileImageWidth ?? MOBILE_HERO_IMAGE.width;
+  const naturalHeight = mobileImageHeight ?? MOBILE_HERO_IMAGE.height;
+  const cropTop = Math.max(0, Math.min(100, mobileImageCropTopPercent));
+  const cropped = cropTop > 0;
+  const viewportStyle = cropped
+    ? { aspectRatio: `${naturalWidth} / ${naturalHeight * (1 - cropTop / 100)}` }
+    : undefined;
+  const imageStyle = cropped
+    ? ({ height: "100%", objectFit: "cover", objectPosition: "bottom" } as const)
+    : undefined;
 
   return (
     <div className={styles.mobileHero}>
       <div className={styles.mobileHeroIntro}>
         <div className={styles.mobileHeroStack}>
-          <AnnouncementBanner />
+          {showBanner && <AnnouncementBanner />}
 
           <div className={styles.mobileBrandGroup}>
-            <p className={styles.mobileTitle}>OpenUI</p>
+            <p className={`${styles.mobileTitle} ${compact ? styles.mobileTitleCompact : ""}`.trim()}>
+              {title}
+            </p>
           </div>
 
           {/* Subtitle */}
-          <p className={styles.mobileSubtitle}>The Open Standard for Generative UI</p>
+          <p className={styles.mobileSubtitle}>{subtitle}</p>
         </div>
       </div>
 
       {/* CTA buttons */}
       <div className={styles.mobileCtaStack}>
-        <NpmButton className={styles.mobileCtaButtonWidth} />
-        <MobilePlaygroundButton className={styles.mobileCtaButtonWidth} />
-        <GitHubBanner className={styles.mobileCtaButtonWidth} />
+        <NpmButton className={styles.mobileCtaButtonWidth} command={command} />
+        {showPlaygroundButton && <MobilePlaygroundButton className={styles.mobileCtaButtonWidth} />}
+        {showGitHubBanner && <GitHubBanner className={styles.mobileCtaButtonWidth} />}
       </div>
 
       {/* Mobile hero image */}
-      <div className={styles.mobileIllustrationViewport}>
+      <div className={styles.mobileIllustrationViewport} style={viewportStyle}>
         <img
           src={mobileHeroImage}
-          alt="OpenUI mobile hero preview"
-          width={MOBILE_HERO_IMAGE.width}
-          height={MOBILE_HERO_IMAGE.height}
+          alt={mobileImageAlt ?? "OpenUI mobile hero preview"}
+          width={naturalWidth}
+          height={naturalHeight}
           className={styles.mobileIllustrationImage}
+          style={imageStyle}
           loading="eager"
           decoding="async"
           fetchPriority="high"
@@ -205,18 +307,38 @@ function MobileHero({ theme }: { theme: HeroTheme }) {
 // Desktop preview image
 // ---------------------------------------------------------------------------
 
-function PreviewImage({ theme }: { theme: HeroTheme }) {
-  const desktopHeroImage = theme === "dark" ? DESKTOP_HERO_IMAGE.dark : DESKTOP_HERO_IMAGE.light;
+function PreviewImage({
+  theme,
+  desktopImageOverride,
+  desktopImageAlt,
+  desktopImageWidth,
+  desktopImageHeight,
+  widePreview,
+}: {
+  theme: HeroTheme;
+  desktopImageOverride?: string;
+  desktopImageAlt?: string;
+  desktopImageWidth?: number;
+  desktopImageHeight?: number;
+  widePreview?: boolean;
+}) {
+  const desktopHeroImage =
+    desktopImageOverride ??
+    (theme === "dark" ? DESKTOP_HERO_IMAGE.dark : DESKTOP_HERO_IMAGE.light);
 
   return (
-    <div className={styles.previewSection}>
+    <div
+      className={`${styles.previewSection} ${widePreview ? styles.previewSectionTight : ""}`.trim()}
+    >
       <div className={styles.previewDesktopOnly}>
-        <div className={styles.previewFrame}>
+        <div
+          className={`${styles.previewFrame} ${widePreview ? styles.previewFrameWide : ""}`.trim()}
+        >
           <img
             src={desktopHeroImage}
-            alt="OpenUI desktop hero preview"
-            width={DESKTOP_HERO_IMAGE.width}
-            height={DESKTOP_HERO_IMAGE.height}
+            alt={desktopImageAlt ?? "OpenUI desktop hero preview"}
+            width={desktopImageWidth ?? DESKTOP_HERO_IMAGE.width}
+            height={desktopImageHeight ?? DESKTOP_HERO_IMAGE.height}
             className={styles.previewImage}
             loading="eager"
             decoding="async"
@@ -232,13 +354,17 @@ function PreviewImage({ theme }: { theme: HeroTheme }) {
 // Tagline
 // ---------------------------------------------------------------------------
 
-function Tagline() {
+function Tagline({ children, compact }: { children?: ReactNode; compact?: boolean }) {
   return (
     <div className={styles.taglineSection}>
       <div className={styles.taglineContainer}>
-        <p className={styles.tagline}>
-          An open source toolkit to make your <br className={styles.taglineBreak} />
-          AI apps respond with your UI.
+        <p className={`${styles.tagline} ${compact ? styles.taglineCompact : ""}`.trim()}>
+          {children ?? (
+            <>
+              An open source toolkit to make your <br className={styles.taglineBreak} />
+              AI apps respond with your UI.
+            </>
+          )}
         </p>
       </div>
     </div>
@@ -249,15 +375,85 @@ function Tagline() {
 // Main export
 // ---------------------------------------------------------------------------
 
-export function HeroSection() {
+export function HeroSection({
+  title = "OpenUI",
+  subtitle = "The Open Standard for Generative UI",
+  command = primaryCTA,
+  compact = false,
+  showBanner = true,
+  showPlaygroundButton = true,
+  desktopPreviewImage,
+  desktopPreviewImageAlt,
+  desktopPreviewImageWidth,
+  desktopPreviewImageHeight,
+  widePreview = false,
+  showTagline = true,
+  tagline,
+  taglineCompact = false,
+  showGitHubBanner = true,
+  mobilePreviewImage,
+  mobilePreviewImageAlt,
+  mobilePreviewImageWidth,
+  mobilePreviewImageHeight,
+  mobilePreviewImageCropTopPercent,
+}: {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  command?: string;
+  compact?: boolean;
+  showBanner?: boolean;
+  showPlaygroundButton?: boolean;
+  desktopPreviewImage?: string;
+  desktopPreviewImageAlt?: string;
+  desktopPreviewImageWidth?: number;
+  desktopPreviewImageHeight?: number;
+  widePreview?: boolean;
+  showTagline?: boolean;
+  tagline?: ReactNode;
+  taglineCompact?: boolean;
+  showGitHubBanner?: boolean;
+  mobilePreviewImage?: string;
+  mobilePreviewImageAlt?: string;
+  mobilePreviewImageWidth?: number;
+  mobilePreviewImageHeight?: number;
+  mobilePreviewImageCropTopPercent?: number;
+} = {}) {
   const theme: HeroTheme = "light";
 
   return (
     <section className={styles.section}>
-      <DesktopHero />
-      <MobileHero theme={theme} />
-      <PreviewImage theme={theme} />
-      <Tagline />
+      <DesktopHero
+        title={title}
+        subtitle={subtitle}
+        command={command}
+        compact={compact}
+        showBanner={showBanner}
+        showPlaygroundButton={showPlaygroundButton}
+      />
+      <MobileHero
+        theme={theme}
+        title={title}
+        subtitle={subtitle}
+        command={command}
+        compact={compact}
+        showBanner={showBanner}
+        showPlaygroundButton={showPlaygroundButton}
+        showGitHubBanner={showGitHubBanner}
+        mobileImageOverride={mobilePreviewImage}
+        mobileImageAlt={mobilePreviewImageAlt}
+        mobileImageWidth={mobilePreviewImageWidth}
+        mobileImageHeight={mobilePreviewImageHeight}
+        mobileImageCropTopPercent={mobilePreviewImageCropTopPercent}
+      />
+      <PreviewImage
+        theme={theme}
+        desktopImageOverride={desktopPreviewImage}
+        desktopImageAlt={desktopPreviewImageAlt}
+        desktopImageWidth={desktopPreviewImageWidth}
+        desktopImageHeight={desktopPreviewImageHeight}
+        widePreview={widePreview}
+      />
+      {showTagline && <Tagline compact={taglineCompact}>{tagline}</Tagline>}
     </section>
   );
 }
