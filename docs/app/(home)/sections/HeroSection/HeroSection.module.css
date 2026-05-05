@@ -509,6 +509,12 @@
   height: auto;
 }
 
+.previewFrameWide .previewImage {
+  width: 118%;
+  margin-inline: -9%;
+  max-width: none;
+}
+
 .previewSection {
   width: 100%;
   overflow: hidden;
