@@ -60,10 +60,26 @@ export default function OpenClawOSPage() {
             title="Generate an app for that..."
             tagline="With OpenClaw OS, any use case becomes a working app, instantly generated and always updated with live data."
             cards={[
-              { title: "To be Added" },
-              { title: "To be Added" },
-              { title: "To be Added" },
-              { title: "To be Added" },
+              {
+                titlePrefix: "An app to",
+                title: "track company sales.",
+                image: "/business-health.png",
+              },
+              {
+                titlePrefix: "An app to",
+                title: "monitor sprint progress.",
+                image: "/engineering-board.png",
+              },
+              {
+                titlePrefix: "An app to",
+                title: "observe social media.",
+                image: "/marketing-dashboard.png",
+              },
+              {
+                titlePrefix: "An app to",
+                title: "track stock market.",
+                image: "/stocks-tracker.png",
+              },
             ]}
           />
           <FeaturesSection features={OPENCLAW_FEATURES} showCta={false} />

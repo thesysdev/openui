@@ -49,9 +49,9 @@ const CARDS: readonly CardImageSet[] = [
 // Sub-components
 // ---------------------------------------------------------------------------
 
-type CardProps = { title: string; image?: string; href?: string };
+type CardProps = { title: string; titlePrefix?: string; image?: string; href?: string };
 
-function Card({ title, image, href }: CardProps) {
+function Card({ title, titlePrefix, image, href }: CardProps) {
   const content = (
     <>
       <div className={styles.cardInner}>
@@ -69,7 +69,10 @@ function Card({ title, image, href }: CardProps) {
           />
         )}
         <div className={styles.cardBody}>
-          <p className={styles.cardTitle}>{title}</p>
+          <p className={styles.cardTitle}>
+            {titlePrefix && <span className={styles.cardTitlePrefix}>{titlePrefix}</span>}
+            {title}
+          </p>
         </div>
       </div>
       <div className={styles.cardOverlay} />
@@ -180,7 +183,13 @@ export function PossibilitiesSection({
         <div className={styles.mobileCarouselViewport}>
           <div ref={mobileTrackRef} className={styles.mobileCarouselTrack}>
             {mobileCards.map((card) => (
-              <Card key={card.key} title={card.title} image={card.image} href={card.href} />
+              <Card
+                key={card.key}
+                title={card.title}
+                titlePrefix={card.titlePrefix}
+                image={card.image}
+                href={card.href}
+              />
             ))}
           </div>
         </div>
@@ -190,6 +199,7 @@ export function PossibilitiesSection({
             <Card
               key={`${card.title}-${index}`}
               title={card.title}
+              titlePrefix={card.titlePrefix}
               image={card.image}
               href={card.href}
             />

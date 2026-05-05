@@ -119,6 +119,12 @@
   color: var(--openui-text-neutral-primary);
 }
 
+.cardTitlePrefix {
+  display: block;
+  font-weight: 400;
+  color: var(--openui-text-neutral-secondary);
+}
+
 .cardOverlay {
   position: absolute;
   inset: 0;
