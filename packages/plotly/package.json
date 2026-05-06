@@ -1,0 +1,96 @@
+{
+  "type": "module",
+  "name": "@openuidev/plotly",
+  "license": "MIT",
+  "version": "0.1.0",
+  "description": "Plotly.js component library for OpenUI generative UI — 47 typed chart components an LLM can compose via openui-lang, plus a <PlotlyChat /> wrapper.",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./styles.css": {
+      "default": "./styles/plotly.css"
+    }
+  },
+  "files": [
+    "dist",
+    "styles",
+    "README.md"
+  ],
+  "sideEffects": [
+    "*.css",
+    "./dist/index.mjs",
+    "./dist/index.cjs"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -rf dist && pnpm build:tsc && pnpm build:cjs",
+    "build:tsc": "tsc -p . || true",
+    "build:cjs": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./src",
+    "format:check": "prettier --check ./src",
+    "check:publint": "publint",
+    "check:attw": "attw --pack . --ignore-rules no-resolution",
+    "prepare": "pnpm run build",
+    "prepublishOnly": "pnpm run check:publint && pnpm run check:attw",
+    "ci": "pnpm run lint:check && pnpm run format:check"
+  },
+  "peerDependencies": {
+    "@openuidev/react-headless": "workspace:^",
+    "@openuidev/react-lang": "workspace:^",
+    "@openuidev/react-ui": "workspace:^",
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "zod": "^3.25.0 || ^4.0.0"
+  },
+  "dependencies": {
+    "plotly.js-dist-min": "^3.0.0",
+    "react-plotly.js": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.32",
+    "@types/plotly.js": "^3.0.0",
+    "@types/plotly.js-dist-min": "^2.3.4",
+    "@types/react": ">=18.3.1",
+    "@types/react-dom": ">=18.3.1",
+    "@types/react-plotly.js": "^2.6.3"
+  },
+  "keywords": [
+    "openui",
+    "plotly",
+    "plotly.js",
+    "generative-ui",
+    "ai",
+    "llm",
+    "react",
+    "charts",
+    "data-visualization",
+    "scientific"
+  ],
+  "homepage": "https://openui.com",
+  "author": "engineering@openui.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "packages/plotly"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
