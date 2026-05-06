@@ -7,6 +7,47 @@
   --site-primary-nav-hover-bg: var(--home-color-surface-soft);
 }
 
+.navBanner {
+  display: flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: #000;
+  color: #f8fafc;
+  text-decoration: none;
+  font-family: "Inter", sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.navBannerText {
+  display: inline-flex;
+  align-items: center;
+}
+
+.navBannerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 25%);
+  background: rgb(255 255 255 / 10%);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.navBannerStar {
+  color: rgb(234 197 79);
+}
+
+.navBanner:hover .navBannerButton {
+  background: rgb(255 255 255 / 18%);
+}
+
 .desktopActions {
   display: none;
 }
@@ -139,6 +180,11 @@
 }
 
 @media (min-width: 1024px) {
+  .navBanner {
+    min-height: 2.75rem;
+    gap: 0.875rem;
+  }
+
   .desktopActions {
     display: flex;
   }
