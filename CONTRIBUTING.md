@@ -10,6 +10,18 @@ Thank you for considering contributing to _openui_! This document provides guide
 4. Update the README.md & autogenerate docs if needed.
 5. Open a Pull Request
 
+## Windows Setup
+
+If you are setting up the project on Windows, the `build:templates` script in `openui-cli` uses Unix shell commands (`rm -rf`, `mkdir -p`, `cp -R`) which fail when pnpm defaults to CMD as its shell.
+
+To fix this, point pnpm to Git Bash before running `pnpm install`:
+
+```bash
+pnpm config set script-shell "C:\Program Files\Git\bin\bash.exe"
+```
+
+> **Note:** This assumes Git is installed at the default location. If not, run `where git` to find the correct path and replace accordingly.
+
 ## Bug Reports
 
 Use Github Issues to report bugs. When reporting bugs, please include:

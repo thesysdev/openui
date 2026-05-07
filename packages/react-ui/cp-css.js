@@ -1,8 +1,9 @@
 import fs from "fs";
 import { camelCase } from "lodash-es";
 import path from "path";
+import {fileURLToPath} from "url"
 
-const dirname = path.dirname(new URL(import.meta.url).pathname);
+const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Create directories if they don't exist
 function ensureDirectoryExists(dirPath) {
