@@ -31,10 +31,12 @@ export const Table = defineComponent({
   name: "Table",
   props: z.object({
     columns: z.array(Col.ref),
+    pageSize: z.coerce.number().optional().describe("Rows per page (default 10)"),
   }),
-  description: "Data table — column-oriented. Each Col holds its own data array.",
+  description:
+    "Data table — column-oriented. Each Col holds its own data array. Optional pageSize controls rows per page.",
   component: ({ props, renderNode }) => {
-    const effectivePageSize = DEFAULT_PAGE_SIZE;
+    const effectivePageSize = (props as any).pageSize ?? DEFAULT_PAGE_SIZE;
 
     const [currentPage, setCurrentPage] = React.useState(0);
 
