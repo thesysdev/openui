@@ -9,7 +9,7 @@ export const PRIMARY_SITE_NAV_ITEMS = [
   { title: "Playground", href: "/playground", newTab: false },
   { title: "Demo", href: "/demo/github", newTab: true },
   { title: "Blogs", href: "/blog", newTab: false },
-  { title: "OpenClaw OS", href: "/Openclaw-OS", newTab: false, badge: "New" },
+  { title: "OpenClaw OS", href: "/openclaw-os", newTab: false, badge: "New" },
 ] as const;
 
 export function SitePrimaryNav() {
