@@ -5,10 +5,10 @@ A live dashboard builder powered by [OpenUI](https://openui.com) and openui-lang
 ## Features
 
 - **Conversational dashboard building** — describe what you want, get a live dashboard
-- **MCP tool integration** — Query live data sources (PostHog, server health, tickets)
+- **MCP tool integration** — Linear workspace data via hosted MCP (`https://mcp.linear.app/mcp`)
 - **Streaming rendering** — dashboards appear progressively as the LLM generates code
 - **Edit support** — refine dashboards through follow-up messages
-- **16 built-in tools** — analytics, monitoring, ticket management, and more
+- **Linear MCP tools** — issues, projects, teams, and more (tool list comes from Linear at runtime)
 
 ## Getting Started
 
@@ -20,6 +20,10 @@ export OPENAI_API_KEY=sk-...
 # export LLM_BASE_URL=https://openrouter.ai/api/v1
 # export LLM_MODEL=your-model
 
+# Linear MCP — API key or OAuth access token (server-only; used by /api/mcp and /api/chat)
+# See https://linear.app/docs/mcp
+export LINEAR_API_KEY=lin_api_...
+
 # Install dependencies
 pnpm install
 
@@ -28,15 +32,6 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to start building dashboards.
-
-## Optional: PostHog Integration
-
-For real analytics data, set PostHog credentials:
-
-```bash
-export POSTHOG_API_KEY=phx_...
-export POSTHOG_PROJECT_ID=12345
-```
 
 ## Learn More
 

@@ -3,15 +3,14 @@ import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
 import { generatePrompt } from "@openuidev/lang-core";
 import { promptSpec } from "@/prompt-config";
-import { tools as toolDefs } from "@/tools";
 import { sseResponseFromRunner } from "@/lib/sse-stream";
+import { createConnectedLinearMcpClient } from "@/lib/linear-mcp";
+import { linearMcpToolsToOpenAI } from "@/lib/linear-openai-tools";
 
-const tools = toolDefs.map((t) => t.toOpenAITool());
-
-function buildSystemPrompt(): string {
+function buildSystemPrompt(toolSpecs: ReturnType<typeof linearMcpToolsToOpenAI>["toolSpecs"]): string {
   return generatePrompt({
     ...promptSpec,
-    tools: toolDefs.map((t) => t.toToolSpec()),
+    tools: toolSpecs,
   });
 }
 
@@ -29,14 +28,43 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  let mcpClient;
+  try {
+    mcpClient = await createConnectedLinearMcpClient();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Linear MCP connection failed";
+    return new Response(JSON.stringify({ error: msg }), { status: 500 });
+  }
+
+  const { tools: mcpTools } = await mcpClient.listTools();
+  const { openaiTools, toolSpecs } = linearMcpToolsToOpenAI(mcpTools, mcpClient);
+
   const client = new OpenAI({ apiKey, baseURL });
   const runner = client.chat.completions.runTools({
     model,
-    messages: [{ role: "system" as const, content: buildSystemPrompt() }, ...messages],
-    tools,
+    messages: [{ role: "system" as const, content: buildSystemPrompt(toolSpecs) }, ...messages],
+    tools: openaiTools,
     stream: true,
-    // reasoning: { effort: "low" },
+    stream_options: { include_usage: true },
   });
+
+  runner.on("totalUsage", (usage) => {
+    console.log("[chat] Token usage (total):", usage);
+  });
+  runner.on("chatCompletion", (completion) => {
+    if (completion.usage) {
+      console.log("[chat] Token usage (round):", completion.usage);
+    }
+  });
+
+  let mcpClosed = false;
+  const closeMcp = () => {
+    if (mcpClosed) return;
+    mcpClosed = true;
+    void mcpClient.close();
+  };
+  runner.on("end", closeMcp);
+  runner.on("error", closeMcp);
 
   return sseResponseFromRunner(runner);
 }
