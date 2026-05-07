@@ -1,15 +1,25 @@
 import { BASE_URL } from "@/lib/source";
-import { generatePrompt, type PromptSpec } from "@openuidev/lang-core";
+import { generatePrompt, type PromptSpec, type ToolSpec } from "@openuidev/lang-core";
 import { readFileSync } from "fs";
 import { type NextRequest } from "next/server";
 import { join } from "path";
-import { GITHUB_DEMO_MODEL } from "../../../../demo/github/constants";
-import {
-  GITHUB_ADDITIONAL_RULES,
-  GITHUB_PREAMBLE,
-  GITHUB_TOOL_EXAMPLES,
-} from "../../../../demo/github/github/prompt-config";
-import { GITHUB_TOOL_SPECS } from "../../../../demo/github/github/types";
+
+/**
+ * NOTE:
+ * This route used to import its GitHub demo prompt config from `demo/github/*`,
+ * but that folder doesn't exist in this repo. Keep the endpoint buildable by
+ * providing lightweight, local defaults here.
+ */
+const GITHUB_DEMO_MODEL =
+  process.env.GITHUB_DEMO_MODEL ??
+  process.env.OPENROUTER_MODEL ??
+  // A reasonable OpenRouter default; can be overridden via env vars.
+  "openai/gpt-4.1-mini";
+
+const GITHUB_PREAMBLE = `You are a helpful coding assistant.`;
+const GITHUB_ADDITIONAL_RULES: string[] = [];
+const GITHUB_TOOL_EXAMPLES: string[] = [];
+const GITHUB_TOOL_SPECS: Array<string | ToolSpec> = [];
 
 // ── Component spec from generated JSON ────────────────────────────────────
 

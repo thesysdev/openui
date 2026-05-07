@@ -41,7 +41,7 @@ export default function RadiusPreviewPage() {
     RADIUS_TOKENS.forEach((token) => {
       map[token] = computedStyles.getPropertyValue(token).trim() || "0";
     });
-    setTokenValues(map);
+    queueMicrotask(() => setTokenValues(map));
   }, []);
 
   const radiusItems = RADIUS_TOKENS.map((token) => ({

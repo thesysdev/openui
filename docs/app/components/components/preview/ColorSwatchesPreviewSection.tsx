@@ -40,7 +40,7 @@ export default function ColorSwatchesPreviewSection({
         values[tokenName] = computedStyles.getPropertyValue(tokenName).trim() || "var(...)";
       });
     });
-    setTokenValues(values);
+    queueMicrotask(() => setTokenValues(values));
   }, [rows]);
 
   return (

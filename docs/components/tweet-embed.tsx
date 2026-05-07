@@ -22,7 +22,8 @@ export function TweetEmbed({ id }: { id: string }) {
   const embedTheme: "light" | "dark" = resolvedTheme === "dark" ? "dark" : "light";
 
   useEffect(() => {
-    if (window.twttr?.widgets?.createTweet) setScriptReady(true);
+    if (!window.twttr?.widgets?.createTweet) return;
+    queueMicrotask(() => setScriptReady(true));
   }, []);
 
   useEffect(() => {

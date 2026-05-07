@@ -131,7 +131,7 @@ export function SiteMarketingHeader({
 
   useEffect(() => {
     if (borderMode === "always") {
-      setIsScrolled(true);
+      queueMicrotask(() => setIsScrolled(true));
       return;
     }
 

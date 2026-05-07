@@ -72,9 +72,8 @@ export function TweetWall() {
   const columns = splitIntoColumns(HOME_TWEETS, columnCount);
 
   useEffect(() => {
-    if (window.twttr?.widgets?.createTweet) {
-      setScriptReady(true);
-    }
+    if (!window.twttr?.widgets?.createTweet) return;
+    queueMicrotask(() => setScriptReady(true));
   }, []);
 
   useEffect(() => {
@@ -91,11 +90,11 @@ export function TweetWall() {
     );
 
     if (!shouldRehydrate) {
-      setIsWallReady(true);
+      queueMicrotask(() => setIsWallReady(true));
       return;
     }
 
-    setIsWallReady(false);
+    queueMicrotask(() => setIsWallReady(false));
 
     async function hydrateEmbeds() {
       await Promise.allSettled(

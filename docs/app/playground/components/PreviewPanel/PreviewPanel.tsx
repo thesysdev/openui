@@ -21,7 +21,7 @@ export function PreviewPanel({ code, isStreaming, onParseResult, theme }: Previe
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    setSystemDark(mq.matches);
+    queueMicrotask(() => setSystemDark(mq.matches));
     const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);

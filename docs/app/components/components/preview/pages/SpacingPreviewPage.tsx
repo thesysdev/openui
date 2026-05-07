@@ -34,7 +34,7 @@ export default function SpacingPreviewPage() {
     SPACING_TOKENS.forEach((token) => {
       map[token] = computedStyles.getPropertyValue(token).trim() || "0px";
     });
-    setTokenValues(map);
+    queueMicrotask(() => setTokenValues(map));
   }, []);
 
   const spacingItems = SPACING_TOKENS.map((token) => ({

@@ -120,7 +120,7 @@ export default function ShadowsPreviewPage() {
       const rawValue = computedStyles.getPropertyValue(cssVar).trim() || "none";
       map[cssVar] = normalizeShadowValueToOklch(rawValue);
     });
-    setTokenValues(map);
+    queueMicrotask(() => setTokenValues(map));
   }, []);
 
   const shadowItems = SHADOW_TOKENS.map(({ cssVar }) => ({

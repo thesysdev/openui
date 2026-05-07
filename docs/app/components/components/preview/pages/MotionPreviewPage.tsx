@@ -24,7 +24,7 @@ export default function MotionPreviewPage() {
       computedStyles.getPropertyValue("--motion-ease-standard").trim() || "ease";
     map["--motion-ease-emphasized"] =
       computedStyles.getPropertyValue("--motion-ease-emphasized").trim() || "ease-in-out";
-    setTokenValues(map);
+    queueMicrotask(() => setTokenValues(map));
   }, []);
 
   return (
