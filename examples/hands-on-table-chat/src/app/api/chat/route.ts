@@ -203,7 +203,7 @@ export async function POST(req: NextRequest) {
 
       /* eslint-disable @typescript-eslint/no-explicit-any */
       const runner = (client.chat.completions as any).runTools({
-        model: process.env.OPENAI_MODEL || "gpt-4o",
+        model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
         messages: chatMessages,
         tools,
         stream: true,
