@@ -1,0 +1,35 @@
+---
+title: Feature Comparison
+description: OpenUI vs json-render (Vercel), A2UI (Google), and CopilotKit OpenGenerativeUI.
+---
+
+# The Generative UI Landscape
+
+**Four frameworks. Which one ships to production?**
+
+---
+
+## At a Glance
+
+|  | **[OpenUI](https://github.com/thesysdev/openui)** | **[json-render](https://github.com/vercel-labs/json-render)** (Vercel) | **[A2UI](https://github.com/google/A2UI)** (Google) | **[CopilotKit OpenGenUI](https://github.com/CopilotKit/OpenGenerativeUI)** |
+|---|---|---|---|---|
+| **Tokens** | **1x** | 3x | 3x | 4x |
+| **Latency (60 tok/s)** | **4.9s** | 14.2s | 14.2s | ~20s |
+| **Streaming** | Yes | Yes | Yes | Partial |
+| **Consistent output** | Yes | Yes | Yes | No |
+| **Design system** | Yes | Yes | Yes | No |
+| **Components** | Library + custom | Library + custom | Custom only | None |
+| **Built-in data fetching** | Yes | No | No | No |
+| **Chat UI included** | Yes | No | No | Yes |
+| **Multi-platform** | Web, mobile, email | Web, mobile, PDF, email, video | Web, iOS, Android | Web |
+| **Security risk** | Minimal | Minimal | Minimal | Medium |
+| **License** | MIT | Apache 2.0 | Apache 2.0 | MIT |
+
+---
+
+## Best For
+
+- **Data-driven chat UIs and dashboards** → OpenUI
+- **One UI across web, mobile, PDF and email** → OpenUI
+- **Multi-agent systems across iOS, Android, and web** → OpenUI
+- **Creative one-off visuals (animations, generative art)** → CopilotKit OpenGenUI
