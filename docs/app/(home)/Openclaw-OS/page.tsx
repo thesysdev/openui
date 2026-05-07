@@ -32,7 +32,7 @@ export default function OpenClawOSPage() {
           compact
           showBanner={false}
           showPlaygroundButton={false}
-          desktopPreviewImage="/OpenclawOS-hero.png"
+          desktopPreviewImage="/OpenclawOS-hero1.png"
           desktopPreviewImageAlt="OpenClaw OS desktop preview"
           desktopPreviewImageWidth={3200}
           desktopPreviewImageHeight={1036}
