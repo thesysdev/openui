@@ -64,7 +64,7 @@
     "copy-css": "node cp-css.js",
     "generate-scss-index": "node src/scripts/scss-import.js",
     "generate:css-utils": "tsx src/scripts/generate-css-utils.ts",
-    "build": "rm -rf dist && pnpm generate:css-utils && pnpm build:scss && pnpm build:tsc && pnpm build:cjs && pnpm run copy-css",
+    "build": "node scripts/clean-dist.mjs && pnpm generate:css-utils && pnpm build:scss && pnpm build:tsc && pnpm build:cjs && pnpm run copy-css",
     "typecheck": "tsc --noEmit",
     "build:tsc": "tsc -p . || true",
     "build:cjs": "tsdown",
