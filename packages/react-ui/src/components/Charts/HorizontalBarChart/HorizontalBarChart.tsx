@@ -27,6 +27,7 @@ import {
   getRadiusArray,
 } from "../utils/BarCharts/BarChartsUtils";
 import {
+  ensureChartData,
   get2dChartConfig,
   getColorForDataKey,
   getDataKeys,
@@ -92,8 +93,9 @@ const HorizontalBarChartComponent = <T extends HorizontalBarChartData>({
 }: HorizontalBarChartProps<T>) => {
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
+  const chartData = useMemo(() => ensureChartData<T[number]>(data), [data]);
 
-  const maxCategoryLabelWidth = useMaxCategoryLabelWidth(data, categoryKey as string);
+  const maxCategoryLabelWidth = useMaxCategoryLabelWidth(chartData, categoryKey as string);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const mainContainerRef = useRef<HTMLDivElement>(null);
@@ -115,11 +117,15 @@ const HorizontalBarChartComponent = <T extends HorizontalBarChartData>({
 
   // Calculate label height for better group height calculation
   // Use chart width for label height calculation since labels span full width
-  const labelHeight = useHorizontalBarLabelHeight(data, categoryKey as string, effectiveWidth);
+  const labelHeight = useHorizontalBarLabelHeight(
+    chartData,
+    categoryKey as string,
+    effectiveWidth,
+  );
 
   const dataKeys = useMemo(() => {
-    return getDataKeys(data, categoryKey as string);
-  }, [data, categoryKey]);
+    return getDataKeys(chartData, categoryKey as string);
+  }, [chartData, categoryKey]);
 
   const transformedKeys = useTransformedKeys(dataKeys);
 
@@ -146,17 +152,23 @@ const HorizontalBarChartComponent = <T extends HorizontalBarChartData>({
   }, [effectiveHeight, showXAxis]);
 
   const padding = useMemo(() => {
-    return getPadding(data, categoryKey as string, effectiveContainerHeight, variant, labelHeight);
-  }, [data, categoryKey, effectiveContainerHeight, variant, labelHeight]);
+    return getPadding(
+      chartData,
+      categoryKey as string,
+      effectiveContainerHeight,
+      variant,
+      labelHeight,
+    );
+  }, [chartData, categoryKey, effectiveContainerHeight, variant, labelHeight]);
 
   const dataHeight = useMemo(() => {
-    return getHeightOfData(data, categoryKey as string, variant, labelHeight);
-  }, [data, categoryKey, variant, labelHeight]);
+    return getHeightOfData(chartData, categoryKey as string, variant, labelHeight);
+  }, [chartData, categoryKey, variant, labelHeight]);
 
   // Calculate snap positions for proper group alignment
   const snapPositions = useMemo(() => {
-    return getSnapPositions(data, categoryKey as string, variant, labelHeight);
-  }, [data, categoryKey, variant, labelHeight]);
+    return getSnapPositions(chartData, categoryKey as string, variant, labelHeight);
+  }, [chartData, categoryKey, variant, labelHeight]);
 
   // Check scroll boundaries
   const updateScrollState = useCallback(() => {
@@ -246,7 +258,7 @@ const HorizontalBarChartComponent = <T extends HorizontalBarChartData>({
 
   const exportData = useExportChartData({
     type: "bar",
-    data,
+    data: chartData,
     categoryKey: categoryKey as string,
     dataKeys,
     colors,
@@ -276,7 +288,7 @@ const HorizontalBarChartComponent = <T extends HorizontalBarChartData>({
         >
           <RechartsBarChart
             key={`x-axis-horizontal-bar-chart-${id}`}
-            data={data}
+            data={chartData}
             layout="vertical"
             margin={{
               top: 0,
@@ -311,7 +323,7 @@ const HorizontalBarChartComponent = <T extends HorizontalBarChartData>({
         </ChartContainer>
       </div>
     );
-  }, [showXAxis, chartConfig, data, dataKeys, variant, id]);
+  }, [showXAxis, chartConfig, chartData, dataKeys, variant, id]);
 
   // Handle mouse events for group hovering
   const handleChartMouseMove = useCallback((state: any) => {
@@ -379,7 +391,7 @@ const HorizontalBarChartComponent = <T extends HorizontalBarChartData>({
                   <RechartsBarChart
                     accessibilityLayer
                     key={`horizontal-bar-chart-${id}`}
-                    data={data}
+                    data={chartData}
                     layout="vertical"
                     onClick={onBarsClick}
                     onMouseMove={handleChartMouseMove}

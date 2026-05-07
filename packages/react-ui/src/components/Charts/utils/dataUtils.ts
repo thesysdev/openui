@@ -3,6 +3,10 @@ import { PieChartData } from "../PieChart";
 import { RadialChartData } from "../RadialChart";
 import { LegendItem } from "../types";
 
+export const ensureChartData = <T>(data: T[] | null | undefined): T[] => {
+  return Array.isArray(data) ? data : [];
+};
+
 /**
  * This function returns the data keys for the chart, used for the data keys of the chart.
  * @param data - The data to be displayed in the chart.

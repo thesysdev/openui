@@ -27,6 +27,7 @@ import { LabelTooltipProvider } from "../shared/LabelTooltip/LabelTooltip";
 import { LegendItem } from "../types";
 import { getLineType } from "../utils/AreaAndLine/common";
 import {
+  ensureChartData,
   get2dChartConfig,
   getColorForDataKey,
   getDataKeys,
@@ -83,28 +84,29 @@ const LineChartCondensedComponent = <T extends LineChartData>({
 }: LineChartCondensedProps<T>) => {
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
+  const chartData = useMemo(() => ensureChartData<T[number]>(data), [data]);
 
   const dataKeys = useMemo(() => {
-    return getDataKeys(data, categoryKey as string);
-  }, [data, categoryKey]);
+    return getDataKeys(chartData, categoryKey as string);
+  }, [chartData, categoryKey]);
 
   const variant = getLineType(lineChartVariant);
 
-  const { yAxisWidth, setLabelWidth } = useYAxisLabelWidth(data, dataKeys);
+  const { yAxisWidth, setLabelWidth } = useYAxisLabelWidth(chartData, dataKeys);
 
-  const maxLabelWidth = useMaxLabelWidth(data, categoryKey as string);
+  const maxLabelWidth = useMaxLabelWidth(chartData, categoryKey as string);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartContainerWidth, setChartContainerWidth] = useState<number>(0);
 
   const widthOfData = useMemo(() => {
-    if (data.length === 0) {
+    if (chartData.length === 0) {
       return 0;
     }
     // Use passed width if available, otherwise use observed chartContainerWidth
     const chartWidth = width ?? chartContainerWidth;
-    return chartWidth / data.length;
-  }, [width, chartContainerWidth, data]);
+    return chartWidth / chartData.length;
+  }, [width, chartContainerWidth, chartData]);
 
   const { angle: calculatedAngle, height: xAxisHeight } = useAutoAngleCalculation(
     maxLabelWidth,
@@ -140,7 +142,7 @@ const LineChartCondensedComponent = <T extends LineChartData>({
 
   const exportData = useExportChartData({
     type: "line",
-    data,
+    data: chartData,
     categoryKey: categoryKey as string,
     dataKeys,
     colors,
@@ -243,7 +245,7 @@ const LineChartCondensedComponent = <T extends LineChartData>({
           key={`y-axis-line-chart-condensed-${id}`}
           width={yAxisWidth}
           height={effectiveHeight}
-          data={data}
+          data={chartData}
           margin={{
             top: chartMargin.top,
             bottom: xAxisHeight + chartMargin.bottom, // this is required to give space for x-axis
@@ -276,7 +278,7 @@ const LineChartCondensedComponent = <T extends LineChartData>({
   }, [
     showYAxis,
     effectiveHeight,
-    data,
+    chartData,
     dataKeys,
     id,
     yAxisWidth,
@@ -318,7 +320,7 @@ const LineChartCondensedComponent = <T extends LineChartData>({
                 <RechartsLineChart
                   accessibilityLayer
                   key={`line-chart-condensed-${id}`}
-                  data={data}
+                  data={chartData}
                   margin={chartMargin}
                   onClick={onLineClick}
                 >

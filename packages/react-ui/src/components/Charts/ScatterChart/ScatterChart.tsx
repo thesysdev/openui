@@ -14,7 +14,7 @@ import {
   YAxisTick,
 } from "../shared";
 import { LegendItem } from "../types";
-import { get2dChartConfig, getLegendItems } from "../utils/dataUtils";
+import { ensureChartData, get2dChartConfig, getLegendItems } from "../utils/dataUtils";
 import { PaletteName, useChartPalette } from "../utils/PalletUtils";
 import { numberTickFormatter } from "../utils/styleUtils";
 import ScatterDot from "./components/ScatterDot";
@@ -63,10 +63,11 @@ export const ScatterChart = ({
 }: ScatterChartProps) => {
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
+  const chartData = useMemo(() => ensureChartData<ScatterChartData[number]>(data), [data]);
 
   const datasets = useMemo(() => {
-    return getScatterDatasets(data);
-  }, [data]);
+    return getScatterDatasets(chartData);
+  }, [chartData]);
 
   const colors = useChartPalette({
     chartThemeName: theme,
@@ -76,11 +77,8 @@ export const ScatterChart = ({
   });
 
   const transformedData: ScatterPoint[] = useMemo(() => {
-    if (!data || !Array.isArray(data)) {
-      return [];
-    }
-    return transformScatterData(data, datasets, colors);
-  }, [data, datasets, colors]);
+    return transformScatterData(chartData, datasets, colors);
+  }, [chartData, datasets, colors]);
 
   const { yAxisWidth, setLabelWidth } = useYAxisLabelWidth(transformedData, [yAxisDataKey]);
 
@@ -141,12 +139,12 @@ export const ScatterChart = ({
 
   // Calculate domains for x and y axes
   const xDomain = useMemo(() => {
-    return calculateScatterDomain(data, xAxisDataKey as "x" | "y");
-  }, [data, xAxisDataKey]);
+    return calculateScatterDomain(chartData, xAxisDataKey as "x" | "y");
+  }, [chartData, xAxisDataKey]);
 
   const yDomain = useMemo(() => {
-    return calculateScatterDomain(data, yAxisDataKey as "x" | "y");
-  }, [data, yAxisDataKey]);
+    return calculateScatterDomain(chartData, yAxisDataKey as "x" | "y");
+  }, [chartData, yAxisDataKey]);
 
   const renderDotShape = useMemo(() => {
     return (props: unknown) => {
@@ -187,13 +185,13 @@ export const ScatterChart = ({
 
   const exportData = useExportChartData({
     type: "scatter",
-    data,
+    data: chartData,
     colors,
     legend,
     xAxisLabel,
     yAxisLabel,
     customDataTransform: () =>
-      data.map((dataset) => ({
+      chartData.map((dataset) => ({
         name: dataset.name,
         x: dataset.data.map((p) => p[xAxisDataKey] as number),
         y: dataset.data.map((p) => p[yAxisDataKey] as number),
