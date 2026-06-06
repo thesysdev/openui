@@ -13,6 +13,7 @@
     "build:cli": "tsc -p . && node ../../scripts/copy-telemetry-state.mjs",
     "build": "pnpm run build:cli",
     "build:exec": "node dist/index.js",
+    "test": "vitest run",
     "lint:check": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "format:fix": "prettier --write './src/**'",
@@ -22,7 +23,8 @@
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
-    "@types/node": "catalog:"
+    "@types/node": "catalog:",
+    "vitest": "^4.1.0"
   },
   "keywords": [
     "openui",
