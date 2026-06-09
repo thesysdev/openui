@@ -59,6 +59,6 @@
   },
   "author": "engineering@thesys.dev",
   "devDependencies": {
-    "vitest": "^4.1.0"
+    "vitest": "catalog:"
   }
 }

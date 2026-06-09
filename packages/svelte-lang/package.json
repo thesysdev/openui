@@ -73,6 +73,6 @@
 		"svelte-check": "^4.0.0",
 		"typescript": "catalog:",
 		"vite": "^6.0.0",
-		"vitest": "^4.1.0"
+		"vitest": "catalog:"
 	}
 }

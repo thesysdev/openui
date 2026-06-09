@@ -105,6 +105,6 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "typescript": "catalog:",
-    "vitest": "^4.1.0"
+    "vitest": "catalog:"
   }
 }

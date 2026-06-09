@@ -78,7 +78,7 @@
     "jsdom": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "vitest": "^4.1.0"
+    "vitest": "catalog:"
   },
   "dependencies": {
     "lucide-react": "^0.575.0"
