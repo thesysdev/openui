@@ -4,7 +4,8 @@
  * during bundling so React component modules can be evaluated without
  * CSS/image/font loaders.
  *
- * argv: [entryPath, exportName?, "--json-schema"?, "--spec"?, "--prompt-options", name?]
+ * argv: [entryPath, exportName?, "--json-schema"?, "--spec"?, "--prompt-options", name?,
+ *        "--component-allowlist", "Card,Table"?, "--no-include-dependencies"?]
  * stdout: one artifact for the mode flags; default emits BOTH the prompt and
  * the spec JSON, joined by SEPARATION_DELIMITER (run.ts splits them).
  */
@@ -83,6 +84,7 @@ interface PromptOptions {
   inlineMode?: boolean;
   toolCalls?: boolean;
   bindings?: boolean;
+  componentAllowlist?: { components: string[]; includeDependencies?: boolean };
 }
 
 function isPromptOptions(value: unknown): value is PromptOptions {
@@ -96,7 +98,8 @@ function isPromptOptions(value: unknown): value is PromptOptions {
     typeof obj["editMode"] === "boolean" ||
     typeof obj["inlineMode"] === "boolean" ||
     typeof obj["toolCalls"] === "boolean" ||
-    typeof obj["bindings"] === "boolean"
+    typeof obj["bindings"] === "boolean" ||
+    (typeof obj["componentAllowlist"] === "object" && obj["componentAllowlist"] !== null)
   );
 }
 
@@ -136,10 +139,13 @@ async function main(): Promise<void> {
   const spec = args.includes("--spec");
   const promptOptionsIdx = args.indexOf("--prompt-options");
   const promptOptionsName = promptOptionsIdx !== -1 ? args[promptOptionsIdx + 1] : undefined;
-  const reserved = new Set(["--json-schema", "--spec", "--prompt-options"]);
-  if (promptOptionsName) reserved.add(promptOptionsName);
+  const noIncludeDependencies = args.includes("--no-include-dependencies");
+  const allowlistIdx = args.indexOf("--component-allowlist");
+  const allowlistArg = allowlistIdx !== -1 ? args[allowlistIdx + 1] : undefined;
+  const valueFlags = new Set(["--prompt-options", "--component-allowlist"]);
+  const reserved = new Set(["--json-schema", "--spec", "--no-include-dependencies", ...valueFlags]);
   const exportName = args.find(
-    (a, i) => a !== entryPath && !reserved.has(a) && !(i > 0 && args[i - 1] === "--prompt-options"),
+    (a, i) => a !== entryPath && !reserved.has(a) && !(i > 0 && valueFlags.has(args[i - 1]!)),
   );
 
   const bundleDir = fs.mkdtempSync(path.join(os.tmpdir(), "openui-generate-"));
@@ -188,12 +194,14 @@ async function main(): Promise<void> {
 
   let output: string;
   if (spec) {
-    const promptOptions = findPromptOptions(mod, promptOptionsName);
+    // The spec always carries the full library; componentAllowlist only subsets the prompt.
+    const { componentAllowlist: _, ...promptOptions } =
+      findPromptOptions(mod, promptOptionsName) ?? {};
     output = JSON.stringify(
       {
         ...library.toSpec(),
         schema: library.toJSONSchema(),
-        ...(promptOptions ? { promptOptions } : {}),
+        ...(Object.keys(promptOptions).length ? { promptOptions } : {}),
       },
       null,
       2,
@@ -204,7 +212,22 @@ async function main(): Promise<void> {
   } else {
     // This behaviour will be deprecated in next major release
     // and only export standardised payloads
-    const promptOptions = findPromptOptions(mod, promptOptionsName);
+    const promptOptions: PromptOptions = { ...findPromptOptions(mod, promptOptionsName) };
+    if (allowlistArg !== undefined) {
+      promptOptions.componentAllowlist = {
+        components: allowlistArg
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        ...(noIncludeDependencies ? { includeDependencies: false } : {}),
+      };
+    } else if (noIncludeDependencies && promptOptions.componentAllowlist) {
+      // On its own, --no-include-dependencies refines an allowlist from the module's PromptOptions.
+      promptOptions.componentAllowlist = {
+        ...promptOptions.componentAllowlist,
+        includeDependencies: false,
+      };
+    }
     output = [
       library.prompt(promptOptions),
       JSON.stringify({ ...library.toSpec(), schema: library.toJSONSchema() }, null, 2),

@@ -279,14 +279,18 @@ openui generate [entry] [options]
 
 **Options**
 
-| Flag                      | Description                                                                                 |
-| ------------------------- | ------------------------------------------------------------------------------------------- |
-| `-o, --out <file>`        | Write the prompt to `<file>`; the spec uses the same basename with a `.spec.json` extension |
-| `--json-schema`           | Output only the JSON schema; it is not the input to `generateSystemPrompt`                  |
-| `--spec`                  | Output only the serialized library spec                                                     |
-| `--export <name>`         | Name of the library export to use                                                           |
-| `--prompt-options <name>` | Name of the `PromptOptions` export to use                                                   |
-| `--no-interactive`        | Fail instead of prompting for a missing `entry`                                             |
+| Flag                           | Description                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------- |
+| `-o, --out <file>`             | Write the prompt to `<file>`; the spec uses the same basename with a `.spec.json` extension |
+| `--json-schema`                | Output only the JSON schema; it is not the input to `generateSystemPrompt`                  |
+| `--spec`                       | Output only the serialized library spec                                                     |
+| `--export <name>`              | Name of the library export to use                                                           |
+| `--prompt-options <name>`      | Name of the `PromptOptions` export to use                                                   |
+| `--component-allowlist <list>` | Comma-separated allow-list of components to include in the prompt                           |
+| `--no-include-dependencies`    | With `--component-allowlist`, do not auto-include sub-component dependencies                |
+| `--no-interactive`             | Fail instead of prompting for a missing `entry`                                             |
+
+`--component-allowlist` subsets only the system prompt; the spec and JSON schema always describe the full library.
 
 Without `--export`, the CLI uses an export named `library`, then the `default` export, then any export that is a library. Without `--prompt-options`, it uses an export named `promptOptions`, then `options`, then any export whose name ends with `PromptOptions`.
 
@@ -305,6 +309,12 @@ pnpx @openuidev/cli@latest generate ./src/library.ts --json-schema
 
 # Explicit export names
 pnpx @openuidev/cli@latest generate ./src/library.ts --export myLibrary --prompt-options myOptions
+
+# Only include a subset of components (plus root and their sub-component deps)
+pnpx @openuidev/cli@latest generate ./src/library.ts --component-allowlist Card,Table,LineChart
+
+# Subset with exactly the listed components (no auto-included dependencies)
+pnpx @openuidev/cli@latest generate ./src/library.ts --component-allowlist Card,Table --no-include-dependencies
 ```
 
 ```bash tab="bun" tab-group="pkg"
@@ -320,6 +330,12 @@ bunx @openuidev/cli@latest generate ./src/library.ts --json-schema
 
 # Explicit export names
 bunx @openuidev/cli@latest generate ./src/library.ts --export myLibrary --prompt-options myOptions
+
+# Only include a subset of components (plus root and their sub-component deps)
+bunx @openuidev/cli@latest generate ./src/library.ts --component-allowlist Card,Table,LineChart
+
+# Subset with exactly the listed components (no auto-included dependencies)
+bunx @openuidev/cli@latest generate ./src/library.ts --component-allowlist Card,Table --no-include-dependencies
 ```
 
 ```bash tab="yarn" tab-group="pkg"
@@ -335,6 +351,12 @@ yarn dlx @openuidev/cli@latest generate ./src/library.ts --json-schema
 
 # Explicit export names
 yarn dlx @openuidev/cli@latest generate ./src/library.ts --export myLibrary --prompt-options myOptions
+
+# Only include a subset of components (plus root and their sub-component deps)
+yarn dlx @openuidev/cli@latest generate ./src/library.ts --component-allowlist Card,Table,LineChart
+
+# Subset with exactly the listed components (no auto-included dependencies)
+yarn dlx @openuidev/cli@latest generate ./src/library.ts --component-allowlist Card,Table --no-include-dependencies
 ```
 
 ```bash tab="npm" tab-group="pkg"
@@ -350,6 +372,12 @@ npx @openuidev/cli@latest generate ./src/library.ts --json-schema
 
 # Explicit export names
 npx @openuidev/cli@latest generate ./src/library.ts --export myLibrary --prompt-options myOptions
+
+# Only include a subset of components (plus root and their sub-component deps)
+npx @openuidev/cli@latest generate ./src/library.ts --component-allowlist Card,Table,LineChart
+
+# Subset with exactly the listed components (no auto-included dependencies)
+npx @openuidev/cli@latest generate ./src/library.ts --component-allowlist Card,Table --no-include-dependencies
 ```
 
 ### `PromptOptions`
@@ -368,6 +396,13 @@ interface PromptOptions {
   toolCalls?: boolean;
   /** Enable $variables, @Set, @Reset, built-in functions. Default: true if toolCalls. */
   bindings?: boolean;
+  /** Restrict the prompt to a subset of the library. Omit for all components. */
+  componentAllowlist?: {
+    /** Component names to keep. Root + sub-component deps are kept automatically. */
+    components: string[];
+    /** Auto-include sub-component dependencies of the listed components. Default: true. */
+    includeDependencies?: boolean;
+  };
 }
 ```
 

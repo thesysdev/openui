@@ -140,6 +140,30 @@ const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 
 This is convenient but imports React components. Prefer the generated spec plus `generateSystemPrompt` for backend routes.
 
+### Subsetting the library (`componentAllowlist`)
+
+By default the prompt describes **every** component in the library. For a large library that can be ~20k tokens even when a given screen only needs a handful. Pass a `componentAllowlist` to include only what you need:
+
+```ts
+// Only Card, Table, and LineChart (plus the root and their sub-components)
+const systemPrompt = openuiLibrary.prompt({
+  componentAllowlist: { components: ["Card", "Table", "LineChart"] },
+});
+```
+
+- **`componentAllowlist.components: string[]`** — when set, only these components appear. Omit `componentAllowlist` for today's behavior (all components). Fully backward-compatible.
+- The library **root** is always kept so the output stays self-consistent.
+- **Sub-component dependencies are pulled in automatically** — if a listed component renders other components as children, those are included too, so the prompt never references a signature it doesn't show. Pass `componentAllowlist.includeDependencies: false` to opt out and emit _exactly_ the listed components (plus root).
+- `componentGroups` are filtered to the kept set; empty groups are dropped.
+- Unknown names throw with an "Available components: ..." message.
+
+This is also available on the CLI:
+
+```bash
+npx @openuidev/cli@latest generate ./lib.tsx --component-allowlist Card,Table,LineChart
+npx @openuidev/cli@latest generate ./lib.tsx --component-allowlist Card,Table --no-include-dependencies
+```
+
 ## What gets generated
 
 The generated prompt includes:
