@@ -55,7 +55,7 @@
     "commander": "^14.0.3",
     "cross-spawn": "^7.0.6",
     "dotenv": "^17.2.2",
-    "esbuild": "^0.25.10",
+    "esbuild": "catalog:",
     "get-port": "^7.2.0",
     "open": "^10.1.0",
     "openid-client": "^6.1.7",

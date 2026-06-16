@@ -33,6 +33,9 @@ catalogs:
     '@typescript-eslint/eslint-plugin':
       specifier: ^8.56.1
       version: 8.65.0
+    esbuild:
+      specifier: ^0.25.12
+      version: 0.25.12
     eslint:
       specifier: ^9.0.0
       version: 9.39.5
@@ -420,7 +423,7 @@ importers:
         version: 19.2.4(react@19.2.4)
     devDependencies:
       esbuild:
-        specifier: ^0.25.12
+        specifier: 'catalog:'
         version: 0.25.12
       rimraf:
         specifier: ^5.0.7
@@ -494,7 +497,7 @@ importers:
         specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.17)
       esbuild:
-        specifier: ^0.25.12
+        specifier: 'catalog:'
         version: 0.25.12
       jsdom:
         specifier: 'catalog:'
@@ -682,7 +685,7 @@ importers:
         specifier: ^17.2.2
         version: 17.4.2
       esbuild:
-        specifier: ^0.25.10
+        specifier: 'catalog:'
         version: 0.25.12
       get-port:
         specifier: ^7.2.0
@@ -3155,7 +3158,6 @@ packages:
   '@opentelemetry/sdk-trace-base@2.10.0':
     resolution: {integrity: sha512-GuYQQT7QD2EeO8lcZLRQzcbOyhqAzL+6WWTKTU9mSUBYBazkEDl+VrQcXQhbB08OWM9anD1aHleVadzulpOaUQ==}
     engines: {node: ^18.19.0 || >=20.6.0}
-    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': '>=1.3.0 <1.10.0'
 
@@ -23411,7 +23413,7 @@ snapshots:
       '@vitest/expect': 3.2.4
       '@vitest/spy': 3.2.4
       '@webcontainer/env': 1.1.1
-      esbuild: 0.25.12
+      esbuild: 0.28.1
       jsonc-parser: 3.3.1
       open: 10.2.0
       oxc-parser: 0.127.0

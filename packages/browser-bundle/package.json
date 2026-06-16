@@ -57,7 +57,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "esbuild": "^0.25.12",
+    "esbuild": "catalog:",
     "rimraf": "^5.0.7"
   }
 }
