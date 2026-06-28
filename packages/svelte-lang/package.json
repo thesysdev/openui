@@ -72,7 +72,7 @@
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"typescript": "catalog:",
-		"vite": "^6.0.0",
+		"vite": "catalog:",
 		"vitest": "^4.1.0"
 	}
 }
