@@ -2,7 +2,7 @@
   "name": "OpenUI",
   "version": "1.0.1",
   "private": true,
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@11.9.0",
   "description": "A full-stack, framework-agnostic Generative UI framework with a streaming-first language and first-party runtimes for React, Vue, Svelte, and Angular",
   "main": "index.js",
   "scripts": {
@@ -57,11 +57,5 @@
   },
   "bugs": {
     "url": "https://github.com/thesysdev/openui/issues"
-  },
-  "pnpm": {
-    "overrides": {
-      "postcss@<8.5.10": ">=8.5.10",
-      "uuid@<11.1.1": "^11.1.1"
-    }
   }
 }

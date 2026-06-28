@@ -4,6 +4,41 @@ packages:
   - "docs/"
   - "!templates/**"
 
+# --- Supply-chain hardening (pnpm 11+) ---
+# Lifecycle (preinstall/install/postinstall) scripts are blocked by default in
+# pnpm 11. Every dependency that has a build script must be explicitly decided
+# here (true = allowed to run, false = blocked). Anything not listed is blocked
+# AND re-prompts on install, so we list all of them. Keep `true` minimal and
+# limited to dependencies that genuinely need a native/binary build.
+allowBuilds:
+  # Native/binary builds we actually need:
+  "@parcel/watcher": true # native file-watcher (nitropack/vite)
+  esbuild: true # fetches the platform binary
+  sharp: true # native libvips image processing
+  unrs-resolver: true # native module-resolution binding
+  # Intentionally blocked (telemetry / cosmetic / unnecessary):
+  "@google/genai": false # preinstall notice only
+  "@openuidev/lang-core": false # published copy's install-telemetry postinstall
+  "@scarf/scarf": false # analytics/telemetry beacon
+  core-js: false # postinstall console ad
+  protobufjs: false # not needed at install time
+
+# Cooldown: refuse to install package versions published less than this many
+# minutes ago. Defends against freshly-published compromised releases
+# (e.g. self-propagating npm worms) by giving the ecosystem time to react.
+# 1440 = 24h. Raise for stronger protection at the cost of update latency.
+minimumReleaseAge: 1440
+
+# Make sure node_modules matches the lockfile before running any script, so
+# scripts never execute against a stale or tampered-with dependency tree.
+verifyDepsBeforeRun: install
+
+# Security overrides for known-vulnerable transitive dependencies (CVE pins).
+# pnpm 11 reads overrides from here, NOT from the package.json "pnpm" field.
+overrides:
+  "postcss@<8.5.10": ">=8.5.10"
+  "uuid@<11.1.1": "^11.1.1"
+
 # Centralized dependency versions shared across packages.
 # Reference these from a package.json with the "catalog:" protocol.
 catalog:
