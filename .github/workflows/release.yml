@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency: release
+
+permissions:
+  contents: write # push the changeset-release branch, create tags + GitHub Releases
+  pull-requests: write # maintain the Version Packages PR
+  id-token: write # npm OIDC trusted publishing
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: @changesets/changelog-github links commits/PRs
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+          cache: pnpm
+          cache-dependency-path: "pnpm-lock.yaml"
+
+      # CRITICAL: npm 11.5.1+ required for trusted publishing
+      - name: Install npm 11.6.4
+        run: npm install -g npm@11.6.4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create Version Packages PR or publish
+        uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
+        with:
+          version: pnpm changeset version && pnpm install --lockfile-only
+          publish: pnpm run release:publish
+          createGithubReleases: true
+          title: "chore: version packages"
+          commit: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_OPTIONS: --max-old-space-size=6144
+        # Note: npm provenance is generated automatically with trusted
+        # publishing; each package must have this workflow registered as a
+        # trusted publisher on npmjs.com.

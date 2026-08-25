@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@4.0.0/schema.json",
+  "changelog": ["@changesets/changelog-github", { "repo": "thesysdev/openui" }],
+  "commit": false,
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "fixed": [
+    [
+      "@openuidev/lang-core",
+      "@openuidev/react-lang",
+      "@openuidev/svelte-lang",
+      "@openuidev/vue-lang"
+    ],
+    ["@openuidev/react-headless", "@openuidev/react-ui"]
+  ],
+  "linked": [],
+  "ignore": [],
+  "privatePackages": { "version": false, "tag": false },
+  "bumpVersionsWithWorkspaceProtocolOnly": true
+}

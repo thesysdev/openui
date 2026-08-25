@@ -1,0 +1,20 @@
+name: Changeset check
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  changeset-check:
+    # Informational only — warnings land in the job summary, the job never fails.
+    runs-on: ubuntu-latest
+    if: github.head_ref != 'changeset-release/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Analyze changesets
+        run: node scripts/changeset-check.mjs "origin/${{ github.base_ref }}"

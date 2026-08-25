@@ -9,13 +9,16 @@
     "examples:install": "node scripts/manage-examples.mjs install",
     "examples:update": "node scripts/manage-examples.mjs update",
     "examples:verify": "node scripts/manage-examples.mjs verify",
-    "test": "pnpm -r run test"
+    "test": "pnpm -r run test",
+    "release:publish": "pnpm --filter \"./packages/**\" --workspace-concurrency=1 run build && pnpm changeset publish"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
+    "@changesets/changelog-github": "^1.0.0",
+    "@changesets/cli": "^3.0.1",
     "@typescript-eslint/eslint-plugin": "catalog:",
     "eslint": "catalog:",
     "eslint-config-prettier": "catalog:",

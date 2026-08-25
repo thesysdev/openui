@@ -42,7 +42,7 @@
     "@react-email/components": "^0.0.41"
   },
   "peerDependencies": {
-    "@openuidev/react-lang": "workspace:*",
+    "@openuidev/react-lang": ">=0.3.0 <0.4.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zod": "catalog:"
@@ -53,6 +53,7 @@
     "directory": "packages/react-email"
   },
   "devDependencies": {
+    "@openuidev/react-lang": "workspace:^",
     "@types/react": "catalog:",
     "typescript": "catalog:"
   }
