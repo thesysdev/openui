@@ -1,3 +1,8 @@
+# DEPRECATED: superseded by release.yml (changesets). This publishes whatever
+# version is on main with no bump, tag, or changelog, and the manifests now
+# carry peer ranges written for the changesets release train — publishing a
+# package through this path can ship peer requirements that don't exist on npm
+# yet. Scheduled for deletion after the first automated release succeeds.
 name: Publish NPM packages
 
 permissions:

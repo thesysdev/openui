@@ -1,7 +1,6 @@
 ---
 "@openuidev/assistant-ui": patch
 "@openuidev/devtools": patch
-"@openuidev/react-email": patch
 ---
 
 Internal `@openuidev/*` peer dependencies now declare bounded

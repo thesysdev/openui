@@ -17,4 +17,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Analyze changesets
+        # Belt-and-braces with the script's own try/catch: this check must
+        # never block a PR, even if the script crashes.
+        continue-on-error: true
         run: node scripts/changeset-check.mjs "origin/${{ github.base_ref }}"

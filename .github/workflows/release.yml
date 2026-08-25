@@ -32,18 +32,27 @@ jobs:
         run: npm install -g npm@11.6.4
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        # --ignore-scripts skips the workspace packages' prepare builds; the
+        # version path never needs artifacts and the publish path builds
+        # explicitly via release:publish.
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Create Version Packages PR or publish
         uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
         with:
-          version: pnpm changeset version && pnpm install --lockfile-only
+          # The action execs this without a shell, so compound commands must
+          # live in a package.json script.
+          version: pnpm run version:ci
           publish: pnpm run release:publish
           createGithubReleases: true
           title: "chore: version packages"
           commit: "chore: version packages"
         env:
+          # GITHUB_TOKEN-pushed branches trigger no workflows: the Version
+          # Packages PR runs zero CI. Swap in a PAT/GitHub App token here if
+          # CI on that PR (or required status checks on main) is needed.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Same build-memory headroom as build-js.yml
           NODE_OPTIONS: --max-old-space-size=6144
         # Note: npm provenance is generated automatically with trusted
         # publishing; each package must have this workflow registered as a
