@@ -1,6 +1,8 @@
 {
   "name": "OpenUI",
   "version": "1.0.1",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
   "description": "A full-stack, renderer-agnostic Generative UI framework with a streaming-first language, official React support, and community integrations for other frameworks",
   "main": "index.js",
   "scripts": {
