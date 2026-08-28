@@ -23,8 +23,9 @@ It combines OpenUI's generative UI capabilities with reliable model access, auto
 3. **Generative UI for agents:** Let agents respond with rich, interactive interfaces instead of walls of text. Each response can assemble the components best suited to the task.
    - **Built-in component library:** Use a pre-tested, responsive, and accessible set of components: forms, inputs, interactive charts, accordions, tabs, and other layout components.
    - **Bring your own component library:** Generate interfaces using your own components and design system while OpenUI Cloud provides model reliability, output validation, and observability.
-4. **Slides:** Generate presentations from conversations using well-designed templates for charts, images, and structured content. Review decks in an interactive viewer, edit slides manually, and export them to PowerPoint.
-5. **Reports:** Generate long-form documents from conversations using rich components for metrics, charts, tables, images, and structured content. Review reports in a dedicated viewer and export them to PDF.
+4. **Web and image search:** Built-in search tools that Cloud runs server-side, with no keys or implementation of your own. Web search grounds responses in current information, and image search supplies real imagery for interfaces, slides, and reports. See [Web and image search](/docs/openui-cloud/build/search).
+5. **Slides:** Generate presentations from conversations using well-designed templates for charts, images, and structured content. Review decks in an interactive viewer, edit slides manually, and export them to PowerPoint.
+6. **Reports:** Generate long-form documents from conversations using rich components for metrics, charts, tables, images, and structured content. Review reports in a dedicated viewer and export them to PDF.
 
 ## OpenUI vs. OpenUI Cloud
 
@@ -35,6 +36,7 @@ It combines OpenUI's generative UI capabilities with reliable model access, auto
 | Component library | ⚠️ Basic component library | Production-ready built-in library or bring your own |
 | Model access and automatic fallbacks | Not included | Included |
 | Output validation | Not included | Included |
+| Web and image search | Not included | Built-in, run server-side |
 | Observability | Not included | Included |
 | Slides | Not included | Interactive viewer, manual editing, and PowerPoint export |
 | Reports | Not included | Dedicated viewer, manual editing, and PDF export |
@@ -95,6 +97,10 @@ OpenUI Cloud includes a pre-tested, responsive, and accessible set of components
 ### Bring your own component library
 
 Connect your own design system and domain-specific components. Agents can use them to generate interfaces while OpenUI Cloud provides model reliability, output validation, and observability.
+
+## Web and image search
+
+Web search and image search are built into Cloud and enabled by declaring them on a request. Cloud holds the provider keys and runs the search, so responses can be grounded in current information and generated slides and reports can use real imagery instead of placeholders. See [Web and image search](/docs/openui-cloud/build/search).
 
 ## Slides
 

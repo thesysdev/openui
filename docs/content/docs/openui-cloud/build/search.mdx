@@ -1,0 +1,66 @@
+---
+title: Web and image search
+description: "Ground responses, slides, and reports in current information and real imagery with the built-in web search and image search tools."
+---
+
+OpenUI Cloud ships web search and image search as built-in tools. They are enabled by declaring them on a generation request: Cloud holds the provider keys and runs the search server-side, so there is nothing to implement and no key to manage in the application.
+
+- **Web search** gives the agent current information beyond the model's training data, so answers can cite what is true now instead of what the model remembers.
+- **Image search** returns absolute image URLs the agent can place directly into generated interfaces, slides, and reports, so visual output uses real imagery rather than placeholders.
+
+<video
+  src="/videos/agent/tool-call-web-search.mp4"
+  autoPlay
+  loop
+  muted
+  playsInline
+  className="w-full rounded-lg border"
+/>
+
+## Enable the tools
+
+Add them to the `tools` array of the Responses API call, alongside any artifact or function tools:
+
+```ts
+const stream = await client.responses.create({
+  model,
+  conversation: threadId,
+  input,
+  stream: true,
+  store: true,
+  tools: [
+    artifactTool({ artifacts: ["slides", "report"] }),
+    { type: "web_search" },
+    { type: "image_search" },
+  ],
+  instructions: generateSystemPrompt(),
+});
+```
+
+Declaring a tool makes it available, not mandatory: the model decides per turn whether a search helps. Both tools run inside Cloud, so the search result never passes through the application backend as a separate round trip, and the turn continues in the same stream.
+
+The scaffold from [Get Started](/docs/openui-cloud/get-started) already declares both tools.
+
+## In the interface
+
+A search runs as a regular tool call in the response stream. `AgentInterface` renders it as a tool-call card that shows the query while the search is in flight, then the agent continues the turn with the result folded in. See [Tools](/docs/agent/core-concepts/tools) for the tool-calling model in general.
+
+## In slides and reports
+
+Search is what makes generated artifacts specific rather than generic. Web search grounds the content, and image search supplies the absolute image URLs that image-bearing slide templates and report sections need.
+
+Steer this from the artifact instruction, which is the most reliable place to state how the agent should use search:
+
+```ts
+artifactTool({
+  artifacts: [
+    {
+      type: "slides",
+      instruction:
+        "Use web search to ground claims in current sources, and image-search-sourced absolute image URLs for visuals. Every image must depict the exact product, person, or place named beside it — never a metaphorical substitute or generic filler, and never one image reused for distinct entities.",
+    },
+  ],
+});
+```
+
+Being explicit about accuracy matters: without it, models tend to reach for loosely related stock imagery. For the templates that consume images, see [Slides](/docs/openui-cloud/build/slides) and [Reports](/docs/openui-cloud/build/reports).

@@ -102,6 +102,10 @@ With the Responses API, a request declares which artifact types are allowed and 
 
 With Chat Completions, the dedicated artifact endpoint returns a raw OpenUI Lang program. The application supplies the current program explicitly when requesting an edit. Both APIs use the same managed presentation and report viewers. Slides can be exported to PowerPoint, and reports can be exported to PDF.
 
+## Built-in tools
+
+Web search and image search run inside Cloud. A request declares them in its `tools` array, and when the model calls one, Cloud executes it with its own provider keys and returns the result into the same stream. The application backend implements nothing and stores no search credentials. Search results also feed artifact generation, so slides and reports can be grounded in current information and real imagery. See [Web and image search](/docs/openui-cloud/build/search).
+
 ## Conversation persistence
 
 Responses API conversations can be stored server-side. Each turn's messages, actions, and outputs attach to a conversation thread, and generation calls reference the thread instead of resending its history. The application backend stores no chat history and runs no database. On load, AgentInterface reads threads from the Conversations API and artifacts from the storage plane.

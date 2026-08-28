@@ -15,6 +15,7 @@
     "---Features---",
     "build/component-library",
     "build/chat",
+    "build/search",
     "build/slides",
     "build/reports",
     "production-readiness"
