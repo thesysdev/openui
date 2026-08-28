@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { EventType } from "../../types";
 import type { Message, Thread, UserMessage } from "../types";
 import { makeStore } from "./__helpers/makeStore";
 
@@ -423,6 +424,81 @@ describe("createChatStore", () => {
 
       expect(store.getState().messages).toEqual(newMessages);
       expect(store.getState().isLoadingMessages).toBe(false);
+    });
+
+    it("does not write aborted stream events into the newly selected thread", async () => {
+      let release!: () => void;
+      const held = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+
+      const store = makeStore({
+        send: vi.fn().mockResolvedValue(new Response("", { status: 200 })),
+        getMessages: vi.fn().mockResolvedValue([makeMessage("t2-m1")]),
+        streamProtocol: {
+          parse: async function* () {
+            await held;
+            yield {
+              type: EventType.TEXT_MESSAGE_START,
+              messageId: "asst-1",
+              role: "assistant",
+            };
+            yield {
+              type: EventType.TEXT_MESSAGE_CONTENT,
+              messageId: "asst-1",
+              delta: "leaked",
+            };
+          },
+        },
+      });
+      store.setState({ selectedThreadId: "t1" });
+
+      const run = store.getState().processMessage({ role: "user", content: "hello" });
+      await flushPromises();
+
+      store.getState().selectThread("t2");
+      release();
+      await run;
+      await flushPromises();
+
+      expect(store.getState().messages).toEqual([makeMessage("t2-m1")]);
+      expect(store.getState().messages.some((m) => m.role === "assistant")).toBe(false);
+    });
+
+    it("does not clear isRunning when a newer run replaced the aborted one", async () => {
+      let resolveFirstSend!: (response: Response) => void;
+      const firstSend = new Promise<Response>((resolve) => {
+        resolveFirstSend = resolve;
+      });
+      let sendCount = 0;
+      const send = vi.fn().mockImplementation(() => {
+        sendCount += 1;
+        if (sendCount === 1) return firstSend;
+        return new Promise(() => {});
+      });
+
+      const store = makeStore({
+        send,
+        getMessages: vi.fn().mockResolvedValue([]),
+        streamProtocol: { parse: async function* () {} },
+      });
+      store.setState({ selectedThreadId: "t1" });
+
+      const first = store.getState().processMessage({ role: "user", content: "one" });
+      await flushPromises();
+
+      store.getState().selectThread("t2");
+      await flushPromises();
+
+      store.getState().processMessage({ role: "user", content: "two" });
+      await flushPromises();
+      expect(store.getState().isRunning).toBe(true);
+
+      resolveFirstSend(new Response("", { status: 200 }));
+      await first;
+      await flushPromises();
+
+      expect(store.getState().isRunning).toBe(true);
     });
   });
 });
