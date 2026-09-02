@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 import { mintCloudApiKey } from "../auth/mint";
-import { upsertEnvVar } from "../lib/env";
+import { DEFAULT_ENV_FILE, upsertEnvVar } from "../lib/env";
 import { telemetry } from "../lib/telemetry";
 
 export interface GenerateApiKeyOptions {
@@ -11,7 +11,6 @@ export interface GenerateApiKeyOptions {
   name?: string;
 }
 
-const DEFAULT_ENV_FILE = ".env";
 const DEFAULT_ENV_KEY = "THESYS_API_KEY";
 
 function resolveProjectName(explicit?: string): string {

@@ -10,6 +10,15 @@ export type CommandResult = {
   diagnosticTail: string;
 };
 
+/** Quiet npm/npx progress when we spawn a nested package-manager CLI. */
+export function mutedNpmEnv(base: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  return {
+    ...base,
+    npm_config_loglevel: "error",
+    NPM_CONFIG_LOGLEVEL: "error",
+  };
+}
+
 export type RunCommandOptions = {
   env?: NodeJS.ProcessEnv;
   /** When false, capture stdout/stderr without writing them to the parent. Default true. */

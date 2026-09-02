@@ -1,9 +1,9 @@
 ---
 title: "@openuidev/cli"
-description: API reference for the OpenUI CLI to scaffold apps, mint Cloud API keys, and generate system prompts or library specs.
+description: API reference for the OpenUI CLI to scaffold apps, mint Cloud API keys, and generate system prompts or library specs, and deploy projects.
 ---
 
-A command-line tool for scaffolding OpenUI chat apps, minting OpenUI Cloud API key, and generating system prompts, JSON schemas, or serialized library specs from library definitions.
+A command-line tool for scaffolding OpenUI chat apps, minting OpenUI Cloud API key, and generating system prompts, JSON schemas, or serialized library specs from library definitions, and deploying those apps.
 
 ## Installation
 
@@ -208,6 +208,78 @@ npx @openuidev/cli@latest create --no-interactive --name my-app --template openu
 # Explicitly install or skip the agent skill
 npx @openuidev/cli@latest create --name my-app --skill
 npx @openuidev/cli@latest create --name my-app --no-skill
+```
+
+## `openui deploy`
+
+Deploys an OpenUI project. The default platform supported is **Vercel**.
+
+```
+openui deploy [dir] [options]
+```
+
+**Arguments**
+
+| Argument | Description                                    |
+| -------- | ---------------------------------------------- |
+| `[dir]`  | Project directory (default: current directory) |
+
+**Options**
+
+| Flag                  | Description                                                                 |
+| --------------------- | --------------------------------------------------------------------------- |
+| `-y, --yes`           | Skip confirmation prompts (also saves missing env keys to the Vercel project) |
+| `--skip-env`          | Do not pass or save local `.env` / `.env.local` values                      |
+| `--no-interactive`    | Skip prompts (implies `--yes`)                                              |
+| `--verbose`           | Stream full Vercel build logs (hidden by default; failures print a log tail) |
+| `--agent-name <name>` | Declare the invoking coding-agent slug (default: `unknown`)                 |
+
+Extra flags after `deploy` are forwarded as-is to the target deployment platform, which validates them (for example `--prod` or `--force`). `--skip-env` is OpenUI-specific so it does not collide with Vercel's `--env KEY=value`.
+
+Unlinked projects run `vercel link` first. Allowlisted keys from `.env` / `.env.local` that are missing on production, preview, or development can be saved to the project (prompted; auto-accepted with `--yes`). Existing project keys are left unchanged. The current deployment still receives those keys via `--env` / `--build-env`. Build logs are quiet by default; use `--verbose` to stream them.
+
+```bash tab="pnpm" tab-group="pkg"
+# Preview deploy from the project directory
+pnpx @openuidev/cli@latest deploy
+
+# Production deploy
+pnpx @openuidev/cli@latest deploy --prod --yes
+
+# Deploy a specific directory without forwarding local env
+pnpx @openuidev/cli@latest deploy ./my-app --skip-env
+```
+
+```bash tab="bun" tab-group="pkg"
+# Preview deploy from the project directory
+bunx @openuidev/cli@latest deploy
+
+# Production deploy
+bunx @openuidev/cli@latest deploy --prod --yes
+
+# Deploy a specific directory without forwarding local env
+bunx @openuidev/cli@latest deploy ./my-app --skip-env
+```
+
+```bash tab="yarn" tab-group="pkg"
+# Preview deploy from the project directory
+yarn dlx @openuidev/cli@latest deploy
+
+# Production deploy
+yarn dlx @openuidev/cli@latest deploy --prod --yes
+
+# Deploy a specific directory without forwarding local env
+yarn dlx @openuidev/cli@latest deploy ./my-app --skip-env
+```
+
+```bash tab="npm" tab-group="pkg"
+# Preview deploy from the project directory
+npx @openuidev/cli@latest deploy
+
+# Production deploy
+npx @openuidev/cli@latest deploy --prod --yes
+
+# Deploy a specific directory without forwarding local env
+npx @openuidev/cli@latest deploy ./my-app --skip-env
 ```
 
 ## `openui generate-api-key`
@@ -428,7 +500,10 @@ and `detected_agent_name`, inferred best-effort from known product environment m
 value can be spoofed, inherited, missing, or ambiguous, so neither should be treated as an
 authentication or security signal. Every invocation gets an ephemeral, unpersisted `cli_run_id` so
 its events can be correlated. For `create`, analytics also include `package_manager`, the
-immediate-start selection, and best-effort dev-command start and result events. Failure events use
+immediate-start selection, and best-effort dev-command start and result events. For `deploy`, analytics include the target (currently `vercel`), production vs preview, whether
+local env was passed, CLI resolution source, and process status — not env
+values, project paths, or command output.
+Failure events use
 bounded `failure_stage`, `error_class`, and `error_code` values instead of raw error messages.
 Dependency failures distinguish peer, registry, network, install-script, workspace, and
 package-compatibility errors. Process failures include duration, exit code, and signal; Cloud-auth

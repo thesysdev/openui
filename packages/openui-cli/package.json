@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/cli",
   "version": "0.2.12",
-  "description": "CLI for OpenUI — scaffold generative UI chat apps, mint Cloud API keys, and generate LLM system prompts from component libraries",
+  "description": "CLI for OpenUI — scaffold generative UI chat apps, mint Cloud API keys, and generate LLM system prompts from component libraries, and deploy projects",
   "bin": {
     "openui": "dist/index.js"
   },

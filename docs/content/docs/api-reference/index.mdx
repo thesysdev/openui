@@ -27,7 +27,7 @@ The OpenUI SDK is split into packages that build on each other:
 
 - **`@openuidev/devtools`** — Development-only floating widget that surfaces the events captured by `@openuidev/observability`, with error messages and stack traces.
 
-- **`@openuidev/cli`** — Command-line tool for scaffolding new OpenUI chat apps and generating system prompts or JSON schemas from library definitions.
+- **`@openuidev/cli`** — Command-line tool for scaffolding new OpenUI chat apps, generating system prompts or JSON schemas from library definitions, and deploying projects.
 
 ## Choosing a package
 
@@ -44,7 +44,7 @@ The OpenUI SDK is split into packages that build on each other:
 | Svelte integration                                                 | [`@openuidev/svelte-lang`](https://github.com/thesysdev/openui/tree/main/packages/svelte-lang)       |
 | Script-tag, CDN, or iframe embeds                                  | [`@openuidev/browser-bundle`](https://github.com/thesysdev/openui/tree/main/packages/browser-bundle) |
 | An in-app panel showing captured errors during development         | [`@openuidev/devtools`](/docs/api-reference/devtools)                                                |
-| App scaffolding and prompt/schema generation from the command line | [`@openuidev/cli`](/docs/api-reference/cli)                                                          |
+| App scaffolding, prompt/schema generation, and deploy from the command line | [`@openuidev/cli`](/docs/api-reference/cli)                                                          |
 
 ## Packages
 
@@ -100,7 +100,7 @@ The OpenUI SDK is split into packages that build on each other:
     Development-only floating widget surfacing captured events with error messages and stack traces.
   </Card>
   <Card title="@openuidev/cli" href="/docs/api-reference/cli">
-    openui create (scaffold a Next.js app), openui generate-api-key (mint a Cloud key), and openui generate (system prompt + library spec from a library
+    openui create (scaffold a Next.js app), openui generate-api-key (mint a Cloud key), openui deploy, and openui generate (system prompt + library spec from a library
     definition).
   </Card>
 </Cards>

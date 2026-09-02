@@ -20,6 +20,19 @@ You can start editing the page by modifying `src/app/api/chat/route.ts` and impr
 by adding system prompts or tools. A LangGraph scaffold puts the implementation in
 `src/agent/agent.ts` instead.
 
+## Deploy
+
+From the project directory:
+
+```bash
+npx @openuidev/cli@latest deploy
+npx @openuidev/cli@latest deploy --prod
+```
+
+Deploys to Vercel. Allowlisted keys from `.env` / `.env.local` (including `THESYS_API_KEY`) are
+passed to that deployment unless you use `--skip-env`. Persist them on the Vercel project for later
+deploys.
+
 ## Framework deployments
 
 The Vercel AI SDK scaffold is a standard Next.js app: `streamText()` owns the

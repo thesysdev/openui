@@ -32,3 +32,32 @@ export function resolveInstallPackageManager(): PackageManager {
   const invoking = detectInvokingPackageManager();
   return PACKAGE_MANAGERS[invoking ?? "npm"];
 }
+
+/** Run a published package without adding it as a dependency (`npx` / `dlx` / `bunx`). */
+export function resolveDlxInvocation(
+  packageManager: PackageManager,
+  pkg: string,
+): { command: string; args: string[]; quietArgs: string[] } {
+  switch (packageManager.name) {
+    case "pnpm":
+      return {
+        command: "pnpm",
+        args: ["dlx", pkg],
+        quietArgs: ["--reporter=silent", "dlx", pkg],
+      };
+    case "yarn":
+      return {
+        command: "yarn",
+        args: ["dlx", pkg],
+        quietArgs: ["dlx", "--quiet", pkg],
+      };
+    case "bun":
+      return { command: "bunx", args: [pkg], quietArgs: ["--silent", pkg] };
+    default:
+      return {
+        command: "npx",
+        args: ["--yes", pkg],
+        quietArgs: ["--yes", "--quiet", pkg],
+      };
+  }
+}

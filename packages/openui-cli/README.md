@@ -1,6 +1,6 @@
 # @openuidev/cli
 
-Command-line tools for starting OpenUI projects, minting OpenUI Cloud API keys, and generating model instructions from component libraries.
+Command-line tools for starting OpenUI projects, minting OpenUI Cloud API keys, and generating model instructions from component libraries, and deploying apps to Vercel.
 
 [![npm](https://img.shields.io/npm/v/@openuidev/cli)](https://www.npmjs.com/package/@openuidev/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/thesysdev/openui/blob/main/LICENSE)
@@ -15,6 +15,7 @@ It currently supports:
 - keeping the default minimal SDK route or adding a LangGraph, Vercel AI SDK, or Vercel Eve backend to either template
 - minting an OpenUI Cloud API key into an existing project's env file
 - generating a system prompt or JSON Schema from a `createLibrary()` export
+- deploying a project with `openui deploy`
 
 ## Install
 
@@ -69,6 +70,13 @@ Generate JSON Schema instead:
 
 ```bash
 npx @openuidev/cli@latest generate ./src/library.ts --json-schema
+```
+
+Deploy the current project:
+
+```bash
+npx @openuidev/cli@latest deploy
+npx @openuidev/cli@latest deploy --prod
 ```
 
 ## Commands
@@ -172,6 +180,38 @@ openui create --name my-app --no-skill --no-install
 openui create --no-interactive --name my-app --template openui-cloud --api-key tk_your_key
 ```
 
+### `openui deploy`
+
+Deploys an OpenUI project. The default platform supported is **Vercel**.
+
+```bash
+openui deploy [dir] [options]
+```
+
+Arguments:
+
+- `dir`: Project directory (default: current directory)
+
+Options:
+
+- `-y, --yes`: Skip confirmation prompts (also saves missing env keys to the Vercel project)
+- `--skip-env`: Do not pass or save local `.env` / `.env.local` values
+- `--no-interactive`: Skip prompts (implies `--yes`)
+- `--verbose`: Stream full Vercel build logs (hidden by default; failure still prints a log tail)
+- `--agent-name <name>`: Declare the invoking coding agent as a lowercase kebab-case product slug (default: `unknown`)
+
+Extra flags after `deploy` are forwarded as-is to the target deployment platform, which validates them (for example `--prod` or `--force`). `--skip-env` is OpenUI-specific so it does not collide with Vercel's `--env KEY=value`.
+
+Unlinked projects run `vercel link` first (so env can be saved before the build). Allowlisted keys from `.env` / `.env.local` that are missing on production, preview, or development can be saved to the project (prompted; auto-accepted with `--yes`). Existing project keys are never overwritten. Env is still attached to the current deployment via `--env` / `--build-env`. Build logs are quiet by default.
+
+
+```bash
+openui deploy
+openui deploy ./my-app
+openui deploy ./my-app --prod
+openui deploy --skip-env -- --force
+```
+
 ### `openui generate-api-key`
 
 Signs in with Thesys in the browser, mints an OpenUI Cloud API key, and writes it to a project env file.
@@ -270,6 +310,7 @@ Run the built CLI:
 ```bash
 node dist/index.js --help
 node dist/index.js create --help
+node dist/index.js deploy --help
 node dist/index.js generate-api-key --help
 node dist/index.js generate --help
 ```
@@ -280,7 +321,7 @@ The CLI sends usage analytics; OAuth sign-ins may link usage to your OIDC accoun
 
 When a coding agent invokes the CLI, it should pass `--agent-name` using its stable, lowercase kebab-case product slug—for example, `codex`, `claude-code`, `cline`, `factory-droid`, or `pi`. Do not pass a model/version, user name, session ID, or other unique value. Humans can omit the flag; it defaults to `unknown`.
 
-Telemetry includes both `agent_name` (the CLI declaration) and `detected_agent_name` (best-effort environment detection). Either can be spoofed, inherited, missing, or ambiguous; neither is an authentication signal. Every invocation gets an ephemeral, unpersisted `cli_run_id` so its events can be correlated. Failure events include bounded `failure_stage`, `error_class`, and `error_code` values, never raw error messages. Dependency failures distinguish peer, registry, network, install-script, workspace, and package-compatibility errors. Process failures include duration, exit code, and signal; Cloud-auth failures include a bounded auth substage and HTTP status when known; cancellations use separate events. For `create`, telemetry also includes `package_manager`, the immediate-start selection, and best-effort dev-command start and result events. Dev-command events contain status, duration, exit code, and signal—not project paths, command output, code, or environment values. Disable telemetry with `--no-telemetry` or `DO_NOT_TRACK=1`.
+Telemetry includes both `agent_name` (the CLI declaration) and `detected_agent_name` (best-effort environment detection). Either can be spoofed, inherited, missing, or ambiguous; neither is an authentication signal. Every invocation gets an ephemeral, unpersisted `cli_run_id` so its events can be correlated. Failure events include bounded `failure_stage`, `error_class`, and `error_code` values, never raw error messages. Dependency failures distinguish peer, registry, network, install-script, workspace, and package-compatibility errors. Process failures include duration, exit code, and signal; Cloud-auth failures include a bounded auth substage and HTTP status when known; cancellations use separate events. For `create`, telemetry also includes `package_manager`, the immediate-start selection, and best-effort dev-command start and result events. Dev-command events contain status, duration, exit code, and signal—not project paths, command output, code, or environment values. For `deploy`, telemetry includes the target (currently `vercel`), production vs preview, whether the Vercel CLI was logged in, whether local env was passed, CLI resolution source, and process status—not env values, project paths, or command output. Disable telemetry with `--no-telemetry` or `DO_NOT_TRACK=1`.
 
 ```bash
 openui create --no-telemetry
@@ -291,6 +332,7 @@ openui create --no-telemetry
 - interactive prompts can be cancelled without creating output
 - `create` fetches `templates/templates.json` and the selected template from GitHub (`thesysdev/openui@main`)
 - `generate` exits with a non-zero code if the file is missing or no valid library export is found
+- `deploy` exits with a non-zero code if the directory has no `package.json` or the Vercel CLI fails
 
 ## Documentation
 

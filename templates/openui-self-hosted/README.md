@@ -27,6 +27,19 @@ implementation in `src/agent/agent.ts` instead.
 If you selected LangGraph, the Vercel AI SDK, or Vercel Eve, the generated app includes a `get_weather`
 example. Ask “What’s the weather in Berlin?” to exercise its native tool loop.
 
+## Deploy
+
+From the project directory:
+
+```bash
+npx @openuidev/cli@latest deploy
+npx @openuidev/cli@latest deploy --prod
+```
+
+Deploys to Vercel. Allowlisted keys from `.env` / `.env.local` (including `OPENAI_API_KEY`) are
+passed to that deployment unless you use `--skip-env`. Persist them on the Vercel project for later
+deploys.
+
 ## Framework deployments
 
 The Vercel AI SDK scaffold runs its backend inside the Next.js API route, so the
