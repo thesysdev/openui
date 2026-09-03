@@ -3,6 +3,71 @@ type ElementLike = {
   props: Record<string, unknown>;
 };
 
+const DISPLAY_TEXT_KEYS = ["title", "text", "label", "value"] as const;
+
+export interface DisplayTextCoercionResult {
+  text: string;
+  coerced: boolean;
+  sourceType: string;
+  fallbackKey?: (typeof DISPLAY_TEXT_KEYS)[number];
+}
+
+function valueType(value: unknown): string {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return "array";
+  return typeof value;
+}
+
+function stringifyObject(value: object): string {
+  try {
+    return JSON.stringify(value) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function coerceDisplayText(value: unknown): DisplayTextCoercionResult {
+  if (value == null) {
+    return { text: "", coerced: false, sourceType: valueType(value) };
+  }
+
+  if (typeof value === "string") {
+    return { text: value, coerced: false, sourceType: "string" };
+  }
+
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+    return { text: String(value), coerced: true, sourceType: valueType(value) };
+  }
+
+  if (Array.isArray(value)) {
+    const parts = value.map((item) => coerceDisplayText(item).text).filter(Boolean);
+    return { text: parts.join(", "), coerced: true, sourceType: "array" };
+  }
+
+  if (typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    for (const key of DISPLAY_TEXT_KEYS) {
+      if (!(key in obj)) continue;
+      const result = coerceDisplayText(obj[key]);
+      if (result.text) {
+        return { text: result.text, coerced: true, sourceType: "object", fallbackKey: key };
+      }
+    }
+    return { text: stringifyObject(value), coerced: true, sourceType: "object" };
+  }
+
+  return { text: "", coerced: true, sourceType: valueType(value) };
+}
+
+export function displayText(value: unknown): string {
+  return coerceDisplayText(value).text;
+}
+
+export function optionalDisplayText(value: unknown): string | undefined {
+  const text = displayText(value);
+  return text ? text : undefined;
+}
+
 export function hasAllProps(obj: Record<string, unknown>, ...keys: string[]): boolean {
   return keys.every((k) => obj[k] != null);
 }

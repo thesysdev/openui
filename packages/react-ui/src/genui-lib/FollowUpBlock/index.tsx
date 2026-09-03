@@ -4,6 +4,7 @@ import { defineComponent, useTriggerAction } from "@openuidev/react-lang";
 import { z } from "zod/v4";
 import { FollowUpBlock as OpenUIFollowUpBlock } from "../../components/FollowUpBlock";
 import { FollowUpItem as OpenUIFollowUpItem } from "../../components/FollowUpItem";
+import { displayText } from "../helpers";
 import { FollowUpItem } from "../FollowUpItem";
 
 export const FollowUpBlock = defineComponent({
@@ -19,7 +20,7 @@ export const FollowUpBlock = defineComponent({
     return (
       <OpenUIFollowUpBlock>
         {items.map((item, i) => {
-          const text = String(item?.props?.text ?? "");
+          const text = displayText(item?.props?.text);
           return <OpenUIFollowUpItem key={i} text={text} onClick={() => triggerAction(text)} />;
         })}
       </OpenUIFollowUpBlock>

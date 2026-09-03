@@ -10,6 +10,7 @@ import {
   FoldableSectionTrigger,
 } from "../../components/SectionBlock/FoldableSection";
 import { SectionV2 } from "../../components/SectionBlock/SectionV2";
+import { displayText, optionalDisplayText } from "../helpers";
 import { SectionItem } from "../SectionItem";
 
 export const SectionBlock = defineComponent({
@@ -25,7 +26,7 @@ export const SectionBlock = defineComponent({
     const isFoldable = props.isFoldable !== false;
     const isStreaming = useIsStreaming();
 
-    const firstItemValue = items[0]?.props?.value as string | undefined;
+    const firstItemValue = optionalDisplayText(items[0]?.props?.value);
 
     const [openItems, setOpenItems] = React.useState<string[]>([]);
     const userSelected = React.useRef(false);
@@ -38,7 +39,7 @@ export const SectionBlock = defineComponent({
 
       if (isStreaming && items.length > prevLengthRef.current && !userSelected.current) {
         const last = items[items.length - 1];
-        const lastValue = last?.props?.value as string | undefined;
+        const lastValue = optionalDisplayText(last?.props?.value);
         if (lastValue) {
           setOpenItems((prev) => (prev.includes(lastValue) ? prev : [...prev, lastValue]));
         }
@@ -66,7 +67,7 @@ export const SectionBlock = defineComponent({
       return (
         <>
           {items.map((item, index) => (
-            <SectionV2 key={index} trigger={String(item?.props?.trigger ?? "")}>
+            <SectionV2 key={index} trigger={displayText(item?.props?.trigger)}>
               {renderNode(item?.props?.content)}
             </SectionV2>
           ))}
@@ -77,8 +78,11 @@ export const SectionBlock = defineComponent({
     return (
       <FoldableSectionRoot type="multiple" value={openItems} onValueChange={handleValueChange}>
         {items.map((item, index) => (
-          <FoldableSectionItem key={index} value={String(item?.props?.value ?? index)}>
-            <FoldableSectionTrigger text={String(item?.props?.trigger ?? "")} />
+          <FoldableSectionItem
+            key={index}
+            value={optionalDisplayText(item?.props?.value) ?? String(index)}
+          >
+            <FoldableSectionTrigger text={displayText(item?.props?.trigger)} />
             <FoldableSectionContent>{renderNode(item?.props?.content)}</FoldableSectionContent>
           </FoldableSectionItem>
         ))}
