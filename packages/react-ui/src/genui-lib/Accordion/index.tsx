@@ -30,12 +30,24 @@ export const Accordion = defineComponent({
     const items = props.items ?? [];
     const [openItem, setOpenItem] = React.useState<string>("");
     const userHasInteracted = React.useRef(false);
-    const prevItemCount = React.useRef(0);
+    const prevItemCount = React.useRef<number | null>(null);
+    const autoOpenIndex = React.useRef(-1);
 
-    // Auto-open: only when a NEW item arrives during streaming
-    if (!userHasInteracted.current && items.length > prevItemCount.current) {
-      const newest = items[items.length - 1];
-      if (newest) setOpenItem(newest.props.value);
+    // Auto-open: the FIRST item on the baseline pass (a static response
+    // mounts with all items already present, which is growth from 0 and
+    // must not open the newest), then the newest item whenever one arrives
+    // during streaming. Tracking the index rather than the value keeps the
+    // open section in sync while its value string is still streaming in.
+    if (!userHasInteracted.current) {
+      if (prevItemCount.current === null) {
+        if (items.length) autoOpenIndex.current = 0;
+      } else if (items.length > prevItemCount.current) {
+        autoOpenIndex.current = items.length - 1;
+      }
+      const autoOpenValue = items[autoOpenIndex.current]?.props.value;
+      if (autoOpenValue && autoOpenValue !== openItem) {
+        setOpenItem(autoOpenValue);
+      }
     }
     prevItemCount.current = items.length;
 
