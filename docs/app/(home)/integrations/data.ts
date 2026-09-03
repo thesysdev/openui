@@ -86,7 +86,11 @@ const integrationCatalog: Integration[] = [
     howItWorks:
       "Each shadcn component is registered with defineComponent and a Zod prop schema. createLibrary produces both the prompt vocabulary and the renderer mapping used by the example chat app.",
     links: [
-      { label: "Integration guide", href: "/docs/openui-lang/examples/design-systems/shadcn", kind: "Guide" },
+      {
+        label: "Integration guide",
+        href: "/docs/openui-lang/examples/design-systems/shadcn",
+        kind: "Guide",
+      },
       exampleLink("shadcn-chat"),
       { label: "shadcn/ui", href: "https://ui.shadcn.com", kind: "Website" },
     ],
@@ -164,6 +168,22 @@ const integrationCatalog: Integration[] = [
         kind: "Docs",
       },
       exampleLink("langchain-chat"),
+    ],
+  },
+  {
+    slug: "langflow",
+    name: "Langflow",
+    logo: "https://raw.githubusercontent.com/langflow-ai/langflow/main/docs/static/img/langflow-icon-black-transparent.svg",
+    category: "ai-frameworks",
+    type: "Visual agent framework adapter",
+    summary:
+      "Connect Langflow workflows to OpenUI through Workflow API v2 and Langflow's native AG-UI stream.",
+    howItWorks:
+      "The @openuidev/langflow package maps OpenUI thread, follow-up, and form turns to Langflow workflow inputs and session ids. Langflow runs the flow and emits native AG-UI SSE, which agUIAdapter() consumes in AgentInterface.",
+    install: "npm install @openuidev/langflow",
+    links: [
+      ...packageLinks("@openuidev/langflow", "langflow", "/docs/api-reference/langflow"),
+      { label: "Langflow", href: "https://www.langflow.org", kind: "Website" },
     ],
   },
   {

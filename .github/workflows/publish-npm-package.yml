@@ -19,6 +19,7 @@ on:
           - react-email
           - lang-core
           - langchain
+          - langflow
           - openui-cli
           - svelte-lang
           - vue-lang

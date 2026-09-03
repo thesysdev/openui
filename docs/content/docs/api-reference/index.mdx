@@ -17,6 +17,8 @@ The OpenUI SDK is split into packages that build on each other:
 
 - **`@openuidev/langchain`** — LangChain and LangGraph integration primitives for transforming protocol-v2 agent streams into AG-UI events and relaying them to an OpenUI frontend over Web-standard Server-Sent Events.
 
+- **`@openuidev/langflow`** — Server-side helpers that map OpenUI chat turns to Langflow Workflow API v2 runs and relay Langflow's native AG-UI stream.
+
 - **`@openuidev/react-email`** — Pre-built email component library and prompt options for model-generated emails that can be rendered to HTML with React Email.
 
 - **`@openuidev/vue-lang`** — Vue 3 bindings for defining model-renderable components, generating prompts from those definitions, and rendering streamed OpenUI Lang in Vue apps.
@@ -39,6 +41,7 @@ The OpenUI SDK is split into packages that build on each other:
 | A ready-made React chat surface                                    | [`@openuidev/react-ui`](/docs/api-reference/react-ui)                                                |
 | OpenUI tool rendering in an assistant-ui application               | [`@openuidev/assistant-ui`](/docs/api-reference/assistant-ui)                                        |
 | A LangChain or LangGraph agent connected to an OpenUI frontend     | [`@openuidev/langchain`](/docs/api-reference/langchain)                                              |
+| A Langflow workflow connected to an OpenUI Agent Interface         | [`@openuidev/langflow`](/docs/api-reference/langflow)                                                |
 | Model-generated emails                                             | [`@openuidev/react-email`](/docs/api-reference/react-email)                                          |
 | Vue integration                                                    | [`@openuidev/vue-lang`](https://github.com/thesysdev/openui/tree/main/packages/vue-lang)             |
 | Svelte integration                                                 | [`@openuidev/svelte-lang`](https://github.com/thesysdev/openui/tree/main/packages/svelte-lang)       |
@@ -74,6 +77,10 @@ The OpenUI SDK is split into packages that build on each other:
   <Card title="@openuidev/langchain" href="/docs/api-reference/langchain">
     LangGraph stream transformation, stateless run helpers, and AG-UI SSE relay APIs for OpenUI
     frontends.
+  </Card>
+  <Card title="@openuidev/langflow" href="/docs/api-reference/langflow">
+    Workflow API v2 request mapping, session scoping, action normalization, and native AG-UI
+    passthrough for OpenUI frontends.
   </Card>
   <Card title="@openuidev/react-email" href="/docs/api-reference/react-email">
     API reference for the pre-built email templates library and prompt options.

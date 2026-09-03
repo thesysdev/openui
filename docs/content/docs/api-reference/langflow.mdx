@@ -1,0 +1,220 @@
+---
+title: "@openuidev/langflow"
+description: API reference for streaming Langflow Workflow API v2 runs to OpenUI over native AG-UI.
+---
+
+Use this package to connect an OpenUI Agent Interface to a Langflow workflow. It maps OpenUI
+messages, thread ids, follow-ups, and submitted form values to Langflow's Workflow API v2 and
+returns Langflow's native AG-UI stream without an intermediate protocol conversion.
+
+The package is framework-independent at the HTTP boundary. Its APIs use Web-standard `Request`,
+`Response`, `fetch`, and `ReadableStream` types.
+
+## Install
+
+```bash tab="pnpm" tab-group="pkg"
+pnpm add @openuidev/langflow
+```
+
+```bash tab="bun" tab-group="pkg"
+bun add @openuidev/langflow
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn add @openuidev/langflow
+```
+
+```bash tab="npm" tab-group="pkg"
+npm install @openuidev/langflow
+```
+
+The integration requires a Langflow server that exposes `POST /api/v2/workflows` and supports
+`stream_protocol: "agui"`. It was tested with Langflow/LFX 1.11.4.
+
+## Data flow
+
+1. OpenUI's `fetchLLM` sends `{ threadId, messages }` to an application server route.
+2. `createLangflowStreamResponse()` extracts the newest user or action turn, maps `threadId` to
+   Langflow's `session_id`, and starts a Workflow API v2 streaming run.
+3. Langflow runs the flow and returns native AG-UI Server-Sent Events.
+4. OpenUI's `agUIAdapter()` consumes the response in `AgentInterface`.
+
+Langflow owns the workflow graph, model calls, tools, and session memory. OpenUI owns the chat
+surface, OpenUI Lang parser and renderer, streaming UI state, theme, follow-ups, and form actions.
+
+## `createLangflowStreamResponse(request, options)`
+
+Creates the complete OpenUI-request-to-Langflow-response path:
+
+```ts
+function createLangflowStreamResponse(
+  request: Request,
+  options: CreateLangflowStreamResponseOptions,
+): Promise<Response>;
+```
+
+```ts
+interface CreateLangflowStreamResponseOptions extends LangflowWorkflowOverrides {
+  apiUrl: string;
+  flowId: string;
+  apiKey?: string;
+  headers?: Record<string, string>;
+  prepareSessionId?: (context: PrepareLangflowSessionContext) => string | Promise<string>;
+  prepareInput?: (context: PrepareLangflowInputContext) => string | Promise<string>;
+  debug?: boolean;
+  fetch?: typeof fetch;
+}
+```
+
+The request body must contain a non-empty AG-UI `messages` array. A missing `threadId` receives an
+opaque generated id. Invalid requests return JSON with status `400` without starting a Langflow
+run. Upstream failures return status `502`; response details remain redacted unless trusted
+development code enables `debug`.
+
+The helper can be returned directly from a Next.js route or another Web-standard route handler:
+
+```ts
+import { createLangflowStreamResponse } from "@openuidev/langflow";
+
+export const runtime = "nodejs";
+
+export async function POST(request: Request) {
+  return createLangflowStreamResponse(request, {
+    apiUrl: process.env.LANGFLOW_API_URL ?? "http://localhost:7860",
+    apiKey: process.env.LANGFLOW_API_KEY,
+    flowId: process.env.LANGFLOW_FLOW_ID!,
+    debug: process.env.NODE_ENV !== "production",
+  });
+}
+```
+
+Keep the Langflow API key in the server route. Do not expose it to the browser.
+
+### `prepareSessionId(context)`
+
+OpenUI's `threadId` is client input. Authenticate the route and use `prepareSessionId` to authorize
+or scope Langflow session ids in a multi-user application:
+
+```ts
+const user = await requireUser(request);
+
+return createLangflowStreamResponse(request, {
+  apiUrl: process.env.LANGFLOW_API_URL!,
+  apiKey: process.env.LANGFLOW_API_KEY,
+  flowId: process.env.LANGFLOW_FLOW_ID!,
+  prepareSessionId: ({ threadId }) => `${user.id}:${threadId}`,
+});
+```
+
+```ts
+interface PrepareLangflowSessionContext {
+  threadId: string;
+  requestBody: Record<string, unknown>;
+}
+```
+
+### `prepareInput(context)`
+
+By default, the helper sends only the newest non-empty user turn because Langflow uses
+`session_id` for conversation memory. OpenUI follow-ups and forms encode a readable action plus
+structured context in that turn. The helper removes the transport markers while preserving the
+action label and edited form values.
+
+Use `prepareInput` to add trusted application context after authenticating the request:
+
+```ts
+return createLangflowStreamResponse(request, {
+  apiUrl: process.env.LANGFLOW_API_URL!,
+  apiKey: process.env.LANGFLOW_API_KEY,
+  flowId: process.env.LANGFLOW_FLOW_ID!,
+  prepareInput: ({ inputValue, requestBody }) =>
+    `[tenant=${String(requestBody.tenant)}] ${inputValue}`,
+});
+```
+
+```ts
+interface PrepareLangflowInputContext {
+  messages: Message[];
+  inputValue: string;
+  requestBody: Record<string, unknown>;
+  sessionId: string;
+}
+```
+
+Treat all fields in `requestBody` as untrusted client input.
+
+## `streamLangflowWorkflow(options)`
+
+Use the lower-level helper when the application already owns request parsing:
+
+```ts
+interface StreamLangflowWorkflowOptions extends LangflowWorkflowOverrides {
+  apiUrl: string;
+  flowId: string;
+  inputValue: string;
+  sessionId: string;
+  apiKey?: string;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
+  debug?: boolean;
+  fetch?: typeof fetch;
+}
+
+function streamLangflowWorkflow(options: StreamLangflowWorkflowOptions): Promise<Response>;
+```
+
+```ts
+import { streamLangflowWorkflow } from "@openuidev/langflow";
+
+const response = await streamLangflowWorkflow({
+  apiUrl: "http://localhost:7860",
+  apiKey: process.env.LANGFLOW_API_KEY,
+  flowId: process.env.LANGFLOW_FLOW_ID!,
+  inputValue: "Show quarterly revenue as a labeled bar chart",
+  sessionId: "thread-123",
+  signal: request.signal,
+});
+```
+
+The helper fixes `mode` to `"stream"` and `stream_protocol` to `"agui"`. It passes the upstream
+response body through as AG-UI SSE. `LangflowWorkflowOverrides` supports `tweaks`, live-canvas
+`data`, uploaded `files`, and partial-run `startComponentId` and `stopComponentId` values.
+
+## Connect the OpenUI frontend
+
+Langflow already emits AG-UI, so the browser uses OpenUI's maintained adapter:
+
+```tsx
+"use client";
+
+import { AgentInterface, agUIAdapter, fetchLLM } from "@openuidev/react-ui";
+
+const llm = fetchLLM({
+  url: "/api/chat",
+  streamAdapter: agUIAdapter(),
+});
+
+export function Chat() {
+  return <AgentInterface llm={llm} />;
+}
+```
+
+Keep `AgentInterface`'s theme provider enabled. Attach the system prompt generated from the same
+OpenUI component library rendered by the frontend to the Langflow Agent component.
+
+## Exports
+
+| Export                                | Description                                                 |
+| :------------------------------------ | :---------------------------------------------------------- |
+| `createLangflowStreamResponse`        | Complete Web-standard request/response helper               |
+| `streamLangflowWorkflow`              | Lower-level Workflow API v2 streaming call                  |
+| `toLangflowInput`                     | Newest-turn and OpenUI action/form normalizer               |
+| `LangflowRequestError`                | Upstream HTTP error with optional development detail        |
+| `CreateLangflowStreamResponseOptions` | Request helper configuration                                |
+| `PrepareLangflowInputContext`         | Values passed to `prepareInput`                             |
+| `PrepareLangflowSessionContext`       | Values passed to `prepareSessionId`                         |
+| `StreamLangflowWorkflowOptions`       | Lower-level streaming configuration                         |
+| `LangflowWorkflowOverrides`           | Workflow tweaks, data, files, and partial-run component ids |
+
+See Langflow's [Workflow API documentation](https://docs.langflow.org/workflow-api) for the
+upstream endpoint and flow configuration.
