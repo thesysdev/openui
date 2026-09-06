@@ -7,6 +7,7 @@ import { DefaultLegend } from "../shared/DefaultLegend/DefaultLegend";
 import { FloatingUIPortal } from "../shared/PortalTooltip";
 import { StackedLegend } from "../shared/StackedLegend/StackedLegend";
 import { LegendItem, StackedLegendItem } from "../types";
+import { normalizeChartData } from "../utils/dataUtils";
 import { PaletteName, useChartPalette } from "../utils/PalletUtils";
 import { ToolTip } from "./components";
 import { SingleStackedBarData } from "./types";
@@ -36,6 +37,8 @@ export const SingleStackedBar = <T extends SingleStackedBarData>({
   style,
   animated = true,
 }: SingleStackedBarProps<T>) => {
+  // Guard against nullish `data` while generative UI is streaming.
+  data = normalizeChartData(data);
   const [isLegendExpanded, setIsLegendExpanded] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [hoveredLegendKey, setHoveredLegendKey] = useState<string | null>(null);

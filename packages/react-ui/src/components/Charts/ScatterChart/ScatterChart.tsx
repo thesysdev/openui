@@ -14,7 +14,7 @@ import {
   YAxisTick,
 } from "../shared";
 import { LegendItem } from "../types";
-import { get2dChartConfig, getLegendItems } from "../utils/dataUtils";
+import { get2dChartConfig, getLegendItems, normalizeChartData } from "../utils/dataUtils";
 import { PaletteName, useChartPalette } from "../utils/PalletUtils";
 import { numberTickFormatter } from "../utils/styleUtils";
 import ScatterDot from "./components/ScatterDot";
@@ -61,6 +61,8 @@ export const ScatterChart = ({
   width,
   shape = "circle",
 }: ScatterChartProps) => {
+  // Guard against nullish `data` while generative UI is streaming.
+  data = normalizeChartData(data);
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 

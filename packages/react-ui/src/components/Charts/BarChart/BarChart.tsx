@@ -38,6 +38,7 @@ import {
   getColorForDataKey,
   getDataKeys,
   getLegendItems,
+  normalizeChartData,
 } from "../utils/dataUtils";
 import { BarChartData, BarChartVariant } from "./types";
 import {
@@ -97,6 +98,8 @@ const BarChartComponent = <T extends BarChartData>({
   height,
   width,
 }: BarChartProps<T>) => {
+  // Guard against nullish `data` while generative UI is streaming.
+  data = normalizeChartData(data);
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 

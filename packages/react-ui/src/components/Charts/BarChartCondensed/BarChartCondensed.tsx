@@ -32,6 +32,7 @@ import {
   getColorForDataKey,
   getDataKeys,
   getLegendItems,
+  normalizeChartData,
 } from "../utils/dataUtils";
 import { PaletteName, useChartPalette } from "../utils/PalletUtils";
 
@@ -93,6 +94,8 @@ const BarChartCondensedComponent = <T extends BarChartData>({
   width,
   maxBarWidth = DEFAULT_MAX_BAR_WIDTH,
 }: BarChartCondensedProps<T>) => {
+  // Guard against nullish `data` while generative UI is streaming.
+  data = normalizeChartData(data);
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 

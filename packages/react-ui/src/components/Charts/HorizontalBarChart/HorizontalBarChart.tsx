@@ -31,6 +31,7 @@ import {
   getColorForDataKey,
   getDataKeys,
   getLegendItems,
+  normalizeChartData,
 } from "../utils/dataUtils";
 import { numberTickFormatter } from "../utils/styleUtils";
 import { CustomBarShape } from "./components/CustomBarShape";
@@ -90,6 +91,8 @@ const HorizontalBarChartComponent = <T extends HorizontalBarChartData>({
   height,
   width,
 }: HorizontalBarChartProps<T>) => {
+  // Guard against nullish `data` while generative UI is streaming.
+  data = normalizeChartData(data);
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 
