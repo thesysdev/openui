@@ -1,0 +1,89 @@
+---
+title: Getting Started
+description: Create a new OpenUI application or add OpenUI to an existing agent.
+---
+
+Start a new agent application with the OpenUI CLI, or add OpenUI to an application you already have.
+
+## Start a new application
+
+You need Node.js 20 or later. Run the interactive setup to choose your model connection and agent framework:
+
+```bash
+npx @openuidev/cli@latest create
+```
+
+The CLI creates the project, installs its dependencies, and can start the development server for you.
+
+### Choose a model connection
+
+Use OpenUI Gateway for model access, output correction, and provider fallbacks:
+
+```bash
+npx @openuidev/cli@latest create --name my-agent --template openui-cloud
+```
+
+Or connect the generated application directly to your own model provider:
+
+```bash
+npx @openuidev/cli@latest create --name my-agent --template openui-self-hosted
+```
+
+### Choose an agent framework
+
+Add `--backend-framework` to scaffold an integration for a specific agent framework. These options can be combined with either model setup.
+
+```bash tab="Default" tab-group="agent-framework"
+npx @openuidev/cli@latest create \
+  --name my-agent \
+  --template openui-cloud \
+  --backend-framework default
+```
+
+```bash tab="Vercel AI SDK" tab-group="agent-framework"
+npx @openuidev/cli@latest create \
+  --name my-agent \
+  --template openui-cloud \
+  --backend-framework vercel-ai-sdk
+```
+
+```bash tab="LangGraph" tab-group="agent-framework"
+npx @openuidev/cli@latest create \
+  --name my-agent \
+  --template openui-cloud \
+  --backend-framework langgraph
+```
+
+```bash tab="Vercel Eve" tab-group="agent-framework"
+npx @openuidev/cli@latest create \
+  --name my-agent \
+  --template openui-cloud \
+  --backend-framework vercel-eve
+```
+
+The generated application includes [Agent Interface](/docs/agent/getting-started/introduction) and an OpenUI Lang component library. Follow the [Agent Interface Quickstart](/docs/agent/getting-started/quickstart) to understand the generated project.
+
+## Add OpenUI to an existing application
+
+<Cards>
+  <Card title="assistant-ui or CopilotKit" href="/docs/build-agents">
+    Keep your existing conversation experience and add OpenUI Lang rendering.
+  </Card>
+  <Card title="Custom chat UI" href="/docs/build-agents/custom-chat-ui">
+    Render generated interfaces inside your existing message list.
+  </Card>
+  <Card title="Agent backend" href="/docs/gateway/generate-openui-lang">
+    Route model requests through OpenUI Gateway and generate validated OpenUI Lang.
+  </Card>
+</Cards>
+
+## Build only with OpenUI Lang
+
+Use OpenUI Lang without adopting a complete agent interface or hosted model service:
+
+1. [Define the components](/docs/openui-lang/defining-components) the model can use.
+2. [Generate the system prompt](/docs/openui-lang/system-prompts) from the component library.
+3. Send those instructions to your chosen model or agent framework.
+4. [Render the streamed response](/docs/openui-lang/renderer) with your application components.
+
+Learn more in the [OpenUI Lang documentation](/docs/openui-lang).

@@ -1,107 +1,55 @@
 ---
 title: Quickstart
-description: Scaffold a working streaming chat agent (conversation history, tools, artifacts, and generative UI) in a few minutes with the OpenUI CLI.
+description: Scaffold a streaming Agent Interface application connected to your model provider.
 ---
 
-The CLI scaffolds a complete Next.js app: a streaming chat with a sidebar, thread list, composer, and generative UI on by default. You write no boilerplate: create, connect, run. You can add the <a style={{ color: 'var(--swatch-lime-500)' }} href="/skills.md">OpenUI skill</a> from here to enable working with coding agents.
+The OpenUI CLI can scaffold a Next.js agent application with Agent Interface, an OpenUI renderer, and a server route for model generation.
 
-## 1. Create
+## 1. Create the application
 
-Run the create command and answer the prompts. One prompt asks you to choose your agent backend:
-For most prototypes and evaluations, start with **OpenUI Cloud, the recommended
-default**: hosted models plus managed conversation history, streaming, built-in
-tools, and ready-to-use reports and presentations. You can ship without operating
-the model, storage, or artifact infrastructure. Choose **self-hosted** when owning
-the OpenAI-compatible provider, AI route, and persistence is a requirement.
+Run the command with the self-hosted template to connect your own OpenAI-compatible provider:
 
 ```bash tab="pnpm" tab-group="pkg"
-pnpx @openuidev/cli@latest create
+pnpx @openuidev/cli@latest create --template openui-self-hosted
 ```
 
 ```bash tab="bun" tab-group="pkg"
-bunx @openuidev/cli@latest create
+bunx @openuidev/cli@latest create --template openui-self-hosted
 ```
 
 ```bash tab="yarn" tab-group="pkg"
-yarn dlx @openuidev/cli@latest create
+yarn dlx @openuidev/cli@latest create --template openui-self-hosted
 ```
 
 ```bash tab="npm" tab-group="pkg"
-npx @openuidev/cli@latest create
+npx @openuidev/cli@latest create --template openui-self-hosted
 ```
 
-When it finishes, move into the project:
+## 2. Configure your provider key
 
-```bash
-cd my-agent
-```
-
-## 2. Connect
-
-<Tabs groupId="deploy" items={["OpenUI Cloud", "Self-hosted"]} persist>
-  <Tab value="OpenUI Cloud">
-
-The CLI will prompt you to sign in to Thesys and create an API key in your browser, or you can generate your own on the [Thesys console](https://console.thesys.dev/keys) and add it to `.env`:
-
-```bash
-THESYS_API_KEY=sk-th-your-key-here
-```
-
-The scaffold's `/api/chat` route proxies to Cloud with this key, so it stays on the server. Cloud manages conversation history, artifacts, and built-in tools, so there's no database or renderers to run. See [OpenUI Cloud](/docs/agent/getting-started/openui-cloud).
-
-  </Tab>
-  <Tab value="Self-hosted">
-
-The scaffold generates an `/api/chat` route that calls OpenAI on the server. Add your key to `.env.local`:
+Enter your provider key when prompted, or add it to the generated environment file:
 
 ```bash
 OPENAI_API_KEY=sk-your-key-here
 ```
 
-The key stays on the server. The browser only ever talks to your route, never the provider.
-
-  </Tab>
-</Tabs>
+The key stays in the generated server route. Browser code calls your application and never receives this server credential.
 
 ## 3. Run
 
-Start the dev server:
-
 ```bash tab="pnpm" tab-group="pkg"
 pnpm dev
-```
-
-```bash tab="bun" tab-group="pkg"
-bun dev
-```
-
-```bash tab="yarn" tab-group="pkg"
-yarn dev
 ```
 
 ```bash tab="npm" tab-group="pkg"
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and send a message. The response streams in token by token, and the assistant can render rich, interactive components inline.
+Open [http://localhost:3000](http://localhost:3000) and request an interface such as a comparison table or interactive form.
 
-<video
-  src="/videos/agent/quickstart-inline-generative-ui.mp4"
-  autoPlay
-  loop
-  muted
-  playsInline
-  className="w-full rounded-lg border"
-/>
+## What to read next
 
-## What you get
-
-A working agent out of the box:
-
-- **Streaming chat:** responses render token by token in a full layout (sidebar, thread list, composer).
-- **Conversation history that persists:** past threads are saved and reloadable, not reset on refresh. See [Conversations](/docs/agent/core-concepts/conversations).
-- **Tool calling:** the agent can call tools mid-response, including built-in Cloud tools like `image_search` (no code to enable). See [Tools](/docs/agent/core-concepts/tools).
-- **An example artifact:** the scaffold ships a slides/report artifact you can prompt for and open in the workspace. See [Artifacts](/docs/agent/core-concepts/artifacts).
-- **Generative UI, on by default:** the assistant renders interactive components inside messages. See [Generative UI](/docs/agent/core-concepts/generative-ui).
-
-The difference is only in the backing: **OpenUI Cloud** manages history, artifacts, and built-in tools for you, while **self-hosted** uses your own OpenAI route and a local store the scaffold generates.
+- [Adapters and formats](/docs/agent/reference/adapters-and-formats)
+- [Generative UI](/docs/agent/core-concepts/generative-ui)
+- [Customize Agent Interface](/docs/agent/customize/welcome-and-starters)
+- [`AgentInterface` props](/docs/agent/reference/agentinterface-props)

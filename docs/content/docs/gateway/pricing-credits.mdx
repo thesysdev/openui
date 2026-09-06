@@ -1,0 +1,54 @@
+---
+title: Pricing
+description: Understand Gateway plans, API call charges, model usage, and BYOK.
+---
+
+**Gateway charges no markup on model tokens.** You pay the provider's list price on a pay-as-you-go basis. Purchased Gateway Credits are used automatically as requests are processed.
+
+Every generated response also uses one API call from your plan.
+
+## Free and paid plans
+
+Gateway is available through Free, Build, Grow, and Scale plans. Paid plans include more API calls, higher request priority and rate limits, and additional support.
+
+Annual billing saves up to 20%.
+
+|                                  | Free                                          | Build              | Grow                                       | Scale                                                        |
+| -------------------------------- | --------------------------------------------- | ------------------ | ------------------------------------------ | ------------------------------------------------------------ |
+| Monthly price                    | $0                                            | $49                | $499                                       | Custom                                                       |
+| Included API calls               | 3,000/month                                   | 25,000/month       | 500,000/month                              | Custom                                                       |
+| Additional API calls             | —                                             | $0.002/call        | $0.001/call                                | Custom                                                       |
+| Request priority and rate limits | Core limits                                   | Higher             | Highest                                    | Custom                                                       |
+| Support                          | Discord community                             | Email              | Priority support and solutions engineering | Support guarantees and SLAs                                  |
+| Additional features              | BYOK, style customization, and popular models | Everything in Free | Everything in Build, plus SSO/SAML         | Self-hosting, VPC deployment, compliance, and usage controls |
+
+<Callout type="info">
+  Select models are available with no LLM token cost. These models are limited to approximately
+  100 calls per day and 3,000 calls per month, and request data may be used for training.
+</Callout>
+
+Paid models use zero data retention.
+
+## Gateway rates
+
+The cost of a Gateway request has two parts:
+
+- **API calls:** Included with your plan. Usage above the included amount is billed at your plan's additional-call rate.
+- **Model usage:** Based on the selected provider and model, and the number of input, output, and cache tokens processed.
+
+Model usage is billed at the provider's rates without markup. The Gateway API and OpenUI Lang correction behavior remain the same whether you use managed inference or your own provider key.
+
+### Finding model pricing
+
+Model prices vary by provider and model. View the latest rates on the [Thesys pricing page](https://www.thesys.dev/pricing), including:
+
+- Input tokens per 1 million tokens
+- Output tokens per 1 million tokens
+- Cache read and write rates
+- Models currently available without LLM token charges
+
+## Bring your own key (BYOK)
+
+Gateway supports [Bring Your Own Key](/docs/gateway/byok) on every plan. When a provider key is configured, Gateway uses it for requests to that provider, and the provider bills model usage directly to your account without an additional Gateway markup.
+
+Your Gateway plan's API call limits and additional-call rates still apply. Requests to providers without a configured key use managed inference.

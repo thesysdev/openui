@@ -5,34 +5,11 @@ import { SidebarTrigger } from "fumadocs-ui/components/sidebar/base";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { GitHubStarButton } from "./brand-logo";
 import styles from "./docs-navbar.module.css";
 import { SiteHeaderFrame } from "./site-header";
 import { ThemeToggle } from "./theme-toggle";
-
-const tabs: { title: string; url: string; match?: string }[] = [
-  { title: "Overview", url: "/docs/overview" },
-  { title: "OpenUI", url: "/docs/openui-lang" },
-  {
-    title: "Agent Interface",
-    url: "/docs/agent/getting-started/introduction",
-    match: "/docs/agent",
-  },
-  { title: "OpenUI Cloud", url: "/docs/openui-cloud" },
-  { title: "API Reference", url: "/docs/api-reference" },
-];
-
-function activeTabUrl(pathname: string): string {
-  const sorted = [...tabs].sort((a, b) => (b.match ?? b.url).length - (a.match ?? a.url).length);
-  return (
-    sorted.find((t) => {
-      const prefix = t.match ?? t.url;
-      return pathname === prefix || pathname.startsWith(`${prefix}/`);
-    })?.url ?? tabs[0].url
-  );
-}
 
 function SearchBar() {
   const { setOpenSearch } = useSearchContext();
@@ -87,8 +64,7 @@ function SearchBar() {
   );
 }
 
-export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: boolean }) {
-  const pathname = usePathname();
+export function DocsNavbar() {
   const { resolvedTheme } = useTheme();
   // resolvedTheme is undefined during SSR and the first client render, so gate the
   // theme-derived variant behind a mount flag (matching SiteMarketingHeader) to
@@ -105,8 +81,6 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
   }, []);
   const logoVariant = mounted && resolvedTheme === "dark" ? "dark" : "light";
 
-  const tabValue = useMemo(() => activeTabUrl(pathname), [pathname]);
-
   return (
     <header className={styles.header}>
       <div className={styles.topBar}>
@@ -121,24 +95,22 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
             </div>
           }
           leading={
-            showSidebarToggle ? (
-              <SidebarTrigger className={styles.sidebarToggle}>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-              </SidebarTrigger>
-            ) : null
+            <SidebarTrigger className={styles.sidebarToggle} aria-label="Browse documentation">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </SidebarTrigger>
           }
           end={
             <div className={styles.actions}>
@@ -160,26 +132,6 @@ export function DocsNavbar({ showSidebarToggle = false }: { showSidebarToggle?: 
             </div>
           }
         />
-      </div>
-      <div className={styles.tabsBar}>
-        <div className={styles.tabsInner}>
-          <nav className={styles.tabsNav} aria-label="Documentation sections">
-            {tabs.map((tab) => {
-              const isActive = tab.url === tabValue;
-
-              return (
-                <Link
-                  key={tab.url}
-                  href={tab.url}
-                  className={`${styles.tabLink} ${isActive ? styles.tabLinkActive : ""}`.trim()}
-                  aria-current={isActive ? "page" : undefined}
-                >
-                  {tab.title}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
       </div>
     </header>
   );

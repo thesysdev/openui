@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-description: Build a Recipe Remix agent with OpenUI Cloud in about 10 minutes.
+description: Build a Recipe Remix agent with OpenUI Gateway in about 10 minutes.
 ---
 
 import { CopyableDiff } from "@/components/copyable-diff";
@@ -10,7 +10,7 @@ finds an image, and renders the results as interactive Generative UI.
 
 ![Recipe Remix calling the pantry tool and rendering three interactive recipe cards](/images/openui-lang/recipe-remix-quickstart.gif)
 
-The Cloud starter already includes streaming chat, conversation history, web
+The Gateway-backed starter already includes streaming chat, conversation history, web
 search, image search, reports, presentations, and an example function tool.
 You will keep those features and add one tool and one component.
 
@@ -318,8 +318,8 @@ Then update the `componentLibrary` prop:
 
 <Callout type="info">
   `recipeLibrary` extends the built-in `chatLibrary`, so the existing inline components remain
-  available alongside `RecipeRemix`. Cloud's search tools and artifact renderers also remain
-  available. See [Extend a built-in library](/docs/openui-lang/overview#extend-a-built-in-library).
+  available alongside `RecipeRemix`. Gateway's search tools and artifact renderers also remain
+  available. See [Built-in component libraries](/docs/api-reference/react-ui#component-library-exports).
 </Callout>
 
 ## 5. Try it

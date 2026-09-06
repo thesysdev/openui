@@ -1,0 +1,146 @@
+---
+title: How OpenUI works
+---
+
+Most AI applications are limited to returning text as Markdown or rendering pre-built UI responses. Markdown isn't interactive, and pre-built responses are rigid—they don't adapt to the context of the conversation.
+
+Generative UI fundamentally changes this relationship. Instead of merely providing content, the AI composes the interface itself. It dynamically selects, configures, and combines components from a predefined library to create a purpose-built interface tailored to the user's immediate request, whether that's an interactive chart, a complex form, or a multi-tab dashboard.
+
+[Try demo](/chat)
+
+## How it works
+
+<img
+  src="/images/openui-architecture.svg"
+  alt="A user request travels from an application through OpenUI Gateway to a model provider. The corrected OpenUI Lang stream returns to a renderer, while Observability traces the flow."
+  className="not-prose my-8 h-auto w-full overflow-hidden rounded-2xl"
+/>
+
+Your application provides a library of components and the relevant context. OpenUI Gateway sends the request to a model and corrects invalid output. The model uses OpenUI Lang to describe the interface, and the OpenUI Lang Renderer renders it using the provided library. Observability traces this process so you can find failures and improve reliability.
+
+## OpenUI Lang
+
+OpenUI Lang is a compact, line-oriented language for describing generated interfaces. You define the components the model can use in a component library:
+
+```tsx
+import { createLibrary } from "@openuidev/react-lang";
+import { Chart, Metric, Stack } from "./components";
+
+export const library = createLibrary({
+  root: "Stack",
+  components: [Stack, Metric, Chart],
+});
+```
+
+OpenUI turns the component library into a system prompt that describes the available components and their properties. The model uses these instructions to generate OpenUI Lang, which streams to your application and renders with your components.
+
+Learn more in the [OpenUI Lang documentation](/docs/openui-lang).
+
+## Gateway
+
+OpenUI Gateway is a reliability layer between your application and AI model providers. It routes requests across providers, validates generated interfaces, and corrects invalid model output before it reaches your application.
+
+<div
+  className="not-prose my-6 rounded-2xl border border-fd-border bg-fd-muted/20 p-4 sm:p-6"
+  role="img"
+  aria-label="A request travels from an application through OpenUI Gateway to an LLM. The LLM streams generated UI through OpenUI Gateway, which validates the stream continuously, fixes errors as they are detected, and forwards the validated stream to the application."
+>
+  <div className="grid items-stretch gap-3 md:grid-cols-[minmax(0,1fr)_7rem_minmax(0,1.15fr)_7rem_minmax(0,1fr)]">
+    <div className="flex min-h-40 flex-col rounded-xl border border-fd-border bg-fd-background p-4">
+      <div className="text-sm font-semibold text-fd-foreground">Your application</div>
+      <div className="mt-4 flex flex-1 flex-col gap-2 rounded-lg border border-fd-border bg-fd-muted/40 p-3">
+        <div className="h-2 w-2/3 rounded-full bg-fd-muted-foreground/25" />
+        <div className="h-2 w-1/2 rounded-full bg-fd-muted-foreground/20" />
+        <div className="mt-2 flex-1 rounded-md border border-[color:color-mix(in_srgb,var(--openui-text-success-primary)_25%,transparent)] bg-[var(--openui-success-background)] p-2">
+          <div className="text-xs font-medium text-[var(--openui-text-success-primary)]">
+            Generated interface
+          </div>
+          <div className="mt-2 h-2 w-full rounded-full bg-fd-muted-foreground/20" />
+          <div className="mt-2 h-2 w-3/4 rounded-full bg-fd-muted-foreground/20" />
+        </div>
+      </div>
+    </div>
+
+    <div className="flex items-center justify-around py-1 text-xs font-medium text-fd-muted-foreground md:hidden">
+      <div className="flex flex-col items-center gap-1">
+        <span>Request</span>
+        <span className="text-lg" aria-hidden="true">↓</span>
+      </div>
+      <div className="flex flex-col items-center gap-1 text-[var(--openui-text-success-primary)]">
+        <span aria-hidden="true">↑</span>
+        <span>Validated UI</span>
+      </div>
+    </div>
+    <div className="hidden flex-col items-center justify-center gap-10 text-xs font-medium md:flex">
+      <div className="whitespace-nowrap text-fd-muted-foreground">Request →</div>
+      <div className="whitespace-nowrap text-[var(--openui-text-success-primary)]">
+        ← Validated UI
+      </div>
+    </div>
+
+    <div className="flex min-h-40 flex-col rounded-xl border border-[var(--openui-text-purple-primary)] bg-[var(--openui-purple-background)] p-4 shadow-sm">
+      <div className="text-sm font-semibold text-fd-foreground">OpenUI Gateway</div>
+      <div className="text-xs font-medium text-[var(--openui-text-purple-primary)]">
+        Reliability middleware
+      </div>
+      <div className="mt-4 flex flex-1 flex-col justify-center gap-2">
+        <div className="rounded-lg border border-[color:color-mix(in_srgb,var(--openui-text-purple-primary)_30%,transparent)] bg-fd-background/70 px-3 py-2 text-xs font-medium text-fd-foreground">
+          Validate generated UI
+        </div>
+        <div className="rounded-lg border border-[color:color-mix(in_srgb,var(--openui-text-purple-primary)_30%,transparent)] bg-fd-background/70 px-3 py-2 text-xs font-medium text-fd-foreground">
+          Fix errors automatically
+        </div>
+      </div>
+    </div>
+
+    <div className="flex items-center justify-around py-1 text-xs font-medium text-fd-muted-foreground md:hidden">
+      <div className="flex flex-col items-center gap-1">
+        <span>Model request</span>
+        <span className="text-lg" aria-hidden="true">↓</span>
+      </div>
+      <div className="flex flex-col items-center gap-1 text-[var(--openui-text-alert-primary)]">
+        <span aria-hidden="true">↑</span>
+        <span>Generated UI</span>
+      </div>
+    </div>
+    <div className="hidden flex-col items-center justify-center gap-10 text-xs font-medium text-fd-muted-foreground md:flex">
+      <div className="whitespace-nowrap">Model request →</div>
+      <div className="whitespace-nowrap text-[var(--openui-text-alert-primary)]">
+        ← Generated UI
+      </div>
+    </div>
+
+    <div className="flex min-h-40 flex-col rounded-xl border border-fd-border bg-fd-background p-4">
+      <div className="text-sm font-semibold text-fd-foreground">LLM</div>
+      <div className="text-xs text-fd-muted-foreground">OpenAI, Anthropic, and others</div>
+      <div className="mt-4 flex flex-1 items-center justify-center rounded-lg border border-[color:color-mix(in_srgb,var(--openui-text-alert-primary)_25%,transparent)] bg-[var(--openui-alert-background)] px-3 text-center text-xs font-medium text-[var(--openui-text-alert-primary)]">
+        Generate interface
+      </div>
+    </div>
+  </div>
+</div>
+
+### Integration options
+
+OpenUI Gateway provides two OpenAI-compatible APIs:
+
+- **[Chat Completions](/docs/gateway/api/chat-completions):** A drop-in endpoint for applications that use the OpenAI Chat Completions API.
+- **[Responses API](/docs/gateway/api/responses):** Build stateful model interactions with persistence and hosted tools.
+
+Learn more in the [OpenUI Gateway documentation](/docs/gateway).
+
+## Observability
+
+Generative UI depends on model providers and model-generated output. Providers can fail, and models can generate invalid or incomplete interfaces.
+
+OpenUI Observability helps you find these failures in production, trace affected generations, and identify recurring patterns. These insights help you improve your system prompt, component library, and model selection.
+
+<img
+  src="/images/openui-lang/reliability-dashboard.png"
+  alt="OpenUI Observability dashboard showing generation errors and affected interfaces"
+  className="w-full rounded-lg border"
+/>
+
+Observability identifies errors but does not correct generated output. Without OpenUI Gateway's validation and correction layer, invalid output can reach users as an incomplete or broken interface.
+
+Learn more in the [OpenUI Observability documentation](/docs/observability).

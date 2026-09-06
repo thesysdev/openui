@@ -26,7 +26,7 @@ There are four main ways to improve the reliability of LLM-generated interfaces:
 - **Simplify the component schema.** Use distinct component names, clear descriptions, focused properties, and unambiguous enum values. Remove overlapping components and group related ones with `componentGroups`. See [Defining Components](/docs/openui-lang/defining-components).
 - **Refine the system prompt.** Add targeted rules for recurring errors and provide valid examples for combinations the model finds difficult. In our benchmark, a single rule improved one model's completion rate by 13 percentage points, while an incorrect example caused double-digit regressions. See [System Prompts](/docs/openui-lang/system-prompts).
 - **Evaluate model selection.** Test models using your own component library and representative prompts. Run each prompt multiple times and compare reliability alongside latency and cost.
-- **Validate and correct generated output.** Detect invalid output at runtime and fix it before it reaches users. OpenUI Cloud provides this reliability layer for production applications.
+- **Validate and correct generated output.** Detect invalid output at runtime and fix it before it reaches users. OpenUI Gateway provides this reliability layer for production applications.
 
 Measure reliability before and after making these changes so you can identify the right intervention and verify that it worked.
 
@@ -99,14 +99,14 @@ After deploying, open the [Reliability dashboard](https://console.thesys.dev/rel
   skill](/docs/mcp#install-via-the-skills-cli-recommended).
 </Callout>
 
-## Production reliability with OpenUI Cloud
+## Production reliability with OpenUI Gateway
 
-OpenUI Cloud sits between your application and the LLM. It validates generated UI and fixes errors as it streams to your application.
+OpenUI Gateway sits between your application and the LLM. It validates generated UI and fixes errors as it streams to your application.
 
 <div
   className="not-prose my-6 rounded-2xl border border-fd-border bg-fd-muted/20 p-4 sm:p-6"
   role="img"
-  aria-label="A request travels from an application through OpenUI Cloud to an LLM. The LLM streams generated UI through OpenUI Cloud, which validates the stream continuously, fixes errors as they are detected, and forwards the validated stream to the application."
+  aria-label="A request travels from an application through OpenUI Gateway to an LLM. The LLM streams generated UI through OpenUI Gateway, which validates the stream continuously, fixes errors as they are detected, and forwards the validated stream to the application."
 >
   <div className="grid items-stretch gap-3 md:grid-cols-[minmax(0,1fr)_7rem_minmax(0,1.15fr)_7rem_minmax(0,1fr)]">
     <div className="flex min-h-40 flex-col rounded-xl border border-fd-border bg-fd-background p-4">
@@ -142,7 +142,7 @@ OpenUI Cloud sits between your application and the LLM. It validates generated U
     </div>
 
     <div className="flex min-h-40 flex-col rounded-xl border border-[var(--openui-text-purple-primary)] bg-[var(--openui-purple-background)] p-4 shadow-sm">
-      <div className="text-sm font-semibold text-fd-foreground">OpenUI Cloud</div>
+      <div className="text-sm font-semibold text-fd-foreground">OpenUI Gateway</div>
       <div className="text-xs font-medium text-[var(--openui-text-purple-primary)]">
         Reliability middleware
       </div>
@@ -184,24 +184,24 @@ OpenUI Cloud sits between your application and the LLM. It validates generated U
   </div>
 </div>
 
-For every generation, OpenUI Cloud:
+For every generation, OpenUI Gateway:
 
 - **Validates** generated UI as it streams.
 - **Fixes** malformed output and schema violations on the fly.
 - **Recovers** from model or provider failures using fallbacks.
 
-In production data from our [Reliability benchmark](/blog/generative-ui-benchmark), OpenUI Cloud fixed **96% of generations** that initially failed validation.
+In production data from our [Reliability benchmark](/blog/generative-ui-benchmark), OpenUI Gateway fixed **96% of generations** that initially failed validation.
 
 <Callout type="tip">
-  **Using a coding agent?** The OpenUI skill can help your agent integrate OpenUI Cloud into your
+  **Using a coding agent?** The OpenUI skill can help your agent integrate OpenUI Gateway into your
   application. [Install the OpenUI skill](/docs/mcp#install-via-the-skills-cli-recommended).
 </Callout>
 
 ### Integrations options
 
-OpenUI Cloud provides two OpenAI-compatible APIs for this generation flow:
+OpenUI Gateway provides two OpenAI-compatible APIs for this generation flow:
 
-- **[Chat Completions](/docs/openui-cloud/api/chat-completions):** A drop-in endpoint for applications that already use the OpenAI Chat Completions API for generative UI.
-- **[Responses API](/docs/openui-cloud/api/responses):** Build stateful model interactions that continue from previous responses, with built-in persistence and hosted tools such as web search, image search, presentation generation, and more.
+- **[Chat Completions](/docs/gateway/api/chat-completions):** A drop-in endpoint for applications that already use the OpenAI Chat Completions API for generative UI.
+- **[Responses API](/docs/gateway/api/responses):** Build stateful model interactions that continue from previous responses, with built-in persistence and hosted tools such as web search, image search, presentation generation, and more.
 
-Learn more in the [OpenUI Cloud documentation](/docs/openui-cloud/how-it-works).
+Learn more in the [OpenUI Gateway documentation](/docs/gateway).

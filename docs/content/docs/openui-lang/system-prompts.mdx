@@ -7,7 +7,7 @@ The system prompt tells the LLM how to output valid OpenUI Lang. Generate a seri
 
 ## 1. CLI (recommended for most setups)
 
-`openui generate` emits two artifacts from the same library: a prebuilt prompt and a serialized library spec. Use the **spec** with `generateSystemPrompt`; retain the prompt only for static or legacy integrations.
+`openui generate` emits two outputs from the same library: a prebuilt prompt and a serialized library spec. Use the **spec** with `generateSystemPrompt`; retain the prompt only for static or legacy integrations.
 
 ```bash tab="pnpm" tab-group="pkg"
 pnpx @openuidev/cli@latest generate ./src/library.ts
@@ -85,17 +85,21 @@ const systemPrompt = generateSystemPrompt({
 | `editMode`   | Incremental editing - LLM outputs only changed statements                     | `false`                       |
 | `inlineMode` | Text + fenced code responses - LLM can answer questions without generating UI | `false`                       |
 
-### OpenUI Cloud
+### OpenUI Gateway
 
-Pass `cloud: true` to emit Cloud's managed config block instead of a local prompt. OpenUI Cloud assembles the real system prompt on the server. `instructions` is Cloud-only extra prose appended after the config block.
+Pass `cloud: true` with the generated library specification to emit Gateway's managed config block instead of a local prompt. The option name is retained for compatibility. OpenUI Gateway assembles the full system prompt on the server, and `instructions` adds extra prose after the config block.
 
 ```ts
 import { generateSystemPrompt } from "@openuidev/lang-core";
+import librarySpec from "./generated/system-prompt.spec.json";
 
-const instructions = generateSystemPrompt({ cloud: true });
+const instructions = generateSystemPrompt({
+  cloud: true,
+  library: librarySpec,
+});
 ```
 
-With your own library, pass the generated spec:
+Add Gateway-compatible prompt options when needed:
 
 ```ts
 const instructions = generateSystemPrompt({
@@ -105,7 +109,7 @@ const instructions = generateSystemPrompt({
 });
 ```
 
-See [Component Library](/docs/openui-cloud/build/component-library) for the Cloud workflow.
+See the [Generative UI Quickstart](/docs/gateway/generate-openui-lang) for the Gateway workflow.
 
 Built-in functions (`@Count`, `@Filter`, `@Sort`, `@Each`, etc.) are automatically included when either `toolCalls` or `bindings` is enabled. For static UI libraries without data fetching, they are omitted to keep the prompt concise.
 

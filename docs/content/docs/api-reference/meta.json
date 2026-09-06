@@ -6,10 +6,10 @@
     "react-lang",
     "react-headless",
     "react-ui",
-    "react-email",
-    "cli",
-    "devtools",
+    "assistant-ui",
     "langchain",
-    "assistant-ui"
+    "react-email",
+    "devtools",
+    "cli"
   ]
 }

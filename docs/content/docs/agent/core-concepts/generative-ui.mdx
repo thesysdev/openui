@@ -1,20 +1,24 @@
 ---
 title: Generative UI
-description: "Render interactive components inline in chat messages: tables, forms, charts, and cards, not just markdown."
+description: Render streamed OpenUI Lang as interactive application components inside a conversation.
 ---
 
-An assistant message is normally markdown text. **Generative UI (GenUI)** lets the agent render real components instead: tables, forms, charts, and cards, inline in the message and streaming as the reply arrives.
+An assistant message is normally markdown text. With OpenUI Lang, the agent can compose the
+components your application defines: tables, forms, charts, cards, or domain-specific controls.
+The interface renders progressively as the response streams.
 
-Turn it on with one prop. On OpenUI Cloud, the components and model instructions are managed for you.
+Build the component library with OpenUI Lang, then pass the same library to Agent Interface:
 
 ```tsx
 import { AgentInterface } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { library } from "./library";
 
-<AgentInterface llm={llm} componentLibrary={openuiLibrary} />;
+<AgentInterface llm={llm} componentLibrary={library} />;
 ```
 
-`openuiLibrary` covers layout, content, tables, charts, forms, and buttons, enough for most agents. To define your own components, see the [OpenUI Lang overview](/docs/openui-lang/overview).
+The component definitions remain in your application. They determine what the model may generate,
+how each element renders, and which interactions are available. Start with the
+[OpenUI Lang Quick Start](/docs/openui-lang/quickstart) to create that contract.
 
 <video
   src="/videos/agent/generative-ui-chart-inline.mp4"
@@ -27,29 +31,10 @@ import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 
 ## Interactivity
 
-Generated components are interactive, and the runtime wires up the behavior. When a user fills a form or clicks a button, one of two things happens:
+Generated components can continue the conversation or update locally:
 
-- **It continues the conversation.** The interaction goes back to the agent as the next turn, carrying the current field values.
-- **It updates in place.** The component refreshes data, changes a value, or opens a link, with no round trip to the model.
+- **Continue the conversation:** Send an interaction and its current values back as the next turn.
+- **Update in place:** Refresh data, change state, or open a link without another model request.
 
-Form state is tracked automatically and saved with the thread, so a half-filled form survives a reload. See [Interactivity](/docs/openui-lang/interactivity) for the details.
-
-<video
-  src="/videos/agent/generative-ui-form-interaction.mp4"
-  autoPlay
-  loop
-  muted
-  playsInline
-  className="w-full rounded-lg border"
-/>
-
-## GenUI vs artifacts
-
-Use GenUI when the UI is the reply: a form to fill, a table to scan. Use [artifacts](/docs/agent/core-concepts/artifacts) when the output is a durable thing the user returns to on its own surface. An agent can do both in one thread.
-
-
-## Open-ended HTML
-
-OpenUI can also let the model generate a complete HTML/CSS/JavaScript experience instead of composing predefined components. The same response stream can show the incoming source, then render the completed document in a sandboxed iframe inside the detailed-view panel.
-
-See [Open-ended HTML](/docs/agent/guides/open-ended-html) for the minimal pattern.
+Form state is tracked with the thread, so an in-progress interaction can survive navigation and
+reloads. See [Interactivity](/docs/openui-lang/interactivity) for the language and renderer behavior.

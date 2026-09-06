@@ -10,6 +10,8 @@ Use this package when you want headless chat state + streaming, with or without 
 ```ts
 import {
   ChatProvider,
+  fetchLLM,
+  restStorage,
   useThread,
   useThreadList,
   openAIAdapter,
@@ -25,31 +27,57 @@ import {
   MessageProvider,
   useMessage,
   EventType,
+  type ArtifactCategory,
+  type ArtifactRendererConfig,
+  type ChatLLM,
+  type ChatStorage,
 } from "@openuidev/react-headless";
 ```
 
 ## `ChatProvider`
 
-Provides chat/thread state to UI components.
+Provides chat, thread, streaming, and optional artifact state to its children.
 
 ```ts
-type ChatProviderProps = ThreadApiConfig &
-  ChatApiConfig & {
-    streamProtocol?: StreamProtocolAdapter;
-    messageFormat?: MessageFormat;
-    children: React.ReactNode;
-  };
+interface ChatProviderProps {
+  llm: ChatLLM;
+  storage?: ChatStorage;
+  artifactRenderers?: ReadonlyArray<ArtifactRendererConfig>;
+  artifactCategories?: ArtifactCategory[];
+  artifactAutoOpen?: boolean;
+  children: React.ReactNode;
+}
 ```
 
-`ThreadApiConfig`:
+`llm` is required. It sends messages to your backend and specifies the adapter used to parse the
+streaming response. Create one with `fetchLLM()` or implement the `ChatLLM` interface yourself.
 
-- Provide `threadApiUrl`, **or**
-- Provide custom handlers: `fetchThreadList`, `createThread`, `deleteThread`, `updateThread`, `loadThread`
+```tsx
+const llm = fetchLLM({
+  url: "/api/chat",
+  streamAdapter: agUIAdapter(),
+});
 
-`ChatApiConfig`:
+function App() {
+  return (
+    <ChatProvider llm={llm}>
+      <YourChatUI />
+    </ChatProvider>
+  );
+}
+```
 
-- Provide `apiUrl`, **or**
-- Provide `processMessage({ threadId, messages, abortController })`
+`storage` is optional. Without it, conversations are stored in memory and are cleared when the page
+reloads. Use `restStorage()` for the built-in REST conventions, or provide your own `ChatStorage`
+implementation:
+
+```tsx
+const storage = restStorage({ baseUrl: "/api/threads" });
+
+<ChatProvider llm={llm} storage={storage}>
+  <YourChatUI />
+</ChatProvider>;
+```
 
 ## `useThread()`
 
@@ -94,7 +122,7 @@ function useThreadList<T>(selector: (state: ThreadListState & ThreadListActions)
 Access the current message inside a message component.
 
 ```ts
-function useMessage(): Message;
+function useMessage(): { message: Message };
 ```
 
 Provided via `MessageProvider` / `MessageContext`.

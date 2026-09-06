@@ -59,7 +59,7 @@ Reserved `artifacts/…` paths are matched before your own Routes.
 
 ## Artifact storage & registry
 
-These cover the two distinct artifact surfaces: the **storage adapter** (the global, cross-thread browser backed by `storage.artifact`) and the **per-thread registry** (the artifacts a renderer registered while rendering the current thread). See [Artifacts](/docs/agent/core-concepts/artifacts) for how the two relate.
+These cover the two distinct artifact surfaces: the **storage adapter** (the global, cross-thread browser backed by `storage.artifact`) and the **per-thread registry** (the artifacts a renderer registered while rendering the current thread).
 
 ### `useArtifactStorage`
 
@@ -97,14 +97,11 @@ function CategoryTabs() {
 ### `useArtifactList`
 
 ```ts
-function useArtifactList(filter?: { type?: string[] }): Record<
-  string,
-  ArtifactEntry[]
->;
+function useArtifactList(filter?: { type?: string[] }): Record<string, ArtifactEntry[]>;
 // ArtifactEntry = { id: string; version: number; heading: string; type: string }
 ```
 
-Returns the **per-thread artifact registry** — the artifacts a renderer registered while rendering the *current* thread, keyed for grouping (the same data that powers the per-thread Workspace rail). Pass `filter.type` to limit to specific artifact types. This is the in-thread registry, **not** the global storage browser — it reflects what the open conversation produced and works even with ephemeral storage.
+Returns the **per-thread artifact registry** — the artifacts a renderer registered while rendering the _current_ thread, keyed for grouping (the same data that powers the per-thread Workspace rail). Pass `filter.type` to limit to specific artifact types. This is the in-thread registry, **not** the global storage browser — it reflects what the open conversation produced and works even with ephemeral storage.
 
 ```tsx
 function ThreadArtifacts() {
@@ -197,14 +194,14 @@ function ThreadCount() {
 ### `useMessage`
 
 ```ts
-function useMessage(): Message;
+function useMessage(): { message: Message };
 ```
 
-Returns the canonical `Message` for the **current message row** — the same hook the built-in message renderer uses, so you never thread the message through props. Because it returns the live message, your component re-renders as the reply streams in (`content` grows token by token). **Throws if called outside a message component** — it only works inside the components you pass via the `components` prop or inside `AgentInterface.Messages`.
+Returns an object containing the canonical `Message` for the **current message row** — the same hook the built-in message renderer uses, so you never thread the message through props. Because it returns the live message, your component re-renders as the reply streams in (`content` grows token by token). **Throws if called outside a message component** — it only works inside the components you pass via the `components` prop or inside `AgentInterface.Messages`.
 
 ```tsx
 function AssistantMessage() {
-  const message = useMessage();
+  const { message } = useMessage();
   return <div className="bubble">{message.content}</div>;
 }
 ```
@@ -277,34 +274,49 @@ Returns the store holding the **thread context** — the per-thread registry of 
 const ctx = useThreadContextStore();
 ```
 
-<Callout type="info">The exact return shapes of the detailed-view hooks and `useThreadContextStore` are internal store/view objects. For the common cases — opening the full view, listing a thread's artifacts — prefer the renderer `controls` ([defineArtifactRenderer](/docs/agent/reference/define-artifact-renderer)) and `useArtifactList` over reaching into these stores.</Callout>
+<Callout type="info">
+  The exact return shapes of the detailed-view hooks and `useThreadContextStore` are internal
+  store/view objects. For the common cases — opening the full view, listing a thread's artifacts —
+  prefer the renderer `controls`
+  ([defineArtifactRenderer](/docs/agent/reference/define-artifact-renderer)) and
+  `useArtifactList` over reaching into these stores.
+</Callout>
 
 ---
 
 ## Where each hook can be called
 
-| Hook | Call site | Outside `<AgentInterface>` |
-|------|-----------|----------------------------|
-| `useNav` | anywhere in the tree | throws |
-| `useArtifactStorage` | anywhere in the tree | returns `null` |
-| `useArtifactCategories` | anywhere in the tree | empty array |
-| `useArtifactList` | inside a thread | empty / per-thread |
-| `useArtifactRenderer` | anywhere in the tree | `null` |
-| `useArtifactRendererRegistry` | anywhere in the tree | `null` |
-| `useThread` | inside a thread | n/a |
-| `useThreadList` | anywhere in the tree | n/a |
-| `useMessage` | inside a message component only | throws |
-| `useActiveDetailedView` · `useDetailedView` · `useDetailedViewStore` · `useDetailedViewPortalTarget` | inside a thread | n/a |
-| `useThreadContextStore` | inside a thread | n/a |
+| Hook                                                                                                 | Call site                       | Outside `<AgentInterface>` |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------- | -------------------------- |
+| `useNav`                                                                                             | anywhere in the tree            | throws                     |
+| `useArtifactStorage`                                                                                 | anywhere in the tree            | returns `null`             |
+| `useArtifactCategories`                                                                              | anywhere in the tree            | empty array                |
+| `useArtifactList`                                                                                    | inside a thread                 | empty / per-thread         |
+| `useArtifactRenderer`                                                                                | anywhere in the tree            | `null`                     |
+| `useArtifactRendererRegistry`                                                                        | anywhere in the tree            | `null`                     |
+| `useThread`                                                                                          | inside a thread                 | n/a                        |
+| `useThreadList`                                                                                      | anywhere in the tree            | n/a                        |
+| `useMessage`                                                                                         | inside a message component only | throws                     |
+| `useActiveDetailedView` · `useDetailedView` · `useDetailedViewStore` · `useDetailedViewPortalTarget` | inside a thread                 | n/a                        |
+| `useThreadContextStore`                                                                              | inside a thread                 | n/a                        |
 
 <Cards>
-  <Card title="<AgentInterface> props" href="/docs/agent/reference/agentinterface-props">
+  <Card
+    title="<AgentInterface> props"
+    href="/docs/agent/reference/agentinterface-props"
+  >
     Every prop AgentInterface accepts.
   </Card>
-  <Card title="Adapters & formats" href="/docs/agent/reference/adapters-and-formats">
+  <Card
+    title="Adapters & formats"
+    href="/docs/agent/reference/adapters-and-formats"
+  >
     The storage and LLM adapter shapes hooks read from.
   </Card>
-  <Card title="defineArtifactRenderer" href="/docs/agent/reference/define-artifact-renderer">
+  <Card
+    title="defineArtifactRenderer"
+    href="/docs/agent/reference/define-artifact-renderer"
+  >
     Register renderers and their preview/actual controls.
   </Card>
   <Card title="Components" href="/docs/agent/reference/components">

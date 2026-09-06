@@ -65,9 +65,194 @@ const config = {
         permanent: true,
       },
       {
-        source: "/docs",
-        destination: "/docs/overview",
-        permanent: false,
+        source: "/docs/overview",
+        destination: "/docs",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/how-it-works",
+        destination: "/docs/openui-lang/architecture",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent",
+        destination: "/docs/agent/getting-started/introduction",
+        permanent: true,
+      },
+      ...["assistant-ui", "copilotkit"].map((integration) => ({
+        source: `/docs/agent/${integration}`,
+        destination: `/docs/build-agents/${integration}`,
+        permanent: true,
+      })),
+      {
+        source: "/docs/agent/build-your-own-ui",
+        destination: "/docs/build-agents/custom-chat-ui",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/vercel-ai-sdk",
+        destination: "/docs/agent/agent-runtimes/vercel-ai-sdk",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/langchain",
+        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/harnesses/:path*",
+        destination: "/docs/agent/agent-runtimes/:path*",
+        permanent: true,
+      },
+      {
+        source: "/docs/integrations",
+        destination: "/docs/build-agents",
+        permanent: true,
+      },
+      ...["assistant-ui", "copilotkit"].map((integration) => ({
+        source: `/docs/integrations/${integration}`,
+        destination: `/docs/build-agents/${integration}`,
+        permanent: true,
+      })),
+      {
+        source: "/docs/integrations/build-your-own-ui",
+        destination: "/docs/build-agents/custom-chat-ui",
+        permanent: true,
+      },
+      {
+        source: "/docs/integrations/vercel-ai-sdk",
+        destination: "/docs/agent/agent-runtimes/vercel-ai-sdk",
+        permanent: true,
+      },
+      {
+        source: "/docs/integrations/langchain",
+        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        permanent: true,
+      },
+      {
+        source: "/docs/integrations/harnesses/:path*",
+        destination: "/docs/agent/agent-runtimes/:path*",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/examples/agent-frameworks/vercel-ai-sdk",
+        destination: "/docs/agent/agent-runtimes/vercel-ai-sdk",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/examples/agent-frameworks/langchain",
+        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/examples/agent-frameworks/langgraph-platform",
+        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/examples/agent-frameworks/vercel-eve",
+        destination: "/docs/agent/agent-runtimes/vercel-eve",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/examples/harnesses/pi",
+        destination: "/docs/agent/agent-runtimes/pi",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/examples/app-frameworks/react-native",
+        destination: "/docs/openui-lang",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/getting-started/openui-cloud",
+        destination: "/docs/agent/getting-started/quickstart",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/core-concepts/artifacts",
+        destination: "/docs/agent/reference/define-artifact-renderer",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/guides/custom-artifacts",
+        destination: "/docs/agent/reference/define-artifact-renderer",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/guides/open-ended-html",
+        destination: "/docs/agent/reference/define-artifact-renderer",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/agent-interface",
+        destination: "/docs/agent/getting-started/introduction",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/agent-interface/:path*",
+        destination: "/docs/agent/:path*",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-cloud/get-started",
+        destination: "/docs/gateway/generate-openui-lang",
+        permanent: true,
+      },
+      {
+        source: "/docs/gateway/quickstart",
+        destination: "/docs/gateway/generate-openui-lang",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-cloud/how-it-works",
+        destination: "/docs/gateway",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-cloud/production-readiness",
+        destination: "/docs/gateway/reliability",
+        permanent: true,
+      },
+      {
+        source: "/docs/gateway/reliability/error-correction",
+        destination: "/docs/gateway/reliability",
+        permanent: true,
+      },
+      {
+        source: "/docs/gateway/reliability/provider-fallbacks",
+        destination: "/docs/gateway/reliability",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-cloud/models-and-byok",
+        destination: "/docs/gateway/models",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-cloud/api/chat-completions",
+        destination: "/docs/gateway/api/chat-completions",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-cloud/api/responses",
+        destination: "/docs/gateway/api/responses",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-cloud/api/conversations",
+        destination: "/docs/gateway/api/conversations",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-cloud",
+        destination: "/docs/gateway",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-cloud/:path*",
+        destination: "/docs/gateway",
+        permanent: true,
       },
       {
         source: "/docs/add-ons",

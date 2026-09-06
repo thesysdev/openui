@@ -1,0 +1,50 @@
+---
+title: Reliability
+description: Keep model requests working when providers are unavailable or models return invalid OpenUI Lang.
+---
+
+Applications that generate interfaces with AI face two common reliability problems. A model provider may be unavailable, or the model may return output that does not follow the OpenUI Lang instructions and component schemas. The first prevents a response; the second can produce an interface the application cannot render.
+
+Gateway handles each problem differently. It automatically retries the request with other providers and corrects eligible errors in model output while the response streams.
+
+## How Gateway improves reliability
+
+| Problem                  | What happens                                                                                      | How Gateway responds                                     |
+| ------------------------ | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Provider unavailable** | An outage, capacity limit, or unavailable route prevents the selected provider from responding.  | Gateway retries through a compatible fallback route.     |
+| **Invalid model output** | The model returns OpenUI Lang with invalid syntax, references, components, properties, or structure. | Gateway corrects eligible errors and continues the stream. |
+
+## Recover from provider failures
+
+The application continues to use the same Gateway API and `{provider}/{model}` naming convention when Gateway moves a request to a fallback. The Responses or Chat Completions API also remains the same, so the application does not need a separate integration for each provider.
+
+<Callout type="info">
+  The exact fallback route depends on model compatibility and account configuration. Confirm the
+  active behavior for your project in the Thesys Console before relying on it for a strict model or
+  data-residency requirement.
+</Callout>
+
+## Correct invalid model output
+
+Gateway validates OpenUI Lang while the model produces it. It can identify eligible problems such as:
+
+- Malformed OpenUI Lang statements
+- References that cannot be resolved
+- Components that are not in the supplied library
+- Property values that violate a component schema
+- Structures that the renderer cannot safely construct
+
+When an error can be corrected, Gateway repairs the affected output and continues the stream. It does not wait for the complete interface or require the application to retry the entire generation.
+
+Correction applies only to generated OpenUI Lang. Plain text, arbitrary JSON, application tool results, and component code are outside this boundary.
+
+## What your application still controls
+
+Gateway improves the reliability of model access and generated OpenUI Lang. Your application remains responsible for:
+
+- Component behavior and UI error boundaries
+- Authentication and permissions
+- Tool authorization and input validation
+- Business rules and data validation
+
+See [OpenUI Lang reliability](/docs/openui-lang/reliability) for component definitions, prompts, evaluations, and renderer safeguards.

@@ -1,0 +1,80 @@
+---
+title: Backend setup
+description: Configure an existing agent backend to generate reliable OpenUI Lang.
+---
+
+Keep the existing agent framework, model tools, and streaming transport. To generate OpenUI Lang, define the components the agent can use and add their generated instructions to its system prompt.
+
+## 1. Define a component library
+
+Create a custom library for the application's design system, or start with OpenUI's built-in library:
+
+```tsx title="src/lib/openui.tsx" tab="Custom" tab-group="component-library"
+import { createLibrary } from "@openuidev/react-lang";
+import { Chart, Metric, Stack } from "./components";
+
+export const library = createLibrary({
+  root: "Stack",
+  components: [Stack, Metric, Chart],
+});
+```
+
+```tsx title="src/lib/openui.tsx" tab="OpenUI Lang" tab-group="component-library"
+export {
+  openuiLibrary as library,
+  openuiPromptOptions as promptOptions,
+} from "@openuidev/react-ui";
+```
+
+See [Defining Components](/docs/openui-lang/defining-components) to create a custom component library.
+
+## 2. Export the prompt specification
+
+Use the OpenUI CLI to serialize the component library for the backend:
+
+```bash
+npx @openuidev/cli@latest generate src/lib/openui.tsx --spec --out src/lib/openui.spec.json
+```
+
+Regenerate the specification whenever the component library changes.
+
+## 3. Update the system prompt
+
+Generate the OpenUI Lang instructions from the exported specification:
+
+```ts title="server.ts"
+import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
+import library from "./openui.spec.json";
+
+const openuiInstructions = generateSystemPrompt({
+  library: library as LibrarySpec,
+});
+```
+
+Pass `openuiInstructions` directly through the framework's system-instruction option. The agent will respond with OpenUI Lang instead of plain text or Markdown.
+
+## 4. Add reliability with Gateway
+
+Route model requests through Gateway to correct invalid OpenUI Lang and automatically fall back to another provider when one is unavailable:
+
+```ts title="server.ts"
+import OpenAI from "openai";
+
+const gatewayInstructions = generateSystemPrompt({
+  cloud: true,
+  library: library as LibrarySpec,
+});
+
+const gateway = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+
+const response = await gateway.chat.completions.create({
+  model: "openai/gpt-5",
+  messages: [{ role: "system", content: gatewayInstructions }, ...messages],
+  stream: true,
+});
+```
+
+Use this client with the existing agent framework. Continue with the [Gateway documentation](/docs/gateway) for supported models and API options.

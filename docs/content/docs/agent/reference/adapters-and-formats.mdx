@@ -3,12 +3,12 @@ title: Adapters & formats
 description: Complete reference for AgentInterface's backend channels — the ChatLLM/ChatStorage/ThreadStorage/ArtifactStorage interfaces, the fetchLLM and restStorage factories, the Thread type, the bundled stream adapters, and the message formats.
 ---
 
-`AgentInterface` talks to your backend through two independent channels, each an *adapter* you supply:
+`AgentInterface` talks to your backend through two independent channels, each an _adapter_ you supply:
 
 - **`llm`** — a `ChatLLM` that produces replies. **Required.**
 - **`storage`** — a `ChatStorage` that persists threads, messages, and (optionally) artifacts. Optional; defaults to an internal in-memory store that's wiped on reload.
 
-This page is the exhaustive reference for both channels, the factories that build them (`fetchLLM`, `restStorage`), the `Thread` record, the bundled **stream adapters** that parse provider wire formats, and the **message formats** that translate message shapes. For the task-oriented walkthroughs, see [Conversations](/docs/agent/core-concepts/conversations) and [Self-hosting](/docs/agent/reference/self-hosting).
+This page is the exhaustive reference for both channels, the factories that build them (`fetchLLM`, `restStorage`), the `Thread` record, the bundled **stream adapters** that parse provider wire formats, and the **message formats** that translate message shapes. For the task-oriented walkthrough, see [Conversations](/docs/agent/core-concepts/conversations).
 
 ## Import sources
 
@@ -44,7 +44,10 @@ import {
 } from "@openuidev/react-ui";
 ```
 
-<Callout type="warn">All six stream adapters are **factory functions** — always call them with `()`. `streamAdapter: openAIAdapter()` is correct; a bare `streamAdapter: openAIAdapter` is wrong.</Callout>
+<Callout type="warn">
+  All six stream adapters are **factory functions** — always call them with `()`. `streamAdapter:
+  openAIAdapter()` is correct; a bare `streamAdapter: openAIAdapter` is wrong.
+</Callout>
 
 ## The two channels
 
@@ -52,7 +55,7 @@ import {
 import { AgentInterface } from "@openuidev/react-ui";
 
 <AgentInterface
-  llm={chatLLM}         // required — ChatLLM
+  llm={chatLLM} // required — ChatLLM
   storage={chatStorage} // optional — ChatStorage
 />;
 ```
@@ -67,11 +70,7 @@ The object `AgentInterface` calls when the user sends a message.
 
 ```ts
 interface ChatLLM {
-  send(params: {
-    threadId: string;
-    messages: Message[];
-    signal: AbortSignal;
-  }): Promise<Response>;
+  send(params: { threadId: string; messages: Message[]; signal: AbortSignal }): Promise<Response>;
   streamProtocol: StreamProtocolAdapter;
 }
 ```
@@ -96,14 +95,14 @@ function fetchLLM(options: {
 }): ChatLLM;
 ```
 
-| Option          | Type                       | Required | What it does                                                                            |
-|-----------------|----------------------------|----------|-----------------------------------------------------------------------------------------|
-| `url`           | `string`                   | Yes      | The endpoint `fetchLLM` POSTs to (your own route — never the provider directly).         |
-| `streamAdapter` | `StreamProtocolAdapter`    | Yes      | Parses the streamed response into UI events. Becomes the `ChatLLM`'s `streamProtocol`.   |
-| `messageFormat` | `MessageFormat`            | No       | Converts outgoing `messages` to your provider's shape. Defaults to `identityMessageFormat`. |
-| `headers`       | `Record<string, string>`   | No       | Extra headers merged into every request (e.g. a session token). **Browser-visible.**     |
-| `fetch`         | `typeof fetch`             | No       | Override `fetch` (auth wrappers, instrumentation, tests).                                 |
-| `body`          | `Record<string, unknown>`  | No       | Extra fields merged into the request body (e.g. `model`) |
+| Option          | Type                      | Required | What it does                                                                                |
+| --------------- | ------------------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `url`           | `string`                  | Yes      | The endpoint `fetchLLM` POSTs to (your own route — never the provider directly).            |
+| `streamAdapter` | `StreamProtocolAdapter`   | Yes      | Parses the streamed response into UI events. Becomes the `ChatLLM`'s `streamProtocol`.      |
+| `messageFormat` | `MessageFormat`           | No       | Converts outgoing `messages` to your provider's shape. Defaults to `identityMessageFormat`. |
+| `headers`       | `Record<string, string>`  | No       | Extra headers merged into every request (e.g. a session token). **Browser-visible.**        |
+| `fetch`         | `typeof fetch`            | No       | Override `fetch` (auth wrappers, instrumentation, tests).                                   |
+| `body`          | `Record<string, unknown>` | No       | Extra fields merged into the request body (e.g. `model`)                                    |
 
 **Request body.** `fetchLLM` POSTs JSON `{ threadId, messages }`, where `messages` is run through `messageFormat.toApi`, and threads the `AbortSignal` from the UI:
 
@@ -136,7 +135,11 @@ const llm = fetchLLM({
 });
 ```
 
-<Callout type="warn">`headers` are headers on the browser's request to *your* route. Use them for things like a session token or CSRF token — never a provider API key. The provider key lives only in your server-side route handler.</Callout>
+<Callout type="warn">
+  `headers` are headers on the browser's request to *your* route. Use them for things like a session
+  token or CSRF token — never a provider API key. The provider key lives only in your server-side
+  route handler.
+</Callout>
 
 ---
 
@@ -152,7 +155,7 @@ interface ChatStorage {
 ```
 
 - **`thread`** persists conversations — the thread list, message history, renames, and deletes.
-- **`artifact`** persists durable artifacts (dashboards, reports, presentations, apps) and powers the artifact browser. Optional and independent of `thread`. See [`ArtifactStorage`](#artifactstorage-optional) below and [Artifacts](/docs/agent/core-concepts/artifacts).
+- **`artifact`** persists durable artifacts such as dashboards, data explorers, and apps, and powers the artifact browser. It is optional and independent of `thread`. See [`ArtifactStorage`](#artifactstorage-optional) below.
 
 Omit `storage` entirely and `AgentInterface` uses an internal in-memory store — fine for prototyping, but ephemeral.
 
@@ -170,13 +173,13 @@ interface ThreadStorage {
 }
 ```
 
-| Method | Returns | When `AgentInterface` calls it |
-|--------|---------|--------------------------------|
-| `listThreads(cursor?)` | `{ threads, nextCursor? }` | Populating the thread list; loading more when `nextCursor` exists and the user scrolls. |
-| `createThread(firstMessage)` | the new `Thread` | The user sends the first message of a new chat. |
-| `getMessages(threadId)` | `Message[]` | The user opens a thread. |
-| `updateThread(thread)` | the updated `Thread` | A thread changes (e.g. a rename). |
-| `deleteThread(id)` | `void` | The user deletes a thread. |
+| Method                       | Returns                    | When `AgentInterface` calls it                                                          |
+| ---------------------------- | -------------------------- | --------------------------------------------------------------------------------------- |
+| `listThreads(cursor?)`       | `{ threads, nextCursor? }` | Populating the thread list; loading more when `nextCursor` exists and the user scrolls. |
+| `createThread(firstMessage)` | the new `Thread`           | The user sends the first message of a new chat.                                         |
+| `getMessages(threadId)`      | `Message[]`                | The user opens a thread.                                                                |
+| `updateThread(thread)`       | the updated `Thread`       | A thread changes (e.g. a rename).                                                       |
+| `deleteThread(id)`           | `void`                     | The user deletes a thread.                                                              |
 
 Implement these directly when your storage doesn't fit the REST shape `restStorage` expects — a different route layout, GraphQL, or a client-side store like IndexedDB:
 
@@ -229,11 +232,11 @@ type Thread = {
 };
 ```
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `id` | `string` | Stable thread identifier. |
-| `title` | `string` | Shown in the sidebar thread list. |
-| `createdAt` | `string \| number` | ISO string or epoch — used for ordering/display. |
+| Field       | Type                 | Notes                                                                                         |
+| ----------- | -------------------- | --------------------------------------------------------------------------------------------- |
+| `id`        | `string`             | Stable thread identifier.                                                                     |
+| `title`     | `string`             | Shown in the sidebar thread list.                                                             |
+| `createdAt` | `string \| number`   | ISO string or epoch — used for ordering/display.                                              |
 | `isPending` | `boolean` (optional) | Marks a thread that's being created (e.g. optimistic insert before the create call resolves). |
 
 ---
@@ -251,12 +254,12 @@ function restStorage(options: {
 }): ChatStorage;
 ```
 
-| Option          | Type                       | Required | What it does                                                                              |
-|-----------------|----------------------------|----------|-------------------------------------------------------------------------------------------|
-| `baseUrl`       | `string`                   | Yes      | Root path for the endpoints below (e.g. `/api/threads`).                                   |
-| `messageFormat` | `MessageFormat`            | No       | Converts messages to/from your stored shape. Defaults to `identityMessageFormat`.          |
-| `headers`       | `Record<string, string>`   | No       | Sent on every request (e.g. a tenant or session header).                                   |
-| `fetch`         | `typeof fetch`             | No       | Override `fetch` (auth, instrumentation, tests).                                            |
+| Option          | Type                     | Required | What it does                                                                      |
+| --------------- | ------------------------ | -------- | --------------------------------------------------------------------------------- |
+| `baseUrl`       | `string`                 | Yes      | Root path for the endpoints below (e.g. `/api/threads`).                          |
+| `messageFormat` | `MessageFormat`          | No       | Converts messages to/from your stored shape. Defaults to `identityMessageFormat`. |
+| `headers`       | `Record<string, string>` | No       | Sent on every request (e.g. a tenant or session header).                          |
+| `fetch`         | `typeof fetch`           | No       | Override `fetch` (auth, instrumentation, tests).                                  |
 
 ```tsx
 import { restStorage, openAIMessageFormat } from "@openuidev/react-ui";
@@ -264,7 +267,7 @@ import { restStorage, openAIMessageFormat } from "@openuidev/react-ui";
 const storage = restStorage({
   baseUrl: "/api/threads",
   messageFormat: openAIMessageFormat, // optional
-  headers: { "x-tenant": "acme" },    // optional, sent on every request
+  headers: { "x-tenant": "acme" }, // optional, sent on every request
 });
 ```
 
@@ -272,13 +275,13 @@ const storage = restStorage({
 
 Each `ThreadStorage` operation maps to exactly one HTTP call under `baseUrl`. The paths are literal — these are the exact five endpoints you implement.
 
-| Operation | Method | Path | Request body | Response |
-|-----------|--------|------|--------------|----------|
-| List threads | `GET` | `{baseUrl}/get` — or `{baseUrl}/get?cursor={cursor}` when paginating | — | `{ threads: Thread[]; nextCursor?: string }` |
-| Create thread | `POST` | `{baseUrl}/create` | `{ messages: messageFormat.toApi([firstMessage]) }` | the new `Thread` |
-| Get messages | `GET` | `{baseUrl}/get/{threadId}` | — | `Message[]` (run through `messageFormat.fromApi`) |
-| Update thread | `PATCH` | `{baseUrl}/update/{thread.id}` | the `Thread` | the updated `Thread` |
-| Delete thread | `DELETE` | `{baseUrl}/delete/{id}` | — | — |
+| Operation     | Method   | Path                                                                 | Request body                                        | Response                                          |
+| ------------- | -------- | -------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
+| List threads  | `GET`    | `{baseUrl}/get` — or `{baseUrl}/get?cursor={cursor}` when paginating | —                                                   | `{ threads: Thread[]; nextCursor?: string }`      |
+| Create thread | `POST`   | `{baseUrl}/create`                                                   | `{ messages: messageFormat.toApi([firstMessage]) }` | the new `Thread`                                  |
+| Get messages  | `GET`    | `{baseUrl}/get/{threadId}`                                           | —                                                   | `Message[]` (run through `messageFormat.fromApi`) |
+| Update thread | `PATCH`  | `{baseUrl}/update/{thread.id}`                                       | the `Thread`                                        | the updated `Thread`                              |
+| Delete thread | `DELETE` | `{baseUrl}/delete/{id}`                                              | —                                                   | —                                                 |
 
 With `baseUrl: "/api/threads"` the concrete paths are `/api/threads/get`, `/api/threads/create`, `/api/threads/get/{threadId}`, `/api/threads/update/{thread.id}`, and `/api/threads/delete/{id}`.
 
@@ -299,7 +302,7 @@ With the default `identityMessageFormat`, messages cross the wire as the canonic
 
 ## `ArtifactStorage` (optional)
 
-The optional `artifact` member of `ChatStorage`. Configure it to store durable artifacts and enable the artifact browser. Summarized here for completeness — the task-oriented coverage is in [Artifacts](/docs/agent/core-concepts/artifacts).
+The optional `artifact` member of `ChatStorage`. Configure it to store durable artifacts and enable the artifact browser.
 
 ```ts
 interface ArtifactStorage {
@@ -317,7 +320,7 @@ interface ArtifactSummary {
   id: string;
   title: string;
   type: string;
-  threadId: string;        // required — every artifact belongs to a thread
+  threadId: string; // required — every artifact belongs to a thread
   updatedAt?: string | number;
 }
 
@@ -343,7 +346,7 @@ const storage: ChatStorage = {
 
 ## Stream adapters
 
-A **stream adapter** parses the streamed `Response` your route returns into the AG-UI events the UI renders. There is one per response *wire format*. It's a factory returning a `StreamProtocolAdapter`:
+A **stream adapter** parses the streamed `Response` your route returns into the AG-UI events the UI renders. There is one per response _wire format_. It's a factory returning a `StreamProtocolAdapter`:
 
 ```ts
 interface StreamProtocolAdapter {
@@ -353,22 +356,27 @@ interface StreamProtocolAdapter {
 
 `fetchLLM` calls `parse` on the `Response` your route returns and consumes the yielded AG-UI events. All six bundled adapters are factories you call to get an instance — `agUIAdapter()`, `openAIAdapter()`, `openAIReadableStreamAdapter()`, `openAIResponsesAdapter()`, `vercelAIAdapter()`, `langGraphAdapter()`; only `langGraphAdapter()` accepts options.
 
-<Callout type="info">The line-oriented adapters log and skip malformed lines. `vercelAIAdapter()` delegates validation to the Vercel AI SDK and rejects invalid UIMessage chunks. Provider-level failures should be surfaced as a `RUN_ERROR` event (the OpenAI Responses, Vercel AI SDK, and LangGraph adapters do this for their error events).</Callout>
+<Callout type="info">
+  The line-oriented adapters log and skip malformed lines. `vercelAIAdapter()` delegates validation
+  to the Vercel AI SDK and rejects invalid UIMessage chunks. Provider-level failures should be
+  surfaced as a `RUN_ERROR` event (the OpenAI Responses, Vercel AI SDK, and LangGraph adapters do
+  this for their error events).
+</Callout>
 
 ### Selection guide
 
-Start from your provider and how the route streams its reply. The stream adapter and message format are independent knobs — pick the adapter to match how your backend *streams*, and the format to match how it represents *stored* messages — but they typically pair up as below.
+Start from your provider and how the route streams its reply. The stream adapter and message format are independent knobs — pick the adapter to match how your backend _streams_, and the format to match how it represents _stored_ messages — but they typically pair up as below.
 
-| Your backend streams…                                                  | Stream adapter                  | Pair with message format             |
-|------------------------------------------------------------------------|---------------------------------|--------------------------------------|
-| OpenAI **Chat Completions** SSE (`data: {…}` lines)                     | `openAIAdapter()`               | `openAIMessageFormat`                |
-| OpenAI SDK `stream.toReadableStream()` (NDJSON, no `data:` prefix)      | `openAIReadableStreamAdapter()` | `openAIMessageFormat`                |
-| OpenAI **Responses / Conversations** API SSE                           | `openAIResponsesAdapter()`      | `openAIConversationMessageFormat`    |
-| **Vercel AI SDK v6** UIMessage SSE (`toUIMessageStreamResponse()`)      | `vercelAIAdapter()`             | `vercelAIMessageFormat`              |
-| **LangGraph** named-event SSE (`event: messages\ndata: …`)             | `langGraphAdapter()`            | `langGraphMessageFormat`             |
-| Already AG-UI events (your route emits AG-UI SSE directly)             | `agUIAdapter()`                 | `identityMessageFormat` (default)    |
+| Your backend streams…                                              | Stream adapter                  | Pair with message format          |
+| ------------------------------------------------------------------ | ------------------------------- | --------------------------------- |
+| OpenAI **Chat Completions** SSE (`data: {…}` lines)                | `openAIAdapter()`               | `openAIMessageFormat`             |
+| OpenAI SDK `stream.toReadableStream()` (NDJSON, no `data:` prefix) | `openAIReadableStreamAdapter()` | `openAIMessageFormat`             |
+| OpenAI **Responses / Conversations** API SSE                       | `openAIResponsesAdapter()`      | `openAIConversationMessageFormat` |
+| **Vercel AI SDK v6** UIMessage SSE (`toUIMessageStreamResponse()`) | `vercelAIAdapter()`             | `vercelAIMessageFormat`           |
+| **LangGraph** named-event SSE (`event: messages\ndata: …`)         | `langGraphAdapter()`            | `langGraphMessageFormat`          |
+| Already AG-UI events (your route emits AG-UI SSE directly)         | `agUIAdapter()`                 | `identityMessageFormat` (default) |
 
-Wrapping Anthropic, or any provider with no bundled adapter? You have two paths: translate to AG-UI events server-side and use `agUIAdapter()`, or re-emit your provider's stream as OpenAI Completions SSE and use `openAIAdapter()`. See [Migrating](/docs/agent/guides/migrating).
+Wrapping Anthropic, or any provider with no bundled adapter? You have two paths: translate to AG-UI events server-side and use `agUIAdapter()`, or re-emit your provider's stream as OpenAI Completions SSE and use `openAIAdapter()`.
 
 ### `agUIAdapter`
 
@@ -412,7 +420,11 @@ const llm = fetchLLM({
 - **Wire shape:** **NDJSON** — one JSON object per line with no `data:` SSE prefix. This is exactly what the OpenAI SDK's `Stream.toReadableStream()` produces.
 - **When to use:** Your route returns `stream.toReadableStream()` from the OpenAI SDK directly, instead of re-serializing it as SSE. Same Completions chunk semantics as `openAIAdapter()` (same emitted events), only the line framing differs — it buffers partial lines across chunks rather than splitting on `data: `. Pair with `openAIMessageFormat`.
 
-<Callout type="info">`openAIAdapter()` and `openAIReadableStreamAdapter()` read the same OpenAI chunk objects — they differ only in framing (`data:` SSE vs. bare NDJSON lines). Match the one your route actually writes; using the wrong one will fail to parse every line.</Callout>
+<Callout type="info">
+  `openAIAdapter()` and `openAIReadableStreamAdapter()` read the same OpenAI chunk objects — they
+  differ only in framing (`data:` SSE vs. bare NDJSON lines). Match the one your route actually
+  writes; using the wrong one will fail to parse every line.
+</Callout>
 
 ### `openAIResponsesAdapter`
 
@@ -447,7 +459,11 @@ const llm = fetchLLM({
 - **Current scope:** reasoning, sources, assistant files, custom data, metadata, and tool-approval-request chunks have no equivalent in the current AgentInterface stream processor and are ignored. Approval-gated tools therefore need a custom flow today. Provider-executed tool chunks (`providerExecuted: true`) are rejected because AG-UI cannot preserve their assistant-contained result semantics.
 - **When to use:** Your route uses Vercel AI SDK `streamText()` and returns its UIMessage stream response. Pair with `vercelAIMessageFormat` so the route receives `UIMessage[]` that can be passed to `convertToModelMessages()`.
 
-<Callout type="info">Install `ai@^6` alongside `@openuidev/react-ui` or `@openuidev/react-headless` when using this integration. It is an optional peer dependency, so apps using other adapters do not need the Vercel AI SDK.</Callout>
+<Callout type="info">
+  Install `ai@^6` alongside `@openuidev/react-ui` or `@openuidev/react-headless` when using this
+  integration. It is an optional peer dependency, so apps using other adapters do not need the
+  Vercel AI SDK.
+</Callout>
 
 ### `langGraphAdapter`
 
@@ -476,22 +492,22 @@ const llm = fetchLLM({
 
 Every stream adapter normalizes its provider's stream into the same set of **AG-UI events** — the agent↔UI event protocol OpenUI streams internally (from the `@ag-ui/core` package). These events progressively build the assistant message as they arrive.
 
-| Event | Role |
-|-------|------|
-| `TEXT_MESSAGE_START` | Begins an assistant text message. |
-| `TEXT_MESSAGE_CONTENT` | Appends a chunk of text to the in-progress message. |
-| `TEXT_MESSAGE_END` | Closes the assistant text message. |
-| `TOOL_CALL_START` | Begins a tool call (carries the tool name / call id). |
-| `TOOL_CALL_ARGS` | Appends a chunk of the tool call's streamed arguments. |
-| `TOOL_CALL_END` | Closes the tool call's arguments. |
-| `TOOL_CALL_RESULT` | Carries the result of a server-executed tool call. |
-| `RUN_ERROR` | Signals a provider/run-level failure; surfaces as an error in the UI. |
+| Event                  | Role                                                                  |
+| ---------------------- | --------------------------------------------------------------------- |
+| `TEXT_MESSAGE_START`   | Begins an assistant text message.                                     |
+| `TEXT_MESSAGE_CONTENT` | Appends a chunk of text to the in-progress message.                   |
+| `TEXT_MESSAGE_END`     | Closes the assistant text message.                                    |
+| `TOOL_CALL_START`      | Begins a tool call (carries the tool name / call id).                 |
+| `TOOL_CALL_ARGS`       | Appends a chunk of the tool call's streamed arguments.                |
+| `TOOL_CALL_END`        | Closes the tool call's arguments.                                     |
+| `TOOL_CALL_RESULT`     | Carries the result of a server-executed tool call.                    |
+| `RUN_ERROR`            | Signals a provider/run-level failure; surfaces as an error in the UI. |
 
 ---
 
 ## Message formats
 
-A **message format** converts between the canonical `Message` type at the boundary and your provider's message shape, in both directions. There is one per provider *message shape*:
+A **message format** converts between the canonical `Message` type at the boundary and your provider's message shape, in both directions. There is one per provider _message shape_:
 
 ```ts
 interface MessageFormat {
@@ -506,7 +522,7 @@ Both methods operate on **arrays**, so formats where one canonical message maps 
 
 Where formats are used:
 
-- **`fetchLLM`** runs `messageFormat.toApi(messages)` on the outgoing request body. (The reply is parsed by the *stream adapter*, not the message format.)
+- **`fetchLLM`** runs `messageFormat.toApi(messages)` on the outgoing request body. (The reply is parsed by the _stream adapter_, not the message format.)
 - **`restStorage`** uses `toApi` when creating a thread and `fromApi` when loading a thread's messages — so the same format keeps your stored history and your live requests consistent.
 
 If you omit `messageFormat`, both default to `identityMessageFormat`.
@@ -537,7 +553,7 @@ import { openAIConversationMessageFormat } from "@openuidev/react-ui";
 ```
 
 - **Shape:** OpenAI's item-based format for the **Responses API** and **Conversations API**. `toApi` returns `ResponseInputItem[]` (accepted by both `responses.create({ input })` and `conversations.items.create({ items })`); `fromApi` reads `ConversationItem[]` / `ResponseItem[]`.
-- **Conversions:** assistant messages are *flattened* into sibling items — a text `message` plus one `function_call` item per tool call; tool results become `function_call_output` items. Inbound, adjacent assistant `message` + `function_call` items are regrouped into one `AssistantMessage`, and Conversations-specific content parts (`reasoning_text`, `summary_text`, `refusal`, …) are folded into text.
+- **Conversions:** assistant messages are _flattened_ into sibling items — a text `message` plus one `function_call` item per tool call; tool results become `function_call_output` items. Inbound, adjacent assistant `message` + `function_call` items are regrouped into one `AssistantMessage`, and Conversations-specific content parts (`reasoning_text`, `summary_text`, `refusal`, …) are folded into text.
 - **When to use:** Pair with `openAIResponsesAdapter()`.
 
 ### `vercelAIMessageFormat`
@@ -566,9 +582,13 @@ import { langGraphMessageFormat } from "@openuidev/react-ui";
 ## Related
 
 <Cards>
-  <Card title="AgentInterface props" href="/docs/agent/reference/agentinterface-props">Where llm and storage are passed.</Card>
-  <Card title="Conversations" href="/docs/agent/core-concepts/conversations">How threads, messages, and persistence fit together.</Card>
-  <Card title="Artifacts" href="/docs/agent/core-concepts/artifacts">Persisting durable artifacts and the browser.</Card>
-  <Card title="Migrating" href="/docs/agent/guides/migrating">Choosing an adapter for a provider without a bundled one.</Card>
-  <Card title="Self-hosting" href="/docs/agent/reference/self-hosting">Implementing the adapters against your own backend.</Card>
+  <Card
+    title="AgentInterface props"
+    href="/docs/agent/reference/agentinterface-props"
+  >
+    Where llm and storage are passed.
+  </Card>
+  <Card title="Conversations" href="/docs/agent/core-concepts/conversations">
+    How threads, messages, and persistence fit together.
+  </Card>
 </Cards>

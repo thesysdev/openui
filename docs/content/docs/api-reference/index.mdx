@@ -11,7 +11,7 @@ The OpenUI SDK is split into packages that build on each other:
 
 - **`@openuidev/react-headless`** — Headless chat state management. Provides `ChatProvider`, thread/message hooks, streaming protocol adapters (OpenAI, Vercel AI SDK, AG-UI), and message format converters. Use this when you want full control over your chat UI.
 
-- **`@openuidev/react-ui`** — `AgentInterface`, a ready-to-use artifact chat surface with thread history, plus two built-in component libraries (general-purpose and chat-optimized). Depends on both packages above. Use this for the fastest path to a working chat interface.
+- **`@openuidev/react-ui`** — `AgentInterface`, a ready-to-use chat surface with thread history and support for OpenUI component libraries. Depends on both packages above. Use this for the fastest path to a working chat interface.
 
 - **`@openuidev/assistant-ui`** — OpenUI tool renderers, model instructions, and toolkit wiring for applications built with assistant-ui. The core integration supports any assistant-ui runtime; an optional `/ai-sdk` subpath adds Vercel AI SDK continuation behavior.
 
@@ -100,7 +100,7 @@ The OpenUI SDK is split into packages that build on each other:
     Development-only floating widget surfacing captured events with error messages and stack traces.
   </Card>
   <Card title="@openuidev/cli" href="/docs/api-reference/cli">
-    openui create (scaffold a Next.js app), openui generate-api-key (mint a Cloud key), and openui generate (system prompt + library spec from a library
+    openui create (scaffold a Next.js app), openui generate-api-key (mint a Gateway key), and openui generate (system prompt + library spec from a library
     definition).
   </Card>
 </Cards>

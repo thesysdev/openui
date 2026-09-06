@@ -1,0 +1,39 @@
+---
+title: Hosted Tools
+description: Enable Gateway-hosted search and MCP tools in Responses API requests.
+---
+
+The Responses API can run supported tools inside the Gateway. Application function tools remain in your backend so your authorization and business logic stay under application control.
+
+| Capability           | Declaration                                 | Runs in      |
+| -------------------- | ------------------------------------------- | ------------ |
+| Web search           | `{ type: "web_search" }`                    | Gateway      |
+| Image search         | `{ type: "image_search" }`                  | Gateway      |
+| Remote MCP           | `{ type: "mcp", server_label, server_url }` | Gateway      |
+| Application function | `{ type: "function", name, parameters }`    | Your backend |
+
+```ts
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import type { Tool } from "openai/resources/responses/responses";
+import library from "./openui.spec.json";
+
+const response = await gateway.responses.create({
+  model: "openai/gpt-5",
+  input: "Research the market and summarize the most important changes.",
+  instructions: generateSystemPrompt({ cloud: true, library }),
+  tools: [
+    { type: "web_search" },
+    { type: "image_search" } as unknown as Tool,
+    {
+      type: "mcp",
+      server_label: "deepwiki",
+      server_url: "https://mcp.deepwiki.com/mcp",
+    } as unknown as Tool,
+  ],
+  stream: true,
+});
+```
+
+The casts are required while image search and MCP remain Gateway extensions to the OpenAI SDK's published tool union.
+
+For a function tool, execute each returned `function_call` in your backend and continue the response with a matching `function_call_output`.

@@ -1,0 +1,30 @@
+---
+title: Optimizing with Observability
+description: Turn recurring runtime errors into focused improvements to components, prompts, and model selection.
+---
+
+Observability is most useful as a feedback loop, not only an incident log. Use production evidence to choose the smallest change likely to improve reliability, then verify the result against the same signal.
+
+## 1. Find a repeated failure
+
+Prioritize high-frequency errors and failures that make the interface unusable. Record the event kind, affected component or statement, model, and a representative request.
+
+## 2. Reproduce it locally
+
+Copy the affected OpenUI Lang into [OpenUI Debug](/debug) or replay the request in a test environment with the same component library. A reproducible failure is easier to classify than a dashboard symptom.
+
+## 3. Change the right layer
+
+| Failure pattern                                | First intervention                                                        |
+| ---------------------------------------------- | ------------------------------------------------------------------------- |
+| Model invents a component or property          | Clarify names, descriptions, and schemas.                                 |
+| Model repeatedly chooses the wrong composition | Add a focused rule or valid example to the system prompt.                 |
+| One model fails much more often                | Evaluate a different model against the same request set.                  |
+| Valid output fails in the browser              | Fix the component renderer or application integration.                    |
+| Provider availability interrupts streams       | Review [Gateway fallbacks](/docs/gateway/reliability#recover-from-provider-failures). |
+
+## 4. Verify the change
+
+Deploy one focused change and compare the same error group over a meaningful traffic window. Watch for new error kinds rather than assuming a lower count means the underlying problem is gone.
+
+For broader design guidance, see [OpenUI Lang Reliability](/docs/openui-lang/reliability).
