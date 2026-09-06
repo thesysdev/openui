@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>One brief, two models</title>
+<style>
+  /* frame chrome = docs chart language (dark): ink/muted/rule + the purple series */
+  :root{
+    --bg:#0b0b0c; --ink:#ededf0; --muted:#8b8b93;
+    --rule:rgba(255,255,255,.08); --chip:rgba(255,255,255,.06);
+    --pO:#a78bfa; --bad:#f87171; --warn:#fbbf24; --good:#4ade80;
+    /* screen = openui-defaults.css dark tokens */
+    --s-bg:oklch(0.145 0 0); --s-card:oklch(0.205 0 0);
+    --s-border:oklch(0.994 0 89.876 / 0.06);
+    --s-ink:oklch(0.985 0 89.876); --s-dim:oklch(0.985 0 89.876 / 0.5);
+    --s-blue:oklch(0.546 0.215 262.881); --s-blue-hi:oklch(0.623 0.188 259.815);
+    --mono:"Geist Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);display:grid;place-items:center;
+       font-family:Inter,-apple-system,"Segoe UI",sans-serif;color:var(--ink);overflow:hidden}
+  #stage{width:1200px;height:675px;display:flex;flex-direction:column;padding:20px 26px 14px;gap:11px}
+
+  header{display:flex;justify-content:space-between;align-items:center}
+  header .t{font-size:15.5px;font-weight:600;letter-spacing:-.01em}
+  header .t em{font-style:normal;font-weight:400;color:var(--muted)}
+  header .m{font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.08em;
+            text-transform:uppercase;color:var(--muted);padding:4px 9px;border:1px solid var(--rule);border-radius:4px}
+
+  #duo{flex:1;display:flex;gap:18px;min-height:0}
+  .half{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+  .stamp{align-self:flex-start;font-family:var(--mono);font-size:10px;font-weight:600;
+         letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:4px;
+         background:var(--chip);color:var(--muted)}
+  .half.ours .stamp{background:var(--pO);color:#0b0b0c}
+
+  .panel{flex:1;position:relative;border-radius:14px;overflow:hidden;background:#101013;
+         box-shadow:inset 0 0 0 1px var(--rule)}
+  .half.ours .panel.done{box-shadow:inset 0 0 0 1px rgba(167,139,250,.35)}
+
+  /* ---------------- code / denoise phase ---------------- */
+  .code{position:absolute;inset:0;padding:15px 0;font:13px/1.95 var(--mono);color:#c9cbd6;
+        display:flex;flex-direction:column;justify-content:center;transition:opacity .55s}
+  .code.gone{opacity:0;pointer-events:none}
+  .cl{opacity:0;white-space:pre;padding:0 18px}
+  .cl.on{opacity:1}
+  .cl.noise{color:#43434c}
+  .cl .lock{color:#c9cbd6}
+  .cl .nm{color:#c4b5fd}.cl .ty{color:#93c5fd}.cl .st{color:#a1a1aa}
+  .cl.wound{background:rgba(248,113,113,.07);box-shadow:inset 2px 0 0 var(--bad)}
+  .cl.worn{background:rgba(251,191,36,.06);box-shadow:inset 2px 0 0 var(--warn)}
+  .cl .tag{float:right;font-size:9.5px;font-weight:500;letter-spacing:.02em}
+  .cl.wound .tag{color:var(--bad)}
+  .cl.worn .tag{color:var(--warn)}
+
+  /* ---------------- rendered screen ---------------- */
+  .scrn{position:absolute;inset:0;opacity:0;transition:opacity .5s;
+        background:var(--s-bg);color:var(--s-ink);display:flex;flex-direction:column}
+  .scrn.show{opacity:1}
+  .chd{padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;
+       border-bottom:1px solid var(--s-border)}
+  .chd .a{font-size:15px;font-weight:600;letter-spacing:-.1px}
+  .chd .b{font-size:11px;color:var(--s-dim);margin-top:1px}
+  .avatar{width:24px;height:24px;border-radius:9999px;background:var(--s-blue);
+          display:grid;place-items:center;font-size:10px;font-weight:600}
+  .sbody{flex:1;padding:12px 14px 34px;display:grid;grid-template-columns:1.12fr 1fr;
+         grid-template-rows:96px 140px 1fr 30px;gap:9px;min-height:0}
+
+  .g{border-radius:12px;background:var(--s-card);border:1px solid var(--s-border);
+     box-shadow:0 1px 3px -2px rgba(0,0,0,.5);padding:12px 14px;overflow:hidden;position:relative;
+     opacity:0;transform:translateY(10px);
+     transition:opacity .45s ease var(--d,0ms), transform .55s cubic-bezier(.22,1,.36,1) var(--d,0ms)}
+  .scrn.show .g{opacity:1;transform:none}
+  .hd{font-size:11px;font-weight:500;color:var(--s-dim);margin-bottom:6px;display:flex;justify-content:space-between;align-items:baseline}
+  .hd .hd2{font-size:10px;font-weight:400}
+
+  .balc{grid-column:1;grid-row:1;background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,0) 55%),var(--s-blue);border-color:transparent}
+  .balc .k{font-size:11px;font-weight:500;color:rgba(255,255,255,.65)}
+  .balc .v{font-size:25px;font-weight:600;letter-spacing:-.2px;margin-top:3px;font-variant-numeric:tabular-nums}
+  .balc .tagch{position:absolute;right:12px;top:12px;font-size:10.5px;font-weight:500;
+               padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.14);color:#bbf7d0}
+  .balc .cno{position:absolute;right:14px;bottom:10px;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.45)}
+
+  .goalw{grid-column:2;grid-row:1;display:flex;min-height:0}
+  .goalc{flex:1;border-radius:12px;background:var(--s-card);border:1px solid var(--s-border);
+         box-shadow:0 1px 3px -2px rgba(0,0,0,.5);padding:12px 14px;position:relative;overflow:hidden}
+  .goalc .r1{display:flex;justify-content:space-between;font-size:12px;font-weight:500}
+  .goalc .r1 b{font-weight:600;color:var(--s-blue-hi);font-variant-numeric:tabular-nums}
+  .goalc .r2{font-size:10.5px;color:var(--s-dim);margin:3px 0 10px}
+  .ptrack{height:5px;border-radius:9999px;background:rgba(255,255,255,.08);overflow:hidden}
+  .pfill{height:100%;width:68%;border-radius:9999px;background:var(--s-blue);
+         transform:scaleX(0);transform-origin:left;transition:transform .8s cubic-bezier(.22,1,.36,1) .6s}
+  .scrn.show .pfill{transform:scaleX(1)}
+
+  /* chart: react-ui recipe — horizontal hairline grid, natural curve, gradient fill, no dots */
+  .chartc{grid-column:1/3;grid-row:2;display:flex;flex-direction:column}
+  .cwrap{flex:1;position:relative;min-height:0}
+  .cwrap svg{position:absolute;inset:0;width:100%;height:100%}
+  .cline{stroke:var(--s-blue-hi);stroke-width:1.5;fill:none;stroke-linecap:round;
+         stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1s cubic-bezier(.33,0,.2,1) .35s}
+  .scrn.show .cline{stroke-dashoffset:0}
+  .carea{opacity:0;transition:opacity .6s ease .9s}
+  .scrn.show .carea{opacity:1}
+  .cdot{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;
+        box-shadow:0 0 0 3.5px oklch(0.623 0.188 259.815 / .25);transform:translate(-50%,-50%) scale(0);
+        transition:transform .4s cubic-bezier(.22,1,.36,1) 1.15s}
+  .scrn.show .cdot{transform:translate(-50%,-50%) scale(1)}
+  .cx{display:flex;justify-content:space-between;font-size:9px;color:var(--s-dim);padding:5px 4px 0 34px}
+
+  .txc{grid-column:1/3;grid-row:3;display:flex;flex-direction:column;min-height:0}
+  .trow{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12px}
+  .trow + .trow{border-top:1px solid var(--s-border)}
+  .tico{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;flex:0 0 24px;
+        background:rgba(255,255,255,.08);font-size:10px;font-weight:600;color:var(--s-dim)}
+  .trow .n{font-weight:500}.trow .c{font-size:10px;color:var(--s-dim);margin-top:1px}
+  .trow .amt{margin-left:auto;font-weight:500;font-variant-numeric:tabular-nums}
+
+  .payw{grid-column:1/3;grid-row:4;display:flex;
+        opacity:0;transform:translateY(10px);
+        transition:opacity .45s ease var(--d,0ms), transform .55s cubic-bezier(.22,1,.36,1) var(--d,0ms)}
+  .scrn.show .payw{opacity:1;transform:none}
+  .pay{flex:1;border-radius:8px;background:var(--s-blue);display:grid;place-items:center;
+       font-size:11.5px;font-weight:500;box-shadow:0 2px 6px -2px oklch(0.546 0.215 262.881 / .5)}
+
+  /* ---------------- defects: minimal, all at once ---------------- */
+  .wlab{position:absolute;left:12px;bottom:8px;font-family:var(--mono);font-size:9.5px;
+        letter-spacing:.02em;opacity:0;transition:opacity .5s;white-space:nowrap}
+  .scrn.marked .wlab{opacity:1}
+  .wlab.r{color:var(--bad)} .wlab.y{color:var(--warn)}
+  .dead{background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.55)}
+  .dead > *:not(.wlab){opacity:.22;filter:saturate(.2)}
+  .dead .cno{display:none}
+  .torn .ghost{opacity:.18}
+  .torn .wlab{left:auto;right:12px;bottom:10px}
+  .orph{flex:1;display:flex;border:1px dashed rgba(251,191,36,.45);border-radius:12px;
+        background:rgba(251,191,36,.04);padding:5px;position:relative}
+  .orph .goalc{opacity:.2;border-color:transparent;box-shadow:none;background:transparent}
+  .orph .wlab{left:10px;bottom:7px}
+
+  /* ---------------- parser verdict ---------------- */
+  .vbar{position:absolute;left:0;right:0;bottom:0;padding:8px 14px;z-index:5;
+        font-family:var(--mono);font-size:10px;letter-spacing:.02em;
+        background:rgba(10,10,11,.92);backdrop-filter:blur(6px);
+        transform:translateY(100%);transition:transform .45s cubic-bezier(.22,1,.36,1)}
+  .vbar.show{transform:none}
+  .vbar.badv{color:var(--bad);border-top:1px solid rgba(248,113,113,.3)}
+  .vbar.goodv{color:var(--good);border-top:1px solid rgba(74,222,128,.3)}
+
+  footer{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;
+         letter-spacing:.03em;color:var(--muted)}
+  #ctrl{position:fixed;top:8px;right:8px;opacity:0;transition:opacity .2s;z-index:99}
+  body:hover #ctrl{opacity:1}
+  #ctrl button{background:#18181b;color:var(--ink);border:1px solid var(--rule);border-radius:6px;
+               padding:4px 10px;font-size:11px;cursor:pointer}
+</style>
+<style>
+  /* embed: hide controls, pin + scale stage to iframe */
+  #ctrl{display:none!important}
+  body{display:block;overflow:hidden}
+  #stage{position:fixed;left:0;top:0;transform-origin:top left}
+</style>
+</head>
+<body>
+<div id="stage">
+  <header>
+    <div class="t">“Build me a personal finance home screen” <em>— one brief, two models</em></div>
+    <div class="m">DiffusionGemma 26B-A4B · text diffusion</div>
+  </header>
+  <div id="duo"></div>
+  <footer><span>openui-lang · every screen is code</span><span id="note"></span></footer>
+</div>
+<div id="ctrl"><button onclick="restart()">↺ restart</button></div>
+<script>
+const q = new URLSearchParams(location.search);
+const SPEED = +(q.get("speed") ?? 1);
+const sleep = (ms) => new Promise(r => setTimeout(r, ms / SPEED));
+const NOISE = "░▒▓@#$%&*+=?/\\|~^<>{}[]()aeioux0123456789";
+const rnd = () => NOISE[Math.random()*NOISE.length|0];
+
+/* every statement below corresponds 1:1 to a component on the rendered screen */
+const OK = [
+  ['header ','CardHeader("Aura Banking", "Good evening, Maya")'],
+  ['balance','Heading("$24,180.44", "h1")'],
+  ['delta  ','Tag("+$1,240 this month", null, null, "success")'],
+  ['balCard','Card([balance, delta], "highlight")'],
+  ['goal   ','Progress(68, "Tokyo trip · $3,400 of $5,000")'],
+  ['days   ','["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]'],
+  ['spend  ','Series("Spending", [420, 380, 510, 300, 680, 720, 540])'],
+  ['chart  ','AreaChart(days, [spend], "natural")'],
+  ['tx1    ','ListItem("Blue Bottle Coffee", "Food · today", "-$6.40")'],
+  ['tx2    ','ListItem("Metro Card", "Transit · today", "-$32.00")'],
+  ['tx3    ','ListItem("Figma", "Software · yesterday", "-$15.00")'],
+  ['txList ','ListBlock([tx1, tx2, tx3])'],
+  ['payBtn ','Button("Pay upcoming bills", null, "primary")'],
+  ['root   ','Card([header, balCard, goal, chart, txList, payBtn])'],
+];
+const BAD = [
+  ['header ','CardHeader("Aura Banking", "Good evening, Maya")', ''],
+  ['balance','Heading("$24,180.44", "h1")', ''],
+  ['delta  ','Tag("+$1,240 this month", null, null, "success")', ''],
+  ['balCard','Card([balance, delta], "row", "xl", true)', 'wound|invalid args'],
+  ['goal   ','Progress(68, "Tokyo trip · $3,400 of $5,000")', 'worn|never attached'],
+  ['days   ','["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]', ''],
+  ['spend  ','Series("Spending", [420, 380, 510, 300, 680, 720, 540])', ''],
+  ['chart  ','AreaChart(days, [spend], "natural")', ''],
+  ['tx1    ','ListItem("Blue Bottle Coffee", "Food · today", "-$6.40")', ''],
+  ['tx2    ','ListItem("Metro Card", "Transit · today, "-$32.00")', 'wound|stray quote'],
+  ['tx3    ','ListItem("Figma", "Software · yesterday", "-$15.00")', ''],
+  ['txList ','ListBlock([tx1, tx2, tx3])', ''],
+  ['payBtn ','Button("Pay upcoming bills", null, "primary")', ''],
+  ['root   ','Card([header, balCard, chart, txList, payBtn])', ''],
+];
+
+function makeHalf(key, cls, label){
+  const h = document.createElement("div");
+  h.className = "half " + cls;
+  h.innerHTML = `<span class="stamp">${label}</span>
+    <div class="panel" id="panel-${key}"><div class="code" id="code-${key}"></div>
+      <div class="scrn" id="scrn-${key}"></div>
+      <div class="vbar" id="vbar-${key}"></div></div>`;
+  document.getElementById("duo").appendChild(h);
+}
+makeHalf("base","base","base model");
+makeHalf("ours","ours","after finetuning on OpenUI");
+
+function highlight(nm, expr, tag){
+  const hi = expr.replace(/"([^"]*)"/g, "<span class='st'>\"$1\"</span>")
+                 .replace(/^([A-Z][\w]*)\(/, "<span class='ty'>$1</span>(");
+  return `<span class="nm">${nm}</span>= ${hi}${tag?`<span class="tag">${tag}</span>`:""}`;
+}
+/* true denoise: blocks flash in as noise, characters lock over refinement passes */
+async function denoise(key, rows, blockSize, ticks, tickMs){
+  const box = document.getElementById("code-"+key); box.innerHTML = "";
+  const lines = rows.map(r=>{
+    const [nm, expr, tag=""] = r;
+    const [wcls, note] = tag ? tag.split("|") : ["",""];
+    const ln = document.createElement("div"); ln.className = "cl";
+    ln.dataset.plain = `${nm}= ${expr}`;
+    ln.dataset.final = highlight(nm, expr, note);
+    ln.dataset.wcls = wcls;
+    box.appendChild(ln); return ln;
+  });
+  for (let b = 0; b < lines.length; b += blockSize){
+    const block = lines.slice(b, b + blockSize);
+    for (const ln of block){ ln.classList.add("on","noise"); ln.textContent = [...ln.dataset.plain].map(c=>c===" "?" ":rnd()).join(""); }
+    await sleep(tickMs * 1.5);
+    const locks = block.map(ln => new Array(ln.dataset.plain.length).fill(false));
+    for (let t = 1; t <= ticks; t++){
+      const p = t / ticks;
+      block.forEach((ln, i) => {
+        const plain = ln.dataset.plain;
+        let html = "";
+        for (let c = 0; c < plain.length; c++){
+          if (plain[c] === " "){ html += " "; continue; }
+          if (!locks[i][c] && Math.random() < p * p * 1.4) locks[i][c] = true;
+          html += locks[i][c] ? `<span class="lock">${plain[c].replace(/[<>&]/g,x=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[x]))}</span>` : rnd();
+        }
+        ln.innerHTML = html;
+      });
+      await sleep(tickMs);
+    }
+    for (const ln of block){
+      ln.classList.remove("noise");
+      ln.innerHTML = ln.dataset.final;
+      if (ln.dataset.wcls) ln.classList.add(ln.dataset.wcls);
+    }
+    await sleep(tickMs);
+  }
+}
+
+/* landscape chart in pixel units — Catmull-Rom → bezier, no overshoot distortion */
+const CHART = (()=>{
+  const d=[420,380,510,300,680,720,540];
+  const W=500,H=86,L=34,R=8,T=8,B=6;
+  const xs=d.map((_,i)=>L+i*(W-L-R)/(d.length-1));
+  const ys=d.map(v=>T+(1-(v-260)/(780-260))*(H-T-B));
+  const pts=d.map((_,i)=>[xs[i],ys[i]]);
+  let p=`M ${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+    const c1=[p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6];
+    const c2=[p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6];
+    p+=` C ${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  const grid=[{y:T,v:"$780"},{y:T+(H-T-B)/2,v:"$520"},{y:H-B,v:"$260"}];
+  const peak=pts[5];
+  return {W,H,line:p, area:p+` L ${xs[6].toFixed(1)},${H-B} L ${L},${H-B} Z`, grid,
+          px:(peak[0]/W*100).toFixed(1), py:(peak[1]/H*100).toFixed(1)};})();
+
+function chartSVG(broken){
+  const g=CHART.grid.map(r=>
+    `<line x1="34" y1="${r.y.toFixed(1)}" x2="${CHART.W-8}" y2="${r.y.toFixed(1)}" stroke="rgba(255,255,255,.06)" stroke-width="1" vector-effect="non-scaling-stroke"/>
+     <text x="26" y="${(r.y+3).toFixed(1)}" text-anchor="end" font-size="8.5" fill="rgba(255,255,255,.35)" font-family="Inter,sans-serif">${r.v}</text>`).join("");
+  return `<svg viewBox="0 0 ${CHART.W} ${CHART.H}" preserveAspectRatio="none">
+    <defs><linearGradient id="ag${broken?1:0}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="5%" stop-color="oklch(0.546 0.215 262.881)" stop-opacity=".5"/>
+      <stop offset="95%" stop-color="oklch(0.546 0.215 262.881)" stop-opacity="0"/></linearGradient></defs>
+    ${g}
+    <path class="carea" d="${CHART.area}" fill="url(#ag${broken?1:0})"/>
+    <path class="cline" d="${CHART.line}" pathLength="1" vector-effect="non-scaling-stroke"/>
+  </svg>
+  <span class="cdot" style="left:${CHART.px}%;top:${CHART.py}%"></span>`;
+}
+
+function screenHTML(broken){
+  const tx=(l,n,c,a,ghost)=>`<div class="trow${ghost?" ghost":""}"><span class="tico">${l}</span><span><div class="n">${n}</div><div class="c">${c}</div></span><span class="amt">${a}</span></div>`;
+  const goalCard = `
+    <div class="goalc"><div class="r1"><span>Tokyo trip</span><b>68%</b></div>
+      <div class="r2">$3,400 of $5,000 saved</div>
+      <div class="ptrack"><div class="pfill"></div></div></div>`;
+  return `
+  <div class="chd"><span><div class="a">Aura Banking</div><div class="b">Good evening, Maya</div></span><span class="avatar">M</span></div>
+  <div class="sbody">
+    <div class="g balc ${broken?"dead":""}" style="--d:0ms">
+      <div class="k">Total balance</div><div class="v">$24,180.44</div>
+      <span class="tagch">+$1,240 this month</span><span class="cno">•••• 4290</span>
+      ${broken?`<span class="wlab r">balCard · invalid args · rejected</span>`:""}
+    </div>
+    <div class="goalw g" style="--d:70ms;background:none;border:none;box-shadow:none;padding:0;overflow:visible">
+      ${broken?`<div class="orph">${goalCard}<span class="wlab y">goal · written, never attached</span></div>`:goalCard}
+    </div>
+    <div class="g chartc" style="--d:140ms">
+      <div class="hd"><span>Spending</span><span class="hd2">last 7 days</span></div>
+      <div class="cwrap">${chartSVG(broken)}</div>
+      <div class="cx"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    </div>
+    <div class="g txc ${broken?"torn":""}" style="--d:210ms">
+      <div class="hd"><span>Recent activity</span></div>
+      ${tx("B","Blue Bottle Coffee","Food · today","-$6.40",false)}
+      ${tx("M","Metro Card","Transit · today","-$32.00",broken)}
+      ${tx("F","Figma","Software · yesterday","-$15.00",broken)}
+      ${broken?`<span class="wlab r">tx2 · stray quote · parse stopped</span>`:""}
+    </div>
+    <div class="payw" style="--d:280ms"><div class="pay">Pay upcoming bills</div></div>
+  </div>`;
+}
+
+async function run(){
+  const note=document.getElementById("note");
+  if(q.get("phase")==="snap"){ flip(); mark(); showVerdicts(); return; }
+  note.textContent="blocks denoise in parallel · noise → code";
+  await Promise.all([
+    denoise("base", BAD, 5, 5, 95),
+    denoise("ours", OK, 5, 5, 95),
+  ]);
+  await sleep(300);
+  flip();
+  note.textContent="the code becomes the screen";
+  await sleep(1100);
+  mark();
+  await sleep(700);
+  showVerdicts();
+  await sleep(3000);
+  restart();
+}
+function flip(){
+  for(const k of ["base","ours"]){
+    document.getElementById("code-"+k).classList.add("gone");
+    const sc=document.getElementById("scrn-"+k);
+    sc.innerHTML=screenHTML(k==="base");
+    requestAnimationFrame(()=>requestAnimationFrame(()=>sc.classList.add("show")));
+  }
+}
+function mark(){ document.getElementById("scrn-base").classList.add("marked"); }
+function showVerdicts(){
+  const vb=document.getElementById("vbar-base");
+  vb.className="vbar badv show"; vb.textContent="✕ parser · 3 defects — balCard rejected · list torn · goal lost";
+  setTimeout(()=>{const vo=document.getElementById("vbar-ours");
+    vo.className="vbar goodv show"; vo.textContent="✓ parser · clean — 14/14 statements attached & rendered";
+    document.getElementById("panel-ours").classList.add("done");},380/SPEED);
+  document.getElementById("note").textContent="scored by the openui-lang parser";
+}
+function restart(){
+  for(const k of ["base","ours"]){
+    const c=document.getElementById("code-"+k); c.classList.remove("gone"); c.innerHTML="";
+    const sc=document.getElementById("scrn-"+k); sc.className="scrn"; sc.innerHTML="";
+    document.getElementById("vbar-"+k).className="vbar";
+    document.getElementById("panel-"+k).classList.remove("done");
+  }
+  setTimeout(run,600/SPEED);
+}
+run();
+</script>
+<script>
+const fit=()=>{const s=Math.min(innerWidth/1200,innerHeight/675);
+  document.getElementById("stage").style.transform=
+    `translate(${(innerWidth-1200*s)/2}px,${(innerHeight-675*s)/2}px) scale(${s})`;};
+addEventListener("resize",fit);fit();
+</script>
+</body>
+</html>

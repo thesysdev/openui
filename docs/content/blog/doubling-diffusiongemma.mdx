@@ -1,0 +1,104 @@
+---
+title: "We taught Google's diffusion model our UI language. It beat a model 8x its size."
+description: "DiffusionGemma scored 13% on our generative UI benchmark. One A100 and one week later it scores 57%, past a dense 31B, at 1.9 seconds per screen. Half the gain came from the model teaching itself."
+date: "2026-09-02"
+author: "Thesys Engineering Team"
+featured: true
+---
+
+A few weeks ago we launched our [generative UI benchmark](/blog/generative-ui-benchmark): 46 real product briefs, every screen written as code, scored by a parser that accepts no excuses. This post is an experiment we ran on top of it.
+
+The subject is DiffusionGemma, Google's 26B text-diffusion model with 4B active parameters. It does not write text left to right. It starts from a block of masked tokens and denoises the whole block at once, the same way image models paint. Google showed it solving sudoku. We wanted to know if it could write real UIs.
+
+Out of the box: 13%. Near the bottom of the open-model board. One week and one A100 later:
+
+<DgScoreboard />
+
+Same 4B active parameters. It passed Phi-4, passed its own autoregressive twin, and passed the dense Gemma 4 31B, a model with eight times its active parameters. And it generates a full screen in 1.9 seconds.
+
+Here is the same brief handed to both models:
+
+<iframe
+  src="/blog/dg-reveal.html"
+  title="One brief, two models: the base model and the finetune generate the same screen side by side"
+  style={{ width: "100%", aspectRatio: "1200 / 675", border: 0, borderRadius: 14, overflow: "hidden", margin: "1.5rem 0" }}
+  scrolling="no"
+  loading="lazy"
+/>
+
+And the gain landed exactly where it matters. The lightest briefs ask for a card and a list; the densest ask for full dashboards, sixty-plus statements of layout. Base barely finished anything past the light briefs:
+
+<DgBands />
+
+Here is how it happened, including the part where the model did most of the work itself.
+
+## Why a diffusion model, and why it failed
+
+Generative UI has two hard requirements. The screen has to be *right*, and it has to be *fast*, because a user is sitting there watching it appear.
+
+Diffusion is built for the fast part. An autoregressive model writes one token at a time; a diffusion model settles a whole block of tokens in parallel and commits it when it is confident. That is the promise.
+
+The catch is the right part. A screen in openui-lang is a reference graph: every component is one named line, and the screen only works if every name referenced anywhere is defined somewhere and attached to the root. Base DiffusionGemma could not hold that graph. Its failures were the same families we see [in production across every model](/blog/generative-ui-benchmark#lessons-from-running-generative-ui-in-production), only far more often: arguments in the wrong slots, names that point at nothing, whole sections built and then never attached. It also kept trying to write HTML through a DSL-shaped keyhole, `h3` and `div` everywhere.
+
+So we taught it.
+
+## Act I: we taught it the language
+
+The first phase was ordinary finetuning (SFT): about 650 hand-built example screens, a LoRA, one A100. Grammar responded immediately. Schema errors fell from 133 to 56 on our internal board (one run per brief; the published number quoted above averages four) and the score doubled, 11 to 22 screens of 46.
+
+Wiring did not respond. Orphaned sections actually went *up*, from 45 to 82, because the model got more ambitious and could not connect everything it built. And every dataset we wrote to fix the wiring paid for it in new grammar errors. Push one down, the other came up. We spent days on that see-saw.
+
+<DgAnatomy />
+
+At that point we had a model that doubled its score and a curve that had clearly flattened. The interesting part came next.
+
+## Act II: it taught itself
+
+We stopped writing examples and let the model generate its own.
+
+<DgLoop />
+
+That is the whole trick. The parser cannot be talked into accepting a bad screen, so the model can safely learn from its own output: only screens the parser passes make it into training, born perfect or with exactly their listed defects repaired, nothing more.
+
+It worked better than we expected. The see-saw that ate our SFT phase was simply gone: grammar errors, undefined names, and orphaned sections all fell together, while the model wrote more content than ever. The board climbed from 22 to 31 of 46, and the published number, measured under the exact leaderboard protocol, went from 13.0% to 57.1%.
+
+The part we did not expect: with every pass, the model found its own new screens easier to predict. It was becoming *certain*, and certainty turned out to be worth money.
+
+## The speed came free
+
+Our production sampler commits each block early when the model's uncertainty drops below a bound. A confident model commits fast.
+
+The base model was quick, 1.6 seconds, but only because it wrote short boilerplate screens. After SFT the model was slow: 6.8 seconds per screen, because it was writing real content it was genuinely unsure about. After self-distillation, with *zero* serving changes:
+
+<DgSpeed />
+
+1.89 seconds per screen, 32 screens a minute on a single A100. The sampler did not change. The model just stopped hesitating.
+
+We also measured quality at fixed step budgets, and after self-teaching the model scores *better* at 32 denoising steps than at 64. Extra refinement passes had become chances to second-guess correct work:
+
+<DgDial />
+
+## What did not work
+
+A short honest list:
+
+- an auxiliary reading loss failed its quality gate
+- averaging checkpoints landed between two good models and was worse than either
+- re-training on the same data twice taught nothing, both times we tried
+- 16 denoising steps is past the cliff where the model loses track of its own names
+
+## What this unlocks
+
+The recipe is now boring, and that is the point. Take DiffusionGemma, point it at a component library's schema, hand-write a few hundred examples, then let the loop run: generate, keep the perfect, repair the near-misses, retrain. For a medium-sized component library that is an afternoon and about two hours of GPU time per round, ending at the top of the open-model board at interactive speed, on one card you can rent for two dollars an hour.
+
+Next: full finetuning instead of a LoRA, training across multiple component libraries at once, and the rest of the gap to the frontier. The board says 31 of 46. We want all 46.
+
+If you want the language these screens are written in, that is [OpenUI](/docs). The benchmark this was scored on is [public](/blog/generative-ui-benchmark).
+
+---
+
+Footnotes:
+
+- We built both the model's training set and the benchmark it is scored on, so read this as a first-party result. The published numbers use the identical protocol, prompts, and scorer as every other model on the leaderboard.
+- Generalization was checked on briefs the model never saw during any phase; the gains hold there. The model is specialized to one component library at a time by design, the same way any domain finetune is.
+- Scores in the scatter are the standard shared prompt for all models. With the prompt it was trained with, the finetune scores 60.9%.
