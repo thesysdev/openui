@@ -334,6 +334,12 @@ export function ReliabilityByModel({
     const offsets = [0];
     for (let step = 1; step <= 26; step++) offsets.push(step * 13, -step * 13);
 
+    /* The gutter belongs to the axis. Its width is spent on the tick labels
+       and the rotated axis title, so a model label placed out there reads as
+       floating outside the chart rather than sitting beside its dot. Point
+       labels are held inside the plot column; only the axis hangs. */
+    const insidePlot = (left: number, right: number) => left >= PL && right <= PL + PW;
+
     return visibleBoardPoints
       .filter((point) => labelledBoardIds.has(point.id))
       .sort((a, b) => b.score - a.score || modelBoardCostPerTask(a) - modelBoardCostPerTask(b))
@@ -350,7 +356,7 @@ export function ReliabilityByModel({
             const lx = px + (anchor === "start" ? gap + dotRadius : -(gap + dotRadius));
             const left = anchor === "start" ? lx : lx - labelWidth;
             const right = anchor === "start" ? lx + labelWidth : lx;
-            if (left < PL - GUTTER || right > PL + PW) continue;
+            if (!insidePlot(left, right)) continue;
             /* baseline that centres the text on the dot, then the offset */
             const ly = py + labelFontSize * 0.35 + offset;
             if (ly - labelFontSize < boardTop || ly > boardBottom) continue;
@@ -368,11 +374,23 @@ export function ReliabilityByModel({
 
         /* Every slot in range was taken. Climb from the plot floor looking for
            one last gap, measuring the box on the side the text actually runs. */
-        const anchor = preferred;
-        const lx = px + (anchor === "start" ? gap + dotRadius : -(gap + dotRadius));
+        const edges = (side: "start" | "end") => {
+          const x = px + (side === "start" ? gap + dotRadius : -(gap + dotRadius));
+          return side === "start"
+            ? { lx: x, left: x, right: x + labelWidth }
+            : { lx: x, left: x - labelWidth, right: x };
+        };
+        /* the fallback has to respect the plot edge too, so take whichever
+           side fits; if neither does, this label has nowhere to go */
+        const fit = [preferred, preferred === "start" ? "end" : "start"]
+          .map((side) => edges(side as "start" | "end"))
+          .find((e) => insidePlot(e.left, e.right));
+        if (!fit) return null;
+        const anchor: "start" | "end" = fit.left === fit.lx ? "start" : "end";
+        const lx = fit.lx;
         const boxAt = (y: number) => ({
-          left: (anchor === "start" ? lx : lx - labelWidth) - 4,
-          right: (anchor === "start" ? lx + labelWidth : lx) + 4,
+          left: fit.left - 4,
+          right: fit.right + 4,
           top: y - labelFontSize - 3,
           bottom: y + 4,
         });
