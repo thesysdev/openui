@@ -14,9 +14,9 @@ const npmDir = path.resolve(npmDirArg);
 const pnpmDir = path.resolve(pnpmDirArg);
 const manifest = readJson(path.join(npmDir, "package.json"));
 
-// Templates ship a lockfile per package manager, and scaffolds install from
-// whichever one matches. Compare installed direct dependencies so CI catches a
-// lockfile refreshed on its own, even when both installs succeed.
+// Dependencies declared with ranges can resolve differently: npm uses the
+// committed lockfile while pnpm resolves them independently. Compare installed
+// direct dependencies so CI catches that drift even when both builds succeed.
 const dependencyNames = [
   ...new Set([
     ...Object.keys(manifest.dependencies ?? {}),
