@@ -5,6 +5,14 @@ import {
   TokenOverhead,
 } from "@/components/charts/benchmark-charts";
 import { CompletionByDensity } from "@/components/charts/completion-by-density";
+import {
+  DgAnatomy,
+  DgCrossLibrary,
+  DgErrorExample,
+  DgLoop,
+  DgScoreboard,
+  DgSpeedArc,
+} from "@/components/charts/diffusion-charts";
 import { FakeVisual } from "@/components/fake-visual";
 import { Mermaid } from "@/components/mermaid";
 import { TweetEmbed } from "@/components/tweet-embed";
@@ -21,6 +29,12 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     CompletionByModel,
     CompletionByDensity,
     BlankScreens,
+    DgScoreboard,
+    DgAnatomy,
+    DgLoop,
+    DgSpeedArc,
+    DgCrossLibrary,
+    DgErrorExample,
     TokenOverhead,
     CostPerPass,
     Mermaid,

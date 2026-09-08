@@ -1,0 +1,88 @@
+---
+title: "Introducing OUI-1: the first open-weight model built for generative UI"
+description: "A DiffusionGemma finetune at 71.7% on the Generative UI Benchmark, 5.5x its base."
+date: "2026-09-08"
+author: "Thesys Engineering Team"
+featured: true
+---
+
+OUI-1 is a finetuned [DiffusionGemma](https://blog.google/innovation-and-ai/technology/developers-tools/diffusion-gemma-faster-text-generation/) model that writes user interfaces in [openui-lang](/docs). It is 26B parameters with 4B active, it runs on a single GPU (a consumer RTX 5090 included, at FP8), and the weights are on [Hugging Face](https://huggingface.co/thesysdev/OUI-1) under the Gemma Terms of Use.
+
+The best use for it is [appless](https://github.com/thesysdev/appless), a generative UI operating system where every UI is generated on the fly, and each tap becomes the model's context for the next one. That is what OUI-1 is optimised for.
+
+<iframe
+  src="/blog/dg-reveal.html"
+  title="One brief, two models: DiffusionGemma and OUI-1 generate the same UI side by side"
+  style={{ width: "100%", aspectRatio: "1200 / 675", border: 0, borderRadius: 14, overflow: "hidden", margin: "1.5rem 0" }}
+  scrolling="no"
+  loading="lazy"
+/>
+
+## Benchmark
+
+<DgScoreboard />
+
+DiffusionGemma scores **13.0%** on the [Generative UI Benchmark](https://www.openui.com/benchmarks). OUI-1 scores **71.7%**. Every open model up to 31B scores lower, including Gemma 4 31B at **46.7%**, except Qwen3.8 27B at **78.8%**, a dense model with 27B parameters on every token against OUI-1's **4B**. Nothing at 4B active or below scores higher; the next step up in score costs a dense 27B.
+
+## What makes generative UI good
+
+Three things: the protocol the UI is written in, the speed of the model, and the quality of what it writes. A UI that takes eight seconds to arrive is a loading state the user has already given up on, and a fast UI with a broken button is worse.
+
+The protocol is openui-lang. It costs up to 67% fewer tokens than JSON and it streams, so the shell of the UI renders before the data arrives.
+
+The speed is why we chose DiffusionGemma. Autoregressive models generate one token at a time and are bottlenecked on memory bandwidth. DiffusionGemma writes a 256-token block at once, starting from noise and committing each token the moment it is sure of it. Google reports over 1,000 tokens per second on a single H100 and over 700 on an RTX 5090<sup><a href="#source-1" style={{ color: "#3978e6", textDecoration: "none", fontWeight: 600 }}>[1]</a></sup>.
+
+The quality is what the training is for.
+
+## How it was trained
+
+The goal was narrow: fewer schema errors and fewer wiring errors, without giving up speed. The openui-lang parser reports those two kinds of error. A schema violation is a wrong enum, a missing required prop, an invented component. A wiring error is a name used but never defined, or a section defined but never attached to the root. In openui-lang:
+
+<DgErrorExample />
+
+We settled on two phases: supervised finetuning first, then self-distillation.
+
+**Phase 1, supervised finetuning.** We started with about 700 openui-lang examples written by larger models, across seven component libraries, and a LoRA finetune on one A100. The loss went down, but the benchmark score went down too. The model now wrote longer, denser programs, and almost none of them parsed clean.
+
+So we went back to basics and tried to improve on one library only, the one the benchmark uses. The score went from 13.0% to 28.8%. A run that fixed the wiring broke the schema, and the next run did the reverse:
+
+| run | schema errors | orphaned sections |
+|---|---|---|
+| n | 78 | 66 |
+| n + 1 | 112 | 40 |
+| n + 2 | 51 | 65 |
+
+Like a see-saw, improving one thing made the other worse. We were well ahead of DiffusionGemma, but we had hit a wall: no run brought both kinds of error down together. We assumed this was a capacity limit of the LoRA, one discipline at a time, and that a full finetune would handle it later.
+
+<DgAnatomy />
+
+Speed went downhill. We had expected finetuning to make the model faster: the sampler commits a token once its entropy drops below a bound, and a model that knows the language should be more certain of each token. Instead, on the same 20 light briefs, the base model took 1.6 seconds per output and the finetuned one 4.3. The base was fast because its outputs were short and generic, 22 tokens per statement. The finetuned model wrote real names and values, 32 tokens per statement, and needed about twice the denoising steps per token to commit them.
+
+<DgSpeedArc />
+
+**Phase 2, self-distillation.** Distilling a diffusion language model into itself is a known way to cut its denoising steps<sup><a href="#source-2" style={{ color: "#3978e6", textDecoration: "none", fontWeight: 600 }}>[2]</a></sup><sup><a href="#source-3" style={{ color: "#3978e6", textDecoration: "none", fontWeight: 600 }}>[3]</a></sup>. We decided to try it to get the speed back. Our version is rejection-sampled self-training with repair. The model writes a few hundred openui-lang programs. The parser keeps the ones it accepts. Near-misses go through a repair pass that fixes only the defects the parser listed and rejects any edit that rewrites or invents; the median repair is one statement. A judge checks that each one matches its brief. The survivors are the training set for the next run, 500 steps, an hour or two on the A100, and the model that comes out writes the next batch.
+
+<DgLoop />
+
+The speed came back: on the 20 light briefs, **4.3 seconds** per output fell to **1.9**, with 28% more tokens per output than DiffusionGemma. Something we were not expecting came with it: the see-saw stopped! After self-distillation on that one library the benchmark score was at **57.1%**, with schema errors down from 292 to **76** and wiring errors from 971 to **484** in the same model, where every earlier run had traded one for the other.
+
+Then it clicked: this is reinforcement learning in its simplest form, rejection sampling with the parser as the reward. Our hypothesis for why it fixed both kinds of error at once, which we have not isolated here: the model is both teacher and student, and the only things that differ between the two are the sampler's own noise, the repair pass, and, in some rounds, a steering instruction that is dropped from the training prompt. Because the training text is the model's own, the loss is already low almost everywhere. The gradient lands on the few places that changed: the repaired statements, and the sampled choices that get pushed toward the mode. The first is the wiring fix. The second is the sharpening that lets the entropy bound commit tokens earlier. Teacher-written data does neither: every line is in another model's style, so the gradient lands on all of it.
+
+OUI-1 is the same recipe, supervised finetuning and then self-distillation, run across 27 component libraries instead of one. That took the benchmark to **71.7%** and generalised the gain: on the appless library, 60 asks it was never trained on, 55 of 60 outputs are valid where DiffusionGemma manages 23.
+
+<DgCrossLibrary />
+
+## Where this is going
+
+OUI-1 writes OpenUI Lang 0.1: one UI per ask, with actions that send the next ask, and Gemma's function calling intact so a UI can start from a tool result. It is what appless runs on. The next target is [OpenUI Lang 0.5](/docs/openui-lang/specification-v05), where a UI carries its own state, queries and mutations: a filter change is a variable change on the client, a table reads from a tool through `Query`, a form writes through `Mutation`, and the runtime calls the tool, an MCP server or a function, directly. The model writes the UI once and [is not the query engine](/blog/the-llm-is-not-your-query-engine). The next oui model will write 0.5.
+
+- Weights: [huggingface.co/thesysdev/OUI-1](https://huggingface.co/thesysdev/OUI-1)
+- Benchmark and raw outputs: [github.com/thesysdev/generative-ui-bench](https://github.com/thesysdev/generative-ui-bench)
+- appless: [github.com/thesysdev/appless](https://github.com/thesysdev/appless)
+- openui-lang: [openui.com/docs](/docs)
+
+<ol style={{ fontSize: "0.9em" }}>
+  <li id="source-1">Google, [DiffusionGemma: faster text generation](https://blog.google/innovation-and-ai/technology/developers-tools/diffusion-gemma-faster-text-generation/)</li>
+  <li id="source-2">Deschenaux and Gulcehre, [Beyond Autoregression: Fast LLMs via Self-Distillation Through Time](https://arxiv.org/abs/2410.21035)</li>
+  <li id="source-3">Zhang et al., [T3D: Few-Step Diffusion Language Models via Trajectory Self-Distillation with Direct Discriminative Optimization](https://arxiv.org/abs/2602.12262)</li>
+</ol>
