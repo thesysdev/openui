@@ -15,6 +15,7 @@ import {
 } from "@/components/charts/diffusion-charts";
 import { FakeVisual } from "@/components/fake-visual";
 import { Mermaid } from "@/components/mermaid";
+import { ModelReleaseCards } from "@/components/model-release-cards";
 import { TweetEmbed } from "@/components/tweet-embed";
 import * as TabsComponents from "fumadocs-ui/components/tabs";
 import defaultMdxComponents from "fumadocs-ui/mdx";
@@ -38,6 +39,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     TokenOverhead,
     CostPerPass,
     Mermaid,
+    ModelReleaseCards,
     ...components,
   };
 }
