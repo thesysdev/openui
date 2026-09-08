@@ -40,6 +40,10 @@ function latestUserText(messages: Message[]): string {
  * session protocol and holds the per-thread Eve cursor in memory so follow-ups
  * resume. Stream translation is `eveAdapter`'s job; its `onEvent` hook advances
  * the cursor so an interrupted or waiting session resumes from `?startIndex=`.
+ *
+ * `clientContext.conversationId` is the Cloud conversation id (`threadId`).
+ * Eve does not persist it in session history; the agent reads it and sends
+ * `conversation` + `store: true` on the Responses call.
  */
 export function createEveLLM(): ChatLLM {
   const sessions = new Map<string, EveSessionCursor>();
@@ -53,7 +57,10 @@ export function createEveLLM(): ChatLLM {
     const deliverPath = state.sessionId
       ? `${EVE_PREFIX}/session/${encodeURIComponent(state.sessionId)}`
       : `${EVE_PREFIX}/session`;
-    const deliverBody: Record<string, unknown> = { message: latestUserText(messages) };
+    const deliverBody: Record<string, unknown> = {
+      message: latestUserText(messages),
+      clientContext: { conversationId: threadId },
+    };
     if (state.sessionId && state.continuationToken) {
       deliverBody.continuationToken = state.continuationToken;
     }

@@ -40,8 +40,9 @@ conversation id, and the route appends each model turn to it with
 
 The Eve overlay uses that same Cloud thread store via `useOpenuiCloudStorage()`
 and maps each Cloud `threadId` to an in-memory Eve session cursor; it does not
-use `/api/chat`. Browser `localStorage` holds only the selected model on
-non-Eve scaffolds.
+use `/api/chat`. Each Eve model turn still appends to the Cloud conversation
+with `conversation: threadId` and `store: true`. Browser `localStorage` holds
+only the selected model on non-Eve scaffolds.
 
 The Vercel AI SDK route does not create a second store. Add a LangGraph
 checkpointer separately only if the graph needs durable state, interrupts, or

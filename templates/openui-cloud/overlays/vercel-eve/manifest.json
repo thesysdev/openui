@@ -25,5 +25,5 @@
       "src/hooks/use-persisted-model.ts"
     ]
   },
-  "gettingStarted": "The generated Vercel Eve agent uses OpenUI Cloud Chat Completions as its model provider. `{{packageManager}} run dev` starts Next.js with Eve embedded via withEve(). Set OPENUI_MODEL to a Cloud model id — an unknown name fails at agent load. Ask \"What's the weather in Berlin?\" to exercise the included Eve tool."
+  "gettingStarted": "The generated Vercel Eve agent uses OpenUI Cloud Responses as its model provider. `{{packageManager}} run dev` starts Next.js with Eve embedded via withEve(). Set OPENUI_MODEL to a Cloud model id — an unknown name fails at agent load. Ask \"What's the weather in Berlin?\" to exercise the included Eve tool."
 }
