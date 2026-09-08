@@ -295,7 +295,7 @@ export async function runCreateApp(options: CreateAppOptions): Promise<void> {
       if (packageManager.name !== "npm" || (overlay && !overlayShipsNpmLock)) {
         fs.rmSync(path.join(targetDir, "package-lock.json"), { force: true });
       }
-      // The Cloud template ships pnpm's lock/workspace files for reproducible pnpm
+      // Templates ship pnpm's lock/workspace files for reproducible pnpm
       // installs and native-build policy. A framework changes dependencies, so
       // regenerate its lock; non-pnpm scaffolds do not need either pnpm file.
       if (packageManager.name !== "pnpm" || backendFramework !== "default") {
