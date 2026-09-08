@@ -268,31 +268,7 @@ describe("eveAdapter", () => {
 
       expect(events).toHaveLength(1);
       expect(events[0].type).toBe(EventType.RUN_ERROR);
-      expect(events[0].message).toBe("model unavailable — code: x");
-    });
-
-    it("includes nested provider details on RUN_ERROR", async () => {
-      const response = makeNdjsonResponse([
-        {
-          type: "turn.failed",
-          data: {
-            code: "model_error",
-            message: "The model provider failed to serve this request.",
-            details: { message: "Unknown model foo/bar" },
-          },
-        },
-        waiting,
-      ]);
-
-      const events = (await collect(eveAdapter().parse(response))) as Array<{
-        type: EventType;
-        message?: string;
-      }>;
-
-      expect(events[0].type).toBe(EventType.RUN_ERROR);
-      expect(events[0].message).toBe(
-        "The model provider failed to serve this request. — code: model_error — Unknown model foo/bar",
-      );
+      expect(events[0].message).toBe("model unavailable");
     });
 
     it("emits RUN_ERROR for turn.failed but keeps reading", async () => {

@@ -20,28 +20,6 @@ export const EVE_INPUT_REQUESTED_EVENT = "eve.input.requested";
 
 const TURN_BOUNDARY_TYPES = new Set(["session.completed", "session.failed", "session.waiting"]);
 
-function eveFailureMessage(data: { code?: string; details?: unknown; message?: string }): string {
-  const parts: string[] = [];
-  if (data.message?.trim()) parts.push(data.message.trim());
-  if (data.code && data.code !== data.message) parts.push(`code: ${data.code}`);
-  if (data.details && typeof data.details === "object") {
-    const details = data.details as { error?: unknown; message?: unknown };
-    const nested =
-      typeof details.message === "string"
-        ? details.message
-        : typeof details.error === "string"
-          ? details.error
-          : details.error &&
-              typeof details.error === "object" &&
-              "message" in details.error &&
-              typeof details.error.message === "string"
-            ? details.error.message
-            : undefined;
-    if (nested && nested !== data.message) parts.push(nested);
-  }
-  return parts.join(" — ") || "Eve session failed";
-}
-
 /**
  * Adapter for Eve session streams (`GET /eve/v1/session/:id/stream`).
  *
@@ -124,7 +102,7 @@ export const eveAdapter = (options: EveAdapterOptions = {}): StreamProtocolAdapt
           value: event.data.requests,
         };
       } else if (event.type === "turn.failed" || event.type === "session.failed") {
-        yield { type: EventType.RUN_ERROR, message: eveFailureMessage(event.data) };
+        yield { type: EventType.RUN_ERROR, message: event.data.message };
       }
 
       if (TURN_BOUNDARY_TYPES.has(event.type)) break;
