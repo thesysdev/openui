@@ -63,7 +63,7 @@ jobs:
 
       - name: Install with pnpm
         working-directory: ${{ runner.temp }}/pnpm-template
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Compare resolved direct dependencies
         run: >-
