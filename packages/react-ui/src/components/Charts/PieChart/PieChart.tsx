@@ -8,7 +8,7 @@ import { useExportChartData, useTransformedKeys } from "../hooks/index.js";
 import { DefaultLegend } from "../shared/DefaultLegend/DefaultLegend.js";
 import { StackedLegend } from "../shared/StackedLegend/StackedLegend.js";
 import { LegendItem } from "../types/Legend.js";
-import { getCategoricalChartConfig } from "../utils/dataUtils.js";
+import { getCategoricalChartConfig, normalizeChartData } from "../utils/dataUtils.js";
 import { PaletteName, useChartPalette } from "../utils/PalletUtils.js";
 import { PieChartData } from "./types/index.js";
 import {
@@ -74,6 +74,8 @@ const PieChartComponent = <T extends PieChartData>({
   height,
   width,
 }: PieChartProps<T>) => {
+  // Guard against nullish `data` while generative UI is streaming.
+  data = normalizeChartData(data);
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 

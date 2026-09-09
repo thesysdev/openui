@@ -35,6 +35,7 @@ import {
   getColorForDataKey,
   getDataKeys,
   getLegendItems,
+  normalizeChartData,
 } from "../utils/dataUtils";
 import { AreaChartData, AreaChartVariant } from "./types";
 
@@ -83,6 +84,8 @@ const AreaChartComponent = <T extends AreaChartData>({
   height,
   width,
 }: AreaChartProps<T>) => {
+  // Guard against nullish `data` while generative UI is streaming.
+  data = normalizeChartData(data);
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 

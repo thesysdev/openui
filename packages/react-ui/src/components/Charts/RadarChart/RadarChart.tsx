@@ -14,7 +14,12 @@ import { useExportChartData, useTransformedKeys } from "../hooks";
 import { ActiveDot, CustomTooltipContent, DefaultLegend } from "../shared";
 import { LegendItem } from "../types";
 import { useChartPalette } from "../utils/PalletUtils";
-import { get2dChartConfig, getDataKeys, getLegendItems } from "../utils/dataUtils";
+import {
+  get2dChartConfig,
+  getDataKeys,
+  getLegendItems,
+  normalizeChartData,
+} from "../utils/dataUtils";
 import { AxisLabel } from "./components/AxisLabel";
 import { RadarChartData } from "./types";
 
@@ -52,6 +57,8 @@ const RadarChartComponent = <T extends RadarChartData>({
   height,
   width,
 }: RadarChartProps<T>) => {
+  // Guard against nullish `data` while generative UI is streaming.
+  data = normalizeChartData(data);
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 
