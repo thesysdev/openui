@@ -1247,7 +1247,7 @@
 .invalidNodeLabel {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
   color: var(--flow-muted);
   font-family: var(--home-font-text);
   font-size: 10px;
@@ -2403,7 +2403,7 @@
   }
 
   .modelSources {
-    top: 58px;
+    top: 72px;
     right: 12px;
     bottom: auto;
     left: 12px;
@@ -2414,21 +2414,23 @@
 
   .modelSource {
     position: static;
-    width: max-content;
+    width: 100%;
+    max-width: 60px;
     min-width: 0;
+    height: 64px;
     justify-self: center;
     flex-direction: column;
     justify-content: center;
     gap: 4px;
     padding: 5px 2px 6px;
-    border-radius: 9px;
-    font-size: 7px;
+    border-radius: 4px;
+    font-size: 8px;
     transform: none;
   }
 
   .modelSourceIcon {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
 
   .modelSourceIcon img {
@@ -2448,31 +2450,44 @@
   }
 
   .responseLegend {
-    top: 22px;
+    top: 18px;
     bottom: auto;
-    left: 22px;
+    left: 50%;
+    width: max-content;
+    max-width: calc(100% - 24px);
+    justify-content: center;
+    transform: translateX(-50%);
+  }
+
+  .responseLegendItem {
+    font-size: 11px;
+  }
+
+  .responseLegendItem > i {
+    width: 9px;
+    height: 9px;
   }
 
   .responseGatewayNode {
-    top: 33.9%;
-    left: 17%;
-    width: 66%;
+    top: 34%;
+    left: 18%;
+    width: 64%;
     min-width: 0;
-    height: 24.5%;
+    height: 22%;
     min-height: 0;
     border-radius: 16px;
   }
 
   .renderedInterface {
-    top: 61%;
+    top: 62%;
     left: 8%;
     width: 84%;
-    height: 43%;
+    height: 38%;
     border-radius: 18px;
   }
 
   .responseFlowHeroOpen .renderedInterface {
-    top: 61%;
+    top: 62%;
     left: 8%;
     width: 84%;
   }
@@ -2480,30 +2495,30 @@
 
 @media (max-width: 767px) {
   .responseLegend {
-    top: 16px;
+    top: 18px;
     bottom: auto;
-    left: 12px;
-    gap: 5px 8px;
+    left: 50%;
+    gap: 6px 10px;
     max-width: calc(100% - 24px);
     padding: 6px 8px;
-    border-radius: 7px;
+    border-radius: 4px;
   }
 
   .responseLegendItem {
-    font-size: 7px;
+    font-size: 10px;
   }
 
   .responseLegendItem > i {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   .responseGatewayNode {
-    top: 33.9%;
-    left: 14%;
-    width: 72%;
+    top: 34%;
+    left: 18%;
+    width: 64%;
     min-width: 0;
-    height: 24.5%;
+    height: 22%;
     min-height: 0;
     gap: 2px;
     padding: 4px;
@@ -2576,15 +2591,15 @@
   }
 
   .renderedInterface {
-    top: 61%;
+    top: 62%;
     left: 6%;
     width: 88%;
-    height: 43%;
+    height: 38%;
     border-radius: 12px;
   }
 
   .responseFlowHeroOpen .renderedInterface {
-    top: 61%;
+    top: 62%;
     left: 6%;
     width: 88%;
   }

@@ -86,17 +86,17 @@ const responseModels = [
 ] as const;
 
 const mobileResponseLanes = [
-  { path: "M 42 -24 V 34 C 42 74 76 76 76 112 C 76 150 116 160 154 210" },
-  { path: "M 116 -24 V 54 C 116 88 142 96 142 128 C 142 164 166 176 176 210" },
-  { path: "M 195 -24 V 210" },
-  { path: "M 274 -24 V 54 C 274 88 248 96 248 128 C 248 164 224 176 214 210" },
-  { path: "M 348 -24 V 34 C 348 74 314 76 314 112 C 314 150 274 160 236 210" },
+  { path: "M 42 130 V 150 C 42 180 76 184 76 208 C 76 228 116 236 154 248" },
+  { path: "M 116 130 V 165 C 116 192 142 198 142 220 C 142 234 166 240 176 248" },
+  { path: "M 195 130 V 248" },
+  { path: "M 274 130 V 165 C 274 192 248 198 248 220 C 248 234 224 240 214 248" },
+  { path: "M 348 130 V 150 C 348 180 314 184 314 208 C 314 228 274 236 236 248" },
 ] as const;
 
 const mobileValidatedLanes = [
-  { path: "M 160 362 V 382 C 160 404 128 406 128 434 V 640" },
-  { path: "M 195 362 V 640" },
-  { path: "M 230 362 V 382 C 230 404 262 406 262 434 V 640" },
+  { path: "M 160 397 V 420 C 160 442 128 444 128 468 V 720" },
+  { path: "M 195 397 V 720" },
+  { path: "M 230 397 V 420 C 230 442 262 444 262 468 V 720" },
 ] as const;
 
 const incomingResponses: Array<{ lane: number; delay: number; tone: ResponseTone }> = [
@@ -233,7 +233,7 @@ function ResponsePaths({
       className={`${styles.gatewayPaths} ${
         mobile ? styles.gatewayPathsMobile : styles.gatewayPathsDesktop
       }`}
-      viewBox={mobile ? "0 0 390 620" : "0 0 1280 520"}
+      viewBox={mobile ? "0 0 390 720" : "0 0 1280 520"}
       preserveAspectRatio="none"
       aria-hidden="true"
     >
