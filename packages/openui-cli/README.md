@@ -13,7 +13,7 @@ It currently supports:
   - **OpenUI Cloud (recommended)** — hosted models with managed conversations, streaming, built-in tools, and ready-to-use report and presentation artifacts
   - **Self-hosted** — bring an OpenAI-compatible model key and own the AI route and persistence
 - keeping the default minimal SDK route or adding a LangGraph, Vercel AI SDK, or Vercel Eve backend to either template
-- scaffolding an example from [`examples/examples.json`](https://github.com/thesysdev/openui/blob/main/examples/examples.json)
+- scaffolding an example from [OpenUI Examples](https://github.com/thesysdev/openui/blob/main/examples)
 - minting an OpenUI Cloud API key into an existing project's env file
 - generating a system prompt or JSON Schema from a `createLibrary()` export
 
@@ -89,7 +89,7 @@ Options:
 - `-n, --name <string>`: Project name (interactive default: `openui-agent`)
 - `-t, --template <template>`: AI backend `key` from `templates/templates.json` — interactive default `openui-cloud`
 - `--backend-framework <framework>`: Overlay `key` from that template's `overlays` list (plus `default` for the base template)
-- `-e, --example <example>`: Scaffold any example from `examples/examples.json` (folder name)
+- `-e, --example <example>`: Scaffold any example
 - `--skill`: Install the OpenUI agent skill for AI coding assistants
 - `--no-skill`: Skip installing the OpenUI agent skill
 - `--no-install`: Scaffold without running the package install
@@ -106,8 +106,8 @@ What it does:
 
 - prompts for the project name, defaulting to `openui-agent`, if you do not pass `--name`
 - uses the `openui-cloud` template when you do not pass `--template` (interactive runs no longer ask; `--template openui-self-hosted` still works)
-- prefetches `templates/templates.json` and prompts for a backend framework from that template's `overlays` list, or **Scaffold from OpenUI Examples**. Non-interactive usage defaults to `default`
-- copies the selected template or example from GitHub with sparse-checkout
+- prompts for a backend framework or example after the template; non-interactive usage defaults to `default`
+- copies the bundled template or example into a new directory
 - rewrites monorepo-local dependencies (`workspace:`, `file:`, `catalog:`) in the generated `package.json` to `latest`
 - installs dependencies automatically using the detected package manager (unless `--no-install`)
 - in interactive sessions, starts the development server and opens its local URL in the default browser; pass `--no-immediate` to install and exit instead
@@ -141,9 +141,7 @@ Every framework overlay includes `get_weather` as its example app-owned function
 
 #### OpenUI examples
 
-Interactive `openui create` offers **Scaffold from OpenUI Examples** after the starter templates. That opens the full catalog from [`examples/examples.json`](https://github.com/thesysdev/openui/blob/main/examples/examples.json), grouped by category, with **← Back** to return to starter templates. Pass `--example <name>` to skip the menus. `--example` cannot be combined with `--template` or `--backend-framework`.
-
-Examples are copied from GitHub with sparse-checkout. Workspace and catalog dependencies are rewritten to `latest`, and monorepo `generate` scripts are rewritten to `npx @openuidev/cli generate`.
+Interactive `openui create` offers to scaffold [OpenUI Examples from Github](https://github.com/thesysdev/openui/blob/main/examples). Pass `--example <name>` to skip the menus. `--example` cannot be combined with `--template` or `--backend-framework`.
 
 ```bash
 openui create --example shadcn

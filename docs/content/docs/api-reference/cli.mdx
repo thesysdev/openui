@@ -79,8 +79,8 @@ In non-interactive mode, dependencies are installed without starting the long-ru
 
 **What it does**
 
-1. Resolves the project name, prefetches `templates/templates.json`, and picks a backend-framework overlay or an OpenUI example
-2. Copies the selected Next.js template — or example — from GitHub into `<name>/`
+1. Resolves the project name, picks a backend-framework overlay or an OpenUI example
+2. Copies the selected Next.js template or example into `<name>/`
 3. Rewrites `workspace:*` dependency versions to `latest`
 4. Writes the relevant `.env` values, including Thesys sign-in/API-key setup for OpenUI Gateway
 5. Optionally installs the [OpenUI agent skill](/docs/mcp#install-via-the-skills-cli-recommended) for AI coding assistants (e.g. Claude, Cursor, Copilot)
@@ -104,17 +104,7 @@ Every framework overlay includes a `get_weather` example backed by Open-Meteo. A
 
 **OpenUI examples**
 
-Interactive `openui create` lists starter templates, then **Scaffold from OpenUI Examples**. That second prompt lists every entry in [`examples/examples.json`](https://github.com/thesysdev/openui/blob/main/examples/examples.json), grouped by category, with **← Back** to return to starter templates. `--example <name>` skips both menus. `--example` cannot be combined with `--template` or `--backend-framework`.
-
-| Value          | Demonstrates                                                   |
-| -------------- | -------------------------------------------------------------- |
-| `fastapi`      | Python FastAPI streaming backend with a React client           |
-| `shadcn`       | shadcn/ui component library for generated interfaces           |
-| `react-native` | Expo client rendering native OpenUI components                 |
-| `mastra`       | Mastra agent connected through AG-UI                           |
-| `vue`          | OpenUI Lang in Nuxt / Vue                                      |
-
-Any other folder name in the catalog works the same way.
+Interactive `openui create` lists starter templates, and option to create an app from listed [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). `--example <name>` skips both menus. `--example` cannot be combined with `--template` or `--backend-framework`. Any other folder name in the catalog works the same way.
 
 **Conversation storage**
 
