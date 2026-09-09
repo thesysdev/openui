@@ -4,6 +4,7 @@ import type { WireEvent } from "./core/wire";
 export type { StreamWireEvent, WireEnvelope, WireErrorEntry, WireEvent } from "./core/wire";
 
 const DEFAULT_ENDPOINT = "https://ingest.thesys.dev/v1/events";
+/** Also read by `@openuidev/devtools` to tell Cloud apps from OSS ones. */
 const GLOBAL_KEY = Symbol.for("openui.cloudObservability");
 
 export interface CloudObservabilityOptions {
