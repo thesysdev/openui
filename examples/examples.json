@@ -31,6 +31,12 @@
       "featured": false
     },
     {
+      "title": "Angular",
+      "description": "An Angular 22 playground for OpenUI Lang rendering, state, queries, mutations, and error recovery.",
+      "path": "app-frameworks/angular",
+      "featured": false
+    },
+    {
       "title": "FastAPI",
       "description": "A Python FastAPI streaming backend with a React OpenUI client.",
       "path": "app-frameworks/fastapi",

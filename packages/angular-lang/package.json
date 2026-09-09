@@ -1,0 +1,77 @@
+{
+  "name": "@openuidev/angular-lang",
+  "version": "0.1.0",
+  "description": "Angular bindings for OpenUI Lang. Define model-renderable Angular components, generate prompts from those definitions, and render OpenUI Lang in Angular applications.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "ng-packagr -p ng-package.json",
+    "watch": "ng-packagr -p ng-package.json -w",
+    "typecheck": "tsc --project tsconfig.lib.json --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./src",
+    "format:check": "prettier --check ./src",
+    "prepare": "pnpm run build",
+    "ci": "pnpm run lint:check && pnpm run format:check"
+  },
+  "keywords": [
+    "openui",
+    "generative-ui",
+    "angular",
+    "llm",
+    "streaming",
+    "renderer",
+    "parser",
+    "ai",
+    "components",
+    "prompt-generation",
+    "zod",
+    "ui-generation",
+    "model-driven-ui",
+    "openui-lang"
+  ],
+  "homepage": "https://openui.com",
+  "engines": {
+    "node": "^22.22.3 || ^24.15.0 || ^26.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "packages/angular-lang"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "author": "engineering@thesys.dev",
+  "dependencies": {
+    "@openuidev/lang-core": "workspace:^",
+    "tslib": "catalog:"
+  },
+  "peerDependencies": {
+    "@angular/common": "catalog:",
+    "@angular/core": "catalog:",
+    "rxjs": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@angular/common": "catalog:",
+    "@angular/compiler": "catalog:",
+    "@angular/compiler-cli": "catalog:",
+    "@angular/core": "catalog:",
+    "@angular/platform-browser": "catalog:",
+    "@angular/platform-browser-dynamic": "catalog:",
+    "jsdom": "catalog:",
+    "ng-packagr": "catalog:",
+    "rxjs": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "^4.1.0",
+    "zone.js": "catalog:"
+  }
+}
