@@ -1,5 +1,8 @@
 import spawn from "cross-spawn";
 
+import { QUIET_COMMAND_CAPTURE_LIMIT } from "./command-output";
+import { withSpinner } from "./spinner";
+
 const DIAGNOSTIC_TAIL_LIMIT = 16 * 1024;
 
 export type CommandResult = {
@@ -112,4 +115,25 @@ export function runCommand(
     child.once("error", (error) => finish({ status: null, signal: forwardedSignal, error }));
     child.once("close", (status, signal) => finish({ status, signal: forwardedSignal ?? signal }));
   });
+}
+
+export type QuietCommandOptions = {
+  command: string;
+  args: string[];
+  cwd: string;
+  label: string;
+  env?: NodeJS.ProcessEnv;
+  captureLimit?: number;
+};
+
+/** Run a command with output captured and a spinner in the terminal. */
+export async function runQuietCommand(opts: QuietCommandOptions): Promise<CommandResult> {
+  return withSpinner(opts.label, () =>
+    runCommand(opts.command, opts.args, opts.cwd, {
+      echo: false,
+      stdin: "ignore",
+      captureLimit: opts.captureLimit ?? QUIET_COMMAND_CAPTURE_LIMIT,
+      env: opts.env,
+    }),
+  );
 }

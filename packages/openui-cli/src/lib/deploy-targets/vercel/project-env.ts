@@ -3,7 +3,7 @@ import { SENSITIVE_DEPLOY_ENV_KEYS } from "../../deploy/project-env";
 import { confirmOrDefault } from "../../deploy/prompt";
 import { mutedNpmEnv, runCommand } from "../../process-runner";
 import { vercelSpawnArgs } from "./args";
-import { isVercelLinked } from "./auth";
+import { isVercelLinked } from "./connect";
 
 /** Environments we keep in sync for template deploys. */
 const PROJECT_ENV_TARGETS = ["production", "preview", "development"] as const;

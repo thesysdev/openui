@@ -6,9 +6,11 @@ import { loadAllowlistedProjectEnv } from "../env";
 /** Known OpenUI template env keys. Values must never be logged or sent to telemetry. */
 export const DEPLOY_ENV_ALLOWLIST = [
   "THESYS_API_KEY",
+  "THESYS_API_BASE_URL",
   "OPENAI_API_KEY",
   "OPENAI_BASE_URL",
   "OPENAI_MODEL",
+  "OPENUI_MODEL",
   "APP_ID",
   "DEMO_USER_ID",
   "LANGGRAPH_API_URL",

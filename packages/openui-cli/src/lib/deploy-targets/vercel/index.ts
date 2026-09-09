@@ -1,15 +1,14 @@
 import { formatCliCommand, resolveCliInvocation } from "../../cli-bin";
 import { printLogTail } from "../../command-output";
-import type { DeployTargetOptions } from "../../deploy";
 import {
   loadProjectDeployEnv,
   printQuietDeploySuccess,
-  runQuietCommand,
   throwCommandFailure,
   warnMissingRequiredDeployEnv,
+  type DeployTargetOptions,
 } from "../../deploy";
 import { resolveInstallPackageManager } from "../../detect-package-manager";
-import { mutedNpmEnv, runCommand } from "../../process-runner";
+import { mutedNpmEnv, runCommand, runQuietCommand } from "../../process-runner";
 import { telemetry } from "../../telemetry";
 import { buildVercelDeployArgs, publicVercelArgs, vercelSpawnArgs } from "./args";
 import {
@@ -18,7 +17,7 @@ import {
   linkVercelProject,
   loginToVercel,
   prepareVercelCli,
-} from "./auth";
+} from "./connect";
 import { syncLocalEnvToVercelProject } from "./project-env";
 import { extractVercelDeploymentSummary } from "./summary";
 
@@ -83,8 +82,8 @@ export async function deployToVercel(opts: DeployTargetOptions): Promise<void> {
   const deployEnv = mutedNpmEnv();
   const result = quiet
     ? await runQuietCommand({
-        invocation: vercel,
-        args: vercelArgs,
+        command: vercel.command,
+        args: vercelSpawnArgs(vercel, vercelArgs),
         cwd: opts.projectDir,
         label: "Uploading and building on Vercel...",
         env: deployEnv,
