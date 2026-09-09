@@ -17,7 +17,7 @@ export function assertValidEnvVarName(name: string, flag = "environment variable
   if (!ENV_VAR_NAME.test(name)) {
     throw new CreateError(
       "args_resolution",
-      `Invalid ${flag} "${name}". Use letters, digits, and underscores.`,
+      `Invalid ${flag} "${name}". Must start with a letter or underscore, then letters, digits, or underscores.`,
       "invalid_input",
       "INVALID_ENV_ASSIGNMENT",
     );

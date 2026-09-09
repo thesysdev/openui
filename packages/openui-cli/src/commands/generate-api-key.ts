@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import { mintCloudApiKey } from "../auth/mint";
+import { assertValidApiKeyName, mintCloudApiKey } from "../auth/mint";
 import { assertValidEnvVarName, upsertEnvVar } from "../lib/env";
 import { telemetry } from "../lib/telemetry";
 
@@ -34,6 +34,7 @@ export async function runGenerateApiKey(options: GenerateApiKeyOptions): Promise
   const envKey = options.key?.trim() || DEFAULT_ENV_KEY;
   const projectName = resolveProjectName(options.name);
   assertValidEnvVarName(envKey, "--key");
+  if (options.name?.trim()) assertValidApiKeyName(projectName);
 
   telemetry.capture("cli_generate_api_key_started", {
     env_file: path.basename(file),
