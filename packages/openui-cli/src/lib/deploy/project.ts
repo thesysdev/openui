@@ -6,10 +6,9 @@ import { CreateError } from "../telemetry";
 type ProjectPackageJson = {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
-  peerDependencies?: Record<string, string>;
 };
 
-/** Read dependencies / devDependencies / peerDependencies from package.json. */
+/** Read dependencies and devDependencies from package.json. */
 export function readProjectDependencies(projectDir: string): Record<string, string> {
   const pkgPath = path.join(projectDir, "package.json");
   let pkg: ProjectPackageJson;
@@ -23,7 +22,7 @@ export function readProjectDependencies(projectDir: string): Record<string, stri
       "INVALID_PACKAGE_JSON",
     );
   }
-  return { ...pkg.dependencies, ...pkg.devDependencies, ...pkg.peerDependencies };
+  return { ...pkg.dependencies, ...pkg.devDependencies };
 }
 
 /** True when the project depends on at least one `@openuidev/*` package. */
