@@ -6,10 +6,22 @@ import { CreateError } from "./telemetry";
 /** True for `"1"` or `"true"` (any case). */
 export const isTruthyEnv = (value?: string) => value === "1" || value?.toLowerCase() === "true";
 
-const ENV_ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=[^\r\n]*$/;
+const ENV_VAR_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 function isKeyLine(line: string, name: string): boolean {
   return new RegExp(`^\\s*#?\\s*${name}\\s*=`).test(line);
+}
+
+/** POSIX-style env names: letters, digits, underscores; must not start with a digit. */
+export function assertValidEnvVarName(name: string, flag = "environment variable name"): void {
+  if (!ENV_VAR_NAME.test(name)) {
+    throw new CreateError(
+      "args_resolution",
+      `Invalid ${flag} "${name}". Use letters, digits, and underscores.`,
+      "invalid_input",
+      "INVALID_ENV_ASSIGNMENT",
+    );
+  }
 }
 
 /**
@@ -17,15 +29,16 @@ function isKeyLine(line: string, name: string): boolean {
  * assignment (including a commented one) and otherwise appends.
  */
 export function upsertEnvVar(filePath: string, name: string, value: string): void {
-  const assignment = `${name}=${value}`;
-  if (!ENV_ASSIGNMENT.test(assignment)) {
+  assertValidEnvVarName(name);
+  if (/[\r\n]/.test(value)) {
     throw new CreateError(
       "args_resolution",
-      "Invalid env assignment. Name must use letters, digits, and underscores; value cannot contain newlines.",
+      "Invalid env assignment. Value cannot contain newlines.",
       "invalid_input",
       "INVALID_ENV_ASSIGNMENT",
     );
   }
+  const assignment = `${name}=${value}`;
 
   const resolved = path.resolve(filePath);
   let content = "";
