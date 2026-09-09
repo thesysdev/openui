@@ -146,21 +146,16 @@ program
   .addHelpText(
     "after",
     `
-Deploys an OpenUI project to Vercel. If you are not logged in, opens vercel login
-first. Links the project when needed, then offers to save missing allowlisted
-keys from .env / .env.local to the Vercel project (auto-accepted with --yes).
-Build logs are hidden by default; pass --verbose to stream them. On failure the
-log tail is printed.
-
-Extra flags after deploy are forwarded as-is to the target deployment platform,
-which validates them (for example --prod or --force).
+Default supported platform is Vercel. If you are not logged in to the platform, 
+opens vercel login first. Links the project when needed, then offers to save 
+missing allowlisted keys from .env / .env.local to the project on the platform 
+(auto-accepted with --yes). Build logs are hidden by default; pass --verbose 
+to stream them. On failure the log tail is printed. Extra flags after deploy 
+are forwarded as-is to the target platform, which validates them.
 
 Examples:
   $ openui deploy
-  $ openui deploy ./my-app
-  $ openui deploy ./my-app --prod
   $ openui deploy --verbose
-  $ openui deploy -- --archive=tgz
 `,
   )
   .action(
