@@ -3,13 +3,13 @@ import { printLogTail } from "../../command-output";
 import {
   loadProjectDeployEnv,
   printQuietDeploySuccess,
-  throwCommandFailure,
   warnMissingRequiredDeployEnv,
   type DeployTargetOptions,
 } from "../../deploy";
 import { resolveInstallPackageManager } from "../../detect-package-manager";
 import { mutedNpmEnv, runCommand, runQuietCommand } from "../../process-runner";
 import { telemetry } from "../../telemetry";
+import { throwCommandFailure } from "../../utils";
 import { buildVercelDeployArgs, publicVercelArgs, vercelSpawnArgs } from "./args";
 import {
   isVercelLinked,

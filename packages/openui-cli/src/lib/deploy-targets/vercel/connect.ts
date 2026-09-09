@@ -2,12 +2,12 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 import type { CliInvocation } from "../../cli-bin";
-import { throwCommandFailure } from "../../deploy/failure";
 import { canPromptInteractive } from "../../deploy/prompt";
 import type { DeployTargetOptions } from "../../deploy/types";
 import { mutedNpmEnv, runCommand } from "../../process-runner";
 import { withSpinner } from "../../spinner";
 import { CreateError } from "../../telemetry";
+import { throwCommandFailure } from "../../utils";
 import { vercelSpawnArgs } from "./args";
 
 /** True when `.vercel/project.json` exists in the project. */
