@@ -1969,34 +1969,71 @@
   top: 88.85%;
 }
 
-.modelOutputLabel {
+.responseLegend {
   position: absolute;
   z-index: 2;
   bottom: 22px;
   left: 22px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 7px 12px;
+  max-width: 340px;
   padding: 8px 10px;
-  border: 0;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--response-canvas) 92%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--response-canvas) 94%, transparent);
   text-align: left;
 }
 
-.modelOutputLabel span {
+.responseLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   color: var(--response-muted);
   font-family: var(--home-font-text);
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0;
   line-height: 1;
+  white-space: nowrap;
+}
+
+.responseLegendItem > i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  background: currentColor;
+}
+
+.responseLegendItem[data-tone="valid"] > i,
+.responseLegendItem[data-tone="type"] > i {
+  border-radius: 50%;
+}
+
+.responseLegendItem[data-tone="valid"] > i {
+  background: var(--response-valid);
+}
+
+.responseLegendItem[data-tone="root"] > i {
+  background: var(--response-error);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.responseLegendItem[data-tone="reference"] > i {
+  border-radius: 2px;
+  background: var(--response-reference);
+}
+
+.responseLegendItem[data-tone="type"] > i {
+  background: var(--response-type);
 }
 
 .responseGatewayNode {
   position: absolute;
   z-index: 4;
   top: 34.6%;
-  left: 31.25%;
+  left: 29.5%;
   display: flex;
   width: 20.55%;
   min-width: 228px;
@@ -2410,7 +2447,7 @@
     height: 16px;
   }
 
-  .modelOutputLabel {
+  .responseLegend {
     top: 22px;
     bottom: auto;
     left: 22px;
@@ -2442,16 +2479,23 @@
 }
 
 @media (max-width: 767px) {
-  .modelOutputLabel {
+  .responseLegend {
     top: 16px;
     bottom: auto;
     left: 12px;
+    gap: 5px 8px;
+    max-width: calc(100% - 24px);
     padding: 6px 8px;
     border-radius: 7px;
   }
 
-  .modelOutputLabel span {
+  .responseLegendItem {
     font-size: 7px;
+  }
+
+  .responseLegendItem > i {
+    width: 6px;
+    height: 6px;
   }
 
   .responseGatewayNode {

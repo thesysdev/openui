@@ -41,40 +41,40 @@ type ResponseTone = "valid" | "root" | "reference" | "type";
 
 const responseLanes = [
   {
-    path: "M 22 96 H 164 C 196 96 204 106 220 128 S 248 160 276 160 H 296 C 322 160 324 190 344 204 S 388 218 405 222",
+    path: "M 96 96 H 164 C 196 96 204 106 220 128 S 248 160 276 160 H 296 C 322 160 324 190 344 204 S 388 218 405 222",
   },
   {
-    path: "M 22 176 H 170 C 204 176 210 188 228 206 S 256 226 284 226 H 304 C 330 226 348 238 405 242",
+    path: "M 111 176 H 170 C 204 176 210 188 228 206 S 256 226 284 226 H 304 C 330 226 348 238 405 242",
   },
-  { path: "M 22 260 H 188 C 222 260 230 244 256 244 H 286 C 312 244 338 260 405 260" },
+  { path: "M 97 260 H 188 C 222 260 230 244 256 244 H 286 C 312 244 338 260 405 260" },
   {
-    path: "M 22 344 H 170 C 204 344 210 332 228 314 S 256 294 284 294 H 304 C 330 294 348 282 405 280",
+    path: "M 83 344 H 170 C 204 344 210 332 228 314 S 256 294 284 294 H 304 C 330 294 348 282 405 280",
   },
   {
-    path: "M 22 424 H 164 C 196 424 204 414 220 392 S 248 360 276 360 H 296 C 322 360 324 330 344 316 S 388 302 405 300",
+    path: "M 75 424 H 164 C 196 424 204 414 220 392 S 248 360 276 360 H 296 C 322 360 324 330 344 316 S 388 302 405 300",
   },
 ] as const;
 
 const openResponseLanes = [
   {
-    path: "M 22 58 H 174 C 204 58 210 84 228 112 S 258 154 286 154 H 304 C 330 154 344 202 405 222",
+    path: "M 96 58 H 174 C 204 58 210 84 228 112 S 258 154 286 154 H 304 C 330 154 344 202 405 222",
   },
   {
-    path: "M 22 159 H 174 C 206 159 214 178 232 198 S 260 224 288 224 H 306 C 332 224 350 238 405 242",
+    path: "M 111 159 H 174 C 206 159 214 178 232 198 S 260 224 288 224 H 306 C 332 224 350 238 405 242",
   },
-  { path: "M 22 260 H 190 C 224 260 230 244 256 244 H 286 C 312 244 338 260 405 260" },
+  { path: "M 97 260 H 190 C 224 260 230 244 256 244 H 286 C 312 244 338 260 405 260" },
   {
-    path: "M 22 361 H 174 C 206 361 214 342 232 322 S 260 296 288 296 H 306 C 332 296 350 282 405 280",
+    path: "M 83 361 H 174 C 206 361 214 342 232 322 S 260 296 288 296 H 306 C 332 296 350 282 405 280",
   },
   {
-    path: "M 22 462 H 174 C 204 462 210 436 228 408 S 258 366 286 366 H 304 C 330 366 344 318 405 300",
+    path: "M 75 462 H 174 C 204 462 210 436 228 408 S 258 366 286 366 H 304 C 330 366 344 318 405 300",
   },
 ] as const;
 
 const validatedLanes = [
-  { path: "M 656 236 H 690 C 724 236 724 186 758 186 H 1120" },
-  { path: "M 656 260 H 706 C 730 260 736 260 758 260 H 1120" },
-  { path: "M 656 284 H 690 C 724 284 724 334 758 334 H 1120" },
+  { path: "M 635 236 H 690 C 724 236 724 186 758 186 H 1120" },
+  { path: "M 635 260 H 706 C 730 260 736 260 758 260 H 1120" },
+  { path: "M 635 284 H 690 C 724 284 724 334 758 334 H 1120" },
 ] as const;
 
 const responseModels = [
@@ -149,8 +149,23 @@ function GatewayReliabilityFlow({ openCanvas = false }: { openCanvas?: boolean }
         ))}
       </div>
 
-      <div className={styles.modelOutputLabel} aria-hidden="true">
-        <span>Each marker is one response</span>
+      <div className={styles.responseLegend} aria-hidden="true">
+        <span className={styles.responseLegendItem} data-tone="valid">
+          <i />
+          <span>Valid</span>
+        </span>
+        <span className={styles.responseLegendItem} data-tone="root">
+          <i />
+          <span>No valid root</span>
+        </span>
+        <span className={styles.responseLegendItem} data-tone="reference">
+          <i />
+          <span>Reference</span>
+        </span>
+        <span className={styles.responseLegendItem} data-tone="type">
+          <i />
+          <span>Type / argument</span>
+        </span>
       </div>
 
       <div className={styles.responseGatewayNode} aria-hidden="true">
