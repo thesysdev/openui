@@ -287,3 +287,86 @@ root = Title("hello")
     expect(result.root?.props.text).toBe("hello");
   });
 });
+
+// ── redefined statement IDs (parse vs stream) ───────────────────────────────
+
+describe("redefined statement IDs", () => {
+  const withNewline = `root = Stack([a])
+a = Title("x")
+a = Title("y")
+`;
+  const withoutNewline = `root = Stack([a])
+a = Title("x")
+a = Title("y")`;
+
+  const titleText = (result: ReturnType<typeof parse>) => {
+    const children = result.root?.props?.children as any[] | undefined;
+    return children?.[0]?.props?.text as string | undefined;
+  };
+
+  const pushAll = (
+    text: string,
+    write: (sp: ReturnType<typeof createStreamParser>, text: string) => void,
+  ) => {
+    const sp = createStreamParser(schema);
+    write(sp, text);
+    return titleText(sp.getResult());
+  };
+
+  it("parse() last-wins with and without a trailing newline", () => {
+    expect(titleText(parse(withNewline, schema))).toBe("y");
+    expect(titleText(parse(withoutNewline, schema))).toBe("y");
+  });
+
+  it("stream parser last-wins for a single push, matching parse()", () => {
+    expect(pushAll(withNewline, (sp, text) => sp.push(text))).toBe("y");
+    expect(pushAll(withoutNewline, (sp, text) => sp.push(text))).toBe("y");
+  });
+
+  it("stream parser last-wins line-by-line and character-by-character", () => {
+    expect(
+      pushAll(withNewline, (sp, text) => {
+        for (const line of text.split(/(?<=\n)/)) {
+          if (line) sp.push(line);
+        }
+      }),
+    ).toBe("y");
+    expect(
+      pushAll(withNewline, (sp, text) => {
+        for (const ch of text) sp.push(ch);
+      }),
+    ).toBe("y");
+    expect(
+      pushAll(withoutNewline, (sp, text) => {
+        for (const ch of text) sp.push(ch);
+      }),
+    ).toBe("y");
+  });
+
+  it("stream parser last-wins across a two-chunk split", () => {
+    expect(
+      pushAll("", (sp) => {
+        sp.push(`root = Stack([a])\na = Title("x")\n`);
+        sp.push(`a = Title("y")\n`);
+      }),
+    ).toBe("y");
+    expect(
+      pushAll("", (sp) => {
+        sp.push(`root = Stack([a])\na = Title("x")\n`);
+        sp.push(`a = Title("y")`);
+      }),
+    ).toBe("y");
+  });
+
+  it("stream parser last-wins via set(), matching the renderer path", () => {
+    const sp = createStreamParser(schema);
+    expect(titleText(sp.set(withoutNewline))).toBe("y");
+  });
+
+  it("does not let an incomplete pending redefinition clobber a completed statement", () => {
+    const sp = createStreamParser(schema);
+    sp.push(`root = Stack([a])\na = Title("x")\n`);
+    expect(titleText(sp.push(`a = Title("y`))).toBe("x");
+    expect(titleText(sp.push(`")\n`))).toBe("y");
+  });
+});
