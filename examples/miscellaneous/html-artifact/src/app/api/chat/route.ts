@@ -1,5 +1,5 @@
 import { cloudInstructions } from "@/lib/cloud-prompt";
-import { CLOUD_EMBED_URL, DEFAULT_MODEL, requiredEnv } from "@/lib/env";
+import { DEFAULT_MODEL, requiredEnv } from "@/lib/env";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   // Chat Completions → POST /v1/embed/chat/completions
   const client = new OpenAI({
     apiKey: requiredEnv("THESYS_API_KEY"),
-    baseURL: CLOUD_EMBED_URL,
+    baseURL: "https://api.thesys.dev/v1/embed",
   });
 
   const stream = await client.chat.completions.create({

@@ -1,8 +1,6 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { MastraModelGateway, type GatewayLanguageModel, type ProviderConfig } from "@mastra/core/llm";
 
-const OPENUI_CLOUD_BASE_URL = "https://api.thesys.dev/v1/embed";
-
 /** Full OpenUI Cloud model id, including the provider prefix Cloud expects. */
 export const OPENUI_CLOUD_MODEL = "google/gemini-3.6-flash-free";
 
@@ -62,13 +60,13 @@ export class OpenUICloudGateway extends MastraModelGateway {
         models: [OPENUI_CLOUD_MODEL],
         apiKeyEnvVar: "THESYS_API_KEY",
         gateway: this.id,
-        url: OPENUI_CLOUD_BASE_URL,
+        url: "https://api.thesys.dev/v1/embed",
       },
     };
   }
 
   buildUrl(): string {
-    return OPENUI_CLOUD_BASE_URL;
+    return "https://api.thesys.dev/v1/embed";
   }
 
   async getApiKey(): Promise<string> {
@@ -90,7 +88,7 @@ export class OpenUICloudGateway extends MastraModelGateway {
     return createOpenAICompatible({
       name: OPENUI_CLOUD_GATEWAY_ID,
       apiKey,
-      baseURL: OPENUI_CLOUD_BASE_URL,
+      baseURL: "https://api.thesys.dev/v1/embed",
       supportsStructuredOutputs: true,
       transformRequestBody: sanitizeCompletionsBody,
     }).chatModel(modelId || OPENUI_CLOUD_MODEL);

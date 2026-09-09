@@ -1,6 +1,6 @@
 import * as AspectRatio from "@radix-ui/react-aspect-ratio";
 import clsx from "clsx";
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
 
 type AspectRatioType = "1:1" | "3:2" | "3:4" | "4:3" | "16:9";
 type ScaleType = "fit" | "fill";
@@ -29,11 +29,13 @@ const scaleMap: Record<ScaleType, string> = {
 
 export const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
   const { src, alt, styles, className, aspectRatio = "3:2", scale = "fill", ...rest } = props;
+  const [hasError, setHasError] = useState<boolean>(false);
 
   const imageClasses = clsx(
     "openui-image",
     {
       [`${scaleMap[scale]}`]: scale,
+      "openui-image--error": hasError,
     },
     className,
   );
@@ -45,10 +47,8 @@ export const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
       alt={alt}
       className={imageClasses}
       style={styles}
-      onError={(e) => {
-        e.currentTarget.style.display = "none";
-        console.error(`Failed to load image: ${src}`);
-      }}
+      onLoad={() => setHasError(false)}
+      onError={() => setHasError(true)}
       {...rest}
     />
   );

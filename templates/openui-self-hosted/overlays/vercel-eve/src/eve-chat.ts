@@ -1,5 +1,4 @@
 import { eveAdapter, type ChatLLM, type Message } from "@openuidev/react-ui";
-import type { SessionState } from "eve/client";
 
 // Eve's native HTTP session protocol (same-origin, proxied by `withEve`):
 //   POST /eve/v1/session            -> create a session
@@ -9,6 +8,13 @@ import type { SessionState } from "eve/client";
 // translates the NDJSON feed into the AG-UI events OpenUI renders.
 const EVE_PREFIX = "/eve/v1";
 const SESSION_ID_HEADER = "x-eve-session-id";
+
+/** Per-thread cursor. Kept local — Eve 0.18+ renamed/narrowed `SessionState`. */
+type EveSessionCursor = {
+  sessionId?: string;
+  streamIndex: number;
+  continuationToken?: string;
+};
 
 function messageText(message: Pick<Message, "content">): string {
   const content = message.content as unknown;
@@ -36,10 +42,10 @@ function latestUserText(messages: Message[]): string {
  * an interrupted or waiting session resumes from `?startIndex=`.
  */
 export function createEveLLM(): ChatLLM {
-  const sessions = new Map<string, SessionState>();
+  const sessions = new Map<string, EveSessionCursor>();
   // Cursor for the run in flight. OpenUI finishes consuming one send() stream
   // before starting the next, so a single slot is enough.
-  let active: { threadId: string; state: SessionState } | null = null;
+  let active: { threadId: string; state: EveSessionCursor } | null = null;
 
   const send: ChatLLM["send"] = async ({ messages, threadId, signal }): Promise<Response> => {
     const state = sessions.get(threadId) ?? { streamIndex: 0 };
