@@ -72,9 +72,9 @@ const openResponseLanes = [
 ] as const;
 
 const validatedLanes = [
-  { path: "M 635 236 H 690 C 724 236 724 186 758 186 H 1120" },
-  { path: "M 635 260 H 706 C 730 260 736 260 758 260 H 1120" },
-  { path: "M 635 284 H 690 C 724 284 724 334 758 334 H 1120" },
+  { path: "M 616 236 H 690 C 724 236 724 186 758 186 H 1120" },
+  { path: "M 616 260 H 706 C 730 260 736 260 758 260 H 1120" },
+  { path: "M 616 284 H 690 C 724 284 724 334 758 334 H 1120" },
 ] as const;
 
 const responseModels = [
