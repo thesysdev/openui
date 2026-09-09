@@ -1,20 +1,8 @@
-import {
-  DEFAULT_DEPLOY_TARGET,
-  DEPLOY_TARGETS,
-  type DeployTarget,
-  type DeployTargetOptions,
-} from "../deploy/types";
+import type { DeployTarget, DeployTargetOptions } from "../deploy";
 import { deployToVercel } from "./vercel";
+import { CreateError } from "../telemetry";
 
-export {
-  DEFAULT_DEPLOY_TARGET,
-  DEPLOY_TARGETS,
-  deployToVercel,
-  type DeployTarget,
-  type DeployTargetOptions,
-};
-
-/** Dispatch to a platform adapter. Add branches as new targets land. */
+/** Dispatch to a platform adapter (Vercel today). */
 export async function deployToTarget(
   target: DeployTarget,
   opts: DeployTargetOptions,
@@ -24,7 +12,12 @@ export async function deployToTarget(
       return deployToVercel(opts);
     default: {
       const _exhaustive: never = target;
-      throw new Error(`Unsupported deploy target: ${_exhaustive}`);
+      throw new CreateError(
+        "deploy_target",
+        `Unsupported deploy target: ${String(_exhaustive)}`,
+        "invalid_input",
+        "UNSUPPORTED_TARGET",
+      );
     }
   }
 }

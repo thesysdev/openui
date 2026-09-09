@@ -1,11 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import {
-  DEFAULT_DEPLOY_TARGET,
-  deployToTarget,
-  type DeployTargetOptions,
-} from "../lib/deploy-targets";
+import { DEFAULT_DEPLOY_TARGET, type DeployTargetOptions } from "../lib/deploy";
+import { deployToTarget } from "../lib/deploy-targets";
 import { resolveInstallPackageManager } from "../lib/detect-package-manager";
 import { CreateError, telemetry } from "../lib/telemetry";
 
