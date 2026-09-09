@@ -1,7 +1,11 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import { DEFAULT_DEPLOY_TARGET, type DeployTargetOptions } from "../lib/deploy";
+import {
+  assertOpenUiProject,
+  DEFAULT_DEPLOY_TARGET,
+  type DeployTargetOptions,
+} from "../lib/deploy";
 import { deployToTarget } from "../lib/deploy-targets";
 import { resolveInstallPackageManager } from "../lib/detect-package-manager";
 import { CreateError, telemetry } from "../lib/telemetry";
@@ -115,5 +119,6 @@ function resolveProjectDir(dir?: string): string {
       "PROJECT_NOT_FOUND",
     );
   }
+  assertOpenUiProject(projectDir);
   return projectDir;
 }

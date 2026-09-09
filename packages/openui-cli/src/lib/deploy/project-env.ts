@@ -1,7 +1,5 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
-
 import { loadAllowlistedProjectEnv } from "../env";
+import { readProjectDependencies } from "./project";
 
 /** Known OpenUI template env keys. Values must never be logged or sent to telemetry. */
 export const DEPLOY_ENV_ALLOWLIST = [
@@ -32,12 +30,7 @@ export function loadProjectDeployEnv(projectDir: string): Record<string, string>
 
 /** Infer required API-key names from the project's dependencies. */
 export function detectRequiredDeployEnvNames(projectDir: string): string[] {
-  const pkgPath = path.join(projectDir, "package.json");
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as {
-    dependencies?: Record<string, string>;
-    devDependencies?: Record<string, string>;
-  };
-  const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+  const deps = readProjectDependencies(projectDir);
   if (deps["@openuidev/thesys-server"] || deps["@openuidev/thesys"]) return ["THESYS_API_KEY"];
   if (deps["openai"] || deps["ai"] || deps["@ai-sdk/openai"]) return ["OPENAI_API_KEY"];
   return [];
