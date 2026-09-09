@@ -100,19 +100,6 @@ export async function deployToVercel(opts: DeployTargetOptions): Promise<void> {
         result.durationMs,
       );
     }
-    if (
-      Object.keys(localEnv).length > 0 &&
-      envSavedKeyCount === 0 &&
-      isVercelLinked(opts.projectDir)
-    ) {
-      envSavedKeyCount += await syncLocalEnvToVercelProject({
-        invocation: vercel,
-        projectDir: opts.projectDir,
-        localEnv,
-        yes: opts.yes,
-        noInteractive: opts.noInteractive,
-      });
-    }
     telemetry.capture("cli_deploy_succeeded", {
       target: "vercel",
       prod: opts.prod,

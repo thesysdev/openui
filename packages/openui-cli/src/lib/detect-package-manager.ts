@@ -63,5 +63,11 @@ export function resolveDlxInvocation(
   packageManager: PackageManager,
   pkg: string,
 ): { command: string; args: string[]; quietArgs: string[] } {
-  return { command: packageManager.dlxCmd, args: [pkg], quietArgs: packageManager.quietArgs };
+  const [command, ...dlxPrefix] = packageManager.dlxCmd.split(/\s+/);
+  const args = packageManager.name === "npm" ? ["--yes", ...dlxPrefix, pkg] : [...dlxPrefix, pkg];
+  return {
+    command: command!,
+    args,
+    quietArgs: [...packageManager.quietArgs, ...dlxPrefix, pkg],
+  };
 }
