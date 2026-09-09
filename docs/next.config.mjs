@@ -236,7 +236,8 @@ const config = {
       },
       {
         source: "/docs/openui-cloud/api/artifacts",
-        destination: "/docs/gateway/api/artifacts",
+        destination:
+          "/docs/agent/core-concepts/artifacts#generate-and-edit-managed-slides-and-reports",
         permanent: true,
       },
       {
