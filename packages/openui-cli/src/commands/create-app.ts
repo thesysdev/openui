@@ -550,7 +550,6 @@ export async function runCreateApp(options: CreateAppOptions): Promise<void> {
       skip_reason: "missing_api_key",
       required_env: apiKeyEnv,
     });
-    process.exitCode = 1;
     return;
   }
 
