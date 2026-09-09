@@ -235,6 +235,11 @@ const config = {
         permanent: true,
       },
       {
+        source: "/docs/openui-cloud/api/artifacts",
+        destination: "/docs/gateway/api/artifacts",
+        permanent: true,
+      },
+      {
         source: "/docs/openui-cloud/:path*",
         destination: "/docs/gateway",
         permanent: true,

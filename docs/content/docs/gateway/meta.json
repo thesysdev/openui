@@ -13,6 +13,7 @@
     "migrate-to-openui-gateway",
     "---APIs---",
     "api/chat-completions",
+    "api/artifacts",
     "api/responses",
     "api/conversations"
   ]
