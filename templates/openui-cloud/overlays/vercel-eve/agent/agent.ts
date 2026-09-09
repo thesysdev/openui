@@ -1,7 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { defineAgent } from "eve";
 import { withCloudConversation } from "./cloud-conversation.ts";
-import { resolveOpenuiModel } from "../src/lib/models.ts";
+import { resolveOpenuiModel, DEFAULT_MODEL } from "../src/lib/models.ts";
 
 const apiKey = process.env.THESYS_API_KEY;
 if (!apiKey) throw new Error("Missing required env var: THESYS_API_KEY");
@@ -12,7 +12,7 @@ const openai = createOpenAI({
 });
 
 const model = withCloudConversation(
-  openai.responses(resolveOpenuiModel(process.env.OPENUI_MODEL)),
+  openai.responses(resolveOpenuiModel(DEFAULT_MODEL)),
 );
 
 export default defineAgent({

@@ -22,10 +22,6 @@ export const MODEL_IDS = [
 
 const MODEL_ID_SET = new Set<string>(MODEL_IDS);
 
-/**
- * Resolve `OPENUI_MODEL`. Unknown ids throw at agent load so a typo in `.env`
- * fails before the first chat turn, with the bad name in the error.
- */
 export function resolveOpenuiModel(model: string | undefined): string {
   const resolved = model?.trim() || DEFAULT_MODEL;
   if (!MODEL_ID_SET.has(resolved)) {

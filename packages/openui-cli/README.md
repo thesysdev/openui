@@ -131,15 +131,13 @@ The default implementation is part of each base template. For LangGraph or Verce
 
 In Cloud framework variants, the selected framework owns the agent orchestration and application tool loop. OpenUI Cloud is attached as the model provider and conversation store. Reports, presentations, web search, image search, and configured MCP tools remain provider-executed Cloud tools on the default, LangGraph, and Vercel AI SDK Cloud routes, while application tools such as `get_weather` execute inside the selected framework. The Eve Cloud overlay uses Cloud as the Responses provider and does not attach those provider-executed Cloud tools. Choosing a Cloud framework does not configure a user-owned model provider; choose `openui-self-hosted` for that.
 
-An unknown `OPENUI_MODEL` fails when the Eve agent loads.
-
 The Cloud graph needs `THESYS_API_KEY`; the self-hosted graph needs the selected provider credentials such as `OPENAI_API_KEY`.
 
 Every framework overlay includes `get_weather` as its example app-owned function tool. Ask “What’s the weather in Berlin?” to exercise the selected backend’s native tool loop.
 
 #### Conversation storage
 
-Every OpenUI Cloud variant uses OpenUI Cloud as its only durable conversation and artifact store. The browser connects directly through `useOpenuiCloudStorage()` with a short-lived frontend token, and `/api/chat` appends each turn to the same Cloud conversation with `conversation: threadId` and `store: true`. The Eve overlay has no `/api/chat` route: it sends `conversation: threadId` and `store: true` on each Responses call, and `useOpenuiCloudStorage()` reads that same conversation. It maps each Cloud `threadId` to an Eve session cursor in the browser. Vercel does not add a second store. Configure a LangGraph checkpointer separately only when the graph itself needs durable state, interrupts, or resumable runs.
+Every OpenUI Cloud variant uses OpenUI Cloud as its only durable conversation and artifact store. The browser connects directly through `useOpenuiCloudStorage()` with a short-lived frontend token, and `/api/chat` appends each turn to the same Cloud conversation with `conversation: threadId` and `store: true`. Vercel does not add a second store. Configure a LangGraph checkpointer separately only when the graph itself needs durable state, interrupts, or resumable runs.
 
 The self-hosted variants do not configure durable storage. `AgentInterface` keeps the conversation in memory for the current page session and sends that history to `/api/chat`; refreshing the page loses it. Pass a storage implementation to `AgentInterface` and back it with your own database when persistence is required; add a LangGraph checkpointer only for graph-specific durable state.
 
