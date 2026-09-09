@@ -4,6 +4,7 @@ const ENV_FLAGS = ["--env", "-e"] as const;
 const BUILD_ENV_FLAGS = ["--build-env", "-b"] as const;
 const ALL_ENV_FLAGS = [...ENV_FLAGS, ...BUILD_ENV_FLAGS] as const;
 
+/** Build `vercel` args: `--yes`, forwarded extras, and allowlisted `--env`/`--build-env`. */
 export function buildVercelDeployArgs(opts: {
   extraArgs: string[];
   yes: boolean;
@@ -26,10 +27,12 @@ export function buildVercelDeployArgs(opts: {
   return args;
 }
 
+/** Strip env assignments so verbose logs never print secret values. */
 export function publicVercelArgs(args: string[]): string[] {
   return args.filter((_, index) => !isVercelEnvFlag(args, index));
 }
 
+/** True if this argv slot is an `--env` / `--build-env` flag or its value. */
 export function isVercelEnvFlag(args: string[], index: number): boolean {
   const arg = args[index]!;
   if ((ALL_ENV_FLAGS as readonly string[]).includes(arg)) return true;
@@ -38,6 +41,7 @@ export function isVercelEnvFlag(args: string[], index: number): boolean {
   return prev !== undefined && (ALL_ENV_FLAGS as readonly string[]).includes(prev);
 }
 
+/** Collect env keys already present on the given flags so we do not duplicate them. */
 function envKeysInArgs(args: string[], flags: readonly string[]): Set<string> {
   const keys = new Set<string>();
   const flagSet = new Set(flags);
@@ -59,6 +63,7 @@ function envKeysInArgs(args: string[], flags: readonly string[]): Set<string> {
   return keys;
 }
 
+/** Prefix Vercel args with the quiet package-manager invocation (dlx/npx). */
 export function vercelSpawnArgs(invocation: CliInvocation, args: string[]): string[] {
   return [...invocation.quietPrefixArgs, ...args];
 }

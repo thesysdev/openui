@@ -1,13 +1,11 @@
 import { CliCancelledError } from "../telemetry";
 
+/** True when stdin/stdout are TTYs and `--no-interactive` was not passed. */
 export function canPromptInteractive(noInteractive = false): boolean {
   return Boolean(process.stdin.isTTY && process.stdout.isTTY) && !noInteractive;
 }
 
-/**
- * Confirm with a default of yes. `--yes` / `--no-interactive` / non-TTY skip
- * the prompt and return `true` (safe default for deploy happy paths).
- */
+/** Confirm with default yes; `--yes`, `--no-interactive`, and non-TTY skip the prompt. */
 export async function confirmOrDefault(
   message: string,
   opts: { yes?: boolean; noInteractive?: boolean; cancelStage: string },

@@ -13,11 +13,7 @@ type VercelEnvEntry = {
   target?: string[];
 };
 
-/**
- * Upserts allowlisted local env onto the linked Vercel project for any
- * missing targets. Never overwrites existing targets — secret values aren't
- * readable for a safe compare. Returns how many distinct keys were written.
- */
+/** Save missing allowlisted keys to the Vercel project without overwriting existing ones. */
 export async function syncLocalEnvToVercelProject(opts: {
   invocation: CliInvocation;
   projectDir: string;
@@ -89,6 +85,7 @@ export async function syncLocalEnvToVercelProject(opts: {
   return savedKeyNames.length;
 }
 
+/** Read project env via `vercel env list --json`, or null if that fails. */
 async function listVercelProjectEnv(
   invocation: CliInvocation,
   projectDir: string,
@@ -105,7 +102,7 @@ async function listVercelProjectEnv(
   return parsed.envs;
 }
 
-/** First JSON object in mixed CLI stdout/stderr. */
+/** Parse the first JSON object out of mixed CLI stdout/stderr. */
 function extractJsonObject(text: string): unknown | null {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
@@ -117,6 +114,7 @@ function extractJsonObject(text: string): unknown | null {
   }
 }
 
+/** Production/preview/development targets that do not already have this key. */
 function missingTargetsForKey(entries: VercelEnvEntry[], key: string): string[] {
   const present = new Set<string>();
   for (const entry of entries) {
@@ -126,6 +124,7 @@ function missingTargetsForKey(entries: VercelEnvEntry[], key: string): string[] 
   return PROJECT_ENV_TARGETS.filter((target) => !present.has(target));
 }
 
+/** Add one key to the given Vercel env targets; returns false if `vercel env add` fails. */
 async function addVercelProjectEnv(opts: {
   invocation: CliInvocation;
   projectDir: string;

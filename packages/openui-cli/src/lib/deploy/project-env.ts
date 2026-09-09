@@ -23,10 +23,12 @@ export const SENSITIVE_DEPLOY_ENV_KEYS = new Set([
   "LANGSMITH_API_KEY",
 ]);
 
+/** Load allowlisted keys from the project's `.env` / `.env.local`. */
 export function loadProjectDeployEnv(projectDir: string): Record<string, string> {
   return loadAllowlistedProjectEnv(projectDir, DEPLOY_ENV_ALLOWLIST);
 }
 
+/** Infer required API-key names from the project's dependencies. */
 export function detectRequiredDeployEnvNames(projectDir: string): string[] {
   const pkgPath = path.join(projectDir, "package.json");
   const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as {
@@ -39,6 +41,7 @@ export function detectRequiredDeployEnvNames(projectDir: string): string[] {
   return [];
 }
 
+/** Warn when a required key is missing locally and may also be missing on the platform. */
 export function warnMissingRequiredDeployEnv(
   projectDir: string,
   localEnv: Record<string, string>,

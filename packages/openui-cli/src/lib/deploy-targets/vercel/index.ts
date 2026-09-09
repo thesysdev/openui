@@ -1,9 +1,13 @@
 import { formatCliCommand, resolveCliInvocation } from "../../cli-bin";
 import { printLogTail } from "../../command-output";
-import { throwCommandFailure } from "../../deploy/failure";
-import { loadProjectDeployEnv, warnMissingRequiredDeployEnv } from "../../deploy/project-env";
-import { printQuietDeploySuccess, runQuietCommand } from "../../deploy/quiet";
-import type { DeployTargetOptions } from "../../deploy/types";
+import type { DeployTargetOptions } from "../../deploy";
+import {
+  loadProjectDeployEnv,
+  printQuietDeploySuccess,
+  runQuietCommand,
+  throwCommandFailure,
+  warnMissingRequiredDeployEnv,
+} from "../../deploy";
 import { resolveInstallPackageManager } from "../../detect-package-manager";
 import { mutedNpmEnv, runCommand } from "../../process-runner";
 import { telemetry } from "../../telemetry";
@@ -18,9 +22,8 @@ import {
 import { syncLocalEnvToVercelProject } from "./project-env";
 import { extractVercelDeploymentSummary } from "./summary";
 
-export type DeployToVercelOptions = DeployTargetOptions;
-
-export async function deployToVercel(opts: DeployToVercelOptions): Promise<void> {
+/** Login, link, optionally save env, then run `vercel` deploy. */
+export async function deployToVercel(opts: DeployTargetOptions): Promise<void> {
   const t0 = Date.now();
   const packageManager = resolveInstallPackageManager();
   const fileEnv = loadProjectDeployEnv(opts.projectDir);

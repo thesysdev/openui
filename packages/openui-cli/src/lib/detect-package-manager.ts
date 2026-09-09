@@ -5,17 +5,42 @@ export interface PackageManager {
   installCmd: string;
   installArgs: string[];
   runCmd: string;
+  dlxCmd: string;
+  quietArgs: string[];
 }
 
 const PACKAGE_MANAGERS: Record<PackageManagerName, PackageManager> = {
-  pnpm: { name: "pnpm", installCmd: "pnpm install", installArgs: ["install"], runCmd: "pnpm" },
-  yarn: { name: "yarn", installCmd: "yarn", installArgs: [], runCmd: "yarn" },
-  bun: { name: "bun", installCmd: "bun install", installArgs: ["install"], runCmd: "bun" },
+  pnpm: {
+    name: "pnpm",
+    installCmd: "pnpm install",
+    installArgs: ["install"],
+    runCmd: "pnpm",
+    dlxCmd: "pnpm dlx",
+    quietArgs: ["--reporter=silent"],
+  },
+  yarn: {
+    name: "yarn",
+    installCmd: "yarn",
+    installArgs: [],
+    runCmd: "yarn",
+    dlxCmd: "yarn dlx",
+    quietArgs: ["--quiet"],
+  },
+  bun: {
+    name: "bun",
+    installCmd: "bun install",
+    installArgs: ["install"],
+    runCmd: "bun",
+    dlxCmd: "bunx",
+    quietArgs: ["--silent"],
+  },
   npm: {
     name: "npm",
     installCmd: "npm ci --prefer-offline --no-audit --no-fund --progress=false",
     installArgs: ["ci", "--prefer-offline", "--no-audit", "--no-fund", "--progress=false"],
     runCmd: "npm",
+    dlxCmd: "npx",
+    quietArgs: ["--yes", "--quiet"],
   },
 };
 
@@ -38,26 +63,5 @@ export function resolveDlxInvocation(
   packageManager: PackageManager,
   pkg: string,
 ): { command: string; args: string[]; quietArgs: string[] } {
-  switch (packageManager.name) {
-    case "pnpm":
-      return {
-        command: "pnpm",
-        args: ["dlx", pkg],
-        quietArgs: ["--reporter=silent", "dlx", pkg],
-      };
-    case "yarn":
-      return {
-        command: "yarn",
-        args: ["dlx", pkg],
-        quietArgs: ["dlx", "--quiet", pkg],
-      };
-    case "bun":
-      return { command: "bunx", args: [pkg], quietArgs: ["--silent", pkg] };
-    default:
-      return {
-        command: "npx",
-        args: ["--yes", pkg],
-        quietArgs: ["--yes", "--quiet", pkg],
-      };
-  }
+  return { command: packageManager.dlxCmd, args: [pkg], quietArgs: packageManager.quietArgs };
 }

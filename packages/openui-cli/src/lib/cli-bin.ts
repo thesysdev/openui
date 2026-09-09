@@ -16,10 +16,7 @@ export type CliInvocation = {
   source: "local" | "path" | "dlx";
 };
 
-/**
- * Resolve `bin` from local node_modules, PATH, or the active package manager's dlx.
- * Shared by deploy targets (Vercel today; other platform CLIs later).
- */
+/** Resolve `bin` from local node_modules, PATH, or the package manager's dlx. */
 export function resolveCliInvocation(
   projectDir: string,
   bin: string,
@@ -40,6 +37,7 @@ export function resolveCliInvocation(
   }
 
   const dlx = resolveDlxInvocation(packageManager, bin);
+
   return {
     command: dlx.command,
     prefixArgs: dlx.args,
@@ -48,6 +46,7 @@ export function resolveCliInvocation(
   };
 }
 
+/** Format a spawn invocation as a single command string for verbose logs. */
 export function formatCliCommand(invocation: CliInvocation, args: string[]): string {
   const binName = path.basename(invocation.command).replace(/\.cmd$/i, "");
   const head =
@@ -55,6 +54,7 @@ export function formatCliCommand(invocation: CliInvocation, args: string[]): str
   return [...head, ...args].join(" ");
 }
 
+/** Find an executable named `bin` on PATH. */
 function findExecutableOnPath(bin: string): string | undefined {
   const pathEnv = process.env["PATH"] ?? "";
   const extensions = process.platform === "win32" ? [".cmd", ".exe", ".bat", ""] : [""];

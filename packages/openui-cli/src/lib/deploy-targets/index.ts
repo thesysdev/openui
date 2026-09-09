@@ -1,6 +1,6 @@
 import type { DeployTarget, DeployTargetOptions } from "../deploy";
-import { deployToVercel } from "./vercel";
 import { CreateError } from "../telemetry";
+import { deployToVercel } from "./vercel";
 
 /** Dispatch to a platform adapter (Vercel today). */
 export async function deployToTarget(

@@ -10,10 +10,12 @@ import { withSpinner } from "../../spinner";
 import { CreateError } from "../../telemetry";
 import { vercelSpawnArgs } from "./args";
 
+/** True when `.vercel/project.json` exists in the project. */
 export function isVercelLinked(projectDir: string): boolean {
   return fs.existsSync(path.join(projectDir, ".vercel", "project.json"));
 }
 
+/** Ensure the Vercel CLI is runnable, installing via dlx when needed. */
 export async function prepareVercelCli(invocation: CliInvocation, cwd: string): Promise<void> {
   const preparing = invocation.source === "dlx";
   const runVersion = () =>
@@ -39,6 +41,7 @@ export async function prepareVercelCli(invocation: CliInvocation, cwd: string): 
   );
 }
 
+/** Probe login with a non-interactive `vercel whoami`. */
 export async function isVercelLoggedIn(invocation: CliInvocation, cwd: string): Promise<boolean> {
   const result = await runCommand(
     invocation.command,
@@ -49,6 +52,7 @@ export async function isVercelLoggedIn(invocation: CliInvocation, cwd: string): 
   return !result.error && result.status === 0;
 }
 
+/** Run interactive `vercel login`, or fail if there is no TTY. */
 export async function loginToVercel(
   invocation: CliInvocation,
   opts: Pick<DeployTargetOptions, "projectDir" | "noInteractive">,
@@ -73,6 +77,7 @@ export async function loginToVercel(
   throwCommandFailure(result, "vercel_login", "Vercel login failed");
 }
 
+/** Link the directory to a Vercel project (`vercel link`, `--yes` when skipping prompts). */
 export async function linkVercelProject(
   invocation: CliInvocation,
   opts: Pick<DeployTargetOptions, "projectDir" | "yes" | "noInteractive">,

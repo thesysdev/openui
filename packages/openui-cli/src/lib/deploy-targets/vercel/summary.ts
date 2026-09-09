@@ -1,6 +1,6 @@
 import type { DeploySuccessSummary } from "../../deploy/quiet";
 
-/** Parse deployment URL / inspect link from captured `vercel` CLI output. */
+/** Parse deployment URL and inspect link from captured `vercel` CLI output. */
 export function extractVercelDeploymentSummary(log: string): DeploySuccessSummary {
   return {
     url:
@@ -11,6 +11,7 @@ export function extractVercelDeploymentSummary(log: string): DeploySuccessSummar
   };
 }
 
+/** Return the first capture group, if the pattern matches. */
 function firstMatch(text: string, pattern: RegExp): string | undefined {
   return text.match(pattern)?.[1];
 }

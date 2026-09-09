@@ -2,6 +2,7 @@ import type { CommandResult } from "../process-runner";
 import { CliCancelledError, CreateError } from "../telemetry";
 import { processErrorProperties } from "../utils";
 
+/** Throw a typed CLI error (or cancellation) from a failed child process. */
 export function throwCommandFailure(result: CommandResult, stage: string, message: string): never {
   const properties = processErrorProperties(result, stage, {
     error_class: "process",
