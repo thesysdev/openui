@@ -27,8 +27,9 @@ Berlin?" to exercise the included Eve tool.
 
 OpenUI Cloud is the durable conversation store, wired the same way as the other
 Cloud scaffolds: `useOpenuiCloudStorage()` with a short-lived token from
-`/api/frontend-token`. Each Eve turn appends to that conversation with
-`conversation: threadId` and `store: true`.
+`/api/frontend-token` and `features: { artifact: false }`. Each Eve turn
+appends to that conversation with `conversation: threadId` and `store: true`.
+Provider-executed artifact and search tools are not attached.
 
 ## Switching models
 

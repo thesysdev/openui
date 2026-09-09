@@ -137,7 +137,7 @@ Every framework overlay includes `get_weather` as its example app-owned function
 
 #### Conversation storage
 
-Every OpenUI Cloud variant uses OpenUI Cloud as its only durable conversation and artifact store. The browser connects directly through `useOpenuiCloudStorage()` with a short-lived frontend token, and `/api/chat` appends each turn to the same Cloud conversation with `conversation: threadId` and `store: true`. Vercel does not add a second store. Configure a LangGraph checkpointer separately only when the graph itself needs durable state, interrupts, or resumable runs.
+Every OpenUI Cloud variant uses OpenUI Cloud as its durable conversation store. The browser connects directly through `useOpenuiCloudStorage()` with a short-lived frontend token. Default, LangGraph, and Vercel AI SDK routes append each turn via `/api/chat` with `conversation: threadId` and `store: true`. The Eve Cloud overlay uses the same Cloud thread store (`features: { artifact: false }`) and appends Responses turns with `conversation: threadId` and `store: true`; it does not use `/api/chat`. Vercel does not add a second store. Configure a LangGraph checkpointer separately only when the graph itself needs durable state, interrupts, or resumable runs.
 
 The self-hosted variants do not configure durable storage. `AgentInterface` keeps the conversation in memory for the current page session and sends that history to `/api/chat`; refreshing the page loses it. Pass a storage implementation to `AgentInterface` and back it with your own database when persistence is required; add a LangGraph checkpointer only for graph-specific durable state.
 
