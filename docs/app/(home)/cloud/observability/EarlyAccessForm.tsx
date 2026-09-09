@@ -98,7 +98,9 @@ export function EarlyAccessForm() {
           disabled={status === "pending"}
         >
           <span className={styles.emailSubmitText}>Join waitlist</span>
-          <ArrowRight className={styles.emailSubmitIcon} size={16} weight="bold" />
+          <span className={styles.emailSubmitBadge} aria-hidden="true">
+            <ArrowRight className={styles.emailSubmitIcon} size={16} weight="bold" />
+          </span>
         </button>
       </form>
 
