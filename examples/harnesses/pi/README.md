@@ -15,7 +15,7 @@ launch — see **Security** below.
 ```
  Browser (src/app/page.tsx)
    AgentInterface   ──POST /api/chat ({ messages, threadId })──►  route.ts (runtime=nodejs)
-   + chatLibrary                                                                │
+   + openuiLibrary                                                              │
    renderer  ◄──NDJSON OpenAI chunks (delta.content = OpenUI Lang)───────────────┤
                                                                            ▼
                                                           src/lib/pi-session.ts
@@ -23,7 +23,7 @@ launch — see **Security** below.
                                                                            │
                                           createAgentSession({
                                             model: OpenUI Cloud Completions,
-                                            appendSystemPrompt: generateSystemPrompt()
+                                            appendSystemPrompt: cloudInstructions()
                                           })
                                                                            │
                                           session.subscribe() → text/thinking/tool events
@@ -35,9 +35,9 @@ launch — see **Security** below.
 - **Transport:** the frontend's `openAIReadableStreamAdapter()` parses **NDJSON** OpenAI
   `chat.completion.chunk`s (one JSON object per line). The route translates pi's `text_delta`
   events into `delta.content`, and pi's reasoning + tool executions into `delta.tool_calls`.
-- **System prompt:** `generateSystemPrompt()` from `@openuidev/thesys-server` is injected into
-  Pi via `DefaultResourceLoader({ appendSystemPrompt: [...] })`. Cloud compiles that sentinel
-  into the chat-library prompt, so it matches `chatLibrary` on the client.
+- **System prompt:** `pnpm generate` writes `src/generated/spec.json` from `openuiLibrary`.
+  `cloudInstructions()` reads that spec and passes it to `generateSystemPrompt({ cloud: true, library })`
+  from `@openuidev/lang-core`, so the Cloud prompt matches `openuiLibrary` on the client.
 - **Model:** Pi calls OpenUI Cloud Chat Completions (`https://api.thesys.dev/v1/embed`) with
   `THESYS_API_KEY`. The default model is `google/gemini-3.6-flash-free`.
 - **Sessions:** each chat thread (a stable `threadId` from `fetchLLM`) maps to

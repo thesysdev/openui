@@ -1,6 +1,9 @@
+"use client";
+
+import { Button } from "@/components/button";
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
-import { Button } from "@/components/button";
+import { type ReactNode } from "react";
 import { CloudCodeBlock } from "./CloudCodeBlock";
 import styles from "./CloudIntegrationSection.module.css";
 
@@ -44,50 +47,108 @@ const CUSTOMERS = [
   },
 ] as const;
 
+export type CloudIntegrationStep = {
+  title: string;
+  description: string;
+  href?: string;
+};
+
+export function CloudIntegrationSetup({
+  title,
+  titleId,
+  description,
+  steps,
+  code,
+  codeLabel,
+  action,
+  highlightLines,
+  dimUnchanged = false,
+  titleSize = "default",
+}: {
+  title: ReactNode;
+  titleId?: string;
+  description?: ReactNode;
+  steps: CloudIntegrationStep[];
+  code: string;
+  codeLabel: string;
+  action?: { label: string; href: string };
+  highlightLines?: number[];
+  dimUnchanged?: boolean;
+  titleSize?: "default" | "medium";
+}) {
+  return (
+    <div className={styles.inner}>
+      <div className={styles.content}>
+        <div className={styles.intro}>
+          <h2 id={titleId} className={styles.title} data-size={titleSize}>
+            {title}
+          </h2>
+          {description ? <p className={styles.description}>{description}</p> : null}
+        </div>
+        <ol className={styles.stepper} aria-label={codeLabel}>
+          {steps.map((step, index) => (
+            <li className={styles.step} key={step.title}>
+              <span className={styles.stepMarker}>{index + 1}</span>
+              <div className={styles.stepContent}>
+                {step.href ? (
+                  <a className={styles.stepLink} href={step.href} target="_blank" rel="noreferrer">
+                    {step.title}
+                    <ArrowUpRight size={16} strokeWidth={2} aria-hidden="true" />
+                  </a>
+                ) : (
+                  <span className={styles.stepTitle}>{step.title}</span>
+                )}
+                <p className={styles.stepDescription}>{step.description}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        {action ? (
+          <div className={styles.integrationAction}>
+            <Button href={action.href} text={action.label} variant="tertiary" />
+          </div>
+        ) : null}
+      </div>
+
+      <div
+        className={styles.codeColumn}
+        id={`${titleId ?? "cloud-integration"}-code`}
+        aria-label={codeLabel}
+      >
+        <CloudCodeBlock code={code} highlightLines={highlightLines} dimUnchanged={dimUnchanged} />
+      </div>
+    </div>
+  );
+}
+
 export function CloudIntegrationSection() {
+  const steps: CloudIntegrationStep[] = [
+    {
+      title: "Generate an API Key",
+      description: "Create a Cloud API key from the OpenUI console.",
+      href: "https://console.thesys.dev/keys",
+    },
+    {
+      title: "Update your base URL",
+      description: "Point your OpenAI-compatible client to the OpenUI Cloud endpoint.",
+    },
+  ];
+
   return (
     <section className={styles.section} aria-labelledby="cloud-integration-title">
-      <div className={styles.inner}>
-        <div className={styles.content}>
-          <h2 id="cloud-integration-title" className={styles.title}>
+      <CloudIntegrationSetup
+        title={
+          <>
             Switch to OpenUI <span className={styles.cloudTag}>Cloud</span>
             <br />
             in seconds
-          </h2>
-          <ol className={styles.stepper} aria-label="Upgrade to OpenUI Cloud">
-            <li className={styles.step}>
-              <span className={styles.stepMarker}>1</span>
-              <div className={styles.stepContent}>
-                <a
-                  className={styles.stepLink}
-                  href="https://console.thesys.dev/keys"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Generate an API Key
-                  <ArrowUpRight size={16} strokeWidth={2} aria-hidden="true" />
-                </a>
-                <p className={styles.stepDescription}>
-                  Create a Cloud API key from the OpenUI console.
-                </p>
-              </div>
-            </li>
-            <li className={styles.step}>
-              <span className={styles.stepMarker}>2</span>
-              <div className={styles.stepContent}>
-                <span className={styles.stepTitle}>Update your base URL</span>
-                <p className={styles.stepDescription}>
-                  Point your OpenAI-compatible client to the OpenUI Cloud endpoint.
-                </p>
-              </div>
-            </li>
-          </ol>
-        </div>
-
-        <div className={styles.codeColumn} aria-label="OpenUI Cloud client configuration">
-          <CloudCodeBlock code={CLIENT_EXAMPLE} />
-        </div>
-      </div>
+          </>
+        }
+        titleId="cloud-integration-title"
+        steps={steps}
+        code={CLIENT_EXAMPLE}
+        codeLabel="Upgrade to OpenUI Cloud"
+      />
 
       <div className={styles.customers}>
         <h2 className={styles.customersTitle}>

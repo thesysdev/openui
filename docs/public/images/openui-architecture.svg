@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1600 650"
+  role="img"
+  aria-labelledby="openui-architecture-title openui-architecture-description"
+>
+  <title id="openui-architecture-title">How OpenUI turns a request into an interactive interface</title>
+  <desc id="openui-architecture-description">
+    A user request travels from an application to its backend, through OpenUI Gateway, and to a model provider. The corrected OpenUI Lang stream returns to a renderer, which displays the generated interface. Observability traces the flow.
+  </desc>
+
+  <defs>
+    <linearGradient id="openui-architecture-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#020303" />
+      <stop offset="0.55" stop-color="#080a0a" />
+      <stop offset="1" stop-color="#030404" />
+    </linearGradient>
+    <radialGradient id="openui-architecture-glow" cx="0.76" cy="0.3" r="0.7">
+      <stop offset="0" stop-color="#38bdf8" stop-opacity="0.08" />
+      <stop offset="0.5" stop-color="#8b5cf6" stop-opacity="0.035" />
+      <stop offset="1" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="openui-architecture-card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#242626" stop-opacity="0.9" />
+      <stop offset="1" stop-color="#111313" stop-opacity="0.96" />
+    </linearGradient>
+    <linearGradient id="openui-architecture-phone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#171919" stop-opacity="0.74" />
+      <stop offset="1" stop-color="#090a0a" stop-opacity="0.88" />
+    </linearGradient>
+    <filter id="openui-architecture-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#000000" flood-opacity="0.55" />
+    </filter>
+    <filter id="openui-architecture-soft-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="openui-architecture-logo-light" color-interpolation-filters="sRGB">
+      <feFlood flood-color="#e5e7eb" result="logo-color" />
+      <feComposite in="logo-color" in2="SourceAlpha" operator="in" />
+    </filter>
+    <marker id="openui-architecture-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b9292" />
+    </marker>
+  </defs>
+
+  <rect width="1600" height="650" rx="24" fill="url(#openui-architecture-bg)" />
+  <rect width="1600" height="650" rx="24" fill="url(#openui-architecture-glow)" />
+
+  <g font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <g filter="url(#openui-architecture-shadow)">
+      <rect x="35" y="42" width="365" height="565" rx="58" fill="url(#openui-architecture-phone)" stroke="#3f4444" stroke-width="2" vector-effect="non-scaling-stroke" />
+      <rect x="48" y="55" width="339" height="539" rx="49" fill="none" stroke="#272b2b" stroke-width="1" vector-effect="non-scaling-stroke" />
+      <rect x="170" y="68" width="94" height="26" rx="13" fill="#242727" />
+
+      <text x="70" y="135" fill="#c8cccc" font-size="24">What did I spend last month?</text>
+
+      <rect x="68" y="165" width="305" height="380" rx="26" fill="url(#openui-architecture-card)" stroke="#333737" stroke-width="1" vector-effect="non-scaling-stroke" />
+      <text x="92" y="205" fill="#8f9696" font-size="22">Total expenses</text>
+      <text x="92" y="247" fill="#f4f7f7" font-size="36" font-weight="600">$5,432</text>
+
+      <rect x="94" y="275" width="253" height="240" rx="20" fill="#0d0f0f" stroke="#262929" stroke-width="1" vector-effect="non-scaling-stroke" />
+      <g transform="rotate(-90 220 388)" filter="url(#openui-architecture-soft-glow)">
+        <circle cx="220" cy="388" r="66" fill="none" stroke="#7c3aed" stroke-width="62" pathLength="100" stroke-dasharray="30 70" strokeDashoffset="0" />
+        <circle cx="220" cy="388" r="66" fill="none" stroke="#06b6d4" stroke-width="62" pathLength="100" stroke-dasharray="23 77" strokeDashoffset="-30" />
+        <circle cx="220" cy="388" r="66" fill="none" stroke="#3b82f6" stroke-width="62" pathLength="100" stroke-dasharray="18 82" strokeDashoffset="-53" />
+        <circle cx="220" cy="388" r="66" fill="none" stroke="#a855f7" stroke-width="62" pathLength="100" stroke-dasharray="14 86" strokeDashoffset="-71" />
+        <circle cx="220" cy="388" r="66" fill="none" stroke="#84cc16" stroke-width="62" pathLength="100" stroke-dasharray="15 85" strokeDashoffset="-85" />
+      </g>
+      <circle cx="220" cy="388" r="34" fill="#111313" />
+      <text x="220" y="383" text-anchor="middle" fill="#cfd4d4" font-size="18" font-weight="600">Monthly</text>
+      <text x="220" y="407" text-anchor="middle" fill="#8d9494" font-size="16">expenses</text>
+      <text x="120" y="490" fill="#737b7b" font-size="17">Food</text>
+      <text x="204" y="490" fill="#737b7b" font-size="17">Travel</text>
+      <text x="292" y="490" fill="#737b7b" font-size="17">Rent</text>
+    </g>
+
+    <g stroke="#757d7d" stroke-width="1.5" fill="none" vector-effect="non-scaling-stroke">
+      <path d="M 387 135 H 600" markerEnd="url(#openui-architecture-arrow)" />
+      <path d="M 770 175 H 900" markerEnd="url(#openui-architecture-arrow)" />
+      <path d="M 1150 175 H 1260" markerStart="url(#openui-architecture-arrow)" markerEnd="url(#openui-architecture-arrow)" />
+      <path d="M 1410 265 V 300" markerEnd="url(#openui-architecture-arrow)" />
+      <path d="M 1200 420 H 770" markerEnd="url(#openui-architecture-arrow)" />
+      <path d="M 685 460 V 540" markerEnd="url(#openui-architecture-arrow)" />
+      <path d="M 540 575 H 400" markerEnd="url(#openui-architecture-arrow)" />
+    </g>
+
+    <g>
+      <rect x="455" y="111" width="120" height="42" rx="21" fill="#222626" stroke="#343a3a" vector-effect="non-scaling-stroke" />
+      <text x="515" y="139" text-anchor="middle" fill="#b1b7b7" font-size="20">User query</text>
+    </g>
+
+    <g filter="url(#openui-architecture-shadow)">
+      <rect x="600" y="130" width="170" height="330" rx="22" fill="url(#openui-architecture-card)" stroke="#3a4040" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+      <text x="625" y="175" fill="#f1f4f4" font-size="30" font-weight="500">Backend</text>
+      <text x="625" y="210" fill="#858d8d" font-size="22">Data and logic</text>
+      <rect x="652" y="405" width="46" height="11" rx="5.5" fill="#7f8787" />
+      <rect x="652" y="425" width="46" height="11" rx="5.5" fill="#525959" />
+    </g>
+
+    <g filter="url(#openui-architecture-shadow)">
+      <rect x="900" y="125" width="250" height="145" rx="22" fill="url(#openui-architecture-card)" stroke="#54505f" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+      <text x="925" y="170" fill="#d8d3ff" font-size="30" font-weight="600">Gateway</text>
+      <text x="925" y="207" fill="#9993ae" font-size="20">Route and failover</text>
+      <text x="925" y="239" fill="#9993ae" font-size="20">Correct model output</text>
+    </g>
+
+    <g filter="url(#openui-architecture-shadow)">
+      <rect x="1260" y="60" width="300" height="205" rx="26" fill="url(#openui-architecture-card)" stroke="#404545" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+      <rect x="1278" y="78" width="264" height="169" rx="19" fill="none" stroke="#343939" stroke-width="1" vector-effect="non-scaling-stroke" />
+      <text x="1295" y="120" fill="#f1f3f3" font-size="30" font-weight="500">Model providers</text>
+      <text x="1295" y="155" fill="#858c8c" font-size="20">Models across providers</text>
+      <image href="/brand-icons/openai.svg" x="1292" y="188" width="36" height="36" filter="url(#openui-architecture-logo-light)" aria-label="OpenAI" />
+      <image href="/brand-icons/anthropic.svg" x="1350" y="188" width="36" height="36" filter="url(#openui-architecture-logo-light)" aria-label="Anthropic" />
+      <image href="/brand-icons/gemini.svg" x="1408" y="188" width="36" height="36" filter="url(#openui-architecture-logo-light)" aria-label="Google Gemini" />
+      <image href="/brand-icons/meta.svg" x="1466" y="188" width="36" height="36" filter="url(#openui-architecture-logo-light)" aria-label="Meta" />
+    </g>
+
+    <text x="835" y="130" text-anchor="middle" fill="#a7adad" font-size="20">Components</text>
+    <text x="835" y="156" text-anchor="middle" fill="#a7adad" font-size="20">and context</text>
+    <text x="1205" y="130" text-anchor="middle" fill="#a7adad" font-size="20">Route</text>
+    <text x="1205" y="156" text-anchor="middle" fill="#a7adad" font-size="20">and failover</text>
+
+    <g filter="url(#openui-architecture-shadow)">
+      <rect x="1200" y="300" width="360" height="250" rx="28" fill="url(#openui-architecture-card)" stroke="#48404f" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+      <rect x="1220" y="320" width="320" height="210" rx="20" fill="none" stroke="#3c3541" stroke-width="1" vector-effect="non-scaling-stroke" />
+      <text x="1245" y="365" fill="#f1eafb" font-size="32" font-weight="500">OpenUI Lang</text>
+      <text x="1245" y="402" fill="#94899d" font-size="22">Compact interface format</text>
+      <text x="1245" y="458" fill="#a89dae" font-size="24" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">root = Stack(...)</text>
+      <text x="1245" y="496" fill="#807785" font-size="24" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">chart = PieChart(...)</text>
+    </g>
+
+    <text x="1015" y="365" text-anchor="middle" fill="#c1b8c8" font-size="22">Corrected OpenUI Lang stream</text>
+    <text x="1015" y="393" text-anchor="middle" fill="#827a88" font-size="19">compact and stream-friendly</text>
+
+    <g filter="url(#openui-architecture-shadow)">
+      <rect x="540" y="540" width="300" height="70" rx="18" fill="url(#openui-architecture-card)" stroke="#3f5b5d" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+      <text x="690" y="584" text-anchor="middle" fill="#bcecf0" font-size="26" font-weight="500">OpenUI Lang renderer</text>
+    </g>
+
+    <g>
+      <path d="M 890 590 H 1570" stroke="#fb7185" stroke-opacity="0.38" stroke-width="1.5" stroke-dasharray="5 7" fill="none" vector-effect="non-scaling-stroke" />
+      <rect x="1010" y="555" width="220" height="70" rx="18" fill="#fb7185" fill-opacity="0.1" stroke="#fb7185" stroke-opacity="0.45" vector-effect="non-scaling-stroke" />
+      <text x="1120" y="599" text-anchor="middle" fill="#fda4af" font-size="24" font-weight="500">Observability</text>
+    </g>
+  </g>
+</svg>

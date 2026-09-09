@@ -1,0 +1,348 @@
+.diagram {
+  --trace-surface: color-mix(in srgb, var(--openui-text-neutral-primary) 4%, transparent);
+  --trace-surface-strong: color-mix(in srgb, var(--openui-text-neutral-primary) 6%, transparent);
+  --trace-border: color-mix(in srgb, var(--openui-text-neutral-primary) 10%, transparent);
+
+  margin: 0;
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--home-font-text);
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
+}
+
+.conversation {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.message {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.avatar {
+  display: flex;
+  flex-shrink: 0;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--trace-border);
+  background: var(--trace-surface);
+}
+
+.avatar img {
+  object-fit: cover;
+}
+
+.agentAvatar {
+  border: 1px solid var(--openui-border-default);
+  background: var(--home-surface-ink);
+}
+
+.bubble {
+  flex: 1;
+  min-width: 0;
+  min-height: 56px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 14px 18px;
+  border: 1px solid var(--trace-border);
+  border-radius: 16px;
+  background: var(--trace-surface);
+}
+
+.bubble strong {
+  font-weight: 600;
+}
+
+.agentBubble {
+  background: var(--trace-surface-strong);
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  right: -35px;
+  color: var(--openui-text-neutral-secondary);
+  transform: translateY(-50%);
+}
+
+/* The same response is read two ways: technical completion on the left,
+   the unresolved user outcome on the right. The status badges make the
+   contradiction legible before the viewer reads any row copy. */
+.comparison {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  margin-top: 56px;
+}
+
+.panel {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 24px 28px;
+  border: 1px solid var(--trace-border);
+  border-radius: 20px;
+  background: var(--trace-surface);
+}
+
+.outcomePanel {
+  border-color: var(--trace-border);
+  background: #fff;
+}
+
+:global(.dark) .outcomePanel,
+:global([data-theme="dark"]) .outcomePanel {
+  background: var(--trace-surface);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 64px;
+}
+
+.panelHeader > div {
+  min-width: 0;
+}
+
+.panelLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--home-font-mono);
+  font-size: var(--home-label-size);
+  font-weight: var(--home-label-weight);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.panelHeader h3 {
+  max-width: 18ch;
+  margin: 0;
+  font-family: var(--home-font-display);
+  font-size: var(--home-heading-size);
+  font-weight: var(--home-heading-weight);
+  line-height: var(--home-heading-leading);
+  letter-spacing: var(--home-heading-tracking);
+  text-wrap: balance;
+}
+
+.resultBadge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: #fff;
+  font-family: var(--home-font-text);
+  font-size: var(--home-label-size);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.passedBadge {
+  background: #049156;
+}
+
+.failedBadge {
+  background: #b91c1c;
+}
+
+.checklist {
+  display: grid;
+  grid-template-rows: repeat(3, minmax(min-content, 1fr));
+  flex: 1;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding-block: 14px;
+  border-top: 1px solid var(--home-hairline);
+}
+
+.checkCopy {
+  flex: 1;
+  min-width: 0;
+}
+
+.checkCopy > span {
+  display: block;
+  margin-bottom: 3px;
+  font-family: var(--home-font-display);
+  font-weight: var(--home-heading-weight);
+}
+
+.checkCopy p {
+  margin: 0;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.statusIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.failure {
+  color: var(--openui-text-danger-primary);
+  border-color: color-mix(in srgb, #b91c1c 20%, transparent);
+  background: color-mix(in srgb, #b91c1c 6%, var(--trace-surface));
+}
+
+.notEqual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--openui-text-neutral-primary);
+}
+
+.notEqual::before,
+.notEqual::after {
+  position: absolute;
+  left: 50%;
+  width: 1px;
+  height: calc(50% - 34px);
+  background: var(--home-hairline);
+  content: "";
+}
+
+.notEqual::before {
+  top: 0;
+}
+
+.notEqual::after {
+  bottom: 0;
+}
+
+.notEqual svg {
+  position: relative;
+  z-index: 1;
+  box-sizing: content-box;
+  padding: 12px;
+  border: 1px solid var(--trace-border);
+  border-radius: 50%;
+  background: var(--openui-background);
+}
+
+@media (max-width: 1023px) {
+  .conversation {
+    gap: 32px;
+  }
+
+  .bubble {
+    padding: 12px 16px;
+  }
+
+  .arrow {
+    right: -27px;
+  }
+
+  .comparison {
+    grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .panel {
+    padding: 24px 20px 28px;
+  }
+
+  .panelHeader {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .conversation {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .arrow {
+    top: auto;
+    right: auto;
+    bottom: -27px;
+    left: calc(50% - 10px);
+    transform: rotate(90deg);
+  }
+
+  .comparison {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    margin-top: 48px;
+  }
+
+  .panel {
+    gap: 24px;
+    padding: 20px;
+  }
+
+  .panelHeader {
+    min-height: 0;
+  }
+
+  .notEqual {
+    height: 52px;
+  }
+
+  .notEqual::before,
+  .notEqual::after {
+    top: 50%;
+    width: calc(50% - 34px);
+    height: 1px;
+  }
+
+  .notEqual::before {
+    right: auto;
+    left: 0;
+  }
+
+  .notEqual::after {
+    right: 0;
+    left: auto;
+  }
+
+  .notEqual svg {
+    width: 24px;
+    height: 24px;
+    padding: 10px;
+  }
+
+  .checklist {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .checklist li {
+    padding-block: 16px;
+  }
+}

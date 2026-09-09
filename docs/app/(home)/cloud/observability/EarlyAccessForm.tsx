@@ -8,7 +8,7 @@ import styles from "./page.module.css";
    twice, short enough that it is gone by the time you scroll. */
 const NOTICE_MS = 4000;
 
-const SUCCESS = "We have added you to the Waitlist.";
+const SUCCESS = "You’re on the waitlist.";
 const OFFLINE = "Could not reach the server. Please try again.";
 const FALLBACK = "Something went wrong. Please try again.";
 
@@ -26,7 +26,6 @@ export function EarlyAccessForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState(SUCCESS);
   const timer = useRef<number | null>(null);
-  const typing = email.trim().length > 0;
   const notice = status === "done" || status === "error";
 
   /* A pending dismissal must not outlive the component. */
@@ -86,26 +85,20 @@ export function EarlyAccessForm() {
           name="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          placeholder="Enter Work Email"
+          placeholder="Enter your work email"
           autoComplete="email"
           required
         />
-        {/* Both children stay mounted so the swap can be animated: the arrow
-            cross-fades out while the label's track opens from 0fr to 1fr, which
-            is the one way to transition to an intrinsic width. CSS picks the
-            state, so it can key off viewport as well as typing. */}
         <button
-          className={`${styles.emailSubmit} ${typing ? styles.emailSubmitLabelled : ""}`.trim()}
+          className={styles.emailSubmit}
           type="submit"
-          aria-label="Get Early Access"
+          aria-label="Join waitlist"
           /* Guards the double-submit; the label does not change, so the control
              keeps its width while the request is in flight. */
           disabled={status === "pending"}
         >
-          <ArrowRight className={styles.emailSubmitIcon} size={18} weight="bold" />
-          <span className={styles.emailSubmitLabel} aria-hidden={!typing}>
-            <span className={styles.emailSubmitText}>Get Early Access</span>
-          </span>
+          <span className={styles.emailSubmitText}>Join waitlist</span>
+          <ArrowRight className={styles.emailSubmitIcon} size={16} weight="bold" />
         </button>
       </form>
 

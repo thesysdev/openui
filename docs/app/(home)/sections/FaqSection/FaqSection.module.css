@@ -1,0 +1,220 @@
+/* Colour through tokens so the one set of rules serves both themes. */
+.section {
+  --faq-text: var(--openui-text-neutral-primary);
+  --faq-muted: var(--openui-text-neutral-secondary);
+  --faq-surface: #fff;
+  --faq-border: rgba(10, 10, 10, 0.035);
+
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: start;
+  gap: clamp(2rem, 5vw, 5rem);
+  /* On top of the content shell's own gap: the FAQ closes the page and wants
+     more separation from the wall of tweets above it. */
+  margin-top: clamp(3rem, 6vw, 5.5rem);
+  width: 100%;
+  max-width: var(--home-container-max);
+  margin-inline: auto;
+  color: var(--faq-text);
+}
+
+[data-theme="dark"] .section {
+  --faq-surface: rgba(255, 255, 255, 0.042);
+  --faq-border: rgba(255, 255, 255, 0.04);
+}
+
+/* ---- Left column ---- */
+.lead {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  /* Holds beside the list while it scrolls on tall viewports. */
+  position: sticky;
+  top: 7rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--home-font-display);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: var(--home-title-weight);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.note {
+  max-width: 26ch;
+  margin: 0;
+  font-family: var(--home-font-text);
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--faq-muted);
+  text-wrap: pretty;
+}
+
+.noteLink,
+.note a {
+  color: var(--faq-text);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.noteLink:hover,
+.note a:hover {
+  opacity: 0.7;
+}
+
+/* ---- Right column ---- */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.item {
+  --faq-card-padding-block: clamp(1rem, 1.6vw, 1.5rem);
+  --faq-card-padding-inline: clamp(1.125rem, 1.8vw, 1.75rem);
+
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--faq-border);
+  border-radius: 16px;
+  background: var(--faq-surface);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.item:hover,
+.item:focus-within {
+  border-color: var(--openui-border-interactive);
+}
+
+.item:active {
+  transform: translateY(1px);
+}
+
+.question {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--faq-card-padding-block) var(--faq-card-padding-inline);
+  cursor: pointer;
+  list-style: none;
+  transition: color 180ms ease;
+}
+
+.item[open] .question {
+  padding-bottom: 0.75rem;
+}
+
+/* Safari draws its own triangle without this. */
+.question::-webkit-details-marker {
+  display: none;
+}
+
+.questionText {
+  font-family: var(--home-font-display);
+  font-size: clamp(1rem, 1.3vw, 1.125rem);
+  font-weight: var(--home-heading-weight);
+  line-height: 1.4;
+  letter-spacing: var(--home-heading-tracking);
+  text-wrap: pretty;
+}
+
+/* ---- Plus / minus ---- */
+.marker {
+  position: relative;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  /* Nudged onto the first line's optical centre. */
+  margin-top: 5px;
+  color: var(--faq-muted);
+}
+
+.marker::before,
+.marker::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1.5px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: translateY(-50%);
+  transition: transform 0.22s cubic-bezier(0.45, 0.05, 0.15, 1);
+}
+
+/* The upright bar, rotated into place and flattened away when open. */
+.marker::after {
+  transform: translateY(-50%) rotate(90deg);
+}
+
+.item[open] .marker::after {
+  transform: translateY(-50%) rotate(90deg) scaleX(0);
+}
+
+/* ---- Answer ---- */
+.answer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin: 0;
+  padding: 0 var(--faq-card-padding-inline) var(--faq-card-padding-block);
+}
+
+.item[open] .answer {
+  animation: faqAnswerIn 220ms ease-out both;
+}
+
+@keyframes faqAnswerIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.paragraph {
+  margin: 0;
+  font-family: var(--home-font-text);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--faq-muted);
+  text-wrap: pretty;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item,
+  .question,
+  .marker::before,
+  .marker::after,
+  .item[open] .answer {
+    animation: none;
+    transition-duration: 0.01s;
+  }
+}
+
+@media (max-width: 900px) {
+  .section {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  .lead {
+    position: static;
+  }
+
+  .note {
+    max-width: none;
+  }
+}

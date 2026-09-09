@@ -3,11 +3,11 @@ title: Defining Components
 description: Define OpenUI components with Zod and React renderers.
 ---
 
-import { OpenUICloudCallout } from "./components/openui-cloud-callout";
+import { GatewayCallout } from "./components/gateway-callout";
 
 Use `defineComponent(...)` to register each component and `createLibrary(...)` to assemble the library.
 
-<OpenUICloudCallout description="Start with responsive, accessible components for dashboards, forms, reports, and slides." />
+<GatewayCallout description="The Gateway validates generated OpenUI Lang against these component definitions and corrects schema violations in the stream." />
 
 ## Core API
 
@@ -76,12 +76,8 @@ To define container components that accepts multiple child components, you can u
 import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod/v4";
 
-const TextBlock = defineComponent({
-  /* ... */
-});
-const CalloutBlock = defineComponent({
-  /* ... */
-});
+const TextBlock = defineComponent({/* ... */});
+const CalloutBlock = defineComponent({/* ... */});
 
 const TabItemSchema = z.object({
   value: z.string(),
@@ -144,9 +140,7 @@ For the built-in libraries: `openuiLibrary` uses `Stack` (flexible layout contai
 ```ts
 const library = createLibrary({
   root: "Stack",
-  components: [
-    /* ... */
-  ],
+  components: [/* ... */],
   componentGroups: [
     { name: "Forms", components: ["Form", "FormControl", "Input", "Button", "Buttons"] },
   ],

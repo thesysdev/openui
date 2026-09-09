@@ -1,9 +1,10 @@
 import { library, promptOptions } from "@/library";
-import { generateSystemPrompt } from "@openuidev/thesys-server";
+import { generateSystemPrompt } from "@openuidev/lang-core";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 
 const SYSTEM_PROMPT = generateSystemPrompt({
+  cloud: true,
   library: library.toSpec(),
   promptOptions: {
     examples: promptOptions.examples,

@@ -7,25 +7,36 @@
 }
 
 .heroShell {
+  /* The tagline used to close this block out; with it hidden the logo strip sat
+     flush against the content section below. */
+  padding-bottom: clamp(3rem, 6vw, 5rem);
   background: var(--openui-foreground);
 }
 
 .contentSection {
   position: relative;
   margin-top: 1.5rem;
-  background: linear-gradient(
-    to bottom,
-    var(--openui-foreground),
-    var(--openui-background) 10rem,
-    var(--openui-background) calc(100% - 10rem),
-    var(--openui-foreground)
-  );
+  background: var(--openui-foreground);
 }
 
+/* The Lang band sits straight in the shell, which has no gutters of its own,
+   so it gets the same inline padding the other sections apply themselves. */
+.langBand {
+  box-sizing: border-box;
+  width: 100%;
+  /* Mirrors CloudSection's .inner, so the Lang band lines up with the Gateway
+     and Observability bands below it rather than sitting 40px wider. */
+  max-width: var(--home-container-max);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+/* NB: both breakpoints below override this gap, so editing it here has no
+   visible effect. Change the media queries instead. */
 .contentShell {
   display: flex;
   flex-direction: column;
-  gap: 7.5rem;
+  gap: 5rem;
   padding-block: 8rem;
 }
 
@@ -35,7 +46,7 @@
 
 @media (min-width: 768px) {
   .contentShell {
-    gap: 15rem;
+    gap: 5.5rem;
   }
 
   .contentShellTight {
@@ -58,6 +69,11 @@
   margin-top: 0;
 }
 
+.faqBand {
+  box-sizing: border-box;
+  width: 100%;
+}
+
 /* Mobile-only: tighten the vertical rhythm so the page isn't sparse on phones. */
 @media (max-width: 767px) {
   .contentSection {
@@ -68,23 +84,18 @@
     gap: 7rem;
     padding-block: 4rem;
   }
+
+  .faqBand {
+    padding-inline: 1.25rem;
+  }
 }
 
-/* Dark mode: mirror light mode. The top of the page is black (light mode = white),
-   and the content band gradients to a near-black gray (neutral-950,
-   light mode = light gray). */
+/* Keep the main page field solid in both themes. */
 [data-theme="dark"] .page,
 [data-theme="dark"] .heroShell {
   background: #000;
 }
 
 [data-theme="dark"] .contentSection {
-  background: linear-gradient(
-    to bottom,
-    #000,
-    var(--swatch-neutral-950) 28rem,
-    var(--swatch-neutral-950) calc(100% - 28rem),
-    #000
-  );
+  background: #000;
 }
-

@@ -1,9 +1,9 @@
 ---
-title: Self-hosting
-description: Run your own backend instead of OpenUI Cloud — connect your LLM with a streaming route, persist threads and artifacts against your own storage, on any server framework.
+title: Connect a backend
+description: Connect your LLM with a streaming route and persist threads and artifacts with your own storage.
 ---
 
-OpenUI Cloud handles the backend for you: the provider call, streaming, conversation history, and artifact storage all run behind a single managed endpoint, and `<AgentInterface>` just points at it (see [OpenUI Cloud](/docs/agent/getting-started/openui-cloud)). This page is for the **self-hosted** variant — you run the backend yourself, against your own provider keys, database, and server framework.
+`<AgentInterface>` connects to an agent through your application route. You run the backend with your own provider keys, database, and server framework.
 
 Everything `<AgentInterface>` needs from a backend flows through two independent interfaces:
 
@@ -12,7 +12,11 @@ Everything `<AgentInterface>` needs from a backend flows through two independent
 
 They are configured separately. You can run a real `llm` with ephemeral (in-memory) storage, or persistent storage with a placeholder `llm`. For the full type signatures of every interface and factory named here, see [Adapters & formats](/docs/agent/reference/adapters-and-formats); this page is the worked-example home for wiring them against your own backend.
 
-<Callout type="info">The provider key **always** lives server-side. `fetchLLM` only ever talks to your own origin (e.g. `/api/chat`), never directly to `api.openai.com`. The key is read from `process.env` inside your route and is never bundled into the browser.</Callout>
+<Callout type="info">
+  The provider key **always** lives server-side. `fetchLLM` only ever talks to your own origin (e.g.
+  `/api/chat`), never directly to `api.openai.com`. The key is read from `process.env` inside your
+  route and is never bundled into the browser.
+</Callout>
 
 ## 1. Connect your LLM
 
@@ -25,9 +29,9 @@ The `llm` channel is two halves of one loop:
 import { AgentInterface, fetchLLM, openAIAdapter, openAIMessageFormat } from "@openuidev/react-ui";
 
 const llm = fetchLLM({
-  url: "/api/chat",                    // your route handler
-  streamAdapter: openAIAdapter(),      // parses the SDK's raw SSE response
-  messageFormat: openAIMessageFormat,  // how to shape outgoing messages
+  url: "/api/chat", // your route handler
+  streamAdapter: openAIAdapter(), // parses the SDK's raw SSE response
+  messageFormat: openAIMessageFormat, // how to shape outgoing messages
 });
 
 export default function App() {
@@ -43,14 +47,14 @@ Your route always receives a JSON body of `{ threadId, messages }` and returns a
 
 `streamAdapter` governs the **response** (how the streamed bytes are decoded); `messageFormat` governs the **request** (how outgoing `messages` are shaped). They are chosen independently but pair up by provider. Each adapter is a factory — **call it**: `openAIAdapter()`, not the bare reference.
 
-| Provider / route output | `streamAdapter` | `messageFormat` |
-|---|---|---|
-| OpenAI Chat Completions, NDJSON from `stream.toReadableStream()` | `openAIReadableStreamAdapter()` | `openAIMessageFormat` |
-| OpenAI Chat Completions, raw SSE (`data: {…}\n\n`, `data: [DONE]`) | `openAIAdapter()` | `openAIMessageFormat` |
-| OpenAI **Responses / Conversations** API stream | `openAIResponsesAdapter()` | `openAIConversationMessageFormat` |
-| Vercel AI SDK v6 UIMessage stream from `toUIMessageStreamResponse()` | `vercelAIAdapter()` | `vercelAIMessageFormat` |
-| LangGraph stream (named SSE events) | `langGraphAdapter()` | `langGraphMessageFormat` |
-| A backend that already emits AG-UI events | `agUIAdapter()` | depends on what your route expects |
+| Provider / route output                                              | `streamAdapter`                 | `messageFormat`                    |
+| -------------------------------------------------------------------- | ------------------------------- | ---------------------------------- |
+| OpenAI Chat Completions, NDJSON from `stream.toReadableStream()`     | `openAIReadableStreamAdapter()` | `openAIMessageFormat`              |
+| OpenAI Chat Completions, raw SSE (`data: {…}\n\n`, `data: [DONE]`)   | `openAIAdapter()`               | `openAIMessageFormat`              |
+| OpenAI **Responses / Conversations** API stream                      | `openAIResponsesAdapter()`      | `openAIConversationMessageFormat`  |
+| Vercel AI SDK v6 UIMessage stream from `toUIMessageStreamResponse()` | `vercelAIAdapter()`             | `vercelAIMessageFormat`            |
+| LangGraph stream (named SSE events)                                  | `langGraphAdapter()`            | `langGraphMessageFormat`           |
+| A backend that already emits AG-UI events                            | `agUIAdapter()`                 | depends on what your route expects |
 
 The full catalogue and the precise wire format each adapter expects are in [Adapters & formats](/docs/agent/reference/adapters-and-formats).
 
@@ -72,7 +76,7 @@ export async function POST(req: Request) {
       {
         model: "gpt-4o",
         stream: true, // ← the part that makes it stream
-        messages,     // already OpenAI-shaped via openAIMessageFormat
+        messages, // already OpenAI-shaped via openAIMessageFormat
       },
       { signal: req.signal }, // propagate browser aborts
     )
@@ -103,12 +107,12 @@ Anthropic streams its own format, and OpenUI has **no built-in adapter for it**.
 
 The events a text reply needs:
 
-| Event `type` | Fields | Meaning |
-|---|---|---|
-| `TEXT_MESSAGE_START` | `messageId` | An assistant text message begins. |
-| `TEXT_MESSAGE_CONTENT` | `messageId`, `delta` | A chunk of assistant text. |
-| `TEXT_MESSAGE_END` | `messageId` | The text message is complete. |
-| `RUN_ERROR` | `message` | The turn failed; surfaces as an error in the UI. |
+| Event `type`           | Fields               | Meaning                                          |
+| ---------------------- | -------------------- | ------------------------------------------------ |
+| `TEXT_MESSAGE_START`   | `messageId`          | An assistant text message begins.                |
+| `TEXT_MESSAGE_CONTENT` | `messageId`, `delta` | A chunk of assistant text.                       |
+| `TEXT_MESSAGE_END`     | `messageId`          | The text message is complete.                    |
+| `RUN_ERROR`            | `message`            | The turn failed; surfaces as an error in the UI. |
 
 ```ts
 // app/api/chat/route.ts
@@ -148,7 +152,10 @@ export async function POST(req: Request) {
         }
         sse({ type: "TEXT_MESSAGE_END", messageId });
       } catch (err) {
-        sse({ type: "RUN_ERROR", message: err instanceof Error ? err.message : "Anthropic call failed" });
+        sse({
+          type: "RUN_ERROR",
+          message: err instanceof Error ? err.message : "Anthropic call failed",
+        });
       } finally {
         controller.close(); // flips the UI loading state off — leave it open and the loader never disappears
       }
@@ -156,7 +163,11 @@ export async function POST(req: Request) {
   });
 
   return new Response(stream, {
-    headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" },
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
   });
 }
 ```
@@ -205,13 +216,13 @@ export default function App() {
 
 That's the whole frontend change — one prop. You implement the five endpoints `restStorage` calls; the sidebar's thread lifecycle comes for free. With `baseUrl: "/api/threads"`:
 
-| Operation | Method | Path | Request body | Returns |
-|---|---|---|---|---|
-| List threads | `GET` | `/api/threads/get` | — (append `?cursor={cursor}` to paginate) | `{ threads, nextCursor? }` |
-| Create thread | `POST` | `/api/threads/create` | `{ messages: [...] }` (first user message via the message format) | the new `Thread` |
-| Get messages | `GET` | `/api/threads/get/{threadId}` | — | the thread's `Message[]` |
-| Update thread | `PATCH` | `/api/threads/update/{threadId}` | the full `Thread` | the updated `Thread` |
-| Delete thread | `DELETE` | `/api/threads/delete/{threadId}` | — | nothing |
+| Operation     | Method   | Path                             | Request body                                                      | Returns                    |
+| ------------- | -------- | -------------------------------- | ----------------------------------------------------------------- | -------------------------- |
+| List threads  | `GET`    | `/api/threads/get`               | — (append `?cursor={cursor}` to paginate)                         | `{ threads, nextCursor? }` |
+| Create thread | `POST`   | `/api/threads/create`            | `{ messages: [...] }` (first user message via the message format) | the new `Thread`           |
+| Get messages  | `GET`    | `/api/threads/get/{threadId}`    | —                                                                 | the thread's `Message[]`   |
+| Update thread | `PATCH`  | `/api/threads/update/{threadId}` | the full `Thread`                                                 | the updated `Thread`       |
+| Delete thread | `DELETE` | `/api/threads/delete/{threadId}` | —                                                                 | nothing                    |
 
 `restStorage` throws a descriptive error on any non-`ok` response. The `Thread` shape at the boundary is `{ id, title, createdAt: string | number, isPending? }`. By default `restStorage` uses the identity message format; pass `messageFormat` (and optional `headers` / `fetch`) if your backend stores a provider-specific shape — it is applied to the `create` body (`toApi`) and the `get/{threadId}` response (`fromApi`).
 
@@ -264,7 +275,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { threadId
 }
 ```
 
-`db` is a stand-in for your persistence layer — Postgres, SQLite, Redis, a cloud KV store, anything. The endpoints are thin: read/write threads and messages, return the shapes the table describes.
+`db` is a stand-in for your persistence layer—Postgres, SQLite, Redis, a hosted KV store, or anything similar. The endpoints are thin: read and write threads and messages, then return the shapes the table describes.
 
 ### Custom `ChatStorage` instead
 
@@ -301,23 +312,27 @@ export const storage: ChatStorage = {
 
 The five methods map one-to-one onto the sidebar:
 
-| Method | When it runs |
-|---|---|
-| `listThreads(cursor?)` | Populating the thread list; loading more on scroll. |
+| Method                       | When it runs                                                            |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `listThreads(cursor?)`       | Populating the thread list; loading more on scroll.                     |
 | `createThread(firstMessage)` | User sends the first message of a new chat. Receives the `UserMessage`. |
-| `getMessages(threadId)` | User opens a thread. Returns its `Message[]`. |
-| `updateThread(thread)` | A thread changes (e.g. rename). Returns the updated `Thread`. |
-| `deleteThread(id)` | User deletes a thread. |
+| `getMessages(threadId)`      | User opens a thread. Returns its `Message[]`.                           |
+| `updateThread(thread)`       | A thread changes (e.g. rename). Returns the updated `Thread`.           |
+| `deleteThread(id)`           | User deletes a thread.                                                  |
 
 ## 4. Store artifacts
 
-Adding an optional `artifact` channel to your storage makes every dashboard, report, and presentation the agent produces a durable, searchable, cross-thread record — and `<AgentInterface>` renders the entire artifact browser (sidebar entry → searchable list → full-page view) for you. `ArtifactStorage` is three methods:
+Adding an optional `artifact` channel to your storage makes every stored dashboard or application view a durable, searchable, cross-thread record. `ArtifactStorage` is three methods:
 
 ```ts
 interface ArtifactStorage {
   // name/type filtering is SERVER-SIDE; cursor-paginated
-  list(params?: { name?: string; type?: string[]; cursor?: string; limit?: number }):
-    Promise<{ artifacts: ArtifactSummary[]; nextCursor?: string }>;
+  list(params?: {
+    name?: string;
+    type?: string[];
+    cursor?: string;
+    limit?: number;
+  }): Promise<{ artifacts: ArtifactSummary[]; nextCursor?: string }>;
   get(id: string): Promise<Artifact>;
   update(patch: { id: string; content: unknown }): Promise<ArtifactSummary>; // for editable artifacts
 }
@@ -372,12 +387,15 @@ The matching Next.js backend — filtering and pagination live on the server:
 // app/api/artifacts/route.ts — list (search + type filter + paginate)
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
-  const name = sp.get("name") ?? undefined;     // search box
-  const type = sp.getAll("type");               // category filter (repeatable)
+  const name = sp.get("name") ?? undefined; // search box
+  const type = sp.getAll("type"); // category filter (repeatable)
   const cursor = sp.get("cursor") ?? undefined; // pagination
   const limit = Number(sp.get("limit") ?? 20);
   const { artifacts, nextCursor } = await db.listArtifacts({
-    name, type: type.length ? type : undefined, cursor, limit,
+    name,
+    type: type.length ? type : undefined,
+    cursor,
+    limit,
   });
   // each artifact MUST include threadId
   return NextResponse.json({ artifacts, nextCursor });
@@ -393,7 +411,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 ```
 
-The artifact `type` you store must match the `type` a registered renderer declares — it's the contract linking a stored artifact to the renderer that draws it. How artifacts get *written* (a tool call, a background job, a direct write) is up to your agent; the browser only reads, gets, and updates. For organizing the browser into groups and the per-thread Workspace rail (which does **not** require storage), see [Artifacts](/docs/agent/core-concepts/artifacts) and [`<AgentInterface>` props](/docs/agent/reference/agentinterface-props).
+The artifact `type` you store must match the `type` a registered renderer declares — it's the contract linking a stored artifact to the renderer that draws it. How artifacts get _written_ (a tool call, a background job, a direct write) is up to your agent; the browser only reads, gets, and updates. See [`<AgentInterface>` props](/docs/agent/reference/agentinterface-props) for the related API.
 
 ## 5. Framework-agnostic (plain Web `Request`/`Response`)
 
@@ -495,16 +513,20 @@ Because `send` is just a function returning a `Response`, you can layer logic ar
 A self-hosted `<AgentInterface>`: a model reply that streams (key server-side), durable threads and artifacts against your own storage, on any server framework — because the contract is two small interfaces over plain Web `Request`/`Response`.
 
 <Cards>
-  <Card title="Adapters & formats" href="/docs/agent/reference/adapters-and-formats">
-    The full `ChatLLM`, `ChatStorage`, `ThreadStorage`, `ArtifactStorage` interfaces and the `fetchLLM` / `restStorage` factories, plus every stream adapter and message format.
+  <Card
+    title="Adapters & formats"
+    href="/docs/agent/reference/adapters-and-formats"
+  >
+    The full `ChatLLM`, `ChatStorage`, `ThreadStorage`, `ArtifactStorage` interfaces and the
+    `fetchLLM` / `restStorage` factories, plus every stream adapter and message format.
   </Card>
-  <Card title="<AgentInterface> props" href="/docs/agent/reference/agentinterface-props">
+  <Card
+    title="<AgentInterface> props"
+    href="/docs/agent/reference/agentinterface-props"
+  >
     The `llm`, `storage`, `artifactRenderers`, and `artifactCategories` props in full.
   </Card>
   <Card title="Conversations" href="/docs/agent/core-concepts/conversations">
     How threads, messages, and streaming fit together.
-  </Card>
-  <Card title="Artifacts" href="/docs/agent/core-concepts/artifacts">
-    The artifact browser, Workspace rail, and how stored artifacts render.
   </Card>
 </Cards>

@@ -25,7 +25,7 @@ browser ──fetch /api/chat──▶ Next.js route ──protocol v2──▶ 
 | Graph             | `src/agent/agent.ts`        | `createDeepAgent` with the generated OpenUI system prompt, the mock tools, and `openUIStreamTransformer`.                                                                        |
 | Integration       | `@openuidev/langchain`      | Maps LangGraph protocol `messages` and `tools` into AG-UI events, adds run lifecycle events, starts stateless runs, and relays `custom:openui`.                                  |
 | Tools             | `src/agent/tools.ts`        | Mock `get_weather` / `get_stock_price` / `search_web` (no external keys needed).                                                                                                 |
-| Component library | `src/library.ts`            | The OpenUI components the model is allowed to render. `pnpm generate:prompt` turns it into `src/generated/system-prompt.txt`.                                                    |
+| Component library | `src/library.ts`            | Re-exports `openuiLibrary`. `pnpm generate` writes `src/generated/spec.json`.                                                                    |
 
 The shared integration package uses Web-standard requests, responses, fetch,
 and streams. It does not depend on Next.js or DeepAgents.
@@ -96,7 +96,7 @@ Restart `pnpm dev` after changing `.env`.
 - **Use real tools:** replace the mock bodies in `src/agent/tools.ts` with real
   API calls.
 - **Change what the model can render:** edit `src/library.ts`, then re-run
-  `pnpm generate:prompt` (the dev scripts do this for you).
+  `pnpm generate` (the dev scripts do this for you).
 
 ## Learn more
 

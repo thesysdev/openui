@@ -1,6 +1,5 @@
 import "@openuidev/react-ui/components.css";
 import "@openuidev/react-ui/styles/index.css";
-import "@openuidev/thesys/styles.css";
 
 import {
   AgentInterface,
@@ -8,7 +7,7 @@ import {
   openAIMessageFormat,
   openAIReadableStreamAdapter,
 } from "@openuidev/react-ui";
-import { chatLibrary } from "@openuidev/thesys";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { useMemo } from "react";
 
 export default function App() {
@@ -26,7 +25,7 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen overflow-hidden">
-      <AgentInterface llm={llm} componentLibrary={chatLibrary} agentName="OpenUI Chat" />
+      <AgentInterface llm={llm} componentLibrary={openuiLibrary} agentName="OpenUI Chat" />
     </div>
   );
 }

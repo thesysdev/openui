@@ -2,167 +2,17 @@
 .section {
   width: 100%;
   background: #000;
-  padding-block: clamp(4rem, 7vw, 6.5rem);
+  padding-top: clamp(4rem, 7vw, 6.5rem);
+  /* Deeper than the top: the band ends on a row of cards, which needs more room
+     before the page returns to its light background. */
+  padding-bottom: clamp(5.5rem, 10vw, 9.5rem);
   color: #fff;
 }
-
 .inner {
   box-sizing: border-box;
   max-width: var(--home-container-max);
   margin-inline: auto;
   padding-inline: clamp(1.25rem, 4vw, 2.5rem);
-}
-
-.header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 46rem;
-  margin: 0 auto clamp(3rem, 6vw, 4.5rem);
-  text-align: center;
-}
-
-.titleTag {
-  display: inline-flex;
-  align-items: center;
-  /* Slightly smaller so the boxed word lines up with the cap height of "OpenUI" */
-  font-size: 0.78em;
-  line-height: 1;
-  padding: 0.18em 0.36em;
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
-  border-radius: 0.34em;
-  /* Nudge up so the box reads as centered on the caps of "OpenUI" */
-  vertical-align: middle;
-  position: relative;
-  top: -0.06em;
-}
-
-/* Primary and secondary CTAs under the subtitle. */
-.headerCtas {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 2rem;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.5rem;
-}
-
-/* Each feature is a card with a subtle fill (no stroke). */
-.feature {
-  /* Named so the artwork panel can cancel it and run to the card's edges. */
-  --card-pad: clamp(1.5rem, 2vw, 2rem);
-
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-  padding: var(--card-pad);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.icon {
-  display: inline-flex;
-  margin-bottom: 1rem;
-  color: rgba(255, 255, 255, 0.24);
-}
-
-/* Artwork panel for the cards that lead the grid. Off by default: on a phone
-   the card collapses to an icon + title row, which a panel would break. It is
-   switched on with the wide layout below. */
-.shot {
-  display: none;
-}
-
-.shotImage {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* This band runs opposite to the page: black by default, light in dark mode. So
-   the tile is chosen to suit the CARD, which means the pairing reads inverted
-   against every other light/dark swap on the site. */
-.shotOnLight {
-  display: none;
-}
-
-[data-theme="dark"] .shotOnDark {
-  display: none;
-}
-
-[data-theme="dark"] .shotOnLight {
-  display: block;
-}
-
-@media (min-width: 768px) {
-  .shot {
-    position: relative;
-    display: block;
-    /* Pulled most of the way out to the card's edges, keeping a slim inset. The
-       full card padding read as a second frame around a tile that already has
-       its own margins; none at all read as a banner. */
-    margin: calc(0.75rem - var(--card-pad)) calc(0.75rem - var(--card-pad)) 1.25rem;
-    /* The tiles' own ratio, so nothing is cropped. */
-    aspect-ratio: 720 / 400;
-    overflow: hidden;
-    border-radius: 12px;
-  }
-
-  /* The panel already says what the glyph would, so the glyph steps aside. */
-  .feature:has(.shot) .icon {
-    display: none;
-  }
-}
-
-.featureTitle {
-  margin: 0;
-  font-family: var(--home-font-display);
-  font-size: var(--home-heading-size);
-  font-weight: var(--home-heading-weight);
-  line-height: var(--home-heading-leading);
-  letter-spacing: var(--home-heading-tracking);
-  color: #fff;
-}
-
-.featureDescription {
-  margin: 0;
-  font-size: var(--home-body-size);
-  line-height: var(--home-body-leading);
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* Mobile-only expand affordance; hidden on desktop. */
-.chevron {
-  display: none;
-}
-
-/* Single-row auto-scrolling marquee of all feature chips below the grid. */
-.ticker {
-  position: relative;
-  width: 100%;
-  margin-top: clamp(1.25rem, 3vw, 2rem);
-  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
-  mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
-}
-
-.tickerTrack {
-  display: flex;
-  width: max-content;
-  will-change: transform;
-  animation: cloudMarquee 90s linear infinite;
-}
-
-.tickerTrack:hover {
-  animation-play-state: paused;
 }
 
 @keyframes cloudMarquee {
@@ -174,75 +24,30 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ticker {
-    overflow-x: auto;
-  }
-
-  .tickerTrack {
-    animation: none;
-  }
-}
-
 /* Closing contact CTA below the ticker. */
+/* The two product bands. Only the space between them lives here; .header's
+   bottom margin and .contact's top margin bound the group. */
+.products {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(7rem, 14vw, 13rem);
+}
 .contact {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
-  margin-top: clamp(3rem, 6vw, 4.5rem);
+  /* On top of the section's own padding, so this block sits clear of both the
+     band's top edge and the product bands beneath it. */
+  margin-top: clamp(1.5rem, 3vw, 3rem);
+  margin-bottom: clamp(6rem, 12vw, 11rem);
   text-align: center;
 }
 
-/* Same type treatment as the embedded "Works with any LLM…" compat title. */
-.contactText {
-  margin: 0;
+/* Typography and caption spacing come from the benchmark's SectionHeader. */
+.contactHeading {
+  width: 100%;
   max-width: 46rem;
-  font-family: var(--home-font-display);
-  font-size: var(--home-heading-size);
-  font-weight: var(--home-heading-weight);
-  line-height: var(--home-heading-leading);
-  letter-spacing: var(--home-heading-tracking);
-  color: #fff;
-}
-
-/* Plain-text chips separated by a centered dot. */
-.tag {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.8125rem;
-  line-height: 1.2;
-  color: rgba(255, 255, 255, 0.35);
-  white-space: nowrap;
-}
-
-.tag:not(:last-child)::after {
-  content: "•";
-  margin-inline: 0.75rem;
-  color: rgba(255, 255, 255, 0.16);
-}
-
-@media (min-width: 768px) {
-  /* The wide card's slot is twice as wide, so its artwork runs flatter than the
-     720x400 tiles rather than towering over the row: 720x190 CSS px, drawn at
-     1440x380 for 2x. */
-  .featureWide .shot {
-    aspect-ratio: 1440 / 380;
-  }
-}
-
-@media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-  }
-
-  /* Reliability leads the top row two columns wide, so the row reads 2 + 1
-     rather than three equal tiles. */
-  .featureWide {
-    grid-column: span 2;
-  }
 }
 
 /* Mobile-only: match the feature-grid structure (borderless rows, title left,
@@ -250,117 +55,6 @@
 @media (max-width: 767px) {
   .section {
     padding-block: 3.5rem;
-  }
-
-  .header {
-    margin-bottom: 2.5rem;
-  }
-
-  .headerCtas {
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .grid {
-    gap: 0;
-  }
-
-  .feature {
-    position: relative;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    column-gap: 0.75rem;
-    row-gap: 0;
-    align-items: center;
-    padding: 1.25rem 0;
-    background: none;
-    border-radius: 0;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Separator runs edge to edge and fades out on the left. */
-  .feature:not(:first-child)::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    inset-inline: -1.25rem;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--home-border-on-dark) 15%);
-  }
-
-  /* Icon tile (dark variant of the stepper tile). */
-  .icon {
-    grid-column: 1;
-    grid-row: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    align-self: center;
-    justify-self: start;
-    width: 1.375rem;
-    height: 1.375rem;
-    margin-bottom: 0;
-    border: 1px solid var(--home-border-on-dark);
-    border-radius: 0.4rem;
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.6);
-  }
-
-  .icon svg {
-    width: 0.875rem;
-    height: 0.875rem;
-  }
-
-  .featureTitle {
-    grid-column: 2;
-    grid-row: 1;
-    text-wrap: balance;
-  }
-
-  .chevron {
-    grid-column: 3;
-    grid-row: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255, 255, 255, 0.4);
-    transition: transform 0.2s ease;
-  }
-
-  .feature[data-open] .chevron {
-    transform: rotate(180deg);
-  }
-
-  /* Collapsed by default; tap a row to fluidly reveal its description. The
-     grid-template-rows 0fr->1fr trick animates to the content's natural height. */
-  .featureDescription {
-    grid-column: 2;
-    grid-row: 2;
-    display: grid;
-    grid-template-rows: 0fr;
-    max-width: 16rem;
-    text-wrap: pretty;
-    transition: grid-template-rows 0.32s ease;
-  }
-
-  .featureDescriptionInner {
-    overflow: hidden;
-    min-height: 0;
-  }
-
-  .feature[data-open] .featureDescription {
-    grid-template-rows: 1fr;
-  }
-
-  /* Gap only when open, so the collapsed 0fr row closes fully (no residual). */
-  .feature[data-open] .featureDescriptionInner {
-    padding-top: 0.375rem;
-  }
-
-  .contactText {
-    text-wrap: balance;
   }
 }
 
@@ -375,25 +69,9 @@
    dark text. The section title + subtitle come from the shared SectionHeader
    component (tone="dark"); they are re-colored in SectionHeader.module.css. */
 [data-theme="dark"] .section {
-  background: #f4f4f5;
+  background: #fdfdfd;
   color: #0a0a0a;
 }
-
-[data-theme="dark"] .titleTag {
-  border-color: rgba(0, 0, 0, 0.85);
-}
-
-/* The CTAs flip tone so they read on the inverted light surface. */
-[data-theme="dark"] .headerPrimaryCta {
-  background: #0a0a0a;
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: var(--home-bevel-on-dark);
-  color: #fff;
-  --bevel-badge-bg: #fff;
-  --bevel-badge-fg: #0a0a0a;
-}
-
-[data-theme="dark"] .headerSecondaryCta,
 [data-theme="dark"] .contactCta {
   background: var(--home-surface-raised);
   border-color: rgba(0, 0, 0, 0.08);
@@ -402,59 +80,153 @@
   --bevel-badge-bg: #0a0a0a;
   --bevel-badge-fg: #fff;
 }
-
-/* White cards with a soft, diffuse shadow and no stroke. */
-[data-theme="dark"] .feature {
-  background: #fff;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.02),
-    0 6px 20px rgba(0, 0, 0, 0.05);
+.observabilityBand {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: stretch;
+  gap: clamp(2.5rem, 5vw, 3.75rem);
+  margin-top: clamp(8rem, 15vw, 10.75rem);
+  scroll-margin-top: 112px;
 }
 
-[data-theme="dark"] .icon {
-  color: rgba(0, 0, 0, 0.4);
+.observabilityCopy {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 3rem;
+  min-width: 0;
+  min-height: 20rem;
 }
 
-[data-theme="dark"] .featureTitle {
+.observabilityLead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.observabilityTitle,
+.observabilityDescription {
+  margin: 0;
+}
+
+.observabilityEyebrow {
+  margin-bottom: 0;
+}
+
+.observabilityTitle {
+  max-width: 20ch;
+  font-family: var(--home-font-display);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: var(--home-title-weight);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.observabilityDescription {
+  max-width: 29rem;
+  font-family: var(--home-font-text);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
+  text-wrap: pretty;
+}
+
+.observabilityCta {
+  margin-top: 0.25rem;
+  background: var(--home-surface-raised);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: var(--home-bevel);
   color: #0a0a0a;
+  --bevel-badge-bg: #0a0a0a;
+  --bevel-badge-fg: #fff;
 }
 
-[data-theme="dark"] .featureDescription {
-  color: rgba(0, 0, 0, 0.55);
+[data-theme="dark"] .observabilityCta {
+  background: #0a0a0a;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: var(--home-bevel-on-dark);
+  color: #fff;
+  --bevel-badge-bg: #fff;
+  --bevel-badge-fg: #0a0a0a;
 }
 
-[data-theme="dark"] .chevron {
-  color: rgba(0, 0, 0, 0.4);
+.observabilityStage {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 583 / 365;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
 }
 
-[data-theme="dark"] .tag {
-  color: rgba(0, 0, 0, 0.45);
+.observabilityImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 
-[data-theme="dark"] .tag:not(:last-child)::after {
-  color: rgba(0, 0, 0, 0.16);
+.observabilityImageLight {
+  display: none;
 }
 
-[data-theme="dark"] .contactText {
-  color: #0a0a0a;
+.observabilityImageDark {
+  display: block;
 }
 
-/* Mobile-only: the feature becomes a borderless grid row, so re-tune the
-   inverted separator and icon tile for the light background. */
+[data-theme="dark"] .observabilityStage {
+  background: transparent;
+}
+
+[data-theme="dark"] .observabilityDescription {
+  color: rgba(10, 10, 10, 0.5);
+}
+
+[data-theme="dark"] .observabilityImageLight {
+  display: block;
+}
+
+[data-theme="dark"] .observabilityImageDark {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .observabilityBand {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+    margin-top: 7rem;
+  }
+
+  .observabilityCopy {
+    gap: 2rem;
+    min-height: 0;
+  }
+
+  .observabilityStage {
+    min-height: 0;
+    aspect-ratio: 583 / 365;
+  }
+}
+
 @media (max-width: 767px) {
-  [data-theme="dark"] .feature {
-    background: none;
-    border: none;
-    box-shadow: none;
+  .observabilityBand {
+    gap: 2rem;
+    margin-top: 5.5rem;
   }
 
-  [data-theme="dark"] .feature:not(:first-child)::before {
-    background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.09) 15%);
+  .observabilityStage {
+    aspect-ratio: 4 / 3;
+    border-radius: 18px;
   }
 
-  [data-theme="dark"] .icon {
-    background: #fff;
-    border-color: rgba(0, 0, 0, 0.08);
-    color: rgba(0, 0, 0, 0.55);
+  .observabilityImage {
+    object-position: 51% top;
   }
 }

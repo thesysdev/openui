@@ -1,0 +1,19 @@
+{
+  "title": "Gateway",
+  "root": true,
+  "pages": [
+    "index",
+    "generate-openui-lang",
+    "authentication",
+    "models",
+    "reliability",
+    "prompt-caching",
+    "byok",
+    "pricing-credits",
+    "migrate-to-openui-gateway",
+    "---APIs---",
+    "api/chat-completions",
+    "api/responses",
+    "api/conversations"
+  ]
+}

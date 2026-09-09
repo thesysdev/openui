@@ -1,15 +1,23 @@
 ---
-title: Feature Comparison
+title: OpenUI vs others
 description: OpenUI vs json-render (Vercel), A2UI (Google), and CopilotKit OpenGenerativeUI.
 ---
 
-# The Generative UI Landscape
+Open-source Generative UI projects share a common goal: enabling agents to respond with interactive interfaces instead of only text. They differ in what the model generates, how applications control the available UI, and where the result can be rendered.
 
-**Four frameworks. Which one ships to production?**
+This page compares OpenUI with json-render, A2UI, and OpenGenerativeUI. These projects do not all solve the same part of the Generative UI stack, so the comparison focuses on their approach and intended use.
 
----
+## Generative UI frameworks
 
-## At a Glance
+- **[OpenUI](https://github.com/thesysdev/openui)** uses a compact, line-based language designed for models to generate interfaces from registered components. Its runtime supports streamed rendering, application state, data access, and user interactions.
+
+- **[json-render](https://github.com/vercel-labs/json-render)** uses streaming JSONL patches generated from a component catalog.
+
+- **[A2UI](https://github.com/google/A2UI)** is a protocol for sending declarative interface descriptions from agents to client applications. The client maps those descriptions to trusted, platform-native components.
+
+- **[OpenGenerativeUI](https://github.com/CopilotKit/OpenGenerativeUI)** focuses on open-ended visual experiences built with CopilotKit. It supports registered React components and free-form HTML or SVG rendered inside sandboxed iframes.
+
+## Feature comparison
 
 |                            | **[OpenUI](https://github.com/thesysdev/openui)** | **[json-render](https://github.com/vercel-labs/json-render)** (Vercel) | **[A2UI](https://github.com/google/A2UI)** (Google) | **[CopilotKit OpenGenUI](https://github.com/CopilotKit/OpenGenerativeUI)** |
 | -------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------- |
@@ -27,7 +35,7 @@ description: OpenUI vs json-render (Vercel), A2UI (Google), and CopilotKit OpenG
 
 ---
 
-## Best For
+## Choosing a framework
 
 - **Data-driven chat UIs and dashboards** → OpenUI
 - **One UI across web, mobile, PDF and email** → OpenUI

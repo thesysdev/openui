@@ -45,9 +45,8 @@
   color: var(--openui-text-neutral-secondary);
 }
 
-/* Cloud .subtitle L51-60: dark tone => margin-top + dimmed white. */
+/* The Cloud tone changes color, not the shared title/subtitle spacing. */
 .subtitle[data-tone="dark"] {
-  margin: 0.5rem 0 0;
   color: rgba(255, 255, 255, 0.45);
 }
 
@@ -68,4 +67,12 @@
   font-size: var(--home-body-size);
   line-height: var(--home-body-leading);
   color: var(--openui-text-neutral-secondary);
+}
+
+.caption[data-tone="dark"] {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .caption[data-tone="dark"] {
+  color: rgba(10, 10, 10, 0.6);
 }

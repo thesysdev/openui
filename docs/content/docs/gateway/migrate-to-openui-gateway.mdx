@@ -1,0 +1,56 @@
+---
+title: Migrate to OpenUI Gateway
+description: Move an existing OpenAI-compatible application to Gateway with minimal changes.
+---
+
+Move an existing OpenAI Chat Completions integration to OpenUI Gateway by changing the API key, base URL, and model identifier. Your existing messages, streaming, and function-tool workflows can remain unchanged.
+
+## Before you begin
+
+- Create an inference API key in the [Thesys Console](https://console.thesys.dev/keys).
+- Choose a supported model from [Models](/docs/gateway/models).
+- Decide whether to use managed inference or [bring your own provider key](/docs/gateway/byok).
+
+## Update the client
+
+Replace the OpenAI API key and add the Gateway base URL:
+
+```diff title="lib/gateway.ts"
+import OpenAI from "openai";
+
+export const client = new OpenAI({
+-  apiKey: process.env.OPENAI_API_KEY,
++  apiKey: process.env.THESYS_API_KEY,
++  baseURL: "https://api.thesys.dev/v1/embed",
+});
+```
+
+Keep the inference API key on the server. See [Authentication](/docs/gateway/authentication) for credential requirements.
+
+## Update the model identifier
+
+Gateway model identifiers use the `{provider}/{model}` format. Add the provider to the model used by your existing request:
+
+```ts
+// Before
+model: "gpt-5";
+
+// After
+model: "openai/gpt-5";
+```
+
+The Chat Completions request and response shapes remain compatible with the OpenAI API. Existing message history, streaming handlers, and function-tool loops do not need to be rewritten.
+
+## Add Generative UI
+
+Migrating the client routes your existing model traffic through Gateway. To generate interfaces, add the OpenUI system prompt and connect the response stream to a renderer.
+
+Follow the [Generative UI Quickstart](/docs/gateway/generate-openui-lang) to configure a component library and generate your first interface.
+
+## Verify the migration
+
+- Confirm requests authenticate with `THESYS_API_KEY`.
+- Confirm the selected model uses the `{provider}/{model}` identifier.
+- Verify streaming responses still reach the application incrementally.
+- Run an existing function-tool flow and confirm tool calls are unchanged.
+- If Generative UI is enabled, confirm the generated interface renders correctly.

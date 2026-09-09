@@ -2,7 +2,8 @@ import { requiredEnv } from "@/lib/env";
 import { resolveRequestedModel } from "@/lib/models";
 import { runFunctionToolLoop } from "@/lib/tool-loop";
 import { executeGetWeather, getWeatherTool } from "@/lib/tools/get-weather";
-import { artifactTool, generateSystemPrompt } from "@openuidev/thesys-server";
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import { artifactTool } from "@openuidev/thesys-server";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import type {
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
       // Remote MCP servers run inside OpenUI Cloud, e.g.:
       // { type: "mcp", server_label: "deepwiki", server_url: "https://mcp.deepwiki.com/mcp" },
     ],
-    instructions: generateSystemPrompt(),
+    instructions: generateSystemPrompt({ cloud: true }),
   };
 
   let stream: AsyncIterable<Record<string, unknown>>;

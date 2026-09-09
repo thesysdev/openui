@@ -1,0 +1,71 @@
+---
+title: Responses API
+description: Generate corrected OpenUI Lang with persistent conversations and hosted tools.
+---
+
+Gateway provides OpenAI-compatible Responses API endpoints, letting you use multiple AI providers through a familiar interface. You can use existing OpenAI client libraries, switch to Gateway with a URL change, and keep your current tools and workflows without code rewrites.
+
+The Responses API implements the same specification as the [**OpenAI Responses API**](https://platform.openai.com/docs/api-reference/responses).
+
+**Endpoint:** POST [https://api.thesys.dev/v1/embed/responses](https://api.thesys.dev/v1/embed/responses)
+
+## Configure the client
+
+```ts title="lib/gateway.ts"
+import OpenAI from "openai";
+
+export const gateway = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+```
+
+## Make a request
+
+```ts title="server.ts"
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import { gateway } from "./lib/gateway";
+import library from "./openui.spec.json";
+
+const response = await gateway.responses.create({
+  model: "openai/gpt-5",
+  input: "Compare quarterly revenue by region.",
+  instructions: generateSystemPrompt({ cloud: true, library }),
+  stream: true,
+});
+```
+
+Relay the response stream through your server route without changing its event shape. In the browser, configure the appropriate [Agent Interface adapter and message format](/docs/agent/reference/adapters-and-formats) for the Responses stream.
+
+## Conversation history
+
+Choose one state model for each application flow:
+
+| Pattern                              | Use it when                                                    |
+| ------------------------------------ | -------------------------------------------------------------- |
+| Send the full history in `input`     | Your application owns all message storage.                     |
+| Set `previous_response_id`           | You want to chain stored responses without a named thread.     |
+| Set `conversation` and `store: true` | You want a persistent thread managed by the Conversations API. |
+
+```ts
+const first = await gateway.responses.create({
+  model: "openai/gpt-5",
+  input: "Compare quarterly revenue by region.",
+  instructions: generateSystemPrompt({ cloud: true, library }),
+  store: true,
+});
+
+const followUp = await gateway.responses.create({
+  model: "openai/gpt-5",
+  input: "Focus on Europe and explain the change.",
+  instructions: generateSystemPrompt({ cloud: true, library }),
+  previous_response_id: first.id,
+  store: true,
+});
+```
+
+For named threads, see the [Conversations API](/docs/gateway/api/conversations).
+
+## Tools
+
+Responses supports Gateway-hosted tools and application-run function tools. See [Hosted Tools](/docs/gateway/api/responses/hosted-tools) for declarations and execution ownership.

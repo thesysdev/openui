@@ -1,0 +1,43 @@
+.art {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.image {
+  object-fit: cover;
+  object-position: center;
+}
+
+.imageDark {
+  display: none;
+}
+
+[data-theme="dark"] .imageLight,
+.artDark .imageLight {
+  display: none;
+}
+
+[data-theme="dark"] .imageDark,
+.artDark .imageDark {
+  display: block;
+}
+
+[data-theme="dark"] .artLight .imageLight,
+.artLight .imageLight {
+  display: block;
+}
+
+[data-theme="dark"] .artLight .imageDark,
+.artLight .imageDark {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .image {
+    /* The desktop frame is intentionally wide. This crop keeps both the
+       generated trip UI and the OpenUI Lang panel legible on a phone. */
+    object-position: 52% center;
+  }
+}

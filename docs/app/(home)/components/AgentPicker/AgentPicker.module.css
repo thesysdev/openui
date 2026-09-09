@@ -1,0 +1,227 @@
+/* A row of circular agent buttons carrying the site's bevel. Only the first is
+   visible at rest; the rest sit under it, out of flow, so revealing them never
+   reflows the row around it. */
+.picker {
+  --agent-size: 3rem;
+  --agent-gap: 0.5rem;
+  --agent-stride: calc(var(--agent-size) + var(--agent-gap));
+
+  /* The bevel tokens live on the home page's theme, so they are undefined in the
+     site header and the buttons there would come out flat and transparent. Pinned
+     locally, the same way GitHubButton does it, so the circles carry the bevel
+     wherever they are used. */
+  --home-surface-ink: #0a0a0a;
+  --home-surface-raised: #f7f7f8;
+  --home-bevel:
+    inset 0 2px 1px -0.5px rgba(255, 255, 255, 1), inset 0 -3px 6px -1px rgba(0, 0, 0, 0.1);
+  --home-bevel-on-dark:
+    inset 0 7px 12px -6px rgba(255, 255, 255, 0.16), inset 0 -5px 8px -2px rgba(0, 0, 0, 0.6);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--agent-gap);
+  flex-shrink: 0;
+}
+
+/* Matches the compact GitHub button in the header. */
+.pickerCompact {
+  --agent-size: 2.5rem;
+}
+
+.option {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--agent-size);
+  height: var(--agent-size);
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--openui-radius-full);
+  background: var(--home-surface-raised);
+  box-shadow: var(--home-bevel);
+  color: var(--openui-text-neutral-primary);
+  cursor: pointer;
+}
+
+[data-theme="dark"] .option {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--home-surface-ink);
+  box-shadow: var(--home-bevel-on-dark);
+}
+
+/* Sized as a fraction of the circle rather than in rem, so the compact variant
+   is an exact scale-down of the full-size one rather than its own proportions.
+   20/48 and 26/48 are the full-size measurements. */
+/* Tooltip. Held back behind a delay, so sweeping the pointer across the row on
+   the way somewhere else never leaves a trail of labels. It goes away at once on
+   leaving: the delay is only on the way in. */
+.option::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  z-index: 3;
+  padding: 0.25rem 0.5rem;
+  /* Sits with the page rather than against it: light on light, dark on dark. The
+     colours are pinned rather than taken from --openui-text-neutral-primary,
+     which the home theme holds at near-black on both themes. */
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.375rem;
+  background: #ffffff;
+  box-shadow:
+    0 4px 10px -6px rgba(10, 10, 10, 0.24),
+    0 1px 3px -2px rgba(10, 10, 10, 0.12);
+  color: #17171b;
+  font-family: var(--home-font-text, "Inter", sans-serif);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -0.25rem);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+[data-theme="dark"] .option::after {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #1c1c1f;
+  box-shadow:
+    0 4px 10px -6px rgba(0, 0, 0, 0.8),
+    0 1px 3px -2px rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.option:hover::after,
+.option:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition-delay: 0.5s;
+}
+
+.mark {
+  width: calc(var(--agent-size) * 0.4167);
+  height: calc(var(--agent-size) * 0.4167);
+  object-fit: contain;
+  transition: transform 0.15s ease;
+}
+
+/* Scaled rather than resized, so the mark grows without nudging the circle. */
+.option:hover .mark {
+  transform: scale(1.15);
+}
+
+/* OpenAI's mark is drawn small inside its own box, so it needs a nudge to carry
+   the same weight as Claude's and Cursor's. */
+.markWide {
+  width: calc(var(--agent-size) * 0.5417);
+  height: calc(var(--agent-size) * 0.5417);
+}
+
+/* Cursor's and Codex's marks are drawn in near-black and would disappear on the
+   dark page, so those are knocked out to white. Claude's carries its own colour,
+   so it is left alone on both themes. */
+[data-theme="dark"] .markInvert {
+  filter: brightness(0) invert(1);
+}
+
+/* Reveal. Only where there is a pointer to hover with: without one the extras
+   would be unreachable, so they simply stay out. */
+@media (hover: hover) {
+  /* Bridges the gaps between the circles once they are out. Without it the
+     pointer leaves the picker's box the moment it crosses a gap, and the row
+     collapses before it can be reached. Left unpositioned in the stacking order
+     so it sits, and hit-tests, below the buttons and never swallows a click. */
+  .picker::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--agent-size);
+    height: 100%;
+    transition: width 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .pickerLeft::after {
+    left: auto;
+    right: 0;
+  }
+
+  .picker:hover::after,
+  .picker:focus-within::after {
+    width: calc(2 * var(--agent-stride) + var(--agent-size));
+  }
+
+  /* The anchor stays above the two that slide out from under it, and both stay
+     above the bridge. */
+  .picker > .option {
+    position: relative;
+    z-index: 2;
+  }
+
+  .picker > .option:nth-child(2),
+  .picker > .option:nth-child(3) {
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+    /* Swift: they start tucked under the anchor and travel out to their own
+       place. */
+    transition:
+      transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.12s ease;
+  }
+
+  .picker > .option:nth-child(2) {
+    left: var(--agent-stride);
+    transform: translateX(calc(-1 * var(--agent-stride)));
+  }
+
+  .picker > .option:nth-child(3) {
+    left: calc(2 * var(--agent-stride));
+    transform: translateX(calc(-2 * var(--agent-stride)));
+  }
+
+  /* Mirrored: the row grows back towards the left instead. */
+  .pickerLeft > .option:nth-child(2) {
+    left: auto;
+    right: var(--agent-stride);
+    transform: translateX(var(--agent-stride));
+  }
+
+  .pickerLeft > .option:nth-child(3) {
+    left: auto;
+    right: calc(2 * var(--agent-stride));
+    transform: translateX(calc(2 * var(--agent-stride)));
+  }
+
+  .picker:hover > .option:nth-child(2),
+  .picker:focus-within > .option:nth-child(2),
+  .picker:hover > .option:nth-child(3),
+  .picker:focus-within > .option:nth-child(3) {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  /* The outer one trails the inner one, so they cascade rather than move as a
+     block. */
+  .picker:hover > .option:nth-child(3),
+  .picker:focus-within > .option:nth-child(3) {
+    transition-delay: 0.04s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker > .option {
+    transition: opacity 0.12s ease;
+  }
+
+  .option:hover .mark {
+    transform: none;
+  }
+}

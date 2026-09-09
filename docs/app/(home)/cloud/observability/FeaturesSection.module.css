@@ -1,13 +1,29 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: 160px;
+  gap: var(--observability-section-gap, 160px);
   width: 100%;
   max-width: 1200px;
-  /* Symmetric now. Cloud leaves the bottom at 0 because its capability strip
-     follows and supplies the separation; with that strip gone the last card ran
-     straight into the CTA. */
-  margin: 160px auto;
+  /* The next section owns its top space, so margins do not double the gap. */
+  margin: var(--observability-section-gap, 160px) auto 0;
+  padding-bottom: var(--observability-section-gap, 160px);
+}
+
+.header {
+  width: 100%;
+  max-width: 46rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.header h2 {
+  scroll-margin-top: 112px;
+}
+
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--observability-section-gap, 160px);
 }
 
 .card {
@@ -33,6 +49,12 @@
 .featureImage {
   display: block;
   object-fit: cover;
+}
+
+.featureImageSessionReplay {
+  /* This source is slightly taller than the shared 720×400 feature slot.
+     Preserve the designed top/side inset instead of centering the crop. */
+  object-position: center top;
 }
 
 .featureImageDark {
@@ -113,11 +135,6 @@
 }
 
 @media (max-width: 1023px) {
-  .section {
-    gap: 96px;
-    margin-top: 96px;
-  }
-
   .card {
     flex-direction: column;
     gap: 32px;
@@ -142,13 +159,30 @@
 }
 
 @media (max-width: 767px) {
+  .captionBreak {
+    display: none;
+  }
+
   .section {
     width: calc(100% - 32px);
   }
 
   .featureImage {
     order: -1;
+    aspect-ratio: 4 / 3;
     border-radius: 12px;
+    object-fit: cover;
+  }
+
+  .featureImageTriage {
+    /* The review drawer is the triage story; keep it readable rather than
+       shrinking the entire 1440px console into a phone-width slot. */
+    object-position: 72% center;
+  }
+
+  .featureImageEvals {
+    /* Keeps the selected case and its run history in the crop. */
+    object-position: 58% center;
   }
 
   .content {
@@ -164,4 +198,41 @@
 
 [data-theme="dark"] .featurePlaceholder {
   background: rgba(255, 255, 255, 0.05);
+}
+
+/* Stand-in for a step whose screenshot pair has not been made. Mirrors
+   .featureImage's box exactly so the row keeps its proportions; delete these
+   rules once every step has art. */
+.shotPlaceholder {
+  display: flex;
+  flex: 0 1 720px;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  aspect-ratio: 720 / 400;
+  border: 1px dashed var(--openui-border-subtle, rgba(10, 10, 10, 0.28));
+  border-radius: 24px;
+}
+
+[data-theme="dark"] .shotPlaceholder {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.shotPlaceholderLabel {
+  max-width: 28rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--openui-text-neutral-secondary);
+}
+
+@media (max-width: 1023px) {
+  .shotPlaceholder {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+  }
 }

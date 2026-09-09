@@ -1,0 +1,12 @@
+---
+title: Overview
+description: Find and understand OpenUI generation and rendering errors across production traffic.
+---
+
+Generative UI turns model output into interfaces that people use directly. Models usually follow the component contract they receive, but they can still invent components, use unsupported values, leave references unresolved, or stop early. This can produce incomplete or broken interfaces.
+
+![OpenUI reliability dashboard](/images/observability/reliability-dashboard.png)
+
+In our [**Reliability benchmark**](/blog/generative-ui-benchmark), every tested format, including OpenUI, A2UI, and json-render, produced incomplete generations. OpenUI completed 92.9% of evaluated tasks and produced 2 blank screens across 1,104 runs. Its strongest model pairing reached 99.5%, not 100%.
+
+OpenUI Observability helps teams find and trace these failures after deployment so they can improve the reliability of generated interfaces.

@@ -64,11 +64,11 @@ See [Defining Components](/docs/openui-lang/defining-components) for the full `d
 ## Architecture
 
 ```
-Browser (AgentInterface) -- POST /api/chat --> Next.js route --> OpenAI
-                         <-- SSE stream --                       (OpenUI Lang + tool calls)
+Browser (AgentInterface) -- POST /api/chat --> Next.js route --> Gateway --> model
+                         <-- SSE stream --                       (corrected OpenUI Lang)
 ```
 
-The client sends a conversation to `/api/chat`. The API route loads a generated `system-prompt.txt`, forwards the messages to the LLM with streaming and tool definitions, and returns SSE events. On the client, `openAIAdapter()` parses the SSE stream and `shadcnChatLibrary` maps each OpenUI Lang node to a shadcn/ui component that renders progressively as tokens arrive.
+The client sends a conversation to `/api/chat`. The API route loads the generated component instructions, sends the messages through the [Gateway](/docs/gateway), and returns SSE events. On the client, the stream adapter parses the response and `shadcnChatLibrary` maps each OpenUI Lang node to a shadcn/ui component that renders progressively as tokens arrive.
 
 The key decoupling: the server streams OpenUI Lang — an abstract description of UI structure. The client's `shadcnChatLibrary` decides how each node renders. That's where shadcn/ui enters, and that's also where you'd plug in any other design system.
 
@@ -114,7 +114,7 @@ npm install
 2. Create a `.env.local` file with your API key:
 
 ```bash
-OPENAI_API_KEY=sk-...
+THESYS_API_KEY=sk-th-...
 ```
 
 3. Start the dev server:

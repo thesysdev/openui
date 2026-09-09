@@ -1,0 +1,48 @@
+---
+title: Installation
+description: Connect an OpenUI application to hosted Observability with the official production SDK.
+---
+
+Install `@openuidev/observability-cloud` in the application that renders OpenUI interfaces. The SDK sends supported runtime telemetry to the hosted Observability product.
+
+## 1. Install the SDK
+
+```bash tab="pnpm" tab-group="pkg"
+pnpm add @openuidev/observability-cloud
+```
+
+```bash tab="bun" tab-group="pkg"
+bun add @openuidev/observability-cloud
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn add @openuidev/observability-cloud
+```
+
+```bash tab="npm" tab-group="pkg"
+npm install @openuidev/observability-cloud
+```
+
+## 2. Create a client key
+
+Create a client API key in the [Thesys Console](https://console.thesys.dev/client-api-keys). Client keys are intended for application runtime telemetry; do not substitute a Gateway server API key.
+
+## 3. Initialize once
+
+Initialize Observability at the root of the application before rendering OpenUI responses:
+
+```ts
+import * as Observability from "@openuidev/observability-cloud";
+
+Observability.init({
+  apiKey: "pk-th-…",
+});
+```
+
+Deploy the application and exercise representative generative UI flows. Runtime errors will begin appearing in the Console's reliability views.
+
+## Works with any generation path
+
+The SDK captures supported OpenUI runtime signals whether the application generated the response through the [Gateway](/docs/gateway) or called a model provider directly.
+
+Continue with [Dashboard](/docs/observability/dashboard) to interpret the data.

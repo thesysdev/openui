@@ -200,7 +200,7 @@ openui generate-api-key [options]
 Options:
 
 - `-f, --file <path>`: Env file to write (default: `.env`)
-- `-k, --key <name>`: Environment variable name (default: `THESYS_API_KEY`)
+- `-k, --key <name>`: Environment variable name (default: `THESYS_API_KEY`; letters, digits, and underscores)
 - `-n, --name <string>`: Name of the minted key in the Thesys console (default: `package.json` name, or the current directory name)
 
 Examples:

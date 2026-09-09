@@ -3,3 +3,6 @@ dist/
 .env
 .env.*
 !.env.example
+
+# generated OpenUI prompt and schema
+/src/generated/

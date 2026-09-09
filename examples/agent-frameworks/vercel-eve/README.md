@@ -50,7 +50,7 @@ Eve HTTP channel ──► Eve agent ──► model + tools
 Eve session events ──► eveAdapter() ──► OpenUI renderer
 ```
 
-- `src/app/page.tsx` renders OpenUI's `<AgentInterface />` with the Cloud chat library.
+- `src/app/page.tsx` renders OpenUI's `<AgentInterface />` with `openuiLibrary`.
 - `src/eve-chat.ts` delivers turns through Eve's HTTP session protocol, returns the raw NDJSON
   stream, and persists session cursors per OpenUI thread. `eveAdapter()` maps that stream to AG-UI.
 - `agent/instructions/openui.ts` injects the generated OpenUI Lang prompt when an Eve session
@@ -94,6 +94,8 @@ examples/agent-frameworks/vercel-eve/
 |- agent/instructions/openui.ts      # Generated OpenUI Lang instructions
 |- agent/tools/get_weather.ts        # Example Eve tool
 |- agent/tools/ask_question.ts       # Disables Eve's built-in ask_question
+|- src/library.ts                    # openuiLibrary re-export for `openui generate --spec`
+|- src/lib/cloud-prompt.ts           # Reads spec.json into generateSystemPrompt({ cloud: true, library })
 |- src/app/page.tsx                  # OpenUI AgentInterface chat
 |- src/eve-chat.ts                   # Eve session transport, eveAdapter, persistence
 |- src/thread-store.ts               # Browser thread and transcript storage

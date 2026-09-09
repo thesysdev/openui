@@ -17,6 +17,6 @@ export default defineAgent({
   model,
   modelContextWindowTokens: 1_048_576,
   build: {
-    externalDependencies: ["@openuidev/thesys-server"],
+    externalDependencies: ["@openuidev/lang-core"],
   },
 });

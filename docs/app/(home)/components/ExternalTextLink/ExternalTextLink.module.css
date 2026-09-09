@@ -1,0 +1,37 @@
+.link[href] {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2em;
+  border-radius: 3px;
+  color: var(--openui-text-neutral-primary);
+  font-weight: inherit;
+  text-decoration: none;
+  transition: background-color 160ms ease;
+}
+
+.label {
+  text-decoration: none;
+}
+
+.arrow {
+  position: relative;
+  top: 0.08em;
+  flex: 0 0 auto;
+  width: 0.8em;
+  height: 0.8em;
+}
+
+.link:hover {
+  background-color: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link {
+    transition: none;
+  }
+}

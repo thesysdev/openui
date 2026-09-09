@@ -1,4 +1,4 @@
-import { generateSystemPrompt } from "@openuidev/thesys-server";
+import { generateSystemPrompt } from "@openuidev/lang-core";
 import { defineDynamic, defineInstructions } from "eve/instructions";
 
 /**
@@ -9,7 +9,7 @@ export default defineDynamic({
   events: {
     "session.started": () =>
       defineInstructions({
-        markdown: generateSystemPrompt(),
+        markdown: generateSystemPrompt({ cloud: true }),
       }),
   },
 });

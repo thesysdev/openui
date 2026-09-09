@@ -3,18 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
+    "generate:apiKey": "openui generate-api-key",
+    "predev": "npm run generate",
     "dev": "node scripts/launch.mjs dev",
+    "prebuild": "npm run generate",
     "build": "next build --webpack",
     "start": "node scripts/launch.mjs start",
     "lint": "eslint",
+    "pretest": "npm run generate",
     "test": "vitest run",
+    "pretypecheck": "npm run generate",
     "typecheck": "tsc --noEmit",
+    "preverify": "npm run generate",
     "verify": "tsc --noEmit && vitest run && next build --webpack"
   },
   "dependencies": {
     "@ag-ui/core": "^0.0.53",
     "@agentclientprotocol/sdk": "1.3.0",
-    "@openuidev/lang-core": "0.2.16",
+    "@openuidev/lang-core": "0.2.17",
     "@openuidev/react-headless": "0.9.13",
     "@openuidev/react-lang": "0.2.15",
     "@openuidev/react-ui": "0.13.10",
@@ -27,6 +34,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@openuidev/cli": "0.2.12",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",

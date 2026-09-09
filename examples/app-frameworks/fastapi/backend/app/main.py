@@ -1,5 +1,7 @@
 """Minimal FastAPI backend — streams OpenUI Cloud completions as NDJSON."""
+import json
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -16,8 +18,21 @@ client = AsyncOpenAI(
 )
 MODEL = os.environ.get("OPENUI_MODEL", "google/gemini-3.6-flash-free")
 
-# Same payload as generateSystemPrompt() from @openuidev/thesys-server.
-CLOUD_SYSTEM_PROMPT = ']]>openui:config\n{"libraryVersion": "0.1.0"}'
+SPEC_PATH = Path(__file__).resolve().parents[2] / "frontend" / "src" / "generated" / "spec.json"
+
+
+def cloud_system_prompt() -> str:
+    """Same payload as generateSystemPrompt({ cloud: true, library }) from @openuidev/lang-core."""
+    if not SPEC_PATH.is_file():
+        raise RuntimeError(f"Missing {SPEC_PATH}. From frontend/, run: pnpm generate")
+    spec = json.loads(SPEC_PATH.read_text())
+    chat_library = {
+        key: spec[key]
+        for key in ("schema", "root", "componentGroups", "id")
+        if key in spec and spec[key] is not None
+    }
+    return "]]>openui:config\n" + json.dumps({"chatLibrary": chat_library})
+
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -28,7 +43,7 @@ async def chat(body: dict):
     messages = body.get("messages") or []
     stream = await client.chat.completions.create(
         model=MODEL,
-        messages=[{"role": "system", "content": CLOUD_SYSTEM_PROMPT}, *messages],
+        messages=[{"role": "system", "content": cloud_system_prompt()}, *messages],
         stream=True,
     )
 

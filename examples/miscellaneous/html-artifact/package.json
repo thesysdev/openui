@@ -4,21 +4,21 @@
   "private": true,
   "scripts": {
     "generate": "openui generate src/library.tsx --spec --out src/generated/spec.json",
-    "generate:prompt": "openui generate src/library.tsx --spec --out src/generated/spec.json",
-    "predev": "openui generate src/library.tsx --spec --out src/generated/spec.json",
+    "generate:apiKey": "openui generate-api-key",
+    "predev": "npm run generate",
     "dev": "next dev",
-    "prebuild": "openui generate src/library.tsx --spec --out src/generated/spec.json",
+    "prebuild": "npm run generate",
     "build": "next build",
-    "preverify": "openui generate src/library.tsx --spec --out src/generated/spec.json",
+    "preverify": "npm run generate",
     "verify": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@openuidev/lang-core": "0.2.17",
     "@openuidev/react-headless": "0.9.13",
     "@openuidev/react-lang": "0.2.15",
     "@openuidev/react-ui": "0.13.10",
-    "@openuidev/thesys-server": "0.1.3",
     "next": "16.2.6",
     "openai": "^6.22.0",
     "react": "19.2.3",
@@ -27,7 +27,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.2.11",
+    "@openuidev/cli": "0.2.12",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",

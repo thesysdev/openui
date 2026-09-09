@@ -1,5 +1,8 @@
 .section {
   width: min(100%, var(--home-container-wide));
+  /* On top of the content shell's own gap: this follows the black Cloud band
+     and needs more room than a gap between two light sections. */
+  margin-top: clamp(3rem, 6vw, 5.5rem);
   margin-inline: auto;
   padding-inline: 1.25rem;
   box-sizing: border-box;

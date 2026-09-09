@@ -5,6 +5,7 @@ import "@openuidev/react-ui/styles/index.css";
 import {
   AgentInterface,
   fetchLLM,
+  useSystemThemeMode,
   vercelAIAdapter,
   vercelAIMessageFormat,
 } from "@openuidev/react-ui";
@@ -17,9 +18,16 @@ const llm = fetchLLM({
 });
 
 export default function Home() {
+  const mode = useSystemThemeMode();
+
   return (
     <div style={{ height: "100vh", width: "100vw", overflow: "hidden" }}>
-      <AgentInterface llm={llm} componentLibrary={openuiLibrary} agentName="OpenUI Self Hosted" />
+      <AgentInterface
+        llm={llm}
+        componentLibrary={openuiLibrary}
+        agentName="OpenUI Self Hosted"
+        theme={{ mode }}
+      />
     </div>
   );
 }

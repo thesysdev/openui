@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { SectionHeader } from "../../components/SectionHeader/SectionHeader";
 import styles from "./FeaturesSection.module.css";
 
 /* No docs to point at yet, so the copy column ends at the body text. Cloud's
@@ -27,25 +28,53 @@ function FeatureCopy({
   );
 }
 
-/* Authored at 1440x800 and declared at half that, so the pair is sharp on a
-   retina screen while occupying the 720x400 slot the layout expects. */
-function FeatureShot({ shot, alt }: { shot: string; alt: string }) {
+/* High-density Figma exports, losslessly compressed as WebP. Intrinsic dimensions
+   reserve space while the responsive slots keep the UI's focal content visible. */
+function FeatureShot({ shot, alt }: { shot?: string; alt: string }) {
+  /* PLACEHOLDER — a step whose art has not been made yet. Dashed rather than a
+     filled panel so it reads as missing rather than as a design choice, and
+     sized to the same 720x400 slot so the layout does not move when the real
+     pair lands. */
+  if (!shot) {
+    return (
+      <div className={styles.shotPlaceholder} aria-hidden="true">
+        <p className={styles.shotPlaceholderLabel}>{alt}</p>
+      </div>
+    );
+  }
+
+  const focalClass =
+    shot === "session-replay"
+      ? styles.featureImageSessionReplay
+      : shot.startsWith("triage")
+        ? styles.featureImageTriage
+        : shot.startsWith("evals")
+          ? styles.featureImageEvals
+          : "";
+  const imageHeight = shot === "session-replay" ? 1804 : 1600;
+
   return (
     <>
       <Image
-        className={`${styles.featureImage} ${styles.featureImageLight}`}
+        className={`${styles.featureImage} ${styles.featureImageLight} ${focalClass}`.trim()}
         src={`/openui-observability/${shot}-light.webp`}
         alt={alt}
-        width={720}
-        height={400}
+        width={2880}
+        height={imageHeight}
+        quality={95}
+        unoptimized
+        sizes="(max-width: 767px) calc(100vw - 32px), 720px"
       />
       <Image
-        className={`${styles.featureImage} ${styles.featureImageDark}`}
+        className={`${styles.featureImage} ${styles.featureImageDark} ${focalClass}`.trim()}
         src={`/openui-observability/${shot}-dark.webp`}
         alt=""
         aria-hidden="true"
-        width={720}
-        height={400}
+        width={2880}
+        height={imageHeight}
+        quality={95}
+        unoptimized
+        sizes="(max-width: 767px) calc(100vw - 32px), 720px"
       />
     </>
   );
@@ -56,61 +85,105 @@ type Feature = {
   headline: ReactNode;
   description: string;
   /* Basename under /public/openui-observability/, which the light and dark
-     files hang off. */
-  shot: string;
+     files hang off. Omitted while a step's art is still to be made. */
+  shot?: string;
 };
 
+/* One loop, in order: see it, find the ones worth seeing, mark what is wrong,
+   stop it recurring. Read as four steps rather than four capabilities, so each
+   one hands to the next and the last leaves the product entirely.
+
+   Timeline folded into step one — following the journey is part of seeing what
+   the user saw, not a separate screen. Insights folded into step two as a single
+   clause: the demand signal comes from the same view you triage in, and giving
+   it its own step would break the loop. */
 const FEATURES: Feature[] = [
   {
     title: "Session replay",
     shot: "session-replay",
-    headline: "See every session as it happened",
+    headline: (
+      <>
+        See every
+        <br />
+        user session
+      </>
+    ),
+    description: "Replay the exact interface, responses, and interactions each user experienced.",
+  },
+  {
+    title: "Triage",
+    shot: "triage-figma",
+    headline: (
+      <>
+        Find sessions
+        <br />
+        worth opening
+      </>
+    ),
     description:
-      "Replay conversations with the exact generative UI your users saw, not just the text behind it.",
+      "Surface failed journeys, unmet needs, and high-impact issues to understand where users struggle.",
   },
   {
     title: "Annotations",
     shot: "annotations",
-    headline: "Turn sessions into feedback",
-    description:
-      "Annotate responses, add comments, assign severity, and share feedback with your dev team right where the issue happened.",
+    headline: (
+      <>
+        Turn bad responses
+        <br />
+        into feedback
+      </>
+    ),
+    description: "Mark the broken response, add context, and share the session with your team.",
   },
   {
-    title: "Timeline",
-    shot: "timeline",
-    headline: "Understand the journey at a glance",
-    description:
-      "Follow a simplified timeline of queries, actions, responses, and issues without digging through complex traces.",
-  },
-  {
-    title: "Insights",
-    shot: "insights",
-    headline: "Learn what users want next",
-    description:
-      "See the skills users rely on most, what\u2019s missing, and which new demands are starting to emerge.",
+    title: "Evals",
+    shot: "evals-figma",
+    headline: (
+      <>
+        Prevent the same
+        <br />
+        issue twice
+      </>
+    ),
+    description: "Turn production failures into evals that catch regressions before release.",
   },
 ];
 
 export function FeaturesSection() {
   return (
-    <section className={styles.section} aria-label="Features">
-      {FEATURES.map((feature, index) => (
-        /* Alternating sides, as on Cloud: art leads the odd cards, copy the
+    <section className={styles.section} aria-labelledby="observability-features">
+      <header className={styles.header}>
+        <SectionHeader
+          titleId="observability-features"
+          title="Product analytics for AI agents"
+          subtitle="not just traces"
+          caption={
+            <>
+              Connect each response to what users saw, <br className={styles.captionBreak} />
+              what they did, and whether it met their needs.
+            </>
+          }
+        />
+      </header>
+      <div className={styles.featureList}>
+        {FEATURES.map((feature, index) => (
+          /* Alternating sides, as on Cloud: art leads the odd cards, copy the
              even ones, so the page does not read as one column. */
-        <article key={feature.title} className={styles.card}>
-          {index % 2 === 0 ? (
-            <>
-              <FeatureShot shot={feature.shot} alt={`${feature.title} in OpenUI Observability`} />
-              <FeatureCopy {...feature} />
-            </>
-          ) : (
-            <>
-              <FeatureCopy {...feature} />
-              <FeatureShot shot={feature.shot} alt={`${feature.title} in OpenUI Observability`} />
-            </>
-          )}
-        </article>
-      ))}
+          <article key={feature.title} className={styles.card}>
+            {index % 2 === 0 ? (
+              <>
+                <FeatureShot shot={feature.shot} alt={`${feature.title} in OpenUI Observability`} />
+                <FeatureCopy {...feature} />
+              </>
+            ) : (
+              <>
+                <FeatureCopy {...feature} />
+                <FeatureShot shot={feature.shot} alt={`${feature.title} in OpenUI Observability`} />
+              </>
+            )}
+          </article>
+        ))}
+      </div>
     </section>
   );
 }

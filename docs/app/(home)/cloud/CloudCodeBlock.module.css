@@ -1,17 +1,30 @@
 .panel {
   overflow: hidden;
-  min-height: 360px;
+  min-height: var(--cloud-code-min-height, 420px);
   border: 1px solid var(--openui-border-default);
   border-radius: 20px;
   background: var(--openui-foreground);
+  animation: codePanelIn 220ms ease-out both;
+}
+
+@keyframes codePanelIn {
+  from {
+    opacity: 0.65;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .code {
   margin: 0;
   overflow-x: auto;
-  padding: 40px 0;
+  padding: 48px 0;
   font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.7;
   text-align: left;
 }
@@ -19,14 +32,18 @@
 .codeLine {
   display: block;
   min-width: max-content;
-  padding: 0 40px;
+  padding: 0 48px;
   white-space: pre;
 }
 
 .changedLine {
   border-left: 3px solid #22c55e;
-  padding-left: 37px;
+  padding-left: 45px;
   background: rgb(34 197 94 / 14%);
+}
+
+.dimUnchanged .codeLine:not(.changedLine) {
+  opacity: 0.36;
 }
 
 @media (max-width: 767px) {
@@ -36,5 +53,11 @@
 
   .code::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
   }
 }

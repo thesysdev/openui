@@ -1,0 +1,63 @@
+---
+title: Conversations API
+description: Create persistent Gateway conversations and use them with the Responses API.
+---
+
+The Conversations API stores persistent threads and their items. Responses can read and append to a conversation so the application does not need to resend the full history on every turn.
+
+**Base URL:** `https://api.thesys.dev/v1`
+
+```ts title="lib/conversations.ts"
+import OpenAI from "openai";
+
+export const conversations = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1",
+});
+```
+
+## Create and use a conversation
+
+```ts
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import library from "./openui.spec.json";
+
+const conversation = await conversations.conversations.create({
+  metadata: { workspace: "acme" },
+});
+
+const response = await gateway.responses.create({
+  model: "openai/gpt-5",
+  conversation: conversation.id,
+  input: "Compare quarterly revenue by region.",
+  instructions: generateSystemPrompt({ cloud: true, library }),
+  store: true,
+  stream: true,
+});
+```
+
+Later Responses calls can reuse `conversation.id` and send only the new turn.
+
+## Read conversation items
+
+```ts
+const page = await conversations.conversations.items.list(conversation.id, {
+  order: "asc",
+  limit: 100,
+});
+
+for (const item of page.data) {
+  console.log(item.type, item.id);
+}
+```
+
+## Endpoint summary
+
+| Method                    | Path                                                  | Purpose                                     |
+| ------------------------- | ----------------------------------------------------- | ------------------------------------------- |
+| `GET` / `POST`            | `/v1/conversations`                                   | List or create conversations.               |
+| `GET` / `POST` / `DELETE` | `/v1/conversations/{conversation_id}`                 | Retrieve, update, or delete a conversation. |
+| `GET` / `POST`            | `/v1/conversations/{conversation_id}/items`           | List or add conversation items.             |
+| `GET` / `DELETE`          | `/v1/conversations/{conversation_id}/items/{item_id}` | Retrieve or delete one item.                |
+
+Server calls use the API key described in [Authentication](/docs/gateway/authentication). Browser access should use a scoped, short-lived frontend token rather than the server key.

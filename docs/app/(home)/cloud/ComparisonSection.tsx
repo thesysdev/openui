@@ -1,4 +1,5 @@
 import { MarketingTable } from "@/components/marketing-table";
+import type { ReactNode } from "react";
 import styles from "./ComparisonSection.module.css";
 
 const COMPARISON_ROWS = [
@@ -42,63 +43,92 @@ function CloudCheckmark() {
   );
 }
 
+export function ComparisonShell({
+  title,
+  titleId,
+  description,
+  children,
+  layout = "split",
+}: {
+  title: ReactNode;
+  titleId: string;
+  description?: ReactNode;
+  children: ReactNode;
+  layout?: "split" | "stacked";
+}) {
+  return (
+    <section className={styles.section} aria-labelledby={titleId}>
+      <div className={styles.separator} aria-hidden="true" />
+      <div className={styles.inner} data-layout={layout}>
+        <div className={styles.titleGroup}>
+          <h2 id={titleId} className={styles.title}>
+            {title}
+          </h2>
+          {description ? <p className={styles.description}>{description}</p> : null}
+        </div>
+        <div className={styles.tableColumn}>{children}</div>
+      </div>
+    </section>
+  );
+}
+
 export function ComparisonSection() {
   return (
-    <section className={styles.section} aria-labelledby="cloud-comparison-title">
-      <div className={styles.separator} aria-hidden="true" />
-      <div className={styles.inner}>
-        <h2 id="cloud-comparison-title" className={styles.title}>
+    <ComparisonShell
+      titleId="cloud-comparison-title"
+      title={
+        <>
           Purpose
           <br className={styles.titleBreak} /> built for
           <br className={styles.mobileTitleBreak} /> production use-cases
-        </h2>
-
-        <MarketingTable edgeToEdgeMobile>
-          <colgroup>
-            <col className={styles.capabilityColumn} />
-            <col />
-            <col />
-          </colgroup>
-          <thead>
-            <tr>
-              <th scope="col">Capability</th>
-              <th scope="col">OpenUI OSS</th>
-              <th scope="col">OpenUI Cloud</th>
-            </tr>
-          </thead>
-          <tbody>
-            {COMPARISON_ROWS.map(([capability, oss, cloud]) => (
-              <tr key={capability}>
-                <th scope="row">{capability}</th>
-                <td
-                  className={
-                    oss === "Manage yourself" ||
-                    oss === "Implement yourself" ||
-                    oss === "Basic components included"
-                      ? styles.selfManaged
-                      : undefined
-                  }
-                >
-                  {capability === "OpenUI Lang" ? (
-                    <span className={styles.checkedValue}>
-                      <CloudCheckmark />
-                      <span>{oss}</span>
-                    </span>
-                  ) : (
-                    oss
-                  )}
-                </td>
-                <td>
+        </>
+      }
+    >
+      <MarketingTable edgeToEdgeMobile>
+        <colgroup>
+          <col className={styles.capabilityColumn} />
+          <col />
+          <col />
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">Capability</th>
+            <th scope="col">OpenUI OSS</th>
+            <th scope="col">OpenUI Cloud</th>
+          </tr>
+        </thead>
+        <tbody>
+          {COMPARISON_ROWS.map(([capability, oss, cloud]) => (
+            <tr key={capability}>
+              <th scope="row">{capability}</th>
+              <td
+                className={
+                  oss === "Manage yourself" ||
+                  oss === "Implement yourself" ||
+                  oss === "Basic components included"
+                    ? styles.selfManaged
+                    : undefined
+                }
+              >
+                {capability === "OpenUI Lang" ? (
                   <span className={styles.checkedValue}>
                     <CloudCheckmark />
-                    <span>{cloud}</span>
+                    <span>{oss}</span>
                   </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </MarketingTable>
-      </div>
-    </section>
+                ) : (
+                  oss
+                )}
+              </td>
+              <td>
+                <span className={styles.checkedValue}>
+                  <CloudCheckmark />
+                  <span>{cloud}</span>
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </MarketingTable>
+    </ComparisonShell>
   );
 }

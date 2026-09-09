@@ -7,7 +7,7 @@ import {
   vercelAIAdapter,
   vercelAIMessageFormat,
 } from "@openuidev/react-ui";
-import { chatLibrary } from "@openuidev/thesys";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { useMemo } from "react";
 
 export default function Page() {
@@ -29,7 +29,7 @@ export default function Page() {
     <div className="app-shell">
       <AgentInterface
         llm={llm}
-        componentLibrary={chatLibrary}
+        componentLibrary={openuiLibrary}
         agentName="OpenUI + Vercel AI SDK"
         theme={{ mode }}
         starterVariant="short"

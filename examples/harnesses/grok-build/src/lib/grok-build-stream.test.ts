@@ -44,13 +44,13 @@ describe("OpenUI output safety", () => {
   it("keeps only the final renderable candidate when Grok emits several roots", () => {
     const bridge = new GrokBuildAGUIBridge();
     const failedCandidate =
-      'root = Card([old])\nold = TextContent("This attempt was retried")';
+      'root = Stack([old])\nold = TextContent("This attempt was retried")';
     const finalCandidate =
-      'root = Card([answer])\nanswer = TextContent("Final retry-safe answer")';
+      'root = Stack([answer])\nanswer = TextContent("Final retry-safe answer")';
 
     bridge.consume(agentMessage("I'll inspect the repository first."));
     bridge.consume(agentMessage(failedCandidate));
-    bridge.consume(agentMessage('root = Card([stale])\nstale = TextContent("stale")'));
+    bridge.consume(agentMessage('root = Stack([stale])\nstale = TextContent("stale")'));
     bridge.consume(agentMessage(finalCandidate));
 
     const text = emittedText(bridge.finish());
@@ -69,7 +69,7 @@ describe("OpenUI output safety", () => {
     expect(notification).toBeDefined();
     bridge.consume(notification!.update);
     const final =
-      'root = Card([answer])\nanswer = TextContent("final retry-safe answer")';
+      'root = Stack([answer])\nanswer = TextContent("final retry-safe answer")';
     bridge.consume(agentMessage(final));
 
     const text = emittedText(bridge.finish());
@@ -80,8 +80,8 @@ describe("OpenUI output safety", () => {
 
   it("handles a stale candidate delivered after its retry notification", () => {
     const bridge = new GrokBuildAGUIBridge();
-    const stale = 'root = Card([stale])\nstale = TextContent("overtaken attempt")';
-    const final = 'root = Card([answer])\nanswer = TextContent("final answer")';
+    const stale = 'root = Stack([stale])\nstale = TextContent("overtaken attempt")';
+    const final = 'root = Stack([answer])\nanswer = TextContent("final answer")';
 
     bridge.consume(retry());
     bridge.consume(agentMessage(stale));
@@ -96,11 +96,11 @@ describe("OpenUI output safety", () => {
   it("recovers the last valid retry candidate when the final candidate has an unresolved ref", () => {
     const bridge = new GrokBuildAGUIBridge();
     const valid = [
-      "root = Card([summary])",
+      "root = Stack([summary])",
       'summary = TextContent("validated retry answer")',
     ].join("\n");
     const invalid = [
-      "root = Card([header, layout])",
+      "root = Stack([header, layout])",
       'header = CardHeader("Project map")',
       'sLayout = TextContent("layout was defined under the wrong identifier")',
     ].join("\n");
@@ -117,38 +117,38 @@ describe("OpenUI output safety", () => {
   it("recognizes a root statement split across ACP chunks", () => {
     const output = new OpenUIOutputAccumulator();
     output.push("progress prose\nro");
-    output.push('ot = Card([answer])\nanswer = TextContent("chunked")');
+    output.push('ot = Stack([answer])\nanswer = TextContent("chunked")');
 
     expect(output.finish()).toBe(
-      'root = Card([answer])\nanswer = TextContent("chunked")',
+      'root = Stack([answer])\nanswer = TextContent("chunked")',
     );
   });
 
   it("recovers a newer root split across chunks directly after another answer", () => {
     const output = new OpenUIOutputAccumulator();
-    output.push('root = Card([old])\nold = TextContent("retried answer")');
+    output.push('root = Stack([old])\nold = TextContent("retried answer")');
     output.push("ro");
-    output.push('ot = Card([answer])\nanswer = TextContent("newest answer")');
+    output.push('ot = Stack([answer])\nanswer = TextContent("newest answer")');
 
     expect(output.finish()).toBe(
-      'root = Card([answer])\nanswer = TextContent("newest answer")',
+      'root = Stack([answer])\nanswer = TextContent("newest answer")',
     );
   });
 
   it("extracts a valid root after a malformed same-line prefix", () => {
     const output = new OpenUIOutputAccumulator();
     output.push('?\")ro');
-    output.push('ot = Card([answer])\nanswer = TextContent("recovered")');
+    output.push('ot = Stack([answer])\nanswer = TextContent("recovered")');
 
     expect(output.finish()).toBe(
-      'root = Card([answer])\nanswer = TextContent("recovered")',
+      'root = Stack([answer])\nanswer = TextContent("recovered")',
     );
   });
 
   it("ignores a root-looking example inside a component string", () => {
     const output = new OpenUIOutputAccumulator();
     const source =
-      'root = Card([answer])\nanswer = TextContent("literal root = Card([fake])\\nfake = TextContent(\\"fake\\")")';
+      'root = Stack([answer])\nanswer = TextContent("literal root = Stack([fake])\\nfake = TextContent(\\"fake\\")")';
     expect(isRenderableOpenUI(source)).toBe(true);
     output.push(source);
 
@@ -158,7 +158,7 @@ describe("OpenUI output safety", () => {
   it("tracks single-quoted strings while finding candidate boundaries", () => {
     const output = new OpenUIOutputAccumulator();
     const source =
-      "root = Card([answer])\nanswer = TextContent('literal ) root = Card([])')";
+      "root = Stack([answer])\nanswer = TextContent('literal ) root = Stack([])')";
     expect(isRenderableOpenUI(source)).toBe(true);
     output.push(source);
 
@@ -168,9 +168,9 @@ describe("OpenUI output safety", () => {
   it("ignores root-like text and delimiters inside line comments", () => {
     const output = new OpenUIOutputAccumulator();
     const source = [
-      "root = Card([answer])",
-      "// ) root = Card([])",
-      "# ] root = Card([])",
+      "root = Stack([answer])",
+      "// ) root = Stack([])",
+      "# ] root = Stack([])",
       'answer = TextContent("comments are ignored")',
     ].join("\n");
     expect(isRenderableOpenUI(source)).toBe(true);
@@ -182,11 +182,11 @@ describe("OpenUI output safety", () => {
   it("stops a fenced OpenUI candidate before trailing prose", () => {
     const output = new OpenUIOutputAccumulator();
     output.push(
-      'Here is the UI:\n```openui\nroot = Card([answer])\nanswer = TextContent("fenced")\n```\nHope that helps.',
+      'Here is the UI:\n```openui\nroot = Stack([answer])\nanswer = TextContent("fenced")\n```\nHope that helps.',
     );
 
     expect(output.finish()).toBe(
-      'root = Card([answer])\nanswer = TextContent("fenced")',
+      'root = Stack([answer])\nanswer = TextContent("fenced")',
     );
   });
 
@@ -196,15 +196,15 @@ describe("OpenUI output safety", () => {
       [
         "Here:",
         "```openui",
-        'root = Card([answer])',
+        'root = Stack([answer])',
         'answer = TextContent("correct")',
         "```",
-        "Syntax reminder: call Card() root = Card([])",
+        "Syntax reminder: call Card() root = Stack([])",
       ].join("\n"),
     );
 
     expect(output.finish()).toBe(
-      'root = Card([answer])\nanswer = TextContent("correct")',
+      'root = Stack([answer])\nanswer = TextContent("correct")',
     );
   });
 
@@ -214,13 +214,13 @@ describe("OpenUI output safety", () => {
       [
         "Here is the users' requested UI:",
         "```openui",
-        "root = Card([])",
+        "root = Stack([])",
         "```",
-        'Reminder: root = Card([missing])',
+        'Reminder: root = Stack([missing])',
       ].join("\n"),
     );
 
-    expect(output.finish()).toBe("root = Card([])");
+    expect(output.finish()).toBe("root = Stack([])");
   });
 
   it("lets a later unfenced retry supersede an earlier fenced answer", () => {
@@ -228,16 +228,16 @@ describe("OpenUI output safety", () => {
     output.push(
       [
         "```openui",
-        'root = Card([old])',
+        'root = Stack([old])',
         'old = TextContent("stale")',
         "```",
-        'root = Card([answer])',
+        'root = Stack([answer])',
         'answer = TextContent("final")',
       ].join("\n"),
     );
 
     expect(output.finish()).toBe(
-      'root = Card([answer])\nanswer = TextContent("final")',
+      'root = Stack([answer])\nanswer = TextContent("final")',
     );
   });
 
@@ -245,17 +245,17 @@ describe("OpenUI output safety", () => {
     const output = new OpenUIOutputAccumulator();
     output.push(
       [
-        'root = Card([old])',
+        'root = Stack([old])',
         'old = TextContent("stale")',
         "```openui",
-        'root = Card([answer])',
+        'root = Stack([answer])',
         'answer = TextContent("final")',
         "```",
       ].join("\n"),
     );
 
     expect(output.finish()).toBe(
-      'root = Card([answer])\nanswer = TextContent("final")',
+      'root = Stack([answer])\nanswer = TextContent("final")',
     );
   });
 
@@ -264,30 +264,30 @@ describe("OpenUI output safety", () => {
     output.push(
       [
         "```openui",
-        'root = Card([old])',
+        'root = Stack([old])',
         'old = TextContent("fenced stale")',
         "```",
-        'root = Card([stale])',
+        'root = Stack([stale])',
         'stale = TextContent("unfenced stale")',
       ].join("\n"),
     );
     output.push("ro");
     output.push(
-      'ot = Card([answer])\nanswer = TextContent("actual final answer")',
+      'ot = Stack([answer])\nanswer = TextContent("actual final answer")',
     );
 
     expect(output.finish()).toBe(
-      'root = Card([answer])\nanswer = TextContent("actual final answer")',
+      'root = Stack([answer])\nanswer = TextContent("actual final answer")',
     );
   });
 
   it("does not treat a fence marker inside a component string as Markdown", () => {
     const output = new OpenUIOutputAccumulator();
     const source = [
-      "root = Card([answer])",
+      "root = Stack([answer])",
       'answer = TextContent("',
       "```openui",
-      'root = Card([fake])',
+      'root = Stack([fake])',
       "```",
       '")',
     ].join("\n");
@@ -299,38 +299,38 @@ describe("OpenUI output safety", () => {
 
   it("falls back to the newest renderable candidate when a later root is invalid", () => {
     const output = new OpenUIOutputAccumulator();
-    const valid = 'root = Card([answer])\nanswer = TextContent("keep me")';
+    const valid = 'root = Stack([answer])\nanswer = TextContent("keep me")';
     output.push(valid);
-    output.push("root = Stack([])");
+    output.push("root = NotAComponent()");
 
     expect(output.finish()).toBe(valid);
   });
 
   it("rejects a newer candidate with an unresolved component reference", () => {
     const output = new OpenUIOutputAccumulator();
-    const valid = 'root = Card([answer])\nanswer = TextContent("keep me")';
+    const valid = 'root = Stack([answer])\nanswer = TextContent("keep me")';
     output.push(valid);
-    output.push("root = Card([missing])");
+    output.push("root = Stack([missing])");
 
     expect(output.finish()).toBe(valid);
   });
 
   it("rejects a newer candidate containing an unknown component", () => {
     const output = new OpenUIOutputAccumulator();
-    const valid = 'root = Card([answer])\nanswer = TextContent("keep me")';
+    const valid = 'root = Stack([answer])\nanswer = TextContent("keep me")';
     output.push(valid);
-    output.push("root = Card([bad])\nbad = MadeUp(\"nope\")");
+    output.push("root = Stack([bad])\nbad = MadeUp(\"nope\")");
 
     expect(output.finish()).toBe(valid);
   });
 
   it("does not mistake a chunk starting with root text inside a string for a new answer", () => {
     const output = new OpenUIOutputAccumulator();
-    output.push('root = Card([answer])\nanswer = TextContent("The ');
+    output.push('root = Stack([answer])\nanswer = TextContent("The ');
     output.push('root = token stays inside this string")');
 
     expect(output.finish()).toBe(
-      'root = Card([answer])\nanswer = TextContent("The root = token stays inside this string")',
+      'root = Stack([answer])\nanswer = TextContent("The root = token stays inside this string")',
     );
   });
 
@@ -346,7 +346,7 @@ describe("OpenUI output safety", () => {
 
   it("describes unresolved references for a bounded correction turn", () => {
     const invalid = [
-      "root = Card([header, layout])",
+      "root = Stack([header, layout])",
       'header = CardHeader("Project map")',
       'sLayout = TextContent("wrong identifier")',
     ].join("\n");
@@ -363,7 +363,7 @@ describe("OpenUI output safety", () => {
     const bridge = new GrokBuildAGUIBridge();
     bridge.consume(
       agentMessage(
-        'root = Card([layout])\nsLayout = TextContent("wrong identifier")',
+        'root = Stack([layout])\nsLayout = TextContent("wrong identifier")',
       ),
     );
     expect(bridge.needsCorrection()).toBe(true);
@@ -371,7 +371,7 @@ describe("OpenUI output safety", () => {
 
     bridge.beginCorrection();
     const corrected =
-      'root = Card([layout])\nlayout = TextContent("corrected identifier")';
+      'root = Stack([layout])\nlayout = TextContent("corrected identifier")';
     bridge.consume(agentMessage(corrected));
 
     expect(emittedText(bridge.finish())).toBe(corrected);
@@ -384,7 +384,7 @@ describe("OpenUI output safety", () => {
   });
 
   it("chunks without changing the validated program", () => {
-    const source = `root = Card([answer])\nanswer = TextContent(${JSON.stringify("smooth ".repeat(300))})`;
+    const source = `root = Stack([answer])\nanswer = TextContent(${JSON.stringify("smooth ".repeat(300))})`;
     const chunks = chunkOpenUIOutput(source);
 
     expect(chunks.length).toBeGreaterThan(1);
@@ -394,7 +394,7 @@ describe("OpenUI output safety", () => {
 
   it("preserves validated buffered output when the upstream turn fails", () => {
     const bridge = new GrokBuildAGUIBridge();
-    const valid = 'root = Card([answer])\nanswer = TextContent("keep the useful answer")';
+    const valid = 'root = Stack([answer])\nanswer = TextContent("keep the useful answer")';
     bridge.consume(
       agentMessage(valid),
     );

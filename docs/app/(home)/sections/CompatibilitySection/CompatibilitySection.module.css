@@ -1,6 +1,7 @@
 .section {
   width: 100%;
   padding-inline: var(--home-section-padding-inline);
+  overflow: hidden;
 }
 
 .container {
@@ -79,38 +80,29 @@
   gap: 0.375rem;
 }
 
+/* Was display:none. The rows showed a line of logos with nothing naming what
+   they were, so neither someone skimming nor an agent parsing the page could
+   tell the model row from the design-library one. The label is the claim; the
+   logos underneath are the evidence for it. */
 .label {
-  display: none;
+  display: block;
+  font-family: var(--home-font-text);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--openui-text-neutral-primary);
 }
 
-.chipsViewport {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    #000 8%,
-    #000 92%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    #000 8%,
-    #000 92%,
-    transparent 100%
-  );
-}
-
+/* Wraps in place. This used to be a fixed-width track slid by rAF behind a
+   masked viewport; with the animation gone the row simply lays out and wraps,
+   and .chipsViewport is no longer rendered. */
 .chips {
   display: flex;
-  width: max-content;
+  width: 100%;
   flex-direction: row;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  will-change: transform;
 }
 
 .chipRow {
@@ -213,23 +205,5 @@
 
   .section[data-variant="embedded"] .chips {
     gap: 0.375rem;
-  }
-
-  /* Fade the chips towards the screen edges. */
-  .section[data-variant="embedded"] .chipsViewport {
-    -webkit-mask-image: linear-gradient(
-      to right,
-      transparent,
-      #000 8%,
-      #000 92%,
-      transparent
-    );
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      #000 8%,
-      #000 92%,
-      transparent
-    );
   }
 }

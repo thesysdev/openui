@@ -1122,6 +1122,49 @@
   }
 }
 
+/* Product and homepage heroes still have enough horizontal room in the
+   900–1023px range. Keep their desktop lockup and use a narrower, inset
+   illustration instead of falling into the tall phone composition. */
+@media (min-width: 900px) and (max-width: 1023px) {
+  .desktopFromTablet .npmDesktopLabel {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .desktopFromTablet .npmMobileLabel,
+  .desktopFromTablet .mobileHero {
+    display: none;
+  }
+
+  .desktopFromTablet .desktopHero {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 4rem 1.5rem 0;
+  }
+
+  .desktopFromTablet .desktopHeroInnerLeft {
+    padding-block: 4rem 2.5rem;
+  }
+
+  .desktopFromTablet .desktopHeroLockupSplit {
+    gap: 24px;
+  }
+
+  .desktopFromTablet .previewSection {
+    margin-top: 2rem;
+  }
+
+  .desktopFromTablet .previewDesktopOnly {
+    display: flex;
+  }
+
+  .desktopFromTablet .previewFrame {
+    width: calc(100% - 3rem);
+    max-width: 56rem;
+  }
+}
+
 /* ── Responsive: desktop (≥1024px) ── */
 
 @media (min-width: 1024px) {

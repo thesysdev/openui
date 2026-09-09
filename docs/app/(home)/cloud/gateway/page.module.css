@@ -1,0 +1,151 @@
+/* Hero lockup only. The sections below the hero share sections.module.css, so
+   this file stays the page's own typography and nothing else. The lockup is the
+   one Cloud and Observability use, with the product name in the tag. */
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 2px;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: normal;
+}
+
+.cloudTag {
+  display: inline-flex;
+  align-items: center;
+  margin-top: -3px;
+  padding: 2px 6px 3px;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  font-size: 17px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.title {
+  display: block;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.subtitle {
+  display: block;
+  flex: 0 0 400px;
+  width: 400px;
+  max-width: 400px;
+  margin-top: 40px;
+  margin-left: auto;
+  padding-top: 12px;
+  font-size: 22px;
+  font-weight: var(--home-heading-weight);
+  line-height: var(--home-lead-leading);
+  letter-spacing: var(--home-heading-tracking);
+  text-wrap: balance;
+}
+
+.ctaGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.heroArtSpace {
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 1280 / 520;
+  border: 1px solid var(--home-hairline);
+  border-radius: 24px;
+  background: var(--home-color-surface-soft);
+}
+
+.problemBand,
+.repairBand {
+  width: 100%;
+  background: var(--openui-foreground);
+}
+
+[data-theme="dark"] .problemBand,
+[data-theme="dark"] .repairBand {
+  background: #000;
+}
+
+.usageBand {
+  width: 100%;
+  padding-block: 160px;
+  background: var(--openui-foreground);
+}
+
+.faqContactLink {
+  color: var(--openui-text-neutral-primary);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.faqContactLink:hover {
+  opacity: 0.7;
+}
+
+@media (max-width: 899.98px) {
+  .title {
+    font-size: inherit;
+  }
+
+  .subtitle {
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .ctaGroup {
+    flex-direction: column;
+    width: 320px;
+    max-width: 100%;
+  }
+
+  .heroArtSpace {
+    aspect-ratio: 390 / 620;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .usageBand {
+    padding-block: 112px;
+  }
+}
+
+@media (max-width: 767px) {
+  .titleBlock {
+    align-items: center;
+    gap: 12px;
+  }
+
+  .subtitle {
+    flex: 0 1 auto;
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: normal;
+  }
+
+  .heroArtSpace {
+    border-radius: 16px;
+  }
+
+  .usageBand {
+    padding-block: 96px;
+  }
+}

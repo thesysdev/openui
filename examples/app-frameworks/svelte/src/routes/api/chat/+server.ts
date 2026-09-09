@@ -2,7 +2,7 @@ import { env } from "$env/dynamic/private";
 import { library, promptOptions } from "$lib/library";
 import { tools } from "$lib/tools";
 import { createOpenAI } from "@ai-sdk/openai";
-import { generateSystemPrompt } from "@openuidev/thesys-server";
+import { generateSystemPrompt } from "@openuidev/lang-core";
 import { convertToModelMessages, smoothStream, stepCountIs, streamText } from "ai";
 
 const openai = createOpenAI({
@@ -27,6 +27,7 @@ const openai = createOpenAI({
 });
 
 const systemPrompt = generateSystemPrompt({
+  cloud: true,
   library: library.toSpec(),
   promptOptions: {
     examples: promptOptions.examples,

@@ -20,7 +20,7 @@ export interface SectionHeaderProps {
   caption?: ReactNode;
   /**
    * light (default) | dark. dark = Cloud (white title /
-   * rgba(255,255,255,0.45) subtitle + subtitle margin-top 0.5rem).
+   * rgba(255,255,255,0.45) subtitle with the same shared spacing).
    */
   tone?: SectionHeaderTone;
   /**
@@ -57,7 +57,11 @@ export function SectionHeader({
           {subtitle}
         </p>
       )}
-      {caption != null && <p className={styles.caption}>{caption}</p>}
+      {caption != null && (
+        <p className={styles.caption} data-tone={toneAttr}>
+          {caption}
+        </p>
+      )}
       {children}
     </>
   );

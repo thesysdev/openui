@@ -50,7 +50,7 @@ On the client, the `<AgentInterface />` component from `@openuidev/react-ui` han
 ### Request / Response Flow
 
 1. User types a message. `<AgentInterface />` calls `llm.send`, which sends `POST /api/chat` with the full thread formatted via `openAIMessageFormat`.
-2. The API route loads the generated library spec, wraps it with `generateSystemPrompt()`, and calls OpenUI Cloud's Chat Completions API with the full message history.
+2. The API route loads the generated library spec, wraps it with `generateSystemPrompt({ cloud: true })`, and calls OpenUI Cloud's Chat Completions API with the full message history.
 3. If the model calls an app-owned tool, `runChatToolLoop` executes it on this server and continues until the model returns a final answer.
 4. The model streams OpenUI Lang as Chat Completions SSE events.
 5. On the client, `openAIAdapter()` parses the events and hands the accumulated text to `<AgentInterface />`.
@@ -120,7 +120,7 @@ This runs `generate` first (compiles the component library → `src/generated/sp
 
 ### System Prompt Generation
 
-The `src/lib/shadcn-genui/index.tsx` file defines the entire component library using `createLibrary()`. At dev time, the OpenUI CLI reads this library and writes `src/generated/spec.json`. Cloud's `generateSystemPrompt({ library })` turns that spec into the managed system prompt.
+The `src/lib/shadcn-genui/index.tsx` file defines the entire component library using `createLibrary()`. At dev time, the OpenUI CLI reads this library and writes `src/generated/spec.json`. Cloud's `generateSystemPrompt({ cloud: true, library })` turns that spec into the managed system prompt.
 
 Re-run generation any time you change component definitions:
 

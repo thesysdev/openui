@@ -32,12 +32,11 @@ body {
 #nd-docs-layout {
   --color-fd-background: var(--openui-foreground);
   --color-doc-surface: var(--openui-foreground);
-  /* 4rem top bar + 0.5rem gap above tabs + ~2.5rem tabs row — keep in sync with `.tabsBar` padding */
-  --fd-banner-height: calc(4rem + 0.5rem + 2.5rem) !important;
+  --fd-banner-height: 4rem !important;
   --fd-layout-width: 1560px !important;
   width: 100%;
-  min-height: calc(100dvh - (4rem + 0.5rem + 2.5rem)) !important;
-  padding-top: calc(4rem + 0.5rem + 2.5rem) !important;
+  min-height: calc(100dvh - 4rem) !important;
+  padding-top: 4rem !important;
   background: var(--openui-foreground);
 }
 
@@ -150,12 +149,3 @@ body {
 #nd-sidebar-mobile [data-radix-scroll-area-viewport] a[target="_blank"] > svg:first-child {
   order: 1;
 }
-
-@media (max-width: 767px) {
-  #nd-docs-layout {
-    --fd-banner-height: calc(4rem + 2.5rem) !important;
-    min-height: calc(100dvh - (4rem + 2.5rem)) !important;
-    padding-top: calc(4rem + 2.5rem) !important;
-  }
-}
-

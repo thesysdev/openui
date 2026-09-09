@@ -1,0 +1,10 @@
+{
+  "title": "Observability",
+  "root": true,
+  "pages": [
+    "index",
+    "installation",
+    "dashboard",
+    "optimizing"
+  ]
+}

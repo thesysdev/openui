@@ -10,10 +10,10 @@ An [OpenUI](https://openui.com) example showing how to wire a [Vercel AI SDK](ht
 
 ## Getting started
 
-1. Create a `.env.local` file with your OpenUI Cloud key:
+1. Mint an OpenUI Cloud key into `.env.local`:
 
 ```bash
-echo "THESYS_API_KEY=sk-th-..." > .env.local
+pnpm generate:apiKey
 ```
 
 2. Install dependencies from this example directory:
@@ -32,7 +32,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the chat interface.
 
 ## How it works
 
-The server (`src/app/api/chat/route.ts`) uses `streamText` with Cloud Completions (`POST /v1/embed/chat/completions`), `generateSystemPrompt()`, and the tools in `src/lib/tools.ts`. It returns `toUIMessageStreamResponse()` — the Vercel AI SDK's native UIMessage stream.
+The server (`src/app/api/chat/route.ts`) uses `streamText` with Cloud Completions (`POST /v1/embed/chat/completions`), `cloudInstructions()` (generated `openuiLibrary` spec), and the tools in `src/lib/tools.ts`. It returns `toUIMessageStreamResponse()` — the Vercel AI SDK's native UIMessage stream.
 
 The frontend (`src/app/page.tsx`) renders `<AgentInterface />` with `fetchLLM({ streamAdapter: vercelAIAdapter(), messageFormat: vercelAIMessageFormat })`. Storage is omitted, so AgentInterface uses its built-in in-memory default (wiped on reload).
 

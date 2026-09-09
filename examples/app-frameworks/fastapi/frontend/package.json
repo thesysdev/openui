@@ -3,8 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
+    "generate:apiKey": "openui generate-api-key",
+    "predev": "npm run generate",
     "dev": "vite",
+    "prebuild": "npm run generate",
     "build": "vite build",
+    "preverify": "npm run generate",
     "verify": "vite build && python3 -c \"import ast,pathlib; [ast.parse(path.read_text()) for path in pathlib.Path('../backend').rglob('*.py')]\"",
     "preview": "vite preview"
   },
@@ -20,6 +25,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@openuidev/cli": "0.2.12",
     "@tailwindcss/vite": "^4.0.0",
     "@vitejs/plugin-react": "^4.0.0",
     "rollup": "4.62.5",

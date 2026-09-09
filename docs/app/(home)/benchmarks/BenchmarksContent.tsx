@@ -348,13 +348,13 @@ export function BenchmarksContent() {
         </div>
 
         <CloudCtaSection
-          title="Improve your Generative UI reliability with OpenUI Cloud."
+          title="Improve your Generative UI reliability with OpenUI Gateway."
           primary={{
-            label: "Get OpenUI Cloud",
+            label: "Get OpenUI Gateway",
             href: "https://console.thesys.dev/keys",
             external: true,
           }}
-          secondary={{ label: "Learn more", href: "/docs/openui-cloud" }}
+          secondary={{ label: "Learn more", href: "/cloud/gateway" }}
         />
       </VizSkin>
     </main>

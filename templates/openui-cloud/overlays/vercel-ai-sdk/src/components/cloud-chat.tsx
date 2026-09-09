@@ -2,7 +2,7 @@
 
 import { usePersistedModel } from "@/hooks/use-persisted-model";
 import { MODEL_OPTIONS } from "@/lib/models";
-import { OPENUI_LOGOS, PROMPT_TEMPLATES, STARTERS } from "@/lib/starters";
+import { OPENUI_LOGOS, STARTERS } from "@/lib/starters";
 import {
   AgentInterface,
   ModelSwitcher,
@@ -40,6 +40,7 @@ export default function CloudChat() {
         componentLibrary={chatLibrary}
         logoUrl={logoPath}
         theme={{ mode }}
+        starters={STARTERS}
       >
         <AgentInterface.MobileHeader
           agentName=""

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "generate:apiKey": "openui generate-api-key",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -10,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@openuidev/lang-core": "0.2.15",
+    "@openuidev/lang-core": "0.2.17",
     "@openuidev/react-lang": "^0.2.15",
     "@openuidev/react-ui": "^0.13.10",
     "@openuidev/thesys": "^0.3.2",
@@ -24,6 +25,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@openuidev/cli": "0.2.12",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

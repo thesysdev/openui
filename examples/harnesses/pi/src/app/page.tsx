@@ -2,7 +2,6 @@
 
 import "@openuidev/react-ui/components.css";
 import "@openuidev/react-ui/styles/index.css";
-import "@openuidev/thesys/styles.css";
 
 import {
   AgentInterface,
@@ -11,7 +10,7 @@ import {
   openAIReadableStreamAdapter,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
-import { chatLibrary } from "@openuidev/thesys";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { useMemo } from "react";
 
 export default function Home() {
@@ -33,7 +32,7 @@ export default function Home() {
     <div className="h-screen w-screen overflow-hidden">
       <AgentInterface
         llm={llm}
-        componentLibrary={chatLibrary}
+        componentLibrary={openuiLibrary}
         agentName="OpenUI Agent Harness"
         theme={{ mode }}
         starterVariant="short"

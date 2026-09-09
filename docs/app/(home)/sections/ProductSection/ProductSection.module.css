@@ -1,0 +1,332 @@
+/* One product band. Colour comes from two token sets: the light tone reads the
+   site theme, the dark tone pins itself, because it sits on the Cloud band's
+   black in either theme. Every rule below styles through these, so the two
+   tones never need parallel rules. */
+.product {
+  --ps-text: var(--openui-text-neutral-primary);
+  --ps-muted: var(--openui-text-neutral-secondary);
+  --ps-mark-bg: #0a0a0a;
+  --ps-mark-fg: #fff;
+  /* One fill and one edge for the stage, the cards and the icon tiles, so the
+     band reads as a single material. */
+  --ps-surface: #fff;
+  --ps-border: rgba(10, 10, 10, 0.035);
+
+  display: flex;
+  flex-direction: column;
+  /* Matches the gap the cards use between each other, so the band's vertical
+     rhythm is the same measure as its horizontal one. Change both together. */
+  gap: 0.875rem;
+  width: 100%;
+  /* Caps its own measure so the three bands line up whether the host is the
+     home content shell or the Cloud band's inner. Gutters stay the host's job,
+     matching how the other home sections split it. */
+  max-width: var(--home-container-max);
+  margin-inline: auto;
+  color: var(--ps-text);
+}
+
+[data-theme="dark"] .product {
+  --ps-surface: rgba(255, 255, 255, 0.042);
+  --ps-border: rgba(255, 255, 255, 0.04);
+  --ps-mark-bg: #fff;
+  --ps-mark-fg: #0a0a0a;
+}
+
+/* Pinned rather than theme-derived: on a light page this tone sits on black. */
+.onDark {
+  --ps-text: #fff;
+  --ps-muted: rgba(255, 255, 255, 0.6);
+  --ps-surface: rgba(255, 255, 255, 0.042);
+  --ps-border: rgba(255, 255, 255, 0.04);
+  --ps-mark-bg: #fff;
+  --ps-mark-fg: #0a0a0a;
+}
+
+/* ---- Lockup ---- */
+.lockup {
+  /* The band's single gap keeps stage and cards tight together; the copy above
+     wants more air than that, so this tops up only the lockup-to-stage
+     boundary rather than loosening the whole rhythm. */
+  margin-bottom: clamp(0.75rem, 2vw, 1.75rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  align-items: start;
+  gap: clamp(1.5rem, 4vw, 4rem);
+}
+
+.lead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--home-font-text);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+/* The outlined chip from the Cloud hero, not the nav's solid status tag: it
+   reads as part of the product name rather than as a badge stuck to it. Sized
+   just under the eyebrow and drawn in currentColor, so it inverts with the
+   band's tone for free. */
+.eyebrowTag {
+  display: inline-flex;
+  align-items: center;
+  /* Optically centres the chip against the cap height beside it. */
+  margin-top: -2px;
+  padding: 2px 6px 3px;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  font-family: var(--home-font-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.headline {
+  max-width: 20ch;
+  margin: 0;
+  /* Same display face and weight the section headings use. Only the size is
+     local, because a band heading sits below them in the hierarchy. */
+  font-family: var(--home-font-display);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: var(--home-title-weight);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.description {
+  margin: 0;
+  /* Optically aligned with the headline rather than the eyebrow above it. */
+  padding-top: clamp(0.5rem, 3vw, 3.25rem);
+  font-family: var(--home-font-text);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--ps-muted);
+  text-wrap: pretty;
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* ---- Stage ---- */
+.stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+  /* 16/9 with the height at 70%. */
+  aspect-ratio: var(--product-stage-aspect, 16 / 6.3);
+  padding: clamp(0.375rem, 0.7vw, 0.625rem);
+  border: 1px solid var(--ps-border);
+  border-radius: 20px;
+  background: var(--ps-surface);
+}
+
+/* Some final illustrations already contain their own app frame. Nesting those
+   inside the default stage inset creates a conspicuous double border, so they
+   crop directly to the section bounds instead. */
+.stageFullBleed {
+  padding: 0;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+}
+
+.stageImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.stageDark {
+  display: none;
+}
+
+[data-theme="dark"] .stageLight {
+  display: none;
+}
+
+[data-theme="dark"] .stageDark {
+  display: block;
+}
+
+/* The dark band shows the dark artwork on either page theme. */
+.onDark .stageLight {
+  display: none;
+}
+
+.onDark .stageDark {
+  display: block;
+}
+
+/* ---- Cards ---- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.875rem;
+}
+
+.card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 184px;
+  padding: 15px;
+  border: 1px solid var(--ps-border);
+  border-radius: 16px;
+  background: var(--ps-surface);
+}
+
+.cardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--ps-border);
+  border-radius: 12px;
+  color: var(--ps-text);
+}
+
+.cardCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--home-font-display);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  line-height: normal;
+}
+
+.cardDescription {
+  margin: 0;
+  font-family: var(--home-font-text);
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--ps-muted);
+  text-wrap: pretty;
+}
+
+/* ---- Narrower ---- */
+@media (max-width: 1023px) {
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .lockup {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .description {
+    padding-top: 0;
+  }
+
+  .headline {
+    max-width: none;
+  }
+
+  .stage {
+    /* Taller than the desktop ratio, which gets too thin at phone width. */
+    aspect-ratio: var(--product-stage-mobile-aspect, 4 / 2.4);
+    border-radius: 16px;
+  }
+
+  .cards {
+    grid-template-columns: none;
+    grid-auto-columns: clamp(15.5rem, 76vw, 18rem);
+    grid-auto-flow: column;
+    justify-content: start;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding-bottom: 0.25rem;
+    scroll-padding-inline: 0.125rem;
+    scroll-snap-type: inline mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cards::-webkit-scrollbar {
+    display: none;
+  }
+
+  .card {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  /* The buttons go full width on phones, so stack them rather than wrapping. */
+  .ctas {
+    flex-direction: column;
+    align-self: stretch;
+  }
+}
+
+/* ---- The dark tone inverts with the page ----
+   CloudSection's own .section flips from #000 to #f4f4f5 under a dark theme, so
+   a band sitting on it has to flip too. Without this the band keeps white text
+   and white fills on a light ground and disappears. */
+[data-theme="dark"] .onDark {
+  --ps-text: #0a0a0a;
+  --ps-muted: rgba(10, 10, 10, 0.6);
+  --ps-surface: #fff;
+  --ps-border: rgba(10, 10, 10, 0.035);
+  --ps-mark-bg: #0a0a0a;
+  --ps-mark-fg: #fff;
+}
+
+/* The band is light here, so it wants the light artwork. */
+[data-theme="dark"] .onDark .stageLight {
+  display: block;
+}
+
+[data-theme="dark"] .onDark .stageDark {
+  display: none;
+}
+
+/* The buttons use the theme-independent variants for this tone, which means
+   they do not invert on their own. Same declarations CloudSection applied to
+   its own CTAs before they moved here. */
+[data-theme="dark"] .onDark .primaryCta {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: #0a0a0a;
+  box-shadow: var(--home-bevel-on-dark);
+  color: #fff;
+  --bevel-badge-bg: #fff;
+  --bevel-badge-fg: #0a0a0a;
+}
+
+[data-theme="dark"] .onDark .secondaryCta {
+  border-color: rgba(0, 0, 0, 0.08);
+  background: var(--home-surface-raised);
+  box-shadow: var(--home-bevel);
+  color: #0a0a0a;
+  --bevel-badge-bg: #0a0a0a;
+  --bevel-badge-fg: #fff;
+}

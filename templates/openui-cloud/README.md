@@ -3,7 +3,8 @@ This is an [OpenUI](https://openui.com) Cloud project bootstrapped with [`openui
 ## Setup
 
 The CLI writes `.env` for you. If you cloned the generated project elsewhere,
-create `.env` with `THESYS_API_KEY`, `DEMO_USER_ID`, and `APP_ID`.
+run `pnpm generate:apiKey` to mint `THESYS_API_KEY`, then add `DEMO_USER_ID`
+and `APP_ID`.
 
 ## Getting Started
 
@@ -57,8 +58,8 @@ list](https://models.dev/providers/openrouter/).
 
 ## SDK packages
 
-- `@openuidev/thesys-server` — the server SDK (`artifactTool`,
-  `generateSystemPrompt`) used by the `/api/chat` route.
+- `@openuidev/lang-core` — `generateSystemPrompt({ cloud: true })` used by the `/api/chat` route.
+- `@openuidev/thesys-server` — `artifactTool` used by the `/api/chat` route.
 - `@openuidev/thesys` — the React component library (`chatLibrary`, `Presentation`,
   `Report`) used by the client page and artifact renderers.
 - `@openuidev/react-ui` — the chat UI runtime (`AgentInterface`, `fetchLLM`,

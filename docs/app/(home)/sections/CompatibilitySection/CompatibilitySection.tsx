@@ -1,13 +1,8 @@
 "use client";
 
 import svgPaths from "@/imports/svg-urruvoh2be";
-import { Stack } from "@phosphor-icons/react";
-import { useEffect, useRef, type ReactNode } from "react";
-import {
-  StackChip,
-  stackChipStyles,
-  type StackChipItem,
-} from "../../components/StackChip/StackChip";
+import { stackChipStyles, type StackChipItem } from "../../components/StackChip/StackChip";
+import { CompatibilityDiagram } from "./CompatibilityDiagram";
 import styles from "./CompatibilitySection.module.css";
 
 interface StackRow {
@@ -15,21 +10,11 @@ interface StackRow {
   items: StackChipItem[];
 }
 
-const MARQUEE_COPIES = 3;
-const MARQUEE_SPEED = 0.2;
-
-function createMoreChip(): StackChipItem {
-  return {
-    name: "+ more",
-    iconKind: "more",
-    badgeClassName: stackChipStyles.badgeMore,
-    isBlurred: true,
-  };
-}
-
+/* Keep the four existing compatibility groups and their supported integrations
+   together; every branch uses this same source at every screen size. */
 const STACK_ROWS: StackRow[] = [
   {
-    label: "All LLMs",
+    label: "LLM",
     items: [
       {
         name: "OpenAI",
@@ -73,11 +58,99 @@ const STACK_ROWS: StackRow[] = [
         iconColor: "ffffff",
         badgeClassName: stackChipStyles.badgeDeepSeek,
       },
-      createMoreChip(),
     ],
   },
   {
-    label: "Any UI Library",
+    label: "Backend",
+    items: [
+      {
+        name: "Cursor",
+        iconKind: "image",
+        localSrc: "/brand-icons/cursor.svg",
+        iconColor: "000000",
+        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
+      },
+      {
+        name: "LangChain",
+        iconKind: "image",
+        slug: "langchain",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeLangChain,
+      },
+      {
+        name: "CrewAI",
+        iconKind: "image",
+        slug: "crewai",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeCrewAi,
+      },
+      {
+        name: "OpenAI Agents SDK",
+        iconKind: "image",
+        localSrc: "/brand-icons/openai.svg",
+        iconColor: "000000",
+        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
+      },
+      {
+        name: "Anthropic Agents SDK",
+        iconKind: "image",
+        slug: "anthropic",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeAnthropic,
+      },
+    ],
+  },
+  {
+    /* Where it renders. Every entry is a package we publish (react-lang,
+       vue-lang, svelte-lang, react-email) or a listed integration — no Flutter
+       and no direct native, which A2UI has and we do not. */
+    label: "Client",
+    items: [
+      {
+        name: "React",
+        iconKind: "image",
+        slug: "react",
+        iconColor: "000000",
+        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
+      },
+      {
+        name: "Vue",
+        iconKind: "image",
+        slug: "vuedotjs",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeBlack,
+      },
+      {
+        name: "Svelte",
+        iconKind: "image",
+        slug: "svelte",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeBlack,
+      },
+      {
+        name: "React Native",
+        iconKind: "image",
+        slug: "react",
+        iconColor: "000000",
+        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
+      },
+      {
+        name: "Lynx",
+        iconKind: "image",
+        localSrc: "/integration-logos/lynx.svg",
+        iconColor: "ffffff",
+        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
+      },
+      {
+        name: "Email",
+        iconKind: "text",
+        iconText: "@",
+        badgeClassName: stackChipStyles.badgeBlack,
+      },
+    ],
+  },
+  {
+    label: "Design library",
     items: [
       {
         name: "OpenUI Design system",
@@ -116,101 +189,11 @@ const STACK_ROWS: StackRow[] = [
         iconText: "B",
         badgeClassName: stackChipStyles.badgeBaseUi,
       },
-      createMoreChip(),
-    ],
-  },
-  {
-    label: "Any Framework",
-    items: [
-      {
-        name: "Vercel AI SDK",
-        iconKind: "image",
-        slug: "vercel",
-        iconColor: "ffffff",
-        badgeClassName: stackChipStyles.badgeBlack,
-      },
-      {
-        name: "LangChain",
-        iconKind: "image",
-        slug: "langchain",
-        iconColor: "ffffff",
-        badgeClassName: stackChipStyles.badgeLangChain,
-      },
-      {
-        name: "CrewAI",
-        iconKind: "image",
-        slug: "crewai",
-        iconColor: "ffffff",
-        badgeClassName: stackChipStyles.badgeCrewAi,
-      },
-      {
-        name: "OpenAI Agents SDK",
-        iconKind: "image",
-        localSrc: "/brand-icons/openai.svg",
-        iconColor: "000000",
-        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
-      },
-      {
-        name: "Anthropic Agents SDK",
-        iconKind: "image",
-        slug: "anthropic",
-        iconColor: "ffffff",
-        badgeClassName: stackChipStyles.badgeAnthropic,
-      },
-      createMoreChip(),
     ],
   },
 ];
 
-export function CompatibilitySection({
-  title,
-  description,
-  embedded = false,
-}: { title?: ReactNode; description?: ReactNode; embedded?: boolean } = {}) {
-  const trackRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  useEffect(() => {
-    const tracks = trackRefs.current.filter(
-      (track): track is HTMLDivElement => track !== null,
-    );
-    if (tracks.length === 0) return;
-
-    let frameId = 0;
-    const offsets = tracks.map(() => 0);
-    const initialized = tracks.map(() => false);
-
-    const tick = () => {
-      tracks.forEach((track, i) => {
-        const loopWidth = track.scrollWidth / MARQUEE_COPIES;
-        if (loopWidth > 0) {
-          // Alternate direction: even rows scroll right-to-left, odd rows left-to-right.
-          const direction = i % 2 === 0 ? -1 : 1;
-          if (!initialized[i]) {
-            offsets[i] = direction > 0 ? -loopWidth : 0;
-            initialized[i] = true;
-          }
-          offsets[i] += MARQUEE_SPEED * direction;
-          if (offsets[i] <= -loopWidth) {
-            offsets[i] += loopWidth;
-          } else if (offsets[i] >= 0) {
-            offsets[i] -= loopWidth;
-          }
-          track.style.transform = `translateX(${offsets[i]}px)`;
-        }
-      });
-      frameId = window.requestAnimationFrame(tick);
-    };
-
-    frameId = window.requestAnimationFrame(tick);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-      tracks.forEach((track) => {
-        track.style.transform = "";
-      });
-    };
-  }, []);
-
+export function CompatibilitySection({ embedded = false }: { embedded?: boolean } = {}) {
   return (
     <section
       className={styles.section}
@@ -219,53 +202,7 @@ export function CompatibilitySection({
     >
       <div className={styles.container}>
         <div className={styles.stack}>
-          <header className={styles.header}>
-            <span className={styles.titleIcon} aria-hidden="true">
-              <Stack size={18} weight="light" />
-            </span>
-            <div className={styles.headerText}>
-              <h2 id="favorite-stack-title" className={styles.title}>
-                {title ?? (
-                  <>
-                    Works with your stack.
-                    <br />
-                    <span className={styles.titleAccent}>Any LLM, UI library, and framework.</span>
-                  </>
-                )}
-              </h2>
-              {description && <p className={styles.description}>{description}</p>}
-            </div>
-          </header>
-
-          <div className={styles.rows}>
-            {STACK_ROWS.map((row, rowIndex) => {
-              const visibleItems = row.items.filter((item) => !item.isBlurred);
-              const loopedItems = Array.from({ length: MARQUEE_COPIES }, (_, copyIndex) =>
-                visibleItems.map((item, itemIndex) => ({
-                  item,
-                  key: `${row.label}-${itemIndex}-${copyIndex}`,
-                })),
-              ).flat();
-
-              return (
-                <div key={row.label} className={styles.row}>
-                  <span className={styles.label}>{row.label}</span>
-                  <div className={styles.chipsViewport}>
-                    <div
-                      ref={(el) => {
-                        trackRefs.current[rowIndex] = el;
-                      }}
-                      className={styles.chips}
-                    >
-                      {loopedItems.map(({ item, key }) => (
-                        <StackChip key={key} item={item} dense={embedded} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <CompatibilityDiagram groups={STACK_ROWS} />
         </div>
       </div>
     </section>

@@ -3,8 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
+    "generate:apiKey": "openui generate-api-key --file .env.local",
+    "predev": "npm run generate",
     "dev": "next dev",
+    "prebuild": "npm run generate",
     "build": "next build",
+    "preverify": "npm run generate",
     "verify": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -14,11 +19,11 @@
     "@ag-ui/mastra": "1.1.1",
     "@ai-sdk/openai-compatible": "^1.0.49",
     "@mastra/core": "1.29.0",
+    "@openuidev/lang-core": "0.2.17",
     "@openuidev/react-headless": "0.9.13",
     "@openuidev/react-lang": "0.2.15",
     "@openuidev/react-ui": "0.13.10",
     "@openuidev/thesys": "0.3.2",
-    "@openuidev/thesys-server": "0.1.3",
     "next": "16.2.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -26,6 +31,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@openuidev/cli": "0.2.12",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -46,7 +52,9 @@
       "@ai-sdk/ui-utils@1.2.11>@ai-sdk/provider-utils": "2.2.8"
     },
     "peerDependencyRules": {
-      "ignoreMissing": ["@copilotkit/runtime"],
+      "ignoreMissing": [
+        "@copilotkit/runtime"
+      ],
       "allowedVersions": {
         "zod": ">=3"
       }

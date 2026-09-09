@@ -14,8 +14,8 @@
  * requires, `import.meta`, and on-disk prompt/skill/theme reads).
  */
 import type { AgentSession } from "@earendil-works/pi-coding-agent";
-import { generateSystemPrompt } from "@openuidev/thesys-server";
 import { join } from "node:path";
+import { cloudInstructions } from "./cloud-prompt";
 
 type PiSdk = typeof import("@earendil-works/pi-coding-agent");
 
@@ -24,7 +24,7 @@ const MODELS_PATH = join(process.cwd(), "src/lib/openui-cloud-models.json");
 const OPENUI_INSTRUCTIONS = `You are a coding agent connected to OpenUI. Use reasoning and tools normally before answering.
 Do not emit OpenUI Lang in reasoning, progress messages, tool arguments, or tool results.
 After all required work is complete, your final assistant response must consist entirely of valid openui-lang code with no markdown or explanatory prose.
-Before sending the final response, verify that root is a Card and every referenced identifier is defined.`;
+Before sending the final response, verify that root is a Stack and every referenced identifier is defined.`;
 
 let sdkPromise: Promise<PiSdk> | undefined;
 function loadSdk(): Promise<PiSdk> {
@@ -133,13 +133,13 @@ async function createSession(cwd: string): Promise<PiSessionEntry> {
     );
   }
 
-  // Cloud compiles the chat-library prompt from this sentinel. Extra coding-agent
-  // rules are preserved as customer instructions after the config block.
+  // Extra coding-agent rules are preserved as customer instructions after the
+  // Cloud config block built from the generated openuiLibrary spec.
   const resourceLoader = new DefaultResourceLoader({
     cwd,
     agentDir,
     settingsManager,
-    appendSystemPrompt: [generateSystemPrompt({ instructions: OPENUI_INSTRUCTIONS })],
+    appendSystemPrompt: [cloudInstructions(OPENUI_INSTRUCTIONS)],
   });
   await resourceLoader.reload();
 

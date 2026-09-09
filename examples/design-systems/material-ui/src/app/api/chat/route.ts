@@ -1,6 +1,6 @@
 import { appToolDeclarations, appToolExecutors } from "@/lib/app-tools";
 import { cloudInstructions } from "@/lib/cloud-prompt";
-import { CLOUD_EMBED_URL, DEFAULT_MODEL, requiredEnv } from "@/lib/env";
+import { DEFAULT_MODEL, requiredEnv } from "@/lib/env";
 import { runChatToolLoop } from "@/lib/tool-loop";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   }
 
   const client = new OpenAI({
-    baseURL: CLOUD_EMBED_URL,
+    baseURL: "https://api.thesys.dev/v1/embed",
     apiKey: requiredEnv("THESYS_API_KEY"),
   });
 

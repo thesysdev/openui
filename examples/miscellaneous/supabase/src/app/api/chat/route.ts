@@ -1,5 +1,5 @@
 import { createSupabaseServer } from "@/lib/supabase/server";
-import { generateSystemPrompt } from "@openuidev/thesys-server";
+import { cloudInstructions } from "@/lib/cloud-prompt";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   const stream = await client.chat.completions.create({
     model: MODEL,
     messages: [
-      { role: "system", content: generateSystemPrompt() },
+      { role: "system", content: cloudInstructions() },
       ...messages.filter((message) => message.role !== "system"),
     ],
     stream: true,

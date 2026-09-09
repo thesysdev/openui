@@ -11,10 +11,10 @@ An [OpenUI](https://openui.com) example showing how to wire a [Mastra](https://m
 
 ## Getting started
 
-1. Create a `.env.local` file with your OpenUI Cloud key:
+1. Mint an OpenUI Cloud key into `.env.local`:
 
 ```bash
-echo "THESYS_API_KEY=sk-th-..." > .env.local
+pnpm generate:apiKey
 ```
 
 2. Install dependencies from this example directory:

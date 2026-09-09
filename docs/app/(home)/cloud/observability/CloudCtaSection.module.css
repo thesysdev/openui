@@ -1,6 +1,6 @@
 .section {
   width: 100%;
-  padding: 120px var(--home-section-padding-inline) 0;
+  padding: var(--observability-section-gap, 160px) var(--home-section-padding-inline) 0;
   background: var(--openui-foreground);
 }
 
@@ -14,8 +14,42 @@
   margin-inline: auto;
 }
 
-.title {
+.copy {
   flex: 1 1 auto;
+  min-width: 0;
+}
+
+.note {
+  margin: 0.75rem 0 0;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.pricingLink {
+  color: var(--openui-text-neutral-primary);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+
+.pricingLink:hover {
+  opacity: 0.7;
+}
+
+.accessNote {
+  margin: 0;
+  color: var(--openui-text-neutral-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.accessNote strong {
+  color: var(--openui-text-neutral-primary);
+  font-weight: 600;
+}
+
+.title {
   min-width: 0;
   max-width: 40rem;
   margin: 0;
@@ -25,36 +59,40 @@
   font-weight: var(--home-title-weight);
   line-height: var(--home-title-leading);
   letter-spacing: var(--home-title-tracking);
+  text-wrap: balance;
 }
 
 .actions {
   display: flex;
   flex: 0 0 auto;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 12px;
+}
+
+.formTitle {
+  margin: 0;
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--home-font-display);
+  font-size: var(--home-heading-size);
+  font-weight: var(--home-heading-weight);
+  line-height: var(--home-heading-leading);
+  letter-spacing: var(--home-heading-tracking);
 }
 
 .separator {
   width: 100%;
   max-width: 1200px;
   height: 1px;
-  margin: 120px auto 0;
+  margin: var(--observability-section-gap, 160px) auto 0;
   background: var(--home-hairline);
 }
 
 @media (max-width: 1023px) {
-  .section {
-    padding-top: 96px;
-  }
-
   .inner {
     flex-direction: column;
     align-items: flex-start;
     gap: 32px;
-  }
-
-  .separator {
-    margin-top: 96px;
   }
 }
 
@@ -66,6 +104,7 @@
 
   .actions {
     flex-direction: column;
+    align-items: center;
     width: 100%;
     max-width: 320px;
   }

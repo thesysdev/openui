@@ -63,7 +63,7 @@ docs/
 │   │   └── components/                     # Accordion, Button, StackChip, TweetWall, etc.
 │   │
 │   ├── docs/                               # Fumadocs documentation pages
-│   │   ├── layout.tsx                      # DocsLayout (sidebar, nav)
+│   │   ├── layout.tsx                      # DocsLayout (global/nested sidebar, nav)
 │   │   └── [[...slug]]/page.tsx            # Catch-all rendering MDX from content/docs/
 │   │
 │   ├── components/                         # Component / Design System pages
@@ -98,9 +98,11 @@ docs/
 │
 ├── content/
 │   ├── docs/                               # MDX content (Fumadocs source)
-│   │   ├── meta.json                       # Root sidebar config
+│   │   ├── index.mdx                       # Global docs overview at /docs
+│   │   ├── meta.json                       # Root content order
 │   │   ├── openui-lang/                    # OpenUI Lang docs
 │   │   ├── agent/                          # Agent Interface docs
+│   │   ├── build-agents/                   # Existing chat UI and agent framework guides
 │   │   ├── api-reference/                  # API reference
 │   │   └── mcp/                            # MCP docs
 │   └── blog/                               # Blog MDX content
@@ -155,7 +157,14 @@ Active component-preview specific modules are located under `app/components/` an
 
 ### Navigation
 
-A custom `DocsNavbar` component (`components/docs-navbar.tsx`) provides top-level horizontal tabs: Overview, OpenUI, Agent Interface, OpenUI Cloud, and API Reference. It replaces Fumadocs' default nav and is used across the docs pages.
+The docs use two sidebar modes. The global sidebar introduces the documentation through Start,
+Build, Production, and Reference groups. Links with chevrons enter a nested section sidebar for
+OpenUI Lang, Build Agents, Agent Interface, Gateway, Observability, or API Reference. Nested page lists continue to come from
+each section's `meta.json`; “All docs” restores the global sidebar without changing the current
+page. Direct links into a section start in nested mode.
+
+`components/docs-navbar.tsx` provides the shared docs header, search, theme control, and mobile
+sidebar trigger.
 
 ## Path aliases
 

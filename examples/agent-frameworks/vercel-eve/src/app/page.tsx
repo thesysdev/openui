@@ -1,9 +1,9 @@
 "use client";
 
-import "@openuidev/thesys/styles.css";
+import "@openuidev/react-ui/components.css";
 
 import { AgentInterface, useSystemThemeMode } from "@openuidev/react-ui";
-import { chatLibrary } from "@openuidev/thesys";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { useMemo } from "react";
 import { createEveChatProps } from "../eve-chat";
 
@@ -16,7 +16,7 @@ export default function Page() {
       <AgentInterface
         llm={llm}
         storage={storage}
-        componentLibrary={chatLibrary}
+        componentLibrary={openuiLibrary}
         agentName="Eve + OpenUI"
         theme={{ mode }}
         starterVariant="short"

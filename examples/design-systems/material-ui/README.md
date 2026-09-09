@@ -106,8 +106,7 @@ pnpm install --ignore-workspace
 Provide your API key:
 
 ```bash
-cp .env.example .env.local
-# edit .env.local and set THESYS_API_KEY
+pnpm generate:apiKey
 ```
 
 ### Develop

@@ -1,0 +1,536 @@
+.section {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--home-container-max);
+  margin-inline: auto;
+  padding-inline: var(--home-section-padding-inline);
+}
+
+.problemSection {
+  padding-block: 160px;
+}
+
+.repairSection {
+  padding-bottom: 160px;
+}
+
+.sectionLockup {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(20rem, 0.85fr);
+  align-items: start;
+  gap: clamp(2rem, 7vw, 7.5rem);
+}
+
+.eyebrow {
+  margin: 0 0 1rem;
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--home-font-text);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.heading {
+  max-width: 14ch;
+  margin: 0;
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--home-font-display);
+  font-size: var(--home-title-size);
+  font-weight: var(--home-title-weight);
+  line-height: var(--home-title-leading);
+  letter-spacing: var(--home-title-tracking);
+  text-wrap: balance;
+}
+
+.lead {
+  margin: 0;
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--home-font-text);
+  font-size: var(--home-lead-size);
+  font-weight: var(--home-lead-weight);
+  line-height: var(--home-lead-leading);
+  text-wrap: pretty;
+}
+
+.linkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.link {
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--home-font-text);
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.link:hover {
+  opacity: 0.7;
+}
+
+.problemLockup .heading {
+  max-width: 501px;
+}
+
+.problemConclusion {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 56px;
+  padding: 6px 0 6px 16px;
+  border-left: 2px solid color-mix(in srgb, var(--openui-text-neutral-primary) 80%, transparent);
+}
+
+.problemConclusion .linkRow {
+  margin-top: 18px;
+}
+
+.problemConclusion .link {
+  padding-bottom: 7px;
+  border-bottom: 0;
+}
+
+.problemConclusion .link:hover {
+  text-decoration: underline;
+}
+
+.diagram {
+  margin-top: 72px;
+}
+
+.repairIllustrationSpace {
+  display: flex;
+  min-height: 0;
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+  aspect-ratio: 1120 / 440;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+}
+
+/* Compact light customer proof: logo mark, company, then the original claim. */
+.customerQuote {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 8%, transparent);
+  border-radius: 14px;
+  background: var(--openui-foreground);
+  color: var(--openui-text-neutral-primary);
+}
+
+.quoteSentence {
+  margin: 0;
+  font-family: var(--home-font-text);
+  font-size: var(--home-lead-size);
+  font-weight: var(--home-lead-weight);
+  line-height: var(--home-lead-leading);
+  text-wrap: pretty;
+}
+
+.quoteBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+  vertical-align: middle;
+}
+
+.quoteLogo {
+  display: inline-flex;
+  overflow: hidden;
+  align-items: center;
+  justify-content: flex-start;
+  width: clamp(2.25rem, 3vw, 2.5rem);
+  height: clamp(2.25rem, 3vw, 2.5rem);
+  border-radius: 10px;
+  background: #4a612c;
+}
+
+.quoteLogo img {
+  width: 100%;
+  height: 100%;
+}
+
+.quoteCompany {
+  font: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.quoteCopy {
+  color: var(--openui-text-neutral-secondary);
+  font: inherit;
+}
+
+.repairGrid {
+  margin-top: 56px;
+}
+
+.adoptionSection {
+  --cloud-code-min-height: 448px;
+
+  width: 100%;
+  padding-block: 60px;
+  background: var(--openui-foreground);
+}
+
+section.usageSection {
+  margin: 0 auto;
+}
+
+.pricingBand {
+  width: 100%;
+  padding-top: 160px;
+  background: var(--openui-foreground);
+}
+
+.pricingToolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding-inline: 8px;
+  margin-bottom: 20px;
+}
+
+/* The Figma pricing body reserves 636px including its 72px top gap. */
+.pricingSection > .diagram {
+  min-height: 564px;
+}
+
+.pricingControls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.billingToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--home-font-text);
+  font-size: 15px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.billingTrack {
+  position: relative;
+  box-sizing: border-box;
+  width: 40px;
+  height: 24px;
+  border: 1px solid var(--openui-border-interactive);
+  border-radius: 999px;
+  background: var(--openui-highlight-subtle);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.billingTrack::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--openui-text-neutral-secondary);
+  content: "";
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease;
+}
+
+.billingToggle[aria-checked="true"] .billingTrack {
+  border-color: var(--openui-text-neutral-primary);
+  background: var(--openui-text-neutral-primary);
+}
+
+.billingToggle[aria-checked="true"] .billingTrack::after {
+  background: var(--openui-foreground);
+  transform: translateX(16px);
+}
+
+.billingToggle:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--openui-text-neutral-primary);
+  outline-offset: 4px;
+}
+
+.billingSaving {
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--home-font-text);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.pricingCaption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.priceStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--home-font-text);
+  font-size: 15px;
+  line-height: 1.2;
+  list-style: none;
+}
+
+.priceStrip li {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  box-sizing: border-box;
+  width: max-content;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid var(--openui-border-default);
+  border-radius: 999px;
+  background: var(--openui-highlight-subtle);
+  color: var(--openui-text-neutral-primary);
+  line-height: 1.2;
+}
+
+.planName,
+.planPrice {
+  display: block;
+  margin: 0;
+  font-family: var(--home-font-display);
+  font-size: var(--home-heading-size);
+  font-weight: var(--home-heading-weight);
+  line-height: var(--home-heading-leading);
+  letter-spacing: var(--home-heading-tracking);
+}
+
+.planPrice {
+  color: var(--openui-text-neutral-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.planGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.planCard {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--openui-background);
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--home-font-text);
+}
+
+.planHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  border-bottom: 1px solid var(--home-hairline);
+}
+
+.planHeader > .planName,
+.planHeader > .planPrice {
+  min-height: 29px;
+}
+
+.planFeatures {
+  display: grid;
+  gap: 24px;
+  margin: 0;
+  padding: 24px;
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
+}
+
+.planFeatures div {
+  display: grid;
+  gap: 8px;
+  min-height: 53px;
+}
+
+.planFeatures dt {
+  color: var(--openui-text-neutral-secondary);
+}
+
+.planFeatures dd {
+  margin: 0;
+}
+
+.faqBand {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 160px var(--home-section-padding-inline);
+  background: var(--openui-foreground);
+}
+
+.faqBand > section {
+  margin-top: 0;
+}
+
+@media (max-width: 1279px) {
+  .adoptionSection > div {
+    width: calc(100% - 64px);
+  }
+}
+
+@media (max-width: 1023px) {
+  .repairIllustrationSpace {
+    min-height: 0;
+  }
+
+  .pricingSection > .diagram {
+    min-height: 0;
+  }
+  .planGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .problemSection {
+    padding-block: 112px;
+  }
+
+  .repairSection {
+    padding-bottom: 112px;
+  }
+
+  .pricingBand {
+    padding-top: 112px;
+  }
+
+  .sectionLockup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .problemLockup {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 40px;
+  }
+
+  .faqBand {
+    padding-block: 112px;
+  }
+}
+
+@media (max-width: 767px) {
+  .repairIllustrationSpace {
+    min-height: 0;
+    aspect-ratio: 4 / 2.4;
+    border-radius: 16px;
+  }
+
+  .pricingControls {
+    justify-content: flex-start;
+  }
+
+  .planGrid {
+    grid-template-columns: none;
+    grid-auto-columns: clamp(16rem, 76vw, 18.5rem);
+    grid-auto-flow: column;
+    justify-content: start;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding-bottom: 8px;
+    scroll-padding-inline: 2px;
+    scroll-snap-type: inline mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .planGrid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .planCard {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .problemSection {
+    padding-block: 96px;
+  }
+
+  .repairSection {
+    padding-bottom: 96px;
+  }
+
+  .pricingBand {
+    padding-top: 96px;
+  }
+
+  .sectionLockup {
+    gap: 1.5rem;
+  }
+
+  .heading {
+    max-width: none;
+  }
+
+  .diagram {
+    margin-top: 48px;
+  }
+
+  .customerQuote {
+    padding: 12px 14px;
+    border-radius: 16px;
+  }
+
+  .problemLockup {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .problemConclusion {
+    margin-top: 40px;
+  }
+
+  .quoteLogo {
+    border-radius: 9px;
+  }
+
+  .repairGrid {
+    margin-top: 40px;
+  }
+
+  .faqBand {
+    padding: 96px 24px;
+  }
+
+  .adoptionSection > div {
+    width: calc(100% - 32px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .billingTrack,
+  .billingTrack::after {
+    transition: none;
+  }
+}

@@ -13,16 +13,14 @@ An [OpenUI](https://openui.com) example showing how to wire a
   supplies a `BaseLlm`
 - Bridging ADK's `runAsync` event stream into AG-UI SSE (`TEXT_MESSAGE_*`,
   `TOOL_CALL_START`/`ARGS`/`END`/`RESULT`) so OpenUI's `agUIAdapter()` can parse them
-- Rendering streamed OpenUI Lang with `<AgentInterface />` and Cloud's
-  `chatLibrary`
+- Rendering streamed OpenUI Lang with `<AgentInterface />` and `openuiLibrary`
 
 ## Getting started
 
-1. Create a `.env.local` file with your OpenUI Cloud key
-   (https://console.thesys.dev/keys):
+1. Mint an OpenUI Cloud key into `.env.local`:
 
    ```bash
-   echo "THESYS_API_KEY=sk-th-your-key-here" > .env.local
+   pnpm generate:apiKey
    ```
 
 2. Install dependencies from this example directory:
@@ -43,7 +41,8 @@ Open [http://localhost:3000](http://localhost:3000) and try a starter such as
 ## How it works
 
 - `src/agent.ts` defines the `get_weather` tool and a `createAgent()` builder.
-  The instruction is Cloud's `generateSystemPrompt()`. The model is Cloud's
+  The instruction is `cloudInstructions()`, which reads the generated
+  `openuiLibrary` spec. The model is Cloud's
   Gemini (`google/gemini-3.6-flash-free`).
 - `src/app/api/chat/route.ts` runs the agent with a `Runner` and keys ADK
   sessions by chat `threadId` (so multi-turn history is preserved).

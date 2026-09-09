@@ -1,6 +1,6 @@
 ---
 title: Tools
-description: Let the agent call functions to fetch data and take actions, with your own tools or OpenUI Cloud's built-ins.
+description: Let the agent call functions to fetch data and take actions.
 ---
 
 A chat model can only produce text. A **tool** is a function you give the agent so it can do more: fetch the weather, query your database, file a ticket. The result folds back into the conversation.
@@ -54,14 +54,4 @@ const tools = [
 
 That declaration is what the model sees. The implementation, the code that actually fetches the weather, stays private and runs only when the agent calls the tool.
 
-This declaration is the same on OpenUI Cloud and self-hosted. Your code always runs your own tools. Only the built-in tools below run inside Cloud.
-
-<Callout type="info">**Self-hosted:** you run the loop in your own route. Call the provider, execute any tool it asks for, append the result, and call again until the model returns text with no more tool calls. See [Self-hosting](/docs/agent/reference/self-hosting).</Callout>
-
-## Built-in tools (OpenUI Cloud)
-
-OpenUI Cloud ships tools you enable without writing any implementation. Cloud holds the keys and runs them. For example, `image_search` lets the agent pull in relevant images.
-
-## Tools and artifacts
-
-A tool call is also one way an [artifact](/docs/agent/core-concepts/artifacts) gets produced. When the agent calls something like `generate_report`, the interface matches a renderer to that tool by name and draws the result in its own panel. The tool call is the mechanism; the artifact is the output. Many tool calls, like `get_weather`, produce no artifact at all. See [Custom artifacts](/docs/agent/guides/custom-artifacts) to render a tool's result as an artifact.
+Your application runs these functions on the server and returns their results to the agent.

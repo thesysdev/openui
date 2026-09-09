@@ -7,7 +7,7 @@ stdio mode for persistent coding sessions, live reasoning, tool activity, and ca
 
 ## What this demonstrates
 
-- A current OpenUI `<AgentInterface />` wired with `fetchLLM({ streamAdapter: agUIAdapter() })` and `chatLibrary` from `@openuidev/thesys`.
+- A current OpenUI `<AgentInterface />` wired with `fetchLLM({ streamAdapter: agUIAdapter() })` and `openuiLibrary` from `@openuidev/react-ui`.
 - One long-lived `grok agent --no-leader stdio` process hosting an isolated Grok session for each
   OpenUI thread.
 - ACP text, reasoning, and tool-call updates translated to AG-UI SSE events.
@@ -87,12 +87,13 @@ browser threads use `session/load`, so Grok's on-disk conversation state survive
 If a restored browser transcript no longer has a matching Grok session on disk, the route fails
 explicitly instead of silently continuing with empty model context.
 
-The system prompt and validation schema are derived directly from `src/library.ts` in memory.
-`chatLibrary.prompt()` compiles Cloud's chat-library signatures locally — Grok Build is still the
-model (xAI), so the Cloud `generateSystemPrompt()` sentinel is not used. The prompt is attached to
-`session/new` as ACP `_meta.rules`; it teaches Grok to produce the OpenUI Lang understood by
-`chatLibrary`. The schema lets the server verify that the final candidate has a renderable `Card`
-root before any assistant text reaches the browser.
+The system prompt and validation schema come from a generated `openuiLibrary` spec.
+`pnpm generate` writes `src/generated/spec.json` from `src/library.ts`. `generateSystemPrompt()`
+from `@openuidev/lang-core` compiles that spec locally — Grok Build is still the model (xAI), so
+the Cloud sentinel is not used. The prompt is attached to `session/new` as ACP `_meta.rules`; it
+teaches Grok to produce the OpenUI Lang understood by `openuiLibrary`. The schema lets the server
+verify that the final candidate has a renderable `Stack` root before any assistant text reaches
+the browser.
 
 The event bridge maps Grok ACP updates as follows:
 
@@ -154,10 +155,11 @@ examples/harnesses/grok-build/
 |- src/lib/grok-build-acp.ts        # Grok ACP process, auth, sessions, prompts, cancellation
 |- src/lib/grok-build-interactions.ts # ACP reverse-request broker and validation
 |- src/lib/grok-build-stream.ts     # ACP session updates to AG-UI events
+|- src/lib/openui-prompt.ts         # Compiles the generated spec into a local system prompt
 |- src/lib/openui-output.ts         # Retry-safe validation, fallback, and paced output chunks
 |- src/lib/grok-build-chat.ts       # AgentInterface LLM + storage adapters
 |- src/lib/thread-store.ts          # localStorage thread/transcript persistence
-`- src/library.ts                   # Cloud chatLibrary, prompt options, and validation schema
+`- src/library.ts                   # openuiLibrary re-export for \`openui generate --spec\`
 ```
 
 ## Security

@@ -151,3 +151,47 @@
   white-space: nowrap;
   color: var(--openui-text-neutral-primary);
 }
+
+/* Logo-only variant for diagrams; regular chips keep their existing sizing. */
+.chipIconOnly {
+  width: var(--stack-logo-size, 44px);
+  height: var(--stack-logo-size, 44px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.chipIconOnly .badge {
+  width: var(--stack-logo-size, 44px);
+  height: var(--stack-logo-size, 44px);
+}
+
+.chipIconOnly .badgeImage,
+.chipIconOnly .iconSvg,
+.chipIconOnly .mascotSvg {
+  width: 24px;
+  height: 24px;
+}
+
+.chipIconOnly .badgeImage[src*="xai"] {
+  width: 20px;
+  height: 20px;
+}
+
+.chipIconOnly .badgeText,
+.chipIconOnly .moreIcon {
+  font-size: 20px;
+}
+
+.chipIconOnly .badgeBlack .badgeText {
+  color: var(--openui-text-white);
+}
+
+.chipIconOnly .chipLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

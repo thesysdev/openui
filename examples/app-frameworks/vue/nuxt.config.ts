@@ -3,7 +3,6 @@ import tailwindcss from "@tailwindcss/vite";
 const openuiDeps = [
   "@openuidev/lang-core",
   "@openuidev/vue-lang",
-  "@openuidev/thesys-server",
   "zod",
 ];
 

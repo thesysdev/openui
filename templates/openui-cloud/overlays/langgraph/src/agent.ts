@@ -2,7 +2,8 @@ import { AIMessage, type BaseMessage, isToolMessage } from "@langchain/core/mess
 import { type ServerTool, tool } from "@langchain/core/tools";
 import { StateSchema } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
-import { artifactTool, generateSystemPrompt } from "@openuidev/thesys-server";
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import { artifactTool } from "@openuidev/thesys-server";
 import { createAgent, createMiddleware } from "langchain";
 import { z } from "zod";
 import { requiredEnv } from "./lib/env";
@@ -124,7 +125,7 @@ const cloudConversation = createMiddleware({
 export const graph = createAgent({
   model: cloudModel(DEFAULT_MODEL),
   tools: [...cloudTools, ...appTools],
-  systemPrompt: generateSystemPrompt(),
+  systemPrompt: generateSystemPrompt({ cloud: true }),
   stateSchema: CloudAgentState,
   middleware: [cloudConversation],
 });

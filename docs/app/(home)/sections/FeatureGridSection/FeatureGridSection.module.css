@@ -3,9 +3,13 @@
   padding: 0 var(--home-section-padding-inline);
 }
 
+.section.sectionFlushPadding {
+  padding-inline: 0;
+}
+
 .header {
   max-width: 46rem;
-  margin: 0 auto clamp(2.5rem, 5vw, 3.5rem);
+  margin: 0 auto clamp(1.25rem, 2.5vw, 2rem);
   text-align: center;
 }
 
@@ -99,12 +103,29 @@
   color: var(--openui-text-neutral-secondary);
 }
 
+.featureDescription a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
 /* Mobile-only expand affordance; hidden on desktop. */
 .chevron {
   display: none;
 }
 
 /* Horizontal separator below the grid; the grid's vertical lines meet it. */
+/* Space in place of a rule when the compatibility band leads the section, and
+   the breathing room above the header that follows it. */
+.compatLead {
+  margin-bottom: clamp(4.5rem, 9vw, 8rem);
+}
+
+/* Same job as .compatLead, for the grid when it runs above the header: without
+   it the last row of cards butts straight into "Renders 3x faster". */
+.gridLead {
+  margin-bottom: clamp(4.5rem, 9vw, 8rem);
+}
+
 .separator {
   width: 100%;
   max-width: 75rem;
@@ -297,6 +318,14 @@
   }
 }
 
+/* Nested flush grids keep their content aligned with the parent illustration
+   while the desktop columns are stacked. Mobile already removes card padding. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sectionFlushPadding .gridFlushOuterCards > .feature {
+    padding-inline: 0;
+  }
+}
+
 /* Mobile-only: smaller header headings + compact feature rows. */
 @media (max-width: 767px) {
   /* Section separators run edge to edge and fade out on the left, matching the
@@ -433,6 +462,24 @@
 
   /* Gap only when open, so the collapsed 0fr row closes fully (no residual). */
   .feature[data-open] .featureDescriptionInner {
+    padding-top: 0.375rem;
+  }
+
+  .sectionStatic .feature {
+    cursor: default;
+  }
+
+  .sectionStatic .chevron {
+    display: none;
+  }
+
+  .sectionStatic .featureDescription {
+    grid-column: 2 / -1;
+    grid-template-rows: 1fr;
+    max-width: none;
+  }
+
+  .sectionStatic .featureDescriptionInner {
     padding-top: 0.375rem;
   }
 

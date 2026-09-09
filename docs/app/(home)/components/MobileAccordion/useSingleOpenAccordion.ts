@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, type KeyboardEvent } from "react";
+import { useCallback, useState, type KeyboardEvent, type MouseEvent } from "react";
 
 /**
  * Props the hook hands to each accordion row. This is the EXACT attribute set
@@ -13,7 +13,7 @@ export interface AccordionToggleProps {
   role: "button";
   tabIndex: 0;
   "aria-expanded": boolean;
-  onClick: () => void;
+  onClick: (event: MouseEvent) => void;
   onKeyDown: (event: KeyboardEvent) => void;
 }
 
@@ -40,10 +40,7 @@ export interface UseSingleOpenAccordion {
 export function useSingleOpenAccordion(): UseSingleOpenAccordion {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const isOpen = useCallback(
-    (index: number) => openIndex === index,
-    [openIndex],
-  );
+  const isOpen = useCallback((index: number) => openIndex === index, [openIndex]);
 
   const getToggleProps = useCallback(
     (index: number): AccordionToggleProps => {
@@ -54,8 +51,18 @@ export function useSingleOpenAccordion(): UseSingleOpenAccordion {
         role: "button",
         tabIndex: 0,
         "aria-expanded": open,
-        onClick: toggle,
+        onClick: (event: MouseEvent) => {
+          // Embedded links keep their own navigation and must not collapse the row.
+          if (
+            event.target instanceof Element &&
+            event.target.closest("a, button, input, select, textarea")
+          ) {
+            return;
+          }
+          toggle();
+        },
         onKeyDown: (event: KeyboardEvent) => {
+          if (event.target !== event.currentTarget) return;
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             toggle();

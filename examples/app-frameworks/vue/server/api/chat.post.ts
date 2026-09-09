@@ -1,5 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { generateSystemPrompt } from "@openuidev/thesys-server";
+import { generateSystemPrompt } from "@openuidev/lang-core";
 import { convertToModelMessages, stepCountIs, streamText } from "ai";
 import { createOpenUILibrary, promptOptions } from "~/lib/define-library";
 import { tools } from "~/lib/tools";
@@ -12,6 +12,7 @@ const openai = createOpenAI({
 const specLibrary = createOpenUILibrary();
 
 const systemPrompt = generateSystemPrompt({
+  cloud: true,
   library: specLibrary.toSpec(),
   promptOptions: {
     examples: promptOptions.examples,

@@ -1,7 +1,7 @@
 "use client";
 
 import { AgentInterface, agUIAdapter, fetchLLM, useSystemThemeMode } from "@openuidev/react-ui";
-import { chatLibrary } from "@openuidev/thesys";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { useMemo } from "react";
 
 export default function Page() {
@@ -23,7 +23,7 @@ export default function Page() {
     <div className="app-shell">
       <AgentInterface
         llm={llm}
-        componentLibrary={chatLibrary}
+        componentLibrary={openuiLibrary}
         agentName="OpenUI + Mastra Chat"
         theme={{ mode }}
         starterVariant="short"

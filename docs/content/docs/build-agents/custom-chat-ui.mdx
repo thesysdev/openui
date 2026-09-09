@@ -1,0 +1,23 @@
+---
+title: Custom Chat UI
+description: Render OpenUI Lang in an existing chat interface.
+---
+
+This guide assumes the application already has a working chat interface that renders text or Markdown, and that the backend already returns streamed OpenUI Lang. The message list, composer, conversation state, and transport remain unchanged.
+
+## Render OpenUI Lang
+
+In the assistant-message component, render the streamed response with `<Renderer />` instead of the Markdown renderer:
+
+```tsx title="src/components/assistant-message.tsx"
+import { Renderer } from "@openuidev/react-lang";
+import { library } from "@/lib/openui";
+
+export function AssistantMessage({ content, isStreaming }) {
+  return <Renderer response={content} library={library} isStreaming={isStreaming} />;
+}
+```
+
+`content` is the accumulated agent response. Keep `isStreaming` true until the response stream closes so the renderer can display the interface progressively.
+
+Continue with [The Renderer](/docs/openui-lang/renderer) for the complete API.

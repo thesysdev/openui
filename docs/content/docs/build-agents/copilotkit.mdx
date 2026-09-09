@@ -1,0 +1,36 @@
+---
+title: CopilotKit
+description: Render OpenUI Lang in an existing CopilotKit chat.
+---
+
+This guide assumes the application already has a working CopilotKit chat. First, follow the [backend setup guide](/docs/build-agents/backend-setup) to configure the agent to return OpenUI Lang. Then replace CopilotKit's [`assistantMessage.markdownRenderer`](https://docs.copilotkit.ai/custom-look-and-feel/slots#assistantmessage-sub-slots) slot with the OpenUI Lang renderer.
+
+## Render OpenUI Lang
+
+```tsx title="src/components/chat.tsx"
+"use client";
+
+import { CopilotChat } from "@copilotkit/react-core/v2";
+import { Renderer } from "@openuidev/react-lang";
+import { openuiLibrary } from "@openuidev/react-ui";
+
+function OpenUIRenderer({ content }: { content: string }) {
+  return <Renderer response={content} library={openuiLibrary} />;
+}
+
+export function Chat() {
+  return (
+    <CopilotChat
+      messageView={{
+        assistantMessage: {
+          markdownRenderer: OpenUIRenderer,
+        },
+      }}
+    />
+  );
+}
+```
+
+`content` is the accumulated agent response supplied by CopilotKit.
+
+Continue with [The Renderer](/docs/openui-lang/renderer) for the complete API.

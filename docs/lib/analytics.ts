@@ -7,10 +7,9 @@ export function loadPostHog(): Promise<PostHog> {
     posthog.init("phc_3OLW53x09ZTVZSV6BEpj5uycj3ooqR6KOemOjx04e3D", {
       api_host: "https://dgoeivjus9jfp.cloudfront.net",
       capture_pageview: "history_change",
-      advanced_disable_flags: true,
       disable_session_recording: false,
       session_recording: {
-        sampleRate: 0.1,
+        sampleRate: 0.3,
       },
       disable_surveys: true,
     });

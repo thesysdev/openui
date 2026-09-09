@@ -4,7 +4,7 @@ import { GrokBuildInteractionDialog } from "@/components/grok-build-interaction-
 import { useGrokBuildInteraction } from "@/hooks/use-grok-build-interaction";
 import { createGrokBuildChatProps } from "@/lib/grok-build-chat";
 import { AgentInterface, useSystemThemeMode } from "@openuidev/react-ui";
-import { chatLibrary } from "@openuidev/thesys";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { useMemo, useState } from "react";
 
 export default function Page() {
@@ -21,7 +21,7 @@ export default function Page() {
       <AgentInterface
         llm={llm}
         storage={storage}
-        componentLibrary={chatLibrary}
+        componentLibrary={openuiLibrary}
         agentName="Grok Build + OpenUI"
         theme={{ mode }}
         starterVariant="short"
