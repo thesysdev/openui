@@ -26,6 +26,7 @@ type ResolvedDeploy = {
   extraArgs: string[];
 };
 
+/** Resolve flags, validate the project dir, then hand off to the deploy target. */
 export async function runDeploy(options: DeployOptions): Promise<void> {
   const resolved = resolveDeployInvocation(options);
   const projectDir = resolveProjectDir(resolved.projectDir);
@@ -39,7 +40,6 @@ export async function runDeploy(options: DeployOptions): Promise<void> {
   const skipEnv = Boolean(options.skipEnv);
   const verbose = Boolean(options.verbose) || (options.extraArgs ?? []).includes("--verbose");
 
-  const target = DEFAULT_DEPLOY_TARGET;
   const targetOpts: DeployTargetOptions = {
     projectDir,
     extraArgs,
@@ -52,7 +52,7 @@ export async function runDeploy(options: DeployOptions): Promise<void> {
 
   telemetry.register({ package_manager: resolveInstallPackageManager().name });
   telemetry.capture("cli_deploy_started", {
-    target,
+    DEFAULT_DEPLOY_TARGET,
     prod,
     yes,
     skip_env: skipEnv,
@@ -60,9 +60,10 @@ export async function runDeploy(options: DeployOptions): Promise<void> {
     has_dir_arg: Boolean(resolved.projectDir),
   });
 
-  await deployToTarget(target, targetOpts);
+  await deployToTarget(DEFAULT_DEPLOY_TARGET, targetOpts);
 }
 
+/** Split `[dir]` from extra args when Commander treats a flag as the dir. */
 function resolveDeployInvocation(options: DeployOptions): ResolvedDeploy {
   const projectDir = unsetIfFlag(options.dir);
   const extraArgs = extraDeployArgs(options.extraArgs ?? [], { dir: projectDir });
@@ -72,6 +73,7 @@ function resolveDeployInvocation(options: DeployOptions): ResolvedDeploy {
   return { projectDir, extraArgs };
 }
 
+/** Drop OpenUI-owned flags and the consumed dir so the rest can go to Vercel. */
 function extraDeployArgs(args: string[], consumed: { dir?: string }): string[] {
   const skip = new Set(
     [consumed.dir].filter((value): value is string => Boolean(value && !value.startsWith("-"))),
@@ -84,10 +86,12 @@ function extraDeployArgs(args: string[], consumed: { dir?: string }): string[] {
   return out;
 }
 
+/** Treat a leading-dash value as a flag, not a project directory. */
 function unsetIfFlag(value?: string): string | undefined {
   return value?.startsWith("-") ? undefined : value;
 }
 
+/** Resolve and require a directory that contains package.json. */
 function resolveProjectDir(dir?: string): string {
   const projectDir = path.resolve(process.cwd(), dir ?? ".");
   if (!fs.existsSync(projectDir)) {
