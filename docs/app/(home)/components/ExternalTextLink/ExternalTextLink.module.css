@@ -6,7 +6,7 @@
   color: var(--openui-text-neutral-primary);
   font-weight: inherit;
   text-decoration: none;
-  transition: background-color 160ms ease;
+  transition: opacity 160ms ease;
 }
 
 .label {
@@ -22,7 +22,7 @@
 }
 
 .link:hover {
-  background-color: color-mix(in srgb, currentColor 6%, transparent);
+  opacity: 0.7;
 }
 
 .link:focus-visible {
