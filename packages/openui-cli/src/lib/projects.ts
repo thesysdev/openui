@@ -160,6 +160,7 @@ export async function resolveProject(params: {
   const { Separator } = await import("@inquirer/prompts");
   for (;;) {
     const starterChoices: unknown[] = [
+      new Separator(" "),
       new Separator(heading("Starter Templates")),
       ...templates.map((project) => ({
         value: project.name,
@@ -168,6 +169,7 @@ export async function resolveProject(params: {
       })),
     ];
     if (examples.length > 0) {
+      starterChoices.push(new Separator());
       starterChoices.push({
         value: OPENUI_EXAMPLES_CHOICE,
         name: "Scaffold from OpenUI Examples →",
@@ -182,8 +184,12 @@ export async function resolveProject(params: {
 
     const exampleSelected = await promptSelect(
       "Select an OpenUI example:",
-      [{ value: GO_BACK_CHOICE, name: "← Back" }, ...groupedExampleChoices(examples, Separator)],
-      10,
+      [
+        { value: GO_BACK_CHOICE, name: "← Back" },
+        new Separator(),
+        ...groupedExampleChoices(examples, Separator),
+      ],
+      { pageSize: 10, loop: false, pinCount: 2 },
     );
     if (exampleSelected === GO_BACK_CHOICE) {
       // Inquirer prints a ✔ line for every resolved select. Drop the

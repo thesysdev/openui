@@ -1,4 +1,8 @@
+import { promptSelect } from "./prompt-select";
 import { CliCancelledError, CreateError } from "./telemetry";
+
+export { promptSelect } from "./prompt-select";
+export type { PromptSelectOptions } from "./prompt-select";
 
 type InputPromptConfig = {
   type: "input";
@@ -36,27 +40,6 @@ async function resolveOne(prompt: PromptConfig): Promise<string> {
   }
   const { input } = await import("@inquirer/prompts");
   return input({ message: prompt.message, default: prompt.default });
-}
-
-export async function promptSelect(
-  message: string,
-  choices: readonly unknown[],
-  pageSize = choices.length,
-): Promise<string> {
-  const { select } = await import("@inquirer/prompts");
-  try {
-    return await select<string>({
-      message,
-      choices: choices as never,
-      pageSize,
-    });
-  } catch (err) {
-    const { ExitPromptError } = await import("@inquirer/core");
-    if (err instanceof ExitPromptError) {
-      throw new CliCancelledError("args_resolution");
-    }
-    throw err;
-  }
 }
 
 export async function resolveArgs<T extends Record<string, ArgDef<unknown>>>(

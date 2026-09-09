@@ -82,8 +82,11 @@ function copyEnvExamples(projectDir: string): void {
     for (const [fromName, toName] of mappings) {
       const from = path.join(dir, fromName);
       const to = path.join(dir, toName);
-      if (fs.existsSync(from) && !fs.existsSync(to)) {
-        fs.copyFileSync(from, to);
+      if (fs.existsSync(from)) {
+        if (!fs.existsSync(to)) {
+          fs.copyFileSync(from, to);
+        }
+        fs.unlinkSync(from);
       }
     }
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
