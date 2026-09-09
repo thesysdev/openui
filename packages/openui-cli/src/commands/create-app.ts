@@ -14,12 +14,7 @@ import type { CreateAppOptions, EnvResult, TemplateName } from "../lib/create-ty
 import { resolveInstallPackageManager } from "../lib/detect-package-manager";
 import { loadExamplesCatalog } from "../lib/examples-catalog";
 import { shouldInstallSkill } from "../lib/install-skill";
-import {
-  applyOverlay,
-  OVERLAYS_DIR,
-  resolveOverlay,
-  type TemplateOverlay,
-} from "../lib/overlays";
+import { applyOverlay, OVERLAYS_DIR, resolveOverlay, type TemplateOverlay } from "../lib/overlays";
 import {
   findExample,
   rejectConflictingScaffoldSelectors,

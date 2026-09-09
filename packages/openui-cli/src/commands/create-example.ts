@@ -1,6 +1,10 @@
 import * as path from "node:path";
 
-import { formatCreateDoneMessage, resolveScaffoldInstall, runScaffoldSkillInstall } from "../lib/create-finish";
+import {
+  formatCreateDoneMessage,
+  resolveScaffoldInstall,
+  runScaffoldSkillInstall,
+} from "../lib/create-finish";
 import { promptForProviderKey, withProgress } from "../lib/create-helpers";
 import { createFunnelProps } from "../lib/create-telemetry";
 import type { CreateAppOptions, EnvResult } from "../lib/create-types";

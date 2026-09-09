@@ -29,6 +29,35 @@ function posixRepoPath(repoPath: string): string {
   return repoPath.replace(/\\/g, "/").replace(/^\/+/, "");
 }
 
+/**
+ * Local OpenUI checkout to read catalogs and scaffold from.
+ * `OPENUI_SOURCE_DIR` wins; otherwise a CLI built inside this repo uses the
+ * worktree on disk so `openui create` can be tested without a GitHub fetch.
+ */
+function localSourceRoot(): string | undefined {
+  const fromEnv = process.env["OPENUI_SOURCE_DIR"]?.trim();
+  if (fromEnv) return path.resolve(fromEnv);
+
+  const candidate = path.resolve(__dirname, "../../../../");
+  const hasCatalogs =
+    fs.existsSync(path.join(candidate, "templates", "templates.json")) &&
+    fs.existsSync(path.join(candidate, "examples", "examples.json"));
+  return hasCatalogs ? candidate : undefined;
+}
+
+function localSourcePath(repoPath: string): string {
+  const root = localSourceRoot();
+  if (!root) {
+    throw new CreateError(
+      "source_checkout",
+      "Local source root is not set.",
+      "filesystem",
+      "SOURCE_MISSING",
+    );
+  }
+  return path.join(root, ...posixRepoPath(repoPath).split("/"));
+}
+
 function runGit(
   args: string[],
   options: { cwd?: string; timeoutMs?: number } = {},
@@ -98,6 +127,20 @@ function runGit(
 
 export async function fetchSourceFile(repoPath: string): Promise<FetchedFile> {
   const normalizedPath = posixRepoPath(repoPath);
+  if (localSourceRoot()) {
+    const filePath = localSourcePath(normalizedPath);
+    try {
+      return { content: fs.readFileSync(filePath, "utf8") };
+    } catch {
+      throw new CreateError(
+        "source_checkout",
+        `Path "${normalizedPath}" was not in the local OpenUI checkout.`,
+        "filesystem",
+        "SOURCE_MISSING",
+      );
+    }
+  }
+
   const url = `https://raw.githubusercontent.com/${SOURCE_OWNER}/${SOURCE_REPO}/${SOURCE_REF}/${normalizedPath}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -134,6 +177,21 @@ export async function checkoutSource(
   opts: SourceFetchOptions = {},
 ): Promise<CheckedOutSource> {
   const normalizedPath = posixRepoPath(repoPath);
+  if (localSourceRoot()) {
+    const extracted = localSourcePath(normalizedPath);
+    if (!fs.existsSync(extracted)) {
+      throw new CreateError(
+        "source_checkout",
+        `Path "${normalizedPath}" was not in the local OpenUI checkout.`,
+        "filesystem",
+        "SOURCE_MISSING",
+      );
+    }
+    const dest = opts.dest ?? fs.mkdtempSync(path.join(os.tmpdir(), "openui-src-"));
+    copyDir(extracted, dest);
+    return { dir: dest };
+  }
+
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openui-src-"));
   try {
     await runGit(["init", "--quiet"], { cwd: tmpDir });
