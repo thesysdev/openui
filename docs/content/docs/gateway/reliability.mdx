@@ -3,6 +3,12 @@ title: Reliability
 description: Keep model requests working when providers are unavailable or models return invalid OpenUI Lang.
 ---
 
+<Callout type="tip" title="New: Sanitize API">
+  Not routing requests through Gateway? Send your model's OpenUI Lang output to the
+  [Sanitize API](/docs/gateway/api/sanitize) and get back a valid program, at a flat price per
+  repair.
+</Callout>
+
 Applications that generate interfaces with AI face two common reliability problems. A model provider may be unavailable, or the model may return output that does not follow the OpenUI Lang instructions and component schemas. The first prevents a response; the second can produce an interface the application cannot render.
 
 Gateway handles each problem differently. It automatically retries the request with other providers and corrects eligible errors in model output while the response streams.
@@ -25,12 +31,6 @@ The application continues to use the same Gateway API and `{provider}/{model}` n
 </Callout>
 
 ## Correct invalid model output
-
-<Callout type="tip" title="Not routing through Gateway?">
-  The same correction is available as a standalone call. Send your model's OpenUI Lang output to
-  the [Sanitize API](/docs/gateway/api/sanitize) and get back a valid program, at a flat price per
-  repair.
-</Callout>
 
 Gateway validates OpenUI Lang while the model produces it. It can identify eligible problems such as:
 
