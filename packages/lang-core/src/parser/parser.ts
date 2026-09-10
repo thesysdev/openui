@@ -398,9 +398,18 @@ function stripComments(input: string): string {
     .join("\n");
 }
 
-/** Clean LLM response: strip fences, comments, whitespace. */
+/** Clean LLM response: strip fences, comments, and surrounding whitespace.
+ *
+ * Trailing newlines are preserved. The stream parser commits a statement only
+ * on newline; trimming them makes the last statement look pending forever, so a
+ * later redefinition of an earlier ID is skipped by the pending-merge guard.
+ */
 function preprocess(input: string): string {
-  return stripComments(stripFences(input.trim())).trim();
+  const stripped = stripComments(stripFences(input.trimStart()));
+  const content = stripped.trim();
+  if (!content) return "";
+  const trailingNewlines = stripped.match(/\n*$/)?.[0] ?? "";
+  return content + trailingNewlines;
 }
 
 /**
@@ -582,12 +591,14 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     }
 
     // Merge: completed cache + re-parsed pending statement.
-    // Pending statements can only add NEW IDs — they cannot overwrite completed ones.
-    // This prevents mid-stream partial text (e.g. `root = Card`) from corrupting
-    // existing completed statements during edit streaming.
+    // Incomplete pending text cannot overwrite completed IDs — autoClose would
+    // otherwise invent closers (e.g. `root = Card(` → `root = Card()`) and
+    // clobber a finished definition mid-stream.
+    // Complete pending statements last-wins, matching parse(). Needed when the
+    // last statement has no trailing newline and therefore never hits addStmt.
     const allStmtMap = new Map(completedStmtMap);
     for (const s of stmts) {
-      if (completedStmtMap.has(s.id)) continue;
+      if (wasIncomplete && completedStmtMap.has(s.id)) continue;
       const expr = parseExpression(s.tokens);
       const stmt = classifyStatement(s, expr);
       allStmtMap.set(s.id, stmt);
