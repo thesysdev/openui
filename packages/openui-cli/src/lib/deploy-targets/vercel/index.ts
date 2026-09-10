@@ -7,7 +7,8 @@ import {
   type DeployTargetOptions,
 } from "../../deploy";
 import { resolveInstallPackageManager } from "../../detect-package-manager";
-import { mutedNpmEnv, runCommand, runQuietCommand } from "../../process-runner";
+import { adoptVercelEnvVars } from "../../env";
+import { runCommand, runQuietCommand } from "../../process-runner";
 import { telemetry } from "../../telemetry";
 import { throwCommandFailure } from "../../utils";
 import { buildVercelDeployArgs, publicVercelArgs, vercelSpawnArgs } from "./args";
@@ -17,6 +18,7 @@ import {
   linkVercelProject,
   loginToVercel,
   prepareVercelCli,
+  vercelCliEnv,
 } from "./connect";
 import { syncLocalEnvToVercelProject } from "./project-env";
 import { extractVercelDeploymentSummary } from "./summary";
@@ -25,6 +27,7 @@ import { extractVercelDeploymentSummary } from "./summary";
 export async function deployToVercel(opts: DeployTargetOptions): Promise<void> {
   const t0 = Date.now();
   const packageManager = resolveInstallPackageManager();
+  adoptVercelEnvVars(opts.projectDir);
   const fileEnv = loadProjectDeployEnv(opts.projectDir);
   const localEnv = opts.skipEnv ? {} : fileEnv;
   warnMissingRequiredDeployEnv(opts.projectDir, fileEnv, "Vercel");
@@ -79,7 +82,7 @@ export async function deployToVercel(opts: DeployTargetOptions): Promise<void> {
     console.info("");
   }
 
-  const deployEnv = mutedNpmEnv();
+  const deployEnv = vercelCliEnv(opts.projectDir);
   const result = quiet
     ? await runQuietCommand({
         command: vercel.command,

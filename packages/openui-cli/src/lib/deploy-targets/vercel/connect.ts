@@ -5,11 +5,26 @@ import type { CliInvocation } from "../../cli-bin";
 import { readProjectPackageJson } from "../../deploy/project";
 import { canPromptInteractive } from "../../deploy/prompt";
 import type { DeployTargetOptions } from "../../deploy/types";
+import { adoptVercelEnvVars, loadAllowlistedProjectEnv } from "../../env";
 import { mutedNpmEnv, runCommand } from "../../process-runner";
 import { withSpinner } from "../../spinner";
 import { CreateError } from "../../telemetry";
 import { throwCommandFailure } from "../../utils";
 import { vercelSpawnArgs } from "./args";
+
+/** Auth vars Vercel CLI reads. OpenUI apps keep these in `.env`; Vercel often writes `.env.local`. */
+const VERCEL_CLI_ENV_KEYS = ["VERCEL_TOKEN", "VERCEL_ORG_ID", "VERCEL_PROJECT_ID"] as const;
+
+/** Spawn env for Vercel CLI: process env wins, then `.env` / `.env.local`. */
+export function vercelCliEnv(projectDir: string): NodeJS.ProcessEnv {
+  const fromFiles = loadAllowlistedProjectEnv(projectDir, VERCEL_CLI_ENV_KEYS);
+  const env = mutedNpmEnv();
+  for (const key of VERCEL_CLI_ENV_KEYS) {
+    const fromFile = fromFiles[key];
+    if (fromFile && !env[key]?.trim()) env[key] = fromFile;
+  }
+  return env;
+}
 
 /** True when `.vercel/project.json` exists in the project. */
 export function isVercelLinked(projectDir: string): boolean {
@@ -56,6 +71,7 @@ export async function prepareVercelCli(invocation: CliInvocation, cwd: string): 
     runCommand(invocation.command, vercelSpawnArgs(invocation, ["--version"]), cwd, {
       echo: false,
       stdin: "ignore",
+      env: vercelCliEnv(cwd),
     });
 
   const result = preparing
@@ -81,7 +97,7 @@ export async function isVercelLoggedIn(invocation: CliInvocation, cwd: string): 
     invocation.command,
     vercelSpawnArgs(invocation, ["--non-interactive", "whoami"]),
     cwd,
-    { echo: false, stdin: "ignore" },
+    { echo: false, stdin: "ignore", env: vercelCliEnv(cwd) },
   );
   return !result.error && result.status === 0;
 }
@@ -105,7 +121,7 @@ export async function loginToVercel(
     invocation.command,
     vercelSpawnArgs(invocation, ["login"]),
     opts.projectDir,
-    { inheritOutput: true },
+    { inheritOutput: true, env: vercelCliEnv(opts.projectDir) },
   );
   if (!result.error && result.status === 0) return;
   throwCommandFailure(result, "vercel_login", "Vercel login failed");
@@ -137,8 +153,16 @@ export async function linkVercelProject(
     invocation.command,
     vercelSpawnArgs(invocation, args),
     opts.projectDir,
-    { inheritOutput: true, env: mutedNpmEnv() },
+    {
+      inheritOutput: true,
+      // --yes + no stdin TTY skips Vercel's post-link env pull into `.env.local`.
+      stdin: skipPrompts ? "ignore" : "inherit",
+      env: vercelCliEnv(opts.projectDir),
+    },
   );
-  if (!result.error && result.status === 0 && isVercelLinked(opts.projectDir)) return;
+  if (!result.error && result.status === 0 && isVercelLinked(opts.projectDir)) {
+    adoptVercelEnvVars(opts.projectDir);
+    return;
+  }
   throwCommandFailure(result, "vercel_link", "Vercel link failed");
 }

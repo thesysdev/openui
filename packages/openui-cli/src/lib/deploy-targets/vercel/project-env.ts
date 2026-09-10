@@ -1,9 +1,9 @@
 import type { CliInvocation } from "../../cli-bin";
 import { SENSITIVE_DEPLOY_ENV_KEYS } from "../../deploy/project-env";
 import { canPromptInteractive, confirmOrDefault } from "../../deploy/prompt";
-import { mutedNpmEnv, runCommand } from "../../process-runner";
+import { runCommand } from "../../process-runner";
 import { vercelSpawnArgs } from "./args";
-import { isVercelLinked } from "./connect";
+import { isVercelLinked, vercelCliEnv } from "./connect";
 
 /** Environments we keep in sync for template deploys. */
 const PROJECT_ENV_TARGETS = ["production", "preview", "development"] as const;
@@ -98,7 +98,7 @@ async function listVercelProjectEnv(
     invocation.command,
     vercelSpawnArgs(invocation, ["env", "list", "--json", "--non-interactive"]),
     projectDir,
-    { echo: false, stdin: "ignore" },
+    { echo: false, stdin: "ignore", env: vercelCliEnv(projectDir) },
   );
   if (result.error || result.status !== 0) return null;
   const parsed = extractJsonObject(result.diagnosticTail) as { envs?: VercelEnvEntry[] } | null;
@@ -152,7 +152,7 @@ async function addVercelProjectEnv(opts: {
     opts.invocation.command,
     vercelSpawnArgs(opts.invocation, args),
     opts.projectDir,
-    { echo: false, stdin: "ignore", env: mutedNpmEnv() },
+    { echo: false, stdin: "ignore", env: vercelCliEnv(opts.projectDir) },
   );
   if (!result.error && result.status === 0) return true;
 
