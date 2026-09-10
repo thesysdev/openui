@@ -3,7 +3,7 @@ import { type ServerTool, tool } from "@langchain/core/tools";
 import { StateSchema } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 import { generateSystemPrompt } from "@openuidev/lang-core";
-import { artifactTool } from "@openuidev/lang-core/cloud";
+import { artifactTool } from "@openuidev/thesys-server";
 import { createAgent, createMiddleware } from "langchain";
 import { z } from "zod";
 import { requiredEnv } from "./lib/env";
