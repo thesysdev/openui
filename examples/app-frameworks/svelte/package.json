@@ -13,7 +13,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.41",
     "@ai-sdk/svelte": "^4.0.191",
-    "@openuidev/lang-core": "0.2.17",
+    "@openuidev/lang-core": "0.2.18",
     "@openuidev/svelte-lang": "0.1.2",
     "ai": "^6.0.116",
     "chart.js": "^4.5.1",

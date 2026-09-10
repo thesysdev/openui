@@ -23,7 +23,7 @@
     "@langchain/langgraph": "^1.4.5",
     "@langchain/langgraph-sdk": "^1.9.18",
     "@langchain/openai": "^1.5.2",
-    "@openuidev/lang-core": "0.2.17",
+    "@openuidev/lang-core": "0.2.18",
     "@openuidev/langchain": "0.0.3",
     "@openuidev/react-headless": "0.9.13",
     "@openuidev/react-lang": "0.2.15",
