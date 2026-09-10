@@ -198,14 +198,6 @@ export async function resolveCloudApiKey(opts: {
   if (method === "skip") return { key: null, method: "skip" };
 
   if (method === "manual") {
-    if (!opts.interactive) {
-      throw new CloudAuthError(
-        "manual_key_prompt",
-        "AUTH_REQUIRED",
-        `An API key is required in non-interactive mode. Pass --api-key <key> ` +
-          `(get one at ${THESYS_KEYS_URL}).`,
-      );
-    }
     console.warn(
       "[!] --auth manual is deprecated. Use browser sign-in or pass --api-key for scripted setup.",
     );

@@ -1,17 +1,12 @@
 import * as path from "node:path";
 
-import {
-  formatCreateDoneMessage,
-  resolveScaffoldInstall,
-  runScaffoldSkillInstall,
-} from "../lib/create-finish";
-import { promptForProviderKey, withProgress } from "../lib/create-helpers";
+import { printLogTail, QUIET_COMMAND_CAPTURE_LIMIT } from "../lib/command-output";
 import { createFunnelProps } from "../lib/create-telemetry";
 import type { CreateAppOptions, EnvResult } from "../lib/create-types";
 import { resolveInstallPackageManager } from "../lib/detect-package-manager";
 import { upsertEnvVar } from "../lib/env";
-import { shouldInstallSkill } from "../lib/install-skill";
-import type { ExampleProject } from "../lib/projects";
+import type { ExampleProject } from "../lib/examples-catalog";
+import { runSkillInstall, shouldInstallSkill } from "../lib/install-skill";
 import {
   exampleDevCommand,
   exampleLayout,
@@ -19,8 +14,9 @@ import {
   scaffoldExample,
   type ExampleLayout,
 } from "../lib/scaffold-example";
-import { CreateError, telemetry } from "../lib/telemetry";
-import { cliErrorProperties } from "../lib/utils";
+import { withSpinner } from "../lib/spinner";
+import { CliCancelledError, CreateError, telemetry } from "../lib/telemetry";
+import { cliErrorProperties, processErrorProperties } from "../lib/utils";
 
 export async function runCreateExample(params: {
   options: CreateAppOptions;
@@ -64,18 +60,16 @@ export async function runCreateExample(params: {
   });
   let layout: ExampleLayout | undefined;
   try {
-    await withProgress(
-      "Scaffolding...",
-      async () => {
-        layout = await scaffoldExample({
-          example,
-          targetDir,
-          name,
-          packageManager: packageManager.name,
-        });
-      },
-      options.verbose,
-    );
+    const runScaffold = () =>
+      scaffoldExample({
+        example,
+        targetDir,
+        name,
+        packageManager: packageManager.name,
+      });
+    layout = options.verbose
+      ? await runScaffold()
+      : await withSpinner("Scaffolding...", runScaffold);
     if (!options.verbose) {
       console.info("✓ Scaffolded");
     }
@@ -126,7 +120,7 @@ export async function runCreateExample(params: {
   });
 
   layout ??= exampleLayout(targetDir);
-  const { installCmd } = resolveScaffoldInstall(packageManager, targetDir, true);
+  const installCmd = packageManager.installCmd;
   telemetry.capture("cli_dependency_install_skipped", {
     skip_reason: "example_scaffold_only",
   });
@@ -134,11 +128,7 @@ export async function runCreateExample(params: {
     skip_reason: "not_immediate",
   });
 
-  const skillInstalled = await runScaffoldSkillInstall({
-    enabled: installSkill,
-    verbose: options.verbose,
-    targetDir,
-  });
+  const skillInstalled = await installExampleSkill(installSkill, options.verbose, targetDir);
 
   telemetry.capture("cli_create_succeeded", {
     ...createFunnelProps("create_succeeded"),
@@ -149,29 +139,26 @@ export async function runCreateExample(params: {
     dependency_installed: false,
   });
   const envKey = example.envKey;
+  const envNote = envKey
+    ? envResult.envWritten
+      ? `✅ ${example.envFile} updated with ${envKey}.`
+      : `Add ${envKey}=… to ${example.envFile} (see the example README).`
+    : `Add your API keys to ${example.envFile} (see the example README).`;
+  const skillMessage = skillInstalled
+    ? "The OpenUI agent skill was installed.\nAI coding assistants will use it to help you build with OpenUI.\n"
+    : "";
+  const nextStep = isNestedExample(layout)
+    ? nestedExampleNextSteps({
+        name,
+        targetDir,
+        layout,
+        runCmd: packageManager.runCmd,
+        installCmd,
+      })
+    : [`> cd ${name}`, `> ${installCmd}`, `> ${packageManager.runCmd} run dev`].join("\n");
+
   console.info(
-    formatCreateDoneMessage({
-      skillInstalled,
-      envNote: envKey
-        ? envResult.envWritten
-          ? `✅ ${example.envFile} updated with ${envKey}.`
-          : `Add ${envKey}=… to ${example.envFile} (see the example README).`
-        : `Add your API keys to ${example.envFile} (see the example README).`,
-      name,
-      devCmd: packageManager.runCmd,
-      installCmd,
-      startDev: false,
-      dependencyInstalled: false,
-      nextStep: isNestedExample(layout)
-        ? nestedExampleNextSteps({
-            name,
-            targetDir,
-            layout,
-            runCmd: packageManager.runCmd,
-            installCmd,
-          })
-        : undefined,
-    }),
+    `\n${[skillMessage.trim(), "Done!", envNote, nextStep].filter(Boolean).join("\n\n")}\n`,
   );
 }
 
@@ -188,6 +175,95 @@ async function resolveExampleEnv(
     envWritten: apiKey != null,
     envKeyValue: apiKey ?? undefined,
   };
+}
+
+async function promptForProviderKey(envKey: string): Promise<string | null> {
+  try {
+    const { input } = await import("@inquirer/prompts");
+    const apiKey = (
+      await input({
+        message: `Enter your ${envKey} (leave blank to skip):`,
+      })
+    ).trim();
+    return apiKey || null;
+  } catch (error) {
+    const { ExitPromptError } = await import("@inquirer/core");
+    if (error instanceof ExitPromptError) {
+      throw new CliCancelledError("environment_resolution");
+    }
+    throw error;
+  }
+}
+
+async function installExampleSkill(
+  enabled: boolean,
+  verbose: boolean | undefined,
+  targetDir: string,
+): Promise<boolean> {
+  if (!enabled) return false;
+
+  telemetry.capture("cli_skill_install_started", {
+    ...createFunnelProps("skill_install_started"),
+    skill_installed: true,
+  });
+  const runSkill = () =>
+    verbose
+      ? runSkillInstall(targetDir)
+      : runSkillInstall(targetDir, {
+          echo: false,
+          stdin: "ignore",
+          captureLimit: QUIET_COMMAND_CAPTURE_LIMIT,
+        });
+  if (verbose) {
+    console.info("Installing OpenUI agent skill...\n");
+  }
+  const skillResult = verbose
+    ? await runSkill()
+    : await withSpinner("Installing OpenUI agent skill...", runSkill);
+  const skillInstalled = !skillResult.error && skillResult.status === 0;
+  if (skillInstalled) {
+    if (!verbose) {
+      console.info("✓ OpenUI agent skill installed");
+    }
+    telemetry.capture("cli_skill_install_finished", {
+      ...createFunnelProps("skill_install_finished"),
+      skill_installed: true,
+      duration_ms: skillResult.durationMs,
+      exit_code: skillResult.status,
+    });
+    return true;
+  }
+
+  const properties = processErrorProperties(skillResult, "skill_install", {
+    error_class: "dependency",
+    error_code: "SKILL_INSTALL_FAILED",
+  });
+  if (properties.error_class === "user_cancelled") {
+    telemetry.capture("cli_skill_install_cancelled", {
+      ...createFunnelProps("skill_install_cancelled"),
+      skill_installed: false,
+      ...properties,
+    });
+    throw new CliCancelledError(
+      "skill_install",
+      properties.cancellation_exit_code ?? 0,
+      properties,
+    );
+  }
+  telemetry.capture("cli_skill_install_failed", {
+    ...createFunnelProps("skill_install_failed"),
+    skill_installed: false,
+    ...properties,
+  });
+  if (!verbose) {
+    printLogTail(skillResult.diagnosticTail, "skill install log (tail)");
+  }
+  console.warn(
+    "\nCould not install the OpenUI agent skill automatically.\n" +
+      "You can install it manually later with:\n\n" +
+      "  npx skills add thesysdev/skills --skill openui\n",
+  );
+  return false;
 }
 
 function posixJoin(...parts: string[]): string {

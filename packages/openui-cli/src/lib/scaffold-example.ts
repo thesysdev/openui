@@ -1,14 +1,10 @@
 import * as fs from "node:fs";
+import * as os from "node:os";
 import * as path from "node:path";
 
 import { checkoutSource } from "./checkout";
 import type { PackageManagerName } from "./detect-package-manager";
-import type { ExampleProject } from "./projects";
-import {
-  pruneScaffoldLockfiles,
-  restoreDotfiles,
-  rewriteScaffoldPackageJson,
-} from "./scaffold-package";
+import type { ExampleProject } from "./examples-catalog";
 import { CreateError } from "./telemetry";
 
 const ARTIFACT_DIRS = new Set(["node_modules", ".next", ".turbo", "dist", ".nuxt", ".svelte-kit"]);
@@ -69,6 +65,66 @@ function rewriteGenerateScript(value: string): string {
     return value.replace(GENERATE_SCRIPT_FALLBACK_RE, "npx @openuidev/cli generate");
   }
   return value;
+}
+
+function restoreDotfiles(projectDir: string): void {
+  const plain = path.join(projectDir, "gitignore");
+  if (fs.existsSync(plain)) {
+    fs.renameSync(plain, path.join(projectDir, ".gitignore"));
+  }
+}
+
+function rewriteExamplePackageJson(
+  pkgPath: string,
+  packageManager: PackageManagerName,
+  name?: string,
+): void {
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as {
+    name?: string;
+    scripts?: Record<string, string>;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+    pnpm?: unknown;
+  };
+  if (name) pkg.name = name;
+  if (packageManager !== "pnpm") delete pkg.pnpm;
+
+  const pkgDir = path.dirname(pkgPath);
+  for (const section of ["dependencies", "devDependencies"] as const) {
+    const deps = pkg[section];
+    if (!deps) continue;
+    for (const key of Object.keys(deps)) {
+      const value = deps[key];
+      if (!value) continue;
+      if (value.startsWith("link:")) {
+        const target = value.slice("link:".length);
+        deps[key] = `file:${
+          target.startsWith("~")
+            ? path.join(os.homedir(), target.slice(1))
+            : path.resolve(pkgDir, target)
+        }`;
+        continue;
+      }
+      if (/^(workspace:|file:|catalog:)/.test(value)) deps[key] = "latest";
+    }
+  }
+
+  if (pkg.scripts) {
+    for (const [key, value] of Object.entries(pkg.scripts)) {
+      pkg.scripts[key] = rewriteGenerateScript(value);
+    }
+  }
+
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+}
+
+function pruneLockfiles(pkgDir: string, packageManager: PackageManagerName): void {
+  if (packageManager !== "npm") {
+    fs.rmSync(path.join(pkgDir, "package-lock.json"), { force: true });
+  }
+  if (packageManager !== "pnpm") {
+    fs.rmSync(path.join(pkgDir, "pnpm-lock.yaml"), { force: true });
+  }
 }
 
 function copyEnvExamples(projectDir: string): void {
@@ -132,13 +188,12 @@ export async function scaffoldExample(params: {
 
   for (const relative of layout.jsPackages) {
     const pkgDir = relative === "." ? targetDir : path.join(targetDir, relative);
-    rewriteScaffoldPackageJson({
-      pkgPath: path.join(pkgDir, "package.json"),
-      name: relative === "." ? name : undefined,
+    rewriteExamplePackageJson(
+      path.join(pkgDir, "package.json"),
       packageManager,
-      rewriteScript: rewriteGenerateScript,
-    });
-    pruneScaffoldLockfiles(pkgDir, packageManager, { keepPnpmWorkspace: true });
+      relative === "." ? name : undefined,
+    );
+    pruneLockfiles(pkgDir, packageManager);
   }
 
   copyEnvExamples(targetDir);

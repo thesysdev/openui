@@ -10,7 +10,7 @@ import { runCreateApp } from "./commands/create-app";
 import { GenerateOptions, runGenerate } from "./commands/generate";
 import { runGenerateApiKey } from "./commands/generate-api-key";
 import { detectAgent, UNKNOWN_AGENT_NAME } from "./lib/detect-agent";
-import { rejectConflictingScaffoldSelectors } from "./lib/projects";
+import { rejectConflictingScaffoldSelectors } from "./lib/examples-catalog";
 import { rejectConflictingImmediateFlags, resolveArgs } from "./lib/resolve-args";
 import { telemetry } from "./lib/telemetry";
 import {
@@ -66,7 +66,7 @@ program
     "--backend-framework <framework>",
     "Backend framework: default | langgraph | vercel-ai-sdk | vercel-eve",
   )
-  .option("-e, --example <example>", "create from an example in examples/examples.json")
+  .option("-e, --example <example>", "Create from an example in examples/examples.json")
   .option("--api-key <key>", "OpenUI Cloud API key (cloud template; skips sign-in)")
   .option("--auth <method>", "Cloud auth method: oauth | skip (manual is deprecated)")
   .option("--skill", "Install the OpenUI agent skill for AI coding assistants")

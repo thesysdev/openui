@@ -1,8 +1,4 @@
-import { promptSelect } from "./prompt-select";
 import { CliCancelledError, CreateError } from "./telemetry";
-
-export { promptSelect } from "./prompt-select";
-export type { PromptSelectOptions } from "./prompt-select";
 
 type InputPromptConfig = {
   type: "input";
@@ -35,10 +31,14 @@ export function rejectConflictingImmediateFlags(args: string[]): void {
 }
 
 async function resolveOne(prompt: PromptConfig): Promise<string> {
+  const { input, select } = await import("@inquirer/prompts");
   if (prompt.type === "select") {
-    return promptSelect(prompt.message, prompt.choices);
+    return select({
+      message: prompt.message,
+      choices: prompt.choices,
+      pageSize: prompt.choices.length,
+    });
   }
-  const { input } = await import("@inquirer/prompts");
   return input({ message: prompt.message, default: prompt.default });
 }
 

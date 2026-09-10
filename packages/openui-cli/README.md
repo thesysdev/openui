@@ -42,7 +42,7 @@ npx @openuidev/cli@latest create --template openui-cloud
 npx @openuidev/cli@latest create --template openui-self-hosted
 ```
 
-Choose a backend framework or example directly:
+Choose a backend framework directly (the default is `default`, the template's minimal SDK route):
 
 ```bash
 npx @openuidev/cli@latest create --template openui-cloud --backend-framework langgraph
@@ -87,9 +87,9 @@ openui create [options]
 Options:
 
 - `-n, --name <string>`: Project name (interactive default: `openui-agent`)
-- `-t, --template <template>`: AI backend `key` from `templates/templates.json` — interactive default `openui-cloud`
-- `--backend-framework <framework>`: Overlay `key` from that template's `overlays` list (plus `default` for the base template)
-- `-e, --example <example>`: Scaffold any example
+- `-t, --template <template>`: AI backend — `openui-cloud` (managed) or `openui-self-hosted` (bring your provider)
+- `--backend-framework <framework>`: API route implementation — `default`, `langgraph`, `vercel-ai-sdk`, or `vercel-eve`
+- `-e, --example <example>`: Scaffold any example from `examples/examples.json`
 - `--skill`: Install the OpenUI agent skill for AI coding assistants
 - `--no-skill`: Skip installing the OpenUI agent skill
 - `--no-install`: Scaffold without running the package install
@@ -141,11 +141,11 @@ Every framework overlay includes `get_weather` as its example app-owned function
 
 #### OpenUI examples
 
-Interactive `openui create` offers to scaffold [OpenUI Examples from Github](https://github.com/thesysdev/openui/blob/main/examples). Pass `--example <name>` to skip the menus. `--example` cannot be combined with `--template` or `--backend-framework`.
+Interactive `openui create` offers to scaffold [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). Pass `--example <name>` to skip the menus. `--example` cannot be combined with `--template` or `--backend-framework`.
 
 ```bash
 openui create --example shadcn
-openui create --name my-mastra-app --example mastra --no-immediate
+openui create --name my-mastra-app --example mastra
 openui create --example vue
 ```
 

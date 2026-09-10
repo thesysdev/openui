@@ -264,22 +264,3 @@ export function normalizeBackendFramework(framework?: string): OverlayName | und
       return framework.toLowerCase();
   }
 }
-
-export function catalogError(code: string, message: string): CreateError {
-  return new CreateError("args_resolution", message, "invalid_input", code);
-}
-
-export function findByNormalizedKey<T>(
-  items: readonly T[],
-  key: string,
-  getKey: (item: T) => string,
-  makeError: (available: string) => CreateError,
-): T {
-  const normalized = key.toLowerCase();
-  const match = items.find((item) => getKey(item).toLowerCase() === normalized);
-  if (!match) {
-    const available = items.map(getKey).join(" | ") || "(none loaded)";
-    throw makeError(available);
-  }
-  return match;
-}
