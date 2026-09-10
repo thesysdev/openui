@@ -4,9 +4,9 @@ description: Keep model requests working when providers are unavailable or model
 ---
 
 <Callout type="tip" title="New: Sanitize API">
-  Not routing requests through Gateway? Send your model's OpenUI Lang output to the
-  [Sanitize API](/docs/gateway/api/sanitize) and get back a valid program, at a flat price per
-  repair.
+  Not routing requests through Gateway? Send your model's OpenUI Lang generation to the
+  [Sanitize API](/docs/gateway/api/sanitize) and get back valid OpenUI Lang, at a flat price per
+  fix.
 </Callout>
 
 Applications that generate interfaces with AI face two common reliability problems. A model provider may be unavailable, or the model may return output that does not follow the OpenUI Lang instructions and component schemas. The first prevents a response; the second can produce an interface the application cannot render.
@@ -18,7 +18,7 @@ Gateway handles each problem differently. It automatically retries the request w
 | Problem                  | What happens                                                                                      | How Gateway responds                                     |
 | ------------------------ | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | **Provider unavailable** | An outage, capacity limit, or unavailable route prevents the selected provider from responding.  | Gateway retries through a compatible fallback route.     |
-| **Invalid model output** | The model returns OpenUI Lang with invalid syntax, references, components, properties, or structure. | Gateway corrects eligible errors and continues the stream, or repairs the output on request through the Sanitize API. |
+| **Invalid model output** | The model returns OpenUI Lang with invalid syntax, references, components, properties, or structure. | Gateway corrects eligible errors and continues the stream, or fixes the generation on request through the Sanitize API. |
 
 ## Recover from provider failures
 
@@ -48,7 +48,7 @@ Correction applies only to generated OpenUI Lang. Plain text, arbitrary JSON, ap
 
 Gateway improves the reliability of model access and generated OpenUI Lang. Your application remains responsible for:
 
-- Fallback behavior when a repair fails, whether during a stream or through the Sanitize API
+- Fallback behavior when a fix fails, whether during a stream or through the Sanitize API
 - Component behavior and UI error boundaries
 - Authentication and permissions
 - Tool authorization and input validation
