@@ -38,6 +38,10 @@ The cost of a Gateway request has two parts:
 
 Model usage is billed at the provider's rates without markup. The Gateway API and OpenUI Lang correction behavior remain the same whether you use managed inference or your own provider key.
 
+### Sanitize API
+
+A [Sanitize API](/docs/gateway/api/sanitize) call is charged for the model tokens the repair used, at the repair model's rate with no markup. Output that is already valid is not charged.
+
 ### Finding model pricing
 
 Model prices vary by provider and model. View the latest rates on the [Thesys pricing page](https://www.thesys.dev/pricing), including:

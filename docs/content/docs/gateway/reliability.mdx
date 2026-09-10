@@ -12,7 +12,7 @@ Gateway handles each problem differently. It automatically retries the request w
 | Problem                  | What happens                                                                                      | How Gateway responds                                     |
 | ------------------------ | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | **Provider unavailable** | An outage, capacity limit, or unavailable route prevents the selected provider from responding.  | Gateway retries through a compatible fallback route.     |
-| **Invalid model output** | The model returns OpenUI Lang with invalid syntax, references, components, properties, or structure. | Gateway corrects eligible errors and continues the stream. |
+| **Invalid model output** | The model returns OpenUI Lang with invalid syntax, references, components, properties, or structure. | Gateway corrects eligible errors and continues the stream, or repairs the output on request through the Sanitize API. |
 
 ## Recover from provider failures
 
@@ -25,6 +25,12 @@ The application continues to use the same Gateway API and `{provider}/{model}` n
 </Callout>
 
 ## Correct invalid model output
+
+<Callout type="tip" title="Not routing through Gateway?">
+  The same correction is available as a standalone call. Send your model's OpenUI Lang output to
+  the [Sanitize API](/docs/gateway/api/sanitize) and get back a valid program, charged only for
+  the repair.
+</Callout>
 
 Gateway validates OpenUI Lang while the model produces it. It can identify eligible problems such as:
 
@@ -42,6 +48,7 @@ Correction applies only to generated OpenUI Lang. Plain text, arbitrary JSON, ap
 
 Gateway improves the reliability of model access and generated OpenUI Lang. Your application remains responsible for:
 
+- Fallback behavior when a repair fails, whether during a stream or through the Sanitize API
 - Component behavior and UI error boundaries
 - Authentication and permissions
 - Tool authorization and input validation

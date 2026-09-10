@@ -1,0 +1,163 @@
+---
+title: Sanitize API
+description: Repair invalid OpenUI Lang from any model without routing the request through Gateway.
+---
+
+The Sanitize API corrects OpenUI Lang after a model has produced it. Send the raw model output, and Gateway validates it, repairs the errors it can, and returns a complete program that the renderer can use.
+
+Use it when your application calls a model directly and only needs the correction step. The request does not include a conversation or a model, and Gateway does not generate anything new. It applies the same correction that runs inside the [Chat Completions](/docs/gateway/api/chat-completions) and [Responses](/docs/gateway/api/responses) APIs, as a standalone call.
+
+**Endpoint:** POST [https://api.thesys.dev/v1/embed/sanitize](https://api.thesys.dev/v1/embed/sanitize)
+
+## Repair a program
+
+Send the output exactly as the model returned it. Fenced or bare OpenUI Lang both work, and text outside the fence is ignored.
+
+```ts title="server.ts"
+const response = await fetch("https://api.thesys.dev/v1/embed/sanitize", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.THESYS_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ output: modelOutput }),
+});
+
+const result = await response.json();
+
+if (result.status !== "repair_failed") {
+  render(result.program);
+}
+```
+
+The response carries the whole program, not a patch. Replace the model output with `program` and render it. Server calls use the API key described in [Authentication](/docs/gateway/authentication).
+
+## Describe your components
+
+Gateway can only judge a program against the components your application renders. By default it uses the built-in OpenUI chat library. Add a `config` object when your application differs from that default.
+
+```ts
+body: JSON.stringify({
+  output: modelOutput,
+  config: {
+    openUIlibraryVersion: "0.1.0",
+    customActions: {
+      book_table: {
+        description: "Reserve a table for the party size given.",
+        properties: { size: { type: "number" } },
+        required: ["size"],
+      },
+    },
+  },
+});
+```
+
+| Field                         | Purpose                                                                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `config.openUIlibraryVersion` | The version of the built-in OpenUI chat library your application renders, for example `"0.1.0"`.                                            |
+| `config.library`              | A custom component library in the same JSON Schema shape that `library.toJSONSchema()` produces. It replaces the built-in library entirely. |
+| `config.customActions`        | The actions your application handles from buttons, as a map of action name to parameter schema. Gateway keeps them intact during repair.    |
+
+`openUIlibraryVersion` and `library` are mutually exclusive. `customActions` can accompany either.
+
+The keys match the config block that `generateSystemPrompt` writes for the generation APIs, so an application that already builds that block can pass the same values here.
+
+## Read the result
+
+`status` tells you what happened. The other fields depend on it.
+
+| `status`        | `program`             | Errors                                               | Charged |
+| --------------- | --------------------- | ---------------------------------------------------- | ------- |
+| `already_valid` | The input, unchanged  | `fixed-errors` is empty                              | No      |
+| `repaired`      | The corrected program | `fixed-errors` lists what was wrong and is now fixed | Yes     |
+| `repair_failed` | `null`                | `unfixed-errors` lists what is still wrong           | Yes     |
+
+A repaired program:
+
+```json
+{
+  "id": "san_P4TPtYimJFMpSgsViggie",
+  "object": "openui.sanitize",
+  "created": 1789019848,
+  "status": "repaired",
+  "program": "root = Card([header])\nheader = Header(\"Q3 Results\")",
+  "fixed-errors": [
+    {
+      "code": "unresolved",
+      "statementId": "followUp",
+      "message": "reference \"followUp\" is never defined"
+    }
+  ],
+  "usage": { "prompt_tokens": 8014, "completion_tokens": 17, "total_tokens": 8031 }
+}
+```
+
+A failed repair:
+
+```json
+{
+  "id": "san_dRvfleg31F5g-Amn3v4-W",
+  "object": "openui.sanitize",
+  "created": 1789026253,
+  "status": "repair_failed",
+  "program": null,
+  "unfixed-errors": [
+    {
+      "code": "null-required",
+      "component": "B",
+      "path": "/child",
+      "statementId": "z",
+      "message": "required field \"/child\" cannot be null"
+    }
+  ],
+  "usage": { "prompt_tokens": 360, "completion_tokens": 146, "total_tokens": 506 }
+}
+```
+
+When the repair fails, fall back to what your application does for any unusable model output, such as showing the text or a generic error state.
+
+## Error codes
+
+Each entry in `fixed-errors` or `unfixed-errors` names one problem. `code` is always present. `component`, `path`, and `statementId` are present when the validator can name the component type, the property, and the statement that carried the problem.
+
+| Code                | Meaning                                                                            |
+| ------------------- | ---------------------------------------------------------------------------------- |
+| `unknown-component` | A component name that is not in the library.                                       |
+| `missing-required`  | A required property was left out.                                                  |
+| `null-required`     | A required property was set to `null`.                                             |
+| `type-mismatch`     | A property has the wrong type, or a value outside its allowed set.                 |
+| `excess-args`       | A component received more arguments than its signature has.                        |
+| `inline-reserved`   | `Query()` or `Mutation()` was used inside an expression instead of as a statement. |
+| `incomplete`        | The output stopped in the middle of a statement.                                   |
+| `unresolved`        | A statement is referenced but never defined.                                       |
+| `orphaned`          | A statement is defined but not reachable from `root`.                              |
+| `missing-root`      | The output has no valid `root` statement.                                          |
+
+These are the same codes the OpenUI SDK reports in the browser, so an application can handle both with one path. See [Observability](/docs/observability) for how they appear in the Thesys Console.
+
+## Limits
+
+- `output` can be up to 100,000 characters.
+- Gateway makes up to two repair attempts per request.
+- Chat programs only. Artifacts such as slides and reports are not accepted.
+
+## Pricing
+
+A sanitize call is charged for the model tokens the repair used, at the repair model's rate with no markup. A program that is already valid uses no model and is not charged.
+
+`usage` in the response reports the tokens you were charged for. See [Pricing](/docs/gateway/pricing-credits) for rates.
+
+## Errors
+
+The endpoint returns the same error shape as the other Gateway APIs.
+
+| Status | Type                    | When                                                       |
+| ------ | ----------------------- | ---------------------------------------------------------- |
+| `400`  | `invalid_request_error` | `output` is empty or too long, or `config` is malformed.   |
+| `401`  | `authentication_error`  | The API key is missing or invalid.                         |
+| `429`  | `rate_limit_error`      | The organization has no credits, or billing is suspended.  |
+| `500`  | `internal_server_error` | The repair model could not be reached. Nothing is charged. |
+
+## Observability
+
+Sanitize calls appear in the Thesys Console under the model name `openui/sanitize`. A successful repair counts as a sanitizer correction on the Reliability page, with the same error codes as corrections made during generation.
