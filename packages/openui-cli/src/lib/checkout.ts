@@ -13,6 +13,29 @@ const SOURCE_REPO = "openui";
 const SOURCE_REF = "main";
 const SOURCE_GIT_URL = `https://github.com/${SOURCE_OWNER}/${SOURCE_REPO}.git`;
 
+/**
+ * Absolute path to a source-repository checkout to read templates from
+ * instead of fetching `main` from GitHub, so CI can scaffold the templates of
+ * the commit under test.
+ */
+function localSourceDir(): string | undefined {
+  const dir = process.env["OPENUI_SOURCE_DIR"]?.trim();
+  return dir || undefined;
+}
+
+function localSourcePath(sourceDir: string, normalizedPath: string): string {
+  const resolved = path.join(sourceDir, ...normalizedPath.split("/"));
+  if (!fs.existsSync(resolved)) {
+    throw new CreateError(
+      "source_checkout",
+      `Path "${normalizedPath}" was not in OPENUI_SOURCE_DIR (${sourceDir}).`,
+      "filesystem",
+      "SOURCE_MISSING",
+    );
+  }
+  return resolved;
+}
+
 export type SourceFetchOptions = {
   dest?: string;
 };
@@ -98,6 +121,10 @@ function runGit(
 
 export async function fetchSourceFile(repoPath: string): Promise<FetchedFile> {
   const normalizedPath = posixRepoPath(repoPath);
+  const sourceDir = localSourceDir();
+  if (sourceDir) {
+    return { content: fs.readFileSync(localSourcePath(sourceDir, normalizedPath), "utf8") };
+  }
   const url = `https://raw.githubusercontent.com/${SOURCE_OWNER}/${SOURCE_REPO}/${SOURCE_REF}/${normalizedPath}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -134,6 +161,12 @@ export async function checkoutSource(
   opts: SourceFetchOptions = {},
 ): Promise<CheckedOutSource> {
   const normalizedPath = posixRepoPath(repoPath);
+  const sourceDir = localSourceDir();
+  if (sourceDir) {
+    const dest = opts.dest ?? fs.mkdtempSync(path.join(os.tmpdir(), "openui-src-"));
+    copyDir(localSourcePath(sourceDir, normalizedPath), dest);
+    return { dir: dest };
+  }
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openui-src-"));
   try {
     await runGit(["init", "--quiet"], { cwd: tmpDir });

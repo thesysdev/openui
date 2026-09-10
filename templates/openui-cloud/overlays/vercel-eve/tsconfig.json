@@ -7,6 +7,7 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -31,5 +32,5 @@
     ".eve/**/*.d.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "agent"]
 }
