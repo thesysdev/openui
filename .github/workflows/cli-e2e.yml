@@ -156,13 +156,13 @@ jobs:
         if: matrix.package-manager == 'npm'
         run: npm install --global npm@${{ matrix.package-manager-version }}
 
-      - uses: pnpm/action-setup@v6
+      - name: Set up pnpm ${{ matrix.package-manager-version }}
         if: matrix.package-manager == 'pnpm'
-        with:
-          version: ${{ matrix.package-manager-version }}
+        run: npm install --global pnpm@${{ matrix.package-manager-version }}
 
       - name: Verify package manager version
         shell: bash
+        working-directory: ${{ runner.temp }}
         env:
           PACKAGE_MANAGER: ${{ matrix.package-manager }}
           EXPECTED_MAJOR: ${{ matrix.package-manager-version }}
