@@ -11,6 +11,13 @@ import {
   type PackageManagerName,
 } from "../lib/detect-package-manager";
 import { runDevCommand } from "../lib/dev-server";
+import {
+  findExample,
+  groupedExampleChoices,
+  loadExamplesCatalog,
+  rejectConflictingScaffoldSelectors,
+  type ExampleProject,
+} from "../lib/examples-catalog";
 import { runSkillInstall, shouldInstallSkill } from "../lib/install-skill";
 import {
   applyOverlay,
@@ -30,8 +37,12 @@ import {
   findCatalogOverlay,
   findCatalogTemplate,
   loadTemplatesCatalog,
+  type CatalogOverlay,
+  type CatalogTemplate,
 } from "../lib/templates-catalog";
 import { cliErrorProperties, processErrorProperties } from "../lib/utils";
+
+import { runCreateExample } from "./create-example";
 
 function shouldCopyTemplatePath(templateDir: string, src: string): boolean {
   const rel = path.relative(templateDir, src);
@@ -164,15 +175,22 @@ export async function runCreateApp(options: CreateAppOptions): Promise<void> {
     has_name_arg: Boolean(options.name),
     has_template_arg: Boolean(options.template),
     has_backend_framework_arg: Boolean(options.backendFramework),
+    has_example_arg: Boolean(options.example),
     has_api_key_arg: Boolean(options.apiKey),
     has_auth_arg: Boolean(options.auth),
     no_install: Boolean(options.noInstall),
     immediate_arg: options.immediate,
   });
 
+  rejectConflictingScaffoldSelectors({
+    example: options.example,
+    backendFramework: options.backendFramework,
+    template: options.template,
+  });
+
   // Interactive runs always scaffold the Cloud backend; openui-self-hosted stays
   // available, but only when requested explicitly with --template.
-  if (!options.template && !interactive) {
+  if (!interactive && !options.example && !options.template) {
     throw new CreateError(
       "args_resolution",
       "Missing required argument --template",
@@ -181,11 +199,30 @@ export async function runCreateApp(options: CreateAppOptions): Promise<void> {
     );
   }
 
-  const catalog = await loadTemplatesCatalog();
-  const template: TemplateName = options.template ?? DEFAULT_TEMPLATE_KEY;
-  const templateEntry = findCatalogTemplate(catalog, template);
-  if (options.backendFramework) {
-    findCatalogOverlay(templateEntry, options.backendFramework);
+  let examples: ExampleProject[] = [];
+  let template: TemplateName | undefined;
+  let templateEntry: CatalogTemplate | undefined;
+  if (options.example) {
+    examples = await loadExamplesCatalog();
+    findExample(options.example, examples);
+  } else if (interactive) {
+    const [catalog, loadedExamples] = await Promise.all([
+      loadTemplatesCatalog(),
+      loadExamplesCatalog(),
+    ]);
+    examples = loadedExamples;
+    template = options.template ?? DEFAULT_TEMPLATE_KEY;
+    templateEntry = findCatalogTemplate(catalog, template);
+    if (options.backendFramework) {
+      findCatalogOverlay(templateEntry, options.backendFramework);
+    }
+  } else {
+    const catalog = await loadTemplatesCatalog();
+    template = options.template ?? DEFAULT_TEMPLATE_KEY;
+    templateEntry = findCatalogTemplate(catalog, template);
+    if (options.backendFramework) {
+      findCatalogOverlay(templateEntry, options.backendFramework);
+    }
   }
 
   const nameArgs = await resolveArgs(
@@ -204,28 +241,35 @@ export async function runCreateApp(options: CreateAppOptions): Promise<void> {
     interactive,
   );
 
-  const overlayChoices = templateEntry.overlays;
-  const frameworkArgs = await resolveArgs(
-    {
-      backendFramework:
-        options.backendFramework || !interactive
-          ? { value: options.backendFramework ?? "default" }
-          : {
-              prompt: {
-                type: "select",
-                message: "Choose your backend framework",
-                choices: overlayChoices.map((overlay) => ({
-                  value: overlay.key,
-                  name: overlay.name,
-                  description: overlay.description,
-                })),
-              },
-              required: true,
-            },
-    },
+  const selected = await resolveCreateSelection({
+    backendFramework: options.backendFramework,
+    example: options.example,
+    examples,
+    overlays: templateEntry?.overlays ?? [],
     interactive,
-  );
-  const backendFramework = (frameworkArgs as { backendFramework: OverlayName }).backendFramework;
+  });
+  if (selected.kind === "example") {
+    await runCreateExample({
+      options,
+      interactive,
+      packageManager,
+      t0,
+      name,
+      targetDir,
+      example: selected.example,
+    });
+    return;
+  }
+  if (!template || !templateEntry) {
+    throw new CreateError(
+      "args_resolution",
+      "Missing required argument --template",
+      "invalid_input",
+      "MISSING_REQUIRED_ARG",
+    );
+  }
+
+  const backendFramework = selected.overlay;
   findCatalogOverlay(templateEntry, backendFramework);
 
   const aiSetup = aiSetupFromTemplate(template);
@@ -772,4 +816,81 @@ function getStartedMessage(o: {
   return `\n${[skillMessage.trim(), "Done!", envNote, frameworkNote, nextStep]
     .filter(Boolean)
     .join("\n\n")}\n`;
+}
+
+const OPENUI_EXAMPLES_CHOICE = "openui-examples";
+const GO_BACK_CHOICE = "__back__";
+
+async function resolveCreateSelection(params: {
+  backendFramework?: OverlayName;
+  example?: string;
+  examples: ExampleProject[];
+  overlays: CatalogOverlay[];
+  interactive: boolean;
+}): Promise<
+  { kind: "overlay"; overlay: OverlayName } | { kind: "example"; example: ExampleProject }
+> {
+  const { backendFramework, example, examples, overlays, interactive } = params;
+  if (example) return { kind: "example", example: findExample(example, examples) };
+  if (backendFramework) return { kind: "overlay", overlay: backendFramework };
+  if (!interactive) return { kind: "overlay", overlay: "default" };
+
+  const { select, Separator } = await import("@inquirer/prompts");
+  const prompt = async <T extends string>(
+    message: string,
+    choices: unknown[],
+    pageSize: number,
+  ) => {
+    try {
+      return (await select({
+        message,
+        choices: choices as never,
+        pageSize,
+        loop: false,
+      })) as T;
+    } catch (err) {
+      const { ExitPromptError } = await import("@inquirer/core");
+      if (err instanceof ExitPromptError) {
+        throw new CliCancelledError("args_resolution");
+      }
+      throw err;
+    }
+  };
+
+  for (;;) {
+    const starterChoices: unknown[] = overlays.map((overlay) => ({
+      value: overlay.key,
+      name: overlay.name,
+      description: overlay.description,
+    }));
+    if (examples.length > 0) {
+      starterChoices.push(new Separator());
+      starterChoices.push({
+        value: OPENUI_EXAMPLES_CHOICE,
+        name: "Scaffold from OpenUI Examples",
+        description: "Browse examples from the OpenUI repo",
+      });
+    }
+
+    const selected = await prompt<string>(
+      "Choose your backend framework",
+      starterChoices,
+      starterChoices.length,
+    );
+    if (selected !== OPENUI_EXAMPLES_CHOICE) {
+      return { kind: "overlay", overlay: selected as OverlayName };
+    }
+
+    const exampleSelected = await prompt<string>(
+      "Select an OpenUI example",
+      [
+        { value: GO_BACK_CHOICE, name: "← Back" },
+        new Separator(),
+        ...groupedExampleChoices(examples, Separator),
+      ],
+      10,
+    );
+    if (exampleSelected === GO_BACK_CHOICE) continue;
+    return { kind: "example", example: findExample(exampleSelected, examples) };
+  }
 }

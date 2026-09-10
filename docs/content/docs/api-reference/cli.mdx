@@ -58,6 +58,7 @@ openui create [options]
 | `-n, --name <string>`             | Project name (interactive default: `openui-agent`)                            |
 | `-t, --template <template>`       | AI backend: `openui-cloud` (Gateway; recommended) or `openui-self-hosted`     |
 | `--backend-framework <framework>` | Backend integration: `default`, `langgraph`, `vercel-ai-sdk`, or `vercel-eve` |
+| `-e, --example <example>`         | Scaffold any example from the OpenUI Repository    |
 | `--api-key <key>`                 | OpenUI Gateway API key; skips sign-in for the Gateway setup                   |
 | `--auth <method>`                 | Gateway auth method: `oauth` or `skip`; `manual` is deprecated                |
 | `--skill`                         | Install the OpenUI agent skill for AI coding assistants                       |
@@ -68,7 +69,7 @@ openui create [options]
 | `--no-interactive`                | Fail instead of prompting for missing input                                   |
 | `--agent-name <name>`             | Declare the invoking coding-agent slug (default: `unknown`)                   |
 
-When run interactively (default), the CLI prompts for any missing options, including the backend framework, then asks whether to start the development server after installing dependencies with the detected package manager. The start prompt defaults to yes; answering no preserves the existing install-and-exit behavior and prints the `cd` and dev commands. For most prototypes and evaluations, start with **OpenUI Gateway, the recommended default**: hosted models, managed conversation history and streaming, built-in tools, and ready-to-use reports and presentations without operating the model, storage, or artifact infrastructure. Choose **self-hosted** when owning the OpenAI-compatible provider, AI route, and persistence is a requirement.
+When run interactively (default), the CLI prompts for any missing options, including the backend framework or an example, then asks whether to start the development server after installing dependencies with the detected package manager. The start prompt defaults to yes; answering no preserves the existing install-and-exit behavior and prints the `cd` and dev commands. For most prototypes and evaluations, start with **OpenUI Gateway, the recommended default**: hosted models, managed conversation history and streaming, built-in tools, and ready-to-use reports and presentations without operating the model, storage, or artifact infrastructure. Choose **self-hosted** when owning the OpenAI-compatible provider, AI route, and persistence is a requirement.
 
 `openui-cloud` remains the CLI template identifier for the Gateway-backed setup.
 
@@ -78,8 +79,8 @@ In non-interactive mode, dependencies are installed without starting the long-ru
 
 **What it does**
 
-1. Resolves the project name, AI setup, and backend framework
-2. Copies the selected Next.js template into `<name>/`
+1. Resolves the project name, picks a backend-framework overlay or an OpenUI example
+2. Copies the selected Next.js template or example into `<name>/`
 3. Rewrites `workspace:*` dependency versions to `latest`
 4. Writes the relevant `.env` values, including Thesys sign-in/API-key setup for OpenUI Gateway
 5. Optionally installs the [OpenUI agent skill](/docs/mcp#install-via-the-skills-cli-recommended) for AI coding assistants (e.g. Claude, Cursor, Copilot)
@@ -100,6 +101,10 @@ The CLI applies the selected framework's final route/page files, dependencies, a
 For Gateway-backed LangGraph and Vercel AI SDK variants, the framework owns orchestration and application tool execution. OpenUI Gateway is attached as the Responses/Chat Completions model provider and conversation store. Reports, presentations, web search, image search, and configured MCP tools remain Gateway-hosted tools. The Eve Gateway overlay uses Gateway as the Chat Completions provider and conversation store, without those hosted tools. For either LangGraph template, `pnpm dev` starts the local Agent Server and Next.js together. Deploy the Next.js frontend to Vercel and point `LANGGRAPH_API_URL` at wherever the Agent Server runs. Eve embeds in the Next.js process, so `pnpm dev` is enough for both Eve variants.
 
 Every framework overlay includes a `get_weather` example backed by Open-Meteo. Ask “What’s the weather in Berlin?” to verify the selected framework’s native multi-step tool loop.
+
+**OpenUI examples**
+
+Interactive `openui create` lists starter templates, and option to create an app from listed [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). `--example <name>` skips both menus. `--example` cannot be combined with `--template` or `--backend-framework`. Any other folder name in the catalog works the same way.
 
 **Conversation storage**
 
@@ -132,6 +137,11 @@ pnpx @openuidev/cli@latest create --name my-app --template openui-self-hosted --
 pnpx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-ai-sdk
 pnpx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-eve
 
+# Select an example
+pnpx @openuidev/cli@latest create --name my-app --example shadcn
+pnpx @openuidev/cli@latest create --name my-app --example mastra
+pnpx @openuidev/cli@latest create --name my-app --example vue
+
 # Non-interactive
 pnpx @openuidev/cli@latest create --no-interactive --name my-app --template openui-cloud --auth skip
 
@@ -155,6 +165,11 @@ bunx @openuidev/cli@latest create --name my-app --template openui-cloud --backen
 bunx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework langgraph
 bunx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-ai-sdk
 bunx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-eve
+
+# Select an example
+bunx @openuidev/cli@latest create --name my-app --example shadcn
+bunx @openuidev/cli@latest create --name my-app --example mastra
+bunx @openuidev/cli@latest create --name my-app --example vue
 
 # Non-interactive
 bunx @openuidev/cli@latest create --no-interactive --name my-app --template openui-cloud --auth skip
@@ -180,6 +195,11 @@ yarn dlx @openuidev/cli@latest create --name my-app --template openui-self-hoste
 yarn dlx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-ai-sdk
 yarn dlx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-eve
 
+# Select an example
+yarn dlx @openuidev/cli@latest create --name my-app --example shadcn
+yarn dlx @openuidev/cli@latest create --name my-app --example mastra
+yarn dlx @openuidev/cli@latest create --name my-app --example vue
+
 # Non-interactive
 yarn dlx @openuidev/cli@latest create --no-interactive --name my-app --template openui-cloud --auth skip
 
@@ -203,6 +223,11 @@ npx @openuidev/cli@latest create --name my-app --template openui-cloud --backend
 npx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework langgraph
 npx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-ai-sdk
 npx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-eve
+
+# Select an example
+npx @openuidev/cli@latest create --name my-app --example shadcn
+npx @openuidev/cli@latest create --name my-app --example mastra
+npx @openuidev/cli@latest create --name my-app --example vue
 
 # Non-interactive
 npx @openuidev/cli@latest create --no-interactive --name my-app --template openui-cloud --auth skip
