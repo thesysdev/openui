@@ -162,6 +162,7 @@ jobs:
 
       - name: Verify package manager version
         shell: bash
+        working-directory: ${{ runner.temp }}
         env:
           PACKAGE_MANAGER: ${{ matrix.package-manager }}
           EXPECTED_MAJOR: ${{ matrix.package-manager-version }}
