@@ -143,9 +143,9 @@ These are the same codes the OpenUI SDK reports in the browser, so an applicatio
 
 ## Pricing
 
-A sanitize call is charged for the model tokens the repair used, at the repair model's rate with no markup. A program that is already valid uses no model and is not charged.
+Each call that runs a repair costs a flat $0.02, deducted from your Gateway Credits. This applies whether the repair succeeds or fails, since the model ran either way. A program that is already valid uses no model and is free.
 
-`usage` in the response reports the tokens you were charged for. See [Pricing](/docs/gateway/pricing-credits) for rates.
+`usage` in the response reports the tokens the repair used, for your own tracking. The charge does not depend on it. See [Pricing](/docs/gateway/pricing-credits).
 
 ## Errors
 
