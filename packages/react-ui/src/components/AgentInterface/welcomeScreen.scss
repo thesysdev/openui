@@ -136,10 +136,6 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
     .openui-agent-conversation-starter--short {
       justify-content: center;
     }
-
-    .openui-agent-conversation-starter--long {
-      max-width: 770px;
-    }
   }
 
   // When welcome screen has the desktop composer variant
