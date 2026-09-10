@@ -1,0 +1,132 @@
+name: CLI scaffold end to end
+description: Scaffold a template with the packed CLI, then install and build the generated app.
+
+inputs:
+  template:
+    description: Template key passed to `openui create --template`.
+    required: true
+  backend-framework:
+    description: Overlay key passed to `openui create --backend-framework`.
+    required: false
+    default: default
+  node-version:
+    description: Node.js major version used to run the CLI and the generated app.
+    required: true
+  package-manager:
+    description: Package manager the CLI should select (npm or pnpm).
+    required: true
+  package-manager-version:
+    description: Expected package manager major version.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Set up npm ${{ inputs.package-manager-version }}
+      if: inputs.package-manager == 'npm'
+      shell: bash
+      run: npm install --global npm@${{ inputs.package-manager-version }}
+
+    - uses: pnpm/action-setup@v6
+      if: inputs.package-manager == 'pnpm'
+      with:
+        version: ${{ inputs.package-manager-version }}
+
+    - name: Verify package manager version
+      shell: bash
+      env:
+        PACKAGE_MANAGER: ${{ inputs.package-manager }}
+        EXPECTED_MAJOR: ${{ inputs.package-manager-version }}
+      run: |
+        actual_version="$("${PACKAGE_MANAGER}" --version)"
+        if [[ "${actual_version}" != "${EXPECTED_MAJOR}".* ]]; then
+          echo "Expected ${PACKAGE_MANAGER} ${EXPECTED_MAJOR}.x, got ${actual_version}" >&2
+          exit 1
+        fi
+
+    - uses: actions/download-artifact@v8
+      with:
+        name: openui-cli-package
+        path: ${{ runner.temp }}/cli-package
+
+    - name: Locate CLI package and prepare workspace
+      id: cli-package
+      shell: bash
+      env:
+        CLI_PACKAGE_DIR: ${{ runner.temp }}/cli-package
+        CLI_E2E_DIR: ${{ runner.temp }}/cli-e2e
+      run: |
+        node --input-type=module -e "
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const tarballs = fs.readdirSync(process.env.CLI_PACKAGE_DIR).filter((file) => file.endsWith('.tgz'));
+          if (tarballs.length !== 1) throw new Error('Expected exactly one CLI tarball');
+          const tarball = path.join(process.env.CLI_PACKAGE_DIR, tarballs[0]);
+          fs.mkdirSync(process.env.CLI_E2E_DIR, { recursive: true });
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'path=' + tarball + '\n');
+        "
+
+    - name: Run CLI with npm
+      if: inputs.package-manager == 'npm'
+      shell: bash
+      working-directory: ${{ runner.temp }}/cli-e2e
+      run: >-
+        npm exec --yes --package="${{ steps.cli-package.outputs.path }}" --
+        openui --no-telemetry create
+        --name generated-app
+        --template ${{ inputs.template }}
+        --backend-framework ${{ inputs.backend-framework }}
+        --api-key sk-test
+        --no-interactive
+        --no-skill
+
+    - name: Run CLI with pnpm
+      if: inputs.package-manager == 'pnpm'
+      shell: bash
+      working-directory: ${{ runner.temp }}/cli-e2e
+      run: >-
+        pnpm dlx "${{ steps.cli-package.outputs.path }}"
+        --no-telemetry create
+        --name generated-app
+        --template ${{ inputs.template }}
+        --backend-framework ${{ inputs.backend-framework }}
+        --api-key sk-test
+        --no-interactive
+        --no-skill
+
+    # npm- and pnpm-installed node_modules can both satisfy either run command.
+    # Check manager metadata and lockfile retention to verify CLI selection.
+    - name: Verify selected package manager
+      shell: bash
+      working-directory: ${{ runner.temp }}/cli-e2e/generated-app
+      env:
+        PACKAGE_MANAGER: ${{ inputs.package-manager }}
+      run: |
+        node --input-type=module -e "
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const marker = process.env.PACKAGE_MANAGER === 'pnpm'
+            ? path.join('node_modules', '.modules.yaml')
+            : path.join('node_modules', '.package-lock.json');
+          if (!fs.existsSync(marker)) throw new Error('Missing ' + process.env.PACKAGE_MANAGER + ' install marker: ' + marker);
+          const hasNpmLockfile = fs.existsSync('package-lock.json');
+          if (process.env.PACKAGE_MANAGER === 'npm' && !hasNpmLockfile) {
+            throw new Error('npm-generated project is missing package-lock.json');
+          }
+          if (process.env.PACKAGE_MANAGER !== 'npm' && hasNpmLockfile) {
+            throw new Error(process.env.PACKAGE_MANAGER + '-generated project retained package-lock.json');
+          }
+        "
+
+    - name: Build generated app
+      shell: bash
+      working-directory: ${{ runner.temp }}/cli-e2e/generated-app
+      run: ${{ inputs.package-manager }} run build
+      env:
+        OPENAI_API_KEY: sk-test
+        THESYS_API_KEY: sk-test
+        DEMO_USER_ID: test-user
