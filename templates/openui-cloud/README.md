@@ -20,6 +20,19 @@ You can start editing the page by modifying `src/app/api/chat/route.ts` and impr
 by adding system prompts or tools. A LangGraph scaffold puts the implementation in
 `src/agent/agent.ts` instead.
 
+## Deploy
+
+From the project directory:
+
+```bash
+npx @openuidev/cli@latest deploy
+npx @openuidev/cli@latest deploy --prod
+```
+
+Deploys to Vercel. Allowlisted keys from `.env` / `.env.local` (including `THESYS_API_KEY`) are
+passed to that deployment unless you use `--skip-env`. Persist them on the Vercel project for later
+deploys.
+
 ## Framework deployments
 
 The Vercel AI SDK scaffold is a standard Next.js app: `streamText()` owns the
@@ -58,8 +71,8 @@ list](https://models.dev/providers/openrouter/).
 
 ## SDK packages
 
-- `@openuidev/lang-core` — `generateSystemPrompt({ cloud: true })` used by the `/api/chat` route.
-- `@openuidev/thesys-server` — `artifactTool` used by the `/api/chat` route.
+- `@openuidev/lang-core` — `generateSystemPrompt({ cloud: true })` and `artifactTool`
+  (from `@openuidev/lang-core/cloud`) used by the `/api/chat` route.
 - `@openuidev/thesys` — the React component library (`chatLibrary`, `Presentation`,
   `Report`) used by the client page and artifact renderers.
 - `@openuidev/react-ui` — the chat UI runtime (`AgentInterface`, `fetchLLM`,

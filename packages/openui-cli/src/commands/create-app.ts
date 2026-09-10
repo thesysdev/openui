@@ -26,7 +26,7 @@ import {
   type OverlayManifest,
   type TemplateOverlay,
 } from "../lib/overlays";
-import { runCommand } from "../lib/process-runner";
+import { mutedNpmEnv, runCommand } from "../lib/process-runner";
 import { resolveArgs } from "../lib/resolve-args";
 import { resolveTemplateSource } from "../lib/scaffold-template";
 import { withSpinner } from "../lib/spinner";
@@ -437,11 +437,7 @@ export async function runCreateApp(options: CreateAppOptions): Promise<void> {
             echo: false,
             stdin: "ignore",
             captureLimit: QUIET_COMMAND_CAPTURE_LIMIT,
-            env: {
-              ...process.env,
-              npm_config_loglevel: "error",
-              NPM_CONFIG_LOGLEVEL: "error",
-            },
+            env: mutedNpmEnv(),
           });
 
     if (options.verbose) {

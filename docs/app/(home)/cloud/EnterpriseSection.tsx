@@ -1,4 +1,4 @@
-import { ExternalTextLink } from "../components/ExternalTextLink/ExternalTextLink";
+import { Button } from "@/components/button";
 import {
   FeatureGridSection,
   type GridFeature,
@@ -62,9 +62,7 @@ export function EnterpriseSection({
         <h2 id={titleId} className={styles.title}>
           {title}
         </h2>
-        <ExternalTextLink className={styles.link} href="https://trust.thesys.dev/">
-          {linkLabel}
-        </ExternalTextLink>
+        <Button href="https://trust.thesys.dev/" text={linkLabel} variant="tertiary" external />
       </div>
       <FeatureGridSection
         features={features}

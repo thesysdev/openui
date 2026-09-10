@@ -96,6 +96,17 @@ const myLibraryPrompt = generateSystemPrompt({
 });
 ```
 
+Enable managed slides and reports with `artifactTool` from the Cloud subpath:
+
+```ts
+import { artifactTool } from "@openuidev/lang-core/cloud";
+
+const tools = [
+  artifactTool({ artifacts: ["slides", "report"] }),
+  { type: "web_search" },
+];
+```
+
 ### Merge incremental edits
 
 ```ts
@@ -127,6 +138,12 @@ const merged = mergeStatements(original, patch);
 **`PromptSpec`** includes component signatures, tool definitions (`ToolSpec[]`), feature flags (`toolCalls`, `bindings`, `editMode`, `inlineMode`), examples, and custom rules.
 
 **`ToolSpec`** describes a tool for prompt generation (name, description, inputSchema, outputSchema). Shape inspired by MCP's tool schema.
+
+### OpenUI Cloud
+
+| Export | Description |
+| :--- | :--- |
+| `artifactTool(options?)` | From `@openuidev/lang-core/cloud`. Responses `tools[]` entry for Cloud's managed slides/report artifacts. |
 
 ## Telemetry
 

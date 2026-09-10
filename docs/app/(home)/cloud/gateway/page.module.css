@@ -65,7 +65,7 @@
   overflow: hidden;
   width: 100%;
   aspect-ratio: 1280 / 520;
-  border: 1px solid var(--home-hairline);
+  border: 0;
   border-radius: 24px;
   background: var(--home-color-surface-soft);
 }
@@ -114,7 +114,7 @@
   }
 
   .heroArtSpace {
-    aspect-ratio: 390 / 620;
+    aspect-ratio: 390 / 720;
   }
 }
 

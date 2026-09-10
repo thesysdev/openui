@@ -7,9 +7,11 @@ import * as path from "node:path";
 import { Command } from "commander";
 
 import { runCreateApp } from "./commands/create-app";
+import { runDeploy } from "./commands/deploy";
 import { GenerateOptions, runGenerate } from "./commands/generate";
 import { runGenerateApiKey } from "./commands/generate-api-key";
 import { detectAgent, UNKNOWN_AGENT_NAME } from "./lib/detect-agent";
+import { DEFAULT_ENV_FILE } from "./lib/env";
 import { rejectConflictingScaffoldSelectors } from "./lib/examples-catalog";
 import { rejectConflictingImmediateFlags, resolveArgs } from "./lib/resolve-args";
 import { telemetry } from "./lib/telemetry";
@@ -145,9 +147,63 @@ OpenUI examples:
   );
 
 program
+  .command("deploy")
+  .description("Deploy an OpenUI project")
+  .usage("[dir] [options]")
+  .argument("[dir]", "Project directory (default: current directory)")
+  .option("-y, --yes", "Skip confirmation prompts")
+  .option("--skip-env", "Do not pass or save local .env values")
+  .option("--no-interactive", "Skip prompts (implies --yes)")
+  .option("--verbose", "Stream full deployment build logs")
+  .allowUnknownOption()
+  .allowExcessArguments()
+  .addHelpText(
+    "after",
+    `
+Default supported platform is Vercel. If you are not logged in to the platform, 
+opens vercel login first. Links the project when needed, then offers to save 
+missing allowlisted keys from .env / .env.local to the project on the platform 
+(auto-accepted with --yes). Build logs are hidden by default; pass --verbose 
+to stream them. On failure the log tail is printed. Extra flags after deploy 
+are forwarded as-is to the target platform, which validates them.
+
+Examples:
+  openui deploy
+  openui deploy --verbose
+`,
+  )
+  .action(
+    async (
+      dir: string | undefined,
+      options: {
+        yes?: boolean;
+        skipEnv?: boolean;
+        interactive: boolean;
+        verbose?: boolean;
+      },
+      command: Command,
+    ) => {
+      try {
+        await runDeploy({
+          dir,
+          yes: options.yes,
+          skipEnv: options.skipEnv,
+          noInteractive: !options.interactive,
+          verbose: options.verbose,
+          extraArgs: command.args,
+        });
+      } catch (e) {
+        handleCliError(e, "cli_deploy_failed");
+      } finally {
+        await telemetry.shutdown();
+      }
+    },
+  );
+
+program
   .command("generate-api-key")
-  .description("Mint an OpenUI Cloud API key and write it to a project env file")
-  .option("-f, --file <path>", "Env file to write", ".env")
+  .description("Mint an OpenUI Gateway API key and write it to a project env file")
+  .option("-f, --file <path>", "Env file to write", DEFAULT_ENV_FILE)
   .option(
     "-k, --key <name>",
     "Environment variable name (letters, digits, underscores)",
@@ -158,7 +214,7 @@ program
     "after",
     `
 Run this inside an existing project. It uses the same browser sign-in as
-openui create, mints an OpenUI Cloud API key, and writes it to the env file.
+openui create, mints an OpenUI Gateway API key, and writes it to the env file.
 
 Examples:
   openui generate-api-key

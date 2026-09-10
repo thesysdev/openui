@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/cli",
-  "version": "0.2.13",
-  "description": "CLI for OpenUI — scaffold generative UI chat apps, mint Cloud API keys, and generate LLM system prompts from component libraries",
+  "version": "0.3.0",
+  "description": "CLI for OpenUI — scaffold generative UI chat apps, mint Gateway API keys, and generate LLM system prompts from component libraries, and deploy projects",
   "bin": {
     "openui": "dist/index.js"
   },
@@ -53,6 +53,7 @@
     "@inquirer/prompts": "^8.3.0",
     "commander": "^14.0.3",
     "cross-spawn": "^7.0.6",
+    "dotenv": "^17.2.2",
     "esbuild": "^0.25.10",
     "get-port": "^7.2.0",
     "open": "^10.1.0",
