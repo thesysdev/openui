@@ -3,7 +3,7 @@ import { unavailableResponse } from "@/lib/openui-cloud/errors";
 import { resolveRequestedModel } from "@/lib/openui-cloud/models";
 import { hasAllowedOrigin, hasJsonContentType, readLimitedJson } from "@/lib/openui-cloud/request";
 import { generateSystemPrompt } from "@openuidev/lang-core";
-import { artifactTool } from "@openuidev/thesys-server";
+import { artifactTool } from "@openuidev/lang-core/cloud";
 import OpenAI from "openai";
 import type { ResponseInputItem } from "openai/resources/responses/responses";
 
