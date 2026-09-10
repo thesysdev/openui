@@ -43,7 +43,7 @@ yarn global add @openuidev/cli
 npm install -g @openuidev/cli
 ```
 
-## `openui create`
+## `create`
 
 Scaffolds a new Next.js app pre-configured with OpenUI Chat.
 
@@ -212,7 +212,7 @@ npx @openuidev/cli@latest create --name my-app --skill
 npx @openuidev/cli@latest create --name my-app --no-skill
 ```
 
-## `openui generate-api-key`
+## `generate-api-key`
 
 Signs in with Thesys in the browser, mints an OpenUI Gateway API key, and writes it to a project env file.
 
@@ -254,7 +254,7 @@ npx @openuidev/cli@latest generate-api-key --file .env.local
 npx @openuidev/cli@latest generate-api-key --file .env.local --key THESYS_API_KEY
 ```
 
-## `openui generate`
+## `generate`
 
 Generates the system prompt **and** the serialized library spec from a file that exports a `createLibrary()` result. A single run emits both artifacts — they derive from the same `Library` instance, so they can never drift apart. Use the spec with `generateSystemPrompt` in backend routes; the prompt file supports static or legacy integrations.
 
