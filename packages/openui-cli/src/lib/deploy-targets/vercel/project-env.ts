@@ -1,6 +1,6 @@
 import type { CliInvocation } from "../../cli-bin";
 import { SENSITIVE_DEPLOY_ENV_KEYS } from "../../deploy/project-env";
-import { confirmOrDefault } from "../../deploy/prompt";
+import { canPromptInteractive, confirmOrDefault } from "../../deploy/prompt";
 import { mutedNpmEnv, runCommand } from "../../process-runner";
 import { vercelSpawnArgs } from "./args";
 import { isVercelLinked } from "./connect";
@@ -60,7 +60,11 @@ export async function syncLocalEnvToVercelProject(opts: {
     },
   );
   if (!shouldSave) {
-    console.info("Skipping project env save — using deployment-only env for this run.\n");
+    console.info(
+      opts.yes || canPromptInteractive(opts.noInteractive)
+        ? "Skipping project env save — using deployment-only env for this run.\n"
+        : "No TTY — not saving env to the Vercel project (pass --yes to save).\n",
+    );
     return 0;
   }
 

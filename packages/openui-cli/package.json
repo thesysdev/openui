@@ -53,6 +53,7 @@
     "@inquirer/prompts": "^8.3.0",
     "commander": "^14.0.3",
     "cross-spawn": "^7.0.6",
+    "dotenv": "^17.2.2",
     "esbuild": "^0.25.10",
     "get-port": "^7.2.0",
     "open": "^10.1.0",

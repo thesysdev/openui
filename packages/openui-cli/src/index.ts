@@ -154,8 +154,8 @@ to stream them. On failure the log tail is printed. Extra flags after deploy
 are forwarded as-is to the target platform, which validates them.
 
 Examples:
-  $ openui deploy
-  $ openui deploy --verbose
+  openui deploy
+  openui deploy --verbose
 `,
   )
   .action(

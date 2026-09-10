@@ -4,16 +4,16 @@ import * as path from "node:path";
 import { CreateError } from "../telemetry";
 
 type ProjectPackageJson = {
+  name?: string;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
 };
 
-/** Read dependencies and devDependencies from package.json. */
-export function readProjectDependencies(projectDir: string): Record<string, string> {
+/** Parse the project's package.json. */
+export function readProjectPackageJson(projectDir: string): ProjectPackageJson {
   const pkgPath = path.join(projectDir, "package.json");
-  let pkg: ProjectPackageJson;
   try {
-    pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as ProjectPackageJson;
+    return JSON.parse(fs.readFileSync(pkgPath, "utf8")) as ProjectPackageJson;
   } catch {
     throw new CreateError(
       "args_resolution",
@@ -22,6 +22,11 @@ export function readProjectDependencies(projectDir: string): Record<string, stri
       "INVALID_PACKAGE_JSON",
     );
   }
+}
+
+/** Read dependencies and devDependencies from package.json. */
+export function readProjectDependencies(projectDir: string): Record<string, string> {
+  const pkg = readProjectPackageJson(projectDir);
   return { ...pkg.dependencies, ...pkg.devDependencies };
 }
 

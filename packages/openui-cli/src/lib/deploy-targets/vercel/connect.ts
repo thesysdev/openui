@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 import type { CliInvocation } from "../../cli-bin";
+import { readProjectPackageJson } from "../../deploy/project";
 import { canPromptInteractive } from "../../deploy/prompt";
 import type { DeployTargetOptions } from "../../deploy/types";
 import { mutedNpmEnv, runCommand } from "../../process-runner";
@@ -13,6 +14,39 @@ import { vercelSpawnArgs } from "./args";
 /** True when `.vercel/project.json` exists in the project. */
 export function isVercelLinked(projectDir: string): boolean {
   return fs.existsSync(path.join(projectDir, ".vercel", "project.json"));
+}
+
+/**
+ * Vercel project names are lowercase alphanumeric + hyphens, max 100 chars.
+ * Prefer `package.json` `name` over the folder.
+ */
+export function toVercelProjectName(projectDir: string): string {
+  const resolved = path.resolve(projectDir);
+  const slug =
+    vercelSlug(readPackageName(resolved)) || vercelSlug(path.basename(resolved)) || "openui-app";
+  return slug;
+}
+
+function readPackageName(projectDir: string): string | undefined {
+  try {
+    const name = readProjectPackageJson(projectDir).name;
+    return typeof name === "string" && name.trim() ? name.trim() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function vercelSlug(value?: string): string {
+  if (!value) return "";
+  const unscoped = value.includes("/") ? value.slice(value.lastIndexOf("/") + 1) : value;
+  return unscoped
+    .toLowerCase()
+    .replace(/_/g, "-")
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 100)
+    .replace(/-$/, "");
 }
 
 /** Ensure the Vercel CLI is runnable, installing via dlx when needed. */
@@ -97,7 +131,7 @@ export async function linkVercelProject(
       ? "Linking Vercel project...\n"
       : "Linking Vercel project (choose team / project)...\n",
   );
-  const args = ["link"];
+  const args = ["link", "--project", toVercelProjectName(opts.projectDir)];
   if (skipPrompts) args.push("--yes");
   const result = await runCommand(
     invocation.command,

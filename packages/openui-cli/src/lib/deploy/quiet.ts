@@ -1,5 +1,7 @@
 export type DeploySuccessSummary = {
   url?: string;
+  /** Unique `*.vercel.app` deployment URL when it differs from the alias. */
+  deploymentUrl?: string;
   inspect?: string;
 };
 
@@ -8,6 +10,9 @@ export function printQuietDeploySuccess(summary: DeploySuccessSummary, durationM
   const seconds = Math.max(1, Math.round(durationMs / 1000));
   console.info(`✓ Deployed in ${seconds}s`);
   if (summary.url) console.info(`  ${summary.url}`);
+  if (summary.deploymentUrl && summary.deploymentUrl !== summary.url) {
+    console.info(`  ${summary.deploymentUrl}`);
+  }
   if (summary.inspect) console.info(`  Inspect  ${summary.inspect}`);
   console.info("");
 }

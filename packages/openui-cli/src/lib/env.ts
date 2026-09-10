@@ -1,6 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
+import { parse as parseDotenv } from "dotenv";
+
 import { CreateError } from "./telemetry";
 
 /** True for `"1"` or `"true"` (any case). */
@@ -9,26 +11,10 @@ export const isTruthyEnv = (value?: string) => value === "1" || value?.toLowerCa
 export const DEFAULT_ENV_FILE = ".env";
 export const PROJECT_ENV_FILES = [".env", ".env.local"] as const;
 
-/** Parse a dotenv-style file into key/value pairs (no expansion). */
+/** Parse a dotenv-style file into key/value pairs (no `$VAR` expansion). */
 export function parseEnvFile(filePath: string): Record<string, string> {
   if (!fs.existsSync(filePath)) return {};
-  const out: Record<string, string> = {};
-  for (const line of fs.readFileSync(filePath, "utf8").split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const eq = trimmed.indexOf("=");
-    if (eq <= 0) continue;
-    const key = trimmed.slice(0, eq).trim();
-    let value = trimmed.slice(eq + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    out[key] = value;
-  }
-  return out;
+  return parseDotenv(fs.readFileSync(filePath, "utf8"));
 }
 
 /**

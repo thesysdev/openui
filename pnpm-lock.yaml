@@ -373,6 +373,9 @@ importers:
       cross-spawn:
         specifier: ^7.0.6
         version: 7.0.6
+      dotenv:
+        specifier: ^17.2.2
+        version: 17.4.2
       esbuild:
         specifier: ^0.25.10
         version: 0.25.12
@@ -444,7 +447,7 @@ importers:
         version: 6.0.236(zod@4.4.3)
       eve:
         specifier: ^0.11.7
-        version: 0.11.10(@opentelemetry/api@1.9.1)(ai@6.0.236(zod@4.4.3))(chokidar@5.0.0)(ioredis@5.11.1)(jiti@2.7.0)(lru-cache@11.5.2)(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.102.0))(react@19.2.4)(rollup@4.62.3)(svelte@5.56.8(@typescript-eslint/types@8.65.0))(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.33.0)(sass@1.102.0)(terser@5.49.0)(tsx@4.23.1)(yaml@2.9.0))(vue@3.5.40(typescript@5.9.3))
+        version: 0.11.10(@opentelemetry/api@1.9.1)(ai@6.0.236(zod@4.4.3))(chokidar@5.0.0)(dotenv@17.4.2)(ioredis@5.11.1)(jiti@2.7.0)(lru-cache@11.5.2)(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.102.0))(react@19.2.4)(rollup@4.62.3)(svelte@5.56.8(@typescript-eslint/types@8.65.0))(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.33.0)(sass@1.102.0)(terser@5.49.0)(tsx@4.23.1)(yaml@2.9.0))(vue@3.5.40(typescript@5.9.3))
       openai:
         specifier: ^6.22.0
         version: 6.49.0(@aws-sdk/credential-provider-node@3.972.73)(@smithy/signature-v4@5.6.11)(ws@8.21.1)(zod@4.4.3)
@@ -6178,6 +6181,10 @@ packages:
 
   domutils@3.2.2:
     resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
+
+  dotenv@17.4.2:
+    resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
+    engines: {node: '>=12'}
 
   dts-resolver@2.1.3:
     resolution: {integrity: sha512-bihc7jPC90VrosXNzK0LTE2cuLP6jr0Ro8jk+kMugHReJVLIpHz/xadeq3MhuwyO4TD4OA3L1Q8pBBFRc08Tsw==}
@@ -15617,6 +15624,8 @@ snapshots:
       domelementtype: 2.3.0
       domhandler: 5.0.3
 
+  dotenv@17.4.2: {}
+
   dts-resolver@2.1.3(oxc-resolver@11.24.2):
     optionalDependencies:
       oxc-resolver: 11.24.2
@@ -16255,10 +16264,10 @@ snapshots:
 
   etag@1.8.1: {}
 
-  eve@0.11.10(@opentelemetry/api@1.9.1)(ai@6.0.236(zod@4.4.3))(chokidar@5.0.0)(ioredis@5.11.1)(jiti@2.7.0)(lru-cache@11.5.2)(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.102.0))(react@19.2.4)(rollup@4.62.3)(svelte@5.56.8(@typescript-eslint/types@8.65.0))(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.33.0)(sass@1.102.0)(terser@5.49.0)(tsx@4.23.1)(yaml@2.9.0))(vue@3.5.40(typescript@5.9.3)):
+  eve@0.11.10(@opentelemetry/api@1.9.1)(ai@6.0.236(zod@4.4.3))(chokidar@5.0.0)(dotenv@17.4.2)(ioredis@5.11.1)(jiti@2.7.0)(lru-cache@11.5.2)(next@16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.102.0))(react@19.2.4)(rollup@4.62.3)(svelte@5.56.8(@typescript-eslint/types@8.65.0))(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.33.0)(sass@1.102.0)(terser@5.49.0)(tsx@4.23.1)(yaml@2.9.0))(vue@3.5.40(typescript@5.9.3)):
     dependencies:
       ai: 6.0.236(zod@4.4.3)
-      nitro: 3.0.260610-beta(chokidar@5.0.0)(ioredis@5.11.1)(jiti@2.7.0)(lru-cache@11.5.2)(rollup@4.62.3)(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.33.0)(sass@1.102.0)(terser@5.49.0)(tsx@4.23.1)(yaml@2.9.0))
+      nitro: 3.0.260610-beta(chokidar@5.0.0)(dotenv@17.4.2)(ioredis@5.11.1)(jiti@2.7.0)(lru-cache@11.5.2)(rollup@4.62.3)(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.33.0)(sass@1.102.0)(terser@5.49.0)(tsx@4.23.1)(yaml@2.9.0))
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
       next: 16.2.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.102.0)
@@ -18118,7 +18127,7 @@ snapshots:
 
   nf3@0.3.24: {}
 
-  nitro@3.0.260610-beta(chokidar@5.0.0)(ioredis@5.11.1)(jiti@2.7.0)(lru-cache@11.5.2)(rollup@4.62.3)(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.33.0)(sass@1.102.0)(terser@5.49.0)(tsx@4.23.1)(yaml@2.9.0)):
+  nitro@3.0.260610-beta(chokidar@5.0.0)(dotenv@17.4.2)(ioredis@5.11.1)(jiti@2.7.0)(lru-cache@11.5.2)(rollup@4.62.3)(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.33.0)(sass@1.102.0)(terser@5.49.0)(tsx@4.23.1)(yaml@2.9.0)):
     dependencies:
       consola: 3.4.2
       crossws: 0.4.12(srvx@0.11.22)
@@ -18135,6 +18144,7 @@ snapshots:
       unenv: 2.0.0-rc.24
       unstorage: 2.0.0-alpha.7(chokidar@5.0.0)(db0@0.3.4)(ioredis@5.11.1)(lru-cache@11.5.2)(ofetch@2.0.0-alpha.3)
     optionalDependencies:
+      dotenv: 17.4.2
       jiti: 2.7.0
       rollup: 4.62.3
       vite: 7.3.6(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.33.0)(sass@1.102.0)(terser@5.49.0)(tsx@4.23.1)(yaml@2.9.0)

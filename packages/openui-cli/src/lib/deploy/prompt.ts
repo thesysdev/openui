@@ -5,13 +5,16 @@ export function canPromptInteractive(noInteractive = false): boolean {
   return Boolean(process.stdin.isTTY && process.stdout.isTTY) && !noInteractive;
 }
 
-/** Confirm with default yes; `--yes`, `--no-interactive`, and non-TTY skip the prompt. */
+/**
+ * Confirm with default yes when a TTY is available. `--yes` accepts without
+ * asking. No TTY and no `--yes` returns false so secrets are not written remotely.
+ */
 export async function confirmOrDefault(
   message: string,
   opts: { yes?: boolean; noInteractive?: boolean; cancelStage: string },
 ): Promise<boolean> {
-  if (opts.yes || opts.noInteractive) return true;
-  if (!canPromptInteractive()) return true;
+  if (opts.yes) return true;
+  if (!canPromptInteractive(opts.noInteractive)) return false;
 
   try {
     const { confirm } = await import("@inquirer/prompts");
