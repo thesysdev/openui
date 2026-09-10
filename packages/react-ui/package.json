@@ -109,8 +109,8 @@
     "ci": "pnpm run lint:check && pnpm run format:check && pnpm run test"
   },
   "peerDependencies": {
-    "@openuidev/react-headless": "workspace:^",
-    "@openuidev/react-lang": "workspace:^",
+    "@openuidev/react-headless": ">=0.14.0 <0.15.0",
+    "@openuidev/react-lang": ">=0.3.0 <0.4.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zustand": "catalog:",
@@ -150,6 +150,8 @@
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.4",
+    "@openuidev/react-headless": "workspace:^",
+    "@openuidev/react-lang": "workspace:^",
     "@storybook/addon-essentials": "^8.5.3",
     "@storybook/addon-interactions": "^8.5.3",
     "@storybook/addon-styling-webpack": "^1.0.1",
