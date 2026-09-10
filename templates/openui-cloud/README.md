@@ -58,8 +58,7 @@ list](https://models.dev/providers/openrouter/).
 
 ## SDK packages
 
-- `@openuidev/lang-core` — `generateSystemPrompt({ cloud: true })` used by the `/api/chat` route.
-- `@openuidev/thesys-server` — `artifactTool` used by the `/api/chat` route.
+- `@openuidev/lang-core` — `generateSystemPrompt({ cloud: true })` and `artifactTool` from `@openuidev/lang-core/cloud`.
 - `@openuidev/thesys` — the React component library (`chatLibrary`, `Presentation`,
   `Report`) used by the client page and artifact renderers.
 - `@openuidev/react-ui` — the chat UI runtime (`AgentInterface`, `fetchLLM`,
