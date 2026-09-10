@@ -42,11 +42,11 @@ jobs:
         with:
           # The action execs this without a shell, so compound commands must
           # live in a package.json script.
-          version: pnpm run version:ci
-          publish: pnpm run release:publish
-          createGithubReleases: true
-          title: "chore: version packages"
-          commit: "chore: version packages"
+          version-script: pnpm run version:ci
+          publish-script: pnpm run release:publish
+          create-github-releases: true
+          pr-title: "chore: version packages"
+          commit-message: "chore: version packages"
         env:
           # GITHUB_TOKEN-pushed branches trigger no workflows: the Version
           # Packages PR runs zero CI. Swap in a PAT/GitHub App token here if
