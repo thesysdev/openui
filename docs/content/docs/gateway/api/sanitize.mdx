@@ -39,7 +39,7 @@ import { sanitize } from "./lib/sanitize";
 
 const result = await sanitize(modelOutput);
 
-if (result.status === "repair_failed") {
+if (result.status === "fix_failed") {
   renderFallback(modelOutput);
 } else {
   render(result.generation);
@@ -64,8 +64,8 @@ The response carries the complete generation, not a patch. Replace the model out
 | `status`        | `generation`             | Errors                                               | Charged |
 | --------------- | ------------------------ | ---------------------------------------------------- | ------- |
 | `already_valid` | The input, unchanged     | `fixed-errors` is empty                              | No      |
-| `repaired`      | The corrected generation | `fixed-errors` lists what was wrong and is now fixed | Yes     |
-| `repair_failed` | `null`                   | `unfixed-errors` lists what is still wrong           | Yes     |
+| `fixed`         | The corrected generation | `fixed-errors` lists what was wrong and is now fixed | Yes     |
+| `fix_failed`    | `null`                   | `unfixed-errors` lists what is still wrong           | Yes     |
 
 A fixed generation:
 
@@ -74,7 +74,7 @@ A fixed generation:
   "id": "san_P4TPtYimJFMpSgsViggie",
   "object": "openui.sanitize",
   "created": 1789019848,
-  "status": "repaired",
+  "status": "fixed",
   "generation": "root = Card([header])\nheader = Header(\"Q3 Results\")",
   "fixed-errors": [
     {
@@ -94,7 +94,7 @@ A generation Gateway could not fix:
   "id": "san_dRvfleg31F5g-Amn3v4-W",
   "object": "openui.sanitize",
   "created": 1789026253,
-  "status": "repair_failed",
+  "status": "fix_failed",
   "generation": null,
   "unfixed-errors": [
     {
