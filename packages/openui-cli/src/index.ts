@@ -188,7 +188,7 @@ Examples:
 
 program
   .command("generate-api-key")
-  .description("Mint an OpenUI Cloud API key and write it to a project env file")
+  .description("Mint an OpenUI Gateway API key and write it to a project env file")
   .option("-f, --file <path>", "Env file to write", DEFAULT_ENV_FILE)
   .option(
     "-k, --key <name>",
@@ -200,7 +200,7 @@ program
     "after",
     `
 Run this inside an existing project. It uses the same browser sign-in as
-openui create, mints an OpenUI Cloud API key, and writes it to the env file.
+openui create, mints an OpenUI Gateway API key, and writes it to the env file.
 
 Examples:
   openui generate-api-key
