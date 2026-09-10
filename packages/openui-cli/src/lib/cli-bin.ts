@@ -1,11 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import {
-  resolveDlxInvocation,
-  resolveInstallPackageManager,
-  type PackageManager,
-} from "./detect-package-manager";
+import { resolveDlxInvocation } from "./detect-package-manager";
 
 /** How a third-party CLI binary was resolved for spawn. */
 export type CliInvocation = {
@@ -16,11 +12,11 @@ export type CliInvocation = {
   source: "local" | "path" | "dlx";
 };
 
-/** Resolve `bin` from local node_modules, PATH, or the package manager's dlx. */
+/** Resolve `bin` from local node_modules, PATH, or a pinned npm package fallback. */
 export function resolveCliInvocation(
   projectDir: string,
   bin: string,
-  packageManager: PackageManager = resolveInstallPackageManager(),
+  fallbackPackage = bin,
 ): CliInvocation {
   const localUnix = path.join(projectDir, "node_modules", ".bin", bin);
   const localWin = `${localUnix}.cmd`;
@@ -36,7 +32,7 @@ export function resolveCliInvocation(
     return { command: fromPath, prefixArgs: [], quietPrefixArgs: [], source: "path" };
   }
 
-  const dlx = resolveDlxInvocation(packageManager, bin);
+  const dlx = resolveDlxInvocation(fallbackPackage);
 
   return {
     command: dlx.command,

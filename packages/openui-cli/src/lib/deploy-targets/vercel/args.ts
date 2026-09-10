@@ -3,6 +3,7 @@ import type { CliInvocation } from "../../cli-bin";
 const ENV_FLAGS = ["--env", "-e"] as const;
 const BUILD_ENV_FLAGS = ["--build-env", "-b"] as const;
 const ALL_ENV_FLAGS = [...ENV_FLAGS, ...BUILD_ENV_FLAGS] as const;
+const LINK_SCOPE_FLAGS = ["--scope", "-S", "--team"] as const;
 
 /** Build `vercel` args: `--yes`, forwarded extras, and allowlisted `--env`/`--build-env`. */
 export function buildVercelDeployArgs(opts: {
@@ -30,6 +31,25 @@ export function buildVercelDeployArgs(opts: {
 /** Strip env assignments so verbose logs never print secret values. */
 export function publicVercelArgs(args: string[]): string[] {
   return args.filter((_, index) => !isVercelEnvFlag(args, index));
+}
+
+/** Keep only team/scope flags that are valid during the link step. */
+export function vercelLinkScopeArgs(args: string[]): string[] {
+  const out: string[] = [];
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index]!;
+    if (LINK_SCOPE_FLAGS.some((flag) => arg.startsWith(`${flag}=`))) {
+      out.push(arg);
+      continue;
+    }
+    if (!(LINK_SCOPE_FLAGS as readonly string[]).includes(arg)) continue;
+    const value = args[index + 1];
+    if (value !== undefined) {
+      out.push(arg, value);
+      index += 1;
+    }
+  }
+  return out;
 }
 
 /** True if this argv slot is an `--env` / `--build-env` flag or its value. */

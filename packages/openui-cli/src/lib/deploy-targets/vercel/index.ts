@@ -2,11 +2,11 @@ import { formatCliCommand, resolveCliInvocation } from "../../cli-bin";
 import { printLogTail } from "../../command-output";
 import {
   loadProjectDeployEnv,
+  loadProjectDeployFileEnv,
   printQuietDeploySuccess,
   warnMissingRequiredDeployEnv,
   type DeployTargetOptions,
 } from "../../deploy";
-import { resolveInstallPackageManager } from "../../detect-package-manager";
 import { adoptVercelEnvVars } from "../../env";
 import { runCommand, runQuietCommand } from "../../process-runner";
 import { telemetry } from "../../telemetry";
@@ -23,16 +23,20 @@ import {
 import { syncLocalEnvToVercelProject } from "./project-env";
 import { extractVercelDeploymentSummary } from "./summary";
 
+/** Keep deploy parsing and flags stable until deliberately upgraded and re-tested. */
+const VERCEL_CLI_PACKAGE = "vercel@59.15.1";
+
 /** Login, link, optionally save env, then run `vercel` deploy. */
 export async function deployToVercel(opts: DeployTargetOptions): Promise<void> {
   const t0 = Date.now();
-  const packageManager = resolveInstallPackageManager();
   adoptVercelEnvVars(opts.projectDir);
-  const fileEnv = loadProjectDeployEnv(opts.projectDir);
-  const localEnv = opts.skipEnv ? {} : fileEnv;
-  warnMissingRequiredDeployEnv(opts.projectDir, fileEnv, "Vercel");
+  const projectEnv = loadProjectDeployFileEnv(opts.projectDir);
+  const availableEnv = loadProjectDeployEnv(opts.projectDir);
+  const localEnv = opts.skipEnv ? {} : availableEnv;
+  const projectEnvToSave = opts.skipEnv ? {} : projectEnv;
+  warnMissingRequiredDeployEnv(opts.projectDir, availableEnv, "Vercel");
 
-  const vercel = resolveCliInvocation(opts.projectDir, "vercel", packageManager);
+  const vercel = resolveCliInvocation(opts.projectDir, "vercel", VERCEL_CLI_PACKAGE);
   await prepareVercelCli(vercel, opts.projectDir);
 
   let loggedIn = await isVercelLoggedIn(vercel, opts.projectDir);
@@ -48,11 +52,11 @@ export async function deployToVercel(opts: DeployTargetOptions): Promise<void> {
   }
 
   let envSavedKeyCount = 0;
-  if (Object.keys(localEnv).length > 0) {
+  if (Object.keys(projectEnvToSave).length > 0) {
     envSavedKeyCount = await syncLocalEnvToVercelProject({
       invocation: vercel,
       projectDir: opts.projectDir,
-      localEnv,
+      localEnv: projectEnvToSave,
       yes: opts.yes,
       noInteractive: opts.noInteractive,
     });
@@ -60,6 +64,7 @@ export async function deployToVercel(opts: DeployTargetOptions): Promise<void> {
 
   const linkedNow = isVercelLinked(opts.projectDir);
   const quiet = !opts.verbose;
+  const noWait = opts.extraArgs.includes("--no-wait");
   // Quiet mode needs a non-interactive Vercel deploy (piped stdio).
   const deployYes = opts.yes || (quiet && linkedNow);
   const vercelArgs = buildVercelDeployArgs({
@@ -101,6 +106,7 @@ export async function deployToVercel(opts: DeployTargetOptions): Promise<void> {
       printQuietDeploySuccess(
         extractVercelDeploymentSummary(result.diagnosticTail),
         result.durationMs,
+        noWait,
       );
     }
     telemetry.capture("cli_deploy_succeeded", {

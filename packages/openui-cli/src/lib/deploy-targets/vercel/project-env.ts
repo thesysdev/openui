@@ -145,8 +145,9 @@ async function addVercelProjectEnv(opts: {
     opts.value,
     "--yes",
     "--non-interactive",
+    "--type",
+    SENSITIVE_DEPLOY_ENV_KEYS.has(opts.key) ? "secret" : "config",
   ];
-  if (SENSITIVE_DEPLOY_ENV_KEYS.has(opts.key)) args.push("--sensitive");
 
   const result = await runCommand(
     opts.invocation.command,
@@ -160,9 +161,23 @@ async function addVercelProjectEnv(opts: {
     `[!] Could not save ${opts.key} to the Vercel project — it will still be passed on this deployment.`,
   );
   if (result.diagnosticTail.trim()) {
-    const hint = result.diagnosticTail.trim().split(/\r?\n/).slice(-3).join("\n");
+    const hint = redactEnvFailure(result.diagnosticTail, opts.value)
+      .trim()
+      .split(/\r?\n/)
+      .slice(-3)
+      .join("\n");
     console.info(hint);
   }
   console.info("");
   return false;
+}
+
+/** Remove the submitted value and common token forms from Vercel diagnostics. */
+function redactEnvFailure(text: string, value: string): string {
+  let redacted = value ? text.split(value).join("[REDACTED]") : text;
+  redacted = redacted.replace(
+    /((?:VERCEL_(?:TOKEN|OIDC_TOKEN)|THESYS_API_KEY|OPENAI_API_KEY|LANGSMITH_API_KEY)\s*[=:]\s*)\S+/gi,
+    "$1[REDACTED]",
+  );
+  return redacted.replace(/\b(?:sk|tk|vcp)[_-][A-Za-z0-9._-]{12,}\b/g, "[REDACTED]");
 }
