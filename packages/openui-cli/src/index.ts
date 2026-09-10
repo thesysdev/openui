@@ -190,7 +190,11 @@ program
   .command("generate-api-key")
   .description("Mint an OpenUI Cloud API key and write it to a project env file")
   .option("-f, --file <path>", "Env file to write", DEFAULT_ENV_FILE)
-  .option("-k, --key <name>", "Environment variable name", "THESYS_API_KEY")
+  .option(
+    "-k, --key <name>",
+    "Environment variable name (letters, digits, underscores)",
+    "THESYS_API_KEY",
+  )
   .option("-n, --name <string>", "Name of the minted key in the Thesys console")
   .addHelpText(
     "after",

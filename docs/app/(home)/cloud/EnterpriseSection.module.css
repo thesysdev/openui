@@ -27,12 +27,6 @@
   text-wrap: balance;
 }
 
-.link {
-  font-family: var(--home-font-display);
-  font-size: var(--home-body-size);
-  line-height: 1.3;
-}
-
 @media (max-width: 767px) {
   .section {
     padding-block: 96px;
