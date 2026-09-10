@@ -15,11 +15,12 @@ export function extractVercelDeploymentSummary(log: string): DeploySuccessSummar
   };
 }
 
-/** Vercel pads labels to a column; ignore an optional colon and trailing junk. */
+/** Latest Vercel CLI */
 function labeledUrl(text: string, label: string): string | undefined {
-  const pattern = new RegExp(`^\\s*${label}\\s*:?\\s+(https://\\S+)`, "im");
-  const match = text.match(pattern)?.[1];
-  return match ? cleanUrl(match) : undefined;
+  const pattern = new RegExp(`^[^\\n]*?\\b${label}\\s*:?\\s+(https://\\S+)`, "gim");
+  const matches = [...text.matchAll(pattern)];
+  const last = matches.at(-1)?.[1];
+  return last ? cleanUrl(last) : undefined;
 }
 
 /** Last https URL on its own line — `vercel` writes the unique deployment URL to stdout. */
