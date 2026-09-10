@@ -12,8 +12,8 @@ importers:
   .:
     dependencies:
       '@openuidev/lang-core':
-        specifier: 0.2.17
-        version: 0.2.17(zod@4.4.3)
+        specifier: 0.2.18
+        version: 0.2.18(zod@4.4.3)
       next:
         specifier: ^15.2.3
         version: 15.5.24(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -551,8 +551,8 @@ packages:
     resolution: {integrity: sha512-U3KPZLwolzOl56Baap8XEQ/lm96XY13LfMRsmpIVDjJT5dEAXX15tJAM2HsDhybtvFrYe9PUK1nTVzDzHGRXCQ==}
     hasBin: true
 
-  '@openuidev/lang-core@0.2.17':
-    resolution: {integrity: sha512-QCcp495msPBVPgF6Gm36reyJCTpak+goLYVhNkQMH26J3pe0BfaWasHjN+PsbntItPi4LkXSmr5xEdFsqpFrCQ==}
+  '@openuidev/lang-core@0.2.18':
+    resolution: {integrity: sha512-I8kP9gI2MDNy9C7YuG2Rr8oS0o3SVA9GjYPpQFvTi+pZXX33nrHKar7aSbwL7CDFlBnvIxFuj6KMDjmG93/mVQ==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       zod: ^3.25.0 || ^4.0.0
@@ -677,10 +677,12 @@ packages:
   nanoid@3.3.18:
     resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+    hasBin: true
 
   next@15.5.24:
     resolution: {integrity: sha512-Y+xn8EQCoC3ZbsFPyzE+tE8XOdrWeUdUF7NeXbmg9DsgAxl5UYxlsrvgVESHTyTGigoTa1bCUrxn70F5bqt0Gw==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
+    hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
       '@playwright/test': ^1.51.1
@@ -770,6 +772,7 @@ packages:
   semver@7.8.5:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
     engines: {node: '>=10'}
+    hasBin: true
 
   sharp@0.35.4:
     resolution: {integrity: sha512-n++8XWcj+jCOr2IOl7h8LbKnGBDY4aPbmprMONBNFdn0ImXqpGVv5zliDs0V9HbmbCQLpbuo2ej9rAoOQTvMDA==}
@@ -815,6 +818,7 @@ packages:
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
+    hasBin: true
 
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
@@ -1195,7 +1199,7 @@ snapshots:
       - '@types/node'
       - rxjs
 
-  '@openuidev/lang-core@0.2.17(zod@4.4.3)':
+  '@openuidev/lang-core@0.2.18(zod@4.4.3)':
     dependencies:
       ci-info: 4.4.0
       zod: 4.4.3
