@@ -7,7 +7,6 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "deploy": "npx --yes @openuidev/cli@latest deploy",
     "lint": "eslint",
     "typecheck": "tsc --noEmit"
   },
@@ -25,7 +24,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.2.13",
+    "@openuidev/cli": "0.2.12",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
