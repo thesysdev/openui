@@ -9,6 +9,43 @@ The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send
 
 **OpenAI compatible.** The request and the answer use the OpenAI chat completion shape. Point an OpenAI SDK at the base URL `https://api.thesys.dev/v1/autofix` and it posts to `/v1/autofix/chat/completions`. Both paths take the same body and answer the same way.
 
+## Detect an invalid generation
+
+Parse the generation with `@openuidev/lang-core` before you call the API. It is the same check the API runs first, so a generation that passes here would come back as `already_valid`. Skip the call when nothing is wrong.
+
+```ts title="lib/detect.ts"
+import { createParser } from "@openuidev/lang-core";
+import library from "./openui.spec.json";
+
+const parser = createParser(library.schema, library.root);
+
+/** Everything that stops the generation from rendering. Empty means valid. */
+export function findErrors(generation: string): string[] {
+  const { root, meta } = parser.parse(generation);
+  return [
+    ...meta.errors.map((e) => `${e.code} ${e.component}${e.path}: ${e.message}`),
+    ...meta.unresolved.map((name) => `unresolved: "${name}" is used but never defined`),
+    ...meta.orphaned.map((name) => `orphaned: "${name}" is defined but never used`),
+    ...(meta.incomplete ? ["incomplete: the generation ends mid-statement"] : []),
+    ...(root === null ? ["missing-root: no root element"] : []),
+  ];
+}
+```
+
+```ts title="server.ts"
+import { findErrors } from "./lib/detect";
+
+const errors = findErrors(generation);
+if (errors.length === 0) {
+  render(generation);
+} else {
+  console.warn("invalid generation", errors);
+  // Send it to the Autofix API, below.
+}
+```
+
+`parse` never throws. It takes fenced or bare OpenUI Lang and reports prop errors in `meta.errors`, with the codes listed under [Error codes](#error-codes).
+
 ## Fix an invalid generation
 
 Point the OpenAI client at `/v1/autofix` and send the generation as the last assistant turn. Fenced or bare OpenUI Lang both work, and text outside the fence is ignored.
