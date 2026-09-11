@@ -5,7 +5,7 @@ description: Fix invalid OpenUI Lang from any model with one API call.
 
 The Auto-fix API fixes OpenUI Lang after a model has generated it. Send the raw generation and your component library. The API validates the generation, fixes the errors it can, and returns valid OpenUI Lang that the renderer can use.
 
-Use it when your application calls a model directly and only needs the correction step. The request does not name a model, and nothing new is generated. The API applies the same correction that runs inside the [Chat Completions](/docs/gateway/api/chat-completions) and [Responses](/docs/gateway/api/responses) APIs, as a standalone call. You can also send the conversation that led to the generation, and Gateway reads it only to understand what the user asked for.
+Use it when your application calls a model directly and only needs the correction step. The request does not name a model, and nothing new is generated. The API applies the same correction that runs inside the [Chat Completions](/docs/gateway/api/chat-completions) and [Responses](/docs/gateway/api/responses) APIs, as a standalone call. You can also send the conversation that led to the generation. It is used only to understand what the user asked for.
 
 **Endpoint:** POST [https://api.thesys.dev/v1/embed/auto-fix](https://api.thesys.dev/v1/embed/auto-fix)
 
@@ -138,7 +138,7 @@ These are the same codes the OpenUI SDK reports in the browser, so an applicatio
 
 - `generation` can be up to 100,000 characters.
 - `messages` can hold up to 20 turns and 8,000 characters in total. `role` is `user`, `assistant`, or `system`, and `content` is text.
-- Gateway reads the most recent turns. Older turns are dropped first.
+- Only the most recent turns are used. Older turns are dropped first.
 - The API makes up to two attempts to fix the generation per request.
 
 ## Data
