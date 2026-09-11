@@ -1,12 +1,19 @@
 {
   "name": "@openuidev/lang-core",
-  "version": "0.2.17",
+  "version": "0.2.18",
   "description": "Framework-agnostic core for OpenUI Lang: parser, prompt generation, validation, and type definitions",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.cts",
+  "typesVersions": {
+    "*": {
+      "cloud": [
+        "dist/cloud.d.cts"
+      ]
+    }
+  },
   "sideEffects": false,
   "files": [
     "dist",
@@ -22,6 +29,16 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
+      }
+    },
+    "./cloud": {
+      "import": {
+        "types": "./dist/cloud.d.mts",
+        "default": "./dist/cloud.mjs"
+      },
+      "require": {
+        "types": "./dist/cloud.d.cts",
+        "default": "./dist/cloud.cjs"
       }
     }
   },

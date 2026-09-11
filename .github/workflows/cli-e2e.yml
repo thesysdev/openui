@@ -27,8 +27,6 @@ jobs:
       - uses: actions/checkout@v6
 
       - uses: pnpm/action-setup@v6
-        with:
-          version: 10.33.0
 
       - uses: actions/setup-node@v6
         with:
@@ -162,9 +160,19 @@ jobs:
         if: matrix.package-manager == 'pnpm'
         with:
           version: ${{ matrix.package-manager-version }}
+          # The matrix version must win here; reading the repo root's
+          # packageManager field (pnpm@10.33.0) alongside an explicit version
+          # is a hard error in action-setup v6, so point it at a manifest
+          # without that field.
+          package_json_file: packages/openui-cli/package.json
 
       - name: Verify package manager version
         shell: bash
+        # Outside the repo checkout: inside it, pnpm >=10 self-switches to the
+        # root packageManager version (pnpm@10.33.0) and would report that
+        # instead of the matrix-installed version. The e2e steps below all run
+        # under runner.temp too, so this verifies what they will actually use.
+        working-directory: ${{ runner.temp }}
         env:
           PACKAGE_MANAGER: ${{ matrix.package-manager }}
           EXPECTED_MAJOR: ${{ matrix.package-manager-version }}

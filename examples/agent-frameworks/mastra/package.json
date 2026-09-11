@@ -19,7 +19,7 @@
     "@ag-ui/mastra": "1.1.1",
     "@ai-sdk/openai-compatible": "^1.0.49",
     "@mastra/core": "1.29.0",
-    "@openuidev/lang-core": "0.2.17",
+    "@openuidev/lang-core": "0.2.18",
     "@openuidev/react-headless": "0.9.13",
     "@openuidev/react-lang": "0.2.15",
     "@openuidev/react-ui": "0.13.10",
