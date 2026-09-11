@@ -101,14 +101,20 @@ After deploying, open the [Reliability dashboard](https://console.thesys.dev/rel
 
 ## Production reliability
 
-Validation tells you that a generation is broken. Two hosted services fix it for you. Pick the one that matches how your application calls the model.
+Validation shows that a generation is broken. Two services fix it. Choose the one that matches how your application calls the model.
 
-- **[Auto-fix API](#auto-fix-api):** you call the model yourself and send the generation to Thesys for repair.
-- **[OpenUI Gateway](#openui-gateway):** Thesys calls the model for you and repairs the generation while it streams.
+- **[Auto-fix API](#auto-fix-api):** your application calls the model and sends the generation for repair.
+- **[OpenUI Gateway](#openui-gateway):** OpenUI Gateway calls the model and repairs the generation as it streams.
 
 ### Auto-fix API
 
-The [Auto-fix API](/docs/gateway/api/auto-fix) repairs OpenUI Lang after your model has generated it. Your application keeps its own model calls, keys, and prompts. Send the raw generation and your library spec, and the API returns valid OpenUI Lang that the renderer can use.
+The [Auto-fix API](/docs/gateway/api/auto-fix) repairs OpenUI Lang after your model has generated it. Your application keeps its own model calls, keys, and prompts.
+
+For every generation, the Auto-fix API:
+
+- **Validates** the generation against your component library.
+- **Fixes** unknown components, missing references, and broken structure.
+- **Returns** the complete fixed generation, ready to render.
 
 ```ts
 const response = await fetch("https://api.thesys.dev/v1/embed/auto-fix", {
