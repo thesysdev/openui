@@ -15,6 +15,6 @@
     "api/chat-completions",
     "api/responses",
     "api/conversations",
-    "api/auto-fix"
+    "api/autofix"
   ]
 }

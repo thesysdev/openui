@@ -103,34 +103,37 @@ After deploying, open the [Reliability dashboard](https://console.thesys.dev/rel
 
 Even with a well-tuned schema, prompt, and model, some generations in production will still fail validation. OpenUI offers two ways to repair them automatically, depending on how your application calls the model.
 
-- **[Auto-fix API](#auto-fix-api):** your application calls the model itself and sends the generation to the Auto-fix API for repair.
+- **[Autofix API](#autofix-api):** your application calls the model itself and sends the generation to the Autofix API for repair.
 - **[OpenUI Gateway](#openui-gateway):** OpenUI Gateway calls the model on your behalf and repairs the generation while it streams.
 
-### Auto-fix API
+### Autofix API
 
-The [Auto-fix API](/docs/gateway/api/auto-fix) repairs OpenUI Lang after your model has generated it, so your application keeps its own model calls, keys, and prompts.
+The [Autofix API](/docs/gateway/api/autofix) repairs OpenUI Lang after your model has generated it, so your application keeps its own model calls, keys, and prompts.
 
-For every generation, the Auto-fix API:
+For every generation, the Autofix API:
 
 - **Validates** the generation against your component library.
 - **Fixes** unknown components, missing references, and broken structure.
-- **Returns** the complete fixed generation, ready to render.
+- **Answers** with the complete fixed generation, ready to render.
 
 ```ts
-const response = await fetch("https://api.thesys.dev/v1/embed/auto-fix", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.THESYS_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({ generation, library }),
+const client = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/autofix",
 });
 
-const result = await response.json();
-// result.status is "already_valid", "fixed", or "fix_failed"
+const completion = await client.chat.completions.create({
+  model: "openui/autofix",
+  // The generation to fix is the last assistant turn.
+  messages: [...messages, { role: "assistant", content: generation }],
+  library,
+});
+
+// completion.fix_summary.status is "already_valid", "fixed", or "fix_failed"
+// completion.choices[0].message.content holds the fixed generation.
 ```
 
-A generation that is already valid is free, and each fix is charged at a flat price. See the [Auto-fix API reference](/docs/gateway/api/auto-fix) for the full request and response format and the error codes.
+A generation that is already valid is free, and each fix is charged at a flat price. See the [Autofix API reference](/docs/gateway/api/autofix) for the full request and response format and the error codes.
 
 ### OpenUI Gateway
 
