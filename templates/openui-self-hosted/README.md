@@ -29,7 +29,7 @@ example. Ask “What’s the weather in Berlin?” to exercise its native tool l
 
 ## Deploy
 
-From the project directory:
+From the project directory, run `pnpm run deploy` (or `npm run deploy`), or use npx without installing anything:
 
 ```bash
 npx @openuidev/cli@latest deploy
