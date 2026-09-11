@@ -1,11 +1,11 @@
 ---
 title: Auto-fix API
-description: Fix invalid OpenUI Lang from any model without routing the request through Gateway.
+description: Fix invalid OpenUI Lang from any model with one API call.
 ---
 
-The Auto-fix API fixes OpenUI Lang after a model has generated it. Send the raw generation and your component library, and Gateway validates the generation, fixes the errors it can, and returns valid OpenUI Lang that the renderer can use.
+The Auto-fix API fixes OpenUI Lang after a model has generated it. Send the raw generation and your component library. The API validates the generation, fixes the errors it can, and returns valid OpenUI Lang that the renderer can use.
 
-Use it when your application calls a model directly and only needs the correction step. The request does not include a conversation or a model, and Gateway does not generate anything new. It applies the same correction that runs inside the [Chat Completions](/docs/gateway/api/chat-completions) and [Responses](/docs/gateway/api/responses) APIs, as a standalone call.
+Use it when your application calls a model directly and only needs the correction step. The request does not name a model, and nothing new is generated. The API applies the same correction that runs inside the [Chat Completions](/docs/gateway/api/chat-completions) and [Responses](/docs/gateway/api/responses) APIs, as a standalone call.
 
 **Endpoint:** POST [https://api.thesys.dev/v1/embed/auto-fix](https://api.thesys.dev/v1/embed/auto-fix)
 
@@ -55,7 +55,7 @@ The response carries the complete generation, not a patch. Replace the model out
 | Field        | Type   | Required | Purpose                                                                                                        |
 | ------------ | ------ | -------- | -------------------------------------------------------------------------------------------------------------- |
 | `generation` | string | Yes      | The raw model output to fix. Up to 100,000 characters.                                                         |
-| `library`    | object | No       | Your library spec, as written by `openui generate --spec`. Without it, Gateway uses the built-in chat library. |
+| `library`    | object | No       | Your library spec, as written by `openui generate --spec`. Without it, the built-in chat library is used. |
 
 ## Read the result
 
@@ -87,7 +87,7 @@ A fixed generation:
 }
 ```
 
-A generation Gateway could not fix:
+A generation the API could not fix:
 
 ```json
 {
@@ -133,17 +133,17 @@ These are the same codes the OpenUI SDK reports in the browser, so an applicatio
 ## Limits
 
 - `generation` can be up to 100,000 characters.
-- Gateway makes up to two attempts to fix the generation per request.
+- The API makes up to two attempts to fix the generation per request.
 
 ## Pricing
 
-Each call that runs a fix is charged a flat price from your Gateway Credits. A generation that is already valid is free. See [Pricing](/docs/gateway/pricing-credits) for the current rate.
+Each call that runs a fix is charged a flat price from your credits. A generation that is already valid is free. See [Pricing](/docs/gateway/pricing-credits) for the current rate.
 
 `usage` in the response reports the tokens the fix used, for your own tracking. The charge does not depend on it.
 
 ## Errors
 
-The endpoint returns the same error shape as the other Gateway APIs.
+The endpoint returns the same error shape as the Chat Completions and Responses APIs.
 
 | Status | Type                    | When                                                          |
 | ------ | ----------------------- | ------------------------------------------------------------- |
