@@ -108,6 +108,7 @@ export type {
   EveStreamEvent,
 } from "./stream/adapters/eve";
 export type { LangGraphAdapterOptions } from "./stream/adapters/langgraph";
+export type { OpenAIResponsesAdapterOptions } from "./stream/adapters/openai-responses";
 export type { LangGraphMessageFormat } from "./stream/formats/langgraph-message-format";
 export { identityMessageFormat } from "./types/messageFormat";
 export type { MessageFormat } from "./types/messageFormat";
