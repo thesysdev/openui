@@ -1,3 +1,5 @@
+import { styleText } from "node:util";
+
 import { fetchSourceFile } from "./checkout";
 import { CreateError } from "./telemetry";
 
@@ -127,7 +129,7 @@ export function groupedExampleChoices(
 
   const choices: unknown[] = [];
   for (const [key, group] of groups) {
-    choices.push(new Separator(categoryLabel(key)));
+    choices.push(new Separator(styleText("bold", categoryLabel(key))));
     for (const project of group) {
       choices.push({
         value: project.name,

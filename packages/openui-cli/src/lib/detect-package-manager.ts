@@ -5,8 +5,6 @@ export interface PackageManager {
   installCmd: string;
   installArgs: string[];
   runCmd: string;
-  dlxCmd: string;
-  quietArgs: string[];
 }
 
 const PACKAGE_MANAGERS: Record<PackageManagerName, PackageManager> = {
@@ -15,32 +13,24 @@ const PACKAGE_MANAGERS: Record<PackageManagerName, PackageManager> = {
     installCmd: "pnpm install",
     installArgs: ["install"],
     runCmd: "pnpm",
-    dlxCmd: "pnpm dlx",
-    quietArgs: ["--reporter=silent"],
   },
   yarn: {
     name: "yarn",
     installCmd: "yarn",
     installArgs: [],
     runCmd: "yarn",
-    dlxCmd: "yarn dlx",
-    quietArgs: ["--quiet"],
   },
   bun: {
     name: "bun",
     installCmd: "bun install",
     installArgs: ["install"],
     runCmd: "bun",
-    dlxCmd: "bunx",
-    quietArgs: ["--silent"],
   },
   npm: {
     name: "npm",
     installCmd: "npm ci --prefer-offline --no-audit --no-fund --progress=false",
     installArgs: ["ci", "--prefer-offline", "--no-audit", "--no-fund", "--progress=false"],
     runCmd: "npm",
-    dlxCmd: "npx",
-    quietArgs: ["--yes", "--quiet"],
   },
 };
 
