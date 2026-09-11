@@ -101,7 +101,7 @@ After deploying, open the [Reliability dashboard](https://console.thesys.dev/rel
 
 ## Production reliability
 
-Validation catches broken generations, but it cannot repair them. OpenUI offers two ways to fix generations in production, depending on how your application calls the model.
+Even with a well-tuned schema, prompt, and model, some generations in production will still fail validation. OpenUI offers two ways to repair them automatically, depending on how your application calls the model.
 
 - **[Auto-fix API](#auto-fix-api):** your application calls the model itself and sends the generation to the Auto-fix API for repair.
 - **[OpenUI Gateway](#openui-gateway):** OpenUI Gateway calls the model on your behalf and repairs the generation while it streams.
