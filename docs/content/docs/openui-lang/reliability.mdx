@@ -99,7 +99,34 @@ After deploying, open the [Reliability dashboard](https://console.thesys.dev/rel
   skill](/docs/mcp#install-via-the-skills-cli-recommended).
 </Callout>
 
-## Production reliability with OpenUI Gateway
+## Production reliability
+
+Validation tells you that a generation is broken. Two hosted services fix it for you. Pick the one that matches how your application calls the model.
+
+- **[Auto-fix API](#auto-fix-api):** you call the model yourself and send the generation to Thesys for repair.
+- **[OpenUI Gateway](#openui-gateway):** Thesys calls the model for you and repairs the generation while it streams.
+
+### Auto-fix API
+
+The [Auto-fix API](/docs/gateway/api/auto-fix) repairs OpenUI Lang after your model has generated it. Your application keeps its own model calls, keys, and prompts. Send the raw generation and your library spec, and the API returns valid OpenUI Lang that the renderer can use.
+
+```ts
+const response = await fetch("https://api.thesys.dev/v1/embed/auto-fix", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.THESYS_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ generation, library }),
+});
+
+const result = await response.json();
+// result.status is "already_valid", "fixed", or "fix_failed"
+```
+
+A generation that is already valid is free. Each fix is charged a flat price. See the [Auto-fix API reference](/docs/gateway/api/auto-fix) for the request, the response, and the error codes.
+
+### OpenUI Gateway
 
 OpenUI Gateway sits between your application and the LLM. It validates generated UI and fixes errors as it streams to your application.
 
@@ -197,7 +224,7 @@ In production data from our [Reliability benchmark](/blog/generative-ui-benchmar
   application. [Install the OpenUI skill](/docs/mcp#install-via-the-skills-cli-recommended).
 </Callout>
 
-### Integrations options
+#### Integrations options
 
 OpenUI Gateway provides two OpenAI-compatible APIs for this generation flow:
 
