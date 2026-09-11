@@ -39,8 +39,12 @@ export function withChatProvider<ExtraProps = {}>(WrappedComponent: React.Compon
 
     const genUIAssistantMessage = useMemo(() => {
       if (customAssistantMessage || !componentLibrary) return undefined;
-      return ({ message }: { message: AssistantMessage }) => (
-        <GenUIAssistantMessage message={message} library={componentLibrary} />
+      return ({ message, isStreaming }: { message: AssistantMessage; isStreaming: boolean }) => (
+        <GenUIAssistantMessage
+          message={message}
+          library={componentLibrary}
+          isStreaming={isStreaming}
+        />
       );
     }, [customAssistantMessage, componentLibrary]);
 

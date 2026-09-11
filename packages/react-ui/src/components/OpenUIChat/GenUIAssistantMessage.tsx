@@ -18,9 +18,12 @@ import { AssistantMessageContainer } from "./AssistantMessageContainer";
 export const GenUIAssistantMessage = ({
   message,
   library,
+  isStreaming: isStreamingProp,
 }: {
   message: AssistantMessage;
   library: Library;
+  /** When omitted, derived from the active thread run. */
+  isStreaming?: boolean;
 }) => {
   const messages = useThread((s) => s.messages);
   const isRunning = useThread((s) => s.isRunning);
@@ -28,7 +31,7 @@ export const GenUIAssistantMessage = ({
   const updateMessage = useThread((s) => s.updateMessage);
 
   const lastAssistantId = useMemo(() => getLastAssistantMessageId(messages), [messages]);
-  const isStreaming = isRunning && lastAssistantId === message.id;
+  const isStreaming = isStreamingProp ?? (isRunning && lastAssistantId === message.id);
 
   // Strip the inline sentinels and separate any persisted form-state.
   const { content, contextString, contentHeader } = useMemo(
