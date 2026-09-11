@@ -5,7 +5,7 @@ description: Fix invalid OpenUI Lang from any model with one API call.
 
 The Auto-fix API fixes OpenUI Lang after a model has generated it. Send the raw generation and your component library. The API validates the generation, fixes the errors it can, and returns valid OpenUI Lang that the renderer can use.
 
-Use it when your application calls a model directly and only needs the correction step. The request does not name a model, and nothing new is generated. The API applies the same correction that runs inside the [Chat Completions](/docs/gateway/api/chat-completions) and [Responses](/docs/gateway/api/responses) APIs, as a standalone call.
+Use it when your application calls a model directly and only needs the correction step. The request does not name a model, and nothing new is generated. The API applies the same correction that runs inside the [Chat Completions](/docs/gateway/api/chat-completions) and [Responses](/docs/gateway/api/responses) APIs, as a standalone call. You can also send the conversation that led to the generation, and Gateway reads it only to understand what the user asked for.
 
 **Endpoint:** POST [https://api.thesys.dev/v1/embed/auto-fix](https://api.thesys.dev/v1/embed/auto-fix)
 
@@ -16,14 +16,16 @@ Send the generation exactly as the model returned it, together with the library 
 ```ts title="lib/auto-fix.ts"
 import library from "./openui.spec.json";
 
-export async function autoFix(generation: string) {
+type Message = { role: "user" | "assistant" | "system"; content: string };
+
+export async function autoFix(generation: string, messages?: Message[]) {
   const response = await fetch("https://api.thesys.dev/v1/embed/auto-fix", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.THESYS_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ generation, library }),
+    body: JSON.stringify({ generation, library, messages }),
   });
 
   if (!response.ok) {
@@ -37,7 +39,8 @@ export async function autoFix(generation: string) {
 ```ts title="server.ts"
 import { autoFix } from "./lib/auto-fix";
 
-const result = await autoFix(modelOutput);
+// Pass the same messages you sent to your model.
+const result = await autoFix(modelOutput, messages);
 
 if (result.status === "fix_failed") {
   renderFallback(modelOutput);
@@ -56,6 +59,7 @@ The response carries the complete generation, not a patch. Replace the model out
 | ------------ | ------ | -------- | -------------------------------------------------------------------------------------------------------------- |
 | `generation` | string | Yes      | The raw model output to fix. Up to 100,000 characters.                                                         |
 | `library`    | object | No       | Your library spec, as written by `openui generate --spec`. Without it, the built-in chat library is used. |
+| `messages`   | array  | No       | The conversation that produced the generation, as `{ role, content }` turns. Used only to understand intent.    |
 
 ## Read the result
 
@@ -133,7 +137,13 @@ These are the same codes the OpenUI SDK reports in the browser, so an applicatio
 ## Limits
 
 - `generation` can be up to 100,000 characters.
+- `messages` can hold up to 20 turns and 8,000 characters in total. `role` is `user`, `assistant`, or `system`, and `content` is text.
+- Gateway reads the most recent turns. Older turns are dropped first.
 - The API makes up to two attempts to fix the generation per request.
+
+## Data
+
+The conversation you send is passed to the model that fixes the generation, and is not stored beyond the request logs.
 
 ## Pricing
 
@@ -147,7 +157,7 @@ The endpoint returns the same error shape as the Chat Completions and Responses 
 
 | Status | Type                    | When                                                          |
 | ------ | ----------------------- | ------------------------------------------------------------- |
-| `400`  | `invalid_request_error` | `generation` is empty or too long, or `library` is malformed. |
+| `400`  | `invalid_request_error` | `generation` is empty or too long, `messages` is over a limit, or `library` is malformed. |
 | `401`  | `authentication_error`  | The API key is missing or invalid.                            |
 | `429`  | `rate_limit_error`      | The organization has no credits, or billing is suspended.     |
 | `500`  | `internal_server_error` | The fixing model could not be reached. Nothing is charged.    |
