@@ -36,6 +36,29 @@ function conversationIdFrom(prompt: readonly PromptMessage[]): string {
   return "";
 }
 
+function openaiOptions(params: { providerOptions?: unknown }): Record<string, unknown> {
+  const providerOptions = params.providerOptions;
+  if (!providerOptions || typeof providerOptions !== "object") return {};
+  if (!("openai" in providerOptions)) return {};
+  const openai = (providerOptions as { openai?: unknown }).openai;
+  return openai && typeof openai === "object" ? { ...openai } : {};
+}
+
+function withOpenAI<T extends { providerOptions?: unknown }>(
+  params: T,
+  openai: Record<string, unknown>,
+): T {
+  return {
+    ...params,
+    providerOptions: {
+      ...(typeof params.providerOptions === "object" && params.providerOptions
+        ? params.providerOptions
+        : {}),
+      openai,
+    },
+  };
+}
+
 /** Cloud already has prior turns. Send only the new user message or tool results. */
 function latestStep<T extends PromptMessage>(prompt: readonly T[]): T[] {
   const system = prompt.filter((message) => message.role === "system");
@@ -56,6 +79,11 @@ function latestStep<T extends PromptMessage>(prompt: readonly T[]): T[] {
 /**
  * Read `conversationId` from Eve `clientContext`, strip that synthetic user
  * message, and set `store` + `conversation` on Responses stream calls.
+ *
+ * `@ai-sdk/openai` responses defaults `store` to true. Unset, that persists
+ * item ids from the first turn; the next Eve prompt resends them and the
+ * tool loop dies with "No tool call found for function call output".
+ * `eve:dev` has no Cloud conversation id, so those calls must opt out.
  */
 export function withCloudConversation(model: LanguageModel): LanguageModel {
   return wrapLanguageModel({
@@ -65,29 +93,19 @@ export function withCloudConversation(model: LanguageModel): LanguageModel {
         const prompt = params.prompt as PromptMessage[];
         const conversationId = conversationIdFrom(prompt);
         const withoutCtx = prompt.filter((message) => !isClientContext(message));
+        const openai = openaiOptions(params);
+        delete openai.conversation;
 
-        // Compaction uses generateText. Don't write those calls into Cloud.
+        // Compaction (`generateText`) and eve:dev (no clientContext id) must
+        // not persist Responses items. The Next Cloud UI sends conversationId.
         if (type !== "stream" || !conversationId) {
-          return { ...params, prompt: withoutCtx };
+          return withOpenAI({ ...params, prompt: withoutCtx }, { ...openai, store: false });
         }
 
-        const openai =
-          params.providerOptions &&
-          typeof params.providerOptions === "object" &&
-          "openai" in params.providerOptions &&
-          params.providerOptions.openai &&
-          typeof params.providerOptions.openai === "object"
-            ? params.providerOptions.openai
-            : {};
-
-        return {
-          ...params,
-          prompt: latestStep(withoutCtx),
-          providerOptions: {
-            ...params.providerOptions,
-            openai: { ...openai, store: true, conversation: conversationId },
-          },
-        };
+        return withOpenAI(
+          { ...params, prompt: latestStep(withoutCtx) },
+          { ...openai, store: true, conversation: conversationId },
+        );
       },
     },
   });
