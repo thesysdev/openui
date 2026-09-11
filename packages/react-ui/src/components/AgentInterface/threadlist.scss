@@ -2,6 +2,14 @@
 
 $thread-list-mask-height: cssUtils.$space-xl;
 
+// The absolute trailing slot on the right edge of a thread-button row
+@mixin thread-button-trailing-slot {
+  position: absolute;
+  top: 50%;
+  right: cssUtils.$space-2xs;
+  transform: translateY(-50%);
+}
+
 @keyframes openui-agent-thread-list-appear {
   from {
     opacity: 0;
@@ -175,6 +183,10 @@ $thread-list-mask-height: cssUtils.$space-xl;
   &--selected.openui-agent-thread-button--actions-open {
     background-color: cssUtils.$sunk;
   }
+
+  &--streaming .openui-agent-thread-button-title {
+    padding-right: calc(24px + cssUtils.$space-s-m);
+  }
 }
 
 .openui-agent-thread-button-title {
@@ -198,10 +210,7 @@ $thread-list-mask-height: cssUtils.$space-xl;
 }
 
 .openui-agent-thread-button-dropdown-trigger {
-  position: absolute;
-  top: 50%;
-  right: cssUtils.$space-2xs;
-  transform: translateY(-50%);
+  @include thread-button-trailing-slot;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -218,6 +227,33 @@ $thread-list-mask-height: cssUtils.$space-xl;
     pointer-events: auto;
     background-color: cssUtils.$highlight;
     border-color: cssUtils.$border-interactive;
+  }
+}
+
+// Streaming loader occupies the same trailing slot as the (absolute) dropdown
+// trigger, so the sidebar row shows exactly one control at a time.
+.openui-agent-thread-button-loader {
+  @include thread-button-trailing-slot;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  pointer-events: none;
+
+  // Simple spinner (lucide Loader2). The SVG is inlined by the icon component; only
+  &__icon {
+    color: cssUtils.$text-neutral-secondary;
+    animation: openui-agent-thread-button-spin 0.9s linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
+@keyframes openui-agent-thread-button-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

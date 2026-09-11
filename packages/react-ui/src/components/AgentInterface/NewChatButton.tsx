@@ -11,6 +11,7 @@ import { useAgentInterfaceStore } from "./_shared/store";
 
 export const NewChatButton = ({ className }: { className?: string }) => {
   const switchToNewThread = useThreadList((s) => s.switchToNewThread);
+  const isCreatingThread = useThreadList((s) => s.isCreatingThread);
   const { isSidebarOpen } = useAgentInterfaceStore((state) => ({
     isSidebarOpen: state.isSidebarOpen,
   }));
@@ -38,6 +39,7 @@ export const NewChatButton = ({ className }: { className?: string }) => {
         iconLeft={<SquarePen size="1em" />}
         className={clsx("openui-agent-new-chat-floating-button", className)}
         onClick={handleNewChat}
+        disabled={isCreatingThread}
         aria-label="New chat"
       >
         New Chat
@@ -55,6 +57,7 @@ export const NewChatButton = ({ className }: { className?: string }) => {
           className,
         )}
         onClick={handleNewChat}
+        disabled={isCreatingThread}
         aria-label="New chat"
       >
         <div className="openui-agent-new-chat-button__icon" aria-hidden="true">
