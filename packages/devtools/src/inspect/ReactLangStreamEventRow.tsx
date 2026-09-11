@@ -104,6 +104,8 @@ export function ReactLangStreamEventRow({
   };
 
   const openInDebugDisabled = isStreaming || !stream.response || !canOpenInDebug;
+  const hasOverview =
+    visibleErrors.length > 0 || statementCount !== undefined || orphaned.length > 0;
 
   return (
     <div
@@ -141,21 +143,23 @@ export function ReactLangStreamEventRow({
             </span>
           </div>
         </div>
-        <div style={styles.streamOverview}>
-          {visibleErrors.length > 0 ? (
-            <Tally count={visibleErrors.length} danger>
-              error{visibleErrors.length === 1 ? "" : "s"}
-            </Tally>
-          ) : null}
-          {statementCount !== undefined ? (
-            <Tally count={statementCount}>statement{statementCount === 1 ? "" : "s"}</Tally>
-          ) : null}
-          {orphaned.length > 0 ? (
-            <Tally count={orphaned.length}>
-              orphaned statement{orphaned.length === 1 ? "" : "s"}
-            </Tally>
-          ) : null}
-        </div>
+        {hasOverview ? (
+          <div style={styles.streamOverview}>
+            {visibleErrors.length > 0 ? (
+              <Tally count={visibleErrors.length} danger>
+                error{visibleErrors.length === 1 ? "" : "s"}
+              </Tally>
+            ) : null}
+            {statementCount !== undefined ? (
+              <Tally count={statementCount}>statement{statementCount === 1 ? "" : "s"}</Tally>
+            ) : null}
+            {orphaned.length > 0 ? (
+              <Tally count={orphaned.length}>
+                orphaned statement{orphaned.length === 1 ? "" : "s"}
+              </Tally>
+            ) : null}
+          </div>
+        ) : null}
       </button>
 
       {expanded ? (
