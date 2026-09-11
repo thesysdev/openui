@@ -7,18 +7,31 @@ on:
 concurrency: release
 
 permissions:
-  contents: write # push the changeset-release branch, create tags + GitHub Releases
-  pull-requests: write # maintain the Version Packages PR
+  contents: read # checkout only; push/PR/release rights come from the app token
   id-token: write # npm OIDC trusted publishing
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      # Branch pushes, the Version Packages PR, tags, and GitHub Releases are
+      # made with a GitHub App token instead of GITHUB_TOKEN: GITHUB_TOKEN is
+      # not permitted to create PRs in this org, and app-made pushes and PRs
+      # trigger workflows, so the Version PR gets normal CI. The app needs
+      # Contents + Pull requests read/write on this repo.
+      - name: Mint app token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.THESYS_PR_CREATOR_APP_ID }}
+          private-key: ${{ secrets.THESYS_PR_CREATOR_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
         with:
           # Full history: @changesets/changelog-github links commits/PRs
           fetch-depth: 0
+          # Persist the app token so the action's branch pushes use the app identity
+          token: ${{ steps.app-token.outputs.token }}
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
@@ -47,11 +60,11 @@ jobs:
           create-github-releases: true
           pr-title: "chore: version packages"
           commit-message: "chore: version packages"
+          # PR creation, tags, and GitHub Releases act as the app
+          github-token: ${{ steps.app-token.outputs.token }}
         env:
-          # GITHUB_TOKEN-pushed branches trigger no workflows: the Version
-          # Packages PR runs zero CI. Swap in a PAT/GitHub App token here if
-          # CI on that PR (or required status checks on main) is needed.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # For @changesets/changelog-github's PR/commit lookups in version-script
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           # Same build-memory headroom as build-js.yml
           NODE_OPTIONS: --max-old-space-size=6144
         # Note: npm provenance is generated automatically with trusted

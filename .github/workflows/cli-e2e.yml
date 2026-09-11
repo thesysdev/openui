@@ -160,6 +160,11 @@ jobs:
         if: matrix.package-manager == 'pnpm'
         with:
           version: ${{ matrix.package-manager-version }}
+          # The matrix version must win here; reading the repo root's
+          # packageManager field (pnpm@10.33.0) alongside an explicit version
+          # is a hard error in action-setup v6, so point it at a manifest
+          # without that field.
+          package_json_file: packages/openui-cli/package.json
 
       - name: Verify package manager version
         shell: bash
