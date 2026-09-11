@@ -3,15 +3,11 @@ title: Autofix API
 description: Fix invalid OpenUI Lang from any model with one API call.
 ---
 
-The Autofix API fixes OpenUI Lang after a model has generated it. Send the conversation with the generation as its last assistant turn, together with your component library. The request is validated, the errors that can be fixed are fixed, and the answer carries valid OpenUI Lang that the renderer can use.
+The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send the conversation with the generation as the last assistant turn, and the answer carries valid OpenUI Lang. It is the same correction that runs inside the [Chat Completions](/docs/gateway/api/chat-completions) and [Responses](/docs/gateway/api/responses) APIs, as a standalone call for applications that call a model directly.
 
-Use it when your application calls a model directly and only needs the correction step. The request names no model of its own, and nothing new is generated. It is the same correction that runs inside the [Chat Completions](/docs/gateway/api/chat-completions) and [Responses](/docs/gateway/api/responses) APIs, as a standalone call. The turns before the generation are read only to understand what the user asked for.
+**Endpoint:** `POST https://api.thesys.dev/v1/autofix`
 
-The request and the answer are an OpenAI chat completion, so an OpenAI SDK can call the API with a base URL change.
-
-**Endpoint:** POST [https://api.thesys.dev/v1/autofix](https://api.thesys.dev/v1/autofix)
-
-An OpenAI SDK adds `/chat/completions` to its base URL, so it posts to `https://api.thesys.dev/v1/autofix/chat/completions`. Both paths take the same body and answer the same way.
+**OpenAI compatible.** The request and the answer use the OpenAI chat completion shape. Point an OpenAI SDK at the base URL `https://api.thesys.dev/v1/autofix` and it posts to `/v1/autofix/chat/completions`. Both paths take the same body and answer the same way.
 
 ## Fix an invalid generation
 
