@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/observability-cloud",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Cloud sink for @openuidev/observability: batches OpenUI events and ships them to Thesys ingest",
   "license": "MIT",
   "type": "module",
