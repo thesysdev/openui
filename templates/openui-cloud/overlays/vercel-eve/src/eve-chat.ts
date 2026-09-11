@@ -1,5 +1,4 @@
 import { eveAdapter, type ChatLLM, type Message } from "@openuidev/react-ui";
-import type { SessionState } from "eve/client";
 
 // Eve's native HTTP session protocol (same-origin, proxied by `withEve`):
 //   POST /eve/v1/session            -> create a session
@@ -10,10 +9,12 @@ import type { SessionState } from "eve/client";
 const EVE_PREFIX = "/eve/v1";
 const SESSION_ID_HEADER = "x-eve-session-id";
 
-interface KVStorage {
-  getItem(key: string): string | null;
-  setItem(key: string, value: string): void;
-}
+/** Per-thread cursor. Kept local — Eve 0.18+ renamed/narrowed `SessionState`. */
+type EveSessionCursor = {
+  sessionId?: string;
+  streamIndex: number;
+  continuationToken?: string;
+};
 
 function messageText(message: Pick<Message, "content">): string {
   const content = message.content as unknown;
@@ -33,52 +34,33 @@ function latestUserText(messages: Message[]): string {
   return user ? messageText(user).trim() : "";
 }
 
-const sessionKey = (threadId: string) => `eve-openui:session:${threadId}`;
-
-function getClientStorage(): KVStorage {
-  if (typeof window !== "undefined" && window.localStorage) return window.localStorage;
-  const map = new Map<string, string>();
-  return {
-    getItem: (key) => (map.has(key) ? (map.get(key) as string) : null),
-    setItem: (key, value) => {
-      map.set(key, value);
-    },
-  };
-}
-
-function loadSession(storage: KVStorage, threadId: string): SessionState {
-  try {
-    const raw = storage.getItem(sessionKey(threadId));
-    if (raw) return JSON.parse(raw) as SessionState;
-  } catch {
-    // fall through to a fresh cursor
-  }
-  return { streamIndex: 0 };
-}
-
-function saveSession(storage: KVStorage, threadId: string, state: SessionState): void {
-  storage.setItem(sessionKey(threadId), JSON.stringify(state));
-}
-
 /**
- * Client-side ChatLLM for Eve. Conversation history lives in OpenUI Cloud;
- * this adapter only maps the current turn onto Eve's session protocol and
- * keeps the per-thread Eve cursor in localStorage. Stream translation is
- * `eveAdapter`'s job; its `onEvent` hook advances the cursor so an
- * interrupted or waiting session resumes from `?startIndex=`.
+ * Client-side ChatLLM for Eve. Conversation history lives in OpenUI Cloud via
+ * `useOpenuiCloudStorage`. This adapter maps the current turn onto Eve's
+ * session protocol and holds the per-thread Eve cursor in memory so follow-ups
+ * resume. Stream translation is `eveAdapter`'s job; its `onEvent` hook advances
+ * the cursor so an interrupted or waiting session resumes from `?startIndex=`.
+ *
+ * `clientContext.conversationId` is the Cloud conversation id (`threadId`).
+ * Eve does not persist it in session history; the agent reads it and sends
+ * `conversation` + `store: true` on the Responses call.
  */
-export function createEveLLM(storage: KVStorage = getClientStorage()): ChatLLM {
+export function createEveLLM(): ChatLLM {
+  const sessions = new Map<string, EveSessionCursor>();
   // Cursor for the run in flight. OpenUI finishes consuming one send() stream
   // before starting the next, so a single slot is enough.
-  let active: { threadId: string; state: SessionState } | null = null;
+  let active: { threadId: string; state: EveSessionCursor } | null = null;
 
   const send: ChatLLM["send"] = async ({ messages, threadId, signal }): Promise<Response> => {
-    const state = loadSession(storage, threadId);
+    const state = sessions.get(threadId) ?? { streamIndex: 0 };
 
     const deliverPath = state.sessionId
       ? `${EVE_PREFIX}/session/${encodeURIComponent(state.sessionId)}`
       : `${EVE_PREFIX}/session`;
-    const deliverBody: Record<string, unknown> = { message: latestUserText(messages) };
+    const deliverBody: Record<string, unknown> = {
+      message: latestUserText(messages),
+      clientContext: { conversationId: threadId },
+    };
     if (state.sessionId && state.continuationToken) {
       deliverBody.continuationToken = state.continuationToken;
     }
@@ -126,11 +108,11 @@ export function createEveLLM(storage: KVStorage = getClientStorage()): ChatLLM {
         // fresh one. Waiting/failed keep the cursor for a resumable read.
         if (event.type === "session.completed") {
           active = null;
-          saveSession(storage, threadId, { streamIndex: 0 });
+          sessions.set(threadId, { streamIndex: 0 });
           return;
         }
         active.state = { ...state, streamIndex: state.streamIndex + 1 };
-        saveSession(storage, threadId, active.state);
+        sessions.set(threadId, active.state);
         if (event.type === "session.waiting" || event.type === "session.failed") {
           active = null;
         }
