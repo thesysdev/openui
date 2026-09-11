@@ -168,6 +168,11 @@ jobs:
 
       - name: Verify package manager version
         shell: bash
+        # Outside the repo checkout: inside it, pnpm >=10 self-switches to the
+        # root packageManager version (pnpm@10.33.0) and would report that
+        # instead of the matrix-installed version. The e2e steps below all run
+        # under runner.temp too, so this verifies what they will actually use.
+        working-directory: ${{ runner.temp }}
         env:
           PACKAGE_MANAGER: ${{ matrix.package-manager }}
           EXPECTED_MAJOR: ${{ matrix.package-manager-version }}
