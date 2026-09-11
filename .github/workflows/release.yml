@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency: release
+
+permissions:
+  contents: read # checkout only; push/PR/release rights come from the app token
+  id-token: write # npm OIDC trusted publishing
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      # Branch pushes, the Version Packages PR, tags, and GitHub Releases are
+      # made with a GitHub App token instead of GITHUB_TOKEN: GITHUB_TOKEN is
+      # not permitted to create PRs in this org, and app-made pushes and PRs
+      # trigger workflows, so the Version PR gets normal CI. The app needs
+      # Contents + Pull requests read/write on this repo.
+      - name: Mint app token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.THESYS_PR_CREATOR_APP_ID }}
+          private-key: ${{ secrets.THESYS_PR_CREATOR_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          # Full history: @changesets/changelog-github links commits/PRs
+          fetch-depth: 0
+          # Persist the app token so the action's branch pushes use the app identity
+          token: ${{ steps.app-token.outputs.token }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+          cache: pnpm
+          cache-dependency-path: "pnpm-lock.yaml"
+
+      # CRITICAL: npm 11.5.1+ required for trusted publishing
+      - name: Install npm 11.6.4
+        run: npm install -g npm@11.6.4
+
+      - name: Install dependencies
+        # --ignore-scripts skips the workspace packages' prepare builds; the
+        # version path never needs artifacts and the publish path builds
+        # explicitly via release:publish.
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Create Version Packages PR or publish
+        uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
+        with:
+          # The action execs this without a shell, so compound commands must
+          # live in a package.json script.
+          version-script: pnpm run version:ci
+          publish-script: pnpm run release:publish
+          create-github-releases: true
+          pr-title: "chore: version packages"
+          commit-message: "chore: version packages"
+          # PR creation, tags, and GitHub Releases act as the app
+          github-token: ${{ steps.app-token.outputs.token }}
+        env:
+          # For @changesets/changelog-github's PR/commit lookups in version-script
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          # Same build-memory headroom as build-js.yml
+          NODE_OPTIONS: --max-old-space-size=6144
+        # Note: npm provenance is generated automatically with trusted
+        # publishing; each package must have this workflow registered as a
+        # trusted publisher on npmjs.com.

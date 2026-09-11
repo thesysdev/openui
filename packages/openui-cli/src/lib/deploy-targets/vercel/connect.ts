@@ -10,7 +10,7 @@ import { mutedNpmEnv, runCommand } from "../../process-runner";
 import { withSpinner } from "../../spinner";
 import { CreateError } from "../../telemetry";
 import { throwCommandFailure } from "../../utils";
-import { vercelSpawnArgs } from "./args";
+import { vercelLinkScopeArgs, vercelSpawnArgs } from "./args";
 
 /** Auth vars Vercel CLI reads. OpenUI apps keep these in `.env`; Vercel often writes `.env.local`. */
 const VERCEL_CLI_ENV_KEYS = ["VERCEL_TOKEN", "VERCEL_ORG_ID", "VERCEL_PROJECT_ID"] as const;
@@ -22,6 +22,16 @@ export function vercelCliEnv(projectDir: string): NodeJS.ProcessEnv {
   for (const key of VERCEL_CLI_ENV_KEYS) {
     const fromFile = fromFiles[key];
     if (fromFile && !env[key]?.trim()) env[key] = fromFile;
+  }
+  const hasOrgId = Boolean(env["VERCEL_ORG_ID"]?.trim());
+  const hasProjectId = Boolean(env["VERCEL_PROJECT_ID"]?.trim());
+  if (hasOrgId !== hasProjectId) {
+    throw new CreateError(
+      "vercel_auth_env",
+      "Set both VERCEL_ORG_ID and VERCEL_PROJECT_ID, or remove both and use --scope.",
+      "invalid_input",
+      "INCOMPLETE_VERCEL_PROJECT_ID_PAIR",
+    );
   }
   return env;
 }
@@ -130,7 +140,7 @@ export async function loginToVercel(
 /** Link the directory to a Vercel project (`vercel link`, `--yes` when skipping prompts). */
 export async function linkVercelProject(
   invocation: CliInvocation,
-  opts: Pick<DeployTargetOptions, "projectDir" | "yes" | "noInteractive">,
+  opts: Pick<DeployTargetOptions, "projectDir" | "yes" | "noInteractive" | "extraArgs">,
 ): Promise<void> {
   const skipPrompts = opts.yes || opts.noInteractive;
   if (!skipPrompts && !canPromptInteractive(opts.noInteractive)) {
@@ -147,7 +157,12 @@ export async function linkVercelProject(
       ? "Linking Vercel project...\n"
       : "Linking Vercel project (choose team / project)...\n",
   );
-  const args = ["link", "--project", toVercelProjectName(opts.projectDir)];
+  const args = [
+    "link",
+    "--project",
+    toVercelProjectName(opts.projectDir),
+    ...vercelLinkScopeArgs(opts.extraArgs),
+  ];
   if (skipPrompts) args.push("--yes");
   const result = await runCommand(
     invocation.command,

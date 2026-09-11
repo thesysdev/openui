@@ -23,9 +23,19 @@ export const SENSITIVE_DEPLOY_ENV_KEYS = new Set([
   "LANGSMITH_API_KEY",
 ]);
 
-/** Load allowlisted keys from the project's `.env` / `.env.local`. */
-export function loadProjectDeployEnv(projectDir: string): Record<string, string> {
+/** Load allowlisted keys explicitly stored in the project's env files. */
+export function loadProjectDeployFileEnv(projectDir: string): Record<string, string> {
   return loadAllowlistedProjectEnv(projectDir, DEPLOY_ENV_ALLOWLIST);
+}
+
+/** Load effective deploy env; shell values override `.env.local`, then `.env`. */
+export function loadProjectDeployEnv(projectDir: string): Record<string, string> {
+  const env = loadProjectDeployFileEnv(projectDir);
+  for (const key of DEPLOY_ENV_ALLOWLIST) {
+    const value = process.env[key]?.trim();
+    if (value) env[key] = value;
+  }
+  return env;
 }
 
 /** Infer required API-key names from the project's dependencies. */
@@ -43,7 +53,7 @@ export function warnMissingRequiredDeployEnv(
   platformLabel: string,
 ): void {
   for (const key of detectRequiredDeployEnvNames(projectDir)) {
-    if (localEnv[key] || process.env[key]?.trim()) continue;
+    if (localEnv[key]) continue;
     console.info(
       `[!] ${key} is not set locally. This deployment will fail at runtime unless ${key} is already configured on ${platformLabel}.\n`,
     );

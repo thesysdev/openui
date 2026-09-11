@@ -58,16 +58,15 @@ export function resolveInstallPackageManager(): PackageManager {
   return PACKAGE_MANAGERS[invoking ?? "npm"];
 }
 
-/** Run a published package without adding it as a dependency (`npx` / `dlx` / `bunx`). */
-export function resolveDlxInvocation(
-  packageManager: PackageManager,
-  pkg: string,
-): { command: string; args: string[]; quietArgs: string[] } {
-  const [command, ...dlxPrefix] = packageManager.dlxCmd.split(/\s+/);
-  const args = packageManager.name === "npm" ? ["--yes", ...dlxPrefix, pkg] : [...dlxPrefix, pkg];
+/** Run a published CLI through npm's Node-compatible executor. */
+export function resolveDlxInvocation(pkg: string): {
+  command: string;
+  args: string[];
+  quietArgs: string[];
+} {
   return {
-    command: command!,
-    args,
-    quietArgs: [...packageManager.quietArgs, ...dlxPrefix, pkg],
+    command: "npx",
+    args: ["--yes", pkg],
+    quietArgs: ["--yes", "--quiet", pkg],
   };
 }

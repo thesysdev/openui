@@ -49,6 +49,7 @@
   "bugs": {
     "url": "https://github.com/thesysdev/openui/issues"
   },
+  "//": "openuidev deps are inlined into the IIFE at build time, but stay runtime dependencies (not devDependencies) on purpose: changesets cascade-releases this bundle when react-lang/react-ui release.",
   "dependencies": {
     "@openuidev/react-lang": "workspace:^",
     "@openuidev/react-ui": "workspace:^",

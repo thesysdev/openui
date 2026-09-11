@@ -41,7 +41,7 @@ export function adoptVercelEnvVars(projectDir: string): void {
     upsertEnvVar(targetPath, key, value);
     removeEnvVar(localPath, key);
   }
-  if (fs.existsSync(localPath) && Object.keys(parseEnvFile(localPath)).length === 0) {
+  if (fs.existsSync(localPath) && fs.readFileSync(localPath, "utf8").trim() === "") {
     fs.unlinkSync(localPath);
   }
 }

@@ -53,7 +53,7 @@ export async function runDeploy(options: DeployOptions): Promise<void> {
 
   telemetry.register({ package_manager: resolveInstallPackageManager().name });
   telemetry.capture("cli_deploy_started", {
-    DEFAULT_DEPLOY_TARGET,
+    target: DEFAULT_DEPLOY_TARGET,
     prod,
     yes,
     skip_env: skipEnv,
