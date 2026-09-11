@@ -123,8 +123,8 @@ const EMPTY_ITEM_LIST: ConversationItemList = {
 /**
  * POST Chat Completions messages as Conversations API items.
  *
- * Call this after a turn (typically the new user message plus 
- * the assembled assistant reply) so OpenUI Cloud storage can 
+ * Call this after a turn (typically the new user message plus
+ * the assembled assistant reply) so OpenUI Cloud storage can
  * reload the thread.
  *
  * The conversation must already exist — AgentInterface's Cloud storage
