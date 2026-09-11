@@ -10,7 +10,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "ng-packagr -p ng-package.json",
+    "build": "ng-packagr -p ng-package.json && node ../../scripts/prepare-angular-lang-dist.mjs",
     "watch": "ng-packagr -p ng-package.json -w",
     "typecheck": "tsc --project tsconfig.lib.json --noEmit",
     "test": "vitest run --passWithNoTests",
@@ -19,7 +19,8 @@
     "format:fix": "prettier --write ./src",
     "format:check": "prettier --check ./src",
     "prepare": "pnpm run build",
-    "ci": "pnpm run lint:check && pnpm run format:check"
+    "ci": "pnpm run lint:check && pnpm run format:check",
+    "pack:check": "pnpm run build && npm pack --dry-run ../../dist/angular-lang"
   },
   "keywords": [
     "openui",
