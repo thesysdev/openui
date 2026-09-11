@@ -115,6 +115,33 @@ describe("chatCompletionMessagesToItems", () => {
   it("skips empty user messages", () => {
     expect(chatCompletionMessagesToItems([{ role: "user", content: "" }])).toEqual([]);
   });
+
+  it("defaults empty tool arguments and outputs so Cloud create does not 400", () => {
+    expect(
+      chatCompletionMessagesToItems([
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            { id: "call_1", type: "function", function: { name: "web_search", arguments: "" } },
+          ],
+        },
+        { role: "tool", tool_call_id: "call_1", content: "" },
+      ]),
+    ).toEqual([
+      {
+        type: "function_call",
+        call_id: "call_1",
+        name: "web_search",
+        arguments: "{}",
+      },
+      {
+        type: "function_call_output",
+        call_id: "call_1",
+        output: "{}",
+      },
+    ]);
+  });
 });
 
 describe("storeChatCompletionHistory", () => {

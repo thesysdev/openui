@@ -13,7 +13,7 @@ import type {
 } from "openai/resources/responses/responses";
 import type { StoreChatCompletionHistoryOptions } from "./types";
 
-const DEFAULT_API_BASE_URL = "https://api.thesys.dev";
+const THESYS_API_BASE_URL = "https://api.thesys.dev";
 
 function userContentOf(
   content: ChatCompletionUserMessageParam["content"],
@@ -54,13 +54,8 @@ function toolOutputOf(content: ChatCompletionToolMessageParam["content"]): strin
 }
 
 /**
- * Break Chat Completions messages into Conversations API items — the same
- * sibling-item shape muse persists for Responses (`store: true`) and that
- * AgentInterface reloads via `openAIConversationMessageFormat`.
- *
- *   assistant.tool_calls[]  →  type: "function_call"  (siblings, not nested)
- *   role: "tool"            →  type: "function_call_output"
- *
+ * Break Chat Completions messages into Conversations API items.
+ * Pass the new turn, not the full replay, or items will be duplicated.
  * System / developer messages are skipped (instructions, not history).
  */
 export function chatCompletionMessagesToItems(
@@ -93,21 +88,23 @@ export function chatCompletionMessagesToItems(
       }
       for (const call of message.tool_calls ?? []) {
         if (call.type !== "function") continue;
+        if (!call.id || !call.function.name) continue;
         items.push({
           type: "function_call",
           call_id: call.id,
           name: call.function.name,
-          arguments: call.function.arguments,
+          arguments: call.function.arguments?.trim() ? call.function.arguments : "{}",
         } satisfies ResponseFunctionToolCall);
       }
       continue;
     }
 
     if (message.role === "tool") {
+      if (!message.tool_call_id) continue;
       items.push({
         type: "function_call_output",
         call_id: message.tool_call_id,
-        output: toolOutputOf(message.content),
+        output: toolOutputOf(message.content) || "{}",
       } satisfies ResponseInputItem.FunctionCallOutput);
     }
   }
@@ -126,9 +123,9 @@ const EMPTY_ITEM_LIST: ConversationItemList = {
 /**
  * POST Chat Completions messages as Conversations API items.
  *
- * Chat Completions has no `conversation` + `store: true`. Call this after a
- * turn (typically the new user message plus the assembled assistant reply)
- * so OpenUI Cloud storage can reload the thread.
+ * Call this after a turn (typically the new user message plus 
+ * the assembled assistant reply) so OpenUI Cloud storage can 
+ * reload the thread.
  *
  * The conversation must already exist — AgentInterface's Cloud storage
  * creates it via `POST /v1/conversations`. Pass only the new turn, not the
@@ -142,7 +139,7 @@ export async function storeChatCompletionHistory(
     return EMPTY_ITEM_LIST;
   }
 
-  const base = (options.apiBaseUrl ?? DEFAULT_API_BASE_URL).replace(/\/+$/, "");
+  const base = (options.apiBaseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, "");
   const fetchFn = options.fetch ?? (globalThis.fetch as typeof fetch);
   const res = await fetchFn(
     `${base}/v1/conversations/${encodeURIComponent(options.conversationId)}/items`,

@@ -6,7 +6,7 @@ Server utilities for OpenUI & OpenUI Gateway.
 npm install @openuidev/server
 ```
 
-Persist a Chat Completions turn as Conversations API items:
+Persist a Chat Completions turn as Conversations API items. Chat Completions has no `conversation` + `store: true`. Use the master API key (Cloud rejects frontend tokens on create). Pass only the new turn — last user message plus the assembled assistant reply — not the client’s full `messages` array.
 
 ```ts
 import { storeChatCompletionHistory } from "@openuidev/server";
@@ -14,7 +14,10 @@ import { storeChatCompletionHistory } from "@openuidev/server";
 await storeChatCompletionHistory({
   apiKey: process.env.THESYS_API_KEY!,
   conversationId: threadId,
-  messages: [lastUserMessage, { role: "assistant", content: assistantContent }],
+  messages: [
+    { role: "user", content: lastUserText },
+    { role: "assistant", content: assistantText },
+  ],
 });
 ```
 

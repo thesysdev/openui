@@ -3,6 +3,7 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 export type StoreChatCompletionHistoryOptions = {
   apiKey: string;
   conversationId: string;
+  /** Chat Completions messages for the new turn. */
   messages: ChatCompletionMessageParam[];
   /** Defaults to `https://api.thesys.dev`. */
   apiBaseUrl?: string;
