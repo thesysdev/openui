@@ -66,7 +66,7 @@ const bannerStyles = (t: ThemeTokens) =>
       gap: 8,
       flexShrink: 0,
       background: t.bg,
-      padding: "12px 12px 18px",
+      padding: "6px",
     },
     fade: {
       position: "absolute",
@@ -90,7 +90,7 @@ const bannerStyles = (t: ThemeTokens) =>
       color: t.fg,
       fontFamily: FONT,
       textAlign: "left",
-      padding: "12px"
+      padding: "6px"
     },
     title: {
       display: "flex",
@@ -108,7 +108,7 @@ const bannerStyles = (t: ThemeTokens) =>
       display: "flex",
       flexDirection: "column",
       gap: 12,
-      margin: "12px 8px 8px 8px",
+      padding: "18px 12px 12px 12px",
     },
     featuresWrapper: {
       display: "flex",
@@ -166,7 +166,7 @@ const bannerStyles = (t: ThemeTokens) =>
       alignItems: "center",
       justifyContent: "center",
       alignSelf: "flex-start",
-      marginTop: 2,
+      marginTop: 8,
       textDecoration: "none",
       border: `1px solid ${t.inverted}`,
       borderRadius: 8,
