@@ -811,7 +811,7 @@ function getStartedMessage(o: {
         `> ${o.devCmd} run dev`,
       ].join("\n");
 
-  const deployHint = "When you want a shareable preview:\n> npx @openuidev/cli@latest deploy";
+  const deployHint = "Share a preview:\n> npx @openuidev/cli@latest deploy";
 
   const frameworkNote = o.backendGettingStarted?.replaceAll("{{packageManager}}", o.devCmd) ?? "";
 
