@@ -93,34 +93,6 @@ export async function autofix(messages: Message[], generation: string) {
 }
 ```
 
-### Python
-
-```python title="autofix.py"
-import json
-import os
-
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ["THESYS_API_KEY"],
-    base_url="https://api.thesys.dev/v1/autofix",
-)
-
-with open("openui.spec.json") as spec:
-    library = json.load(spec)
-
-completion = client.chat.completions.create(
-    model="openui/autofix",
-    messages=[*messages, {"role": "assistant", "content": generation}],
-    extra_body={"library": library},
-)
-
-if completion.fix_summary["status"] == "fix_failed":
-    render_fallback(generation)
-else:
-    render(completion.choices[0].message.content)
-```
-
 ## Request
 
 | Field      | Type   | Required | Purpose                                                                                                                                                                                                                                                                                 |
