@@ -101,14 +101,14 @@ After deploying, open the [Reliability dashboard](https://console.thesys.dev/rel
 
 ## Production reliability
 
-Validation shows that a generation is broken. Two services fix it. Choose the one that matches how your application calls the model.
+Validation catches broken generations, but it cannot repair them. OpenUI offers two ways to fix generations in production, depending on how your application calls the model.
 
-- **[Auto-fix API](#auto-fix-api):** your application calls the model and sends the generation for repair.
-- **[OpenUI Gateway](#openui-gateway):** OpenUI Gateway calls the model and repairs the generation as it streams.
+- **[Auto-fix API](#auto-fix-api):** your application calls the model itself and sends the generation to the Auto-fix API for repair.
+- **[OpenUI Gateway](#openui-gateway):** OpenUI Gateway calls the model on your behalf and repairs the generation while it streams.
 
 ### Auto-fix API
 
-The [Auto-fix API](/docs/gateway/api/auto-fix) repairs OpenUI Lang after your model has generated it. Your application keeps its own model calls, keys, and prompts.
+The [Auto-fix API](/docs/gateway/api/auto-fix) repairs OpenUI Lang after your model has generated it, so your application keeps its own model calls, keys, and prompts.
 
 For every generation, the Auto-fix API:
 
@@ -130,7 +130,7 @@ const result = await response.json();
 // result.status is "already_valid", "fixed", or "fix_failed"
 ```
 
-A generation that is already valid is free. Each fix is charged a flat price. See the [Auto-fix API reference](/docs/gateway/api/auto-fix) for the request, the response, and the error codes.
+A generation that is already valid is free, and each fix is charged at a flat price. See the [Auto-fix API reference](/docs/gateway/api/auto-fix) for the full request and response format and the error codes.
 
 ### OpenUI Gateway
 
