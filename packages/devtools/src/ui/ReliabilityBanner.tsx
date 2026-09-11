@@ -3,7 +3,10 @@ import { CSSProperties, useState } from "react";
 import { withDevtoolsAttribution } from "../lib/links";
 import { ColorMode, FONT, theme, ThemeTokens } from "../theme";
 
-const FEATURES = ["Automatically fix 88% of the errors","Track requests & generations for free"] as const;
+const FEATURES = [
+  "Automatically fix 88% of the errors",
+  "Track requests & generations for free",
+] as const;
 
 export default function ReliabilityBanner({ themeMode }: { themeMode: ColorMode }) {
   const [bannerHovered, setBannerHovered] = useState(false);
@@ -22,17 +25,17 @@ export default function ReliabilityBanner({ themeMode }: { themeMode: ColorMode 
         </span>
         <div style={styles.body}>
           <div style={styles.featuresWrapper}>
-          <span style={styles.statement}>Try OpenUI Autofix</span>
-          <ul style={styles.features}>
-            {FEATURES.map((feature) => (
-              <li key={feature} style={styles.feature}>
-                <span style={styles.checkTile} aria-hidden>
-                  <Check size={11} strokeWidth={2.5} style={styles.check} />
-                </span>
-                {feature}
-              </li>
-            ))}
-          </ul>
+            <span style={styles.statement}>Try OpenUI Autofix</span>
+            <ul style={styles.features}>
+              {FEATURES.map((feature) => (
+                <li key={feature} style={styles.feature}>
+                  <span style={styles.checkTile} aria-hidden>
+                    <Check size={11} strokeWidth={2.5} style={styles.check} />
+                  </span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
           </div>
           <a
             style={{
@@ -90,7 +93,7 @@ const bannerStyles = (t: ThemeTokens) =>
       color: t.fg,
       fontFamily: FONT,
       textAlign: "left",
-      padding: "6px"
+      padding: "6px",
     },
     title: {
       display: "flex",
