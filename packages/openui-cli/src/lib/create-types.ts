@@ -9,6 +9,7 @@ export interface CreateAppOptions {
   name?: string;
   template?: TemplateName;
   backendFramework?: OverlayName;
+  example?: string;
   skill?: boolean;
   noInteractive?: boolean;
   noInstall?: boolean;

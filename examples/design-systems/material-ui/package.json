@@ -20,7 +20,7 @@
     "@mui/icons-material": "^6.4.12",
     "@mui/material": "^6.4.12",
     "@mui/x-charts": "^7.29.1",
-    "@openuidev/lang-core": "0.2.17",
+    "@openuidev/lang-core": "0.2.18",
     "@openuidev/react-headless": "0.9.13",
     "@openuidev/react-lang": "0.2.15",
     "@openuidev/react-ui": "0.13.10",

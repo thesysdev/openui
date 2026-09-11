@@ -7,9 +7,12 @@ import * as path from "node:path";
 import { Command } from "commander";
 
 import { runCreateApp } from "./commands/create-app";
+import { runDeploy } from "./commands/deploy";
 import { GenerateOptions, runGenerate } from "./commands/generate";
 import { runGenerateApiKey } from "./commands/generate-api-key";
 import { detectAgent, UNKNOWN_AGENT_NAME } from "./lib/detect-agent";
+import { DEFAULT_ENV_FILE } from "./lib/env";
+import { rejectConflictingScaffoldSelectors } from "./lib/examples-catalog";
 import { rejectConflictingImmediateFlags, resolveArgs } from "./lib/resolve-args";
 import { telemetry } from "./lib/telemetry";
 import {
@@ -65,6 +68,7 @@ program
     "--backend-framework <framework>",
     "Backend framework: default | langgraph | vercel-ai-sdk | vercel-eve",
   )
+  .option("-e, --example <example>", "Create from an example in examples/examples.json")
   .option("--api-key <key>", "OpenUI Cloud API key (cloud template; skips sign-in)")
   .option("--auth <method>", "Cloud auth method: oauth | skip (manual is deprecated)")
   .option("--skill", "Install the OpenUI agent skill for AI coding assistants")
@@ -93,6 +97,11 @@ Backend frameworks:
   langgraph      Bootstraps a LangGraph agent with the selected model backend.
   vercel-ai-sdk  Scaffolds a Vercel AI SDK agent with the selected model backend.
   vercel-eve     Scaffolds a Vercel Eve agent with the selected model backend.
+
+OpenUI examples:
+  Loaded at runtime from examples/examples.json in the OpenUI repo.
+  Pick "Scaffold from OpenUI Examples" in the interactive prompt, or pass
+  --example <name> with any catalog folder name.
 `,
   )
   .action(
@@ -100,6 +109,7 @@ Backend frameworks:
       name?: string;
       template?: string;
       backendFramework?: string;
+      example?: string;
       apiKey?: string;
       auth?: string;
       skill?: boolean;
@@ -110,10 +120,16 @@ Backend frameworks:
     }) => {
       try {
         rejectConflictingImmediateFlags(process.argv.slice(2));
+        rejectConflictingScaffoldSelectors({
+          example: options.example,
+          backendFramework: normalizeBackendFramework(options.backendFramework),
+          template: options.template,
+        });
         await runCreateApp({
           name: options.name,
           template: normalizeTemplate(options.template),
           backendFramework: normalizeBackendFramework(options.backendFramework),
+          example: options.example,
           apiKey: options.apiKey,
           auth: normalizeAuth(options.auth),
           skill: options.skill,
@@ -131,16 +147,74 @@ Backend frameworks:
   );
 
 program
+  .command("deploy")
+  .description("Deploy an OpenUI project")
+  .usage("[dir] [options]")
+  .argument("[dir]", "Project directory (default: current directory)")
+  .option("-y, --yes", "Skip confirmation prompts")
+  .option("--skip-env", "Do not pass or save local .env values")
+  .option("--no-interactive", "Skip prompts (implies --yes)")
+  .option("--verbose", "Stream full deployment build logs")
+  .allowUnknownOption()
+  .allowExcessArguments()
+  .addHelpText(
+    "after",
+    `
+Default supported platform is Vercel. If you are not logged in to the platform, 
+opens vercel login first. Links the project when needed, then offers to save 
+missing allowlisted keys from .env / .env.local to the project on the platform 
+(auto-accepted with --yes). Build logs are hidden by default; pass --verbose 
+to stream them. On failure the log tail is printed. Extra flags after deploy 
+are forwarded as-is to the target platform, which validates them.
+
+Examples:
+  openui deploy
+  openui deploy --verbose
+`,
+  )
+  .action(
+    async (
+      dir: string | undefined,
+      options: {
+        yes?: boolean;
+        skipEnv?: boolean;
+        interactive: boolean;
+        verbose?: boolean;
+      },
+      command: Command,
+    ) => {
+      try {
+        await runDeploy({
+          dir,
+          yes: options.yes,
+          skipEnv: options.skipEnv,
+          noInteractive: !options.interactive,
+          verbose: options.verbose,
+          extraArgs: command.args,
+        });
+      } catch (e) {
+        handleCliError(e, "cli_deploy_failed");
+      } finally {
+        await telemetry.shutdown();
+      }
+    },
+  );
+
+program
   .command("generate-api-key")
-  .description("Mint an OpenUI Cloud API key and write it to a project env file")
-  .option("-f, --file <path>", "Env file to write", ".env")
-  .option("-k, --key <name>", "Environment variable name", "THESYS_API_KEY")
+  .description("Mint an OpenUI Gateway API key and write it to a project env file")
+  .option("-f, --file <path>", "Env file to write", DEFAULT_ENV_FILE)
+  .option(
+    "-k, --key <name>",
+    "Environment variable name (letters, digits, underscores)",
+    "THESYS_API_KEY",
+  )
   .option("-n, --name <string>", "Name of the minted key in the Thesys console")
   .addHelpText(
     "after",
     `
 Run this inside an existing project. It uses the same browser sign-in as
-openui create, mints an OpenUI Cloud API key, and writes it to the env file.
+openui create, mints an OpenUI Gateway API key, and writes it to the env file.
 
 Examples:
   openui generate-api-key

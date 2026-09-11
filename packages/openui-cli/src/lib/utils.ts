@@ -198,6 +198,26 @@ export function processErrorProperties(
   return { failure_stage: failureStage, ...fallback, ...metadata };
 }
 
+const DEFAULT_PROCESS_FALLBACK: Pick<CliErrorProperties, "error_class" | "error_code"> = {
+  error_class: "process",
+  error_code: "NONZERO_EXIT",
+};
+
+/** Throw a typed CLI error (or cancellation) from a failed child process. */
+export function throwCommandFailure(
+  result: CommandResult,
+  stage: string,
+  message: string,
+  fallback: Pick<CliErrorProperties, "error_class" | "error_code"> = DEFAULT_PROCESS_FALLBACK,
+): never {
+  const properties = processErrorProperties(result, stage, fallback);
+  if (properties.error_class === "user_cancelled") {
+    throw new CliCancelledError(stage, properties.cancellation_exit_code ?? 0, properties);
+  }
+  const { failure_stage, error_class, error_code, ...metadata } = properties;
+  throw new CreateError(failure_stage, message, error_class, error_code, metadata);
+}
+
 export function handleCliError(
   e: unknown,
   event: string,

@@ -1,0 +1,23 @@
+name: Changeset check
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  changeset-check:
+    # Informational only — warnings land in the job summary, the job never fails.
+    runs-on: ubuntu-latest
+    if: github.head_ref != 'changeset-release/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Analyze changesets
+        # Belt-and-braces with the script's own try/catch: this check must
+        # never block a PR, even if the script crashes.
+        continue-on-error: true
+        run: node scripts/changeset-check.mjs "origin/${{ github.base_ref }}"

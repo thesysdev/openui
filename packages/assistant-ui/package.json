@@ -79,9 +79,9 @@
   "author": "engineering@thesys.dev",
   "peerDependencies": {
     "@assistant-ui/react": "^0.15.0",
-    "@openuidev/react-headless": "workspace:^",
-    "@openuidev/react-lang": "workspace:^",
-    "@openuidev/react-ui": "workspace:^",
+    "@openuidev/react-headless": ">=0.14.0 <0.15.0",
+    "@openuidev/react-lang": ">=0.3.0 <0.4.0",
+    "@openuidev/react-ui": ">=0.14.0 <0.15.0",
     "ai": "^6.0.0 || ^7.0.0",
     "react": "catalog:",
     "react-dom": "catalog:",
@@ -95,6 +95,9 @@
   },
   "devDependencies": {
     "@assistant-ui/react": "^0.15.13",
+    "@openuidev/react-headless": "workspace:^",
+    "@openuidev/react-lang": "workspace:^",
+    "@openuidev/react-ui": "workspace:^",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "ai": "^6.0.236",

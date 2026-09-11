@@ -1,3 +1,4 @@
+import { Button } from "@/components/button";
 import { production } from "@/lib/benchmark-data";
 import { FailureBreakdown } from "./FailureBreakdown";
 import styles from "./sections.module.css";
@@ -26,12 +27,8 @@ export function WhySection() {
           and repairs what remains before users see it.
         </p>
         <div className={styles.linkRow}>
-          <a className={styles.link} href="/benchmarks?view=formats">
-            Compare formats →
-          </a>
-          <a className={styles.link} href="/benchmarks">
-            Compare models →
-          </a>
+          <Button href="/benchmarks?view=formats" text="Compare formats" variant="tertiary" />
+          <Button href="/benchmarks" text="Compare models" variant="tertiary" />
         </div>
       </div>
     </section>
