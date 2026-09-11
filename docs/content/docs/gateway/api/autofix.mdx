@@ -208,6 +208,7 @@ These are the same codes the OpenUI SDK reports in the browser, so an applicatio
 - The turns before it can hold up to 20 usable turns and 8,000 characters of text in total, counted after tool turns and non-text parts are dropped.
 - Only the most recent turns are used. Older turns are dropped first.
 - Up to two attempts are made to fix one generation.
+- Only non-streaming responses are supported. `stream: true` is a `400`.
 
 ## Data
 
