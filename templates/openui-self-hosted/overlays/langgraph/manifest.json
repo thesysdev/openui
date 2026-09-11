@@ -11,5 +11,5 @@
     },
     "removeDependencies": ["openai"]
   },
-  "gettingStarted": "The generated LangGraph agent runs in-process inside the Next.js `/api/chat` route, with your OpenAI-compatible provider as its model. `{{packageManager}} run dev` starts the app; deploy it to Vercel as-is.\nAsk \"What's the weather in Berlin?\" to exercise its native tool loop."
+  "gettingStarted": "The generated LangGraph agent runs in-process inside the Next.js `/api/chat` route, with your OpenAI-compatible provider as its model. `{{packageManager}} run dev` starts the app. Share a preview with `npx @openuidev/cli@latest deploy`.\nAsk \"What's the weather in Berlin?\" to exercise its native tool loop."
 }

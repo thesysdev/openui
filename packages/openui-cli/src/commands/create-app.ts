@@ -811,9 +811,11 @@ function getStartedMessage(o: {
         `> ${o.devCmd} run dev`,
       ].join("\n");
 
+  const deployHint = "When you want a shareable preview:\n> npx @openuidev/cli@latest deploy";
+
   const frameworkNote = o.backendGettingStarted?.replaceAll("{{packageManager}}", o.devCmd) ?? "";
 
-  return `\n${[skillMessage.trim(), "Done!", envNote, frameworkNote, nextStep]
+  return `\n${[skillMessage.trim(), "Done!", envNote, frameworkNote, nextStep, deployHint]
     .filter(Boolean)
     .join("\n\n")}\n`;
 }

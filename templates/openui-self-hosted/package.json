@@ -14,6 +14,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "deploy": "npx --yes @openuidev/cli@latest deploy",
     "lint": "eslint"
   },
   "dependencies": {
@@ -25,6 +26,7 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@openuidev/cli": "0.2.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
