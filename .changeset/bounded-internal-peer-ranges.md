@@ -1,6 +1,5 @@
 ---
 "@openuidev/assistant-ui": patch
-"@openuidev/devtools": patch
 ---
 
 Internal `@openuidev/*` peer dependencies now declare bounded
