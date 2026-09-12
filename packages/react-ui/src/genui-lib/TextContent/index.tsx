@@ -3,6 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { MarkDownRenderer } from "../../components/MarkDownRenderer";
+import { displayText } from "../helpers";
 import { TextContentSchema } from "./schema";
 const BODY_SIZE_VARS: Record<string, string> = {
   small: "--openui-text-body-sm",
@@ -29,7 +30,7 @@ export const TextContent = defineComponent({
             "--openui-text-body-default": `var(${varName})`,
             "--openui-text-body-default-letter-spacing": `var(${varName}-letter-spacing)`,
           } as React.CSSProperties);
-    const text = props.text == null ? "" : String(props.text);
+    const text = displayText(props.text);
     return (
       <div style={style}>
         <MarkDownRenderer textMarkdown={text} />

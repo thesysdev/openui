@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react";
 import { z } from "zod/v4";
 import { ListBlock as OpenUIListBlock } from "../../components/ListBlock";
 import { ListItem as OpenUIListItem } from "../../components/ListItem";
+import { displayText, optionalDisplayText } from "../helpers";
 import { ListItem } from "../ListItem";
 
 export const ListBlock = defineComponent({
@@ -20,15 +21,15 @@ export const ListBlock = defineComponent({
     const triggerAction = useTriggerAction();
     const items = (props.items ?? []) as any[];
     const variant = (props.variant as "number" | "image") ?? "number";
-    const listHasSubtitle = items.some((item) => !!item?.props?.subtitle);
+    const listHasSubtitle = items.some((item) => !!optionalDisplayText(item?.props?.subtitle));
 
     return (
       <OpenUIListBlock variant={variant}>
         {items.map((item, index) => {
-          const title = String(item?.props?.title ?? "");
-          const subtitle = item?.props?.subtitle ? String(item.props.subtitle) : undefined;
+          const title = displayText(item?.props?.title);
+          const subtitle = optionalDisplayText(item?.props?.subtitle);
           const image = item?.props?.image as { src: string; alt: string } | undefined;
-          const actionLabel = item?.props?.actionLabel ? String(item.props.actionLabel) : undefined;
+          const actionLabel = optionalDisplayText(item?.props?.actionLabel);
           const action = item?.props?.action;
           const hasAction = !!action;
 

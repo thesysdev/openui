@@ -9,6 +9,7 @@
 
 import type { Library } from "../library";
 import type { ElementNode, OpenUIError } from "../parser/types";
+import { isElementNode } from "../parser/types";
 import { evaluatePropCore } from "./evaluate-prop";
 import type { EvaluationContext, SchemaContext } from "./evaluator";
 import type { Store } from "./store";
@@ -25,6 +26,71 @@ export interface EvalContext {
   errors?: OpenUIError[];
 }
 
+type SafeParseResult =
+  | { success: true; data: unknown }
+  | {
+      success: false;
+      error?: { issues?: Array<{ message: string; path?: Array<string | number> }> };
+    };
+
+type SafeParseSchema = {
+  safeParse?: (value: unknown) => SafeParseResult;
+};
+
+function containsElementNode(value: unknown, seen = new WeakSet<object>()): boolean {
+  if (isElementNode(value)) return true;
+  if (!value || typeof value !== "object") return false;
+  if (seen.has(value)) return false;
+  seen.add(value);
+  if (Array.isArray(value)) return value.some((item) => containsElementNode(item, seen));
+  return Object.values(value as Record<string, unknown>).some((item) =>
+    containsElementNode(item, seen),
+  );
+}
+
+function formatZodIssues(
+  propName: string,
+  issues: Array<{ message: string; path?: Array<string | number> }> | undefined,
+): string {
+  if (!issues?.length) return `/${propName}: invalid value`;
+  return issues
+    .map((issue) => {
+      const suffix = issue.path?.length ? `/${issue.path.join("/")}` : "";
+      return `/${propName}${suffix}: ${issue.message}`;
+    })
+    .join("; ");
+}
+
+function validateEvaluatedProp(
+  component: string,
+  propName: string,
+  propSchema: unknown,
+  value: unknown,
+  statementId: string | undefined,
+  errors: OpenUIError[] | undefined,
+): void {
+  if (!errors || containsElementNode(value)) return;
+
+  const safeParse = (propSchema as SafeParseSchema | undefined)?.safeParse;
+  if (typeof safeParse !== "function") return;
+
+  const result = safeParse.call(propSchema, value);
+  if (result.success) return;
+
+  errors.push({
+    source: "runtime",
+    code: "runtime-error",
+    component,
+    statementId,
+    path: `/${propName}`,
+    message: `Prop "${propName}" on ${component} does not match its schema: ${formatZodIssues(
+      propName,
+      result.error?.issues,
+    )}`,
+    hint: `Use a value that matches the declared schema for ${component}.${propName}.`,
+  });
+}
+
 /**
  * Evaluate all AST nodes in an ElementNode tree's props.
  * Returns a new ElementNode with all props resolved to concrete values.
@@ -32,8 +98,6 @@ export interface EvalContext {
  * Uses the unified evaluator with schema context for reactive-aware evaluation.
  */
 export function evaluateElementProps(el: ElementNode, evalCtx: EvalContext): ElementNode {
-  if (el.hasDynamicProps === false) return el;
-
   const schemaCtx: SchemaContext = { library: evalCtx.library };
   const def = evalCtx.library.components[el.typeName];
   const evaluated: Record<string, unknown> = {};
@@ -42,6 +106,14 @@ export function evaluateElementProps(el: ElementNode, evalCtx: EvalContext): Ele
     const propSchema = def?.props?.shape?.[key];
     try {
       evaluated[key] = evaluatePropValue(value, evalCtx, schemaCtx, propSchema);
+      validateEvaluatedProp(
+        el.typeName,
+        key,
+        propSchema,
+        evaluated[key],
+        el.statementId,
+        evalCtx.errors,
+      );
     } catch (e) {
       // Use raw value as fallback for this prop, collect structured error
       evaluated[key] = value;
