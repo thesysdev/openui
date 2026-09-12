@@ -1,9 +1,11 @@
 ---
 title: Artifacts
-description: Durable, first-class conversation outputs like slides, reports, and apps that the user can open and return to.
+description: Artifacts in Agent Interface, including generation, streaming, rendering, and editing of managed slides and reports.
 ---
 
 An **artifact** is a first-class output of a conversation. Slides, reports, dashboards, a small app: things the user opens, reads, and returns to. An artifact is not a chat message and not a tool result. Once it exists, it stands on its own.
+
+For managed presentations and reports in your own application, see [Generate and edit managed slides and reports](#generate-and-edit-managed-slides-and-reports) below. For your own artifact types, see [Custom artifacts](#custom-artifacts).
 
 ## Where an artifact shows up
 
@@ -30,6 +32,127 @@ Static and live describe how an artifact behaves, not two different APIs.
 **Live** content is data-backed and interactive. A dashboard re-fetches current numbers on open. A small app exposes filters and controls and can write edits back.
 
 If the user expects a fixed record, it is static. If they expect fresh data, it is live. There is no `static: true` or `live: true` flag. It is how the renderer is written.
+
+## Generate and edit managed slides and reports
+
+Choose the generation path based on where the artifact lives:
+
+- **Inside a managed agent conversation:** use the [Responses API](/docs/gateway/api/responses) with `artifactTool({ artifacts: ["slides", "report"] })` from `@openuidev/thesys-server`, and configure [conversation persistence](/docs/gateway/api/conversations). The default `openui-cloud` CLI template includes the [server tool declaration](https://github.com/thesysdev/openui/blob/main/templates/openui-cloud/src/app/api/chat/route.ts) and [managed renderer and storage wiring](https://github.com/thesysdev/openui/blob/main/templates/openui-cloud/src/components/cloud-chat.tsx).
+- **Standalone in your application:** use the Artifact Chat Completions endpoint below. Your application stores the returned program and supplies it again for edits; this endpoint is not a conversation store.
+
+The following examples cover the standalone path. You use the built-in `Presentation` and `Report` viewers; you do not need to define a custom artifact renderer for this path.
+
+### Generate an artifact
+
+Artifacts use a Chat Completions-compatible endpoint:
+
+**Endpoint:** `POST https://api.thesys.dev/v1/artifact/chat/completions`
+
+Create an API key in the [Thesys console](https://console.thesys.dev/keys) and configure `THESYS_API_KEY` in your server environment. Keep this key on the server; call the API from your application's server route, not directly from the browser. Point the OpenAI client at the artifact base URL. Every request must include `metadata.thesys` as a JSON string with your artifact `id` and a `c1_artifact_type` of `"slides"` or `"report"`.
+
+```ts
+import OpenAI from "openai";
+
+const artifactClient = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/artifact",
+});
+
+const artifact = await artifactClient.chat.completions.create({
+  model: "openai/gpt-5",
+  messages: [{ role: "user", content: "Create a three-slide deck on Q4 results." }],
+  metadata: {
+    thesys: JSON.stringify({
+      id: "art_1",
+      c1_artifact_type: "slides",
+    }),
+  },
+});
+
+const program = artifact.choices[0]?.message.content;
+if (!program) throw new Error("The artifact response was empty.");
+```
+
+Use a supported provider/model identifier from [Models](/docs/gateway/models). The response content is a raw OpenUI Lang program rooted at `SlideShow` or `ReportView`. It is validated and repaired before being returned. Set `stream: true` to receive it progressively.
+
+### Render an artifact
+
+Render the returned program with the matching managed viewer:
+
+```tsx
+"use client";
+
+import { Presentation, Report } from "@openuidev/thesys";
+import "@openuidev/thesys/styles.css";
+
+export function Artifact({
+  kind,
+  program,
+  isStreaming = false,
+}: {
+  kind: "slides" | "report";
+  program: string;
+  isStreaming?: boolean;
+}) {
+  return kind === "slides" ? (
+    <Presentation response={program} preview={false} isStreaming={isStreaming} />
+  ) : (
+    <Report response={program} preview={false} isStreaming={isStreaming} />
+  );
+}
+```
+
+Install the viewer package with `pnpm add @openuidev/thesys`. In Next.js, use a client component for the viewer and load its stylesheet once in your application.
+
+### Stream an artifact
+
+Set `stream: true` and accumulate the content deltas in order on the server:
+
+```ts
+const stream = await artifactClient.chat.completions.create({
+  model: "openai/gpt-5",
+  messages: [{ role: "user", content: "Create a report on Q4 results." }],
+  metadata: {
+    thesys: JSON.stringify({
+      id: "art_report_1",
+      c1_artifact_type: "report",
+    }),
+  },
+  stream: true,
+});
+
+let program = "";
+for await (const chunk of stream) {
+  program += chunk.choices[0]?.delta?.content ?? "";
+  // Forward the accumulated program to your application's viewer.
+}
+```
+
+Forward updates from your server route to the browser using your application's streaming transport. Pass the accumulated program as `response` and keep `isStreaming={true}` while the request is running. Set it to `false` when the stream ends. Use `Presentation` for `"slides"` and `Report` for `"report"`.
+
+### Edit an artifact
+
+Load the current complete OpenUI Lang program from your application's storage, authorize the user's access to it, and send it as an assistant message. Describe the change in the next user message and set `is_edit: true`.
+
+```ts
+const edited = await artifactClient.chat.completions.create({
+  model: "openai/gpt-5",
+  messages: [
+    { role: "assistant", content: previousProgram },
+    { role: "user", content: "Make slide 2 about European revenue." },
+  ],
+  metadata: {
+    thesys: JSON.stringify({
+      id: "art_1",
+      c1_artifact_type: "slides",
+      is_edit: true,
+    }),
+  },
+  stream: true,
+});
+```
+
+The response uses patch-mode OpenUI Lang, merged against the assistant-message base. Preserve the current complete program as the base for edits; an edit response must be interpreted in that context, rather than treated as an unrelated new artifact. Use the same artifact `id` and `c1_artifact_type` when editing it. Persist the resulting complete program for subsequent views and edits.
 
 ## Custom artifacts
 
