@@ -42,6 +42,12 @@ export const Tabs = defineComponent({
     React.useEffect(() => {
       if (userHasInteracted.current) return;
 
+      // On the first pass every tab satisfies `size > 0`, which would make
+      // `candidate` end up as the LAST tab and override the first-tab default
+      // above. Only record the baseline sizes; growth relative to this
+      // baseline (or a tab appearing later) still auto-advances.
+      const isBaselinePass = Object.keys(prevContentSizes.current).length === 0;
+
       let candidate: string | null = null;
       const nextSizes: Record<string, number> = {};
 
@@ -55,6 +61,8 @@ export const Tabs = defineComponent({
       }
 
       prevContentSizes.current = nextSizes;
+
+      if (isBaselinePass) return;
 
       if (candidate && candidate !== activeTab) {
         setActiveTab(candidate);
