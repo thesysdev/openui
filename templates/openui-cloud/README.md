@@ -49,11 +49,14 @@ variant. The browser connects directly through `useOpenuiCloudStorage()` with a
 short-lived token from `/api/frontend-token`. For default, LangGraph, and
 Vercel AI SDK routes, the `threadId` sent to `/api/chat` is the Cloud
 conversation id, and the route appends each model turn to it with
-`conversation: threadId` and `store: true`. The Eve overlay uses that same Cloud
-thread store and maps each Cloud `threadId` to an Eve session cursor in the
-browser; it does not use `/api/chat`.
-Browser `localStorage` holds only the selected model (and, for Eve, the session
-cursor), not conversation messages.
+`conversation: threadId` and `store: true`.
+
+The Eve overlay uses that same Cloud thread store via `useOpenuiCloudStorage()`
+(`features: { artifact: false }`) and maps each Cloud `threadId` to an
+in-memory Eve session cursor; it does not use `/api/chat`. Each Eve model turn
+still appends to the Cloud conversation with `conversation: threadId` and
+`store: true`. Provider-executed artifact and search tools are not attached.
+Browser `localStorage` holds only the selected model on non-Eve scaffolds.
 
 The Vercel AI SDK route does not create a second store. Add a LangGraph
 checkpointer separately only if the graph needs durable state, interrupts, or
@@ -61,10 +64,14 @@ resumable runs.
 
 ## Switching Models
 
-Use the model switcher in the chat header to choose a model for new messages. The starter keeps a
-small curated model list in `src/lib/models.tsx` and sends the selected `provider/model` id to
-`/api/chat`, which validates it against the same list. The built-in list includes Gemini, GPT,
-Claude Sonnet, and Claude Opus options; free Gemini variants are marked with a `Free` badge.
+Default, LangGraph, and Vercel AI SDK scaffolds put a model switcher in the chat
+header. The starter keeps a small curated model list in `src/lib/models.tsx` and
+sends the selected `provider/model` id to `/api/chat`, which validates it against
+the same list. The built-in list includes Gemini, GPT, Claude Sonnet, and Claude
+Opus options; free Gemini variants are marked with a `Free` badge.
+
+The Vercel Eve scaffold has no dropdown: set `OPENUI_MODEL` in `.env`. The same
+ids live in `src/lib/models.ts`. An unknown name fails when the agent loads.
 
 The built-in model ids are available on [models.dev's OpenRouter provider
 list](https://models.dev/providers/openrouter/).

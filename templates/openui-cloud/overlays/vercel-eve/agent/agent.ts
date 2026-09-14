@@ -1,5 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { defineAgent } from "eve";
+import { withCloudConversation } from "./cloud-conversation.ts";
+import { resolveOpenuiModel, DEFAULT_MODEL } from "../src/lib/models.ts";
 
 const apiKey = process.env.THESYS_API_KEY;
 if (!apiKey) throw new Error("Missing required env var: THESYS_API_KEY");
@@ -9,8 +11,8 @@ const openai = createOpenAI({
   baseURL: "https://api.thesys.dev/v1/embed",
 });
 
-const model = openai.chat(
-  process.env.OPENUI_MODEL ?? "google/gemini-3.6-flash-free",
+const model = withCloudConversation(
+  openai.responses(resolveOpenuiModel(DEFAULT_MODEL)),
 );
 
 export default defineAgent({
