@@ -14,7 +14,6 @@ import {
   restStorage,
   useThread,
   useThreadList,
-  useOpenuiCloudStorage,
   openAIAdapter,
   openAIResponsesAdapter,
   openAIReadableStreamAdapter,
@@ -127,51 +126,6 @@ function useMessage(): { message: Message };
 ```
 
 Provided via `MessageProvider` / `MessageContext`.
-
-## `useOpenuiCloudStorage(options)`
-
-Returns a memoized `ChatStorage` backed by OpenUI Cloud conversations and artifacts.
-Import it from `@openuidev/react-headless` or `@openuidev/react-ui`.
-When migrating from `@openuidev/thesys`, change the import; the options stay the same.
-
-```tsx
-import { useOpenuiCloudStorage, type ChatLLM } from "@openuidev/react-headless";
-import { AgentInterface } from "@openuidev/react-ui";
-
-function CloudChat({ llm }: { llm: ChatLLM }) {
-  const storage = useOpenuiCloudStorage({
-    token: "/api/frontend-token",
-    features: { artifact: true },
-  });
-  return <AgentInterface llm={llm} storage={storage} />;
-}
-```
-
-The `OpenuiCloudOptions` and `OpenuiCloudFeatures` types are also exported.
-
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `token` | `string \| (() => Promise<string>)` | Required | Backend mint URL, or a function returning a frontend token. |
-| `apiBaseUrl` | `string` | `https://api.thesys.dev` | Cloud origin; storage appends `/v1/...`. |
-| `features.artifact` | `boolean` | `true` | Include artifact listing, reads, and edits. |
-| `fetch` | `typeof fetch` | `globalThis.fetch` | Override fetch for both minting and storage requests. |
-| `refreshSkewSeconds` | `number` | `60` | Refresh a URL-minted token this many seconds before expiry. |
-
-The URL form sends `POST` to your backend and expects
-`{ token: string, expires_at: number }` with expiry in Unix seconds. Minting starts
-on the first storage request. Concurrent requests share a mint; tokens are cached
-until the refresh window. The function form is called for each request, and the
-caller owns caching.
-
-Storage requests carry `x-thesys-frontend-token` and retry once with a fresh token
-after a 401. Your server's master API key stays on the backend.
-Message generation uses the separate `llm` adapter; see
-[Conversation APIs](/docs/gateway/api/conversations).
-
-The returned storage stays stable while its options are unchanged, including when
-you pass a new `features` object with the same values. Keep token callbacks and
-custom fetch functions stable across renders. `ChatProvider` captures storage at
-mount, so remount it (or `AgentInterface`) when switching users or storage configuration.
 
 ## Stream adapters
 

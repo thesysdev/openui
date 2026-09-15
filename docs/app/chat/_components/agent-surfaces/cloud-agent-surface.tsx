@@ -13,12 +13,13 @@ import {
 } from "@/lib/openui-cloud/chat-constants";
 import { createCloudChatLLM } from "@/lib/openui-cloud/chat-llm";
 import { CLOUD_USER_ID_HEADER, getOrCreateCloudUserId } from "@/lib/openui-cloud/user-id";
-import { useOpenuiCloudStorage, useThreadList } from "@openuidev/react-headless";
+import { useThreadList } from "@openuidev/react-headless";
 import { AgentInterface, defineArtifactCategories, IconButton } from "@openuidev/react-ui";
 import {
   chatLibrary,
   presentationArtifactRenderer,
   reportArtifactRenderer,
+  useOpenuiCloudStorage,
 } from "@openuidev/thesys";
 import { FileText, Presentation, SquarePen } from "lucide-react";
 import { useTheme } from "next-themes";
