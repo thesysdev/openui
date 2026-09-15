@@ -101,6 +101,12 @@
       "description": "Persisted OpenUI conversations and threads with Supabase.",
       "path": "miscellaneous/supabase",
       "envKey": "THESYS_API_KEY"
+    },
+    {
+      "title": "AI/ML API",
+      "description": "AgentInterface on AI/ML API through the Vercel AI SDK, with no Gateway in between.",
+      "path": "miscellaneous/aimlapi",
+      "envKey": "AIMLAPI_API_KEY"
     }
   ]
 }
