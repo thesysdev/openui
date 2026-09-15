@@ -15,10 +15,10 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@openuidev/lang-core": "0.2.18",
-    "@openuidev/react-headless": "0.9.13",
-    "@openuidev/react-lang": "0.2.15",
-    "@openuidev/react-ui": "0.13.10",
+    "@openuidev/lang-core": "0.3.0",
+    "@openuidev/react-headless": "0.14.0",
+    "@openuidev/react-lang": "0.3.0",
+    "@openuidev/react-ui": "0.14.0",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.1",
@@ -62,7 +62,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.2.12",
+    "@openuidev/cli": "0.3.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",

@@ -11,7 +11,7 @@
     "verify": "tsc --noEmit"
   },
   "dependencies": {
-    "@openuidev/react-lang": "0.2.15",
+    "@openuidev/react-lang": "0.3.0",
     "expo": "~54.0.6",
     "expo-status-bar": "~55.0.4",
     "react": "19.2.0",

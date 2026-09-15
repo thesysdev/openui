@@ -4,7 +4,7 @@
   "packageJson": {
     "dependencies": {
       "@ai-sdk/openai": "^3.0.88",
-      "@openuidev/react-headless": "^0.9.13",
+      "@openuidev/react-headless": "^0.14.0",
       "@vercel/connect": "0.2.2",
       "ai": "^7.0.82",
       "eve": "^0.52.2",
@@ -15,10 +15,15 @@
       "eve:build": "eve build",
       "eve:start": "eve start"
     },
-    "removeDependencies": ["openai"]
+    "removeDependencies": [
+      "openai"
+    ]
   },
   "files": {
-    "remove": ["src/app/api/chat/route.ts", "src/lib/tool-loop.ts"]
+    "remove": [
+      "src/app/api/chat/route.ts",
+      "src/lib/tool-loop.ts"
+    ]
   },
   "gettingStarted": "The generated Vercel Eve agent uses OpenUI Cloud as its model provider. `{{packageManager}} run dev` starts Next.js with Eve embedded via withEve(). Ask \"What's the weather in Berlin?\" to exercise the included Eve tool."
 }
