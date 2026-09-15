@@ -1,5 +1,11 @@
 # @openuidev/react-headless
 
+## 0.15.0
+
+### Patch Changes
+
+- [#1179](https://github.com/thesysdev/openui/pull/1179) [`bad6e49`](https://github.com/thesysdev/openui/commit/bad6e492b38bfb1da05e6e6976ae6a23244a4af0) Thanks [@vishxrad](https://github.com/vishxrad)! - Export `useOpenuiCloudStorage`, `OpenuiCloudOptions`, and `OpenuiCloudFeatures` from `@openuidev/react-headless`, also available through `@openuidev/react-ui`. Cloud storage no longer requires importing the hook from `@openuidev/thesys`. The existing options, frontend-token refresh and retry behavior, conversation history, and optional artifact storage are preserved.
+
 ## 0.14.0
 
 ### Minor Changes
