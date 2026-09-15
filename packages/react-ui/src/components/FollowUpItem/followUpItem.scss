@@ -2,7 +2,7 @@
 
 .openui-follow-up-item {
   @include cssUtils.button-reset;
-  @include cssUtils.typography(primary, default);
+  @include cssUtils.typography(body, default);
   box-sizing: border-box;
   padding: cssUtils.$space-s cssUtils.$space-000;
   border-bottom: 1px solid cssUtils.$border-default;

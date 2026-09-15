@@ -1,0 +1,165 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-option-cards {
+  width: 100%;
+  container-type: inline-size;
+}
+
+.openui-option-cards__grid {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-m;
+  width: 100%;
+}
+
+.openui-option-cards__row {
+  display: grid;
+  gap: cssUtils.$space-m;
+  width: 100%;
+  align-items: stretch;
+
+  &--1 {
+    grid-template-columns: 1fr;
+  }
+
+  &--2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  &--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.openui-option-cards__item {
+  width: 100%;
+  min-width: 0;
+}
+
+.openui-option-cards__grid--responsive {
+  @container (max-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+
+    .openui-option-cards__row {
+      display: contents;
+    }
+  }
+
+  @container (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.openui-option-cards__grid--odd-count {
+  @container (max-width: 768px) {
+    .openui-option-cards__row:last-child > .openui-option-cards__item:last-child {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.openui-option-card {
+  @include cssUtils.button-reset;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: cssUtils.$space-s-m;
+  border: 1px solid cssUtils.$border-interactive;
+  border-radius: cssUtils.$radius-2xl;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    opacity 0.16s ease-out,
+    border-color 0.16s ease-out,
+    background-color 0.16s ease-out;
+
+  &:hover:not(:disabled):not(.openui-option-card--selected) {
+    border-color: cssUtils.$border-interactive-emphasis;
+  }
+
+  &:focus-visible {
+    outline: 2px solid cssUtils.$border-accent;
+    outline-offset: 2px;
+  }
+
+  &--selected {
+    background: cssUtils.$sunk;
+    border-color: cssUtils.$border-interactive-selected;
+  }
+
+  &--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.openui-option-card__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: cssUtils.$space-m;
+  width: 100%;
+}
+
+.openui-option-card__top {
+  align-self: flex-start;
+  flex-shrink: 0;
+
+  &--icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: cssUtils.$radius-s;
+    background: cssUtils.$sunk;
+    color: cssUtils.$text-neutral-primary;
+  }
+
+  &--image {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: cssUtils.$radius-m;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
+.openui-option-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-3xs;
+  min-width: 0;
+}
+
+.openui-option-card__title {
+  color: cssUtils.$text-neutral-primary;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  @include cssUtils.typography(body, heavy);
+}
+
+.openui-option-card__subtitle {
+  color: cssUtils.$text-neutral-secondary;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  @include cssUtils.typography(body, small);
+}
+
+.openui-option-card--disabled {
+  .openui-option-card__title,
+  .openui-option-card__subtitle {
+    color: cssUtils.$text-neutral-tertiary;
+  }
+}

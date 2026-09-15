@@ -58,6 +58,7 @@ import { Steps, StepsItem } from "./Steps";
 import { TabItem, Tabs } from "./Tabs";
 
 // Data Display
+import { Icon } from "./Icon";
 import { Col, Table } from "./Table";
 import { Tag } from "./Tag";
 import { TagBlock } from "./TagBlock";
@@ -194,7 +195,7 @@ export const openuiComponentGroups: ComponentGroup[] = [
   },
   {
     name: "Data Display",
-    components: ["TagBlock", "Tag"],
+    components: ["TagBlock", "Tag", "Icon"],
     notes: [
       '- Color-mapped Tag: Tag(value, null, "sm", value == "high" ? "danger" : value == "medium" ? "warning" : "neutral")',
     ],
@@ -273,6 +274,7 @@ export const openuiLibrary = createLibrary({
     // Data Display
     TagBlock,
     Tag,
+    Icon,
     // Modal
     Modal,
   ],

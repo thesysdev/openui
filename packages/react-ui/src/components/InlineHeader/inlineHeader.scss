@@ -1,0 +1,21 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-inline-header {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-3xs;
+  align-items: flex-start;
+
+  &-heading {
+    display: flex;
+    align-items: center;
+    gap: cssUtils.$space-xs;
+    color: cssUtils.$text-neutral-primary;
+    @include cssUtils.typography(body, heavy);
+  }
+
+  &-description {
+    color: cssUtils.$text-neutral-secondary;
+    @include cssUtils.typography(body, default);
+  }
+}

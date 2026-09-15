@@ -35,6 +35,15 @@ import { FollowUpBlock } from "./FollowUpBlock";
 import { ListBlock } from "./ListBlock";
 import { SectionBlock } from "./SectionBlock";
 
+import { CompositeCardBlock } from "./CompositeCardBlock";
+import { ContextCardBlock } from "./ContextCardBlock";
+import { EditableTable } from "./EditableTable";
+import { EntityList } from "./EntityList";
+import { InlineHeader } from "./InlineHeader";
+import { OverviewCardBlock } from "./OverviewCardBlock";
+import { SnippetCardBlock } from "./SnippetCardBlock";
+import { VisualCardBlock } from "./VisualCardBlock";
+
 export const ContentChildUnion = z.union([
   TextContent.ref,
   MarkDownRenderer.ref,
@@ -62,7 +71,8 @@ export const ContentChildUnion = z.union([
   Steps.ref,
 ]);
 
-// Chat-specific content union — no Stack, adds ListBlock / FollowUpBlock / SectionBlock
+// Chat-specific content union — no Stack, adds ListBlock / FollowUpBlock / SectionBlock,
+// plus the chat-only blocks (InlineHeader, EntityList, EditableTable, card blocks).
 // Note: Tabs and Carousel are NOT included here to avoid circular deps (Tabs/schema.ts imports ContentChildUnion).
 // ChatCardChildUnion (which adds Tabs + Carousel) is defined in openuiChatLibrary.tsx.
 export const ChatContentChildUnion = z.union([
@@ -70,4 +80,12 @@ export const ChatContentChildUnion = z.union([
   ListBlock.ref,
   FollowUpBlock.ref,
   SectionBlock.ref,
+  InlineHeader.ref,
+  EntityList.ref,
+  EditableTable.ref,
+  SnippetCardBlock.ref,
+  OverviewCardBlock.ref,
+  ContextCardBlock.ref,
+  CompositeCardBlock.ref,
+  VisualCardBlock.ref,
 ]);

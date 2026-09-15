@@ -1,0 +1,49 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-image-text {
+  display: flex;
+  gap: cssUtils.$space-m;
+}
+
+.openui-image-text__image-container {
+  position: relative;
+  width: calc(#{cssUtils.$space-2xl} + #{cssUtils.$space-2xs});
+  height: calc(#{cssUtils.$space-2xl} + #{cssUtils.$space-2xs});
+  border-radius: cssUtils.$radius-m;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: cssUtils.$sunk;
+}
+
+.openui-image-text__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.openui-image-text--vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.openui-image-text--horizontal {
+  flex-direction: row;
+  align-items: center;
+
+  .openui-text-block__primary {
+    @include cssUtils.typography(body, small-heavy);
+  }
+}
+
+.openui-image-text--horizontal .openui-image-text__content {
+  padding-top: cssUtils.$space-3xs;
+}
+
+.openui-image-text__content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}

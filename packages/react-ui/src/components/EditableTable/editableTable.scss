@@ -1,0 +1,26 @@
+@use "../../cssUtils" as cssUtils;
+@use "./base/editableTableBase";
+@use "./base/components/editableCellBase";
+
+.openui-editable-table-changes-container {
+  display: flex;
+  flex-direction: row;
+  gap: cssUtils.$space-s;
+  padding: cssUtils.$space-s cssUtils.$space-s cssUtils.$space-s cssUtils.$space-m;
+  justify-content: space-between;
+  align-items: center;
+  background-color: cssUtils.$elevated;
+  border-radius: cssUtils.$radius-xl;
+  border: 1px solid cssUtils.$border-default;
+  box-shadow: cssUtils.$shadow-s;
+}
+
+.openui-editable-table-changes-count {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-editable-table-changes-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: cssUtils.$space-s;
+}
