@@ -92,7 +92,7 @@ if (completion.fix_summary.status === "fix_failed") {
 }
 ```
 
-`openui.spec.json` is the library spec that `openui generate --spec` writes for your components. See [Generate OpenUI Lang](/docs/gateway/generate-openui-lang) for how it is created. Omit `library` to check the generation against the built-in OpenUI chat library.
+`openui.spec.json` is the library spec that `openui generate --spec` writes for your components. See [Generate OpenUI Lang](/docs/gateway/generate-openui-lang) for how it is created. Omit `library` to check the generation against the chat library the SDK ships, `openuiChatLibrary` from `@openuidev/react-ui`.
 
 `model` is accepted so that an SDK client has something to send, and it is ignored: the fix always runs on the same correction model.
 
@@ -131,7 +131,7 @@ export async function autofix(messages: Message[], generation: string) {
 | Field      | Type   | Required | Purpose                                                                                                                                                                                                                                                                                 |
 | ---------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `messages` | array  | Yes      | The conversation, in the OpenAI chat message shape. The last turn must be an `assistant` turn whose text is the generation to fix, up to 100,000 characters. The turns before it are the context: only the text of `user`, `assistant`, `system`, and `developer` turns is read, and tool turns and non-text parts are dropped. |
-| `library`  | object | No       | Your library spec, as written by `openui generate --spec`. Without it, the built-in chat library is used.                                                                                                                                                                                |
+| `library`  | object | No       | Your library spec, as written by `openui generate --spec`. Without it, the SDK's chat library (`openuiChatLibrary` from `@openuidev/react-ui`) is used.                                                                                                                                                                                |
 | `model`    | string | No       | Accepted so that an SDK client can name a model, and ignored. The answer always reports `openui/autofix`.                                                                                                                                                                               |
 | `stream`   | bool   | No       | Streaming is not supported. A fix has nothing to send until it is finished, so `stream: true` is a `400`.                                                                                                                                                                                |
 
