@@ -92,7 +92,7 @@ if (completion.fix_summary.status === "fix_failed") {
 }
 ```
 
-`openui.spec.json` is the library spec that `openui generate --spec` writes for your components. See [Generate OpenUI Lang](/docs/gateway/generate-openui-lang) for how it is created. The API always needs your library: a generation is only valid against the components your app renders. If your system message already carries the `]]>openui:config` block that `generateSystemPrompt({ cloud: true, library })` writes for the Gateway, you can send the conversation as is and leave `library` out; the block names the library and is not treated as conversation.
+`openui.spec.json` is the library spec that `openui generate --spec` writes for your components. See [Generate OpenUI Lang](/docs/gateway/generate-openui-lang) for how it is created. The API always needs it: a generation is only valid against the components your app renders, so there is no built-in default.
 
 `model` is accepted so that an SDK client has something to send, and it is ignored: the fix always runs on the same correction model.
 
@@ -131,7 +131,7 @@ export async function autofix(messages: Message[], generation: string) {
 | Field      | Type   | Required | Purpose                                                                                                                                                                                                                                                                                 |
 | ---------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `messages` | array  | Yes      | The conversation, in the OpenAI chat message shape. The last turn must be an `assistant` turn whose text is the generation to fix, up to 100,000 characters. The turns before it are the context: only the text of `user`, `assistant`, `system`, and `developer` turns is read, and tool turns and non-text parts are dropped. |
-| `library`  | object | Yes\*    | Your library spec, as written by `openui generate --spec`. \*Optional only when a system turn carries the `]]>openui:config` block with `chatLibrary`.                                                                                                                                                                                |
+| `library`  | object | Yes      | Your library spec, as written by `openui generate --spec` for the components your app renders.                                                                                                                                                                                |
 | `model`    | string | No       | Accepted so that an SDK client can name a model, and ignored. The answer always reports `openui/autofix`.                                                                                                                                                                               |
 | `stream`   | bool   | No       | Streaming is not supported. A fix has nothing to send until it is finished, so `stream: true` is a `400`.                                                                                                                                                                                |
 
@@ -237,7 +237,7 @@ These are the same codes the OpenUI SDK reports in the browser, so an applicatio
 
 ## Framing
 
-The generation may be bare OpenUI Lang, a fenced code block, or the `]]>openui:content … ]]>openui:end` frame the Gateway streams, with or without a `]]>openui:context` section. Only the program inside is checked and repaired. A fixed generation comes back in the same wrapping it arrived in, with its context section and end marker unchanged, so you can hand the answer to the same code that handles a Gateway response.
+The generation may be bare OpenUI Lang, a fenced code block, or an assistant turn as the OpenUI SDK stores it after the user has touched a form inside it: `]]>openui:content`, the program, `]]>openui:context` with the form state, `]]>openui:end`. Only the program inside is checked and repaired. A fixed generation comes back in the same wrapping it arrived in, header line, context section and end marker unchanged, so the SDK reads the answer the way it reads history.
 
 ## Limits
 
@@ -263,7 +263,7 @@ The endpoint returns the same error shape as the Chat Completions and Responses 
 
 | Status | Type                    | When                                                                                                                     |
 | ------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `400`  | `invalid_request_error` | No library anywhere, the last turn is not an assistant turn with a generation, a limit is passed, `library` or the config block is malformed, or `stream` is `true`. |
+| `400`  | `invalid_request_error` | `library` is missing or malformed, the last turn is not an assistant turn with a generation, a limit is passed, or `stream` is `true`. |
 | `401`  | `authentication_error`  | The API key is missing or invalid.                                                                                       |
 | `429`  | `rate_limit_error`      | The organization has no credits, or billing is suspended.                                                                |
 | `500`  | `internal_server_error` | The fixing model could not be reached. Nothing is charged.                                                               |
