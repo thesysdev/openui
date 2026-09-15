@@ -9,42 +9,75 @@ The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send
 
 **OpenAI compatible.** The request and the answer use the OpenAI chat completion shape. Point an OpenAI SDK at the base URL `https://api.thesys.dev/v1/autofix` and it posts to `/v1/autofix/chat/completions`. Both paths take the same body and answer the same way.
 
+<Mermaid
+  chart={`
+flowchart TD
+    Model[Your model streams OpenUI Lang] --> Parse[Parse the whole generation with lang-core]
+    Parse -- valid --> Render[Render]
+    Parse -- invalid --> Autofix[POST /v1/autofix]
+    Autofix --> Status{fix_summary.status}
+    Status -- already_valid --> Render
+    Status -- fixed --> Replace[Render the fixed generation]
+    Status -- fix_failed --> Fallback[Show a fallback]
+`}
+/>
+
 ## Detect an invalid generation
 
 Parse the generation with `@openuidev/lang-core` before you call the API. It is the same check the API runs first, so a generation that passes here would come back as `already_valid`. Skip the call when nothing is wrong.
 
 ```ts title="lib/detect.ts"
-import { createParser } from "@openuidev/lang-core";
-import library from "./openui.spec.json";
+import type { ParseResult } from "@openuidev/lang-core";
 
-const parser = createParser(library.schema, library.root);
-
-/** Everything that stops the generation from rendering. Empty means valid. */
-export function findErrors(generation: string): string[] {
-  const { root, meta } = parser.parse(generation);
-  return [
-    ...meta.errors.map((e) => `${e.code} ${e.component}${e.path}: ${e.message}`),
-    ...meta.unresolved.map((name) => `unresolved: "${name}" is used but never defined`),
-    ...meta.orphaned.map((name) => `orphaned: "${name}" is defined but never used`),
-    ...(meta.incomplete ? ["incomplete: the generation ends mid-statement"] : []),
-    ...(root === null ? ["missing-root: no root element"] : []),
-  ];
+/** The API's own rule: a generation renders only when all five hold. */
+export function isValid({ root, meta }: ParseResult): boolean {
+  return (
+    !meta.incomplete &&
+    meta.errors.length === 0 &&
+    meta.unresolved.length === 0 &&
+    meta.orphaned.length === 0 &&
+    root !== null
+  );
 }
 ```
+
+Judge the generation once, after the stream ends. While it streams, `incomplete` and `unresolved` are normal: the parser has not seen the rest yet.
 
 ```ts title="server.ts"
-import { findErrors } from "./lib/detect";
+import { createStreamingParser } from "@openuidev/lang-core";
+import OpenAI from "openai";
+import { autofix } from "./lib/autofix";
+import { isValid } from "./lib/detect";
+import library from "./openui.spec.json";
 
-const errors = findErrors(generation);
-if (errors.length === 0) {
-  render(generation);
-} else {
-  console.warn("invalid generation", errors);
-  // Send it to the Autofix API, below.
+const model = new OpenAI(); // any provider that returns OpenUI Lang
+
+export async function generate(messages: OpenAI.ChatCompletionMessageParam[]) {
+  const parser = createStreamingParser(library.schema, library.root);
+  let generation = "";
+  let result = parser.getResult();
+
+  const stream = await model.chat.completions.create({ model: "gpt-5", messages, stream: true });
+  for await (const chunk of stream) {
+    const delta = chunk.choices[0]?.delta?.content ?? "";
+    if (!delta) continue;
+    generation += delta;
+    result = parser.push(delta);
+    send(delta); // the browser renders as the text arrives
+  }
+
+  if (isValid(result)) return;
+
+  const completion = await autofix(messages, generation);
+  if (completion.fix_summary.status === "fix_failed") {
+    sendFallback(completion.fix_summary.unfixed_errors);
+  } else {
+    replace(completion.choices[0].message.content); // the whole valid generation
+  }
 }
 ```
 
-`parse` never throws. It takes fenced or bare OpenUI Lang and reports prop errors in `meta.errors`, with the codes listed under [Error codes](#error-codes).
+`parse` and `push` never throw. They take fenced or bare OpenUI Lang and report prop errors in `meta.errors`, with the codes listed under [Error codes](#error-codes). For a generation you already hold in full, `createParser(library.schema, library.root).parse(generation)` gives the same result.
 
 ## Fix an invalid generation
 
@@ -82,19 +115,6 @@ export async function autofix(messages: OpenAI.ChatCompletionMessageParam[], gen
     model: "openui/autofix",
     messages: [libraryTurn, ...messages, { role: "assistant", content: generation }],
   } as OpenAI.ChatCompletionCreateParamsNonStreaming)) as AutofixCompletion;
-}
-```
-
-```ts title="server.ts"
-import { autofix } from "./lib/autofix";
-
-// Pass the same messages you sent to your model.
-const completion = await autofix(messages, generation);
-
-if (completion.fix_summary.status === "fix_failed") {
-  renderFallback(generation);
-} else {
-  render(completion.choices[0].message.content);
 }
 ```
 
