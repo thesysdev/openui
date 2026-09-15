@@ -11,14 +11,12 @@ The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send
 
 <Mermaid
   chart={`
-flowchart TD
-    Model[Your model streams OpenUI Lang] --> Parse[Parse the whole generation with lang-core]
-    Parse -- valid --> Render[Render]
-    Parse -- invalid --> Autofix[POST /v1/autofix]
-    Autofix --> Status{fix_summary.status}
-    Status -- already_valid --> Render
-    Status -- fixed --> Replace[Render the fixed generation]
-    Status -- fix_failed --> Fallback[Show a fallback]
+flowchart LR
+    Model[Model output] --> Parse{Valid?}
+    Parse -- yes --> Render[Render]
+    Parse -- no --> Autofix[POST /v1/autofix]
+    Autofix -- already_valid / fixed --> Render
+    Autofix -- fix_failed --> Fallback[Fallback]
 `}
 />
 
