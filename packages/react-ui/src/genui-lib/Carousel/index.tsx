@@ -1,6 +1,6 @@
 "use client";
 
-import { defineComponent } from "@openuidev/react-lang";
+import { ComponentRenderProps, defineComponent } from "@openuidev/react-lang";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { z } from "zod/v4";
 import {
@@ -12,6 +12,27 @@ import {
 } from "../../components/Carousel";
 import { ContentChildUnion } from "../unions";
 
+type CarouselRenderProps = ComponentRenderProps<{
+  children: unknown[][];
+  variant?: "card" | "sunk";
+}>;
+
+/** Shared renderer — also used by the chat library's Carousel variant (wider content union). */
+export const CarouselRenderer = ({ props, renderNode }: CarouselRenderProps) => {
+  const items = props.children ?? [];
+  return (
+    <OpenUICarousel showButtons={true} variant={props.variant}>
+      <OpenUICarouselContent>
+        {items.map((item, i) => (
+          <OpenUICarouselItem key={i}>{renderNode(item)}</OpenUICarouselItem>
+        ))}
+      </OpenUICarouselContent>
+      <OpenUICarouselPrevious icon={<ChevronLeft />} />
+      <OpenUICarouselNext icon={<ChevronRight />} />
+    </OpenUICarousel>
+  );
+};
+
 export const Carousel = defineComponent({
   name: "Carousel",
   props: z.object({
@@ -19,18 +40,5 @@ export const Carousel = defineComponent({
     variant: z.enum(["card", "sunk"]).optional(),
   }),
   description: "Horizontal scrollable carousel",
-  component: ({ props, renderNode }) => {
-    const items = props.children ?? [];
-    return (
-      <OpenUICarousel showButtons={true} variant={props.variant}>
-        <OpenUICarouselContent>
-          {items.map((item, i) => (
-            <OpenUICarouselItem key={i}>{renderNode(item)}</OpenUICarouselItem>
-          ))}
-        </OpenUICarouselContent>
-        <OpenUICarouselPrevious icon={<ChevronLeft />} />
-        <OpenUICarouselNext icon={<ChevronRight />} />
-      </OpenUICarousel>
-    );
-  },
+  component: CarouselRenderer,
 });

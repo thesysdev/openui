@@ -92,7 +92,7 @@
 
 .openui-radio-item-label {
   flex: 1;
-  @include cssUtils.typography(primary, default);
+  @include cssUtils.typography(body, default);
   color: cssUtils.$text-neutral-primary;
   cursor: pointer;
   overflow-wrap: anywhere;

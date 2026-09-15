@@ -1,0 +1,30 @@
+// Shared scss helpers for the chat (genui-lib) primitives.
+// Import with: @use "../_shared/chatUtils" as chatUtils;
+@use "../../cssUtils" as cssUtils;
+
+// ── z-index scale (low → high) ──
+$z-background: 0;
+$z-content: 1;
+$z-content-elevated: 2;
+$z-toolbar: 20;
+$z-popover: 1000;
+$z-overlay: 9999;
+$z-overlay-tooltip: 10001;
+
+@mixin scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: cssUtils.$border-default transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: cssUtils.$border-default;
+    border-radius: cssUtils.$radius-full;
+  }
+}

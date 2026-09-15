@@ -5,7 +5,7 @@
   --openui-calendar-day-size: calc(#{cssUtils.$space-2xl} + #{cssUtils.$space-2xs});
   --openui-calendar-cell-radius: #{cssUtils.$radius-m};
 
-  @include cssUtils.typography(primary, default);
+  @include cssUtils.typography(body, default);
   width: fit-content;
   max-width: 100%;
   box-sizing: border-box;
@@ -181,6 +181,6 @@
 }
 
 .openui-calendar-footer {
-  @include cssUtils.typography(primary, default);
+  @include cssUtils.typography(body, default);
   color: cssUtils.$text-neutral-primary;
 }

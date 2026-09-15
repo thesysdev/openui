@@ -13,6 +13,7 @@ export const LineChartCondensedSchema = z.object({
   variant: z.enum(["linear", "natural", "step"]).optional(),
   xLabel: z.string().optional(),
   yLabel: z.string().optional(),
+  height: z.number().optional(),
 });
 
 export const LineChartCondensed = defineComponent({
@@ -29,6 +30,7 @@ export const LineChartCondensed = defineComponent({
       variant: props.variant as "linear" | "natural" | "step" | undefined,
       xAxisLabel: props.xLabel,
       yAxisLabel: props.yLabel,
+      height: props.height as number | undefined,
       isAnimationActive: false,
     });
   },

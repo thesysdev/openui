@@ -1,0 +1,428 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-text-block {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-3xs;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.openui-text-block__primary {
+  color: cssUtils.$text-neutral-primary;
+}
+
+.openui-text-block__secondary {
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.openui-text-block__secondary--positive {
+  color: cssUtils.$text-success-primary;
+}
+
+.openui-text-block__secondary--negative {
+  color: cssUtils.$text-danger-primary;
+}
+
+.openui-text-block__tertiary {
+  display: none;
+}
+
+.openui-text-block--title-text .openui-text-block__primary {
+  @include cssUtils.typography(heading, medium);
+}
+
+.openui-text-block--title-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--number-title-text .openui-text-block__primary {
+  @include cssUtils.typography(number, title-medium);
+}
+
+.openui-text-block--number-title-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--text-subtext .openui-text-block__primary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--text-subtext .openui-text-block__secondary {
+  @include cssUtils.typography(body, small);
+}
+
+.openui-text-block--highlight-text-number-subtext {
+  gap: 0;
+}
+
+.openui-text-block--highlight-text-number-subtext .openui-text-block__primary {
+  @include cssUtils.typography(body, heavy);
+}
+
+.openui-text-block--highlight-text-number-subtext .openui-text-block__secondary {
+  @include cssUtils.typography(body, small);
+}
+
+.openui-text-block--text .openui-text-block__primary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--highlight-text .openui-text-block__primary {
+  @include cssUtils.typography(body, heavy);
+}
+
+.openui-text-block--number .openui-text-block__primary {
+  @include cssUtils.typography(number, heavy);
+}
+
+.openui-text-block--highlight-number .openui-text-block__primary {
+  @include cssUtils.typography(number, large-heavy);
+}
+
+.openui-text-block--size-xs.openui-text-block--title-text,
+.openui-text-block--size-xs.openui-text-block--number-title-text {
+  gap: 0;
+}
+
+.openui-text-block--size-xs.openui-text-block--title-text .openui-text-block__primary {
+  @include cssUtils.typography(heading, extra-small);
+}
+
+.openui-text-block--size-xs.openui-text-block--title-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, small);
+}
+
+.openui-text-block--size-xs.openui-text-block--number-title-text .openui-text-block__primary {
+  @include cssUtils.typography(number, heavy);
+}
+
+.openui-text-block--size-xs.openui-text-block--number-title-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, small);
+}
+
+.openui-text-block--size-xs.openui-text-block--text .openui-text-block__primary {
+  @include cssUtils.typography(body, small);
+}
+
+.openui-text-block--size-xs.openui-text-block--text.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, small);
+}
+
+.openui-text-block--size-xs.openui-text-block--text-subtext,
+.openui-text-block--size-xs.openui-text-block--highlight-text-number-subtext {
+  gap: 0;
+}
+
+.openui-text-block--size-xs.openui-text-block--text-subtext .openui-text-block__primary {
+  @include cssUtils.typography(body, small);
+}
+
+.openui-text-block--size-xs.openui-text-block--text-subtext.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, small);
+}
+
+.openui-text-block--size-xs.openui-text-block--highlight-text-number-subtext
+  .openui-text-block__primary {
+  @include cssUtils.typography(body, small-heavy);
+}
+
+.openui-text-block--size-xs.openui-text-block--highlight-text-number-subtext.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, small-heavy);
+}
+
+.openui-text-block--size-xs.openui-text-block--text-subtext .openui-text-block__secondary,
+.openui-text-block--size-xs.openui-text-block--highlight-text-number-subtext
+  .openui-text-block__secondary {
+  @include cssUtils.typography(body, small);
+}
+
+.openui-text-block--size-xs.openui-text-block--highlight-text-number-subtext.openui-text-block--type-number
+  .openui-text-block__secondary {
+  @include cssUtils.typography(number, small);
+}
+
+.openui-text-block--size-xs.openui-text-block--number .openui-text-block__primary {
+  @include cssUtils.typography(number, small);
+}
+
+.openui-text-block--size-xs.openui-text-block--highlight-number .openui-text-block__primary {
+  @include cssUtils.typography(number, small-heavy);
+}
+
+.openui-text-block--size-xs.openui-text-block--highlight-text .openui-text-block__primary {
+  @include cssUtils.typography(body, small-heavy);
+}
+
+.openui-text-block--size-sm.openui-text-block--title-text,
+.openui-text-block--size-sm.openui-text-block--number-title-text {
+  gap: cssUtils.$space-3xs;
+}
+
+.openui-text-block--size-sm.openui-text-block--title-text .openui-text-block__primary {
+  @include cssUtils.typography(heading, small);
+}
+
+.openui-text-block--size-sm.openui-text-block--title-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--size-sm.openui-text-block--number-title-text .openui-text-block__primary {
+  @include cssUtils.typography(number, large-heavy);
+}
+
+.openui-text-block--size-sm.openui-text-block--number-title-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--size-sm.openui-text-block--text .openui-text-block__primary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--size-sm.openui-text-block--text.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, default);
+}
+
+.openui-text-block--size-sm.openui-text-block--text-subtext,
+.openui-text-block--size-sm.openui-text-block--highlight-text-number-subtext {
+  gap: 0;
+}
+
+.openui-text-block--size-sm.openui-text-block--text-subtext .openui-text-block__primary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--size-sm.openui-text-block--text-subtext.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, default);
+}
+
+.openui-text-block--size-sm.openui-text-block--highlight-text-number-subtext
+  .openui-text-block__primary {
+  @include cssUtils.typography(body, heavy);
+}
+
+.openui-text-block--size-sm.openui-text-block--highlight-text-number-subtext.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, heavy);
+}
+
+.openui-text-block--size-sm.openui-text-block--text-subtext .openui-text-block__secondary,
+.openui-text-block--size-sm.openui-text-block--highlight-text-number-subtext
+  .openui-text-block__secondary {
+  @include cssUtils.typography(body, small);
+}
+
+.openui-text-block--size-sm.openui-text-block--highlight-text-number-subtext.openui-text-block--type-number
+  .openui-text-block__secondary {
+  @include cssUtils.typography(number, small);
+}
+
+.openui-text-block--size-sm.openui-text-block--number .openui-text-block__primary {
+  @include cssUtils.typography(number, small);
+}
+
+.openui-text-block--size-sm.openui-text-block--highlight-number .openui-text-block__primary {
+  @include cssUtils.typography(number, heavy);
+}
+
+.openui-text-block--size-sm.openui-text-block--highlight-text {
+  gap: 0;
+}
+
+.openui-text-block--size-sm.openui-text-block--highlight-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, small);
+}
+
+.openui-text-block--size-sm.openui-text-block--highlight-text .openui-text-block__primary {
+  @include cssUtils.typography(body, heavy);
+}
+
+.openui-text-block--size-md.openui-text-block--title-text,
+.openui-text-block--size-md.openui-text-block--number-title-text {
+  gap: cssUtils.$space-xs;
+}
+
+.openui-text-block--size-md.openui-text-block--title-text .openui-text-block__primary {
+  @include cssUtils.typography(heading, medium);
+}
+
+.openui-text-block--size-md.openui-text-block--title-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--size-md.openui-text-block--number-title-text .openui-text-block__primary {
+  @include cssUtils.typography(number, title-medium);
+}
+
+.openui-text-block--size-md.openui-text-block--number-title-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--size-md.openui-text-block--text-subtext,
+.openui-text-block--size-md.openui-text-block--highlight-text,
+.openui-text-block--size-md.openui-text-block--highlight-text-number-subtext {
+  gap: 0;
+}
+
+.openui-text-block--size-md.openui-text-block--highlight-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--size-md.openui-text-block--highlight-text .openui-text-block__primary {
+  @include cssUtils.typography(body, heavy);
+}
+
+.openui-text-block--size-md.openui-text-block--text-subtext .openui-text-block__primary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--size-md.openui-text-block--text-subtext.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, default);
+}
+
+.openui-text-block--size-md.openui-text-block--highlight-text-number-subtext
+  .openui-text-block__primary {
+  @include cssUtils.typography(body, heavy);
+}
+
+.openui-text-block--size-md.openui-text-block--highlight-text-number-subtext.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, heavy);
+}
+
+.openui-text-block--size-md.openui-text-block--text-subtext .openui-text-block__secondary,
+.openui-text-block--size-md.openui-text-block--highlight-text-number-subtext
+  .openui-text-block__secondary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--size-md.openui-text-block--text-subtext.openui-text-block--type-number
+  .openui-text-block__secondary {
+  @include cssUtils.typography(number, default);
+}
+
+.openui-text-block--size-md.openui-text-block--highlight-text-number-subtext.openui-text-block--type-number
+  .openui-text-block__secondary {
+  @include cssUtils.typography(number, default);
+}
+
+.openui-text-block--size-md.openui-text-block--text.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, default);
+}
+
+.openui-text-block--size-md.openui-text-block--number .openui-text-block__primary {
+  @include cssUtils.typography(number, default);
+}
+
+.openui-text-block--size-md.openui-text-block--highlight-number .openui-text-block__primary {
+  @include cssUtils.typography(number, heavy);
+}
+
+.openui-text-block--size-lg.openui-text-block--text .openui-text-block__primary {
+  @include cssUtils.typography(body, large);
+}
+
+.openui-text-block--size-lg.openui-text-block--text.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, large);
+}
+
+.openui-text-block--size-lg.openui-text-block--text-subtext,
+.openui-text-block--size-lg.openui-text-block--highlight-text,
+.openui-text-block--size-lg.openui-text-block--highlight-text-number-subtext {
+  gap: 0;
+}
+
+.openui-text-block--size-lg.openui-text-block--highlight-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--size-lg.openui-text-block--highlight-text .openui-text-block__primary {
+  @include cssUtils.typography(body, large-heavy);
+}
+
+.openui-text-block--size-lg.openui-text-block--text-subtext .openui-text-block__primary {
+  @include cssUtils.typography(body, large);
+}
+
+.openui-text-block--size-lg.openui-text-block--text-subtext.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, large);
+}
+
+.openui-text-block--size-lg.openui-text-block--highlight-text-number-subtext
+  .openui-text-block__primary {
+  @include cssUtils.typography(body, large-heavy);
+}
+
+.openui-text-block--size-lg.openui-text-block--highlight-text-number-subtext.openui-text-block--type-number
+  .openui-text-block__primary {
+  @include cssUtils.typography(number, large-heavy);
+}
+
+.openui-text-block--size-lg.openui-text-block--text-subtext .openui-text-block__secondary,
+.openui-text-block--size-lg.openui-text-block--highlight-text-number-subtext
+  .openui-text-block__secondary {
+  @include cssUtils.typography(body, default);
+}
+
+.openui-text-block--size-lg.openui-text-block--text-subtext.openui-text-block--type-number
+  .openui-text-block__secondary {
+  @include cssUtils.typography(number, default);
+}
+
+.openui-text-block--size-lg.openui-text-block--highlight-text-number-subtext.openui-text-block--type-number
+  .openui-text-block__secondary {
+  @include cssUtils.typography(number, default);
+}
+
+.openui-text-block--size-lg.openui-text-block--number .openui-text-block__primary {
+  @include cssUtils.typography(number, large);
+}
+
+.openui-text-block--size-lg.openui-text-block--highlight-number .openui-text-block__primary {
+  @include cssUtils.typography(number, large-heavy);
+}
+
+.openui-text-block--size-lg.openui-text-block--title-text,
+.openui-text-block--size-lg.openui-text-block--number-title-text {
+  gap: cssUtils.$space-xs;
+}
+
+.openui-text-block--size-lg.openui-text-block--title-text .openui-text-block__primary {
+  @include cssUtils.typography(heading, large);
+}
+
+.openui-text-block--size-lg.openui-text-block--title-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, large);
+}
+
+.openui-text-block--size-lg.openui-text-block--number-title-text .openui-text-block__primary {
+  @include cssUtils.typography(number, title);
+}
+
+.openui-text-block--size-lg.openui-text-block--number-title-text .openui-text-block__secondary {
+  @include cssUtils.typography(body, large);
+}
+
+.openui-text-block--align-left {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.openui-text-block--align-center {
+  align-items: center;
+  text-align: center;
+}
+
+.openui-text-block--align-right {
+  align-items: flex-end;
+  text-align: right;
+}

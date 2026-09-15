@@ -145,3 +145,33 @@
     }
   }
 }
+
+// Compact variant (ListBlock size="small") — used inside card blocks.
+.openui-list-item-wrapper--small {
+  gap: cssUtils.$space-s;
+
+  .openui-list-item {
+    gap: cssUtils.$space-s-m;
+  }
+
+  .openui-list-item-indicator {
+    width: 36px;
+    height: 36px;
+
+    &-no-subtitle {
+      width: 20px;
+      height: 20px;
+    }
+
+    &-number {
+      @include cssUtils.typography(number, small);
+    }
+  }
+
+  .openui-list-item-title,
+  .openui-list-item-subtitle,
+  .openui-list-item-action-label,
+  .openui-list-item-action-icon {
+    @include cssUtils.typography(body, small);
+  }
+}
