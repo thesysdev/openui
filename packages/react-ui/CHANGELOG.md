@@ -1,5 +1,16 @@
 # @openuidev/react-ui
 
+## 0.16.0
+
+### Minor Changes
+
+- [#1184](https://github.com/thesysdev/openui/pull/1184) [`5cde7c3`](https://github.com/thesysdev/openui/commit/5cde7c36ccd419570dd6b2653fc88dc4f6471964) Thanks [@abhithesys](https://github.com/abhithesys)! - Widen peer dependency ranges for `@openuidev/react-headless` and `@openuidev/react-ui` to allow `0.15.x` (`>=0.14.0 <0.16.0`).
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @openuidev/react-headless@0.16.0
+
 ## 0.15.0
 
 ### Minor Changes
