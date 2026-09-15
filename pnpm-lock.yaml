@@ -14346,7 +14346,7 @@ snapshots:
 
   '@types/cross-spawn@6.0.6':
     dependencies:
-      '@types/node': 20.19.43
+      '@types/node': 24.13.3
 
   '@types/d3-array@3.2.2': {}
 
@@ -14518,7 +14518,7 @@ snapshots:
 
   '@types/node-fetch@2.6.13':
     dependencies:
-      '@types/node': 20.19.43
+      '@types/node': 24.13.3
       form-data: 4.0.6
 
   '@types/node@20.19.43':
@@ -14532,7 +14532,6 @@ snapshots:
   '@types/node@24.13.3':
     dependencies:
       undici-types: 7.18.2
-    optional: true
 
   '@types/prismjs@1.26.6': {}
 
@@ -17551,7 +17550,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 20.19.43
+      '@types/node': 24.13.3
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
@@ -20392,8 +20391,7 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  undici-types@7.18.2:
-    optional: true
+  undici-types@7.18.2: {}
 
   unenv@2.0.0-rc.24:
     dependencies:
