@@ -12,7 +12,7 @@ The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send
 <Mermaid
   chart={`
 flowchart LR
-    Model[Model output] --> Parse{Valid?}
+    Model[Model deltas] --> Acc[Accumulate] --> Parse{Valid?}
     Parse -- yes --> Render[Render]
     Parse -- no --> Autofix[POST /v1/autofix]
     Autofix -- already_valid / fixed --> Render
