@@ -1,23 +1,34 @@
-name: Update example OpenUI packages
+name: Update OpenUI starters
 
 on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
-  group: update-example-openui-packages
+  group: update-openui-starters
   cancel-in-progress: false
 
 jobs:
   update:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
+      - name: Mint app token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.THESYS_PR_CREATOR_APP_ID }}
+          private-key: ${{ secrets.THESYS_PR_CREATOR_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
+          token: ${{ steps.app-token.outputs.token }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -27,7 +38,10 @@ jobs:
           corepack enable
           corepack prepare pnpm@9.15.4 --activate
 
-      - name: Update OpenUI packages
+      - name: Update template OpenUI packages and lockfiles
+        run: pnpm templates:update
+
+      - name: Update example OpenUI packages
         run: pnpm examples:update
 
       - name: Install updated dependencies
@@ -36,26 +50,32 @@ jobs:
       - name: Verify examples
         run: pnpm examples:verify
 
-      - name: Create or update dependency pull request
+      - name: Create or update starter pull request
         env:
           BASE_BRANCH: ${{ github.event.repository.default_branch }}
-          GH_TOKEN: ${{ github.token }}
-          UPDATE_BRANCH: automation/update-example-openui-packages
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          UPDATE_BRANCH: automation/update-openui-starters
         run: |
           set -euo pipefail
-
-          if git diff --quiet -- ':(glob)examples/**/pnpm-lock.yaml' ':(glob)examples/**/package.json'; then
-            echo "OpenUI example packages are already current."
-            exit 0
-          fi
-
-          remote_sha="$(git ls-remote --heads origin "refs/heads/$UPDATE_BRANCH" | awk '{print $1}')"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -C "$UPDATE_BRANCH"
-          git add ':(glob)examples/**/pnpm-lock.yaml' ':(glob)examples/**/package.json'
-          git commit -m "chore(examples): update OpenUI packages"
+          git add \
+            ':(glob)examples/**/package.json' \
+            ':(glob)examples/**/pnpm-lock.yaml' \
+            ':(glob)examples/**/package-lock.json' \
+            ':(glob)templates/**/package.json' \
+            ':(glob)templates/**/package-lock.json' \
+            ':(glob)templates/**/manifest.json'
+
+          if git diff --cached --quiet; then
+            echo "OpenUI templates and examples are already current."
+            exit 0
+          fi
+
+          remote_sha="$(git ls-remote --heads origin "refs/heads/$UPDATE_BRANCH" | awk '{print $1}')"
+          git commit -m "chore: update OpenUI templates and examples"
 
           if [[ -n "$remote_sha" ]]; then
             git push --force-with-lease="refs/heads/$UPDATE_BRANCH:$remote_sha" origin "HEAD:refs/heads/$UPDATE_BRANCH"
@@ -69,13 +89,13 @@ jobs:
             exit 0
           fi
 
-          pr_body="Updates every example to the latest published versions of its \`@openuidev/*\` dependencies.
+          pr_body="Updates the OpenUI CLI templates, overlays, and examples to the latest published versions of their \`@openuidev/*\` dependencies.
 
-          The examples were installed from their refreshed lockfiles and all credential-free verification contracts passed before this pull request was created."
+          Template and overlay npm lockfiles were refreshed. Examples were installed from their refreshed lockfiles and all credential-free verification contracts passed before this pull request was created."
 
           gh pr create \
             --repo "$GITHUB_REPOSITORY" \
             --base "$BASE_BRANCH" \
             --head "$UPDATE_BRANCH" \
-            --title "chore(examples): update OpenUI packages" \
+            --title "chore: update OpenUI templates and examples" \
             --body "$pr_body"
