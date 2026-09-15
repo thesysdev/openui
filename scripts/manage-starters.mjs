@@ -1,6 +1,5 @@
 import { spawnSync } from "node:child_process";
 import {
-  cpSync,
   existsSync,
   mkdtempSync,
   readdirSync,
@@ -221,9 +220,9 @@ function refreshOverlayLockfile(template, overlayDir) {
       join(temporaryDirectory, "package.json"),
       mergedOverlayManifest(templateManifest, overlayManifest, lockfile),
     );
-    if (existsSync(lockfilePath)) {
-      cpSync(lockfilePath, join(temporaryDirectory, "package-lock.json"));
-    }
+    // A prior lockfile can contain peer constraints that are incompatible with
+    // the newly updated base template. Start from the generated manifest so
+    // npm resolves the new graph instead of rejecting the stale one.
 
     console.log(`\n==> ${relative(repoRoot, overlayDir)} lockfile`);
     runNpmInstall(temporaryDirectory);
