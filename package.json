@@ -12,7 +12,7 @@
     "templates:update": "node scripts/manage-starters.mjs templates update",
     "test": "pnpm -r run test",
     "build:packages": "pnpm --filter \"./packages/**\" --workspace-concurrency=1 run build",
-    "version:ci": "changeset version && pnpm install --lockfile-only",
+    "version:ci": "changeset version && node scripts/verify-peer-windows.mjs && pnpm install --lockfile-only",
     "release:publish": "node scripts/verify-peer-windows.mjs && pnpm run build:packages && pnpm changeset publish"
   },
   "engines": {
