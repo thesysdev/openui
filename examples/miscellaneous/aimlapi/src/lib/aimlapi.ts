@@ -19,6 +19,6 @@ export const aimlapi = createOpenAICompatible({
     "HTTP-Referer": "https://github.com/thesysdev/openui",
     "X-Title": "OpenUI",
     "X-AIMLAPI-Source": "agent/openui",
-    "X-AIMLAPI-Partner-ID": "part_PLACEHOLDER_OPENUI",
+    "X-AIMLAPI-Partner-ID": "part_oJ36ogWXaJEtgupTSiDwvUet",
   },
 });
