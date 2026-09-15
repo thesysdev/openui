@@ -1,5 +1,17 @@
 # @openuidev/assistant-ui
 
+## 0.1.1
+
+### Patch Changes
+
+- [#1186](https://github.com/thesysdev/openui/pull/1186) [`0227ad7`](https://github.com/thesysdev/openui/commit/0227ad77ed79a6292802960c69b61e6a75e0fcae) Thanks [@abhithesys](https://github.com/abhithesys)! - Widen the internal `react-headless`/`react-ui` peer windows to include the
+  0.16.x line, fixing an install-time peer mismatch where these packages
+  required a `react-headless`/`react-ui` version older than the one they ship
+  against.
+- Updated dependencies [[`0227ad7`](https://github.com/thesysdev/openui/commit/0227ad77ed79a6292802960c69b61e6a75e0fcae)]:
+  - @openuidev/react-ui@0.16.1
+  - @openuidev/react-headless@0.16.1
+
 ## 0.1.0
 
 ### Minor Changes
