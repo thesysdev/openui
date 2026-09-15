@@ -9,7 +9,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, relative, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -187,6 +187,19 @@ function runNpmInstall(directory) {
   );
 }
 
+function refreshNpmLockfile(manifest, lockfilePath, label) {
+  const temporaryDirectory = mkdtempSync(join(tmpdir(), "openui-lockfile-"));
+
+  try {
+    writeJson(join(temporaryDirectory, "package.json"), manifest);
+    console.log(`\n==> ${label}`);
+    runNpmInstall(temporaryDirectory);
+    cpSync(join(temporaryDirectory, "package-lock.json"), lockfilePath);
+  } finally {
+    rmSync(temporaryDirectory, { recursive: true, force: true });
+  }
+}
+
 function mergedOverlayManifest(templateManifest, overlayManifest, lockfile) {
   const manifest = structuredClone(templateManifest);
   const overlayPackageJson = overlayManifest.packageJson ?? {};
@@ -212,25 +225,15 @@ function refreshOverlayLockfile(template, overlayDir) {
   const lockfile = existsSync(lockfilePath) ? readJson(lockfilePath) : {};
   const overlayManifest = readJson(join(overlayDir, "manifest.json"));
   const templateManifest = readJson(template.manifestPath);
-  const temporaryDirectory = mkdtempSync(
-    join(tmpdir(), `openui-${basename(template.directory)}-`),
+
+  // A prior lockfile can contain peer constraints that are incompatible with
+  // the newly updated base template. Start from the generated manifest so npm
+  // resolves the new graph instead of rejecting the stale one.
+  refreshNpmLockfile(
+    mergedOverlayManifest(templateManifest, overlayManifest, lockfile),
+    lockfilePath,
+    `${relative(repoRoot, overlayDir)} lockfile`,
   );
-
-  try {
-    writeJson(
-      join(temporaryDirectory, "package.json"),
-      mergedOverlayManifest(templateManifest, overlayManifest, lockfile),
-    );
-    // A prior lockfile can contain peer constraints that are incompatible with
-    // the newly updated base template. Start from the generated manifest so
-    // npm resolves the new graph instead of rejecting the stale one.
-
-    console.log(`\n==> ${relative(repoRoot, overlayDir)} lockfile`);
-    runNpmInstall(temporaryDirectory);
-    cpSync(join(temporaryDirectory, "package-lock.json"), lockfilePath);
-  } finally {
-    rmSync(temporaryDirectory, { recursive: true, force: true });
-  }
 }
 
 function manageExamples() {
@@ -252,8 +255,11 @@ function manageExamples() {
           writeJson(application.manifestPath, manifest);
         }
         runPnpm(application, ["install", "--lockfile-only", "--fix-lockfile"]);
-        console.log(`\n==> ${application.path} npm lockfile`);
-        runNpmInstall(application.directory);
+        refreshNpmLockfile(
+          manifest,
+          join(application.directory, "package-lock.json"),
+          `${application.path} npm lockfile`,
+        );
       }
       continue;
     }
@@ -301,8 +307,11 @@ function manageTemplates() {
       }
     }
 
-    console.log(`\n==> ${template.path} lockfile`);
-    runNpmInstall(template.directory);
+    refreshNpmLockfile(
+      manifest,
+      join(template.directory, "package-lock.json"),
+      `${template.path} lockfile`,
+    );
     for (const overlayDir of findOverlayDirectories(template.directory)) {
       refreshOverlayLockfile(template, overlayDir);
     }
