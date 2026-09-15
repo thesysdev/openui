@@ -98,10 +98,6 @@ import { VisualCardBlock, VisualCardItem } from "./VisualCardBlock";
 
 import { ChatContentChildUnion } from "./unions";
 
-// Form / FormControl now accept Chips and OptionCards inputs in the base library
-// too (see FormControl/schema.ts), so the chat library registers them as-is —
-// no chat-only variant needed.
-
 // ── Chat containers — same renderers as the base Tabs / Accordion / Carousel / SectionItem,
 // but their content unions accept every chat block (card blocks, EntityList, EditableTable,
 // InlineHeader, ...). Defined here, not in unions.ts, to avoid circular imports; registered
