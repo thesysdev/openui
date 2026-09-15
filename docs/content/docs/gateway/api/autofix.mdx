@@ -75,6 +75,8 @@ export async function generate(messages: OpenAI.ChatCompletionMessageParam[]) {
 }
 ```
 
+`send`, `replace`, and `sendFallback` stand for your own transport to the browser: forward a delta, swap the rendered generation for the fixed one, and show a fallback.
+
 `parse` and `push` never throw. They take fenced or bare OpenUI Lang and report prop errors in `meta.errors`, with the codes listed under [Error codes](#error-codes). For a generation you already hold in full, `createParser(library.schema, library.root).parse(generation)` gives the same result.
 
 ## Fix an invalid generation
