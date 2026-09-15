@@ -98,7 +98,7 @@ if (completion.fix_summary.status === "fix_failed") {
 }
 ```
 
-`openui.spec.json` is the library spec that `openui generate --spec` writes for your components. See [Generate OpenUI Lang](/docs/gateway/generate-openui-lang) for how it is created. `generateSystemPrompt({ cloud: true, library })` turns it into a two-line `]]>openui:config` block, the same one the Gateway reads; the API takes the library from the first such block that carries one, and counts no config block as conversation. A system prompt written for the Gateway can keep its `libraryVersion` block ahead of it. The API always needs the library: a generation is only valid against the components your app renders, so there is no built-in default.
+`openui.spec.json` is the library spec that `openui generate --spec` writes for your components. See [Generate OpenUI Lang](/docs/gateway/generate-openui-lang) for how it is created. `generateSystemPrompt({ cloud: true, library })` turns it into a two-line `]]>openui:config` block, the same one the Gateway reads; the API reads the library from the first message only, and counts no config block as conversation. The API always needs the library: a generation is only valid against the components your app renders, so there is no built-in default.
 
 `model` is accepted so that an SDK client has something to send, and it is ignored: the fix always runs on the same correction model.
 
@@ -141,7 +141,7 @@ export async function autofix(messages: Message[], generation: string) {
 
 | Field      | Type   | Required | Purpose                                                                                                                                                                                                                                                                                 |
 | ---------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `messages` | array  | Yes      | The conversation, in the OpenAI chat message shape. A `system` turn carries your library as the `]]>openui:config` block that `generateSystemPrompt({ cloud: true, library })` writes; it is read as the library, not as conversation. The last turn must be an `assistant` turn whose text is the generation to fix, up to 100,000 characters. The turns in between are the context: only the text of `user`, `assistant`, `system`, and `developer` turns is read, and tool turns and non-text parts are dropped. |
+| `messages` | array  | Yes      | The conversation, in the OpenAI chat message shape. The first message is a `system` turn that carries your library as the `]]>openui:config` block that `generateSystemPrompt({ cloud: true, library })` writes; it is read as the library, not as conversation. The last turn must be an `assistant` turn whose text is the generation to fix, up to 100,000 characters. The turns in between are the context: only the text of `user`, `assistant`, `system`, and `developer` turns is read, and tool turns and non-text parts are dropped. |
 | `model`    | string | No       | Accepted so that an SDK client can name a model, and ignored. The answer always reports `openui/autofix`.                                                                                                                                                                               |
 | `stream`   | bool   | No       | Streaming is not supported. A fix has nothing to send until it is finished, so `stream: true` is a `400`.                                                                                                                                                                                |
 
@@ -273,7 +273,7 @@ The endpoint returns the same error shape as the Chat Completions and Responses 
 
 | Status | Type                    | When                                                                                                                     |
 | ------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `400`  | `invalid_request_error` | No library turn, or a malformed one; the last turn is not an assistant turn with a generation; a limit is passed; or `stream` is `true`. |
+| `400`  | `invalid_request_error` | The first message is not a library turn, or its block is malformed; the last turn is not an assistant turn with a generation; a limit is passed; or `stream` is `true`. |
 | `401`  | `authentication_error`  | The API key is missing or invalid.                                                                                       |
 | `429`  | `rate_limit_error`      | The organization has no credits, or billing is suspended.                                                                |
 | `500`  | `internal_server_error` | The fixing model could not be reached. Nothing is charged.                                                               |
