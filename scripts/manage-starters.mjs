@@ -252,6 +252,8 @@ function manageExamples() {
           writeJson(application.manifestPath, manifest);
         }
         runPnpm(application, ["install", "--lockfile-only", "--fix-lockfile"]);
+        console.log(`\n==> ${application.path} npm lockfile`);
+        runNpmInstall(application.directory);
       }
       continue;
     }
