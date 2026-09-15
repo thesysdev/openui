@@ -98,7 +98,7 @@ if (completion.fix_summary.status === "fix_failed") {
 }
 ```
 
-`openui.spec.json` is the library spec that `openui generate --spec` writes for your components. See [Generate OpenUI Lang](/docs/gateway/generate-openui-lang) for how it is created. `generateSystemPrompt({ cloud: true, library })` turns it into a two-line `]]>openui:config` block, the same one the Gateway reads; the API takes the library from that turn and does not count the turn as conversation. The API always needs it: a generation is only valid against the components your app renders, so there is no built-in default.
+`openui.spec.json` is the library spec that `openui generate --spec` writes for your components. See [Generate OpenUI Lang](/docs/gateway/generate-openui-lang) for how it is created. `generateSystemPrompt({ cloud: true, library })` turns it into a two-line `]]>openui:config` block, the same one the Gateway reads; the API takes the library from the first such block that carries one, and counts no config block as conversation. A system prompt written for the Gateway can keep its `libraryVersion` block ahead of it. The API always needs the library: a generation is only valid against the components your app renders, so there is no built-in default.
 
 `model` is accepted so that an SDK client has something to send, and it is ignored: the fix always runs on the same correction model.
 
