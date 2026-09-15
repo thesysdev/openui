@@ -49,10 +49,14 @@
     }
   },
   "devDependencies": {
+    "@types/node": "catalog:",
     "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "ai": "^6.0.236",
     "eve": "^0.11.7",
+    "jsdom": "catalog:",
     "openai": "^6.22.0",
+    "react-dom": "catalog:",
     "vitest": "^4.1.0"
   },
   "keywords": [

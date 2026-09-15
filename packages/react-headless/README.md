@@ -80,6 +80,41 @@ const llm: ChatLLM = {
 
 ## Hooks
 
+### `useOpenuiCloudStorage(options)`
+
+Connect conversation history and artifact storage to OpenUI Cloud:
+
+```tsx
+import { ChatProvider, useOpenuiCloudStorage, type ChatLLM } from "@openuidev/react-headless";
+
+function CloudChat({ llm }: { llm: ChatLLM }) {
+  const storage = useOpenuiCloudStorage({ token: "/api/frontend-token" });
+  return (
+    <ChatProvider llm={llm} storage={storage}>
+      <YourChatUI />
+    </ChatProvider>
+  );
+}
+```
+
+Your backend token endpoint receives a `POST` and returns `{ token, expires_at }`,
+where `expires_at` is Unix time in seconds. The hook lazily caches the token,
+refreshes it 60 seconds before expiry, and retries a storage request once on 401.
+It sends the token in `x-thesys-frontend-token`; keep the master API key on your server.
+
+Alternatively, pass `token: async () => getToken()` to manage token caching yourself.
+Set `features: { artifact: false }` for conversation-only storage. Other options
+are `apiBaseUrl` (default `https://api.thesys.dev`), `fetch`, and `refreshSkewSeconds`.
+The exported option types are `OpenuiCloudOptions` and `OpenuiCloudFeatures`.
+
+Generation uses a separate `llm` adapter pointing to your backend.
+`ChatProvider` captures storage on mount, so remount the provider when switching
+users or storage configurations.
+
+**Migrating from `@openuidev/thesys`:** change the hook import to
+`@openuidev/react-headless`, or `@openuidev/react-ui`, which re-exports it.
+The hook's options and `ChatStorage` return value are unchanged.
+
 ### `useThread()`
 
 Access the current thread's messages, send new messages, and check streaming state:
