@@ -219,7 +219,7 @@ const RadarChartComponent = <T extends RadarChartData>({
                 rechartsProps={rechartsProps}
               >
                 <RechartsRadarChart
-                  data={data}
+                  data={data ?? []}
                   margin={{
                     left: 10,
                     right: 10,

@@ -79,6 +79,7 @@ const AreaChartCondensedComponent = <T extends AreaChartData>({
   height = CHART_HEIGHT,
   width,
 }: AreaChartCondensedProps<T>) => {
+  const safeData = (data ?? []) as T;
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 
@@ -315,7 +316,7 @@ const AreaChartCondensedComponent = <T extends AreaChartData>({
                 <RechartsAreaChart
                   accessibilityLayer
                   key={`area-chart-condensed-${id}`}
-                  data={data}
+                  data={safeData}
                   margin={chartMargin}
                   onClick={onAreaClick}
                 >

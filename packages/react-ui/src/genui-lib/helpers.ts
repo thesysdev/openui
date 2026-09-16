@@ -24,6 +24,7 @@ export function buildChartData(
   labels: unknown,
   series: unknown,
 ): Record<string, string | number>[] {
+  if (labels == null || series == null) return [];
   const lbls = asArray(labels) as string[];
 
   // Tabular format: labels = column names, series = 2D rows from Query results
@@ -60,6 +61,7 @@ export function buildChartData(
 }
 
 export function buildSliceData(slices: unknown): Record<string, string | number>[] {
+  if (slices == null) return [];
   return asElementNodes(slices).map((s) => ({
     category: s.props["category"] as string,
     value: s.props["value"] as number,
