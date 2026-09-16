@@ -5,7 +5,7 @@ description: Find and use model identifiers supported by OpenUI Gateway.
 
 OpenUI Gateway supports hundreds of models from OpenAI, Anthropic, Google, Meta, Mistral, and other model labs.
 
-Pass the model ID directly to the `model` field in either the Chat Completions or Responses API:
+Pass the model ID directly to the `model` field in either the [Chat Completions](/docs/gateway/api/chat-completions) or [Responses API](/docs/gateway/api/responses):
 
 ```ts
 const response = await gateway.chat.completions.create({
@@ -25,7 +25,61 @@ model: "openai/gpt-5.6-sol" // Correct
 model: "gpt-5.6-sol"        // Missing the author
 ```
 
-{/* TODO: Document provider routing after confirming the exact subset of OpenRouter provider options supported by Gateway. */}
+## Provider routing
+
+OpenUI Gateway uses [OpenRouter](https://openrouter.ai/) to serve third-party models from providers other than OpenAI, Anthropic, and Google Gemini.
+
+OpenUI Gateway allows routing your request to a model provider of your choice. To configure routing, populate the `provider` object in [Chat Completions](/docs/gateway/api/chat-completions) or the [Responses API](/docs/gateway/api/responses).
+
+Example: run `google/gemma-4-31b-it` only on Cerebras:
+
+```ts
+const response = await gateway.chat.completions.create({
+  model: "google/gemma-4-31b-it",
+  messages,
+  provider: {
+    only: ["cerebras/fp16"],
+  },
+});
+```
+
+<Callout type="info">
+  Provider slugs in `order`, `only`, and `ignore` must match OpenRouter exactly — including
+  variants such as `cerebras/fp16`. On the model page on
+  [OpenRouter](https://openrouter.ai/google/gemma-4-31b-it), open the provider list and use the
+  copy button next to the provider name to get the exact slug.
+</Callout>
+
+<Callout type="warn">
+  Provider routing settings affect throughput, availability, and data retention. Before pinning or
+  restricting providers, read each provider's policy on OpenRouter to understand what that endpoint
+  does with your data and how it behaves under load.
+</Callout>
+
+The structure of the `provider` object is:
+
+### Important fields
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `order` | `string[]` | — | Provider slugs to try in order (for example, `["anthropic", "openai"]`). OpenRouter uses the first available provider in the list for the requested model. |
+| `zdr` | `boolean` | — | When `true`, restrict routing to Zero Data Retention (ZDR) endpoints that do not retain prompts. |
+| `only` | `string[]` | — | Allow only these provider slugs. Other providers are excluded, even if they serve the same model. |
+| `ignore` | `string[]` | — | Skip these provider slugs when routing. Remaining eligible providers can still be used. |
+
+### Other fields
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `allow_fallbacks` | `boolean` | `true` | When `true` (default), fall back to other providers if your chosen provider is unavailable. When `false`, the request fails if the selected provider cannot serve it. |
+| `require_parameters` | `boolean` | `false` | When `true`, route only to providers that support every parameter in your request. By default, providers ignore parameters they do not support. |
+| `data_collection` | `"allow"` \| `"deny"` | `"allow"` | `"allow"` (default) permits providers that may store or train on data. `"deny"` restricts routing to providers that do not collect user data. |
+| `enforce_distillable_text` | `boolean` | — | When `true`, route only to models whose authors have enabled text distillation. Useful for fine-tuning or distillation workflows. |
+| `quantizations` | `string[]` | — | Filter providers by quantization level. Common values include `int4`, `int8`, `fp8`, and `fp16`. |
+| `sort` | `string` \| `{ by: string; partition?: string }` | — | Sort providers by `"price"`, `"throughput"`, or `"latency"`. Can be a string or an object with `by` and optional `partition`. Disables default load balancing. |
+| `preferred_min_throughput` | `number` \| `Record<string, number>` | — | Prefer providers above this throughput (tokens/sec). Accepts a number (p50) or percentile cutoffs. Sub-threshold endpoints are deprioritized, not excluded. |
+| `preferred_max_latency` | `number` \| `Record<string, number>` | — | Prefer providers below this latency (seconds). Accepts a number (p50) or percentile cutoffs. Above-threshold endpoints are deprioritized, not excluded. |
+
 
 ## Availability and capabilities
 
