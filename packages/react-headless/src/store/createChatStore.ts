@@ -84,6 +84,7 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
           messages: [],
           threadError: null,
           executingToolCallIds: new Set<string>(),
+          isRunning: false,
         });
       },
 
@@ -103,6 +104,7 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
           isLoadingMessages: true,
           threadError: null,
           executingToolCallIds: new Set<string>(),
+          isRunning: false,
         });
         threadStorage
           .getMessages(threadId)
@@ -162,7 +164,11 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
         set((s) => ({ messages: [...s.messages, optimisticMessage] }));
 
         abortController.signal.addEventListener("abort", () => {
-          set({ _abortController: null, isRunning: false });
+          set({
+            _abortController: null,
+            isRunning: false,
+            executingToolCallIds: new Set<string>(),
+          });
         });
 
         try {
@@ -214,28 +220,39 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
             throw e;
           }
 
+          const belongsToThisRun = () => get()._abortController === abortController;
+
           await processStreamedMessage({
             response,
-            createMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
-            updateMessage: (msg) =>
+            createMessage: (msg) => {
+              if (!belongsToThisRun()) return;
+              set((s) => ({ messages: [...s.messages, msg] }));
+            },
+            updateMessage: (msg) => {
+              if (!belongsToThisRun()) return;
               set((s) => ({
                 messages: s.messages.map((m) => (m.id === msg.id ? msg : m)),
-              })),
+              }));
+            },
             // A tool's args have closed (TOOL_CALL_END) → it is now executing.
-            markToolExecuting: (id) =>
+            markToolExecuting: (id) => {
+              if (!belongsToThisRun()) return;
               set((s) =>
                 s.executingToolCallIds.has(id)
                   ? s
                   : { executingToolCallIds: new Set(s.executingToolCallIds).add(id) },
-              ),
+              );
+            },
             // Its result landed (or it errored) → no longer executing.
-            clearToolExecuting: (id) =>
+            clearToolExecuting: (id) => {
+              if (!belongsToThisRun()) return;
               set((s) => {
                 if (!s.executingToolCallIds.has(id)) return s;
                 const next = new Set(s.executingToolCallIds);
                 next.delete(id);
                 return { executingToolCallIds: next };
-              }),
+              });
+            },
             adapter: configRef.current.llm.streamProtocol,
           });
         } catch (e) {
@@ -243,6 +260,9 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
             set({ threadError: e instanceof Error ? e : new Error(String(e)) });
           }
         } finally {
+          // Skip if this run was aborted or replaced — a newer processMessage
+          // owns `_abortController` / `isRunning`. Abort already cleared them.
+          if (get()._abortController !== abortController) return;
           // Clear any tool calls still flagged "executing" — adapters that emit
           // TOOL_CALL_END without a matching TOOL_CALL_RESULT (e.g. client-side
           // tool calls in the OpenAI adapters) would otherwise leave them stuck

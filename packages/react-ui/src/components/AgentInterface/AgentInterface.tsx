@@ -215,8 +215,18 @@ export const AgentInterface: AgentInterfaceComponent = ((props: AgentInterfacePr
   const resolvedAssistantMessage = useMemo<AssistantMessageComponent | undefined>(() => {
     if (components?.AssistantMessage) return components.AssistantMessage;
     if (componentLibrary) {
-      const Cmp = ({ message }: { message: AssistantMessage }) => (
-        <GenUIAssistantMessage message={message} library={componentLibrary} />
+      const Cmp = ({
+        message,
+        isStreaming,
+      }: {
+        message: AssistantMessage;
+        isStreaming: boolean;
+      }) => (
+        <GenUIAssistantMessage
+          message={message}
+          library={componentLibrary}
+          isStreaming={isStreaming}
+        />
       );
       return Cmp;
     }

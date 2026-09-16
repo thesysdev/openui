@@ -193,4 +193,22 @@ describe("streaming observability integration", () => {
     expect(settled[1]?.detail["errors"]).toEqual([queryError]);
     expect(settled[1]?.detail["response"]).toBe(response);
   });
+
+  it("settles when the Renderer unmounts while still streaming", () => {
+    const events: ObservabilityEvent[] = [];
+    const removeListener = observability.listenAll((event) => {
+      if (event.detail.kind === "react-lang:stream") events.push(event);
+    });
+
+    act(() => root.render(createElement(Harness, { isStreaming: true, queryErrors: [] })));
+    expect(events.map((event) => event.detail["phase"])).toEqual(["streaming"]);
+
+    act(() => root.unmount());
+    expect(events.map((event) => event.detail["phase"])).toEqual(["streaming", "settled"]);
+    expect(events[0]?.detail.id).toBe(events[1]?.detail.id);
+    removeListener();
+
+    // afterEach also unmounts — give it a live root.
+    root = createRoot(container);
+  });
 });
