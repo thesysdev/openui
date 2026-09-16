@@ -6,6 +6,7 @@
   "compilerOptions": {
     "moduleResolution": "bundler",
     "module": "ESNext",
+    "lib": ["ES2022", "DOM"],
     "outDir": "./dist",
     "rootDir": "./src",
     "noEmit": true
