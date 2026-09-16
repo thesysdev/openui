@@ -42,6 +42,12 @@ catalogs:
     jsdom:
       specifier: ^26.1.0
       version: 26.1.0
+    prettier:
+      specifier: ^3.2.5
+      version: 3.9.6
+    prettier-plugin-organize-imports:
+      specifier: ^3.2.4
+      version: 3.2.4
     react:
       specifier: ^18.3.1 || ^19.0.0
       version: 19.2.4
@@ -100,10 +106,10 @@ importers:
         specifier: 'catalog:'
         version: 4.4.1(@typescript-eslint/eslint-plugin@8.65.0(@typescript-eslint/parser@8.65.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))
       prettier:
-        specifier: ^3.2.5
+        specifier: 'catalog:'
         version: 3.9.6
       prettier-plugin-organize-imports:
-        specifier: ^3.2.4
+        specifier: 'catalog:'
         version: 3.2.4(prettier@3.9.6)(typescript@5.9.3)
       publint:
         specifier: ^0.3.18
@@ -775,7 +781,7 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0(postcss@8.5.24)
       prettier-plugin-organize-imports:
-        specifier: ^3.2.4
+        specifier: 'catalog:'
         version: 3.2.4(prettier@3.9.6)(typescript@5.9.3)
       prop-types:
         specifier: ^15.8.1
