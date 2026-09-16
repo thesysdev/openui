@@ -282,7 +282,8 @@
   font-size: 18px;
   font-weight: 500;
   letter-spacing: -0.2px;
-  line-height: normal;
+  line-height: 1.25;
+  text-wrap: balance;
 }
 
 .cardDescription {

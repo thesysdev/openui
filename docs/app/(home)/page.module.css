@@ -38,7 +38,7 @@
      and Observability bands below it rather than sitting 40px wider. */
   max-width: var(--home-container-max);
   margin-inline: auto;
-  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+  padding-inline: var(--home-container-gutter);
 }
 
 /* NB: both breakpoints below override this gap, so editing it here has no
@@ -94,7 +94,6 @@
     gap: 7rem;
     padding-block: 4rem;
   }
-
   /* The feature grid states the Lang band's own capabilities, so it should read
      as part of that band. The shell's gap is the measure between unrelated
      sections, which is too much here; this pulls the grid back up under it. */

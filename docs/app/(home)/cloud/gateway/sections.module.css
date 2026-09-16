@@ -3,7 +3,7 @@
   width: 100%;
   max-width: var(--home-container-max);
   margin-inline: auto;
-  padding-inline: var(--home-section-padding-inline);
+  padding-inline: var(--home-container-gutter);
 }
 
 .problemSection {
@@ -11,7 +11,7 @@
 }
 
 .repairSection {
-  padding-bottom: 160px;
+  padding-bottom: 64px;
 }
 
 .sectionLockup {
@@ -397,7 +397,7 @@ section.usageSection {
   }
 
   .repairSection {
-    padding-bottom: 112px;
+    padding-bottom: 48px;
   }
 
   .pricingBand {
@@ -457,7 +457,7 @@ section.usageSection {
   }
 
   .repairSection {
-    padding-bottom: 96px;
+    padding-bottom: 48px;
   }
 
   .pricingBand {

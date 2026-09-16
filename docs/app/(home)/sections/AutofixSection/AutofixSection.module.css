@@ -1,0 +1,229 @@
+.section {
+  --autofix-text: var(--openui-text-neutral-primary);
+  --autofix-muted: var(--openui-text-neutral-secondary);
+  --autofix-surface: #fff;
+  --autofix-border: var(--home-hairline);
+
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--home-container-max);
+  margin: clamp(4.5rem, 8vw, 6.5rem) auto;
+  color: var(--autofix-text);
+}
+
+.section:not(.cloud) {
+  margin-top: clamp(1.25rem, 2vw, 2rem);
+  margin-bottom: clamp(7.5rem, 10vw, 9rem);
+  padding-inline: var(--home-container-gutter);
+}
+
+.cloud {
+  --autofix-text: #fff;
+  --autofix-muted: rgba(255, 255, 255, 0.58);
+  --autofix-surface: rgba(255, 255, 255, 0.042);
+  --autofix-border: rgba(255, 255, 255, 0.075);
+}
+
+.banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(22rem, 0.9fr) minmax(0, 1.1fr);
+  align-items: stretch;
+  overflow: hidden;
+  min-height: 13.5rem;
+  border: 1px solid var(--autofix-border);
+  border-radius: 20px;
+  background: var(--autofix-surface);
+}
+
+.copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  padding: clamp(1.375rem, 2.4vw, 2rem);
+}
+
+.title {
+  max-width: 18ch;
+  margin: 0;
+  font-family: var(--home-font-display);
+  font-size: clamp(1rem, 1.5vw, 1.375rem);
+  font-weight: var(--home-title-weight);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.titleLine {
+  display: block;
+  white-space: nowrap;
+}
+
+.description {
+  max-width: 31rem;
+  margin: 0.75rem 0 0;
+  font-family: var(--home-font-text);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--autofix-muted);
+  text-wrap: pretty;
+}
+
+.descriptionLine {
+  display: block;
+}
+
+.cta {
+  width: fit-content;
+  max-width: none;
+  margin-top: 1rem;
+}
+
+.cloud .cta {
+  background: #0a0a0a;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: var(--home-bevel-on-dark);
+  color: #fff;
+  --bevel-badge-bg: #fff;
+  --bevel-badge-fg: #0a0a0a;
+}
+
+.visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  align-self: stretch;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.illustration {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  display: block;
+  width: calc(100% - 12px);
+  aspect-ratio: 3 / 1;
+  transform: translateY(-50%);
+  background-image:
+    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2"),
+    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2");
+  background-position:
+    left center,
+    left center;
+  background-repeat: no-repeat;
+  background-size: contain, contain;
+}
+
+.section:not(.cloud) .illustration {
+  background-image:
+    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2"),
+    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2");
+  background-position:
+    left center,
+    left center;
+  background-size: contain, contain;
+  filter: invert(1) hue-rotate(180deg) saturate(1.55) contrast(0.92) brightness(1.14);
+}
+
+[data-theme="dark"] .section:not(.cloud) {
+  --autofix-surface: rgba(255, 255, 255, 0.042);
+  --autofix-border: rgba(255, 255, 255, 0.075);
+}
+
+[data-theme="dark"] .section:not(.cloud) .illustration {
+  background-image:
+    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2"),
+    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2");
+  background-position:
+    left center,
+    left center;
+  background-size: contain, contain;
+  filter: none;
+}
+
+[data-theme="dark"] .cloud {
+  --autofix-text: #0a0a0a;
+  --autofix-muted: rgba(10, 10, 10, 0.58);
+  --autofix-surface: #fff;
+  --autofix-border: rgba(10, 10, 10, 0.075);
+}
+
+[data-theme="dark"] .cloud .illustration {
+  background-image:
+    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2"),
+    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2");
+  background-position:
+    left center,
+    left center;
+  background-size: contain, contain;
+  filter: invert(1) hue-rotate(180deg) saturate(1.55) contrast(0.92) brightness(1.14);
+}
+
+[data-theme="dark"] .cloud .cta {
+  background: var(--home-surface-raised);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: var(--home-bevel);
+  color: #0a0a0a;
+  --bevel-badge-bg: #0a0a0a;
+  --bevel-badge-fg: #fff;
+}
+
+@media (max-width: 900px) {
+  .banner {
+    grid-template-columns: minmax(20rem, 0.95fr) minmax(0, 1.05fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .section {
+    margin-block: 4rem;
+  }
+
+  .section:not(.cloud) {
+    margin-top: 1.5rem;
+    margin-bottom: 6rem;
+  }
+
+  .banner {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    border-radius: 18px;
+  }
+
+  .copy {
+    padding: 1.375rem;
+  }
+
+  .title {
+    max-width: 20ch;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  .description {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 21px;
+  }
+
+  .descriptionLine {
+    display: inline;
+    white-space: nowrap;
+  }
+
+  .visual {
+    min-height: 8rem;
+  }
+
+  .illustration {
+    width: calc(100% - 12px);
+  }
+}

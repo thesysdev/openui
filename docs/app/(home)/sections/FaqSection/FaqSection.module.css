@@ -12,9 +12,11 @@
   /* On top of the content shell's own gap: the FAQ closes the page and wants
      more separation from the wall of tweets above it. */
   margin-top: clamp(3rem, 6vw, 5.5rem);
+  box-sizing: border-box;
   width: 100%;
   max-width: var(--home-container-max);
   margin-inline: auto;
+  padding-inline: var(--home-container-gutter);
   color: var(--faq-text);
 }
 

@@ -21,6 +21,7 @@
   /* Layout container */
   --home-container-max: 75rem;
   --home-container-wide: 90rem;
+  --home-container-gutter: clamp(1.25rem, 4vw, 2.5rem);
   --home-section-padding-inline: 1.25rem;
 
   /* Marketing surfaces / borders / shadows */
