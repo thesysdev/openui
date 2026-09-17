@@ -80,13 +80,15 @@ runs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'path=' + tarball + '\n');
         "
 
-    # OPENUI_SOURCE_DIR makes the CLI scaffold the checkout's templates instead
-    # of fetching them from `main`, so template changes are tested here.
+    # OPENUI_DEBUG + OPENUI_SOURCE_DIR makes the CLI scaffold the checkout's
+    # templates instead of fetching them from `main`, so template changes are
+    # tested here.
     - name: Run CLI with npm
       if: inputs.package-manager == 'npm'
       shell: bash
       working-directory: ${{ runner.temp }}/cli-e2e
       env:
+        OPENUI_DEBUG: "1"
         OPENUI_SOURCE_DIR: ${{ github.workspace }}
       run: >-
         npm exec --yes --package="${{ steps.cli-package.outputs.path }}" --
@@ -103,6 +105,7 @@ runs:
       shell: bash
       working-directory: ${{ runner.temp }}/cli-e2e
       env:
+        OPENUI_DEBUG: "1"
         OPENUI_SOURCE_DIR: ${{ github.workspace }}
       run: >-
         pnpm dlx "${{ steps.cli-package.outputs.path }}"

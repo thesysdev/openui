@@ -1,5 +1,4 @@
 import { eveAdapter, type ChatLLM, type Message } from "@openuidev/react-ui";
-import type { SessionState } from "eve/client";
 
 // Eve's native HTTP session protocol (same-origin, proxied by `withEve`):
 //   POST /eve/v1/session            -> create a session
@@ -9,6 +8,13 @@ import type { SessionState } from "eve/client";
 // translates the NDJSON feed into the AG-UI events OpenUI renders.
 const EVE_PREFIX = "/eve/v1";
 const SESSION_ID_HEADER = "x-eve-session-id";
+
+/** Per-thread cursor. Kept local — Eve 0.18+ renamed/narrowed `SessionState`. */
+type EveSessionCursor = {
+  sessionId?: string;
+  streamIndex: number;
+  continuationToken?: string;
+};
 
 interface KVStorage {
   getItem(key: string): string | null;
@@ -46,17 +52,17 @@ function getClientStorage(): KVStorage {
   };
 }
 
-function loadSession(storage: KVStorage, threadId: string): SessionState {
+function loadSession(storage: KVStorage, threadId: string): EveSessionCursor {
   try {
     const raw = storage.getItem(sessionKey(threadId));
-    if (raw) return JSON.parse(raw) as SessionState;
+    if (raw) return JSON.parse(raw) as EveSessionCursor;
   } catch {
     // fall through to a fresh cursor
   }
   return { streamIndex: 0 };
 }
 
-function saveSession(storage: KVStorage, threadId: string, state: SessionState): void {
+function saveSession(storage: KVStorage, threadId: string, state: EveSessionCursor): void {
   storage.setItem(sessionKey(threadId), JSON.stringify(state));
 }
 
@@ -70,7 +76,7 @@ function saveSession(storage: KVStorage, threadId: string, state: SessionState):
 export function createEveLLM(storage: KVStorage = getClientStorage()): ChatLLM {
   // Cursor for the run in flight. OpenUI finishes consuming one send() stream
   // before starting the next, so a single slot is enough.
-  let active: { threadId: string; state: SessionState } | null = null;
+  let active: { threadId: string; state: EveSessionCursor } | null = null;
 
   const send: ChatLLM["send"] = async ({ messages, threadId, signal }): Promise<Response> => {
     const state = loadSession(storage, threadId);

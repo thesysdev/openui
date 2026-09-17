@@ -3,6 +3,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 
+import { isTruthyEnv } from "./env";
 import { CreateError } from "./telemetry";
 
 const GIT_TIMEOUT_MS = 60_000;
@@ -16,9 +17,10 @@ const SOURCE_GIT_URL = `https://github.com/${SOURCE_OWNER}/${SOURCE_REPO}.git`;
 /**
  * Absolute path to a source-repository checkout to read templates from
  * instead of fetching `main` from GitHub, so CI can scaffold the templates of
- * the commit under test.
+ * the commit under test. Undocumented: requires `OPENUI_DEBUG`.
  */
 function localSourceDir(): string | undefined {
+  if (!isTruthyEnv(process.env["OPENUI_DEBUG"])) return undefined;
   const dir = process.env["OPENUI_SOURCE_DIR"]?.trim();
   return dir || undefined;
 }
