@@ -161,7 +161,7 @@ Omit `storage` entirely and `AgentInterface` uses an internal in-memory store �
 
 ### `ThreadStorage`
 
-The five methods that back thread management. Implement these and the default sidebar's thread list, "New chat" button, thread switching, and deletion all operate against your backend.
+These methods back thread and message management. Implement them to connect the default sidebar's thread list, "New chat" button, thread switching, and deletion to your backend. The optional `updateMessage` method persists in-message edits.
 
 ```ts
 interface ThreadStorage {
@@ -170,6 +170,7 @@ interface ThreadStorage {
   getMessages(threadId: string): Promise<Message[]>;
   updateThread(thread: Thread): Promise<Thread>;
   deleteThread(id: string): Promise<void>;
+  updateMessage?(threadId: string, message: Message): Promise<void>;
 }
 ```
 
@@ -180,6 +181,7 @@ interface ThreadStorage {
 | `getMessages(threadId)`      | `Message[]`                | The user opens a thread.                                                                |
 | `updateThread(thread)`       | the updated `Thread`       | A thread changes (e.g. a rename).                                                       |
 | `deleteThread(id)`           | `void`                     | The user deletes a thread.                                                              |
+| `updateMessage?(threadId, message)` | `void` | *Optional.* The user edits form state in a rendered message; called fire-and-forget. |
 
 Implement these directly when your storage doesn't fit the REST shape `restStorage` expects — a different route layout, GraphQL, or a client-side store like IndexedDB:
 
@@ -273,7 +275,7 @@ const storage = restStorage({
 
 ### Endpoint contract
 
-Each `ThreadStorage` operation maps to exactly one HTTP call under `baseUrl`. The paths are literal — these are the exact five endpoints you implement.
+Each `ThreadStorage` operation maps to exactly one HTTP call under `baseUrl`. The paths are literal — these are the exact endpoints you implement.
 
 | Operation     | Method   | Path                                                                 | Request body                                        | Response                                          |
 | ------------- | -------- | -------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
@@ -282,14 +284,22 @@ Each `ThreadStorage` operation maps to exactly one HTTP call under `baseUrl`. Th
 | Get messages  | `GET`    | `{baseUrl}/get/{threadId}`                                           | —                                                   | `Message[]` (run through `messageFormat.fromApi`) |
 | Update thread | `PATCH`  | `{baseUrl}/update/{thread.id}`                                       | the `Thread`                                        | the updated `Thread`                              |
 | Delete thread | `DELETE` | `{baseUrl}/delete/{id}`                                              | —                                                   | —                                                 |
+| Update message | `PATCH` | `{baseUrl}/messages/{threadId}/{message.id}` | `{ messages: messageFormat.toApi([message]) }` | — |
 
-With `baseUrl: "/api/threads"` the concrete paths are `/api/threads/get`, `/api/threads/create`, `/api/threads/get/{threadId}`, `/api/threads/update/{thread.id}`, and `/api/threads/delete/{id}`.
+With `baseUrl: "/api/threads"` the concrete paths are `/api/threads/get`, `/api/threads/create`, `/api/threads/get/{threadId}`, `/api/threads/update/{thread.id}`, `/api/threads/delete/{id}`, and `/api/threads/messages/{threadId}/{message.id}`.
+
+`updateMessage` is fire-and-forget on the client: a 404 from a backend that hasn't added this route yet is swallowed and does not surface as a thread error.
+
+Message updates use `message.id` to identify the stored message. Your backend and storage message format must preserve the IDs emitted by the stream. OpenAI Chat Completions streams use the completion ID, but `openAIMessageFormat.fromApi` generates IDs because the standard message format has none; use a custom storage format that restores your saved IDs. Vercel streams use `start.messageId` when available, with `-segment-N` suffixes for additional rendered segments, matching `vercelAIMessageFormat`. LangGraph adds `#N` when a wire ID is reused across segments. Backends storing a whole message must map those segments to the original message. Streams without message IDs, including Eve, use client-generated IDs and require backend coordination for persistence.
+
+OpenUI Cloud storage implements `updateMessage` through its conversation-item endpoint. The default in-memory storage updates messages already held in memory.
 
 ### Message format application
 
-`messageFormat` applies at exactly two points:
+`messageFormat` applies at these points:
 
 - **Create** — the request body's `messages` is `messageFormat.toApi([firstMessage])`.
+- **Update message** — the request body's `messages` is `messageFormat.toApi([message])`. One AG-UI message can expand to several wire items; the array is the full conversion, not a single item.
 - **Get messages** — the `{baseUrl}/get/{threadId}` response is run through `messageFormat.fromApi` on the way back.
 
 With the default `identityMessageFormat`, messages cross the wire as the canonical `Message` type unchanged. Pass a provider-specific format (e.g. `openAIMessageFormat`) when your backend stores messages in that provider's shape.

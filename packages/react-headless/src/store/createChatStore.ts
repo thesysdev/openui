@@ -221,6 +221,7 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
               set((s) => ({
                 messages: s.messages.map((m) => (m.id === msg.id ? msg : m)),
               })),
+            existingMessageIds: get().messages.map((m) => m.id),
             // A tool's args have closed (TOOL_CALL_END) → it is now executing.
             markToolExecuting: (id) =>
               set((s) =>
@@ -263,6 +264,12 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
         set((s) => ({
           messages: s.messages.map((m) => (m.id === message.id ? message : m)),
         }));
+        const threadId = get().selectedThreadId;
+        if (threadId !== null) {
+          // Fire-and-forget: a backend that hasn't implemented updateMessage yet
+          // (or a transient failure) shouldn't surface a thread-level error.
+          threadStorage.updateMessage?.(threadId, message).catch(() => {});
+        }
       },
 
       setMessages: (messages: Message[]) => {

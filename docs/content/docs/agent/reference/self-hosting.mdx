@@ -214,7 +214,7 @@ export default function App() {
 }
 ```
 
-That's the whole frontend change — one prop. You implement the five endpoints `restStorage` calls; the sidebar's thread lifecycle comes for free. With `baseUrl: "/api/threads"`:
+That's the whole frontend change — one prop. You implement the endpoints `restStorage` calls; the sidebar's thread lifecycle comes for free. With `baseUrl: "/api/threads"`:
 
 | Operation     | Method   | Path                             | Request body                                                      | Returns                    |
 | ------------- | -------- | -------------------------------- | ----------------------------------------------------------------- | -------------------------- |
@@ -223,8 +223,9 @@ That's the whole frontend change — one prop. You implement the five endpoints 
 | Get messages  | `GET`    | `/api/threads/get/{threadId}`    | —                                                                 | the thread's `Message[]`   |
 | Update thread | `PATCH`  | `/api/threads/update/{threadId}` | the full `Thread`                                                 | the updated `Thread`       |
 | Delete thread | `DELETE` | `/api/threads/delete/{threadId}` | —                                                                 | nothing                    |
+| Update message | `PATCH` | `/api/threads/messages/{threadId}/{messageId}` | `{ messages: [...] }` (the edited message via the message format; may be several wire items) | nothing |
 
-`restStorage` throws a descriptive error on any non-`ok` response. The `Thread` shape at the boundary is `{ id, title, createdAt: string | number, isPending? }`. By default `restStorage` uses the identity message format; pass `messageFormat` (and optional `headers` / `fetch`) if your backend stores a provider-specific shape — it is applied to the `create` body (`toApi`) and the `get/{threadId}` response (`fromApi`).
+`restStorage` throws a descriptive error on any non-`ok` response. The client swallows `updateMessage` failures so a backend that hasn't added this route yet doesn't surface a thread error. The `Thread` shape at the boundary is `{ id, title, createdAt: string | number, isPending? }`. By default `restStorage` uses the identity message format; pass `messageFormat` (and optional `headers` / `fetch`) if your backend stores a provider-specific shape — it is applied to the `create` and `update message` bodies (`toApi`) and the `get/{threadId}` response (`fromApi`).
 
 ```tsx
 import { openAIMessageFormat } from "@openuidev/react-ui";
@@ -273,13 +274,20 @@ export async function DELETE(_req: NextRequest, { params }: { params: { threadId
   await db.deleteThread(params.threadId);
   return new NextResponse(null, { status: 204 });
 }
+
+// app/api/threads/messages/[threadId]/[messageId]/route.ts — persist an in-message edit
+export async function PATCH(req: NextRequest, { params }: { params: { threadId: string; messageId: string } }) {
+  const { messages } = await req.json(); // messageFormat.toApi([editedMessage]) — one AG-UI message may be several wire items
+  await db.updateMessage(params.threadId, params.messageId, messages);
+  return new NextResponse(null, { status: 204 });
+}
 ```
 
 `db` is a stand-in for your persistence layer—Postgres, SQLite, Redis, a hosted KV store, or anything similar. The endpoints are thin: read and write threads and messages, then return the shapes the table describes.
 
 ### Custom `ChatStorage` instead
 
-If the REST endpoint shape doesn't fit your backend — GraphQL, a client-side store like IndexedDB, a SaaS SDK, or just a different URL layout — implement `ChatStorage` directly. It's an object with a `thread` member satisfying `ThreadStorage` (five methods) plus an optional `artifact` member. `restStorage` is itself just a `ChatStorage` built this way for the common REST case.
+If the REST endpoint shape doesn't fit your backend — GraphQL, a client-side store like IndexedDB, a SaaS SDK, or just a different URL layout — implement `ChatStorage` directly. It's an object with a `thread` member satisfying `ThreadStorage` plus an optional `artifact` member. `restStorage` is itself just a `ChatStorage` built this way for the common REST case.
 
 ```ts
 import type { ChatStorage } from "@openuidev/react-ui";
@@ -306,11 +314,15 @@ export const storage: ChatStorage = {
     async deleteThread(id) {
       await gql(DELETE_THREAD, { id });
     },
+    // Optional — persists in-message edits
+    async updateMessage(threadId, message) {
+      await gql(UPDATE_MESSAGE, { threadId, message });
+    },
   },
 };
 ```
 
-The five methods map one-to-one onto the sidebar:
+The required methods map onto the sidebar; `updateMessage` is optional and backs in-message edits:
 
 | Method                       | When it runs                                                            |
 | ---------------------------- | ----------------------------------------------------------------------- |
@@ -319,6 +331,7 @@ The five methods map one-to-one onto the sidebar:
 | `getMessages(threadId)`      | User opens a thread. Returns its `Message[]`.                           |
 | `updateThread(thread)`       | A thread changes (e.g. rename). Returns the updated `Thread`.           |
 | `deleteThread(id)`           | User deletes a thread.                                                  |
+| `updateMessage(threadId, message)` | *Optional.* User edits form state in a rendered message; called fire-and-forget. |
 
 ## 4. Store artifacts
 
