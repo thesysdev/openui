@@ -56,6 +56,9 @@
     "url": "https://github.com/thesysdev/openui/issues"
   },
   "author": "engineering@thesys.dev",
+  "dependencies": {
+    "@openuidev/lang-core": "workspace:^"
+  },
   "devDependencies": {
     "openai": "^6.22.0",
     "tsdown": "^0.21.7",
