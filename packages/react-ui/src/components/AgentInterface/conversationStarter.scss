@@ -22,6 +22,7 @@
   // Short variant - horizontal pill buttons
   &--short {
     display: block;
+    max-width: 768px;
   }
 
   // Long variant - vertical stacked list
@@ -29,6 +30,7 @@
     display: flex;
     flex-direction: column;
     gap: 0;
+    max-width: 768px;
     margin-bottom: cssUtils.$space-m;
   }
 
@@ -53,6 +55,12 @@
   .openui-agent-thread-container--detailed-view-active & {
     padding: 0;
   }
+}
+
+.openui-agent-container:not(.openui-agent-container--mobile)
+  .openui-agent-composer-slot
+  > .openui-agent-conversation-starter {
+  width: calc(100% - #{cssUtils.$space-m-l} - #{cssUtils.$space-m-l});
 }
 
 // Short variant item (pill-style buttons)
