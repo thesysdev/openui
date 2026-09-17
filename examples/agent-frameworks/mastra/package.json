@@ -23,7 +23,6 @@
     "@openuidev/react-headless": "0.14.0",
     "@openuidev/react-lang": "0.3.0",
     "@openuidev/react-ui": "0.14.0",
-    "@openuidev/thesys": "0.14.0",
     "next": "16.2.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
