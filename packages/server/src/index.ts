@@ -1,3 +1,4 @@
+export { createAutofix } from "./autofix";
 export {
   chatCompletionMessagesToItems,
   storeChatCompletionHistory,
