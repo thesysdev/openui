@@ -14,10 +14,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@openuidev/react-headless": "0.9.13",
-    "@openuidev/react-lang": "0.2.15",
-    "@openuidev/react-ui": "0.13.10",
-    "@openuidev/thesys": "0.3.2",
+    "@openuidev/react-headless": "0.14.0",
+    "@openuidev/react-lang": "0.3.0",
+    "@openuidev/react-ui": "0.14.0",
     "ai": "^7.0.85",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -25,7 +24,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.2.12",
+    "@openuidev/cli": "0.3.0",
     "@tailwindcss/vite": "^4.0.0",
     "@vitejs/plugin-react": "^4.0.0",
     "rollup": "4.62.5",

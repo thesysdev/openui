@@ -4,10 +4,10 @@
   "packageJson": {
     "dependencies": {
       "@ai-sdk/openai": "^3.0.88",
-      "@openuidev/react-headless": "^0.9.13",
-      "@openuidev/react-lang": "^0.2.15",
+      "@openuidev/react-headless": "^0.14.0",
+      "@openuidev/react-lang": "^0.3.0",
       "@vercel/connect": "0.2.2",
-      "ai": "7.0.0-beta.178",
+      "ai": "^7.0.82",
       "eve": "^0.52.2",
       "lru-cache": "^11.2.6",
       "zod": "^4.4.3",
@@ -18,10 +18,14 @@
       "eve:build": "eve build",
       "eve:start": "eve start"
     },
-    "removeDependencies": ["openai"]
+    "removeDependencies": [
+      "openai"
+    ]
   },
   "files": {
-    "remove": ["src/app/api/chat/route.ts"]
+    "remove": [
+      "src/app/api/chat/route.ts"
+    ]
   },
   "gettingStarted": "The generated app uses a Vercel Eve agent. `{{packageManager}} run dev` starts Next.js with Eve embedded via withEve(). Ask \"What's the weather in Berlin?\" to exercise its native tool loop."
 }

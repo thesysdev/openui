@@ -4,103 +4,103 @@
       "title": "Google ADK",
       "description": "A Google ADK TypeScript agent streaming OpenUI Lang to a Next.js client.",
       "path": "agent-frameworks/google-adk",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "LangGraph Platform",
       "description": "A DeepAgents graph on LangGraph Platform, streamed to OpenUI through the LangChain adapter.",
       "path": "agent-frameworks/langgraph-platform",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "Mastra",
       "description": "A Mastra agent connected to OpenUI through AG-UI.",
       "path": "agent-frameworks/mastra",
-      "featured": true
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "Vercel AI SDK",
       "description": "AgentInterface over a Vercel AI SDK streamText backend.",
       "path": "agent-frameworks/vercel-ai-sdk",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "Vercel Eve",
       "description": "An Eve agent rendered through Agent Interface.",
       "path": "agent-frameworks/vercel-eve",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "FastAPI",
       "description": "A Python FastAPI streaming backend with a React OpenUI client.",
       "path": "app-frameworks/fastapi",
-      "featured": true
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "React Native",
       "description": "An Expo client rendering native OpenUI components from a Next.js backend stream.",
       "path": "app-frameworks/react-native",
-      "featured": true
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "Svelte",
       "description": "OpenUI Lang parsing and rendering in SvelteKit.",
       "path": "app-frameworks/svelte",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "Vue",
       "description": "OpenUI Lang parsing and rendering in Nuxt and Vue.",
       "path": "app-frameworks/vue",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "Material UI",
       "description": "A broad Material UI component library for generated interfaces.",
       "path": "design-systems/material-ui",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "shadcn/ui",
       "description": "A broad shadcn/ui component library for generated interfaces.",
       "path": "design-systems/shadcn",
-      "featured": true
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "Grok Build",
       "description": "Grok Build coding sessions rendered with OpenUI Cloud.",
       "path": "harnesses/grok-build",
-      "featured": false
+      "envKey": "XAI_API_KEY"
     },
     {
       "title": "Pi",
       "description": "A Pi coding-agent session on OpenUI Cloud.",
       "path": "harnesses/pi",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "Handsontable",
       "description": "Generated spreadsheet interfaces backed by Handsontable.",
       "path": "miscellaneous/handsontable",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "HTML artifact",
       "description": "Sandboxed HTML artifacts as an OpenUI capability.",
       "path": "miscellaneous/html-artifact",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "React Email",
       "description": "Generating and previewing emails with the OpenUI React Email library.",
       "path": "miscellaneous/react-email",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "Supabase",
       "description": "Persisted OpenUI conversations and threads with Supabase.",
       "path": "miscellaneous/supabase",
-      "featured": false
+      "envKey": "THESYS_API_KEY"
     }
   ]
 }

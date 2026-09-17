@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
   // Next's externalization heuristic skips them. We force it with a webpack
   // `externals` matcher keyed on the import string (symlink-agnostic), which is
   // why this app builds with `--webpack` (see package.json scripts).
-  serverExternalPackages: ["@earendil-works/pi-coding-agent", "@openuidev/thesys"],
+  serverExternalPackages: ["@earendil-works/pi-coding-agent"],
   webpack: (config, { isServer }) => {
     if (isServer) {
       const externalize = (
@@ -25,11 +25,6 @@ const nextConfig: NextConfig = {
           // @earendil-works/pi-* packages are resolved by Node at runtime (the
           // bundler never sees them once this entry point is external).
           return callback(null, `import ${request}`);
-        }
-        // Pre-bundled Cloud chat library — webpack reprocessing it collides
-        // minified identifiers (`Identifier 'h' has already been declared`).
-        if (request === "@openuidev/thesys") {
-          return callback(null, `commonjs ${request}`);
         }
         return callback();
       };

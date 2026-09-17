@@ -1,0 +1,143 @@
+@use "../../cssUtils" as cssUtils;
+@use "../_shared/chatUtils" as chatUtils;
+
+.openui-citation-container {
+  position: relative;
+  display: inline-flex;
+}
+
+.openui-citation {
+  height: 20px;
+  width: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: cssUtils.$space-3xs;
+  background-color: cssUtils.$highlight-strong;
+  margin-left: cssUtils.$space-3xs;
+  border: none;
+  border-radius: cssUtils.$radius-xs;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  svg {
+    color: cssUtils.$text-neutral-tertiary;
+  }
+
+  &:hover,
+  &[data-state="delayed-open"],
+  &[data-state="instant-open"] {
+    svg {
+      color: cssUtils.$text-neutral-primary;
+    }
+  }
+
+  &:active {
+    background-color: cssUtils.$highlight-strong;
+  }
+
+  &:focus-visible {
+    outline: 2px solid cssUtils.$border-interactive;
+    outline-offset: 2px;
+  }
+}
+
+.openui-citation-tooltip {
+  background-color: cssUtils.$foreground;
+  border: 1px solid cssUtils.$border-default;
+  border-radius: cssUtils.$radius-xl;
+  box-shadow: cssUtils.$shadow-s;
+  white-space: nowrap;
+  color: cssUtils.$text-neutral-primary;
+  z-index: chatUtils.$z-popover;
+  pointer-events: all;
+  overflow: hidden;
+
+  &[data-state="delayed-open"] {
+    &[data-side="top"] {
+      animation: openui-slide-down-and-fade 0.2s ease-in-out;
+    }
+
+    &[data-side="bottom"] {
+      animation: openui-slide-up-and-fade 0.2s ease-in-out;
+    }
+
+    &[data-side="right"] {
+      animation: openui-slide-left-and-fade 0.2s ease-in-out;
+    }
+
+    &[data-side="left"] {
+      animation: openui-slide-right-and-fade 0.2s ease-in-out;
+    }
+  }
+}
+
+.openui-citation-tooltip__content {
+  padding: cssUtils.$space-xs;
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-2xs;
+  overflow-y: auto;
+  max-height: min(50vh);
+  @include chatUtils.scrollbar;
+}
+
+.openui-citation-item {
+  display: flex;
+  align-items: center;
+  gap: cssUtils.$space-s;
+  border: none;
+  padding: cssUtils.$space-xs cssUtils.$space-s cssUtils.$space-xs cssUtils.$space-xs;
+  border-radius: cssUtils.$radius-m;
+  background-color: transparent;
+  transition: background-color 0.2s ease-in-out;
+  text-align: left;
+  width: 100%;
+  max-width: 348px;
+  @include cssUtils.typography(label, small);
+
+  @media (max-width: 800px) {
+    max-width: 320px;
+  }
+
+  &--has-url {
+    cursor: pointer;
+    &:hover {
+      background-color: cssUtils.$sunk;
+    }
+  }
+  &__logo {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid cssUtils.$border-default;
+    border-radius: cssUtils.$radius-s;
+    color: cssUtils.$text-neutral-secondary;
+    overflow: hidden;
+  }
+
+  &__content {
+    display: flex;
+    flex-grow: 1;
+    align-items: baseline;
+    gap: cssUtils.$space-s;
+    min-width: 0;
+  }
+
+  &__title {
+    color: cssUtils.$text-neutral-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__source {
+    color: cssUtils.$text-neutral-secondary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

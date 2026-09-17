@@ -140,7 +140,7 @@ Create `src/lib/recipe-library.tsx`:
 
 ```tsx
 import { createLibrary, defineComponent, useTriggerAction } from "@openuidev/react-lang";
-import { chatLibrary } from "@openuidev/thesys";
+import { openuiLibrary } from "@openuidev/react-ui";
 import { z } from "zod/v4";
 
 const cardStyle = {
@@ -252,9 +252,9 @@ const RecipeRemix = defineComponent({
 });
 
 export const recipeLibrary = createLibrary({
-  root: chatLibrary.root ?? "Card",
-  componentGroups: chatLibrary.componentGroups,
-  components: [...Object.values(chatLibrary.components), RecipeRemix],
+  root: openuiLibrary.root ?? "Stack",
+  componentGroups: openuiLibrary.componentGroups,
+  components: [...Object.values(openuiLibrary.components), RecipeRemix],
 });
 ```
 
@@ -309,7 +309,7 @@ Finally, update `src/components/cloud-chat.tsx`:
 
 <CopyableDiff code={`+import { recipeLibrary } from "@/lib/recipe-library";`} />
 
-Then update the `componentLibrary` prop:
+Remove the unused `chatLibrary` import, then update the `componentLibrary` prop:
 
 <CopyableDiff
   code={`-componentLibrary={chatLibrary}
@@ -317,9 +317,10 @@ Then update the `componentLibrary` prop:
 />
 
 <Callout type="info">
-  `recipeLibrary` extends the built-in `chatLibrary`, so the existing inline components remain
-  available alongside `RecipeRemix`. Gateway's search tools and artifact renderers also remain
-  available. See [Built-in component libraries](/docs/api-reference/react-ui#component-library-exports).
+  `recipeLibrary` extends the standard `openuiLibrary` from `@openuidev/react-ui`, using `Stack` as
+  its root. The standard components are available alongside `RecipeRemix`. Gateway's search tools
+  and artifact renderers also remain available. See [Using the Standard
+  Library](/docs/openui-lang/standard-library).
 </Callout>
 
 ## 5. Try it

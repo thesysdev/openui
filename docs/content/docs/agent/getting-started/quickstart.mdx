@@ -47,8 +47,31 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) and request an interface such as a comparison table or interactive form.
 
+## 4. Share a preview
+
+Deploy a Vercel preview from the project directory:
+
+```bash tab="pnpm" tab-group="pkg"
+pnpx @openuidev/cli@latest deploy
+```
+
+```bash tab="bun" tab-group="pkg"
+bunx @openuidev/cli@latest deploy
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn dlx @openuidev/cli@latest deploy
+```
+
+```bash tab="npm" tab-group="pkg"
+npx @openuidev/cli@latest deploy
+```
+
+Allowlisted keys from `.env`, such as `OPENAI_API_KEY`, are passed to the deployment.
+
 ## What to read next
 
+- [Deploy with the CLI](/docs/api-reference/cli#deploy)
 - [Adapters and formats](/docs/agent/reference/adapters-and-formats)
 - [Generative UI](/docs/agent/core-concepts/generative-ui)
 - [Customize Agent Interface](/docs/agent/customize/welcome-and-starters)

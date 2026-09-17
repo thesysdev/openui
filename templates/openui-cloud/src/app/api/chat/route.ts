@@ -3,7 +3,7 @@ import { resolveRequestedModel } from "@/lib/models";
 import { runFunctionToolLoop } from "@/lib/tool-loop";
 import { executeGetWeather, getWeatherTool } from "@/lib/tools/get-weather";
 import { generateSystemPrompt } from "@openuidev/lang-core";
-import { artifactTool } from "@openuidev/thesys-server";
+import { artifactTool } from "@openuidev/lang-core/cloud";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import type {

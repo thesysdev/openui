@@ -99,7 +99,43 @@ After deploying, open the [Reliability dashboard](https://console.thesys.dev/rel
   skill](/docs/mcp#install-via-the-skills-cli-recommended).
 </Callout>
 
-## Production reliability with OpenUI Gateway
+## Production reliability
+
+Even with a well-tuned schema, prompt, and model, some generations in production will still fail validation. OpenUI offers two ways to repair them automatically, depending on how your application calls the model.
+
+- **[Autofix API](#autofix-api):** your application calls the model itself and sends the generation to the Autofix API for repair.
+- **[OpenUI Gateway](#openui-gateway):** OpenUI Gateway calls the model on your behalf and repairs the generation while it streams.
+
+### Autofix API
+
+The [Autofix API](/docs/gateway/api/autofix) repairs OpenUI Lang after your model has generated it, so your application keeps its own model calls, keys, and prompts.
+
+For every generation, the Autofix API:
+
+- **Validates** the generation against your component library.
+- **Fixes** unknown components, missing references, and broken structure.
+- **Answers** with the complete fixed generation, ready to render.
+
+```ts
+const client = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/autofix",
+});
+
+const completion = await client.chat.completions.create({
+  model: "openui/autofix",
+  // The generation to fix is the last assistant turn.
+  messages: [...messages, { role: "assistant", content: generation }],
+  library,
+});
+
+// completion.fix_summary.status is "already_valid", "fixed", or "fix_failed"
+// completion.choices[0].message.content holds the fixed generation.
+```
+
+A generation that is already valid is free, and each fix is charged at a flat price. See the [Autofix API reference](/docs/gateway/api/autofix) for the full request and response format and the error codes.
+
+### OpenUI Gateway
 
 OpenUI Gateway sits between your application and the LLM. It validates generated UI and fixes errors as it streams to your application.
 
@@ -197,7 +233,7 @@ In production data from our [Reliability benchmark](/blog/generative-ui-benchmar
   application. [Install the OpenUI skill](/docs/mcp#install-via-the-skills-cli-recommended).
 </Callout>
 
-### Integrations options
+#### Integrations options
 
 OpenUI Gateway provides two OpenAI-compatible APIs for this generation flow:
 
