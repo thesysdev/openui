@@ -35,6 +35,7 @@ import {
   getColorForDataKey,
   getDataKeys,
   getLegendItems,
+  normalizeChartData,
 } from "../utils/dataUtils";
 import { LineChartData, LineChartVariant } from "./types";
 
@@ -83,6 +84,8 @@ export const LineChart = <T extends LineChartData>({
   width,
   strokeWidth = 2,
 }: LineChartProps<T>) => {
+  // Guard against nullish `data` while generative UI is streaming.
+  data = normalizeChartData(data);
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 
