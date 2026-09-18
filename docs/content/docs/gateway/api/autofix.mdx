@@ -9,10 +9,6 @@ The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send
 
 **OpenAI compatible.** The request and the answer use the OpenAI chat completion shape. Point an OpenAI SDK at the base URL `https://api.thesys.dev/v1/autofix` and it posts to `/v1/autofix/chat/completions`. Both paths take the same body and answer the same way.
 
-[Try the runnable Autofix example →](https://github.com/thesysdev/openui/tree/main/examples/miscellaneous/autofix)
-
-The example uses AgentInterface to stream UI generated directly by OpenAI and automatically repair invalid output. Assistant replies show the final interface, original code, and repair diagnostics. Both API keys stay in a Next.js server route.
-
 <Mermaid
   chart={`
 flowchart LR
@@ -85,9 +81,9 @@ export async function generate(messages: OpenAI.ChatCompletionMessageParam[]) {
 
 ## Fix an invalid generation
 
-Point the OpenAI client at `/v1/autofix`. Your component library goes first, as a system or developer turn written by `generateSystemPrompt({ cloud: true, library })`; the generation goes last, as an assistant turn. Fenced or bare OpenUI Lang both work, and text outside the fence is ignored.
+Point the OpenAI client at `/v1/autofix`. Your component library goes first, as a system turn written by `generateSystemPrompt({ cloud: true, library })`; the generation goes last, as an assistant turn. Fenced or bare OpenUI Lang both work, and text outside the fence is ignored.
 
-The API adds `fix_summary` to the chat completion, which the OpenAI types do not know about, so the example extends the response type.
+The API adds `fix_summary` to the chat completion, which the OpenAI types do not know about, so the example casts the request and the answer.
 
 ```ts title="lib/autofix.ts"
 import { generateSystemPrompt } from "@openuidev/lang-core";
@@ -117,15 +113,12 @@ type AutofixCompletion = ChatCompletion & { fix_summary: FixSummary };
 export async function autofix(messages: OpenAI.ChatCompletionMessageParam[], generation: string) {
   return (await client.chat.completions.create({
     model: "openui/autofix",
-    stream: false,
     messages: [libraryTurn, ...messages, { role: "assistant", content: generation }],
-  })) as AutofixCompletion;
+  } as OpenAI.ChatCompletionCreateParamsNonStreaming)) as AutofixCompletion;
 }
 ```
 
 `openui.spec.json` is the library spec that `openui generate --spec` writes for your components. See [Generate OpenUI Lang](/docs/gateway/generate-openui-lang) for how it is created. `generateSystemPrompt({ cloud: true, library })` turns it into a two-line `]]>openui:config` block, the same one the Gateway reads; the API reads the library from the first message only, and counts no config block as conversation. The API always needs the library: a generation is only valid against the components your app renders, so there is no built-in default.
-
-This also applies when you render with OpenUI's built-in components: generate a spec for that library and pass it explicitly. `generateSystemPrompt({ cloud: true })` without a library is not sufficient, and the removed top-level `library` request field is rejected. Other system instructions still count toward the context limits.
 
 `model` is accepted so that an SDK client has something to send, and it is ignored: the fix always runs on the same correction model.
 
@@ -280,7 +273,7 @@ The generation may be bare OpenUI Lang, a fenced code block, or an assistant tur
 
 - The generation can be up to 100,000 characters.
 - The turns before it can hold up to 20 usable turns and 8,000 characters of text in total, counted after tool turns, non-text parts, and config blocks are removed.
-- Send the recent context relevant to the repair. Requests exceeding these limits are rejected; trim older history before sending.
+- Requests exceeding either context limit are rejected with `400`. Trim older history before sending; the API does not drop it automatically.
 - Up to two attempts are made to fix one generation.
 - Only non-streaming responses are supported. `stream: true` is a `400`.
 
