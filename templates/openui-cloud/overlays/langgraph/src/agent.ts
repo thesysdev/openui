@@ -3,10 +3,10 @@ import { type ServerTool, tool } from "@langchain/core/tools";
 import { StateSchema } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 import { generateSystemPrompt } from "@openuidev/lang-core";
-import { artifactTool } from "@openuidev/lang-core/cloud";
 import { createAgent, createMiddleware } from "langchain";
 import { z } from "zod";
 import { requiredEnv } from "./lib/env";
+import librarySpec from "./generated/spec.json";
 import { DEFAULT_MODEL } from "./lib/models";
 import { executeGetWeather, getWeatherTool } from "./lib/tools/get-weather";
 
@@ -48,9 +48,8 @@ function cloudStepMessages(messages: BaseMessage[]): BaseMessage[] {
 }
 
 // These are provider-executed tools. LangGraph sends their declarations to
-// OpenUI Cloud, while Cloud runs them and stores their outputs/artifacts.
+// OpenUI Cloud, while Cloud runs them and stores their outputs.
 const cloudTools = [
-  artifactTool({ artifacts: ["slides", "report"] }),
   { type: "web_search" },
   { type: "image_search" },
   // Add provider-executed MCP servers here, for example:
@@ -125,7 +124,7 @@ const cloudConversation = createMiddleware({
 export const graph = createAgent({
   model: cloudModel(DEFAULT_MODEL),
   tools: [...cloudTools, ...appTools],
-  systemPrompt: generateSystemPrompt({ cloud: true }),
+  systemPrompt: generateSystemPrompt({ cloud: true, library: librarySpec }),
   stateSchema: CloudAgentState,
   middleware: [cloudConversation],
 });

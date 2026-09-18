@@ -1,8 +1,12 @@
 "use client";
 
 import { OPENUI_LOGOS, STARTERS } from "@/lib/starters";
-import { AgentInterface, useSystemThemeMode } from "@openuidev/react-ui";
-import { chatLibrary, useOpenuiCloudStorage } from "@openuidev/thesys";
+import {
+  AgentInterface,
+  openuiLibrary,
+  useOpenuiCloudStorage,
+  useSystemThemeMode,
+} from "@openuidev/react-ui";
 import { useMemo } from "react";
 import { createEveLLM } from "../eve-chat";
 
@@ -13,6 +17,7 @@ export default function CloudChat() {
   const storage = useOpenuiCloudStorage({
     token: "/api/frontend-token",
     apiBaseUrl: "https://api.thesys.dev",
+    features: { artifact: false }
   });
 
   const logoPath = mode === "dark" ? OPENUI_LOGOS.DARK : OPENUI_LOGOS.LIGHT;
@@ -22,7 +27,7 @@ export default function CloudChat() {
       <AgentInterface
         storage={storage}
         llm={llm}
-        componentLibrary={chatLibrary}
+        componentLibrary={openuiLibrary}
         logoUrl={logoPath}
         theme={{ mode }}
         starters={STARTERS}

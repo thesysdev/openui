@@ -7,8 +7,8 @@ import type {
 /**
  * Function-tool execution loop for the OpenUI Cloud Responses API.
  *
- * OpenUI Cloud executes its own tools (artifacts, web_search, image_search,
- * MCP) server-side, but `type: "function"` tools you declare are executed by
+ * OpenUI Cloud executes its own tools (web_search, image_search, MCP)
+ * server-side, but `type: "function"` tools you declare are executed by
  * YOUR server: the model emits a `function_call`, you run it, post the
  * `function_call_output` back, and the model continues — possibly calling more
  * tools — until it produces the final answer.
@@ -17,9 +17,8 @@ import type {
  * enforced here rather than left to the caller:
  *
  * 1. Execute ONLY calls whose `name` you declared (the keys of `tools`).
- *    Cloud streams some of its own tools as real-named `function_call` items
- *    (e.g. `thesys_generate_report` carrying the artifact program) — those are
- *    already executed server-side and must never be run or answered again.
+ *    Cloud may stream its own tools as real-named `function_call` items. Those
+ *    are already executed server-side and must never be run or answered again.
  * 2. Skip any call whose `call_id` already received a `function_call_output`
  *    on the same stream. The API never streams an output for a call it wants
  *    the client to execute, so an output's presence means "already settled".

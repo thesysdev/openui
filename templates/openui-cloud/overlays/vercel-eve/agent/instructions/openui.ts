@@ -1,5 +1,6 @@
 import { generateSystemPrompt } from "@openuidev/lang-core";
 import { defineDynamic, defineInstructions } from "eve/instructions";
+import librarySpec from "../../src/generated/spec.json" with { type: "json" };
 
 /**
  * Teach the agent to answer in OpenUI Lang. Resolved once per session so the
@@ -9,7 +10,7 @@ export default defineDynamic({
   events: {
     "session.started": () =>
       defineInstructions({
-        markdown: generateSystemPrompt({ cloud: true }),
+        markdown: generateSystemPrompt({ cloud: true, library: librarySpec }),
       }),
   },
 });

@@ -43,6 +43,7 @@ yarn.lock
 # Build output
 dist
 .next
+.eve
 .svelte-kit
 *.tsbuildinfo
 typings

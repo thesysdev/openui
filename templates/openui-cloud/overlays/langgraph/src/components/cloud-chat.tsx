@@ -6,32 +6,13 @@ import { OPENUI_LOGOS, PROMPT_TEMPLATES, STARTERS } from "@/lib/starters";
 import {
   AgentInterface,
   ModelSwitcher,
-  defineArtifactCategories,
   fetchLLM,
   langGraphAdapter,
   langGraphMessageFormat,
+  openuiLibrary,
+  useOpenuiCloudStorage,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
-import {
-  chatLibrary,
-  presentationArtifactRenderer,
-  reportArtifactRenderer,
-  useOpenuiCloudStorage,
-} from "@openuidev/thesys";
-import { FileText, Presentation } from "lucide-react";
-
-const { artifactRenderers, artifactCategories } = defineArtifactCategories([
-  {
-    name: "Presentations",
-    renderers: [presentationArtifactRenderer],
-    icon: <Presentation size="1em" />,
-  },
-  {
-    name: "Reports",
-    renderers: [reportArtifactRenderer],
-    icon: <FileText size="1em" />,
-  },
-]);
 
 export default function CloudChat() {
   const mode = useSystemThemeMode();
@@ -49,7 +30,7 @@ export default function CloudChat() {
   const storage = useOpenuiCloudStorage({
     token: "/api/frontend-token",
     apiBaseUrl: "https://api.thesys.dev",
-    features: { artifact: true },
+    features: { artifact: false }
   });
 
   const logoPath = mode === "dark" ? OPENUI_LOGOS.DARK : OPENUI_LOGOS.LIGHT;
@@ -59,9 +40,7 @@ export default function CloudChat() {
       <AgentInterface
         storage={storage}
         llm={llm}
-        componentLibrary={chatLibrary}
-        artifactRenderers={artifactRenderers}
-        artifactCategories={artifactCategories}
+        componentLibrary={openuiLibrary}
         logoUrl={logoPath}
         theme={{ mode }}
         starters={STARTERS}

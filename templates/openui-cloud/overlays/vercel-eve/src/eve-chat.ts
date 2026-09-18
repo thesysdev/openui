@@ -1,4 +1,5 @@
 import { eveAdapter, type ChatLLM, type Message } from "@openuidev/react-ui";
+import type { ClientSessionState } from "eve/client";
 
 // Eve's native HTTP session protocol (same-origin, proxied by `withEve`):
 //   POST /eve/v1/session            -> create a session
@@ -20,6 +21,8 @@ interface KVStorage {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
 }
+
+type SessionState = Omit<ClientSessionState, "sessionId"> & { sessionId?: string };
 
 function messageText(message: Pick<Message, "content">): string {
   const content = message.content as unknown;
@@ -85,10 +88,6 @@ export function createEveLLM(storage: KVStorage = getClientStorage()): ChatLLM {
       ? `${EVE_PREFIX}/session/${encodeURIComponent(state.sessionId)}`
       : `${EVE_PREFIX}/session`;
     const deliverBody: Record<string, unknown> = { message: latestUserText(messages) };
-    if (state.sessionId && state.continuationToken) {
-      deliverBody.continuationToken = state.continuationToken;
-    }
-
     const delivered = await fetch(deliverPath, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -99,17 +98,13 @@ export function createEveLLM(storage: KVStorage = getClientStorage()): ChatLLM {
       throw new Error(`Eve session POST failed (${delivered.status}): ${await delivered.text()}`);
     }
 
-    const meta = (await delivered.json().catch(() => ({}))) as {
-      sessionId?: string;
-      continuationToken?: string;
-    };
+    const meta = (await delivered.json().catch(() => ({}))) as { sessionId?: string };
     const sessionId =
       meta.sessionId ?? delivered.headers.get(SESSION_ID_HEADER)?.trim() ?? state.sessionId;
     if (!sessionId) throw new Error("Eve did not return a session id.");
-    const continuationToken = meta.continuationToken ?? state.continuationToken;
 
     const streamIndex = state.sessionId === sessionId ? state.streamIndex : 0;
-    active = { threadId, state: { sessionId, continuationToken, streamIndex } };
+    active = { threadId, state: { sessionId, streamIndex } };
 
     const streamPath =
       `${EVE_PREFIX}/session/${encodeURIComponent(sessionId)}/stream` +
@@ -128,16 +123,16 @@ export function createEveLLM(storage: KVStorage = getClientStorage()): ChatLLM {
       onEvent: (event) => {
         if (!active) return;
         const { threadId, state } = active;
-        // A completed session is spent: reset so the next message starts a
-        // fresh one. Waiting/failed keep the cursor for a resumable read.
-        if (event.type === "session.completed") {
+        // Completed and failed sessions are terminal: reset so the next
+        // message starts a fresh one. Waiting keeps the resumable cursor.
+        if (event.type === "session.completed" || event.type === "session.failed") {
           active = null;
           saveSession(storage, threadId, { streamIndex: 0 });
           return;
         }
         active.state = { ...state, streamIndex: state.streamIndex + 1 };
         saveSession(storage, threadId, active.state);
-        if (event.type === "session.waiting" || event.type === "session.failed") {
+        if (event.type === "session.waiting") {
           active = null;
         }
       },

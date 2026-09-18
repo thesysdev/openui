@@ -1,9 +1,9 @@
 import { requiredEnv } from "@/lib/env";
+import librarySpec from "@/generated/spec.json";
 import { resolveRequestedModel } from "@/lib/models";
 import { runFunctionToolLoop } from "@/lib/tool-loop";
 import { executeGetWeather, getWeatherTool } from "@/lib/tools/get-weather";
 import { generateSystemPrompt } from "@openuidev/lang-core";
-import { artifactTool } from "@openuidev/lang-core/cloud";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import type {
@@ -15,7 +15,7 @@ import type {
 /**
  * Generation plane: browser → this route → OpenUI Cloud's Responses API,
  * proxying the SSE stream back for `openAIResponsesAdapter` to parse.
- * Cloud tools (artifacts / search / MCP) run inside Cloud; app-owned
+ * Cloud tools (search / MCP) run inside Cloud; app-owned
  * `type: "function"` tools run here via `runFunctionToolLoop`.
  */
 export async function POST(req: Request) {
@@ -55,15 +55,14 @@ export async function POST(req: Request) {
     input,
     store: true,
     tools: [
-      // artifact/image_search are Cloud extensions of the Responses tool union.
-      artifactTool({ artifacts: ["slides", "report"] }) as unknown as Tool,
       { type: "web_search" },
+      // image_search is a Cloud extension of the Responses tool union.
       { type: "image_search" } as unknown as Tool,
       getWeatherTool,
       // Remote MCP servers run inside OpenUI Cloud, e.g.:
       // { type: "mcp", server_label: "deepwiki", server_url: "https://mcp.deepwiki.com/mcp" },
     ],
-    instructions: generateSystemPrompt({ cloud: true }),
+    instructions: generateSystemPrompt({ cloud: true, library: librarySpec }),
   };
 
   let stream: AsyncIterable<Record<string, unknown>>;

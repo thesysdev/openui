@@ -8,7 +8,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "OpenUI Cloud",
-  description: "Managed OpenUI Cloud Chat with web, image & artifact tools",
+  description: "Managed OpenUI Cloud Chat with web and image search tools",
 };
 
 export default function RootLayout({
