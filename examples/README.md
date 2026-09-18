@@ -32,6 +32,7 @@ Each example has one primary home based on the integration seam it is intended t
 
 | Example                                       | Demonstrates                                                                    |
 | --------------------------------------------- | ------------------------------------------------------------------------------- |
+| [Angular](./app-frameworks/angular)           | OpenUI Lang rendering, state, queries, mutations, and recovery in Angular 22   |
 | [FastAPI](./app-frameworks/fastapi)           | A Python FastAPI streaming backend with a React OpenUI client                   |
 | [React Native](./app-frameworks/react-native) | An Expo client rendering native OpenUI components from a Next.js backend stream |
 | [Svelte](./app-frameworks/svelte)             | OpenUI Lang parsing and rendering in SvelteKit                                  |

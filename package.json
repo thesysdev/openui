@@ -6,7 +6,8 @@
   "description": "A full-stack, renderer-agnostic Generative UI framework with a streaming-first language, official React support, and community integrations for other frameworks",
   "main": "index.js",
   "scripts": {
-    "examples:install": "node scripts/manage-starters.mjs examples install",
+    "examples:prepare": "pnpm install --frozen-lockfile --ignore-scripts && pnpm --filter @openuidev/angular-lang... run build",
+    "examples:install": "pnpm run examples:prepare && node scripts/manage-starters.mjs examples install",
     "examples:update": "node scripts/manage-starters.mjs examples update",
     "examples:verify": "node scripts/manage-starters.mjs examples verify",
     "templates:update": "node scripts/manage-starters.mjs templates update",

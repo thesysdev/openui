@@ -66,7 +66,9 @@ function applicationFromManifest(manifestPath) {
 
 function openUIDependencyNames(manifest) {
   return dependencyFields.flatMap((field) =>
-    Object.keys(manifest[field] ?? {}).filter((name) => name.startsWith("@openuidev/")),
+    Object.keys(manifest[field] ?? {}).filter(
+      (name) => name.startsWith("@openuidev/") && !/^(file|link|workspace):/.test(manifest[field][name]),
+    ),
   );
 }
 
@@ -123,6 +125,7 @@ function pinOpenUIDependencyVersions(manifest, latestVersions, { preserveRange =
 
       const latest = latestVersions.get(name);
       const current = manifest[field][name];
+      if (/^(file|link|workspace):/.test(current)) continue;
       const rangePrefix = preserveRange && current.startsWith("^") ? "^" : "";
       const tildePrefix = preserveRange && current.startsWith("~") ? "~" : "";
       const next = latest ? `${rangePrefix}${tildePrefix}${latest}` : current;
