@@ -44,7 +44,12 @@ export function TweetWall() {
   const columns = splitIntoColumns(STATIC_TWEETS, columnCount);
 
   return (
-    <div className={styles.root} role="region" aria-label="What people are saying on X">
+    <div
+      className={styles.root}
+      role="region"
+      aria-label="What people are saying on X"
+      data-nosnippet=""
+    >
       {mounted && (
         <div className={styles.columns}>
           {columns.map((column, columnIndex) => {

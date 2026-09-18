@@ -16,7 +16,7 @@ The only required prop is `llm`. Everything else is optional and falls back to a
 | `artifactRenderers`    | `ReadonlyArray<ArtifactRendererConfig<any>>` | No       | none                           |
 | `artifactCategories`   | `ArtifactCategory[]`                         | No       | none (single "Artifacts" item) |
 | `componentLibrary`     | `Library`                                    | No       | none (markdown rendering)      |
-| `components`           | `{ AssistantMessage?; UserMessage? }`        | No       | none                           |
+| `components`           | `AgentInterfaceComponents`                   | No       | none                           |
 | `theme`                | `ThemeProps`                                 | No       | built-in theme                 |
 | `disableThemeProvider` | `boolean`                                    | No       | `false`                        |
 | `logoUrl`              | `string`                                     | No       | none                           |
@@ -52,12 +52,12 @@ These two props connect `AgentInterface` to your backend. They are independent c
 
 These props control how the assistant's output is rendered — both durable artifacts such as dashboards and apps, and the inline message body.
 
-| Prop                 | Type                                         | Required | Default | Description                                                                   |
-| -------------------- | -------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------- |
-| `artifactRenderers`  | `ReadonlyArray<ArtifactRendererConfig<any>>` | No       | none    | Renderers that display artifacts (from a tool call or from stored content).   |
-| `artifactCategories` | `ArtifactCategory[]`                         | No       | none    | User-defined groupings for the artifact browser and workspace rail.           |
-| `componentLibrary`   | `Library`                                    | No       | none    | Turns on Generative UI — rich interactive components rendered inline in chat. |
-| `components`         | `{ AssistantMessage?; UserMessage? }`        | No       | none    | Replace the assistant/user message components entirely.                       |
+| Prop                 | Type                                         | Required | Default | Description                                                                           |
+| -------------------- | -------------------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------- |
+| `artifactRenderers`  | `ReadonlyArray<ArtifactRendererConfig<any>>` | No       | none    | Renderers that display artifacts (from a tool call or from stored content).           |
+| `artifactCategories` | `ArtifactCategory[]`                         | No       | none    | User-defined groupings for the artifact browser and workspace rail.                   |
+| `componentLibrary`   | `Library`                                    | No       | none    | Turns on Generative UI — rich interactive components rendered inline in chat.         |
+| `components`         | `AgentInterfaceComponents`                   | No       | none    | Replace assistant answers, user messages, and the turn's tool timeline independently. |
 
 ### `artifactRenderers`
 
@@ -105,7 +105,7 @@ import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 
 ### `components`
 
-Override the message components directly: `{ AssistantMessage?, UserMessage? }`. Message rendering precedence is **`components` > `componentLibrary` > built-in default** — an explicit `components` entry always wins. See [Message rendering](/docs/agent/customize/message-rendering).
+Override the message components directly: `{ AssistantMessage?, ToolCallTimeline?, UserMessage? }`. Message rendering precedence is **`components` > `componentLibrary` > built-in default** — an explicit `components` entry always wins. See [Message rendering](/docs/agent/customize/message-rendering).
 
 ## Theme
 
