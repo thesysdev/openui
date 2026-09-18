@@ -4,7 +4,7 @@ export const dynamic = "force-static";
 export const revalidate = false;
 
 const SITE_DESCRIPTION =
-  "Full-stack, renderer-agnostic Generative UI with a streaming-first language, official React support, community integrations, and up to 67% fewer tokens than JSON.";
+  "Full-stack, renderer-agnostic Generative UI built on OpenUI Lang, a streaming-first language with official React support, community integrations, and up to 67% fewer tokens than JSON.";
 
 export async function GET() {
   const pages = source.getPages().map((page) => {

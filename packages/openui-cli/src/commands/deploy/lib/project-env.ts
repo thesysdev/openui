@@ -1,5 +1,4 @@
 import { loadAllowlistedProjectEnv } from "../../../lib/env";
-import { readProjectDependencies } from "./project";
 
 /** Known OpenUI template env keys. Values must never be logged or sent to telemetry. */
 export const DEPLOY_ENV_ALLOWLIST = [
@@ -36,26 +35,4 @@ export function loadProjectDeployEnv(projectDir: string): Record<string, string>
     if (value) env[key] = value;
   }
   return env;
-}
-
-/** Infer required API-key names from the project's dependencies. */
-export function detectRequiredDeployEnvNames(projectDir: string): string[] {
-  const deps = readProjectDependencies(projectDir);
-  if (deps["@openuidev/thesys-server"] || deps["@openuidev/thesys"]) return ["THESYS_API_KEY"];
-  if (deps["openai"] || deps["ai"] || deps["@ai-sdk/openai"]) return ["OPENAI_API_KEY"];
-  return [];
-}
-
-/** Warn when a required key is missing locally and may also be missing on the platform. */
-export function warnMissingRequiredDeployEnv(
-  projectDir: string,
-  localEnv: Record<string, string>,
-  platformLabel: string,
-): void {
-  for (const key of detectRequiredDeployEnvNames(projectDir)) {
-    if (localEnv[key]) continue;
-    console.info(
-      `[!] ${key} is not set locally. This deployment will fail at runtime unless ${key} is already configured on ${platformLabel}.\n`,
-    );
-  }
 }

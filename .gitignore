@@ -27,6 +27,9 @@ Claude.md
 CLAUDE.local.md
 .workspace/
 
+# Codex
+.Codex/
+
 # Dependencies
 node_modules
 .pnpm-store/

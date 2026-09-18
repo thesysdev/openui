@@ -2,7 +2,6 @@ import {
   loadProjectDeployEnv,
   loadProjectDeployFileEnv,
   printQuietDeploySuccess,
-  warnMissingRequiredDeployEnv,
   type DeployTargetOptions,
 } from "../..";
 import { printLogTail } from "../../../../../lib/command-output";
@@ -33,7 +32,6 @@ export async function deployToVercel(opts: DeployTargetOptions): Promise<void> {
   const availableEnv = loadProjectDeployEnv(opts.projectDir);
   const localEnv = opts.skipEnv ? {} : availableEnv;
   const projectEnvToSave = opts.skipEnv ? {} : projectEnv;
-  warnMissingRequiredDeployEnv(opts.projectDir, availableEnv, "Vercel");
 
   const vercel = resolveCliInvocation(opts.projectDir, "vercel", VERCEL_CLI_PACKAGE);
   await prepareVercelCli(vercel, opts.projectDir);

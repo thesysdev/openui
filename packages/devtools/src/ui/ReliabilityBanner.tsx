@@ -15,7 +15,6 @@ export default function ReliabilityBanner({ themeMode }: { themeMode: ColorMode 
 
   return (
     <div style={styles.wrapper}>
-      <span style={styles.fade} aria-hidden />
       <div style={styles.banner}>
         <span style={styles.title}>
           <span style={styles.alertTile} aria-hidden>
@@ -69,16 +68,7 @@ const bannerStyles = (t: ThemeTokens) =>
       gap: 8,
       flexShrink: 0,
       background: t.bg,
-      padding: "6px",
-    },
-    fade: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      top: "100%",
-      height: 12,
-      background: `linear-gradient(to bottom, ${t.bg}, transparent)`,
-      pointerEvents: "none",
+      padding: 12,
     },
     banner: {
       display: "flex",
