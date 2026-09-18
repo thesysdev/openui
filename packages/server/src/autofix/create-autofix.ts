@@ -104,8 +104,7 @@ export function createAutofix(options: AutofixOptions): {
   fix(input: AutofixInput & { generation: string }): Promise<AutofixResult>;
   stream(input: AutofixStreamInput): AutofixStream;
 } {
-  // Snapshot the JSON spec so local validation and remote repair cannot drift after configuration.
-  const library: AutofixOptions["library"] = JSON.parse(JSON.stringify(options.library));
+  const { library } = options;
   if (!library?.schema)
     throw new AutofixError("A library spec with schema is required", "invalid_library");
   const parser = createParser(library.schema, library.root);
