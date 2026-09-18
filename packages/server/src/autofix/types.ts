@@ -55,7 +55,7 @@ export type AutofixStreamResult = { id: string; index: number } & (
 );
 
 export interface AutofixStream {
-  /** Single consumer. Preserves provider chunks and inserts validated text patches before UI completion. */
+  /** Single consumer. Preserves provider chunks and appends the corrected program before UI completion. */
   chunks: AsyncIterable<ChatCompletionChunk>;
   /** One outcome per completion ID and choice. Settles as chunks are consumed. */
   result: Promise<AutofixStreamResult[]>;

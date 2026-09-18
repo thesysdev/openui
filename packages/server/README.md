@@ -6,7 +6,7 @@ Server utilities for OpenUI & OpenUI Gateway.
 
 Wrap your model's Chat Completions stream with local OpenUI validation and hosted
 Autofix. Tool calls, refusals, usage, and provider metadata pass through. For UI
-answers, the wrapper appends corrected OpenUI statements as ordinary
+answers, the wrapper appends the complete corrected OpenUI program as ordinary
 Chat Completions text deltas. An existing `openAIAdapter()` and OpenUI renderer
 can consume the response; no replacement event or new frontend adapter is needed.
 
@@ -51,7 +51,8 @@ if (result.content !== null) {
 ```
 
 Valid output returns unchanged without making a network request. Invalid output
-is sent to `POST /v1/autofix`, and the returned content is checked locally again.
+is sent to `POST /v1/autofix`. The API validates the repaired program; the wrapper
+uses its returned status and diagnostics without parsing the repaired program again.
 The Gateway owns its repair attempts; the wrapper makes one request. `messages`
 is the conversation before the generated assistant message, which is appended
 automatically. Only recent text context is sent, capped at 20 turns / 8,000 characters.
@@ -96,14 +97,14 @@ stop markers pass through without correction. These outcomes are reported as
 State is tracked independently for each completion ID and choice index, so a
 tool-call step cannot contaminate a subsequent UI answer. Original chunks are
 unchanged except that a UI stop is deferred until validation/repair finishes.
-Inserted patches keep the completion ID, choice index, and model, and never
+Inserted corrections keep the completion ID, choice index, and model, and never
 duplicate the original usage or logprobs.
 
 Other providers can supply `AsyncIterable<string>` directly. That iterable must
 throw on abnormal termination; normal EOF means the generation is complete.
 Pass the same abort signal to your provider and the wrapper.
 
-### How the patch reaches the renderer
+### How the corrected program reaches the renderer
 
 Original text:
 
@@ -115,15 +116,15 @@ heading = UnknownComponent("Hello")
 Additional text sent after repair:
 
 ```text
+root = Card([heading])
 heading = TextContent("Hello")
 ```
 
-The parser uses the later completed definition of `heading`. The wrapper emits
-only added/changed statements, after validating that original text plus patch
-has no validation errors and produces the repaired result with both the full
-parser and incremental parser. It withholds the SSE stop marker and `[DONE]`
-until this process finishes. Users see provisional output while generation and
-repair run; there is no custom "repairing" event.
+The parser uses the later completed definitions. Autofix returns a complete fixed
+program; the wrapper appends that program with separating newlines, without
+computing a statement diff. It withholds the SSE stop marker and `[DONE]` until
+repair finishes. Users see provisional output while generation and repair run;
+there is no custom "repairing" event.
 
 ### Consuming and persisting the final result
 
@@ -137,7 +138,7 @@ for await (const chunk of output.chunks) {
 const outcomes = await output.result;
 for (const outcome of outcomes) {
   if (outcome.status === "fixed" || outcome.status === "already_valid") {
-    // Persist outcome.content: original text plus any appended patch.
+    // Persist outcome.content: original text plus any appended corrected program.
     // outcome.id and outcome.index identify the completion and choice.
   }
 }
@@ -147,9 +148,10 @@ Choose either `chunks` or `toResponse()` once. `result` returns an array of outc
 and settles as that stream
 is consumed; awaiting it before consumption does not start generation. With
 `toResponse()`, observe `result` separately and use your server runtime's lifecycle
-support if persistence must finish after the response. Replaying successful
-successful outcome content produces the same UI as the completed live stream.
-The result describes text validation, not a reconstructed conversation; persist
+support if persistence must finish after the response. The outcome content matches
+the accumulated stream. A `fixed` status describes validation of the corrected
+program on its own; the concatenated program is not separately validated.
+The result is not a reconstructed conversation; persist
 tool calls and other non-text content from the preserved chunks using your existing logic.
 
 ### Failure and draft limits
@@ -166,11 +168,10 @@ tool calls and other non-text content from the preserved chunks using your exist
   `content: null` rather than a truncated copy. The wrapper consumes the source once,
   respects consumer backpressure, and stops waiting when cancelled. Upstream
   cancellation also depends on your provider honoring the supplied signal.
-- Patch extraction supports complete bare programs and one complete markdown
-  code fence, including multiline statements. It rejects deletion of existing
-  statements, incomplete syntax, and changes to reactive state or `Query`/`Mutation`
-  declarations. These resolve as `fix_failed` with `unappendable_patch`; no unsafe
-  patch is sent. `fix()` can still return a complete repaired program for a buffered UI.
+- Appending the fixed program relies on parser statement redefinition. It cannot
+  remove old statements or guarantee recovery from incomplete syntax, and replaying
+  state or `Query`/`Mutation` declarations may have runtime effects. Use `fix()` and
+  replace buffered output when the correction must replace the entire program.
 - Whole-program validity is defined by the configured OpenUI parser/schema; it
   does not establish runtime or semantic correctness.
 
