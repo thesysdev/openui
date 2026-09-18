@@ -60,6 +60,7 @@ const promotedGlobalUrls = new Set([
   "/docs/architecture",
   "/docs/openui-lang/comparison",
   "/docs/mcp",
+  "/docs/deploy",
 ]);
 
 export const GLOBAL_DOCS_TREE: PageTree.Root = {
@@ -103,6 +104,7 @@ export const GLOBAL_DOCS_TREE: PageTree.Root = {
       name: NESTED_DOCS_SECTIONS.observability.title,
       url: NESTED_DOCS_SECTIONS.observability.entryUrl,
     },
+    { type: "page", name: "Deploy your app", url: "/docs/deploy" },
     { type: "separator", name: "Reference" },
     {
       type: "page",

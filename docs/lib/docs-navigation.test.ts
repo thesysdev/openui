@@ -63,6 +63,7 @@ describe("global docs navigation", () => {
         url: "/docs/observability",
         children: undefined,
       },
+      { type: "page", name: "Deploy your app", url: "/docs/deploy", children: undefined },
       { type: "separator", name: "Reference", url: undefined, children: undefined },
       {
         type: "page",

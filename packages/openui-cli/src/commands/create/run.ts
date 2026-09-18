@@ -228,7 +228,6 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
       skip_reason: "missing_api_key",
       required_env: apiKeyEnv,
     });
-    process.exitCode = 1;
     return;
   }
 
