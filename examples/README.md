@@ -55,6 +55,7 @@ Each example has one primary home based on the integration seam it is intended t
 
 | Example                                        | Demonstrates                                                         |
 | ---------------------------------------------- | -------------------------------------------------------------------- |
+| [Autofix](./miscellaneous/autofix)             | Direct OpenAI generation with automatic repair in AgentInterface |
 | [Handsontable](./miscellaneous/handsontable)   | Generated spreadsheet interfaces backed by Handsontable              |
 | [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts as an OpenUI capability                     |
 | [React Email](./miscellaneous/react-email)     | Generating and previewing emails with the OpenUI React Email library |

@@ -1,0 +1,110 @@
+@import "@openuidev/react-ui/components.css";
+@import "@openuidev/react-ui/styles/index.css";
+
+html,
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.autofix-app {
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+}
+.repair-message {
+  width: 100%;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.repair-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.repair-status {
+  border: 1px solid currentColor;
+  border-radius: 20px;
+  padding: 2px 12px;
+}
+.repair-status--fixed,
+.repair-status--valid,
+.repair-status--already_valid {
+  color: #23845d;
+}
+.repair-status--fix_failed {
+  color: #ba7622;
+}
+.repair-muted {
+  opacity: 0.65;
+  font-size: 13px;
+}
+.repair-preview {
+  margin-bottom: 16px;
+}
+.repair-details {
+  margin-top: 12px;
+  border-top: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  padding-top: 12px;
+}
+.repair-details summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+.repair-details pre {
+  padding: 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.repair-details h4 {
+  margin-bottom: 4px;
+}
+.repair-diagnostics {
+  padding-left: 20px;
+}
+.repair-diagnostics p {
+  margin: 4px 0 12px;
+}
+.repair-copy {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 8px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.preview-card {
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 16px;
+  padding: 24px;
+}
+.preview-title {
+  margin: 0 0 20px;
+  font-size: 22px;
+  line-height: 1.3;
+}
+.preview-text {
+  margin: 16px 0 0;
+  opacity: 0.75;
+}
+.preview-metric {
+  display: grid;
+  gap: 4px;
+}
+.preview-metric > span {
+  font-size: 13px;
+  opacity: 0.7;
+}
+.preview-metric strong {
+  font-size: 32px;
+  line-height: 1.3;
+}
+.preview-metric small {
+  color: #23845d;
+}

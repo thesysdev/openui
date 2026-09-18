@@ -1,0 +1,58 @@
+{
+  "name": "@openuidev/example-autofix",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate": "openui generate src/library.tsx --spec --out src/generated/spec.json",
+    "generate:apiKey": "openui generate-api-key --file .env.local",
+    "predev": "npm run generate",
+    "dev": "next dev",
+    "prebuild": "npm run generate",
+    "build": "next build",
+    "start": "next start",
+    "pretest": "npm run generate",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "lint": "eslint .",
+    "preverify": "npm run generate",
+    "verify": "npm run lint && node --import tsx --test tests/*.test.ts && next build"
+  },
+  "dependencies": {
+    "@openuidev/lang-core": "0.3.0",
+    "@openuidev/react-headless": "0.16.1",
+    "@openuidev/react-lang": "0.3.0",
+    "@openuidev/react-ui": "0.16.1",
+    "next": "16.3.5",
+    "openai": "^6.49.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^4.3.6",
+    "zustand": "4.5.7"
+  },
+  "devDependencies": {
+    "@openuidev/cli": "0.3.0",
+    "@types/node": "^22.15.32",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "tsx": "^4.20.0",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@openuidev/lang-core",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
+  "allowScripts": {
+    "@openuidev/lang-core": true,
+    "esbuild": true,
+    "sharp": true,
+    "unrs-resolver": true
+  }
+}
