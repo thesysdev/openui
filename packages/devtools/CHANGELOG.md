@@ -1,5 +1,11 @@
 # @openuidev/devtools
 
+## 0.2.1
+
+### Patch Changes
+
+- [#1172](https://github.com/thesysdev/openui/pull/1172) [`6de371d`](https://github.com/thesysdev/openui/commit/6de371d4e8ffe9f1e07023899afa4f8212e297ab) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Add dismissible local deployment prompts and align Inspect card spacing.
+
 ## 0.2.0
 
 ### Minor Changes
