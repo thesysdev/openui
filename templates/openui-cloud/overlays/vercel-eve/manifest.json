@@ -27,7 +27,9 @@
   "files": {
     "remove": [
       "src/app/api/chat/route.ts",
-      "src/lib/tool-loop.ts"
+      "src/lib/tool-loop.ts",
+      "src/lib/models.tsx",
+      "src/hooks/use-persisted-model.ts"
     ]
   },
   "gettingStarted": "The generated Vercel Eve agent uses OpenUI Cloud as its model provider. `{{packageManager}} run dev` starts Next.js with Eve embedded via withEve(). Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise the included Eve tool."
