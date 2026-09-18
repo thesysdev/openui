@@ -1,5 +1,14 @@
 # @openuidev/react-ui
 
+## 0.16.2
+
+### Patch Changes
+
+- [#1170](https://github.com/thesysdev/openui/pull/1170) [`6060bf5`](https://github.com/thesysdev/openui/commit/6060bf58e62cdd30d085c10b9f436959f901b164) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Add an `AgentInterface` turn-level tool timeline override, allowing applications
+  to replace the default live tool-activity UI without rebuilding the thread.
+- Updated dependencies []:
+  - @openuidev/react-headless@0.16.2
+
 ## 0.16.1
 
 ### Patch Changes
