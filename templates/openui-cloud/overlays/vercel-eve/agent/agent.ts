@@ -1,6 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { defineAgent } from "eve";
-import { resolveRequestedModel } from "../src/lib/models";
+import { resolveOpenuiModel } from "../src/lib/models";
 
 const apiKey = process.env.THESYS_API_KEY;
 if (!apiKey) throw new Error("Missing required env var: THESYS_API_KEY");
@@ -11,7 +11,7 @@ const openai = createOpenAI({
 });
 
 const model = openai.chat(
-  resolveRequestedModel("google/gemini-3.6-flash-free"),
+  resolveOpenuiModel("google/gemini-3.6-flash-free"),
 );
 
 export default defineAgent({
