@@ -27,7 +27,7 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.3.0",
+    "@openuidev/cli": "latest",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
