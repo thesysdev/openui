@@ -1,5 +1,4 @@
-import { createParser, createStreamingParser, type ParseResult } from "@openuidev/lang-core";
-import { createAppendPatch } from "./patch";
+import { createParser, generateSystemPrompt, type ParseResult } from "@openuidev/lang-core";
 import { createAutofixStream } from "./stream";
 import type {
   AutofixDiagnostic,
@@ -54,7 +53,7 @@ function readDiagnostics(value: unknown): AutofixDiagnostic[] {
   });
 }
 
-function readCompletion(body: unknown) {
+function readCompletion(body: unknown): Omit<AutofixResult, "original"> {
   if (!isRecord(body) || !isRecord(body["fix_summary"])) {
     throw new AutofixError("Missing Autofix summary", "invalid_response");
   }
@@ -100,15 +99,6 @@ function repairContext(messages: NonNullable<AutofixInput["messages"]>) {
   return context;
 }
 
-function renderedProgram(result: ParseResult): string {
-  return JSON.stringify({
-    root: result.root,
-    state: result.stateDeclarations,
-    queries: result.queryStatements,
-    mutations: result.mutationStatements,
-  });
-}
-
 /** Validate locally and repair via Gateway only when needed. Does not own model generation. */
 export function createAutofix(options: AutofixOptions): {
   fix(input: AutofixInput & { generation: string }): Promise<AutofixResult>;
@@ -146,8 +136,11 @@ export function createAutofix(options: AutofixOptions): {
       method: "POST",
       headers: { Authorization: `Bearer ${options.apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        messages: [...repairContext(messages), { role: "assistant", content: generation }],
-        library,
+        messages: [
+          { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
+          ...repairContext(messages),
+          { role: "assistant", content: generation },
+        ],
       }),
       signal,
     });
@@ -174,42 +167,13 @@ export function createAutofix(options: AutofixOptions): {
     if (completion.status === "fix_failed") {
       return { ...completion, status: "fix_failed", content: null, original: generation };
     }
-    const content = completion.content!;
-    if (content.length > MAX_AUTOFIX_GENERATION_LENGTH) {
-      throw new AutofixError("Corrected generation exceeds 100,000 characters", "invalid_response");
-    }
-    const remaining = errorsOf(parser.parse(content));
-    if (remaining.length > 0) {
-      return {
-        status: "fix_failed",
-        original: generation,
-        content: null,
-        fixedErrors: [],
-        unfixedErrors: remaining,
-      };
-    }
     return {
-      status: "fixed",
+      ...completion,
+      status: completion.status,
       original: generation,
-      content,
-      fixedErrors: initialErrors,
-      unfixedErrors: [],
+      content: completion.content!,
     };
   }
 
-  function appendPatch(original: string, corrected: string): string | null {
-    const patch = createAppendPatch(original, corrected);
-    if (patch === null) return null;
-    const combined = parser.parse(original + patch);
-    if (errorsOf(combined).length > 0) return null;
-    const expected = renderedProgram(parser.parse(corrected));
-    if (renderedProgram(combined) !== expected) return null;
-    // Exercise the incremental path as well: this is what an existing renderer consumes.
-    const streaming = createStreamingParser(library.schema, library.root);
-    streaming.push(original);
-    const streamed = streaming.push(patch);
-    return errorsOf(streamed).length === 0 && renderedProgram(streamed) === expected ? patch : null;
-  }
-
-  return { fix, stream: (input) => createAutofixStream(input, fix, appendPatch) };
+  return { fix, stream: (input) => createAutofixStream(input, fix) };
 }
