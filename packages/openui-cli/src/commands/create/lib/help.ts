@@ -23,7 +23,10 @@ const FALLBACK_TEMPLATES: HelpEntry[] = [
 
 const FALLBACK_FRAMEWORKS: HelpEntry[] = [
   { key: "default", description: "Uses OpenAI SDK." },
-  { key: "langgraph", description: "Bootstraps a LangGraph agent with the selected model backend." },
+  {
+    key: "langgraph",
+    description: "Bootstraps a LangGraph agent with the selected model backend.",
+  },
   {
     key: "vercel-ai-sdk",
     description: "Scaffolds a Vercel AI SDK agent with the selected model backend.",
