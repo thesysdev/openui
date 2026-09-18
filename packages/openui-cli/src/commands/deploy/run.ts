@@ -4,7 +4,12 @@ import * as path from "node:path";
 import type { CliContext } from "../../lib/context";
 import { resolveInstallPackageManager } from "../../lib/detect-package-manager";
 import { CreateError } from "../../lib/errors";
-import { assertOpenUiProject, DEFAULT_DEPLOY_TARGET, type DeployTargetOptions } from "./lib";
+import {
+  DEFAULT_DEPLOY_TARGET,
+  hasOpenUiPackages,
+  readProjectDependencies,
+  type DeployTargetOptions,
+} from "./lib";
 import { deployToTarget } from "./lib/targets";
 import { DeployTelemetryClient } from "./lib/telemetry";
 
@@ -38,6 +43,8 @@ export async function runDeploy(options: DeployOptions, ctx: CliContext): Promis
     extraArgs.includes("-y");
   const skipEnv = Boolean(options.skipEnv);
   const verbose = ctx.verbose || (options.extraArgs ?? []).includes("--verbose");
+  const interactive = !options.noInteractive;
+  const isOpenUiProject = hasOpenUiPackages(readProjectDependencies(projectDir));
 
   const targetOpts: DeployTargetOptions = {
     projectDir,
@@ -50,13 +57,20 @@ export async function runDeploy(options: DeployOptions, ctx: CliContext): Promis
     tel,
   };
 
-  tel.registerContext({ package_manager: resolveInstallPackageManager().name });
+  tel.registerContext({
+    interactive,
+    is_openui_project: isOpenUiProject,
+    package_manager: resolveInstallPackageManager().name,
+  });
+  if (!isOpenUiProject) tel.trackNonOpenUiProject();
   tel.trackStarted({
     target: DEFAULT_DEPLOY_TARGET,
     prod,
     yes,
     skip_env: skipEnv,
     verbose,
+    interactive,
+    is_openui_project: isOpenUiProject,
     has_dir_arg: Boolean(resolved.projectDir),
   });
 
@@ -113,11 +127,10 @@ function resolveProjectDir(dir: string | undefined, cwd: string): string {
   if (!fs.existsSync(path.join(projectDir, "package.json"))) {
     throw new CreateError(
       "args_resolution",
-      `No package.json in ${projectDir}. Run this from an OpenUI project, or pass its directory.`,
+      `No package.json in ${projectDir}. Run this from a project, or pass its directory.`,
       "invalid_input",
       "PROJECT_NOT_FOUND",
     );
   }
-  assertOpenUiProject(projectDir);
   return projectDir;
 }

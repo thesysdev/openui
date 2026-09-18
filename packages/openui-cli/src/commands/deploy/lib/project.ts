@@ -34,14 +34,3 @@ export function readProjectDependencies(projectDir: string): Record<string, stri
 export function hasOpenUiPackages(deps: Record<string, string>): boolean {
   return Object.keys(deps).some((name) => name.startsWith("@openuidev/"));
 }
-
-/** Require an OpenUI app (any `@openuidev/*` dependency). */
-export function assertOpenUiProject(projectDir: string): void {
-  if (hasOpenUiPackages(readProjectDependencies(projectDir))) return;
-  throw new CreateError(
-    "args_resolution",
-    "Not an OpenUI project. Run this from an OpenUI app, or pass its directory.",
-    "invalid_input",
-    "NOT_OPENUI_PROJECT",
-  );
-}
