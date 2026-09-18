@@ -39,7 +39,6 @@ async function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T
 export function createAutofixStream(
   input: AutofixStreamInput,
   fix: (input: AutofixInput & { generation: string }) => Promise<AutofixResult>,
-  appendPatch: (original: string, corrected: string) => string | null,
 ): AutofixStream {
   const controller = new AbortController();
   let resolveResult!: (result: AutofixStreamResult[]) => void;
@@ -140,25 +139,10 @@ export function createAutofixStream(
           );
           signal.throwIfAborted();
           if (final.status === "fixed") {
-            const patch = appendPatch(state.text, final.content);
-            if (patch === null) {
-              final = {
-                status: "fix_failed",
-                content: null,
-                original: state.text,
-                fixedErrors: [],
-                unfixedErrors: [
-                  {
-                    code: "unappendable_patch",
-                    message:
-                      "Repair cannot be expressed as an append-only patch; use fix() with buffered output",
-                  },
-                ],
-              };
-            } else {
-              yield correctionChunk(chunk, state.index, patch);
-              final = { ...final, content: state.text + patch };
-            }
+            // Autofix returns the complete corrected program. Forward it without diffing.
+            const correction = `\n${final.content}\n`;
+            yield correctionChunk(chunk, state.index, correction);
+            final = { ...final, content: state.text + correction };
           }
           signal.throwIfAborted();
           state.done = true;
