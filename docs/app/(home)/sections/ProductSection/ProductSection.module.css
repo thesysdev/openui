@@ -219,7 +219,8 @@
   font-size: 18px;
   font-weight: 500;
   letter-spacing: -0.2px;
-  line-height: normal;
+  line-height: 1.25;
+  text-wrap: balance;
 }
 
 .cardDescription {
@@ -259,9 +260,7 @@
   }
 
   .cards {
-    grid-template-columns: none;
-    grid-auto-columns: clamp(15.5rem, 76vw, 18rem);
-    grid-auto-flow: column;
+    display: flex;
     justify-content: start;
     overflow-x: auto;
     overscroll-behavior-inline: contain;
@@ -277,6 +276,7 @@
   }
 
   .card {
+    flex: 0 0 clamp(15.5rem, 76vw, 18rem);
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }

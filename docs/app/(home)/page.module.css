@@ -28,7 +28,7 @@
      and Observability bands below it rather than sitting 40px wider. */
   max-width: var(--home-container-max);
   margin-inline: auto;
-  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+  padding-inline: var(--home-container-gutter);
 }
 
 /* NB: both breakpoints below override this gap, so editing it here has no
@@ -83,10 +83,6 @@
   .contentShell {
     gap: 7rem;
     padding-block: 4rem;
-  }
-
-  .faqBand {
-    padding-inline: 1.25rem;
   }
 }
 

@@ -3,6 +3,7 @@ import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import { BevelButton } from "../../components/Button/BevelButton";
 import { SectionHeader } from "../../components/SectionHeader/SectionHeader";
+import { AutofixSection } from "../AutofixSection/AutofixSection";
 import { ProductLabel, ProductSection } from "../ProductSection/ProductSection";
 import { GATEWAY_PRODUCT } from "../ProductSection/products";
 import styles from "./CloudSection.module.css";
@@ -32,6 +33,8 @@ export function CloudSection() {
         <div className={styles.products}>
           <ProductSection {...GATEWAY_PRODUCT} />
         </div>
+
+        <AutofixSection tone="cloud" headingLevel="h3" />
 
         <div id="openui-observability-card" className={styles.observabilityBand}>
           <div className={styles.observabilityCopy}>
