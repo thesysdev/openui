@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { artifactTool, REPORT_LIBRARY_VERSION, SLIDES_LIBRARY_VERSION } from "../cloud";
+import { artifactTool, createDashboardTools } from "../cloud";
 
-const CLOUD_SUPPORTED_ARTIFACT_TYPES = ["slides", "report"];
+const CLOUD_SUPPORTED_ARTIFACT_TYPES = ["slides", "report", "dashboard"];
 
 describe("artifactTool — defaults", () => {
   const ALL_WITH_VERSION = {
     type: "artifact",
     artifacts: [
-      { artifact_type: "slides", library_version: SLIDES_LIBRARY_VERSION },
-      { artifact_type: "report", library_version: REPORT_LIBRARY_VERSION },
+      { artifact_type: "slides", library_version: "0.1.0" },
+      { artifact_type: "report", library_version: "0.1.0" },
+      { artifact_type: "dashboard", library_version: "0.1.0" },
     ],
   };
 
@@ -25,14 +26,14 @@ describe("artifactTool — restriction", () => {
   it("'slides' shorthand → entry with pinned version", () => {
     expect(artifactTool({ artifacts: ["slides"] })).toEqual({
       type: "artifact",
-      artifacts: [{ artifact_type: "slides", library_version: SLIDES_LIBRARY_VERSION }],
+      artifacts: [{ artifact_type: "slides", library_version: "0.1.0" }],
     });
   });
 
   it("'report' shorthand → entry with pinned version", () => {
     expect(artifactTool({ artifacts: ["report"] })).toEqual({
       type: "artifact",
-      artifacts: [{ artifact_type: "report", library_version: REPORT_LIBRARY_VERSION }],
+      artifacts: [{ artifact_type: "report", library_version: "0.1.0" }],
     });
   });
 
@@ -73,5 +74,119 @@ describe("artifactTool — validation", () => {
     expect(() => artifactTool({ artifacts: ["presentation" as never] })).toThrow(
       /unknown artifact type 'presentation'/,
     );
+  });
+});
+
+describe("artifactTool — dashboard generation tools", () => {
+  const dashboardTools = createDashboardTools({
+    tools: [
+      {
+        type: "function",
+        name: "get_kpis",
+        description: "KPIs by year",
+        parameters: { type: "object", properties: { year: { type: "string" } } },
+        sample: { revenue: 0 },
+        execute: () => ({ revenue: 0 }),
+      },
+    ],
+  });
+
+  it("renders dashboard tool docs into the entry instruction", () => {
+    const entry = artifactTool({
+      artifacts: [{ type: "dashboard", tools: dashboardTools }],
+    });
+    const dashboard = entry.artifacts?.[0];
+
+    expect(dashboard).toMatchObject({
+      artifact_type: "dashboard",
+      library_version: "0.1.0",
+    });
+    expect(dashboard?.instruction).toContain("### get_kpis");
+    expect(dashboard?.instruction).toContain("KPIs by year");
+    expect(dashboard?.instruction).toContain('"year"');
+    expect(dashboard?.instruction).toContain('sample_output: {"revenue":0}');
+    expect(dashboard?.instruction).toContain("structured `tools` argument");
+  });
+
+  it("accepts a dashboard tools result and appends its docs after custom instructions", () => {
+    const entry = artifactTool({
+      artifacts: [
+        {
+          type: "dashboard",
+          instruction: "Prefer dark charts.",
+          tools: dashboardTools,
+        },
+      ],
+    });
+
+    const instruction = entry.artifacts?.[0]?.instruction ?? "";
+    expect(instruction.startsWith("Prefer dark charts.")).toBe(true);
+    expect(instruction).toContain("### get_kpis");
+  });
+
+  it("normalizes a no-argument tool to an empty object schema", () => {
+    const entry = artifactTool({
+      artifacts: [
+        {
+          type: "dashboard",
+          tools: createDashboardTools({
+            tools: [
+              {
+                type: "function",
+                name: "get_status",
+                sample: { up: true },
+                execute: () => ({ up: true }),
+              },
+            ],
+          }),
+        },
+      ],
+    });
+
+    expect(entry.artifacts?.[0]?.instruction).toContain(
+      'parameters: {"type":"object","properties":{}}',
+    );
+  });
+
+  it("preserves rich JSON Schema in dashboard guidance", () => {
+    const entry = artifactTool({
+      artifacts: [
+        {
+          type: "dashboard",
+          tools: createDashboardTools({
+            tools: [
+              {
+                type: "function",
+                name: "search_orders",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    region: { type: "string", enum: ["na", "emea"] },
+                    ids: { type: "array", items: { type: "integer" } },
+                    window: {
+                      type: "object",
+                      properties: { from: { type: "string" } },
+                    },
+                  },
+                  required: ["region"],
+                },
+                execute: () => [],
+              },
+            ],
+          }),
+        },
+      ],
+    });
+
+    const instruction = entry.artifacts?.[0]?.instruction ?? "";
+    expect(instruction).toContain('"enum":["na","emea"]');
+    expect(instruction).toContain('"items":{"type":"integer"}');
+    expect(instruction).toContain('"from":{"type":"string"}');
+  });
+
+  it("rejects dashboard tool definitions on other artifact types", () => {
+    expect(() =>
+      artifactTool({ artifacts: [{ type: "slides", tools: dashboardTools } as never] }),
+    ).toThrow(/only valid on the 'dashboard' entry/);
   });
 });
