@@ -1,13 +1,37 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
-import { correctionChunk } from "./openai";
-import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "./types";
-import { isUIOutput } from "./utils";
+import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../types";
+import { isUIOutput } from "../utils";
 
 type ChoiceState = { text: string | null; done: boolean; passthrough: boolean };
 
+/** Create a correction or stop chunk with the original completion's routing fields. */
+export function correctionChunk(
+  template: ChatCompletionChunk,
+  index: number,
+  content: string | null,
+): ChatCompletionChunk {
+  return {
+    id: template.id,
+    object: template.object,
+    created: template.created,
+    model: template.model,
+    ...(template.system_fingerprint !== undefined && {
+      system_fingerprint: template.system_fingerprint,
+    }),
+    ...(template.service_tier !== undefined && { service_tier: template.service_tier }),
+    choices: [
+      {
+        index,
+        delta: content === null ? {} : { content },
+        finish_reason: content === null ? "stop" : null,
+      },
+    ],
+  };
+}
+
 /** Preserve Chat Completions chunks and append repaired UI before the choice finishes. */
-export const chatCompletionsAdapter: StreamAdapter<ChatCompletionChunk, ChatCompletionChunk> = {
-  protocol: "chat-completions",
+export const openAIAdapter: StreamAdapter<ChatCompletionChunk, ChatCompletionChunk> = {
+  protocol: "openai-chat-completions",
   // Track each choice and defer eligible UI stop markers until validation finishes.
   async *transform(source, fix) {
     const states = new Map<string, ChoiceState>();

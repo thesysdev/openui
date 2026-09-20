@@ -36,7 +36,7 @@ export const autofix = createAutofix({
 });
 ```
 
-Use the spec produced by `openui generate --spec` for the same component library as your renderer, including its `schema`. Keep the API key on the server and treat the library as immutable after configuration. `apiBaseUrl` optionally overrides `https://api.thesys.dev`; `fetch` optionally supplies a custom transport. The Autofix exports are `createAutofix`, `chatCompletionsAdapter`, and `responsesAdapter`; configuration and result types are inferred.
+Use the spec produced by `openui generate --spec` for the same component library as your renderer, including its `schema`. Keep the API key on the server and treat the library as immutable after configuration. `apiBaseUrl` optionally overrides `https://api.thesys.dev`; `fetch` optionally supplies a custom transport. The Autofix exports are `createAutofix`, `openAIAdapter`, `responsesAdapter`, and `vercelAIAdapter`, plus the `Adapter<Input, Output>` type for custom adapters; configuration and result types are inferred.
 
 ### Fix completed output
 
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
 }
 ```
 
-Pass the model's Chat Completions stream as `source`; `chatCompletionsAdapter` is the default when `adapter` is omitted. Tool calls, refusals, reasoning extensions, usage, and other metadata pass through. The source must emit native Chat Completions chunks.
+Pass the model's Chat Completions stream as `source`; `openAIAdapter` is the default when `adapter` is omitted. Tool calls, refusals, reasoning extensions, usage, and other metadata pass through. The source must emit native Chat Completions chunks.
 
 For each completion and choice, the wrapper accumulates text while forwarding chunks. On a normal `stop`, it validates text that looks like OpenUI and has no tool call or refusal. Only invalid UI triggers an Autofix request. Plain prose, tool turns, refusals, truncated output, and outputs exceeding 100,000 characters pass through without repair.
 
@@ -107,6 +107,83 @@ return autofix.stream({ source, adapter: responsesAdapter, signal }).toResponse(
 The adapter validates text directly from the completed message item, without maintaining a second text buffer. Tool calls, reasoning, refusals, and unfinished output pass through without repair. On success, it appends the fixed program as a text delta and updates the affected text, content-part, item, and final-response snapshots to match. Sequence numbers remain increasing; provider usage is preserved and excludes the separate repair request.
 
 The wrapper changes only the emitted stream. Provider-side stored responses remain unchanged, so persist the wrapper's output when subsequent turns need the repaired content.
+
+### Wrap a Vercel AI SDK 7 stream
+
+```ts
+import { streamText, toUIMessageStream } from "ai";
+import { vercelAIAdapter } from "@openuidev/server";
+
+const result = streamText({
+  model: "openai/gpt-4.1-mini",
+  system: systemPrompt, // Generated from the same OpenUI component library.
+  prompt: "Show a greeting card",
+  abortSignal: signal,
+});
+
+return autofix
+  .stream({
+    source: toUIMessageStream({ stream: result.stream }),
+    adapter: vercelAIAdapter,
+    signal,
+  })
+  .toResponse();
+```
+
+Use AI SDK 7's native UI message stream. `chunks` contains `UIMessageChunk` events;
+`toResponse()` returns the UI message SSE protocol used by `useChat`, including
+its protocol header and `[DONE]` marker. Raw text streams and `result.stream`
+without `toUIMessageStream()` are not inputs to this adapter.
+
+Text deltas, reasoning, tools, sources, custom data, and metadata pass through.
+The adapter holds text endings and step endings until the next step or the final
+finish event. Only completed UI text in the final step, without tool events and
+with `finishReason: "stop"`, is validated. Invalid UI triggers Autofix; the complete
+corrected program is appended as a `text-delta` with the same text ID before its
+`text-end`. Earlier steps, truncated output, errors, aborts, and streams without
+a normal finish pass through without repair. Keep the default `sendFinish: true`.
+
+Optional `messages` remains repair context in Chat Completions message format;
+it does not accept AI SDK UI messages. AI SDK callbacks and result promises before
+the wrapper contain the original generation; persist the wrapped output when you
+need repairs in conversation history.
+
+### Write a custom adapter
+
+Import `Adapter<Input, Output>` to implement your own stream adapter. This example
+unwraps a provider's event envelope and delegates validation and repair to the
+Chat Completions adapter:
+
+```ts
+import { openAIAdapter, type Adapter } from "@openuidev/server";
+import type { ChatCompletionChunk } from "openai/resources/chat/completions";
+
+type ProviderEvent = { chunk: ChatCompletionChunk };
+
+const customAdapter: Adapter<ProviderEvent, ChatCompletionChunk> = {
+  protocol: "chat-completions",
+  async *transform(source, fix) {
+    // Extract native chunks from the provider's event envelope.
+    async function* chunks() {
+      for await (const event of source) yield event.chunk;
+    }
+    yield* openAIAdapter.transform(chunks(), fix);
+  },
+};
+
+const output = autofix.stream({ source: providerStream, adapter: customAdapter });
+```
+
+`transform` receives the source and a `fix(generation)` callback with the configured
+library, repair context, and cancellation already bound. The callback validates
+locally and calls the Autofix API only for invalid programs. An adapter that handles
+repair itself must preserve unrelated events, validate only completed UI, and emit
+any correction before the corresponding completion marker.
+
+`protocol` selects the output SSE format for `toResponse()`: `"chat-completions"`,
+`"responses"`, or `"vercel-ai"`. Emit events matching that format. Consume `chunks`
+yourself if you need different HTTP framing; custom serializers are not part of
+the adapter contract.
 
 ### Consume the stream and handle failures
 

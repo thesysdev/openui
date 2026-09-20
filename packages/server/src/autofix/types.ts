@@ -48,9 +48,11 @@ export interface AutofixStreamInput<
   adapter?: StreamAdapter<Input, Output>;
 }
 
-/** Internal protocol wrapper; applications select one of the supplied adapters. */
+/** Wrap provider events with validation and repair while preserving the selected output protocol. */
 export interface StreamAdapter<Input, Output> {
-  protocol: "chat-completions" | "responses";
+  /** SSE format for emitted events; transform must produce chunks compatible with this protocol. */
+  protocol: string;
+  /** Forward events and use fix to validate completed UI before emitting its completion marker. */
   transform(
     source: StreamSource<Input>,
     fix: (generation: string) => Promise<AutofixResult>,
