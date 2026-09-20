@@ -45,36 +45,17 @@ search, image search, and configured MCP servers.
 
 ## Conversation storage
 
-OpenUI Cloud is the durable conversation store in every Cloud
-variant. The browser connects directly through `useOpenuiCloudStorage()` with a
-short-lived token from `/api/frontend-token`.
+All variants load history through `useOpenuiCloudStorage()` and `/api/frontend-token`.
+Default and LangGraph use Responses with `store: true`; Vercel AI SDK and Eve
+append new turns with `storeChatCompletionHistory`.
 
-- Default and LangGraph routes use Responses with `conversation: threadId` and
-  `store: true`.
-- Vercel AI SDK uses Chat Completions and awaits `storeChatCompletionHistory`
-  before sending the UI stream's final finish event. Only the latest user message and the new assistant/tool messages
-  are appended. Save failures become stream errors.
-- Eve sends the Cloud conversation id in `x-openui-conversation-id`. Its channel
-  checks the demo user/app scope and places the id in session attributes. The
-  `agent/hooks/persist-chat-completion.ts` hook collects each turn's messages and
-  tool results and saves them on `turn.completed`. Failed/cancelled turns are
-  discarded. Eve hooks observe already-recorded events, so a save failure is
-  logged server-side; it does not undo Eve's completed event.
+AI SDK saves before finishing the stream and reports save errors to the UI.
+Eve saves on `turn.completed` and logs save errors server-side. Failed or cancelled
+turns are skipped. Cloud history does not restore a missing Eve session.
 
-Both Chat Completions variants use `src/lib/chat-completion-history.ts`. Never
-pass previously stored turns to the append helper: retries are not idempotent.
-Reload Cloud history before retrying an ambiguous save failure. The API key stays
-on the server. Generation still needs its own context: AI SDK receives the replay
-from the UI; Eve keeps its own session context. Cloud persistence does not restore
-an expired or missing Eve session automatically.
-
-Browser `localStorage` holds only the selected model and, for Eve, the session
-cursor. The Eve channel accepts text messages; attachments are disabled. The AI
-SDK route supports text and images.
-
-These templates share a demo identity. When adding authentication, derive the user
-from your server session in both `/api/frontend-token` and
-`assertConversationAccess`, and replace Eve's anonymous channel authentication.
+Append only new messages. Reload history before retrying an uncertain save to
+avoid duplicates. For production, replace the demo identity in the token route
+and `assertConversationAccess`, and replace Eve's anonymous authentication.
 
 ## Switching Models
 
