@@ -105,8 +105,7 @@ unchanged except that a UI stop is deferred until validation/repair finishes.
 Inserted corrections keep the completion ID, choice index, and model, and never
 duplicate the original usage or logprobs.
 
-With the default Chat Completions adapter, other providers can supply `AsyncIterable<string>`. That iterable must
-throw on abnormal termination; normal EOF means the generation is complete.
+The default adapter accepts native Chat Completions chunks (`AsyncIterable<ChatCompletionChunk>`).
 Pass the same abort signal to your provider and the wrapper.
 
 ### Stream Responses

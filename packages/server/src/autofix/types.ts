@@ -40,7 +40,7 @@ export interface AutofixInput {
 export type StreamSource<T> = AsyncIterable<T> & { controller?: AbortController };
 
 export interface AutofixStreamInput<
-  Input = ChatCompletionChunk | string,
+  Input = ChatCompletionChunk,
   Output = ChatCompletionChunk,
 > extends AutofixInput {
   source: StreamSource<NoInfer<Input>>;
