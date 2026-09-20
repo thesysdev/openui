@@ -12,12 +12,7 @@ import {
   type UIMessageChunk,
 } from "ai";
 
-import {
-  ConversationAccessError,
-  assertConversationAccess,
-  storeChatCompletionTurn,
-  type CompletionUserMessage,
-} from "@/lib/chat-completion-history";
+import { storeChatCompletionTurn, type CompletionUserMessage } from "@/lib/chat-completion-history";
 import { requiredEnv } from "@/lib/env";
 import { resolveRequestedModel } from "@/lib/models";
 import { appTools } from "@/lib/tools";
@@ -47,7 +42,7 @@ export async function POST(req: Request) {
     model?: unknown;
   };
 
-  if (typeof threadId !== "string") return badRequest("threadId is required");
+  if (typeof threadId !== "string" || !threadId.trim()) return badRequest("threadId is required");
   if (!Array.isArray(messages) || messages.length === 0) {
     return badRequest("messages must be a non-empty UIMessage[]");
   }
@@ -68,14 +63,6 @@ export async function POST(req: Request) {
   }
   if (!content.length) return badRequest("The user message is empty");
   const user: CompletionUserMessage = { role: "user", content };
-  try {
-    await assertConversationAccess(threadId);
-  } catch (error) {
-    return Response.json(
-      { error: { message: "Unable to access Cloud conversation" } },
-      { status: error instanceof ConversationAccessError ? error.status : 503 },
-    );
-  }
 
   const result = streamText({
     model: openai.chat(model),

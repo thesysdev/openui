@@ -1,6 +1,5 @@
 import { none } from "eve/channels/auth";
 import { defaultEveAuth, eveChannel } from "eve/channels/eve";
-import { assertConversationAccess } from "../../src/lib/chat-completion-history.ts";
 
 /** Browser `createEveLLM` sends the Cloud conversation id on every session POST. */
 const OPENUI_CONVERSATION_HEADER = "x-openui-conversation-id";
@@ -17,11 +16,10 @@ const CONVERSATION_ATTRIBUTE = "openuiConversationId";
 export default eveChannel({
   auth: none(),
   uploadPolicy: "disabled",
-  async onMessage(ctx) {
+  onMessage(ctx) {
     const caller = defaultEveAuth(ctx);
-    const conversationId = await assertConversationAccess(
-      ctx.eve.request.headers.get(OPENUI_CONVERSATION_HEADER)?.trim(),
-    );
+    const conversationId = ctx.eve.request.headers.get(OPENUI_CONVERSATION_HEADER)?.trim();
+    if (!conversationId) throw new Error("Missing Cloud conversation id");
     if (!caller) throw new Error("Missing Eve caller");
 
     return {

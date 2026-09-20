@@ -55,7 +55,7 @@ turns are skipped. Cloud history does not restore a missing Eve session.
 
 Append only new messages. Reload history before retrying an uncertain save to
 avoid duplicates. For production, replace the demo identity in the token route
-and `assertConversationAccess`, and replace Eve's anonymous authentication.
+and Eve's anonymous authentication.
 
 ## Switching Models
 
