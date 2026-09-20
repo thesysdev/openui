@@ -10,7 +10,7 @@ import type {
 import { AutofixError, MAX_AUTOFIX_GENERATION_LENGTH } from "./types";
 import { errorsOf, readCompletion, repairContext } from "./utils";
 
-/** Validate locally and repair via Gateway only when needed. Does not own model generation. */
+/** Create helpers to validate and repair complete or streamed model output. */
 export function createAutofix(options: AutofixOptions): {
   fix(input: AutofixInput & { generation: string }): Promise<AutofixResult>;
   stream(input: AutofixStreamInput): AutofixStream;
@@ -22,6 +22,7 @@ export function createAutofix(options: AutofixOptions): {
   const endpoint = `${(options.apiBaseUrl ?? "https://api.thesys.dev").replace(/\/+$/, "")}/v1/autofix`;
   const fetchFn = options.fetch ?? globalThis.fetch;
 
+  // Return valid programs unchanged and send invalid programs to the Autofix API.
   async function fix({
     generation,
     messages = [],
@@ -85,5 +86,9 @@ export function createAutofix(options: AutofixOptions): {
     };
   }
 
-  return { fix, stream: (input) => createAutofixStream(input, fix) };
+  return {
+    fix,
+    // Wrap model emissions with validation and repair before the stream finishes.
+    stream: (input) => createAutofixStream(input, fix),
+  };
 }

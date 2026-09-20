@@ -1,7 +1,7 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
 import { AutofixError, type AutofixStreamInput } from "./types";
 
-/** Preserve structured emissions. Strings are a convenience for text-only providers. */
+/** Pass through provider chunks or wrap text deltas as Chat Completions chunks. */
 export function createChunkIterator(
   source: AutofixStreamInput["source"],
 ): AsyncIterator<ChatCompletionChunk> {
@@ -15,6 +15,7 @@ export function createChunkIterator(
     model: "openui/autofix",
   };
   return {
+    // Read the next chunk and add a final stop chunk when a text-only source ends.
     async next() {
       if (ended) return { done: true, value: undefined };
       const next = await iterator.next();
@@ -46,6 +47,7 @@ export function createChunkIterator(
             : value,
       };
     },
+    // Close the wrapper and ask the upstream iterator to stop.
     async return() {
       ended = true;
       await iterator.return?.();
@@ -54,14 +56,14 @@ export function createChunkIterator(
   };
 }
 
-/** Only OpenUI-looking text is eligible; ordinary conversational prose is passed through. */
+/** Check whether the text looks like an OpenUI program that may need validation. */
 export function isUIOutput(text: string): boolean {
   return (
     /```openui(?:-lang)?\s*\n/.test(text) || /(?:^|\n)[ \t]*[$A-Za-z_][\w$]*[ \t]*=(?!=)/.test(text)
   );
 }
 
-/** Generated events carry routing fields, never duplicate usage/logprobs or provider extensions. */
+/** Create a correction or stop chunk with the original completion's routing fields. */
 export function correctionChunk(
   template: ChatCompletionChunk,
   index: number,
