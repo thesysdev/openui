@@ -94,3 +94,10 @@ export function repairContext(messages: NonNullable<AutofixInput["messages"]>) {
   }
   return context;
 }
+
+/** Check whether the text looks like an OpenUI program that may need validation. */
+export function isUIOutput(text: string): boolean {
+  return (
+    /```openui(?:-lang)?\s*\n/.test(text) || /(?:^|\n)[ \t]*[$A-Za-z_][\w$]*[ \t]*=(?!=)/.test(text)
+  );
+}

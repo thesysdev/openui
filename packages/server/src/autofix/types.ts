@@ -37,33 +37,34 @@ export interface AutofixInput {
   signal?: AbortSignal;
 }
 
-export interface AutofixStreamInput extends AutofixInput {
-  /** Preserve Chat Completions emissions, or supply text deltas for a text-only integration. */
-  source: (AsyncIterable<ChatCompletionChunk> | AsyncIterable<string>) & {
-    controller?: AbortController;
-  };
+export type StreamSource<T> = AsyncIterable<T> & { controller?: AbortController };
+
+export interface AutofixStreamInput<
+  Input = ChatCompletionChunk | string,
+  Output = ChatCompletionChunk,
+> extends AutofixInput {
+  source: StreamSource<NoInfer<Input>>;
+  /** Select the source and output protocol; defaults to Chat Completions. */
+  adapter?: StreamAdapter<Input, Output>;
 }
 
-export type AutofixStreamResult = { id: string; index: number } & (
-  | AutofixResult
-  | {
-      status: "skipped";
-      reason: "tool_call" | "refusal" | "incomplete" | "no_ui" | "too_large";
-      /** Null when text exceeded the bounded accumulation buffer. Original chunks still pass through. */
-      content: string | null;
-    }
-);
+/** Internal protocol wrapper; applications select one of the supplied adapters. */
+export interface StreamAdapter<Input, Output> {
+  protocol: "chat-completions" | "responses";
+  transform(
+    source: StreamSource<Input>,
+    fix: (generation: string) => Promise<AutofixResult>,
+  ): AsyncGenerator<Output>;
+}
 
-export interface AutofixStream {
+export interface AutofixStream<T> {
   /** Single consumer. Preserves provider chunks and appends the corrected program before UI completion. */
-  chunks: AsyncIterable<ChatCompletionChunk>;
-  /** One outcome per completion ID and choice. Settles as chunks are consumed. */
-  result: Promise<AutofixStreamResult[]>;
-  /** Alternative to consuming chunks: OpenAI Chat Completions SSE for openAIAdapter(). */
+  chunks: AsyncIterable<T>;
+  /** Alternative to consuming chunks: SSE in the selected adapter's protocol. */
   toResponse(): Response;
 }
 
-/** Transport/protocol/stream failures throw; an exhausted repair is also available as result. */
+/** Stream and request failures throw; exhausted repairs include their diagnostics. */
 export class AutofixError extends Error {
   // Attach a code and optional HTTP status or repair result to the error.
   constructor(

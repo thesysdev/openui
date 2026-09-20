@@ -3,5 +3,6 @@
 ---
 
 Add `createAutofix` to validate and repair completed or streaming OpenUI output.
-Append the complete corrected program as standard Chat Completions text deltas
-while preserving tool calls, refusals, usage, and provider metadata.
+Select `chatCompletionsAdapter` or `responsesAdapter` to preserve the model's
+stream protocol, append the complete corrected program as native text deltas,
+and keep completion snapshots consistent while preserving tool calls and metadata.
