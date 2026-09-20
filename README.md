@@ -99,9 +99,14 @@ Try it yourself in the [Playground](https://www.openui.com/playground): generate
 | [`@openuidev/react-headless`](./packages/react-headless)                                                   | Bring-your-own React chat UI                     | Headless chat state, streaming adapters, and message format converters                                       |
 | [`@openuidev/react-ui`](./packages/react-ui)                                                               | Fastest path to a full React chat experience     | Prebuilt chat layouts, standalone UI primitives, and two built-in component libraries                        |
 | [`@openuidev/react-email`](./packages/react-email)                                                         | Email generation and HTML export                 | React Email component definitions plus prompt options for model-generated emails                             |
+| [`@openuidev/assistant-ui`](./packages/assistant-ui)                                                       | assistant-ui apps                                | Tool UI renderers and instruction wiring for streaming OpenUI Lang inside assistant-ui                       |
 | [`@openuidev/vue-lang`](./packages/vue-lang)                                                               | Vue integrations                                 | Vue 3 bindings for defining model-renderable components and rendering streamed OpenUI Lang                   |
 | [`@openuidev/svelte-lang`](./packages/svelte-lang)                                                         | Svelte integrations                              | Svelte 5 bindings for defining model-renderable components and rendering streamed OpenUI Lang                |
 | [`@openuidev/browser-bundle`](./packages/browser-bundle)                                                   | CDN, iframe, and no-build embeds                 | Prebuilt browser bundle that ships the renderer, UI library, React, and styles as script + stylesheet assets |
+| [`@openuidev/server`](./packages/server)                                                                   | Server-side history persistence                  | Server utilities for OpenUI and OpenUI Gateway, including Conversations API history storage                  |
+| [`@openuidev/observability`](./packages/observability)                                                     | Runtime events and error tracking                | Framework-free observability event bus for emitting and listening to OpenUI events                           |
+| [`@openuidev/observability-cloud`](./packages/observability-cloud)                                         | Hosted observability in the Thesys console       | Cloud sink that batches OpenUI events and ships them to Thesys ingest                                        |
+| [`@openuidev/devtools`](./packages/devtools)                                                               | Local debugging                                  | Development-only OpenUI Inspect widget that surfaces events captured by `@openuidev/observability`           |
 | [`@openuidev/cli`](./packages/openui-cli)                                                                  | Project scaffolding and prompt generation        | CLI for creating new apps and generating system prompts or JSON schema from a library definition             |
 | [`@openuidev/openclaw-os-plugin`](https://github.com/thesysdev/openclaw-os/tree/main/packages/claw-plugin) | OpenClaw workspaces                              | OpenClaw OS plugin for serving OpenUI-powered OpenClaw workspaces                                            |
 
@@ -161,11 +166,16 @@ openui/
 │   ├── react-headless/   # Headless chat state & streaming adapters
 │   ├── react-ui/         # Prebuilt chat layouts & component libraries
 │   ├── react-email/      # React Email component library for generated emails
+│   ├── assistant-ui/     # assistant-ui Tool UI renderers for OpenUI Lang
 │   ├── lang-core/        # Framework-agnostic parser, prompt, and runtime layer
 │   ├── langchain/        # LangChain/LangGraph streaming integration
 │   ├── vue-lang/         # Vue runtime bindings for OpenUI Lang
 │   ├── svelte-lang/      # Svelte runtime bindings for OpenUI Lang
 │   ├── browser-bundle/   # Script-tag bundle for CDN / iframe / no-build embeds
+│   ├── server/           # Server utilities for OpenUI & OpenUI Gateway
+│   ├── observability/    # Framework-free observability event bus
+│   ├── observability-cloud/ # Cloud sink shipping OpenUI events to Thesys
+│   ├── devtools/         # Dev-only OpenUI Inspect widget
 │   └── openui-cli/       # CLI for scaffolding & prompt generation
 ├── skills/
 │   └── openui/           # Claude Code skill for AI-assisted development
