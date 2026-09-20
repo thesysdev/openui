@@ -47,18 +47,34 @@ search, image search, and configured MCP servers.
 
 OpenUI Cloud is the durable conversation store in every Cloud
 variant. The browser connects directly through `useOpenuiCloudStorage()` with a
-short-lived token from `/api/frontend-token`. For default, LangGraph, and
-Vercel AI SDK routes, the `threadId` sent to `/api/chat` is the Cloud
-conversation id, and the route appends each model turn to it with
-`conversation: threadId` and `store: true`. The Eve overlay uses that same Cloud
-thread store and maps each Cloud `threadId` to an Eve session cursor in the
-browser; it does not use `/api/chat`.
-Browser `localStorage` holds only the selected model (and, for Eve, the session
-cursor), not conversation messages.
+short-lived token from `/api/frontend-token`.
 
-The Vercel AI SDK route does not create a second store. Add a LangGraph
-checkpointer separately only if the graph needs durable state, interrupts, or
-resumable runs.
+- Default and LangGraph routes use Responses with `conversation: threadId` and
+  `store: true`.
+- Vercel AI SDK uses Chat Completions and awaits `storeChatCompletionHistory`
+  before sending the UI stream's final finish event. Only the latest user message and the new assistant/tool messages
+  are appended. Save failures become stream errors.
+- Eve sends the Cloud conversation id in `x-openui-conversation-id`. Its channel
+  checks the demo user/app scope and places the id in session attributes. The
+  `agent/hooks/persist-chat-completion.ts` hook collects each turn's messages and
+  tool results and saves them on `turn.completed`. Failed/cancelled turns are
+  discarded. Eve hooks observe already-recorded events, so a save failure is
+  logged server-side; it does not undo Eve's completed event.
+
+Both Chat Completions variants use `src/lib/chat-completion-history.ts`. Never
+pass previously stored turns to the append helper: retries are not idempotent.
+Reload Cloud history before retrying an ambiguous save failure. The API key stays
+on the server. Generation still needs its own context: AI SDK receives the replay
+from the UI; Eve keeps its own session context. Cloud persistence does not restore
+an expired or missing Eve session automatically.
+
+Browser `localStorage` holds only the selected model and, for Eve, the session
+cursor. The Eve channel accepts text messages; attachments are disabled. The AI
+SDK route supports text and images.
+
+These templates share a demo identity. When adding authentication, derive the user
+from your server session in both `/api/frontend-token` and
+`assertConversationAccess`, and replace Eve's anonymous channel authentication.
 
 ## Switching Models
 

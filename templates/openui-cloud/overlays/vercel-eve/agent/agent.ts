@@ -10,9 +10,7 @@ const openai = createOpenAI({
   baseURL: "https://api.thesys.dev/v1/embed",
 });
 
-const model = openai.chat(
-  resolveOpenuiModel("google/gemini-3.6-flash-free"),
-);
+const model = openai.chat(resolveOpenuiModel("google/gemini-3.6-flash-free"));
 
 export default defineAgent({
   model,
@@ -20,6 +18,6 @@ export default defineAgent({
   // this override Eve can't size compaction and agent compile fails (no /eve routes).
   modelContextWindowTokens: 1_048_576,
   build: {
-    externalDependencies: ["@openuidev/lang-core"],
+    externalDependencies: ["@openuidev/lang-core", "@openuidev/server"],
   },
 });

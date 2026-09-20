@@ -7,7 +7,8 @@
       "@vercel/connect": "0.2.2",
       "ai": "^7.0.82",
       "eve": "^0.52.2",
-      "lru-cache": "^11.2.6"
+      "lru-cache": "^11.2.6",
+      "@openuidev/server": "^0.0.1"
     },
     "devDependencies": {
       "concurrently": "^9.2.4"
@@ -18,10 +19,7 @@
       "eve:dev": "eve dev",
       "eve:build": "eve build",
       "eve:start": "eve start"
-    },
-    "removeDependencies": [
-      "openai"
-    ]
+    }
   },
   "files": {
     "remove": [
