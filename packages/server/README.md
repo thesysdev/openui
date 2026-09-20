@@ -2,7 +2,7 @@
 
 Server utilities for OpenUI & OpenUI Gateway.
 
-## Autofix pipeline (draft)
+## Autofix pipeline
 
 Wrap your model's Chat Completions stream with local OpenUI validation and hosted
 Autofix. Tool calls, refusals, usage, and provider metadata pass through. For UI
@@ -10,16 +10,12 @@ answers, the wrapper appends the complete corrected OpenUI program as ordinary
 Chat Completions text deltas. An existing `openAIAdapter()` and OpenUI renderer
 can consume the response; no replacement event or new frontend adapter is needed.
 
-These exports are a draft in this branch and are not yet released.
-
 The only Autofix public export is `createAutofix`. Configuration,
 input, and result types are inferred from these functions; helper types and the
 error implementation are internal.
 
-The server and frontend must use a `lang-core` release that preserves trailing
-statement terminators. That parser fix is maintained in a separate PR. Earlier
-parsers trim the terminating newline and can leave the final redefinition
-unapplied. The adapter itself does not change.
+Streaming corrections require a frontend `lang-core` parser that preserves trailing
+statement terminators so the final redefinition is applied.
 
 ### Configure once
 
@@ -34,8 +30,8 @@ const autofix = createAutofix({
 ```
 
 Use the spec produced by `openui generate --spec` for the same library used by
-your renderer. This draft requires an explicit spec with `schema`; it does not
-silently select the Gateway's default library. Keep the API key on the server.
+your renderer. Include the spec's `schema` for local validation. Keep the API key on the server.
+Treat the library as immutable after configuration; the helper keeps its reference.
 
 ### Completed output
 
@@ -56,6 +52,10 @@ uses its returned status and diagnostics without parsing the repaired program ag
 The Gateway owns its repair attempts; the wrapper makes one request. `messages`
 is the conversation before the generated assistant message, which is appended
 automatically. Only recent text context is sent, capped at 20 turns / 8,000 characters.
+
+The helper returns `{ status, original, content, fixedErrors, unfixedErrors }`.
+These fields map the API's content and `fix_summary`; the raw Chat Completion
+envelope and repair usage are not returned.
 
 ### Stream an OpenAI-compatible model
 
@@ -91,8 +91,13 @@ Validation applies only to text that looks like OpenUI (an assignment statement
 or an explicit OpenUI code fence), on a normal `stop`, with no tool call or refusal
 in that choice. Tool turns, refusals, plain prose, truncated responses, and missing
 stop markers pass through without correction. These outcomes are reported as
-`skipped`, not errors. This draft uses a syntax heuristic to identify UI output;
+`skipped`, not errors. The wrapper uses a syntax heuristic to identify UI output;
 `fix()` remains available when the caller explicitly knows a string is UI.
+
+The wrapper accumulates the original text and validates it with `createParser()`
+at completion. A separate server-side streaming parser is not required. The
+frontend uses its streaming parser to render incoming text. Already-valid UI
+finishes without an Autofix request.
 
 State is tracked independently for each completion ID and choice index, so a
 tool-call step cannot contaminate a subsequent UI answer. Original chunks are
@@ -154,7 +159,7 @@ program on its own; the concatenated program is not separately validated.
 The result is not a reconstructed conversation; persist
 tool calls and other non-text content from the preserved chunks using your existing logic.
 
-### Failure and draft limits
+### Failures and limits
 
 - An exhausted repair includes an outcome with `status: "fix_failed"` and
   `content: null` in `result`; the chunk iterator throws an error. Read the structured
