@@ -1,4 +1,4 @@
-export { createAutofix } from "./autofix";
+export { chatCompletionsAdapter, createAutofix, responsesAdapter } from "./autofix";
 export {
   chatCompletionMessagesToItems,
   storeChatCompletionHistory,

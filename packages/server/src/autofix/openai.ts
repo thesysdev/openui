@@ -1,9 +1,9 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
-import { AutofixError, type AutofixStreamInput } from "./types";
+import { AutofixError, type StreamSource } from "./types";
 
 /** Pass through provider chunks or wrap text deltas as Chat Completions chunks. */
 export function createChunkIterator(
-  source: AutofixStreamInput["source"],
+  source: StreamSource<ChatCompletionChunk | string>,
 ): AsyncIterator<ChatCompletionChunk> {
   const iterator = source[Symbol.asyncIterator]();
   let mode: "text" | "chunks" | undefined;
@@ -54,13 +54,6 @@ export function createChunkIterator(
       return { done: true, value: undefined };
     },
   };
-}
-
-/** Check whether the text looks like an OpenUI program that may need validation. */
-export function isUIOutput(text: string): boolean {
-  return (
-    /```openui(?:-lang)?\s*\n/.test(text) || /(?:^|\n)[ \t]*[$A-Za-z_][\w$]*[ \t]*=(?!=)/.test(text)
-  );
 }
 
 /** Create a correction or stop chunk with the original completion's routing fields. */
