@@ -18,8 +18,8 @@ importers:
         specifier: 0.3.0
         version: 0.3.0(@openuidev/react-lang@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
       '@openuidev/react-headless':
-        specifier: 0.14.0
-        version: 0.14.0(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.16.2
+        version: 0.16.2(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       '@openuidev/react-lang':
         specifier: 0.3.0
         version: 0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
@@ -52,8 +52,8 @@ importers:
         version: 4.5.7(@types/react@19.2.18)(react@19.2.3)
     devDependencies:
       '@openuidev/cli':
-        specifier: 0.3.0
-        version: 0.3.0(@types/node@22.20.1)
+        specifier: 0.4.0
+        version: 0.4.0(@types/node@22.20.1)
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.3.3
@@ -774,8 +774,8 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@openuidev/cli@0.3.0':
-    resolution: {integrity: sha512-HURtbZZIiCOXWYwfLkKPxbtDMuz9FZz0gzIb4XBifTGVN26tR9XgLKDr49fUwVNNrF/8z1jXvMdBlTcf5uXTzw==}
+  '@openuidev/cli@0.4.0':
+    resolution: {integrity: sha512-IcsVXwSanbuy5dh/0NJ69jwVfQIXuV1y595SVEfqkuJOl+1+rJp9prm3fj5LDNGA23LwQHxCNF053AKH7HPgPg==}
     hasBin: true
 
   '@openuidev/devtools@0.2.0':
@@ -809,8 +809,8 @@ packages:
       react-dom: ^18.0.0 || ^19.0.0
       zod: ^3.25.0 || ^4.0.0
 
-  '@openuidev/react-headless@0.14.0':
-    resolution: {integrity: sha512-bwPQgQh1abc7JA/pQFXrRHtP9gFCwPy5OgQJ1UipUYIAkOmqqGEotn52DdnyDswq20kq3U19ZZo4Xusz3jjjjg==}
+  '@openuidev/react-headless@0.16.2':
+    resolution: {integrity: sha512-6gdM6UD5DfqdWUkRbf72GzhIPHsv3Ni3oFao3rcCCa69jJkQhTZ4Ufm/7PaEKMXSdvTSBcpGvIsR9AcONJHbGQ==}
     peerDependencies:
       ai: ^6.0.0 || ^7.0.0
       react: ^18.3.1 || ^19.0.0
@@ -3338,7 +3338,7 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@openuidev/cli@0.3.0(@types/node@22.20.1)':
+  '@openuidev/cli@0.4.0(@types/node@22.20.1)':
     dependencies:
       '@inquirer/core': 11.2.1(@types/node@22.20.1)
       '@inquirer/prompts': 8.7.0(@types/node@22.20.1)
@@ -3378,7 +3378,7 @@ snapshots:
       react-dom: 19.2.3(react@19.2.3)
       zod: 4.5.4
 
-  '@openuidev/react-headless@0.14.0(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-headless@0.16.2(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@ag-ui/core': 0.0.53
       '@openuidev/observability': 0.0.4

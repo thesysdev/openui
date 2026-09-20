@@ -17,9 +17,9 @@
   "dependencies": {
     "@earendil-works/pi-coding-agent": "^0.79.4",
     "@openuidev/lang-core": "0.3.0",
-    "@openuidev/react-headless": "0.14.0",
+    "@openuidev/react-headless": "0.16.2",
     "@openuidev/react-lang": "0.3.0",
-    "@openuidev/react-ui": "0.14.0",
+    "@openuidev/react-ui": "0.16.2",
     "ai": "^6.0.0",
     "next": "16.1.6",
     "react": "19.2.3",
@@ -28,7 +28,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.3.0",
+    "@openuidev/cli": "0.4.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",

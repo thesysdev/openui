@@ -9,14 +9,14 @@ importers:
   .:
     dependencies:
       '@openuidev/react-headless':
-        specifier: 0.14.0
-        version: 0.14.0(ai@7.0.85(zod@4.5.4))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8))
+        specifier: 0.16.2
+        version: 0.16.2(ai@7.0.85(zod@4.5.4))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8))
       '@openuidev/react-lang':
         specifier: 0.3.0
         version: 0.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.5.4)
       '@openuidev/react-ui':
-        specifier: 0.14.0
-        version: 0.14.0(@openuidev/react-headless@0.14.0(ai@7.0.85(zod@4.5.4))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8)))(@openuidev/react-lang@0.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.5.4))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8))
+        specifier: 0.16.2
+        version: 0.16.2(@openuidev/react-headless@0.16.2(ai@7.0.85(zod@4.5.4))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8)))(@openuidev/react-lang@0.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.5.4))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8))
       ai:
         specifier: ^7.0.85
         version: 7.0.85(zod@4.5.4)
@@ -34,8 +34,8 @@ importers:
         version: 4.5.7(@types/react@19.2.18)(react@19.2.8)
     devDependencies:
       '@openuidev/cli':
-        specifier: 0.3.0
-        version: 0.3.0
+        specifier: 0.4.0
+        version: 0.4.0
       '@tailwindcss/vite':
         specifier: ^4.0.0
         version: 4.3.3(vite@6.4.3(jiti@2.7.0)(lightningcss@1.32.0))
@@ -498,9 +498,10 @@ packages:
     engines: {node: ^22.20 || ^24.12 || >=25}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
-  '@openuidev/cli@0.3.0':
-    resolution: {integrity: sha512-HURtbZZIiCOXWYwfLkKPxbtDMuz9FZz0gzIb4XBifTGVN26tR9XgLKDr49fUwVNNrF/8z1jXvMdBlTcf5uXTzw==}
+  '@openuidev/cli@0.4.0':
+    resolution: {integrity: sha512-IcsVXwSanbuy5dh/0NJ69jwVfQIXuV1y595SVEfqkuJOl+1+rJp9prm3fj5LDNGA23LwQHxCNF053AKH7HPgPg==}
     hasBin: true
 
   '@openuidev/devtools@0.2.0':
@@ -526,8 +527,8 @@ packages:
   '@openuidev/observability@0.0.4':
     resolution: {integrity: sha512-4fjIrWu3TqTlfDE/m7cG10CH1vV7wQk5GPwMOmXeF9vJtkg92dg4Bdk3AjKgud7H7Xypwwjgt52VcLGZCE2CJQ==}
 
-  '@openuidev/react-headless@0.14.0':
-    resolution: {integrity: sha512-bwPQgQh1abc7JA/pQFXrRHtP9gFCwPy5OgQJ1UipUYIAkOmqqGEotn52DdnyDswq20kq3U19ZZo4Xusz3jjjjg==}
+  '@openuidev/react-headless@0.16.2':
+    resolution: {integrity: sha512-6gdM6UD5DfqdWUkRbf72GzhIPHsv3Ni3oFao3rcCCa69jJkQhTZ4Ufm/7PaEKMXSdvTSBcpGvIsR9AcONJHbGQ==}
     peerDependencies:
       ai: ^6.0.0 || ^7.0.0
       react: ^18.3.1 || ^19.0.0
@@ -549,10 +550,10 @@ packages:
       react-dom:
         optional: true
 
-  '@openuidev/react-ui@0.14.0':
-    resolution: {integrity: sha512-5JQQbXhNGZKnHki/l76ntXuxsPucIjJZ1k+cTBj+8hfT7/N7HzzOTWML6zE59MH0M4WuVUOvZDdKoJ5uuGNZ3g==}
+  '@openuidev/react-ui@0.16.2':
+    resolution: {integrity: sha512-HoK7fXr/D16g4xRrBmRBAaYkC/a8O5oWuMKN26Rq6eGPtu7LJQtPc+a4Yjy77ZCOt/kDqy2Qz71MP0tjpFadLA==}
     peerDependencies:
-      '@openuidev/react-headless': '>=0.14.0 <0.15.0'
+      '@openuidev/react-headless': '>=0.14.0 <0.17.0'
       '@openuidev/react-lang': '>=0.3.0 <0.4.0'
       react: ^18.3.1 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
@@ -1088,66 +1089,79 @@ packages:
     resolution: {integrity: sha512-r9fGh3eFs3e/udWh5ZjXQtxiYK/xoFxQaYR/cELxac/Udkl5Th+IsFm0CX3Kl9hmUH/we7EoMpjJgeQNnE0+IA==}
     cpu: [arm]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm-musleabihf@4.62.5':
     resolution: {integrity: sha512-xdvFdp7OM6KLJviJT2g/YuRSUjnZgGHk4RNgwIbN7X6cPugOucV60DdHXWzsBVCUdrGb6qSXnJQrrAKMmQuj3Q==}
     cpu: [arm]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-arm64-gnu@4.62.5':
     resolution: {integrity: sha512-rRqILAndyzHzP7T9NFQrq+4HFWNhqkqkKur7eiBpfLmz01PO0JKx5Vchu3YllE4YXI/Ftgq/szrDWg5GJ0mI8g==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.62.5':
     resolution: {integrity: sha512-Gf4X3qVMucayUvux6aXXPgXovocSFUC0rrffDuPI/S2nHhNMhjcZxsrAFYCOF350PRreW1XwzFj3CT/3bKsWCw==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-loong64-gnu@4.62.5':
     resolution: {integrity: sha512-+s5qA0TNM0qm8PK/a5gt/1Hpx+NV08uSuCncvhziIlQzT6AEV2fnUQo7eBtFTFO0nA9scauvoR2HusfXmQnO4w==}
     cpu: [loong64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-loong64-musl@4.62.5':
     resolution: {integrity: sha512-ybb6QvWwWJCbBWqERpc8K3pYVGIrXlG8MEQ8IIuJY6Y9KdHQxoFoNyfkAOtKn1VHu3KuLidXvwrvGR1mEjeWCw==}
     cpu: [loong64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-ppc64-gnu@4.62.5':
     resolution: {integrity: sha512-nZb1DtnOyhCmYvsC8A2CwOkopVg+IS1+fPUa7rMOAXtNw5+lLCLLPqd6XAiNrGtoQKsbvIBOwsHnBH/3wnb4HQ==}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-ppc64-musl@4.62.5':
     resolution: {integrity: sha512-yMbj63Sp89ryrXLWyz+sy+fYD2HpOnMCLGbe4Oa1smclFSUukdtD/BgdiHaAetJNb74URD8U4hM+qG5KVzMEkg==}
     cpu: [ppc64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-riscv64-gnu@4.62.5':
     resolution: {integrity: sha512-mhoan3OJw2kYV/e1jtIdmvUZgyBFeA6zGWsOswmR0Tg19TQbowZuR+JMLID6spbbBN7Zee2ejrgmy3+FxGrIdA==}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-musl@4.62.5':
     resolution: {integrity: sha512-5ZTLmjWbb1VZdjuyhe83K/8QO0/h11midQCBP+X5OYn32ra7eOBoM0ZqtaY4nkgNsYgmdVhMYPoyVPTjUpHf3w==}
     cpu: [riscv64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-linux-s390x-gnu@4.62.5':
     resolution: {integrity: sha512-m53kG+br6PGxOTmgBEM2DHSDs9RVjsyEbUwjJPJGTFm1grWOG8EKJggDCTb60unD4Tjby8fi7/m9XfkEWasVWg==}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-gnu@4.62.5':
     resolution: {integrity: sha512-6RHPJR1g/uvdYU8uXBnfq3nlqyZCP82Fr6NHgfGoaIeSh0YEqnX/x6uA9MmJJbnSH7swqX4F+CkGdUF+6doiQA==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@rollup/rollup-linux-x64-musl@4.62.5':
     resolution: {integrity: sha512-xs+OXQtEXgpXT0DmA5+U3qnRZHdCST/5HRQxS8wSPZTUZN/EMWeHuSIod32LQklTBZBV9DyfncKBQ8n5V3eFdw==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@rollup/rollup-openbsd-x64@4.62.5':
     resolution: {integrity: sha512-e7hD+sl3s+mcLQDZ8pbudBVsdG6r5yN4w3LqG2TJ8sQHDpblWj5lrJs/3m01Cvlxbt4x13zu5thLjgypgtkYzw==}
@@ -1228,24 +1242,28 @@ packages:
     engines: {node: '>= 20'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@tailwindcss/oxide-linux-arm64-musl@4.3.3':
     resolution: {integrity: sha512-Md44bD6veX/PC5iyF8cDVnw4HBIANZepRZZ7a8DQOvkfo5WUBwcp6iAuCUz23u+4SUkhJlD3eL7hNdW8ezd/kA==}
     engines: {node: '>= 20'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@tailwindcss/oxide-linux-x64-gnu@4.3.3':
     resolution: {integrity: sha512-tx7us1muwOKAKWao2v/GaafFeQboE6aj88vC6ziN2NCGcRm8gWUhwjzg+YdVB1e4boAtdtma4L43onunI6NS4w==}
     engines: {node: '>= 20'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@tailwindcss/oxide-linux-x64-musl@4.3.3':
     resolution: {integrity: sha512-SJxX60smvHgasZoBy11dX6YRjXJFovwWBoedhbQPOBzgFWBHGB+TVPWB9BxzR7TTxU8FQZAI2AyiNCMzFm8Img==}
     engines: {node: '>= 20'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@tailwindcss/oxide-wasm32-wasi@4.3.3':
     resolution: {integrity: sha512-jx1+rPhY/5Ympkktd656HBWEBLxP7dH06losBLjjf5vgCODXvi9KhtftWcMIwTFIDqBr7cRnQkdLnAG+IOlGvQ==}
@@ -1279,6 +1297,17 @@ packages:
     resolution: {integrity: sha512-yYU8cogLeSh/ms2jh8Fj7jaba/EWa7Ja6GoUqYZaraEuCI5YS6ms6ObZgjjedm+jm6XZjdNRWBpPP6Z86oOxcw==}
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
+
+  '@tanstack/react-table@8.21.3':
+    resolution: {integrity: sha512-5nNMTSETP4ykGegmVkhjcS8tTLW6Vl4axfEGQN3v0zdHYbK4UfoqfPChclTrJ4EoK9QynqAu9oUf8VEmrpZ5Ww==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
+
+  '@tanstack/table-core@8.21.3':
+    resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
+    engines: {node: '>=12'}
 
   '@types/babel__core@7.20.5':
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
@@ -1788,24 +1817,28 @@ packages:
     engines: {node: '>= 12.0.0'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   lightningcss-linux-arm64-musl@1.32.0:
     resolution: {integrity: sha512-UpQkoenr4UJEzgVIYpI80lDFvRmPVg6oqboNHfoH4CQIfNA+HOrZ7Mo7KZP02dC6LjghPQJeBsvXhJod/wnIBg==}
     engines: {node: '>= 12.0.0'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   lightningcss-linux-x64-gnu@1.32.0:
     resolution: {integrity: sha512-V7Qr52IhZmdKPVr+Vtw8o+WLsQJYCTd8loIfpDaMRWGUZfBOYEJeyJIkqGIDMZPwPx24pUMfwSxxI8phr/MbOA==}
     engines: {node: '>= 12.0.0'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   lightningcss-linux-x64-musl@1.32.0:
     resolution: {integrity: sha512-bYcLp+Vb0awsiXg/80uCRezCYHNg1/l3mt0gzHnWV9XP1W5sKa5/TCdGWaR/zBM2PeF/HbsQv/j2URNOiVuxWg==}
     engines: {node: '>= 12.0.0'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   lightningcss-win32-arm64-msvc@1.32.0:
     resolution: {integrity: sha512-8SbC8BR40pS6baCM8sbtYDSwEVQd4JlFTOlaD3gWGHfThTcABnNDBda6eTZeqbofalIJhFx0qKzgHJmcPTnGdw==}
@@ -2776,7 +2809,7 @@ snapshots:
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true
 
-  '@openuidev/cli@0.3.0':
+  '@openuidev/cli@0.4.0':
     dependencies:
       '@inquirer/core': 11.2.1
       '@inquirer/prompts': 8.7.0
@@ -2808,7 +2841,7 @@ snapshots:
 
   '@openuidev/observability@0.0.4': {}
 
-  '@openuidev/react-headless@0.14.0(ai@7.0.85(zod@4.5.4))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8))':
+  '@openuidev/react-headless@0.16.2(ai@7.0.85(zod@4.5.4))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8))':
     dependencies:
       '@ag-ui/core': 0.0.53
       '@openuidev/observability': 0.0.4
@@ -2827,10 +2860,10 @@ snapshots:
     optionalDependencies:
       react-dom: 19.2.8(react@19.2.8)
 
-  '@openuidev/react-ui@0.14.0(@openuidev/react-headless@0.14.0(ai@7.0.85(zod@4.5.4))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8)))(@openuidev/react-lang@0.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.5.4))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8))':
+  '@openuidev/react-ui@0.16.2(@openuidev/react-headless@0.16.2(ai@7.0.85(zod@4.5.4))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8)))(@openuidev/react-lang@0.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.5.4))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8))':
     dependencies:
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@openuidev/react-headless': 0.14.0(ai@7.0.85(zod@4.5.4))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8))
+      '@openuidev/react-headless': 0.16.2(ai@7.0.85(zod@4.5.4))(react@19.2.8)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.8))
       '@openuidev/react-lang': 0.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.5.4)
       '@radix-ui/react-accordion': 1.2.20(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-aspect-ratio': 1.1.15(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -2847,6 +2880,7 @@ snapshots:
       '@radix-ui/react-tabs': 1.1.21(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-toggle-group': 1.1.19(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-tooltip': 1.2.16(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@tanstack/react-table': 8.21.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       clsx: 2.1.1
       date-fns: 4.4.0
       lodash-es: 4.18.1
@@ -2863,6 +2897,7 @@ snapshots:
       remark-gfm: 4.0.1
       remark-math: 6.0.0
       tiny-invariant: 1.3.3
+      unist-util-visit: 5.1.0
       zod: 4.5.4
       zustand: 4.5.7(@types/react@19.2.18)(react@19.2.8)
     transitivePeerDependencies:
@@ -3498,6 +3533,14 @@ snapshots:
       '@tailwindcss/oxide': 4.3.3
       tailwindcss: 4.3.3
       vite: 6.4.3(jiti@2.7.0)(lightningcss@1.32.0)
+
+  '@tanstack/react-table@8.21.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@tanstack/table-core': 8.21.3
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+
+  '@tanstack/table-core@8.21.3': {}
 
   '@types/babel__core@7.20.5':
     dependencies:

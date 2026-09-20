@@ -31,8 +31,8 @@ importers:
         version: 4.5.4
     devDependencies:
       '@openuidev/cli':
-        specifier: 0.3.0
-        version: 0.3.0
+        specifier: 0.4.0
+        version: 0.4.0
       '@tailwindcss/vite':
         specifier: ^4
         version: 4.3.3(vite@7.3.6(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.0))
@@ -831,8 +831,8 @@ packages:
     resolution: {integrity: sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==}
     engines: {node: '>=8.0.0'}
 
-  '@openuidev/cli@0.3.0':
-    resolution: {integrity: sha512-HURtbZZIiCOXWYwfLkKPxbtDMuz9FZz0gzIb4XBifTGVN26tR9XgLKDr49fUwVNNrF/8z1jXvMdBlTcf5uXTzw==}
+  '@openuidev/cli@0.4.0':
+    resolution: {integrity: sha512-IcsVXwSanbuy5dh/0NJ69jwVfQIXuV1y595SVEfqkuJOl+1+rJp9prm3fj5LDNGA23LwQHxCNF053AKH7HPgPg==}
     hasBin: true
 
   '@openuidev/lang-core@0.3.0':
@@ -4878,7 +4878,7 @@ snapshots:
 
   '@opentelemetry/api@1.9.1': {}
 
-  '@openuidev/cli@0.3.0':
+  '@openuidev/cli@0.4.0':
     dependencies:
       '@inquirer/core': 11.2.1
       '@inquirer/prompts': 8.7.0

@@ -31,8 +31,8 @@ importers:
         version: 4.4.3
     devDependencies:
       '@openuidev/cli':
-        specifier: 0.3.0
-        version: 0.3.0(@types/node@22.20.1)
+        specifier: 0.4.0
+        version: 0.4.0(@types/node@22.20.1)
       '@types/node':
         specifier: ^22.15.32
         version: 22.20.1
@@ -567,8 +567,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@openuidev/cli@0.3.0':
-    resolution: {integrity: sha512-HURtbZZIiCOXWYwfLkKPxbtDMuz9FZz0gzIb4XBifTGVN26tR9XgLKDr49fUwVNNrF/8z1jXvMdBlTcf5uXTzw==}
+  '@openuidev/cli@0.4.0':
+    resolution: {integrity: sha512-IcsVXwSanbuy5dh/0NJ69jwVfQIXuV1y595SVEfqkuJOl+1+rJp9prm3fj5LDNGA23LwQHxCNF053AKH7HPgPg==}
     hasBin: true
 
   '@openuidev/lang-core@0.3.0':
@@ -1208,7 +1208,7 @@ snapshots:
   '@next/swc-win32-x64-msvc@15.5.24':
     optional: true
 
-  '@openuidev/cli@0.3.0(@types/node@22.20.1)':
+  '@openuidev/cli@0.4.0(@types/node@22.20.1)':
     dependencies:
       '@inquirer/core': 11.2.1(@types/node@22.20.1)
       '@inquirer/prompts': 8.7.0(@types/node@22.20.1)

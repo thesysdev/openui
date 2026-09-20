@@ -4,7 +4,7 @@
   "packageJson": {
     "dependencies": {
       "@ai-sdk/openai": "^3.0.88",
-      "@openuidev/react-headless": "^0.14.0",
+      "@openuidev/react-headless": "^0.16.2",
       "@openuidev/react-lang": "^0.3.0",
       "@vercel/connect": "0.2.2",
       "ai": "^7.0.82",
