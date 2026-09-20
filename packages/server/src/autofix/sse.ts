@@ -1,7 +1,7 @@
-// Convert either supported event stream to SSE without changing its event objects.
+// Convert a supported event stream to SSE without changing its event objects.
 export function toSSE<T>(
   chunks: AsyncIterable<T>,
-  protocol: "chat-completions" | "responses",
+  protocol: StreamAdapter<unknown, unknown>["protocol"],
   cancel: (reason?: unknown) => void,
 ): Response {
   const iterator = chunks[Symbol.asyncIterator]();
@@ -13,8 +13,7 @@ export function toSSE<T>(
         try {
           const next = await iterator.next();
           if (next.done) {
-            if (protocol === "chat-completions")
-              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            if (protocol !== "responses") controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
           } else {
             const name =
@@ -36,7 +35,9 @@ export function toSSE<T>(
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         "X-Accel-Buffering": "no",
+        ...(protocol === "vercel-ai" && { "x-vercel-ai-ui-message-stream": "v1" }),
       },
     },
   );
 }
+import type { StreamAdapter } from "./types";

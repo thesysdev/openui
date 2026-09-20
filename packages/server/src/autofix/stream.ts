@@ -1,5 +1,5 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
-import { chatCompletionsAdapter } from "./chat-completions-adapter";
+import { openAIAdapter } from "./adapters/openai-adapter";
 import { toSSE } from "./sse";
 import type {
   AutofixInput,
@@ -30,7 +30,7 @@ export function createAutofixStream<Input = ChatCompletionChunk, Output = ChatCo
   input: AutofixStreamInput<Input, Output>,
   fix: (input: AutofixInput & { generation: string }) => Promise<AutofixResult>,
 ): AutofixStream<Output> {
-  const adapter = (input.adapter ?? chatCompletionsAdapter) as StreamAdapter<Input, Output>;
+  const adapter = (input.adapter ?? openAIAdapter) as StreamAdapter<Input, Output>;
   const controller = new AbortController();
   let consumed = false;
 

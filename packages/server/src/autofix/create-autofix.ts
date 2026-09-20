@@ -1,5 +1,7 @@
-import { createParser, generateSystemPrompt } from "@openuidev/lang-core";
+import { createParser } from "@openuidev/lang-core";
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
+import { THESYS_API_BASE_URL } from "../constants";
+import { fixGeneration } from "./fix";
 import { createAutofixStream } from "./stream";
 import type {
   AutofixInput,
@@ -9,8 +11,7 @@ import type {
   AutofixStreamInput,
   StreamAdapter,
 } from "./types";
-import { AutofixError, MAX_AUTOFIX_GENERATION_LENGTH } from "./types";
-import { errorsOf, readCompletion, repairContext } from "./utils";
+import { AutofixError } from "./types";
 
 /** Create helpers to validate and repair complete or streamed model output. */
 export function createAutofix(options: AutofixOptions): {
@@ -24,72 +25,16 @@ export function createAutofix(options: AutofixOptions): {
   if (!library?.schema)
     throw new AutofixError("A library spec with schema is required", "invalid_library");
   const parser = createParser(library.schema, library.root);
-  const endpoint = `${(options.apiBaseUrl ?? "https://api.thesys.dev").replace(/\/+$/, "")}/v1/autofix`;
+  const endpoint = `${(options.apiBaseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, "")}/v1/autofix`;
   const fetchFn = options.fetch ?? globalThis.fetch;
 
-  // Return valid programs unchanged and send invalid programs to the Autofix API.
-  async function fix({
-    generation,
-    messages = [],
-    signal,
-  }: AutofixInput & { generation: string }): Promise<AutofixResult> {
-    signal?.throwIfAborted();
-    if (generation.length > MAX_AUTOFIX_GENERATION_LENGTH) {
-      throw new AutofixError("Generation exceeds 100,000 characters", "generation_too_large");
-    }
-    const initialErrors = errorsOf(parser.parse(generation));
-    if (initialErrors.length === 0) {
-      return {
-        status: "already_valid",
-        original: generation,
-        content: generation,
-        fixedErrors: [],
-        unfixedErrors: [],
-      };
-    }
-
-    const response = await fetchFn(endpoint, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${options.apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: [
-          { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
-          ...repairContext(messages),
-          { role: "assistant", content: generation },
-        ],
-      }),
-      signal,
-    });
-    signal?.throwIfAborted();
-    if (!response.ok) {
-      throw new AutofixError(
-        `Autofix request failed: HTTP ${response.status}`,
-        "http_error",
-        response.status,
-      );
-    }
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch (error) {
-      signal?.throwIfAborted();
-      throw new AutofixError(
-        `Could not read Autofix response: ${String(error)}`,
-        "invalid_response",
-      );
-    }
-    signal?.throwIfAborted();
-    const completion = readCompletion(body);
-    if (completion.status === "fix_failed") {
-      return { ...completion, status: "fix_failed", content: null, original: generation };
-    }
-    return {
-      ...completion,
-      status: completion.status,
-      original: generation,
-      content: completion.content!,
-    };
-  }
+  const fix = fixGeneration.bind(null, {
+    library,
+    apiKey: options.apiKey,
+    parser,
+    endpoint,
+    fetchFn,
+  });
 
   return {
     fix,

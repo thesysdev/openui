@@ -1,3 +1,3 @@
-export { chatCompletionsAdapter } from "./chat-completions-adapter";
+export { openAIAdapter, vercelAIAdapter } from "./adapters";
 export { createAutofix } from "./create-autofix";
-export { responsesAdapter } from "./responses-adapter";
+export type { StreamAdapter as Adapter } from "./types";
