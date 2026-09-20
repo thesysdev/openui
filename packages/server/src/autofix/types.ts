@@ -65,6 +65,7 @@ export interface AutofixStream {
 
 /** Transport/protocol/stream failures throw; an exhausted repair is also available as result. */
 export class AutofixError extends Error {
+  // Attach a code and optional HTTP status or repair result to the error.
   constructor(
     message: string,
     readonly code: string,

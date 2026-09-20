@@ -36,6 +36,7 @@ async function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T
   }
 }
 
+// Wrap model chunks with optional repair, per-choice results, and an SSE response helper.
 export function createAutofixStream(
   input: AutofixStreamInput,
   fix: (input: AutofixInput & { generation: string }) => Promise<AutofixResult>,
@@ -51,8 +52,10 @@ export function createAutofixStream(
   void result.catch(() => {});
   let consumed = false;
 
+  // Forward emissions and append repairs for invalid UI programs before their stop chunks.
   async function* run(): AsyncGenerator<ChatCompletionChunk> {
     const signal = controller.signal;
+    // Forward the caller's cancellation reason to this stream.
     const forwardAbort = () => controller.abort(input.signal?.reason);
     if (input.signal?.aborted) forwardAbort();
     else input.signal?.addEventListener("abort", forwardAbort, { once: true });
@@ -61,6 +64,7 @@ export function createAutofixStream(
     let settled = false;
     const states = new Map<string, ChoiceState>();
     const outcomes: AutofixStreamResult[] = [];
+    // Record why a choice passed through without validation or repair.
     const skip = (state: ChoiceState, reason: SkipReason) => {
       state.done = true;
       outcomes.push({
@@ -193,6 +197,7 @@ export function createAutofixStream(
   }
 
   const chunks: AsyncIterable<ChatCompletionChunk> = {
+    // Start the output iterator and prevent the stream from being consumed twice.
     [Symbol.asyncIterator]() {
       if (consumed)
         throw new AutofixError("Autofix stream can only be consumed once", "stream_consumed");
@@ -204,10 +209,12 @@ export function createAutofixStream(
   return {
     chunks,
     result,
+    // Expose the output chunks as a standard Chat Completions SSE response.
     toResponse() {
       const iterator = chunks[Symbol.asyncIterator]();
       const encoder = new TextEncoder();
       const body = new ReadableStream<Uint8Array>({
+        // Encode the next chunk as SSE, ending with the standard DONE marker.
         async pull(streamController) {
           try {
             const next = await iterator.next();
@@ -220,6 +227,7 @@ export function createAutofixStream(
             streamController.error(error);
           }
         },
+        // Stop upstream work and reject the result when the response consumer disconnects.
         cancel(reason) {
           const error = reason ?? new DOMException("Response consumer disconnected", "AbortError");
           controller.abort(error);

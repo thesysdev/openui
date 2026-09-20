@@ -2,6 +2,7 @@ import type { ParseResult } from "@openuidev/lang-core";
 import type { AutofixDiagnostic, AutofixInput, AutofixResult } from "./types";
 import { AutofixError } from "./types";
 
+// Collect parser errors, missing references, and incomplete output into diagnostics.
 export function errorsOf({ root, meta }: ParseResult): AutofixDiagnostic[] {
   return [
     ...meta.errors,
@@ -20,10 +21,12 @@ export function errorsOf({ root, meta }: ParseResult): AutofixDiagnostic[] {
   ];
 }
 
+// Check whether a value is a non-null object rather than an array.
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+// Check API diagnostics and extract their supported fields.
 function readDiagnostics(value: unknown): AutofixDiagnostic[] {
   if (!Array.isArray(value))
     throw new AutofixError("Malformed Autofix diagnostics", "invalid_response");
@@ -45,6 +48,7 @@ function readDiagnostics(value: unknown): AutofixDiagnostic[] {
   });
 }
 
+// Read the API response into the package's result shape without reparsing the program.
 export function readCompletion(body: unknown): Omit<AutofixResult, "original"> {
   if (!isRecord(body) || !isRecord(body["fix_summary"])) {
     throw new AutofixError("Missing Autofix summary", "invalid_response");
@@ -72,7 +76,7 @@ export function readCompletion(body: unknown): Omit<AutofixResult, "original"> {
   };
 }
 
-/** Text-only repair context, bounded to the endpoint's most recent 20 turns / 8,000 characters. */
+/** Keep recent text context within the endpoint's limit of 20 messages and 8,000 characters. */
 export function repairContext(messages: NonNullable<AutofixInput["messages"]>) {
   const context: { role: "user" | "assistant" | "system" | "developer"; content: string }[] = [];
   let remaining = 8_000;
