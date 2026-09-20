@@ -80,7 +80,7 @@ export async function POST(request: Request) {
 }
 ```
 
-Pass the model's Chat Completions stream as `source`; `chatCompletionsAdapter` is the default when `adapter` is omitted. Tool calls, refusals, reasoning extensions, usage, and other metadata pass through. Text-only providers can supply `AsyncIterable<string>`; they must throw if generation terminates abnormally.
+Pass the model's Chat Completions stream as `source`; `chatCompletionsAdapter` is the default when `adapter` is omitted. Tool calls, refusals, reasoning extensions, usage, and other metadata pass through. The source must emit native Chat Completions chunks.
 
 For each completion and choice, the wrapper accumulates text while forwarding chunks. On a normal `stop`, it validates text that looks like OpenUI and has no tool call or refusal. Only invalid UI triggers an Autofix request. Plain prose, tool turns, refusals, truncated output, and outputs exceeding 100,000 characters pass through without repair.
 

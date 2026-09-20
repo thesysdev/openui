@@ -26,10 +26,7 @@ async function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T
 }
 
 // Bind the shared fix function to an adapter and expose native chunks or HTTP streaming.
-export function createAutofixStream<
-  Input = ChatCompletionChunk | string,
-  Output = ChatCompletionChunk,
->(
+export function createAutofixStream<Input = ChatCompletionChunk, Output = ChatCompletionChunk>(
   input: AutofixStreamInput<Input, Output>,
   fix: (input: AutofixInput & { generation: string }) => Promise<AutofixResult>,
 ): AutofixStream<Output> {

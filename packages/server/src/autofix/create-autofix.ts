@@ -94,7 +94,7 @@ export function createAutofix(options: AutofixOptions): {
   return {
     fix,
     // Wrap model emissions with validation and repair before the stream finishes.
-    stream: <Input = ChatCompletionChunk | string, Output = ChatCompletionChunk>(
+    stream: <Input = ChatCompletionChunk, Output = ChatCompletionChunk>(
       input: AutofixStreamInput<Input, Output>,
     ) => createAutofixStream(input, fix),
   };
