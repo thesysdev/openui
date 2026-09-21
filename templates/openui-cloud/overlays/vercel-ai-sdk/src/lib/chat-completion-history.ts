@@ -1,4 +1,4 @@
-import { storeChatCompletionHistory } from "@openuidev/server";
+import { storeChatCompletionHistory } from "@openuidev/server/openai";
 
 type CompletionMessage = Parameters<typeof storeChatCompletionHistory>[0]["messages"][number];
 export type CompletionUserMessage = Extract<CompletionMessage, { role: "user" }>;
