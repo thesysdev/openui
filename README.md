@@ -93,7 +93,7 @@ Try it yourself in the [Playground](https://www.openui.com/playground): generate
 
 | Package                                                                                                    | Best for                                         | Description                                                                                                  |
 | :--------------------------------------------------------------------------------------------------------- | :----------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
-| [`@openuidev/lang-core`](./packages/lang-core)                                                             | Framework-agnostic parsing and prompt generation | Core parser, prompt-generation, runtime-evaluation, and type layer with no React, Vue, or Svelte dependency  |
+| [`@openuidev/lang-core`](./packages/lang-core)                                                             | Framework-agnostic parsing and prompt generation | Core parser, prompt-generation, runtime-evaluation, and type layer with no React, Angular, Vue, or Svelte dependency  |
 | [`@openuidev/langchain`](./packages/langchain)                                                             | LangChain and LangGraph agents                   | Agent transformer and server helpers that stream OpenUI through AG-UI                                        |
 | [`@openuidev/react-lang`](./packages/react-lang)                                                           | React rendering runtimes                         | Define component libraries, generate prompts, and render streamed OpenUI Lang in React                       |
 | [`@openuidev/react-headless`](./packages/react-headless)                                                   | Bring-your-own React chat UI                     | Headless chat state, streaming adapters, and message format converters                                       |
@@ -102,6 +102,7 @@ Try it yourself in the [Playground](https://www.openui.com/playground): generate
 | [`@openuidev/assistant-ui`](./packages/assistant-ui)                                                       | assistant-ui apps                                | Tool UI renderers and instruction wiring for streaming OpenUI Lang inside assistant-ui                       |
 | [`@openuidev/vue-lang`](./packages/vue-lang)                                                               | Vue integrations                                 | Vue 3 bindings for defining model-renderable components and rendering streamed OpenUI Lang                   |
 | [`@openuidev/svelte-lang`](./packages/svelte-lang)                                                         | Svelte integrations                              | Svelte 5 bindings for defining model-renderable components and rendering streamed OpenUI Lang                |
+| [`@openuidev/angular-lang`](./packages/angular-lang)                                                       | Angular integrations                             | Angular bindings for defining component libraries and rendering streamed OpenUI Lang                         |
 | [`@openuidev/browser-bundle`](./packages/browser-bundle)                                                   | CDN, iframe, and no-build embeds                 | Prebuilt browser bundle that ships the renderer, UI library, React, and styles as script + stylesheet assets |
 | [`@openuidev/server`](./packages/server)                                                                   | Server side utilities                            | Server utilities for OpenUI and OpenUI Gateway                                                               |
 | [`@openuidev/observability-cloud`](./packages/observability-cloud)                                         | Hosted observability in the Thesys console       | Cloud sink that batches OpenUI events and ships them to OpenUI Gateway                                       |
@@ -120,9 +121,10 @@ npm install @openuidev/lang-core
 # LangChain/LangGraph agent and server integration
 npm install @openuidev/langchain @langchain/langgraph
 
-# Vue or Svelte runtime
+# Vue, Svelte, or Angular runtime
 npm install @openuidev/vue-lang
 npm install @openuidev/svelte-lang
+npm install @openuidev/angular-lang
 ```
 
 ## Why OpenUI Lang
@@ -169,14 +171,13 @@ openui/
 │   ├── langchain/        # LangChain/LangGraph streaming integration
 │   ├── vue-lang/         # Vue runtime bindings for OpenUI Lang
 │   ├── svelte-lang/      # Svelte runtime bindings for OpenUI Lang
+│   ├── angular-lang/     # Angular runtime bindings for OpenUI Lang
 │   ├── browser-bundle/   # Script-tag bundle for CDN / iframe / no-build embeds
 │   ├── server/           # Server utilities for OpenUI & OpenUI Gateway
 │   ├── observability/    # Framework-free observability event bus
 │   ├── observability-cloud/ # Cloud sink shipping OpenUI events to Thesys
 │   ├── devtools/         # Dev-only OpenUI Inspect widget
 │   └── openui-cli/       # CLI for scaffolding & prompt generation
-├── skills/
-│   └── openui/           # Claude Code skill for AI-assisted development
 ├── examples/             # Capability and integration reference implementations
 │   ├── agent-frameworks/
 │   ├── app-frameworks/

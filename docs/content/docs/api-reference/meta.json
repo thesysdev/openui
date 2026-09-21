@@ -4,13 +4,13 @@
   "pages": [
     "index",
     "react-lang",
-    "angular-lang",
     "react-headless",
     "react-ui",
     "assistant-ui",
     "langchain",
     "react-email",
     "devtools",
-    "cli"
+    "cli",
+    "angular-lang"
   ]
 }
