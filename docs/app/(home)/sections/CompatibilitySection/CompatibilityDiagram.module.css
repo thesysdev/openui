@@ -10,8 +10,7 @@
   --text: var(--openui-text-neutral-primary);
   /* Sides only: no y-offset, and the spread is exactly minus half the blur so
      the shadow's vertical extent is the column's own height. */
-  --centre-shadow:
-    -10px 0 18px -9px rgb(10 10 10 / 0.2), 10px 0 18px -9px rgb(10 10 10 / 0.2);
+  --centre-shadow: -10px 0 18px -9px rgb(10 10 10 / 0.1), 10px 0 18px -9px rgb(10 10 10 / 0.1);
 
   position: relative;
   width: 100%;
@@ -31,7 +30,7 @@
 [data-theme="dark"] .diagram {
   --line: rgb(255 255 255 / 0.1);
   --text: rgb(255 255 255 / 0.94);
-  --centre-shadow: -10px 0 18px -9px rgb(0 0 0 / 0.8), 10px 0 18px -9px rgb(0 0 0 / 0.8);
+  --centre-shadow: -10px 0 18px -9px rgb(0 0 0 / 0.45), 10px 0 18px -9px rgb(0 0 0 / 0.45);
 }
 
 /* Cells carry their right and bottom edge, so the rows stack into a lattice

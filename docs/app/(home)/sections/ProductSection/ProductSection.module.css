@@ -16,6 +16,10 @@
      own tone does. */
   --ps-stage-stroke: #f8f8f8;
   --ps-border: rgba(10, 10, 10, 0.035);
+  /* A divider across the band, not a card edge: --ps-border is tuned to be
+     almost invisible against the surface it outlines and disappears when used
+     as a rule. */
+  --ps-line: rgba(10, 10, 10, 0.09);
   --ps-shadow: none;
 
   display: flex;
@@ -36,6 +40,7 @@
   --ps-surface: rgba(255, 255, 255, 0.042);
   --ps-stage-stroke: #0e0e0e;
   --ps-border: rgba(255, 255, 255, 0.04);
+  --ps-line: rgba(255, 255, 255, 0.14);
   --ps-mark-bg: #fff;
   --ps-mark-fg: #0a0a0a;
   --ps-shadow: none;
@@ -48,6 +53,7 @@
   --ps-surface: rgba(255, 255, 255, 0.042);
   --ps-stage-stroke: #0e0e0e;
   --ps-border: rgba(255, 255, 255, 0.04);
+  --ps-line: rgba(255, 255, 255, 0.14);
   --ps-mark-bg: #fff;
   --ps-mark-fg: #0a0a0a;
   --ps-shadow: none;
@@ -186,6 +192,16 @@
   border-radius: 12px;
 }
 
+/* The breakpoint switches these wrappers; the theme rules below pick which
+   image inside the visible one shows. */
+.stageWide {
+  display: contents;
+}
+
+.stageCompact {
+  display: none;
+}
+
 .stageDark {
   display: none;
 }
@@ -210,6 +226,20 @@
 }
 
 /* ---- Cards ---- */
+/* The phone-only accordion. The band's own tokens are handed to the grid here:
+   it defaults to the page tokens, which go invisible on the Cloud band because
+   that band inverts independently of the page theme. */
+.cardsCompact {
+  display: none;
+  --feature-grid-text: var(--ps-text);
+  --feature-grid-muted: var(--ps-muted);
+  --feature-grid-faint: var(--ps-muted);
+  --feature-grid-line: var(--ps-line);
+  --feature-grid-surface: var(--ps-surface);
+  --feature-grid-border: var(--ps-border);
+  --feature-grid-shadow: var(--ps-shadow);
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -272,13 +302,39 @@
 }
 
 @media (max-width: 767px) {
+  .stageWide {
+    display: none;
+  }
+
+  .stageCompact {
+    display: contents;
+  }
+
+  /* The lockup stops being a container here: display:contents drops its
+     children into the band's own column, so the description can be ordered
+     below the stage. The desktop grid has the description beside the headline
+     and no room for that, which is why it is an order swap and not markup. */
   .lockup {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.75rem;
+    display: contents;
+  }
+
+  .lead {
+    /* The lockup's own bottom margin, which display:contents discards. */
+    margin-bottom: clamp(0.75rem, 2vw, 1.75rem);
+    order: 1;
+  }
+
+  .stage {
+    order: 2;
   }
 
   .description {
     padding-top: 0;
+    order: 3;
+  }
+
+  .cardsCompact {
+    order: 4;
   }
 
   .headline {
@@ -292,26 +348,11 @@
   }
 
   .cards {
-    grid-template-columns: none;
-    grid-auto-columns: clamp(15.5rem, 76vw, 18rem);
-    grid-auto-flow: column;
-    justify-content: start;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    padding-bottom: 0.25rem;
-    scroll-padding-inline: 0.125rem;
-    scroll-snap-type: inline mandatory;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .cards::-webkit-scrollbar {
     display: none;
   }
 
-  .card {
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
+  .cardsCompact {
+    display: block;
   }
 
   /* The buttons go full width on phones, so stack them rather than wrapping. */
@@ -333,6 +374,7 @@
   /* The band is white here and so are the cards, so the edge and the lift are
      the only things separating them from the ground. */
   --ps-border: rgba(10, 10, 10, 0.08);
+  --ps-line: rgba(10, 10, 10, 0.12);
   --ps-shadow: 0 1px 2px rgba(10, 10, 10, 0.04), 0 2px 8px rgba(10, 10, 10, 0.04);
   --ps-mark-bg: #0a0a0a;
   --ps-mark-fg: #fff;

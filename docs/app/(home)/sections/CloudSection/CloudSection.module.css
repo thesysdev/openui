@@ -207,6 +207,16 @@
   object-position: center top;
 }
 
+/* The breakpoint switches these wrappers; the tone rules below pick which
+   image inside the visible one shows. */
+.observabilityWide {
+  display: contents;
+}
+
+.observabilityCompact {
+  display: none;
+}
+
 .observabilityImageLight {
   display: none;
 }
@@ -249,15 +259,54 @@
 }
 
 @media (max-width: 767px) {
+  /* The band's own two product lockups already name Cloud, so on a phone this
+     heading is a third title in a row before any content. The section keeps
+     aria-labelledby pointing at it: a display:none element referenced that way
+     still supplies the accessible name. */
+  .contact {
+    display: none;
+  }
+
   .bandSeparator {
     margin-block: 2.75rem;
+    /* Faded towards both ends, so it reads as a divider rather than a rule
+       butting into the gutters. */
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 20%, #000 80%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 20%, #000 80%, transparent);
   }
 
   .observabilityBand {
     gap: 2rem;
   }
 
+  /* Same order swap as ProductSection: the copy grid dissolves so the
+     description can follow the stage instead of preceding it. */
+  .observabilityCopy {
+    display: contents;
+  }
+
+  .observabilityLead {
+    margin-bottom: 0.5rem;
+    order: 1;
+  }
+
+  .observabilityWide {
+    display: none;
+  }
+
+  .observabilityCompact {
+    display: contents;
+  }
+
   .observabilityStage {
+    /* The phone artwork's own ratio. */
+    aspect-ratio: 1440 / 1200;
     border-radius: 18px;
+    order: 2;
+  }
+
+  .observabilityDescription {
+    max-width: none;
+    order: 3;
   }
 }

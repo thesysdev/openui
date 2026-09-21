@@ -74,27 +74,56 @@ export function CloudSection() {
             <FadedDither band="dark" className={styles.observabilityShader} />
             {/* Light and dark refer to the picture's own tone. The band is black
                 in light theme and inverts to white in dark theme, so the rules
-                in the stylesheet pick the one that suits the ground. */}
-            <Image
-              className={`${styles.observabilityImage} ${styles.observabilityImageLight}`}
-              src="/homepage/observability-light.webp"
-              alt=""
-              aria-hidden="true"
-              width={2240}
-              height={880}
-              quality={95}
-              sizes="(max-width: 1023px) calc(100vw - 80px), 1120px"
-            />
-            <Image
-              className={`${styles.observabilityImage} ${styles.observabilityImageDark}`}
-              src="/homepage/observability-dark.webp"
-              alt=""
-              aria-hidden="true"
-              width={2240}
-              height={880}
-              quality={95}
-              sizes="(max-width: 1023px) calc(100vw - 80px), 1120px"
-            />
+                in the stylesheet pick the one that suits the ground.
+
+                Two pairs, each in a wrapper the breakpoint switches off. The
+                phone artwork is its own drawing at 1440x1200 rather than the
+                wide one cropped, and the wrapper is display:contents when
+                shown, so the theme rules still reach the images. */}
+            <span className={styles.observabilityWide}>
+              <Image
+                className={`${styles.observabilityImage} ${styles.observabilityImageLight}`}
+                src="/homepage/observability-light.webp"
+                alt=""
+                aria-hidden="true"
+                width={2240}
+                height={880}
+                quality={95}
+                sizes="(max-width: 1023px) calc(100vw - 80px), 1120px"
+              />
+              <Image
+                className={`${styles.observabilityImage} ${styles.observabilityImageDark}`}
+                src="/homepage/observability-dark.webp"
+                alt=""
+                aria-hidden="true"
+                width={2240}
+                height={880}
+                quality={95}
+                sizes="(max-width: 1023px) calc(100vw - 80px), 1120px"
+              />
+            </span>
+            <span className={styles.observabilityCompact}>
+              <Image
+                className={`${styles.observabilityImage} ${styles.observabilityImageLight}`}
+                src="/homepage/observability-mobile-light.webp"
+                alt=""
+                aria-hidden="true"
+                width={1440}
+                height={1200}
+                quality={95}
+                sizes="calc(100vw - 40px)"
+              />
+              <Image
+                className={`${styles.observabilityImage} ${styles.observabilityImageDark}`}
+                src="/homepage/observability-mobile-dark.webp"
+                alt=""
+                aria-hidden="true"
+                width={1440}
+                height={1200}
+                quality={95}
+                sizes="calc(100vw - 40px)"
+              />
+            </span>
           </div>
         </div>
       </div>

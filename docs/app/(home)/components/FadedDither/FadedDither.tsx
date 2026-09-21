@@ -10,6 +10,11 @@ const FadedDitherCanvas = dynamic(
   { ssr: false },
 );
 
+/* The same breakpoint the stages use. The wave follows the viewport, not the
+   canvas: a stage can be half a wide page and still wants the page's wave, so
+   that every shader on a given screen reads as the same material. */
+const COMPACT_QUERY = "(max-width: 767px)";
+
 /* The page theme, watched rather than read once: the site can change it after
    mount, and this component has to follow. */
 function usePageTheme() {
@@ -43,14 +48,26 @@ export function FadedDither({
   style?: CSSProperties;
 }) {
   const theme = usePageTheme();
+  const [compact, setCompact] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia(COMPACT_QUERY);
+    const read = () => setCompact(query.matches);
+
+    read();
+    query.addEventListener("change", read);
+    return () => query.removeEventListener("change", read);
+  }, []);
+
   const onLightGround = (band === "light") === (theme === "light");
   const tone = onLightGround ? "light" : "dark";
 
-  /* The wrapper carries the positioning and puts the resolved tone in the DOM,
-     where it can be read without going through React internals. */
+  /* The wrapper carries the positioning and puts the resolved tone and width
+     mode in the DOM, where they can be read without going through React
+     internals, which double-buffer and will hand back a stale tree. */
   return (
-    <div className={className} data-tone={tone} style={style}>
-      <FadedDitherCanvas tone={tone} />
+    <div className={className} data-compact={compact || undefined} data-tone={tone} style={style}>
+      <FadedDitherCanvas compact={compact} tone={tone} />
     </div>
   );
 }

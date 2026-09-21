@@ -48,6 +48,8 @@ export const LANG_PRODUCT: ProductSectionProps = {
   shot: "/homepage/openui-lang",
   fullBleedArt: true,
   stageAspectRatio: "1120 / 440",
+  /* The phone artwork is a different drawing, at 1440x1200. */
+  stageMobileAspectRatio: "1440 / 1200",
   /* No cards. Interactive, Bring your UI library, Safe by default and Stream UI
      live all moved to the feature grid directly below this band, which states
      them once alongside Live data and Cross-platform. */
@@ -72,24 +74,30 @@ export const GATEWAY_PRODUCT: ProductSectionProps = {
   /* No mobile override: the artwork is drawn at this ratio, and cropping it to
      a squarer one on phones cuts into the content. */
   stageAspectRatio: "1120 / 440",
+  /* The phone artwork is a different drawing, at 1440x1200. */
+  stageMobileAspectRatio: "1440 / 1200",
   cards: [
     {
       Icon: ArrowsLeftRight,
+      icon: "swap",
       title: "Keep your existing SDK",
       description: "Chat Completions and Responses endpoints work with existing SDKs.",
     },
     {
       Icon: Wrench,
+      icon: "repair",
       title: "Repair before users see it",
       description: "Fix invalid output as it streams, before it reaches users.",
     },
     {
       Icon: ArrowsClockwise,
+      icon: "refresh",
       title: "Stay online through outages",
       description: "Gateway switches providers if one fails, keeping the same model.",
     },
     {
       Icon: Key,
+      icon: "key",
       title: "Use existing LLM spend",
       description: "Use your existing model provider credentials and commitments.",
     },
@@ -106,24 +114,30 @@ export const OBSERVABILITY_PRODUCT: ProductSectionProps = {
   shot: "/homepage/observability",
   fullBleedArt: true,
   stageAspectRatio: "1120 / 440",
+  /* The phone artwork is a different drawing, at 1440x1200. */
+  stageMobileAspectRatio: "1440 / 1200",
   cards: [
     {
       Icon: PlayCircle,
+      icon: "replay",
       title: "Replay sessions",
       description: "See the exact UI and interactions your users experienced.",
     },
     {
       Icon: WarningDiamond,
+      icon: "warning",
       title: "Track every failure",
       description: "Capture errors, corrections, fallbacks, and failed generations.",
     },
     {
       Icon: CursorClick,
+      icon: "interaction",
       title: "Understand users",
       description: "See what people use, where they struggle, and what works.",
     },
     {
       Icon: MagnifyingGlass,
+      icon: "search",
       title: "Find what\u2019s missing",
       description: "Surface unmet needs, emerging demand, and opportunities to improve.",
     },

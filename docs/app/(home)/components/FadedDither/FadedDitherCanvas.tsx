@@ -23,6 +23,14 @@ import { Dither, Shader, SineWave, SolidColor } from "shaders/react";
 /* The stages outline themselves in whichever base applies, through
    --ps-stage-stroke in ProductSection.module.css and the equivalent in
    CloudSection.module.css. Change a base here and change it there too. */
+/* Desktop keeps the preset's wave. A phone shows so little of it that the same
+   values read as one flat swell filling the stage, so phone-width screens get
+   more cycles and a thinner line, not fewer and fatter. */
+const WAVE = {
+  wide: { frequency: 0.5, thickness: 0.4 },
+  compact: { frequency: 1.8, thickness: 0.16 },
+} as const;
+
 const TONES = {
   dark: { base: "#0e0e0e", stipple: "#202020" },
   light: { base: "#f8f8f8", stipple: "#e6e6e6" },
@@ -30,14 +38,18 @@ const TONES = {
 
 export function FadedDitherCanvas({
   tone = "dark",
+  compact = false,
   className,
   style,
 }: {
   tone?: keyof typeof TONES;
+  /* Set when the viewport is phone width. */
+  compact?: boolean;
   className?: string;
   style?: CSSProperties;
 }) {
   const { base, stipple } = TONES[tone];
+  const wave = WAVE[compact ? "compact" : "wide"];
 
   return (
     <Shader className={className} style={style}>
@@ -45,13 +57,13 @@ export function FadedDitherCanvas({
       <Dither colorB={stipple} pattern="bayer8" threshold={0.41}>
         <SineWave
           angle={24}
-          frequency={0.5}
+          frequency={wave.frequency}
           position={{ x: 0.69, y: 0.7 }}
           softness={0.7}
           /* The preset ships 0.4. Three times that, still well under the
              component's -5..5 range. */
           speed={1.2}
-          thickness={0.4}
+          thickness={wave.thickness}
         />
       </Dither>
     </Shader>

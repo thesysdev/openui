@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  ArrowsClockwise,
+  ArrowsLeftRight,
   ArrowUpRight,
   Broadcast,
   ChartLineUp,
@@ -10,10 +12,14 @@ import {
   Devices,
   Handshake,
   Key,
+  MagnifyingGlass,
+  PlayCircle,
   Plugs,
   Pulse,
   PuzzlePiece,
   ShieldCheck,
+  WarningDiamond,
+  Wrench,
   type Icon,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
@@ -69,6 +75,14 @@ const FEATURES: GridFeature[] = [
 const FEATURE_ICONS = {
   chart: ChartLineUp,
   cloud: CloudArrowUp,
+  /* Keys, not components: a server component can name one of these, but cannot
+     pass a component across the boundary into this client module. */
+  refresh: ArrowsClockwise,
+  replay: PlayCircle,
+  repair: Wrench,
+  search: MagnifyingGlass,
+  swap: ArrowsLeftRight,
+  warning: WarningDiamond,
   database: Database,
   devices: Devices,
   handshake: Handshake,
