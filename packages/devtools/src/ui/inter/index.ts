@@ -1,4 +1,4 @@
-import { INTER_LATIN_WOFF2_BASE64 } from "./interFontData";
+import { INTER_LATIN_WOFF2_BASE64 } from "./font-data";
 
 /**
  * Scoped family name: a plain `Inter` face would also restyle host page text
