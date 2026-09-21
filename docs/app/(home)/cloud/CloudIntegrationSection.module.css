@@ -319,8 +319,26 @@
     width: calc(100% - 32px);
   }
 
+  /* A host that sets this to `contents` drops .content as a box, so its two
+     children join .inner's column and the orders below can put the code between
+     them. Left as `flex` the orders are inert: .intro and .stepper are ordered
+     inside .content in the sequence they already appear in, and .codeColumn is
+     the second of .inner's two items either way. */
   .content {
+    display: var(--cloud-setup-content-display, flex);
     gap: 32px;
+  }
+
+  .intro {
+    order: 1;
+  }
+
+  .codeColumn {
+    order: 2;
+  }
+
+  .stepper {
+    order: 3;
   }
 
   .stepper[data-interactive="true"][data-step-count="2"] {
