@@ -12,8 +12,9 @@ hosted Autofix API. Import the helper that matches your SDK:
 - `@openuidev/server/openai` — Chat Completions, plus conversation history helpers
 - `@openuidev/server/vercel` — Vercel AI SDK UI message streams
 
-Use `fix()` for completed text. For streams, use `chat.completions()` (OpenAI) or
-`ai()` (Vercel). Pair each with the matching frontend stream adapter.
+Use `completions.fix()` or `ai.fix()` for completed text. For streams, use
+`completions.stream()` (OpenAI) or `ai.stream()` (Vercel). Pair each with the
+matching frontend stream adapter.
 
 ### Configure
 
@@ -33,7 +34,7 @@ including its `schema`. Keep the API key on the server.
 ### Completed output
 
 ```ts
-const result = await autofix.fix({ generation, messages, signal });
+const result = await autofix.completions.fix({ generation, messages, signal });
 
 if (result.content !== null) {
   // already_valid or fixed
@@ -67,8 +68,8 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return autofix.chat
-    .completions({ stream: source, messages, signal: request.signal })
+  return autofix.completions
+    .stream({ stream: source, messages, signal: request.signal })
     .toResponse();
 }
 ```
@@ -94,8 +95,8 @@ const result = streamText({
   abortSignal: signal,
 });
 
-return autofix
-  .ai({
+return autofix.ai
+  .stream({
     stream: toUIMessageStream({ stream: result.stream }),
     signal,
   })
@@ -108,7 +109,7 @@ Pass `toUIMessageStream({ stream: result.stream })`, not the raw `result.stream`
 ### Consume the stream
 
 ```ts
-const output = autofix.chat.completions({ stream: source, messages, signal });
+const output = autofix.completions.stream({ stream: source, messages, signal });
 
 for await (const chunk of output.chunks) {
   // Native SDK events, including any appended correction
@@ -116,8 +117,8 @@ for await (const chunk of output.chunks) {
 ```
 
 Use either `chunks` or `toResponse()` once. A failed repair throws with
-`code: "fix_failed"`. Use `fix()` when you need a structured result instead of a
-stream.
+`code: "fix_failed"`. Use `fix()` on the same helper when you need a structured
+result instead of a stream.
 
 `apiBaseUrl` overrides the Gateway origin. `fetch` supports custom transports or mocks.
 

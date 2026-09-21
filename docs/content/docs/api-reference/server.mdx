@@ -29,10 +29,10 @@ npm install @openuidev/server
 
 ## Import paths
 
-| Import from                | Autofix stream                          | History helpers                                               |
-| :------------------------- | :-------------------------------------- | :------------------------------------------------------------ |
-| `@openuidev/server/openai` | Chat Completions via `chat.completions` | `storeChatCompletionHistory`, `chatCompletionMessagesToItems` |
-| `@openuidev/server/vercel` | Vercel AI SDK via `ai`                  | `storeAiSdkHistory`, `storeEveHistory`, `aiSdkUserMessage`    |
+| Import from                | Autofix                                    | History helpers                                               |
+| :------------------------- | :----------------------------------------- | :------------------------------------------------------------ |
+| `@openuidev/server/openai` | `completions.fix` and `completions.stream` | `storeChatCompletionHistory`, `chatCompletionMessagesToItems` |
+| `@openuidev/server/vercel` | `ai.fix` and `ai.stream`                   | —                                                             |
 
 Pair each Autofix stream with the matching frontend adapter: `openAIAdapter()` or `useChat`.
 
@@ -59,14 +59,14 @@ function createAutofix(options: {
 }): Autofix;
 ```
 
-From `@openuidev/server/openai`, `Autofix` is `{ fix, chat: { completions } }`. From `@openuidev/server/vercel`, it is `{ fix, ai }`. `autofix.responses()` is not supported yet.
+From `@openuidev/server/openai`, `Autofix` is `{ completions: { fix, stream } }`. From `@openuidev/server/vercel`, it is `{ ai: { fix, stream } }`. `autofix.responses` is not supported yet.
 
-## `autofix.fix(input)`
+## `fix(input)`
 
 Validate completed OpenUI text. Valid output is returned as-is. Invalid output is sent to `POST /v1/autofix`.
 
 ```ts
-const result = await autofix.fix({ generation, messages, signal });
+const result = await autofix.completions.fix({ generation, messages, signal });
 
 if (result.content !== null) {
   // already_valid or fixed — use result.content
@@ -84,7 +84,7 @@ function fix(input: {
 }): Promise<AutofixResult>;
 ```
 
-`generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation.
+`generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation. On the Vercel path, call `autofix.ai.fix()` with the same input.
 
 ```ts
 type AutofixResult = {
@@ -104,25 +104,19 @@ interface AutofixDiagnostic {
 }
 ```
 
-## `autofix.chat.completions(input)` / `autofix.ai(input)`
+## `stream(input)`
 
 Wrap a native SDK stream. The helper forwards provider events and inserts a repair before the stream completes when the finished UI is invalid.
 
 ```ts
-function completions(input: {
-  stream: AsyncIterable<ChatCompletionChunk> & { controller?: AbortController };
+function stream(input: {
+  stream: AsyncIterable<Chunk> & { controller?: AbortController };
   messages?: ChatCompletionMessageParam[];
   signal?: AbortSignal;
-}): AutofixStream<ChatCompletionChunk>;
-
-function ai(input: {
-  stream: AsyncIterable<UIMessageChunk> & { controller?: AbortController };
-  messages?: ChatCompletionMessageParam[];
-  signal?: AbortSignal;
-}): AutofixStream<UIMessageChunk>;
+}): AutofixStream<Chunk>;
 ```
 
-Pass the native Chat Completions stream, or `toUIMessageStream({ stream: result.stream })` — not the raw `result.stream`.
+Use `autofix.completions.stream()` with a native Chat Completions stream, or `autofix.ai.stream()` with `toUIMessageStream({ stream: result.stream })` — not the raw `result.stream`.
 
 ```ts
 interface AutofixStream<T> {
@@ -151,8 +145,8 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return autofix.chat
-    .completions({ stream: source, messages, signal: request.signal })
+  return autofix.completions
+    .stream({ stream: source, messages, signal: request.signal })
     .toResponse();
 }
 ```
@@ -161,8 +155,8 @@ export async function POST(request: Request) {
 import { streamText, toUIMessageStream } from "ai";
 import { createAutofix } from "@openuidev/server/vercel";
 
-return autofix
-  .ai({
+return autofix.ai
+  .stream({
     stream: toUIMessageStream({ stream: result.stream }),
     signal,
   })
@@ -170,14 +164,14 @@ return autofix
 ```
 
 ```ts
-const output = autofix.chat.completions({ stream: source, messages, signal });
+const output = autofix.completions.stream({ stream: source, messages, signal });
 
 for await (const chunk of output.chunks) {
   // Native SDK events, including any appended correction
 }
 ```
 
-A failed repair on a stream throws with `code: "fix_failed"`. Use `fix()` when you need a structured result instead of a throw.
+A failed repair on a stream throws with `code: "fix_failed"`. Use `fix()` on the same helper when you need a structured result instead of a throw.
 
 ### Stream errors
 
@@ -234,78 +228,12 @@ chatCompletionMessagesToItems([
 ]);
 ```
 
-### `storeAiSdkHistory(options)`
-
-Persist a Vercel AI SDK turn. Pass the latest user `UIMessage` and `result.steps` after the turn completes.
-
-```ts
-import { storeAiSdkHistory } from "@openuidev/server/vercel";
-
-await storeAiSdkHistory({
-  apiKey: process.env.THESYS_API_KEY!,
-  conversationId: threadId,
-  user: latestUiMessage,
-  steps: await result.steps,
-});
-```
-
-```ts
-function storeAiSdkHistory(options: {
-  apiKey: string;
-  conversationId: string;
-  user: AiSdkUserMessage;
-  steps: Iterable<AiSdkHistoryStep>;
-  apiBaseUrl?: string;
-  fetch?: typeof fetch;
-}): Promise<ConversationItemList>;
-```
-
-`aiSdkUserMessage(user)` converts a user UIMessage for pre-stream validation. It accepts text and image file parts.
-
-### `storeEveHistory(options)`
-
-Persist an Eve turn. Pass the user text and the steps collected from Eve hook events.
-
-```ts
-import { storeEveHistory } from "@openuidev/server/vercel";
-
-await storeEveHistory({
-  apiKey: process.env.THESYS_API_KEY!,
-  conversationId: threadId,
-  user: userText,
-  steps,
-});
-```
-
-```ts
-function storeEveHistory(options: {
-  apiKey: string;
-  conversationId: string;
-  user: string | { role: "user"; content: string };
-  steps: Array<{
-    text?: string;
-    toolCalls?: { toolCallId: string; toolName: string; input: unknown }[];
-    toolResults?: { toolCallId: string; output: unknown }[];
-  }>;
-  apiBaseUrl?: string;
-  fetch?: typeof fetch;
-}): Promise<ConversationItemList>;
-```
-
 ## Exports
 
 | Entry point                | Export                              | Description                                            |
 | :------------------------- | :---------------------------------- | :----------------------------------------------------- |
-| `@openuidev/server/openai` | `createAutofix`                     | Chat Completions Autofix: `fix` and `chat.completions` |
+| `@openuidev/server/openai` | `createAutofix`                     | Chat Completions Autofix: `completions.fix` / `stream` |
 | `@openuidev/server/openai` | `storeChatCompletionHistory`        | Persist a Chat Completions turn                        |
 | `@openuidev/server/openai` | `chatCompletionMessagesToItems`     | Convert messages to Conversations API items            |
 | `@openuidev/server/openai` | `StoreChatCompletionHistoryOptions` | History helper configuration                           |
-| `@openuidev/server/vercel` | `createAutofix`                     | Vercel AI SDK Autofix: `fix` and `ai`                  |
-| `@openuidev/server/vercel` | `storeAiSdkHistory`                 | Persist an AI SDK turn                                 |
-| `@openuidev/server/vercel` | `aiSdkUserMessage`                  | Convert a user UIMessage                               |
-| `@openuidev/server/vercel` | `storeEveHistory`                   | Persist an Eve turn                                    |
-| `@openuidev/server/vercel` | `StoreAiSdkHistoryOptions`          | AI SDK history configuration                           |
-| `@openuidev/server/vercel` | `StoreEveHistoryOptions`            | Eve history configuration                              |
-| `@openuidev/server/vercel` | `AiSdkUserMessage`                  | User UIMessage shape accepted by the helper            |
-| `@openuidev/server/vercel` | `AiSdkHistoryStep`                  | One AI SDK step                                        |
-| `@openuidev/server/vercel` | `EveHistoryStep`                    | One Eve hook step                                      |
+| `@openuidev/server/vercel` | `createAutofix`                     | Vercel AI SDK Autofix: `ai.fix` / `ai.stream`          |

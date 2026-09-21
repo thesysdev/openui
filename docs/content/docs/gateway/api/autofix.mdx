@@ -41,7 +41,7 @@ export const autofix = createAutofix({
 ```ts title="server.ts"
 import { autofix } from "./lib/autofix";
 
-const result = await autofix.fix({ generation, messages, signal });
+const result = await autofix.completions.fix({ generation, messages, signal });
 
 if (result.status === "fix_failed") {
   console.warn(result.unfixedErrors);
@@ -67,13 +67,13 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return autofix.chat
-    .completions({ stream: source, messages, signal: request.signal })
+  return autofix.completions
+    .stream({ stream: source, messages, signal: request.signal })
     .toResponse();
 }
 ```
 
-Return SSE for the frontend `openAIAdapter()`. `autofix.responses()` is not supported yet.
+Return SSE for the frontend `openAIAdapter()`. `autofix.responses` is not supported yet.
 
 ### Wrap a Vercel AI SDK stream
 
@@ -94,8 +94,8 @@ const result = streamText({
   abortSignal: signal,
 });
 
-return autofix
-  .ai({
+return autofix.ai
+  .stream({
     stream: toUIMessageStream({ stream: result.stream }),
     signal,
   })
@@ -113,7 +113,7 @@ Use either `chunks` or `toResponse()` once:
 | `chunks`       | Native SDK events, including any correction. |
 | `toResponse()` | SSE `Response` for the matching frontend.    |
 
-A failed repair throws with `code: "fix_failed"`. Use `fix()` when you need a structured result for completed output.
+A failed repair throws with `code: "fix_failed"`. Use `fix()` on the same helper when you need a structured result for completed output.
 
 ## Call the API directly
 
