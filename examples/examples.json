@@ -31,6 +31,12 @@
       "envKey": "THESYS_API_KEY"
     },
     {
+      "title": "Angular",
+      "description": "An NG-ZORRO X chat interface rendering streamed OpenUI Lang with the Angular runtime.",
+      "path": "app-frameworks/angular",
+      "envKey": "OPENAI_API_KEY"
+    },
+    {
       "title": "FastAPI",
       "description": "A Python FastAPI streaming backend with a React OpenUI client.",
       "path": "app-frameworks/fastapi",

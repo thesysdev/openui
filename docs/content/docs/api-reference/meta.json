@@ -4,6 +4,7 @@
   "pages": [
     "index",
     "react-lang",
+    "angular-lang",
     "react-headless",
     "react-ui",
     "assistant-ui",

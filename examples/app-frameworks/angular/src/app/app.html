@@ -1,0 +1,151 @@
+<div class="agent-shell">
+  @if (sidebarOpen()) {
+  <button class="mobile-scrim" aria-label="Close sidebar" (click)="sidebarOpen.set(false)"></button>
+  }
+  <aside class="sidebar" [class.is-open]="sidebarOpen()">
+    <a class="brand" href="/" aria-label="OpenUI home"
+      ><span class="brand-symbol"><i></i><i></i><i></i><i></i></span>OpenUI<span class="brand-tag"
+        >LAB</span
+      ></a
+    >
+    <button class="new-chat" (click)="newChat()">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>New conversation<span>↗</span>
+    </button>
+    <div class="sidebar-section-label">YOUR CONVERSATIONS</div>
+    <nav class="thread-list" aria-label="Conversations">
+      <ul
+        nx-conversations
+        [items]="conversationItems()"
+        [activeKey]="activeId()"
+        [menu]="conversationMenu"
+        (activeChange)="selectThread($event)"
+      ></ul>
+    </nav>
+    <div class="sidebar-note">
+      <span class="note-mark">✳</span><strong>A little more than a chat.</strong>
+      <p>Answers become charts, plans, and things you can interact with.</p>
+    </div>
+    <footer class="workspace">
+      <span class="workspace-avatar">L</span>
+      <div><strong>Local workspace</strong><span>Conversations saved in this browser</span></div>
+    </footer>
+  </aside>
+
+  <main class="main-panel">
+    <header class="topbar">
+      <div class="topbar-title">
+        <button
+          class="icon-button mobile-menu"
+          aria-label="Open sidebar"
+          (click)="sidebarOpen.set(true)"
+        >
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg></button
+        ><strong>Angular Agent</strong><span class="header-divider"></span
+        ><span class="header-subtitle">NG-ZORRO X + OpenUI</span>
+      </div>
+      <span class="model-status" [class.offline]="!connection()?.configured"
+        ><i></i>{{ connection()?.configured ? connection()?.model : (connection() ? 'Setup needed' :
+        'Connecting') }}</span
+      >
+    </header>
+    <div class="conversation-body" [class.is-empty]="!current()?.messages?.length">
+      @if (!current()?.messages?.length) {
+      <section class="welcome">
+        <div class="welcome-symbol">✳</div>
+        <span class="eyebrow">A CONVERSATION, WITH POSSIBILITIES</span>
+        <h1>What are we<br />working on today?</h1>
+        <p>Ask a question. Explore an idea.<br />Get an answer you can actually work with.</p>
+        <div class="starter-grid">
+          @for (starter of starters; track starter.label) {
+          <button class="starter-card" (click)="send(starter.prompt)">
+            <span class="starter-icon">{{ starter.icon }}</span><strong>{{ starter.label }}</strong
+            ><span>{{ starter.description }}</span><span class="starter-arrow">↗</span>
+          </button>
+          }
+        </div>
+      </section>
+      } @else {
+      <nx-bubble-list
+        class="chat-messages"
+        aria-label="Conversation"
+        [items]="bubbleItems()"
+        [autoScroll]="true"
+      />
+      }
+    </div>
+    <div class="composer-area">
+      @if (connectionError()) {
+      <div class="connection-notice" role="alert">
+        {{ connectionError() }} <button (click)="checkConnection()">Reconnect</button>
+      </div>
+      } @if (connection() && !connection()?.configured) {
+      <div class="connection-notice" role="alert">
+        Configure OPENAI_API_KEY in the server’s local environment file, then restart the example.
+      </div>
+      } @if (storageWarning()) {
+      <div class="connection-notice">{{ storageWarning() }}</div>
+      }
+      <nx-sender
+        class="chat-composer"
+        [value]="draft()"
+        (valueChange)="draft.set($event)"
+        [loading]="busy()"
+        [allowSpeech]="false"
+        submitType="enter"
+        placeholder="Message Angular Agent…"
+        (submitSend)="send($event.value)"
+        (cancelled)="stop()"
+      />
+      <p class="composer-footnote">
+        NG-ZORRO X chat · OpenUI responses <span>·</span> AI can make mistakes. Check important
+        details.
+      </p>
+    </div>
+  </main>
+</div>
+
+<ng-template #assistantHeader let-info="info">
+  @if (getMessage(info.key); as message) {
+  <div class="assistant-label">
+    <span class="mini-symbol">✳</span><strong>OpenUI</strong>
+    <span
+      >{{ message.status === 'streaming' ? (message.phase || 'Creating your response…') : 'Angular
+      Agent' }}</span
+    >
+  </div>
+  }
+</ng-template>
+
+<ng-template #assistantContent let-content="content" let-info="info">
+  @if (getMessage(info.key); as message) {
+  <article class="assistant-message" [attr.aria-busy]="message.status === 'streaming'">
+    @if (content) {
+    <openui-renderer
+      [response]="content"
+      [library]="library"
+      [isStreaming]="message.status === 'streaming'"
+      (action)="onAction($event)"
+      (error)="onRenderErrors(message.id, $event)"
+    />
+    } @if (message.error) {
+    <div class="error-message" role="alert">{{ message.error }}</div>
+    } @if (message.status === 'stopped') {
+    <p class="message-note">Response stopped.</p>
+    } @if (message.status !== 'streaming') {
+    <div class="message-tools">
+      @if (current()?.messages?.at(-1)?.id === message.id) {
+      <button (click)="retry(message.id)" [disabled]="busy()">↻ Try again</button>
+      } @if (content) {
+      <details class="source-details">
+        <summary>View OpenUI source</summary>
+        <pre>{{ content }}</pre>
+        @if (message.renderErrors?.length) {
+        <p class="error-message">{{ message.renderErrors?.join('; ') }}</p>
+        }
+      </details>
+      }
+    </div>
+    }
+  </article>
+  }
+</ng-template>
