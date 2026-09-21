@@ -2,6 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import { BevelButton } from "../../components/Button/BevelButton";
 import styles from "../../page.module.css";
+import { AutofixSection } from "../../sections/AutofixSection/AutofixSection";
 import { Footer } from "../../sections/Footer/Footer";
 import { HeroSection } from "../../sections/HeroSection/HeroSection";
 import { GatewayReliabilityIllustration } from "../../sections/ProductIllustrations/ProductIllustrations";
@@ -96,6 +97,7 @@ export default function GatewayPage() {
         <div className={gatewayStyles.repairBand}>
           <RepairSection />
         </div>
+        <AutofixSection />
         <IntegrateSection />
         <div className={gatewayStyles.usageBand}>
           <UsageSection />

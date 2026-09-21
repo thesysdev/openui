@@ -87,8 +87,8 @@ export const GATEWAY_PRODUCT: ProductSectionProps = {
     },
     {
       Icon: ArrowsClockwise,
-      title: "Stay online through outages",
-      description: "Gateway switches providers if one fails, keeping the same model.",
+      title: "Switch providers on failure",
+      description: "Gateway retries the same model with another provider.",
     },
     {
       Icon: Key,
