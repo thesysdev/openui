@@ -51,6 +51,7 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Create Version Packages PR or publish
+        id: changesets
         uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
         with:
           # The action execs this without a shell, so compound commands must
@@ -70,3 +71,17 @@ jobs:
         # Note: npm provenance is generated automatically with trusted
         # publishing; each package must have this workflow registered as a
         # trusted publisher on npmjs.com.
+
+      # Downstream workflow_run consumers (update-openui-starters) can't read
+      # step outputs, so signal a publish with an artifact on this run.
+      - name: Record published packages
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: printf '%s\n' "$PUBLISHED_PACKAGES" > published-packages.json
+      - uses: actions/upload-artifact@v4
+        if: steps.changesets.outputs.published == 'true'
+        with:
+          name: published-packages
+          path: published-packages.json
+          retention-days: 7
