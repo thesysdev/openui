@@ -28,7 +28,7 @@ import {
   type ThemeTokens,
 } from "./theme";
 import type { DevtoolsPosition, OpenUIDevtoolsWidgetProps } from "./types";
-import { ErrorBoundary, IconButton, ShiroLogo, ThemeSegmented } from "./ui";
+import { ensureInterFont, ErrorBoundary, IconButton, ShiroLogo, ThemeSegmented } from "./ui";
 import { DeployBanner, DeployHint } from "./ui/DeployHint";
 import ReliabilityBanner from "./ui/ReliabilityBanner";
 
@@ -89,6 +89,10 @@ export function OpenUIDevtoolsWidget({
     setConfig,
   });
   const styles = uiStyles(theme(mode));
+
+  useEffect(() => {
+    if (isEnabled) ensureInterFont();
+  }, [isEnabled]);
 
   // Read configRef inside the (stable) subscription without re-subscribing.
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { createContext, createElement, useContext, type ReactNode } from "react";
+import { INTER_FAMILY } from "./ui/interFont";
 
 /**
  * The widget's own theme. Chosen explicitly in Settings (persisted) — the
@@ -163,7 +164,7 @@ const DARK = {
 
 export type ThemeTokens = { [K in keyof typeof LIGHT]: string };
 
-export const FONT = '"Inter", system-ui, sans-serif';
+export const FONT = `"${INTER_FAMILY}", "Inter", system-ui, sans-serif`;
 export const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
 /** Palette for the chosen mode. Native `colorScheme` still goes on the root. */
