@@ -8,7 +8,7 @@ Validate model output against your OpenUI library and repair invalid UI through 
 hosted Autofix API. Import the helper that matches your SDK:
 
 - `@openuidev/server/openai` — Chat Completions, plus conversation history helpers
-- `@openuidev/server/vercel` — Vercel AI SDK UI message streams
+- `@openuidev/server/vercel` — Vercel AI SDK UI message streams, plus AI SDK and Eve history helpers
 
 Use `fix()` for completed text. For streams, use `chat.completions()` (OpenAI) or
 `ai()` (Vercel). Pair each with the matching frontend stream adapter.
@@ -148,3 +148,25 @@ chatCompletionMessagesToItems([
   { role: "assistant", content: "hi" },
 ]);
 ```
+
+For Vercel AI SDK and Eve, persist the completed turn without mapping messages yourself:
+
+```ts
+import { storeAiSdkHistory, storeEveHistory } from "@openuidev/server/vercel";
+
+await storeAiSdkHistory({
+  apiKey: process.env.THESYS_API_KEY!,
+  conversationId: threadId,
+  user: latestUiMessage,
+  steps: await result.steps,
+});
+
+await storeEveHistory({
+  apiKey: process.env.THESYS_API_KEY!,
+  conversationId: threadId,
+  user: userText,
+  steps,
+});
+```
+
+Pass only the new turn. `aiSdkUserMessage()` converts a user UIMessage for pre-stream validation.
