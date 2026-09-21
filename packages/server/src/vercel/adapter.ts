@@ -1,6 +1,6 @@
 import type { UIMessageChunk } from "ai";
 import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../shared/types";
-import { isUIOutput } from "../shared/utils";
+import { appendedRepair, isUIOutput } from "../shared/utils";
 
 /** Preserve AI SDK UI message chunks and repair text before a successful final step closes. */
 export const vercelAIAdapter: StreamAdapter<UIMessageChunk> = {
@@ -19,7 +19,7 @@ export const vercelAIAdapter: StreamAdapter<UIMessageChunk> = {
         if (repair && event.type === "text-end" && text != null && isUIOutput(text)) {
           const result = await fix(text);
           if (result.status === "fixed") {
-            yield { type: "text-delta", id: event.id, delta: `\n${result.content}\n` };
+            yield { type: "text-delta", id: event.id, delta: appendedRepair(text, result.content) };
           }
         }
         yield event;
