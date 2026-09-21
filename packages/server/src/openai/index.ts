@@ -1,8 +1,6 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
-import type { ResponseStreamEvent } from "openai/resources/responses/responses";
 import { createAutofix as createAutofixPipeline } from "../shared/create-autofix";
-import type { AutofixOptions, AutofixStream, AutofixStreamInput } from "../shared/types";
-import { AutofixError } from "../shared/types";
+import type { AutofixOptions, AutofixStreamInput } from "../shared/types";
 import { openAIAdapter } from "./adapter";
 
 export {
@@ -18,6 +16,6 @@ export function createAutofix(options: AutofixOptions) {
     fix,
     chat: {
       completions: (input: AutofixStreamInput<ChatCompletionChunk>) => stream(input),
-    }
+    },
   };
 }
