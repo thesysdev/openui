@@ -8,8 +8,11 @@ const FEATURES = [
   "Track requests & generations for free",
 ] as const;
 
+const API_KEY_URL = "https://console.thesys.dev/keys";
+const DOCS_URL = "https://www.openui.com/docs/agent/getting-started/openui-cloud";
+
 export default function ReliabilityBanner({ themeMode }: { themeMode: ColorMode }) {
-  const [bannerHovered, setBannerHovered] = useState(false);
+  const [hoveredCta, setHoveredCta] = useState<string | null>(null);
   const tokens = theme(themeMode);
   const styles = bannerStyles(tokens);
 
@@ -36,22 +39,35 @@ export default function ReliabilityBanner({ themeMode }: { themeMode: ColorMode 
               ))}
             </ul>
           </div>
-          <a
-            style={{
-              ...styles.bannerAction,
-              ...(bannerHovered ? styles.bannerActionHover : null),
-            }}
-            href={withDevtoolsAttribution(
-              "https://www.openui.com/docs/agent/getting-started/openui-cloud",
-              "cloud_banner_learn_more",
-            )}
-            target="_blank"
-            rel="noreferrer"
-            onMouseEnter={() => setBannerHovered(true)}
-            onMouseLeave={() => setBannerHovered(false)}
-          >
-            Autofix errors
-          </a>
+          <div style={styles.actions}>
+            <a
+              style={{
+                ...styles.bannerAction,
+                ...(hoveredCta === "api_key" ? styles.bannerActionHover : null),
+              }}
+              href={withDevtoolsAttribution(API_KEY_URL, "cloud_banner_get_api_key")}
+              target="_blank"
+              rel="noreferrer"
+              onMouseEnter={() => setHoveredCta("api_key")}
+              onMouseLeave={() => setHoveredCta(null)}
+            >
+              Get API key
+            </a>
+            <a
+              style={{
+                ...styles.bannerAction,
+                ...styles.bannerActionSecondary,
+                ...(hoveredCta === "docs" ? styles.bannerActionHover : null),
+              }}
+              href={withDevtoolsAttribution(DOCS_URL, "cloud_banner_view_docs")}
+              target="_blank"
+              rel="noreferrer"
+              onMouseEnter={() => setHoveredCta("docs")}
+              onMouseLeave={() => setHoveredCta(null)}
+            >
+              View docs
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -154,12 +170,16 @@ const bannerStyles = (t: ThemeTokens) =>
     check: {
       color: t.success,
     },
+    actions: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 8,
+    },
     bannerAction: {
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      alignSelf: "flex-start",
-      marginTop: 8,
       textDecoration: "none",
       border: `1px solid ${t.inverted}`,
       borderRadius: 8,
@@ -172,5 +192,11 @@ const bannerStyles = (t: ThemeTokens) =>
     },
     bannerActionHover: {
       transform: "scale(0.96)",
+    },
+    bannerActionSecondary: {
+      border: `1px solid ${t.controlBorder}`,
+      background: t.controlBg,
+      color: t.fg,
+      boxShadow: t.shadowSubtle,
     },
   }) satisfies Record<string, CSSProperties>;
