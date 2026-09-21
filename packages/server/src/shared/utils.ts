@@ -96,10 +96,11 @@ export function repairContext(messages: NonNullable<AutofixInput["messages"]>) {
 }
 
 const OPENUI_FENCE = /```openui(?:-lang)?\s*\n/;
+const ROOT_ASSIGN = /(^|\n)\s*root\s*=/;
 
-/** Check whether the text looks like an OpenUI program that may need validation. */
+/** OpenUI Lang is a fenced ```openui / ```openui-lang block, or an unfenced `root =` program. */
 export function isUIOutput(text: string): boolean {
-  return text.search(OPENUI_FENCE) >= 0 || /(?:^|\n)[ \t]*[$A-Za-z_][\w$]*[ \t]*=(?!=)/.test(text);
+  return text.search(OPENUI_FENCE) >= 0 || ROOT_ASSIGN.test(text);
 }
 
 /** Split a closed ```openui-lang block from its closing fence and any trailing text. */
