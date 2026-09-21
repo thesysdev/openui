@@ -10,3 +10,5 @@ Validate locally and call Autofix only for invalid UI. Streaming appends the com
 corrected program as native text deltas before completion, preserving tool calls
 and metadata. The Vercel AI SDK 7 helper accepts
 `toUIMessageStream({ stream: result.stream })` output and returns AI SDK UI message SSE.
+`@openuidev/server/openai` also exports `storeChatCompletionHistory` and
+`chatCompletionMessagesToItems` (moved off the package root).

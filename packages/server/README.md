@@ -7,15 +7,14 @@ Server utilities for OpenUI & OpenUI Gateway.
 Wrap Chat Completions or Vercel AI SDK streams with local OpenUI validation and hosted
 Autofix. Select your SDK through the import path:
 
-- `@openuidev/server/openai` exports `createAutofix` for Chat Completions.
+- `@openuidev/server/openai` exports `createAutofix` for Chat Completions, plus conversation history helpers.
 - `@openuidev/server/vercel` exports `createAutofix` for AI SDK UI message streams.
 
 Both expose the same methods and preserve their SDK's stream protocol. Tool calls,
 refusals, reasoning, usage, and provider metadata pass through. For UI answers, the
 wrapper appends the complete corrected program as ordinary text deltas before
 finalizing the output. Configuration and result types are inferred; protocol
-handling stays internal. The root `@openuidev/server` export contains the conversation
-history helpers. Use the matching frontend stream adapter for the chosen SDK.
+handling stays internal. Use the matching frontend stream adapter for the chosen SDK.
 
 Streaming corrections require a frontend `lang-core` parser that preserves trailing
 statement terminators so the final redefinition is applied.
@@ -231,7 +230,7 @@ npm install @openuidev/server
 Persist a Chat Completions turn as Conversations API items. Chat Completions has no `conversation` + `store: true`. Use the master API key (Cloud rejects frontend tokens on create). Pass only the new turn — last user message plus the assembled assistant reply — not the client’s full `messages` array.
 
 ```ts
-import { storeChatCompletionHistory } from "@openuidev/server";
+import { storeChatCompletionHistory } from "@openuidev/server/openai";
 
 await storeChatCompletionHistory({
   apiKey: process.env.THESYS_API_KEY!,
@@ -246,7 +245,7 @@ await storeChatCompletionHistory({
 Convert without posting:
 
 ```ts
-import { chatCompletionMessagesToItems } from "@openuidev/server";
+import { chatCompletionMessagesToItems } from "@openuidev/server/openai";
 
 chatCompletionMessagesToItems([
   { role: "user", content: "hello" },

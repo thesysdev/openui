@@ -36,7 +36,7 @@ export const autofix = createAutofix({
 });
 ```
 
-Use the spec produced by `openui generate --spec` for the same component library as your renderer, including its `schema`. Keep the API key on the server and treat the library as immutable after configuration. `apiBaseUrl` optionally overrides `https://api.thesys.dev`; `fetch` optionally supplies a custom transport. Each SDK subpath exports only `createAutofix`; configuration and result types are inferred. Protocol handling stays internal. The root `@openuidev/server` export contains the conversation history helpers.
+Use the spec produced by `openui generate --spec` for the same component library as your renderer, including its `schema`. Keep the API key on the server and treat the library as immutable after configuration. `apiBaseUrl` optionally overrides `https://api.thesys.dev`; `fetch` optionally supplies a custom transport. Each SDK subpath exports `createAutofix`; configuration and result types are inferred. Protocol handling stays internal. `@openuidev/server/openai` also exports the conversation history helpers.
 
 ### Fix completed output
 

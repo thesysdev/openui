@@ -1,5 +1,5 @@
 import { createParser } from "@openuidev/lang-core";
-import { THESYS_API_BASE_URL } from "../constants";
+import { THESYS_API_BASE_URL } from "./constants";
 import { fixGeneration } from "./fix";
 import { createAutofixStream } from "./stream";
 import type {
