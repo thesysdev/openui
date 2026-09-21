@@ -10,7 +10,8 @@ Autofix. Select your SDK through the import path:
 - `@openuidev/server/openai` exports `createAutofix` for Chat Completions, plus conversation history helpers.
 - `@openuidev/server/vercel` exports `createAutofix` for AI SDK UI message streams.
 
-Both expose the same methods and preserve their SDK's stream protocol. Tool calls,
+Both expose `fix()` for completed text. Streaming is protocol-specific:
+`autofix.chat.completions()` for Chat Completions and `autofix.ai()` for Vercel AI SDK. Tool calls,
 refusals, reasoning, usage, and provider metadata pass through. For UI answers, the
 wrapper appends the complete corrected program as ordinary text deltas before
 finalizing the output. Configuration and result types are inferred; protocol
@@ -79,7 +80,9 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return autofix.stream({ stream: source, messages, signal: request.signal }).toResponse();
+  return autofix.chat
+    .completions({ stream: source, messages, signal: request.signal })
+    .toResponse();
 }
 ```
 
@@ -106,8 +109,9 @@ unchanged except that a UI stop is deferred until validation/repair finishes.
 Inserted corrections keep the completion ID, choice index, and model, and never
 duplicate the original usage or logprobs.
 
-The `/openai` helper accepts native Chat Completions chunks (`AsyncIterable<ChatCompletionChunk>`).
-Pass the same abort signal to your provider and the wrapper.
+The `/openai` helper's `chat.completions()` accepts native Chat Completions chunks
+(`AsyncIterable<ChatCompletionChunk>`). Pass the same abort signal to your provider and the wrapper.
+`autofix.responses()` is reserved for OpenAI Responses streams and is not supported yet.
 
 ### Stream with Vercel AI SDK 7
 
@@ -129,15 +133,16 @@ const result = streamText({
 });
 
 return autofix
-  .stream({
+  .ai({
     stream: toUIMessageStream({ stream: result.stream }),
     signal,
   })
   .toResponse();
 ```
 
-Both subpaths expose the same `fix({ generation, messages, signal })` and
-`stream({ stream, messages, signal })` methods. `generation` is a completed text
+Both subpaths expose `fix({ generation, messages, signal })` for completed text.
+Streaming methods are `chat.completions({ stream, messages, signal })` on OpenAI
+and `ai({ stream, messages, signal })` on Vercel. `generation` is a completed text
 string: use `result.choices[0].message.content` for OpenAI or `result.text` for Vercel.
 
 Use AI SDK 7's native UI message stream. `chunks` contains `UIMessageChunk` events;
@@ -182,7 +187,7 @@ there is no custom "repairing" event.
 ### Consume the stream
 
 ```ts
-const output = autofix.stream({ stream: source, messages, signal });
+const output = autofix.chat.completions({ stream: source, messages, signal });
 
 for await (const chunk of output.chunks) {
   // Forward or accumulate native events, including tool calls and metadata.

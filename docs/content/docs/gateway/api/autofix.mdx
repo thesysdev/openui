@@ -22,7 +22,7 @@ flowchart LR
 
 ## Use the server package
 
-Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or `@openuidev/server/vercel` for Vercel AI SDK. Both wrap local validation and the Autofix request for completed output and model streams. You can also [call the API directly](#fix-an-invalid-generation).
+Import `createAutofix` from `@openuidev/server/openai` for Chat Completions. Use the spec produced by `openui generate --spec` for the same component library as your renderer, including its `schema`. Keep the API key on the server and treat the library as immutable after configuration.
 
 ### Configure once
 
@@ -36,9 +36,7 @@ export const autofix = createAutofix({
 });
 ```
 
-Use the spec produced by `openui generate --spec` for the same component library as your renderer, including its `schema`. Keep the API key on the server and treat the library as immutable after configuration. `apiBaseUrl` optionally overrides `https://api.thesys.dev`; `fetch` optionally supplies a custom transport. Each SDK subpath exports `createAutofix`; configuration and result types are inferred. Protocol handling stays internal. `@openuidev/server/openai` also exports the conversation history helpers.
-
-### Fix completed output
+### Fix a completed generation
 
 ```ts title="server.ts"
 import { autofix } from "./lib/autofix";
@@ -53,11 +51,9 @@ if (result.status === "fix_failed") {
 }
 ```
 
-`generation` is the completed OpenUI text from your model. Optional `messages` contains the conversation before that generation; the helper adds the library system message and final assistant message. Optional `signal` cancels the request. The helper retains the most recent text context within 20 turns and 8,000 characters.
+`generation` is the completed OpenUI text from your model. Optional `messages` contains the conversation before that generation; the helper adds the library system message and final assistant message. The helper retains the most recent text context within 20 turns and 8,000 characters.
 
-The helper parses the **original generation locally**. Valid output returns `already_valid` without calling the API. Invalid output triggers one Autofix request. The API validates the repaired program, so the helper uses its returned status and diagnostics without parsing that program again.
-
-The helper returns `{ status, original, content, fixedErrors, unfixedErrors }`. `content` is the original or complete fixed program on success, and `null` for `fix_failed`. This differs from the raw API's Chat Completion response with `fix_summary`.
+The helper returns `{ status, original, content, fixedErrors, unfixedErrors }`. `content` is the original or complete fixed program on success, and `null` for `fix_failed`.
 
 ### Wrap a model stream
 
@@ -74,21 +70,13 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return autofix.stream({ stream: source, messages, signal: request.signal }).toResponse();
+  return autofix.chat.completions({ stream: source, messages, signal: request.signal }).toResponse();
 }
 ```
 
-Pass the model's Chat Completions stream as `stream` to the helper imported from `@openuidev/server/openai`. Tool calls, refusals, reasoning extensions, usage, and other metadata pass through. The source must emit native Chat Completions chunks.
+Pass the model's Chat Completions stream as `stream` to the helper imported from `@openuidev/server/openai`. Tool calls, refusals, reasoning extensions, usage, and other metadata pass through. The source must emit native Chat Completions chunks. Only invalid UI triggers an Autofix request. Plain prose, tool turns, refusals, truncated output, and outputs exceeding 100,000 characters pass through without repair.
 
-For each completion and choice, the wrapper accumulates text while forwarding chunks. On a normal `stop`, it validates text that looks like OpenUI and has no tool call or refusal. Only invalid UI triggers an Autofix request. Plain prose, tool turns, refusals, truncated output, and outputs exceeding 100,000 characters pass through without repair.
-
-The wrapper uses `createParser().parse()` on the accumulated generation at completion. You do not need a separate server-side streaming parser. The frontend still parses incoming text incrementally to render it.
-
-When repair succeeds, the wrapper appends the **complete fixed program**, surrounded by newlines, as an ordinary content delta. It then releases the completion's `stop` marker. It does not compute a statement diff. `toResponse()` encodes Chat Completions SSE, including the final `[DONE]`, for the frontend `openAIAdapter()`.
-
-The API itself remains non-streaming: `.stream()` wraps your model stream and makes a non-streaming repair request when needed.
-
-### Wrap a Vercel AI SDK 7 stream
+### Wrap a Vercel AI SDK stream
 
 ```ts
 import { streamText, toUIMessageStream } from "ai";
@@ -108,15 +96,16 @@ const result = streamText({
 });
 
 return autofix
-  .stream({
+  .ai({
     stream: toUIMessageStream({ stream: result.stream }),
     signal,
   })
   .toResponse();
 ```
 
-Both subpaths expose the same `fix({ generation, messages, signal })` and
-`stream({ stream, messages, signal })` methods. `generation` is a completed text
+Both subpaths expose `fix({ generation, messages, signal })` for completed text.
+Streaming methods are `chat.completions({ stream, messages, signal })` on OpenAI
+and `ai({ stream, messages, signal })` on Vercel. `generation` is a completed text
 string: use `result.choices[0].message.content` for OpenAI or `result.text` for Vercel.
 
 Use AI SDK 7's native UI message stream. `chunks` contains `UIMessageChunk` events;
@@ -139,7 +128,7 @@ need repairs in conversation history.
 
 ### Consume the stream and handle failures
 
-`autofix.stream()` returns two members:
+`autofix.chat.completions()` and `autofix.ai()` return two members:
 
 | Member         | Purpose                                                         |
 | -------------- | --------------------------------------------------------------- |
@@ -171,7 +160,7 @@ export function isValid({ root, meta }: ParseResult): boolean {
 }
 ```
 
-Judge the generation once, after the stream ends. While it streams, `incomplete` and `unresolved` are normal: the parser has not seen the rest yet. You can accumulate text and call `createParser(library.schema, library.root).parse(generation)` once, or feed chunks into `createStreamingParser()` and check its final result. Both approaches validate the original generation before making a repair request.
+Judge the generation once, after the stream ends. While it streams, `incomplete` and `unresolved` are normal: the parser has not seen the rest yet.
 
 ```ts title="server.ts"
 import { createStreamingParser } from "@openuidev/lang-core";
