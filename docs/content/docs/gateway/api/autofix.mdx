@@ -22,7 +22,7 @@ flowchart LR
 
 ## Use the server package
 
-Prefer `@openuidev/server` over calling the endpoint yourself. Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or `@openuidev/server/vercel` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
+Prefer [`@openuidev/server`](/docs/api-reference/server) over calling the endpoint yourself. Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or `@openuidev/server/vercel` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
 
 ### Configure once
 
@@ -67,7 +67,9 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return autofix.chat.completions({ stream: source, messages, signal: request.signal }).toResponse();
+  return autofix.chat
+    .completions({ stream: source, messages, signal: request.signal })
+    .toResponse();
 }
 ```
 

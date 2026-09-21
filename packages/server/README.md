@@ -2,6 +2,8 @@
 
 Server utilities for OpenUI & OpenUI Gateway.
 
+**Links:** [Package docs](https://openui.com/docs/api-reference/server) | [Autofix API](https://openui.com/docs/gateway/api/autofix) | [GitHub repo](https://github.com/thesysdev/openui)
+
 ## Autofix
 
 Validate model output against your OpenUI library and repair invalid UI through the
