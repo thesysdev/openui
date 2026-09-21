@@ -1,5 +1,8 @@
+import type { ChatCompletionChunk } from "openai/resources/chat/completions";
+import type { ResponseStreamEvent } from "openai/resources/responses/responses";
 import { createAutofix as createAutofixPipeline } from "../shared/create-autofix";
-import type { AutofixOptions } from "../shared/types";
+import type { AutofixOptions, AutofixStream, AutofixStreamInput } from "../shared/types";
+import { AutofixError } from "../shared/types";
 import { openAIAdapter } from "./adapter";
 
 export {
@@ -8,7 +11,13 @@ export {
 } from "./store-conversation-items";
 export type { StoreChatCompletionHistoryOptions } from "./types";
 
-// Create validation and repair helpers for OpenAI Chat Completions streams.
+// Create validation and repair helpers for OpenAI Chat Completions and Responses.
 export function createAutofix(options: AutofixOptions) {
-  return createAutofixPipeline(options, openAIAdapter);
+  const { fix, stream } = createAutofixPipeline(options, openAIAdapter);
+  return {
+    fix,
+    chat: {
+      completions: (input: AutofixStreamInput<ChatCompletionChunk>) => stream(input),
+    }
+  };
 }
