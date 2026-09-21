@@ -1,6 +1,6 @@
 import type { UIMessageChunk } from "ai";
-import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../types";
-import { isUIOutput } from "../utils";
+import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../shared/types";
+import { isUIOutput } from "../shared/utils";
 
 /** Preserve AI SDK UI message chunks and repair text before a successful final step closes. */
 export const vercelAIAdapter: StreamAdapter<UIMessageChunk> = {

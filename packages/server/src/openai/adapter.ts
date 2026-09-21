@@ -1,6 +1,6 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
-import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../types";
-import { isUIOutput } from "../utils";
+import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../shared/types";
+import { isUIOutput } from "../shared/utils";
 
 type ChoiceState = { text: string | null; done: boolean; passthrough: boolean };
 

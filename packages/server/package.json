@@ -28,22 +28,22 @@
     },
     "./openai": {
       "import": {
-        "types": "./dist/openai.d.mts",
-        "default": "./dist/openai.mjs"
+        "types": "./dist/openai/index.d.mts",
+        "default": "./dist/openai/index.mjs"
       },
       "require": {
-        "types": "./dist/openai.d.cts",
-        "default": "./dist/openai.cjs"
+        "types": "./dist/openai/index.d.cts",
+        "default": "./dist/openai/index.cjs"
       }
     },
     "./vercel": {
       "import": {
-        "types": "./dist/vercel.d.mts",
-        "default": "./dist/vercel.mjs"
+        "types": "./dist/vercel/index.d.mts",
+        "default": "./dist/vercel/index.mjs"
       },
       "require": {
-        "types": "./dist/vercel.d.cts",
-        "default": "./dist/vercel.cjs"
+        "types": "./dist/vercel/index.d.cts",
+        "default": "./dist/vercel/index.cjs"
       }
     }
   },
@@ -88,10 +88,10 @@
   "typesVersions": {
     "*": {
       "openai": [
-        "dist/openai.d.cts"
+        "dist/openai/index.d.cts"
       ],
       "vercel": [
-        "dist/vercel.d.cts"
+        "dist/vercel/index.d.cts"
       ]
     }
   }
