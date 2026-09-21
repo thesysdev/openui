@@ -99,30 +99,25 @@ const OPENUI_FENCE = /```openui(?:-lang)?\s*\n/;
 
 /** Check whether the text looks like an OpenUI program that may need validation. */
 export function isUIOutput(text: string): boolean {
-  return OPENUI_FENCE.test(text) || /(?:^|\n)[ \t]*[$A-Za-z_][\w$]*[ \t]*=(?!=)/.test(text);
+  return text.search(OPENUI_FENCE) >= 0 || /(?:^|\n)[ \t]*[$A-Za-z_][\w$]*[ \t]*=(?!=)/.test(text);
 }
 
-function hasClosedOpenUIFence(text: string): boolean {
+/** Split a closed ```openui-lang block from its closing fence and any trailing text. */
+export function splitClosedFence(text: string): { body: string; closing: string } | null {
   const open = text.search(OPENUI_FENCE);
-  if (open < 0) return false;
+  if (open < 0) return null;
   const afterOpenNl = text.indexOf("\n", open);
-  return afterOpenNl >= 0 && text.indexOf("```", afterOpenNl + 1) >= 0;
+  if (afterOpenNl < 0) return null;
+  const close = text.indexOf("```", afterOpenNl + 1);
+  if (close < 0) return null;
+  return { body: text.slice(0, close), closing: text.slice(close) };
 }
 
-function unwrapOpenUIFence(text: string): string {
+/** Inner OpenUI program, without a wrapping markdown fence. */
+export function unwrapOpenUIFence(text: string): string {
   const open = text.search(OPENUI_FENCE);
   if (open < 0) return text;
   const start = text.indexOf("\n", open) + 1;
   const close = text.indexOf("```", start);
   return (close < 0 ? text.slice(start) : text.slice(start, close)).trim();
-}
-
-/**
- * Append a repaired program so `stripFences` still sees it.
- * A closed ```openui-lang block ignores trailing unfenced text; wrap that
- * repair in a second fence. An unclosed fence already includes the suffix.
- */
-export function appendedRepair(original: string, content: string): string {
-  if (!hasClosedOpenUIFence(original)) return `\n${content}\n`;
-  return `\n\`\`\`openui-lang\n${unwrapOpenUIFence(content)}\n\`\`\`\n`;
 }
