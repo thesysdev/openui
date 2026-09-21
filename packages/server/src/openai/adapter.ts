@@ -1,8 +1,13 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
 import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../shared/types";
-import { appendedRepair, isUIOutput } from "../shared/utils";
+import { isUIOutput, splitClosedFence, unwrapOpenUIFence } from "../shared/utils";
 
-type ChoiceState = { text: string | null; done: boolean; passthrough: boolean };
+type ChoiceState = {
+  text: string | null;
+  done: boolean;
+  passthrough: boolean;
+  closing: string;
+};
 
 /** Create a correction or stop chunk with the original completion's routing fields. */
 export function correctionChunk(
@@ -36,12 +41,12 @@ export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
   async *transform(source, fix) {
     const states = new Map<string, ChoiceState>();
     for await (const chunk of source) {
-      const pending: { index: number; state: ChoiceState }[] = [];
+      const pending: { index: number; state: ChoiceState; repair: boolean }[] = [];
       const choices = chunk.choices.map((choice) => {
         const key = JSON.stringify([chunk.id, choice.index]);
         let state = states.get(key);
         if (!state) {
-          state = { text: "", done: false, passthrough: false };
+          state = { text: "", done: false, passthrough: false, closing: "" };
           states.set(key, state);
         }
         if (state.done) return choice;
@@ -49,28 +54,52 @@ export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
           !!(choice.delta.tool_calls?.length || choice.delta.function_call) ||
           choice.delta.refusal != null;
         if (state.text !== null) {
-          const text = state.text + (choice.delta.content ?? "");
-          state.text = text.length > MAX_AUTOFIX_GENERATION_LENGTH ? null : text;
+          const previous = state.text;
+          const incoming = choice.delta.content ?? "";
+          const combined = previous + incoming;
+          if (combined.length > MAX_AUTOFIX_GENERATION_LENGTH) {
+            const flushed = state.closing + incoming;
+            state.text = null;
+            state.closing = "";
+            if (flushed !== incoming) {
+              choice = { ...choice, delta: { ...choice.delta, content: flushed } };
+            }
+          } else {
+            state.text = combined;
+            const split = splitClosedFence(combined);
+            if (split) {
+              state.closing = split.closing;
+              const emit = split.body.slice(previous.length);
+              if (emit !== incoming) {
+                choice = { ...choice, delta: { ...choice.delta, content: emit } };
+              }
+            } else {
+              state.closing = "";
+            }
+          }
         }
         if (!choice.finish_reason) return choice;
-        if (
+        const repair =
           choice.finish_reason === "stop" &&
           !state.passthrough &&
           state.text !== null &&
-          isUIOutput(state.text)
-        ) {
-          pending.push({ index: choice.index, state });
+          isUIOutput(state.text);
+        if (repair || state.closing) {
+          pending.push({ index: choice.index, state, repair });
           return { ...choice, finish_reason: null };
         }
         state.done = true;
         return choice;
       });
       yield pending.length ? { ...chunk, choices } : chunk;
-      for (const { index, state } of pending) {
-        const result = await fix(state.text!);
-        if (result.status === "fixed") {
-          yield correctionChunk(chunk, index, appendedRepair(state.text!, result.content));
+      for (const { index, state, repair } of pending) {
+        if (repair) {
+          const result = await fix(state.text!);
+          if (result.status === "fixed") {
+            yield correctionChunk(chunk, index, `\n${unwrapOpenUIFence(result.content)}\n`);
+          }
         }
+        if (state.closing) yield correctionChunk(chunk, index, state.closing);
         state.done = true;
         yield correctionChunk(chunk, index, null);
       }
