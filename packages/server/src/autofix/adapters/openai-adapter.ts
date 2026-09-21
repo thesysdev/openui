@@ -30,7 +30,7 @@ export function correctionChunk(
 }
 
 /** Preserve Chat Completions chunks and append repaired UI before the choice finishes. */
-export const openAIAdapter: StreamAdapter<ChatCompletionChunk, ChatCompletionChunk> = {
+export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
   protocol: "openai-chat-completions",
   // Track each choice and defer eligible UI stop markers until validation finishes.
   async *transform(source, fix) {

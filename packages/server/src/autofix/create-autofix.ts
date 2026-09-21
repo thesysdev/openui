@@ -1,5 +1,4 @@
 import { createParser } from "@openuidev/lang-core";
-import type { ChatCompletionChunk } from "openai/resources/chat/completions";
 import { THESYS_API_BASE_URL } from "../constants";
 import { fixGeneration } from "./fix";
 import { createAutofixStream } from "./stream";
@@ -14,12 +13,12 @@ import type {
 import { AutofixError } from "./types";
 
 /** Create helpers to validate and repair complete or streamed model output. */
-export function createAutofix(options: AutofixOptions): {
+export function createAutofix<Chunk>(
+  options: AutofixOptions,
+  adapter: StreamAdapter<Chunk>,
+): {
   fix(input: AutofixInput & { generation: string }): Promise<AutofixResult>;
-  stream(input: AutofixStreamInput): AutofixStream<ChatCompletionChunk>;
-  stream<Input, Output>(
-    input: AutofixStreamInput<Input, Output> & { adapter: StreamAdapter<Input, Output> },
-  ): AutofixStream<Output>;
+  stream(input: AutofixStreamInput<Chunk>): AutofixStream<Chunk>;
 } {
   const { library } = options;
   if (!library?.schema)
@@ -39,8 +38,6 @@ export function createAutofix(options: AutofixOptions): {
   return {
     fix,
     // Wrap model emissions with validation and repair before the stream finishes.
-    stream: <Input = ChatCompletionChunk, Output = ChatCompletionChunk>(
-      input: AutofixStreamInput<Input, Output>,
-    ) => createAutofixStream(input, fix),
+    stream: (input: AutofixStreamInput<Chunk>) => createAutofixStream(input, fix, adapter),
   };
 }

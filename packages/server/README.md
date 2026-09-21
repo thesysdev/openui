@@ -4,16 +4,18 @@ Server utilities for OpenUI & OpenUI Gateway.
 
 ## Autofix pipeline
 
-Wrap Chat Completions, Responses, or Vercel AI SDK streams with local OpenUI validation and hosted
-Autofix. Chat Completions is the default; pass `responsesAdapter` for Responses
-or `vercelAIAdapter` for AI SDK UI message streams. Each adapter preserves the source protocol. Tool calls, refusals, reasoning, usage, and provider metadata
-pass through. For UI answers, the wrapper appends the complete corrected program
-as ordinary text deltas before finalizing the output.
+Wrap Chat Completions or Vercel AI SDK streams with local OpenUI validation and hosted
+Autofix. Select your SDK through the import path:
 
-The Autofix exports are `createAutofix`, `openAIAdapter`,
-`responsesAdapter`, and `vercelAIAdapter`, plus the `Adapter<Input, Output>` type
-for custom adapters. Configuration and result types are inferred; other helpers stay internal. Use the matching frontend stream
-adapter for the chosen protocol.
+- `@openuidev/server/openai` exports `createAutofix` for Chat Completions.
+- `@openuidev/server/vercel` exports `createAutofix` for AI SDK UI message streams.
+
+Both expose the same methods and preserve their SDK's stream protocol. Tool calls,
+refusals, reasoning, usage, and provider metadata pass through. For UI answers, the
+wrapper appends the complete corrected program as ordinary text deltas before
+finalizing the output. Configuration and result types are inferred; protocol
+handling stays internal. The root `@openuidev/server` export contains the conversation
+history helpers. Use the matching frontend stream adapter for the chosen SDK.
 
 Streaming corrections require a frontend `lang-core` parser that preserves trailing
 statement terminators so the final redefinition is applied.
@@ -21,7 +23,7 @@ statement terminators so the final redefinition is applied.
 ### Configure once
 
 ```ts
-import { createAutofix } from "@openuidev/server";
+import { createAutofix } from "@openuidev/server/openai";
 import library from "./openui.spec.json";
 
 const autofix = createAutofix({
@@ -62,7 +64,7 @@ envelope and repair usage are not returned.
 
 ```ts
 import OpenAI from "openai";
-import { createAutofix } from "@openuidev/server";
+import { createAutofix } from "@openuidev/server/openai";
 import library from "./openui.spec.json";
 
 const model = new OpenAI();
@@ -78,11 +80,11 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return autofix.stream({ source, messages, signal: request.signal }).toResponse();
+  return autofix.stream({ stream: source, messages, signal: request.signal }).toResponse();
 }
 ```
 
-The response is SSE for `openAIAdapter()`, not the NDJSON consumed by
+The response is SSE for the frontend `openAIAdapter()`, not the NDJSON consumed by
 `openAIReadableStreamAdapter()`. Pass the SDK stream directly. The wrapper preserves
 tool-call IDs, names, argument fragments, finish reasons, reasoning extensions,
 usage trailers, and other metadata. It does not execute tools or manage the agent
@@ -105,44 +107,20 @@ unchanged except that a UI stop is deferred until validation/repair finishes.
 Inserted corrections keep the completion ID, choice index, and model, and never
 duplicate the original usage or logprobs.
 
-The default adapter accepts native Chat Completions chunks (`AsyncIterable<ChatCompletionChunk>`).
+The `/openai` helper accepts native Chat Completions chunks (`AsyncIterable<ChatCompletionChunk>`).
 Pass the same abort signal to your provider and the wrapper.
-
-### Stream Responses
-
-```ts
-import { responsesAdapter } from "@openuidev/server";
-
-const source = await model.responses.create(
-  { model: "YOUR_MODEL", input, stream: true },
-  { signal },
-);
-const output = autofix.stream({ source, adapter: responsesAdapter, signal });
-return output.toResponse();
-```
-
-The source and returned `chunks` are native Responses events. `toResponse()`
-uses named SSE events for `openAIResponsesAdapter()`; it does not convert to
-Chat Completions or add a `[DONE]` marker. Optional `messages` is still repair
-context in Chat Completions message format, not a Responses `input` array.
-
-The adapter validates text from the completed message item, without maintaining
-a second text buffer. Text completion events wait for the item's `completed` status;
-unfinished items, failed responses, and refusals pass through without repair.
-Tool and reasoning items remain separate from UI text and are never parsed as UI.
-
-After a repair, the adapter appends a text delta and updates the text-done,
-content-part-done, output-item-done, and final response snapshots to match the
-accumulated text. Sequence numbers remain increasing after inserted or deferred
-events. Original usage is preserved and does not include the separate Autofix
-request. Provider-side stored responses remain unchanged; persist the wrapper's
-output if you need the repaired content for subsequent turns.
 
 ### Stream with Vercel AI SDK 7
 
 ```ts
 import { streamText, toUIMessageStream } from "ai";
-import { vercelAIAdapter } from "@openuidev/server";
+import { createAutofix } from "@openuidev/server/vercel";
+import library from "./openui.spec.json";
+
+const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
 
 const result = streamText({
   model: "openai/gpt-4.1-mini",
@@ -153,17 +131,20 @@ const result = streamText({
 
 return autofix
   .stream({
-    source: toUIMessageStream({ stream: result.stream }),
-    adapter: vercelAIAdapter,
+    stream: toUIMessageStream({ stream: result.stream }),
     signal,
   })
   .toResponse();
 ```
 
+Both subpaths expose the same `fix({ generation, messages, signal })` and
+`stream({ stream, messages, signal })` methods. `generation` is a completed text
+string: use `result.choices[0].message.content` for OpenAI or `result.text` for Vercel.
+
 Use AI SDK 7's native UI message stream. `chunks` contains `UIMessageChunk` events;
 `toResponse()` returns the UI message SSE protocol used by `useChat`, including
 its protocol header and `[DONE]` marker. Raw text streams and `result.stream`
-without `toUIMessageStream()` are not inputs to this adapter.
+without `toUIMessageStream()` are not inputs to the Vercel helper.
 
 Text deltas, reasoning, tools, sources, custom data, and metadata pass through.
 The adapter holds text endings and step endings until the next step or the final
@@ -177,43 +158,6 @@ Optional `messages` remains repair context in Chat Completions message format;
 it does not accept AI SDK UI messages. AI SDK callbacks and result promises before
 the wrapper contain the original generation; persist the wrapped output when you
 need repairs in conversation history.
-
-### Write a custom adapter
-
-Import `Adapter<Input, Output>` to implement your own stream adapter. This example
-unwraps a provider's event envelope and delegates validation and repair to the
-Chat Completions adapter:
-
-```ts
-import { openAIAdapter, type Adapter } from "@openuidev/server";
-import type { ChatCompletionChunk } from "openai/resources/chat/completions";
-
-type ProviderEvent = { chunk: ChatCompletionChunk };
-
-const customAdapter: Adapter<ProviderEvent, ChatCompletionChunk> = {
-  protocol: "chat-completions",
-  async *transform(source, fix) {
-    // Extract native chunks from the provider's event envelope.
-    async function* chunks() {
-      for await (const event of source) yield event.chunk;
-    }
-    yield* openAIAdapter.transform(chunks(), fix);
-  },
-};
-
-const output = autofix.stream({ source: providerStream, adapter: customAdapter });
-```
-
-`transform` receives the source and a `fix(generation)` callback with the configured
-library, repair context, and cancellation already bound. The callback validates
-locally and calls the Autofix API only for invalid programs. An adapter that handles
-repair itself must preserve unrelated events, validate only completed UI, and emit
-any correction before the corresponding completion marker.
-
-`protocol` selects the output SSE format for `toResponse()`: `"chat-completions"`,
-`"responses"`, or `"vercel-ai"`. Emit events matching that format. Consume `chunks`
-yourself if you need different HTTP framing; custom serializers are not part of
-the adapter contract.
 
 ### How the corrected program reaches the renderer
 
@@ -239,7 +183,7 @@ there is no custom "repairing" event.
 ### Consume the stream
 
 ```ts
-const output = autofix.stream({ source, messages, signal });
+const output = autofix.stream({ stream: source, messages, signal });
 
 for await (const chunk of output.chunks) {
   // Forward or accumulate native events, including tool calls and metadata.
@@ -248,9 +192,9 @@ for await (const chunk of output.chunks) {
 
 Choose either `chunks` or `toResponse()` once. Streaming exposes no separate
 result promise: consume the native events for final content and handle errors
-where you consume the stream. For Responses, the final snapshots include any
-appended corrections. For Chat Completions, accumulate deltas by completion ID
-and choice index. Persist tool calls and other non-text content through your
+where you consume the stream. For Chat Completions, accumulate deltas by completion ID
+and choice index. For AI SDK UI messages, accumulate `text-delta` events by text ID
+or use the SDK's UI message reader. Persist tool calls and other non-text content through your
 existing conversation handling.
 
 Use `.fix()` when you need a structured validation and repair result for a
@@ -264,7 +208,7 @@ completed program.
   application chooses its error UI.
 - HTTP, malformed response, generation, and cancellation failures fail the stream.
   There are no automatic network retries or paid repair retries.
-- UI validation is capped at 100,000 characters per choice, Responses text part, or AI SDK text block.
+- UI validation is capped at 100,000 characters per Chat Completions choice or AI SDK text block.
   Larger outputs pass through without validation. The wrapper consumes the source
   once, respects backpressure, and stops waiting when cancelled. Upstream
   cancellation also depends on your provider honoring the supplied signal.

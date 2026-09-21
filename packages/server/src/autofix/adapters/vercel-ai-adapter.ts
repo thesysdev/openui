@@ -3,7 +3,7 @@ import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../types";
 import { isUIOutput } from "../utils";
 
 /** Preserve AI SDK UI message chunks and repair text before a successful final step closes. */
-export const vercelAIAdapter: StreamAdapter<UIMessageChunk, UIMessageChunk> = {
+export const vercelAIAdapter: StreamAdapter<UIMessageChunk> = {
   protocol: "vercel-ai",
   // Track text within each step and wait for the finish reason before attempting repair.
   async *transform(source, fix) {

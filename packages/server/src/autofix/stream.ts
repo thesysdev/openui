@@ -1,5 +1,3 @@
-import type { ChatCompletionChunk } from "openai/resources/chat/completions";
-import { openAIAdapter } from "./adapters/openai-adapter";
 import { toSSE } from "./sse";
 import type {
   AutofixInput,
@@ -26,21 +24,21 @@ async function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T
 }
 
 // Bind the shared fix function to an adapter and expose native chunks or HTTP streaming.
-export function createAutofixStream<Input = ChatCompletionChunk, Output = ChatCompletionChunk>(
-  input: AutofixStreamInput<Input, Output>,
+export function createAutofixStream<Chunk>(
+  input: AutofixStreamInput<Chunk>,
   fix: (input: AutofixInput & { generation: string }) => Promise<AutofixResult>,
-): AutofixStream<Output> {
-  const adapter = (input.adapter ?? openAIAdapter) as StreamAdapter<Input, Output>;
+  adapter: StreamAdapter<Chunk>,
+): AutofixStream<Chunk> {
   const controller = new AbortController();
   let consumed = false;
 
   // Stop both repair work and the upstream SDK stream.
   const cancel = (reason?: unknown) => {
     controller.abort(reason ?? new DOMException("Stream consumer stopped", "AbortError"));
-    input.source.controller?.abort();
+    input.stream.controller?.abort();
   };
 
-  const chunks: AsyncIterable<Output> = {
+  const chunks: AsyncIterable<Chunk> = {
     // Consume the selected adapter once and clean up when iteration ends early.
     async *[Symbol.asyncIterator]() {
       if (consumed)
@@ -51,7 +49,7 @@ export function createAutofixStream<Input = ChatCompletionChunk, Output = ChatCo
       const forwardAbort = () => cancel(input.signal?.reason);
       if (input.signal?.aborted) forwardAbort();
       else input.signal?.addEventListener("abort", forwardAbort, { once: true });
-      const iterator = adapter.transform(input.source, async (generation) => {
+      const iterator = adapter.transform(input.stream, async (generation) => {
         const result = await fix({ generation, messages: input.messages, signal });
         signal.throwIfAborted();
         if (result.status === "fix_failed") {

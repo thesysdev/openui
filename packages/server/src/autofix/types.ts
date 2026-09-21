@@ -1,8 +1,5 @@
 import type { LibraryJSONSchema, LibrarySpec } from "@openuidev/lang-core";
-import type {
-  ChatCompletionChunk,
-  ChatCompletionMessageParam,
-} from "openai/resources/chat/completions";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 export const MAX_AUTOFIX_GENERATION_LENGTH = 100_000;
 
@@ -39,24 +36,20 @@ export interface AutofixInput {
 
 export type StreamSource<T> = AsyncIterable<T> & { controller?: AbortController };
 
-export interface AutofixStreamInput<
-  Input = ChatCompletionChunk,
-  Output = ChatCompletionChunk,
-> extends AutofixInput {
-  source: StreamSource<NoInfer<Input>>;
-  /** Select the source and output protocol; defaults to Chat Completions. */
-  adapter?: StreamAdapter<Input, Output>;
+export interface AutofixStreamInput<Chunk> extends AutofixInput {
+  /** Native SDK events for the selected import path. */
+  stream: StreamSource<Chunk>;
 }
 
 /** Wrap provider events with validation and repair while preserving the selected output protocol. */
-export interface StreamAdapter<Input, Output> {
+export interface StreamAdapter<Chunk> {
   /** SSE format for emitted events; transform must produce chunks compatible with this protocol. */
-  protocol: string;
+  protocol: "openai-chat-completions" | "vercel-ai";
   /** Forward events and use fix to validate completed UI before emitting its completion marker. */
   transform(
-    source: StreamSource<Input>,
+    source: StreamSource<Chunk>,
     fix: (generation: string) => Promise<AutofixResult>,
-  ): AsyncGenerator<Output>;
+  ): AsyncGenerator<Chunk>;
 }
 
 export interface AutofixStream<T> {

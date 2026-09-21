@@ -1,7 +1,9 @@
+import type { StreamAdapter } from "./types";
+
 // Convert a supported event stream to SSE without changing its event objects.
 export function toSSE<T>(
   chunks: AsyncIterable<T>,
-  protocol: StreamAdapter<unknown, unknown>["protocol"],
+  protocol: StreamAdapter<unknown>["protocol"],
   cancel: (reason?: unknown) => void,
 ): Response {
   const iterator = chunks[Symbol.asyncIterator]();
@@ -13,12 +15,10 @@ export function toSSE<T>(
         try {
           const next = await iterator.next();
           if (next.done) {
-            if (protocol !== "responses") controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
           } else {
-            const name =
-              protocol === "responses" ? `event: ${(next.value as { type: string }).type}\n` : "";
-            controller.enqueue(encoder.encode(`${name}data: ${JSON.stringify(next.value)}\n\n`));
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(next.value)}\n\n`));
           }
         } catch (error) {
           controller.error(error);
@@ -40,4 +40,3 @@ export function toSSE<T>(
     },
   );
 }
-import type { StreamAdapter } from "./types";
