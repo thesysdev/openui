@@ -32,6 +32,19 @@
   flex-direction: column;
   gap: clamp(7rem, 14vw, 13rem);
 }
+/* Full width of the band, with equal air above and below. Half the gap the
+   observability band used to set as its own top margin, on each side, so the
+   rhythm between the two is unchanged and the rule sits centred in it. */
+.bandSeparator {
+  height: 1px;
+  margin-block: clamp(4rem, 7.5vw, 5.375rem);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .bandSeparator {
+  background: rgba(10, 10, 10, 0.1);
+}
+
 .contact {
   display: flex;
   flex-direction: column;
@@ -39,7 +52,7 @@
   gap: 1.5rem;
   /* On top of the section's own padding, so this block sits clear of both the
      band's top edge and the product bands beneath it. */
-  margin-top: clamp(1.5rem, 3vw, 3rem);
+  margin-top: clamp(0.25rem, 0.75vw, 0.75rem);
   margin-bottom: clamp(6rem, 12vw, 11rem);
   text-align: center;
 }
@@ -69,7 +82,7 @@
    dark text. The section title + subtitle come from the shared SectionHeader
    component (tone="dark"); they are re-colored in SectionHeader.module.css. */
 [data-theme="dark"] .section {
-  background: #fdfdfd;
+  background: #fff;
   color: #0a0a0a;
 }
 [data-theme="dark"] .contactCta {
@@ -80,22 +93,24 @@
   --bevel-badge-bg: #0a0a0a;
   --bevel-badge-fg: #fff;
 }
+/* Same shape as a ProductSection band: copy across the top, then a stage the
+   full width of the section. Its stage used to be a column beside the copy,
+   which made it roughly half the width of the reliability band's. */
 .observabilityBand {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  align-items: stretch;
-  gap: clamp(2.5rem, 5vw, 3.75rem);
-  margin-top: clamp(8rem, 15vw, 10.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 2vw, 1.75rem);
   scroll-margin-top: 112px;
 }
 
+/* The same split ProductSection's .lockup uses, so the two bands' headers sit
+   on the same grid. */
 .observabilityCopy {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 3rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  align-items: start;
+  gap: clamp(1.5rem, 4vw, 4rem);
   min-width: 0;
-  min-height: 20rem;
 }
 
 .observabilityLead {
@@ -157,15 +172,34 @@
   align-items: flex-end;
   justify-content: center;
   overflow: hidden;
+  position: relative;
+  width: 100%;
   min-width: 0;
   min-height: 0;
-  aspect-ratio: 583 / 365;
-  border: 0;
+  /* The reliability band's stage ratio, and the artwork's own. */
+  aspect-ratio: 1120 / 440;
+  /* The shader's dark base: this band is black here, so its shader is the dark
+     tone. Mirrors TONES in FadedDitherCanvas.tsx. */
+  border: 1px solid #0e0e0e;
   border-radius: 24px;
   background: transparent;
 }
 
+/* Fills the stage behind the artwork, clipped to the stage's rounded corners. */
+.observabilityShader {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.observabilityShader > * {
+  width: 100%;
+  height: 100%;
+}
+
 .observabilityImage {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
@@ -182,6 +216,8 @@
 }
 
 [data-theme="dark"] .observabilityStage {
+  /* The band inverts to white here, so the shader switches to its light base. */
+  border-color: #f8f8f8;
   background: transparent;
 }
 
@@ -198,35 +234,30 @@
 }
 
 @media (max-width: 1023px) {
+  .bandSeparator {
+    margin-block: 3.5rem;
+  }
+
   .observabilityBand {
-    grid-template-columns: minmax(0, 1fr);
     gap: 2.5rem;
-    margin-top: 7rem;
   }
 
   .observabilityCopy {
+    grid-template-columns: minmax(0, 1fr);
     gap: 2rem;
-    min-height: 0;
-  }
-
-  .observabilityStage {
-    min-height: 0;
-    aspect-ratio: 583 / 365;
   }
 }
 
 @media (max-width: 767px) {
+  .bandSeparator {
+    margin-block: 2.75rem;
+  }
+
   .observabilityBand {
     gap: 2rem;
-    margin-top: 5.5rem;
   }
 
   .observabilityStage {
-    aspect-ratio: 4 / 3;
     border-radius: 18px;
-  }
-
-  .observabilityImage {
-    object-position: 51% top;
   }
 }

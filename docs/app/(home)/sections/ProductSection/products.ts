@@ -8,8 +8,6 @@ import {
   WarningDiamond,
   Wrench,
 } from "@phosphor-icons/react/dist/ssr";
-import { createElement } from "react";
-import { GatewayReliabilityDashboardIllustration } from "../ProductIllustrations/ProductIllustrations";
 import type { ProductSectionProps } from "./ProductSection";
 
 /* The product bands, in the order the page tells them: what OpenUI is, then
@@ -19,18 +17,15 @@ import type { ProductSectionProps } from "./ProductSection";
    early access the home page gives it a line rather than a band. Its props are
    kept here so promoting it back is a one-line change in CloudSection.
  *
- * ARTWORK PENDING. None of the three has a `shot` yet, so each stage renders
- * empty, holding its space. Add the images to /public and set `shot` to their
- * basename (minus -light/-dark.webp); nothing else needs to change.
- *
- * What each visual should show:
- *   Lang          a prompt transforming into OpenUI Lang, then into a rich
- *                 interactive interface
- *   Gateway       code switching the OpenAI baseURL to OpenUI Gateway, the
- *                 request flowing through Route, Validate, Correct, Fallback,
- *                 Model
- *   Observability the OpenUI Console: a generated UI session on one side, its
- *                 events, interactions, errors and insights on the other
+ * ARTWORK. Each band's `shot` is a basename; ProductSection appends
+ * -light.webp and -dark.webp. The suffix is the picture's own tone, not the
+ * page theme: the stylesheet picks the one that suits whatever the band's
+ * background happens to be, which for the dark band is black in light theme
+ * and white in dark theme. The export these came from names its folders the
+ * other way round, so Gateway's and Observability's are swapped relative to it.
+ * Every file is 1120x440 at 1x with its own transparent margin baked in, so
+ * all three set fullBleedArt and sit directly on the section rather than
+ * inside a stage frame.
  *
  * Homepage labels use the same outlined product-name chips as the product pages.
  *
@@ -50,6 +45,8 @@ export const LANG_PRODUCT: ProductSectionProps = {
     "Make your AI agents stream live charts, forms, cards, tables, and dashboards faster, with fewer tokens.",
   secondaryCta: { label: "View docs", href: "/docs/openui-lang" },
   tone: "light",
+  shot: "/homepage/openui-lang",
+  fullBleedArt: true,
   stageAspectRatio: "1120 / 440",
   /* No cards. Interactive, Bring your UI library, Safe by default and Stream UI
      live all moved to the feature grid directly below this band, which states
@@ -70,10 +67,11 @@ export const GATEWAY_PRODUCT: ProductSectionProps = {
   },
   secondaryCta: { label: "Learn more", href: "/cloud/gateway" },
   tone: "dark",
-  art: createElement(GatewayReliabilityDashboardIllustration, { inverted: true }),
+  shot: "/homepage/gateway",
   fullBleedArt: true,
+  /* No mobile override: the artwork is drawn at this ratio, and cropping it to
+     a squarer one on phones cuts into the content. */
   stageAspectRatio: "1120 / 440",
-  stageMobileAspectRatio: "4 / 2.4",
   cards: [
     {
       Icon: ArrowsLeftRight,
@@ -105,6 +103,9 @@ export const OBSERVABILITY_PRODUCT: ProductSectionProps = {
     "See what your agent generated, what users experienced, and where your product needs to improve.",
   secondaryCta: { label: "View docs", href: "/docs/agent/getting-started/openui-cloud" },
   tone: "dark",
+  shot: "/homepage/observability",
+  fullBleedArt: true,
+  stageAspectRatio: "1120 / 440",
   cards: [
     {
       Icon: PlayCircle,

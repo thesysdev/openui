@@ -6,6 +6,7 @@ import { ArrowRight, ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 import { BevelButton } from "../../components/Button/BevelButton";
+import { FadedDither } from "../../components/FadedDither/FadedDither";
 import styles from "./ProductSection.module.css";
 
 export type ProductCard = {
@@ -146,6 +147,9 @@ export function ProductSection({
           } as CSSProperties
         }
       >
+        {/* Behind the artwork, filling the transparent margin it is drawn with.
+            Client-only, since it is WebGPU. */}
+        <FadedDither band={tone} className={styles.stageShader} />
         {art ??
           (shot ? (
             <>

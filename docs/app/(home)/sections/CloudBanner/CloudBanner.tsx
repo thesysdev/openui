@@ -5,15 +5,23 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import styles from "./CloudBanner.module.css";
 
+/* The home page tags its FAQ wrapper with this so the banner knows where to
+   stop. Anything without that id simply keeps the banner to the end. */
+export const BANNER_END_ANCHOR_ID = "faq-band";
+
 export function CloudBanner() {
   const [shouldShow, setShouldShow] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
 
-  // Appear as soon as the hero is scrolled past, and stay for the rest of the page.
+  // Appear once the hero is scrolled past, then retire when the FAQ arrives:
+  // by that point the page is answering questions, not pitching.
   useEffect(() => {
     const update = () => {
-      setShouldShow(window.scrollY > window.innerHeight * 0.6);
+      const pastHero = window.scrollY > window.innerHeight * 0.6;
+      const end = document.getElementById(BANNER_END_ANCHOR_ID);
+      const reachedEnd = end ? end.getBoundingClientRect().top <= window.innerHeight : false;
+      setShouldShow(pastHero && !reachedEnd);
     };
     update();
     window.addEventListener("scroll", update, { passive: true });

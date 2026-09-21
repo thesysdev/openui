@@ -33,6 +33,13 @@
   flex: 1 1 0;
   min-width: 0;
   height: 100%;
+  /* The column clips vertically so the marquee can run, and CSS will not allow
+     overflow-x: visible alongside overflow-y: hidden. So widen the clip box
+     instead: the padding gives card shadows room at the column edges, and the
+     matching negative margin keeps the layout footprint and the 12px gap
+     exactly as they were. Box-sizing is border-box, so the cards stay 335px. */
+  padding-inline: 16px;
+  margin-inline: -16px;
   overflow: hidden;
 }
 

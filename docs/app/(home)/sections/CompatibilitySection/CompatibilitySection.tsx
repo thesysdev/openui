@@ -1,6 +1,6 @@
 "use client";
 
-import svgPaths from "@/imports/svg-urruvoh2be";
+import { SectionHeader } from "../../components/SectionHeader/SectionHeader";
 import { stackChipStyles, type StackChipItem } from "../../components/StackChip/StackChip";
 import { CompatibilityDiagram } from "./CompatibilityDiagram";
 import styles from "./CompatibilitySection.module.css";
@@ -10,11 +10,19 @@ interface StackRow {
   items: StackChipItem[];
 }
 
-/* Keep the four existing compatibility groups and their supported integrations
-   together; every branch uses this same source at every screen size. */
+/* The four compatibility groups, ordered the way the stack is drawn top to
+   bottom: the model at the top, then the service that calls it, the library it
+   renders with, and the client the user touches at the base. The diagram draws
+   one StackLayerRow per group, in this order, and runs that group's own logos
+   past it.
+
+   Every entry needs a real mark. Anything with no logo to be found is left out
+   rather than stood in for by a related company's. */
 const STACK_ROWS: StackRow[] = [
   {
-    label: "LLM",
+    /* OpenAI, xAI and DeepSeek are local files: Simple Icons carries no OpenAI
+       mark, and its "x" is the social network, not xAI. */
+    label: "LLMs",
     items: [
       {
         name: "OpenAI",
@@ -38,11 +46,11 @@ const STACK_ROWS: StackRow[] = [
         badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
       },
       {
-        name: "Mistral",
+        name: "DeepSeek",
         iconKind: "image",
-        slug: "mistralai",
+        localSrc: "/brand-icons/deepseek.svg",
         iconColor: "ffffff",
-        badgeClassName: stackChipStyles.badgeMistral,
+        badgeClassName: stackChipStyles.badgeDeepSeek,
       },
       {
         name: "xAI",
@@ -52,23 +60,25 @@ const STACK_ROWS: StackRow[] = [
         badgeClassName: stackChipStyles.badgeBlack,
       },
       {
-        name: "DeepSeek",
+        name: "Mistral",
         iconKind: "image",
-        localSrc: "/brand-icons/deepseek.svg",
+        slug: "mistralai",
         iconColor: "ffffff",
-        badgeClassName: stackChipStyles.badgeDeepSeek,
+        badgeClassName: stackChipStyles.badgeMistral,
       },
     ],
   },
   {
+    /* Llama, LlamaIndex and Mastra are absent: no logo could be found for any of
+       them, and a row is better short than wrong. */
     label: "Backend",
     items: [
       {
-        name: "Cursor",
+        name: "Vercel AI SDK",
         iconKind: "image",
-        localSrc: "/brand-icons/cursor.svg",
-        iconColor: "000000",
-        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
+        slug: "vercel",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeBlack,
       },
       {
         name: "LangChain",
@@ -78,33 +88,89 @@ const STACK_ROWS: StackRow[] = [
         badgeClassName: stackChipStyles.badgeLangChain,
       },
       {
-        name: "CrewAI",
+        name: "LangGraph",
         iconKind: "image",
-        slug: "crewai",
+        slug: "langgraph",
         iconColor: "ffffff",
-        badgeClassName: stackChipStyles.badgeCrewAi,
+        badgeClassName: stackChipStyles.badgeLangChain,
       },
       {
-        name: "OpenAI Agents SDK",
+        name: "Convex",
         iconKind: "image",
-        localSrc: "/brand-icons/openai.svg",
-        iconColor: "000000",
-        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
+        slug: "convex",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeConvex,
       },
       {
-        name: "Anthropic Agents SDK",
+        name: "Cloudflare",
         iconKind: "image",
-        slug: "anthropic",
+        slug: "cloudflare",
         iconColor: "ffffff",
-        badgeClassName: stackChipStyles.badgeAnthropic,
+        badgeClassName: stackChipStyles.badgeCloudflare,
       },
     ],
   },
   {
-    /* Where it renders. Every entry is a package we publish (react-lang,
-       vue-lang, svelte-lang, react-email) or a listed integration — no Flutter
-       and no direct native, which A2UI has and we do not. */
-    label: "Client",
+    label: "UI library",
+    items: [
+      {
+        name: "OpenUI Design system",
+        iconKind: "mascot",
+        badgeClassName: stackChipStyles.badgeOpenUi,
+      },
+      {
+        name: "shadcn/ui",
+        iconKind: "image",
+        slug: "shadcnui",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeBlack,
+      },
+      {
+        name: "Material UI",
+        iconKind: "image",
+        slug: "mui",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeMui,
+      },
+      {
+        name: "Ant Design",
+        iconKind: "image",
+        slug: "antdesign",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeAntDesign,
+      },
+      {
+        name: "Radix UI",
+        iconKind: "image",
+        slug: "radixui",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeBlack,
+      },
+      {
+        name: "Chakra UI",
+        iconKind: "image",
+        slug: "chakraui",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeChakra,
+      },
+      {
+        name: "Mantine",
+        iconKind: "image",
+        slug: "mantine",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeMantine,
+      },
+      {
+        name: "daisyUI",
+        iconKind: "image",
+        slug: "daisyui",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeDaisyUi,
+      },
+    ],
+  },
+  {
+    label: "Clients",
     items: [
       {
         name: "React",
@@ -112,6 +178,13 @@ const STACK_ROWS: StackRow[] = [
         slug: "react",
         iconColor: "000000",
         badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
+      },
+      {
+        name: "Next.js",
+        iconKind: "image",
+        slug: "nextdotjs",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeBlack,
       },
       {
         name: "Vue",
@@ -128,66 +201,25 @@ const STACK_ROWS: StackRow[] = [
         badgeClassName: stackChipStyles.badgeBlack,
       },
       {
-        name: "React Native",
+        name: "Angular",
         iconKind: "image",
-        slug: "react",
-        iconColor: "000000",
-        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
-      },
-      {
-        name: "Lynx",
-        iconKind: "image",
-        localSrc: "/integration-logos/lynx.svg",
+        slug: "angular",
         iconColor: "ffffff",
-        badgeClassName: `${stackChipStyles.badgeWhite} ${stackChipStyles.badgeWithBorder}`,
-      },
-      {
-        name: "Email",
-        iconKind: "text",
-        iconText: "@",
         badgeClassName: stackChipStyles.badgeBlack,
       },
-    ],
-  },
-  {
-    label: "Design library",
-    items: [
       {
-        name: "OpenUI Design system",
-        iconKind: "mascot",
-        badgeClassName: stackChipStyles.badgeOpenUi,
+        name: "Nuxt",
+        iconKind: "image",
+        slug: "nuxt",
+        iconColor: "ffffff",
+        badgeClassName: stackChipStyles.badgeNuxt,
       },
       {
-        name: "ShadCN",
-        iconKind: "vector",
+        name: "Remix",
+        iconKind: "image",
+        slug: "remix",
+        iconColor: "ffffff",
         badgeClassName: stackChipStyles.badgeBlack,
-        iconViewBox: "0 0 24 24",
-        iconPath: svgPaths.p46a4800,
-        iconFill: "white",
-        clipId: "clip_shadcn",
-        clipSize: "24",
-      },
-      {
-        name: "Material Design system",
-        iconKind: "vector",
-        badgeClassName: stackChipStyles.badgeMaterial,
-        iconViewBox: "0 0 30 30",
-        iconPath: svgPaths.p3a7bdd80,
-        iconFill: "white",
-        clipId: "clip_material",
-        clipSize: "30",
-      },
-      {
-        name: "DaisyUI",
-        iconKind: "text",
-        iconText: "D",
-        badgeClassName: stackChipStyles.badgeDaisyUi,
-      },
-      {
-        name: "Base UI",
-        iconKind: "text",
-        iconText: "B",
-        badgeClassName: stackChipStyles.badgeBaseUi,
       },
     ],
   },
@@ -203,6 +235,19 @@ export function CompatibilitySection({ embedded = false }: { embedded?: boolean 
       <div className={styles.container}>
         <div className={styles.stack}>
           <CompatibilityDiagram groups={STACK_ROWS} />
+        </div>
+        {/* Sits under the diagram, reading as its caption. Same treatment as the
+            benchmark header above this band, so the two read as peers, and
+            titleId keeps the section's aria-labelledby valid. */}
+        <div className={styles.header}>
+          {/* The diagram is images and a hidden list, so the caption is what
+              puts this band's claim into crawlable body text. One clause per
+              row above it, in the same order. */}
+          <SectionHeader
+            caption="Generative UI that renders in any client framework, uses any component library, and runs on any agent backend or model."
+            title="...and works with your stack."
+            titleId="favorite-stack-title"
+          />
         </div>
       </div>
     </section>

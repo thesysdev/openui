@@ -3,7 +3,7 @@
   --faq-text: var(--openui-text-neutral-primary);
   --faq-muted: var(--openui-text-neutral-secondary);
   --faq-surface: #fff;
-  --faq-border: rgba(10, 10, 10, 0.035);
+  --faq-border: rgba(10, 10, 10, 0.08);
 
   display: grid;
   grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
@@ -20,7 +20,7 @@
 
 [data-theme="dark"] .section {
   --faq-surface: rgba(255, 255, 255, 0.042);
-  --faq-border: rgba(255, 255, 255, 0.04);
+  --faq-border: rgba(255, 255, 255, 0.09);
 }
 
 /* ---- Left column ---- */
@@ -131,11 +131,11 @@
 .marker {
   position: relative;
   flex: none;
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   /* Nudged onto the first line's optical centre. */
-  margin-top: 5px;
-  color: var(--faq-muted);
+  margin-top: 7px;
+  color: var(--faq-text);
 }
 
 .marker::before,

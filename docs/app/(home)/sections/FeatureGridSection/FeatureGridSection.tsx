@@ -86,6 +86,7 @@ export function FeatureGridSection({
   lead,
   showHeader = true,
   showHeaderSeparator = true,
+  showCompatSeparator = true,
   showCompat = true,
   compatFirst = false,
   gridFirst = false,
@@ -106,6 +107,8 @@ export function FeatureGridSection({
   showHeader?: boolean;
   /** The rule under that header. Off when there is no grid for it to divide. */
   showHeaderSeparator?: boolean;
+  /** The rule above the compatibility band when it follows the grid. */
+  showCompatSeparator?: boolean;
   /** The "Works with your stack" compatibility band (OpenUI-specific). */
   showCompat?: boolean;
   /** Put that band above the header instead of below the grid. */
@@ -218,7 +221,7 @@ export function FeatureGridSection({
       {!gridFirst && gridBlock}
       {!compatFirst && compatBand && (
         <>
-          <div className={styles.separator} />
+          {showCompatSeparator && <div className={styles.separator} />}
           {compatBand}
         </>
       )}

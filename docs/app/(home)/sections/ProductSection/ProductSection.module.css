@@ -10,7 +10,13 @@
   /* One fill and one edge for the stage, the cards and the icon tiles, so the
      band reads as a single material. */
   --ps-surface: #fff;
+  /* The base colour FadedDither paints, so the stage's edge is the same grey as
+     its fill. Keep in step with TONES in FadedDitherCanvas.tsx: light #f8f8f8,
+     dark #0e0e0e. Which one applies follows the ground, exactly as the shader's
+     own tone does. */
+  --ps-stage-stroke: #f8f8f8;
   --ps-border: rgba(10, 10, 10, 0.035);
+  --ps-shadow: none;
 
   display: flex;
   flex-direction: column;
@@ -28,9 +34,11 @@
 
 [data-theme="dark"] .product {
   --ps-surface: rgba(255, 255, 255, 0.042);
+  --ps-stage-stroke: #0e0e0e;
   --ps-border: rgba(255, 255, 255, 0.04);
   --ps-mark-bg: #fff;
   --ps-mark-fg: #0a0a0a;
+  --ps-shadow: none;
 }
 
 /* Pinned rather than theme-derived: on a light page this tone sits on black. */
@@ -38,9 +46,11 @@
   --ps-text: #fff;
   --ps-muted: rgba(255, 255, 255, 0.6);
   --ps-surface: rgba(255, 255, 255, 0.042);
+  --ps-stage-stroke: #0e0e0e;
   --ps-border: rgba(255, 255, 255, 0.04);
   --ps-mark-bg: #fff;
   --ps-mark-fg: #0a0a0a;
+  --ps-shadow: none;
 }
 
 /* ---- Lockup ---- */
@@ -137,6 +147,7 @@
   border: 1px solid var(--ps-border);
   border-radius: 20px;
   background: var(--ps-surface);
+  box-shadow: var(--ps-shadow);
 }
 
 /* Some final illustrations already contain their own app frame. Nesting those
@@ -144,12 +155,31 @@
    crop directly to the section bounds instead. */
 .stageFullBleed {
   padding: 0;
-  border: 0;
+  /* The shader's own grey, used as an edge, so the stage's outline is the same
+     shade as the fill inside it. */
+  border: 1px solid var(--ps-stage-stroke);
   border-radius: 24px;
   background: transparent;
+  /* The cards keep --ps-shadow; a full-bleed stage does not want the lift. */
+  box-shadow: none;
+}
+
+/* Fills the stage behind the artwork. The stage clips it, so it picks up the
+   rounded corners without needing its own. */
+.stageShader {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.stageShader > * {
+  width: 100%;
+  height: 100%;
 }
 
 .stageImage {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -168,7 +198,9 @@
   display: block;
 }
 
-/* The dark band shows the dark artwork on either page theme. */
+/* The dark band is black in light theme, so it wants the dark artwork. The
+   pair under [data-theme="dark"] below flips this back, because the band
+   inverts to white there. */
 .onDark .stageLight {
   display: none;
 }
@@ -194,6 +226,7 @@
   border: 1px solid var(--ps-border);
   border-radius: 16px;
   background: var(--ps-surface);
+  box-shadow: var(--ps-shadow);
 }
 
 .cardIcon {
@@ -296,7 +329,11 @@
   --ps-text: #0a0a0a;
   --ps-muted: rgba(10, 10, 10, 0.6);
   --ps-surface: #fff;
-  --ps-border: rgba(10, 10, 10, 0.035);
+  --ps-stage-stroke: #f8f8f8;
+  /* The band is white here and so are the cards, so the edge and the lift are
+     the only things separating them from the ground. */
+  --ps-border: rgba(10, 10, 10, 0.08);
+  --ps-shadow: 0 1px 2px rgba(10, 10, 10, 0.04), 0 2px 8px rgba(10, 10, 10, 0.04);
   --ps-mark-bg: #0a0a0a;
   --ps-mark-fg: #fff;
 }
