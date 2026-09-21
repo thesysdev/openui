@@ -1,5 +1,5 @@
 import { createContext, createElement, useContext, type ReactNode } from "react";
-import { INTER_FAMILY } from "./ui/interFont";
+import { INTER_FAMILY } from "./ui/inter";
 
 /**
  * The widget's own theme. Chosen explicitly in Settings (persisted) — the
