@@ -1,5 +1,13 @@
 # @openuidev/devtools
 
+## 0.2.2
+
+### Patch Changes
+
+- [#1207](https://github.com/thesysdev/openui/pull/1207) [`1b1f3ba`](https://github.com/thesysdev/openui/commit/1b1f3ba95ace51402b0104a47a37a7391e6e8f23) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Split the reliability banner CTA into a primary "Get API key" button linking to the Thesys Console and a secondary "View docs" button.
+
+- [#1208](https://github.com/thesysdev/openui/pull/1208) [`21d8df3`](https://github.com/thesysdev/openui/commit/21d8df3f9cbce6201871f26c7d3479648a7e8c9f) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Bundle Inter (latin variable subset) with the devtools widget so it renders in Inter regardless of the host app's fonts, instead of silently falling back to the system font.
+
 ## 0.2.1
 
 ### Patch Changes

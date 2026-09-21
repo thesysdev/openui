@@ -74,20 +74,18 @@ export function DeployHint({ position, hidden }: { position: DevtoolsPosition; h
     <aside aria-label="Deploy your OpenUI app" style={{ ...styles.card, ...placement }}>
       <div style={styles.heading}>
         <strong>Ready to share your app?</strong>
-        <button
+        <IconButton
           type="button"
           aria-label="Dismiss deployment hint"
+          title="Dismiss deployment hint"
           style={styles.dismiss}
           onClick={() => setVisible(false)}
         >
-          ×
-        </button>
+          <X size={14} aria-hidden />
+        </IconButton>
       </div>
       <p style={styles.description}>
-        Deploy from your project folder to your Vercel account. Check access before sharing.
-      </p>
-      <DeployCommand />
-      <div style={styles.actions}>
+        Deploy from your project folder to your Vercel account.{" "}
         <a
           href={withDevtoolsAttribution(DEPLOY_DOCS_URL, "local_deploy_hint")}
           target="_blank"
@@ -96,7 +94,8 @@ export function DeployHint({ position, hidden }: { position: DevtoolsPosition; h
         >
           Deployment docs ↗
         </a>
-      </div>
+      </p>
+      <DeployCommand />
     </aside>
   );
 }
@@ -119,25 +118,16 @@ function hintStyles(t: ThemeTokens) {
       fontFamily: FONT,
       fontSize: 13,
     },
-    heading: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 },
-    dismiss: {
-      border: "none",
-      background: "transparent",
-      color: t.fgSecondary,
-      fontSize: 24,
-      minWidth: 44,
-      minHeight: 44,
-      cursor: "pointer",
-    },
-    description: { margin: "0 0 12px", lineHeight: 1.5, color: t.fgSecondary },
-    actions: { display: "flex", alignItems: "center", flexWrap: "wrap", gap: 12, marginTop: 12 },
-    link: {
-      display: "inline-flex",
+    heading: {
+      display: "flex",
       alignItems: "center",
-      minHeight: 44,
-      color: t.fg,
-      textDecoration: "underline",
+      justifyContent: "space-between",
+      gap: 8,
+      marginBottom: 4,
     },
+    dismiss: { flexShrink: 0 },
+    description: { margin: "0 0 12px", lineHeight: 1.5, color: t.fgSecondary },
+    link: { color: t.fg, textDecoration: "underline" },
   } satisfies Record<string, CSSProperties>;
 }
 

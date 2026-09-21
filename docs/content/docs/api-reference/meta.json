@@ -10,6 +10,7 @@
     "langchain",
     "react-email",
     "devtools",
-    "cli"
+    "cli",
+    "angular-lang"
   ]
 }

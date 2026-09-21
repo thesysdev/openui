@@ -28,7 +28,7 @@ import {
   type ThemeTokens,
 } from "./theme";
 import type { DevtoolsPosition, OpenUIDevtoolsWidgetProps } from "./types";
-import { ErrorBoundary, IconButton, ShiroLogo, ThemeSegmented } from "./ui";
+import { ErrorBoundary, IconButton, INTER_FONT_FACE, ShiroLogo, ThemeSegmented } from "./ui";
 import { DeployBanner, DeployHint } from "./ui/DeployHint";
 import ReliabilityBanner from "./ui/ReliabilityBanner";
 
@@ -145,6 +145,7 @@ export function OpenUIDevtoolsWidget({
 
   return (
     <DevtoolsModeProvider mode={mode}>
+      <style>{INTER_FONT_FACE}</style>
       <DeployHint position={position} hidden={open || debug.trayOpen} />
       <div style={{ ...styles.toggleWrap, ...rootStyle(mode), ...positionStyles[position] }}>
         <button

@@ -1,6 +1,6 @@
 ---
 title: OpenUI SDK
-description: Package guide for the full OpenUI SDK surface, including framework-agnostic, React, Vue, Svelte, email, browser-bundle, and CLI entrypoints.
+description: Package guide for the full OpenUI SDK surface, including framework-agnostic, React, Angular, Vue, Svelte, email, browser-bundle, and CLI entrypoints.
 ---
 
 The OpenUI SDK is split into packages that build on each other:
@@ -29,22 +29,25 @@ The OpenUI SDK is split into packages that build on each other:
 
 - **`@openuidev/cli`** — Command-line tool for scaffolding new OpenUI chat apps, generating system prompts or JSON schemas from library definitions, and deploying projects.
 
+- **`@openuidev/angular-lang`** — Angular bindings for defining component libraries with Zod schemas, generating prompts, and rendering streamed OpenUI Lang with reactive state and actions.
+
 ## Choosing a package
 
-| If you need...                                                     | Start here                                                                                           |
-| :----------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
-| Prompt generation or parsing without a UI framework                | [`@openuidev/lang-core`](https://github.com/thesysdev/openui/tree/main/packages/lang-core)           |
-| React rendering primitives for OpenUI Lang                         | [`@openuidev/react-lang`](/docs/api-reference/react-lang)                                            |
-| Chat state and streaming without prebuilt UI                       | [`@openuidev/react-headless`](/docs/api-reference/react-headless)                                    |
-| A ready-made React chat surface                                    | [`@openuidev/react-ui`](/docs/api-reference/react-ui)                                                |
-| OpenUI tool rendering in an assistant-ui application               | [`@openuidev/assistant-ui`](/docs/api-reference/assistant-ui)                                        |
-| A LangChain or LangGraph agent connected to an OpenUI frontend     | [`@openuidev/langchain`](/docs/api-reference/langchain)                                              |
-| Model-generated emails                                             | [`@openuidev/react-email`](/docs/api-reference/react-email)                                          |
-| Vue integration                                                    | [`@openuidev/vue-lang`](https://github.com/thesysdev/openui/tree/main/packages/vue-lang)             |
-| Svelte integration                                                 | [`@openuidev/svelte-lang`](https://github.com/thesysdev/openui/tree/main/packages/svelte-lang)       |
-| Script-tag, CDN, or iframe embeds                                  | [`@openuidev/browser-bundle`](https://github.com/thesysdev/openui/tree/main/packages/browser-bundle) |
-| An in-app panel showing captured errors during development         | [`@openuidev/devtools`](/docs/api-reference/devtools)                                                |
+| If you need...                                                              | Start here                                                                                           |
+| :-------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
+| Prompt generation or parsing without a UI framework                         | [`@openuidev/lang-core`](https://github.com/thesysdev/openui/tree/main/packages/lang-core)           |
+| React rendering primitives for OpenUI Lang                                  | [`@openuidev/react-lang`](/docs/api-reference/react-lang)                                            |
+| Chat state and streaming without prebuilt UI                                | [`@openuidev/react-headless`](/docs/api-reference/react-headless)                                    |
+| A ready-made React chat surface                                             | [`@openuidev/react-ui`](/docs/api-reference/react-ui)                                                |
+| OpenUI tool rendering in an assistant-ui application                        | [`@openuidev/assistant-ui`](/docs/api-reference/assistant-ui)                                        |
+| A LangChain or LangGraph agent connected to an OpenUI frontend              | [`@openuidev/langchain`](/docs/api-reference/langchain)                                              |
+| Model-generated emails                                                      | [`@openuidev/react-email`](/docs/api-reference/react-email)                                          |
+| Vue integration                                                             | [`@openuidev/vue-lang`](https://github.com/thesysdev/openui/tree/main/packages/vue-lang)             |
+| Svelte integration                                                          | [`@openuidev/svelte-lang`](https://github.com/thesysdev/openui/tree/main/packages/svelte-lang)       |
+| Script-tag, CDN, or iframe embeds                                           | [`@openuidev/browser-bundle`](https://github.com/thesysdev/openui/tree/main/packages/browser-bundle) |
+| An in-app panel showing captured errors during development                  | [`@openuidev/devtools`](/docs/api-reference/devtools)                                                |
 | App scaffolding, prompt/schema generation, and deploy from the command line | [`@openuidev/cli`](/docs/api-reference/cli)                                                          |
+| Angular integration                                                         | [`@openuidev/angular-lang`](/docs/api-reference/angular-lang)                                        |
 
 ## Packages
 
@@ -100,7 +103,11 @@ The OpenUI SDK is split into packages that build on each other:
     Development-only floating widget surfacing captured events with error messages and stack traces.
   </Card>
   <Card title="@openuidev/cli" href="/docs/api-reference/cli">
-    openui create (scaffold a Next.js app), openui generate-api-key (mint a Gateway key), openui deploy, and openui generate (system prompt + library spec from a library
-    definition).
+    openui create (scaffold a Next.js app), openui generate-api-key (mint a Gateway key), openui
+    deploy, and openui generate (system prompt + library spec from a library definition).
+  </Card>
+  <Card title="@openuidev/angular-lang" href="/docs/api-reference/angular-lang">
+    Angular component definitions, Renderer inputs and outputs, injection helpers, and form
+    validation.
   </Card>
 </Cards>
