@@ -20,7 +20,6 @@ type Message = {
   status?: "streaming" | "done" | "stopped" | "error";
   error?: string;
   renderErrors?: string[];
-  phase?: string;
 };
 type Thread = { id: string; title: string; messages: Message[]; updatedAt: number };
 const storageKey = "openui-angular-agent-chat-v1";
@@ -274,10 +273,7 @@ export class App {
         const event = JSON.parse(line);
         if (event.type === "delta") {
           content += event.text;
-          this.updateMessage(thread.id, assistant.id, { content, phase: "" });
-        } else if (event.type === "reset") {
-          content = "";
-          this.updateMessage(thread.id, assistant.id, { content, phase: event.text });
+          this.updateMessage(thread.id, assistant.id, { content });
         } else if (event.type === "done") completed = true;
         else if (event.type === "error") throw new Error(event.message);
       };
@@ -306,11 +302,10 @@ export class App {
         thread.id,
         assistant.id,
         controller.signal.aborted
-          ? { status: "stopped", phase: "" }
+          ? { status: "stopped" }
           : {
               status: "error",
               error: error instanceof Error ? error.message : "Something went wrong. Please retry.",
-              phase: "",
             },
       );
     } finally {

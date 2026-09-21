@@ -79,7 +79,7 @@
       </div>
       } @if (connection() && !connection()?.configured) {
       <div class="connection-notice" role="alert">
-        Configure OPENAI_API_KEY in the server’s local environment file, then restart the example.
+        Configure THESYS_API_KEY in the server’s local environment file, then restart the example.
       </div>
       } @if (storageWarning()) {
       <div class="connection-notice">{{ storageWarning() }}</div>
@@ -104,10 +104,7 @@
   @if (getMessage(info.key); as message) {
   <div class="assistant-label">
     <span class="mini-symbol">✳</span><strong>OpenUI</strong>
-    <span
-      >{{ message.status === 'streaming' ? (message.phase || 'Creating your response…') : 'Angular
-      Agent' }}</span
-    >
+    <span>{{ message.status === 'streaming' ? 'Creating your response…' : 'Angular Agent' }}</span>
   </div>
   }
 </ng-template>

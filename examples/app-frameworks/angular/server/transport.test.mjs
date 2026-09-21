@@ -42,6 +42,24 @@ test("streaming rejects abrupt closure instead of marking partial output complet
     /closed before/,
   );
 });
+test("streaming accepts terminal markers and reports output limits with or without DONE", async () => {
+  for (const done of [false, true]) {
+    for (const finishReason of ["stop", "length"]) {
+      const frame = { choices: [{ delta: { content: "Hello" }, finish_reason: finishReason }] };
+      const reply = streamCompletion({
+        fetchImpl: async () =>
+          new Response(`data: ${JSON.stringify(frame)}\n\n${done ? "data: [DONE]\n\n" : ""}`),
+        apiKey: "",
+        model: "test",
+        baseUrl: "http://localhost",
+        messages: [],
+        onDelta() {},
+      });
+      if (finishReason === "length") await assert.rejects(reply, /output limit/);
+      else assert.equal(await reply, "Hello");
+    }
+  }
+});
 test("upstream failures are useful and never echo provider response bodies", async () => {
   const fetchImpl = async () => new Response("private provider diagnostic", { status: 401 });
   await assert.rejects(

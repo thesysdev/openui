@@ -9,8 +9,8 @@ import { RequestError, streamCompletion, validateMessages } from "./transport.mj
 
 export function createHandler({
   apiKey,
-  model = "gpt-5.2",
-  baseUrl = "https://api.openai.com/v1",
+  model = "google/gemini-3.6-flash-free",
+  baseUrl = "https://api.thesys.dev/v1/embed",
   fetchImpl = fetch,
   frontendPort = 4200,
 } = {}) {
@@ -30,6 +30,7 @@ export function createHandler({
         configured: Boolean(apiKey),
         model,
         runtime: "Angular 22",
+        provider: "OpenUI Cloud",
       });
     if (req.method !== "POST" || req.url !== "/api/chat") return json(404, { error: "Not found" });
     const controller = new AbortController();
@@ -63,7 +64,7 @@ export function createHandler({
       const history = validateMessages(body);
       if (!apiKey)
         throw new RequestError(
-          "Configure OPENAI_API_KEY in the server's local environment file, then restart the example.",
+          "Configure THESYS_API_KEY in the server's local environment file, then restart the example.",
           503,
         );
       res.writeHead(200, {
@@ -76,41 +77,25 @@ export function createHandler({
       const requestId = randomUUID().slice(0, 8);
       // Log counts only; never conversation content, credentials, or headers.
       console.info(`[chat ${requestId}] started; model=${model}; messages=${history.length}`);
-      for (let attempt = 0; attempt < 2; attempt++) {
-        console.info(`[chat ${requestId}] provider request ${attempt + 1}`);
-        if (attempt) emit({ type: "reset", text: "Refining the generated interface…" });
-        const content = await streamCompletion({
-          apiKey,
-          model,
-          baseUrl,
-          fetchImpl,
-          messages,
-          signal: controller.signal,
-          onDelta: (text) => emit({ type: "delta", text }),
-        });
-        const parsed = createParser(library.toJSONSchema(), "Response").parse(content);
-        const problems = parsed.meta.errors.map((error) => error.message);
-        if (!parsed.root) problems.push("Missing root = Response([...]).");
-        if (parsed.meta.unresolved.length)
-          problems.push(`Unresolved references: ${parsed.meta.unresolved.join(", ")}`);
-        if (!problems.length) {
-          console.info(`[chat ${requestId}] completed; parser errors=0`);
-          emit({ type: "done" });
-          res.end();
-          return;
-        }
-        if (attempt === 1)
-          throw new Error(
-            "The model produced an invalid interface after a correction attempt. Please retry or simplify the request.",
-          );
-        messages.push(
-          { role: "assistant", content },
-          {
-            role: "user",
-            content: `Correct this OpenUI Lang output. Return the complete corrected program only. Errors:\n${problems.slice(0, 8).join("\n")}`,
-          },
+      // Cloud owns generation and correction. Keep a final local schema check
+      // so an incompatible response is reported instead of marked complete.
+      const content = await streamCompletion({
+        apiKey,
+        model,
+        baseUrl,
+        fetchImpl,
+        messages,
+        signal: controller.signal,
+        onDelta: (text) => emit({ type: "delta", text }),
+      });
+      const parsed = createParser(library.toJSONSchema(), "Response").parse(content);
+      if (!parsed.root || parsed.meta.errors.length || parsed.meta.unresolved.length)
+        throw new Error(
+          "OpenUI Cloud returned an interface that does not match this library. Please retry or simplify the request.",
         );
-      }
+      console.info(`[chat ${requestId}] completed; parser errors=0`);
+      emit({ type: "done" });
+      res.end();
     } catch (error) {
       if (res.destroyed) return;
       const message = controller.signal.aborted
@@ -138,16 +123,15 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (envFile && existsSync(envFile)) process.loadEnvFile(envFile);
   const server = createServer(
     createHandler({
-      apiKey: process.env["OPENAI_API_KEY"],
+      apiKey: process.env["THESYS_API_KEY"],
       frontendPort: Number(process.env["PORT"] || 4200),
-      model: process.env["OPENAI_MODEL"] || "gpt-5.2",
-      baseUrl: process.env["OPENAI_BASE_URL"] || "https://api.openai.com/v1",
+      model: process.env["OPENUI_MODEL"] || undefined,
     }),
   );
   const port = Number(process.env["API_PORT"] || 4300);
   server.listen(port, "127.0.0.1", () =>
     console.log(
-      `Chat API: http://127.0.0.1:${port} (${process.env["OPENAI_API_KEY"] ? "model key configured" : "model key missing"})`,
+      `Chat API: http://127.0.0.1:${port} (${process.env["THESYS_API_KEY"] ? "Cloud key configured" : "Cloud key missing"})`,
     ),
   );
 }

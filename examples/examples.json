@@ -32,9 +32,9 @@
     },
     {
       "title": "Angular",
-      "description": "An NG-ZORRO X chat interface rendering streamed OpenUI Lang with the Angular runtime.",
+      "description": "An NG-ZORRO X chat interface rendering OpenUI Cloud responses with the Angular runtime.",
       "path": "app-frameworks/angular",
-      "envKey": "OPENAI_API_KEY"
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "FastAPI",

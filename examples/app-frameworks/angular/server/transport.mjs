@@ -88,12 +88,12 @@ export async function streamCompletion({
     }
     const message =
       upstream.status === 401
-        ? "The model provider rejected the server's API key. Check the local environment configuration."
+        ? "OpenUI Cloud rejected the server's API key. Check THESYS_API_KEY in the local environment configuration."
         : upstream.status === 429
           ? quotaExhausted
-            ? "The OpenAI account has insufficient quota or has reached its spending limit. Add API credits or configure another authorized key before retrying."
-            : "The model provider returned a rate-limit error. Please wait and retry, or check the account's API limits."
-          : `The model provider returned HTTP ${upstream.status}. Check the configured model and try again.`;
+            ? "OpenUI Cloud has insufficient quota or credits for this request. Check the account limits in the Thesys console before retrying."
+            : "OpenUI Cloud returned a rate-limit error. Please wait and retry, or check the account's API limits."
+          : `OpenUI Cloud returned HTTP ${upstream.status}. Check the configured model and try again.`;
     throw new RequestError(message, 502);
   }
   if (!upstream.body) throw new Error("The model provider returned an empty stream.");
@@ -119,10 +119,11 @@ export async function streamCompletion({
       onDelta(delta);
     }
   }
-  if (!ended)
-    throw new Error("The model connection closed before the reply finished. Please retry.");
   if (finishReason === "length")
     throw new Error("The model reached its output limit. Try a smaller request.");
+  // Cloud can close after finish_reason: stop without a separate [DONE] frame.
+  if (!ended && finishReason !== "stop")
+    throw new Error("The model connection closed before the reply finished. Please retry.");
   if (!result.trim()) throw new Error("The model returned no displayable content. Please retry.");
   return result;
 }
