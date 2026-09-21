@@ -48,10 +48,12 @@ search, image search, and configured MCP servers.
 All variants load history through `useOpenuiCloudStorage()` and `/api/frontend-token`.
 Default and LangGraph use Responses with `store: true`; Vercel AI SDK and Eve
 append new turns with `storeChatCompletionHistory`.
+Both variants repair invalid OpenUI with `createAutofix` from `@openuidev/server/vercel`.
 
-AI SDK saves before finishing the stream and reports save errors to the UI.
-Eve saves on `turn.completed` and logs save errors server-side. Failed or cancelled
-turns are skipped. Cloud history does not restore a missing Eve session.
+AI SDK wraps the UI message stream with `autofix.ai.stream()` and saves before finishing.
+Eve repairs completed text with `autofix.ai.fix()` on `turn.completed` and logs save
+errors server-side. Failed or cancelled turns are skipped. Cloud history does not
+restore a missing Eve session.
 
 Append only new messages. Reload history before retrying an uncertain save to
 avoid duplicates. For production, replace the demo identity in the token route
@@ -71,6 +73,8 @@ list](https://models.dev/providers/openrouter/).
 
 - `@openuidev/lang-core` — `generateSystemPrompt({ cloud: true })` used by the
   `/api/chat` route.
+- `@openuidev/server` — Autofix (`/vercel`) and `storeChatCompletionHistory` (`/openai`)
+  used by the Vercel AI SDK and Eve variants.
 - `@openuidev/react-ui` — the chat UI runtime and component library
   (`AgentInterface`, `openuiLibrary`, `fetchLLM`, `ModelSwitcher`, storage/stream contracts).
 

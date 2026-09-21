@@ -59,7 +59,7 @@ Unknown providers can route through OpenRouter where supported. Use [Models](/do
 
 Relay the server response without changing its SSE shape. In the browser, configure [Agent Interface adapters and message formats](/docs/agent/reference/adapters-and-formats) for the Chat Completions stream.
 
-Chat Completions is message-based. Your application owns conversation history and sends the relevant `system`, `user`, `assistant`, and `tool` messages on every turn. You can explicitly save completed turns to OpenUI Cloud with the helper below, or use the [Responses API](/docs/gateway/api/responses) for automatic persistence.
+Chat Completions is message-based. Your application owns conversation history and sends the relevant `system`, `user`, `assistant`, and `tool` messages on every turn. Use the [Responses API](/docs/gateway/api/responses) when you want Gateway-managed persistent conversations.
 
 ## Function tools
 
@@ -70,51 +70,3 @@ Chat Completions returns function tool calls to the application; it does not exe
 3. Execute each function in your application.
 4. Append the assistant tool-call message and each tool result.
 5. Continue until the model returns the final OpenUI Lang response.
-
-## Save conversations to OpenUI Cloud
-
-Chat Completions does not automatically save messages. You can keep its generation
-API and explicitly append completed turns to OpenUI Cloud with
-`storeChatCompletionHistory` from `@openuidev/server`.
-
-Install it with `npm install @openuidev/server openai`. Create the conversation
-first with `useOpenuiCloudStorage` or `POST /v1/conversations`, then pass its id
-to the helper. Keep the API key on the server.
-
-```ts title="server.ts"
-import { storeChatCompletionHistory } from "@openuidev/server";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { gateway } from "./lib/gateway";
-
-// Resolve these from your authenticated application state and saved history.
-// Verify the conversation belongs to the current user before using the API key.
-declare const conversationId: string;
-declare const history: ChatCompletionMessageParam[];
-const userMessage: ChatCompletionMessageParam = {
-  role: "user",
-  content: "Compare quarterly revenue by region.",
-};
-
-const completion = await gateway.chat.completions.create({
-  model: "openai/gpt-5",
-  messages: [...history, userMessage],
-});
-const choice = completion.choices[0];
-if (!choice || choice.finish_reason !== "stop") {
-  throw new Error("Finish the tool loop or handle the incomplete response before saving");
-}
-
-await storeChatCompletionHistory({
-  apiKey: process.env.THESYS_API_KEY!,
-  conversationId,
-  messages: [userMessage, choice.message],
-});
-```
-
-Pass **only the new turn**, including all assistant tool-call messages and their
-tool results in order. Resending the full history duplicates previously saved
-items. For streaming, assemble the completed messages and await the helper after
-the model/tool loop finishes; do not save individual text deltas or interrupted
-responses. Saving does not supply history to future model calls automatically.
-After an ambiguous save failure, reload history before retrying: the append
-endpoint is not idempotent.

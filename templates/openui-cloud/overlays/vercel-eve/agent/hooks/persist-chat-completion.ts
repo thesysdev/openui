@@ -1,9 +1,11 @@
+import { createAutofix } from "@openuidev/server/vercel";
 import { defineState } from "eve/context";
 import { defineHook, type HookContext } from "eve/hooks";
 import {
   storeChatCompletionTurn,
   type PersistStep,
 } from "../../src/lib/chat-completion-history.ts";
+import librarySpec from "../../src/generated/spec.json" with { type: "json" };
 
 const CONVERSATION_ATTRIBUTE = "openuiConversationId";
 
@@ -106,10 +108,24 @@ export default defineHook({
       }
 
       try {
+        const autofix = createAutofix({ apiKey, library: librarySpec });
+        const steps: PersistStep[] = [];
+        for (const step of buffer.steps) {
+          if (!step.text?.trim() || step.toolCalls?.length) {
+            steps.push(step);
+            continue;
+          }
+          const repaired = await autofix.ai.fix({ generation: step.text });
+          steps.push(
+            repaired.status === "fixed"
+              ? { ...step, text: `${step.text}\n${repaired.content}\n` }
+              : step,
+          );
+        }
         await storeChatCompletionTurn({
           conversationId: buffer.conversationId,
           user: { role: "user", content: buffer.userText },
-          steps: buffer.steps,
+          steps,
         });
       } catch {
         console.error(
