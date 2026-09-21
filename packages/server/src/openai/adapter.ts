@@ -1,6 +1,6 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
 import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../shared/types";
-import { isUIOutput } from "../shared/utils";
+import { appendedRepair, isUIOutput } from "../shared/utils";
 
 type ChoiceState = { text: string | null; done: boolean; passthrough: boolean };
 
@@ -68,7 +68,9 @@ export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
       yield pending.length ? { ...chunk, choices } : chunk;
       for (const { index, state } of pending) {
         const result = await fix(state.text!);
-        if (result.status === "fixed") yield correctionChunk(chunk, index, `\n${result.content}\n`);
+        if (result.status === "fixed") {
+          yield correctionChunk(chunk, index, appendedRepair(state.text!, result.content));
+        }
         state.done = true;
         yield correctionChunk(chunk, index, null);
       }
