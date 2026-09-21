@@ -79,16 +79,17 @@ a {
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font:
     750 24px "Manrope",
     sans-serif;
   letter-spacing: -0.9px;
-  padding: 0 10px;
+  padding: 0 6px;
 }
 .brand-symbol {
-  width: 25px;
-  height: 25px;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 3px;
@@ -107,13 +108,10 @@ a {
 }
 .brand-tag {
   font:
-    600 9px "DM Sans",
+    500 10px "DM Sans",
     sans-serif;
-  letter-spacing: 1px;
-  border: 1px solid #d9dfd3;
-  border-radius: 4px;
-  padding: 3px 5px;
-  margin-left: 1px;
+  letter-spacing: 0;
+  white-space: nowrap;
   color: #788472;
 }
 .new-chat {
@@ -227,15 +225,6 @@ a {
   font-size: 13px;
   font-weight: 600;
 }
-.header-divider {
-  width: 1px;
-  height: 16px;
-  background: #dce2d5;
-}
-.header-subtitle {
-  font-size: 11px;
-  color: #939b8c;
-}
 .model-status {
   display: flex;
   gap: 7px;
@@ -347,9 +336,6 @@ a {
   text-align: center;
   font-size: 9px;
   margin: 12px 0 0;
-}
-.composer-footnote > span {
-  padding: 0 6px;
 }
 .connection-notice {
   max-width: 740px;
@@ -736,10 +722,6 @@ openui-render-node {
   }
   .topbar {
     padding-inline: 24px;
-  }
-  .header-subtitle,
-  .header-divider {
-    display: none;
   }
   .welcome {
     padding-inline: 25px;

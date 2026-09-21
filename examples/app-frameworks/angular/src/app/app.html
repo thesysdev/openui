@@ -5,7 +5,7 @@
   <aside class="sidebar" [class.is-open]="sidebarOpen()">
     <a class="brand" href="/" aria-label="OpenUI home"
       ><span class="brand-symbol"><i></i><i></i><i></i><i></i></span>OpenUI<span class="brand-tag"
-        >LAB</span
+        >× angular-lang</span
       ></a
     >
     <button class="new-chat" (click)="newChat()">
@@ -40,8 +40,7 @@
           (click)="sidebarOpen.set(true)"
         >
           <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg></button
-        ><strong>Angular Agent</strong><span class="header-divider"></span
-        ><span class="header-subtitle">NG-ZORRO X + OpenUI</span>
+        ><strong>Angular Agent</strong>
       </div>
       <span class="model-status" [class.offline]="!connection()?.configured"
         ><i></i>{{ connection()?.configured ? connection()?.model : (connection() ? 'Setup needed' :
@@ -96,10 +95,7 @@
         (submitSend)="send($event.value)"
         (cancelled)="stop()"
       />
-      <p class="composer-footnote">
-        NG-ZORRO X chat · OpenUI responses <span>·</span> AI can make mistakes. Check important
-        details.
-      </p>
+      <p class="composer-footnote">AI can make mistakes. Check important details.</p>
     </div>
   </main>
 </div>
