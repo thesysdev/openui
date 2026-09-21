@@ -74,6 +74,8 @@ list](https://models.dev/providers/openrouter/).
 
 - `@openuidev/lang-core` — `generateSystemPrompt({ cloud: true })` used by the
   `/api/chat` route.
+- `@openuidev/server` — Autofix for the Vercel AI SDK overlay (`createAutofix` from
+  `@openuidev/server/vercel`).
 - `@openuidev/react-ui` — the chat UI runtime and component library
   (`AgentInterface`, `openuiLibrary`, `fetchLLM`, `ModelSwitcher`, storage/stream contracts).
 

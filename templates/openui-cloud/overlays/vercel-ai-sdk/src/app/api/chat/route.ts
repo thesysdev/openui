@@ -1,6 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import librarySpec from "@/generated/spec.json";
 import { generateSystemPrompt } from "@openuidev/lang-core";
+import { createAutofix } from "@openuidev/server/vercel";
 import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from "ai";
 
 import { requiredEnv } from "@/lib/env";
@@ -9,9 +10,16 @@ import { appTools } from "@/lib/tools";
 
 export const runtime = "nodejs";
 
+const apiKey = requiredEnv("THESYS_API_KEY");
+
 const openai = createOpenAI({
   baseURL: "https://api.thesys.dev/v1/embed",
-  apiKey: requiredEnv("THESYS_API_KEY"),
+  apiKey,
+});
+
+const autofix = createAutofix({
+  apiKey,
+  library: librarySpec,
 });
 
 export async function POST(req: Request) {
@@ -38,7 +46,12 @@ export async function POST(req: Request) {
     abortSignal: req.signal,
   });
 
-  return result.toUIMessageStreamResponse();
+  return autofix.ai
+    .stream({
+      stream: result.toUIMessageStream(),
+      signal: req.signal,
+    })
+    .toResponse();
 }
 
 function badRequest(message: string): Response {

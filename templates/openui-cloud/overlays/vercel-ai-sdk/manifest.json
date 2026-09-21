@@ -5,12 +5,13 @@
     "dependencies": {
       "@ai-sdk/openai": "^3.0.91",
       "ai": "^6.0.246",
-      "zod": "^4.4.3"
+      "zod": "^4.4.3",
+      "@openuidev/server": "^0.0.1"
     },
     "removeDependencies": ["openai"]
   },
   "files": {
     "remove": ["src/lib/tool-loop.ts"]
   },
-  "gettingStarted": "The generated Vercel AI SDK route calls OpenUI Cloud Chat Completions. Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise the included AI SDK tool."
+  "gettingStarted": "The generated Vercel AI SDK route calls OpenUI Cloud Chat Completions and wraps the UI message stream with Autofix. Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise the included AI SDK tool."
 }
