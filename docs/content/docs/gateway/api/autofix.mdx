@@ -22,7 +22,7 @@ flowchart LR
 
 ## Use the server package
 
-Import `createAutofix` from `@openuidev/server/openai` for Chat Completions. Use the spec produced by `openui generate --spec` for the same component library as your renderer, including its `schema`. Keep the API key on the server and treat the library as immutable after configuration.
+Prefer `@openuidev/server` over calling the endpoint yourself. Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or `@openuidev/server/vercel` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
 
 ### Configure once
 
@@ -45,17 +45,14 @@ const result = await autofix.fix({ generation, messages, signal });
 
 if (result.status === "fix_failed") {
   console.warn(result.unfixedErrors);
-  // Show your application's fallback.
 } else {
   // Render or persist result.content.
 }
 ```
 
-`generation` is the completed OpenUI text from your model. Optional `messages` contains the conversation before that generation; the helper adds the library system message and final assistant message. The helper retains the most recent text context within 20 turns and 8,000 characters.
+`generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation.
 
-The helper returns `{ status, original, content, fixedErrors, unfixedErrors }`. `content` is the original or complete fixed program on success, and `null` for `fix_failed`.
-
-### Wrap a model stream
+### Wrap a Chat Completions stream
 
 ```ts title="app/api/chat/route.ts"
 import OpenAI from "openai";
@@ -74,7 +71,7 @@ export async function POST(request: Request) {
 }
 ```
 
-Pass the model's Chat Completions stream as `stream` to the helper imported from `@openuidev/server/openai`. Tool calls, refusals, reasoning extensions, usage, and other metadata pass through. The source must emit native Chat Completions chunks. Only invalid UI triggers an Autofix request. Plain prose, tool turns, refusals, truncated output, and outputs exceeding 100,000 characters pass through without repair.
+Return SSE for the frontend `openAIAdapter()`. `autofix.responses()` is not supported yet.
 
 ### Wrap a Vercel AI SDK stream
 
@@ -103,52 +100,26 @@ return autofix
   .toResponse();
 ```
 
-Both subpaths expose `fix({ generation, messages, signal })` for completed text.
-Streaming methods are `chat.completions({ stream, messages, signal })` on OpenAI
-and `ai({ stream, messages, signal })` on Vercel. `generation` is a completed text
-string: use `result.choices[0].message.content` for OpenAI or `result.text` for Vercel.
+Pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI message SSE protocol used by `useChat`.
 
-Use AI SDK 7's native UI message stream. `chunks` contains `UIMessageChunk` events;
-`toResponse()` returns the UI message SSE protocol used by `useChat`, including
-its protocol header and `[DONE]` marker. Raw text streams and `result.stream`
-without `toUIMessageStream()` are not inputs to the Vercel helper.
+### Consume the stream
 
-Text deltas, reasoning, tools, sources, custom data, and metadata pass through.
-The adapter holds text endings and step endings until the next step or the final
-finish event. Only completed UI text in the final step, without tool events and
-with `finishReason: "stop"`, is validated. Invalid UI triggers Autofix; the complete
-corrected program is appended as a `text-delta` with the same text ID before its
-`text-end`. Earlier steps, truncated output, errors, aborts, and streams without
-a normal finish pass through without repair. Keep the default `sendFinish: true`.
+Use either `chunks` or `toResponse()` once:
 
-Optional `messages` remains repair context in Chat Completions message format;
-it does not accept AI SDK UI messages. AI SDK callbacks and result promises before
-the wrapper contain the original generation; persist the wrapped output when you
-need repairs in conversation history.
+| Member         | Purpose                                      |
+| -------------- | -------------------------------------------- |
+| `chunks`       | Native SDK events, including any correction. |
+| `toResponse()` | SSE `Response` for the matching frontend.    |
 
-### Consume the stream and handle failures
+A failed repair throws with `code: "fix_failed"`. Use `fix()` when you need a structured result for completed output.
 
-`autofix.chat.completions()` and `autofix.ai()` return two members:
+## Call the API directly
 
-| Member         | Purpose                                                         |
-| -------------- | --------------------------------------------------------------- |
-| `chunks`       | An async iterable of native events and any appended correction. |
-| `toResponse()` | An alternative consumer that returns an SSE `Response`.         |
-
-Consume either `chunks` or `toResponse()` once. There is no separate result promise. Read final content from the native events: accumulate Chat Completions deltas by completion ID and choice, or AI SDK `text-delta` events by text ID. You can also use the AI SDK UI message reader. Persist tool calls and other non-text emissions through your existing conversation handling.
-
-If the API reports `fix_failed`, the stream throws without emitting successful completion. The error has `code: "fix_failed"` and a `result` containing the repair diagnostics. HTTP, malformed-response, provider, and cancellation failures also fail the stream. Already delivered text remains visible; your application chooses its error UI. Use `.fix()` when you need a structured result for completed output.
-
-Appending corrections relies on the parser applying later statement definitions. Use a frontend `lang-core` parser that preserves trailing statement terminators so the final redefinition is applied. Appending cannot remove old statements or guarantee recovery from incomplete syntax, and repeated state or tool declarations can have runtime effects. The API validates the fixed program on its own, not its concatenation with the original. Use `.fix()` with buffered output when the entire program must be replaced.
-
-## Detect an invalid generation
-
-When calling the API directly, parse the original generation with `@openuidev/lang-core` first. The server helper above already handles this step. Skip the call when nothing is wrong.
+Parse first, and only call Autofix when the generation is invalid.
 
 ```ts title="lib/detect.ts"
 import type { ParseResult } from "@openuidev/lang-core";
 
-/** The API's own rule: a generation renders only when all five hold. */
 export function isValid({ root, meta }: ParseResult): boolean {
   return (
     !meta.incomplete &&
