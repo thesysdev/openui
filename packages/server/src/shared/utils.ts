@@ -97,28 +97,50 @@ export function repairContext(messages: NonNullable<BaseAutofixInput["messages"]
 
 const OPENUI_FENCE = /```openui(?:-lang)?\s*\n/;
 const ROOT_ASSIGN = /(^|\n)\s*root\s*=/;
+const CONTENT_OPEN = "]]>openui:content";
+const CONTENT_END = "]]>openui:end";
+const FENCE_CLOSE = "```";
+const FENCE_CLOSE_WITH_END = "```\n]]>openui:end";
 
-/** OpenUI Lang is a fenced ```openui / ```openui-lang block, or an unfenced `root =` program. */
+/** OpenUI Lang is a Cloud content marker, a fenced ```openui block, or an unfenced `root =` program. */
 export function isUIOutput(text: string): boolean {
-  return text.search(OPENUI_FENCE) >= 0 || ROOT_ASSIGN.test(text);
+  return text.includes(CONTENT_OPEN) || text.search(OPENUI_FENCE) >= 0 || ROOT_ASSIGN.test(text);
 }
 
-/** Split a closed ```openui-lang block from its closing fence and any trailing text. */
+/** Split a closed OpenUI block from its closer (```, or ``` plus ]]>openui:end). */
 export function splitClosedFence(text: string): { body: string; closing: string } | null {
-  const open = text.search(OPENUI_FENCE);
+  const fence = text.search(OPENUI_FENCE);
+  const content = text.indexOf(CONTENT_OPEN);
+  const open = fence >= 0 ? fence : content;
   if (open < 0) return null;
   const afterOpenNl = text.indexOf("\n", open);
   if (afterOpenNl < 0) return null;
-  const close = text.indexOf("```", afterOpenNl + 1);
+  const from = afterOpenNl + 1;
+  // Prefer the Cloud closer so a later repair stays inside ]]>openui:content … end.
+  if (content >= 0) {
+    const closeWithEnd = text.indexOf(FENCE_CLOSE_WITH_END, from);
+    if (closeWithEnd >= 0) return { body: text.slice(0, closeWithEnd), closing: text.slice(closeWithEnd) };
+    const closeEnd = text.indexOf(CONTENT_END, from);
+    if (closeEnd >= 0) return { body: text.slice(0, closeEnd), closing: text.slice(closeEnd) };
+    // Fence is open but ]]>openui:end has not arrived; hold a bare ``` if present.
+    if (fence < 0) return null;
+  }
+  const close = text.indexOf(FENCE_CLOSE, from);
   if (close < 0) return null;
   return { body: text.slice(0, close), closing: text.slice(close) };
 }
 
-/** Inner OpenUI program, without a wrapping markdown fence. */
+/** Inner OpenUI program, without a wrapping markdown fence or Cloud markers. */
 export function unwrapOpenUIFence(text: string): string {
-  const open = text.search(OPENUI_FENCE);
-  if (open < 0) return text;
-  const start = text.indexOf("\n", open) + 1;
-  const close = text.indexOf("```", start);
+  const fence = text.search(OPENUI_FENCE);
+  if (fence >= 0) {
+    const start = text.indexOf("\n", fence) + 1;
+    const close = text.indexOf("```", start);
+    return (close < 0 ? text.slice(start) : text.slice(start, close)).trim();
+  }
+  const content = text.indexOf(CONTENT_OPEN);
+  if (content < 0) return text;
+  const start = text.indexOf("\n", content) + 1;
+  const close = text.indexOf(CONTENT_END, start);
   return (close < 0 ? text.slice(start) : text.slice(start, close)).trim();
 }

@@ -96,10 +96,8 @@ export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
             if (split) {
               closings.set(id, split.closing);
               const emit = split.body.slice(previous.length);
-              // Emit the body slice if anything remains after holding the closer.
-              if (emit !== incoming) {
-                choice = { ...choice, delta: { ...choice.delta, content: emit } };
-              }
+              // Always strip the closer from this delta; it is re-emitted in release.
+              choice = { ...choice, delta: { ...choice.delta, content: emit } };
             } else {
               closings.delete(id);
             }
