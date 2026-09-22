@@ -23,6 +23,9 @@ importers:
       '@openuidev/react-ui':
         specifier: 0.16.2
         version: 0.16.2(@openuidev/react-headless@0.16.2(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+      '@openuidev/server':
+        specifier: 0.0.1
+        version: 0.0.1
       next:
         specifier: 16.2.6
         version: 16.2.6(@babel/core@7.29.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -846,6 +849,10 @@ packages:
       react-dom: ^18.0.0 || ^19.0.0
       zod: ^3.25.0 || ^4.0.0
       zustand: ^4.5.5
+
+  '@openuidev/server@0.0.1':
+    resolution: {integrity: sha512-65BAJlMeyHu5wtb+ZBDYs9Gg5Sw5FQg62WwVZNYcerNn0fmSc/b/afp4GHJeNtK4rbdsyLAkWV9Ae2J6utwiVA==}
+    engines: {node: '>=18'}
 
   '@posthog/core@1.49.2':
     resolution: {integrity: sha512-AXHDo/4nisUg7OPG1TQNgREK7n+chBQXLQyttp7bDTDsDg2k9lV06TmnpvuNbwJs53q9mP9hjezKEZu4fYadfg==}
@@ -4382,6 +4389,8 @@ snapshots:
       - '@types/react'
       - '@types/react-dom'
       - supports-color
+
+  '@openuidev/server@0.0.1': {}
 
   '@posthog/core@1.49.2':
     dependencies:

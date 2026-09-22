@@ -57,7 +57,7 @@ Each example has one primary home based on the integration seam it is intended t
 | Example                                        | Demonstrates                                                         |
 | ---------------------------------------------- | -------------------------------------------------------------------- |
 | [Handsontable](./miscellaneous/handsontable)   | Generated spreadsheet interfaces backed by Handsontable              |
-| [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts as an OpenUI capability                     |
+| [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts, with Chat Completions history stored via `@openuidev/server` |
 | [React Email](./miscellaneous/react-email)     | Generating and previewing emails with the OpenUI React Email library |
 | [Supabase](./miscellaneous/supabase)           | Persisted OpenUI conversations and threads with Supabase             |
 

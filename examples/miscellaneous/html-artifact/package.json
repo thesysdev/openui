@@ -19,6 +19,7 @@
     "@openuidev/react-headless": "0.16.2",
     "@openuidev/react-lang": "0.3.0",
     "@openuidev/react-ui": "0.16.2",
+    "@openuidev/server": "0.0.1",
     "next": "16.2.6",
     "openai": "^6.22.0",
     "react": "19.2.3",

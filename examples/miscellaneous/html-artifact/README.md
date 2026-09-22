@@ -8,6 +8,7 @@ First, create a `.env` file:
 
 ```env
 THESYS_API_KEY=sk-th-...
+DEMO_USER_ID=demo-user
 ```
 
 Then run the development server:
@@ -18,7 +19,7 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-The generated component is defined in `src/html-artifact.tsx`, its OpenUI library and prompt rules are in `src/library.tsx`, and the model route is in `src/app/api/chat/route.ts`. The route proxies Chat Completions through OpenUI Cloud.
+The generated component is defined in `src/html-artifact.tsx`, its OpenUI library and prompt rules are in `src/library.tsx`, and the model route is in `src/app/api/chat/route.ts`. The route proxies Chat Completions through OpenUI Cloud, then persists the new turn with `storeChatCompletionHistory` from `@openuidev/server` so AgentInterface can reload it via `useOpenuiCloudStorage`.
 
 ## Learn More
 
