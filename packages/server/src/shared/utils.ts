@@ -119,7 +119,8 @@ export function splitClosedFence(text: string): { body: string; closing: string 
   // Prefer the Cloud closer so a later repair stays inside ]]>openui:content … end.
   if (content >= 0) {
     const closeWithEnd = text.indexOf(FENCE_CLOSE_WITH_END, from);
-    if (closeWithEnd >= 0) return { body: text.slice(0, closeWithEnd), closing: text.slice(closeWithEnd) };
+    if (closeWithEnd >= 0)
+      return { body: text.slice(0, closeWithEnd), closing: text.slice(closeWithEnd) };
     const closeEnd = text.indexOf(CONTENT_END, from);
     if (closeEnd >= 0) return { body: text.slice(0, closeEnd), closing: text.slice(closeEnd) };
     // Fence is open but ]]>openui:end has not arrived; hold a bare ``` if present.

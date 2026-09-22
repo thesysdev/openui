@@ -74,7 +74,7 @@ export function createAutofixStream<Chunk>(
       // The request may already be cancelled before iteration starts.
       if (input.signal?.aborted) forwardAbort();
       else input.signal?.addEventListener("abort", forwardAbort, { once: true });
-      
+
       const iterator = adapter.transform(input.stream, async (generation) => {
         const next = await fix({ generation, messages: input.messages, signal });
         signal.throwIfAborted();

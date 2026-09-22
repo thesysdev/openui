@@ -92,10 +92,10 @@ Pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI me
 
 Use either `chunks` or `toResponse()` once. `result` settles after that consumer finishes.
 
-| Member         | Purpose                                                                 |
-| -------------- | ----------------------------------------------------------------------- |
-| `chunks`       | Native SDK events, including any correction.                            |
-| `toResponse()` | SSE `Response` for the matching frontend.                               |
+| Member         | Purpose                                                                  |
+| -------------- | ------------------------------------------------------------------------ |
+| `chunks`       | Native SDK events, including any correction.                             |
+| `toResponse()` | SSE `Response` for the matching frontend.                                |
 | `result`       | Settled Autofix result. Persist `content` when present, not joined text. |
 
 `result` is `null` when Autofix did not run. A failed repair throws with `code: "fix_failed"`. Use `fix()` on the same helper when you already have completed text.
