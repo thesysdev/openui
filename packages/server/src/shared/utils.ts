@@ -1,5 +1,5 @@
 import type { ParseResult } from "@openuidev/lang-core";
-import type { AutofixDiagnostic, AutofixInput, AutofixResult } from "./types";
+import type { AutofixDiagnostic, BaseAutofixInput, AutofixResult } from "./types";
 import { AutofixError } from "./types";
 
 // Collect parser errors, missing references, and incomplete output into diagnostics.
@@ -77,7 +77,7 @@ export function readCompletion(body: unknown): Omit<AutofixResult, "original"> {
 }
 
 /** Keep recent text context within the endpoint's limit of 20 messages and 8,000 characters. */
-export function repairContext(messages: NonNullable<AutofixInput["messages"]>) {
+export function repairContext(messages: NonNullable<BaseAutofixInput["messages"]>) {
   const context: { role: "user" | "assistant" | "system" | "developer"; content: string }[] = [];
   let remaining = 8_000;
   for (let i = messages.length - 1; i >= 0 && context.length < 20 && remaining > 0; i--) {

@@ -28,15 +28,19 @@ export type AutofixResult = {
   { status: "already_valid" | "fixed"; content: string } | { status: "fix_failed"; content: null }
 );
 
-export interface AutofixInput {
+export interface BaseAutofixInput {
   /** Context before the generated assistant message. The wrapper appends that message itself. */
   messages?: ChatCompletionMessageParam[];
   signal?: AbortSignal;
 }
 
+export interface AutofixInput extends BaseAutofixInput {
+  generation: string;
+}
+
 export type StreamSource<T> = AsyncIterable<T> & { controller?: AbortController };
 
-export interface AutofixStreamInput<Chunk> extends AutofixInput {
+export interface AutofixStreamInput<Chunk> extends BaseAutofixInput {
   /** Native SDK events for the selected import path. */
   stream: StreamSource<Chunk>;
 }

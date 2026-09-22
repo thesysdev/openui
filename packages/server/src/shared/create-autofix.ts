@@ -17,7 +17,7 @@ export function createAutofix<Chunk>(
   options: AutofixOptions,
   adapter: StreamAdapter<Chunk>,
 ): {
-  fix(input: AutofixInput & { generation: string }): Promise<AutofixResult>;
+  fix(input: AutofixInput): Promise<AutofixResult>;
   stream(input: AutofixStreamInput<Chunk>): AutofixStream<Chunk>;
 } {
   const { library } = options;

@@ -16,7 +16,7 @@ export async function fixGeneration(
     endpoint: string;
     fetchFn: typeof globalThis.fetch;
   },
-  { generation, messages = [], signal }: AutofixInput & { generation: string },
+  { generation, messages = [], signal }: AutofixInput,
 ): Promise<AutofixResult> {
   signal?.throwIfAborted();
   if (generation.length > MAX_AUTOFIX_GENERATION_LENGTH) {

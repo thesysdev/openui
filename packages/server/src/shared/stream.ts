@@ -4,7 +4,7 @@ import type {
   AutofixResult,
   AutofixStream,
   AutofixStreamInput,
-  StreamAdapter,
+  StreamAdapter
 } from "./types";
 import { AutofixError } from "./types";
 
@@ -26,7 +26,7 @@ async function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T
 // Bind the shared fix function to an adapter and expose native chunks or HTTP streaming.
 export function createAutofixStream<Chunk>(
   input: AutofixStreamInput<Chunk>,
-  fix: (input: AutofixInput & { generation: string }) => Promise<AutofixResult>,
+  fix: (input: AutofixInput) => Promise<AutofixResult>,
   adapter: StreamAdapter<Chunk>,
 ): AutofixStream<Chunk> {
   const controller = new AbortController();
