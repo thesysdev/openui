@@ -75,6 +75,32 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
+/* A second line under the subtitle. Green, because it is the one line here that
+   is an offer rather than a description, and #049156 is the green already on
+   this page in the trace diagram's pass marks. */
+/* A block, so it takes its own line and inherits the lockup's text-align: the
+   desktop hero sets it left, the mobile one centre. The flex box lives on the
+   inner span, which is inline-level and so gets positioned by that alignment.
+   One element doing both would pin the line to the left at every width. */
+.subtitleTerms {
+  display: block;
+  margin-top: 12px;
+  /* No size of its own: it reads at the subtitle's measure, as a second line of
+     the same block rather than a footnote to it. */
+  color: #049156;
+}
+
+.subtitleTermsInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+[data-theme="dark"] .subtitleTerms {
+  /* The solid reads as near-black on the dark ground, so the line lifts. */
+  color: #3ecf8e;
+}
+
 .subtitle {
   display: block;
   flex: 0 0 400px;
@@ -98,6 +124,8 @@
 }
 
 .heroImage {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
@@ -109,16 +137,37 @@
   --observability-section-gap: 160px;
 }
 
+/* Grey, like the trust section that follows it: the two read as one band of
+   practical detail after the feature flow. */
 .integrationSection {
   width: 100%;
   padding-block: var(--observability-section-gap);
-  /* Setup stays on the same surface as the feature flow and owns equal space
-     above and below its content. */
-  background: var(--openui-foreground);
+  background: var(--openui-background);
+  /* The snippet is nine lines and measures 343px with the code block's own
+     padding. The component defaults to 420px, which left ~80px of empty panel
+     below the last line. The phone override below still wins at that width. */
+  --cloud-code-min-height: 344px;
 }
 
+/* Scoped to this page. EnterpriseSection is shared with /cloud and
+   /cloud/gateway, which keep its own 160px and its own grey.
+
+   The class is doubled to lift it to (0,2,0). Its own .section rule sets both
+   of these at (0,1,0), and which of two equally specific rules wins comes down
+   to the order the two CSS modules happen to load in, which is not something
+   to rely on. */
+.trustSection.trustSection {
+  padding-block: clamp(4rem, 7vw, 6rem);
+  /* Sits on the page rather than in a band: the grey now belongs to the setup
+     block below, which is the one thing on the page that is a detour. */
+  background: transparent;
+}
+
+/* Less below than above: the footer follows, and the shared gap on both sides
+   left the page ending on a long empty stretch. */
 .faqBand {
-  padding: var(--observability-section-gap) var(--home-section-padding-inline);
+  padding: var(--observability-section-gap) var(--home-section-padding-inline)
+    calc(var(--observability-section-gap) / 2);
 }
 
 .faqBand > section {
@@ -139,7 +188,18 @@
 
 @media (max-width: 767px) {
   .integrationSection {
-    --cloud-code-min-height: 240px;
+    /* Keeps the panel's desktop measure and scales the whole thing down, so the
+       snippet reads at the same proportions rather than losing its right-hand
+       half to the clip. The desktop --cloud-code-min-height above rides along
+       in the same scaled space, which is what holds the ratio. */
+    --cloud-code-mobile-zoom: 0.54;
+    --cloud-code-mobile-padding-block: 28px;
+    /* Content-sized, so the panel hugs the snippet. Left at the desktop 344px
+       the shorter padding above would be matched by 40px of empty panel below,
+       which is the one thing equal padding cannot survive. */
+    --cloud-code-min-height: 0;
+    /* The steps explain the snippet, so they follow it here. */
+    --cloud-setup-content-display: contents;
   }
 
   .integrationSection > div {
@@ -276,12 +336,42 @@
   opacity: 0.6;
 }
 
-/* The hero art dissolves into the page at its lower edge instead of stopping on
-   a straight line. Masked rather than overlaid with a gradient, so it works on
-   either theme without matching a background colour. */
-.heroImage {
+/* The hero sits on a stage now, so it ends on its own edge rather than
+   dissolving into the page. The stroke is the shader's base colour, so the edge
+   matches the fill inside it. Keep in step with TONES in FadedDitherCanvas.tsx
+   and with .shot in FeaturesSection.module.css. */
+.heroStage {
+  --hero-stroke: #f8f8f8;
+
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--hero-stroke);
+  border-radius: 24px;
+}
+
+[data-theme="dark"] .heroStage {
+  --hero-stroke: #0e0e0e;
+}
+
+/* The mobile hero keeps the old treatment: no stage behind it, so it dissolves
+   into the page at its lower edge rather than ending on a straight line.
+   Masked rather than overlaid with a gradient, so it works on either theme
+   without having to match a background colour. */
+.heroImageMobile {
   -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+}
+
+.heroShader {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.heroShader > * {
+  width: 100%;
+  height: 100%;
 }
 
 /* Keep the action persistent: the waitlist should never depend on a hover state
@@ -290,11 +380,18 @@
   flex: none;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  /* Not centred: min-width leaves a few pixels of slack that centring splits
+     between the two ends, which pushed the badge ~13px off the right edge while
+     the padding said 8. Pinning each end to its own padding makes the space
+     around the badge match the 8px above and below it. */
+  justify-content: space-between;
   min-width: 10.25rem;
   height: 3rem;
   gap: 10px;
-  padding: 0 8px 0 20px;
+  /* 7, not 8: the badge is centred in the 46px the 1px borders leave, so it
+     already sits 7px inside the padding box and 8px inside the button. Matching
+     that on the right is what puts the same 8px on all three sides. */
+  padding: 0 7px 0 20px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
   background: #0a0a0a;

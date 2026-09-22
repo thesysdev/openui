@@ -1,348 +1,212 @@
+/* One card split down the middle, rather than two cards with a gap between
+   them: the two sides are halves of a single argument, and a shared edge says
+   so where two separate cards said they were separate things. Plain text
+   inside, since the contrast between the halves is the whole diagram. */
 .diagram {
-  --trace-surface: color-mix(in srgb, var(--openui-text-neutral-primary) 4%, transparent);
-  --trace-surface-strong: color-mix(in srgb, var(--openui-text-neutral-primary) 6%, transparent);
-  --trace-border: color-mix(in srgb, var(--openui-text-neutral-primary) 10%, transparent);
+  /* Light: a white card lifted off the page by an edge and a shadow. Dark
+     inverts to a tint of the ground with neither, since a shadow on black shows
+     nothing and an edge there only fences the card in. */
+  --trace-surface: var(--openui-foreground);
+  --trace-stroke: rgba(10, 10, 10, 0.08);
+  --trace-shadow: var(--home-shadow-card);
+  /* The split between the halves. Lighter than the row rules inside each half:
+     it separates two columns that already read as separate, so it does not need
+     to announce itself. */
+  --trace-divider: color-mix(in srgb, var(--openui-text-neutral-primary) 5%, transparent);
 
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  /* The halves square off against the rounded corners, so the card clips them. */
+  overflow: hidden;
   margin: 0;
+  border: 1px solid var(--trace-stroke);
+  border-radius: 20px;
+  background: var(--trace-surface);
+  box-shadow: var(--trace-shadow);
   color: var(--openui-text-neutral-primary);
   font-family: var(--home-font-text);
-  font-size: var(--home-body-size);
-  line-height: var(--home-body-leading);
 }
 
-.conversation {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 40px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+[data-theme="dark"] .diagram {
+  --trace-surface: rgba(255, 255, 255, 0.04);
+  --trace-stroke: transparent;
+  --trace-shadow: none;
 }
 
-.message {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.avatar {
-  display: flex;
-  flex-shrink: 0;
-  overflow: hidden;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid var(--trace-border);
-  background: var(--trace-surface);
-}
-
-.avatar img {
-  object-fit: cover;
-}
-
-.agentAvatar {
-  border: 1px solid var(--openui-border-default);
-  background: var(--home-surface-ink);
-}
-
-.bubble {
-  flex: 1;
-  min-width: 0;
-  min-height: 56px;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 14px 18px;
-  border: 1px solid var(--trace-border);
-  border-radius: 16px;
-  background: var(--trace-surface);
-}
-
-.bubble strong {
-  font-weight: 600;
-}
-
-.agentBubble {
-  background: var(--trace-surface-strong);
-}
-
-.arrow {
-  position: absolute;
-  top: 50%;
-  right: -35px;
-  color: var(--openui-text-neutral-secondary);
-  transform: translateY(-50%);
-}
-
-/* The same response is read two ways: technical completion on the left,
-   the unresolved user outcome on the right. The status badges make the
-   contradiction legible before the viewer reads any row copy. */
-.comparison {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
-  align-items: stretch;
-  gap: 12px;
-  width: 100%;
-  margin-top: 56px;
-}
-
-.panel {
-  position: relative;
+.half {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 24px;
-  padding: 24px 24px 28px;
-  border: 1px solid var(--trace-border);
-  border-radius: 20px;
-  background: var(--trace-surface);
+  /* Even on all four sides. The last row carries its own 14px below the text,
+     so the bottom reads a little deeper than the top, which suits a block that
+     ends on a list. */
+  padding: 32px;
 }
 
-.outcomePanel {
-  border-color: var(--trace-border);
-  background: #fff;
+/* The split. Declared on the second half rather than as a track of its own, so
+   it cannot fall out of step with the grid. */
+.half + .half {
+  border-left: 1px solid var(--trace-divider);
 }
 
-:global(.dark) .outcomePanel,
-:global([data-theme="dark"]) .outcomePanel {
-  background: var(--trace-surface);
-}
-
-.panelHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  min-height: 64px;
-}
-
-.panelHeader > div {
-  min-width: 0;
-}
-
-.panelLabel {
-  display: block;
-  margin-bottom: 8px;
+/* Inherits the diagram's text face rather than setting mono of its own, so the
+   label reads as the same voice as the lines under it. */
+.eyebrow {
+  margin: 0 0 1rem;
   color: var(--openui-text-neutral-secondary);
-  font-family: var(--home-font-mono);
   font-size: var(--home-label-size);
   font-weight: var(--home-label-weight);
   line-height: 1;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
-.panelHeader h3 {
-  max-width: 18ch;
-  margin: 0;
+.heading {
+  /* Enough that the rule below reads as the top of the list rather than an
+     underline on the gloss line, and the eyebrow above reads as a label on the
+     half rather than a third line of the title. */
+  margin: 0 0 1.75rem;
   font-family: var(--home-font-display);
-  font-size: var(--home-heading-size);
-  font-weight: var(--home-heading-weight);
+  /* Set locally rather than from --home-heading-*, which is 22px/500 here and
+     drops to 16px/400 on a phone. This heading is the diagram's own title, not
+     a card heading inside a list of them, so it carries the larger size at the
+     display face's usual weight. */
+  font-size: clamp(1.125rem, 2.2vw, 1.625rem);
+  font-weight: 500;
   line-height: var(--home-heading-leading);
   letter-spacing: var(--home-heading-tracking);
-  text-wrap: balance;
 }
 
-.resultBadge {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  min-height: 28px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  color: #fff;
-  font-family: var(--home-font-text);
-  font-size: var(--home-label-size);
-  font-weight: 500;
-  line-height: 1;
-  white-space: nowrap;
+/* The heading's second line, set like the page's own title/subtitle pair: same
+   size and weight, dropped to the secondary colour. */
+.headingGloss {
+  display: block;
+  color: var(--openui-text-neutral-secondary);
 }
 
-.passedBadge {
-  background: #049156;
-}
-
-.failedBadge {
-  background: #b91c1c;
-}
-
-.checklist {
+/* Equal rows over whatever height the taller half settles at, so a line in one
+   stays level with the line it answers in the other. The halves are grid items
+   on a stretch-aligned row, so they share that height already. */
+.list {
   display: grid;
-  grid-template-rows: repeat(3, minmax(min-content, 1fr));
+  grid-template-rows: repeat(4, minmax(min-content, 1fr));
   flex: 1;
-  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.checklist li {
+.list li {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
   padding-block: 14px;
-  border-top: 1px solid var(--home-hairline);
+  /* A gradient rather than a border, so the rule can fade out at both ends.
+     Painted at the top of the row, 1px tall, full width. */
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    var(--home-hairline) 8%,
+    var(--home-hairline) 92%,
+    transparent
+  );
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: 100% 1px;
+  /* The same tokens the section lead uses (gateway/sections.module.css .lead),
+     so the rows read at the size of the paragraph that introduces them and move
+     with it if that scale is ever retuned. */
+  font-size: var(--home-lead-size);
+  line-height: var(--home-lead-leading);
 }
 
-.checkCopy {
-  flex: 1;
-  min-width: 0;
-}
-
-.checkCopy > span {
-  display: block;
-  margin-bottom: 3px;
-  font-family: var(--home-font-display);
-  font-weight: var(--home-heading-weight);
-}
-
-.checkCopy p {
-  margin: 0;
-  color: var(--openui-text-neutral-secondary);
-}
-
-.statusIcon {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-}
-
-.failure {
-  color: var(--openui-text-danger-primary);
-  border-color: color-mix(in srgb, #b91c1c 20%, transparent);
-  background: color-mix(in srgb, #b91c1c 6%, var(--trace-surface));
-}
-
-.notEqual {
-  position: relative;
-  display: flex;
+/* Both lists are set identically. The marks carry the contrast, so weighting
+   one side as well would say the same thing twice. */
+.mark {
+  display: inline-flex;
+  flex: none;
   align-items: center;
   justify-content: center;
-  color: var(--openui-text-neutral-primary);
+  width: 22px;
+  height: 22px;
+  /* One shape for both sides; only the colour separates them. */
+  border-radius: 7px;
+  color: #fff;
 }
 
-.notEqual::before,
-.notEqual::after {
-  position: absolute;
-  left: 50%;
-  width: 1px;
-  height: calc(50% - 34px);
-  background: var(--home-hairline);
-  content: "";
+.markPass {
+  background: #049156;
 }
 
-.notEqual::before {
-  top: 0;
-}
-
-.notEqual::after {
-  bottom: 0;
-}
-
-.notEqual svg {
-  position: relative;
-  z-index: 1;
-  box-sizing: content-box;
-  padding: 12px;
-  border: 1px solid var(--trace-border);
-  border-radius: 50%;
-  background: var(--openui-background);
+.markFail {
+  background: #b91c1c;
 }
 
 @media (max-width: 1023px) {
-  .conversation {
-    gap: 32px;
-  }
-
-  .bubble {
-    padding: 12px 16px;
-  }
-
-  .arrow {
-    right: -27px;
-  }
-
-  .comparison {
-    grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr);
-    gap: 10px;
-  }
-
-  .panel {
-    padding: 24px 20px 28px;
-  }
-
-  .panelHeader {
-    flex-direction: column;
-    gap: 12px;
+  .half {
+    padding: 28px 24px;
   }
 }
 
 @media (max-width: 767px) {
-  .conversation {
+  /* Stacked: two halves of wrapping phrases side by side on a phone leaves each
+     line three or four words deep. The pairing gives way to legibility here,
+     which is why each half keeps a heading that stands on its own. */
+  .diagram {
     grid-template-columns: minmax(0, 1fr);
-    gap: 32px;
   }
 
-  .arrow {
-    top: auto;
-    right: auto;
-    bottom: -27px;
-    left: calc(50% - 10px);
-    transform: rotate(90deg);
+  /* The split turns with the layout. */
+  .half + .half {
+    border-top: 1px solid var(--trace-divider);
+    border-left: none;
   }
 
-  .comparison {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-    margin-top: 48px;
+  /* Stacked, the card runs to ~830px on a phone, which is more than a screen.
+     The height is in the padding rather than the type: each row is 24px of text
+     inside 32px of padding, so tightening the spacing buys far more than
+     shrinking the words would, and costs nothing in legibility. */
+  .half {
+    padding: 16px;
   }
 
-  .panel {
-    gap: 24px;
-    padding: 20px;
+  .eyebrow {
+    margin-bottom: 10px;
   }
 
-  .panelHeader {
-    min-height: 0;
+  .heading {
+    margin-bottom: 16px;
+    font-size: 1.0625rem;
   }
 
-  .notEqual {
-    height: 52px;
-  }
-
-  .notEqual::before,
-  .notEqual::after {
-    top: 50%;
-    width: calc(50% - 34px);
-    height: 1px;
-  }
-
-  .notEqual::before {
-    right: auto;
-    left: 0;
-  }
-
-  .notEqual::after {
-    right: 0;
-    left: auto;
-  }
-
-  .notEqual svg {
-    width: 24px;
-    height: 24px;
-    padding: 10px;
-  }
-
-  .checklist {
+  .list {
     display: flex;
     flex-direction: column;
   }
 
-  .checklist li {
-    padding-block: 16px;
+  .list li {
+    align-items: flex-start;
+    padding-block: 10px;
+    /* A step under --home-lead-size, which is 1rem here. The rows are short
+       statements rather than running prose, so they take the smaller measure
+       without becoming harder to scan. */
+    font-size: 0.9375rem;
+  }
+
+  /* Smaller tiles to match the tighter rows. Wrapping lines also push the mark
+     off the first one once it is centred, so it sits on the first line's
+     optical centre instead. */
+  .mark {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    border-radius: 6px;
+  }
+
+  /* The glyph's size prop is set once in the component, so the breakpoint
+     resizes the rendered SVG rather than the prop. */
+  .mark svg {
+    width: 11px;
+    height: 11px;
   }
 }
