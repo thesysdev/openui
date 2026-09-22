@@ -4,7 +4,7 @@ import type {
   AutofixResult,
   AutofixStream,
   AutofixStreamInput,
-  StreamAdapter
+  StreamAdapter,
 } from "./types";
 import { AutofixError } from "./types";
 

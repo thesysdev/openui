@@ -1,5 +1,5 @@
 import type { ParseResult } from "@openuidev/lang-core";
-import type { AutofixDiagnostic, BaseAutofixInput, AutofixResult } from "./types";
+import type { AutofixDiagnostic, AutofixResult, BaseAutofixInput } from "./types";
 import { AutofixError } from "./types";
 
 // Collect parser errors, missing references, and incomplete output into diagnostics.
