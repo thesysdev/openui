@@ -63,7 +63,7 @@ const model = new OpenAI();
 export async function POST(request: Request) {
   const { messages } = await request.json();
   const source = await model.chat.completions.create(
-    { model: "YOUR_MODEL", messages, stream: true },
+    { model: "openai/gpt-5.5", messages, stream: true },
     { signal: request.signal },
   );
 
@@ -88,7 +88,7 @@ const autofix = createAutofix({
 });
 
 const result = streamText({
-  model: "openai/gpt-4.1-mini",
+  model: "openai/gpt-5.5",
   system: systemPrompt, // Generated from the same OpenUI component library.
   prompt: "Show a greeting card",
   abortSignal: signal,
@@ -150,7 +150,7 @@ export async function generate(messages: OpenAI.ChatCompletionMessageParam[]) {
   let generation = "";
   let result = parser.getResult();
 
-  const stream = await model.chat.completions.create({ model: "gpt-5", messages, stream: true });
+  const stream = await model.chat.completions.create({ model: "gpt-5.5", messages, stream: true });
   for await (const chunk of stream) {
     const delta = chunk.choices[0]?.delta?.content ?? "";
     if (!delta) continue;

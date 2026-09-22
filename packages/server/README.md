@@ -6,65 +6,48 @@ Server utilities for OpenUI & OpenUI Gateway.
 
 ## Autofix
 
-Validate model output against your OpenUI library and repair invalid UI through the
-hosted Autofix API. Import the helper that matches your SDK:
+Prefer this package over calling the endpoint yourself. Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or `@openuidev/server/vercel` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
 
-- `@openuidev/server/openai` — Chat Completions, plus conversation history helpers
-- `@openuidev/server/vercel` — Vercel AI SDK UI message streams
-
-Use `completions.fix()` or `ai.fix()` for completed text. For streams, use
-`completions.stream()` (OpenAI) or `ai.stream()` (Vercel). Pair each with the
-matching frontend stream adapter.
-
-### Configure
+### Configure once
 
 ```ts
 import { createAutofix } from "@openuidev/server/openai";
 import library from "./openui.spec.json";
 
-const autofix = createAutofix({
+export const autofix = createAutofix({
   apiKey: process.env.THESYS_API_KEY!,
   library,
 });
 ```
 
-Use the spec from `openui generate --spec` for the same library as your renderer,
-including its `schema`. Keep the API key on the server.
-
-### Completed output
+### Fix a completed generation
 
 ```ts
+import { autofix } from "./lib/autofix";
+
 const result = await autofix.completions.fix({ generation, messages, signal });
 
-if (result.content !== null) {
-  // already_valid or fixed
-} else {
-  // fix_failed — choose a fallback
+if (result.status === "fix_failed") {
   console.warn(result.unfixedErrors);
+} else {
+  // Render or persist result.content.
 }
 ```
 
-`generation` is the completed OpenUI text. Optional `messages` is the conversation
-before that generation. Valid output is returned as-is; invalid output is sent to
-Autofix. On `fixed`, `content` is the program the API returned.
+`generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation.
 
-### Stream Chat Completions
+### Wrap a Chat Completions stream
 
 ```ts
 import OpenAI from "openai";
-import { createAutofix } from "@openuidev/server/openai";
-import library from "./openui.spec.json";
+import { autofix } from "../../../lib/autofix";
 
 const model = new OpenAI();
-const autofix = createAutofix({
-  apiKey: process.env.THESYS_API_KEY!,
-  library,
-});
 
 export async function POST(request: Request) {
   const { messages } = await request.json();
   const source = await model.chat.completions.create(
-    { model: "YOUR_MODEL", messages, stream: true },
+    { model: "openai/gpt-5.5", messages, stream: true },
     { signal: request.signal },
   );
 
@@ -74,9 +57,9 @@ export async function POST(request: Request) {
 }
 ```
 
-Pass the native Chat Completions stream. Return SSE for the frontend `openAIAdapter()`.
+Return SSE for the frontend `openAIAdapter()`. `autofix.responses` is not supported yet.
 
-### Stream with Vercel AI SDK 7
+### Wrap a Vercel AI SDK stream
 
 ```ts
 import { streamText, toUIMessageStream } from "ai";
@@ -89,7 +72,7 @@ const autofix = createAutofix({
 });
 
 const result = streamText({
-  model: "openai/gpt-4.1-mini",
+  model: "openai/gpt-5.5",
   system: systemPrompt, // Generated from the same OpenUI component library.
   prompt: "Show a greeting card",
   abortSignal: signal,
@@ -103,28 +86,19 @@ return autofix.ai
   .toResponse();
 ```
 
-Pass `toUIMessageStream({ stream: result.stream })`, not the raw `result.stream`.
-`toResponse()` is the UI message SSE protocol used by `useChat`.
+Pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI message SSE protocol used by `useChat`.
 
 ### Consume the stream
 
-```ts
-const output = autofix.completions.stream({ stream: source, messages, signal });
+Use either `chunks` or `toResponse()` once. `result` settles after that consumer finishes.
 
-for await (const chunk of output.chunks) {
-  // Native SDK events, including any appended correction
-}
+| Member         | Purpose                                                                 |
+| -------------- | ----------------------------------------------------------------------- |
+| `chunks`       | Native SDK events, including any correction.                            |
+| `toResponse()` | SSE `Response` for the matching frontend.                               |
+| `result`       | Settled Autofix result. Persist `content` when present, not joined text. |
 
-const settled = await output.result;
-if (settled?.content) {
-  // Persist settled.content — not the joined stream text
-}
-```
-
-Use either `chunks` or `toResponse()` once. `result` settles after that consumer
-finishes. It is `null` when Autofix did not run. A failed repair throws with
-`code: "fix_failed"`. Use `fix()` on the same helper when you already have
-completed text.
+`result` is `null` when Autofix did not run. A failed repair throws with `code: "fix_failed"`. Use `fix()` on the same helper when you already have completed text.
 
 `apiBaseUrl` overrides the Gateway origin. `fetch` supports custom transports or mocks.
 
