@@ -8,6 +8,7 @@ import {
   createUIMessageStreamResponse,
   stepCountIs,
   streamText,
+  toUIMessageStream,
   type UIMessage,
   type UIMessageChunk,
 } from "ai";
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
         let failed = false;
         let finish: Extract<UIMessageChunk, { type: "finish" }> | undefined;
         for await (const chunk of autofix.ai.stream({
-          stream: result.toUIMessageStream(),
+          stream: toUIMessageStream({ stream: result.stream }),
           messages: [user],
           signal: req.signal,
         }).chunks) {
