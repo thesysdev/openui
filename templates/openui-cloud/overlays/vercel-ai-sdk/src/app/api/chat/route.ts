@@ -2,7 +2,13 @@ import { createOpenAI } from "@ai-sdk/openai";
 import librarySpec from "@/generated/spec.json";
 import { generateSystemPrompt } from "@openuidev/lang-core";
 import { createAutofix } from "@openuidev/server/vercel";
-import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from "ai";
+import {
+  convertToModelMessages,
+  stepCountIs,
+  streamText,
+  toUIMessageStream,
+  type UIMessage,
+} from "ai";
 
 import { requiredEnv } from "@/lib/env";
 import { resolveRequestedModel } from "@/lib/models";
@@ -48,7 +54,7 @@ export async function POST(req: Request) {
 
   return autofix.ai
     .stream({
-      stream: result.toUIMessageStream(),
+      stream: toUIMessageStream({ stream: result.stream }),
       signal: req.signal,
     })
     .toResponse();
