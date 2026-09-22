@@ -3,7 +3,7 @@ import {
   isDemoCreditsExhaustedError,
 } from "@/lib/demo-credits";
 import { BASE_URL } from "@/lib/source";
-import { generatePrompt, type PromptSpec } from "@openuidev/lang-core";
+import { generatePrompt, type LibrarySpec } from "@openuidev/lang-core";
 import { readFileSync } from "fs";
 import { type NextRequest } from "next/server";
 import { join } from "path";
@@ -18,8 +18,8 @@ import { GITHUB_TOOL_SPECS } from "../../../../demo/github/github/types";
 // ── Component spec from generated JSON ────────────────────────────────────
 
 const componentSpec = JSON.parse(
-  readFileSync(join(process.cwd(), "generated/playground-component-spec.json"), "utf-8"),
-) as PromptSpec;
+  readFileSync(join(process.cwd(), "generated/playground-system-prompt.spec.json"), "utf-8"),
+) as LibrarySpec;
 
 // ── GitHub system prompt ──────────────────────────────────────────────────
 
