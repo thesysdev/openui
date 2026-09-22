@@ -31,6 +31,26 @@ export function createAutofixStream<Chunk>(
 ): AutofixStream<Chunk> {
   const controller = new AbortController();
   let consumed = false;
+  let last: AutofixResult | null = null;
+  let settle!: (value: AutofixResult | null) => void;
+  let fail!: (reason: unknown) => void;
+  let settled = false;
+  const result = new Promise<AutofixResult | null>((resolve, reject) => {
+    settle = resolve;
+    fail = reject;
+  });
+  result.catch(() => {});
+
+  const resolveOnce = (value: AutofixResult | null) => {
+    if (settled) return;
+    settled = true;
+    settle(value);
+  };
+  const rejectOnce = (reason: unknown) => {
+    if (settled) return;
+    settled = true;
+    fail(reason);
+  };
 
   // Stop both repair work and the upstream SDK stream.
   const cancel = (reason?: unknown) => {
@@ -50,17 +70,18 @@ export function createAutofixStream<Chunk>(
       if (input.signal?.aborted) forwardAbort();
       else input.signal?.addEventListener("abort", forwardAbort, { once: true });
       const iterator = adapter.transform(input.stream, async (generation) => {
-        const result = await fix({ generation, messages: input.messages, signal });
+        const next = await fix({ generation, messages: input.messages, signal });
         signal.throwIfAborted();
-        if (result.status === "fix_failed") {
+        last = next;
+        if (next.status === "fix_failed") {
           throw new AutofixError(
             "Could not repair the streamed generation",
             "fix_failed",
             undefined,
-            result,
+            next,
           );
         }
-        return result;
+        return next;
       });
       let ended = false;
       try {
@@ -73,17 +94,23 @@ export function createAutofixStream<Chunk>(
           }
           yield next.value;
         }
+        resolveOnce(last);
+      } catch (error) {
+        rejectOnce(error);
+        throw error;
       } finally {
         input.signal?.removeEventListener("abort", forwardAbort);
         if (!ended) {
           cancel();
           void iterator.return(undefined).catch(() => {});
+          rejectOnce(signal.reason ?? new DOMException("Stream consumer stopped", "AbortError"));
         }
       }
     },
   };
   return {
     chunks,
+    result,
     // Serialize the native events in the selected protocol's SSE format.
     toResponse: () => toSSE(chunks, adapter.protocol, cancel),
   };

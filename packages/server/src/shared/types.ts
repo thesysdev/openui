@@ -57,6 +57,8 @@ export interface AutofixStream<T> {
   chunks: AsyncIterable<T>;
   /** Alternative to consuming chunks: SSE in the selected adapter's protocol. */
   toResponse(): Response;
+  /** Settles after chunks or toResponse() finish. Null when Autofix did not run. Persist content, not joined deltas. */
+  result: Promise<AutofixResult | null>;
 }
 
 /** Stream and request failures throw; exhausted repairs include their diagnostics. */

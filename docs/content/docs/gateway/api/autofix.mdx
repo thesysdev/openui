@@ -106,14 +106,15 @@ Pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI me
 
 ### Consume the stream
 
-Use either `chunks` or `toResponse()` once:
+Use either `chunks` or `toResponse()` once. `result` settles after that consumer finishes.
 
-| Member         | Purpose                                      |
-| -------------- | -------------------------------------------- |
-| `chunks`       | Native SDK events, including any correction. |
-| `toResponse()` | SSE `Response` for the matching frontend.    |
+| Member         | Purpose                                                                 |
+| -------------- | ----------------------------------------------------------------------- |
+| `chunks`       | Native SDK events, including any correction.                            |
+| `toResponse()` | SSE `Response` for the matching frontend.                               |
+| `result`       | Settled Autofix result. Persist `content` when present, not joined text. |
 
-A failed repair throws with `code: "fix_failed"`. Use `fix()` on the same helper when you need a structured result for completed output.
+`result` is `null` when Autofix did not run. A failed repair throws with `code: "fix_failed"`. Use `fix()` on the same helper when you already have completed text.
 
 ## Call the API directly
 

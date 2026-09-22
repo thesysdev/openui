@@ -81,7 +81,7 @@ function fix(input: {
 }): Promise<AutofixResult>;
 ```
 
-`generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation.
+`generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation. On `fixed`, `content` is the program the Autofix API returned.
 
 ```ts
 type AutofixResult = {
@@ -119,10 +119,11 @@ Use `autofix.completions.stream()` with a native Chat Completions stream, or `au
 interface AutofixStream<T> {
   chunks: AsyncIterable<T>;
   toResponse(): Response;
+  result: Promise<AutofixResult | null>;
 }
 ```
 
-Use either `chunks` or `toResponse()` once.
+Use either `chunks` or `toResponse()` once. `result` settles after that consumer finishes. Persist `result.content` when it is a string — that is the Autofix program, not the joined stream text. `result` is `null` when Autofix did not run.
 
 ```ts title="app/api/chat/route.ts"
 import OpenAI from "openai";
@@ -166,9 +167,14 @@ const output = autofix.completions.stream({ stream: source, messages, signal });
 for await (const chunk of output.chunks) {
   // Native SDK events, including any appended correction
 }
+
+const settled = await output.result;
+if (settled?.content) {
+  // Persist settled.content
+}
 ```
 
-A failed repair on a stream throws with `code: "fix_failed"`. Use `fix()` on the same helper when you need a structured result instead of a throw.
+A failed repair on a stream throws with `code: "fix_failed"`. Use `fix()` on the same helper when you already have completed text.
 
 ### Stream errors
 

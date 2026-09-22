@@ -46,7 +46,7 @@ if (result.content !== null) {
 
 `generation` is the completed OpenUI text. Optional `messages` is the conversation
 before that generation. Valid output is returned as-is; invalid output is sent to
-`POST /v1/autofix`.
+Autofix. On `fixed`, `content` is the program the API returned.
 
 ### Stream Chat Completions
 
@@ -114,11 +114,17 @@ const output = autofix.completions.stream({ stream: source, messages, signal });
 for await (const chunk of output.chunks) {
   // Native SDK events, including any appended correction
 }
+
+const settled = await output.result;
+if (settled?.content) {
+  // Persist settled.content — not the joined stream text
+}
 ```
 
-Use either `chunks` or `toResponse()` once. A failed repair throws with
-`code: "fix_failed"`. Use `fix()` on the same helper when you need a structured
-result instead of a stream.
+Use either `chunks` or `toResponse()` once. `result` settles after that consumer
+finishes. It is `null` when Autofix did not run. A failed repair throws with
+`code: "fix_failed"`. Use `fix()` on the same helper when you already have
+completed text.
 
 `apiBaseUrl` overrides the Gateway origin. `fetch` supports custom transports or mocks.
 
