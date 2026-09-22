@@ -16,7 +16,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: v24.21.0
           cache: pnpm
           cache-dependency-path: "pnpm-lock.yaml"
 
@@ -30,22 +30,3 @@ jobs:
 
       - name: Run Packages CI
         run: pnpm --filter "./packages/**" --workspace-concurrency=1 run ci
-
-  build-examples:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-          cache-dependency-path: "examples/**/pnpm-lock.yaml"
-
-      - name: Install dependencies
-        run: pnpm examples:install
-
-      - name: Verify examples
-        run: pnpm examples:verify

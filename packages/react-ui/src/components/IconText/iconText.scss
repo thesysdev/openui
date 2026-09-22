@@ -1,0 +1,30 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-icon-text {
+  display: flex;
+  gap: cssUtils.$space-m;
+}
+
+.openui-icon-text--vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.openui-icon-text--horizontal {
+  flex-direction: row;
+  align-items: flex-start;
+
+  .openui-icon-tag {
+    margin-top: cssUtils.$space-3xs;
+  }
+
+  .openui-text-block__primary {
+    @include cssUtils.typography(body, small-heavy);
+  }
+}
+
+.openui-icon-text__content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}

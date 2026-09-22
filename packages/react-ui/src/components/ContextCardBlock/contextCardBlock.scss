@@ -1,0 +1,205 @@
+@use "../../cssUtils" as cssUtils;
+@use "../_shared/chatUtils" as chatUtils;
+
+.openui-context-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 196px;
+  padding: cssUtils.$space-m;
+  border: none;
+  border-radius: cssUtils.$radius-xl;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  &--clickable {
+    background-color: cssUtils.$highlight;
+    cursor: pointer;
+
+    &:hover {
+      transform: scale(0.995);
+    }
+
+    &:focus-visible {
+      outline: 2px solid cssUtils.$border-accent;
+      outline-offset: 2px;
+    }
+  }
+
+  &--static {
+    background-color: cssUtils.$highlight-subtle;
+    box-shadow: none;
+  }
+
+  &--variant-gray {
+    background-color: cssUtils.$highlight;
+    color: cssUtils.$text-neutral-primary;
+  }
+
+  &--variant-info {
+    background-color: cssUtils.$info-background;
+    color: cssUtils.$text-info-primary;
+
+    .openui-context-card__title-text {
+      color: cssUtils.$text-info-primary;
+      opacity: 0.8;
+    }
+
+    .openui-context-card__body-text {
+      color: cssUtils.$text-info-primary;
+    }
+
+    .openui-context-card__tag {
+      background-color: cssUtils.$elevated;
+    }
+  }
+
+  &--variant-success {
+    background-color: cssUtils.$success-background;
+    color: cssUtils.$text-success-primary;
+
+    .openui-context-card__title-text {
+      color: cssUtils.$text-success-primary;
+      opacity: 0.8;
+    }
+
+    .openui-context-card__body-text {
+      color: cssUtils.$text-success-primary;
+    }
+
+    .openui-context-card__tag {
+      background-color: cssUtils.$elevated;
+    }
+  }
+
+  &--variant-warning {
+    background-color: cssUtils.$alert-background;
+    color: cssUtils.$text-alert-primary;
+
+    .openui-context-card__title-text {
+      color: cssUtils.$text-alert-primary;
+      opacity: 0.8;
+    }
+
+    .openui-context-card__body-text {
+      color: cssUtils.$text-alert-primary;
+    }
+
+    .openui-context-card__tag {
+      background-color: cssUtils.$elevated;
+    }
+  }
+
+  &--variant-danger {
+    background-color: cssUtils.$danger-background;
+    color: cssUtils.$text-danger-primary;
+
+    .openui-context-card__title-text {
+      color: cssUtils.$text-danger-primary;
+      opacity: 0.8;
+    }
+
+    .openui-context-card__body-text {
+      color: cssUtils.$text-danger-primary;
+    }
+
+    .openui-context-card__tag {
+      background-color: cssUtils.$elevated;
+    }
+  }
+
+  &--variant-image {
+    background-position: center;
+    background-size: cover;
+    color: cssUtils.$text-white;
+
+    .openui-context-card__title-text {
+      color: cssUtils.$text-white;
+      opacity: 0.6;
+    }
+
+    .openui-context-card__tag .openui-tag {
+      background-color: rgb(0 0 0 / 40%);
+      color: cssUtils.$text-white;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: cssUtils.$overlay;
+      z-index: chatUtils.$z-content;
+    }
+
+    & > * {
+      position: relative;
+      z-index: chatUtils.$z-content-elevated;
+    }
+  }
+}
+
+.openui-context-card__vertical {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  height: 100%;
+  gap: cssUtils.$space-l;
+}
+
+.openui-context-card__slot {
+  width: 100%;
+  border-radius: cssUtils.$radius-m;
+}
+
+.openui-context-card__slot--top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: cssUtils.$space-s;
+  min-height: cssUtils.$space-xl;
+}
+
+.openui-context-card__slot--bottom {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-2xs;
+}
+
+.openui-context-card__title-text {
+  @include cssUtils.typography(body, small);
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.openui-context-card__body-text {
+  @include cssUtils.typography(body, heavy);
+}
+
+.openui-context-card__chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: currentColor;
+  opacity: 0.7;
+}
+
+.openui-context-card__tag-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  pointer-events: none;
+}
+
+.openui-context-card__tag {
+  border: none;
+}

@@ -7,11 +7,12 @@ import {
   AgentInterface,
   ModelSwitcher,
   fetchLLM,
+  openuiLibrary,
+  useOpenuiCloudStorage,
   useSystemThemeMode,
   vercelAIAdapter,
   vercelAIMessageFormat,
 } from "@openuidev/react-ui";
-import { chatLibrary, useOpenuiCloudStorage } from "@openuidev/thesys";
 
 export default function CloudChat() {
   const mode = useSystemThemeMode();
@@ -28,6 +29,7 @@ export default function CloudChat() {
   const storage = useOpenuiCloudStorage({
     token: "/api/frontend-token",
     apiBaseUrl: "https://api.thesys.dev",
+    features: { artifact: false }
   });
 
   const logoPath = mode === "dark" ? OPENUI_LOGOS.DARK : OPENUI_LOGOS.LIGHT;
@@ -37,7 +39,7 @@ export default function CloudChat() {
       <AgentInterface
         storage={storage}
         llm={llm}
-        componentLibrary={chatLibrary}
+        componentLibrary={openuiLibrary}
         logoUrl={logoPath}
         theme={{ mode }}
         starters={STARTERS}

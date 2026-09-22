@@ -32,6 +32,7 @@ Each example has one primary home based on the integration seam it is intended t
 
 | Example                                       | Demonstrates                                                                    |
 | --------------------------------------------- | ------------------------------------------------------------------------------- |
+| [Angular](./app-frameworks/angular) | An NG-ZORRO X chat interface with the Angular OpenUI renderer |
 | [FastAPI](./app-frameworks/fastapi)           | A Python FastAPI streaming backend with a React OpenUI client                   |
 | [React Native](./app-frameworks/react-native) | An Expo client rendering native OpenUI components from a Next.js backend stream |
 | [Svelte](./app-frameworks/svelte)             | OpenUI Lang parsing and rendering in SvelteKit                                  |
@@ -96,9 +97,9 @@ pnpm examples:verify
 
 Examples that use static system prompts generate them locally before `dev`, `build`, and `verify`. Generated prompt and spec files are ignored by Git and should not be committed.
 
-All `@openuidev/*` dependencies are exact published versions rather than links to packages in this repository. The manually triggered `Update example OpenUI packages` workflow updates them together, refreshes every application's `pnpm-lock.yaml`, verifies every example, and opens or updates one pull request when versions change.
+All `@openuidev/*` dependencies are exact published versions rather than links to packages in this repository. The `Update OpenUI starters` workflow runs after each successful release (and can be triggered manually), updates them together, refreshes every application's pnpm and npm lockfiles, verifies every example, and opens or updates one pull request when versions change.
 
-pnpm lockfiles are the reproducibility contract for repository CI; npm and Bun users can generate their native local lockfiles, which are ignored under `examples/` to avoid maintaining three lock formats for every application.
+pnpm and npm lockfiles are the reproducibility contracts for repository CI and starter updates. Bun users can generate native local lockfiles, which remain ignored under `examples/`.
 
 ## Maintenance contract
 

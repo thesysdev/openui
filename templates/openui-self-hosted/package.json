@@ -14,17 +14,20 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "deploy": "openui deploy",
     "lint": "eslint"
   },
   "dependencies": {
-    "@openuidev/lang-core": "0.2.18",
-    "@openuidev/react-ui": "^0.13.10",
+    "@openuidev/lang-core": "0.3.0",
+    "@openuidev/react-lang": "^0.3.0",
+    "@openuidev/react-ui": "^0.16.2",
     "next": "^16.3.1",
     "openai": "^6.22.0",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@openuidev/cli": "0.4.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

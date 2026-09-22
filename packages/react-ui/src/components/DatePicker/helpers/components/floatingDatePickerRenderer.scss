@@ -23,7 +23,7 @@
   border-radius: cssUtils.$radius-m;
   background: cssUtils.$sunk;
   padding: cssUtils.$space-s cssUtils.$space-m;
-  @include cssUtils.typography(primary, default);
+  @include cssUtils.typography(body, default);
   color: cssUtils.$text-neutral-primary;
   cursor: pointer;
   box-shadow: cssUtils.$shadow-s;

@@ -9,5 +9,5 @@
     },
     "removeDependencies": ["openai"]
   },
-  "gettingStarted": "The generated API route uses the Vercel AI SDK.\nAsk \"What's the weather in Berlin?\" to exercise its native tool loop."
+  "gettingStarted": "The generated API route uses the Vercel AI SDK. Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise its native tool loop."
 }

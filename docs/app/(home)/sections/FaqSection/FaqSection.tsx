@@ -94,7 +94,9 @@ export function FaqSection({
         <p className={styles.note}>
           {contact ?? (
             <>
-              Have another question? Join our{" "}
+              Have another question?
+              <br />
+              Join our{" "}
               <a
                 className={styles.noteLink}
                 href="https://discord.com/invite/Pbv5PsqUSv"

@@ -27,17 +27,17 @@ importers:
         specifier: ^7.29.1
         version: 7.29.1(@emotion/react@11.14.0(@types/react@19.2.18)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.18)(react@19.2.3))(@types/react@19.2.18)(react@19.2.3))(@mui/material@6.5.0(@emotion/react@11.14.0(@types/react@19.2.18)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.18)(react@19.2.3))(@types/react@19.2.18)(react@19.2.3))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mui/system@6.5.0(@emotion/react@11.14.0(@types/react@19.2.18)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.18)(react@19.2.3))(@types/react@19.2.18)(react@19.2.3))(@types/react@19.2.18)(react@19.2.3))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@openuidev/lang-core':
-        specifier: 0.2.18
-        version: 0.2.18(zod@4.5.4)
+        specifier: 0.3.0
+        version: 0.3.0(zod@4.5.4)
       '@openuidev/react-headless':
-        specifier: 0.9.13
-        version: 0.9.13(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.16.2
+        version: 0.16.2(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       '@openuidev/react-lang':
-        specifier: 0.2.15
-        version: 0.2.15(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
+        specifier: 0.3.0
+        version: 0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
       '@openuidev/react-ui':
-        specifier: 0.13.10
-        version: 0.13.10(@openuidev/react-headless@0.9.13(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@0.2.15(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.16.2
+        version: 0.16.2(@openuidev/react-headless@0.16.2(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       next:
         specifier: 16.2.7
         version: 16.2.7(@babel/core@7.29.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -58,8 +58,8 @@ importers:
         version: 4.5.7(@types/react@19.2.18)(react@19.2.3)
     devDependencies:
       '@openuidev/cli':
-        specifier: 0.2.12
-        version: 0.2.12(@types/node@22.20.1)
+        specifier: 0.4.0
+        version: 0.4.0(@types/node@22.20.1)
       '@types/node':
         specifier: ^22.15.32
         version: 22.20.1
@@ -483,89 +483,105 @@ packages:
     resolution: {integrity: sha512-excjX8DfsIcJ10x1Kzr4RcWe1edC9PquDRRPx3YVCvQv+U5p7Yin2s32ftzikXojb1PIFc/9Mt28/y+iRklkrw==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linux-arm@1.2.4':
     resolution: {integrity: sha512-bFI7xcKFELdiNCVov8e44Ia4u2byA+l3XtsAj+Q8tfCwO6BQ8iDojYdvoPMqsKDkuoOo+X6HZA0s0q11ANMQ8A==}
     cpu: [arm]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linux-ppc64@1.2.4':
     resolution: {integrity: sha512-FMuvGijLDYG6lW+b/UvyilUWu5Ayu+3r2d1S8notiGCIyYU/76eig1UfMmkZ7vwgOrzKzlQbFSuQfgm7GYUPpA==}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linux-riscv64@1.2.4':
     resolution: {integrity: sha512-oVDbcR4zUC0ce82teubSm+x6ETixtKZBh/qbREIOcI3cULzDyb18Sr/Wcyx7NRQeQzOiHTNbZFF1UwPS2scyGA==}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linux-s390x@1.2.4':
     resolution: {integrity: sha512-qmp9VrzgPgMoGZyPvrQHqk02uyjA0/QrTO26Tqk6l4ZV0MPWIW6LTkqOIov+J1yEu7MbFQaDpwdwJKhbJvuRxQ==}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linux-x64@1.2.4':
     resolution: {integrity: sha512-tJxiiLsmHc9Ax1bz3oaOYBURTXGIRDODBqhveVHonrHJ9/+k89qbLl0bcJns+e4t4rvaNBxaEZsFtSfAdquPrw==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-libvips-linuxmusl-arm64@1.2.4':
     resolution: {integrity: sha512-FVQHuwx1IIuNow9QAbYUzJ+En8KcVm9Lk5+uGUQJHaZmMECZmOlix9HnH7n1TRkXMS0pGxIJokIVB9SuqZGGXw==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@img/sharp-libvips-linuxmusl-x64@1.2.4':
     resolution: {integrity: sha512-+LpyBk7L44ZIXwz/VYfglaX/okxezESc6UxDSoyo2Ks6Jxc4Y7sGjpgU9s4PMgqgjj1gZCylTieNamqA1MF7Dg==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@img/sharp-linux-arm64@0.34.5':
     resolution: {integrity: sha512-bKQzaJRY/bkPOXyKx5EVup7qkaojECG6NLYswgktOZjaXecSAeCWiZwwiFf3/Y+O1HrauiE3FVsGxFg8c24rZg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linux-arm@0.34.5':
     resolution: {integrity: sha512-9dLqsvwtg1uuXBGZKsxem9595+ujv0sJ6Vi8wcTANSFpwV/GONat5eCkzQo/1O6zRIkh0m/8+5BjrRr7jDUSZw==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linux-ppc64@0.34.5':
     resolution: {integrity: sha512-7zznwNaqW6YtsfrGGDA6BRkISKAAE1Jo0QdpNYXNMHu2+0dTrPflTLNkpc8l7MUP5M16ZJcUvysVWWrMefZquA==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linux-riscv64@0.34.5':
     resolution: {integrity: sha512-51gJuLPTKa7piYPaVs8GmByo7/U7/7TZOq+cnXJIHZKavIRHAP77e3N2HEl3dgiqdD/w0yUfiJnII77PuDDFdw==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linux-s390x@0.34.5':
     resolution: {integrity: sha512-nQtCk0PdKfho3eC5MrbQoigJ2gd1CgddUMkabUj+rBevs8tZ2cULOx46E7oyX+04WGfABgIwmMC0VqieTiR4jg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linux-x64@0.34.5':
     resolution: {integrity: sha512-MEzd8HPKxVxVenwAa+JRPwEC7QFjoPWuS5NZnBt6B3pu7EG2Ge0id1oLHZpPJdn3OQK+BQDiw9zStiHBTJQQQQ==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@img/sharp-linuxmusl-arm64@0.34.5':
     resolution: {integrity: sha512-fprJR6GtRsMt6Kyfq44IsChVZeGN97gTD331weR1ex1c1rypDEABN6Tm2xa1wE6lYb5DdEnk03NZPqA7Id21yg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@img/sharp-linuxmusl-x64@0.34.5':
     resolution: {integrity: sha512-Jg8wNT1MUzIvhBFxViqrEhWDGzqymo3sV7z7ZsaWbZNDLXRJZoRGrjulp60YYtV4wfY8VIKcWidjojlLcWrd8Q==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@img/sharp-wasm32@0.34.5':
     resolution: {integrity: sha512-OdWTEiVkY2PHwqkbBI8frFxQQFekHaSSkUIJkwzclWZe64O1X4UlUjqqqLaPbUpMOQk6FBu/HtlGXNblIs0huw==}
@@ -913,24 +929,28 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@next/swc-linux-arm64-musl@16.2.7':
     resolution: {integrity: sha512-qyogG9QtBzWxgJfeGBvOEHI3851gTfCF3wLZ5RDLTBJGAmE9p1qDwKCOdrBrvBzRvYDT+gUDp72pzlSEfAXgNA==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@next/swc-linux-x64-gnu@16.2.7':
     resolution: {integrity: sha512-Vhe4ZDuBpmMogrGi5D4R2Kq4JAQlj6+wvgaFYy31zfES0zPmt6TLA+cuYpM/OLrPZjo2MYQTHVqNUSCR6+fDZQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@next/swc-linux-x64-musl@16.2.7':
     resolution: {integrity: sha512-srvian89JahFLw1YLBEuhvPJ0DO5lpUeJQMXy4xYo7g628ZlNgXdNkqoxSAv9OYrBfByh6vxISMwW/mRbzCY+g==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@next/swc-win32-arm64-msvc@16.2.7':
     resolution: {integrity: sha512-GX3wvLpULFuRFJzwHaKfm7QZJ18F4ZSuxlPJ96BoBglCzBmdSjyeBKF+ZhWhvL/ckxNfLnNa7bsObO2ipYpszw==}
@@ -960,23 +980,23 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@openuidev/cli@0.2.12':
-    resolution: {integrity: sha512-U3KPZLwolzOl56Baap8XEQ/lm96XY13LfMRsmpIVDjJT5dEAXX15tJAM2HsDhybtvFrYe9PUK1nTVzDzHGRXCQ==}
+  '@openuidev/cli@0.4.0':
+    resolution: {integrity: sha512-IcsVXwSanbuy5dh/0NJ69jwVfQIXuV1y595SVEfqkuJOl+1+rJp9prm3fj5LDNGA23LwQHxCNF053AKH7HPgPg==}
     hasBin: true
 
-  '@openuidev/devtools@0.1.2':
-    resolution: {integrity: sha512-cJdyb/OozMxWNW0uO9wPJKQ25GOYepG5V4xVVMDdSscZBiFsvri4dWtcd+XVV4kl35pdrJF+YZh4LGRIJF6KrQ==}
+  '@openuidev/devtools@0.2.0':
+    resolution: {integrity: sha512-wGAgfH5nFGbPU1BHB9uNSrEzloI0gB4TjuBIJxNO5H3FmfAIg/xpVIDKwQkqh7EF/Dlu3a2pFHpJa1zzU0Y4Ug==}
     peerDependencies:
-      '@openuidev/observability': ^0.0.4
-      '@openuidev/react-lang': ^0.2.15
+      '@openuidev/observability': '>=0.0.4 <0.1.0'
+      '@openuidev/react-lang': '>=0.3.0 <0.4.0'
       react: ^18.3.1 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
     peerDependenciesMeta:
       '@openuidev/react-lang':
         optional: true
 
-  '@openuidev/lang-core@0.2.18':
-    resolution: {integrity: sha512-I8kP9gI2MDNy9C7YuG2Rr8oS0o3SVA9GjYPpQFvTi+pZXX33nrHKar7aSbwL7CDFlBnvIxFuj6KMDjmG93/mVQ==}
+  '@openuidev/lang-core@0.3.0':
+    resolution: {integrity: sha512-hOLvRQnsbp8hORqXcup/4MlPj5cl7ytFmxTUhYqhLzqLyMeqkGx9YG8Dca45zS+jovuDyZMESn5ejshcojEgQA==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       zod: ^3.25.0 || ^4.0.0
@@ -987,8 +1007,8 @@ packages:
   '@openuidev/observability@0.0.4':
     resolution: {integrity: sha512-4fjIrWu3TqTlfDE/m7cG10CH1vV7wQk5GPwMOmXeF9vJtkg92dg4Bdk3AjKgud7H7Xypwwjgt52VcLGZCE2CJQ==}
 
-  '@openuidev/react-headless@0.9.13':
-    resolution: {integrity: sha512-jeaKomQRsJ7S4sM9stnH4Wl3w0kr2Vb8aTCjRT+XqxXs6e6I56mh1wDFpLO5U3pg5fGOBO1jHrZAZAXCi2NR3g==}
+  '@openuidev/react-headless@0.16.2':
+    resolution: {integrity: sha512-6gdM6UD5DfqdWUkRbf72GzhIPHsv3Ni3oFao3rcCCa69jJkQhTZ4Ufm/7PaEKMXSdvTSBcpGvIsR9AcONJHbGQ==}
     peerDependencies:
       ai: ^6.0.0 || ^7.0.0
       react: ^18.3.1 || ^19.0.0
@@ -997,8 +1017,8 @@ packages:
       ai:
         optional: true
 
-  '@openuidev/react-lang@0.2.15':
-    resolution: {integrity: sha512-Cv/Si/9RVLEuA0xN+EjfzUqDpJsRTfSX1RieDw7DzJ6LxD8LWeA6Fi/F2br8d6QZKg/h51vtJoXNSt62VF1ttA==}
+  '@openuidev/react-lang@0.3.0':
+    resolution: {integrity: sha512-IidbqkQnTscPj7SQRPvneaihxoGv+ldq9QS0rOi70nFTYA9I5K/0ua9/kZLtUg3vZL/5wDecuKcmczjFj6qF7g==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       react: '*'
@@ -1010,11 +1030,11 @@ packages:
       react-dom:
         optional: true
 
-  '@openuidev/react-ui@0.13.10':
-    resolution: {integrity: sha512-rQkPyaG2BaJ6fZEDfzwyZjHz4HMEFThMRi8Fb7aw4b8E/iIVKs9hvRTMbMFiTGpjSIeQoKoL/rfC8vwZhxTpQw==}
+  '@openuidev/react-ui@0.16.2':
+    resolution: {integrity: sha512-HoK7fXr/D16g4xRrBmRBAaYkC/a8O5oWuMKN26Rq6eGPtu7LJQtPc+a4Yjy77ZCOt/kDqy2Qz71MP0tjpFadLA==}
     peerDependencies:
-      '@openuidev/react-headless': ^0.9.13
-      '@openuidev/react-lang': ^0.2.15
+      '@openuidev/react-headless': '>=0.14.0 <0.17.0'
+      '@openuidev/react-lang': '>=0.3.0 <0.4.0'
       react: ^18.3.1 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
       zod: ^3.25.0 || ^4.0.0
@@ -1556,6 +1576,17 @@ packages:
     resolution: {integrity: sha512-r5bClKrcIusDoo049dSL8CawnHR6mRdDwhlQuIgZRNty68q0x8k3Lf1BtPAMxRf/GgnHBnIO4ujd3+GQdLWzxQ==}
     engines: {node: '>=16.0.0'}
 
+  '@tanstack/react-table@8.21.3':
+    resolution: {integrity: sha512-5nNMTSETP4ykGegmVkhjcS8tTLW6Vl4axfEGQN3v0zdHYbK4UfoqfPChclTrJ4EoK9QynqAu9oUf8VEmrpZ5Ww==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
+
+  '@tanstack/table-core@8.21.3':
+    resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
+    engines: {node: '>=12'}
+
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
 
@@ -1748,51 +1779,61 @@ packages:
     resolution: {integrity: sha512-zJc0H99FEPoFfSrNpa91HYfxzfAJCr502oxNK1cfdC9hlaFI43RT+JFCann9JUgZmLzzntChHyn13Sgn9ljHNg==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@unrs/resolver-binding-linux-arm64-musl@1.12.2':
     resolution: {integrity: sha512-KQ3Lki6l+Pz1k/eBipN41ES+YUK30beLGb9YqcB1O542cyLCNE6GaxrfcY3T6EezmGGk84wb5XyO9loTM9tkcA==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@unrs/resolver-binding-linux-loong64-gnu@1.12.2':
     resolution: {integrity: sha512-3SJGEh1DborhG6pyxvhPzCT4bbSIVihsvgJc13P1bHG7KLdNDaF9T3gsTwFc7Jw/5Y5/iWOjkEx7Zy0NvCGX3Q==}
     cpu: [loong64]
     os: [linux]
+    libc: [glibc]
 
   '@unrs/resolver-binding-linux-loong64-musl@1.12.2':
     resolution: {integrity: sha512-jiuG/Obbel7uw1PwHNFfrkiKhLAF6mnyZ6aWlOAVN9WqKm8v0OFGnciJIHu8+CMvXLQ8AD51LPzAoUfT21D5Ew==}
     cpu: [loong64]
     os: [linux]
+    libc: [musl]
 
   '@unrs/resolver-binding-linux-ppc64-gnu@1.12.2':
     resolution: {integrity: sha512-q7xRvVpmcfeL+LlZg8Pbbo6QaTZwDU5BaGZbwfhkEsXJn3Was8xYfE0RBH266xZt0rM6B7i8xAYIvjthuUIWHg==}
     cpu: [ppc64]
     os: [linux]
+    libc: [glibc]
 
   '@unrs/resolver-binding-linux-riscv64-gnu@1.12.2':
     resolution: {integrity: sha512-0CVdx6lcnT3Q9inOH8tsMIOJ6ImndllMjqJHg8RLVdB7Vq4SfkEXl9mCSsVNuNA4MCYycRicCUxPCabVHJRr6A==}
     cpu: [riscv64]
     os: [linux]
+    libc: [glibc]
 
   '@unrs/resolver-binding-linux-riscv64-musl@1.12.2':
     resolution: {integrity: sha512-iOwlRo9vnp6R6ohHQS11n0NnfdXx/omhkocmIfaPRpQhKZ+3BDMkkdRVh53qjkFkpPddf+FETA28NwGN7l5l+w==}
     cpu: [riscv64]
     os: [linux]
+    libc: [musl]
 
   '@unrs/resolver-binding-linux-s390x-gnu@1.12.2':
     resolution: {integrity: sha512-HYJtLfXq94q8iZNFT1lknx258wlkkWhZeUXJRqzKBBUJ00CvZ+N33zgbCqimLjsyw5Va6uUxhVa12mI+kaveEw==}
     cpu: [s390x]
     os: [linux]
+    libc: [glibc]
 
   '@unrs/resolver-binding-linux-x64-gnu@1.12.2':
     resolution: {integrity: sha512-mPsUhunKKDih5O96Y6enDQyHc1SqBPlY1E/SfMWDM3EdJ95Z9CArPeCVwCCqbP45ljvivdEk8Fxn+SIb1rDAJQ==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@unrs/resolver-binding-linux-x64-musl@1.12.2':
     resolution: {integrity: sha512-azrt6+5ydLd8Vt210AAFis/lZevSfPw93EJRIJG+xPu4WCJ8K0kppCTpMyLPcKT7H15M4Jnt2tMp5bOvCkRC6A==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@unrs/resolver-binding-openharmony-arm64@1.12.2':
     resolution: {integrity: sha512-YZ9hP4O0X9PQb8eO980qmLNGH4zT3I9+SZTdt0Pr0YyuGQhYKoOZkV02VzrzyOZJ5xIJ3UFIenKkUkGg8GjgWQ==}
@@ -2173,6 +2214,10 @@ packages:
 
   dom-helpers@5.2.1:
     resolution: {integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==}
+
+  dotenv@17.4.2:
+    resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
+    engines: {node: '>=12'}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -4590,12 +4635,13 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@openuidev/cli@0.2.12(@types/node@22.20.1)':
+  '@openuidev/cli@0.4.0(@types/node@22.20.1)':
     dependencies:
       '@inquirer/core': 11.2.1(@types/node@22.20.1)
       '@inquirer/prompts': 8.7.0(@types/node@22.20.1)
       commander: 14.0.3
       cross-spawn: 7.0.6
+      dotenv: 17.4.2
       esbuild: 0.25.12
       get-port: 7.2.0
       open: 10.2.0
@@ -4605,44 +4651,44 @@ snapshots:
       - '@types/node'
       - rxjs
 
-  '@openuidev/devtools@0.1.2(@openuidev/observability@0.0.4)(@openuidev/react-lang@0.2.15(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@openuidev/devtools@0.2.0(@openuidev/observability@0.0.4)(@openuidev/react-lang@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
       '@openuidev/observability': 0.0.4
       lucide-react: 0.575.0(react@19.2.3)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     optionalDependencies:
-      '@openuidev/react-lang': 0.2.15(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
+      '@openuidev/react-lang': 0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
 
-  '@openuidev/lang-core@0.2.18(zod@4.5.4)':
+  '@openuidev/lang-core@0.3.0(zod@4.5.4)':
     dependencies:
       ci-info: 4.4.0
       zod: 4.5.4
 
   '@openuidev/observability@0.0.4': {}
 
-  '@openuidev/react-headless@0.9.13(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-headless@0.16.2(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@ag-ui/core': 0.0.53
       '@openuidev/observability': 0.0.4
       react: 19.2.3
       zustand: 4.5.7(@types/react@19.2.18)(react@19.2.3)
 
-  '@openuidev/react-lang@0.2.15(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)':
+  '@openuidev/react-lang@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)':
     dependencies:
-      '@openuidev/devtools': 0.1.2(@openuidev/observability@0.0.4)(@openuidev/react-lang@0.2.15(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@openuidev/lang-core': 0.2.18(zod@4.5.4)
+      '@openuidev/devtools': 0.2.0(@openuidev/observability@0.0.4)(@openuidev/react-lang@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@openuidev/lang-core': 0.3.0(zod@4.5.4)
       '@openuidev/observability': 0.0.4
       react: 19.2.3
       zod: 4.5.4
     optionalDependencies:
       react-dom: 19.2.3(react@19.2.3)
 
-  '@openuidev/react-ui@0.13.10(@openuidev/react-headless@0.9.13(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@0.2.15(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-ui@0.16.2(@openuidev/react-headless@0.16.2(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@openuidev/react-headless': 0.9.13(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
-      '@openuidev/react-lang': 0.2.15(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
+      '@openuidev/react-headless': 0.16.2(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+      '@openuidev/react-lang': 0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.5.4)
       '@radix-ui/react-accordion': 1.2.20(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-aspect-ratio': 1.1.15(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-checkbox': 1.3.11(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -4658,6 +4704,7 @@ snapshots:
       '@radix-ui/react-tabs': 1.1.21(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-toggle-group': 1.1.19(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-tooltip': 1.2.16(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@tanstack/react-table': 8.21.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       clsx: 2.1.1
       date-fns: 4.4.0
       lodash-es: 4.18.1
@@ -4674,6 +4721,7 @@ snapshots:
       remark-gfm: 4.0.1
       remark-math: 6.0.0
       tiny-invariant: 1.3.3
+      unist-util-visit: 5.1.0
       zod: 4.5.4
       zustand: 4.5.7(@types/react@19.2.18)(react@19.2.3)
     transitivePeerDependencies:
@@ -5229,6 +5277,14 @@ snapshots:
       tslib: 2.8.1
 
   '@tabby_ai/hijri-converter@1.0.5': {}
+
+  '@tanstack/react-table@8.21.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      '@tanstack/table-core': 8.21.3
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+
+  '@tanstack/table-core@8.21.3': {}
 
   '@tybys/wasm-util@0.10.3':
     dependencies:
@@ -5827,6 +5883,8 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.29.7
       csstype: 3.2.3
+
+  dotenv@17.4.2: {}
 
   dunder-proto@1.0.1:
     dependencies:

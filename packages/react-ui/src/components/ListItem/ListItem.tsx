@@ -2,6 +2,7 @@ import clsx from "clsx";
 import React, { CSSProperties, ReactNode } from "react";
 
 export type ListItemVariant = "icon" | "image" | "number";
+export type ListItemSize = "default" | "small";
 
 export interface ListItemProps {
   className?: string;
@@ -9,6 +10,7 @@ export interface ListItemProps {
   title?: ReactNode;
   subtitle?: ReactNode;
   variant?: ListItemVariant;
+  size?: ListItemSize;
   icon?: ReactNode;
   image?: { src?: string; alt: string };
   index?: number;
@@ -23,6 +25,7 @@ const ListItem = React.forwardRef<HTMLDivElement, ListItemProps>((props, ref) =>
     className,
     style,
     variant = "number",
+    size = "default",
     icon,
     image,
     index = 0,
@@ -42,6 +45,7 @@ const ListItem = React.forwardRef<HTMLDivElement, ListItemProps>((props, ref) =>
       ref={ref}
       className={clsx(
         "openui-list-item-wrapper",
+        size === "small" && "openui-list-item-wrapper--small",
         hasAction && "openui-list-item-wrapper-with-action",
         className,
       )}

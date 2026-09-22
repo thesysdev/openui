@@ -1,5 +1,5 @@
 import { PromptTemplate } from "@openuidev/react-ui";
-import { FileText, Presentation } from "lucide-react";
+import { GitCompareArrows, Search } from "lucide-react";
 
 export const OPENUI_LOGOS = {
   LIGHT: "/openui-cloud-logo-light.svg",
@@ -8,9 +8,9 @@ export const OPENUI_LOGOS = {
 
 export const PROMPT_TEMPLATES: PromptTemplate[] = [
   {
-    displayText: "Create a presentation",
-    prompt: "Create a presentation about ",
-    icon: <Presentation size={16} />,
+    displayText: "Research a topic",
+    prompt: "Research ",
+    icon: <Search size={16} />,
     completions: [
       {
         displayText: "The rise of reusable rockets and commercial spaceflight",
@@ -30,23 +30,23 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
     ],
   },
   {
-    displayText: "Write a report",
-    prompt: "Write a report on ",
-    icon: <FileText size={16} />,
+    displayText: "Compare options",
+    prompt: "Compare ",
+    icon: <GitCompareArrows size={16} />,
     completions: [
       {
-        displayText: "Global coffee market trends and consumer preferences",
-        prompt: "global coffee market trends and consumer preferences",
+        displayText: "Leading electric vehicles for long road trips",
+        prompt: "leading electric vehicles for long road trips",
         icon: <></>,
       },
       {
-        displayText: "The state of the electric vehicle market in 2026",
-        prompt: "the state of the electric vehicle market in 2026",
+        displayText: "Popular frontend frameworks for a new web app",
+        prompt: "popular frontend frameworks for a new web app",
         icon: <></>,
       },
       {
-        displayText: "Global travel trends and emerging destinations",
-        prompt: "global travel trends and emerging destinations",
+        displayText: "Top destinations for a summer vacation",
+        prompt: "top destinations for a summer vacation",
         icon: <></>,
       },
     ],
@@ -60,8 +60,8 @@ export const STARTERS = [
     icon: <></>,
   },
   {
-    displayText: "Create a report on global coffee trends",
-    prompt: "Create a report on global coffee trends.",
+    displayText: "Explore global coffee trends",
+    prompt: "Explore global coffee trends.",
     icon: <></>,
   },
   {

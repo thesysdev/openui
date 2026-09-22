@@ -1,52 +1,57 @@
+/* No surface of its own: the CTA sits straight on the page. The FAQ band below
+   brings its own top gap, so this only tops that up rather than stating the
+   full measure again. */
 .section {
   width: 100%;
-  padding: var(--observability-section-gap, 160px) var(--home-section-padding-inline) 0;
-  background: var(--openui-foreground);
+  padding: var(--observability-section-gap, 160px) var(--home-section-padding-inline)
+    calc(var(--observability-section-gap, 160px) / 2);
 }
 
+/* One centred column, read top to bottom: the ask, the field that answers it,
+   then the terms. A two-column split put the title and the field on opposite
+   sides of 1200px, with the eye crossing the page between reading and acting. */
 .inner {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 48px;
+  gap: 32px;
   width: 100%;
   max-width: 1200px;
   margin-inline: auto;
+  text-align: center;
 }
 
 .copy {
-  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   min-width: 0;
 }
 
-.note {
-  margin: 0.75rem 0 0;
-  font-size: 1.0625rem;
-  line-height: 1.5;
-  color: var(--openui-text-neutral-secondary);
-}
+/* The offer line above the title. inline-flex rather than a run of text, so the
+   mark sits on the line's centre instead of its baseline; the gap replaces the
+   space flex layout drops between the children.
 
-.pricingLink {
-  color: var(--openui-text-neutral-primary);
-  text-decoration: none;
-  border-bottom: 1px solid currentColor;
-  padding-bottom: 1px;
-}
-
-.pricingLink:hover {
-  opacity: 0.7;
-}
-
-.accessNote {
-  margin: 0;
-  color: var(--openui-text-neutral-secondary);
+   Green is the same #049156 the trace diagram's pass marks and the hero's own
+   offer line use. Centred by the column, so it needs no alignment of its own. */
+.offer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+  color: #049156;
   font-size: 0.875rem;
+  font-weight: 600;
   line-height: 1.5;
 }
 
-.accessNote strong {
-  color: var(--openui-text-neutral-primary);
-  font-weight: 600;
+[data-theme="dark"] .offer {
+  /* The solid reads as near-black on the dark ground, so the line lifts. */
+  color: #3ecf8e;
+}
+
+.offerIcon {
+  flex: none;
 }
 
 .title {
@@ -66,45 +71,13 @@
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.formTitle {
-  margin: 0;
-  color: var(--openui-text-neutral-primary);
-  font-family: var(--home-font-display);
-  font-size: var(--home-heading-size);
-  font-weight: var(--home-heading-weight);
-  line-height: var(--home-heading-leading);
-  letter-spacing: var(--home-heading-tracking);
-}
-
-.separator {
-  width: 100%;
-  max-width: 1200px;
-  height: 1px;
-  margin: var(--observability-section-gap, 160px) auto 0;
-  background: var(--home-hairline);
-}
-
-@media (max-width: 1023px) {
-  .inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 32px;
-  }
+  align-items: center;
+  /* The only gap in here, between the field and the link below it. */
+  gap: 20px;
 }
 
 @media (max-width: 767px) {
-  .inner {
-    align-items: center;
-    text-align: center;
-  }
-
   .actions {
-    flex-direction: column;
-    align-items: center;
     width: 100%;
     max-width: 320px;
   }

@@ -296,12 +296,13 @@ Renders the list of the user's threads from `storage.thread` (one row per thread
 
 Renders the active thread's messages, including the in-flight streaming message and the loading indicator. Used inside a custom thread region (typically wrapped in `ScrollArea`).
 
-| Prop               | Type        | Notes                                                                                                   |
-| ------------------ | ----------- | ------------------------------------------------------------------------------------------------------- |
-| `loader`           | `ReactNode` | Custom loading indicator shown while a response is pending. Defaults to `MessageLoading`.               |
-| `assistantMessage` | component   | Override for rendering assistant messages. Mirrors `components.AssistantMessage` on `<AgentInterface>`. |
-| `userMessage`      | component   | Override for rendering user messages. Mirrors `components.UserMessage`.                                 |
-| `className`        | `string`    |                                                                                                         |
+| Prop               | Type                        | Notes                                                                                                                                                                      |
+| ------------------ | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `loader`           | `ReactNode`                 | Custom loading indicator shown while a response is pending. Defaults to `MessageLoading`.                                                                                  |
+| `assistantMessage` | component                   | Override for rendering the turn's assistant answer. Mirrors `components.AssistantMessage` on `<AgentInterface>`.                                 |
+| `userMessage`      | component                   | Override for rendering user messages. Mirrors `components.UserMessage`.                                                                                                    |
+| `toolCallTimeline` | component | Override for the turn's tool timeline from the first activity onward. Mirrors `components.ToolCallTimeline` |
+| `className`        | `string`                    |                                                                                                                                                                            |
 
 ```tsx
 <AgentInterface.ScrollArea>
@@ -309,7 +310,13 @@ Renders the active thread's messages, including the in-flight streaming message 
 </AgentInterface.ScrollArea>
 ```
 
-For full control over per-message rendering, see [Message rendering](/docs/agent/customize/message-rendering).
+Pass overrides directly when composing `Messages`. For example:
+
+```tsx
+<AgentInterface.Messages assistantMessage={MyAssistantMessage} toolCallTimeline={MyResearchSteps} />
+```
+
+Omitting `toolCallTimeline` preserves the built-in timeline. Matched artifact previews remain separate and continue to use `artifactRenderers`. For prop definitions and a complete example, see [Message rendering](/docs/agent/customize/message-rendering#a-custom-tool-timeline).
 
 ### `AgentInterface.MessageLoading`
 

@@ -34,20 +34,46 @@
   width: 100%;
 }
 
-/* Shrinks below the 1200px design width instead of overflowing; the gap above
-   is the floor, space-between distributes anything left over. */
-.featureImage {
+/* The stage: shader behind, artwork on top. Shrinks below the 1200px design
+   width instead of overflowing; the gap above is the floor, space-between
+   distributes anything left over.
+
+   The stroke is the shader's own base colour, so the edge is the same shade as
+   the fill inside it. Keep in step with TONES in FadedDitherCanvas.tsx. */
+.shot {
+  --shot-stroke: #f8f8f8;
+
+  position: relative;
   flex: 0 1 720px;
   align-self: center;
   min-width: 0;
-  width: auto;
-  height: auto;
   aspect-ratio: 720 / 400;
+  overflow: hidden;
+  border: 1px solid var(--shot-stroke);
   border-radius: 24px;
 }
 
+[data-theme="dark"] .shot {
+  --shot-stroke: #0e0e0e;
+}
+
+.shotShader {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.shotShader > * {
+  width: 100%;
+  height: 100%;
+}
+
 .featureImage {
+  position: relative;
+  z-index: 1;
   display: block;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -140,10 +166,9 @@
     gap: 32px;
   }
 
-  .featureImage {
+  .shot {
     flex: 0 0 auto;
     width: 100%;
-    height: auto;
     aspect-ratio: 720 / 400;
   }
 
@@ -167,26 +192,40 @@
     width: calc(100% - 32px);
   }
 
-  .featureImage {
-    order: -1;
-    aspect-ratio: 4 / 3;
-    border-radius: 12px;
-    object-fit: cover;
-  }
-
-  .featureImageTriage {
-    /* The review drawer is the triage story; keep it readable rather than
-       shrinking the entire 1440px console into a phone-width slot. */
-    object-position: 72% center;
-  }
-
-  .featureImageEvals {
-    /* Keeps the selected case and its run history in the crop. */
-    object-position: 58% center;
-  }
-
-  .content {
+  /* One gap governs both sides of the shot, so heading-to-image and
+     image-to-description stay equal by construction. */
+  .card {
     gap: 20px;
+  }
+
+  /* The artwork's own ratio, the same as desktop. A 4/3 stage cut roughly a
+     quarter of the width off every 1.8 screenshot, straight through the UI, and
+     the per-image object-position offsets below it were chasing that crop
+     rather than removing it. */
+  .shot {
+    aspect-ratio: 720 / 400;
+    border-radius: 12px;
+  }
+
+  /* Name the feature, show it, then explain it. display:contents drops .content
+     as a box so its two halves join the card's column and the shot can be
+     ordered between them. The orders are absolute rather than relative, so
+     every card reads the same way whichever side its art takes on desktop. */
+  .content {
+    display: contents;
+  }
+
+  .headingGroup {
+    order: 1;
+  }
+
+  .shot,
+  .shotPlaceholder {
+    order: 2;
+  }
+
+  .bodyGroup {
+    order: 3;
   }
 }
 

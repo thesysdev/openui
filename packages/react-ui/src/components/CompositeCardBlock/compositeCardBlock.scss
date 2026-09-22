@@ -1,0 +1,102 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-composite-card__wrapper {
+  height: 100%;
+}
+
+.openui-composite-card {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-m;
+  min-width: 15rem;
+  height: 100%;
+  padding: cssUtils.$space-m;
+  border: 1px solid cssUtils.$border-default;
+  border-radius: cssUtils.$radius-3xl;
+  box-sizing: border-box;
+  background: cssUtils.$sunk-light;
+
+  &--clickable {
+    background: cssUtils.$foreground;
+    border-color: cssUtils.$border-interactive;
+    box-shadow: cssUtils.$shadow-m;
+    cursor: pointer;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &:hover {
+      transform: scale(0.995);
+      box-shadow: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid cssUtils.$border-accent;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.openui-composite-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-m;
+  flex-shrink: 0;
+}
+
+.openui-composite-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: cssUtils.$space-m;
+  min-height: 0;
+}
+
+// Markdown emphasis must follow the surrounding slot's text sizing — the
+// markdown renderer pins <strong>/<code> to default-size typography, which
+// renders oversized against the cards' small text. font: inherit tracks each
+// slot; the medium weight bump keeps bold visibly bold in regular slots.
+.openui-composite-card .openui-inline-markdown-renderer {
+  strong,
+  em {
+    font: inherit;
+    letter-spacing: inherit;
+  }
+
+  strong,
+  strong em,
+  em strong {
+    font-weight: cssUtils.$font-weight-medium;
+  }
+
+  em,
+  strong em,
+  em strong {
+    font-style: italic;
+  }
+
+  code {
+    // Canonical code-sm typography, one step below the cards' body-sm slots.
+    // line-height hugs the text so the padded chip box nests inside the
+    // surrounding line instead of towering over it.
+    @include cssUtils.typography(code, small);
+    line-height: 1;
+  }
+}
+
+.openui-composite-card__footer {
+  display: flex;
+  flex-shrink: 0;
+  margin-top: auto;
+
+  & > * {
+    width: 100%;
+  }
+}
+
+.openui-composite-card__footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-s;
+  width: 100%;
+}

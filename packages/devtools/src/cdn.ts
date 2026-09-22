@@ -85,7 +85,10 @@ export function mountOpenUIDevtoolsFromCdn(opts: MountFromCdnOptions = {}): () =
           // Closed over this module's graph so the bundler resolves it —
           // the CDN file never imports "@openuidev/react-lang" itself.
           loadReactLang: () => import("@openuidev/react-lang"),
-          props: { ...widgetProps, enabled },
+          props: {
+            ...widgetProps,
+            enabled,
+          },
         });
       };
       if (document.body) attach();

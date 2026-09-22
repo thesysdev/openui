@@ -22,7 +22,11 @@ import {
 import { useAgentInterfaceLabels } from "./_shared/labelsContext";
 import { useAgentInterfaceStore } from "./_shared/store";
 import { TimelineEntry } from "./_shared/tool-renderer";
-import type { AssistantMessageComponent, UserMessageComponent } from "./_shared/types";
+import type {
+  AssistantMessageComponent,
+  ToolCallTimelineComponent,
+  UserMessageComponent,
+} from "./_shared/types";
 
 import { Callout } from "../Callout";
 import { DotMatrixLoader } from "../DotMatrixLoader";
@@ -356,6 +360,7 @@ const InterleavedTurn = ({
   segments,
   allMessages,
   assistantMessage: CustomAssistantMessage,
+  toolCallTimeline: CustomToolCallTimeline,
   className,
   isRunning,
   lastAssistantId,
@@ -363,6 +368,7 @@ const InterleavedTurn = ({
   segments: AssistantMessage[];
   allMessages: Message[];
   assistantMessage?: AssistantMessageComponent;
+  toolCallTimeline?: ToolCallTimelineComponent;
   className?: string;
   isRunning: boolean;
   lastAssistantId: string | null;
@@ -433,15 +439,23 @@ const InterleavedTurn = ({
 
   return (
     <>
-      {turnActivities.length > 0 && (
-        <ToolCallTimeline
-          activities={turnActivities}
-          steps={steps}
-          isLast={turnLive}
-          forceDefault
-          awaitingResponse={turnLive && !answerStarted}
-        />
-      )}
+      {turnActivities.length > 0 &&
+        (CustomToolCallTimeline ? (
+          <CustomToolCallTimeline
+            activities={turnActivities}
+            steps={steps}
+            isLast={turnLive}
+            awaitingResponse={turnLive && !answerStarted}
+          />
+        ) : (
+          <ToolCallTimeline
+            activities={turnActivities}
+            steps={steps}
+            isLast={turnLive}
+            forceDefault
+            awaitingResponse={turnLive && !answerStarted}
+          />
+        ))}
       {matched.map((activity) => (
         <TimelineEntry
           key={activity.id}
@@ -477,6 +491,7 @@ const RenderGroup = ({
   group,
   allMessages,
   assistantMessage: CustomAssistantMessage,
+  toolCallTimeline,
   userMessage,
   className,
   isRunning,
@@ -485,6 +500,7 @@ const RenderGroup = ({
   group: Message[];
   allMessages: Message[];
   assistantMessage?: AssistantMessageComponent;
+  toolCallTimeline?: ToolCallTimelineComponent;
   userMessage?: UserMessageComponent;
   className?: string;
   isRunning: boolean;
@@ -502,6 +518,7 @@ const RenderGroup = ({
       segments={assistants}
       allMessages={allMessages}
       assistantMessage={CustomAssistantMessage}
+      toolCallTimeline={toolCallTimeline}
       className={className}
       isRunning={isRunning}
       lastAssistantId={lastAssistantId}
@@ -526,11 +543,13 @@ export const Messages = ({
   loader,
   assistantMessage,
   userMessage,
+  toolCallTimeline,
 }: {
   className?: string;
   loader?: React.ReactNode;
   assistantMessage?: AssistantMessageComponent;
   userMessage?: UserMessageComponent;
+  toolCallTimeline?: ToolCallTimelineComponent;
 }) => {
   const messages = useThread((s) => s.messages);
   const isRunning = useThread((s) => s.isRunning);
@@ -553,6 +572,7 @@ export const Messages = ({
           allMessages={messages}
           assistantMessage={assistantMessage}
           userMessage={userMessage}
+          toolCallTimeline={toolCallTimeline}
           className={className}
           isRunning={isRunning}
           lastAssistantId={lastAssistantId}

@@ -1,4 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
+import librarySpec from "@/generated/spec.json";
 import { generateSystemPrompt } from "@openuidev/lang-core";
 import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from "ai";
 
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: openai.chat(model),
-    system: generateSystemPrompt({ cloud: true }),
+    system: generateSystemPrompt({ cloud: true, library: librarySpec }),
     messages: await convertToModelMessages(messages),
     tools: appTools,
     stopWhen: stepCountIs(5),

@@ -1,0 +1,13 @@
+# @openuidev/cli
+
+## 0.4.0
+
+### Minor Changes
+
+- [#1174](https://github.com/thesysdev/openui/pull/1174) [`ac1176a`](https://github.com/thesysdev/openui/commit/ac1176a7fcfa52166ba2976b29b7af5e18435a63) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Internal restructure of the CLI: each command is a folder, shared process state is a `CliContext` passed top-down, and telemetry is a `Telemetry` class with typed per-command methods.
+
+  `openui create --help` loads template and backend-framework names from the catalog (bundled keys if the fetch fails). `--template` and `--backend-framework` accept catalog keys only (`openui-cloud`, `openui-self-hosted`, `default`, `langgraph`, `vercel-ai-sdk`, `vercel-eve`); short names like `cloud` and `eve` no longer resolve. `--verbose` is a global flag, so it works before or after the command.
+
+### Patch Changes
+
+- [#1196](https://github.com/thesysdev/openui/pull/1196) [`e66b2e5`](https://github.com/thesysdev/openui/commit/e66b2e5f4e7d6927c8f17e3997ff1219bee54a12) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Stop inferring required deploy API keys from project dependencies.

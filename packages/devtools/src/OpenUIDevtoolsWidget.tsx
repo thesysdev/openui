@@ -28,7 +28,8 @@ import {
   type ThemeTokens,
 } from "./theme";
 import type { DevtoolsPosition, OpenUIDevtoolsWidgetProps } from "./types";
-import { ErrorBoundary, IconButton, ShiroLogo, ThemeSegmented } from "./ui";
+import { ErrorBoundary, IconButton, INTER_FONT_FACE, ShiroLogo, ThemeSegmented } from "./ui";
+import { DeployBanner, DeployHint } from "./ui/DeployHint";
 import ReliabilityBanner from "./ui/ReliabilityBanner";
 
 export type { DevtoolsPosition, OpenUIDevtoolsProps, OpenUIDevtoolsWidgetProps } from "./types";
@@ -144,6 +145,8 @@ export function OpenUIDevtoolsWidget({
 
   return (
     <DevtoolsModeProvider mode={mode}>
+      <style>{INTER_FONT_FACE}</style>
+      <DeployHint position={position} hidden={open || debug.trayOpen} />
       <div style={{ ...styles.toggleWrap, ...rootStyle(mode), ...positionStyles[position] }}>
         <button
           style={{
@@ -204,6 +207,7 @@ export function OpenUIDevtoolsWidget({
 
         <ErrorBoundary title="Inspect ran into a problem">
           <div style={styles.list}>
+            <DeployBanner />
             {visibleEvents.length === 0 ? (
               <div style={styles.empty}>
                 <span style={styles.emptyIcon}>
@@ -485,7 +489,7 @@ function uiStyles(t: ThemeTokens) {
       position: "absolute",
       top: "calc(100% + 6px)",
       right: 0,
-      // Above the banner group, which lifts itself over the list for its fade.
+      // Above the banner group.
       zIndex: 2,
       boxSizing: "border-box",
       width: 236,
@@ -564,7 +568,7 @@ function uiStyles(t: ThemeTokens) {
       fontWeight: 500,
       color: t.fg,
     },
-    // Mirrors bannerFade at the tray's bottom edge, so rows dissolve into the
+    // Fades rows at the tray's bottom edge, so they dissolve into the
     // drawer instead of meeting the border mid-row. Pinned to the tray rather
     // than the list, so it covers the stack-trace view too.
     trayFade: {
@@ -580,7 +584,7 @@ function uiStyles(t: ThemeTokens) {
       flex: 1,
       minHeight: 0,
       overflowY: "auto",
-      padding: 12,
+      padding: "0 12px 12px",
       display: "flex",
       flexDirection: "column",
       gap: 10,
