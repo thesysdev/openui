@@ -124,7 +124,7 @@ export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
         return choice;
       });
 
-      yield held.length ? { ...chunk, choices } : chunk;
+      yield { ...chunk, choices };
       yield* release(chunk, held);
     }
   },
