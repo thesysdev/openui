@@ -1,5 +1,6 @@
 import { fetchSourceFile } from "../../../lib/checkout";
 import { CreateError } from "../../../lib/errors";
+import type { RetryAttemptInfo } from "../../../lib/retry";
 
 export const TEMPLATES_CATALOG_PATH = "templates/templates.json";
 
@@ -62,8 +63,12 @@ function parseTemplatesCatalog(raw: string): CatalogTemplate[] {
 }
 
 /** Prefetch the template catalog from GitHub. */
-export async function loadTemplatesCatalog(): Promise<CatalogTemplate[]> {
-  const { content } = await fetchSourceFile(TEMPLATES_CATALOG_PATH);
+export async function loadTemplatesCatalog(
+  opts: {
+    onRetry?: (info: RetryAttemptInfo) => void;
+  } = {},
+): Promise<CatalogTemplate[]> {
+  const { content } = await fetchSourceFile(TEMPLATES_CATALOG_PATH, { onRetry: opts.onRetry });
   return parseTemplatesCatalog(content);
 }
 

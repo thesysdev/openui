@@ -1,8 +1,10 @@
 import * as fs from "node:fs";
 
+import { localSourceDir } from "../../lib/checkout";
 import type { CliContext } from "../../lib/context";
 import { resolveInstallPackageManager } from "../../lib/detect-package-manager";
 import { cliErrorProperties, CreateError, processErrorProperties } from "../../lib/errors";
+import { ensureGitAvailable } from "../../lib/git-preflight";
 import { applyScaffoldFiles, resolveTemplateSource } from "../../lib/scaffold";
 import { withSpinner } from "../../lib/spinner";
 import { runCreateExample } from "./lib/create-example";
@@ -25,7 +27,7 @@ import {
   resolveImmediate,
   resolveProjectIdentity,
 } from "./lib/resolve";
-import { aiSetupFromTemplate, CreateTelemetryClient } from "./lib/telemetry";
+import { aiSetupFromTemplate, CreateTelemetryClient, retryReporter } from "./lib/telemetry";
 import { findCatalogOverlay } from "./lib/templates-catalog";
 
 export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): Promise<void> {
@@ -46,11 +48,14 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
     immediate_arg: options.immediate,
   });
 
+  if (!localSourceDir()) await ensureGitAvailable();
+  const sourceRetryReporter = retryReporter(tel, "source_checkout");
   const catalog = await loadCreateCatalog({
     example: options.example,
     template: options.template,
     backendFramework: options.backendFramework,
     interactive,
+    onRetry: sourceRetryReporter,
   });
   const { name, targetDir } = await resolveProjectIdentity(options.name, interactive, tel);
 
@@ -123,7 +128,9 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
 
   let overlay: TemplateOverlay | undefined;
   const runScaffold = async () => {
-    const { dir: templateDir } = await resolveTemplateSource(template);
+    const { dir: templateDir } = await resolveTemplateSource(template, {
+      onRetry: sourceRetryReporter,
+    });
     tel.trackScaffoldStarted({ template, ai_setup: aiSetup });
     try {
       overlay = applyScaffoldFiles({

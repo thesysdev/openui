@@ -1,5 +1,6 @@
 import { CliCancelledError, CreateError } from "../../../lib/errors";
 import { resolveArgs } from "../../../lib/resolve-args";
+import type { RetryAttemptInfo } from "../../../lib/retry";
 import type { OverlayName, TemplateName } from "./create-types";
 import {
   findExample,
@@ -40,8 +41,9 @@ export async function loadCreateCatalog(params: {
   template?: TemplateName;
   backendFramework?: OverlayName;
   interactive: boolean;
+  onRetry?: (info: RetryAttemptInfo) => void;
 }): Promise<CreateCatalog> {
-  const { example, template: requestedTemplate, backendFramework, interactive } = params;
+  const { example, template: requestedTemplate, backendFramework, interactive, onRetry } = params;
 
   rejectConflictingScaffoldSelectors({
     example,
@@ -61,13 +63,16 @@ export async function loadCreateCatalog(params: {
   }
 
   if (example) {
-    const examples = await loadExamplesCatalog();
+    const examples = await loadExamplesCatalog({ onRetry });
     findExample(example, examples);
     return { examples };
   }
 
   if (interactive) {
-    const [catalog, examples] = await Promise.all([loadTemplatesCatalog(), loadExamplesCatalog()]);
+    const [catalog, examples] = await Promise.all([
+      loadTemplatesCatalog({ onRetry }),
+      loadExamplesCatalog({ onRetry }),
+    ]);
     const template = requestedTemplate ?? DEFAULT_TEMPLATE_KEY;
     const templateEntry = findCatalogTemplate(catalog, template);
     if (backendFramework) {
@@ -76,7 +81,7 @@ export async function loadCreateCatalog(params: {
     return { examples, template, templateEntry };
   }
 
-  const catalog = await loadTemplatesCatalog();
+  const catalog = await loadTemplatesCatalog({ onRetry });
   const template = requestedTemplate ?? DEFAULT_TEMPLATE_KEY;
   const templateEntry = findCatalogTemplate(catalog, template);
   if (backendFramework) {

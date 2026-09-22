@@ -1,4 +1,6 @@
 import { AuthTelemetryClient } from "../../../lib/auth/telemetry";
+import { cliErrorProperties } from "../../../lib/errors";
+import type { RetryAttemptInfo } from "../../../lib/retry";
 import { Telemetry } from "../../../lib/telemetry";
 import type { AiSetup, TemplateName } from "./create-types";
 
@@ -221,6 +223,17 @@ export class CreateTelemetryClient extends Telemetry {
     });
   }
 
+  trackNetworkRetry(props: {
+    failure_stage: string;
+    attempt: number;
+    max_attempts: number;
+    delay_ms: number;
+    error_class: string;
+    error_code: string;
+  }) {
+    this.capture("cli_network_retry", props);
+  }
+
   trackSkillInstallStarted(props: { skill_installed: boolean }) {
     this.capture("cli_skill_install_started", {
       ...createFunnelProps("skill_install_started"),
@@ -265,4 +278,21 @@ export class CreateTelemetryClient extends Telemetry {
   }) {
     this.capture("cli_target_exists", props);
   }
+}
+
+export function retryReporter(
+  tel: CreateTelemetryClient,
+  stage: string,
+): (info: RetryAttemptInfo) => void {
+  return (info) => {
+    const properties = cliErrorProperties(info.error);
+    tel.trackNetworkRetry({
+      failure_stage: stage,
+      attempt: info.attempt,
+      max_attempts: info.maxAttempts,
+      delay_ms: info.delayMs,
+      error_class: properties.error_class,
+      error_code: properties.error_code,
+    });
+  };
 }

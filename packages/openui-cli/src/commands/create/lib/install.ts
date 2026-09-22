@@ -3,11 +3,17 @@ import * as path from "node:path";
 
 import { printLogTail, QUIET_COMMAND_CAPTURE_LIMIT } from "../../../lib/command-output";
 import type { PackageManager } from "../../../lib/detect-package-manager";
-import { CliCancelledError, CreateError, processErrorProperties } from "../../../lib/errors";
+import {
+  CliCancelledError,
+  cliErrorProperties,
+  CreateError,
+  processErrorProperties,
+} from "../../../lib/errors";
 import { mutedNpmEnv, runCommand } from "../../../lib/process-runner";
+import { isNetworkError, withRetry } from "../../../lib/retry";
 import { withSpinner } from "../../../lib/spinner";
 import type { OverlayName, TemplateName } from "./create-types";
-import type { CreateTelemetryClient } from "./telemetry";
+import { retryReporter, type CreateTelemetryClient } from "./telemetry";
 
 export function resolveInstallInvocation(params: {
   backendFramework: OverlayName;
@@ -82,53 +88,67 @@ export async function installProjectDependencies(params: {
   if (verbose) {
     console.info(`Installing dependencies with: ${installCmd}\n`);
   }
-  const installResult = verbose
-    ? await runInstall()
-    : await withSpinner("Installing dependencies...", runInstall);
-  if (!installResult.error && installResult.status === 0) {
+  const attemptInstall = async () => {
+    const result = await runInstall();
+    if (!result.error && result.status === 0) return result;
+
     if (!verbose) {
-      console.info("✓ Dependencies installed");
+      printLogTail(result.diagnosticTail, "install log (tail)");
     }
-    tel.trackDependencyInstallSucceeded({
-      template,
-      ai_setup: aiSetup,
-      dependency_installed: true,
+    const properties = processErrorProperties(result, "dependency_install", {
+      error_class: "dependency",
+      error_code: "NONZERO_EXIT",
     });
-    return true;
+    if (properties.error_class === "user_cancelled") {
+      tel.trackDependencyInstallCancelled({
+        template,
+        ai_setup: aiSetup,
+        dependency_installed: false,
+        ...properties,
+      });
+      throw new CliCancelledError(
+        "dependency_install",
+        properties.cancellation_exit_code ?? 0,
+        properties,
+      );
+    }
+    const { failure_stage, error_class, error_code, ...metadata } = properties;
+    throw new CreateError(
+      failure_stage,
+      "dependency install failed",
+      error_class,
+      error_code,
+      metadata,
+    );
+  };
+
+  try {
+    const runWithRetry = () =>
+      withRetry(attemptInstall, {
+        shouldRetry: isNetworkError,
+        onRetry: retryReporter(tel, "dependency_install"),
+        label: "Dependency install",
+      });
+    await (verbose ? runWithRetry() : withSpinner("Installing dependencies...", runWithRetry));
+  } catch (err) {
+    if (!(err instanceof CliCancelledError)) {
+      tel.trackDependencyInstallFailed({
+        template,
+        ai_setup: aiSetup,
+        dependency_installed: false,
+        ...cliErrorProperties(err),
+      });
+    }
+    throw err;
   }
 
   if (!verbose) {
-    printLogTail(installResult.diagnosticTail, "install log (tail)");
+    console.info("✓ Dependencies installed");
   }
-  const properties = processErrorProperties(installResult, "dependency_install", {
-    error_class: "dependency",
-    error_code: "NONZERO_EXIT",
-  });
-  if (properties.error_class === "user_cancelled") {
-    tel.trackDependencyInstallCancelled({
-      template,
-      ai_setup: aiSetup,
-      dependency_installed: false,
-      ...properties,
-    });
-    throw new CliCancelledError(
-      "dependency_install",
-      properties.cancellation_exit_code ?? 0,
-      properties,
-    );
-  }
-  tel.trackDependencyInstallFailed({
+  tel.trackDependencyInstallSucceeded({
     template,
     ai_setup: aiSetup,
-    dependency_installed: false,
-    ...properties,
+    dependency_installed: true,
   });
-  const { failure_stage, error_class, error_code, ...metadata } = properties;
-  throw new CreateError(
-    failure_stage,
-    "dependency install failed",
-    error_class,
-    error_code,
-    metadata,
-  );
+  return true;
 }
