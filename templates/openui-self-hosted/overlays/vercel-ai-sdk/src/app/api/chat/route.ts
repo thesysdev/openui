@@ -3,15 +3,7 @@ import { promptOptions } from "@/lib/prompt-options";
 import { getWeather, WEATHER_TOOL_DESCRIPTION } from "@/lib/tools/get-weather";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateSystemPrompt } from "@openuidev/lang-core";
-import {
-  convertToModelMessages,
-  createUIMessageStreamResponse,
-  stepCountIs,
-  streamText,
-  toUIMessageStream,
-  tool,
-  type UIMessage,
-} from "ai";
+import { convertToModelMessages, stepCountIs, streamText, tool, type UIMessage } from "ai";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -48,7 +40,5 @@ export async function POST(req: Request) {
 
   // Preserve the AI SDK's native UIMessage stream. The frontend adapter uses
   // the AI SDK itself to decode it before mapping chunks into OpenUI events.
-  return createUIMessageStreamResponse({
-    stream: toUIMessageStream({ stream: result.stream }),
-  });
+  return result.toUIMessageStreamResponse();
 }
