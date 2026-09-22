@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "generate:prompts": "pnpm --filter @openuidev/cli build && pnpm exec openui generate lib/chat-library.ts --out generated/chat-system-prompt.txt && pnpm exec openui generate lib/playground-library.ts --out generated/playground-system-prompt.txt && pnpm exec openui generate lib/playground-library.ts --json-schema --out generated/playground-component-spec.json",
+    "generate:prompts": "pnpm --filter @openuidev/cli build && pnpm exec openui generate lib/chat-library.ts --spec --out generated/chat-library.spec.json && pnpm exec openui generate lib/playground-library.ts --spec --out generated/playground-library.spec.json",
     "fetch:tweets": "node scripts/fetch-static-tweets.mjs",
     "build": "next build --no-mangling",
     "dev": "pnpm generate:prompts && next dev",

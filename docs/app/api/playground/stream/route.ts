@@ -3,14 +3,20 @@ import {
   isDemoCreditsExhaustedError,
 } from "@/lib/demo-credits";
 import { BASE_URL } from "@/lib/source";
+import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
+import { openuiExamples } from "@openuidev/react-ui/genui-lib/prompt-options";
 import { readFileSync } from "fs";
 import { type NextRequest } from "next/server";
 import { join } from "path";
 
-const systemPrompt = readFileSync(
-  join(process.cwd(), "generated/playground-system-prompt.txt"),
-  "utf-8",
-);
+const librarySpec = JSON.parse(
+  readFileSync(join(process.cwd(), "generated/playground-library.spec.json"), "utf-8"),
+) as LibrarySpec;
+
+const systemPrompt = generateSystemPrompt({
+  library: librarySpec,
+  promptOptions: { examples: openuiExamples },
+});
 
 const conversationLog: Array<{ role: string; content: string }> = [];
 
