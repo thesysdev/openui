@@ -1,4 +1,5 @@
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import Image from "next/image";
 import { BevelButton } from "../../components/Button/BevelButton";
 import styles from "./AutofixSection.module.css";
 
@@ -16,12 +17,12 @@ export function AutofixSection({
       <div className={styles.banner}>
         <div className={styles.copy}>
           <Heading className={styles.title}>
-            <span className={styles.titleLine}>Already have a model stack?</span>
-            <span className={styles.titleLine}>Add the repair layer.</span>
+            <span className={styles.titleLine}>Keep your existing model provider,</span>
+            <span className={styles.titleLine}>Add reliability with Autofix.</span>
           </Heading>
           <p className={styles.description}>
-            Autofix fixes invalid generations before users see them,
-            <span className={styles.descriptionLine}>with one API call.</span>
+            One Autofix API call repairs invalid output before it reaches your users. Keep your
+            provider and model calls.
           </p>
           <BevelButton
             className={styles.cta}
@@ -37,7 +38,24 @@ export function AutofixSection({
           role="img"
           aria-label="Invalid generated output corrected into valid UI by Autofix"
         >
-          <span className={styles.illustration} aria-hidden="true" />
+          <div className={styles.illustration} aria-hidden="true">
+            <Image
+              className={`${styles.illustrationImage} ${styles.illustrationImageLight}`}
+              src="/images/gateway/autofix-illustration-light.webp"
+              alt=""
+              width={1940}
+              height={636}
+              unoptimized
+            />
+            <Image
+              className={`${styles.illustrationImage} ${styles.illustrationImageDark}`}
+              src="/images/gateway/autofix-illustration-dark.webp"
+              alt=""
+              width={1940}
+              height={636}
+              unoptimized
+            />
+          </div>
         </div>
       </div>
     </section>

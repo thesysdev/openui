@@ -53,8 +53,8 @@
   font-family: var(--home-font-display);
   font-size: clamp(1rem, 1.5vw, 1.375rem);
   font-weight: var(--home-title-weight);
-  line-height: 1.08;
-  letter-spacing: -0.02em;
+  line-height: var(--home-title-leading);
+  letter-spacing: var(--home-title-tracking);
   text-wrap: balance;
 }
 
@@ -71,10 +71,6 @@
   line-height: 1.5;
   color: var(--autofix-muted);
   text-wrap: pretty;
-}
-
-.descriptionLine {
-  display: block;
 }
 
 .cta {
@@ -104,31 +100,41 @@
 
 .illustration {
   position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.illustrationImage {
+  position: absolute;
   top: 50%;
   right: 0;
   display: block;
-  width: calc(100% - 12px);
-  aspect-ratio: 3 / 1;
+  width: min(100%, 40.411rem);
+  max-width: none;
+  height: auto;
   transform: translateY(-50%);
-  background-image:
-    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2"),
-    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2");
-  background-position:
-    left center,
-    left center;
-  background-repeat: no-repeat;
-  background-size: contain, contain;
 }
 
-.section:not(.cloud) .illustration {
-  background-image:
-    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2"),
-    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2");
-  background-position:
-    left center,
-    left center;
-  background-size: contain, contain;
-  filter: invert(1) hue-rotate(180deg) saturate(1.55) contrast(0.92) brightness(1.14);
+.illustrationImageDark {
+  display: none;
+}
+
+.cloud .illustrationImageLight,
+[data-theme="dark"] .section:not(.cloud) .illustrationImageLight {
+  display: none;
+}
+
+.cloud .illustrationImageDark,
+[data-theme="dark"] .section:not(.cloud) .illustrationImageDark {
+  display: block;
+}
+
+[data-theme="dark"] .cloud .illustrationImageLight {
+  display: block;
+}
+
+[data-theme="dark"] .cloud .illustrationImageDark {
+  display: none;
 }
 
 [data-theme="dark"] .section:not(.cloud) {
@@ -136,33 +142,11 @@
   --autofix-border: rgba(255, 255, 255, 0.075);
 }
 
-[data-theme="dark"] .section:not(.cloud) .illustration {
-  background-image:
-    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2"),
-    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2");
-  background-position:
-    left center,
-    left center;
-  background-size: contain, contain;
-  filter: none;
-}
-
 [data-theme="dark"] .cloud {
   --autofix-text: #0a0a0a;
   --autofix-muted: rgba(10, 10, 10, 0.58);
   --autofix-surface: #fff;
   --autofix-border: rgba(10, 10, 10, 0.075);
-}
-
-[data-theme="dark"] .cloud .illustration {
-  background-image:
-    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2"),
-    url("https://www.thesys.dev/homepage-may26/openui-api/error-correction.svg?v=20260524-2");
-  background-position:
-    left center,
-    left center;
-  background-size: contain, contain;
-  filter: invert(1) hue-rotate(180deg) saturate(1.55) contrast(0.92) brightness(1.14);
 }
 
 [data-theme="dark"] .cloud .cta {
@@ -214,16 +198,13 @@
     line-height: 21px;
   }
 
-  .descriptionLine {
-    display: inline;
-    white-space: nowrap;
-  }
-
   .visual {
-    min-height: 8rem;
+    min-height: 8.5rem;
   }
 
-  .illustration {
-    width: calc(100% - 12px);
+  .illustrationImage {
+    right: auto;
+    left: 0;
+    width: max(100%, 26rem);
   }
 }
