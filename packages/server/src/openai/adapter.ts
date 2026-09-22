@@ -20,9 +20,6 @@ export function correctionChunk(
     object: template.object,
     created: template.created,
     model: template.model,
-    ...(template.system_fingerprint !== undefined && {
-      system_fingerprint: template.system_fingerprint,
-    }),
     ...(template.service_tier !== undefined && { service_tier: template.service_tier }),
     choices: [
       {
