@@ -3,7 +3,7 @@ title: Autofix API
 description: Fix invalid OpenUI Lang from any model with one API call.
 ---
 
-The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send the conversation with the generation as the last assistant turn, and the answer carries valid OpenUI Lang. Use it when your application is not using OpenUI Gateway. Gateway generation that already uses `generateSystemPrompt({ cloud: true, library })` is repaired while it streams; do not wrap it in Autofix.
+The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send the conversation with the generation as the last assistant turn, and the answer carries valid OpenUI Lang. Use it when your application is not using OpenUI Gateway. Gateway generation that already uses `generateSystemPrompt({ cloud: true, library })` is repaired while it streams.
 
 **Endpoint:** `POST https://api.thesys.dev/v1/autofix`
 
