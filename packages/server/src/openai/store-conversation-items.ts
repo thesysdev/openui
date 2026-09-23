@@ -11,9 +11,8 @@ import type {
   ResponseInputItem,
   ResponseInputMessageContentList,
 } from "openai/resources/responses/responses";
-import type { StoreChatCompletionHistoryOptions } from "./types";
-
-const THESYS_API_BASE_URL = "https://api.thesys.dev";
+import { THESYS_API_BASE_URL } from "../shared/constants.js";
+import type { StoreChatCompletionHistoryOptions } from "./types.js";
 
 function userContentOf(
   content: ChatCompletionUserMessageParam["content"],

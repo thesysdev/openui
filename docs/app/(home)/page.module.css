@@ -1,4 +1,14 @@
+/* The design system's light --openui-foreground is rgb(253,253,253), two levels
+   off white. Sections that paint pure #fff sit on it and the step reads as a
+   faint frame around them, so this page takes the token to white instead.
+
+   Scoped to this element on purpose. The token is declared in the react-ui
+   package and read in 167 places across the site, and .homeTheme covers all
+   thirteen marketing routes; setting it here keeps the change to the home page
+   while everything below still goes through the token rather than a literal. */
 .page {
+  --openui-foreground: #fff;
+
   position: relative;
   min-height: 100vh;
   width: 100%;
@@ -85,12 +95,24 @@
     padding-block: 4rem;
   }
 
+  /* The feature grid states the Lang band's own capabilities, so it should read
+     as part of that band. The shell's gap is the measure between unrelated
+     sections, which is too much here; this pulls the grid back up under it. */
+  .langBand {
+    margin-bottom: -3.75rem;
+  }
+
   .faqBand {
     padding-inline: 1.25rem;
   }
 }
 
 /* Keep the main page field solid in both themes. */
+/* Dark mode keeps the package's own value, so only the light one is pinned. */
+[data-theme="dark"] .page {
+  --openui-foreground: oklch(0.205 0 0 / 1);
+}
+
 [data-theme="dark"] .page,
 [data-theme="dark"] .heroShell {
   background: #000;

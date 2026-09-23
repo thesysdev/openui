@@ -2,6 +2,7 @@
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import { BevelButton } from "../../components/Button/BevelButton";
+import { FadedDither } from "../../components/FadedDither/FadedDither";
 import { SectionHeader } from "../../components/SectionHeader/SectionHeader";
 import { ProductLabel, ProductSection } from "../ProductSection/ProductSection";
 import { GATEWAY_PRODUCT } from "../ProductSection/products";
@@ -33,6 +34,10 @@ export function CloudSection() {
           <ProductSection {...GATEWAY_PRODUCT} />
         </div>
 
+        {/* Divides the two bands. It carries the whole gap between them, so the
+            band below no longer sets a top margin of its own. */}
+        <div aria-hidden="true" className={styles.bandSeparator} />
+
         <div id="openui-observability-card" className={styles.observabilityBand}>
           <div className={styles.observabilityCopy}>
             <div className={styles.observabilityLead}>
@@ -50,7 +55,7 @@ export function CloudSection() {
                 className={styles.observabilityCta}
                 variant="primary"
                 href="/cloud/observability"
-                label="Join waitlist"
+                label="Get Early Access"
                 badge={<ArrowRight size={16} weight="bold" />}
               />
             </div>
@@ -64,28 +69,61 @@ export function CloudSection() {
             role="img"
             aria-label="OpenUI Observability session replay showing the exact generated interface and user interactions"
           >
-            <Image
-              className={`${styles.observabilityImage} ${styles.observabilityImageLight}`}
-              src="/openui-observability/session-replay-light.webp"
-              alt=""
-              aria-hidden="true"
-              width={2880}
-              height={1804}
-              quality={95}
-              unoptimized
-              sizes="(max-width: 1023px) calc(100vw - 80px), 520px"
-            />
-            <Image
-              className={`${styles.observabilityImage} ${styles.observabilityImageDark}`}
-              src="/openui-observability/session-replay-dark.webp"
-              alt=""
-              aria-hidden="true"
-              width={2880}
-              height={1804}
-              quality={95}
-              unoptimized
-              sizes="(max-width: 1023px) calc(100vw - 80px), 520px"
-            />
+            {/* The Cloud band is dark, so the shader follows it: black ground in
+                light theme, white when the band inverts. */}
+            <FadedDither band="dark" className={styles.observabilityShader} />
+            {/* Light and dark refer to the picture's own tone. The band is black
+                in light theme and inverts to white in dark theme, so the rules
+                in the stylesheet pick the one that suits the ground.
+
+                Two pairs, each in a wrapper the breakpoint switches off. The
+                phone artwork is its own drawing at 1440x1200 rather than the
+                wide one cropped, and the wrapper is display:contents when
+                shown, so the theme rules still reach the images. */}
+            <span className={styles.observabilityWide}>
+              <Image
+                className={`${styles.observabilityImage} ${styles.observabilityImageLight}`}
+                src="/homepage/observability-light.webp"
+                alt=""
+                aria-hidden="true"
+                width={2240}
+                height={880}
+                quality={95}
+                sizes="(max-width: 1023px) calc(100vw - 80px), 1120px"
+              />
+              <Image
+                className={`${styles.observabilityImage} ${styles.observabilityImageDark}`}
+                src="/homepage/observability-dark.webp"
+                alt=""
+                aria-hidden="true"
+                width={2240}
+                height={880}
+                quality={95}
+                sizes="(max-width: 1023px) calc(100vw - 80px), 1120px"
+              />
+            </span>
+            <span className={styles.observabilityCompact}>
+              <Image
+                className={`${styles.observabilityImage} ${styles.observabilityImageLight}`}
+                src="/homepage/observability-mobile-light.webp"
+                alt=""
+                aria-hidden="true"
+                width={1440}
+                height={1200}
+                quality={95}
+                sizes="calc(100vw - 40px)"
+              />
+              <Image
+                className={`${styles.observabilityImage} ${styles.observabilityImageDark}`}
+                src="/homepage/observability-mobile-dark.webp"
+                alt=""
+                aria-hidden="true"
+                width={1440}
+                height={1200}
+                quality={95}
+                sizes="calc(100vw - 40px)"
+              />
+            </span>
           </div>
         </div>
       </div>

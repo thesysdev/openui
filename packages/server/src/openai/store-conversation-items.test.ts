@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   chatCompletionMessagesToItems,
   storeChatCompletionHistory,
-} from "./store-chat-completion-history";
+} from "./store-conversation-items";
 
 describe("chatCompletionMessagesToItems", () => {
   it("maps user and assistant text into Conversations message items", () => {

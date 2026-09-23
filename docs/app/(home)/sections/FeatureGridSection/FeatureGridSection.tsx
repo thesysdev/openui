@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  ArrowsClockwise,
+  ArrowsLeftRight,
   ArrowUpRight,
   Broadcast,
   ChartLineUp,
@@ -10,10 +12,14 @@ import {
   Devices,
   Handshake,
   Key,
+  MagnifyingGlass,
+  PlayCircle,
   Plugs,
   Pulse,
   PuzzlePiece,
   ShieldCheck,
+  WarningDiamond,
+  Wrench,
   type Icon,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
@@ -69,6 +75,14 @@ const FEATURES: GridFeature[] = [
 const FEATURE_ICONS = {
   chart: ChartLineUp,
   cloud: CloudArrowUp,
+  /* Keys, not components: a server component can name one of these, but cannot
+     pass a component across the boundary into this client module. */
+  refresh: ArrowsClockwise,
+  replay: PlayCircle,
+  repair: Wrench,
+  search: MagnifyingGlass,
+  swap: ArrowsLeftRight,
+  warning: WarningDiamond,
   database: Database,
   devices: Devices,
   handshake: Handshake,
@@ -86,6 +100,7 @@ export function FeatureGridSection({
   lead,
   showHeader = true,
   showHeaderSeparator = true,
+  showCompatSeparator = true,
   showCompat = true,
   compatFirst = false,
   gridFirst = false,
@@ -106,6 +121,8 @@ export function FeatureGridSection({
   showHeader?: boolean;
   /** The rule under that header. Off when there is no grid for it to divide. */
   showHeaderSeparator?: boolean;
+  /** The rule above the compatibility band when it follows the grid. */
+  showCompatSeparator?: boolean;
   /** The "Works with your stack" compatibility band (OpenUI-specific). */
   showCompat?: boolean;
   /** Put that band above the header instead of below the grid. */
@@ -218,7 +235,7 @@ export function FeatureGridSection({
       {!gridFirst && gridBlock}
       {!compatFirst && compatBand && (
         <>
-          <div className={styles.separator} />
+          {showCompatSeparator && <div className={styles.separator} />}
           {compatBand}
         </>
       )}

@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/server",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Server utilities for OpenUI & OpenUI Gateway",
   "license": "MIT",
   "engines": {
@@ -24,6 +24,26 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
+      }
+    },
+    "./openai": {
+      "import": {
+        "types": "./dist/openai/index.d.mts",
+        "default": "./dist/openai/index.mjs"
+      },
+      "require": {
+        "types": "./dist/openai/index.d.cts",
+        "default": "./dist/openai/index.cjs"
+      }
+    },
+    "./vercel": {
+      "import": {
+        "types": "./dist/vercel/index.d.mts",
+        "default": "./dist/vercel/index.mjs"
+      },
+      "require": {
+        "types": "./dist/vercel/index.d.cts",
+        "default": "./dist/vercel/index.cjs"
       }
     }
   },
@@ -56,9 +76,23 @@
     "url": "https://github.com/thesysdev/openui/issues"
   },
   "author": "engineering@thesys.dev",
+  "dependencies": {
+    "@openuidev/lang-core": "workspace:^"
+  },
   "devDependencies": {
-    "openai": "^6.22.0",
+    "ai": "^7.0.10",
+    "openai": "^7.20.0",
     "tsdown": "^0.21.7",
     "vitest": "^4.1.0"
+  },
+  "typesVersions": {
+    "*": {
+      "openai": [
+        "dist/openai/index.d.cts"
+      ],
+      "vercel": [
+        "dist/vercel/index.d.cts"
+      ]
+    }
   }
 }

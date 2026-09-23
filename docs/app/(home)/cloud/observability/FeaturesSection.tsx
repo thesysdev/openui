@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { FadedDither } from "../../components/FadedDither/FadedDither";
 import { SectionHeader } from "../../components/SectionHeader/SectionHeader";
 import styles from "./FeaturesSection.module.css";
 
@@ -54,7 +55,12 @@ function FeatureShot({ shot, alt }: { shot?: string; alt: string }) {
   const imageHeight = shot === "session-replay" ? 1804 : 1600;
 
   return (
-    <>
+    /* Shader behind, artwork on top, the same three-layer stage the home page's
+       product bands use. The shots carry a transparent margin, so the texture
+       reads around them. band="light" because these cards sit straight on the
+       page, which is white on a light theme and black on a dark one. */
+    <div className={styles.shot}>
+      <FadedDither band="light" className={styles.shotShader} />
       <Image
         className={`${styles.featureImage} ${styles.featureImageLight} ${focalClass}`.trim()}
         src={`/openui-observability/${shot}-light.webp`}
@@ -76,7 +82,7 @@ function FeatureShot({ shot, alt }: { shot?: string; alt: string }) {
         unoptimized
         sizes="(max-width: 767px) calc(100vw - 32px), 720px"
       />
-    </>
+    </div>
   );
 }
 
@@ -90,20 +96,21 @@ type Feature = {
 };
 
 /* One loop, in order: see it, find the ones worth seeing, mark what is wrong,
-   stop it recurring. Read as four steps rather than four capabilities, so each
-   one hands to the next and the last leaves the product entirely.
+   stop it recurring, then decide what to build next. Read as steps rather than
+   capabilities, so each one hands to the next.
 
-   Timeline folded into step one — following the journey is part of seeing what
-   the user saw, not a separate screen. Insights folded into step two as a single
-   clause: the demand signal comes from the same view you triage in, and giving
-   it its own step would break the loop. */
+   Timeline is folded into step one, since following the journey is part of
+   seeing what the user saw rather than a separate screen. Insights used to be
+   folded into Triage on the same reasoning, but the two answer different
+   questions: Triage is which session to open, Insights is what recurs across
+   all of them, so it closes the loop instead of sitting inside step two. */
 const FEATURES: Feature[] = [
   {
     title: "Session replay",
     shot: "session-replay",
     headline: (
       <>
-        See every
+        Understand every
         <br />
         user session
       </>
@@ -115,9 +122,9 @@ const FEATURES: Feature[] = [
     shot: "triage-figma",
     headline: (
       <>
-        Find sessions
+        Discover sessions
         <br />
-        worth opening
+        worth investigating
       </>
     ),
     description:
@@ -147,6 +154,18 @@ const FEATURES: Feature[] = [
     ),
     description: "Turn production failures into evals that catch regressions before release.",
   },
+  {
+    title: "Insights",
+    shot: "insights",
+    headline: (
+      <>
+        Discover what to
+        <br />
+        build next
+      </>
+    ),
+    description: "Aggregate demand across every session to see which needs recur and how often.",
+  },
 ];
 
 export function FeaturesSection() {
@@ -156,7 +175,7 @@ export function FeaturesSection() {
         <SectionHeader
           titleId="observability-features"
           title="Product analytics for AI agents"
-          subtitle="not just traces"
+          subtitle="that goes beyond traces"
           caption={
             <>
               Connect each response to what users saw, <br className={styles.captionBreak} />

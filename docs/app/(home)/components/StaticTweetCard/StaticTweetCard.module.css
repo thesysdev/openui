@@ -5,7 +5,12 @@
   border: 1px solid var(--home-hairline);
   border-radius: 12px;
   background: var(--openui-foreground);
-  box-shadow: var(--home-shadow-card);
+  /* Local override of --home-shadow-card: wider and much softer than the shared
+     card shadow, so the wall reads as floating cards rather than outlined ones.
+     Kept here because three other sections still want the tighter shared one. */
+  box-shadow:
+    0 2px 6px rgba(22, 34, 51, 0.03),
+    0 10px 28px rgba(22, 34, 51, 0.045);
   color: var(--openui-text-neutral-primary);
   font-family: var(--home-font-text);
   text-decoration: none;

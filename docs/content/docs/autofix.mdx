@@ -22,14 +22,120 @@ flowchart LR
 `}
 />
 
-## Detect an invalid generation
+## Use the server package
 
-Parse the generation with `@openuidev/lang-core` before you call the API. It is the same check the API runs first, so a generation that passes here would come back as `already_valid`. Skip the call when nothing is wrong.
+Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or `@openuidev/server/vercel` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
+
+```ts title="lib/autofix.ts" tab="OpenAI" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/openai";
+import library from "./openui.spec.json";
+
+export const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
+```ts title="lib/autofix.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/vercel";
+import library from "./openui.spec.json";
+
+export const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
+```ts title="lib/autofix.ts" tab="Non-streaming" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/openai";
+// import { createAutofix } from "@openuidev/server/vercel";
+import library from "./openui.spec.json";
+
+export const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
+```ts title="app/api/chat/route.ts" tab="OpenAI" tab-group="autofix-sdk"
+import OpenAI from "openai";
+import { autofix } from "../../../lib/autofix";
+
+const model = new OpenAI();
+
+export async function POST(request: Request) {
+  const { messages } = await request.json();
+  const source = await model.chat.completions.create(
+    { model: "openai/gpt-5.5", messages, stream: true },
+    { signal: request.signal },
+  );
+
+  return autofix.completions
+    .stream({ stream: source, messages, signal: request.signal })
+    .toResponse();
+}
+```
+
+```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
+import { streamText, toUIMessageStream } from "ai";
+import { autofix } from "../../../lib/autofix";
+
+export async function POST(request: Request) {
+  const { messages } = await request.json();
+  const result = streamText({
+    model: "openai/gpt-5.5",
+    system: systemPrompt, // Generated from the same OpenUI component library.
+    messages,
+    abortSignal: request.signal,
+  });
+
+  return autofix.ai
+    .stream({
+      stream: toUIMessageStream({ stream: result.stream }),
+      signal: request.signal,
+    })
+    .toResponse();
+}
+```
+
+```ts title="server.ts" tab="Non-streaming" tab-group="autofix-sdk"
+import { autofix } from "./lib/autofix";
+
+const result = await autofix.completions.fix({ generation, messages, signal });
+// const result = await autofix.ai.fix({ generation, messages, signal });
+
+if (result.status === "fix_failed") {
+  console.warn(result.unfixedErrors);
+} else {
+  // Render or persist result.content.
+}
+```
+
+OpenAI: return SSE for the frontend `openAIAdapter()`.
+
+Vercel: pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI message SSE protocol used by `useChat`.
+
+Non-streaming: `generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation. Use `completions.fix` or `ai.fix` to match the import.
+
+### Consume the stream
+
+Use either `chunks` or `toResponse()` once. `result` settles after that consumer finishes.
+
+| Member         | Purpose                                                                 |
+| -------------- | ----------------------------------------------------------------------- |
+| `chunks`       | Native SDK events, including any correction.                            |
+| `toResponse()` | SSE `Response` for the matching frontend.                               |
+| `result`       | Settled Autofix result. Persist `content` when present, not joined text. |
+
+`result` is `null` when Autofix did not run. A failed repair throws with `code: "fix_failed"`. Use `fix()` on the same helper when you already have completed text.
+
+## Call the API directly
+
+Parse first, and only call Autofix when the generation is invalid.
 
 ```ts title="lib/detect.ts"
 import type { ParseResult } from "@openuidev/lang-core";
 
-/** The API's own rule: a generation renders only when all five hold. */
 export function isValid({ root, meta }: ParseResult): boolean {
   return (
     !meta.incomplete &&
@@ -57,7 +163,7 @@ export async function generate(messages: OpenAI.ChatCompletionMessageParam[]) {
   let generation = "";
   let result = parser.getResult();
 
-  const stream = await model.chat.completions.create({ model: "gpt-5", messages, stream: true });
+  const stream = await model.chat.completions.create({ model: "gpt-5.5", messages, stream: true });
   for await (const chunk of stream) {
     const delta = chunk.choices[0]?.delta?.content ?? "";
     if (!delta) continue;
@@ -161,11 +267,11 @@ export async function autofix(messages: Message[], generation: string) {
 
 ## Request
 
-| Field      | Type   | Required | Purpose                                                                                                                                                                                                                                                                                 |
-| ---------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Field      | Type   | Required | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ---------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `messages` | array  | Yes      | The conversation, in the OpenAI chat message shape. The first message is a `system` turn that carries your library as the `]]>openui:config` block that `generateSystemPrompt({ cloud: true, library })` writes; it is read as the library, not as conversation. The last turn must be an `assistant` turn whose text is the generation to fix, up to 100,000 characters. The turns in between are the context: only the text of `user`, `assistant`, `system`, and `developer` turns is read, and tool turns and non-text parts are dropped. |
-| `model`    | string | No       | Accepted so that an SDK client can name a model, and ignored. The answer always reports `openui/autofix`.                                                                                                                                                                               |
-| `stream`   | bool   | No       | Streaming is not supported. A fix has nothing to send until it is finished, so `stream: true` is a `400`.                                                                                                                                                                                |
+| `model`    | string | No       | Accepted so that an SDK client can name a model, and ignored. The answer always reports `openui/autofix`.                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `stream`   | bool   | No       | Streaming is not supported. A fix has nothing to send until it is finished, so `stream: true` is a `400`.                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 The other OpenAI fields, such as `temperature` and `tools`, are ignored.
 
@@ -173,11 +279,11 @@ The other OpenAI fields, such as `temperature` and `tools`, are ignored.
 
 The answer is a chat completion. `choices[0].message.content` holds the complete generation, not a patch: replace the model output with it and render it. `fix_summary.status` says what happened.
 
-| `status`        | `content`                | Errors                                                | Charged |
-| --------------- | ------------------------ | ----------------------------------------------------- | ------- |
-| `already_valid` | The input, unchanged     | `fixed_errors` is empty                               | No      |
-| `fixed`         | The corrected generation | `fixed_errors` lists what was wrong and is now fixed  | Yes     |
-| `fix_failed`    | `null`                   | `unfixed_errors` lists what is still wrong            | Yes     |
+| `status`        | `content`                | Errors                                               | Charged |
+| --------------- | ------------------------ | ---------------------------------------------------- | ------- |
+| `already_valid` | The input, unchanged     | `fixed_errors` is empty                              | No      |
+| `fixed`         | The corrected generation | `fixed_errors` lists what was wrong and is now fixed | Yes     |
+| `fix_failed`    | `null`                   | `unfixed_errors` lists what is still wrong           | Yes     |
 
 `fixed_errors` and `unfixed_errors` are always present, and one of them is usually empty.
 
@@ -293,12 +399,12 @@ Each call that runs a fix is charged a flat price from your credits. A generatio
 
 The endpoint returns the same error shape as the Chat Completions and Responses APIs.
 
-| Status | Type                    | When                                                                                                                     |
-| ------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Status | Type                    | When                                                                                                                                                                    |
+| ------ | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `400`  | `invalid_request_error` | The first message is not a library turn, or its block is malformed; the last turn is not an assistant turn with a generation; a limit is passed; or `stream` is `true`. |
-| `401`  | `authentication_error`  | The API key is missing or invalid.                                                                                       |
-| `429`  | `rate_limit_error`      | The organization has no credits, or billing is suspended.                                                                |
-| `500`  | `internal_server_error` | The fixing model could not be reached. Nothing is charged.                                                               |
+| `401`  | `authentication_error`  | The API key is missing or invalid.                                                                                                                                      |
+| `429`  | `rate_limit_error`      | The organization has no credits, or billing is suspended.                                                                                                               |
+| `500`  | `internal_server_error` | The fixing model could not be reached. Nothing is charged.                                                                                                              |
 
 ## Reliability Monitoring
 

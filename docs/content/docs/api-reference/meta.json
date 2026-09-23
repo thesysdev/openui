@@ -8,6 +8,7 @@
     "react-ui",
     "assistant-ui",
     "langchain",
+    "server",
     "react-email",
     "devtools",
     "cli",
