@@ -1,6 +1,6 @@
 import spec from "@/generated/spec.json";
-import { autofix } from "@/lib/autofix";
 import { generateSystemPrompt } from "@openuidev/lang-core";
+import { createAutofix } from "@openuidev/server/openai";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
@@ -19,6 +19,11 @@ export async function POST(request: Request) {
   }
 
   const openai = new OpenAI();
+  const autofix = createAutofix({
+    apiKey: process.env.THESYS_API_KEY!,
+    library: spec,
+  });
+
   const source = await openai.chat.completions.create(
     {
       model: process.env.OPENAI_MODEL ?? "gpt-5.5",
