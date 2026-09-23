@@ -149,9 +149,7 @@ export async function fetchSourceFile(
       const aborted = error instanceof Error && error.name === "AbortError";
       throw new CreateError(
         "source_checkout",
-        aborted
-          ? `Timed out fetching ${normalizedPath} from GitHub. Check your network connection and try again.`
-          : `Failed to fetch ${normalizedPath} from GitHub. Check your network connection and try again.`,
+        `${aborted ? "Timed out fetching" : "Failed to fetch"} ${normalizedPath} from GitHub. Check your network connection and try again.`,
         "network",
         "CHECKOUT_FAILED",
       );
