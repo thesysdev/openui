@@ -6,7 +6,7 @@
       "@ai-sdk/openai": "^3.0.91",
       "ai": "^6.0.246",
       "zod": "^4.4.3",
-      "@openuidev/server": "^0.0.1"
+      "@openuidev/server": "^0.1.0"
     },
     "removeDependencies": ["openai"]
   },

@@ -8,7 +8,7 @@
       "ai": "^7.0.82",
       "eve": "^0.52.2",
       "lru-cache": "^11.2.6",
-      "@openuidev/server": "^0.0.1"
+      "@openuidev/server": "^0.1.0"
     },
     "devDependencies": {
       "concurrently": "^9.2.4"
