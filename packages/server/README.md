@@ -6,7 +6,7 @@ Server utilities for OpenUI & OpenUI Gateway.
 
 ## Autofix
 
-Prefer this package over calling the endpoint yourself. Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or `@openuidev/server/vercel` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
+Prefer this package over calling the endpoint yourself. Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or Responses, or `@openuidev/server/vercel` for the Vercel AI SDK and Eve. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
 
 ### Configure once
 
@@ -34,7 +34,7 @@ if (result.status === "fix_failed") {
 }
 ```
 
-`generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation.
+`generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation. `responses.fix` and `eve.fix` take the same input.
 
 ### Wrap a Chat Completions stream
 
@@ -57,7 +57,30 @@ export async function POST(request: Request) {
 }
 ```
 
-Return SSE for the frontend `openAIAdapter()`. `autofix.responses` is not supported yet.
+Return SSE for the frontend `openAIAdapter()`.
+
+### Wrap a Responses stream
+
+```ts
+import OpenAI from "openai";
+import { autofix } from "../../../lib/autofix";
+
+const model = new OpenAI();
+
+export async function POST(request: Request) {
+  const { messages } = await request.json();
+  const source = await model.responses.create(
+    { model: "openai/gpt-5.5", input: messages, stream: true },
+    { signal: request.signal },
+  );
+
+  return autofix.responses
+    .stream({ stream: source, messages, signal: request.signal })
+    .toResponse();
+}
+```
+
+Return SSE for the frontend `openAIResponsesAdapter()`.
 
 ### Wrap a Vercel AI SDK stream
 
@@ -88,6 +111,22 @@ return autofix.ai
 
 Pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI message SSE protocol used by `useChat`.
 
+### Wrap an Eve stream
+
+```ts
+import { createAutofix } from "@openuidev/server/vercel";
+import library from "./openui.spec.json";
+
+const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+
+return autofix.eve.stream({ stream: events, messages, signal: request.signal }).toResponse();
+```
+
+Pass native Eve session events (`message.appended`, `message.completed`, …). `toResponse()` is NDJSON for the frontend `eveAdapter()`.
+
 ### Consume the stream
 
 Use either `chunks` or `toResponse()` once. `result` settles after that consumer finishes.
@@ -95,7 +134,7 @@ Use either `chunks` or `toResponse()` once. `result` settles after that consumer
 | Member         | Purpose                                                                  |
 | -------------- | ------------------------------------------------------------------------ |
 | `chunks`       | Native SDK events, including any correction.                             |
-| `toResponse()` | SSE `Response` for the matching frontend.                                |
+| `toResponse()` | SSE or Eve NDJSON `Response` for the matching frontend.                  |
 | `result`       | Settled Autofix result. Persist `content` when present, not joined text. |
 
 `result` is `null` when Autofix did not run. A failed repair throws with `code: "fix_failed"`. Use `fix()` on the same helper when you already have completed text.

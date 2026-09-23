@@ -1,3 +1,4 @@
+import { iterateSource } from "./iterate";
 import { toSSE } from "./sse";
 import type {
   AutofixInput,
@@ -75,7 +76,7 @@ export function createAutofixStream<Chunk>(
       if (input.signal?.aborted) forwardAbort();
       else input.signal?.addEventListener("abort", forwardAbort, { once: true });
 
-      const iterator = adapter.transform(input.stream, async (generation) => {
+      const iterator = adapter.transform(iterateSource(input.stream), async (generation) => {
         const next = await fix({ generation, messages: input.messages, signal });
         signal.throwIfAborted();
         last = next;

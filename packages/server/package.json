@@ -81,6 +81,7 @@
   },
   "devDependencies": {
     "ai": "^7.0.10",
+    "eve": "^0.64.0",
     "openai": "^7.20.0",
     "tsdown": "^0.21.7",
     "vitest": "^4.1.0"

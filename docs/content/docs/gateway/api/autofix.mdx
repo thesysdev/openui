@@ -22,7 +22,7 @@ flowchart LR
 
 ## Use the server package
 
-Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or `@openuidev/server/vercel` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
+Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or Responses, or `@openuidev/server/vercel` for the Vercel AI SDK and Eve. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
 
 ```ts title="lib/autofix.ts" tab="OpenAI" tab-group="autofix-sdk"
 import { createAutofix } from "@openuidev/server/openai";
@@ -34,7 +34,27 @@ export const autofix = createAutofix({
 });
 ```
 
+```ts title="lib/autofix.ts" tab="Responses" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/openai";
+import library from "./openui.spec.json";
+
+export const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
 ```ts title="lib/autofix.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/vercel";
+import library from "./openui.spec.json";
+
+export const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
+```ts title="lib/autofix.ts" tab="Eve" tab-group="autofix-sdk"
 import { createAutofix } from "@openuidev/server/vercel";
 import library from "./openui.spec.json";
 
@@ -74,6 +94,25 @@ export async function POST(request: Request) {
 }
 ```
 
+```ts title="app/api/chat/route.ts" tab="Responses" tab-group="autofix-sdk"
+import OpenAI from "openai";
+import { autofix } from "../../../lib/autofix";
+
+const model = new OpenAI();
+
+export async function POST(request: Request) {
+  const { messages } = await request.json();
+  const source = await model.responses.create(
+    { model: "openai/gpt-5.5", input: messages, stream: true },
+    { signal: request.signal },
+  );
+
+  return autofix.responses
+    .stream({ stream: source, messages, signal: request.signal })
+    .toResponse();
+}
+```
+
 ```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
 import { streamText, toUIMessageStream } from "ai";
 import { autofix } from "../../../lib/autofix";
@@ -96,11 +135,21 @@ export async function POST(request: Request) {
 }
 ```
 
+```ts title="app/api/chat/route.ts" tab="Eve" tab-group="autofix-sdk"
+import { autofix } from "../../../lib/autofix";
+
+return autofix.eve
+  .stream({ stream: events, messages, signal: request.signal })
+  .toResponse();
+```
+
 ```ts title="server.ts" tab="Non-streaming" tab-group="autofix-sdk"
 import { autofix } from "./lib/autofix";
 
 const result = await autofix.completions.fix({ generation, messages, signal });
+// const result = await autofix.responses.fix({ generation, messages, signal });
 // const result = await autofix.ai.fix({ generation, messages, signal });
+// const result = await autofix.eve.fix({ generation, messages, signal });
 
 if (result.status === "fix_failed") {
   console.warn(result.unfixedErrors);
@@ -111,9 +160,13 @@ if (result.status === "fix_failed") {
 
 OpenAI: return SSE for the frontend `openAIAdapter()`.
 
+Responses: return SSE for the frontend `openAIResponsesAdapter()`.
+
 Vercel: pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI message SSE protocol used by `useChat`.
 
-Non-streaming: `generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation. Use `completions.fix` or `ai.fix` to match the import.
+Eve: pass native session events. `toResponse()` is NDJSON for the frontend `eveAdapter()`.
+
+Non-streaming: `generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation. Use `completions.fix`, `responses.fix`, `ai.fix`, or `eve.fix` to match the import.
 
 ### Consume the stream
 
@@ -122,7 +175,7 @@ Use either `chunks` or `toResponse()` once. `result` settles after that consumer
 | Member         | Purpose                                                                 |
 | -------------- | ----------------------------------------------------------------------- |
 | `chunks`       | Native SDK events, including any correction.                            |
-| `toResponse()` | SSE `Response` for the matching frontend.                               |
+| `toResponse()` | SSE or Eve NDJSON `Response` for the matching frontend.                 |
 | `result`       | Settled Autofix result. Persist `content` when present, not joined text. |
 
 `result` is `null` when Autofix did not run. A failed repair throws with `code: "fix_failed"`. Use `fix()` on the same helper when you already have completed text.
