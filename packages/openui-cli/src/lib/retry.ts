@@ -1,5 +1,8 @@
 import { CreateError } from "./errors";
 
+const DEFAULT_MAX_ATTEMPTS = 3;
+const DEFAULT_BASE_DELAY_MS = 1000;
+
 export type RetryAttemptInfo = {
   attempt: number;
   maxAttempts: number;
@@ -31,8 +34,8 @@ export async function withRetry<T>(
   fn: (attempt: number) => Promise<T>,
   options: RetryOptions,
 ): Promise<T> {
-  const maxAttempts = options.maxAttempts ?? 3;
-  const baseDelayMs = options.baseDelayMs ?? 1000;
+  const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
+  const baseDelayMs = options.baseDelayMs ?? DEFAULT_BASE_DELAY_MS;
   const sleep = options.sleep ?? defaultSleep;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
