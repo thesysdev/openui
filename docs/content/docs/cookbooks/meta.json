@@ -2,7 +2,7 @@
   "title": "Cookbooks",
   "root": true,
   "pages": [
-    "index",
+    "[Overview](/docs/cookbooks)",
     "---Recipes---",
     "conversational-analytics",
     "document-comparison",
