@@ -10,7 +10,7 @@ import {
   processErrorProperties,
 } from "../../../lib/errors";
 import { mutedNpmEnv, runCommand } from "../../../lib/process-runner";
-import { isNetworkError, withRetry } from "../../../lib/retry";
+import { isNetworkError, type RetryOptions, withRetry } from "../../../lib/retry";
 import { withSpinner } from "../../../lib/spinner";
 import type { OverlayName, TemplateName } from "./create-types";
 import type { CreateTelemetryClient } from "./telemetry";
@@ -123,12 +123,12 @@ export async function installProjectDependencies(params: {
   };
 
   try {
-    const runWithRetry = () =>
-      withRetry(attemptInstall, {
-        shouldRetry: isNetworkError,
-        onRetry: tel.reportRetry("dependency_install"),
-        label: "Dependency install",
-      });
+    const retryOptions: RetryOptions = {
+      shouldRetry: isNetworkError,
+      onRetry: tel.reportRetry("dependency_install"),
+      label: "Dependency install",
+    };
+    const runWithRetry = () => withRetry(attemptInstall, retryOptions);
     await (verbose ? runWithRetry() : withSpinner("Installing dependencies...", runWithRetry));
   } catch (err) {
     if (!(err instanceof CliCancelledError)) {

@@ -6,7 +6,7 @@ import * as path from "node:path";
 import { isTruthyEnv } from "./env";
 import { CreateError } from "./errors";
 import { gitMissingMessage } from "./git-preflight";
-import { isNetworkError, type RetryAttemptInfo, withRetry } from "./retry";
+import { isNetworkError, type RetryAttemptInfo, type RetryOptions, withRetry } from "./retry";
 
 const GIT_TIMEOUT_MS = 60_000;
 const FETCH_TIMEOUT_MS = 30_000;
@@ -126,46 +126,45 @@ export async function fetchSourceFile(
   if (sourceDir) {
     return { content: fs.readFileSync(localSourcePath(sourceDir, normalizedPath), "utf8") };
   }
-  return withRetry(
-    async () => {
-      const url = `https://raw.githubusercontent.com/${SOURCE_OWNER}/${SOURCE_REPO}/${SOURCE_REF}/${normalizedPath}`;
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-      try {
-        const response = await fetch(url, {
-          headers: { Accept: "text/plain" },
-          signal: controller.signal,
-        });
-        if (!response.ok) {
-          throw new CreateError(
-            "source_checkout",
-            `Failed to fetch ${normalizedPath} (${response.status}).`,
-            response.status === 404 ? "filesystem" : "network",
-            response.status === 404 ? "SOURCE_MISSING" : "CHECKOUT_FAILED",
-          );
-        }
-        return { content: await response.text() };
-      } catch (error) {
-        if (error instanceof CreateError) throw error;
-        const aborted = error instanceof Error && error.name === "AbortError";
+  const fetchOnce = async (): Promise<FetchedFile> => {
+    const url = `https://raw.githubusercontent.com/${SOURCE_OWNER}/${SOURCE_REPO}/${SOURCE_REF}/${normalizedPath}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, {
+        headers: { Accept: "text/plain" },
+        signal: controller.signal,
+      });
+      if (!response.ok) {
         throw new CreateError(
           "source_checkout",
-          aborted
-            ? `Timed out fetching ${normalizedPath} from GitHub. Check your network connection and try again.`
-            : `Failed to fetch ${normalizedPath} from GitHub. Check your network connection and try again.`,
-          "network",
-          "CHECKOUT_FAILED",
+          `Failed to fetch ${normalizedPath} (${response.status}).`,
+          response.status === 404 ? "filesystem" : "network",
+          response.status === 404 ? "SOURCE_MISSING" : "CHECKOUT_FAILED",
         );
-      } finally {
-        clearTimeout(timer);
       }
-    },
-    {
-      shouldRetry: isNetworkError,
-      onRetry: opts.onRetry,
-      label: `Fetching ${normalizedPath}`,
-    },
-  );
+      return { content: await response.text() };
+    } catch (error) {
+      if (error instanceof CreateError) throw error;
+      const aborted = error instanceof Error && error.name === "AbortError";
+      throw new CreateError(
+        "source_checkout",
+        aborted
+          ? `Timed out fetching ${normalizedPath} from GitHub. Check your network connection and try again.`
+          : `Failed to fetch ${normalizedPath} from GitHub. Check your network connection and try again.`,
+        "network",
+        "CHECKOUT_FAILED",
+      );
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+  const retryOptions: RetryOptions = {
+    shouldRetry: isNetworkError,
+    onRetry: opts.onRetry,
+    label: `Fetching ${normalizedPath}`,
+  };
+  return withRetry(fetchOnce, retryOptions);
 }
 
 export async function checkoutSource(
@@ -179,41 +178,40 @@ export async function checkoutSource(
     copyDir(localSourcePath(sourceDir, normalizedPath), dest);
     return { dir: dest };
   }
-  return withRetry(
-    async () => {
-      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openui-src-"));
-      try {
-        await runGit(["init", "--quiet"], { cwd: tmpDir });
-        await runGit(["remote", "add", "origin", SOURCE_GIT_URL], { cwd: tmpDir });
-        await runGit(["fetch", "--depth", "1", "--filter=blob:none", "origin", SOURCE_REF], {
-          cwd: tmpDir,
-        });
-        await runGit(["sparse-checkout", "set", "--cone", normalizedPath], { cwd: tmpDir });
-        await runGit(["checkout", "--quiet", "FETCH_HEAD"], { cwd: tmpDir });
+  const checkoutOnce = async (): Promise<CheckedOutSource> => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openui-src-"));
+    try {
+      await runGit(["init", "--quiet"], { cwd: tmpDir });
+      await runGit(["remote", "add", "origin", SOURCE_GIT_URL], { cwd: tmpDir });
+      await runGit(["fetch", "--depth", "1", "--filter=blob:none", "origin", SOURCE_REF], {
+        cwd: tmpDir,
+      });
+      await runGit(["sparse-checkout", "set", "--cone", normalizedPath], { cwd: tmpDir });
+      await runGit(["checkout", "--quiet", "FETCH_HEAD"], { cwd: tmpDir });
 
-        const extracted = path.join(tmpDir, ...normalizedPath.split("/"));
-        if (!fs.existsSync(extracted)) {
-          throw new CreateError(
-            "source_checkout",
-            `Path "${normalizedPath}" was not in ${SOURCE_OWNER}/${SOURCE_REPO}@${SOURCE_REF}.`,
-            "filesystem",
-            "SOURCE_MISSING",
-          );
-        }
-
-        const dest = opts.dest ?? fs.mkdtempSync(path.join(os.tmpdir(), "openui-src-"));
-        copyDir(extracted, dest);
-        return { dir: dest };
-      } finally {
-        fs.rmSync(tmpDir, { recursive: true, force: true });
+      const extracted = path.join(tmpDir, ...normalizedPath.split("/"));
+      if (!fs.existsSync(extracted)) {
+        throw new CreateError(
+          "source_checkout",
+          `Path "${normalizedPath}" was not in ${SOURCE_OWNER}/${SOURCE_REPO}@${SOURCE_REF}.`,
+          "filesystem",
+          "SOURCE_MISSING",
+        );
       }
-    },
-    {
-      shouldRetry: isNetworkError,
-      onRetry: opts.onRetry,
-      label: "Source checkout",
-    },
-  );
+
+      const dest = opts.dest ?? fs.mkdtempSync(path.join(os.tmpdir(), "openui-src-"));
+      copyDir(extracted, dest);
+      return { dir: dest };
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  };
+  const retryOptions: RetryOptions = {
+    shouldRetry: isNetworkError,
+    onRetry: opts.onRetry,
+    label: "Source checkout",
+  };
+  return withRetry(checkoutOnce, retryOptions);
 }
 
 function copyDir(from: string, to: string) {
