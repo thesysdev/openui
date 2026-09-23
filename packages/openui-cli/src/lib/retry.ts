@@ -13,10 +13,9 @@ export type RetryAttemptInfo = {
 export type RetryOptions = {
   maxAttempts?: number;
   baseDelayMs?: number;
-  shouldRetry: (error: unknown) => boolean;
+  shouldRetry?: (error: unknown) => boolean;
   onRetry?: (info: RetryAttemptInfo) => void;
   sleep?: (ms: number) => Promise<void>;
-  label: string;
 };
 
 function defaultSleep(ms: number): Promise<void> {
@@ -31,22 +30,24 @@ export function isNetworkError(error: unknown): boolean {
 }
 
 export async function withRetry<T>(
+  label: string,
   fn: (attempt: number) => Promise<T>,
-  options: RetryOptions,
+  options: RetryOptions = {},
 ): Promise<T> {
   const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
   const baseDelayMs = options.baseDelayMs ?? DEFAULT_BASE_DELAY_MS;
+  const shouldRetry = options.shouldRetry ?? isNetworkError;
   const sleep = options.sleep ?? defaultSleep;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
       return await fn(attempt);
     } catch (error) {
-      if (attempt < maxAttempts && options.shouldRetry(error)) {
+      if (attempt < maxAttempts && shouldRetry(error)) {
         const delayMs = baseDelayMs * 2 ** (attempt - 1);
         const errorCode = error instanceof CreateError ? error.errorCode : "error";
         console.warn(
-          `${options.label} failed (${errorCode}); retrying in ${delayMs / 1000}s (attempt ${attempt + 1}/${maxAttempts})...`,
+          `${label} failed (${errorCode}); retrying in ${delayMs / 1000}s (attempt ${attempt + 1}/${maxAttempts})...`,
         );
         options.onRetry?.({ attempt, maxAttempts, delayMs, error });
         await sleep(delayMs);
@@ -59,5 +60,5 @@ export async function withRetry<T>(
     }
   }
 
-  throw new Error(`${options.label} failed without an error`);
+  throw new Error(`${label} failed without an error`);
 }

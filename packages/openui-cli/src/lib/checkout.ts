@@ -6,7 +6,7 @@ import * as path from "node:path";
 import { isTruthyEnv } from "./env";
 import { CreateError } from "./errors";
 import { gitMissingMessage } from "./git-preflight";
-import { isNetworkError, type RetryAttemptInfo, type RetryOptions, withRetry } from "./retry";
+import { type RetryAttemptInfo, withRetry } from "./retry";
 
 const GIT_TIMEOUT_MS = 60_000;
 const FETCH_TIMEOUT_MS = 30_000;
@@ -159,12 +159,7 @@ export async function fetchSourceFile(
       clearTimeout(timer);
     }
   };
-  const retryOptions: RetryOptions = {
-    shouldRetry: isNetworkError,
-    onRetry: opts.onRetry,
-    label: `Fetching ${normalizedPath}`,
-  };
-  return withRetry(fetchOnce, retryOptions);
+  return withRetry(`Fetching ${normalizedPath}`, fetchOnce, { onRetry: opts.onRetry });
 }
 
 export async function checkoutSource(
@@ -206,12 +201,7 @@ export async function checkoutSource(
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
   };
-  const retryOptions: RetryOptions = {
-    shouldRetry: isNetworkError,
-    onRetry: opts.onRetry,
-    label: "Source checkout",
-  };
-  return withRetry(checkoutOnce, retryOptions);
+  return withRetry("Source checkout", checkoutOnce, { onRetry: opts.onRetry });
 }
 
 function copyDir(from: string, to: string) {
