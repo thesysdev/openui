@@ -3,12 +3,7 @@ import * as path from "node:path";
 
 import { printLogTail, QUIET_COMMAND_CAPTURE_LIMIT } from "../../../lib/command-output";
 import type { PackageManager } from "../../../lib/detect-package-manager";
-import {
-  CliCancelledError,
-  cliErrorProperties,
-  CreateError,
-  processErrorProperties,
-} from "../../../lib/errors";
+import { CliCancelledError, cliErrorProperties, throwCommandFailure } from "../../../lib/errors";
 import { mutedNpmEnv, runCommand } from "../../../lib/process-runner";
 import { withRetry } from "../../../lib/retry";
 import { withSpinner } from "../../../lib/spinner";
@@ -95,31 +90,10 @@ export async function installProjectDependencies(params: {
     if (!verbose) {
       printLogTail(result.diagnosticTail, "install log (tail)");
     }
-    const properties = processErrorProperties(result, "dependency_install", {
+    throwCommandFailure(result, "dependency_install", "dependency install failed", {
       error_class: "dependency",
       error_code: "NONZERO_EXIT",
     });
-    if (properties.error_class === "user_cancelled") {
-      tel.trackDependencyInstallCancelled({
-        template,
-        ai_setup: aiSetup,
-        dependency_installed: false,
-        ...properties,
-      });
-      throw new CliCancelledError(
-        "dependency_install",
-        properties.cancellation_exit_code ?? 0,
-        properties,
-      );
-    }
-    const { failure_stage, error_class, error_code, ...metadata } = properties;
-    throw new CreateError(
-      failure_stage,
-      "dependency install failed",
-      error_class,
-      error_code,
-      metadata,
-    );
   };
 
   try {
@@ -129,13 +103,16 @@ export async function installProjectDependencies(params: {
       });
     await (verbose ? runWithRetry() : withSpinner("Installing dependencies...", runWithRetry));
   } catch (err) {
-    if (!(err instanceof CliCancelledError)) {
-      tel.trackDependencyInstallFailed({
-        template,
-        ai_setup: aiSetup,
-        dependency_installed: false,
-        ...cliErrorProperties(err),
-      });
+    const properties = {
+      template,
+      ai_setup: aiSetup,
+      dependency_installed: false,
+      ...cliErrorProperties(err),
+    };
+    if (err instanceof CliCancelledError) {
+      tel.trackDependencyInstallCancelled(properties);
+    } else {
+      tel.trackDependencyInstallFailed(properties);
     }
     throw err;
   }
