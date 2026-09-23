@@ -71,12 +71,12 @@ OpenAI generation and Autofix repair use separate credentials and billing. Valid
 
 ## Key files
 
-| File                        | Purpose                                                     |
-| --------------------------- | ----------------------------------------------------------- |
-| `src/library.tsx`           | Component schemas and renderers                             |
-| `src/lib/autofix.ts`        | `createAutofix` from `@openuidev/server/openai`             |
-| `src/app/api/chat/route.ts` | OpenAI stream wrapped by `autofix.completions.stream`       |
-| `src/app/page.tsx`          | AgentInterface shell with `openAIAdapter()`                 |
+| File                        | Purpose                                               |
+| --------------------------- | ----------------------------------------------------- |
+| `src/library.tsx`           | Component schemas and renderers                       |
+| `src/lib/autofix.ts`        | `createAutofix` from `@openuidev/server/openai`       |
+| `src/app/api/chat/route.ts` | OpenAI stream wrapped by `autofix.completions.stream` |
+| `src/app/page.tsx`          | AgentInterface shell with `openAIAdapter()`           |
 
 ## Verify
 

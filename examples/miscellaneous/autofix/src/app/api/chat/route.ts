@@ -18,18 +18,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    baseURL: process.env.OPENAI_BASE_URL,
-  });
-  
+  const openai = new OpenAI();
   const source = await openai.chat.completions.create(
     {
       model: process.env.OPENAI_MODEL ?? "gpt-5.5",
-      messages: [
-        { role: "system", content: generateSystemPrompt({ library: spec }) },
-        ...messages,
-      ],
+      messages: [{ role: "system", content: generateSystemPrompt({ library: spec }) }, ...messages],
       stream: true,
     },
     { signal: request.signal },
