@@ -10,7 +10,6 @@
     "README.md"
   ],
   "scripts": {
-    "test": "vitest run --passWithNoTests",
     "build:cli": "tsc -p .",
     "build": "pnpm run build:cli",
     "build:exec": "node dist/index.js",
@@ -23,8 +22,7 @@
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
-    "@types/node": "catalog:",
-    "vitest": "^4.1.0"
+    "@types/node": "catalog:"
   },
   "keywords": [
     "openui",

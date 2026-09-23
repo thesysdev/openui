@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "../../tsconfig.json",
   "include": ["src/**/*.ts"],
-  "exclude": ["src/playground", "src/**/*.test.ts", "src/**/__tests__/**"],
+  "exclude": ["src/playground"],
   "compilerOptions": {
     "target": "es2022",
     "lib": ["es2022"],
