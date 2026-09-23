@@ -8,6 +8,7 @@ import {
   streamText,
   toUIMessageStream,
   type UIMessage,
+  type UIMessageChunk,
 } from "ai";
 
 import { requiredEnv } from "@/lib/env";
@@ -54,10 +55,25 @@ export async function POST(req: Request) {
 
   return autofix.ai
     .stream({
-      stream: toUIMessageStream({ stream: result.stream }),
+      stream: iterateUIMessageStream(toUIMessageStream({ stream: result.stream })),
       signal: req.signal,
     })
     .toResponse();
+}
+
+async function* iterateUIMessageStream(
+  stream: ReadableStream<UIMessageChunk>,
+): AsyncGenerator<UIMessageChunk> {
+  const reader = stream.getReader();
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) return;
+      yield value;
+    }
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 function badRequest(message: string): Response {
