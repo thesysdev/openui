@@ -90,10 +90,7 @@ export function createEveLLM(storage: KVStorage = getClientStorage()): ChatLLM {
     const deliverBody: Record<string, unknown> = { message: latestUserText(messages) };
     const delivered = await fetch(deliverPath, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-openui-conversation-id": threadId,
-      },
+      headers: { "content-type": "application/json" },
       body: JSON.stringify(deliverBody),
       signal,
     });

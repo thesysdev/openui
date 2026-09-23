@@ -4,16 +4,12 @@ import { generateSystemPrompt } from "@openuidev/lang-core";
 import { createAutofix } from "@openuidev/server/vercel";
 import {
   convertToModelMessages,
-  createUIMessageStream,
-  createUIMessageStreamResponse,
   stepCountIs,
   streamText,
   toUIMessageStream,
   type UIMessage,
-  type UIMessageChunk,
 } from "ai";
 
-import { storeChatCompletionTurn, type CompletionUserMessage } from "@/lib/chat-completion-history";
 import { requiredEnv } from "@/lib/env";
 import { resolveRequestedModel } from "@/lib/models";
 import { appTools } from "@/lib/tools";
@@ -33,17 +29,11 @@ const autofix = createAutofix({
 });
 
 export async function POST(req: Request) {
-  const {
-    threadId,
-    messages,
-    model: requestedModel,
-  } = (await req.json()) as {
-    threadId?: string;
+  const { messages, model: requestedModel } = (await req.json()) as {
     messages?: UIMessage[];
     model?: unknown;
   };
 
-  if (typeof threadId !== "string" || !threadId.trim()) return badRequest("threadId is required");
   if (!Array.isArray(messages) || messages.length === 0) {
     return badRequest("messages must be a non-empty UIMessage[]");
   }
@@ -52,18 +42,6 @@ export async function POST(req: Request) {
   if (!model) {
     return badRequest("model is not available in this agent");
   }
-
-  const latest = messages.at(-1);
-  if (latest?.role !== "user") return badRequest("The last message must be a user message");
-  const content: Exclude<CompletionUserMessage["content"], string> = [];
-  for (const part of latest.parts) {
-    if (part.type === "text") content.push({ type: "text", text: part.text });
-    else if (part.type === "file" && part.mediaType.startsWith("image/")) {
-      content.push({ type: "image_url", image_url: { url: part.url } });
-    } else return badRequest("Only text and image messages are supported");
-  }
-  if (!content.length) return badRequest("The user message is empty");
-  const user: CompletionUserMessage = { role: "user", content };
 
   const result = streamText({
     model: openai.chat(model),
@@ -74,58 +52,12 @@ export async function POST(req: Request) {
     abortSignal: req.signal,
   });
 
-  return createUIMessageStreamResponse({
-    stream: createUIMessageStream({
-      async execute({ writer }) {
-        // Autofix repairs invalid OpenUI before finish. Hold finish until
-        // persistence succeeds — onFinish callbacks swallow thrown errors.
-        let failed = false;
-        let finish: Extract<UIMessageChunk, { type: "finish" }> | undefined;
-        for await (const chunk of autofix.ai.stream({
-          stream: toUIMessageStream({ stream: result.stream }),
-          messages: [user],
-          signal: req.signal,
-        }).chunks) {
-          if (chunk.type === "error" || chunk.type === "abort") failed = true;
-          if (chunk.type === "finish") {
-            finish = chunk;
-            continue;
-          }
-          writer.write(chunk);
-        }
-        if (failed || req.signal.aborted) return;
-        if (finish?.finishReason !== "stop") {
-          throw new Error("The model did not complete the turn");
-        }
-        await storeChatCompletionTurn({
-          conversationId: threadId,
-          user,
-          steps: (await result.steps).map((step) => ({
-            text: step.text,
-            toolCalls: step.toolCalls,
-            toolResults: [
-              ...step.toolResults,
-              ...step.content.flatMap((part) =>
-                part.type === "tool-error"
-                  ? [
-                      {
-                        toolCallId: part.toolCallId,
-                        output: {
-                          error: part.error instanceof Error ? part.error.message : part.error,
-                        },
-                      },
-                    ]
-                  : [],
-              ),
-            ],
-          })),
-        });
-        writer.write(finish);
-      },
-      onError: () =>
-        "The turn could not be completed or saved. Reload the conversation before retrying.",
-    }),
-  });
+  return autofix.ai
+    .stream({
+      stream: toUIMessageStream({ stream: result.stream }),
+      signal: req.signal,
+    })
+    .toResponse();
 }
 
 function badRequest(message: string): Response {

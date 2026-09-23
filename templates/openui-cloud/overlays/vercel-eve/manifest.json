@@ -7,8 +7,7 @@
       "@vercel/connect": "0.2.2",
       "ai": "^7.0.82",
       "eve": "^0.52.2",
-      "lru-cache": "^11.2.6",
-      "@openuidev/server": "^0.1.0"
+      "lru-cache": "^11.2.6"
     },
     "devDependencies": {
       "concurrently": "^9.2.4"

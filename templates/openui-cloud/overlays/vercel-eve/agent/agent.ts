@@ -18,6 +18,6 @@ export default defineAgent({
   // this override Eve can't size compaction and agent compile fails (no /eve routes).
   modelContextWindowTokens: 1_048_576,
   build: {
-    externalDependencies: ["@openuidev/lang-core", "@openuidev/server"],
+    externalDependencies: ["@openuidev/lang-core"],
   },
 });
