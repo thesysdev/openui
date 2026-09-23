@@ -26,12 +26,12 @@ npm install @openuidev/server
 
 ## Import paths
 
-| Import from                | Autofix                                    | History helpers                                               |
-| :------------------------- | :----------------------------------------- | :------------------------------------------------------------ |
-| `@openuidev/server/openai` | `completions.fix` and `completions.stream` | `storeChatCompletionHistory`, `chatCompletionMessagesToItems` |
-| `@openuidev/server/vercel` | `ai.fix` and `ai.stream`                   | —                                                             |
+| Import from                | Autofix                                                      | History helpers                                               |
+| :------------------------- | :----------------------------------------------------------- | :------------------------------------------------------------ |
+| `@openuidev/server/openai` | `completions` and `responses` (`fix` / `stream`)             | `storeChatCompletionHistory`, `chatCompletionMessagesToItems` |
+| `@openuidev/server/vercel` | `ai` and `eve` (`fix` / `stream`)                            | —                                                             |
 
-Pair each Autofix stream with the matching frontend adapter: `openAIAdapter()` or `useChat`.
+Pair each Autofix stream with the matching frontend adapter: `openAIAdapter()`, `openAIResponsesAdapter()`, `useChat`, or `eveAdapter()`.
 
 ## `createAutofix(options)`
 
@@ -47,7 +47,27 @@ const autofix = createAutofix({
 });
 ```
 
+```ts tab="Responses" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/openai";
+import library from "./openui.spec.json";
+
+const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
 ```ts tab="Vercel AI SDK" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/vercel";
+import library from "./openui.spec.json";
+
+const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
+```ts tab="Eve" tab-group="autofix-sdk"
 import { createAutofix } from "@openuidev/server/vercel";
 import library from "./openui.spec.json";
 
@@ -77,7 +97,7 @@ function createAutofix(options: {
 }): Autofix;
 ```
 
-From `@openuidev/server/openai`, `Autofix` is `{ completions: { fix, stream } }`. From `@openuidev/server/vercel`, it is `{ ai: { fix, stream } }`.
+From `@openuidev/server/openai`, `Autofix` is `{ completions, responses }`. From `@openuidev/server/vercel`, it is `{ ai, eve }`. Each helper exposes `fix` and `stream`.
 
 ## `fix(input)`
 
@@ -85,6 +105,17 @@ Validate completed OpenUI text. Valid output is returned as-is. Invalid output i
 
 ```ts tab="OpenAI" tab-group="autofix-sdk"
 const result = await autofix.completions.fix({ generation, messages, signal });
+
+if (result.content !== null) {
+  // already_valid or fixed — use result.content
+} else {
+  // fix_failed — choose a fallback
+  console.warn(result.unfixedErrors);
+}
+```
+
+```ts tab="Responses" tab-group="autofix-sdk"
+const result = await autofix.responses.fix({ generation, messages, signal });
 
 if (result.content !== null) {
   // already_valid or fixed — use result.content
@@ -105,9 +136,22 @@ if (result.content !== null) {
 }
 ```
 
+```ts tab="Eve" tab-group="autofix-sdk"
+const result = await autofix.eve.fix({ generation, messages, signal });
+
+if (result.content !== null) {
+  // already_valid or fixed — use result.content
+} else {
+  // fix_failed — choose a fallback
+  console.warn(result.unfixedErrors);
+}
+```
+
 ```ts tab="Non-streaming" tab-group="autofix-sdk"
 const result = await autofix.completions.fix({ generation, messages, signal });
+// const result = await autofix.responses.fix({ generation, messages, signal });
 // const result = await autofix.ai.fix({ generation, messages, signal });
+// const result = await autofix.eve.fix({ generation, messages, signal });
 
 if (result.content !== null) {
   // already_valid or fixed — use result.content
@@ -151,13 +195,13 @@ Wrap a native SDK stream. The helper forwards provider events and inserts a repa
 
 ```ts
 function stream(input: {
-  stream: AsyncIterable<Chunk> & { controller?: AbortController };
+  stream: (AsyncIterable<Chunk> | ReadableStream<Chunk>) & { controller?: AbortController };
   messages?: ChatCompletionMessageParam[];
   signal?: AbortSignal;
 }): AutofixStream<Chunk>;
 ```
 
-Use `autofix.completions.stream()` with a native Chat Completions stream, or `autofix.ai.stream()` with `toUIMessageStream({ stream: result.stream })` — not the raw `result.stream`.
+Use `autofix.completions.stream()` with a native Chat Completions stream, `autofix.responses.stream()` with a Responses stream, `autofix.ai.stream()` with `toUIMessageStream({ stream: result.stream })` — not the raw `result.stream` — or `autofix.eve.stream()` with native Eve session events.
 
 ```ts
 interface AutofixStream<T> {
@@ -193,6 +237,30 @@ export async function POST(request: Request) {
 }
 ```
 
+```ts title="app/api/chat/route.ts" tab="Responses" tab-group="autofix-sdk"
+import OpenAI from "openai";
+import { createAutofix } from "@openuidev/server/openai";
+import library from "./openui.spec.json";
+
+const model = new OpenAI();
+const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+
+export async function POST(request: Request) {
+  const { messages } = await request.json();
+  const source = await model.responses.create(
+    { model: "openai/gpt-5.5", input: messages, stream: true },
+    { signal: request.signal },
+  );
+
+  return autofix.responses
+    .stream({ stream: source, messages, signal: request.signal })
+    .toResponse();
+}
+```
+
 ```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
 import { streamText, toUIMessageStream } from "ai";
 import { createAutofix } from "@openuidev/server/vercel";
@@ -218,9 +286,25 @@ return autofix.ai
   .toResponse();
 ```
 
+```ts title="app/api/chat/route.ts" tab="Eve" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/vercel";
+import library from "./openui.spec.json";
+
+const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+
+return autofix.eve
+  .stream({ stream: events, messages, signal })
+  .toResponse();
+```
+
 ```ts title="server.ts" tab="Non-streaming" tab-group="autofix-sdk"
 const result = await autofix.completions.fix({ generation, messages, signal });
+// const result = await autofix.responses.fix({ generation, messages, signal });
 // const result = await autofix.ai.fix({ generation, messages, signal });
+// const result = await autofix.eve.fix({ generation, messages, signal });
 
 if (result.content !== null) {
   // already_valid or fixed — use result.content
@@ -242,6 +326,19 @@ if (settled?.content) {
 }
 ```
 
+```ts tab="Responses" tab-group="autofix-sdk"
+const output = autofix.responses.stream({ stream: source, messages, signal });
+
+for await (const chunk of output.chunks) {
+  // Native SDK events, including any appended correction
+}
+
+const settled = await output.result;
+if (settled?.content) {
+  // Persist settled.content
+}
+```
+
 ```ts tab="Vercel AI SDK" tab-group="autofix-sdk"
 const output = autofix.ai.stream({
   stream: toUIMessageStream({ stream: result.stream }),
@@ -250,6 +347,19 @@ const output = autofix.ai.stream({
 
 for await (const chunk of output.chunks) {
   // Native SDK events, including any appended correction
+}
+
+const settled = await output.result;
+if (settled?.content) {
+  // Persist settled.content
+}
+```
+
+```ts tab="Eve" tab-group="autofix-sdk"
+const output = autofix.eve.stream({ stream: events, messages, signal });
+
+for await (const chunk of output.chunks) {
+  // Native Eve events, including any appended correction
 }
 
 const settled = await output.result;
@@ -325,8 +435,8 @@ chatCompletionMessagesToItems([
 
 | Entry point                | Export                              | Description                                            |
 | :------------------------- | :---------------------------------- | :----------------------------------------------------- |
-| `@openuidev/server/openai` | `createAutofix`                     | Chat Completions Autofix: `completions.fix` / `stream` |
+| `@openuidev/server/openai` | `createAutofix`                     | Chat Completions and Responses Autofix                 |
 | `@openuidev/server/openai` | `storeChatCompletionHistory`        | Persist a Chat Completions turn                        |
 | `@openuidev/server/openai` | `chatCompletionMessagesToItems`     | Convert messages to Conversations API items            |
 | `@openuidev/server/openai` | `StoreChatCompletionHistoryOptions` | History helper configuration                           |
-| `@openuidev/server/vercel` | `createAutofix`                     | Vercel AI SDK Autofix: `ai.fix` / `ai.stream`          |
+| `@openuidev/server/vercel` | `createAutofix`                     | Vercel AI SDK and Eve Autofix: `ai` / `eve`            |

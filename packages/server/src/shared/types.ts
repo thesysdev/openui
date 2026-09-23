@@ -38,20 +38,25 @@ export interface AutofixInput extends BaseAutofixInput {
   generation: string;
 }
 
-export type StreamSource<T> = AsyncIterable<T> & { controller?: AbortController };
+export type StreamSource<T> = (AsyncIterable<T> | ReadableStream<T>) & {
+  controller?: AbortController;
+};
 
 export interface AutofixStreamInput<Chunk> extends BaseAutofixInput {
   /** Native SDK events for the selected import path. */
   stream: StreamSource<Chunk>;
 }
 
+export type AutofixStreamProtocol =
+  "openai-chat-completions" | "openai-responses" | "vercel-ai" | "eve";
+
 /** Wrap provider events with validation and repair while preserving the selected output protocol. */
 export interface StreamAdapter<Chunk> {
-  /** SSE format for emitted events; transform must produce chunks compatible with this protocol. */
-  protocol: "openai-chat-completions" | "vercel-ai";
+  /** Wire format for emitted events; transform must produce chunks compatible with this protocol. */
+  protocol: AutofixStreamProtocol;
   /** Forward events and use fix to validate completed UI before emitting its completion marker. */
   transform(
-    source: StreamSource<Chunk>,
+    source: AsyncIterable<Chunk>,
     fix: (generation: string) => Promise<AutofixResult>,
   ): AsyncGenerator<Chunk>;
 }
@@ -59,7 +64,7 @@ export interface StreamAdapter<Chunk> {
 export interface AutofixStream<T> {
   /** Single consumer. Preserves provider chunks and appends the corrected program before UI completion. */
   chunks: AsyncIterable<T>;
-  /** Alternative to consuming chunks: SSE in the selected adapter's protocol. */
+  /** Alternative to consuming chunks: SSE or Eve NDJSON in the selected adapter's protocol. */
   toResponse(): Response;
   /** Settles after chunks or toResponse() finish. Null when Autofix did not run. Persist content, not joined deltas. */
   result: Promise<AutofixResult | null>;
