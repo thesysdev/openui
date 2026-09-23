@@ -1,8 +1,8 @@
 {
-  "title": "Observability",
+  "title": "Reliability Monitoring",
   "root": true,
   "pages": [
-    "index",
+    "[Introduction](/docs/reliability)",
     "installation",
     "dashboard",
     "optimizing"

@@ -3,7 +3,9 @@ title: Autofix API
 description: Fix invalid OpenUI Lang from any model with one API call.
 ---
 
-The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send the conversation with the generation as the last assistant turn, and the answer carries valid OpenUI Lang. Use it when your application is not using OpenUI Gateway. Gateway generation that already uses `generateSystemPrompt({ cloud: true, library })` is repaired while it streams.
+The Autofix API repairs invalid OpenUI Lang after your model has generated it. Keep your existing model provider, inference setup, and agent framework. Send the conversation with the generation as the last assistant turn, and the API returns the repair result. You do not need to generate through Gateway's Chat Completions or Responses API.
+
+Use Autofix for correction after generation, or [Gateway](/docs/gateway) for model access with in-built correction.
 
 **Endpoint:** `POST https://api.thesys.dev/v1/autofix`
 
@@ -75,7 +77,7 @@ export async function POST(request: Request) {
 ```
 
 ```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
-import { convertToModelMessages, streamText, toUIMessageStream, type UIMessageChunk } from "ai";
+import { streamText, toUIMessageStream } from "ai";
 import { autofix } from "../../../lib/autofix";
 
 export async function POST(request: Request) {
@@ -83,31 +85,16 @@ export async function POST(request: Request) {
   const result = streamText({
     model: "openai/gpt-5.5",
     system: systemPrompt, // Generated from the same OpenUI component library.
-    messages: await convertToModelMessages(messages),
+    messages,
     abortSignal: request.signal,
   });
 
   return autofix.ai
     .stream({
-      stream: iterateUIMessageStream(toUIMessageStream({ stream: result.stream })),
+      stream: toUIMessageStream({ stream: result.stream }),
       signal: request.signal,
     })
     .toResponse();
-}
-
-async function* iterateUIMessageStream(
-  stream: ReadableStream<UIMessageChunk>,
-): AsyncGenerator<UIMessageChunk> {
-  const reader = stream.getReader();
-  try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) return;
-      yield value;
-    }
-  } finally {
-    reader.releaseLock();
-  }
 }
 ```
 
@@ -126,7 +113,7 @@ if (result.status === "fix_failed") {
 
 OpenAI: return SSE for the frontend `openAIAdapter()`.
 
-Vercel: `toUIMessageStream({ stream: result.stream })` returns a `ReadableStream`, and `ai.stream()` takes an `AsyncIterable`, so iterate the chunks with a small helper like `iterateUIMessageStream` before passing them in. `toResponse()` is the UI message SSE protocol read by `useChat` and `vercelAIAdapter()`.
+Vercel: pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI message SSE protocol used by `useChat`.
 
 Non-streaming: `generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation. Use `completions.fix` or `ai.fix` to match the import.
 
@@ -384,7 +371,7 @@ Each entry in `fixed_errors` or `unfixed_errors` names one problem. `code` is al
 | `orphaned`          | A statement is defined but not reachable from `root`.                              |
 | `missing-root`      | The generation has no valid `root` statement.                                      |
 
-These are the same codes the OpenUI SDK reports in the browser, so an application can handle both with one path. See [Observability](/docs/observability) for how they appear in the Thesys Console.
+These are the same codes the OpenUI SDK reports in the browser, so an application can handle both with one path. See [Reliability Monitoring](/docs/reliability) for how they appear in the Thesys Console.
 
 ## Framing
 
@@ -419,6 +406,6 @@ The endpoint returns the same error shape as the Chat Completions and Responses 
 | `429`  | `rate_limit_error`      | The organization has no credits, or billing is suspended.                                                                                                               |
 | `500`  | `internal_server_error` | The fixing model could not be reached. Nothing is charged.                                                                                                              |
 
-## Observability
+## Reliability Monitoring
 
-Autofix calls appear in the Thesys Console under the model name `openui/autofix`. A successful fix counts as a sanitizer correction on the Reliability page, with the same error codes as corrections made during generation.
+Autofix requests automatically appear in the [Reliability Monitoring](/docs/reliability) under the model name `openui/autofix`. **No Observability SDK** installation is required to track these requests. A successful fix counts as a sanitizer correction, with the same error codes as corrections made during Gateway generation.

@@ -6,6 +6,7 @@ import { useLayoutContext } from "../../../context/LayoutContext";
 import { useAutoFocus } from "../../../hooks/useAutoFocus";
 import { useComposerState } from "../../../hooks/useComposerState";
 import { IconButton } from "../../IconButton";
+import { shouldSubmitOnEnter } from "../_shared/utils/composerKeyboard";
 
 export interface ComposerProps {
   className?: string;
@@ -87,7 +88,7 @@ export const Composer = ({ className, placeholder = "Type your query here" }: Co
           placeholder={placeholder}
           rows={1}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            if (shouldSubmitOnEnter(e)) {
               e.preventDefault();
               handleSubmit();
             }

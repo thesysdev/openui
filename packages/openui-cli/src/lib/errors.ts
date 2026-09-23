@@ -24,6 +24,7 @@ export type CliErrorMetadata = {
   http_status?: number;
   cancellation_exit_code?: number;
   auth_failure_stage?: string;
+  attempts?: number;
 };
 
 export class CreateError extends Error {

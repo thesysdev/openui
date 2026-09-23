@@ -85,6 +85,11 @@
       "envKey": "THESYS_API_KEY"
     },
     {
+      "title": "Autofix",
+      "description": "Direct OpenAI generation with OpenUI Autofix API",
+      "path": "miscellaneous/autofix"
+    },
+    {
       "title": "Handsontable",
       "description": "Generated spreadsheet interfaces backed by Handsontable.",
       "path": "miscellaneous/handsontable",

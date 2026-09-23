@@ -56,11 +56,13 @@ describe("global docs navigation", () => {
         children: undefined,
       },
       { type: "separator", name: "Production", url: undefined, children: undefined },
+      { type: "page", name: "Overview", url: "/docs/production", children: undefined },
       { type: "page", name: "Gateway", url: "/docs/gateway", children: undefined },
+      { type: "page", name: "Autofix", url: "/docs/autofix", children: undefined },
       {
         type: "page",
-        name: "Observability",
-        url: "/docs/observability",
+        name: "Reliability Monitoring",
+        url: "/docs/reliability",
         children: undefined,
       },
       { type: "page", name: "Deploy your app", url: "/docs/deploy", children: undefined },
@@ -79,13 +81,17 @@ describe("global docs navigation", () => {
     assert.equal(getNestedRootForEntryUrl("/docs/build-agents"), "build-agents");
     assert.equal(getNestedRootForEntryUrl("/docs/agent/getting-started/introduction"), undefined);
     assert.equal(getNestedRootForEntryUrl("/docs/gateway"), "gateway");
-    assert.equal(getNestedRootForEntryUrl("/docs/observability"), "observability");
+    assert.equal(getNestedRootForEntryUrl("/docs/autofix"), undefined);
+    assert.equal(getNestedRootForEntryUrl("/docs/production"), undefined);
+    assert.equal(getNestedRootForEntryUrl("/docs/reliability"), "reliability");
     assert.equal(getNestedRootForEntryUrl("/docs/api-reference"), "api-reference");
     assert.equal(getNestedRootForEntryUrl("/docs/openui-lang/quickstart"), undefined);
   });
 
   it("uses a nested sidebar for direct links into a nested section", () => {
     assert.deepEqual(getDefaultSidebarMode("/docs"), { kind: "global" });
+    assert.deepEqual(getDefaultSidebarMode("/docs/autofix"), { kind: "global" });
+    assert.deepEqual(getDefaultSidebarMode("/docs/production"), { kind: "global" });
     assert.deepEqual(getDefaultSidebarMode("/docs/overview"), { kind: "global" });
     assert.deepEqual(getDefaultSidebarMode("/docs/getting-started"), { kind: "global" });
     assert.deepEqual(getDefaultSidebarMode("/docs/openui-lang/comparison"), { kind: "global" });
@@ -113,9 +119,9 @@ describe("global docs navigation", () => {
       kind: "nested",
       root: "gateway",
     });
-    assert.deepEqual(getDefaultSidebarMode("/docs/observability/installation"), {
+    assert.deepEqual(getDefaultSidebarMode("/docs/reliability/installation"), {
       kind: "nested",
-      root: "observability",
+      root: "reliability",
     });
     assert.deepEqual(getDefaultSidebarMode("/docs/mcp"), { kind: "global" });
   });
@@ -149,6 +155,8 @@ describe("global docs navigation", () => {
 
   it("promotes overview pages while grouping product pages under their roots", () => {
     assert.equal(getGlobalActiveItemUrl("/docs/getting-started"), "/docs/getting-started");
+    assert.equal(getGlobalActiveItemUrl("/docs/autofix"), "/docs/autofix");
+    assert.equal(getGlobalActiveItemUrl("/docs/production"), "/docs/production");
     assert.equal(
       getGlobalActiveItemUrl("/docs/openui-lang/comparison"),
       "/docs/openui-lang/comparison",
@@ -161,7 +169,7 @@ describe("global docs navigation", () => {
     );
     assert.equal(getGlobalActiveItemUrl("/docs/build-agents/copilotkit"), "/docs/build-agents");
     assert.equal(getGlobalActiveItemUrl("/docs/gateway/api/responses"), "/docs/gateway");
-    assert.equal(getGlobalActiveItemUrl("/docs/observability/dashboard"), "/docs/observability");
+    assert.equal(getGlobalActiveItemUrl("/docs/reliability/dashboard"), "/docs/reliability");
   });
 });
 

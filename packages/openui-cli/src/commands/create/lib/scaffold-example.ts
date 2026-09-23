@@ -5,6 +5,7 @@ import * as path from "node:path";
 import { checkoutSource } from "../../../lib/checkout";
 import type { PackageManagerName } from "../../../lib/detect-package-manager";
 import { CreateError } from "../../../lib/errors";
+import type { RetryAttemptInfo } from "../../../lib/retry";
 import type { ExampleProject } from "./examples-catalog";
 
 const ARTIFACT_DIRS = new Set(["node_modules", ".next", ".turbo", "dist", ".nuxt", ".svelte-kit"]);
@@ -159,11 +160,12 @@ export async function scaffoldExample(params: {
   targetDir: string;
   name: string;
   packageManager: PackageManagerName;
+  onRetry?: (info: RetryAttemptInfo) => void;
 }): Promise<ExampleLayout> {
-  const { example, targetDir, name, packageManager } = params;
+  const { example, targetDir, name, packageManager, onRetry } = params;
 
   try {
-    await checkoutSource(example.path, { dest: targetDir });
+    await checkoutSource(example.path, { dest: targetDir, onRetry });
   } catch (err) {
     if (err instanceof CreateError) throw err;
     throw new CreateError(

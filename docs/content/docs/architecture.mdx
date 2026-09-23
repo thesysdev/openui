@@ -10,13 +10,18 @@ Generative UI fundamentally changes this relationship. Instead of merely providi
 
 ## How it works
 
-<img
-  src="/images/openui-architecture.svg"
-  alt="A user request travels from an application through OpenUI Gateway to a model provider. The corrected OpenUI Lang stream returns to a renderer, while Observability traces the flow."
-  className="not-prose my-8 h-auto w-full overflow-hidden rounded-2xl"
-/>
+<figure className="not-prose my-8">
+  <img
+    src="/images/openui-architecture.svg"
+    alt="A user request travels from an application through OpenUI Gateway to a model provider. The corrected OpenUI Lang stream returns to a renderer, with Reliability Monitoring tracking generation failures."
+    className="m-0 block h-auto w-full overflow-hidden rounded-2xl"
+  />
+  <figcaption className="mt-2 text-center text-xs leading-5 text-fd-muted-foreground">
+    Generation through Gateway
+  </figcaption>
+</figure>
 
-Your application provides a library of components and the relevant context. OpenUI Gateway sends the request to a model and corrects invalid output. The model uses OpenUI Lang to describe the interface, and the OpenUI Lang Renderer renders it using the provided library. Observability traces this process so you can find failures and improve reliability.
+Your application provides a library of components and the relevant context. The model generates OpenUI Lang, and the renderer displays it using your components. Gateway can correct output during streaming, or Autofix can repair completed output from your existing inference setup. Reliability Monitoring helps you find failures and improve reliability.
 
 ## OpenUI Lang
 
@@ -129,18 +134,26 @@ OpenUI Gateway provides two OpenAI-compatible APIs:
 
 Learn more in the [OpenUI Gateway documentation](/docs/gateway).
 
-## Observability
+## Autofix
+
+Reliability for your own inference. Correct model output that would break your interface, without changing your model provider or inference setup.
+
+Learn more in the [Autofix docs](/docs/autofix).
+
+## Reliability Monitoring
 
 Generative UI depends on model providers and model-generated output. Providers can fail, and models can generate invalid or incomplete interfaces.
 
-OpenUI Observability helps you find these failures in production, trace affected generations, and identify recurring patterns. These insights help you improve your system prompt, component library, and model selection.
+Reliability Monitoring helps you find these failures in production, trace affected generations, and identify recurring patterns. These insights help you improve your system prompt, component library, and model selection.
+
+Monitoring is automatically enabled for Gateway generations and Autofix requests. If you use neither, connect the [Observability SDK](/docs/reliability/installation) to track parsing and rendering errors in your application.
 
 <img
   src="/images/openui-lang/reliability-dashboard.png"
-  alt="OpenUI Observability dashboard showing generation errors and affected interfaces"
+  alt="Reliability Monitoring dashboard showing generation errors and affected interfaces"
   className="w-full rounded-lg border"
 />
 
-Observability identifies errors but does not correct generated output. Without OpenUI Gateway's validation and correction layer, invalid output can reach users as an incomplete or broken interface.
+Reliability Monitoring identifies errors. Use Gateway or Autofix to correct invalid generated output.
 
-Learn more in the [OpenUI Observability documentation](/docs/observability).
+Learn more in the [Reliability Monitoring docs](/docs/reliability).

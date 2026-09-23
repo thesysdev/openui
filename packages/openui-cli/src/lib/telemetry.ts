@@ -4,6 +4,8 @@ import * as path from "node:path";
 import { PostHog } from "posthog-node";
 
 import { isTruthyEnv } from "./env";
+import { cliErrorProperties } from "./errors";
+import type { RetryAttemptInfo } from "./retry";
 
 // Public ingestion key
 const POSTHOG_KEY =
@@ -141,6 +143,20 @@ export class Telemetry {
 
   trackInvoked() {
     this.capture("cli_invoked");
+  }
+
+  reportNetworkRetry(stage: string): (info: RetryAttemptInfo) => void {
+    return (info) => {
+      const properties = cliErrorProperties(info.error);
+      this.capture("cli_network_retry", {
+        failure_stage: stage,
+        attempt: info.attempt,
+        max_attempts: info.maxAttempts,
+        delay_ms: info.delayMs,
+        error_class: properties.error_class,
+        error_code: properties.error_code,
+      });
+    };
   }
 
   capture(event: string, properties: Record<string, unknown> = {}) {

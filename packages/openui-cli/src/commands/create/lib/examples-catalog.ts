@@ -2,6 +2,7 @@ import { styleText } from "node:util";
 
 import { fetchSourceFile } from "../../../lib/checkout";
 import { CreateError } from "../../../lib/errors";
+import type { RetryAttemptInfo } from "../../../lib/retry";
 
 export const EXAMPLES_CATALOG_PATH = "examples/examples.json";
 
@@ -65,8 +66,12 @@ function parseExamplesCatalog(raw: string): ExampleProject[] {
 }
 
 /** Prefetch the examples catalog from GitHub. */
-export async function loadExamplesCatalog(): Promise<ExampleProject[]> {
-  const { content } = await fetchSourceFile(EXAMPLES_CATALOG_PATH);
+export async function loadExamplesCatalog(
+  opts: {
+    onRetry?: (info: RetryAttemptInfo) => void;
+  } = {},
+): Promise<ExampleProject[]> {
+  const { content } = await fetchSourceFile(EXAMPLES_CATALOG_PATH, { onRetry: opts.onRetry });
   return parseExamplesCatalog(content);
 }
 

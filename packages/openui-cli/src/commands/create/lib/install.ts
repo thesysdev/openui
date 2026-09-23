@@ -3,8 +3,9 @@ import * as path from "node:path";
 
 import { printLogTail, QUIET_COMMAND_CAPTURE_LIMIT } from "../../../lib/command-output";
 import type { PackageManager } from "../../../lib/detect-package-manager";
-import { CliCancelledError, CreateError, processErrorProperties } from "../../../lib/errors";
+import { CliCancelledError, cliErrorProperties, throwCommandFailure } from "../../../lib/errors";
 import { mutedNpmEnv, runCommand } from "../../../lib/process-runner";
+import { withRetry } from "../../../lib/retry";
 import { withSpinner } from "../../../lib/spinner";
 import type { OverlayName, TemplateName } from "./create-types";
 import type { CreateTelemetryClient } from "./telemetry";
@@ -82,53 +83,47 @@ export async function installProjectDependencies(params: {
   if (verbose) {
     console.info(`Installing dependencies with: ${installCmd}\n`);
   }
-  const installResult = verbose
-    ? await runInstall()
-    : await withSpinner("Installing dependencies...", runInstall);
-  if (!installResult.error && installResult.status === 0) {
-    if (!verbose) {
-      console.info("✓ Dependencies installed");
-    }
-    tel.trackDependencyInstallSucceeded({
-      template,
-      ai_setup: aiSetup,
-      dependency_installed: true,
-    });
-    return true;
-  }
+  const attemptInstall = async () => {
+    const result = await runInstall();
+    if (!result.error && result.status === 0) return result;
 
-  if (!verbose) {
-    printLogTail(installResult.diagnosticTail, "install log (tail)");
-  }
-  const properties = processErrorProperties(installResult, "dependency_install", {
-    error_class: "dependency",
-    error_code: "NONZERO_EXIT",
-  });
-  if (properties.error_class === "user_cancelled") {
-    tel.trackDependencyInstallCancelled({
+    if (!verbose) {
+      printLogTail(result.diagnosticTail, "install log (tail)");
+    }
+    throwCommandFailure(result, "dependency_install", "dependency install failed", {
+      error_class: "dependency",
+      error_code: "NONZERO_EXIT",
+    });
+  };
+
+  try {
+    const runWithRetry = () =>
+      withRetry("Dependency install", attemptInstall, {
+        onRetry: tel.reportNetworkRetry("dependency_install"),
+      });
+    await (verbose ? runWithRetry() : withSpinner("Installing dependencies...", runWithRetry));
+  } catch (err) {
+    const properties = {
       template,
       ai_setup: aiSetup,
       dependency_installed: false,
-      ...properties,
-    });
-    throw new CliCancelledError(
-      "dependency_install",
-      properties.cancellation_exit_code ?? 0,
-      properties,
-    );
+      ...cliErrorProperties(err),
+    };
+    if (err instanceof CliCancelledError) {
+      tel.trackDependencyInstallCancelled(properties);
+    } else {
+      tel.trackDependencyInstallFailed(properties);
+    }
+    throw err;
   }
-  tel.trackDependencyInstallFailed({
+
+  if (!verbose) {
+    console.info("✓ Dependencies installed");
+  }
+  tel.trackDependencyInstallSucceeded({
     template,
     ai_setup: aiSetup,
-    dependency_installed: false,
-    ...properties,
+    dependency_installed: true,
   });
-  const { failure_stage, error_class, error_code, ...metadata } = properties;
-  throw new CreateError(
-    failure_stage,
-    "dependency install failed",
-    error_class,
-    error_code,
-    metadata,
-  );
+  return true;
 }

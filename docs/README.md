@@ -157,9 +157,10 @@ Active component-preview specific modules are located under `app/components/` an
 
 ### Navigation
 
-The docs use two sidebar modes. The global sidebar introduces the documentation through Start,
+The docs use two sidebar modes. The global sidebar introduces the documentation through Overview,
 Build, Production, and Reference groups. Links with chevrons enter a nested section sidebar for
-OpenUI Lang, Build Agents, Agent Interface, Gateway, Observability, or API Reference. Nested page lists continue to come from
+OpenUI Lang, Build Agents (including Agent Interface), Reliability Monitoring, Gateway, or API Reference.
+Production overview and Autofix are direct pages in the global sidebar. Nested page lists continue to come from
 each section's `meta.json`; “All docs” restores the global sidebar without changing the current
 page. Direct links into a section start in nested mode.
 

@@ -3,8 +3,8 @@
   "description": "Vercel AI SDK agent with the selected model backend",
   "packageJson": {
     "dependencies": {
-      "@ai-sdk/openai": "^3.0.91",
-      "ai": "^6.0.246",
+      "@ai-sdk/openai": "^4.0.72",
+      "ai": "^7.0.111",
       "zod": "^4.4.3"
     },
     "removeDependencies": ["openai"]

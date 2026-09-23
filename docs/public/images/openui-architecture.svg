@@ -3,9 +3,9 @@
   role="img"
   aria-labelledby="openui-architecture-title openui-architecture-description"
 >
-  <title id="openui-architecture-title">How OpenUI turns a request into an interactive interface</title>
+  <title id="openui-architecture-title">Generation through Gateway</title>
   <desc id="openui-architecture-description">
-    A user request travels from an application to its backend, through OpenUI Gateway, and to a model provider. The corrected OpenUI Lang stream returns to a renderer, which displays the generated interface. Observability traces the flow.
+    A user request travels from an application to its backend, through OpenUI Gateway, and to a model provider. The corrected OpenUI Lang stream returns to a renderer, which displays the generated interface. Reliability Monitoring tracks generation failures.
   </desc>
 
   <defs>
@@ -142,8 +142,8 @@
 
     <g>
       <path d="M 890 590 H 1570" stroke="#fb7185" stroke-opacity="0.38" stroke-width="1.5" stroke-dasharray="5 7" fill="none" vector-effect="non-scaling-stroke" />
-      <rect x="1010" y="555" width="220" height="70" rx="18" fill="#fb7185" fill-opacity="0.1" stroke="#fb7185" stroke-opacity="0.45" vector-effect="non-scaling-stroke" />
-      <text x="1120" y="599" text-anchor="middle" fill="#fda4af" font-size="24" font-weight="500">Observability</text>
+      <rect x="970" y="555" width="300" height="70" rx="18" fill="#fb7185" fill-opacity="0.1" stroke="#fb7185" stroke-opacity="0.45" vector-effect="non-scaling-stroke" />
+      <text x="1120" y="599" text-anchor="middle" fill="#fda4af" font-size="24" font-weight="500">Reliability Monitoring</text>
     </g>
   </g>
 </svg>

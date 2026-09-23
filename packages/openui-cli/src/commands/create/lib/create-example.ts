@@ -57,6 +57,7 @@ export async function runCreateExample(params: {
         targetDir,
         name,
         packageManager: packageManager.name,
+        onRetry: tel.reportNetworkRetry("source_checkout"),
       });
     layout = verbose ? await runScaffold() : await withSpinner("Scaffolding...", runScaffold);
     if (!verbose) {
