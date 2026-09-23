@@ -12,7 +12,7 @@ export type ResolvedTemplate = {
   dir: string;
 };
 
-export function templateSourceError(err: unknown, template: string): CreateError {
+export function throwTemplateSourceError(err: unknown, template: string): never {
   const properties = cliErrorProperties(err, {
     failure_stage: "preflight",
     error_class: "network",
@@ -23,7 +23,7 @@ export function templateSourceError(err: unknown, template: string): CreateError
     properties.error_class === "network"
       ? `Could not download template "${template}" from GitHub: ${detail}. Check your network connection and try again.`
       : `Could not prepare template "${template}": ${detail}`;
-  return new CreateError(
+  throw new CreateError(
     properties.failure_stage,
     message,
     properties.error_class,
@@ -45,6 +45,6 @@ export async function resolveTemplateSource(
   } catch (err) {
     fs.rmSync(dest, { recursive: true, force: true });
     if (err instanceof CreateError) throw err;
-    throw templateSourceError(err, template);
+    throwTemplateSourceError(err, template);
   }
 }
