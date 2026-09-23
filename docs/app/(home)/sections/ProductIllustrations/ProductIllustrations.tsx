@@ -1,4 +1,8 @@
+"use client";
+
+import { failureTaxonomy } from "@/lib/benchmark-data";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import styles from "./ProductIllustrations.module.css";
 
 export { OpenSourceIllustration } from "./OpenSourceIllustration";
@@ -16,28 +20,53 @@ export function GatewayReliabilityDashboardIllustration({
         inverted ? styles.reliabilityDashboardIllustrationInverted : ""
       }`.trim()}
     >
-      <Image
-        className={`${styles.reliabilityDashboardImage} ${styles.reliabilityDashboardImageLight}`}
-        src="/images/gateway/reliability-light@4x.webp"
-        alt={alt}
-        width={3360}
-        height={1320}
-        unoptimized
-      />
-      <Image
-        className={`${styles.reliabilityDashboardImage} ${styles.reliabilityDashboardImageDark}`}
-        src="/images/gateway/reliability-dark@4x.webp"
-        alt=""
-        aria-hidden="true"
-        width={3360}
-        height={1320}
-        unoptimized
-      />
+      <span className={styles.reliabilityDashboardWide}>
+        <Image
+          className={`${styles.reliabilityDashboardImage} ${styles.reliabilityDashboardImageLight}`}
+          src="/homepage/gateway-light.webp"
+          alt={alt}
+          width={2240}
+          height={880}
+          quality={95}
+          sizes="(max-width: 1023px) calc(100vw - 64px), 1120px"
+        />
+        <Image
+          className={`${styles.reliabilityDashboardImage} ${styles.reliabilityDashboardImageDark}`}
+          src="/homepage/gateway-dark.webp"
+          alt=""
+          aria-hidden="true"
+          width={2240}
+          height={880}
+          quality={95}
+          sizes="(max-width: 1023px) calc(100vw - 64px), 1120px"
+        />
+      </span>
+      <span className={styles.reliabilityDashboardCompact}>
+        <Image
+          className={`${styles.reliabilityDashboardImage} ${styles.reliabilityDashboardImageLight}`}
+          src="/homepage/gateway-mobile-light.webp"
+          alt={alt}
+          width={1440}
+          height={1200}
+          quality={95}
+          sizes="calc(100vw - 32px)"
+        />
+        <Image
+          className={`${styles.reliabilityDashboardImage} ${styles.reliabilityDashboardImageDark}`}
+          src="/homepage/gateway-mobile-dark.webp"
+          alt=""
+          aria-hidden="true"
+          width={1440}
+          height={1200}
+          quality={95}
+          sizes="calc(100vw - 32px)"
+        />
+      </span>
     </div>
   );
 }
 
-type ResponseTone = "valid" | "root" | "reference" | "type";
+type ResponseTone = "valid" | "root" | "reference" | "type" | "truncation";
 
 const responseLanes = [
   {
@@ -50,24 +79,18 @@ const responseLanes = [
   {
     path: "M 83 344 H 170 C 204 344 210 332 228 314 S 256 294 284 294 H 304 C 330 294 348 282 405 280",
   },
-  {
-    path: "M 75 424 H 164 C 196 424 204 414 220 392 S 248 360 276 360 H 296 C 322 360 324 330 344 316 S 388 302 405 300",
-  },
 ] as const;
 
 const openResponseLanes = [
   {
-    path: "M 96 58 H 174 C 204 58 210 84 228 112 S 258 154 286 154 H 304 C 330 154 344 202 405 222",
+    path: "M 96 109 H 174 C 204 109 210 134 228 164 S 258 198 286 198 H 304 C 330 198 344 216 405 222",
   },
   {
-    path: "M 111 159 H 174 C 206 159 214 178 232 198 S 260 224 288 224 H 306 C 332 224 350 238 405 242",
+    path: "M 111 210 H 174 C 206 210 214 220 232 232 S 260 246 288 246 H 306 C 332 246 350 246 405 246",
   },
-  { path: "M 97 260 H 190 C 224 260 230 244 256 244 H 286 C 312 244 338 260 405 260" },
+  { path: "M 97 310 H 174 C 206 310 214 300 232 288 S 260 274 288 274 H 306 C 332 274 350 274 405 274" },
   {
-    path: "M 83 361 H 174 C 206 361 214 342 232 322 S 260 296 288 296 H 306 C 332 296 350 282 405 280",
-  },
-  {
-    path: "M 75 462 H 174 C 204 462 210 436 228 408 S 258 366 286 366 H 304 C 330 366 344 318 405 300",
+    path: "M 83 411 H 174 C 204 411 210 386 228 356 S 258 322 286 322 H 304 C 330 322 344 304 405 298",
   },
 ] as const;
 
@@ -83,20 +106,22 @@ const responseModels = [
   { name: "Gemini", provider: "gemini", src: "/brand-icons/gemini.svg" },
   { name: "Meta", provider: "meta", src: "/brand-icons/meta.svg" },
   { name: "xAI", provider: "xai", src: "/brand-icons/xai.svg" },
+  { name: "DeepSeek", provider: "deepseek", src: "/brand-icons/deepseek.svg" },
+  { name: "Qwen", provider: "qwen", src: "/brand-icons/qwen.svg" },
+  { name: "Kimi", provider: "kimi", src: "/brand-icons/kimi.svg" },
 ] as const;
 
 const mobileResponseLanes = [
-  { path: "M 42 130 V 150 C 42 180 76 184 76 208 C 76 228 116 236 154 248" },
-  { path: "M 116 130 V 165 C 116 192 142 198 142 220 C 142 234 166 240 176 248" },
-  { path: "M 195 130 V 248" },
-  { path: "M 274 130 V 165 C 274 192 248 198 248 220 C 248 234 224 240 214 248" },
-  { path: "M 348 130 V 150 C 348 180 314 184 314 208 C 314 228 274 236 236 248" },
+  { path: "M 58 84 C 58 120 72 128 100 140 S 130 160 164 168" },
+  { path: "M 161 84 C 161 116 168 138 180 168" },
+  { path: "M 261 84 C 261 116 244 138 210 168" },
+  { path: "M 348 84 C 348 120 326 128 296 140 S 260 160 226 168" },
 ] as const;
 
 const mobileValidatedLanes = [
-  { path: "M 160 397 V 420 C 160 442 128 444 128 468 V 720" },
-  { path: "M 195 397 V 720" },
-  { path: "M 230 397 V 420 C 230 442 262 444 262 468 V 720" },
+  { path: "M 160 380 C 160 402 150 410 140 418 S 128 434 128 448 V 520" },
+  { path: "M 195 380 C 195 404 195 424 195 448 V 520" },
+  { path: "M 230 380 C 230 402 240 410 250 418 S 262 434 262 448 V 520" },
 ] as const;
 
 const incomingResponses: Array<{ lane: number; delay: number; tone: ResponseTone }> = [
@@ -112,74 +137,145 @@ const incomingResponses: Array<{ lane: number; delay: number; tone: ResponseTone
   { lane: 3, delay: -2, tone: "valid" },
   { lane: 3, delay: -4.2, tone: "reference" },
   { lane: 3, delay: -6.4, tone: "valid" },
-  { lane: 4, delay: -0.5, tone: "valid" },
-  { lane: 4, delay: -2.7, tone: "root" },
-  { lane: 4, delay: -4.9, tone: "valid" },
 ];
+
+type FailureTone = Exclude<ResponseTone, "valid">;
+
+const failureTones: FailureTone[] = ["root", "reference", "type", "truncation"];
+
+// Smooth weighted round-robin keeps the animated counters close to the
+// observed 44 / 36 / 16 / 4 production split at every point in the cycle,
+// instead of bunching the rare categories together.
+const responseFailureSequence = (() => {
+  const scores = failureTones.map(() => 0);
+
+  return Array.from({ length: 25 }, () => {
+    failureTaxonomy.forEach((entry, index) => {
+      scores[index] += entry.share;
+    });
+    const selectedIndex = scores.indexOf(Math.max(...scores));
+    scores[selectedIndex] -= 100;
+    return failureTones[selectedIndex];
+  });
+})();
+
+const initialDiagnostics = {
+  checked: 147,
+  root: 5,
+  reference: 4,
+  type: 2,
+  truncation: 1,
+};
 
 const validatedResponses = incomingResponses.map((_, index) => ({
   lane: index % validatedLanes.length,
   delay: -index * 0.44,
 }));
 
-const slotValues = {
-  fixed: ["08", "09", "10", "11", "12", "13"],
-  checked: ["143", "144", "145", "146", "147", "148"],
-  delivered: ["143", "144", "145", "146", "147", "148"],
-};
-
 function GatewayReliabilityFlow({ openCanvas = false }: { openCanvas?: boolean }) {
+  const [visibleModelIndexes, setVisibleModelIndexes] = useState([0, 1, 2, 3]);
+  const [switchingSlot, setSwitchingSlot] = useState<number | null>(null);
+  const [diagnostics, setDiagnostics] = useState(initialDiagnostics);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let failureIndex = 0;
+    const counterTimer = window.setInterval(() => {
+      setDiagnostics((current) => {
+        if (current.checked >= 1000) {
+          failureIndex = 0;
+          return initialDiagnostics;
+        }
+
+        const checked = current.checked + 1;
+
+        // Roughly 7% of checked generations enter the failure breakdown.
+        if (checked % 14 !== 0) return { ...current, checked };
+
+        const tone = responseFailureSequence[failureIndex % responseFailureSequence.length];
+        failureIndex += 1;
+        return { ...current, checked, [tone]: current[tone] + 1 };
+      });
+    }, 550);
+
+    return () => window.clearInterval(counterTimer);
+  }, []);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let slot = 0;
+    let nextModel = 4;
+    let swapTimer: number | undefined;
+    const rotationTimer = window.setInterval(() => {
+      const activeSlot = slot;
+      const replacement = nextModel;
+      setSwitchingSlot(activeSlot);
+      swapTimer = window.setTimeout(() => {
+        setVisibleModelIndexes((current) =>
+          current.map((modelIndex, index) => (index === activeSlot ? replacement : modelIndex)),
+        );
+        setSwitchingSlot(null);
+      }, 320);
+      slot = (slot + 1) % 4;
+      nextModel = (nextModel + 1) % responseModels.length;
+    }, 4800);
+
+    return () => {
+      window.clearInterval(rotationTimer);
+      if (swapTimer) window.clearTimeout(swapTimer);
+    };
+  }, []);
+
+  const totalFixed =
+    diagnostics.root + diagnostics.reference + diagnostics.type + diagnostics.truncation;
+
   return (
     <div
       className={`${styles.responseFlowHero} ${openCanvas ? styles.responseFlowHeroOpen : ""}`.trim()}
       role="img"
-      aria-label="Model output streams fifteen complete responses through OpenUI Gateway. Gateway checks every response, fixes four kinds of output errors, and delivers the same fifteen valid responses to a rendered analytics interface."
+      aria-label="Model output streams through OpenUI Gateway. Gateway checks every response, shows fixes across no valid root, reference graph, enum, type and argument, and truncation errors, then delivers valid output to a rendered analytics interface."
     >
       <ResponsePaths openCanvas={openCanvas} />
       <ResponsePaths mobile />
 
       <div className={styles.modelSources} aria-hidden="true">
-        {responseModels.map((model) => (
-          <div className={styles.modelSource} data-provider={model.provider} key={model.name}>
-            <span className={styles.modelSourceIcon}>
-              <Image src={model.src} alt="" width={14} height={14} />
-            </span>
-            <span>{model.name}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className={styles.responseLegend} aria-hidden="true">
-        <span className={styles.responseLegendItem} data-tone="valid">
-          <i />
-          <span>Valid</span>
-        </span>
-        <span className={styles.responseLegendItem} data-tone="root">
-          <i />
-          <span>No valid root</span>
-        </span>
-        <span className={styles.responseLegendItem} data-tone="reference">
-          <i />
-          <span>Reference</span>
-        </span>
-        <span className={styles.responseLegendItem} data-tone="type">
-          <i />
-          <span>Type / argument</span>
-        </span>
+        {visibleModelIndexes.map((modelIndex, slot) => {
+          const model = responseModels[modelIndex];
+          return (
+            <div
+              className={styles.modelSource}
+              data-provider={model.provider}
+              data-switching={switchingSlot === slot ? "true" : undefined}
+              key={`model-slot-${slot}`}
+            >
+              <span className={styles.modelSourceIcon}>
+                <Image src={model.src} alt="" width={14} height={14} />
+              </span>
+              <span>{model.name}</span>
+            </div>
+          );
+        })}
       </div>
 
       <div className={styles.responseGatewayNode} aria-hidden="true">
         <div className={styles.gatewayHeader}>
           <span>OPENUI GATEWAY</span>
-          <span className={styles.fixedCount}>
-            <Slot values={slotValues.fixed} />
-            <small>FIXED</small>
+          <span className={styles.responseCount}>
+            <small>CHECKED/</small>
+            <AnimatedNumber value={diagnostics.checked} />
           </span>
         </div>
         <div className={styles.gatewayMetrics}>
-          <GatewayMetric label="RESPONSES CHECKED" values={slotValues.checked} tone="neutral" />
-          <GatewayMetric label="ERROR TYPES FIXED" value="4" tone="error" />
-          <GatewayMetric label="RESPONSES DELIVERED" values={slotValues.delivered} tone="valid" />
+          <GatewayMetric label="No valid root" value={diagnostics.root} tone="root" />
+          <GatewayMetric label="Reference graph" value={diagnostics.reference} tone="reference" />
+          <GatewayMetric label="Enum, type & argument" value={diagnostics.type} tone="type" />
+          <GatewayMetric label="Truncation" value={diagnostics.truncation} tone="truncation" />
+          <div className={styles.gatewayMetricsFooter}>
+            <span>TOTAL RESPONSES FIXED</span>
+            <AnimatedNumber value={totalFixed} />
+          </div>
         </div>
       </div>
 
@@ -272,35 +368,35 @@ function ResponsePaths({
   );
 }
 
-function Slot({ values }: { values: string[] }) {
-  return (
-    <span className={styles.slotViewport}>
-      <span className={styles.slotTrack}>
-        {values.map((value) => (
-          <b key={value}>{value}</b>
-        ))}
-      </span>
-    </span>
-  );
-}
-
 function GatewayMetric({
   label,
   value,
-  values,
   tone,
 }: {
   label: string;
-  value?: string;
-  values?: string[];
-  tone: "neutral" | "error" | "valid";
+  value?: string | number;
+  tone: "neutral" | "valid" | "root" | "reference" | "type" | "truncation";
 }) {
   return (
     <div className={styles.gatewayMetric} data-tone={tone}>
       <i />
       <span>{label}</span>
-      {values ? <Slot values={values} /> : <b>{value}</b>}
+      <AnimatedNumber value={value ?? ""} />
     </div>
+  );
+}
+
+function AnimatedNumber({ value }: { value: string | number }) {
+  return (
+    <span className={styles.animatedNumber} aria-label={String(value)}>
+      {String(value)
+        .split("")
+        .map((digit, index) => (
+          <span className={styles.diagnosticDigit} key={`${index}-${digit}`} aria-hidden="true">
+            {digit}
+          </span>
+        ))}
+    </span>
   );
 }
 
@@ -311,6 +407,7 @@ function ResponseMarker({ tone }: { tone: ResponseTone }) {
     );
   }
   if (tone === "reference") return <rect x="-5" y="-5" width="10" height="10" rx="2" />;
+  if (tone === "truncation") return <path d="M 0 -6 L 6 0 L 0 6 L -6 0 Z" />;
   if (tone === "type") return <circle r="5" />;
   return <circle r="5" />;
 }

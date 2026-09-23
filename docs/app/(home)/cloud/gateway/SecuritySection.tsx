@@ -1,6 +1,7 @@
 import { ExternalTextLink } from "../../components/ExternalTextLink/ExternalTextLink";
 import type { GridFeature } from "../../sections/FeatureGridSection/FeatureGridSection";
 import { EnterpriseSection } from "../EnterpriseSection";
+import styles from "./sections.module.css";
 
 export function SecuritySection() {
   const features: GridFeature[] = [
@@ -55,6 +56,7 @@ export function SecuritySection() {
       title="Built for enterprise requirements"
       titleId="gateway-security"
       features={features}
+      className={styles.enterpriseSection}
     />
   );
 }

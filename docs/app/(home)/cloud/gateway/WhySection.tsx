@@ -21,12 +21,11 @@ export function WhySection() {
       <FailureBreakdown />
 
       <div className={styles.problemConclusion}>
-        <p className={styles.lead}>
-          OpenUI beats Google A2UI and Vercel json-render on structural validity while using about
-          half the tokens and streaming time. Stronger models reduce errors further. Gateway catches
-          and repairs what remains before users see it.
+        <p className={styles.problemConclusionCopy}>
+          OpenUI produces more structurally valid output than Google A2UI and Vercel json-render,
+          with about half the tokens and streaming time. Gateway catches what remains.
         </p>
-        <div className={styles.linkRow}>
+        <div className={styles.problemConclusionActions}>
           <Button href="/benchmarks?view=formats" text="Compare formats" variant="tertiary" />
           <Button href="/benchmarks" text="Compare models" variant="tertiary" />
         </div>

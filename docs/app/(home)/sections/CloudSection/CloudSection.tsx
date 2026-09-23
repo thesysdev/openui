@@ -4,7 +4,6 @@ import Image from "next/image";
 import { BevelButton } from "../../components/Button/BevelButton";
 import { FadedDither } from "../../components/FadedDither/FadedDither";
 import { SectionHeader } from "../../components/SectionHeader/SectionHeader";
-import { AutofixSection } from "../AutofixSection/AutofixSection";
 import { ProductLabel, ProductSection } from "../ProductSection/ProductSection";
 import { GATEWAY_PRODUCT } from "../ProductSection/products";
 import styles from "./CloudSection.module.css";
@@ -34,8 +33,6 @@ export function CloudSection() {
         <div className={styles.products}>
           <ProductSection {...GATEWAY_PRODUCT} />
         </div>
-
-        <AutofixSection tone="cloud" headingLevel="h3" />
 
         {/* Divides the two bands. It carries the whole gap between them, so the
             band below no longer sets a top margin of its own. */}

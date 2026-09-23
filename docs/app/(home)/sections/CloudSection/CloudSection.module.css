@@ -24,9 +24,7 @@
   }
 }
 
-/* Closing contact CTA below the ticker. */
-/* The Gateway product band. AutoFix and Observability carry their own spacing
-   because they use different compositions below it. */
+/* The Gateway product band. Observability carries its own composition below it. */
 .products {
   display: flex;
   flex-direction: column;

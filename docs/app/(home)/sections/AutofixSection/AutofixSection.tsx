@@ -21,8 +21,8 @@ export function AutofixSection({
             <span className={styles.titleLine}>Add reliability with Autofix.</span>
           </Heading>
           <p className={styles.description}>
-            One Autofix API call repairs invalid output before it reaches your users. Keep your
-            provider and model calls.
+            Keep your existing model calls, direct or through OpenRouter. Add one Autofix API call
+            to repair invalid generations before users see them.
           </p>
           <BevelButton
             className={styles.cta}

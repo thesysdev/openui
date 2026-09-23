@@ -61,30 +61,70 @@
   gap: 12px;
 }
 
+.sectionRhythm {
+  --gateway-section-gap: 160px;
+  --gateway-page-surface: #fff;
+  --gateway-band-surface: var(--openui-background);
+}
+
+[data-theme="dark"] .sectionRhythm {
+  --gateway-page-surface: #000;
+  --gateway-band-surface: var(--openui-background);
+}
+
 .heroArtSpace {
+  --gateway-stage-stroke: #f8f8f8;
+
+  position: relative;
   overflow: hidden;
   width: 100%;
   aspect-ratio: 1280 / 520;
-  border: 0;
+  border: 1px solid var(--gateway-stage-stroke);
   border-radius: 24px;
-  background: var(--home-color-surface-soft);
+}
+
+[data-theme="dark"] .heroArtSpace {
+  --gateway-stage-stroke: #0e0e0e;
+}
+
+.heroShader {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.heroShader > * {
+  width: 100%;
+  height: 100%;
+}
+
+.heroArtwork {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
 }
 
 .problemBand,
 .repairBand {
   width: 100%;
-  background: var(--openui-foreground);
-}
-
-[data-theme="dark"] .problemBand,
-[data-theme="dark"] .repairBand {
-  background: #000;
+  background: var(--gateway-page-surface);
 }
 
 .usageBand {
   width: 100%;
-  padding-block: 160px;
-  background: var(--openui-foreground);
+  padding: var(--gateway-section-gap) 0 calc(var(--gateway-section-gap) / 2);
+  background: var(--gateway-page-surface);
+}
+
+/* The banner is a continuation of the repair story. The following section
+   owns the major gap, so the banner must not add a second one. */
+.autofixBridge {
+  display: flow-root;
+}
+
+.autofixBridge.autofixBridge > section {
+  margin-bottom: 0;
 }
 
 .faqContactLink {
@@ -98,6 +138,11 @@
 }
 
 @media (max-width: 899.98px) {
+  .titleBlock {
+    align-items: center;
+    gap: 12px;
+  }
+
   .title {
     font-size: inherit;
   }
@@ -118,18 +163,20 @@
   }
 }
 
+@media (min-width: 768px) and (max-width: 899.98px) {
+  .ctaGroup {
+    flex-direction: row;
+    width: auto;
+  }
+}
+
 @media (max-width: 1023.98px) {
-  .usageBand {
-    padding-block: 112px;
+  .sectionRhythm {
+    --gateway-section-gap: 96px;
   }
 }
 
 @media (max-width: 767px) {
-  .titleBlock {
-    align-items: center;
-    gap: 12px;
-  }
-
   .subtitle {
     flex: 0 1 auto;
     width: 100%;
@@ -142,10 +189,6 @@
   }
 
   .heroArtSpace {
-    border-radius: 16px;
-  }
-
-  .usageBand {
-    padding-block: 96px;
+    border-radius: 12px;
   }
 }

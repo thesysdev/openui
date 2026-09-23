@@ -37,6 +37,55 @@
   background: var(--home-color-surface-soft);
 }
 
+.featureStage {
+  --cloud-feature-stage-stroke: #f8f8f8;
+
+  position: relative;
+  flex: 0 1 720px;
+  align-self: center;
+  min-width: 0;
+  aspect-ratio: 720 / 400;
+  overflow: hidden;
+  border: 1px solid var(--cloud-feature-stage-stroke);
+  border-radius: 24px;
+}
+
+[data-theme="dark"] .featureStage {
+  --cloud-feature-stage-stroke: #0e0e0e;
+}
+
+.featureShader {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.featureShader > * {
+  width: 100%;
+  height: 100%;
+}
+
+.featureStageArtwork {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.featureStageArtwork .featureImage {
+  width: 100%;
+  height: 100%;
+}
+
+.featureImagePair,
+.featureImageWide {
+  display: contents;
+}
+
+.featureImageCompact {
+  display: none;
+}
+
 .featureImageDark {
   display: none;
 }
@@ -132,9 +181,35 @@
     aspect-ratio: 720 / 400;
   }
 
+  .featureStage {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
   .content {
     flex: 0 0 auto;
     width: 100%;
+  }
+
+  /* Observability's feature cards use the stronger stacked reading order:
+     name the feature, show it, then explain it. Opt-in so existing Cloud cards
+     keep their current composition while Gateway can use the refined one from
+     the moment the desktop columns collapse. */
+  .cardEditorialStack .content {
+    display: contents;
+  }
+
+  .cardEditorialStack .headingGroup {
+    order: 1;
+  }
+
+  .cardEditorialStack .featureImage,
+  .cardEditorialStack .featureStage {
+    order: 2;
+  }
+
+  .cardEditorialStack .bodyGroup {
+    order: 3;
   }
 
   .supportingFeatures {
@@ -148,9 +223,35 @@
     width: calc(100% - 32px);
   }
 
+  .cardEditorialStack {
+    gap: 20px;
+  }
+
   .featureImage {
     order: -1;
     border-radius: 12px;
+  }
+  .featureStage {
+    order: -1;
+    border-radius: 12px;
+  }
+
+  .cardEditorialStack .featureImage,
+  .cardEditorialStack .featureStage {
+    order: 2;
+  }
+
+  .featureStageResponsive {
+    aspect-ratio: 720 / 600;
+    border-radius: 16px;
+  }
+
+  .featureImageWide {
+    display: none;
+  }
+
+  .featureImageCompact {
+    display: contents;
   }
 
   .content {

@@ -54,17 +54,17 @@ export function CloudBanner() {
 
   return (
     <Link
-      href="/benchmarks"
+      href="/cloud/gateway"
       className={`${styles.banner} ${open ? styles.open : ""}`.trim()}
-      aria-label="OpenUI Benchmarks: Compare Generative UI frameworks across models. View the results."
+      aria-label="OpenUI Gateway: Catch and fix invalid output before users see it."
     >
       <span className={styles.content}>
         <span className={styles.text}>
           <span className={styles.lead}>
-            OpenUI Benchmarks
-            <span className={styles.colon}> :</span>
+            OpenUI Gateway
+            <span className={styles.colon}>:</span>
           </span>{" "}
-          <span className={styles.rest}>Compare Generative UI frameworks across models</span>
+          <span className={styles.rest}>Catch and fix invalid output before users see it</span>
         </span>
         <ArrowRight className={styles.chevron} size={18} strokeWidth={2.25} aria-hidden="true" />
       </span>

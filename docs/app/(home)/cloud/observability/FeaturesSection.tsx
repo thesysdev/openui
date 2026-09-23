@@ -61,27 +61,52 @@ function FeatureShot({ shot, alt }: { shot?: string; alt: string }) {
        page, which is white on a light theme and black on a dark one. */
     <div className={styles.shot}>
       <FadedDither band="light" className={styles.shotShader} />
-      <Image
-        className={`${styles.featureImage} ${styles.featureImageLight} ${focalClass}`.trim()}
-        src={`/openui-observability/${shot}-light.webp`}
-        alt={alt}
-        width={2880}
-        height={imageHeight}
-        quality={95}
-        unoptimized
-        sizes="(max-width: 767px) calc(100vw - 32px), 720px"
-      />
-      <Image
-        className={`${styles.featureImage} ${styles.featureImageDark} ${focalClass}`.trim()}
-        src={`/openui-observability/${shot}-dark.webp`}
-        alt=""
-        aria-hidden="true"
-        width={2880}
-        height={imageHeight}
-        quality={95}
-        unoptimized
-        sizes="(max-width: 767px) calc(100vw - 32px), 720px"
-      />
+      <span className={styles.featureImageWide}>
+        <Image
+          className={`${styles.featureImage} ${styles.featureImageLight} ${focalClass}`.trim()}
+          src={`/openui-observability/${shot}-light.webp`}
+          alt={alt}
+          width={2880}
+          height={imageHeight}
+          quality={95}
+          unoptimized
+          sizes="720px"
+        />
+        <Image
+          className={`${styles.featureImage} ${styles.featureImageDark} ${focalClass}`.trim()}
+          src={`/openui-observability/${shot}-dark.webp`}
+          alt=""
+          aria-hidden="true"
+          width={2880}
+          height={imageHeight}
+          quality={95}
+          unoptimized
+          sizes="720px"
+        />
+      </span>
+      <span className={styles.featureImageCompact}>
+        <Image
+          className={`${styles.featureImage} ${styles.featureImageLight}`}
+          src={`/openui-observability/${shot}-mobile-light.webp`}
+          alt={alt}
+          width={720}
+          height={600}
+          quality={95}
+          unoptimized
+          sizes="calc(100vw - 32px)"
+        />
+        <Image
+          className={`${styles.featureImage} ${styles.featureImageDark}`}
+          src={`/openui-observability/${shot}-mobile-dark.webp`}
+          alt=""
+          aria-hidden="true"
+          width={720}
+          height={600}
+          quality={95}
+          unoptimized
+          sizes="calc(100vw - 32px)"
+        />
+      </span>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { production } from "@/lib/benchmark-data";
 import Image from "next/image";
 import { ExternalTextLink } from "../../components/ExternalTextLink/ExternalTextLink";
+import { FadedDither } from "../../components/FadedDither/FadedDither";
 import {
   FeatureGridSection,
   type GridFeature,
@@ -76,7 +77,10 @@ export function RepairSection() {
       </div>
 
       <div className={`${styles.diagram} ${styles.repairIllustrationSpace}`}>
-        <GatewayReliabilityDashboardIllustration />
+        <FadedDither band="light" className={styles.illustrationShader} />
+        <div className={styles.repairIllustrationArt}>
+          <GatewayReliabilityDashboardIllustration />
+        </div>
       </div>
 
       <aside className={styles.customerQuote}>

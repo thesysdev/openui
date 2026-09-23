@@ -1,6 +1,7 @@
 import { Button } from "@/components/button";
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { FadedDither } from "../components/FadedDither/FadedDither";
 import {
   FeatureGridSection,
   type GridFeature,
@@ -64,6 +65,8 @@ function FeatureCopy({
 export function CloudFeatureCard({
   image,
   imageDark,
+  imageMobile,
+  imageMobileDark,
   imageAlt,
   title,
   headline,
@@ -72,9 +75,13 @@ export function CloudFeatureCard({
   ctaText,
   imageFirst = true,
   unoptimized = false,
+  withDither = false,
+  stackedEditorialOrder = false,
 }: {
   image?: string;
   imageDark?: string;
+  imageMobile?: string;
+  imageMobileDark?: string;
   imageAlt?: string;
   title: string;
   headline: ReactNode;
@@ -83,27 +90,57 @@ export function CloudFeatureCard({
   ctaText?: string;
   imageFirst?: boolean;
   unoptimized?: boolean;
+  withDither?: boolean;
+  /** When the card stacks, read it as heading, artwork, then description. */
+  stackedEditorialOrder?: boolean;
 }) {
-  const artwork =
+  const images =
     image && imageDark ? (
       <>
-        <Image
-          className={`${styles.featureImage} ${styles.featureImageLight}`}
-          src={image}
-          alt={imageAlt ?? ""}
-          width={720}
-          height={400}
-          unoptimized={unoptimized}
-        />
-        <Image
-          className={`${styles.featureImage} ${styles.featureImageDark}`}
-          src={imageDark}
-          alt=""
-          aria-hidden="true"
-          width={720}
-          height={400}
-          unoptimized={unoptimized}
-        />
+        <span
+          className={
+            imageMobile && imageMobileDark ? styles.featureImageWide : styles.featureImagePair
+          }
+        >
+          <Image
+            className={`${styles.featureImage} ${styles.featureImageLight}`}
+            src={image}
+            alt={imageAlt ?? ""}
+            width={720}
+            height={400}
+            unoptimized={unoptimized}
+          />
+          <Image
+            className={`${styles.featureImage} ${styles.featureImageDark}`}
+            src={imageDark}
+            alt=""
+            aria-hidden="true"
+            width={720}
+            height={400}
+            unoptimized={unoptimized}
+          />
+        </span>
+        {imageMobile && imageMobileDark ? (
+          <span className={styles.featureImageCompact}>
+            <Image
+              className={`${styles.featureImage} ${styles.featureImageLight}`}
+              src={imageMobile}
+              alt={imageAlt ?? ""}
+              width={720}
+              height={600}
+              unoptimized={unoptimized}
+            />
+            <Image
+              className={`${styles.featureImage} ${styles.featureImageDark}`}
+              src={imageMobileDark}
+              alt=""
+              aria-hidden="true"
+              width={720}
+              height={600}
+              unoptimized={unoptimized}
+            />
+          </span>
+        ) : null}
       </>
     ) : (
       <div
@@ -111,6 +148,19 @@ export function CloudFeatureCard({
         aria-hidden="true"
       />
     );
+
+  const artwork = withDither ? (
+    <div
+      className={`${styles.featureStage} ${
+        imageMobile && imageMobileDark ? styles.featureStageResponsive : ""
+      }`.trim()}
+    >
+      <FadedDither band="light" className={styles.featureShader} />
+      <div className={styles.featureStageArtwork}>{images}</div>
+    </div>
+  ) : (
+    images
+  );
 
   const copy = (
     <FeatureCopy
@@ -123,7 +173,9 @@ export function CloudFeatureCard({
   );
 
   return (
-    <article className={styles.card}>
+    <article
+      className={`${styles.card} ${stackedEditorialOrder ? styles.cardEditorialStack : ""}`.trim()}
+    >
       {imageFirst ? artwork : copy}
       {imageFirst ? copy : artwork}
     </article>

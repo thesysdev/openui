@@ -1,11 +1,12 @@
 import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import { BevelButton } from "../../components/Button/BevelButton";
+import { FadedDither } from "../../components/FadedDither/FadedDither";
 import styles from "../../page.module.css";
 import { AutofixSection } from "../../sections/AutofixSection/AutofixSection";
 import { Footer } from "../../sections/Footer/Footer";
 import { HeroSection } from "../../sections/HeroSection/HeroSection";
-import { GatewayReliabilityIllustration } from "../../sections/ProductIllustrations/ProductIllustrations";
+import { GatewayReliabilityOpenIllustration } from "../../sections/ProductIllustrations/ProductIllustrations";
 import { CloudCtaSection } from "../CloudCtaSection";
 import { FaqSection } from "./FaqSection";
 import { IntegrateSection } from "./IntegrateSection";
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
 
 export default function GatewayPage() {
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${gatewayStyles.sectionRhythm}`}>
       <div className={styles.heroShell}>
         <HeroSection
           align="left"
@@ -78,13 +79,19 @@ export default function GatewayPage() {
           showGitHubBanner={false}
           showTagline={false}
           desktopPreviewSlot={
-            <div className={gatewayStyles.heroArtSpace}>
-              <GatewayReliabilityIllustration />
+            <div id="gateway-hero-illustration" className={gatewayStyles.heroArtSpace}>
+              <FadedDither band="light" className={gatewayStyles.heroShader} />
+              <div className={gatewayStyles.heroArtwork}>
+                <GatewayReliabilityOpenIllustration />
+              </div>
             </div>
           }
           mobilePreviewSlot={
             <div className={gatewayStyles.heroArtSpace}>
-              <GatewayReliabilityIllustration />
+              <FadedDither band="light" className={gatewayStyles.heroShader} />
+              <div className={gatewayStyles.heroArtwork}>
+                <GatewayReliabilityOpenIllustration />
+              </div>
             </div>
           }
         />
@@ -97,11 +104,13 @@ export default function GatewayPage() {
         <div className={gatewayStyles.repairBand}>
           <RepairSection />
         </div>
-        <AutofixSection />
-        <IntegrateSection />
+        <div className={gatewayStyles.autofixBridge}>
+          <AutofixSection />
+        </div>
         <div className={gatewayStyles.usageBand}>
           <UsageSection />
         </div>
+        <IntegrateSection />
         <SecuritySection />
         <PricingSection />
         <div className={sectionStyles.faqBand}>

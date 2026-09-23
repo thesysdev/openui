@@ -7,11 +7,34 @@
 }
 
 .problemSection {
-  padding-block: 160px;
+  padding-block: var(--gateway-section-gap, 160px);
 }
 
 .repairSection {
+  display: flex;
+  flex-direction: column;
   padding-bottom: 64px;
+}
+
+/* Match the responsive lockup used by the homepage product bands. The shared
+   section lockup collapses at tablet width, but PD's product lockup stays split
+   until phone width and scales its heading within the band hierarchy. */
+.repairSection > .sectionLockup {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+}
+
+.repairSection .heading {
+  max-width: 20ch;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.repairSection > .sectionLockup > .lead {
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.55;
 }
 
 .sectionLockup {
@@ -64,15 +87,24 @@
 }
 
 .problemConclusion {
-  box-sizing: border-box;
   width: 100%;
-  margin-top: 56px;
-  padding: 6px 0 6px 16px;
-  border-left: 2px solid color-mix(in srgb, var(--openui-text-neutral-primary) 80%, transparent);
+  margin-top: 48px;
 }
 
-.problemConclusion .linkRow {
-  margin-top: 18px;
+.problemConclusionCopy {
+  max-width: 54rem;
+  margin: 0;
+  color: var(--openui-text-neutral-secondary);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.problemConclusionActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1rem;
 }
 
 .diagram {
@@ -80,6 +112,9 @@
 }
 
 .repairIllustrationSpace {
+  --gateway-stage-stroke: #f8f8f8;
+
+  position: relative;
   display: flex;
   min-height: 0;
   width: 100%;
@@ -87,9 +122,30 @@
   margin-inline: auto;
   aspect-ratio: 1120 / 440;
   overflow: hidden;
-  border: 0;
+  border: 1px solid var(--gateway-stage-stroke);
   border-radius: 24px;
-  background: transparent;
+}
+
+[data-theme="dark"] .repairIllustrationSpace {
+  --gateway-stage-stroke: #0e0e0e;
+}
+
+.illustrationShader {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.illustrationShader > * {
+  width: 100%;
+  height: 100%;
+}
+
+.repairIllustrationArt {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
 }
 
 /* Compact light customer proof: logo mark, company, then the original claim. */
@@ -157,8 +213,25 @@
   --cloud-code-min-height: 448px;
 
   width: 100%;
-  padding-block: 60px;
-  background: var(--openui-foreground);
+  padding-block: calc(var(--gateway-section-gap, 160px) / 2);
+  background: var(--gateway-band-surface);
+}
+
+.adoptionTitleBreak {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .adoptionTitleBreak {
+    display: inline;
+  }
+}
+
+/* Observability uses its enterprise proof as a quieter page section after the
+   grey setup band. Keep the same material change and tighter rhythm here. */
+.enterpriseSection.enterpriseSection {
+  padding-block: calc(var(--gateway-section-gap, 160px) / 2);
+  background: transparent;
 }
 
 section.usageSection {
@@ -167,8 +240,23 @@ section.usageSection {
 
 .pricingBand {
   width: 100%;
-  padding-top: 160px;
-  background: var(--openui-foreground);
+  padding-top: calc(var(--gateway-section-gap, 160px) / 2);
+  background: var(--gateway-page-surface);
+}
+
+@media (min-width: 1024px) {
+  .pricingSection > .sectionLockup {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .pricingSection > .sectionLockup > :first-child {
+    grid-column: 1 / 3;
+  }
+
+  .pricingSection > .sectionLockup > .lead {
+    grid-column: 3 / 5;
+  }
 }
 
 .pricingToolbar {
@@ -367,8 +455,9 @@ section.usageSection {
 .faqBand {
   box-sizing: border-box;
   width: 100%;
-  padding: 160px var(--home-section-padding-inline);
-  background: var(--openui-foreground);
+  padding: var(--gateway-section-gap, 160px) var(--home-section-padding-inline)
+    calc(var(--gateway-section-gap, 160px) / 2);
+  background: var(--gateway-page-surface);
 }
 
 .faqBand > section {
@@ -382,6 +471,10 @@ section.usageSection {
 }
 
 @media (max-width: 1023px) {
+  .adoptionSection {
+    --cloud-setup-content-display: contents;
+  }
+
   .repairIllustrationSpace {
     min-height: 0;
   }
@@ -392,20 +485,20 @@ section.usageSection {
   .planGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .problemSection {
-    padding-block: 112px;
-  }
-
   .repairSection {
     padding-bottom: 48px;
   }
 
   .pricingBand {
-    padding-top: 112px;
+    padding-top: calc(var(--gateway-section-gap, 96px) / 2);
   }
 
   .sectionLockup {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .repairSection > .sectionLockup {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   }
 
   .problemLockup {
@@ -414,15 +507,52 @@ section.usageSection {
   }
 
   .faqBand {
-    padding-block: 112px;
+    padding-top: var(--gateway-section-gap, 96px);
+    padding-bottom: calc(var(--gateway-section-gap, 96px) / 2);
   }
 }
 
 @media (max-width: 767px) {
+  .adoptionSection {
+    --cloud-code-mobile-zoom: 0.54;
+    --cloud-code-mobile-padding-block: 28px;
+    --cloud-code-min-height: 0;
+  }
+
   .repairIllustrationSpace {
     min-height: 0;
-    aspect-ratio: 4 / 2.4;
+    margin-top: 0;
+    aspect-ratio: 1440 / 1200;
     border-radius: 16px;
+  }
+
+  /* ProductSection uses the same phone reading order: headline, artwork,
+     description, then capability rows. display:contents lets this section do
+     that without duplicating its copy or changing the desktop markup. */
+  .repairSection > .sectionLockup {
+    display: contents;
+  }
+
+  .repairSection > .sectionLockup > :first-child {
+    order: 1;
+    margin-bottom: clamp(0.75rem, 2vw, 1.75rem);
+  }
+
+  .repairSection > .repairIllustrationSpace {
+    order: 2;
+  }
+
+  .repairSection > .sectionLockup > .lead {
+    order: 3;
+    margin-top: 0.875rem;
+  }
+
+  .repairSection > .customerQuote {
+    order: 4;
+  }
+
+  .repairSection > .repairGrid {
+    order: 5;
   }
 
   .pricingControls {
@@ -452,16 +582,12 @@ section.usageSection {
     scroll-snap-stop: always;
   }
 
-  .problemSection {
-    padding-block: 96px;
-  }
-
   .repairSection {
     padding-bottom: 48px;
   }
 
   .pricingBand {
-    padding-top: 96px;
+    padding-top: calc(var(--gateway-section-gap, 96px) / 2);
   }
 
   .sectionLockup {
@@ -499,7 +625,8 @@ section.usageSection {
   }
 
   .faqBand {
-    padding: 96px 24px;
+    padding: var(--gateway-section-gap, 96px) 24px
+      calc(var(--gateway-section-gap, 96px) / 2);
   }
 
   .adoptionSection > div {

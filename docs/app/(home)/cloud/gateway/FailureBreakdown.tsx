@@ -75,8 +75,9 @@ export function FailureBreakdown() {
         </div>
 
         <ul className={styles.labels}>
-          {categories.map((entry) => (
+          {categories.map((entry, index) => (
             <li key={entry.family} className={styles.label}>
+              <span className={`${styles.mobileKey} ${fills[index]}`} aria-hidden="true" />
               <span className={styles.share}>{entry.share}%</span>
               <span className={styles.family}>
                 {entry.label === "Enum, type and argument errors" ? (
