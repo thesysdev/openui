@@ -49,7 +49,7 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
   });
 
   if (!localSourceDir()) await ensureGitAvailable();
-  const sourceRetryReporter = tel.retryReporter("source_checkout");
+  const sourceRetryReporter = tel.reportRetry("source_checkout");
   const catalog = await loadCreateCatalog({
     example: options.example,
     template: options.template,

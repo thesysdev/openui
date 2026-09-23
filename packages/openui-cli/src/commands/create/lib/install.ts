@@ -126,7 +126,7 @@ export async function installProjectDependencies(params: {
     const runWithRetry = () =>
       withRetry(attemptInstall, {
         shouldRetry: isNetworkError,
-        onRetry: tel.retryReporter("dependency_install"),
+        onRetry: tel.reportRetry("dependency_install"),
         label: "Dependency install",
       });
     await (verbose ? runWithRetry() : withSpinner("Installing dependencies...", runWithRetry));

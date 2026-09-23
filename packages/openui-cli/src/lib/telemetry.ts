@@ -156,7 +156,7 @@ export class Telemetry {
     this.capture("cli_network_retry", props);
   }
 
-  retryReporter(stage: string): (info: RetryAttemptInfo) => void {
+  reportRetry(stage: string): (info: RetryAttemptInfo) => void {
     return (info) => {
       const properties = cliErrorProperties(info.error);
       this.trackNetworkRetry({
