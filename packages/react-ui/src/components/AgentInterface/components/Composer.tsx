@@ -6,6 +6,7 @@ import { useLayoutContext } from "../../../context/LayoutContext";
 import { useAutoFocus } from "../../../hooks/useAutoFocus";
 import { useComposerState } from "../../../hooks/useComposerState";
 import { IconButton } from "../../IconButton";
+import { useComposerInputReset } from "../_shared/useComposerInputReset";
 
 export interface ComposerProps {
   className?: string;
@@ -19,6 +20,7 @@ export const Composer = ({ className, placeholder = "Type your query here" }: Co
   const isRunning = useThread((s) => s.isRunning);
   const isLoadingMessages = useThread((s) => s.isLoadingMessages);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { inputKey, onCompositionStart, resetAfterSubmit } = useComposerInputReset(inputRef);
   const [hasInputOverflowTop, setHasInputOverflowTop] = useState(false);
   const [hasInputOverflowBottom, setHasInputOverflowBottom] = useState(false);
   const selectedThreadId = useThreadList((s) => s.selectedThreadId);
@@ -50,6 +52,7 @@ export const Composer = ({ className, placeholder = "Type your query here" }: Co
     });
 
     setTextContent("");
+    resetAfterSubmit();
   };
 
   useLayoutEffect(() => {
@@ -78,10 +81,12 @@ export const Composer = ({ className, placeholder = "Type your query here" }: Co
         data-overflow-bottom={hasInputOverflowBottom || undefined}
       >
         <textarea
+          key={inputKey}
           ref={inputRef}
           value={textContent}
-          autoFocus
+          autoFocus={inputKey === 0}
           onChange={(e) => setTextContent(e.target.value)}
+          onCompositionStart={onCompositionStart}
           onScroll={updateInputOverflow}
           className="openui-agent-thread-composer__input"
           placeholder={placeholder}

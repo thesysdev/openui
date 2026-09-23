@@ -313,6 +313,15 @@ Plus three React contexts:
 - **`SidebarVisualStateContext`** (`Sidebar.tsx`) — the sidebar's animation state machine
   (`expanded`/`collapsing`/`collapsed`/`expanding`) so items know when to show collapsed tooltips.
 
+### Composer draft lifecycle
+
+Both built-in composers replace their textarea after submitting a draft that used IME
+composition. This prevents late input events from the submitted composition from restoring
+the cleared draft. The composition marker lasts until submission because a final input event
+can arrive after `compositionend`. Ordinary typed drafts keep their textarea, and a reset
+preserves focus only if the replaced textarea still owned it. Controlled welcome composers
+continue to report the clear through `onChange`, and their `inputRef` points to the new textarea.
+
 ---
 
 ## Navigation & routing

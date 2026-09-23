@@ -181,6 +181,7 @@
     "eslint-plugin-storybook": "catalog:",
     "eslint-plugin-unused-imports": "catalog:",
     "form-data": "^4.0.0",
+    "jsdom": "catalog:",
     "postcss": "^8.5.1",
     "postcss-js": "^4.0.1",
     "postcss-remove-duplicate-values": "^1.0.0",

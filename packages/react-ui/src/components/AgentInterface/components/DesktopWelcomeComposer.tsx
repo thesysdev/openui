@@ -6,6 +6,7 @@ import { useLayoutContext } from "../../../context/LayoutContext";
 import { useAutoFocus } from "../../../hooks/useAutoFocus";
 import { useComposerState } from "../../../hooks/useComposerState";
 import { IconButton } from "../../IconButton";
+import { useComposerInputReset } from "../_shared/useComposerInputReset";
 
 export interface DesktopWelcomeComposerProps {
   className?: string;
@@ -45,6 +46,7 @@ export const DesktopWelcomeComposer = ({
   const isLoadingMessages = useThread((s) => s.isLoadingMessages);
   const ownRef = useRef<HTMLTextAreaElement>(null);
   const textareaRef = inputRef ?? ownRef;
+  const { inputKey, onCompositionStart, resetAfterSubmit } = useComposerInputReset(textareaRef);
   const selectedThreadId = useThreadList((s) => s.selectedThreadId);
   const { layout } = useLayoutContext();
 
@@ -64,6 +66,7 @@ export const DesktopWelcomeComposer = ({
     });
 
     setTextContent("");
+    resetAfterSubmit();
   };
 
   useLayoutEffect(() => {
@@ -81,9 +84,11 @@ export const DesktopWelcomeComposer = ({
       data-drafting={(drafting ?? textContent.length > 0) || undefined}
     >
       <textarea
+        key={inputKey}
         ref={textareaRef}
         value={textContent}
         onChange={(e) => setTextContent(e.target.value)}
+        onCompositionStart={onCompositionStart}
         className="openui-agent-desktop-welcome-composer__input"
         placeholder={placeholder}
         rows={1}
