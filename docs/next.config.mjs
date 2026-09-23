@@ -43,12 +43,12 @@ const config = {
       {
         source: "/docs/observability",
         destination: "/docs/reliability",
-        permanent: true,
+        permanent: false,
       },
       {
         source: "/docs/observability/:path*",
         destination: "/docs/reliability/:path*",
-        permanent: true,
+        permanent: false,
       },
       // /cloud was the OpenUI Cloud product page; its pitch now lives on the
       // home page, and the managed products have pages of their own. Temporary
