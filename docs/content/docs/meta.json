@@ -7,6 +7,7 @@
     "openui-lang",
     "build-agents",
     "agent",
+    "cookbooks",
     "gateway",
     "observability",
     "deploy",

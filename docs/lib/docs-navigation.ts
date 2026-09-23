@@ -1,6 +1,7 @@
 import type * as PageTree from "fumadocs-core/page-tree";
 
-export type NestedDocsRoot = "openui-lang" | "build-agents" | "gateway" | "observability" | "api-reference";
+export type NestedDocsRoot =
+  "openui-lang" | "build-agents" | "cookbooks" | "gateway" | "observability" | "api-reference";
 
 export type SidebarMode =
   | { kind: "global" }
@@ -33,6 +34,12 @@ export const NESTED_DOCS_SECTIONS: Record<NestedDocsRoot, NestedSection> = {
     entryUrl: "/docs/build-agents",
     pathPrefix: "/docs/build-agents",
     treeFolder: "build-agents",
+  },
+  cookbooks: {
+    title: "Cookbooks",
+    entryUrl: "/docs/cookbooks",
+    pathPrefix: "/docs/cookbooks",
+    treeFolder: "cookbooks",
   },
   gateway: {
     title: "Gateway",
@@ -92,6 +99,11 @@ export const GLOBAL_DOCS_TREE: PageTree.Root = {
       type: "page",
       name: NESTED_DOCS_SECTIONS["build-agents"].title,
       url: NESTED_DOCS_SECTIONS["build-agents"].entryUrl,
+    },
+    {
+      type: "page",
+      name: NESTED_DOCS_SECTIONS.cookbooks.title,
+      url: NESTED_DOCS_SECTIONS.cookbooks.entryUrl,
     },
     { type: "separator", name: "Production" },
     {

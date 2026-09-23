@@ -1,0 +1,13 @@
+{
+  "title": "Cookbooks",
+  "root": true,
+  "pages": [
+    "index",
+    "---Recipes---",
+    "conversational-analytics",
+    "document-comparison",
+    "adaptive-booking",
+    "customer-support",
+    "invoice-review"
+  ]
+}
