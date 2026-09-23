@@ -1,6 +1,9 @@
+/* ssr entry: this page is a server component. */
+import { Gift } from "@phosphor-icons/react/dist/ssr";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { ExternalTextLink } from "../../components/ExternalTextLink/ExternalTextLink";
+import { FadedDither } from "../../components/FadedDither/FadedDither";
 import styles from "../../page.module.css";
 import type { GridFeature } from "../../sections/FeatureGridSection/FeatureGridSection";
 import { Footer } from "../../sections/Footer/Footer";
@@ -83,6 +86,12 @@ export default function ObservabilityPage() {
           subtitle={
             <span className={cloudStyles.subtitle}>
               See what users saw and did, where your agent fell short, and what to build next.
+              <span className={cloudStyles.subtitleTerms}>
+                <span className={cloudStyles.subtitleTermsInner}>
+                  <Gift aria-hidden="true" size={20} weight="bold" />
+                  Free during early access
+                </span>
+              </span>
             </span>
           }
           smallSubtitle
@@ -94,7 +103,10 @@ export default function ObservabilityPage() {
           showGitHubBanner={false}
           showTagline={false}
           desktopPreviewSlot={
-            <>
+            /* Shader behind, artwork on top, the same stage the feature shots
+               use. band="light" because the hero sits straight on the page. */
+            <div className={cloudStyles.heroStage}>
+              <FadedDither band="light" className={cloudStyles.heroShader} />
               <Image
                 className={`${cloudStyles.heroImage} ${cloudStyles.heroImageLight}`}
                 src="/openui-observability/hero-light.webp"
@@ -114,12 +126,14 @@ export default function ObservabilityPage() {
                 unoptimized
                 priority
               />
-            </>
+            </div>
           }
           mobilePreviewSlot={
+            /* No stage on a phone: no shader, no fill, no rounded corners. The
+               art just dissolves into the page at its lower edge. */
             <>
               <Image
-                className={`${cloudStyles.heroImage} ${cloudStyles.heroImageLight}`}
+                className={`${cloudStyles.heroImage} ${cloudStyles.heroImageMobile} ${cloudStyles.heroImageLight}`}
                 src="/openui-observability/hero-mobile-light.webp"
                 alt="OpenUI Observability insights preview"
                 width={924}
@@ -128,7 +142,7 @@ export default function ObservabilityPage() {
                 priority
               />
               <Image
-                className={`${cloudStyles.heroImage} ${cloudStyles.heroImageDark}`}
+                className={`${cloudStyles.heroImage} ${cloudStyles.heroImageMobile} ${cloudStyles.heroImageDark}`}
                 src="/openui-observability/hero-mobile-dark.webp"
                 alt=""
                 aria-hidden="true"
@@ -141,12 +155,14 @@ export default function ObservabilityPage() {
           }
         />
 
-        {/* Problem, then the features that answer it, then what it costs to adopt
-            and what it costs you in data — the Gateway page's spine. */}
+        {/* Problem, then the features that answer it, then the data question the
+            features raise, and only then what it costs to adopt. */}
         <WhySection />
         <FeaturesSection />
-        <IntegrateSection />
 
+        {/* Directly under Insights: the feature flow ends on what the product
+            learns from a session, which is the point a reader starts wondering
+            where that data goes. */}
         <EnterpriseSection
           titleId="observability-trust"
           title="Secure, compliant, and under your control"
@@ -154,10 +170,15 @@ export default function ObservabilityPage() {
           features={TRUST_ITEMS}
         />
 
+        <IntegrateSection />
+
+        {/* Straight after the trust block rather than below the FAQ: the ask
+            lands while the reader is still on the reasons to say yes. */}
+        <CloudCtaSection />
+
         <div className={cloudStyles.faqBand}>
           <FaqSection />
         </div>
-        <CloudCtaSection />
       </div>
       <Footer />
     </div>

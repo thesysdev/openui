@@ -6,10 +6,16 @@ import { ArrowRight, ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 import { BevelButton } from "../../components/Button/BevelButton";
+import { FadedDither } from "../../components/FadedDither/FadedDither";
+import { FeatureGridSection, type GridFeatureIcon } from "../FeatureGridSection/FeatureGridSection";
 import styles from "./ProductSection.module.css";
 
 export type ProductCard = {
   Icon: Icon;
+  /* The same icon named as a string. The phone layout hands these cards to
+     FeatureGridSection, which is a client component, and a component reference
+     cannot cross that boundary from here. */
+  icon: GridFeatureIcon;
   title: string;
   description: string;
 };
@@ -146,45 +152,95 @@ export function ProductSection({
           } as CSSProperties
         }
       >
+        {/* Behind the artwork, filling the transparent margin it is drawn with.
+            Client-only, since it is WebGPU. */}
+        <FadedDither band={tone} className={styles.stageShader} />
         {art ??
           (shot ? (
+            /* Two pairs, each in a wrapper the breakpoint switches off. The
+               phone artwork is a different drawing at 1440x1200, not the wide
+               one rescaled. The wrapper is display:contents when shown, so the
+               theme rules keep working on the images untouched. */
             <>
-              <Image
-                className={`${styles.stageImage} ${styles.stageLight}`}
-                src={`${shot}-light.webp`}
-                alt=""
-                aria-hidden="true"
-                width={1280}
-                height={720}
-                loading="lazy"
-              />
-              <Image
-                className={`${styles.stageImage} ${styles.stageDark}`}
-                src={`${shot}-dark.webp`}
-                alt=""
-                aria-hidden="true"
-                width={1280}
-                height={720}
-                loading="lazy"
-              />
+              <span className={styles.stageWide}>
+                <Image
+                  className={`${styles.stageImage} ${styles.stageLight}`}
+                  src={`${shot}-light.webp`}
+                  alt=""
+                  aria-hidden="true"
+                  width={1280}
+                  height={720}
+                  loading="lazy"
+                />
+                <Image
+                  className={`${styles.stageImage} ${styles.stageDark}`}
+                  src={`${shot}-dark.webp`}
+                  alt=""
+                  aria-hidden="true"
+                  width={1280}
+                  height={720}
+                  loading="lazy"
+                />
+              </span>
+              <span className={styles.stageCompact}>
+                <Image
+                  className={`${styles.stageImage} ${styles.stageLight}`}
+                  src={`${shot}-mobile-light.webp`}
+                  alt=""
+                  aria-hidden="true"
+                  width={720}
+                  height={600}
+                  loading="lazy"
+                />
+                <Image
+                  className={`${styles.stageImage} ${styles.stageDark}`}
+                  src={`${shot}-mobile-dark.webp`}
+                  alt=""
+                  aria-hidden="true"
+                  width={720}
+                  height={600}
+                  loading="lazy"
+                />
+              </span>
             </>
           ) : null)}
       </div>
 
       {cards.length > 0 && (
-        <div className={styles.cards}>
-          {cards.map(({ Icon: CardIcon, title, description: cardCopy }) => (
-            <div className={styles.card} key={title}>
-              <span className={styles.cardIcon} aria-hidden="true">
-                <CardIcon size={20} weight="light" />
-              </span>
-              <div className={styles.cardCopy}>
-                <h4 className={styles.cardTitle}>{title}</h4>
-                <p className={styles.cardDescription}>{cardCopy}</p>
+        <>
+          <div className={styles.cards}>
+            {cards.map(({ Icon: CardIcon, title, description: cardCopy }) => (
+              <div className={styles.card} key={title}>
+                <span className={styles.cardIcon} aria-hidden="true">
+                  <CardIcon size={20} weight="light" />
+                </span>
+                <div className={styles.cardCopy}>
+                  <h4 className={styles.cardTitle}>{title}</h4>
+                  <p className={styles.cardDescription}>{cardCopy}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          {/* Phones get the same capabilities as feature-grid rows, one open at
+              a time, so they read as the grid under the Lang band rather than
+              as a horizontal scroller of cards. The breakpoint shows exactly
+              one of the two. */}
+          <div className={styles.cardsCompact}>
+            <FeatureGridSection
+              features={cards.map(({ icon, title, description: cardCopy }) => ({
+                icon,
+                title,
+                description: cardCopy,
+              }))}
+              showHeader={false}
+              showHeaderSeparator={false}
+              showCompat={false}
+              showBottomSeparator={false}
+              flushSectionPadding
+            />
+          </div>
+        </>
       )}
     </section>
   );

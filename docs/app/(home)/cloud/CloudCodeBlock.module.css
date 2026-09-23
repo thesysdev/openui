@@ -47,7 +47,20 @@
 }
 
 @media (max-width: 767px) {
+  /* Opt-in, off by default. A host that sets this renders the panel at its
+     desktop measure and scales the whole box down: zoom shrinks the layout box
+     too, so a percentage width resolves in the panel's own scaled space and the
+     panel keeps the proportions it has on a wide screen instead of clipping
+     lines at phone width. */
+  .panel {
+    zoom: var(--cloud-code-mobile-zoom, 1);
+  }
+
   .code {
+    /* Opt-in, off by default: a host that zooms the panel down can also pull the
+       code's own padding in, which the zoom would otherwise leave looking
+       generous relative to the shrunken type. */
+    padding-block: var(--cloud-code-mobile-padding-block, 48px);
     scrollbar-width: none;
   }
 

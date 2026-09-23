@@ -61,6 +61,13 @@
   background: var(--openui-text-black);
 }
 
+/* On a dark page a black badge is the same colour as the ground behind it, so
+   the circle disappears and the mark floats. The rim gives it its edge back.
+   Light pages need nothing: the black circle is its own edge there. */
+[data-theme="dark"] .badgeBlack {
+  border: 1px solid rgb(255 255 255 / 0.22);
+}
+
 .badgeAnthropic {
   background: #d4a574;
 }
@@ -90,7 +97,35 @@
 }
 
 .badgeDaisyUi {
-  background: #f472b6;
+  background: #1ad1a5;
+}
+
+.badgeConvex {
+  background: #ee342f;
+}
+
+.badgeCloudflare {
+  background: #f38020;
+}
+
+.badgeMui {
+  background: #007fff;
+}
+
+.badgeAntDesign {
+  background: #0170fe;
+}
+
+.badgeChakra {
+  background: #319795;
+}
+
+.badgeMantine {
+  background: #339af0;
+}
+
+.badgeNuxt {
+  background: #00dc82;
 }
 
 .badgeBaseUi {
@@ -111,6 +146,12 @@
   height: 1rem;
   width: 1rem;
   object-fit: contain;
+}
+
+/* The local DeepSeek mark carries no fill of its own, so it paints black.
+   Invert it to white, which is what reads on the blue badge. */
+.badgeImage[src*="deepseek"] {
+  filter: invert(1);
 }
 
 /* The xAI mark is a small wordmark; shrink + invert it to read on the dark badge. */
@@ -152,8 +193,12 @@
   color: var(--openui-text-neutral-primary);
 }
 
-/* Logo-only variant for diagrams; regular chips keep their existing sizing. */
+/* Logo-only variant for diagrams; regular chips keep their existing sizing.
+   Block-level, unlike the inline-flex chip: an inline box is aligned on the
+   line's baseline, and a badge holding text rather than an image gets a
+   different baseline, so it sat a couple of pixels lower than its neighbours. */
 .chipIconOnly {
+  display: flex;
   width: var(--stack-logo-size, 44px);
   height: var(--stack-logo-size, 44px);
   padding: 0;
@@ -166,21 +211,37 @@
   height: var(--stack-logo-size, 44px);
 }
 
+/* The glyph tracks the badge so callers can resize the whole logo with one var. */
 .chipIconOnly .badgeImage,
 .chipIconOnly .iconSvg,
 .chipIconOnly .mascotSvg {
-  width: 24px;
-  height: 24px;
+  width: var(--stack-logo-glyph, 24px);
+  height: var(--stack-logo-glyph, 24px);
+}
+
+/* Shiro is line art rather than a solid mark, so at the shared size it reads
+   smaller than the rest. Only the glyph grows; the badge is unchanged. */
+.chipIconOnly .mascotSvg {
+  width: calc(var(--stack-logo-glyph, 24px) * 1.45);
+  height: calc(var(--stack-logo-glyph, 24px) * 1.45);
+}
+
+/* Same for the OpenAI rosette: fine, open line work that reads small next to
+   the solid marks around it. Scoped to the icon-only variant, so the regular
+   chips elsewhere keep their sizing. */
+.chipIconOnly .badgeImage[src*="openai"] {
+  width: calc(var(--stack-logo-glyph, 24px) * 1.25);
+  height: calc(var(--stack-logo-glyph, 24px) * 1.25);
 }
 
 .chipIconOnly .badgeImage[src*="xai"] {
-  width: 20px;
-  height: 20px;
+  width: calc(var(--stack-logo-glyph, 24px) * 0.8);
+  height: calc(var(--stack-logo-glyph, 24px) * 0.8);
 }
 
 .chipIconOnly .badgeText,
 .chipIconOnly .moreIcon {
-  font-size: 20px;
+  font-size: calc(var(--stack-logo-glyph, 24px) * 0.82);
 }
 
 .chipIconOnly .badgeBlack .badgeText {

@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import { AGENT_SETUP_PROMPT, AgentPicker } from "./components/AgentPicker/AgentPicker";
 import styles from "./page.module.css";
-import { CloudBanner } from "./sections/CloudBanner/CloudBanner";
+import { BANNER_END_ANCHOR_ID, CloudBanner } from "./sections/CloudBanner/CloudBanner";
 import { CloudSection } from "./sections/CloudSection/CloudSection";
 import { FaqSection } from "./sections/FaqSection/FaqSection";
 import { FeatureGridSection } from "./sections/FeatureGridSection/FeatureGridSection";
 import { Footer } from "./sections/Footer/Footer";
 import { HeroSection } from "./sections/HeroSection/HeroSection";
 import { LogoStrip } from "./sections/LogoStrip/LogoStrip";
-import { OpenSourceIllustration } from "./sections/ProductIllustrations/ProductIllustrations";
 import { ProductSection } from "./sections/ProductSection/ProductSection";
 import { LANG_PRODUCT } from "./sections/ProductSection/products";
 import { ShiroPeek } from "./sections/ShiroPeek/ShiroPeek";
@@ -43,7 +42,7 @@ export default function HomePage() {
       <div className={styles.contentSection}>
         <div className={styles.contentShell}>
           <div className={styles.langBand}>
-            <ProductSection {...LANG_PRODUCT} art={<OpenSourceIllustration />} fullBleedArt />
+            <ProductSection {...LANG_PRODUCT} />
           </div>
           {/* The benchmark header and the compatibility band, without the feature
               grid that used to sit between them. */}
@@ -51,14 +50,19 @@ export default function HomePage() {
               follows it, so the page proves the point before saying what it
               works with. The grid runs on its own six features — Live data and
               Cross-platform are only stated here. */}
-          <FeatureGridSection gridFirst showHeaderSeparator={false} showBottomSeparator={false} />
+          <FeatureGridSection
+            gridFirst
+            showHeaderSeparator={false}
+            showCompatSeparator={false}
+            showBottomSeparator={false}
+          />
 
           <div className={styles.cloudGroup}>
             <ShiroPeek />
             <CloudSection />
           </div>
           <TweetWallSection />
-          <div className={styles.faqBand}>
+          <div className={styles.faqBand} id={BANNER_END_ANCHOR_ID}>
             <FaqSection />
           </div>
         </div>

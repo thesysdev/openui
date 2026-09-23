@@ -16,10 +16,21 @@
   align-items: center;
 }
 
+/* The heading sits under the diagram, reading on from it, so the gap goes
+   above it. */
 .header {
-  display: flex;
-  justify-content: center;
-  width: 100%;
+  max-width: 46rem;
+  margin: clamp(2.5rem, 5vw, 4rem) auto clamp(1rem, 2vw, 1.5rem);
+  text-align: center;
+}
+
+/* The caption, and the only <p> SectionHeader renders here since this header
+   passes no subtitle. Narrower than the heading above it, and balanced so the
+   two lines come out close to even. */
+.header p {
+  max-width: 32rem;
+  margin-inline: auto;
+  text-wrap: balance;
 }
 
 .title {
