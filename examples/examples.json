@@ -80,7 +80,7 @@
     },
     {
       "title": "Autofix",
-      "description": "Direct OpenAI generation with automatic OpenUI Lang repair in AgentInterface.",
+      "description": "Direct OpenAI generation with OpenUI Autofix API",
       "path": "miscellaneous/autofix"
     },
     {

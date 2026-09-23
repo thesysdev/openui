@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Autofix · OpenUI",
-  description: "Repair invalid OpenUI Lang and preview the result with the Autofix API.",
+  description: "Generate OpenUI Lang with OpenAI and fix it with OpenUI Autofix.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,9 +1,13 @@
 "use client";
 
-import { RepairMessage } from "@/components/repair-message";
-import { createAutofixChat } from "@/lib/autofix-chat";
 import { library } from "@/library";
-import { AgentInterface, useSystemThemeMode } from "@openuidev/react-ui";
+import {
+  AgentInterface,
+  fetchLLM,
+  openAIAdapter,
+  openAIMessageFormat,
+  useSystemThemeMode,
+} from "@openuidev/react-ui";
 import { useMemo } from "react";
 
 const starters = [
@@ -23,18 +27,24 @@ const starters = [
       "Create a weekly fitness summary with 4 workouts, 32 km running, and 7.5 hours average sleep. Add a motivating note.",
   },
 ];
-const components = { AssistantMessage: RepairMessage };
 
 export default function Page() {
   const mode = useSystemThemeMode();
-  const llm = useMemo(() => createAutofixChat(), []);
+  const llm = useMemo(
+    () =>
+      fetchLLM({
+        url: "/api/chat",
+        streamAdapter: openAIAdapter(),
+        messageFormat: openAIMessageFormat,
+      }),
+    [],
+  );
 
   return (
     <main className="autofix-app">
       <AgentInterface
         llm={llm}
         componentLibrary={library}
-        components={components}
         agentName="OpenUI Autofix"
         theme={{ mode }}
         starters={starters}
@@ -42,7 +52,7 @@ export default function Page() {
       >
         <AgentInterface.Welcome
           title="Describe the UI you need."
-          description="OpenAI generates your interface. OpenUI validates it and automatically repairs errors with Autofix."
+          description="OpenAI generates your interface. @openuidev/server validates it and repairs errors with Autofix."
         />
         <AgentInterface.Composer placeholder="Ask for a summary, dashboard, or status card…" />
       </AgentInterface>
