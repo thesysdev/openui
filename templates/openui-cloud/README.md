@@ -47,18 +47,18 @@ search, image search, and configured MCP servers.
 
 OpenUI Cloud is the durable conversation store in every Cloud
 variant. The browser connects directly through `useOpenuiCloudStorage()` with a
-short-lived token from `/api/frontend-token`. For default, LangGraph, and
-Vercel AI SDK routes, the `threadId` sent to `/api/chat` is the Cloud
-conversation id, and the route appends each model turn to it with
-`conversation: threadId` and `store: true`. The Eve overlay uses that same Cloud
-thread store and maps each Cloud `threadId` to an Eve session cursor in the
-browser; it does not use `/api/chat`.
-Browser `localStorage` holds only the selected model (and, for Eve, the session
-cursor), not conversation messages.
+short-lived token from `/api/frontend-token`. Default and LangGraph append
+each model turn with `conversation: threadId` and `store: true`. The Eve overlay
+maps each Cloud `threadId` to an Eve session cursor in the browser; it does not
+use `/api/chat`. Browser `localStorage` holds only the selected model (and, for
+Eve, the session cursor), not conversation messages.
 
-The Vercel AI SDK route does not create a second store. Add a LangGraph
-checkpointer separately only if the graph needs durable state, interrupts, or
-resumable runs.
+The Vercel AI SDK variant wraps the UI message stream with `createAutofix` from
+`@openuidev/server/vercel` so invalid OpenUI is repaired before the client
+renders it.
+
+For production, replace the demo identity in the token route and Eve's anonymous
+authentication.
 
 ## Switching Models
 
@@ -74,6 +74,7 @@ list](https://models.dev/providers/openrouter/).
 
 - `@openuidev/lang-core` — `generateSystemPrompt({ cloud: true })` used by the
   `/api/chat` route.
+- `@openuidev/server` — Autofix (`/vercel`) used by the Vercel AI SDK variant.
 - `@openuidev/react-ui` — the chat UI runtime and component library
   (`AgentInterface`, `openuiLibrary`, `fetchLLM`, `ModelSwitcher`, storage/stream contracts).
 

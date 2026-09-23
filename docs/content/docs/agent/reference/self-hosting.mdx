@@ -47,14 +47,14 @@ Your route always receives a JSON body of `{ threadId, messages }` and returns a
 
 `streamAdapter` governs the **response** (how the streamed bytes are decoded); `messageFormat` governs the **request** (how outgoing `messages` are shaped). They are chosen independently but pair up by provider. Each adapter is a factory — **call it**: `openAIAdapter()`, not the bare reference.
 
-| Provider / route output                                              | `streamAdapter`                 | `messageFormat`                    |
-| -------------------------------------------------------------------- | ------------------------------- | ---------------------------------- |
-| OpenAI Chat Completions, NDJSON from `stream.toReadableStream()`     | `openAIReadableStreamAdapter()` | `openAIMessageFormat`              |
-| OpenAI Chat Completions, raw SSE (`data: {…}\n\n`, `data: [DONE]`)   | `openAIAdapter()`               | `openAIMessageFormat`              |
-| OpenAI **Responses / Conversations** API stream                      | `openAIResponsesAdapter()`      | `openAIConversationMessageFormat`  |
-| Vercel AI SDK v6 UIMessage stream from `toUIMessageStreamResponse()` | `vercelAIAdapter()`             | `vercelAIMessageFormat`            |
-| LangGraph stream (named SSE events)                                  | `langGraphAdapter()`            | `langGraphMessageFormat`           |
-| A backend that already emits AG-UI events                            | `agUIAdapter()`                 | depends on what your route expects |
+| Provider / route output                                               | `streamAdapter`                 | `messageFormat`                    |
+| --------------------------------------------------------------------- | ------------------------------- | ---------------------------------- |
+| OpenAI Chat Completions, NDJSON from `stream.toReadableStream()`      | `openAIReadableStreamAdapter()` | `openAIMessageFormat`              |
+| OpenAI Chat Completions, raw SSE (`data: {…}\n\n`, `data: [DONE]`)    | `openAIAdapter()`               | `openAIMessageFormat`              |
+| OpenAI **Responses / Conversations** API stream                       | `openAIResponsesAdapter()`      | `openAIConversationMessageFormat`  |
+| Vercel AI SDK UIMessage stream from `createUIMessageStreamResponse()` | `vercelAIAdapter()`             | `vercelAIMessageFormat`            |
+| LangGraph stream (named SSE events)                                   | `langGraphAdapter()`            | `langGraphMessageFormat`           |
+| A backend that already emits AG-UI events                             | `agUIAdapter()`                 | depends on what your route expects |
 
 The full catalogue and the precise wire format each adapter expects are in [Adapters & formats](/docs/agent/reference/adapters-and-formats).
 

@@ -3,7 +3,7 @@ title: Autofix API
 description: Fix invalid OpenUI Lang from any model with one API call.
 ---
 
-The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send the conversation with the generation as the last assistant turn, and the answer carries valid OpenUI Lang. Use it when your application calls a model directly.
+The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send the conversation with the generation as the last assistant turn, and the answer carries valid OpenUI Lang. Use it when your application is not using OpenUI Gateway. Gateway generation that already uses `generateSystemPrompt({ cloud: true, library })` is repaired while it streams; do not wrap it in Autofix.
 
 **Endpoint:** `POST https://api.thesys.dev/v1/autofix`
 
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
 ```
 
 ```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
-import { streamText, toUIMessageStream } from "ai";
+import { convertToModelMessages, streamText, toUIMessageStream, type UIMessageChunk } from "ai";
 import { autofix } from "../../../lib/autofix";
 
 export async function POST(request: Request) {
@@ -83,16 +83,31 @@ export async function POST(request: Request) {
   const result = streamText({
     model: "openai/gpt-5.5",
     system: systemPrompt, // Generated from the same OpenUI component library.
-    messages,
+    messages: await convertToModelMessages(messages),
     abortSignal: request.signal,
   });
 
   return autofix.ai
     .stream({
-      stream: toUIMessageStream({ stream: result.stream }),
+      stream: iterateUIMessageStream(toUIMessageStream({ stream: result.stream })),
       signal: request.signal,
     })
     .toResponse();
+}
+
+async function* iterateUIMessageStream(
+  stream: ReadableStream<UIMessageChunk>,
+): AsyncGenerator<UIMessageChunk> {
+  const reader = stream.getReader();
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) return;
+      yield value;
+    }
+  } finally {
+    reader.releaseLock();
+  }
 }
 ```
 
@@ -111,7 +126,7 @@ if (result.status === "fix_failed") {
 
 OpenAI: return SSE for the frontend `openAIAdapter()`.
 
-Vercel: pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI message SSE protocol used by `useChat`.
+Vercel: `toUIMessageStream({ stream: result.stream })` returns a `ReadableStream`, and `ai.stream()` takes an `AsyncIterable`, so iterate the chunks with a small helper like `iterateUIMessageStream` before passing them in. `toResponse()` is the UI message SSE protocol read by `useChat` and `vercelAIAdapter()`.
 
 Non-streaming: `generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation. Use `completions.fix` or `ai.fix` to match the import.
 

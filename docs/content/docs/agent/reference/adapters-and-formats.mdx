@@ -367,14 +367,14 @@ interface StreamProtocolAdapter {
 
 Start from your provider and how the route streams its reply. The stream adapter and message format are independent knobs — pick the adapter to match how your backend _streams_, and the format to match how it represents _stored_ messages — but they typically pair up as below.
 
-| Your backend streams…                                              | Stream adapter                  | Pair with message format          |
-| ------------------------------------------------------------------ | ------------------------------- | --------------------------------- |
-| OpenAI **Chat Completions** SSE (`data: {…}` lines)                | `openAIAdapter()`               | `openAIMessageFormat`             |
-| OpenAI SDK `stream.toReadableStream()` (NDJSON, no `data:` prefix) | `openAIReadableStreamAdapter()` | `openAIMessageFormat`             |
-| OpenAI **Responses / Conversations** API SSE                       | `openAIResponsesAdapter()`      | `openAIConversationMessageFormat` |
-| **Vercel AI SDK v6** UIMessage SSE (`toUIMessageStreamResponse()`) | `vercelAIAdapter()`             | `vercelAIMessageFormat`           |
-| **LangGraph** named-event SSE (`event: messages\ndata: …`)         | `langGraphAdapter()`            | `langGraphMessageFormat`          |
-| Already AG-UI events (your route emits AG-UI SSE directly)         | `agUIAdapter()`                 | `identityMessageFormat` (default) |
+| Your backend streams…                                               | Stream adapter                  | Pair with message format          |
+| ------------------------------------------------------------------- | ------------------------------- | --------------------------------- |
+| OpenAI **Chat Completions** SSE (`data: {…}` lines)                 | `openAIAdapter()`               | `openAIMessageFormat`             |
+| OpenAI SDK `stream.toReadableStream()` (NDJSON, no `data:` prefix)  | `openAIReadableStreamAdapter()` | `openAIMessageFormat`             |
+| OpenAI **Responses / Conversations** API SSE                        | `openAIResponsesAdapter()`      | `openAIConversationMessageFormat` |
+| **Vercel AI SDK** UIMessage SSE (`createUIMessageStreamResponse()`) | `vercelAIAdapter()`             | `vercelAIMessageFormat`           |
+| **LangGraph** named-event SSE (`event: messages\ndata: …`)          | `langGraphAdapter()`            | `langGraphMessageFormat`          |
+| Already AG-UI events (your route emits AG-UI SSE directly)          | `agUIAdapter()`                 | `identityMessageFormat` (default) |
 
 Wrapping Anthropic, or any provider with no bundled adapter? You have two paths: translate to AG-UI events server-side and use `agUIAdapter()`, or re-emit your provider's stream as OpenAI Completions SSE and use `openAIAdapter()`.
 
@@ -454,7 +454,7 @@ const llm = fetchLLM({
 });
 ```
 
-- **Wire shape:** Vercel AI SDK v6 UIMessage SSE, as returned by `result.toUIMessageStreamResponse()`.
+- **Wire shape:** Vercel AI SDK UIMessage SSE, as returned by `createUIMessageStreamResponse({ stream: toUIMessageStream({ stream: result.stream }) })` or by an Autofix `ai.stream(...).toResponse()`.
 - **What it handles:** streamed text, streamed or complete tool input, successful, failed, or denied tool output, and SDK error chunks. The adapter delegates SSE decoding and chunk validation to the Vercel AI SDK, then projects the validated chunks into AG-UI events.
 - **Current scope:** reasoning, sources, assistant files, custom data, metadata, and tool-approval-request chunks have no equivalent in the current AgentInterface stream processor and are ignored. Approval-gated tools therefore need a custom flow today. Provider-executed tool chunks (`providerExecuted: true`) are rejected because AG-UI cannot preserve their assistant-contained result semantics.
 - **When to use:** Your route uses Vercel AI SDK `streamText()` and returns its UIMessage stream response. Pair with `vercelAIMessageFormat` so the route receives `UIMessage[]` that can be passed to `convertToModelMessages()`.

@@ -101,14 +101,14 @@ After deploying, open the [Reliability dashboard](https://console.thesys.dev/rel
 
 ## Production reliability
 
-Even with a well-tuned schema, prompt, and model, some generations in production will still fail validation. OpenUI offers two ways to repair them automatically, depending on how your application calls the model.
+Even with a well-tuned schema, prompt, and model, some generations in production will still fail validation. OpenUI offers two ways to repair them automatically, depending on whether your application uses OpenUI Gateway.
 
-- **[Autofix API](#autofix-api):** your application calls the model itself and sends the generation to the Autofix API for repair.
+- **[Autofix API](#autofix-api):** your application is not using OpenUI Gateway and sends the generation to the Autofix API for repair.
 - **[OpenUI Gateway](#openui-gateway):** OpenUI Gateway calls the model on your behalf and repairs the generation while it streams.
 
 ### Autofix API
 
-The [Autofix API](/docs/gateway/api/autofix) repairs OpenUI Lang after your model has generated it, so your application keeps its own model calls, keys, and prompts.
+The [Autofix API](/docs/gateway/api/autofix) repairs OpenUI Lang after your model has generated it, so your application keeps its own provider, keys, and prompts. The [`@openuidev/server`](/docs/api-reference/server) helpers wrap a Chat Completions or Vercel AI SDK stream with the same repair.
 
 For every generation, the Autofix API:
 
