@@ -37,8 +37,29 @@ Pair each Autofix stream with the matching frontend adapter: `openAIAdapter()` o
 
 Use the spec from `openui generate --spec` for the same library as your renderer, including its `schema`.
 
-```ts
+```ts tab="OpenAI" tab-group="autofix-sdk"
 import { createAutofix } from "@openuidev/server/openai";
+import library from "./openui.spec.json";
+
+const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
+```ts tab="Vercel AI SDK" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/vercel";
+import library from "./openui.spec.json";
+
+const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
+```ts tab="Non-streaming" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/openai";
+// import { createAutofix } from "@openuidev/server/vercel";
 import library from "./openui.spec.json";
 
 const autofix = createAutofix({
@@ -62,8 +83,31 @@ From `@openuidev/server/openai`, `Autofix` is `{ completions: { fix, stream } }`
 
 Validate completed OpenUI text. Valid output is returned as-is. Invalid output is sent to `POST /v1/autofix`.
 
-```ts
+```ts tab="OpenAI" tab-group="autofix-sdk"
 const result = await autofix.completions.fix({ generation, messages, signal });
+
+if (result.content !== null) {
+  // already_valid or fixed — use result.content
+} else {
+  // fix_failed — choose a fallback
+  console.warn(result.unfixedErrors);
+}
+```
+
+```ts tab="Vercel AI SDK" tab-group="autofix-sdk"
+const result = await autofix.ai.fix({ generation, messages, signal });
+
+if (result.content !== null) {
+  // already_valid or fixed — use result.content
+} else {
+  // fix_failed — choose a fallback
+  console.warn(result.unfixedErrors);
+}
+```
+
+```ts tab="Non-streaming" tab-group="autofix-sdk"
+const result = await autofix.completions.fix({ generation, messages, signal });
+// const result = await autofix.ai.fix({ generation, messages, signal });
 
 if (result.content !== null) {
   // already_valid or fixed — use result.content
@@ -125,7 +169,7 @@ interface AutofixStream<T> {
 
 Use either `chunks` or `toResponse()` once. `result` settles after that consumer finishes. Persist `result.content` when it is a string — that is the Autofix program, not the joined stream text. `result` is `null` when Autofix did not run.
 
-```ts title="app/api/chat/route.ts"
+```ts title="app/api/chat/route.ts" tab="OpenAI" tab-group="autofix-sdk"
 import OpenAI from "openai";
 import { createAutofix } from "@openuidev/server/openai";
 import library from "./openui.spec.json";
@@ -139,7 +183,7 @@ const autofix = createAutofix({
 export async function POST(request: Request) {
   const { messages } = await request.json();
   const source = await model.chat.completions.create(
-    { model: "YOUR_MODEL", messages, stream: true },
+    { model: "openai/gpt-5.5", messages, stream: true },
     { signal: request.signal },
   );
 
@@ -149,9 +193,22 @@ export async function POST(request: Request) {
 }
 ```
 
-```ts
+```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
 import { streamText, toUIMessageStream } from "ai";
 import { createAutofix } from "@openuidev/server/vercel";
+import library from "./openui.spec.json";
+
+const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+
+const result = streamText({
+  model: "openai/gpt-5.5",
+  system: systemPrompt,
+  prompt: "Show a greeting card",
+  abortSignal: signal,
+});
 
 return autofix.ai
   .stream({
@@ -161,7 +218,18 @@ return autofix.ai
   .toResponse();
 ```
 
-```ts
+```ts title="server.ts" tab="Non-streaming" tab-group="autofix-sdk"
+const result = await autofix.completions.fix({ generation, messages, signal });
+// const result = await autofix.ai.fix({ generation, messages, signal });
+
+if (result.content !== null) {
+  // already_valid or fixed — use result.content
+} else {
+  console.warn(result.unfixedErrors);
+}
+```
+
+```ts tab="OpenAI" tab-group="autofix-sdk"
 const output = autofix.completions.stream({ stream: source, messages, signal });
 
 for await (const chunk of output.chunks) {
@@ -171,6 +239,28 @@ for await (const chunk of output.chunks) {
 const settled = await output.result;
 if (settled?.content) {
   // Persist settled.content
+}
+```
+
+```ts tab="Vercel AI SDK" tab-group="autofix-sdk"
+const output = autofix.ai.stream({
+  stream: toUIMessageStream({ stream: result.stream }),
+  signal,
+});
+
+for await (const chunk of output.chunks) {
+  // Native SDK events, including any appended correction
+}
+
+const settled = await output.result;
+if (settled?.content) {
+  // Persist settled.content
+}
+```
+
+```ts tab="Non-streaming" tab-group="autofix-sdk"
+if (result.content) {
+  // Persist result.content
 }
 ```
 
