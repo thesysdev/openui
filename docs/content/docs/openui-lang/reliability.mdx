@@ -19,7 +19,7 @@ In our [**Reliability benchmark**](/blog/generative-ui-benchmark), every tested 
 
 <img
   src="/images/openui-lang/reliability-layers.svg"
-  alt="Reliability pipeline showing schema and prompt improvements, model selection, validation and correction, and observability feedback"
+  alt="Reliability pipeline showing schema and prompt improvements, model selection, validation and correction, and reliability monitoring feedback"
   className="w-full"
 />
 
@@ -28,7 +28,7 @@ There are four main ways to improve the reliability of LLM-generated interfaces:
 - **Simplify the component schema.** Use distinct component names, clear descriptions, focused properties, and unambiguous enum values. Remove overlapping components and group related ones with `componentGroups`. See [Defining Components](/docs/openui-lang/defining-components).
 - **Refine the system prompt.** Add targeted rules for recurring errors and provide valid examples for combinations the model finds difficult. In our benchmark, a single rule improved one model's completion rate by 13 percentage points, while an incorrect example caused double-digit regressions. See [System Prompts](/docs/openui-lang/system-prompts).
 - **Evaluate model selection.** Test models using your own component library and representative prompts. Run each prompt multiple times and compare reliability alongside latency and cost.
-- **Validate and correct generated output.** Detect invalid output at runtime and fix it before it reaches users. OpenUI Gateway provides this reliability layer for production applications.
+- **Validate and correct generated output.** Use [Autofix](/docs/autofix) to repair completed generations with your existing model provider, or [Gateway](/docs/gateway) to correct output during streaming.
 
 Measure reliability before and after making these changes so you can identify the right intervention and verify that it worked.
 
@@ -57,48 +57,19 @@ Learn more in [developer tools docs](/docs/openui-lang/developer-tools).
 
 ### In production
 
-Development testing cannot cover every prompt your users will submit. Use `@openuidev/observability-cloud` to monitor UI generation across production traffic and review errors in the Thesys Console.
+Use [Reliability Monitoring](/docs/reliability) to track generation failures, identify recurring errors, and inspect the affected generations. Follow the [setup guide](/docs/reliability/installation) to enable monitoring for your application.
 
 <img
   src="/images/openui-lang/reliability-dashboard.png"
-  alt="Reliability pipeline showing schema and prompt improvements, model selection, validation and correction, and observability feedback"
+  alt="Reliability Monitoring dashboard showing generation errors and affected interfaces"
   className="w-full rounded-lg border"
 />
 
-Install the package:
-
-```bash tab="pnpm" tab-group="pkg"
-pnpm install @openuidev/observability-cloud
-```
-
-```bash tab="bun" tab-group="pkg"
-bun install @openuidev/observability-cloud
-```
-
-```bash tab="yarn" tab-group="pkg"
-yarn install @openuidev/observability-cloud
-```
-
-```bash tab="npm" tab-group="pkg"
-npm run install @openuidev/observability-cloud
-```
-
-Create a client API key from the [Thesys Console](https://console.thesys.dev/client-api-keys), then initialize observability once in your application:
-
-```ts
-import * as Observability from "@openuidev/observability-cloud";
-
-Observability.init({
-  apiKey: "pk-th-…",
-});
-```
-
-After deploying, open the [Reliability dashboard](https://console.thesys.dev/reliability) to see how frequently generation errors occur, identify the most common error types, and inspect the affected UI generations. This helps you prioritize the schema, prompt, or model changes that will have the greatest impact.
+Use these findings to prioritize improvements to your component library, system prompt, and model selection.
 
 <Callout type="tip">
-  **Using a coding agent?** The OpenUI skill can help your agent add production observability and
-  configure reliability monitoring. [Install the OpenUI
-  skill](/docs/mcp#install-via-the-skills-cli-recommended).
+  **Using a coding agent?** The OpenUI skill can help your agent configure Reliability Monitoring.
+  [Install the OpenUI skill](/docs/mcp#install-via-the-skills-cli-recommended).
 </Callout>
 
 ## Production reliability
@@ -110,7 +81,7 @@ Even with a well-tuned schema, prompt, and model, some generations in production
 
 ### Autofix API
 
-The [Autofix API](/docs/gateway/api/autofix) repairs OpenUI Lang after your model has generated it, so your application keeps its own model calls, keys, and prompts.
+The [Autofix API](/docs/autofix) repairs OpenUI Lang after your model has generated it, so your application keeps its own model calls, keys, and prompts.
 
 For every generation, the Autofix API:
 
@@ -146,7 +117,7 @@ const completion = await client.chat.completions.create({
 
 `openui.spec.json` is the component-library spec generated by `openui generate --spec`. Autofix reads it from the first system or developer message; do not pass a top-level `library` field. See [Generate OpenUI Lang](/docs/gateway/generate-openui-lang) for how to generate the spec.
 
-A generation that is already valid is free, and each fix is charged at a flat price. See the [Autofix API reference](/docs/gateway/api/autofix) for the full request and response format and the error codes.
+A generation that is already valid is free, and each fix is charged at a flat price. See the [Autofix API reference](/docs/autofix) for the full request and response format and the error codes.
 
 ### OpenUI Gateway
 

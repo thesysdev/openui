@@ -21,13 +21,13 @@ Four pieces make that flow work:
 - **Renderer:** The renderer maps the parsed tree to your components so the result uses your design
   system and application behavior.
 
-<GatewayCallout description="Use the Gateway as the default production generation path, then add Observability to inspect errors from real traffic." />
+<GatewayCallout description="For production, route generation through the Gateway to correct invalid OpenUI Lang while it streams and recover from provider failures." />
 
 ## The core loop
 
 1. Define the components your application supports.
 2. Generate model instructions from those definitions.
-3. Send the instructions and conversation through the Gateway.
+3. Send the instructions and conversation to your model or route through [Gateway](/docs/gateway) for reliability.
 4. Stream the resulting OpenUI Lang into the renderer.
 5. Handle component interactions with application state, tools, queries, and mutations.
 

@@ -85,9 +85,11 @@ const systemPrompt = generateSystemPrompt({
 | `editMode`   | Incremental editing - LLM outputs only changed statements                     | `false`                       |
 | `inlineMode` | Text + fenced code responses - LLM can answer questions without generating UI | `false`                       |
 
-### OpenUI Gateway
+### Gateway and Autofix
 
-Pass `cloud: true` with the generated library specification to emit Gateway's managed config block instead of a local prompt. The option name is retained for compatibility. OpenUI Gateway assembles the full system prompt on the server, and `instructions` adds extra prose after the config block.
+Pass `cloud: true` with the generated library specification to emit a configuration block for Gateway or Autofix. Gateway uses it to assemble the system prompt; Autofix uses it to validate and repair generated OpenUI Lang against your component library. The option name is retained for compatibility.
+
+For Gateway requests, `instructions` adds extra prose after the configuration block.
 
 ```ts
 import { generateSystemPrompt } from "@openuidev/lang-core";
@@ -109,7 +111,7 @@ const instructions = generateSystemPrompt({
 });
 ```
 
-See the [Generative UI Quickstart](/docs/gateway/generate-openui-lang) for the Gateway workflow.
+See the [Generative UI Quickstart](/docs/gateway/generate-openui-lang) for the Gateway workflow, or the [Autofix API](/docs/autofix) to repair output from your existing model integration.
 
 Built-in functions (`@Count`, `@Filter`, `@Sort`, `@Each`, etc.) are automatically included when either `toolCalls` or `bindings` is enabled. For static UI libraries without data fetching, they are omitted to keep the prompt concise.
 
