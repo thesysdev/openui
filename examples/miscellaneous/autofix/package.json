@@ -10,6 +10,7 @@
     "prebuild": "npm run generate",
     "build": "next build",
     "start": "next start",
+    "deploy": "openui deploy",
     "lint": "eslint .",
     "preverify": "npm run generate",
     "verify": "npm run lint && next build"
