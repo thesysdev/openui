@@ -145,7 +145,7 @@ export class Telemetry {
     this.capture("cli_invoked");
   }
 
-  reportRetry(stage: string): (info: RetryAttemptInfo) => void {
+  reportNetworkRetry(stage: string): (info: RetryAttemptInfo) => void {
     return (info) => {
       const properties = cliErrorProperties(info.error);
       this.capture("cli_network_retry", {
