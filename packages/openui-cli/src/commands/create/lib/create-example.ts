@@ -14,7 +14,7 @@ import {
   scaffoldExample,
   type ExampleLayout,
 } from "./scaffold-example";
-import { retryReporter, type CreateTelemetryClient } from "./telemetry";
+import type { CreateTelemetryClient } from "./telemetry";
 
 export async function runCreateExample(params: {
   options: CreateAppOptions;
@@ -57,7 +57,7 @@ export async function runCreateExample(params: {
         targetDir,
         name,
         packageManager: packageManager.name,
-        onRetry: retryReporter(tel, "source_checkout"),
+        onRetry: tel.retryReporter("source_checkout"),
       });
     layout = verbose ? await runScaffold() : await withSpinner("Scaffolding...", runScaffold);
     if (!verbose) {

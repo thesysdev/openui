@@ -27,7 +27,7 @@ import {
   resolveImmediate,
   resolveProjectIdentity,
 } from "./lib/resolve";
-import { aiSetupFromTemplate, CreateTelemetryClient, retryReporter } from "./lib/telemetry";
+import { aiSetupFromTemplate, CreateTelemetryClient } from "./lib/telemetry";
 import { findCatalogOverlay } from "./lib/templates-catalog";
 
 export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): Promise<void> {
@@ -49,7 +49,7 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
   });
 
   if (!localSourceDir()) await ensureGitAvailable();
-  const sourceRetryReporter = retryReporter(tel, "source_checkout");
+  const sourceRetryReporter = tel.retryReporter("source_checkout");
   const catalog = await loadCreateCatalog({
     example: options.example,
     template: options.template,

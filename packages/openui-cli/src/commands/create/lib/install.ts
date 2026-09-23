@@ -13,7 +13,7 @@ import { mutedNpmEnv, runCommand } from "../../../lib/process-runner";
 import { isNetworkError, withRetry } from "../../../lib/retry";
 import { withSpinner } from "../../../lib/spinner";
 import type { OverlayName, TemplateName } from "./create-types";
-import { retryReporter, type CreateTelemetryClient } from "./telemetry";
+import type { CreateTelemetryClient } from "./telemetry";
 
 export function resolveInstallInvocation(params: {
   backendFramework: OverlayName;
@@ -126,7 +126,7 @@ export async function installProjectDependencies(params: {
     const runWithRetry = () =>
       withRetry(attemptInstall, {
         shouldRetry: isNetworkError,
-        onRetry: retryReporter(tel, "dependency_install"),
+        onRetry: tel.retryReporter("dependency_install"),
         label: "Dependency install",
       });
     await (verbose ? runWithRetry() : withSpinner("Installing dependencies...", runWithRetry));
