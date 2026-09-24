@@ -102,6 +102,11 @@
       "envKey": "THESYS_API_KEY"
     },
     {
+      "title": "Jev support desk",
+      "description": "LLM-written screens reused through a Jev router, repaired with OpenUI Autofix.",
+      "path": "miscellaneous/jev-support-desk"
+    },
+    {
       "title": "React Email",
       "description": "Generating and previewing emails with the OpenUI React Email library.",
       "path": "miscellaneous/react-email",

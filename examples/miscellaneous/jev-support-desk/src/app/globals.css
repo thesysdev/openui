@@ -1,0 +1,123 @@
+@import "@openuidev/react-ui/components.css";
+@import "@openuidev/react-ui/styles/index.css";
+
+body {
+  margin: 0;
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+  color: #1a1a1a;
+  background: #fff;
+}
+button {
+  font: inherit;
+  cursor: pointer;
+}
+.app {
+  display: grid;
+  grid-template: auto 1fr / 1fr 300px;
+  height: 100dvh;
+}
+header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid #e5e5e5;
+}
+nav button {
+  border: 0;
+  background: none;
+  padding: 4px 10px;
+  color: #666;
+}
+nav button.on {
+  color: #1a1a1a;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+main {
+  overflow-y: auto;
+  padding: 32px 48px;
+}
+main > * {
+  max-width: 680px;
+}
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+form {
+  display: flex;
+  gap: 8px;
+}
+input {
+  flex: 1;
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+}
+form button {
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #fff;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 12px 0 24px;
+}
+.suggestions button {
+  border: 0;
+  background: none;
+  padding: 3px 0;
+  color: #555;
+  text-align: left;
+}
+.suggestions button:hover:not(:disabled) {
+  color: #1a1a1a;
+  text-decoration: underline;
+}
+.status {
+  color: #666;
+  margin: 0 0 8px;
+}
+.screen {
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 20px;
+}
+aside {
+  overflow-y: auto;
+  padding: 24px;
+  border-left: 1px solid #e5e5e5;
+  background: #fafafa;
+}
+aside h2 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+aside h2:not(:first-child) {
+  margin-top: 28px;
+}
+aside p {
+  margin: 0 0 6px;
+}
+.muted {
+  color: #888;
+}
+.totals {
+  margin-top: 28px;
+}
