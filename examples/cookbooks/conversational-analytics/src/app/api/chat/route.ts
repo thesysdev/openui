@@ -1,14 +1,54 @@
 import OpenAI from "openai";
 import type { ResponseCreateParamsNonStreaming } from "openai/resources/responses/responses";
-import { openDatabase } from "../../../lib/analytics";
-import { parseChatRequest } from "../../../lib/chat-request";
-import { localDemoAccess, ownsConversation } from "../../../lib/gateway-session";
-import { streamGatewayTurn } from "../../../lib/gateway-stream";
+import { z } from "zod/v4";
+import {
+  localDemoAccess,
+  ownsConversation,
+  stoppedToolOutputs,
+} from "../../../lib/gateway-session";
 import { analyticsPrompt } from "../../../lib/prompt";
-import { listDrivers, type Driver } from "../../../lib/race-data";
+import { listDrivers, openDatabase, type Driver } from "../../../lib/race-data";
 import { executeRaceQuery, raceQueryTool } from "../../../lib/race-tool";
+import { runFunctionToolLoop } from "../../../lib/tool-loop";
 
 export const runtime = "nodejs";
+
+// Gateway stores the conversation, so the browser sends only its latest question.
+// Accept exactly one bounded user message; never forward browser-supplied history or tool output.
+const chatRequestSchema = z.strictObject({
+  threadId: z.string().min(1).max(200),
+  input: z.tuple([
+    z.strictObject({
+      type: z.literal("message"),
+      role: z.literal("user"),
+      content: z.string().trim().min(1).max(600),
+    }),
+  ]),
+});
+
+async function parseChatRequest(request: Request) {
+  if (request.headers.get("content-type")?.split(";")[0].trim() !== "application/json")
+    throw new Error("Send JSON.");
+  const reader = request.body?.getReader();
+  if (!reader) throw new Error("Send a question.");
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 16_384) {
+        await reader.cancel();
+        throw new Error("Request too large.");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return chatRequestSchema.parse(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+}
 
 export async function POST(request: Request) {
   const denied = localDemoAccess(request);
@@ -32,12 +72,14 @@ export async function POST(request: Request) {
       { status: 503 },
     );
 
+  let stopped;
   try {
     if (!(await ownsConversation(body.threadId, request.signal)))
       return Response.json(
         { error: "Conversation not found for this app and user." },
         { status: 403 },
       );
+    stopped = await stoppedToolOutputs(body.threadId, request.signal);
   } catch {
     return Response.json(
       { error: "Unable to verify Gateway conversation access." },
@@ -59,53 +101,60 @@ export async function POST(request: Request) {
     db?.close();
   }
 
-  const abort = new AbortController();
-  const cancel = () => abort.abort();
-  const cleanup = () => request.signal.removeEventListener("abort", cancel);
-  request.signal.addEventListener("abort", cancel, { once: true });
-  if (request.signal.aborted) abort.abort();
-
-  const gateway = new OpenAI({
-    apiKey,
-    baseURL: "https://api.thesys.dev/v1/embed",
-    timeout: 60000,
-    maxRetries: 0,
-  });
+  const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
   const createParams: ResponseCreateParamsNonStreaming = {
     model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
     instructions: analyticsPrompt(drivers),
-    input: body.input,
+    input: [...stopped, ...body.input],
     conversation: body.threadId,
     store: true,
     tools: [raceQueryTool(drivers)],
     max_output_tokens: 6000,
   };
-  // Open Gateway inside the stream so local headers flush immediately.
-  async function* firstStream() {
-    const upstream = await gateway.responses.create(
+
+  let firstStream: AsyncIterable<Record<string, unknown>>;
+  try {
+    firstStream = (await gateway.responses.create(
       { ...createParams, stream: true },
-      { signal: abort.signal },
+      { signal: request.signal },
+    )) as unknown as AsyncIterable<Record<string, unknown>>;
+  } catch (error) {
+    const upstream = error as { status?: number; message?: string };
+    return Response.json(
+      { error: upstream.message ?? "OpenUI Gateway request failed." },
+      { status: upstream.status ?? 502 },
     );
-    yield* upstream as unknown as AsyncIterable<Record<string, unknown>>;
   }
-  return new Response(
-    streamGatewayTurn(
-      {
-        client: gateway,
-        createParams,
-        firstStream: firstStream(),
-        tools: { query_race: executeRaceQuery },
-        maxRounds: 3,
-      },
-      abort,
-      cleanup,
-    ),
-    {
-      headers: {
-        "Content-Type": "text/event-stream; charset=utf-8",
-        "Cache-Control": "no-cache, no-transform",
-        "X-Accel-Buffering": "no",
-      },
+
+  // Forward Gateway's Responses events as SSE, running query_race between model turns.
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const enqueue = (event: Record<string, unknown>) =>
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+      try {
+        await runFunctionToolLoop({
+          client: gateway,
+          createParams,
+          firstStream,
+          tools: { query_race: executeRaceQuery },
+          enqueue,
+          signal: request.signal,
+          maxRounds: 3,
+        });
+      } catch (error) {
+        enqueue({ type: "error", message: error instanceof Error ? error.message : String(error) });
+      } finally {
+        controller.close();
+      }
     },
-  );
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+    },
+  });
 }

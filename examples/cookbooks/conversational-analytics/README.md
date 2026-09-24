@@ -39,21 +39,17 @@ The tool supports `fastest_laps` (one best recorded lap per driver) and `lap_tim
 
 ## Files
 
-| File                                | Purpose                                                     |
-| ----------------------------------- | ----------------------------------------------------------- |
-| `scripts/prepare-data.ts`           | Download OpenF1's race snapshot and prepare SQLite          |
-| `src/lib/race-data.ts`              | Source validation, importer, and driver catalog             |
-| `src/lib/analytics.ts`              | Read-only queries and aligned chart series                  |
-| `src/lib/query-args.ts`             | Driver selection and lap-range validation                   |
-| `src/lib/race-tool.ts`              | Function schema and executor                                |
-| `src/library.ts`                    | Shared components for the prompt and renderer               |
-| `src/lib/prompt.ts`                 | Gateway instructions and the supported data scope           |
-| `src/lib/chat-request.ts`           | Bounded request parsing for one user question               |
-| `src/app/api/chat/route.ts`         | Gateway generation and streamed response                    |
-| `src/lib/tool-loop.ts`              | Function execution and stored continuations                 |
-| `src/lib/gateway-stream.ts`         | Forward tool/text events and cancellation                   |
-| `src/lib/gateway-session.ts`        | Local identity, frontend tokens, and conversation ownership |
-| `src/components/analytics-chat.tsx` | Agent Interface, Gateway storage, and starter questions     |
+| File                                | Purpose                                                                         |
+| ----------------------------------- | ------------------------------------------------------------------------------- |
+| `scripts/prepare-data.ts`           | Download OpenF1's race snapshot and prepare SQLite                              |
+| `src/lib/race-data.ts`              | Source validation, importer, database, and driver catalog                       |
+| `src/lib/race-tool.ts`              | Function schema, argument validation, and read-only query                       |
+| `src/library.ts`                    | Shared components for the prompt and renderer                                   |
+| `src/lib/prompt.ts`                 | Gateway instructions and the supported data scope                               |
+| `src/app/api/chat/route.ts`         | Request validation, Gateway generation, and SSE response                        |
+| `src/lib/tool-loop.ts`              | The Gateway template's function-tool loop                                       |
+| `src/lib/gateway-session.ts`        | Local identity, frontend tokens, conversation ownership, and stopped tool calls |
+| `src/components/analytics-chat.tsx` | Agent Interface, Gateway storage, chat transport, and starters                  |
 
 `npm run generate` creates the ignored component specification before dev/build/verify. The server passes that specification to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, and Agent Interface renders responses with the same component library.
 
@@ -62,6 +58,8 @@ The tool supports `fastest_laps` (one best recorded lap per driver) and `lap_tim
 The OpenAI SDK transports requests to `https://api.thesys.dev/v1/embed` using `THESYS_API_KEY`. Generation uses `conversation: threadId` and `store: true`. Continuations submit only new function outputs because Gateway retains preceding input and response items.
 
 `useOpenuiCloudStorage` from the pinned `@openuidev/react-ui` package loads the sidebar and messages using short-lived tokens from `/api/frontend-token`. `openAIResponsesAdapter` handles streamed tool activity and answers. The client sends only the latest user message; the server rejects injected history or function outputs.
+
+Stopping a response while `query_race` runs can leave a stored function call without its output, which Gateway rejects on the next turn. The chat route sends a "stopped" output for any such call ahead of the next question.
 
 `DEMO_USER_ID` defaults to `local-demo` and `APP_ID` to `conversational-analytics-cookbook`. Keep them stable to retain history across reloads and restarts. The server verifies conversation membership in the same scope before generation.
 

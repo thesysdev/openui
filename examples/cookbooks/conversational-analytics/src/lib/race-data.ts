@@ -1,4 +1,6 @@
-import type { DatabaseSync } from "node:sqlite";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { z } from "zod/v4";
 
 export const race = {
@@ -70,6 +72,13 @@ export function importRaceData(db: DatabaseSync, input: unknown) {
     db.exec("ROLLBACK");
     throw error;
   }
+}
+
+export function openDatabase() {
+  const path = resolve(process.cwd(), "data/race.sqlite");
+  if (!existsSync(path))
+    throw new Error("Dataset not prepared. Run npm run prepare:data, then retry.");
+  return new DatabaseSync(path, { readOnly: true });
 }
 
 export function listDrivers(db: DatabaseSync): Driver[] {

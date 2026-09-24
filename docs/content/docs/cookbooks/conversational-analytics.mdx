@@ -110,7 +110,7 @@ export async function executeRaceQuery(argsJson: string) {
 
 The result contains ranked lap times or aligned chart labels and series. Gateway uses those values to build the answer, and Agent Interface shows the call and its result in the **Behind the scenes** timeline.
 
-The [query implementation](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/analytics.ts) uses parameterized SQL. Missing times are left out of comparisons rather than plotted as zero.
+The query in the same file uses parameterized SQL. Missing times are left out of comparisons rather than plotted as zero.
 
 ## 3. Choose the components
 
@@ -154,7 +154,7 @@ This runs `openui generate src/library.ts --spec --out src/generated/spec.json`.
 
 Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route, sending only the latest user message. Gateway restores the earlier context from the conversation id:
 
-```ts title="src/lib/chat-client.ts"
+```ts title="src/components/analytics-chat.tsx"
 const chatLLM: ChatLLM = {
   streamProtocol: openAIResponsesAdapter(),
   send: ({ threadId, messages, signal }) =>
@@ -205,13 +205,11 @@ The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/co
 const gateway = new OpenAI({
   apiKey: process.env.THESYS_API_KEY,
   baseURL: "https://api.thesys.dev/v1/embed",
-  timeout: 60000,
-  maxRetries: 0,
 });
 const createParams = {
   model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
   instructions: analyticsPrompt(drivers),
-  input: body.input,
+  input: [...stopped, ...body.input],
   conversation: body.threadId,
   tools: [raceQueryTool(drivers)],
   store: true,
@@ -228,14 +226,16 @@ await runFunctionToolLoop({
   firstStream,
   tools: { query_race: executeRaceQuery },
   enqueue,
-  signal: abort.signal,
+  signal: request.signal,
   maxRounds: 3,
 });
 ```
 
 The loop forwards tool activity and text deltas as Responses Server-Sent Events. Each continuation sends only the new tool outputs to the saved conversation. Gateway already holds the preceding question and response items.
 
-The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) validates the request before calling Gateway. Its [stream forwarding](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/gateway-stream.ts) propagates cancellation and reports tool or provider errors.
+The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) validates the request before calling Gateway and forwards Gateway's own errors to Agent Interface, which shows them in the chat.
+
+Stopping a response while `query_race` runs can leave a stored function call without its output, and Gateway rejects the conversation's next turn until the call is answered. Before each turn, the route lists the conversation's latest items and sends a "stopped" output for any unanswered call, which is the `stopped` array above.
 
 Because `componentLibrary` is set, Agent Interface renders the streamed OpenUI Lang with the same library. The prompt emits `root` first, followed by its components in reading order, so resolved components appear while the rest of the response is still arriving.
 

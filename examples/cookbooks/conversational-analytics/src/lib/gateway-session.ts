@@ -1,3 +1,5 @@
+import OpenAI from "openai";
+import type { ResponseInputItem } from "openai/resources/responses/responses";
 import { z } from "zod/v4";
 
 const tokenSchema = z.object({ token: z.string().min(1), expires_at: z.number() });
@@ -69,4 +71,40 @@ export async function ownsConversation(threadId: string, signal?: AbortSignal) {
     after = result.last_id;
   }
   throw new Error("Conversation lookup exceeded the demo's page limit.");
+}
+
+// Stopping a response while its tool runs can leave a stored function_call without an output,
+// and Gateway then rejects every later turn in that conversation. Gateway has no endpoint for
+// adding the missing output directly, so return outputs to send ahead of the next question.
+export async function stoppedToolOutputs(
+  threadId: string,
+  signal?: AbortSignal,
+): Promise<ResponseInputItem[]> {
+  const conversations = new OpenAI({
+    apiKey: process.env.THESYS_API_KEY,
+    baseURL: "https://api.thesys.dev/v1",
+  });
+  const { data } = await conversations.conversations.items.list(
+    threadId,
+    { order: "desc", limit: 20 },
+    { signal },
+  );
+  const answered = new Set(
+    data.flatMap((item) => (item.type === "function_call_output" ? [item.call_id] : [])),
+  );
+  return data
+    .flatMap((item) =>
+      item.type === "function_call" && !answered.has(item.call_id)
+        ? [
+            {
+              type: "function_call_output" as const,
+              call_id: item.call_id,
+              output: JSON.stringify({
+                error: "The user stopped this response before the tool finished.",
+              }),
+            },
+          ]
+        : [],
+    )
+    .reverse();
 }
