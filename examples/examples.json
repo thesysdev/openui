@@ -90,6 +90,12 @@
       "path": "miscellaneous/autofix"
     },
     {
+      "title": "Conversational analytics",
+      "description": "Reactive OpenUI dashboards over the real UCI Online Retail dataset, with streaming model generation.",
+      "path": "miscellaneous/conversational-analytics",
+      "envKey": "OPENAI_API_KEY"
+    },
+    {
       "title": "Handsontable",
       "description": "Generated spreadsheet interfaces backed by Handsontable.",
       "path": "miscellaneous/handsontable",

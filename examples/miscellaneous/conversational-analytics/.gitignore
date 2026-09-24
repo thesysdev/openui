@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.env*
+!.env.example
+.venv/
+__pycache__/
+data/
+src/generated/
+*.tsbuildinfo
+next-env.d.ts

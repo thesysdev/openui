@@ -1,52 +1,308 @@
 ---
 title: Conversational analytics dashboard
-description: Turn natural-language questions into a dashboard users can explore.
+description: Turn sales questions into an interactive dashboard backed by a real retail dataset.
 ---
 
-<Callout title="Outline only">
-  This cookbook is a structural draft. Walkthroughs, code examples, and demos are still to come.
-</Callout>
+Build a sales assistant that answers “Why did gross sales fall in February 2011?” with metric cards, a daily trend, and a product comparison. Change the country or month and the dashboard queries the database again. Ask “Now show Germany as a bar chart” to generate a new view with the current context.
+
+This recipe uses the [UCI Online Retail dataset](https://archive.ics.uci.edu/dataset/352/online+retail): 541,909 real invoice lines from a UK retailer. The original download is public, licensed under CC BY 4.0, and needs no Kaggle account.
+
+<Cards>
+  <Card
+    title="Run the complete example"
+    href="https://github.com/thesysdev/openui/tree/main/examples/miscellaneous/conversational-analytics"
+  >
+    Next.js, OpenUI Lang, SQLite, and streaming model responses. Includes the dataset importer and
+    verification checks.
+  </Card>
+</Cards>
 
 ## What you'll build
 
-A sales assistant that responds to “Why did sales fall?” with metrics, a trend chart, and a results table. Users can adjust the region and date range or ask a follow-up question.
+The model generates a layout and query arguments in OpenUI Lang. A server-owned query calculates the values. OpenUI renders the result with a small subset of its built-in components.
 
-## Preview
+<Mermaid
+  chart={`flowchart LR
+  A[Question + current filters] --> B[Model route]
+  B -->|Stream OpenUI Lang| C[Renderer]
+  C -->|Query + validated arguments| D[Analytics route]
+  D --> E[(Local SQLite)]
+  E -->|Metrics, trend, products| C
+  F[Change country or month] --> C`}
+/>
 
-<FakeVisual label="Demo placeholder: ask a sales question, watch the dashboard appear, then change a filter." />
+There are two ways to explore the example:
 
-## Before you start
+- **Example dashboard:** a checked-in OpenUI Lang layout that queries the real database. No model credentials are needed.
+- **Ask a question:** the model generates and streams a fresh layout. The model key stays on the server.
 
-_To add: project prerequisites, a sample sales dataset, and the questions this recipe will support._
+Both use the same renderer, component library, and analytics endpoint. The example dashboard is explicitly labeled; it does not simulate an AI response.
 
-## Build the workflow
+## Run the example
 
-### 1. Prepare the sales data and query flow
+You need Node.js 22.13 or newer, Python 3.9 or newer, and npm. The Python importer runs once; the app uses Node's built-in SQLite module.
 
-_Outline: dataset shape, question-to-query flow, and the result passed to the UI._
+```bash
+git clone https://github.com/thesysdev/openui.git
+cd openui/examples/miscellaneous/conversational-analytics
+npm ci
 
-### 2. Choose the dashboard components
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r scripts/requirements.txt
+python scripts/prepare_data.py
 
-_Outline: metric cards, trend charts, results tables, and filter controls._
+npm run dev
+```
 
-### 3. Generate and stream the dashboard
+On Windows, activate the environment with `.venv\Scripts\Activate.ps1` in PowerShell. Open [localhost:3000](http://localhost:3000). The initial dashboard should show **£523,631.89** in gross sales and **1,100** orders for February 2011.
 
-_Outline: component-library instructions and the initial streaming experience._
+To enable questions, configure `OPENAI_API_KEY` privately in the example's `.env.local`, then restart the app. The default model is `gpt-5.5`; set `OPENAI_MODEL` to use another Responses-compatible model available to your account. The example works without a key until you submit a question.
 
-### 4. Connect filters and follow-up questions
+## 1. Prepare and define the data
 
-_Outline: region and date state, refreshed results, and changes to the visualization._
+The importer downloads the original workbook, checks its SHA-256 checksum, and creates `data/retail.sqlite`. It also writes a manifest with source and exclusion counts. The archive, database, and generated files are ignored by Git.
 
-### 5. Handle loading, empty results, and query failures
+Each source row is an **invoice line**, not an order. The fields used in this recipe are:
 
-_Outline: feedback while data updates and recovery when a query cannot return a result._
+| Source field               | Use                                                      |
+| -------------------------- | -------------------------------------------------------- |
+| `InvoiceNo`                | Count distinct orders; identify C-prefixed cancellations |
+| `StockCode`, `Description` | Group product and charge lines                           |
+| `Quantity`, `UnitPrice`    | Calculate gross sales in GBP                             |
+| `InvoiceDate`              | Select calendar months and daily chart buckets           |
+| `Country`                  | Filter the transaction's country                         |
+
+Define the metric before building the UI:
+
+```text
+Eligible line = invoice does not start with C
+                AND Quantity > 0 AND UnitPrice > 0
+Gross sales   = sum(Quantity × UnitPrice) for eligible lines
+Orders        = count(distinct InvoiceNo) for eligible lines
+Average order = gross sales / orders
+```
+
+The import retains **530,104 eligible lines**. It excludes 9,288 cancellation lines, 1,336 other non-positive-quantity lines, and 1,181 other non-positive-price lines. These exclusion categories are applied in that order and do not overlap.
+
+Missing customer IDs do not disqualify a sale. Customer IDs are not imported, missing descriptions fall back to the stock code, and original duplicate lines remain. Positive-priced charges such as postage remain in the totals and product table. Monetary amounts are stored as integers in units of £0.0001 to preserve fractional-penny prices, then rounded for display.
+
+<Callout title="Gross sales, not net revenue">
+  Returns and cancellations are excluded, rather than deducted. An order that is later canceled can
+  still contribute its original positive line. Large orders can therefore dominate the comparison.
+  Use these numbers to explain the chosen gross-sales definition; extend the accounting rules before
+  reporting net revenue or profit.
+</Callout>
+
+The source covers December 1, 2010 through December 9, 2011. The app allows **January through November 2011**, using December 2010 as the first comparison baseline. It excludes the incomplete final December. Comparisons use whole calendar months, which have different lengths; they are not adjusted for trading days or seasonality.
+
+See [prepare_data.py](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/scripts/prepare_data.py) for the complete import.
+
+## 2. Expose one read-only query
+
+Give OpenUI a narrow tool named `sales_dashboard`. Its arguments are a supported month and a country from the dataset:
+
+```json
+{ "month": "2011-02", "country": "Germany" }
+```
+
+The server validates these arguments and executes parameterized SQL against a read-only database connection. The model never sends executable SQL. This keeps natural-language requests within the supported analytics workflow.
+
+For example, the country-scoped totals query binds every value:
+
+```ts
+const totals = db
+  .prepare(
+    `
+  SELECT COALESCE(SUM(sales_units), 0) AS sales,
+         COUNT(DISTINCT invoice) AS orders,
+         COALESCE(SUM(quantity), 0) AS units
+  FROM sales
+  WHERE day >= ? AND day < ? AND country = ?
+`,
+  )
+  .get(start, end, country);
+```
+
+The endpoint calculates current and previous totals, fills missing chart days with zero, and compares the union of stock codes in both months. Including both months means a product whose sales disappear still appears in the comparison. It returns the ten smallest current-minus-previous differences, which are not a complete reconciliation of the overall change.
+
+It also returns formatted display strings and a factual summary derived from the query. Keeping these in the result means the explanation updates along with the charts when a filter changes.
+
+The implementation lives in [analytics.ts](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/lib/analytics.ts) and [the analytics route](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/app/api/analytics/route.ts).
+
+## 3. Choose the components
+
+Start with the built-in library. This dashboard needs layout, cards, text, charts, a table, and two selects:
+
+```ts title="src/library.ts"
+import { createLibrary } from "@openuidev/react-lang";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+
+export const library = createLibrary({
+  root: "Stack",
+  components: [
+    "Stack",
+    "Card",
+    "CardHeader",
+    "TextContent",
+    "LineChart",
+    "BarChart",
+    "Series",
+    "Table",
+    "Col",
+    "Select",
+    "SelectItem",
+  ].map((name) => openuiLibrary.components[name]),
+});
+```
+
+Generate the server specification from that same library:
+
+```bash
+npm run generate
+```
+
+The script uses `openui generate src/library.ts --spec --out src/generated/spec.json`. It also runs before development, builds, and verification. The example pins the published OpenUI packages so the renderer and generated signatures agree.
+
+## 4. Bind a query to reactive filters
+
+In OpenUI Lang, `$country` and `$month` hold the selected values. Use them in both the selects and the query arguments. This small program shows the connection:
+
+```text
+root = Stack([filters, content], "column", "l")
+$country = "All countries"
+$month = "2011-02"
+data = Query("sales_dashboard", {country: $country, month: $month}, {ready: false, countries: []})
+countries = @Each(data.countries, "country", SelectItem(country, country))
+countryFilter = Select("country", countries, "Country", null, $country)
+monthFilter = Select("month", [SelectItem("2011-01", "January"), SelectItem("2011-02", "February")], "Month", null, $month)
+filters = Stack([countryFilter, monthFilter], "row", "m")
+content = data.ready ? results : TextContent("Loading sales data…")
+results = Stack([metric, TextContent(data.summary), details], "column", "l")
+metric = Card([TextContent("Gross sales", "small"), TextContent(data.sales, "large-heavy")])
+details = data.empty ? TextContent("Choose another country or month.") : chart
+chart = LineChart(data.trend.day, [Series("Gross sales (GBP)", data.trend.sales)])
+```
+
+`Query` starts with its fallback object while the request runs. Once data arrives, `data.ready` reveals the results. Array plucking, such as `data.trend.day`, feeds the chart's column arrays. The full [example program](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/lib/example-program.ts) adds all supported months, three metric cards, and the product table.
+
+In this library, the `Select` binding is its **fifth argument**: name, items, placeholder, validation rules, value. Using a `$` variable there is what connects the control to the query.
+
+## 5. Connect the renderer to the database
+
+The browser maps the tool name to your API route. The handler forwards arguments, checks the HTTP result, and returns JSON to OpenUI:
+
+```tsx
+const toolProvider = {
+  sales_dashboard: async (args: Record<string, unknown>) => {
+    const response = await fetch("/api/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(args),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+    return data;
+  },
+};
+
+<Renderer
+  response={program}
+  library={library}
+  toolProvider={toolProvider}
+  isStreaming={busy}
+  queryLoader={<p role="status">Refreshing sales data…</p>}
+/>;
+```
+
+Wrap the renderer in `ThemeProvider` and import the React UI styles, as the example's [page](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/app/page.tsx) and layout do. The complete page keeps the provider stable, reports query failures, and lets readers inspect the rendered OpenUI Lang.
+
+Changing the country updates `$country`, which changes the query arguments. OpenUI runs `sales_dashboard` again and refreshes every dependent component. **Filter changes do not call the model.**
+
+## 6. Generate and stream a dashboard
+
+The question route builds a system prompt from the generated specification with `generateSystemPrompt({ library: spec, promptOptions })`. Enable `toolCalls` and `bindings`, describe `sales_dashboard`, and supply the working example program.
+
+The [prompt](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/lib/prompt.ts) asks the model to:
+
+- Generate a complete OpenUI Lang program with `root` first.
+- Use only the supported tool, countries, months, and result fields.
+- Read all financial values and the explanatory summary from the query result.
+- Preserve current filters on follow-ups unless the question changes them.
+- Explain unsupported questions instead of inventing data or silently changing dates.
+
+The server requests a streaming Responses API result. Here is the core call from the example:
+
+```ts
+const upstream = await client.responses.create(
+  {
+    model: process.env.OPENAI_MODEL || "gpt-5.5",
+    instructions: dashboardPrompt(countries),
+    input: JSON.stringify({
+      previousQuestions: body.history,
+      currentFilters: body.filters,
+      question: body.question,
+    }),
+    stream: true,
+    store: false,
+    max_output_tokens: 6000,
+  },
+  { signal: abort.signal },
+);
+```
+
+The route forwards `response.output_text.delta` events as newline-delimited JSON. The client appends their text to `program`, so the renderer can build the interface as it arrives. The route sends an explicit `done` event after completion and an `error` event if generation fails after streaming starts. See the complete [server route](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/app/api/generate/route.ts), [stream reader](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/lib/read-stream.ts), and [Responses streaming reference](https://developers.openai.com/api/docs/guides/streaming-responses).
+
+The page captures `$country` and `$month` through `onStateUpdate`. Each new question sends those filters and up to five previous questions. The new response gets a fresh renderer instance, so an explicit request to change the month can initialize new bindings. This example keeps context in memory; it does not persist conversations.
+
+## 7. Handle incomplete and empty states
+
+| State                                      | Example behavior                                                                         |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Dataset not imported                       | Visible preparation instructions and a retry button                                      |
+| Query running                              | Loading indicator while OpenUI fetches the result                                        |
+| No sales for the selected country/month    | Zero-valued metrics, explanatory text, and filters to recover                            |
+| Unsupported arguments                      | Server returns HTTP 400; no arbitrary SQL executes                                       |
+| No model key                               | The question shows setup guidance; the existing dashboard remains usable                 |
+| Model error, refusal, or incomplete stream | Explicit error; no completion is inferred from a closed connection                       |
+| User stops generation                      | Browser abort propagates to the provider; the partial response is labeled as interrupted |
+| Invalid generated components               | Renderer errors appear with a way to load the example again                              |
+
+The local example binds to loopback. If you deploy it, add authentication and rate limits to the model route, authorize access to any private replacement dataset, and provide persistent storage for SQLite. The sample has no hosted database or production identity layer.
 
 ## Verify the experience
 
-_To add: checks for an initial question, filter changes, a follow-up question, and an empty result._
+Run the build, parser, query, stream, importer, and real-data checks:
+
+```bash
+npm run verify
+python -m unittest discover -s scripts -p 'test_*.py'
+npm run verify:data
+```
+
+`verify` does not require model credentials or the dataset. `verify:data` requires the completed import and checks these independently reproducible totals:
+
+| February 2011 filter | Gross sales | Orders | January gross sales |
+| -------------------- | ----------: | -----: | ------------------: |
+| All countries        | £523,631.89 |  1,100 |         £691,364.56 |
+| Germany              |   £9,581.05 |     19 |          £16,910.84 |
+
+In the browser:
+
+1. Load the example dashboard and check the all-country totals.
+2. Select **Germany**. The metrics, chart, and table should refresh without generating a new layout.
+3. Select **Saudi Arabia** and **2011-04**. The page should explain that there are no eligible sales.
+4. With a configured key, ask **“Why did gross sales fall in February 2011?”**, then **“Now show Germany as a bar chart.”** Check the new layout against the same query totals; model layouts can vary.
+5. Stop a generation and load the example again to confirm recovery.
+
+For the default comparison, orders rise from 1,086 to 1,100 while average order value falls from £636.62 to £476.03. That describes the change; it does not establish a cause. The table's largest negative difference is a £77,183.60 January contribution from stock code `23166` with no February sales. Investigating such outliers and their cancellations is a separate analysis, especially before interpreting gross sales as revenue.
 
 ## Next steps
+
+Add a daily-average comparison for unequal month lengths, reconcile all product contributions, or define a separate net-sales metric that includes returns. Keep each new metric's accounting rules in the server query and expose only its supported arguments to the model.
 
 - [Reactive state](/docs/openui-lang/reactive-state)
 - [Queries and mutations](/docs/openui-lang/queries-mutations)
 - [App architecture](/docs/openui-lang/architecture)
+
+Dataset attribution: Chen, D. (2015). [Online Retail](https://doi.org/10.24432/C5BW33). UCI Machine Learning Repository. Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). This example filters and aggregates the source and omits customer IDs.
