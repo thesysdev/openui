@@ -1,10 +1,20 @@
-# ChartsV2 Architecture
+# ChartsV2 Architecture (Proposed — Not Yet Implemented)
 
-> Auto-maintained by architect agent. Last updated: 2026-03-18 (rev 4)
+> **Status: PROPOSED / PLANNED.** This document is a forward-looking design
+> proposal for a D3-based charting system. **None of the modules, hooks,
+> components, files, or tests described below exist yet.** This directory
+> (`ChartsV2/`) currently contains only this document.
+>
+> The chart implementation that ships today lives in
+> [`../Charts/`](../Charts) (the existing Recharts-based system). Until the work
+> described here lands, treat every "is", "provides", "uses", and "renders"
+> statement in this document as **intended/target behavior**, not current code.
+>
+> Auto-maintained by architect agent. Last design revision: 2026-03-18 (rev 4).
 
 ## Overview
 
-ChartsV2 is a D3-based charting system within OpenUI's React component library. It provides 7 chart types across 3 topologies (cartesian-scrollable, cartesian-condensed, and polar). D3 is used strictly for math (scales, path generation, stacking); React owns the DOM via JSX. The system replaces the original Recharts-based `Charts/` package.
+ChartsV2 is the **proposed** D3-based charting system for OpenUI's React component library. The design targets 7 chart types across 3 topologies (cartesian-scrollable, cartesian-condensed, and polar). D3 would be used strictly for math (scales, path generation, stacking); React would own the DOM via JSX. Once implemented, the system is intended to replace the existing Recharts-based `Charts/` package.
 
 The design follows a **hook-orchestrated architecture**: each chart delegates all shared state management (data, dimensions, hover, scroll, legend, tooltip) to a single "orchestrator" hook, then supplies only chart-specific rendering (series geometry, crosshairs, axis variant).
 
