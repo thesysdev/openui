@@ -6,8 +6,24 @@ import { ToggleGroup } from "@openuidev/react-ui/ToggleGroup";
 import { ToggleItem } from "@openuidev/react-ui/ToggleItem";
 import { ArrowLeft, Monitor, Smartphone, Tablet } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { MouseEvent } from "react";
 import styles from "../chat-page.module.css";
 import { isViewportPreset, type ViewportPreset } from "./viewport-presets";
+
+// Only go back when the previous entry is on this site, so the button never
+// sends someone off to wherever they were before landing on the demo.
+function canGoBackInApp(): boolean {
+  const navigation = (window as { navigation?: { canGoBack?: boolean } }).navigation;
+  if (typeof navigation?.canGoBack === "boolean") return navigation.canGoBack;
+
+  if (window.history.length <= 1 || !document.referrer) return false;
+  try {
+    return new URL(document.referrer).origin === window.location.origin;
+  } catch {
+    return false;
+  }
+}
 
 const VIEWPORT_OPTIONS = [
   { id: "mobile", label: "Mobile", icon: Smartphone },
@@ -26,10 +42,27 @@ export function ChatPageHeader({
   availableViewports,
   onViewportChange,
 }: ChatPageHeaderProps) {
+  const router = useRouter();
+
+  const handleBackClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+      return;
+    }
+    if (!canGoBackInApp()) return;
+    event.preventDefault();
+    router.back();
+  };
+
   return (
     <header className={styles.header} aria-label="OpenUI chat controls">
       <div className={styles.headerRow}>
-        <Link className={styles.backLink} href="/" prefetch={false} aria-label="Back to docs">
+        <Link
+          className={styles.backLink}
+          href="/"
+          prefetch={false}
+          aria-label="Back"
+          onClick={handleBackClick}
+        >
           <ArrowLeft aria-hidden="true" size={15} strokeWidth={2} />
         </Link>
 
