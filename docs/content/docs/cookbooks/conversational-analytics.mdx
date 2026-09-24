@@ -28,6 +28,19 @@ This recipe uses recorded lap times from the **2024 Miami Grand Prix**, provided
 
 ## What you'll build
 
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl flex p-2">
+  <video
+    src="/videos/cookbooks/conversational-analytics.mp4"
+    aria-label="The data analyst example ranking the fastest Miami Grand Prix laps, comparing Piastri and Norris lap by lap, and adding Sainz through a follow-up suggestion"
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
 1. **Ask a question** in Agent Interface.
 2. **Get the data.** Gateway calls `query_race`, and your server queries SQLite and returns the results.
 3. **See the answer.** Gateway streams text, charts, or tables into Agent Interface. Ask a follow-up to explore further.
