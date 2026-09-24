@@ -1,0 +1,24 @@
+---
+title: Reliability Monitoring
+description: Find and understand OpenUI generation and rendering errors across production traffic.
+---
+
+Reliability Monitoring shows how often generated interfaces fail, which errors recur, and the generation associated with each failure, with insights into how to fix them. Use it to decide which components, prompt rules, or model choices need attention.
+
+![OpenUI Reliability Monitoring dashboard](/images/observability/reliability-dashboard.png)
+
+## Enable monitoring
+
+How you connect depends on how you generate OpenUI Lang:
+
+| Generation path | Setup |
+| --------------- | ----- |
+| [Gateway](/docs/gateway) or [Autofix](/docs/autofix) | Monitoring is enabled automatically for generations and requests through these services. |
+| Your own inference without Autofix | Install the [Observability SDK](/docs/reliability/installation) to report errors from your application. |
+
+## Investigate failures
+
+Open the [Reliability dashboard](https://console.thesys.dev/reliability) to review errors and inspect the generation associated with each occurrence.
+
+- The [dashboard guide](/docs/reliability/dashboard) explains each view and the error details.
+- [Improve reliability](/docs/reliability/optimizing) shows how to turn recurring failures into changes to your components, prompts, and model selection.

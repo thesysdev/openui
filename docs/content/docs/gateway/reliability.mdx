@@ -5,7 +5,7 @@ description: Keep model requests working when providers are unavailable or model
 
 <Callout type="tip" title="New: Autofix API">
   Not routing requests through Gateway? Send your model's OpenUI Lang generation to the
-  [Autofix API](/docs/gateway/api/autofix) and get back valid OpenUI Lang, at a flat price per
+  [Autofix API](/docs/autofix) and get back valid OpenUI Lang, at a flat price per
   fix.
 </Callout>
 
@@ -55,3 +55,7 @@ Gateway improves the reliability of model access and generated OpenUI Lang. Your
 - Business rules and data validation
 
 See [OpenUI Lang reliability](/docs/openui-lang/reliability) for component definitions, prompts, evaluations, and renderer safeguards.
+
+## Track reliability
+
+Generations through Gateway automatically appear in the [Reliability Monitoring](/docs/reliability). No Observability SDK installation is required to track those requests. Use the dashboard to inspect affected generations and identify recurring errors.

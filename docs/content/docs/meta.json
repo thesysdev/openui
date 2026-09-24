@@ -8,8 +8,10 @@
     "build-agents",
     "agent",
     "cookbooks",
+    "production",
     "gateway",
-    "observability",
+    "autofix",
+    "reliability",
     "deploy",
     "api-reference"
   ]

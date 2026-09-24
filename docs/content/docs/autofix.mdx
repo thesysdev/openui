@@ -3,7 +3,9 @@ title: Autofix API
 description: Fix invalid OpenUI Lang from any model with one API call.
 ---
 
-The Autofix API repairs invalid OpenUI Lang after a model has generated it. Send the conversation with the generation as the last assistant turn, and the answer carries valid OpenUI Lang. Use it when your application calls a model directly.
+The Autofix API repairs invalid OpenUI Lang after your model has generated it. Keep your existing model provider, inference setup, and agent framework. Send the conversation with the generation as the last assistant turn, and the API returns the repair result. You do not need to generate through Gateway's Chat Completions or Responses API.
+
+Use Autofix for correction after generation, or [Gateway](/docs/gateway) for model access with in-built correction.
 
 **Endpoint:** `POST https://api.thesys.dev/v1/autofix`
 
@@ -369,7 +371,7 @@ Each entry in `fixed_errors` or `unfixed_errors` names one problem. `code` is al
 | `orphaned`          | A statement is defined but not reachable from `root`.                              |
 | `missing-root`      | The generation has no valid `root` statement.                                      |
 
-These are the same codes the OpenUI SDK reports in the browser, so an application can handle both with one path. See [Observability](/docs/observability) for how they appear in the Thesys Console.
+These are the same codes the OpenUI SDK reports in the browser, so an application can handle both with one path. See [Reliability Monitoring](/docs/reliability) for how they appear in the Thesys Console.
 
 ## Framing
 
@@ -404,6 +406,6 @@ The endpoint returns the same error shape as the Chat Completions and Responses 
 | `429`  | `rate_limit_error`      | The organization has no credits, or billing is suspended.                                                                                                               |
 | `500`  | `internal_server_error` | The fixing model could not be reached. Nothing is charged.                                                                                                              |
 
-## Observability
+## Reliability Monitoring
 
-Autofix calls appear in the Thesys Console under the model name `openui/autofix`. A successful fix counts as a sanitizer correction on the Reliability page, with the same error codes as corrections made during generation.
+Autofix requests automatically appear in the [Reliability Monitoring](/docs/reliability) under the model name `openui/autofix`. **No Observability SDK** installation is required to track these requests. A successful fix counts as a sanitizer correction, with the same error codes as corrections made during Gateway generation.

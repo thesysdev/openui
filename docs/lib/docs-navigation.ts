@@ -1,7 +1,7 @@
 import type * as PageTree from "fumadocs-core/page-tree";
 
 export type NestedDocsRoot =
-  "openui-lang" | "build-agents" | "cookbooks" | "gateway" | "observability" | "api-reference";
+  "openui-lang" | "build-agents" | "cookbooks" | "gateway" | "reliability" | "api-reference";
 
 export type SidebarMode =
   | { kind: "global" }
@@ -47,11 +47,11 @@ export const NESTED_DOCS_SECTIONS: Record<NestedDocsRoot, NestedSection> = {
     pathPrefix: "/docs/gateway",
     treeFolder: "gateway",
   },
-  observability: {
-    title: "Observability",
-    entryUrl: "/docs/observability",
-    pathPrefix: "/docs/observability",
-    treeFolder: "observability",
+  reliability: {
+    title: "Reliability Monitoring",
+    entryUrl: "/docs/reliability",
+    pathPrefix: "/docs/reliability",
+    treeFolder: "reliability",
   },
   "api-reference": {
     title: "API Reference",
@@ -68,6 +68,8 @@ const promotedGlobalUrls = new Set([
   "/docs/openui-lang/comparison",
   "/docs/mcp",
   "/docs/deploy",
+  "/docs/production",
+  "/docs/autofix",
 ]);
 
 export const GLOBAL_DOCS_TREE: PageTree.Root = {
@@ -106,15 +108,17 @@ export const GLOBAL_DOCS_TREE: PageTree.Root = {
       url: NESTED_DOCS_SECTIONS.cookbooks.entryUrl,
     },
     { type: "separator", name: "Production" },
+    { type: "page", name: "Overview", url: "/docs/production" },
     {
       type: "page",
       name: NESTED_DOCS_SECTIONS.gateway.title,
       url: NESTED_DOCS_SECTIONS.gateway.entryUrl,
     },
+    { type: "page", name: "Autofix", url: "/docs/autofix" },
     {
       type: "page",
-      name: NESTED_DOCS_SECTIONS.observability.title,
-      url: NESTED_DOCS_SECTIONS.observability.entryUrl,
+      name: NESTED_DOCS_SECTIONS.reliability.title,
+      url: NESTED_DOCS_SECTIONS.reliability.entryUrl,
     },
     { type: "page", name: "Deploy your app", url: "/docs/deploy" },
     { type: "separator", name: "Reference" },

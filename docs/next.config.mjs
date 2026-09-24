@@ -35,6 +35,21 @@ const config = {
   },
   async redirects() {
     return [
+      {
+        source: "/docs/gateway/api/autofix",
+        destination: "/docs/autofix",
+        permanent: true,
+      },
+      {
+        source: "/docs/observability",
+        destination: "/docs/reliability",
+        permanent: false,
+      },
+      {
+        source: "/docs/observability/:path*",
+        destination: "/docs/reliability/:path*",
+        permanent: false,
+      },
       // /cloud was the OpenUI Cloud product page; its pitch now lives on the
       // home page, and the managed products have pages of their own. Temporary
       // while the marketing restructure settles — make it permanent once the
