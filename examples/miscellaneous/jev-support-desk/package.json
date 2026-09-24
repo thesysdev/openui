@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
-    "generate:apiKey": "openui generate-api-key --file .env.local",
     "predev": "npm run generate",
     "dev": "next dev",
     "prebuild": "npm run generate",
@@ -19,7 +18,6 @@
     "@openuidev/react-headless": "0.16.1",
     "@openuidev/react-lang": "0.3.0",
     "@openuidev/react-ui": "0.16.1",
-    "@openuidev/server": "0.1.0",
     "next": "16.3.5",
     "openai": "^6.49.0",
     "react": "19.2.4",

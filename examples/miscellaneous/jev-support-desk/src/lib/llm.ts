@@ -1,7 +1,6 @@
 import spec from "@/generated/spec.json";
 import { generateSystemPrompt } from "@openuidev/lang-core";
 import { openuiPromptOptions } from "@openuidev/react-ui/genui-lib/prompt-options";
-import { createAutofix } from "@openuidev/server/openai";
 import OpenAI from "openai";
 import { TOOLS } from "./tools";
 
@@ -31,8 +30,6 @@ const systemPrompt = generateSystemPrompt({
   },
 });
 
-const autofix = createAutofix({ apiKey: process.env.THESYS_API_KEY!, library: spec });
-
 export async function writeScreen(
   request: string,
   onText: (text: string) => void,
@@ -56,15 +53,6 @@ export async function writeScreen(
     if (text) onText(text);
   }
   return program.replace(/^```\w*\n?|```\s*$/g, "").trim();
-}
-
-/** The program Autofix validated or repaired, or null if it could not repair it. */
-export async function fix(request: string, program: string) {
-  const result = await autofix.completions.fix({
-    generation: program,
-    messages: [{ role: "user", content: request }],
-  });
-  return { program: result.content, fixed: result.status === "fixed" };
 }
 
 /** Title plus a description with example requests, for Jev to match later requests against. */

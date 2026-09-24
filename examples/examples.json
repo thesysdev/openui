@@ -103,7 +103,7 @@
     },
     {
       "title": "Jev support desk",
-      "description": "LLM-written screens reused through a Jev router, repaired with OpenUI Autofix.",
+      "description": "LLM-written screens reused through a Jev router.",
       "path": "miscellaneous/jev-support-desk"
     },
     {

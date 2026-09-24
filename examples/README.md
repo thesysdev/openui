@@ -59,7 +59,7 @@ Each example has one primary home based on the integration seam it is intended t
 | [Autofix](./miscellaneous/autofix)             | Direct OpenAI generation with `@openuidev/server` Autofix repair |
 | [Handsontable](./miscellaneous/handsontable)   | Generated spreadsheet interfaces backed by Handsontable              |
 | [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts as an OpenUI capability                     |
-| [Jev support desk](./miscellaneous/jev-support-desk) | LLM-written screens reused through a Jev router, repaired with Autofix |
+| [Jev support desk](./miscellaneous/jev-support-desk) | LLM-written screens reused through a Jev router |
 | [React Email](./miscellaneous/react-email)     | Generating and previewing emails with the OpenUI React Email library |
 | [Supabase](./miscellaneous/supabase)           | Persisted OpenUI conversations and threads with Supabase             |
 

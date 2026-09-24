@@ -1,5 +1,9 @@
+import spec from "@/generated/spec.json";
+import { createParser } from "@openuidev/lang-core";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { customerValues } from "./store";
+
+const parser = createParser(spec.schema, spec.root);
 
 // Screens the LLM wrote earlier. A JSON file is enough for a demo.
 export interface Screen {
@@ -44,6 +48,8 @@ export function markUsed(id: string) {
 
 /** Returns why a screen cannot serve other customers, or null if it can. */
 export function whyNotReusable(program: string): string | null {
+  const errors = parser.parse(program).meta.errors.length;
+  if (errors) return `it has ${errors} OpenUI Lang error${errors > 1 ? "s" : ""}`;
   if (!program.includes("Query(")) return "it has no live data";
   const leaked = customerValues().find((value) => program.includes(value));
   return leaked ? `it hardcodes "${leaked}"` : null;

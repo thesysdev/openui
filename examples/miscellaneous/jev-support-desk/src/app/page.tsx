@@ -34,7 +34,6 @@ interface Turn {
   done: boolean;
   started: number;
   ms?: number;
-  fixed?: boolean;
   note?: string;
 }
 
@@ -104,7 +103,6 @@ export default function Page() {
               program: e.program,
               done: true,
               ms: performance.now() - started,
-              fixed: e.fixed,
             });
             setTotals((t) =>
               reused ? { ...t, reused: t.reused + 1 } : { ...t, written: t.written + 1 },
@@ -172,7 +170,6 @@ export default function Page() {
           ) : (
             <p className="muted">Jev picks a saved screen, or the LLM writes a new one.</p>
           )}
-          {turn?.fixed && <p>Autofix repaired this screen.</p>}
           {turn?.note && <p>{turn.note}</p>}
 
           <h2>Saved screens</h2>

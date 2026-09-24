@@ -1,5 +1,5 @@
 import { decide } from "@/lib/jev";
-import { describe, fix, writeScreen } from "@/lib/llm";
+import { describe, writeScreen } from "@/lib/llm";
 import { addScreen, loadScreens, markUsed, whyNotReusable } from "@/lib/screens";
 import { requests } from "@/lib/tools";
 
@@ -35,25 +35,24 @@ export async function POST(request: Request) {
           return;
         }
 
-        const written = await writeScreen(
+        const program = await writeScreen(
           text,
           (t) => send({ type: "text", text: t }),
           request.signal,
         );
-        const { program, fixed } = await fix(text, written);
-        send({ type: "screen", program: program ?? written, fixed });
+        send({ type: "screen", program });
 
-        const problem = program ? whyNotReusable(program) : "Autofix could not repair it";
+        const problem = whyNotReusable(program);
         if (problem) {
           send({ type: "not_saved", reason: problem });
           return;
         }
-        const { title, description } = await describe(text, program!);
+        const { title, description } = await describe(text, program);
         // RULES in llm.ts name the context query `ctx`.
-        const needsItem = program!.includes("ctx.item");
+        const needsItem = program.includes("ctx.item");
         send({
           type: "saved",
-          screen: addScreen({ title, description, program: program!, writtenFor: text, needsItem }),
+          screen: addScreen({ title, description, program, writtenFor: text, needsItem }),
         });
       } catch (error) {
         send({ type: "error", message: error instanceof Error ? error.message : String(error) });
