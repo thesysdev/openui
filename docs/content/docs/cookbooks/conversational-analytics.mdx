@@ -10,7 +10,7 @@ This recipe uses the [UCI Online Retail dataset](https://archive.ics.uci.edu/dat
 <Cards>
   <Card
     title="Run the complete example"
-    href="https://github.com/thesysdev/openui/tree/main/examples/miscellaneous/conversational-analytics"
+    href="https://github.com/thesysdev/openui/tree/main/examples/cookbooks/conversational-analytics"
   >
     Next.js, OpenUI Cloud, OpenUI Lang, and SQLite. Includes the dataset importer and verification
     checks.
@@ -46,7 +46,7 @@ You need Node.js 22.13 or newer, Python 3.9 or newer, and npm. The Python import
 
 ```bash
 git clone https://github.com/thesysdev/openui.git
-cd openui/examples/miscellaneous/conversational-analytics
+cd openui/examples/cookbooks/conversational-analytics
 npm ci
 
 python3 -m venv .venv
@@ -98,7 +98,7 @@ Missing customer IDs do not disqualify a sale. Customer IDs are not imported, mi
 
 The source covers December 1, 2010 through December 9, 2011. The app allows **January through November 2011**, using December 2010 as the first comparison baseline. It excludes the incomplete final December. Comparisons use whole calendar months, which have different lengths; they are not adjusted for trading days or seasonality.
 
-See [prepare_data.py](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/scripts/prepare_data.py) for the complete import.
+See [prepare_data.py](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/scripts/prepare_data.py) for the complete import.
 
 ## 2. Expose one read-only query
 
@@ -130,7 +130,7 @@ The endpoint calculates current and previous totals, fills missing chart days wi
 
 It also returns formatted display strings and a factual summary derived from the query. Keeping these in the result means the explanation updates along with the charts when a filter changes.
 
-The implementation lives in [analytics.ts](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/lib/analytics.ts) and [the analytics route](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/app/api/analytics/route.ts).
+The implementation lives in [analytics.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/analytics.ts) and [the analytics route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/analytics/route.ts).
 
 ## 3. Choose the components
 
@@ -186,7 +186,7 @@ details = data.empty ? TextContent("Choose another country or month.") : chart
 chart = LineChart(data.trend.day, [Series("Gross sales (GBP)", data.trend.sales)])
 ```
 
-`Query` starts with its fallback object while the request runs. Once data arrives, `data.ready` reveals the results. Array plucking, such as `data.trend.day`, feeds the chart's column arrays. The full [example program](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/lib/example-program.ts) adds all supported months, three metric cards, and the product table.
+`Query` starts with its fallback object while the request runs. Once data arrives, `data.ready` reveals the results. Array plucking, such as `data.trend.day`, feeds the chart's column arrays. The full [example program](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/example-program.ts) adds all supported months, three metric cards, and the product table.
 
 In this library, the `Select` binding is its **fifth argument**: name, items, placeholder, validation rules, value. Using a `$` variable there is what connects the control to the query.
 
@@ -217,7 +217,7 @@ const toolProvider = {
 />;
 ```
 
-Wrap the renderer in `ThemeProvider` and import the React UI styles, as the example's [page](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/app/page.tsx) and layout do. The complete page keeps the provider stable, reports query failures, and lets readers inspect the rendered OpenUI Lang.
+Wrap the renderer in `ThemeProvider` and import the React UI styles, as the example's [page](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/page.tsx) and layout do. The complete page keeps the provider stable, reports query failures, and lets readers inspect the rendered OpenUI Lang.
 
 Changing the country updates `$country`, which changes the query arguments. OpenUI runs `sales_dashboard` again and refreshes every dependent component. **Filter changes do not call the model.**
 
@@ -229,7 +229,7 @@ Use `additionalRules` to explain the reactive query contract and `examples` to s
 
 `sales_dashboard` remains an OpenUI `Query` expression executed through the renderer's `toolProvider`. It is not a Responses function tool. Cloud generates the expression, then the browser asks the local analytics route for the values. SQLite stays in the application.
 
-The [prompt](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/lib/prompt.ts) asks the model to:
+The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/prompt.ts) asks the model to:
 
 - Generate a complete OpenUI Lang program with `root` first.
 - Use only the supported tool, countries, months, and result fields.
@@ -266,7 +266,7 @@ const upstream = await cloud.responses.create(
 );
 ```
 
-The route forwards Cloud's `response.output_text.delta` events as newline-delimited JSON. The client appends their text to `program`, so the renderer can build the interface as it arrives. The route sends an explicit `done` event after completion and an `error` event if generation fails after streaming starts. See the complete [server route](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/app/api/generate/route.ts), [stream reader](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/lib/read-stream.ts), and [Gateway Responses reference](/docs/gateway/api/responses).
+The route forwards Cloud's `response.output_text.delta` events as newline-delimited JSON. The client appends their text to `program`, so the renderer can build the interface as it arrives. The route sends an explicit `done` event after completion and an `error` event if generation fails after streaming starts. See the complete [server route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/generate/route.ts), [stream reader](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/read-stream.ts), and [Gateway Responses reference](/docs/gateway/api/responses).
 
 The page captures `$country` and `$month` through `onStateUpdate`. Each new question sends those filters and up to five previous questions. The new response gets a fresh renderer instance, so an explicit request to change the month can initialize new bindings. This example uses Cloud for generation with `store: false` and keeps context in memory. It does not create Cloud conversations or browser tokens. See the [Conversations API](/docs/gateway/api/conversations) if you want persisted threads.
 

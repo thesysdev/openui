@@ -61,6 +61,12 @@
       "envKey": "THESYS_API_KEY"
     },
     {
+      "title": "Conversational analytics",
+      "description": "OpenUI Cloud generates reactive dashboards over the real UCI Online Retail dataset.",
+      "path": "cookbooks/conversational-analytics",
+      "envKey": "THESYS_API_KEY"
+    },
+    {
       "title": "Material UI",
       "description": "A broad Material UI component library for generated interfaces.",
       "path": "design-systems/material-ui",
@@ -88,12 +94,6 @@
       "title": "Autofix",
       "description": "Direct OpenAI generation with OpenUI Autofix API",
       "path": "miscellaneous/autofix"
-    },
-    {
-      "title": "Conversational analytics",
-      "description": "OpenUI Cloud generates reactive dashboards over the real UCI Online Retail dataset.",
-      "path": "miscellaneous/conversational-analytics",
-      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "Handsontable",

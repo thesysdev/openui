@@ -178,9 +178,10 @@ openui/
 │   ├── observability-cloud/ # Cloud sink shipping OpenUI events to Thesys
 │   ├── devtools/         # Dev-only OpenUI Inspect widget
 │   └── openui-cli/       # CLI for scaffolding & prompt generation
-├── examples/             # Capability and integration reference implementations
+├── examples/             # Cookbooks and integration reference implementations
 │   ├── agent-frameworks/
 │   ├── app-frameworks/
+│   ├── cookbooks/
 │   ├── design-systems/
 │   ├── harnesses/
 │   └── miscellaneous/
@@ -193,6 +194,7 @@ Good places to start:
 - [openui.com](https://openui.com) for the full docs
 - [Quickstart](https://www.openui.com/docs/agent/getting-started/quickstart) to scaffold a working app
 - [`examples/README.md`](./examples/README.md) to find a focused reference implementation
+- [Cookbooks](https://www.openui.com/docs/cookbooks) for complete walkthroughs with [runnable code](./examples/cookbooks)
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) if you want to contribute
 
 ## Community

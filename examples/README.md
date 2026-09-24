@@ -1,8 +1,8 @@
 # OpenUI examples
 
-These projects showcase what OpenUI can do with different runtimes, application frameworks, design systems, coding harnesses, and specialized libraries. They are standalone reference implementations, not starter templates; use the [OpenUI CLI](https://www.openui.com/docs/agent/getting-started/quickstart) to scaffold a new application.
+These projects showcase complete OpenUI workflows and integrations with different runtimes, application frameworks, design systems, coding harnesses, and specialized libraries. They are standalone reference implementations, not starter templates; use the [OpenUI CLI](https://www.openui.com/docs/agent/getting-started/quickstart) to scaffold a new application.
 
-Each example has one primary home based on the integration seam it is intended to teach. Cross-cutting technologies belong in that example's README rather than in duplicate directory trees.
+Each example has one primary home. Complete workflows with a companion tutorial live in `cookbooks`; integration examples are grouped by the integration seam they teach. Cross-cutting technologies belong in that example's README rather than in duplicate directory trees.
 
 ## Categories
 
@@ -10,6 +10,7 @@ Each example has one primary home based on the integration seam it is intended t
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | [`agent-frameworks`](./agent-frameworks) | Agent runtimes and orchestration frameworks that produce or stream OpenUI output                                  |
 | [`app-frameworks`](./app-frameworks)     | Application frameworks or platforms that host an OpenUI client or server                                          |
+| [`cookbooks`](./cookbooks)               | Complete runnable workflows paired with step-by-step tutorials in the [Cookbooks docs](https://www.openui.com/docs/cookbooks) |
 | [`design-systems`](./design-systems)     | Component systems adapted into an OpenUI component library                                                        |
 | [`harnesses`](./harnesses)               | Coding-agent harnesses presented through an OpenUI interface                                                      |
 | [`miscellaneous`](./miscellaneous)       | Distinct capabilities, specialized libraries, and backend services that do not justify another top-level category |
@@ -38,6 +39,12 @@ Each example has one primary home based on the integration seam it is intended t
 | [Svelte](./app-frameworks/svelte)             | OpenUI Lang parsing and rendering in SvelteKit                                  |
 | [Vue](./app-frameworks/vue)                   | OpenUI Lang parsing and rendering in Nuxt and Vue                               |
 
+### Cookbooks
+
+| Example | Demonstrates | Tutorial |
+| ------- | ------------ | -------- |
+| [Conversational analytics](./cookbooks/conversational-analytics) | OpenUI Cloud dashboards with reactive filters over the real UCI Online Retail dataset | [Walkthrough](https://www.openui.com/docs/cookbooks/conversational-analytics) |
+
 ### Design systems
 
 | Example                                     | Demonstrates                                                   |
@@ -57,7 +64,6 @@ Each example has one primary home based on the integration seam it is intended t
 | Example                                        | Demonstrates                                                         |
 | ---------------------------------------------- | -------------------------------------------------------------------- |
 | [Autofix](./miscellaneous/autofix)             | Direct OpenAI generation with `@openuidev/server` Autofix repair |
-| [Conversational analytics](./miscellaneous/conversational-analytics) | Reactive dashboards over the real UCI Online Retail dataset |
 | [Handsontable](./miscellaneous/handsontable)   | Generated spreadsheet interfaces backed by Handsontable              |
 | [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts as an OpenUI capability                     |
 | [React Email](./miscellaneous/react-email)     | Generating and previewing emails with the OpenUI React Email library |
@@ -114,5 +120,7 @@ Every retained example should:
 - generate derived prompts and specs locally rather than store them in the repository;
 - depend on exact published `@openuidev/*` versions rather than root workspace packages;
 - use a normalized `@openuidev/example-*` package name and keep repository links current.
+
+Cookbooks also link to their companion docs tutorial. Keep each runnable app in `examples/cookbooks/<name>/` and its walkthrough in `docs/content/docs/cookbooks/<name>.mdx`, with links in both directions. Update code and tutorial together in the same pull request.
 
 Delete examples that duplicate an authoritative CLI template, are maintained elsewhere, substantially overlap a stronger example, or no longer justify their maintenance cost.
