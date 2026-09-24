@@ -91,9 +91,9 @@
     },
     {
       "title": "Conversational analytics",
-      "description": "Reactive OpenUI dashboards over the real UCI Online Retail dataset, with streaming model generation.",
+      "description": "OpenUI Cloud generates reactive dashboards over the real UCI Online Retail dataset.",
       "path": "miscellaneous/conversational-analytics",
-      "envKey": "OPENAI_API_KEY"
+      "envKey": "THESYS_API_KEY"
     },
     {
       "title": "Handsontable",

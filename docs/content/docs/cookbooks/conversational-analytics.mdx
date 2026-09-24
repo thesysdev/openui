@@ -12,19 +12,21 @@ This recipe uses the [UCI Online Retail dataset](https://archive.ics.uci.edu/dat
     title="Run the complete example"
     href="https://github.com/thesysdev/openui/tree/main/examples/miscellaneous/conversational-analytics"
   >
-    Next.js, OpenUI Lang, SQLite, and streaming model responses. Includes the dataset importer and
-    verification checks.
+    Next.js, OpenUI Cloud, OpenUI Lang, and SQLite. Includes the dataset importer and verification
+    checks.
   </Card>
 </Cards>
 
 ## What you'll build
 
-The model generates a layout and query arguments in OpenUI Lang. A server-owned query calculates the values. OpenUI renders the result with a small subset of its built-in components.
+OpenUI Cloud generates a layout and query arguments in OpenUI Lang through its [Gateway API](/docs/gateway/generate-openui-lang). The request includes the component library so Cloud can validate the generated interface. A server-owned query calculates the values, and OpenUI renders the result with a small subset of its built-in components.
 
 <Mermaid
   chart={`flowchart LR
-  A[Question + current filters] --> B[Model route]
-  B -->|Stream OpenUI Lang| C[Renderer]
+  A[Question + current filters] --> B[Generation route]
+  B --> G[OpenUI Cloud Gateway]
+  G -->|Stream OpenUI Lang| B
+  B -->|Forward text| C[Renderer]
   C -->|Query + validated arguments| D[Analytics route]
   D --> E[(Local SQLite)]
   E -->|Metrics, trend, products| C
@@ -34,7 +36,7 @@ The model generates a layout and query arguments in OpenUI Lang. A server-owned 
 There are two ways to explore the example:
 
 - **Example dashboard:** a checked-in OpenUI Lang layout that queries the real database. No model credentials are needed.
-- **Ask a question:** the model generates and streams a fresh layout. The model key stays on the server.
+- **Ask a question:** OpenUI Cloud generates and streams a fresh layout. The Cloud key stays on the server.
 
 Both use the same renderer, component library, and analytics endpoint. The example dashboard is explicitly labeled; it does not simulate an AI response.
 
@@ -57,7 +59,7 @@ npm run dev
 
 On Windows, activate the environment with `.venv\Scripts\Activate.ps1` in PowerShell. Open [localhost:3000](http://localhost:3000). The initial dashboard should show **£523,631.89** in gross sales and **1,100** orders for February 2011.
 
-To enable questions, configure `OPENAI_API_KEY` privately in the example's `.env.local`, then restart the app. The default model is `gpt-5.5`; set `OPENAI_MODEL` to use another Responses-compatible model available to your account. The example works without a key until you submit a question.
+To enable questions, create an inference key in the [Thesys Console](https://console.thesys.dev/keys), configure `THESYS_API_KEY` privately in the example's `.env.local`, then restart the app. The default model is `openai/gpt-5.5`; set `OPENUI_MODEL` to another supported [Gateway model](/docs/gateway/models) using its full `provider/model` identifier. The example works without a Cloud key until you submit a question.
 
 ## 1. Prepare and define the data
 
@@ -219,9 +221,13 @@ Wrap the renderer in `ThemeProvider` and import the React UI styles, as the exam
 
 Changing the country updates `$country`, which changes the query arguments. OpenUI runs `sales_dashboard` again and refreshes every dependent component. **Filter changes do not call the model.**
 
-## 6. Generate and stream a dashboard
+## 6. Generate and stream with OpenUI Cloud
 
-The question route builds a system prompt from the generated specification with `generateSystemPrompt({ library: spec, promptOptions })`. Enable `toolCalls` and `bindings`, describe `sales_dashboard`, and supply the working example program.
+The question route sends the generated library specification through `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`. With `cloud: true`, this produces Cloud's managed configuration block containing the schema and supported prompt options. Cloud assembles the generation instructions and validates output against that library.
+
+Use `additionalRules` to explain the reactive query contract and `examples` to supply the working dashboard. These are supported Cloud options; the local prompt flags `toolCalls`, `bindings`, and `toolExamples` are not sent in the Cloud configuration.
+
+`sales_dashboard` remains an OpenUI `Query` expression executed through the renderer's `toolProvider`. It is not a Responses function tool. Cloud generates the expression, then the browser asks the local analytics route for the values. SQLite stays in the application.
 
 The [prompt](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/lib/prompt.ts) asks the model to:
 
@@ -231,12 +237,21 @@ The [prompt](https://github.com/thesysdev/openui/blob/main/examples/miscellaneou
 - Preserve current filters on follow-ups unless the question changes them.
 - Explain unsupported questions instead of inventing data or silently changing dates.
 
-The server requests a streaming Responses API result. Here is the core call from the example:
+The server uses the OpenAI-compatible SDK to call OpenUI Cloud's Responses endpoint. Both the server credential and endpoint are set explicitly:
 
 ```ts
-const upstream = await client.responses.create(
+import OpenAI from "openai";
+
+const cloud = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+  timeout: 60000,
+  maxRetries: 0,
+});
+
+const upstream = await cloud.responses.create(
   {
-    model: process.env.OPENAI_MODEL || "gpt-5.5",
+    model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
     instructions: dashboardPrompt(countries),
     input: JSON.stringify({
       previousQuestions: body.history,
@@ -251,9 +266,9 @@ const upstream = await client.responses.create(
 );
 ```
 
-The route forwards `response.output_text.delta` events as newline-delimited JSON. The client appends their text to `program`, so the renderer can build the interface as it arrives. The route sends an explicit `done` event after completion and an `error` event if generation fails after streaming starts. See the complete [server route](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/app/api/generate/route.ts), [stream reader](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/lib/read-stream.ts), and [Responses streaming reference](https://developers.openai.com/api/docs/guides/streaming-responses).
+The route forwards Cloud's `response.output_text.delta` events as newline-delimited JSON. The client appends their text to `program`, so the renderer can build the interface as it arrives. The route sends an explicit `done` event after completion and an `error` event if generation fails after streaming starts. See the complete [server route](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/app/api/generate/route.ts), [stream reader](https://github.com/thesysdev/openui/blob/main/examples/miscellaneous/conversational-analytics/src/lib/read-stream.ts), and [Gateway Responses reference](/docs/gateway/api/responses).
 
-The page captures `$country` and `$month` through `onStateUpdate`. Each new question sends those filters and up to five previous questions. The new response gets a fresh renderer instance, so an explicit request to change the month can initialize new bindings. This example keeps context in memory; it does not persist conversations.
+The page captures `$country` and `$month` through `onStateUpdate`. Each new question sends those filters and up to five previous questions. The new response gets a fresh renderer instance, so an explicit request to change the month can initialize new bindings. This example uses Cloud for generation with `store: false` and keeps context in memory. It does not create Cloud conversations or browser tokens. See the [Conversations API](/docs/gateway/api/conversations) if you want persisted threads.
 
 ## 7. Handle incomplete and empty states
 
@@ -263,7 +278,7 @@ The page captures `$country` and `$month` through `onStateUpdate`. Each new ques
 | Query running                              | Loading indicator while OpenUI fetches the result                                        |
 | No sales for the selected country/month    | Zero-valued metrics, explanatory text, and filters to recover                            |
 | Unsupported arguments                      | Server returns HTTP 400; no arbitrary SQL executes                                       |
-| No model key                               | The question shows setup guidance; the existing dashboard remains usable                 |
+| No Cloud key                               | The question shows setup guidance; the existing dashboard remains usable                 |
 | Model error, refusal, or incomplete stream | Explicit error; no completion is inferred from a closed connection                       |
 | User stops generation                      | Browser abort propagates to the provider; the partial response is labeled as interrupted |
 | Invalid generated components               | Renderer errors appear with a way to load the example again                              |

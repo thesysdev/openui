@@ -2,7 +2,7 @@
 
 A runnable companion to the [conversational analytics cookbook](https://www.openui.com/docs/cookbooks/conversational-analytics). Ask a sales question, stream an OpenUI dashboard, then change country or month to query real data again without another model call.
 
-Stack: Next.js App Router, React, OpenUI Lang and built-in React UI components, OpenAI Responses streaming, and local SQLite. Python imports the original UCI workbook once. This is a standalone example, not part of the repository's package workspace.
+Stack: Next.js App Router, React, OpenUI Lang and built-in React UI components, OpenUI Cloud's Gateway Responses API, and local SQLite. Python imports the original UCI workbook once. This is a standalone example, not part of the repository's package workspace.
 
 ## Run
 
@@ -21,7 +21,7 @@ On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell. Open http:
 
 The **Example dashboard** loads a checked-in OpenUI Lang program with live database queries. Its country and month filters work without credentials. It is not a simulated model response.
 
-To ask the model questions, configure `OPENAI_API_KEY` privately in `.env.local` and restart. Optional `OPENAI_MODEL` selects another Responses-compatible model; the default is `gpt-5.5`. Never put the key in a `NEXT_PUBLIC_` variable. Try:
+To enable OpenUI Cloud questions, create an inference key in the [Thesys Console](https://console.thesys.dev/keys), configure `THESYS_API_KEY` privately in `.env.local`, and restart. Optional `OPENUI_MODEL` selects another supported `provider/model` identifier; the default is `openai/gpt-5.5`. Never put the key in a `NEXT_PUBLIC_` variable. Try:
 
 - “Why did gross sales fall in February 2011?”
 - “Now show Germany as a bar chart.”
@@ -51,7 +51,8 @@ The resulting `data/manifest.json` records the import. The archive and SQLite da
 ## Architecture and files
 
 ```text
-Question + current filters -> /api/generate -> streamed OpenUI Lang -> Renderer
+Question + current filters -> /api/generate -> OpenUI Cloud Gateway
+OpenUI Cloud -> streamed OpenUI Lang -> /api/generate -> Renderer
 Renderer Query -> /api/analytics -> validated, parameterized SQL -> local SQLite
 Select changes -> reactive Query arguments -> refreshed values (no model call)
 ```
@@ -68,7 +69,11 @@ Select changes -> reactive Query arguments -> refreshed values (no model call)
 | `src/lib/read-stream.ts`         | Decode NDJSON across arbitrary UTF-8 chunk boundaries               |
 | `src/app/page.tsx`               | Question UI, renderer, tool provider, current filters, and recovery |
 
-`npm run generate` creates the ignored component spec before dev/build/verify. The server imports this serialized spec; it does not import client components. Follow-ups include the current reactive filters and up to five previous questions. Conversations are in memory only.
+`npm run generate` creates the ignored component spec before dev/build/verify. The server passes it to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, which produces Cloud's managed configuration with the same schema used by the renderer. Cloud accepts `additionalRules` and `examples` for the query contract and reference layout. Local-only prompt flags such as `toolCalls` and `toolExamples` are not Cloud wire options.
+
+The `openai` dependency is the compatible SDK transport. Its base URL is explicitly `https://api.thesys.dev/v1/embed` and it authenticates with `THESYS_API_KEY`. The example uses Cloud generation with `store: false`; follow-ups include the current filters and up to five previous questions. Context remains in memory, with no Cloud conversation or frontend-token route.
+
+`sales_dashboard` is a renderer-side `Query` handled by the browser's `toolProvider`, not a model-side Responses function tool. Cloud generates its expression; the app executes the database query. Filter changes stay local to the app and do not call Cloud. See the [Gateway quickstart](https://www.openui.com/docs/gateway/generate-openui-lang) and [Responses API](https://www.openui.com/docs/gateway/api/responses) for the supported Cloud contracts.
 
 The example binds to loopback and is intended for local use. Deployment requires authentication and rate limits for the model route, dataset authorization for private data, and persistent SQLite storage or a hosted database. Raw invoice rows and customer IDs are not sent to the model; the prompt includes the question, previous questions, filter context, country names, and component/tool instructions.
 

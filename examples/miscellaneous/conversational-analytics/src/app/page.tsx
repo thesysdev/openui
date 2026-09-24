@@ -156,8 +156,7 @@ export default function Page() {
             )}
           </div>
           <p className="hint">
-            Questions use your configured model. The example dashboard and filters work without an
-            API key.
+            Questions use OpenUI Cloud. The example dashboard and filters work without a Cloud key.
           </p>
         </form>
         <div className="dashboard-heading">

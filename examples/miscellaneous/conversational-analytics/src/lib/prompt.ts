@@ -4,13 +4,12 @@ import { exampleProgram } from "./example-program";
 
 export function dashboardPrompt(countries: string[]) {
   return generateSystemPrompt({
+    cloud: true,
     library: spec,
     promptOptions: {
-      tools: ["sales_dashboard"],
-      toolCalls: true,
-      bindings: true,
       additionalRules: [
         "You create interactive sales dashboards for the UCI Online Retail dataset. Output only a complete OpenUI Lang program with root first, no markdown fences or surrounding prose.",
+        "Emit reactive OpenUI Lang. $country and $month are reactive variables. Query(name, args, fallback) is an OpenUI runtime expression resolved by the browser's toolProvider, not a Responses API function call. The fallback is used until data arrives; changing a binding in args reruns the query. Emit this expression in the program; do not try to execute the query in Cloud.",
         'The only tool is Query("sales_dashboard", {country: $country, month: $month}, {ready: false, countries: []}). It reads a local database. Never invent values, embed SQL, use Mutation, or name other tools.',
         "Supported months are 2011-01 through 2011-11, compared with the previous calendar month. December 2011 is incomplete and unsupported. Dates are historical; do not interpret 'this month' as today's month.",
         `Supported countries: ${JSON.stringify(countries)}. Use All countries if unspecified. Preserve the supplied current filters on follow-up questions unless the user asks to change them.`,
@@ -21,7 +20,9 @@ export function dashboardPrompt(countries: string[]) {
         "You may rearrange the dashboard, change between LineChart and BarChart, and omit unrequested details. If a question needs unsupported data or dates, return a TextContent explaining the supported scope. Do not silently substitute a different period.",
         "Do not use em dashes.",
       ],
-      toolExamples: [exampleProgram],
+      // Cloud accepts examples, preamble, and additionalRules. Local prompt flags
+      // such as toolCalls, bindings, and toolExamples are not Cloud wire options.
+      examples: [exampleProgram],
     },
   });
 }

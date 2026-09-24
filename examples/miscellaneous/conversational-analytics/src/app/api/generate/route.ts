@@ -23,11 +23,12 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  if (!process.env.OPENAI_API_KEY) {
+  const apiKey = process.env.THESYS_API_KEY;
+  if (!apiKey) {
     return Response.json(
       {
         error:
-          "Configure OPENAI_API_KEY privately in .env.local and restart to ask the model. The example dashboard works without it.",
+          "Configure THESYS_API_KEY privately in .env.local and restart to use OpenUI Cloud. The example dashboard works without it.",
       },
       { status: 503 },
     );
@@ -60,10 +61,16 @@ export async function POST(request: Request) {
   request.signal.addEventListener("abort", cancel, { once: true });
   if (request.signal.aborted) abort.abort();
   try {
-    const client = new OpenAI({ timeout: 60000, maxRetries: 0 });
-    const upstream = await client.responses.create(
+    // The OpenAI SDK is a compatible transport for OpenUI Cloud's Gateway.
+    const cloud = new OpenAI({
+      apiKey,
+      baseURL: "https://api.thesys.dev/v1/embed",
+      timeout: 60000,
+      maxRetries: 0,
+    });
+    const upstream = await cloud.responses.create(
       {
-        model: process.env.OPENAI_MODEL || "gpt-5.5",
+        model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
         instructions: dashboardPrompt(countries),
         input: JSON.stringify({
           previousQuestions: body.history,
@@ -120,7 +127,10 @@ export async function POST(request: Request) {
   } catch {
     request.signal.removeEventListener("abort", cancel);
     return Response.json(
-      { error: "Could not start generation. Check your model and API configuration, then retry." },
+      {
+        error:
+          "Could not start OpenUI Cloud generation. Check your Cloud key and model, then retry.",
+      },
       { status: 502 },
     );
   }
