@@ -1,13 +1,5 @@
 {
   "title": "Cookbooks",
   "root": true,
-  "pages": [
-    "[Overview](/docs/cookbooks)",
-    "---Recipes---",
-    "conversational-analytics",
-    "document-comparison",
-    "adaptive-booking",
-    "customer-support",
-    "invoice-review"
-  ]
+  "pages": ["[Overview](/docs/cookbooks)", "---Recipes---", "conversational-analytics"]
 }

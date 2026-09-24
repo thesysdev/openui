@@ -23,5 +23,14 @@ export function extractProgram(raw: string): string {
       }
     }
   }
-  return program.trimEnd();
+  // Cloud can wrap a custom-library response in a code fence. Remove the
+  // opening fence as soon as its newline arrives, not after the closing fence.
+  program = program.trimStart();
+  if (program.startsWith("`")) {
+    const newline = program.indexOf("\n");
+    if (newline === -1) return "";
+    if (/^```(?:openui-lang|openui|text)?\s*$/.test(program.slice(0, newline)))
+      program = program.slice(newline + 1);
+  }
+  return program.replace(/\n?`{1,3}\s*$/, "").trimEnd();
 }

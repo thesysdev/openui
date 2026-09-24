@@ -6,14 +6,14 @@ Each example has one primary home. Complete workflows with a companion tutorial 
 
 ## Categories
 
-| Category                                 | Use it for                                                                                                        |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| [`agent-frameworks`](./agent-frameworks) | Agent runtimes and orchestration frameworks that produce or stream OpenUI output                                  |
-| [`app-frameworks`](./app-frameworks)     | Application frameworks or platforms that host an OpenUI client or server                                          |
+| Category                                 | Use it for                                                                                                                    |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| [`agent-frameworks`](./agent-frameworks) | Agent runtimes and orchestration frameworks that produce or stream OpenUI output                                              |
+| [`app-frameworks`](./app-frameworks)     | Application frameworks or platforms that host an OpenUI client or server                                                      |
 | [`cookbooks`](./cookbooks)               | Complete runnable workflows paired with step-by-step tutorials in the [Cookbooks docs](https://www.openui.com/docs/cookbooks) |
-| [`design-systems`](./design-systems)     | Component systems adapted into an OpenUI component library                                                        |
-| [`harnesses`](./harnesses)               | Coding-agent harnesses presented through an OpenUI interface                                                      |
-| [`miscellaneous`](./miscellaneous)       | Distinct capabilities, specialized libraries, and backend services that do not justify another top-level category |
+| [`design-systems`](./design-systems)     | Component systems adapted into an OpenUI component library                                                                    |
+| [`harnesses`](./harnesses)               | Coding-agent harnesses presented through an OpenUI interface                                                                  |
+| [`miscellaneous`](./miscellaneous)       | Distinct capabilities, specialized libraries, and backend services that do not justify another top-level category             |
 
 `miscellaneous` is intentionally flat. If several examples develop the same stable integration seam, promote that seam to a top-level category instead of adding nested miscellaneous taxonomies.
 
@@ -21,19 +21,19 @@ Each example has one primary home. Complete workflows with a companion tutorial 
 
 ### Agent frameworks
 
-| Example                                           | Demonstrates                                                            |
-| ------------------------------------------------- | ----------------------------------------------------------------------- |
-| [Google ADK](./agent-frameworks/google-adk)       | A Google ADK TypeScript agent streaming OpenUI Lang to a Next.js client |
+| Example                                                     | Demonstrates                                                                               |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [Google ADK](./agent-frameworks/google-adk)                 | A Google ADK TypeScript agent streaming OpenUI Lang to a Next.js client                    |
 | [LangGraph Platform](./agent-frameworks/langgraph-platform) | A DeepAgents graph on LangGraph Platform, streamed to OpenUI through the LangChain adapter |
-| [Mastra](./agent-frameworks/mastra)               | A Mastra agent connected to OpenUI through AG-UI                        |
-| [Vercel AI SDK](./agent-frameworks/vercel-ai-sdk) | AgentInterface over a Vercel AI SDK `streamText` backend              |
-| [Vercel Eve](./agent-frameworks/vercel-eve)       | An Eve agent rendered through Agent Interface                           |
+| [Mastra](./agent-frameworks/mastra)                         | A Mastra agent connected to OpenUI through AG-UI                                           |
+| [Vercel AI SDK](./agent-frameworks/vercel-ai-sdk)           | AgentInterface over a Vercel AI SDK `streamText` backend                                   |
+| [Vercel Eve](./agent-frameworks/vercel-eve)                 | An Eve agent rendered through Agent Interface                                              |
 
 ### App frameworks
 
 | Example                                       | Demonstrates                                                                    |
 | --------------------------------------------- | ------------------------------------------------------------------------------- |
-| [Angular](./app-frameworks/angular) | An NG-ZORRO X chat interface with the Angular OpenUI renderer |
+| [Angular](./app-frameworks/angular)           | An NG-ZORRO X chat interface with the Angular OpenUI renderer                   |
 | [FastAPI](./app-frameworks/fastapi)           | A Python FastAPI streaming backend with a React OpenUI client                   |
 | [React Native](./app-frameworks/react-native) | An Expo client rendering native OpenUI components from a Next.js backend stream |
 | [Svelte](./app-frameworks/svelte)             | OpenUI Lang parsing and rendering in SvelteKit                                  |
@@ -41,9 +41,9 @@ Each example has one primary home. Complete workflows with a companion tutorial 
 
 ### Cookbooks
 
-| Example | Demonstrates | Tutorial |
-| ------- | ------------ | -------- |
-| [Conversational analytics](./cookbooks/conversational-analytics) | OpenUI Cloud dashboards with reactive filters over the real UCI Online Retail dataset | [Walkthrough](https://www.openui.com/docs/cookbooks/conversational-analytics) |
+| Example                                                          | Demonstrates                                                                                 | Tutorial                                                                      |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [Conversational analytics](./cookbooks/conversational-analytics) | Streaming OpenUI Cloud dashboards with visible database tool calls over real UCI retail data | [Walkthrough](https://www.openui.com/docs/cookbooks/conversational-analytics) |
 
 ### Design systems
 
@@ -63,7 +63,7 @@ Each example has one primary home. Complete workflows with a companion tutorial 
 
 | Example                                        | Demonstrates                                                         |
 | ---------------------------------------------- | -------------------------------------------------------------------- |
-| [Autofix](./miscellaneous/autofix)             | Direct OpenAI generation with `@openuidev/server` Autofix repair |
+| [Autofix](./miscellaneous/autofix)             | Direct OpenAI generation with `@openuidev/server` Autofix repair     |
 | [Handsontable](./miscellaneous/handsontable)   | Generated spreadsheet interfaces backed by Handsontable              |
 | [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts as an OpenUI capability                     |
 | [React Email](./miscellaneous/react-email)     | Generating and previewing emails with the OpenUI React Email library |

@@ -9,48 +9,21 @@ body {
 .retail-app {
   height: 100dvh;
 }
-.retail-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  font-size: 13px;
-}
-.retail-toolbar a,
 .dataset-note a {
   color: inherit;
   text-underline-offset: 3px;
-}
-.example-button {
-  cursor: pointer;
-  font: inherit;
-  font-size: 13px;
-  padding: 8px 12px;
-  border: 1px solid var(--openui-border-default);
-  border-radius: 8px;
-  background: var(--openui-foreground);
-  color: var(--openui-text-neutral-primary);
-}
-.example-button:hover {
-  background: var(--openui-highlight);
-}
-.example-button:focus-visible {
-  outline: 2px solid var(--openui-border-accent-emphasis);
-  outline-offset: 3px;
 }
 .analytics-message {
   min-width: 0;
   width: 100%;
 }
-.reference-note,
+.streaming-note,
 .dataset-note {
   color: var(--openui-text-neutral-secondary);
   font-size: 12px;
   line-height: 1.6;
 }
-.reference-note {
+.streaming-note {
   margin: 0 0 20px;
 }
 .dataset-note {

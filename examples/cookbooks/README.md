@@ -6,8 +6,6 @@ Complete, runnable workflows paired with the [Cookbooks docs](https://www.openui
 | ------------------------ | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | Conversational analytics | [Next.js, OpenUI Cloud, and SQLite](./conversational-analytics) | [Build a dashboard over real retail data](https://www.openui.com/docs/cookbooks/conversational-analytics) |
 
-The other cookbook pages are outlines. Add their app directories when runnable implementations are ready.
-
 ## Run a cookbook
 
 Open its directory and follow its README for prerequisites, data preparation, credentials, and development commands. Each app is standalone and uses published OpenUI packages.

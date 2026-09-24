@@ -5,7 +5,7 @@ export const months = Array.from(
   { length: 11 },
   (_, i) => `2011-${String(i + 1).padStart(2, "0")}`,
 );
-export const filterSchema = z
+export const salesQuerySchema = z
   .object({
     month: z
       .string()
@@ -13,9 +13,6 @@ export const filterSchema = z
     country: z.string().min(1).max(80),
   })
   .strict();
-export type Filters = z.infer<typeof filterSchema>;
-export const defaultFilters: Filters = { month: "2011-02", country: "All countries" };
-
 export function periodFor(month: string) {
   const [year, index] = month.split("-").map(Number);
   const iso = (offset: number) =>

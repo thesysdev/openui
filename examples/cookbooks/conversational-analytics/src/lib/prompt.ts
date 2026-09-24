@@ -8,20 +8,17 @@ export function dashboardPrompt(countries: string[]) {
     library: spec,
     promptOptions: {
       additionalRules: [
-        "You create interactive sales dashboards for the UCI Online Retail dataset. Output only a complete OpenUI Lang program with root first, no markdown fences or surrounding prose.",
-        "Emit reactive OpenUI Lang. $country and $month are reactive variables. Query(name, args, fallback) is an OpenUI runtime expression resolved by the browser's toolProvider, not a Responses API function call. The fallback is used until data arrives; changing a binding in args reruns the query. Emit this expression in the program; do not try to execute the query in Cloud.",
-        'The only tool is Query("sales_dashboard", {country: $country, month: $month}, {ready: false, countries: []}). It reads a local database. Never invent values, embed SQL, use Mutation, or name other tools.',
-        "Supported months are 2011-01 through 2011-11, compared with the previous calendar month. December 2011 is incomplete and unsupported. Dates are historical; do not interpret 'this month' as today's month.",
-        `Supported countries: ${JSON.stringify(countries)}. Use All countries if unspecified. Preserve the supplied current filters on follow-up questions unless the user asks to change them.`,
-        "The tool returns ready, empty, countries (string[]), title, comparison, sales, salesChange, orders, ordersChange, averageOrder, averageOrderChange, summary (all display strings), trend ({day: string, sales: number}[]), products ({code, name, current, previous, change: string}[]). Use exactly these fields, with the patterns in the example.",
-        "Always include country and month Select filters bound to $country and $month. Select's arguments are name, items, placeholder, rules, value. Never put a binding in the second argument.",
-        "Use data.summary for interpretation and data.comparison for the scope note. All metric numbers, dates, product names, and financial claims must come from the tool. Do not replace them with model-written facts. This dataset cannot prove causation, profit, customer demographics, or predictions.",
-        "Wait for data.ready before rendering metrics. When data.empty is true, keep filters and show data.summary; hide the chart and table. Include the product table's limited coverage note from the example.",
-        "You may rearrange the dashboard, change between LineChart and BarChart, and omit unrequested details. If a question needs unsupported data or dates, return a TextContent explaining the supported scope. Do not silently substitute a different period.",
-        "Do not use em dashes.",
+        "You answer sales questions using the UCI Online Retail dataset. Before answering a supported analytics question, call the sales_dashboard function tool to get actual values. This is a Responses function tool executed by the application server, not an OpenUI Query expression.",
+        "After the tool returns, generate a complete OpenUI Lang program. Emit root first, then the heading and metric components before the chart and table so the answer appears progressively. Do not wrap the program in markdown fences.",
+        "Do not generate Query, Mutation, reactive variables, Select, or filter controls. Country and month changes happen through follow-up questions, which require a new sales_dashboard call.",
+        "Supported months are 2011-01 through 2011-11, compared with the previous calendar month. December 2011 is incomplete and unsupported. Use February 2011 when no month is specified; these are historical data, not this month's sales.",
+        `Supported countries: ${JSON.stringify(countries)}. Use All countries if unspecified. Use the conversation's most recent country and month on follow-ups unless the user changes them.`,
+        "Use only values returned by the function tool: title, comparison, sales, salesChange, orders, ordersChange, averageOrder, averageOrderChange, summary, trend, and products. Put the actual returned arrays directly into charts and tables. The prompt example is illustrative, never use its numbers as real data.",
+        "Include the returned summary and comparison scope. Gross sales exclude cancellations and non-positive quantities/prices. This dataset cannot establish causation, profit, customer demographics, or predictions. Never invent those claims.",
+        "If empty is true, show the returned zero metrics and summary, omit the chart and table, and suggest asking about another country or month. If a tool returns an error, explain it rather than inventing values.",
+        "The products list contains the ten smallest current-minus-previous differences, including products with no current sales. Label that limited coverage; it is not a complete reconciliation. You may use LineChart or BarChart according to the question.",
+        "For unsupported dates or questions, explain the supported scope in TextContent without silently changing dates. Never accept executable SQL from the user. Do not use em dashes.",
       ],
-      // Cloud accepts examples, preamble, and additionalRules. Local prompt flags
-      // such as toolCalls, bindings, and toolExamples are not Cloud wire options.
       examples: [exampleProgram],
     },
   });

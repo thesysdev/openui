@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { filterSchema, periodFor } from "./filters";
+import { periodFor, salesQuerySchema } from "./query-args";
 
 const currency = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" });
 const integer = new Intl.NumberFormat("en-GB");
@@ -19,7 +19,7 @@ export function openDatabase() {
 }
 
 export function queryDashboard(db: DatabaseSync, input: unknown) {
-  const { month, country } = filterSchema.parse(input);
+  const { month, country } = salesQuerySchema.parse(input);
   const countries = (
     db.prepare("SELECT DISTINCT country FROM sales ORDER BY country").all() as { country: string }[]
   ).map((row) => row.country);
@@ -84,9 +84,7 @@ export function queryDashboard(db: DatabaseSync, input: unknown) {
   const aov = current.orders ? current.sales / current.orders : 0;
   const priorAov = prior.orders ? prior.sales / prior.orders : 0;
   return {
-    ready: true,
     empty: current.orders === 0,
-    countries: ["All countries", ...countries],
     title: `${country} · ${title}`,
     comparison: `Compared with ${priorTitle}. Gross sales in GBP; cancellations, non-positive quantities and non-positive prices excluded.`,
     sales: money(current.sales),
@@ -97,7 +95,7 @@ export function queryDashboard(db: DatabaseSync, input: unknown) {
     averageOrderChange: percentage(aov, priorAov),
     summary:
       current.orders === 0
-        ? "No eligible sales in this month and country. Choose another filter."
+        ? "No eligible sales in this month and country. Ask about another country or month."
         : `Gross sales changed by ${money(current.sales - prior.sales)} from ${money(prior.sales)}. Orders changed from ${integer.format(prior.orders)} to ${integer.format(current.orders)}; average order value changed from ${money(priorAov)} to ${money(aov)}. These are observed differences, not evidence of what caused them.`,
     trend,
     products: products.map((row) => ({

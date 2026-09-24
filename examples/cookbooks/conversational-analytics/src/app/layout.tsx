@@ -4,8 +4,9 @@ import type { Metadata } from "next";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "Retail analyst | OpenUI cookbook",
-  description: "Explore the UCI Online Retail dataset with reactive OpenUI dashboards.",
+  title: "Data analyst | OpenUI cookbook",
+  description:
+    "Explore data through conversation with streaming charts, comparisons, and clear answers.",
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

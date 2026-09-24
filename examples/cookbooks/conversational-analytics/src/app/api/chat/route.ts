@@ -1,18 +1,23 @@
 import OpenAI from "openai";
+import type { ResponseCreateParamsNonStreaming } from "openai/resources/responses/responses";
 import { openDatabase } from "../../../lib/analytics";
-import { chatRequestSchema, cloudInput } from "../../../lib/chat-request";
-import { forwardCloudStream } from "../../../lib/cloud-stream";
+import { parseChatRequest } from "../../../lib/chat-request";
+import { localDemoAccess, ownsConversation } from "../../../lib/cloud-session";
+import { streamCloudTurn } from "../../../lib/cloud-stream";
 import { dashboardPrompt } from "../../../lib/prompt";
+import { executeSalesDashboard, salesDashboardTool } from "../../../lib/sales-tool";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const denied = localDemoAccess(request);
+  if (denied) return denied;
   let body;
   try {
-    body = chatRequestSchema.parse(await request.json());
+    body = await parseChatRequest(request);
   } catch {
     return Response.json(
-      { error: "Send a text question of up to 600 characters and valid conversation context." },
+      { error: "Send one text question of up to 600 characters and a conversation id." },
       { status: 400 },
     );
   }
@@ -20,11 +25,20 @@ export async function POST(request: Request) {
   if (!apiKey)
     return Response.json(
       {
-        error:
-          "Configure THESYS_API_KEY privately in .env.local and restart to use OpenUI Cloud. The example dashboard works without it.",
+        error: "Configure THESYS_API_KEY privately in .env.local and restart to use OpenUI Cloud.",
       },
       { status: 503 },
     );
+
+  try {
+    if (!(await ownsConversation(body.threadId, request.signal)))
+      return Response.json(
+        { error: "Conversation not found for this app and user." },
+        { status: 403 },
+      );
+  } catch {
+    return Response.json({ error: "Unable to verify Cloud conversation access." }, { status: 503 });
+  }
 
   let countries: string[];
   let db;
@@ -40,17 +54,13 @@ export async function POST(request: Request) {
     ];
   } catch {
     return Response.json(
-      { error: "Prepare the dataset before asking a question." },
+      {
+        error: "Prepare the dataset with python scripts/prepare_data.py before asking a question.",
+      },
       { status: 503 },
     );
   } finally {
     db?.close();
-  }
-  let input;
-  try {
-    input = cloudInput(body, countries);
-  } catch {
-    return Response.json({ error: "Unknown country." }, { status: 400 });
   }
 
   const abort = new AbortController();
@@ -58,35 +68,48 @@ export async function POST(request: Request) {
   const cleanup = () => request.signal.removeEventListener("abort", cancel);
   request.signal.addEventListener("abort", cancel, { once: true });
   if (request.signal.aborted) abort.abort();
-  try {
-    const cloud = new OpenAI({
-      apiKey,
-      baseURL: "https://api.thesys.dev/v1/embed",
-      timeout: 60000,
-      maxRetries: 0,
-    });
+
+  const cloud = new OpenAI({
+    apiKey,
+    baseURL: "https://api.thesys.dev/v1/embed",
+    timeout: 60000,
+    maxRetries: 0,
+  });
+  const createParams: ResponseCreateParamsNonStreaming = {
+    model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
+    instructions: dashboardPrompt(countries),
+    input: body.input,
+    conversation: body.threadId,
+    store: true,
+    tools: [salesDashboardTool(countries)],
+    max_output_tokens: 6000,
+  };
+  // Open Cloud inside the stream so local headers flush immediately.
+  async function* firstStream() {
     const upstream = await cloud.responses.create(
-      {
-        model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-        instructions: dashboardPrompt(countries),
-        input,
-        stream: true,
-        store: false,
-        max_output_tokens: 6000,
-      },
+      { ...createParams, stream: true },
       { signal: abort.signal },
     );
-    return new Response(forwardCloudStream(upstream, abort, cleanup), {
-      headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform" },
-    });
-  } catch {
-    cleanup();
-    return Response.json(
-      {
-        error:
-          "Could not start OpenUI Cloud generation. Check your Cloud key and model, then retry.",
-      },
-      { status: 502 },
-    );
+    yield* upstream as unknown as AsyncIterable<Record<string, unknown>>;
   }
+  return new Response(
+    streamCloudTurn(
+      {
+        client: cloud,
+        createParams,
+        firstStream: firstStream(),
+        tools: { sales_dashboard: executeSalesDashboard },
+        maxRounds: 3,
+      },
+      abort,
+      cleanup,
+    ),
+    {
+      headers: {
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        "X-Accel-Buffering": "no",
+      },
+    },
+  );
 }

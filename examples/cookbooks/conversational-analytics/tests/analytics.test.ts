@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import { test } from "node:test";
 import { queryDashboard } from "../src/lib/analytics";
-import { filterSchema, periodFor } from "../src/lib/filters";
+import { periodFor, salesQuerySchema } from "../src/lib/query-args";
 
 function fixture() {
   const db = new DatabaseSync(":memory:");
@@ -55,10 +55,10 @@ test("empty results and zero baselines are explicit", () => {
 
 test("rejects incomplete dates, extra query fields and SQL-like country input", () => {
   for (const month of ["2011-12", "2010-12", "2011-2", "2026-02"]) {
-    assert.equal(filterSchema.safeParse({ month, country: "Germany" }).success, false);
+    assert.equal(salesQuerySchema.safeParse({ month, country: "Germany" }).success, false);
   }
   assert.equal(
-    filterSchema.safeParse({ month: "2011-02", country: "Germany", sql: "DROP TABLE sales" })
+    salesQuerySchema.safeParse({ month: "2011-02", country: "Germany", sql: "DROP TABLE sales" })
       .success,
     false,
   );

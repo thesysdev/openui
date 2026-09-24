@@ -62,7 +62,7 @@
     },
     {
       "title": "Conversational analytics",
-      "description": "OpenUI Cloud generates reactive dashboards over the real UCI Online Retail dataset.",
+      "description": "Stream OpenUI Cloud dashboards and inspect database tool calls over the real UCI Online Retail dataset.",
       "path": "cookbooks/conversational-analytics",
       "envKey": "THESYS_API_KEY"
     },

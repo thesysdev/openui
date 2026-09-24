@@ -11,7 +11,7 @@ test("example parses against the published component schema", () => {
   assert.deepEqual(parsed.meta.unresolved, []);
   assert.equal(parsed.root?.typeName, "Stack");
 });
-test("Cloud receives the matching library schema and reactive examples in supported options", () => {
+test("Cloud receives the matching library schema and static layout examples in supported options", () => {
   const prompt = dashboardPrompt(["All countries", "Germany"]);
   const marker = "]]>openui:config\n";
   assert.ok(prompt.startsWith(marker));
@@ -25,7 +25,7 @@ test("Cloud receives the matching library schema and reactive examples in suppor
   );
   assert.ok(
     config.systemPromptOptions.additionalRules.some((rule: string) =>
-      rule.includes("toolProvider"),
+      rule.includes("Responses function tool"),
     ),
   );
   assert.deepEqual(Object.keys(config.systemPromptOptions).sort(), ["additionalRules", "examples"]);

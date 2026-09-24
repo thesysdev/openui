@@ -1,6 +1,6 @@
 # Conversational analytics
 
-A runnable companion to the [conversational analytics cookbook](https://www.openui.com/docs/cookbooks/conversational-analytics). Ask a sales question, stream an OpenUI dashboard, then change country or month to query real data again without another model call.
+A runnable companion to the [conversational analytics cookbook](https://www.openui.com/docs/cookbooks/conversational-analytics). Ask a sales question, inspect the database tool call, and watch an OpenUI dashboard appear as the answer streams. Change country or month by asking a follow-up question.
 
 Stack: Next.js App Router, React, OpenUI Agent Interface, OpenUI Lang and built-in React UI components, OpenUI Cloud's Gateway Responses API, and local SQLite. Python imports the original UCI workbook once. This is a standalone example, not part of the repository's package workspace.
 
@@ -19,15 +19,13 @@ npm run dev
 
 On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell. Open http://localhost:3000. Use `npm run dev -- --port 3001` if port 3000 is occupied.
 
-Click **Example dashboard** in the toolbar or sidebar. This reference conversation loads a checked-in OpenUI Lang program with live database queries. Its country and month filters work without credentials. It is not a simulated model response.
-
 To enable OpenUI Cloud questions, create an inference key in the [Thesys Console](https://console.thesys.dev/keys), configure `THESYS_API_KEY` privately in `.env.local`, and restart. Optional `OPENUI_MODEL` selects another supported `provider/model` identifier; the default is `openai/gpt-5.5`. Never put the key in a `NEXT_PUBLIC_` variable. Try:
 
-- “Why did gross sales fall in February 2011?”
-- “Now show Germany as a bar chart.”
-- “Show France in November 2011.”
+- “Compare February 2011 sales with January.”
+- “Chart Germany’s daily sales in February 2011.”
+- “Which products lost the most sales in November 2011?”
 
-The model selects query arguments and layout. All displayed financial values and interpretation strings should reference the server's query result. Unsupported dates or concepts such as profit should receive an explanation of the supported scope. Layout generation is probabilistic; inspect the OpenUI Lang and compare the results with the expected totals below.
+The model calls a server-side `sales_dashboard` function, then generates a layout from its result. There are no filter widgets or browser-side data queries. All displayed financial values and interpretation strings should reference the server's query result. Unsupported dates or concepts such as profit should receive an explanation of the supported scope. Layout generation is probabilistic; inspect the OpenUI Lang and compare the results with the expected totals below.
 
 ## Dataset and accounting
 
@@ -45,40 +43,50 @@ The resulting `data/manifest.json` records the import. The archive and SQLite da
 - Missing customer IDs do not remove a sale; customer IDs are not stored. Missing descriptions fall back to stock codes.
 - Money is stored in integer £0.0001 units; rounding occurs at display time.
 - Orders count distinct invoices; average order value divides gross sales by orders.
-- Selectable months are January through November 2011. December 2010 supplies the first baseline; the incomplete December 2011 is excluded. Month lengths differ, and no seasonal adjustment is applied.
+- Supported months are January through November 2011. December 2010 supplies the first baseline; the incomplete December 2011 is excluded. Month lengths differ, and no seasonal adjustment is applied.
 - The product table includes the union of stock codes across both periods, sorted by ascending sales change, limited to ten. It does not reconcile the entire sales difference.
 
 ## Architecture and files
 
 ```text
-Agent Interface composer + history + filters -> /api/chat -> OpenUI Cloud Gateway
-Cloud Responses SSE -> openAIResponsesAdapter -> Agent Interface messages
-Renderer Query -> /api/analytics -> validated, parameterized SQL -> local SQLite
-Select changes -> reactive Query arguments -> refreshed values (no model call)
+Agent Interface -> /api/chat -> OpenUI Cloud Gateway
+Cloud function_call -> sales_dashboard -> validated read-only SQLite query
+function_call_output -> Cloud continuation -> streamed OpenUI Lang
+Responses SSE -> openAIResponsesAdapter -> tool timeline + progressive dashboard
+Follow-up question -> new tool call and answer
 ```
 
-| File                                   | Purpose                                                             |
-| -------------------------------------- | ------------------------------------------------------------------- |
-| `scripts/prepare_data.py`              | Download, checksum, filter, and import the original workbook        |
-| `src/lib/analytics.ts`                 | Read-only database, aggregates, comparisons, and display strings    |
-| `src/app/api/analytics/route.ts`       | Validated data boundary exposed to the browser                      |
-| `src/library.ts`                       | Shared subset of the built-in OpenUI library                        |
-| `src/lib/example-program.ts`           | Credential-free layout and model prompt example                     |
-| `src/lib/prompt.ts`                    | Generate model instructions from the actual component specification |
-| `src/app/api/chat/route.ts`            | OpenUI Cloud Responses request and cancellation                     |
-| `src/lib/cloud-stream.ts`              | Forward SSE and report failed or incomplete responses               |
-| `src/lib/chat-request.ts`              | Validate message history and current filters                        |
-| `src/lib/chat-session.ts`              | Agent Interface transport, session storage, and per-message filters |
-| `src/components/retail-chat.tsx`       | Agent Interface shell, composer, starters, and reference navigation |
-| `src/components/dashboard-message.tsx` | Assistant message renderer, query provider, filters, and recovery   |
+| File                                   | Purpose                                                                  |
+| -------------------------------------- | ------------------------------------------------------------------------ |
+| `scripts/prepare_data.py`              | Download, checksum, filter, and import the original workbook             |
+| `src/lib/analytics.ts`                 | Read-only SQL, aggregates, comparisons, and display strings              |
+| `src/lib/query-args.ts`                | Supported months and validated country/month arguments                   |
+| `src/lib/sales-tool.ts`                | Responses function schema and database executor                          |
+| `src/lib/tool-loop.ts`                 | First-party Cloud tool loop, stored continuations, and completion checks |
+| `src/library.ts`                       | Shared subset of built-in components, without filter controls            |
+| `src/lib/example-program.ts`           | Illustrative syntax example for prompting and parser tests               |
+| `src/lib/prompt.ts`                    | Cloud instructions using the generated component specification           |
+| `src/app/api/chat/route.ts`            | OpenUI Cloud request and SSE response                                    |
+| `src/lib/cloud-stream.ts`              | Forward tool and text events; propagate cancellation                     |
+| `src/lib/chat-request.ts`              | Validate one bounded user question                                       |
+| `src/lib/chat-client.ts`               | Latest-message transport with the published Responses adapter            |
+| `src/lib/cloud-session.ts`             | Local demo identity, token minting, and scoped conversation membership   |
+| `src/app/api/frontend-token/route.ts`  | Short-lived Cloud storage tokens                                         |
+| `src/components/retail-chat.tsx`       | Agent Interface shell, composer, and starters                            |
+| `src/components/dashboard-message.tsx` | Progressive renderer and source inspection                               |
+| `src/lib/openui-content.ts`            | Incrementally remove Cloud envelopes and code fences                     |
 
-`npm run generate` creates the ignored component spec before dev/build/verify. The server passes it to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, which produces Cloud's managed configuration with the same schema used by the renderer. Cloud accepts `additionalRules` and `examples` for the query contract and reference layout. Local-only prompt flags such as `toolCalls` and `toolExamples` are not Cloud wire options.
+`npm run generate` creates the ignored component spec before dev/build/verify. The server passes it to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, which produces Cloud's managed configuration with the same schema used by the renderer. Cloud accepts `additionalRules` and `examples` for the tool contract and illustrative layout. Local-only prompt flags such as `toolCalls` and `toolExamples` are not Cloud wire options.
 
-The `openai` dependency is the compatible SDK transport. Its base URL is explicitly `https://api.thesys.dev/v1/embed` and it authenticates with `THESYS_API_KEY`. The example uses Cloud generation with `store: false`; follow-ups include the latest dashboard filters and up to 12 non-empty user and assistant messages. Agent Interface uses `fetchLLM` with `openAIResponsesAdapter` to read the Responses SSE stream. Conversations and filter state are stored in memory for the mounted app: switching threads preserves them, and reloading clears them. There is no Cloud conversation or frontend-token route.
+The `openai` dependency is the compatible SDK transport. Its base URL is explicitly `https://api.thesys.dev/v1/embed` and it authenticates with `THESYS_API_KEY`. Cloud generation uses `conversation: threadId` and `store: true`. The tool loop submits only new function outputs to that conversation; Cloud already has the preceding input and response items. Only the declared app tool runs, and calls already settled by Cloud are skipped.
 
-`sales_dashboard` is a renderer-side `Query` handled by the browser's `toolProvider`, not a model-side Responses function tool. Cloud generates its expression; the app executes the database query. Filter changes stay local to the app and do not call Cloud. See the [Gateway quickstart](https://www.openui.com/docs/gateway/generate-openui-lang) and [Responses API](https://www.openui.com/docs/gateway/api/responses) for the supported Cloud contracts.
+Agent Interface uses `openAIResponsesAdapter` with `openAIConversationMessageFormat` for native tool activity and streamed messages. Each request sends only the latest user question. The server rejects browser-submitted history and tool outputs. `useOpenuiCloudStorage` from the pinned `@openuidev/react-ui` package reads and edits Cloud conversations with a short-lived frontend token. Threads, messages, and tool activity survive reloads and local server restarts.
 
-The example binds to loopback and is intended for local use. Deployment requires authentication and rate limits for the model route, dataset authorization for private data, and persistent SQLite storage or a hosted database. Raw invoice rows and customer IDs are not sent to the model; the prompt includes the user and assistant messages, filter context, country names, and component/tool instructions.
+The local identity defaults to `DEMO_USER_ID=local-demo` and `APP_ID=conversational-analytics-cookbook`. Both routes derive these values on the server. Keep them stable to retain access to the same history; use another `APP_ID` for an independent copy. Generation checks membership through the same scoped Cloud list API before accepting a conversation id.
+
+The message renderer removes the opening OpenUI code fence as soon as it arrives. Waiting for the closing fence would hide otherwise renderable content until generation finishes. The prompt emits `root`, then metric components, then charts and tables. Country and month changes require a follow-up question and a new database tool call.
+
+The example binds to loopback and is intended for single-user local development. Its chat and token routes reject production requests. Deployment requires replacing the local demo guard with authentication and rate limits on both routes, deriving user identity from the signed-in session, retaining conversation ownership checks, authorizing private datasets, and using persistent SQLite storage or a hosted database. Raw invoice rows and customer IDs are not sent to the model. Cloud receives conversation text, component/tool instructions, country names, and the aggregate tool result.
 
 ## Verify
 
@@ -88,18 +96,18 @@ python -m unittest discover -s scripts -p 'test_*.py'
 npm run verify:data
 ```
 
-`verify` is credential-free and needs no dataset: it checks SQL aggregation with in-memory fixtures, date and country validation, empty states, the published Responses adapter, stream failures and cancellation, conversation storage and filter context, OpenUI parsing against the published schema, and a production build. The Python checks require the environment above. `verify:data` needs the imported dataset.
+`verify` is credential-free and needs no dataset: it checks SQL aggregation with in-memory fixtures, date and country validation, empty states, the published Responses adapter, stream failures and cancellation, stored tool continuations, latest-message requests, and local access boundaries, OpenUI parsing against the published schema, and a production build. The Python checks require the environment above. `verify:data` needs the imported dataset.
 
 | February 2011 | Gross sales | Orders | Previous month's gross sales |
 | ------------- | ----------: | -----: | ---------------------------: |
 | All countries | £523,631.89 |  1,100 |                  £691,364.56 |
 | Germany       |   £9,581.05 |     19 |                   £16,910.84 |
 
-Browser checks: open **Example dashboard**; switch countries and confirm all outputs change; start a **New Chat** and reopen the reference conversation to check that filters are preserved; select Saudi Arabia in April 2011 for an empty result; submit without a key for setup guidance; with a configured key, run the questions above, stop generation, and recover with **Example dashboard**. Generated layouts may differ, but database totals must agree.
+Browser checks: ask the questions above; expand **Behind the scenes** to inspect the real tool call and output; confirm cards and a partially built table are visible while generation is running; use a follow-up for Germany and verify the totals; ask about Saudi Arabia in April 2011 for an empty result; stop generation and ask again; reload the page and restart the server, then reopen a sidebar conversation to check that messages, dashboards, and tool activity are retained.
 
 ## Extend
 
-Add net-sales accounting, daily-average comparisons, or a full product reconciliation in the server query first. Then update the result contract, prompt, and reference program together. Add components by extending `src/library.ts` and regenerating the spec. To use your own database, replace `queryDashboard` while retaining typed filters and parameter binding.
+Add net-sales accounting, daily-average comparisons, or a full product reconciliation in the server query first. Then update the result contract, prompt, and illustrative layout together. Add components by extending `src/library.ts` and regenerating the spec. To use your own database, replace `queryDashboard` while retaining validated arguments and parameter binding.
 
 ## Attribution
 

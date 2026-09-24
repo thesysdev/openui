@@ -14,7 +14,5 @@ export const library = createLibrary({
     "Series",
     "Table",
     "Col",
-    "Select",
-    "SelectItem",
   ].map((name) => openuiLibrary.components[name]),
 });
