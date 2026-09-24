@@ -42,7 +42,7 @@ This cookbook uses recorded lap times from the **2024 Miami Grand Prix**, provid
 </div>
 
 1. **Ask a question** in Agent Interface.
-2. **Get the data.** Gateway calls `query_race`, and your server queries SQLite and returns the results.
+2. **Get the data.** Gateway calls `query_lap_times`, and your server queries SQLite and returns the results.
 3. **See the answer.** Gateway streams text, charts, or tables into Agent Interface. Ask a follow-up to explore further.
 
 Try this conversation:
@@ -74,13 +74,13 @@ Open [localhost:3000](http://localhost:3000) and try a starter question. The def
 
 ## 1. Prepare the data
 
-`npm run prepare:data` downloads the race's drivers and lap times from OpenF1 and creates `data/race.sqlite`. It runs once; subsequent questions query the local database.
+`npm run prepare:data` downloads the race's drivers and lap times from OpenF1 and creates `data/f1.sqlite`. It runs once; subsequent questions query the local database.
 
 The example covers 20 drivers and 57 race laps. You can rank drivers by their fastest recorded lap or compare selected drivers over a lap range. See [prepare-data.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/scripts/prepare-data.ts) for the importer.
 
 ## 2. Expose an analytics tool
 
-Give Gateway a function tool named `query_race`. It accepts the question's scope as structured arguments:
+Give Gateway a function tool named `query_lap_times`. It accepts the question's scope as structured arguments:
 
 ```json
 {
@@ -94,14 +94,14 @@ Give Gateway a function tool named `query_race`. It accepts the question's scope
 
 These arguments compare Norris and Verstappen over the final ten laps. The other view, `fastest_laps`, ranks each driver's best time; `limit` controls the number of ranked drivers.
 
-The [tool definition](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/race-tool.ts) declares both views, the available driver numbers, and the allowed lap range in its JSON schema. Your server validates the arguments and executes a read-only query:
+The [tool definition](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/tools/lap-times.ts) declares both views, the available driver numbers, and the allowed lap range in its JSON schema. Your server validates the arguments and executes a read-only query:
 
-```ts title="src/lib/race-tool.ts"
-export async function executeRaceQuery(argsJson: string) {
-  const args = raceQuerySchema.parse(JSON.parse(argsJson));
+```ts title="src/lib/tools/lap-times.ts"
+export async function executeQueryLapTimes(argsJson: string) {
+  const args = argsSchema.parse(JSON.parse(argsJson));
   const db = openDatabase();
   try {
-    return JSON.stringify(queryRace(db, args));
+    return JSON.stringify(queryLapTimes(db, args));
   } finally {
     db.close();
   }
@@ -199,19 +199,20 @@ Keep `DEMO_USER_ID` and `APP_ID` stable to retain conversation history. Their de
 
 ## 5. Stream the tool call and visual answer
 
-The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/prompt.ts) combines the generated component specification with the available drivers and instructions to call `query_race` before answering. It asks Gateway to choose a presentation that fits the question and use the returned values.
+The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/prompt.ts) combines the generated component specification with the available drivers and instructions to call `query_lap_times` before answering. It asks Gateway to choose a presentation that fits the question and use the returned values.
 
 ```ts title="src/app/api/chat/route.ts"
 const gateway = new OpenAI({
   apiKey: process.env.THESYS_API_KEY,
   baseURL: "https://api.thesys.dev/v1/embed",
 });
+const lapTimesTool = queryLapTimesTool(drivers);
 const createParams = {
   model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
   instructions: analyticsPrompt(drivers),
   input: [...stopped, ...body.input],
   conversation: body.threadId,
-  tools: [raceQueryTool(drivers)],
+  tools: [lapTimesTool],
   store: true,
   max_output_tokens: 6000,
 };
@@ -224,7 +225,7 @@ await runFunctionToolLoop({
   client: gateway,
   createParams,
   firstStream,
-  tools: { query_race: executeRaceQuery },
+  tools: { [lapTimesTool.name]: executeQueryLapTimes },
   enqueue,
   signal: request.signal,
   maxRounds: 3,
@@ -235,7 +236,7 @@ The loop forwards tool activity and text deltas as Responses Server-Sent Events.
 
 The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) validates the request before calling Gateway and forwards Gateway's own errors to Agent Interface, which shows them in the chat.
 
-Stopping a response while `query_race` runs can leave a stored function call without its output, and Gateway rejects the conversation's next turn until the call is answered. Before each turn, the route lists the conversation's latest items and sends a "stopped" output for any unanswered call, which is the `stopped` array above.
+Stopping a response while `query_lap_times` runs can leave a stored function call without its output, and Gateway rejects the conversation's next turn until the call is answered. Before each turn, the route lists the conversation's latest items and sends a "stopped" output for any unanswered call, which is the `stopped` array above.
 
 Because `componentLibrary` is set, Agent Interface renders the streamed OpenUI Lang with the same library. The prompt emits `root` first, followed by its components in reading order, so resolved components appear while the rest of the response is still arriving.
 
@@ -245,7 +246,7 @@ A follow-up such as **“Focus on their final ten laps”** triggers a new tool 
 
 In the browser:
 
-1. Ask for the five fastest drivers. Expand **Behind the scenes** to inspect `query_race` and its result.
+1. Ask for the five fastest drivers. Expand **Behind the scenes** to inspect `query_lap_times` and its result.
 2. Ask for the Norris/Verstappen comparison. Confirm the answer starts appearing while generation is still active.
 3. Ask **“Focus on their final ten laps.”** Confirm the chart covers laps 48 through 57 and retains both drivers.
 4. Stop a generation and ask another question to check recovery.
@@ -255,7 +256,7 @@ Generated layouts can vary. Check values against the tool result. Missing data a
 
 ## Connect your own data
 
-Replace `queryRace` with a query to your database or API. Update the tool's arguments and description, then add any components your answers need to `src/library.ts` and regenerate the specification.
+Replace `queryLapTimes` with a query to your database or API. Update the tool's arguments and description, then add any components your answers need to `src/library.ts` and regenerate the specification.
 
 This example runs locally with a single demo identity. Before deploying it, replace the local guard with authentication and rate limits, derive user identity from the signed-in session, and retain conversation ownership checks. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/conversational-analytics) for the implementation notes.
 

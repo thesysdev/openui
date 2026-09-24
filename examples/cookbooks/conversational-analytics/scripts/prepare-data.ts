@@ -1,7 +1,7 @@
 import { mkdir, rename, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { importRaceData, race } from "../src/lib/race-data";
+import { importRaceData, race } from "../src/lib/f1-data";
 
 const raw: Record<string, unknown> = {};
 for (const endpoint of ["sessions", "drivers", "laps"]) {
@@ -16,7 +16,7 @@ for (const endpoint of ["sessions", "drivers", "laps"]) {
 
 // Build a fresh file, then swap it in so a failed import never leaves a partial database.
 await mkdir("data", { recursive: true });
-const temporary = resolve("data", `race-${process.pid}.sqlite`);
+const temporary = resolve("data", `f1-${process.pid}.sqlite`);
 const db = new DatabaseSync(temporary);
 let closed = false;
 try {
@@ -26,7 +26,7 @@ try {
     .get() as { total: number };
   db.close();
   closed = true;
-  await rename(temporary, resolve("data", "race.sqlite"));
+  await rename(temporary, resolve("data", "f1.sqlite"));
   console.log(`Prepared ${race.name}: ${total} recorded lap times.`);
 } catch (error) {
   if (!closed) db.close();

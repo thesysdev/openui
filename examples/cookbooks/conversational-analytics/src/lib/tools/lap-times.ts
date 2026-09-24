@@ -1,14 +1,14 @@
 import type { DatabaseSync } from "node:sqlite";
 import { z } from "zod/v4";
-import { listDrivers, openDatabase, race, type Driver } from "./race-data";
+import { listDrivers, openDatabase, race, type Driver } from "../f1-data";
 
-// The query_race function tool: its JSON schema for Gateway, argument validation,
+// The query_lap_times function tool: its JSON schema for Gateway, argument validation,
 // the read-only query, and the executor the tool loop calls.
 
-export function raceQueryTool(drivers: Driver[]) {
+export function queryLapTimesTool(drivers: Driver[]) {
   return {
     type: "function" as const,
-    name: "query_race",
+    name: "query_lap_times",
     description: `Query recorded lap times from the ${race.name}. Rank each driver's fastest lap or compare up to four drivers lap by lap. Times are seconds; lower is faster. Read-only server-owned SQL.`,
     parameters: {
       type: "object",
@@ -48,7 +48,7 @@ export function raceQueryTool(drivers: Driver[]) {
 }
 
 // Validate arguments again on the server; the model's output is untrusted input.
-const raceQuerySchema = z
+const argsSchema = z
   .object({
     view: z.enum(["fastest_laps", "lap_times"]),
     driver_numbers: z.array(z.number().int().positive()).max(4),
@@ -69,15 +69,15 @@ const raceQuerySchema = z
       });
   });
 
-export async function executeRaceQuery(
+export async function executeQueryLapTimes(
   argsJson: string,
   { signal }: { signal?: AbortSignal } = {},
 ) {
   signal?.throwIfAborted();
-  const args = raceQuerySchema.parse(JSON.parse(argsJson));
+  const args = argsSchema.parse(JSON.parse(argsJson));
   const db = openDatabase();
   try {
-    return JSON.stringify(queryRace(db, args));
+    return JSON.stringify(queryLapTimes(db, args));
   } finally {
     db.close();
   }
@@ -89,7 +89,7 @@ function formatLapTime(ms: number) {
   return `${Math.floor(ms / 60000)}:${((ms % 60000) / 1000).toFixed(3).padStart(6, "0")}`;
 }
 
-function queryRace(db: DatabaseSync, args: z.infer<typeof raceQuerySchema>) {
+function queryLapTimes(db: DatabaseSync, args: z.infer<typeof argsSchema>) {
   const drivers = listDrivers(db);
   if (args.driver_numbers.some((number) => !drivers.some((driver) => driver.number === number)))
     throw new RangeError("Choose a driver in the 2024 Miami Grand Prix.");

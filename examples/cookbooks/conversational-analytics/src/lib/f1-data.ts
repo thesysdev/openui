@@ -75,7 +75,7 @@ export function importRaceData(db: DatabaseSync, input: unknown) {
 }
 
 export function openDatabase() {
-  const path = resolve(process.cwd(), "data/race.sqlite");
+  const path = resolve(process.cwd(), "data/f1.sqlite");
   if (!existsSync(path))
     throw new Error("Dataset not prepared. Run npm run prepare:data, then retry.");
   return new DatabaseSync(path, { readOnly: true });

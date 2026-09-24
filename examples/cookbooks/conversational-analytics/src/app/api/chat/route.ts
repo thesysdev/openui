@@ -1,15 +1,15 @@
 import OpenAI from "openai";
 import type { ResponseCreateParamsNonStreaming } from "openai/resources/responses/responses";
 import { z } from "zod/v4";
+import { listDrivers, openDatabase, type Driver } from "../../../lib/f1-data";
 import {
   localDemoAccess,
   ownsConversation,
   stoppedToolOutputs,
 } from "../../../lib/gateway-session";
 import { analyticsPrompt } from "../../../lib/prompt";
-import { listDrivers, openDatabase, type Driver } from "../../../lib/race-data";
-import { executeRaceQuery, raceQueryTool } from "../../../lib/race-tool";
 import { runFunctionToolLoop } from "../../../lib/tool-loop";
+import { executeQueryLapTimes, queryLapTimesTool } from "../../../lib/tools/lap-times";
 
 export const runtime = "nodejs";
 
@@ -102,13 +102,16 @@ export async function POST(request: Request) {
   }
 
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
+  // App-owned function tools. The loop runs only the names registered here.
+  const lapTimesTool = queryLapTimesTool(drivers);
+  const functionTools = { [lapTimesTool.name]: executeQueryLapTimes };
   const createParams: ResponseCreateParamsNonStreaming = {
     model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
     instructions: analyticsPrompt(drivers),
     input: [...stopped, ...body.input],
     conversation: body.threadId,
     store: true,
-    tools: [raceQueryTool(drivers)],
+    tools: [lapTimesTool],
     max_output_tokens: 6000,
   };
 
@@ -126,7 +129,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // Forward Gateway's Responses events as SSE, running query_race between model turns.
+  // Forward Gateway's Responses events as SSE, running app-owned tools between model turns.
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -137,7 +140,7 @@ export async function POST(request: Request) {
           client: gateway,
           createParams,
           firstStream,
-          tools: { query_race: executeRaceQuery },
+          tools: functionTools,
           enqueue,
           signal: request.signal,
           maxRounds: 3,
