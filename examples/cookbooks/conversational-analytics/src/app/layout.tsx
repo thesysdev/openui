@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "Retail notebook | OpenUI cookbook",
+  title: "Retail analyst | OpenUI cookbook",
   description: "Explore the UCI Online Retail dataset with reactive OpenUI dashboards.",
 };
 
