@@ -1,15 +1,22 @@
 "use client";
 
+import { API_REFERENCE_URL, isPathWithin } from "@/lib/docs-navigation";
 import { siteConfig } from "@/lib/layout.shared";
 import { SidebarTrigger } from "fumadocs-ui/components/sidebar/base";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { GitHubStarButton } from "./brand-logo";
 import styles from "./docs-navbar.module.css";
 import { SiteHeaderFrame } from "./site-header";
 import { ThemeToggle } from "./theme-toggle";
+
+const tabs = [
+  { title: "Docs", url: "/docs" },
+  { title: "API Reference", url: API_REFERENCE_URL },
+];
 
 function SearchBar() {
   const { setOpenSearch } = useSearchContext();
@@ -65,6 +72,8 @@ function SearchBar() {
 }
 
 export function DocsNavbar() {
+  const pathname = usePathname();
+  const activeTabUrl = isPathWithin(pathname, API_REFERENCE_URL) ? API_REFERENCE_URL : "/docs";
   const { resolvedTheme } = useTheme();
   // resolvedTheme is undefined during SSR and the first client render, so gate the
   // theme-derived variant behind a mount flag (matching SiteMarketingHeader) to
@@ -132,6 +141,26 @@ export function DocsNavbar() {
             </div>
           }
         />
+      </div>
+      <div className={styles.tabsBar}>
+        <div className={styles.tabsInner}>
+          <nav className={styles.tabsNav} aria-label="Documentation sections">
+            {tabs.map((tab) => {
+              const isActive = tab.url === activeTabUrl;
+
+              return (
+                <Link
+                  key={tab.url}
+                  href={tab.url}
+                  className={`${styles.tabLink} ${isActive ? styles.tabLinkActive : ""}`.trim()}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  {tab.title}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
       </div>
     </header>
   );

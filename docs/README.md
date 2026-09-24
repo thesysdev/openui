@@ -157,15 +157,17 @@ Active component-preview specific modules are located under `app/components/` an
 
 ### Navigation
 
-The docs use two sidebar modes. The global sidebar introduces the documentation through Overview,
-Build, Production, and Reference groups. Links with chevrons enter a nested section sidebar for
-OpenUI Lang, Build Agents (including Agent Interface), Reliability Monitoring, Gateway, or API Reference.
-Production overview and Autofix are direct pages in the global sidebar. Nested page lists continue to come from
-each section's `meta.json`; “All docs” restores the global sidebar without changing the current
-page. Direct links into a section start in nested mode.
+`components/docs-navbar.tsx` provides the shared docs header, search, theme control, mobile
+sidebar trigger, and two top-level tabs: **Docs** (`/docs`) and **API Reference**
+(`/docs/api-reference`). The API Reference tab is active for any page under
+`/docs/api-reference` and its sidebar lists that folder's pages directly.
 
-`components/docs-navbar.tsx` provides the shared docs header, search, theme control, and mobile
-sidebar trigger.
+Within the Docs tab there are two sidebar modes. The global sidebar introduces the documentation
+through Overview, Build, and Production groups. Links with chevrons enter a nested section sidebar
+for OpenUI Lang, Build Agents (including Agent Interface), Reliability Monitoring, or Gateway.
+Production overview and Autofix are direct pages in the global sidebar. Nested page lists continue
+to come from each section's `meta.json`; “All docs” restores the global sidebar without changing
+the current page. Direct links into a section start in nested mode.
 
 ## Path aliases
 
