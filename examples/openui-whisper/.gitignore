@@ -1,0 +1,8 @@
+
+# local env
+.env
+graphify-out
+node_modules/
+.next/
+next-env.d.ts
+.claude/

@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@keyframes orb-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes orb-halo {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes orb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
