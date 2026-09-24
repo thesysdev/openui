@@ -1,4 +1,4 @@
-import { localDemoAccess, mintFrontendToken } from "../../../lib/cloud-session";
+import { localDemoAccess, mintFrontendToken } from "../../../lib/gateway-session";
 
 export const runtime = "nodejs";
 
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return Response.json(
-      { error: error instanceof Error ? error.message : "Unable to connect to Cloud storage." },
+      { error: error instanceof Error ? error.message : "Unable to connect to Gateway storage." },
       { status: 503 },
     );
   }

@@ -1,7 +1,12 @@
 import { generateSystemPrompt } from "@openuidev/lang-core";
 import spec from "../generated/spec.json";
-import { exampleProgram } from "./example-program";
 import { race, type Driver } from "./race-data";
+
+// Syntax guidance only. Real answers use values returned by query_race.
+export const exampleProgram = `root = Stack([heading, comparison], "column", "l")
+heading = TextContent("Example lap-time comparison", "large-heavy")
+comparison = Card([CardHeader("Driver comparison", "Positive: Driver A faster; negative: Driver B faster. Illustrative values."), LineChart(["1", "2", "3"], [Series("Driver B minus Driver A", [0.9, 0.2, -0.2])], "linear", "Lap", "Lap time difference (seconds)")])
+`;
 
 export function analyticsPrompt(drivers: Driver[]) {
   return generateSystemPrompt({
@@ -9,15 +14,12 @@ export function analyticsPrompt(drivers: Driver[]) {
     library: spec,
     promptOptions: {
       additionalRules: [
-        `You answer questions about recorded lap times in the ${race.name}, on ${race.date}, a ${race.laps}-lap race. Before answering a supported data question, call query_race. This is a Responses function tool executed by the application server, not an OpenUI Query expression.`,
+        `You answer questions about recorded lap times in the ${race.name} (${race.date}, ${race.laps} laps). Call query_race before answering any data question. It is a Responses function tool executed by the application server, not an OpenUI Query expression.`,
         `Available drivers: ${JSON.stringify(drivers)}. Resolve names to driver numbers using this list.`,
-        "Use fastest_laps to rank each driver's best recorded lap. Empty driver_numbers selects all drivers. Use limit=5 unless requested otherwise. Use lap_times to compare one to four selected drivers. Use laps 1 through 57 for the whole race; the final ten laps are 48 through 57.",
-        "On follow-ups, retain the previous driver selection and lap range unless the user changes them. Query again for every data question. Never silently replace an unsupported driver, race, date, or lap range.",
-        "After the tool returns, generate a complete OpenUI Lang program. Emit root first, then define the requested components in reading order for progressive rendering. Choose a table or bar chart for rankings, a line chart for lap-by-lap comparisons, and text or metric cards for a short answer. Include only what answers the question. Do not wrap the program in markdown fences.",
-        "Use only the tool's actual fastestLaps and comparison data. Rankings represent one best recorded lap per driver, not finishing positions or official lap-validity adjudication. For comparisons between drivers, prefer comparison.gaps.series so small differences are visible. Use comparison.labels unchanged, label the axes Lap and Lap time difference (seconds), name the reference driver, and explain the sign using comparison.gaps.meaning. Do not call this the race gap or time behind on track. If the user explicitly requests absolute lap times, or selects a single driver, use comparison.series and label seconds. Lower absolute times are faster. Never fill missing values with zero, smooth data, or substitute the illustrative example's numbers.",
-        "Include the race and lap range in the answer. If comparison.omittedLaps is nonempty, briefly mention which laps have no shared recorded time. Slow laps remain in the data. Lap times alone do not establish why a driver slowed; do not invent explanations about tyres, pit stops, weather, or incidents.",
-        "If empty is true or a tool returns an error, explain it without inventing values. This snapshot supports lap times and fastest-lap rankings only. For unsupported requests, explain the available scope with TextContent.",
-        "Do not generate Query, Mutation, reactive variables, Select, or filter controls. Changes to drivers, lap range, or presentation happen through follow-up questions. Do not use em dashes.",
+        "Use fastest_laps to rank drivers and lap_times to compare one to four drivers. The final ten laps are 48 through 57. On follow-ups, keep the previous drivers and lap range unless the user changes them, and query again.",
+        "After the tool returns, emit root first, then the components in reading order. Use a table or bar chart for rankings and a line chart for lap-by-lap comparisons.",
+        "Use only values from the tool result and never fill missing laps with zero. To compare drivers, chart comparison.gaps.series with the axes Lap and Lap time difference (seconds), and explain the sign using comparison.gaps.meaning. For one driver, or when asked for absolute times, chart comparison.series in seconds. Mention any comparison.omittedLaps. Do not speculate about why a lap was slow.",
+        "If the result is empty, the tool returns an error, or the request is outside this data, say so with TextContent. Do not generate Query, Mutation, reactive variables, or Select controls; users change the view with follow-up questions.",
       ],
       examples: [exampleProgram],
     },

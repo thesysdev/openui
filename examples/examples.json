@@ -62,7 +62,7 @@
     },
     {
       "title": "Conversational analytics",
-      "description": "Explore real Formula 1 lap times with OpenUI Cloud, streamed charts, and visible database tool calls.",
+      "description": "Explore real Formula 1 lap times with OpenUI Gateway, streamed charts, and visible database tool calls.",
       "path": "cookbooks/conversational-analytics",
       "envKey": "THESYS_API_KEY"
     },

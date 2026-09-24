@@ -1,4 +1,4 @@
-// Adapted from packages/openui-cli/src/templates/openui-cloud/src/lib/tool-loop.ts.
+// Adapted from templates/openui-cloud/src/lib/tool-loop.ts.
 // Stored conversations receive only new outputs; stateless requests replay completed items.
 import type OpenAI from "openai";
 import type {
@@ -7,19 +7,19 @@ import type {
 } from "openai/resources/responses/responses";
 
 /**
- * Function-tool execution loop for the OpenUI Cloud Responses API.
+ * Function-tool execution loop for the OpenUI Gateway Responses API.
  *
- * OpenUI Cloud executes its own tools (artifacts, web_search, image_search,
+ * OpenUI Gateway executes its own tools (artifacts, web_search, image_search,
  * MCP) server-side, but `type: "function"` tools you declare are executed by
  * YOUR server: the model emits a `function_call`, you run it, post the
  * `function_call_output` back, and the model continues, possibly calling more
  * tools, until it produces the final answer.
  *
- * Two rules make this safe alongside Cloud's server-side tools, and both are
+ * Two rules make this safe alongside Gateway's server-side tools, and both are
  * enforced here rather than left to the caller:
  *
  * 1. Execute ONLY calls whose `name` you declared (the keys of `tools`).
- *    Cloud streams some of its own tools as real-named `function_call` items
+ *    Gateway streams some of its own tools as real-named `function_call` items
  *    (e.g. `thesys_generate_report` carrying the artifact program), those are
  *    already executed server-side and must never be run or answered again.
  * 2. Skip any call whose `call_id` already received a `function_call_output`
@@ -163,7 +163,7 @@ async function consumeStream(
         String(event.type),
       )
     ) {
-      throw new Error("OpenUI Cloud did not complete this response. Please try again.");
+      throw new Error("OpenUI Gateway did not complete this response. Please try again.");
     }
     if (event.type === "response.completed") complete = true;
     enqueue(event);
@@ -182,7 +182,7 @@ async function consumeStream(
           if (item.arguments != null) known.argsJson = item.arguments;
         } else if (Object.hasOwn(tools, item.name)) {
           // Rule 1: track only declared tools, everything else (including
-          // Cloud-internal thesys_* calls) is passed through untouched.
+          // Gateway-internal thesys_* calls) is passed through untouched.
           const call: PendingCall = {
             callId: item.call_id,
             name: item.name,
@@ -202,7 +202,7 @@ async function consumeStream(
     }
   }
 
-  if (!complete) throw new Error("The Cloud response ended early. Please try again.");
+  if (!complete) throw new Error("The Gateway response ended early. Please try again.");
 
   // Rule 2: a call that already has an output on this stream is settled.
   return calls.filter((call) => !answeredCallIds.has(call.callId));

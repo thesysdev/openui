@@ -50,19 +50,9 @@ export async function executeRaceQuery(
 ) {
   signal?.throwIfAborted();
   const args = raceQuerySchema.parse(JSON.parse(argsJson));
-  const started = performance.now();
   const db = openDatabase();
   try {
-    return JSON.stringify({
-      ...queryRace(db, args),
-      execution: {
-        database: "SQLite",
-        source: "OpenF1",
-        sessionKey: race.sessionKey,
-        arguments: args,
-        elapsedMs: Math.round(performance.now() - started),
-      },
-    });
+    return JSON.stringify(queryRace(db, args));
   } finally {
     db.close();
   }

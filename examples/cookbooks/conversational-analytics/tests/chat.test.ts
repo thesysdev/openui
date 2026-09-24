@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { chatLLM } from "../src/lib/chat-client";
 import { chatRequestSchema, parseChatRequest } from "../src/lib/chat-request";
-import { localDemoAccess } from "../src/lib/cloud-session";
+import { localDemoAccess } from "../src/lib/gateway-session";
 
 const input = { type: "message", role: "user", content: "Compare Norris and Verstappen" };
 const valid = { threadId: "conversation-one", input: [input] };
 
-test("Cloud requests accept one user question and reject history or provider-item injection", () => {
+test("Gateway requests accept one user question and reject history or provider-item injection", () => {
   assert.deepEqual(chatRequestSchema.parse(valid), valid);
   for (const item of [
     { ...input, content: "x".repeat(601) },
@@ -22,7 +22,7 @@ test("Cloud requests accept one user question and reject history or provider-ite
   assert.equal(chatRequestSchema.safeParse({ ...valid, model: "browser-selected" }).success, false);
 });
 
-test("only the latest question is sent after a stopped response, with Cloud replaying history", async (t) => {
+test("only the latest question is sent after a stopped response, with Gateway replaying history", async (t) => {
   let requestBody: unknown;
   t.mock.method(globalThis, "fetch", async (_url: unknown, init: RequestInit) => {
     requestBody = JSON.parse(init.body as string);

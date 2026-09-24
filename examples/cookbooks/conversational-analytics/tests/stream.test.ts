@@ -2,8 +2,7 @@ import { openAIResponsesAdapter } from "@openuidev/react-headless";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type OpenAI from "openai";
-import { streamCloudTurn } from "../src/lib/cloud-stream";
-import { extractProgram } from "../src/lib/openui-content";
+import { streamGatewayTurn } from "../src/lib/gateway-stream";
 import { runFunctionToolLoop } from "../src/lib/tool-loop";
 
 type Event = Record<string, unknown>;
@@ -24,7 +23,7 @@ const noContinuation = {
 } as unknown as OpenAI;
 async function read(items: Event[]) {
   const response = new Response(
-    streamCloudTurn(
+    streamGatewayTurn(
       { client: noContinuation, createParams: params, firstStream: events(items), tools: {} },
       new AbortController(),
     ),
@@ -67,7 +66,7 @@ test("real tool calls and outputs reach the native adapter before streamed answe
     },
   } as unknown as OpenAI;
   const response = new Response(
-    streamCloudTurn(
+    streamGatewayTurn(
       {
         client,
         createParams: params,
@@ -109,7 +108,7 @@ test("streamed program is available before the response closes", async () => {
     yield { type: "response.completed" };
   }
   const response = new Response(
-    streamCloudTurn(
+    streamGatewayTurn(
       { client: noContinuation, createParams: params, firstStream: delayed(), tools: {} },
       new AbortController(),
     ),
@@ -119,12 +118,12 @@ test("streamed program is available before the response closes", async () => {
   const token = (await iterator.next()).value;
   assert.equal(token?.type, "TEXT_MESSAGE_CONTENT");
   if (token?.type === "TEXT_MESSAGE_CONTENT")
-    assert.equal(extractProgram(token.delta), 'root = TextContent("Lap times")');
+    assert.match(token.delta, /root = TextContent\("Lap times"\)/);
   finish();
   await iterator.next();
 });
 
-test("Cloud-owned and already-settled calls are never executed again", async () => {
+test("Gateway-owned and already-settled calls are never executed again", async () => {
   let executed = 0;
   await runFunctionToolLoop({
     client: noContinuation,
@@ -149,7 +148,7 @@ test("Cloud-owned and already-settled calls are never executed again", async () 
   assert.equal(executed, 0);
 });
 
-test("truncated, refused, and failed Cloud streams surface as chat errors", async () => {
+test("truncated, refused, and failed Gateway streams surface as chat errors", async () => {
   for (const terminal of [
     undefined,
     "response.incomplete",
@@ -167,7 +166,7 @@ test("truncated, refused, and failed Cloud streams surface as chat errors", asyn
   }
 });
 
-test("cancelling the response aborts Cloud and prevents a pending tool from executing", async () => {
+test("cancelling the response aborts Gateway and prevents a pending tool from executing", async () => {
   const abort = new AbortController();
   let resume!: () => void;
   let executed = 0;
@@ -179,7 +178,7 @@ test("cancelling the response aborts Cloud and prevents a pending tool from exec
     yield* call();
     yield { type: "response.completed" };
   }
-  const body = streamCloudTurn(
+  const body = streamGatewayTurn(
     {
       client: noContinuation,
       createParams: params,
@@ -200,19 +199,7 @@ test("cancelling the response aborts Cloud and prevents a pending tool from exec
   assert.equal(executed, 0);
 });
 
-test("Cloud envelopes and incomplete code fences do not block rendering", () => {
-  const program = 'root = TextContent("Lap times")';
-  for (const suffix of ["", "\n`", "\n``", "\n```", "\n```\n]]>openui:end"]) {
-    assert.equal(
-      extractProgram(`]]>openui:content?thesys=true\n\`\`\`openui-lang\n${program}${suffix}`),
-      program,
-    );
-  }
-  assert.equal(extractProgram("]]>openui:cont"), "");
-  assert.equal(extractProgram("]]>openui:content\n```openui-"), "");
-});
-
-test("executor errors are sent back to Cloud and the final allowed round disables more calls", async () => {
+test("executor errors are sent back to Gateway and the final allowed round disables more calls", async () => {
   let continuation: Record<string, unknown> | undefined;
   const client = {
     responses: {
@@ -243,7 +230,7 @@ test("executor errors are sent back to Cloud and the final allowed round disable
   );
 });
 
-test("persisted Cloud continuations send only new tool outputs to the same conversation", async () => {
+test("persisted Gateway continuations send only new tool outputs to the same conversation", async () => {
   let continuation: Record<string, unknown> | undefined;
   const client = {
     responses: {

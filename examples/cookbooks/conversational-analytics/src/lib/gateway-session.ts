@@ -43,11 +43,11 @@ export async function mintFrontendToken(signal?: AbortSignal) {
     cache: "no-store",
     signal,
   });
-  if (!response.ok) throw new Error("Unable to connect to Cloud conversation storage.");
+  if (!response.ok) throw new Error("Unable to connect to Gateway conversation storage.");
   return tokenSchema.parse(await response.json());
 }
 
-// Use the same token-scoped list API and cursor contract as Cloud storage.
+// Use the same token-scoped list API and cursor contract as Gateway storage.
 // Never authorize a browser-supplied conversation id with the master key alone.
 export async function ownsConversation(threadId: string, signal?: AbortSignal) {
   const { token } = await mintFrontendToken(signal);
@@ -60,12 +60,12 @@ export async function ownsConversation(threadId: string, signal?: AbortSignal) {
       cache: "no-store",
       signal,
     });
-    if (!response.ok) throw new Error("Unable to verify Cloud conversation access.");
+    if (!response.ok) throw new Error("Unable to verify Gateway conversation access.");
     const result = pageSchema.parse(await response.json());
     if (result.data.some((conversation) => conversation.id === threadId)) return true;
     if (!result.has_more) return false;
     if (!result.last_id || result.last_id === after)
-      throw new Error("Cloud returned an invalid conversation cursor.");
+      throw new Error("Gateway returned an invalid conversation cursor.");
     after = result.last_id;
   }
   throw new Error("Conversation lookup exceeded the demo's page limit.");

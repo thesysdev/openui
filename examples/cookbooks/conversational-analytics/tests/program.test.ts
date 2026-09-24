@@ -2,8 +2,7 @@ import { createParser } from "@openuidev/lang-core";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import spec from "../src/generated/spec.json";
-import { exampleProgram } from "../src/lib/example-program";
-import { analyticsPrompt } from "../src/lib/prompt";
+import { analyticsPrompt, exampleProgram } from "../src/lib/prompt";
 
 test("example parses against the published component schema", () => {
   const parsed = createParser(spec.schema).parse(exampleProgram);
@@ -11,7 +10,7 @@ test("example parses against the published component schema", () => {
   assert.deepEqual(parsed.meta.unresolved, []);
   assert.equal(parsed.root?.typeName, "Stack");
 });
-test("Cloud receives the matching library schema and static layout examples in supported options", () => {
+test("Gateway receives the matching library schema and static layout examples in supported options", () => {
   const prompt = analyticsPrompt([
     { number: 4, name: "Lando Norris", acronym: "NOR", team: "McLaren" },
   ]);

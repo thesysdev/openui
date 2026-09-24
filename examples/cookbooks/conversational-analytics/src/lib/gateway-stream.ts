@@ -1,7 +1,7 @@
 import { runFunctionToolLoop, type RunFunctionToolLoopOptions } from "./tool-loop";
 
 // Preserve the Responses SSE protocol, including real tool calls and outputs.
-export function streamCloudTurn(
+export function streamGatewayTurn(
   options: Omit<RunFunctionToolLoopOptions, "enqueue" | "signal">,
   abort: AbortController,
   cleanup: () => void = () => {},
@@ -14,7 +14,7 @@ export function streamCloudTurn(
         if (!cancelled && !abort.signal.aborted)
           controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
       };
-      // Flush headers immediately, including while Cloud opens its first response.
+      // Flush headers immediately, including while Gateway opens its first response.
       controller.enqueue(encoder.encode(": connected\n\n"));
       try {
         await runFunctionToolLoop({ ...options, enqueue, signal: abort.signal });

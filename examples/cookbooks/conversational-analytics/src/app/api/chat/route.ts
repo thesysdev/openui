@@ -2,12 +2,11 @@ import OpenAI from "openai";
 import type { ResponseCreateParamsNonStreaming } from "openai/resources/responses/responses";
 import { openDatabase } from "../../../lib/analytics";
 import { parseChatRequest } from "../../../lib/chat-request";
-import { localDemoAccess, ownsConversation } from "../../../lib/cloud-session";
-import { streamCloudTurn } from "../../../lib/cloud-stream";
+import { localDemoAccess, ownsConversation } from "../../../lib/gateway-session";
+import { streamGatewayTurn } from "../../../lib/gateway-stream";
 import { analyticsPrompt } from "../../../lib/prompt";
-import { executeRaceQuery, raceQueryTool } from "../../../lib/race-tool";
-
 import { listDrivers, type Driver } from "../../../lib/race-data";
+import { executeRaceQuery, raceQueryTool } from "../../../lib/race-tool";
 
 export const runtime = "nodejs";
 
@@ -27,7 +26,8 @@ export async function POST(request: Request) {
   if (!apiKey)
     return Response.json(
       {
-        error: "Configure THESYS_API_KEY privately in .env.local and restart to use OpenUI Cloud.",
+        error:
+          "Configure THESYS_API_KEY privately in .env.local and restart to use OpenUI Gateway.",
       },
       { status: 503 },
     );
@@ -39,7 +39,10 @@ export async function POST(request: Request) {
         { status: 403 },
       );
   } catch {
-    return Response.json({ error: "Unable to verify Cloud conversation access." }, { status: 503 });
+    return Response.json(
+      { error: "Unable to verify Gateway conversation access." },
+      { status: 503 },
+    );
   }
 
   let drivers: Driver[];
@@ -62,7 +65,7 @@ export async function POST(request: Request) {
   request.signal.addEventListener("abort", cancel, { once: true });
   if (request.signal.aborted) abort.abort();
 
-  const cloud = new OpenAI({
+  const gateway = new OpenAI({
     apiKey,
     baseURL: "https://api.thesys.dev/v1/embed",
     timeout: 60000,
@@ -77,18 +80,18 @@ export async function POST(request: Request) {
     tools: [raceQueryTool(drivers)],
     max_output_tokens: 6000,
   };
-  // Open Cloud inside the stream so local headers flush immediately.
+  // Open Gateway inside the stream so local headers flush immediately.
   async function* firstStream() {
-    const upstream = await cloud.responses.create(
+    const upstream = await gateway.responses.create(
       { ...createParams, stream: true },
       { signal: abort.signal },
     );
     yield* upstream as unknown as AsyncIterable<Record<string, unknown>>;
   }
   return new Response(
-    streamCloudTurn(
+    streamGatewayTurn(
       {
-        client: cloud,
+        client: gateway,
         createParams,
         firstStream: firstStream(),
         tools: { query_race: executeRaceQuery },

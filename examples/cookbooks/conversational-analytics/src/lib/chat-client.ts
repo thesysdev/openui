@@ -2,8 +2,9 @@ import {
   openAIConversationMessageFormat,
   openAIResponsesAdapter,
   type ChatLLM,
-} from "@openuidev/react-headless";
+} from "@openuidev/react-ui";
 
+// Gateway restores earlier turns from the conversation id, so send only the latest message.
 export const chatLLM: ChatLLM = {
   streamProtocol: openAIResponsesAdapter(),
   send: ({ threadId, messages, signal }) =>

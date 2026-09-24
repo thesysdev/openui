@@ -1,13 +1,12 @@
 ---
 title: Conversational analytics
-description: Turn questions into streamed charts and tables with Agent Interface and OpenUI Cloud.
+description: Turn questions into streamed charts and tables with Agent Interface and OpenUI Gateway.
 ---
 
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 import { ArrowUpRight, Github } from "lucide-react";
-import { CookbookAnalyticsFlow } from "@/components/cookbook-analytics-flow";
 
-Build an assistant that queries data and chooses a useful way to present the answer. Ask for a ranking, compare two drivers in a chart, then narrow the comparison with a follow-up. Agent Interface shows the tool call while OpenUI Cloud streams the visual response.
+Build an assistant that queries data and chooses a useful way to present the answer. Ask for a ranking, compare two drivers in a chart, then narrow the comparison with a follow-up. Agent Interface shows the tool call while OpenUI Gateway streams the visual response.
 
 This recipe uses recorded lap times from the **2024 Miami Grand Prix**, provided by [OpenF1](https://openf1.org/docs/). Each record is a driver's time for one lap, measured in seconds.
 
@@ -29,7 +28,9 @@ This recipe uses recorded lap times from the **2024 Miami Grand Prix**, provided
 
 ## What you'll build
 
-<CookbookAnalyticsFlow />
+1. **Ask a question** in Agent Interface.
+2. **Get the data.** Gateway calls `query_race`, and your server queries SQLite and returns the results.
+3. **See the answer.** Gateway streams text, charts, or tables into Agent Interface. Ask a follow-up to explore further.
 
 Try this conversation:
 
@@ -37,7 +38,7 @@ Try this conversation:
 2. **“Compare Norris and Verstappen lap by lap.”** See their times in a line chart.
 3. **“Focus on their final ten laps.”** Narrow the chart while retaining the selected drivers.
 
-Conversation history is stored in OpenUI Cloud and remains available across page reloads and local server restarts.
+Conversation history is stored in OpenUI Gateway and remains available across page reloads and local server restarts.
 
 ## Run the example
 
@@ -66,7 +67,7 @@ The example covers 20 drivers and 57 race laps. You can rank drivers by their fa
 
 ## 2. Expose an analytics tool
 
-Give Cloud a function tool named `query_race`. It accepts the question's scope as structured arguments:
+Give Gateway a function tool named `query_race`. It accepts the question's scope as structured arguments:
 
 ```json
 {
@@ -94,7 +95,7 @@ export async function executeRaceQuery(argsJson: string) {
 }
 ```
 
-The result contains ranked lap times or aligned chart labels and series. Cloud uses those values to build the answer. The complete executor also returns the query arguments and elapsed time, which readers can inspect in Agent Interface's **Behind the scenes** timeline.
+The result contains ranked lap times or aligned chart labels and series. Gateway uses those values to build the answer, and Agent Interface shows the call and its result in the **Behind the scenes** timeline.
 
 The [query implementation](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/analytics.ts) uses parameterized SQL. Missing times are left out of comparisons rather than plotted as zero.
 
@@ -130,9 +131,9 @@ npm run generate
 
 This runs `openui generate src/library.ts --spec --out src/generated/spec.json`. It also runs automatically before development and builds.
 
-## 4. Connect Agent Interface and Cloud history
+## 4. Connect Agent Interface and Gateway history
 
-Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route, sending only the latest user message. Cloud restores the earlier context from the conversation id:
+Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route, sending only the latest user message. Gateway restores the earlier context from the conversation id:
 
 ```ts title="src/lib/chat-client.ts"
 const chatLLM: ChatLLM = {
@@ -150,7 +151,7 @@ const chatLLM: ChatLLM = {
 };
 ```
 
-Use the Cloud storage hook for the sidebar and saved messages:
+Use the Gateway storage hook for the sidebar and saved messages:
 
 ```tsx title="src/components/analytics-chat.tsx"
 const storage = useOpenuiCloudStorage({
@@ -162,28 +163,27 @@ const storage = useOpenuiCloudStorage({
   llm={chatLLM}
   storage={storage}
   componentLibrary={library}
-  components={{ AssistantMessage: AnalyticsMessage }}
   agentName="Data analyst"
   theme={{ mode: "light" }}
 >
   <AgentInterface.Welcome
     title="Explore your data through conversation"
-    description="Turn questions into charts, comparisons, and clear answers. Follow up to explore a different angle."
+    description="Ask about recorded lap times from the 2024 Miami Grand Prix, provided by OpenF1. Follow up to explore a different angle."
   />
   <AgentInterface.Composer placeholder="Ask a question about your data…" />
 </AgentInterface>;
 ```
 
-`useOpenuiCloudStorage` is exported by the example's pinned `@openuidev/react-ui` package. The [token route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/frontend-token/route.ts) issues a short-lived token for a stable `user_id` and `app_id`; the master key stays on the server. Generation checks that the conversation belongs to the same scope.
+`useOpenuiCloudStorage` is exported by the example's pinned `@openuidev/react-ui` package. The [token route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/frontend-token/route.ts) issues a short-lived token for a stable `user_id` and `app_id`; the master key stays on the server. Before generating, the chat route checks that the conversation belongs to the same scope. A conversation id from the browser is not proof of ownership.
 
-Keep `DEMO_USER_ID` and `APP_ID` stable to retain conversation history. Their defaults are `local-demo` and `conversational-analytics-cookbook`. Agent Interface owns the theme; [layout.tsx](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/layout.tsx) imports its styles once.
+Keep `DEMO_USER_ID` and `APP_ID` stable to retain conversation history. Their defaults are `local-demo` and `conversational-analytics-cookbook`.
 
 ## 5. Stream the tool call and visual answer
 
-The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/prompt.ts) combines the generated component specification with the available drivers and instructions to call `query_race` before answering. It asks Cloud to choose a presentation that fits the question and use the returned values.
+The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/prompt.ts) combines the generated component specification with the available drivers and instructions to call `query_race` before answering. It asks Gateway to choose a presentation that fits the question and use the returned values.
 
 ```ts title="src/app/api/chat/route.ts"
-const cloud = new OpenAI({
+const gateway = new OpenAI({
   apiKey: process.env.THESYS_API_KEY,
   baseURL: "https://api.thesys.dev/v1/embed",
   timeout: 60000,
@@ -200,11 +200,11 @@ const createParams = {
 };
 ```
 
-When Cloud requests a function call, execute it and send its result back with the matching `call_id`. The example uses the OpenUI Cloud template's [function-tool loop](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/tool-loop.ts):
+When Gateway requests a function call, execute it and send its result back with the matching `call_id`. The example uses the OpenUI Gateway template's [function-tool loop](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/tool-loop.ts):
 
 ```ts
 await runFunctionToolLoop({
-  client: cloud,
+  client: gateway,
   createParams,
   firstStream,
   tools: { query_race: executeRaceQuery },
@@ -214,32 +214,21 @@ await runFunctionToolLoop({
 });
 ```
 
-The loop forwards tool activity and text deltas as Responses Server-Sent Events. Each continuation sends only the new tool outputs to the saved conversation. Cloud already holds the preceding question and response items.
+The loop forwards tool activity and text deltas as Responses Server-Sent Events. Each continuation sends only the new tool outputs to the saved conversation. Gateway already holds the preceding question and response items.
 
-The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) flushes response headers immediately. Its [stream forwarding](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/cloud-stream.ts) propagates cancellation and reports tool or provider errors.
+The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) validates the request before calling Gateway. Its [stream forwarding](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/gateway-stream.ts) propagates cancellation and reports tool or provider errors.
 
-The [assistant-message component](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/components/analytics-message.tsx) removes Cloud's content envelope and passes the growing OpenUI Lang program to the renderer:
+Because `componentLibrary` is set, Agent Interface renders the streamed OpenUI Lang with the same library. The prompt emits `root` first, followed by its components in reading order, so resolved components appear while the rest of the response is still arriving.
 
-```tsx
-<Renderer
-  response={extractProgram(message.content ?? "")}
-  library={library}
-  isStreaming={isStreaming}
-/>
-```
-
-The prompt emits `root` first, followed by its components in reading order. Resolved components can appear while the rest of the response is still arriving. If the response includes an opening code fence, remove it immediately rather than waiting for the closing fence.
-
-A follow-up such as **“Focus on their final ten laps”** triggers a new tool call with the same drivers and laps 48 through 57. Cloud then streams the updated chart.
+A follow-up such as **“Focus on their final ten laps”** triggers a new tool call with the same drivers and laps 48 through 57. Gateway then streams the updated chart.
 
 ## Verify the experience
 
 ```bash
 npm run verify
-npm run verify:data
 ```
 
-`verify` checks the queries, importer, tool streaming, conversation transport, component schema, and production build. `verify:data` checks the downloaded race snapshot, including Oscar Piastri's **1:30.634** lap and the Norris/Verstappen comparison.
+`verify` checks the queries, importer, tool streaming, request validation, component schema, and production build. It needs neither credentials nor the downloaded data.
 
 In the browser:
 

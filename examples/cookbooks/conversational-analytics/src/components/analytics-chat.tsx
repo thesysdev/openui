@@ -1,17 +1,10 @@
 "use client";
 
-import {
-  AgentInterface,
-  useOpenuiCloudStorage,
-  type AgentInterfaceComponents,
-  type ThemeProps,
-} from "@openuidev/react-ui";
+import { AgentInterface, useOpenuiCloudStorage, type ThemeProps } from "@openuidev/react-ui";
 import { chatLLM } from "../lib/chat-client";
 import { library } from "../library";
-import { AnalyticsMessage } from "./analytics-message";
 
 const theme: ThemeProps = { mode: "light" };
-const components: AgentInterfaceComponents = { AssistantMessage: AnalyticsMessage };
 const starters = [
   {
     displayText: "Which five drivers set the fastest laps in Miami?",
@@ -41,7 +34,6 @@ export default function AnalyticsChat() {
         llm={chatLLM}
         storage={storage}
         componentLibrary={library}
-        components={components}
         agentName="Data analyst"
         theme={theme}
         starters={starters}
@@ -49,7 +41,7 @@ export default function AnalyticsChat() {
         <AgentInterface.MobileHeader agentName="Data analyst" />
         <AgentInterface.Welcome
           title="Explore your data through conversation"
-          description="Turn questions into charts, comparisons, and clear answers. Follow up to explore a different angle."
+          description="Ask about recorded lap times from the 2024 Miami Grand Prix, provided by OpenF1. Follow up to explore a different angle."
         />
         <AgentInterface.Composer placeholder="Ask a question about your data…" />
       </AgentInterface>
