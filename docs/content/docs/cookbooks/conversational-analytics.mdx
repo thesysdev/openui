@@ -3,19 +3,28 @@ title: Conversational analytics dashboard
 description: Turn sales questions into an interactive dashboard backed by a real retail dataset.
 ---
 
+import { buttonVariants } from "fumadocs-ui/components/ui/button";
+import { ArrowUpRight, Github } from "lucide-react";
+
 Build a sales assistant that answers “Why did gross sales fall in February 2011?” with metric cards, a daily trend, and a product comparison. Change the country or month and the dashboard queries the database again. Ask “Now show Germany as a bar chart” to generate a new view with the current context.
 
-This recipe uses the [UCI Online Retail dataset](https://archive.ics.uci.edu/dataset/352/online+retail): 541,909 real invoice lines from a UK retailer. The original download is public, licensed under CC BY 4.0, and needs no Kaggle account.
+This recipe uses the [UCI Online Retail dataset](https://archive.ics.uci.edu/dataset/352/online+retail): 541,909 real invoice lines from a UK retailer. The original download is public and licensed under CC BY 4.0.
 
-<Cards>
-  <Card
-    title="Run the complete example"
+<div className="not-prose my-6">
+  <a
     href="https://github.com/thesysdev/openui/tree/main/examples/cookbooks/conversational-analytics"
+    target="_blank"
+    rel="noopener noreferrer"
+    className={buttonVariants({
+      color: "secondary",
+      className: "min-h-11 gap-2.5 rounded-lg px-4 py-2.5 no-underline",
+    })}
   >
-    Next.js, OpenUI Cloud, OpenUI Lang, and SQLite. Includes the dataset importer and verification
-    checks.
-  </Card>
-</Cards>
+    <Github className="size-4" aria-hidden="true" />
+    View example on GitHub
+    <ArrowUpRight className="size-4 text-fd-muted-foreground" aria-hidden="true" />
+  </a>
+</div>
 
 ## What you'll build
 
