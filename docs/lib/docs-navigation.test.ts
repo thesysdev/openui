@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   GLOBAL_DOCS_TREE,
+  getApiReferenceTree,
+  getCookbooksTree,
   getDefaultSidebarMode,
   getGlobalActiveItemUrl,
   getNestedDocsTree,
@@ -21,7 +23,7 @@ describe("global docs navigation", () => {
     }));
 
     assert.deepEqual(entries, [
-      { type: "separator", name: "Overview", url: undefined, children: undefined },
+      { type: "separator", name: "Start", url: undefined, children: undefined },
       { type: "page", name: "Introduction", url: "/docs", children: undefined },
       {
         type: "page",
@@ -55,7 +57,6 @@ describe("global docs navigation", () => {
         url: "/docs/build-agents",
         children: undefined,
       },
-      { type: "page", name: "Cookbooks", url: "/docs/cookbooks", children: undefined },
       { type: "separator", name: "Production", url: undefined, children: undefined },
       { type: "page", name: "Overview", url: "/docs/production", children: undefined },
       { type: "page", name: "Gateway", url: "/docs/gateway", children: undefined },
@@ -67,13 +68,6 @@ describe("global docs navigation", () => {
         children: undefined,
       },
       { type: "page", name: "Deploy your app", url: "/docs/deploy", children: undefined },
-      { type: "separator", name: "Reference", url: undefined, children: undefined },
-      {
-        type: "page",
-        name: "API Reference",
-        url: "/docs/api-reference",
-        children: undefined,
-      },
     ]);
   });
 
@@ -85,7 +79,7 @@ describe("global docs navigation", () => {
     assert.equal(getNestedRootForEntryUrl("/docs/autofix"), undefined);
     assert.equal(getNestedRootForEntryUrl("/docs/production"), undefined);
     assert.equal(getNestedRootForEntryUrl("/docs/reliability"), "reliability");
-    assert.equal(getNestedRootForEntryUrl("/docs/api-reference"), "api-reference");
+    assert.equal(getNestedRootForEntryUrl("/docs/api-reference"), undefined);
     assert.equal(getNestedRootForEntryUrl("/docs/openui-lang/quickstart"), undefined);
   });
 
@@ -108,13 +102,12 @@ describe("global docs navigation", () => {
       kind: "nested",
       root: "build-agents",
     });
-    assert.deepEqual(
-      getDefaultSidebarMode("/docs/agent/agent-runtimes/vercel-ai-sdk"),
-      { kind: "nested", root: "build-agents" },
-    );
-    assert.deepEqual(getDefaultSidebarMode("/docs/api-reference/cli"), {
+    assert.deepEqual(getDefaultSidebarMode("/docs/agent/agent-runtimes/vercel-ai-sdk"), {
       kind: "nested",
-      root: "api-reference",
+      root: "build-agents",
+    });
+    assert.deepEqual(getDefaultSidebarMode("/docs/api-reference/cli"), {
+      kind: "api-reference",
     });
     assert.deepEqual(getDefaultSidebarMode("/docs/gateway/reliability/error-correction"), {
       kind: "nested",
@@ -164,10 +157,7 @@ describe("global docs navigation", () => {
     );
     assert.equal(getGlobalActiveItemUrl("/docs/openui-lang/quickstart"), "/docs/openui-lang");
     assert.equal(getGlobalActiveItemUrl("/docs/openui-lang/renderer"), "/docs/openui-lang");
-    assert.equal(
-      getGlobalActiveItemUrl("/docs/agent/core-concepts/tools"),
-      "/docs/build-agents",
-    );
+    assert.equal(getGlobalActiveItemUrl("/docs/agent/core-concepts/tools"), "/docs/build-agents");
     assert.equal(getGlobalActiveItemUrl("/docs/build-agents/copilotkit"), "/docs/build-agents");
     assert.equal(getGlobalActiveItemUrl("/docs/gateway/api/responses"), "/docs/gateway");
     assert.equal(getGlobalActiveItemUrl("/docs/reliability/dashboard"), "/docs/reliability");
@@ -186,6 +176,21 @@ describe("nested docs navigation", () => {
         children: [
           { type: "page", name: "Introduction", url: "/docs/openui-lang" },
           { type: "page", name: "Quick Start", url: "/docs/openui-lang/quickstart" },
+        ],
+      },
+      {
+        type: "folder",
+        name: "Cookbooks",
+        root: true,
+        $ref: { folder: "cookbooks" },
+        children: [
+          { type: "page", name: "Overview", url: "/docs/cookbooks" },
+          { type: "separator", name: "Recipes" },
+          {
+            type: "page",
+            name: "Conversational analytics dashboard",
+            url: "/docs/cookbooks/conversational-analytics",
+          },
         ],
       },
       {
@@ -230,6 +235,42 @@ describe("nested docs navigation", () => {
       },
     ],
   };
+
+  it("gives top-level cookbook and API tabs their own sidebars", () => {
+    for (const pathname of ["/docs/cookbooks", "/docs/cookbooks/conversational-analytics"]) {
+      assert.deepEqual(getDefaultSidebarMode(pathname), { kind: "cookbooks" });
+      assert.equal(getNestedRootForPathname(pathname), undefined);
+      assert.equal(getGlobalActiveItemUrl(pathname), undefined);
+    }
+    assert.deepEqual(
+      getSidebarModeForPathname("/docs/cookbooks/conversational-analytics", {
+        pathname: "/docs/openui-lang",
+        mode: { kind: "global" },
+      }),
+      { kind: "cookbooks" },
+    );
+    assert.deepEqual(getDefaultSidebarMode("/docs/cookbooks-other"), { kind: "global" });
+    assert.deepEqual(getCookbooksTree(fullTree), {
+      type: "root",
+      $id: "docs:cookbooks",
+      name: "Cookbooks",
+      children: [
+        { type: "page", name: "Overview", url: "/docs/cookbooks" },
+        { type: "separator", name: "Recipes" },
+        {
+          type: "page",
+          name: "Conversational analytics dashboard",
+          url: "/docs/cookbooks/conversational-analytics",
+        },
+      ],
+    });
+    assert.deepEqual(getApiReferenceTree(fullTree), {
+      type: "root",
+      $id: "docs:api-reference",
+      name: "API Reference",
+      children: [{ type: "page", name: "Overview", url: "/docs/api-reference" }],
+    });
+  });
 
   it("extracts a maintained nested tree from the Fumadocs tree", () => {
     assert.deepEqual(getNestedDocsTree(fullTree, "openui-lang"), {
@@ -303,11 +344,8 @@ describe("nested docs navigation", () => {
 
   it("maps any page within a nested section to its root", () => {
     assert.equal(getNestedRootForPathname("/docs/openui-lang/renderer"), "openui-lang");
-    assert.equal(getNestedRootForPathname("/docs/api-reference"), "api-reference");
-    assert.equal(
-      getNestedRootForPathname("/docs/agent/customize/sidebar"),
-      "build-agents",
-    );
+    assert.equal(getNestedRootForPathname("/docs/api-reference"), undefined);
+    assert.equal(getNestedRootForPathname("/docs/agent/customize/sidebar"), "build-agents");
     assert.equal(getNestedRootForPathname("/docs/build-agents/custom-chat-ui"), "build-agents");
     assert.equal(getNestedRootForPathname("/docs"), undefined);
   });

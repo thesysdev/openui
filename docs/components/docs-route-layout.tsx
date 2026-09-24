@@ -4,6 +4,8 @@ import { DocsNavbar } from "@/components/docs-navbar";
 import {
   GLOBAL_DOCS_TREE,
   NESTED_DOCS_SECTIONS,
+  getApiReferenceTree,
+  getCookbooksTree,
   getGlobalActiveItemUrl,
   getNestedDocsTree,
   getNestedRootForEntryUrl,
@@ -99,10 +101,13 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
   const navigationContext = useMemo(() => ({ enterNested, showGlobal }), [enterNested, showGlobal]);
 
   const nestedRoot = sidebarMode.kind === "nested" ? sidebarMode.root : undefined;
-  const activeTree = useMemo(
-    () => (nestedRoot ? getNestedDocsTree(tree, nestedRoot) : GLOBAL_DOCS_TREE),
-    [nestedRoot, tree],
-  );
+  const isApiReference = sidebarMode.kind === "api-reference";
+  const isCookbooks = sidebarMode.kind === "cookbooks";
+  const activeTree = useMemo(() => {
+    if (isCookbooks) return getCookbooksTree(tree);
+    if (isApiReference) return getApiReferenceTree(tree);
+    return nestedRoot ? getNestedDocsTree(tree, nestedRoot) : GLOBAL_DOCS_TREE;
+  }, [isCookbooks, isApiReference, nestedRoot, tree]);
 
   return (
     <DocsNavigationContext.Provider value={navigationContext}>
