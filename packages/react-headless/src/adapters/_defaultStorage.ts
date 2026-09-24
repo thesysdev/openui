@@ -35,6 +35,9 @@ export function createDefaultInMemoryStorage(): ChatStorage {
       async getMessages(threadId: string) {
         return messagesByThread.get(threadId) ?? [];
       },
+      async cacheMessages(threadId: string, messages: Message[]) {
+        messagesByThread.set(threadId, messages);
+      },
       async updateThread(thread: Thread) {
         threads = threads.map((t) => (t.id === thread.id ? thread : t));
         return thread;
