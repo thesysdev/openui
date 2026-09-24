@@ -3,6 +3,13 @@ import Image from "next/image";
 import { BevelButton } from "../../components/Button/BevelButton";
 import styles from "./AutofixSection.module.css";
 
+const PROVIDERS = [
+  { name: "OpenRouter", icon: "/brand-icons/openrouter.svg" },
+  { name: "Microsoft Azure", icon: "/brand-icons/azure.svg" },
+  { name: "Amazon Bedrock", icon: "/brand-icons/bedrock.svg" },
+  { name: "Vercel AI Gateway", icon: "/brand-icons/vercel.svg" },
+] as const;
+
 export function AutofixSection({
   tone = "page",
   headingLevel = "h2",
@@ -17,11 +24,29 @@ export function AutofixSection({
       <div className={styles.banner}>
         <div className={styles.copy}>
           <Heading className={styles.title}>
-            <span className={styles.titleLine}>Keep your existing model provider,</span>
+            <span className={styles.providerLine}>
+              <span>Keep your existing model provider,</span>
+              <span
+                className={styles.providerStack}
+                aria-label="Works with leading model providers and AI gateways"
+              >
+                {PROVIDERS.map((provider) => (
+                  <span
+                    className={styles.providerLogo}
+                    key={provider.name}
+                    title={provider.name}
+                    aria-label={provider.name}
+                    tabIndex={0}
+                  >
+                    <Image src={provider.icon} alt="" width={18} height={18} />
+                  </span>
+                ))}
+              </span>
+            </span>
             <span className={styles.titleLine}>Add reliability with Autofix.</span>
           </Heading>
           <p className={styles.description}>
-            Keep your existing model calls, direct or through OpenRouter. Add one Autofix API call
+            Keep your existing model calls, direct or through AI gateways. Add one Autofix API call
             to repair invalid generations before users see them.
           </p>
           <BevelButton
