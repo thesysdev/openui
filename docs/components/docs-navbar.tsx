@@ -95,8 +95,8 @@ export function DocsNavbar() {
       <div className={styles.topBar}>
         <SiteHeaderFrame
           variant="docs"
-          borderColor="var(--openui-border-default)"
-          dividerColor="var(--openui-border-default)"
+          borderColor="var(--docs-border)"
+          dividerColor="var(--docs-border)"
           brandVariant={logoVariant}
           center={
             <div className={styles.searchCenter}>

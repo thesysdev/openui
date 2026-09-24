@@ -67,7 +67,7 @@ export const GLOBAL_DOCS_TREE: PageTree.Root = {
   $id: "docs:global",
   name: "OpenUI",
   children: [
-    { type: "separator", name: "Overview" },
+    { type: "separator", name: "Start" },
     { type: "page", name: "Introduction", url: "/docs" },
     { type: "page", name: "Getting Started", url: "/docs/getting-started" },
     {

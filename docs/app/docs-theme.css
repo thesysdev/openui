@@ -1,0 +1,264 @@
+/*
+ * Docs-only theme: neutral grey scale, lighter headings, compact sidebar, and a tracked TOC.
+ * Everything is scoped to the docs layout so the marketing site and shared design tokens are untouched.
+ */
+
+#nd-docs-layout,
+#nd-sidebar-mobile {
+  --docs-text-heading: #18191e;
+  --docs-text-body: #404046;
+  --docs-text-secondary: #515257;
+  --docs-text-muted: #717277;
+  --docs-border: #eff0f5;
+  --docs-track: rgba(0, 0, 0, 0.05);
+  --docs-hover-bg: rgba(0, 0, 0, 0.04);
+  --docs-active-bg: rgba(0, 0, 0, 0.05);
+  --docs-link-underline: #c8c9cf;
+  --docs-code-bg: rgba(0, 0, 0, 0.05);
+  --docs-card-border: #e3e4e9;
+  --docs-card-border-hover: #c8c9cf;
+
+  --color-fd-foreground: var(--docs-text-heading);
+  --color-fd-muted-foreground: var(--docs-text-secondary);
+  --color-fd-border: var(--docs-border);
+  --color-fd-accent: var(--docs-hover-bg);
+  --color-fd-accent-foreground: var(--docs-text-heading);
+  --color-fd-primary: var(--docs-text-heading);
+}
+
+:root[data-theme="dark"] #nd-docs-layout,
+:root[data-theme="dark"] #nd-sidebar-mobile {
+  --docs-text-heading: #e0e0e6;
+  --docs-text-body: #a0a0a6;
+  --docs-text-secondary: #8b8b91;
+  --docs-text-muted: #6e6e74;
+  --docs-border: rgba(255, 255, 255, 0.1);
+  --docs-track: rgba(255, 255, 255, 0.08);
+  --docs-hover-bg: rgba(255, 255, 255, 0.05);
+  --docs-active-bg: rgba(255, 255, 255, 0.08);
+  --docs-link-underline: rgba(255, 255, 255, 0.25);
+  --docs-code-bg: rgba(255, 255, 255, 0.08);
+  --docs-card-border: rgba(255, 255, 255, 0.12);
+  --docs-card-border-hover: rgba(255, 255, 255, 0.25);
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────────────────────── */
+
+#nd-sidebar {
+  border-inline-end: 1px solid var(--docs-border) !important;
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] a,
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] a {
+  padding-block: 6px;
+  border-radius: 6px;
+  color: var(--docs-text-body) !important;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] a:hover,
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] a:hover {
+  background-color: var(--docs-hover-bg);
+  color: var(--docs-text-heading) !important;
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] a[data-active="true"],
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] a[data-active="true"] {
+  background-color: var(--docs-active-bg);
+  color: var(--docs-text-heading) !important;
+  font-weight: 500;
+}
+
+/* Folder rows (e.g. "Agent Interface" in Build Agents) */
+#nd-sidebar [data-radix-scroll-area-viewport] button.w-full,
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] button.w-full {
+  padding-block: 6px;
+  border-radius: 6px;
+  color: var(--docs-text-heading);
+}
+
+/* Separators: group labels ("Overview", "Build", …) */
+#nd-sidebar [data-radix-scroll-area-viewport] p.inline-flex,
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] p.inline-flex {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--docs-text-heading) !important;
+}
+
+/* Top-level groups get a divider above them; separators nested in folders stay quieter. */
+#nd-sidebar [data-radix-scroll-area-viewport] > div > p.inline-flex:not(:first-child),
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] > div > p.inline-flex:not(:first-child) {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--docs-border);
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] [data-state] p.inline-flex,
+#nd-sidebar-mobile [data-radix-scroll-area-viewport] [data-state] p.inline-flex {
+  margin-top: 16px;
+  color: var(--docs-text-secondary) !important;
+}
+
+/* ─── Page header ─────────────────────────────────────────────────────────── */
+
+#nd-page > h1 {
+  font-size: 34px !important;
+  line-height: 1.15 !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.02em;
+  color: var(--docs-text-heading);
+}
+
+#nd-page > h1 + p {
+  color: var(--docs-text-body);
+}
+
+/* ─── Prose ───────────────────────────────────────────────────────────────── */
+
+#nd-page .prose {
+  --tw-prose-body: var(--docs-text-body);
+  --tw-prose-headings: var(--docs-text-heading);
+  --tw-prose-lead: var(--docs-text-body);
+  --tw-prose-links: var(--docs-text-heading);
+  --tw-prose-bold: var(--docs-text-heading);
+  --tw-prose-code: var(--docs-text-heading);
+  --tw-prose-quotes: var(--docs-text-body);
+  --tw-prose-bullets: var(--docs-text-muted);
+  --tw-prose-counters: var(--docs-text-muted);
+  --tw-prose-hr: var(--docs-border);
+  --tw-prose-quote-borders: var(--docs-border);
+  --tw-prose-th-borders: var(--docs-border);
+  --tw-prose-td-borders: var(--docs-border);
+  font-weight: 350;
+}
+
+#nd-page .prose h2:not(.not-prose *) {
+  margin: 40px 0 16px;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+
+#nd-page .prose h3:not(.not-prose, .not-prose *) {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+}
+
+#nd-page .prose a:not([data-card]):not(.not-prose *) {
+  font-weight: 500;
+  color: var(--docs-text-heading);
+  text-decoration-line: underline;
+  text-decoration-color: var(--docs-link-underline);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color 150ms;
+}
+
+#nd-page .prose a:not([data-card]):not(.not-prose *):hover {
+  text-decoration-color: var(--docs-text-heading);
+}
+
+#nd-page .prose :not(pre) > code:not(.not-prose *) {
+  padding: 2px 4px;
+  border: none;
+  border-radius: 4px;
+  background: var(--docs-code-bg);
+  font-size: 0.875em;
+  font-weight: 500;
+}
+
+#nd-page .prose figure {
+  border-color: var(--docs-border);
+}
+
+/* ─── Cards ───────────────────────────────────────────────────────────────── */
+
+#nd-page [data-card].rounded-xl {
+  padding: 16px 20px;
+  border-color: var(--docs-card-border);
+  border-radius: 12px;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+#nd-page [data-card].rounded-xl h3 {
+  margin-bottom: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--docs-text-heading);
+}
+
+#nd-page [data-card].rounded-xl h3 + div {
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--docs-text-secondary);
+}
+
+#nd-page .docs-card:hover {
+  background-color: transparent;
+  border-color: var(--docs-card-border-hover);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.docs-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.docs-card-arrow {
+  flex-shrink: 0;
+  color: var(--docs-text-muted);
+  transition:
+    color 150ms,
+    transform 150ms;
+}
+
+.docs-card:hover .docs-card-arrow {
+  color: var(--docs-text-heading);
+  transform: translateX(2px);
+}
+
+/* ─── Table of contents ───────────────────────────────────────────────────── */
+
+#toc-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--docs-text-body);
+}
+
+#nd-toc .border-s {
+  border-color: var(--docs-track);
+}
+
+#nd-toc a {
+  padding-block: 4px;
+  line-height: 24px;
+  color: var(--docs-text-secondary);
+}
+
+#nd-toc a.ps-3 {
+  padding-inline-start: 16px;
+}
+
+#nd-toc a.ps-6 {
+  padding-inline-start: 28px;
+}
+
+#nd-toc a.ps-8 {
+  padding-inline-start: 40px;
+}
+
+#nd-toc a:hover,
+#nd-toc a[data-active="true"] {
+  color: var(--docs-text-heading);
+}
