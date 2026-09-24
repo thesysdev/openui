@@ -18,7 +18,7 @@ export function openDatabase() {
   return new DatabaseSync(path, { readOnly: true });
 }
 
-export function queryDashboard(db: DatabaseSync, input: unknown) {
+export function querySales(db: DatabaseSync, input: unknown) {
   const { month, country } = salesQuerySchema.parse(input);
   const countries = (
     db.prepare("SELECT DISTINCT country FROM sales ORDER BY country").all() as { country: string }[]

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import spec from "../src/generated/spec.json";
 import { exampleProgram } from "../src/lib/example-program";
-import { dashboardPrompt } from "../src/lib/prompt";
+import { analyticsPrompt } from "../src/lib/prompt";
 
 test("example parses against the published component schema", () => {
   const parsed = createParser(spec.schema).parse(exampleProgram);
@@ -12,7 +12,7 @@ test("example parses against the published component schema", () => {
   assert.equal(parsed.root?.typeName, "Stack");
 });
 test("Cloud receives the matching library schema and static layout examples in supported options", () => {
-  const prompt = dashboardPrompt(["All countries", "Germany"]);
+  const prompt = analyticsPrompt(["All countries", "Germany"]);
   const marker = "]]>openui:config\n";
   assert.ok(prompt.startsWith(marker));
   const config = JSON.parse(prompt.slice(marker.length));

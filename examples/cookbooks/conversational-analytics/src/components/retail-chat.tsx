@@ -8,10 +8,10 @@ import {
 } from "@openuidev/react-ui";
 import { chatLLM } from "../lib/chat-client";
 import { library } from "../library";
-import { DashboardMessage } from "./dashboard-message";
+import { AnalyticsMessage } from "./analytics-message";
 
 const theme: ThemeProps = { mode: "light" };
-const components: AgentInterfaceComponents = { AssistantMessage: DashboardMessage };
+const components: AgentInterfaceComponents = { AssistantMessage: AnalyticsMessage };
 const starters = [
   {
     displayText: "Compare February 2011 sales with January",

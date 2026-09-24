@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import { test } from "node:test";
-import { queryDashboard } from "../src/lib/analytics";
+import { querySales } from "../src/lib/analytics";
 import { periodFor, salesQuerySchema } from "../src/lib/query-args";
 
 function fixture() {
@@ -21,7 +21,7 @@ function fixture() {
 test("aggregates invoice lines, counts distinct orders, and respects calendar/country boundaries", () => {
   const db = fixture();
   try {
-    const result = queryDashboard(db, { month: "2011-02", country: "Germany" });
+    const result = querySales(db, { month: "2011-02", country: "Germany" });
     assert.deepEqual(result.totals, { sales: 15, orders: 1, units: 3, previousSales: 30 });
     assert.equal(result.averageOrder, "£15.00");
     assert.equal(result.salesChange, "-50.0% vs previous month");
@@ -30,10 +30,7 @@ test("aggregates invoice lines, counts distinct orders, and respects calendar/co
     assert.equal(result.trend[1].sales, 0);
     assert.equal(result.products[0].code, "LOST");
     assert.equal(result.products[0].change, "-£30.00");
-    assert.equal(
-      queryDashboard(db, { month: "2011-02", country: "All countries" }).totals.sales,
-      27.5,
-    );
+    assert.equal(querySales(db, { month: "2011-02", country: "All countries" }).totals.sales, 27.5);
   } finally {
     db.close();
   }
@@ -42,7 +39,7 @@ test("aggregates invoice lines, counts distinct orders, and respects calendar/co
 test("empty results and zero baselines are explicit", () => {
   const db = fixture();
   try {
-    const empty = queryDashboard(db, { month: "2011-04", country: "France" });
+    const empty = querySales(db, { month: "2011-04", country: "France" });
     assert.equal(empty.empty, true);
     assert.equal(empty.salesChange, "No previous sales");
     assert.equal(empty.averageOrder, "£0.00");
@@ -70,10 +67,10 @@ test("rejects incomplete dates, extra query fields and SQL-like country input", 
   const db = fixture();
   try {
     assert.throws(
-      () => queryDashboard(db, { month: "2011-02", country: "Germany' OR 1=1 --" }),
+      () => querySales(db, { month: "2011-02", country: "Germany' OR 1=1 --" }),
       RangeError,
     );
-    assert.equal(queryDashboard(db, { month: "2011-02", country: "Germany" }).totals.sales, 15);
+    assert.equal(querySales(db, { month: "2011-02", country: "Germany" }).totals.sales, 15);
   } finally {
     db.close();
   }

@@ -41,9 +41,9 @@ Each example has one primary home. Complete workflows with a companion tutorial 
 
 ### Cookbooks
 
-| Example                                                          | Demonstrates                                                                                 | Tutorial                                                                      |
-| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [Conversational analytics](./cookbooks/conversational-analytics) | Streaming OpenUI Cloud dashboards with visible database tool calls over real UCI retail data | [Walkthrough](https://www.openui.com/docs/cookbooks/conversational-analytics) |
+| Example                                                          | Demonstrates                                                                                          | Tutorial                                                                      |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [Conversational analytics](./cookbooks/conversational-analytics) | Conversational analytics with OpenUI Cloud with visible database tool calls over real UCI retail data | [Walkthrough](https://www.openui.com/docs/cookbooks/conversational-analytics) |
 
 ### Design systems
 

@@ -1,10 +1,10 @@
-import { openDatabase, queryDashboard } from "./analytics";
+import { openDatabase, querySales } from "./analytics";
 import { months, salesQuerySchema } from "./query-args";
 
-export function salesDashboardTool(countries: string[]) {
+export function salesQueryTool(countries: string[]) {
   return {
     type: "function" as const,
-    name: "sales_dashboard",
+    name: "query_sales",
     description:
       "Query real UCI retail sales for a country and month, with the prior month's totals, a daily trend, and the ten lowest product sales changes. Call this before answering a sales question. Read-only, server-owned SQL.",
     parameters: {
@@ -28,7 +28,7 @@ export function salesDashboardTool(countries: string[]) {
   };
 }
 
-export async function executeSalesDashboard(
+export async function executeSalesQuery(
   argsJson: string,
   { signal }: { signal?: AbortSignal } = {},
 ) {
@@ -37,7 +37,7 @@ export async function executeSalesDashboard(
   const started = performance.now();
   const db = openDatabase();
   try {
-    const result = queryDashboard(db, args);
+    const result = querySales(db, args);
     return JSON.stringify({
       ...result,
       execution: {

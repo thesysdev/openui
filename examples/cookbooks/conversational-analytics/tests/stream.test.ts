@@ -31,7 +31,7 @@ async function read(items: Event[]) {
   );
   return Array.fromAsync(openAIResponsesAdapter().parse(response));
 }
-function call(name = "sales_dashboard", id = "call") {
+function call(name = "query_sales", id = "call") {
   const item = {
     id,
     call_id: id,
@@ -73,7 +73,7 @@ test("real tool calls and outputs reach the native adapter before streamed answe
         createParams: params,
         firstStream: events([...call(), { type: "response.completed" }]),
         tools: {
-          sales_dashboard: async (args) => {
+          query_sales: async (args) => {
             assert.equal(JSON.parse(args).country, "Germany");
             return '{"sales":"£9,581.05"}';
           },
@@ -140,7 +140,7 @@ test("Cloud-owned and already-settled calls are never executed again", async () 
       { type: "response.completed" },
     ]),
     tools: {
-      sales_dashboard: async () => {
+      query_sales: async () => {
         executed++;
         return "unexpected";
       },
@@ -185,7 +185,7 @@ test("cancelling the response aborts Cloud and prevents a pending tool from exec
       createParams: params,
       firstStream: waiting(),
       tools: {
-        sales_dashboard: async () => {
+        query_sales: async () => {
           executed++;
           return "unexpected";
         },
@@ -230,7 +230,7 @@ test("executor errors are sent back to Cloud and the final allowed round disable
     maxRounds: 1,
     firstStream: events([...call(), { type: "response.completed" }]),
     tools: {
-      sales_dashboard: async () => {
+      query_sales: async () => {
         throw new Error("Unsupported country");
       },
     },
@@ -257,7 +257,7 @@ test("persisted Cloud continuations send only new tool outputs to the same conve
     client,
     createParams: { ...params, conversation: "saved-conversation", store: true },
     firstStream: events([...call(), { type: "response.completed" }]),
-    tools: { sales_dashboard: async () => '{"sales":"£9,581.05"}' },
+    tools: { query_sales: async () => '{"sales":"£9,581.05"}' },
     enqueue: () => {},
   });
   assert.equal(continuation?.conversation, "saved-conversation");

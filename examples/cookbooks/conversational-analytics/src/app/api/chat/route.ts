@@ -4,8 +4,8 @@ import { openDatabase } from "../../../lib/analytics";
 import { parseChatRequest } from "../../../lib/chat-request";
 import { localDemoAccess, ownsConversation } from "../../../lib/cloud-session";
 import { streamCloudTurn } from "../../../lib/cloud-stream";
-import { dashboardPrompt } from "../../../lib/prompt";
-import { executeSalesDashboard, salesDashboardTool } from "../../../lib/sales-tool";
+import { analyticsPrompt } from "../../../lib/prompt";
+import { executeSalesQuery, salesQueryTool } from "../../../lib/sales-tool";
 
 export const runtime = "nodejs";
 
@@ -77,11 +77,11 @@ export async function POST(request: Request) {
   });
   const createParams: ResponseCreateParamsNonStreaming = {
     model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-    instructions: dashboardPrompt(countries),
+    instructions: analyticsPrompt(countries),
     input: body.input,
     conversation: body.threadId,
     store: true,
-    tools: [salesDashboardTool(countries)],
+    tools: [salesQueryTool(countries)],
     max_output_tokens: 6000,
   };
   // Open Cloud inside the stream so local headers flush immediately.
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
         client: cloud,
         createParams,
         firstStream: firstStream(),
-        tools: { sales_dashboard: executeSalesDashboard },
+        tools: { query_sales: executeSalesQuery },
         maxRounds: 3,
       },
       abort,

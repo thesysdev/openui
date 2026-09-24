@@ -188,7 +188,7 @@ describe("nested docs navigation", () => {
           { type: "separator", name: "Recipes" },
           {
             type: "page",
-            name: "Conversational analytics dashboard",
+            name: "Conversational analytics",
             url: "/docs/cookbooks/conversational-analytics",
           },
         ],
@@ -259,7 +259,7 @@ describe("nested docs navigation", () => {
         { type: "separator", name: "Recipes" },
         {
           type: "page",
-          name: "Conversational analytics dashboard",
+          name: "Conversational analytics",
           url: "/docs/cookbooks/conversational-analytics",
         },
       ],

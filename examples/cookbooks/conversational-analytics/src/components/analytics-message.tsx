@@ -6,7 +6,7 @@ import { useState } from "react";
 import { extractProgram } from "../lib/openui-content";
 import { library } from "../library";
 
-export function DashboardMessage({
+export function AnalyticsMessage({
   message,
   isStreaming,
 }: {

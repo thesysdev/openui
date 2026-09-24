@@ -62,7 +62,7 @@
     },
     {
       "title": "Conversational analytics",
-      "description": "Stream OpenUI Cloud dashboards and inspect database tool calls over the real UCI Online Retail dataset.",
+      "description": "Stream visual answers with OpenUI Cloud and inspect database tool calls over the real UCI Online Retail dataset.",
       "path": "cookbooks/conversational-analytics",
       "envKey": "THESYS_API_KEY"
     },

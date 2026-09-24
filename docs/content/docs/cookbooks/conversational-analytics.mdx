@@ -1,12 +1,13 @@
 ---
-title: Conversational analytics dashboard
-description: Stream sales dashboards with visible tool calls over a real retail dataset.
+title: Conversational analytics
+description: Stream visual answers to sales questions with visible tool calls over a real retail dataset.
 ---
 
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 import { ArrowUpRight, Github } from "lucide-react";
+import { CookbookAnalyticsFlow } from "@/components/cookbook-analytics-flow";
 
-Build a sales assistant with Agent Interface that answers “Why did gross sales fall in February 2011?” with metric cards, a daily trend, and a product comparison. Watch its database tool call, then see the dashboard appear as OpenUI Cloud streams the response. Ask “Now show Germany as a bar chart” to query a new scope using the conversation context.
+Build a sales assistant with Agent Interface that answers “Why did gross sales fall in February 2011?” with metric cards, a daily trend, and a product comparison. Watch its database tool call, then see the answer take shape as OpenUI Cloud streams the response. Ask “Now show Germany as a bar chart” to query a new scope using the conversation context.
 
 This recipe uses the [UCI Online Retail dataset](https://archive.ics.uci.edu/dataset/352/online+retail): 541,909 real invoice lines from a UK retailer. The original download is public and licensed under CC BY 4.0.
 
@@ -28,26 +29,13 @@ This recipe uses the [UCI Online Retail dataset](https://archive.ics.uci.edu/dat
 
 ## What you'll build
 
-OpenUI Cloud calls a server-side `sales_dashboard` function through its [Gateway API](/docs/gateway/generate-openui-lang). The function validates the country and month, queries local SQLite, and returns real aggregates. Cloud uses those values to generate OpenUI Lang. Agent Interface displays the tool activity and renders the answer as it streams.
+An assistant that queries your data and presents an answer tailored to the question.
 
-<Mermaid
-  look="handDrawn"
-  chart={`flowchart TB
-  accTitle: Conversational analytics architecture
-  accDescr: Agent Interface sends a question to the chat route. OpenUI Cloud requests the sales dashboard tool, which reads SQLite. The tool result goes back to Cloud. Tool events and generated UI stream through the chat route to Agent Interface.
-  A[Agent Interface] -->|Question or follow-up| B[Chat route]
-  B --> C[OpenUI Cloud Gateway]
-  C -->|Function call| D[sales_dashboard]
-  D -->|Read-only SQL| E[(Local SQLite)]
-  E -->|Aggregates| D
-  D -->|Tool result| C
-  C -->|Stream OpenUI Lang| B
-  B -->|Tool activity + UI| A`}
-/>
+<CookbookAnalyticsFlow />
+
+Follow-up questions can change the country, month, or presentation while retaining the conversation’s context.
 
 Conversation history is stored in OpenUI Cloud and remains available across page reloads and local server restarts.
-
-Country and month are tool arguments selected from the question. Change them by asking a follow-up. This example has no interactive filter controls and no browser-side data queries.
 
 ## Run the example
 
@@ -111,7 +99,7 @@ See [prepare_data.py](https://github.com/thesysdev/openui/blob/main/examples/coo
 
 ## 2. Expose one read-only query
 
-Give the model one narrow function tool named `sales_dashboard`. Its arguments are a supported month and a country from the dataset:
+Give the model one narrow function tool named `query_sales`. Its arguments are a supported month and a country from the dataset:
 
 ```json
 { "month": "2011-02", "country": "Germany" }
@@ -143,7 +131,7 @@ The implementation lives in [analytics.ts](https://github.com/thesysdev/openui/b
 
 ## 3. Choose the components
 
-Start with the built-in library. This dashboard needs layout, cards, text, charts, and a table:
+Start with the built-in library. Visual answers can use layout, cards, text, charts, and tables:
 
 ```ts title="src/library.ts"
 import { createLibrary } from "@openuidev/react-lang";
@@ -178,10 +166,10 @@ The script uses `openui generate src/library.ts --spec --out src/generated/spec.
 A Responses function tool gives the model a typed interface to the query. Its JSON schema limits the month and country to the dataset's supported values:
 
 ```ts title="src/lib/sales-tool.ts"
-export function salesDashboardTool(countries: string[]) {
+export function salesQueryTool(countries: string[]) {
   return {
     type: "function" as const,
-    name: "sales_dashboard",
+    name: "query_sales",
     description: "Query retail sales, the prior month, daily trends, and product changes.",
     parameters: {
       type: "object",
@@ -200,11 +188,11 @@ export function salesDashboardTool(countries: string[]) {
 The model requests the tool; your server executes it. Validate the arguments again before touching SQLite, even though the model received a schema:
 
 ```ts
-export async function executeSalesDashboard(argsJson: string) {
+export async function executeSalesQuery(argsJson: string) {
   const args = salesQuerySchema.parse(JSON.parse(argsJson));
   const db = openDatabase();
   try {
-    return JSON.stringify(queryDashboard(db, args));
+    return JSON.stringify(querySales(db, args));
   } finally {
     db.close();
   }
@@ -247,7 +235,7 @@ const storage = useOpenuiCloudStorage({
   llm={chatLLM}
   storage={storage}
   componentLibrary={library}
-  components={{ AssistantMessage: DashboardMessage }}
+  components={{ AssistantMessage: AnalyticsMessage }}
   agentName="Data analyst"
   theme={{ mode: "light" }}
 >
@@ -263,7 +251,7 @@ const storage = useOpenuiCloudStorage({
 
 The local defaults are `DEMO_USER_ID=local-demo` and `APP_ID=conversational-analytics-cookbook`. Keep these values stable so reloads and server restarts show the same conversations. Use a different app id for an independent copy.
 
-The [full chat component](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/components/retail-chat.tsx) adds concrete starter questions. Source attribution sits below generated answers. Agent Interface owns the theme; the [layout](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/layout.tsx) imports its styles once.
+Agent Interface owns the theme; the [layout](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/layout.tsx) imports its styles once.
 
 The assistant-message override is small: it removes Cloud's content envelope and any opening code fence as soon as it arrives, then passes the growing program to `Renderer`:
 
@@ -275,7 +263,7 @@ The assistant-message override is small: it removes Cloud's content envelope and
 />
 ```
 
-Do not wait for a closing code fence or the complete response. OpenUI can render resolved components while later definitions are still streaming. The [dashboard message](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/components/dashboard-message.tsx) also shows rendering errors and lets readers inspect the generated source. It contains no data-query handler or filter state.
+Do not wait for a closing code fence or the complete response. OpenUI can render resolved components while later definitions are still streaming. The [analytics message](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/components/analytics-message.tsx) also shows rendering errors and lets readers inspect the generated source.
 
 ## 6. Continue Cloud generation after tool execution
 
@@ -290,10 +278,10 @@ const cloud = new OpenAI({
 });
 const createParams = {
   model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-  instructions: dashboardPrompt(countries),
+  instructions: analyticsPrompt(countries),
   input: body.input,
   conversation: body.threadId,
-  tools: [salesDashboardTool(countries)],
+  tools: [salesQueryTool(countries)],
   store: true,
   max_output_tokens: 6000,
 };
@@ -306,7 +294,7 @@ await runFunctionToolLoop({
   client: cloud,
   createParams,
   firstStream,
-  tools: { sales_dashboard: executeSalesDashboard },
+  tools: { query_sales: executeSalesQuery },
   enqueue,
   signal: abort.signal,
   maxRounds: 3,
@@ -317,7 +305,7 @@ The loop forwards tool calls, tool outputs, and text deltas as Responses Server-
 
 The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) opens the first Cloud response inside the outgoing stream, so headers flush immediately. [Stream forwarding](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/cloud-stream.ts) disables proxy buffering and propagates the browser's stop signal through the [tool loop](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/tool-loop.ts).
 
-Cloud returns a data-backed program with literal values and chart arrays. A follow-up such as **“Now show Germany as a bar chart”** triggers a fresh database call and streams a new answer. The model uses the conversation to retain February 2011. No filter widgets or runtime `Query` expressions are involved.
+Cloud returns a data-backed program with literal values and chart arrays. A follow-up such as **“Now show Germany as a bar chart”** triggers a fresh database call and streams a new answer. The model uses the conversation to retain February 2011.
 
 ## 7. Handle incomplete and empty states
 
@@ -354,12 +342,12 @@ npm run verify:data
 
 In the browser:
 
-1. Ask **“Why did gross sales fall in February 2011?”**. Expand **Behind the scenes** and the `sales_dashboard` row to inspect its month, country, and returned aggregates.
+1. Ask **“Why did gross sales fall in February 2011?”**. Expand **Behind the scenes** and the `query_sales` row to inspect its month, country, and returned aggregates.
 2. Confirm metric cards appear while the response is still generating, before the full table is complete.
 3. Ask **“Now show Germany as a bar chart.”** Confirm a new tool call uses Germany and February 2011, and the answer matches the Germany totals above.
 4. Ask **“Show Saudi Arabia in April 2011.”** The answer should explain that there are no eligible sales.
 5. Stop a generation, then ask another question to confirm recovery.
-6. Switch to **New Chat** and reopen the previous conversation. Reload the page and restart the local server, then reopen the conversation from the sidebar. Its messages, dashboard, and tool activity should still be available.
+6. Switch to **New Chat** and reopen the previous conversation. Reload the page and restart the local server, then reopen the conversation from the sidebar. Its messages, visual answers, and tool activity should still be available.
 
 Generated layouts can vary. The tool's arguments and returned values are the source for checking each answer.
 
