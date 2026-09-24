@@ -103,9 +103,9 @@ const integrationCatalog: Integration[] = [
           "Run openui generate --spec on the library file. The chat route passes that spec to generateSystemPrompt({ cloud: true }), so the model can only call components the client can render.",
       },
       {
-        title: "Render in AgentInterface",
+        title: "Render the responses",
         description:
-          "Pass the library to AgentInterface as componentLibrary and parse the Chat Completions stream with openAIAdapter(). Each streamed node renders as a shadcn/ui component.",
+          "Pass the library to Renderer from @openuidev/react-lang wherever your app shows model output. For a ready-made chat app, the example passes it to AgentInterface as componentLibrary instead.",
       },
     ],
     links: [
@@ -142,7 +142,7 @@ const integrationCatalog: Integration[] = [
       {
         title: "Render inside your MUI theme",
         description:
-          "Render AgentInterface with the MUI library inside your ThemeProvider, so generated components use the app's theme and light or dark mode.",
+          "Render responses with Renderer, or with AgentInterface as the example does, inside your MUI ThemeProvider. Generated components then use the app's theme and light or dark mode.",
       },
     ],
     links: [
@@ -232,7 +232,7 @@ const integrationCatalog: Integration[] = [
     summary:
       "Connect LangChain and LangGraph to OpenUI through first-party server and stream adapters.",
     howItWorks:
-      "The @openuidev/langchain package transforms LangGraph protocol-v2 events into AG-UI on the server, then agUIAdapter() consumes the stream in AgentInterface. If your backend already returns native LangGraph named-event SSE, use the bundled langGraphAdapter() and langGraphMessageFormat instead.",
+      "The @openuidev/langchain package transforms LangGraph protocol-v2 events into AG-UI on the server, then agUIAdapter() consumes the stream on the client. If your backend already returns native LangGraph named-event SSE, use the bundled langGraphAdapter() and langGraphMessageFormat instead.",
     install: "npm install @openuidev/langchain @langchain/langgraph",
     steps: [
       {
@@ -246,9 +246,9 @@ const integrationCatalog: Integration[] = [
           "Return createLangChainStreamResponse(request, options) from a server route. It starts a protocol-v2 run and relays the output as AG-UI SSE while the API key and deployment URL stay on the server.",
       },
       {
-        title: "Connect AgentInterface",
+        title: "Connect your chat UI",
         description:
-          "Point fetchLLM at the route with agUIAdapter(). If your backend already returns native LangGraph named-event SSE, use langGraphAdapter() with langGraphMessageFormat instead.",
+          "Point fetchLLM at the route with agUIAdapter(), then pass it to AgentInterface for a ready-made chat app or to ChatProvider from @openuidev/react-headless for your own UI. For native LangGraph named-event SSE, use langGraphAdapter() with langGraphMessageFormat instead.",
       },
     ],
     links: [
@@ -275,7 +275,7 @@ const integrationCatalog: Integration[] = [
     summary:
       "Connect Vercel AI SDK UIMessage streams to OpenUI with OpenUI's bundled first-party adapter and message format.",
     howItWorks:
-      "Return the UIMessage SSE produced by streamText().toUIMessageStreamResponse(), then use vercelAIAdapter() with vercelAIMessageFormat in AgentInterface. OpenUI validates AI SDK v6 or v7 chunks and maps streamed text, tool inputs, tool results, multi-step lifecycles, and errors into AG-UI events.",
+      "Return the UIMessage SSE produced by streamText().toUIMessageStreamResponse(), then use vercelAIAdapter() with vercelAIMessageFormat on the client. OpenUI validates AI SDK v6 or v7 chunks and maps streamed text, tool inputs, tool results, multi-step lifecycles, and errors into AG-UI events.",
     install: "npm install @openuidev/react-ui ai",
     steps: [
       {
@@ -289,9 +289,9 @@ const integrationCatalog: Integration[] = [
           "Create the client connection with fetchLLM({ streamAdapter: vercelAIAdapter(), messageFormat: vercelAIMessageFormat }).",
       },
       {
-        title: "Render in AgentInterface",
+        title: "Connect your chat UI",
         description:
-          "Pass that llm to AgentInterface. Streamed text, tool inputs and results, and multi-step runs render in the chat as they arrive.",
+          "Pass that llm to AgentInterface for a ready-made chat app, or to ChatProvider from @openuidev/react-headless to build your own UI. Either way, streamed text, tool calls, and multi-step runs arrive as the same chat events.",
       },
     ],
     links: [
@@ -317,9 +317,9 @@ const integrationCatalog: Integration[] = [
     category: "ai-frameworks",
     type: "Agent SDK",
     summary:
-      "Bridge Google ADK for TypeScript run events into AgentInterface with tools and multi-turn sessions.",
+      "Bridge Google ADK for TypeScript run events into OpenUI with tools and multi-turn sessions.",
     howItWorks:
-      "A Google ADK Agent and FunctionTool run in a Next.js route. The route maps ADK runAsync events to AG-UI SSE, which agUIAdapter() parses for AgentInterface.",
+      "A Google ADK Agent and FunctionTool run in a Next.js route. The route maps ADK runAsync events to AG-UI SSE, which agUIAdapter() parses on the client.",
     steps: [
       {
         title: "Define the agent",
@@ -332,9 +332,9 @@ const integrationCatalog: Integration[] = [
           "Run the agent with a Runner whose sessions are keyed by chat thread, and map text, functionCall, and functionResponse parts to AG-UI text and tool events.",
       },
       {
-        title: "Render in AgentInterface",
+        title: "Connect your chat UI",
         description:
-          "Use fetchLLM with agUIAdapter() so AgentInterface renders the streamed OpenUI Lang and keeps multi-turn history per thread.",
+          "Create an llm with fetchLLM and agUIAdapter(), then pass it to AgentInterface for a ready-made chat app or to ChatProvider from @openuidev/react-headless for your own UI.",
       },
     ],
     links: [
@@ -349,9 +349,9 @@ const integrationCatalog: Integration[] = [
     category: "ai-frameworks",
     type: "Agent framework",
     summary:
-      "Connect a Mastra agent to AgentInterface over AG-UI and render its streamed output as typed interfaces.",
+      "Connect a Mastra agent to OpenUI over AG-UI and render its streamed output as typed interfaces.",
     howItWorks:
-      "Mastra owns the agent and tools, the AG-UI transport serializes the run as SSE, and OpenUI's agUIAdapter drives AgentInterface and the component renderer on the client.",
+      "Mastra owns the agent and tools, the AG-UI transport serializes the run as SSE, and OpenUI's agUIAdapter drives the chat state and component renderer on the client.",
     steps: [
       {
         title: "Build the Mastra agent",
@@ -364,9 +364,9 @@ const integrationCatalog: Integration[] = [
           "Wrap the agent with MastraAgent from @ag-ui/mastra in a server route and stream its AG-UI events to the browser as SSE.",
       },
       {
-        title: "Render in AgentInterface",
+        title: "Connect your chat UI",
         description:
-          "Set agUIAdapter() as the stream adapter in the llm you pass to AgentInterface. Storage is optional and defaults to in-memory threads.",
+          "Create an llm with fetchLLM and agUIAdapter(), then pass it to AgentInterface for a ready-made chat app or to ChatProvider from @openuidev/react-headless for your own UI.",
       },
     ],
     links: [
@@ -445,7 +445,7 @@ const integrationCatalog: Integration[] = [
       {
         title: "Connect the adapter",
         description:
-          "Point fetchLLM, or your own ChatLLM implementation, at that endpoint with agUIAdapter() as the stream adapter, and pass it to AgentInterface.",
+          "Point fetchLLM, or your own ChatLLM implementation, at that endpoint with agUIAdapter() as the stream adapter. Pass it to AgentInterface for a ready-made chat app, or to ChatProvider from @openuidev/react-headless for your own UI.",
       },
     ],
     links: [
@@ -514,7 +514,7 @@ const integrationCatalog: Integration[] = [
       {
         title: "Map events with eveAdapter()",
         description:
-          "Use eveAdapter() from @openuidev/react-headless as the stream protocol of the llm you pass to AgentInterface. It converts Eve text, tool call, and failure events into AG-UI.",
+          "Use eveAdapter() from @openuidev/react-headless as the llm's stream protocol. It converts Eve text, tool call, and failure events into AG-UI for AgentInterface or your own UI built on ChatProvider.",
       },
     ],
     links: [
@@ -551,7 +551,7 @@ const integrationCatalog: Integration[] = [
       {
         title: "Render with the NDJSON adapter",
         description:
-          "Use openAIReadableStreamAdapter() in AgentInterface with openuiLibrary to render the answers, reasoning, and tool activity.",
+          "Parse the stream with openAIReadableStreamAdapter(), then render the answers, reasoning, and tool activity with AgentInterface or your own UI built on ChatProvider.",
       },
     ],
     links: [
