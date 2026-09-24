@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-export const chatRequestSchema = z.strictObject({
+const chatRequestSchema = z.strictObject({
   threadId: z.string().min(1).max(200),
   input: z.tuple([
     z.strictObject({

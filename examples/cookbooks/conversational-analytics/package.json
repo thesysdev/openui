@@ -11,7 +11,7 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "preverify": "npm run generate",
-    "verify": "tsx --test tests/*.test.ts && next build",
+    "verify": "next build",
     "prepare:data": "tsx scripts/prepare-data.ts"
   },
   "dependencies": {

@@ -28,12 +28,11 @@ const lapSchema = z.object({
   lap_number: z.number().int().positive(),
   lap_duration: z.number().positive().nullable(),
 });
-export const raceDataSchema = z.object({
+const raceDataSchema = z.object({
   sessions: z.array(sessionSchema).length(1),
   drivers: z.array(driverSchema).min(1),
   laps: z.array(lapSchema).min(1),
 });
-export type RaceData = z.infer<typeof raceDataSchema>;
 export type Driver = { number: number; name: string; acronym: string; team: string };
 
 export function importRaceData(db: DatabaseSync, input: unknown) {

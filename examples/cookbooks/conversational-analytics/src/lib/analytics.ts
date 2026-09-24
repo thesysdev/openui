@@ -5,7 +5,7 @@ import { raceQuerySchema } from "./query-args";
 import { listDrivers, race } from "./race-data";
 
 type Lap = { driver_number: number; lap_number: number; duration_ms: number };
-export function formatLapTime(ms: number) {
+function formatLapTime(ms: number) {
   return `${Math.floor(ms / 60000)}:${((ms % 60000) / 1000).toFixed(3).padStart(6, "0")}`;
 }
 export function openDatabase() {

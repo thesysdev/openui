@@ -81,7 +81,7 @@ Data is fetched from [OpenF1](https://openf1.org/docs/) at setup time and is not
 npm run verify
 ```
 
-`verify` needs neither credentials nor a download. It covers source validation, ranking and range queries, missing-time alignment, tool events, stream errors/cancellation, stored continuations, local access boundaries, parsing, and the production build.
+`verify` generates the component specification and runs a production build with type checking. It needs neither credentials nor a download.
 
 In the browser, inspect `query_race` under **Behind the scenes**, watch partial responses appear during generation, follow up with a narrower lap range, stop and retry, and reopen the conversation after a reload or server restart.
 
