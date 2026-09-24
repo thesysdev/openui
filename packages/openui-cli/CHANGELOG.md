@@ -1,5 +1,11 @@
 # @openuidev/cli
 
+## 0.4.1
+
+### Patch Changes
+
+- [#1223](https://github.com/thesysdev/openui/pull/1223) [`b7d6a72`](https://github.com/thesysdev/openui/commit/b7d6a72c4d49ca38b0292c19452b28eecd1aa0cc) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Add a preflight git check with per-OS install hints, retry network failures with backoff during source checkout, catalog fetch, and dependency installation, and record retry attempts in failure telemetry alongside a new `cli_network_retry` event.
+
 ## 0.4.0
 
 ### Minor Changes
