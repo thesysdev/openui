@@ -101,27 +101,33 @@ The [query implementation](https://github.com/thesysdev/openui/blob/main/example
 
 ## 3. Choose the components
 
-Use a small selection from the built-in library:
+Use a small selection from the built-in library, plus the chat library's follow-up suggestions:
 
 ```ts title="src/library.ts"
 import { createLibrary } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { openuiChatLibrary, openuiLibrary } from "@openuidev/react-ui/genui-lib";
 
 export const library = createLibrary({
   root: "Stack",
   components: [
-    "Stack",
-    "Card",
-    "CardHeader",
-    "TextContent",
-    "LineChart",
-    "BarChart",
-    "Series",
-    "Table",
-    "Col",
-  ].map((name) => openuiLibrary.components[name]),
+    ...[
+      "Stack",
+      "Card",
+      "CardHeader",
+      "TextContent",
+      "LineChart",
+      "BarChart",
+      "Series",
+      "Table",
+      "Col",
+    ].map((name) => openuiLibrary.components[name]),
+    openuiChatLibrary.components.FollowUpBlock,
+    openuiChatLibrary.components.FollowUpItem,
+  ],
 });
 ```
+
+Clicking a follow-up sends its text as the next question.
 
 Generate the server specification from the same library used by the renderer:
 
