@@ -83,6 +83,7 @@ export const LineChart = <T extends LineChartData>({
   width,
   strokeWidth = 2,
 }: LineChartProps<T>) => {
+  const safeData = (data ?? []) as T;
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 
@@ -355,7 +356,7 @@ export const LineChart = <T extends LineChartData>({
                 <RechartsLineChart
                   accessibilityLayer
                   key={`line-chart-${id}`}
-                  data={data}
+                  data={safeData}
                   margin={{
                     top: 20,
                     bottom: CHART_CONTAINER_BOTTOM_MARGIN,

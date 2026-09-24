@@ -276,7 +276,7 @@ const HorizontalBarChartComponent = <T extends HorizontalBarChartData>({
         >
           <RechartsBarChart
             key={`x-axis-horizontal-bar-chart-${id}`}
-            data={data}
+            data={data ?? []}
             layout="vertical"
             margin={{
               top: 0,
@@ -379,7 +379,7 @@ const HorizontalBarChartComponent = <T extends HorizontalBarChartData>({
                   <RechartsBarChart
                     accessibilityLayer
                     key={`horizontal-bar-chart-${id}`}
-                    data={data}
+                    data={data ?? []}
                     layout="vertical"
                     onClick={onBarsClick}
                     onMouseMove={handleChartMouseMove}

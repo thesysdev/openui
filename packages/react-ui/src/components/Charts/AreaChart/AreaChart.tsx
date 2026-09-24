@@ -276,7 +276,7 @@ const AreaChartComponent = <T extends AreaChartData>({
           key={`y-axis-chart-${id}`}
           width={yAxisWidth}
           height={chartHeight}
-          data={data}
+          data={data ?? []}
           margin={{
             top: 20,
             bottom: maxLabelHeight + CHART_CONTAINER_BOTTOM_MARGIN, // this is required for to give space for x-axis
@@ -342,7 +342,7 @@ const AreaChartComponent = <T extends AreaChartData>({
                 <RechartsAreaChart
                   accessibilityLayer
                   key={`area-chart-${id}`}
-                  data={data}
+                  data={data ?? []}
                   margin={{
                     top: 20,
                     bottom: CHART_CONTAINER_BOTTOM_MARGIN,

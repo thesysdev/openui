@@ -93,28 +93,29 @@ const BarChartCondensedComponent = <T extends BarChartData>({
   width,
   maxBarWidth = DEFAULT_MAX_BAR_WIDTH,
 }: BarChartCondensedProps<T>) => {
+  const safeData = (data ?? []) as T;
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 
   const dataKeys = useMemo(() => {
     return getDataKeys(data, categoryKey as string);
-  }, [data, categoryKey]);
+  }, [safeData, categoryKey]);
 
-  const { yAxisWidth, setLabelWidth } = useYAxisLabelWidth(data, dataKeys);
+  const { yAxisWidth, setLabelWidth } = useYAxisLabelWidth(safeData, dataKeys);
 
-  const maxLabelWidth = useMaxLabelWidth(data, categoryKey as string);
+  const maxLabelWidth = useMaxLabelWidth(safeData, categoryKey as string);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartContainerWidth, setChartContainerWidth] = useState<number>(0);
 
   const widthOfData = useMemo(() => {
-    if (data.length === 0) {
+    if (safeData.length === 0) {
       return 0;
     }
     // Use passed width if available, otherwise use observed chartContainerWidth
     const chartWidth = width ?? chartContainerWidth;
     return chartWidth / data.length;
-  }, [chartContainerWidth, data, width]);
+  }, [chartContainerWidth, safeData, width]);
 
   const { angle: calculatedAngle, height: xAxisHeight } = useAutoAngleCalculation(
     maxLabelWidth,
@@ -325,7 +326,7 @@ const BarChartCondensedComponent = <T extends BarChartData>({
           key={`y-axis-bar-chart-condensed-${id}`}
           width={yAxisWidth}
           height={effectiveHeight}
-          data={data}
+          data={safeData}
           stackOffset="sign"
           margin={{
             top: chartMargin.top,
@@ -464,7 +465,7 @@ const BarChartCondensedComponent = <T extends BarChartData>({
                   stackOffset="sign"
                   accessibilityLayer
                   key={`bar-chart-condensed-${id}`}
-                  data={data}
+                  data={safeData}
                   margin={chartMargin}
                   barGap={BAR_GAP}
                   barCategoryGap={BAR_CATEGORY_GAP}
