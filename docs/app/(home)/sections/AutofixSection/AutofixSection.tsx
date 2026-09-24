@@ -4,10 +4,19 @@ import { BevelButton } from "../../components/Button/BevelButton";
 import styles from "./AutofixSection.module.css";
 
 const PROVIDERS = [
-  { name: "OpenRouter", icon: "/brand-icons/openrouter.svg" },
-  { name: "Microsoft Azure", icon: "/brand-icons/azure.svg" },
-  { name: "Amazon Bedrock", icon: "/brand-icons/bedrock.svg" },
-  { name: "Vercel AI Gateway", icon: "/brand-icons/vercel.svg" },
+  {
+    name: "OpenRouter",
+    icon: "/brand-icons/openrouter-glyph.svg",
+    darkIcon: "/brand-icons/openrouter-glyph-dark.svg",
+    markClass: styles.openRouterMark,
+  },
+  { name: "Microsoft Azure", icon: "/brand-icons/azure.svg", markClass: styles.azureMark },
+  { name: "Amazon Bedrock", icon: "/brand-icons/bedrock.svg", markClass: styles.bedrockMark },
+  {
+    name: "Vercel AI Gateway",
+    icon: "/brand-icons/vercel.svg",
+    markClass: styles.vercelMark,
+  },
 ] as const;
 
 export function AutofixSection({
@@ -34,11 +43,26 @@ export function AutofixSection({
                   <span
                     className={styles.providerLogo}
                     key={provider.name}
-                    title={provider.name}
+                    data-tooltip={provider.name}
                     aria-label={provider.name}
                     tabIndex={0}
                   >
-                    <Image src={provider.icon} alt="" width={18} height={18} />
+                    <Image
+                      className={`${provider.markClass} ${"darkIcon" in provider ? styles.providerLogoLight : ""}`.trim()}
+                      src={provider.icon}
+                      alt=""
+                      width={18}
+                      height={18}
+                    />
+                    {"darkIcon" in provider ? (
+                      <Image
+                        className={`${provider.markClass} ${styles.providerLogoDark}`}
+                        src={provider.darkIcon}
+                        alt=""
+                        width={18}
+                        height={18}
+                      />
+                    ) : null}
                   </span>
                 ))}
               </span>
