@@ -1,10 +1,5 @@
-// Illustrative layout for prompting and parser tests, not a database response.
-// A real answer replaces every illustrative value with a function-tool result.
-export const exampleProgram = `root = Stack([heading, metrics, trend, products], "column", "l")
-heading = TextContent("Example sales layout", "large-heavy")
-metrics = Stack([sales, orders], "row", "m", "stretch", "start", true)
-sales = Card([TextContent("Gross sales", "small"), TextContent("£125.00", "large-heavy")])
-orders = Card([TextContent("Orders", "small"), TextContent("5", "large-heavy")])
-trend = Card([CardHeader("Daily gross sales", "Gross sales in GBP"), LineChart(["2011-02-01", "2011-02-02"], [Series("Gross sales (GBP)", [50, 75])])])
-products = Table([Col("Product", ["Example product"]), Col("Previous month", ["£100.00"]), Col("Selected month", ["£50.00"]), Col("Change", ["-£50.00"])])
+// Syntax guidance only. Real answers use values returned by query_race.
+export const exampleProgram = `root = Stack([heading, comparison], "column", "l")
+heading = TextContent("Example lap-time comparison", "large-heavy")
+comparison = Card([CardHeader("Driver comparison", "Positive: Driver A faster; negative: Driver B faster. Illustrative values."), LineChart(["1", "2", "3"], [Series("Driver B minus Driver A", [0.9, 0.2, -0.2])], "linear", "Lap", "Lap time difference (seconds)")])
 `;

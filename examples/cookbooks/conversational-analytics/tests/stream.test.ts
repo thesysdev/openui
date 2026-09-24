@@ -12,7 +12,7 @@ async function* events(items: Event[]) {
 }
 const params = {
   model: "test",
-  input: [{ role: "user" as const, content: "February sales" }],
+  input: [{ role: "user" as const, content: "Fastest laps" }],
   store: false,
 };
 const noContinuation = {
@@ -31,13 +31,13 @@ async function read(items: Event[]) {
   );
   return Array.fromAsync(openAIResponsesAdapter().parse(response));
 }
-function call(name = "query_sales", id = "call") {
+function call(name = "query_race", id = "call") {
   const item = {
     id,
     call_id: id,
     type: "function_call",
     name,
-    arguments: '{"month":"2011-02","country":"Germany"}',
+    arguments: '{"view":"fastest_laps","driver_numbers":[],"lap_start":1,"lap_end":57,"limit":5}',
   };
   return [
     { type: "response.output_item.added", item: { ...item, arguments: "" } },
@@ -59,7 +59,7 @@ test("real tool calls and outputs reach the native adapter before streamed answe
             item: { id: "answer", type: "message", role: "assistant" },
           },
           { type: "response.output_text.delta", item_id: "answer", delta: 'root = TextContent("' },
-          { type: "response.output_text.delta", item_id: "answer", delta: '£9,581.05")' },
+          { type: "response.output_text.delta", item_id: "answer", delta: '1:30.634")' },
           { type: "response.output_text.done", item_id: "answer" },
           { type: "response.completed" },
         ]);
@@ -73,9 +73,9 @@ test("real tool calls and outputs reach the native adapter before streamed answe
         createParams: params,
         firstStream: events([...call(), { type: "response.completed" }]),
         tools: {
-          query_sales: async (args) => {
-            assert.equal(JSON.parse(args).country, "Germany");
-            return '{"sales":"£9,581.05"}';
+          query_race: async (args) => {
+            assert.equal(JSON.parse(args).view, "fastest_laps");
+            return '{"time":"1:30.634"}';
           },
         },
       },
@@ -83,12 +83,12 @@ test("real tool calls and outputs reach the native adapter before streamed answe
     ),
   );
   const parsed = await Array.fromAsync(openAIResponsesAdapter().parse(response));
-  const types = parsed.map((event) => event.type);
+  const types: string[] = parsed.map((event) => event.type);
   assert.ok(types.indexOf("TOOL_CALL_START") < types.indexOf("TOOL_CALL_RESULT"));
   assert.ok(types.indexOf("TOOL_CALL_RESULT") < types.indexOf("TEXT_MESSAGE_CONTENT"));
   assert.equal(types.filter((type) => type === "TEXT_MESSAGE_CONTENT").length, 2);
   const history = continuation!.input as Event[];
-  assert.equal(history[0].content, "February sales");
+  assert.equal(history[0].content, "Fastest laps");
   assert.equal(history[1].type, "function_call");
   assert.equal(history[2].type, "function_call_output");
   assert.equal(history[2].call_id, "call");
@@ -103,7 +103,7 @@ test("streamed program is available before the response closes", async () => {
     yield {
       type: "response.output_text.delta",
       item_id: "answer",
-      delta: ']]>openui:content\n```openui-lang\nroot = TextContent("Sales")\n',
+      delta: ']]>openui:content\n```openui-lang\nroot = TextContent("Lap times")\n',
     };
     await pending;
     yield { type: "response.completed" };
@@ -119,7 +119,7 @@ test("streamed program is available before the response closes", async () => {
   const token = (await iterator.next()).value;
   assert.equal(token?.type, "TEXT_MESSAGE_CONTENT");
   if (token?.type === "TEXT_MESSAGE_CONTENT")
-    assert.equal(extractProgram(token.delta), 'root = TextContent("Sales")');
+    assert.equal(extractProgram(token.delta), 'root = TextContent("Lap times")');
   finish();
   await iterator.next();
 });
@@ -140,7 +140,7 @@ test("Cloud-owned and already-settled calls are never executed again", async () 
       { type: "response.completed" },
     ]),
     tools: {
-      query_sales: async () => {
+      query_race: async () => {
         executed++;
         return "unexpected";
       },
@@ -185,7 +185,7 @@ test("cancelling the response aborts Cloud and prevents a pending tool from exec
       createParams: params,
       firstStream: waiting(),
       tools: {
-        query_sales: async () => {
+        query_race: async () => {
           executed++;
           return "unexpected";
         },
@@ -201,7 +201,7 @@ test("cancelling the response aborts Cloud and prevents a pending tool from exec
 });
 
 test("Cloud envelopes and incomplete code fences do not block rendering", () => {
-  const program = 'root = TextContent("Sales")';
+  const program = 'root = TextContent("Lap times")';
   for (const suffix of ["", "\n`", "\n``", "\n```", "\n```\n]]>openui:end"]) {
     assert.equal(
       extractProgram(`]]>openui:content?thesys=true\n\`\`\`openui-lang\n${program}${suffix}`),
@@ -230,14 +230,14 @@ test("executor errors are sent back to Cloud and the final allowed round disable
     maxRounds: 1,
     firstStream: events([...call(), { type: "response.completed" }]),
     tools: {
-      query_sales: async () => {
-        throw new Error("Unsupported country");
+      query_race: async () => {
+        throw new Error("Unsupported driver");
       },
     },
   });
   assert.equal(continuation!.tool_choice, "none");
   const history = continuation!.input as Event[];
-  assert.match(String(history.at(-1)?.output), /Unsupported country/);
+  assert.match(String(history.at(-1)?.output), /Unsupported driver/);
   assert.ok(
     forwarded.some((event) => (event.item as Event | undefined)?.type === "function_call_output"),
   );
@@ -257,12 +257,12 @@ test("persisted Cloud continuations send only new tool outputs to the same conve
     client,
     createParams: { ...params, conversation: "saved-conversation", store: true },
     firstStream: events([...call(), { type: "response.completed" }]),
-    tools: { query_sales: async () => '{"sales":"£9,581.05"}' },
+    tools: { query_race: async () => '{"time":"1:30.634"}' },
     enqueue: () => {},
   });
   assert.equal(continuation?.conversation, "saved-conversation");
   assert.equal(continuation?.store, true);
   assert.deepEqual(continuation?.input, [
-    { type: "function_call_output", call_id: "call", output: '{"sales":"£9,581.05"}' },
+    { type: "function_call_output", call_id: "call", output: '{"time":"1:30.634"}' },
   ]);
 });

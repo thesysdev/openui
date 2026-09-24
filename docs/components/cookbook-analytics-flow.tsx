@@ -3,13 +3,13 @@ export function CookbookAnalyticsFlow() {
     {
       title: "Ask a question",
       description: "Start a conversation in Agent Interface.",
-      detail: "How did February sales compare with January?",
+      detail: "Compare Norris and Verstappen lap by lap.",
     },
     {
       title: "Get the data",
       description:
-        "OpenUI Cloud calls query_sales. Your server queries SQLite and returns the results.",
-      detail: "Sales totals, daily trends, and product comparisons",
+        "OpenUI Cloud calls query_race. Your server queries SQLite and returns the results.",
+      detail: "Recorded lap times for the selected drivers",
     },
     {
       title: "See the answer",

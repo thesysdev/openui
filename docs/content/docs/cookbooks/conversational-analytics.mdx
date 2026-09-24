@@ -1,15 +1,15 @@
 ---
 title: Conversational analytics
-description: Stream visual answers to sales questions with visible tool calls over a real retail dataset.
+description: Turn questions into streamed charts and tables with Agent Interface and OpenUI Cloud.
 ---
 
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 import { ArrowUpRight, Github } from "lucide-react";
 import { CookbookAnalyticsFlow } from "@/components/cookbook-analytics-flow";
 
-Build a sales assistant with Agent Interface that answers “Why did gross sales fall in February 2011?” with metric cards, a daily trend, and a product comparison. Watch its database tool call, then see the answer take shape as OpenUI Cloud streams the response. Ask “Now show Germany as a bar chart” to query a new scope using the conversation context.
+Build an assistant that queries data and chooses a useful way to present the answer. Ask for a ranking, compare two drivers in a chart, then narrow the comparison with a follow-up. Agent Interface shows the tool call while OpenUI Cloud streams the visual response.
 
-This recipe uses the [UCI Online Retail dataset](https://archive.ics.uci.edu/dataset/352/online+retail): 541,909 real invoice lines from a UK retailer. The original download is public and licensed under CC BY 4.0.
+This recipe uses recorded lap times from the **2024 Miami Grand Prix**, provided by [OpenF1](https://openf1.org/docs/). Each record is a driver's time for one lap, measured in seconds.
 
 <div className="not-prose my-6">
   <a
@@ -29,109 +29,78 @@ This recipe uses the [UCI Online Retail dataset](https://archive.ics.uci.edu/dat
 
 ## What you'll build
 
-An assistant that queries your data and presents an answer tailored to the question.
-
 <CookbookAnalyticsFlow />
 
-Follow-up questions can change the country, month, or presentation while retaining the conversation’s context.
+Try this conversation:
+
+1. **“Which five drivers set the fastest laps in Miami?”** Get a ranked table.
+2. **“Compare Norris and Verstappen lap by lap.”** See their times in a line chart.
+3. **“Focus on their final ten laps.”** Narrow the chart while retaining the selected drivers.
 
 Conversation history is stored in OpenUI Cloud and remains available across page reloads and local server restarts.
 
 ## Run the example
 
-You need Node.js 22.13 or newer, Python 3.9 or newer, and npm. The Python importer runs once; the app uses Node's built-in SQLite module.
+You need Node.js 22.13 or newer and npm.
 
 ```bash
 git clone https://github.com/thesysdev/openui.git
 cd openui/examples/cookbooks/conversational-analytics
 npm ci
+npm run prepare:data
+```
 
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r scripts/requirements.txt
-python scripts/prepare_data.py
+Create an inference key in the [Thesys Console](https://console.thesys.dev/keys) and configure `THESYS_API_KEY` privately in the example's `.env.local`. Then start the app:
 
+```bash
 npm run dev
 ```
 
-On Windows, activate the environment with `.venv\Scripts\Activate.ps1` in PowerShell. Open [localhost:3000](http://localhost:3000). After configuring your Cloud key, ask **“Why did gross sales fall in February 2011?”**. Its tool result should show **£523,631.89** in gross sales and **1,100** orders.
+Open [localhost:3000](http://localhost:3000) and try a starter question. The default model is `openai/gpt-5.5`; use `OPENUI_MODEL` to select another supported [Gateway model](/docs/gateway/models).
 
-To enable questions, create an inference key in the [Thesys Console](https://console.thesys.dev/keys), configure `THESYS_API_KEY` privately in the example's `.env.local`, then restart the app. The default model is `openai/gpt-5.5`; set `OPENUI_MODEL` to another supported [Gateway model](/docs/gateway/models) using its full `provider/model` identifier. Questions require the Cloud key and the imported dataset. Query and parser tests can run without model credentials.
+## 1. Prepare the data
 
-## 1. Prepare and define the data
+`npm run prepare:data` downloads the race's drivers and lap times from OpenF1 and creates `data/race.sqlite`. It runs once; subsequent questions query the local database.
 
-The importer downloads the original workbook, checks its SHA-256 checksum, and creates `data/retail.sqlite`. It also writes a manifest with source and exclusion counts. The archive, database, and generated files are ignored by Git.
+The example covers 20 drivers and 57 race laps. You can rank drivers by their fastest recorded lap or compare selected drivers over a lap range. See [prepare-data.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/scripts/prepare-data.ts) for the importer.
 
-Each source row is an **invoice line**, not an order. The fields used in this recipe are:
+## 2. Expose an analytics tool
 
-| Source field               | Use                                                      |
-| -------------------------- | -------------------------------------------------------- |
-| `InvoiceNo`                | Count distinct orders; identify C-prefixed cancellations |
-| `StockCode`, `Description` | Group product and charge lines                           |
-| `Quantity`, `UnitPrice`    | Calculate gross sales in GBP                             |
-| `InvoiceDate`              | Select calendar months and daily chart buckets           |
-| `Country`                  | Filter the transaction's country                         |
-
-Define the metric before building the UI:
-
-```text
-Eligible line = invoice does not start with C
-                AND Quantity > 0 AND UnitPrice > 0
-Gross sales   = sum(Quantity × UnitPrice) for eligible lines
-Orders        = count(distinct InvoiceNo) for eligible lines
-Average order = gross sales / orders
-```
-
-The import retains **530,104 eligible lines**. It excludes 9,288 cancellation lines, 1,336 other non-positive-quantity lines, and 1,181 other non-positive-price lines. These exclusion categories are applied in that order and do not overlap.
-
-Missing customer IDs do not disqualify a sale. Customer IDs are not imported, missing descriptions fall back to the stock code, and original duplicate lines remain. Positive-priced charges such as postage remain in the totals and product table. Monetary amounts are stored as integers in units of £0.0001 to preserve fractional-penny prices, then rounded for display.
-
-<Callout title="Gross sales, not net revenue">
-  Returns and cancellations are excluded, rather than deducted. An order that is later canceled can
-  still contribute its original positive line. Large orders can therefore dominate the comparison.
-  Use these numbers to explain the chosen gross-sales definition; extend the accounting rules before
-  reporting net revenue or profit.
-</Callout>
-
-The source covers December 1, 2010 through December 9, 2011. The app allows **January through November 2011**, using December 2010 as the first comparison baseline. It excludes the incomplete final December. Comparisons use whole calendar months, which have different lengths; they are not adjusted for trading days or seasonality.
-
-See [prepare_data.py](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/scripts/prepare_data.py) for the complete import.
-
-## 2. Expose one read-only query
-
-Give the model one narrow function tool named `query_sales`. Its arguments are a supported month and a country from the dataset:
+Give Cloud a function tool named `query_race`. It accepts the question's scope as structured arguments:
 
 ```json
-{ "month": "2011-02", "country": "Germany" }
+{
+  "view": "lap_times",
+  "driver_numbers": [4, 1],
+  "lap_start": 48,
+  "lap_end": 57,
+  "limit": 5
+}
 ```
 
-The server validates these arguments and executes parameterized SQL against a read-only database connection. The model never sends executable SQL. This keeps natural-language requests within the supported analytics workflow.
+These arguments compare Norris and Verstappen over the final ten laps. The other view, `fastest_laps`, ranks each driver's best time; `limit` controls the number of ranked drivers.
 
-For example, the country-scoped totals query binds every value:
+The [tool definition](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/race-tool.ts) declares both views, the available driver numbers, and the allowed lap range in its JSON schema. Your server validates the arguments and executes a read-only query:
 
-```ts
-const totals = db
-  .prepare(
-    `
-  SELECT COALESCE(SUM(sales_units), 0) AS sales,
-         COUNT(DISTINCT invoice) AS orders,
-         COALESCE(SUM(quantity), 0) AS units
-  FROM sales
-  WHERE day >= ? AND day < ? AND country = ?
-`,
-  )
-  .get(start, end, country);
+```ts title="src/lib/race-tool.ts"
+export async function executeRaceQuery(argsJson: string) {
+  const args = raceQuerySchema.parse(JSON.parse(argsJson));
+  const db = openDatabase();
+  try {
+    return JSON.stringify(queryRace(db, args));
+  } finally {
+    db.close();
+  }
+}
 ```
 
-The query calculates current and previous totals, fills missing chart days with zero, and compares the union of stock codes in both months. Including both months means a product whose sales disappear still appears in the comparison. It returns the ten smallest current-minus-previous differences, which are not a complete reconciliation of the overall change.
+The result contains ranked lap times or aligned chart labels and series. Cloud uses those values to build the answer. The complete executor also returns the query arguments and elapsed time, which readers can inspect in Agent Interface's **Behind the scenes** timeline.
 
-It also returns formatted display strings and a factual summary derived from the query. Cloud receives those strings together with the aggregates, so its answer can explain the actual query result.
-
-The implementation lives in [analytics.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/analytics.ts) and [the function tool](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/sales-tool.ts).
+The [query implementation](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/analytics.ts) uses parameterized SQL. Missing times are left out of comparisons rather than plotted as zero.
 
 ## 3. Choose the components
 
-Start with the built-in library. Visual answers can use layout, cards, text, charts, and tables:
+Use a small selection from the built-in library:
 
 ```ts title="src/library.ts"
 import { createLibrary } from "@openuidev/react-lang";
@@ -153,57 +122,17 @@ export const library = createLibrary({
 });
 ```
 
-Generate the server specification from that same library:
+Generate the server specification from the same library used by the renderer:
 
 ```bash
 npm run generate
 ```
 
-The script uses `openui generate src/library.ts --spec --out src/generated/spec.json`. It also runs before development, builds, and verification. The example pins the published OpenUI packages so the renderer and generated signatures agree.
+This runs `openui generate src/library.ts --spec --out src/generated/spec.json`. It also runs automatically before development and builds.
 
-## 4. Declare and execute the analytics tool
+## 4. Connect Agent Interface and Cloud history
 
-A Responses function tool gives the model a typed interface to the query. Its JSON schema limits the month and country to the dataset's supported values:
-
-```ts title="src/lib/sales-tool.ts"
-export function salesQueryTool(countries: string[]) {
-  return {
-    type: "function" as const,
-    name: "query_sales",
-    description: "Query retail sales, the prior month, daily trends, and product changes.",
-    parameters: {
-      type: "object",
-      properties: {
-        month: { type: "string", enum: months },
-        country: { type: "string", enum: countries },
-      },
-      required: ["month", "country"],
-      additionalProperties: false,
-    },
-    strict: true,
-  };
-}
-```
-
-The model requests the tool; your server executes it. Validate the arguments again before touching SQLite, even though the model received a schema:
-
-```ts
-export async function executeSalesQuery(argsJson: string) {
-  const args = salesQuerySchema.parse(JSON.parse(argsJson));
-  const db = openDatabase();
-  try {
-    return JSON.stringify(querySales(db, args));
-  } finally {
-    db.close();
-  }
-}
-```
-
-The complete [executor](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/sales-tool.ts) also handles cancellation and includes the dataset, query arguments, and elapsed time in its result. Agent Interface's **Behind the scenes** timeline lets readers inspect the actual function arguments and output.
-
-## 5. Connect Agent Interface and Cloud history
-
-Agent Interface provides the sidebar, composer, tool timeline, loading state, and stop control. Connect generation to the local chat route, sending only the latest user message. Cloud restores the earlier context from the conversation id:
+Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route, sending only the latest user message. Cloud restores the earlier context from the conversation id:
 
 ```ts title="src/lib/chat-client.ts"
 const chatLLM: ChatLLM = {
@@ -221,11 +150,9 @@ const chatLLM: ChatLLM = {
 };
 ```
 
-The server accepts exactly one bounded user-text item. It rejects browser-submitted history, system messages, and function outputs. Tool execution and conversation history stay on the server.
+Use the Cloud storage hook for the sidebar and saved messages:
 
-Use the published Cloud storage hook for the sidebar and saved messages:
-
-```tsx title="src/components/retail-chat.tsx"
+```tsx title="src/components/analytics-chat.tsx"
 const storage = useOpenuiCloudStorage({
   token: "/api/frontend-token",
   features: { artifact: false },
@@ -247,13 +174,51 @@ const storage = useOpenuiCloudStorage({
 </AgentInterface>;
 ```
 
-`useOpenuiCloudStorage` is exported by the pinned `@openuidev/react-ui` package. It creates and loads conversations directly from Cloud using a short-lived frontend token. The [token route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/frontend-token/route.ts) mints that token with a stable server-owned `user_id` and `app_id`; the master key stays on the server. Generation verifies the conversation belongs to that same scope before using it.
+`useOpenuiCloudStorage` is exported by the example's pinned `@openuidev/react-ui` package. The [token route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/frontend-token/route.ts) issues a short-lived token for a stable `user_id` and `app_id`; the master key stays on the server. Generation checks that the conversation belongs to the same scope.
 
-The local defaults are `DEMO_USER_ID=local-demo` and `APP_ID=conversational-analytics-cookbook`. Keep these values stable so reloads and server restarts show the same conversations. Use a different app id for an independent copy.
+Keep `DEMO_USER_ID` and `APP_ID` stable to retain conversation history. Their defaults are `local-demo` and `conversational-analytics-cookbook`. Agent Interface owns the theme; [layout.tsx](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/layout.tsx) imports its styles once.
 
-Agent Interface owns the theme; the [layout](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/layout.tsx) imports its styles once.
+## 5. Stream the tool call and visual answer
 
-The assistant-message override is small: it removes Cloud's content envelope and any opening code fence as soon as it arrives, then passes the growing program to `Renderer`:
+The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/prompt.ts) combines the generated component specification with the available drivers and instructions to call `query_race` before answering. It asks Cloud to choose a presentation that fits the question and use the returned values.
+
+```ts title="src/app/api/chat/route.ts"
+const cloud = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+  timeout: 60000,
+  maxRetries: 0,
+});
+const createParams = {
+  model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
+  instructions: analyticsPrompt(drivers),
+  input: body.input,
+  conversation: body.threadId,
+  tools: [raceQueryTool(drivers)],
+  store: true,
+  max_output_tokens: 6000,
+};
+```
+
+When Cloud requests a function call, execute it and send its result back with the matching `call_id`. The example uses the OpenUI Cloud template's [function-tool loop](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/tool-loop.ts):
+
+```ts
+await runFunctionToolLoop({
+  client: cloud,
+  createParams,
+  firstStream,
+  tools: { query_race: executeRaceQuery },
+  enqueue,
+  signal: abort.signal,
+  maxRounds: 3,
+});
+```
+
+The loop forwards tool activity and text deltas as Responses Server-Sent Events. Each continuation sends only the new tool outputs to the saved conversation. Cloud already holds the preceding question and response items.
+
+The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) flushes response headers immediately. Its [stream forwarding](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/cloud-stream.ts) propagates cancellation and reports tool or provider errors.
+
+The [assistant-message component](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/components/analytics-message.tsx) removes Cloud's content envelope and passes the growing OpenUI Lang program to the renderer:
 
 ```tsx
 <Renderer
@@ -263,103 +228,37 @@ The assistant-message override is small: it removes Cloud's content envelope and
 />
 ```
 
-Do not wait for a closing code fence or the complete response. OpenUI can render resolved components while later definitions are still streaming. The [analytics message](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/components/analytics-message.tsx) also shows rendering errors and lets readers inspect the generated source.
+The prompt emits `root` first, followed by its components in reading order. Resolved components can appear while the rest of the response is still arriving. If the response includes an opening code fence, remove it immediately rather than waiting for the closing fence.
 
-## 6. Continue Cloud generation after tool execution
-
-Generate the Cloud instructions with `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`. The component specification matches the client library, and supported `additionalRules` explain the dataset and function tool. The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/prompt.ts) requires a database call before a supported analytics answer, `root` first in the generated program, and values taken from the tool result. An illustrative layout supplies syntax guidance, not real financial data.
-
-```ts
-const cloud = new OpenAI({
-  apiKey: process.env.THESYS_API_KEY,
-  baseURL: "https://api.thesys.dev/v1/embed",
-  timeout: 60000,
-  maxRetries: 0,
-});
-const createParams = {
-  model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-  instructions: analyticsPrompt(countries),
-  input: body.input,
-  conversation: body.threadId,
-  tools: [salesQueryTool(countries)],
-  store: true,
-  max_output_tokens: 6000,
-};
-```
-
-A function call is only the first model round. The server must execute it, send a `function_call_output` with the matching `call_id`, and continue generation. The example uses the OpenUI Cloud template's function-tool loop with `conversation: threadId` and `store: true`:
-
-```ts
-await runFunctionToolLoop({
-  client: cloud,
-  createParams,
-  firstStream,
-  tools: { query_sales: executeSalesQuery },
-  enqueue,
-  signal: abort.signal,
-  maxRounds: 3,
-});
-```
-
-The loop forwards tool calls, tool outputs, and text deltas as Responses Server-Sent Events. For each continuation, it sends only new function outputs to the same conversation. Cloud already holds the question and completed response items, so replaying them would duplicate history. It executes only declared app tools and skips calls already answered by Cloud. Tool errors become outputs the model can explain; incomplete provider streams become visible chat errors. The final allowed round settles its outstanding calls with further tool requests disabled.
-
-The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) opens the first Cloud response inside the outgoing stream, so headers flush immediately. [Stream forwarding](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/cloud-stream.ts) disables proxy buffering and propagates the browser's stop signal through the [tool loop](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/tool-loop.ts).
-
-Cloud returns a data-backed program with literal values and chart arrays. A follow-up such as **“Now show Germany as a bar chart”** triggers a fresh database call and streams a new answer. The model uses the conversation to retain February 2011.
-
-## 7. Handle incomplete and empty states
-
-| State                               | Example behavior                                                           |
-| ----------------------------------- | -------------------------------------------------------------------------- |
-| Dataset not imported                | The chat error explains how to prepare it                                  |
-| Database tool running               | Agent Interface shows tool activity                                        |
-| Answer streaming                    | Resolved UI appears while later components arrive                          |
-| No sales in the requested scope     | Zero-valued metrics and an explanation; ask about another month or country |
-| Invalid tool arguments              | Validation rejects the query and returns a tool error                      |
-| No Cloud key                        | Setup guidance appears in the chat                                         |
-| Provider error or incomplete stream | Explicit error; connection closure alone is not treated as completion      |
-| User stops generation               | The browser abort propagates to Cloud and prevents further tool execution  |
-| Invalid generated components        | A visible rendering error asks the reader to retry                         |
-
-The local example binds to loopback and uses a single demo identity. Its chat and token routes are disabled in production. Before deployment, replace that guard with server-side authentication and rate limits on both routes, derive `user_id` from the signed-in session, retain conversation ownership checks, authorize private replacement datasets, and provide persistent storage for SQLite.
+A follow-up such as **“Focus on their final ten laps”** triggers a new tool call with the same drivers and laps 48 through 57. Cloud then streams the updated chart.
 
 ## Verify the experience
 
-Run the build, parser, query, stream, importer, and real-data checks:
-
 ```bash
 npm run verify
-python -m unittest discover -s scripts -p 'test_*.py'
 npm run verify:data
 ```
 
-`verify` does not require model credentials or the dataset. `verify:data` requires the completed import and checks these independently reproducible totals:
-
-| February 2011 scope | Gross sales | Orders | January gross sales |
-| ------------------- | ----------: | -----: | ------------------: |
-| All countries       | £523,631.89 |  1,100 |         £691,364.56 |
-| Germany             |   £9,581.05 |     19 |          £16,910.84 |
+`verify` checks the queries, importer, tool streaming, conversation transport, component schema, and production build. `verify:data` checks the downloaded race snapshot, including Oscar Piastri's **1:30.634** lap and the Norris/Verstappen comparison.
 
 In the browser:
 
-1. Ask **“Why did gross sales fall in February 2011?”**. Expand **Behind the scenes** and the `query_sales` row to inspect its month, country, and returned aggregates.
-2. Confirm metric cards appear while the response is still generating, before the full table is complete.
-3. Ask **“Now show Germany as a bar chart.”** Confirm a new tool call uses Germany and February 2011, and the answer matches the Germany totals above.
-4. Ask **“Show Saudi Arabia in April 2011.”** The answer should explain that there are no eligible sales.
-5. Stop a generation, then ask another question to confirm recovery.
-6. Switch to **New Chat** and reopen the previous conversation. Reload the page and restart the local server, then reopen the conversation from the sidebar. Its messages, visual answers, and tool activity should still be available.
+1. Ask for the five fastest drivers. Expand **Behind the scenes** to inspect `query_race` and its result.
+2. Ask for the Norris/Verstappen comparison. Confirm the answer starts appearing while generation is still active.
+3. Ask **“Focus on their final ten laps.”** Confirm the chart covers laps 48 through 57 and retains both drivers.
+4. Stop a generation and ask another question to check recovery.
+5. Reload the page or restart the server. Reopen the conversation from the sidebar and confirm its messages, visual answers, and tool activity are retained.
 
-Generated layouts can vary. The tool's arguments and returned values are the source for checking each answer.
+Generated layouts can vary. Check values against the tool result. Missing data and tool errors should produce an explanation rather than invented points.
 
-For the default comparison, orders rise from 1,086 to 1,100 while average order value falls from £636.62 to £476.03. That describes the change; it does not establish a cause. The table's largest negative difference is a £77,183.60 January contribution from stock code `23166` with no February sales. Investigating such outliers and their cancellations is a separate analysis, especially before interpreting gross sales as revenue.
+## Connect your own data
 
-## Next steps
+Replace `queryRace` with a query to your database or API. Update the tool's arguments and description, then add any components your answers need to `src/library.ts` and regenerate the specification.
 
-Add a daily-average comparison for unequal month lengths, reconcile all product contributions, or define a separate net-sales metric that includes returns. Keep each new metric's accounting rules in the server query and expose only its supported arguments to the model.
+This example runs locally with a single demo identity. Before deploying it, replace the local guard with authentication and rate limits, derive user identity from the signed-in session, and retain conversation ownership checks. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/conversational-analytics) for the implementation notes.
 
 - [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
 - [Agent tools](/docs/agent/core-concepts/tools)
 - [Gateway Responses API](/docs/gateway/api/responses)
-- [App architecture](/docs/openui-lang/architecture)
 
-Dataset attribution: Chen, D. (2015). [Online Retail](https://doi.org/10.24432/C5BW33). UCI Machine Learning Repository. Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). This example filters and aggregates the source and omits customer IDs.
+Data source: [OpenF1](https://openf1.org/docs/), race session `9507`. OpenF1 is an independent project, unaffiliated with Formula 1.

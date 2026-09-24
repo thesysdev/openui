@@ -12,7 +12,8 @@
     "start": "next start --hostname 127.0.0.1",
     "preverify": "npm run generate",
     "verify": "tsx --test tests/*.test.ts && next build",
-    "verify:data": "tsx scripts/verify-data.ts"
+    "verify:data": "tsx scripts/verify-data.ts",
+    "prepare:data": "tsx scripts/prepare-data.ts"
   },
   "dependencies": {
     "@openuidev/lang-core": "0.3.0",

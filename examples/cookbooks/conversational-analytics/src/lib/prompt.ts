@@ -1,23 +1,23 @@
 import { generateSystemPrompt } from "@openuidev/lang-core";
 import spec from "../generated/spec.json";
 import { exampleProgram } from "./example-program";
+import { race, type Driver } from "./race-data";
 
-export function analyticsPrompt(countries: string[]) {
+export function analyticsPrompt(drivers: Driver[]) {
   return generateSystemPrompt({
     cloud: true,
     library: spec,
     promptOptions: {
       additionalRules: [
-        "You answer sales questions using the UCI Online Retail dataset. Before answering a supported analytics question, call the query_sales function tool to get actual values. This is a Responses function tool executed by the application server, not an OpenUI Query expression.",
-        "After the tool returns, generate a complete OpenUI Lang program. Emit root first, then define the requested components in reading order so the answer appears progressively. Choose the form that fits the question: a concise explanation, metric cards, a trend chart, or a comparison table. Include only what helps answer the question; do not generate a full page of every component by default. Do not wrap the program in markdown fences.",
-        "Do not generate Query, Mutation, reactive variables, Select, or filter controls. Country and month changes happen through follow-up questions, which require a new query_sales call.",
-        "Supported months are 2011-01 through 2011-11, compared with the previous calendar month. December 2011 is incomplete and unsupported. Use February 2011 when no month is specified; these are historical data, not this month's sales.",
-        `Supported countries: ${JSON.stringify(countries)}. Use All countries if unspecified. Use the conversation's most recent country and month on follow-ups unless the user changes them.`,
-        "Use only values returned by the function tool: title, comparison, sales, salesChange, orders, ordersChange, averageOrder, averageOrderChange, summary, trend, and products. Put the actual returned arrays directly into charts and tables. The prompt example is illustrative, never use its numbers as real data.",
-        "Include the returned summary and comparison scope. Gross sales exclude cancellations and non-positive quantities/prices. This dataset cannot establish causation, profit, customer demographics, or predictions. Never invent those claims.",
-        "If empty is true, show the returned zero metrics and summary, omit the chart and table, and suggest asking about another country or month. If a tool returns an error, explain it rather than inventing values.",
-        "The products list contains the ten smallest current-minus-previous differences, including products with no current sales. Label that limited coverage; it is not a complete reconciliation. You may use LineChart or BarChart according to the question.",
-        "For unsupported dates or questions, explain the supported scope in TextContent without silently changing dates. Never accept executable SQL from the user. Do not use em dashes.",
+        `You answer questions about recorded lap times in the ${race.name}, on ${race.date}, a ${race.laps}-lap race. Before answering a supported data question, call query_race. This is a Responses function tool executed by the application server, not an OpenUI Query expression.`,
+        `Available drivers: ${JSON.stringify(drivers)}. Resolve names to driver numbers using this list.`,
+        "Use fastest_laps to rank each driver's best recorded lap. Empty driver_numbers selects all drivers. Use limit=5 unless requested otherwise. Use lap_times to compare one to four selected drivers. Use laps 1 through 57 for the whole race; the final ten laps are 48 through 57.",
+        "On follow-ups, retain the previous driver selection and lap range unless the user changes them. Query again for every data question. Never silently replace an unsupported driver, race, date, or lap range.",
+        "After the tool returns, generate a complete OpenUI Lang program. Emit root first, then define the requested components in reading order for progressive rendering. Choose a table or bar chart for rankings, a line chart for lap-by-lap comparisons, and text or metric cards for a short answer. Include only what answers the question. Do not wrap the program in markdown fences.",
+        "Use only the tool's actual fastestLaps and comparison data. Rankings represent one best recorded lap per driver, not finishing positions or official lap-validity adjudication. For comparisons between drivers, prefer comparison.gaps.series so small differences are visible. Use comparison.labels unchanged, label the axes Lap and Lap time difference (seconds), name the reference driver, and explain the sign using comparison.gaps.meaning. Do not call this the race gap or time behind on track. If the user explicitly requests absolute lap times, or selects a single driver, use comparison.series and label seconds. Lower absolute times are faster. Never fill missing values with zero, smooth data, or substitute the illustrative example's numbers.",
+        "Include the race and lap range in the answer. If comparison.omittedLaps is nonempty, briefly mention which laps have no shared recorded time. Slow laps remain in the data. Lap times alone do not establish why a driver slowed; do not invent explanations about tyres, pit stops, weather, or incidents.",
+        "If empty is true or a tool returns an error, explain it without inventing values. This snapshot supports lap times and fastest-lap rankings only. For unsupported requests, explain the available scope with TextContent.",
+        "Do not generate Query, Mutation, reactive variables, Select, or filter controls. Changes to drivers, lap range, or presentation happen through follow-up questions. Do not use em dashes.",
       ],
       examples: [exampleProgram],
     },

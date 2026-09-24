@@ -14,29 +14,29 @@ const theme: ThemeProps = { mode: "light" };
 const components: AgentInterfaceComponents = { AssistantMessage: AnalyticsMessage };
 const starters = [
   {
-    displayText: "Compare February 2011 sales with January",
+    displayText: "Which five drivers set the fastest laps in Miami?",
     prompt:
-      "Compare gross sales, order count, and average order value in February 2011 with January across all countries.",
+      "Rank the five drivers with the fastest recorded laps in the 2024 Miami Grand Prix. Show the driver, lap number, and lap time in a table.",
   },
   {
-    displayText: "Chart Germany's daily sales in February 2011",
+    displayText: "Compare Norris and Verstappen lap by lap",
     prompt:
-      "Show a bar chart of daily gross sales in Germany in February 2011, with the month's sales and order totals.",
+      "Compare Lando Norris and Max Verstappen's lap times across the 2024 Miami Grand Prix in a line chart.",
   },
   {
-    displayText: "Which products lost the most sales in November 2011?",
+    displayText: "Who was faster over the final ten laps?",
     prompt:
-      "Which ten products had the largest drops in gross sales in November 2011 compared with October across all countries? Show both months and the difference in a table.",
+      "Compare Lando Norris and Max Verstappen on each of the final ten laps of the 2024 Miami Grand Prix. Show their lap times in a line chart.",
   },
 ];
 
-export default function RetailChat() {
+export default function AnalyticsChat() {
   const storage = useOpenuiCloudStorage({
     token: "/api/frontend-token",
     features: { artifact: false },
   });
   return (
-    <div className="retail-app">
+    <div className="analytics-app">
       <AgentInterface
         llm={chatLLM}
         storage={storage}

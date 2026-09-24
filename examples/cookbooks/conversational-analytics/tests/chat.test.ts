@@ -4,7 +4,7 @@ import { chatLLM } from "../src/lib/chat-client";
 import { chatRequestSchema, parseChatRequest } from "../src/lib/chat-request";
 import { localDemoAccess } from "../src/lib/cloud-session";
 
-const input = { type: "message", role: "user", content: "Show Germany in February 2011" };
+const input = { type: "message", role: "user", content: "Compare Norris and Verstappen" };
 const valid = { threadId: "conversation-one", input: [input] };
 
 test("Cloud requests accept one user question and reject history or provider-item injection", () => {
@@ -32,7 +32,7 @@ test("only the latest question is sent after a stopped response, with Cloud repl
     threadId: "conversation-one",
     signal: new AbortController().signal,
     messages: [
-      { id: "question", role: "user", content: "February sales" },
+      { id: "question", role: "user", content: "Fastest laps" },
       { id: "result", role: "tool", toolCallId: "call", content: "Do not replay" },
       { id: "stopped", role: "assistant", content: "" },
       { id: "follow-up", role: "user", content: "Try again" },

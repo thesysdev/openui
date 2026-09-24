@@ -1,77 +1,153 @@
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import { test } from "node:test";
-import { querySales } from "../src/lib/analytics";
-import { periodFor, salesQuerySchema } from "../src/lib/query-args";
+import { formatLapTime, queryRace } from "../src/lib/analytics";
+import { raceQuerySchema } from "../src/lib/query-args";
+import { importRaceData, race } from "../src/lib/race-data";
 
+const base = { view: "fastest_laps", driver_numbers: [], lap_start: 1, lap_end: 57, limit: 5 };
+function data() {
+  return {
+    sessions: [
+      {
+        session_key: race.sessionKey,
+        session_name: "Race",
+        circuit_short_name: "Miami",
+        year: 2024,
+      },
+    ],
+    drivers: [
+      {
+        session_key: race.sessionKey,
+        driver_number: 4,
+        full_name: "Lando Norris",
+        name_acronym: "NOR",
+        team_name: "McLaren",
+      },
+      {
+        session_key: race.sessionKey,
+        driver_number: 1,
+        full_name: "Max Verstappen",
+        name_acronym: "VER",
+        team_name: "Red Bull",
+      },
+    ],
+    laps: [
+      [4, 1, 93.1],
+      [4, 2, 91.2],
+      [4, 3, 91.2],
+      [4, 4, null],
+      [4, 58, null],
+      [1, 1, 92.8],
+      [1, 2, null],
+      [1, 3, 92.0],
+    ].map(([driver_number, lap_number, lap_duration]) => ({
+      session_key: race.sessionKey,
+      driver_number,
+      lap_number,
+      lap_duration,
+    })),
+  };
+}
 function fixture() {
   const db = new DatabaseSync(":memory:");
-  db.exec(
-    "CREATE TABLE sales (invoice TEXT, stock_code TEXT, description TEXT, quantity INTEGER, day TEXT, country TEXT, sales_units INTEGER)",
-  );
-  const insert = db.prepare("INSERT INTO sales VALUES (?, ?, ?, ?, ?, ?, ?)");
-  insert.run("old", "LOST", "Previous-only product", 1, "2011-01-31", "Germany", 300000);
-  insert.run("new", "A", "First product", 2, "2011-02-01", "Germany", 100000);
-  insert.run("new", "B", "Second product", 1, "2011-02-01", "Germany", 50000);
-  insert.run("fr", "A", "First product", 1, "2011-02-28", "France", 125000);
-  insert.run("next", "A", "First product", 1, "2011-03-01", "Germany", 9990000);
+  importRaceData(db, data());
   return db;
 }
 
-test("aggregates invoice lines, counts distinct orders, and respects calendar/country boundaries", () => {
+test("ranks each driver's best lap with deterministic ties, range and driver selection", () => {
   const db = fixture();
   try {
-    const result = querySales(db, { month: "2011-02", country: "Germany" });
-    assert.deepEqual(result.totals, { sales: 15, orders: 1, units: 3, previousSales: 30 });
-    assert.equal(result.averageOrder, "£15.00");
-    assert.equal(result.salesChange, "-50.0% vs previous month");
-    assert.equal(result.trend.length, 28);
-    assert.equal(result.trend[0].sales, 15);
-    assert.equal(result.trend[1].sales, 0);
-    assert.equal(result.products[0].code, "LOST");
-    assert.equal(result.products[0].change, "-£30.00");
-    assert.equal(querySales(db, { month: "2011-02", country: "All countries" }).totals.sales, 27.5);
-  } finally {
-    db.close();
-  }
-});
-
-test("empty results and zero baselines are explicit", () => {
-  const db = fixture();
-  try {
-    const empty = querySales(db, { month: "2011-04", country: "France" });
-    assert.equal(empty.empty, true);
-    assert.equal(empty.salesChange, "No previous sales");
-    assert.equal(empty.averageOrder, "£0.00");
-    assert.equal(empty.products.length, 0);
-    assert.ok(empty.trend.every((day) => day.sales === 0));
-  } finally {
-    db.close();
-  }
-});
-
-test("rejects incomplete dates, extra query fields and SQL-like country input", () => {
-  for (const month of ["2011-12", "2010-12", "2011-2", "2026-02"]) {
-    assert.equal(salesQuerySchema.safeParse({ month, country: "Germany" }).success, false);
-  }
-  assert.equal(
-    salesQuerySchema.safeParse({ month: "2011-02", country: "Germany", sql: "DROP TABLE sales" })
-      .success,
-    false,
-  );
-  assert.deepEqual(periodFor("2011-01"), {
-    previous: "2010-12-01",
-    start: "2011-01-01",
-    end: "2011-02-01",
-  });
-  const db = fixture();
-  try {
-    assert.throws(
-      () => querySales(db, { month: "2011-02", country: "Germany' OR 1=1 --" }),
-      RangeError,
+    const result = queryRace(db, base);
+    assert.deepEqual(
+      result.fastestLaps.map((row) => [row.driverNumber, row.lap, row.time]),
+      [
+        [4, 2, "1:31.200"],
+        [1, 3, "1:32.000"],
+      ],
     );
-    assert.equal(querySales(db, { month: "2011-02", country: "Germany" }).totals.sales, 15);
+    assert.equal(queryRace(db, { ...base, lap_end: 1 }).fastestLaps[0].driverNumber, 1);
+    assert.equal(queryRace(db, { ...base, driver_numbers: [1] }).fastestLaps[0].seconds, 92);
+    assert.equal(queryRace(db, { ...base, limit: 1 }).fastestLaps.length, 1);
+    assert.equal(formatLapTime(90634), "1:30.634");
   } finally {
     db.close();
+  }
+});
+
+test("aligns comparisons on shared lap numbers without filling missing times with zero", () => {
+  const db = fixture();
+  try {
+    const result = queryRace(db, {
+      ...base,
+      view: "lap_times",
+      driver_numbers: [4, 1],
+      lap_end: 4,
+    });
+    assert.deepEqual(result.comparison?.labels, ["1", "3"]);
+    assert.deepEqual(
+      result.comparison?.series.map((series) => series.values),
+      [
+        [93.1, 91.2],
+        [92.8, 92],
+      ],
+    );
+    assert.deepEqual(result.comparison?.omittedLaps, [2, 4]);
+    assert.deepEqual(result.comparison?.gaps?.series[0].values, [-0.3, 0.8]);
+    assert.equal(result.comparison?.gaps?.reference, "Lando Norris");
+    const empty = queryRace(db, {
+      ...base,
+      view: "lap_times",
+      driver_numbers: [4, 1],
+      lap_start: 4,
+      lap_end: 4,
+    });
+    assert.equal(empty.empty, true);
+    assert.deepEqual(empty.comparison?.labels, []);
+    assert.equal(queryRace(db, { ...base, lap_start: 50 }).empty, true);
+  } finally {
+    db.close();
+  }
+});
+
+test("validates driver membership, inclusive lap ranges and bounded tool arguments", () => {
+  for (const changes of [
+    { lap_start: 0 },
+    { lap_end: 58 },
+    { lap_start: 20, lap_end: 10 },
+    { driver_numbers: [4, 4] },
+    { driver_numbers: [1, 2, 3, 4, 5] },
+    { limit: 21 },
+    { view: "lap_times" },
+    { sql: "DROP TABLE laps" },
+    { driver_numbers: ["4 OR 1=1"] },
+  ])
+    assert.equal(raceQuerySchema.safeParse({ ...base, ...changes }).success, false);
+  const db = fixture();
+  try {
+    assert.throws(() => queryRace(db, { ...base, driver_numbers: [99] }), RangeError);
+  } finally {
+    db.close();
+  }
+});
+
+test("import rejects wrong sessions and duplicate laps and omits the post-race marker", () => {
+  const db = fixture();
+  try {
+    assert.equal((db.prepare("SELECT COUNT(*) AS n FROM laps").get() as { n: number }).n, 7);
+  } finally {
+    db.close();
+  }
+  for (const wrong of [
+    { ...data(), sessions: [{ ...data().sessions[0], session_key: 1 }] },
+    { ...data(), laps: [...data().laps, data().laps[0]] },
+    { ...data(), laps: [{ ...data().laps[0], driver_number: 99 }] },
+  ]) {
+    const target = new DatabaseSync(":memory:");
+    try {
+      assert.throws(() => importRaceData(target, wrong));
+    } finally {
+      target.close();
+    }
   }
 });

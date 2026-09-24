@@ -1,29 +1,39 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { openDatabase, querySales } from "../src/lib/analytics";
+import { openDatabase, queryRace } from "../src/lib/analytics";
+import { listDrivers } from "../src/lib/race-data";
 
-const manifest = JSON.parse(readFileSync("data/manifest.json", "utf8"));
-assert.equal(manifest.source_rows, 541909);
-assert.equal(manifest.eligible_rows, 530104);
 const db = openDatabase();
 try {
-  const all = querySales(db, { month: "2011-02", country: "All countries" });
-  assert.deepEqual(all.totals, {
-    sales: 523631.89,
-    orders: 1100,
-    units: 283555,
-    previousSales: 691364.56,
+  assert.equal(listDrivers(db).length, 20);
+  const args = { view: "fastest_laps", driver_numbers: [], lap_start: 1, lap_end: 57, limit: 5 };
+  const ranking = queryRace(db, args);
+  assert.deepEqual(
+    ranking.fastestLaps.map((lap) => [lap.driverNumber, lap.seconds]),
+    [
+      [81, 90.634],
+      [23, 90.849],
+      [11, 90.855],
+      [55, 90.928],
+      [4, 90.98],
+    ],
+  );
+  assert.equal(ranking.fastestLaps[0].lap, 43);
+  const comparison = queryRace(db, {
+    ...args,
+    view: "lap_times",
+    driver_numbers: [4, 1],
+    lap_start: 48,
   });
-  const germany = querySales(db, { month: "2011-02", country: "Germany" });
-  assert.deepEqual(germany.totals, {
-    sales: 9581.05,
-    orders: 19,
-    units: 4245,
-    previousSales: 16910.84,
-  });
-  assert.equal(querySales(db, { month: "2011-04", country: "Saudi Arabia" }).empty, true);
+  assert.deepEqual(
+    comparison.comparison?.labels,
+    Array.from({ length: 10 }, (_, i) => String(i + 48)),
+  );
+  assert.equal(comparison.comparison?.series[0].values.at(-1), 91.575);
+  assert.equal(comparison.comparison?.series[1].values.at(-1), 91.699);
+  assert.equal(comparison.comparison?.gaps?.series[0].values.at(-1), 0.124);
+  assert.deepEqual(comparison.comparison?.omittedLaps, []);
   console.log(
-    "UCI import and cookbook totals verified for all countries, Germany, and an empty period.",
+    "Verified Miami 2024: 20 drivers, the five fastest drivers, and Norris/Verstappen over laps 48–57.",
   );
 } finally {
   db.close();

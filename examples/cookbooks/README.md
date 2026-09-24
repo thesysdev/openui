@@ -2,9 +2,9 @@
 
 Complete, runnable workflows paired with the [Cookbooks docs](https://www.openui.com/docs/cookbooks). Read the tutorial for the walkthrough, then run or adapt its companion app here.
 
-| Cookbook                 | Runnable app                                                    | Tutorial                                                                                                        |
-| ------------------------ | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Conversational analytics | [Next.js, OpenUI Cloud, and SQLite](./conversational-analytics) | [Explore real retail data through conversation](https://www.openui.com/docs/cookbooks/conversational-analytics) |
+| Cookbook                 | Runnable app                                                    | Tutorial                                                                                                           |
+| ------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Conversational analytics | [Next.js, OpenUI Cloud, and SQLite](./conversational-analytics) | [Explore Formula 1 lap times through conversation](https://www.openui.com/docs/cookbooks/conversational-analytics) |
 
 ## Run a cookbook
 

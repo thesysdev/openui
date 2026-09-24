@@ -5,7 +5,9 @@ import { parseChatRequest } from "../../../lib/chat-request";
 import { localDemoAccess, ownsConversation } from "../../../lib/cloud-session";
 import { streamCloudTurn } from "../../../lib/cloud-stream";
 import { analyticsPrompt } from "../../../lib/prompt";
-import { executeSalesQuery, salesQueryTool } from "../../../lib/sales-tool";
+import { executeRaceQuery, raceQueryTool } from "../../../lib/race-tool";
+
+import { listDrivers, type Driver } from "../../../lib/race-data";
 
 export const runtime = "nodejs";
 
@@ -40,23 +42,14 @@ export async function POST(request: Request) {
     return Response.json({ error: "Unable to verify Cloud conversation access." }, { status: 503 });
   }
 
-  let countries: string[];
+  let drivers: Driver[];
   let db;
   try {
     db = openDatabase();
-    countries = [
-      "All countries",
-      ...(
-        db.prepare("SELECT DISTINCT country FROM sales ORDER BY country").all() as {
-          country: string;
-        }[]
-      ).map((row) => row.country),
-    ];
+    drivers = listDrivers(db);
   } catch {
     return Response.json(
-      {
-        error: "Prepare the dataset with python scripts/prepare_data.py before asking a question.",
-      },
+      { error: "Prepare the race data with npm run prepare:data before asking a question." },
       { status: 503 },
     );
   } finally {
@@ -77,11 +70,11 @@ export async function POST(request: Request) {
   });
   const createParams: ResponseCreateParamsNonStreaming = {
     model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-    instructions: analyticsPrompt(countries),
+    instructions: analyticsPrompt(drivers),
     input: body.input,
     conversation: body.threadId,
     store: true,
-    tools: [salesQueryTool(countries)],
+    tools: [raceQueryTool(drivers)],
     max_output_tokens: 6000,
   };
   // Open Cloud inside the stream so local headers flush immediately.
@@ -98,7 +91,7 @@ export async function POST(request: Request) {
         client: cloud,
         createParams,
         firstStream: firstStream(),
-        tools: { query_sales: executeSalesQuery },
+        tools: { query_race: executeRaceQuery },
         maxRounds: 3,
       },
       abort,

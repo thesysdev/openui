@@ -1,114 +1,101 @@
 # Conversational analytics
 
-A runnable companion to the [conversational analytics cookbook](https://www.openui.com/docs/cookbooks/conversational-analytics). Ask a sales question, inspect the database tool call, and watch the response take shape as it streams. Change country or month by asking a follow-up question.
+A runnable companion to the [conversational analytics cookbook](https://www.openui.com/docs/cookbooks/conversational-analytics). Ask a question, inspect the database tool call, and watch a chart or table take shape as the answer streams.
 
-Stack: Next.js App Router, React, OpenUI Agent Interface, OpenUI Lang and built-in React UI components, OpenUI Cloud's Gateway Responses API, and local SQLite. Python imports the original UCI workbook once. This is a standalone example, not part of the repository's package workspace.
+The example uses recorded lap times from the **2024 Miami Grand Prix**, provided by [OpenF1](https://openf1.org/docs/). It runs on Next.js, Agent Interface, OpenUI Cloud, and Node's built-in SQLite module.
 
 ## Run
 
-Requirements: Node.js 22.13+, Python 3.9+, and npm (or pnpm with `--ignore-workspace` when installing inside this repository).
+Requirements: Node.js 22.13+ and npm. This is a standalone example outside the package workspace.
 
 ```bash
 npm ci
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r scripts/requirements.txt
-python scripts/prepare_data.py
+npm run prepare:data
+```
+
+Create an inference key in the [Thesys Console](https://console.thesys.dev/keys) and configure `THESYS_API_KEY` privately in `.env.local`. Optional `OPENUI_MODEL` selects a supported `provider/model` identifier; the default is `openai/gpt-5.5`.
+
+```bash
 npm run dev
 ```
 
-On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell. Open http://localhost:3000. Use `npm run dev -- --port 3001` if port 3000 is occupied.
+Open http://localhost:3000. To use another port, run `npm run dev -- --port 3001`.
 
-To enable OpenUI Cloud questions, create an inference key in the [Thesys Console](https://console.thesys.dev/keys), configure `THESYS_API_KEY` privately in `.env.local`, and restart. Optional `OPENUI_MODEL` selects another supported `provider/model` identifier; the default is `openai/gpt-5.5`. Never put the key in a `NEXT_PUBLIC_` variable. Try:
+Try:
 
-- “Compare February 2011 sales with January.”
-- “Chart Germany’s daily sales in February 2011.”
-- “Which products lost the most sales in November 2011?”
+- “Which five drivers set the fastest laps in Miami?”
+- “Compare Norris and Verstappen lap by lap.”
+- “Focus on their final ten laps.”
 
-The model calls a server-side `query_sales` function, then generates a layout from its result. All displayed financial values and interpretation strings should reference the server's query result. Unsupported dates or concepts such as profit should receive an explanation of the supported scope. Layout generation is probabilistic; inspect the OpenUI Lang and compare the results with the expected totals below.
+## How it works
 
-## Dataset and accounting
+1. Agent Interface sends the latest user message to `/api/chat`.
+2. OpenUI Cloud requests `query_race` with a view, driver numbers, and lap range.
+3. The server validates the arguments and queries the local SQLite snapshot.
+4. The tool loop returns the result to the saved Cloud conversation and forwards tool events and generated OpenUI Lang to the browser.
+5. Agent Interface displays tool activity and progressively renders the visual answer.
 
-Source: [UCI Online Retail](https://archive.ics.uci.edu/dataset/352/online+retail), 541,909 invoice lines covering 2010-12-01 through 2011-12-09. The importer verifies the original archive's SHA-256:
+The tool supports `fastest_laps` (one best recorded lap per driver) and `lap_times` (one to four drivers on matching lap numbers). Rankings can include all drivers by passing an empty `driver_numbers` array. The final ten race laps are 48 through 57. Comparisons include absolute times and a per-lap difference from the first selected driver, so the UI can show small differences clearly.
 
-```text
-f5385cbb54bbebf7196389109c6b0621faab0c304e3702548165e71c84aede8b
-```
+## Files
 
-The resulting `data/manifest.json` records the import. The archive and SQLite database are local, ignored artifacts. Rerunning the importer atomically replaces the database using the cached, verified archive.
+| File                                   | Purpose                                                     |
+| -------------------------------------- | ----------------------------------------------------------- |
+| `scripts/prepare-data.ts`              | Download OpenF1's race snapshot and prepare SQLite          |
+| `src/lib/race-data.ts`                 | Source validation, importer, and driver catalog             |
+| `src/lib/analytics.ts`                 | Read-only queries and aligned chart series                  |
+| `src/lib/query-args.ts`                | Driver selection and lap-range validation                   |
+| `src/lib/race-tool.ts`                 | Function schema and executor                                |
+| `src/library.ts`                       | Shared components for the prompt and renderer               |
+| `src/lib/prompt.ts`                    | Cloud instructions and the supported data scope             |
+| `src/app/api/chat/route.ts`            | Cloud generation and streamed response                      |
+| `src/lib/tool-loop.ts`                 | Function execution and stored continuations                 |
+| `src/lib/cloud-stream.ts`              | Forward tool/text events and cancellation                   |
+| `src/lib/cloud-session.ts`             | Local identity, frontend tokens, and conversation ownership |
+| `src/components/analytics-chat.tsx`    | Agent Interface, Cloud storage, and starter questions       |
+| `src/components/analytics-message.tsx` | Progressive rendering and source inspection                 |
 
-- Gross sales sum `Quantity × UnitPrice` for non-C-prefixed invoices with positive quantities and prices. There are **530,104** retained lines.
-- Exclusions, applied in order: **9,288** cancellations, **1,336** other non-positive quantities, **1,181** other non-positive prices.
-- This is **gross sales**, not net revenue: an original positive line remains even if later canceled. No outlier removal or deduplication is performed. Positive-priced postage and other charge lines remain.
-- Missing customer IDs do not remove a sale; customer IDs are not stored. Missing descriptions fall back to stock codes.
-- Money is stored in integer £0.0001 units; rounding occurs at display time.
-- Orders count distinct invoices; average order value divides gross sales by orders.
-- Supported months are January through November 2011. December 2010 supplies the first baseline; the incomplete December 2011 is excluded. Month lengths differ, and no seasonal adjustment is applied.
-- The product table includes the union of stock codes across both periods, sorted by ascending sales change, limited to ten. It does not reconcile the entire sales difference.
+`npm run generate` creates the ignored component specification before dev/build/verify. The server passes that specification to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`. The renderer uses the same component library.
 
-## Architecture and files
+## Cloud conversations
 
-```text
-Agent Interface -> /api/chat -> OpenUI Cloud Gateway
-Cloud function_call -> query_sales -> validated read-only SQLite query
-function_call_output -> Cloud continuation -> streamed OpenUI Lang
-Responses SSE -> openAIResponsesAdapter -> tool timeline + streaming visual answer
-Follow-up question -> new tool call and answer
-```
+The OpenAI SDK transports requests to `https://api.thesys.dev/v1/embed` using `THESYS_API_KEY`. Generation uses `conversation: threadId` and `store: true`. Continuations submit only new function outputs because Cloud retains preceding input and response items.
 
-| File                                   | Purpose                                                                  |
-| -------------------------------------- | ------------------------------------------------------------------------ |
-| `scripts/prepare_data.py`              | Download, checksum, filter, and import the original workbook             |
-| `src/lib/analytics.ts`                 | Read-only SQL, aggregates, comparisons, and display strings              |
-| `src/lib/query-args.ts`                | Supported months and validated country/month arguments                   |
-| `src/lib/sales-tool.ts`                | Responses function schema and database executor                          |
-| `src/lib/tool-loop.ts`                 | First-party Cloud tool loop, stored continuations, and completion checks |
-| `src/library.ts`                       | Built-in components for cards, charts, and tables                        |
-| `src/lib/example-program.ts`           | Illustrative syntax example for prompting and parser tests               |
-| `src/lib/prompt.ts`                    | Cloud instructions using the generated component specification           |
-| `src/app/api/chat/route.ts`            | OpenUI Cloud request and SSE response                                    |
-| `src/lib/cloud-stream.ts`              | Forward tool and text events; propagate cancellation                     |
-| `src/lib/chat-request.ts`              | Validate one bounded user question                                       |
-| `src/lib/chat-client.ts`               | Latest-message transport with the published Responses adapter            |
-| `src/lib/cloud-session.ts`             | Local demo identity, token minting, and scoped conversation membership   |
-| `src/app/api/frontend-token/route.ts`  | Short-lived Cloud storage tokens                                         |
-| `src/components/retail-chat.tsx`       | Agent Interface shell, composer, and starters                            |
-| `src/components/analytics-message.tsx` | Progressive renderer and source inspection                               |
-| `src/lib/openui-content.ts`            | Incrementally remove Cloud envelopes and code fences                     |
+`useOpenuiCloudStorage` from the pinned `@openuidev/react-ui` package loads the sidebar and messages using short-lived tokens from `/api/frontend-token`. `openAIResponsesAdapter` handles streamed tool activity and answers. The client sends only the latest user message; the server rejects injected history or function outputs.
 
-`npm run generate` creates the ignored component spec before dev/build/verify. The server passes it to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, which produces Cloud's managed configuration with the same schema used by the renderer. Cloud accepts `additionalRules` and `examples` for the tool contract and illustrative layout.
+`DEMO_USER_ID` defaults to `local-demo` and `APP_ID` to `conversational-analytics-cookbook`. Keep them stable to retain history across reloads and restarts. The server verifies conversation membership in the same scope before generation.
 
-The `openai` dependency is the compatible SDK transport. Its base URL is explicitly `https://api.thesys.dev/v1/embed` and it authenticates with `THESYS_API_KEY`. Cloud generation uses `conversation: threadId` and `store: true`. The tool loop submits only new function outputs to that conversation; Cloud already has the preceding input and response items. Only the declared app tool runs, and calls already settled by Cloud are skipped.
+The app binds to loopback and its chat/token routes reject production requests. For deployment, replace the local guard with authentication and rate limits on both routes, derive user identity from the session, retain conversation ownership checks, and provide persistent SQLite storage or a hosted database. Cloud receives the conversation, component/tool instructions, driver catalog, and requested query results.
 
-Agent Interface uses `openAIResponsesAdapter` with `openAIConversationMessageFormat` for native tool activity and streamed messages. Each request sends only the latest user question. The server rejects browser-submitted history and tool outputs. `useOpenuiCloudStorage` from the pinned `@openuidev/react-ui` package reads and edits Cloud conversations with a short-lived frontend token. Threads, messages, and tool activity survive reloads and local server restarts.
+## Data notes
 
-The local identity defaults to `DEMO_USER_ID=local-demo` and `APP_ID=conversational-analytics-cookbook`. Both routes derive these values on the server. Keep them stable to retain access to the same history; use another `APP_ID` for an independent copy. Generation checks membership through the same scoped Cloud list API before accepting a conversation id.
+The importer reads the `sessions`, `drivers`, and `laps` endpoints for OpenF1 session **9507**. It validates the race identity and writes `data/race.sqlite` plus a manifest containing source URLs, SHA-256 hashes, and the fetch time. Re-running preparation replaces the local snapshot. Downloaded data and credentials are ignored by Git.
 
-The message renderer removes the opening OpenUI code fence as soon as it arrives. Waiting for the closing fence would hide otherwise renderable content until generation finishes. The prompt emits `root` first, followed by the requested components in reading order. Country and month changes require a follow-up question and a new database tool call.
+Times are stored as integer milliseconds and presented as seconds or `m:ss.sss`. Untimed laps remain missing. The marker after lap 57 is omitted. Comparisons use only lap numbers with a recorded time for every selected driver, listing any omitted laps in the result. Slow laps are retained. These are recorded times, not an official ruling on lap validity; lap times alone do not establish why a driver slowed.
 
-The example binds to loopback and is intended for single-user local development. Its chat and token routes reject production requests. Deployment requires replacing the local demo guard with authentication and rate limits on both routes, deriving user identity from the signed-in session, retaining conversation ownership checks, authorizing private datasets, and using persistent SQLite storage or a hosted database. Raw invoice rows and customer IDs are not sent to the model. Cloud receives conversation text, component/tool instructions, country names, and the aggregate tool result.
+Data is fetched from [OpenF1](https://openf1.org/docs/) at setup time and is not bundled with the code. OpenF1 is an independent project, unaffiliated with Formula 1.
 
 ## Verify
 
 ```bash
 npm run verify
-python -m unittest discover -s scripts -p 'test_*.py'
 npm run verify:data
 ```
 
-`verify` is credential-free and needs no dataset: it checks SQL aggregation with in-memory fixtures, date and country validation, empty states, the published Responses adapter, stream failures and cancellation, stored tool continuations, latest-message requests, and local access boundaries, OpenUI parsing against the published schema, and a production build. The Python checks require the environment above. `verify:data` needs the imported dataset.
+`verify` needs neither credentials nor a download. It covers source validation, ranking and range queries, missing-time alignment, tool events, stream errors/cancellation, stored continuations, local access boundaries, parsing, and the production build.
 
-| February 2011 | Gross sales | Orders | Previous month's gross sales |
-| ------------- | ----------: | -----: | ---------------------------: |
-| All countries | £523,631.89 |  1,100 |                  £691,364.56 |
-| Germany       |   £9,581.05 |     19 |                   £16,910.84 |
+`verify:data` requires the prepared snapshot. It checks the fastest drivers against recorded values:
 
-Browser checks: ask the questions above; expand **Behind the scenes** to inspect the real tool call and output; confirm cards and a partially built table are visible while generation is running; use a follow-up for Germany and verify the totals; ask about Saudi Arabia in April 2011 for an empty result; stop generation and ask again; reload the page and restart the server, then reopen a sidebar conversation to check that messages, visual answers, and tool activity are retained.
+| Driver          | Best recorded lap |
+| --------------- | ----------------: |
+| Oscar Piastri   |          1:30.634 |
+| Alexander Albon |          1:30.849 |
+| Sergio Perez    |          1:30.855 |
+| Carlos Sainz    |          1:30.928 |
+| Lando Norris    |          1:30.980 |
 
-## Extend
+It also checks the Norris/Verstappen series for laps 48 through 57. In the browser, inspect `query_race` under **Behind the scenes**, watch partial responses appear during generation, follow up with a narrower lap range, stop and retry, and reopen the conversation after a reload or server restart.
 
-Add net-sales accounting, daily-average comparisons, or a full product reconciliation in the server query first. Then update the result contract, prompt, and illustrative layout together. Add components by extending `src/library.ts` and regenerating the spec. To use your own database, replace `querySales` while retaining validated arguments and parameter binding.
+## Adapt it
 
-## Attribution
-
-Chen, D. (2015). [Online Retail](https://doi.org/10.24432/C5BW33) [Dataset]. UCI Machine Learning Repository. [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The example filters and aggregates the source and omits customer IDs. Dataset licensing is separate from the repository's code license.
+Replace `queryRace` with a query to your database or API and update the function schema and prompt. Extend `src/library.ts` to support additional presentations, then regenerate the specification.

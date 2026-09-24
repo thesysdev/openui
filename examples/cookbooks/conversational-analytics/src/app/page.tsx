@@ -1,7 +1,7 @@
-import RetailChat from "../components/retail-chat";
+import AnalyticsChat from "../components/analytics-chat";
 
 export const dynamic = "force-dynamic";
 
 export default function Page() {
-  return <RetailChat />;
+  return <AnalyticsChat />;
 }

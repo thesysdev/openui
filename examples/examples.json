@@ -62,7 +62,7 @@
     },
     {
       "title": "Conversational analytics",
-      "description": "Stream visual answers with OpenUI Cloud and inspect database tool calls over the real UCI Online Retail dataset.",
+      "description": "Explore real Formula 1 lap times with OpenUI Cloud, streamed charts, and visible database tool calls.",
       "path": "cookbooks/conversational-analytics",
       "envKey": "THESYS_API_KEY"
     },

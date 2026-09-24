@@ -49,16 +49,11 @@ export function AnalyticsMessage({
         <pre>{program}</pre>
       </details>
       <p className="dataset-note">
-        Gross sales in GBP, not net revenue. Positive-price, positive-quantity invoice lines;
-        cancellations excluded.{" "}
-        <a href="https://doi.org/10.24432/C5BW33" target="_blank" rel="noreferrer">
-          Chen, D. (2015), UCI Online Retail
+        2024 Miami Grand Prix · Recorded lap times from{" "}
+        <a href="https://openf1.org/docs/" target="_blank" rel="noreferrer">
+          OpenF1
         </a>
-        ,{" "}
-        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
-          CC BY 4.0
-        </a>
-        . Source data is filtered and aggregated locally.
+        .
       </p>
     </div>
   );
