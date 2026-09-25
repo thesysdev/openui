@@ -27,9 +27,9 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.41",
     "@openuidev/lang-core": "0.3.0",
-    "@openuidev/react-headless": "0.16.2",
+    "@openuidev/react-headless": "0.16.3",
     "@openuidev/react-lang": "0.3.0",
-    "@openuidev/react-ui": "0.16.2",
+    "@openuidev/react-ui": "0.16.3",
     "@vercel/connect": "0.2.2",
     "ai": "7.0.0-beta.178",
     "eve": "^0.11.7",
@@ -41,7 +41,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.4.0",
+    "@openuidev/cli": "0.4.1",
     "@types/node": "24.x",
     "@types/react": "^19",
     "@types/react-dom": "^19",

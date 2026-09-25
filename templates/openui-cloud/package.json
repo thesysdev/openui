@@ -13,9 +13,9 @@
   },
   "dependencies": {
     "@openuidev/lang-core": "0.3.0",
-    "@openuidev/react-headless": "0.16.2",
+    "@openuidev/react-headless": "0.16.3",
     "@openuidev/react-lang": "0.3.0",
-    "@openuidev/react-ui": "0.16.2",
+    "@openuidev/react-ui": "0.16.3",
     "lucide-react": "^0.575.0",
     "next": "^16.3.0",
     "openai": "^6.49.0",
@@ -25,7 +25,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.4.0",
+    "@openuidev/cli": "0.4.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

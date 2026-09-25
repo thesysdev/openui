@@ -12,14 +12,14 @@ importers:
         specifier: 0.3.0
         version: 0.3.0(zod@4.6.5)
       '@openuidev/react-headless':
-        specifier: 0.16.1
-        version: 0.16.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
+        specifier: 0.16.3
+        version: 0.16.3(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
       '@openuidev/react-lang':
         specifier: 0.3.0
         version: 0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)
       '@openuidev/react-ui':
-        specifier: 0.16.1
-        version: 0.16.1(@openuidev/react-headless@0.16.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
+        specifier: 0.16.3
+        version: 0.16.3(@openuidev/react-headless@0.16.3(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
       '@openuidev/server':
         specifier: 0.1.0
         version: 0.1.0(zod@4.6.5)
@@ -43,8 +43,8 @@ importers:
         version: 4.5.7(@types/react@19.3.0)(react@19.2.4)
     devDependencies:
       '@openuidev/cli':
-        specifier: 0.3.0
-        version: 0.3.0(@types/node@22.20.3)
+        specifier: 0.4.1
+        version: 0.4.1(@types/node@22.20.3)
       '@types/node':
         specifier: ^22.15.32
         version: 22.20.3
@@ -795,8 +795,8 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@openuidev/cli@0.3.0':
-    resolution: {integrity: sha512-HURtbZZIiCOXWYwfLkKPxbtDMuz9FZz0gzIb4XBifTGVN26tR9XgLKDr49fUwVNNrF/8z1jXvMdBlTcf5uXTzw==}
+  '@openuidev/cli@0.4.1':
+    resolution: {integrity: sha512-I8wbgc7ifPRb3N4LHZNyHtHf4eJFleQReiw2DWeiwEzbFO/2eoQ09lDTcw4w8uUxnbdP8CqyDvenlKU6gXaTgw==}
     hasBin: true
 
   '@openuidev/devtools@0.2.0':
@@ -822,8 +822,8 @@ packages:
   '@openuidev/observability@0.0.4':
     resolution: {integrity: sha512-4fjIrWu3TqTlfDE/m7cG10CH1vV7wQk5GPwMOmXeF9vJtkg92dg4Bdk3AjKgud7H7Xypwwjgt52VcLGZCE2CJQ==}
 
-  '@openuidev/react-headless@0.16.1':
-    resolution: {integrity: sha512-DCIpMdz0nUV7K97Dwc9wpjp9eiRh/4q/186wG0u021udroILNLnwYcFiFdcCc5UPtkGkgHwsCQzaeEdimyczEg==}
+  '@openuidev/react-headless@0.16.3':
+    resolution: {integrity: sha512-Fuz2A1n1z8fkDUGkUN1y9HN5i6Eac1iWfHsHe2mCK/Td+0OxEFyFEDQa2rr2xrTTrzqyR9M+6sTHJj5UrxdgkA==}
     peerDependencies:
       ai: ^6.0.0 || ^7.0.0
       react: ^18.3.1 || ^19.0.0
@@ -845,8 +845,8 @@ packages:
       react-dom:
         optional: true
 
-  '@openuidev/react-ui@0.16.1':
-    resolution: {integrity: sha512-ZGkgZvdBIfB+vOZe0Kk9qDMhniJ4Es2Ps/7CKOCDBLppg/74/NIezeXpZ+OBnHqNSzhEeRsBzEe3Mi4P1EXD7w==}
+  '@openuidev/react-ui@0.16.3':
+    resolution: {integrity: sha512-HKDqkC0DdAw/RZL3nx7M25QaUcLb6W9b/AzIQLen8ywKPZBs3pGbfQ+Fykce6OqvCB2ym5+fpnWxOW7lE6jFSA==}
     peerDependencies:
       '@openuidev/react-headless': '>=0.14.0 <0.17.0'
       '@openuidev/react-lang': '>=0.3.0 <0.4.0'
@@ -4140,7 +4140,7 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@openuidev/cli@0.3.0(@types/node@22.20.3)':
+  '@openuidev/cli@0.4.1(@types/node@22.20.3)':
     dependencies:
       '@inquirer/core': 11.2.1(@types/node@22.20.3)
       '@inquirer/prompts': 8.7.2(@types/node@22.20.3)
@@ -4172,7 +4172,7 @@ snapshots:
 
   '@openuidev/observability@0.0.4': {}
 
-  '@openuidev/react-headless@0.16.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))':
+  '@openuidev/react-headless@0.16.3(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))':
     dependencies:
       '@ag-ui/core': 0.0.53
       '@openuidev/observability': 0.0.4
@@ -4189,10 +4189,10 @@ snapshots:
     optionalDependencies:
       react-dom: 19.2.4(react@19.2.4)
 
-  '@openuidev/react-ui@0.16.1(@openuidev/react-headless@0.16.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))':
+  '@openuidev/react-ui@0.16.3(@openuidev/react-headless@0.16.3(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))':
     dependencies:
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@openuidev/react-headless': 0.16.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
+      '@openuidev/react-headless': 0.16.3(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
       '@openuidev/react-lang': 0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)
       '@radix-ui/react-accordion': 1.2.20(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@radix-ui/react-aspect-ratio': 1.1.15(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -5498,7 +5498,7 @@ snapshots:
       eslint: 9.39.5
       eslint-import-resolver-node: 0.3.10
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5))(eslint@9.39.5)
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5))(eslint@9.39.5))(eslint@9.39.5)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.5)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.5)
       eslint-plugin-react: 7.37.5(eslint@9.39.5)
       eslint-plugin-react-hooks: 7.1.1(eslint@9.39.5)
@@ -5531,7 +5531,7 @@ snapshots:
       tinyglobby: 0.2.17
       unrs-resolver: 1.12.2
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5))(eslint@9.39.5))(eslint@9.39.5)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.5)
     transitivePeerDependencies:
       - supports-color
 
@@ -5546,7 +5546,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5))(eslint@9.39.5))(eslint@9.39.5):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.70.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.5):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.2.0

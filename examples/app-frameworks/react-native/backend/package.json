@@ -18,7 +18,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.4.0",
+    "@openuidev/cli": "0.4.1",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
     "@types/react-dom": "^19",
