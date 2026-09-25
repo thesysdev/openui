@@ -101,6 +101,8 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
   const navigationContext = useMemo(() => ({ enterNested, showGlobal }), [enterNested, showGlobal]);
 
   const nestedRoot = sidebarMode.kind === "nested" ? sidebarMode.root : undefined;
+  // Demos is a single page of cards, so it has no sidebar.
+  const hasSidebar = sidebarMode.kind !== "demos";
   const tabFolder =
     sidebarMode.kind === "global" || sidebarMode.kind === "nested" ? undefined : sidebarMode.kind;
   const activeTree = useMemo(() => {
@@ -113,8 +115,9 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
       <DocsLayout
         tree={activeTree}
         {...baseOptions()}
-        nav={{ component: <DocsNavbar /> }}
+        nav={{ component: <DocsNavbar showSidebarTrigger={hasSidebar} /> }}
         sidebar={{
+          enabled: hasSidebar,
           tabs: false,
           collapsible: false,
           className:

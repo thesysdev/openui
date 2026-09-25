@@ -162,7 +162,8 @@ Active component-preview specific modules are located under `app/components/` an
 sidebar trigger, and five top-level tabs: **Docs** (`/docs`), **Cookbooks** (`/cookbooks`),
 **Examples** (`/examples`), **Demos** (`/demos`), and **API Reference** (`/docs/api-reference`).
 Each tab stays active on its child pages, and each tab's sidebar comes from its folder's
-`meta.json`. Examples and Demos are single pages whose `meta.json` links to their sections.
+`meta.json`. Examples is a single page whose `meta.json` links to its sections, and Demos is a
+single page of cards with no sidebar.
 
 All tabs share one content source in `content/docs`. The loader in `lib/source.ts` serves the
 `cookbooks`, `examples`, and `demos` folders from their own top-level paths instead of `/docs`,
