@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/a2ui",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "A2UI v1.0 protocol support with OpenUI Lang component updates and React rendering",
   "license": "MIT",
   "type": "module",
@@ -71,7 +71,7 @@
     "@openuidev/lang-core": "workspace:^"
   },
   "peerDependencies": {
-    "@openuidev/react-lang": "workspace:^",
+    "@openuidev/react-lang": ">=0.3.0 <0.4.0",
     "react": "catalog:",
     "zod": "catalog:"
   },
