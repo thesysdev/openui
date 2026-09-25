@@ -1,15 +1,5 @@
 {
   "title": "Examples",
   "root": true,
-  "pages": [
-    "index",
-    "---Runnable examples---",
-    "agent-frameworks",
-    "app-frameworks",
-    "design-systems",
-    "harnesses",
-    "miscellaneous",
-    "---Community---",
-    "community"
-  ]
+  "pages": ["index"]
 }

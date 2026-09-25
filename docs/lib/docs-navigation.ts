@@ -1,4 +1,5 @@
 import type * as PageTree from "fumadocs-core/page-tree";
+import { EXAMPLE_CATEGORIES } from "./example-categories";
 
 export type NestedDocsRoot = "openui-lang" | "build-agents" | "gateway" | "reliability";
 
@@ -113,6 +114,24 @@ export const GLOBAL_DOCS_TREE: PageTree.Root = {
   ],
 };
 
+/** The Examples tab is one page, so its sidebar jumps between the page's sections. */
+export const EXAMPLES_DOCS_TREE: PageTree.Root = {
+  type: "root",
+  $id: "docs:examples",
+  name: "Examples",
+  children: [
+    { type: "page", name: "Featured projects", url: `${EXAMPLES_URL}#featured-projects` },
+    { type: "separator", name: "Runnable examples" },
+    ...EXAMPLE_CATEGORIES.map((category): PageTree.Item => ({
+      type: "page",
+      name: category.title,
+      url: `${EXAMPLES_URL}#${category.id}`,
+    })),
+    { type: "separator", name: "Community" },
+    { type: "page", name: "Community projects", url: `${EXAMPLES_URL}#community-projects` },
+  ],
+};
+
 export function isPathWithin(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }
@@ -189,18 +208,6 @@ export function getCookbooksTree(tree: PageTree.Root): PageTree.Root {
   return {
     type: "root",
     $id: "docs:cookbooks",
-    name: folder.name,
-    children: folder.children,
-  };
-}
-
-export function getExamplesTree(tree: PageTree.Root): PageTree.Root {
-  const folder = findNestedFolder(tree.children, "examples");
-  if (!folder) throw new Error('Docs folder "examples" was not found in the page tree.');
-
-  return {
-    type: "root",
-    $id: "docs:examples",
     name: folder.name,
     children: folder.children,
   };

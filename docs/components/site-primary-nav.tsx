@@ -199,7 +199,7 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
           {
             title: "By community",
             description: "Tools, packages, plugins, and demos from the community",
-            href: "/docs/examples/community",
+            href: "/lab",
             icon: Users,
           },
         ],
