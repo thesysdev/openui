@@ -124,9 +124,39 @@ function parserMetadata(result: ParseResult | null) {
   };
 }
 
+function emitSettled(
+  state: StreamingObservabilityState,
+  update: StreamingObservabilityUpdate,
+  response: string | null,
+  result: ParseResult | null,
+  errors: OpenUIError[],
+  libraryIdFields: { __libraryId?: string },
+) {
+  observability(errors.length > 0 ? "error" : "info", {
+    id: update.id,
+    kind: STREAM_EVENT_KIND,
+    phase: STREAM_PHASE_SETTLED,
+    updateIndex: update.updateIndex,
+    response,
+    responseLength: response?.length ?? 0,
+    parser: parserMetadata(result),
+    errors,
+    errorCount: errors.length,
+    ...captureStreamTiming(state),
+    ...libraryIdFields,
+    message:
+      errors.length > 0
+        ? `OpenUI Lang settled with ${errors.length} error${errors.length === 1 ? "" : "s"}`
+        : "OpenUI Lang settled",
+  } satisfies SettledStreamEventDetail);
+}
+
 /**
  * Publishes the incremental OpenUI Lang stream lifecycle. The stable id is
  * created only after this Renderer instance has actually entered streaming.
+ *
+ * Switching chats unmounts the Renderer while `isStreaming` is still true, so
+ * unmount also settles — otherwise DevTools stays on "Streaming" forever.
  */
 export function useStreamingObservability({
   response,
@@ -138,6 +168,15 @@ export function useStreamingObservability({
   __libraryId,
 }: UseStreamingObservabilityOptions): void {
   const streamRef = useRef<StreamingObservabilityState>(createStreamingObservabilityState());
+  const latestRef = useRef({
+    publish,
+    isStreaming,
+    response,
+    result,
+    errorsRef,
+    __libraryId,
+  });
+  latestRef.current = { publish, isStreaming, response, result, errorsRef, __libraryId };
 
   useEffect(() => {
     if (!publish) return;
@@ -170,23 +209,27 @@ export function useStreamingObservability({
     }
 
     if (update?.phase === STREAM_PHASE_SETTLED) {
-      observability(errors.length > 0 ? "error" : "info", {
-        id: update.id,
-        kind: STREAM_EVENT_KIND,
-        phase: STREAM_PHASE_SETTLED,
-        updateIndex: update.updateIndex,
-        response,
-        responseLength: response?.length ?? 0,
-        parser: parserMetadata(result),
-        errors,
-        errorCount: errors.length,
-        ...captureStreamTiming(streamRef.current),
-        ...libraryIdFields,
-        message:
-          errors.length > 0
-            ? `OpenUI Lang settled with ${errors.length} error${errors.length === 1 ? "" : "s"}`
-            : "OpenUI Lang settled",
-      } satisfies SettledStreamEventDetail);
+      emitSettled(streamRef.current, update, response, result, errors, libraryIdFields);
     }
   }, [publish, isStreaming, response, result, errorsRef, errorRevision, __libraryId]);
+
+  useEffect(() => {
+    return () => {
+      const latest = latestRef.current;
+      if (!latest.publish || !latest.isStreaming) return;
+      const state = streamRef.current;
+      if (!state.id || state.settled) return;
+      const errors = latest.errorsRef.current;
+      const update = advanceStreamingObservability(
+        state,
+        false,
+        latest.response,
+        JSON.stringify(errors),
+      );
+      if (update?.phase !== STREAM_PHASE_SETTLED) return;
+      const libraryIdFields =
+        latest.__libraryId !== undefined ? { __libraryId: latest.__libraryId } : {};
+      emitSettled(state, update, latest.response, latest.result, errors, libraryIdFields);
+    };
+  }, []);
 }
