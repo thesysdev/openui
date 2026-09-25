@@ -91,7 +91,12 @@ body {
 
 #nd-sidebar > .flex.flex-col.gap-3.p-4.pb-2,
 #nd-sidebar-mobile > .flex.flex-col.gap-3.p-4.pb-2 {
-  padding: 2rem 0 0.5rem 1rem !important;
+  padding: 1rem 0 0.5rem 1rem !important;
+}
+
+/* Without a banner the desktop sidebar header is empty, so it only adds space above the page tree. */
+#nd-sidebar > .flex.flex-col.gap-3.p-4.pb-2:not(:has(> :nth-child(2))) {
+  padding-top: 0 !important;
 }
 
 /* Sidebar page-tree scroll viewport; the right gutter keeps active rows and dividers off the edge */
