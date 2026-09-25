@@ -59,8 +59,7 @@ export const ThreadButton = ({
       className={clsx(
         "openui-agent-thread-button",
         {
-          "openui-agent-thread-button--selected":
-            selectedThreadId === id && nav?.path === undefined,
+          "openui-agent-thread-button--selected": selectedThreadId === id,
           "openui-agent-thread-button--actions-open": isActionsOpen,
         },
         className,

@@ -9,14 +9,10 @@ import type {
 import { ToolNotFoundError, extractToolResult } from "@openuidev/lang-core";
 import React, { Component, Fragment, useEffect, useInsertionEffect, useRef } from "react";
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
-import { useOpenUIState, type OpenUIState } from "./hooks/useOpenUIState";
+import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
 
-export interface RendererController extends OpenUIState {
-  isStreaming: boolean;
-}
-
-export interface UseRendererOptions {
+export interface RendererProps {
   /** Raw response text (openui-lang code). */
   response: string | null;
   /** Component library from createLibrary(). */
@@ -45,6 +41,8 @@ export interface UseRendererOptions {
    */
   toolProvider?:
     Record<string, (args: Record<string, unknown>) => Promise<unknown>> | McpClientLike | null;
+  /** Custom loading indicator shown while queries are fetching. Defaults to a spinner. */
+  queryLoader?: React.ReactNode;
   /**
    * Called with structured, LLM-friendly errors from the parser and query system.
    * Only includes errors fixable by changing the openui-lang code (unknown components,
@@ -54,14 +52,6 @@ export interface UseRendererOptions {
   onError?: (errors: OpenUIError[]) => void;
   publishObservability?: boolean;
 }
-
-/** Supply either runtime options or a controller created by useRenderer. */
-export type RendererProps = (
-  (UseRendererOptions & { controller?: never }) | { controller: RendererController }
-) & {
-  /** Custom query activity indicator; false hides it when the host supplies its own. */
-  queryLoader?: React.ReactNode;
-};
 
 // ─── Error boundary ───
 
@@ -184,12 +174,7 @@ function ensureLoadingStyle() {
   if (loadingStyleInjected || typeof document === "undefined") return;
   loadingStyleInjected = true;
   const style = document.createElement("style");
-  style.textContent = `
-    @keyframes openui-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @media (prefers-reduced-motion: reduce) {
-      .openui-query-spinner { animation: none !important; }
-    }
-  `;
+  style.textContent = `@keyframes openui-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
   document.head.appendChild(style);
 }
 
@@ -197,20 +182,22 @@ function ensureLoadingStyle() {
 
 const DefaultQueryLoader = () => (
   <div
-    className="openui-query-spinner"
-    aria-hidden="true"
     style={{
+      position: "absolute",
+      top: 8,
+      right: 8,
       width: 16,
       height: 16,
       border: "2px solid #e5e7eb",
       borderTopColor: "#3b82f6",
       borderRadius: "50%",
       animation: "openui-spin 0.6s linear infinite",
+      zIndex: 10,
     }}
   />
 );
 
-export function useRenderer({
+export function Renderer({
   response,
   library,
   isStreaming = false,
@@ -219,9 +206,14 @@ export function useRenderer({
   initialState,
   onParseResult,
   toolProvider,
+  queryLoader,
   onError,
   publishObservability,
-}: UseRendererOptions): RendererController {
+}: RendererProps) {
+  useInsertionEffect(() => {
+    ensureLoadingStyle();
+  }, []);
+
   const onParseResultRef = useRef(onParseResult);
   onParseResultRef.current = onParseResult;
 
@@ -253,7 +245,7 @@ export function useRenderer({
   });
   const resolvedToolProvider = toolProvider != null ? stableToolProvider.current : null;
 
-  const state = useOpenUIState(
+  const { result, parseResult, contextValue, isQueryLoading } = useOpenUIState(
     {
       response,
       library,
@@ -271,74 +263,20 @@ export function useRenderer({
   // Fire onParseResult with the RAW parse result (not evaluated),
   // so hosts only see changes when the parser output actually changes.
   useEffect(() => {
-    onParseResultRef.current?.(state.parseResult);
-  }, [state.parseResult]);
+    onParseResultRef.current?.(parseResult);
+  }, [parseResult]);
 
-  return { ...state, isStreaming };
-}
-
-export function Renderer(props: RendererProps) {
-  if (props.controller) {
-    return <RendererView controller={props.controller} queryLoader={props.queryLoader} />;
+  if (!result?.root) {
+    return null;
   }
-  return <ManagedRenderer {...props} />;
-}
-
-function ManagedRenderer({
-  queryLoader,
-  ...options
-}: UseRendererOptions & { queryLoader?: React.ReactNode }) {
-  const controller = useRenderer(options);
-  return <RendererView controller={controller} queryLoader={queryLoader} />;
-}
-
-function RendererView({
-  controller,
-  queryLoader,
-}: {
-  controller: RendererController;
-  queryLoader?: React.ReactNode;
-}) {
-  useInsertionEffect(() => {
-    ensureLoadingStyle();
-  }, []);
-  const { result, contextValue, isQueryLoading } = controller;
-  if (!result?.root) return null;
 
   return (
     <OpenUIContext.Provider value={contextValue}>
-      <div
-        aria-busy={isQueryLoading}
-        style={{
-          position: "relative",
-        }}
-      >
-        {isQueryLoading && queryLoader !== false && (
-          <div
-            role="status"
-            aria-live="polite"
-            aria-label="Tool calls in progress"
-            title="Tool calls in progress"
-            style={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              zIndex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 6,
-              borderRadius: "50%",
-              background: "Canvas",
-              boxShadow: "0 1px 4px rgb(0 0 0 / 12%)",
-              pointerEvents: "none",
-              boxSizing: "border-box",
-            }}
-          >
-            {queryLoader ?? <DefaultQueryLoader />}
-          </div>
-        )}
-        {result?.root && <RenderNode node={result.root} />}
+      <div style={{ position: "relative" }}>
+        {isQueryLoading && (queryLoader ?? <DefaultQueryLoader />)}
+        <div style={{ opacity: isQueryLoading ? 0.7 : 1, transition: "opacity 0.2s ease" }}>
+          <RenderNode node={result.root} />
+        </div>
       </div>
     </OpenUIContext.Provider>
   );
