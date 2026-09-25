@@ -1,14 +1,20 @@
 "use client";
 
+import { CodePanel } from "@/app/demos/components/CodePanel/CodePanel";
+import { Header } from "@/app/demos/components/Header/Header";
+import { PreviewPanel } from "@/app/demos/components/PreviewPanel/PreviewPanel";
+import {
+  MODELS,
+  STARTER_PROMPTS,
+  type Model,
+  type Status,
+  type Theme,
+} from "@/app/demos/constants";
 import { DemoCreditsDialog } from "@/components/DemoCreditsDialog";
 import { isDemoCreditsErrorPayload } from "@/lib/demo-credits";
 import { Send, Square } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback, useRef, useState } from "react";
-import { CodePanel } from "./components/CodePanel/CodePanel";
-import { Header } from "./components/Header/Header";
-import { PreviewPanel } from "./components/PreviewPanel/PreviewPanel";
-import { MODELS, STARTER_PROMPTS, type Model, type Status, type Theme } from "./constants";
 
 export default function DemosPage() {
   const { theme, setTheme } = useTheme();

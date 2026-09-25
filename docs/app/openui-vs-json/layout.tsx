@@ -1,7 +1,7 @@
+import "@/app/demos/layout.css";
 import { WebsiteThemeProvider } from "@/components/website-theme-provider";
 import { createPageMetadata } from "@/lib/page-metadata";
 import type { ReactNode } from "react";
-import "./layout.css";
 
 export const metadata = createPageMetadata({
   pathname: "/openui-vs-json",
