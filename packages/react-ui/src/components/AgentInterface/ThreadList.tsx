@@ -1,7 +1,7 @@
-import { useThreadList } from "@openuidev/react-headless";
+import { useThreadList, useThreadState } from "@openuidev/react-headless";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import clsx from "clsx";
-import { EllipsisIcon, Trash2Icon } from "lucide-react";
+import { EllipsisIcon, Loader2, Trash2Icon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
 import { Button } from "../Button";
@@ -46,6 +46,9 @@ export const ThreadButton = ({
   const selectThread = useThreadList((s) => s.selectThread);
   const deleteThread = useThreadList((s) => s.deleteThread);
   const selectedThreadId = useThreadList((s) => s.selectedThreadId);
+  // Background streams live in `inFlightThreads` (never the active thread), so this
+  // is already background-only — no `selectedThreadId !== id` guard needed.
+  const { isStreaming } = useThreadState(id);
   const { isSidebarOpen, setIsSidebarOpen } = useAgentInterfaceStore((state) => ({
     isSidebarOpen: state.isSidebarOpen,
     setIsSidebarOpen: state.setIsSidebarOpen,
@@ -61,6 +64,7 @@ export const ThreadButton = ({
         {
           "openui-agent-thread-button--selected": selectedThreadId === id,
           "openui-agent-thread-button--actions-open": isActionsOpen,
+          "openui-agent-thread-button--streaming": isStreaming,
         },
         className,
       )}
@@ -80,42 +84,54 @@ export const ThreadButton = ({
       >
         {title}
       </button>
-      <DropdownMenu.Root open={isActionsOpen} onOpenChange={setIsActionsOpen}>
-        <DropdownMenu.Trigger asChild>
-          <IconButton
-            className="openui-agent-thread-button-dropdown-trigger"
-            icon={<EllipsisIcon size="1em" />}
-            size="2-extra-small"
-            variant="tertiary"
-            aria-label="Thread actions"
-          />
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Portal>
-          <DropdownMenu.Content
-            className="openui-agent-thread-button-dropdown-menu"
-            side="bottom"
-            align="start"
-            sideOffset={4}
-          >
-            <DropdownMenu.Item
-              asChild
-              onSelect={() => {
-                deleteThread(id);
-              }}
+      {isStreaming && (
+        <div
+          className="openui-agent-thread-button-loader"
+          role="status"
+          aria-live="polite"
+          aria-label="Generating response"
+        >
+          <Loader2 className="openui-agent-thread-button-loader__icon" size="1em" />
+        </div>
+      )}
+      {!isStreaming && (
+        <DropdownMenu.Root open={isActionsOpen} onOpenChange={setIsActionsOpen}>
+          <DropdownMenu.Trigger asChild>
+            <IconButton
+              className="openui-agent-thread-button-dropdown-trigger"
+              icon={<EllipsisIcon size="1em" />}
+              size="2-extra-small"
+              variant="tertiary"
+              aria-label="Thread actions"
+            />
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              className="openui-agent-thread-button-dropdown-menu"
+              side="bottom"
+              align="start"
+              sideOffset={4}
             >
-              <Button
-                buttonType="destructive"
-                className="openui-agent-thread-button-dropdown-menu-item"
-                iconLeft={<Trash2Icon size="1em" />}
-                size="extra-small"
-                variant="tertiary"
+              <DropdownMenu.Item
+                asChild
+                onSelect={() => {
+                  deleteThread(id);
+                }}
               >
-                Delete
-              </Button>
-            </DropdownMenu.Item>
-          </DropdownMenu.Content>
-        </DropdownMenu.Portal>
-      </DropdownMenu.Root>
+                <Button
+                  buttonType="destructive"
+                  className="openui-agent-thread-button-dropdown-menu-item"
+                  iconLeft={<Trash2Icon size="1em" />}
+                  size="extra-small"
+                  variant="tertiary"
+                >
+                  Delete
+                </Button>
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+      )}
     </div>
   );
 };
