@@ -1,12 +1,10 @@
-/** Sections of the Examples tab, matching the top-level folders in `examples/`. */
+/**
+ * Sections of the Examples tab, matching the top-level folders in `examples/`. Cookbook apps are
+ * left out because they have their own tab.
+ */
 
 export type ExampleCategoryId =
-  | "agent-frameworks"
-  | "app-frameworks"
-  | "cookbooks"
-  | "design-systems"
-  | "harnesses"
-  | "miscellaneous";
+  "agent-frameworks" | "app-frameworks" | "design-systems" | "harnesses" | "miscellaneous";
 
 export type ExampleCategory = {
   id: ExampleCategoryId;
@@ -25,11 +23,6 @@ export const EXAMPLE_CATEGORIES: ExampleCategory[] = [
     id: "app-frameworks",
     title: "App frameworks",
     description: "Application frameworks and platforms that host an OpenUI client or server.",
-  },
-  {
-    id: "cookbooks",
-    title: "Cookbooks",
-    description: "Complete workflows paired with a step-by-step tutorial.",
   },
   {
     id: "design-systems",

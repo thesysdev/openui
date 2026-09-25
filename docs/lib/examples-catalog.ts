@@ -14,7 +14,6 @@ const EXAMPLE_GUIDES: Record<string, string> = {
   "agent-frameworks/vercel-ai-sdk": "/docs/agent/agent-runtimes/vercel-ai-sdk",
   "agent-frameworks/vercel-eve": "/docs/agent/agent-runtimes/vercel-eve",
   "app-frameworks/angular": "/docs/api-reference/angular-lang",
-  "cookbooks/conversational-analytics": "/cookbooks/conversational-analytics",
   "design-systems/shadcn": "/docs/openui-lang/examples/design-systems/shadcn",
   "harnesses/pi": "/docs/agent/agent-runtimes/pi",
   "miscellaneous/html-artifact": "/docs/agent/guides/open-ended-html",
