@@ -1,5 +1,5 @@
 {
   "title": "Cookbooks",
   "root": true,
-  "pages": ["[Overview](/docs/cookbooks)", "---All cookbooks---", "conversational-analytics"]
+  "pages": ["conversational-analytics"]
 }

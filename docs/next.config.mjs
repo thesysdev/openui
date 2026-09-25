@@ -35,6 +35,12 @@ const config = {
   },
   async redirects() {
     return [
+      // The Cookbooks overview is temporarily removed; open the only cookbook instead.
+      {
+        source: "/docs/cookbooks",
+        destination: "/docs/cookbooks/conversational-analytics",
+        permanent: false,
+      },
       {
         source: "/docs/gateway/api/autofix",
         destination: "/docs/autofix",

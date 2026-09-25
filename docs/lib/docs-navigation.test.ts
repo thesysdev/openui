@@ -184,8 +184,6 @@ describe("nested docs navigation", () => {
         root: true,
         $ref: { folder: "cookbooks" },
         children: [
-          { type: "page", name: "Overview", url: "/docs/cookbooks" },
-          { type: "separator", name: "All cookbooks" },
           {
             type: "page",
             name: "Conversational analytics",
@@ -255,8 +253,6 @@ describe("nested docs navigation", () => {
       $id: "docs:cookbooks",
       name: "Cookbooks",
       children: [
-        { type: "page", name: "Overview", url: "/docs/cookbooks" },
-        { type: "separator", name: "All cookbooks" },
         {
           type: "page",
           name: "Conversational analytics",
