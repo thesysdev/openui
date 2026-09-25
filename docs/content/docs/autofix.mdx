@@ -77,7 +77,7 @@ export async function POST(request: Request) {
 ```
 
 ```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
-import { streamText, toUIMessageStream } from "ai";
+import { convertToModelMessages, streamText, toUIMessageStream, type UIMessageChunk } from "ai";
 import { autofix } from "../../../lib/autofix";
 
 export async function POST(request: Request) {
@@ -85,16 +85,31 @@ export async function POST(request: Request) {
   const result = streamText({
     model: "openai/gpt-5.5",
     system: systemPrompt, // Generated from the same OpenUI component library.
-    messages,
+    messages: await convertToModelMessages(messages),
     abortSignal: request.signal,
   });
 
   return autofix.ai
     .stream({
-      stream: toUIMessageStream({ stream: result.stream }),
+      stream: iterateUIMessageStream(toUIMessageStream({ stream: result.stream })),
       signal: request.signal,
     })
     .toResponse();
+}
+
+async function* iterateUIMessageStream(
+  stream: ReadableStream<UIMessageChunk>,
+): AsyncGenerator<UIMessageChunk> {
+  const reader = stream.getReader();
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) return;
+      yield value;
+    }
+  } finally {
+    reader.releaseLock();
+  }
 }
 ```
 
@@ -113,7 +128,7 @@ if (result.status === "fix_failed") {
 
 OpenAI: return SSE for the frontend `openAIAdapter()`.
 
-Vercel: pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI message SSE protocol used by `useChat`.
+Vercel: build the UI message stream with `toUIMessageStream({ stream: result.stream })`. It returns a `ReadableStream`, and `ai.stream()` takes an `AsyncIterable`, so iterate it with a helper like `iterateUIMessageStream`. `toResponse()` is the UI message SSE protocol used by `useChat`.
 
 Non-streaming: `generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation. Use `completions.fix` or `ai.fix` to match the import.
 

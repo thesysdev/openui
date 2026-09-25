@@ -4,7 +4,7 @@ description: API reference for Autofix helpers and conversation history persiste
 ---
 
 Server utilities for OpenUI Gateway. Validate and repair model-generated OpenUI Lang, and persist a completed turn as Conversations API items. 
-Import from the subpath that matches your SDK. The helpers call [Autofix HTTP API](/docs/gateway/api/autofix).
+Import from the subpath that matches your SDK. The helpers call the [Autofix HTTP API](/docs/autofix). Use Autofix when your application is not using OpenUI Gateway; Gateway generation that already uses `generateSystemPrompt({ cloud: true, library })` is repaired while it streams.
 
 ## Install
 
@@ -31,7 +31,7 @@ npm install @openuidev/server
 | `@openuidev/server/openai` | `completions.fix` and `completions.stream` | `storeChatCompletionHistory`, `chatCompletionMessagesToItems` |
 | `@openuidev/server/vercel` | `ai.fix` and `ai.stream`                   | —                                                             |
 
-Pair each Autofix stream with the matching frontend adapter: `openAIAdapter()` or `useChat`.
+Pair each Autofix stream with the matching frontend adapter: `openAIAdapter()` or `vercelAIAdapter()` / `useChat`.
 
 ## `createAutofix(options)`
 
@@ -157,7 +157,7 @@ function stream(input: {
 }): AutofixStream<Chunk>;
 ```
 
-Use `autofix.completions.stream()` with a native Chat Completions stream, or `autofix.ai.stream()` with `toUIMessageStream({ stream: result.stream })` — not the raw `result.stream`.
+Use `autofix.completions.stream()` with a native Chat Completions stream. For `autofix.ai.stream()`, build the UI message stream with `toUIMessageStream({ stream: result.stream })` — not the raw `result.stream`. `toUIMessageStream()` returns a `ReadableStream<UIMessageChunk>`, which is not an `AsyncIterable`, so iterate it with a small helper before passing it in.
 
 ```ts
 interface AutofixStream<T> {
@@ -194,7 +194,7 @@ export async function POST(request: Request) {
 ```
 
 ```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
-import { streamText, toUIMessageStream } from "ai";
+import { convertToModelMessages, streamText, toUIMessageStream, type UIMessageChunk } from "ai";
 import { createAutofix } from "@openuidev/server/vercel";
 import library from "./openui.spec.json";
 
@@ -203,19 +203,37 @@ const autofix = createAutofix({
   library,
 });
 
-const result = streamText({
-  model: "openai/gpt-5.5",
-  system: systemPrompt,
-  prompt: "Show a greeting card",
-  abortSignal: signal,
-});
+export async function POST(request: Request) {
+  const { messages } = await request.json();
+  const result = streamText({
+    model: "openai/gpt-5.5",
+    system: systemPrompt,
+    messages: await convertToModelMessages(messages),
+    abortSignal: request.signal,
+  });
 
-return autofix.ai
-  .stream({
-    stream: toUIMessageStream({ stream: result.stream }),
-    signal,
-  })
-  .toResponse();
+  return autofix.ai
+    .stream({
+      stream: iterateUIMessageStream(toUIMessageStream({ stream: result.stream })),
+      signal: request.signal,
+    })
+    .toResponse();
+}
+
+async function* iterateUIMessageStream(
+  stream: ReadableStream<UIMessageChunk>,
+): AsyncGenerator<UIMessageChunk> {
+  const reader = stream.getReader();
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) return;
+      yield value;
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
 ```
 
 ```ts title="server.ts" tab="Non-streaming" tab-group="autofix-sdk"
@@ -244,7 +262,7 @@ if (settled?.content) {
 
 ```ts tab="Vercel AI SDK" tab-group="autofix-sdk"
 const output = autofix.ai.stream({
-  stream: toUIMessageStream({ stream: result.stream }),
+  stream: iterateUIMessageStream(toUIMessageStream({ stream: result.stream })),
   signal,
 });
 

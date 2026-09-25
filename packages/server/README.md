@@ -62,7 +62,7 @@ Return SSE for the frontend `openAIAdapter()`. `autofix.responses` is not suppor
 ### Wrap a Vercel AI SDK stream
 
 ```ts
-import { streamText, toUIMessageStream } from "ai";
+import { convertToModelMessages, streamText, toUIMessageStream, type UIMessageChunk } from "ai";
 import { createAutofix } from "@openuidev/server/vercel";
 import library from "./openui.spec.json";
 
@@ -71,22 +71,40 @@ const autofix = createAutofix({
   library,
 });
 
-const result = streamText({
-  model: "openai/gpt-5.5",
-  system: systemPrompt, // Generated from the same OpenUI component library.
-  prompt: "Show a greeting card",
-  abortSignal: signal,
-});
+export async function POST(request: Request) {
+  const { messages } = await request.json();
+  const result = streamText({
+    model: "openai/gpt-5.5",
+    system: systemPrompt, // Generated from the same OpenUI component library.
+    messages: await convertToModelMessages(messages),
+    abortSignal: request.signal,
+  });
 
-return autofix.ai
-  .stream({
-    stream: toUIMessageStream({ stream: result.stream }),
-    signal,
-  })
-  .toResponse();
+  return autofix.ai
+    .stream({
+      stream: iterateUIMessageStream(toUIMessageStream({ stream: result.stream })),
+      signal: request.signal,
+    })
+    .toResponse();
+}
+
+async function* iterateUIMessageStream(
+  stream: ReadableStream<UIMessageChunk>,
+): AsyncGenerator<UIMessageChunk> {
+  const reader = stream.getReader();
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) return;
+      yield value;
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
 ```
 
-Pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI message SSE protocol used by `useChat`.
+Build the UI message stream with `toUIMessageStream({ stream: result.stream })`. It returns a `ReadableStream`, and `ai.stream()` takes an `AsyncIterable`, so iterate it with a helper like `iterateUIMessageStream`. `toResponse()` is the UI message SSE protocol read by `useChat` and `vercelAIAdapter()`.
 
 ### Consume the stream
 
