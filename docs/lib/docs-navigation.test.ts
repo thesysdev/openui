@@ -2,6 +2,7 @@ import type * as PageTree from "fumadocs-core/page-tree";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  EXAMPLES_DOCS_TREE,
   GLOBAL_DOCS_TREE,
   getApiReferenceTree,
   getCookbooksTree,
@@ -248,6 +249,25 @@ describe("nested docs navigation", () => {
       { kind: "cookbooks" },
     );
     assert.deepEqual(getDefaultSidebarMode("/docs/cookbooks-other"), { kind: "global" });
+    assert.deepEqual(getDefaultSidebarMode("/docs/examples"), { kind: "examples" });
+    assert.equal(getGlobalActiveItemUrl("/docs/examples"), undefined);
+    assert.deepEqual(
+      EXAMPLES_DOCS_TREE.children.map((node) =>
+        node.type === "page" ? node.url.split("#")[1] : node.name,
+      ),
+      [
+        "featured-projects",
+        "Runnable examples",
+        "agent-frameworks",
+        "app-frameworks",
+        "cookbooks",
+        "design-systems",
+        "harnesses",
+        "miscellaneous",
+        "Community",
+        "community-projects",
+      ],
+    );
     assert.deepEqual(getCookbooksTree(fullTree), {
       type: "root",
       $id: "docs:cookbooks",

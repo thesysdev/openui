@@ -1,6 +1,11 @@
 "use client";
 
-import { API_REFERENCE_URL, COOKBOOKS_URL, isPathWithin } from "@/lib/docs-navigation";
+import {
+  API_REFERENCE_URL,
+  COOKBOOKS_URL,
+  EXAMPLES_URL,
+  isPathWithin,
+} from "@/lib/docs-navigation";
 import { siteConfig } from "@/lib/layout.shared";
 import { SidebarTrigger } from "fumadocs-ui/components/sidebar/base";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
@@ -16,6 +21,7 @@ import { ThemeToggle } from "./theme-toggle";
 const tabs = [
   { title: "Docs", url: "/docs" },
   { title: "Cookbooks", url: COOKBOOKS_URL },
+  { title: "Examples", url: EXAMPLES_URL },
   { title: "API Reference", url: API_REFERENCE_URL },
 ];
 
@@ -74,11 +80,8 @@ function SearchBar() {
 
 export function DocsNavbar() {
   const pathname = usePathname();
-  const activeTabUrl = isPathWithin(pathname, COOKBOOKS_URL)
-    ? COOKBOOKS_URL
-    : isPathWithin(pathname, API_REFERENCE_URL)
-      ? API_REFERENCE_URL
-      : "/docs";
+  const activeTabUrl =
+    tabs.find((tab) => tab.url !== "/docs" && isPathWithin(pathname, tab.url))?.url ?? "/docs";
   const { resolvedTheme } = useTheme();
   // resolvedTheme is undefined during SSR and the first client render, so gate the
   // theme-derived variant behind a mount flag (matching SiteMarketingHeader) to

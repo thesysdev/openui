@@ -8,6 +8,7 @@
     "build-agents",
     "agent",
     "cookbooks",
+    "examples",
     "production",
     "gateway",
     "autofix",

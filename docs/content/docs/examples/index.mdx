@@ -1,0 +1,29 @@
+---
+title: Examples
+description: Projects built with OpenUI, runnable examples from the repository, and work from the community.
+full: true
+---
+
+import { CommunityProjects, FeaturedProjects, RepoExamples } from "@/components/examples-gallery";
+
+## Featured projects
+
+Full products the OpenUI team builds in the open to show what generative UI can do beyond chat.
+
+<FeaturedProjects />
+
+## Runnable examples
+
+Every example in the [`examples/`](https://github.com/thesysdev/openui/tree/main/examples) folder is a standalone app. Scaffold any of them with the OpenUI CLI. **Run locally** on a card shows the exact command and the API key that example needs:
+
+```bash
+npx @openuidev/cli@latest create --example <name>
+```
+
+<RepoExamples />
+
+## Community projects
+
+Apps, tools, and integrations built by the OpenUI community. To add yours, [open an issue](https://github.com/thesysdev/openui/issues) with a link and a short description.
+
+<CommunityProjects />
