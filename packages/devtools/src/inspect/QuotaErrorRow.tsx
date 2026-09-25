@@ -66,6 +66,7 @@ export function QuotaErrorRow({ info }: { info: QuotaErrorInfo }) {
                   withDevtoolsAttribution(
                     "https://console.thesys.dev/billing",
                     "quota_error_purchase_credits",
+                    "cloud",
                   ),
                   "_blank",
                   "noopener,noreferrer",
@@ -88,7 +89,11 @@ export function QuotaErrorRow({ info }: { info: QuotaErrorInfo }) {
               onMouseLeave={() => setHoveredCta(null)}
               onClick={() =>
                 window.open(
-                  withDevtoolsAttribution("https://console.thesys.dev/byok", "quota_error_byok"),
+                  withDevtoolsAttribution(
+                    "https://console.thesys.dev/byok",
+                    "quota_error_byok",
+                    "cloud",
+                  ),
                   "_blank",
                   "noopener,noreferrer",
                 )
