@@ -1,5 +1,16 @@
 {
   "title": "Examples",
   "root": true,
-  "pages": ["index"]
+  "pages": [
+    "[Featured projects](/examples#featured-projects)",
+    "---Runnable examples---",
+    "[Agent frameworks](/examples#agent-frameworks)",
+    "[App frameworks](/examples#app-frameworks)",
+    "[Cookbooks](/examples#cookbooks)",
+    "[Design systems](/examples#design-systems)",
+    "[Harnesses](/examples#harnesses)",
+    "[Miscellaneous](/examples#miscellaneous)",
+    "---Community---",
+    "[Community projects](/examples#community-projects)"
+  ]
 }

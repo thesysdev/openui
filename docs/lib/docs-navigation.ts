@@ -1,13 +1,12 @@
 import type * as PageTree from "fumadocs-core/page-tree";
-import { EXAMPLE_CATEGORIES } from "./example-categories";
+
+export type TabFolder = "cookbooks" | "examples" | "demos" | "api-reference";
 
 export type NestedDocsRoot = "openui-lang" | "build-agents" | "gateway" | "reliability";
 
 export type SidebarMode =
   | { kind: "global" }
-  | { kind: "cookbooks" }
-  | { kind: "examples" }
-  | { kind: "api-reference" }
+  | { kind: TabFolder }
   | {
       kind: "nested";
       root: NestedDocsRoot;
@@ -53,8 +52,9 @@ export const NESTED_DOCS_SECTIONS: Record<NestedDocsRoot, NestedSection> = {
 };
 
 export const API_REFERENCE_URL = "/docs/api-reference";
-export const COOKBOOKS_URL = "/docs/cookbooks";
-export const EXAMPLES_URL = "/docs/examples";
+export const COOKBOOKS_URL = "/cookbooks";
+export const EXAMPLES_URL = "/examples";
+export const DEMOS_URL = "/demos";
 
 const promotedGlobalUrls = new Set([
   "/docs",
@@ -114,24 +114,6 @@ export const GLOBAL_DOCS_TREE: PageTree.Root = {
   ],
 };
 
-/** The Examples tab is one page, so its sidebar jumps between the page's sections. */
-export const EXAMPLES_DOCS_TREE: PageTree.Root = {
-  type: "root",
-  $id: "docs:examples",
-  name: "Examples",
-  children: [
-    { type: "page", name: "Featured projects", url: `${EXAMPLES_URL}#featured-projects` },
-    { type: "separator", name: "Runnable examples" },
-    ...EXAMPLE_CATEGORIES.map((category): PageTree.Item => ({
-      type: "page",
-      name: category.title,
-      url: `${EXAMPLES_URL}#${category.id}`,
-    })),
-    { type: "separator", name: "Community" },
-    { type: "page", name: "Community projects", url: `${EXAMPLES_URL}#community-projects` },
-  ],
-};
-
 export function isPathWithin(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }
@@ -153,6 +135,7 @@ export function getNestedRootForPathname(pathname: string): NestedDocsRoot | und
 export function getDefaultSidebarMode(pathname: string): SidebarMode {
   if (isPathWithin(pathname, COOKBOOKS_URL)) return { kind: "cookbooks" };
   if (isPathWithin(pathname, EXAMPLES_URL)) return { kind: "examples" };
+  if (isPathWithin(pathname, DEMOS_URL)) return { kind: "demos" };
   if (isPathWithin(pathname, API_REFERENCE_URL)) return { kind: "api-reference" };
 
   if (pathname === "/docs/overview" || promotedGlobalUrls.has(pathname)) {
@@ -189,25 +172,14 @@ function findNestedFolder(nodes: PageTree.Node[], treeFolder: string): PageTree.
   return undefined;
 }
 
-export function getApiReferenceTree(tree: PageTree.Root): PageTree.Root {
-  const folder = findNestedFolder(tree.children, "api-reference");
-  if (!folder) throw new Error('Docs folder "api-reference" was not found in the page tree.');
+/** The sidebar for a top-level tab (Cookbooks, Examples, Demos, API Reference) is its content folder. */
+export function getTabTree(tree: PageTree.Root, treeFolder: TabFolder): PageTree.Root {
+  const folder = findNestedFolder(tree.children, treeFolder);
+  if (!folder) throw new Error(`Docs folder "${treeFolder}" was not found in the page tree.`);
 
   return {
     type: "root",
-    $id: "docs:api-reference",
-    name: folder.name,
-    children: folder.children,
-  };
-}
-
-export function getCookbooksTree(tree: PageTree.Root): PageTree.Root {
-  const folder = findNestedFolder(tree.children, "cookbooks");
-  if (!folder) throw new Error('Docs folder "cookbooks" was not found in the page tree.');
-
-  return {
-    type: "root",
-    $id: "docs:cookbooks",
+    $id: `docs:${treeFolder}`,
     name: folder.name,
     children: folder.children,
   };

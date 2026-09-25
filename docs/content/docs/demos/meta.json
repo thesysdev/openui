@@ -1,0 +1,9 @@
+{
+  "title": "Demos",
+  "root": true,
+  "pages": [
+    "[Featured demos](/demos#featured-demos)",
+    "[Chat conversations](/demos#chat-conversations)",
+    "[Developer tools](/demos#developer-tools)"
+  ]
+}

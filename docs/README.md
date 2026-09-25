@@ -159,9 +159,15 @@ Active component-preview specific modules are located under `app/components/` an
 ### Navigation
 
 `components/docs-navbar.tsx` provides the shared docs header, search, theme control, mobile
-sidebar trigger, and three top-level tabs: **Docs** (`/docs`), **Cookbooks** (`/docs/cookbooks`),
-and **API Reference** (`/docs/api-reference`). Cookbooks and API Reference stay active on their
-respective child pages, and each sidebar lists its folder's pages directly.
+sidebar trigger, and five top-level tabs: **Docs** (`/docs`), **Cookbooks** (`/cookbooks`),
+**Examples** (`/examples`), **Demos** (`/demos`), and **API Reference** (`/docs/api-reference`).
+Each tab stays active on its child pages, and each tab's sidebar comes from its folder's
+`meta.json`. Examples and Demos are single pages whose `meta.json` links to their sections.
+
+All tabs share one content source in `content/docs`. The loader in `lib/source.ts` serves the
+`cookbooks`, `examples`, and `demos` folders from their own top-level paths instead of `/docs`,
+and `components/docs-shell.tsx` gives those routes the same docs layout. API Reference stays under
+`/docs` because package READMEs and the rest of the docs link to it there.
 
 Within the Docs tab there are two sidebar modes. The global sidebar introduces the documentation
 through Start, Build, and Production groups. Links with chevrons enter a nested section sidebar

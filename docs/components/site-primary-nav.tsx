@@ -175,7 +175,7 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
             title: "OpenUI vs JSON",
             description:
               "Compare OpenUI Lang with JSON-based UI generation: 3× faster with up to 67% fewer tokens.",
-            href: "/demos",
+            href: "/demos/openui-vs-json",
             icon: Code,
           },
         ],

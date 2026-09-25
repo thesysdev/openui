@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "fumadocs-ui/components/
 import { useCopyButton } from "fumadocs-ui/utils/use-copy-button";
 import { Check, Copy, SquareTerminal } from "lucide-react";
 import { Fragment } from "react";
-import styles from "./examples-gallery.module.css";
+import styles from "./showcase.module.css";
 
 type RunLocallyProps = {
   title: string;

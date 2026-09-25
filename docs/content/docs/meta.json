@@ -9,6 +9,7 @@
     "agent",
     "cookbooks",
     "examples",
+    "demos",
     "production",
     "gateway",
     "autofix",

@@ -3,15 +3,13 @@
 import { DocsNavbar } from "@/components/docs-navbar";
 import { DocsSidebarActions } from "@/components/docs-sidebar-actions";
 import {
-  EXAMPLES_DOCS_TREE,
   GLOBAL_DOCS_TREE,
   NESTED_DOCS_SECTIONS,
-  getApiReferenceTree,
-  getCookbooksTree,
   getGlobalActiveItemUrl,
   getNestedDocsTree,
   getNestedRootForEntryUrl,
   getSidebarModeForPathname,
+  getTabTree,
   type NestedDocsRoot,
   type SidebarModeOverride,
 } from "@/lib/docs-navigation";
@@ -103,15 +101,12 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
   const navigationContext = useMemo(() => ({ enterNested, showGlobal }), [enterNested, showGlobal]);
 
   const nestedRoot = sidebarMode.kind === "nested" ? sidebarMode.root : undefined;
-  const isApiReference = sidebarMode.kind === "api-reference";
-  const isCookbooks = sidebarMode.kind === "cookbooks";
-  const isExamples = sidebarMode.kind === "examples";
+  const tabFolder =
+    sidebarMode.kind === "global" || sidebarMode.kind === "nested" ? undefined : sidebarMode.kind;
   const activeTree = useMemo(() => {
-    if (isCookbooks) return getCookbooksTree(tree);
-    if (isExamples) return EXAMPLES_DOCS_TREE;
-    if (isApiReference) return getApiReferenceTree(tree);
+    if (tabFolder) return getTabTree(tree, tabFolder);
     return nestedRoot ? getNestedDocsTree(tree, nestedRoot) : GLOBAL_DOCS_TREE;
-  }, [isCookbooks, isExamples, isApiReference, nestedRoot, tree]);
+  }, [tabFolder, nestedRoot, tree]);
 
   return (
     <DocsNavigationContext.Provider value={navigationContext}>

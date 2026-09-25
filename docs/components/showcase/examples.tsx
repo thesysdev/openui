@@ -1,20 +1,13 @@
 import { EXAMPLE_CATEGORIES } from "@/lib/example-categories";
 import { EXAMPLES_REPO_URL, getExamplesInCategory } from "@/lib/examples-catalog";
 import { labProjects } from "@/lib/lab-projects";
-import { ArrowUpRight, BookOpen } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import Link from "next/link";
-import styles from "./examples-gallery.module.css";
+import { CardLink, LinkCardGrid, ShowcaseGrid, type ShowcaseItem } from "./cards";
 import { RunLocally } from "./run-locally";
+import styles from "./showcase.module.css";
 
-type FeaturedProject = {
-  name: string;
-  tagline: string;
-  description: string;
-  image: { light: string; dark: string };
-  links: { label: string; href: string; external?: boolean }[];
-};
-
-const FEATURED_PROJECTS: FeaturedProject[] = [
+const FEATURED_PROJECTS: ShowcaseItem[] = [
   {
     name: "OpenClaw OS",
     tagline: "Agent workspace",
@@ -36,48 +29,8 @@ const FEATURED_PROJECTS: FeaturedProject[] = [
   },
 ];
 
-function CardLink({ label, href, external }: { label: string; href: string; external?: boolean }) {
-  if (external) {
-    return (
-      <a className={styles.cardLink} href={href} target="_blank" rel="noopener noreferrer">
-        {label}
-        <ArrowUpRight aria-hidden className={styles.cardLinkIcon} />
-      </a>
-    );
-  }
-
-  return (
-    <Link className={styles.cardLink} href={href}>
-      {label}
-    </Link>
-  );
-}
-
 export function FeaturedProjects() {
-  return (
-    <div className={styles.featuredGrid}>
-      {FEATURED_PROJECTS.map((project) => (
-        <article key={project.name} className={styles.featuredCard}>
-          <div className={styles.featuredMedia}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className={styles.imageLight} src={project.image.light} alt="" loading="lazy" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className={styles.imageDark} src={project.image.dark} alt="" loading="lazy" />
-          </div>
-          <div className={styles.featuredBody}>
-            <span className={styles.eyebrow}>{project.tagline}</span>
-            <h3 className={styles.cardTitle}>{project.name}</h3>
-            <p className={styles.cardDescription}>{project.description}</p>
-            <div className={styles.cardLinks}>
-              {project.links.map((link) => (
-                <CardLink key={link.label} {...link} />
-              ))}
-            </div>
-          </div>
-        </article>
-      ))}
-    </div>
-  );
+  return <ShowcaseGrid items={FEATURED_PROJECTS} />;
 }
 
 export function RepoExamples() {
@@ -127,21 +80,13 @@ export function CommunityProjects() {
   );
 
   return (
-    <div className={styles.grid}>
-      {projects.map((project) => (
-        <article key={project.name} className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h4 className={styles.cardTitle}>{project.name}</h4>
-            <span className={styles.tag}>{project.type}</span>
-          </div>
-          <p className={styles.cardDescription}>{project.description}</p>
-          <div className={styles.cardLinks}>
-            {project.links.map((link) => (
-              <CardLink key={link.label} {...link} external />
-            ))}
-          </div>
-        </article>
-      ))}
-    </div>
+    <LinkCardGrid
+      items={projects.map((project) => ({
+        name: project.name,
+        description: project.description,
+        tag: project.type,
+        links: project.links.map((link) => ({ ...link, external: true })),
+      }))}
+    />
   );
 }

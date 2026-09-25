@@ -6,14 +6,14 @@ Each example has one primary home. Complete workflows with a companion tutorial 
 
 ## Categories
 
-| Category                                 | Use it for                                                                                                                    |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| [`agent-frameworks`](./agent-frameworks) | Agent runtimes and orchestration frameworks that produce or stream OpenUI output                                              |
-| [`app-frameworks`](./app-frameworks)     | Application frameworks or platforms that host an OpenUI client or server                                                      |
-| [`cookbooks`](./cookbooks)               | Complete runnable workflows paired with step-by-step tutorials in the [Cookbooks docs](https://www.openui.com/docs/cookbooks) |
-| [`design-systems`](./design-systems)     | Component systems adapted into an OpenUI component library                                                                    |
-| [`harnesses`](./harnesses)               | Coding-agent harnesses presented through an OpenUI interface                                                                  |
-| [`miscellaneous`](./miscellaneous)       | Distinct capabilities, specialized libraries, and backend services that do not justify another top-level category             |
+| Category                                 | Use it for                                                                                                               |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| [`agent-frameworks`](./agent-frameworks) | Agent runtimes and orchestration frameworks that produce or stream OpenUI output                                         |
+| [`app-frameworks`](./app-frameworks)     | Application frameworks or platforms that host an OpenUI client or server                                                 |
+| [`cookbooks`](./cookbooks)               | Complete runnable workflows paired with step-by-step tutorials in the [Cookbooks docs](https://www.openui.com/cookbooks) |
+| [`design-systems`](./design-systems)     | Component systems adapted into an OpenUI component library                                                               |
+| [`harnesses`](./harnesses)               | Coding-agent harnesses presented through an OpenUI interface                                                             |
+| [`miscellaneous`](./miscellaneous)       | Distinct capabilities, specialized libraries, and backend services that do not justify another top-level category        |
 
 `miscellaneous` is intentionally flat. If several examples develop the same stable integration seam, promote that seam to a top-level category instead of adding nested miscellaneous taxonomies.
 
@@ -41,9 +41,9 @@ Each example has one primary home. Complete workflows with a companion tutorial 
 
 ### Cookbooks
 
-| Example                                                          | Demonstrates                                                                             | Tutorial                                                                      |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [Conversational analytics](./cookbooks/conversational-analytics) | Formula 1 lap-time analysis with OpenUI Gateway, streamed charts, and visible tool calls | [Walkthrough](https://www.openui.com/docs/cookbooks/conversational-analytics) |
+| Example                                                          | Demonstrates                                                                             | Tutorial                                                                 |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [Conversational analytics](./cookbooks/conversational-analytics) | Formula 1 lap-time analysis with OpenUI Gateway, streamed charts, and visible tool calls | [Walkthrough](https://www.openui.com/cookbooks/conversational-analytics) |
 
 ### Design systems
 

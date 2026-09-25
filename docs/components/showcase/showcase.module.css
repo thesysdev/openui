@@ -5,8 +5,12 @@
   margin: 1.25rem 0 0;
 }
 
+/* At most two columns, so four featured cards form a 2x2 grid instead of 3 + 1. */
 .featuredGrid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, max(22rem, calc((100% - 1rem) / 2))), 1fr)
+  );
 }
 
 .grid {

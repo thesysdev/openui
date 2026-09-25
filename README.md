@@ -199,7 +199,7 @@ Good places to start:
 - [openui.com](https://openui.com) for the full docs
 - [Quickstart](https://www.openui.com/docs/agent/getting-started/quickstart) to scaffold a working app
 - [`examples/README.md`](./examples/README.md) to find a focused reference implementation
-- [Cookbooks](https://www.openui.com/docs/cookbooks) for complete walkthroughs with [runnable code](./examples/cookbooks)
+- [Cookbooks](https://www.openui.com/cookbooks) for complete walkthroughs with [runnable code](./examples/cookbooks)
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) if you want to contribute
 
 ## Community

@@ -2,16 +2,14 @@ import type * as PageTree from "fumadocs-core/page-tree";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  EXAMPLES_DOCS_TREE,
   GLOBAL_DOCS_TREE,
-  getApiReferenceTree,
-  getCookbooksTree,
   getDefaultSidebarMode,
   getGlobalActiveItemUrl,
   getNestedDocsTree,
   getNestedRootForEntryUrl,
   getNestedRootForPathname,
   getSidebarModeForPathname,
+  getTabTree,
 } from "./docs-navigation";
 
 describe("global docs navigation", () => {
@@ -188,8 +186,19 @@ describe("nested docs navigation", () => {
           {
             type: "page",
             name: "Conversational analytics",
-            url: "/docs/cookbooks/conversational-analytics",
+            url: "/cookbooks/conversational-analytics",
           },
+        ],
+      },
+      {
+        type: "folder",
+        name: "Examples",
+        root: true,
+        $ref: { folder: "examples" },
+        children: [
+          { type: "page", name: "Featured projects", url: "/examples#featured-projects" },
+          { type: "separator", name: "Community" },
+          { type: "page", name: "Community projects", url: "/examples#community-projects" },
         ],
       },
       {
@@ -235,40 +244,28 @@ describe("nested docs navigation", () => {
     ],
   };
 
-  it("gives top-level cookbook and API tabs their own sidebars", () => {
-    for (const pathname of ["/docs/cookbooks", "/docs/cookbooks/conversational-analytics"]) {
-      assert.deepEqual(getDefaultSidebarMode(pathname), { kind: "cookbooks" });
+  it("gives the Cookbooks, Examples, Demos, and API Reference tabs their own sidebars", () => {
+    const tabs = [
+      ["/cookbooks", "cookbooks"],
+      ["/cookbooks/conversational-analytics", "cookbooks"],
+      ["/examples", "examples"],
+      ["/demos", "demos"],
+      ["/docs/api-reference", "api-reference"],
+    ] as const;
+    for (const [pathname, kind] of tabs) {
+      assert.deepEqual(getDefaultSidebarMode(pathname), { kind });
       assert.equal(getNestedRootForPathname(pathname), undefined);
       assert.equal(getGlobalActiveItemUrl(pathname), undefined);
     }
     assert.deepEqual(
-      getSidebarModeForPathname("/docs/cookbooks/conversational-analytics", {
+      getSidebarModeForPathname("/cookbooks/conversational-analytics", {
         pathname: "/docs/openui-lang",
         mode: { kind: "global" },
       }),
       { kind: "cookbooks" },
     );
-    assert.deepEqual(getDefaultSidebarMode("/docs/cookbooks-other"), { kind: "global" });
-    assert.deepEqual(getDefaultSidebarMode("/docs/examples"), { kind: "examples" });
-    assert.equal(getGlobalActiveItemUrl("/docs/examples"), undefined);
-    assert.deepEqual(
-      EXAMPLES_DOCS_TREE.children.map((node) =>
-        node.type === "page" ? node.url.split("#")[1] : node.name,
-      ),
-      [
-        "featured-projects",
-        "Runnable examples",
-        "agent-frameworks",
-        "app-frameworks",
-        "cookbooks",
-        "design-systems",
-        "harnesses",
-        "miscellaneous",
-        "Community",
-        "community-projects",
-      ],
-    );
-    assert.deepEqual(getCookbooksTree(fullTree), {
+    assert.deepEqual(getDefaultSidebarMode("/cookbooks-other"), { kind: "global" });
+    assert.deepEqual(getTabTree(fullTree, "cookbooks"), {
       type: "root",
       $id: "docs:cookbooks",
       name: "Cookbooks",
@@ -276,11 +273,21 @@ describe("nested docs navigation", () => {
         {
           type: "page",
           name: "Conversational analytics",
-          url: "/docs/cookbooks/conversational-analytics",
+          url: "/cookbooks/conversational-analytics",
         },
       ],
     });
-    assert.deepEqual(getApiReferenceTree(fullTree), {
+    assert.deepEqual(getTabTree(fullTree, "examples"), {
+      type: "root",
+      $id: "docs:examples",
+      name: "Examples",
+      children: [
+        { type: "page", name: "Featured projects", url: "/examples#featured-projects" },
+        { type: "separator", name: "Community" },
+        { type: "page", name: "Community projects", url: "/examples#community-projects" },
+      ],
+    });
+    assert.deepEqual(getTabTree(fullTree, "api-reference"), {
       type: "root",
       $id: "docs:api-reference",
       name: "API Reference",
