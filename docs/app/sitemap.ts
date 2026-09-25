@@ -5,7 +5,6 @@ const STATIC_PATHS = [
   "/",
   "/demos",
   "/compare",
-  "/lab",
   "/integrations",
   "/chat",
   "/blog",

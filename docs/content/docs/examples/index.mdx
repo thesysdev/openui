@@ -1,29 +1,79 @@
 ---
-title: Examples
+title: Overview
 description: Projects built with OpenUI, runnable examples from the repository, and work from the community.
-full: true
 ---
-
-import { CommunityProjects, FeaturedProjects, RepoExamples } from "@/components/examples-gallery";
 
 ## Featured projects
 
-Full products the OpenUI team builds in the open to show what generative UI can do beyond chat.
+Products the OpenUI team builds in the open to show what generative UI can do beyond chat.
 
-<FeaturedProjects />
+<Cards>
+  <Card title="OpenClaw OS" href="/openclaw-os">
+    <img
+      src="/nav/openclaw-light.webp"
+      alt="OpenClaw OS home screen with agents, apps, and artifacts"
+      className="dark:hidden"
+    />
+    <img
+      src="/nav/openclaw-dark.webp"
+      alt="OpenClaw OS home screen with agents, apps, and artifacts"
+      className="hidden dark:block"
+    />
+    The default workspace for OpenClaw. Agents generate interactive apps and artifacts that stay
+    updated with live data.
+  </Card>
+  <Card title="AppLess" href="https://github.com/thesysdev/appless">
+    <img
+      src="/nav/appless-light.webp"
+      alt="AppLess phone screens showing a generated order confirmation"
+      className="dark:hidden"
+    />
+    <img
+      src="/nav/appless-dark.webp"
+      alt="AppLess phone screens showing a generated order confirmation"
+      className="hidden dark:block"
+    />
+    An experimental phone with no apps. Ask for what you need and OpenUI streams a native interface
+    for it on iOS and Android.
+  </Card>
+</Cards>
+
+To use OpenUI inside OpenClaw OS, install the [OpenClaw plugin](https://github.com/thesysdev/openclaw-os/tree/main/packages/claw-plugin).
 
 ## Runnable examples
 
-Every example in the [`examples/`](https://github.com/thesysdev/openui/tree/main/examples) folder is a standalone app. Scaffold any of them with the OpenUI CLI. **Run locally** on a card shows the exact command and the API key that example needs:
+Every example in the [`examples/`](https://github.com/thesysdev/openui/tree/main/examples) folder is a standalone app. Scaffold one with the OpenUI CLI:
 
 ```bash
 npx @openuidev/cli@latest create --example <name>
 ```
 
-<RepoExamples />
+The CLI copies the example into a new folder and asks for the API key it needs, which it saves to `.env`. Most examples use a `THESYS_API_KEY` from the [Thesys console](https://console.thesys.dev/keys).
+
+<Cards>
+  <Card title="Agent frameworks" href="/docs/examples/agent-frameworks">
+    Google ADK, LangGraph Platform, Mastra, Vercel AI SDK, and Vercel Eve.
+  </Card>
+  <Card title="App frameworks" href="/docs/examples/app-frameworks">
+    Angular, FastAPI, React Native, Svelte, and Vue.
+  </Card>
+  <Card title="Design systems" href="/docs/examples/design-systems">
+    Material UI and shadcn/ui as OpenUI component libraries.
+  </Card>
+  <Card title="Harnesses" href="/docs/examples/harnesses">
+    Grok Build and Pi coding-agent sessions.
+  </Card>
+  <Card title="Miscellaneous" href="/docs/examples/miscellaneous">
+    Autofix, Handsontable, HTML artifacts, React Email, and Supabase.
+  </Card>
+</Cards>
+
+Complete apps with a step-by-step tutorial live in [Cookbooks](/docs/cookbooks). The [conversational analytics](/docs/cookbooks/conversational-analytics) app scaffolds the same way:
+
+```bash
+npx @openuidev/cli@latest create --example conversational-analytics
+```
 
 ## Community projects
 
-Apps, tools, and integrations built by the OpenUI community. To add yours, [open an issue](https://github.com/thesysdev/openui/issues) with a link and a short description.
-
-<CommunityProjects />
+Apps, tools, and integrations built by the OpenUI community are listed on [Community projects](/docs/examples/community), along with how to add yours.

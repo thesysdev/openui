@@ -1,0 +1,56 @@
+---
+title: Agent frameworks
+description: Agent runtimes and orchestration frameworks that produce or stream OpenUI output.
+---
+
+Each example scaffolds with the OpenUI CLI and asks for your `THESYS_API_KEY` from the [Thesys console](https://console.thesys.dev/keys).
+
+## Google ADK
+
+A Google ADK TypeScript agent streaming OpenUI Lang to a Next.js client.
+
+```bash
+npx @openuidev/cli@latest create --example google-adk
+```
+
+[Source](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk)
+
+## LangGraph Platform
+
+A DeepAgents graph on LangGraph Platform, streamed to OpenUI through the LangChain adapter.
+
+```bash
+npx @openuidev/cli@latest create --example langgraph-platform
+```
+
+[Source](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/langgraph-platform) · [Guide](/docs/agent/agent-runtimes/langgraph-platform)
+
+## Mastra
+
+A Mastra agent connected to OpenUI through AG-UI.
+
+```bash
+npx @openuidev/cli@latest create --example mastra
+```
+
+[Source](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra)
+
+## Vercel AI SDK
+
+Agent Interface over a Vercel AI SDK `streamText` backend.
+
+```bash
+npx @openuidev/cli@latest create --example vercel-ai-sdk
+```
+
+[Source](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/vercel-ai-sdk) · [Guide](/docs/agent/agent-runtimes/vercel-ai-sdk)
+
+## Vercel Eve
+
+An Eve agent rendered through Agent Interface.
+
+```bash
+npx @openuidev/cli@latest create --example vercel-eve
+```
+
+[Source](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/vercel-eve) · [Guide](/docs/agent/agent-runtimes/vercel-eve)

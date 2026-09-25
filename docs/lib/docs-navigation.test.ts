@@ -2,11 +2,11 @@ import type * as PageTree from "fumadocs-core/page-tree";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  EXAMPLES_DOCS_TREE,
   GLOBAL_DOCS_TREE,
   getApiReferenceTree,
   getCookbooksTree,
   getDefaultSidebarMode,
+  getExamplesTree,
   getGlobalActiveItemUrl,
   getNestedDocsTree,
   getNestedRootForEntryUrl,
@@ -194,6 +194,17 @@ describe("nested docs navigation", () => {
       },
       {
         type: "folder",
+        name: "Examples",
+        root: true,
+        $ref: { folder: "examples" },
+        children: [
+          { type: "page", name: "Overview", url: "/docs/examples" },
+          { type: "separator", name: "Community" },
+          { type: "page", name: "Community projects", url: "/docs/examples/community" },
+        ],
+      },
+      {
+        type: "folder",
         name: "API Reference",
         root: true,
         $ref: { folder: "api-reference" },
@@ -235,7 +246,7 @@ describe("nested docs navigation", () => {
     ],
   };
 
-  it("gives top-level cookbook and API tabs their own sidebars", () => {
+  it("gives top-level cookbook, examples, and API tabs their own sidebars", () => {
     for (const pathname of ["/docs/cookbooks", "/docs/cookbooks/conversational-analytics"]) {
       assert.deepEqual(getDefaultSidebarMode(pathname), { kind: "cookbooks" });
       assert.equal(getNestedRootForPathname(pathname), undefined);
@@ -249,25 +260,10 @@ describe("nested docs navigation", () => {
       { kind: "cookbooks" },
     );
     assert.deepEqual(getDefaultSidebarMode("/docs/cookbooks-other"), { kind: "global" });
-    assert.deepEqual(getDefaultSidebarMode("/docs/examples"), { kind: "examples" });
-    assert.equal(getGlobalActiveItemUrl("/docs/examples"), undefined);
-    assert.deepEqual(
-      EXAMPLES_DOCS_TREE.children.map((node) =>
-        node.type === "page" ? node.url.split("#")[1] : node.name,
-      ),
-      [
-        "featured-projects",
-        "Runnable examples",
-        "agent-frameworks",
-        "app-frameworks",
-        "cookbooks",
-        "design-systems",
-        "harnesses",
-        "miscellaneous",
-        "Community",
-        "community-projects",
-      ],
-    );
+    for (const pathname of ["/docs/examples", "/docs/examples/community"]) {
+      assert.deepEqual(getDefaultSidebarMode(pathname), { kind: "examples" });
+      assert.equal(getGlobalActiveItemUrl(pathname), undefined);
+    }
     assert.deepEqual(getCookbooksTree(fullTree), {
       type: "root",
       $id: "docs:cookbooks",
@@ -278,6 +274,16 @@ describe("nested docs navigation", () => {
           name: "Conversational analytics",
           url: "/docs/cookbooks/conversational-analytics",
         },
+      ],
+    });
+    assert.deepEqual(getExamplesTree(fullTree), {
+      type: "root",
+      $id: "docs:examples",
+      name: "Examples",
+      children: [
+        { type: "page", name: "Overview", url: "/docs/examples" },
+        { type: "separator", name: "Community" },
+        { type: "page", name: "Community projects", url: "/docs/examples/community" },
       ],
     });
     assert.deepEqual(getApiReferenceTree(fullTree), {

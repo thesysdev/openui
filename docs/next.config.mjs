@@ -262,25 +262,31 @@ const config = {
       },
       {
         source: "/docs/add-ons",
-        destination: "/lab",
+        destination: "/docs/examples/community",
         permanent: false,
       },
       {
         source: "/add-ons",
-        destination: "/lab",
+        destination: "/docs/examples/community",
         permanent: false,
       },
       {
         source: "/ecosystem",
-        destination: "/lab",
+        destination: "/docs/examples/community",
         permanent: false,
       },
       {
         source: "/registry",
-        destination: "/lab",
+        destination: "/docs/examples/community",
         permanent: false,
       },
-      // Nav rename: Playground -> Demos, Projects -> Lab. Keep the old
+      // The Lab page moved into the docs as the Examples tab.
+      {
+        source: "/lab",
+        destination: "/docs/examples/community",
+        permanent: true,
+      },
+      // Nav rename: Playground -> Demos, Projects -> Lab (now the Examples docs). Keep the old
       // paths working for external links and search results.
       // Product rename: Paste → Debug. Keep the old path working.
       {
@@ -295,12 +301,12 @@ const config = {
       },
       {
         source: "/projects",
-        destination: "/lab",
+        destination: "/docs/examples",
         permanent: true,
       },
       {
         source: "/showcase",
-        destination: "/lab",
+        destination: "/docs/examples",
         permanent: true,
       },
       {
