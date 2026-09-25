@@ -43,6 +43,13 @@ export function createDefaultInMemoryStorage(): ChatStorage {
         threads = threads.filter((t) => t.id !== id);
         messagesByThread.delete(id);
       },
+      async updateMessage(threadId: string, message: Message) {
+        const messages = messagesByThread.get(threadId) ?? [];
+        messagesByThread.set(
+          threadId,
+          messages.map((m) => (m.id === message.id ? message : m)),
+        );
+      },
     },
   };
 }

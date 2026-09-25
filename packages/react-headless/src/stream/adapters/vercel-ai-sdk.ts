@@ -80,6 +80,21 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
     const streamedToolArgs = new Set<string>();
     const endedTools = new Set<string>();
     let stepIndex = 0;
+    let messageId: string | undefined;
+    let segmentIndex = 0;
+    let segmentHasBody = false;
+    let textMessageId: string | undefined;
+
+    // Match the segment IDs produced by vercelAIMessageFormat on reload.
+    const nextMessageId = (fallback: string) => {
+      if (segmentIndex === 0 || segmentHasBody) segmentIndex += 1;
+      segmentHasBody = false;
+      return messageId
+        ? segmentIndex === 1
+          ? messageId
+          : `${messageId}-segment-${segmentIndex}`
+        : fallback;
+    };
 
     // AG-UI step events are lifecycle-only. Normalize each AI SDK model step
     // into one assistant message lifecycle here so downstream consumers do not
@@ -97,9 +112,19 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
       | undefined;
 
     const startStepMessage = (preferredMessageId?: string): AGUIEvent | undefined => {
+      if (!activeStep && messageId && !textMessageId && !preferredMessageId) {
+        textMessageId = nextMessageId(messageId);
+        return {
+          type: EventType.TEXT_MESSAGE_START,
+          messageId: textMessageId,
+          role: "assistant",
+        };
+      }
       if (!activeStep || activeStep.messageStarted) return;
 
-      activeStep.messageId ??= preferredMessageId ?? `vercel-ai-message-${stepIndex}`;
+      activeStep.messageId ??= nextMessageId(
+        preferredMessageId ?? `vercel-ai-message-${stepIndex}`,
+      );
       activeStep.messageStarted = true;
       return {
         type: EventType.TEXT_MESSAGE_START,
@@ -119,11 +144,15 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
     const beginText = (partId: string): AGUIEvent[] => {
       if (activeStep?.messageStarted && activeStep.sawTools) {
         const previousId = activeStep.messageId!;
-        activeStep.messageId = partId;
+        activeStep.messageId = nextMessageId(partId);
         activeStep.sawTools = false;
         return [
           { type: EventType.TEXT_MESSAGE_END, messageId: previousId },
-          { type: EventType.TEXT_MESSAGE_START, messageId: partId, role: "assistant" },
+          {
+            type: EventType.TEXT_MESSAGE_START,
+            messageId: activeStep.messageId,
+            role: "assistant",
+          },
         ];
       }
 
@@ -131,8 +160,10 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
       return event ? [event] : [];
     };
 
-    const toolParent = () =>
-      activeStep?.messageId ? { parentMessageId: activeStep.messageId } : {};
+    const toolParent = () => {
+      const parentMessageId = activeStep?.messageId ?? (messageId ? textMessageId : undefined);
+      return parentMessageId ? { parentMessageId } : {};
+    };
 
     for await (const chunk of readChunks(chunks)) {
       if ("providerExecuted" in chunk && chunk.providerExecuted === true) {
@@ -140,6 +171,13 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
       }
 
       switch (chunk.type) {
+        case "start":
+          messageId = chunk.messageId;
+          segmentIndex = 0;
+          segmentHasBody = false;
+          textMessageId = undefined;
+          break;
+
         case "start-step": {
           const stepName = `vercel-ai-step-${++stepIndex}`;
           activeStep = { stepName, messageStarted: false, sawTools: false };
@@ -169,9 +207,10 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
         case "text-start": {
           for (const event of beginText(chunk.id)) yield event;
           if (!activeStep) {
+            textMessageId = nextMessageId(chunk.id);
             yield {
               type: EventType.TEXT_MESSAGE_START,
-              messageId: chunk.id,
+              messageId: textMessageId,
               role: "assistant",
             };
           }
@@ -180,9 +219,10 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
 
         case "text-delta": {
           for (const event of beginText(chunk.id)) yield event;
+          if (chunk.delta) segmentHasBody = true;
           yield {
             type: EventType.TEXT_MESSAGE_CONTENT,
-            messageId: activeStep?.messageId ?? chunk.id,
+            messageId: activeStep?.messageId ?? textMessageId ?? chunk.id,
             delta: chunk.delta,
           };
           break;
@@ -192,7 +232,7 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
           if (!activeStep) {
             yield {
               type: EventType.TEXT_MESSAGE_END,
-              messageId: chunk.id,
+              messageId: textMessageId ?? chunk.id,
             };
           }
           break;
@@ -202,6 +242,7 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
             const event = startStepMessage();
             if (event) yield event;
             startedTools.add(chunk.toolCallId);
+            segmentHasBody = true;
             if (activeStep) activeStep.sawTools = true;
             yield {
               type: EventType.TOOL_CALL_START,
@@ -229,6 +270,7 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
             const event = startStepMessage();
             if (event) yield event;
             startedTools.add(chunk.toolCallId);
+            segmentHasBody = true;
             if (activeStep) activeStep.sawTools = true;
             yield {
               type: EventType.TOOL_CALL_START,
