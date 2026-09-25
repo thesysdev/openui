@@ -2,7 +2,8 @@
 
 import { siteConfig } from "@/lib/layout.shared";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { ArrowUpRight, CalendarDays, KeyRound, MessageCircle } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bot, LifeBuoy, MessageCircle } from "lucide-react";
+import Link from "next/link";
 import type { ComponentType } from "react";
 import styles from "./docs-sidebar-actions.module.css";
 
@@ -16,12 +17,12 @@ type SidebarAction = {
 
 const SIDEBAR_ACTIONS: SidebarAction[] = [
   {
-    label: "API key",
-    title: "Get an API key",
+    label: "AI setup",
+    title: "Coding agent setup",
     description:
-      "Create a key in the Thesys console. OpenUI Cloud, Gateway, and most examples need one.",
-    href: "https://console.thesys.dev/keys",
-    icon: KeyRound,
+      "Connect the OpenUI docs to your coding agent through MCP, the agent skill, or LLM-friendly formats.",
+    href: "/docs/mcp",
+    icon: Bot,
   },
   {
     label: "Discord",
@@ -32,36 +33,47 @@ const SIDEBAR_ACTIONS: SidebarAction[] = [
   },
   {
     label: "Talk to us",
-    title: "Talk to us",
+    title: "Stuck? Talk to us",
     description:
-      "Book a demo with the Thesys team to walk through your use case or a production rollout.",
+      "Tell us what's blocking you or what we should improve, and we'll help you on a call.",
     href: "https://zcal.co/t/thesys/demo",
-    icon: CalendarDays,
+    icon: LifeBuoy,
   },
 ];
 
-function hostname(href: string) {
-  return new URL(href).hostname.replace(/^www\./, "");
+function isExternal(href: string) {
+  return href.startsWith("https://");
+}
+
+function destination(href: string) {
+  return isExternal(href) ? new URL(href).hostname.replace(/^www\./, "") : href;
 }
 
 /** Links pinned to the bottom of every docs sidebar, with details on hover or focus. */
 export function DocsSidebarActions() {
   return (
-    <Tooltip.Provider delayDuration={150} skipDelayDuration={300}>
+    <Tooltip.Provider delayDuration={150} skipDelayDuration={300} disableHoverableContent>
       <nav className={styles.sidebarActions} aria-label="Get started and get help">
         {SIDEBAR_ACTIONS.map(({ label, title, description, href, icon: Icon }) => (
           <Tooltip.Root key={label}>
             <Tooltip.Trigger asChild>
-              <a
-                className={styles.sidebarAction}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={title}
-              >
-                <Icon aria-hidden />
-                <span className={styles.sidebarActionLabel}>{label}</span>
-              </a>
+              {isExternal(href) ? (
+                <a
+                  className={styles.sidebarAction}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={title}
+                >
+                  <Icon aria-hidden />
+                  <span className={styles.sidebarActionLabel}>{label}</span>
+                </a>
+              ) : (
+                <Link className={styles.sidebarAction} href={href} aria-label={title}>
+                  <Icon aria-hidden />
+                  <span className={styles.sidebarActionLabel}>{label}</span>
+                </Link>
+              )}
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Content
@@ -76,8 +88,8 @@ export function DocsSidebarActions() {
                 </span>
                 <span className={styles.detailDescription}>{description}</span>
                 <span className={styles.detailHost}>
-                  {hostname(href)}
-                  <ArrowUpRight aria-hidden />
+                  {destination(href)}
+                  {isExternal(href) ? <ArrowUpRight aria-hidden /> : <ArrowRight aria-hidden />}
                 </span>
               </Tooltip.Content>
             </Tooltip.Portal>
