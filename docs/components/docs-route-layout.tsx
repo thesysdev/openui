@@ -1,7 +1,7 @@
 "use client";
 
 import { DocsNavbar } from "@/components/docs-navbar";
-import { ExamplesSidebarActions } from "@/components/examples-gallery/sidebar-actions";
+import { DocsSidebarActions } from "@/components/docs-sidebar-actions";
 import {
   EXAMPLES_DOCS_TREE,
   GLOBAL_DOCS_TREE,
@@ -127,7 +127,7 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
               ? "[&_button[aria-expanded]]:!text-fd-foreground [&_button[aria-expanded]+div]:mb-4"
               : undefined,
           banner: nestedRoot ? <NestedSidebarHeader root={nestedRoot} /> : undefined,
-          footer: isExamples ? <ExamplesSidebarActions /> : undefined,
+          footer: <DocsSidebarActions />,
           components: sidebarMode.kind === "global" ? { Item: GlobalSidebarItem } : undefined,
         }}
         searchToggle={{ enabled: false }}
