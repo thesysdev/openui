@@ -59,6 +59,8 @@ export interface OpenUIState {
   contextValue: OpenUIContextValue;
   /** Whether any Query is currently fetching data. */
   isQueryLoading: boolean;
+  refreshQueries: () => void;
+  errors: OpenUIError[];
 }
 
 /**
@@ -385,6 +387,7 @@ export function useOpenUIState(
   }, []);
 
   const isQueryLoading = querySnapshot.__openui_loading.length > 0;
+  const refreshQueries = useCallback(() => queryManager.invalidate(), [queryManager]);
 
   // ─── Context value ───
   const contextValue = useMemo<OpenUIContextValue>(
@@ -464,5 +467,12 @@ export function useOpenUIState(
     __libraryId: library.__libraryId,
   });
 
-  return { result: evaluatedResult, parseResult: result, contextValue, isQueryLoading };
+  return {
+    result: evaluatedResult,
+    parseResult: result,
+    contextValue,
+    isQueryLoading,
+    refreshQueries,
+    errors: errorsRef.current,
+  };
 }
