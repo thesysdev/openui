@@ -133,6 +133,18 @@ const EMPTY_ITEM_LIST: ConversationItemList = {
 export async function storeChatCompletionHistory(
   options: StoreChatCompletionHistoryOptions,
 ): Promise<ConversationItemList> {
+  if ((options.frontendToken !== undefined) === (options.apiKey !== undefined)) {
+    throw new Error("Provide exactly one of apiKey or frontendToken");
+  }
+  const credentialName = options.frontendToken !== undefined ? "frontendToken" : "apiKey";
+  const credential = options[credentialName];
+  if (typeof credential !== "string" || !credential.trim()) {
+    throw new Error(`${credentialName} must be a non-empty string`);
+  }
+  const authHeaders: Record<string, string> =
+    credentialName === "frontendToken"
+      ? { "x-thesys-frontend-token": credential }
+      : { Authorization: `Bearer ${credential}` };
   const items = chatCompletionMessagesToItems(options.messages);
   if (items.length === 0) {
     return EMPTY_ITEM_LIST;
@@ -145,8 +157,8 @@ export async function storeChatCompletionHistory(
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${options.apiKey}`,
         "Content-Type": "application/json",
+        ...authHeaders,
       },
       body: JSON.stringify({ items }),
     },
