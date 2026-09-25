@@ -8,14 +8,45 @@ on:
 
 permissions:
   contents: read
+  actions: read # list artifacts of the triggering Release run
 
 concurrency:
   group: update-openui-starters
   cancel-in-progress: false
 
 jobs:
-  update:
+  # Release runs on every push to main, but only publishes when the Version
+  # Packages PR lands; other runs just create/update that PR. Release uploads a
+  # `published-packages` artifact only when it published, so gate on that.
+  check-published:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.check.outputs.published }}
+    steps:
+      - name: Check whether the Release run published packages
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          names="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" --jq '.artifacts[].name')"
+          if grep -qx 'published-packages' <<<"$names"; then
+            echo "Release run $RUN_ID published packages."
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Release run $RUN_ID did not publish packages (Version PR created/updated); skipping."
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  update:
+    needs: check-published
+    if: needs.check-published.outputs.published == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Mint app token
