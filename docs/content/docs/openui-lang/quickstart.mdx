@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-description: Build a Recipe Remix agent with OpenUI Cloud in about 10 minutes.
+description: Build a Recipe Remix agent with OpenUI Gateway in about 10 minutes.
 ---
 
 import { CopyableDiff } from "@/components/copyable-diff";
@@ -10,7 +10,7 @@ finds an image, and renders the results as interactive Generative UI.
 
 ![Recipe Remix calling the pantry tool and rendering three interactive recipe cards](/images/openui-lang/recipe-remix-quickstart.gif)
 
-The Cloud starter already includes streaming chat, conversation history, web
+The Gateway-backed starter already includes streaming chat, conversation history, web
 search, image search, reports, presentations, and an example function tool.
 You will keep those features and add one tool and one component.
 
@@ -140,7 +140,7 @@ Create `src/lib/recipe-library.tsx`:
 
 ```tsx
 import { createLibrary, defineComponent, useTriggerAction } from "@openuidev/react-lang";
-import { chatLibrary } from "@openuidev/thesys";
+import { openuiLibrary } from "@openuidev/react-ui";
 import { z } from "zod/v4";
 
 const cardStyle = {
@@ -252,9 +252,9 @@ const RecipeRemix = defineComponent({
 });
 
 export const recipeLibrary = createLibrary({
-  root: chatLibrary.root ?? "Card",
-  componentGroups: chatLibrary.componentGroups,
-  components: [...Object.values(chatLibrary.components), RecipeRemix],
+  root: openuiLibrary.root ?? "Stack",
+  componentGroups: openuiLibrary.componentGroups,
+  components: [...Object.values(openuiLibrary.components), RecipeRemix],
 });
 ```
 
@@ -297,8 +297,9 @@ Never claim that a recipe is allergen-safe.
 Update the `instructions` field inside `createParams`:
 
 <CopyableDiff
-  code={`-instructions: generateSystemPrompt(),
+  code={`-instructions: generateSystemPrompt({ cloud: true }),
 +instructions: generateSystemPrompt({
++  cloud: true,
 +  library: recipeLibrarySpec,
 +  instructions: recipeInstructions,
 +}),`}
@@ -308,7 +309,7 @@ Finally, update `src/components/cloud-chat.tsx`:
 
 <CopyableDiff code={`+import { recipeLibrary } from "@/lib/recipe-library";`} />
 
-Then update the `componentLibrary` prop:
+Remove the unused `chatLibrary` import, then update the `componentLibrary` prop:
 
 <CopyableDiff
   code={`-componentLibrary={chatLibrary}
@@ -316,9 +317,10 @@ Then update the `componentLibrary` prop:
 />
 
 <Callout type="info">
-  `recipeLibrary` extends the built-in `chatLibrary`, so the existing inline components remain
-  available alongside `RecipeRemix`. Cloud's search tools and artifact renderers also remain
-  available. See [Extend a built-in library](/docs/openui-lang/overview#extend-a-built-in-library).
+  `recipeLibrary` extends the standard `openuiLibrary` from `@openuidev/react-ui`, using `Stack` as
+  its root. The standard components are available alongside `RecipeRemix`. Gateway's search tools
+  and artifact renderers also remain available. See [Using the Standard
+  Library](/docs/openui-lang/standard-library).
 </Callout>
 
 ## 5. Try it

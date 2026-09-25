@@ -3,20 +3,24 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "verify": "vite build",
+    "generate:apiKey": "openui generate-api-key",
+    "prepare": "svelte-kit sync || echo ''",
+    "dev": "svelte-kit sync && vite dev",
+    "build": "svelte-kit sync && vite build",
+    "verify": "svelte-kit sync && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.41",
     "@ai-sdk/svelte": "^4.0.191",
-    "@openuidev/svelte-lang": "0.1.2",
+    "@openuidev/lang-core": "0.3.0",
+    "@openuidev/svelte-lang": "0.3.0",
     "ai": "^6.0.116",
     "chart.js": "^4.5.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@openuidev/cli": "0.4.0",
     "@sveltejs/adapter-auto": "^4.0.0",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
@@ -27,8 +31,19 @@
     "vite": "^6.0.0"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "@openuidev/lang-core",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ],
     "overrides": {
       "@sveltejs/kit>cookie": "1.1.1"
     }
+  },
+  "allowScripts": {
+    "@openuidev/lang-core": true,
+    "sharp": true,
+    "unrs-resolver": true
   }
 }

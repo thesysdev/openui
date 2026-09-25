@@ -3,7 +3,6 @@ import { integrations } from "./(home)/integrations/data";
 
 const STATIC_PATHS = [
   "/",
-  "/cloud",
   "/demos",
   "/compare",
   "/lab",

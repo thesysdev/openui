@@ -1,0 +1,48 @@
+.line {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  /* Wraps to two rows on narrow screens, where a wordmark plus a full sentence
+     has no chance of sharing a line. */
+  flex-wrap: wrap;
+}
+
+.markLink {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.logo {
+  height: 1.75rem;
+  width: auto;
+  flex: 0 0 auto;
+  /* Same silhouette as LogoStrip: the marks are multi-coloured at rest and
+     would pull focus from the claim beside them. */
+  opacity: 0.65;
+  filter: brightness(0);
+}
+
+[data-theme="dark"] .logo {
+  filter: brightness(0) invert(1);
+}
+
+.markLink:hover .logo,
+.markLink:focus-visible .logo {
+  opacity: 1;
+}
+
+.claim {
+  flex: 1 1 20rem;
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--openui-text-neutral-secondary);
+  text-wrap: pretty;
+}
+
+@media (min-width: 768px) {
+  .logo {
+    height: 2rem;
+  }
+}

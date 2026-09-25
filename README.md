@@ -93,17 +93,21 @@ Try it yourself in the [Playground](https://www.openui.com/playground): generate
 
 | Package                                                                                                    | Best for                                         | Description                                                                                                  |
 | :--------------------------------------------------------------------------------------------------------- | :----------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
-| [`@openuidev/lang-core`](./packages/lang-core)                                                             | Framework-agnostic parsing and prompt generation | Core parser, prompt-generation, runtime-evaluation, and type layer with no React, Vue, or Svelte dependency  |
-| [`@openuidev/cli`](./packages/openui-cli)                                                                  | Project scaffolding and prompt generation        | CLI for creating new apps and generating system prompts or JSON schema from a library definition             |
+| [`@openuidev/lang-core`](./packages/lang-core)                                                             | Framework-agnostic parsing and prompt generation | Core parser, prompt-generation, runtime-evaluation, and type layer with no React, Angular, Vue, or Svelte dependency  |
 | [`@openuidev/langchain`](./packages/langchain)                                                             | LangChain and LangGraph agents                   | Agent transformer and server helpers that stream OpenUI through AG-UI                                        |
 | [`@openuidev/react-lang`](./packages/react-lang)                                                           | React rendering runtimes                         | Define component libraries, generate prompts, and render streamed OpenUI Lang in React                       |
 | [`@openuidev/react-headless`](./packages/react-headless)                                                   | Bring-your-own React chat UI                     | Headless chat state, streaming adapters, and message format converters                                       |
 | [`@openuidev/react-ui`](./packages/react-ui)                                                               | Fastest path to a full React chat experience     | Prebuilt chat layouts, standalone UI primitives, and two built-in component libraries                        |
 | [`@openuidev/react-email`](./packages/react-email)                                                         | Email generation and HTML export                 | React Email component definitions plus prompt options for model-generated emails                             |
+| [`@openuidev/assistant-ui`](./packages/assistant-ui)                                                       | assistant-ui apps                                | Tool UI renderers and instruction wiring for streaming OpenUI Lang inside assistant-ui                       |
 | [`@openuidev/vue-lang`](./packages/vue-lang)                                                               | Vue integrations                                 | Vue 3 bindings for defining model-renderable components and rendering streamed OpenUI Lang                   |
 | [`@openuidev/svelte-lang`](./packages/svelte-lang)                                                         | Svelte integrations                              | Svelte 5 bindings for defining model-renderable components and rendering streamed OpenUI Lang                |
+| [`@openuidev/angular-lang`](./packages/angular-lang)                                                       | Angular integrations                             | Angular bindings for defining component libraries and rendering streamed OpenUI Lang                         |
 | [`@openuidev/browser-bundle`](./packages/browser-bundle)                                                   | CDN, iframe, and no-build embeds                 | Prebuilt browser bundle that ships the renderer, UI library, React, and styles as script + stylesheet assets |
 | [`@openuidev/a2ui`](./packages/a2ui)                                                                       | A2UI with OpenUI Lang component payloads         | Framework-agnostic A2UI v1.0 protocol client with an optional React renderer                                 |
+| [`@openuidev/server`](./packages/server)                                                                   | Server side utilities                            | Server utilities for OpenUI and OpenUI Gateway                                                               |
+| [`@openuidev/observability-cloud`](./packages/observability-cloud)                                         | Hosted observability in the Thesys console       | Cloud sink that batches OpenUI events and ships them to OpenUI Gateway                                       |
+| [`@openuidev/cli`](./packages/openui-cli)                                                                  | Project scaffolding and prompt generation        | CLI for creating new apps and generating system prompts or JSON schema from a library definition             |
 | [`@openuidev/openclaw-os-plugin`](https://github.com/thesysdev/openclaw-os/tree/main/packages/claw-plugin) | OpenClaw workspaces                              | OpenClaw OS plugin for serving OpenUI-powered OpenClaw workspaces                                            |
 
 Common starting points:
@@ -118,9 +122,10 @@ npm install @openuidev/lang-core
 # LangChain/LangGraph agent and server integration
 npm install @openuidev/langchain @langchain/langgraph
 
-# Vue or Svelte runtime
+# Vue, Svelte, or Angular runtime
 npm install @openuidev/vue-lang
 npm install @openuidev/svelte-lang
+npm install @openuidev/angular-lang
 
 # A2UI protocol with OpenUI Lang component payloads
 npm install @openuidev/a2ui zod
@@ -161,22 +166,27 @@ Detailed documentation is available at [openui.com](https://openui.com).
 ```
 openui/
 ├── packages/
-│   ├── lang-core/        # Framework-agnostic parser, prompt, and runtime layer
-│   ├── openui-cli/       # CLI for scaffolding & prompt generation
 │   ├── react-lang/       # Core runtime (parser, renderer, prompt generation)
 │   ├── react-headless/   # Headless chat state & streaming adapters
 │   ├── react-ui/         # Prebuilt chat layouts & component libraries
 │   ├── react-email/      # React Email component library for generated emails
+│   ├── assistant-ui/     # assistant-ui Tool UI renderers for OpenUI Lang
+│   ├── lang-core/        # Framework-agnostic parser, prompt, and runtime layer
 │   ├── langchain/        # LangChain/LangGraph streaming integration
 │   ├── vue-lang/         # Vue runtime bindings for OpenUI Lang
 │   ├── svelte-lang/      # Svelte runtime bindings for OpenUI Lang
+│   ├── angular-lang/     # Angular runtime bindings for OpenUI Lang
 │   ├── browser-bundle/   # Script-tag bundle for CDN / iframe / no-build embeds
-│   └── a2ui/             # A2UI protocol with OpenUI Lang component payloads
-├── skills/
-│   └── openui/           # Claude Code skill for AI-assisted development
-├── examples/             # Capability and integration reference implementations
+│   ├── a2ui/             # A2UI protocol with OpenUI Lang component payloads
+│   ├── server/           # Server utilities for OpenUI & OpenUI Gateway
+│   ├── observability/    # Framework-free observability event bus
+│   ├── observability-cloud/ # Cloud sink shipping OpenUI events to Thesys
+│   ├── devtools/         # Dev-only OpenUI Inspect widget
+│   └── openui-cli/       # CLI for scaffolding & prompt generation
+├── examples/             # Cookbooks and integration reference implementations
 │   ├── agent-frameworks/
 │   ├── app-frameworks/
+│   ├── cookbooks/
 │   ├── design-systems/
 │   ├── harnesses/
 │   └── miscellaneous/
@@ -189,6 +199,7 @@ Good places to start:
 - [openui.com](https://openui.com) for the full docs
 - [Quickstart](https://www.openui.com/docs/agent/getting-started/quickstart) to scaffold a working app
 - [`examples/README.md`](./examples/README.md) to find a focused reference implementation
+- [Cookbooks](https://www.openui.com/docs/cookbooks) for complete walkthroughs with [runnable code](./examples/cookbooks)
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) if you want to contribute
 
 ## Community

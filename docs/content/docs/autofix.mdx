@@ -1,0 +1,411 @@
+---
+title: Autofix API
+description: Fix invalid OpenUI Lang from any model with one API call.
+---
+
+The Autofix API repairs invalid OpenUI Lang after your model has generated it. Keep your existing model provider, inference setup, and agent framework. Send the conversation with the generation as the last assistant turn, and the API returns the repair result. You do not need to generate through Gateway's Chat Completions or Responses API.
+
+Use Autofix for correction after generation, or [Gateway](/docs/gateway) for model access with in-built correction.
+
+**Endpoint:** `POST https://api.thesys.dev/v1/autofix`
+
+**OpenAI compatible.** The request and the answer use the OpenAI chat completion shape. Point an OpenAI SDK at the base URL `https://api.thesys.dev/v1/autofix` and it posts to `/v1/autofix/chat/completions`. Both paths take the same body and answer the same way.
+
+<Mermaid
+  chart={`
+flowchart LR
+    Model[Model deltas] --> Acc[Accumulate] --> Parse{Valid?}
+    Parse -- yes --> Render[Render]
+    Parse -- no --> Autofix[POST /v1/autofix]
+    Autofix -- already_valid / fixed --> Render
+    Autofix -- fix_failed --> Fallback[Fallback]
+`}
+/>
+
+## Use the server package
+
+Import `createAutofix` from `@openuidev/server/openai` for Chat Completions or `@openuidev/server/vercel` for the Vercel AI SDK. Use the spec from `openui generate --spec` for the same library as your renderer. Keep the API key on the server.
+
+```ts title="lib/autofix.ts" tab="OpenAI" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/openai";
+import library from "./openui.spec.json";
+
+export const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
+```ts title="lib/autofix.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/vercel";
+import library from "./openui.spec.json";
+
+export const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
+```ts title="lib/autofix.ts" tab="Non-streaming" tab-group="autofix-sdk"
+import { createAutofix } from "@openuidev/server/openai";
+// import { createAutofix } from "@openuidev/server/vercel";
+import library from "./openui.spec.json";
+
+export const autofix = createAutofix({
+  apiKey: process.env.THESYS_API_KEY!,
+  library,
+});
+```
+
+```ts title="app/api/chat/route.ts" tab="OpenAI" tab-group="autofix-sdk"
+import OpenAI from "openai";
+import { autofix } from "../../../lib/autofix";
+
+const model = new OpenAI();
+
+export async function POST(request: Request) {
+  const { messages } = await request.json();
+  const source = await model.chat.completions.create(
+    { model: "openai/gpt-5.5", messages, stream: true },
+    { signal: request.signal },
+  );
+
+  return autofix.completions
+    .stream({ stream: source, messages, signal: request.signal })
+    .toResponse();
+}
+```
+
+```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
+import { streamText, toUIMessageStream } from "ai";
+import { autofix } from "../../../lib/autofix";
+
+export async function POST(request: Request) {
+  const { messages } = await request.json();
+  const result = streamText({
+    model: "openai/gpt-5.5",
+    system: systemPrompt, // Generated from the same OpenUI component library.
+    messages,
+    abortSignal: request.signal,
+  });
+
+  return autofix.ai
+    .stream({
+      stream: toUIMessageStream({ stream: result.stream }),
+      signal: request.signal,
+    })
+    .toResponse();
+}
+```
+
+```ts title="server.ts" tab="Non-streaming" tab-group="autofix-sdk"
+import { autofix } from "./lib/autofix";
+
+const result = await autofix.completions.fix({ generation, messages, signal });
+// const result = await autofix.ai.fix({ generation, messages, signal });
+
+if (result.status === "fix_failed") {
+  console.warn(result.unfixedErrors);
+} else {
+  // Render or persist result.content.
+}
+```
+
+OpenAI: return SSE for the frontend `openAIAdapter()`.
+
+Vercel: pass `toUIMessageStream({ stream: result.stream })`. `toResponse()` is the UI message SSE protocol used by `useChat`.
+
+Non-streaming: `generation` is the completed OpenUI text. Optional `messages` is the conversation before that generation. Use `completions.fix` or `ai.fix` to match the import.
+
+### Consume the stream
+
+Use either `chunks` or `toResponse()` once. `result` settles after that consumer finishes.
+
+| Member         | Purpose                                                                 |
+| -------------- | ----------------------------------------------------------------------- |
+| `chunks`       | Native SDK events, including any correction.                            |
+| `toResponse()` | SSE `Response` for the matching frontend.                               |
+| `result`       | Settled Autofix result. Persist `content` when present, not joined text. |
+
+`result` is `null` when Autofix did not run. A failed repair throws with `code: "fix_failed"`. Use `fix()` on the same helper when you already have completed text.
+
+## Call the API directly
+
+Parse first, and only call Autofix when the generation is invalid.
+
+```ts title="lib/detect.ts"
+import type { ParseResult } from "@openuidev/lang-core";
+
+export function isValid({ root, meta }: ParseResult): boolean {
+  return (
+    !meta.incomplete &&
+    meta.errors.length === 0 &&
+    meta.unresolved.length === 0 &&
+    meta.orphaned.length === 0 &&
+    root !== null
+  );
+}
+```
+
+Judge the generation once, after the stream ends. While it streams, `incomplete` and `unresolved` are normal: the parser has not seen the rest yet.
+
+```ts title="server.ts"
+import { createStreamingParser } from "@openuidev/lang-core";
+import OpenAI from "openai";
+import { autofix } from "./lib/autofix";
+import { isValid } from "./lib/detect";
+import library from "./openui.spec.json";
+
+const model = new OpenAI(); // any provider that returns OpenUI Lang
+
+export async function generate(messages: OpenAI.ChatCompletionMessageParam[]) {
+  const parser = createStreamingParser(library.schema, library.root);
+  let generation = "";
+  let result = parser.getResult();
+
+  const stream = await model.chat.completions.create({ model: "gpt-5.5", messages, stream: true });
+  for await (const chunk of stream) {
+    const delta = chunk.choices[0]?.delta?.content ?? "";
+    if (!delta) continue;
+    generation += delta;
+    result = parser.push(delta);
+    send(delta); // the browser renders as the text arrives
+  }
+
+  if (isValid(result)) return;
+
+  const completion = await autofix(messages, generation);
+  if (completion.fix_summary.status === "fix_failed") {
+    sendFallback(completion.fix_summary.unfixed_errors);
+  } else {
+    replace(completion.choices[0].message.content); // the whole valid generation
+  }
+}
+```
+
+`send`, `replace`, and `sendFallback` stand for your own transport to the browser: forward a delta, swap the rendered generation for the fixed one, and show a fallback.
+
+`parse` and `push` never throw. They take fenced or bare OpenUI Lang and report prop errors in `meta.errors`, with the codes listed under [Error codes](#error-codes). For a generation you already hold in full, `createParser(library.schema, library.root).parse(generation)` gives the same result.
+
+## Fix an invalid generation
+
+Point the OpenAI client at `/v1/autofix`. Your component library goes first, as a system turn written by `generateSystemPrompt({ cloud: true, library })`; the generation goes last, as an assistant turn. Fenced or bare OpenUI Lang both work, and text outside the fence is ignored.
+
+The API adds `fix_summary` to the chat completion, which the OpenAI types do not know about, so the example casts the request and the answer.
+
+```ts title="lib/autofix.ts"
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import OpenAI from "openai";
+import type { ChatCompletion } from "openai/resources/chat/completions";
+import library from "./openui.spec.json";
+
+const client = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/autofix",
+});
+
+// The library, in the form the API reads it: a system turn carrying the spec.
+const libraryTurn = {
+  role: "system",
+  content: generateSystemPrompt({ cloud: true, library }),
+} as const;
+
+type FixError = { code: string; message: string; statementId?: string };
+type FixSummary = {
+  status: "already_valid" | "fixed" | "fix_failed";
+  fixed_errors: FixError[];
+  unfixed_errors: FixError[];
+};
+type AutofixCompletion = ChatCompletion & { fix_summary: FixSummary };
+
+export async function autofix(messages: OpenAI.ChatCompletionMessageParam[], generation: string) {
+  return (await client.chat.completions.create({
+    model: "openui/autofix",
+    messages: [libraryTurn, ...messages, { role: "assistant", content: generation }],
+  } as OpenAI.ChatCompletionCreateParamsNonStreaming)) as AutofixCompletion;
+}
+```
+
+`openui.spec.json` is the library spec that `openui generate --spec` writes for your components. See [Generate OpenUI Lang](/docs/gateway/generate-openui-lang) for how it is created. `generateSystemPrompt({ cloud: true, library })` turns it into a two-line `]]>openui:config` block, the same one the Gateway reads; the API reads the library from the first message only, and counts no config block as conversation. The API always needs the library: a generation is only valid against the components your app renders, so there is no built-in default.
+
+`model` is accepted so that an SDK client has something to send, and it is ignored: the fix always runs on the same correction model.
+
+### Without an SDK
+
+The plain path takes the same body. Server calls use the API key described in [Authentication](/docs/gateway/authentication).
+
+```ts title="lib/autofix-fetch.ts"
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import library from "./openui.spec.json";
+
+type Message = { role: string; content: string | unknown[] };
+
+const libraryTurn: Message = {
+  role: "system",
+  content: generateSystemPrompt({ cloud: true, library }),
+};
+
+export async function autofix(messages: Message[], generation: string) {
+  const response = await fetch("https://api.thesys.dev/v1/autofix", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.THESYS_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messages: [libraryTurn, ...messages, { role: "assistant", content: generation }],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Autofix failed: ${response.status}`);
+  }
+
+  return response.json();
+}
+```
+
+## Request
+
+| Field      | Type   | Required | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ---------- | ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `messages` | array  | Yes      | The conversation, in the OpenAI chat message shape. The first message is a `system` turn that carries your library as the `]]>openui:config` block that `generateSystemPrompt({ cloud: true, library })` writes; it is read as the library, not as conversation. The last turn must be an `assistant` turn whose text is the generation to fix, up to 100,000 characters. The turns in between are the context: only the text of `user`, `assistant`, `system`, and `developer` turns is read, and tool turns and non-text parts are dropped. |
+| `model`    | string | No       | Accepted so that an SDK client can name a model, and ignored. The answer always reports `openui/autofix`.                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `stream`   | bool   | No       | Streaming is not supported. A fix has nothing to send until it is finished, so `stream: true` is a `400`.                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+
+The other OpenAI fields, such as `temperature` and `tools`, are ignored.
+
+## Read the result
+
+The answer is a chat completion. `choices[0].message.content` holds the complete generation, not a patch: replace the model output with it and render it. `fix_summary.status` says what happened.
+
+| `status`        | `content`                | Errors                                               | Charged |
+| --------------- | ------------------------ | ---------------------------------------------------- | ------- |
+| `already_valid` | The input, unchanged     | `fixed_errors` is empty                              | No      |
+| `fixed`         | The corrected generation | `fixed_errors` lists what was wrong and is now fixed | Yes     |
+| `fix_failed`    | `null`                   | `unfixed_errors` lists what is still wrong           | Yes     |
+
+`fixed_errors` and `unfixed_errors` are always present, and one of them is usually empty.
+
+A fixed generation:
+
+```json
+{
+  "id": "fix_P4TPtYimJFMpSgsViggie",
+  "object": "chat.completion",
+  "created": 1789019848,
+  "model": "openui/autofix",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "root = Card([header])\nheader = Header(\"Q3 Results\")"
+      }
+    }
+  ],
+  "usage": { "prompt_tokens": 8014, "completion_tokens": 17, "total_tokens": 8031 },
+  "fix_summary": {
+    "status": "fixed",
+    "fixed_errors": [
+      {
+        "code": "unresolved",
+        "statementId": "followUp",
+        "message": "reference \"followUp\" is never defined"
+      }
+    ],
+    "unfixed_errors": []
+  }
+}
+```
+
+A generation that could not be fixed:
+
+```json
+{
+  "id": "fix_dRvfleg31F5g-Amn3v4-W",
+  "object": "chat.completion",
+  "created": 1789026253,
+  "model": "openui/autofix",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "stop",
+      "message": { "role": "assistant", "content": null }
+    }
+  ],
+  "usage": { "prompt_tokens": 360, "completion_tokens": 146, "total_tokens": 506 },
+  "fix_summary": {
+    "status": "fix_failed",
+    "fixed_errors": [],
+    "unfixed_errors": [
+      {
+        "code": "null-required",
+        "component": "B",
+        "path": "/child",
+        "statementId": "z",
+        "message": "required field \"/child\" cannot be null"
+      }
+    ]
+  }
+}
+```
+
+When the fix fails, fall back to what your application does for any unusable model output, such as showing the text or a generic error state.
+
+## Error codes
+
+Each entry in `fixed_errors` or `unfixed_errors` names one problem. `code` is always present. `component`, `path`, and `statementId` are present when the validator can name the component type, the property, and the statement that carried the problem.
+
+| Code                | Meaning                                                                            |
+| ------------------- | ---------------------------------------------------------------------------------- |
+| `unknown-component` | A component name that is not in the library.                                       |
+| `missing-required`  | A required property was left out.                                                  |
+| `null-required`     | A required property was set to `null`.                                             |
+| `type-mismatch`     | A property has the wrong type, or a value outside its allowed set.                 |
+| `excess-args`       | A component received more arguments than its signature has.                        |
+| `inline-reserved`   | `Query()` or `Mutation()` was used inside an expression instead of as a statement. |
+| `incomplete`        | The generation stopped in the middle of a statement.                               |
+| `unresolved`        | A statement is referenced but never defined.                                       |
+| `orphaned`          | A statement is defined but not reachable from `root`.                              |
+| `missing-root`      | The generation has no valid `root` statement.                                      |
+
+These are the same codes the OpenUI SDK reports in the browser, so an application can handle both with one path. See [Reliability Monitoring](/docs/reliability) for how they appear in the Thesys Console.
+
+## Framing
+
+The generation may be bare OpenUI Lang, a fenced code block, or an assistant turn as the OpenUI SDK stores it after the user has touched a form inside it: `]]>openui:content`, the program, `]]>openui:context` with the form state, `]]>openui:end`. Only the program inside is checked and repaired. A fixed generation comes back in the same wrapping it arrived in, header line, context section and end marker unchanged, so the SDK reads the answer the way it reads history.
+
+## Limits
+
+- The generation can be up to 100,000 characters.
+- The turns before it can hold up to 20 usable turns and 8,000 characters of text in total, counted after tool turns, non-text parts, and config blocks are removed.
+- Requests exceeding either context limit are rejected with `400`. Trim older history before sending; the API does not drop it automatically.
+- Up to two attempts are made to fix one generation.
+- Only non-streaming responses are supported. `stream: true` is a `400`.
+
+## Data
+
+The conversation you send is passed to the model that fixes the generation, and is not stored beyond the request logs.
+
+## Pricing
+
+Each call that runs a fix is charged a flat price from your credits. A generation that is already valid is free. See [Pricing](/docs/gateway/pricing-credits) for the current rate.
+
+`usage` in the answer reports the tokens the fix used, for your own tracking. The charge does not depend on it.
+
+## Errors
+
+The endpoint returns the same error shape as the Chat Completions and Responses APIs.
+
+| Status | Type                    | When                                                                                                                                                                    |
+| ------ | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `400`  | `invalid_request_error` | The first message is not a library turn, or its block is malformed; the last turn is not an assistant turn with a generation; a limit is passed; or `stream` is `true`. |
+| `401`  | `authentication_error`  | The API key is missing or invalid.                                                                                                                                      |
+| `429`  | `rate_limit_error`      | The organization has no credits, or billing is suspended.                                                                                                               |
+| `500`  | `internal_server_error` | The fixing model could not be reached. Nothing is charged.                                                                                                              |
+
+## Reliability Monitoring
+
+Autofix requests automatically appear in the [Reliability Monitoring](/docs/reliability) under the model name `openui/autofix`. **No Observability SDK** installation is required to track these requests. A successful fix counts as a sanitizer correction, with the same error codes as corrections made during Gateway generation.

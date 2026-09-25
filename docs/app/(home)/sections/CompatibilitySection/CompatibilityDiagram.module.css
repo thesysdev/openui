@@ -1,0 +1,218 @@
+/* The bands are wider than the diagram, so it clips them and fades both ends
+   rather than showing a hard edge. */
+.diagram {
+  --cell: 3.5rem;
+  --centre: calc(var(--cell) * 4);
+  --line: rgb(0 0 0 / 0.08);
+  /* --openui-text-neutral-primary is pinned near-black in both themes on this
+     page, so it cannot drive dark mode. The diagram carries its own text colour
+     and re-points it below, as StackDiagramSection does. */
+  --text: var(--openui-text-neutral-primary);
+  /* Sides only: no y-offset, and the spread is exactly minus half the blur so
+     the shadow's vertical extent is the column's own height. */
+  --centre-shadow: -10px 0 18px -9px rgb(10 10 10 / 0.1), 10px 0 18px -9px rgb(10 10 10 / 0.1);
+
+  position: relative;
+  width: 100%;
+  max-width: 56rem;
+  margin-inline: auto;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to right, transparent 0, #000 14%, #000 86%, transparent 100%);
+}
+
+[data-theme="dark"] .diagram {
+  --line: rgb(255 255 255 / 0.1);
+  --text: rgb(255 255 255 / 0.94);
+  --centre-shadow: -10px 0 18px -9px rgb(0 0 0 / 0.45), 10px 0 18px -9px rgb(0 0 0 / 0.45);
+}
+
+/* Cells carry their right and bottom edge, so the rows stack into a lattice
+   with only the top edge left to draw here. */
+.rows {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+
+.row {
+  display: flex;
+  height: var(--cell);
+}
+
+/* ---- Drifting bands ---- */
+/* One either side of the centre, each clipping its own track. */
+.rail {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* The bands flow inward: the left one travels left to right, the right one
+   right to left. Every row runs the same pair with no delay, so cell edges stay
+   aligned down the diagram and the rows read as one grid. The pass is rendered
+   twice, so travelling exactly half of it and restarting is seamless. */
+.track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  animation: bandDrift 60s linear infinite;
+}
+
+.trackInFromLeft {
+  animation-direction: reverse;
+}
+
+.trackInFromRight {
+  animation-direction: normal;
+}
+
+@keyframes bandDrift {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Held back, so the centre column's logo is the one that reads. */
+.square {
+  --stack-logo-size: 26px;
+  --stack-logo-glyph: 14px;
+
+  display: grid;
+  opacity: 0.5;
+  flex: none;
+  place-items: center;
+  width: var(--cell);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+/* ---- Centre column ---- */
+/* The space the centre column sits over. Empty: it only holds the bands apart
+   so nothing drifts underneath the column. */
+.centreGap {
+  flex: none;
+  width: var(--centre);
+}
+
+/* One element over all four rows, so its shadow falls on the bands either side
+   and never on itself. Centred by the auto margins rather than a transform. */
+.centre {
+  --stack-logo-size: 24px;
+  --stack-logo-glyph: 14px;
+
+  position: absolute;
+  z-index: 1;
+  inset-block: 0;
+  inset-inline: 0;
+  display: flex;
+  flex-direction: column;
+  width: var(--centre);
+  margin-inline: auto;
+  border-inline: 1px solid var(--line);
+  box-shadow: var(--centre-shadow);
+}
+
+/* One per layer, the same height as a band row so the two line up. */
+.centreRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  height: var(--cell);
+  padding-inline: 0.875rem;
+  border-bottom: 1px solid var(--line);
+}
+
+/* The logos are stacked on top of each other and faded between, so the cell
+   never reflows as they cycle. */
+.centreIcon {
+  position: relative;
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+
+/* Cross-fade only. Scaling the incoming logo up made it read as smaller and
+   lower than the other rows' for the length of the transition. */
+.centreSlot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.centreSlot[data-active] {
+  opacity: 1;
+}
+
+.centreText {
+  font-family: var(--home-font-mono, "Geist Mono", monospace);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+/* Names every logo for screen readers, which only ever see the titles. */
+.readerOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+  }
+
+  .centreSlot {
+    transition: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .diagram {
+    --cell: 2.75rem;
+  }
+
+  .square {
+    --stack-logo-size: 22px;
+    --stack-logo-glyph: 12px;
+  }
+
+  .centre {
+    --stack-logo-size: 20px;
+    --stack-logo-glyph: 12px;
+  }
+
+  .centreRow {
+    gap: 0.5rem;
+    padding-inline: 0.625rem;
+  }
+
+  .centreIcon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .centreText {
+    font-size: 0.8125rem;
+  }
+}

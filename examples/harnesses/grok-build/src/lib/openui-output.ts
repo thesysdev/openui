@@ -1,7 +1,7 @@
 import { createParser } from "@openuidev/lang-core";
-import { componentSpec } from "../library";
+import { libraryRoot, librarySchema } from "./openui-prompt";
 
-const parser = createParser(componentSpec, "Card");
+const parser = createParser(librarySchema(), libraryRoot());
 const ROOT_CANDIDATE = /(?:^|[^A-Za-z0-9_$])root[\t ]*=/g;
 const MAX_STREAM_CHUNKS = 72;
 const MIN_STREAM_CHUNK_SIZE = 192;
@@ -204,7 +204,7 @@ export function isRenderableOpenUI(value: string): boolean {
   try {
     const result = parser.parse(value);
     return (
-      result.root?.typeName === "Card" &&
+      result.root?.typeName === "Stack" &&
       !result.meta.incomplete &&
       result.meta.errors.length === 0 &&
       result.meta.unresolved.length === 0
@@ -215,13 +215,13 @@ export function isRenderableOpenUI(value: string): boolean {
 }
 
 export function createOpenUIStatus(
-  variant: "neutral" | "info" | "warning" | "success" | "danger",
+  variant: "neutral" | "info" | "warning" | "success" | "error",
   title: string,
   description: string,
 ): string {
   return [
-    "root = Card([notice])",
-    `notice = TextCallout(${JSON.stringify(variant)}, ${JSON.stringify(title)}, ${JSON.stringify(description)})`,
+    "root = Stack([notice])",
+    `notice = Callout(${JSON.stringify(variant)}, ${JSON.stringify(title)}, ${JSON.stringify(description)})`,
   ].join("\n");
 }
 
@@ -242,8 +242,8 @@ export function describeOpenUIProblems(value: string): string[] {
     const issues = result.meta.errors.map(issueText);
     issues.push(...result.meta.unresolved.map((name) => `Unresolved reference: ${name}`));
     if (!result.root) issues.push("No renderable root component was produced.");
-    else if (result.root.typeName !== "Card") {
-      issues.push(`The root component must be Card, not ${result.root.typeName}.`);
+    else if (result.root.typeName !== "Stack") {
+      issues.push(`The root component must be Stack, not ${result.root.typeName}.`);
     }
     if (result.meta.incomplete) issues.push("The OpenUI program is incomplete.");
     return [...new Set(issues)];

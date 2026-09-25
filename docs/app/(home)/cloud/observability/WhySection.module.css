@@ -1,0 +1,22 @@
+.section {
+  margin-block: var(--observability-section-gap, 160px) 0;
+}
+
+.heading {
+  max-width: 22ch;
+  scroll-margin-top: 96px;
+}
+
+.comparison {
+  margin-top: 88px;
+}
+
+@media (max-width: 767px) {
+  .heading {
+    max-width: none;
+  }
+
+  .comparison {
+    margin-top: 48px;
+  }
+}

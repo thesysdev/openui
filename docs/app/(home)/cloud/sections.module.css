@@ -1,0 +1,355 @@
+/* One stylesheet for every section below the Gateway hero. They share a spine —
+   1200px measure, the same heading scale, the same vertical rhythm — so keeping
+   the rules in one file is what stops eight sections from drifting apart. */
+.section {
+  width: 100%;
+  max-width: 1200px;
+  margin: 120px auto;
+  padding-inline: clamp(1.25rem, 5vw, 3rem);
+}
+
+/* Half the usual gap, for a section that continues the one above it rather than
+   opening a new subject (the compatibility strip after the dashboards). */
+.sectionTight {
+  margin-top: 80px;
+}
+
+.heading {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--openui-text-neutral-primary);
+  text-wrap: balance;
+}
+
+.lead {
+  max-width: 44rem;
+  margin: 1.25rem 0 0;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--openui-text-neutral-secondary);
+  text-wrap: pretty;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1.25rem;
+  font-size: 1.0625rem;
+  color: var(--openui-text-neutral-primary);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+  width: fit-content;
+}
+
+.link:hover {
+  opacity: 0.7;
+}
+
+/* ---- Definition rows: a short term against a longer description. Used by the
+   failure taxonomy, the three repair layers, and the plain feature lists. ---- */
+.rows {
+  display: grid;
+  gap: 0;
+  margin: 2.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(1rem, 4vw, 3rem);
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--openui-border-subtle, rgba(10, 10, 10, 0.12));
+}
+
+.row:last-child {
+  border-bottom: 1px solid var(--openui-border-subtle, rgba(10, 10, 10, 0.12));
+}
+
+[data-theme="dark"] .row {
+  border-top-color: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme="dark"] .row:last-child {
+  border-bottom-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Wide enough for "36%" and for "Correction" without wrapping either. */
+.term {
+  flex: 0 0 auto;
+  min-width: 8.5rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--openui-text-neutral-primary);
+}
+
+.desc {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--openui-text-neutral-secondary);
+  text-wrap: pretty;
+}
+
+/* The paragraph that closes a section, set slightly larger than the rows above
+   it because it carries the point they were building to. */
+.closer {
+  max-width: 44rem;
+  margin: 2.5rem 0 0;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--openui-text-neutral-secondary);
+  text-wrap: pretty;
+}
+
+.code {
+  margin-top: 2.5rem;
+}
+
+.note {
+  margin: 1.25rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.proof {
+  margin-top: 3.5rem;
+}
+
+/* ---- Pricing ---- */
+.priceStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.tableWrap {
+  margin-top: 2.5rem;
+}
+
+.traceTable th:first-child {
+  width: 28%;
+}
+
+.planName {
+  font-weight: 600;
+  color: var(--openui-text-neutral-primary);
+}
+
+.planPrice {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--openui-text-neutral-secondary);
+}
+
+/* ---- FAQ ---- */
+.faqList {
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--openui-border-subtle, rgba(10, 10, 10, 0.12));
+}
+
+[data-theme="dark"] .faqList {
+  border-top-color: rgba(255, 255, 255, 0.14);
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--openui-border-subtle, rgba(10, 10, 10, 0.12));
+}
+
+[data-theme="dark"] .faqItem {
+  border-bottom-color: rgba(255, 255, 255, 0.14);
+}
+
+.faqQuestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.375rem 0;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--openui-text-neutral-primary);
+  cursor: pointer;
+  list-style: none;
+}
+
+.faqQuestion::-webkit-details-marker {
+  display: none;
+}
+
+.faqMarker {
+  flex: 0 0 auto;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.faqItem[open] .faqMarker {
+  transform: rotate(45deg);
+}
+
+.faqAnswer {
+  padding-bottom: 1.5rem;
+}
+
+.faqAnswer p {
+  max-width: 48rem;
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.faqAnswer p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 767px) {
+  .section {
+    margin: 80px auto;
+  }
+
+  .row {
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .term {
+    min-width: 0;
+  }
+}
+
+/* An anchor sitting inside a .term, which is already bold and coloured. Without
+   this it would pick up the document's default link colour and break the row. */
+.termLink {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+
+.termLink:hover {
+  opacity: 0.7;
+}
+
+/* A row of sibling links under a lead, for a claim that cites more than one
+   place. Sits tighter than a lone .link because it is a pair, not a CTA. */
+.linkRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.linkRow .link {
+  margin-top: 0;
+}
+
+/* The one measured number a section is built around, set between the lead and
+   the rows that break it down. */
+.stat {
+  margin: 2.5rem 0 0;
+  font-size: clamp(1.25rem, 2.5vw, 1.625rem);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--openui-text-neutral-primary);
+}
+
+/* Scaffolding for artwork that has not been made yet. Deliberately plain and
+   obviously unfinished — a dashed box reads as "missing" at a glance, where a
+   filled grey panel would read as a design decision. Replace the whole block
+   with the image when the diagram lands, and delete these rules with it. */
+.artPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2.5rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  /* Matches the feature art elsewhere on the site (720 × 400), so the section
+     keeps its height when the real diagram replaces this. */
+  aspect-ratio: 720 / 400;
+  border: 1px dashed var(--openui-border-subtle, rgba(10, 10, 10, 0.28));
+  border-radius: 24px;
+}
+
+[data-theme="dark"] .artPlaceholder {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.artPlaceholderLabel {
+  max-width: 34rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--openui-text-neutral-secondary);
+  text-wrap: pretty;
+}
+
+/* ---- Stepper: the definition rows above, but each step can carry its own code
+   block underneath. Separate from .rows because the border logic moves to the
+   step wrapper once a row is no longer a single line. ---- */
+.steps {
+  margin: 2.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--openui-border-subtle, rgba(10, 10, 10, 0.12));
+}
+
+.step:last-child {
+  border-bottom: 1px solid var(--openui-border-subtle, rgba(10, 10, 10, 0.12));
+}
+
+[data-theme="dark"] .step {
+  border-top-color: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme="dark"] .step:last-child {
+  border-bottom-color: rgba(255, 255, 255, 0.14);
+}
+
+.stepHead {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(1rem, 4vw, 3rem);
+}
+
+/* Indented to start where the descriptions start, so the code reads as part of
+   the step rather than as a new section. The inline size matches .term's
+   min-width plus the head's gap. */
+.stepCode {
+  margin-top: 1.25rem;
+  margin-left: calc(8.5rem + clamp(1rem, 4vw, 3rem));
+}
+
+@media (max-width: 767px) {
+  .stepHead {
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .stepCode {
+    margin-left: 0;
+  }
+}

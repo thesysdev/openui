@@ -1,3 +1,4 @@
+import Image from "next/image";
 import styles from "./LogoStrip.module.css";
 
 type Logo = {
@@ -32,18 +33,25 @@ const CLOUD_LOGOS: Logo[] = [
    second half must mirror the first exactly for a seamless loop. */
 const SETS = 4;
 
-export function LogoStrip({ variant = "home" }: { variant?: "home" | "cloud" }) {
+export function LogoStrip({
+  variant = "home",
+  title,
+}: {
+  variant?: "home" | "cloud";
+  title?: string;
+}) {
   const logos = variant === "cloud" ? CLOUD_LOGOS : HOME_LOGOS;
 
   return (
     <section className={styles.section} aria-label="Customers using OpenUI">
+      {title ? <h3 className={styles.title}>{title}</h3> : null}
       <div className={styles.inner}>
         <div className={styles.marquee}>
           <div className={styles.track}>
             {Array.from({ length: SETS }, (_, set) =>
               logos.map((logo) => {
                 const image = (
-                  <img
+                  <Image
                     className={styles.logo}
                     src={logo.src}
                     alt={set === 0 ? logo.alt : ""}

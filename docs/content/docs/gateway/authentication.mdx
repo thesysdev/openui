@@ -1,0 +1,92 @@
+---
+title: Authentication
+description: Authenticate server-side generation and scoped browser access to Gateway conversations.
+---
+
+Gateway applications use two credential types with different trust boundaries. Inference API keys authenticate requests from your backend and must never be exposed to the browser. Frontend tokens are short-lived credentials scoped to a specific user, allowing the browser to access that user's conversations directly.
+
+## Inference API key
+
+Create an inference API key in the [Thesys Console](https://console.thesys.dev/keys) and store it in your server environment as `THESYS_API_KEY`.
+
+Server requests authenticate with a bearer token:
+
+```http
+Authorization: Bearer $THESYS_API_KEY
+```
+
+Use the inference API key for Responses, Chat Completions, Conversations operations, and frontend-token minting. Never include it in a client bundle or send it to the browser.
+
+```ts
+import OpenAI from "openai";
+
+export const gateway = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+```
+
+## Frontend tokens
+
+Applications that access persistent conversations directly from the browser use short-lived frontend tokens. Each token is scoped to a specific user, so your backend must provide a `user_id` when minting it.
+
+<Mermaid
+  chart={`
+sequenceDiagram
+    participant Browser
+    participant App as Application backend
+    participant Gateway as OpenUI Gateway
+
+    Browser->>App: Request frontend token
+    App->>Gateway: Mint token with inference API key
+    Gateway-->>App: Short-lived scoped token
+    App-->>Browser: Frontend token
+    Browser->>Gateway: Read allowed conversations
+
+`}
+/>
+
+### Mint a frontend token
+
+Mint the token from your backend using the inference API key:
+
+```ts title="server.ts"
+const response = await fetch("https://api.thesys.dev/v1/frontend-tokens", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.THESYS_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ user_id: userId }),
+  cache: "no-store",
+  signal,
+});
+
+if (!response.ok) {
+  throw new Error("Failed to create a frontend token");
+}
+
+const { token, expires_at } = await response.json();
+```
+
+Derive `userId` from the authenticated server session. Do not accept it directly from the browser, because the resulting token grants access to that user's conversations.
+
+Return the short-lived `token` to the browser. Never return `THESYS_API_KEY`.
+
+### Call the Conversations API from the browser
+
+The frontend token lets the browser call the [Conversations API](/docs/gateway/api/conversations) directly:
+
+```ts title="client.ts"
+const response = await fetch("https://api.thesys.dev/v1/conversations", {
+  headers: {
+    Authorization: `Bearer ${frontendToken}`,
+  },
+});
+
+const conversations = await response.json();
+```
+
+Use the frontend token for Conversations endpoints only. When it expires, request a new token from your backend.
+
+Continue with the [Conversations API](/docs/gateway/api/conversations) for the storage endpoints that use these credentials.

@@ -27,9 +27,13 @@ Claude.md
 CLAUDE.local.md
 .workspace/
 
+# Codex
+.Codex/
+
 # Dependencies
 node_modules
 .pnpm-store/
+yarn.lock
 
 # Environment
 .env
@@ -39,6 +43,7 @@ node_modules
 # Build output
 dist
 .next
+.eve
 .svelte-kit
 *.tsbuildinfo
 typings
@@ -58,3 +63,6 @@ draft/
 
 # Local raw-asset drop folder (copied into docs/public to serve)
 /assets/
+
+# Accidental CLI template checkouts
+packages/openui-cli/src/templates/

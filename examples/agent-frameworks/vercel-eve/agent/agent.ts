@@ -1,20 +1,22 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { defineAgent } from "eve";
 
-const apiKey = process.env.LLM_API_KEY || process.env.OPENAI_API_KEY;
-const baseURL =
-  process.env.LLM_BASE_URL || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
-const modelName = process.env.LLM_MODEL || process.env.OPENAI_MODEL || "gpt-5.5";
+const apiKey = process.env.THESYS_API_KEY;
+if (!apiKey) throw new Error("Missing required env var: THESYS_API_KEY");
+
 const openai = createOpenAI({
   apiKey,
-  baseURL,
+  baseURL: "https://api.thesys.dev/v1/embed",
 });
 
-const model = openai(modelName);
+const model = openai.chat(
+  process.env.OPENUI_MODEL ?? "google/gemini-3.6-flash-free",
+);
 
 export default defineAgent({
   model,
+  modelContextWindowTokens: 1_048_576,
   build: {
-    externalDependencies: ["@openuidev/react-lang", "@openuidev/react-ui", "react", "react-dom"],
+    externalDependencies: ["@openuidev/lang-core"],
   },
 });

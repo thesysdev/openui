@@ -3,11 +3,12 @@
  * (same component names, same Zod schemas, same prop order) but uses null
  * renderers so the file can run in Node.js without react-native.
  *
- * Used only by the @openuidev/cli to generate system-prompt.txt.
- * The backend API route never imports this file at runtime.
+ * Runtime library used by generateSystemPrompt() in the chat route.
+ * Mirrors mobile/library.tsx (same names, Zod schemas, and prop order) with
+ * null renderers so this file can run in Node without react-native.
  */
-import type { PromptOptions } from "@openuidev/react-lang";
-import { createLibrary, defineComponent } from "@openuidev/react-lang";
+import type { PromptOptions } from "@openuidev/lang-core";
+import { createLibrary, defineComponent } from "@openuidev/lang-core";
 import { z } from "zod";
 
 const DataPointSchema = z.object({

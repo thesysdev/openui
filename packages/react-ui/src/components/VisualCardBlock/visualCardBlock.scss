@@ -1,0 +1,105 @@
+@use "../../cssUtils" as cssUtils;
+@use "../_shared/chatUtils" as chatUtils;
+
+// Photo + gradient sit behind content via pseudo-elements; no extra DOM for the image.
+.openui-visual-first-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 280px;
+  height: 100%;
+  border-radius: cssUtils.$radius-3xl;
+  overflow: hidden;
+  background-color: cssUtils.$highlight-subtle;
+  border: 1px solid cssUtils.$border-default;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: chatUtils.$z-background;
+    background-image: var(--openui-visual-card-image, none);
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.25s ease;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: chatUtils.$z-content;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgb(0 0 0 / 12%) 0%, rgb(0 0 0 / 56%) 100%);
+  }
+
+  &--clickable:hover::before {
+    transform: scale(1.04);
+  }
+
+  &--clickable {
+    cursor: pointer;
+    box-shadow: cssUtils.$shadow-s;
+    border-color: cssUtils.$border-interactive;
+
+    &:hover {
+      box-shadow: none;
+      transform: scale(0.995);
+    }
+
+    &:focus-visible {
+      outline: 2px solid cssUtils.$border-accent;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.openui-visual-first-card__top {
+  position: relative;
+  z-index: chatUtils.$z-content-elevated;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-height: 24px;
+  padding: cssUtils.$space-m;
+}
+
+.openui-visual-first-card__tag {
+  min-width: 0;
+}
+
+.openui-visual-first-card__tag .openui-tag {
+  background-color: rgb(0 0 0 / 40%);
+  color: cssUtils.$text-white;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.openui-visual-first-card__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: rgb(0 0 0 / 40%);
+  color: cssUtils.$text-white;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  border-radius: cssUtils.$radius-s;
+  padding: cssUtils.$space-2xs;
+}
+
+.openui-visual-first-card__bottom {
+  position: relative;
+  z-index: chatUtils.$z-content-elevated;
+  box-sizing: border-box;
+  margin: auto cssUtils.$space-m cssUtils.$space-m cssUtils.$space-m;
+  padding: cssUtils.$space-s cssUtils.$space-s-m;
+  background-color: cssUtils.$foreground;
+  border: 1px solid cssUtils.$border-default;
+  border-radius: cssUtils.$radius-l;
+}

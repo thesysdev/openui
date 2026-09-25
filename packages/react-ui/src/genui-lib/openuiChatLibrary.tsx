@@ -4,6 +4,7 @@ import type { ComponentGroup } from "@openuidev/react-lang";
 import { createLibrary, defineComponent } from "@openuidev/react-lang";
 import { z } from "zod/v4";
 import { Card as OpenUICard } from "../components/Card";
+import { CardSourceProvider, CardSourceSchema, Sources } from "../components/Sources";
 
 // Content
 import { Callout } from "./Callout";
@@ -52,10 +53,10 @@ import { Button } from "./Button";
 import { Buttons } from "./Buttons";
 
 // Layout (no Stack)
-import { Accordion, AccordionItem } from "./Accordion";
-import { Carousel } from "./Carousel";
+import { AccordionRenderer } from "./Accordion";
+import { CarouselRenderer } from "./Carousel";
 import { Steps, StepsItem } from "./Steps";
-import { TabItem, Tabs } from "./Tabs";
+import { TabsRenderer } from "./Tabs";
 
 // Data Display
 import { Col, Table } from "./Table";
@@ -67,14 +68,124 @@ import { FollowUpBlock } from "./FollowUpBlock";
 import { FollowUpItem } from "./FollowUpItem";
 import { ListBlock } from "./ListBlock";
 import { ListItem } from "./ListItem";
-import { SectionBlock } from "./SectionBlock";
-import { SectionItem } from "./SectionItem";
+import { SectionBlock, SectionBlockRenderer } from "./SectionBlock";
+
+// Content & inline composites
+import { BoldText } from "./BoldText";
+import { EntityList } from "./EntityList";
+import { Icon } from "./Icon";
+import { IconButton } from "./IconButton";
+import { IconText } from "./IconText";
+import { ImageText } from "./ImageText";
+import { ImageTextLarge } from "./ImageTextLarge";
+import { InlineHeader } from "./InlineHeader";
+import { MetricIndicatorInline, MetricIndicatorWithStrikethrough } from "./MetricIndicator";
+import { Text } from "./Text";
+
+// Editable table
+import { EditableTable } from "./EditableTable";
+
+// Selection inputs
+import { ChipItem, Chips } from "./Chips";
+import { OptionCard, OptionCards } from "./OptionCards";
+
+// Card blocks
+import { CompositeCardBlock, CompositeCardItem } from "./CompositeCardBlock";
+import { ContextCardBlock, ContextCardItem } from "./ContextCardBlock";
+import { OverviewCardBlock, OverviewCardItem } from "./OverviewCardBlock";
+import { SnippetCardBlock, SnippetCardItem } from "./SnippetCardBlock";
+import { VisualCardBlock, VisualCardItem } from "./VisualCardBlock";
 
 import { ChatContentChildUnion } from "./unions";
 
-// Tabs and Carousel are added here (not in unions.ts) to avoid the circular dep:
-// Tabs/schema.ts imports ContentChildUnion from unions.ts.
-const ChatCardChildUnion = z.union([...ChatContentChildUnion.options, Tabs.ref, Carousel.ref]);
+// ── Chat containers — same renderers as the base Tabs / Accordion / Carousel / SectionItem,
+// but their content unions accept every chat block (card blocks, EntityList, EditableTable,
+// InlineHeader, ...). Defined here, not in unions.ts, to avoid circular imports; registered
+// under the base names so SectionBlock's `SectionItem.ref` resolves to the chat variant.
+
+// Everything a nested container may hold — no SectionBlock nesting.
+const ChatNestedContentUnion = z.union(
+  ChatContentChildUnion.options.filter((o) => o !== SectionBlock.ref) as [
+    z.ZodTypeAny,
+    z.ZodTypeAny,
+    ...z.ZodTypeAny[],
+  ],
+);
+
+const ChatAccordionItem = defineComponent({
+  name: "AccordionItem",
+  props: z.object({
+    value: z.string(),
+    trigger: z.string(),
+    content: z.array(ChatNestedContentUnion),
+  }),
+  description: "value is unique id, trigger is section title",
+  component: () => null,
+});
+
+const ChatAccordion = defineComponent({
+  name: "Accordion",
+  props: z.object({ items: z.array(ChatAccordionItem.ref) }),
+  description: "Collapsible sections",
+  component: AccordionRenderer,
+});
+
+const ChatTabItem = defineComponent({
+  name: "TabItem",
+  props: z.object({
+    value: z.string(),
+    trigger: z.string(),
+    content: z.array(z.union([...ChatNestedContentUnion.options, ChatAccordion.ref])),
+  }),
+  description: "value is unique id, trigger is tab label, content is array of components",
+  component: () => null,
+});
+
+const ChatTabs = defineComponent({
+  name: "Tabs",
+  props: z.object({ items: z.array(ChatTabItem.ref) }),
+  description: "Tabbed container",
+  component: TabsRenderer,
+});
+
+const ChatCarousel = defineComponent({
+  name: "Carousel",
+  props: z.object({
+    children: z.array(z.array(ChatNestedContentUnion)),
+    variant: z.enum(["card", "sunk"]).optional(),
+  }),
+  description: "Horizontal scrollable carousel",
+  component: CarouselRenderer,
+});
+
+const ChatSectionItem = defineComponent({
+  name: "SectionItem",
+  props: z.object({
+    value: z.string(),
+    trigger: z.string(),
+    content: z.array(z.union([...ChatNestedContentUnion.options, ChatTabs.ref, ChatAccordion.ref])),
+  }),
+  description: "Section with a label and collapsible content — used inside SectionBlock",
+  component: () => null,
+});
+
+const ChatSectionBlock = defineComponent({
+  name: "SectionBlock",
+  props: z.object({
+    sections: z.array(ChatSectionItem.ref),
+    isFoldable: z.boolean().optional(),
+  }),
+  description:
+    "Collapsible accordion sections. Auto-opens sections as they stream in. Use SectionItem for each section.",
+  component: SectionBlockRenderer,
+});
+
+const ChatCardChildUnion = z.union([
+  ...ChatNestedContentUnion.options,
+  ChatSectionBlock.ref,
+  ChatTabs.ref,
+  ChatCarousel.ref,
+]);
 
 // ── Locked Chat Card — no design params, always vertical ──
 
@@ -82,20 +193,24 @@ const ChatCard = defineComponent({
   name: "Card",
   props: z.object({
     children: z.array(ChatCardChildUnion),
+    sources: z.array(CardSourceSchema).optional(),
   }),
   description:
-    "Vertical container for all content in a chat response. Children stack top to bottom automatically.",
+    "Vertical container for all content in a chat response. Children stack top to bottom automatically. Optional sources ([{ title, sourceName, url }]) render as a Sources strip at the bottom and back inline [n] citations in TextContent.",
   component: ({ props, renderNode }) => (
-    <OpenUICard
-      width="full"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--openui-space-m)",
-      }}
-    >
-      {renderNode(props.children)}
-    </OpenUICard>
+    <CardSourceProvider sources={props.sources}>
+      <OpenUICard
+        width="full"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--openui-space-m)",
+        }}
+      >
+        {renderNode(props.children)}
+        <Sources />
+      </OpenUICard>
+    </CardSourceProvider>
   ),
 });
 
@@ -115,11 +230,20 @@ export const openuiChatComponentGroups: ComponentGroup[] = [
       "ImageGallery",
       "CodeBlock",
       "Separator",
+      "InlineHeader",
+    ],
+    notes: [
+      "- InlineHeader is a compact heading + description pair for labelling a block inside the response (lighter than CardHeader).",
+      "- Pass sources on Card ([{ title, sourceName, url }]) when the answer relies on references, and cite them inline in TextContent as [1], [2] (1-based index into sources). A Sources strip renders at the bottom of the card.",
     ],
   },
   {
     name: "Tables",
-    components: ["Table", "Col"],
+    components: ["Table", "Col", "EditableTable"],
+    notes: [
+      "- EditableTable lets the user edit cells inline. Give it a unique name, columns of { type, key, header } with type one of text | number | date-single | select | url (select also needs options: [{ value, label }]).",
+      "- data is an array of { id, values } rows where values are ordered positionally to match columns. Edited data is submitted when the user clicks Save Changes.",
+    ],
   },
   {
     name: "Charts (2D)",
@@ -158,27 +282,37 @@ export const openuiChatComponentGroups: ComponentGroup[] = [
       "RadioItem",
       "SwitchGroup",
       "SwitchItem",
+      "Chips",
+      "ChipItem",
+      "OptionCards",
+      "OptionCard",
     ],
     notes: [
+      "- Chips: compact single/multiple selection pills. Use ChipItem references for each option.",
+      "- OptionCards: larger selectable cards with title, subtitle and an optional Icon or Image on top. Use OptionCard references for each option.",
       "- Define EACH FormControl as its own reference — do NOT inline all controls in one array.",
       "- NEVER nest Form inside Form.",
-      "- Form requires explicit buttons. Always pass a Buttons(...) reference as the third Form argument.",
+      "- Form requires explicit buttons. Always pass a Buttons(...) reference as the second Form argument: Form(name, buttons, fields).",
       "- rules is an optional object: { required: true, email: true, min: 8, maxLength: 100 }",
       "- The renderer shows error messages automatically — do NOT generate error text in the UI",
     ],
   },
   {
     name: "Buttons",
-    components: ["Button", "Buttons"],
+    components: ["Button", "Buttons", "Icon", "IconButton"],
+    notes: [
+      "- Icon renders a lucide icon by kebab-case name; it is also used as the icon of IconButton, IconText and OptionCard.",
+    ],
   },
   {
     name: "Lists & Follow-ups",
     components: ["ListBlock", "ListItem", "FollowUpBlock", "FollowUpItem"],
     notes: [
-      "- Use ListBlock with ListItem references for numbered, clickable lists.",
+      "- Use ListBlock with ListItem references for numbered lists.",
       "- Use FollowUpBlock with FollowUpItem references at the end of a response to suggest next actions.",
-      "- Clicking a ListItem or FollowUpItem sends its text to the LLM as a user message.",
-      '- Example: list = ListBlock([item1, item2])  item1 = ListItem("Option A", "Details about A")',
+      "- A ListItem is clickable ONLY when given an action (5th argument); without one it is plain text.",
+      "- Clicking a FollowUpItem, or a ListItem with a continue_conversation action, sends text to the LLM as a user message.",
+      '- Example: list = ListBlock([item1, item2])  item1 = ListItem("Option A", "Details about A", null, null, { type: "continue_conversation", context: "Option A" })',
     ],
   },
   {
@@ -204,7 +338,41 @@ export const openuiChatComponentGroups: ComponentGroup[] = [
   },
   {
     name: "Data Display",
-    components: ["TagBlock", "Tag"],
+    components: ["TagBlock", "Tag", "EntityList"],
+    notes: [
+      "- EntityList is a compact two-column list of { left, right } rows (e.g. name / value). size='default' also supports a header and footer row; size='small' does not.",
+    ],
+  },
+  {
+    name: "Cards",
+    components: [
+      "SnippetCardBlock",
+      "SnippetCardItem",
+      "OverviewCardBlock",
+      "OverviewCardItem",
+      "ContextCardBlock",
+      "ContextCardItem",
+      "CompositeCardBlock",
+      "CompositeCardItem",
+      "VisualCardBlock",
+      "VisualCardItem",
+      "Text",
+      "BoldText",
+      "IconText",
+      "ImageText",
+      "ImageTextLarge",
+      "MetricIndicatorInline",
+      "MetricIndicatorWithStrikethrough",
+    ],
+    notes: [
+      "- Card blocks lay out 2+ items in a responsive grid (or carousel where supported). Every item in a block must have the same structure.",
+      "- SnippetCardItem: small card with lhs (IconText | ImageText) and optional rhs (Text | BoldText) — good for key/value facts.",
+      "- OverviewCardItem: small card with top (IconText | ImageText | Text) and optional bottom MetricIndicatorInline — good for KPIs.",
+      "- ContextCardItem: medium card with a title (string or Tag), body text and optional background image — good for summaries.",
+      "- CompositeCardItem: rich card with header, body array (Text, BoldText, MetricIndicatorInline, IconText, Image, charts, ListBlock, TagBlock, EntityList) and footer (price + Button) — good for products/offers.",
+      "- VisualCardItem: image-first card with a BoldText body and optional Tag.",
+      "- Text / BoldText / IconText / ImageText / ImageTextLarge / MetricIndicator* are the inline building blocks used INSIDE card items; do not place them directly in the root Card.",
+    ],
   },
 ];
 
@@ -278,18 +446,49 @@ export const openuiChatLibrary = createLibrary({
     FollowUpBlock,
     FollowUpItem,
     // Sections
-    SectionBlock,
-    SectionItem,
+    ChatSectionBlock,
+    ChatSectionItem,
     // Layout (no Stack)
-    Tabs,
-    TabItem,
-    Accordion,
-    AccordionItem,
+    ChatTabs,
+    ChatTabItem,
+    ChatAccordion,
+    ChatAccordionItem,
     Steps,
     StepsItem,
-    Carousel,
+    ChatCarousel,
     // Data Display
     TagBlock,
     Tag,
+    EntityList,
+    // Content
+    InlineHeader,
+    Icon,
+    IconButton,
+    // Tables (editable)
+    EditableTable,
+    // Selection inputs
+    ChipItem,
+    Chips,
+    OptionCard,
+    OptionCards,
+    // Card building blocks
+    Text,
+    BoldText,
+    IconText,
+    ImageText,
+    ImageTextLarge,
+    MetricIndicatorInline,
+    MetricIndicatorWithStrikethrough,
+    // Card blocks
+    SnippetCardItem,
+    SnippetCardBlock,
+    OverviewCardItem,
+    OverviewCardBlock,
+    ContextCardItem,
+    ContextCardBlock,
+    CompositeCardItem,
+    CompositeCardBlock,
+    VisualCardItem,
+    VisualCardBlock,
   ],
 });

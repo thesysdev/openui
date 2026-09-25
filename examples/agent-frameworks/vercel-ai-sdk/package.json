@@ -3,45 +3,52 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate": "openui generate src/library.ts --out src/generated/system-prompt.txt",
-    "generate:prompt": "openui generate src/library.ts --out src/generated/system-prompt.txt",
-    "predev": "openui generate src/library.ts --out src/generated/system-prompt.txt",
+    "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
+    "generate:apiKey": "openui generate-api-key --file .env.local",
+    "predev": "npm run generate",
     "dev": "next dev",
-    "prebuild": "openui generate src/library.ts --out src/generated/system-prompt.txt",
+    "prebuild": "npm run generate",
     "build": "next build",
-    "preverify": "openui generate src/library.ts --out src/generated/system-prompt.txt",
+    "preverify": "npm run generate",
     "verify": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.41",
-    "@ai-sdk/react": "^3.0.118",
-    "@openuidev/cli": "0.2.11",
-    "@openuidev/react-headless": "0.9.12",
-    "@openuidev/react-lang": "0.2.15",
-    "@openuidev/react-ui": "0.13.9",
+    "@openuidev/lang-core": "0.3.0",
+    "@openuidev/react-headless": "0.16.2",
+    "@openuidev/react-lang": "0.3.0",
+    "@openuidev/react-ui": "0.16.2",
     "ai": "^6.0.116",
-    "lucide-react": "^0.575.0",
     "next": "16.2.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "zod": "^4.3.6",
-    "zustand": "^4.5.5"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@openuidev/cli": "0.4.0",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
-    "tailwindcss": "^4",
     "typescript": "^5"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "@openuidev/lang-core",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ],
     "overrides": {
       "postcss@<8.5.10": ">=8.5.10"
     }
+  },
+  "allowScripts": {
+    "@openuidev/lang-core": true,
+    "sharp": true,
+    "unrs-resolver": true
   }
 }

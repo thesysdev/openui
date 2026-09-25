@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/cli",
-  "version": "0.2.11",
-  "description": "CLI for OpenUI — scaffold generative UI chat apps and generate LLM system prompts from component libraries",
+  "version": "0.4.1",
+  "description": "CLI for OpenUI — scaffold generative UI chat apps, mint Gateway API keys, and generate LLM system prompts from component libraries, and deploy projects",
   "bin": {
     "openui": "dist/index.js"
   },
@@ -11,20 +11,18 @@
   ],
   "scripts": {
     "build:cli": "tsc -p .",
-    "build:templates": "node scripts/build-templates.js",
-    "build": "pnpm run build:cli && pnpm run build:templates",
+    "build": "pnpm run build:cli",
     "build:exec": "node dist/index.js",
-    "lint:check": "eslint ./src --ignore-pattern 'src/templates/**'",
-    "lint:fix": "eslint ./src --fix --ignore-pattern 'src/templates/**'",
-    "format:fix": "prettier --write './src/**' '!./src/templates/**'",
-    "format:check": "prettier --check './src/**' '!./src/templates/**'",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write './src/**'",
+    "format:check": "prettier --check './src/**'",
     "prepare": "pnpm run build",
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
-    "@types/node": "catalog:",
-    "rimraf": "^5.0.7"
+    "@types/node": "catalog:"
   },
   "keywords": [
     "openui",
@@ -55,6 +53,7 @@
     "@inquirer/prompts": "^8.3.0",
     "commander": "^14.0.3",
     "cross-spawn": "^7.0.6",
+    "dotenv": "^17.2.2",
     "esbuild": "^0.25.10",
     "get-port": "^7.2.0",
     "open": "^10.1.0",

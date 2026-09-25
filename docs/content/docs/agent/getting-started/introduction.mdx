@@ -1,48 +1,37 @@
 ---
-title: Agent Interface
-description: "A generative-UI toolkit for building agent interfaces in React: interactive components and artifacts inside a complete, streaming chat, on OpenUI Cloud or your own backend."
+title: Introduction
+description: A complete React SDK for building streaming agent interfaces with OpenUI Lang.
 ---
 
-Agent Interface helps developers ship production agent UIs. Your agent renders interactive components and artifacts (dashboards, slides, reports) inside a complete, streaming chat, on OpenUI Cloud or your own backend.
+Agent Interface is OpenUI's optional React SDK for teams that want a complete chat surface instead of integrating the renderer into assistant-ui, CopilotKit, or a custom message UI.
 
-<video
-  src="/videos/agent/agent-interface-hero.mp4"
-  autoPlay
-  loop
-  muted
-  playsInline
-  className="w-full rounded-lg border"
-/>
+It provides conversation layout, threads, streaming messages, tool activity, and generated OpenUI components in one customizable interface. OpenUI Lang remains the interchange format, and you can connect Agent Interface to your existing agent backend.
 
-## Why Agent Interface?
+## When to use Agent Interface
 
-Building an agent UI from scratch is a lot of work before you ship a single feature. You wire up streaming and thread history, render every message, build the interactive components your agent returns, add panels for richer outputs, theme it all, and make it work on mobile.
+Choose Agent Interface when you want OpenUI to provide the complete agent UI shell. If an application already has a conversation framework, follow the [Build Agents guides](/docs/build-agents) to add the OpenUI Lang renderer instead.
 
-Agent Interface gives you that in one component. Give it a component library and your agent renders those components inline, streaming their props as they arrive. Durable outputs like dashboards, slides, and reports become artifacts your users can open, revisit, and edit. Connect it to OpenUI Cloud and it handles conversations, generative UI, and artifacts for you. You can also run it on your own backend.
+## The integration boundary
+
+`<AgentInterface />` receives an `llm` transport, an optional conversation `storage` adapter, and your OpenUI component library. The transport streams agent events; Agent Interface manages the chat experience; the renderer turns OpenUI Lang into application components.
 
 ```tsx
-import { AgentInterface, fetchLLM, openAIResponsesAdapter, openAIConversationMessageFormat } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import {
+  AgentInterface,
+  fetchLLM,
+  openAIConversationMessageFormat,
+  openAIResponsesAdapter,
+} from "@openuidev/react-ui";
 
-// Point the llm adapter at your backend route.
 const llm = fetchLLM({
   url: "/api/chat",
-  streamAdapter: openAIResponsesAdapter(),
   messageFormat: openAIConversationMessageFormat,
+  streamAdapter: openAIResponsesAdapter(),
 });
 
-export default function App() {
-  return <AgentInterface llm={llm} componentLibrary={openuiLibrary} />;
+export function Agent() {
+  return <AgentInterface llm={llm} componentLibrary={componentLibrary} />;
 }
 ```
 
-That is the whole integration. `AgentInterface` renders the streaming chat with generative UI on. Point `storage` at OpenUI Cloud (or your own backend) to add conversation history and artifacts.
-
-## What's included
-
-- **`<AgentInterface>`:** a complete chat UI out of the box, with a sidebar, thread list, composer, streaming, and a responsive layout.
-- **Generative UI:** your agent renders rich, interactive components inline in the conversation instead of plain text.
-- **Artifacts:** durable outputs like dashboards, slides, and reports, opened in side panels and full pages.
-- **Fully customizable:** override any slot, theme with design tokens, and swap in your own message rendering.
-- **OpenUI Cloud or self-hosted:** managed conversations, generative UI, and artifacts, or run it on your own backend.
-
+The `/api/chat` route connects to your agent backend and returns a supported stream. Continue with the [Quickstart](/docs/agent/getting-started/quickstart) or review the available [adapters and formats](/docs/agent/reference/adapters-and-formats).

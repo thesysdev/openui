@@ -1,0 +1,147 @@
+/* Page composition only: type, cards, buttons, and grid rules are shared. */
+.hero {
+  padding-bottom: 96px;
+}
+
+.softBand {
+  background: var(--openui-background);
+}
+
+.productSection {
+  padding-block: 160px;
+}
+
+.compactProductSection {
+  padding-block: 112px;
+}
+
+.productLead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.productSupport,
+.supporting {
+  padding-top: 44px;
+}
+
+.productSupport {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.gatewayTitle {
+  max-width: 20ch;
+  scroll-margin-top: 120px;
+}
+
+.priceNote,
+.freeModelNote {
+  font-family: var(--home-font-text);
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
+  color: var(--openui-text-neutral-secondary);
+}
+
+.priceNote {
+  margin: 20px 0 0;
+}
+
+.productChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--home-font-text);
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
+}
+
+.productChips li {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid var(--openui-border-default);
+  border-radius: 999px;
+  background: var(--openui-highlight-subtle);
+  color: var(--openui-text-neutral-primary);
+  line-height: 1.2;
+}
+
+.billingDetails {
+  margin-top: 72px;
+}
+
+.freeModelNote {
+  margin: 32px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--home-hairline);
+}
+
+.faqBand {
+  padding-block: 112px 160px;
+}
+
+@media (max-width: 1023px) {
+  .hero .titleBlock {
+    align-items: center;
+  }
+
+  .hero {
+    padding-bottom: 72px;
+  }
+
+  .productSection {
+    padding-block: 112px;
+  }
+
+  .compactProductSection {
+    padding-block: 88px;
+  }
+
+  .productSupport,
+  .supporting {
+    padding-top: 0;
+  }
+
+  .faqBand {
+    padding-block: 72px 112px;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero {
+    padding-bottom: 64px;
+  }
+
+  .productSection {
+    padding-block: 96px;
+  }
+
+  .compactProductSection {
+    padding-block: 72px;
+  }
+
+  .productLead {
+    gap: 20px;
+  }
+
+  .productSupport {
+    gap: 24px;
+  }
+
+  .billingDetails {
+    margin-top: 48px;
+  }
+
+  .faqBand {
+    padding-block: 48px 96px;
+  }
+}

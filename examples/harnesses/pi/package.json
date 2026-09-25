@@ -3,17 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
+    "generate:apiKey": "openui generate-api-key",
+    "predev": "npm run generate",
     "dev": "node scripts/launch.mjs dev",
+    "prebuild": "npm run generate",
     "build": "next build --webpack",
     "start": "node scripts/launch.mjs start",
     "lint": "eslint",
+    "preverify": "npm run generate",
     "verify": "tsc --noEmit && next build --webpack"
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "^0.79.4",
-    "@openuidev/react-headless": "0.9.12",
-    "@openuidev/react-lang": "0.2.15",
-    "@openuidev/react-ui": "0.13.9",
+    "@openuidev/lang-core": "0.3.0",
+    "@openuidev/react-headless": "0.16.2",
+    "@openuidev/react-lang": "0.3.0",
+    "@openuidev/react-ui": "0.16.2",
     "ai": "^6.0.0",
     "next": "16.1.6",
     "react": "19.2.3",
@@ -22,6 +28,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@openuidev/cli": "0.4.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
@@ -32,8 +39,19 @@
     "typescript": "^5"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "@openuidev/lang-core",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ],
     "overrides": {
       "postcss@<8.5.10": ">=8.5.10"
     }
+  },
+  "allowScripts": {
+    "@openuidev/lang-core": true,
+    "sharp": true,
+    "unrs-resolver": true
   }
 }

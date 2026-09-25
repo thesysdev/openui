@@ -1,11 +1,29 @@
+/* Every colour comes through the --fg-* tokens below, each of which takes a
+   --feature-grid-* override first. The indirection is what makes a host able to
+   re-point them: .section declares --fg-* on itself, so a value inherited from
+   an ancestor under that same name would lose to it. The product bands set the
+   --feature-grid-* names, because the Cloud band inverts independently of the
+   page and the page tokens leave the rows and icon tiles invisible on it. */
 .section {
+  --fg-text: var(--feature-grid-text, var(--openui-text-neutral-primary));
+  --fg-muted: var(--feature-grid-muted, var(--openui-text-neutral-secondary));
+  --fg-faint: var(--feature-grid-faint, var(--openui-text-neutral-tertiary));
+  --fg-line: var(--feature-grid-line, var(--home-hairline));
+  --fg-surface: var(--feature-grid-surface, var(--openui-foreground));
+  --fg-border: var(--feature-grid-border, var(--openui-border-default));
+  --fg-shadow: var(--feature-grid-shadow, var(--home-shadow-card));
+
   width: 100%;
   padding: 0 var(--home-section-padding-inline);
 }
 
+.section.sectionFlushPadding {
+  padding-inline: 0;
+}
+
 .header {
   max-width: 46rem;
-  margin: 0 auto clamp(2.5rem, 5vw, 3.5rem);
+  margin: 0 auto clamp(1.25rem, 2.5vw, 2rem);
   text-align: center;
 }
 
@@ -19,7 +37,7 @@
   font-weight: var(--home-title-weight);
   line-height: var(--home-title-leading);
   letter-spacing: var(--home-title-tracking);
-  color: var(--openui-text-neutral-primary);
+  color: var(--fg-text);
   text-wrap: balance;
 }
 
@@ -63,8 +81,8 @@
   background: linear-gradient(
     to right,
     transparent,
-    var(--home-hairline) 15%,
-    var(--home-hairline) 85%,
+    var(--fg-line) 15%,
+    var(--fg-line) 85%,
     transparent
   );
 }
@@ -72,7 +90,7 @@
 .icon {
   display: inline-flex;
   margin-bottom: 0.25rem;
-  color: var(--openui-text-neutral-primary);
+  color: var(--fg-text);
 }
 
 .iconPlaceholder {
@@ -89,14 +107,19 @@
   font-weight: var(--home-heading-weight);
   line-height: var(--home-heading-leading);
   letter-spacing: var(--home-heading-tracking);
-  color: var(--openui-text-neutral-primary);
+  color: var(--fg-text);
 }
 
 .featureDescription {
   margin: 0;
   font-size: var(--home-body-size);
   line-height: var(--home-body-leading);
-  color: var(--openui-text-neutral-secondary);
+  color: var(--fg-muted);
+}
+
+.featureDescription a {
+  color: inherit;
+  text-underline-offset: 3px;
 }
 
 /* Mobile-only expand affordance; hidden on desktop. */
@@ -105,6 +128,18 @@
 }
 
 /* Horizontal separator below the grid; the grid's vertical lines meet it. */
+/* Space in place of a rule when the compatibility band leads the section, and
+   the breathing room above the header that follows it. */
+.compatLead {
+  margin-bottom: clamp(4.5rem, 9vw, 8rem);
+}
+
+/* Same job as .compatLead, for the grid when it runs above the header: without
+   it the last row of cards butts straight into "Renders 3x faster". */
+.gridLead {
+  margin-bottom: clamp(4.5rem, 9vw, 8rem);
+}
+
 .separator {
   width: 100%;
   max-width: 75rem;
@@ -113,8 +148,8 @@
   background: linear-gradient(
     to right,
     transparent,
-    var(--home-hairline) 8%,
-    var(--home-hairline) 92%,
+    var(--fg-line) 8%,
+    var(--fg-line) 92%,
     transparent
   );
 }
@@ -150,15 +185,9 @@
   .grid {
     grid-template-columns: repeat(3, 1fr);
     background-image:
-      linear-gradient(var(--home-hairline), var(--home-hairline)),
-      linear-gradient(var(--home-hairline), var(--home-hairline)),
-      linear-gradient(
-        to right,
-        transparent,
-        var(--home-hairline) 8%,
-        var(--home-hairline) 92%,
-        transparent
-      );
+      linear-gradient(transparent, var(--fg-line) 10%, var(--fg-line) 90%, transparent),
+      linear-gradient(transparent, var(--fg-line) 10%, var(--fg-line) 90%, transparent),
+      linear-gradient(to right, transparent, var(--fg-line) 8%, var(--fg-line) 92%, transparent);
     background-size:
       1px 100%,
       1px 100%,
@@ -170,24 +199,19 @@
     background-repeat: no-repeat;
   }
 
-  /* Vertical column dividers fade out toward the bottom (size/position inherited). */
+  /* Vertical column dividers fade in at the top and out toward the bottom
+     (size/position inherited). */
   .gridFadeLines {
     background-image:
-      linear-gradient(var(--home-hairline), transparent),
-      linear-gradient(var(--home-hairline), transparent),
-      linear-gradient(
-        to right,
-        transparent,
-        var(--home-hairline) 8%,
-        var(--home-hairline) 92%,
-        transparent
-      );
+      linear-gradient(transparent, var(--fg-line) 10%, transparent),
+      linear-gradient(transparent, var(--fg-line) 10%, transparent),
+      linear-gradient(to right, transparent, var(--fg-line) 8%, var(--fg-line) 92%, transparent);
   }
 
   .gridSingleRow {
     background-image:
-      linear-gradient(var(--home-hairline), var(--home-hairline)),
-      linear-gradient(var(--home-hairline), var(--home-hairline));
+      linear-gradient(transparent, var(--fg-line) 10%, var(--fg-line) 90%, transparent),
+      linear-gradient(transparent, var(--fg-line) 10%, var(--fg-line) 90%, transparent);
     background-size:
       1px 100%,
       1px 100%;
@@ -200,16 +224,10 @@
   .gridFourColumns {
     grid-template-columns: repeat(4, 1fr);
     background-image:
-      linear-gradient(var(--home-hairline), var(--home-hairline)),
-      linear-gradient(var(--home-hairline), var(--home-hairline)),
-      linear-gradient(var(--home-hairline), var(--home-hairline)),
-      linear-gradient(
-        to right,
-        transparent,
-        var(--home-hairline) 8%,
-        var(--home-hairline) 92%,
-        transparent
-      );
+      linear-gradient(transparent, var(--fg-line) 10%, var(--fg-line) 90%, transparent),
+      linear-gradient(transparent, var(--fg-line) 10%, var(--fg-line) 90%, transparent),
+      linear-gradient(transparent, var(--fg-line) 10%, var(--fg-line) 90%, transparent),
+      linear-gradient(to right, transparent, var(--fg-line) 8%, var(--fg-line) 92%, transparent);
     background-size:
       1px 100%,
       1px 100%,
@@ -225,9 +243,9 @@
 
   .gridFourColumns.gridSingleRow {
     background-image:
-      linear-gradient(var(--home-hairline), var(--home-hairline)),
-      linear-gradient(var(--home-hairline), var(--home-hairline)),
-      linear-gradient(var(--home-hairline), var(--home-hairline));
+      linear-gradient(transparent, var(--fg-line) 10%, var(--fg-line) 90%, transparent),
+      linear-gradient(transparent, var(--fg-line) 10%, var(--fg-line) 90%, transparent),
+      linear-gradient(transparent, var(--fg-line) 10%, var(--fg-line) 90%, transparent);
     background-size:
       1px 100%,
       1px 100%,
@@ -265,8 +283,8 @@
     background-image: linear-gradient(
       to right,
       transparent,
-      var(--home-hairline) 8%,
-      var(--home-hairline) 92%,
+      var(--fg-line) 8%,
+      var(--fg-line) 92%,
       transparent
     );
     background-size: 100% 1px;
@@ -285,7 +303,7 @@
   .gridBalancedLastRow > .feature:nth-child(2),
   .gridBalancedLastRow > .feature:nth-child(3),
   .gridBalancedLastRow > .feature:nth-child(5) {
-    border-left: 1px solid var(--home-hairline);
+    border-left: 1px solid var(--fg-line);
   }
 
   .gridBalancedLastRow.gridFlushOuterCards > :nth-child(5) {
@@ -297,6 +315,14 @@
   }
 }
 
+/* Nested flush grids keep their content aligned with the parent illustration
+   while the desktop columns are stacked. Mobile already removes card padding. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sectionFlushPadding .gridFlushOuterCards > .feature {
+    padding-inline: 0;
+  }
+}
+
 /* Mobile-only: smaller header headings + compact feature rows. */
 @media (max-width: 767px) {
   /* Section separators run edge to edge and fade out on the left, matching the
@@ -305,7 +331,7 @@
     width: auto;
     max-width: none;
     margin-inline: calc(0px - var(--home-section-padding-inline));
-    background: linear-gradient(to right, transparent, var(--home-hairline) 15%);
+    background: linear-gradient(to right, transparent, var(--fg-line) 15%);
   }
 
   /* Feature rows: icon tile (left) + title, chevron (right), description below
@@ -331,7 +357,7 @@
      out on the left. */
   .feature:not(:first-child)::before {
     inset-inline: calc(0px - var(--home-section-padding-inline));
-    background: linear-gradient(to right, transparent, var(--home-hairline) 15%);
+    background: linear-gradient(to right, transparent, var(--fg-line) 15%);
   }
 
   /* Icon tile, matching the stepper number tile. */
@@ -346,11 +372,11 @@
     width: 1.375rem;
     height: 1.375rem;
     margin-bottom: 0;
-    border: 1px solid var(--openui-border-default);
+    border: 1px solid var(--fg-border);
     border-radius: 0.4rem;
-    background: var(--openui-foreground);
-    box-shadow: var(--home-shadow-card);
-    color: var(--openui-text-neutral-secondary);
+    background: var(--fg-surface);
+    box-shadow: var(--fg-shadow);
+    color: var(--fg-muted);
     opacity: 1;
   }
 
@@ -402,7 +428,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--openui-text-neutral-tertiary);
+    color: var(--fg-faint);
     transition: transform 0.2s ease;
   }
 
@@ -433,6 +459,24 @@
 
   /* Gap only when open, so the collapsed 0fr row closes fully (no residual). */
   .feature[data-open] .featureDescriptionInner {
+    padding-top: 0.375rem;
+  }
+
+  .sectionStatic .feature {
+    cursor: default;
+  }
+
+  .sectionStatic .chevron {
+    display: none;
+  }
+
+  .sectionStatic .featureDescription {
+    grid-column: 2 / -1;
+    grid-template-rows: 1fr;
+    max-width: none;
+  }
+
+  .sectionStatic .featureDescriptionInner {
     padding-top: 0.375rem;
   }
 

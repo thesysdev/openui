@@ -1,14 +1,9 @@
-import { readFileSync } from "fs";
-import { join } from "path";
+import { cloudInstructions } from "@/lib/cloud-prompt";
+import { DEFAULT_MODEL, requiredEnv } from "@/lib/env";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
 import { tools, setCurrentThreadId } from "./tools";
-
-const generatedPrompt = readFileSync(
-  join(process.cwd(), "src/generated/system-prompt.txt"),
-  "utf-8"
-);
 
 const SPREADSHEET_INSTRUCTIONS = `
 You are a helpful spreadsheet assistant. The user has a live Excel-like spreadsheet visible on the left panel at all times.
@@ -51,9 +46,9 @@ Examples of good follow-ups:
 - After a chart: "Break down by product", "Show as a table instead", "Compare Q1 vs Q4"
 
 The follow-up buttons should be contextually relevant to what you just did.
-`;
+`.trim();
 
-const systemPrompt = SPREADSHEET_INSTRUCTIONS + "\n\n" + generatedPrompt;
+const systemPrompt = cloudInstructions(SPREADSHEET_INSTRUCTIONS);
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function extractText(msg: any): string {
@@ -83,7 +78,7 @@ function extractText(msg: any): string {
 function sseToolCallStart(
   encoder: TextEncoder,
   tc: { id: string; function: { name: string } },
-  index: number
+  index: number,
 ) {
   return encoder.encode(
     `data: ${JSON.stringify({
@@ -105,7 +100,7 @@ function sseToolCallStart(
           finish_reason: null,
         },
       ],
-    })}\n\n`
+    })}\n\n`,
   );
 }
 
@@ -113,7 +108,7 @@ function sseToolCallArgs(
   encoder: TextEncoder,
   tc: { id: string; function: { arguments: string } },
   result: string,
-  index: number
+  index: number,
 ) {
   let enrichedArgs: string;
   try {
@@ -137,7 +132,7 @@ function sseToolCallArgs(
           finish_reason: null,
         },
       ],
-    })}\n\n`
+    })}\n\n`,
   );
 }
 
@@ -168,7 +163,11 @@ export async function POST(req: NextRequest) {
     ...cleanMessages,
   ];
 
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  // Chat Completions → POST /v1/embed/chat/completions
+  const client = new OpenAI({
+    apiKey: requiredEnv("THESYS_API_KEY"),
+    baseURL: "https://api.thesys.dev/v1/embed",
+  });
   const encoder = new TextEncoder();
   let controllerClosed = false;
 
@@ -192,7 +191,6 @@ export async function POST(req: NextRequest) {
         }
       };
 
-      let fullResponse = "";
       const pendingCalls: Array<{
         id: string;
         name: string;
@@ -203,7 +201,7 @@ export async function POST(req: NextRequest) {
 
       /* eslint-disable @typescript-eslint/no-explicit-any */
       const runner = (client.chat.completions as any).runTools({
-        model: process.env.OPENAI_MODEL || "gpt-5.5",
+        model: DEFAULT_MODEL,
         messages: chatMessages,
         tools,
         stream: true,
@@ -213,7 +211,7 @@ export async function POST(req: NextRequest) {
         const id = `tc-${callIdx}`;
         pendingCalls.push({ id, name: fc.name, arguments: fc.arguments });
         enqueue(
-          sseToolCallStart(encoder, { id, function: { name: fc.name } }, callIdx)
+          sseToolCallStart(encoder, { id, function: { name: fc.name } }, callIdx),
         );
         callIdx++;
       });
@@ -226,8 +224,8 @@ export async function POST(req: NextRequest) {
               encoder,
               { id: tc.id, function: { arguments: tc.arguments } },
               result,
-              resultIdx
-            )
+              resultIdx,
+            ),
           );
         }
         resultIdx++;
@@ -238,7 +236,6 @@ export async function POST(req: NextRequest) {
         const delta = choice?.delta;
         if (!delta) return;
         if (delta.content) {
-          fullResponse += delta.content;
           enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
         }
         if (choice?.finish_reason === "stop") {
@@ -254,9 +251,7 @@ export async function POST(req: NextRequest) {
       runner.on("error", (err: any) => {
         const msg = err instanceof Error ? err.message : "Stream error";
         console.error("Chat route error:", msg);
-        enqueue(
-          encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`)
-        );
+        enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
         close();
       });
       /* eslint-enable @typescript-eslint/no-explicit-any */

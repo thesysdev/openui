@@ -29,7 +29,7 @@
   }
 
   &__text {
-    @include cssUtils.typography(primary, default);
+    @include cssUtils.typography(body, default);
     color: cssUtils.$text-neutral-primary;
     &:first-child {
       margin-top: cssUtils.$space-xs;
@@ -57,7 +57,7 @@
   padding: 0;
 
   &__content {
-    @include cssUtils.typography(primary, default);
+    @include cssUtils.typography(body, default);
     padding: cssUtils.$space-s cssUtils.$space-m;
     background-color: cssUtils.$chat-user-response-bg;
     color: cssUtils.$chat-user-response-text;

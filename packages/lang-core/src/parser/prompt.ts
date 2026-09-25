@@ -1,5 +1,6 @@
 import { recordSystemPromptGeneration } from "../telemetry/runtime";
 import { BUILTINS, LAZY_BUILTIN_DEFS } from "./builtins";
+import { generateCloudConfig } from "./cloud-config";
 import type { LibraryJSONSchema } from "./types";
 
 // ─── PromptSpec types (JSON-serializable, no Zod deps) ──────────────────────
@@ -694,22 +695,49 @@ export function generatePrompt(spec: PromptSpec): string {
   return parts.join("\n");
 }
 
-// ─── System prompt (library + options + instructions) ───────────────────────
+// ─── System prompt (library + options) ──────────────────────────────────────
 
 /** Prompt options for {@link generateSystemPrompt} */
 export type SystemPromptOptions = Omit<PromptSpec, keyof BaseSpec>;
 
-/** Object input for {@link generateSystemPrompt}. */
-export interface SystemPromptSpec {
-  library: LibrarySpec;
-  promptOptions?: SystemPromptOptions;
-}
+/**
+ * Prompt options allowed on the OpenUI Cloud wire. Extra flags (`tools`,
+ * `editMode`, …) are stripped — Cloud's built-in prompt assembler ignores them.
+ */
+export type CloudPromptOptions = Pick<
+  SystemPromptOptions,
+  "examples" | "preamble" | "additionalRules"
+>;
 
-/** Render the full system prompt for a library. */
+/**
+ * Object input for {@link generateSystemPrompt}.
+ *
+ * Pass `cloud: true` to emit OpenUI Cloud's managed `]]>openui:config` block
+ * instead of a locally generated prompt. In that mode `library` is optional —
+ * omit it to use Cloud's built-in chat library. `instructions` is Cloud-only
+ * extra prose appended after the config block.
+ */
+export type SystemPromptSpec =
+  | {
+      library: LibrarySpec;
+      promptOptions?: SystemPromptOptions;
+      cloud?: false;
+    }
+  | {
+      cloud: true;
+      library?: LibrarySpec;
+      promptOptions?: CloudPromptOptions;
+      instructions?: string;
+    };
+
+/** Render the full system prompt for a library, or Cloud's managed config block when `cloud: true`. */
 export function generateSystemPrompt(spec: SystemPromptSpec): string;
-/** @deprecated Pass `{ library, promptOptions, instructions }` instead. Removed at the next major. */
+/** @deprecated Pass `{ library, promptOptions }` instead. Removed at the next major. */
 export function generateSystemPrompt(spec: PromptSpec): string;
 export function generateSystemPrompt(spec: SystemPromptSpec | PromptSpec): string {
+  if (isCloudSpec(spec)) {
+    return generateCloudConfig(spec);
+  }
   if (!isSystemPromptSpec(spec)) {
     const prompt = generatePrompt(spec);
     recordSystemPromptGeneration(spec, "legacy_prompt_spec");
@@ -721,7 +749,14 @@ export function generateSystemPrompt(spec: SystemPromptSpec | PromptSpec): strin
   return prompt;
 }
 
-// use `library` to discriminate SystemPromptSpec from the deprecated base-PromptSpec
-function isSystemPromptSpec(spec: SystemPromptSpec | PromptSpec): spec is SystemPromptSpec {
-  return "library" in spec && typeof (spec as SystemPromptSpec).library === "object";
+function isCloudSpec(
+  spec: SystemPromptSpec | PromptSpec,
+): spec is Extract<SystemPromptSpec, { cloud: true }> {
+  return "cloud" in spec && (spec as { cloud?: unknown }).cloud === true;
+}
+
+function isSystemPromptSpec(
+  spec: SystemPromptSpec | PromptSpec,
+): spec is Extract<SystemPromptSpec, { library: LibrarySpec }> {
+  return "library" in spec && typeof (spec as { library?: unknown }).library === "object";
 }

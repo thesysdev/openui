@@ -1,0 +1,126 @@
+.c1-docs-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--openui-overlay, rgb(0 0 0 / 40%));
+  backdrop-filter: blur(4px);
+}
+
+.c1-docs-dialog {
+  position: fixed;
+  z-index: 1001;
+  top: 50%;
+  left: 50%;
+  width: min(480px, calc(100vw - 48px));
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--openui-border-default, rgb(0 0 0 / 12%));
+  border-radius: 8px;
+  background: var(--openui-foreground, #fff);
+  box-shadow: var(--openui-shadow-2xl, 0 24px 80px rgb(0 0 0 / 24%));
+  color: var(--openui-text-neutral-primary, #111);
+  padding: 24px;
+}
+
+.c1-docs-dialog-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--openui-text-neutral-tertiary, #666);
+  cursor: pointer;
+}
+
+.c1-docs-dialog-close:hover {
+  background: var(--openui-highlight, rgb(0 0 0 / 6%));
+  color: var(--openui-text-neutral-primary, #111);
+}
+
+.c1-docs-dialog h2 {
+  margin: 0;
+  padding-right: 32px;
+  color: var(--openui-text-neutral-primary, #111);
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.c1-docs-dialog p {
+  margin: 8px 0 0;
+  color: var(--openui-text-neutral-secondary, #555);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.c1-docs-dialog p a {
+  color: var(--openui-text-neutral-primary, #111);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.c1-docs-dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.c1-docs-dialog-primary,
+.c1-docs-dialog-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 550;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.c1-docs-dialog-primary {
+  border: 1px solid var(--openui-interactive-accent-default, #111);
+  background: var(--openui-interactive-accent-default, #111);
+  color: var(--openui-text-accent-primary, #fff);
+}
+
+.c1-docs-dialog-primary:hover {
+  background: var(--openui-interactive-accent-hover, #2a2a2a);
+}
+
+.c1-docs-dialog-secondary {
+  border: 1px solid var(--openui-border-interactive, rgb(0 0 0 / 16%));
+  background: transparent;
+  color: var(--openui-text-neutral-primary, #111);
+}
+
+.c1-docs-dialog-secondary:hover {
+  background: var(--openui-highlight, rgb(0 0 0 / 6%));
+}
+
+@media (max-width: 540px) {
+  .c1-docs-dialog {
+    top: auto;
+    bottom: 12px;
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    padding: 20px;
+    transform: translateX(-50%);
+  }
+
+  .c1-docs-dialog-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+}

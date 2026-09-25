@@ -48,6 +48,7 @@ const PROVIDER_HUE: Record<ModelBoardProvider, string> = {
   IBM: "#4d6fb8",
   Liquid: "#c04f79",
   InclusionAI: "#7c6f64",
+  Thesys: "#a78bfa",
 };
 const MODEL_NAME: Record<ModelId, string> = {
   sol: "GPT-5.6 Sol",

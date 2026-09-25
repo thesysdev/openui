@@ -45,14 +45,14 @@
       <WelcomeScreen {starters} onSend={handleSend} />
     {:else}
       <div class="max-w-3xl mx-auto px-4 py-6 space-y-6">
-        {#each chat.messages as message, i}
+        {#each chat.messages as message (message.id)}
           {#if message.role === "user"}
             <UserMessage parts={message.parts} />
           {:else if message.role === "assistant"}
             <AssistantMessage
               parts={message.parts}
               {library}
-              isStreaming={isLoading && i === chat.messages.length - 1}
+              isStreaming={isLoading && message.id === chat.messages[chat.messages.length - 1]?.id}
               onAction={handleAction}
             />
           {/if}

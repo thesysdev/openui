@@ -6,11 +6,13 @@
     "react-lang",
     "react-headless",
     "react-ui",
-    "react-email",
-    "cli",
-    "devtools",
-    "langchain",
     "assistant-ui",
+    "langchain",
+    "server",
+    "react-email",
+    "devtools",
+    "cli",
+    "angular-lang",
     "a2ui"
   ]
 }

@@ -1,0 +1,15 @@
+{
+  "label": "LangGraph",
+  "description": "LangGraph agent with the selected model backend",
+  "packageJson": {
+    "dependencies": {
+      "@langchain/core": "^1.2.5",
+      "@langchain/langgraph": "^1.4.9",
+      "@langchain/openai": "^1.5.6",
+      "langchain": "^1.5.5",
+      "zod": "^4.4.3"
+    },
+    "removeDependencies": ["openai"]
+  },
+  "gettingStarted": "The generated LangGraph agent runs in-process inside the Next.js `/api/chat` route, with your OpenAI-compatible provider as its model. `{{packageManager}} run dev` starts the app. Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise its native tool loop."
+}

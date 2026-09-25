@@ -1,9 +1,8 @@
 {
-  "title": "OpenUI",
+  "title": "OpenUI Lang",
   "root": true,
   "pages": [
     "index",
-    "comparison",
     "quickstart",
     "---Core Concepts---",
     "overview",
@@ -13,15 +12,15 @@
     "interactivity",
     "reliability",
     "---Building Apps---",
-    "how-it-works",
+    "architecture",
     "reactive-state",
     "queries-mutations",
     "incremental-editing",
     "builtins",
     "patterns",
     "---Language Specification---",
-    "specification-v01",
     "specification-v05",
+    "specification-v01",
     "evolution-guide",
     "---Advanced---",
     "developer-tools",
@@ -30,12 +29,6 @@
     "telemetry",
     "---Examples---",
     "examples/design-systems/shadcn",
-    "examples/app-frameworks/react-native",
-    "examples/agent-frameworks/vercel-ai-sdk",
-    "examples/agent-frameworks/langchain",
-    "examples/miscellaneous/react-email",
-    "---Harnesses---",
-    "examples/harnesses/pi",
-    "examples/agent-frameworks/vercel-eve"
+    "examples/miscellaneous/react-email"
   ]
 }

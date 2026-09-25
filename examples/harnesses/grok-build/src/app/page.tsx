@@ -2,14 +2,13 @@
 
 import { GrokBuildInteractionDialog } from "@/components/grok-build-interaction-dialog";
 import { useGrokBuildInteraction } from "@/hooks/use-grok-build-interaction";
-import { useTheme } from "@/hooks/use-system-theme";
 import { createGrokBuildChatProps } from "@/lib/grok-build-chat";
-import { AgentInterface } from "@openuidev/react-ui";
-import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
+import { AgentInterface, useSystemThemeMode } from "@openuidev/react-ui";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { useMemo, useState } from "react";
 
 export default function Page() {
-  const mode = useTheme();
+  const mode = useSystemThemeMode();
   const [activeThreadId, setActiveThreadId] = useState<string>();
   const { llm, storage } = useMemo(
     () => createGrokBuildChatProps({ onThreadChange: setActiveThreadId }),
@@ -22,30 +21,22 @@ export default function Page() {
       <AgentInterface
         llm={llm}
         storage={storage}
-        componentLibrary={openuiChatLibrary}
+        componentLibrary={openuiLibrary}
         agentName="Grok Build + OpenUI"
         theme={{ mode }}
         starterVariant="short"
         starters={[
           {
-            displayText: "Map this repository",
-            prompt:
-              "Inspect this repository and build a concise architecture map with the key packages and how they connect.",
+            displayText: "Launch checklist",
+            prompt: "Create a launch checklist for a new AI feature.",
           },
           {
-            displayText: "Review current changes",
-            prompt:
-              "Review the current git changes and show the important findings, risks, and recommended next actions.",
+            displayText: "Onboarding flow",
+            prompt: "Design a customer onboarding flow for a B2B SaaS product.",
           },
           {
-            displayText: "Plan a feature",
-            prompt:
-              "Create an implementation plan for adding a health-check endpoint, including files, dependencies, tests, and risks.",
-          },
-          {
-            displayText: "Summarize test health",
-            prompt:
-              "Inspect the available test commands and present a test-health dashboard with the highest-value checks to run.",
+            displayText: "Support case",
+            prompt: "Summarize a support case as an action dashboard.",
           },
         ]}
       />

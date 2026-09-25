@@ -20,10 +20,13 @@
   margin-inline: auto;
 }
 
-.title {
+.titleGroup {
   flex: 0 0 360px;
   width: 360px;
   max-width: 360px;
+}
+
+.title {
   margin: 0;
   padding-top: 8px;
   color: var(--openui-text-neutral-primary);
@@ -33,6 +36,49 @@
   line-height: var(--home-title-leading);
   letter-spacing: var(--home-title-tracking);
   text-align: left;
+}
+
+.description {
+  margin: 24px 0 0;
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--home-font-text);
+  font-size: var(--home-lead-size);
+  font-weight: var(--home-lead-weight);
+  line-height: var(--home-lead-leading);
+  text-wrap: pretty;
+}
+
+.tableColumn {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.inner[data-layout="stacked"] {
+  flex-direction: column;
+  gap: 48px;
+}
+
+.inner[data-layout="stacked"] .titleGroup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 72px;
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: none;
+}
+
+.inner[data-layout="stacked"] .title {
+  padding-top: 0;
+  text-wrap: balance;
+}
+
+.inner[data-layout="stacked"] .description {
+  margin: 0;
+}
+
+.inner[data-layout="stacked"] .tableColumn {
+  width: 100%;
 }
 
 .mobileTitleBreak {
@@ -67,9 +113,10 @@
     gap: 48px;
   }
 
-  .title {
+  .titleGroup {
     flex: 0 0 auto;
     width: auto;
+    max-width: none;
   }
 }
 
@@ -85,6 +132,11 @@
 
   .inner {
     width: calc(100% - 32px);
+  }
+
+  .inner[data-layout="stacked"] .titleGroup {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
   }
 
   .title {

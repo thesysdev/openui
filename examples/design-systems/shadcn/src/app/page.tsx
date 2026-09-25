@@ -1,12 +1,20 @@
 "use client";
 
-import { useTheme } from "@/hooks/use-system-theme";
 import { shadcnChatLibrary } from "@/lib/shadcn-genui";
-import { AgentInterface, fetchLLM, openAIAdapter, openAIMessageFormat } from "@openuidev/react-ui";
-import { useMemo } from "react";
+import {
+  AgentInterface,
+  fetchLLM,
+  openAIAdapter,
+  openAIMessageFormat,
+  useSystemThemeMode,
+} from "@openuidev/react-ui";
+import { useEffect, useMemo } from "react";
 
 export default function Page() {
-  const mode = useTheme();
+  const mode = useSystemThemeMode();
+  useEffect(() => {
+    document.body.setAttribute("data-theme", mode);
+  }, [mode]);
 
   const llm = useMemo(
     () =>

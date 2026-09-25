@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/react-headless",
-  "version": "0.9.13",
+  "version": "0.16.3",
   "description": "Headless React primitives for AI chat — state management, streaming adapters for OpenAI, Vercel AI SDK, and AG-UI, message format converters, and thread management for OpenUI generative UI apps",
   "license": "MIT",
   "type": "module",
@@ -49,10 +49,14 @@
     }
   },
   "devDependencies": {
+    "@types/node": "catalog:",
     "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "ai": "^6.0.236",
     "eve": "^0.11.7",
+    "jsdom": "catalog:",
     "openai": "^6.22.0",
+    "react-dom": "catalog:",
     "vitest": "^4.1.0"
   },
   "keywords": [

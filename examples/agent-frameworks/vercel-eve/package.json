@@ -8,24 +8,32 @@
     "#evals/*": "./evals/*"
   },
   "scripts": {
+    "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
+    "generate:apiKey": "openui generate-api-key",
+    "predev": "npm run generate",
     "dev": "next dev",
+    "prebuild": "npm run generate",
     "build": "next build",
     "start": "next start",
-    "eve:dev": "eve dev",
-    "eve:build": "eve build",
+    "eve:dev": "npm run generate && eve dev",
+    "eve:build": "npm run generate && eve build",
     "eve:start": "eve start",
     "lint": "eslint",
+    "pretypecheck": "npm run generate",
     "typecheck": "tsc --noEmit",
+    "preverify": "npm run generate",
     "verify": "tsc --noEmit && next build"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.41",
-    "@openuidev/react-headless": "0.9.12",
-    "@openuidev/react-lang": "0.2.15",
-    "@openuidev/react-ui": "0.13.9",
+    "@openuidev/lang-core": "0.3.0",
+    "@openuidev/react-headless": "0.16.2",
+    "@openuidev/react-lang": "0.3.0",
+    "@openuidev/react-ui": "0.16.2",
     "@vercel/connect": "0.2.2",
     "ai": "7.0.0-beta.178",
     "eve": "^0.11.7",
+    "lru-cache": "^11.2.6",
     "next": "16.2.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -33,6 +41,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@openuidev/cli": "0.4.0",
     "@types/node": "24.x",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -48,9 +57,20 @@
     "ai": "7.0.0-beta.178"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "@openuidev/lang-core",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ],
     "overrides": {
       "postcss@<8.5.10": ">=8.5.10"
     }
+  },
+  "allowScripts": {
+    "@openuidev/lang-core": true,
+    "sharp": true,
+    "unrs-resolver": true
   },
   "engines": {
     "node": "24.x"

@@ -13,3 +13,6 @@ dist
 
 # Local-only live integration smoke test (needs a running agent + API key)
 scripts/verify-thread-context.mjs
+
+# generated OpenUI prompt and schema
+/src/generated/

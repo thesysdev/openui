@@ -1,0 +1,118 @@
+---
+title: Generative UI Quickstart
+description: Generate validated OpenUI Lang through OpenUI Gateway.
+---
+
+OpenUI Gateway natively supports Generative UI with OpenUI Lang. It validates model output against your component library, corrects eligible errors as responses stream, and automatically retries requests with other providers when one is unavailable.
+
+<img
+  src="/images/openui-gateway-architecture.svg"
+  alt="A user request travels from an application through the highlighted OpenUI Gateway to a model provider. The corrected OpenUI Lang stream returns to a renderer."
+  className="not-prose my-8 h-auto w-full overflow-hidden rounded-2xl"
+/>
+
+## 1. Create a component library
+
+Create a library containing the components the model can use:
+
+```tsx title="src/lib/openui.tsx"
+import { createLibrary } from "@openuidev/react-lang";
+import { Chart, Metric, Stack } from "./components";
+
+export const library = createLibrary({
+  root: "Stack",
+  components: [Stack, Metric, Chart],
+});
+```
+
+Learn more about defining components in the [OpenUI Lang documentation](/docs/openui-lang/defining-components).
+
+## 2. Export the library specification
+
+Use the OpenUI CLI to serialize the component library for your server:
+
+```bash
+npx @openuidev/cli@latest generate src/lib/openui.tsx --spec --out src/lib/openui.spec.json
+```
+
+The generated specification describes the available components and their properties. Regenerate it whenever the component library changes.
+
+## 3. Create an inference API key
+
+Create an inference key in the [Thesys Console](https://console.thesys.dev/keys), then add it to your server environment:
+
+```bash
+THESYS_API_KEY=sk-th-your-key-here
+```
+
+Keep this key on the server and never expose it to browser code.
+
+## 4. Choose a generation endpoint
+
+Both endpoints accept a system prompt generated from the exported library specification.
+
+```ts title="server.ts" tab="Chat Completions" tab-group="gateway-endpoint"
+import OpenAI from "openai";
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import library from "./openui.spec.json";
+
+const gateway = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+
+const completion = await gateway.chat.completions.create({
+  model: "openai/gpt-5",
+  messages: [
+    { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
+    { role: "user", content: "Compare quarterly revenue by region." },
+  ],
+  stream: true,
+});
+```
+
+```ts title="server.ts" tab="Responses API" tab-group="gateway-endpoint"
+import OpenAI from "openai";
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import library from "./openui.spec.json";
+
+const gateway = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+
+const response = await gateway.responses.create({
+  model: "openai/gpt-5",
+  input: "Compare quarterly revenue by region.",
+  instructions: generateSystemPrompt({ cloud: true, library }),
+  stream: true,
+});
+```
+
+Gateway validates the generated OpenUI Lang against the same library specification and corrects invalid output while it streams.
+
+## 5. Render the UI
+
+Pass the accumulated OpenUI Lang text to `<Renderer />`. Set `isStreaming` until the server stream closes.
+
+```tsx title="src/components/generated-interface.tsx"
+"use client";
+
+import { Renderer } from "@openuidev/react-lang";
+import { library } from "@/lib/openui";
+
+export function GeneratedInterface({ response, isStreaming }) {
+  return (
+    <Renderer
+      response={response}
+      library={library}
+      isStreaming={isStreaming}
+      onAction={(action) => console.log(action)}
+    />
+  );
+}
+```
+
+The renderer displays the interface progressively as the Gateway response arrives.
+
+Continue with the [Chat Completions](/docs/gateway/api/chat-completions) or [Responses API](/docs/gateway/api/responses) documentation for endpoint-specific options.

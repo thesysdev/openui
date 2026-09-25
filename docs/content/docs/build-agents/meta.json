@@ -1,0 +1,12 @@
+{
+  "title": "Build Agents",
+  "root": true,
+  "pages": [
+    "index",
+    "backend-setup",
+    "---Chat UIs---",
+    "assistant-ui",
+    "copilotkit",
+    "custom-chat-ui"
+  ]
+}

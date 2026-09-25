@@ -1,0 +1,35 @@
+{
+  "label": "Vercel Eve",
+  "description": "Eve agent rendered through Agent Interface",
+  "packageJson": {
+    "dependencies": {
+      "@ai-sdk/openai": "^3.0.88",
+      "@vercel/connect": "0.2.2",
+      "ai": "^7.0.82",
+      "eve": "^0.52.2",
+      "lru-cache": "^11.2.6"
+    },
+    "devDependencies": {
+      "concurrently": "^9.2.4"
+    },
+    "scripts": {
+      "build": "eve build && next build",
+      "start": "concurrently --kill-others --names eve,next \"eve start --host 127.0.0.1 --port 4274\" \"next start\"",
+      "eve:dev": "eve dev",
+      "eve:build": "eve build",
+      "eve:start": "eve start"
+    },
+    "removeDependencies": [
+      "openai"
+    ]
+  },
+  "files": {
+    "remove": [
+      "src/app/api/chat/route.ts",
+      "src/lib/tool-loop.ts",
+      "src/lib/models.tsx",
+      "src/hooks/use-persisted-model.ts"
+    ]
+  },
+  "gettingStarted": "The generated Vercel Eve agent uses OpenUI Cloud as its model provider. `{{packageManager}} run dev` starts Next.js with Eve embedded via withEve(). Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise the included Eve tool."
+}

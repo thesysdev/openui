@@ -1,9 +1,10 @@
 import { createSupabaseServer } from "@/lib/supabase/server";
+import { cloudInstructions } from "@/lib/cloud-prompt";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
 
-const MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-5.5";
+const MODEL = "google/gemini-3.6-flash-free";
 
 /**
  * POST /api/chat
@@ -23,14 +24,19 @@ export async function POST(req: NextRequest) {
   // (cookies) is still available when we persist messages afterwards.
   const supabase = await createSupabaseServer();
 
+  // Chat Completions → POST /v1/embed/chat/completions
+  // Matches openAIAdapter / openAIMessageFormat and the Postgres message rows.
   const client = new OpenAI({
-    apiKey: process.env.OPENROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: process.env.THESYS_API_KEY,
+    baseURL: "https://api.thesys.dev/v1/embed",
   });
 
   const stream = await client.chat.completions.create({
     model: MODEL,
-    messages,
+    messages: [
+      { role: "system", content: cloudInstructions() },
+      ...messages.filter((message) => message.role !== "system"),
+    ],
     stream: true,
   });
 

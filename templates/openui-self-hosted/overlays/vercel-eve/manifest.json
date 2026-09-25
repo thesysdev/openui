@@ -1,0 +1,31 @@
+{
+  "label": "Vercel Eve",
+  "description": "Eve agent rendered through Agent Interface",
+  "packageJson": {
+    "dependencies": {
+      "@ai-sdk/openai": "^3.0.88",
+      "@openuidev/react-headless": "^0.16.2",
+      "@openuidev/react-lang": "^0.3.0",
+      "@vercel/connect": "0.2.2",
+      "ai": "^7.0.82",
+      "eve": "^0.52.2",
+      "lru-cache": "^11.2.6",
+      "zod": "^4.4.3",
+      "zustand": "^4.5.5"
+    },
+    "scripts": {
+      "eve:dev": "eve dev",
+      "eve:build": "eve build",
+      "eve:start": "eve start"
+    },
+    "removeDependencies": [
+      "openai"
+    ]
+  },
+  "files": {
+    "remove": [
+      "src/app/api/chat/route.ts"
+    ]
+  },
+  "gettingStarted": "The generated app uses a Vercel Eve agent. `{{packageManager}} run dev` starts Next.js with Eve embedded via withEve(). Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise its native tool loop."
+}

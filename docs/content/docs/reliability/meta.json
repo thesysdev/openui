@@ -1,0 +1,10 @@
+{
+  "title": "Reliability Monitoring",
+  "root": true,
+  "pages": [
+    "[Introduction](/docs/reliability)",
+    "installation",
+    "dashboard",
+    "optimizing"
+  ]
+}

@@ -1,10 +1,8 @@
-import { readFileSync } from "fs";
+import { cloudInstructions } from "@/lib/cloud-prompt";
+import { DEFAULT_MODEL, requiredEnv } from "@/lib/env";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
-import { join } from "path";
-
-const systemPrompt = readFileSync(join(process.cwd(), "src/generated/system-prompt.txt"), "utf-8");
 
 const SSE_HEADERS = {
   "Content-Type": "text/event-stream",
@@ -15,14 +13,15 @@ const SSE_HEADERS = {
 export async function POST(req: NextRequest) {
   const { messages } = (await req.json()) as { messages: ChatCompletionMessageParam[] };
 
+  // Chat Completions → POST /v1/embed/chat/completions
   const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    baseURL: process.env.OPENAI_BASE_URL || undefined,
+    apiKey: requiredEnv("THESYS_API_KEY"),
+    baseURL: "https://api.thesys.dev/v1/embed",
   });
 
   const stream = await client.chat.completions.create({
-    model: process.env.OPENAI_MODEL || "gpt-5.5",
-    messages: [{ role: "system", content: systemPrompt }, ...messages],
+    model: DEFAULT_MODEL,
+    messages: [{ role: "system", content: cloudInstructions() }, ...messages],
     stream: true,
   });
 

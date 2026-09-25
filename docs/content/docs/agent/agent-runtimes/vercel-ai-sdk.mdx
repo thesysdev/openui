@@ -1,0 +1,136 @@
+---
+title: Vercel AI SDK
+description: Connect Agent Interface to a Vercel AI SDK streamText backend.
+---
+
+This example uses the [Vercel AI SDK](https://ai-sdk.dev/) (`streamText`, `tool()`, `toUIMessageStreamResponse()`) as the agent backend and OpenUI's `<AgentInterface />` as the chat UI. The browser decodes the AI SDK UIMessage stream with `vercelAIAdapter()`.
+
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/vercel-ai-sdk)
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl h-[500px] flex p-2">
+  <video
+    src="/videos/vercel-ai-chat.mp4"
+    noControls
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
+## How it connects
+
+The API route calls `streamText` through OpenUI Gateway with OpenUI Lang instructions and tools defined with `tool()`. When the model calls a tool, the AI SDK executes it server-side and continues — up to 5 steps. The response is a UIMessage stream.
+
+The page passes that stream to `<AgentInterface />`:
+
+```tsx
+import {
+  AgentInterface,
+  fetchLLM,
+  vercelAIAdapter,
+  vercelAIMessageFormat,
+} from "@openuidev/react-ui";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+
+const llm = fetchLLM({
+  url: "/api/chat",
+  streamAdapter: vercelAIAdapter(),
+  messageFormat: vercelAIMessageFormat,
+});
+
+<AgentInterface llm={llm} componentLibrary={openuiLibrary} agentName="OpenUI + Vercel AI SDK" />;
+```
+
+Storage is omitted, so AgentInterface uses its built-in in-memory default (wiped on reload).
+
+## Backend
+
+```ts
+import { cloudInstructions } from "@/lib/cloud-prompt";
+import { tools } from "@/lib/tools";
+import { createOpenAI } from "@ai-sdk/openai";
+import { convertToModelMessages, stepCountIs, streamText } from "ai";
+
+const gateway = createOpenAI({
+  baseURL: "https://api.thesys.dev/v1/embed",
+  apiKey: process.env.THESYS_API_KEY,
+});
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+  const result = streamText({
+    model: gateway.chat("google/gemini-3.6-flash-free"),
+    system: cloudInstructions(),
+    messages: await convertToModelMessages(messages),
+    tools,
+    stopWhen: stepCountIs(5),
+  });
+  return result.toUIMessageStreamResponse();
+}
+```
+
+Tools live in `src/lib/tools.ts` (`get_weather`, `get_stock_price`, `search_web`).
+
+## Project layout
+
+```
+examples/agent-frameworks/vercel-ai-sdk/
+|- src/app/page.tsx           # AgentInterface with the Vercel AI stream adapter
+|- src/app/api/chat/route.ts  # streamText() through OpenUI Gateway
+|- src/lib/cloud-prompt.ts    # Generated OpenUI Lang instructions
+|- src/lib/tools.ts           # Vercel AI SDK tool() definitions
+|- src/library.ts             # Component library used to generate the prompt spec
+```
+
+## Run the example
+
+Run these commands from `examples/agent-frameworks/vercel-ai-sdk`.
+
+1. Install dependencies:
+
+```bash tab="pnpm" tab-group="pkg"
+cd examples/agent-frameworks/vercel-ai-sdk
+pnpm install
+```
+
+```bash tab="bun" tab-group="pkg"
+cd examples/agent-frameworks/vercel-ai-sdk
+bun install
+```
+
+```bash tab="yarn" tab-group="pkg"
+cd examples/agent-frameworks/vercel-ai-sdk
+yarn install
+```
+
+```bash tab="npm" tab-group="pkg"
+cd examples/agent-frameworks/vercel-ai-sdk
+npm install
+```
+
+2. Create a `.env.local` file with your Gateway key:
+
+```bash
+THESYS_API_KEY=sk-th-...
+```
+
+3. Start the dev server:
+
+```bash tab="pnpm" tab-group="pkg"
+pnpm dev
+```
+
+```bash tab="bun" tab-group="pkg"
+bun dev
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn dev
+```
+
+```bash tab="npm" tab-group="pkg"
+npm run dev
+```

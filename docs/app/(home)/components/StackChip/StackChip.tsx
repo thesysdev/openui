@@ -37,11 +37,7 @@ interface MoreStackChip extends StackChipBase {
 }
 
 export type StackChipItem =
-  | ImageStackChip
-  | VectorStackChip
-  | MascotStackChip
-  | TextStackChip
-  | MoreStackChip;
+  ImageStackChip | VectorStackChip | MascotStackChip | TextStackChip | MoreStackChip;
 
 function ChipIcon({ item }: { item: StackChipItem }) {
   const iconId = useId();
@@ -100,10 +96,19 @@ function ChipIcon({ item }: { item: StackChipItem }) {
   }
 }
 
-export function StackChip({ item, dense = false }: { item: StackChipItem; dense?: boolean }) {
+export function StackChip({
+  item,
+  dense = false,
+  iconOnly = false,
+}: {
+  item: StackChipItem;
+  dense?: boolean;
+  iconOnly?: boolean;
+}) {
   const chipClassName = [
     styles.chip,
     dense ? styles.chipDense : "",
+    iconOnly ? styles.chipIconOnly : "",
     item.isBlurred ? styles.chipBlurred : "",
   ]
     .filter(Boolean)

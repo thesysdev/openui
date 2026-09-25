@@ -1,69 +1,10 @@
 import { MastraAgent } from "@ag-ui/mastra";
-import { Agent } from "@mastra/core/agent";
-import { createTool } from "@mastra/core/tools";
 import type { Message } from "@ag-ui/core";
-import { readFileSync } from "fs";
 import { NextRequest } from "next/server";
-import { join } from "path";
-import { z } from "zod";
-
-const systemPromptFile = readFileSync(
-  join(process.cwd(), "src/generated/system-prompt.txt"),
-  "utf-8",
-);
-
-// ========== Mock tools ==========
-const getWeather = createTool({
-  id: "get_weather",
-  description: "Get current weather for a city.",
-  inputSchema: z.object({ location: z.string().describe("City name") }),
-  execute: async ({ location }) => {
-    const knownTemps: Record<string, number> = {
-      tokyo: 22,
-      "san francisco": 18,
-      london: 14,
-      "new york": 25,
-      paris: 19,
-      sydney: 27,
-      mumbai: 33,
-      berlin: 16,
-    };
-    const temp = knownTemps[location.toLowerCase()] ?? Math.floor(Math.random() * 30 + 5);
-    return { location, temperature_celsius: temp, condition: "Clear" };
-  },
-});
-
-const getStockPrice = createTool({
-  id: "get_stock_price",
-  description: "Get current stock price for a ticker symbol.",
-  inputSchema: z.object({ symbol: z.string().describe("Ticker symbol, e.g. AAPL") }),
-  execute: async ({ symbol }) => {
-    const prices: Record<string, number> = {
-      AAPL: 189.84,
-      GOOGL: 141.8,
-      TSLA: 248.42,
-      MSFT: 378.91,
-      NVDA: 875.28,
-    };
-    const s = symbol.toUpperCase();
-    const price = prices[s] ?? Math.floor(Math.random() * 500 + 50);
-    return { symbol: s, price };
-  },
-});
-// ================================
+import { openuiAgent } from "@/mastra";
 
 const agent = new MastraAgent({
-  agent: new Agent({
-    id: "openui-agent",
-    name: "OpenUI Agent",
-    instructions: `You are a helpful assistant. Use tools when relevant and help the user with their requests. Always format your responses cleanly.\n\n${systemPromptFile}`,
-    model: {
-      id: (process.env.OPENAI_MODEL as `${string}/${string}`) || "openai/gpt-5.5",
-      apiKey: process.env.OPENAI_API_KEY,
-      url: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
-    },
-    tools: { getWeather, getStockPrice },
-  }),
+  agent: openuiAgent,
   resourceId: "chat-user",
 });
 

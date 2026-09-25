@@ -1,9 +1,9 @@
 ---
 title: "@openuidev/cli"
-description: API reference for the OpenUI CLI to scaffold apps and generate system prompts or library specs.
+description: API reference for the OpenUI CLI to scaffold apps, mint Gateway API keys, and generate system prompts or library specs, and deploy projects.
 ---
 
-A command-line tool for scaffolding OpenUI chat apps and generating system prompts, JSON schemas, or serialized library specs from library definitions.
+A command-line tool for scaffolding OpenUI chat apps, minting OpenUI Gateway API key, and generating system prompts, JSON schemas, or serialized library specs from library definitions, and deploying those apps.
 
 ## Installation
 
@@ -43,7 +43,7 @@ yarn global add @openuidev/cli
 npm install -g @openuidev/cli
 ```
 
-## `openui create`
+## `create`
 
 Scaffolds a new Next.js app pre-configured with OpenUI Chat.
 
@@ -53,22 +53,25 @@ openui create [options]
 
 **Options**
 
-| Flag                              | Description                                                      |
-| --------------------------------- | ---------------------------------------------------------------- |
-| `-n, --name <string>`             | Project name (interactive default: `openui-agent`)               |
-| `-t, --template <template>`       | AI backend: `openui-cloud` (recommended) or `openui-self-hosted` |
-| `--backend-framework <framework>` | Backend integration: `default`, `langgraph`, or `vercel-ai-sdk`  |
-| `--api-key <key>`                 | OpenUI Cloud API key; skips sign-in for the Cloud setup          |
-| `--auth <method>`                 | Cloud auth method: `oauth` or `skip`; `manual` is deprecated     |
-| `--skill`                         | Install the OpenUI agent skill for AI coding assistants          |
-| `--no-skill`                      | Skip installing the OpenUI agent skill                           |
-| `--no-install`                    | Scaffold without running dependency installation                 |
-| `-i, --immediate`                 | Start the development server after installing dependencies       |
-| `--no-immediate`                  | Install dependencies without starting the development server     |
-| `--no-interactive`                | Fail instead of prompting for missing input                      |
-| `--agent-name <name>`             | Declare the invoking coding-agent slug (default: `unknown`)      |
+| Flag                              | Description                                                                   |
+| --------------------------------- | ----------------------------------------------------------------------------- |
+| `-n, --name <string>`             | Project name (interactive default: `openui-agent`)                            |
+| `-t, --template <template>`       | AI backend: `openui-cloud` (Gateway; recommended) or `openui-self-hosted`     |
+| `--backend-framework <framework>` | Backend integration: `default`, `langgraph`, `vercel-ai-sdk`, or `vercel-eve` |
+| `-e, --example <example>`         | Scaffold any example from the OpenUI Repository    |
+| `--api-key <key>`                 | OpenUI Gateway API key; skips sign-in for the Gateway setup                   |
+| `--auth <method>`                 | Gateway auth method: `oauth` or `skip`; `manual` is deprecated                |
+| `--skill`                         | Install the OpenUI agent skill for AI coding assistants                       |
+| `--no-skill`                      | Skip installing the OpenUI agent skill                                        |
+| `--no-install`                    | Scaffold without running dependency installation                              |
+| `-i, --immediate`                 | Start the development server after installing dependencies                    |
+| `--no-immediate`                  | Install dependencies without starting the development server                  |
+| `--no-interactive`                | Fail instead of prompting for missing input                                   |
+| `--agent-name <name>`             | Declare the invoking coding-agent slug (default: `unknown`)                   |
 
-When run interactively (default), the CLI prompts for any missing options, including the backend framework, then asks whether to start the development server after installing dependencies with the detected package manager. The start prompt defaults to yes; answering no preserves the existing install-and-exit behavior and prints the `cd` and dev commands. For most prototypes and evaluations, start with **OpenUI Cloud, the recommended default**: hosted models, managed conversation history and streaming, built-in tools, and ready-to-use reports and presentations without operating the model, storage, or artifact infrastructure. Choose **self-hosted** when owning the OpenAI-compatible provider, AI route, and persistence is a requirement.
+When run interactively (default), the CLI prompts for any missing options, including the backend framework or an example, then asks whether to start the development server after installing dependencies with the detected package manager. The start prompt defaults to yes; answering no preserves the existing install-and-exit behavior and prints the `cd` and dev commands. For most prototypes and evaluations, start with **OpenUI Gateway, the recommended default**: hosted models, managed conversation history and streaming, built-in tools, and ready-to-use reports and presentations without operating the model, storage, or artifact infrastructure. Choose **self-hosted** when owning the OpenAI-compatible provider, AI route, and persistence is a requirement.
+
+`openui-cloud` remains the CLI template identifier for the Gateway-backed setup.
 
 In non-interactive mode, dependencies are installed without starting the long-running development server. Pass `--immediate` to install, start, and open the app, or `--no-install` to scaffold only.
 
@@ -76,33 +79,38 @@ In non-interactive mode, dependencies are installed without starting the long-ru
 
 **What it does**
 
-1. Resolves the project name, AI setup, and backend framework
-2. Copies the selected Next.js template into `<name>/`
+1. Resolves the project name, picks a backend-framework overlay or an OpenUI example
+2. Copies the selected Next.js template or example into `<name>/`
 3. Rewrites `workspace:*` dependency versions to `latest`
-4. Writes the relevant `.env` values, including Thesys sign-in/API-key setup for OpenUI Cloud
-5. Optionally installs the [OpenUI agent skill](/docs/openui-lang/agent-skill) for AI coding assistants (e.g. Claude, Cursor, Copilot)
+4. Writes the relevant `.env` values, including Thesys sign-in/API-key setup for OpenUI Gateway
+5. Optionally installs the [OpenUI agent skill](/docs/mcp#install-via-the-skills-cli-recommended) for AI coding assistants (e.g. Claude, Cursor, Copilot)
 6. Auto-detects your package manager (npm, pnpm, yarn, bun)
 7. Installs dependencies unless skipped, then optionally starts the development server in the generated directory
 
 **Backend frameworks**
 
-| Value           | OpenUI Cloud route                           | Self-hosted route                        |
+| Value           | OpenUI Gateway route                         | Self-hosted route                        |
 | --------------- | -------------------------------------------- | ---------------------------------------- |
 | `default`       | Direct OpenAI SDK Responses proxy            | Direct OpenAI SDK Chat Completions proxy |
-| `langgraph`     | LangGraph Agent Server + Cloud provider      | LangGraph Agent Server + your provider   |
-| `vercel-ai-sdk` | Vercel AI SDK Next.js agent + Cloud provider | Vercel AI SDK `streamText()` route       |
+| `langgraph`     | LangGraph Agent Server + Gateway provider    | LangGraph Agent Server + your provider   |
+| `vercel-ai-sdk` | Vercel AI SDK Next.js agent + Gateway        | Vercel AI SDK `streamText()` route       |
+| `vercel-eve`    | Vercel Eve agent + Gateway provider          | Vercel Eve agent + your provider         |
 
-The CLI applies the selected framework's final route/page files, dependencies, and deployment configuration over the base template. Both Vercel AI SDK variants are standard Next.js deployments with `streamText()`, `toUIMessageStreamResponse()`, and `vercelAIAdapter()`. Both LangGraph variants separate the Agent Server described by `langgraph.json` from the Next.js frontend/proxy. The proxy uses `@openuidev/langchain`, and the browser consumes its AG-UI stream with `agUIAdapter()`.
+The CLI applies the selected framework's final route/page files, dependencies, and deployment configuration over the base template. Both Vercel AI SDK variants are standard Next.js deployments with `streamText()`, `toUIMessageStreamResponse()`, and `vercelAIAdapter()`. Both LangGraph variants separate the Agent Server described by `langgraph.json` from the Next.js frontend/proxy. The proxy uses `@openuidev/langchain`, and the browser consumes its AG-UI stream with `agUIAdapter()`. Both Eve variants wrap Next.js with `withEve()` and talk to Eve's native `/eve/v1/session*` protocol from the browser; a small client adapter maps Eve events to AG-UI for `agUIAdapter()`.
 
-For both Cloud variants, the framework owns orchestration and application tool execution. OpenUI Cloud is attached as the Responses model provider and conversation store. Reports, presentations, web search, image search, and configured MCP tools remain provider-executed Cloud tools. For either LangGraph template, `pnpm dev` starts the local Agent Server and Next.js together. Deploy the Next.js frontend to Vercel and point `LANGGRAPH_API_URL` at wherever the Agent Server runs.
+For Gateway-backed LangGraph and Vercel AI SDK variants, the framework owns orchestration and application tool execution. OpenUI Gateway is attached as the Responses/Chat Completions model provider and conversation store. Reports, presentations, web search, image search, and configured MCP tools remain Gateway-hosted tools. The Eve Gateway overlay uses Gateway as the Chat Completions provider and conversation store, without those hosted tools. For either LangGraph template, `pnpm dev` starts the local Agent Server and Next.js together. Deploy the Next.js frontend to Vercel and point `LANGGRAPH_API_URL` at wherever the Agent Server runs. Eve embeds in the Next.js process, so `pnpm dev` is enough for both Eve variants.
 
-All four framework routes include a `get_weather` example backed by Open-Meteo. Ask “What’s the weather in Berlin?” to verify the selected framework’s native multi-step tool loop.
+Every framework overlay includes a `get_weather` example backed by Open-Meteo. Ask “What’s the weather in Berlin?” to verify the selected framework’s native multi-step tool loop.
+
+**OpenUI examples**
+
+Interactive `openui create` lists starter templates, and option to create an app from listed [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). `--example <name>` skips both menus. `--example` cannot be combined with `--template` or `--backend-framework`. Any other folder name in the catalog works the same way.
 
 **Conversation storage**
 
-Every OpenUI Cloud variant uses OpenUI Cloud as its only durable conversation and artifact store. The browser connects directly through `useOpenuiCloudStorage()` with a short-lived frontend token. The `threadId` sent to `/api/chat` is the Cloud conversation id, and each backend appends model turns to it with `conversation: threadId` and `store: true`. The Vercel AI SDK route does not create a second store. The Cloud LangGraph relay creates and deletes a temporary Agent Server thread for each run; configure a separate LangGraph checkpointer only when graph state, interrupts, or resumable runs must persist independently.
+Every Gateway-backed variant uses Gateway as its durable conversation and artifact store. The browser connects directly through `useOpenuiCloudStorage()` with a short-lived frontend token. For default, LangGraph, and Vercel AI SDK routes, the `threadId` sent to `/api/chat` is the Gateway conversation ID, and each backend appends model turns to it with `conversation: threadId` and `store: true`. The Vercel AI SDK route does not create a second store. The Eve Gateway overlay keeps that Gateway thread store and maps each Gateway `threadId` to an Eve session cursor in the browser; it does not use `/api/chat`. The Gateway-backed LangGraph relay creates and deletes a temporary Agent Server thread for each run; configure a separate LangGraph checkpointer only when graph state, interrupts, or resumable runs must persist independently.
 
-The self-hosted variants do not configure durable storage. `AgentInterface` keeps messages in memory for the current page session and sends that history to `/api/chat`; refreshing the page loses it. The self-hosted LangGraph relay also creates and deletes a temporary Agent Server thread for each run. Pass a storage implementation to `AgentInterface` and back it with your own database when persistence is required; add a LangGraph checkpointer only for graph-specific durable state.
+The self-hosted variants do not configure durable storage. `AgentInterface` keeps messages in memory for the current page session; refreshing the page loses it. Default, Vercel AI SDK, and LangGraph send that history to `/api/chat`. The self-hosted LangGraph relay also creates and deletes a temporary Agent Server thread for each run. Eve maps follow-ups onto its session protocol for the page session only. Pass a storage implementation to `AgentInterface` and back it with your own database when persistence is required; add a LangGraph checkpointer only for graph-specific durable state.
 
 **Agent skill**
 
@@ -124,8 +132,15 @@ pnpx @openuidev/cli@latest create --name my-app --template openui-cloud --immedi
 # Select a backend framework explicitly
 pnpx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework langgraph
 pnpx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework vercel-ai-sdk
+pnpx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework vercel-eve
 pnpx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework langgraph
 pnpx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-ai-sdk
+pnpx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-eve
+
+# Select an example
+pnpx @openuidev/cli@latest create --name my-app --example shadcn
+pnpx @openuidev/cli@latest create --name my-app --example mastra
+pnpx @openuidev/cli@latest create --name my-app --example vue
 
 # Non-interactive
 pnpx @openuidev/cli@latest create --no-interactive --name my-app --template openui-cloud --auth skip
@@ -146,8 +161,15 @@ bunx @openuidev/cli@latest create --name my-app --template openui-self-hosted
 # Select a backend framework explicitly
 bunx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework langgraph
 bunx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework vercel-ai-sdk
+bunx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework vercel-eve
 bunx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework langgraph
 bunx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-ai-sdk
+bunx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-eve
+
+# Select an example
+bunx @openuidev/cli@latest create --name my-app --example shadcn
+bunx @openuidev/cli@latest create --name my-app --example mastra
+bunx @openuidev/cli@latest create --name my-app --example vue
 
 # Non-interactive
 bunx @openuidev/cli@latest create --no-interactive --name my-app --template openui-cloud --auth skip
@@ -168,8 +190,15 @@ yarn dlx @openuidev/cli@latest create --name my-app --template openui-self-hoste
 # Select a backend framework explicitly
 yarn dlx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework langgraph
 yarn dlx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework vercel-ai-sdk
+yarn dlx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework vercel-eve
 yarn dlx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework langgraph
 yarn dlx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-ai-sdk
+yarn dlx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-eve
+
+# Select an example
+yarn dlx @openuidev/cli@latest create --name my-app --example shadcn
+yarn dlx @openuidev/cli@latest create --name my-app --example mastra
+yarn dlx @openuidev/cli@latest create --name my-app --example vue
 
 # Non-interactive
 yarn dlx @openuidev/cli@latest create --no-interactive --name my-app --template openui-cloud --auth skip
@@ -190,8 +219,15 @@ npx @openuidev/cli@latest create --name my-app --template openui-self-hosted
 # Select a backend framework explicitly
 npx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework langgraph
 npx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework vercel-ai-sdk
+npx @openuidev/cli@latest create --name my-app --template openui-cloud --backend-framework vercel-eve
 npx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework langgraph
 npx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-ai-sdk
+npx @openuidev/cli@latest create --name my-app --template openui-self-hosted --backend-framework vercel-eve
+
+# Select an example
+npx @openuidev/cli@latest create --name my-app --example shadcn
+npx @openuidev/cli@latest create --name my-app --example mastra
+npx @openuidev/cli@latest create --name my-app --example vue
 
 # Non-interactive
 npx @openuidev/cli@latest create --no-interactive --name my-app --template openui-cloud --auth skip
@@ -201,7 +237,120 @@ npx @openuidev/cli@latest create --name my-app --skill
 npx @openuidev/cli@latest create --name my-app --no-skill
 ```
 
-## `openui generate`
+## `deploy`
+
+Deploys an OpenUI project. The default supported platform is **Vercel**.
+
+```
+openui deploy [dir] [options]
+```
+
+**Arguments**
+
+| Argument | Description                                    |
+| -------- | ---------------------------------------------- |
+| `[dir]`  | Project directory (default: current directory) |
+
+**Options**
+
+| Flag                  | Description                                                                 |
+| --------------------- | --------------------------------------------------------------------------- |
+| `-y, --yes`           | Skip confirmation prompts (also saves missing env keys to the Vercel project) |
+| `--skip-env`          | Do not pass or save local `.env` / `.env.local` values                      |
+| `--no-interactive`    | Skip prompts (implies `--yes`)                                              |
+| `--verbose`           | Stream full Vercel build logs (hidden by default; failures print a log tail) |
+
+Extra flags after `deploy` are forwarded as-is to the target deployment platform, which validates them. `--skip-env` is OpenUI-specific so it does not collide with the target platform's env specific args.
+
+Unlinked projects are linked to the platform first. Allowlisted keys from `.env` / `.env.local` that are missing on different deployment environments can be saved to the project (auto-accepted with `--yes`). Build logs are quiet by default; use `--verbose` to stream them.
+
+```bash tab="pnpm" tab-group="pkg"
+# Preview deploy from the project directory
+pnpx @openuidev/cli@latest deploy
+
+# Production deploy
+pnpx @openuidev/cli@latest deploy --prod --yes
+
+# Deploy a specific directory without forwarding local env
+pnpx @openuidev/cli@latest deploy ./my-app --skip-env
+```
+
+```bash tab="bun" tab-group="pkg"
+# Preview deploy from the project directory
+bunx @openuidev/cli@latest deploy
+
+# Production deploy
+bunx @openuidev/cli@latest deploy --prod --yes
+
+# Deploy a specific directory without forwarding local env
+bunx @openuidev/cli@latest deploy ./my-app --skip-env
+```
+
+```bash tab="yarn" tab-group="pkg"
+# Preview deploy from the project directory
+yarn dlx @openuidev/cli@latest deploy
+
+# Production deploy
+yarn dlx @openuidev/cli@latest deploy --prod --yes
+
+# Deploy a specific directory without forwarding local env
+yarn dlx @openuidev/cli@latest deploy ./my-app --skip-env
+```
+
+```bash tab="npm" tab-group="pkg"
+# Preview deploy from the project directory
+npx @openuidev/cli@latest deploy
+
+# Production deploy
+npx @openuidev/cli@latest deploy --prod --yes
+
+# Deploy a specific directory without forwarding local env
+npx @openuidev/cli@latest deploy ./my-app --skip-env
+```
+
+## `generate-api-key`
+
+Signs in with Thesys in the browser, mints an OpenUI Gateway API key, and writes it to a project env file.
+
+```
+openui generate-api-key [options]
+```
+
+**Options**
+
+| Flag                  | Description                                                                                        |
+| --------------------- | -------------------------------------------------------------------------------------------------- |
+| `-f, --file <path>`   | Env file to write (default: `.env`)                                                                |
+| `-k, --key <name>`    | Environment variable name (default: `THESYS_API_KEY`)                                              |
+| `-n, --name <string>` | Name of the minted key in the Thesys console (default: `package.json` name, or the directory name) |
+
+**Examples**
+
+```bash tab="pnpm" tab-group="pkg"
+pnpx @openuidev/cli@latest generate-api-key
+pnpx @openuidev/cli@latest generate-api-key --file .env.local
+pnpx @openuidev/cli@latest generate-api-key --file .env.local --key THESYS_API_KEY
+```
+
+```bash tab="bun" tab-group="pkg"
+bunx @openuidev/cli@latest generate-api-key
+bunx @openuidev/cli@latest generate-api-key --file .env.local
+bunx @openuidev/cli@latest generate-api-key --file .env.local --key THESYS_API_KEY
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn dlx @openuidev/cli@latest generate-api-key
+yarn dlx @openuidev/cli@latest generate-api-key --file .env.local
+yarn dlx @openuidev/cli@latest generate-api-key --file .env.local --key THESYS_API_KEY
+```
+
+```bash tab="npm" tab-group="pkg"
+npx @openuidev/cli@latest generate-api-key
+npx @openuidev/cli@latest generate-api-key --file .env.local
+npx @openuidev/cli@latest generate-api-key --file .env.local --key THESYS_API_KEY
+```
+
+## `generate`
 
 Generates the system prompt **and** the serialized library spec from a file that exports a `createLibrary()` result. A single run emits both artifacts — they derive from the same `Library` instance, so they can never drift apart. Use the spec with `generateSystemPrompt` in backend routes; the prompt file supports static or legacy integrations.
 
@@ -377,10 +526,13 @@ and `detected_agent_name`, inferred best-effort from known product environment m
 value can be spoofed, inherited, missing, or ambiguous, so neither should be treated as an
 authentication or security signal. Every invocation gets an ephemeral, unpersisted `cli_run_id` so
 its events can be correlated. For `create`, analytics also include `package_manager`, the
-immediate-start selection, and best-effort dev-command start and result events. Failure events use
+immediate-start selection, and best-effort dev-command start and result events. For `deploy`, analytics include the target (currently `vercel`), production vs preview, whether
+local env was passed (true/false), CLI resolution source, and process status — not env
+values, project paths, or command output.
+Failure events use
 bounded `failure_stage`, `error_class`, and `error_code` values instead of raw error messages.
 Dependency failures distinguish peer, registry, network, install-script, workspace, and
-package-compatibility errors. Process failures include duration, exit code, and signal; Cloud-auth
+package-compatibility errors. Process failures include duration, exit code, and signal; Gateway-auth
 failures include a bounded auth substage and HTTP status when known; cancellations use separate
 events. Dev-command events contain status, duration, exit code, and signal—not project paths,
 command output, code, or environment values. Use `--no-telemetry` or `DO_NOT_TRACK=1` to disable

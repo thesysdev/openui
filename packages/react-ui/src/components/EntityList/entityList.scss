@@ -1,0 +1,84 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-entity-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.openui-entity-list__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: cssUtils.$space-m;
+  padding: cssUtils.$space-m 0;
+  border-bottom: 1px solid cssUtils.$border-default;
+  color: cssUtils.$text-neutral-primary;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.openui-entity-list__cell-left,
+.openui-entity-list__cell-right {
+  flex: 1;
+  min-width: 0;
+  max-width: 50%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.openui-entity-list__cell-right {
+  text-align: right;
+}
+
+.openui-entity-list--default {
+  .openui-entity-list__cell-left {
+    @include cssUtils.typography(body, default);
+  }
+
+  .openui-entity-list__cell-right {
+    @include cssUtils.typography(body, heavy);
+  }
+
+  .openui-entity-list__row--header {
+    .openui-entity-list__cell-left,
+    .openui-entity-list__cell-right {
+      color: cssUtils.$text-neutral-secondary;
+    }
+  }
+
+  .openui-entity-list__cell-right--number {
+    @include cssUtils.typography(number, heavy);
+  }
+
+  .openui-entity-list__cell-left--footer {
+    @include cssUtils.typography(body, default);
+  }
+
+  .openui-entity-list__cell-right--footer {
+    &.openui-entity-list__cell-right--text {
+      @include cssUtils.typography(body, large-heavy);
+    }
+
+    &.openui-entity-list__cell-right--number {
+      @include cssUtils.typography(number, large-heavy);
+    }
+  }
+}
+
+.openui-entity-list--small {
+  .openui-entity-list__cell-left {
+    @include cssUtils.typography(body, small);
+  }
+
+  .openui-entity-list__cell-right--text {
+    @include cssUtils.typography(body, small-heavy);
+  }
+
+  .openui-entity-list__cell-right--number {
+    @include cssUtils.typography(number, small-heavy);
+  }
+}

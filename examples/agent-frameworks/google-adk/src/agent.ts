@@ -1,4 +1,6 @@
+import { cloudInstructions } from "@/lib/cloud-prompt";
 import { Agent, FunctionTool } from "@google/adk";
+import { Custom } from "adk-llm-bridge";
 import { z } from "zod";
 
 /**
@@ -31,20 +33,21 @@ export const getWeather = new FunctionTool({
 });
 
 /**
- * Builds the weather assistant. The generated OpenUI system prompt is appended
- * to the base instruction so the model replies with OpenUI Lang that the
- * frontend renders as generative UI.
+ * ADK still owns tools, sessions, and the Runner. Custom() speaks Chat
+ * Completions (POST /v1/embed/chat/completions) via the embed base URL.
  */
-export function createAgent(genUISystemPrompt: string) {
+export function createAgent() {
+  const apiKey = process.env.THESYS_API_KEY;
+  if (!apiKey) throw new Error("Missing required env var: THESYS_API_KEY");
+
   return new Agent({
-    name: "weather_assistant",
-    model: process.env.GEMINI_MODEL || "gemini-flash-latest",
-    description: "A helpful assistant that can report the weather.",
-    instruction:
-      "You are a friendly assistant. When the user asks about the weather, " +
-      "use the get_weather tool before answering. Help the user with any other " +
-      "requests too.\n\n" +
-      genUISystemPrompt,
+    name: "openui-adk-agent",
+    model: Custom("google/gemini-3.6-flash-free", {
+      name: "openui-adk-agent",
+      baseURL: "https://api.thesys.dev/v1/embed",
+      apiKey,
+    }),
+    instruction: cloudInstructions(),
     tools: [getWeather],
   });
 }

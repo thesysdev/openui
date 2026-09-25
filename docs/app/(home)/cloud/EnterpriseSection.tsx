@@ -1,5 +1,4 @@
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { Button } from "@/components/button";
 import {
   FeatureGridSection,
   type GridFeature,
@@ -41,20 +40,32 @@ const ENTERPRISE_FEATURES: GridFeature[] = [
   },
 ];
 
-export function EnterpriseSection() {
+export function EnterpriseSection({
+  title = "Built for production-scale enterprise use",
+  titleId = "enterprise-section-title",
+  features = ENTERPRISE_FEATURES,
+  linkLabel = "View trust centre",
+  className,
+}: {
+  title?: string;
+  titleId?: string;
+  features?: GridFeature[];
+  linkLabel?: string;
+  className?: string;
+} = {}) {
   return (
-    <section className={styles.section} aria-labelledby="enterprise-section-title">
+    <section
+      className={[styles.section, className].filter(Boolean).join(" ")}
+      aria-labelledby={titleId}
+    >
       <div className={styles.header}>
-        <h2 id="enterprise-section-title" className={styles.title}>
-          Built for production-scale enterprise use
+        <h2 id={titleId} className={styles.title}>
+          {title}
         </h2>
-        <Link className={styles.link} href="https://trust.thesys.dev/" target="_blank" rel="noopener noreferrer">
-          View trust center
-          <ArrowRight aria-hidden="true" size={16} strokeWidth={2} />
-        </Link>
+        <Button href="https://trust.thesys.dev/" text={linkLabel} variant="tertiary" external />
       </div>
       <FeatureGridSection
-        features={ENTERPRISE_FEATURES}
+        features={features}
         showHeader={false}
         showCompat={false}
         showBottomSeparator={false}

@@ -1,17 +1,17 @@
 "use client";
 
-import { useTheme } from "@/hooks/use-system-theme";
 import { library } from "@/library";
 import {
   AgentInterface,
   openAIAdapter,
   openAIMessageFormat,
+  useSystemThemeMode,
   type ChatLLM,
 } from "@openuidev/react-ui";
 import { useMemo } from "react";
 
 export default function Page() {
-  const mode = useTheme();
+  const mode = useSystemThemeMode();
 
   const llm = useMemo<ChatLLM>(
     () => ({

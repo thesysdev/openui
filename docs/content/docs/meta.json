@@ -1,11 +1,18 @@
 {
   "title": "OpenUI",
   "pages": [
-    "overview",
+    "index",
+    "getting-started",
+    "architecture",
     "openui-lang",
-    "components",
+    "build-agents",
     "agent",
-    "openui-cloud",
+    "cookbooks",
+    "production",
+    "gateway",
+    "autofix",
+    "reliability",
+    "deploy",
     "api-reference"
   ]
 }

@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@earendil-works/pi-coding-agent"],
   webpack: (config, { isServer }) => {
     if (isServer) {
-      const externalizePi = (
+      const externalize = (
         { request }: { request?: string },
         callback: (err?: null, result?: string) => void,
       ) => {
@@ -28,9 +28,12 @@ const nextConfig: NextConfig = {
         }
         return callback();
       };
-      config.externals = Array.isArray(config.externals)
-        ? [externalizePi, ...config.externals]
-        : [externalizePi];
+      const prev = config.externals;
+      config.externals = Array.isArray(prev)
+        ? [externalize, ...prev]
+        : prev
+          ? [externalize, prev]
+          : [externalize];
     }
     return config;
   },

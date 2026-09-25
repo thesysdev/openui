@@ -1,0 +1,34 @@
+---
+title: assistant-ui
+description: Render OpenUI Lang in an existing assistant-ui chat.
+---
+
+This guide assumes the application already has a working assistant-ui chat. First, follow the [backend setup guide](/docs/build-agents/backend-setup) to configure the agent to return OpenUI Lang.
+
+In the existing `AssistantMessage` component, replace the Markdown text renderer passed to [`MessagePrimitive.Parts`](https://www.assistant-ui.com/docs/primitives/message) with the OpenUI Lang renderer. The thread shell, composer, runtime, and message layout remain unchanged.
+
+## Render OpenUI Lang
+
+```tsx title="src/components/assistant-message.tsx"
+"use client";
+
+import { type TextMessagePartProps } from "@assistant-ui/react";
+import { Renderer } from "@openuidev/react-lang";
+import { openuiLibrary } from "@openuidev/react-ui";
+
+function OpenUIRenderer({ text, status }: TextMessagePartProps) {
+  return (
+    <Renderer response={text} library={openuiLibrary} isStreaming={status.type === "running"} />
+  );
+}
+```
+
+Then update the existing message-parts configuration:
+
+```tsx
+<MessagePrimitive.Parts components={{ Text: OpenUIRenderer }} />
+```
+
+`text` is the accumulated agent response supplied by assistant-ui.
+
+Continue with [The Renderer](/docs/openui-lang/renderer) for the complete API.

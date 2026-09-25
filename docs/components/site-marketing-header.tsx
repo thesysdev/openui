@@ -15,7 +15,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState } from "react";
 import styles from "./site-marketing-header.module.css";
 
 type ThemeToggleConfig = {
@@ -26,7 +26,6 @@ type ThemeToggleConfig = {
 
 type SiteMarketingHeaderProps = {
   borderMode?: "always" | "scroll";
-  extraActions?: ReactNode;
   themeToggle?: ThemeToggleConfig | null;
   brandVariant?: LogoVariant;
 };
@@ -64,7 +63,7 @@ function HamburgerIcon({ isOpen }: { isOpen: boolean }) {
    as scattered top-level links; it is a real menu now, so it arrives with the
    rest.
 
-   The Open source / Managed split is flattened away. It divides three links, and
+   The Open source / Cloud split is flattened away. It divides three links, and
    two heading rows to separate them costs more than it explains at tray width. */
 function MobileMenu({ onClose }: { onClose: () => void }) {
   const leafItems = PRIMARY_SITE_NAV_ITEMS.filter(
@@ -215,7 +214,6 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 
 export function SiteMarketingHeader({
   borderMode = "scroll",
-  extraActions,
   themeToggle,
   brandVariant,
 }: SiteMarketingHeaderProps) {
@@ -262,11 +260,7 @@ export function SiteMarketingHeader({
         brandVariant={resolvedBrandVariant}
         center={<SitePrimaryNav />}
         end={
-          // No theme toggle on desktop: the footer's own control owns theme
-          // switching now. The mobile menu below keeps one, since the footer is
-          // a long scroll away on a phone.
           <div className={styles.desktopActions}>
-            {extraActions}
             <GitHubButton
               variant="desktopGlow"
               compact

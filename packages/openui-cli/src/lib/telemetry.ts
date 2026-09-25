@@ -3,13 +3,16 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { PostHog } from "posthog-node";
 
-// Public ingestion key (same project as docs/coda-prod). Overridable for testing.
+import { isTruthyEnv } from "./env";
+import { cliErrorProperties } from "./errors";
+import type { RetryAttemptInfo } from "./retry";
+
+// Public ingestion key
 const POSTHOG_KEY =
   process.env["OPENUI_POSTHOG_KEY"] ?? "phc_3OLW53x09ZTVZSV6BEpj5uycj3ooqR6KOemOjx04e3D";
 const POSTHOG_HOST = process.env["OPENUI_POSTHOG_HOST"] ?? "https://us.i.posthog.com";
 const SHUTDOWN_TIMEOUT_MS = 2000;
 
-const isTruthyEnv = (v?: string) => v === "1" || v?.toLowerCase() === "true";
 const isTelemetryDebug = () => process.env["OPENUI_TELEMETRY_DEBUG"] === "1";
 const configDir = () =>
   path.join(process.env["XDG_CONFIG_HOME"] ?? path.join(os.homedir(), ".config"), "openui");
@@ -45,6 +48,7 @@ function loadOrCreateState() {
     persist: () => writeState(file, { ...fresh, firstRunNoticeShown: true }),
   };
 }
+
 function writeState(file: string, s: Stored) {
   try {
     fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -54,67 +58,23 @@ function writeState(file: string, s: Stored) {
   }
 }
 
-/** Thrown by command funnels so the index wrapper can attribute the failure stage + drain once. */
-export type CliErrorClass =
-  | "invalid_input"
-  | "filesystem"
-  | "authentication"
-  | "dependency"
-  | "peer_dependency"
-  | "registry_auth"
-  | "network"
-  | "package_compatibility"
-  | "workspace_config"
-  | "install_script"
-  | "process"
-  | "user_cancelled"
-  | "generation"
-  | "unknown";
-
-export type CliErrorMetadata = {
-  duration_ms?: number;
-  exit_code?: number;
-  failure_signal?: NodeJS.Signals;
-  http_status?: number;
-  cancellation_exit_code?: number;
-  auth_failure_stage?: string;
+type Session = {
+  client?: PostHog;
+  distinctId: string;
+  superProps: Record<string, unknown>;
+  enabled: boolean;
 };
 
-export class CreateError extends Error {
-  constructor(
-    public stage: string,
-    message: string,
-    public errorClass: CliErrorClass = "unknown",
-    public errorCode = "UNKNOWN",
-    public errorMetadata: CliErrorMetadata = {},
-  ) {
-    super(message);
-    this.name = "CreateError";
-  }
-}
-
-export class CliCancelledError extends CreateError {
-  constructor(
-    stage: string,
-    public exitCode = 0,
-    metadata: CliErrorMetadata = {},
-  ) {
-    super(
-      stage,
-      "Operation cancelled.",
-      "user_cancelled",
-      exitCode === 0 ? "USER_CANCELLED" : exitCode === 143 ? "TERMINATED" : "INTERRUPTED",
-      { ...metadata, cancellation_exit_code: exitCode },
-    );
-    this.name = "CliCancelledError";
-  }
-}
-
 export class Telemetry {
-  private client?: PostHog;
-  private distinctId = "anonymous";
-  private superProps: Record<string, unknown> = {};
-  private enabled = false;
+  private readonly session: Session;
+
+  constructor(source?: Telemetry) {
+    this.session = source?.session ?? {
+      distinctId: "anonymous",
+      superProps: {},
+      enabled: false,
+    };
+  }
 
   init(opts: { cliVersion: string; flagEnabled: boolean }) {
     const optedOut =
@@ -123,9 +83,9 @@ export class Telemetry {
       opts.flagEnabled === false;
     if (optedOut) return; // enabled stays false → all capture() are no-ops
     const state = loadOrCreateState();
-    this.distinctId = state.distinctId;
+    this.session.distinctId = state.distinctId;
     const interactiveTerminal = isInteractiveTerminal();
-    this.superProps = {
+    this.session.superProps = {
       cli_version: opts.cliVersion,
       os: process.platform,
       os_release: os.release(),
@@ -137,19 +97,19 @@ export class Telemetry {
       is_interactive_terminal: interactiveTerminal,
     };
     try {
-      this.client = new PostHog(POSTHOG_KEY, {
+      this.session.client = new PostHog(POSTHOG_KEY, {
         host: POSTHOG_HOST,
         flushAt: 1,
         flushInterval: 0,
       });
       // Telemetry is best-effort: swallow network/flush errors so an offline CLI
       // run never spams the user's console with PostHog stack traces.
-      this.client.on("error", (error) => debugLogPostHogFailure("request", error));
+      this.session.client.on("error", (error) => debugLogPostHogFailure("request", error));
     } catch (error) {
       debugLogPostHogFailure("init", error);
       return;
     }
-    this.enabled = true;
+    this.session.enabled = true;
     // posthog-core logs flush failures via a hardcoded console.error (not gated on
     // any logger/option). Filter ONLY those lines so an offline run stays quiet —
     // the CLI's own console.error output passes through untouched.
@@ -158,7 +118,7 @@ export class Telemetry {
       if (typeof args[0] === "string" && args[0].includes("flushing PostHog")) return;
       origError(...args);
     };
-    if (isTelemetryDebug()) this.client.debug();
+    if (isTelemetryDebug()) this.session.client.debug();
     if (state.isFirstRun) {
       process.stderr.write(
         "\n◆ OpenUI CLI collects usage analytics; OAuth sign-ins may link usage to your OIDC account ID.\n" +
@@ -169,16 +129,44 @@ export class Telemetry {
   }
 
   register(props: Record<string, unknown>) {
-    if (this.enabled) Object.assign(this.superProps, props);
+    if (this.session.enabled) Object.assign(this.session.superProps, props);
+  }
+
+  registerRun(props: {
+    agent_name: string;
+    detected_agent_name: string;
+    cli_run_id: string;
+    command: string;
+  }) {
+    this.register(props);
+  }
+
+  trackInvoked() {
+    this.capture("cli_invoked");
+  }
+
+  reportNetworkRetry(stage: string): (info: RetryAttemptInfo) => void {
+    return (info) => {
+      const properties = cliErrorProperties(info.error);
+      this.capture("cli_network_retry", {
+        failure_stage: stage,
+        attempt: info.attempt,
+        max_attempts: info.maxAttempts,
+        delay_ms: info.delayMs,
+        error_class: properties.error_class,
+        error_code: properties.error_code,
+      });
+    };
   }
 
   capture(event: string, properties: Record<string, unknown> = {}) {
-    if (!this.enabled || !this.client) return;
+    const { enabled, client, distinctId, superProps } = this.session;
+    if (!enabled || !client) return;
     try {
-      this.client.capture({
-        distinctId: this.distinctId,
+      client.capture({
+        distinctId,
         event,
-        properties: { ...this.superProps, ...properties },
+        properties: { ...superProps, ...properties },
       });
     } catch (error) {
       debugLogPostHogFailure("capture", error);
@@ -186,11 +174,12 @@ export class Telemetry {
   }
 
   alias(distinctId: string, alias: string) {
-    if (!this.enabled || !this.client) return;
+    const { enabled, client } = this.session;
+    if (!enabled || !client) return;
     if (!distinctId || !alias || distinctId === alias) return;
     try {
-      this.client.alias({ distinctId, alias });
-      this.client.setPersonProperties({
+      client.alias({ distinctId, alias });
+      client.setPersonProperties({
         distinctId,
         propertiesOnce: {
           first_cli_auth_ts: new Date().toISOString(),
@@ -202,18 +191,20 @@ export class Telemetry {
   }
 
   aliasOidcSubject(oidcSub: string) {
-    if (!this.enabled || !this.client || !oidcSub || oidcSub === this.distinctId) {
+    const { enabled, client, distinctId } = this.session;
+    if (!enabled || !client || !oidcSub || oidcSub === distinctId) {
       return;
     }
 
-    this.alias(oidcSub, this.distinctId);
+    this.alias(oidcSub, distinctId);
   }
 
   async shutdown() {
-    if (!this.enabled || !this.client) return;
+    const { enabled, client } = this.session;
+    if (!enabled || !client) return;
     try {
       await Promise.race([
-        this.client.shutdown(),
+        client.shutdown(),
         new Promise<void>((r) => setTimeout(r, SHUTDOWN_TIMEOUT_MS)),
       ]);
     } catch (error) {

@@ -1,0 +1,71 @@
+{
+  "name": "@openuidev/example-langgraph-platform",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
+    "generate:apiKey": "openui generate-api-key",
+    "dev:langgraph": "langgraphjs dev",
+    "dev:next": "next dev",
+    "dev:serve": "run-p dev:langgraph dev:next",
+    "langgraph:dev": "langgraphjs dev",
+    "predev": "npm run generate",
+    "dev": "run-s dev:serve",
+    "prebuild": "npm run generate",
+    "build": "next build",
+    "preverify": "npm run generate",
+    "verify": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@langchain/core": "^1.2.1",
+    "@langchain/langgraph": "^1.4.5",
+    "@langchain/langgraph-sdk": "^1.9.18",
+    "@langchain/openai": "^1.5.2",
+    "@openuidev/lang-core": "0.3.0",
+    "@openuidev/langchain": "0.0.3",
+    "@openuidev/react-headless": "0.16.2",
+    "@openuidev/react-lang": "0.3.0",
+    "@openuidev/react-ui": "0.16.2",
+    "deepagents": "^1.10.5",
+    "langchain": "^1.5.1",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^4.0.0",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@langchain/langgraph-cli": "^1.4.3",
+    "@openuidev/cli": "0.4.0",
+    "@types/node": "^22.15.32",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "npm-run-all2": "^9.0.2",
+    "typescript": "^5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@openuidev/lang-core",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ],
+    "overrides": {
+      "postcss@<8.5.10": ">=8.5.10"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@hono/node-server": ">=1"
+      }
+    }
+  },
+  "allowScripts": {
+    "@openuidev/lang-core": true,
+    "sharp": true,
+    "unrs-resolver": true
+  }
+}

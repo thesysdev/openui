@@ -3,26 +3,23 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "node scripts/generate-prompt.mjs",
-    "generate:prompt": "node scripts/generate-prompt.mjs",
-    "predev": "node scripts/generate-prompt.mjs",
+    "generate:apiKey": "openui generate-api-key",
     "dev": "nuxt dev",
-    "prebuild": "node scripts/generate-prompt.mjs",
     "build": "nuxt build",
-    "preverify": "node scripts/generate-prompt.mjs",
     "verify": "nuxt build",
     "preview": "nuxt preview"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.41",
     "@ai-sdk/vue": "^3.0.0",
-    "@openuidev/lang-core": "0.2.15",
-    "@openuidev/vue-lang": "0.1.4",
+    "@openuidev/lang-core": "0.3.0",
+    "@openuidev/vue-lang": "0.3.0",
     "ai": "^6.0.116",
     "chart.js": "^4.5.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@openuidev/cli": "0.4.0",
     "@tailwindcss/vite": "^4",
     "jiti": "^2.0.0",
     "nuxt": "^3.17.0",
@@ -30,5 +27,18 @@
     "typescript": "^5",
     "vue": "^3.5.0",
     "vue-router": "^4.5.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@openuidev/lang-core",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
+  "allowScripts": {
+    "@openuidev/lang-core": true,
+    "sharp": true,
+    "unrs-resolver": true
   }
 }

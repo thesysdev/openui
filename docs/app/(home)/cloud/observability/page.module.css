@@ -25,14 +25,14 @@
 }
 
 /* Both hero lockups render this same title node, so the break is switched off
-   by default and only enabled at the width where the desktop hero takes over
-   (HeroSection swaps at min-width: 1024px). Below that the title wraps on its
+   by default and only enabled at the width where this page's desktop hero takes
+   over. Below that the title wraps on its
    own and a hard break would land in the wrong place. */
 .titleBreak {
   display: none;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 900px) {
   .titleBreak {
     display: inline;
   }
@@ -75,6 +75,32 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
+/* A second line under the subtitle. Green, because it is the one line here that
+   is an offer rather than a description, and #049156 is the green already on
+   this page in the trace diagram's pass marks. */
+/* A block, so it takes its own line and inherits the lockup's text-align: the
+   desktop hero sets it left, the mobile one centre. The flex box lives on the
+   inner span, which is inline-level and so gets positioned by that alignment.
+   One element doing both would pin the line to the left at every width. */
+.subtitleTerms {
+  display: block;
+  margin-top: 12px;
+  /* No size of its own: it reads at the subtitle's measure, as a second line of
+     the same block rather than a footnote to it. */
+  color: #049156;
+}
+
+.subtitleTermsInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+[data-theme="dark"] .subtitleTerms {
+  /* The solid reads as near-black on the dark ground, so the line lifts. */
+  color: #3ecf8e;
+}
+
 .subtitle {
   display: block;
   flex: 0 0 400px;
@@ -98,9 +124,87 @@
 }
 
 .heroImage {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
+}
+
+.sectionRhythm {
+  /* One shared measure keeps feature, setup, trust and FAQ boundaries from
+     accumulating unrelated one-off margins. */
+  --observability-section-gap: 160px;
+}
+
+/* Grey, like the trust section that follows it: the two read as one band of
+   practical detail after the feature flow. */
+.integrationSection {
+  width: 100%;
+  padding-block: var(--observability-section-gap);
+  background: var(--openui-background);
+  /* The snippet is nine lines and measures 343px with the code block's own
+     padding. The component defaults to 420px, which left ~80px of empty panel
+     below the last line. The phone override below still wins at that width. */
+  --cloud-code-min-height: 344px;
+}
+
+/* Scoped to this page. EnterpriseSection is shared with /cloud and
+   /cloud/gateway, which keep its own 160px and its own grey.
+
+   The class is doubled to lift it to (0,2,0). Its own .section rule sets both
+   of these at (0,1,0), and which of two equally specific rules wins comes down
+   to the order the two CSS modules happen to load in, which is not something
+   to rely on. */
+.trustSection.trustSection {
+  padding-block: clamp(4rem, 7vw, 6rem);
+  /* Sits on the page rather than in a band: the grey now belongs to the setup
+     block below, which is the one thing on the page that is a detour. */
+  background: transparent;
+}
+
+/* Less below than above: the footer follows, and the shared gap on both sides
+   left the page ending on a long empty stretch. */
+.faqBand {
+  padding: var(--observability-section-gap) var(--home-section-padding-inline)
+    calc(var(--observability-section-gap) / 2);
+}
+
+.faqBand > section {
+  margin-top: 0;
+}
+
+@media (max-width: 1279px) {
+  .integrationSection > div {
+    width: calc(100% - 64px);
+  }
+}
+
+@media (max-width: 1023px) {
+  .sectionRhythm {
+    --observability-section-gap: 96px;
+  }
+}
+
+@media (max-width: 767px) {
+  .integrationSection {
+    /* Keeps the panel's desktop measure and scales the whole thing down, so the
+       snippet reads at the same proportions rather than losing its right-hand
+       half to the clip. The desktop --cloud-code-min-height above rides along
+       in the same scaled space, which is what holds the ratio. */
+    --cloud-code-mobile-zoom: 0.54;
+    --cloud-code-mobile-padding-block: 28px;
+    /* Content-sized, so the panel hugs the snippet. Left at the desktop 344px
+       the shorter padding above would be matched by 40px of empty panel below,
+       which is the one thing equal padding cannot survive. */
+    --cloud-code-min-height: 0;
+    /* The steps explain the snippet, so they follow it here. */
+    --cloud-setup-content-display: contents;
+  }
+
+  .integrationSection > div {
+    width: calc(100% - 32px);
+  }
 }
 
 .heroImageDark {
@@ -115,7 +219,7 @@
   display: block;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 899px) {
   .title {
     font-size: inherit;
   }
@@ -214,7 +318,7 @@
      than squeezing the field. */
   flex: 0 0 auto;
   min-width: 0;
-  width: 17.5rem;
+  width: 16rem;
   border: 0;
   background: none;
   outline: none;
@@ -232,42 +336,80 @@
   opacity: 0.6;
 }
 
-/* The hero art dissolves into the page at its lower edge instead of stopping on
-   a straight line. Masked rather than overlaid with a gradient, so it works on
-   either theme without matching a background colour. */
-.heroImage {
+/* The hero sits on a stage now, so it ends on its own edge rather than
+   dissolving into the page. The stroke is the shader's base colour, so the edge
+   matches the fill inside it. Keep in step with TONES in FadedDitherCanvas.tsx
+   and with .shot in FeaturesSection.module.css. */
+.heroStage {
+  --hero-stroke: #f8f8f8;
+
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--hero-stroke);
+  border-radius: 24px;
+}
+
+[data-theme="dark"] .heroStage {
+  --hero-stroke: #0e0e0e;
+}
+
+/* The mobile hero keeps the old treatment: no stage behind it, so it dissolves
+   into the page at its lower edge rather than ending on a straight line.
+   Masked rather than overlaid with a gradient, so it works on either theme
+   without having to match a background colour. */
+.heroImageMobile {
   -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
 }
 
-/* Icon-only submit, sized and coloured like BevelButton's badge so it reads as
-   the same family of control. Inverted against the field: dark disc on light,
-   light disc on dark. */
+.heroShader {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.heroShader > * {
+  width: 100%;
+  height: 100%;
+}
+
+/* Keep the action persistent: the waitlist should never depend on a hover state
+   to explain what the arrow does. */
 .emailSubmit {
-  --email-ease: cubic-bezier(0.45, 0.05, 0.15, 1);
   flex: none;
-  position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  /* A circle at minimum. Width is left to the content so the label can push it
-     wider, and min-width holds the disc shape while there is no label. */
-  min-width: 2.25rem;
-  height: 2.25rem;
-  padding: 0;
-  border: 0;
+  /* Not centred: min-width leaves a few pixels of slack that centring splits
+     between the two ends, which pushed the badge ~13px off the right edge while
+     the padding said 8. Pinning each end to its own padding makes the space
+     around the badge match the 8px above and below it. */
+  justify-content: space-between;
+  min-width: 10.25rem;
+  height: 3rem;
+  gap: 10px;
+  /* 7, not 8: the badge is centred in the 46px the 1px borders leave, so it
+     already sits 7px inside the padding box and 8px inside the button. Matching
+     that on the right is what puts the same 8px on all three sides. */
+  padding: 0 7px 0 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
   background: #0a0a0a;
+  box-shadow: var(--home-bevel-on-dark);
   color: #ffffff;
+  font-family: "Inter Display", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
   transition:
-    padding var(--email-swap, 0.36s) var(--email-ease),
     opacity 0.15s ease,
     transform 0.15s ease;
 }
 
 [data-theme="dark"] .emailSubmit {
-  background: #f3f3f4;
+  border-color: rgba(0, 0, 0, 0.08);
+  background: var(--home-surface-raised);
+  box-shadow: var(--home-bevel);
   color: #0d0d0f;
 }
 
@@ -348,79 +490,43 @@
   .emailNotice {
     transform: translate(-50%, 0);
   }
-
-  /* The button still changes shape, it just does so at once. Set on the button
-     rather than :root, both because a CSS Module selector must carry a local
-     class and because the label and icon inherit these from here anyway. */
-  .emailSubmit {
-    --email-swap: 0.01s;
-    --email-swap-in: 0s;
-  }
-
-  .emailSubmitIcon,
-  .emailSubmitText {
-    transition-duration: 0.01s;
-  }
-}
-
-/* ---- Arrow <-> label ----
-   `display: none` cannot be transitioned and `width: auto` cannot be animated
-   to, so neither is used. Instead the label sits in a one-column grid whose
-   track goes 0fr -> 1fr: that IS animatable and resolves to the text's natural
-   width, so the button, and the pill around it, grow smoothly. The arrow is
-   taken out of flow so it contributes no width and can simply cross-fade. */
-.emailSubmitLabel {
-  /* Both halves of the swap share one duration and one curve, so the arrow, the
-     label and the pill all settle together. */
-  --email-ease: cubic-bezier(0.45, 0.05, 0.15, 1);
-  display: grid;
-  grid-template-columns: 0fr;
-  transition: grid-template-columns var(--email-swap, 0.36s) var(--email-ease);
 }
 
 .emailSubmitText {
-  overflow: hidden;
-  min-width: 0;
-  font-family: var(--home-font-text);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1;
+  line-height: 1.5rem;
   white-space: nowrap;
-  opacity: 0;
-  /* Leaving: fade out at once, ahead of the collapse. */
-  transition: opacity 0.12s ease;
+}
+
+.emailSubmitBadge {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #0a0a0a;
+}
+
+[data-theme="dark"] .emailSubmitBadge {
+  background: #0a0a0a;
+  color: #ffffff;
 }
 
 .emailSubmitIcon {
-  position: absolute;
-  opacity: 1;
-  /* Arriving: hold until the label has collapsed out of the way. */
-  transition:
-    opacity 0.16s ease var(--email-swap-in, 0.18s),
-    transform 0.24s var(--email-ease) var(--email-swap-in, 0.18s);
+  flex: none;
 }
 
-.emailSubmitLabelled {
-  padding: 0 1rem;
-}
+@media (min-width: 768px) and (max-width: 899.98px) {
+  .emailForm {
+    width: 100%;
+  }
 
-.emailSubmitLabelled .emailSubmitLabel {
-  grid-template-columns: 1fr;
-}
-
-.emailSubmitLabelled .emailSubmitText {
-  opacity: 1;
-  /* Arriving: wait for the track to open, then fade into space already made. */
-  transition: opacity 0.18s ease var(--email-swap-in, 0.18s);
-}
-
-/* Leaving: goes at once, and along its own axis rather than just vanishing. */
-.emailSubmitLabelled .emailSubmitIcon {
-  opacity: 0;
-  transform: translateX(6px);
-  transition:
-    opacity 0.14s ease,
-    transform 0.2s var(--email-ease);
+  .emailInput {
+    flex: 1 1 auto;
+    width: auto;
+  }
 }
 
 /* ---- Phone ----
@@ -460,29 +566,18 @@
 
   .emailSubmit {
     width: 100%;
-    height: 2.875rem;
-    padding: 0 1rem;
+    height: 3rem;
+    justify-content: space-between;
+    padding: 0 8px 0 20px;
     border-radius: 9999px;
-    font-family: var(--home-font-text);
-    font-size: 15px;
+    font-family: "Inter Display", sans-serif;
+    font-size: 16px;
     font-weight: 500;
     line-height: 1;
   }
 
-  /* No swap here, the button is only ever the labelled one. */
-  .emailSubmitIcon {
-    display: none;
-  }
-
-  .emailSubmitLabel {
-    grid-template-columns: 1fr;
-    transition: none;
-  }
-
   .emailSubmitText {
-    font-size: 15px;
-    opacity: 1;
-    transition: none;
+    font-size: 16px;
   }
 
   /* The field carries the border the shared pill used to. */

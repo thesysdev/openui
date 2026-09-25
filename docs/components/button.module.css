@@ -5,6 +5,11 @@
   height: auto !important;
   padding: 0 !important;
   background: transparent !important;
+  transition: color 160ms ease;
+}
+
+.tertiary:hover {
+  color: var(--openui-text-neutral-secondary) !important;
 }
 
 .tertiary:hover,

@@ -1,18 +1,19 @@
 # OpenUI examples
 
-These projects showcase what OpenUI can do with different runtimes, application frameworks, design systems, coding harnesses, and specialized libraries. They are standalone reference implementations, not starter templates; use the [OpenUI CLI](https://www.openui.com/docs/agent/getting-started/quickstart) to scaffold a new application.
+These projects showcase complete OpenUI workflows and integrations with different runtimes, application frameworks, design systems, coding harnesses, and specialized libraries. They are standalone reference implementations, not starter templates; use the [OpenUI CLI](https://www.openui.com/docs/agent/getting-started/quickstart) to scaffold a new application.
 
-Each example has one primary home based on the integration seam it is intended to teach. Cross-cutting technologies belong in that example's README rather than in duplicate directory trees.
+Each example has one primary home. Complete workflows with a companion tutorial live in `cookbooks`; integration examples are grouped by the integration seam they teach. Cross-cutting technologies belong in that example's README rather than in duplicate directory trees.
 
 ## Categories
 
-| Category                                 | Use it for                                                                                                        |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| [`agent-frameworks`](./agent-frameworks) | Agent runtimes and orchestration frameworks that produce or stream OpenUI output                                  |
-| [`app-frameworks`](./app-frameworks)     | Application frameworks or platforms that host an OpenUI client or server                                          |
-| [`design-systems`](./design-systems)     | Component systems adapted into an OpenUI component library                                                        |
-| [`harnesses`](./harnesses)               | Coding-agent harnesses presented through an OpenUI interface                                                      |
-| [`miscellaneous`](./miscellaneous)       | Distinct capabilities, specialized libraries, and backend services that do not justify another top-level category |
+| Category                                 | Use it for                                                                                                                    |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| [`agent-frameworks`](./agent-frameworks) | Agent runtimes and orchestration frameworks that produce or stream OpenUI output                                              |
+| [`app-frameworks`](./app-frameworks)     | Application frameworks or platforms that host an OpenUI client or server                                                      |
+| [`cookbooks`](./cookbooks)               | Complete runnable workflows paired with step-by-step tutorials in the [Cookbooks docs](https://www.openui.com/docs/cookbooks) |
+| [`design-systems`](./design-systems)     | Component systems adapted into an OpenUI component library                                                                    |
+| [`harnesses`](./harnesses)               | Coding-agent harnesses presented through an OpenUI interface                                                                  |
+| [`miscellaneous`](./miscellaneous)       | Distinct capabilities, specialized libraries, and backend services that do not justify another top-level category             |
 
 `miscellaneous` is intentionally flat. If several examples develop the same stable integration seam, promote that seam to a top-level category instead of adding nested miscellaneous taxonomies.
 
@@ -20,22 +21,29 @@ Each example has one primary home based on the integration seam it is intended t
 
 ### Agent frameworks
 
-| Example                                           | Demonstrates                                                            |
-| ------------------------------------------------- | ----------------------------------------------------------------------- |
-| [Google ADK](./agent-frameworks/google-adk)       | A Google ADK TypeScript agent streaming OpenUI Lang to a Next.js client |
-| [LangChain](./agent-frameworks/langchain)         | LangGraph/DeepAgents integration through the OpenUI LangChain adapter   |
-| [Mastra](./agent-frameworks/mastra)               | A Mastra agent connected to OpenUI through AG-UI                        |
-| [Vercel AI SDK](./agent-frameworks/vercel-ai-sdk) | `streamText`, tools, and OpenUI rendering with the Vercel AI SDK        |
-| [Vercel Eve](./agent-frameworks/vercel-eve)       | An Eve agent rendered through Agent Interface                           |
+| Example                                                     | Demonstrates                                                                               |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [Google ADK](./agent-frameworks/google-adk)                 | A Google ADK TypeScript agent streaming OpenUI Lang to a Next.js client                    |
+| [LangGraph Platform](./agent-frameworks/langgraph-platform) | A DeepAgents graph on LangGraph Platform, streamed to OpenUI through the LangChain adapter |
+| [Mastra](./agent-frameworks/mastra)                         | A Mastra agent connected to OpenUI through AG-UI                                           |
+| [Vercel AI SDK](./agent-frameworks/vercel-ai-sdk)           | AgentInterface over a Vercel AI SDK `streamText` backend                                   |
+| [Vercel Eve](./agent-frameworks/vercel-eve)                 | An Eve agent rendered through Agent Interface                                              |
 
 ### App frameworks
 
 | Example                                       | Demonstrates                                                                    |
 | --------------------------------------------- | ------------------------------------------------------------------------------- |
+| [Angular](./app-frameworks/angular)           | An NG-ZORRO X chat interface with the Angular OpenUI renderer                   |
 | [FastAPI](./app-frameworks/fastapi)           | A Python FastAPI streaming backend with a React OpenUI client                   |
 | [React Native](./app-frameworks/react-native) | An Expo client rendering native OpenUI components from a Next.js backend stream |
 | [Svelte](./app-frameworks/svelte)             | OpenUI Lang parsing and rendering in SvelteKit                                  |
 | [Vue](./app-frameworks/vue)                   | OpenUI Lang parsing and rendering in Nuxt and Vue                               |
+
+### Cookbooks
+
+| Example                                                          | Demonstrates                                                                             | Tutorial                                                                      |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [Conversational analytics](./cookbooks/conversational-analytics) | Formula 1 lap-time analysis with OpenUI Gateway, streamed charts, and visible tool calls | [Walkthrough](https://www.openui.com/docs/cookbooks/conversational-analytics) |
 
 ### Design systems
 
@@ -55,6 +63,7 @@ Each example has one primary home based on the integration seam it is intended t
 
 | Example                                        | Demonstrates                                                         |
 | ---------------------------------------------- | -------------------------------------------------------------------- |
+| [Autofix](./miscellaneous/autofix)             | Direct OpenAI generation with `@openuidev/server` Autofix repair     |
 | [Handsontable](./miscellaneous/handsontable)   | Generated spreadsheet interfaces backed by Handsontable              |
 | [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts as an OpenUI capability                     |
 | [React Email](./miscellaneous/react-email)     | Generating and previewing emails with the OpenUI React Email library |
@@ -96,9 +105,9 @@ pnpm examples:verify
 
 Examples that use static system prompts generate them locally before `dev`, `build`, and `verify`. Generated prompt and spec files are ignored by Git and should not be committed.
 
-All `@openuidev/*` dependencies are exact published versions rather than links to packages in this repository. The manually triggered `Update example OpenUI packages` workflow updates them together, refreshes every application's `pnpm-lock.yaml`, verifies every example, and opens or updates one pull request when versions change.
+All `@openuidev/*` dependencies are exact published versions rather than links to packages in this repository. The `Update OpenUI starters` workflow runs after each successful release (and can be triggered manually), updates them together, refreshes every application's pnpm and npm lockfiles, verifies every example, and opens or updates one pull request when versions change.
 
-pnpm lockfiles are the reproducibility contract for repository CI; npm and Bun users can generate their native local lockfiles, which are ignored under `examples/` to avoid maintaining three lock formats for every application.
+pnpm and npm lockfiles are the reproducibility contracts for repository CI and starter updates. Bun users can generate native local lockfiles, which remain ignored under `examples/`.
 
 ## Maintenance contract
 
@@ -111,5 +120,7 @@ Every retained example should:
 - generate derived prompts and specs locally rather than store them in the repository;
 - depend on exact published `@openuidev/*` versions rather than root workspace packages;
 - use a normalized `@openuidev/example-*` package name and keep repository links current.
+
+Cookbooks also link to their companion docs tutorial. Keep each runnable app in `examples/cookbooks/<name>/` and its walkthrough in `docs/content/docs/cookbooks/<name>.mdx`, with links in both directions. Update code and tutorial together in the same pull request.
 
 Delete examples that duplicate an authoritative CLI template, are maintained elsewhere, substantially overlap a stronger example, or no longer justify their maintenance cost.

@@ -68,11 +68,11 @@ See [Defining Components](/docs/openui-lang/defining-components) for the full `d
 ## Architecture
 
 ```
-Browser (email editor) -- POST /api/chat --> Next.js route --> OpenAI
-                        <-- SSE stream --                       (OpenUI Lang)
+Browser (email editor) -- POST /api/chat --> Next.js route --> Gateway --> model
+                        <-- SSE stream --                       (corrected OpenUI Lang)
 ```
 
-The client sends a conversation to `/api/chat`. The API route loads `system-prompt.txt`, generated locally from `emailLibrary.prompt(emailPromptOptions)`, forwards messages to the LLM with streaming, and returns SSE events. On the client, `emailLibrary` maps each OpenUI Lang node to a React Email component that renders progressively as tokens arrive.
+The client sends a conversation to `/api/chat`. The API route loads the generated `emailLibrary` instructions, sends messages through the [Gateway](/docs/gateway) with streaming, and returns SSE events. On the client, `emailLibrary` maps each OpenUI Lang node to a React Email component that renders progressively as tokens arrive.
 
 The key difference from other examples: the output isn't interactive UI — it's static email content. The split-view editor shows a live preview on the right and formatted HTML on the left, with copy buttons for both the HTML and the subject line.
 
@@ -124,7 +124,7 @@ npm install
 2. Create a `.env.local` file with your API key:
 
 ```bash
-OPENAI_API_KEY=sk-...
+THESYS_API_KEY=sk-th-...
 ```
 
 3. Start the dev server:

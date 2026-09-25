@@ -14,15 +14,17 @@ launch — see **Security** below.
 
 ```
  Browser (src/app/page.tsx)
-   AgentInterface   ──POST /api/chat ({ systemPrompt, messages })──►  route.ts (runtime=nodejs)
-   + openuiLibrary       x-conversation-id: <threadId>                     │
-   renderer  ◄──NDJSON OpenAI chunks (delta.content = OpenUI Lang)─────────┤
+   AgentInterface   ──POST /api/chat ({ messages, threadId })──►  route.ts (runtime=nodejs)
+   + openuiLibrary                                                              │
+   renderer  ◄──NDJSON OpenAI chunks (delta.content = OpenUI Lang)───────────────┤
                                                                            ▼
                                                           src/lib/pi-session.ts
                                                           Map<threadId, AgentSession>
                                                                            │
-                                          createAgentSession({ resourceLoader with
-                                          appendSystemPrompt: [openui prompt] })
+                                          createAgentSession({
+                                            model: OpenUI Cloud Completions,
+                                            appendSystemPrompt: cloudInstructions()
+                                          })
                                                                            │
                                           session.subscribe() → text/thinking/tool events
                                           session.prompt(lastUserText)     ▼
@@ -33,28 +35,21 @@ launch — see **Security** below.
 - **Transport:** the frontend's `openAIReadableStreamAdapter()` parses **NDJSON** OpenAI
   `chat.completion.chunk`s (one JSON object per line). The route translates pi's `text_delta`
   events into `delta.content`, and pi's reasoning + tool executions into `delta.tool_calls`.
-- **System prompt:** `page.tsx` generates the OpenUI Lang prompt client-side
-  (`openuiLibrary.prompt(openuiPromptOptions)`) and sends it in the request body; the route
-  injects it into Pi via `DefaultResourceLoader({ appendSystemPrompt: [...] })`, so the backend
-  prompt and the frontend renderer always reference the same component library.
-- **Sessions:** each chat thread (a stable id sent as the `x-conversation-id` header) maps to
+- **System prompt:** `pnpm generate` writes `src/generated/spec.json` from `openuiLibrary`.
+  `cloudInstructions()` reads that spec and passes it to `generateSystemPrompt({ cloud: true, library })`
+  from `@openuidev/lang-core`, so the Cloud prompt matches `openuiLibrary` on the client.
+- **Model:** Pi calls OpenUI Cloud Chat Completions (`https://api.thesys.dev/v1/embed`) with
+  `THESYS_API_KEY`. The default model is `google/gemini-3.6-flash-free`.
+- **Sessions:** each chat thread (a stable `threadId` from `fetchLLM`) maps to
   one persistent Pi `AgentSession`, so multi-turn context is preserved.
 
 ## Prerequisites
 
-All you need is a **model provider API key**. You do **not** need the Pi CLI installed — this app
-embeds the Pi SDK and reads credentials directly. Pick one of:
+All you need is an **[OpenUI Cloud](https://console.thesys.dev/keys)** API key. You do **not**
+need the Pi CLI installed — this app embeds the Pi SDK and points it at Cloud Completions.
 
-1. **An API key (recommended — no Pi required).** Copy `.env.example` to `.env` and set a provider
-   key, e.g. `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY`. With just a key and no
-   other config, the SDK resolves that provider's default model.
-2. **An existing Pi login.** If you already use the Pi CLI, the app automatically picks up your
-   `~/.pi/agent` auth and settings (model, provider, thinking level) — no `.env` needed.
-
-If neither resolves, the chat still streams but opens with the SDK's "no models available" notice.
-
-> **Note:** a Claude _subscription_ OAuth token (from `pi` login) lives in `~/.pi/agent` and relies
-> on pi's refresh flow. For a self-contained deployment, prefer a plain **API key**.
+Copy `.env.example` to `.env` and set `THESYS_API_KEY`. Optional: `OPENUI_MODEL` (default
+`google/gemini-3.6-flash-free`).
 
 ## Run
 
@@ -65,10 +60,10 @@ cd examples/harnesses/pi
 pnpm install --ignore-workspace
 ```
 
-Then, from this example, set a provider key and point the agent at a project to work on:
+Then, from this example, set your Cloud key and point the agent at a project to work on:
 
 ```bash
-cp .env.example .env   # set a provider API key (skip if using an existing Pi login)
+cp .env.example .env   # set THESYS_API_KEY
 
 # Point the agent at the project you want it to work on:
 pnpm dev -- /path/to/your/project
@@ -91,11 +86,13 @@ pnpm build && pnpm start
 
 ## Configuration
 
-| Env var        | Default         | Purpose                                              |
-| -------------- | --------------- | ---------------------------------------------------- |
-| `PI_AGENT_CWD` | `process.cwd()` | Workspace directory the coding agent reads/writes in |
-| `PI_WEB_TOOLS` | `full`          | Set to `read-only` to disable `bash`/`edit`/`write`  |
-| `PORT`         | `3000`          | Dev/prod server port                                 |
+| Env var          | Default                         | Purpose                                              |
+| ---------------- | ------------------------------- | ---------------------------------------------------- |
+| `THESYS_API_KEY` | —                               | OpenUI Cloud API key                                 |
+| `OPENUI_MODEL`   | `google/gemini-3.6-flash-free`  | Cloud model id Pi sends to Completions               |
+| `PI_AGENT_CWD`   | `process.cwd()`                 | Workspace directory the coding agent reads/writes in |
+| `PI_WEB_TOOLS`   | `full`                          | Set to `read-only` to disable `bash`/`edit`/`write`  |
+| `PORT`           | `3000`                          | Dev/prod server port                                 |
 
 ## Thinking states
 

@@ -32,6 +32,11 @@
   object-fit: cover;
 }
 
+.featureImagePlaceholder {
+  border: 1px solid var(--openui-border-default);
+  background: var(--home-color-surface-soft);
+}
+
 .featureImageDark {
   display: none;
 }
