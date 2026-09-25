@@ -301,7 +301,7 @@ const config = {
       },
       {
         source: "/playground",
-        destination: "/demos/openui-vs-json",
+        destination: "/openui-vs-json",
         permanent: true,
       },
       {

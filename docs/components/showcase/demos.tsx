@@ -31,7 +31,7 @@ const DEMOS: ShowcaseItem[] = [
     description:
       "Generate UI from a prompt and watch OpenUI Lang stream against JSON, with up to 67% fewer tokens.",
     image: { light: "/nav/vsjson-light.webp", dark: "/nav/vsjson-dark.webp" },
-    links: [{ label: "Open demo", href: "/demos/openui-vs-json" }],
+    links: [{ label: "Open demo", href: "/openui-vs-json" }],
   },
 ];
 
