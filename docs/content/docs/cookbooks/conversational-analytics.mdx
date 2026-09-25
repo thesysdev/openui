@@ -1,6 +1,6 @@
 ---
 title: Conversational analytics
-description: Let people ask questions about data in plain language and answer with streamed charts and tables, using a function tool, Agent Interface, and OpenUI Gateway.
+description: Build a chat assistant that answers questions about Formula 1 lap times with live charts and tables.
 ---
 
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
@@ -65,7 +65,7 @@ A conversational analytics assistant splits the work between your application an
 
 <CookbookAnalyticsArchitecture />
 
-1. **The user asks a question.** Agent Interface sends it to your server, which forwards it to OpenUI Gateway with the conversation id, a function tool that describes the queries you support, and a system prompt that describes your components.
+1. **The user asks a question.** Agent Interface sends it to OpenUI Gateway through your server's chat route, which adds the conversation id, a function tool that describes the queries you support, and a system prompt that describes your components.
 2. **The model calls your tool.** Instead of writing SQL, it fills in the tool's structured arguments: which view, which items, and which range. Your server validates the arguments, runs a read-only, parameterized query, and returns the result as JSON. The model sees only what you send it, never the database itself.
 3. **The model composes the answer.** From the tool result, it writes an OpenUI Lang program using only the components in your library: a table for a ranking, a line chart for a comparison, or a sentence for a single number. Gateway validates the program against that library and corrects eligible errors as it streams.
 4. **Agent Interface renders it progressively.** The program starts with its root component, so each table or chart appears as soon as its data arrives. Gateway stores the conversation, so a follow-up such as "only the last ten laps" reuses the earlier context and runs a fresh query.

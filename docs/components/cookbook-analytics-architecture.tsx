@@ -19,50 +19,46 @@ const boxes: Box[] = [
     width: 210,
     height: 184,
     icon: MessagesSquare,
-    title: "Agent Interface",
-    lines: ["Takes the question", "Renders streamed UI"],
+    title: "Chat interface",
+    lines: ["Takes the question", "Shows the answer live"],
+    footer: "e.g. Agent Interface",
   },
   {
     x: 350,
-    y: 24,
+    y: 40,
     width: 230,
-    height: 216,
-    icon: Server,
-    title: "Your server",
-    lines: ["Validates each request", "Runs query_lap_times"],
-    footer: "Application owned",
+    height: 184,
+    icon: Sparkles,
+    title: "OpenUI Gateway",
+    lines: ["Runs the model", "Checks the generated UI", "Stores the conversation"],
+    highlight: true,
   },
   {
     x: 710,
     y: 40,
     width: 210,
     height: 184,
-    icon: Sparkles,
-    title: "OpenUI Gateway",
-    lines: ["Runs the model", "Validates OpenUI Lang", "Stores the conversation"],
-    highlight: true,
+    icon: Server,
+    title: "Your server",
+    lines: ["Runs the tool", "Checks its arguments"],
+    footer: "Application owned",
   },
   {
-    x: 355,
+    x: 705,
     y: 314,
     width: 220,
     height: 146,
     icon: Database,
     title: "Your data",
-    lines: ["Read-only SQL queries"],
+    lines: ["Read-only queries"],
     footer: "F1 lap times · SQLite",
   },
 ];
 
-// Horizontal links: a forward arrow above a return arrow, each with its label.
+// One request and one reply between each pair of boxes, read left to right.
 const links = [
-  { from: 220, to: 350, forward: ["Question"], back: ["UI stream"] },
-  {
-    from: 580,
-    to: 710,
-    forward: ["Question", "Tool results"],
-    back: ["Tool calls", "OpenUI Lang"],
-  },
+  { from: 220, to: 350, request: "Question", reply: "Answer" },
+  { from: 580, to: 710, request: "Tool call", reply: "Tool result" },
 ];
 
 const label = "fill-fd-foreground font-mono text-[13px] font-bold uppercase tracking-[0.1em]";
@@ -129,6 +125,20 @@ function BoxNode({ box }: { box: Box }) {
   );
 }
 
+function Arrow({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: number }) {
+  return (
+    <line
+      x1={x1}
+      y1={y1}
+      x2={x2}
+      y2={y2}
+      stroke="currentColor"
+      strokeWidth={1.6}
+      markerEnd="url(#analytics-architecture-arrow)"
+    />
+  );
+}
+
 export function CookbookAnalyticsArchitecture() {
   return (
     <figure className="not-prose my-6 overflow-x-auto">
@@ -142,9 +152,10 @@ export function CookbookAnalyticsArchitecture() {
           How the conversational analytics example works
         </title>
         <desc id="analytics-architecture-description">
-          Agent Interface sends the question to your server, which forwards it to OpenUI Gateway.
-          Gateway calls query_lap_times, your server queries its read-only data and returns the
-          rows, and Gateway streams OpenUI Lang back through your server to Agent Interface.
+          A chat interface, such as Agent Interface, sends the question to OpenUI Gateway, which
+          runs the model. The model makes a tool call to your server, which runs a read-only query
+          against your data and returns the tool result. Gateway then streams the answer back to the
+          chat interface.
         </desc>
         <defs>
           <marker
@@ -171,74 +182,26 @@ export function CookbookAnalyticsArchitecture() {
         {links.map((link) => {
           const center = (link.from + link.to) / 2;
           return (
-            <g key={link.from}>
-              <line
-                x1={link.from + 4}
-                y1={100}
-                x2={link.to - 6}
-                y2={100}
-                stroke="currentColor"
-                strokeWidth={1.6}
-                markerEnd="url(#analytics-architecture-arrow)"
-              />
-              <line
-                x1={link.to - 4}
-                y1={150}
-                x2={link.from + 6}
-                y2={150}
-                stroke="currentColor"
-                strokeWidth={1.6}
-                markerEnd="url(#analytics-architecture-arrow)"
-              />
-              {link.forward.map((text, index) => (
-                <text
-                  key={text}
-                  x={center}
-                  y={88 - (link.forward.length - 1 - index) * 17}
-                  textAnchor="middle"
-                  className={label}
-                >
-                  {text}
-                </text>
-              ))}
-              {link.back.map((text, index) => (
-                <text
-                  key={text}
-                  x={center}
-                  y={172 + index * 17}
-                  textAnchor="middle"
-                  className={label}
-                >
-                  {text}
-                </text>
-              ))}
+            <g key={link.request}>
+              <Arrow x1={link.from + 4} y1={108} x2={link.to - 6} y2={108} />
+              <text x={center} y={96} textAnchor="middle" className={label}>
+                {link.request}
+              </text>
+              <Arrow x1={link.to - 4} y1={158} x2={link.from + 6} y2={158} />
+              <text x={center} y={180} textAnchor="middle" className={label}>
+                {link.reply}
+              </text>
             </g>
           );
         })}
 
         {/* Your server queries the data and receives rows. */}
-        <line
-          x1={440}
-          y1={244}
-          x2={440}
-          y2={308}
-          stroke="currentColor"
-          strokeWidth={1.6}
-          markerEnd="url(#analytics-architecture-arrow)"
-        />
-        <line
-          x1={490}
-          y1={310}
-          x2={490}
-          y2={246}
-          stroke="currentColor"
-          strokeWidth={1.6}
-          markerEnd="url(#analytics-architecture-arrow)"
-        />
-        <text x={430} y={281} textAnchor="end" className={label}>
+        <Arrow x1={790} y1={228} x2={790} y2={308} />
+        <Arrow x1={840} y1={310} x2={840} y2={230} />
+        <text x={780} y={274} textAnchor="end" className={label}>
           Query
         </text>
-        <text x={500} y={281} className={label}>
+        <text x={850} y={274} className={label}>
           Rows
         </text>
 
