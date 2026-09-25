@@ -1,5 +1,5 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
-import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../shared/types";
+import type { StreamAdapter } from "../shared/types";
 import { isUIOutput, splitClosedFence, unwrapOpenUIFence } from "../shared/utils";
 
 /** Create a correction or stop chunk with the original completion's routing fields. */
@@ -31,7 +31,7 @@ export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
   protocol: "openai-chat-completions",
   // Track text within each choice and wait for the finish reason before attempting repair.
   async *transform(source, fix) {
-    const texts = new Map<string, string | null>();
+    const texts = new Map<string, string>();
     const closings = new Map<string, string>();
     const hasTools = new Set<string>();
     const failed = new Set<string>();
@@ -81,26 +81,16 @@ export const openAIAdapter: StreamAdapter<ChatCompletionChunk> = {
         // Accumulate text and maybe hold a closing fence.
         if (previous != null) {
           const combined = previous + incoming;
-          // Too large to send to Autofix; stop holding.
-          if (combined.length > MAX_AUTOFIX_GENERATION_LENGTH) {
-            texts.set(id, null);
-            const closing = closings.get(id);
-            closings.delete(id);
-            if (closing) {
-              choice = { ...choice, delta: { ...choice.delta, content: closing + incoming } };
-            }
+          texts.set(id, combined);
+          const split = splitClosedFence(combined);
+          // Hold the closing fence so a later repair stays inside it.
+          if (split) {
+            closings.set(id, split.closing);
+            const emit = split.body.slice(previous.length);
+            // Always strip the closer from this delta; it is re-emitted in release.
+            choice = { ...choice, delta: { ...choice.delta, content: emit } };
           } else {
-            texts.set(id, combined);
-            const split = splitClosedFence(combined);
-            // Hold the closing fence so a later repair stays inside it.
-            if (split) {
-              closings.set(id, split.closing);
-              const emit = split.body.slice(previous.length);
-              // Always strip the closer from this delta; it is re-emitted in release.
-              choice = { ...choice, delta: { ...choice.delta, content: emit } };
-            } else {
-              closings.delete(id);
-            }
+            closings.delete(id);
           }
         }
 

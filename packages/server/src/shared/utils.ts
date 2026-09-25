@@ -76,11 +76,10 @@ export function readCompletion(body: unknown): Omit<AutofixResult, "original"> {
   };
 }
 
-/** Keep recent text context within the endpoint's limit of 20 messages and 8,000 characters. */
+/** Keep the most recent 20 text context messages without truncating their content. */
 export function repairContext(messages: NonNullable<BaseAutofixInput["messages"]>) {
   const context: { role: "user" | "assistant" | "system" | "developer"; content: string }[] = [];
-  let remaining = 8_000;
-  for (let i = messages.length - 1; i >= 0 && context.length < 20 && remaining > 0; i--) {
+  for (let i = messages.length - 1; i >= 0 && context.length < 20; i--) {
     const message = messages[i]!;
     if (!["user", "assistant", "system", "developer"].includes(message.role)) continue;
     const text =
@@ -88,9 +87,7 @@ export function repairContext(messages: NonNullable<BaseAutofixInput["messages"]
         ? message.content
         : (message.content ?? []).map((part) => (part.type === "text" ? part.text : "")).join("\n");
     if (!text) continue;
-    const content = text.slice(-remaining);
-    context.unshift({ role: message.role as (typeof context)[number]["role"], content });
-    remaining -= content.length;
+    context.unshift({ role: message.role as (typeof context)[number]["role"], content: text });
   }
   return context;
 }
