@@ -1,0 +1,219 @@
+---
+title: "@openuidev/svelte-lang"
+description: API reference for Svelte 5 component libraries, streaming rendering, actions, form state, and validation.
+---
+
+Use this package to define Svelte components a model can render, generate prompts from their schemas, and render streamed OpenUI Lang. It provides a `Renderer` component and context helpers for use inside rendered components. You supply your component library, styling, chat interface, and model transport.
+
+For a runnable SvelteKit chat integration with the Vercel AI SDK, see the [Svelte example](https://github.com/thesysdev/openui/tree/main/examples/app-frameworks/svelte).
+
+## Install
+
+```bash
+npm install @openuidev/svelte-lang zod
+```
+
+Version `0.3.0` requires Svelte `>=5.0.0` and Zod `^3.25.0 || ^4.0.0`. Use the `zod/v4` API when defining schemas.
+
+<Callout type="info">
+  The Svelte renderer covers component rendering, actions, and form state. It does not yet run
+  `Query()` calls, mutations, or `$variable` state, and it has no `toolProvider`, `queryLoader`, or
+  `onError` props. The [React](/docs/api-reference/react-lang), [Vue](/docs/api-reference/vue-lang),
+  and [Angular](/docs/api-reference/angular-lang) runtimes support them.
+</Callout>
+
+## Define a library
+
+`defineComponent(config)` accepts a name, description, ordered Zod object schema, and Svelte component. It returns a `DefinedComponent` whose `.ref` can be used in another component's schema, such as `z.array(Child.ref)`.
+
+Registered components receive a `props` prop containing the parsed values, plus a `renderNode` snippet. Props may be incomplete while the model streams; use optional access and empty-array fallbacks in markup.
+
+```svelte title="Greeting.svelte"
+<script lang="ts">
+  let { props }: { props: { name?: string } } = $props();
+</script>
+
+<p>Hello, {props.name}!</p>
+```
+
+```ts title="library.ts"
+import { createLibrary, defineComponent } from "@openuidev/svelte-lang";
+import { z } from "zod/v4";
+import GreetingComponent from "./Greeting.svelte";
+
+const Greeting = defineComponent({
+  name: "Greeting",
+  description: "Greet the user by name.",
+  props: z.object({ name: z.string() }),
+  component: GreetingComponent,
+});
+
+export const library = createLibrary({
+  components: [Greeting],
+  root: "Greeting",
+});
+
+const systemPrompt = library.prompt({
+  preamble: "You are a helpful assistant.",
+  examples: ['root = Greeting("Alice")'],
+});
+const schema = library.toJSONSchema();
+```
+
+`createLibrary(definition)` accepts `components` and an optional `root`, `id`, or `componentGroups`. It returns the component registry, `prompt(options?)`, and `toJSONSchema()`. Use `PromptOptions` for prompt options such as `preamble`, `additionalRules`, and `examples`.
+
+The order of schema properties determines the positional argument order in OpenUI Lang. Generate the model prompt from the same definitions the renderer uses. For a SvelteKit server route, share the schema definitions and use `@openuidev/lang-core` to generate prompts without importing `.svelte` files.
+
+## `Renderer`
+
+Pass the accumulated response text as it streams. Callbacks are ordinary props.
+
+```svelte title="AssistantMessage.svelte"
+<script lang="ts">
+  import { Renderer, type ActionEvent } from "@openuidev/svelte-lang";
+  import { library } from "./library";
+
+  let { response, isStreaming }: { response: string | null; isStreaming: boolean } = $props();
+
+  function handleAction(event: ActionEvent) {
+    // Forward continuation actions to your application's normal send-message path.
+    console.log(event.humanFriendlyMessage, event.formState);
+  }
+</script>
+
+<Renderer {response} {library} {isStreaming} onAction={handleAction} />
+```
+
+| Prop            | Type                                    | Purpose                                                        |
+| :-------------- | :-------------------------------------- | :------------------------------------------------------------- |
+| `response`      | `string \| null`                        | Accumulated OpenUI Lang text                                   |
+| `library`       | `Library`                               | Library returned by `createLibrary`                            |
+| `isStreaming`   | `boolean`                               | Whether the model is still producing text; defaults to `false` |
+| `onAction`      | `(event: ActionEvent) => void`          | Continuation or URL action dispatched by a component           |
+| `onStateUpdate` | `(state: Record<string, any>) => void`  | Updated form state map                                         |
+| `initialState`  | `Record<string, any>`                   | Form state to hydrate; replaced when a new object is passed    |
+| `onParseResult` | `(result: ParseResult \| null) => void` | Current parse result                                           |
+
+The renderer builds its parser from `library` once when it mounts. To switch libraries, wrap the `Renderer` in a `{#key library}` block.
+
+`initialState` and `onStateUpdate` use the shape `{ [formName]: { [fieldName]: { value, componentType } } }`. Fields set without a form name are stored at the top level.
+
+A component that throws while rendering is logged to the console and renders nothing until its node or props change. Parse exceptions are also logged, and the renderer shows nothing until the response parses again.
+
+## Nested components with `renderNode`
+
+`renderNode` is a Svelte snippet passed to every registered component. It renders values, arrays, and parsed element nodes. Render children with `{@render}`:
+
+```svelte title="Card.svelte"
+<script lang="ts">
+  import type { Snippet } from "svelte";
+
+  let {
+    props,
+    renderNode,
+  }: { props: { title?: string; children?: unknown[] }; renderNode: Snippet<[unknown]> } =
+    $props();
+</script>
+
+<section>
+  {#if props.title}<h3>{props.title}</h3>{/if}
+  {@render renderNode(props.children)}
+</section>
+```
+
+Register the container with `defineComponent` and describe its allowed children using their `.ref` schemas. `renderNode` is passed as a prop rather than through context, so forward it explicitly if a child Svelte component needs to render nested nodes.
+
+A form component can call `setFormNameContext(name)` so descendants can read it with `getFormName()`.
+
+## Context helpers
+
+Call these helpers during component initialization, in the `<script>` block of a component rendered inside `Renderer`. `getOpenUIContext()` throws when used outside a renderer.
+
+| Helper                 | Returns                                       |
+| :--------------------- | :-------------------------------------------- |
+| `getOpenUIContext()`   | Full `OpenUIContextValue`                     |
+| `getTriggerAction()`   | Runtime `triggerAction` function              |
+| `getIsStreaming()`     | `() => boolean` getter                        |
+| `getGetFieldValue()`   | Runtime `getFieldValue` function              |
+| `getSetFieldValue()`   | Runtime `setFieldValue` function              |
+| `getFormName()`        | Current form name, or `undefined`             |
+| `useSetDefaultValue()` | Nothing; persists a default value (see below) |
+
+`setOpenUIContext(value)` is exported for custom renderers; `Renderer` calls it for you.
+
+`getIsStreaming()` returns a getter so the value stays reactive. Call it in markup:
+
+```svelte
+<script lang="ts">
+  import { getIsStreaming } from "@openuidev/svelte-lang";
+
+  const isStreaming = getIsStreaming();
+</script>
+
+<button disabled={isStreaming()}>Submit</button>
+```
+
+### Actions
+
+```ts
+triggerAction(
+  userMessage: string,
+  formName?: string,
+  action?: ActionConfig,
+): void;
+```
+
+Calling `triggerAction("Explain the chart")` emits a `BuiltinActionType.ContinueConversation` action. Pass `{ type, params }` as `action` to emit a different type, such as `BuiltinActionType.OpenUrl`. Handle `onAction` in the host to send a new model turn or open the URL. The renderer does not call an LLM itself.
+
+`ActionEvent` includes `type`, `params`, `humanFriendlyMessage`, and optional `formState` and `formName`. When `formName` is given, `formState` contains only that form; otherwise it contains all form state.
+
+### Field state and defaults
+
+```ts
+getFieldValue(formName: string | undefined, name: string): any;
+
+setFieldValue(
+  formName: string | undefined,
+  componentType: string | undefined,
+  name: string,
+  value: any,
+  shouldTriggerSaveCallback?: boolean, // defaults to true
+): void;
+```
+
+Text inputs should pass `false` for `shouldTriggerSaveCallback` on change and `true` on blur. Discrete inputs such as selects and radio groups should pass `true`.
+
+`useSetDefaultValue({ formName?, componentType, name, defaultValue, shouldTriggerSaveCallback? })` persists `defaultValue` once streaming finishes, but only when the field has no value yet. `shouldTriggerSaveCallback` defaults to `false`. Call it during component initialization; it uses `$effect`.
+
+## Form validation
+
+Validation helpers are opt-in for your custom form components:
+
+| Export                               | Purpose                                                         |
+| :----------------------------------- | :-------------------------------------------------------------- |
+| `createFormValidation()`             | Create a `FormValidationContextValue` backed by Svelte `$state` |
+| `setFormValidationContext(value)`    | Share a validation context with descendants                     |
+| `getFormValidation()`                | Read the closest context, or `null` when none was set           |
+| `parseRules`, `parseStructuredRules` | Convert validation declarations into parsed rules               |
+| `validate`, `builtInValidators`      | Run validation or access built-in validators                    |
+
+The context exposes a reactive `errors` record, `validateField`, `registerField`, `unregisterField`, `validateForm`, and `clearFieldError`. Register fields with `registerField(name, rules, getValue)`, unregister them in `onDestroy`, and call `validateForm()` before triggering the submit action. A validation context reports errors; your components render those messages and enforce submission behavior.
+
+## Parser
+
+`createParser` and `createStreamingParser` are re-exported from `@openuidev/lang-core`. A parser takes the library's JSON schema and optional root name:
+
+```ts
+import { createParser } from "@openuidev/svelte-lang";
+
+const parser = createParser(library.toJSONSchema(), "Greeting");
+const result = parser.parse('root = Greeting("Alice")');
+
+console.log(result.root, result.meta.errors, result.meta.unresolved);
+```
+
+In server-only code, import parser and prompt utilities directly from `@openuidev/lang-core`. Because the Svelte renderer has no `onError` prop, use `onParseResult` and inspect `result.meta.errors` to surface parser validation errors.
+
+## Types
+
+The package exports `Library`, `LibraryDefinition`, `DefinedComponent`, `ComponentRenderer` (a Svelte `Component`), `ComponentRenderProps`, `ComponentGroup`, `SubComponentOf`, `PromptOptions`, `RendererProps`, `OpenUIContextValue`, `ActionConfig`, `FormValidationContextValue`, `ParsedRule`, `ValidatorFn`, and the shared Lang Core `ActionEvent`, `ElementNode`, `ParseResult`, and `LibraryJSONSchema` types.

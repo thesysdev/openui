@@ -1,0 +1,242 @@
+---
+title: "@openuidev/vue-lang"
+description: API reference for Vue 3 component libraries, streaming rendering, actions, state, queries, and validation.
+---
+
+Use this package to define Vue components a model can render, generate prompts from their schemas, and render streamed OpenUI Lang. It provides a `Renderer` component and composables for use inside rendered components. You supply your component library, styling, chat interface, and model transport.
+
+For a runnable Nuxt chat integration with the Vercel AI SDK, see the [Vue example](https://github.com/thesysdev/openui/tree/main/examples/app-frameworks/vue).
+
+## Install
+
+```bash
+npm install @openuidev/vue-lang zod
+```
+
+Version `0.3.0` requires Vue `>=3.5.0` and Zod `^3.25.0 || ^4.0.0`. Use the `zod/v4` API when defining schemas.
+
+## Define a library
+
+`defineComponent(config)` accepts a name, description, ordered Zod object schema, and Vue component. It returns a `DefinedComponent` whose `.ref` can be used in another component's schema, such as `z.array(Child.ref)`.
+
+Registered components receive a single `props` prop containing the parsed values, plus a `renderNode` prop. Props may be incomplete while the model streams; use optional access and empty-array fallbacks in templates.
+
+```vue title="Greeting.vue"
+<script setup lang="ts">
+defineProps<{ props: { name?: string } }>();
+</script>
+
+<template>
+  <p>Hello, {{ props.name }}!</p>
+</template>
+```
+
+```ts title="library.ts"
+import { createLibrary, defineComponent } from "@openuidev/vue-lang";
+import { z } from "zod/v4";
+import GreetingComponent from "./Greeting.vue";
+
+const Greeting = defineComponent({
+  name: "Greeting",
+  description: "Greet the user by name.",
+  props: z.object({ name: z.string() }),
+  component: GreetingComponent,
+});
+
+export const library = createLibrary({
+  components: [Greeting],
+  root: "Greeting",
+});
+
+const systemPrompt = library.prompt({
+  preamble: "You are a helpful assistant.",
+  examples: ['root = Greeting("Alice")'],
+});
+const schema = library.toJSONSchema();
+```
+
+`createLibrary(definition)` accepts `components` and an optional `root`, `id`, or `componentGroups`. It returns the component registry, `prompt(options?)`, and `toJSONSchema()`. Use `PromptOptions` for prompt options such as `preamble`, `additionalRules`, and `examples`.
+
+The order of schema properties determines the positional argument order in OpenUI Lang. Generate the model prompt from the same definitions the renderer uses. For a server route, share the schema definitions and use `@openuidev/lang-core` to generate prompts without importing `.vue` files.
+
+## `Renderer`
+
+Pass the accumulated response text as it streams. Callbacks are ordinary props, not emitted events, so bind them with `:on-action` rather than `@action`.
+
+```vue title="AssistantMessage.vue"
+<script setup lang="ts">
+import { Renderer, type ActionEvent } from "@openuidev/vue-lang";
+import { library } from "./library";
+
+defineProps<{ response: string | null; isStreaming: boolean }>();
+
+function handleAction(event: ActionEvent) {
+  // Forward continuation actions to your application's normal send-message path.
+  console.log(event.humanFriendlyMessage, event.formState);
+}
+</script>
+
+<template>
+  <Renderer
+    :response="response"
+    :library="library"
+    :is-streaming="isStreaming"
+    :on-action="handleAction"
+  />
+</template>
+```
+
+| Prop            | Type                                                                  | Purpose                                                             |
+| :-------------- | :-------------------------------------------------------------------- | :------------------------------------------------------------------ |
+| `response`      | `string \| null`                                                      | Accumulated OpenUI Lang text                                        |
+| `library`       | `Library`                                                             | Library returned by `createLibrary`                                 |
+| `isStreaming`   | `boolean`                                                             | Whether the model is still producing text; defaults to `false`      |
+| `onAction`      | `(event: ActionEvent) => void`                                        | Continuation or URL action dispatched by a component                |
+| `onStateUpdate` | `(state: Record<string, any>) => void`                                | Updated store snapshot                                              |
+| `initialState`  | `Record<string, any>`                                                 | State for initial hydration                                         |
+| `onParseResult` | `(result: ParseResult \| null) => void`                               | Current parse result                                                |
+| `toolProvider`  | `Record<string, (args) => Promise<unknown>> \| McpClientLike \| null` | Async function map or MCP-like client for `Query()` and mutations   |
+| `queryLoader`   | `Component \| VNode \| null`                                          | Indicator displayed while a query is loading; defaults to a spinner |
+| `onError`       | `(errors: OpenUIError[]) => void`                                     | Structured parser, runtime, and tool errors                         |
+
+The renderer reads `library` once when it mounts. To switch libraries, give the `Renderer` a new `key` so it remounts.
+
+`onError` is called once streaming finishes and again whenever the error set changes; it is reset to `[]` when a new stream starts. Without `onError`, errors are logged with `console.warn`. A component that throws while rendering is logged to the console and renders nothing until its node or props change.
+
+## Nested components with `useRenderNode`
+
+`useRenderNode()` returns a function that turns a parsed value, array, or element node into VNodes. Render the result with a functional `<component>`:
+
+```vue title="Card.vue"
+<script setup lang="ts">
+import { useRenderNode } from "@openuidev/vue-lang";
+
+defineProps<{ props: { title?: string; children?: unknown[] } }>();
+const renderNode = useRenderNode();
+</script>
+
+<template>
+  <section>
+    <h3 v-if="props.title">{{ props.title }}</h3>
+    <component :is="() => renderNode(props.children)" />
+  </section>
+</template>
+```
+
+Register the container with `defineComponent` and describe its allowed children using their `.ref` schemas. The same function is also passed to every registered component as the `renderNode` prop.
+
+A form component can call `provideFormName(ref(name))` so descendants can read it with `useFormName()`.
+
+## Context composables
+
+Call composables in `<script setup>` of a component rendered inside `Renderer`. `useOpenUI()` throws when used outside a renderer.
+
+| Composable             | Returns                                       |
+| :--------------------- | :-------------------------------------------- |
+| `useOpenUI()`          | Full `OpenUIContextValue`                     |
+| `useRenderNode()`      | `(value: unknown) => RenderNodeResult`        |
+| `useTriggerAction()`   | Runtime `triggerAction` function              |
+| `useIsStreaming()`     | `Ref<boolean>`                                |
+| `useIsQueryLoading()`  | `Ref<boolean>`                                |
+| `useGetFieldValue()`   | Runtime `getFieldValue` function              |
+| `useSetFieldValue()`   | Runtime `setFieldValue` function              |
+| `useFormName()`        | `Ref<string \| undefined>`, or `undefined`    |
+| `useSetDefaultValue()` | Nothing; persists a default value (see below) |
+
+The full context also exposes the underlying `store` and `evaluationContext`. `provideOpenUIContext(value)` is exported for custom renderers; `Renderer` calls it for you.
+
+```vue
+<script setup lang="ts">
+import { useIsQueryLoading, useIsStreaming } from "@openuidev/vue-lang";
+
+const isStreaming = useIsStreaming();
+const isQueryLoading = useIsQueryLoading();
+</script>
+
+<template>
+  <button :disabled="isStreaming || isQueryLoading">Submit</button>
+</template>
+```
+
+### Actions
+
+```ts
+triggerAction(
+  userMessage: string,
+  formName?: string,
+  action?: ActionConfig,
+): void;
+```
+
+Calling `triggerAction("Explain the chart")` emits a `BuiltinActionType.ContinueConversation` action. Handle `onAction` in the host to send a new model turn. Preserve `humanFriendlyMessage`, relevant `params.context`, and `formState` when serializing the turn. The renderer does not call an LLM itself.
+
+`ActionEvent` includes `type`, `params`, `humanFriendlyMessage`, and optional `formState` and `formName`. `BuiltinActionType.OpenUrl` is a separate action for the host to handle. Action plans produced by OpenUI Lang can also set or reset state and run mutations; those steps execute in the runtime.
+
+### Field state and defaults
+
+```ts
+getFieldValue(formName: string | undefined, name: string): any;
+
+setFieldValue(
+  formName: string | undefined,
+  componentType: string | undefined,
+  name: string,
+  value: any,
+  shouldTriggerSaveCallback?: boolean, // defaults to true
+): void;
+```
+
+Text inputs should pass `false` for `shouldTriggerSaveCallback` on change and `true` on blur. Discrete inputs such as selects and radio groups should pass `true`.
+
+`useSetDefaultValue({ formName?, componentType, name, defaultValue, shouldTriggerSaveCallback? })` persists `defaultValue` once streaming finishes, but only when the field has no value yet. `shouldTriggerSaveCallback` defaults to `false`.
+
+## Form validation
+
+Validation helpers are opt-in for your custom form components:
+
+| Export                               | Purpose                                                        |
+| :----------------------------------- | :------------------------------------------------------------- |
+| `createFormValidation()`             | Create a `FormValidationContextValue` backed by Vue `reactive` |
+| `provideFormValidation(value)`       | Share a validation context with descendants                    |
+| `useFormValidation()`                | Inject the closest context, or `null` when none was provided   |
+| `parseRules`, `parseStructuredRules` | Convert validation declarations into parsed rules              |
+| `validate`, `builtInValidators`      | Run validation or access built-in validators                   |
+
+The context exposes a reactive `errors` record, `validateField`, `registerField`, `unregisterField`, `validateForm`, and `clearFieldError`. Register fields with `registerField(name, rules, getValue)`, unregister them in `onUnmounted`, and call `validateForm()` before triggering the submit action. A validation context reports errors; your components render those messages and enforce submission behavior.
+
+## Tool providers
+
+`toolProvider` is a map of async functions, an `McpClientLike` object, or `null`. A function-map entry receives an argument object and returns a promise. MCP-like clients expose `callTool({ name, arguments })`.
+
+```ts
+const toolProvider = {
+  async get_status(args: Record<string, unknown>) {
+    const response = await fetch(`/api/status?id=${encodeURIComponent(String(args.id))}`);
+    if (!response.ok) throw new Error("Could not load status");
+    return response.json();
+  },
+};
+```
+
+Pass it through `:tool-provider`. The runtime executes `Query()` calls and mutations invoked by action steps, and reads the latest `toolProvider` value on every call. Calling a name missing from a function map throws `ToolNotFoundError`. Keep secrets and privileged operations in your server endpoints. Use `queryLoader` and `useIsQueryLoading()` to provide loading feedback.
+
+## Parser and errors
+
+`createParser` and `createStreamingParser` are re-exported from `@openuidev/lang-core`. A parser takes the library's JSON schema and optional root name:
+
+```ts
+import { createParser } from "@openuidev/vue-lang";
+
+const parser = createParser(library.toJSONSchema(), "Greeting");
+const result = parser.parse('root = Greeting("Alice")');
+
+console.log(result.root, result.meta.errors, result.meta.unresolved);
+```
+
+In server-only code, import parser and prompt utilities directly from `@openuidev/lang-core`.
+
+Inspect `ParseResult.meta.errors` and the renderer's `onError` callback. `OpenUIError.code` distinguishes errors such as `parse-failed`, `missing-required`, `null-required`, `unknown-component`, `excess-args`, `tool-not-found`, `tool-error`, and `mcp-error`. Check unresolved references and the presence of a root before treating a complete model response as valid.
+
+## Types
+
+The package exports `Library`, `LibraryDefinition`, `DefinedComponent`, `ComponentRenderer` (a Vue `Component`), `ComponentRenderProps`, `RenderNodeResult`, `ComponentGroup`, `SubComponentOf`, `PromptOptions`, `RendererProps`, `OpenUIContextValue`, `ActionConfig`, `FormValidationContextValue`, `ParsedRule`, `ValidatorFn`, and the shared Lang Core `ActionEvent`, `ElementNode`, `EvaluationContext`, `McpClientLike`, `OpenUIError`, `ParseResult`, `ToolProvider`, and `LibraryJSONSchema` types.
