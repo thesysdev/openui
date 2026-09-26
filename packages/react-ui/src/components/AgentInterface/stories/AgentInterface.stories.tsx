@@ -276,13 +276,24 @@ export const WelcomeWithPrefillChips = {
 
 /** Composer-only starters (no Welcome) — chips above the input. */
 export const ComposerStarters = {
-  render: () => (
+  args: {
+    starterVariant: "short",
+  },
+  argTypes: {
+    starterVariant: {
+      control: "select",
+      options: ["short", "long"],
+      description: "Switch between pill and list-style conversation starters.",
+    },
+  },
+  render: ({ starterVariant }: { starterVariant: "short" | "long" }) => (
     <AgentInterface
       storage={emptyStorage}
       llm={echoLLM}
       logoUrl={logoUrl}
       agentName="OpenUI"
       starters={COMPOSER_STARTERS}
+      starterVariant={starterVariant}
     />
   ),
 };
