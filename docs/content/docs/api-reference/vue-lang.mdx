@@ -19,11 +19,16 @@ Version `0.3.0` requires Vue `>=3.5.0` and Zod `^3.25.0 || ^4.0.0`. Use the `zod
 
 `defineComponent(config)` accepts a name, description, ordered Zod object schema, and Vue component. It returns a `DefinedComponent` whose `.ref` can be used in another component's schema, such as `z.array(Child.ref)`.
 
-Registered components receive a single `props` prop containing the parsed values, plus a `renderNode` prop. Props may be incomplete while the model streams; use optional access and empty-array fallbacks in templates.
+Registered components receive a `props` prop containing the parsed values, plus a `renderNode` prop. Declare both, or Vue forwards the undeclared `renderNode` function to the root element as an attribute. Props may be incomplete while the model streams; use optional access and empty-array fallbacks in templates.
 
 ```vue title="Greeting.vue"
 <script setup lang="ts">
-defineProps<{ props: { name?: string } }>();
+import type { RenderNodeResult } from "@openuidev/vue-lang";
+
+defineProps<{
+  props: { name?: string };
+  renderNode: (value: unknown) => RenderNodeResult;
+}>();
 </script>
 
 <template>
@@ -109,9 +114,12 @@ The renderer reads `library` once when it mounts. To switch libraries, give the 
 
 ```vue title="Card.vue"
 <script setup lang="ts">
-import { useRenderNode } from "@openuidev/vue-lang";
+import { useRenderNode, type RenderNodeResult } from "@openuidev/vue-lang";
 
-defineProps<{ props: { title?: string; children?: unknown[] } }>();
+defineProps<{
+  props: { title?: string; children?: unknown[] };
+  renderNode: (value: unknown) => RenderNodeResult;
+}>();
 const renderNode = useRenderNode();
 </script>
 
@@ -240,3 +248,5 @@ Inspect `ParseResult.meta.errors` and the renderer's `onError` callback. `OpenUI
 ## Types
 
 The package exports `Library`, `LibraryDefinition`, `DefinedComponent`, `ComponentRenderer` (a Vue `Component`), `ComponentRenderProps`, `RenderNodeResult`, `ComponentGroup`, `SubComponentOf`, `PromptOptions`, `RendererProps`, `OpenUIContextValue`, `ActionConfig`, `FormValidationContextValue`, `ParsedRule`, `ValidatorFn`, and the shared Lang Core `ActionEvent`, `ElementNode`, `EvaluationContext`, `McpClientLike`, `OpenUIError`, `ParseResult`, `ToolProvider`, and `LibraryJSONSchema` types.
+
+Other value exports are `tagSchemaId`, `BuiltinActionType`, `ToolNotFoundError`, and `extractToolResult`, re-exported from Lang Core. `extractToolResult` unwraps an MCP `callTool` result: it returns `structuredContent` when present, otherwise the text content parsed as JSON when possible, and throws when the result is an error.

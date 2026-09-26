@@ -16,10 +16,12 @@ npm install @openuidev/svelte-lang zod
 Version `0.3.0` requires Svelte `>=5.0.0` and Zod `^3.25.0 || ^4.0.0`. Use the `zod/v4` API when defining schemas.
 
 <Callout type="info">
-  The Svelte renderer covers component rendering, actions, and form state. It does not yet run
-  `Query()` calls, mutations, or `$variable` state, and it has no `toolProvider`, `queryLoader`, or
-  `onError` props. The [React](/docs/api-reference/react-lang), [Vue](/docs/api-reference/vue-lang),
-  and [Angular](/docs/api-reference/angular-lang) runtimes support them.
+  The Svelte renderer covers component rendering, simple actions, and form state. It does not yet
+  evaluate prop expressions (ternaries, built-ins, `Each`, references), execute `Action([...])` step
+  plans, run `Query()` calls or mutations, or manage `$variable` state, and it has no
+  `toolProvider`, `queryLoader`, or `onError` props. The [React](/docs/api-reference/react-lang),
+  [Vue](/docs/api-reference/vue-lang), and [Angular](/docs/api-reference/angular-lang) runtimes
+  support them.
 </Callout>
 
 ## Define a library
@@ -96,6 +98,8 @@ Pass the accumulated response text as it streams. Callbacks are ordinary props.
 
 The renderer builds its parser from `library` once when it mounts. To switch libraries, wrap the `Renderer` in a `{#key library}` block.
 
+The renderer does not pass `library.root` to its parser. It renders the `root` statement when one exists, and otherwise the first component statement; `root` still shapes the generated prompt.
+
 `initialState` and `onStateUpdate` use the shape `{ [formName]: { [fieldName]: { value, componentType } } }`. Fields set without a form name are stored at the top level.
 
 A component that throws while rendering is logged to the console and renders nothing until its node or props change. Parse exceptions are also logged, and the renderer shows nothing until the response parses again.
@@ -165,7 +169,7 @@ triggerAction(
 
 Calling `triggerAction("Explain the chart")` emits a `BuiltinActionType.ContinueConversation` action. Pass `{ type, params }` as `action` to emit a different type, such as `BuiltinActionType.OpenUrl`. Handle `onAction` in the host to send a new model turn or open the URL. The renderer does not call an LLM itself.
 
-`ActionEvent` includes `type`, `params`, `humanFriendlyMessage`, and optional `formState` and `formName`. When `formName` is given, `formState` contains only that form; otherwise it contains all form state.
+`ActionEvent` includes `type`, `params`, `humanFriendlyMessage`, and optional `formState` and `formName`. When `formName` names a form that has values, `formState` contains only that form. Otherwise it contains all form state, or is `undefined` when no field has a value yet.
 
 ### Field state and defaults
 
@@ -217,3 +221,5 @@ In server-only code, import parser and prompt utilities directly from `@openuide
 ## Types
 
 The package exports `Library`, `LibraryDefinition`, `DefinedComponent`, `ComponentRenderer` (a Svelte `Component`), `ComponentRenderProps`, `ComponentGroup`, `SubComponentOf`, `PromptOptions`, `RendererProps`, `OpenUIContextValue`, `ActionConfig`, `FormValidationContextValue`, `ParsedRule`, `ValidatorFn`, and the shared Lang Core `ActionEvent`, `ElementNode`, `ParseResult`, and `LibraryJSONSchema` types.
+
+Other value exports are `tagSchemaId` and `BuiltinActionType`, re-exported from Lang Core.
