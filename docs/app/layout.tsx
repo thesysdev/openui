@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 const SITE_TITLE = "OpenUI - The Open Standard for Generative UI";
 const SITE_DESCRIPTION =
-  "Full-stack, renderer-agnostic Generative UI built on OpenUI Lang, a streaming-first language with official React support, community integrations, and up to 67% fewer tokens than JSON.";
+  "Full-stack, framework-agnostic Generative UI built on OpenUI Lang, a streaming-first language with first-party runtimes for React, Vue, Svelte, and Angular, and up to 67% fewer tokens than JSON.";
 const SITE_IMAGE = "/meta-image.png?v=20260725-1708";
 
 export const metadata: Metadata = {

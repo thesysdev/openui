@@ -21,7 +21,7 @@
 
 </div>
 
-OpenUI is a full-stack, renderer-agnostic Generative UI framework built around a compact, streaming-first language. It offers official React support with built-in component libraries and ready-to-use chat interfaces, plus community-supported integrations for other frameworks. OpenUI Lang uses up to 67% fewer tokens than JSON.
+OpenUI is a full-stack, framework-agnostic Generative UI framework built around a compact, streaming-first language. A framework-agnostic core powers first-party runtimes for React, Vue, Svelte, and Angular, and React additionally ships built-in component libraries and ready-to-use chat interfaces. OpenUI Lang uses up to 67% fewer tokens than JSON.
 
 <div align="center">
 
@@ -47,7 +47,7 @@ At the center of OpenUI is **OpenUI Lang**: a compact, streaming-first language 
 - **OpenUI Lang** - A compact language for structured UI generation designed for streaming output.
 - **Built-in component libraries** - Charts, forms, tables, layouts, and more, ready to use or extend.
 - **Prompt generation from your component library** - Generate model instructions directly from the components you allow.
-- **Streaming renderer** - Parse and render model output progressively in React as tokens arrive.
+- **Streaming renderer** - Parse and render model output progressively in React, Vue, Svelte, or Angular as tokens arrive.
 - **Chat and app surfaces** - Use the same foundation for assistants, copilots, and broader interactive product flows.
 
 ## Quick Start
