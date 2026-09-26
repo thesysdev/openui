@@ -3,6 +3,27 @@ import { PieChartData } from "../PieChart";
 import { RadialChartData } from "../RadialChart";
 import { LegendItem } from "../types";
 
+// Shared empty array reference so that normalizing nullish data does not
+// allocate a new array on every render (a fresh `[]` would change identity
+// and defeat the charts' `useMemo`/`React.memo` optimizations).
+const EMPTY_CHART_DATA: readonly never[] = [];
+
+/**
+ * Normalizes a chart's `data` prop to always be an array.
+ *
+ * While generative UI is streaming, `data` can momentarily be `null` or
+ * `undefined` before the full payload arrives. Passing that straight into the
+ * chart internals throws (e.g. `getDataKeys`, `data.length`, `[...data]`).
+ * This guard falls back to a stable shared empty array so charts render an
+ * empty state instead of crashing.
+ *
+ * @param data - The raw `data` prop, which may be nullish mid-stream.
+ * @returns The original array, or a stable empty array when `data` is nullish.
+ */
+export const normalizeChartData = <T extends readonly unknown[]>(data: T | null | undefined): T => {
+  return (Array.isArray(data) ? data : EMPTY_CHART_DATA) as T;
+};
+
 /**
  * This function returns the data keys for the chart, used for the data keys of the chart.
  * @param data - The data to be displayed in the chart.
@@ -10,10 +31,10 @@ import { LegendItem } from "../types";
  * @returns The data keys for the chart.
  */
 export const getDataKeys = (
-  data: Array<Record<string, string | number>>,
+  data: Array<Record<string, string | number>> | null | undefined,
   categoryKey: string,
 ): string[] => {
-  return Object.keys(data[0] || {}).filter((key) => key !== categoryKey);
+  return Object.keys(data?.[0] || {}).filter((key) => key !== categoryKey);
 };
 
 /**

@@ -7,7 +7,7 @@ import { useExportChartData, useTransformedKeys } from "../hooks";
 import { DefaultLegend } from "../shared/DefaultLegend/DefaultLegend";
 import { StackedLegend } from "../shared/StackedLegend/StackedLegend";
 import { LegendItem } from "../types/Legend";
-import { getCategoricalChartConfig } from "../utils/dataUtils";
+import { getCategoricalChartConfig, normalizeChartData } from "../utils/dataUtils";
 import { PaletteName, useChartPalette } from "../utils/PalletUtils";
 import { RadialChartData } from "./types";
 import {
@@ -68,6 +68,8 @@ export const RadialChart = <T extends RadialChartData>({
   height,
   width,
 }: RadialChartProps<T>) => {
+  // Guard against nullish `data` while generative UI is streaming.
+  data = normalizeChartData(data);
   const printContext = usePrintContext();
   isAnimationActive = printContext ? false : isAnimationActive;
 
