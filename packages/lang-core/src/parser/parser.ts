@@ -481,7 +481,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
   // a prefix of the new cleaned text (e.g. an opening ```fence``` just appeared
   // and shifted the stripped output), the watermark + cache are stale, so reset
   // and re-scan. When the prefix is stable (the common streaming case) the cache
-  // is kept, so a partial trailing statement never blanks already-completed ones.
+  // is kept; pending text is overlaid on a copy when building the current result.
   function refreshCleaned() {
     const next = preprocess(buf, true);
     if (!next.startsWith(cleaned.slice(0, completedEnd))) {
@@ -590,15 +590,12 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       );
     }
 
-    // Merge: completed cache + re-parsed pending statement.
-    // Incomplete pending text cannot overwrite completed IDs — autoClose would
-    // otherwise invent closers (e.g. `root = Card(` → `root = Card()`) and
-    // clobber a finished definition mid-stream.
-    // Complete pending statements last-wins, matching parse(). Needed when the
-    // last statement has no trailing newline and therefore never hits addStmt.
+    // Overlay pending definitions on a copy of the completed cache, including
+    // redefined IDs, so replacements render progressively like new statements.
+    // autoClose supplies temporary closers for partial content; the completed
+    // cache is unchanged until the scanner reaches a statement boundary.
     const allStmtMap = new Map(completedStmtMap);
     for (const s of stmts) {
-      if (wasIncomplete && completedStmtMap.has(s.id)) continue;
       const expr = parseExpression(s.tokens);
       const stmt = classifyStatement(s, expr);
       allStmtMap.set(s.id, stmt);
