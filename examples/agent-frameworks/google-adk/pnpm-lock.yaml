@@ -6327,7 +6327,7 @@ snapshots:
     dependencies:
       '@mikro-orm/core': 6.6.16
       fs-extra: 11.3.3
-      knex: 3.2.10(mysql2@3.20.0(@types/node@22.20.1))(pg@8.20.0)
+      knex: 3.2.10(pg@8.20.0)(tedious@19.2.1)
       sqlstring: 2.3.3
     optionalDependencies:
       mariadb: 3.4.5
