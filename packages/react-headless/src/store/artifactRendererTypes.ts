@@ -81,8 +81,8 @@ export interface ArtifactRendererConfig<Props = unknown> {
    *  - `response` as `null` (the tool result hasn't arrived yet — see
    *    {@link ArtifactRendererControls.isStreaming}).
    *
-   * Storage path (artifact browser): receives `{ args: undefined, response: artifact.content }` —
-   * stored `content` must therefore have the same shape as the tool-call response.
+   * Storage path (artifact browser): receives `{ id: artifact.id, args: undefined, response: artifact.content }` —
+   * `raw.id` supplies the stored identity alongside the content.
    *
    * Return `null` to skip rendering. Return `meta: null` to render without
    * registering in the ThreadContext (entry hidden from workspace lists).
@@ -90,7 +90,7 @@ export interface ArtifactRendererConfig<Props = unknown> {
    * when `(id, version)` changes, the registry entry is re-registered.
    */
   parser: (
-    raw: { args: unknown; response: unknown },
+    raw: { id?: string; args: unknown; response: unknown },
     ctx: { isStreaming: boolean },
   ) => ParsedArtifact<Props> | null;
   /** Renders the inline preview shown in the chat message. */

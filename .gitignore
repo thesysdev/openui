@@ -21,6 +21,9 @@
 .cursor/plans
 .cursor/agents
 
+# Codex
+.Codex/
+
 # Claude
 Claude.md
 .claude/
