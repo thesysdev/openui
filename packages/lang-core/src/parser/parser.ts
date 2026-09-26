@@ -398,18 +398,9 @@ function stripComments(input: string): string {
     .join("\n");
 }
 
-/** Clean LLM response: strip fences, comments, and surrounding whitespace.
- *
- * Streaming preserves trailing newlines so the final completed statement can
- * enter the cache. Non-streaming keeps the original full-trimming behavior.
- */
-function preprocess(input: string, preserveTrailingNewlines = false): string {
-  const trimmed = preserveTrailingNewlines ? input.trimStart() : input.trim();
-  const stripped = stripComments(stripFences(trimmed));
-  const content = stripped.trim();
-  if (!content || !preserveTrailingNewlines) return content;
-  const trailingNewlines = stripped.match(/\n*$/)?.[0] ?? "";
-  return content + trailingNewlines;
+/** Clean LLM response: strip fences, comments, whitespace. */
+function preprocess(input: string): string {
+  return stripComments(stripFences(input.trim())).trim();
 }
 
 /**
@@ -483,7 +474,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
   // and re-scan. When the prefix is stable (the common streaming case) the cache
   // is kept; pending text is overlaid on a copy when building the current result.
   function refreshCleaned() {
-    const next = preprocess(buf, true);
+    const next = preprocess(buf);
     if (!next.startsWith(cleaned.slice(0, completedEnd))) {
       completedEnd = 0;
       completedStmtMap.clear();
