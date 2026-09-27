@@ -152,3 +152,5 @@ hands-on-table-chat/
 ```bash
 pnpm verify
 ```
+
+Each browser profile receives a random spreadsheet ID stored in localStorage. Reloads reuse that table while the server is running; another browser starts with its own demo data. The table store is in memory and resets on server restart. This demo does not provide authenticated sharing.

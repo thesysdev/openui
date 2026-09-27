@@ -59,7 +59,7 @@ The migration creates:
 ### 4. Configure environment variables
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env
 ```
 
 | Variable                        | Where to find it                                      |
@@ -139,7 +139,7 @@ A Supabase Realtime channel subscribes to `postgres_changes` on the `threads` ta
 
 ```
 examples/miscellaneous/supabase/
-├── .env.local.example
+├── .env.example
 ├── supabase/
 │   └── migrations/
 │       └── 20240101000000_create_chat_tables.sql

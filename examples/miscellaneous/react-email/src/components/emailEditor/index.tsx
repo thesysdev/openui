@@ -20,6 +20,7 @@ export function EmailEditor({ onNewEmail }: { onNewEmail: () => void }) {
 
   const messages = useThread((s) => s.messages);
   const isRunning = useThread((s) => s.isRunning);
+  const threadError = useThread((s) => s.threadError);
   const processMessage = useThread((s) => s.processMessage);
 
   const lastAssistantMessage = useMemo(() => {
@@ -66,6 +67,11 @@ export function EmailEditor({ onNewEmail }: { onNewEmail: () => void }) {
         backgroundColor: isDark ? "#050505" : "#f5f5f5",
       }}
     >
+      {threadError && (
+        <p role="alert" style={{ color: "#f87171", padding: 16 }}>
+          {threadError.message}
+        </p>
+      )}
       <TopBar isDark={isDark} isMobile={isMobile} isRunning={isRunning} onNewEmail={onNewEmail} />
 
       {isMobile && hasContent && (

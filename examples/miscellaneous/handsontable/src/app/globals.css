@@ -277,7 +277,9 @@ body {
   background: rgba(10, 10, 10, 0.8);
   color: #999;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .chat-close-btn:hover {
@@ -302,13 +304,19 @@ body {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.15);
-  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(59, 130, 246, 0.15);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 
 .chat-fab:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.3);
+  box-shadow:
+    0 6px 28px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(59, 130, 246, 0.3);
 }
 
 .chat-fab__label {
@@ -353,4 +361,8 @@ body {
 .persistent-spreadsheet .handsontable {
   position: relative;
   z-index: 1;
+}
+
+.persistent-spreadsheet .wtHolder {
+  background: #111;
 }

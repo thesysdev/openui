@@ -1,23 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useTableContext } from "./TableContext";
 
 type CellValue = string | number | null;
 
+// Tool results on the server are authoritative; generated UI must never write
+// a stale or partially streamed copy back over the spreadsheet.
 export function useSpreadsheetSync(
   data: CellValue[][] | undefined,
-  colHeaders: string[] | undefined
+  colHeaders: string[] | undefined,
 ) {
-  const { syncTableData } = useTableContext();
-  const lastDataRef = useRef<string>("");
-
+  const { refreshTableData } = useTableContext();
   useEffect(() => {
-    if (!data) return;
-    const dataStr = JSON.stringify({ data, colHeaders });
-    if (dataStr !== lastDataRef.current) {
-      lastDataRef.current = dataStr;
-      syncTableData(data, colHeaders);
-    }
-  }, [data, colHeaders, syncTableData]);
+    if (data && colHeaders) void refreshTableData().catch(console.error);
+  }, [data, colHeaders, refreshTableData]);
 }

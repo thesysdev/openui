@@ -51,12 +51,12 @@ pnpm install --ignore-workspace
 Then start the example and choose the project Grok Build should work in:
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 pnpm dev -- /absolute/path/to/your/project
 ```
 
 Running `pnpm dev` without a path prompts for the workspace in an interactive terminal. You can
-also set `GROK_BUILD_CWD=/absolute/path` in `.env.local` or the shell to skip the prompt. The
+also set `GROK_BUILD_CWD=/absolute/path` in `.env` or the shell to skip the prompt. The
 launcher validates the directory and prints the resolved workspace before starting Next.js.
 
 Open [http://localhost:3000](http://localhost:3000) after the server starts.

@@ -131,7 +131,6 @@ function pruneLockfiles(pkgDir: string, packageManager: PackageManagerName): voi
 function copyEnvExamples(projectDir: string): void {
   const mappings: Array<[string, string]> = [
     [".env.example", ".env"],
-    [".env.local.example", ".env.local"],
     ["env.example", ".env"],
   ];
 

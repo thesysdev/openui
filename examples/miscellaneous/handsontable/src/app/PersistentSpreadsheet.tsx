@@ -12,9 +12,7 @@ function deepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
 }
 
-const DEFAULT_DATA: CellValue[][] = Array.from({ length: 10 }, () =>
-  Array(6).fill(null)
-);
+const DEFAULT_DATA: CellValue[][] = Array.from({ length: 10 }, () => Array(6).fill(null));
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 let HotTable: any = null;
@@ -77,17 +75,13 @@ export default function PersistentSpreadsheet() {
 
   const saveData = useCallback(
     async (data: CellValue[][], colHeaders?: string[]) => {
-      if (isSyncingRef.current) return;
       try {
-        isSyncingRef.current = true;
         await syncTableData(data, colHeaders || colHeadersRef.current);
       } catch (e) {
         console.error("Failed to save table data:", e);
-      } finally {
-        isSyncingRef.current = false;
       }
     },
-    [syncTableData]
+    [syncTableData],
   );
 
   useEffect(() => {
@@ -97,6 +91,7 @@ export default function PersistentSpreadsheet() {
     const data = tableData?.data || DEFAULT_DATA;
     const colHeaders = tableData?.colHeaders;
 
+    isSyncingRef.current = true;
     hot.loadData(deepClone(data));
     if (colHeaders) {
       hot.updateSettings({ colHeaders });
@@ -104,37 +99,46 @@ export default function PersistentSpreadsheet() {
     }
 
     lastContextDataRef.current = JSON.stringify(tableData);
+    isSyncingRef.current = false;
     setIsInitialized(true);
   }, [isClient, tableData, isInitialized]);
 
   useEffect(() => {
     const hot = hotRef.current?.hotInstance;
-    if (!hot || !isInitialized || isSyncingRef.current) return;
+    if (!hot || !isInitialized) return;
 
     const str = JSON.stringify(tableData);
     if (str !== lastContextDataRef.current && tableData?.data) {
       lastContextDataRef.current = str;
+      isSyncingRef.current = true;
+      colHeadersRef.current = tableData.colHeaders;
       hot.loadData(deepClone(tableData.data));
       if (tableData.colHeaders) {
         hot.updateSettings({ colHeaders: tableData.colHeaders });
         colHeadersRef.current = tableData.colHeaders;
       }
+      isSyncingRef.current = false;
     }
   }, [tableData, isInitialized]);
 
   const handleAfterChange = useCallback(
     (changes: CellChange[] | null, source: ChangeSource) => {
-      if (source === "loadData" || !changes) return;
+      if (isSyncingRef.current || source === "loadData" || !changes) return;
       const hot = hotRef.current?.hotInstance;
-      if (hot) saveData(hot.getData() as CellValue[][]);
+      if (hot) saveData(hot.getSourceDataArray() as CellValue[][]);
     },
-    [saveData]
+    [saveData],
   );
 
-  const handleStructuralChange = useCallback(() => {
-    const hot = hotRef.current?.hotInstance;
-    if (hot) saveData(hot.getData() as CellValue[][]);
-  }, [saveData]);
+  const handleStructuralChange = useCallback(
+    (_index: number, _amount: number, source?: string | number[], removeSource?: string) => {
+      if (!isInitialized || isSyncingRef.current || source === "auto" || removeSource === "auto")
+        return;
+      const hot = hotRef.current?.hotInstance;
+      if (hot) saveData(hot.getSourceDataArray() as CellValue[][]);
+    },
+    [saveData, isInitialized],
+  );
 
   const handleExportCSV = useCallback(() => {
     const hot = hotRef.current?.hotInstance;
@@ -175,8 +179,8 @@ export default function PersistentSpreadsheet() {
         <div>
           <h2 className="text-sm font-semibold text-white">Spreadsheet</h2>
           <p className="text-xs text-gray-500">
-            {currentData.length} rows ×{" "}
-            {currentHeaders?.length || currentData[0]?.length || 0} columns
+            {currentData.length} rows × {currentHeaders?.length || currentData[0]?.length || 0}{" "}
+            columns
           </p>
         </div>
         <button
@@ -201,7 +205,7 @@ export default function PersistentSpreadsheet() {
           manualRowResize={true}
           autoWrapRow={true}
           autoWrapCol={true}
-          minSpareRows={50}
+          minSpareRows={0}
           cells={(_row: number, col: number) => {
             if (col >= 2) return { numericFormat: { pattern: "0,0.##" } };
             return {};

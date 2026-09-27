@@ -100,7 +100,7 @@ pnpm install --ignore-workspace
 
 ### 2. Configure environment
 
-Create a `.env.local` file in the `examples/design-systems/shadcn/` directory:
+Create a `.env` file in the `examples/design-systems/shadcn/` directory:
 
 ```
 THESYS_API_KEY=sk-th-...

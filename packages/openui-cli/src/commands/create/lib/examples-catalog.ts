@@ -12,9 +12,11 @@ export type ExampleProject = {
   description: string;
   /** Path inside the OpenUI repo, e.g. `examples/app-frameworks/vue`. */
   path: string;
-  envFile: ".env";
-  /** Primary env var to prompt for. Omit when the example needs several keys. */
-  envKey?: string;
+  env: {
+    file: ".env" | "backend/.env";
+    /** Environment variables to prompt for, in order. */
+    keys: string[];
+  };
 };
 
 function catalogError(message: string): CreateError {
@@ -26,7 +28,7 @@ function parseCatalogEntry(item: unknown): ExampleProject {
     title?: unknown;
     description?: unknown;
     path?: unknown;
-    envKey?: unknown;
+    env?: unknown;
   };
   if (
     typeof entry.title !== "string" ||
@@ -42,18 +44,28 @@ function parseCatalogEntry(item: unknown): ExampleProject {
   if (!name) {
     throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an empty path.`);
   }
-  if (entry.envKey !== undefined) {
-    if (typeof entry.envKey !== "string" || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.envKey)) {
-      throw catalogError(`${EXAMPLES_CATALOG_PATH} example "${name}" has an invalid envKey.`);
-    }
+  if (!entry.env || typeof entry.env !== "object" || Array.isArray(entry.env)) {
+    throw catalogError(`${EXAMPLES_CATALOG_PATH} example "${name}" has an invalid env.`);
+  }
+  const env = entry.env as { file?: unknown; keys?: unknown };
+  if (typeof env.file !== "string" || ![".env", "backend/.env"].includes(env.file)) {
+    throw catalogError(`Invalid env.file for example "${name}".`);
+  }
+  if (
+    !Array.isArray(env.keys) ||
+    !env.keys.every(
+      (key): key is string => typeof key === "string" && /^[A-Za-z_][A-Za-z0-9_]*$/.test(key),
+    ) ||
+    new Set(env.keys).size !== env.keys.length
+  ) {
+    throw catalogError(`Invalid env.keys for example "${name}".`);
   }
   return {
     name,
     label: entry.title,
     description: entry.description,
     path: relative.startsWith("examples/") ? relative : `examples/${relative}`,
-    envFile: ".env",
-    envKey: typeof entry.envKey === "string" ? entry.envKey : undefined,
+    env: { file: env.file as ExampleProject["env"]["file"], keys: env.keys },
   };
 }
 

@@ -49,6 +49,7 @@ export async function POST({ request }: { request: Request }) {
   });
 
   return result.toUIMessageStreamResponse({
+    onError: (error) => (error instanceof Error ? error.message : "Model request failed"),
     headers: {
       "Cache-Control": "no-cache, no-transform",
       "X-Accel-Buffering": "no",

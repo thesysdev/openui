@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import { Chat } from "@ai-sdk/svelte";
   import { BuiltinActionType, type ActionEvent } from "@openuidev/svelte-lang";
   import { library } from "$lib/library";
@@ -26,7 +27,9 @@
   }
 
   $effect(() => {
-    messagesEnd?.scrollIntoView({ behavior: "smooth" });
+    // Read streamed text as well as message count so each update scrolls.
+    JSON.stringify(chat.messages);
+    void tick().then(() => messagesEnd?.scrollIntoView({ behavior: "smooth" }));
   });
 
   const starters = [
@@ -67,5 +70,8 @@
     {/if}
   </div>
 
+  {#if chat.error}
+    <p role="alert" class="px-4 py-2 text-red-600">{chat.error.message}</p>
+  {/if}
   <ChatInput {isLoading} onSubmit={handleSend} onStop={() => chat.stop()} />
 </div>

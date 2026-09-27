@@ -30,13 +30,13 @@ cd openui/examples/miscellaneous/react-email
 pnpm install --ignore-workspace
 ```
 
-2. Copy `.env.example` to `.env.local` and add your OpenUI Cloud API key:
+2. Copy `.env.example` to `.env` and add your OpenUI Cloud API key:
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Edit `.env.local`:
+Edit `.env`:
 
 ```
 THESYS_API_KEY=sk-th-...

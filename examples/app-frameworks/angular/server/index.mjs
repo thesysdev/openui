@@ -118,14 +118,13 @@ export function createHandler({
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   // Only the backend reads credentials. The local file may point at an
   // authorized existing environment file without duplicating its secret.
-  if (existsSync(".env.local")) process.loadEnvFile(".env.local");
+  if (existsSync(".env")) process.loadEnvFile(".env");
   const envFile = process.env["OPENUI_ENV_FILE"];
   if (envFile && existsSync(envFile)) process.loadEnvFile(envFile);
   const server = createServer(
     createHandler({
       apiKey: process.env["THESYS_API_KEY"],
       frontendPort: Number(process.env["PORT"] || 4200),
-      model: process.env["OPENUI_MODEL"] || undefined,
     }),
   );
   const port = Number(process.env["API_PORT"] || 4300);

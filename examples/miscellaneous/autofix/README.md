@@ -7,10 +7,10 @@ Calls OpenAI directly and wraps the stream with [`@openuidev/server`](https://ww
 ```bash
 cd examples/miscellaneous/autofix
 pnpm install --ignore-workspace
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Set `OPENAI_API_KEY` and `THESYS_API_KEY` in `.env.local`, then run `pnpm dev` and open [localhost:3000](http://localhost:3000).
+Set `OPENAI_API_KEY` and `THESYS_API_KEY` in `.env`, then run `pnpm dev` and open [localhost:3000](http://localhost:3000).
 
 ## How it works
 

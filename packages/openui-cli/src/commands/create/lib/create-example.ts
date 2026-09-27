@@ -83,8 +83,8 @@ export async function runCreateExample(params: {
   tel.trackScaffoldSucceeded({ example: example.name });
 
   try {
-    if (envResult.envKeyValue && example.envKey) {
-      writeEnvVar(path.join(targetDir, example.envFile), example.envKey, envResult.envKeyValue);
+    for (const [key, value] of Object.entries(envResult.envVars ?? {})) {
+      writeEnvVar(path.join(targetDir, example.env.file), key, value);
     }
   } catch (err) {
     const properties = cliErrorProperties(err, {
@@ -128,12 +128,18 @@ export async function runCreateExample(params: {
     env_written: envResult.envWritten,
     dependency_installed: false,
   });
-  const envKey = example.envKey;
-  const envNote = envKey
-    ? envResult.envWritten
-      ? `✅ ${example.envFile} updated with ${envKey}.`
-      : `Add ${envKey}=… to ${example.envFile} (see the example README).`
-    : `Add your API keys to ${example.envFile} (see the example README).`;
+  const writtenKeys = Object.keys(envResult.envVars ?? {});
+  const missingKeys = example.env.keys.filter((key) => !writtenKeys.includes(key));
+  const envNote = [
+    writtenKeys.length > 0 ? `✅ ${example.env.file} updated with ${writtenKeys.join(", ")}.` : "",
+    missingKeys.length > 0
+      ? `Add ${missingKeys.map((key) => `${key}=…`).join(", ")} to ${example.env.file} (see the example README).`
+      : example.env.keys.length === 0
+        ? `Add your API keys to ${example.env.file} (see the example README).`
+        : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
   const skillMessage = skillInstalled
     ? "The OpenUI agent skill was installed.\nAI coding assistants will use it to help you build with OpenUI.\n"
     : "";
@@ -155,16 +161,15 @@ export async function runCreateExample(params: {
 async function resolveExampleEnv(
   example: ExampleProject,
   interactive: boolean,
-): Promise<EnvResult & { envKeyValue?: string }> {
-  if (!example.envKey) {
-    return { envWritten: false };
+): Promise<EnvResult> {
+  const envVars: Record<string, string> = {};
+  if (interactive) {
+    for (const key of example.env.keys) {
+      const value = await promptForProviderKey(key);
+      if (value) envVars[key] = value;
+    }
   }
-
-  const apiKey = interactive ? await promptForProviderKey(example.envKey) : null;
-  return {
-    envWritten: apiKey != null,
-    envKeyValue: apiKey ?? undefined,
-  };
+  return { envWritten: Object.keys(envVars).length > 0, envVars };
 }
 
 async function promptForProviderKey(envKey: string): Promise<string | null> {

@@ -21,6 +21,7 @@ export function useStreamingChat(apiUrl: string) {
   function sendMessage(
     history: StreamMessage[],
     onChunk: (accumulated: string, isDone: boolean) => void,
+    onError: (message: string) => void,
   ): Promise<void> {
     xhrRef.current?.abort();
 
@@ -36,6 +37,7 @@ export function useStreamingChat(apiUrl: string) {
 
       // Fires progressively as chunks arrive
       xhr.onprogress = () => {
+        if (xhr.status < 200 || xhr.status >= 300) return;
         const newData = xhr.responseText.slice(lastLength);
         lastLength = xhr.responseText.length;
         if (!newData) return;
@@ -51,7 +53,14 @@ export function useStreamingChat(apiUrl: string) {
         console.log(`[${ts()}][stream] done — ${accumulated.length} chars, status ${xhr.status}`);
         if (xhr.status < 200 || xhr.status >= 300) {
           console.warn(`[${ts()}][stream] bad status:`, xhr.status, accumulated);
-          onChunk(`Error ${xhr.status}: ${accumulated}`, true);
+          let message = `Request failed (${xhr.status})`;
+          try {
+            const body = JSON.parse(xhr.responseText);
+            message = typeof body.error === "string" ? body.error : body.error?.message || message;
+          } catch {
+            /* Keep status for non-JSON errors. */
+          }
+          onError(message);
         } else {
           onChunk(accumulated, true);
         }
@@ -60,7 +69,7 @@ export function useStreamingChat(apiUrl: string) {
 
       xhr.onerror = () => {
         console.error(`[${ts()}][stream] network error`);
-        onChunk(accumulated || "Network error. Please try again.", true);
+        onError("Network error. Please try again.");
         resolve();
       };
 

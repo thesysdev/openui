@@ -1,5 +1,6 @@
 "use client";
 
+import { withStreamErrors } from "@/lib/stream-errors";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import Box from "@mui/material/Box";
@@ -18,7 +19,7 @@ export default function Page() {
     () =>
       fetchLLM({
         url: "/api/chat",
-        streamAdapter: openAIAdapter(),
+        streamAdapter: withStreamErrors(openAIAdapter()),
         messageFormat: openAIMessageFormat,
       }),
     [],

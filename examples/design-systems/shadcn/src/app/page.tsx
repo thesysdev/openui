@@ -1,5 +1,6 @@
 "use client";
 
+import { withStreamErrors } from "@/lib/stream-errors";
 import { shadcnChatLibrary } from "@/lib/shadcn-genui";
 import {
   AgentInterface,
@@ -20,7 +21,7 @@ export default function Page() {
     () =>
       fetchLLM({
         url: "/api/chat",
-        streamAdapter: openAIAdapter(),
+        streamAdapter: withStreamErrors(openAIAdapter()),
         messageFormat: openAIMessageFormat,
       }),
     [],

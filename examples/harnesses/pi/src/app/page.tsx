@@ -1,5 +1,6 @@
 "use client";
 
+import { withStreamErrors } from "@/lib/stream-errors";
 import "@openuidev/react-ui/components.css";
 import "@openuidev/react-ui/styles/index.css";
 
@@ -22,7 +23,7 @@ export default function Home() {
     () =>
       fetchLLM({
         url: "/api/chat",
-        streamAdapter: openAIReadableStreamAdapter(),
+        streamAdapter: withStreamErrors(openAIReadableStreamAdapter()),
         messageFormat: openAIMessageFormat,
       }),
     [],

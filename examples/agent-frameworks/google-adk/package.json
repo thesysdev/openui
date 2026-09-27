@@ -5,7 +5,7 @@
   "description": "OpenUI generative-UI chat backed by a Google ADK (TypeScript) agent.",
   "scripts": {
     "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
-    "generate:apiKey": "openui generate-api-key --file .env.local",
+    "generate:apiKey": "openui generate-api-key --file .env",
     "predev": "npm run generate",
     "dev": "next dev",
     "prebuild": "npm run generate",
@@ -16,13 +16,13 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@google/adk": "^1.2.0",
+    "@google/adk": "^1.6.0",
     "@openuidev/lang-core": "0.3.0",
     "@openuidev/react-headless": "0.16.3",
     "@openuidev/react-lang": "0.3.0",
     "@openuidev/react-ui": "0.16.3",
     "adk-llm-bridge": "^0.5.3",
-    "next": "^16.3.3",
+    "next": "16.3.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "zod": "^4.0.0",
@@ -34,7 +34,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.6",
+    "eslint-config-next": "16.3.6",
     "typescript": "^5"
   },
   "pnpm": {
@@ -46,12 +46,28 @@
     ],
     "overrides": {
       "postcss@<8.5.10": ">=8.5.10",
-      "uuid@<11.1.1": "^11.1.1"
+      "uuid@<11.1.1": "^11.1.1",
+      "tar": "^7.5.21",
+      "@tootallnate/once": "^2.0.1",
+      "adm-zip": "^0.6.1",
+      "mariadb": "^3.4.6",
+      "mysql2": "^3.23.1",
+      "@opentelemetry/core": "^2.8.0",
+      "qs": "^6.16.0"
     }
   },
   "allowScripts": {
     "@openuidev/lang-core": true,
     "sharp": true,
     "unrs-resolver": true
+  },
+  "overrides": {
+    "tar": "^7.5.21",
+    "@tootallnate/once": "^2.0.1",
+    "adm-zip": "^0.6.1",
+    "mariadb": "^3.4.6",
+    "mysql2": "^3.23.1",
+    "@opentelemetry/core": "^2.8.0",
+    "qs": "^6.16.0"
   }
 }

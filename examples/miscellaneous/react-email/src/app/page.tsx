@@ -1,5 +1,6 @@
 "use client";
 
+import { withStreamErrors } from "@/lib/stream-errors";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChatProvider,
@@ -11,13 +12,7 @@ import {
 
 import { ComposePage } from "@/components/composePage";
 import { EmailEditor } from "@/components/emailEditor";
-import {
-  saveView,
-  loadView,
-  saveMessages,
-  loadMessages,
-  clearSession,
-} from "@/components/session";
+import { saveView, loadView, saveMessages, loadMessages, clearSession } from "@/components/session";
 
 // ── Main App (manages view state) ──
 
@@ -52,7 +47,7 @@ function EmailApp() {
       saveView("chat");
       processMessage({ role: "user", content: message });
     },
-    [processMessage]
+    [processMessage],
   );
 
   const handleNewEmail = useCallback(() => {
@@ -77,7 +72,7 @@ export default function Page() {
     () =>
       fetchLLM({
         url: "/api/chat",
-        streamAdapter: openAIAdapter(),
+        streamAdapter: withStreamErrors(openAIAdapter()),
         messageFormat: openAIMessageFormat,
       }),
     [],

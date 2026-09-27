@@ -3,7 +3,7 @@ import { DEFAULT_MODEL, requiredEnv } from "@/lib/env";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
-import { tools, setCurrentThreadId } from "./tools";
+import { createTools } from "./tools";
 
 const SPREADSHEET_INSTRUCTIONS = `
 You are a helpful spreadsheet assistant. The user has a live Excel-like spreadsheet visible on the left panel at all times.
@@ -137,132 +137,136 @@ function sseToolCallArgs(
 }
 
 export async function POST(req: NextRequest) {
-  const { messages } = await req.json();
+  try {
+    const { messages, tableId } = await req.json();
+    if (typeof tableId !== "string" || !tableId)
+      return Response.json({ error: "tableId is required" }, { status: 400 });
+    const tools = createTools(tableId);
 
-  setCurrentThreadId("default");
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const lastUserMsg = (messages as any[]).filter((m: any) => m.role === "user").pop();
+    if (lastUserMsg) extractText(lastUserMsg);
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  const lastUserMsg = (messages as any[])
-    .filter((m: any) => m.role === "user")
-    .pop();
-  if (lastUserMsg) extractText(lastUserMsg);
+    const cleanMessages = (messages as any[])
+      .filter((m) => m.role !== "tool")
+      .map((m) => {
+        if (m.role === "assistant" && m.tool_calls?.length) {
+          const { tool_calls: _tc, ...rest } = m;
+          return rest;
+        }
+        return m;
+      });
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
-  const cleanMessages = (messages as any[])
-    .filter((m) => m.role !== "tool")
-    .map((m) => {
-      if (m.role === "assistant" && m.tool_calls?.length) {
-        const { tool_calls: _tc, ...rest } = m;
-        return rest;
-      }
-      return m;
+    const chatMessages: ChatCompletionMessageParam[] = [
+      { role: "system", content: systemPrompt },
+      ...cleanMessages,
+    ];
+
+    // Chat Completions → POST /v1/embed/chat/completions
+    const client = new OpenAI({
+      apiKey: requiredEnv("THESYS_API_KEY"),
+      baseURL: "https://api.thesys.dev/v1/embed",
     });
-  /* eslint-enable @typescript-eslint/no-explicit-any */
+    const encoder = new TextEncoder();
+    let controllerClosed = false;
 
-  const chatMessages: ChatCompletionMessageParam[] = [
-    { role: "system", content: systemPrompt },
-    ...cleanMessages,
-  ];
+    const readable = new ReadableStream({
+      start(controller) {
+        const enqueue = (data: Uint8Array) => {
+          if (controllerClosed) return;
+          try {
+            controller.enqueue(data);
+          } catch {
+            /* closed */
+          }
+        };
+        const close = () => {
+          if (controllerClosed) return;
+          controllerClosed = true;
+          try {
+            controller.close();
+          } catch {
+            /* closed */
+          }
+        };
 
-  // Chat Completions → POST /v1/embed/chat/completions
-  const client = new OpenAI({
-    apiKey: requiredEnv("THESYS_API_KEY"),
-    baseURL: "https://api.thesys.dev/v1/embed",
-  });
-  const encoder = new TextEncoder();
-  let controllerClosed = false;
+        const pendingCalls: Array<{
+          id: string;
+          name: string;
+          arguments: string;
+        }> = [];
+        let callIdx = 0;
+        let resultIdx = 0;
 
-  const readable = new ReadableStream({
-    start(controller) {
-      const enqueue = (data: Uint8Array) => {
-        if (controllerClosed) return;
-        try {
-          controller.enqueue(data);
-        } catch {
-          /* closed */
-        }
-      };
-      const close = () => {
-        if (controllerClosed) return;
-        controllerClosed = true;
-        try {
-          controller.close();
-        } catch {
-          /* closed */
-        }
-      };
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const runner = (client.chat.completions as any).runTools({
+          model: DEFAULT_MODEL,
+          messages: chatMessages,
+          tools,
+          stream: true,
+        });
 
-      const pendingCalls: Array<{
-        id: string;
-        name: string;
-        arguments: string;
-      }> = [];
-      let callIdx = 0;
-      let resultIdx = 0;
+        runner.on("functionToolCall", (fc: any) => {
+          const id = `tc-${callIdx}`;
+          pendingCalls.push({ id, name: fc.name, arguments: fc.arguments });
+          enqueue(sseToolCallStart(encoder, { id, function: { name: fc.name } }, callIdx));
+          callIdx++;
+        });
 
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      const runner = (client.chat.completions as any).runTools({
-        model: DEFAULT_MODEL,
-        messages: chatMessages,
-        tools,
-        stream: true,
-      });
+        runner.on("functionToolCallResult", (result: string) => {
+          const tc = pendingCalls[resultIdx];
+          if (tc) {
+            enqueue(
+              sseToolCallArgs(
+                encoder,
+                { id: tc.id, function: { arguments: tc.arguments } },
+                result,
+                resultIdx,
+              ),
+            );
+          }
+          resultIdx++;
+        });
 
-      runner.on("functionToolCall", (fc: any) => {
-        const id = `tc-${callIdx}`;
-        pendingCalls.push({ id, name: fc.name, arguments: fc.arguments });
-        enqueue(
-          sseToolCallStart(encoder, { id, function: { name: fc.name } }, callIdx),
-        );
-        callIdx++;
-      });
+        runner.on("chunk", (chunk: any) => {
+          const choice = chunk.choices?.[0];
+          const delta = choice?.delta;
+          if (!delta) return;
+          if (delta.content) {
+            enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+          }
+          if (choice?.finish_reason === "stop") {
+            enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+          }
+        });
 
-      runner.on("functionToolCallResult", (result: string) => {
-        const tc = pendingCalls[resultIdx];
-        if (tc) {
-          enqueue(
-            sseToolCallArgs(
-              encoder,
-              { id: tc.id, function: { arguments: tc.arguments } },
-              result,
-              resultIdx,
-            ),
-          );
-        }
-        resultIdx++;
-      });
+        runner.on("end", () => {
+          enqueue(encoder.encode("data: [DONE]\n\n"));
+          close();
+        });
 
-      runner.on("chunk", (chunk: any) => {
-        const choice = chunk.choices?.[0];
-        const delta = choice?.delta;
-        if (!delta) return;
-        if (delta.content) {
-          enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-        }
-        if (choice?.finish_reason === "stop") {
-          enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-        }
-      });
+        runner.on("error", (err: any) => {
+          const msg = err instanceof Error ? err.message : "Stream error";
+          console.error("Chat route error:", msg);
+          enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
+          close();
+        });
+        /* eslint-enable @typescript-eslint/no-explicit-any */
+      },
+    });
 
-      runner.on("end", () => {
-        enqueue(encoder.encode("data: [DONE]\n\n"));
-        close();
-      });
-
-      runner.on("error", (err: any) => {
-        const msg = err instanceof Error ? err.message : "Stream error";
-        console.error("Chat route error:", msg);
-        enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
-        close();
-      });
-      /* eslint-enable @typescript-eslint/no-explicit-any */
-    },
-  });
-
-  return new Response(readable, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-    },
-  });
+    return new Response(readable, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+      },
+    });
+  } catch (error) {
+    return Response.json(
+      { error: error instanceof Error ? error.message : "Chat request failed" },
+      { status: 500 },
+    );
+  }
 }

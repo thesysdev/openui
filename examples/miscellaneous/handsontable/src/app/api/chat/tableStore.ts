@@ -19,7 +19,7 @@ const DEFAULT_TABLE_STATE: TableState = {
     "Unit Price",
   ],
   data: [
-    ["MacBook Pro 16\"", "Laptops", 48500, 52300, 61200, 74800, "=SUM(C1:F1)", 320, 2499],
+    ['MacBook Pro 16"', "Laptops", 48500, 52300, 61200, 74800, "=SUM(C1:F1)", 320, 2499],
     ["iPhone 15 Pro", "Phones", 125000, 98700, 112400, 185600, "=SUM(C2:F2)", 4200, 999],
     ["AirPods Pro", "Audio", 32400, 28900, 35100, 52800, "=SUM(C3:F3)", 8800, 249],
     ["iPad Air", "Tablets", 21800, 24500, 19600, 38200, "=SUM(C4:F4)", 1560, 599],
@@ -61,11 +61,7 @@ const DEFAULT_TABLE_STATE: TableState = {
  *    expand the end ref. E.g. insert at index 5 → =SUM(B1:B5) becomes =SUM(B1:B6).
  * 2. Single refs and refs past the insert point shift down.
  */
-function shiftFormulaRows(
-  formula: string,
-  insertPosition: number,
-  count: number
-): string {
+function shiftFormulaRows(formula: string, insertPosition: number, count: number): string {
   if (!formula.startsWith("=")) return formula;
 
   // Step 1: Expand range end-refs (e.g. B1:B5 → B1:B6 when inserting at position 5)
@@ -89,30 +85,24 @@ function shiftFormulaRows(
         newStart = startRow + count;
       }
       return `${col1}${newStart}:${col2}${newEnd}`;
-    }
+    },
   );
 
   // Step 2: Shift standalone (non-range) refs past the insert point.
   // We need to avoid double-shifting refs already handled in ranges.
   // Process refs that are NOT part of a range (not preceded by : or followed by :).
-  formula = formula.replace(
-    /(?<!:)([A-Z]+)(\d+)(?![\d]*:)/gi,
-    (match, col, rowStr) => {
-      const row = parseInt(rowStr, 10);
-      if (row > insertPosition) {
-        return `${col}${row + count}`;
-      }
-      return match;
+  formula = formula.replace(/(?<!:)([A-Z]+)(\d+)(?![\d]*:)/gi, (match, col, rowStr) => {
+    const row = parseInt(rowStr, 10);
+    if (row > insertPosition) {
+      return `${col}${row + count}`;
     }
-  );
+    return match;
+  });
 
   return formula;
 }
 
-function shrinkFormulaRows(
-  formula: string,
-  deletedPositions: number[]
-): string {
+function shrinkFormulaRows(formula: string, deletedPositions: number[]): string {
   if (!formula.startsWith("=")) return formula;
 
   // Handle ranges first
@@ -126,20 +116,17 @@ function shrinkFormulaRows(
       // Also shrink end if the deleted row was the last in the range
       const endOnDeleted = deletedPositions.includes(endRow - 1) ? 1 : 0;
       return `${col1}${startRow - startShift}:${col2}${endRow - endShift - endOnDeleted}`;
-    }
+    },
   );
 
   // Handle standalone refs
-  formula = formula.replace(
-    /(?<!:)([A-Z]+)(\d+)(?![\d]*:)/gi,
-    (match, col, rowStr) => {
-      const row = parseInt(rowStr, 10);
-      const dataIdx = row - 1;
-      if (deletedPositions.includes(dataIdx)) return match;
-      const shiftBy = deletedPositions.filter((d) => d < dataIdx).length;
-      return shiftBy > 0 ? `${col}${row - shiftBy}` : match;
-    }
-  );
+  formula = formula.replace(/(?<!:)([A-Z]+)(\d+)(?![\d]*:)/gi, (match, col, rowStr) => {
+    const row = parseInt(rowStr, 10);
+    const dataIdx = row - 1;
+    if (deletedPositions.includes(dataIdx)) return match;
+    const shiftBy = deletedPositions.filter((d) => d < dataIdx).length;
+    return shiftBy > 0 ? `${col}${row - shiftBy}` : match;
+  });
 
   return formula;
 }
@@ -166,7 +153,7 @@ export function getTableData(threadId: string): {
 
 export function updateCells(
   threadId: string,
-  updates: { row: number; col: number; value: CellValue }[]
+  updates: { row: number; col: number; value: CellValue }[],
 ): { success: boolean; message: string } {
   const store = getTableStore(threadId);
 
@@ -177,8 +164,7 @@ export function updateCells(
         message: `Invalid cell position: row ${row}, col ${col}`,
       };
 
-    while (store.data.length <= row)
-      store.data.push(new Array(store.colHeaders.length).fill(null));
+    while (store.data.length <= row) store.data.push(new Array(store.colHeaders.length).fill(null));
     while (store.data[row].length <= col) store.data[row].push(null);
 
     store.data[row][col] = value;
@@ -190,7 +176,7 @@ export function updateCells(
 export function addRows(
   threadId: string,
   rows: CellValue[][],
-  position?: number
+  position?: number,
 ): { success: boolean; message: string; newRowIndices: number[] } {
   const store = getTableStore(threadId);
   const insertPosition = position ?? store.data.length;
@@ -223,7 +209,7 @@ export function addRows(
 
 export function deleteRows(
   threadId: string,
-  rowIndices: number[]
+  rowIndices: number[],
 ): { success: boolean; message: string } {
   const store = getTableStore(threadId);
   const validIndices = rowIndices.filter((i) => i >= 0 && i < store.data.length);
@@ -251,7 +237,7 @@ export function setFormula(
   threadId: string,
   row: number,
   col: number,
-  formula: string
+  formula: string,
 ): { success: boolean; message: string } {
   const store = getTableStore(threadId);
   const f = formula.startsWith("=") ? formula : `=${formula}`;
@@ -272,7 +258,7 @@ export function queryTable(
   threadId: string,
   columnIndex: number,
   operator: "=" | "!=" | ">" | "<" | ">=" | "<=" | "contains",
-  value: string | number
+  value: string | number,
 ): {
   success: boolean;
   matchingRows: { rowIndex: number; data: CellValue[] }[];
@@ -294,28 +280,16 @@ export function queryTable(
         matches = cellValue !== value;
         break;
       case ">":
-        matches =
-          typeof cellValue === "number" &&
-          typeof value === "number" &&
-          cellValue > value;
+        matches = typeof cellValue === "number" && typeof value === "number" && cellValue > value;
         break;
       case "<":
-        matches =
-          typeof cellValue === "number" &&
-          typeof value === "number" &&
-          cellValue < value;
+        matches = typeof cellValue === "number" && typeof value === "number" && cellValue < value;
         break;
       case ">=":
-        matches =
-          typeof cellValue === "number" &&
-          typeof value === "number" &&
-          cellValue >= value;
+        matches = typeof cellValue === "number" && typeof value === "number" && cellValue >= value;
         break;
       case "<=":
-        matches =
-          typeof cellValue === "number" &&
-          typeof value === "number" &&
-          cellValue <= value;
+        matches = typeof cellValue === "number" && typeof value === "number" && cellValue <= value;
         break;
       case "contains":
         matches =
@@ -345,9 +319,11 @@ function colLetter(idx: number): string {
  * Finds aggregate rows (Total, Average, Sum, Count, etc.) and rewrites their
  * formulas so the ranges cover all data rows above them.
  */
-export function recalculateAggregates(
-  threadId: string
-): { success: boolean; message: string; updatedRows: number[] } {
+export function recalculateAggregates(threadId: string): {
+  success: boolean;
+  message: string;
+  updatedRows: number[];
+} {
   const store = getTableStore(threadId);
   const aggregateLabels: Record<string, string> = {
     total: "SUM",
@@ -388,6 +364,10 @@ export function recalculateAggregates(
 
     // Rewrite formulas for columns 1+ (skip column 0 which is the label)
     for (let c = 1; c < store.data[r].length; c++) {
+      const existing = store.data[r][c];
+      // Preserve blank/text cells and aggregate only columns explicitly configured.
+      if (typeof existing !== "string" || !/^=(SUM|AVERAGE|COUNT|MAX|MIN)\(/i.test(existing))
+        continue;
       const cl = colLetter(c);
       store.data[r][c] = `=${func}(${cl}${startRow1}:${cl}${endRow1})`;
     }
@@ -396,9 +376,10 @@ export function recalculateAggregates(
 
   return {
     success: true,
-    message: updatedRows.length > 0
-      ? `Recalculated ${updatedRows.length} aggregate row(s)`
-      : "No aggregate rows found to recalculate",
+    message:
+      updatedRows.length > 0
+        ? `Recalculated ${updatedRows.length} aggregate row(s)`
+        : "No aggregate rows found to recalculate",
     updatedRows,
   };
 }
@@ -406,7 +387,7 @@ export function recalculateAggregates(
 export function addColumn(
   threadId: string,
   headerName: string,
-  position?: number
+  position?: number,
 ): { success: boolean; message: string } {
   const store = getTableStore(threadId);
   const insertPosition = position ?? store.colHeaders.length;

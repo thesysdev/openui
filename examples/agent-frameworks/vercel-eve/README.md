@@ -65,7 +65,8 @@ Eve session events ──► eveAdapter() ──► OpenUI renderer
 | Environment variable | Default                                          | Purpose                                        |
 | -------------------- | ------------------------------------------------ | ---------------------------------------------- |
 | `THESYS_API_KEY`     | —                                                | OpenUI Cloud API key.                          |
-| `OPENUI_MODEL`       | `google/gemini-3.6-flash-free`                   | Cloud model id for Eve's Chat Completions call. |
+
+The model is fixed to `google/gemini-3.6-flash-free` in `agent/agent.ts` and validated by `resolveOpenuiModel`.
 
 ## Eve commands
 
@@ -80,9 +81,17 @@ pnpm eve:start
 For a production-style Next.js run:
 
 ```bash
+pnpm eve:build
 pnpm build
+
+# Terminal 1: Eve runtime (keep running)
+PORT=4274 pnpm eve:start
+
+# Terminal 2: Next.js frontend
 pnpm start
 ```
+
+The local production frontend proxies Eve requests to port 4274. Both processes must be running; plain `eve:start` defaults to port 3000 and conflicts with Next.js.
 
 ## Project layout
 

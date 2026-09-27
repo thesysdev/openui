@@ -11,33 +11,46 @@ const SSE_HEADERS = {
 } as const;
 
 export async function POST(req: NextRequest) {
-  const { messages } = (await req.json()) as { messages: ChatCompletionMessageParam[] };
+  try {
+    const { messages } = (await req.json()) as { messages: ChatCompletionMessageParam[] };
 
-  // Chat Completions → POST /v1/embed/chat/completions
-  const client = new OpenAI({
-    apiKey: requiredEnv("THESYS_API_KEY"),
-    baseURL: "https://api.thesys.dev/v1/embed",
-  });
+    // Chat Completions → POST /v1/embed/chat/completions
+    const client = new OpenAI({
+      apiKey: requiredEnv("THESYS_API_KEY"),
+      baseURL: "https://api.thesys.dev/v1/embed",
+    });
 
-  const stream = await client.chat.completions.create({
-    model: DEFAULT_MODEL,
-    messages: [{ role: "system", content: cloudInstructions() }, ...messages],
-    stream: true,
-  });
+    const stream = await client.chat.completions.create({
+      model: DEFAULT_MODEL,
+      messages: [{ role: "system", content: cloudInstructions() }, ...messages],
+      stream: true,
+    });
 
-  const encoder = new TextEncoder();
-  const readable = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const chunk of stream) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+    const encoder = new TextEncoder();
+    const readable = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+          }
+        } catch (error) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ error: error instanceof Error ? error.message : "Stream failed" })}\n\n`,
+            ),
+          );
+        } finally {
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
         }
-      } finally {
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
-      }
-    },
-  });
+      },
+    });
 
-  return new Response(readable, { headers: SSE_HEADERS });
+    return new Response(readable, { headers: SSE_HEADERS });
+  } catch (error) {
+    return Response.json(
+      { error: error instanceof Error ? error.message : "Chat request failed" },
+      { status: 500 },
+    );
+  }
 }

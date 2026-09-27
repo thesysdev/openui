@@ -1,5 +1,7 @@
 "use client";
 
+import { withStreamErrors } from "@/lib/stream-errors";
+import { useTableContext } from "./TableContext";
 import { spreadsheetLibrary } from "@/lib/spreadsheet-library";
 import {
   ChatProvider,
@@ -36,7 +38,8 @@ const STARTERS = [
   },
   {
     displayText: "Compare Q1 vs Q4 growth",
-    prompt: "Show me a table comparing Q1 and Q4 revenue for each product with the percentage growth.",
+    prompt:
+      "Show me a table comparing Q1 and Q4 revenue for each product with the percentage growth.",
   },
 ];
 
@@ -45,8 +48,15 @@ function messageText(message: Message): string {
 }
 
 function ChatBody({ onClose }: { onClose: () => void }) {
+  const { refreshTableData } = useTableContext();
+  const wasRunning = useRef(false);
   const messages = useThread((s) => s.messages);
   const isRunning = useThread((s) => s.isRunning);
+  const threadError = useThread((s) => s.threadError);
+  useEffect(() => {
+    if (wasRunning.current && !isRunning) void refreshTableData().catch(console.error);
+    wasRunning.current = isRunning;
+  }, [isRunning, refreshTableData]);
   const processMessage = useThread((s) => s.processMessage);
   const [input, setInput] = useState("");
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -144,6 +154,7 @@ function ChatBody({ onClose }: { onClose: () => void }) {
         })}
       </div>
 
+      {threadError && <p role="alert">{threadError.message}</p>}
       <form className="chat-composer" onSubmit={handleSubmit}>
         <textarea
           value={input}
@@ -167,14 +178,16 @@ function ChatBody({ onClose }: { onClose: () => void }) {
 }
 
 export function ChatPanel({ onClose }: { onClose: () => void }) {
+  const { threadId } = useTableContext();
   const llm = useMemo(
     () =>
       fetchLLM({
         url: "/api/chat",
-        streamAdapter: openAIAdapter(),
+        body: { tableId: threadId },
+        streamAdapter: withStreamErrors(openAIAdapter()),
         messageFormat: openAIMessageFormat,
       }),
-    [],
+    [threadId],
   );
 
   return (

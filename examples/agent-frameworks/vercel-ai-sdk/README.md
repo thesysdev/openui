@@ -10,7 +10,7 @@ An [OpenUI](https://openui.com) example showing how to wire a [Vercel AI SDK](ht
 
 ## Getting started
 
-1. Mint an OpenUI Cloud key into `.env.local`:
+1. Mint an OpenUI Cloud key into `.env`:
 
 ```bash
 pnpm generate:apiKey
