@@ -1,7 +1,8 @@
 "use client";
 
-import type { JSX, ReactNode } from "react";
 import { GitHubIcon, useGitHubStarCount } from "@/components/brand-logo";
+import { GITHUB_STAR_FALLBACK } from "@/lib/github-stars";
+import type { JSX, ReactNode } from "react";
 import { PillLink } from "../Button/Button";
 import styles from "./GitHubButton.module.css";
 
@@ -11,9 +12,6 @@ import styles from "./GitHubButton.module.css";
 
 /** Default OpenUI repo URL — was duplicated as a GitHubBanner default. */
 export const DEFAULT_GITHUB_REPO_URL = "https://github.com/thesysdev/openui";
-
-/** Fallback star count used before the live count resolves (was `?? 7016`). */
-export const GITHUB_STAR_FALLBACK = 7016;
 
 /** Strip the `https://github.com/` prefix to get `owner/repo`. */
 export function parseRepoFromUrl(href: string): string {
