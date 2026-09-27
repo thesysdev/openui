@@ -79,6 +79,7 @@ const starters = [
       </div>
     </div>
 
+    <p v-if="chat.error" role="alert" class="px-4 py-2 text-red-600">{{ chat.error.message }}</p>
     <ChatInput :is-loading="isLoading" @submit="handleSend" @stop="() => chat.stop()" />
   </div>
 </template>

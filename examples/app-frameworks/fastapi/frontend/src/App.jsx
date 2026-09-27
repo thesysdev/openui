@@ -8,6 +8,7 @@ import {
   openAIReadableStreamAdapter,
 } from "@openuidev/react-ui";
 import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { withStreamErrors } from "./stream-errors";
 import { useMemo } from "react";
 
 export default function App() {
@@ -17,7 +18,7 @@ export default function App() {
     () =>
       fetchLLM({
         url: "/api/chat",
-        streamAdapter: openAIReadableStreamAdapter(),
+        streamAdapter: withStreamErrors(openAIReadableStreamAdapter()),
         messageFormat: openAIMessageFormat,
       }),
     [],

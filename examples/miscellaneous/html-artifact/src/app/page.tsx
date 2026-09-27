@@ -1,5 +1,6 @@
 "use client";
 
+import { withStreamErrors } from "@/lib/stream-errors";
 import { library } from "@/library";
 import {
   AgentInterface,
@@ -22,7 +23,7 @@ export default function Page() {
           body: JSON.stringify({ messages: openAIMessageFormat.toApi(messages) }),
           signal,
         }),
-      streamProtocol: openAIAdapter(),
+      streamProtocol: withStreamErrors(openAIAdapter()),
     }),
     [],
   );

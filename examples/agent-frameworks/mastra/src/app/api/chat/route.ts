@@ -39,7 +39,9 @@ export async function POST(req: NextRequest) {
             error: (error: Error) => {
               const msg = error.message;
               console.error("Mastra stream error:", error);
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ type: "RUN_ERROR", message: msg })}\n\n`),
+              );
               close();
             },
           });

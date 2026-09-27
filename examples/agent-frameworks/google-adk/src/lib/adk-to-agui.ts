@@ -1,8 +1,4 @@
-import {
-  getFunctionCalls,
-  getFunctionResponses,
-  type Event,
-} from "@google/adk";
+import { getFunctionCalls, getFunctionResponses, type Event } from "@google/adk";
 import { EventType } from "@openuidev/react-headless";
 
 function toolResultContent(response: unknown): string {
@@ -56,6 +52,13 @@ export async function* adkToAguiEvents(
   yield { type: EventType.RUN_STARTED, threadId, runId };
 
   for await (const event of events) {
+    if (event.errorCode || event.errorMessage) {
+      yield {
+        type: EventType.RUN_ERROR,
+        message: event.errorMessage || event.errorCode || "ADK request failed",
+      };
+      return;
+    }
     // Wait for the merged (non-partial) function-call event so we emit one
     // START/ARGS/END per ADK call, not streaming argument crumbs.
     if (!event.partial) {

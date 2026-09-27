@@ -5,6 +5,8 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
+  useRef,
   type ReactNode,
 } from "react";
 
@@ -17,56 +19,63 @@ interface TableData {
 
 interface TableContextType {
   threadId: string;
-  setThreadId: (id: string) => void;
+  refreshTableData: () => Promise<void>;
   tableData: TableData | null;
   syncTableData: (data: CellValue[][], colHeaders?: string[]) => Promise<void>;
 }
 
-const INITIAL_TABLE: TableData = {
-  colHeaders: ["Product", "Category", "Q1 Revenue", "Q2 Revenue", "Q3 Revenue", "Q4 Revenue", "Annual Revenue", "Units Sold", "Unit Price"],
-  data: [
-    ["MacBook Pro 16\"", "Laptops", 48500, 52300, 61200, 74800, "=SUM(C1:F1)", 320, 2499],
-    ["iPhone 15 Pro", "Phones", 125000, 98700, 112400, 185600, "=SUM(C2:F2)", 4200, 999],
-    ["AirPods Pro", "Audio", 32400, 28900, 35100, 52800, "=SUM(C3:F3)", 8800, 249],
-    ["iPad Air", "Tablets", 21800, 24500, 19600, 38200, "=SUM(C4:F4)", 1560, 599],
-    ["Apple Watch Ultra", "Wearables", 18200, 21400, 25800, 31600, "=SUM(C5:F5)", 980, 799],
-    ["Mac Mini", "Desktops", 15600, 17200, 14800, 22400, "=SUM(C6:F6)", 620, 599],
-    ["HomePod Mini", "Audio", 8400, 7200, 9600, 18500, "=SUM(C7:F7)", 3700, 99],
-    ["AirTag 4-Pack", "Accessories", 6200, 5800, 7400, 14200, "=SUM(C8:F8)", 5100, 99],
-    ["Total", "", "=SUM(C1:C8)", "=SUM(D1:D8)", "=SUM(E1:E8)", "=SUM(F1:F8)", "=SUM(G1:G8)", "=SUM(H1:H8)", ""],
-    ["Average", "", "=AVERAGE(C1:C8)", "=AVERAGE(D1:D8)", "=AVERAGE(E1:E8)", "=AVERAGE(F1:F8)", "=AVERAGE(G1:G8)", "=AVERAGE(H1:H8)", ""],
-  ],
-};
-
 const TableContext = createContext<TableContextType | null>(null);
 
 export function TableProvider({ children }: { children: ReactNode }) {
-  const [threadId, setThreadIdState] = useState("default");
-  const [tableData, setTableDataState] = useState<TableData | null>(INITIAL_TABLE);
+  const [threadId, setThreadId] = useState("");
+  const [tableData, setTableDataState] = useState<TableData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const pendingSave = useRef<Promise<void>>(Promise.resolve());
 
-  const setThreadId = useCallback((id: string) => setThreadIdState(id), []);
+  useEffect(() => {
+    let id = localStorage.getItem("openui-spreadsheet-id");
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem("openui-spreadsheet-id", id);
+    }
+    setThreadId(id);
+  }, []);
+
+  const refreshTableData = useCallback(async () => {
+    if (!threadId) return;
+    await pendingSave.current;
+    const response = await fetch(`/api/table?threadId=${encodeURIComponent(threadId)}`);
+    if (!response.ok) throw new Error("Failed to load spreadsheet");
+    setTableDataState(await response.json());
+  }, [threadId]);
+
+  useEffect(() => {
+    void refreshTableData().catch((error: Error) => setError(error.message));
+  }, [refreshTableData]);
 
   const syncTableData = useCallback(
-    async (data: CellValue[][], colHeaders?: string[]) => {
-      setTableDataState({ data, colHeaders });
-
-      try {
-        await fetch("/api/table", {
+    (data: CellValue[][], colHeaders?: string[]) => {
+      const snapshot = JSON.parse(JSON.stringify({ data, colHeaders })) as TableData;
+      setTableDataState(snapshot);
+      const save = pendingSave.current.then(async () => {
+        const response = await fetch("/api/table", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ threadId, data, colHeaders }),
+          body: JSON.stringify({ threadId, ...snapshot }),
         });
-      } catch (error) {
-        console.error("Failed to sync table data:", error);
-      }
+        if (!response.ok) throw new Error("Failed to save spreadsheet");
+      });
+      pendingSave.current = save.catch((error: Error) => setError(error.message));
+      return save;
     },
-    [threadId]
+    [threadId],
   );
 
+  if (error) return <p role="alert">{error}</p>;
+  if (!tableData || !threadId) return <p>Loading spreadsheet…</p>;
+
   return (
-    <TableContext.Provider
-      value={{ threadId, setThreadId, tableData, syncTableData }}
-    >
+    <TableContext.Provider value={{ threadId, refreshTableData, tableData, syncTableData }}>
       {children}
     </TableContext.Provider>
   );

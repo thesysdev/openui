@@ -1,5 +1,6 @@
 "use client";
 
+import { withStreamErrors } from "@/lib/stream-errors";
 import { createSupabaseBrowser } from "@/lib/supabase/browser";
 import {
   AgentInterface,
@@ -9,15 +10,9 @@ import {
   restStorage,
 } from "@openuidev/react-ui";
 import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
-import type { RealtimeChannel } from "@supabase/supabase-js";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 export default function Page() {
-  // Incrementing this key remounts ChatProvider, which re-runs fetchThreadList.
-  // We bump it when a Realtime event signals that the thread list changed in
-  // another tab so the sidebar stays in sync without a full page reload.
-  const [threadListKey, setThreadListKey] = useState(0);
-
   // Thread persistence stays server-backed (Supabase) via the same /api/threads
   // REST contract the legacy `threadApiUrl` used — restStorage reproduces those
   // conventions and keeps loadThread deserialization aligned with OpenAI format.
@@ -32,7 +27,7 @@ export default function Page() {
     () =>
       fetchLLM({
         url: "/api/chat",
-        streamAdapter: openAIAdapter(),
+        streamAdapter: withStreamErrors(openAIAdapter()),
         messageFormat: openAIMessageFormat,
       }),
     [],
@@ -40,7 +35,6 @@ export default function Page() {
 
   useEffect(() => {
     const supabase = createSupabaseBrowser();
-    let channel: RealtimeChannel | undefined;
 
     const init = async () => {
       // Ensure an anonymous session exists.
@@ -52,32 +46,14 @@ export default function Page() {
       if (!session) {
         await supabase.auth.signInAnonymously();
       }
-
-      // Subscribe to Realtime changes on the threads table.
-      // This fires whenever any thread is created, updated, or deleted —
-      // including from another tab or device logged in with the same account.
-      channel = supabase
-        .channel("threads-realtime")
-        .on("postgres_changes", { event: "*", schema: "public", table: "threads" }, () => {
-          // Remount ChatProvider so the thread sidebar refreshes.
-          // Note: remounting clears the current in-progress conversation.
-          // For production, consider a more granular update strategy.
-          setThreadListKey((k) => k + 1);
-        })
-        .subscribe();
     };
 
     init();
-
-    return () => {
-      channel?.unsubscribe();
-    };
   }, []);
 
   return (
     <div className="h-screen w-screen overflow-hidden">
       <AgentInterface
-        key={threadListKey}
         storage={storage}
         llm={llm}
         componentLibrary={openuiLibrary}

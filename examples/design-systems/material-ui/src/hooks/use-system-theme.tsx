@@ -23,7 +23,9 @@ const ColorModeContext = createContext<ColorModeContextType | undefined>(undefin
 export function ColorModeProvider({ children }: { children: React.ReactNode }) {
   const systemMode = useSystemThemeMode();
   const [userOverride, setUserOverride] = useState<ThemeMode | null>(null);
-  const mode = userOverride ?? systemMode;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const mode = userOverride ?? (mounted ? systemMode : "light");
 
   useEffect(() => {
     document.body.setAttribute("data-theme", mode);

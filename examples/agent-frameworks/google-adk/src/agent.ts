@@ -47,7 +47,9 @@ export function createAgent() {
       baseURL: "https://api.thesys.dev/v1/embed",
       apiKey,
     }),
-    instruction: cloudInstructions(),
+    instruction: cloudInstructions(
+      "Weather tool values are demo data, not live observations. Use only values returned by get_weather. If the tool returns an error, explain that weather data is unavailable for that city. Never invent temperatures, humidity, wind, or other missing values.",
+    ),
     tools: [getWeather],
   });
 }

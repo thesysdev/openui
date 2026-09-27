@@ -32,5 +32,7 @@ export default defineEventHandler(async (event) => {
     stopWhen: stepCountIs(5),
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toUIMessageStreamResponse({
+    onError: (error) => (error instanceof Error ? error.message : "Model request failed"),
+  });
 });

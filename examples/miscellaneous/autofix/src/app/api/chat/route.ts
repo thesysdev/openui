@@ -21,6 +21,7 @@ export async function POST(request: Request) {
   const openai = new OpenAI();
   const autofix = createAutofix({
     apiKey: process.env.THESYS_API_KEY!,
+    apiBaseUrl: "https://api.thesys.dev",
     library: spec,
   });
 

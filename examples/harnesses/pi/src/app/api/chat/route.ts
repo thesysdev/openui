@@ -160,6 +160,15 @@ export async function POST(req: NextRequest) {
           } else if (ame.type === "thinking_end") {
             thinkingId = undefined;
           }
+        } else if (
+          event.type === "message_end" &&
+          event.message.role === "assistant" &&
+          event.message.stopReason === "error"
+        ) {
+          enqueue(
+            JSON.stringify({ error: event.message.errorMessage || "Pi model request failed" }) +
+              "\n",
+          );
         } else if (event.type === "tool_execution_start") {
           // Show each tool run (read/bash/edit/write …) and its input.
           enqueue(
@@ -185,7 +194,7 @@ export async function POST(req: NextRequest) {
           await session.prompt(userText);
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
-          enqueue(ndjsonChunk({ content: `\n\n**Pi error:** ${message}` }));
+          enqueue(JSON.stringify({ error: message }) + "\n");
         } finally {
           unsubscribe();
           req.signal.removeEventListener("abort", onAbort);

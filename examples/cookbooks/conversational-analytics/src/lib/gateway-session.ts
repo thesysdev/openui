@@ -34,7 +34,7 @@ export function localDemoAccess(request: Request): Response | undefined {
 
 export async function mintFrontendToken(signal?: AbortSignal) {
   const apiKey = process.env.THESYS_API_KEY;
-  if (!apiKey) throw new Error("Configure THESYS_API_KEY privately in .env.local and restart.");
+  if (!apiKey) throw new Error("Configure THESYS_API_KEY privately in .env and restart.");
   const response = await fetch("https://api.thesys.dev/v1/frontend-tokens", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },

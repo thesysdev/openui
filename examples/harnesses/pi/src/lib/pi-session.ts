@@ -125,7 +125,7 @@ async function createSession(cwd: string): Promise<PiSessionEntry> {
   const authStorage = AuthStorage.inMemory();
   authStorage.setRuntimeApiKey("openui-cloud", apiKey);
   const modelRegistry = ModelRegistry.create(authStorage, MODELS_PATH);
-  const modelId = process.env.OPENUI_MODEL?.trim() || DEFAULT_MODEL;
+  const modelId = DEFAULT_MODEL;
   const model = modelRegistry.find("openui-cloud", modelId);
   if (!model) {
     throw new Error(

@@ -64,10 +64,10 @@ From the `react-native/` example directory, install each standalone application:
 ### 2. Configure the backend
 
 ```bash
-cp backend/env.example backend/.env.local
+cp backend/.env.example backend/.env
 ```
 
-Add your key to `backend/.env.local`:
+Add your key to `backend/.env`:
 
 ```
 THESYS_API_KEY=sk-th-...

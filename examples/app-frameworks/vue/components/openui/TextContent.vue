@@ -1,7 +1,14 @@
 <script setup lang="ts">
-defineProps<{ props: { text?: string } }>();
+import { computed } from "vue";
+import MarkdownIt from "markdown-it";
+const input = defineProps<{ props: { text?: string } }>();
+const markdown = new MarkdownIt({ html: false, linkify: true, breaks: true });
+const html = computed(() => markdown.render(input.props.text ?? ""));
 </script>
 
 <template>
-  <p class="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{{ props.text ?? "" }}</p>
+  <div
+    class="markdown-content text-sm leading-relaxed text-zinc-700 dark:text-zinc-300"
+    v-html="html"
+  />
 </template>

@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          "Configure THESYS_API_KEY privately in .env.local and restart to use OpenUI Gateway.",
+          "Configure THESYS_API_KEY privately in .env and restart to use OpenUI Gateway.",
       },
       { status: 503 },
     );
@@ -106,7 +106,7 @@ export async function POST(request: Request) {
   const lapTimesTool = queryLapTimesTool(drivers);
   const functionTools = { [lapTimesTool.name]: executeQueryLapTimes };
   const createParams: ResponseCreateParamsNonStreaming = {
-    model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
+    model: "google/gemini-3.6-flash-free",
     instructions: analyticsPrompt(drivers),
     input: [...stopped, ...body.input],
     conversation: body.threadId,

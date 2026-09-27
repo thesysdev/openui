@@ -1,5 +1,7 @@
 # OpenUI + Pi Agent Harness
 
+Requires Node.js 22.19 or newer. Node.js 20 is not supported by the Pi SDK.
+
 A generative-UI frontend where you chat with the **Pi coding agent** and get **generative UI**
 answers — live React components instead of plain markdown — rendered with
 [OpenUI](https://openui.com).
@@ -48,8 +50,8 @@ launch — see **Security** below.
 All you need is an **[OpenUI Cloud](https://console.thesys.dev/keys)** API key. You do **not**
 need the Pi CLI installed — this app embeds the Pi SDK and points it at Cloud Completions.
 
-Copy `.env.example` to `.env` and set `THESYS_API_KEY`. Optional: `OPENUI_MODEL` (default
-`google/gemini-3.6-flash-free`).
+Copy `.env.example` to `.env` and set `THESYS_API_KEY`. The model is fixed to
+`google/gemini-3.6-flash-free` in `src/lib/pi-session.ts`.
 
 ## Run
 
@@ -89,7 +91,6 @@ pnpm build && pnpm start
 | Env var          | Default                         | Purpose                                              |
 | ---------------- | ------------------------------- | ---------------------------------------------------- |
 | `THESYS_API_KEY` | —                               | OpenUI Cloud API key                                 |
-| `OPENUI_MODEL`   | `google/gemini-3.6-flash-free`  | Cloud model id Pi sends to Completions               |
 | `PI_AGENT_CWD`   | `process.cwd()`                 | Workspace directory the coding agent reads/writes in |
 | `PI_WEB_TOOLS`   | `full`                          | Set to `read-only` to disable `bash`/`edit`/`write`  |
 | `PORT`           | `3000`                          | Dev/prod server port                                 |

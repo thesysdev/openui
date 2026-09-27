@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { BotBubble } from "../components/BotBubble";
 import { ChatInput } from "../components/ChatInput";
@@ -23,12 +23,14 @@ type Props = { backendUrl: string };
 
 export default function ChatScreen({ backendUrl }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const { sendMessage } = useStreamingChat(backendUrl);
   const historyRef = useRef<StreamMessage[]>([]);
 
   const handleSend = useCallback(
     async (text: string) => {
+      setError(null);
       // 1. User message
       setMessages((prev) => [{ id: uid(), type: "user", text }, ...prev]);
 
@@ -43,13 +45,21 @@ export default function ChatScreen({ backendUrl }: Props) {
       setIsStreaming(true);
 
       // 4. Stream chunks into the store
-      await sendMessage(newHistory, (accumulated, isDone) => {
-        pushStream(botId, { openui: accumulated, isStreaming: !isDone });
-        if (isDone) {
+      await sendMessage(
+        newHistory,
+        (accumulated, isDone) => {
+          pushStream(botId, { openui: accumulated, isStreaming: !isDone });
+          if (isDone) {
+            setIsStreaming(false);
+            historyRef.current = [...newHistory, { role: "assistant", content: accumulated }];
+          }
+        },
+        (message) => {
+          setError(message);
           setIsStreaming(false);
-          historyRef.current = [...newHistory, { role: "assistant", content: accumulated }];
-        }
-      });
+          setMessages((previous) => previous.filter((item) => item.id !== botId));
+        },
+      );
     },
     [sendMessage],
   );
@@ -77,6 +87,11 @@ export default function ChatScreen({ backendUrl }: Props) {
             contentContainerStyle={styles.list}
             keyboardShouldPersistTaps="handled"
           />
+          {error && (
+            <Text accessibilityRole="alert" style={{ color: "#b91c1c", padding: 16 }}>
+              {error}
+            </Text>
+          )}
           <SuggestedPrompts onSelect={handleSend} />
           <ChatInput onSend={handleSend} disabled={isStreaming} />
         </KeyboardAvoidingView>

@@ -21,7 +21,7 @@ pnpm install --ignore-workspace
 # or: bun install
 ```
 
-Create a gitignored `.env.local` in this directory and configure `THESYS_API_KEY` there. Keep the key server-side and out of Git. You can optionally set `OPENUI_MODEL` to a supported `provider/model` identifier; the default is `google/gemini-3.6-flash-free`, matching the Vue and Svelte examples.
+Create a gitignored `.env` in this directory and configure `THESYS_API_KEY` there. Keep the key server-side and out of Git. The server uses `google/gemini-3.6-flash-free`, matching the Vue and Svelte examples.
 
 ```bash
 pnpm dev
