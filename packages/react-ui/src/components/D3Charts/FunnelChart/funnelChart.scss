@@ -1,0 +1,95 @@
+@use "../../../cssUtils" as cssUtils;
+@use "../shared/cartesian/chartBase" as base;
+@use "../prefix" as brand;
+
+@include base.centered-container("funnel-chart");
+
+// Channel-3 update transitions (ungated, like line/area/bar's d/height
+// tweens): as a stream extends the data, the geometry-max shifts and every
+// stage rescales — tween the path + dim instead of hard-snapping. Width/shape
+// encodes the value, so a print snapshot must catch the settled frame.
+.#{brand.$prefix}-funnel-chart-ring {
+  transition:
+    d 0.3s ease,
+    fill-opacity 0.2s ease;
+}
+
+// Spring-driven hover bloom. The spring writes the scale MAGNITUDE into
+// `--funnel-ring-scale`; the AXIS is chosen here by the orientation class, so
+// an orientation flip can't leave a stale scaleX/scaleY on an at-rest ring.
+// The scale pivots on the ring's own centre, and `transform` is deliberately
+// NOT in the channel-3 transition above (the spring owns it; a CSS transition
+// would fight the rAF loop). At rest the var is unset → scale 1 (identity).
+.#{brand.$prefix}-funnel-chart-ring--springy {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.#{brand.$prefix}-funnel-chart-ring--bloom-y {
+  transform: scaleY(var(--funnel-ring-scale, 1));
+}
+
+.#{brand.$prefix}-funnel-chart-ring--bloom-x {
+  transform: scaleX(var(--funnel-ring-scale, 1));
+}
+
+.#{brand.$prefix}-funnel-chart-stage {
+  transition: filter 0.2s ease;
+}
+
+@media print {
+  .#{brand.$prefix}-funnel-chart-ring,
+  .#{brand.$prefix}-funnel-chart-stage {
+    transition: none;
+  }
+}
+
+// In-stage text. Value + label use the chart label typography; the percentage
+// is the headline, set in an inverting pill (foreground fill, background text)
+// so it reads over the solid core.
+.#{brand.$prefix}-funnel-chart-value {
+  @include cssUtils.typography(label, small);
+  fill: cssUtils.$text-neutral-primary;
+  font-weight: 600;
+}
+
+.#{brand.$prefix}-funnel-chart-label {
+  @include base.svg-tick-label;
+}
+
+// The percentage pill inverts against the surface: a high-contrast ink fill
+// with surface-colored text. Both tokens flip with the theme, so the pill
+// stays legible in light and dark. (react-ui's $foreground/$background are
+// both light neutrals here — $text-neutral-primary is the actual ink.)
+.#{brand.$prefix}-funnel-chart-pct {
+  @include cssUtils.typography(label, extra-small);
+  fill: cssUtils.$background;
+  font-weight: 700;
+}
+
+.#{brand.$prefix}-funnel-chart-pct-pill {
+  fill: cssUtils.$text-neutral-primary;
+}
+
+// Entrances are decorative: gate the WHOLE rule (pre-state included) behind
+// reduced-motion so users who opt out get the natural static state immediately
+// — gating only the animation would strand stages at opacity: 0.
+@media (prefers-reduced-motion: no-preference) {
+  .#{brand.$prefix}-funnel-chart-stage--animated {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: #{brand.$prefix}-funnel-appear 0.5s ease-out forwards;
+  }
+}
+
+@keyframes #{brand.$prefix}-funnel-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

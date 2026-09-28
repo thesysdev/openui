@@ -724,6 +724,15 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      d3-scale:
+        specifier: ^4.0.2
+        version: 4.0.2
+      d3-selection:
+        specifier: ^3.0.0
+        version: 3.0.0
+      d3-shape:
+        specifier: ^3.2.0
+        version: 3.2.0
       date-fns:
         specifier: ^4.1.0
         version: 4.4.0
@@ -821,6 +830,15 @@ importers:
       '@storybook/theming':
         specifier: ^8.5.3
         version: 8.6.14(storybook@8.6.18(prettier@3.9.6))
+      '@types/d3-scale':
+        specifier: ^4.0.9
+        version: 4.0.9
+      '@types/d3-selection':
+        specifier: ^3.0.11
+        version: 3.0.11
+      '@types/d3-shape':
+        specifier: ^3.1.8
+        version: 3.1.8
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12

@@ -1,0 +1,41 @@
+@use "../../../../../cssUtils" as cssUtils;
+@use "../../../prefix" as brand;
+
+.#{brand.$prefix}-chart-horizontal-scroll {
+  &-buttons-container {
+    position: relative;
+
+    // Nested under the container (specificity 0,2,0) so these beat react-ui's
+    // single-class IconButton rules — the `-secondary` transparent background
+    // and the base `transition` — whatever order the stylesheets load in
+    // (react-ui's generated components index forwards D3Charts before
+    // IconButton). IconButton's own `:hover` / `:active` / `:disabled` states
+    // still win on specificity.
+    .#{brand.$prefix}-chart-horizontal-scroll-button {
+      position: absolute;
+      background-color: cssUtils.$foreground;
+
+      &--left {
+        top: -23px;
+        transform: translateY(-50%);
+        left: 20px;
+      }
+
+      &--right {
+        top: -23px;
+        transform: translateY(-50%);
+        right: 0px;
+      }
+
+      &--disabled {
+        visibility: hidden;
+        cursor: not-allowed;
+        // Looks inert but isn't: visible→hidden under a transition holds
+        // `visible` until it completes (the brief linger on disable), and this
+        // declaration overrides react-ui's base `transition: all 0.12s ease`
+        // on the same element.
+        transition: visibility 0.1s linear;
+      }
+    }
+  }
+}

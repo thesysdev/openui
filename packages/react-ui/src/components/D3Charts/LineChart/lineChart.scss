@@ -1,0 +1,31 @@
+@use "../../../cssUtils" as cssUtils;
+@use "../shared/cartesian/chartBase" as base;
+@use "../prefix" as brand;
+
+@include base.chart-base("line-chart");
+@include base.crosshair-styles("line-chart");
+
+// No `transition: d/cx/cy` here: data-change motion is the spring data morph
+// in LineSeries (gated on isAnimationActive). A CSS transition restarted from
+// progress 0 on every attribute write, so per-frame streaming rewrites pinned
+// the rendered geometry (and would fight the morph's per-tick writes).
+.#{brand.$prefix}-line-chart-line {
+  fill: none;
+  stroke-width: 2;
+}
+
+.#{brand.$prefix}-line-chart-dot {
+  stroke: cssUtils.$foreground;
+  stroke-width: 1;
+}
+
+// Entrances are decorative: gate the whole rule (pre-state included) behind
+// reduced-motion so users who opt out get the natural static state immediately
+// — gating only the animation would strand elements at the opacity: 0 start.
+@media (prefers-reduced-motion: no-preference) {
+  .#{brand.$prefix}-line-chart-line--animated {
+    stroke-dasharray: var(--path-length);
+    stroke-dashoffset: var(--path-length);
+    animation: #{brand.$prefix}-draw-line 1s ease-out forwards;
+  }
+}

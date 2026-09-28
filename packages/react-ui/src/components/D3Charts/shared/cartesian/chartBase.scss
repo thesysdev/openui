@@ -1,0 +1,162 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../prefix" as brand;
+
+// The typography + fill shared by every native-SVG `<text>` tick / axis label
+// (the cartesian y/x/angled ticks below, plus the heatmap/scatter/radar/funnel
+// label sheets). Body-only — `@include` it inside the chart's own selector.
+@mixin svg-tick-label {
+  @include cssUtils.typography(label, extra-small);
+  fill: cssUtils.$text-neutral-secondary;
+}
+
+// The centered column the non-cartesian charts (pie/radial/radar/heatmap/
+// scatter/funnel) use as their root — distinct from chart-base's container
+// (this centers its content and does NOT clip overflow).
+// Horizontal centering here is load-bearing for radarLabelLayout.ts (svgLeft assumes the svg is centered within containerWidth) — update that util if this centering changes.
+@mixin centered-container($prefix) {
+  .#{brand.$prefix}-#{$prefix}-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    position: relative;
+  }
+}
+
+// The centered svg box the polar charts (pie/radial/radar) wrap their square
+// chart in.
+// Horizontal centering here is load-bearing for radarLabelLayout.ts (svgLeft assumes the svg is centered within containerWidth) — update that util if this centering changes.
+@mixin centered-svg-wrapper($prefix) {
+  .#{brand.$prefix}-#{$prefix}-svg-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+@mixin chart-base($prefix) {
+  .#{brand.$prefix}-#{$prefix} {
+    &-container {
+      width: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    &-container-inner {
+      display: flex;
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+    }
+
+    &-y-axis-container {
+      flex-shrink: 0;
+    }
+
+    &-main-container {
+      flex: 1;
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+  }
+
+  .#{brand.$prefix}-#{$prefix}-grid line {
+    stroke: cssUtils.$border-default;
+    stroke-dasharray: 3 3;
+  }
+
+  // The y=0 baseline renders solid so it reads at a glance when the domain
+  // spans negative values (the extra selector outweighs the dashed rule).
+  .#{brand.$prefix}-#{$prefix}-grid line.#{brand.$prefix}-grid-zero-line {
+    stroke-dasharray: none;
+  }
+
+  .#{brand.$prefix}-#{$prefix}-y-tick {
+    @include svg-tick-label;
+  }
+
+  .#{brand.$prefix}-#{$prefix}-x-tick {
+    @include svg-tick-label;
+  }
+
+  .#{brand.$prefix}-#{$prefix}-x-tick-angled {
+    @include svg-tick-label;
+  }
+}
+
+.#{brand.$prefix}-chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+
+  &-text {
+    @include cssUtils.typography(body, default);
+    color: cssUtils.$text-neutral-secondary;
+  }
+}
+
+// Fit/condensed-mode axis labels — standalone HTML divs the CartesianChartLayout
+// renders around the chart (y top-left, x bottom-centered), mirroring react-ui's
+// *Condensed charts. Prefix-independent (shared by bar/line/area fit mode), so
+// declared once at top level rather than inside chart-base($prefix). HTML text,
+// so `color` (not the SVG `fill` used by svg-tick-label).
+.#{brand.$prefix}-cartesian-y-axis-label {
+  @include cssUtils.typography(label, extra-small);
+  color: cssUtils.$text-neutral-secondary;
+  padding-bottom: cssUtils.$space-s;
+}
+
+.#{brand.$prefix}-cartesian-x-axis-label {
+  @include cssUtils.typography(label, extra-small);
+  color: cssUtils.$text-neutral-secondary;
+  text-align: center;
+}
+
+@mixin crosshair-styles($prefix) {
+  .#{brand.$prefix}-#{$prefix}-crosshair-line {
+    stroke: cssUtils.$border-default;
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+  }
+
+  .#{brand.$prefix}-#{$prefix}-active-dot-outer {
+    fill: cssUtils.$foreground;
+    stroke: cssUtils.$border-default;
+    stroke-width: 1;
+  }
+
+  .#{brand.$prefix}-#{$prefix}-active-dot-inner {
+    stroke: none;
+  }
+}
+
+// The draw-on used by line + area series strokes (via AnimatedPath). Top-level
+// (not in a mixin) so Sass emits it exactly once however many sheets @use this
+// module. `--path-length` is set by AnimatedPath before paint.
+@keyframes #{brand.$prefix}-draw-line {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+// The opacity-only entrance fade shared by area / heatmap / radial. Top-level
+// (like draw-line above) so Sass emits it exactly once. Each sheet's
+// `--animated` rule sets the `opacity: 0` pre-state and owns its own
+// duration/delay in the `animation:` shorthand.
+@keyframes #{brand.$prefix}-fade-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

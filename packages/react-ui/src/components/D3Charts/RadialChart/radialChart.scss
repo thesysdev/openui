@@ -1,0 +1,22 @@
+@use "../../../cssUtils" as cssUtils;
+@use "../shared/cartesian/chartBase" as base;
+@use "../prefix" as brand;
+
+@include base.centered-container("radial-chart");
+@include base.centered-svg-wrapper("radial-chart");
+
+.#{brand.$prefix}-radial-chart-grid-circle {
+  stroke: cssUtils.$border-default;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+// Entrances are decorative: gate the whole rule (pre-state included) behind
+// reduced-motion so users who opt out get the natural static state immediately
+// — gating only the animation would strand elements at the opacity: 0 start.
+@media (prefers-reduced-motion: no-preference) {
+  .#{brand.$prefix}-radial-chart-bar--animated {
+    opacity: 0;
+    animation: #{brand.$prefix}-fade-appear 0.5s ease-out forwards;
+  }
+}

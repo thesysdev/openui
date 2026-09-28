@@ -1,0 +1,5 @@
+// Brand prefix for every chart class selector and @keyframes name — the SCSS
+// mirror of `CHART_CLASS_PREFIX` in `utils/constants.ts` (SCSS can't read
+// TS constants). Change BOTH or the stylesheets stop matching the DOM.
+// Usage: `@use '<rel>/prefix' as brand;` then `.#{brand.$prefix}-bar-chart`.
+$prefix: openui-d3;
