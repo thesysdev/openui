@@ -53,7 +53,7 @@ Try:
 
 ## The MCP server
 
-`search_stays` is a function tool that runs on this server and calls trivago's MCP server with the MCP SDK's Streamable HTTP client. OpenUI Gateway's Responses API can also call remote MCP servers itself, but trivago's search result embeds every photo as image data and includes formatting instructions for the model: passed straight to the model, one search used about 450,000 input tokens. The function tool keeps only the structured hotel list and returns the fields the cards need, a few thousand tokens, and it never forwards the third-party instructions.
+`search_stays` is a function tool that runs on this server and calls trivago's MCP server with the MCP SDK's Streamable HTTP client. trivago's search result embeds every photo as image data, about 665 KB per search, and includes formatting instructions for the model. The tool keeps only the structured hotel list and returns the fields the cards need, a few thousand tokens, and it never forwards the third-party instructions.
 
 trivago has no price filter, so the tool applies the budget and reports how many stays it left out and the cheapest of them. Prices are live and can change until the guest books. Check [trivago's MCP documentation](https://mcp.trivago.com/docs) for its terms before you deploy.
 

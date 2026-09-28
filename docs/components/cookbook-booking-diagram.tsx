@@ -17,12 +17,12 @@ const screens = [
   { title: "Summary", note: "Then the booking site" },
 ];
 const fields = [
-  { name: "Where", value: "Goa" },
+  { name: "Where", value: "New York" },
   { name: "Dates", value: "Oct 2 – 4" },
   { name: "Adults", value: "2" },
   { name: "Budget", value: null },
 ];
-const stays = ["Morjim · ₹2,124 · 9.5", "Calangute · ₹4,056 · 9.1", "Panaji · ₹3,151 · 7.8"];
+const stays = ["Times Square · $292 · 8.7", "Wall Street · $348 · 7.7", "SoHo · $516 · 8.7"];
 const x = (index: number) => 10 + index * 235;
 
 function Arrow({ d, id, both }: { d: string; id: string; both?: boolean }) {
@@ -51,10 +51,10 @@ export function CookbookBookingDiagram() {
       >
         <title id={`${id}-title`}>From a request to a booked stay</title>
         <desc id={`${id}-description`}>
-          A guest writes “Book a room in Goa for two this weekend.” The model replies with a form
-          that already has the destination, dates, and adults filled in, and leaves the optional
-          budget empty. After the guest submits it, the server searches through trivago’s MCP
-          server, which returns live prices from booking sites, and the model shows the stays as
+          A guest writes “Book a room in New York for two this weekend.” The model replies with a
+          form that already has the destination, dates, and adults filled in, and leaves the
+          optional budget empty. After the guest submits it, the server searches through trivago’s
+          MCP server, which returns live prices from booking sites, and the model shows the stays as
           cards with photos. The guest picks one and sees a summary with a Continue button that
           opens the booking site, where they book and pay. The model writes every screen; the search
           and the booking happen outside the chat.
@@ -108,13 +108,17 @@ export function CookbookBookingDiagram() {
         ))}
 
         {/* The request, as a chat message. */}
-        <rect x={x(0) + 16} y={80} width={173} height={60} rx={14} className={filled} />
-        <text x={x(0) + 30} y={105} className="fill-fd-foreground font-sans text-[14px]">
-          Book a room in Goa
-        </text>
-        <text x={x(0) + 30} y={125} className="fill-fd-foreground font-sans text-[14px]">
-          for two this weekend.
-        </text>
+        <rect x={x(0) + 16} y={78} width={173} height={78} rx={14} className={filled} />
+        {["Book a room in", "New York for two", "this weekend."].map((line, index) => (
+          <text
+            key={line}
+            x={x(0) + 30}
+            y={102 + index * 20}
+            className="fill-fd-foreground font-sans text-[14px]"
+          >
+            {line}
+          </text>
+        ))}
 
         {/* The form: understood details are filled in, the rest stays empty. */}
         {fields.map((field, index) => {
@@ -169,10 +173,10 @@ export function CookbookBookingDiagram() {
 
         {/* The summary and its confirm button. */}
         <text x={x(3) + 16} y={90} className={small}>
-          Calangute · Oct 2 – 4
+          Wall Street · Oct 2 – 4
         </text>
         <text x={x(3) + 16} y={110} className={small}>
-          2 nights · 2 adults · ₹8,112
+          2 nights · 2 adults · $695
         </text>
         <rect x={x(3) + 16} y={128} width={112} height={27} rx={6} className={accent} />
         <text
