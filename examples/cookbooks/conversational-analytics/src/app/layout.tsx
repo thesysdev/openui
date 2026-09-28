@@ -1,4 +1,4 @@
-import "@openuidev/react-ui/components.css";
+import "@openuidev/react-ui/styles/index.css";
 import type { Metadata } from "next";
 import "./styles.css";
 
