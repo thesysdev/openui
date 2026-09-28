@@ -5,7 +5,7 @@ description: Build a chat assistant that compares NVIDIA, AMD, and Intel annual 
 
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 import { ArrowUpRight, Github } from "lucide-react";
-import { CookbookArchitecture } from "@/components/cookbook-architecture";
+import { CookbookComparisonDiagram } from "@/components/cookbook-comparison-diagram";
 
 Comparing documents is everyday work: vendor proposals, contracts, policies, annual reports. The answers are spread across long files, and each document states the same fact in a different place and in different words. Reading three 150-page reports side by side takes hours, and a summary written as paragraphs hides exactly what you wanted to compare.
 
@@ -52,23 +52,10 @@ Every answer ends with a collapsible **Sources** section that quotes the passage
 
 A document comparison assistant splits the work between your application and the model. Your application owns the documents and the search. The model decides what to look for in each document and how to present what it finds.
 
-<CookbookArchitecture
-  id="comparison-architecture"
-  title="How the document comparison example works"
-  description="A chat interface, such as Agent Interface, sends the question to OpenUI Gateway, which runs the model. The model calls a search tool on your server, which finds the closest passages in each document and returns them with page numbers. Gateway then streams the comparison back to the chat interface."
-  serverLines={["Runs the search tool", "Embeds each query"]}
-  data={{
-    title: "Your documents",
-    lines: ["Embedded passages"],
-    footer: "3 annual reports · SQLite",
-    icon: "documents",
-  }}
-  dataRequest="Search"
-  dataReply="Passages"
-/>
+<CookbookComparisonDiagram />
 
 1. **The user asks for a comparison.** Agent Interface sends it to OpenUI Gateway through your server's chat route, which adds a `search_documents` function tool and a system prompt that describes the documents and your components.
-2. **The model searches once per criterion.** For “revenue and R&D”, it calls `search_documents` twice, in parallel, with short descriptions such as “research and development expenses for the fiscal year”. Your server embeds each description, finds each document's closest passages, and returns them with their page numbers and a `found` flag.
+2. **The model searches once per criterion.** For “revenue and R&D”, it calls `search_documents` twice, in parallel, with short descriptions such as “research and development expenses for the fiscal year”. Separate searches keep one criterion's passages from crowding out another's. Your server embeds each description with OpenAI, compares it with the passage embeddings it loaded from SQLite, and returns each document's closest passages with their page numbers and a `found` flag.
 3. **The model compares the evidence.** It writes an OpenUI Lang program with a table of page-cited values, charts suited to the data, callouts for conflicts or gaps, and a Sources section that quotes each passage. Gateway validates the program against your component library as it streams.
 4. **Agent Interface renders it progressively.** Tables and charts appear as their data arrives. Gateway stores the conversation, so a follow-up such as “compare headcount” searches for the new criterion and extends the comparison.
 
