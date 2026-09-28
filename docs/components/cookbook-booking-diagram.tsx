@@ -13,16 +13,16 @@ const accent = "fill-[#b4441f] dark:fill-[#f0875f]";
 const screens = [
   { title: "Request", note: "In their own words" },
   { title: "Prefilled form", note: "Filled from the request" },
-  { title: "Open stays", note: "Free every night" },
-  { title: "Summary", note: "Checked, then saved" },
+  { title: "Stays", note: "Live prices, with photos" },
+  { title: "Summary", note: "Then the booking site" },
 ];
 const fields = [
-  { name: "Check-in", value: "Fri, Oct 2" },
-  { name: "Check-out", value: "Sun, Oct 4" },
-  { name: "Guests", value: "2" },
+  { name: "Where", value: "Goa" },
+  { name: "Dates", value: "Oct 2 – 4" },
+  { name: "Adults", value: "2" },
   { name: "Budget", value: null },
 ];
-const stays = ["Alfama · €109 · ★ 4.9", "Chiado · €96 · ★ 4.9", "Graça · €84 · ★ 4.8"];
+const stays = ["Morjim · ₹2,124 · 9.5", "Calangute · ₹4,056 · 9.1", "Panaji · ₹3,151 · 7.8"];
 const x = (index: number) => 10 + index * 235;
 
 function Arrow({ d, id, both }: { d: string; id: string; both?: boolean }) {
@@ -51,13 +51,13 @@ export function CookbookBookingDiagram() {
       >
         <title id={`${id}-title`}>From a request to a booked stay</title>
         <desc id={`${id}-description`}>
-          A guest writes “Book a place in Lisbon for two this weekend.” The model replies with a
-          form that already has the check-in, check-out, and guests filled in, and leaves the
-          optional budget empty. After the guest submits it, the server searches the listings for
-          stays that are free every night, and the model shows them as cards. The guest picks one
-          and sees a summary with a confirm button. Confirming makes the server check the nights
-          again and save the booking. The model writes every screen; the server only searches and
-          saves, using a local database of Lisbon listings and their nightly availability.
+          A guest writes “Book a room in Goa for two this weekend.” The model replies with a form
+          that already has the destination, dates, and adults filled in, and leaves the optional
+          budget empty. After the guest submits it, the server searches through trivago’s MCP
+          server, which returns live prices from booking sites, and the model shows the stays as
+          cards with photos. The guest picks one and sees a summary with a Continue button that
+          opens the booking site, where they book and pay. The model writes every screen; the search
+          and the booking happen outside the chat.
         </desc>
         <defs>
           <marker
@@ -110,7 +110,7 @@ export function CookbookBookingDiagram() {
         {/* The request, as a chat message. */}
         <rect x={x(0) + 16} y={80} width={173} height={60} rx={14} className={filled} />
         <text x={x(0) + 30} y={105} className="fill-fd-foreground font-sans text-[14px]">
-          Book a place in Lisbon
+          Book a room in Goa
         </text>
         <text x={x(0) + 30} y={125} className="fill-fd-foreground font-sans text-[14px]">
           for two this weekend.
@@ -169,10 +169,10 @@ export function CookbookBookingDiagram() {
 
         {/* The summary and its confirm button. */}
         <text x={x(3) + 16} y={90} className={small}>
-          Chiado · Oct 2 – Oct 4
+          Calangute · Oct 2 – 4
         </text>
         <text x={x(3) + 16} y={110} className={small}>
-          2 nights · 2 guests · €192
+          2 nights · 2 adults · ₹8,112
         </text>
         <rect x={x(3) + 16} y={128} width={112} height={27} rx={6} className={accent} />
         <text
@@ -181,49 +181,44 @@ export function CookbookBookingDiagram() {
           textAnchor="middle"
           className="fill-white font-sans text-[13px] font-semibold dark:fill-[#2a0f05]"
         >
-          Confirm
+          Continue
         </text>
 
         {/* Who does what. */}
         <text x={10} y={278} className={caption}>
-          2. On your server
+          2. Outside the chat
         </text>
         <text x={10} y={302} className={note}>
           The model writes every screen from your components.
         </text>
         <text x={10} y={322} className={note}>
-          Your server only searches and saves.
+          The search and the booking happen elsewhere.
         </text>
-        {[
-          { title: "Search stays", detail: "Free every night?", index: 2 },
-          { title: "Save booking", detail: "Checks again, then saves", index: 3 },
-        ].map((step) => (
-          <g key={step.title}>
-            <Arrow d={`M${x(step.index) + 102} 218 V256`} id={id} both />
-            <rect
-              x={x(step.index)}
-              y={262}
-              width={205}
-              height={56}
-              rx={28}
-              strokeWidth={1.6}
-              className={box}
-            />
-            <text x={x(step.index) + 102} y={286} textAnchor="middle" className={label}>
-              {step.title}
-            </text>
-            <text x={x(step.index) + 102} y={305} textAnchor="middle" className={note}>
-              {step.detail}
-            </text>
-            <Arrow d={`M${x(step.index) + 102} 322 V344`} id={id} />
-          </g>
-        ))}
-        <rect x={x(2)} y={350} width={440} height={50} rx={12} strokeWidth={1.6} className={box} />
-        <text x={x(2) + 220} y={371} textAnchor="middle" className={label}>
-          Lisbon listings
+
+        <Arrow d={`M${x(2) + 102} 218 V256`} id={id} both />
+        <rect x={x(2)} y={262} width={205} height={56} rx={28} strokeWidth={1.6} className={box} />
+        <text x={x(2) + 102} y={286} textAnchor="middle" className={label}>
+          Your server
         </text>
-        <text x={x(2) + 220} y={390} textAnchor="middle" className={note}>
-          5,700 real stays and a year of nightly availability
+        <text x={x(2) + 102} y={305} textAnchor="middle" className={note}>
+          Checks each search
+        </text>
+        <Arrow d={`M${x(2) + 102} 322 V344`} id={id} both />
+        <rect x={x(2)} y={350} width={205} height={50} rx={12} strokeWidth={1.6} className={box} />
+        <text x={x(2) + 102} y={371} textAnchor="middle" className={label}>
+          trivago MCP
+        </text>
+        <text x={x(2) + 102} y={390} textAnchor="middle" className={note}>
+          Prices from booking sites
+        </text>
+
+        <Arrow d={`M${x(3) + 102} 218 V256`} id={id} />
+        <rect x={x(3)} y={262} width={205} height={56} rx={28} strokeWidth={1.6} className={box} />
+        <text x={x(3) + 102} y={286} textAnchor="middle" className={label}>
+          Booking site
+        </text>
+        <text x={x(3) + 102} y={305} textAnchor="middle" className={note}>
+          The guest books and pays
         </text>
       </svg>
     </figure>

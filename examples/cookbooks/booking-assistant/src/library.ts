@@ -22,6 +22,7 @@ export const library = createLibrary({
       "ChipItem",
       "OptionCards",
       "OptionCard",
+      "Image",
       "Buttons",
       "Button",
     ].map((name) => openuiLibrary.components[name]),

@@ -74,7 +74,7 @@
     },
     {
       "title": "Booking assistant",
-      "description": "Book Lisbon stays from real Inside Airbnb listings with prefilled, validated forms, availability search, and a summary before booking.",
+      "description": "Find stays anywhere with prefilled, validated forms, live hotel prices from trivago's MCP server, and a summary before booking.",
       "path": "cookbooks/booking-assistant",
       "envKey": "THESYS_API_KEY"
     },

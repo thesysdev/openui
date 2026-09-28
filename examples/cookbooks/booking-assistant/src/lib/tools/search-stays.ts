@@ -1,91 +1,111 @@
-import type { DatabaseSync } from "node:sqlite";
 import { z } from "zod/v4";
 import {
   amenities,
-  bookingWindow,
-  daysBetween,
-  isOpen,
-  isoDate,
-  neighbourhoods,
-  openDatabase,
-  roomTypes,
-  type BookingWindow,
-  type Listing,
-} from "../stays";
+  currencies,
+  guestRatings,
+  searchAccommodations,
+  type Accommodation,
+} from "../trivago";
 
-// The search_stays function tool: its JSON schema for Gateway, argument validation,
-// the availability search, and the executor the tool loop calls.
+// The search_stays function tool: its JSON schema for Gateway, argument validation, the trivago
+// search, and the executor the tool loop calls.
 
-export function searchStaysTool(window: BookingWindow) {
+// Today's date where the server runs, as YYYY-MM-DD.
+export const today = () => new Intl.DateTimeFormat("en-CA").format(new Date());
+
+export function searchStaysTool() {
   return {
     type: "function" as const,
-    name: "search_stays",
-    description: `Find Lisbon stays that are open every night of a trip, from Inside Airbnb's calendar. Check-in is from ${window.first}; check-out is up to ${window.last}. Prices are EUR per night.`,
-    parameters: {
-      type: "object",
-      properties: {
-        check_in: { type: "string", description: "YYYY-MM-DD, the day the guests arrive." },
-        check_out: { type: "string", description: "YYYY-MM-DD, the day they leave." },
-        guests: { type: "integer", minimum: 1, maximum: 16 },
-        room_type: { type: "string", enum: ["any", ...Object.keys(roomTypes)] },
-        neighbourhoods: {
-          type: "array",
-          items: { type: "string", enum: Object.keys(neighbourhoods) },
-          description: "Empty for anywhere in Lisbon.",
+    function: {
+      name: "search_stays",
+      description:
+        "Search hotels and other stays with live prices from trivago, which compares booking sites. Returns the best matches with prices, ratings, a photo, and a booking link.",
+      parameters: {
+        type: "object",
+        properties: {
+          destination: {
+            type: "string",
+            description: "A city, neighbourhood, or landmark, such as 'Alfama, Lisbon'.",
+          },
+          check_in: { type: "string", description: "YYYY-MM-DD, the day the guests arrive." },
+          check_out: { type: "string", description: "YYYY-MM-DD, the day they leave." },
+          adults: { type: "integer", minimum: 1, maximum: 16 },
+          children_ages: {
+            type: "array",
+            items: { type: "integer", minimum: 0, maximum: 17 },
+            description: "One age per child. Empty when there are no children.",
+          },
+          rooms: { type: "integer", minimum: 1, maximum: 8 },
+          currency: { type: "string", enum: currencies },
+          max_price_per_night: {
+            type: ["number", "null"],
+            description: "In the chosen currency. Null for no limit.",
+          },
+          stars: {
+            type: "array",
+            items: { type: "integer", minimum: 1, maximum: 5 },
+            description: "Hotel star ratings to include. Empty for any.",
+          },
+          min_guest_rating: { type: "string", enum: ["any", ...guestRatings] },
+          amenities: { type: "array", items: { type: "string", enum: Object.keys(amenities) } },
+          sort: { type: "string", enum: ["recommended", "lowest_price", "top_rated"] },
         },
-        max_price_per_night: {
-          type: ["number", "null"],
-          description: "EUR per night. Null for no limit.",
-        },
-        amenities: { type: "array", items: { type: "string", enum: Object.keys(amenities) } },
-        sort: { type: "string", enum: ["top_rated", "lowest_price"] },
+        required: [
+          "destination",
+          "check_in",
+          "check_out",
+          "adults",
+          "children_ages",
+          "rooms",
+          "currency",
+          "max_price_per_night",
+          "stars",
+          "min_guest_rating",
+          "amenities",
+          "sort",
+        ],
+        additionalProperties: false,
       },
-      required: [
-        "check_in",
-        "check_out",
-        "guests",
-        "room_type",
-        "neighbourhoods",
-        "max_price_per_night",
-        "amenities",
-        "sort",
-      ],
-      additionalProperties: false,
+      strict: true,
     },
-    strict: true,
   };
 }
 
-// Validate arguments again on the server; the model's output is untrusted input.
-export const tripSchema = z
-  .object({
-    check_in: z.string().regex(isoDate, "Use YYYY-MM-DD dates."),
-    check_out: z.string().regex(isoDate, "Use YYYY-MM-DD dates."),
-    guests: z.number().int().min(1).max(16),
-  })
-  .superRefine((trip, ctx) => {
-    const nights = daysBetween(trip.check_in, trip.check_out);
-    if (!(nights >= 1))
-      ctx.addIssue({ code: "custom", message: "Check-out must be after check-in." });
-    if (nights > 28) ctx.addIssue({ code: "custom", message: "Stays can be up to 28 nights." });
-  });
+const isoDate = /^\d{4}-\d{2}-\d{2}$/;
+const nightsBetween = (from: string, to: string) =>
+  Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000);
 
+// Validate arguments again on the server; the model's output is untrusted input.
 const argsSchema = z
   .object({
-    ...tripSchema.shape,
-    room_type: z.enum(["any", ...Object.keys(roomTypes)]),
-    neighbourhoods: z.array(z.enum(Object.keys(neighbourhoods))),
+    destination: z.string().trim().min(2).max(120),
+    check_in: z.string().regex(isoDate, "Use YYYY-MM-DD dates."),
+    check_out: z.string().regex(isoDate, "Use YYYY-MM-DD dates."),
+    adults: z.number().int().min(1).max(16),
+    children_ages: z.array(z.number().int().min(0).max(17)).max(8),
+    rooms: z.number().int().min(1).max(8),
+    currency: z.enum(currencies),
     max_price_per_night: z.number().positive().nullable(),
+    stars: z.array(z.number().int().min(1).max(5)),
+    min_guest_rating: z.enum(["any", ...guestRatings]),
     amenities: z.array(z.enum(Object.keys(amenities))),
-    sort: z.enum(["top_rated", "lowest_price"]),
+    sort: z.enum(["recommended", "lowest_price", "top_rated"]),
   })
-  .strict();
+  .strict()
+  .superRefine((args, ctx) => {
+    const nights = nightsBetween(args.check_in, args.check_out);
+    if (args.check_in < today())
+      ctx.addIssue({ code: "custom", message: "Check-in must be today or later." });
+    if (!(nights >= 1))
+      ctx.addIssue({ code: "custom", message: "Check-out must be after check-in." });
+    if (nights > 30) ctx.addIssue({ code: "custom", message: "Stays can be up to 30 nights." });
+    if (args.rooms > args.adults)
+      ctx.addIssue({ code: "custom", message: "Each room needs at least one adult." });
+  });
 
-export function checkDates(window: BookingWindow, checkIn: string, checkOut: string) {
-  if (checkIn < window.first) throw new RangeError(`Check-in must be on or after ${window.first}.`);
-  if (checkOut > window.last)
-    throw new RangeError(`Availability is known only until ${window.last}.`);
-}
+// trivago formats prices for display, such as "215€" or "$1,215".
+const amount = (price: string) => Number(price.replace(/[^\d.]/g, ""));
+const guestRating = (stay: Accommodation) => Number(stay.review_rating) || 0;
 
 export async function executeSearchStays(
   argsJson: string,
@@ -93,86 +113,63 @@ export async function executeSearchStays(
 ) {
   signal?.throwIfAborted();
   const args = argsSchema.parse(JSON.parse(argsJson));
-  tripSchema.parse(args);
-  const db = openDatabase();
-  try {
-    return JSON.stringify(searchStays(db, args));
-  } finally {
-    db.close();
-  }
-}
-
-function searchStays(db: DatabaseSync, args: z.infer<typeof argsSchema>) {
-  const window = bookingWindow(db);
-  checkDates(window, args.check_in, args.check_out);
-  const nights = daysBetween(args.check_in, args.check_out);
-
-  // Guests and dates are hard requirements. The optional preferences are checked
-  // separately so an empty result can say which one to relax.
-  const candidates = (
-    db
-      .prepare(
-        "SELECT * FROM listings WHERE accommodates >= ? AND minimum_nights <= ? AND maximum_nights >= ?",
-      )
-      .all(args.guests, nights, nights) as Listing[]
-  ).filter((listing) => isOpen(db, listing, window, args.check_in, args.check_out));
-  const preferences = {
-    room_type: (listing: Listing) =>
-      args.room_type === "any" || listing.room_type === args.room_type,
-    neighbourhoods: (listing: Listing) =>
-      args.neighbourhoods.length === 0 || args.neighbourhoods.includes(listing.neighbourhood),
-    max_price_per_night: (listing: Listing) =>
-      args.max_price_per_night === null || listing.price <= args.max_price_per_night,
-    amenities: (listing: Listing) =>
-      args.amenities.every((key) => JSON.parse(listing.amenities).includes(key)),
-  };
-  const matchesAll = (listing: Listing, skip?: string) =>
-    Object.entries(preferences).every(([name, test]) => name === skip || test(listing));
-
-  const matches = candidates.filter((listing) => matchesAll(listing));
-  // When few stays match, count how many each relaxed preference would add.
-  const ifRelaxed =
-    matches.length >= 3
-      ? []
-      : Object.keys(preferences)
-          .map((preference) => ({
-            drop: preference,
-            matches: candidates.filter((listing) => matchesAll(listing, preference)).length,
-          }))
-          .filter((option) => option.matches > matches.length);
-
-  // Weigh each rating by its review count, so a 5.0 from 20 reviews does not outrank
-  // a 4.9 from 500.
-  const score = (listing: Listing) =>
-    (listing.rating * listing.reviews + 4.7 * 50) / (listing.reviews + 50);
-  matches.sort((a, b) =>
-    args.sort === "lowest_price" ? a.price - b.price || score(b) - score(a) : score(b) - score(a),
+  const found = await searchAccommodations(
+    {
+      query: args.destination,
+      arrival: args.check_in,
+      departure: args.check_out,
+      adults: args.adults,
+      children: args.children_ages.length,
+      ...(args.children_ages.length ? { children_ages: args.children_ages.join("-") } : {}),
+      rooms: args.rooms,
+      currency: args.currency,
+      hotel_rating: Object.fromEntries(args.stars.map((stars) => [`${stars}star`, true])),
+      review_rating:
+        args.min_guest_rating === "any"
+          ? {}
+          : { [`rating${args.min_guest_rating.replace(".", "")}`]: true },
+      filters: Object.fromEntries(args.amenities.map((key) => [key, true])),
+    },
+    signal,
   );
-  return {
+
+  // trivago has no price filter, so apply the budget here and report what it left out.
+  const inBudget = found.filter(
+    (stay) =>
+      args.max_price_per_night === null || amount(stay.price_per_night) <= args.max_price_per_night,
+  );
+  const overBudget = found.filter((stay) => !inBudget.includes(stay));
+  if (args.sort === "lowest_price")
+    inBudget.sort((a, b) => amount(a.price_per_night) - amount(b.price_per_night));
+  if (args.sort === "top_rated") inBudget.sort((a, b) => guestRating(b) - guestRating(a));
+
+  return JSON.stringify({
+    destination: args.destination,
     check_in: args.check_in,
     check_out: args.check_out,
-    nights,
-    guests: args.guests,
-    matches: matches.length,
-    stays: matches.slice(0, 5).map((listing) => ({
-      id: listing.id,
-      name: listing.name,
-      neighbourhood: listing.neighbourhood,
-      known_as: neighbourhoods[listing.neighbourhood],
-      type: listing.property_type,
-      sleeps: listing.accommodates,
-      bedrooms: listing.bedrooms,
-      beds: listing.beds,
-      bathrooms: listing.bathrooms,
-      price_per_night: listing.price,
-      total: Math.round(listing.price * nights * 100) / 100,
-      rating: listing.rating,
-      reviews: listing.reviews,
-      minimum_nights: listing.minimum_nights,
-      amenities: JSON.parse(listing.amenities).map((key: string) => amenities[key].label),
-      url: `https://www.airbnb.com/rooms/${listing.id}`,
+    nights: nightsBetween(args.check_in, args.check_out),
+    currency: args.currency,
+    matches: inBudget.length,
+    stays: inBudget.slice(0, 6).map((stay) => ({
+      id: stay.accommodation_id,
+      name: stay.accommodation_name,
+      stars: stay.hotel_rating ?? null,
+      guest_rating: stay.review_rating ?? null,
+      reviews: stay.review_count ?? null,
+      price_per_night: stay.price_per_night,
+      total: stay.price_per_stay,
+      amenities: stay.top_amenities ?? null,
+      location: stay.distance ?? null,
+      photo: stay.main_image ?? null,
+      booking_site: stay.advertisers ?? null,
+      url: stay.accommodation_url,
     })),
-    if_relaxed: ifRelaxed,
-    data: `Inside Airbnb snapshot of ${window.snapshot}. Availability may have changed since.`,
-  };
+    over_budget: overBudget.length
+      ? {
+          stays: overBudget.length,
+          cheapest_per_night: Math.min(...overBudget.map((stay) => amount(stay.price_per_night))),
+        }
+      : null,
+    note: "Live prices from trivago. They can change until the guest books on the booking site.",
+  });
 }

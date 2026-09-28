@@ -2,105 +2,75 @@
 
 import {
   AgentInterface,
-  openAIConversationMessageFormat,
-  openAIResponsesAdapter,
-  useOpenuiCloudStorage,
+  agUIAdapter,
+  fetchLLM,
+  openAIMessageFormat,
   useSystemThemeMode,
-  type ChatLLM,
 } from "@openuidev/react-ui";
-import { CalendarCheck, CalendarDays, PartyPopper, Users, Wallet } from "lucide-react";
+import { Briefcase, CalendarDays, Users, Wallet } from "lucide-react";
 import { useMemo } from "react";
 import { darkTheme, lightTheme } from "../lib/theme";
 import { library } from "../library";
-import { MyBookings } from "./my-bookings";
 
-// Gateway restores earlier turns from the conversation id, so send only the latest message.
-const chatLLM: ChatLLM = {
-  streamProtocol: openAIResponsesAdapter(),
-  send: ({ threadId, messages, signal }) =>
-    fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        threadId,
-        input: openAIConversationMessageFormat.toApi(messages.slice(-1)),
-      }),
-      signal,
-    }),
-};
+// Send the thread's messages in Chat Completions format and read the route's AG-UI events.
+const llm = fetchLLM({
+  url: "/api/chat",
+  streamAdapter: agUIAdapter(),
+  messageFormat: openAIMessageFormat,
+});
 
 const starters = [
   {
-    displayText: "A place for two this weekend",
-    prompt: "Book a place in Lisbon for two this weekend.",
+    displayText: "A room in Goa for two this weekend",
+    prompt: "Book a room in Goa for two this weekend.",
     icon: <CalendarDays size={16} />,
   },
   {
-    displayText: "A family week in Belém with a kitchen",
+    displayText: "A family trip to Barcelona",
     prompt:
-      "We're a family of four looking for an entire place in Belém for a week in late October, with a kitchen and a washer.",
+      "We're two adults and two kids, ages 6 and 9, looking for a hotel in Barcelona with a pool for five nights in late October.",
     icon: <Users size={16} />,
   },
   {
-    displayText: "A cheap room for a solo trip",
+    displayText: "A cheap stay near Shibuya",
     prompt:
-      "Find me a cheap private room for a solo trip next month, under €70 a night, with wifi.",
+      "A cheap hotel near Shibuya Station in Tokyo for one, next month, with free cancellation.",
     icon: <Wallet size={16} />,
   },
   {
-    displayText: "New Year's Eve in Alfama",
-    prompt:
-      "An apartment in Alfama for three friends over New Year's Eve, December 30 to January 2, with air conditioning.",
-    icon: <PartyPopper size={16} />,
+    displayText: "A work trip to New York",
+    prompt: "A 4-star hotel in Midtown Manhattan with a gym for a work trip, November 10 to 13.",
+    icon: <Briefcase size={16} />,
   },
 ];
 
 export default function BookingChat() {
   const mode = useSystemThemeMode();
   const theme = useMemo(() => ({ mode, lightTheme, darkTheme }), [mode]);
-  const storage = useOpenuiCloudStorage({
-    token: "/api/frontend-token",
-    features: { artifact: false },
-  });
   return (
     <div className="booking-app">
       <AgentInterface
-        llm={chatLLM}
-        storage={storage}
+        llm={llm}
         componentLibrary={library}
-        agentName="Lisbon stays"
+        agentName="Stay finder"
         logoUrl="/logo.svg"
         theme={theme}
         starters={starters}
         starterVariant="long"
       >
-        <AgentInterface.Sidebar>
-          <AgentInterface.SidebarHeader />
-          <AgentInterface.SidebarContent>
-            <AgentInterface.NewChatButton />
-            <AgentInterface.SidebarItem path="bookings" icon={<CalendarCheck size={16} />}>
-              My bookings
-            </AgentInterface.SidebarItem>
-            <AgentInterface.SidebarSeparator />
-            <AgentInterface.ThreadList />
-          </AgentInterface.SidebarContent>
-        </AgentInterface.Sidebar>
-        <AgentInterface.Route path="bookings">
-          <MyBookings />
-        </AgentInterface.Route>
         <AgentInterface.ThreadHeader>
           <span className="thread-context">
-            Real listings from{" "}
-            <a href="https://insideairbnb.com/get-the-data/" target="_blank" rel="noreferrer">
-              Inside Airbnb
+            Live hotel prices from{" "}
+            <a href="https://mcp.trivago.com/docs" target="_blank" rel="noreferrer">
+              trivago
             </a>{" "}
-            · Bookings are simulated
+            · You book on the hotel or booking site
           </span>
         </AgentInterface.ThreadHeader>
         <AgentInterface.Welcome
           image={{ url: "/logo.svg" }}
-          title="Where are you staying in Lisbon?"
-          description="Describe your trip in your own words. I'll turn it into a form with what I understood, ask only for what's missing, and check real availability."
+          title="Where are you headed?"
+          description="Describe your trip in your own words. I'll turn it into a form with what I understood, ask only for what's missing, and find stays with live prices."
         />
         <AgentInterface.Composer placeholder="Describe your trip…" />
       </AgentInterface>

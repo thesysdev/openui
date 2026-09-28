@@ -1,8 +1,8 @@
 # Booking assistant
 
-A runnable companion to the [booking assistant cookbook](https://www.openui.com/cookbooks/booking-assistant). Describe a trip in your own words, get a form prefilled with what the assistant understood, fill in what's missing, pick from stays that are actually open for your dates, and confirm a booking after reviewing its summary.
+A runnable companion to the [booking assistant cookbook](https://www.openui.com/cookbooks/booking-assistant). Describe a trip in your own words, get a form prefilled with what the assistant understood, fill in what's missing, pick from stays with live prices and photos, and review the stay before continuing to the booking site.
 
-The example books stays in **Lisbon** from real [Inside Airbnb](https://insideairbnb.com/get-the-data/) listings and their nightly availability calendar. Bookings are simulated: they are saved in a local database, and nothing is charged or sent to a host. It runs on Next.js, Agent Interface, OpenUI Gateway, and Node's built-in SQLite module.
+Stays come from [trivago's public MCP server](https://mcp.trivago.com/docs), which compares prices across booking sites for any destination and needs no API key. There is no data to download. It runs on Next.js, Agent Interface, OpenUI Gateway's Chat Completions API, and the MCP TypeScript SDK.
 
 ## Run
 
@@ -15,52 +15,47 @@ npm ci
 Configure `THESYS_API_KEY` from the [Thesys Console](https://console.thesys.dev/keys) privately in `.env.local`. Optional `OPENUI_MODEL` selects a supported `provider/model` identifier; the default is `openai/gpt-5.5`.
 
 ```bash
-npm run prepare:listings
 npm run dev
 ```
 
-`prepare:listings` downloads Inside Airbnb's latest Lisbon snapshot, about 36 MB, into `data/`, and takes about half a minute. Open http://localhost:3000. To use another port, run `npm run dev -- --port 3001`.
+Open http://localhost:3000. To use another port, run `npm run dev -- --port 3001`.
 
 Try:
 
-- “Book a place in Lisbon for two this weekend.” The form arrives with the dates and guests filled in.
-- “Find me a cheap private room for a solo trip next month, under €70 a night, with wifi.” “Next month” is too vague to guess, so the dates stay empty and required.
-- After a search, “Actually make it under €25 a night, in Alfama.” The assistant searches again, explains why nothing matches, and suggests what to relax.
+- “Book a room in Goa for two this weekend.” The form arrives with the destination, dates, and adults filled in, and the budget in rupees.
+- “We're two adults and two kids, ages 6 and 9, looking for a hotel in Barcelona with a pool.” The form adds a field for the children's ages.
+- After a search, “Make it under ₹3,000 a night.” The assistant searches again and says how many stays were over budget.
 
 ## How it works
 
-1. Agent Interface sends the latest user message to `/api/chat`.
-2. For a new request, OpenUI Gateway replies with a form prefilled with every detail the model understood, with validation rules on the required fields.
+1. Agent Interface sends the thread's messages to `/api/chat`, which calls OpenUI Gateway's Chat Completions API.
+2. For a new request, the model replies with a form prefilled with every detail it understood, with validation rules on the required fields.
 3. When the user submits the form, Agent Interface sends the button label and the form's values as the next message, and the model calls `search_stays`.
-4. The server checks each listing's calendar for every night of the stay, applies the user's preferences, and returns the best matches. When few stays match, it also counts how many each relaxed preference would add.
-5. The model shows the stays as selectable cards, then a summary and a guest details form. `book_stay` runs only after the user confirms, checks availability again, and saves the booking.
+4. The server validates the arguments, calls `trivago-accommodation-search` on trivago's MCP server, applies the budget, and returns the best matches with prices, ratings, a photo, and a booking link.
+5. The model shows the stays as cards with photos, then a summary. **Continue to booking** opens the stay on trivago, where the guest chooses a booking site and pays there.
 
 ## Files
 
-| File                              | Purpose                                                                |
-| --------------------------------- | ---------------------------------------------------------------------- |
-| `scripts/prepare-listings.ts`     | Download the Lisbon snapshot, filter listings, and store availability  |
-| `src/lib/stays.ts`                | Neighbourhoods, amenities, database schema, booking window, and checks |
-| `src/lib/tools/search-stays.ts`   | Function schema, argument validation, and availability search          |
-| `src/lib/tools/book-stay.ts`      | Function schema, argument validation, and the simulated booking        |
-| `src/library.ts`                  | Shared components for the prompt and renderer                          |
-| `src/components/date-picker.tsx`  | A DatePicker that the model can prefill with YYYY-MM-DD dates          |
-| `src/lib/prompt.ts`               | Booking rules and one example for each step of the flow                |
-| `src/app/api/chat/route.ts`       | Request validation, Gateway generation, and SSE response               |
-| `src/app/api/bookings/route.ts`   | Bookings for the My bookings page                                      |
-| `src/lib/tool-loop.ts`            | The Gateway template's function-tool loop                              |
-| `src/lib/gateway-session.ts`      | Local identity, frontend tokens, conversation ownership, stopped tools |
-| `src/lib/theme.ts`                | Light and dark theme overrides                                         |
-| `src/components/booking-chat.tsx` | Agent Interface, custom sidebar, My bookings route, and starters       |
-| `src/components/my-bookings.tsx`  | The My bookings page                                                   |
+| File                              | Purpose                                                               |
+| --------------------------------- | --------------------------------------------------------------------- |
+| `src/lib/trivago.ts`              | MCP client for trivago's accommodation search, and its filter options |
+| `src/lib/tools/search-stays.ts`   | Function schema, argument validation, budget filter, and results      |
+| `src/library.ts`                  | Shared components for the prompt and renderer                         |
+| `src/components/date-picker.tsx`  | A DatePicker that the model can prefill with YYYY-MM-DD dates         |
+| `src/lib/prompt.ts`               | Booking rules and one example for each step of the flow               |
+| `src/app/api/chat/route.ts`       | Request validation, Chat Completions generation, and SSE response     |
+| `src/lib/tool-loop.ts`            | Chat Completions function-tool loop that streams AG-UI events         |
+| `src/lib/theme.ts`                | Light and dark theme overrides                                        |
+| `src/components/booking-chat.tsx` | Agent Interface, chat transport, theme, starters, and thread header   |
+| `src/app/styles.css`              | Page layout and full-width photos on the stay cards                   |
 
 `npm run generate` creates the ignored component specification before dev/build/verify. The server passes that specification to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, and Agent Interface renders responses with the same component library.
 
-## Listings
+## The MCP server
 
-`prepare:listings` finds the latest Lisbon snapshot on Inside Airbnb's download page and downloads `listings.csv.gz` and `calendar.csv.gz`. It keeps well-reviewed listings in the city of Lisbon, at least 20 reviews and a rating of 4.7 or more, which leaves about 5,700. For each one, it stores the nightly calendar as a string with one character per night, so checking a stay is a substring test. Re-running it downloads a newer snapshot when one exists and rebuilds `data/stays.sqlite`, which also clears bookings.
+`search_stays` is a function tool that runs on this server and calls trivago's MCP server with the MCP SDK's Streamable HTTP client. OpenUI Gateway's Responses API can also call remote MCP servers itself, but trivago's search result embeds every photo as image data and includes formatting instructions for the model: passed straight to the model, one search used about 450,000 input tokens. The function tool keeps only the structured hotel list and returns the fields the cards need, a few thousand tokens, and it never forwards the third-party instructions.
 
-Availability and prices are as of the snapshot date. Prices are in euros per night, from Inside Airbnb's price quote for each listing. The data is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); the downloads and database are ignored by Git and are not redistributed with this repository.
+trivago has no price filter, so the tool applies the budget and reports how many stays it left out and the cheapest of them. Prices are live and can change until the guest books. Check [trivago's MCP documentation](https://mcp.trivago.com/docs) for its terms before you deploy.
 
 ## Forms
 
@@ -68,13 +63,15 @@ The model prefills fields with literal values. Submitted form state contains onl
 
 React UI's `DatePicker` stores `Date` objects, which a model cannot write and which reach the model as UTC timestamps. `src/components/date-picker.tsx` keeps the same name and props but reads and writes `YYYY-MM-DD` strings, so a prefilled date shows in the picker and a submitted date is the calendar day the user picked.
 
-## Gateway conversations
+## Conversations
 
-Generation uses `conversation: threadId` and `store: true`, so the client sends only the latest user message and continuations submit only new function outputs. A submitted form arrives as one message with the form's values, so the chat route accepts messages of up to 4,000 characters. `useOpenuiCloudStorage` loads the sidebar and messages using short-lived tokens from `/api/frontend-token`. `DEMO_USER_ID` defaults to `local-demo` and `APP_ID` to `booking-assistant-cookbook`; keep them stable to retain history.
+The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completions` using `THESYS_API_KEY`. Chat Completions does not store conversations, so Agent Interface keeps each thread in memory and `fetchLLM` sends its messages with every turn. Threads reset when the page reloads; pass a `storage` adapter to Agent Interface to persist them.
 
-Stopping a response while a tool runs can leave a stored function call without its output, which Gateway rejects on the next turn. The chat route sends a "stopped" output for any such call ahead of the next message.
+The chat route forwards only user messages and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only search results the server produced for the current turn. Later steps therefore use what the stay cards show: each card's value is the stay's booking link, so choosing a card sends the link back with the form, and the summary's **Continue to booking** button opens it. A submitted form arrives as one message with the form's values, so the route accepts user messages of up to 4,000 characters.
 
-The app binds to loopback and its routes reject production requests. For deployment, replace the local guard with authentication and rate limits, derive user identity from the session, retain conversation ownership checks, keep the API key on the server, and connect `book_stay` to a real booking system with its own confirmation step.
+The tool loop streams AG-UI events, which `agUIAdapter()` reads, because Chat Completions has no chunk for a tool result. It is the same loop as in the [conversational analytics](../conversational-analytics) cookbook. The tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK; see the [agent runtime integrations](https://www.openui.com/docs/agent/agent-runtimes/langgraph-platform) and the [agent framework examples](../../agent-frameworks).
+
+The app binds to loopback, and the chat route accepts browser requests only from its own local page. For deployment, add authentication and rate limits to the chat route.
 
 ## Verify
 
@@ -82,6 +79,6 @@ The app binds to loopback and its routes reject production requests. For deploym
 npm run verify
 ```
 
-`verify` generates the component specification and runs a production build with type checking. It needs neither credentials nor a download.
+`verify` generates the component specification and runs a production build with type checking. It needs no credentials and makes no network calls to trivago.
 
-In the browser, submit a form with a required field cleared to see validation, expand **Behind the scenes** to inspect `search_stays` and `book_stay`, open **My bookings** in the sidebar after confirming, and switch the operating system between light and dark mode.
+In the browser, submit a form with a required field cleared to see validation, expand **Behind the scenes** to inspect `search_stays`, open a stay's summary and follow **Continue to booking**, and switch the operating system between light and dark mode.
