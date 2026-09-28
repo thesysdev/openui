@@ -15,7 +15,6 @@ export const library = createLibrary({
       "HorizontalBarChart",
       "LineChart",
       "Series",
-      "PieChart",
       "Callout",
       "Accordion",
       "AccordionItem",

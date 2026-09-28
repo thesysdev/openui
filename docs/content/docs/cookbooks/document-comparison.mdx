@@ -43,7 +43,7 @@ Try this conversation:
 
 1. **“Compare revenue and growth.”** Get a table of page-cited values, bar charts, and a note that the fiscal years differ.
 2. **“How has R&D spending changed over three years?”** See each company's trend in a line chart.
-3. **“Break down revenue by segment.”** See each company's revenue mix as a pie chart.
+3. **“Break down revenue by segment.”** See every company's segments in one bar chart, with a table row per segment.
 4. **Click a follow-up such as “Compare headcount.”** Add a criterion to the comparison.
 
 Every answer ends with a collapsible **Sources** section that quotes the passage behind each value, with its page.
@@ -172,7 +172,6 @@ export const library = createLibrary({
       "HorizontalBarChart",
       "LineChart",
       "Series",
-      "PieChart",
       "Callout",
       "Accordion",
       "AccordionItem",
@@ -184,7 +183,7 @@ export const library = createLibrary({
 });
 ```
 
-`Table` holds the page-cited values, the four chart types cover single values, trends, and breakdowns, `Callout` flags gaps and conflicts, and `Accordion` holds the Sources section. Generate the server specification from the same library with `npm run generate`, which also runs before development and builds.
+`Table` holds the page-cited values, the three chart types cover single values, trends, and breakdowns, `Callout` flags gaps and conflicts, and `Accordion` holds the Sources section. Generate the server specification from the same library with `npm run generate`, which also runs before development and builds.
 
 ### 4. Customize Agent Interface
 
@@ -250,8 +249,8 @@ The route runs the same [function-tool loop](https://github.com/thesysdev/openui
 The prompt turns the evidence into a consistent answer:
 
 - **One search per criterion**, in parallel when the question has several.
-- **A table** with one row per criterion and one column per document, each value followed by its page, such as “$215.9 billion (p. 37)”.
-- **Charts chosen from the data**: a line chart when a report gives several years of figures, a stacked bar or pie chart for a breakdown such as revenue by segment, a horizontal bar chart for percentages, and a bar chart for one value per document. A document without a value is left out of the chart rather than plotted as zero.
+- **A table** with one short, page-cited value per cell, such as “$215.9 billion (p. 37)”: one row per criterion and one column per document, or one row per part when a criterion has several, such as each company's segments.
+- **Charts chosen from the data**, each at full width: a line chart when a report gives several years of figures, one horizontal bar chart with a bar per company and segment for a breakdown, and a bar chart for one value per document. A document without a value is left out of the chart rather than plotted as zero.
 - **Callouts** for information that conflicts or is not directly comparable, such as different fiscal year ends, and for criteria a document does not disclose.
 - **One Sources section**, a single collapsed accordion that quotes each passage by criterion, with its document and page.
 
@@ -261,7 +260,7 @@ In the browser:
 
 1. Ask **“Compare revenue and growth.”** Check the values against the pages cited in Sources. NVIDIA reports fiscal 2026 revenue of $215.9 billion, up 65%, on page 37.
 2. Expand **Behind the scenes** and confirm the model called `search_documents` once per criterion.
-3. Ask **“How has R&D spending changed over three years?”** and **“Break down revenue by segment.”** Confirm the answers use a line chart and pie charts.
+3. Ask **“How has R&D spending changed over three years?”** and **“Break down revenue by segment.”** Confirm the first uses a line chart, and the second a single bar chart with a table row per segment.
 4. Ask **“Compare each CEO's total compensation.”** Annual reports refer readers to the proxy statement for executive pay, so the table should say “Not found” with a callout explaining why, and no chart.
 5. Open **Documents** in the sidebar, then follow a Source PDF link to check a cited page.
 6. Switch your operating system between light and dark mode, and confirm the theme follows.
