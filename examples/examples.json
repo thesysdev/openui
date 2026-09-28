@@ -67,6 +67,12 @@
       "envKey": "THESYS_API_KEY"
     },
     {
+      "title": "Document comparison",
+      "description": "Compare NVIDIA, AMD, and Intel annual reports with retrieved, page-cited evidence, charts, and a customized Agent Interface.",
+      "path": "cookbooks/document-comparison",
+      "envKey": "THESYS_API_KEY"
+    },
+    {
       "title": "Material UI",
       "description": "A broad Material UI component library for generated interfaces.",
       "path": "design-systems/material-ui",

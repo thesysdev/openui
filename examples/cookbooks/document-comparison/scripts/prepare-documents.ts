@@ -6,10 +6,9 @@ import { extractText, getDocumentProxy } from "unpdf";
 import { createSchema, sources } from "../src/lib/documents";
 import { embed } from "../src/lib/embeddings";
 
-try {
-  process.loadEnvFile(".env.local");
-} catch {
-  // Use variables from the environment instead.
+// Read keys the way Next.js does: .env.local first, then .env. Existing variables win.
+for (const file of [".env.local", ".env"]) {
+  if (existsSync(file)) process.loadEnvFile(file);
 }
 
 type Input = { id: string; name: string; period: string | null; path: string };

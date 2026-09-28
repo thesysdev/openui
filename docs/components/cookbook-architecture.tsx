@@ -1,4 +1,11 @@
-import { Database, MessagesSquare, Server, Sparkles, type LucideIcon } from "lucide-react";
+import {
+  Database,
+  FileText,
+  MessagesSquare,
+  Server,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
 
 type Box = {
   x: number;
@@ -12,7 +19,9 @@ type Box = {
   highlight?: boolean;
 };
 
-const boxes: Box[] = [
+// The chat interface and Gateway are the same in every cookbook; each page describes its
+// own server work and data source.
+const sharedBoxes: Box[] = [
   {
     x: 10,
     y: 40,
@@ -33,26 +42,6 @@ const boxes: Box[] = [
     lines: ["Runs the model", "Checks the generated UI", "Stores the conversation"],
     highlight: true,
   },
-  {
-    x: 710,
-    y: 40,
-    width: 210,
-    height: 184,
-    icon: Server,
-    title: "Your server",
-    lines: ["Runs the tool", "Checks its arguments"],
-    footer: "Application owned",
-  },
-  {
-    x: 705,
-    y: 314,
-    width: 220,
-    height: 146,
-    icon: Database,
-    title: "Your data",
-    lines: ["Read-only queries"],
-    footer: "F1 lap times · SQLite",
-  },
 ];
 
 // One request and one reply between each pair of boxes, read left to right.
@@ -62,6 +51,17 @@ const links = [
 ];
 
 const label = "fill-fd-foreground font-mono text-[13px] font-bold uppercase tracking-[0.1em]";
+
+type CookbookArchitectureProps = {
+  /** Unique on the page; prefixes the SVG's element ids. */
+  id: string;
+  title: string;
+  description: string;
+  serverLines: string[];
+  data: { title: string; lines: string[]; footer: string; icon?: "database" | "documents" };
+  dataRequest: string;
+  dataReply: string;
+};
 
 function BoxNode({ box }: { box: Box }) {
   const center = box.x + box.width / 2;
@@ -125,7 +125,19 @@ function BoxNode({ box }: { box: Box }) {
   );
 }
 
-function Arrow({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: number }) {
+function Arrow({
+  x1,
+  y1,
+  x2,
+  y2,
+  marker,
+}: {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  marker: string;
+}) {
   return (
     <line
       x1={x1}
@@ -134,32 +146,58 @@ function Arrow({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: num
       y2={y2}
       stroke="currentColor"
       strokeWidth={1.6}
-      markerEnd="url(#analytics-architecture-arrow)"
+      markerEnd={`url(#${marker})`}
     />
   );
 }
 
-export function CookbookAnalyticsArchitecture() {
+export function CookbookArchitecture({
+  id,
+  title,
+  description,
+  serverLines,
+  data,
+  dataRequest,
+  dataReply,
+}: CookbookArchitectureProps) {
+  const marker = `${id}-arrow`;
+  const boxes: Box[] = [
+    ...sharedBoxes,
+    {
+      x: 710,
+      y: 40,
+      width: 210,
+      height: 184,
+      icon: Server,
+      title: "Your server",
+      lines: serverLines,
+      footer: "Application owned",
+    },
+    {
+      x: 705,
+      y: 314,
+      width: 220,
+      height: 146,
+      icon: data.icon === "documents" ? FileText : Database,
+      title: data.title,
+      lines: data.lines,
+      footer: data.footer,
+    },
+  ];
+
   return (
     <figure className="not-prose my-6 overflow-x-auto">
       <svg
         viewBox="0 0 930 474"
         role="img"
-        aria-labelledby="analytics-architecture-title analytics-architecture-description"
+        aria-labelledby={`${id}-title ${id}-description`}
         className="h-auto w-full min-w-[640px] text-fd-foreground"
       >
-        <title id="analytics-architecture-title">
-          How the conversational analytics example works
-        </title>
-        <desc id="analytics-architecture-description">
-          A chat interface, such as Agent Interface, sends the question to OpenUI Gateway, which
-          runs the model. The model makes a tool call to your server, which runs a read-only query
-          against your data and returns the tool result. Gateway then streams the answer back to the
-          chat interface.
-        </desc>
+        <title id={`${id}-title`}>{title}</title>
+        <desc id={`${id}-description`}>{description}</desc>
         <defs>
           <marker
-            id="analytics-architecture-arrow"
+            id={marker}
             viewBox="0 0 10 10"
             refX="9"
             refY="5"
@@ -183,11 +221,11 @@ export function CookbookAnalyticsArchitecture() {
           const center = (link.from + link.to) / 2;
           return (
             <g key={link.request}>
-              <Arrow x1={link.from + 4} y1={108} x2={link.to - 6} y2={108} />
+              <Arrow x1={link.from + 4} y1={108} x2={link.to - 6} y2={108} marker={marker} />
               <text x={center} y={96} textAnchor="middle" className={label}>
                 {link.request}
               </text>
-              <Arrow x1={link.to - 4} y1={158} x2={link.from + 6} y2={158} />
+              <Arrow x1={link.to - 4} y1={158} x2={link.from + 6} y2={158} marker={marker} />
               <text x={center} y={180} textAnchor="middle" className={label}>
                 {link.reply}
               </text>
@@ -195,14 +233,14 @@ export function CookbookAnalyticsArchitecture() {
           );
         })}
 
-        {/* Your server queries the data and receives rows. */}
-        <Arrow x1={790} y1={228} x2={790} y2={308} />
-        <Arrow x1={840} y1={310} x2={840} y2={230} />
+        {/* Your server asks its data source and gets results back. */}
+        <Arrow x1={790} y1={228} x2={790} y2={308} marker={marker} />
+        <Arrow x1={840} y1={310} x2={840} y2={230} marker={marker} />
         <text x={780} y={274} textAnchor="end" className={label}>
-          Query
+          {dataRequest}
         </text>
         <text x={850} y={274} className={label}>
-          Rows
+          {dataReply}
         </text>
 
         {boxes.map((box) => (

@@ -5,7 +5,7 @@ description: Build a chat assistant that answers questions about Formula 1 lap t
 
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 import { ArrowUpRight, Github } from "lucide-react";
-import { CookbookAnalyticsArchitecture } from "@/components/cookbook-analytics-architecture";
+import { CookbookArchitecture } from "@/components/cookbook-architecture";
 
 Conversational analytics lets people ask questions of their data in plain language instead of writing queries or waiting for a new dashboard. Dashboards answer the questions someone anticipated. A conversation handles the follow-ups nobody planned for, such as "which region fell behind last quarter?" or "compare these two products over the last ten weeks".
 
@@ -63,7 +63,15 @@ Conversation history is stored in OpenUI Gateway and remains available across pa
 
 A conversational analytics assistant splits the work between your application and the model. Your application owns the data and decides which questions it can answer. The model interprets each question and decides how to present the answer.
 
-<CookbookAnalyticsArchitecture />
+<CookbookArchitecture
+  id="analytics-architecture"
+  title="How the conversational analytics example works"
+  description="A chat interface, such as Agent Interface, sends the question to OpenUI Gateway, which runs the model. The model makes a tool call to your server, which runs a read-only query against your data and returns the tool result. Gateway then streams the answer back to the chat interface."
+  serverLines={["Runs the tool", "Checks its arguments"]}
+  data={{ title: "Your data", lines: ["Read-only queries"], footer: "F1 lap times · SQLite" }}
+  dataRequest="Query"
+  dataReply="Rows"
+/>
 
 1. **The user asks a question.** Agent Interface sends it to OpenUI Gateway through your server's chat route, which adds the conversation id, a function tool that describes the queries you support, and a system prompt that describes your components.
 2. **The model calls your tool.** Instead of writing SQL, it fills in the tool's structured arguments: which view, which items, and which range. Your server validates the arguments, runs a read-only, parameterized query, and returns the result as JSON. The model sees only what you send it, never the database itself.
