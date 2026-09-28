@@ -3,6 +3,7 @@ import {
   parseArtifactViewId,
   useDetailedView,
   useDetailedViewStore,
+  useThread,
   useThreadContextStore,
   type ArtifactRendererConfig,
   type ArtifactRendererControls,
@@ -43,10 +44,11 @@ export type ToolDetailedViewPanel = ComponentType<{
 function runRenderer<Props>(
   renderer: ArtifactRendererConfig<Props>,
   activity: ToolActivity,
+  isStreaming: boolean,
 ): ParsedArtifact<Props> | null {
   return renderer.parser(
     { args: activity.toolCall.function.arguments, response: activity.result ?? null },
-    { isStreaming: activity.status === "streaming" || activity.status === "executing" },
+    { isStreaming },
   );
 }
 
@@ -78,17 +80,20 @@ export function ToolActivityRenderer<Props>({
   const tcStore = useThreadContextStore();
   const dvStore = useDetailedViewStore();
 
-  const isStreaming = activity.status === "streaming" || activity.status === "executing";
+  // A settled tool can still belong to a response that has not been saved.
+  // Keep rendering its layout, but hold queries until the whole run ends.
+  const isStreaming = useThread((state) => state.isRunning);
 
   const { parsed, error } = useMemo(() => {
     try {
-      return { parsed: runRenderer(renderer, activity), error: null as string | null };
+      return { parsed: runRenderer(renderer, activity, isStreaming), error: null as string | null };
     } catch (e) {
       return { parsed: null as ParsedArtifact<Props> | null, error: String(e) };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     renderer,
+    isStreaming,
     activity.id,
     activity.status,
     activity.toolCall.function.arguments,

@@ -9,15 +9,10 @@ export interface ArtifactRendererControls {
   /** Whether this renderer's detailed view is the currently active one. */
   isActive: boolean;
   /**
-   * `true` while the tool call is still streaming — i.e. its arguments are
-   * arriving incrementally and no tool result has been paired in yet. Becomes
-   * `false` once the tool result message lands and the renderer is invoked
-   * with the full `response`. Always `false` for storage-opened artifacts.
-   *
-   * The same component instance is reused across the streaming → completed
-   * transition, so renderers can rely on this flag to swap UI states (e.g.
-   * show a skeleton or "streaming…" badge during partial args, then the final
-   * view) without remounting.
+   * `true` while the containing response is running, including after this
+   * tool completes. Renderers can stream their layout while deferring queries
+   * and storage reads until the full response settles. Always `false` for
+   * storage-opened artifacts.
    */
   isStreaming: boolean;
   /** Updates the containing panel heading after resolving stored artifact metadata. */
