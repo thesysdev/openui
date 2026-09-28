@@ -48,7 +48,6 @@ The tool supports `fastest_laps` (one best recorded lap per driver) and `lap_tim
 | `src/lib/prompt.ts`                 | Gateway instructions and the supported data scope             |
 | `src/app/api/chat/route.ts`         | Request validation, Gateway generation, and SSE response      |
 | `src/lib/tool-loop.ts`              | Chat Completions function-tool loop that streams AG-UI events |
-| `src/lib/local-access.ts`           | Loopback-only guard for the chat route                        |
 | `src/components/analytics-chat.tsx` | Agent Interface, chat transport, and starters                 |
 
 `npm run generate` creates the ignored component specification before dev/build/verify. The server passes that specification to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, and Agent Interface renders responses with the same component library.
@@ -59,7 +58,7 @@ The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completio
 
 The chat route forwards only user questions and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only query results the server produced for the current question. The tool loop streams AG-UI events, which `agUIAdapter()` reads, because Chat Completions has no chunk for a tool result.
 
-The app binds to loopback and its chat route rejects production requests. For deployment, replace the local guard with authentication and rate limits, and provide persistent SQLite storage or a hosted database for the race data. Gateway receives the conversation, component/tool instructions, driver catalog, and requested query results.
+The app binds to loopback, and the chat route accepts browser requests only from its own local page. For deployment, add authentication and rate limits to the chat route, and provide persistent SQLite storage or a hosted database for the race data. Gateway receives the conversation, component/tool instructions, driver catalog, and requested query results.
 
 ## Data notes
 
