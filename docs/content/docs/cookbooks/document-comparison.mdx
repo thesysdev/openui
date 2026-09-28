@@ -70,7 +70,7 @@ A document comparison assistant splits the work between your application and the
 
 1. **The user asks for a comparison.** Agent Interface sends the conversation to your server's chat route, which calls OpenUI Gateway with a `search_documents` function tool and a system prompt that describes the documents and your components.
 2. **The model searches once per criterion.** For “revenue and R&D”, it calls `search_documents` twice, in parallel, with short descriptions such as “research and development expenses for the fiscal year”. Separate searches keep one criterion's passages from crowding out another's. Your server embeds each description with OpenAI, compares it with the passage embeddings it loaded from SQLite, and returns each document's closest passages with their page numbers and a `found` flag.
-3. **The model compares the evidence.** It writes an OpenUI Lang program with a table of page-cited values, charts suited to the data, callouts for conflicts or gaps, and source cards that quote each passage. Gateway validates the program against your component library as it streams.
+3. **The model compares the evidence.** It writes OpenUI Lang with a table of page-cited values, charts suited to the data, callouts for conflicts or gaps, and source cards that quote each passage. Gateway validates the generated OpenUI Lang against your component library as it streams.
 4. **Agent Interface renders it progressively.** Tables and charts appear as their data arrives. The next request includes the earlier questions and answers, so a follow-up such as “compare headcount” searches for the new criterion and extends the comparison.
 
 ### Why retrieve passages
