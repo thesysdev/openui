@@ -20,7 +20,7 @@ const boxes: Box[] = [
     height: 184,
     icon: MessagesSquare,
     title: "Chat interface",
-    lines: ["Takes the question", "Shows the answer live"],
+    lines: ["Keeps the conversation", "Shows the answer live"],
     footer: "e.g. Agent Interface",
   },
   {
@@ -30,7 +30,7 @@ const boxes: Box[] = [
     height: 184,
     icon: Sparkles,
     title: "OpenUI Gateway",
-    lines: ["Runs the model", "Checks the generated UI", "Stores the conversation"],
+    lines: ["Runs the model", "Checks the generated UI"],
     highlight: true,
   },
   {

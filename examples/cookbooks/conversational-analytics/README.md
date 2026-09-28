@@ -29,41 +29,37 @@ Try:
 
 ## How it works
 
-1. Agent Interface sends the latest user message to `/api/chat`.
-2. OpenUI Gateway requests `query_lap_times` with a view, driver numbers, and lap range.
+1. Agent Interface sends the thread's messages to `/api/chat`.
+2. The server calls OpenUI Gateway's Chat Completions API, which requests `query_lap_times` with a view, driver numbers, and lap range.
 3. The server validates the arguments and queries the local SQLite snapshot.
-4. The tool loop returns the result to the saved Gateway conversation and forwards tool events and generated OpenUI Lang to the browser.
+4. The tool loop returns the result to Gateway and streams tool events and generated OpenUI Lang to the browser.
 5. Agent Interface displays tool activity and progressively renders the visual answer.
 
 The tool supports `fastest_laps` (one best recorded lap per driver) and `lap_times` (one to four drivers on matching lap numbers). Rankings can include all drivers by passing an empty `driver_numbers` array. The final ten race laps are 48 through 57. Comparisons include absolute times and a per-lap difference from the first selected driver, so the UI can show small differences clearly.
 
 ## Files
 
-| File                                | Purpose                                                                         |
-| ----------------------------------- | ------------------------------------------------------------------------------- |
-| `scripts/prepare-data.ts`           | Download OpenF1's race snapshot and prepare SQLite                              |
-| `src/lib/f1-data.ts`                | Source validation, importer, database, and driver catalog                       |
-| `src/lib/tools/lap-times.ts`        | Function schema, argument validation, and read-only query                       |
-| `src/library.ts`                    | Shared components for the prompt and renderer                                   |
-| `src/lib/prompt.ts`                 | Gateway instructions and the supported data scope                               |
-| `src/app/api/chat/route.ts`         | Request validation, Gateway generation, and SSE response                        |
-| `src/lib/tool-loop.ts`              | The Gateway template's function-tool loop                                       |
-| `src/lib/gateway-session.ts`        | Local identity, frontend tokens, conversation ownership, and stopped tool calls |
-| `src/components/analytics-chat.tsx` | Agent Interface, Gateway storage, chat transport, and starters                  |
+| File                                | Purpose                                                       |
+| ----------------------------------- | ------------------------------------------------------------- |
+| `scripts/prepare-data.ts`           | Download OpenF1's race snapshot and prepare SQLite            |
+| `src/lib/f1-data.ts`                | Source validation, importer, database, and driver catalog     |
+| `src/lib/tools/lap-times.ts`        | Function schema, argument validation, and read-only query     |
+| `src/library.ts`                    | Shared components for the prompt and renderer                 |
+| `src/lib/prompt.ts`                 | Gateway instructions and the supported data scope             |
+| `src/app/api/chat/route.ts`         | Request validation, Gateway generation, and SSE response      |
+| `src/lib/tool-loop.ts`              | Chat Completions function-tool loop that streams AG-UI events |
+| `src/lib/local-access.ts`           | Loopback-only guard for the chat route                        |
+| `src/components/analytics-chat.tsx` | Agent Interface, chat transport, and starters                 |
 
 `npm run generate` creates the ignored component specification before dev/build/verify. The server passes that specification to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, and Agent Interface renders responses with the same component library.
 
-## Gateway conversations
+## Conversations
 
-The OpenAI SDK transports requests to `https://api.thesys.dev/v1/embed` using `THESYS_API_KEY`. Generation uses `conversation: threadId` and `store: true`. Continuations submit only new function outputs because Gateway retains preceding input and response items.
+The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completions` using `THESYS_API_KEY`. Chat Completions does not store conversations, so Agent Interface keeps each thread in memory and `fetchLLM` sends its messages with every question. Follow-up suggestions are sent the same way, so they build on the earlier answers. Threads reset when the page reloads; pass a `storage` adapter to Agent Interface to persist them.
 
-`useOpenuiCloudStorage` from the pinned `@openuidev/react-ui` package loads the sidebar and messages using short-lived tokens from `/api/frontend-token`. `openAIResponsesAdapter` handles streamed tool activity and answers. The client sends only the latest user message; the server rejects injected history or function outputs.
+The chat route forwards only user questions and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only query results the server produced for the current question. The tool loop streams AG-UI events, which `agUIAdapter()` reads, because Chat Completions has no chunk for a tool result.
 
-Stopping a response while `query_lap_times` runs can leave a stored function call without its output, which Gateway rejects on the next turn. The chat route sends a "stopped" output for any such call ahead of the next question.
-
-`DEMO_USER_ID` defaults to `local-demo` and `APP_ID` to `conversational-analytics-cookbook`. Keep them stable to retain history across reloads and restarts. The server verifies conversation membership in the same scope before generation.
-
-The app binds to loopback and its chat/token routes reject production requests. For deployment, replace the local guard with authentication and rate limits on both routes, derive user identity from the session, retain conversation ownership checks, and provide persistent SQLite storage or a hosted database. Gateway receives the conversation, component/tool instructions, driver catalog, and requested query results.
+The app binds to loopback and its chat route rejects production requests. For deployment, replace the local guard with authentication and rate limits, and provide persistent SQLite storage or a hosted database for the race data. Gateway receives the conversation, component/tool instructions, driver catalog, and requested query results.
 
 ## Data notes
 
@@ -81,8 +77,10 @@ npm run verify
 
 `verify` generates the component specification and runs a production build with type checking. It needs neither credentials nor a download.
 
-In the browser, inspect `query_lap_times` under **Behind the scenes**, watch partial responses appear during generation, follow up with a narrower lap range, stop and retry, and reopen the conversation after a reload or server restart.
+In the browser, inspect `query_lap_times` under **Behind the scenes**, watch partial responses appear during generation, click a follow-up suggestion or ask for a narrower lap range, and stop and retry.
 
 ## Adapt it
 
 Replace `queryLapTimes` with a query to your database or API and update the function schema and prompt. Extend `src/library.ts` to support additional presentations, then regenerate the specification.
+
+To run the tool and prompt on an agent framework instead, see the [LangGraph Platform](../../agent-frameworks/langgraph-platform), [Vercel AI SDK](../../agent-frameworks/vercel-ai-sdk), [Vercel Eve](../../agent-frameworks/vercel-eve), [Mastra](../../agent-frameworks/mastra), and [Google ADK](../../agent-frameworks/google-adk) examples.
