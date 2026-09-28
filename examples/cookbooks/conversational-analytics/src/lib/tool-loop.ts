@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type OpenAI from "openai";
 import type {
+  ChatCompletionChunk,
   ChatCompletionCreateParamsStreaming,
   ChatCompletionMessageParam,
 } from "openai/resources/chat/completions";
@@ -29,6 +30,11 @@ export interface RunChatToolLoopOptions {
   client: OpenAI;
   /** The completion request; `messages` holds the system prompt and the conversation. */
   params: Omit<ChatCompletionCreateParamsStreaming, "stream">;
+  /**
+   * The already-open stream of the first round, created from `params`. Opening it
+   * before responding lets the route return Gateway's errors as HTTP errors.
+   */
+  firstStream: AsyncIterable<ChatCompletionChunk>;
   /** name → executor. A call to any other name receives an error result. */
   tools: Record<string, FunctionToolExecutor>;
   /** Receives every AG-UI event to forward to the browser. */
@@ -47,15 +53,18 @@ export async function runChatToolLoop(options: RunChatToolLoopOptions): Promise<
 
   for (let round = 0; round < maxRounds; round++) {
     const lastRound = round === maxRounds - 1;
-    const stream = await client.chat.completions.create(
-      {
-        ...options.params,
-        messages,
-        stream: true,
-        ...(lastRound ? { tool_choice: "none" as const } : {}),
-      },
-      { signal },
-    );
+    const stream =
+      round === 0
+        ? options.firstStream
+        : await client.chat.completions.create(
+            {
+              ...options.params,
+              messages,
+              stream: true,
+              ...(lastRound ? { tool_choice: "none" as const } : {}),
+            },
+            { signal },
+          );
 
     const messageId = randomUUID();
     let text = "";

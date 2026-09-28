@@ -1,5 +1,8 @@
 import OpenAI from "openai";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import type {
+  ChatCompletionChunk,
+  ChatCompletionMessageParam,
+} from "openai/resources/chat/completions";
 import { z } from "zod/v4";
 import { listDrivers, openDatabase, type Driver } from "../../../lib/f1-data";
 import { localDemoAccess } from "../../../lib/local-access";
@@ -98,6 +101,31 @@ export async function POST(request: Request) {
   // App-owned function tools. The loop runs only the names registered here.
   const lapTimesTool = queryLapTimesTool(drivers);
   const functionTools = { [lapTimesTool.function.name]: executeQueryLapTimes };
+  const params = {
+    model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
+    messages: [
+      { role: "system" as const, content: analyticsPrompt(drivers) },
+      ...conversation(body.messages),
+    ],
+    tools: [lapTimesTool],
+    max_completion_tokens: 6000,
+  };
+
+  // Open the first round before responding, so a rejected key, rate limit, or unknown model
+  // returns as an HTTP error with Gateway's status instead of an event mid-stream.
+  let firstStream: AsyncIterable<ChatCompletionChunk>;
+  try {
+    firstStream = await gateway.chat.completions.create(
+      { ...params, stream: true },
+      { signal: request.signal },
+    );
+  } catch (error) {
+    const upstream = error as { status?: number; message?: string };
+    return Response.json(
+      { error: upstream.message ?? "OpenUI Gateway request failed." },
+      { status: upstream.status ?? 502 },
+    );
+  }
 
   // Stream AG-UI events to the browser, running app-owned tools between model turns.
   const encoder = new TextEncoder();
@@ -111,15 +139,8 @@ export async function POST(request: Request) {
       try {
         await runChatToolLoop({
           client: gateway,
-          params: {
-            model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-            messages: [
-              { role: "system", content: analyticsPrompt(drivers) },
-              ...conversation(body.messages),
-            ],
-            tools: [lapTimesTool],
-            max_completion_tokens: 6000,
-          },
+          params,
+          firstStream,
           tools: functionTools,
           emit,
           signal: request.signal,
