@@ -220,12 +220,14 @@ const theme = useMemo(() => ({ mode, lightTheme, darkTheme }), [mode]);
   llm={chatLLM}
   storage={storage}
   componentLibrary={library}
+  agentName="Filing analyst"
+  logoUrl="/logo.svg"
   theme={theme}
   starters={starters}
   starterVariant="long"
 >
   <AgentInterface.Sidebar>
-    <AgentInterface.SidebarHeader logo={logo} agentName={brandName} />
+    <AgentInterface.SidebarHeader />
     <AgentInterface.SidebarContent>
       <AgentInterface.NewChatButton />
       <AgentInterface.SidebarItem path="documents" icon={<FileText size={16} />}>
@@ -245,6 +247,7 @@ const theme = useMemo(() => ({ mode, lightTheme, darkTheme }), [mode]);
 ```
 
 - **Theme.** [theme.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/lib/theme.ts) uses `createTheme` to set the accent and user-message colors for light and dark mode, and `useSystemThemeMode` follows the operating system's setting.
+- **Brand.** `agentName` and `logoUrl` fill the default sidebar header, which keeps the logo in the collapsed sidebar. [logo.svg](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/public/logo.svg) switches colors for dark mode with a `prefers-color-scheme` media query.
 - **Sidebar.** Supplying `AgentInterface.Sidebar` replaces the default sidebar, so the example composes its own header, New chat button, Documents item, and thread list. See [Sidebar](/docs/agent/customize/sidebar).
 - **Pages.** A `SidebarItem` with a `path` opens the matching `AgentInterface.Route` in place of the chat. The Documents page lists each report with its page count and a link to the source PDF, and returns to the chat with `useNav`.
 - **Starters.** `starterVariant="long"` shows starters as a list with icons. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).

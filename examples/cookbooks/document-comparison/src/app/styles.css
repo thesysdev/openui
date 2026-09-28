@@ -11,31 +11,6 @@ body {
   height: 100dvh;
 }
 
-.brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  color: var(--openui-text-accent-primary);
-  background: var(--openui-interactive-accent-default);
-}
-.brand-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--openui-text-neutral-primary);
-}
-.welcome-mark .brand-mark {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-}
-.welcome-mark .brand-mark svg {
-  width: 24px;
-  height: 24px;
-}
-
 .thread-context {
   font-size: 13px;
   color: var(--openui-text-neutral-secondary);

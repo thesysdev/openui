@@ -8,7 +8,7 @@ import {
   useSystemThemeMode,
   type ChatLLM,
 } from "@openuidev/react-ui";
-import { ChartLine, ChartPie, FileSearch, FileText, ShieldAlert, TrendingUp } from "lucide-react";
+import { ChartLine, ChartPie, FileText, ShieldAlert, TrendingUp } from "lucide-react";
 import { useMemo } from "react";
 import { darkTheme, lightTheme } from "../lib/theme";
 import { library } from "../library";
@@ -55,14 +55,6 @@ const starters = [
   },
 ];
 
-const logo = (
-  <span className="brand-mark" aria-hidden="true">
-    <FileSearch size={16} />
-  </span>
-);
-// Agent Interface leaves a custom name unstyled, so give it the theme's text color.
-const brandName = <span className="brand-name">Filing analyst</span>;
-
 export default function ComparisonChat() {
   const mode = useSystemThemeMode();
   const theme = useMemo(() => ({ mode, lightTheme, darkTheme }), [mode]);
@@ -77,12 +69,13 @@ export default function ComparisonChat() {
         storage={storage}
         componentLibrary={library}
         agentName="Filing analyst"
+        logoUrl="/logo.svg"
         theme={theme}
         starters={starters}
         starterVariant="long"
       >
         <AgentInterface.Sidebar>
-          <AgentInterface.SidebarHeader logo={logo} agentName={brandName} />
+          <AgentInterface.SidebarHeader />
           <AgentInterface.SidebarContent>
             <AgentInterface.NewChatButton />
             <AgentInterface.SidebarItem path="documents" icon={<FileText size={16} />}>
@@ -95,7 +88,6 @@ export default function ComparisonChat() {
         <AgentInterface.Route path="documents">
           <DocumentLibrary />
         </AgentInterface.Route>
-        <AgentInterface.MobileHeader agentName={brandName} />
         <AgentInterface.ThreadHeader>
           <span className="thread-context">
             Comparing <strong>NVIDIA</strong> · <strong>AMD</strong> · <strong>Intel</strong> annual
@@ -103,7 +95,7 @@ export default function ComparisonChat() {
           </span>
         </AgentInterface.ThreadHeader>
         <AgentInterface.Welcome
-          image={<span className="welcome-mark">{logo}</span>}
+          image={{ url: "/logo.svg" }}
           title="Compare annual reports"
           description="Ask about the latest Form 10-K filings from NVIDIA, AMD, and Intel. Every finding cites the page it came from."
         />
