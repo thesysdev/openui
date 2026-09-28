@@ -9,7 +9,7 @@ const require = createRequire(import.meta.url);
 // fallback mis-resolves the request.
 const inputs = [
   require.resolve("@openuidev/react-ui/defaults.css"),
-  require.resolve("@openuidev/react-ui/components.css"),
+  require.resolve("@openuidev/react-ui/styles/index.css"),
 ];
 
 const combined = inputs.map((p) => readFileSync(p, "utf8")).join("\n");
