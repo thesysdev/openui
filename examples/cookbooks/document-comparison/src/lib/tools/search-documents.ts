@@ -10,34 +10,36 @@ import { embed, similarity } from "../embeddings";
 export function searchDocumentsTool(documents: Document[]) {
   return {
     type: "function" as const,
-    name: "search_documents",
-    description:
-      "Find passages about one comparison criterion in the documents. Returns the closest passages from each document with page numbers. Call it once per criterion.",
-    parameters: {
-      type: "object",
-      properties: {
-        query: {
-          type: "string",
-          description:
-            "The information to find, as a short description, such as 'total revenue for the fiscal year and growth from the prior year'.",
+    function: {
+      name: "search_documents",
+      description:
+        "Find passages about one comparison criterion in the documents. Returns the closest passages from each document with page numbers. Call it once per criterion.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description:
+              "The information to find, as a short description, such as 'total revenue for the fiscal year and growth from the prior year'.",
+          },
+          document_ids: {
+            type: "array",
+            items: { type: "string", enum: documents.map((document) => document.id) },
+            description: "Documents to search. Empty for all documents.",
+          },
+          passages_per_document: {
+            type: "integer",
+            minimum: 1,
+            maximum: 4,
+            description:
+              "Passages to return from each document. Use 2 unless more context is needed.",
+          },
         },
-        document_ids: {
-          type: "array",
-          items: { type: "string", enum: documents.map((document) => document.id) },
-          description: "Documents to search. Empty for all documents.",
-        },
-        passages_per_document: {
-          type: "integer",
-          minimum: 1,
-          maximum: 4,
-          description:
-            "Passages to return from each document. Use 2 unless more context is needed.",
-        },
+        required: ["query", "document_ids", "passages_per_document"],
+        additionalProperties: false,
       },
-      required: ["query", "document_ids", "passages_per_document"],
-      additionalProperties: false,
+      strict: true,
     },
-    strict: true,
   };
 }
 

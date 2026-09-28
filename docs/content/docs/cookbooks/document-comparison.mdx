@@ -17,7 +17,8 @@ In this cookbook, you'll learn how to:
 - Give the model a search function tool, so it retrieves evidence for each criterion instead of answering from memory.
 - Make the model show its work: page-cited values, charts chosen from the shape of the data, callouts for missing or conflicting information, and source cards that open each quoted page.
 - Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity, with your own theme, sidebar, and pages.
-- Keep the conversation in [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers, corrects generated UI, and stores conversations, so a follow-up can add a criterion to the comparison.
+- Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
+- Send the conversation with each question, so a follow-up can add a criterion to the comparison.
 
 <div className="not-prose my-6">
   <a
@@ -67,10 +68,10 @@ A document comparison assistant splits the work between your application and the
 
 <CookbookComparisonDiagram />
 
-1. **The user asks for a comparison.** Agent Interface sends it to OpenUI Gateway through your server's chat route, which adds a `search_documents` function tool and a system prompt that describes the documents and your components.
+1. **The user asks for a comparison.** Agent Interface sends the conversation to your server's chat route, which calls OpenUI Gateway with a `search_documents` function tool and a system prompt that describes the documents and your components.
 2. **The model searches once per criterion.** For “revenue and R&D”, it calls `search_documents` twice, in parallel, with short descriptions such as “research and development expenses for the fiscal year”. Separate searches keep one criterion's passages from crowding out another's. Your server embeds each description with OpenAI, compares it with the passage embeddings it loaded from SQLite, and returns each document's closest passages with their page numbers and a `found` flag.
 3. **The model compares the evidence.** It writes an OpenUI Lang program with a table of page-cited values, charts suited to the data, callouts for conflicts or gaps, and source cards that quote each passage. Gateway validates the program against your component library as it streams.
-4. **Agent Interface renders it progressively.** Tables and charts appear as their data arrives. Gateway stores the conversation, so a follow-up such as “compare headcount” searches for the new criterion and extends the comparison.
+4. **Agent Interface renders it progressively.** Tables and charts appear as their data arrives. The next request includes the earlier questions and answers, so a follow-up such as “compare headcount” searches for the new criterion and extends the comparison.
 
 ### Why retrieve passages
 
@@ -94,7 +95,7 @@ npm ci
 
 The example needs two keys, configured privately in the example's `.env.local`:
 
-- `THESYS_API_KEY` from the [Thesys Console](https://console.thesys.dev/keys), for generation and saved conversations.
+- `THESYS_API_KEY` from the [Thesys Console](https://console.thesys.dev/keys), for generation.
 - `OPENAI_API_KEY` from the [OpenAI Platform](https://platform.openai.com/api-keys), for embeddings.
 
 Then prepare the documents and start the app:
@@ -223,15 +224,26 @@ Each card shows the site's icon, the company and page, and the quote. `onePerPag
 
 ### 4. Customize Agent Interface
 
-The chat transport, Gateway conversation storage, and token route are the same as in the [conversational analytics cookbook](/cookbooks/conversational-analytics#4-connect-agent-interface). This example also customizes Agent Interface through its public props and slots:
+Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's stream with `agUIAdapter()`:
+
+```tsx title="src/components/comparison-chat.tsx"
+const llm = fetchLLM({
+  url: "/api/chat",
+  streamAdapter: agUIAdapter(),
+  messageFormat: openAIMessageFormat,
+});
+```
+
+Chat Completions does not store conversations, so Agent Interface keeps each thread in the browser and sends its messages with every question. That is what lets a follow-up add a criterion to the comparison. Threads last until the page reloads. To keep them, pass a `storage` adapter to Agent Interface; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
+
+The example also customizes Agent Interface through its public props and slots:
 
 ```tsx title="src/components/comparison-chat.tsx"
 const mode = useSystemThemeMode();
 const theme = useMemo(() => ({ mode, lightTheme, darkTheme }), [mode]);
 
 <AgentInterface
-  llm={chatLLM}
-  storage={storage}
+  llm={llm}
   componentLibrary={library}
   agentName="Filing analyst"
   logoUrl="/logo.svg"
@@ -271,19 +283,34 @@ The chat route passes the search tool and the [prompt](https://github.com/thesys
 
 ```ts title="src/app/api/chat/route.ts"
 const searchTool = searchDocumentsTool(documents);
-const functionTools = { [searchTool.name]: executeSearchDocuments };
-const createParams = {
+const params = {
   model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-  instructions: comparisonPrompt(documents),
-  input: [...stopped, ...body.input],
-  conversation: body.threadId,
-  store: true,
+  messages: [
+    { role: "system" as const, content: comparisonPrompt(documents) },
+    ...conversation(body.messages),
+  ],
   tools: [searchTool],
-  max_output_tokens: 6000,
+  max_completion_tokens: 6000,
 };
+const firstStream = await gateway.chat.completions.create(
+  { ...params, stream: true },
+  { signal: request.signal },
+);
+
+await runChatToolLoop({
+  client: gateway,
+  params,
+  firstStream,
+  tools: { [searchTool.function.name]: executeSearchDocuments },
+  emit,
+  signal: request.signal,
+  maxRounds: 4,
+});
 ```
 
-The route runs the same [function-tool loop](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/lib/tool-loop.ts) as the conversational analytics cookbook, with `maxRounds: 4`. The extra round lets the model search again with different wording when a document returns `found: false`.
+The route runs the same [function-tool loop](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/lib/tool-loop.ts) as the [conversational analytics cookbook](/cookbooks/conversational-analytics#5-stream-the-answer), with `maxRounds: 4`. It runs each requested search, appends the results, and requests the next completion until the model answers, streaming AG-UI events so Agent Interface shows each search and its passages. The extra rounds let the model search again with different wording when a document returns `found: false`. `conversation()` drops the tool calls and results the browser sends back, so every quote comes from a search your server ran for the current question.
+
+This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
 
 The prompt turns the evidence into a consistent answer:
 
@@ -313,10 +340,11 @@ Add your own PDFs to the example's `documents/` folder and run `npm run prepare:
 
 The importer reads a PDF's text layer, so run OCR on scanned documents first. For large collections, store the embeddings in a vector database and keep the `search_documents` tool's contract.
 
-This example runs locally with a single demo identity. Before deploying it, replace the local guard with authentication and rate limits, derive user identity from the signed-in session, retain conversation ownership checks, and keep both API keys on the server. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
+This example runs locally without authentication, and its chat route accepts browser requests only from its own page. Before deploying it, add authentication and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
 
 - [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
 - [Agent tools](/docs/agent/core-concepts/tools)
-- [Gateway Responses API](/docs/gateway/api/responses)
+- [Gateway Chat Completions API](/docs/gateway/api/chat-completions)
+- [Connect a backend](/docs/agent/reference/self-hosting)
 
 Documents: the Form 10-K annual reports of NVIDIA, AMD, and Intel, downloaded from each company's investor relations site during setup. They are not included in this repository.

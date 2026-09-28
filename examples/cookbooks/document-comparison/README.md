@@ -2,7 +2,7 @@
 
 A runnable companion to the [document comparison cookbook](https://www.openui.com/cookbooks/document-comparison). Ask what to compare, watch the assistant search each document, and get a page-cited table, charts, and source cards that open each quoted page as the answer streams.
 
-The example compares the latest annual reports (Form 10-K) from **NVIDIA**, **AMD**, and **Intel**. It runs on Next.js, Agent Interface, OpenUI Gateway, OpenAI embeddings, and Node's built-in SQLite module.
+The example compares the latest annual reports (Form 10-K) from **NVIDIA**, **AMD**, and **Intel**. It runs on Next.js, Agent Interface, OpenUI Gateway's Chat Completions API, OpenAI embeddings, and Node's built-in SQLite module.
 
 ## Run
 
@@ -14,7 +14,7 @@ npm ci
 
 Configure two keys privately in `.env.local`:
 
-- `THESYS_API_KEY` from the [Thesys Console](https://console.thesys.dev/keys), for generation and saved conversations.
+- `THESYS_API_KEY` from the [Thesys Console](https://console.thesys.dev/keys), for generation.
 - `OPENAI_API_KEY` from the [OpenAI Platform](https://platform.openai.com/api-keys), for embeddings.
 
 Optional `OPENUI_MODEL` selects a supported `provider/model` identifier; the default is `openai/gpt-5.5`.
@@ -35,30 +35,29 @@ Try:
 
 ## How it works
 
-1. Agent Interface sends the latest user message to `/api/chat`.
-2. OpenUI Gateway calls `search_documents` once per criterion, with a short description of the information to find.
+1. Agent Interface sends the thread's messages to `/api/chat`, which calls OpenUI Gateway's Chat Completions API.
+2. The model calls `search_documents` once per criterion, with a short description of the information to find.
 3. The server embeds the description, ranks each document's passages by similarity, and returns the closest ones with page numbers, links to those pages, and a `found` flag.
-4. The tool loop returns the passages to the saved Gateway conversation and forwards tool events and generated OpenUI Lang to the browser.
+4. The tool loop returns the passages to the model and streams tool events and generated OpenUI Lang to the browser as AG-UI events.
 5. Agent Interface displays tool activity and progressively renders the comparison: a page-cited table, charts, callouts for gaps and conflicts, and a card for each quoted page.
 
 ## Files
 
-| File                                  | Purpose                                                                     |
-| ------------------------------------- | --------------------------------------------------------------------------- |
-| `scripts/prepare-documents.ts`        | Download the PDFs, extract pages, split passages, embed, and store          |
-| `src/lib/documents.ts`                | Sample document sources, database schema, and document list                 |
-| `src/lib/embeddings.ts`               | OpenAI embeddings and similarity                                            |
-| `src/lib/tools/search-documents.ts`   | Function schema, argument validation, and passage search                    |
-| `src/library.ts`                      | Shared components for the prompt and renderer                               |
-| `src/components/sources.tsx`          | The Sources component, built on React UI's source strip                     |
-| `src/lib/prompt.ts`                   | Comparison rules and example answers for Gateway                            |
-| `src/app/api/chat/route.ts`           | Request validation, Gateway generation, and SSE response                    |
-| `src/app/api/documents/route.ts`      | Document list for the Documents page                                        |
-| `src/lib/tool-loop.ts`                | The Gateway template's function-tool loop                                   |
-| `src/lib/gateway-session.ts`          | Local identity, frontend tokens, conversation ownership, stopped tool calls |
-| `src/lib/theme.ts`                    | Light and dark theme overrides                                              |
-| `src/components/comparison-chat.tsx`  | Agent Interface, custom sidebar, Documents route, and starters              |
-| `src/components/document-library.tsx` | The Documents page                                                          |
+| File                                  | Purpose                                                                        |
+| ------------------------------------- | ------------------------------------------------------------------------------ |
+| `scripts/prepare-documents.ts`        | Download the PDFs, extract pages, split passages, embed, and store             |
+| `src/lib/documents.ts`                | Sample document sources, database schema, and document list                    |
+| `src/lib/embeddings.ts`               | OpenAI embeddings and similarity                                               |
+| `src/lib/tools/search-documents.ts`   | Function schema, argument validation, and passage search                       |
+| `src/library.ts`                      | Shared components for the prompt and renderer                                  |
+| `src/components/sources.tsx`          | The Sources component, built on React UI's source strip                        |
+| `src/lib/prompt.ts`                   | Comparison rules and example answers for Gateway                               |
+| `src/app/api/chat/route.ts`           | Request validation, Chat Completions generation, and SSE response              |
+| `src/app/api/documents/route.ts`      | Document list for the Documents page                                           |
+| `src/lib/tool-loop.ts`                | Chat Completions function-tool loop that streams AG-UI events                  |
+| `src/lib/theme.ts`                    | Light and dark theme overrides                                                 |
+| `src/components/comparison-chat.tsx`  | Agent Interface, chat transport, custom sidebar, Documents route, and starters |
+| `src/components/document-library.tsx` | The Documents page                                                             |
 
 `npm run generate` creates the ignored component specification before dev/build/verify. The server passes that specification to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, and Agent Interface renders responses with the same component library.
 
@@ -70,13 +69,13 @@ To compare your own PDFs, add them to `documents/` and run `npm run prepare:docu
 
 The downloaded reports and the database are ignored by Git and are not redistributed with this repository.
 
-## Gateway conversations
+## Conversations
 
-Generation uses `conversation: threadId` and `store: true`, so the client sends only the latest user message and continuations submit only new function outputs. `useOpenuiCloudStorage` loads the sidebar and messages using short-lived tokens from `/api/frontend-token`. `DEMO_USER_ID` defaults to `local-demo` and `APP_ID` to `document-comparison-cookbook`; keep them stable to retain history.
+The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completions` using `THESYS_API_KEY`. Chat Completions does not store conversations, so Agent Interface keeps each thread in memory and `fetchLLM` sends its messages with every question. Follow-up suggestions are sent the same way, so they build on the earlier answers. Threads reset when the page reloads; pass a `storage` adapter to Agent Interface to persist them.
 
-Stopping a response while `search_documents` runs can leave a stored function call without its output, which Gateway rejects on the next turn. The chat route sends a "stopped" output for any such call ahead of the next question.
+The chat route forwards only user questions and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only passages the server found for the current question. The tool loop streams AG-UI events, which `agUIAdapter()` reads, because Chat Completions has no chunk for a tool result. It is the same loop as in the [conversational analytics](../conversational-analytics) cookbook.
 
-The app binds to loopback and its routes reject production requests. For deployment, replace the local guard with authentication and rate limits, derive user identity from the session, retain conversation ownership checks, and keep both API keys on the server.
+The app binds to loopback, and the chat route accepts browser requests only from its own local page. For deployment, add authentication and rate limits to the chat route.
 
 ## Verify
 

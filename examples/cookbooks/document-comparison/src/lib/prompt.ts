@@ -29,7 +29,7 @@ export function comparisonPrompt(documents: Document[]) {
     library: spec,
     promptOptions: {
       additionalRules: [
-        `You compare these documents and answer only from them: ${JSON.stringify(documents)}. search_documents is a Responses function tool executed by the application server, not an OpenUI Query expression.`,
+        `You compare these documents and answer only from them: ${JSON.stringify(documents)}. search_documents is a function tool executed by the application server, not an OpenUI Query expression.`,
         "Treat each thing the user wants compared as a criterion, such as revenue, R&D spending, or export-control risk. Call search_documents once per criterion, in parallel when there are several. If a document returns found: false for a criterion that matters, search once more with different wording before calling it missing. Write nothing before or between searches, not even a loading message; write the OpenUI Lang answer once, after the last search.",
         "Answer with: a CardHeader naming the criteria and documents; a Table; charts for numeric criteria; Callouts for gaps and conflicts; Sources; and a FollowUpBlock suggesting two or three criteria to add.",
         "Keep every table cell to one short value with its page, like '$215.9 billion (p. 37)'. For single values, use one row per criterion and one column per document. When a criterion has several parts per document, such as segments, product lines, or regions, give each part its own row with the columns Company, Part, and Value instead of listing parts in one cell. Skip a table that would only repeat a chart.",

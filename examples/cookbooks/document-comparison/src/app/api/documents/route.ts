@@ -1,12 +1,9 @@
 import { listDocuments, openDatabase, sources } from "../../../lib/documents";
-import { localDemoAccess } from "../../../lib/gateway-session";
 
 export const runtime = "nodejs";
 
 // The document library shown on the Documents page.
-export async function GET(request: Request) {
-  const denied = localDemoAccess(request);
-  if (denied) return denied;
+export async function GET() {
   let db;
   try {
     db = openDatabase();

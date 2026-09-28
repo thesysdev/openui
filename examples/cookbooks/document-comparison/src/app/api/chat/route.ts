@@ -1,30 +1,40 @@
 import OpenAI from "openai";
-import type { ResponseCreateParamsNonStreaming } from "openai/resources/responses/responses";
+import type {
+  ChatCompletionChunk,
+  ChatCompletionMessageParam,
+} from "openai/resources/chat/completions";
 import { z } from "zod/v4";
 import { listDocuments, openDatabase, type Document } from "../../../lib/documents";
-import {
-  localDemoAccess,
-  ownsConversation,
-  stoppedToolOutputs,
-} from "../../../lib/gateway-session";
 import { comparisonPrompt } from "../../../lib/prompt";
-import { runFunctionToolLoop } from "../../../lib/tool-loop";
+import { runChatToolLoop } from "../../../lib/tool-loop";
 import { executeSearchDocuments, searchDocumentsTool } from "../../../lib/tools/search-documents";
 
 export const runtime = "nodejs";
 
-// Gateway stores the conversation, so the browser sends only its latest question.
-// Accept exactly one bounded user message; never forward browser-supplied history or tool output.
-const chatRequestSchema = z.strictObject({
-  threadId: z.string().min(1).max(200),
-  input: z.tuple([
-    z.strictObject({
-      type: z.literal("message"),
-      role: z.literal("user"),
-      content: z.string().trim().min(1).max(600),
-    }),
-  ]),
+// Chat Completions keeps no state, so the browser sends the whole conversation on every turn.
+// Forward only user questions and assistant answers. Tool calls and results from the browser
+// are dropped, so every passage the model cites comes from a search this server runs.
+const chatRequestSchema = z.object({
+  messages: z
+    .array(
+      z.discriminatedUnion("role", [
+        z.object({ role: z.literal("user"), content: z.string().trim().min(1).max(600) }),
+        z.object({ role: z.literal("assistant"), content: z.string().nullish() }),
+        z.object({ role: z.literal("tool") }),
+      ]),
+    )
+    .min(1)
+    .max(100)
+    .refine((messages) => messages.at(-1)?.role === "user"),
 });
+
+function conversation(messages: z.infer<typeof chatRequestSchema>["messages"]) {
+  return messages.flatMap((message): ChatCompletionMessageParam[] =>
+    message.role === "tool" || !message.content
+      ? []
+      : [{ role: message.role, content: message.content }],
+  );
+}
 
 async function parseChatRequest(request: Request) {
   if (request.headers.get("content-type")?.split(";")[0].trim() !== "application/json")
@@ -38,7 +48,7 @@ async function parseChatRequest(request: Request) {
       const { done, value } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > 16_384) {
+      if (size > 1_000_000) {
         await reader.cancel();
         throw new Error("Request too large.");
       }
@@ -51,14 +61,21 @@ async function parseChatRequest(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const denied = localDemoAccess(request);
-  if (denied) return denied;
+  // This example has no authentication, so it accepts browser requests only from its own
+  // local page. Add authentication and rate limits before deploying it.
+  const { port } = new URL(request.url);
+  const origin = request.headers.get("origin");
+  if (origin && origin !== `http://127.0.0.1:${port}` && origin !== `http://localhost:${port}`)
+    return Response.json(
+      { error: "This example only accepts requests from its local chat interface." },
+      { status: 403 },
+    );
   let body;
   try {
     body = await parseChatRequest(request);
   } catch {
     return Response.json(
-      { error: "Send one text question of up to 600 characters and a conversation id." },
+      { error: "Send the conversation, ending with a question of up to 600 characters." },
       { status: 400 },
     );
   }
@@ -70,21 +87,6 @@ export async function POST(request: Request) {
       },
       { status: 503 },
     );
-
-  let stopped;
-  try {
-    if (!(await ownsConversation(body.threadId, request.signal)))
-      return Response.json(
-        { error: "Conversation not found for this app and user." },
-        { status: 403 },
-      );
-    stopped = await stoppedToolOutputs(body.threadId, request.signal);
-  } catch {
-    return Response.json(
-      { error: "Unable to verify Gateway conversation access." },
-      { status: 503 },
-    );
-  }
 
   let documents: Document[];
   let db;
@@ -103,23 +105,26 @@ export async function POST(request: Request) {
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
   // App-owned function tools. The loop runs only the names registered here.
   const searchTool = searchDocumentsTool(documents);
-  const functionTools = { [searchTool.name]: executeSearchDocuments };
-  const createParams: ResponseCreateParamsNonStreaming = {
+  const functionTools = { [searchTool.function.name]: executeSearchDocuments };
+
+  const params = {
     model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-    instructions: comparisonPrompt(documents),
-    input: [...stopped, ...body.input],
-    conversation: body.threadId,
-    store: true,
+    messages: [
+      { role: "system" as const, content: comparisonPrompt(documents) },
+      ...conversation(body.messages),
+    ],
     tools: [searchTool],
-    max_output_tokens: 6000,
+    max_completion_tokens: 6000,
   };
 
-  let firstStream: AsyncIterable<Record<string, unknown>>;
+  // Open the first round before responding, so a rejected key, rate limit, or unknown model
+  // returns as an HTTP error with Gateway's status instead of an event mid-stream.
+  let firstStream: AsyncIterable<ChatCompletionChunk>;
   try {
-    firstStream = (await gateway.responses.create(
-      { ...createParams, stream: true },
+    firstStream = await gateway.chat.completions.create(
+      { ...params, stream: true },
       { signal: request.signal },
-    )) as unknown as AsyncIterable<Record<string, unknown>>;
+    );
   } catch (error) {
     const upstream = error as { status?: number; message?: string };
     return Response.json(
@@ -128,27 +133,36 @@ export async function POST(request: Request) {
     );
   }
 
-  // Forward Gateway's Responses events as SSE, running app-owned tools between model turns.
+  // Stream AG-UI events to the browser, running app-owned tools between model turns.
   const encoder = new TextEncoder();
+  let open = true;
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const enqueue = (event: Record<string, unknown>) =>
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+      // Stop sending once the browser disconnects.
+      const emit = (event: Record<string, unknown>) => {
+        if (open) controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+      };
       try {
-        await runFunctionToolLoop({
+        await runChatToolLoop({
           client: gateway,
-          createParams,
+          params,
           firstStream,
           tools: functionTools,
-          enqueue,
+          emit,
           signal: request.signal,
           maxRounds: 4,
         });
       } catch (error) {
-        enqueue({ type: "error", message: error instanceof Error ? error.message : String(error) });
+        emit({
+          type: "RUN_ERROR",
+          message: error instanceof Error ? error.message : String(error),
+        });
       } finally {
-        controller.close();
+        if (open) controller.close();
       }
+    },
+    cancel() {
+      open = false;
     },
   });
 

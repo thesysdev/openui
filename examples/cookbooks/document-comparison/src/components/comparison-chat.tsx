@@ -2,11 +2,10 @@
 
 import {
   AgentInterface,
-  openAIConversationMessageFormat,
-  openAIResponsesAdapter,
-  useOpenuiCloudStorage,
+  agUIAdapter,
+  fetchLLM,
+  openAIMessageFormat,
   useSystemThemeMode,
-  type ChatLLM,
 } from "@openuidev/react-ui";
 import { ChartLine, ChartPie, FileText, ShieldAlert, TrendingUp } from "lucide-react";
 import { useMemo } from "react";
@@ -14,20 +13,12 @@ import { darkTheme, lightTheme } from "../lib/theme";
 import { library } from "../library";
 import { DocumentLibrary } from "./document-library";
 
-// Gateway restores earlier turns from the conversation id, so send only the latest message.
-const chatLLM: ChatLLM = {
-  streamProtocol: openAIResponsesAdapter(),
-  send: ({ threadId, messages, signal }) =>
-    fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        threadId,
-        input: openAIConversationMessageFormat.toApi(messages.slice(-1)),
-      }),
-      signal,
-    }),
-};
+// Send the thread's messages in Chat Completions format and read the route's AG-UI events.
+const llm = fetchLLM({
+  url: "/api/chat",
+  streamAdapter: agUIAdapter(),
+  messageFormat: openAIMessageFormat,
+});
 
 const starters = [
   {
@@ -58,15 +49,10 @@ const starters = [
 export default function ComparisonChat() {
   const mode = useSystemThemeMode();
   const theme = useMemo(() => ({ mode, lightTheme, darkTheme }), [mode]);
-  const storage = useOpenuiCloudStorage({
-    token: "/api/frontend-token",
-    features: { artifact: false },
-  });
   return (
     <div className="comparison-app">
       <AgentInterface
-        llm={chatLLM}
-        storage={storage}
+        llm={llm}
         componentLibrary={library}
         agentName="Filing analyst"
         logoUrl="/logo.svg"
