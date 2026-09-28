@@ -1,11 +1,11 @@
 # OpenUI cookbooks
 
-Runnable examples for the [Cookbooks docs](https://www.openui.com/docs/cookbooks). Read a cookbook for the walkthrough, then run or adapt its example here.
+Runnable examples for the [Cookbooks docs](https://www.openui.com/cookbooks). Read a cookbook for the walkthrough, then run or adapt its example here.
 
-| Cookbook                 | Example                                                                         | Docs                                                                                                               |
-| ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Conversational analytics | [Next.js, OpenUI Gateway, and SQLite](./conversational-analytics)               | [Explore Formula 1 lap times through conversation](https://www.openui.com/docs/cookbooks/conversational-analytics) |
-| Document comparison      | [Next.js, OpenUI Gateway, OpenAI embeddings, and SQLite](./document-comparison) | [Compare annual reports with cited evidence](https://www.openui.com/docs/cookbooks/document-comparison)            |
+| Cookbook                 | Example                                                                         | Docs                                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Conversational analytics | [Next.js, OpenUI Gateway, and SQLite](./conversational-analytics)               | [Explore Formula 1 lap times through conversation](https://www.openui.com/cookbooks/conversational-analytics) |
+| Document comparison      | [Next.js, OpenUI Gateway, OpenAI embeddings, and SQLite](./document-comparison) | [Compare annual reports with cited evidence](https://www.openui.com/cookbooks/document-comparison)            |
 
 ## Run an example
 

@@ -1,15 +1,15 @@
 "use client";
 
 import { DocsNavbar } from "@/components/docs-navbar";
+import { DocsSidebarActions } from "@/components/docs-sidebar-actions";
 import {
   GLOBAL_DOCS_TREE,
   NESTED_DOCS_SECTIONS,
-  getApiReferenceTree,
-  getCookbooksTree,
   getGlobalActiveItemUrl,
   getNestedDocsTree,
   getNestedRootForEntryUrl,
   getSidebarModeForPathname,
+  getTabTree,
   type NestedDocsRoot,
   type SidebarModeOverride,
 } from "@/lib/docs-navigation";
@@ -101,21 +101,23 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
   const navigationContext = useMemo(() => ({ enterNested, showGlobal }), [enterNested, showGlobal]);
 
   const nestedRoot = sidebarMode.kind === "nested" ? sidebarMode.root : undefined;
-  const isApiReference = sidebarMode.kind === "api-reference";
-  const isCookbooks = sidebarMode.kind === "cookbooks";
+  // Demos is a single page of cards, so it has no sidebar.
+  const hasSidebar = sidebarMode.kind !== "demos";
+  const tabFolder =
+    sidebarMode.kind === "global" || sidebarMode.kind === "nested" ? undefined : sidebarMode.kind;
   const activeTree = useMemo(() => {
-    if (isCookbooks) return getCookbooksTree(tree);
-    if (isApiReference) return getApiReferenceTree(tree);
+    if (tabFolder) return getTabTree(tree, tabFolder);
     return nestedRoot ? getNestedDocsTree(tree, nestedRoot) : GLOBAL_DOCS_TREE;
-  }, [isCookbooks, isApiReference, nestedRoot, tree]);
+  }, [tabFolder, nestedRoot, tree]);
 
   return (
     <DocsNavigationContext.Provider value={navigationContext}>
       <DocsLayout
         tree={activeTree}
         {...baseOptions()}
-        nav={{ component: <DocsNavbar /> }}
+        nav={{ component: <DocsNavbar showSidebarTrigger={hasSidebar} /> }}
         sidebar={{
+          enabled: hasSidebar,
           tabs: false,
           collapsible: false,
           className:
@@ -123,6 +125,7 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
               ? "[&_button[aria-expanded]]:!text-fd-foreground [&_button[aria-expanded]+div]:mb-4"
               : undefined,
           banner: nestedRoot ? <NestedSidebarHeader root={nestedRoot} /> : undefined,
+          footer: <DocsSidebarActions />,
           components: sidebarMode.kind === "global" ? { Item: GlobalSidebarItem } : undefined,
         }}
         searchToggle={{ enabled: false }}

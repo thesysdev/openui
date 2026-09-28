@@ -1,6 +1,6 @@
 # Document comparison
 
-A runnable companion to the [document comparison cookbook](https://www.openui.com/docs/cookbooks/document-comparison). Ask what to compare, watch the assistant search each document, and get a page-cited table, charts, and quoted sources as the answer streams.
+A runnable companion to the [document comparison cookbook](https://www.openui.com/cookbooks/document-comparison). Ask what to compare, watch the assistant search each document, and get a page-cited table, charts, and quoted sources as the answer streams.
 
 The example compares the latest annual reports (Form 10-K) from **NVIDIA**, **AMD**, and **Intel**. It runs on Next.js, Agent Interface, OpenUI Gateway, OpenAI embeddings, and Node's built-in SQLite module.
 

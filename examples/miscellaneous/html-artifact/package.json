@@ -16,9 +16,9 @@
   },
   "dependencies": {
     "@openuidev/lang-core": "0.3.0",
-    "@openuidev/react-headless": "0.16.2",
+    "@openuidev/react-headless": "0.16.3",
     "@openuidev/react-lang": "0.3.0",
-    "@openuidev/react-ui": "0.16.2",
+    "@openuidev/react-ui": "0.16.3",
     "next": "16.2.6",
     "openai": "^6.22.0",
     "react": "19.2.3",
@@ -27,7 +27,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.4.0",
+    "@openuidev/cli": "0.4.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",

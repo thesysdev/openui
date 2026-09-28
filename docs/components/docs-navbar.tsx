@@ -1,6 +1,12 @@
 "use client";
 
-import { API_REFERENCE_URL, COOKBOOKS_URL, isPathWithin } from "@/lib/docs-navigation";
+import {
+  API_REFERENCE_URL,
+  COOKBOOKS_URL,
+  DEMOS_URL,
+  EXAMPLES_URL,
+  isPathWithin,
+} from "@/lib/docs-navigation";
 import { siteConfig } from "@/lib/layout.shared";
 import { SidebarTrigger } from "fumadocs-ui/components/sidebar/base";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
@@ -16,6 +22,8 @@ import { ThemeToggle } from "./theme-toggle";
 const tabs = [
   { title: "Docs", url: "/docs" },
   { title: "Cookbooks", url: COOKBOOKS_URL },
+  { title: "Examples", url: EXAMPLES_URL },
+  { title: "Demos", url: DEMOS_URL },
   { title: "API Reference", url: API_REFERENCE_URL },
 ];
 
@@ -72,13 +80,10 @@ function SearchBar() {
   );
 }
 
-export function DocsNavbar() {
+export function DocsNavbar({ showSidebarTrigger = true }: { showSidebarTrigger?: boolean }) {
   const pathname = usePathname();
-  const activeTabUrl = isPathWithin(pathname, COOKBOOKS_URL)
-    ? COOKBOOKS_URL
-    : isPathWithin(pathname, API_REFERENCE_URL)
-      ? API_REFERENCE_URL
-      : "/docs";
+  const activeTabUrl =
+    tabs.find((tab) => tab.url !== "/docs" && isPathWithin(pathname, tab.url))?.url ?? "/docs";
   const { resolvedTheme } = useTheme();
   // resolvedTheme is undefined during SSR and the first client render, so gate the
   // theme-derived variant behind a mount flag (matching SiteMarketingHeader) to
@@ -109,22 +114,24 @@ export function DocsNavbar() {
             </div>
           }
           leading={
-            <SidebarTrigger className={styles.sidebarToggle} aria-label="Browse documentation">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-            </SidebarTrigger>
+            showSidebarTrigger ? (
+              <SidebarTrigger className={styles.sidebarToggle} aria-label="Browse documentation">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              </SidebarTrigger>
+            ) : undefined
           }
           end={
             <div className={styles.actions}>

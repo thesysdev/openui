@@ -1,63 +1,27 @@
-import { LLMCopyButton, ViewOptions } from "@/components/ai/page-actions";
-import { gitConfig } from "@/lib/layout.shared";
-import { getPageImage, source } from "@/lib/source";
-import { getMDXComponents } from "@/mdx-components";
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/layouts/docs/page";
-import { createRelativeLink } from "fumadocs-ui/mdx";
+import { DocsPageView, getDocsPageMetadata } from "@/components/docs-page";
+import { isTopLevelSection, source } from "@/lib/source";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+// Sections like cookbooks live at their own top-level path, so /docs does not serve them.
+function getPage(slug: string[] | undefined) {
+  return isTopLevelSection(slug) ? undefined : source.getPage(slug);
+}
+
 export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
-  const params = await props.params;
-  const page = source.getPage(params.slug);
+  const page = getPage((await props.params).slug);
   if (!page) notFound();
 
-  const MDX = page.data.body;
-
-  return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
-      {!page.data.customHeader && (
-        <>
-          <DocsTitle>{page.data.title}</DocsTitle>
-          <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
-          <div className="flex flex-row gap-2 items-center border-b pb-6">
-            <LLMCopyButton markdownUrl={`${page.url}.mdx`} />
-            <ViewOptions
-              markdownUrl={page.url}
-              githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/docs/content/docs/${page.path}`}
-            />
-          </div>
-        </>
-      )}
-      <DocsBody>
-        <MDX
-          components={getMDXComponents({
-            // this allows you to link to other pages with relative file paths
-            a: createRelativeLink(source, page),
-          })}
-        />
-      </DocsBody>
-    </DocsPage>
-  );
+  return <DocsPageView page={page} />;
 }
 
 export async function generateStaticParams() {
-  return source.generateParams();
+  return source.generateParams().filter((params) => !isTopLevelSection(params.slug));
 }
 
 export async function generateMetadata(props: PageProps<"/docs/[[...slug]]">): Promise<Metadata> {
-  const params = await props.params;
-  const page = source.getPage(params.slug);
+  const page = getPage((await props.params).slug);
   if (!page) notFound();
 
-  return {
-    title: page.data.title,
-    description: page.data.description,
-    alternates: {
-      canonical: page.url,
-    },
-    openGraph: {
-      images: getPageImage(page).url,
-    },
-  };
+  return getDocsPageMetadata(page);
 }

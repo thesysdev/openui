@@ -13,6 +13,8 @@
     "devtools",
     "cli",
     "angular-lang",
+    "vue-lang",
+    "svelte-lang",
     "a2ui"
   ]
 }
