@@ -3,10 +3,11 @@
  *
  * SVG `<text>` has no equivalent of CSS `-webkit-line-clamp` or
  * `text-overflow: ellipsis`, so we hand-roll wrapping + measured-trim ellipsis
- * over a canvas 2D context (the same context used to size the axis band). Both
- * the renderer (`XAxis`) and the height hook (`useXAxisHeight`) call these, so
- * the rendered line count and the reserved band height stay in agreement — no
- * SCSS↔TS magic-number contract.
+ * over a canvas 2D context (the same context used to size the axis band). The
+ * renderers (`XAxis`, `CondensedXAxis`) and the band sizing
+ * (`layoutXAxisLabels`, `useXAxisHeight`) all call these, so the rendered line
+ * count and the reserved band height stay in agreement — no SCSS↔TS
+ * magic-number contract.
  *
  * Note: canvas `measureText` ignores theme letter-spacing — a pre-existing
  * limitation shared with the y-axis width measurement.
@@ -62,7 +63,7 @@ export function truncateToWidth(
  * Wrap `text` into lines that each fit `maxWidth` (CSS `break-word` behaviour:
  * over-long words break mid-word), capped at `maxLines`. If the text overflows
  * the cap, the last kept line is ellipsized. Returns the lines to render as
- * `<tspan>`s — and `.length` is the line count `useXAxisHeight` reserves space for.
+ * `<tspan>`s — and `.length` is the line count the axis band reserves space for.
  */
 export function wrapLabelLines(
   ctx: CanvasRenderingContext2D,

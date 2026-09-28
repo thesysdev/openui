@@ -45,7 +45,7 @@ function LineChartImpl<T extends LineChartData>({
   categoryKey,
   customPalette,
   variant = "natural",
-  tickVariant: tickVariantProp = "multiLine",
+  tickVariant: tickVariantProp,
   showDots = false,
   dotRadius = 3,
   grid = true,
@@ -81,7 +81,7 @@ function LineChartImpl<T extends LineChartData>({
     height,
     fixedWidth,
     fitLegendInHeight,
-    tickVariantProp,
+    tickVariantProp: tickVariantProp ?? (condensed ? "singleLine" : "multiLine"),
     chartIdPrefix: "d3lc",
     icons,
     onClick,
@@ -185,8 +185,12 @@ function LineChartImpl<T extends LineChartData>({
           tickVariant={orch.dimensions.tickVariant}
           widthOfGroup={orch.dimensions.widthOfGroup}
           labelHeight={orch.xAxis.xAxisHeight}
+          labelWidth={orch.xAxis.labelWidth}
+          maxLines={orch.xAxis.maxLines}
           labelInterval={orch.dimensions.labelInterval}
           angle={orch.xAxis.angle}
+          chartWidth={orch.dimensions.chartAreaWidth}
+          yAxisWidth={orch.dimensions.effectiveYAxisWidth}
         />
       }
     />

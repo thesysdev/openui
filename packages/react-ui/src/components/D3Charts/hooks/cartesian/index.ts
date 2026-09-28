@@ -7,6 +7,7 @@ export * from "./useMaxLabelWidth";
 export * from "./useScatterChartOrchestrator";
 export * from "./useStackedData";
 export * from "./useXAxisHeight";
+export * from "./useXAxisLabelLayout";
 export * from "./useXBandScale";
 export * from "./useXScale";
 export * from "./useYAxisWidth";

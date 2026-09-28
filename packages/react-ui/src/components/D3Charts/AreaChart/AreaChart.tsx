@@ -50,7 +50,7 @@ function AreaChartImpl<T extends AreaChartData>({
   categoryKey,
   customPalette,
   variant = "natural",
-  tickVariant: tickVariantProp = "multiLine",
+  tickVariant: tickVariantProp,
   stacked = true,
   grid = true,
   legend: showLegend = true,
@@ -85,7 +85,7 @@ function AreaChartImpl<T extends AreaChartData>({
     height,
     fixedWidth,
     fitLegendInHeight,
-    tickVariantProp,
+    tickVariantProp: tickVariantProp ?? (condensed ? "singleLine" : "multiLine"),
     chartIdPrefix: "d3ac",
     icons,
     onClick,
@@ -220,8 +220,12 @@ function AreaChartImpl<T extends AreaChartData>({
           tickVariant={orch.dimensions.tickVariant}
           widthOfGroup={orch.dimensions.widthOfGroup}
           labelHeight={orch.xAxis.xAxisHeight}
+          labelWidth={orch.xAxis.labelWidth}
+          maxLines={orch.xAxis.maxLines}
           labelInterval={orch.dimensions.labelInterval}
           angle={orch.xAxis.angle}
+          chartWidth={orch.dimensions.chartAreaWidth}
+          yAxisWidth={orch.dimensions.effectiveYAxisWidth}
         />
       }
     />

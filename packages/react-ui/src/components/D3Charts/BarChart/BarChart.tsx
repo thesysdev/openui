@@ -50,7 +50,7 @@ function BarChartImpl<T extends BarChartData>({
   categoryKey,
   customPalette,
   variant = "grouped",
-  tickVariant: tickVariantProp = "multiLine",
+  tickVariant: tickVariantProp,
   barRadius = 4,
   maxBarWidth,
   internalLine = true,
@@ -86,7 +86,7 @@ function BarChartImpl<T extends BarChartData>({
     height,
     fixedWidth,
     fitLegendInHeight,
-    tickVariantProp,
+    tickVariantProp: tickVariantProp ?? (condensed ? "singleLine" : "multiLine"),
     chartIdPrefix: "d3bc",
     icons,
     onClick,
@@ -176,8 +176,12 @@ function BarChartImpl<T extends BarChartData>({
           classPrefix={`${CHART_CLASS_PREFIX}-bar-chart`}
           tickVariant={orch.dimensions.tickVariant}
           labelHeight={orch.xAxis.xAxisHeight}
+          labelWidth={orch.xAxis.labelWidth}
+          maxLines={orch.xAxis.maxLines}
           labelInterval={orch.dimensions.labelInterval}
           angle={orch.xAxis.angle}
+          chartWidth={orch.dimensions.chartAreaWidth}
+          yAxisWidth={orch.dimensions.effectiveYAxisWidth}
         />
       }
     />

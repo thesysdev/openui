@@ -2,13 +2,13 @@ import type { ScaleBand, ScalePoint } from "d3-scale";
 import React from "react";
 
 import type { XAxisTickVariant } from "../../../types";
-import { AngledXAxis } from "./AngledXAxis";
+import { CondensedXAxis } from "./CondensedXAxis";
 import { XAxis } from "./XAxis";
 
 type CartesianXAxisScale = ScalePoint<string> | ScaleBand<string>;
 
 interface CartesianXAxisProps {
-  /** 'scroll' → the full multi-line <XAxis>; 'fit' → the condensed <AngledXAxis>. */
+  /** 'scroll' → the full multi-line <XAxis>; 'fit' → the <CondensedXAxis>. */
   mode: "scroll" | "fit";
   scale: CartesianXAxisScale;
   classPrefix: string;
@@ -21,14 +21,22 @@ interface CartesianXAxisProps {
   widthOfGroup?: number;
   labelHeight: number;
   labelInterval?: number;
+  /** Fit mode: the width (horizontal) or text length (rotated) each label truncates to. */
+  labelWidth: number;
+  /** Line cap for wrapped labels. */
+  maxLines: number;
   angle: number;
+  /** Fit mode: the plot width the axis spans. */
+  chartWidth: number;
+  /** Fit mode: the y-axis width, as far left as rotated labels may reach. */
+  yAxisWidth: number;
 }
 
 /**
  * The scroll-vs-fit x-axis switch shared by the cartesian line charts
  * (area / line / bar). `scroll` mode renders the full <XAxis> (multi-line
- * ticks, group width, label interval); `fit` mode renders the condensed
- * <AngledXAxis>. Area and line were byte-identical here; bar differs only by
+ * ticks, group width, label interval); `fit` mode renders the
+ * <CondensedXAxis>. Area and line were byte-identical here; bar differs only by
  * omitting `widthOfGroup`. Heatmap's x-axis is deliberately different (its own
  * single-line variant, no angled branch) and is NOT routed through this.
  */
@@ -39,8 +47,12 @@ export const CartesianXAxis: React.FC<CartesianXAxisProps> = ({
   tickVariant,
   widthOfGroup,
   labelHeight,
-  labelInterval,
+  labelInterval = 1,
+  labelWidth,
+  maxLines,
   angle,
+  chartWidth,
+  yAxisWidth,
 }) =>
   mode === "scroll" ? (
     <XAxis
@@ -49,8 +61,19 @@ export const CartesianXAxis: React.FC<CartesianXAxisProps> = ({
       widthOfGroup={widthOfGroup}
       labelHeight={labelHeight}
       labelInterval={labelInterval}
+      maxLines={maxLines}
       classPrefix={classPrefix}
     />
   ) : (
-    <AngledXAxis scale={scale} angle={angle} classPrefix={classPrefix} />
+    <CondensedXAxis
+      scale={scale}
+      angle={angle}
+      labelInterval={labelInterval}
+      labelWidth={labelWidth}
+      maxLines={maxLines}
+      labelHeight={labelHeight}
+      chartWidth={chartWidth}
+      yAxisWidth={yAxisWidth}
+      classPrefix={classPrefix}
+    />
   );

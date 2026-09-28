@@ -21,6 +21,8 @@ interface XAxisProps {
   widthOfGroup?: number;
   labelHeight: number;
   labelInterval?: number;
+  /** Line cap for "multiLine" labels. */
+  maxLines?: number;
   classPrefix: string;
 }
 
@@ -30,7 +32,7 @@ function isBandScale(scale: XAxisScale): scale is ScaleBand<string> {
 
 /**
  * X-axis category labels as native SVG `<text>` (multi-line via `<tspan>`,
- * measured-trim ellipsis), matching the YAxis/AngledXAxis. Native text — rather
+ * measured-trim ellipsis), matching the YAxis/CondensedXAxis. Native text — rather
  * than `<foreignObject>` HTML — so labels survive print/PDF and server-side
  * rasterization. A transparent `<rect>` provides the hover target for the
  * full-label tooltip when a label is truncated.
@@ -41,6 +43,7 @@ export const XAxis: React.FC<XAxisProps> = ({
   widthOfGroup,
   labelHeight,
   labelInterval = 1,
+  maxLines = MAX_LABEL_LINES,
   classPrefix,
 }) => {
   const ctx = useCanvasContextForLabelSize();
@@ -61,7 +64,7 @@ export const XAxis: React.FC<XAxisProps> = ({
 
         const lines =
           tickVariant === "multiLine"
-            ? wrapLabelLines(ctx, label, labelWidth, MAX_LABEL_LINES)
+            ? wrapLabelLines(ctx, label, labelWidth, maxLines)
             : [truncateToWidth(ctx, label, labelWidth)];
         const truncated = lines.some((line) => line.endsWith("…"));
 

@@ -1,29 +1,27 @@
 import React, { useMemo } from "react";
 
 import {
-  ANGLED_LABEL_THRESHOLD,
   CHART_MARGIN_TOP,
   DEFAULT_CHART_HEIGHT,
   SINGLE_LINE_BREAKPOINT,
 } from "../../utils/constants";
 import { resolveShouldFitLegend } from "../../utils/resolveShouldFitLegend";
 import { getWidthOfData, getWidthOfGroup } from "../../utils/scrollUtils";
+import { MAX_X_AXIS_HEIGHT_SHARE } from "../../utils/xAxisLabelLayout";
 import type { StackOffset } from "../../utils/yDomain";
 import { useContainerSize } from "../core/useContainerSize";
 import { useLegendHeight } from "../core/useLegendHeight";
-import { useAutoAngleCalculation } from "./useAutoAngleCalculation";
-import { useMaxLabelWidth } from "./useMaxLabelWidth";
-import { useXAxisHeight } from "./useXAxisHeight";
+import { useXAxisLabelLayout } from "./useXAxisLabelLayout";
 import { useYAxisWidth } from "./useYAxisWidth";
 
-import type { ChartData } from "../../types";
+import type { ChartData, XAxisTickVariant } from "../../types";
 import type { ChartDensity } from "../../utils/scrollUtils";
 
 export interface UseChartDimensionsParams<T extends ChartData> {
   /**
    * "scroll" sizes the chart to its data (overflowing into a horizontal scroll
-   * when wider than the container) with a horizontal multiline x-axis. "fit"
-   * packs all points into the available width with a trig-rotated angled x-axis.
+   * when wider than the container). "fit" packs all points into the available
+   * width.
    */
   layout: "scroll" | "fit";
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -36,7 +34,7 @@ export interface UseChartDimensionsParams<T extends ChartData> {
   height?: number | string;
   fixedWidth?: number | string;
   fitLegendInHeight?: boolean;
-  tickVariantProp: "singleLine" | "multiLine";
+  tickVariantProp: XAxisTickVariant;
   density?: ChartDensity;
   /** Series are stacked — the y domain/axis-width use per-row sums. */
   stacked?: boolean;
@@ -115,33 +113,6 @@ export function useChartDimensions<T extends ChartData>({
   // available width. Collapses the old scroll `svgWidth` and fit `chartAreaWidth`.
   const chartAreaWidth = needsScroll ? dataWidth : availableWidth;
 
-  // Tick wrapping only applies to the scrolling multiline x-axis; fit draws the
-  // angled axis, so its tickVariant is inert (kept single-line).
-  const tickVariant: "singleLine" | "multiLine" = isFit
-    ? "singleLine"
-    : containerWidth < SINGLE_LINE_BREAKPOINT
-      ? "singleLine"
-      : tickVariantProp;
-
-  // Every category label is drawn (1:1). Reserved for future thinning of dense
-  // scroll axes; never thinned today.
-  const labelInterval = 1;
-
-  // X-axis geometry. Both sub-hooks run every render; `layout` selects the live
-  // result. Scroll: horizontal multiline labels (angle 0, measured wrap height).
-  // Fit: trig-rotated labels (angle + height from the Pythagorean fit). Keep the
-  // exact 3rd-arg conditional — it drives the fit angle.
-  const scrollXAxisHeight = useXAxisHeight(data, catKey, tickVariant, widthOfGroup, containerRef);
-  const maxLabelWidth = useMaxLabelWidth(data, catKey, containerRef);
-  const angled = useAutoAngleCalculation(
-    maxLabelWidth,
-    true,
-    maxLabelWidth < ANGLED_LABEL_THRESHOLD ? widthOfGroup : undefined,
-  );
-  const xAxis = isFit
-    ? { angle: angled.angle, xAxisHeight: angled.height }
-    : { angle: 0, xAxisHeight: scrollXAxisHeight };
-
   const resolvedHeight =
     typeof height === "number"
       ? height
@@ -150,6 +121,34 @@ export function useChartDimensions<T extends ChartData>({
         : DEFAULT_CHART_HEIGHT;
   const shouldFitLegend = resolveShouldFitLegend(fitLegendInHeight, height);
   const svgAvailableHeight = shouldFitLegend ? resolvedHeight - legendHeight : resolvedHeight;
+
+  // "angled" is fit-only; the scrolling axis also drops to one line in narrow containers.
+  const tickVariant: XAxisTickVariant =
+    isFit || (tickVariantProp !== "angled" && containerWidth >= SINGLE_LINE_BREAKPOINT)
+      ? tickVariantProp
+      : "singleLine";
+
+  // The label band is capped at half the drawable height so the plot keeps
+  // the rest; labels that don't fit are truncated rather than growing the band.
+  const labelLayout = useXAxisLabelLayout(
+    data,
+    catKey,
+    {
+      variant: tickVariant,
+      slotWidth: widthOfGroup,
+      maxHeight: (svgAvailableHeight - CHART_MARGIN_TOP) * MAX_X_AXIS_HEIGHT_SHARE,
+      condensed: isFit,
+    },
+    containerRef,
+  );
+  const labelInterval = labelLayout.interval;
+  const xAxis = {
+    angle: labelLayout.angle,
+    xAxisHeight: labelLayout.height,
+    labelWidth: labelLayout.labelWidth,
+    maxLines: labelLayout.maxLines,
+  };
+
   const chartInnerHeight = Math.max(0, svgAvailableHeight - CHART_MARGIN_TOP - xAxis.xAxisHeight);
   const totalHeight = svgAvailableHeight;
   const totalSvgWidth = effectiveYAxisWidth + chartAreaWidth;

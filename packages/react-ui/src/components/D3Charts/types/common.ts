@@ -6,7 +6,7 @@ export interface LegendItem {
   percentage?: number;
 }
 
-export type XAxisTickVariant = "singleLine" | "multiLine";
+export type XAxisTickVariant = "singleLine" | "multiLine" | "angled";
 
 export type ChartData = Array<Record<string, string | number>>;
 
@@ -14,6 +14,15 @@ export interface BaseChartProps<T extends ChartData> {
   data: T;
   categoryKey: keyof T[number];
   customPalette?: string[];
+  /**
+   * How the x-axis category labels are drawn. The label band never takes more
+   * than half the chart's height; labels that don't fit are truncated with an
+   * ellipsis and show their full text on hover.
+   * - `"singleLine"`: one horizontal line. Default when `condensed`.
+   * - `"multiLine"`: wraps onto up to three lines. Default otherwise.
+   * - `"angled"`: rotates labels 45° when they don't fit horizontally.
+   *   `condensed` only; the scrolling layout draws it as `"singleLine"`.
+   */
   tickVariant?: XAxisTickVariant;
   grid?: boolean;
   /**

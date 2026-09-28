@@ -8,7 +8,7 @@ import { useChartDimensions } from "./useChartDimensions";
 import { useChartScroll } from "./useChartScroll";
 
 import type { ChartColorPalette } from "../../../ThemeProvider";
-import type { ChartData } from "../../types";
+import type { ChartData, XAxisTickVariant } from "../../types";
 import type { ChartDensity } from "../../utils/scrollUtils";
 import type { StackOffset } from "../../utils/yDomain";
 import type { CartesianChartOrchestrator } from "./orchestratorTypes";
@@ -25,7 +25,7 @@ export interface UseCartesianChartOrchestratorParams<T extends ChartData> {
   height?: number | string;
   fixedWidth?: number | string;
   fitLegendInHeight?: boolean;
-  tickVariantProp: "singleLine" | "multiLine";
+  tickVariantProp: XAxisTickVariant;
   chartIdPrefix: string;
   icons?: Partial<Record<keyof T[number], React.ComponentType>>;
   onClick?: (row: T[number], index: number) => void;

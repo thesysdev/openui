@@ -18,7 +18,6 @@ export const CHART_MARGIN_TOP = 10;
 export const MIN_TICK_SPACING = 40;
 export const DEFAULT_CHART_HEIGHT = 296;
 export const SINGLE_LINE_BREAKPOINT = 300;
-export const ANGLED_LABEL_THRESHOLD = 100;
 
 /**
  * Resolve the d3 tick-count hint for the y-axis (labels) AND the horizontal

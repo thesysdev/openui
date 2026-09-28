@@ -60,7 +60,7 @@ export interface CartesianChartData {
 /** Geometry, minus the x-axis slice which `CartesianChartOrchestrator` lifts out. */
 export type CartesianChartDimensions = Omit<DimensionsModel, "xAxis">;
 
-/** Angle + reserved height for the x-axis (scroll: angle 0; fit: trig-rotated). */
+/** The x-axis label layout: angle, band height, label width and line cap. */
 export type ChartXAxis = DimensionsModel["xAxis"];
 
 export interface ChartScroll {
