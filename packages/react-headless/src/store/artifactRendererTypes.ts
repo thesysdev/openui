@@ -20,6 +20,8 @@ export interface ArtifactRendererControls {
    * view) without remounting.
    */
   isStreaming: boolean;
+  /** Updates the containing panel heading after resolving stored artifact metadata. */
+  setTitle?: (title: string) => void;
   /** Activates this renderer's detailed view. */
   open: () => void;
   /** Closes this renderer's detailed view if currently active. */
