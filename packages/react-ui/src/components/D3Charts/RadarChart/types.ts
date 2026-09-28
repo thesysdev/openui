@@ -19,8 +19,17 @@ export interface RadarChartProps<T extends RadarChartData> {
    * replay staggered entrances).
    */
   isAnimationActive?: boolean;
+  /**
+   * `"line"` (default): series outlines only. `"area"`: outlines filled at
+   * `areaOpacity`. Matches react-ui's Recharts RadarChart.
+   */
+  variant?: "line" | "area";
+  /** Fill opacity of the `"area"` variant. Default 0.2. */
+  areaOpacity?: number;
+  /** Vertex dots on every series. Default false. */
   showDots?: boolean;
   dotRadius?: number;
+  /** Explicit fill opacity for every variant; overrides `variant` / `areaOpacity`. */
   fillOpacity?: number;
   maxChartSize?: number;
   minChartSize?: number;

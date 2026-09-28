@@ -41,6 +41,10 @@ export function AreaChart<T extends AreaChartData>(props: AreaChartProps<T>) {
   return <AreaChartImpl {...props} />;
 }
 
+// Stacked areas keep one running total per row — a negative value lowers the
+// stack — matching Recharts' area charts (bars stack by sign instead).
+const AREA_STACK_OFFSET = "none";
+
 function AreaChartImpl<T extends AreaChartData>({
   data,
   categoryKey,
@@ -87,6 +91,7 @@ function AreaChartImpl<T extends AreaChartData>({
     onClick,
     density,
     stacked,
+    stackOffset: AREA_STACK_OFFSET,
     yTickCount,
   });
 
@@ -96,28 +101,36 @@ function AreaChartImpl<T extends AreaChartData>({
     orch.dimensions.chartAreaWidth,
     orch.dimensions.widthOfGroup,
   );
-  const stackedData = useStackedData(data, orch.data.dataKeys, stacked);
+  const stackedData = useStackedData(data, orch.data.dataKeys, stacked, AREA_STACK_OFFSET);
 
-  // Series whose values are entirely <= 0 hang below the zero line — flip
-  // their fill gradient so the strongest opacity stays at the data edge.
+  // Unstacked series whose values are entirely <= 0 hang below the zero line —
+  // flip their fill gradient so the strongest opacity stays at the data edge.
+  // Stacked series sit on the running total, so their gradient never flips.
   const negativeKeys = useMemo(() => {
     const keys = new Set<string>();
+    if (stacked) return keys;
     for (const key of orch.data.dataKeys) {
       let max = -Infinity;
       for (const row of data) max = Math.max(max, Number(row[key]) || 0);
       if (max <= 0) keys.add(key);
     }
     return keys;
-  }, [data, orch.data.dataKeys]);
-  const yScale = useYScale(data, orch.data.dataKeys, orch.dimensions.chartInnerHeight, stacked);
+  }, [data, orch.data.dataKeys, stacked]);
+  const yScale = useYScale(
+    data,
+    orch.data.dataKeys,
+    orch.dimensions.chartInnerHeight,
+    stacked,
+    AREA_STACK_OFFSET,
+  );
 
   const getYValue = useCallback(
     (_row: Record<string, string | number>, key: string, seriesIndex: number) => {
       if (stackedData && orch.hover.hoveredIndex !== null) {
         const series = stackedData[seriesIndex];
         const point = series?.[orch.hover.hoveredIndex];
-        // Value edge: negative diverging segments carry it in point[0].
-        return point ? (point[0] < 0 ? point[0] : point[1]) : 0;
+        // The running total after this series — the edge its line is drawn on.
+        return point ? point[1] : 0;
       }
       return Number(_row[key]) || 0;
     },

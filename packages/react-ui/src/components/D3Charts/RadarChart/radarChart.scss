@@ -13,16 +13,16 @@
   overflow: visible;
 }
 
+// Solid rings and spokes in the interactive border tone, as react-ui's
+// Recharts RadarChart draws its polar grid.
 .#{brand.$prefix}-radar-chart-grid-ring {
-  stroke: cssUtils.$border-default;
+  stroke: cssUtils.$border-interactive;
   stroke-width: 1;
-  stroke-dasharray: 4 4;
 }
 
 .#{brand.$prefix}-radar-chart-grid-spoke {
-  stroke: cssUtils.$border-default;
+  stroke: cssUtils.$border-interactive;
   stroke-width: 1;
-  stroke-opacity: 0.5;
 }
 
 .#{brand.$prefix}-radar-chart-polygon-area {

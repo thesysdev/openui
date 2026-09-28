@@ -61,10 +61,8 @@ export const AreaSeries: React.FC<AreaSeriesProps> = ({
           values[i * AREA_STRIDE] = xScale(String(data[i]![categoryKey])) ?? 0;
           values[i * AREA_STRIDE + 1] = yScale(point[0]);
           values[i * AREA_STRIDE + 2] = yScale(point[1]);
-          // Stroke the VALUE edge: diverging negative segments carry it in
-          // point[0] (point[1] is the edge closest to zero) — keying on
-          // point[1] drew a -5 dip flat along the baseline.
-          values[i * AREA_STRIDE + 3] = yScale(point[0] < 0 ? point[0] : point[1]);
+          // Stroke the running total after this series.
+          values[i * AREA_STRIDE + 3] = yScale(point[1]);
         });
         return {
           key: series.key,

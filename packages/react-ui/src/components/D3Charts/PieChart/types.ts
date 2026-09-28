@@ -11,6 +11,13 @@ export interface PieChartProps<T extends PieChartData> {
   appearance?: "circular" | "semiCircular";
   format?: "percentage" | "number";
   legend?: boolean;
+  /**
+   * `"stacked"` (default): the chart with a stacked legend listing each item's
+   * share — side by side from 400px wide, below the chart when narrower.
+   * `"default"`: the compact legend under the chart. Matches react-ui's
+   * Recharts PieChart.
+   */
+  legendVariant?: "default" | "stacked";
   /** When set, this chart publishes its legend to the shared legend store under
    *  this key instead of rendering an inline legend. Place a
    *  `<StackedLegend legendKey="…" />` (under a `LegendStoreProvider`) anywhere to

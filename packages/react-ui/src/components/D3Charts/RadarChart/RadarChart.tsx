@@ -21,9 +21,11 @@ export function RadarChart<T extends RadarChartData>(props: RadarChartProps<T>) 
     legend: showLegend = true,
     icons,
     isAnimationActive = false,
-    showDots = true,
+    variant = "line",
+    areaOpacity = 0.2,
+    showDots = false,
     dotRadius = 4,
-    fillOpacity = 0.15,
+    fillOpacity,
     maxChartSize = 500,
     minChartSize = 150,
     height,
@@ -111,7 +113,7 @@ export function RadarChart<T extends RadarChartData>(props: RadarChartProps<T>) 
                   radialScale={orch.dimensions.radialScale}
                   numAxes={numAxes}
                   colorMap={orch.data.colorMap}
-                  fillOpacity={fillOpacity}
+                  fillOpacity={fillOpacity ?? (variant === "area" ? areaOpacity : 0)}
                   showDots={showDots}
                   dotRadius={dotRadius}
                   hoveredIndex={orch.hover.hoveredIndex}

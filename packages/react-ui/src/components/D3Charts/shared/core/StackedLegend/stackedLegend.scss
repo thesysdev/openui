@@ -94,7 +94,9 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
-      height: 36px;
+      // The row's height, not taller: a taller box spills past the last row
+      // and reads as list overflow (scroll arrows on a list that fits).
+      height: 100%;
       width: 32px;
       flex-shrink: 0;
     }
@@ -141,4 +143,59 @@
 
 .#{brand.$prefix}-stacked-legend-separator {
   margin: cssUtils.$space-2xs 0;
+}
+
+// Chart + built-in stacked legend (ChartWithStackedLegend) — mirrors react-ui's
+// Recharts Pie/Radial `legendVariant="stacked"` layout: legend under the chart
+// on narrow containers, side by side (half the width each) from 400px up.
+.#{brand.$prefix}-chart-with-stacked-legend {
+  display: flex;
+  position: relative;
+  gap: 20px;
+  align-items: center;
+
+  &--column {
+    flex-direction: column;
+  }
+
+  &--row {
+    flex-direction: row;
+    min-height: 296px;
+  }
+
+  &__chart {
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__legend {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  &--column &__legend {
+    align-items: flex-start;
+  }
+
+  &--row &__chart {
+    flex: 1;
+  }
+
+  &--row &__legend {
+    flex: 1;
+    min-width: 0;
+    height: 296px;
+    align-items: center;
+
+    // Vertically center the list alongside the chart.
+    .#{brand.$prefix}-stacked-legend-container {
+      justify-content: center;
+    }
+
+    .#{brand.$prefix}-stacked-legend {
+      height: auto;
+      max-height: 100%;
+    }
+  }
 }

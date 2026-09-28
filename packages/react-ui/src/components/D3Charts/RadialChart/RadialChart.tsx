@@ -7,7 +7,9 @@ import {
 } from "../hooks";
 import { ChartShell } from "../shared/core/ChartShell";
 import { DefaultLegend } from "../shared/core/DefaultLegend/DefaultLegend";
+import { useResolvedLegendKey } from "../shared/core/legend/LegendStoreProvider";
 import { ChartTooltip } from "../shared/core/PortalTooltip/ChartTooltip";
+import { ChartWithStackedLegend } from "../shared/core/StackedLegend/ChartWithStackedLegend";
 import { CHART_CLASS_PREFIX } from "../utils/constants";
 import { RadialBars } from "./parts/RadialBars";
 import { RadialGrid } from "./parts/RadialGrid";
@@ -15,7 +17,27 @@ import type { RadialChartData, RadialChartProps } from "./types";
 
 const BAR_GAP = 2;
 
+/**
+ * `legendVariant="stacked"` (the default, as in react-ui's Recharts RadialChart)
+ * lays the chart out with its built-in stacked legend. The inline legend is
+ * used for `"default"`, and none when the chart publishes to an external
+ * legend (`legendKey`, or a surrounding `LegendStoreProvider`'s key).
+ */
 export function RadialChart<T extends RadialChartData>(props: RadialChartProps<T>) {
+  const { legend = true, legendVariant = "stacked", legendKey, width, height, className } = props;
+  const externalLegendKey = useResolvedLegendKey(legendKey);
+
+  if (legend && legendVariant === "stacked" && externalLegendKey === undefined) {
+    return (
+      <ChartWithStackedLegend width={width} height={height} className={className}>
+        <RadialChartImpl {...props} width={undefined} height={undefined} className={undefined} />
+      </ChartWithStackedLegend>
+    );
+  }
+  return <RadialChartImpl {...props} />;
+}
+
+function RadialChartImpl<T extends RadialChartData>(props: RadialChartProps<T>) {
   const {
     data,
     categoryKey,

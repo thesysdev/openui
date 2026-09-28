@@ -21,7 +21,7 @@ const CLASS_PREFIX = `${CHART_CLASS_PREFIX}-segmented-bar`;
 /**
  * A thin div-based stacked progress bar — a faithful visual port of react-ui's
  * `SingleStackedBar`. One horizontal track split into segments sized by SHARE
- * OF TOTAL (value / Σ), a `StackedLegend` by default. Hovering a segment (or a
+ * OF TOTAL (value / Σ), the compact `DefaultLegend` by default. Hovering a segment (or a
  * legend row) highlights it, dims the rest, and shows a value/percentage
  * tooltip. Adapted to viz conventions: no named-palette `theme` prop (colors
  * come from the react-ui `ThemeProvider` via `resolvePalette`), no in-track
@@ -33,7 +33,7 @@ export function SegmentedBar<T extends SegmentedBarData>({
   dataKey,
   customPalette,
   legend = true,
-  legendVariant = "stacked",
+  legendVariant = "default",
   isAnimationActive = false,
   className,
   style,

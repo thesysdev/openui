@@ -8,6 +8,7 @@ import {
 } from "../../utils/constants";
 import { resolveShouldFitLegend } from "../../utils/resolveShouldFitLegend";
 import { getWidthOfData, getWidthOfGroup } from "../../utils/scrollUtils";
+import type { StackOffset } from "../../utils/yDomain";
 import { useContainerSize } from "../core/useContainerSize";
 import { useLegendHeight } from "../core/useLegendHeight";
 import { useAutoAngleCalculation } from "./useAutoAngleCalculation";
@@ -39,6 +40,8 @@ export interface UseChartDimensionsParams<T extends ChartData> {
   density?: ChartDensity;
   /** Series are stacked — the y domain/axis-width use per-row sums. */
   stacked?: boolean;
+  /** How stacked series combine (see `StackOffset`). */
+  stackOffset?: StackOffset;
   /**
    * Y-tick-count hint (the chart's `yTickCount` prop). Threaded into the
    * y-axis width measurement so the measured tick strings are the RENDERED
@@ -68,6 +71,7 @@ export function useChartDimensions<T extends ChartData>({
   tickVariantProp,
   density,
   stacked = false,
+  stackOffset,
   yTickCount,
 }: UseChartDimensionsParams<T>) {
   const isFit = layout === "fit";
@@ -83,6 +87,7 @@ export function useChartDimensions<T extends ChartData>({
   const { yAxisWidth } = useYAxisWidth(data, dataKeys, stacked, {
     tickCount: yTickCount,
     scopeRef: containerRef,
+    stackOffset,
   });
   const effectiveYAxisWidth = showYAxis ? yAxisWidth : 0;
   // Clamped: before the container is measured (SSR + first client render)

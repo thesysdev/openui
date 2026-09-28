@@ -10,10 +10,9 @@
 // Layouts (documented here, encoded in the strides):
 //   line: [x, y] per point                (LINE_STRIDE = 2)
 //   area: [x, y0, y1, yEdge] per point    (AREA_STRIDE = 4)
-// `yEdge` is the area's stroked value edge as its own scalar (for diverging
-// stacks it's y(d[0]) on negative segments, y(d[1]) otherwise — a data-sign
-// decision that must be made at TARGET-build time, not per morph tick, so a
-// sign flip glides smoothly between the two edges).
+// `yEdge` is the area's stroked value edge as its own scalar (the running
+// total y(d[1]) for stacked series, the value itself otherwise), decided at
+// TARGET-build time rather than per morph tick.
 //
 // Pure (no DOM, no React) — unit-tested directly.
 

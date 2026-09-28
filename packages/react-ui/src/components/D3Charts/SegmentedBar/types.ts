@@ -18,9 +18,10 @@ export interface SegmentedBarProps<T extends SegmentedBarData> {
   /** Show the legend (one row per segment). Default true. */
   legend?: boolean;
   /**
-   * `'stacked'` (default) → a `StackedLegend` under the bar (label + value per
-   * row, hovering a row highlights its segment). `'default'` → a `Separator`
-   * plus the compact swatch `DefaultLegend`.
+   * `'default'` (default, as in react-ui's `SingleStackedBar`) → a `Separator`
+   * plus the compact swatch `DefaultLegend`. `'stacked'` → a `StackedLegend`
+   * under the bar (label + value per row, hovering a row highlights its
+   * segment).
    */
   legendVariant?: "default" | "stacked";
   /**

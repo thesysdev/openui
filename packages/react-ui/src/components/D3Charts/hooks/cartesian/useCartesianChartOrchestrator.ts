@@ -10,6 +10,7 @@ import { useChartScroll } from "./useChartScroll";
 import type { ChartColorPalette } from "../../../ThemeProvider";
 import type { ChartData } from "../../types";
 import type { ChartDensity } from "../../utils/scrollUtils";
+import type { StackOffset } from "../../utils/yDomain";
 import type { CartesianChartOrchestrator } from "./orchestratorTypes";
 
 export interface UseCartesianChartOrchestratorParams<T extends ChartData> {
@@ -31,6 +32,8 @@ export interface UseCartesianChartOrchestratorParams<T extends ChartData> {
   density?: ChartDensity;
   /** Series are stacked — y domain/axis width size to per-row sums. */
   stacked?: boolean;
+  /** How stacked series combine (see `StackOffset`). */
+  stackOffset?: StackOffset;
   /**
    * Y-tick-count hint. The chart also passes it to CartesianChartLayout for
    * YAxis/Grid rendering; here it makes the y-axis WIDTH measurement size the
@@ -63,6 +66,7 @@ export function useCartesianChartOrchestrator<T extends ChartData>({
   onClick,
   density,
   stacked,
+  stackOffset,
   yTickCount,
 }: UseCartesianChartOrchestratorParams<T>): CartesianChartOrchestrator {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -95,6 +99,7 @@ export function useCartesianChartOrchestrator<T extends ChartData>({
     tickVariantProp,
     density,
     stacked,
+    stackOffset,
     yTickCount,
   });
 

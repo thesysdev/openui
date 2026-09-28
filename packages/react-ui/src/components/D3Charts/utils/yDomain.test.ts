@@ -54,6 +54,37 @@ describe("computeYDomain (the shared scale/axis-width domain)", () => {
     expect(computeYDomain(mixed, keys, true)).toEqual([min, max]);
   });
 
+  it('stacked "none" spans every running total — a negative lowers the stack', () => {
+    // Jan: 40, 15, 25 · Feb: -10, 50, 45 · Mar: 0, 15, 35
+    expect(computeYDomain(mixed, keys, true, "none")).toEqual([-10, 50]);
+  });
+
+  it('"none" matches the extent of the stackOffsetNone stack areas render', () => {
+    const series = stack<Record<string, string | number>>()
+      .keys(keys)
+      .order(stackOrderNone)
+      .offset(stackOffsetNone)(mixed as Iterable<{ [key: string]: number }>);
+    let min = 0;
+    let max = 0;
+    for (const s of series) {
+      for (const point of s) {
+        min = Math.min(min, point[0], point[1]);
+        max = Math.max(max, point[0], point[1]);
+      }
+    }
+    expect(computeYDomain(mixed, keys, true, "none")).toEqual([min, max]);
+  });
+
+  it('"none" and "sign" agree on all-non-negative data', () => {
+    const data = [
+      { m: "Jan", a: 40, b: 100 },
+      { m: "Feb", a: 70, b: 30 },
+    ];
+    expect(computeYDomain(data, ["a", "b"], true, "none")).toEqual(
+      computeYDomain(data, ["a", "b"], true, "sign"),
+    );
+  });
+
   it("handles empty data and non-numeric cells", () => {
     expect(computeYDomain([], keys, false)).toEqual([0, 0]);
     expect(computeYDomain([{ m: "Jan", a: "oops" }], ["a"], false)).toEqual([0, 0]);

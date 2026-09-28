@@ -1,7 +1,7 @@
 import { scaleLinear } from "d3-scale";
 import React, { useMemo } from "react";
 import { measureYAxisWidth } from "../../utils/styleUtils";
-import { computeYDomain } from "../../utils/yDomain";
+import { computeYDomain, type StackOffset } from "../../utils/yDomain";
 import { useCanvasContextForLabelSize } from "../core/useCanvasContextForLabelSize";
 import { useHydrated } from "../core/useHydrated";
 
@@ -41,9 +41,11 @@ export const useYAxisWidth = (
     tickCount?: number;
     /** The chart container — the measurement font's theme scope. */
     scopeRef?: React.RefObject<HTMLElement | null>;
+    /** How stacked series combine — must match the rendered scale's. */
+    stackOffset?: StackOffset;
   },
 ) => {
-  const { tickCount, scopeRef } = options ?? {};
+  const { tickCount, scopeRef, stackOffset = "sign" } = options ?? {};
   const context = useCanvasContextForLabelSize(scopeRef);
   // Hydration gate (not a window check): the server renders the default
   // width, so the hydration render must too — measuring real text here
@@ -61,14 +63,14 @@ export const useYAxisWidth = (
     // can size before chart height is known (same trick the scatter chart uses).
     // The count mirrors resolveTickCount's override clamp (constants.ts).
     const scale = scaleLinear()
-      .domain(computeYDomain(data, dataKeys, stacked))
+      .domain(computeYDomain(data, dataKeys, stacked, stackOffset))
       .nice();
     const ticks =
       tickCount != null && Number.isFinite(tickCount)
         ? scale.ticks(Math.max(2, Math.floor(tickCount)))
         : scale.ticks();
     return measureYAxisWidth(ticks, context);
-  }, [hydrated, data, dataKeys, stacked, tickCount, context]);
+  }, [hydrated, data, dataKeys, stacked, stackOffset, tickCount, context]);
 
   return { yAxisWidth };
 };

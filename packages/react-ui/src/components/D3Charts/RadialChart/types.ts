@@ -10,6 +10,13 @@ export interface RadialChartProps<T extends RadialChartData> {
   variant?: "circular" | "semiCircular";
   format?: "percentage" | "number";
   legend?: boolean;
+  /**
+   * `"stacked"` (default): the chart with a stacked legend listing each item's
+   * share — side by side from 400px wide, below the chart when narrower.
+   * `"default"`: the compact legend under the chart. Matches react-ui's
+   * Recharts RadialChart.
+   */
+  legendVariant?: "default" | "stacked";
   grid?: boolean;
   /** When set, this chart publishes its legend to the shared legend store under
    *  this key instead of rendering an inline legend. Place a
