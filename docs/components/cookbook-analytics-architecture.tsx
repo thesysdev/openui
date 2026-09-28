@@ -30,7 +30,7 @@ const boxes: Box[] = [
     height: 184,
     icon: Sparkles,
     title: "OpenUI Gateway",
-    lines: ["Runs the model", "Checks the generated UI", "Stores the conversation"],
+    lines: ["Runs the model", "Checks the generated UI"],
     highlight: true,
   },
   {

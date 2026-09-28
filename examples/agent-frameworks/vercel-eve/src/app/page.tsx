@@ -1,7 +1,5 @@
 "use client";
 
-import "@openuidev/react-ui/components.css";
-
 import { AgentInterface, useSystemThemeMode } from "@openuidev/react-ui";
 import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import { useMemo } from "react";
