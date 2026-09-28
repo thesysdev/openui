@@ -1,6 +1,5 @@
 "use client";
 import "@openuidev/react-ui/components.css";
-import "@openuidev/react-ui/styles/index.css";
 
 import { AgentInterface, useSystemThemeMode } from "@openuidev/react-ui";
 import { openuiLibrary } from "@openuidev/react-ui/genui-lib";

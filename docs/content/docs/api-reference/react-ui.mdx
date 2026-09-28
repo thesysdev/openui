@@ -9,7 +9,7 @@ Use this package for the prebuilt `AgentInterface` chat surface and default comp
 
 ```ts
 import { AgentInterface } from "@openuidev/react-ui";
-import "@openuidev/react-ui/styles/index.css";
+import "@openuidev/react-ui/components.css";
 ```
 
 ## Styling
@@ -18,10 +18,12 @@ Import one complete React UI stylesheet exactly once, normally from your applica
 
 | Import                                         | Cascade behavior                                                                       |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `@openuidev/react-ui/styles/index.css`         | Default, unlayered styles. Override them with normal CSS specificity.                  |
+| `@openuidev/react-ui/components.css`           | Default, unlayered styles. Override them with normal CSS specificity.                  |
 | `@openuidev/react-ui/layered/styles/index.css` | The same component styles wrapped in `@layer openui` for cascade-layered applications. |
 
-Choose one variant. Do not import `@openuidev/react-ui/components.css` or the default `styles/index.css` alongside the layered stylesheet. The unlayered rules would take precedence over every named layer and defeat the intended ordering. Importing `components.css` with the default full stylesheet also duplicates the component rules in current releases.
+`@openuidev/react-ui/styles/index.css` and `@openuidev/react-ui/index.css` contain the same stylesheet as `components.css`. Import only one of these paths.
+
+Choose one variant. Do not import `components.css`, `styles/index.css`, or `index.css` alongside the layered stylesheet. The unlayered rules would take precedence over every named layer and defeat the intended ordering.
 
 For a single component, use `@openuidev/react-ui/styles/<Component>.css` or its layered counterpart at `@openuidev/react-ui/layered/styles/<Component>.css` instead of a full stylesheet.
 

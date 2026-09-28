@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@openuidev/react-ui/styles/index.css";
+@import "@openuidev/react-ui/components.css";
 
 :root {
   --background: #0a0a0a;
