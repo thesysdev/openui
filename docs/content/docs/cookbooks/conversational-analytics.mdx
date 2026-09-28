@@ -203,7 +203,10 @@ const llm = fetchLLM({
 </AgentInterface>;
 ```
 
-Chat Completions does not store conversations, so Agent Interface keeps each thread in the browser and sends its messages with every question. That is what lets a follow-up build on the previous answer. Threads last until the page reloads. To keep them longer, pass a `storage` adapter backed by your database; see [Connect a backend](/docs/agent/reference/self-hosting).
+Chat Completions does not store conversations, so Agent Interface keeps each thread in the browser and sends its messages with every question. That is what lets a follow-up build on the previous answer. Threads last until the page reloads. To keep them, pass a `storage` adapter to Agent Interface:
+
+- **Gateway conversations.** Store threads with the Gateway [Conversations API](/docs/gateway/api/conversations) and load them in the browser with `useOpenuiCloudStorage()` and a short-lived frontend token. With Chat Completions, your server adds each question and answer to the conversation as items; the [Responses API](/docs/gateway/api/responses) appends them for you. This works with custom backends too: the Gateway-backed LangGraph, Vercel AI SDK, and Vercel Eve templates from [`openui create`](/docs/api-reference/cli) keep their threads this way while the framework runs the agent.
+- **Your own database.** Serve threads from your backend and connect them with `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
 
 ### 5. Stream the answer
 
@@ -266,7 +269,7 @@ Generated layouts can vary. Check values against the tool result. Missing data a
 
 Replace `queryLapTimes` with a query to your database or API. Update the tool's arguments and description, then add any components your answers need to `src/library.ts` and regenerate the specification.
 
-This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
+This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples. With any of these backends, you can still keep threads in Gateway conversations, as described in [Connect Agent Interface](#4-connect-agent-interface).
 
 This example runs locally and accepts requests only from the same machine. Before deploying it, replace the local guard with authentication and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/conversational-analytics) for the implementation notes.
 

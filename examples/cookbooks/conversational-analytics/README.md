@@ -55,7 +55,7 @@ The tool supports `fastest_laps` (one best recorded lap per driver) and `lap_tim
 
 ## Conversations
 
-The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completions` using `THESYS_API_KEY`. Chat Completions does not store conversations, so Agent Interface keeps each thread in memory and `fetchLLM` sends its messages with every question. Follow-up suggestions are sent the same way, so they build on the earlier answers. Threads reset when the page reloads; pass a `storage` adapter to Agent Interface to persist them.
+The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completions` using `THESYS_API_KEY`. Chat Completions does not store conversations, so Agent Interface keeps each thread in memory and `fetchLLM` sends its messages with every question. Follow-up suggestions are sent the same way, so they build on the earlier answers. Threads reset when the page reloads. To persist them, pass a `storage` adapter to Agent Interface: `useOpenuiCloudStorage()` for threads stored with Gateway's [Conversations API](https://www.openui.com/docs/gateway/api/conversations), which works with custom backends such as the Gateway-backed LangGraph and Vercel AI SDK templates from `openui create`, or `restStorage` for threads in your own database.
 
 The chat route forwards only user questions and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only query results the server produced for the current question. The tool loop streams AG-UI events, which `agUIAdapter()` reads, because Chat Completions has no chunk for a tool result.
 
