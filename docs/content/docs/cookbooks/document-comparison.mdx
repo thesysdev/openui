@@ -39,6 +39,19 @@ In this cookbook, you'll learn how to:
 
 The example compares the latest annual reports (Form 10-K) from **NVIDIA**, **AMD**, and **Intel**: 396 pages, published as PDFs on each company's investor relations site. They make a realistic test. The same facts, such as revenue, R&D spending, and headcount, appear in different sections and wording in each report, and NVIDIA's fiscal year ends in January while the others end in December, a conflict the comparison should point out. The same approach works for vendor proposals, contracts, or any set of PDFs.
 
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl flex p-2">
+  <video
+    src="/videos/cookbooks/document-comparison.mp4"
+    aria-label="The document comparison example comparing three years of R&D spending across NVIDIA, AMD, and Intel with a table, charts, and page-linked sources, then adding operating income through a follow-up and opening the Documents page"
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
 Try this conversation:
 
 1. **“Compare revenue and growth.”** Get a table of page-cited values, bar charts, and a note that the fiscal years differ.
@@ -82,7 +95,7 @@ npm ci
 The example needs two keys, configured privately in the example's `.env.local`:
 
 - `THESYS_API_KEY` from the [Thesys Console](https://console.thesys.dev/keys), for generation and saved conversations.
-- `OPENAI_API_KEY` from the [OpenAI Platform](https://platform.openai.com/api-keys), for embeddings. OpenUI Gateway does not serve embeddings.
+- `OPENAI_API_KEY` from the [OpenAI Platform](https://platform.openai.com/api-keys), for embeddings.
 
 Then prepare the documents and start the app:
 
