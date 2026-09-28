@@ -581,12 +581,11 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       );
     }
 
-    // Overlay pending definitions on a copy of the completed cache, including
-    // redefined IDs, so replacements render progressively like new statements.
-    // autoClose supplies temporary closers for partial content; the completed
-    // cache is unchanged until the scanner reaches a statement boundary.
+    // New IDs can render progressively; existing IDs are replaced only when
+    // the pending expression no longer needs automatic closing.
     const allStmtMap = new Map(completedStmtMap);
     for (const s of stmts) {
+      if (completedStmtMap.has(s.id) && wasIncomplete) continue;
       const expr = parseExpression(s.tokens);
       const stmt = classifyStatement(s, expr);
       allStmtMap.set(s.id, stmt);
