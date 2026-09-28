@@ -9,7 +9,7 @@ Use this package for the prebuilt `AgentInterface` chat surface and default comp
 
 ```ts
 import { AgentInterface } from "@openuidev/react-ui";
-import "@openuidev/react-ui/components.css";
+import "@openuidev/react-ui/styles/index.css";
 ```
 
 ## Styling
@@ -18,10 +18,10 @@ Import one complete React UI stylesheet exactly once, normally from your applica
 
 | Import                                         | Cascade behavior                                                                       |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `@openuidev/react-ui/components.css`           | Default, unlayered styles. Override them with normal CSS specificity.                  |
+| `@openuidev/react-ui/styles/index.css`         | Default, unlayered styles. Override them with normal CSS specificity.                  |
 | `@openuidev/react-ui/layered/styles/index.css` | The same component styles wrapped in `@layer openui` for cascade-layered applications. |
 
-`@openuidev/react-ui/styles/index.css` and `@openuidev/react-ui/index.css` are aliases of `components.css`: all three contain the same stylesheet, so import only one of them.
+`@openuidev/react-ui/components.css` and `@openuidev/react-ui/index.css` are aliases of `styles/index.css`: all three contain the same stylesheet, so import only one of them.
 
 Use either the default stylesheet or the layered one, not both. Unlayered CSS always outranks layered CSS, so if the default stylesheet is also loaded, its OpenUI rules override Tailwind utilities and any other styles you keep in layers, cancelling out the layered variant.
 

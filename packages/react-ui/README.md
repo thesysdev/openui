@@ -21,7 +21,7 @@ pnpm add @openuidev/react-ui @openuidev/react-lang @openuidev/react-headless
 Don't forget to import the component styles:
 
 ```ts
-import "@openuidev/react-ui/components.css";
+import "@openuidev/react-ui/styles/index.css";
 ```
 
 ## Overview
@@ -39,7 +39,7 @@ The fastest way to get a working chat app is `AgentInterface`. Give it an `llm` 
 ```tsx
 import { AgentInterface, fetchLLM, openAIAdapter, openAIMessageFormat } from "@openuidev/react-ui";
 import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
-import "@openuidev/react-ui/components.css";
+import "@openuidev/react-ui/styles/index.css";
 
 // POSTs { threadId, runId, messages, tools, context } to /api/chat and parses
 // the streamed response — here an OpenAI Chat Completions stream.
@@ -140,10 +140,10 @@ OpenUI ships its component styles in two variants:
 
 | Import                                                  | Cascade behavior                                                          |
 | ------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `@openuidev/react-ui/components.css` (default)          | Unlayered — override via normal CSS specificity, as in 0.11.x and earlier |
+| `@openuidev/react-ui/styles/index.css` (default)        | Unlayered — override via normal CSS specificity, as in 0.11.x and earlier |
 | `@openuidev/react-ui/layered/styles/index.css` (opt-in) | Wrapped in `@layer openui` — any unlayered consumer CSS wins              |
 
-`@openuidev/react-ui/styles/index.css` and `@openuidev/react-ui/index.css` contain the same stylesheet as `components.css`. Import only one of these paths.
+`@openuidev/react-ui/components.css` and `@openuidev/react-ui/index.css` are aliases of `styles/index.css`: all three contain the same stylesheet, so import only one of them.
 
 Need a single component's CSS? Import it per component: `./styles/<Component>.css` (unlayered) or `./layered/styles/<Component>.css` (layered).
 
@@ -209,9 +209,9 @@ import { Charts } from "@openuidev/react-ui/Charts";
 | Import path                                    | Description                                          |
 | :--------------------------------------------- | :--------------------------------------------------- |
 | `@openuidev/react-ui`                          | All components and libraries                         |
-| `@openuidev/react-ui/components.css`           | Full compiled stylesheet, unlayered (default import) |
-| `@openuidev/react-ui/styles/index.css`         | Same stylesheet as `components.css`                  |
-| `@openuidev/react-ui/index.css`                | Same stylesheet as `components.css`                  |
+| `@openuidev/react-ui/styles/index.css`         | Full compiled stylesheet, unlayered (default import) |
+| `@openuidev/react-ui/components.css`           | Alias of `styles/index.css`                          |
+| `@openuidev/react-ui/index.css`                | Alias of `styles/index.css`                          |
 | `@openuidev/react-ui/layered/styles/index.css` | Full stylesheet wrapped in `@layer openui` (opt-in)  |
 | `@openuidev/react-ui/defaults.css`             | Theme tokens, always unlayered                       |
 | `@openuidev/react-ui/genui-lib`                | OpenUI Lang libraries and prompt options             |
