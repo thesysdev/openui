@@ -20,7 +20,7 @@ const boxes: Box[] = [
     height: 184,
     icon: MessagesSquare,
     title: "Chat interface",
-    lines: ["Keeps the conversation", "Shows the answer live"],
+    lines: ["Takes the question", "Shows the answer live"],
     footer: "e.g. Agent Interface",
   },
   {
