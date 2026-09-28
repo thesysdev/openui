@@ -60,6 +60,8 @@ const logo = (
     <FileSearch size={16} />
   </span>
 );
+// Agent Interface leaves a custom name unstyled, so give it the theme's text color.
+const brandName = <span className="brand-name">Filing analyst</span>;
 
 export default function ComparisonChat() {
   const mode = useSystemThemeMode();
@@ -80,10 +82,7 @@ export default function ComparisonChat() {
         starterVariant="long"
       >
         <AgentInterface.Sidebar>
-          <AgentInterface.SidebarHeader
-            logo={logo}
-            agentName={<span className="brand-name">Filing analyst</span>}
-          />
+          <AgentInterface.SidebarHeader logo={logo} agentName={brandName} />
           <AgentInterface.SidebarContent>
             <AgentInterface.NewChatButton />
             <AgentInterface.SidebarItem path="documents" icon={<FileText size={16} />}>
@@ -96,7 +95,7 @@ export default function ComparisonChat() {
         <AgentInterface.Route path="documents">
           <DocumentLibrary />
         </AgentInterface.Route>
-        <AgentInterface.MobileHeader agentName="Filing analyst" />
+        <AgentInterface.MobileHeader agentName={brandName} />
         <AgentInterface.ThreadHeader>
           <span className="thread-context">
             Comparing <strong>NVIDIA</strong> · <strong>AMD</strong> · <strong>Intel</strong> annual
