@@ -1,5 +1,6 @@
 import { createLibrary } from "@openuidev/react-lang";
 import { openuiChatLibrary, openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { Sources } from "./components/sources";
 
 // The same subset generates the server's specification and renders in the client.
 export const library = createLibrary({
@@ -16,10 +17,9 @@ export const library = createLibrary({
       "LineChart",
       "Series",
       "Callout",
-      "Accordion",
-      "AccordionItem",
       "TagBlock",
     ].map((name) => openuiLibrary.components[name]),
+    Sources,
     // Follow-up suggestions live in the chat library.
     openuiChatLibrary.components.FollowUpBlock,
     openuiChatLibrary.components.FollowUpItem,

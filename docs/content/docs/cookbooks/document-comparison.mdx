@@ -15,7 +15,7 @@ In this cookbook, you'll learn how to:
 
 - Turn PDFs into searchable passages that keep their page numbers, using embeddings for search by meaning.
 - Give the model a search function tool, so it retrieves evidence for each criterion instead of answering from memory.
-- Make the model show its work: page-cited values, charts chosen from the shape of the data, callouts for missing or conflicting information, and a Sources section.
+- Make the model show its work: page-cited values, charts chosen from the shape of the data, callouts for missing or conflicting information, and source cards that open each quoted page.
 - Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity, with your own theme, sidebar, and pages.
 - Keep the conversation in [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers, corrects generated UI, and stores conversations, so a follow-up can add a criterion to the comparison.
 
@@ -46,7 +46,7 @@ Try this conversation:
 3. **“Break down revenue by segment.”** See every company's segments in one bar chart, with a table row per segment.
 4. **Click a follow-up such as “Compare headcount.”** Add a criterion to the comparison.
 
-Every answer ends with a collapsible **Sources** section that quotes the passage behind each value, with its page.
+Every answer ends with **Sources**: a card for each quoted page, with the company, page, and quote, that opens the report at that page.
 
 ## How it works
 
@@ -56,7 +56,7 @@ A document comparison assistant splits the work between your application and the
 
 1. **The user asks for a comparison.** Agent Interface sends it to OpenUI Gateway through your server's chat route, which adds a `search_documents` function tool and a system prompt that describes the documents and your components.
 2. **The model searches once per criterion.** For “revenue and R&D”, it calls `search_documents` twice, in parallel, with short descriptions such as “research and development expenses for the fiscal year”. Separate searches keep one criterion's passages from crowding out another's. Your server embeds each description with OpenAI, compares it with the passage embeddings it loaded from SQLite, and returns each document's closest passages with their page numbers and a `found` flag.
-3. **The model compares the evidence.** It writes an OpenUI Lang program with a table of page-cited values, charts suited to the data, callouts for conflicts or gaps, and a Sources section that quotes each passage. Gateway validates the program against your component library as it streams.
+3. **The model compares the evidence.** It writes an OpenUI Lang program with a table of page-cited values, charts suited to the data, callouts for conflicts or gaps, and source cards that quote each passage. Gateway validates the program against your component library as it streams.
 4. **Agent Interface renders it progressively.** Tables and charts appear as their data arrives. Gateway stores the conversation, so a follow-up such as “compare headcount” searches for the new criterion and extends the comparison.
 
 ### Why retrieve passages
@@ -133,6 +133,7 @@ An empty `document_ids` searches every document. The [tool definition](https://g
 ```ts title="src/lib/tools/search-documents.ts"
 const [queryEmbedding] = await embed([args.query], signal);
 const results = selected.map((document) => {
+  const url = sources.find((source) => source.id === document.id)?.url;
   const matches = passages
     .filter((passage) => passage.documentId === document.id)
     .map((passage) => ({ ...passage, score: similarity(queryEmbedding, passage.embedding) }))
@@ -142,22 +143,27 @@ const results = selected.map((document) => {
   return {
     document_id: document.id,
     found: bestScore >= weakMatch,
-    passages: matches.map((match) => ({ page: match.page, text: match.text })),
+    passages: matches.map((match) => ({
+      page: match.page,
+      url: url && `${url}#page=${match.page}`,
+      text: match.text,
+    })),
   };
 });
 ```
 
-Results are grouped by document, so every document is represented even when one report discusses the criterion at greater length than the others. `found` is false when a document's best match falls below a similarity of 0.3, which usually means the report does not discuss the criterion. Agent Interface shows each call and its passages in the **Behind the scenes** timeline.
+Results are grouped by document, so every document is represented even when one report discusses the criterion at greater length than the others. `found` is false when a document's best match falls below a similarity of 0.3, which usually means the report does not discuss the criterion. Each passage's `url` adds `#page=` to the PDF's address, which opens most PDF viewers at that page, so the answer can link to its evidence. Agent Interface shows each call and its passages in the **Behind the scenes** timeline.
 
 The example keeps all 1,564 embeddings in memory and compares them in JavaScript, which takes a few milliseconds. For thousands of documents, store the embeddings in a vector database instead; the tool's arguments and result stay the same.
 
 ### 3. Choose the components
 
-Use a selection from the built-in library that covers every part of a comparison, plus the chat library's follow-up suggestions:
+Use a selection from the built-in library that covers every part of a comparison, the chat library's follow-up suggestions, and one component of your own:
 
 ```ts title="src/library.ts"
 import { createLibrary } from "@openuidev/react-lang";
 import { openuiChatLibrary, openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { Sources } from "./components/sources";
 
 export const library = createLibrary({
   root: "Stack",
@@ -173,17 +179,34 @@ export const library = createLibrary({
       "LineChart",
       "Series",
       "Callout",
-      "Accordion",
-      "AccordionItem",
       "TagBlock",
     ].map((name) => openuiLibrary.components[name]),
+    Sources,
     openuiChatLibrary.components.FollowUpBlock,
     openuiChatLibrary.components.FollowUpItem,
   ],
 });
 ```
 
-`Table` holds the page-cited values, the three chart types cover single values, trends, and breakdowns, `Callout` flags gaps and conflicts, and `Accordion` holds the Sources section. Generate the server specification from the same library with `npm run generate`, which also runs before development and builds.
+`Table` holds the page-cited values, the three chart types cover single values, trends, and breakdowns, and `Callout` flags gaps and conflicts.
+
+`Sources` wraps the source strip that React UI already provides. `defineComponent` gives it a name, a schema the model fills in, and a description for the prompt:
+
+```tsx title="src/components/sources.tsx"
+export const Sources = defineComponent({
+  name: "Sources",
+  props: z.object({ items: z.array(CardSourceSchema) }),
+  description:
+    "A strip of source cards. Each item is { title, sourceName, url }: title is the quote, sourceName names the document and page, and url opens the page.",
+  component: ({ props }) => (
+    <CardSourceProvider sources={onePerPage(props.items ?? [])}>
+      <SourceStrip />
+    </CardSourceProvider>
+  ),
+});
+```
+
+Each card shows the site's icon, the company and page, and the quote. `onePerPage` merges two quotes from the same page into one card. Generate the server specification from the same library with `npm run generate`, which also runs before development and builds.
 
 ### 4. Customize Agent Interface
 
@@ -249,20 +272,21 @@ The route runs the same [function-tool loop](https://github.com/thesysdev/openui
 The prompt turns the evidence into a consistent answer:
 
 - **One search per criterion**, in parallel when the question has several.
+- **Nothing written before the searches finish.** Agent Interface shows text that arrives before a tool call as a step in **Behind the scenes**, and a status message written in OpenUI Lang would appear there as code.
 - **A table** with one short, page-cited value per cell, such as “$215.9 billion (p. 37)”: one row per criterion and one column per document, or one row per part when a criterion has several, such as each company's segments.
 - **Charts chosen from the data**, each at full width: a line chart when a report gives several years of figures, one horizontal bar chart with a bar per company and segment for a breakdown, and a bar chart for one value per document. A document without a value is left out of the chart rather than plotted as zero.
 - **Callouts** for information that conflicts or is not directly comparable, such as different fiscal year ends, and for criteria a document does not disclose.
-- **One Sources section**, a single collapsed accordion that quotes each passage by criterion, with its document and page.
+- **Sources**, one card per quoted page with the company, page, and a quote of at most 20 words, linked to that page of the PDF.
 
 ## Verify it works
 
 In the browser:
 
-1. Ask **“Compare revenue and growth.”** Check the values against the pages cited in Sources. NVIDIA reports fiscal 2026 revenue of $215.9 billion, up 65%, on page 37.
+1. Ask **“Compare revenue and growth.”** Open a card in Sources to check a value on its page. NVIDIA reports fiscal 2026 revenue of $215.9 billion, up 65%, on page 37.
 2. Expand **Behind the scenes** and confirm the model called `search_documents` once per criterion.
 3. Ask **“How has R&D spending changed over three years?”** and **“Break down revenue by segment.”** Confirm the first uses a line chart, and the second a single bar chart with a table row per segment.
 4. Ask **“Compare each CEO's total compensation.”** Annual reports refer readers to the proxy statement for executive pay, so the table should say “Not found” with a callout explaining why, and no chart.
-5. Open **Documents** in the sidebar, then follow a Source PDF link to check a cited page.
+5. Open **Documents** in the sidebar and confirm it lists the three reports with their page counts.
 6. Switch your operating system between light and dark mode, and confirm the theme follows.
 
 Generated layouts can vary. Values should always match a quoted passage.

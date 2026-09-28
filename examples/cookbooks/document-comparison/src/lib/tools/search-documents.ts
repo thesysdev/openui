@@ -1,7 +1,7 @@
 import { statSync } from "node:fs";
 import { resolve } from "node:path";
 import { z } from "zod/v4";
-import { openDatabase, type Document } from "../documents";
+import { openDatabase, sources, type Document } from "../documents";
 import { embed, similarity } from "../embeddings";
 
 // The search_documents function tool: its JSON schema for Gateway, argument validation,
@@ -105,6 +105,8 @@ export async function executeSearchDocuments(
 
   const [queryEmbedding] = await embed([args.query], signal);
   const results = selected.map((document) => {
+    // PDF viewers open #page=N at that page. Your own PDFs in documents/ have no URL.
+    const url = sources.find((source) => source.id === document.id)?.url;
     const matches = passages
       .filter((passage) => passage.documentId === document.id)
       .map((passage) => ({ ...passage, score: similarity(queryEmbedding, passage.embedding) }))
@@ -118,6 +120,7 @@ export async function executeSearchDocuments(
       found: bestScore >= weakMatch,
       passages: matches.map((match) => ({
         page: match.page,
+        url: url && `${url}#page=${match.page}`,
         text: match.text,
         score: Math.round(match.score * 1000) / 1000,
       })),

@@ -1,6 +1,6 @@
 # Document comparison
 
-A runnable companion to the [document comparison cookbook](https://www.openui.com/cookbooks/document-comparison). Ask what to compare, watch the assistant search each document, and get a page-cited table, charts, and quoted sources as the answer streams.
+A runnable companion to the [document comparison cookbook](https://www.openui.com/cookbooks/document-comparison). Ask what to compare, watch the assistant search each document, and get a page-cited table, charts, and source cards that open each quoted page as the answer streams.
 
 The example compares the latest annual reports (Form 10-K) from **NVIDIA**, **AMD**, and **Intel**. It runs on Next.js, Agent Interface, OpenUI Gateway, OpenAI embeddings, and Node's built-in SQLite module.
 
@@ -37,9 +37,9 @@ Try:
 
 1. Agent Interface sends the latest user message to `/api/chat`.
 2. OpenUI Gateway calls `search_documents` once per criterion, with a short description of the information to find.
-3. The server embeds the description, ranks each document's passages by similarity, and returns the closest ones with page numbers and a `found` flag.
+3. The server embeds the description, ranks each document's passages by similarity, and returns the closest ones with page numbers, links to those pages, and a `found` flag.
 4. The tool loop returns the passages to the saved Gateway conversation and forwards tool events and generated OpenUI Lang to the browser.
-5. Agent Interface displays tool activity and progressively renders the comparison: a page-cited table, charts, callouts for gaps and conflicts, and one Sources section.
+5. Agent Interface displays tool activity and progressively renders the comparison: a page-cited table, charts, callouts for gaps and conflicts, and a card for each quoted page.
 
 ## Files
 
@@ -50,6 +50,7 @@ Try:
 | `src/lib/embeddings.ts`               | OpenAI embeddings and similarity                                            |
 | `src/lib/tools/search-documents.ts`   | Function schema, argument validation, and passage search                    |
 | `src/library.ts`                      | Shared components for the prompt and renderer                               |
+| `src/components/sources.tsx`          | The Sources component, built on React UI's source strip                     |
 | `src/lib/prompt.ts`                   | Comparison rules and example answers for Gateway                            |
 | `src/app/api/chat/route.ts`           | Request validation, Gateway generation, and SSE response                    |
 | `src/app/api/documents/route.ts`      | Document list for the Documents page                                        |
@@ -85,4 +86,4 @@ npm run verify
 
 `verify` generates the component specification and runs a production build with type checking. It needs neither credentials nor a download.
 
-In the browser, check values against the pages quoted in each answer's Sources section, expand **Behind the scenes** to inspect `search_documents`, open **Documents** in the sidebar, and switch the operating system between light and dark mode.
+In the browser, open a card in an answer's Sources to check a value on its page, expand **Behind the scenes** to inspect `search_documents`, open **Documents** in the sidebar, and switch the operating system between light and dark mode.
