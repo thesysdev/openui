@@ -1,0 +1,273 @@
+---
+title: Booking assistant
+description: Build a chat assistant that turns a request for a stay into a prefilled form, searches real availability, and books after a summary.
+---
+
+import { buttonVariants } from "fumadocs-ui/components/ui/button";
+import { ArrowUpRight, Github } from "lucide-react";
+import { CookbookBookingDiagram } from "@/components/cookbook-booking-diagram";
+
+Booking anything, a room, a table, an appointment, means collecting a handful of details: when, how many, where, and within what budget. People rarely give all of them at once. They say “a room in Lisbon for two this weekend” and leave the rest for later. Chat assistants usually recover the missing details one question at a time, which is slow and easy to derail. Booking forms ask for everything up front, including what the person just said.
+
+An adaptive form combines the two. A language model reads the request, fills in every detail it understood, and shows a form for the rest: a date picker for dates, a number field for guests, choices for the type of place, each with validation. The person corrects anything the model got wrong, adds what's missing, and submits once. With generative UI, the model writes that form itself, and the next steps too: the options that match, and a summary to check before anything is booked.
+
+In this cookbook, you'll learn how to:
+
+- Turn a request into a form prefilled with what the model understood, using a suitable control and validation rules for each detail.
+- Read submitted form values on the next turn, including fields the person left as prefilled.
+- Give the model tools that search real availability and book a stay, and suggest what to relax when nothing matches.
+- Show a summary before booking, and book only after the person confirms.
+- Replace a built-in component with your own version, so the model can prefill dates.
+- Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity, and keep the conversation in [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers, corrects generated UI, and stores conversations.
+
+<div className="not-prose my-6">
+  <a
+    href="https://github.com/thesysdev/openui/tree/main/examples/cookbooks/booking-assistant"
+    target="_blank"
+    rel="noopener noreferrer"
+    className={buttonVariants({
+      color: "secondary",
+      className: "min-h-11 gap-2.5 rounded-lg px-4 py-2.5 no-underline",
+    })}
+  >
+    <Github className="size-4" aria-hidden="true" />
+    View example on GitHub
+    <ArrowUpRight className="size-4 text-fd-muted-foreground" aria-hidden="true" />
+  </a>
+</div>
+
+## What you'll build
+
+The example books stays in **Lisbon** from real listings published by [Inside Airbnb](https://insideairbnb.com/get-the-data/), including each listing's nightly availability for the next year. It keeps about 5,700 well-reviewed listings across 24 neighbourhoods, so searches return real places with real gaps in their calendars. Bookings are simulated: they are saved in a local database, and nothing is charged or sent to a host. The same flow works for hotel rooms, restaurant tables, or appointments.
+
+Try this conversation:
+
+1. **“Book a place in Lisbon for two this weekend.”** Get a form with this Friday to Sunday and two guests already filled in.
+2. **Choose “Entire place” and “Kitchen”, then Find stays.** See the best-rated places that are free every night of your stay.
+3. **“Actually make it under €25 a night, in Alfama.”** The assistant searches again, explains why nothing matches, and suggests removing the price limit.
+4. **Pick a stay and review the summary.** Confirm with an empty email to see validation, then with your details to book it.
+
+Confirmed stays appear under **My bookings** in the sidebar.
+
+## How it works
+
+A booking assistant splits the work between your application and the model. Your application owns the listings, the availability, and the bookings. The model understands the request, decides what to ask for, and presents each step.
+
+<CookbookBookingDiagram />
+
+1. **The person describes their trip.** Agent Interface sends the message to OpenUI Gateway through your server's chat route, which adds two function tools, `search_stays` and `book_stay`, and a system prompt that describes the booking flow and your components.
+2. **The model replies with a prefilled form.** It works out what it can: “this weekend” becomes this Friday to Sunday, and “for two” becomes two guests. It writes a form with those values filled in, empty fields for the rest, and a validation rule on each required field.
+3. **The person submits the form.** Agent Interface checks the rules in the browser, then sends the button label and the form's values as the next message. The model calls `search_stays`, which checks each listing's calendar for every night of the stay, and shows the best matches as selectable cards.
+4. **The person picks a stay and confirms.** The model shows a summary and a form for the guest's name and email. Only when the person clicks Confirm does the model call `book_stay`, which checks the nights again and saves the booking.
+
+### Why a prefilled form
+
+A form shows every detail at once, so the person can see what the assistant understood and fix it in one step, instead of answering questions one by one. Each detail gets the control that suits it, and validation catches a missing date before any search runs. Because the model writes the form for each request, it adapts: a detailed request arrives almost complete, and a vague one, such as “next month”, leaves the dates empty and required rather than guessing.
+
+### Why confirm before booking
+
+Searching is safe to repeat; booking is not. The flow keeps every side effect behind an explicit step: a summary of exactly what will be booked, and a Confirm button. The prompt tells the model to call `book_stay` only after that click, and the tool checks availability again and validates every argument, because the model's output is untrusted input.
+
+## Run the example
+
+You need Node.js 22.13 or newer and npm.
+
+```bash
+git clone https://github.com/thesysdev/openui.git
+cd openui/examples/cookbooks/booking-assistant
+npm ci
+```
+
+Configure `THESYS_API_KEY` from the [Thesys Console](https://console.thesys.dev/keys) privately in the example's `.env.local`. Then prepare the listings and start the app:
+
+```bash
+npm run prepare:listings
+npm run dev
+```
+
+The first command downloads Inside Airbnb's latest Lisbon snapshot, about 36 MB, and builds a local database in about half a minute. Open [localhost:3000](http://localhost:3000) and try a starter. The default model is `openai/gpt-5.5`; use `OPENUI_MODEL` to select another supported [Gateway model](/docs/gateway/models).
+
+## Build it step by step
+
+Each step covers one part of the example, in the order a request flows through it: the listings, the tools, the components, the prompt, and the chat interface.
+
+### 1. Prepare the listings
+
+`npm run prepare:listings` downloads two files from Inside Airbnb: the listings, and a calendar with one row per listing and night, about 9 million rows for Lisbon. It keeps well-reviewed listings in the city, and stores each listing's calendar as a string with one character per night:
+
+```ts title="scripts/prepare-listings.ts"
+// The calendar has one row per listing and night: store each listing's nights as a string.
+for await (const night of rows(calendarFile)) {
+  const days = nights.get(night.listing_id);
+  const index = daysBetween(snapshot, night.date);
+  if (!days || index < 0 || index >= days.length) continue;
+  days[index] = night.available === "t" ? "1" : "0";
+  lastNight = Math.max(lastNight, index);
+}
+```
+
+Checking whether a stay is open then takes a substring of that calendar, one character per night, plus a lookup for bookings made in the app:
+
+```ts title="src/lib/stays.ts"
+const start = daysBetween(window.calendarStart, checkIn);
+const nights = daysBetween(checkIn, checkOut);
+const calendar = listing.availability.slice(start, start + nights);
+if (start < 0 || calendar.length !== nights || calendar.includes("0")) return false;
+```
+
+The result is a 4 MB SQLite file. See [prepare-listings.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/scripts/prepare-listings.ts) for the complete script.
+
+### 2. Expose search and booking tools
+
+`search_stays` takes every detail of the trip. Neighbourhoods, types of place, and amenities are enums, so the model can only name values that exist:
+
+```json
+{
+  "check_in": "2026-10-02",
+  "check_out": "2026-10-04",
+  "guests": 2,
+  "room_type": "entire_place",
+  "neighbourhoods": [],
+  "max_price_per_night": null,
+  "amenities": ["kitchen"],
+  "sort": "top_rated"
+}
+```
+
+Your server validates the dates against the calendar, then treats guests and dates as requirements and everything else as preferences. Keeping the preferences separate lets an empty result say which one to relax:
+
+```ts title="src/lib/tools/search-stays.ts"
+const matchesAll = (listing: Listing, skip?: string) =>
+  Object.entries(preferences).every(([name, test]) => name === skip || test(listing));
+const matches = candidates.filter((listing) => matchesAll(listing));
+// When few stays match, count how many each relaxed preference would add.
+const ifRelaxed =
+  matches.length >= 3
+    ? []
+    : Object.keys(preferences)
+        .map((preference) => ({
+          drop: preference,
+          matches: candidates.filter((listing) => matchesAll(listing, preference)).length,
+        }))
+        .filter((option) => option.matches > matches.length);
+```
+
+For a private room under €25 a night in Alfama, the tool returns no stays and reports how many dropping the price limit would find, so the model can offer that as a next step. The top five matches come back with their price, total, rating, and size. Ratings are weighed by review count, so a 5.0 from a handful of reviews does not outrank a 4.9 from hundreds.
+
+`book_stay` takes a stay id, the dates, the guests, and the guest's name and email. It validates the email and the stay's minimum and maximum nights, then checks the calendar again and saves the booking in one transaction, so two confirmations cannot take the same nights. See [search-stays.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/lib/tools/search-stays.ts) and [book-stay.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/lib/tools/book-stay.ts).
+
+### 3. Choose the components
+
+Use the built-in form controls, a few components for summaries and messages, and one component of your own:
+
+```ts title="src/library.ts"
+export const library = createLibrary({
+  root: "Stack",
+  components: [
+    ...[
+      "Stack",
+      "CardHeader",
+      "TextContent",
+      "Callout",
+      "Table",
+      "Col",
+      "Form",
+      "FormControl",
+      "Input",
+      "Select",
+      "SelectItem",
+      "Chips",
+      "ChipItem",
+      "OptionCards",
+      "OptionCard",
+      "Buttons",
+      "Button",
+    ].map((name) => openuiLibrary.components[name]),
+    DatePicker,
+    openuiChatLibrary.components.FollowUpBlock,
+    openuiChatLibrary.components.FollowUpItem,
+  ],
+});
+```
+
+`Form` groups the fields and checks their validation rules when the person clicks a primary button. `Chips` covers short choices, such as the type of place and amenities, and `OptionCards` shows the stays as selectable cards.
+
+React UI's own `DatePicker` stores JavaScript `Date` objects. The model can only write text, so it cannot prefill one, and a submitted `Date` reaches the model as a UTC timestamp that can fall on the day before. The example replaces it with a component that has the same name and props but reads and writes `YYYY-MM-DD` strings:
+
+```tsx title="src/components/date-picker.tsx"
+export const DatePicker = defineComponent({
+  name: "DatePicker",
+  props: openuiLibrary.components.DatePicker.props,
+  description:
+    "A single date. Prefill it by passing a YYYY-MM-DD string as value; the form submits YYYY-MM-DD.",
+  component: ({ props }) => {
+    const field = useStateField(props.name, props.value);
+    return (
+      <DateField
+        mode="single"
+        selectedSingleDate={toDate(field.value)}
+        setSelectedSingleDate={(date) => field.setValue(toIsoDate(date))}
+      />
+    );
+  },
+});
+```
+
+Reusing the built-in props keeps `DatePicker` valid inside `FormControl`, and the new description tells the model the format. The [complete component](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/components/date-picker.tsx) also registers validation rules and closes the calendar once a date is picked. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
+
+### 4. Describe the booking flow
+
+The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/lib/prompt.ts) gives the model today's date, the range of bookable dates, and the valid neighbourhoods, then describes each step. The first rule starts every new request with a form:
+
+> When someone asks for a new stay, reply with one short sentence and a Form named 'trip' before searching, even if they gave every detail. Prefill every field they mentioned with a literal value, never a $variable.
+
+The model prefills a field by passing its value, such as the date `"2026-10-02"` or the guest count `"2"`. When the person submits, the form sends only the fields they changed, so another rule covers the rest:
+
+> Submitted form state contains only the fields the user changed. For every field missing from it, use the value you prefilled in that form.
+
+The model still sees its own form from the previous turn in the stored conversation, so it can fill in the gaps. The remaining rules describe the stay cards, the summary, when to call `book_stay`, and how to explain a tool error with the form that needs fixing. One example program for each step, the trip form, the stay cards, and the summary, shows the model how the components fit together.
+
+### 5. Connect Agent Interface
+
+The chat transport, Gateway conversation storage, token route, and function-tool loop are the same as in the [conversational analytics cookbook](/cookbooks/conversational-analytics#4-connect-agent-interface). Two details differ:
+
+- **Longer messages.** A submitted form arrives as one message with the button label and the form's values, so the chat route accepts messages of up to 4,000 characters instead of a short question.
+- **Two tools.** The route registers both tools with the loop, which runs only the names it knows:
+
+```ts title="src/app/api/chat/route.ts"
+const searchTool = searchStaysTool(window);
+const bookTool = bookStayTool(window);
+const functionTools = {
+  [searchTool.name]: executeSearchStays,
+  [bookTool.name]: executeBookStay,
+};
+```
+
+The example also customizes Agent Interface with a theme from `createTheme`, a logo, and a sidebar with a **My bookings** item that opens a page of confirmed bookings in place of the chat. See [Sidebar](/docs/agent/customize/sidebar) and [Welcome and starters](/docs/agent/customize/welcome-and-starters).
+
+## Verify it works
+
+In the browser:
+
+1. Ask **“Book a place in Lisbon for two this weekend.”** Confirm the form shows this Friday to Sunday and two guests.
+2. Clear the guests field and click **Find stays**. The field should report that it is required, and nothing is sent.
+3. Fill it in again and search. Open **Form data** above your message to see the values that were sent, and expand **Behind the scenes** to see the `search_stays` call.
+4. Ask for something that cannot match, such as **“under €25 a night in Alfama”**, and confirm the reply explains why and suggests what to relax.
+5. Pick a stay, confirm with your details, and open **My bookings** in the sidebar to see the booking.
+6. Switch your operating system between light and dark mode, and confirm the theme follows.
+
+Generated layouts can vary. Stays, prices, and availability should always come from a tool result.
+
+## Adapt it to your inventory
+
+To book another city, change the Inside Airbnb URL pattern in `prepare-listings.ts` and the neighbourhoods in `stays.ts`, then update the starters and thread header in `booking-chat.tsx`. For your own inventory, keep the two tools' contracts and replace their queries: `search_stays` with a call to your availability API, and `book_stay` with your booking API.
+
+The form pattern carries over to anything that needs a few details before an action: a restaurant reservation, a support ticket, a travel request. Describe the details, their controls, and which are required, and keep the action behind a summary and a confirmation.
+
+This example runs locally with a single demo identity. Before deploying it, replace the local guard with authentication and rate limits, derive user identity from the signed-in session, retain conversation ownership checks, and keep the API key on the server. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/booking-assistant) for the implementation notes.
+
+- [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
+- [Agent tools](/docs/agent/core-concepts/tools)
+- [Gateway Responses API](/docs/gateway/api/responses)
+
+Listings and availability: [Inside Airbnb](https://insideairbnb.com/get-the-data/), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), downloaded during setup. They are not included in this repository.

@@ -73,6 +73,12 @@
       "envKey": "THESYS_API_KEY"
     },
     {
+      "title": "Booking assistant",
+      "description": "Book Lisbon stays from real Inside Airbnb listings with prefilled, validated forms, availability search, and a summary before booking.",
+      "path": "cookbooks/booking-assistant",
+      "envKey": "THESYS_API_KEY"
+    },
+    {
       "title": "Material UI",
       "description": "A broad Material UI component library for generated interfaces.",
       "path": "design-systems/material-ui",
