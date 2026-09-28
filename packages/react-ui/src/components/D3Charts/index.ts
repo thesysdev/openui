@@ -46,6 +46,15 @@ export type { SegmentedBarData, SegmentedBarProps } from "./SegmentedBar/types";
 export { CalendarHeatmap } from "./CalendarHeatmap";
 export type { CalendarHeatmapDatum, CalendarHeatmapProps } from "./CalendarHeatmap/types";
 
+export { MiniAreaChart } from "./MiniAreaChart";
+export type { MiniAreaChartData, MiniAreaChartProps } from "./MiniAreaChart/types";
+
+export { MiniBarChart } from "./MiniBarChart";
+export type { MiniBarChartData, MiniBarChartProps } from "./MiniBarChart/types";
+
+export { MiniLineChart } from "./MiniLineChart";
+export type { MiniLineChartData, MiniLineChartProps } from "./MiniLineChart/types";
+
 export { LegendStoreProvider, useLegendEntry } from "./shared/core/legend";
 export type { LegendEntry, StackedLegendItem } from "./shared/core/legend";
 export { StackedLegend } from "./shared/core/StackedLegend";
