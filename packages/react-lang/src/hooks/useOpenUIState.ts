@@ -85,6 +85,8 @@ export function useOpenUIState(
 ): OpenUIState {
   const bundle = useMemo(() => parseResponseBundle(response, isStreaming), [response, isStreaming]);
   const blocked = isStreaming || !bundle.complete || !!bundle.error;
+  // Bare DSL keeps its existing manager, cached results and imperative actions while streaming.
+  const bundleBlocked = bundle.isBundle && blocked;
   // Recreate the manager when a bundled script changes, even if Query args do not.
   const scriptRevision = bundle.scripts.size ? response : null;
 
@@ -117,8 +119,8 @@ export function useOpenUIState(
 
   // ─── QueryManager ───
   const queryManager = useMemo<QueryManager>(
-    () => createQueryManager(blocked ? null : (toolProvider ?? null)),
-    [toolProvider, blocked, scriptRevision],
+    () => createQueryManager(bundleBlocked ? null : (toolProvider ?? null)),
+    [toolProvider, bundleBlocked, scriptRevision],
   );
 
   useEffect(() => {
@@ -291,7 +293,7 @@ export function useOpenUIState(
       formName?: string,
       action?: ActionPlan | { type?: string; params?: Record<string, any> },
     ) => {
-      if (blocked) return;
+      if (bundleBlocked) return;
       const formPayload = getFormPayload(formName);
       const { onAction: handler } = propsRef.current;
 
@@ -380,7 +382,7 @@ export function useOpenUIState(
         formName,
       });
     },
-    [blocked, queryManager, evaluationContext, getFormPayload, store],
+    [bundleBlocked, queryManager, evaluationContext, getFormPayload, store],
   );
 
   // ─── reportError (for error boundary) ───
