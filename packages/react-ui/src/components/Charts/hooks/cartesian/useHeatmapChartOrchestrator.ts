@@ -16,6 +16,7 @@ import {
 import {
   DIVERGING_DEFAULT_DARK,
   DIVERGING_DEFAULT_LIGHT,
+  orientRampToSurface,
   resolvePalette,
 } from "../../utils/paletteUtils";
 import { useCanvasContextForLabelSize } from "../core/useCanvasContextForLabelSize";
@@ -31,9 +32,13 @@ const MIN_Y_AXIS_WIDTH = 20;
 const MAX_Y_AXIS_WIDTH = 200;
 const Y_AXIS_PADDING = 10;
 
-// Below this band width, x labels thin out (every n-th) instead of rendering
-// an ellipsis + tooltip wrapper per column. ~3 characters of the tick font.
+// X labels thin out (every n-th) so each shown label gets room for the widest
+// label text, between these bounds: at least ~3 characters of the tick font,
+// and no more than this so one long label doesn't thin the whole axis (longer
+// labels truncate). The gap keeps neighbouring labels apart.
 const MIN_X_LABEL_PX = 28;
+const MAX_X_LABEL_PX = 64;
+const X_LABEL_GAP = 8;
 
 export interface HoveredHeatmapCell {
   rowKey: string;
@@ -165,7 +170,11 @@ export function useHeatmapChartOrchestrator<T extends Array<Record<string, strin
     if (rampMode === "diverging" && !customPalette) {
       return mode === "dark" ? DIVERGING_DEFAULT_DARK : DIVERGING_DEFAULT_LIGHT;
     }
-    return resolvePalette(theme, themePaletteName, customPalette);
+    // A customPalette is used as given; the theme's palette is oriented so low
+    // values sit nearest the surface.
+    return customPalette
+      ? resolvePalette(theme, themePaletteName, customPalette)
+      : orientRampToSurface(resolvePalette(theme, themePaletteName), mode);
   }, [rampMode, customPalette, mode, theme, themePaletteName]);
 
   const [minValue, maxValue] = useMemo(() => {
@@ -242,11 +251,18 @@ export function useHeatmapChartOrchestrator<T extends Array<Record<string, strin
   // x scale interns duplicates into one band, but React keys must be unique).
   const columnKeys = useMemo(() => buildColumnKeys(columns), [columns]);
 
-  // Thin the x labels once bands get narrower than a readable tick. The
-  // bandwidth comes from the SCALE: its domain interns duplicate labels, and
-  // XAxis thins over those unique bands — columns.length would over-count
-  // (and over-thin) whenever an LLM re-emits a category.
-  const labelInterval = computeLabelInterval(xScale.bandwidth(), MIN_X_LABEL_PX);
+  // Thin the x labels once columns get narrower than their labels. The step
+  // comes from the SCALE: its domain interns duplicate labels, and XAxis thins
+  // over those unique bands — columns.length would over-count (and over-thin)
+  // whenever an LLM re-emits a category.
+  const widestColumnLabel = useMemo(
+    () => columns.reduce((max, label) => Math.max(max, context.measureText(label).width), 0),
+    [columns, context],
+  );
+  const labelInterval = computeLabelInterval(
+    xScale.step(),
+    Math.min(MAX_X_LABEL_PX, Math.max(MIN_X_LABEL_PX, widestColumnLabel)) + X_LABEL_GAP,
+  );
   const yScale = useMemo(
     () =>
       scaleBand<string>()

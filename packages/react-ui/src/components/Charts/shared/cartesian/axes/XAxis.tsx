@@ -12,6 +12,8 @@ import {
 import { LabelTooltip } from "../../core/LabelTooltip/LabelTooltip";
 
 const X_AXIS_TOP_GAP = 4;
+/** Space kept between neighbouring labels on a thinned axis. */
+const THINNED_LABEL_GAP = 8;
 
 type XAxisScale = ScalePoint<string> | ScaleBand<string>;
 
@@ -50,16 +52,30 @@ export const XAxis: React.FC<XAxisProps> = ({
   const lineHeight = parseLineHeight(ctx.font);
   const domain = scale.domain();
   const band = isBandScale(scale);
-  const labelWidth = band ? (scale as ScaleBand<string>).bandwidth() : (widthOfGroup ?? 0);
+  const bandWidth = band ? (scale as ScaleBand<string>).bandwidth() : (widthOfGroup ?? 0);
+  const step = band ? (scale as ScaleBand<string>).step() : (widthOfGroup ?? 0);
+  const shown = domain
+    .map((_, i) => i)
+    .filter((i) => labelInterval <= 1 || i % labelInterval === 0 || i === domain.length - 1);
+  // On a thinned axis a label may use the room up to its nearest shown
+  // neighbour, not just its own category.
+  const labelWidthAt = (pos: number) => {
+    if (labelInterval <= 1) return bandWidth;
+    const i = shown[pos]!;
+    const gaps = [shown[pos - 1], shown[pos + 1]]
+      .filter((n): n is number => n !== undefined)
+      .map((n) => Math.abs(n - i));
+    const span = gaps.length ? Math.min(...gaps) : 1;
+    return Math.max(bandWidth, step * span - THINNED_LABEL_GAP);
+  };
 
   return (
     <g className={`${classPrefix}-x-axis`}>
-      {domain.map((category, i) => {
-        const show = labelInterval <= 1 || i % labelInterval === 0 || i === domain.length - 1;
-        if (!show) return null;
-
+      {shown.map((i, pos) => {
+        const category = domain[i]!;
+        const labelWidth = labelWidthAt(pos);
         const rawX = scale(category) ?? 0;
-        const cx = band ? rawX + labelWidth / 2 : rawX;
+        const cx = band ? rawX + bandWidth / 2 : rawX;
         const label = String(category);
 
         const lines =

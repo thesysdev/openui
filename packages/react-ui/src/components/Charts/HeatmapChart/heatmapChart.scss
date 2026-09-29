@@ -32,8 +32,9 @@
   }
 }
 
+// Ink, not $foreground: react-ui's $foreground is a light surface neutral.
 .#{brand.$prefix}-heatmap-chart-cell:hover {
-  stroke: cssUtils.$foreground;
+  stroke: cssUtils.$text-neutral-primary;
   stroke-width: 1.5;
 }
 
@@ -103,6 +104,6 @@
   bottom: 0;
   width: 2px;
   transform: translateX(-50%);
-  background: cssUtils.$foreground;
+  background: cssUtils.$text-neutral-primary;
   opacity: 0.55;
 }

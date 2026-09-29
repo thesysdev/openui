@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { ChartColorPalette, useTheme } from "../../ThemeProvider";
+import { getColorLuminance } from "./colorLuminance";
 
 /**
  * The single built-in default ramp.
@@ -134,4 +135,21 @@ export const useChartPalette = ({
   return useMemo(() => {
     return getDistributedColors(palette, dataLength);
   }, [palette, dataLength]);
+};
+
+/**
+ * A palette read as a sequential low → high ramp (heatmap, calendar levels),
+ * oriented so its low end is the color nearest the surface: the lightest in
+ * light mode, the darkest in dark mode. Low values then fade into the
+ * background and high values stand out. Theme and built-in palettes run dark →
+ * light (the series order), so light mode reverses them.
+ */
+export const orientRampToSurface = (ramp: string[], mode: string | undefined): string[] => {
+  if (ramp.length < 2) return ramp;
+  const first = getColorLuminance(ramp[0]!);
+  const last = getColorLuminance(ramp[ramp.length - 1]!);
+  // Without a canvas (SSR) assume the dark → light series order.
+  const firstIsLighter = first !== null && last !== null ? first > last : false;
+  const lightFirst = mode !== "dark";
+  return firstIsLighter === lightFirst ? ramp : [...ramp].reverse();
 };

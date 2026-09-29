@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { ChartColorPalette } from "../../ThemeProvider";
-import { getDistributedColors, OCEAN_DEFAULT, resolvePalette } from "./paletteUtils";
+import {
+  getDistributedColors,
+  OCEAN_DEFAULT,
+  orientRampToSurface,
+  resolvePalette,
+} from "./paletteUtils";
 
 const bar = ["#b1", "#b2"];
 const def = ["#d1", "#d2"];
@@ -94,5 +99,23 @@ describe("getDistributedColors (center-out distribution over a ramp)", () => {
   it("returns [] for an empty palette or non-positive length", () => {
     expect(getDistributedColors([], 5)).toEqual([]);
     expect(getDistributedColors(["#a"], 0)).toEqual([]);
+  });
+});
+
+// No canvas here, so luminance is unknown and the dark → light series order
+// of theme palettes is assumed.
+describe("orientRampToSurface (low end nearest the surface)", () => {
+  it("puts the light end first in light mode", () => {
+    const ramp = orientRampToSurface(OCEAN_DEFAULT, "light");
+    expect(ramp[0]).toBe(OCEAN_DEFAULT[OCEAN_DEFAULT.length - 1]);
+    expect(ramp[ramp.length - 1]).toBe(OCEAN_DEFAULT[0]);
+  });
+
+  it("keeps the dark end first in dark mode", () => {
+    expect(orientRampToSurface(OCEAN_DEFAULT, "dark")).toEqual(OCEAN_DEFAULT);
+  });
+
+  it("leaves a single color alone", () => {
+    expect(orientRampToSurface(["#123456"], "light")).toEqual(["#123456"]);
   });
 });
