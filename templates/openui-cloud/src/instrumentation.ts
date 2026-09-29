@@ -1,4 +1,4 @@
-const USER_AGENT = "OpenUI-template";
+const USER_AGENT = "openui-template/nextjs";
 
 export function register() {
   const baseFetch = globalThis.fetch;
