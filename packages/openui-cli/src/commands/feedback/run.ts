@@ -1,9 +1,7 @@
-import { PostHog } from "posthog-node";
-
 import type { CliContext } from "../../lib/context";
 import { UNKNOWN_AGENT_NAME } from "../../lib/detect-agent";
 import { CreateError } from "../../lib/errors";
-import { POSTHOG_HOST, POSTHOG_KEY } from "../../lib/telemetry";
+import { createPostHogClient } from "../../lib/posthog";
 
 export interface FeedbackOptions {
   messageWords: string[];
@@ -51,12 +49,7 @@ export async function runFeedback(options: FeedbackOptions, ctx: CliContext): Pr
   if (options.agentName && options.agentName !== UNKNOWN_AGENT_NAME) {
     properties["agent_name"] = options.agentName;
   }
-  const client = new PostHog(POSTHOG_KEY, {
-    host: POSTHOG_HOST,
-    flushAt: 1,
-    flushInterval: 0,
-    disableGeoip: true,
-  });
+  const client = createPostHogClient({ disableGeoip: true });
   let failure: unknown;
   client.on("error", (error) => {
     failure = error;
