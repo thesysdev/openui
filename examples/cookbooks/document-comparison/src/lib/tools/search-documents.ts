@@ -5,7 +5,7 @@ import { openDatabase, sources, type Document } from "../documents";
 import { embed, similarity } from "../embeddings";
 
 // The search_documents function tool: its JSON schema for Gateway, argument validation,
-// semantic search over the prepared passages, and the executor the tool loop calls.
+// semantic search over the prepared passages, and the executor that runTools() calls.
 
 export function searchDocumentsTool(documents: Document[]) {
   return {

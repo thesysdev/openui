@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 import { listDrivers, openDatabase, race, type Driver } from "../f1-data";
 
 // The query_lap_times function tool: its JSON schema for Gateway, argument validation,
-// the read-only query, and the executor the tool loop calls.
+// the read-only query, and the executor that runTools() calls.
 
 export function queryLapTimesTool(drivers: Driver[]) {
   return {
