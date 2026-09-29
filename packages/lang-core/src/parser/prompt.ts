@@ -709,6 +709,26 @@ export type CloudPromptOptions = Pick<
   "examples" | "preamble" | "additionalRules"
 >;
 
+/** A tool available to generated Cloud scripts. Contains schemas, not executable handlers. */
+export interface CloudScriptTool {
+  name: string;
+  description?: string;
+  /** JSON Schema of the tool's input object. */
+  parameters: Record<string, unknown>;
+  /** Sample output JSON value used to inform script generation. */
+  output?: unknown;
+}
+
+/** Enables Cloud script generation with the supplied tool definitions. */
+export interface CloudScriptOptions {
+  tools: CloudScriptTool[];
+}
+
+/** Caller-supplied result name. Inherited when omitted while editing a bundle. */
+export interface CloudMetadata {
+  name?: string;
+}
+
 /**
  * Object input for {@link generateSystemPrompt}.
  *
@@ -728,6 +748,12 @@ export type SystemPromptSpec =
       library?: LibrarySpec;
       promptOptions?: CloudPromptOptions;
       instructions?: string;
+      /** Generate scripts using these tools. Required when an edit needs script changes. */
+      script?: CloudScriptOptions;
+      /** Complete previous bundle to edit, including its program, scripts, and metadata. */
+      incrementalEdit?: string;
+      /** Optional metadata emitted by Cloud; supplied fields override inherited edit metadata. */
+      meta?: CloudMetadata;
     };
 
 /** Render the full system prompt for a library, or Cloud's managed config block when `cloud: true`. */

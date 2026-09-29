@@ -35,7 +35,10 @@ export { tokenize } from "./parser/lexer";
 export { mergeStatements } from "./parser/merge";
 export { generatePrompt, generateSystemPrompt } from "./parser/prompt";
 export type {
+  CloudMetadata,
   CloudPromptOptions,
+  CloudScriptOptions,
+  CloudScriptTool,
   ComponentPromptSpec,
   LibrarySpec,
   PromptSpec,
