@@ -246,7 +246,7 @@ const storage = useOpenuiCloudStorage({
 });
 ```
 
-Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, though, so Gateway keeps each thread's title but not its messages, and a thread you open again from the sidebar is empty. To store the messages too, generate with the [Responses API](/docs/gateway/api/responses), which appends each turn when you pass `conversation` and `store: true`, or keep threads in your own database with `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
+Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, though, so Gateway keeps each thread's title but not its messages, and a thread you open again from the sidebar is empty. To store the messages too, keep threads in your own database with `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
 
 The example also customizes Agent Interface through its public props and slots:
 
