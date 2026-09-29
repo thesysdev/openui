@@ -40,6 +40,7 @@ export function parseResponseBundle(response: string | null, streaming: boolean)
     const newline = body.indexOf("\n");
     if (newline < 0)
       return {
+        isBundle: true,
         program: "",
         metadata,
         scripts,
@@ -52,7 +53,11 @@ export function parseResponseBundle(response: string | null, streaming: boolean)
     body = body.slice(newline + 1);
   }
   program = body;
-  const marker = markerIndex(body, streaming);
+  const marker = markerIndex(body, framed && streaming);
+  const isBundle = framed || marker >= 0;
+  if (!isBundle) {
+    return { program: response ?? "", metadata, scripts, complete, isBundle, error };
+  }
   if (marker >= 0) {
     program = body.slice(0, marker);
     let tail = body.slice(marker).trimEnd();
@@ -98,5 +103,5 @@ export function parseResponseBundle(response: string | null, streaming: boolean)
     }
   } else if (framed) complete = false;
   if (!complete && !streaming) error ??= "Incomplete response bundle";
-  return { program, metadata, scripts, complete, error: streaming ? undefined : error };
+  return { program, metadata, scripts, complete, isBundle, error: streaming ? undefined : error };
 }

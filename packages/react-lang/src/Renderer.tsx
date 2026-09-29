@@ -227,7 +227,7 @@ export function Renderer({
   const stableToolProvider = useRef<ToolProvider>({
     async callTool(toolName: string, args: Record<string, unknown>): Promise<unknown> {
       const current = toolProviderInputRef.current ?? null;
-      if (current == null) throw new ToolNotFoundError(toolName, []);
+      if (current == null) throw new Error("[openui] toolProvider is null");
       // MCP client — has callTool({ name, arguments }) returning MCP envelope
       if (typeof (current as McpClientLike).callTool === "function") {
         const result = await (current as McpClientLike).callTool({
@@ -239,11 +239,7 @@ export function Renderer({
       // Function map — plain object of async functions
       const map = current as Record<string, (a: Record<string, unknown>) => Promise<unknown>>;
       const fn = map[toolName];
-      if (!Object.prototype.hasOwnProperty.call(map, toolName) || typeof fn !== "function")
-        throw new ToolNotFoundError(
-          toolName,
-          Object.keys(map).filter((name) => typeof map[name] === "function"),
-        );
+      if (!fn) throw new ToolNotFoundError(toolName, Object.keys(map));
       return fn(args);
     },
   });
