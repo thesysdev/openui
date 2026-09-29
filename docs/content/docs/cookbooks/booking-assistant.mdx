@@ -22,6 +22,7 @@ In this cookbook, you'll learn how to:
 - Replace a built-in component with your own version, so the model can prefill dates.
 - Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
 - Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity.
+- Keep the thread list in Gateway [conversations](/docs/gateway/api/conversations), which the browser reads directly with a short-lived frontend token.
 
 <div className="not-prose my-6">
   <a
@@ -249,7 +250,20 @@ const llm = fetchLLM({
 });
 ```
 
-Chat Completions does not store conversations, so Agent Interface keeps each thread in the browser and sends its messages with every turn. Threads last until the page reloads. To keep them longer, pass a `storage` adapter backed by your database; see [Connect a backend](/docs/agent/reference/self-hosting).
+Chat Completions does not store conversations, so Agent Interface keeps each thread's messages in the browser and sends them with every turn.
+
+`useOpenuiCloudStorage()` stores the thread list with the Gateway [Conversations API](/docs/gateway/api/conversations), the same way as in the [conversational analytics cookbook](/cookbooks/conversational-analytics#4-connect-agent-interface). The browser calls Gateway directly with a short-lived [frontend token](/docs/gateway/authentication#frontend-tokens) from the example's `/api/frontend-token` route, so `THESYS_API_KEY` stays on the server and the browser reaches only one local user's threads in this app:
+
+```tsx title="src/components/booking-chat.tsx"
+const storage = useOpenuiCloudStorage({
+  token: "/api/frontend-token",
+  features: { artifact: false },
+});
+
+<AgentInterface llm={llm} storage={storage} componentLibrary={library} agentName="Stay finder" />;
+```
+
+Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, though, so Gateway keeps each thread's title but not its messages, and a thread you open again from the sidebar is empty. To store the messages too, generate with the [Responses API](/docs/gateway/api/responses), which appends each turn when you pass `conversation` and `store: true`, or keep threads in your own database with `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
 
 The chat route runs the same [function-tool loop](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/lib/tool-loop.ts) as the [conversational analytics cookbook](/cookbooks/conversational-analytics#5-stream-the-answer), streaming AG-UI events so Agent Interface shows each search and its result. It forwards only user messages and assistant answers from the browser and drops tool calls and results, so later steps rely on what the stay cards show, including the booking link in each card's value. A submitted form arrives as one message with the button label and the form's values, so the route accepts user messages of up to 4,000 characters.
 
@@ -266,7 +280,8 @@ In the browser:
 3. Fill it in again and search. Open **Form data** above your message to see the values that were sent, and expand **Behind the scenes** to see the `search_stays` call.
 4. Ask for **“under $100 a night”**, and confirm the reply says how many stays were over budget and the cheapest price among them.
 5. Pick a stay, check the summary, and click **Continue to booking**. trivago should open the stay for your dates and guests.
-6. Switch your operating system between light and dark mode, and confirm the theme follows.
+6. Reload the page and confirm your threads are still listed in the sidebar.
+7. Switch your operating system between light and dark mode, and confirm the theme follows.
 
 Generated layouts can vary. Hotels, prices, photos, and links should always come from a search result, and prices can change between searches.
 
@@ -276,7 +291,7 @@ To use another MCP server, keep the `search_stays` contract and replace `searchA
 
 The form pattern carries over to anything that needs a few details before an action: a restaurant reservation, a support ticket, a travel request. Describe the details, their controls, and which are required, and keep the action behind a summary. Before relying on a third-party MCP server in production, check its terms and plan for it being slow or unavailable.
 
-This example runs locally without authentication, and its chat route accepts browser requests only from its own page. Before deploying it, add authentication and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/booking-assistant) for the implementation notes.
+This example runs locally without authentication. Its chat and frontend-token routes accept browser requests only from its own page, and every browser shares one local user's threads. Before deploying it, add authentication, mint each frontend token for the signed-in user, and add rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/booking-assistant) for the implementation notes.
 
 - [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
 - [Gateway Chat Completions API](/docs/gateway/api/chat-completions)
