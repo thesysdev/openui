@@ -20,6 +20,7 @@ function buildProgram(): Command {
       version: string;
     }
   ).version;
+  ctx.cliVersion = cliVersion;
 
   program.name("openui").description("CLI for OpenUI").version(cliVersion);
   program.option("--no-telemetry", "Disable anonymous usage analytics");
