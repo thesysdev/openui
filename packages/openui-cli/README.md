@@ -261,7 +261,7 @@ Options:
 
 - `-c, --category <category>`: `bug`, `feature`, `docs`, or `other`
 
-The message is sent to `https://api.app.thesys.dev/agent-feedback` together with the category, the `--agent-name` value, and the CLI version. No account, device, or telemetry ID is attached, and it is sent even when telemetry is disabled because you run it explicitly. Do not include personal data, secrets, or code.
+The message is sent directly to PostHog as a single anonymous event, together with the category, the `--agent-name` value, and the CLI version. Each submission uses a new random ID; no account, device, telemetry ID, or IP address is attached, and it is sent even when telemetry is disabled because you run it explicitly. Do not include personal data, secrets, or code.
 
 Coding agents must remove personal details and project code from the message, show the user the exact text, and get explicit approval before running this command.
 

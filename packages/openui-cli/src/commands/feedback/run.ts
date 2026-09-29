@@ -1,6 +1,9 @@
+import { PostHog } from "posthog-node";
+
 import type { CliContext } from "../../lib/context";
 import { UNKNOWN_AGENT_NAME } from "../../lib/detect-agent";
 import { CreateError } from "../../lib/errors";
+import { POSTHOG_HOST, POSTHOG_KEY } from "../../lib/telemetry";
 
 export interface FeedbackOptions {
   messageWords: string[];
@@ -9,7 +12,6 @@ export interface FeedbackOptions {
 }
 
 const FEEDBACK_CATEGORIES = new Set(["bug", "feature", "docs", "other"]);
-const DEFAULT_FEEDBACK_URL = "https://api.app.thesys.dev/agent-feedback";
 
 export async function runFeedback(options: FeedbackOptions, ctx: CliContext): Promise<void> {
   const message = options.messageWords.join(" ").trim();
@@ -38,47 +40,43 @@ export async function runFeedback(options: FeedbackOptions, ctx: CliContext): Pr
     );
   }
 
-  const payload: {
-    message: string;
-    category?: string;
-    agent_name?: string;
-    cli_version: string;
-  } = {
+  const properties: Record<string, unknown> = {
     message,
+    category: options.category ?? "other",
     cli_version: ctx.cliVersion ?? "",
+    $process_person_profile: false,
+    // placeholder so PostHog doesn't record the sender's IP
+    $ip: "0.0.0.0",
   };
-  if (options.category) payload.category = options.category;
   if (options.agentName && options.agentName !== UNKNOWN_AGENT_NAME) {
-    payload.agent_name = options.agentName;
+    properties["agent_name"] = options.agentName;
   }
 
   console.info(`Sending anonymous feedback:\n${message}`);
 
-  let response: Response;
-  try {
-    response = await fetch(process.env["OPENUI_FEEDBACK_URL"] ?? DEFAULT_FEEDBACK_URL, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(10_000),
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+  const client = new PostHog(POSTHOG_KEY, {
+    host: POSTHOG_HOST,
+    flushAt: 1,
+    flushInterval: 0,
+    disableGeoip: true,
+  });
+  let failure: unknown;
+  client.on("error", (error) => {
+    failure = error;
+  });
+  await client.captureImmediate({
+    distinctId: crypto.randomUUID(),
+    event: "agent_feedback_submitted",
+    properties,
+  });
+  await client.shutdown();
+  if (failure) {
+    const detail = failure instanceof Error ? failure.message : String(failure);
     throw new CreateError(
       "feedback_submission",
-      `Could not send feedback: ${message}`,
+      `Could not send feedback: ${detail}`,
       "network",
       "FEEDBACK_REQUEST_FAILED",
-    );
-  }
-
-  if (!response.ok) {
-    throw new CreateError(
-      "feedback_submission",
-      `Feedback request failed with HTTP ${response.status}.`,
-      "network",
-      "FEEDBACK_HTTP_ERROR",
-      { http_status: response.status },
     );
   }
 

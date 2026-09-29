@@ -8,9 +8,9 @@ import { cliErrorProperties } from "./errors";
 import type { RetryAttemptInfo } from "./retry";
 
 // Public ingestion key
-const POSTHOG_KEY =
+export const POSTHOG_KEY =
   process.env["OPENUI_POSTHOG_KEY"] ?? "phc_3OLW53x09ZTVZSV6BEpj5uycj3ooqR6KOemOjx04e3D";
-const POSTHOG_HOST = process.env["OPENUI_POSTHOG_HOST"] ?? "https://us.i.posthog.com";
+export const POSTHOG_HOST = process.env["OPENUI_POSTHOG_HOST"] ?? "https://us.i.posthog.com";
 const SHUTDOWN_TIMEOUT_MS = 2000;
 
 const isTelemetryDebug = () => process.env["OPENUI_TELEMETRY_DEBUG"] === "1";
