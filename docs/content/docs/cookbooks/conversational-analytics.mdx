@@ -213,7 +213,7 @@ Chat Completions does not store conversations, so Agent Interface keeps each thr
 
 `useOpenuiCloudStorage()` stores the thread list with the Gateway [Conversations API](/docs/gateway/api/conversations). The browser calls Gateway directly with a short-lived [frontend token](/docs/gateway/authentication#frontend-tokens) from the example's `/api/frontend-token` route, which mints it with `THESYS_API_KEY` for one local user and this app's `app_id`. Gateway limits the token to that user's threads in this app, and the key never reaches the browser.
 
-Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, though, so Gateway keeps each thread's title but not its messages, and a thread you open again from the sidebar is empty. To store the messages too, keep threads in your own database with `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
+Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, though, so Gateway keeps each thread's title but not its messages, and a thread you open again from the sidebar is empty. To store the messages too, append each finished turn to the conversation with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history) from `@openuidev/server`, or keep threads in your own database with `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
 
 ### 5. Stream the answer
 
