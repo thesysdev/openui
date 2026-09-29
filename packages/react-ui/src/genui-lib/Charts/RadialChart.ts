@@ -3,7 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod/v4";
-import { RadialChart as RadialChartComponent } from "../../components/Charts";
+import { RadialChart as RadialChartComponent } from "../../components/D3Charts";
 import { asArray, buildSliceData } from "../helpers";
 
 export const RadialChartSchema = z.object({

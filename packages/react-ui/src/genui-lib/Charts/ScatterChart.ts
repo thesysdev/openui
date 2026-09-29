@@ -3,7 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod/v4";
-import { ScatterChart as ScatterChartComponent } from "../../components/Charts";
+import { ScatterChart as ScatterChartComponent } from "../../components/D3Charts";
 import { asArray, hasAllProps } from "../helpers";
 import { ScatterSeriesSchema } from "./ScatterSeries";
 
@@ -40,8 +40,6 @@ export const ScatterChart = defineComponent({
     if (!data.length) return null;
     return React.createElement(ScatterChartComponent, {
       data,
-      xAxisDataKey: "x",
-      yAxisDataKey: "y",
       isAnimationActive: false,
     });
   },

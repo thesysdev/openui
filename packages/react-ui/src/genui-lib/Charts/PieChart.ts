@@ -3,7 +3,7 @@
 import { defineComponent, useIsQueryLoading } from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod/v4";
-import { PieChart as PieChartComponent } from "../../components/Charts";
+import { PieChart as PieChartComponent } from "../../components/D3Charts";
 import { PieChartSkeleton } from "../../components/Skeleton";
 import { asArray, buildSliceData } from "../helpers";
 

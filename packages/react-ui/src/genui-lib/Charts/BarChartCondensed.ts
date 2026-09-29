@@ -3,7 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod/v4";
-import { BarChartCondensed as BarChartCondensedComponent } from "../../components/Charts";
+import { BarChart as BarChartComponent } from "../../components/D3Charts";
 import { buildChartData, hasAllProps } from "../helpers";
 import { SeriesSchema } from "./Series";
 
@@ -24,13 +24,14 @@ export const BarChartCondensed = defineComponent({
     if (!hasAllProps(props as Record<string, unknown>, "labels", "series")) return null;
     const data = buildChartData(props.labels, props.series);
     if (!data.length) return null;
-    return React.createElement(BarChartCondensedComponent, {
+    return React.createElement(BarChartComponent, {
       data,
       categoryKey: "category",
       variant: props.variant as "grouped" | "stacked" | undefined,
       xAxisLabel: props.xLabel,
       yAxisLabel: props.yLabel,
       height: props.height as number | undefined,
+      condensed: true,
       isAnimationActive: false,
     });
   },
