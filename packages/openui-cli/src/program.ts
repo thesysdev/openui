@@ -31,6 +31,7 @@ function buildProgram(): Command {
     UNKNOWN_AGENT_NAME,
   );
   program.configureHelp({ showGlobalOptions: true });
+  program.addHelpText("after", '\nFound a bug or have an idea? Run: openui feedback "<message>"');
 
   program.hook("preAction", (_thisCommand, actionCommand) => {
     activeCommand = actionCommand.name();
