@@ -1,128 +1,55 @@
-import clsx from "clsx";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Line, LineChart as RechartsLineChart, XAxis } from "recharts";
-import { usePrintContext } from "../../../context/PrintContext";
-import { ChartConfig, ChartContainer } from "../Charts";
-import { LineChartVariant } from "../LineChart/types";
-import {
-  DATA_KEY,
-  getRecentDataThatFits,
-  transformDataForChart,
-} from "../utils/AreaAndLine/MiniAreaAndLineUtils";
-import { getLineType } from "../utils/AreaAndLine/common";
-import { useChartPalette, type PaletteName } from "../utils/PalletUtils";
-import { get2dChartConfig } from "../utils/dataUtils";
-import { MiniLineChartData } from "./types";
+import { line } from "d3-shape";
+import { useEffectiveAnimation } from "../hooks/core/useEffectiveAnimation";
+import { MiniChartFrame } from "../shared/mini/MiniChartFrame";
+import { type MiniChartPoint, miniCurves, miniLineGeometry } from "../shared/mini/miniChartUtils";
+import { CHART_CLASS_PREFIX } from "../utils/constants";
+import { useChartPalette } from "../utils/paletteUtils";
+import type { MiniLineChartProps } from "./types";
 
-export interface MiniLineChartProps {
-  data: MiniLineChartData;
-  theme?: PaletteName;
-  customPalette?: string[];
-  variant?: LineChartVariant;
-  strokeWidth?: number;
-  isAnimationActive?: boolean;
-  onLineClick?: (data: any) => void;
-  size?: number | string;
-  className?: string;
-  lineColor?: string;
-}
+const CLASS = `${CHART_CLASS_PREFIX}-mini-line-chart`;
 
-export const MiniLineChart = ({
+/**
+ * A compact, axis-free line sparkline: the most recent values that fit, one series, no dots.
+ */
+export function MiniLineChart({
   data,
-  theme = "ocean",
   customPalette,
-  variant: lineChartVariant = "natural",
+  variant = "natural",
   strokeWidth = 2,
-  isAnimationActive = true,
+  isAnimationActive = false,
   onLineClick,
   size = "100%",
   className,
   lineColor,
-}: MiniLineChartProps) => {
-  const printContext = usePrintContext();
-  isAnimationActive = printContext ? false : isAnimationActive;
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState<number>(0);
-
-  const variant = getLineType(lineChartVariant);
-
-  useEffect(() => {
-    if (!containerRef.current) {
-      return () => {};
-    }
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-
-    resizeObserver.observe(containerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
-  // Get the most recent data that fits in the container
-  const filteredData = useMemo(() => {
-    return getRecentDataThatFits(data, containerWidth);
-  }, [data, containerWidth]);
-
-  // Transform the filtered data to a consistent format for recharts
-  const chartData = useMemo(() => {
-    return transformDataForChart(filteredData);
-  }, [filteredData]);
-
-  const colors = useChartPalette({
-    chartThemeName: theme,
-    customPalette: customPalette || (lineColor ? [lineColor] : undefined),
+}: MiniLineChartProps) {
+  const animate = useEffectiveAnimation(isAnimationActive);
+  const [color = ""] = useChartPalette({
+    customPalette: customPalette ?? (lineColor ? [lineColor] : undefined),
     themePaletteName: "lineChartPalette",
     dataLength: 1,
   });
-
-  const transformedKeys = useMemo(() => ({ [DATA_KEY]: DATA_KEY }), []);
-
-  const chartConfig: ChartConfig = useMemo(() => {
-    return get2dChartConfig([DATA_KEY], colors, transformedKeys);
-  }, [colors, transformedKeys]);
+  const curve = miniCurves[variant] ?? miniCurves.natural;
+  const animated = animate ? ` ${CHART_CLASS_PREFIX}-mini-chart-mark--animated` : "";
 
   return (
-    <ChartContainer
-      config={chartConfig}
-      style={{
-        width: size,
-        height: size,
-        aspectRatio: 1 / 1,
-        minHeight: 100,
-        minWidth: 100,
+    <MiniChartFrame chart="line" size={size} className={className} onClick={onLineClick}>
+      {(width, height) => {
+        const { points, x, y } = miniLineGeometry(data, width, height);
+        const lineD =
+          line<MiniChartPoint>()
+            .x((_, i) => x(i))
+            .y((p) => y(p.value))
+            .curve(curve)(points) ?? "";
+        return (
+          <path
+            className={`${CLASS}-line${animated}`}
+            d={lineD}
+            fill="none"
+            stroke={color}
+            strokeWidth={strokeWidth}
+          />
+        );
       }}
-      rechartsProps={{
-        aspect: 1 / 1,
-      }}
-      onClick={onLineClick}
-      ref={containerRef}
-      className={clsx("openui-charts-mini-line-chart-container", className)}
-    >
-      <RechartsLineChart
-        accessibilityLayer
-        data={chartData}
-        margin={{
-          top: 10,
-        }}
-      >
-        <XAxis dataKey="label" hide={true} />
-
-        <Line
-          dataKey={DATA_KEY}
-          type={variant}
-          stroke={`var(--color-${DATA_KEY})`}
-          strokeWidth={strokeWidth}
-          dot={false}
-          isAnimationActive={isAnimationActive}
-        />
-      </RechartsLineChart>
-    </ChartContainer>
+    </MiniChartFrame>
   );
-};
+}

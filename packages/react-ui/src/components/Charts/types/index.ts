@@ -1,3 +1,2 @@
 export * from "./common";
-export * from "./Legend";
-export * from "./XAxisTicks";
+export type { ExportChartData } from "./exportChartData";

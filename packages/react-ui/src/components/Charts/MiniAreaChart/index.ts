@@ -1,2 +1,2 @@
-export * from "./MiniAreaChart";
-export * from "./types";
+export { MiniAreaChart } from "./MiniAreaChart";
+export type { MiniAreaChartData, MiniAreaChartProps } from "./types";

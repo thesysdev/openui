@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
+import { PieChart, PieChartProps } from "../..";
 import { Card } from "../../../Card";
-import { PieChart, PieChartProps } from "../PieChart";
 
 const monthlySalesData = [
   { month: "January", value: 1250 },
@@ -58,7 +58,7 @@ const comprehensiveData = [
  * - **Responsive Design**: Fluidly adjusts to the size of its container
  *
  * ### Customization
- * - **Theming**: Six pre-built color palettes to match your application's design
+ * - **Colors**: Uses the ThemeProvider's chart palette, or custom colors with `customPalette`
  * - **Styling Options**: Control corner radius, padding between slices, and more
 
  */
@@ -81,7 +81,6 @@ import { PieChart } from '@openuidev/react-ui/Charts/PieChart';
   data={yourData}
   categoryKey="category"
   dataKey="value"
-  theme="ocean"
 />
 \`\`\`
 
@@ -144,19 +143,9 @@ const salesData = [
         category: "📊 Data Configuration",
       },
     },
-    theme: {
-      description:
-        "The color palette for the chart. Provides a set of aesthetically pleasing colors.",
-      control: "select",
-      options: ["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"],
-      table: {
-        defaultValue: { summary: "ocean" },
-        category: "🎨 Visual Styling",
-      },
-    },
     customPalette: {
       description:
-        "An array of color strings to use as a custom palette for the chart. This overrides the `theme` prop.",
+        "An array of color strings to use as a custom palette for the chart. This overrides the ThemeProvider's chart palette.",
       control: "object",
       table: {
         type: { summary: "string[]" },
@@ -276,7 +265,6 @@ export const InteractivePlayground: Story = {
     data: monthlySalesData,
     categoryKey: "month",
     dataKey: "value",
-    theme: "ocean",
     variant: "pie",
     format: "number",
     legend: true,
@@ -299,7 +287,7 @@ export const InteractivePlayground: Story = {
  *
  * **Key Features Shown:**
  * - Standard circular pie layout
- * - Professional 'ocean' color theme
+ * - Chart palette from the ThemeProvider
  * - Responsive stacked legend for clarity
  * - Smooth animations on load
  */
@@ -309,7 +297,6 @@ export const DefaultConfiguration: Story = {
     data: monthlySalesData,
     categoryKey: "month",
     dataKey: "value",
-    theme: "ocean",
     variant: "pie",
     format: "number",
     legend: true,
@@ -345,7 +332,6 @@ export const LayoutAndVariantOptions: Story = {
     data: monthlySalesData.slice(0, 4),
     categoryKey: "month",
     dataKey: "value",
-    theme: "emerald",
     legend: true,
     legendVariant: "stacked",
     isAnimationActive: false,
@@ -427,7 +413,6 @@ export const LargeDatasetWithCarousel: Story = {
     data: comprehensiveData,
     categoryKey: "category",
     dataKey: "sales",
-    theme: "spectrum",
     variant: "donut",
     legend: true,
     legendVariant: "stacked",
@@ -447,7 +432,6 @@ export const ResponsiveDemo: Story = {
     data: comprehensiveData,
     categoryKey: "category",
     dataKey: "sales",
-    theme: "spectrum",
     variant: "circular",
     format: "number",
     legend: true,

@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Shield, Star, Target } from "lucide-react";
 import { useState } from "react";
+import { RadarChart, RadarChartProps } from "../..";
 import { Card } from "../../../Card";
-import { RadarChart, RadarChartProps } from "../RadarChart";
 
 // 📊 COMPREHENSIVE DATA VARIATIONS - Designed to test various radar chart scenarios
 const dataVariations = {
@@ -101,7 +101,6 @@ import { RadarChart } from '@openuidev/react-ui/Charts/RadarChart';
 <RadarChart
   data={yourData}
   categoryKey="category"
-  theme="ocean"
   variant="line"
 />
 
@@ -132,8 +131,8 @@ const exampleData = [
 
 - **Multiple Data Series**: Compare several datasets on the same chart.
 - **Two Visual Variants**: Choose between 'line' and 'area' styles.
-- **Customizable Appearance**: Control colors, stroke width, and area opacity.
-- **Custom Color Palettes**: Use predefined themes or provide your own custom colors.
+- **Customizable Appearance**: Control colors and area opacity.
+- **Custom Color Palettes**: Use the ThemeProvider's chart palette or provide your own custom colors.
 - **Interactive Legend**: Toggle visibility of data series.
 - **Icon Support**: Add custom icons to legend items for better visual identification.
 - **Animation**: Smooth animations for loading and data transitions.
@@ -174,27 +173,8 @@ const exampleData = [
         category: "📊 Data Configuration",
       },
     },
-    theme: {
-      description: `
-**Color Theme Selection.** Choose from professionally designed color palettes. Ignored when customPalette is provided.
-
-- **ocean**: Cool blues and teals (professional, corporate)
-- **orchid**: Purple and pink tones (creative, modern)
-- **emerald**: Green variations (nature, growth, finance)
-- **sunset**: Warm oranges and reds (energy, attention-grabbing)
-- **spectrum**: Full color range (diverse, comprehensive)
-- **vivid**: High-contrast colors (accessibility, clarity)
-`,
-      control: "select",
-      options: ["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"],
-      table: {
-        defaultValue: { summary: "ocean" },
-        category: "🎨 Visual Styling",
-      },
-    },
     customPalette: {
-      description:
-        "Custom array of colors to use instead of the theme palette. Overrides the theme prop when provided.",
+      description: "Custom array of colors to use instead of the ThemeProvider's chart palette.",
       control: "object",
       table: {
         type: { summary: "string[]" },
@@ -243,17 +223,6 @@ const exampleData = [
         type: { summary: "boolean" },
         defaultValue: { summary: "true" },
         category: "📱 Display Options",
-      },
-    },
-    strokeWidth: {
-      description: `
-**Line Thickness.** Sets the width of the radar lines for the 'line' variant and the border for the 'area' variant.
-`,
-      control: { type: "number", min: 1, max: 10 },
-      table: {
-        type: { summary: "number" },
-        defaultValue: { summary: "2" },
-        category: "🎨 Visual Styling",
       },
     },
     areaOpacity: {
@@ -330,11 +299,9 @@ export const DefaultConfiguration: Story = {
   args: {
     data: dataVariations.performance,
     categoryKey: "metric",
-    theme: "ocean",
     variant: "line",
     grid: true,
     legend: true,
-    strokeWidth: 2,
     isAnimationActive: true,
   },
   render: (args: any) => (
@@ -359,7 +326,7 @@ This is the recommended starting configuration for most use cases. The chart dis
 **Configuration Details:**
 - **Data**: Team performance metrics.
 - **Variant**: 'line' for clear comparison between series.
-- **Colors**: 'ocean' theme (blues and teals).
+- **Colors**: The ThemeProvider's chart palette.
 - **Legend**: Enabled to identify data series.
 - **Animations**: Enabled for smooth interactions.
         `,
@@ -373,11 +340,9 @@ export const SkillsAssessment: Story = {
   args: {
     data: dataVariations.default,
     categoryKey: "skill",
-    theme: "orchid",
     variant: "area",
     grid: true,
     legend: true,
-    strokeWidth: 2,
     areaOpacity: 0.4,
     isAnimationActive: true,
   },
@@ -409,11 +374,9 @@ export const TeamPerformance: Story = {
   args: {
     data: dataVariations.performance,
     categoryKey: "metric",
-    theme: "emerald",
     variant: "line",
     grid: true,
     legend: true,
-    strokeWidth: 3,
     isAnimationActive: true,
     icons: {
       team_a: Shield,
@@ -438,7 +401,7 @@ export const TeamPerformance: Story = {
     docs: {
       description: {
         story:
-          "This chart demonstrates how to enhance the legend with custom icons. It's an effective way to visually associate data series with specific entities, like teams or products. The thicker stroke width also improves line visibility.",
+          "This chart demonstrates how to enhance the legend with custom icons. It's an effective way to visually associate data series with specific entities, like teams or products.",
       },
     },
   },
@@ -449,11 +412,9 @@ export const BusinessMetrics: Story = {
   args: {
     data: dataVariations.businessMetrics,
     categoryKey: "department",
-    theme: "sunset",
     variant: "area",
     grid: true,
     legend: true,
-    strokeWidth: 2,
     areaOpacity: 0.4,
     isAnimationActive: true,
   },
@@ -483,11 +444,9 @@ export const BusinessMetrics: Story = {
 export const InteractivePlayground: Story = {
   name: "🧪 Interactive Playground",
   args: {
-    theme: "ocean",
     variant: "line",
     grid: true,
     legend: true,
-    strokeWidth: 2,
     areaOpacity: 0.5,
     isAnimationActive: true,
   },
@@ -561,60 +520,9 @@ export const InteractivePlayground: Story = {
       description: {
         story: `
 Use the buttons to switch between different datasets and explore how the RadarChart adapts.
-You can also use the Storybook controls to change theme, variant, and other properties in real-time.
+You can also use the Storybook controls to change variant and other properties in real-time.
 This playground is designed for testing various configurations and edge cases.
 `,
-      },
-    },
-  },
-};
-
-export const ThemeShowcase: Story = {
-  name: "🎨 Theme Showcase",
-  args: {
-    data: dataVariations.productFeatures,
-    categoryKey: "feature",
-    variant: "area",
-    grid: true,
-    legend: true,
-    strokeWidth: 2,
-    areaOpacity: 0.6,
-    isAnimationActive: false,
-  },
-  render: (args: any) => (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: "24px",
-        width: "900px",
-      }}
-    >
-      {(["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"] as const).map((theme) => (
-        <div key={theme}>
-          <h4
-            style={{
-              textAlign: "center",
-              marginBottom: "12px",
-              textTransform: "capitalize",
-              fontSize: "14px",
-              fontWeight: 600,
-            }}
-          >
-            {theme}
-          </h4>
-          <Card style={{ height: "fit-content", padding: "12px" }}>
-            <RadarChart {...args} theme={theme} />
-          </Card>
-        </div>
-      ))}
-    </div>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "This story showcases all available color themes. Each theme provides a professionally curated palette suitable for different branding and data contexts. Animations are disabled for quicker comparison.",
       },
     },
   },
@@ -644,11 +552,9 @@ export const CustomPaletteStory: Story = {
       "#B4C6FF",
       "#CBD7FF",
     ],
-    theme: "ocean", // This will be overridden by customPalette
     variant: "area",
     grid: true,
     legend: true,
-    strokeWidth: 3,
     isAnimationActive: true,
   },
   render: (args: any) => (
@@ -712,7 +618,7 @@ export const CustomPaletteStory: Story = {
     docs: {
       description: {
         story:
-          'Demonstrates how to use the `customPalette` prop to provide your own color scheme for the radar chart. When `customPalette` is provided, it overrides the `theme` prop and uses your specified colors instead of the predefined theme palettes.\n\n**Key Features:**\n- 🎨 **Custom Colors**: Override default theme colors with your own palette\n- 🔄 **Theme Override**: The `theme` prop is ignored when `customPalette` is provided\n- 📊 **Consistent Distribution**: Colors are distributed evenly across data series\n- 🎯 **Brand Matching**: Perfect for matching your application\'s brand colors\n\n**Usage:**\n```tsx\n<RadarChart\n  data={data}\n  categoryKey="metric"\n  customPalette={["#FF6B6B", "#4ECDC4", "#45B7D1"]}\n  // theme prop is ignored when customPalette is provided\n/>\n```',
+          'Demonstrates how to use the `customPalette` prop to provide your own color scheme for the radar chart. When `customPalette` is provided, it overrides the ThemeProvider\'s chart palette and uses your specified colors instead.\n\n**Key Features:**\n- 🎨 **Custom Colors**: Override the default chart colors with your own palette\n- 📊 **Consistent Distribution**: Colors are distributed evenly across data series\n- 🎯 **Brand Matching**: Perfect for matching your application\'s brand colors\n\n**Usage:**\n```tsx\n<RadarChart\n  data={data}\n  categoryKey="metric"\n  customPalette={["#FF6B6B", "#4ECDC4", "#45B7D1"]}\n/>\n```',
       },
     },
   },

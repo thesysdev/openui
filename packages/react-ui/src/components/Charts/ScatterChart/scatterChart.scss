@@ -1,42 +1,56 @@
 @use "../../../cssUtils" as cssUtils;
+@use "../shared/cartesian/chartBase" as base;
+@use "../prefix" as brand;
 
-.openui-scatter-chart-container {
-  position: relative;
-  width: 100%;
-  height: auto;
-  display: flex;
-  flex-direction: column;
-}
-.openui-scatter-chart-container-inner {
-  position: relative;
-  display: flex;
-  width: 100%;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.openui-scatter-chart-x-axis-container {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  flex-shrink: 0;
-  width: 100%;
-}
-.openui-scatter-chart-y-axis-container {
-  flex-shrink: 0;
+@include base.centered-container("scatter-chart");
+
+.#{brand.$prefix}-scatter-chart-grid line {
+  stroke: cssUtils.$border-default;
+  stroke-dasharray: 3 3;
 }
 
-.openui-scatter-chart-main-and-x-axis-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+.#{brand.$prefix}-scatter-chart-grid line.#{brand.$prefix}-grid-zero-line {
+  stroke-dasharray: none;
 }
 
-.openui-scatter-chart-main-container {
-  width: 100%;
-  overflow: hidden;
-  margin-bottom: 45px;
+.#{brand.$prefix}-scatter-chart-grid-vertical line {
+  stroke: cssUtils.$border-default;
+  stroke-dasharray: 3 3;
 }
 
-.openui-scatter-chart-legend-container {
-  border-top: 1px solid cssUtils.$border-default;
+.#{brand.$prefix}-scatter-chart-y-tick {
+  @include base.svg-tick-label;
+}
+
+.#{brand.$prefix}-scatter-chart-x-tick {
+  @include base.svg-tick-label;
+}
+
+.#{brand.$prefix}-scatter-chart-dot {
+  stroke: cssUtils.$foreground;
+  stroke-width: 1.5;
+  transition:
+    r 0.15s ease,
+    fill-opacity 0.15s ease,
+    stroke-opacity 0.15s ease;
+}
+
+// Entrances are decorative: gate the whole rule (pre-state included) behind
+// reduced-motion so users who opt out get the natural static state immediately
+// — gating only the animation would strand elements at the opacity: 0 start.
+@media (prefers-reduced-motion: no-preference) {
+  .#{brand.$prefix}-scatter-chart-dot--animated {
+    opacity: 0;
+    animation: #{brand.$prefix}-scatter-dot-appear 0.4s ease-out forwards;
+  }
+}
+
+@keyframes #{brand.$prefix}-scatter-dot-appear {
+  from {
+    opacity: 0;
+    r: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

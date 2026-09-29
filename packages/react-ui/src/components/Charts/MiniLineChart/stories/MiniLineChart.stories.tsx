@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { MiniLineChart } from "../..";
 import { Card } from "../../../Card";
-import { MiniLineChart } from "../MiniLineChart";
 
 // Simple array of numbers for 1D line chart
 const simpleLineChartData = [
@@ -46,16 +46,6 @@ const meta: Meta<typeof MiniLineChart> = {
         type: { summary: "Array<number> | Array<{ value: number; label?: string }>" },
         defaultValue: { summary: "[]" },
         category: "Data",
-      },
-    },
-    theme: {
-      description:
-        "The color palette theme for the chart. Each theme provides a different color for the line.",
-      control: "select",
-      options: ["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"],
-      table: {
-        defaultValue: { summary: "ocean" },
-        category: "Appearance",
       },
     },
     variant: {
@@ -113,7 +103,6 @@ export const SimpleNumberArray: Story = {
   name: "Simple Number Array",
   args: {
     data: simpleLineChartData,
-    theme: "ocean",
     variant: "natural",
     strokeWidth: 2,
     isAnimationActive: true,
@@ -133,7 +122,6 @@ const activityData = [12, 45, 78, 32, 67, 89, 23, 56, 91, 34];
 
 <MiniLineChart 
   data={activityData}
-  theme="ocean"
   variant="natural"
   strokeWidth={2}
   isAnimationActive={true}
@@ -149,7 +137,6 @@ export const LabeledData: Story = {
   name: "Labeled Data",
   args: {
     data: labeledLineChartData,
-    theme: "emerald",
     variant: "natural",
     strokeWidth: 2,
     isAnimationActive: true,
@@ -174,7 +161,6 @@ const revenueData = [
 
 <MiniLineChart 
   data={revenueData}
-  theme="emerald"
   variant="natural"
   strokeWidth={2}
   size="100%"

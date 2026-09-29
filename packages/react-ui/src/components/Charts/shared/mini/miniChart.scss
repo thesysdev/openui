@@ -1,0 +1,27 @@
+@use "../cartesian/chartBase" as base;
+@use "../../prefix" as brand;
+
+// The mini charts' frame (MiniChartFrame): square, at least 100px each way.
+.#{brand.$prefix}-mini-chart {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  min-width: 100px;
+  min-height: 100px;
+
+  > svg {
+    display: block;
+  }
+
+  &--clickable {
+    cursor: pointer;
+  }
+}
+
+// Entrance: marks fade in. The whole rule is gated so reduced-motion users
+// never sit at the opacity: 0 start.
+@media (prefers-reduced-motion: no-preference) {
+  .#{brand.$prefix}-mini-chart-mark--animated {
+    opacity: 0;
+    animation: #{brand.$prefix}-fade-appear 0.6s ease-out forwards;
+  }
+}

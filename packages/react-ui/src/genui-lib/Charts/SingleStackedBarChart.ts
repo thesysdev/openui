@@ -3,7 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod/v4";
-import { SegmentedBar as SegmentedBarComponent } from "../../components/D3Charts";
+import { SegmentedBar as SegmentedBarComponent } from "../../components/Charts";
 import { asArray, buildSliceData } from "../helpers";
 
 export const SingleStackedBarChartSchema = z.object({

@@ -1,25 +1,33 @@
-@use "../../../cssUtils" as cssUtils;
+@use "../shared/cartesian/chartBase" as base;
+@use "../prefix" as brand;
 
-.openui-area-chart-container-inner {
-  display: flex;
-  width: 100%;
+@include base.chart-base("area-chart");
+@include base.crosshair-styles("area-chart");
+
+// No `transition: d` here: data-change motion is the spring data morph in
+// AreaSeries (gated on isAnimationActive). A CSS transition restarted from
+// progress 0 on every attribute write, so per-frame streaming rewrites pinned
+// the rendered geometry (and would fight the morph's per-tick writes).
+.#{brand.$prefix}-area-chart-area-path {
+  transition: opacity 0.2s ease;
 }
 
-.openui-area-chart-y-axis-container {
-  flex-shrink: 0;
+.#{brand.$prefix}-area-chart-area-line {
+  fill: none;
+  stroke-width: 2;
 }
 
-.openui-area-chart-main-container {
-  width: 100%;
-  overflow-x: auto;
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  &::-webkit-scrollbar {
-    display: none;
+// Entrances are decorative: gate the whole rule (pre-state included) behind
+// reduced-motion so users who opt out get the natural static state immediately
+// — gating only the animation would strand elements at the opacity: 0 start.
+@media (prefers-reduced-motion: no-preference) {
+  .#{brand.$prefix}-area-chart-area-line--animated {
+    stroke-dasharray: var(--path-length);
+    stroke-dashoffset: var(--path-length);
+    animation: #{brand.$prefix}-draw-line 1s ease-out forwards;
   }
-
-  /* Hide scrollbar for Firefox */
-  scrollbar-width: none;
-
-  /* Hide scrollbar for IE and Edge */
-  -ms-overflow-style: none;
+  .#{brand.$prefix}-area-chart-area-path--animated {
+    opacity: 0;
+    animation: #{brand.$prefix}-fade-appear 0.6s ease-out 0.4s forwards;
+  }
 }

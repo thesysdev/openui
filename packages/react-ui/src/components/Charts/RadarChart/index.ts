@@ -1,2 +1,2 @@
-export * from "./RadarChart";
-export * from "./types";
+export { RadarChart } from "./RadarChart";
+export type { RadarChartData, RadarChartProps } from "./types";

@@ -1,10 +1,4 @@
-/**
- * This function returns the formatter for the Y-axis tick values.
- * @returns The formatter for the Y-axis tick values.
- * internally used by the YAxis component reCharts
- */
 const numberTickFormatter = (value: number) => {
-  // Format the Y-axis tick values with abbreviations
   if (typeof value === "number") {
     const absValue = Math.abs(value);
 
@@ -17,7 +11,6 @@ const numberTickFormatter = (value: number) => {
     } else if (absValue >= 1e3) {
       return (value / 1e3).toFixed(absValue >= 10e3 ? 0 : 1) + "K";
     } else {
-      // For values < 1000, show only 1 decimal place if there's a decimal
       if (value % 1 !== 0) {
         return value.toFixed(2);
       }
@@ -27,4 +20,26 @@ const numberTickFormatter = (value: number) => {
   return String(value);
 };
 
-export { numberTickFormatter };
+const DEFAULT_MIN_Y_AXIS_WIDTH = 20;
+const DEFAULT_MAX_Y_AXIS_WIDTH = 200;
+const DEFAULT_Y_AXIS_PADDING = 10;
+
+const measureYAxisWidth = (
+  ticks: number[],
+  context: CanvasRenderingContext2D,
+  options?: { minWidth?: number; maxWidth?: number; padding?: number },
+): number => {
+  const minWidth = options?.minWidth ?? DEFAULT_MIN_Y_AXIS_WIDTH;
+  const maxWidth = options?.maxWidth ?? DEFAULT_MAX_Y_AXIS_WIDTH;
+  const padding = options?.padding ?? DEFAULT_Y_AXIS_PADDING;
+
+  let maxTextWidth = 0;
+  for (const tick of ticks) {
+    const w = context.measureText(numberTickFormatter(tick)).width;
+    if (w > maxTextWidth) maxTextWidth = w;
+  }
+
+  return Math.max(minWidth, Math.min(maxWidth, Math.ceil(maxTextWidth) + padding));
+};
+
+export { measureYAxisWidth, numberTickFormatter };

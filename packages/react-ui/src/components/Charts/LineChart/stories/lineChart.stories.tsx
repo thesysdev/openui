@@ -10,8 +10,8 @@ import {
   Watch,
 } from "lucide-react";
 import { useState } from "react";
+import { LineChart, LineChartProps } from "../..";
 import { Card } from "../../../Card";
-import { LineChart, LineChartProps } from "../LineChart";
 
 const customColorPalette = [
   "#0A0E60",
@@ -481,9 +481,9 @@ const icons = {
  * - **Responsive Design**: Fluidly adjusts to any container size, from small widgets to large dashboards.
  *
  * ### Customization
- * - **Theming**: Six pre-built color palettes to fit your application's design, or use custom colors with `customPalette`.
+ * - **Colors**: Uses the ThemeProvider's chart palette, or custom colors with `customPalette`.
  * - **Line Styles**: Supports `linear`, `natural` (smooth), and `step` variants.
- * - **Styling Options**: Control stroke width, grid visibility, and more.
+ * - **Styling Options**: Control grid visibility, axes, and more.
  */
 const meta: Meta<LineChartProps<typeof lineChartV2Data>> = {
   title: "Components/Charts/ScrollableLineChart",
@@ -508,7 +508,6 @@ const timeSeriesData = [
 <ScrollableLineChart
   data={timeSeriesData}
   categoryKey="month"
-  theme="ocean"
 />
 
 // With custom colors
@@ -568,19 +567,8 @@ const salesData = [
         category: "📊 Data Configuration",
       },
     },
-    theme: {
-      description:
-        "Specifies the color palette for the chart's lines, tooltips, and legend. Ignored when customPalette is provided.",
-      control: "select",
-      options: ["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"],
-      table: {
-        defaultValue: { summary: "ocean" },
-        category: "🎨 Visual Styling",
-      },
-    },
     customPalette: {
-      description:
-        "Custom array of colors to use instead of the theme palette. Overrides the theme prop when provided.",
+      description: "Custom array of colors to use instead of the ThemeProvider's chart palette.",
       control: "object",
       table: {
         type: { summary: "string[]" },
@@ -593,14 +581,6 @@ const salesData = [
       options: ["linear", "natural", "step"],
       table: {
         defaultValue: { summary: "natural" },
-        category: "🎨 Visual Styling",
-      },
-    },
-    strokeWidth: {
-      description: "Controls the thickness of the lines in pixels.",
-      control: { type: "number", min: 1, max: 10, step: 1 },
-      table: {
-        defaultValue: { summary: "2" },
         category: "🎨 Visual Styling",
       },
     },
@@ -708,13 +688,11 @@ export const DataExplorer: Story = {
   args: {
     data: lineChartV2Data,
     categoryKey: "month",
-    theme: "ocean",
     variant: "natural",
     grid: true,
     legend: true,
     isAnimationActive: true,
     showYAxis: true,
-    strokeWidth: 2,
   },
   render: (args: any) => {
     const [selectedDataType, setSelectedDataType] =
@@ -839,12 +817,10 @@ export const BigLabelsStory: Story = {
   args: {
     data: dataVariations.bigLabels as any,
     categoryKey: "category" as any,
-    theme: "emerald",
     variant: "natural",
     grid: true,
     legend: true,
     showYAxis: true,
-    strokeWidth: 3,
   },
   render: (args: any) => (
     <Card style={{ width: "600px" }}>
@@ -865,13 +841,11 @@ export const DenseTimelineStory: Story = {
   args: {
     data: dataVariations.denseTimeline as any,
     categoryKey: "period" as any,
-    theme: "sunset",
     variant: "natural",
     grid: true,
     legend: true,
     isAnimationActive: true,
     showYAxis: true,
-    strokeWidth: 2,
   },
   render: (args: any) => (
     <Card style={{ width: "500px" }}>
@@ -889,41 +863,6 @@ export const DenseTimelineStory: Story = {
 };
 
 /**
- * ## Stroke and Style Customization
- *
- * This story showcases how to customize the appearance of the lines.
- * You can adjust properties like `strokeWidth` to create different visual effects.
- */
-export const StrokeCustomizationStory: Story = {
-  name: "🎨 Stroke Customization",
-  args: {
-    data: dataVariations.default as any,
-    categoryKey: "month" as any,
-    theme: "vivid",
-    variant: "natural",
-    grid: true,
-    legend: true,
-    showYAxis: true,
-  },
-  render: (args: any) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-      <div>
-        <h4>Default Lines (strokeWidth: 2)</h4>
-        <Card style={{ width: "500px" }}>
-          <LineChart {...args} strokeWidth={2} />
-        </Card>
-      </div>
-      <div>
-        <h4>Thick Lines (strokeWidth: 4)</h4>
-        <Card style={{ width: "500px" }}>
-          <LineChart {...args} strokeWidth={4} />
-        </Card>
-      </div>
-    </div>
-  ),
-};
-
-/**
  * ## Line Variants
  *
  * Compares the three available line variants:
@@ -936,12 +875,10 @@ export const VariantComparisonStory: Story = {
   args: {
     data: dataVariations.minimal as any,
     categoryKey: "category" as any,
-    theme: "orchid",
     grid: true,
     legend: true,
     isAnimationActive: true,
     showYAxis: true,
-    strokeWidth: 3,
   },
   render: (args: any) => (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -990,13 +927,11 @@ export const CustomPaletteStory: Story = {
     data: dataVariations.default as any,
     categoryKey: "month" as any,
     customPalette: customColorPalette,
-    theme: "ocean", // This will be overridden by customPalette
     variant: "natural",
     grid: true,
     legend: true,
     isAnimationActive: true,
     showYAxis: true,
-    strokeWidth: 2,
     xAxisLabel: "Month",
     yAxisLabel: "Traffic",
   },
@@ -1053,7 +988,7 @@ export const CustomPaletteStory: Story = {
     docs: {
       description: {
         story:
-          'Demonstrates how to use the `customPalette` prop to provide your own color scheme for the chart. When `customPalette` is provided, it overrides the `theme` prop and uses your specified colors instead of the predefined theme palettes.\n\n**Key Features:**\n- 🎨 **Custom Colors**: Override default theme colors with your own palette\n- 🔄 **Theme Override**: The `theme` prop is ignored when `customPalette` is provided\n- 📊 **Consistent Distribution**: Colors are distributed evenly across data series\n- 🎯 **Brand Matching**: Perfect for matching your application\'s brand colors\n\n**Usage:**\n```tsx\n<LineChart\n  data={data}\n  categoryKey="month"\n  customPalette={["#FF6B6B", "#4ECDC4", "#45B7D1"]}\n  // theme prop is ignored when customPalette is provided\n/>\n```',
+          'Demonstrates how to use the `customPalette` prop to provide your own color scheme for the chart. When `customPalette` is provided, it overrides the ThemeProvider\'s chart palette and uses your specified colors instead.\n\n**Key Features:**\n- 🎨 **Custom Colors**: Override the default chart colors with your own palette\n- 📊 **Consistent Distribution**: Colors are distributed evenly across data series\n- 🎯 **Brand Matching**: Perfect for matching your application\'s brand colors\n\n**Usage:**\n```tsx\n<LineChart\n  data={data}\n  categoryKey="month"\n  customPalette={["#FF6B6B", "#4ECDC4", "#45B7D1"]}\n/>\n```',
       },
     },
   },
@@ -1071,13 +1006,11 @@ export const ExpandCollapseMarketingStory: Story = {
   args: {
     data: dataVariations.expandCollapseMarketing as any,
     categoryKey: "channel" as any,
-    theme: "spectrum",
     variant: "natural",
     grid: true,
     legend: true,
     isAnimationActive: true,
     showYAxis: true,
-    strokeWidth: 2,
   },
   render: (args: any) => (
     <Card style={{ width: "600px" }}>
@@ -1110,13 +1043,11 @@ export const ResponsiveBehaviorDemo: Story = {
   args: {
     data: dataVariations.bigLabels as any,
     categoryKey: "category" as any,
-    theme: "sunset",
     variant: "natural",
     grid: true,
     legend: true,
     isAnimationActive: false,
     showYAxis: true,
-    strokeWidth: 2,
   },
   render: (args: any) => {
     const [dimensions, setDimensions] = useState<{ width: number; height: number | string }>({

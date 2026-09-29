@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { MiniAreaChart } from "../..";
 import { Card } from "../../../Card";
-import { MiniAreaChart } from "../MiniAreaChart";
 
 // Simple array of numbers for 1D area chart
 const simpleAreaChartData = [
@@ -48,16 +48,6 @@ const meta: Meta<typeof MiniAreaChart> = {
         type: { summary: "Array<number> | Array<{ value: number; label?: string }>" },
         defaultValue: { summary: "[]" },
         category: "Data",
-      },
-    },
-    theme: {
-      description:
-        "The color palette theme for the chart. Each theme provides a different color for the area.",
-      control: "select",
-      options: ["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"],
-      table: {
-        defaultValue: { summary: "ocean" },
-        category: "Appearance",
       },
     },
     variant: {
@@ -126,7 +116,6 @@ export const SimpleNumberArray: Story = {
   name: "Simple Number Array (With Gradient)",
   args: {
     data: simpleAreaChartData,
-    theme: "ocean",
     variant: "natural",
     opacity: 0.5,
     useGradient: true,
@@ -147,7 +136,6 @@ const activityData = [12, 45, 78, 32, 67, 89, 23, 56, 91, 34];
 
 <MiniAreaChart 
   data={activityData}
-  theme="ocean"
   variant="natural"
   useGradient={true}
   isAnimationActive={true}
@@ -163,7 +151,6 @@ export const LabeledData: Story = {
   name: "Labeled Data (With Gradient)",
   args: {
     data: labeledAreaChartData,
-    theme: "emerald",
     variant: "natural",
     opacity: 0.6,
     useGradient: true,
@@ -189,7 +176,6 @@ const revenueData = [
 
 <MiniAreaChart 
   data={revenueData}
-  theme="emerald"
   variant="natural"
   useGradient={true}
   size="100%"
@@ -204,7 +190,6 @@ export const WithoutGradient: Story = {
   name: "Solid Fill (Without Gradient)",
   args: {
     data: simpleAreaChartData.slice(0, 15),
-    theme: "sunset",
     variant: "natural",
     opacity: 0.4,
     useGradient: false,
@@ -223,7 +208,6 @@ export const WithoutGradient: Story = {
         code: `
 <MiniAreaChart 
   data={data}
-  theme="sunset"
   variant="natural"
   opacity={0.4}
   useGradient={false}
@@ -245,7 +229,6 @@ export const GradientComparison: Story = {
         </h4>
         <MiniAreaChart
           data={[20, 45, 35, 80, 60, 90, 45, 70, 85, 30]}
-          theme="orchid"
           variant="natural"
           useGradient={true}
           size={200}
@@ -255,7 +238,6 @@ export const GradientComparison: Story = {
         <h4 style={{ marginBottom: "12px", fontSize: "14px", fontWeight: "600" }}>Solid Fill</h4>
         <MiniAreaChart
           data={[20, 45, 35, 80, 60, 90, 45, 70, 85, 30]}
-          theme="orchid"
           variant="natural"
           useGradient={false}
           opacity={0.3}
@@ -270,7 +252,6 @@ export const ResponsiveData: Story = {
   name: "Responsive Data Filtering",
   args: {
     data: simpleAreaChartData,
-    theme: "orchid",
     variant: "natural",
     opacity: 0.4,
     useGradient: true,
@@ -303,45 +284,16 @@ export const DifferentSizes: Story = {
     <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
       <Card style={{ width: "120px", padding: "12px" }}>
         <h4 style={{ marginBottom: "8px", fontSize: "12px", fontWeight: "600" }}>Small</h4>
-        <MiniAreaChart data={[15, 25, 20, 35, 30, 18, 22]} theme="sunset" size={80} />
+        <MiniAreaChart data={[15, 25, 20, 35, 30, 18, 22]} size={80} />
       </Card>
       <Card style={{ width: "200px", padding: "16px" }}>
         <h4 style={{ marginBottom: "12px", fontSize: "14px", fontWeight: "600" }}>Medium</h4>
-        <MiniAreaChart data={simpleAreaChartData.slice(0, 10)} theme="spectrum" size={160} />
+        <MiniAreaChart data={simpleAreaChartData.slice(0, 10)} size={160} />
       </Card>
       <Card style={{ width: "280px", padding: "20px" }}>
         <h4 style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "600" }}>Large</h4>
-        <MiniAreaChart data={simpleAreaChartData} theme="vivid" size={240} />
+        <MiniAreaChart data={simpleAreaChartData} size={240} />
       </Card>
-    </div>
-  ),
-};
-
-export const DifferentThemes: Story = {
-  name: "Different Themes (All With Gradients)",
-  render: () => (
-    <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-      {(["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"] as const).map((theme) => (
-        <Card key={theme} style={{ width: "200px", padding: "16px" }}>
-          <h4
-            style={{
-              marginBottom: "12px",
-              fontSize: "14px",
-              fontWeight: "600",
-              textTransform: "capitalize",
-            }}
-          >
-            {theme} Theme
-          </h4>
-          <MiniAreaChart
-            data={[15, 25, 20, 35, 30, 18, 22, 28, 33, 19]}
-            theme={theme}
-            variant="natural"
-            useGradient={true}
-            size={160}
-          />
-        </Card>
-      ))}
     </div>
   ),
 };
@@ -364,7 +316,6 @@ export const DifferentVariants: Story = {
           </h4>
           <MiniAreaChart
             data={[15, 35, 25, 45, 30, 50, 28, 42, 38, 29]}
-            theme="spectrum"
             variant={variant}
             useGradient={true}
             size={180}
@@ -379,7 +330,6 @@ export const CustomColor: Story = {
   name: "Custom Color with Gradient",
   args: {
     data: [20, 45, 28, 80, 99, 43, 67, 23, 89, 56],
-    theme: "ocean",
     variant: "natural",
     opacity: 0.7,
     areaColor: "#ff6b6b",

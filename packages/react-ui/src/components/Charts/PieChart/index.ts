@@ -1,2 +1,2 @@
-export * from "./PieChart";
-export * from "./types";
+export { PieChart } from "./PieChart";
+export type { PieChartData, PieChartProps } from "./types";
