@@ -1,19 +1,18 @@
-import { rejectOtherOrigins } from "../../../lib/local-origin";
-
 export const runtime = "nodejs";
-
-// This example has no sign-in, so every browser shares one local user. Use the signed-in
-// user's id instead when you add authentication.
-const userId = "local-demo";
-// Keeps this example's threads apart from other apps that use the same key.
-const appId = "conversational-analytics-cookbook";
 
 // Mints the short-lived frontend token that useOpenuiCloudStorage() sends with its
 // Conversations API calls. Gateway scopes the token to one user and app, so the browser
 // reaches only those threads and never sees THESYS_API_KEY.
 export async function POST(request: Request) {
-  const denied = rejectOtherOrigins(request);
-  if (denied) return denied;
+  // This example has no authentication, so it accepts browser requests only from its own
+  // local page. Add authentication and rate limits before deploying it.
+  const { port } = new URL(request.url);
+  const origin = request.headers.get("origin");
+  if (origin && origin !== `http://127.0.0.1:${port}` && origin !== `http://localhost:${port}`)
+    return Response.json(
+      { error: "This example only accepts requests from its local chat interface." },
+      { status: 403 },
+    );
   const apiKey = process.env.THESYS_API_KEY;
   if (!apiKey)
     return Response.json(
@@ -27,7 +26,13 @@ export async function POST(request: Request) {
   const upstream = await fetch("https://api.thesys.dev/v1/frontend-tokens", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ user_id: userId, app_id: appId }),
+    body: JSON.stringify({
+      // There is no sign-in, so every browser shares one local user, as in apps from
+      // `openui create`. Use the signed-in user's id instead when you add authentication.
+      user_id: process.env.DEMO_USER_ID || "demo-user",
+      // Keeps this example's threads apart from other apps that use the same key.
+      app_id: process.env.APP_ID || "conversational-analytics-cookbook",
+    }),
     cache: "no-store",
     signal: request.signal,
   }).catch(() => undefined);
