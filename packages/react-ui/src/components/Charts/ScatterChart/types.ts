@@ -20,6 +20,10 @@ export interface HoveredScatterPoint {
 
 export interface ScatterChartProps {
   data: ScatterChartData;
+  /** Point field that sets the horizontal position. Default `"x"`. */
+  xAxisDataKey?: string;
+  /** Point field that sets the vertical position. Default `"y"`. */
+  yAxisDataKey?: string;
   customPalette?: string[];
   grid?: boolean;
   verticalGrid?: boolean;

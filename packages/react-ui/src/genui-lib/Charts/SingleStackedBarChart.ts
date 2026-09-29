@@ -3,7 +3,7 @@
 import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
 import { z } from "zod/v4";
-import { SegmentedBar as SegmentedBarComponent } from "../../components/Charts";
+import { SingleStackedBar as SingleStackedBarChartComponent } from "../../components/Charts";
 import { asArray, buildSliceData } from "../helpers";
 
 export const SingleStackedBarChartSchema = z.object({
@@ -26,7 +26,7 @@ export const SingleStackedBarChart = defineComponent({
         value: typeof values[i] === "number" ? values[i] : 0,
       }));
       if (!data.length) return null;
-      return React.createElement(SegmentedBarComponent, {
+      return React.createElement(SingleStackedBarChartComponent, {
         data,
         categoryKey: "category",
         dataKey: "value",
@@ -35,7 +35,7 @@ export const SingleStackedBarChart = defineComponent({
 
     const sliceData = buildSliceData(props.labels);
     if (sliceData.length) {
-      return React.createElement(SegmentedBarComponent, {
+      return React.createElement(SingleStackedBarChartComponent, {
         data: sliceData,
         categoryKey: "category",
         dataKey: "value",

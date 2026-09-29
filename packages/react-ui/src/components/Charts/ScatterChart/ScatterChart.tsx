@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+
 import { useEffectiveAnimation, useScatterChartOrchestrator } from "../hooks";
 import { NumericXAxis } from "../shared/cartesian/axes/NumericXAxis";
 import { YAxis } from "../shared/cartesian/axes/YAxis";
@@ -13,6 +15,8 @@ import type { ScatterChartProps } from "./types";
 export function ScatterChart(props: ScatterChartProps) {
   const {
     data,
+    xAxisDataKey = "x",
+    yAxisDataKey = "y",
     customPalette,
     grid: showGrid = true,
     verticalGrid: showVerticalGrid = true,
@@ -29,8 +33,24 @@ export function ScatterChart(props: ScatterChartProps) {
     onClick,
   } = props;
 
+  // Points are placed by their `x` / `y`; other data keys are read into them.
+  const points = useMemo(
+    () =>
+      !Array.isArray(data) || (xAxisDataKey === "x" && yAxisDataKey === "y")
+        ? data
+        : data.map((dataset) => ({
+            ...dataset,
+            data: dataset.data.map((point) => ({
+              ...point,
+              x: Number(point[xAxisDataKey]),
+              y: Number(point[yAxisDataKey]),
+            })),
+          })),
+    [data, xAxisDataKey, yAxisDataKey],
+  );
+
   const orch = useScatterChartOrchestrator({
-    data,
+    data: points,
     themePaletteName: "defaultChartPalette",
     customPalette,
     showLegend,

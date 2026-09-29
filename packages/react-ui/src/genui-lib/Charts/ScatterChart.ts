@@ -40,6 +40,8 @@ export const ScatterChart = defineComponent({
     if (!data.length) return null;
     return React.createElement(ScatterChartComponent, {
       data,
+      xAxisDataKey: "x",
+      yAxisDataKey: "y",
       isAnimationActive: false,
     });
   },
