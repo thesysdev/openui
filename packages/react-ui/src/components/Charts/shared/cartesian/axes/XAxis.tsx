@@ -57,6 +57,12 @@ export const XAxis: React.FC<XAxisProps> = ({
   const shown = domain
     .map((_, i) => i)
     .filter((i) => labelInterval <= 1 || i % labelInterval === 0 || i === domain.length - 1);
+  // The last label is always shown; a regular label too close before it makes
+  // way, so neither is squeezed.
+  if (labelInterval > 1 && shown.length > 2) {
+    const [prev, last] = shown.slice(-2) as [number, number];
+    if (last - prev < labelInterval) shown.splice(-2, 1);
+  }
   // On a thinned axis a label may use the room up to its nearest shown
   // neighbour, not just its own category.
   const labelWidthAt = (pos: number) => {

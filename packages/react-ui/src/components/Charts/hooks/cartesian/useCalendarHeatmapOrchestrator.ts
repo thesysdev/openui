@@ -93,6 +93,7 @@ export interface UseCalendarHeatmapOrchestratorParams {
   showMonthLabels: boolean;
   columnSeparators?: CalendarColumnSeparators;
   showLegend: boolean;
+  valueLabel: string;
   formatTooltipLabel?: (value: number, date: Date) => string;
   width?: number | string;
   height?: number | string;
@@ -132,6 +133,7 @@ export function useCalendarHeatmapOrchestrator({
   showMonthLabels,
   columnSeparators,
   showLegend,
+  valueLabel,
   formatTooltipLabel,
   width,
   height,
@@ -268,7 +270,7 @@ export function useCalendarHeatmapOrchestrator({
       label: formatCalendarTooltipDate(hoveredCell.date),
       items: [
         {
-          name: "contributions",
+          name: valueLabel,
           value: formatTooltipLabel
             ? formatTooltipLabel(hoveredCell.value, hoveredCell.date)
             : hoveredCell.value,
@@ -276,7 +278,7 @@ export function useCalendarHeatmapOrchestrator({
         },
       ],
     };
-  }, [hoveredCell, levelColors, formatTooltipLabel]);
+  }, [hoveredCell, levelColors, valueLabel, formatTooltipLabel]);
 
   // --- Bidirectional level highlight, in two scopes (bklit parity):
   // `hoveredLevel` (legend hover only) drives the GRID dim — hovering a cell

@@ -180,10 +180,7 @@ export function useCategoricalChartOrchestrator<T extends ChartData>({
     const items: TooltipItem[] = [
       {
         name: slice.label,
-        value:
-          format === "percentage"
-            ? parseFloat(formatPercentage(slice.value, visibleTotal))
-            : slice.value,
+        value: format === "percentage" ? formatPercentage(slice.value, visibleTotal) : slice.value,
         color: slice.color,
       },
     ];

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { funnelHaloRamp, funnelPercentage, hSegmentPath, vSegmentPath } from "./funnelGeometry";
+import {
+  formatFunnelPercentage,
+  funnelHaloRamp,
+  funnelPercentage,
+  hSegmentPath,
+  vSegmentPath,
+} from "./funnelGeometry";
 
 describe("funnelHaloRamp", () => {
   it("default 3 layers: outermost-first, the bklit opacity ramp", () => {
@@ -88,5 +94,18 @@ describe("segment paths", () => {
     // full: h0 = 88 → top at 12; inner: h0 = 44 → top at 56 (closer to center)
     expect(full).toContain("M 0 12");
     expect(inner).toContain("M 0 56");
+  });
+});
+
+describe("formatFunnelPercentage", () => {
+  it("rounds to whole percentages", () => {
+    expect(formatFunnelPercentage(100)).toBe("100%");
+    expect(formatFunnelPercentage(26.4)).toBe("26%");
+    expect(formatFunnelPercentage(0.5)).toBe("1%");
+  });
+
+  it("reads a non-empty stage that rounds to zero as <1%", () => {
+    expect(formatFunnelPercentage(0.39)).toBe("<1%");
+    expect(formatFunnelPercentage(0)).toBe("0%");
   });
 });

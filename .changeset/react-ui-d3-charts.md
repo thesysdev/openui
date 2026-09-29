@@ -10,4 +10,5 @@ Changes for direct users:
 - `height` is the whole chart: the x-axis labels and legend fit inside it instead of being added below. Labels take at most half of it and truncate when they don't fit.
 - Renamed: bar `radius` → `barRadius`; SingleStackedBar `animated` → `isAnimationActive`.
 - Dropped: line and radar `strokeWidth`; HorizontalBarChart `showXAxis`; Pie and Radial `onMouseEnter` / `onMouseLeave`; scatter `shape`.
+- Legend and tooltip text is shown as given, no longer capitalized ("iOS" stays "iOS"; a lowercase data key shows lowercase).
 - `recharts` is no longer a dependency.

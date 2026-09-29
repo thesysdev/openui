@@ -20,7 +20,6 @@
   border: 1px solid cssUtils.$border-default;
   background-color: cssUtils.$foreground;
   box-shadow: cssUtils.$shadow-s;
-  text-transform: capitalize;
 
   &-label {
     @include cssUtils.typography(label, extra-small);
@@ -44,7 +43,6 @@
     color: cssUtils.$text-neutral-primary;
     @include cssUtils.typography(label, extra-small);
     background-color: cssUtils.$foreground;
-    text-transform: capitalize;
 
     &-item {
       display: flex;

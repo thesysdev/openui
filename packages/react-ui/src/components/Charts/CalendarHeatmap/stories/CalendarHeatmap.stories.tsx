@@ -489,6 +489,15 @@ cutoff it meets; anything below \`t1\` is level 0.
         category: "🎬 Animation & Interaction",
       },
     },
+    valueLabel: {
+      description: "Name of the day's value in the tooltip.",
+      control: "text",
+      table: {
+        type: { summary: "string" },
+        defaultValue: { summary: '"Contributions"' },
+        category: "🎬 Animation & Interaction",
+      },
+    },
     formatTooltipLabel: {
       description:
         "Format the tooltip value from the day's summed `value` and its `Date`, e.g. to add units or a currency symbol.",
@@ -718,6 +727,7 @@ export const ThresholdsAndLevelColors: Story = {
     thresholds: [1000, 2000, 3000, 4000],
     levelColors: ["rgba(148, 163, 184, 0.2)", "#FDE68A", "#FBBF24", "#F59E0B", "#B45309"],
     legendLabels: { less: "$0", more: "$4k+" },
+    valueLabel: "Revenue",
     formatTooltipLabel: (value: number) => usd.format(value),
   },
   render: (args: any) => <RevenueCalendars {...args} />,
@@ -745,6 +755,7 @@ const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD",
   thresholds={[1000, 2000, 3000, 4000]}
   levelColors={["rgba(148, 163, 184, 0.2)", "#FDE68A", "#FBBF24", "#F59E0B", "#B45309"]}
   legendLabels={{ less: "$0", more: "$4k+" }}
+  valueLabel="Revenue"
   formatTooltipLabel={(value) => usd.format(value)}
   onClick={(date, value) => console.log(date, value)}
 />

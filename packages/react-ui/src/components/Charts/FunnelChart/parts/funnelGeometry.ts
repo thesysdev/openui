@@ -97,3 +97,10 @@ export function funnelPercentage(value: number, reference: number): number {
   if (!Number.isFinite(reference) || reference === 0) return 0;
   return (value / reference) * 100;
 }
+
+/** A funnel percentage for display: whole numbers, and "<1%" for a stage that
+ * isn't empty but rounds to zero. */
+export function formatFunnelPercentage(pct: number): string {
+  if (pct > 0 && pct < 0.5) return "<1%";
+  return `${Math.round(pct)}%`;
+}

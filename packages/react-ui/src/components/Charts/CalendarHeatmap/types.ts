@@ -163,6 +163,8 @@ export interface CalendarHeatmapProps {
   legendVariant?: "swatches" | "gradient" | "none";
   /** Override the legend's bracketing labels. Default `{ less: 'Less', more: 'More' }`. */
   legendLabels?: { less?: string; more?: string };
+  /** Name of the day's value in the tooltip. Default `"Contributions"`. */
+  valueLabel?: string;
   /**
    * Format the tooltip's contribution value from the day's summed `value` and
    * its `Date` (e.g. add units or a currency symbol). Default: the raw value.

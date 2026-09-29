@@ -329,7 +329,7 @@ export function useHeatmapChartOrchestrator<T extends Array<Record<string, strin
     const rowMean = rowMeans.get(rowKey);
     if (data.length > 1 && rowMean !== undefined) {
       items.push({
-        name: "row avg",
+        name: "Row avg",
         value: roundMean(rowMean),
         color: colorScale(rowMean),
       });
@@ -337,7 +337,7 @@ export function useHeatmapChartOrchestrator<T extends Array<Record<string, strin
     const columnMean = columnMeans[columnIndex];
     if (visibleRowKeys.length > 1 && columnMean != null) {
       items.push({
-        name: "column avg",
+        name: "Column avg",
         value: roundMean(columnMean),
         color: colorScale(columnMean),
       });

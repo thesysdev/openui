@@ -14,11 +14,12 @@ import {
 } from "../../utils/labelWrap";
 import { numberTickFormatter } from "../../utils/styleUtils";
 import {
-  type FunnelEdges,
-  type FunnelOrientation,
+  formatFunnelPercentage,
   funnelHaloRamp,
   hSegmentPath,
   vSegmentPath,
+  type FunnelEdges,
+  type FunnelOrientation,
 } from "./funnelGeometry";
 
 const CLASS = `${CHART_CLASS_PREFIX}-funnel-chart`;
@@ -144,7 +145,7 @@ export function FunnelStages<T>({
         const valueY = horiz ? 14 : mainSize / 2;
         const pctX = horiz ? mainSize / 2 : crossSize / 2;
         const pctY = horiz ? crossSize / 2 : mainSize / 2;
-        const pctText = `${Math.round(stage.pct)}%`;
+        const pctText = formatFunnelPercentage(stage.pct);
         const pillW = pctText.length * PILL_CHAR_PX + 16;
         // The pill stays inside its stage; the value (above the pill) is
         // dropped where the plot is too short for both — the percentage is the

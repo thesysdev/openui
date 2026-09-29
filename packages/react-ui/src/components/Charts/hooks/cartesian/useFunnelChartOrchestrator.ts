@@ -3,7 +3,7 @@ import type { ChartColorPalette } from "../../../ThemeProvider";
 import { useTheme } from "../../../ThemeProvider";
 
 import type { FunnelOrientation } from "../../FunnelChart/parts/funnelGeometry";
-import { funnelPercentage } from "../../FunnelChart/parts/funnelGeometry";
+import { formatFunnelPercentage, funnelPercentage } from "../../FunnelChart/parts/funnelGeometry";
 import type { TooltipItem } from "../../shared/core/PortalTooltip/ChartTooltip";
 import type { ChartData, LegendItem } from "../../types";
 import { buildContainerStyle } from "../../utils/buildContainerStyle";
@@ -193,8 +193,8 @@ export function useFunnelChartOrchestrator<T extends ChartData>({
     const items: TooltipItem[] = [
       { name: "Value", value: stage.value, color: stage.color },
       {
-        name: "of first stage",
-        value: `${Math.round(stage.pct)}%`,
+        name: "Of first stage",
+        value: formatFunnelPercentage(stage.pct),
         color: stage.color,
       },
     ];
