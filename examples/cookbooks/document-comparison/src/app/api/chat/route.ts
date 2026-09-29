@@ -138,20 +138,19 @@ export async function POST(request: Request) {
     { signal: request.signal, maxChatCompletions: 4 },
   );
 
-  // Chat Completions doesn't write to the conversation, so store this turn when the run finishes:
-  // the user's message, then each message the run adds, which are the tool calls, their results,
-  // and the answer. Agent Interface loads them when the thread is opened again. A failed or
-  // stopped run isn't stored, and the browser's stream reports it.
+  // Chat Completions doesn't write to the conversation, so store this turn when the run ends: the
+  // user's message, then each message the run adds, which are the tool calls, their results, and
+  // the answer. Agent Interface loads them when the thread is opened again. A stopped or failed
+  // run still stores the user's message and whatever finished before it ended.
   const turn = [messages[messages.length - 1]];
   runner.on("message", (message) => turn.push(message));
-  runner.done().then(
-    () =>
-      storeChatCompletionHistory({ apiKey, conversationId: threadId, messages: turn }).catch(
-        (error: unknown) =>
-          console.error("Could not store the turn in the Gateway conversation.", error),
-      ),
-    () => {},
-  );
+  runner
+    .done()
+    .catch(() => {})
+    .then(() => storeChatCompletionHistory({ apiKey, conversationId: threadId, messages: turn }))
+    .catch((error: unknown) =>
+      console.error("Could not store the turn in the Gateway conversation.", error),
+    );
 
   // The runner's stream carries every completion's chunks, one JSON object per line, and Agent
   // Interface reads it with openAIReadableStreamAdapter(). Creating it now means no chunk is missed
