@@ -53,7 +53,7 @@ export function FunnelChart<T extends FunnelChartData>(props: FunnelChartProps<T
   const animate = useEffectiveAnimation(isAnimationActive);
 
   const {
-    dimensions: { W, H, ringW, ringH, labelColWidth, labelAngle },
+    dimensions: { W, H, ringW, ringH, labelColWidth, labelAngle, angledLabelMaxWidth },
   } = orch;
 
   return (
@@ -87,6 +87,7 @@ export function FunnelChart<T extends FunnelChartData>(props: FunnelChartProps<T
                 ringH={ringH}
                 labelColWidth={labelColWidth}
                 labelAngle={labelAngle}
+                angledLabelMaxWidth={angledLabelMaxWidth}
                 gap={STAGE_GAP}
                 showLabels={showLabels}
                 showValues={showValues}

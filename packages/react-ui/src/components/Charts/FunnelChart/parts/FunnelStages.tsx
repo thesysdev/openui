@@ -51,6 +51,8 @@ interface FunnelStagesProps<T> {
   labelColWidth: number;
   /** Shared rotation (deg) for horizontal labels that don't fit; 0 = upright. */
   labelAngle: number;
+  /** Longest text an angled label keeps before truncating (fits the label band). */
+  angledLabelMaxWidth: number;
   gap: number;
   showLabels: boolean;
   showValues: boolean;
@@ -89,6 +91,7 @@ export function FunnelStages<T>({
   ringH,
   labelColWidth,
   labelAngle,
+  angledLabelMaxWidth,
   gap,
   showLabels,
   showValues,
@@ -143,6 +146,12 @@ export function FunnelStages<T>({
         const pctY = horiz ? crossSize / 2 : mainSize / 2;
         const pctText = `${Math.round(stage.pct)}%`;
         const pillW = pctText.length * PILL_CHAR_PX + 16;
+        // The pill stays inside its stage; the value (above the pill) is
+        // dropped where the plot is too short for both — the percentage is the
+        // headline.
+        const pctShown = showPercentage && (horiz ? mainSize : crossSize) >= pillW + 4;
+        const valueShown =
+          showValues && (!horiz || !pctShown || pctY - 10 >= valueY + lineHeight + 2);
 
         // Label anchor — at the start of the reserved band/column.
         const labelX = horiz ? mainSize / 2 : crossSize + LABEL_GAP;
@@ -156,10 +165,13 @@ export function FunnelStages<T>({
                 MAX_LABEL_LINES,
               )
             : null;
+        // An angled label is truncated to the band, and to the room left of its
+        // anchor so the first labels stay inside the chart.
+        const angledReach = (offset + labelX) / Math.cos((labelAngle * Math.PI) / 180);
         const horizLabel =
           showLabels && horiz
             ? isAngled
-              ? stage.label
+              ? truncateToWidth(ctx, stage.label, Math.min(angledLabelMaxWidth, angledReach))
               : truncateToWidth(ctx, stage.label, mainSize)
             : null;
 
@@ -217,7 +229,7 @@ export function FunnelStages<T>({
                   opacity: dimFactor === DIM ? 0.55 : 1,
                 }}
               >
-                {showValues && (
+                {valueShown && (
                   <text
                     className={`${CLASS}-value`}
                     x={valueX}
@@ -228,7 +240,7 @@ export function FunnelStages<T>({
                     {numberTickFormatter(stage.value)}
                   </text>
                 )}
-                {showPercentage && (
+                {pctShown && (
                   <>
                     <rect
                       className={`${CLASS}-pct-pill`}

@@ -11,6 +11,7 @@ import { DEFAULT_CHART_HEIGHT } from "../../utils/constants";
 import { buildColumnKeys } from "../../utils/heatmapUtils";
 import { parseLineHeight } from "../../utils/labelWrap";
 import { resolvePalette } from "../../utils/paletteUtils";
+import { MAX_X_AXIS_HEIGHT_SHARE } from "../../utils/xAxisLabelLayout";
 import { useCanvasContextForLabelSize } from "../core/useCanvasContextForLabelSize";
 import { useChartShell } from "../core/useChartShell";
 import { usePerElementHover } from "../core/usePerElementHover";
@@ -236,11 +237,32 @@ export function useFunnelChartOrchestrator<T extends ChartData>({
 
   // Reserved label band (horizontal: bottom) / column (vertical: right). No
   // reservation when labels are hidden — the funnel reclaims the full area.
+  // The band never takes more than half the height, so the funnel keeps the
+  // rest; angled labels that don't fit it are truncated.
+  const maxLabelBandHeight = Math.max(
+    singleLineLabelHeight + LABEL_GAP,
+    Math.floor(H * MAX_X_AXIS_HEIGHT_SHARE),
+  );
   const labelBandHeight =
     !showLabels || !horizontal
       ? 0
-      : (labelAngle !== 0 ? Math.max(angledHeight, singleLineLabelHeight) : singleLineLabelHeight) +
-        LABEL_GAP;
+      : Math.min(
+          maxLabelBandHeight,
+          (labelAngle !== 0
+            ? Math.max(angledHeight, singleLineLabelHeight)
+            : singleLineLabelHeight) + LABEL_GAP,
+        );
+  // Longest angled label the band holds: text of width L rotated by the angle
+  // spans L·sin + lineHeight·cos vertically.
+  const angleRad = (Math.abs(labelAngle) * Math.PI) / 180;
+  const angledLabelMaxWidth =
+    labelAngle === 0
+      ? Infinity
+      : Math.max(
+          0,
+          (labelBandHeight - LABEL_GAP - singleLineLabelHeight * Math.cos(angleRad)) /
+            Math.sin(angleRad),
+        );
   const labelColWidth =
     !showLabels || horizontal
       ? 0
@@ -275,6 +297,7 @@ export function useFunnelChartOrchestrator<T extends ChartData>({
       labelBandHeight,
       labelColWidth,
       labelAngle,
+      angledLabelMaxWidth,
     },
     hover: { hoveredIndex, mousePos, handleMouseMove, handleMouseLeave },
     legend: { isLegendExpanded, setIsLegendExpanded },
