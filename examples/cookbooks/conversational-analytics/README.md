@@ -61,7 +61,7 @@ Agent Interface stores the thread list with Gateway's [Conversations API](https:
 
 The chat route forwards only user questions and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only query results the server produced for the current question. The tool loop streams AG-UI events, which `agUIAdapter()` reads, because Chat Completions has no chunk for a tool result.
 
-The app binds to loopback, and the chat and frontend-token routes accept browser requests only from its own local page. Every browser shares one local user's threads. For deployment, add authentication, mint each frontend token for the signed-in user, add rate limits to both routes, and provide persistent SQLite storage or a hosted database for the race data. Gateway receives the conversation, component/tool instructions, driver catalog, and requested query results.
+The app binds to loopback, and the chat and frontend-token routes accept browser requests only from its own local page. Every browser shares one local user's threads. For deployment, add [authentication](https://www.openui.com/docs/gateway/authentication), mint each frontend token for the signed-in user, add rate limits to both routes, and provide persistent SQLite storage or a hosted database for the race data. Gateway receives the conversation, component/tool instructions, driver catalog, and requested query results.
 
 ## Data notes
 
