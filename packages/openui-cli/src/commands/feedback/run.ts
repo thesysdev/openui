@@ -51,9 +51,6 @@ export async function runFeedback(options: FeedbackOptions, ctx: CliContext): Pr
   if (options.agentName && options.agentName !== UNKNOWN_AGENT_NAME) {
     properties["agent_name"] = options.agentName;
   }
-
-  console.info(`Sending anonymous feedback:\n${message}`);
-
   const client = new PostHog(POSTHOG_KEY, {
     host: POSTHOG_HOST,
     flushAt: 1,
