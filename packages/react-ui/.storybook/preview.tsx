@@ -96,6 +96,7 @@ const preview: Preview = {
         <>
           <style>
             {`
+            body,
             .docs-story {
               background-color: ${selectedMode === "dark" ? "#333" : "#F7F9F2"};
             }
