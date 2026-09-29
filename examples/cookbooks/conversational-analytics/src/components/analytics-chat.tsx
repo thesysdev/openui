@@ -2,18 +2,18 @@
 
 import {
   AgentInterface,
-  agUIAdapter,
   fetchLLM,
+  openAIAdapter,
   openAIMessageFormat,
   useOpenuiCloudStorage,
   type ThemeProps,
 } from "@openuidev/react-ui";
 import { library } from "../library";
 
-// Send the thread's messages in Chat Completions format and read the route's AG-UI events.
+// Send the thread's messages in Chat Completions format and read the route's completion chunks.
 const llm = fetchLLM({
   url: "/api/chat",
-  streamAdapter: agUIAdapter(),
+  streamAdapter: openAIAdapter(),
   messageFormat: openAIMessageFormat,
 });
 

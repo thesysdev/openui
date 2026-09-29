@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { z } from "zod/v4";
@@ -118,72 +117,19 @@ export async function POST(request: Request) {
     { signal: request.signal, maxChatCompletions: 3 },
   );
 
-  // Stream AG-UI events to the browser rather than raw completion chunks, because Chat
-  // Completions has no chunk for a tool result. Agent Interface reads them with agUIAdapter().
+  // Forward the runner's completion chunks as server-sent events, the format Gateway streams, so
+  // Agent Interface reads them with openAIAdapter(). The loop starts reading right away, so no
+  // chunk is missed while the route waits below.
   const encoder = new TextEncoder();
-  let open = true;
   const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      // Stop sending once the browser disconnects.
-      const emit = (event: Record<string, unknown>) => {
-        if (open) controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
-      };
-      // Each completion is one assistant message: its text, then the tools it calls.
-      let messageId = randomUUID();
-      let text = false;
-      runner.on("content", (delta) => {
-        if (!delta) return;
-        if (!text) emit({ type: "TEXT_MESSAGE_START", messageId, role: "assistant" });
-        text = true;
-        emit({ type: "TEXT_MESSAGE_CONTENT", messageId, delta });
-      });
-      runner.on("message", (message) => {
-        if (message.role === "assistant") {
-          if (text) emit({ type: "TEXT_MESSAGE_END", messageId });
-          for (const call of message.tool_calls ?? []) {
-            if (call.type !== "function") continue;
-            const toolCallId = call.id;
-            emit({
-              type: "TOOL_CALL_START",
-              toolCallId,
-              toolCallName: call.function.name,
-              parentMessageId: messageId,
-            });
-            emit({ type: "TOOL_CALL_ARGS", toolCallId, delta: call.function.arguments });
-            emit({ type: "TOOL_CALL_END", toolCallId });
-          }
-          messageId = randomUUID();
-          text = false;
-        } else if (message.role === "tool") {
-          emit({
-            type: "TOOL_CALL_RESULT",
-            messageId: randomUUID(),
-            toolCallId: message.tool_call_id,
-            content: message.content,
-            role: "tool",
-          });
-        }
-      });
-      runner
-        .done()
-        .then(() => {
-          // runTools stops after maxChatCompletions even if the last completion called a tool.
-          const last = runner.messages.at(-1);
-          if (last?.role !== "assistant" || !last.content)
-            throw new Error("The model returned no answer. Please retry.");
-        })
-        .catch((error: unknown) =>
-          emit({
-            type: "RUN_ERROR",
-            message: error instanceof Error ? error.message : String(error),
-          }),
-        )
-        .finally(() => {
-          if (open) controller.close();
-        });
-    },
-    cancel() {
-      open = false;
+    async start(controller) {
+      try {
+        for await (const chunk of runner)
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
     },
   });
 
