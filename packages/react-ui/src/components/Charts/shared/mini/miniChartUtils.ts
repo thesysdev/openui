@@ -118,6 +118,8 @@ export const miniCurves = {
 
 /** Room above the highest point on the area/line minis (Recharts' `margin.top`). */
 export const MINI_TOP_MARGIN = 10;
+/** Radius of the dot that marks a single-value area/line mini. */
+export const MINI_POINT_RADIUS = 3;
 
 /**
  * Area/line geometry: the most recent points that fit, spread edge to edge,

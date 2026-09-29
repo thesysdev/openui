@@ -1,7 +1,12 @@
 import { line } from "d3-shape";
 import { useEffectiveAnimation } from "../hooks/core/useEffectiveAnimation";
 import { MiniChartFrame } from "../shared/mini/MiniChartFrame";
-import { type MiniChartPoint, miniCurves, miniLineGeometry } from "../shared/mini/miniChartUtils";
+import {
+  MINI_POINT_RADIUS,
+  type MiniChartPoint,
+  miniCurves,
+  miniLineGeometry,
+} from "../shared/mini/miniChartUtils";
 import { CHART_CLASS_PREFIX } from "../utils/constants";
 import { useChartPalette } from "../utils/paletteUtils";
 import type { MiniLineChartProps } from "./types";
@@ -40,14 +45,28 @@ export function MiniLineChart({
             .x((_, i) => x(i))
             .y((p) => y(p.value))
             .curve(curve)(points) ?? "";
+        // A single value has no line to draw: it's marked with a dot.
+        const single = points.length === 1 ? points[0] : undefined;
         return (
-          <path
-            className={`${CLASS}-line${animated}`}
-            d={lineD}
-            fill="none"
-            stroke={color}
-            strokeWidth={strokeWidth}
-          />
+          <>
+            <path
+              className={`${CLASS}-line${animated}`}
+              d={lineD}
+              fill="none"
+              stroke={color}
+              strokeWidth={strokeWidth}
+            />
+            {single && (
+              <circle
+                className={`${CLASS}-point${animated}`}
+                cx={x(0)}
+                cy={y(single.value)}
+                r={MINI_POINT_RADIUS}
+                stroke={color}
+                strokeWidth={strokeWidth}
+              />
+            )}
+          </>
         );
       }}
     </MiniChartFrame>

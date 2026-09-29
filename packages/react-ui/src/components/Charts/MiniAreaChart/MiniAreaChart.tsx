@@ -2,7 +2,12 @@ import { area, line } from "d3-shape";
 import { useId } from "react";
 import { useEffectiveAnimation } from "../hooks/core/useEffectiveAnimation";
 import { MiniChartFrame } from "../shared/mini/MiniChartFrame";
-import { type MiniChartPoint, miniCurves, miniLineGeometry } from "../shared/mini/miniChartUtils";
+import {
+  MINI_POINT_RADIUS,
+  type MiniChartPoint,
+  miniCurves,
+  miniLineGeometry,
+} from "../shared/mini/miniChartUtils";
 import { CHART_CLASS_PREFIX } from "../utils/constants";
 import { useChartPalette } from "../utils/paletteUtils";
 import type { MiniAreaChartProps } from "./types";
@@ -73,6 +78,19 @@ export function MiniAreaChart({
               stroke={color}
               strokeWidth={1.5}
             />
+            {/* A single value has no area to draw: it's marked with a dot. */}
+            {points.length === 1 && (
+              <circle
+                className={`${CLASS}-point${animated}`}
+                cx={x(0)}
+                cy={y(points[0]!.value)}
+                r={MINI_POINT_RADIUS}
+                fill={useGradient ? `url(#${gradientId})` : color}
+                fillOpacity={useGradient ? 1 : opacity}
+                stroke={color}
+                strokeWidth={1.5}
+              />
+            )}
           </>
         );
       }}

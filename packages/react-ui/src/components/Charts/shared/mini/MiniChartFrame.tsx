@@ -3,6 +3,9 @@ import { type MouseEventHandler, type ReactNode, useRef } from "react";
 import { useContainerSize } from "../../hooks/core/useContainerSize";
 import { CHART_CLASS_PREFIX } from "../../utils/constants";
 
+/** Smallest frame side, in px; matches `min-width` / `min-height` in miniChart.scss. */
+const MIN_MINI_SIZE = 100;
+
 /**
  * The square frame every mini chart draws in: `size` sets width and height (default "100%"), kept square and at
  * least 100px each way. Measures itself and hands the svg size to `children`.
@@ -21,7 +24,9 @@ export function MiniChartFrame({
   children: (width: number, height: number) => ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const { width, height } = useContainerSize(ref, size, size);
+  // A number below the minimum draws at the minimum, as the CSS box does.
+  const side = typeof size === "number" ? Math.max(size, MIN_MINI_SIZE) : size;
+  const { width, height } = useContainerSize(ref, side, side);
 
   return (
     <div
@@ -32,7 +37,7 @@ export function MiniChartFrame({
         onClick && `${CHART_CLASS_PREFIX}-mini-chart--clickable`,
         className,
       )}
-      style={{ width: size, height: size }}
+      style={{ width: side, height: side }}
       onClick={onClick}
     >
       {width > 0 && height > 0 && (

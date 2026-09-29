@@ -1,3 +1,4 @@
+@use "../../../../cssUtils" as cssUtils;
 @use "../cartesian/chartBase" as base;
 @use "../../prefix" as brand;
 
@@ -15,6 +16,11 @@
   &--clickable {
     cursor: pointer;
   }
+}
+
+// The dot marking a single-value line mini: hollow, on the surface color.
+.#{brand.$prefix}-mini-line-chart-point {
+  fill: cssUtils.$background;
 }
 
 // Entrance: marks fade in. The whole rule is gated so reduced-motion users
