@@ -74,7 +74,10 @@ export async function POST(request: Request) {
     body = await parseChatRequest(request);
   } catch {
     return Response.json(
-      { error: "Send the conversation, ending with a question of up to 600 characters." },
+      {
+        error:
+          "Send a threadId and the conversation, ending with a question of up to 600 characters.",
+      },
       { status: 400 },
     );
   }
@@ -169,10 +172,6 @@ export async function POST(request: Request) {
   }
 
   return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-    },
+    headers: { "Content-Type": "application/x-ndjson", "Cache-Control": "no-cache, no-transform" },
   });
 }
