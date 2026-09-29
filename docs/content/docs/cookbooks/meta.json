@@ -1,5 +1,5 @@
 {
   "title": "Cookbooks",
   "root": true,
-  "pages": ["conversational-analytics"]
+  "pages": ["conversational-analytics", "document-comparison", "booking-assistant"]
 }

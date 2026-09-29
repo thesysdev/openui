@@ -34,10 +34,20 @@ export function getStartedMessage(o: {
       ].join("\n");
 
   const deployHint = "Share a preview:\n> npx @openuidev/cli@latest deploy";
+  const feedbackHint =
+    'Found a bug or have an idea?\n> npx @openuidev/cli@latest feedback "<message>"';
 
   const frameworkNote = o.backendGettingStarted?.replaceAll("{{packageManager}}", o.devCmd) ?? "";
 
-  return `\n${[skillMessage.trim(), "Done!", envNote, frameworkNote, nextStep, deployHint]
+  return `\n${[
+    skillMessage.trim(),
+    "Done!",
+    envNote,
+    frameworkNote,
+    nextStep,
+    deployHint,
+    feedbackHint,
+  ]
     .filter(Boolean)
     .join("\n\n")}\n`;
 }

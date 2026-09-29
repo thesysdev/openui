@@ -15,6 +15,7 @@ It currently supports:
 - keeping the default minimal SDK route or adding a LangGraph, Vercel AI SDK, or Vercel Eve backend to either template
 - scaffolding an example from [OpenUI Examples](https://github.com/thesysdev/openui/blob/main/examples)
 - minting an OpenUI Cloud API key into an existing project's env file
+- sending anonymous feedback to the OpenUI team
 - generating a system prompt or JSON Schema from a `createLibrary()` export
 - deploying a project with `openui deploy`
 
@@ -246,6 +247,27 @@ Examples:
 openui generate-api-key
 openui generate-api-key --file .env.local
 openui generate-api-key --file .env.local --key THESYS_API_KEY
+```
+
+### `openui feedback`
+
+Sends anonymous feedback about OpenUI to the OpenUI team.
+
+```bash
+openui feedback [options] <message...>
+```
+
+Options:
+
+- `-c, --category <category>`: `bug`, `feature`, `docs`, or `other`
+
+Feedback is anonymous: it isn't linked to your account, device, or IP address, and it's sent even when telemetry is disabled. Don't include personal data, secrets, or code.
+
+Examples:
+
+```bash
+openui feedback "The streaming docs don't explain how to handle partial components"
+openui --agent-name codex feedback --category bug "Renderer throws when a streamed component closes before its props"
 ```
 
 ### `openui generate`

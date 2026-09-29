@@ -1,7 +1,8 @@
 "use client";
 
-import type { JSX, ReactNode } from "react";
 import { GitHubIcon, useGitHubStarCount } from "@/components/brand-logo";
+import { GITHUB_STAR_FALLBACK } from "@/lib/github-stars";
+import type { JSX, ReactNode } from "react";
 import { PillLink } from "../Button/Button";
 import styles from "./GitHubButton.module.css";
 
@@ -12,22 +13,12 @@ import styles from "./GitHubButton.module.css";
 /** Default OpenUI repo URL — was duplicated as a GitHubBanner default. */
 export const DEFAULT_GITHUB_REPO_URL = "https://github.com/thesysdev/openui";
 
-/** Fallback star count used before the live count resolves (was `?? 7016`). */
-export const GITHUB_STAR_FALLBACK = 7016;
-
-/** Strip the `https://github.com/` prefix to get `owner/repo`. */
-export function parseRepoFromUrl(href: string): string {
-  return href.replace(/^https?:\/\/github\.com\//, "");
-}
-
 /**
  * Canonical animated star-count hook. Wraps brand-logo's `useGitHubStarCount`
- * (count-up via requestAnimationFrame) and folds in the repo-parse + fallback
- * that Hero duplicated in two places.
+ * (count-up via requestAnimationFrame) with a visible fallback.
  */
-export function useGitHubStars(hrefOrRepo: string, options?: { fallback?: number }): number {
-  const repo = hrefOrRepo.includes("github.com/") ? parseRepoFromUrl(hrefOrRepo) : hrefOrRepo;
-  const count = useGitHubStarCount(repo);
+export function useGitHubStars(options?: { fallback?: number }): number {
+  const count = useGitHubStarCount();
   return count ?? options?.fallback ?? GITHUB_STAR_FALLBACK;
 }
 
@@ -136,7 +127,7 @@ function DesktopGlowVariant({
   keepBlack?: boolean;
   arrow?: ReactNode;
 }): JSX.Element {
-  const count = useGitHubStars(href);
+  const count = useGitHubStars();
   const label = String(count);
 
   return (
@@ -178,7 +169,7 @@ function MobileBannerVariant({
   arrow?: ReactNode;
   classes?: GitHubButtonProps["classes"];
 }): JSX.Element {
-  const count = useGitHubStars(href);
+  const count = useGitHubStars();
 
   return (
     <a href={href} target="_blank" rel="noopener noreferrer" className={cx(className)}>

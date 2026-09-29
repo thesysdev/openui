@@ -5,6 +5,7 @@ export type CliContext = {
   argv: string[];
   telemetry: Telemetry;
   verbose: boolean;
+  cliVersion?: string;
 };
 
 export const context: CliContext = {
@@ -16,4 +17,5 @@ export const context: CliContext = {
   },
   telemetry,
   verbose: false,
+  cliVersion: undefined,
 };

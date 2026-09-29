@@ -1,16 +1,13 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { PostHog } from "posthog-node";
+import type { PostHog } from "posthog-node";
 
 import { isTruthyEnv } from "./env";
 import { cliErrorProperties } from "./errors";
+import { createPostHogClient } from "./posthog";
 import type { RetryAttemptInfo } from "./retry";
 
-// Public ingestion key
-const POSTHOG_KEY =
-  process.env["OPENUI_POSTHOG_KEY"] ?? "phc_3OLW53x09ZTVZSV6BEpj5uycj3ooqR6KOemOjx04e3D";
-const POSTHOG_HOST = process.env["OPENUI_POSTHOG_HOST"] ?? "https://us.i.posthog.com";
 const SHUTDOWN_TIMEOUT_MS = 2000;
 
 const isTelemetryDebug = () => process.env["OPENUI_TELEMETRY_DEBUG"] === "1";
@@ -97,11 +94,7 @@ export class Telemetry {
       is_interactive_terminal: interactiveTerminal,
     };
     try {
-      this.session.client = new PostHog(POSTHOG_KEY, {
-        host: POSTHOG_HOST,
-        flushAt: 1,
-        flushInterval: 0,
-      });
+      this.session.client = createPostHogClient();
       // Telemetry is best-effort: swallow network/flush errors so an offline CLI
       // run never spams the user's console with PostHog stack traces.
       this.session.client.on("error", (error) => debugLogPostHogFailure("request", error));

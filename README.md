@@ -245,6 +245,16 @@ npx skills add thesysdev/skills --skill openui
 
 The skill covers component library design, OpenUI Lang syntax, system prompt generation, the Renderer, SDK packages, and debugging malformed LLM output.
 
+## Feedback
+
+Found a bug or have an idea? [Open an issue](https://github.com/thesysdev/openui/issues), or send anonymous feedback from your terminal:
+
+```bash
+npx @openuidev/cli feedback "Describe the problem or idea"
+```
+
+Coding agents using the [OpenUI skill](#agent-skill) can send feedback for you. They remove personal details and code from the message and ask for your approval before sending it.
+
 ## License
 
 This project is available under the terms described in [`LICENSE`](./LICENSE).

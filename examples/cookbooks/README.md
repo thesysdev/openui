@@ -2,9 +2,11 @@
 
 Runnable examples for the [Cookbooks docs](https://www.openui.com/cookbooks). Read a cookbook for the walkthrough, then run or adapt its example here.
 
-| Cookbook                 | Example                                                           | Docs                                                                                                          |
-| ------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Conversational analytics | [Next.js, OpenUI Gateway, and SQLite](./conversational-analytics) | [Explore Formula 1 lap times through conversation](https://www.openui.com/cookbooks/conversational-analytics) |
+| Cookbook                 | Example                                                                         | Docs                                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Conversational analytics | [Next.js, OpenUI Gateway, and SQLite](./conversational-analytics)               | [Explore Formula 1 lap times through conversation](https://www.openui.com/cookbooks/conversational-analytics) |
+| Document comparison      | [Next.js, OpenUI Gateway, OpenAI embeddings, and SQLite](./document-comparison) | [Compare annual reports with cited evidence](https://www.openui.com/cookbooks/document-comparison)            |
+| Booking assistant        | [Next.js, OpenUI Gateway, and trivago's MCP server](./booking-assistant)        | [Book a stay with adaptive forms](https://www.openui.com/cookbooks/booking-assistant)                         |
 
 ## Run an example
 

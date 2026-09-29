@@ -1,0 +1,29 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--openui-background);
+}
+.booking-app {
+  height: 100dvh;
+}
+
+.thread-context {
+  font-size: 13px;
+  color: var(--openui-text-neutral-secondary);
+}
+.thread-context a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Show each stay's photo across its card instead of as a small thumbnail. */
+.openui-option-card__top--image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+}

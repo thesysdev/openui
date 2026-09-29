@@ -3,8 +3,6 @@
 import { GitHubMark, useGitHubStars } from "../../components/GitHubButton/GitHubButton";
 import styles from "./TweetWallSection.module.css";
 
-const GITHUB_REPO = "thesysdev/openui";
-
 function NpmMark() {
   return (
     <svg viewBox="0 7 24 10" width="36" height="15" fill="currentColor" aria-hidden="true">
@@ -14,7 +12,7 @@ function NpmMark() {
 }
 
 export function TweetWallStats() {
-  const stars = useGitHubStars(GITHUB_REPO);
+  const stars = useGitHubStars();
 
   return (
     <div className={styles.stats}>

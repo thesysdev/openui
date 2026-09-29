@@ -1,5 +1,4 @@
 "use client";
-import "@openuidev/react-ui/components.css";
 import "@openuidev/react-ui/styles/index.css";
 
 import {

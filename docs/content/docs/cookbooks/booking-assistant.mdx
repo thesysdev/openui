@@ -1,0 +1,285 @@
+---
+title: Booking assistant
+description: Build a chat assistant that turns a request for a stay into a prefilled form, searches live hotel prices through trivago's MCP server, and reviews the stay before booking.
+---
+
+import { buttonVariants } from "fumadocs-ui/components/ui/button";
+import { ArrowUpRight, Github } from "lucide-react";
+import { CookbookBookingDiagram } from "@/components/cookbook-booking-diagram";
+
+Booking anything, a room, a table, an appointment, means collecting a handful of details: where, when, how many, and within what budget. People rarely give all of them at once. They say “a room in New York for two this weekend” and leave the rest for later. Chat assistants usually recover the missing details one question at a time, which is slow and easy to derail. Booking forms ask for everything up front, including what the person just said.
+
+An adaptive form combines the two. A language model reads the request, fills in every detail it understood, and shows a form for the rest: a date picker for dates, a number field for guests, choices for stars and amenities, each with validation. The person corrects anything the model got wrong, adds what's missing, and submits once. With generative UI, the model writes that form itself, and the next steps too: the stays that match, and a summary to check before anything is booked.
+
+The search itself can come from a service you don't run. The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is a standard way for applications to offer tools to AI models, and many travel and booking companies now publish MCP servers.
+
+In this cookbook, you'll learn how to:
+
+- Turn a request into a form prefilled with what the model understood, using a suitable control and validation rules for each detail.
+- Read submitted form values on the next turn, including fields the person left as prefilled.
+- Call a public MCP server from a function tool, and pass the model only the data it needs.
+- Show a summary before the person leaves for the booking site.
+- Replace a built-in component with your own version, so the model can prefill dates.
+- Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
+- Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity.
+
+<div className="not-prose my-6">
+  <a
+    href="https://github.com/thesysdev/openui/tree/main/examples/cookbooks/booking-assistant"
+    target="_blank"
+    rel="noopener noreferrer"
+    className={buttonVariants({
+      color: "secondary",
+      className: "min-h-11 gap-2.5 rounded-lg px-4 py-2.5 no-underline",
+    })}
+  >
+    <Github className="size-4" aria-hidden="true" />
+    View example on GitHub
+    <ArrowUpRight className="size-4 text-fd-muted-foreground" aria-hidden="true" />
+  </a>
+</div>
+
+## What you'll build
+
+The example finds stays anywhere in the world through [trivago's public MCP server](https://mcp.trivago.com/docs), which compares prices across booking sites and needs no API key. Every search returns real hotels with live prices for the requested dates, guest ratings, amenities, a photo, and a link to book. There is nothing to download or host: the only key you need is for OpenUI Gateway. The assistant never takes payment. Its last step opens the stay on trivago, where the person picks a booking site and books there.
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl flex p-2">
+  <video
+    src="/videos/cookbooks/booking-assistant.mp4"
+    aria-label="The booking assistant turning a request for a 4-star hotel in Midtown Manhattan into a prefilled form, adding stars and must-haves, showing stays with photos and live prices, and reviewing a stay before continuing to book it on Expedia"
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
+Try this conversation:
+
+1. **“A 4-star hotel in Midtown Manhattan with a gym for a work trip, November 10 to 13.”** Get a form with the destination, dates, 4★, and Gym already filled in, and the budget in US dollars.
+2. **Add 5★ and Breakfast included, then Find stays.** See stays with live prices as cards with photos.
+3. **“Make it under $350 a night.”** The assistant searches again and says how many stays were over budget.
+4. **Pick a stay and review the summary.** Click **Continue to booking** to open it on trivago with your dates and guests.
+
+## How it works
+
+A booking assistant splits the work between the model, your application, and the services behind it. The model understands the request, decides what to ask for, and presents each step. Your application decides what the model can search for and what it sees. trivago supplies the stays, and a booking site takes the booking.
+
+<CookbookBookingDiagram />
+
+1. **The person describes their trip.** Agent Interface sends the conversation to your server's chat route, which adds a system prompt that describes the booking flow and your components and a `search_stays` function tool, then calls OpenUI Gateway.
+2. **The model replies with a prefilled form.** It works out what it can: “New York” becomes the destination, “this weekend” becomes this Friday to Sunday, and “for two” becomes two adults. It writes a form with those values filled in, empty fields for the rest, and a validation rule on each required field.
+3. **The person submits the form, and the model searches.** Agent Interface checks the rules in the browser, then sends the button label and the form's values as the next message. The model calls `search_stays`. Your server validates the arguments, calls trivago's MCP server, and returns the best matches, which the model shows as cards with photos.
+4. **The person picks a stay and reviews it.** The model shows a summary: dates, guests, price, and the booking site. **Continue to booking** opens the stay on trivago, where the person books with the site of their choice.
+
+### Why a prefilled form
+
+A form shows every detail at once, so the person can see what the assistant understood and fix it in one step, instead of answering questions one by one. Each detail gets the control that suits it, and validation catches a missing date before any search runs. Because the model writes the form for each request, it adapts: a detailed request arrives almost complete, a vague one such as “next month” leaves the dates empty and required rather than guessing, and a field for children's ages appears only when the person mentions children.
+
+### Why call the MCP server from your own tool
+
+trivago's search result is built for chat clients that show it as is. It carries every hotel's photo as image data, about 665 KB for one search, and formatting instructions written for the model. Passing that to your model would be slow and expensive, and would let a third party's instructions steer your answers.
+
+Calling the server from a function tool puts your application in between. It validates the arguments, adds a budget filter that trivago lacks, and returns only the fields the cards need: a few thousand tokens, in the shape your prompt expects. It treats the third-party result as data, so instructions inside it never reach your model.
+
+## Run the example
+
+You need Node.js 22.13 or newer and npm.
+
+```bash
+git clone https://github.com/thesysdev/openui.git
+cd openui/examples/cookbooks/booking-assistant
+npm ci
+```
+
+Configure `THESYS_API_KEY` from the [Thesys Console](https://console.thesys.dev/keys) privately in the example's `.env.local`, then start the app:
+
+```bash
+npm run dev
+```
+
+Open [localhost:3000](http://localhost:3000) and try a starter. A search takes about ten seconds, most of it on trivago's side. The default model is `openai/gpt-5.5`; use `OPENUI_MODEL` to select another supported [Gateway model](/docs/gateway/models).
+
+## Build it step by step
+
+Each step covers one part of the example, in the order a request flows through it: the MCP server, the tool, the components, the prompt, and the chat interface.
+
+### 1. Connect to the MCP server
+
+trivago's server speaks MCP over HTTP at `https://mcp.trivago.com/mcp`. Its `trivago-accommodation-search` tool takes a destination, dates, guests, and optional filters for stars, guest rating, and amenities. The example calls it with the MCP TypeScript SDK and keeps only the structured hotel list:
+
+```ts title="src/lib/trivago.ts"
+export async function searchAccommodations(search: AccommodationSearch, signal?: AbortSignal) {
+  const client = new Client({ name: "openui-booking-assistant", version: "0.1.0" });
+  await client.connect(new StreamableHTTPClientTransport(serverUrl), { signal });
+  try {
+    const result = await client.callTool(
+      { name: "trivago-accommodation-search", arguments: search },
+      undefined,
+      { signal, timeout: 45_000 },
+    );
+    return z
+      .object({ accommodations: z.array(accommodationSchema) })
+      .parse(result.structuredContent).accommodations;
+  } finally {
+    await client.close();
+  }
+}
+```
+
+`structuredContent` holds each hotel's name, prices, star and guest ratings, amenities, distance to the center, photo URL, and booking link. The schema drops everything else, including the embedded photos and the formatting instructions. See [trivago.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/lib/trivago.ts) for the complete client, which also reports errors from the server.
+
+### 2. Expose a search tool
+
+Give Gateway a function tool named `search_stays`. It takes every detail of the trip:
+
+```json
+{
+  "destination": "Midtown Manhattan, New York",
+  "check_in": "2026-11-10",
+  "check_out": "2026-11-13",
+  "adults": 2,
+  "children_ages": [],
+  "rooms": 1,
+  "currency": "USD",
+  "max_price_per_night": 350,
+  "stars": [4, 5],
+  "min_guest_rating": "any",
+  "amenities": ["gym", "breakfastIncluded"],
+  "sort": "recommended"
+}
+```
+
+Currencies, guest ratings, and amenities are enums of the values trivago accepts. Your server validates the arguments again, rejecting a check-in in the past or more rooms than adults, and maps them to trivago's filters. trivago has no price filter, so the tool applies the budget itself:
+
+```ts title="src/lib/tools/search-stays.ts"
+// trivago has no price filter, so apply the budget here and report what it left out.
+const inBudget = found.filter(
+  (stay) =>
+    args.max_price_per_night === null || amount(stay.price_per_night) <= args.max_price_per_night,
+);
+const overBudget = found.filter((stay) => !inBudget.includes(stay));
+```
+
+The result holds the top six stays and, when the budget left some out, how many and the cheapest price among them, so the model can suggest raising the limit. See [search-stays.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/lib/tools/search-stays.ts).
+
+### 3. Choose the components
+
+Use the built-in form controls, a few components for summaries and messages, and one component of your own:
+
+```ts title="src/library.ts"
+export const library = createLibrary({
+  root: "Stack",
+  components: [
+    ...[
+      "Stack",
+      "CardHeader",
+      "TextContent",
+      "Callout",
+      "Table",
+      "Col",
+      "Form",
+      "FormControl",
+      "Input",
+      "Select",
+      "SelectItem",
+      "Chips",
+      "ChipItem",
+      "OptionCards",
+      "OptionCard",
+      "Image",
+      "Buttons",
+      "Button",
+    ].map((name) => openuiLibrary.components[name]),
+    DatePicker,
+    openuiChatLibrary.components.FollowUpBlock,
+    openuiChatLibrary.components.FollowUpItem,
+  ],
+});
+```
+
+`Form` groups the fields and checks their validation rules when the person clicks a primary button. `Chips` covers short choices, such as stars and amenities. `OptionCards` shows the stays as selectable cards, each with an `Image` of the hotel. By default, an option card shows its image as a small thumbnail; one CSS rule in [styles.css](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/styles.css) stretches it across the card.
+
+React UI's own `DatePicker` stores JavaScript `Date` objects. The model can only write text, so it cannot prefill one, and a submitted `Date` reaches the model as a UTC timestamp that can fall on the day before. The example replaces it with a component that has the same name and props but reads and writes `YYYY-MM-DD` strings:
+
+```tsx title="src/components/date-picker.tsx"
+export const DatePicker = defineComponent({
+  name: "DatePicker",
+  props: openuiLibrary.components.DatePicker.props,
+  description:
+    "A single date. Prefill it by passing a YYYY-MM-DD string as value; the form submits YYYY-MM-DD.",
+  component: ({ props }) => {
+    const field = useStateField(props.name, props.value);
+    return (
+      <DateField
+        mode="single"
+        selectedSingleDate={toDate(field.value)}
+        setSelectedSingleDate={(date) => field.setValue(toIsoDate(date))}
+      />
+    );
+  },
+});
+```
+
+Reusing the built-in props keeps `DatePicker` valid inside `FormControl`, and the new description tells the model the format. The [complete component](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/components/date-picker.tsx) also registers validation rules and closes the calendar once a date is picked. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
+
+### 4. Describe the booking flow
+
+The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/lib/prompt.ts) gives the model today's date and trivago's filter options, then describes each step. The first rule starts every new request with a form:
+
+> When someone asks for a new stay, reply with one short sentence and a Form named 'trip' before searching, even if they gave every detail. Prefill every field they mentioned with a literal value, never a $variable.
+
+The model prefills a field by passing its value, such as the date `"2026-10-02"` or the adults `"2"`. It picks the destination's currency unless the person names one, so a trip to Tokyo shows its budget in yen. When the person submits, the form sends only the fields they changed, so another rule covers the rest:
+
+> Submitted form state contains only the fields the user changed. For every field missing from it, use the value you prefilled in that form.
+
+Agent Interface sends the whole conversation with every turn, so the model still sees its own form from the previous turn and can fill in the gaps. The remaining rules describe the stay cards, the summary, and the hand-off. Each stay card's value is the stay's booking link, so choosing a card sends the link back with the form, and the summary's **Continue to booking** button opens it with `@OpenUrl`. One example program for each step, the trip form, the stay cards, and the summary, shows the model how the components fit together.
+
+### 5. Connect Agent Interface
+
+Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's stream with `agUIAdapter()`:
+
+```tsx title="src/components/booking-chat.tsx"
+const llm = fetchLLM({
+  url: "/api/chat",
+  streamAdapter: agUIAdapter(),
+  messageFormat: openAIMessageFormat,
+});
+```
+
+Chat Completions does not store conversations, so Agent Interface keeps each thread in the browser and sends its messages with every turn. Threads last until the page reloads. To keep them longer, pass a `storage` adapter backed by your database; see [Connect a backend](/docs/agent/reference/self-hosting).
+
+The chat route runs the same [function-tool loop](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/lib/tool-loop.ts) as the [conversational analytics cookbook](/cookbooks/conversational-analytics#5-stream-the-answer), streaming AG-UI events so Agent Interface shows each search and its result. It forwards only user messages and assistant answers from the browser and drops tool calls and results, so later steps rely on what the stay cards show, including the booking link in each card's value. A submitted form arrives as one message with the button label and the form's values, so the route accepts user messages of up to 4,000 characters.
+
+The example also customizes Agent Interface with a theme from `createTheme`, a logo, starters for four different trips, and a thread header that credits trivago. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
+
+This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
+
+## Verify it works
+
+In the browser:
+
+1. Ask **“Book a room in New York for two this weekend.”** Confirm the form shows New York, this Friday to Sunday, two adults, and a budget in US dollars.
+2. Clear the adults field and click **Find stays**. The field should report that it is required, and nothing is sent.
+3. Fill it in again and search. Open **Form data** above your message to see the values that were sent, and expand **Behind the scenes** to see the `search_stays` call.
+4. Ask for **“under $100 a night”**, and confirm the reply says how many stays were over budget and the cheapest price among them.
+5. Pick a stay, check the summary, and click **Continue to booking**. trivago should open the stay for your dates and guests.
+6. Switch your operating system between light and dark mode, and confirm the theme follows.
+
+Generated layouts can vary. Hotels, prices, photos, and links should always come from a search result, and prices can change between searches.
+
+## Adapt it to your inventory
+
+To use another MCP server, keep the `search_stays` contract and replace `searchAccommodations`. Kiwi.com, for example, publishes a public MCP server for [flight search](https://www.kiwi.com/en/pages/mcp/). For your own inventory, call your availability API from the tool, or publish it as an MCP server so other assistants can use it too.
+
+The form pattern carries over to anything that needs a few details before an action: a restaurant reservation, a support ticket, a travel request. Describe the details, their controls, and which are required, and keep the action behind a summary. Before relying on a third-party MCP server in production, check its terms and plan for it being slow or unavailable.
+
+This example runs locally without authentication, and its chat route accepts browser requests only from its own page. Before deploying it, add authentication and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/booking-assistant) for the implementation notes.
+
+- [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
+- [Gateway Chat Completions API](/docs/gateway/api/chat-completions)
+- [Connect a backend](/docs/agent/reference/self-hosting)
+
+Hotels, prices, and photos: [trivago MCP](https://mcp.trivago.com/docs), fetched live for each search.
