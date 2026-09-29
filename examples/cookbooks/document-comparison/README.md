@@ -49,8 +49,7 @@ Try:
 | `src/lib/documents.ts`                | Sample document sources, database schema, and document list                   |
 | `src/lib/embeddings.ts`               | OpenAI embeddings and similarity                                              |
 | `src/lib/tools/search-documents.ts`   | Function schema, argument validation, and passage search                      |
-| `src/library.ts`                      | Shared components for the prompt and renderer                                 |
-| `src/components/sources.tsx`          | The Sources component, built on React UI's source strip                       |
+| `src/library.ts`                      | The chat library, shared by the prompt and renderer                           |
 | `src/lib/prompt.ts`                   | Comparison rules and example answers for Gateway                              |
 | `src/lib/gateway-history.ts`          | Loads a thread's stored turns from Gateway as chat messages                   |
 | `src/app/api/chat/route.ts`           | `runTools()` generation, streaming, and turn storage                          |

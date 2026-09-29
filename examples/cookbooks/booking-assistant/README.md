@@ -40,7 +40,7 @@ Try:
 | ------------------------------------- | --------------------------------------------------------------------- |
 | `src/lib/trivago.ts`                  | MCP client for trivago's accommodation search, and its filter options |
 | `src/lib/tools/search-stays.ts`       | Function schema, argument validation, budget filter, and results      |
-| `src/library.ts`                      | Shared components for the prompt and renderer                         |
+| `src/library.ts`                      | The chat library, with its DatePicker replaced                        |
 | `src/components/date-picker.tsx`      | A DatePicker that the model can prefill with YYYY-MM-DD dates         |
 | `src/lib/prompt.ts`                   | Booking rules and one example for each step of the flow               |
 | `src/lib/gateway-history.ts`          | Loads a thread's stored turns from Gateway as chat messages           |

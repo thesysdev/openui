@@ -8,7 +8,7 @@ import {
   useStateField,
 } from "@openuidev/react-lang";
 import { DatePicker as DateField } from "@openuidev/react-ui";
-import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
 import { useEffect, useMemo, useState } from "react";
 
 // React UI's DatePicker stores Date objects: the model cannot prefill one, and a submitted
@@ -28,7 +28,7 @@ const toIsoDate = (date?: Date) =>
 
 export const DatePicker = defineComponent({
   name: "DatePicker",
-  props: openuiLibrary.components.DatePicker.props,
+  props: openuiChatLibrary.components.DatePicker.props,
   description:
     "A single date. Prefill it by passing a YYYY-MM-DD string as value; the form submits YYYY-MM-DD.",
   component: ({ props }) => {

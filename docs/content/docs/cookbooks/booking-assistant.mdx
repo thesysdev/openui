@@ -176,47 +176,28 @@ The result holds the top six stays and, when the budget left some out, how many 
 
 ### 3. Choose the components
 
-Use the built-in form controls, a few components for summaries and messages, and one component of your own:
+Use the chat library, React UI's built-in library for Agent Interface answers. It has the form controls, summaries, and messages a booking needs, so the example replaces only its date picker:
 
 ```ts title="src/library.ts"
+import { createLibrary } from "@openuidev/react-lang";
+import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
+import { DatePicker } from "./components/date-picker";
+
 export const library = createLibrary({
-  root: "Stack",
-  components: [
-    ...[
-      "Stack",
-      "CardHeader",
-      "TextContent",
-      "Callout",
-      "Table",
-      "Col",
-      "Form",
-      "FormControl",
-      "Input",
-      "Select",
-      "SelectItem",
-      "Chips",
-      "ChipItem",
-      "OptionCards",
-      "OptionCard",
-      "Image",
-      "Buttons",
-      "Button",
-    ].map((name) => openuiLibrary.components[name]),
-    DatePicker,
-    openuiChatLibrary.components.FollowUpBlock,
-    openuiChatLibrary.components.FollowUpItem,
-  ],
+  root: openuiChatLibrary.root,
+  componentGroups: openuiChatLibrary.componentGroups,
+  components: Object.values({ ...openuiChatLibrary.components, DatePicker }),
 });
 ```
 
-`Form` groups the fields and checks their validation rules when the person clicks a primary button. `Chips` covers short choices, such as stars and amenities. `OptionCards` shows the stays as selectable cards, each with an `Image` of the hotel. By default, an option card shows its image as a small thumbnail; one CSS rule in [styles.css](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/styles.css) stretches it across the card.
+Every answer is one `Card`. `Form` groups the fields and checks their validation rules when the person clicks a primary button. `Chips` covers short choices, such as stars and amenities. `OptionCards` shows the stays as selectable cards, each with an `Image` of the hotel. By default, an option card shows its image as a small thumbnail; one CSS rule in [styles.css](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/styles.css) stretches it across the card.
 
 React UI's own `DatePicker` stores JavaScript `Date` objects. The model can only write text, so it cannot prefill one, and a submitted `Date` reaches the model as a UTC timestamp that can fall on the day before. The example replaces it with a component that has the same name and props but reads and writes `YYYY-MM-DD` strings:
 
 ```tsx title="src/components/date-picker.tsx"
 export const DatePicker = defineComponent({
   name: "DatePicker",
-  props: openuiLibrary.components.DatePicker.props,
+  props: openuiChatLibrary.components.DatePicker.props,
   description:
     "A single date. Prefill it by passing a YYYY-MM-DD string as value; " +
     "the form submits YYYY-MM-DD.",
@@ -233,7 +214,7 @@ export const DatePicker = defineComponent({
 });
 ```
 
-Reusing the built-in props keeps `DatePicker` valid inside `FormControl`, and the new description tells the model the format. The [complete component](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/components/date-picker.tsx) also registers validation rules and closes the calendar once a date is picked. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
+Spreading it after the chat library's components replaces the built-in `DatePicker`, which has the same name. Reusing the built-in props keeps it valid inside `FormControl`, and the new description tells the model the format. The [complete component](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/components/date-picker.tsx) also registers validation rules and closes the calendar once a date is picked. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
 
 ### 4. Describe the booking flow
 

@@ -175,55 +175,20 @@ The example keeps all 1,564 embeddings in memory and compares them in JavaScript
 
 ### 3. Choose the components
 
-Use a selection from the built-in library that covers every part of a comparison, the chat library's follow-up suggestions, and one component of your own:
+Use the chat library, React UI's built-in library for Agent Interface answers. It already has every part of a comparison, so the example uses it as is:
 
 ```ts title="src/library.ts"
-import { createLibrary } from "@openuidev/react-lang";
-import { openuiChatLibrary, openuiLibrary } from "@openuidev/react-ui/genui-lib";
-import { Sources } from "./components/sources";
-
-export const library = createLibrary({
-  root: "Stack",
-  components: [
-    ...[
-      "Stack",
-      "CardHeader",
-      "TextContent",
-      "Table",
-      "Col",
-      "BarChart",
-      "HorizontalBarChart",
-      "LineChart",
-      "Series",
-      "Callout",
-      "TagBlock",
-    ].map((name) => openuiLibrary.components[name]),
-    Sources,
-    openuiChatLibrary.components.FollowUpBlock,
-    openuiChatLibrary.components.FollowUpItem,
-  ],
-});
+export { openuiChatLibrary as library } from "@openuidev/react-ui/genui-lib";
 ```
 
-`Table` holds the page-cited values, the three chart types cover single values, trends, and breakdowns, and `Callout` flags gaps and conflicts.
+Every answer is one `Card`. `Table` holds the page-cited values, `BarChart`, `LineChart`, and `HorizontalBarChart` cover single values, trends, and breakdowns, `Callout` flags gaps and conflicts, and `FollowUpBlock` suggests criteria to add. The `Card`'s second argument lists the sources, and the `Card` renders them as a strip of source cards below the answer:
 
-`Sources` wraps the source strip that React UI already provides. `defineComponent` gives it a name, a schema the model fills in, and a description for the prompt:
-
-```tsx title="src/components/sources.tsx"
-export const Sources = defineComponent({
-  name: "Sources",
-  props: z.object({ items: z.array(CardSourceSchema) }),
-  description:
-    "A strip of source cards. Each item is { title, sourceName, url }: title is the quote, sourceName names the document and page, and url opens the page.",
-  component: ({ props }) => (
-    <CardSourceProvider sources={onePerPage(props.items ?? [])}>
-      <SourceStrip />
-    </CardSourceProvider>
-  ),
-});
+```text
+root = Card([header, table, chart, gap, followUps], sources)
+sources = [{title: "“Revenue for the fiscal year was $10.0 billion, up 5% from a year ago.”", sourceName: "Company A · Page 12", url: "https://example.com/company-a.pdf#page=12"}]
 ```
 
-Each card shows the site's icon, the company and page, and the quote. `onePerPage` merges two quotes from the same page into one card. Generate the server specification from the same library with `npm run generate`, which also runs before development and builds.
+Each card shows the site's icon, the company and page, and the quote, and opens the report at that page. The prompt names the components an answer uses and rules out form controls. Generate the server specification from the same library with `npm run generate`, which also runs before development and builds.
 
 ### 4. Customize Agent Interface
 
@@ -347,7 +312,7 @@ The prompt turns the evidence into a consistent answer:
 - **A table** with one short, page-cited value per cell, such as “$215.9 billion (p. 37)”: one row per criterion and one column per document, or one row per part when a criterion has several, such as each company's segments.
 - **Charts chosen from the data**, each at full width: a line chart when a report gives several years of figures, one horizontal bar chart with a bar per company and segment for a breakdown, and a bar chart for one value per document. A document without a value is left out of the chart rather than plotted as zero.
 - **Callouts** for information that conflicts or is not directly comparable, such as different fiscal year ends, and for criteria a document does not disclose.
-- **Sources**, one card per quoted page with the company, page, and a quote of at most 20 words, linked to that page of the PDF.
+- **Sources** in the `Card`'s second argument, one per quoted page with the company, page, and a quote of at most 20 words, linked to that page of the PDF.
 
 ## Verify it works
 

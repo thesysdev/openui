@@ -140,33 +140,13 @@ The query in the same file uses parameterized SQL. Missing times are left out of
 
 ### 3. Choose the components
 
-Use a small selection from the built-in library, plus the chat library's follow-up suggestions:
+Use the chat library, React UI's built-in library for Agent Interface answers. Its tables, charts, and follow-up suggestions cover every answer, so the example uses it as is:
 
 ```ts title="src/library.ts"
-import { createLibrary } from "@openuidev/react-lang";
-import { openuiChatLibrary, openuiLibrary } from "@openuidev/react-ui/genui-lib";
-
-export const library = createLibrary({
-  root: "Stack",
-  components: [
-    ...[
-      "Stack",
-      "Card",
-      "CardHeader",
-      "TextContent",
-      "LineChart",
-      "BarChart",
-      "Series",
-      "Table",
-      "Col",
-    ].map((name) => openuiLibrary.components[name]),
-    openuiChatLibrary.components.FollowUpBlock,
-    openuiChatLibrary.components.FollowUpItem,
-  ],
-});
+export { openuiChatLibrary as library } from "@openuidev/react-ui/genui-lib";
 ```
 
-Clicking a follow-up sends its text as the next question.
+Every answer is one `Card`: a `Table` or `BarChart` for a ranking, a `LineChart` for a lap-by-lap comparison, and a `FollowUpBlock` at the end. Clicking a follow-up sends its text as the next question.
 
 Generate the server specification from the same library used by the renderer:
 
