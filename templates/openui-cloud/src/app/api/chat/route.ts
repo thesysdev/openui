@@ -6,18 +6,14 @@ import { executeGetWeather, getWeatherTool } from "@/lib/tools/get-weather";
 import { generateSystemPrompt } from "@openuidev/lang-core";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { storeChatCompletionHistory } from "@openuidev/server/openai";
 import type {
-  ResponseCreateParamsNonStreaming,
-  ResponseInputItem,
-  Tool,
-} from "openai/resources/responses/responses";
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionMessageParam,
+  ChatCompletionChunk,
+} from "openai/resources/chat/completions";
 
-/**
- * Generation plane: browser → this route → OpenUI Cloud's Responses API,
- * proxying the SSE stream back for `openAIResponsesAdapter` to parse.
- * Cloud tools (search / MCP) run inside Cloud; app-owned
- * `type: "function"` tools run here via `runFunctionToolLoop`.
- */
+/** Chat Completions generation with app-owned tools and explicit Cloud storage. */
 export async function POST(req: Request) {
   const {
     threadId,
@@ -25,17 +21,19 @@ export async function POST(req: Request) {
     model: requestedModel,
   } = (await req.json()) as {
     threadId?: string;
-    messages?: ResponseInputItem[];
+    messages?: ChatCompletionMessageParam[];
     model?: unknown;
   };
 
-  if (!threadId) return badRequest("threadId is required — create the conversation first");
+  if (!threadId)
+    return badRequest("threadId is required — create the conversation first");
   if (!Array.isArray(messages) || messages.length === 0) {
-    return badRequest("messages must be a non-empty ResponseInputItem[]");
+    return badRequest(
+      "messages must be a non-empty ChatCompletionMessageParam[]",
+    );
   }
-  // History is stored server-side (conversation + store:true)
-  // forward only the latest message upstream.
-  const input = messages.slice(-1);
+  if (messages.at(-1)?.role !== "user")
+    return badRequest("messages must end with a user message");
   const model = resolveRequestedModel(requestedModel);
   if (!model) return badRequest("model is not available in this agent");
 
@@ -46,31 +44,27 @@ export async function POST(req: Request) {
 
   // App-owned function tools — the loop runs only the names declared here.
   const functionTools = {
-    [getWeatherTool.name]: executeGetWeather,
+    [getWeatherTool.function.name]: executeGetWeather,
   };
 
-  const createParams: ResponseCreateParamsNonStreaming = {
+  const createParams: ChatCompletionCreateParamsNonStreaming = {
     model,
-    conversation: threadId, // store:true persists to the conversation
-    input,
-    store: true,
-    tools: [
-      { type: "web_search" },
-      // image_search is a Cloud extension of the Responses tool union.
-      { type: "image_search" } as unknown as Tool,
-      getWeatherTool,
-      // Remote MCP servers run inside OpenUI Cloud, e.g.:
-      // { type: "mcp", server_label: "deepwiki", server_url: "https://mcp.deepwiki.com/mcp" },
+    messages: [
+      {
+        role: "system",
+        content: generateSystemPrompt({ cloud: true, library: librarySpec }),
+      },
+      ...messages,
     ],
-    instructions: generateSystemPrompt({ cloud: true, library: librarySpec }),
+    tools: [getWeatherTool],
   };
 
-  let stream: AsyncIterable<Record<string, unknown>>;
+  let stream: AsyncIterable<ChatCompletionChunk>;
   try {
-    stream = (await client.responses.create(
+    stream = await client.chat.completions.create(
       { ...createParams, stream: true },
       { signal: req.signal }, // propagate browser aborts (stop button / tab close)
-    )) as unknown as AsyncIterable<Record<string, unknown>>;
+    );
   } catch (err) {
     // Propagate the upstream message and status; the chat store surfaces it.
     const e = err as { status?: number; error?: unknown; message?: string };
@@ -80,15 +74,19 @@ export async function POST(req: Request) {
     );
   }
 
-  // Re-emit SDK events as SSE, executing function tools between model turns.
+  // Forward native Chat Completions chunks as SSE for openAIAdapter().
   const encoder = new TextEncoder();
+  let open = true;
   const body = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const enqueue = (event: Record<string, unknown>) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+      const enqueue = (event: ChatCompletionChunk) => {
+        if (open)
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(event)}\n\n`),
+          );
       };
       try {
-        await runFunctionToolLoop({
+        const turn = await runFunctionToolLoop({
           client,
           createParams,
           firstStream: stream,
@@ -96,14 +94,21 @@ export async function POST(req: Request) {
           enqueue,
           signal: req.signal,
         });
-      } catch (err) {
-        enqueue({
-          type: "error",
-          message: err instanceof Error ? err.message : String(err),
+        await storeChatCompletionHistory({
+          apiKey: requiredEnv("THESYS_API_KEY"),
+          conversationId: threadId,
+          messages: [...messages.slice(-1), ...turn],
         });
-      } finally {
-        controller.close();
+        if (open) {
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        }
+      } catch (err) {
+        if (open) controller.error(err);
       }
+    },
+    cancel() {
+      open = false;
     },
   });
 

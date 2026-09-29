@@ -7,11 +7,10 @@
       "@langchain/langgraph": "^1.4.9",
       "@langchain/openai": "^1.5.6",
       "langchain": "^1.5.5"
-    },
-    "removeDependencies": ["openai"]
+    }
   },
   "files": {
     "remove": ["src/lib/tool-loop.ts"]
   },
-  "gettingStarted": "The generated LangGraph agent runs in-process inside the Next.js `/api/chat` route and uses OpenUI Cloud as its Responses provider. `{{packageManager}} run dev` starts the app. Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise the included LangGraph tool."
+  "gettingStarted": "The generated LangGraph agent runs in-process inside the Next.js `/api/chat` route and uses OpenUI Cloud as its Chat Completions provider. `{{packageManager}} run dev` starts the app. Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise the included LangGraph tool."
 }

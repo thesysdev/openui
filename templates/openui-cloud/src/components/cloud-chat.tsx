@@ -8,8 +8,8 @@ import {
   ModelSwitcher,
   fetchLLM,
   openuiLibrary,
-  openAIConversationMessageFormat,
-  openAIResponsesAdapter,
+  openAIMessageFormat,
+  openAIAdapter,
   useOpenuiCloudStorage,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
@@ -17,18 +17,32 @@ import {
 export default function CloudChat() {
   const mode = useSystemThemeMode();
   const [selectedModel, setSelectedModel] = usePersistedModel();
-  const llm = fetchLLM({
-    url: "/api/chat",
-    streamAdapter: openAIResponsesAdapter(),
-    messageFormat: openAIConversationMessageFormat,
-    body: { model: selectedModel },
-  });
-
   const storage = useOpenuiCloudStorage({
     token: "/api/frontend-token",
     apiBaseUrl: "https://api.thesys.dev",
-    features: { artifact: false }
+    features: { artifact: false },
   });
+
+  const transport = fetchLLM({
+    url: "/api/chat",
+    streamAdapter: openAIAdapter(),
+    messageFormat: openAIMessageFormat,
+    body: { model: selectedModel },
+  });
+
+  const llm = {
+    ...transport,
+    send: async (params: Parameters<typeof transport.send>[0]) => {
+      // Completion chunks have no tool-result events. Replay persisted history
+      // so earlier tool calls always include the results saved by our server.
+      const history = await storage.thread.getMessages(params.threadId);
+      params.signal.throwIfAborted();
+      return transport.send({
+        ...params,
+        messages: [...history, ...params.messages.slice(-1)],
+      });
+    },
+  };
 
   const logoPath = mode === "dark" ? OPENUI_LOGOS.DARK : OPENUI_LOGOS.LIGHT;
 

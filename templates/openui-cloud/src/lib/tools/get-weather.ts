@@ -6,25 +6,27 @@
  * wired together through `runFunctionToolLoop` in the chat route.
  */
 
-/** OpenAI Responses `type: "function"` declaration sent to the model. */
+/** OpenAI Chat Completions `type: "function"` declaration sent to the model. */
 export const getWeatherTool = {
   type: "function" as const,
-  name: "get_weather",
-  description:
-    "Get the current weather for a city or place name. Use whenever the user " +
-    "asks about weather, temperature, rain, or what to wear.",
-  parameters: {
-    type: "object",
-    properties: {
-      location: {
-        type: "string",
-        description: "City or place name, e.g. 'Berlin' or 'San Francisco'.",
+  function: {
+    name: "get_weather",
+    description:
+      "Get the current weather for a city or place name. Use whenever the user " +
+      "asks about weather, temperature, rain, or what to wear.",
+    parameters: {
+      type: "object",
+      properties: {
+        location: {
+          type: "string",
+          description: "City or place name, e.g. 'Berlin' or 'San Francisco'.",
+        },
       },
+      required: ["location"],
+      additionalProperties: false,
     },
-    required: ["location"],
-    additionalProperties: false,
+    strict: false,
   },
-  strict: false,
 };
 
 // WMO weather codes (https://open-meteo.com/en/docs), collapsed to families.
@@ -59,20 +61,36 @@ export async function executeGetWeather(
     const geoUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
     geoUrl.searchParams.set("name", location);
     geoUrl.searchParams.set("count", "1");
-    const geo = (await (await fetch(geoUrl, { signal: ctx.signal })).json()) as {
-      results?: Array<{ name: string; country?: string; latitude: number; longitude: number }>;
+    const geo = (await (
+      await fetch(geoUrl, { signal: ctx.signal })
+    ).json()) as {
+      results?: Array<{
+        name: string;
+        country?: string;
+        latitude: number;
+        longitude: number;
+      }>;
     };
     const place = geo.results?.[0];
-    if (!place) return JSON.stringify({ error: `No place found for "${location}"` });
+    if (!place)
+      return JSON.stringify({ error: `No place found for "${location}"` });
 
     const wxUrl = new URL("https://api.open-meteo.com/v1/forecast");
     wxUrl.searchParams.set("latitude", String(place.latitude));
     wxUrl.searchParams.set("longitude", String(place.longitude));
-    wxUrl.searchParams.set("current", "temperature_2m,weather_code,wind_speed_10m");
+    wxUrl.searchParams.set(
+      "current",
+      "temperature_2m,weather_code,wind_speed_10m",
+    );
     const wx = (await (await fetch(wxUrl, { signal: ctx.signal })).json()) as {
-      current?: { temperature_2m: number; weather_code: number; wind_speed_10m: number };
+      current?: {
+        temperature_2m: number;
+        weather_code: number;
+        wind_speed_10m: number;
+      };
     };
-    if (!wx.current) return JSON.stringify({ error: "No weather data returned" });
+    if (!wx.current)
+      return JSON.stringify({ error: "No weather data returned" });
 
     return JSON.stringify({
       place: `${place.name}${place.country ? `, ${place.country}` : ""}`,

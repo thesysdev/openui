@@ -18,7 +18,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `src/app/api/chat/route.ts` and improving your agent
 by adding system prompts or tools. A LangGraph scaffold puts the implementation in
-`src/agent/agent.ts` instead.
+`src/agent.ts` instead.
 
 ## Deploy
 
@@ -39,26 +39,34 @@ deploys.
 The Vercel AI SDK scaffold is a standard Next.js app: `streamText()` owns the
 agent loop and UIMessage stream, so the whole project can be deployed to Vercel.
 
-In both variants, your framework executes application tools. OpenUI Cloud
-provides managed conversation storage and executes its provider tools: web
-search, image search, and configured MCP servers.
+All variants use OpenUI Cloud's Chat Completions endpoint. Application tools
+(such as the included weather tool) run in your server or agent framework.
+Responses-only provider tools (`web_search`, `image_search`, and MCP declarations)
+are not passed to Chat Completions; add application tools for those integrations.
 
 ## Conversation storage
 
-OpenUI Cloud is the durable conversation store in every Cloud
-variant. The browser connects directly through `useOpenuiCloudStorage()` with a
-short-lived token from `/api/frontend-token`. For default, LangGraph, and
-Vercel AI SDK routes, the `threadId` sent to `/api/chat` is the Cloud
-conversation id, and the route appends each model turn to it with
-`conversation: threadId` and `store: true`. The Eve overlay uses that same Cloud
-thread store and maps each Cloud `threadId` to an Eve session cursor in the
-browser; it does not use `/api/chat`.
-Browser `localStorage` holds only the selected model (and, for Eve, the session
-cursor), not conversation messages.
+The browser connects to OpenUI Cloud through `useOpenuiCloudStorage()` with a
+short-lived token from `/api/frontend-token`. The `threadId` is the Cloud
+conversation id.
 
-The Vercel AI SDK route does not create a second store. Add a LangGraph
-checkpointer separately only if the graph needs durable state, interrupts, or
-resumable runs.
+The default and LangGraph routes send the full message history on each Chat
+Completions request. After a successful turn, they call
+`storeChatCompletionHistory` from `@openuidev/server/openai` with only the latest
+user message and the new assistant/tool messages. This preserves reloadable
+history without duplicating earlier turns. The default frontend uses
+`openAIAdapter()` to read native Chat Completions SSE and loads persisted history
+before each request, including tool results that are not part of that stream.
+Chat Completions does not persist
+conversations automatically through `conversation` or `store: true`.
+
+The Vercel AI SDK and Eve overlays already use Chat Completions, but do not yet
+write their completed turns to Cloud storage. Eve uses its own HTTP session
+protocol instead of `/api/chat`, with a session cursor in browser `localStorage`.
+The selected model is also kept in `localStorage`.
+
+Add a LangGraph checkpointer separately if the graph needs durable execution
+state, interrupts, or resumable runs.
 
 ## Switching Models
 
@@ -71,6 +79,9 @@ The built-in model ids are available on [models.dev's OpenRouter provider
 list](https://models.dev/providers/openrouter/).
 
 ## SDK packages
+
+- `@openuidev/server` — `storeChatCompletionHistory()` for saving new Chat
+  Completions turns to Cloud conversations.
 
 - `@openuidev/lang-core` — `generateSystemPrompt({ cloud: true })` used by the
   `/api/chat` route.
