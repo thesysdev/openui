@@ -74,6 +74,8 @@
     border-radius: cssUtils.$radius-m;
     transition: all 0.2s ease-in-out;
     height: 32px;
+    // Rows keep their height when the list overflows; the list scrolls.
+    flex-shrink: 0;
 
     &:hover {
       background-color: cssUtils.$sunk;

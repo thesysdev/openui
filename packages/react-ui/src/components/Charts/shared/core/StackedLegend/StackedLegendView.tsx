@@ -13,8 +13,8 @@ import {
   type StackedLegendLayout,
 } from "./stackedLegendLayout";
 
-const ITEM_HEIGHT = 36;
-const ITEM_GAP = 2;
+/** Fallback scroll step: a row's height in stackedLegend.scss. */
+const ITEM_HEIGHT = 32;
 
 export interface StackedLegendViewProps {
   items: StackedLegendItem[];
@@ -82,11 +82,12 @@ export const StackedLegendView = ({
     };
   }, [isShowMore, items.length]);
 
-  const scrollBy = (dir: 1 | -1) =>
-    listRef.current?.scrollBy({
-      top: dir * (ITEM_HEIGHT + ITEM_GAP),
-      behavior: "smooth",
-    });
+  // One row per click, measured so the step always matches the rendered rows.
+  const scrollBy = (dir: 1 | -1) => {
+    const list = listRef.current;
+    const rowHeight = list?.firstElementChild?.getBoundingClientRect().height || ITEM_HEIGHT;
+    list?.scrollBy({ top: dir * rowHeight, behavior: "smooth" });
+  };
 
   // Re-normalize percentages over the VISIBLE set so visible rows match the
   // (re-normalized) wedges. Hidden rows are dimmed; their % over the visible
