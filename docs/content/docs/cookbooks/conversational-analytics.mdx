@@ -180,12 +180,12 @@ This runs `openui generate src/library.ts --spec --out src/generated/spec.json`.
 
 ### 4. Connect Agent Interface
 
-Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's completion chunks with `openAIAdapter()`:
+Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's stream with `openAIReadableStreamAdapter()`:
 
 ```tsx title="src/components/analytics-chat.tsx"
 const llm = fetchLLM({
   url: "/api/chat",
-  streamAdapter: openAIAdapter(),
+  streamAdapter: openAIReadableStreamAdapter(),
   messageFormat: openAIMessageFormat,
 });
 
@@ -254,7 +254,7 @@ const runner = gateway.chat.completions.runTools(
 
 Chat Completions returns function calls to your application rather than running them. The OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) runs each requested call, sends the result back as a `tool` message, and requests the next completion until the model answers, for up to three completions. If the third completion still calls the tool, the run ends without an answer. `runTools()` also ends the run when a tool throws, so the route returns the error to the model as the tool's result instead.
 
-The route forwards the runner's completion chunks to the browser as server-sent events, the same format Gateway streams, and Agent Interface reads them with `openAIAdapter()`. The answer and each tool call stream in as the model writes them. Chat Completions has no chunk for a tool result, so **Behind the scenes** shows each call's arguments but not its result.
+The route returns the runner's `toReadableStream()`, which carries every completion's chunks as one JSON object per line, and Agent Interface reads it with `openAIReadableStreamAdapter()`. The answer and each tool call stream in as the model writes them. Chat Completions has no chunk for a tool result, so **Behind the scenes** shows each call's arguments but not its result.
 
 Once the model has answered, the route appends the turn to the thread's Gateway conversation. `threadId` is the conversation that Agent Interface's storage created for the thread. `runner.messages` starts with the request's messages, so the turn is everything from the new question on: the question, each tool call and its result, and the answer.
 

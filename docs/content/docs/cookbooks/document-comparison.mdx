@@ -225,12 +225,12 @@ Each card shows the site's icon, the company and page, and the quote. `onePerPag
 
 ### 4. Customize Agent Interface
 
-Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's completion chunks with `openAIAdapter()`:
+Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's stream with `openAIReadableStreamAdapter()`:
 
 ```tsx title="src/components/comparison-chat.tsx"
 const llm = fetchLLM({
   url: "/api/chat",
-  streamAdapter: openAIAdapter(),
+  streamAdapter: openAIReadableStreamAdapter(),
   messageFormat: openAIMessageFormat,
 });
 ```
@@ -322,7 +322,7 @@ const runner = gateway.chat.completions.runTools(
 );
 ```
 
-The OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) runs each requested search, sends the results back, and requests the next completion until the model answers, for up to four completions. Searches the model requests together run in parallel. A search that throws returns its error to the model as the result, because `runTools()` otherwise ends the run. The route forwards the runner's completion chunks, so Agent Interface shows each search and its arguments. Chat Completions has no chunk for a tool result, so the passages themselves appear only in the answer. The extra rounds let the model search again with different wording when a document returns `found: false`. `conversation()` drops the tool calls and results the browser sends back, so every quote comes from a search your server ran for the current question.
+The OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) runs each requested search, sends the results back, and requests the next completion until the model answers, for up to four completions. Searches the model requests together run in parallel. A search that throws returns its error to the model as the result, because `runTools()` otherwise ends the run. The route returns the runner's `toReadableStream()`, so Agent Interface shows each search and its arguments. Chat Completions has no chunk for a tool result, so the passages themselves appear only in the answer. The extra rounds let the model search again with different wording when a document returns `found: false`. `conversation()` drops the tool calls and results the browser sends back, so every quote comes from a search your server ran for the current question.
 
 This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
 

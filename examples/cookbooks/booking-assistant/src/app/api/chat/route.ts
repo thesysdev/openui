@@ -123,23 +123,12 @@ export async function POST(request: Request) {
     { signal: request.signal, maxChatCompletions: 3 },
   );
 
-  // Forward the runner's completion chunks as server-sent events, the format Gateway streams, so
-  // Agent Interface reads them with openAIAdapter(). The loop starts reading right away, so no
-  // chunk is missed while the route waits below.
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      try {
-        for await (const chunk of runner)
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-        controller.close();
-      } catch (error) {
-        controller.error(error);
-        return;
-      }
-      // Chat Completions doesn't write to the conversation, so append this turn once the model
-      // has answered: the user's message, the tool calls and their results, and the answer. Agent
-      // Interface loads them when the thread is opened again.
+  // Chat Completions doesn't write to the conversation, so append this turn once the model has
+  // answered: the user's message, the tool calls and their results, and the answer. Agent
+  // Interface loads them when the thread is opened again. A failed or stopped run isn't stored,
+  // and the browser's stream reports it.
+  runner.done().then(
+    async () => {
       const turn = runner.messages.slice(messages.length - 1);
       const answer = turn.at(-1);
       if (answer?.role !== "assistant" || !answer.content) return;
@@ -148,7 +137,13 @@ export async function POST(request: Request) {
           console.error("Could not store the turn in the Gateway conversation.", error),
       );
     },
-  });
+    () => {},
+  );
+
+  // The runner's stream carries every completion's chunks, one JSON object per line, and Agent
+  // Interface reads it with openAIReadableStreamAdapter(). Creating it now means no chunk is missed
+  // while the route waits below.
+  const stream = runner.toReadableStream();
 
   // Wait for the first completion to start, so a rejected key or rate limit returns as an HTTP
   // error with Gateway's status instead of an event mid-stream.

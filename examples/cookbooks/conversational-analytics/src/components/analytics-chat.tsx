@@ -3,17 +3,17 @@
 import {
   AgentInterface,
   fetchLLM,
-  openAIAdapter,
   openAIMessageFormat,
+  openAIReadableStreamAdapter,
   useOpenuiCloudStorage,
   type ThemeProps,
 } from "@openuidev/react-ui";
 import { library } from "../library";
 
-// Send the thread's messages in Chat Completions format and read the route's completion chunks.
+// Send the thread's messages in Chat Completions format and read the runner's stream from the route.
 const llm = fetchLLM({
   url: "/api/chat",
-  streamAdapter: openAIAdapter(),
+  streamAdapter: openAIReadableStreamAdapter(),
   messageFormat: openAIMessageFormat,
 });
 
