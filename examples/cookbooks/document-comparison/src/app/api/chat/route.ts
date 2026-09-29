@@ -155,10 +155,11 @@ export async function POST(request: Request) {
   // while the route waits below.
   const stream = runner.toReadableStream();
 
-  // Wait for the first completion to start, so a rejected key or rate limit returns as an HTTP
-  // error with Gateway's status instead of an event mid-stream.
+  // Wait for the first chunk, so a rejected key, rate limit, or unknown model returns as an HTTP
+  // error with Gateway's message instead of failing mid-stream. Gateway reports some errors, such
+  // as an unknown model, inside a successful response, so waiting for the response isn't enough.
   try {
-    await Promise.race([runner.emitted("connect"), runner.done()]);
+    await Promise.race([runner.emitted("chunk"), runner.done()]);
   } catch (error) {
     const upstream = error as { status?: number; message?: string };
     return Response.json(
