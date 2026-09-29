@@ -50,7 +50,8 @@ export function CalendarSeparators({
             x2={x}
             y1={0}
             y2={plotHeight}
-            stroke={stroke}
+            // Inline style: a presentation attribute would lose to the class rule.
+            style={stroke ? { stroke } : undefined}
             strokeDasharray={dashed ? "4,4" : undefined}
           />
         );

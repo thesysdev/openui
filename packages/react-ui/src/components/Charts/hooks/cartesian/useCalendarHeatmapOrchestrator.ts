@@ -18,7 +18,7 @@ import type { CalendarColumnSeparators, CalendarLevelStyle } from "../../Calenda
 import { buildContainerStyle } from "../../utils/buildContainerStyle";
 import { CHART_CLASS_PREFIX, DEFAULT_CHART_HEIGHT } from "../../utils/constants";
 import { parseLineHeight } from "../../utils/labelWrap";
-import { resolvePalette } from "../../utils/paletteUtils";
+import { orientRampToSurface, resolvePalette } from "../../utils/paletteUtils";
 import { sampleRampStops } from "../../utils/rampUtils";
 import { useCanvasContextForLabelSize } from "../core/useCanvasContextForLabelSize";
 import { useChartShell } from "../core/useChartShell";
@@ -157,20 +157,22 @@ export function useCalendarHeatmapOrchestrator({
     height,
   });
   const context = useCanvasContextForLabelSize();
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
 
   const levelStyles = useMemo(() => normalizeLevelStyles(levelStylesProp), [levelStylesProp]);
 
-  // --- Level colors: five stops, either explicit or sampled from the ramp. The
-  // sampled ramp keeps HeatmapChart's low→high ordering, so stop 0 is the faint
-  // "empty" shade and stop 4 the most active. A per-level `levelStyles[i].color`
+  // --- Level colors: five stops, either explicit or sampled from the ramp.
+  // Stop 0 is the faint "empty" shade and stop 4 the most active: a
+  // customPalette is read low → high as given, the theme's palette is oriented
+  // to the surface (as in HeatmapChart). A per-level `levelStyles[i].color`
   // then supersedes the resolved stop. ---
   const levelColors = useMemo<string[]>(() => {
-    const base = levelColorsProp
-      ? [...levelColorsProp]
-      : sampleRampStops(resolvePalette(theme, themePaletteName, customPalette), LEVEL_COUNT);
+    const ramp = customPalette
+      ? resolvePalette(theme, themePaletteName, customPalette)
+      : orientRampToSurface(resolvePalette(theme, themePaletteName), mode);
+    const base = levelColorsProp ? [...levelColorsProp] : sampleRampStops(ramp, LEVEL_COUNT);
     return base.map((color, level) => levelStyles[level]?.color ?? color);
-  }, [levelColorsProp, theme, themePaletteName, customPalette, levelStyles]);
+  }, [levelColorsProp, theme, mode, themePaletteName, customPalette, levelStyles]);
 
   // --- Grid + per-cell level ---
   const grid = useMemo(
@@ -217,9 +219,10 @@ export function useCalendarHeatmapOrchestrator({
     return Math.max(WEEKDAY_GUTTER_MIN, Math.ceil(max) + WEEKDAY_LABEL_GAP * 2);
   }, [weekdayTicks, context]);
 
-  const gutterTop = showMonthLabels
-    ? Math.ceil(parseLineHeight(context.font)) + MONTH_LABEL_BOTTOM_GAP
-    : 0;
+  // Quarter labels get their own row above the month labels.
+  const labelRowHeight = Math.ceil(parseLineHeight(context.font)) + MONTH_LABEL_BOTTOM_GAP;
+  const gutterTop =
+    (separators.labels.length > 0 ? labelRowHeight : 0) + (showMonthLabels ? labelRowHeight : 0);
 
   // --- Cell geometry ---
   const weeks = grid.weeks;
