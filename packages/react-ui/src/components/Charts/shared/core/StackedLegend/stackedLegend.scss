@@ -11,6 +11,7 @@
 
 .#{brand.$prefix}-stacked-legend-header {
   width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -60,7 +61,10 @@
   }
 
   &__item {
+    // Padding inside the size, with or without a global box-sizing reset: a
+    // wider row spills past the legend, whose scroll overflow clips the values.
     width: 100%;
+    box-sizing: border-box;
     display: flex;
     flex-direction: row;
     justify-content: space-between;

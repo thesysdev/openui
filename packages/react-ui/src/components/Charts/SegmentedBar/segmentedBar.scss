@@ -24,7 +24,9 @@
 
 // The thin bar track.
 .#{brand.$prefix}-segmented-bar {
+  // Padding inside the size, with or without a global box-sizing reset.
   width: 100%;
+  box-sizing: border-box;
   height: 20px;
   font-family: inherit;
   background-color: cssUtils.$background;
