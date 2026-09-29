@@ -5,6 +5,7 @@ import {
   agUIAdapter,
   fetchLLM,
   openAIMessageFormat,
+  useOpenuiCloudStorage,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
 import { ChartLine, ChartPie, FileText, ShieldAlert, TrendingUp } from "lucide-react";
@@ -49,10 +50,18 @@ const starters = [
 export default function ComparisonChat() {
   const mode = useSystemThemeMode();
   const theme = useMemo(() => ({ mode, lightTheme, darkTheme }), [mode]);
+  // Store threads as Gateway conversations, which the browser reaches with a short-lived token
+  // from /api/frontend-token. Chat Completions doesn't write to them, so Gateway keeps each
+  // thread's title but not its messages.
+  const storage = useOpenuiCloudStorage({
+    token: "/api/frontend-token",
+    features: { artifact: false },
+  });
   return (
     <div className="comparison-app">
       <AgentInterface
         llm={llm}
+        storage={storage}
         componentLibrary={library}
         agentName="Filing analyst"
         logoUrl="/logo.svg"

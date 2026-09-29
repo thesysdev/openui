@@ -36,18 +36,20 @@ Try:
 
 ## Files
 
-| File                              | Purpose                                                               |
-| --------------------------------- | --------------------------------------------------------------------- |
-| `src/lib/trivago.ts`              | MCP client for trivago's accommodation search, and its filter options |
-| `src/lib/tools/search-stays.ts`   | Function schema, argument validation, budget filter, and results      |
-| `src/library.ts`                  | Shared components for the prompt and renderer                         |
-| `src/components/date-picker.tsx`  | A DatePicker that the model can prefill with YYYY-MM-DD dates         |
-| `src/lib/prompt.ts`               | Booking rules and one example for each step of the flow               |
-| `src/app/api/chat/route.ts`       | Request validation, Chat Completions generation, and SSE response     |
-| `src/lib/tool-loop.ts`            | Chat Completions function-tool loop that streams AG-UI events         |
-| `src/lib/theme.ts`                | Light and dark theme overrides                                        |
-| `src/components/booking-chat.tsx` | Agent Interface, chat transport, theme, starters, and thread header   |
-| `src/app/styles.css`              | Page layout and full-width photos on the stay cards                   |
+| File                                  | Purpose                                                               |
+| ------------------------------------- | --------------------------------------------------------------------- |
+| `src/lib/trivago.ts`                  | MCP client for trivago's accommodation search, and its filter options |
+| `src/lib/tools/search-stays.ts`       | Function schema, argument validation, budget filter, and results      |
+| `src/library.ts`                      | Shared components for the prompt and renderer                         |
+| `src/components/date-picker.tsx`      | A DatePicker that the model can prefill with YYYY-MM-DD dates         |
+| `src/lib/prompt.ts`                   | Booking rules and one example for each step of the flow               |
+| `src/app/api/chat/route.ts`           | Request validation, Chat Completions generation, and SSE response     |
+| `src/app/api/frontend-token/route.ts` | Frontend token for Gateway thread storage                             |
+| `src/lib/local-origin.ts`             | Local-page check shared by the chat and frontend-token routes         |
+| `src/lib/tool-loop.ts`                | Chat Completions function-tool loop that streams AG-UI events         |
+| `src/lib/theme.ts`                    | Light and dark theme overrides                                        |
+| `src/components/booking-chat.tsx`     | Agent Interface, chat transport, thread storage, theme, and starters  |
+| `src/app/styles.css`                  | Page layout and full-width photos on the stay cards                   |
 
 `npm run generate` creates the ignored component specification before dev/build/verify. The server passes that specification to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, and Agent Interface renders responses with the same component library.
 
@@ -65,13 +67,15 @@ React UI's `DatePicker` stores `Date` objects, which a model cannot write and wh
 
 ## Conversations
 
-The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completions` using `THESYS_API_KEY`. Chat Completions does not store conversations, so Agent Interface keeps each thread in memory and `fetchLLM` sends its messages with every turn. Threads reset when the page reloads; pass a `storage` adapter to Agent Interface to persist them.
+The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completions` using `THESYS_API_KEY`. Chat Completions does not store conversations, so Agent Interface keeps each thread's messages in memory and `fetchLLM` sends them with every turn.
+
+Agent Interface stores the thread list with Gateway's [Conversations API](https://www.openui.com/docs/gateway/api/conversations) through `useOpenuiCloudStorage()`. The browser calls Gateway directly with a short-lived [frontend token](https://www.openui.com/docs/gateway/authentication#frontend-tokens) from `/api/frontend-token`, which mints it with `THESYS_API_KEY` for one local user and the `booking-assistant-cookbook` app, so the key stays on the server and the browser reaches only those threads. Threads stay listed after a reload, but Chat Completions doesn't write turns to a conversation, so Gateway keeps each thread's title and not its messages; a thread you open again from the sidebar is empty. To store the messages too, generate with the [Responses API](https://www.openui.com/docs/gateway/api/responses) and pass `conversation` and `store: true`, or keep threads in your own database with `restStorage`.
 
 The chat route forwards only user messages and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only search results the server produced for the current turn. Later steps therefore use what the stay cards show: each card's value is the stay's booking link, so choosing a card sends the link back with the form, and the summary's **Continue to booking** button opens it. A submitted form arrives as one message with the form's values, so the route accepts user messages of up to 4,000 characters.
 
 The tool loop streams AG-UI events, which `agUIAdapter()` reads, because Chat Completions has no chunk for a tool result. It is the same loop as in the [conversational analytics](../conversational-analytics) cookbook. The tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK; see the [agent runtime integrations](https://www.openui.com/docs/agent/agent-runtimes/langgraph-platform) and the [agent framework examples](../../agent-frameworks).
 
-The app binds to loopback, and the chat route accepts browser requests only from its own local page. For deployment, add authentication and rate limits to the chat route.
+The app binds to loopback, and the chat and frontend-token routes accept browser requests only from its own local page. Every browser shares one local user's threads. For deployment, add authentication, mint each frontend token for the signed-in user, and add rate limits to both routes.
 
 ## Verify
 

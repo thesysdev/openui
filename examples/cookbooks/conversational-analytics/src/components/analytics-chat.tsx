@@ -5,6 +5,7 @@ import {
   agUIAdapter,
   fetchLLM,
   openAIMessageFormat,
+  useOpenuiCloudStorage,
   type ThemeProps,
 } from "@openuidev/react-ui";
 import { library } from "../library";
@@ -36,10 +37,18 @@ const starters = [
 ];
 
 export default function AnalyticsChat() {
+  // Store threads as Gateway conversations, which the browser reaches with a short-lived token
+  // from /api/frontend-token. Chat Completions doesn't write to them, so Gateway keeps each
+  // thread's title but not its messages.
+  const storage = useOpenuiCloudStorage({
+    token: "/api/frontend-token",
+    features: { artifact: false },
+  });
   return (
     <div className="analytics-app">
       <AgentInterface
         llm={llm}
+        storage={storage}
         componentLibrary={library}
         agentName="Data analyst"
         theme={theme}

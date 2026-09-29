@@ -5,6 +5,7 @@ import {
   agUIAdapter,
   fetchLLM,
   openAIMessageFormat,
+  useOpenuiCloudStorage,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
 import { Briefcase, CalendarDays, Users, Wallet } from "lucide-react";
@@ -47,10 +48,18 @@ const starters = [
 export default function BookingChat() {
   const mode = useSystemThemeMode();
   const theme = useMemo(() => ({ mode, lightTheme, darkTheme }), [mode]);
+  // Store threads as Gateway conversations, which the browser reaches with a short-lived token
+  // from /api/frontend-token. Chat Completions doesn't write to them, so Gateway keeps each
+  // thread's title but not its messages.
+  const storage = useOpenuiCloudStorage({
+    token: "/api/frontend-token",
+    features: { artifact: false },
+  });
   return (
     <div className="booking-app">
       <AgentInterface
         llm={llm}
+        storage={storage}
         componentLibrary={library}
         agentName="Stay finder"
         logoUrl="/logo.svg"

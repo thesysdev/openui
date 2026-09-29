@@ -18,6 +18,7 @@ In this cookbook, you'll learn how to:
 - Stream answers into [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity, so charts and tables appear while the response is still being generated.
 - Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
 - Send the conversation with each question, so follow-up questions build on earlier answers.
+- Keep the thread list in Gateway [conversations](/docs/gateway/api/conversations), which the browser reads directly with a short-lived frontend token.
 
 <div className="not-prose my-6">
   <a
@@ -188,8 +189,14 @@ const llm = fetchLLM({
   messageFormat: openAIMessageFormat,
 });
 
+const storage = useOpenuiCloudStorage({
+  token: "/api/frontend-token",
+  features: { artifact: false },
+});
+
 <AgentInterface
   llm={llm}
+  storage={storage}
   componentLibrary={library}
   agentName="Data analyst"
   theme={{ mode: "light" }}
@@ -202,10 +209,11 @@ const llm = fetchLLM({
 </AgentInterface>;
 ```
 
-Chat Completions does not store conversations, so Agent Interface keeps each thread in the browser and sends its messages with every question. That is what lets a follow-up build on the previous answer. Threads last until the page reloads. To keep them, pass a `storage` adapter to Agent Interface:
+Chat Completions does not store conversations, so Agent Interface keeps each thread's messages in the browser and sends them with every question. That is what lets a follow-up build on the previous answer.
 
-- **Gateway conversations.** Store threads with the Gateway [Conversations API](/docs/gateway/api/conversations) and load them in the browser with `useOpenuiCloudStorage()` and a short-lived frontend token. With Chat Completions, your server adds each question and answer to the conversation as items; the [Responses API](/docs/gateway/api/responses) appends them for you. This works with custom backends too: the Gateway-backed LangGraph, Vercel AI SDK, and Vercel Eve templates from [`openui create`](/docs/api-reference/cli) keep their threads this way while the framework runs the agent.
-- **Your own database.** Serve threads from your backend and connect them with `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
+`useOpenuiCloudStorage()` stores the thread list with the Gateway [Conversations API](/docs/gateway/api/conversations). The browser calls Gateway directly with a short-lived [frontend token](/docs/gateway/authentication#frontend-tokens) from the example's `/api/frontend-token` route, which mints it with `THESYS_API_KEY` for one local user and this app's `app_id`. Gateway limits the token to that user's threads in this app, and the key never reaches the browser.
+
+Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, though, so Gateway keeps each thread's title but not its messages, and a thread you open again from the sidebar is empty. To store the messages too, generate with the [Responses API](/docs/gateway/api/responses), which appends each turn when you pass `conversation` and `store: true`, or keep threads in your own database with `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
 
 ### 5. Stream the answer
 
@@ -261,6 +269,7 @@ In the browser:
 3. Ask **“Focus on their final ten laps.”** Confirm the chart covers laps 48 through 57 and retains both drivers.
 4. Click a follow-up suggestion under an answer. Confirm the new answer keeps the drivers and laps from the conversation.
 5. Stop a generation and ask another question to check recovery.
+6. Reload the page. Confirm your threads are still listed in the sidebar.
 
 Generated layouts can vary. Check values against the tool result. Missing data and tool errors should produce an explanation rather than invented points.
 
@@ -270,7 +279,7 @@ Replace `queryLapTimes` with a query to your database or API. Update the tool's 
 
 This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples. With any of these backends, you can still keep threads in Gateway conversations, as described in [Connect Agent Interface](#4-connect-agent-interface).
 
-This example runs locally without authentication, and its chat route accepts browser requests only from its own page. Before deploying it, add authentication and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/conversational-analytics) for the implementation notes.
+This example runs locally without authentication. Its chat and frontend-token routes accept browser requests only from its own page, and every browser shares one local user's threads. Before deploying it, add authentication, mint each frontend token for the signed-in user, and add rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/conversational-analytics) for the implementation notes.
 
 - [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
 - [Agent tools](/docs/agent/core-concepts/tools)

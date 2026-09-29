@@ -19,6 +19,7 @@ In this cookbook, you'll learn how to:
 - Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity, with your own theme, sidebar, and pages.
 - Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
 - Send the conversation with each question, so a follow-up can add a criterion to the comparison.
+- Keep the thread list in Gateway [conversations](/docs/gateway/api/conversations), which the browser reads directly with a short-lived frontend token.
 
 <div className="not-prose my-6">
   <a
@@ -234,7 +235,18 @@ const llm = fetchLLM({
 });
 ```
 
-Chat Completions does not store conversations, so Agent Interface keeps each thread in the browser and sends its messages with every question. That is what lets a follow-up add a criterion to the comparison. Threads last until the page reloads. To keep them, pass a `storage` adapter to Agent Interface; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
+Chat Completions does not store conversations, so Agent Interface keeps each thread's messages in the browser and sends them with every question. That is what lets a follow-up add a criterion to the comparison.
+
+`useOpenuiCloudStorage()` stores the thread list with the Gateway [Conversations API](/docs/gateway/api/conversations), the same way as in the [conversational analytics cookbook](/cookbooks/conversational-analytics#4-connect-agent-interface). The browser calls Gateway directly with a short-lived [frontend token](/docs/gateway/authentication#frontend-tokens) from the example's `/api/frontend-token` route, so `THESYS_API_KEY` stays on the server and the browser reaches only one local user's threads in this app:
+
+```tsx title="src/components/comparison-chat.tsx"
+const storage = useOpenuiCloudStorage({
+  token: "/api/frontend-token",
+  features: { artifact: false },
+});
+```
+
+Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, though, so Gateway keeps each thread's title but not its messages, and a thread you open again from the sidebar is empty. To store the messages too, generate with the [Responses API](/docs/gateway/api/responses), which appends each turn when you pass `conversation` and `store: true`, or keep threads in your own database with `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
 
 The example also customizes Agent Interface through its public props and slots:
 
@@ -244,6 +256,7 @@ const theme = useMemo(() => ({ mode, lightTheme, darkTheme }), [mode]);
 
 <AgentInterface
   llm={llm}
+  storage={storage}
   componentLibrary={library}
   agentName="Filing analyst"
   logoUrl="/logo.svg"
@@ -330,7 +343,8 @@ In the browser:
 3. Ask **“How has R&D spending changed over three years?”** and **“Break down revenue by segment.”** Confirm the first uses a line chart, and the second a single bar chart with a table row per segment.
 4. Ask **“Compare each CEO's total compensation.”** Annual reports refer readers to the proxy statement for executive pay, so the table should say “Not found” with a callout explaining why, and no chart.
 5. Open **Documents** in the sidebar and confirm it lists the three reports with their page counts.
-6. Switch your operating system between light and dark mode, and confirm the theme follows.
+6. Reload the page and confirm your threads are still listed in the sidebar.
+7. Switch your operating system between light and dark mode, and confirm the theme follows.
 
 Generated layouts can vary. Values should always match a quoted passage.
 
@@ -340,7 +354,7 @@ Add your own PDFs to the example's `documents/` folder and run `npm run prepare:
 
 The importer reads a PDF's text layer, so run OCR on scanned documents first. For large collections, store the embeddings in a vector database and keep the `search_documents` tool's contract.
 
-This example runs locally without authentication, and its chat route accepts browser requests only from its own page. Before deploying it, add authentication and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
+This example runs locally without authentication. Its chat and frontend-token routes accept browser requests only from its own page, and every browser shares one local user's threads. Before deploying it, add authentication, mint each frontend token for the signed-in user, and add rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
 
 - [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
 - [Agent tools](/docs/agent/core-concepts/tools)
