@@ -73,12 +73,19 @@ figure.figure {
   width: 100%;
   height: 100%;
   fill: none;
-  stroke: color-mix(in srgb, var(--openui-text-neutral-primary) 32%, transparent);
-  stroke-width: 1.25px;
-  stroke-dasharray: 1 5;
+  stroke: color-mix(in srgb, var(--openui-text-neutral-primary) 22%, transparent);
+  stroke-width: 1.1px;
+  stroke-dasharray: 1.35 5;
   stroke-linecap: round;
   stroke-linejoin: round;
   overflow: visible;
+}
+
+:global(.dark) .horizontalConnectors,
+:global(.dark) .verticalConnectors,
+:global([data-theme="dark"]) .horizontalConnectors,
+:global([data-theme="dark"]) .verticalConnectors {
+  stroke: color-mix(in srgb, var(--openui-text-neutral-primary) 12%, transparent);
 }
 
 .verticalConnectors {
@@ -105,6 +112,10 @@ figure.figure {
   text-align: left;
 }
 
+.mobileKey {
+  display: none;
+}
+
 .share {
   color: var(--openui-text-neutral-primary);
   font-size: 21px;
@@ -119,63 +130,68 @@ figure.figure {
   text-wrap: wrap;
 }
 
-/* Rotate the same proportional bar on small screens. Labels have their own
-   equal-height rows, so neither the 4% slice nor long text can cause overlaps. */
+/* Keep the data horizontal on phones. The bar still communicates proportion;
+   the labels become direct, roomy rows instead of squeezing into four narrow
+   columns or rotating the entire chart. */
 @media (max-width: 639px) {
   figure.figure {
     margin-top: 48px;
   }
 
   .chartBody {
-    display: grid;
-    grid-template-columns: 48px 40px minmax(0, 1fr);
+    display: block;
   }
 
   .bar {
-    height: auto;
+    height: 64px;
   }
 
   .segment {
-    grid-column: 1 / -1;
-    grid-row: auto;
-    min-height: 0;
-    border-inline-end: 0;
-    border-bottom: 3px solid var(--openui-background);
+    grid-row: 1 / -1;
   }
 
   .connectors {
-    height: auto;
-  }
-
-  .horizontalConnectors {
     display: none;
-  }
-
-  .verticalConnectors {
-    display: block;
   }
 
   .labels {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: repeat(4, minmax(88px, 1fr));
+    min-height: 0;
+    margin-top: 20px;
   }
 
   .label {
-    align-items: flex-start;
-    justify-content: center;
-    gap: 4px;
-    padding: 12px 0 12px 12px;
+    display: grid;
+    grid-template-columns: 12px 3.25rem minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-top: 1px solid var(--home-hairline);
     text-align: left;
   }
 
+  .label:first-child {
+    border-top: 0;
+  }
+
+  .mobileKey {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background-size: 100% 100%;
+  }
+
   .share {
-    width: 3.25ch;
-    text-align: right;
+    width: auto;
+    text-align: left;
     font-variant-numeric: tabular-nums;
   }
 
   .family {
+    width: 100%;
     max-width: none;
-    text-wrap: pretty;
+    text-align: right;
+    text-wrap: balance;
   }
 }

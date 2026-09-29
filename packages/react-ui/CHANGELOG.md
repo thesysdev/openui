@@ -1,5 +1,13 @@
 # @openuidev/react-ui
 
+## 0.16.3
+
+### Patch Changes
+
+- [#1068](https://github.com/thesysdev/openui/pull/1068) [`a935fcd`](https://github.com/thesysdev/openui/commit/a935fcd56ea38eb45e13c2192a43b9e0e94ffd51) Thanks [@iambharathpadhu](https://github.com/iambharathpadhu)! - Prevent Enter from submitting either built-in composer while IME composition is active, including browsers that report the keyCode 229 fallback. Enter after composition finishes still submits, and Shift+Enter continues to insert a newline.
+- Updated dependencies []:
+  - @openuidev/react-headless@0.16.3
+
 ## 0.16.2
 
 ### Patch Changes

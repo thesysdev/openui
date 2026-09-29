@@ -1,0 +1,279 @@
+---
+title: Conversational analytics
+description: Build a chat assistant that answers questions about Formula 1 lap times with live charts and tables.
+---
+
+import { buttonVariants } from "fumadocs-ui/components/ui/button";
+import { ArrowUpRight, Github } from "lucide-react";
+import { CookbookAnalyticsArchitecture } from "@/components/cookbook-analytics-architecture";
+
+Conversational analytics lets people ask questions of their data in plain language instead of writing queries or waiting for a new dashboard. Dashboards answer the questions someone anticipated. A conversation handles the follow-ups nobody planned for, such as "which region fell behind last quarter?" or "compare these two products over the last ten weeks".
+
+A language model can turn a question like that into a query, but a text reply is a poor fit for the result. A ranking reads best as a table, a trend as a line chart, and a close comparison as the difference between two series. With generative UI, the model answers with those components directly, chosen for each question and filled with the values your query returned.
+
+In this cookbook, you'll learn how to:
+
+- Give the model access to your data through a function tool with typed, validated arguments, instead of letting it write SQL.
+- Describe a component library to the model, and render its answers with the same library.
+- Stream answers into [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity, so charts and tables appear while the response is still being generated.
+- Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
+- Send the conversation with each question, so follow-up questions build on earlier answers.
+
+<div className="not-prose my-6">
+  <a
+    href="https://github.com/thesysdev/openui/tree/main/examples/cookbooks/conversational-analytics"
+    target="_blank"
+    rel="noopener noreferrer"
+    className={buttonVariants({
+      color: "secondary",
+      className: "min-h-11 gap-2.5 rounded-lg px-4 py-2.5 no-underline",
+    })}
+  >
+    <Github className="size-4" aria-hidden="true" />
+    View example on GitHub
+    <ArrowUpRight className="size-4 text-fd-muted-foreground" aria-hidden="true" />
+  </a>
+</div>
+
+## What you'll build
+
+The example answers questions about recorded lap times from the **2024 Miami Grand Prix**, provided by [OpenF1](https://openf1.org/docs/). Each record is one driver's time for one lap, in seconds. The dataset is small and public, and it covers two of the most common analytics questions: ranking items by a measure, and comparing a few items across a range. The same structure works for sales by region, product usage over time, or any data you can query.
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl flex p-2">
+  <video
+    src="/videos/cookbooks/conversational-analytics.mp4"
+    aria-label="The data analyst example ranking the fastest Miami Grand Prix laps, comparing Piastri and Norris lap by lap, and adding Sainz through a follow-up suggestion"
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
+Try this conversation:
+
+1. **“Which five drivers set the fastest laps in Miami?”** Get a ranked table.
+2. **“Compare Norris and Verstappen lap by lap.”** See their times in a line chart.
+3. **“Focus on their final ten laps.”** Narrow the chart while retaining the selected drivers.
+
+
+## How it works
+
+A conversational analytics assistant splits the work between your application and the model. Your application owns the data and decides which questions it can answer. The model interprets each question and decides how to present the answer.
+
+<CookbookAnalyticsArchitecture />
+
+1. **The user asks a question.** Agent Interface sends the conversation to your server's chat route, which adds a system prompt that describes your components and a function tool that describes the queries you support, then calls OpenUI Gateway.
+2. **The model calls your tool.** Instead of writing SQL, it fills in the tool's structured arguments: which view, which items, and which range. Your server validates the arguments, runs a read-only, parameterized query, and returns the result as JSON. The model sees only what you send it, never the database itself.
+3. **The model composes the answer.** From the tool result, it writes an OpenUI Lang program using only the components in your library: a table for a ranking, a line chart for a comparison, or a sentence for a single number. Gateway validates the program against that library and corrects eligible errors as it streams.
+4. **Agent Interface renders it progressively.** The program starts with its root component, so each table or chart appears as soon as its data arrives. The next request includes the earlier questions and answers, so a follow-up such as "only the last ten laps" reuses that context and runs a fresh query.
+
+### Why a tool, not SQL
+
+A function tool is a contract between your data and the model. Its JSON schema limits the model to the questions you support, and enums and ranges reject invalid values before any query runs. Your server decides exactly what executes against the database, so there is no generated SQL to sandbox or review.
+
+Every number in the answer comes from a query result rather than the model's memory. That keeps charts accurate, and it lets the model say so when the data cannot answer a question. To support a new kind of question, you add a tool or extend an existing one.
+
+## Run the example
+
+You need Node.js 22.13 or newer and npm.
+
+```bash
+git clone https://github.com/thesysdev/openui.git
+cd openui/examples/cookbooks/conversational-analytics
+npm ci
+npm run prepare:data
+```
+
+Create an inference key in the [Thesys Console](https://console.thesys.dev/keys) and configure `THESYS_API_KEY` privately in the example's `.env.local`. Then start the app:
+
+```bash
+npm run dev
+```
+
+Open [localhost:3000](http://localhost:3000) and try a starter question. The default model is `openai/gpt-5.5`; use `OPENUI_MODEL` to select another supported [Gateway model](/docs/gateway/models).
+
+## Build it step by step
+
+Each step covers one part of the example, in the order a request flows through it: the data, the tool, the components, the chat interface, and the streamed answer.
+
+### 1. Prepare the data
+
+`npm run prepare:data` downloads the race's drivers and lap times from OpenF1 and creates `data/f1.sqlite`. It runs once; subsequent questions query the local database.
+
+The example covers 20 drivers and 57 race laps. You can rank drivers by their fastest recorded lap or compare selected drivers over a lap range. See [prepare-data.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/scripts/prepare-data.ts) for the importer.
+
+### 2. Expose a query tool
+
+Give Gateway a function tool named `query_lap_times`. It accepts the question's scope as structured arguments:
+
+```json
+{
+  "view": "lap_times",
+  "driver_numbers": [4, 1],
+  "lap_start": 48,
+  "lap_end": 57,
+  "limit": 5
+}
+```
+
+These arguments compare Norris and Verstappen over the final ten laps. The other view, `fastest_laps`, ranks each driver's best time; `limit` controls the number of ranked drivers.
+
+The [tool definition](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/tools/lap-times.ts) declares both views, the available driver numbers, and the allowed lap range in its JSON schema. Your server validates the arguments and executes a read-only query:
+
+```ts title="src/lib/tools/lap-times.ts"
+export async function executeQueryLapTimes(argsJson: string) {
+  const args = argsSchema.parse(JSON.parse(argsJson));
+  const db = openDatabase();
+  try {
+    return JSON.stringify(queryLapTimes(db, args));
+  } finally {
+    db.close();
+  }
+}
+```
+
+The result contains ranked lap times or aligned chart labels and series. Gateway uses those values to build the answer, and Agent Interface shows the call and its result in the **Behind the scenes** timeline.
+
+The query in the same file uses parameterized SQL. Missing times are left out of comparisons rather than plotted as zero.
+
+### 3. Choose the components
+
+Use a small selection from the built-in library, plus the chat library's follow-up suggestions:
+
+```ts title="src/library.ts"
+import { createLibrary } from "@openuidev/react-lang";
+import { openuiChatLibrary, openuiLibrary } from "@openuidev/react-ui/genui-lib";
+
+export const library = createLibrary({
+  root: "Stack",
+  components: [
+    ...[
+      "Stack",
+      "Card",
+      "CardHeader",
+      "TextContent",
+      "LineChart",
+      "BarChart",
+      "Series",
+      "Table",
+      "Col",
+    ].map((name) => openuiLibrary.components[name]),
+    openuiChatLibrary.components.FollowUpBlock,
+    openuiChatLibrary.components.FollowUpItem,
+  ],
+});
+```
+
+Clicking a follow-up sends its text as the next question.
+
+Generate the server specification from the same library used by the renderer:
+
+```bash
+npm run generate
+```
+
+This runs `openui generate src/library.ts --spec --out src/generated/spec.json`. It also runs automatically before development and builds.
+
+### 4. Connect Agent Interface
+
+Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's stream with `agUIAdapter()`:
+
+```tsx title="src/components/analytics-chat.tsx"
+const llm = fetchLLM({
+  url: "/api/chat",
+  streamAdapter: agUIAdapter(),
+  messageFormat: openAIMessageFormat,
+});
+
+<AgentInterface
+  llm={llm}
+  componentLibrary={library}
+  agentName="Data analyst"
+  theme={{ mode: "light" }}
+>
+  <AgentInterface.Welcome
+    title="Explore your data through conversation"
+    description="Ask about recorded lap times from the 2024 Miami Grand Prix, provided by OpenF1. Follow up to explore a different angle."
+  />
+  <AgentInterface.Composer placeholder="Ask a question about your data…" />
+</AgentInterface>;
+```
+
+Chat Completions does not store conversations, so Agent Interface keeps each thread in the browser and sends its messages with every question. That is what lets a follow-up build on the previous answer. Threads last until the page reloads. To keep them, pass a `storage` adapter to Agent Interface:
+
+- **Gateway conversations.** Store threads with the Gateway [Conversations API](/docs/gateway/api/conversations) and load them in the browser with `useOpenuiCloudStorage()` and a short-lived frontend token. With Chat Completions, your server adds each question and answer to the conversation as items; the [Responses API](/docs/gateway/api/responses) appends them for you. This works with custom backends too: the Gateway-backed LangGraph, Vercel AI SDK, and Vercel Eve templates from [`openui create`](/docs/api-reference/cli) keep their threads this way while the framework runs the agent.
+- **Your own database.** Serve threads from your backend and connect them with `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
+
+### 5. Stream the answer
+
+The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/prompt.ts) combines the generated component specification with the available drivers and instructions to call `query_lap_times` before answering. It asks Gateway to choose a presentation that fits the question and use the returned values.
+
+```ts title="src/app/api/chat/route.ts"
+const gateway = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+const lapTimesTool = queryLapTimesTool(drivers);
+const params = {
+  model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
+  messages: [
+    { role: "system" as const, content: analyticsPrompt(drivers) },
+    ...conversation(body.messages),
+  ],
+  tools: [lapTimesTool],
+  max_completion_tokens: 6000,
+};
+const firstStream = await gateway.chat.completions.create(
+  { ...params, stream: true },
+  { signal: request.signal },
+);
+
+await runChatToolLoop({
+  client: gateway,
+  params,
+  firstStream,
+  tools: { [lapTimesTool.function.name]: executeQueryLapTimes },
+  emit,
+  signal: request.signal,
+  maxRounds: 3,
+});
+```
+
+Chat Completions returns function calls to your application rather than running them. The [function-tool loop](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/lib/tool-loop.ts) runs each requested call, appends the assistant's tool-call message and a `tool` message with the result, and requests the next completion until the model answers.
+
+The loop streams its progress to the browser as AG-UI events rather than raw completion chunks, because Chat Completions has no chunk for a tool result. With these events, Agent Interface shows each call and its result while the answer streams.
+
+The browser sends tool calls and results back with the rest of the thread. `conversation()` drops them and forwards only user questions and assistant answers, so every value the model uses comes from a query your server ran for the current question. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) also bounds the request's size and validates it before calling Gateway. It opens the first stream before responding, so a rejected key, rate limit, or unknown model returns as an HTTP error with Gateway's status. Errors in later rounds arrive as a `RUN_ERROR` event. Agent Interface shows both in the chat.
+
+Because `componentLibrary` is set, Agent Interface renders the streamed OpenUI Lang with the same library. The prompt emits `root` first, followed by its components in reading order, so resolved components appear while the rest of the response is still arriving.
+
+A follow-up such as **“Focus on their final ten laps”** triggers a new tool call with the same drivers and laps 48 through 57. Gateway then streams the updated chart.
+
+## Verify it works
+
+In the browser:
+
+1. Ask for the five fastest drivers. Expand **Behind the scenes** to inspect `query_lap_times` and its result.
+2. Ask for the Norris/Verstappen comparison. Confirm the answer starts appearing while generation is still active.
+3. Ask **“Focus on their final ten laps.”** Confirm the chart covers laps 48 through 57 and retains both drivers.
+4. Click a follow-up suggestion under an answer. Confirm the new answer keeps the drivers and laps from the conversation.
+5. Stop a generation and ask another question to check recovery.
+
+Generated layouts can vary. Check values against the tool result. Missing data and tool errors should produce an explanation rather than invented points.
+
+## Adapt it to your data
+
+Replace `queryLapTimes` with a query to your database or API. Update the tool's arguments and description, then add any components your answers need to `src/library.ts` and regenerate the specification.
+
+This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples. With any of these backends, you can still keep threads in Gateway conversations, as described in [Connect Agent Interface](#4-connect-agent-interface).
+
+This example runs locally without authentication, and its chat route accepts browser requests only from its own page. Before deploying it, add authentication and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/conversational-analytics) for the implementation notes.
+
+- [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
+- [Agent tools](/docs/agent/core-concepts/tools)
+- [Gateway Chat Completions API](/docs/gateway/api/chat-completions)
+
+Data source: [OpenF1](https://openf1.org/docs/), race session `9507`. OpenF1 is an independent project, unaffiliated with Formula 1.

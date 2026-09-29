@@ -304,27 +304,9 @@
     width: 100%;
   }
 
-  .customers {
-    width: calc(100% - 48px);
-    margin-top: 120px;
-  }
-
-  .customerGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 767px) {
-  .inner {
-    width: calc(100% - 32px);
-  }
-
-  /* A host that sets this to `contents` drops .content as a box, so its two
-     children join .inner's column and the orders below can put the code between
-     them. Left as `flex` the orders are inert: .intro and .stepper are ordered
-     inside .content in the sequence they already appear in, and .codeColumn is
-     the second of .inner's two items either way. */
   .content {
+    /* A host can flatten the copy column once the two desktop columns stack,
+       allowing the code panel to sit between the intro and the steps. */
     display: var(--cloud-setup-content-display, flex);
     gap: 32px;
   }
@@ -339,6 +321,25 @@
 
   .stepper {
     order: 3;
+  }
+
+  .integrationAction {
+    order: 4;
+  }
+
+  .customers {
+    width: calc(100% - 48px);
+    margin-top: 120px;
+  }
+
+  .customerGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .inner {
+    width: calc(100% - 32px);
   }
 
   .stepper[data-interactive="true"][data-step-count="2"] {

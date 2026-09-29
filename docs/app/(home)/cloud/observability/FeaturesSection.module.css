@@ -77,6 +77,14 @@
   object-fit: cover;
 }
 
+.featureImageWide {
+  display: contents;
+}
+
+.featureImageCompact {
+  display: none;
+}
+
 .featureImageSessionReplay {
   /* This source is slightly taller than the shared 720×400 feature slot.
      Preserve the designed top/side inset instead of centering the crop. */
@@ -198,13 +206,17 @@
     gap: 20px;
   }
 
-  /* The artwork's own ratio, the same as desktop. A 4/3 stage cut roughly a
-     quarter of the width off every 1.8 screenshot, straight through the UI, and
-     the per-image object-position offsets below it were chasing that crop
-     rather than removing it. */
   .shot {
-    aspect-ratio: 720 / 400;
+    aspect-ratio: 720 / 600;
     border-radius: 12px;
+  }
+
+  .featureImageWide {
+    display: none;
+  }
+
+  .featureImageCompact {
+    display: contents;
   }
 
   /* Name the feature, show it, then explain it. display:contents drops .content

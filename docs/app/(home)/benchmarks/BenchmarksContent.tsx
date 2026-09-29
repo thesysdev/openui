@@ -28,6 +28,7 @@ import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { CloudCtaSection } from "../cloud/CloudCtaSection";
 import { BevelButton } from "../components/Button/BevelButton";
+import { InsightBar } from "../components/InsightBar/InsightBar";
 import {
   FeatureGridSection,
   type GridFeature,
@@ -115,9 +116,7 @@ function Section({
           <p>{description}</p>
         </div>
       </div>
-      <div className={s.insightBar}>
-        <p>{insight}</p>
-      </div>
+      <InsightBar>{insight}</InsightBar>
       <div className={s.sectionBody}>{children}</div>
     </section>
   );

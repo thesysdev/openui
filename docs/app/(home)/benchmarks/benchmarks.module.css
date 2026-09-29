@@ -380,28 +380,6 @@
   font-size: 15px;
 }
 
-.insightBar {
-  display: flex;
-  min-height: 47px;
-  align-items: center;
-  padding: 12px 16px;
-  border-left: 2px solid var(--openui-text-neutral-primary);
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--openui-text-neutral-primary) 6%, transparent),
-    transparent
-  );
-}
-
-.insightBar p {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.45;
-  color: var(--openui-text-neutral-primary);
-  text-wrap: pretty;
-}
-
 .sectionBody {
   display: flex;
   min-width: 0;
@@ -596,14 +574,6 @@
 
   .sectionAside a {
     padding-inline: 0;
-  }
-
-  .insightBar {
-    align-items: flex-start;
-  }
-
-  .insightBar p {
-    font-size: 15px;
   }
 
   .sectionBody,

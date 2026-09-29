@@ -216,6 +216,34 @@
   }
 }
 
+/* Mobile is a persistent choice row. Some hybrid devices and responsive
+   desktop previews still report hover support, so viewport width wins here:
+   every agent remains visible and tappable without a reveal interaction. */
+@media (max-width: 767px) {
+  .picker::after {
+    display: none;
+  }
+
+  .picker > .option:nth-child(2),
+  .picker > .option:nth-child(3),
+  .pickerLeft > .option:nth-child(2),
+  .pickerLeft > .option:nth-child(3) {
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    z-index: auto;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+    transition: none;
+  }
+
+  .option::after {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .picker > .option {
     transition: opacity 0.12s ease;

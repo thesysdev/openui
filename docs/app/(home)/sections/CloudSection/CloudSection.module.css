@@ -12,7 +12,7 @@
   box-sizing: border-box;
   max-width: var(--home-container-max);
   margin-inline: auto;
-  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+  padding-inline: var(--home-container-gutter);
 }
 
 @keyframes cloudMarquee {
@@ -24,9 +24,7 @@
   }
 }
 
-/* Closing contact CTA below the ticker. */
-/* The two product bands. Only the space between them lives here; .header's
-   bottom margin and .contact's top margin bound the group. */
+/* The Gateway product band. Observability carries its own composition below it. */
 .products {
   display: flex;
   flex-direction: column;

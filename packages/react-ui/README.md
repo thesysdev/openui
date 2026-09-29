@@ -143,6 +143,8 @@ OpenUI ships its component styles in two variants:
 | `@openuidev/react-ui/styles/index.css` (default)        | Unlayered — override via normal CSS specificity, as in 0.11.x and earlier |
 | `@openuidev/react-ui/layered/styles/index.css` (opt-in) | Wrapped in `@layer openui` — any unlayered consumer CSS wins              |
 
+`@openuidev/react-ui/components.css` and `@openuidev/react-ui/index.css` are aliases of `styles/index.css`: all three contain the same stylesheet, so import only one of them.
+
 Need a single component's CSS? Import it per component: `./styles/<Component>.css` (unlayered) or `./layered/styles/<Component>.css` (layered).
 
 With the layered variant, plain CSS overrides OpenUI without `!important` or specificity matching:
@@ -208,6 +210,8 @@ import { Charts } from "@openuidev/react-ui/Charts";
 | :--------------------------------------------- | :--------------------------------------------------- |
 | `@openuidev/react-ui`                          | All components and libraries                         |
 | `@openuidev/react-ui/styles/index.css`         | Full compiled stylesheet, unlayered (default import) |
+| `@openuidev/react-ui/components.css`           | Alias of `styles/index.css`                          |
+| `@openuidev/react-ui/index.css`                | Alias of `styles/index.css`                          |
 | `@openuidev/react-ui/layered/styles/index.css` | Full stylesheet wrapped in `@layer openui` (opt-in)  |
 | `@openuidev/react-ui/defaults.css`             | Theme tokens, always unlayered                       |
 | `@openuidev/react-ui/genui-lib`                | OpenUI Lang libraries and prompt options             |

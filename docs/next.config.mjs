@@ -35,6 +35,23 @@ const config = {
   },
   async redirects() {
     return [
+      // The Cookbooks overview is temporarily removed; open the only cookbook instead.
+      {
+        source: "/cookbooks",
+        destination: "/cookbooks/conversational-analytics",
+        permanent: false,
+      },
+      {
+        source: "/docs/cookbooks",
+        destination: "/cookbooks/conversational-analytics",
+        permanent: false,
+      },
+      // Cookbooks, Examples, and Demos moved from /docs to their own top-level paths.
+      {
+        source: "/docs/:section(cookbooks|examples|demos)/:path*",
+        destination: "/:section/:path*",
+        permanent: true,
+      },
       {
         source: "/docs/gateway/api/autofix",
         destination: "/docs/autofix",
@@ -284,7 +301,7 @@ const config = {
       },
       {
         source: "/playground",
-        destination: "/demos",
+        destination: "/openui-vs-json",
         permanent: true,
       },
       {
@@ -321,6 +338,14 @@ const config = {
       {
         source: "/docs/:path*.mdx",
         destination: "/llms.mdx/docs/:path*",
+      },
+      {
+        source: "/:section(cookbooks|examples|demos)/:path*.mdx",
+        destination: "/llms.mdx/docs/:section/:path*",
+      },
+      {
+        source: "/:section(examples|demos).mdx",
+        destination: "/llms.mdx/docs/:section",
       },
     ];
   },

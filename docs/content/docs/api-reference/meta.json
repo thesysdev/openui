@@ -12,6 +12,9 @@
     "react-email",
     "devtools",
     "cli",
-    "angular-lang"
+    "angular-lang",
+    "vue-lang",
+    "svelte-lang",
+    "a2ui"
   ]
 }

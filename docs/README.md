@@ -103,6 +103,7 @@ docs/
 │   │   ├── openui-lang/                    # OpenUI Lang docs
 │   │   ├── agent/                          # Agent Interface docs
 │   │   ├── build-agents/                   # Existing chat UI and agent framework guides
+│   │   ├── cookbooks/                      # Practical tutorials and runnable examples
 │   │   ├── api-reference/                  # API reference
 │   │   └── mcp/                            # MCP docs
 │   └── blog/                               # Blog MDX content
@@ -158,12 +159,19 @@ Active component-preview specific modules are located under `app/components/` an
 ### Navigation
 
 `components/docs-navbar.tsx` provides the shared docs header, search, theme control, mobile
-sidebar trigger, and two top-level tabs: **Docs** (`/docs`) and **API Reference**
-(`/docs/api-reference`). The API Reference tab is active for any page under
-`/docs/api-reference` and its sidebar lists that folder's pages directly.
+sidebar trigger, and five top-level tabs: **Docs** (`/docs`), **Cookbooks** (`/cookbooks`),
+**Examples** (`/examples`), **Demos** (`/demos`), and **API Reference** (`/docs/api-reference`).
+Each tab stays active on its child pages, and each tab's sidebar comes from its folder's
+`meta.json`. Examples is a single page whose `meta.json` links to its sections, and Demos is a
+single page of cards with no sidebar.
+
+All tabs share one content source in `content/docs`. The loader in `lib/source.ts` serves the
+`cookbooks`, `examples`, and `demos` folders from their own top-level paths instead of `/docs`,
+and `components/docs-shell.tsx` gives those routes the same docs layout. API Reference stays under
+`/docs` because package READMEs and the rest of the docs link to it there.
 
 Within the Docs tab there are two sidebar modes. The global sidebar introduces the documentation
-through Overview, Build, and Production groups. Links with chevrons enter a nested section sidebar
+through Start, Build, and Production groups. Links with chevrons enter a nested section sidebar
 for OpenUI Lang, Build Agents (including Agent Interface), Reliability Monitoring, or Gateway.
 Production overview and Autofix are direct pages in the global sidebar. Nested page lists continue
 to come from each section's `meta.json`; “All docs” restores the global sidebar without changing

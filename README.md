@@ -21,7 +21,7 @@
 
 </div>
 
-OpenUI is a full-stack, renderer-agnostic Generative UI framework built around a compact, streaming-first language. It offers official React support with built-in component libraries and ready-to-use chat interfaces, plus community-supported integrations for other frameworks. OpenUI Lang uses up to 67% fewer tokens than JSON.
+OpenUI is a full-stack, framework-agnostic Generative UI framework built around a compact, streaming-first language. A framework-agnostic core powers first-party runtimes for React, Vue, Svelte, and Angular, and React additionally ships built-in component libraries and ready-to-use chat interfaces. OpenUI Lang uses up to 67% fewer tokens than JSON.
 
 <div align="center">
 
@@ -47,7 +47,7 @@ At the center of OpenUI is **OpenUI Lang**: a compact, streaming-first language 
 - **OpenUI Lang** - A compact language for structured UI generation designed for streaming output.
 - **Built-in component libraries** - Charts, forms, tables, layouts, and more, ready to use or extend.
 - **Prompt generation from your component library** - Generate model instructions directly from the components you allow.
-- **Streaming renderer** - Parse and render model output progressively in React as tokens arrive.
+- **Streaming renderer** - Parse and render model output progressively in React, Vue, Svelte, or Angular as tokens arrive.
 - **Chat and app surfaces** - Use the same foundation for assistants, copilots, and broader interactive product flows.
 
 ## Quick Start
@@ -104,6 +104,7 @@ Try it yourself in the [Playground](https://www.openui.com/playground): generate
 | [`@openuidev/svelte-lang`](./packages/svelte-lang)                                                         | Svelte integrations                              | Svelte 5 bindings for defining model-renderable components and rendering streamed OpenUI Lang                |
 | [`@openuidev/angular-lang`](./packages/angular-lang)                                                       | Angular integrations                             | Angular bindings for defining component libraries and rendering streamed OpenUI Lang                         |
 | [`@openuidev/browser-bundle`](./packages/browser-bundle)                                                   | CDN, iframe, and no-build embeds                 | Prebuilt browser bundle that ships the renderer, UI library, React, and styles as script + stylesheet assets |
+| [`@openuidev/a2ui`](./packages/a2ui)                                                                       | A2UI with OpenUI Lang component payloads         | Framework-agnostic A2UI v1.0 protocol client with an optional React renderer                                 |
 | [`@openuidev/server`](./packages/server)                                                                   | Server side utilities                            | Server utilities for OpenUI and OpenUI Gateway                                                               |
 | [`@openuidev/observability-cloud`](./packages/observability-cloud)                                         | Hosted observability in the Thesys console       | Cloud sink that batches OpenUI events and ships them to OpenUI Gateway                                       |
 | [`@openuidev/cli`](./packages/openui-cli)                                                                  | Project scaffolding and prompt generation        | CLI for creating new apps and generating system prompts or JSON schema from a library definition             |
@@ -125,6 +126,9 @@ npm install @openuidev/langchain @langchain/langgraph
 npm install @openuidev/vue-lang
 npm install @openuidev/svelte-lang
 npm install @openuidev/angular-lang
+
+# A2UI protocol with OpenUI Lang component payloads
+npm install @openuidev/a2ui zod
 ```
 
 ## Why OpenUI Lang
@@ -173,14 +177,16 @@ openui/
 │   ├── svelte-lang/      # Svelte runtime bindings for OpenUI Lang
 │   ├── angular-lang/     # Angular runtime bindings for OpenUI Lang
 │   ├── browser-bundle/   # Script-tag bundle for CDN / iframe / no-build embeds
+│   ├── a2ui/             # A2UI protocol with OpenUI Lang component payloads
 │   ├── server/           # Server utilities for OpenUI & OpenUI Gateway
 │   ├── observability/    # Framework-free observability event bus
 │   ├── observability-cloud/ # Cloud sink shipping OpenUI events to Thesys
 │   ├── devtools/         # Dev-only OpenUI Inspect widget
 │   └── openui-cli/       # CLI for scaffolding & prompt generation
-├── examples/             # Capability and integration reference implementations
+├── examples/             # Cookbooks and integration reference implementations
 │   ├── agent-frameworks/
 │   ├── app-frameworks/
+│   ├── cookbooks/
 │   ├── design-systems/
 │   ├── harnesses/
 │   └── miscellaneous/
@@ -193,6 +199,7 @@ Good places to start:
 - [openui.com](https://openui.com) for the full docs
 - [Quickstart](https://www.openui.com/docs/agent/getting-started/quickstart) to scaffold a working app
 - [`examples/README.md`](./examples/README.md) to find a focused reference implementation
+- [Cookbooks](https://www.openui.com/cookbooks) for complete walkthroughs with [runnable code](./examples/cookbooks)
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) if you want to contribute
 
 ## Community

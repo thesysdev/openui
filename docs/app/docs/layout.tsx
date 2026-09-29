@@ -1,13 +1,5 @@
-import { C1DocsDialog } from "@/components/C1DocsDialog";
-import { DocsRouteLayout } from "@/components/docs-route-layout";
-import { WebsiteThemeProvider } from "@/components/website-theme-provider";
-import { source } from "@/lib/source";
+import { DocsShell } from "@/components/docs-shell";
 
 export default function Layout({ children }: LayoutProps<"/docs">) {
-  return (
-    <WebsiteThemeProvider>
-      <C1DocsDialog />
-      <DocsRouteLayout tree={source.getPageTree()}>{children}</DocsRouteLayout>
-    </WebsiteThemeProvider>
-  );
+  return <DocsShell>{children}</DocsShell>;
 }

@@ -19,14 +19,14 @@ importers:
         specifier: 0.3.0
         version: 0.3.0(zod@4.4.3)
       '@openuidev/react-headless':
-        specifier: 0.16.2
-        version: 0.16.2(ai@7.0.0-beta.178(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.16.3
+        version: 0.16.3(ai@7.0.0-beta.178(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       '@openuidev/react-lang':
         specifier: 0.3.0
         version: 0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3)
       '@openuidev/react-ui':
-        specifier: 0.16.2
-        version: 0.16.2(@openuidev/react-headless@0.16.2(ai@7.0.0-beta.178(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+        specifier: 0.16.3
+        version: 0.16.3(@openuidev/react-headless@0.16.3(ai@7.0.0-beta.178(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       '@vercel/connect':
         specifier: 0.2.2
         version: 0.2.2(ai@7.0.0-beta.178(zod@4.4.3))(eve@0.11.10(ai@7.0.0-beta.178(zod@4.4.3))(dotenv@17.4.2)(lru-cache@11.5.2)(next@16.2.6(@babel/core@7.29.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3))
@@ -56,8 +56,8 @@ importers:
         version: 4.5.7(@types/react@19.2.18)(react@19.2.3)
     devDependencies:
       '@openuidev/cli':
-        specifier: 0.4.0
-        version: 0.4.0(@types/node@24.13.3)
+        specifier: 0.4.1
+        version: 0.4.1(@types/node@24.13.3)
       '@types/node':
         specifier: 24.x
         version: 24.13.3
@@ -825,8 +825,8 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@openuidev/cli@0.4.0':
-    resolution: {integrity: sha512-IcsVXwSanbuy5dh/0NJ69jwVfQIXuV1y595SVEfqkuJOl+1+rJp9prm3fj5LDNGA23LwQHxCNF053AKH7HPgPg==}
+  '@openuidev/cli@0.4.1':
+    resolution: {integrity: sha512-I8wbgc7ifPRb3N4LHZNyHtHf4eJFleQReiw2DWeiwEzbFO/2eoQ09lDTcw4w8uUxnbdP8CqyDvenlKU6gXaTgw==}
     hasBin: true
 
   '@openuidev/devtools@0.2.0':
@@ -852,8 +852,8 @@ packages:
   '@openuidev/observability@0.0.4':
     resolution: {integrity: sha512-4fjIrWu3TqTlfDE/m7cG10CH1vV7wQk5GPwMOmXeF9vJtkg92dg4Bdk3AjKgud7H7Xypwwjgt52VcLGZCE2CJQ==}
 
-  '@openuidev/react-headless@0.16.2':
-    resolution: {integrity: sha512-6gdM6UD5DfqdWUkRbf72GzhIPHsv3Ni3oFao3rcCCa69jJkQhTZ4Ufm/7PaEKMXSdvTSBcpGvIsR9AcONJHbGQ==}
+  '@openuidev/react-headless@0.16.3':
+    resolution: {integrity: sha512-Fuz2A1n1z8fkDUGkUN1y9HN5i6Eac1iWfHsHe2mCK/Td+0OxEFyFEDQa2rr2xrTTrzqyR9M+6sTHJj5UrxdgkA==}
     peerDependencies:
       ai: 7.0.0-beta.178
       react: ^18.3.1 || ^19.0.0
@@ -875,8 +875,8 @@ packages:
       react-dom:
         optional: true
 
-  '@openuidev/react-ui@0.16.2':
-    resolution: {integrity: sha512-HoK7fXr/D16g4xRrBmRBAaYkC/a8O5oWuMKN26Rq6eGPtu7LJQtPc+a4Yjy77ZCOt/kDqy2Qz71MP0tjpFadLA==}
+  '@openuidev/react-ui@0.16.3':
+    resolution: {integrity: sha512-HKDqkC0DdAw/RZL3nx7M25QaUcLb6W9b/AzIQLen8ywKPZBs3pGbfQ+Fykce6OqvCB2ym5+fpnWxOW7lE6jFSA==}
     peerDependencies:
       '@openuidev/react-headless': '>=0.14.0 <0.17.0'
       '@openuidev/react-lang': '>=0.3.0 <0.4.0'
@@ -4671,7 +4671,7 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@openuidev/cli@0.4.0(@types/node@24.13.3)':
+  '@openuidev/cli@0.4.1(@types/node@24.13.3)':
     dependencies:
       '@inquirer/core': 11.2.1(@types/node@24.13.3)
       '@inquirer/prompts': 8.7.0(@types/node@24.13.3)
@@ -4703,7 +4703,7 @@ snapshots:
 
   '@openuidev/observability@0.0.4': {}
 
-  '@openuidev/react-headless@0.16.2(ai@7.0.0-beta.178(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-headless@0.16.3(ai@7.0.0-beta.178(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@ag-ui/core': 0.0.53
       '@openuidev/observability': 0.0.4
@@ -4722,10 +4722,10 @@ snapshots:
     optionalDependencies:
       react-dom: 19.2.3(react@19.2.3)
 
-  '@openuidev/react-ui@0.16.2(@openuidev/react-headless@0.16.2(ai@7.0.0-beta.178(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
+  '@openuidev/react-ui@0.16.3(@openuidev/react-headless@0.16.3(ai@7.0.0-beta.178(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3)))(@openuidev/react-lang@0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3))(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))':
     dependencies:
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@openuidev/react-headless': 0.16.2(ai@7.0.0-beta.178(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
+      '@openuidev/react-headless': 0.16.3(ai@7.0.0-beta.178(zod@4.4.3))(react@19.2.3)(zustand@4.5.7(@types/react@19.2.18)(react@19.2.3))
       '@openuidev/react-lang': 0.3.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@4.4.3)
       '@radix-ui/react-accordion': 1.2.20(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-aspect-ratio': 1.1.15(@types/react-dom@19.2.5(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)

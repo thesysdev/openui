@@ -33,6 +33,8 @@ The OpenUI SDK is split into packages that build on each other:
 
 - **`@openuidev/angular-lang`** — Angular bindings for defining component libraries with Zod schemas, generating prompts, and rendering streamed OpenUI Lang with reactive state and actions.
 
+- **`@openuidev/a2ui`** — Framework-agnostic A2UI v1.0 protocol client that uses OpenUI Lang statements for component payloads. Add the optional React entrypoint to render surfaces with `@openuidev/react-lang`.
+
 ## Choosing a package
 
 | If you need...                                                              | Start here                                                                                           |
@@ -45,12 +47,13 @@ The OpenUI SDK is split into packages that build on each other:
 | A LangChain or LangGraph agent connected to an OpenUI frontend              | [`@openuidev/langchain`](/docs/api-reference/langchain)                                              |
 | Autofix or conversation history on the Gateway                              | [`@openuidev/server`](/docs/api-reference/server)                                                    |
 | Model-generated emails                                                      | [`@openuidev/react-email`](/docs/api-reference/react-email)                                          |
-| Vue integration                                                             | [`@openuidev/vue-lang`](https://github.com/thesysdev/openui/tree/main/packages/vue-lang)             |
-| Svelte integration                                                          | [`@openuidev/svelte-lang`](https://github.com/thesysdev/openui/tree/main/packages/svelte-lang)       |
+| Vue integration                                                             | [`@openuidev/vue-lang`](/docs/api-reference/vue-lang)                                                |
+| Svelte integration                                                          | [`@openuidev/svelte-lang`](/docs/api-reference/svelte-lang)                                          |
 | Script-tag, CDN, or iframe embeds                                           | [`@openuidev/browser-bundle`](https://github.com/thesysdev/openui/tree/main/packages/browser-bundle) |
 | An in-app panel showing captured errors during development                  | [`@openuidev/devtools`](/docs/api-reference/devtools)                                                |
 | App scaffolding, prompt/schema generation, and deploy from the command line | [`@openuidev/cli`](/docs/api-reference/cli)                                                          |
 | Angular integration                                                         | [`@openuidev/angular-lang`](/docs/api-reference/angular-lang)                                        |
+| A2UI lifecycle and messages with OpenUI Lang component payloads             | [`@openuidev/a2ui`](/docs/api-reference/a2ui)                                                        |
 
 ## Packages
 
@@ -88,16 +91,10 @@ The OpenUI SDK is split into packages that build on each other:
   <Card title="@openuidev/react-email" href="/docs/api-reference/react-email">
     API reference for the pre-built email templates library and prompt options.
   </Card>
-  <Card
-    title="@openuidev/vue-lang"
-    href="https://github.com/thesysdev/openui/tree/main/packages/vue-lang"
-  >
+  <Card title="@openuidev/vue-lang" href="/docs/api-reference/vue-lang">
     Vue 3 bindings for defining model-renderable components and rendering streamed OpenUI Lang.
   </Card>
-  <Card
-    title="@openuidev/svelte-lang"
-    href="https://github.com/thesysdev/openui/tree/main/packages/svelte-lang"
-  >
+  <Card title="@openuidev/svelte-lang" href="/docs/api-reference/svelte-lang">
     Svelte 5 bindings for defining model-renderable components and rendering streamed OpenUI Lang.
   </Card>
   <Card
@@ -116,5 +113,9 @@ The OpenUI SDK is split into packages that build on each other:
   <Card title="@openuidev/angular-lang" href="/docs/api-reference/angular-lang">
     Angular component definitions, Renderer inputs and outputs, injection helpers, and form
     validation.
+  </Card>
+  <Card title="@openuidev/a2ui" href="/docs/api-reference/a2ui">
+    A2UI v1.0 surface lifecycle, messages, actions, data model, functions, and schemas with OpenUI
+    Lang component updates.
   </Card>
 </Cards>

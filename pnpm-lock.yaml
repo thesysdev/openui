@@ -278,6 +278,37 @@ importers:
         specifier: ^4.1.18
         version: 4.3.3
 
+  packages/a2ui:
+    dependencies:
+      '@openuidev/lang-core':
+        specifier: workspace:^
+        version: link:../lang-core
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
+    devDependencies:
+      '@openuidev/react-lang':
+        specifier: workspace:^
+        version: link:../react-lang
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      jsdom:
+        specifier: 'catalog:'
+        version: 26.1.0
+      react:
+        specifier: 'catalog:'
+        version: 19.2.4
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.4(react@19.2.4)
+      vitest:
+        specifier: ^4.0.18
+        version: 4.1.10(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(jsdom@26.1.0)(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(less@4.9.1)(lightningcss@1.33.0)(sass@1.102.0)(terser@5.49.0)(tsx@4.23.1)(yaml@2.9.0))
+
   packages/angular-lang:
     dependencies:
       '@openuidev/lang-core':

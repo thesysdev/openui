@@ -35,7 +35,12 @@ export function IntegrateSection() {
   return (
     <section className={styles.adoptionSection} aria-labelledby="gateway-integrate">
       <CloudIntegrationSetup
-        title="Adopt it by changing your base URL"
+        title={
+          <>
+            Adopt it by changing
+            <br className={styles.adoptionTitleBreak} /> your base URL
+          </>
+        }
         titleId="gateway-integrate"
         steps={STEPS}
         code={GATEWAY_EXAMPLE}
