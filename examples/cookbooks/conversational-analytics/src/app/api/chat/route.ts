@@ -5,7 +5,6 @@ import type {
 } from "openai/resources/chat/completions";
 import { z } from "zod/v4";
 import { listDrivers, openDatabase, type Driver } from "../../../lib/f1-data";
-import { rejectOtherOrigins } from "../../../lib/local-origin";
 import { analyticsPrompt } from "../../../lib/prompt";
 import { runChatToolLoop } from "../../../lib/tool-loop";
 import { executeQueryLapTimes, queryLapTimesTool } from "../../../lib/tools/lap-times";
@@ -62,8 +61,15 @@ async function parseChatRequest(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const denied = rejectOtherOrigins(request);
-  if (denied) return denied;
+  // This example has no authentication, so it accepts browser requests only from its own
+  // local page. Add authentication and rate limits before deploying it.
+  const { port } = new URL(request.url);
+  const origin = request.headers.get("origin");
+  if (origin && origin !== `http://127.0.0.1:${port}` && origin !== `http://localhost:${port}`)
+    return Response.json(
+      { error: "This example only accepts requests from its local chat interface." },
+      { status: 403 },
+    );
   let body;
   try {
     body = await parseChatRequest(request);
