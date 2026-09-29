@@ -135,15 +135,17 @@ export async function POST(request: Request) {
     { signal: request.signal, maxChatCompletions: 4 },
   );
 
-  // Chat Completions doesn't write to the conversation, so append this turn once the model has
-  // answered: the user's message, the tool calls and their results, and the answer. Agent
-  // Interface loads them when the thread is opened again. A failed or stopped run isn't stored,
-  // and the browser's stream reports it.
+  // Chat Completions doesn't write to the conversation, so store this turn once the model has
+  // answered: the user's message, then each message the run adds, which are the tool calls, their
+  // results, and the answer. Agent Interface loads them when the thread is opened again. A failed
+  // or stopped run isn't stored, and the browser's stream reports it.
+  const turn = [messages[messages.length - 1]];
+  runner.on("message", (message) => turn.push(message));
   runner.done().then(
     async () => {
-      const turn = runner.messages.slice(messages.length - 1);
-      const answer = turn.at(-1);
-      if (answer?.role !== "assistant" || !answer.content) return;
+      // A run that stops on a tool call has no answer to store.
+      const last = turn.at(-1);
+      if (last?.role !== "assistant" || !last.content) return;
       await storeChatCompletionHistory({ apiKey, conversationId: threadId, messages: turn }).catch(
         (error: unknown) =>
           console.error("Could not store the turn in the Gateway conversation.", error),

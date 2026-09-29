@@ -213,7 +213,7 @@ Chat Completions does not store conversations, so Agent Interface keeps each thr
 
 `useOpenuiCloudStorage()` stores the thread list with the Gateway [Conversations API](/docs/gateway/api/conversations). The browser calls Gateway directly with a short-lived [frontend token](/docs/gateway/authentication#frontend-tokens) from the example's `/api/frontend-token` route, which mints it with `THESYS_API_KEY` for one local user and this app's `app_id`. Gateway limits the token to that user's threads in this app, and the key never reaches the browser.
 
-Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, so once the model answers, the chat route appends the turn, including the tool calls and their results, with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history) from `@openuidev/server`, as shown in [Stream the answer](#5-stream-the-answer). A thread you open again then loads its messages. To keep threads in your own database instead, use `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
+Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, so once the model answers, the chat route appends the turn, including the tool calls and their results, with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history) from `@openuidev/server`. A thread you open again then loads its messages. To keep threads in your own database instead, use `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
 
 ### 5. Stream the answer
 
@@ -225,14 +225,13 @@ const gateway = new OpenAI({
   baseURL: "https://api.thesys.dev/v1/embed",
 });
 const lapTimesTool = queryLapTimesTool(drivers);
-const messages: ChatCompletionMessageParam[] = [
-  { role: "system", content: analyticsPrompt(drivers) },
-  ...conversation(body.messages),
-];
 const runner = gateway.chat.completions.runTools(
   {
     model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-    messages,
+    messages: [
+      { role: "system", content: analyticsPrompt(drivers) },
+      ...conversation(body.messages),
+    ],
     tools: [
       {
         type: "function",
@@ -255,15 +254,6 @@ const runner = gateway.chat.completions.runTools(
 Chat Completions returns function calls to your application rather than running them. The OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) runs each requested call, sends the result back as a `tool` message, and requests the next completion until the model answers, for up to three completions. If the third completion still calls the tool, the run ends without an answer. `runTools()` also ends the run when a tool throws, so the route returns the error to the model as the tool's result instead.
 
 The route returns the runner's `toReadableStream()`, which carries every completion's chunks as one JSON object per line, and Agent Interface reads it with `openAIReadableStreamAdapter()`. The answer and each tool call stream in as the model writes them. Chat Completions has no chunk for a tool result, so **Behind the scenes** shows each call's arguments but not its result.
-
-Once the model has answered, the route appends the turn to the thread's Gateway conversation. `threadId` is the conversation that Agent Interface's storage created for the thread. `runner.messages` starts with the request's messages, so the turn is everything from the new question on: the question, each tool call and its result, and the answer.
-
-```ts title="src/app/api/chat/route.ts"
-const turn = runner.messages.slice(messages.length - 1);
-await storeChatCompletionHistory({ apiKey, conversationId: threadId, messages: turn });
-```
-
-The route stores only the new turn, because the conversation already holds the earlier ones. A stopped run, or one that ends without an answer, isn't stored, and a failed write is logged without affecting the answer.
 
 The browser sends tool calls back with the rest of the thread. `conversation()` drops them and forwards only user questions and assistant answers, so every value the model uses comes from a query your server ran for the current question. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) also bounds the request's size and validates it before calling Gateway. It waits for the first completion to start before responding, so a rejected key or rate limit returns as an HTTP error with Gateway's status, which Agent Interface shows in the chat. A later error ends the stream, and Agent Interface reports that the request failed.
 
