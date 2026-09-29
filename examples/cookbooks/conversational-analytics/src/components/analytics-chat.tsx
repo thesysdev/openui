@@ -38,8 +38,8 @@ const starters = [
 
 export default function AnalyticsChat() {
   // Store threads as Gateway conversations, which the browser reaches with a short-lived token
-  // from /api/frontend-token. Chat Completions doesn't write to them, so Gateway keeps each
-  // thread's title but not its messages.
+  // from /api/frontend-token. The chat route appends each turn to the thread's conversation, so
+  // a thread opened again loads its messages.
   const storage = useOpenuiCloudStorage({
     token: "/api/frontend-token",
     features: { artifact: false },

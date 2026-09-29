@@ -19,7 +19,7 @@ In this cookbook, you'll learn how to:
 - Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity, with your own theme, sidebar, and pages.
 - Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
 - Send the conversation with each question, so a follow-up can add a criterion to the comparison.
-- Keep the thread list in Gateway [conversations](/docs/gateway/api/conversations), which the browser reads directly with a short-lived frontend token.
+- Keep threads in Gateway [conversations](/docs/gateway/api/conversations): the server stores each turn, and the browser reads threads directly with a short-lived frontend token.
 
 <div className="not-prose my-6">
   <a
@@ -246,7 +246,7 @@ const storage = useOpenuiCloudStorage({
 });
 ```
 
-Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, though, so Gateway keeps each thread's title but not its messages, and a thread you open again from the sidebar is empty. To store the messages too, append each finished turn to the conversation with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history) from `@openuidev/server`, or keep threads in your own database with `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
+Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, so once the model answers, the chat route appends the turn, including the tool calls and their results, with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history) from `@openuidev/server`. A thread you open again then loads its messages. To keep threads in your own database instead, use `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
 
 The example also customizes Agent Interface through its public props and slots:
 
@@ -344,7 +344,7 @@ In the browser:
 3. Ask **“How has R&D spending changed over three years?”** and **“Break down revenue by segment.”** Confirm the first uses a line chart, and the second a single bar chart with a table row per segment.
 4. Ask **“Compare each CEO's total compensation.”** Annual reports refer readers to the proxy statement for executive pay, so the table should say “Not found” with a callout explaining why, and no chart.
 5. Open **Documents** in the sidebar and confirm it lists the three reports with their page counts.
-6. Reload the page and confirm your threads are still listed in the sidebar.
+6. Reload the page and open an earlier thread. Confirm its messages load.
 7. Switch your operating system between light and dark mode, and confirm the theme follows.
 
 Generated layouts can vary. Values should always match a quoted passage.
@@ -355,7 +355,7 @@ Add your own PDFs to the example's `documents/` folder and run `npm run prepare:
 
 The importer reads a PDF's text layer, so run OCR on scanned documents first. For large collections, store the embeddings in a vector database and keep the `search_documents` tool's contract.
 
-This example runs locally without authentication. Its chat and frontend-token routes accept browser requests only from its own page, and every browser shares one local user's threads. Before deploying it, add [authentication](/docs/gateway/authentication), mint each frontend token for the signed-in user, and add rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
+This example runs locally without authentication. Its chat and frontend-token routes accept browser requests only from its own page, and every browser shares one local user's threads. Before deploying it, add [authentication](/docs/gateway/authentication), mint each frontend token for the signed-in user, check that each `threadId` is one of that user's conversations before storing a turn in it, and add rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
 
 - [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
 - [Agent tools](/docs/agent/core-concepts/tools)

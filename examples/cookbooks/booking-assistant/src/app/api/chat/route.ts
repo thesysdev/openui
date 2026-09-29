@@ -1,3 +1,4 @@
+import { storeChatCompletionHistory } from "@openuidev/server/openai";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { z } from "zod/v4";
@@ -12,6 +13,8 @@ export const runtime = "nodejs";
 // A submitted form arrives as the button label plus the form's values, so user messages can be
 // longer than a typed question.
 const chatRequestSchema = z.object({
+  // Agent Interface's storage creates the Gateway conversation first and sends its id here.
+  threadId: z.string().min(1).max(200),
   messages: z
     .array(
       z.discriminatedUnion("role", [
@@ -89,15 +92,18 @@ export async function POST(request: Request) {
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
   const searchTool = searchStaysTool();
 
+  const { threadId } = body;
+  const messages: ChatCompletionMessageParam[] = [
+    { role: "system", content: bookingPrompt(today()) },
+    ...conversation(body.messages),
+  ];
+
   // runTools requests a completion, runs the tools the model calls, sends their results back, and
   // repeats until the model answers. It runs only the tools registered here.
   const runner = gateway.chat.completions.runTools(
     {
       model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-      messages: [
-        { role: "system", content: bookingPrompt(today()) },
-        ...conversation(body.messages),
-      ],
+      messages,
       tools: [
         {
           type: "function",
@@ -129,7 +135,18 @@ export async function POST(request: Request) {
         controller.close();
       } catch (error) {
         controller.error(error);
+        return;
       }
+      // Chat Completions doesn't write to the conversation, so append this turn once the model
+      // has answered: the user's message, the tool calls and their results, and the answer. Agent
+      // Interface loads them when the thread is opened again.
+      const turn = runner.messages.slice(messages.length - 1);
+      const answer = turn.at(-1);
+      if (answer?.role !== "assistant" || !answer.content) return;
+      await storeChatCompletionHistory({ apiKey, conversationId: threadId, messages: turn }).catch(
+        (error: unknown) =>
+          console.error("Could not store the turn in the Gateway conversation.", error),
+      );
     },
   });
 
