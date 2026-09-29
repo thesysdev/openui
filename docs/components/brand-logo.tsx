@@ -110,20 +110,18 @@ export function OpenUILogo({ variant = "light" }: { variant?: LogoVariant }) {
 // GitHub Star Button
 // ---------------------------------------------------------------------------
 
-// Module-level cache + in-flight dedup for the star count, keyed by repo. Every
+// Module-level cache + in-flight dedup for OpenUI's star count. Every
 // star button on the page (header, hero, tweet-wall stats) shares one request.
 // The same-origin endpoint adds server/CDN caching so visitors do not spend
 // GitHub's unauthenticated API allowance individually.
-const starCountCache = new Map<string, number>();
-const starCountInflight = new Map<string, Promise<number | null>>();
+let starCountCache: number | null = null;
+let starCountInflight: Promise<number | null> | null = null;
 
-function fetchGitHubStarCount(repo: string): Promise<number | null> {
-  const cached = starCountCache.get(repo);
-  if (cached !== undefined) return Promise.resolve(cached);
+function fetchGitHubStarCount(): Promise<number | null> {
+  if (starCountCache !== null) return Promise.resolve(starCountCache);
 
-  let inflight = starCountInflight.get(repo);
-  if (!inflight) {
-    inflight = fetch("/api/github-stars")
+  if (!starCountInflight) {
+    starCountInflight = fetch("/api/github-stars")
       .then((res) => {
         if (!res.ok) throw new Error(`GitHub star count fetch failed: ${res.status}`);
         return res.json() as Promise<GitHubStarsResponse>;
@@ -131,25 +129,24 @@ function fetchGitHubStarCount(repo: string): Promise<number | null> {
       .then((data): number | null => {
         const target = data.stars;
         if (typeof target !== "number" || !Number.isFinite(target) || target < 0) return null;
-        starCountCache.set(repo, target);
+        starCountCache = target;
         return target;
       })
       .catch(() => null)
       .finally(() => {
-        starCountInflight.delete(repo);
+        starCountInflight = null;
       });
-    starCountInflight.set(repo, inflight);
   }
-  return inflight;
+  return starCountInflight;
 }
 
-export function useGitHubStarCount(repo: string) {
+export function useGitHubStarCount() {
   const [count, setCount] = useState<number | null>(GITHUB_STAR_FALLBACK);
 
   useEffect(() => {
     let cancelled = false;
 
-    void fetchGitHubStarCount(repo).then((target) => {
+    void fetchGitHubStarCount().then((target) => {
       if (cancelled || target === null) return;
       const startCount = Math.max(target - 50, 0);
       const startTime = performance.now();
@@ -169,7 +166,7 @@ export function useGitHubStarCount(repo: string) {
     return () => {
       cancelled = true;
     };
-  }, [repo]);
+  }, []);
 
   return count;
 }
@@ -229,7 +226,7 @@ export function GitHubStarButton({
   isScrolled?: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
-  const starCount = useGitHubStarCount(repo);
+  const starCount = useGitHubStarCount();
 
   return (
     <a

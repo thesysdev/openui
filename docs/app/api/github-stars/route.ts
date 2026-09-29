@@ -23,6 +23,7 @@ export async function GET(): Promise<Response> {
   try {
     const response = await fetch(GITHUB_API_URL, {
       headers,
+      signal: AbortSignal.timeout(3000),
       next: { revalidate: 3600 },
     });
     if (!response.ok) return json({ stars: GITHUB_STAR_FALLBACK, source: "fallback" });
