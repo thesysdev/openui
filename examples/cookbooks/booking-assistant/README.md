@@ -43,7 +43,7 @@ Try:
 | `src/library.ts`                      | Shared components for the prompt and renderer                         |
 | `src/components/date-picker.tsx`      | A DatePicker that the model can prefill with YYYY-MM-DD dates         |
 | `src/lib/prompt.ts`                   | Booking rules and one example for each step of the flow               |
-| `src/app/api/chat/route.ts`           | Request validation, `runTools()` generation, and AG-UI stream         |
+| `src/app/api/chat/route.ts`           | Request validation, `runTools()` generation, and SSE response         |
 | `src/app/api/frontend-token/route.ts` | Frontend token for Gateway thread storage                             |
 | `src/lib/theme.ts`                    | Light and dark theme overrides                                        |
 | `src/components/booking-chat.tsx`     | Agent Interface, chat transport, thread storage, theme, and starters  |
@@ -71,7 +71,7 @@ Agent Interface stores the thread list with Gateway's [Conversations API](https:
 
 The chat route forwards only user messages and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only search results the server produced for the current turn. Later steps therefore use what the stay cards show: each card's value is the stay's booking link, so choosing a card sends the link back with the form, and the summary's **Continue to booking** button opens it. A submitted form arrives as one message with the form's values, so the route accepts user messages of up to 4,000 characters.
 
-The route runs the tool with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and streams its events as AG-UI events, which `agUIAdapter()` reads, because Chat Completions has no chunk for a tool result. The tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK; see the [agent runtime integrations](https://www.openui.com/docs/agent/agent-runtimes/langgraph-platform) and the [agent framework examples](../../agent-frameworks).
+The route runs the tool with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and forwards its completion chunks as server-sent events, which `openAIAdapter()` reads. Chat Completions has no chunk for a tool result, so **Behind the scenes** shows each call's arguments but not its result. The tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK; see the [agent runtime integrations](https://www.openui.com/docs/agent/agent-runtimes/langgraph-platform) and the [agent framework examples](../../agent-frameworks).
 
 The app binds to loopback, and the chat and frontend-token routes accept browser requests only from its own local page. Every browser shares one local user's threads. For deployment, add [authentication](https://www.openui.com/docs/gateway/authentication), mint each frontend token for the signed-in user, and add rate limits to both routes.
 

@@ -136,7 +136,7 @@ export async function executeQueryLapTimes(argsJson: string) {
 }
 ```
 
-The result contains ranked lap times or aligned chart labels and series. Gateway uses those values to build the answer, and Agent Interface shows the call and its result in the **Behind the scenes** timeline.
+The result contains ranked lap times or aligned chart labels and series. Gateway uses those values to build the answer, and Agent Interface shows the call and its arguments in the **Behind the scenes** timeline.
 
 The query in the same file uses parameterized SQL. Missing times are left out of comparisons rather than plotted as zero.
 
@@ -180,12 +180,12 @@ This runs `openui generate src/library.ts --spec --out src/generated/spec.json`.
 
 ### 4. Connect Agent Interface
 
-Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's stream with `agUIAdapter()`:
+Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's completion chunks with `openAIAdapter()`:
 
 ```tsx title="src/components/analytics-chat.tsx"
 const llm = fetchLLM({
   url: "/api/chat",
-  streamAdapter: agUIAdapter(),
+  streamAdapter: openAIAdapter(),
   messageFormat: openAIMessageFormat,
 });
 
@@ -251,11 +251,11 @@ const runner = gateway.chat.completions.runTools(
 );
 ```
 
-Chat Completions returns function calls to your application rather than running them. The OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) runs each requested call, sends the result back as a `tool` message, and requests the next completion until the model answers, for up to three completions. It ends the run when a tool throws, so the route returns the error to the model as the tool's result instead.
+Chat Completions returns function calls to your application rather than running them. The OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) runs each requested call, sends the result back as a `tool` message, and requests the next completion until the model answers, for up to three completions. If the third completion still calls the tool, the run ends without an answer. `runTools()` also ends the run when a tool throws, so the route returns the error to the model as the tool's result instead.
 
-The route streams the runner's events to the browser as AG-UI events rather than raw completion chunks, because Chat Completions has no chunk for a tool result. Text deltas become the assistant's message, and each assistant message's tool calls and each `tool` message become a call and its result, so Agent Interface shows them while the answer streams.
+The route forwards the runner's completion chunks to the browser as server-sent events, the same format Gateway streams, and Agent Interface reads them with `openAIAdapter()`. The answer and each tool call stream in as the model writes them. Chat Completions has no chunk for a tool result, so **Behind the scenes** shows each call's arguments but not its result.
 
-The browser sends tool calls and results back with the rest of the thread. `conversation()` drops them and forwards only user questions and assistant answers, so every value the model uses comes from a query your server ran for the current question. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) also bounds the request's size and validates it before calling Gateway. It waits for the first completion to start before responding, so a rejected key or rate limit returns as an HTTP error with Gateway's status. Later errors, including a run that reaches three completions without an answer, arrive as a `RUN_ERROR` event. Agent Interface shows both in the chat.
+The browser sends tool calls back with the rest of the thread. `conversation()` drops them and forwards only user questions and assistant answers, so every value the model uses comes from a query your server ran for the current question. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) also bounds the request's size and validates it before calling Gateway. It waits for the first completion to start before responding, so a rejected key or rate limit returns as an HTTP error with Gateway's status, which Agent Interface shows in the chat. A later error ends the stream, and Agent Interface reports that the request failed.
 
 Because `componentLibrary` is set, Agent Interface renders the streamed OpenUI Lang with the same library. The prompt emits `root` first, followed by its components in reading order, so resolved components appear while the rest of the response is still arriving.
 
@@ -265,7 +265,7 @@ A follow-up such as **“Focus on their final ten laps”** triggers a new tool 
 
 In the browser:
 
-1. Ask for the five fastest drivers. Expand **Behind the scenes** to inspect `query_lap_times` and its result.
+1. Ask for the five fastest drivers. Expand **Behind the scenes** to inspect the `query_lap_times` call and its arguments.
 2. Ask for the Norris/Verstappen comparison. Confirm the answer starts appearing while generation is still active.
 3. Ask **“Focus on their final ten laps.”** Confirm the chart covers laps 48 through 57 and retains both drivers.
 4. Click a follow-up suggestion under an answer. Confirm the new answer keeps the drivers and laps from the conversation.

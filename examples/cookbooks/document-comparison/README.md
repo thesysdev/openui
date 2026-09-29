@@ -38,7 +38,7 @@ Try:
 1. Agent Interface sends the thread's messages to `/api/chat`, which calls OpenUI Gateway's Chat Completions API.
 2. The model calls `search_documents` once per criterion, with a short description of the information to find.
 3. The server embeds the description, ranks each document's passages by similarity, and returns the closest ones with page numbers, links to those pages, and a `found` flag.
-4. `runTools()` returns the passages to the model, and the route streams tool events and generated OpenUI Lang to the browser as AG-UI events.
+4. `runTools()` returns the passages to the model, and the route streams the tool calls and generated OpenUI Lang to the browser.
 5. Agent Interface displays tool activity and progressively renders the comparison: a page-cited table, charts, callouts for gaps and conflicts, and a card for each quoted page.
 
 ## Files
@@ -52,7 +52,7 @@ Try:
 | `src/library.ts`                      | Shared components for the prompt and renderer                                 |
 | `src/components/sources.tsx`          | The Sources component, built on React UI's source strip                       |
 | `src/lib/prompt.ts`                   | Comparison rules and example answers for Gateway                              |
-| `src/app/api/chat/route.ts`           | Request validation, `runTools()` generation, and AG-UI stream                 |
+| `src/app/api/chat/route.ts`           | Request validation, `runTools()` generation, and SSE response                 |
 | `src/app/api/documents/route.ts`      | Document list for the Documents page                                          |
 | `src/app/api/frontend-token/route.ts` | Frontend token for Gateway thread storage                                     |
 | `src/lib/theme.ts`                    | Light and dark theme overrides                                                |
@@ -75,7 +75,7 @@ The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completio
 
 Agent Interface stores the thread list with Gateway's [Conversations API](https://www.openui.com/docs/gateway/api/conversations) through `useOpenuiCloudStorage()`. The browser calls Gateway directly with a short-lived [frontend token](https://www.openui.com/docs/gateway/authentication#frontend-tokens) from `/api/frontend-token`, which mints it with `THESYS_API_KEY` for one local user (`DEMO_USER_ID`, default `demo-user`) and app (`APP_ID`, default `document-comparison-cookbook`), so the key stays on the server and the browser reaches only those threads. Threads stay listed after a reload, but Chat Completions doesn't write turns to a conversation, so Gateway keeps each thread's title and not its messages; a thread you open again from the sidebar is empty. To store the messages too, append each finished turn to the conversation with `storeChatCompletionHistory()` from [`@openuidev/server`](https://www.openui.com/docs/api-reference/server#conversation-history), or keep threads in your own database with `restStorage`.
 
-The chat route forwards only user questions and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only passages the server found for the current question. The route runs the tool with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and streams its events as AG-UI events, which `agUIAdapter()` reads, because Chat Completions has no chunk for a tool result.
+The chat route forwards only user questions and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only passages the server found for the current question. The route runs the tool with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and forwards its completion chunks as server-sent events, which `openAIAdapter()` reads. Chat Completions has no chunk for a tool result, so **Behind the scenes** shows each call's arguments but not its result.
 
 The app binds to loopback, and the chat and frontend-token routes accept browser requests only from its own local page. Every browser shares one local user's threads. For deployment, add [authentication](https://www.openui.com/docs/gateway/authentication), mint each frontend token for the signed-in user, and add rate limits to both routes.
 
