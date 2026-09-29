@@ -296,32 +296,33 @@ The chat route passes the search tool and the [prompt](https://github.com/thesys
 
 ```ts title="src/app/api/chat/route.ts"
 const searchTool = searchDocumentsTool(documents);
-const params = {
-  model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-  messages: [
-    { role: "system" as const, content: comparisonPrompt(documents) },
-    ...conversation(body.messages),
-  ],
-  tools: [searchTool],
-  max_completion_tokens: 6000,
-};
-const firstStream = await gateway.chat.completions.create(
-  { ...params, stream: true },
-  { signal: request.signal },
+const runner = gateway.chat.completions.runTools(
+  {
+    model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
+    messages: [
+      { role: "system", content: comparisonPrompt(documents) },
+      ...conversation(body.messages),
+    ],
+    tools: [
+      {
+        type: "function",
+        function: {
+          ...searchTool.function,
+          function: (args: string) =>
+            executeSearchDocuments(args, { signal: request.signal }).catch((error: unknown) =>
+              JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
+            ),
+        },
+      },
+    ],
+    max_completion_tokens: 6000,
+    stream: true,
+  },
+  { signal: request.signal, maxChatCompletions: 4 },
 );
-
-await runChatToolLoop({
-  client: gateway,
-  params,
-  firstStream,
-  tools: { [searchTool.function.name]: executeSearchDocuments },
-  emit,
-  signal: request.signal,
-  maxRounds: 4,
-});
 ```
 
-The route runs a [function-tool loop](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/lib/tool-loop.ts) with `maxRounds: 4`. It runs each requested search, appends the results, and requests the next completion until the model answers, streaming AG-UI events so Agent Interface shows each search and its passages. The extra rounds let the model search again with different wording when a document returns `found: false`. `conversation()` drops the tool calls and results the browser sends back, so every quote comes from a search your server ran for the current question.
+The OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) runs each requested search, sends the results back, and requests the next completion until the model answers, for up to four completions. Searches the model requests together run in parallel. A search that throws returns its error to the model as the result, because `runTools()` otherwise ends the run. The route streams the runner's events as AG-UI events, so Agent Interface shows each search and its passages. The extra rounds let the model search again with different wording when a document returns `found: false`. `conversation()` drops the tool calls and results the browser sends back, so every quote comes from a search your server ran for the current question.
 
 This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
 

@@ -8,7 +8,7 @@ import {
 } from "../trivago";
 
 // The search_stays function tool: its JSON schema for Gateway, argument validation, the trivago
-// search, and the executor the tool loop calls.
+// search, and the executor that runTools() calls.
 
 // Today's date where the server runs, as YYYY-MM-DD.
 export const today = () => new Intl.DateTimeFormat("en-CA").format(new Date());

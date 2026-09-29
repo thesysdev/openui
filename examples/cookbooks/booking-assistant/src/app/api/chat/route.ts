@@ -1,11 +1,8 @@
+import { randomUUID } from "node:crypto";
 import OpenAI from "openai";
-import type {
-  ChatCompletionChunk,
-  ChatCompletionMessageParam,
-} from "openai/resources/chat/completions";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { z } from "zod/v4";
 import { bookingPrompt } from "../../../lib/prompt";
-import { runChatToolLoop } from "../../../lib/tool-loop";
 import { executeSearchStays, searchStaysTool, today } from "../../../lib/tools/search-stays";
 
 export const runtime = "nodejs";
@@ -91,28 +88,109 @@ export async function POST(request: Request) {
     );
 
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
-  // App-owned function tools. The loop runs only the names registered here.
   const searchTool = searchStaysTool();
-  const functionTools = { [searchTool.function.name]: executeSearchStays };
 
-  const params = {
-    model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
-    messages: [
-      { role: "system" as const, content: bookingPrompt(today()) },
-      ...conversation(body.messages),
-    ],
-    tools: [searchTool],
-    max_completion_tokens: 6000,
-  };
+  // runTools requests a completion, runs the tools the model calls, sends their results back, and
+  // repeats until the model answers. It runs only the tools registered here.
+  const runner = gateway.chat.completions.runTools(
+    {
+      model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
+      messages: [
+        { role: "system", content: bookingPrompt(today()) },
+        ...conversation(body.messages),
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            ...searchTool.function,
+            // runTools ends the run when a tool throws, so return the error as the tool's result.
+            function: (args: string) =>
+              executeSearchStays(args, { signal: request.signal }).catch((error: unknown) =>
+                JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
+              ),
+          },
+        },
+      ],
+      max_completion_tokens: 6000,
+      stream: true,
+    },
+    { signal: request.signal, maxChatCompletions: 3 },
+  );
 
-  // Open the first round before responding, so a rejected key, rate limit, or unknown model
-  // returns as an HTTP error with Gateway's status instead of an event mid-stream.
-  let firstStream: AsyncIterable<ChatCompletionChunk>;
+  // Stream AG-UI events to the browser rather than raw completion chunks, because Chat
+  // Completions has no chunk for a tool result. Agent Interface reads them with agUIAdapter().
+  const encoder = new TextEncoder();
+  let open = true;
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      // Stop sending once the browser disconnects.
+      const emit = (event: Record<string, unknown>) => {
+        if (open) controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+      };
+      // Each completion is one assistant message: its text, then the tools it calls.
+      let messageId = randomUUID();
+      let text = false;
+      runner.on("content", (delta) => {
+        if (!delta) return;
+        if (!text) emit({ type: "TEXT_MESSAGE_START", messageId, role: "assistant" });
+        text = true;
+        emit({ type: "TEXT_MESSAGE_CONTENT", messageId, delta });
+      });
+      runner.on("message", (message) => {
+        if (message.role === "assistant") {
+          if (text) emit({ type: "TEXT_MESSAGE_END", messageId });
+          for (const call of message.tool_calls ?? []) {
+            if (call.type !== "function") continue;
+            const toolCallId = call.id;
+            emit({
+              type: "TOOL_CALL_START",
+              toolCallId,
+              toolCallName: call.function.name,
+              parentMessageId: messageId,
+            });
+            emit({ type: "TOOL_CALL_ARGS", toolCallId, delta: call.function.arguments });
+            emit({ type: "TOOL_CALL_END", toolCallId });
+          }
+          messageId = randomUUID();
+          text = false;
+        } else if (message.role === "tool") {
+          emit({
+            type: "TOOL_CALL_RESULT",
+            messageId: randomUUID(),
+            toolCallId: message.tool_call_id,
+            content: message.content,
+            role: "tool",
+          });
+        }
+      });
+      runner
+        .done()
+        .then(() => {
+          // runTools stops after maxChatCompletions even if the last completion called a tool.
+          const last = runner.messages.at(-1);
+          if (last?.role !== "assistant" || !last.content)
+            throw new Error("The model returned no answer. Please retry.");
+        })
+        .catch((error: unknown) =>
+          emit({
+            type: "RUN_ERROR",
+            message: error instanceof Error ? error.message : String(error),
+          }),
+        )
+        .finally(() => {
+          if (open) controller.close();
+        });
+    },
+    cancel() {
+      open = false;
+    },
+  });
+
+  // Wait for the first completion to start, so a rejected key or rate limit returns as an HTTP
+  // error with Gateway's status instead of an event mid-stream.
   try {
-    firstStream = await gateway.chat.completions.create(
-      { ...params, stream: true },
-      { signal: request.signal },
-    );
+    await Promise.race([runner.emitted("connect"), runner.done()]);
   } catch (error) {
     const upstream = error as { status?: number; message?: string };
     return Response.json(
@@ -120,39 +198,6 @@ export async function POST(request: Request) {
       { status: upstream.status ?? 502 },
     );
   }
-
-  // Stream AG-UI events to the browser, running app-owned tools between model turns.
-  const encoder = new TextEncoder();
-  let open = true;
-  const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      // Stop sending once the browser disconnects.
-      const emit = (event: Record<string, unknown>) => {
-        if (open) controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
-      };
-      try {
-        await runChatToolLoop({
-          client: gateway,
-          params,
-          firstStream,
-          tools: functionTools,
-          emit,
-          signal: request.signal,
-          maxRounds: 3,
-        });
-      } catch (error) {
-        emit({
-          type: "RUN_ERROR",
-          message: error instanceof Error ? error.message : String(error),
-        });
-      } finally {
-        if (open) controller.close();
-      }
-    },
-    cancel() {
-      open = false;
-    },
-  });
 
   return new Response(stream, {
     headers: {
