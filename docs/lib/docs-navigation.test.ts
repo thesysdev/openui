@@ -32,12 +32,6 @@ describe("global docs navigation", () => {
       },
       {
         type: "page",
-        name: "How OpenUI works",
-        url: "/docs/architecture",
-        children: undefined,
-      },
-      {
-        type: "page",
         name: "OpenUI vs others",
         url: "/docs/openui-lang/comparison",
         children: undefined,

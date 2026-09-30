@@ -1,32 +1,42 @@
 ---
 title: Introduction
+hideFooter: true
 ---
 
-import { TryItOut } from "./openui-lang/components/try-it-out";
+import { OpenUIFlowDiagram } from "@/components/openui-flow-diagram";
+import { OpenUILangStreamDemo } from "@/components/openui-lang-stream-demo";
 
-OpenUI is a Generative UI toolkit for creating agents that respond with live, interactive interfaces instead of only text. It provides the building blocks for interfaces that adapt to each request while remaining consistent with your product and design system.
+OpenUI is the open standard for Generative UI. At its core is **OpenUI Lang**, a compact language that lets models respond with live, interactive interfaces built from your own components, instead of only text. OpenUI Lang works with any model, agent framework, or chat UI.
 
-<TryItOut />
+Most AI applications are limited to returning text as Markdown or rendering pre-built UI responses. Markdown isn't interactive, and pre-built responses are rigid. They don't adapt to the context of the conversation.
 
-## OpenUI stack
+With Generative UI, the model composes the interface itself. It selects, configures, and combines components from your component library to build an interface for each request, whether that's an interactive chart, a form, or a multi-tab dashboard.
 
-OpenUI provides the building blocks for creating generated interfaces and running them reliably in production.
+<OpenUILangStreamDemo />
 
-<Cards>
-  <Card title="OpenUI Lang" href="/docs/openui-lang">
-    Generate UI from your components in up to 67% fewer tokens than JSON.
-  </Card>
-  <Card title="Gateway" href="/docs/gateway">
-    OpenRouter for Generative UI, with provider fallbacks and Autofix built in.
-  </Card>
-  <Card title="Autofix" href="/docs/autofix">
-    Fix model output that would break your UI, using your existing provider.
-  </Card>
-  <Card title="Reliability Monitoring" href="/docs/reliability">
-    Track failed generations, inspect affected interfaces, and spot recurring errors.
-  </Card>
-</Cards>
+[Try the live demo →](/chat)
+
+## How it works
+
+You define the components. The model decides how to combine them for each request, and your application renders the result.
+
+<OpenUIFlowDiagram />
+
+1. **Define your component library:** the components the model can use to generate UI.
+2. **Generate the system prompt:** OpenUI turns the library into instructions for the model.
+3. **Call a model:** through [OpenUI Gateway](/docs/gateway) (recommended), which validates and fixes the generation as it streams, or directly with your own provider, using [Autofix](/docs/autofix) to repair invalid output.
+4. **Render the stream:** the `Renderer` draws each component as its line arrives.
+
+See it end to end in [Getting Started](/docs/getting-started).
+
+## What's in OpenUI
+
+OpenUI gives you the tools to build Generative UI into your application and run it reliably in production.
+
+- **[OpenUI Lang](/docs/openui-lang):** Describes interfaces with your own components. Models generate it in less than half the tokens of JSON-based formats, and the renderer displays it progressively as it streams.
+- **[Agent Interface](/docs/agent/getting-started/introduction):** A React SDK for a complete chat interface, with threads, streaming messages, tool activity, and generated components. Connect it to your existing agent backend, or add the renderer to assistant-ui, CopilotKit, or your own chat UI instead.
+- **[Gateway](/docs/gateway):** OpenRouter for Generative UI. One API for models across providers, with automatic failover when a provider is unavailable and Autofix built in to correct invalid OpenUI Lang as it streams.
+- **[Autofix](/docs/autofix):** Repairs invalid OpenUI Lang after generation with one API call. Keep your existing model provider, inference setup, and agent framework.
+- **[Reliability Monitoring](/docs/reliability):** Shows how often generated interfaces fail, which errors recur, and the generation behind each failure. It's enabled automatically with Gateway and Autofix, or through the Observability SDK with your own inference.
 
 Learn about correction and monitoring options in [OpenUI in production](/docs/production).
-
-Ready to build? [Get started with OpenUI](/docs/getting-started).

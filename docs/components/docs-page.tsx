@@ -13,7 +13,7 @@ export function DocsPageView({ page }: { page: DocsSourcePage }) {
   const MDX = page.data.body;
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
+    <DocsPage toc={page.data.toc} full={page.data.full} footer={{ enabled: !page.data.hideFooter }}>
       {!page.data.customHeader && (
         <>
           <DocsTitle>{page.data.title}</DocsTitle>

@@ -59,7 +59,6 @@ export const DEMOS_URL = "/demos";
 const promotedGlobalUrls = new Set([
   "/docs",
   "/docs/getting-started",
-  "/docs/architecture",
   "/docs/openui-lang/comparison",
   "/docs/mcp",
   "/docs/deploy",
@@ -75,11 +74,6 @@ export const GLOBAL_DOCS_TREE: PageTree.Root = {
     { type: "separator", name: "Start" },
     { type: "page", name: "Introduction", url: "/docs" },
     { type: "page", name: "Getting Started", url: "/docs/getting-started" },
-    {
-      type: "page",
-      name: "How OpenUI works",
-      url: "/docs/architecture",
-    },
     {
       type: "page",
       name: "OpenUI vs others",

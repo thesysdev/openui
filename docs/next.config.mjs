@@ -97,6 +97,11 @@ const config = {
         permanent: true,
       },
       {
+        source: "/docs/architecture",
+        destination: "/docs",
+        permanent: true,
+      },
+      {
         source: "/docs/overview",
         destination: "/docs",
         permanent: true,

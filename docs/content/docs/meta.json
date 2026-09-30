@@ -3,7 +3,6 @@
   "pages": [
     "index",
     "getting-started",
-    "architecture",
     "openui-lang",
     "build-agents",
     "agent",
