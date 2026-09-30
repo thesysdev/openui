@@ -1,4 +1,4 @@
-import { Database, MessagesSquare, Server, Sparkles, type LucideIcon } from "lucide-react";
+import { Database, History, MessagesSquare, Server, Sparkles, type LucideIcon } from "lucide-react";
 
 type Box = {
   x: number;
@@ -52,6 +52,16 @@ const boxes: Box[] = [
     title: "Your data",
     lines: ["Read-only queries"],
     footer: "F1 lap times · SQLite",
+  },
+  {
+    x: 350,
+    y: 314,
+    width: 230,
+    height: 146,
+    icon: History,
+    title: "Conversations",
+    lines: ["Keeps each thread"],
+    footer: "OpenUI Gateway",
   },
 ];
 
@@ -125,6 +135,20 @@ function BoxNode({ box }: { box: Box }) {
   );
 }
 
+// An elbow connector; `both` puts an arrowhead at each end.
+function Connector({ d, both = false }: { d: string; both?: boolean }) {
+  return (
+    <path
+      d={d}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      markerStart={both ? "url(#analytics-architecture-arrow)" : undefined}
+      markerEnd="url(#analytics-architecture-arrow)"
+    />
+  );
+}
+
 function Arrow({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: number }) {
   return (
     <line
@@ -155,7 +179,8 @@ export function CookbookAnalyticsArchitecture() {
           A chat interface, such as Agent Interface, sends the question to OpenUI Gateway, which
           runs the model. The model makes a tool call to your server, which runs a read-only query
           against your data and returns the tool result. Gateway then streams the answer back to the
-          chat interface.
+          chat interface. Your server saves each turn to the thread's Gateway conversation, and the
+          chat interface lists and reopens threads from there.
         </desc>
         <defs>
           <marker
@@ -203,6 +228,16 @@ export function CookbookAnalyticsArchitecture() {
         </text>
         <text x={850} y={274} className={label}>
           Rows
+        </text>
+
+        {/* The chat interface lists and reopens threads; your server saves each turn. */}
+        <Connector d="M115 228 V387 H344" both />
+        <text x={127} y={312} className={label}>
+          Threads
+        </text>
+        <Connector d="M706 206 H645 V387 H586" />
+        <text x={633} y={312} textAnchor="end" className={label}>
+          Turns
         </text>
 
         {boxes.map((box) => (
