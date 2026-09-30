@@ -16,10 +16,36 @@
 //
 // Pure (no DOM, no React) — unit-tested directly.
 
-import { area as d3Area, line as d3Line, type CurveFactory } from "d3-shape";
+import {
+  curveLinear,
+  curveMonotoneX,
+  curveStep,
+  area as d3Area,
+  line as d3Line,
+  type CurveFactory,
+} from "d3-shape";
 
 export const LINE_STRIDE = 2;
 export const AREA_STRIDE = 4;
+
+/**
+ * The line/area curve for a chart `variant`. "step" steps halfway between
+ * points, as the Recharts charts did, so the first and last values get a flat
+ * run too (step-after left the last value as a bare vertical tick). Anything
+ * else falls back to "natural", the charts' default: while streaming, the
+ * parser can hand over a placeholder (e.g. "") before the real value arrives,
+ * and d3-shape throws "curve is not a function" on an undefined curve.
+ */
+export function seriesCurve(variant: string | undefined): CurveFactory {
+  switch (variant) {
+    case "linear":
+      return curveLinear;
+    case "step":
+      return curveStep;
+    default:
+      return curveMonotoneX;
+  }
+}
 
 /** Index array [0..n) — what the d3 generators iterate while accessors read
  *  the flat vector. Tiny (≤ point count) and short-lived. */

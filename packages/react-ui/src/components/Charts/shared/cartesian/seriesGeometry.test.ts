@@ -1,6 +1,13 @@
 import { curveLinear, curveMonotoneX, area as d3Area, line as d3Line } from "d3-shape";
 import { describe, expect, it } from "vitest";
-import { AREA_STRIDE, buildAreaD, buildAreaEdgeD, buildLineD, LINE_STRIDE } from "./seriesGeometry";
+import {
+  AREA_STRIDE,
+  buildAreaD,
+  buildAreaEdgeD,
+  buildLineD,
+  LINE_STRIDE,
+  seriesCurve,
+} from "./seriesGeometry";
 
 type Pt = { x: number; y0: number; y1: number; yEdge: number };
 
@@ -57,5 +64,22 @@ describe("flat-vector path builders match direct d3 output", () => {
     expect(buildLineD(new Float64Array(0), curveLinear)).toBe("");
     expect(buildAreaD(new Float64Array(0), curveLinear)).toBe("");
     expect(buildAreaEdgeD(new Float64Array(0), curveLinear)).toBe("");
+  });
+});
+
+describe("seriesCurve (line/area variant → curve)", () => {
+  it("steps halfway between points, so the last value keeps a flat run", () => {
+    // Two points 100px apart: flat to the midpoint, up, flat to the last point.
+    const two = Float64Array.from([0, 10, 100, 20]);
+    expect(buildLineD(two, seriesCurve("step"))).toBe("M0,10L50,10L50,20L100,20");
+  });
+
+  it("maps linear and natural, and falls back to natural for anything else", () => {
+    expect(seriesCurve("linear")).toBe(curveLinear);
+    expect(seriesCurve("natural")).toBe(curveMonotoneX);
+    // Streaming placeholders and unknown values must still yield a curve.
+    expect(seriesCurve("")).toBe(curveMonotoneX);
+    expect(seriesCurve(undefined)).toBe(curveMonotoneX);
+    expect(seriesCurve("constructor")).toBe(curveMonotoneX);
   });
 });

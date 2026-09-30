@@ -1,18 +1,17 @@
 import type { ScaleLinear, ScalePoint } from "d3-scale";
-import { type CurveFactory, curveLinear, curveMonotoneX, curveStepAfter } from "d3-shape";
+import type { CurveFactory } from "d3-shape";
 import React, { useMemo, useRef } from "react";
 import type { StackedData } from "../../hooks";
 import { AnimatedPath } from "../../shared/cartesian/AnimatedPath";
-import { AREA_STRIDE, buildAreaD, buildAreaEdgeD } from "../../shared/cartesian/seriesGeometry";
+import {
+  AREA_STRIDE,
+  buildAreaD,
+  buildAreaEdgeD,
+  seriesCurve,
+} from "../../shared/cartesian/seriesGeometry";
 import { springPresets, useDataMorph, useIsomorphicLayoutEffect } from "../../shared/core/spring";
 import { CHART_CLASS_PREFIX } from "../../utils/constants";
 import { AreaChartVariant } from "../types";
-
-const curveMap = {
-  linear: curveLinear,
-  natural: curveMonotoneX,
-  step: curveStepAfter,
-};
 
 interface AreaSeriesProps {
   data: Array<Record<string, string | number>>;
@@ -41,13 +40,7 @@ export const AreaSeries: React.FC<AreaSeriesProps> = ({
   chartId,
   isAnimationActive,
 }) => {
-  // Fall back to the default curve for any variant not in the map — during
-  // streaming the parser can hand us a placeholder (e.g. "") before the real
-  // enum value arrives, and `curveMap[""]` would otherwise be `undefined`,
-  // making d3-shape's `area().curve(undefined)` throw "curve is not a
-  // function" on that transient first render. `natural` mirrors the chart's
-  // own `variant = 'natural'` default.
-  const curve = curveMap[variant] ?? curveMap.natural;
+  const curve = seriesCurve(variant);
 
   // Target geometry per series: flat `[x, y0, y1, yEdge]` pixel scalars (see
   // seriesGeometry.ts for the layout) + the two paths built from them. React
