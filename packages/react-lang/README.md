@@ -320,3 +320,8 @@ The expanded Renderer mounts only while open; closing disposes its query manager
 and resets its local state. Persist form state with `onStateUpdate` and restore
 it with `initialState` when needed. Reopening refetches queries. Use a stable key
 per artifact to keep separate messages' presentation state independent.
+
+Streaming edits may contain multiple content sections: a base-plus-patch preview,
+retry previews, and a final merged result. The last content section wins. Queries
+and mutations remain blocked until streaming stops and the final end marker is
+present. The entire accumulated response can be passed back for execution/editing.

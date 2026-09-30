@@ -37,6 +37,10 @@ export function parseResponseBundle(response: string | null, streaming: boolean)
   let body = program.trimStart();
   if (body && (body.startsWith(CONTENT) || CONTENT.startsWith(body))) {
     framed = true;
+    // A new content section replaces a progressive preview or failed retry.
+    const sections = [...body.matchAll(/^\]\]>openui:content(?:\?[^\r\n]*)?\r?$/gm)];
+    const last = sections[sections.length - 1];
+    if (last) body = body.slice(last.index);
     const newline = body.indexOf("\n");
     if (newline < 0)
       return {
