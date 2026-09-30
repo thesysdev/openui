@@ -253,6 +253,8 @@ const llm = fetchLLM({
 
 Chat Completions does not store conversations, so Agent Interface keeps each thread's messages in the browser and sends them with every turn.
 
+<Callout type="info" title="Thread storage">
+
 `useOpenuiCloudStorage()` stores the thread list with the Gateway [Conversations API](/docs/gateway/api/conversations). The browser calls Gateway directly with a short-lived [frontend token](/docs/gateway/authentication#frontend-tokens) from the example's `/api/frontend-token` route, so `THESYS_API_KEY` stays on the server and the browser reaches only one local user's threads in this app:
 
 ```tsx title="src/components/booking-chat.tsx"
@@ -265,6 +267,8 @@ const storage = useOpenuiCloudStorage({
 ```
 
 The chat route saves each message and answer to the thread with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so a thread you open again, even after a reload, shows its messages. To keep threads in your own database instead, use `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
+
+</Callout>
 
 The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/api/chat/route.ts) runs `search_stays` with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and streams the answer to Agent Interface as the model writes it, so **Behind the scenes** shows each search. It forwards only messages and answers from the thread, so later steps rely on what the stay cards show, including the booking link in each card's value. A submitted form arrives as one message with the button label and the form's values.
 
