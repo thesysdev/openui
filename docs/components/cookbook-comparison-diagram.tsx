@@ -88,7 +88,7 @@ export function CookbookComparisonDiagram() {
 
         {/* Prepare once: npm run prepare:documents */}
         <text x={10} y={22} className={caption}>
-          1. Prepare the reports once
+          Prepare the reports once
         </text>
         {pipeline.map((step, index) => {
           const x = 10 + index * 190;
@@ -127,7 +127,7 @@ export function CookbookComparisonDiagram() {
 
         {/* Every question */}
         <text x={10} y={160} className={caption}>
-          2. Answer each question
+          Answer each question
         </text>
 
         <rect x={10} y={196} width={170} height={150} rx={12} strokeWidth={1.75} className={box} />
@@ -254,7 +254,7 @@ export function CookbookComparisonDiagram() {
 
         {/* After each answer */}
         <text x={10} y={412} className={caption}>
-          3. Keep the thread
+          Keep the thread
         </text>
         {thread.map((step, index) => {
           const x = 10 + index * 190;

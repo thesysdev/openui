@@ -83,7 +83,7 @@ export function CookbookBookingDiagram() {
         </defs>
 
         <text x={10} y={22} className={caption}>
-          1. In the chat
+          In the chat
         </text>
         {screens.map((screen, index) => (
           <g key={screen.title}>
@@ -191,7 +191,7 @@ export function CookbookBookingDiagram() {
 
         {/* Who does what. */}
         <text x={10} y={278} className={caption}>
-          2. Outside the chat
+          Outside the chat
         </text>
         <text x={10} y={302} className={note}>
           The model writes every screen from your components.
