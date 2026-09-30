@@ -19,9 +19,13 @@ const PREC_MEMBER = 9;
 
 /**
  * Parse a token array into an AST node using a Pratt (top-down operator
- * precedence) parser.
+ * precedence) parser. Optional diagnostics include the offending token index
+ * so streaming callers can ignore errors introduced by automatic closing.
  */
-export function parseExpression(tokens: Token[]): ASTNode {
+export function parseExpression(
+  tokens: Token[],
+  onError?: (message: string, tokenIndex: number) => void,
+): ASTNode {
   let pos = 0;
 
   const cur = (): Token => tokens[pos] ?? { t: T.EOF };
@@ -270,6 +274,14 @@ export function parseExpression(tokens: Token[]): ASTNode {
     // Index access: obj[expr]
     if (tok.t === T.LBrack) {
       adv(); // consume [
+      if (cur().t === T.RBrack) {
+        onError?.(
+          "Empty index expression. Use an index such as rows[0], or dot projection such as rows.field to read a field from every array item; rows[].field is not supported.",
+          pos,
+        );
+        adv(); // consume ] without swallowing the following expression
+        return { k: "Index", obj: left, index: { k: "Null" } };
+      }
       const index = parseExpr(0);
       eat(T.RBrack);
       return { k: "Index", obj: left, index };
