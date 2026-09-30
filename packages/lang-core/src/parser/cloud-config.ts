@@ -21,7 +21,7 @@ type CloudConfig = (
   | { libraryVersion: string }
   | { chatLibrary: Omit<LibrarySpec, "components">; systemPromptOptions?: CloudPromptOptions }
 ) &
-  Pick<CloudSpec, "script" | "incrementalEdit" | "meta">;
+  Pick<CloudSpec, "script" | "baseResponse" | "meta">;
 
 function pickCloudPromptOptions(
   options: SystemPromptOptions | CloudPromptOptions | undefined,
@@ -60,7 +60,7 @@ export function generateCloudConfig(spec: CloudSpec): string {
   }
 
   if (spec.script !== undefined) config.script = spec.script;
-  if (spec.incrementalEdit !== undefined) config.incrementalEdit = spec.incrementalEdit;
+  if (spec.baseResponse !== undefined) config.baseResponse = spec.baseResponse;
   if (spec.meta !== undefined) config.meta = { name: spec.meta.name };
 
   const block = `${CLOUD_CONFIG_MARKER}${JSON.stringify(config)}`;
