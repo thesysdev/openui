@@ -91,7 +91,8 @@ function fitsInFull(
   width: number,
   maxLines: number,
 ): boolean {
-  if (maxLines <= 1) return ctx.measureText(label).width <= width;
+  if (ctx.measureText(label).width <= width) return true;
+  if (maxLines <= 1) return false;
   return (
     label.split(/\s+/).every((word) => ctx.measureText(word).width <= width) &&
     wrapLabelLines(ctx, label, width, Number.POSITIVE_INFINITY).length <= maxLines
@@ -99,8 +100,7 @@ function fitsInFull(
 }
 
 /**
- * The narrowest width at which `label` shows in full (see `fitsInFull`).
- * Greedy wrapping never needs more lines at a larger width, so this bisects
+ * The narrowest width at which `label` shows in full (see `fitsInFull`):
  * between the widest word and the whole label on one line.
  */
 export function fullLabelWidth(
@@ -108,16 +108,34 @@ export function fullLabelWidth(
   label: string,
   maxLines: number,
 ): number {
-  let hi = ctx.measureText(label).width;
-  if (maxLines <= 1) return hi;
-  let lo = Math.max(0, ...label.split(/\s+/).map((word) => ctx.measureText(word).width));
+  const oneLine = ctx.measureText(label).width;
+  if (maxLines <= 1) return oneLine;
+  const widestWord = Math.max(0, ...label.split(/\s+/).map((word) => ctx.measureText(word).width));
+  return narrowestFullWidth(ctx, label, maxLines, widestWord, oneLine);
+}
+
+/**
+ * The narrowest width in `[lo, hi]` at which `label` shows in full, given that
+ * it does at `hi`. Greedy wrapping never needs more lines at a larger width,
+ * so this bisects, then snaps to the widest line of the wrap it found: the
+ * wrap is the same at that width, so the result is an exact text width
+ * whatever the search bounds.
+ */
+function narrowestFullWidth(
+  ctx: CanvasRenderingContext2D,
+  label: string,
+  maxLines: number,
+  lo: number,
+  hi: number,
+): number {
   if (fitsInFull(ctx, label, lo, maxLines)) return lo;
   while (hi - lo > 0.5) {
     const mid = (lo + hi) / 2;
     if (fitsInFull(ctx, label, mid, maxLines)) hi = mid;
     else lo = mid;
   }
-  return hi;
+  const lines = wrapLabelLines(ctx, label, hi, Number.POSITIVE_INFINITY);
+  return Math.max(...lines.map((line) => ctx.measureText(line).width));
 }
 
 /**
@@ -156,13 +174,25 @@ export function layoutXAxisLabels(
       Math.min(MAX_SLOT_GROWTH * minSlotWidth, visibleWidth / 2),
     );
     const lines = variant === "multiLine" ? lineCap : 1;
-    let needed = 0;
-    for (const label of labels) {
-      if (fitsInFull(ctx, label, minSlotWidth * labelShare, lines)) continue;
-      const width = fullLabelWidth(ctx, label, lines);
-      if (width <= maxSlotWidth * labelShare) needed = Math.max(needed, width);
+    const floor = minSlotWidth * labelShare;
+    const ceiling = maxSlotWidth * labelShare;
+    // The widest label that can show in full under the ceiling sets the width.
+    // Only a label that raises it is searched for its exact width; any other
+    // label costs a check or two (it fits the width found so far, or can't fit
+    // even at the ceiling), so long category lists stay cheap to lay out on
+    // every streamed update.
+    let needed = floor;
+    for (const label of new Set(labels)) {
+      if (fitsInFull(ctx, label, needed, lines) || !fitsInFull(ctx, label, ceiling, lines)) {
+        continue;
+      }
+      const oneLine = ctx.measureText(label).width;
+      needed =
+        lines <= 1
+          ? oneLine
+          : narrowestFullWidth(ctx, label, lines, needed, Math.min(ceiling, oneLine));
     }
-    if (needed > 0) {
+    if (needed > floor) {
       const tight = Math.ceil(needed / labelShare);
       // Leave a gap between neighbouring labels (line and area labels span the
       // whole category), but never one that makes a chart that fits scroll.

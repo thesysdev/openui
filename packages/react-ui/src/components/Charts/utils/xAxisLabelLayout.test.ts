@@ -136,7 +136,7 @@ describe("layoutXAxisLabels — scrolling, full labels", () => {
   it("widens the category until a long label wraps in full", () => {
     const out = scroll([LONG, "Jan"]);
     // The narrowest 3-line wrap is 180px ("Category Name That"), + the 8px gap.
-    expect(out.slotWidth).toBe(189);
+    expect(out.slotWidth).toBe(188);
     expect(out.maxLines).toBe(3);
     expect(drawn(LONG, out)).toEqual(["Extremely Long", "Category Name That", "Needs Truncation"]);
   });
@@ -198,6 +198,38 @@ describe("layoutXAxisLabels — scrolling, full labels", () => {
   it("leaves the condensed layout's categories alone", () => {
     expect(layout([LONG], { slotWidth: 60, visibleWidth: 1000 }).slotWidth).toBe(60);
   });
+
+  it("sizes for the widest label that shows in full, wherever it sits", () => {
+    const labels = ["Jan", CSRT, LONG, "Customer Support", "SinglePointDataSetForTestingEdgeCases"];
+    const out = scroll(labels);
+    // LONG sets the width on its own (see above); the 370px word can't show in full.
+    expect(out.slotWidth).toBe(scroll([LONG]).slotWidth);
+    expect(scroll([...labels].reverse())).toEqual(out);
+    expect(scroll([...labels.slice(2), ...labels.slice(0, 2)])).toEqual(out);
+  });
+
+  it("measures a long category list a bounded number of times per label", () => {
+    let measures = 0;
+    const counting = {
+      measureText: (s: string) => {
+        measures++;
+        return { width: s.length * 10 };
+      },
+    } as unknown as CanvasRenderingContext2D;
+    const labels = Array.from({ length: 1000 }, (_, i) => `Region ${i} Support Tickets`);
+    const out = layoutXAxisLabels(counting, labels, {
+      variant: "multiLine",
+      slotWidth: 72,
+      maxHeight: 120,
+      lineHeight: LINE,
+      condensed: false,
+      visibleWidth: 1000,
+    });
+    expect(out.slotWidth).toBeGreaterThan(72);
+    // Only the labels that raise the width are searched; the rest are checked
+    // once or twice (the full search on every label took ~130 per label).
+    expect(measures / labels.length).toBeLessThan(40);
+  });
 });
 
 describe("fullLabelWidth", () => {
@@ -206,8 +238,8 @@ describe("fullLabelWidth", () => {
   });
 
   it("is the narrowest width that wraps the label into the allowed lines", () => {
-    expect(fullLabelWidth(ctx, LONG, 3)).toBeCloseTo(180, 0);
-    expect(fullLabelWidth(ctx, LONG, 2)).toBeCloseTo(260, 0);
+    expect(fullLabelWidth(ctx, LONG, 3)).toBe(180);
+    expect(fullLabelWidth(ctx, LONG, 2)).toBe(260);
   });
 
   it("never breaks a word", () => {
