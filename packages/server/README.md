@@ -131,3 +131,41 @@ chatCompletionMessagesToItems([
   { role: "assistant", content: "hi" },
 ]);
 ```
+
+## Script execution
+
+`executeScript` runs a named script from a complete OpenUI response bundle. Supply the execution transport and your own customer-tool dispatcher; the helper handles continuation state and tool results.
+
+```ts
+import { executeScript } from "@openuidev/server";
+
+const result = await executeScript({
+  response: bundle,
+  name,
+  arguments: args,
+  signal: request.signal,
+  execute: async (body, signal) => {
+    const response = await fetch(executeUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal,
+    });
+    if (!response.ok) throw new Error(`Execution failed: ${response.status}`);
+    return response.json();
+  },
+  callTool: async (name, args, signal) => {
+    if (!Object.hasOwn(tools, name)) throw new Error(`Unknown tool: ${name}`);
+    return tools[name](args, signal);
+  },
+});
+```
+
+The result is the script's value. Script failures reject; customer-tool failures are sent back to the script as tool errors. The helper allows up to eight continuation rounds and sixteen tool calls, with a 60-second overall deadline (`timeoutMs` can override it). It rejects duplicate call IDs before dispatching a batch. Calls run sequentially.
+
+Both callbacks receive the helper's abort signal, which combines caller cancellation with its deadline. Pass it through to cancellable work. A deadline does not undo completed tool side effects or force-stop callbacks that ignore cancellation. The helper never aborts the caller's controller.
+
+URLs, credentials, customer-tool authorization, and artifact storage remain application-owned. The helper forwards the full bundle unchanged; it does not parse or execute JavaScript locally. Protocol types are exported alongside the helper.
