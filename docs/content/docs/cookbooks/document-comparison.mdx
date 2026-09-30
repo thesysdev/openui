@@ -118,7 +118,7 @@ Each step covers one part of the example, in the order a request flows through i
 `npm run prepare:documents` downloads each report listed in [documents.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/lib/documents.ts) and extracts its text page by page. It then splits each page into overlapping passages, so every passage keeps the page it came from:
 
 ```ts title="scripts/prepare-documents.ts"
-// Split each page into overlapping passages so every passage keeps its page number.
+// Split each page into overlapping passages that keep their page number.
 function passages(text: string, size = 1200, overlap = 200) {
   const clean = text.replace(/\s+/g, " ").trim();
   const result: string[] = [];
@@ -152,7 +152,10 @@ const results = selected.map((document) => {
   const url = sources.find((source) => source.id === document.id)?.url;
   const matches = passages
     .filter((passage) => passage.documentId === document.id)
-    .map((passage) => ({ ...passage, score: similarity(queryEmbedding, passage.embedding) }))
+    .map((passage) => ({
+      ...passage,
+      score: similarity(queryEmbedding, passage.embedding),
+    }))
     .sort((a, b) => b.score - a.score)
     .slice(0, args.passages_per_document);
   const bestScore = matches[0]?.score ?? 0;
@@ -291,11 +294,15 @@ Its children replace the sidebar, add the Documents page, and fill the thread he
     <AgentInterface.ThreadList />
   </AgentInterface.SidebarContent>
 </AgentInterface.Sidebar>
+
 <AgentInterface.Route path="documents">
   <DocumentLibrary />
 </AgentInterface.Route>
+
 <AgentInterface.ThreadHeader>
-  <span className="thread-context">Comparing NVIDIA · AMD · Intel annual reports</span>
+  <span className="thread-context">
+    Comparing NVIDIA · AMD · Intel annual reports
+  </span>
 </AgentInterface.ThreadHeader>
 ```
 
@@ -321,8 +328,11 @@ const runner = gateway.chat.completions.runTools(
         function: {
           ...searchTool.function,
           function: (args: string) =>
-            executeSearchDocuments(args, { signal: request.signal }).catch((error: unknown) =>
-              JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
+            executeSearchDocuments(args, { signal: request.signal }).catch(
+              (error: unknown) =>
+                JSON.stringify({
+                  error: error instanceof Error ? error.message : String(error),
+                }),
             ),
         },
       },

@@ -113,9 +113,17 @@ Each step covers one part of the example, in the order a request flows through i
 trivago's server speaks MCP over HTTP at `https://mcp.trivago.com/mcp`. Its `trivago-accommodation-search` tool takes a destination, dates, guests, and optional filters for stars, guest rating, and amenities. The example calls it with the MCP TypeScript SDK and keeps only the structured hotel list:
 
 ```ts title="src/lib/trivago.ts"
-export async function searchAccommodations(search: AccommodationSearch, signal?: AbortSignal) {
-  const client = new Client({ name: "openui-booking-assistant", version: "0.1.0" });
-  await client.connect(new StreamableHTTPClientTransport(serverUrl), { signal });
+export async function searchAccommodations(
+  search: AccommodationSearch,
+  signal?: AbortSignal,
+) {
+  const client = new Client({
+    name: "openui-booking-assistant",
+    version: "0.1.0",
+  });
+  await client.connect(new StreamableHTTPClientTransport(serverUrl), {
+    signal,
+  });
   try {
     const result = await client.callTool(
       { name: "trivago-accommodation-search", arguments: search },
@@ -157,10 +165,11 @@ Give Gateway a function tool named `search_stays`. It takes every detail of the 
 Currencies, guest ratings, and amenities are enums of the values trivago accepts. Your server validates the arguments again, rejecting a check-in in the past or more rooms than adults, and maps them to trivago's filters. trivago has no price filter, so the tool applies the budget itself:
 
 ```ts title="src/lib/tools/search-stays.ts"
-// trivago has no price filter, so apply the budget here and report what it left out.
+// trivago has no price filter, so apply the budget and track what it drops.
 const inBudget = found.filter(
   (stay) =>
-    args.max_price_per_night === null || amount(stay.price_per_night) <= args.max_price_per_night,
+    args.max_price_per_night === null ||
+    amount(stay.price_per_night) <= args.max_price_per_night,
 );
 const overBudget = found.filter((stay) => !inBudget.includes(stay));
 ```
@@ -211,7 +220,8 @@ export const DatePicker = defineComponent({
   name: "DatePicker",
   props: openuiLibrary.components.DatePicker.props,
   description:
-    "A single date. Prefill it by passing a YYYY-MM-DD string as value; the form submits YYYY-MM-DD.",
+    "A single date. Prefill it by passing a YYYY-MM-DD string as value; " +
+    "the form submits YYYY-MM-DD.",
   component: ({ props }) => {
     const field = useStateField(props.name, props.value);
     return (
@@ -263,7 +273,12 @@ const storage = useOpenuiCloudStorage({
   features: { artifact: false },
 });
 
-<AgentInterface llm={llm} storage={storage} componentLibrary={library} agentName="Stay finder" />;
+<AgentInterface
+  llm={llm}
+  storage={storage}
+  componentLibrary={library}
+  agentName="Stay finder"
+/>;
 ```
 
 The chat route saves each message and answer to the thread with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so a thread you open again, even after a reload, shows its messages. To keep threads in your own database instead, use `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
