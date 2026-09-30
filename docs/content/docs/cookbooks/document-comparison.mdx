@@ -338,7 +338,7 @@ const runner = gateway.chat.completions.runTools(
 );
 ```
 
-The route runs each search the model asks for and sends the passages back, until the model answers. When a document returns `found: false`, the model can search it again with different wording. The route streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each search. Earlier turns come from the Gateway conversation rather than the browser, so every earlier passage the model sees is one your server found. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/app/api/chat/route.ts) has the details, including error handling.
+When the model asks for a search, the route runs search_documents and sends the passages back to the model. This repeats until the model stops searching and writes its answer. maxChatCompletions: 4 caps the number of rounds, so a question can't turn into an endless string of searches. If a report comes back with found: false, the model can use one of those rounds to search that report again with different wording.
 
 The prompt turns the evidence into a consistent answer:
 
