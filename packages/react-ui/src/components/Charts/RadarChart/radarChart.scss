@@ -41,6 +41,12 @@
     opacity 0.15s ease;
 }
 
+@include base.active-dot-styles("radar-chart");
+
+.#{brand.$prefix}-radar-chart-active-dots {
+  pointer-events: none;
+}
+
 .#{brand.$prefix}-radar-chart-axis-label {
   @include base.svg-tick-label;
 }

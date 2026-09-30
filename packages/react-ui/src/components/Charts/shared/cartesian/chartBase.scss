@@ -121,13 +121,9 @@
   text-align: center;
 }
 
-@mixin crosshair-styles($prefix) {
-  .#{brand.$prefix}-#{$prefix}-crosshair-line {
-    stroke: cssUtils.$border-default;
-    stroke-width: 1;
-    stroke-dasharray: 4 4;
-  }
-
+// The hover dot on a series: a foreground ring around a dot in the series
+// color. Shared by the line/area crosshair and the radar chart.
+@mixin active-dot-styles($prefix) {
   .#{brand.$prefix}-#{$prefix}-active-dot-outer {
     fill: cssUtils.$foreground;
     stroke: cssUtils.$border-default;
@@ -137,6 +133,16 @@
   .#{brand.$prefix}-#{$prefix}-active-dot-inner {
     stroke: none;
   }
+}
+
+@mixin crosshair-styles($prefix) {
+  .#{brand.$prefix}-#{$prefix}-crosshair-line {
+    stroke: cssUtils.$border-default;
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+  }
+
+  @include active-dot-styles($prefix);
 }
 
 // The draw-on used by line + area series strokes (via AnimatedPath). Top-level
