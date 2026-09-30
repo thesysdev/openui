@@ -1,5 +1,6 @@
 import type { ScaleLinear } from "d3-scale";
 
+import { FadeFollower } from "../../shared/core/spring";
 import type { ChartData } from "../../types";
 import { CHART_CLASS_PREFIX } from "../../utils/constants";
 import { entranceProps } from "../../utils/entranceUtils";
@@ -51,9 +52,6 @@ export function RadarSeries<T extends ChartData>({
     color: colorMap[key] ?? "#000",
     vertices: computeVertices(data, key, numAxes, radialScale),
   }));
-  // The hovered axis gets an active dot where each series crosses it (the
-  // Recharts radar's activeDot). Vertex dots, when on, show the hover themselves.
-  const activeAxis = showDots ? null : hoveredIndex;
 
   return (
     <g className={`${CHART_CLASS_PREFIX}-radar-chart-series`}>
@@ -102,20 +100,23 @@ export function RadarSeries<T extends ChartData>({
           </g>
         );
       })}
-      {activeAxis !== null && (
+      {/* The hovered axis gets an active dot where each series crosses it (the
+          Recharts radar's activeDot). Like the line/area crosshair dots they stay
+          mounted, glide from axis to axis and fade in and out. Vertex dots, when
+          on, show the hover themselves. */}
+      {!showDots && (
         <g className={`${CHART_CLASS_PREFIX}-radar-chart-active-dots`}>
           {series.map(({ key, color, vertices }) => {
-            const v = vertices[activeAxis];
-            if (!v) return null;
+            const v = hoveredIndex !== null ? vertices[hoveredIndex] : undefined;
             return (
-              <g key={key} transform={`translate(${v.x}, ${v.y})`}>
+              <FadeFollower key={key} x={v?.x ?? 0} y={v?.y ?? 0} visible={v !== undefined}>
                 <circle r={4} className={`${CHART_CLASS_PREFIX}-radar-chart-active-dot-outer`} />
                 <circle
                   r={2}
                   fill={color}
                   className={`${CHART_CLASS_PREFIX}-radar-chart-active-dot-inner`}
                 />
-              </g>
+              </FadeFollower>
             );
           })}
         </g>
