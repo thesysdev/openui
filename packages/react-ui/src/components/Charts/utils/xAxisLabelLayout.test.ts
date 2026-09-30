@@ -141,24 +141,40 @@ describe("layoutXAxisLabels — scrolling, full labels", () => {
     expect(drawn(LONG, out)).toEqual(["Extremely Long", "Category Name That", "Needs Truncation"]);
   });
 
+  // Wraps into 3 lines from 130px ("Response Time"), 2 lines from 160px.
+  const CSRT = "Customer Support Response Time";
+
   it("sizes a bar chart's category so the label fits under the band", () => {
-    const out = scroll([LONG], { labelShare: 0.8 });
+    const out = scroll([CSRT], { labelShare: 0.8 });
     expect(out.labelWidth).toBeCloseTo(out.slotWidth * 0.8);
-    expect(out.labelWidth).toBeGreaterThanOrEqual(180);
-    expect(drawn(LONG, out).join(" ")).toBe(LONG);
+    expect(out.labelWidth).toBeGreaterThanOrEqual(130);
+    expect(drawn(CSRT, out).join(" ")).toBe(CSRT);
   });
 
   it("fits the lines a short band holds", () => {
     // (45 − 13 padding) / 15 → 2 lines, so the label needs a wider category.
-    const out = scroll([LONG], { maxHeight: 45 });
+    const out = scroll([CSRT], { maxHeight: 45 });
     expect(out.maxLines).toBe(2);
-    expect(drawn(LONG, out).join(" ")).toBe(LONG);
+    expect(drawn(CSRT, out)).toEqual(["Customer Support", "Response Time"]);
   });
 
   it("fits single-line labels on one line", () => {
-    const out = scroll([LONG], { variant: "singleLine" });
-    expect(out.slotWidth).toBe(508);
+    const out = scroll(["Customer Support"], { variant: "singleLine" });
+    expect(out.slotWidth).toBe(168);
     expect(out.maxLines).toBe(1);
+  });
+
+  it("grows a category to at most three times its usual width", () => {
+    // 200px + the 8px gap fits under 3 × 72 = 216px; 220px doesn't, so it truncates.
+    expect(scroll(["Twenty characters ok"], { variant: "singleLine" }).slotWidth).toBe(208);
+    expect(scroll(["Twenty-two characters!"], { variant: "singleLine" }).slotWidth).toBe(72);
+  });
+
+  it("never grows a category past half the visible width", () => {
+    // A 300px plot keeps at least two 150px categories in view.
+    const narrow = { variant: "singleLine" as const, visibleWidth: 300 };
+    expect(scroll(["Fourteen chars"], narrow).slotWidth).toBe(148);
+    expect(scroll(["Sixteen chars ok"], narrow).slotWidth).toBe(72);
   });
 
   it("never lets the gap between labels make a chart that fits scroll", () => {
@@ -170,18 +186,11 @@ describe("layoutXAxisLabels — scrolling, full labels", () => {
     expect(out.slotWidth).toBe(165);
   });
 
-  it("never grows past the visible width", () => {
-    const out = scroll(["Twenty-nine characters long.."], {
-      variant: "singleLine",
-      visibleWidth: 295,
-    });
-    expect(out.slotWidth).toBe(295);
-  });
-
   it("truncates, without widening for, a label that can't show in full", () => {
-    // One 370px word can't wrap between words inside a 300px category.
+    // One 370px word would fit this 1000px plot on one line, but not a
+    // category three times the usual width: it breaks mid-word and truncates.
     const WORD = "SinglePointDataSetForTestingEdgeCases";
-    const out = scroll([WORD, "Jan"], { visibleWidth: 300 });
+    const out = scroll([WORD, "Jan"]);
     expect(out.slotWidth).toBe(72);
     expect(drawn(WORD, out).at(-1)).toMatch(/…$/);
   });

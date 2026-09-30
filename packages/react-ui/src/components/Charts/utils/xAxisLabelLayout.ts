@@ -24,6 +24,8 @@ const LABEL_GAP = 8;
  * still has room for a few characters.
  */
 const MIN_LABEL_WIDTH = 40;
+/** The scrolling layout grows a category to at most this many times `slotWidth`. */
+const MAX_SLOT_GROWTH = 3;
 
 export interface XAxisLabelLayout {
   /** 0 for horizontal labels, `ANGLED_LABEL_ROTATION` for rotated ones. */
@@ -60,13 +62,15 @@ export interface XAxisLabelLayoutOptions {
    */
   condensed: boolean;
   /**
-   * Scrolling layout only: the width of the visible plot. Categories widen,
-   * never past it, so that their labels show in full — wrapped between words
-   * into the lines the band holds, or on one line for "singleLine" — instead
-   * of being truncated: the chart scrolls further rather than cutting labels
-   * short. A label that can't show in full even that wide is truncated as
-   * before and doesn't widen the categories. Omitted: categories keep
-   * `slotWidth`.
+   * Scrolling layout only: the width of the visible plot. Categories widen so
+   * that their labels show in full — wrapped between words into the lines the
+   * band holds, or on one line for "singleLine" — instead of being truncated:
+   * the chart scrolls further rather than cutting labels short. A category
+   * grows to at most three times `slotWidth` and never past half the visible
+   * plot, so at least two always show at once. A label that can't show in
+   * full within that (a 60-character identifier, a paragraph) doesn't widen
+   * the categories: it wraps mid-word and truncates as before. Omitted:
+   * categories keep `slotWidth`.
    */
   visibleWidth?: number;
   /**
@@ -120,8 +124,8 @@ export function fullLabelWidth(
  * Lays out the x-axis category labels inside a band capped at `maxHeight`.
  * The band never grows past the cap. The condensed layout truncates labels
  * that don't fit it with an ellipsis (the renderer shows the full text on
- * hover); the scrolling layout first widens its categories, up to
- * `visibleWidth`, so the labels show in full.
+ * hover); the scrolling layout first widens its categories (see
+ * `visibleWidth`) so the labels show in full.
  */
 export function layoutXAxisLabels(
   ctx: CanvasRenderingContext2D,
@@ -147,12 +151,16 @@ export function layoutXAxisLabels(
   // Scrolling: widen the categories until every label shows in full.
   let slotWidth = minSlotWidth;
   if (!condensed && labels.length > 0 && visibleWidth > minSlotWidth) {
+    const maxSlotWidth = Math.max(
+      minSlotWidth,
+      Math.min(MAX_SLOT_GROWTH * minSlotWidth, visibleWidth / 2),
+    );
     const lines = variant === "multiLine" ? lineCap : 1;
     let needed = 0;
     for (const label of labels) {
       if (fitsInFull(ctx, label, minSlotWidth * labelShare, lines)) continue;
       const width = fullLabelWidth(ctx, label, lines);
-      if (width <= visibleWidth * labelShare) needed = Math.max(needed, width);
+      if (width <= maxSlotWidth * labelShare) needed = Math.max(needed, width);
     }
     if (needed > 0) {
       const tight = Math.ceil(needed / labelShare);
@@ -161,7 +169,7 @@ export function layoutXAxisLabels(
       const unscrolled = visibleWidth / labels.length;
       const roomy =
         tight <= unscrolled ? Math.min(tight + LABEL_GAP, unscrolled) : tight + LABEL_GAP;
-      slotWidth = Math.min(visibleWidth, Math.max(minSlotWidth, roomy));
+      slotWidth = Math.min(maxSlotWidth, Math.max(minSlotWidth, roomy));
     }
   }
 

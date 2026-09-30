@@ -16,8 +16,10 @@ export interface BaseChartProps<T extends ChartData> {
   customPalette?: string[];
   /**
    * How the x-axis category labels are drawn. The label band never takes more
-   * than half the chart's height; labels that don't fit are truncated with an
-   * ellipsis and show their full text on hover.
+   * than half the chart's height. Scrolling charts widen their categories (to
+   * at most three times the usual width, and at most half the chart) so the
+   * labels show in full; labels that still don't fit, and labels in condensed
+   * charts, are truncated with an ellipsis and show their full text on hover.
    * - `"singleLine"`: one horizontal line. Default when `condensed`.
    * - `"multiLine"`: wraps onto up to three lines. Default otherwise.
    * - `"angled"`: rotates labels 45° when they don't fit horizontally.
