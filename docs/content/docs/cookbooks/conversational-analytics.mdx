@@ -204,11 +204,11 @@ const storage = useOpenuiCloudStorage({
 </AgentInterface>;
 ```
 
-Chat Completions does not store conversations, so Agent Interface keeps each thread's messages in the browser and sends them with every question. That is what lets a follow-up build on the previous answer.
+Chat Completions does not store conversations, so the chat route loads each thread's earlier turns from Gateway, with their tool calls and results, and sends them with every question. That is what lets a follow-up build on the previous answer.
 
 <Callout type="info" title="Thread storage">
 
-`useOpenuiCloudStorage()` keeps the thread list in Gateway, and the chat route saves each question and answer with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so threads and their messages stay after a reload.
+`useOpenuiCloudStorage()` keeps the thread list in Gateway, and the chat route saves each turn, tool calls included, with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so threads and their messages stay after a reload.
 
 </Callout>
 
@@ -226,7 +226,7 @@ const runner = gateway.chat.completions.runTools(
     model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
     messages: [
       { role: "system", content: analyticsPrompt(drivers) },
-      ...conversation(body.messages),
+      ...thread,
     ],
     tools: [
       {
@@ -249,7 +249,7 @@ const runner = gateway.chat.completions.runTools(
 );
 ```
 
-The route runs `query_lap_times` whenever the model calls it and sends the result back, until the model answers. It streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each tool call. It forwards only questions and answers from the thread, so every value the model uses comes from a query your server ran. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) has the details, including error handling.
+The route runs `query_lap_times` whenever the model calls it and sends the result back, until the model answers. It streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each tool call. Earlier turns come from the Gateway conversation rather than the browser, so every earlier result the model sees is one your server produced. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) has the details, including error handling.
 
 ## Verify it works
 

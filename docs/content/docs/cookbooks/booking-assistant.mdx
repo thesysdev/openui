@@ -271,15 +271,15 @@ const storage = useOpenuiCloudStorage({
 />;
 ```
 
-Chat Completions does not store conversations, so Agent Interface keeps each thread's messages in the browser and sends them with every turn.
+Chat Completions does not store conversations, so the chat route loads each thread's earlier turns from Gateway, with their searches and results, and sends them with every turn.
 
 <Callout type="info" title="Thread storage">
 
-`useOpenuiCloudStorage()` keeps the thread list in Gateway, and the chat route saves each message and answer with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so threads and their messages stay after a reload.
+`useOpenuiCloudStorage()` keeps the thread list in Gateway, and the chat route saves each turn, tool calls included, with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so threads and their messages stay after a reload.
 
 </Callout>
 
-The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/api/chat/route.ts) runs `search_stays` whenever the model asks for a search and streams the answer to Agent Interface as the model writes it, so **Behind the scenes** shows each search. It forwards only messages and answers from the thread, so later steps rely on what the stay cards show.
+The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/api/chat/route.ts) runs `search_stays` whenever the model asks for a search and streams the answer to Agent Interface as the model writes it, so **Behind the scenes** shows each search. Earlier turns come from the Gateway conversation, with their searches and results, so later steps can use the stays a search returned.
 
 The example also customizes Agent Interface with a theme from `createTheme`, a logo, starters for four different trips, and a thread header that credits trivago. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
 

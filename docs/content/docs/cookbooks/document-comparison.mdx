@@ -242,11 +242,11 @@ const storage = useOpenuiCloudStorage({
 });
 ```
 
-Chat Completions does not store conversations, so Agent Interface keeps each thread's messages in the browser and sends them with every question. That is what lets a follow-up add a criterion to the comparison.
+Chat Completions does not store conversations, so the chat route loads each thread's earlier turns from Gateway, with their searches and passages, and sends them with every question. That is what lets a follow-up add a criterion to the comparison.
 
 <Callout type="info" title="Thread storage">
 
-`useOpenuiCloudStorage()` keeps the thread list in Gateway, and the chat route saves each question and answer with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so threads and their messages stay after a reload.
+`useOpenuiCloudStorage()` keeps the thread list in Gateway, and the chat route saves each turn, tool calls included, with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so threads and their messages stay after a reload.
 
 </Callout>
 
@@ -314,7 +314,7 @@ const runner = gateway.chat.completions.runTools(
     model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
     messages: [
       { role: "system", content: comparisonPrompt(documents) },
-      ...conversation(body.messages),
+      ...thread,
     ],
     tools: [
       {
@@ -338,7 +338,7 @@ const runner = gateway.chat.completions.runTools(
 );
 ```
 
-The route runs each search the model asks for and sends the passages back, until the model answers. When a document returns `found: false`, the model can search it again with different wording. The route streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each search. It forwards only questions and answers from the thread, so every quote comes from a search your server ran. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/app/api/chat/route.ts) has the details, including error handling.
+The route runs each search the model asks for and sends the passages back, until the model answers. When a document returns `found: false`, the model can search it again with different wording. The route streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each search. Earlier turns come from the Gateway conversation rather than the browser, so every earlier passage the model sees is one your server found. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/app/api/chat/route.ts) has the details, including error handling.
 
 The prompt turns the evidence into a consistent answer:
 

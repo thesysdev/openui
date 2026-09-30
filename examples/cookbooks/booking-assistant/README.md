@@ -43,6 +43,7 @@ Try:
 | `src/library.ts`                      | Shared components for the prompt and renderer                         |
 | `src/components/date-picker.tsx`      | A DatePicker that the model can prefill with YYYY-MM-DD dates         |
 | `src/lib/prompt.ts`                   | Booking rules and one example for each step of the flow               |
+| `src/lib/gateway-history.ts`          | Loads a thread's stored turns from Gateway as chat messages           |
 | `src/app/api/chat/route.ts`           | `runTools()` generation, streaming, and turn storage                  |
 | `src/app/api/frontend-token/route.ts` | Frontend token for Gateway thread storage                             |
 | `src/lib/theme.ts`                    | Light and dark theme overrides                                        |
@@ -65,11 +66,11 @@ React UI's `DatePicker` stores `Date` objects, which a model cannot write and wh
 
 ## Conversations
 
-The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completions` using `THESYS_API_KEY`. Chat Completions does not store conversations, so Agent Interface keeps each thread's messages in memory and `fetchLLM` sends them with every turn.
+The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completions` using `THESYS_API_KEY`. Chat Completions does not store conversations, so the chat route stores each turn in the thread's Gateway conversation and loads the earlier turns from there for every turn.
 
 Agent Interface stores the thread list with Gateway's [Conversations API](https://www.openui.com/docs/gateway/api/conversations) through `useOpenuiCloudStorage()`. The browser calls Gateway directly with a short-lived [frontend token](https://www.openui.com/docs/gateway/authentication#frontend-tokens) from `/api/frontend-token`, which mints it with `THESYS_API_KEY` for one local user (`DEMO_USER_ID`, default `demo-user`) and app (`APP_ID`, default `booking-assistant-cookbook`), so the key stays on the server and the browser reaches only those threads. Chat Completions doesn't write turns to a conversation, so the chat route appends each turn, including the tool calls and their results, with `storeChatCompletionHistory()` from [`@openuidev/server`](https://www.openui.com/docs/api-reference/server#conversation-history). A stopped or failed answer still keeps the user's message. Threads stay listed after a reload, and a thread you open again loads its messages. To keep threads in your own database instead, use `restStorage`.
 
-The chat route forwards only user messages and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only search results the server produced for the current turn. Later steps therefore use what the stay cards show: each card's value is the stay's booking link, so choosing a card sends the link back with the form, and the summary's **Continue to booking** button opens it. A submitted form arrives as one message with the form's values, so the route accepts user messages of up to 4,000 characters.
+The chat route uses only the new message from the browser. `loadChatCompletionHistory()` in `src/lib/gateway-history.ts` loads the earlier turns from the thread's Gateway conversation, including their searches and results, and the response ends once the turn is stored, so the next step finds it. Each stay card's value is the stay's booking link, so choosing a card sends the link back with the form, and the summary's **Continue to booking** button opens it. A submitted form arrives as one message with the form's values.
 
 The route runs the tool with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and returns the runner's `toReadableStream()`, one JSON chunk per line, which `openAIReadableStreamAdapter()` reads. Chat Completions has no chunk for a tool result, so in a live answer **Behind the scenes** shows each call's arguments but not its result. The tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK; see the [agent runtime integrations](https://www.openui.com/docs/agent/agent-runtimes/langgraph-platform) and the [agent framework examples](../../agent-frameworks).
 
