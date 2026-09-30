@@ -100,7 +100,8 @@ function AssistantMessage({ response, isStreaming }) {
 
 | Export | Description |
 | :--- | :--- |
-| `Renderer` | React component that parses and renders OpenUI Lang output |
+| `Renderer` | Render OpenUI Lang directly, without a preview |
+| `WithPreviewRenderer` | Add an inline preview that opens the rendered UI |
 
 **`RendererProps`:**
 
@@ -226,7 +227,7 @@ const schema = library.toJSONSchema();
 
 Pass the complete response to `Renderer`, including content, scripts, and end
 sentinels. It renders the program while streaming. Bare OpenUI Lang remains
-supported. Use `ArtifactRenderer` for metadata and preview presentation.
+supported. Use `WithPreviewRenderer` for metadata and preview presentation.
 
 ```tsx
 <Renderer
@@ -277,17 +278,20 @@ For edits, replace `response` with the complete updated bundle returned by Cloud
 Changed script bundles invalidate cached query results, including when the
 program keeps the same query names and arguments.
 
-### Artifact previews and host-owned portals
+### Choosing a renderer and adding previews
 
-`ArtifactRenderer` wraps `Renderer` with metadata and presentation. It defaults to
+Use `Renderer` when you want to display the UI directly without a preview.
+Use `WithPreviewRenderer` when you want an inline preview that opens the rendered UI.
+
+`WithPreviewRenderer` wraps `Renderer` with metadata and presentation. It defaults to
 an inline name button that opens an inline content region. Metadata is optional;
 missing names display as “Untitled artifact”. All Renderer props pass through.
 
 ```tsx
 import { createPortal } from "react-dom";
-import { ArtifactRenderer } from "@openuidev/react-lang";
+import { WithPreviewRenderer } from "@openuidev/react-lang";
 
-<ArtifactRenderer
+<WithPreviewRenderer
   response={message.content}
   library={library}
   toolProvider={tools}
@@ -297,7 +301,7 @@ import { ArtifactRenderer } from "@openuidev/react-lang";
       {metadata.name || "View artifact"}
     </button>
   )}
-  renderArtifact={({ children, metadata, close, contentId }) =>
+  renderContent={({ children, metadata, close, contentId }) =>
     panelElement && createPortal(
       <section id={contentId} aria-label={metadata.name || "Artifact"}>
         <button onClick={close}>Close</button>
@@ -310,12 +314,12 @@ import { ArtifactRenderer } from "@openuidev/react-lang";
 ```
 
 This is a composition pattern: `renderPreview` controls the inline preview and
-`renderArtifact` places the expanded Renderer in your panel, modal, or portal.
+`renderContent` places the expanded Renderer in your panel, modal, or portal.
 The host owns the target element and any dialog focus/keyboard behavior. No
 portal library or `react-dom` import is imposed by the wrapper.
 
 Use `open` and `onOpenChange` for controlled visibility, or `defaultOpen` for
-initially expanded content. `onMetadata` is available on `ArtifactRenderer` only.
+initially expanded content. `onMetadata` is available on `WithPreviewRenderer` only.
 The expanded Renderer mounts only while open; closing disposes its query manager
 and resets its local state. Persist form state with `onStateUpdate` and restore
 it with `initialState` when needed. Reopening refetches queries. Use a stable key
