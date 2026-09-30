@@ -35,7 +35,7 @@ Use `@openuidev/react-headless` when you want OpenUI's chat behavior without Ope
 
 - **`ChatProvider`** manages threads, messages, and streaming state through a Zustand store.
 - **Selector hooks** expose thread and thread-list state without coupling you to a layout.
-- **Streaming adapters** parse SSE or SDK responses from OpenAI, Vercel AI SDK, AG-UI, or custom backends.
+- **Streaming adapters** parse SSE or SDK responses from OpenAI, Vercel AI SDK, AG-UI, LangGraph, Vercel Eve, or custom backends.
 - **Message formats** convert between your API shape and OpenUI's internal AG-UI shape.
 
 ## Quick Start
@@ -191,6 +191,8 @@ const llm = fetchLLM({ url: "/api/chat", streamAdapter: openAIAdapter() });
 | `openAIResponsesAdapter()` | Parses OpenAI Responses API streaming (`ResponseStreamEvent`) |
 | `openAIReadableStreamAdapter()` | Parses OpenAI SDK's `Stream.toReadableStream()` NDJSON output |
 | `vercelAIAdapter()` | Parses Vercel AI SDK v6 and v7 UIMessage streams |
+| `langGraphAdapter()` | Parses LangGraph named-event SSE (`event: messages` + `data: {json}`); takes `{ onInterrupt }` |
+| `eveAdapter()` | Parses Vercel Eve NDJSON session streams; takes `{ onEvent }` |
 
 For a Vercel AI SDK route, use its stream adapter and message format together:
 
@@ -242,6 +244,7 @@ const llm = fetchLLM({
 | `openAIMessageFormat` | Converts to/from OpenAI `ChatCompletionMessageParam[]` |
 | `openAIConversationMessageFormat` | Converts to/from OpenAI Responses API `ResponseInputItem[]` |
 | `vercelAIMessageFormat` | Converts to/from Vercel AI SDK v6 and v7 `UIMessage[]` |
+| `langGraphMessageFormat` | Converts to/from LangGraph's LangChain-style messages (`human` / `ai` / `tool` / `system`) |
 
 ### Custom format
 

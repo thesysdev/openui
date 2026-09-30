@@ -19,9 +19,12 @@ import {
   openAIReadableStreamAdapter,
   vercelAIAdapter,
   agUIAdapter,
+  langGraphAdapter,
+  eveAdapter,
   openAIMessageFormat,
   openAIConversationMessageFormat,
   vercelAIMessageFormat,
+  langGraphMessageFormat,
   identityMessageFormat,
   processStreamedMessage,
   MessageProvider,
@@ -137,6 +140,8 @@ function openAIResponsesAdapter(): StreamProtocolAdapter; // OpenAI Responses st
 function openAIReadableStreamAdapter(): StreamProtocolAdapter; // OpenAI ReadableStream
 function vercelAIAdapter(): StreamProtocolAdapter; // Vercel AI SDK v6 UIMessage stream
 function agUIAdapter(): StreamProtocolAdapter; // AG-UI protocol stream
+function langGraphAdapter(options?: LangGraphAdapterOptions): StreamProtocolAdapter; // LangGraph named-event SSE
+function eveAdapter(options?: EveAdapterOptions): StreamProtocolAdapter; // Vercel Eve NDJSON session stream
 ```
 
 Related type:
@@ -155,6 +160,7 @@ Converters referenced in integration guides:
 const openAIMessageFormat: MessageFormat; // Chat Completions format
 const openAIConversationMessageFormat: MessageFormat; // Responses/Conversations item format
 const vercelAIMessageFormat: MessageFormat; // Vercel AI SDK v6 UIMessage format
+const langGraphMessageFormat: MessageFormat; // LangGraph / LangChain message format
 const identityMessageFormat: MessageFormat; // Pass-through (no conversion)
 ```
 

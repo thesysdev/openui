@@ -36,6 +36,7 @@ import {
   openAIResponsesAdapter,
   vercelAIAdapter,
   langGraphAdapter,
+  eveAdapter,
   openAIMessageFormat,
   openAIConversationMessageFormat,
   vercelAIMessageFormat,
@@ -45,7 +46,7 @@ import {
 ```
 
 <Callout type="warn">
-  All six stream adapters are **factory functions** — always call them with `()`. `streamAdapter:
+  All seven stream adapters are **factory functions** — always call them with `()`. `streamAdapter:
   openAIAdapter()` is correct; a bare `streamAdapter: openAIAdapter` is wrong.
 </Callout>
 
@@ -354,13 +355,13 @@ interface StreamProtocolAdapter {
 }
 ```
 
-`fetchLLM` calls `parse` on the `Response` your route returns and consumes the yielded AG-UI events. All six bundled adapters are factories you call to get an instance — `agUIAdapter()`, `openAIAdapter()`, `openAIReadableStreamAdapter()`, `openAIResponsesAdapter()`, `vercelAIAdapter()`, `langGraphAdapter()`; only `langGraphAdapter()` accepts options.
+`fetchLLM` calls `parse` on the `Response` your route returns and consumes the yielded AG-UI events. All seven bundled adapters are factories you call to get an instance — `agUIAdapter()`, `openAIAdapter()`, `openAIReadableStreamAdapter()`, `openAIResponsesAdapter()`, `vercelAIAdapter()`, `langGraphAdapter()`, `eveAdapter()`; only `langGraphAdapter()` and `eveAdapter()` accept options.
 
 <Callout type="info">
   The line-oriented adapters log and skip malformed lines. `vercelAIAdapter()` delegates validation
   to the Vercel AI SDK and rejects invalid UIMessage chunks. Provider-level failures should be
-  surfaced as a `RUN_ERROR` event (the OpenAI Responses, Vercel AI SDK, and LangGraph adapters do
-  this for their error events).
+  surfaced as a `RUN_ERROR` event (the OpenAI Responses, Vercel AI SDK, LangGraph, and Eve adapters
+  do this for their error events).
 </Callout>
 
 ### Selection guide
@@ -374,6 +375,7 @@ Start from your provider and how the route streams its reply. The stream adapter
 | OpenAI **Responses / Conversations** API SSE                       | `openAIResponsesAdapter()`      | `openAIConversationMessageFormat` |
 | **Vercel AI SDK v6** UIMessage SSE (`toUIMessageStreamResponse()`) | `vercelAIAdapter()`             | `vercelAIMessageFormat`           |
 | **LangGraph** named-event SSE (`event: messages\ndata: …`)         | `langGraphAdapter()`            | `langGraphMessageFormat`          |
+| **Vercel Eve** session stream (NDJSON harness events)              | `eveAdapter()`                  | — (Eve keeps the transcript)      |
 | Already AG-UI events (your route emits AG-UI SSE directly)         | `agUIAdapter()`                 | `identityMessageFormat` (default) |
 
 Wrapping Anthropic, or any provider with no bundled adapter? You have two paths: translate to AG-UI events server-side and use `agUIAdapter()`, or re-emit your provider's stream as OpenAI Completions SSE and use `openAIAdapter()`.
@@ -485,8 +487,27 @@ const llm = fetchLLM({
 - **Wire shape:** LangGraph **named-event** SSE — `event: <type>\ndata: <json>\n\n` blocks, in the `messages` stream mode. Handles the `messages`, `metadata`, `updates`, `error`, and `end` event types; other event types (`values`, `debug`, `tasks`, `checkpoints`, `custom`) are ignored.
 - **What it handles:** AI message chunks → `TEXT_MESSAGE_*`; both streamed (`tool_call_chunks`) and complete (`tool_calls`) tool calls → `TOOL_CALL_*`; `error` events → `RUN_ERROR`. It closes out any open message/tool calls on the `end` event (or at stream end if no `end` arrives).
 - **Options** (`LangGraphAdapterOptions`):
-  - `onInterrupt?: (interrupt: unknown) => void` — invoked with the `__interrupt__` payload when a LangGraph interrupt surfaces in an `updates` event. This is the only adapter that takes options.
+  - `onInterrupt?: (interrupt: unknown) => void` — invoked with the `__interrupt__` payload when a LangGraph interrupt surfaces in an `updates` event. `eveAdapter()` is the other adapter that takes options.
 - **When to use:** Your backend streams from a LangGraph deployment. Pair with `langGraphMessageFormat`.
+
+### `eveAdapter`
+
+```ts
+import { eveAdapter, type ChatLLM } from "@openuidev/react-ui";
+
+const llm: ChatLLM = {
+  // Deliver the latest user turn to the Eve session and return its NDJSON
+  // stream — see the Vercel Eve runtime page for the full session bridge.
+  send: ({ messages, signal }) => deliverTurnAndOpenStream(messages, signal),
+  streamProtocol: eveAdapter(),
+};
+```
+
+- **Wire shape:** Vercel Eve's newline-delimited JSON session stream (`GET /eve/v1/session/:id/stream`) — one harness event per line, no `data:` prefix.
+- **What it handles:** `actions.requested` → `TOOL_CALL_START` / `TOOL_CALL_ARGS` / `TOOL_CALL_END`; `action.result` → `TOOL_CALL_RESULT`; `message.appended` → `TEXT_MESSAGE_CONTENT` (with `message.completed` as the fallback for steps that streamed no deltas); `input.requested` → a `CUSTOM` event named `eve.input.requested` (exported as `EVE_INPUT_REQUESTED_EVENT`); `turn.failed` / `session.failed` → `RUN_ERROR`. Tool calls and text share one assistant message id. Parsing stops at the turn boundary (`session.completed`, `session.waiting`, `session.failed`).
+- **Options** (`EveAdapterOptions`):
+  - `onEvent?: (event: EveStreamEvent) => void` — receives every raw Eve event before translation, including types the adapter does not map (`session.started`, `reasoning.appended`, …).
+- **When to use:** Your browser talks to an Eve session directly (or through a same-origin proxy such as `withEve()`) and you want Eve's turns rendered by `AgentInterface`. Eve keeps the conversation server-side, so there is no paired message format: `send` delivers only the latest user turn and returns the session stream. See [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) for the complete bridge.
 
 ### AG-UI event vocabulary
 
