@@ -3,6 +3,7 @@ import type {
   ResponseStreamEvent,
 } from "openai/resources/responses/responses";
 import { AGUIEvent, EventType, StreamProtocolAdapter } from "../../types";
+import { errorFrameToRunError } from "./_shared/errorFrame";
 
 /** A tool result's `output` as a string (JSON-encoded if structured, "" if absent). */
 const stringifyOutput = (output: unknown): string =>
@@ -38,6 +39,15 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
 
         try {
           const event = JSON.parse(data) as ResponseStreamEvent;
+
+          if (!event.type) {
+            // An untyped `{"error":{…}}` record (the OpenAI error object as
+            // gateways emit it in-stream) is not a ResponseStreamEvent —
+            // surface it like the typed `error` event handled below.
+            const runError = errorFrameToRunError(event);
+            if (runError) yield runError;
+            continue;
+          }
 
           switch (event.type) {
             case "response.output_item.added": {
