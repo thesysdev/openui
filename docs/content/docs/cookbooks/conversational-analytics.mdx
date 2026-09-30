@@ -256,7 +256,7 @@ const runner = gateway.chat.completions.runTools(
 );
 ```
 
-The OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) runs `query_lap_times` whenever the model calls it and sends the result back, until the model answers. The route streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each tool call. It forwards only questions and answers from the thread, so every value the model uses comes from a query your server ran. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) has the details, including request validation and error handling.
+The route runs `query_lap_times` whenever the model calls it and sends the result back, until the model answers. It streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each tool call. It forwards only questions and answers from the thread, so every value the model uses comes from a query your server ran. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) has the details, including request validation and error handling.
 
 Because `componentLibrary` is set, Agent Interface renders the streamed OpenUI Lang with the same library. The prompt emits `root` first, followed by its components in reading order, so resolved components appear while the rest of the response is still arriving.
 

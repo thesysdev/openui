@@ -270,7 +270,7 @@ The chat route saves each message and answer to the thread with [`storeChatCompl
 
 </Callout>
 
-The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/api/chat/route.ts) runs `search_stays` with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and streams the answer to Agent Interface as the model writes it, so **Behind the scenes** shows each search. It forwards only messages and answers from the thread, so later steps rely on what the stay cards show, including the booking link in each card's value. A submitted form arrives as one message with the button label and the form's values.
+The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/api/chat/route.ts) runs `search_stays` whenever the model asks for a search and streams the answer to Agent Interface as the model writes it, so **Behind the scenes** shows each search. It forwards only messages and answers from the thread, so later steps rely on what the stay cards show, including the booking link in each card's value. A submitted form arrives as one message with the button label and the form's values.
 
 The example also customizes Agent Interface with a theme from `createTheme`, a logo, starters for four different trips, and a thread header that credits trivago. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
 
