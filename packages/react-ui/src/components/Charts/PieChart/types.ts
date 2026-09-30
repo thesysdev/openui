@@ -31,6 +31,10 @@ export interface PieChartProps<T extends PieChartData> {
    */
   isAnimationActive?: boolean;
   cornerRadius?: number;
+  /**
+   * Degrees between the pie's slices. Default 0. The donut always keeps a
+   * 0.5° gap, as the Recharts donut did.
+   */
   paddingAngle?: number;
   maxChartSize?: number;
   minChartSize?: number;

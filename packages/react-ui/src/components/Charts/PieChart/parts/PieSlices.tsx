@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { Arc, PieArcDatum } from "d3-shape";
 import React from "react";
 import type { CategoricalSlice } from "../../hooks";
@@ -9,6 +10,9 @@ import { getSliceStyle, POLAR_HOVER_TRANSITION } from "../../utils/polarUtils";
 
 // How far the hovered wedge pops out along its radial bisector (px).
 const PIE_HOVER_OFFSET = 8;
+
+// The donut's track wedges take their sunk fill from the stylesheet.
+const TRACK_CLASS = `${CHART_CLASS_PREFIX}-pie-chart-track`;
 
 // Outward direction of a slice. d3 angles start at 12 o'clock and increase clockwise,
 // so the radial bisector points to (sin(mid), -cos(mid)).
@@ -23,6 +27,10 @@ function sliceOffset(startAngle: number, endAngle: number, distance: number) {
 interface PieSlicesProps<T> {
   arcs: PieArcDatum<CategoricalSlice>[];
   arcGenerator: Arc<unknown, PieArcDatum<CategoricalSlice>>;
+  /** Donut: the sunk-colored track wedge drawn under each band segment. */
+  trackArcGenerator?: Arc<unknown, PieArcDatum<CategoricalSlice>>;
+  /** Donut: the hover area of a slice, band and track together. Default: the slice itself. */
+  hitArcGenerator?: Arc<unknown, PieArcDatum<CategoricalSlice>>;
   slices: CategoricalSlice[];
   hoveredIndex: number | null;
   /** Play the entrance animation (pre-folded with ¬printing at the entry). */
@@ -38,6 +46,8 @@ interface PieSlicesProps<T> {
 export function PieSlices<T>({
   arcs,
   arcGenerator,
+  trackArcGenerator,
+  hitArcGenerator,
   slices,
   hoveredIndex,
   entrance,
@@ -56,27 +66,30 @@ export function PieSlices<T>({
         if (!slice) return null;
         const pathD = arcGenerator(arc);
         if (!pathD) return null;
+        const trackD = trackArcGenerator?.(arc) ?? undefined;
 
-        // Print: one inert path, handlers on it, no hitbox, no spring.
+        // Print: inert paths (the donut adds its track), handlers on them, no
+        // hitbox, no spring.
         // Branching here (rather than inside <Slice>) keeps the spring
         // machinery off the print path entirely. The hover pop-out spring is
         // NOT gated by isAnimationActive — hover glide is interaction
         // feedback, not decoration (decision D-1); only the entrance is.
         if (staticRender) {
+          const staticProps = {
+            style: {
+              ...getSliceStyle(i, hoveredIndex),
+              cursor: onClick ? "pointer" : undefined,
+              transition: POLAR_HOVER_TRANSITION,
+            },
+            onMouseMove: (e: React.MouseEvent) => onMouseMove(e, i),
+            onMouseLeave,
+            onClick: () => handleClick(i),
+          };
           return (
-            <path
-              key={slice.label}
-              d={pathD}
-              fill={slice.color}
-              style={{
-                ...getSliceStyle(i, hoveredIndex),
-                cursor: onClick ? "pointer" : undefined,
-                transition: POLAR_HOVER_TRANSITION,
-              }}
-              onMouseMove={(e) => onMouseMove(e, i)}
-              onMouseLeave={onMouseLeave}
-              onClick={() => handleClick(i)}
-            />
+            <React.Fragment key={slice.label}>
+              {trackD && <path d={trackD} className={TRACK_CLASS} {...staticProps} />}
+              <path d={pathD} fill={slice.color} {...staticProps} />
+            </React.Fragment>
           );
         }
 
@@ -84,6 +97,8 @@ export function PieSlices<T>({
           <Slice
             key={slice.label}
             pathD={pathD}
+            trackD={trackD}
+            hitD={hitArcGenerator?.(arc) ?? pathD}
             color={slice.color}
             sliceStyle={getSliceStyle(i, hoveredIndex)}
             hovered={hoveredIndex === i}
@@ -103,6 +118,8 @@ export function PieSlices<T>({
 
 interface SliceProps {
   pathD: string;
+  trackD?: string;
+  hitD: string;
   color: string;
   sliceStyle: React.CSSProperties;
   hovered: boolean;
@@ -128,6 +145,8 @@ interface SliceProps {
  */
 function Slice({
   pathD,
+  trackD,
+  hitD,
   color,
   sliceStyle,
   hovered,
@@ -164,7 +183,7 @@ function Slice({
           `transparent` (a painted region) — `none` would make the interior non-painted
           and silently kill hover under the default `visiblePainted`. */}
       <path
-        d={pathD}
+        d={hitD}
         fill="transparent"
         style={{
           pointerEvents: "all",
@@ -177,6 +196,13 @@ function Slice({
       {/* Visible wedge: spring-translated; pointer-events:none on the wrapper falls
           through to the hitbox so hover stays anchored to the un-popped footprint. */}
       <g ref={follow.bind} style={{ pointerEvents: "none" }}>
+        {trackD && (
+          <path
+            d={trackD}
+            className={clsx(TRACK_CLASS, entranceClass)}
+            style={{ ...baseStyle, animationDelay: entranceDelay }}
+          />
+        )}
         <path
           d={pathD}
           fill={color}

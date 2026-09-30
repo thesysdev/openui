@@ -16,6 +16,15 @@ import { CHART_CLASS_PREFIX } from "../utils/constants";
 import { PieSlices } from "./parts/PieSlices";
 import type { PieChartData, PieChartProps } from "./types";
 
+// The donut is the Recharts two-ring design: a thin band in the slice colors
+// over sunk-colored "track" wedges, with a small hole at the center.
+/** Where the colored band starts, as a share of the radius (the outer tenth). */
+const DONUT_BAND_INNER = 0.9;
+/** The center hole's radius, as a share of the band's inner radius. */
+const DONUT_HOLE = 0.28;
+/** Degrees between donut slices; `paddingAngle` sets the pie's only. */
+const DONUT_PADDING_ANGLE = 0.5;
+
 /**
  * `legendVariant="stacked"` (the default) lays the chart out with its built-in stacked legend. The inline legend is
  * used for `"default"`, and none when the chart publishes to an external
@@ -80,8 +89,11 @@ function PieChartImpl<T extends PieChartData>(props: PieChartProps<T>) {
   const animate = useEffectiveAnimation(isAnimationActive);
 
   // Pie-specific geometry
+  const isDonut = variant === "donut";
+  const padAngle = isDonut ? DONUT_PADDING_ANGLE : paddingAngle;
   const outerRadius = orch.dimensions.chartSize * 0.45;
-  const innerRadius = variant === "donut" ? outerRadius * 0.6 : 0;
+  const innerRadius = isDonut ? outerRadius * DONUT_BAND_INNER : 0;
+  const holeRadius = innerRadius * DONUT_HOLE;
 
   const startAngle = isSemiCircular ? -Math.PI / 2 : 0;
   const endAngle = isSemiCircular ? Math.PI / 2 : 2 * Math.PI;
@@ -93,18 +105,34 @@ function PieChartImpl<T extends PieChartData>(props: PieChartProps<T>) {
         .sort(null)
         .startAngle(startAngle)
         .endAngle(endAngle)
-        .padAngle((paddingAngle * Math.PI) / 180),
-    [startAngle, endAngle, paddingAngle],
+        .padAngle((padAngle * Math.PI) / 180),
+    [startAngle, endAngle, padAngle],
   );
 
-  const arcGenerator = useMemo(
-    () =>
+  const arcGenerator = useMemo(() => {
+    const generator = arc<unknown, PieArcDatum<CategoricalSlice>>()
+      .innerRadius(innerRadius)
+      .outerRadius(outerRadius)
+      .cornerRadius(cornerRadius);
+    // The donut's band and track share one pad radius, so each gap between
+    // slices runs straight through both rings.
+    return isDonut ? generator.padRadius(outerRadius) : generator;
+  }, [isDonut, innerRadius, outerRadius, cornerRadius]);
+
+  // Donut only: the track wedge under each band segment, and the hover area
+  // that spans both.
+  const donutArcs = useMemo(() => {
+    if (!isDonut) return undefined;
+    const donutArc = (inner: number, outer: number) =>
       arc<unknown, PieArcDatum<CategoricalSlice>>()
-        .innerRadius(innerRadius)
-        .outerRadius(outerRadius)
-        .cornerRadius(cornerRadius),
-    [innerRadius, outerRadius, cornerRadius],
-  );
+        .innerRadius(inner)
+        .outerRadius(outer)
+        .padRadius(outerRadius);
+    return {
+      track: donutArc(holeRadius, innerRadius).cornerRadius(cornerRadius),
+      hit: donutArc(holeRadius, outerRadius),
+    };
+  }, [isDonut, holeRadius, innerRadius, outerRadius, cornerRadius]);
 
   const arcs = useMemo(
     () => pieGenerator(orch.data.visibleSlices),
@@ -146,6 +174,8 @@ function PieChartImpl<T extends PieChartData>(props: PieChartProps<T>) {
                 <PieSlices
                   arcs={arcs}
                   arcGenerator={arcGenerator}
+                  trackArcGenerator={donutArcs?.track}
+                  hitArcGenerator={donutArcs?.hit}
                   slices={orch.data.visibleSlices}
                   hoveredIndex={orch.hover.hoveredIndex}
                   entrance={animate}
