@@ -66,7 +66,7 @@ const model = new OpenAI();
 export async function POST(request: Request) {
   const { messages } = await request.json();
   const source = await model.chat.completions.create(
-    { model: "openai/gpt-5.5", messages, stream: true },
+    { model: "gpt-5.5", messages, stream: true },
     { signal: request.signal },
   );
 

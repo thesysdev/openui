@@ -82,13 +82,15 @@ import library from "./lib/openui.spec.json";
 const model = new OpenAI();
 const autofix = createAutofix({ apiKey: process.env.THESYS_API_KEY!, library });
 
-const messages = [
-  { role: "system" as const, content: generateSystemPrompt({ library }) },
-  { role: "user" as const, content: "Compare quarterly revenue by region." },
-];
+const messages = [{ role: "user" as const, content: "Compare quarterly revenue by region." }];
 
-const source = await model.chat.completions.create({ model: "gpt-5", messages, stream: true });
+const source = await model.chat.completions.create({
+  model: "gpt-5",
+  messages: [{ role: "system", content: generateSystemPrompt({ library }) }, ...messages],
+  stream: true,
+});
 
+// Autofix adds the library itself, so pass only the conversation.
 // Return this from your API route as a server-sent events response.
 const response = autofix.completions.stream({ stream: source, messages }).toResponse();
 ```
