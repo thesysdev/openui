@@ -305,7 +305,7 @@ The form pattern carries over to anything that needs a few details before an act
 
 This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
 
-This example runs locally without authentication, and its routes accept browser requests only from its own page. Before deploying it, add [authentication](/docs/gateway/authentication) and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/booking-assistant) for the implementation notes.
+This example runs locally without authentication. Before deploying it, add [authentication](/docs/gateway/authentication), limits on request size, and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/booking-assistant) for the implementation notes.
 
 ## References
 

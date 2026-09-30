@@ -1,105 +1,44 @@
 import { storeChatCompletionHistory } from "@openuidev/server/openai";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { z } from "zod/v4";
 import { bookingPrompt } from "../../../lib/prompt";
 import { executeSearchStays, searchStaysTool, today } from "../../../lib/tools/search-stays";
 
 export const runtime = "nodejs";
 
-// Chat Completions keeps no state, so the browser sends the whole conversation on every turn.
-// Forward only user messages and assistant answers. Tool calls and results from the browser
-// are dropped, so every stay the model shows comes from a search this server runs.
-// A submitted form arrives as the button label plus the form's values, so user messages can be
-// longer than a typed question.
-const chatRequestSchema = z.object({
-  // Agent Interface's storage creates the Gateway conversation first and sends its id here.
-  threadId: z.string().min(1).max(200),
-  messages: z
-    .array(
-      z.discriminatedUnion("role", [
-        z.object({ role: z.literal("user"), content: z.string().trim().min(1).max(4000) }),
-        z.object({ role: z.literal("assistant"), content: z.string().nullish() }),
-        z.object({ role: z.literal("tool") }),
-      ]),
-    )
-    .min(1)
-    .max(100)
-    .refine((messages) => messages.at(-1)?.role === "user"),
-});
-
-function conversation(messages: z.infer<typeof chatRequestSchema>["messages"]) {
+// Chat Completions keeps no state, so the browser sends the whole thread on every turn. Forward
+// only user messages and assistant answers. Tool calls and results from the browser are dropped,
+// so every stay the model shows comes from a search this server runs.
+function conversation(messages: ChatCompletionMessageParam[]) {
   return messages.flatMap((message): ChatCompletionMessageParam[] =>
-    message.role === "tool" || !message.content
-      ? []
-      : [{ role: message.role, content: message.content }],
+    (message.role === "user" || message.role === "assistant") &&
+    typeof message.content === "string" &&
+    message.content
+      ? [{ role: message.role, content: message.content }]
+      : [],
   );
 }
 
-// Reads up to 1 MB of JSON and validates it. Returns undefined for anything else.
-async function parseChatRequest(request: Request) {
-  if (request.headers.get("content-type")?.split(";")[0].trim() !== "application/json")
-    return undefined;
-  const reader = request.body?.getReader();
-  if (!reader) return undefined;
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      size += value.byteLength;
-      if (size > 1_000_000) {
-        await reader.cancel();
-        return undefined;
-      }
-      chunks.push(value);
-    }
-  } finally {
-    reader.releaseLock();
-  }
-  try {
-    return chatRequestSchema.parse(JSON.parse(Buffer.concat(chunks).toString("utf8")));
-  } catch {
-    return undefined;
-  }
-}
-
 export async function POST(request: Request) {
-  // This example has no authentication, so it accepts browser requests only from its own
-  // local page. Add authentication and rate limits before deploying it.
-  const { port } = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== `http://127.0.0.1:${port}` && origin !== `http://localhost:${port}`)
+  // Agent Interface's storage creates the Gateway conversation first and sends its id as threadId.
+  const { threadId, messages: thread } = (await request.json()) as {
+    threadId?: string;
+    messages?: ChatCompletionMessageParam[];
+  };
+  if (!threadId || thread?.at(-1)?.role !== "user")
     return Response.json(
-      { error: "This example only accepts requests from its local chat interface." },
-      { status: 403 },
-    );
-  const body = await parseChatRequest(request);
-  if (!body)
-    return Response.json(
-      {
-        error:
-          "Send a threadId and the conversation, ending with a message of up to 4,000 characters.",
-      },
+      { error: "Send a threadId and the thread's messages, ending with the user's." },
       { status: 400 },
     );
   const apiKey = process.env.THESYS_API_KEY;
-  if (!apiKey)
-    return Response.json(
-      {
-        error:
-          "Configure THESYS_API_KEY privately in .env.local and restart to use OpenUI Gateway.",
-      },
-      { status: 503 },
-    );
+  if (!apiKey) throw new Error("Set THESYS_API_KEY in .env.local, then restart.");
 
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
   const searchTool = searchStaysTool();
 
   const messages: ChatCompletionMessageParam[] = [
     { role: "system", content: bookingPrompt(today()) },
-    ...conversation(body.messages),
+    ...conversation(thread),
   ];
 
   // runTools requests a completion, runs the tools the model calls, sends their results back, and
@@ -136,9 +75,7 @@ export async function POST(request: Request) {
   runner
     .done()
     .catch(() => {})
-    .then(() =>
-      storeChatCompletionHistory({ apiKey, conversationId: body.threadId, messages: turn }),
-    )
+    .then(() => storeChatCompletionHistory({ apiKey, conversationId: threadId, messages: turn }))
     .catch((error: unknown) =>
       console.error("Could not store the turn in the Gateway conversation.", error),
     );

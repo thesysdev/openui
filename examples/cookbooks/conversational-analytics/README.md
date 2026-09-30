@@ -46,7 +46,7 @@ The tool supports `fastest_laps` (one best recorded lap per driver) and `lap_tim
 | `src/lib/tools/lap-times.ts`          | Function schema, argument validation, and read-only query     |
 | `src/library.ts`                      | Shared components for the prompt and renderer                 |
 | `src/lib/prompt.ts`                   | Gateway instructions and the supported data scope             |
-| `src/app/api/chat/route.ts`           | Request validation, `runTools()` generation, and streaming    |
+| `src/app/api/chat/route.ts`           | `runTools()` generation, streaming, and turn storage          |
 | `src/app/api/frontend-token/route.ts` | Frontend token for Gateway thread storage                     |
 | `src/components/analytics-chat.tsx`   | Agent Interface, chat transport, thread storage, and starters |
 
@@ -60,7 +60,7 @@ Agent Interface stores the thread list with Gateway's [Conversations API](https:
 
 The chat route forwards only user questions and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only query results the server produced for the current question. The route runs the tool with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and returns the runner's `toReadableStream()`, one JSON chunk per line, which `openAIReadableStreamAdapter()` reads. Chat Completions has no chunk for a tool result, so in a live answer **Behind the scenes** shows each call's arguments but not its result.
 
-The app binds to loopback, and the chat and frontend-token routes accept browser requests only from its own local page. Every browser shares one local user's threads. For deployment, add [authentication](https://www.openui.com/docs/gateway/authentication), mint each frontend token for the signed-in user, check that each `threadId` belongs to that user before storing a turn in it, add rate limits to both routes, and provide persistent SQLite storage or a hosted database for the race data. Gateway receives the conversation, component/tool instructions, driver catalog, and requested query results.
+The app binds to loopback, and every browser shares one local user's threads. For deployment, add [authentication](https://www.openui.com/docs/gateway/authentication), mint each frontend token for the signed-in user, check that each `threadId` belongs to that user before storing a turn in it, add request-size and rate limits to both routes, and provide persistent SQLite storage or a hosted database for the race data. Gateway receives the conversation, component/tool instructions, driver catalog, and requested query results.
 
 ## Data notes
 

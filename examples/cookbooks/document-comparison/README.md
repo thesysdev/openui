@@ -52,7 +52,7 @@ Try:
 | `src/library.ts`                      | Shared components for the prompt and renderer                                 |
 | `src/components/sources.tsx`          | The Sources component, built on React UI's source strip                       |
 | `src/lib/prompt.ts`                   | Comparison rules and example answers for Gateway                              |
-| `src/app/api/chat/route.ts`           | Request validation, `runTools()` generation, and streaming                    |
+| `src/app/api/chat/route.ts`           | `runTools()` generation, streaming, and turn storage                          |
 | `src/app/api/documents/route.ts`      | Document list for the Documents page                                          |
 | `src/app/api/frontend-token/route.ts` | Frontend token for Gateway thread storage                                     |
 | `src/lib/theme.ts`                    | Light and dark theme overrides                                                |
@@ -77,7 +77,7 @@ Agent Interface stores the thread list with Gateway's [Conversations API](https:
 
 The chat route forwards only user questions and assistant answers from the browser. It drops browser-supplied tool calls and results, so the model sees only passages the server found for the current question. The route runs the tool with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and returns the runner's `toReadableStream()`, one JSON chunk per line, which `openAIReadableStreamAdapter()` reads. Chat Completions has no chunk for a tool result, so in a live answer **Behind the scenes** shows each call's arguments but not its result.
 
-The app binds to loopback, and the chat and frontend-token routes accept browser requests only from its own local page. Every browser shares one local user's threads. For deployment, add [authentication](https://www.openui.com/docs/gateway/authentication), mint each frontend token for the signed-in user, check that each `threadId` belongs to that user before storing a turn in it, and add rate limits to both routes.
+The app binds to loopback, and every browser shares one local user's threads. For deployment, add [authentication](https://www.openui.com/docs/gateway/authentication), mint each frontend token for the signed-in user, check that each `threadId` belongs to that user before storing a turn in it, and add request-size and rate limits to both routes.
 
 ## Verify
 

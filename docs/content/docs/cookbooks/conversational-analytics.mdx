@@ -249,7 +249,7 @@ const runner = gateway.chat.completions.runTools(
 );
 ```
 
-The route runs `query_lap_times` whenever the model calls it and sends the result back, until the model answers. It streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each tool call. It forwards only questions and answers from the thread, so every value the model uses comes from a query your server ran. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) has the details, including request validation and error handling.
+The route runs `query_lap_times` whenever the model calls it and sends the result back, until the model answers. It streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each tool call. It forwards only questions and answers from the thread, so every value the model uses comes from a query your server ran. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) has the details, including error handling.
 
 ## Verify it works
 
@@ -270,7 +270,7 @@ Replace `queryLapTimes` with a query to your database or API. Update the tool's 
 
 This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
 
-This example runs locally without authentication, and its routes accept browser requests only from its own page. Before deploying it, add [authentication](/docs/gateway/authentication) and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/conversational-analytics) for the implementation notes.
+This example runs locally without authentication. Before deploying it, add [authentication](/docs/gateway/authentication), limits on request size, and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/conversational-analytics) for the implementation notes.
 
 ## References
 
