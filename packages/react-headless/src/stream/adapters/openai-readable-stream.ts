@@ -1,5 +1,6 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
 import { AGUIEvent, EventType, StreamProtocolAdapter } from "../../types";
+import { errorFrameToRunError } from "./_shared/errorFrame";
 import { sseLineIterator } from "./_shared/sseLines";
 
 /**
@@ -19,6 +20,15 @@ export const openAIReadableStreamAdapter = (): StreamProtocolAdapter => ({
 
       try {
         const json = JSON.parse(data) as ChatCompletionChunk;
+        // An OpenAI-style error object delivered in-stream (`{"error":{…}}`, as
+        // the OpenAI SDK, OpenRouter and the OpenUI Gateway emit it under HTTP
+        // 200) has no `choices`. Surface it instead of skipping it as an empty
+        // chunk, which left the UI with a blank turn and no error.
+        const runError = errorFrameToRunError(json);
+        if (runError) {
+          yield runError;
+          continue;
+        }
         const choice = json.choices?.[0];
         const delta = choice?.delta;
 
