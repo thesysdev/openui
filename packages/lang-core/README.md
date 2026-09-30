@@ -229,6 +229,34 @@ import type {
 } from "@openuidev/lang-core";
 ```
 
+## Array projection and indexing
+
+Dot access projects a field across array items. Do not add empty brackets between
+the array and the field:
+
+| Intended result | Invalid expression | Correct expression |
+| :--- | :--- | :--- |
+| Every row's field | `rows[].field` | `rows.field` |
+| All daily labels | `metrics.daily[].day` | `metrics.daily.day` |
+| All daily download counts | `metrics.daily[].downloads` | `metrics.daily.downloads` |
+
+Use `rows[0].field` to read a field from **one** item. This has different semantics
+from projection. An empty array literal, such as `labels = []`, is also valid.
+
+For example, given `metrics.daily = [{day: "2026-09-28", downloads: 120},
+{day: "2026-09-29", downloads: 150}]`:
+
+```text
+labels = metrics.daily.day
+values = metrics.daily.downloads
+firstDay = metrics.daily[0].day
+```
+
+These evaluate to `["2026-09-28", "2026-09-29"]`, `[120, 150]`, and `"2026-09-28"`,
+respectively. Empty index expressions produce an `invalid-expression` entry in
+`result.meta.errors`, with the affected statement and correction examples for a
+sanitizer to use.
+
 ## Documentation
 
 - [OpenUI Lang guide](https://openui.com/docs/openui-lang)

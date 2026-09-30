@@ -276,7 +276,7 @@ export function parseExpression(
       adv(); // consume [
       if (cur().t === T.RBrack) {
         onError?.(
-          "Empty index expression. Use an index such as rows[0], or dot projection such as rows.field to read a field from every array item; rows[].field is not supported.",
+          "Empty index expression: [] cannot be used for array projection. To read a field from every item, use dot projection: rows[].field -> rows.field; metrics.daily[].day -> metrics.daily.day; metrics.daily[].downloads -> metrics.daily.downloads. To read one item instead, supply an index: rows[0].field. An empty array literal [] is valid.",
           pos,
         );
         adv(); // consume ] without swallowing the following expression
