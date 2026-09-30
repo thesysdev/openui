@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNod
 import { Renderer, type RendererProps } from "./Renderer";
 import { parseResponseBundle, type ResponseMetadata } from "./responseBundle";
 
-export interface ArtifactPreviewProps {
+export interface RendererPreviewProps {
   metadata: ResponseMetadata;
   isOpen: boolean;
   isStreaming: boolean;
@@ -12,38 +12,38 @@ export interface ArtifactPreviewProps {
   close: () => void;
 }
 
-export interface ArtifactContentProps extends ArtifactPreviewProps {
+export interface RendererContentProps extends RendererPreviewProps {
   children: ReactNode;
 }
 
-export interface ArtifactRendererProps extends RendererProps {
+export interface WithPreviewRendererProps extends RendererProps {
   /** Controlled visibility. Omit to use internal state. */
   open?: boolean;
   /** Initial visibility when uncontrolled. Defaults to false. */
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
-  /** Metadata belongs to the artifact presentation, not the underlying Renderer. */
+  /** Metadata belongs to the preview presentation, not the underlying Renderer. */
   onMetadata?: (metadata: ResponseMetadata) => void;
   /** Customize the inline preview/trigger. Return null to hide it. */
-  renderPreview?: (props: ArtifactPreviewProps) => ReactNode;
+  renderPreview?: (props: RendererPreviewProps) => ReactNode;
   /**
    * Customize the expanded content. Called only while open.
    * Return a panel, dialog, or a host-created portal containing children.
    * The host owns portal targets, focus management, and dialog accessibility.
    */
-  renderArtifact?: (props: ArtifactContentProps) => ReactNode;
+  renderContent?: (props: RendererContentProps) => ReactNode;
 }
 
-/** A minimal artifact presentation pattern around the standalone Renderer. */
-export function ArtifactRenderer({
+/** Adds an inline preview and expandable content to Renderer. Use Renderer directly when no preview is needed. */
+export function WithPreviewRenderer({
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
   onMetadata,
   renderPreview,
-  renderArtifact,
+  renderContent,
   ...rendererProps
-}: ArtifactRendererProps) {
+}: WithPreviewRendererProps) {
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isOpen = controlledOpen ?? internalOpen;
   const isStreaming = rendererProps.isStreaming === true;
@@ -72,7 +72,7 @@ export function ArtifactRenderer({
   );
   const open = useCallback(() => setOpen(true), [setOpen]);
   const close = useCallback(() => setOpen(false), [setOpen]);
-  const previewProps: ArtifactPreviewProps = {
+  const previewProps: RendererPreviewProps = {
     metadata,
     isOpen,
     isStreaming,
@@ -99,8 +99,8 @@ export function ArtifactRenderer({
         </button>
       )}
       {isOpen &&
-        (renderArtifact ? (
-          renderArtifact({ ...previewProps, children })
+        (renderContent ? (
+          renderContent({ ...previewProps, children })
         ) : (
           <section id={contentId} aria-label={name}>
             <button type="button" onClick={close}>
