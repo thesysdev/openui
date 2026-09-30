@@ -1,62 +1,45 @@
-export interface ScriptToolResult {
-  type?: "function_call_output";
-  call_id: string;
-  output?: string;
-  error?: { code: string; message: string };
+/** A tool requested by an execution engine, independent of its wire format. */
+export interface ScriptToolCall {
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
 }
 
-export interface ScriptExecutionRequest {
-  /** Complete OpenUI response; the server selects the named script. */
-  response: string;
-  name: string;
-  arguments: Record<string, unknown>;
-  tool_results: ScriptToolResult[];
-  state?: string;
+export type ScriptToolResult = { id: string; result: unknown } | { id: string; error: unknown };
+
+export interface ScriptExecutionRequest<State = unknown> {
+  /** Opaque engine state. Omitted for the first execution. */
+  state?: State;
+  results: ScriptToolResult[];
 }
 
-export type ScriptExecutionResponse =
-  | { status: "done"; result: unknown; logs?: string[] }
-  | {
-      status: "error";
-      error: { code: string; message: string };
-      logs?: string[];
-    }
-  | {
-      status: "tool_calls";
-      state: string;
-      calls: Array<{
-        type: "function_call";
-        call_id: string;
-        name: string;
-        arguments: string;
-      }>;
-    };
+export type ScriptExecutionResponse<State = unknown, Result = unknown> =
+  | { status: "complete"; result: Result }
+  | { status: "tools"; state: State; calls: ScriptToolCall[] };
 
-export interface ExecuteScriptOptions {
-  /** Complete OpenUI bundle, including the scripts section. */
-  response: string;
-  name: string;
-  arguments: Record<string, unknown>;
-  /** Calls the stateless execution endpoint using the application's transport. */
+export interface ExecuteScriptOptions<State = unknown, Result = unknown> {
+  /** Starts or resumes execution. Owns transport, serialization, and engine errors. */
   execute: (
-    request: ScriptExecutionRequest,
+    request: ScriptExecutionRequest<State>,
     signal: AbortSignal,
-  ) => Promise<ScriptExecutionResponse>;
-  /** Runs a registered customer tool requested by the script. */
-  callTool: (name: string, args: Record<string, unknown>, signal: AbortSignal) => Promise<unknown>;
+  ) => Promise<ScriptExecutionResponse<State, Result>>;
+  callTool: (name: string, input: Record<string, unknown>, signal: AbortSignal) => Promise<unknown>;
   signal?: AbortSignal;
   /** Total execution deadline. Defaults to 60 seconds. */
   timeoutMs?: number;
 }
 
-/** Runs a script and resumes it with customer tool results until completion. */
-export async function executeScript(options: ExecuteScriptOptions): Promise<unknown> {
-  const { response, name, arguments: args, execute, callTool } = options;
+/** Drives execution and tool continuations without assuming a model or API protocol. */
+export async function executeScript<State = unknown, Result = unknown>(
+  options: ExecuteScriptOptions<State, Result>,
+): Promise<Result> {
+  const { execute, callTool } = options;
   const controller = new AbortController();
   const { signal } = controller;
   const forwardAbort = () => controller.abort(options.signal?.reason);
   options.signal?.addEventListener("abort", forwardAbort, { once: true });
   if (options.signal?.aborted) forwardAbort();
+
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 60_000);
   let onAbort: () => void = () => {};
   const aborted = new Promise<never>((_, reject) => {
@@ -64,69 +47,42 @@ export async function executeScript(options: ExecuteScriptOptions): Promise<unkn
     signal.addEventListener("abort", onAbort, { once: true });
     if (signal.aborted) onAbort();
   });
-  const run = async () => {
-    let request: ScriptExecutionRequest = {
-      response,
-      name,
-      arguments: args,
-      tool_results: [],
-    };
+
+  const run = async (): Promise<Result> => {
+    let request: ScriptExecutionRequest<State> = { results: [] };
     const seen = new Set<string>();
+
     for (let round = 0; round <= 8; round++) {
       signal.throwIfAborted();
-      const result = await Promise.race([execute(request, signal), aborted]);
+      const step = await Promise.race([execute(request, signal), aborted]);
       signal.throwIfAborted();
-      if (result?.status === "done") return result.result;
-      if (result?.status === "error") throw new Error(result.error.message);
-      if (
-        result?.status !== "tool_calls" ||
-        typeof result.state !== "string" ||
-        !Array.isArray(result.calls) ||
-        !result.calls.length ||
-        round === 8 ||
-        seen.size + result.calls.length > 16
-      )
-        throw new Error("Invalid script continuation or execution limit exceeded");
-      // Validate the complete batch before starting any customer tool.
-      for (const call of result.calls) {
-        if (
-          call.type !== "function_call" ||
-          typeof call.call_id !== "string" ||
-          seen.has(call.call_id) ||
-          typeof call.name !== "string" ||
-          typeof call.arguments !== "string"
-        )
-          throw new Error("Invalid script tool call");
-        seen.add(call.call_id);
+      if (step.status === "complete") return step.result;
+      if (!step.calls.length || round === 8 || seen.size + step.calls.length > 16) {
+        throw new Error("Empty tool continuation or script execution limit exceeded");
       }
-      const tool_results: ScriptToolResult[] = [];
-      for (const call of result.calls) {
+
+      // Reject repeated calls before dispatching any potentially mutating tools.
+      for (const call of step.calls) {
+        if (seen.has(call.id)) throw new Error(`Duplicate script tool call: ${call.id}`);
+        seen.add(call.id);
+      }
+
+      const results: ScriptToolResult[] = [];
+      for (const call of step.calls) {
         signal.throwIfAborted();
         try {
-          const input = JSON.parse(call.arguments);
-          if (!input || typeof input !== "object" || Array.isArray(input))
-            throw new Error("Tool arguments must be an object");
-          const output = await Promise.race([callTool(call.name, input, signal), aborted]);
-          tool_results.push({
-            type: "function_call_output",
-            call_id: call.call_id,
-            output: JSON.stringify(output ?? null),
-          });
+          const result = await Promise.race([callTool(call.name, call.input, signal), aborted]);
+          results.push({ id: call.id, result });
         } catch (error) {
           signal.throwIfAborted();
-          tool_results.push({
-            call_id: call.call_id,
-            error: {
-              code: "tool_error",
-              message: error instanceof Error ? error.message : String(error),
-            },
-          });
+          results.push({ id: call.id, error });
         }
       }
-      request = { ...request, state: result.state, tool_results };
+      request = { state: step.state, results };
     }
     throw new Error("Script execution limit exceeded");
   };
+
   try {
     return await Promise.race([run(), aborted]);
   } finally {

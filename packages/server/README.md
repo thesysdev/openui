@@ -134,38 +134,40 @@ chatCompletionMessagesToItems([
 
 ## Script execution
 
-`executeScript` runs a named script from a complete OpenUI response bundle. Supply the execution transport and your own customer-tool dispatcher; the helper handles continuation state and tool results.
+`executeScript` drives an execution engine until it completes, dispatching requested tools between steps. It does not depend on Chat Completions, OpenUI bundles, HTTP, or JSON serialization.
 
 ```ts
 import { executeScript } from "@openuidev/server";
 
 const result = await executeScript({
-  response: bundle,
-  name,
-  arguments: args,
   signal: request.signal,
-  execute: async (body, signal) => {
-    const response = await fetch(executeUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-      signal,
-    });
-    if (!response.ok) throw new Error(`Execution failed: ${response.status}`);
-    return response.json();
+  execute: async ({ state, results }, signal) => {
+    // Your adapter starts or resumes the engine and normalizes its response.
+    const step = await engine.resume({ state, results, signal });
+    if (step.complete) {
+      return { status: "complete", result: step.value };
+    }
+    return {
+      status: "tools",
+      state: step.state,
+      calls: step.tools.map((tool) => ({
+        id: tool.id,
+        name: tool.name,
+        input: tool.input,
+      })),
+    };
   },
-  callTool: async (name, args, signal) => {
+  callTool: async (name, input, signal) => {
     if (!Object.hasOwn(tools, name)) throw new Error(`Unknown tool: ${name}`);
-    return tools[name](args, signal);
+    return tools[name](input, signal);
   },
 });
 ```
 
-The result is the script's value. Script failures reject; customer-tool failures are sent back to the script as tool errors. The helper allows up to eight continuation rounds and sixteen tool calls, with a 60-second overall deadline (`timeoutMs` can override it). It rejects duplicate call IDs before dispatching a batch. Calls run sequentially.
+The execution callback receives `{ results: [] }` initially. On continuation it receives the engine's opaque `state` and tool results as `{ id, result }` or `{ id, error }`. Inputs, results, and errors remain JavaScript values. State and the final result are generic types, so state can be an object, a token, or another engine-owned value. The adapter owns serialization, protocol mapping, credentials, and execution errors (throw to stop the loop).
 
-Both callbacks receive the helper's abort signal, which combines caller cancellation with its deadline. Pass it through to cancellable work. A deadline does not undo completed tool side effects or force-stop callbacks that ignore cancellation. The helper never aborts the caller's controller.
+The helper allows eight continuation rounds and sixteen tool calls, with a 60-second overall deadline (`timeoutMs` overrides it). Duplicate call IDs are rejected before dispatching a batch. Calls run sequentially.
 
-URLs, credentials, customer-tool authorization, and artifact storage remain application-owned. The helper forwards the full bundle unchanged; it does not parse or execute JavaScript locally. Protocol types are exported alongside the helper.
+Both callbacks receive a signal combining caller cancellation with the deadline. Forward it to cancellable work. Cancellation cannot undo completed side effects or force-stop callbacks that ignore the signal. The helper never aborts the caller's controller.
+
+For OpenUI's stateless endpoint, keep the complete bundle, script name, and arguments in the adapter's closure. Map its `tool_calls` response into `{ status: "tools", state, calls }`, and map helper results back to its `tool_results` request. A different engine can use the same helper with its own adapter.

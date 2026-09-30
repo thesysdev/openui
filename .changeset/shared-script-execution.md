@@ -2,4 +2,4 @@
 "@openuidev/server": minor
 ---
 
-Export executeScript and its protocol types to run stateless OpenUI scripts with application-provided execution and customer-tool callbacks, cancellation, and a deadline.
+Export a protocol-independent executeScript helper and types for execution continuations, customer tool dispatch, cancellation, and deadlines. Applications supply adapters for their execution engine and transport.
