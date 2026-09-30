@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { findNearestSnapPosition, getWidthOfData, getWidthOfGroup } from "./scrollUtils";
+import {
+  findNearestSnapPosition,
+  getSnapPositions,
+  getWidthOfData,
+  getWidthOfGroup,
+} from "./scrollUtils";
 
 const rows = (n: number) => Array.from({ length: n }, (_, i) => ({ x: i }));
 
@@ -18,8 +23,10 @@ describe("getWidthOfGroup (density → px per category group)", () => {
 describe("getWidthOfData (inner scroll width)", () => {
   it("is data.length × group width when that exceeds the container", () => {
     expect(getWidthOfData(rows(10), 300)).toBe(720);
-    expect(getWidthOfData(rows(10), 300, "compact")).toBe(480);
-    expect(getWidthOfData(rows(10), 300, "spacious")).toBe(960);
+    expect(getWidthOfData(rows(10), 300, getWidthOfGroup("compact"))).toBe(480);
+    expect(getWidthOfData(rows(10), 300, getWidthOfGroup("spacious"))).toBe(960);
+    // a group widened to fit its labels
+    expect(getWidthOfData(rows(10), 300, 130)).toBe(1300);
   });
 
   it("floors at the available container width (no horizontal scroll)", () => {
@@ -32,9 +39,17 @@ describe("getWidthOfData (inner scroll width)", () => {
   });
 
   it("floors a single point at 200px when the container is narrower than a group", () => {
-    expect(getWidthOfData(rows(1), 40, "compact")).toBe(200);
+    expect(getWidthOfData(rows(1), 40, getWidthOfGroup("compact"))).toBe(200);
     // …but a container wider than the group still wins
-    expect(getWidthOfData(rows(1), 500, "compact")).toBe(500);
+    expect(getWidthOfData(rows(1), 500, getWidthOfGroup("compact"))).toBe(500);
+  });
+});
+
+describe("getSnapPositions (one stop per group)", () => {
+  it("steps by the group width", () => {
+    expect(getSnapPositions(rows(4))).toEqual([0, 72, 144, 216]);
+    expect(getSnapPositions(rows(3), 130)).toEqual([0, 130, 260]);
+    expect(getSnapPositions([], 130)).toEqual([0]);
   });
 });
 

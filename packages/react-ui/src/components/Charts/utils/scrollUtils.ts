@@ -12,12 +12,12 @@ const MIN_SINGLE_POINT_WIDTH = 200;
 export const getWidthOfData = (
   data: ChartData,
   containerWidth: number,
-  density: ChartDensity = "default",
+  groupWidth: number = getWidthOfGroup(),
 ) => {
   if (data.length === 0) {
     return containerWidth;
   }
-  const width = data.length * getWidthOfGroup(density);
+  const width = data.length * groupWidth;
 
   if (containerWidth >= width) {
     return containerWidth;
@@ -56,14 +56,16 @@ export function getWidthOfGroup(density: ChartDensity = "default"): number {
   return DENSITY_SPACING[density];
 }
 
-export const getSnapPositions = (data: ChartData, density: ChartDensity = "default"): number[] => {
+export const getSnapPositions = (
+  data: ChartData,
+  groupWidth: number = getWidthOfGroup(),
+): number[] => {
   if (data.length === 0) return [0];
 
   const positions = [0];
-  const groupWidthValue = getWidthOfGroup(density);
 
   for (let i = 1; i < data.length; i++) {
-    positions.push(i * groupWidthValue);
+    positions.push(i * groupWidth);
   }
 
   return positions;

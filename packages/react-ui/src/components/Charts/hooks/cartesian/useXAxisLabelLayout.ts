@@ -20,15 +20,33 @@ export const useXAxisLabelLayout = (
   scopeRef?: React.RefObject<HTMLElement | null>,
 ): XAxisLabelLayout => {
   const context = useCanvasContextForLabelSize(scopeRef);
-  const { variant, slotWidth, maxHeight, condensed } = options;
+  const { variant, slotWidth, maxHeight, condensed, visibleWidth, labelShare } = options;
 
   return useMemo(
     () =>
       layoutXAxisLabels(
         context,
         data.map((d) => String(d[categoryKey])),
-        { variant, slotWidth, maxHeight, condensed, lineHeight: parseLineHeight(context.font) },
+        {
+          variant,
+          slotWidth,
+          maxHeight,
+          condensed,
+          visibleWidth,
+          labelShare,
+          lineHeight: parseLineHeight(context.font),
+        },
       ),
-    [context, data, categoryKey, variant, slotWidth, maxHeight, condensed],
+    [
+      context,
+      data,
+      categoryKey,
+      variant,
+      slotWidth,
+      maxHeight,
+      condensed,
+      visibleWidth,
+      labelShare,
+    ],
   );
 };

@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useCallback } from "react";
 
 import {
+  BAND_PADDING_INNER,
   useCartesianChartOrchestrator,
   useEffectiveAnimation,
   useExportChartData,
@@ -93,6 +94,8 @@ function BarChartImpl<T extends BarChartData>({
     density,
     stacked: variant === "stacked",
     yTickCount,
+    // Labels are drawn under the bar's band, not across the whole category.
+    labelShare: 1 - BAND_PADDING_INNER,
   });
 
   const isStacked = variant === "stacked";

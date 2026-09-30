@@ -46,6 +46,11 @@ export interface UseChartDimensionsParams<T extends ChartData> {
    * ones when the consumer pins the count (YAxis/Grid receive the same hint).
    */
   yTickCount?: number;
+  /**
+   * Share of a category's width its x-axis label is drawn in (see
+   * `XAxisLabelLayoutOptions.labelShare`). Default 1.
+   */
+  labelShare?: number;
 }
 
 /**
@@ -71,6 +76,7 @@ export function useChartDimensions<T extends ChartData>({
   stacked = false,
   stackOffset,
   yTickCount,
+  labelShare,
 }: UseChartDimensionsParams<T>) {
   const isFit = layout === "fit";
 
@@ -94,25 +100,6 @@ export function useChartDimensions<T extends ChartData>({
   // on every fit-mode deep link).
   const availableWidth = Math.max(0, containerWidth - effectiveYAxisWidth);
 
-  // Per-point group width: fit divides the available width across all points;
-  // scroll uses a fixed density-derived width (which is what lets it overflow).
-  const widthOfGroup = isFit
-    ? data.length > 0
-      ? availableWidth / data.length
-      : 0
-    : getWidthOfGroup(density);
-
-  const dataWidth = useMemo(
-    () => (isFit ? availableWidth : getWidthOfData(data, availableWidth, density)),
-    [isFit, data, availableWidth, density],
-  );
-  const needsScroll = isFit ? false : dataWidth > availableWidth;
-
-  // The drawable chart width. Scroll overflows to `dataWidth` when it needs to
-  // scroll; otherwise (and always in fit, where needsScroll is false) it is the
-  // available width. Collapses the old scroll `svgWidth` and fit `chartAreaWidth`.
-  const chartAreaWidth = needsScroll ? dataWidth : availableWidth;
-
   const resolvedHeight =
     typeof height === "number"
       ? height
@@ -129,18 +116,40 @@ export function useChartDimensions<T extends ChartData>({
       : "singleLine";
 
   // The label band is capped at half the drawable height so the plot keeps
-  // the rest; labels that don't fit are truncated rather than growing the band.
+  // the rest. Fit divides the available width across all points and truncates
+  // the labels that don't fit. Scroll starts from a fixed density-derived width
+  // (which is what lets it overflow) and widens it — never past the visible
+  // plot — until every label shows in full.
   const labelLayout = useXAxisLabelLayout(
     data,
     catKey,
     {
       variant: tickVariant,
-      slotWidth: widthOfGroup,
+      slotWidth: isFit
+        ? data.length > 0
+          ? availableWidth / data.length
+          : 0
+        : getWidthOfGroup(density),
       maxHeight: (svgAvailableHeight - CHART_MARGIN_TOP) * MAX_X_AXIS_HEIGHT_SHARE,
       condensed: isFit,
+      visibleWidth: isFit ? undefined : availableWidth,
+      labelShare,
     },
     containerRef,
   );
+  // Per-point group width.
+  const widthOfGroup = labelLayout.slotWidth;
+
+  const dataWidth = useMemo(
+    () => (isFit ? availableWidth : getWidthOfData(data, availableWidth, widthOfGroup)),
+    [isFit, data, availableWidth, widthOfGroup],
+  );
+  const needsScroll = isFit ? false : dataWidth > availableWidth;
+
+  // The drawable chart width. Scroll overflows to `dataWidth` when it needs to
+  // scroll; otherwise (and always in fit, where needsScroll is false) it is the
+  // available width. Collapses the old scroll `svgWidth` and fit `chartAreaWidth`.
+  const chartAreaWidth = needsScroll ? dataWidth : availableWidth;
   const labelInterval = labelLayout.interval;
   const xAxis = {
     angle: labelLayout.angle,

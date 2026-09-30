@@ -40,6 +40,12 @@ export interface UseCartesianChartOrchestratorParams<T extends ChartData> {
    * same tick strings the axis will draw.
    */
   yTickCount?: number;
+  /**
+   * Share of a category's width its x-axis label is drawn in: bar charts draw
+   * it under the bar's band, line and area charts across the whole category
+   * (the default, 1). Lets the scrolling layout size categories for full labels.
+   */
+  labelShare?: number;
 }
 
 /**
@@ -68,6 +74,7 @@ export function useCartesianChartOrchestrator<T extends ChartData>({
   stacked,
   stackOffset,
   yTickCount,
+  labelShare,
 }: UseCartesianChartOrchestratorParams<T>): CartesianChartOrchestrator {
   const containerRef = useRef<HTMLDivElement>(null);
   const mainContainerRef = useRef<HTMLDivElement>(null);
@@ -101,6 +108,7 @@ export function useCartesianChartOrchestrator<T extends ChartData>({
     stacked,
     stackOffset,
     yTickCount,
+    labelShare,
   });
 
   // Hover: index, mouse position, handler factory
@@ -111,7 +119,7 @@ export function useCartesianChartOrchestrator<T extends ChartData>({
     mainContainerRef,
     data,
     needsScroll: dimensions.needsScroll,
-    density,
+    widthOfGroup: dimensions.widthOfGroup,
   });
 
   // Legend expand/collapse

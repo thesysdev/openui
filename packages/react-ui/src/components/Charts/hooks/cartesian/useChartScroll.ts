@@ -3,20 +3,20 @@ import React, { useCallback, useEffect, useState } from "react";
 import { findNearestSnapPosition, getSnapPositions } from "../../utils/scrollUtils";
 
 import type { ChartData } from "../../types";
-import type { ChartDensity } from "../../utils/scrollUtils";
 
 export interface UseChartScrollParams<T extends ChartData> {
   mainContainerRef: React.RefObject<HTMLDivElement | null>;
   data: T;
   needsScroll: boolean;
-  density?: ChartDensity;
+  /** Width of one category group; the scroll buttons step one group at a time. */
+  widthOfGroup: number;
 }
 
 export function useChartScroll<T extends ChartData>({
   mainContainerRef,
   data,
   needsScroll,
-  density,
+  widthOfGroup,
 }: UseChartScrollParams<T>) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(needsScroll);
@@ -47,12 +47,12 @@ export function useChartScroll<T extends ChartData>({
     (direction: "left" | "right") => {
       const el = mainContainerRef.current;
       if (!el) return;
-      const snaps = getSnapPositions(data, density);
+      const snaps = getSnapPositions(data, widthOfGroup);
       const idx = findNearestSnapPosition(snaps, el.scrollLeft, direction);
       const target = snaps[idx] ?? 0;
       el.scrollTo({ left: target, behavior: "smooth" });
     },
-    [data, mainContainerRef, density],
+    [data, mainContainerRef, widthOfGroup],
   );
 
   return {

@@ -3,6 +3,11 @@ import { scaleBand } from "d3-scale";
 import { useMemo } from "react";
 import type { ChartData } from "../../types";
 
+/** Default gap between bands, as a share of each category's step. */
+export const BAND_PADDING_INNER = 0.2;
+/** Default space before the first and after the last band, as a share of a step. */
+export const BAND_PADDING_OUTER = 0.1;
+
 export const useXBandScale = (
   data: ChartData,
   categoryKey: string,
@@ -14,7 +19,7 @@ export const useXBandScale = (
     return scaleBand<string>()
       .domain(data.map((d) => String(d[categoryKey])))
       .range([0, svgWidth])
-      .paddingInner(paddingInner ?? 0.2)
-      .paddingOuter(paddingOuter ?? 0.1);
+      .paddingInner(paddingInner ?? BAND_PADDING_INNER)
+      .paddingOuter(paddingOuter ?? BAND_PADDING_OUTER);
   }, [data, categoryKey, svgWidth, paddingInner, paddingOuter]);
 };
