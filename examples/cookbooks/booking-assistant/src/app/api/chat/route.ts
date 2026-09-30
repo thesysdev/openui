@@ -36,11 +36,12 @@ function conversation(messages: z.infer<typeof chatRequestSchema>["messages"]) {
   );
 }
 
+// Reads up to 1 MB of JSON and validates it. Returns undefined for anything else.
 async function parseChatRequest(request: Request) {
   if (request.headers.get("content-type")?.split(";")[0].trim() !== "application/json")
-    throw new Error("Send JSON.");
+    return undefined;
   const reader = request.body?.getReader();
-  if (!reader) throw new Error("Send a message.");
+  if (!reader) return undefined;
   const chunks: Uint8Array[] = [];
   let size = 0;
   try {
@@ -50,14 +51,18 @@ async function parseChatRequest(request: Request) {
       size += value.byteLength;
       if (size > 1_000_000) {
         await reader.cancel();
-        throw new Error("Request too large.");
+        return undefined;
       }
       chunks.push(value);
     }
   } finally {
     reader.releaseLock();
   }
-  return chatRequestSchema.parse(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+  try {
+    return chatRequestSchema.parse(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+  } catch {
+    return undefined;
+  }
 }
 
 export async function POST(request: Request) {
@@ -70,10 +75,8 @@ export async function POST(request: Request) {
       { error: "This example only accepts requests from its local chat interface." },
       { status: 403 },
     );
-  let body;
-  try {
-    body = await parseChatRequest(request);
-  } catch {
+  const body = await parseChatRequest(request);
+  if (!body)
     return Response.json(
       {
         error:
@@ -81,7 +84,6 @@ export async function POST(request: Request) {
       },
       { status: 400 },
     );
-  }
   const apiKey = process.env.THESYS_API_KEY;
   if (!apiKey)
     return Response.json(
@@ -95,7 +97,6 @@ export async function POST(request: Request) {
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
   const searchTool = searchStaysTool();
 
-  const { threadId } = body;
   const messages: ChatCompletionMessageParam[] = [
     { role: "system", content: bookingPrompt(today()) },
     ...conversation(body.messages),
@@ -135,7 +136,9 @@ export async function POST(request: Request) {
   runner
     .done()
     .catch(() => {})
-    .then(() => storeChatCompletionHistory({ apiKey, conversationId: threadId, messages: turn }))
+    .then(() =>
+      storeChatCompletionHistory({ apiKey, conversationId: body.threadId, messages: turn }),
+    )
     .catch((error: unknown) =>
       console.error("Could not store the turn in the Gateway conversation.", error),
     );
