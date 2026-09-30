@@ -373,13 +373,7 @@ This example calls Gateway directly from a Next.js route, but the tool and promp
 
 This example runs locally without authentication, and its routes accept browser requests only from its own page. Before deploying it, add [authentication](/docs/gateway/authentication) and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
 
-- [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
-- [Agent tools](/docs/agent/core-concepts/tools)
-- [Connect a backend](/docs/agent/reference/self-hosting)
-
 ## References
-
-The example uses these packages and APIs:
 
 - [`@openuidev/react-ui`](/docs/api-reference/react-ui): `AgentInterface` and the built-in component libraries.
 - [`@openuidev/react-headless`](/docs/api-reference/react-headless): `fetchLLM()`, `openAIReadableStreamAdapter()`, and `useOpenuiCloudStorage()`, which the example imports through `@openuidev/react-ui`.
@@ -390,5 +384,8 @@ The example uses these packages and APIs:
 - [OpenAI SDK](https://github.com/openai/openai-node): `runTools()`, `toReadableStream()`, and embeddings.
 - [`unpdf`](https://github.com/unjs/unpdf): PDF text extraction.
 - [Gateway Chat Completions API](/docs/gateway/api/chat-completions).
+- [Agent Interface quickstart](/docs/agent/getting-started/quickstart).
+- [Agent tools](/docs/agent/core-concepts/tools).
+- [Connect a backend](/docs/agent/reference/self-hosting).
 
 Documents: the Form 10-K annual reports of NVIDIA, AMD, and Intel, downloaded from each company's investor relations site during setup. They are not included in this repository.
