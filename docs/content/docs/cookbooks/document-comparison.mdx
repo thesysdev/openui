@@ -253,7 +253,7 @@ The chat route saves each question and answer to the thread with [`storeChatComp
 
 </Callout>
 
-The example also customizes Agent Interface through its public props and slots:
+The example also customizes Agent Interface through its public props and slots. The props set the theme, brand, and starters:
 
 ```tsx title="src/components/comparison-chat.tsx"
 const mode = useSystemThemeMode();
@@ -269,31 +269,38 @@ const theme = useMemo(() => ({ mode, lightTheme, darkTheme }), [mode]);
   starters={starters}
   starterVariant="long"
 >
-  <AgentInterface.Sidebar>
-    <AgentInterface.SidebarHeader />
-    <AgentInterface.SidebarContent>
-      <AgentInterface.NewChatButton />
-      <AgentInterface.SidebarItem path="documents" icon={<FileText size={16} />}>
-        Documents
-      </AgentInterface.SidebarItem>
-      <AgentInterface.SidebarSeparator />
-      <AgentInterface.ThreadList />
-    </AgentInterface.SidebarContent>
-  </AgentInterface.Sidebar>
-  <AgentInterface.Route path="documents">
-    <DocumentLibrary />
-  </AgentInterface.Route>
-  <AgentInterface.ThreadHeader>
-    <span className="thread-context">Comparing NVIDIA · AMD · Intel annual reports</span>
-  </AgentInterface.ThreadHeader>
+  {/* The slots below */}
 </AgentInterface>;
 ```
 
 - **Theme.** [theme.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/lib/theme.ts) uses `createTheme` to set the accent and user-message colors for light and dark mode, and `useSystemThemeMode` follows the operating system's setting.
 - **Brand.** `agentName` and `logoUrl` fill the default sidebar header, which keeps the logo in the collapsed sidebar. [logo.svg](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/public/logo.svg) switches colors for dark mode with a `prefers-color-scheme` media query.
+- **Starters.** `starterVariant="long"` shows starters as a list with icons. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
+
+Its children replace the sidebar, add the Documents page, and fill the thread header:
+
+```tsx title="src/components/comparison-chat.tsx"
+<AgentInterface.Sidebar>
+  <AgentInterface.SidebarHeader />
+  <AgentInterface.SidebarContent>
+    <AgentInterface.NewChatButton />
+    <AgentInterface.SidebarItem path="documents" icon={<FileText size={16} />}>
+      Documents
+    </AgentInterface.SidebarItem>
+    <AgentInterface.SidebarSeparator />
+    <AgentInterface.ThreadList />
+  </AgentInterface.SidebarContent>
+</AgentInterface.Sidebar>
+<AgentInterface.Route path="documents">
+  <DocumentLibrary />
+</AgentInterface.Route>
+<AgentInterface.ThreadHeader>
+  <span className="thread-context">Comparing NVIDIA · AMD · Intel annual reports</span>
+</AgentInterface.ThreadHeader>
+```
+
 - **Sidebar.** Supplying `AgentInterface.Sidebar` replaces the default sidebar, so the example composes its own header, New chat button, Documents item, and thread list. See [Sidebar](/docs/agent/customize/sidebar).
 - **Pages.** A `SidebarItem` with a `path` opens the matching `AgentInterface.Route` in place of the chat. The Documents page lists each report with its page count and a link to the source PDF, and returns to the chat with `useNav`.
-- **Starters.** `starterVariant="long"` shows starters as a list with icons. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
 
 ### 5. Stream the answer
 
