@@ -74,6 +74,7 @@ A booking assistant splits the work between the model, your application, and the
 2. **The model replies with a prefilled form.** It works out what it can: “New York” becomes the destination, “this weekend” becomes this Friday to Sunday, and “for two” becomes two adults. It writes a form with those values filled in, empty fields for the rest, and a validation rule on each required field.
 3. **The person submits the form, and the model searches.** Agent Interface checks the rules in the browser, then sends the button label and the form's values as the next message. The model calls `search_stays`. Your server validates the arguments, calls trivago's MCP server, and returns the best matches, which the model shows as cards with photos.
 4. **The person picks a stay and reviews it.** The model shows a summary: dates, guests, price, and the booking site. **Continue to booking** opens the stay on trivago, where the person books with the site of their choice.
+5. **Gateway keeps the thread.** Your server saves each message and answer to the thread's Gateway conversation, and Agent Interface lists and reopens threads from there, even after a reload.
 
 ### Why a prefilled form
 
@@ -236,7 +237,7 @@ The model prefills a field by passing its value, such as the date `"2026-10-02"`
 
 > Submitted form state contains only the fields the user changed. For every field missing from it, use the value you prefilled in that form.
 
-Agent Interface sends the whole conversation with every turn, so the model still sees its own form from the previous turn and can fill in the gaps. The remaining rules describe the stay cards, the summary, and the hand-off. Each stay card's value is the stay's booking link, so choosing a card sends the link back with the form, and the summary's **Continue to booking** button opens it with `@OpenUrl`. One example program for each step, the trip form, the stay cards, and the summary, shows the model how the components fit together.
+Agent Interface sends the whole conversation with every turn, so the model still sees its own form from the previous turn and can fill in the gaps. The remaining rules describe the stay cards, the summary, and the hand-off. Each stay card's value is the stay's booking link, so choosing a card sends the link back with the form, and the summary's **Continue to booking** button opens it with `@OpenUrl`. One OpenUI Lang example for each step, the trip form, the stay cards, and the summary, shows the model how the components fit together.
 
 ### 5. Connect Agent Interface
 
@@ -263,9 +264,9 @@ const storage = useOpenuiCloudStorage({
 <AgentInterface llm={llm} storage={storage} componentLibrary={library} agentName="Stay finder" />;
 ```
 
-Threads stay listed after a reload. Chat Completions doesn't write turns to a conversation, so the chat route appends each turn, including the tool calls and their results, with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history) from `@openuidev/server`. A stopped or failed answer still keeps the user's message. A thread you open again then loads its messages. To keep threads in your own database instead, use `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
+The chat route saves each message and answer to the thread with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so a thread you open again, even after a reload, shows its messages. To keep threads in your own database instead, use `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
 
-The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/api/chat/route.ts) runs `search_stays` with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and returns the runner's `toReadableStream()`, so Agent Interface shows each search and its arguments. Chat Completions has no chunk for a tool result, so in a live answer the search results appear only in the answer. It forwards only user messages and assistant answers from the browser and drops tool calls and results, so later steps rely on what the stay cards show, including the booking link in each card's value. A submitted form arrives as one message with the button label and the form's values, so the route accepts user messages of up to 4,000 characters.
+The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/api/chat/route.ts) runs `search_stays` with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and streams the answer to Agent Interface as the model writes it, so **Behind the scenes** shows each search. It forwards only messages and answers from the thread, so later steps rely on what the stay cards show, including the booking link in each card's value. A submitted form arrives as one message with the button label and the form's values.
 
 The example also customizes Agent Interface with a theme from `createTheme`, a logo, starters for four different trips, and a thread header that credits trivago. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
 
@@ -294,7 +295,20 @@ The form pattern carries over to anything that needs a few details before an act
 This example runs locally without authentication. Its chat and frontend-token routes accept browser requests only from its own page, and every browser shares one local user's threads. Before deploying it, add [authentication](/docs/gateway/authentication), mint each frontend token for the signed-in user, check that each `threadId` is one of that user's conversations before storing a turn in it, and add rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/booking-assistant) for the implementation notes.
 
 - [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
-- [Gateway Chat Completions API](/docs/gateway/api/chat-completions)
 - [Connect a backend](/docs/agent/reference/self-hosting)
+
+## References
+
+The example uses these packages and APIs:
+
+- [`@openuidev/react-ui`](/docs/api-reference/react-ui): `AgentInterface` and the built-in component libraries.
+- [`@openuidev/react-headless`](/docs/api-reference/react-headless): `fetchLLM()`, `openAIReadableStreamAdapter()`, and `useOpenuiCloudStorage()`, which the example imports through `@openuidev/react-ui`.
+- [`@openuidev/react-lang`](/docs/api-reference/react-lang): `createLibrary()` and `defineComponent()`.
+- [`@openuidev/lang-core`](/docs/openui-lang/system-prompts): `generateSystemPrompt()`.
+- [`@openuidev/server`](/docs/api-reference/server#conversation-history): `storeChatCompletionHistory()`.
+- [`@openuidev/cli`](/docs/api-reference/cli): `openui generate`.
+- [OpenAI SDK](https://github.com/openai/openai-node): `runTools()` and `toReadableStream()`.
+- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk): the Streamable HTTP client that calls trivago's MCP server.
+- [Gateway Chat Completions API](/docs/gateway/api/chat-completions) and [Conversations API](/docs/gateway/api/conversations).
 
 Hotels, prices, and photos: [trivago MCP](https://mcp.trivago.com/docs), fetched live for each search.

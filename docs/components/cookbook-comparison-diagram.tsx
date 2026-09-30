@@ -12,6 +12,13 @@ const pipeline = [
   { title: "Database", detail: "Local SQLite file" },
 ];
 
+// After each answer: the thread is kept in a Gateway conversation.
+const thread = [
+  { title: "Turn", detail: "Question and answer" },
+  { title: "Conversation", detail: "Saved in Gateway" },
+  { title: "Thread", detail: "Reopens later" },
+];
+
 const companies = ["NVIDIA", "AMD", "Intel"];
 const criteria = [
   { name: "Revenue", pages: ["Page 37", "Page 50", "Page 27"], y: 222 },
@@ -42,7 +49,7 @@ export function CookbookComparisonDiagram() {
   return (
     <figure className="not-prose my-6 overflow-x-auto">
       <svg
-        viewBox="0 0 930 392"
+        viewBox="0 0 930 490"
         role="img"
         aria-labelledby={`${id}-title ${id}-description`}
         className="h-auto w-full min-w-[640px] text-fd-foreground"
@@ -54,7 +61,8 @@ export function CookbookComparisonDiagram() {
           meaning, and saved in a local database. Then, for each question, such as comparing revenue
           and R&D spending, the model picks what to compare, the best-matching page in each report
           is found for each item, and the answer appears in the chat as a table, charts, and quoted
-          sources.
+          sources. Finally, each question and answer is saved to the thread's Gateway conversation,
+          so the thread reopens later with its messages.
         </desc>
         <defs>
           <marker
@@ -243,6 +251,39 @@ export function CookbookComparisonDiagram() {
         <text x={832} y={374} textAnchor="middle" className={caption}>
           Answer in the chat
         </text>
+
+        {/* After each answer */}
+        <text x={10} y={412} className={caption}>
+          3. Keep the thread
+        </text>
+        {thread.map((step, index) => {
+          const x = 10 + index * 190;
+          return (
+            <g key={step.title}>
+              <rect
+                x={x}
+                y={424}
+                width={150}
+                height={56}
+                rx={28}
+                strokeWidth={1.6}
+                className={box}
+              />
+              <text x={x + 75} y={448} textAnchor="middle" className={label}>
+                {step.title}
+              </text>
+              <text
+                x={x + 75}
+                y={467}
+                textAnchor="middle"
+                className="fill-fd-muted-foreground font-sans text-[13px]"
+              >
+                {step.detail}
+              </text>
+              {index < thread.length - 1 && <Arrow d={`M${x + 154} 452 H${x + 184}`} id={id} />}
+            </g>
+          );
+        })}
       </svg>
     </figure>
   );

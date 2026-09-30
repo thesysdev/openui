@@ -57,7 +57,8 @@ export function CookbookBookingDiagram() {
           MCP server, which returns live prices from booking sites, and the model shows the stays as
           cards with photos. The guest picks one and sees a summary with a Continue button that
           opens the booking site, where they book and pay. The model writes every screen; the search
-          and the booking happen outside the chat.
+          and the booking happen outside the chat. Your server also saves each turn to the thread's
+          Gateway conversation, so the thread reopens later with its messages.
         </desc>
         <defs>
           <marker
@@ -223,6 +224,16 @@ export function CookbookBookingDiagram() {
         </text>
         <text x={x(3) + 102} y={305} textAnchor="middle" className={note}>
           The guest books and pays
+        </text>
+
+        {/* Your server saves each turn to the thread's Gateway conversation. */}
+        <Arrow d={`M${x(2) - 4} 290 H${x(1) + 165} V344`} id={id} />
+        <rect x={x(1)} y={350} width={205} height={50} rx={12} strokeWidth={1.6} className={box} />
+        <text x={x(1) + 102} y={371} textAnchor="middle" className={label}>
+          Conversation
+        </text>
+        <text x={x(1) + 102} y={390} textAnchor="middle" className={note}>
+          Keeps each turn in Gateway
         </text>
       </svg>
     </figure>
