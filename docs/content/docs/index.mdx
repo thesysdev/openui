@@ -4,17 +4,28 @@ hideFooter: true
 ---
 
 import { OpenUIFlowDiagram } from "@/components/openui-flow-diagram";
-import { OpenUILangStreamDemo } from "@/components/openui-lang-stream-demo";
 
 OpenUI is the open standard for Generative UI. At its core is **OpenUI Lang**, a compact language that lets models respond with live, interactive interfaces built from your own components, instead of only text. OpenUI Lang works with any model, agent framework, or chat UI.
+
+<div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border">
+  <video
+    src="/videos/openui-introduction.mp4"
+    poster="/videos/openui-introduction-poster.jpg"
+    aria-label="An OpenUI agent answering a question with a generated interface of stat cards and tables"
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+    className="block h-auto w-full"
+  />
+</div>
+
+[Try the live demo →](/chat)
 
 Most AI applications are limited to returning text as Markdown or rendering pre-built UI responses. Markdown isn't interactive, and pre-built responses are rigid. They don't adapt to the context of the conversation.
 
 With Generative UI, the model composes the interface itself. It selects, configures, and combines components from your component library to build an interface for each request, whether that's an interactive chart, a form, or a multi-tab dashboard.
-
-<OpenUILangStreamDemo />
-
-[Try the live demo →](/chat)
 
 ## How it works
 
