@@ -174,7 +174,9 @@ export function useOpenUIState(
 
   // ─── Evaluate and submit queries ───
   useEffect(() => {
-    if (blocked) return;
+    // Bundled previews use a provider-less manager: register defaults for rendering
+    // while execution stays paused. Preserve bare DSL's existing streaming behavior.
+    if (blocked && !bundleBlocked) return;
 
     const queryStmts = result?.queryStatements ?? [];
     const evaluatedNodes = queryStmts.map((qn) => {
@@ -189,9 +191,10 @@ export function useOpenUIState(
         toolName: qn.toolAST ? (evaluate(qn.toolAST, evaluationContext) as string) : "",
         args: qn.argsAST ? evaluate(qn.argsAST, evaluationContext) : null,
         defaults: qn.defaultsAST ? evaluate(qn.defaultsAST, evaluationContext) : null,
-        refreshInterval: qn.refreshAST
-          ? (evaluate(qn.refreshAST, evaluationContext) as number)
-          : undefined,
+        refreshInterval:
+          !blocked && qn.refreshAST
+            ? (evaluate(qn.refreshAST, evaluationContext) as number)
+            : undefined,
         deps: Object.keys(relevantDeps).length > 0 ? relevantDeps : undefined,
         complete: qn.complete,
       };
@@ -199,7 +202,14 @@ export function useOpenUIState(
 
     // Always call — empty array clears removed queries and their errors
     queryManager.evaluateQueries(evaluatedNodes);
-  }, [blocked, result?.queryStatements, evaluationContext, queryManager, storeSnapshot]);
+  }, [
+    blocked,
+    bundleBlocked,
+    result?.queryStatements,
+    evaluationContext,
+    queryManager,
+    storeSnapshot,
+  ]);
 
   // ─── Register mutations ───
   useEffect(() => {
