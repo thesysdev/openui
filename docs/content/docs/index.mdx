@@ -44,8 +44,13 @@ See it end to end in [Getting Started](/docs/getting-started).
 
 OpenUI gives you the tools to build Generative UI into your application and run it reliably in production.
 
+To build Generative UI:
+
 - **[OpenUI Lang](/docs/openui-lang):** Describes interfaces with your own components. Models generate it in less than half the tokens of JSON-based formats, and the renderer displays it progressively as it streams.
 - **[Agent Interface](/docs/agent/getting-started/introduction):** A React SDK for a complete chat interface, with threads, streaming messages, tool activity, and generated components. Connect it to your existing agent backend, or add the renderer to assistant-ui, CopilotKit, or your own chat UI instead.
+
+To run it in production:
+
 - **[Gateway](/docs/gateway):** OpenRouter for Generative UI. One API for models across providers, with automatic failover when a provider is unavailable and Autofix built in to correct invalid OpenUI Lang as it streams.
 - **[Autofix](/docs/autofix):** Repairs invalid OpenUI Lang after generation with one API call. Keep your existing model provider, inference setup, and agent framework.
 - **[Reliability Monitoring](/docs/reliability):** Shows how often generated interfaces fail, which errors recur, and the generation behind each failure. It's enabled automatically with Gateway and Autofix, or through the Observability SDK with your own inference.
