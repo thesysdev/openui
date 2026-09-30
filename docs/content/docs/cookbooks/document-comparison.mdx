@@ -19,7 +19,6 @@ In this cookbook, you'll learn how to:
 - Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity, with your own theme, sidebar, and pages.
 - Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
 - Send the conversation with each question, so a follow-up can add a criterion to the comparison.
-- Keep threads in Gateway [conversations](/docs/gateway/api/conversations): the server stores each turn, and the browser reads threads directly with a short-lived frontend token.
 
 <div className="not-prose my-6">
   <a
@@ -73,7 +72,6 @@ A document comparison assistant splits the work between your application and the
 2. **The model searches once per criterion.** For “revenue and R&D”, it calls `search_documents` twice, in parallel, with short descriptions such as “research and development expenses for the fiscal year”. Separate searches keep one criterion's passages from crowding out another's. Your server embeds each description with OpenAI, compares it with the passage embeddings it loaded from SQLite, and returns each document's closest passages with their page numbers and a `found` flag.
 3. **The model compares the evidence.** It writes OpenUI Lang with a table of page-cited values, charts suited to the data, callouts for conflicts or gaps, and source cards that quote each passage. Gateway validates the generated OpenUI Lang against your component library as it streams.
 4. **Agent Interface renders it progressively.** Tables and charts appear as their data arrives. The next request includes the earlier questions and answers, so a follow-up such as “compare headcount” searches for the new criterion and extends the comparison.
-5. **Gateway keeps the thread.** Your server saves each question and answer to the thread's Gateway conversation, and Agent Interface lists and reopens threads from there, even after a reload.
 
 ### Why retrieve passages
 
@@ -237,22 +235,18 @@ const llm = fetchLLM({
   streamAdapter: openAIReadableStreamAdapter(),
   messageFormat: openAIMessageFormat,
 });
-```
 
-Chat Completions does not store conversations, so Agent Interface keeps each thread's messages in the browser and sends them with every question. That is what lets a follow-up add a criterion to the comparison.
-
-<Callout type="info" title="Thread storage">
-
-`useOpenuiCloudStorage()` stores the thread list with the Gateway [Conversations API](/docs/gateway/api/conversations). The browser calls Gateway directly with a short-lived [frontend token](/docs/gateway/authentication#frontend-tokens) from the example's `/api/frontend-token` route, so `THESYS_API_KEY` stays on the server and the browser reaches only one local user's threads in this app:
-
-```tsx title="src/components/comparison-chat.tsx"
 const storage = useOpenuiCloudStorage({
   token: "/api/frontend-token",
   features: { artifact: false },
 });
 ```
 
-The chat route saves each question and answer to the thread with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so a thread you open again, even after a reload, shows its messages. To keep threads in your own database instead, use `restStorage`; see [Connect a backend](/docs/agent/reference/self-hosting#3-persist-conversations).
+Chat Completions does not store conversations, so Agent Interface keeps each thread's messages in the browser and sends them with every question. That is what lets a follow-up add a criterion to the comparison.
+
+<Callout type="info" title="Thread storage">
+
+`useOpenuiCloudStorage()` keeps the thread list in Gateway, and the chat route saves each question and answer with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so threads and their messages stay after a reload.
 
 </Callout>
 
@@ -377,7 +371,7 @@ The importer reads a PDF's text layer, so run OCR on scanned documents first. Fo
 
 This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
 
-This example runs locally without authentication. Its chat and frontend-token routes accept browser requests only from its own page, and every browser shares one local user's threads. Before deploying it, add [authentication](/docs/gateway/authentication), mint each frontend token for the signed-in user, check that each `threadId` is one of that user's conversations before storing a turn in it, and add rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
+This example runs locally without authentication, and its routes accept browser requests only from its own page. Before deploying it, add [authentication](/docs/gateway/authentication) and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
 
 - [Agent Interface quickstart](/docs/agent/getting-started/quickstart)
 - [Agent tools](/docs/agent/core-concepts/tools)
@@ -395,6 +389,6 @@ The example uses these packages and APIs:
 - [`@openuidev/cli`](/docs/api-reference/cli): `openui generate`.
 - [OpenAI SDK](https://github.com/openai/openai-node): `runTools()`, `toReadableStream()`, and embeddings.
 - [`unpdf`](https://github.com/unjs/unpdf): PDF text extraction.
-- [Gateway Chat Completions API](/docs/gateway/api/chat-completions) and [Conversations API](/docs/gateway/api/conversations).
+- [Gateway Chat Completions API](/docs/gateway/api/chat-completions).
 
 Documents: the Form 10-K annual reports of NVIDIA, AMD, and Intel, downloaded from each company's investor relations site during setup. They are not included in this repository.
