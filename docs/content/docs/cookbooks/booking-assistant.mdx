@@ -270,11 +270,9 @@ The chat route saves each message and answer to the thread with [`storeChatCompl
 
 </Callout>
 
-The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/api/chat/route.ts) runs `search_stays` whenever the model asks for a search and streams the answer to Agent Interface as the model writes it, so **Behind the scenes** shows each search. It forwards only messages and answers from the thread, so later steps rely on what the stay cards show, including the booking link in each card's value. A submitted form arrives as one message with the button label and the form's values.
+The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/booking-assistant/src/app/api/chat/route.ts) runs `search_stays` whenever the model asks for a search and streams the answer to Agent Interface as the model writes it, so **Behind the scenes** shows each search. It forwards only messages and answers from the thread, so later steps rely on what the stay cards show.
 
 The example also customizes Agent Interface with a theme from `createTheme`, a logo, starters for four different trips, and a thread header that credits trivago. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
-
-This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
 
 ## Verify it works
 
@@ -295,6 +293,8 @@ Generated layouts can vary. Hotels, prices, photos, and links should always come
 To use another MCP server, keep the `search_stays` contract and replace `searchAccommodations`. Kiwi.com, for example, publishes a public MCP server for [flight search](https://www.kiwi.com/en/pages/mcp/). For your own inventory, call your availability API from the tool, or publish it as an MCP server so other assistants can use it too.
 
 The form pattern carries over to anything that needs a few details before an action: a restaurant reservation, a support ticket, a travel request. Describe the details, their controls, and which are required, and keep the action behind a summary. Before relying on a third-party MCP server in production, check its terms and plan for it being slow or unavailable.
+
+This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
 
 This example runs locally without authentication. Its chat and frontend-token routes accept browser requests only from its own page, and every browser shares one local user's threads. Before deploying it, add [authentication](/docs/gateway/authentication), mint each frontend token for the signed-in user, check that each `threadId` is one of that user's conversations before storing a turn in it, and add rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/booking-assistant) for the implementation notes.
 

@@ -334,9 +334,7 @@ const runner = gateway.chat.completions.runTools(
 );
 ```
 
-The route runs each search the model asks for and sends the passages back, until the model answers. Searches requested together run in parallel, and when a document returns `found: false`, the model can search it again with different wording. The route streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each search. It forwards only questions and answers from the thread, so every quote comes from a search your server ran. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/app/api/chat/route.ts) has the details, including request validation and error handling.
-
-This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
+The route runs each search the model asks for and sends the passages back, until the model answers. When a document returns `found: false`, the model can search it again with different wording. The route streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each search. It forwards only questions and answers from the thread, so every quote comes from a search your server ran. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/app/api/chat/route.ts) has the details, including request validation and error handling.
 
 The prompt turns the evidence into a consistent answer:
 
@@ -366,6 +364,8 @@ Generated layouts can vary. Values should always match a quoted passage.
 Add your own PDFs to the example's `documents/` folder and run `npm run prepare:documents` again; they are compared alongside the samples. To compare only your documents, remove the entries from `sources` in `src/lib/documents.ts`, then update the starters and thread header in `comparison-chat.tsx`.
 
 The importer reads a PDF's text layer, so run OCR on scanned documents first. For large collections, store the embeddings in a vector database and keep the `search_documents` tool's contract.
+
+This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
 
 This example runs locally without authentication. Its chat and frontend-token routes accept browser requests only from its own page, and every browser shares one local user's threads. Before deploying it, add [authentication](/docs/gateway/authentication), mint each frontend token for the signed-in user, check that each `threadId` is one of that user's conversations before storing a turn in it, and add rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
 

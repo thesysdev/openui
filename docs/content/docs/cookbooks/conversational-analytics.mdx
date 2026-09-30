@@ -258,10 +258,6 @@ const runner = gateway.chat.completions.runTools(
 
 The route runs `query_lap_times` whenever the model calls it and sends the result back, until the model answers. It streams the answer to Agent Interface as the model writes it, and **Behind the scenes** shows each tool call. It forwards only questions and answers from the thread, so every value the model uses comes from a query your server ran. The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/conversational-analytics/src/app/api/chat/route.ts) has the details, including request validation and error handling.
 
-Because `componentLibrary` is set, Agent Interface renders the streamed OpenUI Lang with the same library. The prompt emits `root` first, followed by its components in reading order, so resolved components appear while the rest of the response is still arriving.
-
-A follow-up such as **“Focus on their final ten laps”** triggers a new tool call with the same drivers and laps 48 through 57. Gateway then streams the updated chart.
-
 ## Verify it works
 
 In the browser:
