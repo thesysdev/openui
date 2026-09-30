@@ -257,6 +257,28 @@ respectively. Empty index expressions produce an `invalid-expression` entry in
 `result.meta.errors`, with the affected statement and correction examples for a
 sanitizer to use.
 
+## Expression diagnostics
+
+Malformed expressions are reported as `invalid-expression`, including:
+
+| Invalid expression | Supported alternative |
+| :--- | :--- |
+| `rows.map(...)` | `@Each(rows, "item", item.field)` or `rows.field` for projection |
+| `Math.round(value)` | `@Round(value)` |
+| `Sum(values)` | `@Sum(values)` |
+| `condition ? yes` | `condition ? yes : no` |
+| `condition ? : no` | `condition ? yes : no` |
+| `data.` | `data.name` |
+| `price *` | `price * quantity` |
+
+Custom computation belongs in a script-backed `Query` or `Mutation`, rather than
+JavaScript calls embedded in OpenUI Lang. Registered component calls remain valid.
+
+While streaming, trailing incomplete expressions remain provisional. Validate the
+finished response with `createParser(...).parse(response)` to catch missing operands,
+member names, or ternary branches at end of input. A later corrected statement
+replaces both the expression and its old diagnostics.
+
 ## Documentation
 
 - [OpenUI Lang guide](https://openui.com/docs/openui-lang)

@@ -92,7 +92,7 @@ function classifyStatement(raw: RawStmt, expr: ASTNode): Statement {
 type ParsedStatement = Statement & { syntaxErrors: ValidationError[] };
 
 /** Report syntax errors only for tokens supplied by the model, not auto-closed brackets. */
-function parseStatement(raw: RawStmt, originalTokenCount = raw.tokens.length): ParsedStatement {
+function parseStatement(raw: RawStmt, originalTokenCount = Infinity): ParsedStatement {
   const syntaxErrors: ValidationError[] = [];
   const expr = parseExpression(raw.tokens, (message, tokenIndex) => {
     if (tokenIndex >= originalTokenCount) return;
@@ -440,7 +440,10 @@ export function parse(input: string, cat: ParamMap, rootName?: string): ParseRes
   let firstId = "";
   const originalStmts = wasIncomplete ? split(tokenize(trimmed)) : stmts;
   for (const [index, s] of stmts.entries()) {
-    const stmt = parseStatement(s, originalStmts[index]?.tokens.length ?? 0);
+    const stmt = parseStatement(
+      s,
+      wasIncomplete ? (originalStmts[index]?.tokens.length ?? 0) : Infinity,
+    );
     stmtMap.set(s.id, stmt);
     if (!firstId) firstId = s.id;
   }
@@ -532,7 +535,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       // Track ternary ? and : at bracket depth 0 (colons inside {} are object key separators)
       else if (c === "?" && depth === 0) ternaryDepth++;
       else if (c === ":" && depth === 0 && ternaryDepth > 0) ternaryDepth--;
-      else if (c === "\n" && depth <= 0 && ternaryDepth <= 0) {
+      else if (c === "\n" && depth <= 0) {
         // Before splitting, look ahead past whitespace to see if the next
         // meaningful character is `?` or `:` — ternary continuation.
         let peek = i + 1;
@@ -544,6 +547,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
             cleaned[peek] === "\n")
         )
           peek++;
+        const nextIsStatement = /^\$?[A-Za-z_][A-Za-z0-9_]*\s*=(?!=)/.test(cleaned.slice(peek));
+        if (ternaryDepth > 0 && !nextIsStatement) continue;
         if (
           peek < cleaned.length &&
           (cleaned[peek] === "?" || (cleaned[peek] === ":" && ternaryDepth > 0))
@@ -555,6 +560,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         if (t) addStmt(t);
         stmtStart = i + 1; // next statement begins after this newline
         completedEnd = i + 1; // advance the "already processed" watermark
+        ternaryDepth = 0;
       }
     }
 

@@ -104,13 +104,21 @@ export function split(tokens: Token[]): RawStmt[] {
     let ternaryDepth = 0;
     while (pos < tokens.length && tokens[pos].t !== T.EOF) {
       const tt = tokens[pos].t;
-      if (tt === T.Newline && depth <= 0 && ternaryDepth <= 0) {
+      if (tt === T.Newline && depth <= 0) {
         // Before breaking, look ahead past whitespace/newlines to see if
         // the next meaningful token is `?` or `:` — if so, the ternary
         // continues on the next line and we should NOT split here.
         let peek = pos + 1;
         while (peek < tokens.length && tokens[peek].t === T.Newline) peek++;
         const nextT = peek < tokens.length ? tokens[peek].t : T.EOF;
+        const nextIsStatement =
+          (nextT === T.Ident || nextT === T.Type || nextT === T.StateVar) &&
+          tokens[peek + 1]?.t === T.Equals;
+        // An incomplete ternary must not swallow a later corrective statement.
+        if (ternaryDepth > 0 && !nextIsStatement) {
+          pos++;
+          continue;
+        }
         if (nextT === T.Question || (nextT === T.Colon && ternaryDepth > 0)) {
           // Ternary continuation — skip the newline and keep collecting
           pos++;
