@@ -751,7 +751,7 @@ export type SystemPromptSpec =
       /** Generate scripts using these tools. Required when an edit needs script changes. */
       script?: CloudScriptOptions;
       /** Complete previous bundle to edit, including its program, scripts, and metadata. */
-      incrementalEdit?: string;
+      baseResponse?: string;
       /** Optional metadata emitted by Cloud; supplied fields override inherited edit metadata. */
       meta?: CloudMetadata;
     };

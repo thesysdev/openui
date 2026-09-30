@@ -109,7 +109,7 @@ const tools = [
 
 #### Standalone generation and edits
 
-The Cloud config builder also accepts `script`, `incrementalEdit`, and `meta` as top-level
+The Cloud config builder also accepts `script`, `baseResponse`, and `meta` as top-level
 options. These require a backend that supports the generalized embed config; older backends
 reject the new fields.
 
@@ -126,14 +126,14 @@ const editPrompt = generateSystemPrompt({
       },
     ],
   },
-  incrementalEdit: previousBundle,
+  baseResponse: previousBundle,
   meta: { name: "Net revenue" },
 });
 ```
 
 Send the requested change as a user message alongside this system config. The developer
 selects the message to edit and supplies its complete previous bundle, including scripts and
-metadata. Omit `incrementalEdit` for initial generation.
+metadata. Omit `baseResponse` for initial generation.
 
 `script.tools` describes tools available to generated scripts; it does not contain execution
 callbacks. Its `CloudScriptTool` shape uses `parameters` and optional `output`, distinct
