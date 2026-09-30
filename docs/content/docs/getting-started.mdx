@@ -83,7 +83,7 @@ const model = new OpenAI();
 const autofix = createAutofix({ apiKey: process.env.THESYS_API_KEY!, library });
 
 const messages = [
-  { role: "system" as const, content: generateSystemPrompt({ cloud: true, library }) },
+  { role: "system" as const, content: generateSystemPrompt({ library }) },
   { role: "user" as const, content: "Compare quarterly revenue by region." },
 ];
 
