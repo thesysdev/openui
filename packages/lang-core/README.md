@@ -107,6 +107,42 @@ const tools = [
 ];
 ```
 
+#### Standalone generation and edits
+
+The Cloud config builder also accepts `script`, `baseResponse`, and `meta` as top-level
+options. These require a backend that supports the generalized embed config; older backends
+reject the new fields.
+
+```ts
+const editPrompt = generateSystemPrompt({
+  cloud: true,
+  script: {
+    tools: [
+      {
+        name: "get_orders",
+        description: "List orders with their revenue and refund status.",
+        parameters: { type: "object", properties: {} },
+        output: [{ revenue: 120, refunded: false }],
+      },
+    ],
+  },
+  baseResponse: previousBundle,
+  meta: { name: "Net revenue" },
+});
+```
+
+Send the requested change as a user message alongside this system config. The developer
+selects the message to edit and supplies its complete previous bundle, including scripts and
+metadata. Omit `baseResponse` for initial generation.
+
+`script.tools` describes tools available to generated scripts; it does not contain execution
+callbacks. Its `CloudScriptTool` shape uses `parameters` and optional `output`, distinct
+from the self-hosted `ToolSpec` shape. Supply script tools when an edit requires script changes.
+
+`meta` currently supports only an optional `name`. The backend inherits the previous name
+on edits unless a new name is supplied. Lang-core serializes these options;
+it does not merge bundles, generate scripts, or execute them in `generateSystemPrompt`.
+
 ### Merge incremental edits
 
 ```ts
@@ -192,6 +228,56 @@ import type {
   OpenUIError,
 } from "@openuidev/lang-core";
 ```
+
+## Array projection and indexing
+
+Dot access projects a field across array items. Do not add empty brackets between
+the array and the field:
+
+| Intended result | Invalid expression | Correct expression |
+| :--- | :--- | :--- |
+| Every row's field | `rows[].field` | `rows.field` |
+| All daily labels | `metrics.daily[].day` | `metrics.daily.day` |
+| All daily download counts | `metrics.daily[].downloads` | `metrics.daily.downloads` |
+
+Use `rows[0].field` to read a field from **one** item. This has different semantics
+from projection. An empty array literal, such as `labels = []`, is also valid.
+
+For example, given `metrics.daily = [{day: "2026-09-28", downloads: 120},
+{day: "2026-09-29", downloads: 150}]`:
+
+```text
+labels = metrics.daily.day
+values = metrics.daily.downloads
+firstDay = metrics.daily[0].day
+```
+
+These evaluate to `["2026-09-28", "2026-09-29"]`, `[120, 150]`, and `"2026-09-28"`,
+respectively. Empty index expressions produce an `invalid-expression` entry in
+`result.meta.errors`, with the affected statement and correction examples for a
+sanitizer to use.
+
+## Expression diagnostics
+
+Malformed expressions are reported as `invalid-expression`, including:
+
+| Invalid expression | Supported alternative |
+| :--- | :--- |
+| `rows.map(...)` | `@Each(rows, "item", item.field)` or `rows.field` for projection |
+| `Math.round(value)` | `@Round(value)` |
+| `Sum(values)` | `@Sum(values)` |
+| `condition ? yes` | `condition ? yes : no` |
+| `condition ? : no` | `condition ? yes : no` |
+| `data.` | `data.name` |
+| `price *` | `price * quantity` |
+
+Custom computation belongs in a script-backed `Query` or `Mutation`, rather than
+JavaScript calls embedded in OpenUI Lang. Registered component calls remain valid.
+
+While streaming, trailing incomplete expressions remain provisional. Validate the
+finished response with `createParser(...).parse(response)` to catch missing operands,
+member names, or ternary branches at end of input. A later corrected statement
+replaces both the expression and its old diagnostics.
 
 ## Documentation
 

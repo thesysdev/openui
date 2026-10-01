@@ -100,7 +100,8 @@ function AssistantMessage({ response, isStreaming }) {
 
 | Export | Description |
 | :--- | :--- |
-| `Renderer` | React component that parses and renders OpenUI Lang output |
+| `Renderer` | Render OpenUI Lang directly, without a preview |
+| `WithPreviewRenderer` | Add an inline preview that opens the rendered UI |
 
 **`RendererProps`:**
 
@@ -221,3 +222,110 @@ const schema = library.toJSONSchema();
 ## License
 
 [MIT](https://github.com/thesysdev/openui/blob/main/LICENSE)
+
+### Cloud response bundles and scripts
+
+Pass the complete response to `Renderer`, including content, scripts, and end
+sentinels. It renders the program while streaming. Bare OpenUI Lang remains
+supported. Use `WithPreviewRenderer` for metadata and preview presentation.
+
+```tsx
+<Renderer
+  response={message.content}
+  library={library}
+  isStreaming={isStreaming}
+  toolProvider={{
+    async callTool({ name, arguments: args }) {
+      const res = await fetch("/api/tools", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, arguments: args ?? {}, response: message.content }),
+        signal: AbortSignal.timeout(60_000),
+      });
+      if (!res.ok) throw new Error(`Tool request failed: ${res.status}`);
+      const { result } = await res.json();
+      return { content: [], structuredContent: result };
+    },
+  }}
+/>
+```
+
+Every Query/Mutation goes through the supplied provider. Renderer does not reserve
+an execution tool name or implement a script transport. Existing function maps
+also work; use the single `callTool` form when your backend handles dispatch.
+
+In the example, the host attaches the complete response to each request. Your
+server first executes registered tools, then resolves unregistered names against
+the response's scripts through `/v1/app/execute`. The server owns the continuation
+loop: run requested customer tools, send their results and opaque state back to
+the execution endpoint, and return the final `{ result }` to the provider. Keep
+credentials and customer authorization on that server. Unknown tools/scripts
+should return an error. The provider returns an MCP-compatible result envelope.
+
+Providers own timeouts, cancellation and execution limits. On response changes
+or unmount, Renderer ignores obsolete query results; it does not cancel calls
+already running inside a provider.
+
+Execution waits until streaming stops and a framed response has its end sentinel.
+The backend emits the end sentinel only after successful generation. A stopped
+stream without a valid terminal marker remains blocked. Bare DSL retains its
+existing behavior: it becomes executable when `isStreaming` is false. Hosts
+should discard interrupted bare-code responses rather than mark them complete.
+Malformed bundles do not execute. Script transport and tool errors flow through
+`onError` and query/mutation error state.
+
+For edits, replace `response` with the complete updated bundle returned by Cloud.
+Changed script bundles invalidate cached query results, including when the
+program keeps the same query names and arguments.
+
+### Choosing a renderer and adding previews
+
+Use `Renderer` when you want to display the UI directly without a preview.
+Use `WithPreviewRenderer` when you want an inline preview that opens the rendered UI.
+
+`WithPreviewRenderer` wraps `Renderer` with metadata and presentation. It defaults to
+an inline name button that opens an inline content region. Metadata is optional;
+missing names display as “Untitled artifact”. All Renderer props pass through.
+
+```tsx
+import { createPortal } from "react-dom";
+import { WithPreviewRenderer } from "@openuidev/react-lang";
+
+<WithPreviewRenderer
+  response={message.content}
+  library={library}
+  toolProvider={tools}
+  isStreaming={isStreaming}
+  renderPreview={({ metadata, isOpen, open, close }) => (
+    <button aria-expanded={isOpen} onClick={isOpen ? close : open}>
+      {metadata.name || "View artifact"}
+    </button>
+  )}
+  renderContent={({ children, metadata, close, contentId }) =>
+    panelElement && createPortal(
+      <section id={contentId} aria-label={metadata.name || "Artifact"}>
+        <button onClick={close}>Close</button>
+        {children}
+      </section>,
+      panelElement,
+    )
+  }
+/>
+```
+
+This is a composition pattern: `renderPreview` controls the inline preview and
+`renderContent` places the expanded Renderer in your panel, modal, or portal.
+The host owns the target element and any dialog focus/keyboard behavior. No
+portal library or `react-dom` import is imposed by the wrapper.
+
+Use `open` and `onOpenChange` for controlled visibility, or `defaultOpen` for
+initially expanded content. `onMetadata` is available on `WithPreviewRenderer` only.
+The expanded Renderer mounts only while open; closing disposes its query manager
+and resets its local state. Persist form state with `onStateUpdate` and restore
+it with `initialState` when needed. Reopening refetches queries. Use a stable key
+per artifact to keep separate messages' presentation state independent.
+
+Streaming edits may contain multiple content sections: a base-plus-patch preview,
+retry previews, and a final merged result. The last content section wins. Queries
+and mutations remain blocked until streaming stops and the final end marker is
+present. The entire accumulated response can be passed back for execution/editing.

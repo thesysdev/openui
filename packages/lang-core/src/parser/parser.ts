@@ -89,6 +89,24 @@ function classifyStatement(raw: RawStmt, expr: ASTNode): Statement {
   return { kind: "value", id: raw.id, expr };
 }
 
+type ParsedStatement = Statement & { syntaxErrors: ValidationError[] };
+
+/** Report syntax errors only for tokens supplied by the model, not auto-closed brackets. */
+function parseStatement(raw: RawStmt, originalTokenCount = Infinity): ParsedStatement {
+  const syntaxErrors: ValidationError[] = [];
+  const expr = parseExpression(raw.tokens, (message, tokenIndex) => {
+    if (tokenIndex >= originalTokenCount) return;
+    syntaxErrors.push({
+      code: "invalid-expression",
+      component: "",
+      path: "",
+      statementId: raw.id,
+      message: `Statement "${raw.id}": ${message}`,
+    });
+  });
+  return { ...classifyStatement(raw, expr), syntaxErrors };
+}
+
 /**
  * Extract typed statements from the symbol table.
  * State defaults are materialized to plain values (no raw AST in output).
@@ -187,8 +205,8 @@ function pickEntryId(
 }
 
 function buildResult(
-  stmtMap: Map<string, Statement>,
-  typedStmts: Statement[],
+  stmtMap: Map<string, ParsedStatement>,
+  typedStmts: ParsedStatement[],
   firstId: string,
   wasIncomplete: boolean,
   stmtCount: number,
@@ -203,7 +221,7 @@ function buildResult(
     syms.set(id, stmt.kind === "state" ? stmt.init : stmt.expr);
   }
   const unres: string[] = [];
-  const errors: ValidationError[] = [];
+  const errors: ValidationError[] = typedStmts.flatMap((stmt) => stmt.syntaxErrors);
   // Track orphaned: start with value statement IDs, delete as they're reached.
   // Exclude root, state ($var), query, and mutation declarations — they're consumed separately.
   const unreached = new Set<string>();
@@ -418,11 +436,14 @@ export function parse(input: string, cat: ParamMap, rootName?: string): ParseRes
   const stmts = split(tokenize(text));
   if (!stmts.length) return emptyResult(wasIncomplete);
 
-  const stmtMap = new Map<string, Statement>();
+  const stmtMap = new Map<string, ParsedStatement>();
   let firstId = "";
-  for (const s of stmts) {
-    const expr = parseExpression(s.tokens);
-    const stmt = classifyStatement(s, expr);
+  const originalStmts = wasIncomplete ? split(tokenize(trimmed)) : stmts;
+  for (const [index, s] of stmts.entries()) {
+    const stmt = parseStatement(
+      s,
+      wasIncomplete ? (originalStmts[index]?.tokens.length ?? 0) : Infinity,
+    );
     stmtMap.set(s.id, stmt);
     if (!firstId) firstId = s.id;
   }
@@ -450,7 +471,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
   // "You're …" before the program) can't corrupt statement-boundary detection.
   let cleaned = "";
   let completedEnd = 0; // watermark: how far into `cleaned` is already completed
-  const completedStmtMap = new Map<string, Statement>();
+  const completedStmtMap = new Map<string, ParsedStatement>();
 
   let completedCount = 0;
   let firstId = "";
@@ -460,8 +481,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     const t = text.trim();
     if (!t) return;
     for (const s of split(tokenize(t))) {
-      const expr = parseExpression(s.tokens);
-      const stmt = classifyStatement(s, expr);
+      const stmt = parseStatement(s);
       completedStmtMap.set(s.id, stmt);
       completedCount++;
       if (!firstId) firstId = s.id;
@@ -515,7 +535,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       // Track ternary ? and : at bracket depth 0 (colons inside {} are object key separators)
       else if (c === "?" && depth === 0) ternaryDepth++;
       else if (c === ":" && depth === 0 && ternaryDepth > 0) ternaryDepth--;
-      else if (c === "\n" && depth <= 0 && ternaryDepth <= 0) {
+      else if (c === "\n" && depth <= 0) {
         // Before splitting, look ahead past whitespace to see if the next
         // meaningful character is `?` or `:` — ternary continuation.
         let peek = i + 1;
@@ -527,6 +547,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
             cleaned[peek] === "\n")
         )
           peek++;
+        const nextIsStatement = /^\$?[A-Za-z_][A-Za-z0-9_]*\s*=(?!=)/.test(cleaned.slice(peek));
+        if (ternaryDepth > 0 && !nextIsStatement) continue;
         if (
           peek < cleaned.length &&
           (cleaned[peek] === "?" || (cleaned[peek] === ":" && ternaryDepth > 0))
@@ -538,6 +560,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         if (t) addStmt(t);
         stmtStart = i + 1; // next statement begins after this newline
         completedEnd = i + 1; // advance the "already processed" watermark
+        ternaryDepth = 0;
       }
     }
 
@@ -584,10 +607,10 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     // New IDs can render progressively; existing IDs are replaced only when
     // the pending expression no longer needs automatic closing.
     const allStmtMap = new Map(completedStmtMap);
-    for (const s of stmts) {
+    const originalStmts = wasIncomplete ? split(tokenize(pendingText)) : stmts;
+    for (const [index, s] of stmts.entries()) {
       if (completedStmtMap.has(s.id) && wasIncomplete) continue;
-      const expr = parseExpression(s.tokens);
-      const stmt = classifyStatement(s, expr);
+      const stmt = parseStatement(s, originalStmts[index]?.tokens.length ?? 0);
       allStmtMap.set(s.id, stmt);
     }
     // Derive from map to deduplicate

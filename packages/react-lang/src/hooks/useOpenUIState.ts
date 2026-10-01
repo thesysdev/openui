@@ -21,6 +21,7 @@ import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import type { OpenUIContextValue } from "../context";
 import type { Library } from "../library";
+import { parseResponseBundle } from "../responseBundle";
 import { useOpenUIErrors } from "./useOpenUIErrors";
 import { useStreamingObservability } from "./useStreamingObservability";
 
@@ -82,16 +83,25 @@ export function useOpenUIState(
   }: UseOpenUIStateOptions,
   renderDeep: (value: unknown) => React.ReactNode,
 ): OpenUIState {
+  const bundle = useMemo(() => parseResponseBundle(response, isStreaming), [response, isStreaming]);
+  const blocked = isStreaming || !bundle.complete || !!bundle.error;
+  // Bare DSL keeps its existing manager, cached results and imperative actions while streaming.
+  const bundleBlocked = bundle.isBundle && blocked;
+  // Recreate the manager when a bundled script changes, even if Query args do not.
+  const scriptRevision = bundle.scripts.size ? response : null;
+
   // ─── Streaming parser (incremental — caches completed statements) ───
   const sp = useMemo(() => createStreamingParser(library.toJSONSchema(), library.root), [library]);
 
   // ─── Parse result ───
   const parseExceptionRef = useRef<OpenUIError | null>(null);
   const result = useMemo<ParseResult | null>(() => {
-    parseExceptionRef.current = null;
-    if (!response) return null;
+    parseExceptionRef.current = bundle.error
+      ? { source: "parser", code: "parse-failed", message: bundle.error }
+      : null;
+    if (!bundle.program) return null;
     try {
-      return sp.set(response);
+      return sp.set(bundle.program);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       parseExceptionRef.current = {
@@ -102,15 +112,15 @@ export function useOpenUIState(
       };
       return null;
     }
-  }, [sp, response]);
+  }, [sp, bundle.program, bundle.error]);
 
   // ─── Store (holds everything: $bindings + form fields) ───
   const store = useMemo<Store>(() => createStore(), []);
 
   // ─── QueryManager ───
   const queryManager = useMemo<QueryManager>(
-    () => createQueryManager(toolProvider ?? null),
-    [toolProvider],
+    () => createQueryManager(bundleBlocked ? null : (toolProvider ?? null)),
+    [toolProvider, bundleBlocked, scriptRevision],
   );
 
   useEffect(() => {
@@ -164,7 +174,9 @@ export function useOpenUIState(
 
   // ─── Evaluate and submit queries ───
   useEffect(() => {
-    if (isStreaming) return;
+    // Bundled previews use a provider-less manager: register defaults for rendering
+    // while execution stays paused. Preserve bare DSL's existing streaming behavior.
+    if (blocked && !bundleBlocked) return;
 
     const queryStmts = result?.queryStatements ?? [];
     const evaluatedNodes = queryStmts.map((qn) => {
@@ -179,9 +191,10 @@ export function useOpenUIState(
         toolName: qn.toolAST ? (evaluate(qn.toolAST, evaluationContext) as string) : "",
         args: qn.argsAST ? evaluate(qn.argsAST, evaluationContext) : null,
         defaults: qn.defaultsAST ? evaluate(qn.defaultsAST, evaluationContext) : null,
-        refreshInterval: qn.refreshAST
-          ? (evaluate(qn.refreshAST, evaluationContext) as number)
-          : undefined,
+        refreshInterval:
+          !blocked && qn.refreshAST
+            ? (evaluate(qn.refreshAST, evaluationContext) as number)
+            : undefined,
         deps: Object.keys(relevantDeps).length > 0 ? relevantDeps : undefined,
         complete: qn.complete,
       };
@@ -189,11 +202,18 @@ export function useOpenUIState(
 
     // Always call — empty array clears removed queries and their errors
     queryManager.evaluateQueries(evaluatedNodes);
-  }, [isStreaming, result?.queryStatements, evaluationContext, queryManager, storeSnapshot]);
+  }, [
+    blocked,
+    bundleBlocked,
+    result?.queryStatements,
+    evaluationContext,
+    queryManager,
+    storeSnapshot,
+  ]);
 
   // ─── Register mutations ───
   useEffect(() => {
-    if (isStreaming) return;
+    if (blocked) return;
 
     const mutStmts = result?.mutationStatements ?? [];
     const nodes = mutStmts.map((mn) => ({
@@ -202,7 +222,7 @@ export function useOpenUIState(
     }));
     // Always call — empty array clears removed mutations and their errors
     queryManager.registerMutations(nodes);
-  }, [isStreaming, result?.mutationStatements, evaluationContext, queryManager]);
+  }, [blocked, result?.mutationStatements, evaluationContext, queryManager]);
 
   // ─── Ref for stable callbacks ───
   const propsRef = useRef({ onAction, onStateUpdate });
@@ -283,6 +303,7 @@ export function useOpenUIState(
       formName?: string,
       action?: ActionPlan | { type?: string; params?: Record<string, any> },
     ) => {
+      if (bundleBlocked) return;
       const formPayload = getFormPayload(formName);
       const { onAction: handler } = propsRef.current;
 
@@ -371,7 +392,7 @@ export function useOpenUIState(
         formName,
       });
     },
-    [queryManager, evaluationContext, getFormPayload, store],
+    [bundleBlocked, queryManager, evaluationContext, getFormPayload, store],
   );
 
   // ─── reportError (for error boundary) ───
@@ -392,7 +413,7 @@ export function useOpenUIState(
       library,
       renderNode: renderDeep,
       triggerAction,
-      isStreaming,
+      isStreaming: blocked,
       getFieldValue,
       setFieldValue,
       store,
@@ -403,7 +424,7 @@ export function useOpenUIState(
     [
       library,
       renderDeep,
-      isStreaming,
+      blocked,
       isQueryLoading,
       triggerAction,
       getFieldValue,
@@ -455,7 +476,7 @@ export function useOpenUIState(
   });
 
   useStreamingObservability({
-    response,
+    response: bundle.program,
     isStreaming,
     result,
     errorsRef,

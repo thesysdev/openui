@@ -19,9 +19,13 @@ const PREC_MEMBER = 9;
 
 /**
  * Parse a token array into an AST node using a Pratt (top-down operator
- * precedence) parser.
+ * precedence) parser. Optional diagnostics include the offending token index
+ * so streaming callers can ignore errors introduced by automatic closing.
  */
-export function parseExpression(tokens: Token[]): ASTNode {
+export function parseExpression(
+  tokens: Token[],
+  onError?: (message: string, tokenIndex: number) => void,
+): ASTNode {
   let pos = 0;
 
   const cur = (): Token => tokens[pos] ?? { t: T.EOF };
@@ -60,6 +64,7 @@ export function parseExpression(tokens: Token[]): ASTNode {
         return PREC_MUL;
       case T.Dot:
       case T.LBrack:
+      case T.LParen:
         return PREC_MEMBER;
       default:
         return 0;
@@ -130,15 +135,30 @@ export function parseExpression(tokens: Token[]): ASTNode {
     if (tok.t === T.Type) {
       const name = tok.v as string;
       // Builtins (Count, Each, Set, Run, etc.) require @-prefix — only Action is exempt
-      if (tokens[pos + 1]?.t === T.LParen && (!isBuiltin(name) || name === "Action"))
+      if (tokens[pos + 1]?.t === T.LParen) {
+        if (isBuiltin(name) && name !== "Action") {
+          onError?.(
+            `Unsupported function call ${name}(...). Use @${name}(...) for this builtin.`,
+            pos,
+          );
+        }
         return parseComp();
+      }
       adv();
       return { k: "Ref", n: name };
     }
 
     // @-prefixed builtin call: @Count(...), @Each(...), @Set(...), etc.
     if (tok.t === T.BuiltinCall) {
-      if (tokens[pos + 1]?.t === T.LParen) return parseComp();
+      if (tokens[pos + 1]?.t === T.LParen) {
+        if (!isBuiltin(tok.v as string)) {
+          onError?.(
+            `Unsupported builtin @${tok.v}(...). Use a supported @builtin or a Query/Mutation backed by a tool or script.`,
+            pos,
+          );
+        }
+        return parseComp();
+      }
       adv();
       return { k: "Ref", n: tok.v as string };
     }
@@ -169,7 +189,11 @@ export function parseExpression(tokens: Token[]): ASTNode {
       return inner;
     }
 
-    // Unknown token — skip and return Null
+    // Keep parsing permissively, but expose missing operands to validation.
+    onError?.(
+      "Missing expression or operand. For example, price * must be completed as price * quantity.",
+      pos,
+    );
     adv();
     return { k: "Null" };
   }
@@ -245,8 +269,24 @@ export function parseExpression(tokens: Token[]): ASTNode {
     // Ternary: cond ? then : else (right-associative)
     if (tok.t === T.Question) {
       adv(); // consume ?
-      const then = parseExpr(0);
-      eat(T.Colon);
+      let then: ASTNode;
+      if (cur().t === T.Colon) {
+        onError?.(
+          "Missing true branch in ternary. Use condition ? valueIfTrue : valueIfFalse.",
+          pos,
+        );
+        then = { k: "Null" };
+      } else {
+        then = parseExpr(0);
+      }
+      if (cur().t !== T.Colon) {
+        onError?.(
+          "Incomplete ternary: expected ':' and a false branch. Use condition ? valueIfTrue : valueIfFalse.",
+          pos,
+        );
+        return { k: "Ternary", cond: left, then, else: { k: "Null" } };
+      }
+      adv();
       const els = parseExpr(0); // right-assoc: parse at lowest prec
       return { k: "Ternary", cond: left, then, else: els };
     }
@@ -263,13 +303,41 @@ export function parseExpression(tokens: Token[]): ASTNode {
           ? (adv(), String(fieldTok.v))
           : fieldTok.t === T.StateVar
             ? (adv(), (fieldTok.v as string).replace(/^\$/, ""))
-            : (adv(), "?");
+            : (onError?.(
+                "Missing member name after '.'. Use data.name or rows.field for array projection.",
+                pos,
+              ),
+              adv(),
+              "?");
       return { k: "Member", obj: left, field };
+    }
+
+    // Only component and @builtin calls are supported, never JS methods/functions.
+    if (tok.t === T.LParen) {
+      onError?.(
+        'Unsupported function call. JavaScript calls such as rows.map(...) and Math.round(...) are not supported. Use @Each(rows, "item", item.field) or @Round(value), or move custom logic into a script-backed Query/Mutation.',
+        pos,
+      );
+      let depth = 0;
+      do {
+        const token = adv();
+        if (token.t === T.LParen) depth++;
+        else if (token.t === T.RParen) depth--;
+      } while (depth > 0 && cur().t !== T.EOF);
+      return { k: "Null" };
     }
 
     // Index access: obj[expr]
     if (tok.t === T.LBrack) {
       adv(); // consume [
+      if (cur().t === T.RBrack) {
+        onError?.(
+          "Empty index expression: [] cannot be used for array projection. To read a field from every item, use dot projection: rows[].field -> rows.field; metrics.daily[].day -> metrics.daily.day; metrics.daily[].downloads -> metrics.daily.downloads. To read one item instead, supply an index: rows[0].field. An empty array literal [] is valid.",
+          pos,
+        );
+        adv(); // consume ] without swallowing the following expression
+        return { k: "Index", obj: left, index: { k: "Null" } };
+      }
       const index = parseExpr(0);
       eat(T.RBrack);
       return { k: "Index", obj: left, index };

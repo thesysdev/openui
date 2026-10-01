@@ -131,3 +131,43 @@ chatCompletionMessagesToItems([
   { role: "assistant", content: "hi" },
 ]);
 ```
+
+## Script execution
+
+`executeScript` drives an execution engine until it completes, dispatching requested tools between steps. It does not depend on Chat Completions, OpenUI bundles, HTTP, or JSON serialization.
+
+```ts
+import { executeScript } from "@openuidev/server";
+
+const result = await executeScript({
+  signal: request.signal,
+  execute: async ({ state, results }, signal) => {
+    // Your adapter starts or resumes the engine and normalizes its response.
+    const step = await engine.resume({ state, results, signal });
+    if (step.complete) {
+      return { status: "complete", result: step.value };
+    }
+    return {
+      status: "tools",
+      state: step.state,
+      calls: step.tools.map((tool) => ({
+        id: tool.id,
+        name: tool.name,
+        input: tool.input,
+      })),
+    };
+  },
+  callTool: async (name, input, signal) => {
+    if (!Object.hasOwn(tools, name)) throw new Error(`Unknown tool: ${name}`);
+    return tools[name](input, signal);
+  },
+});
+```
+
+The execution callback receives `{ results: [] }` initially. On continuation it receives the engine's opaque `state` and tool results as `{ id, result }` or `{ id, error }`. Inputs, results, and errors remain JavaScript values. State and the final result are generic types, so state can be an object, a token, or another engine-owned value. The adapter owns serialization, protocol mapping, credentials, and execution errors (throw to stop the loop).
+
+The helper allows eight continuation rounds and sixteen tool calls, with a 60-second overall deadline (`timeoutMs` overrides it). Duplicate call IDs are rejected before dispatching a batch. Calls run sequentially.
+
+Both callbacks receive a signal combining caller cancellation with the deadline. Forward it to cancellable work. Cancellation cannot undo completed side effects or force-stop callbacks that ignore the signal. The helper never aborts the caller's controller.
+
+For OpenUI's stateless endpoint, keep the complete bundle, script name, and arguments in the adapter's closure. Map its `tool_calls` response into `{ status: "tools", state, calls }`, and map helper results back to its `tool_results` request. A different engine can use the same helper with its own adapter.
