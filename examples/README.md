@@ -65,6 +65,7 @@ Each example has one primary home. Complete workflows with a companion tutorial 
 
 | Example                                        | Demonstrates                                                         |
 | ---------------------------------------------- | -------------------------------------------------------------------- |
+| [AI/ML API](./miscellaneous/aimlapi)           | AgentInterface on AI/ML API through the Vercel AI SDK, no Gateway    |
 | [Autofix](./miscellaneous/autofix)             | Direct OpenAI generation with `@openuidev/server` Autofix repair     |
 | [Handsontable](./miscellaneous/handsontable)   | Generated spreadsheet interfaces backed by Handsontable              |
 | [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts as an OpenUI capability                     |
