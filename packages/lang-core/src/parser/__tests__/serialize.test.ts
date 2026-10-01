@@ -539,6 +539,41 @@ describe("jsonToOpenUI", () => {
       const children = result.root!.props.children as ElementNode[];
       expect(children[0].props.text).toBe("New");
     });
+
+    // A multi-line ternary is part of the accepted grammar (parse() keeps it),
+    // so merging a patch that doesn't touch it must leave it intact (#821).
+    it("keeps a multi-line ternary in an untouched statement", () => {
+      const existing = [
+        "root = Stack([a, b])",
+        "a = $ok",
+        '  ? Title("Yes")',
+        '  : Title("No")',
+        'b = Title("Footer")',
+      ].join("\n");
+
+      const merged = mergeStatements(existing, 'b = Title("Updated")');
+
+      expect(merged).toBe(
+        [
+          "root = Stack([a, b])",
+          "a = $ok",
+          '  ? Title("Yes")',
+          '  : Title("No")',
+          'b = Title("Updated")',
+        ].join("\n"),
+      );
+    });
+
+    it("replaces a multi-line ternary when the patch targets it", () => {
+      const existing = ["root = Stack([a])", "a = $ok", '  ? Title("Yes")', '  : Title("No")'].join(
+        "\n",
+      );
+
+      const merged = mergeStatements(existing, 'a = Title("Changed")');
+
+      expect(merged).toBe(["root = Stack([a])", 'a = Title("Changed")'].join("\n"));
+      expect(merged).not.toContain('? Title("Yes")');
+    });
   });
 
   // ── Edge cases ─────────────────────────────────────────────────────────
