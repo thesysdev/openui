@@ -13,6 +13,8 @@ export type SidebarShellProps = {
   enter?: boolean;
   onPointerEnter?: PointerEventHandler<HTMLElement>;
   onPointerLeave?: PointerEventHandler<HTMLElement>;
+  onPointerMove?: PointerEventHandler<HTMLElement>;
+  onPointerDown?: PointerEventHandler<HTMLElement>;
   children: ReactNode;
 };
 
@@ -24,13 +26,22 @@ export function SidebarShell({
   enter = false,
   onPointerEnter,
   onPointerLeave,
+  onPointerMove,
+  onPointerDown,
   children,
 }: SidebarShellProps) {
   const className = ["f1-sidebar", floating && "f1-sidebar--floating", collapsed && "f1-sidebar--collapsed", enter && "f1-sidebar--enter"]
     .filter(Boolean)
     .join(" ");
   return (
-    <aside className={className} aria-label="Main" onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave}>
+    <aside
+      className={className}
+      aria-label="Main"
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
+      onPointerMove={onPointerMove}
+      onPointerDown={onPointerDown}
+    >
       {textured && <Texture opacity={0.12} />}
       {children}
     </aside>

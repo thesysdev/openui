@@ -525,8 +525,34 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
-  /* One bevelled corner, top right. */
-  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+  /* One bevelled corner, top right. Every corner has its two points in the polygon (the square
+     ones just sit on top of each other), so the hover can grow the cuts smoothly. */
+  clip-path: polygon(
+    0 0,
+    0 0,
+    calc(100% - 18px) 0,
+    100% 18px,
+    100% 100%,
+    100% 100%,
+    0 100%,
+    0 100%
+  );
+  transition: clip-path 150ms var(--c-ease);
+}
+/* Hover and keyboard focus: the bevel grows and the other corners pick up small bevel cuts.
+   No rounding; nothing else changes. */
+.f1c-card[data-pick]:hover,
+.f1c-card[data-pick]:focus-visible {
+  clip-path: polygon(
+    0 8px,
+    8px 0,
+    calc(100% - 30px) 0,
+    100% 30px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0 calc(100% - 8px)
+  );
 }
 .f1c-card:focus-visible {
   outline: none;
@@ -617,6 +643,19 @@
   left: 50%;
   translate: -50% -50%;
   rotate: 90deg;
+}
+/* Circuit: the track, from the band down behind the words, masked out under them. */
+.f1c-card__backdrop {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 92%);
+}
+.f1c-card__body {
+  position: relative;
 }
 /* Circuit: the track, filling the band. */
 .f1c-card__art--track {

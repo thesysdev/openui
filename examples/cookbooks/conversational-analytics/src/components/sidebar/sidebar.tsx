@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { SidebarBrand } from "./sidebar-brand";
+import { SidebarFooter } from "./sidebar-footer";
 import { DriversIcon, HomeIcon, RadioIcon, StandingsIcon, TeamsIcon } from "./sidebar-icons";
 import { SidebarNav } from "./sidebar-nav";
 import { SidebarNavItem } from "./sidebar-nav-item";
@@ -38,6 +39,8 @@ export type SidebarProps = {
   defaultThread?: string | null;
   /** The open thread, when the page owns it (e.g. from the URL). Leave unset to let the sidebar track it. */
   activeThread?: string | null;
+  /** The highlighted destination, when the page owns it; null highlights none (e.g. on a new chat). Leave unset to let the sidebar track it. */
+  activeNav?: string | null;
   /** Starts as the icon rail unless set to false. */
   defaultCollapsed?: boolean;
   /** Slide in from the left on mount. */
@@ -62,6 +65,7 @@ export function Sidebar({
   defaultNav = "home",
   defaultThread = null,
   activeThread,
+  activeNav,
   defaultCollapsed = true,
   enter = true,
   onCollapsedChange,
@@ -70,7 +74,8 @@ export function Sidebar({
   onNewChat,
   liveThread = null,
 }: SidebarProps) {
-  const [nav, setNav] = useState<string | null>(defaultNav);
+  const [ownNav, setNav] = useState<string | null>(defaultNav);
+  const nav = activeNav !== undefined ? activeNav : ownNav;
   const [ownThread, setThread] = useState<string | null>(defaultThread);
   const thread = activeThread !== undefined ? activeThread : ownThread;
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
@@ -90,10 +95,15 @@ export function Sidebar({
   const [peek, setPeek] = useState(false);
   const peekTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const peeking = collapsed && peek;
+  // Hover intent: it opens only once the pointer has rested on the rail for 400ms. Every move restarts
+  // the wait, and a press cancels it, so someone heading for a rail icon clicks it with nothing shifting.
   const startPeek = (e: PointerEvent<HTMLElement>) => {
-    if (!collapsed || e.pointerType === "touch") return;
+    if (!collapsed || peek || e.pointerType === "touch") return;
     clearTimeout(peekTimer.current);
-    peekTimer.current = setTimeout(() => setPeek(true), 150);
+    peekTimer.current = setTimeout(() => setPeek(true), 400);
+  };
+  const cancelPendingPeek = () => {
+    if (!peek) clearTimeout(peekTimer.current);
   };
   const endPeek = () => {
     clearTimeout(peekTimer.current);
@@ -113,6 +123,8 @@ export function Sidebar({
         enter={enter}
         onPointerEnter={startPeek}
         onPointerLeave={endPeek}
+        onPointerMove={startPeek}
+        onPointerDown={cancelPendingPeek}
       >
         <SidebarBrand collapsed={collapsed && !peek} peeking={peeking} onToggleCollapsed={toggleCollapsed} />
         <SidebarNav active={thread === null ? nav : null}>
@@ -131,9 +143,11 @@ export function Sidebar({
           ))}
         </SidebarNav>
         <div className="f1-sidebar-radio-head">
+          {/* The whole row starts a new chat; the pill's click bubbles up to it. */}
           <SidebarSectionLabel
             label="Team Radio"
-            action={onNewChat && <SidebarNewChatButton onClick={() => newChat()} />}
+            action={onNewChat && <SidebarNewChatButton />}
+            onClick={onNewChat && newChat}
           />
           {onNewChat && <SidebarNewChatButton rail onClick={() => newChat()} />}
         </div>
@@ -153,6 +167,7 @@ export function Sidebar({
             />
           ))}
         </div>
+        <SidebarFooter />
       </SidebarShell>
     </>
   );

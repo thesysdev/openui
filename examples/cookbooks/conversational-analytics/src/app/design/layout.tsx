@@ -10,7 +10,7 @@ import {
   type Thread,
 } from "@openuidev/react-headless";
 import { ThemeProvider } from "@openuidev/react-ui";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChatShell } from "../../components/chat-shell";
 import { Sidebar, type SidebarThread } from "../../components/sidebar";
@@ -67,6 +67,8 @@ function PersistThread() {
 function RadioChat() {
   const router = useRouter();
   const params = useParams<{ threadId?: string }>();
+  // /design/new is a new chat: the empty state, with no destination highlighted (it isn't Home).
+  const isNewChat = usePathname() === "/design/new";
   const routeThread = params.threadId ?? null;
   const [collapsed, setCollapsed] = useState(true);
 
@@ -107,16 +109,18 @@ function RadioChat() {
         floating
         threads={sidebarThreads}
         activeThread={routeThread}
+        activeNav={isNewChat ? null : undefined}
         liveThread={isRunning ? selectedThreadId : null}
         onCollapsedChange={setCollapsed}
         onNavigate={(id) => id === "home" && router.push("/design")}
         onOpenThread={(id) => router.push(`/design/${id}`)}
-        onNewChat={() => (router.push("/design"), document.querySelector<HTMLInputElement>(".radio-input input")?.focus())}
+        onNewChat={() => (router.push("/design/new"), document.querySelector<HTMLInputElement>(".radio-input input")?.focus())}
       />
       <ChatShell
         threadKey={routeThread}
-        // A new chat (no thread in the URL) opens on the welcome and starting grid.
-        empty={routeThread ? null : <RadioWelcome onPick={(prompt) => processMessage({ role: "user", content: prompt })} />}
+        // Only a new chat opens on the welcome and starting grid; Home and the other
+        // destinations stay blank until their dashboards land.
+        empty={isNewChat ? <RadioWelcome onPick={(prompt) => processMessage({ role: "user", content: prompt })} /> : null}
         input={{
           busy: isRunning,
           maxLength: MAX_QUESTION,

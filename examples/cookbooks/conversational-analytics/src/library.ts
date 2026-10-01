@@ -4,6 +4,7 @@ import { f1Components } from "./components/f1-genui";
 import { Table } from "./components/f1-table";
 import { TextContent } from "./components/f1-text";
 import { BarChart, LineChart } from "./components/f1-charts";
+import { f1Charts } from "./components/f1-charts-genui";
 import { FollowUpBlock, FollowUpItem, Spotlight, SpotlightItem } from "./components/f1-follow-ups";
 import "./components/f1-layout.css";
 
@@ -22,6 +23,8 @@ export const library = createLibrary({
     TextContent,
     // F1-styled Table with a start slot per row, and charts with a title, in place of OpenUI's.
     Table,
+    // F1 charts that take the tools' rows; LineChart and BarChart stay as general fallbacks.
+    ...f1Charts,
     LineChart,
     BarChart,
     // Follow-ups as F1 picture cards, in place of OpenUI's list.

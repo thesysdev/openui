@@ -1,0 +1,37 @@
+/* A chart waiting on its data: the same tinted panel at its final height, title in place,
+   a slow shimmer where the plot will be. With nothing to show, one quiet line instead. */
+.f1-chart-pending {
+  display: flex;
+  flex-direction: column;
+}
+.f1-chart-shimmer {
+  flex: 1;
+  margin: 4px 8px 8px;
+  border-radius: 10px;
+  background: linear-gradient(100deg, rgba(21, 21, 30, 0.04) 30%, rgba(21, 21, 30, 0.08) 50%, rgba(21, 21, 30, 0.04) 70%);
+  background-size: 300% 100%;
+  animation: f1-chart-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes f1-chart-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .f1-chart-shimmer { animation: none; }
+}
+.f1-chart-pending.is-empty {
+  min-height: 0 !important;
+}
+.f1-chart-empty {
+  margin: 0 0 4px 8px;
+  color: #606066;
+  font-size: 14px;
+}
+.f1-spark-pending {
+  display: inline-block;
+  width: 96px;
+  height: 28px;
+  border-radius: 4px;
+  background: rgba(21, 21, 30, 0.05);
+  vertical-align: middle;
+}

@@ -118,3 +118,70 @@
   font-weight: 700;
   font-variation-settings: "wght" 700, "wdth" 100;
 }
+
+/* The carbon tooltip of the F1 special charts (.f1s-tip in f1-charts-special.css), applied to
+   OpenUI's tooltip so LineChart and BarChart hover the same way. OpenUI portals the tooltip to the
+   page body, so it is matched by its portal, not inside .f1-chart. */
+.openui-portal-tooltip .openui-chart-tooltip {
+  gap: 6px;
+  min-width: 150px;
+  max-width: 260px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: #15151e;
+  box-shadow: none;
+  color: #fff;
+  font-family: "Titillium Web", sans-serif;
+  font-size: 13px;
+  line-height: 18px;
+  text-transform: none;
+}
+.openui-portal-tooltip :is(.openui-chart-tooltip-label, .openui-chart-tooltip-label-heavy) {
+  color: #fff;
+  font-family: "Saira", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 100;
+}
+.openui-portal-tooltip .openui-chart-tooltip-content {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff;
+}
+.openui-portal-tooltip .openui-chart-tooltip-content-item {
+  align-items: center;
+  gap: 8px;
+}
+.openui-portal-tooltip .openui-chart-tooltip-content-indicator {
+  border-radius: 1px;
+}
+.openui-portal-tooltip .openui-chart-tooltip-content-label {
+  color: rgba(255, 255, 255, 0.72);
+  font-family: "Saira", sans-serif;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 100;
+}
+.openui-portal-tooltip .openui-chart-tooltip-content-value {
+  color: #fff;
+  font-family: "Saira", sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wght" 700, "wdth" 87;
+}
+.openui-portal-tooltip .openui-chart-tooltip-content-item-separator {
+  background: rgba(255, 255, 255, 0.16);
+}
+/* The hover cursor: a thin carbon crosshair on lines, a faint carbon band on bars. */
+.f1-chart .recharts-tooltip-cursor {
+  stroke: #15151e;
+  stroke-opacity: 0.4;
+  stroke-width: 1;
+}
+.f1-chart .recharts-rectangle.recharts-tooltip-cursor {
+  fill: #15151e;
+  fill-opacity: 0.06;
+  stroke: none;
+}

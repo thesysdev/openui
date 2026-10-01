@@ -35,6 +35,7 @@ const FADE_TO = 84;
 const FADE_MASK = `linear-gradient(to bottom, #000 calc(100% - ${FADE_FROM}px), transparent calc(100% - ${FADE_TO}px))`;
 // Each question the reader sent. A new one scrolls to the top of the page.
 const QUESTION = ".f1c-user";
+const HOLD_MS = 2000;
 
 export function ChatShell({ children, empty, input, threadKey }: ChatShellProps) {
   const hasThread = children != null && children !== false;
@@ -84,22 +85,35 @@ export function ChatShell({ children, empty, input, threadKey }: ChatShellProps)
         room = Math.max(0, thread.clientHeight - PAD_TOP - PAD_BOTTOM - used);
       }
       spacer.style.height = `${room}px`;
-      if (last && questions.length !== questionsRef.current) {
+      const anchor = (smooth: boolean) => {
         const top = last.getBoundingClientRect().top - thread.getBoundingClientRect().top + thread.scrollTop - PAD_TOP;
-        thread.scrollTo({ top: Math.max(0, top), behavior: openingRef.current ? "auto" : "smooth" });
+        thread.scrollTo({ top: Math.max(0, top), behavior: smooth ? "smooth" : "auto" });
+      };
+      if (last && questions.length !== questionsRef.current) {
+        // An opening thread holds its latest question in place while the answers above it
+        // finish laying out (charts and tables size themselves after mount).
+        if (openingRef.current) holdUntil = Date.now() + HOLD_MS;
+        anchor(!openingRef.current);
         openingRef.current = false;
-      }
+      } else if (last && Date.now() < holdUntil) anchor(false);
       questionsRef.current = questions.length;
       measureAway();
+    };
+    // Any scroll the reader starts ends the hold.
+    let holdUntil = 0;
+    const release = () => {
+      holdUntil = 0;
     };
 
     const observer = new ResizeObserver(update);
     observer.observe(content);
     observer.observe(thread);
     thread.addEventListener("scroll", measureAway, { passive: true });
+    for (const type of ["wheel", "touchstart", "keydown", "pointerdown"]) thread.addEventListener(type, release, { passive: true });
     return () => {
       observer.disconnect();
       thread.removeEventListener("scroll", measureAway);
+      for (const type of ["wheel", "touchstart", "keydown", "pointerdown"]) thread.removeEventListener(type, release);
     };
   }, []);
   return (

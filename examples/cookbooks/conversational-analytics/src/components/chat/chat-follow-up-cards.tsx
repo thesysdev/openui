@@ -78,7 +78,9 @@ function inkOn(hex: string) {
   return 1.05 / (l + 0.05) >= (l + 0.05) / 0.058 ? "#FFFFFF" : CARBON;
 }
 
-type Look = { bg: string; ink: string; tag: ReactNode; art: ReactNode };
+// art sits in the picture band and is clipped to it. backdrop sits behind the whole card and
+// fades out under the words, for pictures that need more room than the band.
+type Look = { bg: string; ink: string; tag: ReactNode; art: ReactNode; backdrop?: ReactNode };
 
 function look(card: FollowUpCard): Look {
   switch (card.kind) {
@@ -148,9 +150,11 @@ function look(card: FollowUpCard): Look {
             {c?.location ?? card.circuit}
           </>
         ),
-        art: c && (
-          <span className="f1c-card__art f1c-card__art--track">
-            <CircuitMap id={c.id} size={156} strokeWidth={30} />
+        art: null,
+        // The track runs from the band down behind the words, fading out under them.
+        backdrop: c && (
+          <span className="f1c-card__backdrop f1c-card__backdrop--track" aria-hidden>
+            <CircuitMap id={c.id} size={136} strokeWidth={34} />
           </span>
         ),
       };
@@ -176,16 +180,19 @@ export function ChatFollowUpCards({ items, label = "Next lap", onPick }: ChatFol
       {label && <span className="f1c-label">{label}</span>}
       <div className="f1c-cards__grid">
         {items.map((card) => {
-          const { bg, ink, tag, art } = look(card);
+          const { bg, ink, tag, art, backdrop } = look(card);
           return (
             <button
               key={card.text}
               type="button"
               className="f1c-card"
               data-kind={card.kind}
+              // Only cards you can pick get the hover; Spotlight's display tiles don't.
+              data-pick={onPick ? true : undefined}
               style={{ "--card-bg": bg, "--card-ink": ink } as CSSProperties}
               onClick={() => onPick?.(card.text)}
             >
+              {backdrop}
               {/* Picture band on top, words underneath: the two never share space. */}
               <span className="f1c-card__band" aria-hidden>
                 {art}

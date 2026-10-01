@@ -204,8 +204,10 @@ export function RadioThread() {
   };
 
   return (
-    <div style={{ display: "grid", gap: 64 }}>
-      {rows.map((row, i) => (
+    // The red rule between exchanges sits closer to the question it introduces: 112px above, 48px below.
+    <div style={{ display: "grid" }}>
+      {rows.map((row, i) => [
+        i > 0 && <hr key={`${row.question.id}:rule`} aria-hidden style={{ width: "100%", height: 2, margin: "112px 0 48px", border: 0, background: "#E10600" }} />,
         // Keyed by the question, so its pit wall stays the same element from send to answer.
         <div key={row.question.id} style={{ display: "grid", gap: 28 }}>
           <ChatUserMessage text={messageText(row.question.content)} />
@@ -215,9 +217,13 @@ export function RadioThread() {
             live={isRunning && i === rows.length - 1}
             executing={executing}
           />
+        </div>,
+      ])}
+      {threadError && !isRunning && (
+        <div style={{ marginTop: 48 }}>
+          <ChatError message={threadError.message} onRetry={retry} />
         </div>
-      ))}
-      {threadError && !isRunning && <ChatError message={threadError.message} onRetry={retry} />}
+      )}
     </div>
   );
 }

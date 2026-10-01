@@ -166,9 +166,12 @@
 }
 .f1s-ranked-row {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-columns: 64px minmax(0, 1fr);
   align-items: center;
-  height: 22px;
+  height: 24px;
+  margin: 0 -6px;
+  padding: 0 6px;
+  border-radius: 6px;
 }
 .f1s-code {
   color: var(--f1s-carbon);
@@ -325,11 +328,6 @@
   text-transform: uppercase;
   font-variation-settings: "wght" 600, "wdth" 100;
 }
-.f1s-stat-label i {
-  width: 4px;
-  height: 14px;
-  border-radius: 1px;
-}
 .f1s-stat-label b {
   color: #15151e;
   font-weight: 700;
@@ -389,4 +387,320 @@
   text-align: right;
   font-weight: 700;
   font-variation-settings: "wght" 700, "wdth" 87;
+}
+
+/* Driver marks: number disc in team colour plus code, at line ends and row starts. Inside a
+   plot they are placed by their left/top centre. */
+.f1s-driver-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  color: var(--f1s-carbon, #15151e);
+  font-family: "Saira", sans-serif;
+  font-size: 13px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+}
+.f1s-driver-mark b {
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 100;
+}
+.f1s-driver-mark small {
+  color: var(--f1s-muted);
+  font-size: 13px;
+  font-weight: 600;
+  font-variation-settings: "wght" 600, "wdth" 87;
+}
+.f1s-plot .f1s-driver-mark {
+  position: absolute;
+  margin-top: -10px;
+  pointer-events: none;
+}
+
+/* Hover: a thin carbon crosshair, dots ringed in white, and the row or stint under the pointer
+   kept full while the rest steps back. No transitions, so nothing moves on its own. */
+.f1s-plot {
+  touch-action: pan-y;
+}
+.f1s-crosshair {
+  stroke: var(--f1s-carbon);
+  stroke-opacity: 0.4;
+  stroke-width: 1;
+}
+.f1s-hover-dot {
+  stroke: #fff;
+  stroke-width: 2;
+}
+.f1s-ranked,
+.f1s-h2h {
+  position: relative;
+}
+.f1s-ranked-row.f1s-hovered,
+.f1s-h2h-row.f1s-hovered {
+  background: rgba(21, 21, 30, 0.04);
+}
+.f1s-h2h-row {
+  margin: 0 -6px;
+  padding: 2px 6px 4px;
+  border-radius: 6px;
+}
+.f1s-stint.f1s-dimmed {
+  opacity: 0.4;
+}
+
+/* The tooltip: a flat carbon tag, Titillium for words and Saira timing figures for numbers. */
+.f1s-tip {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 6px;
+  min-width: 150px;
+  max-width: 260px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #15151e;
+  color: #fff;
+  font-family: "Titillium Web", sans-serif;
+  font-size: 13px;
+  line-height: 18px;
+  pointer-events: none;
+}
+.f1s-tip-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Saira", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 100;
+}
+.f1s-tip-head > span {
+  display: grid;
+}
+.f1s-tip-head small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.f1s-tip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.f1s-tip-row b {
+  font-family: "Saira", sans-serif;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 100;
+}
+.f1s-tip-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(255, 255, 255, 0.72);
+  white-space: nowrap;
+}
+.f1s-tip-value {
+  margin-left: auto;
+  padding-left: 12px;
+  font-family: "Saira", sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wght" 700, "wdth" 87;
+  white-space: nowrap;
+}
+.f1s-tip-tag {
+  padding: 0 5px;
+  border-radius: 3px;
+  background: #e10600;
+  color: #fff;
+  font-family: "Saira", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+.f1s-tip-foot {
+  color: rgba(255, 255, 255, 0.72);
+}
+.f1s-tip-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Tyre chip: the compound colour with its initial. */
+.f1s-tyre {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-family: "Saira", sans-serif;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* StatCallout: the final figure holds the width while the counting one sits on top of it. */
+.f1s-stat-figure {
+  display: inline-grid;
+}
+.f1s-stat-figure > span {
+  grid-area: 1 / 1;
+}
+.f1s-stat-figure > span:first-child {
+  visibility: hidden;
+}
+
+/* Sparkline hover */
+.f1s-spark-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.f1s-spark-line {
+  stroke-width: 2;
+}
+.f1s-spark-tip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  display: grid;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: #15151e;
+  color: #fff;
+  font-family: "Saira", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 15px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.f1s-spark-tip small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Reveal, once, when a chart is a quarter in view (useReveal). Lines draw left to right like a
+   lap trace, bars grow from their baseline in a quick stagger like the lights going out, stints
+   wipe in lap by lap, and driver marks land last. Transform, opacity and dash offset only; under
+   reduced motion everything simply appears. */
+@media (prefers-reduced-motion: no-preference) {
+  .f1s-pending :is(.f1s-line, .f1s-spark-line) {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .f1s-pending :is(.f1s-bar, .f1s-stint-bar) {
+    transform: scaleX(0);
+  }
+  .f1s-pending :is(.f1s-dot, .f1s-mark, .f1s-driver-mark, .f1s-stint-label, .f1s-spark-dot, .f1s-stat-figure) {
+    opacity: 0;
+  }
+
+  .f1s-in :is(.f1s-line, .f1s-spark-line) {
+    stroke-dasharray: 1;
+    animation: f1s-draw 850ms cubic-bezier(0.35, 0.1, 0.25, 1) both;
+  }
+  .f1s-in .f1s-bar {
+    animation: f1s-grow 600ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i, 0) * 45ms) both;
+  }
+  .f1s-in .f1s-stint-bar {
+    transform-box: fill-box;
+    transform-origin: left center;
+    animation: f1s-grow calc(var(--len) * 750ms) linear calc(var(--start) * 750ms + var(--i, 0) * 20ms) both;
+  }
+  .f1s-in .f1s-dot {
+    animation: f1s-fade 260ms ease-out calc(var(--i, 0) * 12ms) both;
+  }
+  .f1s-in :is(.f1s-mark, .f1s-stint-label, .f1s-spark-dot) {
+    animation: f1s-fade 240ms ease-out 750ms both;
+  }
+  .f1s-in .f1s-driver-mark {
+    animation: f1s-land 320ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(700ms + var(--i, 0) * 40ms) both;
+  }
+  .f1s-in .f1s-stat-figure {
+    animation: f1s-rise 450ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+.f1s-bar {
+  transform-origin: left center;
+}
+.f1s-stint-bar {
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+.f1s-h2h-a .f1s-bar {
+  transform-origin: right center;
+}
+@keyframes f1s-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes f1s-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes f1s-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes f1s-land {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes f1s-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.f1s-replay {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+.f1s-replay button {
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #15151e;
+  font-family: "Saira", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.f1s-replay button:hover {
+  background: rgba(21, 21, 30, 0.06);
+  color: #e10600;
 }

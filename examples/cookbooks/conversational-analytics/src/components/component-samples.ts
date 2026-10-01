@@ -1,6 +1,28 @@
 // Sample OpenUI Lang programs for each component the chat library allows.
 // Series, Col and FollowUpItem only render inside their parent, so their samples include one.
+// The F1 charts fetch their own rows from the F1 tools, so the agent only names what it wants.
+// The last sample shows the raw-data escape hatch.
+const f1ChartSamples = [
+  { name: "GapChart", source: `root = GapChart("Baku", ["RUS", "VER", "HAD", "LEC"], "Gap to the leader, Baku top four")` },
+  { name: "RaceTrace", source: `root = RaceTrace("Baku", null, "Race trace, Baku top six")` },
+  { name: "LapTimes", source: `root = LapTimes("Baku", ["RUS", "VER"], "Russell and Verstappen lap times, Baku")` },
+  { name: "RankedBars", source: `root = RankedBars("Baku qualifying", "gap to pole", "Gap to pole, Baku qualifying")` },
+  { name: "HeadToHeadBars", source: `root = Stack([HeadToHeadBars(["LEC", "HAM"], "season", "Leclerc vs Hamilton, 2026"), HeadToHeadBars(["RUS", "VER"], "Baku", "Russell vs Verstappen, Baku")])` },
+  { name: "StintBar", source: `root = StintBar("Baku", null, "Tyre strategies, Baku top ten")` },
+  { name: "ChampionshipProgress", source: `root = Stack([ChampionshipProgress(["ANT", "RUS", "HAM", "NOR", "LEC"], "Drivers' championship, 2026"), ChampionshipProgress(["ANT", "RUS", "HAM"], "Gap to Antonelli, 2026", "gap")])` },
+  {
+    name: "StatCallout",
+    source: `root = Stack([StatCallout("Winning margin", "0.196", "s", "Ahead of VER in Baku", "RUS"), StatCallout("Fastest lap", "1:44.916", "", "Lap 49", "RUS")], "row", "l")`,
+  },
+  { name: "Sparkline", source: `root = Stack([TextContent("Antonelli points through 2026", "small-heavy"), Sparkline("ANT")], "column", "s")` },
+  {
+    name: "RankedBars (raw data)",
+    source: `root = RankedBars(null, null, "Top speed, Baku", null, [{code: "ALB", value: 351.2}, {code: "SAI", value: 349.8}, {code: "VER", value: 348.1}], "number")`,
+  },
+];
+
 export const componentSamples: { name: string; source: string }[] = [
+  ...f1ChartSamples,
   {
     name: "Stack",
     source: `root = Stack([a, b, c], "row", "m")

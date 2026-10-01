@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 // Gallery previews for the F1 charts, on real data from the local OpenF1 snapshot
 // (samples.json, written by scripts/f1-chart-samples.ts).
 import {
@@ -44,7 +46,11 @@ function LapTimesPreview() {
         rows={pick(samples.laps as Row[], ["lap", "LEC"])}
         stints={samples.stints.rows.filter((s) => s.code === "LEC")}
       />
-      <LapTimes title={`Russell vs Verstappen, ${race}`} rows={pick(samples.laps as Row[], ["lap", "RUS", "VER"])} />
+      <LapTimes
+        title={`Russell vs Verstappen, ${race}`}
+        rows={pick(samples.laps as Row[], ["lap", "RUS", "VER"])}
+        stints={samples.stints.rows.filter((s) => s.code === "RUS" || s.code === "VER")}
+      />
     </>
   );
 }
@@ -115,7 +121,7 @@ function SparklinePreview() {
       {codes.map((code) => (
         <div key={code} className="f1s-preview-list-row">
           <b>{code}</b>
-          <Sparkline driver={code} values={perRound(code)} width={120} />
+          <Sparkline driver={code} values={perRound(code)} labels={rows.map((r) => String(r.circuit))} format={(v) => `${v} pts`} width={120} />
           <span>{String(last[code])}</span>
         </div>
       ))}
@@ -124,15 +130,22 @@ function SparklinePreview() {
   );
 }
 
-// Each preview at the width of an answer in the chat thread.
-const framed = (name: string, View: () => React.ReactNode) => ({
-  name,
-  View: () => (
+// Each preview at the width of an answer in the chat thread, with a control that remounts it
+// to play its reveal again.
+function Replayable({ View }: { View: () => React.ReactNode }) {
+  const [run, setRun] = useState(0);
+  return (
     <div className="f1s-preview">
-      <View />
+      <div className="f1s-replay">
+        <button type="button" onClick={() => setRun((n) => n + 1)}>
+          ↻ Replay
+        </button>
+      </div>
+      <View key={run} />
     </div>
-  ),
-});
+  );
+}
+const framed = (name: string, View: () => React.ReactNode) => ({ name, View: () => <Replayable View={View} /> });
 
 export const f1ChartPreviews = [
   framed("GapChart", GapChartPreview),

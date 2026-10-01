@@ -68,3 +68,18 @@ export const localThreadStorage: ChatStorage = {
     },
   },
 };
+
+/** The reader's latest questions across their threads, newest first. */
+export function recentQuestions(limit = 8): string[] {
+  const out: string[] = [];
+  for (const thread of newestFirst(readThreads())) {
+    const asked = read<Message[]>(messagesKey(thread.id), [])
+      .filter((m) => m.role === "user")
+      .map((m) => messageText(m.content).trim())
+      .filter(Boolean)
+      .reverse();
+    for (const q of asked) if (!out.includes(q) && out.length < limit) out.push(q.slice(0, 600));
+    if (out.length >= limit) break;
+  }
+  return out;
+}

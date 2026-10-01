@@ -76,23 +76,28 @@ body {
 .gallery-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  width: 260px;
-  padding: 16px 8px;
+  gap: 0;
+  width: 220px;
+  flex-shrink: 0;
+  padding: 12px 8px;
   border-right: 1px solid #e5e5e5;
   overflow-y: auto;
 }
 .gallery-sidebar h1 {
-  margin: 0 8px 12px;
-  font-size: 20px;
+  margin: 0 8px 6px;
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .gallery-sidebar button {
-  padding: 8px;
+  padding: 4px 8px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 5px;
   background: none;
   font: inherit;
-  font-size: 20px;
+  font-size: 14px;
+  line-height: 20px;
   text-align: left;
   cursor: pointer;
 }
@@ -128,7 +133,7 @@ body {
   white-space: pre-wrap;
 }
 .gallery-sidebar-section {
-  margin-top: 24px !important;
+  margin-top: 16px !important;
 }
 .ref {
   max-width: 1100px;
