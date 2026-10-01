@@ -13,6 +13,8 @@ export type JSONSchemaDef = {
  */
 export interface LibraryJSONSchema {
   $defs?: Record<string, JSONSchemaDef>;
+  /** Component names as keys. Other `$defs` are data shapes. */
+  properties?: Record<string, unknown>;
 }
 
 /** Scalar JSON Schema types we can reliably check a positional literal against. */

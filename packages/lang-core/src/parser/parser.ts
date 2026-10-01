@@ -638,8 +638,11 @@ export interface Parser {
 export function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const map: ParamMap = new Map();
   const defs = schema.$defs ?? {};
+  const components = schema.properties && new Set(Object.keys(schema.properties));
 
   for (const [name, def] of Object.entries(defs)) {
+    // Skip non-component defs, e.g. zod's hoisted recursive schemas (__schema0).
+    if (components && !components.has(name)) continue;
     const properties = def.properties ?? {};
     const required = def.required ?? [];
     const params = Object.keys(properties).map((key) => ({
