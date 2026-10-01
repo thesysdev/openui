@@ -1,0 +1,160 @@
+"use client";
+
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ChatJumpToLatest } from "./chat";
+import { InputIntro } from "./input-intro";
+import { RadioInput, type RadioInputProps } from "./radio-input";
+
+/*
+ * ChatShell: the page frame for the Radio chatbot. A white page with a
+ * scrolling thread and the compact RadioInput floating at the bottom centre.
+ * It owns layout only; the thread content and what happens on send come in as props.
+ */
+
+export type ChatShellProps = {
+  /** The conversation. Scrolls behind the floating input. */
+  children?: ReactNode;
+  /** Shown when there is no conversation yet. */
+  empty?: ReactNode;
+  /** Passed straight to the RadioInput. */
+  input?: Omit<RadioInputProps, "size">;
+  /** Changes when a different conversation opens: it opens at its latest question. */
+  threadKey?: string | null;
+};
+
+const CARBON = "#15151E";
+const WHITE = "#FFFFFF";
+const INPUT_WIDTH = 760;
+// Thread padding: room above the first line, and below the last one for the floating input.
+const PAD_TOP = 32;
+const PAD_BOTTOM = 160;
+// Bottom fade: the thread is clear down to FADE_FROM above the bottom edge, then fades out by FADE_TO,
+// where the input bar starts. PAD_BOTTOM keeps the last line above the fade once scrolled to the end.
+const FADE_FROM = 156;
+const FADE_TO = 84;
+const FADE_MASK = `linear-gradient(to bottom, #000 calc(100% - ${FADE_FROM}px), transparent calc(100% - ${FADE_TO}px))`;
+// Each question the reader sent. A new one scrolls to the top of the page.
+const QUESTION = ".f1c-user";
+
+export function ChatShell({ children, empty, input, threadKey }: ChatShellProps) {
+  const hasThread = children != null && children !== false;
+  const threadRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const spacerRef = useRef<HTMLDivElement>(null);
+  // How many questions the thread showed last time, and whether it has just opened.
+  const questionsRef = useRef(0);
+  const openingRef = useRef(true);
+  // The answer runs on below the fold: offer the way down.
+  const [away, setAway] = useState(false);
+
+  const toLatest = () => {
+    const thread = threadRef.current;
+    const content = contentRef.current;
+    if (!thread || !content) return;
+    const below = content.getBoundingClientRect().bottom - (thread.getBoundingClientRect().bottom - PAD_BOTTOM);
+    thread.scrollTo({ top: thread.scrollTop + below, behavior: "smooth" });
+  };
+
+  // A different conversation opens at its latest question, without animating.
+  useEffect(() => {
+    questionsRef.current = 0;
+    openingRef.current = true;
+    setAway(false);
+  }, [threadKey]);
+
+  // Standard chat scrolling: a new question moves to the top of the page and its answer
+  // streams into the space below it. The spacer under the thread keeps that space there
+  // until the answer fills it; nothing follows the stream after that, so reading back stays put.
+  useEffect(() => {
+    const thread = threadRef.current;
+    const content = contentRef.current;
+    const spacer = spacerRef.current;
+    if (!thread || !content || !spacer) return;
+
+    const measureAway = () => {
+      const below = content.getBoundingClientRect().bottom - (thread.getBoundingClientRect().bottom - PAD_BOTTOM);
+      setAway((was) => (was ? below > 24 : below > 96));
+    };
+    const update = () => {
+      const questions = content.querySelectorAll<HTMLElement>(QUESTION);
+      const last = questions[questions.length - 1];
+      let room = 0;
+      if (last) {
+        const used = content.getBoundingClientRect().bottom - last.getBoundingClientRect().top;
+        room = Math.max(0, thread.clientHeight - PAD_TOP - PAD_BOTTOM - used);
+      }
+      spacer.style.height = `${room}px`;
+      if (last && questions.length !== questionsRef.current) {
+        const top = last.getBoundingClientRect().top - thread.getBoundingClientRect().top + thread.scrollTop - PAD_TOP;
+        thread.scrollTo({ top: Math.max(0, top), behavior: openingRef.current ? "auto" : "smooth" });
+        openingRef.current = false;
+      }
+      questionsRef.current = questions.length;
+      measureAway();
+    };
+
+    const observer = new ResizeObserver(update);
+    observer.observe(content);
+    observer.observe(thread);
+    thread.addEventListener("scroll", measureAway, { passive: true });
+    return () => {
+      observer.disconnect();
+      thread.removeEventListener("scroll", measureAway);
+    };
+  }, []);
+  return (
+    // Only the thread scrolls, and only when it overflows; the page itself never does.
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden", background: WHITE, color: CARBON }}>
+      <main style={{ position: "relative", flex: 1, minHeight: 0 }}>
+        {/* Thread: bottom padding keeps the last message clear of the floating input. */}
+        <div
+          ref={threadRef}
+          style={{
+            boxSizing: "border-box",
+            height: "100%",
+            overflowY: "auto",
+            overscrollBehavior: "contain",
+            padding: `${PAD_TOP}px 24px ${PAD_BOTTOM}px`,
+            // Content fades out as it scrolls under the input instead of meeting a hard white edge.
+            maskImage: FADE_MASK,
+            WebkitMaskImage: FADE_MASK,
+          }}
+        >
+          <div
+            ref={contentRef}
+            // The empty state sits centred in the page; a thread runs from the top.
+            style={{ maxWidth: INPUT_WIDTH, margin: "0 auto", ...(hasThread ? null : { minHeight: "100%", display: "grid", alignContent: "center" }) }}
+          >
+            {hasThread ? children : empty}
+          </div>
+          <div ref={spacerRef} aria-hidden />
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            boxSizing: "border-box",
+            padding: "0 24px 28px",
+            paddingTop: 16,
+          }}
+        >
+          {hasThread && away && (
+            <div style={{ position: "absolute", left: 0, right: 0, bottom: "100%", display: "flex", justifyContent: "center", paddingBottom: 12, pointerEvents: "none" }}>
+              <span style={{ pointerEvents: "auto" }}>
+                <ChatJumpToLatest onClick={toLatest} />
+              </span>
+            </div>
+          )}
+          <div style={{ maxWidth: INPUT_WIDTH, margin: "0 auto" }}>
+            <InputIntro autoFocus>
+              <RadioInput size="compact" {...input} />
+            </InputIntro>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

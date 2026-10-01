@@ -1,0 +1,120 @@
+/* Chart axis titles: OpenUI sets the y-axis label above the plot, where it reads like a heading.
+   Run it up the left side of the plot instead, beside the y-axis ticks. The x-axis label and
+   legend keep their place under the plot. */
+:is(.openui-line-chart-condensed-container, .openui-bar-chart-condensed-container, .openui-area-chart-condensed-container):has(
+    > [class$="-y-axis-label"]
+  ) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+
+  & > * {
+    grid-column: 2;
+  }
+  & > [class$="-y-axis-label"] {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    /* Tall Titillium glyphs overhang an 18.75px line, and the label sits flush with the card
+       edge, so give the line room and even padding (the 180° turn swaps its sides). The gap to
+       the ticks is a margin, which the turn leaves in place. */
+    line-height: 1.6;
+    padding: 0 4px;
+    margin-right: 8px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    text-align: center;
+    white-space: nowrap;
+  }
+  & > [class$="-container-inner"] {
+    grid-row: 1;
+    min-width: 0;
+  }
+}
+
+/* Charts sit on a flat panel of light accent tint: no border, no shadow. The panel is the
+   titled wrapper from f1-charts.tsx, so the title shares it. The tint follows the chart's card
+   position in the answer, so it varies between charts but never changes between renders. */
+.f1-chart {
+  --f1-chart-panel: #f8f5fd; /* lavender */
+  box-sizing: border-box;
+  /* Breathing room above and below, on top of the Stack gap (flex gaps and margins add up). */
+  margin: 8px 0;
+  padding: 16px 20px 12px 12px;
+  border-radius: 16px;
+  background: var(--f1-chart-panel);
+}
+.f1-chart:has(.openui-bar-chart-condensed-container) {
+  --f1-chart-panel: #f4f8fe; /* ice blue */
+}
+/* Charts stand alone in a Stack: rotate by the chart's own position. */
+.f1-chart:nth-child(6n + 1) { --f1-chart-panel: #f8f5fd; } /* lavender */
+.f1-chart:nth-child(6n + 2) { --f1-chart-panel: #f4f8fe; } /* ice blue */
+.f1-chart:nth-child(6n + 3) { --f1-chart-panel: #f3faf5; } /* mint */
+.f1-chart:nth-child(6n + 4) { --f1-chart-panel: #f1faf9; } /* aqua */
+.f1-chart:nth-child(6n + 5) { --f1-chart-panel: #fdf5f9; } /* blush */
+.f1-chart:nth-child(6n + 6) { --f1-chart-panel: #fef9f0; } /* sand */
+/* A chart the agent still wraps in a Card: rotate by the Card's position. */
+.openui-card:nth-child(6n + 1) .f1-chart { --f1-chart-panel: #f8f5fd; } /* lavender */
+.openui-card:nth-child(6n + 2) .f1-chart { --f1-chart-panel: #f4f8fe; } /* ice blue */
+.openui-card:nth-child(6n + 3) .f1-chart { --f1-chart-panel: #f3faf5; } /* mint */
+.openui-card:nth-child(6n + 4) .f1-chart { --f1-chart-panel: #f1faf9; } /* aqua */
+.openui-card:nth-child(6n + 5) .f1-chart { --f1-chart-panel: #fdf5f9; } /* blush */
+.openui-card:nth-child(6n + 6) .f1-chart { --f1-chart-panel: #fef9f0; } /* sand */
+
+/* The chart's name: compact Saira, like a timing-screen label, not a card header. */
+.f1-chart-title {
+  margin: 0 0 12px 8px;
+  color: #15151e;
+  font-family: "Saira", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 20px;
+  font-variation-settings: "wdth" 100;
+}
+
+/* Charts carry their own title and panel, so a Card around one renders flat: no fill, border,
+   shadow or padding of its own, and no box inside a box. */
+.openui-card:has(> .f1-chart) {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* F1 axes: dark tick numbers in Saira timing figures, dark axis titles, a soft grid. */
+.f1-chart :is(.openui-chart-y-axis-tick, .openui-chart-svg-x-axis-tick) {
+  fill: #15151e;
+  font-family: "Saira", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wght" 700, "wdth" 87;
+}
+.f1-chart :is([class$="-y-axis-label"], [class$="-x-axis-label"]) {
+  color: #606066;
+  font-family: "Saira", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-variation-settings: "wght" 600, "wdth" 100;
+}
+.f1-chart .openui-chart-cartesian-grid {
+  color: rgba(21, 21, 30, 0.08);
+}
+/* A carbon baseline under the plot, like a timing-screen rule. */
+.f1-chart .recharts-cartesian-grid-horizontal line:first-child {
+  color: #15151e;
+  stroke-opacity: 0.6;
+}
+.f1-chart .recharts-line-curve {
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.f1-chart .openui-chart-legend-item-label {
+  color: #15151e;
+  font-family: "Saira", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 100;
+}

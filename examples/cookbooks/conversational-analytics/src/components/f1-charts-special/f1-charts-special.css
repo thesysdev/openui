@@ -1,0 +1,392 @@
+/* F1 charts: the panel and title come from .f1-chart in f1-charts.css. Everything below is the
+   inside of the panel, matched to that look: Saira timing figures in carbon, a soft grid, a
+   carbon baseline, 3px lines and bars up to 28px. Nothing animates. */
+
+.f1s-chart {
+  --f1s-carbon: #15151e;
+  --f1s-muted: #606066;
+  --f1s-track: rgba(21, 21, 30, 0.06);
+}
+
+.f1s-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.f1s-body.f1s-has-y {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+.f1s-main {
+  min-width: 0;
+}
+.f1s-plot {
+  position: relative;
+  width: 100%;
+}
+.f1s-plot svg {
+  display: block;
+  overflow: visible;
+}
+
+/* Axis titles, as in f1-charts.css: the y label runs up the left side, the x label sits under the plot. */
+.f1s-axis-label {
+  color: var(--f1s-muted);
+  font-family: "Saira", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-variation-settings: "wght" 600, "wdth" 100;
+  white-space: nowrap;
+}
+.f1s-y-label {
+  align-self: center;
+  line-height: 1.6;
+  padding: 0 4px;
+  margin-right: 8px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+}
+.f1s-x-label {
+  margin-top: 2px;
+  text-align: center;
+}
+
+.f1s-tick,
+.f1s-row-label,
+.f1s-end-label,
+.f1s-segment {
+  font-family: "Saira", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.f1s-tick {
+  fill: var(--f1s-carbon);
+  font-size: 13px;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 87;
+}
+.f1s-grid {
+  stroke: rgba(21, 21, 30, 0.08);
+  stroke-width: 1;
+}
+.f1s-baseline {
+  stroke: var(--f1s-carbon);
+  stroke-opacity: 0.6;
+  stroke-width: 1;
+}
+.f1s-zero {
+  stroke: var(--f1s-carbon);
+  stroke-opacity: 0.35;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.f1s-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+/* A white ring lifts a marker off its own line without an outline colour. */
+.f1s-mark {
+  stroke: #fff;
+  stroke-width: 2;
+}
+.f1s-end-label {
+  fill: var(--f1s-carbon);
+  font-size: 13px;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 100;
+}
+.f1s-end-value {
+  fill: var(--f1s-muted);
+  font-weight: 600;
+  font-variation-settings: "wght" 600, "wdth" 87;
+}
+.f1s-row-label {
+  fill: var(--f1s-carbon);
+  font-size: 13px;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 100;
+}
+.f1s-segment {
+  font-size: 12px;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 87;
+}
+
+.f1s-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+  margin-top: 8px;
+}
+.f1s-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--f1s-carbon);
+  font-family: "Saira", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 100;
+}
+.f1s-swatch {
+  display: inline-block;
+  flex-shrink: 0;
+}
+.f1s-swatch-line {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+}
+.f1s-swatch-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.f1s-swatch-block {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+}
+.f1s-note {
+  margin-top: 4px;
+  color: var(--f1s-muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* RankedBars */
+.f1s-ranked {
+  display: grid;
+  gap: 6px;
+  padding-left: 8px;
+}
+.f1s-ranked-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  height: 22px;
+}
+.f1s-code {
+  color: var(--f1s-carbon);
+  font-family: "Saira", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 100;
+}
+.f1s-ranked-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  /* Room for the figure after the longest bar. */
+  padding-right: 72px;
+}
+.f1s-ranked-track i {
+  display: block;
+  flex-shrink: 0;
+  height: 18px;
+  min-width: 2px;
+  border-radius: 0 3px 3px 0;
+}
+.f1s-ranked-track b,
+.f1s-h2h-value {
+  color: var(--f1s-carbon);
+  font-family: "Saira", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wght" 700, "wdth" 87;
+  white-space: nowrap;
+}
+.f1s-ranked-track b small {
+  color: var(--f1s-muted);
+  font-size: 12px;
+}
+
+/* HeadToHeadBars */
+.f1s-h2h {
+  display: grid;
+  gap: 10px;
+  padding: 0 8px;
+}
+.f1s-h2h-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.f1s-h2h-driver {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.f1s-h2h-driver span {
+  display: grid;
+  line-height: 1.1;
+}
+.f1s-h2h-driver b {
+  color: var(--f1s-carbon);
+  font-family: "Saira", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+.f1s-h2h-driver small {
+  color: var(--f1s-muted);
+  font-size: 13px;
+}
+.f1s-h2h-right {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+.f1s-h2h-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 4px;
+  row-gap: 2px;
+}
+.f1s-h2h-label {
+  grid-column: 1 / -1;
+  color: var(--f1s-muted);
+  font-family: "Saira", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+  font-variation-settings: "wght" 600, "wdth" 100;
+}
+.f1s-h2h-label small {
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.f1s-h2h-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.f1s-h2h-a {
+  flex-direction: row;
+}
+.f1s-h2h-b {
+  flex-direction: row-reverse;
+}
+.f1s-h2h-track {
+  display: flex;
+  flex: 1;
+  height: 14px;
+}
+.f1s-h2h-a .f1s-h2h-track {
+  justify-content: flex-end;
+}
+.f1s-h2h-track i {
+  display: block;
+  height: 100%;
+}
+.f1s-h2h-a .f1s-h2h-track i {
+  border-radius: 3px 0 0 3px;
+}
+.f1s-h2h-b .f1s-h2h-track i {
+  border-radius: 0 3px 3px 0;
+}
+.f1s-h2h-value {
+  min-width: 32px;
+  color: var(--f1s-muted);
+  font-weight: 500;
+  font-variation-settings: "wght" 500, "wdth" 87;
+}
+.f1s-h2h-b .f1s-h2h-value {
+  text-align: right;
+}
+.f1s-h2h-value.f1s-win {
+  color: var(--f1s-carbon);
+  font-weight: 800;
+  font-variation-settings: "wght" 800, "wdth" 87;
+}
+
+/* StatCallout: bare, no panel. It sits in a row of stats or inside another block. */
+.f1s-stat {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.f1s-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #606066;
+  font-family: "Saira", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-variation-settings: "wght" 600, "wdth" 100;
+}
+.f1s-stat-label i {
+  width: 4px;
+  height: 14px;
+  border-radius: 1px;
+}
+.f1s-stat-label b {
+  color: #15151e;
+  font-weight: 700;
+}
+.f1s-stat-value {
+  color: #15151e;
+  font-family: "Saira", sans-serif;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wght" 700, "wdth" 87;
+}
+.f1s-stat-value small {
+  margin-left: 4px;
+  color: #606066;
+  font-size: 18px;
+  font-weight: 600;
+  font-variation-settings: "wght" 600, "wdth" 87;
+}
+.f1s-stat-note {
+  color: #15151e;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.f1s-spark {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+/* Gallery previews only. */
+.f1s-preview {
+  max-width: 720px;
+}
+.f1s-preview-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 24px;
+}
+.f1s-preview-list {
+  display: grid;
+  gap: 6px;
+  max-width: 280px;
+}
+.f1s-preview-list-row {
+  display: grid;
+  grid-template-columns: 40px auto 1fr;
+  align-items: center;
+  gap: 12px;
+  font-family: "Saira", sans-serif;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.f1s-preview-list-row span {
+  text-align: right;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 87;
+}

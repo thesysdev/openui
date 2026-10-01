@@ -6,3 +6,6 @@ data/
 src/generated/
 *.tsbuildinfo
 next-env.d.ts
+
+# Third-party car painting used only as a local visual reference (licence unknown)
+public/car3d-reference.jpg

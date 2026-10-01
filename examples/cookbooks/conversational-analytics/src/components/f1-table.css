@@ -1,0 +1,59 @@
+/* F1 results table: Titillium uppercase heads, hairline rows, Saira tabular timing. */
+.f1-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.f1-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Titillium Web", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  color: #15151e;
+}
+.f1-table th {
+  padding: 10px 12px;
+  border-bottom: 2px solid #15151e;
+  color: #606066;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.f1-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e0dedc;
+  font-weight: 600;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.f1-table tbody tr:hover td {
+  background: #f7f4f1;
+}
+.f1-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+/* The first data column is usually the position: set it like the timing screens. */
+.f1-table .f1-table-lead {
+  font-family: "Saira", sans-serif;
+  font-weight: 800;
+  font-variation-settings: "wdth" 100;
+}
+.f1-table .f1-table-num {
+  font-family: "Saira", sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wdth" 87;
+  text-align: right;
+  white-space: nowrap;
+}
+.f1-table .f1-table-start {
+  width: 1%;
+  padding-right: 4px;
+  white-space: nowrap;
+}
+.f1-table td.f1-table-start > * {
+  vertical-align: middle;
+}

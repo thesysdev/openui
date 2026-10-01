@@ -1,0 +1,1059 @@
+/* F1 chat pieces: design previews for the home page chat. Flat, square, bare; two fonts only. */
+.f1c {
+  --c-red: #e10600;
+  --c-carbon: #15151e;
+  --c-warm: #f7f4f1;
+  --c-muted: #606066;
+  --c-faint: #aaaaaa;
+  --c-rule: #e0dedc;
+  --c-green: #1a8930;
+  --c-yellow: #ffd100;
+  --c-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Pulls away hard, brakes into the end. */
+  --c-drive: cubic-bezier(0.5, 0, 0.2, 1);
+  color: var(--c-carbon);
+  font-family: "Titillium Web", system-ui, sans-serif;
+}
+
+/* Saira roles, from f1-reference.md. */
+.f1c-label {
+  color: var(--c-muted);
+  font-family: "Saira", sans-serif;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 700;
+  font-variation-settings: "wght" 700, "wdth" 110;
+  letter-spacing: 0.08em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+.f1c-num {
+  font-family: "Saira", sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wght" 600, "wdth" 87;
+}
+
+/* Welcome */
+.f1c-welcome {
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+}
+.f1c-hero {
+  margin: 0;
+  /* Room for the italic overhang. */
+  padding-right: 0.1em;
+  font-family: "Saira", sans-serif;
+  font-size: 56px;
+  font-style: italic;
+  font-weight: 900;
+  font-variation-settings: "wght" 900, "wdth" 112;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+.f1c-hero em {
+  color: var(--c-red);
+  font-style: inherit;
+}
+.f1c-welcome__lede {
+  max-width: 34em;
+  margin: 0;
+  color: var(--c-muted);
+  font-size: 17px;
+  line-height: 28px;
+}
+
+/* A red slash that appears on the left edge of a row, like the sidebar's active marker.
+   It sits in reserved padding, so showing it never moves the text. */
+.f1c-row {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  width: 100%;
+  padding: 10px 0 10px 20px;
+  border: 0;
+  background: none;
+  color: var(--c-carbon);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  text-align: left;
+  cursor: pointer;
+  transition: color 120ms;
+}
+.f1c-row::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 2px;
+  width: 6px;
+  background: var(--c-red);
+  transform: skewX(-12deg) scaleY(0);
+  transform-origin: bottom;
+  transition: transform 160ms var(--c-ease);
+}
+.f1c-row:hover,
+.f1c-row:focus-visible {
+  color: var(--c-red);
+  outline: none;
+}
+.f1c-row:hover::before,
+.f1c-row:focus-visible::before {
+  transform: skewX(-12deg) scaleY(1);
+}
+
+/* Starters: the starting grid. */
+.f1c-starters {
+  display: grid;
+  gap: 4px;
+}
+.f1c-starters > .f1c-label {
+  margin: 0 0 4px 20px;
+}
+.f1c-grid-slot {
+  flex: none;
+  width: 2em;
+  color: var(--c-faint);
+  font-family: "Saira", sans-serif;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 900;
+  font-variation-settings: "wght" 900, "wdth" 112;
+  transition: color 120ms;
+}
+.f1c-row:hover .f1c-grid-slot,
+.f1c-row:focus-visible .f1c-grid-slot {
+  color: var(--c-red);
+}
+
+/* User message: the team-radio caption. */
+.f1c-user {
+  display: grid;
+  gap: 6px;
+  margin-left: auto;
+  max-width: 88%;
+  justify-items: end;
+  text-align: right;
+}
+.f1c-user__from {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--c-carbon);
+}
+.f1c-user__text {
+  margin: 0;
+  padding: 0 0.15em;
+  color: var(--c-red);
+  font-family: "Saira", sans-serif;
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: "wght" 800, "wdth" 100;
+  line-height: 1.15;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+/* Assistant message */
+.f1c-answer {
+  display: grid;
+  gap: 12px;
+}
+.f1c-prose {
+  font-size: 17px;
+  line-height: 28px;
+}
+.f1c-prose p {
+  margin: 0 0 12px;
+}
+.f1c-prose p:last-child {
+  margin-bottom: 0;
+}
+.f1c-prose strong {
+  font-weight: 700;
+}
+/* Streaming cursor: the RadioInput caret, solid (it moves with the text, so it never blinks). */
+.f1c-cursor {
+  display: inline-block;
+  width: 4px;
+  height: 1em;
+  margin-left: 3px;
+  vertical-align: -0.14em;
+  background: var(--c-red);
+  transform: skewX(-12deg);
+  transform-origin: 0 88%;
+}
+
+/* Race control: the tool-call timeline. */
+.f1c-rc {
+  display: grid;
+}
+.f1c-rc__head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 32px;
+  /* Room on the right for the chevron, which sits there absolutely and never takes part in the row. */
+  padding: 0 24px 0 0;
+  border: 0;
+  background: none;
+  color: var(--c-carbon);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.f1c-rc__head .f1c-label {
+  color: var(--c-carbon);
+}
+.f1c-rc__summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--c-muted);
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Chevron: pinned to the right edge, hidden until you hover or focus the header, or while it's
+   open. Only its opacity changes, so nothing in the row moves. */
+.f1c-rc__chevron {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  translate: 0 -50%;
+  opacity: 0;
+  transition: opacity 140ms, transform 180ms var(--c-ease);
+}
+.f1c-rc__head:hover .f1c-rc__chevron,
+.f1c-rc__head:focus-visible .f1c-rc__chevron,
+.f1c-rc[data-open] .f1c-rc__chevron {
+  opacity: 1;
+}
+/* No hover on touch screens, so there it always shows. */
+@media (hover: none) {
+  .f1c-rc__chevron {
+    opacity: 1;
+  }
+}
+.f1c-rc[data-open] .f1c-rc__chevron {
+  transform: rotate(180deg);
+}
+.f1c-rc__head:hover .f1c-rc__chevron,
+.f1c-rc__head:focus-visible .f1c-rc__chevron {
+  color: var(--c-red);
+}
+.f1c-rc__head:focus-visible {
+  outline: 2px solid var(--c-red);
+  outline-offset: 2px;
+}
+/* Opens by growing the grid row, so nothing below jumps in one frame. */
+.f1c-rc__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 200ms var(--c-ease);
+}
+.f1c-rc[data-open] .f1c-rc__body {
+  grid-template-rows: 1fr;
+}
+.f1c-rc__list {
+  min-height: 0;
+  /* The list clips while it folds. Pad it out a few px so the slanted flags' corners
+     aren't clipped, and pull it back so the rows stay lined up with the header. */
+  margin: 0 -4px;
+  padding: 0 4px;
+  overflow: hidden;
+  list-style: none;
+}
+.f1c-rc__step {
+  display: grid;
+  grid-template-columns: 10px 20px 1fr;
+  column-gap: 12px;
+  align-items: center;
+  padding: 8px 0 0;
+}
+.f1c-rc__step:first-child {
+  padding-top: 10px;
+}
+.f1c-rc__step[data-new] {
+  animation: f1c-in 220ms var(--c-ease) both;
+}
+.f1c-rc__icon {
+  display: flex;
+  color: var(--c-carbon);
+}
+.f1c-rc__msg {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 20px;
+  text-transform: uppercase;
+}
+.f1c-rc__detail {
+  grid-column: 3;
+  color: var(--c-muted);
+  font-size: 14px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+/* Thinking: the reasoning between lookups, quieter than the checks. */
+.f1c-rc__step--thinking {
+  align-items: start;
+}
+.f1c-rc__step--thinking .f1c-rc__icon {
+  color: var(--c-faint);
+}
+.f1c-rc__thought {
+  color: var(--c-muted);
+  font-size: 15px;
+  font-style: italic;
+  line-height: 20px;
+}
+/* Live header: the current step, rolling up as each new one arrives. */
+.f1c-rc__now {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  /* Clips the roll-up. A few px of room on the left (pulled back with the margin)
+     so the slanted icon's bottom corner isn't cut. */
+  margin-left: -4px;
+  padding-left: 4px;
+  overflow: hidden;
+}
+.f1c-rc__roll {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 24px;
+  animation: f1c-roll 240ms var(--c-ease) both;
+}
+.f1c-rc__now-text {
+  min-width: 0;
+  /* Room for the italic overhang, so the last letter isn't clipped. */
+  padding-right: 0.25em;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* Done header: flag, label and any failure count. */
+.f1c-rc__done {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+/* Live to done. The car drives across; the last step is cleared ahead of its nose and
+   the done header is revealed behind it. One easing and duration keep all three together. */
+.f1c-rc__done[data-reveal] {
+  animation: f1c-reveal 1000ms var(--c-drive) both;
+}
+.f1c-rc__track {
+  position: absolute;
+  inset: 0 24px 0 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.f1c-rc__outgoing {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: f1c-wipe 1000ms var(--c-drive) both;
+}
+.f1c-rc__car {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: flex;
+  /* Nose on the moving edge; white behind so text never shows through the wheels. */
+  background: #fff;
+  translate: -100% -50%;
+  animation: f1c-drive 1000ms var(--c-drive) both, f1c-fade 1000ms linear both;
+}
+.f1c-rc__roll[data-thinking] .f1c-rc__icon,
+.f1c-rc__outgoing[data-thinking] .f1c-rc__icon {
+  color: var(--c-faint);
+}
+.f1c-rc__roll[data-thinking] .f1c-rc__now-text,
+.f1c-rc__outgoing[data-thinking] .f1c-rc__now-text {
+  color: var(--c-muted);
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.f1c-rc__summary[data-failed] {
+  color: var(--c-red);
+}
+.f1c-rc__step[data-status="error"] .f1c-rc__msg {
+  color: var(--c-red);
+}
+
+/* Flag: a slanted marshal flag. Yellow while a check runs, green when clear, red when it failed. */
+.f1c-flag {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 12px;
+  background: var(--c-faint);
+  transform: skewX(-12deg);
+}
+.f1c-flag[data-status="running"] {
+  background: var(--c-yellow);
+}
+.f1c-flag[data-status="done"] {
+  background: var(--c-green);
+}
+.f1c-flag[data-status="error"] {
+  background: var(--c-red);
+}
+/* Running: the yellow flag waves like a marshal's, from its pole on the left, until the run ends.
+   The one loop in the chat, and only while tools are working. Transform only, so nothing shifts. */
+.f1c-flag--head[data-status="running"] {
+  transform-origin: 0 50%;
+  animation: f1c-wave 900ms ease-in-out infinite;
+}
+@keyframes f1c-wave {
+  0%,
+  100% {
+    transform: skewX(-12deg);
+  }
+  50% {
+    transform: skewX(-2deg) scaleX(0.8);
+  }
+}
+/* The header flag is wider: a proper chequered flag, four squares across. */
+.f1c-flag--head {
+  width: 20px;
+  height: 14px;
+}
+.f1c-flag[data-status="chequered"] {
+  background: conic-gradient(var(--c-carbon) 25%, #fff 0 50%, var(--c-carbon) 0 75%, #fff 0) 0 0 / 10px 7px;
+  outline: 1px solid var(--c-carbon);
+  outline-offset: -1px;
+}
+
+/* Start lights: five lights come on one by one while the answer is on its way, then go out. */
+.f1c-lights {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.f1c-lights__gantry {
+  display: flex;
+  gap: 4px;
+}
+.f1c-lights__unit {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  background: var(--c-carbon);
+  transform: skewX(-12deg);
+}
+.f1c-lights__lamp {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #303037;
+  transform: skewX(12deg);
+}
+.f1c-lights[data-state="on"] .f1c-lights__lamp {
+  animation: f1c-lamp 1ms steps(1) both;
+}
+.f1c-lights[data-state="out"] .f1c-lights__lamp {
+  background: #303037;
+  transition: background 60ms;
+}
+.f1c-lights__label {
+  color: var(--c-muted);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Follow ups */
+.f1c-followups {
+  display: grid;
+  gap: 2px;
+}
+.f1c-followups > .f1c-label {
+  margin: 0 0 4px 20px;
+}
+.f1c-row__arrow {
+  flex: none;
+  align-self: center;
+  color: var(--c-red);
+  transition: transform 160ms var(--c-ease);
+}
+.f1c-row:hover .f1c-row__arrow,
+.f1c-row:focus-visible .f1c-row__arrow {
+  transform: translateX(4px);
+}
+
+/* Follow-up cards: picture tiles, painted from what they're about. */
+.f1c-cards {
+  display: grid;
+  gap: 8px;
+}
+.f1c-cards__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+.f1c-card {
+  position: relative;
+  display: grid;
+  grid-template-rows: 120px 1fr;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: var(--card-bg);
+  color: var(--card-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  /* One bevelled corner, top right. */
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+}
+.f1c-card:focus-visible {
+  outline: none;
+}
+/* Picture band: a fixed-height strip that clips its art. */
+.f1c-card__band {
+  position: relative;
+  overflow: hidden;
+}
+/* Words: tag, then the question. */
+.f1c-card__body {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 12px 16px 16px;
+}
+.f1c-card__tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Saira", sans-serif;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 800;
+  font-variation-settings: "wght" 800, "wdth" 110;
+  letter-spacing: 0.06em;
+  line-height: 16px;
+  opacity: 0.8;
+  text-transform: uppercase;
+}
+.f1c-card__text {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 21px;
+  text-wrap: balance;
+}
+.f1c-card__go {
+  display: inline-flex;
+  margin-left: 6px;
+}
+.f1c-card__art {
+  position: absolute;
+  display: flex;
+  pointer-events: none;
+}
+/* Portraits stand on the band's floor, shoulders on the edge, and the band masks them. */
+.f1c-card__portrait {
+  display: block;
+  height: 120px;
+  width: auto;
+}
+.f1c-card__art--portrait {
+  right: 12px;
+  bottom: 0;
+}
+.f1c-card__art--number {
+  left: 14px;
+  bottom: -22px;
+  font-size: 104px;
+  font-style: italic;
+  font-variation-settings: "wght" 900, "wdth" 87;
+  line-height: 1;
+  opacity: 0.25;
+}
+/* Two drivers: one portrait standing in each colour. */
+.f1c-card__art--pair {
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  justify-items: center;
+}
+.f1c-card__art--pair > span {
+  display: flex;
+}
+/* Team: the car, turned to drive left to right and centred in the band. The wrapper takes the
+   turned size (161 × 100) so the band centres it; the car itself is rotated inside. */
+.f1c-card__art--car {
+  top: 50%;
+  left: 50%;
+  width: 161px;
+  height: 100px;
+  translate: -50% -50%;
+}
+.f1c-card__art--car > svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  rotate: 90deg;
+}
+/* Circuit: the track, filling the band. */
+.f1c-card__art--track {
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+}
+/* Lap: the number, big and faded, cropped by the band. */
+.f1c-card__art--lap {
+  right: 12px;
+  bottom: -26px;
+  font-size: 128px;
+  font-style: italic;
+  font-variation-settings: "wght" 900, "wdth" 87;
+  line-height: 1;
+  opacity: 0.3;
+}
+/* Error: red flag. */
+.f1c-error {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+}
+.f1c-flag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 16px 4px 14px;
+  background: var(--c-red);
+  color: #fff;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  font-family: "Saira", sans-serif;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 900;
+  font-variation-settings: "wght" 900, "wdth" 112;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.f1c-error__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+}
+.f1c-error__text {
+  margin: 0;
+  color: var(--c-muted);
+  font-size: 15px;
+  line-height: 22px;
+}
+.f1c-slant-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 20px 0 22px;
+  border: 0;
+  background: var(--c-carbon);
+  color: var(--c-warm);
+  clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+  cursor: pointer;
+  font-family: "Saira", sans-serif;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 900;
+  font-variation-settings: "wght" 900, "wdth" 112;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 120ms;
+}
+.f1c-slant-button:hover,
+.f1c-slant-button:focus-visible {
+  background: var(--c-red);
+  outline: none;
+}
+
+/* Jump to latest: a round carbon button with a chevron down. Red on hover. */
+.f1c-latest {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--c-carbon);
+  color: #fff;
+  cursor: pointer;
+  transition: background 120ms;
+}
+.f1c-latest:hover,
+.f1c-latest:focus-visible {
+  background: var(--c-red);
+  outline: none;
+}
+
+@keyframes f1c-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@keyframes f1c-drive {
+  from {
+    left: 0%;
+  }
+  to {
+    left: calc(100% + 56px);
+  }
+}
+@keyframes f1c-fade {
+  90% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes f1c-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+@keyframes f1c-wipe {
+  to {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+@keyframes f1c-roll {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+@keyframes f1c-lamp {
+  to {
+    background: var(--c-red);
+  }
+}
+
+/* Tool icons, live: each icon's own small loop while its tool runs. Every loop starts and ends
+   on the icon's resting pose, and staggered parts wait at rest, so switching it on or off never
+   jumps. Transform, opacity and stroke-dash only, so nothing around the icon shifts. */
+.f1c-ti--live [class^="ti-"],
+.f1c-ti--live [class*=" ti-"] {
+  transform-box: fill-box;
+}
+/* Schedule: the marked day walks along the week, a short hop each time. */
+.f1c-ti--live .ti-day {
+  animation: f1c-ti-hop 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+/* Standings: the podium drops away and is rebuilt, P3, then P2, then P1, each with a small bounce. */
+.f1c-ti--live .ti-step {
+  transform-origin: 50% 100%;
+  animation: f1c-ti-p1 1.8s cubic-bezier(0.34, 1.4, 0.64, 1) infinite;
+}
+.f1c-ti--live .ti-step--3 {
+  animation-name: f1c-ti-p3;
+}
+.f1c-ti--live .ti-step--2 {
+  animation-name: f1c-ti-p2;
+}
+/* Results and race control: the flag flaps up and down from its pole. */
+.f1c-ti--live .ti-wave {
+  transform-origin: 0 50%;
+  animation: f1c-ti-flap 1s ease-in-out infinite;
+}
+/* Drivers: the helmet nods, chin down and back. */
+.f1c-ti--live .ti-nod {
+  transform-origin: 20% 100%;
+  animation: f1c-ti-nod 1.4s ease-in-out infinite;
+}
+/* Lap times: the hand sweeps round the dial, pivoting on the hub. */
+.f1c-ti--live .ti-hand {
+  /* The dial's centre (12, 13.75) within the hand's own box. */
+  transform-origin: 20.5% 79.5%;
+  animation: f1c-ti-turn 2s linear infinite;
+}
+/* Gaps: the cars close up and the gap arrow shrinks with them, then they pull apart. */
+.f1c-ti--live .ti-gap {
+  transform-origin: 50% 50%;
+  animation: f1c-ti-gap 1.2s ease-in-out infinite;
+}
+.f1c-ti--live .ti-car--a {
+  animation: f1c-ti-close-a 1.2s ease-in-out infinite;
+}
+.f1c-ti--live .ti-car--b {
+  animation: f1c-ti-close-b 1.2s ease-in-out infinite;
+}
+/* Positions: one car climbs as the other drops back. */
+.f1c-ti--live .ti-up {
+  animation: f1c-ti-up 1.2s ease-in-out infinite;
+}
+.f1c-ti--live .ti-down {
+  animation: f1c-ti-down 1.2s ease-in-out infinite;
+}
+/* Tyres: the wheel spins on its hub. */
+.f1c-ti--live .ti-spin {
+  transform-origin: 50% 50%;
+  animation: f1c-ti-turn 0.9s linear infinite;
+}
+/* Timing tower: the gap bars update one after another, top to bottom. */
+.f1c-ti--live .ti-bar {
+  transform-origin: 0 50%;
+  animation: f1c-ti-bar 1.6s ease-in-out infinite;
+}
+.f1c-ti--live .ti-bar--2 {
+  animation-delay: 120ms;
+}
+.f1c-ti--live .ti-bar--3 {
+  animation-delay: 240ms;
+}
+.f1c-ti--live .ti-bar--4 {
+  animation-delay: 360ms;
+}
+/* Telemetry: the trace is wiped from the left and drawn back in, one continuous loop. */
+.f1c-ti--live .ti-trace {
+  stroke-dasharray: 1;
+  /* Square caps would leave a dot at the empty moment. */
+  stroke-linecap: butt;
+  animation: f1c-ti-draw 1.8s ease-in-out infinite;
+}
+/* Weather: each drop falls and fades, then forms again under the cloud. */
+.f1c-ti--live .ti-drop {
+  animation: f1c-ti-fall 1s linear infinite;
+}
+.f1c-ti--live .ti-drop--2 {
+  animation-delay: 330ms;
+}
+.f1c-ti--live .ti-drop--3 {
+  animation-delay: 660ms;
+}
+/* Team radio: the waves dim and brighten from the speaker outwards. */
+.f1c-ti--live .ti-wave-in,
+.f1c-ti--live .ti-wave-out {
+  animation: f1c-ti-pulse 1.2s ease-in-out infinite;
+}
+.f1c-ti--live .ti-wave-out {
+  animation-delay: 180ms;
+}
+@keyframes f1c-ti-hop {
+  0%,
+  30% {
+    transform: none;
+  }
+  34%,
+  63% {
+    transform: translateX(-7px);
+  }
+  67%,
+  96% {
+    transform: translateX(-3.5px);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes f1c-ti-p3 {
+  0% {
+    transform: none;
+  }
+  8%,
+  14% {
+    transform: scaleY(0.3);
+  }
+  32%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes f1c-ti-p2 {
+  0% {
+    transform: none;
+  }
+  8%,
+  24% {
+    transform: scaleY(0.3);
+  }
+  42%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes f1c-ti-p1 {
+  0% {
+    transform: none;
+  }
+  8%,
+  34% {
+    transform: scaleY(0.3);
+  }
+  54%,
+  100% {
+    transform: none;
+  }
+}
+@keyframes f1c-ti-flap {
+  0%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: skewY(-7deg) scaleX(0.92);
+  }
+  70% {
+    transform: skewY(4deg) scaleX(0.96);
+  }
+}
+@keyframes f1c-ti-nod {
+  0%,
+  70%,
+  100% {
+    transform: none;
+  }
+  25% {
+    transform: rotate(7deg);
+  }
+  50% {
+    transform: rotate(-2deg);
+  }
+}
+@keyframes f1c-ti-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes f1c-ti-gap {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: scaleX(0.5);
+  }
+}
+@keyframes f1c-ti-close-a {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: translateX(1.5px);
+  }
+}
+@keyframes f1c-ti-close-b {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: translateX(-1.5px);
+  }
+}
+@keyframes f1c-ti-up {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes f1c-ti-down {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}
+@keyframes f1c-ti-bar {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: scaleX(0.6);
+  }
+}
+@keyframes f1c-ti-draw {
+  /* The dash pattern repeats every 2, so -2 looks exactly like 0 and the loop is seamless. */
+  0%,
+  12% {
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dashoffset: -1;
+  }
+  88%,
+  100% {
+    stroke-dashoffset: -2;
+  }
+}
+@keyframes f1c-ti-fall {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  45% {
+    transform: translateY(3px);
+    opacity: 0;
+  }
+  46% {
+    transform: translateY(-3px);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes f1c-ti-pulse {
+  0%,
+  65%,
+  100% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f1c .f1c-flag--head[data-status="running"] {
+    animation: none !important;
+  }
+  .f1c-ti--live *,
+  .f1c .f1c-ti--live * {
+    animation: none !important;
+  }
+  .f1c *,
+  .f1c *::before {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
+}

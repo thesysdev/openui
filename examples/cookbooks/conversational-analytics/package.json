@@ -12,13 +12,16 @@
     "start": "next start --hostname 127.0.0.1",
     "preverify": "npm run generate",
     "verify": "next build",
-    "prepare:data": "tsx scripts/prepare-data.ts"
+    "prepare:data": "tsx scripts/prepare-data.ts",
+    "snapshot:f1": "tsx scripts/snapshot-openf1.ts",
+    "prompt:md": "tsx scripts/write-prompt-md.ts"
   },
   "dependencies": {
     "@openuidev/lang-core": "0.3.0",
     "@openuidev/react-headless": "0.16.3",
     "@openuidev/react-lang": "0.3.0",
     "@openuidev/react-ui": "0.16.3",
+    "flag-icons": "^7.5.0",
     "next": "16.2.6",
     "openai": "^6.49.0",
     "react": "19.2.4",

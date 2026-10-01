@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "Data analyst | OpenUI cookbook",
+  title: "OpenUI x F1",
   description:
     "Explore data through conversation with streaming charts, comparisons, and clear answers.",
 };

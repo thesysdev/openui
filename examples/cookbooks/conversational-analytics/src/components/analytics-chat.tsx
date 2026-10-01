@@ -7,6 +7,7 @@ import {
   openAIMessageFormat,
   type ThemeProps,
 } from "@openuidev/react-ui";
+import { f1Theme } from "../f1-typography";
 import { library } from "../library";
 
 // Send the thread's messages in Chat Completions format and read the route's AG-UI events.
@@ -16,7 +17,7 @@ const llm = fetchLLM({
   messageFormat: openAIMessageFormat,
 });
 
-const theme: ThemeProps = { mode: "light" };
+const theme: ThemeProps = { mode: "light", lightTheme: f1Theme };
 const starters = [
   {
     displayText: "Which five drivers set the fastest laps in Miami?",
@@ -41,13 +42,13 @@ export default function AnalyticsChat() {
       <AgentInterface
         llm={llm}
         componentLibrary={library}
-        agentName="Data analyst"
+        agentName="OpenUI x F1"
         theme={theme}
         starters={starters}
       >
-        <AgentInterface.MobileHeader agentName="Data analyst" />
+        <AgentInterface.MobileHeader agentName="OpenUI x F1" />
         <AgentInterface.Welcome
-          title="Explore your data through conversation"
+          title="OpenUI x F1"
           description="Ask about recorded lap times from the 2024 Miami Grand Prix, provided by OpenF1. Follow up to explore a different angle."
         />
         <AgentInterface.Composer placeholder="Ask a question about your data…" />

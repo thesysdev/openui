@@ -1,5 +1,11 @@
 import { createLibrary } from "@openuidev/react-lang";
-import { openuiChatLibrary, openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { f1Components } from "./components/f1-genui";
+import { Table } from "./components/f1-table";
+import { TextContent } from "./components/f1-text";
+import { BarChart, LineChart } from "./components/f1-charts";
+import { FollowUpBlock, FollowUpItem, Spotlight, SpotlightItem } from "./components/f1-follow-ups";
+import "./components/f1-layout.css";
 
 // The same subset generates the server's specification and renders in the client.
 export const library = createLibrary({
@@ -9,15 +15,22 @@ export const library = createLibrary({
       "Stack",
       "Card",
       "CardHeader",
-      "TextContent",
-      "LineChart",
-      "BarChart",
       "Series",
-      "Table",
       "Col",
     ].map((name) => openuiLibrary.components[name]),
-    // Follow-up suggestions live in the chat library.
-    openuiChatLibrary.components.FollowUpBlock,
-    openuiChatLibrary.components.FollowUpItem,
+    // F1 text with headline sizes (h1, h2, h3), in place of OpenUI's TextContent.
+    TextContent,
+    // F1-styled Table with a start slot per row, and charts with a title, in place of OpenUI's.
+    Table,
+    LineChart,
+    BarChart,
+    // Follow-ups as F1 picture cards, in place of OpenUI's list.
+    FollowUpBlock,
+    FollowUpItem,
+    // The same picture cards as 1 to 3 display tiles inside an answer.
+    Spotlight,
+    SpotlightItem,
+    // F1 assets. The model passes data such as driver codes and team names; the assets draw them.
+    ...f1Components,
   ],
 });

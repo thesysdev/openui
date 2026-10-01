@@ -1,0 +1,514 @@
+/* F1 sidebar: a carbon panel floating on the left of a white page. Flat, square, no shadows. */
+.f1-sidebar,
+.f1-sidebar-specimen__swatch {
+  --sb-carbon: #15151e;
+  /* Tokens from the F1 reference: Carbon Black, Hot Red, Warm White and the dark surface scale. */
+  --sb-carbon-up: #26262b;
+  --sb-red: #e10600;
+  /* F1's dark-mode red: Hot Red is only 3.6:1 on carbon, this is 4.9:1, so it's used for red text. */
+  --sb-red-text: #ff2d27;
+  --sb-white: #f7f4f1;
+  --sb-muted: #aaaaaa;
+  --sb-rule: #303037;
+  --sb-pad-x: 16px;
+  --sb-dim: #606066;
+}
+.f1-sidebar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 280px;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 16px 0;
+  background: var(--sb-carbon);
+  color: var(--sb-white);
+  font-family: "Titillium Web", system-ui, sans-serif;
+  /* One bevelled corner, bottom right (CSS corner-shape; browsers without it round it instead).
+     Radius-based, so it animates cleanly with the width. Every other corner stays square. */
+  border-bottom-right-radius: 24px;
+  corner-shape: bevel;
+  /* Only moves when the collapse button is pressed. */
+  transition: width 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  white-space: nowrap;
+}
+/* Entrance: the panel slides in from the left once, when it mounts. */
+.f1-sidebar--enter {
+  animation: f1-sidebar-enter 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes f1-sidebar-enter {
+  from {
+    transform: translateX(-100%);
+  }
+}
+/* Content sits above the Texture layer, which is the shell's first child. */
+.f1-sidebar > :not([aria-hidden]) {
+  position: relative;
+}
+.f1-sidebar--floating {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  height: auto;
+}
+
+/* Brand: F1, starting on the nav icon column. */
+.f1-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* Fixed height so hiding the collapse button never moves the nav. */
+  height: 32px;
+  padding: 4px var(--sb-pad-x) 16px;
+}
+.f1-sidebar-brand__mark {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+.f1-sidebar-brand__mark--expand {
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--sb-white);
+  cursor: pointer;
+}
+/* The expand icon lands exactly on the nav icon column. */
+.f1-sidebar-brand__expand {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 120ms;
+}
+.f1-sidebar-brand__mark--expand .f1-sidebar-brand__f1 {
+  transition: opacity 120ms;
+}
+.f1-sidebar-brand__mark--expand:hover .f1-sidebar-brand__f1,
+.f1-sidebar-brand__mark--expand:focus-visible .f1-sidebar-brand__f1 {
+  opacity: 0;
+}
+.f1-sidebar-brand__mark--expand:hover .f1-sidebar-brand__expand,
+.f1-sidebar-brand__mark--expand:focus-visible .f1-sidebar-brand__expand {
+  opacity: 1;
+}
+.f1-sidebar-brand__mark--expand:focus-visible {
+  outline: none;
+}
+.f1-sidebar-brand__f1 {
+  padding-right: 0.15em;
+  color: var(--sb-white);
+  font-family: "Saira", sans-serif;
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 900;
+  font-stretch: 112%;
+  font-variation-settings: "wght" 900, "wdth" 112;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* Collapse button: pushed to the far right of the header. */
+.f1-sidebar-collapse {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: 0 -6px 0 auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--sb-muted);
+  cursor: pointer;
+}
+.f1-sidebar-collapse:hover,
+.f1-sidebar-collapse:focus-visible {
+  color: var(--sb-white);
+  outline: none;
+}
+
+/* Collapsed: a 52px rail. Everything keeps its place; the mascot and nav icons share the rail's centre line. */
+.f1-sidebar--collapsed {
+  width: 52px;
+}
+/*
+ * Everything that hides stays in the DOM and in flow, and fades instead of popping,
+ * so the width change never reflows or flashes anything. Collapsing: fade out at once,
+ * before the rail narrows. Expanding: fade back in once the panel has mostly opened.
+ */
+.f1-sidebar-nav-item__label,
+.f1-sidebar-collapse,
+.f1-sidebar-section-label,
+.f1-sidebar-threads {
+  transition: opacity 120ms 100ms, visibility 0s 100ms, color 120ms;
+}
+.f1-sidebar--collapsed .f1-sidebar-nav-item__label,
+.f1-sidebar--collapsed .f1-sidebar-collapse,
+.f1-sidebar--collapsed .f1-sidebar-section-label,
+.f1-sidebar--collapsed .f1-sidebar-threads {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 80ms, visibility 0s 80ms, color 120ms;
+}
+
+/* Nav item */
+.f1-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+}
+.f1-sidebar-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px var(--sb-pad-x);
+  border: 0;
+  background: none;
+  color: var(--sb-muted);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 120ms;
+}
+.f1-sidebar-nav-item:hover,
+.f1-sidebar-nav-item:focus-visible {
+  color: var(--sb-white);
+  outline: none;
+}
+.f1-sidebar-nav-item[aria-current="page"] {
+  color: var(--sb-white);
+  font-weight: 700;
+}
+/* Active marker: a slanted red block on the left edge. */
+.f1-sidebar-nav-item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: -4px;
+  width: 12px;
+  background: var(--sb-red);
+  transform: skewX(-12deg);
+}
+/* Inside SidebarNav one shared slash slides between items instead. */
+.f1-sidebar-nav--sliding .f1-sidebar-nav-item[aria-current="page"]::before {
+  content: none;
+}
+.f1-sidebar-nav__slash {
+  position: absolute;
+  top: 0;
+  left: -4px;
+  z-index: 1;
+  width: 12px;
+  background: var(--sb-red);
+  pointer-events: none;
+}
+.f1-sidebar-nav__slash[data-ready] {
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 160ms;
+}
+.f1-sidebar-nav__slash[data-hidden] {
+  opacity: 0;
+}
+.f1-sidebar-nav-item svg {
+  flex: none;
+}
+
+/* Section label */
+.f1-sidebar-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 28px var(--sb-pad-x) 6px;
+  color: var(--sb-white);
+  font-family: "Saira", sans-serif;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 700;
+  font-stretch: 112%;
+  font-variation-settings: "wght" 700, "wdth" 112;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Threads */
+.f1-sidebar-threads {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.f1-sidebar-thread {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 6px var(--sb-pad-x);
+  border: 0;
+  background: none;
+  color: var(--sb-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color 120ms, background-color 120ms;
+}
+.f1-sidebar-thread:hover,
+.f1-sidebar-thread:focus-visible {
+  color: var(--sb-white);
+  outline: none;
+}
+/* The open thread: title and radio icon turn red. */
+/* On select, the radio icon pops once: up, then back down. */
+.f1-sidebar-thread[aria-current="true"] > svg {
+  animation: f1-sidebar-radio-pop 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes f1-sidebar-radio-pop {
+  40% {
+    transform: scale(1.35);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .f1-sidebar-nav__slash[data-ready] {
+    transition: opacity 160ms;
+  }
+  .f1-sidebar-thread[aria-current="true"] > svg,
+  .f1-sidebar--enter {
+    animation: none;
+  }
+}
+.f1-sidebar-thread[aria-current="true"] {
+  background: var(--sb-carbon-up);
+  color: var(--sb-red-text);
+}
+/* Centre the icon on the title's first line (16px type, 1.3 line height). */
+.f1-sidebar-thread > svg {
+  margin-top: 1.5px;
+}
+.f1-sidebar-thread__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.f1-sidebar-thread__meta {
+  color: var(--sb-dim);
+  font-size: 13px;
+  line-height: 1.3;
+}
+.f1-sidebar-thread__title {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Gallery previews */
+.f1-sidebar-stage {
+  position: relative;
+  height: 820px;
+  max-width: 1100px;
+  background: #ffffff;
+  outline: 1px solid #e0dedc;
+}
+.f1-sidebar-stage__page {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100%;
+  margin-left: 280px;
+  transition: margin-left 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  padding: 40px 32px 28px;
+  color: #15151e;
+}
+.f1-sidebar--collapsed + .f1-sidebar-stage__page {
+  margin-left: 52px;
+}
+.f1-sidebar-stage__input {
+  width: 100%;
+  max-width: 680px;
+  margin: auto auto 0;
+}
+.f1-sidebar-stage__page h3 {
+  margin: 0;
+  font-family: "Saira", sans-serif;
+  font-size: 64px;
+  font-style: italic;
+  font-weight: 900;
+  font-stretch: 112%;
+  font-variation-settings: "wght" 900, "wdth" 112;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+.f1-sidebar-specimen {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1100px;
+}
+.f1-sidebar-specimen__row {
+  display: grid;
+  grid-template-columns: 180px 280px;
+  align-items: center;
+  gap: 24px;
+}
+.f1-sidebar-specimen__row > span {
+  color: #606066;
+  font-size: 16px;
+}
+.f1-sidebar-specimen__swatch {
+  overflow: hidden;
+  padding: 16px 0;
+  background: var(--sb-carbon);
+  color: var(--sb-white);
+  font-family: "Titillium Web", system-ui, sans-serif;
+}
+
+/* New chat: a small Hot Red circle with a warm-white plus, the one round shape here. */
+.f1-sidebar-radio-head {
+  position: relative;
+}
+.f1-sidebar-section-label__action {
+  display: flex;
+  margin-left: auto;
+}
+.f1-sidebar-new {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--sb-red);
+  color: var(--sb-white);
+  cursor: pointer;
+  transition: background-color 120ms, transform 120ms;
+}
+.f1-sidebar-new:hover,
+.f1-sidebar-new:focus-visible {
+  background: var(--sb-red-text);
+  outline: none;
+}
+.f1-sidebar-new:active {
+  transform: scale(0.92);
+}
+/* The rail copy sits on the TEAM RADIO row, centred on the icon column, and only shows when collapsed. */
+.f1-sidebar-new--rail {
+  position: absolute;
+  /* 28px, larger than the inline 20px; centred on the TEAM RADIO row and the icon column. */
+  top: 24px;
+  left: calc(var(--sb-pad-x) - 4px);
+  width: 28px;
+  height: 28px;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 80ms, visibility 0s 80ms, background-color 120ms, transform 120ms;
+}
+.f1-sidebar--collapsed .f1-sidebar-new--rail {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 120ms 100ms, visibility 0s 100ms, background-color 120ms, transform 120ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .f1-sidebar-new:active {
+    transform: none;
+  }
+}
+
+/* Hover peek: the floating sidebar sits above the page, and a light carbon backdrop dims the page behind it. */
+.f1-sidebar--floating {
+  z-index: 20;
+}
+.f1-sidebar-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 19;
+  background: rgb(21 21 30 / 0.2);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 160ms, visibility 0s 160ms;
+}
+.f1-sidebar-backdrop[data-open] {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 160ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .f1-sidebar-backdrop,
+  .f1-sidebar-backdrop[data-open] {
+    transition: none;
+  }
+}
+
+/* Thread status: STANDBY / ON AIR from the RadioInput, swapped in for the date in the same cell. */
+.f1-sidebar-thread__line {
+  display: grid;
+}
+.f1-sidebar-thread__line > * {
+  grid-area: 1 / 1;
+  transition: opacity 160ms;
+}
+.f1-sidebar-thread__status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sb-muted);
+  font-family: "Saira", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  font-stretch: 87%;
+  font-variation-settings: "wght" 700, "wdth" 87;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+.f1-sidebar-thread__light {
+  width: 7px;
+  height: 7px;
+  background: currentColor;
+}
+.f1-sidebar-thread__line[data-status] .f1-sidebar-thread__meta {
+  opacity: 0;
+}
+.f1-sidebar-thread__line[data-status] .f1-sidebar-thread__status {
+  opacity: 1;
+}
+.f1-sidebar-thread__line[data-status="on-air"] .f1-sidebar-thread__status {
+  color: var(--sb-red-text);
+}
+/* The light blinks only while on air, like the RadioInput's. */
+.f1-sidebar-thread__line[data-status="on-air"] .f1-sidebar-thread__light {
+  animation: f1-sidebar-onair 900ms steps(1) infinite;
+}
+@keyframes f1-sidebar-onair {
+  50% {
+    opacity: 0.25;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .f1-sidebar-thread__line > * {
+    transition: none;
+  }
+  .f1-sidebar-thread__line[data-status="on-air"] .f1-sidebar-thread__light {
+    animation: none;
+  }
+}

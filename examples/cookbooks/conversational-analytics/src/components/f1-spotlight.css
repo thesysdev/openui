@@ -1,0 +1,8 @@
+/* Spotlight tiles reuse the follow-up cards as display only: no send arrow, no pointer. */
+.f1-spotlight .f1c-card {
+  cursor: default;
+  pointer-events: none;
+}
+.f1-spotlight .f1c-card__go {
+  display: none;
+}
