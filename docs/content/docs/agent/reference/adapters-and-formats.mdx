@@ -359,9 +359,10 @@ interface StreamProtocolAdapter {
 
 <Callout type="info">
   The line-oriented adapters log and skip malformed lines. `vercelAIAdapter()` delegates validation
-  to the Vercel AI SDK and rejects invalid UIMessage chunks. Provider-level failures should be
-  surfaced as a `RUN_ERROR` event (the OpenAI Responses, Vercel AI SDK, LangGraph, and Eve adapters
-  do this for their error events).
+  to the Vercel AI SDK and rejects invalid UIMessage chunks. Provider-level failures are surfaced
+  as a `RUN_ERROR` event by all seven adapters: each maps its protocol's error events, and the AG-UI,
+  OpenAI Completions, OpenAI readable-stream, and OpenAI Responses adapters also map the untyped
+  `{"error":{…}}` record that OpenAI-compatible servers send inside an HTTP 200 stream.
 </Callout>
 
 ### Selection guide
@@ -388,7 +389,7 @@ import { agUIAdapter } from "@openuidev/react-ui";
 const llm = fetchLLM({ url: "/api/chat", streamAdapter: agUIAdapter() });
 ```
 
-- **Wire shape:** Server-Sent Events whose `data:` payload is already a serialized AG-UI event (`data: {"type":"TEXT_MESSAGE_CONTENT",…}`). `[DONE]` sentinels and blank lines are ignored.
+- **Wire shape:** Server-Sent Events whose `data:` payload is already a serialized AG-UI event (`data: {"type":"TEXT_MESSAGE_CONTENT",…}`). `[DONE]` sentinels and blank lines are ignored. An untyped `{"error":{…}}` record becomes `RUN_ERROR`; any other record without a `type` is logged and skipped.
 - **When to use:** Your route does the provider translation itself and emits AG-UI events directly. This is the lowest-overhead option when you control the backend — no per-provider parsing in the browser. It pairs naturally with `identityMessageFormat`, since both sides already speak AG-UI.
 
 ### `openAIAdapter`
@@ -404,7 +405,7 @@ const llm = fetchLLM({
 ```
 
 - **Wire shape:** OpenAI **Chat Completions** streaming SSE — the raw `data: {…}` chunk format from `chat.completions.create({ stream: true })` (each line is a `ChatCompletionChunk`).
-- **What it emits:** `TEXT_MESSAGE_START` on the first content/role delta, `TEXT_MESSAGE_CONTENT` per content delta, `TOOL_CALL_START` / `TOOL_CALL_ARGS` for streamed tool calls (indexed by `tool_calls[].index`), and end events driven by `finish_reason` (`stop` → `TEXT_MESSAGE_END`, `tool_calls` → `TOOL_CALL_END` for each open call).
+- **What it emits:** `TEXT_MESSAGE_START` on the first content/role delta, `TEXT_MESSAGE_CONTENT` per content delta, `TOOL_CALL_START` / `TOOL_CALL_ARGS` for streamed tool calls (indexed by `tool_calls[].index`), and end events driven by `finish_reason` (`stop` → `TEXT_MESSAGE_END`, `tool_calls` → `TOOL_CALL_END` for each open call). An in-stream error record (`{"error":{"message":…,"code":…}}`) → `RUN_ERROR`.
 - **When to use:** Your route forwards the OpenAI Completions stream as-is (the most common OpenAI setup). Pair with `openAIMessageFormat`.
 
 ### `openAIReadableStreamAdapter`
@@ -441,7 +442,7 @@ const llm = fetchLLM({
 ```
 
 - **Wire shape:** OpenAI **Responses API** (and Conversations API) streaming SSE — the item-based `ResponseStreamEvent` stream from `responses.create({ stream: true })`.
-- **What it handles:** `response.output_item.added` (assistant message start, `function_call` start, and server-side `function_call_output` → `TOOL_CALL_RESULT`), `response.output_text.delta` / `.done` for text, `response.function_call_arguments.delta` / `.done` for tool-call arguments (mapping `item_id` → `call_id`), and `error` / `response.failed` → `RUN_ERROR`. Lifecycle/metadata events (`response.created`, `response.completed`, etc.) are ignored.
+- **What it handles:** `response.output_item.added` (assistant message start, `function_call` start, and server-side `function_call_output` → `TOOL_CALL_RESULT`), `response.output_text.delta` / `.done` for text, `response.function_call_arguments.delta` / `.done` for tool-call arguments (mapping `item_id` → `call_id`), and `error` / `response.failed` (or an untyped `{"error":{…}}` record) → `RUN_ERROR`. Lifecycle/metadata events (`response.created`, `response.completed`, etc.) are ignored.
 - **When to use:** You call the newer Responses or Conversations API rather than Chat Completions. Pair with `openAIConversationMessageFormat`.
 
 ### `vercelAIAdapter`
