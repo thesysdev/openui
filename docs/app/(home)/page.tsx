@@ -1,7 +1,6 @@
-import type { Metadata } from "next";
 import { BASE_URL } from "@/lib/source";
+import type { Metadata } from "next";
 import { AGENT_SETUP_PROMPT, AgentPicker } from "./components/AgentPicker/AgentPicker";
-import { DEFAULT_GITHUB_REPO_URL } from "./components/GitHubButton/GitHubButton";
 import styles from "./page.module.css";
 import { BANNER_END_ANCHOR_ID, CloudBanner } from "./sections/CloudBanner/CloudBanner";
 import { CloudSection } from "./sections/CloudSection/CloudSection";
@@ -47,9 +46,7 @@ const structuredData = {
       license: "https://opensource.org/licenses/MIT",
       publisher: { "@id": "https://www.thesys.dev/#organization" },
       sameAs: [
-        typeof DEFAULT_GITHUB_REPO_URL === "string"
-          ? DEFAULT_GITHUB_REPO_URL
-          : "https://github.com/thesysdev/openui",
+        "https://github.com/thesysdev/openui",
         "https://www.npmjs.com/org/openuidev",
         "https://x.com/thesysdev",
         "https://www.linkedin.com/company/thesysdev/",
