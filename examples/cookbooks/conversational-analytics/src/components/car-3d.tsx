@@ -277,9 +277,8 @@ export function Car3DPreview() {
   return (
     <div className="ref">
       <section className="ref-group">
-        <h3>Reference painting, then gloss (as painted), matte with the print, and the default</h3>
+        <h3>Gloss, matte with the print, and the default</h3>
         <div style={{ display: "flex", gap: 28, alignItems: "flex-start" }}>
-          <img src="/car3d-reference.jpg" alt="Reference painting" width={260} style={{ display: "block", marginTop: -20 }} />
           <Car3D width={200} colour="#F3872F" carbon="#2C323A" helmet="#E7EC4C" finish="gloss" texture={false} streaks={false} shadow={false} title="Gloss, as painted" />
           <Car3D width={200} colour="#F3872F" carbon="#2C323A" helmet="#E7EC4C" shadow={false} title="Matte, as painted" />
           <Car3D width={200} title="Default F1 red" />
@@ -309,8 +308,8 @@ export function Car3DPreview() {
         <code>{'<Car3D colour="#FF8000" carbon="#1B1F2A" width={200} />'}</code> Nose points down; rotate with CSS for other
         headings. Props: <code>colour</code>, <code>carbon</code>, <code>helmet</code>, <code>width</code>, <code>finish</code>{" "}
         (matte or gloss), <code>texture</code>, <code>ink</code>, <code>paper</code>, <code>dotSpacing</code>, <code>streaks</code>{" "}
-        (two tones, or false), <code>streakOffset</code>, <code>shadow</code>, <code>title</code>. Geometry is the reference
-        painting's own facets, tinted; the print is the same halftone as Texture; the motion streaks are a two-tone misprint.
+        (two tones, or false), <code>streakOffset</code>, <code>shadow</code>, <code>title</code>. Geometry is a set of painted
+        facets, tinted; the print is the same halftone as Texture; the motion streaks are a two-tone misprint.
       </p>
     </div>
   );

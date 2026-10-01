@@ -1,0 +1,36 @@
+/* A block still being written: cream checkerboard tiles on a transparent ground, at the block's
+   final size with square corners, so the page shows through between the tiles. While it loads, a
+   slanted pair of speed stripes in deeper cream sweeps across, fast then a short pause. Chart loading panels draw this same board (.f1-chart-board). */
+.f1-settle {
+  --f1-settle-tile: 16px;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  background-image: conic-gradient(rgba(234, 222, 196, 0.18) 25%, transparent 0 50%, rgba(234, 222, 196, 0.18) 0 75%, transparent 0);
+  background-size: calc(var(--f1-settle-tile) * 2) calc(var(--f1-settle-tile) * 2);
+}
+/* The board in deeper cream, gaps filled, shown only through the slanted stripes (a wide one and a
+   thin one), so each stripe reads as a solid streak with the checker inside. */
+.f1-settle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(234, 222, 196, 0.6);
+  background-image: conic-gradient(#d4bf92 25%, transparent 0 50%, #d4bf92 0 75%, transparent 0);
+  background-size: inherit;
+  opacity: 0.25;
+  --f1-settle-stripes: linear-gradient(110deg, transparent 42%, #000 42% 47%, transparent 47% 49%, #000 49% 50%, transparent 50%);
+  -webkit-mask-image: var(--f1-settle-stripes);
+  mask-image: var(--f1-settle-stripes);
+  -webkit-mask-size: 300% 100%;
+  mask-size: 300% 100%;
+  animation: f1-settle-sweep 1.6s cubic-bezier(0.6, 0, 0.2, 1) infinite;
+}
+@keyframes f1-settle-sweep {
+  0% { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+  70%, 100% { -webkit-mask-position: 0 0; mask-position: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .f1-settle::after { display: none; }
+}

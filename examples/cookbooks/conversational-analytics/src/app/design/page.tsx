@@ -1,4 +1,4 @@
-// A new conversation. The chat itself lives in ./layout.tsx so it survives the move to /design/[threadId].
+// Home. ../layout.tsx draws the Home dashboard here and moves to /design/[threadId] on the first send.
 export default function Page() {
   return null;
 }

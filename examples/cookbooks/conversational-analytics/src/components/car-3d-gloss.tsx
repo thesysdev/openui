@@ -174,9 +174,8 @@ export function Car3DGlossPreview() {
   return (
     <div className="ref">
       <section className="ref-group">
-        <h3>Reference painting, Car3DGloss in the painted colours, and the default</h3>
+        <h3>Car3DGloss in the painted colours, and the default</h3>
         <div style={{ display: "flex", gap: 32, alignItems: "flex-start" }}>
-          <img src="/car3d-reference.jpg" alt="Reference painting" width={300} style={{ display: "block", marginTop: -24 }} />
           <Car3DGloss width={240} colour="#F3872F" carbon="#2C323A" helmet="#E7EC4C" shadow={false} grain={false} title="As painted" />
           <Car3DGloss width={240} title="Default F1 red" />
         </div>

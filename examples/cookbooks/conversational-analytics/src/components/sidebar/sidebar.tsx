@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { SidebarBrand } from "./sidebar-brand";
-import { SidebarFooter } from "./sidebar-footer";
 import { DriversIcon, HomeIcon, RadioIcon, StandingsIcon, TeamsIcon } from "./sidebar-icons";
 import { SidebarNav } from "./sidebar-nav";
 import { SidebarNavItem } from "./sidebar-nav-item";
@@ -167,7 +166,6 @@ export function Sidebar({
             />
           ))}
         </div>
-        <SidebarFooter />
       </SidebarShell>
     </>
   );

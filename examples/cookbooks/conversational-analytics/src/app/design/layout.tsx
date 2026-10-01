@@ -13,6 +13,7 @@ import { ThemeProvider } from "@openuidev/react-ui";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChatShell } from "../../components/chat-shell";
+import { AskProvider, DriversPage, HomeDashboard, StandingsPage, TeamsPage } from "../../components/dashboards";
 import { Sidebar, type SidebarThread } from "../../components/sidebar";
 import { f1Theme } from "../../f1-typography";
 import { RadioThread } from "./radio-thread";
@@ -34,6 +35,14 @@ const llm = fetchLLM({
 
 // The route takes questions of up to 600 characters.
 const MAX_QUESTION = 600;
+
+// The sidebar destinations: Home is /design itself, the others sit beside it.
+const DESTINATIONS: Record<string, { path: string; page: ReactNode }> = {
+  home: { path: "/design", page: <HomeDashboard /> },
+  standings: { path: "/design/standings", page: <StandingsPage /> },
+  drivers: { path: "/design/drivers", page: <DriversPage /> },
+  teams: { path: "/design/teams", page: <TeamsPage /> },
+};
 
 // Sidebar second line: when the conversation started.
 function when(createdAt: Thread["createdAt"]) {
@@ -68,7 +77,9 @@ function RadioChat() {
   const router = useRouter();
   const params = useParams<{ threadId?: string }>();
   // /design/new is a new chat: the empty state, with no destination highlighted (it isn't Home).
-  const isNewChat = usePathname() === "/design/new";
+  const pathname = usePathname();
+  const isNewChat = pathname === "/design/new";
+  const nav = Object.keys(DESTINATIONS).find((id) => DESTINATIONS[id].path === pathname) ?? null;
   const routeThread = params.threadId ?? null;
   const [collapsed, setCollapsed] = useState(true);
 
@@ -109,18 +120,19 @@ function RadioChat() {
         floating
         threads={sidebarThreads}
         activeThread={routeThread}
-        activeNav={isNewChat ? null : undefined}
+        activeNav={isNewChat ? null : (nav ?? undefined)}
         liveThread={isRunning ? selectedThreadId : null}
         onCollapsedChange={setCollapsed}
-        onNavigate={(id) => id === "home" && router.push("/design")}
+        onNavigate={(id) => DESTINATIONS[id] && router.push(DESTINATIONS[id].path)}
         onOpenThread={(id) => router.push(`/design/${id}`)}
         onNewChat={() => (router.push("/design/new"), document.querySelector<HTMLInputElement>(".radio-input input")?.focus())}
       />
       <ChatShell
-        threadKey={routeThread}
-        // Only a new chat opens on the welcome and starting grid; Home and the other
-        // destinations stay blank until their dashboards land.
+        threadKey={routeThread ?? pathname}
+        // A new chat opens on the welcome and starting grid; each destination on its dashboard.
         empty={isNewChat ? <RadioWelcome onPick={(prompt) => processMessage({ role: "user", content: prompt })} /> : null}
+        // Anything picked on a dashboard starts a new chat with its question, like the first send from /design/new.
+        page={nav && <AskProvider value={(q) => processMessage({ role: "user", content: q.slice(0, MAX_QUESTION) })}>{DESTINATIONS[nav].page}</AskProvider>}
         input={{
           busy: isRunning,
           maxLength: MAX_QUESTION,

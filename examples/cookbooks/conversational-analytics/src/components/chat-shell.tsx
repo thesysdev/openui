@@ -16,6 +16,8 @@ export type ChatShellProps = {
   children?: ReactNode;
   /** Shown when there is no conversation yet. */
   empty?: ReactNode;
+  /** A full-width page (a dashboard) shown instead of `empty` when there is no conversation. It runs from the top. */
+  page?: ReactNode;
   /** Passed straight to the RadioInput. */
   input?: Omit<RadioInputProps, "size">;
   /** Changes when a different conversation opens: it opens at its latest question. */
@@ -25,6 +27,8 @@ export type ChatShellProps = {
 const CARBON = "#15151E";
 const WHITE = "#FFFFFF";
 const INPUT_WIDTH = 760;
+// Dashboards use more of the page than the conversation.
+const PAGE_WIDTH = 1180;
 // Thread padding: room above the first line, and below the last one for the floating input.
 const PAD_TOP = 32;
 const PAD_BOTTOM = 160;
@@ -37,7 +41,7 @@ const FADE_MASK = `linear-gradient(to bottom, #000 calc(100% - ${FADE_FROM}px), 
 const QUESTION = ".f1c-user";
 const HOLD_MS = 2000;
 
-export function ChatShell({ children, empty, input, threadKey }: ChatShellProps) {
+export function ChatShell({ children, empty, page, input, threadKey }: ChatShellProps) {
   const hasThread = children != null && children !== false;
   const threadRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -62,6 +66,12 @@ export function ChatShell({ children, empty, input, threadKey }: ChatShellProps)
     openingRef.current = true;
     setAway(false);
   }, [threadKey]);
+
+  // A different page opens at its top.
+  const showPage = !hasThread && page != null;
+  useEffect(() => {
+    if (showPage) threadRef.current?.scrollTo({ top: 0 });
+  }, [threadKey, showPage]);
 
   // Standard chat scrolling: a new question moves to the top of the page and its answer
   // streams into the space below it. The spacer under the thread keeps that space there
@@ -137,9 +147,13 @@ export function ChatShell({ children, empty, input, threadKey }: ChatShellProps)
           <div
             ref={contentRef}
             // The empty state sits centred in the page; a thread runs from the top.
-            style={{ maxWidth: INPUT_WIDTH, margin: "0 auto", ...(hasThread ? null : { minHeight: "100%", display: "grid", alignContent: "center" }) }}
+            style={
+              showPage
+                ? { maxWidth: PAGE_WIDTH, margin: "0 auto" }
+                : { maxWidth: INPUT_WIDTH, margin: "0 auto", ...(hasThread ? null : { minHeight: "100%", display: "grid", alignContent: "center" }) }
+            }
           >
-            {hasThread ? children : empty}
+            {hasThread ? children : showPage ? page : empty}
           </div>
           <div ref={spacerRef} aria-hidden />
         </div>

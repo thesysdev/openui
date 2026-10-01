@@ -5,8 +5,9 @@
 // these charts sit next to LineChart and BarChart without a seam. Also the hover tooltip, the
 // driver and tyre marks used inside charts, and the one-time reveal when a chart scrolls into view.
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { findDriver } from "../f1-genui";
+import { findDriver, findTeam } from "../f1-genui";
 import { DriverAvatar, teamColour } from "../f1-assets";
+import { TeamLogo } from "../f1-team-logos";
 import "../f1-charts.css";
 import "./f1-charts-special.css";
 
@@ -224,12 +225,22 @@ export function TipHead({ children, aside }: { children: ReactNode; aside?: Reac
   );
 }
 
-/** One driver in a tooltip: headshot, code, an optional detail (tyre, pit) and the value. */
+/** One driver in a tooltip: headshot, code, an optional detail (tyre, pit) and the value. A team
+    name instead of a code ("Ferrari") shows the team's logo on its colour. */
 export function TipDriver({ code, value, children }: { code: string; value?: ReactNode; children?: ReactNode }) {
   const d = findDriver(code);
+  const team = d ? undefined : findTeam(code);
   return (
     <div className="f1s-tip-row">
-      {d ? <DriverAvatar number={d.number} size={26} showHeadshot /> : <span className="f1s-tip-dot" />}
+      {d ? (
+        <DriverAvatar number={d.number} size={26} showHeadshot />
+      ) : team ? (
+        <span className="f1s-tip-dot" style={{ display: "grid", placeItems: "center", background: teamColour(team) }}>
+          <TeamLogo team={team} size={16} variant="white" />
+        </span>
+      ) : (
+        <span className="f1s-tip-dot" />
+      )}
       <b>{code}</b>
       {children && <span className="f1s-tip-detail">{children}</span>}
       {value != null && <span className="f1s-tip-value">{value}</span>}
@@ -247,12 +258,14 @@ export function TyreChip({ compound, size = 16 }: { compound: string | null | un
   );
 }
 
-/** A driver at the end of a line or the start of a row: number disc in team colour and code. */
+/** A driver at the end of a line or the start of a row: number disc in team colour and code.
+    A team name instead of a code shows the team's logo. */
 export function DriverMark({ code, value, style }: { code: string; value?: string; style?: CSSProperties }) {
   const d = findDriver(code);
+  const team = d ? undefined : findTeam(code);
   return (
     <span className="f1s-driver-mark" style={style}>
-      {d && <DriverAvatar number={d.number} size={20} />}
+      {d ? <DriverAvatar number={d.number} size={20} /> : team && <TeamLogo team={team} size={18} />}
       <b>{code}</b>
       {value && <small>{value}</small>}
     </span>

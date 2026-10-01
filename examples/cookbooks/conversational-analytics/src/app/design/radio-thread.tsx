@@ -205,11 +205,13 @@ export function RadioThread() {
 
   return (
     // The red rule between exchanges sits closer to the question it introduces: 112px above, 48px below.
-    <div style={{ display: "grid" }}>
+    // minmax(0, 1fr): the column stays the thread's width. An auto column grows to fit its widest
+    // unbreakable line (a long pit wall step), which pushed the question right as tools came in.
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)" }}>
       {rows.map((row, i) => [
         i > 0 && <hr key={`${row.question.id}:rule`} aria-hidden style={{ width: "100%", height: 2, margin: "112px 0 48px", border: 0, background: "#E10600" }} />,
         // Keyed by the question, so its pit wall stays the same element from send to answer.
-        <div key={row.question.id} style={{ display: "grid", gap: 28 }}>
+        <div key={row.question.id} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 28 }}>
           <ChatUserMessage text={messageText(row.question.content)} />
           <AssistantTurn
             segments={row.segments}

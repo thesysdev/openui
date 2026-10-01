@@ -76,12 +76,23 @@ function useChartData<T>(key: string, load: () => Promise<T | null>, raw?: T | n
 
 /** While loading: the chart's panel at its final height with its title, so nothing shifts. When
     nothing came back: one quiet line in the same panel. */
+// Drawn heights measured on /component with a title (20px line + 12px margin); without one the
+// panel is that much shorter. Keep these in step with the charts so nothing shifts on arrival.
+const TITLE_H = 32;
+
 function Pending({ load, title, height, children }: { load: Load<unknown>; title?: string; height: number; children: () => ReactNode }) {
   if (load.state === "ready") return <>{children()}</>;
+  height -= title ? 0 : TITLE_H;
   return (
     <figure className={`f1-chart f1-chart-pending${load.state === "empty" ? " is-empty" : ""}`} style={{ minHeight: height }}>
       {title && <figcaption className="f1-chart-title">{title}</figcaption>}
-      {load.state === "empty" ? <p className="f1-chart-empty">No data for this chart.</p> : <div className="f1-chart-shimmer" aria-hidden />}
+      {load.state === "empty" ? (
+        <p className="f1-chart-empty">No data for this chart.</p>
+      ) : (
+        // The block-by-block loader's own board (.f1-settle in stream-settle.css), laid behind the
+        // title, so a loading chart and a streaming block always look and move the same.
+        <div className="f1-settle f1-chart-board" aria-hidden />
+      )}
     </figure>
   );
 }
@@ -156,7 +167,7 @@ export const GapChart = defineComponent({
       props.data ? { rows: props.data as Row[], pits: [] } : null,
     );
     return (
-      <Pending load={load} title={props.title} height={380}>
+      <Pending load={load} title={props.title} height={363}>
         {() => load.state === "ready" && (
           <GapChartChart
             rows={load.value.rows}
@@ -183,7 +194,7 @@ export const RaceTrace = defineComponent({
       (props.data as Row[] | undefined) ?? null,
     );
     return (
-      <Pending load={load} title={props.title} height={380}>
+      <Pending load={load} title={props.title} height={361}>
         {() => load.state === "ready" && <RaceTraceChart rows={load.value} title={props.title} />}
       </Pending>
     );
@@ -210,7 +221,7 @@ export const LapTimes = defineComponent({
       props.data ? { rows: props.data as Row[], stints: [] } : null,
     );
     return (
-      <Pending load={load} title={props.title} height={380}>
+      <Pending load={load} title={props.title} height={392}>
         {() => load.state === "ready" && <LapTimesChart rows={load.value.rows} stints={load.value.stints} title={props.title} />}
       </Pending>
     );
@@ -259,7 +270,7 @@ export const RankedBars = defineComponent({
     );
     const format = props.data ? props.format : m.format;
     return (
-      <Pending load={load} title={props.title} height={Math.min(top, 10) * 36 + 80}>
+      <Pending load={load} title={props.title} height={54 + 30 * (props.measure === "gap to pole" || !props.measure ? top - 1 : top)}>
         {() => load.state === "ready" && (
           <RankedBarsChart rows={load.value} title={props.title} format={format} unit={props.data ? undefined : m.unit} />
         )}
@@ -334,7 +345,7 @@ export const HeadToHeadBars = defineComponent({
         : null,
     );
     return (
-      <Pending load={load} title={props.title} height={360}>
+      <Pending load={load} title={props.title} height={390}>
         {() => load.state === "ready" && <HeadToHeadBarsChart drivers={pair} measures={load.value} title={props.title} />}
       </Pending>
     );
@@ -362,7 +373,7 @@ export const StintBar = defineComponent({
     );
     const count = ds?.length ?? top;
     return (
-      <Pending load={load} title={props.title} height={count * 30 + 90}>
+      <Pending load={load} title={props.title} height={132 + 28 * count}>
         {() => load.state === "ready" && <StintBarChart rows={load.value} title={props.title} />}
       </Pending>
     );
@@ -381,7 +392,7 @@ export const ChampionshipProgress = defineComponent({
       (props.data as Row[] | undefined) ?? null,
     );
     return (
-      <Pending load={load} title={props.title} height={380}>
+      <Pending load={load} title={props.title} height={361}>
         {() => load.state === "ready" && <ChampionshipProgressChart rows={load.value} title={props.title} mode={props.mode} />}
       </Pending>
     );
@@ -419,7 +430,7 @@ export const Sparkline = defineComponent({
       },
       props.data ? { values: props.data, labels: props.labels ?? [] } : null,
     );
-    if (load.state !== "ready") return <span className="f1-spark-pending" aria-hidden />;
+    if (load.state !== "ready") return <span className="f1-settle f1-spark-pending" aria-hidden />;
     return <SparklineChart values={load.value.values} labels={load.value.labels} driver={d} format={(v) => `${v} pts`} />;
   },
 });

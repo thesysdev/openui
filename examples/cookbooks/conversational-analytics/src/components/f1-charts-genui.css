@@ -1,37 +1,42 @@
-/* A chart waiting on its data: the same tinted panel at its final height, title in place,
-   a slow shimmer where the plot will be. With nothing to show, one quiet line instead. */
-.f1-chart-pending {
+/* A chart waiting on its data: the panel at its final height with its title, square corners and
+   no fill of its own. The checkerboard and its shimmer are the block-by-block loader's board
+   (.f1-settle in stream-settle.css), laid behind the title, so the two loaders always match.
+   With nothing to show it settles to a plain square panel with one quiet line. */
+.f1-chart.f1-chart-pending {
+  position: relative;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  border-radius: 0;
+  background: transparent;
 }
+.f1-chart-pending > .f1-chart-board {
+  position: absolute;
+  inset: 0;
+  width: auto;
+}
+.f1-chart-pending .f1-chart-title {
+  position: relative;
+  z-index: 1;
+}
+/* The streaming placeholder's older markup: hold the plot's space open. */
 .f1-chart-shimmer {
   flex: 1;
-  margin: 4px 8px 8px;
-  border-radius: 10px;
-  background: linear-gradient(100deg, rgba(21, 21, 30, 0.04) 30%, rgba(21, 21, 30, 0.08) 50%, rgba(21, 21, 30, 0.04) 70%);
-  background-size: 300% 100%;
-  animation: f1-chart-shimmer 1.6s ease-in-out infinite;
 }
-@keyframes f1-chart-shimmer {
-  from { background-position: 100% 0; }
-  to { background-position: 0 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .f1-chart-shimmer { animation: none; }
-}
-.f1-chart-pending.is-empty {
+.f1-chart.f1-chart-pending.is-empty {
   min-height: 0 !important;
+  background: var(--f1-chart-panel);
 }
 .f1-chart-empty {
   margin: 0 0 4px 8px;
   color: #606066;
   font-size: 14px;
 }
-.f1-spark-pending {
+/* The sparkline's placeholder: the same loader board, inline at the sparkline's size. */
+.f1-settle.f1-spark-pending {
+  --f1-settle-tile: 7px;
   display: inline-block;
   width: 96px;
   height: 28px;
-  border-radius: 4px;
-  background: rgba(21, 21, 30, 0.05);
   vertical-align: middle;
 }

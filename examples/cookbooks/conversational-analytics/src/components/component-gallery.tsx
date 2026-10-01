@@ -17,6 +17,7 @@ import {
 } from "./f1-asset-previews";
 import { ReferenceColors, ReferenceTypography } from "./f1-reference";
 import { FinishLinePreview, TexturePreview } from "./effect-previews";
+import { BlockLoadingPreview } from "./stream-settle";
 import { Mascot } from "./mascot";
 import { Car3DPreview } from "./car-3d";
 import { Car3DGlossPreview } from "./car-3d-gloss";
@@ -108,6 +109,7 @@ const sidebar = [
 const effects = [
   { name: "Texture", View: TexturePreview },
   { name: "FinishLine", View: FinishLinePreview },
+  { name: "BlockLoading", View: BlockLoadingPreview },
 ];
 
 export default function ComponentGallery() {

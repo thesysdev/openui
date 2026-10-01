@@ -12,9 +12,9 @@ const sizes = ["h1", "h2", "h3", "default", "small", "small-heavy"] as const;
 const F1_FONT = '"Titillium Web", system-ui, sans-serif';
 
 const headline: Record<"h1" | "h2" | "h3", CSSProperties> = {
-  h1: { font: `900 32px/1.1 ${F1_FONT}`, letterSpacing: "-0.01em" },
-  h2: { font: `700 24px/1.15 ${F1_FONT}` },
-  h3: { font: `700 18px/1.25 ${F1_FONT}` },
+  h1: { font: `700 32px/1.15 ${F1_FONT}`, letterSpacing: "-0.005em" },
+  h2: { font: `600 24px/1.2 ${F1_FONT}` },
+  h3: { font: `600 18px/1.25 ${F1_FONT}` },
 };
 
 export const TextContent = defineComponent({

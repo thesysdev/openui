@@ -513,43 +513,6 @@
   }
 }
 
-/* Footer credit: small, muted, at the bottom. Collapsed, only the logo stays, on the icon column. */
-.f1-sidebar-footer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: auto;
-  padding: 16px var(--sb-pad-x) 4px;
-  color: var(--sb-muted);
-  font-size: 13px;
-  line-height: 1.2;
-  text-decoration: none;
-}
-.f1-sidebar-footer__logo {
-  flex: none;
-  width: 20px;
-  height: auto;
-}
-.f1-sidebar-footer__text strong {
-  color: var(--sb-white);
-  font-weight: 600;
-}
-.f1-sidebar-footer:hover .f1-sidebar-footer__text,
-.f1-sidebar-footer:focus-visible .f1-sidebar-footer__text {
-  color: var(--sb-white);
-}
-.f1-sidebar-footer:focus-visible {
-  outline: none;
-}
-.f1-sidebar-footer__text {
-  transition: opacity 120ms 100ms, visibility 0s 100ms;
-}
-.f1-sidebar--collapsed .f1-sidebar-footer__text {
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 80ms, visibility 0s 80ms;
-}
-
 /* The TEAM RADIO row starts a new chat: pointer cursor, and the pill brightens as the only hover cue. */
 .f1-sidebar-section-label--clickable {
   cursor: pointer;

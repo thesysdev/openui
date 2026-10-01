@@ -1,0 +1,929 @@
+/* Dashboards: Home, Standings, Drivers and Teams on /design. One white page, no cards or
+   outlines: sections are set apart by space and wide Saira headings. Everything is a button that
+   radios a question in. Hovers turn text red, slide in the red slash, or square a bevelled
+   corner off; nothing rounds, nothing casts a shadow, and nothing moves when idle. */
+
+.f1d {
+  --d-red: #e10600;
+  --d-carbon: #15151e;
+  --d-warm: #f7f4f1;
+  --d-muted: #606066;
+  --d-faint: #aaaaaa;
+  --d-rule: #e0dedc;
+  --d-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --d-display: "Saira", "Arial Narrow", system-ui, sans-serif;
+  display: grid;
+  gap: 104px;
+  padding: 16px 0 32px;
+  color: var(--d-carbon);
+  font-family: "Titillium Web", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.f1d-section {
+  display: grid;
+  gap: 32px;
+  min-width: 0;
+}
+
+/* Buttons are bare: the content is the button. */
+.f1d-ask {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.f1d-ask:focus-visible,
+.f1d-chart:focus-visible {
+  outline: 2px solid var(--d-red);
+  outline-offset: 4px;
+}
+
+/* ── Headings ─────────────────────────────────────────────────────────── */
+
+.f1d-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.f1d-eyebrow {
+  color: var(--d-red);
+  font-family: var(--d-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+.f1d-title {
+  margin: 6px 0 0;
+  font-family: var(--d-display);
+  font-size: clamp(26px, 2.6vw, 34px);
+  font-weight: 600;
+  font-variation-settings: "wdth" 125;
+  line-height: 1;
+}
+/* Page titles: the destination's name, larger. */
+.f1d-page-title {
+  margin: 6px 0 0;
+  font-family: var(--d-display);
+  font-size: clamp(36px, 4.2vw, 56px);
+  font-style: italic;
+  font-weight: 900;
+  font-variation-settings: "wdth" 112;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+.f1d-lede {
+  max-width: 640px;
+  margin: 14px 0 0;
+  color: var(--d-muted);
+  font-size: 16px;
+  line-height: 24px;
+}
+/* Buttons: flat blocks with one bevelled corner, like the tiles. Hovering squares the corner off
+   and changes colour: the primary turns F1 red, the secondary's label turns red. Nothing rounds. */
+.f1d-more,
+.f1d-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px 0 16px;
+  font-family: var(--d-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  transition: clip-path 150ms var(--d-ease), background-color 120ms, color 120ms;
+}
+/* Hover and focus square the corner off; leaving brings the bevel back. */
+.f1d-more:hover,
+.f1d-more:focus-visible,
+.f1d-link:hover,
+.f1d-link:focus-visible {
+  clip-path: polygon(0 0, 100% 0, 100% 0, 100% 100%, 0 100%);
+  outline: none;
+}
+/* Primary: carbon, red on hover. */
+.f1d-more {
+  background: var(--d-carbon);
+  color: #ffffff;
+}
+.f1d-more:hover,
+.f1d-more:focus-visible {
+  background: var(--d-red);
+}
+/* Secondary: warm white, the label turns red on hover. */
+.f1d-link {
+  background: var(--d-warm);
+  color: var(--d-carbon);
+}
+.f1d-link:hover,
+.f1d-link:focus-visible {
+  color: var(--d-red);
+}
+
+.f1d-avatar-placeholder {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  font-family: var(--d-display);
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+/* ── Hover patterns ───────────────────────────────────────────────────── */
+
+/* Rows: the red slash from the sidebar and starting grid appears in the reserved left margin. */
+.f1d-row {
+  position: relative;
+  width: 100%;
+  padding-left: 18px;
+  transition: color 120ms;
+}
+.f1d-row::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 2px;
+  width: 5px;
+  background: var(--d-red);
+  transform: skewX(-12deg) scaleY(0);
+  transform-origin: bottom;
+  transition: transform 160ms var(--d-ease);
+}
+.f1d-row:hover::before,
+.f1d-row:focus-visible::before {
+  transform: skewX(-12deg) scaleY(1);
+}
+.f1d-row:focus-visible {
+  outline: none;
+}
+
+/* Tiles: warm white with one bevelled corner, squared off on hover while the tile's own figures
+   and names turn red. */
+.f1d-tile {
+  background: var(--d-warm);
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+  transition: clip-path 150ms var(--d-ease);
+}
+.f1d-tile:hover,
+.f1d-tile:focus-visible {
+  clip-path: polygon(0 0, 100% 0, 100% 0, 100% 100%, 0 100%);
+  outline: none;
+}
+
+.f1d-chart {
+  min-width: 0;
+  cursor: pointer;
+}
+/* The charts sit bare on the page, not in their tinted chat panels. */
+.f1d .f1d-chart .f1-chart {
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+}
+.f1d-chart .f1-chart-title {
+  margin-left: 0;
+}
+.f1d-chart:hover .f1-chart-title {
+  color: var(--d-red);
+}
+
+.f1d-missing {
+  display: grid;
+  place-items: center;
+  background: var(--d-warm);
+  color: var(--d-muted);
+  font-size: 15px;
+}
+
+/* ── Home: next race ──────────────────────────────────────────────────── */
+
+.f1d-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: center;
+}
+.f1d-hero-l {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+}
+.f1d-race {
+  font-family: var(--d-display);
+  font-size: clamp(40px, 5vw, 72px);
+  font-style: italic;
+  font-weight: 900;
+  font-variation-settings: "wdth" 112;
+  line-height: 0.9;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  transition: color 120ms;
+}
+.f1d-race:hover {
+  color: var(--d-red);
+}
+.f1d-race-sub {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  color: var(--d-muted);
+  font-size: 16px;
+}
+.f1d-count {
+  display: flex;
+  gap: 32px;
+  font-family: var(--d-display);
+  font-variant-numeric: tabular-nums;
+}
+.f1d-count > span {
+  display: grid;
+}
+.f1d-count b {
+  font-size: clamp(30px, 3.2vw, 44px);
+  font-weight: 700;
+  font-variation-settings: "wdth" 87;
+  line-height: 1;
+  transition: color 120ms;
+}
+.f1d-count small {
+  color: var(--d-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.f1d-count:hover b {
+  color: var(--d-red);
+}
+.f1d-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.f1d-circuit {
+  display: grid;
+  justify-items: center;
+}
+.f1d-circuit svg {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+}
+.f1d-circuit path {
+  transition: stroke 200ms;
+}
+.f1d-circuit:hover path {
+  stroke: var(--d-red);
+}
+.f1d-sessions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 12px;
+}
+.f1d-session {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px 12px;
+}
+.f1d-session small {
+  color: var(--d-muted);
+  font-family: var(--d-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.f1d-session b {
+  font-family: var(--d-display);
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wdth" 87;
+  line-height: 1.1;
+  transition: color 120ms;
+}
+.f1d-session span {
+  color: var(--d-muted);
+  font-size: 14px;
+}
+.f1d-session:hover b {
+  color: var(--d-red);
+}
+.f1d-session[data-done] b {
+  color: var(--d-faint);
+}
+
+/* ── Season overview: the big figures ────────────────────────────────── */
+
+.f1d-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.f1d-stat {
+  padding: 18px 20px 16px;
+}
+.f1d-stat .f1s-stat {
+  margin: 0;
+}
+.f1d-stat .f1s-stat-value {
+  font-size: 34px;
+}
+.f1d-stat:hover .f1s-stat-value {
+  color: var(--d-red);
+}
+
+/* ── Standings rows ──────────────────────────────────────────────────── */
+
+.f1d-split {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 64px;
+}
+.f1d-rows {
+  display: grid;
+}
+.f1d-drow {
+  display: grid;
+  grid-template-columns: 32px 36px minmax(0, 1fr) auto 64px 52px;
+  gap: 14px;
+  align-items: center;
+  height: 56px;
+  border-top: 1px solid var(--d-rule);
+}
+.f1d-drow:last-child {
+  border-bottom: 1px solid var(--d-rule);
+}
+.f1d-pos {
+  color: var(--d-faint);
+  font-family: var(--d-display);
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 900;
+  font-variation-settings: "wdth" 100;
+  font-variant-numeric: tabular-nums;
+  transition: color 120ms;
+}
+.f1d-pos[data-lead] {
+  color: var(--d-carbon);
+}
+.f1d-name {
+  display: grid;
+  min-width: 0;
+  line-height: 1.15;
+}
+.f1d-name b {
+  overflow: hidden;
+  font-family: var(--d-display);
+  font-size: 17px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 120ms;
+}
+.f1d-name span {
+  overflow: hidden;
+  color: var(--d-muted);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.f1d-pts {
+  font-family: var(--d-display);
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wdth" 87;
+  text-align: right;
+}
+.f1d-gap {
+  color: var(--d-muted);
+  font-family: var(--d-display);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wdth" 87;
+  text-align: right;
+}
+.f1d-row:hover .f1d-name b,
+.f1d-row:hover .f1d-pos,
+.f1d-row:focus-visible .f1d-name b {
+  color: var(--d-red);
+}
+.f1d-trow {
+  display: grid;
+  gap: 6px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.f1d-trow-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.f1d-trow-top .f1d-name {
+  flex: 1;
+}
+.f1d-bar {
+  height: 8px;
+  background: var(--d-warm);
+}
+.f1d-bar i {
+  display: block;
+  height: 100%;
+  /* Bars lean like the slash: a slanted end. */
+  clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+
+/* ── Home: last race ─────────────────────────────────────────────────── */
+
+.f1d-podium {
+  position: relative;
+}
+/* The floor fades out at its sides and near edge, so it blends into the page; the fade is short
+   so the cars' noses stay clear. */
+.f1d-podium > div {
+  -webkit-mask-image: linear-gradient(to bottom, #000 90%, transparent), linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, #000 90%, transparent), linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+  mask-composite: intersect;
+}
+/* The checkered floor, laid on FinishLine's floor so it shares the perspective. It rolls toward the
+   viewer two tiles a loop, so the loop has no seam: new rows keep arriving out of the distance at
+   the back, where the floor fades into the page. */
+.f1d-podium-floor {
+  position: absolute;
+  top: -40%;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  /* FinishLine's own colours: light grey and warm white. */
+  background-image: conic-gradient(#cdcdcd 25%, #f7f4f1 0 50%, #cdcdcd 0 75%, #f7f4f1 0);
+  background-size: calc(var(--f1d-tile, 38px) * 2) calc(var(--f1d-tile, 38px) * 2);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 30%, #000 62%);
+  mask-image: linear-gradient(to bottom, transparent 30%, #000 62%);
+  animation: f1d-roll 1.2s linear infinite;
+}
+@keyframes f1d-roll {
+  to {
+    background-position: 0 calc(var(--f1d-tile, 38px) * 2);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .f1d-podium-floor {
+    animation: none;
+  }
+}
+.f1d-podium-car {
+  position: absolute;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+/* The three columns lie flat over the floor; each is one button, label on top, car below. */
+.f1d-podium-cols {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.f1d-podium-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  padding-top: 8px;
+  text-align: center;
+}
+.f1d-podium-col[data-p="1"] {
+  padding-top: 0;
+}
+.f1d-podium-col:not([data-p="1"]) {
+  padding-top: 20px;
+}
+.f1d-pod-p {
+  color: var(--d-faint);
+  font-family: var(--d-display);
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 900;
+  font-variation-settings: "wdth" 112;
+  line-height: 0.9;
+  transition: color 120ms;
+}
+.f1d-podium-col[data-p="1"] .f1d-pod-p {
+  color: var(--d-red);
+}
+.f1d-pod-driver {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
+  min-width: 0;
+}
+.f1d-pod-who {
+  overflow: hidden;
+  font-family: var(--d-display);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 120ms;
+}
+.f1d-pod-meta {
+  color: var(--d-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.f1d-podium-col:hover .f1d-pod-who,
+.f1d-podium-col:hover .f1d-pod-p {
+  color: var(--d-red);
+}
+.f1d-podium-col:focus-visible {
+  outline-offset: -4px;
+}
+.f1d-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 48px;
+}
+.f1d-fact {
+  display: grid;
+}
+.f1d-fact b {
+  font-family: var(--d-display);
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wdth" 87;
+  line-height: 1.1;
+  transition: color 120ms;
+}
+.f1d-fact span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--d-muted);
+  font-size: 15px;
+}
+.f1d-fact:hover b {
+  color: var(--d-red);
+}
+
+/* ── Home: calendar ──────────────────────────────────────────────────── */
+
+.f1d-cal {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 22px 14px;
+}
+.f1d-round {
+  display: grid;
+  gap: 4px;
+}
+.f1d-round svg {
+  display: block;
+  width: 56px;
+  height: 56px;
+}
+.f1d-round svg path {
+  stroke: var(--d-carbon);
+  transition: stroke 150ms;
+}
+.f1d-round[data-status="next"] svg path,
+.f1d-round[data-status="in progress"] svg path {
+  stroke: var(--d-red);
+}
+.f1d-round[data-status="upcoming"] svg path {
+  stroke: #c9c6c2;
+}
+.f1d-round small {
+  color: var(--d-muted);
+  font-family: var(--d-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.f1d-round b {
+  overflow: hidden;
+  font-family: var(--d-display);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 120ms;
+}
+.f1d-round[data-status="upcoming"] b {
+  color: var(--d-muted);
+}
+.f1d-round[data-status="next"] b {
+  color: var(--d-red);
+}
+.f1d-round:hover svg path {
+  stroke: var(--d-red);
+}
+.f1d-round:hover b {
+  color: var(--d-red);
+}
+
+/* ── Big questions ───────────────────────────────────────────────────── */
+
+.f1d-bigq {
+  display: grid;
+  gap: 2px;
+}
+.f1d-bigq .f1d-ask {
+  color: #c9c6c2;
+  font-family: var(--d-display);
+  font-size: clamp(22px, 2.6vw, 34px);
+  font-style: italic;
+  font-weight: 900;
+  font-variation-settings: "wdth" 112;
+  line-height: 1.08;
+  transition: color 150ms;
+}
+.f1d-bigq .f1d-ask:first-child {
+  color: var(--d-carbon);
+}
+.f1d-bigq .f1d-ask:hover {
+  color: var(--d-red);
+}
+
+/* ── Drivers page ────────────────────────────────────────────────────── */
+
+.f1d-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: 12px;
+}
+.f1d-dcard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px 16px;
+  align-items: center;
+  padding: 18px 20px 16px;
+}
+.f1d-dcard-top {
+  display: grid;
+  min-width: 0;
+  line-height: 1.1;
+}
+.f1d-dcard-top small {
+  color: var(--d-muted);
+  font-family: var(--d-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.f1d-dcard-top b {
+  overflow: hidden;
+  font-family: var(--d-display);
+  font-size: 18px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 120ms;
+}
+.f1d-dcard-top span {
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.f1d-dcard-foot {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.f1d-dcard-pts {
+  display: grid;
+  line-height: 1;
+}
+.f1d-dcard-pts b {
+  font-family: var(--d-display);
+  font-size: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wdth" 87;
+}
+.f1d-dcard-pts small {
+  margin-top: 4px;
+  color: var(--d-muted);
+  font-size: 13px;
+}
+.f1d-dcard:hover .f1d-dcard-top b {
+  color: var(--d-red);
+}
+.f1d-mates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 4px 56px;
+}
+.f1d-mate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  height: 52px;
+  border-top: 1px solid var(--d-rule);
+}
+.f1d-mate > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-family: var(--d-display);
+  font-size: 15px;
+  font-weight: 700;
+  transition: color 120ms;
+}
+.f1d-mate > span:last-child {
+  justify-content: flex-end;
+}
+.f1d-mate em {
+  color: var(--d-muted);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.f1d-mate:hover > span {
+  color: var(--d-red);
+}
+.f1d-split-bar {
+  display: flex;
+  gap: 3px;
+  height: 8px;
+}
+.f1d-split-bar i {
+  display: block;
+  height: 100%;
+}
+.f1d-split-bar i:first-child {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+}
+.f1d-split-bar i:last-child {
+  clip-path: polygon(4px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+/* ── Teams page ──────────────────────────────────────────────────────── */
+
+.f1d-tgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 12px;
+}
+.f1d-tcard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 92px;
+  gap: 16px;
+  align-items: center;
+  height: 184px;
+  padding: 18px 20px;
+}
+.f1d-tcard-main {
+  display: grid;
+  align-content: space-between;
+  gap: 14px;
+  height: 100%;
+  min-width: 0;
+}
+.f1d-tcard-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.f1d-tcard-name b {
+  overflow: hidden;
+  font-family: var(--d-display);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 120ms;
+}
+.f1d-team-drivers {
+  display: grid;
+  gap: 4px;
+  color: var(--d-muted);
+  font-size: 15px;
+}
+.f1d-team-drivers span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.f1d-team-drivers em {
+  margin-left: auto;
+  color: var(--d-carbon);
+  font-family: var(--d-display);
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.f1d-team-pts {
+  display: grid;
+  gap: 6px;
+}
+.f1d-team-pts > span:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.f1d-team-pts b {
+  font-family: var(--d-display);
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: "wdth" 87;
+  line-height: 1;
+}
+.f1d-team-pts small {
+  color: var(--d-muted);
+  font-size: 14px;
+}
+.f1d-tcard:hover .f1d-tcard-name b,
+.f1d-tcard:hover .f1d-pos {
+  color: var(--d-red);
+}
+.f1d-tcard-car {
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Narrow pages ────────────────────────────────────────────────────── */
+
+@media (max-width: 1100px) {
+  .f1d-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 860px) {
+  .f1d-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .f1d-circuit {
+    justify-items: start;
+  }
+  .f1d-circuit svg {
+    max-width: 220px;
+  }
+  .f1d-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .f1d {
+    gap: 64px;
+  }
+  .f1d-drow {
+    grid-template-columns: 26px 32px minmax(0, 1fr) 56px;
+    gap: 10px;
+  }
+  .f1d-drow > .f1d-spark,
+  .f1d-drow > .f1d-gap {
+    display: none;
+  }
+  .f1d-tgrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .f1d-mates {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .f1d *,
+  .f1d *::before {
+    transition: none !important;
+  }
+}

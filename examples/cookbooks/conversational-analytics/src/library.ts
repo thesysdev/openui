@@ -6,12 +6,14 @@ import { TextContent } from "./components/f1-text";
 import { BarChart, LineChart } from "./components/f1-charts";
 import { f1Charts } from "./components/f1-charts-genui";
 import { FollowUpBlock, FollowUpItem, Spotlight, SpotlightItem } from "./components/f1-follow-ups";
+import { settleWhileStreaming } from "./components/stream-settle";
 import "./components/f1-layout.css";
 
 // The same subset generates the server's specification and renders in the client.
 export const library = createLibrary({
   root: "Stack",
-  components: [
+  // Blocks such as Table, the charts, Spotlight, FollowUpBlock and Card appear once fully written.
+  components: settleWhileStreaming([
     ...[
       "Stack",
       "Card",
@@ -35,5 +37,5 @@ export const library = createLibrary({
     SpotlightItem,
     // F1 assets. The model passes data such as driver codes and team names; the assets draw them.
     ...f1Components,
-  ],
+  ]),
 });

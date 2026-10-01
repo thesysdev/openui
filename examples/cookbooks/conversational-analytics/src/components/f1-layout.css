@@ -1,16 +1,16 @@
 /* Tighter layout for generated answers. OpenUI's Stack and Card set their gap inline as
-   var(--openui-space-*), so each step is overridden here at about half its default:
-   xs 6→4, s 8→4, m 12→8, l 18→10, xl 24→12, 2xl 36→18 (px). Server-rendered styles drop the space after "gap:", so both spellings are matched. Only the inline gaps change;
+   var(--openui-space-*), so each step is overridden here on the house scale:
+   xs 4, s 8, m 12 (the default), l 20, xl 36, 2xl 48 (px). Server-rendered styles drop the space after "gap:", so both spellings are matched. Only the inline gaps change;
    the tokens themselves stay, so spacing inside charts, tables and legends is untouched. */
 div[style*="gap: var(--openui-space-xs)"],
 div[style*="gap:var(--openui-space-xs)"] { gap: 4px !important; }
 div[style*="gap: var(--openui-space-s)"],
-div[style*="gap:var(--openui-space-s)"] { gap: 4px !important; }
+div[style*="gap:var(--openui-space-s)"] { gap: 8px !important; }
 div[style*="gap: var(--openui-space-m)"],
-div[style*="gap:var(--openui-space-m)"] { gap: 8px !important; }
+div[style*="gap:var(--openui-space-m)"] { gap: 12px !important; }
 div[style*="gap: var(--openui-space-l)"],
-div[style*="gap:var(--openui-space-l)"] { gap: 10px !important; }
+div[style*="gap:var(--openui-space-l)"] { gap: 20px !important; }
 div[style*="gap: var(--openui-space-xl)"],
-div[style*="gap:var(--openui-space-xl)"] { gap: 12px !important; }
+div[style*="gap:var(--openui-space-xl)"] { gap: 36px !important; }
 div[style*="gap: var(--openui-space-2xl)"],
-div[style*="gap:var(--openui-space-2xl)"] { gap: 18px !important; }
+div[style*="gap:var(--openui-space-2xl)"] { gap: 48px !important; }
