@@ -1,5 +1,35 @@
 # @openuidev/react-ui
 
+## 0.17.0
+
+### Minor Changes
+
+- [#1248](https://github.com/thesysdev/openui/pull/1248) [`301d668`](https://github.com/thesysdev/openui/commit/301d66856835a81211628212f11833fe56a57dd4) Thanks [@ankit-thesys](https://github.com/ankit-thesys)! - Charts are now drawn with D3 instead of Recharts. Every chart keeps its name and export (`AreaChart`, `AreaChartCondensed`, `BarChart`, `BarChartCondensed`, `HorizontalBarChart`, `LineChart`, `LineChartCondensed`, `PieChart`, `RadarChart`, `RadialChart`, `ScatterChart`, `SingleStackedBar`, the Mini charts and the scatter helpers) and takes the same `data` + `categoryKey` / `dataKey` shape; genui-lib's chart components and their props are unchanged. New charts: `HeatmapChart`, `FunnelChart`, `SegmentedBar` (the same component as `SingleStackedBar`), `CalendarHeatmap`, plus `StackedLegend` with `LegendStoreProvider`.
+
+  Changes for direct users:
+
+  - `theme` (named palettes) is gone; set colors with `customPalette` or the ThemeProvider's chart palettes (`defaultChartPalette`, `barChartPalette`, …).
+  - `height` is the whole chart: the x-axis labels and legend fit inside it instead of being added below. Labels take at most half of it and truncate when they don't fit.
+  - Renamed: bar `radius` → `barRadius`; SingleStackedBar `animated` → `isAnimationActive`.
+  - Dropped: line and radar `strokeWidth`; HorizontalBarChart `showXAxis`; Pie and Radial `onMouseEnter` / `onMouseLeave`; scatter `shape`.
+  - Legend and tooltip text is shown as given, no longer capitalized ("iOS" stays "iOS"; a lowercase data key shows lowercase).
+  - `recharts` is no longer a dependency.
+
+### Patch Changes
+
+- [#1273](https://github.com/thesysdev/openui/pull/1273) [`d51a09c`](https://github.com/thesysdev/openui/commit/d51a09cd4ed9639f5e606a9c07faef352672a164) Thanks [@ankit-thesys](https://github.com/ankit-thesys)! - Scrolling `BarChart`, `AreaChart` and `LineChart` lay out long category lists faster: only a label that widens the categories is measured in full, so the layout stays cheap as a long chart streams in. Widened categories are sized to the exact label width.
+
+- [#1269](https://github.com/thesysdev/openui/pull/1269) [`dd4f450`](https://github.com/thesysdev/openui/commit/dd4f45074ac50b59d78e2855bd203e0e0562c95b) Thanks [@i-subham23](https://github.com/i-subham23)! - Fixes to the D3 charts from QA:
+
+  - Area and line charts with `variant="step"` step halfway between points, as the Recharts charts did, so the first and last values get a flat run too.
+  - The scrolling `BarChart`, `AreaChart` and `LineChart` widen their categories so long x-axis labels show in full, and scroll further. A category grows to at most three times its usual width and at most half the chart; longer labels, and labels in the condensed charts, are truncated with the full text on hover.
+  - The donut `PieChart` is a thin band in the slice colors over grey track wedges again, with slices 0.5° apart; `paddingAngle` sets the pie's gaps only.
+  - `RadarChart` marks the hovered axis with a dot on each series. The dots glide between axes and fade in and out, like the line and area charts' hover dots.
+
+- Updated dependencies []:
+  - @openuidev/react-lang@0.3.1
+  - @openuidev/react-headless@0.17.0
+
 ## 0.16.3
 
 ### Patch Changes

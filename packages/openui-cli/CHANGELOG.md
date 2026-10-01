@@ -1,5 +1,11 @@
 # @openuidev/cli
 
+## 0.5.0
+
+### Minor Changes
+
+- [#1266](https://github.com/thesysdev/openui/pull/1266) [`17be496`](https://github.com/thesysdev/openui/commit/17be4966d31ac92b86a9670feeac5c48d08c1277) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Add `openui feedback` command for sending anonymous feedback.
+
 ## 0.4.1
 
 ### Patch Changes
