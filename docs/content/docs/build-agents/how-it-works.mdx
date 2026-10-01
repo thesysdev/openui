@@ -3,31 +3,13 @@ title: How it works
 description: What happens in one turn of an agent that responds with OpenUI Lang.
 ---
 
+import { AgentTurnDiagram } from "@/components/agent-turn-diagram";
+
 An OpenUI agent is a regular agent with one change: it writes its responses in OpenUI Lang instead of Markdown. Everything else, from the agent loop and tools to the transport and the chat UI, stays the way it was.
 
 ## One turn, end to end
 
-<Mermaid
-  chart={`
-sequenceDiagram
-    participant User
-    participant UI as Chat UI
-    participant Agent as Agent backend
-    participant Model
-
-    User->>UI: Asks a question
-    UI->>Agent: Conversation so far
-    Agent->>Model: System prompt with OpenUI instructions + messages
-    Model-->>Agent: Tool call (optional)
-    Agent->>Model: Tool result
-    Model-->>Agent: OpenUI Lang, streamed
-    Agent-->>UI: Forwards the stream
-    UI->>User: Renderer draws components as lines arrive
-    User->>UI: Clicks a button in the generated UI
-    UI->>Agent: New user turn with the action and form values
-
-`}
-/>
+<AgentTurnDiagram />
 
 1. **The user sends a message.** The chat UI sends the conversation to the agent backend, as it would for any agent.
 2. **The agent prompts the model.** Its system prompt includes instructions generated from your component library, so the model knows which components exist and how to write OpenUI Lang. See [Set up UI generation](/docs/build-agents/ui-generation).
