@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { z } from "zod/v4";
 import { f1PromptContext } from "../../../lib/f1/context";
+import { isOwnOrigin } from "../../../lib/same-origin";
 
 export const runtime = "nodejs";
 
@@ -12,9 +13,7 @@ const requestSchema = z.object({
 const answerSchema = z.object({ questions: z.array(z.string().trim().min(1).max(90)).min(3) });
 
 export async function POST(request: Request) {
-  const { port } = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== `http://127.0.0.1:${port}` && origin !== `http://localhost:${port}`)
+  if (!isOwnOrigin(request))
     return Response.json({ error: "Local requests only." }, { status: 403 });
   let body;
   try {

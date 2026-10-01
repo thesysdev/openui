@@ -1,4 +1,5 @@
 import { runF1Tool } from "../../../../lib/f1/tools";
+import { isOwnOrigin } from "../../../../lib/same-origin";
 
 export const runtime = "nodejs";
 
@@ -6,9 +7,7 @@ export const runtime = "nodejs";
 // Renderer's toolProvider (OpenUI Query). POST /api/f1/get_gaps with the tool's JSON arguments.
 export async function POST(request: Request, { params }: { params: Promise<{ tool: string }> }) {
   // Like the chat route, this example has no authentication: accept only its own local page.
-  const { port } = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== `http://127.0.0.1:${port}` && origin !== `http://localhost:${port}`)
+  if (!isOwnOrigin(request))
     return Response.json({ error: "This example only accepts requests from its local pages." }, { status: 403 });
   const { tool } = await params;
   let args: unknown = {};

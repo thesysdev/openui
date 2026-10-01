@@ -10,6 +10,7 @@ import { f1Executors, f1FunctionTools } from "../../../lib/f1/tools";
 import { analyticsPrompt } from "../../../lib/prompt";
 import { runChatToolLoop, type FunctionToolExecutor } from "../../../lib/tool-loop";
 import { executeQueryLapTimes, queryLapTimesTool } from "../../../lib/tools/lap-times";
+import { isOwnOrigin } from "../../../lib/same-origin";
 
 export const runtime = "nodejs";
 
@@ -65,9 +66,7 @@ async function parseChatRequest(request: Request) {
 export async function POST(request: Request) {
   // This example has no authentication, so it accepts browser requests only from its own
   // local page. Add authentication and rate limits before deploying it.
-  const { port } = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== `http://127.0.0.1:${port}` && origin !== `http://localhost:${port}`)
+  if (!isOwnOrigin(request))
     return Response.json(
       { error: "This example only accepts requests from its local chat interface." },
       { status: 403 },
