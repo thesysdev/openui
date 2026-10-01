@@ -12,7 +12,7 @@ const f1ChartSamples = [
   { name: "ChampionshipProgress", source: `root = Stack([ChampionshipProgress(["ANT", "RUS", "HAM", "NOR", "LEC"], "Drivers' championship, 2026"), ChampionshipProgress(["ANT", "RUS", "HAM"], "Gap to Antonelli, 2026", "gap")])` },
   {
     name: "StatCallout",
-    source: `root = Stack([StatCallout("Winning margin", "0.196", "s", "Ahead of VER in Baku", "RUS"), StatCallout("Fastest lap", "1:44.916", "", "Lap 49", "RUS")], "row", "l")`,
+    source: `root = Stack([Stack([StatCallout("Winning margin", "0.196", "s", "Ahead of VER in Baku", "RUS"), StatCallout("Fastest lap", "1:44.916", "", "Lap 49", "RUS")], "row", "l"), Stack([StatCallout("Clean shared laps", "29", "", "Laps both ran without traffic", "PIA"), StatCallout("Best lap", "1:46.602", "", "Lap 41 on mediums", "PIA"), StatCallout("Norris best", "1:47.761", "", "1.159s slower", "NOR")], "row", "m")], "column", "xl")`,
   },
   { name: "Sparkline", source: `root = Stack([TextContent("Antonelli points through 2026", "small-heavy"), Sparkline("ANT")], "column", "s")` },
   {

@@ -40,3 +40,27 @@
   height: 28px;
   vertical-align: middle;
 }
+
+/* StatCallouts side by side: equal columns with a clear gap, whatever gap the Stack asked for,
+   and a value that scales with its column, so three lap times in a row fit with room to spare. */
+div:has(> .f1s-stat + .f1s-stat) {
+  gap: 24px !important;
+  align-items: start;
+}
+div:has(> .f1s-stat + .f1s-stat) > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+/* In such a row each callout measures its own column, and the value follows it: 44px when it has
+   the room, down to 26px in a narrow column. "1:46.602" is about four and a half em wide. Only
+   in callout rows, since a container has no width of its own to offer a row that sizes to content. */
+div:has(> .f1s-stat + .f1s-stat) > .f1s-stat {
+  container-type: inline-size;
+}
+div:has(> .f1s-stat + .f1s-stat) > .f1s-stat .f1s-stat-value {
+  font-size: clamp(26px, 18cqi, 44px);
+  white-space: nowrap;
+}
+div:has(> .f1s-stat + .f1s-stat) > .f1s-stat .f1s-stat-value small {
+  font-size: clamp(13px, 7cqi, 18px);
+}
