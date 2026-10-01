@@ -10,6 +10,7 @@
     "conversation-history",
     "frameworks",
     "---Chat UI---",
+    "chat-ui",
     "assistant-ui",
     "copilotkit",
     "custom-chat-ui",

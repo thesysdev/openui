@@ -190,18 +190,20 @@ export function getNestedDocsTree(tree: PageTree.Root, root: NestedDocsRoot): Pa
     const chatUIIndex = folder.children.findIndex(
       (node) => node.type === "separator" && node.name === "Chat UI",
     );
-    if (chatUIIndex < 0) {
+    if (chatUIIndex < 0 || folder.children[chatUIIndex + 1]?.type !== "page") {
       throw new Error('Build Agents "Chat UI" group was not found in the page tree.');
     }
+    // The Chat UI group opens with its "Choose a chat UI" page.
+    const insertIndex = chatUIIndex + 2;
 
-    // Agent Interface is one of the chat UI options, so it opens the Chat UI group.
+    // Agent Interface is the first chat UI option, right after the page that compares them.
     // It starts collapsed; Fumadocs still opens it while one of its pages is active.
     return {
       type: "root",
       $id: "docs:nested:build-agents",
       name: "Build Agents",
       children: [
-        ...folder.children.slice(0, chatUIIndex + 1),
+        ...folder.children.slice(0, insertIndex),
         {
           type: "folder",
           name: "Agent Interface",
@@ -209,7 +211,7 @@ export function getNestedDocsTree(tree: PageTree.Root, root: NestedDocsRoot): Pa
           // The first child is the "Getting Started" separator, redundant under the folder name.
           children: agentFolder.children.slice(1),
         },
-        ...folder.children.slice(chatUIIndex + 1),
+        ...folder.children.slice(insertIndex),
       ],
     };
   }

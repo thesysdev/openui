@@ -231,6 +231,7 @@ describe("nested docs navigation", () => {
             ],
           },
           { type: "separator", name: "Chat UI" },
+          { type: "page", name: "Choose a chat UI", url: "/docs/build-agents/chat-ui" },
           { type: "page", name: "assistant-ui", url: "/docs/build-agents/assistant-ui" },
         ],
       },
@@ -319,7 +320,7 @@ describe("nested docs navigation", () => {
     });
   });
 
-  it("nests Agent Interface at the top of the Build Agents Chat UI group", () => {
+  it("nests Agent Interface after the Build Agents chat UI comparison page", () => {
     assert.deepEqual(getNestedDocsTree(fullTree, "build-agents"), {
       type: "root",
       $id: "docs:nested:build-agents",
@@ -345,6 +346,7 @@ describe("nested docs navigation", () => {
           ],
         },
         { type: "separator", name: "Chat UI" },
+        { type: "page", name: "Choose a chat UI", url: "/docs/build-agents/chat-ui" },
         {
           type: "folder",
           name: "Agent Interface",
