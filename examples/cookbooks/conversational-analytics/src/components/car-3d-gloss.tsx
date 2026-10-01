@@ -6,7 +6,7 @@ import { FACETS, PALETTE, VIEW_BOX, type Fill, type Stop } from "./car-3d-paths"
 /*
  * Car3DGloss: a copy of the first Car3D, kept as it was before the matte finish and the house
  * print went on, so the two can be compared and the painted look is never lost. A top-down F1
- * car, nose pointing down, built from the painted reference's own facet geometry (car-3d-paths.ts,
+ * car, nose pointing down, built from the facet geometry of one painted car (car-3d-paths.ts,
  * shared with Car3D). Every painted fill is stored as a role plus its saturation and lightness,
  * so the orange family becomes shades of `colour`, the dark greys become shades of `carbon`, the
  * lime helmet becomes shades of `helmet`, and the painted shadow layers stay put. SVG filters
@@ -28,7 +28,7 @@ export type Car3DGlossProps = {
   style?: React.CSSProperties;
 };
 
-// The reference's own base tones for each role. A prop equal to its base reproduces the painting.
+// The painting's own base tones for each role. A prop equal to its base reproduces the painting.
 const BASE = { a: "#F3872F", c: "#2C323A", h: "#E7EC4C" } as const;
 
 function hexToHsl(hex: string): [number, number, number] {

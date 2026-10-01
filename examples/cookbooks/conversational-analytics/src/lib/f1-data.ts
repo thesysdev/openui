@@ -3,6 +3,9 @@ import { resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { z } from "zod/v4";
 
+// The optional 2024 Miami dataset behind the legacy query_lap_times tool. npm run prepare:data
+// validates the OpenF1 download and writes it to data/f1.sqlite; the server opens it read-only.
+
 export const race = {
   sessionKey: 9507,
   name: "2024 Miami Grand Prix",

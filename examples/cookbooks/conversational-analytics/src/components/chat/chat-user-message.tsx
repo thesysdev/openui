@@ -2,9 +2,9 @@ import { SpeakerIcon } from "./icons";
 import "./chat.css";
 
 /*
- * ChatUserMessage: what you radioed in, set as a team-radio caption. The quoted
- * red uppercase italic style RadioInput used for its old caption, sitting on the
- * right like the driver's side of the conversation.
+ * ChatUserMessage: what you radioed in, set as a team-radio caption. Quoted, in
+ * the same red uppercase italic you type in RadioInput, so a sent question reads
+ * as the same voice. It sits on the right like the driver's side of the conversation.
  */
 
 export type ChatUserMessageProps = {

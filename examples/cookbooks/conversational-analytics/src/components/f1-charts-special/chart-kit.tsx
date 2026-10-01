@@ -427,6 +427,7 @@ export function LinePlot({
               <path
                 key={s.code}
                 className="f1s-line"
+                // A unit length, so the reveal's dash animation fits every line whatever its size.
                 pathLength={1}
                 stroke={s.colour}
                 d={s.points

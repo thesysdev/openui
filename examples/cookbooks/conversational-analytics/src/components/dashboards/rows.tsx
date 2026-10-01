@@ -9,6 +9,7 @@ import { shortTeam, type DriverStanding, type Progression, type TeamStanding } f
 
 /* Standings rows shared by Home and Standings: one driver or team per row, each asking about itself. */
 
+// Fixed row heights, so the loader and the Missing state can reserve exactly the rows' space.
 export const DRIVER_ROW = 56;
 export const TEAM_ROW = 64;
 

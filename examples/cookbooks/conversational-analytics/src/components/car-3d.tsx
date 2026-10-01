@@ -4,13 +4,14 @@ import { useId, useMemo } from "react";
 import { FACETS, PALETTE, VIEW_BOX, type Fill, type Stop } from "./car-3d-paths";
 
 /*
- * Car3D: a top-down F1 car, nose pointing down, built from the painted reference's own facet
- * geometry (see car-3d-paths.ts). Every painted fill is stored as a role plus its saturation and
+ * Car3D: a top-down F1 car, nose pointing down, built from the facet geometry of one painted
+ * car (see car-3d-paths.ts). One painting tinted per team means any team colour works without
+ * new artwork. Every painted fill is stored as a role plus its saturation and
  * lightness, so the orange family becomes shades of `colour`, the dark greys become shades of
  * `carbon`, the lime helmet becomes shades of `helmet`, and the painted shadow layers stay put.
  * The default "matte" finish flattens the painting's wet highlights and lays the same halftone
  * print as Texture over the paint (ink dots on the light areas, paper specks on the dark), so
- * the car sits in the house print style; "gloss" keeps the reference's watercolour finish.
+ * the car sits in the house print style; "gloss" keeps the painted watercolour finish.
  */
 
 export type Car3DProps = {
@@ -41,7 +42,7 @@ export type Car3DProps = {
   style?: React.CSSProperties;
 };
 
-// The reference's own base tones for each role. A prop equal to its base reproduces the painting.
+// The painting's own base tones for each role. A prop equal to its base reproduces the painting.
 const BASE = { a: "#F3872F", c: "#2C323A", h: "#E7EC4C" } as const;
 
 // Matte finish: how much of the painted lightness above and below the base survives, how strong
@@ -143,6 +144,8 @@ export function Car3D({
   title,
   style,
 }: Car3DProps) {
+  // Gradient and filter ids must be unique per car, since an answer can show several in different
+  // colours. Colons are stripped because they break url(#id) references.
   const uid = useId().replace(/:/g, "");
   const id = (name: string) => `${name}-${uid}`;
   const url = (name: string) => `url(#${id(name)})`;
@@ -229,6 +232,8 @@ export function Car3D({
 
       {title ? <title>{title}</title> : null}
 
+      {/* Only opaque facets cast the ground shadow, so translucent layers (painted shadows,
+          streaks) don't darken it a second time. */}
       {shadow ? (
         <g filter={url("ground")}>
           {FACETS.map(([k, d], i) => {

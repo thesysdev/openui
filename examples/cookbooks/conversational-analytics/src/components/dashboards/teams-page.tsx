@@ -46,6 +46,7 @@ export function TeamsPage() {
                       <TeamLogo team={t.team} size={32} />
                       <b>{shortTeam(t.team)}</b>
                     </span>
+                    {/* The drivers load separately; the min height holds their space until they arrive. */}
                     <span className="f1d-team-drivers" style={{ minHeight: 56 }}>
                       {lineup.map((d) => {
                         return (

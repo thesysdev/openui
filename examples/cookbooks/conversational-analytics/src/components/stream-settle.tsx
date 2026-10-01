@@ -13,7 +13,7 @@
 // - A node is settled when that statement is finished and every statement it refers to is
 //   defined and settled too, so a Card waits for the Table it names.
 //
-// Until then the node shows a flat placeholder at its expected final size; once settled it shows
+// Until then the node shows a checkerboard placeholder at its expected final size; once settled it shows
 // the real component, with a short fade. When the stream ends, everything is settled.
 import { MessageContext, useThread } from "@openuidev/react-headless";
 import { parseExpression, split, tokenize, walkAST, type ASTNode } from "@openuidev/lang-core";

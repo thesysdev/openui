@@ -11,8 +11,9 @@ import "./chat.css";
  * ChatFollowUpCards: follow-ups as picture tiles instead of a list. Each tile is
  * about one thing (a driver, a head-to-head, a team, a circuit or a lap) and is
  * painted from it: the team colour, the driver's portrait, the car, the track.
- * Flat, one bevelled corner, no borders, no hover effects yet: structure first.
- * The list version, ChatFollowUps, stays as is.
+ * Flat, one bevelled corner, no borders. The only hover is the bevel closing up so
+ * the card squares off (see chat.css); nothing moves or resizes. ChatFollowUps is
+ * the plain list version, for follow-ups with no subject to picture.
  */
 
 export type FollowUpCard = { text: string } & (

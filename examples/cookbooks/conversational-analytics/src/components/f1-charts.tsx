@@ -75,6 +75,9 @@ function chartData(labels: unknown, series: unknown) {
 
 function titled(name: "LineChart" | "BarChart", description: string) {
   const base = openuiLibrary.components[name];
+  // Reuse OpenUI's own schema and slot `title` in before `height`. Arguments are positional in
+  // OpenUI Lang, so key order is call order: the title comes right after yLabel, ahead of the
+  // optional height.
   const { height, ...shape } = (base.props as unknown as z.ZodObject<Shape>).shape;
   const Base = base.component as (p: ComponentRenderProps<Props>) => React.ReactNode;
   return defineComponent({
@@ -92,6 +95,7 @@ function titled(name: "LineChart" | "BarChart", description: string) {
         xAxisLabel: p.xLabel as string | undefined,
         yAxisLabel: p.yLabel as string | undefined,
         height: p.height as number | undefined,
+        // No draw-in animation: the chart appears once its block settles, with the gate's fade.
         isAnimationActive: false,
       };
       // Rows-as-arrays and other shapes OpenUI accepts fall back to its own renderer.

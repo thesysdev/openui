@@ -15,6 +15,8 @@ export function InputIntro({ children, autoFocus = false }: { children: ReactNod
   const ref = useRef<HTMLDivElement>(null);
   const [land, setLand] = useState<{ x: number; y: number; size: number; from: number } | null>(null);
 
+  // Measure the real mascot's seat before first paint, so the flying copy lands exactly on it
+  // and the animation (in styles.css) only starts once there is somewhere to land.
   useLayoutEffect(() => {
     const box = ref.current;
     const seat = box?.querySelector<HTMLElement>(".mascot");

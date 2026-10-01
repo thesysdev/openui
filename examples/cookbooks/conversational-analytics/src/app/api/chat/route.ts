@@ -104,7 +104,8 @@ export async function POST(request: Request) {
   }
 
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
-  // App-owned function tools. The loop runs only the names registered here.
+  // App-owned function tools, sent as the request's `tools` because the Gateway system prompt
+  // carries no tool definitions. The loop runs only the names registered here.
   const tools = f1FunctionTools();
   const functionTools: Record<string, FunctionToolExecutor> = f1Executors();
   if (miamiDrivers.length) {

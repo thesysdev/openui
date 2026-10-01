@@ -19,7 +19,7 @@ export const sidebarNav: { id: string; label: string; icon: ReactNode }[] = [
   { id: "teams", label: "Teams", icon: <TeamsIcon /> },
 ];
 
-// Sample history until the chat keeps real threads.
+// Sample history, used when no threads are passed (the gallery previews).
 export const sampleThreads: SidebarThread[] = [
   { id: "t1", title: "Verstappen vs Norris race pace in 2024", meta: "Today" },
   { id: "t2", title: "Who has the most wins at Monza?", meta: "Today" },
@@ -54,8 +54,9 @@ export type SidebarProps = {
 };
 
 /**
- * The whole sidebar: the mascot and F1 with a collapse button, the four destinations,
- * then the Team Radio threads. Collapsed, it narrows to a rail of the mascot and nav icons.
+ * The whole sidebar: F1 with a collapse button, the four destinations, then the
+ * Team Radio threads. Collapsed, it narrows to a rail of F1, the nav icons and the
+ * new-chat button.
  */
 export function Sidebar({
   threads = sampleThreads,

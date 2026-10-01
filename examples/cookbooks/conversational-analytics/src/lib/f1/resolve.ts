@@ -309,6 +309,8 @@ export async function resolveSession(
   };
   let s = pick(sessions);
   let note: string | undefined;
+  // A place named without a year that has no data this season falls back to last season's
+  // race, with a note the prompt tells the model to pass on, rather than an error.
   if (s && needFinished && !s.finished && !yearMatch) {
     const prev = pick(await allSessions(year - 1, signal));
     if (prev) {

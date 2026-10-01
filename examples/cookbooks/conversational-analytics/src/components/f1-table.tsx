@@ -27,7 +27,9 @@ export const Table = defineComponent({
       });
     const start = asArray(props.start);
     if (!cols.length) return null;
+    // The longest column sets the row count; a short column leaves blank cells instead of failing.
     const rows = Math.max(...cols.map((c) => c.data.length));
+    // A cell can hold a component (a TeamChip, a Sparkline), which OpenUI renders in place.
     const cell = (v: unknown): ReactNode =>
       typeof v === "object" && v !== null ? renderNode(v as Parameters<typeof renderNode>[0]) : String(v ?? "");
     const hasStart = start.length > 0;

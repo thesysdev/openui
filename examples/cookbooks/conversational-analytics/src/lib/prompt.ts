@@ -184,6 +184,9 @@ export function promptRules(context: PromptContext) {
 
 export const promptExamples = [winnerExample, comparisonExample, strategyExample, greetingExample];
 
+// In cloud mode Gateway accepts only rules, examples and a preamble; a `tools` prompt option is
+// stripped. So the function tools travel as the request's `tools` (see api/chat/route.ts), and
+// the data rules above tell the model which one answers which question.
 export function analyticsPrompt(context: PromptContext) {
   return generateSystemPrompt({
     cloud: true,

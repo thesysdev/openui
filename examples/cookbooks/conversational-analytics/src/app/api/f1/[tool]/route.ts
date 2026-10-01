@@ -3,8 +3,10 @@ import { isOwnOrigin } from "../../../../lib/same-origin";
 
 export const runtime = "nodejs";
 
-// Door B of the F1 tool registry: the same tools the chat's function-tool loop runs, for the
-// Renderer's toolProvider (OpenUI Query). POST /api/f1/get_gaps with the tool's JSON arguments.
+// Door B of the F1 tool registry: the same tools the chat's function-tool loop runs, called by
+// the browser. The F1 charts and dashboards fetch their rows here, so the model only names a
+// chart (session, drivers, title) and the numbers never pass through it.
+// POST /api/f1/get_gaps with the tool's JSON arguments.
 export async function POST(request: Request, { params }: { params: Promise<{ tool: string }> }) {
   // Like the chat route, this example has no authentication: accept only its own local page.
   if (!isOwnOrigin(request))

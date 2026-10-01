@@ -1,7 +1,8 @@
 /* Tighter layout for generated answers. OpenUI's Stack and Card set their gap inline as
-   var(--openui-space-*), so each step is overridden here on the house scale:
-   xs 4, s 8, m 12 (the default), l 20, xl 36, 2xl 48 (px). Server-rendered styles drop the space after "gap:", so both spellings are matched. Only the inline gaps change;
-   the tokens themselves stay, so spacing inside charts, tables and legends is untouched. */
+   var(--openui-space-*), so each step is overridden here (with !important, to beat the inline
+   style) on the house scale: xs 4, s 8, m 12 (the default), l 20, xl 36, 2xl 48 (px).
+   Server-rendered styles drop the space after "gap:", so both spellings are matched. Only the
+   inline gaps change; the tokens themselves stay, so spacing inside charts, tables and legends is untouched. */
 div[style*="gap: var(--openui-space-xs)"],
 div[style*="gap:var(--openui-space-xs)"] { gap: 4px !important; }
 div[style*="gap: var(--openui-space-s)"],

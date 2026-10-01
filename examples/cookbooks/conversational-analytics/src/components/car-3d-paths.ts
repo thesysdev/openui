@@ -1,5 +1,5 @@
-// Generated from the reference top-down car SVG (3000x3000, 663 facets, 69 gradients) by
-// scratchpad/convert.py: cropped to the car, halved, integer-rounded, consecutive same-fill
+// Generated data, do not edit by hand. Converted once from a painted top-down car SVG
+// (3000x3000, 663 facets, 69 gradients) by a script not kept in the repo: cropped to the car, halved, integer-rounded, consecutive same-fill
 // facets merged. Palette entries: [role, saturation, lightness] for tintable fills (a = accent,
 // c = carbon, h = helmet), ["k", hex, opacity] for shadow layers kept as painted, and
 // ["g", stop, stop, [x1, y1, x2, y2]] for the painted gradients.

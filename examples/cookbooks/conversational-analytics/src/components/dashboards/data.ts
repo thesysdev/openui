@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 /*
  * Dashboard data: the same F1 tools the chat uses, through POST /api/f1/[tool]. Each call is
  * kept for the page's lifetime, so moving between Home, Standings, Drivers and Teams draws
- * straight from memory instead of loading again.
+ * straight from memory instead of loading again. No model is involved here: the dashboards are
+ * plain React over the tools, and only a click hands a question to the agent.
  */
 
 export type ScheduleRow = {

@@ -1,4 +1,6 @@
 // Reusable F1 asset components built on openly licensed data. See src/assets/f1/README.md.
+// The data is a snapshot bundled with the app, so the model only names a driver, team or circuit
+// and these components draw it without a network call.
 import "flag-icons/css/flag-icons.min.css";
 import circuitData from "../assets/f1/circuits.json";
 import { carSidePath, carTopSvg } from "../assets/f1/cars";
@@ -26,7 +28,8 @@ function inkFor(hex: string) {
   return 1.05 / (luminance + 0.05) >= (luminance + 0.05) / 0.058 ? "#FFFFFF" : "#15151E";
 }
 
-/* TeamChip: team colour bar + name. No logos. */
+/* TeamChip: team colour bar + name. No logo, so it stays within the openly licensed assets
+   (trademarked logos live in f1-team-logos.tsx). */
 
 export function TeamChip({ team, size = 20 }: { team: string; size?: number }) {
   return (
@@ -203,6 +206,8 @@ export function CountryFlag({ code, size = 32, square = false }: { code: string;
 const VIEW = 1000;
 const PAD = 60;
 
+// Longitude is scaled by cos(mean latitude) so tracks far from the equator aren't stretched
+// sideways, then the outline is fitted into a fixed square so every circuit renders at one size.
 function circuitPath(coords: number[][]) {
   const midLat = (coords.reduce((s, [, lat]) => s + lat, 0) / coords.length) * (Math.PI / 180);
   const pts = coords.map(([lon, lat]) => [lon * Math.cos(midLat), -lat]);

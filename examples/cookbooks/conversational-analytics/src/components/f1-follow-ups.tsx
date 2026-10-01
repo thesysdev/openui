@@ -12,6 +12,7 @@ import "./f1-spotlight.css";
 export function cardFor(text: string, subject: string | undefined): FollowUpCard | null {
   const s = subject?.trim();
   if (!s) return null;
+  // A bare number is a lap unless it is a car number ("16" is Leclerc).
   const lap = s.match(/^lap\s*(\d+)$/i) ?? s.match(/^(\d+)$/);
   if (lap && !findDriver(s)) return { text, kind: "lap", lap: Number(lap[1]) };
   const pair = s.split(/\s*(?:\bvs\.?\b|,|&|\/)\s*/i).filter(Boolean);
@@ -33,6 +34,7 @@ export const FollowUpItem = defineComponent({
   props: z.object({ text: z.string(), subject: z.string().optional() }),
   description:
     'Clickable follow-up question, drawn as a picture card; clicking sends text as the next message. subject: what the card paints: a driver code ("LEC"), two codes for a head to head ("LEC vs RUS"), a team ("Ferrari"), a circuit place ("Monza") or a lap ("lap 31").',
+  // Draws nothing itself: FollowUpBlock reads every item's props and lays the cards out together.
   component: () => null,
 });
 
@@ -81,6 +83,7 @@ export const Spotlight = defineComponent({
   props: z.object({ items: z.array(SpotlightItem.ref) }),
   description: "One to three picture tiles that make a point expressive inside an answer. Display only, not clickable.",
   component: ({ props }) => {
+    // Unlike follow-ups, a tile whose subject matches nothing is dropped: it would have no picture.
     const cards = ((props.items ?? []) as ItemNode[])
       .map((item) => cardFor(String(item?.props?.text ?? "").trim(), item?.props?.subject == null ? undefined : String(item.props.subject)))
       .filter((c): c is FollowUpCard => c !== null && !!c.text)

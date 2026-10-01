@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
-
 // Gallery previews for the F1 charts, on real data from the local OpenF1 snapshot
 // (samples.json, written by scripts/f1-chart-samples.ts).
+import { useState } from "react";
 import {
   ChampionshipProgress,
   GapChart,

@@ -21,12 +21,14 @@ import { RadioWelcome } from "./radio-welcome";
 import { hasThread, localThreadStorage, saveMessages } from "./thread-storage";
 
 /*
- * The Radio chat. /design opens a new conversation and /design/[threadId] an
- * earlier one. It lives in the layout so the provider, sidebar and input stay
- * mounted while the URL moves from /design to the new thread's address mid-answer.
- * It talks to the same /api/chat route and F1 library as the / chat.
+ * The Radio chat. /design/new opens a new conversation, /design/[threadId] an
+ * earlier one, and /design and the other sidebar destinations show a dashboard.
+ * It lives in the layout so the provider, sidebar and input stay mounted while
+ * the URL moves to the new thread's address mid-answer.
  */
 
+// /api/chat is stateless, so openAIMessageFormat sends the whole thread on every
+// turn; agUIAdapter reads the AG-UI events the route streams back.
 const llm = fetchLLM({
   url: "/api/chat",
   streamAdapter: agUIAdapter(),
@@ -94,7 +96,7 @@ function RadioChat() {
 
   useEffect(loadThreads, [loadThreads]);
 
-  // The URL picks the conversation. An unknown thread falls back to a new one.
+  // The URL picks the conversation. An unknown thread falls back to Home.
   useEffect(() => {
     if (!routeThread) return switchToNewThread();
     if (hasThread(routeThread)) selectThread(routeThread);

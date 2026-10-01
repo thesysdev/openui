@@ -4,7 +4,8 @@ import { messageText } from "./messages";
 /*
  * Local thread storage for the Radio chat. OpenUI's ChatProvider keeps threads in
  * memory unless it's given a storage, so this one keeps them in localStorage: the
- * thread list under one key and each thread's messages under its own.
+ * thread list under one key and each thread's messages under its own. The example
+ * has no accounts or database, so history stays in the reader's browser.
  * The provider never writes messages back, so <PersistThread> saves them.
  */
 
@@ -34,6 +35,7 @@ const newestFirst = (threads: Thread[]) =>
 
 export const hasThread = (id: string) => readThreads().some((t) => t.id === id);
 
+// Only for a thread still in the list, so a save that lands after a delete leaves nothing behind.
 export function saveMessages(threadId: string, messages: Message[]) {
   if (hasThread(threadId)) write(messagesKey(threadId), messages);
 }

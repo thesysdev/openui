@@ -101,6 +101,7 @@ function useMeter(barsRef: React.RefObject<HTMLDivElement | null>, energyRef: Re
         // Live: jittery, loudest in the middle like a voice band.
         const shape = 0.55 + 0.45 * Math.sin((i / Math.max(1, bars.length - 1)) * Math.PI);
         const live = e * shape * (0.45 + 0.55 * Math.abs(Math.sin(now / 140 + seeds[i] * 3)));
+        // Reduced motion: no jitter, the bars just rise with typing and settle back.
         const target = reduced ? 0.12 + e * shape * 0.5 : Math.max(idle, live);
         levels[i] += (target - levels[i]) * Math.min(1, dt * 10);
         bar.style.transform = `scaleY(${levels[i].toFixed(3)})`;
@@ -209,6 +210,7 @@ export function RadioInput({
         >
           <span style={{ display: "inline-block", transform: `translateX(${-caret.scroll}px)` }}>
             <span style={{ visibility: "hidden" }}>{text.slice(0, caret.at)}</span>
+            {/* Keyed by position so every move restarts the blink: solid while typing, blinking once idle. */}
             <span
               key={`${caret.at}-${text.length}`}
               style={{

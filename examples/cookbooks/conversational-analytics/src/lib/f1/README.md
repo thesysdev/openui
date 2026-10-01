@@ -3,7 +3,7 @@
 One registry of F1 data tools over [OpenF1](https://openf1.org), exposed two ways:
 
 - **Chat function tools**: `src/app/api/chat/route.ts` registers every tool with the tool loop (`f1FunctionTools()` / `f1Executors()`).
-- **`POST /api/f1/[tool]`**: the same tools as JSON endpoints, for OpenUI Query through the Renderer's `toolProvider`. `GET /api/f1` lists the tools with input schemas and example outputs.
+- **`POST /api/f1/[tool]`**: the same tools as JSON endpoints, which the F1 charts and dashboards fetch their rows from, so numbers never pass through the model. `GET /api/f1` lists the tools with input schemas and example outputs.
 
 | Tool | OpenF1 source | Returns |
 | --- | --- | --- |

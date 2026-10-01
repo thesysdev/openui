@@ -39,6 +39,7 @@ function hexToRgb(hex: string) {
 }
 
 function drawTile(spacing: number, dotSize: number, grain: number, ink: string, paper: string, speck: boolean) {
+  // Drawn at device resolution so dots stay crisp, capped at 2x to keep the data URL small.
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const cellPx = spacing * dpr;
   const size = Math.round(TILE_CELLS * cellPx);
@@ -93,6 +94,9 @@ export function Texture({
 }: TextureProps) {
   const [tiles, setTiles] = useState<{ ink: string; paper: string; size: number } | null>(null);
 
+  // Tiles are random and need a canvas, so they are drawn on the client after mount (which also
+  // avoids a hydration mismatch) and only redrawn when a prop changes; the print never animates. Until then nothing renders, which costs no
+  // layout because the overlay is absolutely positioned.
   useEffect(() => {
     const a = drawTile(dotSpacing, dotSize, grain, ink, paper, false);
     const b = drawTile(dotSpacing, dotSize, grain, ink, paper, true);

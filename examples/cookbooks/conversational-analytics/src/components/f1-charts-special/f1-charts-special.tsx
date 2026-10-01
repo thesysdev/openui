@@ -79,6 +79,8 @@ export function RaceTrace({ rows, title }: { /** Lap times: { lap, RUS: 107.4, L
   const codes = codesIn(rows, ["lap"]);
   const colours = driverColours(codes);
   const sorted = [...rows].sort((a, b) => Number(a.lap) - Number(b.lap));
+  // Running time per car. A missing lap (a retirement or an OpenF1 gap) ends that car's line,
+  // since summing past it would shift every later point.
   const totals = new Map<string, [number, number | null][]>();
   for (const code of codes) {
     let t = 0;

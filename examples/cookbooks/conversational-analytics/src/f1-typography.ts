@@ -8,6 +8,9 @@ const HEADING_SCALE = 2;
 const scalePx = (value: string, scale: number) =>
   value.replace(/(\d+(?:\.\d+)?)px/g, (_, n) => `${Math.round(Number(n) * scale)}px`);
 
+// Derived from OpenUI's own default theme, not hand-written, so every font token is covered. Only
+// font tokens are returned; ThemeProvider merges this partial theme over its defaults, so colours
+// and spacing stay OpenUI's.
 export const f1Theme: Theme = Object.fromEntries(
   Object.entries(defaultLightTheme).flatMap(([key, value]) => {
     if (typeof value !== "string" || (!value.includes('"Inter"') && !key.startsWith("fontSize"))) {

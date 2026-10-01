@@ -179,7 +179,7 @@ function NextRace({ schedule, next, year }: { schedule: Schedule | null | undefi
   );
 }
 
-/** Last year's winner here, from the 2025 results (a 2026 race that hasn't run yet has none of its own). */
+/** Last year's winner here, from the previous season's results (a race that hasn't run yet has none of its own). */
 function PreviousWinner({ location, previous, race }: { location: string; previous: number; race: string }) {
   const results = useF1<Results>("get_results", { session: `${previous} ${location}` });
   const winner = results?.rows.find((r) => r.position === 1);

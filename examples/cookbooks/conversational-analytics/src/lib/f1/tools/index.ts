@@ -8,7 +8,7 @@ import { getDrivers, getSchedule, getStandings } from "./season";
 import { getTelemetry } from "./telemetry";
 
 // The F1 tool registry. Door A: chat function tools run by the server's tool loop.
-// Door B: POST /api/f1/[tool], for OpenUI Query through the Renderer's toolProvider.
+// Door B: POST /api/f1/[tool], which the F1 charts and dashboards call for their own rows.
 
 const tools = [
   getSchedule,

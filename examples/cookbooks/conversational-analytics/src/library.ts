@@ -9,10 +9,13 @@ import { FollowUpBlock, FollowUpItem, Spotlight, SpotlightItem } from "./compone
 import { settleWhileStreaming } from "./components/stream-settle";
 import "./components/f1-layout.css";
 
-// The same subset generates the server's specification and renders in the client.
+// The same subset generates the server's specification (npm run generate writes
+// src/generated/spec.json, which prompt.ts sends) and renders in the client.
 export const library = createLibrary({
   root: "Stack",
   // Blocks such as Table, the charts, Spotlight, FollowUpBlock and Card appear once fully written.
+  // Until then each holds a placeholder at its final size, so nothing reflows mid-stream
+  // (see components/stream-settle.tsx).
   components: settleWhileStreaming([
     ...[
       "Stack",

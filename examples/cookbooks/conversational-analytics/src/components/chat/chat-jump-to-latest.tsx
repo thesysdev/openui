@@ -1,7 +1,7 @@
 import "./chat.css";
 
 /*
- * ChatJumpToLatest: shown when you've scrolled up during a run. A round carbon
+ * ChatJumpToLatest: shown while the thread runs on below the fold. A round carbon
  * button with a chevron down; red on hover.
  */
 

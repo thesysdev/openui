@@ -1,7 +1,8 @@
 /* Dashboards: Home, Standings, Drivers and Teams on /design. One white page, no cards or
    outlines: sections are set apart by space and wide Saira headings. Everything is a button that
    radios a question in. Hovers turn text red, slide in the red slash, or square a bevelled
-   corner off; nothing rounds, nothing casts a shadow, and nothing moves when idle. */
+   corner off; nothing rounds, nothing casts a shadow, and nothing moves when idle except the
+   podium's rolling floor. */
 
 .f1d {
   --d-red: #e10600;

@@ -3,7 +3,8 @@ import { resolveSession, sessionLabel, type Session, type SessionType } from "..
 
 // One F1 tool: a zod input schema (validated on every call; the model's arguments are untrusted),
 // an example of its JSON output, and run(). The registry exposes each tool twice: as a chat
-// function tool and as POST /api/f1/[tool] for the Renderer's toolProvider.
+// function tool and as POST /api/f1/[tool] for the charts and dashboards. The description and
+// each argument's .describe() text are what the model reads when choosing and calling a tool.
 
 export interface F1ToolResult {
   /** Which session the rows describe, e.g. "2026 Azerbaijan Grand Prix · Race". */
@@ -17,7 +18,7 @@ export interface F1Tool<S extends z.ZodObject = z.ZodObject> {
   name: string;
   description: string;
   input: S;
-  /** An example of the result shape (values illustrative), for docs and Query defaults. */
+  /** An example of the result shape (values illustrative), listed by GET /api/f1. */
   output: F1ToolResult;
   run(args: z.output<S>, ctx: { signal?: AbortSignal }): Promise<F1ToolResult>;
 }

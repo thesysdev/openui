@@ -83,6 +83,7 @@ export function ChatShell({ children, empty, page, input, threadKey }: ChatShell
     if (!thread || !content || !spacer) return;
 
     const measureAway = () => {
+      // Two thresholds (show past 96px, hide under 24px) so the button doesn't flicker at the edge.
       const below = content.getBoundingClientRect().bottom - (thread.getBoundingClientRect().bottom - PAD_BOTTOM);
       setAway((was) => (was ? below > 24 : below > 96));
     };

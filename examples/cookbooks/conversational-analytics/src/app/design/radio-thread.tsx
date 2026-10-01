@@ -93,7 +93,7 @@ function Answer({ message, streaming }: { message: AssistantMessage; streaming: 
     [content, header, message, updateMessage],
   );
 
-  // A follow-up click asks it as the next question, the same way the / chat does.
+  // A follow-up click asks it as the next question, the same way OpenUI's AgentInterface does.
   const onAction = useCallback(
     (event: ActionEvent) => {
       if (event.type === BuiltinActionType.ContinueConversation) {

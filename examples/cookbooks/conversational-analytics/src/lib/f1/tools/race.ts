@@ -229,7 +229,7 @@ export const getLapTimes = defineF1Tool({
       };
     }
 
-    // sectors
+    // The remaining view, "sectors": each driver's best time in each sector.
     const rows = [...groupBy(considered, (l) => l.driver_number).entries()]
       .map(([n, list]) => {
         const bestOf = (k: "duration_sector_1" | "duration_sector_2" | "duration_sector_3") => {

@@ -1,7 +1,7 @@
 // Sample OpenUI Lang programs for each component the chat library allows.
 // Series, Col and FollowUpItem only render inside their parent, so their samples include one.
 // The F1 charts fetch their own rows from the F1 tools, so the agent only names what it wants.
-// The last sample shows the raw-data escape hatch.
+// The last F1 chart sample shows the raw-data escape hatch.
 const f1ChartSamples = [
   { name: "GapChart", source: `root = GapChart("Baku", ["RUS", "VER", "HAD", "LEC"], "Gap to the leader, Baku top four")` },
   { name: "RaceTrace", source: `root = RaceTrace("Baku", null, "Race trace, Baku top six")` },

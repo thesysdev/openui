@@ -6,7 +6,8 @@ import "./dashboards.css";
 
 /*
  * Everything on a dashboard asks Team Radio about itself: a click starts a new chat with a
- * question written for that item. The page that hosts the dashboards supplies `ask`.
+ * question written for that item. The page that hosts the dashboards supplies `ask`. So the
+ * dashboards need no detail pages: any deeper view is an answer the agent generates.
  */
 
 const AskContext = createContext<(question: string) => void>(() => {});

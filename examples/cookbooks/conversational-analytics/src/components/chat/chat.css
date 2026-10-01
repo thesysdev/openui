@@ -1,4 +1,6 @@
-/* F1 chat pieces: design previews for the home page chat. Flat, square, bare; two fonts only. */
+/* F1 chat pieces: the conversation around OpenUI's generated answers. Flat, square, bare; two fonts only.
+   Motion only answers an event (a hover, a new step, the run ending); the few loops run only while
+   a tool is working, and nothing animates in a way that changes layout. */
 .f1c {
   --c-red: #e10600;
   --c-carbon: #15151e;
@@ -188,7 +190,7 @@
   transform-origin: 0 88%;
 }
 
-/* Race control: the tool-call timeline. */
+/* Pit wall (f1c-rc): the tool-call timeline. */
 .f1c-rc {
   display: grid;
 }
@@ -421,7 +423,7 @@
   background: var(--c-red);
 }
 /* Running: the yellow flag waves like a marshal's, from its pole on the left, until the run ends.
-   The one loop in the chat, and only while tools are working. Transform only, so nothing shifts. */
+   Like the live tool icons, it loops only while tools are working. Transform only, so nothing shifts. */
 .f1c-flag--head[data-status="running"] {
   transform-origin: 0 50%;
   animation: f1c-wave 900ms ease-in-out infinite;
@@ -618,8 +620,6 @@
 .f1c-card__art--pair > span {
   display: flex;
 }
-/* Team: the car, turned to drive left to right and centred in the band. The wrapper takes the
-   turned size (161 × 100) so the band centres it; the car itself is rotated inside. */
 /* Circuit track and team car: from the band down behind the words, masked out under them. */
 .f1c-card__backdrop {
   position: absolute;
@@ -630,6 +630,7 @@
   -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 92%);
   mask-image: linear-gradient(to bottom, #000 55%, transparent 92%);
 }
+/* Positioned so the words paint above the backdrop. */
 .f1c-card__body {
   position: relative;
 }
@@ -1057,6 +1058,7 @@
   }
 }
 
+/* Reduced motion: loops stop outright; one-shot animations and transitions jump to their end state. */
 @media (prefers-reduced-motion: reduce) {
   .f1c .f1c-flag--head[data-status="running"] {
     animation: none !important;

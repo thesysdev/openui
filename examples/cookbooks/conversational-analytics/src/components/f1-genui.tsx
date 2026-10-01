@@ -19,6 +19,8 @@ import {
 import { TeamLogo as TeamLogoAsset } from "./f1-team-logos";
 import { Mascot as MascotArt } from "./mascot";
 
+// The model spells names many ways, so lookups compare without accents, case or punctuation:
+// "Pérez", "perez" and "Red-Bull" all match.
 const fold = (s: string) =>
   s
     .normalize("NFD")
@@ -37,6 +39,7 @@ export function findDriver(ref: string | number) {
   );
 }
 
+// Short and former names the model may use from its training data (Sauber races as Audi in 2026).
 const teamAliases: Record<string, string> = {
   redbull: "Red Bull Racing",
   haas: "Haas F1 Team",
@@ -68,11 +71,17 @@ export function findCircuit(ref: string) {
   );
 }
 
+// Size is a three-step enum, not pixels: the model only picks small, medium or large, and each
+// asset maps that to its own scale below.
 const size = z.enum(["s", "m", "l"]).optional();
 const px = (s: "s" | "m" | "l" | undefined, scale: [number, number, number]) =>
   scale[s === "s" ? 0 : s === "l" ? 2 : 1];
 
 const teamArg = z.string().describe('Team name, e.g. "Ferrari", "Red Bull Racing", "McLaren".');
+
+// Props are plain strings rather than enums of every driver or team, which keeps the spec short.
+// A name no lookup matches falls back to a plain team chip or draws nothing, so a misspelled
+// argument never breaks the answer.
 
 export const DriverAvatar = defineComponent({
   name: "DriverAvatar",

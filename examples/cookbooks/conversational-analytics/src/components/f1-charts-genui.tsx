@@ -1,10 +1,13 @@
 "use client";
 
 // The F1 special charts (f1-charts-special/) as OpenUI components the agent can generate.
-// The agent names what it wants in the tools' own words, a session and some drivers, and each
-// chart fetches its rows from the F1 tools (POST /api/f1/[tool]) and draws them. A last `data`
-// argument takes raw rows instead, for when the agent already holds them or no tool covers it.
-// Kept apart from f1-genui.tsx, which the special charts import their lookups from.
+// The charts are spec-driven: the agent writes a small spec in the tools' own words (a session
+// and some drivers), and each chart fetches its rows from the F1 tools (POST /api/f1/[tool]) and
+// draws them. The data never passes through the model, so it can't be misquoted or invented, and
+// a chart costs a line of output instead of hundreds of numbers. A last `data` argument takes
+// raw rows instead, for when the agent already holds them or no tool covers it.
+// Kept apart from f1-genui.tsx, which the special charts import their lookups from, so the two
+// files don't import each other.
 import { defineComponent } from "@openuidev/react-lang";
 import { useEffect, useState, type ReactNode } from "react";
 import { z } from "zod/v4";
@@ -51,8 +54,10 @@ function callTool(tool: string, args: Row): Promise<ToolResult> {
 
 type Load<T> = { state: "loading" } | { state: "ready"; value: T } | { state: "empty" };
 
-/** Runs `load` once its key settles (arguments still streaming in change it), unless raw data
-    was given. An empty or failed result is "empty". */
+/** Runs `load` once its key has held still for 250ms, unless raw data was given. Block streaming
+    mounts most charts only once their statement is complete, but an ungated one (Sparkline)
+    can still see its arguments change while they stream. An empty or failed result is "empty",
+    since OpenF1 has gaps and a missing session should show a quiet panel, not an error. */
 function useChartData<T>(key: string, load: () => Promise<T | null>, raw?: T | null): Load<T> {
   const [result, setResult] = useState<Load<T>>({ state: "loading" });
   useEffect(() => {
@@ -74,12 +79,13 @@ function useChartData<T>(key: string, load: () => Promise<T | null>, raw?: T | n
   return raw != null ? { state: "ready", value: raw } : result;
 }
 
-/** While loading: the chart's panel at its final height with its title, so nothing shifts. When
-    nothing came back: one quiet line in the same panel. */
-// Drawn heights measured on /component with a title (20px line + 12px margin); without one the
-// panel is that much shorter. Keep these in step with the charts so nothing shifts on arrival.
+// Each chart's `height` below is its drawn height measured on /component with a title (20px line
+// + 12px margin); without one the panel is that much shorter. Keep these in step with the charts
+// so nothing shifts on arrival.
 const TITLE_H = 32;
 
+/** While loading: the chart's panel at its final height with its title, so nothing shifts. When
+    nothing came back: one quiet line in the same panel. */
 function Pending({ load, title, height, children }: { load: Load<unknown>; title?: string; height: number; children: () => ReactNode }) {
   if (load.state === "ready") return <>{children()}</>;
   height -= title ? 0 : TITLE_H;
@@ -121,6 +127,10 @@ async function lapRows(session: string, drivers: string[]) {
 
 /* ---------------------------------------------------------------- schemas */
 
+// The data charts share the same few arguments, so the model learns one shape: a session in
+// the words it already uses with the tools, driver codes, a title, and `data` as the escape hatch.
+// Leaving drivers out picks a sensible default (the top finishers), so short specs still work.
+
 const session = z.string().optional();
 const drivers = z.array(z.string()).optional();
 const title = z.string().optional();
@@ -155,6 +165,7 @@ export const GapChart = defineComponent({
       JSON.stringify(["gap", s, ds, ref]),
       async () => {
         const who = ds?.length ? ds.slice(0, 6) : await topCodes(s, 4);
+        // Pit marks are extra: without stint data the gaps still draw, just unmarked.
         const [gaps, stints] = await Promise.all([
           callTool("get_gaps", { session: s, drivers: who, ...(ref ? { reference: ref } : {}) }),
           callTool("get_stints", { session: s, drivers: who }).catch(() => ({}) as ToolResult),
@@ -228,6 +239,8 @@ export const LapTimes = defineComponent({
   },
 });
 
+// RankedBars takes a measure by name from this closed list, not a tool field, so the model can't
+// ask for a column that doesn't exist; each name knows its tool, field, sort order and format.
 const MEASURES = {
   "gap to pole": { tool: "get_results", key: "gapToPole", format: "gap", order: "asc", unit: undefined },
   "best lap": { tool: "get_results", key: "bestSeconds", format: "time", order: "asc", unit: undefined },
@@ -399,6 +412,8 @@ export const ChampionshipProgress = defineComponent({
   },
 });
 
+// The one chart the model fills in itself: a single figure it has just read from a tool result,
+// passed as text so it shows exactly as written ("1:44.916").
 export const StatCallout = defineComponent({
   name: "StatCallout",
   props: z.object({
@@ -430,6 +445,8 @@ export const Sparkline = defineComponent({
       },
       props.data ? { values: props.data, labels: props.labels ?? [] } : null,
     );
+    // Inline, so no chart panel: a small board at the sparkline's own size. An empty result keeps
+    // it too, rather than an error inside a table cell.
     if (load.state !== "ready") return <span className="f1-settle f1-spark-pending" aria-hidden />;
     return <SparklineChart values={load.value.values} labels={load.value.labels} driver={d} format={(v) => `${v} pts`} />;
   },

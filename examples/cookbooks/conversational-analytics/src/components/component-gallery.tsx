@@ -112,6 +112,8 @@ const effects = [
   { name: "BlockLoading", View: BlockLoadingPreview },
 ];
 
+// Samples go through the same Renderer, library and theme as the chat, so each preview is exactly
+// what that OpenUI Lang would look like in an answer. The other sections are plain React previews.
 export default function ComponentGallery() {
   const [selectedName, setSelectedName] = useState(componentSamples[0].name);
   const sample = componentSamples.find((s) => s.name === selectedName);
@@ -208,6 +210,7 @@ export default function ComponentGallery() {
           {sample && (
             <>
               <div className="gallery-preview">
+                {/* Keyed by sample so switching remounts the Renderer instead of reusing the last program's state. */}
                 <Renderer key={sample.name} response={sample.source} library={library} />
               </div>
               <pre className="gallery-source">{sample.source}</pre>

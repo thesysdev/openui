@@ -1,6 +1,7 @@
 /* F1 charts: the panel and title come from .f1-chart in f1-charts.css. Everything below is the
    inside of the panel, matched to that look: Saira timing figures in carbon, a soft grid, a
-   carbon baseline, 3px lines and bars up to 28px. Nothing animates. */
+   carbon baseline, 3px lines and bars up to 28px. Nothing moves on its own: the only motion is
+   the one-time reveal at the end of this file. */
 
 .f1s-chart {
   --f1s-carbon: #15151e;

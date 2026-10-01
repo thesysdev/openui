@@ -1,4 +1,4 @@
-// Workbench previews for the F1 asset components, using the snapshot data.
+// Component gallery previews for the F1 asset components, using the snapshot data.
 import {
   CarSilhouette,
   CircuitMap,

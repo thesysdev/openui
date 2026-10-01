@@ -21,7 +21,7 @@ export type FinishLineProps = {
   background?: string;
   /** Number of tile columns across. Rows follow from the box's aspect ratio. */
   columns?: number;
-  /** 0–1: where the solid checkerboard starts, from the top of the floor. */
+  /** 0 to 1: where the solid checkerboard starts, from the top of the floor. */
   band?: number;
   /** Rows above the solid band that fade out into the background. */
   fadeRows?: number;
@@ -105,6 +105,7 @@ export function FinishLine({
   const mask = `url("data:image/svg+xml;utf8,${encodeURIComponent(svg(() => "#000"))}")`;
 
   // SVG, texture and onFloor content share one transform so they all lie on the same floor.
+  // The scale makes the tilted plane overfill the box, so its edges never show.
   const floorLayer: CSSProperties = {
     position: "absolute",
     inset: 0,
