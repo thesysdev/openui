@@ -1,0 +1,37 @@
+name: Deprecate @crayonai packages
+
+# One-off: marks the legacy @crayonai/* packages as deprecated on npm and
+# points users to their @openuidev/* replacements. Requires an NPM_TOKEN
+# repository secret with write access to the @crayonai packages
+# (npm trusted publishing/OIDC only covers publish, not deprecate).
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deprecate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Deprecate packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm deprecate "@crayonai/react-ui@*" "@crayonai/react-ui is no longer maintained. Use @openuidev/react-ui instead: https://www.npmjs.com/package/@openuidev/react-ui"
+          npm deprecate "@crayonai/react-core@*" "@crayonai/react-core is no longer maintained. Use @openuidev/react-headless instead: https://www.npmjs.com/package/@openuidev/react-headless"
+          npm deprecate "@crayonai/stream@*" "@crayonai/stream is no longer maintained. Use @openuidev/react-headless instead: https://www.npmjs.com/package/@openuidev/react-headless"
+
+      - name: Verify
+        run: |
+          for p in @crayonai/react-ui @crayonai/react-core @crayonai/stream; do
+            msg=$(npm view "$p" deprecated)
+            echo "$p: $msg"
+            test -n "$msg"
+          done
