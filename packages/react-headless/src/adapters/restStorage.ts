@@ -7,11 +7,12 @@ export interface RestStorageOptions {
   /**
    * Base URL for thread endpoints (the old `threadApiUrl`). The factory hits
    * the same conventions the legacy default used:
-   *   - list:   GET    {baseUrl}/get  (·  ?cursor={cursor})
-   *   - create: POST   {baseUrl}/create
-   *   - get:    GET    {baseUrl}/get/{threadId}
-   *   - update: PATCH  {baseUrl}/update/{threadId}
-   *   - delete: DELETE {baseUrl}/delete/{threadId}
+   *   - list:    GET    {baseUrl}/get  (·  ?cursor={cursor})
+   *   - create:  POST   {baseUrl}/create
+   *   - get:     GET    {baseUrl}/get/{threadId}
+   *   - update:  PATCH  {baseUrl}/update/{threadId}
+   *   - delete:  DELETE {baseUrl}/delete/{threadId}
+   *   - message: PATCH  {baseUrl}/messages/{threadId}/{messageId}
    */
   baseUrl: string;
   /** Wire-format conversion. Defaults to identity (canonical Message). */
@@ -83,6 +84,17 @@ export function restStorage({
       },
       async deleteThread(id: string): Promise<void> {
         await request(`${baseUrl}/delete/${id}`, { method: "DELETE" });
+      },
+      async updateMessage(threadId: string, message: Message): Promise<void> {
+        // Send the full toApi conversion. One AG-UI message can map to several
+        // wire items (e.g. OpenAI Responses flattens text + tool calls).
+        await request(
+          `${baseUrl}/messages/${encodeURIComponent(threadId)}/${encodeURIComponent(message.id)}`,
+          {
+            method: "PATCH",
+            body: JSON.stringify({ messages: messageFormat.toApi([message]) }),
+          },
+        );
       },
     },
   };
