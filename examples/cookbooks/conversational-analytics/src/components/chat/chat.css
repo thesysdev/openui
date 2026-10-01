@@ -630,21 +630,7 @@
 }
 /* Team: the car, turned to drive left to right and centred in the band. The wrapper takes the
    turned size (161 × 100) so the band centres it; the car itself is rotated inside. */
-.f1c-card__art--car {
-  top: 50%;
-  left: 50%;
-  width: 161px;
-  height: 100px;
-  translate: -50% -50%;
-}
-.f1c-card__art--car > svg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  translate: -50% -50%;
-  rotate: 90deg;
-}
-/* Circuit: the track, from the band down behind the words, masked out under them. */
+/* Circuit track and team car: from the band down behind the words, masked out under them. */
 .f1c-card__backdrop {
   position: absolute;
   top: 10px;

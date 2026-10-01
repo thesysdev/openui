@@ -32,8 +32,8 @@ export type ChatFollowUpCardsProps = {
 const CARBON = "#15151E";
 const WARM = "#F7F4F1";
 const RED = "#E10600";
-// Car3DGloss is drawn top-down at 760 × 1225; at this width, turned sideways, it's 161 long.
-const CAR_W = 100;
+// Car3DGloss is drawn top-down and upright at 760 × 1225; at this width it's 168 tall.
+const CAR_W = 104;
 
 const fold = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 const findDriver = (ref: string) => {
@@ -131,9 +131,10 @@ function look(card: FollowUpCard): Look {
             {t?.name ?? card.team}
           </>
         ),
-        art: (
-          // The glossy top-down car, turned to drive left to right.
-          <span className="f1c-card__art f1c-card__art--car">
+        art: null,
+        // The glossy car, top down and upright, running down behind the words and fading out.
+        backdrop: (
+          <span className="f1c-card__backdrop f1c-card__backdrop--car" aria-hidden>
             <Car3DGloss colour={colour} carbon="#2C323A" width={CAR_W} shadow={false} title="" />
           </span>
         ),
