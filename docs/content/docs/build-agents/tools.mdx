@@ -1,0 +1,154 @@
+---
+title: "Tools: agent-side vs. UI-side"
+description: Fetch data in the agent before it responds, or let the generated UI fetch it live.
+---
+
+A model can only produce text. A **tool** is a function that lets it do more: fetch the weather, query a database, file a ticket. With OpenUI, a tool can run in one of two places:
+
+|                         | Agent-side tools                                   | UI-side tools                                                     |
+| :---------------------- | :------------------------------------------------- | :---------------------------------------------------------------- |
+| **Who calls it**        | The model, while it writes the response            | The generated UI, after it renders                                |
+| **Where it runs**       | Your backend                                       | Your frontend, through the renderer's `toolProvider`              |
+| **What the UI shows**   | A snapshot of the data at the time of the response | Live data that refreshes, filters, and writes back                |
+| **Cost of a new fetch** | A new model turn                                   | A function call, no model involved                                |
+| **Good for**            | Answers, summaries, one-off lookups                | Dashboards, tables with filters, forms that create or update data |
+
+Most agents start with agent-side tools. Add UI-side tools when the user should be able to work with the data without asking the agent again.
+
+## Agent-side tools
+
+The model calls the tool, your code runs it, and the model uses the result to write its OpenUI Lang response.
+
+1. The model proposes a tool: a **name** plus **arguments**.
+2. **Your code runs it.** It calls an API, reads a database, or does whatever the tool does.
+3. The **result returns to the conversation**, and the agent continues, usually turning it into the final interface.
+
+```
+user: "What's the weather in Tokyo?"
+  └─ model proposes:  get_weather({ city: "Tokyo" })
+       └─ your code runs it → { tempC: 22, sky: "clear" }
+            └─ result returns to the agent
+                 └─ agent responds in OpenUI Lang:
+                      root = Card([CardHeader("Tokyo"), TextContent("22°C and clear")])
+```
+
+The trust boundary stays in your code. The model only proposes which tool to call and with what arguments. Execution, provider keys, and the tool implementations live on the server and never reach the browser.
+
+<video
+  src="/videos/agent/tool-call-web-search.mp4"
+  autoPlay
+  loop
+  muted
+  playsInline
+  className="w-full rounded-lg border"
+/>
+
+### Declare a tool
+
+A tool is a **name**, a **description**, and a **JSON Schema** for its arguments. The model uses the description and schema to decide when and how to call it, so write them like prompts.
+
+```ts
+const tools = [
+  {
+    type: "function",
+    function: {
+      name: "get_weather",
+      description: "Get the current weather for a city.",
+      parameters: {
+        type: "object",
+        properties: {
+          city: { type: "string", description: "City name, e.g. 'Tokyo'" },
+        },
+        required: ["city"],
+        additionalProperties: false,
+      },
+    },
+  },
+];
+```
+
+That declaration is what the model sees. The implementation stays private and runs only when the agent calls the tool.
+
+Agent-side tools need no OpenUI-specific setup. Declare and run them the way the agent framework already does, and the agent writes OpenUI Lang once it has the results. The [agent framework guides](/docs/build-agents/frameworks/vercel-ai-sdk) show this with each framework's own tool API.
+
+## UI-side tools
+
+With UI-side tools, the model doesn't fetch the data. It writes OpenUI Lang that **calls the tool from the interface** with `Query()` (to read) and `Mutation()` (to write), and binds the result to components:
+
+```text
+tickets = Query("list_tickets", {}, {rows: []})
+tbl = Table([Col("Title", tickets.rows.title), Col("Priority", tickets.rows.priority)])
+root = Stack([CardHeader("Open tickets"), tbl])
+```
+
+When the interface renders, the renderer runs `list_tickets` and fills the table. Refreshing, filtering, or submitting a form runs the tool again without another model turn.
+
+### 1. Describe the tools in the prompt
+
+The model needs each tool's name, input, and output to write the queries. Pass them as `promptOptions.tools` when generating the system prompt:
+
+```ts title="server.ts"
+import { generateSystemPrompt, type LibrarySpec, type ToolSpec } from "@openuidev/lang-core";
+import library from "./lib/openui.spec.json";
+
+const tools: ToolSpec[] = [
+  {
+    name: "list_tickets",
+    description: "List all tickets",
+    inputSchema: { type: "object", properties: {} },
+    outputSchema: {
+      type: "object",
+      properties: {
+        rows: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: { title: { type: "string" }, priority: { type: "string" } },
+          },
+        },
+      },
+    },
+  },
+];
+
+const openuiInstructions = generateSystemPrompt({
+  library: library as LibrarySpec,
+  promptOptions: { tools },
+});
+```
+
+UI-side tools need the complete, locally generated prompt. The compact `cloud: true` form doesn't carry tool descriptions, so leave it out here even when calling the model through Gateway.
+
+### 2. Run the tools in the renderer
+
+Pass the implementations to the renderer as `toolProvider`, either as a map of async functions or as an [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) client:
+
+```tsx
+<Renderer
+  response={content}
+  library={library}
+  isStreaming={isStreaming}
+  toolProvider={{
+    list_tickets: async () => fetch("/api/tickets").then((r) => r.json()),
+  }}
+/>
+```
+
+The functions run in the browser, so call your own API routes from them and keep credentials on the server.
+
+See [Queries & Mutations](/docs/openui-lang/queries-mutations) for the language features and [Architecture](/docs/openui-lang/architecture) for a complete example.
+
+## Using both
+
+The two kinds of tools combine well. An agent can call an agent-side tool to find which account the user means, then respond with an interface whose `Query()` loads that account's live data.
+
+## Next steps
+
+<Cards>
+  <Card title="Conversation history" href="/docs/build-agents/conversation-history">
+    Send earlier turns, tool results, and user actions back to the model.
+  </Card>
+  <Card title="Queries & Mutations" href="/docs/openui-lang/queries-mutations">
+    Read and write data from generated interfaces.
+  </Card>
+</Cards>

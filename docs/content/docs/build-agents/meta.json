@@ -3,10 +3,17 @@
   "root": true,
   "pages": [
     "index",
-    "backend-setup",
-    "---Chat UIs---",
+    "how-it-works",
+    "---Backend---",
+    "ui-generation",
+    "tools",
+    "conversation-history",
+    "frameworks",
+    "---Chat UI---",
     "assistant-ui",
     "copilotkit",
-    "custom-chat-ui"
+    "custom-chat-ui",
+    "---Production---",
+    "[Production overview](/docs/production)"
   ]
 }

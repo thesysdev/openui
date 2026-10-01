@@ -128,17 +128,38 @@ const config = {
       },
       {
         source: "/docs/agent/vercel-ai-sdk",
-        destination: "/docs/agent/agent-runtimes/vercel-ai-sdk",
+        destination: "/docs/build-agents/frameworks/vercel-ai-sdk",
         permanent: true,
       },
       {
         source: "/docs/agent/langchain",
-        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        destination: "/docs/build-agents/frameworks/langgraph",
         permanent: true,
       },
       {
         source: "/docs/agent/harnesses/:path*",
-        destination: "/docs/agent/agent-runtimes/:path*",
+        destination: "/docs/build-agents/frameworks/:path*",
+        permanent: true,
+      },
+      // Agent framework guides moved out of Agent Interface into Build Agents.
+      {
+        source: "/docs/agent/agent-runtimes/langgraph-platform",
+        destination: "/docs/build-agents/frameworks/langgraph",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/agent-runtimes/:path*",
+        destination: "/docs/build-agents/frameworks/:path*",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/core-concepts/tools",
+        destination: "/docs/build-agents/tools",
+        permanent: true,
+      },
+      {
+        source: "/docs/build-agents/backend-setup",
+        destination: "/docs/build-agents/ui-generation",
         permanent: true,
       },
       {
@@ -158,42 +179,42 @@ const config = {
       },
       {
         source: "/docs/integrations/vercel-ai-sdk",
-        destination: "/docs/agent/agent-runtimes/vercel-ai-sdk",
+        destination: "/docs/build-agents/frameworks/vercel-ai-sdk",
         permanent: true,
       },
       {
         source: "/docs/integrations/langchain",
-        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        destination: "/docs/build-agents/frameworks/langgraph",
         permanent: true,
       },
       {
         source: "/docs/integrations/harnesses/:path*",
-        destination: "/docs/agent/agent-runtimes/:path*",
+        destination: "/docs/build-agents/frameworks/:path*",
         permanent: true,
       },
       {
         source: "/docs/openui-lang/examples/agent-frameworks/vercel-ai-sdk",
-        destination: "/docs/agent/agent-runtimes/vercel-ai-sdk",
+        destination: "/docs/build-agents/frameworks/vercel-ai-sdk",
         permanent: true,
       },
       {
         source: "/docs/openui-lang/examples/agent-frameworks/langchain",
-        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        destination: "/docs/build-agents/frameworks/langgraph",
         permanent: true,
       },
       {
         source: "/docs/openui-lang/examples/agent-frameworks/langgraph-platform",
-        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        destination: "/docs/build-agents/frameworks/langgraph",
         permanent: true,
       },
       {
         source: "/docs/openui-lang/examples/agent-frameworks/vercel-eve",
-        destination: "/docs/agent/agent-runtimes/vercel-eve",
+        destination: "/docs/build-agents/frameworks/vercel-eve",
         permanent: true,
       },
       {
         source: "/docs/openui-lang/examples/harnesses/pi",
-        destination: "/docs/agent/agent-runtimes/pi",
+        destination: "/docs/build-agents/frameworks/pi",
         permanent: true,
       },
       {

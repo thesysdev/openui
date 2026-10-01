@@ -1,0 +1,75 @@
+---
+title: How it works
+description: What happens in one turn of an agent that responds with OpenUI Lang.
+---
+
+An OpenUI agent is a regular agent with one change: it writes its responses in OpenUI Lang instead of Markdown. Everything else, from the agent loop and tools to the transport and the chat UI, stays the way it was.
+
+## One turn, end to end
+
+<Mermaid
+  chart={`
+sequenceDiagram
+    participant User
+    participant UI as Chat UI
+    participant Agent as Agent backend
+    participant Model
+
+    User->>UI: Asks a question
+    UI->>Agent: Conversation so far
+    Agent->>Model: System prompt with OpenUI instructions + messages
+    Model-->>Agent: Tool call (optional)
+    Agent->>Model: Tool result
+    Model-->>Agent: OpenUI Lang, streamed
+    Agent-->>UI: Forwards the stream
+    UI->>User: Renderer draws components as lines arrive
+    User->>UI: Clicks a button in the generated UI
+    UI->>Agent: New user turn with the action and form values
+
+`}
+/>
+
+1. **The user sends a message.** The chat UI sends the conversation to the agent backend, as it would for any agent.
+2. **The agent prompts the model.** Its system prompt includes instructions generated from your component library, so the model knows which components exist and how to write OpenUI Lang. See [Set up UI generation](/docs/build-agents/ui-generation).
+3. **The model calls tools if it needs data.** The agent runs them and returns the results, exactly as before. See [Tools](/docs/build-agents/tools).
+4. **The model streams OpenUI Lang.** Instead of a Markdown answer, it writes a short program that composes your components:
+
+   ```text
+   root = Stack([CardHeader("Q3 revenue", "Up 18% on Q2"), chart])
+   chart = BarChart(["Jul", "Aug", "Sep"], [Series("Revenue", [380, 410, 440])])
+   ```
+
+5. **The chat UI renders it.** The chat UI passes the accumulated text to the OpenUI renderer, which draws each component as soon as its line arrives.
+6. **The user interacts.** Buttons, follow-ups, and forms in the generated interface send a new user turn back to the agent, and the loop continues. See [Conversation history](/docs/build-agents/conversation-history).
+
+## Who owns what
+
+| Piece                               | Owner             | What changes for OpenUI                                          |
+| :---------------------------------- | :---------------- | :--------------------------------------------------------------- |
+| Component library                   | Shared            | New: defined once, used by both the prompt and the renderer.     |
+| System prompt                       | Agent backend     | Adds the instructions generated from the component library.      |
+| Agent-side tools                    | Agent backend     | Nothing.                                                         |
+| Streaming transport                 | Agent backend, UI | Nothing. It carries OpenUI Lang text instead of Markdown.        |
+| Message list, composer, threads     | Chat UI           | Nothing.                                                         |
+| Assistant message rendering         | Chat UI           | Replaces the Markdown renderer with the OpenUI renderer.         |
+| Actions in generated interfaces     | Chat UI           | New: send clicks and form values back as a user turn.            |
+| UI-side tools (`Query`, `Mutation`) | Chat UI           | Optional: functions the generated interface calls for live data. |
+
+Because the component library is shared, the agent can only use components the chat UI knows how to render.
+
+## Where Gateway fits
+
+Models occasionally write invalid OpenUI Lang, such as an unknown component or a missing required prop. [Gateway](/docs/gateway) sits between the agent and the model provider: it corrects invalid output as it streams and fails over to another provider when one is unavailable. It's OpenAI-compatible, so most agent frameworks can use it by changing the base URL.
+
+To keep calling your provider directly, repair responses with [Autofix](/docs/autofix) instead. Gateway is optional either way: the turn above works the same without it.
+
+## Next steps
+
+<Cards>
+  <Card title="Set up UI generation" href="/docs/build-agents/ui-generation">
+    Give the agent a component library and the instructions to write OpenUI Lang.
+  </Card>
+  <Card title="Choose a chat UI" href="/docs/build-agents#choose-a-chat-ui">
+    Render the response in Agent Interface, assistant-ui, CopilotKit, or your own chat.
+  </Card>
+</Cards>

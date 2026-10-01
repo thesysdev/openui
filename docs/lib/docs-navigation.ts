@@ -187,40 +187,29 @@ export function getNestedDocsTree(tree: PageTree.Root, root: NestedDocsRoot): Pa
     const agentFolder = findNestedFolder(tree.children, "agent");
     if (!agentFolder) throw new Error('Nested docs folder "agent" was not found in the page tree.');
 
-    const chatUIsIndex = folder.children.findIndex(
-      (node) => node.type === "separator" && node.name === "Chat UIs",
+    const chatUIIndex = folder.children.findIndex(
+      (node) => node.type === "separator" && node.name === "Chat UI",
     );
-    const examplesIndex = agentFolder.children.findIndex(
-      (node) => node.type === "separator" && node.name === "Examples",
-    );
-    if (chatUIsIndex < 0 || examplesIndex < 0) {
-      throw new Error("Build Agents navigation groups were not found in the page tree.");
+    if (chatUIIndex < 0) {
+      throw new Error('Build Agents "Chat UI" group was not found in the page tree.');
     }
 
+    // Agent Interface is one of the chat UI options, so it opens the Chat UI group.
+    // It starts collapsed; Fumadocs still opens it while one of its pages is active.
     return {
       type: "root",
       $id: "docs:nested:build-agents",
       name: "Build Agents",
       children: [
-        ...folder.children.slice(0, chatUIsIndex),
+        ...folder.children.slice(0, chatUIIndex + 1),
         {
           type: "folder",
           name: "Agent Interface",
-          defaultOpen: true,
-          children: agentFolder.children.slice(1, examplesIndex),
+          defaultOpen: false,
+          // The first child is the "Getting Started" separator, redundant under the folder name.
+          children: agentFolder.children.slice(1),
         },
-        {
-          type: "folder",
-          name: "Existing Chat UIs",
-          defaultOpen: true,
-          children: folder.children.slice(chatUIsIndex + 1),
-        },
-        {
-          type: "folder",
-          name: "Agent Runtime Examples",
-          defaultOpen: true,
-          children: agentFolder.children.slice(examplesIndex + 1),
-        },
+        ...folder.children.slice(chatUIIndex + 1),
       ],
     };
   }

@@ -87,7 +87,7 @@ describe("global docs navigation", () => {
       kind: "nested",
       root: "openui-lang",
     });
-    assert.deepEqual(getDefaultSidebarMode("/docs/agent/core-concepts/tools"), {
+    assert.deepEqual(getDefaultSidebarMode("/docs/agent/core-concepts/artifacts"), {
       kind: "nested",
       root: "build-agents",
     });
@@ -95,7 +95,7 @@ describe("global docs navigation", () => {
       kind: "nested",
       root: "build-agents",
     });
-    assert.deepEqual(getDefaultSidebarMode("/docs/agent/agent-runtimes/vercel-ai-sdk"), {
+    assert.deepEqual(getDefaultSidebarMode("/docs/build-agents/frameworks/vercel-ai-sdk"), {
       kind: "nested",
       root: "build-agents",
     });
@@ -150,7 +150,10 @@ describe("global docs navigation", () => {
     );
     assert.equal(getGlobalActiveItemUrl("/docs/openui-lang/quickstart"), "/docs/openui-lang");
     assert.equal(getGlobalActiveItemUrl("/docs/openui-lang/renderer"), "/docs/openui-lang");
-    assert.equal(getGlobalActiveItemUrl("/docs/agent/core-concepts/tools"), "/docs/build-agents");
+    assert.equal(
+      getGlobalActiveItemUrl("/docs/agent/core-concepts/artifacts"),
+      "/docs/build-agents",
+    );
     assert.equal(getGlobalActiveItemUrl("/docs/build-agents/copilotkit"), "/docs/build-agents");
     assert.equal(getGlobalActiveItemUrl("/docs/gateway/api/responses"), "/docs/gateway");
     assert.equal(getGlobalActiveItemUrl("/docs/reliability/dashboard"), "/docs/reliability");
@@ -209,8 +212,25 @@ describe("nested docs navigation", () => {
         $ref: { folder: "build-agents" },
         children: [
           { type: "page", name: "Overview", url: "/docs/build-agents" },
-          { type: "page", name: "Backend Setup", url: "/docs/build-agents/backend-setup" },
-          { type: "separator", name: "Chat UIs" },
+          { type: "separator", name: "Backend" },
+          {
+            type: "page",
+            name: "Set up UI generation",
+            url: "/docs/build-agents/ui-generation",
+          },
+          {
+            type: "folder",
+            name: "Agent frameworks",
+            defaultOpen: false,
+            children: [
+              {
+                type: "page",
+                name: "Vercel AI SDK",
+                url: "/docs/build-agents/frameworks/vercel-ai-sdk",
+              },
+            ],
+          },
+          { type: "separator", name: "Chat UI" },
           { type: "page", name: "assistant-ui", url: "/docs/build-agents/assistant-ui" },
         ],
       },
@@ -231,8 +251,6 @@ describe("nested docs navigation", () => {
           { type: "page", name: "Custom artifacts", url: "/docs/agent/guides/custom-artifacts" },
           { type: "separator", name: "Reference" },
           { type: "page", name: "Props", url: "/docs/agent/reference/agentinterface-props" },
-          { type: "separator", name: "Examples" },
-          { type: "page", name: "Vercel AI SDK", url: "/docs/agent/agent-runtimes/vercel-ai-sdk" },
         ],
       },
     ],
@@ -301,18 +319,36 @@ describe("nested docs navigation", () => {
     });
   });
 
-  it("combines Agent Interface and existing chat integrations under Build Agents", () => {
+  it("nests Agent Interface at the top of the Build Agents Chat UI group", () => {
     assert.deepEqual(getNestedDocsTree(fullTree, "build-agents"), {
       type: "root",
       $id: "docs:nested:build-agents",
       name: "Build Agents",
       children: [
         { type: "page", name: "Overview", url: "/docs/build-agents" },
-        { type: "page", name: "Backend Setup", url: "/docs/build-agents/backend-setup" },
+        { type: "separator", name: "Backend" },
+        {
+          type: "page",
+          name: "Set up UI generation",
+          url: "/docs/build-agents/ui-generation",
+        },
+        {
+          type: "folder",
+          name: "Agent frameworks",
+          defaultOpen: false,
+          children: [
+            {
+              type: "page",
+              name: "Vercel AI SDK",
+              url: "/docs/build-agents/frameworks/vercel-ai-sdk",
+            },
+          ],
+        },
+        { type: "separator", name: "Chat UI" },
         {
           type: "folder",
           name: "Agent Interface",
-          defaultOpen: true,
+          defaultOpen: false,
           children: [
             {
               type: "page",
@@ -335,26 +371,7 @@ describe("nested docs navigation", () => {
             },
           ],
         },
-        {
-          type: "folder",
-          name: "Existing Chat UIs",
-          defaultOpen: true,
-          children: [
-            { type: "page", name: "assistant-ui", url: "/docs/build-agents/assistant-ui" },
-          ],
-        },
-        {
-          type: "folder",
-          name: "Agent Runtime Examples",
-          defaultOpen: true,
-          children: [
-            {
-              type: "page",
-              name: "Vercel AI SDK",
-              url: "/docs/agent/agent-runtimes/vercel-ai-sdk",
-            },
-          ],
-        },
+        { type: "page", name: "assistant-ui", url: "/docs/build-agents/assistant-ui" },
       ],
     });
   });

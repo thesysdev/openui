@@ -1,23 +1,111 @@
 ---
-title: Custom Chat UI
-description: Render OpenUI Lang in an existing chat interface.
+title: Custom chat UI
+description: Render OpenUI Lang in a chat interface you built yourself.
 ---
 
-This guide assumes the application already has a working chat interface that renders text or Markdown, and that the backend already returns streamed OpenUI Lang. The message list, composer, conversation state, and transport remain unchanged.
+This guide assumes the application already has a working chat interface that renders text or Markdown, and that its backend streams OpenUI Lang. If it doesn't yet, follow [Set up UI generation](/docs/build-agents/ui-generation) first.
+
+The message list, composer, conversation state, and transport stay the same. Only the assistant message changes.
+
+## Install
+
+Skip this step if the chat UI and the backend share a package and you already installed these in [Set up UI generation](/docs/build-agents/ui-generation#1-install-the-packages).
+
+```bash tab="pnpm" tab-group="pkg"
+pnpm add @openuidev/react-lang @openuidev/react-ui
+```
+
+```bash tab="bun" tab-group="pkg"
+bun add @openuidev/react-lang @openuidev/react-ui
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn add @openuidev/react-lang @openuidev/react-ui
+```
+
+```bash tab="npm" tab-group="pkg"
+npm install @openuidev/react-lang @openuidev/react-ui
+```
+
+Import the component styles once, from the application's global stylesheet:
+
+```css title="app/globals.css"
+@import "@openuidev/react-ui/styles/index.css";
+```
+
+The examples below import `library` from `src/lib/openui.tsx`, the file created in [Set up UI generation](/docs/build-agents/ui-generation#2-define-a-component-library). If the chat UI lives in a separate package, define the same library there so it renders every component the agent can write.
 
 ## Render OpenUI Lang
 
-In the assistant-message component, render the streamed response with `<Renderer />` instead of the Markdown renderer:
+In the assistant message component, render the streamed response with `<Renderer />` instead of the Markdown renderer:
 
 ```tsx title="src/components/assistant-message.tsx"
+"use client";
+
 import { Renderer } from "@openuidev/react-lang";
 import { library } from "@/lib/openui";
 
-export function AssistantMessage({ content, isStreaming }) {
+export function AssistantMessage({
+  content,
+  isStreaming,
+}: {
+  content: string;
+  isStreaming: boolean;
+}) {
   return <Renderer response={content} library={library} isStreaming={isStreaming} />;
 }
 ```
 
-`content` is the accumulated agent response. Keep `isStreaming` true until the response stream closes so the renderer can display the interface progressively.
+`content` is the accumulated response text. Keep `isStreaming` true until the response stream closes so the renderer displays the interface progressively.
 
-Continue with [The Renderer](/docs/openui-lang/renderer) for the complete API.
+## Handle actions
+
+Buttons, follow-ups, and forms in a generated interface report clicks through the renderer's `onAction` callback. Without it, they do nothing. Handle the two built-in action types:
+
+- `continue_conversation`: send a new user turn. Include the form values so the model knows what the user entered, as described in [Conversation history](/docs/build-agents/conversation-history#user-actions).
+- `open_url`: open `event.params.url` in a new tab.
+
+Pass the chat's existing send function to the assistant message, and call it from `onAction`:
+
+```tsx title="src/components/assistant-message.tsx"
+"use client";
+
+import { BuiltinActionType, Renderer, type ActionEvent } from "@openuidev/react-lang";
+import { library } from "@/lib/openui";
+
+function toModelMessage(event: ActionEvent) {
+  const lines = [`User clicked: ${event.humanFriendlyMessage}`];
+  if (event.formState) lines.push(`Form values: ${JSON.stringify(event.formState)}`);
+  return lines.join("\n");
+}
+
+export function AssistantMessage({
+  content,
+  isStreaming,
+  onSend,
+}: {
+  content: string;
+  isStreaming: boolean;
+  onSend: (message: { display: string; content: string }) => void;
+}) {
+  const onAction = (event: ActionEvent) => {
+    if (event.type === BuiltinActionType.ContinueConversation) {
+      onSend({ display: event.humanFriendlyMessage, content: toModelMessage(event) });
+    } else if (event.type === BuiltinActionType.OpenUrl) {
+      window.open(String(event.params?.url), "_blank", "noopener,noreferrer");
+    }
+  };
+
+  return (
+    <Renderer response={content} library={library} isStreaming={isStreaming} onAction={onAction} />
+  );
+}
+```
+
+`onSend` stands in for however the chat sends a message today. Show `display` in the message list, and send `content` to the backend so the model sees the form values.
+
+## Next steps
+
+- [The Renderer](/docs/openui-lang/renderer): the complete renderer API, including error handling.
+- [Tools: agent-side vs. UI-side](/docs/build-agents/tools): pass a `toolProvider` so generated interfaces can load live data.
+- [Conversation history](/docs/build-agents/conversation-history): keep form values when a thread reloads.
