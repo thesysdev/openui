@@ -25,7 +25,7 @@ const structuredData = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": `${BASE_URL}/#organization`,
+      "@id": "https://www.thesys.dev/#organization",
       name: "Thesys",
       url: "https://www.thesys.dev",
       sameAs: [
@@ -44,7 +44,7 @@ const structuredData = {
       applicationCategory: "DeveloperApplication",
       operatingSystem: "Cross-platform",
       license: "https://opensource.org/licenses/MIT",
-      publisher: { "@id": `${BASE_URL}/#organization` },
+      publisher: { "@id": "https://www.thesys.dev/#organization" },
       sameAs: [
         "https://github.com/thesysdev/openui",
         "https://www.npmjs.com/org/openuidev",
