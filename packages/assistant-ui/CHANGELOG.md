@@ -1,5 +1,17 @@
 # @openuidev/assistant-ui
 
+## 0.1.2
+
+### Patch Changes
+
+- [#1263](https://github.com/thesysdev/openui/pull/1263) [`453b820`](https://github.com/thesysdev/openui/commit/453b820dacfdc4a435d456059c5174da75c8cea9) Thanks [@ankit-thesys](https://github.com/ankit-thesys)! - Widen the internal `react-headless`/`react-ui` peer windows to include the
+  0.17.x line that the D3 charts release (a minor bump of the react-ui /
+  react-headless pair) publishes.
+- Updated dependencies [[`d51a09c`](https://github.com/thesysdev/openui/commit/d51a09cd4ed9639f5e606a9c07faef352672a164), [`301d668`](https://github.com/thesysdev/openui/commit/301d66856835a81211628212f11833fe56a57dd4), [`dd4f450`](https://github.com/thesysdev/openui/commit/dd4f45074ac50b59d78e2855bd203e0e0562c95b)]:
+  - @openuidev/react-ui@0.17.0
+  - @openuidev/react-lang@0.3.1
+  - @openuidev/react-headless@0.17.0
+
 ## 0.1.1
 
 ### Patch Changes
