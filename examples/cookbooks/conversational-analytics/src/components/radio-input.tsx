@@ -26,8 +26,8 @@ export type RadioInputProps = {
   busy?: boolean;
   /** Longest question the input takes. */
   maxLength?: number;
-  /** Radio clicks while typing and a squelch-and-chirp on send. Off by default. */
-  sound?: boolean;
+  /** Radio clicks while typing and the team-radio clip on send; "send" plays only the clip. Off by default. */
+  sound?: boolean | "send";
   style?: CSSProperties;
 };
 
@@ -180,7 +180,7 @@ export function RadioInput({
         maxLength={maxLength}
         placeholder={placeholder}
         onChange={(e) => {
-          if (sound) playTick();
+          if (sound === true) playTick();
           setText(e.target.value);
         }}
         onSelect={syncCaret}
@@ -406,7 +406,7 @@ export function RadioInputPreview() {
       <p className="ref-note">
         <code>{'<RadioInput onSend={fn} />'}</code>. Props: <code>size</code> (full, compact: a floating warm-white slanted bar),{" "}
         <code>channel</code>, <code>placeholder</code>, <code>value</code>, <code>onChange</code>,{" "}
-        <code>onSend</code>, <code>sound</code>. Typing clicks are synthesised with Web Audio; the send sound is <code>public/sounds/f1-radio-send.mp3</code>. The typing loops stay silent. Not wired into the chat yet.
+        <code>onSend</code>, <code>sound</code>. Typing clicks are synthesised with Web Audio; the send sound is <code>public/sounds/f1-radio-send.mp3</code>. The typing loops stay silent. The /design chat plays the send sound only (<code>sound="send"</code>).
       </p>
     </div>
   );

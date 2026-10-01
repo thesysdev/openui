@@ -138,6 +138,8 @@ function RadioChat() {
         input={{
           busy: isRunning,
           maxLength: MAX_QUESTION,
+          // The team-radio clip on send; typing stays silent.
+          sound: "send",
           onSend: (text) => processMessage({ role: "user", content: text }),
         }}
       >
