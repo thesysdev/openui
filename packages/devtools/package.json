@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/devtools",
   "version": "0.2.2",
-  "description": "Development-only UI widget for OpenUI apps: surfaces errors captured by @openuidev/observability",
+  "description": "OpenUI devtools: development-only UI widget that surfaces errors captured by @openuidev/observability",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.cjs",

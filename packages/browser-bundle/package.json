@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/browser-bundle",
   "version": "0.1.4",
-  "description": "Prebuilt IIFE browser bundle of @openuidev/react-lang + @openuidev/react-ui for iframe, CDN, and no-build-pipeline embedding (Open WebUI tools, chatbots, widgets, etc.)",
+  "description": "OpenUI browser bundle: prebuilt IIFE of @openuidev/react-lang + @openuidev/react-ui for iframe, CDN, and no-build-pipeline embedding (Open WebUI tools, chatbots, widgets, etc.)",
   "license": "MIT",
   "type": "module",
   "sideEffects": true,

@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/react-email",
   "version": "0.3.0",
-  "description": "React Email components for OpenUI — 44 email building blocks with defineComponent",
+  "description": "OpenUI React Email components: 44 email building blocks with defineComponent",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
