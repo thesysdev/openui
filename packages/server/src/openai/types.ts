@@ -1,7 +1,8 @@
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 export type StoreChatCompletionHistoryOptions = {
-  apiKey: string;
+  apiKey?: string;
+  frontendToken?: string;
   conversationId: string;
   /** Chat Completions messages for the new turn. */
   messages: ChatCompletionMessageParam[];
@@ -20,4 +21,4 @@ export type StoreChatCompletionHistoryOptions = {
     text: () => Promise<string>;
     json: () => Promise<unknown>;
   }>;
-};
+} & ({ apiKey: string; frontendToken?: never } | { frontendToken: string; apiKey?: never });

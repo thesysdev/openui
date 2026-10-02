@@ -106,13 +106,13 @@ Use either `chunks` or `toResponse()` once. `result` settles after that consumer
 
 Persist a Chat Completions turn as Conversations API items. Pass only the new turn —
 last user message plus the assembled assistant reply — not the full `messages` array.
-Use the master API key.
+Use `frontendToken` for owner-scoped writes or `apiKey` for trusted server writes within the organization.
 
 ```ts
 import { storeChatCompletionHistory } from "@openuidev/server/openai";
 
 await storeChatCompletionHistory({
-  apiKey: process.env.THESYS_API_KEY!,
+  frontendToken,
   conversationId: threadId,
   messages: [
     { role: "user", content: lastUserText },
