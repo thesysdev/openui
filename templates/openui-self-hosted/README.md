@@ -24,8 +24,7 @@ You can start editing the page by modifying `src/app/api/chat/route.ts` and impr
 by adding system prompts or tools. A LangGraph scaffold puts the
 implementation in `src/agent/agent.ts` instead.
 
-If you selected LangGraph, the Vercel AI SDK, or Vercel Eve, the generated app includes a `get_weather`
-example. Ask “What’s the weather in Berlin?” to exercise its native tool loop.
+The generated app includes a `get_weather` tool example. Ask “What’s the weather in Berlin?” to exercise its native tool loop.
 
 ## Deploy
 
