@@ -7,8 +7,13 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 
 const client = new OpenAI();
 
-// The browser keeps each tool call but never receives its result, so earlier
-// turns are sent to the model as text only.
+// Each thread's turns as runTools() produced them, tool calls and results
+// included. Kept in memory: a restart or another server instance falls back
+// to the browser's copy.
+const threads = new Map<string, ChatCompletionMessageParam[]>();
+
+// The browser keeps each tool call but never receives its result, so its copy
+// of earlier turns is sent to the model as text only.
 function withoutToolCalls(messages: ChatCompletionMessageParam[]): ChatCompletionMessageParam[] {
   return messages.flatMap((message): ChatCompletionMessageParam[] => {
     if (message.role === "tool") return [];
@@ -20,9 +25,12 @@ function withoutToolCalls(messages: ChatCompletionMessageParam[]): ChatCompletio
 
 export async function POST(req: Request) {
   try {
-    const { messages } = (await req.json()) as {
+    const { threadId, messages } = (await req.json()) as {
+      threadId?: string;
       messages: ChatCompletionMessageParam[];
     };
+    const question = messages.slice(-1);
+    const history = (threadId && threads.get(threadId)) || withoutToolCalls(messages.slice(0, -1));
 
     // runTools() calls the model, runs the tools it asks for, sends the
     // results back, and repeats until the model answers.
@@ -37,7 +45,8 @@ export async function POST(req: Request) {
               promptOptions,
             }),
           },
-          ...withoutToolCalls(messages),
+          ...history,
+          ...question,
         ],
         tools: [
           {
@@ -62,6 +71,15 @@ export async function POST(req: Request) {
         stream: true,
       },
       { signal: req.signal, maxChatCompletions: 5 }, // propagate browser aborts
+    );
+
+    const turn = [...history, ...question];
+    runner.on("message", (message) => turn.push(message));
+    runner.done().then(
+      () => {
+        if (threadId) threads.set(threadId, turn);
+      },
+      () => {},
     );
 
     // NDJSON stream of every completion's chunks — the client parses it with
