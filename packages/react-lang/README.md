@@ -221,3 +221,31 @@ const schema = library.toJSONSchema();
 ## License
 
 [MIT](https://github.com/thesysdev/openui/blob/main/LICENSE)
+
+### Query loading indicator
+
+While queries run, the renderer shows a small activity indicator in the top-right
+corner. Content stays visible and interactive as results arrive. The indicator
+is labelled "Tool calls in progress" and respects reduced-motion preferences.
+Use `queryLoader` to customize its content.
+
+For controls outside Renderer, create a shared runtime with `useRenderer`:
+
+```tsx
+const controller = useRenderer({ response, library, toolProvider });
+return (
+  <>
+    <ControlsBar
+      isLoading={controller.isQueryLoading}
+      errors={controller.errors}
+      onRefresh={controller.refreshQueries}
+    />
+    <Renderer controller={controller} queryLoader={false} />
+  </>
+);
+```
+
+The hook owns one runtime, including query execution and form state. The toolbar
+and Renderer share it; refreshing preserves existing results and field values.
+Standalone `<Renderer response={response} library={library} />` usage still
+creates its own runtime internally.

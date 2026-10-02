@@ -20,7 +20,7 @@ import { useNav } from "./_shared/navContext";
  *
  * Fetches the artifact via `ArtifactStorage.get`, resolves the renderer by
  * `artifact.type`, runs the renderer's `parser` with
- * `{ args: undefined, response: artifact.content }` (stored content must have
+ * `{ id: artifact.id, args: undefined, response: artifact.content }` (stored content must have
  * the same shape as the tool-call response), and renders `actual` filling the
  * page. No DetailedView involvement.
  *
@@ -79,7 +79,10 @@ export const ArtifactViewPage = ({
 
   const parsed = useMemo(() => {
     if (!artifact || !renderer) return null;
-    return renderer.parser({ args: undefined, response: artifact.content }, { isStreaming: false });
+    return renderer.parser(
+      { id: artifact.id, args: undefined, response: artifact.content },
+      { isStreaming: false },
+    );
   }, [artifact, renderer]);
 
   const controls: ArtifactRendererControls = {

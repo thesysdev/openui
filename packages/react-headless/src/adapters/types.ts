@@ -28,6 +28,8 @@ export interface ArtifactSummary {
 
 /** Full artifact. `content` must have the same shape as the tool-call `response` the renderer's parser expects. */
 export interface Artifact extends ArtifactSummary {
+  /** Version of this exact content snapshot, when the storage supports versioning. */
+  version?: string;
   content: unknown;
 }
 

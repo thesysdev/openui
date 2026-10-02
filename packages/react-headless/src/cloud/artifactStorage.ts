@@ -54,7 +54,7 @@ export function cloudArtifactStorage({
     async get(id: string): Promise<Artifact> {
       const res = await request(`/v1/artifacts/${encodeURIComponent(id)}`);
       const artifact = (await res.json()) as CloudArtifact;
-      return { ...toSummary(artifact), content: artifact.content };
+      return { ...toSummary(artifact), version: artifact.version, content: artifact.content };
     },
 
     /** POST /v1/artifacts/:id {content}. Send the edited inner program (a

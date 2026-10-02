@@ -3,13 +3,23 @@ import {
   parseArtifactViewId,
   useDetailedView,
   useDetailedViewStore,
+  useThread,
   useThreadContextStore,
   type ArtifactRendererConfig,
   type ArtifactRendererControls,
   type ParsedArtifact,
   type ToolActivity,
 } from "@openuidev/react-headless";
-import { useEffect, useId, useMemo, useRef, type ComponentType, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { DetailedViewPanel as DefaultDetailedViewPanel } from "../../AgentInterface/_shared/detailed-view";
 import { ToolCallErrorFallback } from "./ToolCallErrorFallback";
 
@@ -34,10 +44,11 @@ export type ToolDetailedViewPanel = ComponentType<{
 function runRenderer<Props>(
   renderer: ArtifactRendererConfig<Props>,
   activity: ToolActivity,
+  isStreaming: boolean,
 ): ParsedArtifact<Props> | null {
   return renderer.parser(
     { args: activity.toolCall.function.arguments, response: activity.result ?? null },
-    { isStreaming: activity.status === "streaming" || activity.status === "executing" },
+    { isStreaming },
   );
 }
 
@@ -69,17 +80,20 @@ export function ToolActivityRenderer<Props>({
   const tcStore = useThreadContextStore();
   const dvStore = useDetailedViewStore();
 
-  const isStreaming = activity.status === "streaming" || activity.status === "executing";
+  // A settled tool can still belong to a response that has not been saved.
+  // Keep rendering its layout, but hold queries until the whole run ends.
+  const isStreaming = useThread((state) => state.isRunning);
 
   const { parsed, error } = useMemo(() => {
     try {
-      return { parsed: runRenderer(renderer, activity), error: null as string | null };
+      return { parsed: runRenderer(renderer, activity, isStreaming), error: null as string | null };
     } catch (e) {
       return { parsed: null as ParsedArtifact<Props> | null, error: String(e) };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     renderer,
+    isStreaming,
     activity.id,
     activity.status,
     activity.toolCall.function.arguments,
@@ -138,6 +152,17 @@ export function ToolActivityRenderer<Props>({
   }, [dvStore, viewId, meta?.id, meta?.version]);
 
   const { isActive, open, close, toggle } = useDetailedView(viewId);
+  const [resolvedTitle, setResolvedTitle] = useState<{ viewId: string; title: string } | null>(
+    null,
+  );
+  const setTitle = useCallback(
+    (title: string) => {
+      setResolvedTitle((previous) =>
+        previous?.viewId === viewId && previous.title === title ? previous : { viewId, title },
+      );
+    },
+    [viewId],
+  );
 
   if (error) {
     return <ToolCallErrorFallback error={error} toolName={activity.toolName} />;
@@ -153,6 +178,7 @@ export function ToolActivityRenderer<Props>({
   const controls: ArtifactRendererControls = {
     isActive,
     isStreaming,
+    setTitle,
     open,
     close,
     toggle,
@@ -161,7 +187,14 @@ export function ToolActivityRenderer<Props>({
   return (
     <>
       {renderer.preview(parsed.props, controls)}
-      <DetailedViewPanel viewId={viewId} title={meta?.heading ?? "Detailed view"}>
+      <DetailedViewPanel
+        viewId={viewId}
+        title={
+          (resolvedTitle?.viewId === viewId ? resolvedTitle.title : null) ??
+          meta?.heading ??
+          "Detailed view"
+        }
+      >
         {renderer.actual(parsed.props, controls)}
       </DetailedViewPanel>
     </>
