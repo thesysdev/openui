@@ -96,16 +96,58 @@ const myLibraryPrompt = generateSystemPrompt({
 });
 ```
 
-Enable managed slides and reports with `artifactTool` from the Cloud subpath:
+Enable managed slides, reports, and dashboards with `artifactTool` from the Cloud subpath:
 
 ```ts
 import { artifactTool } from "@openuidev/lang-core/cloud";
 
 const tools = [
-  artifactTool({ artifacts: ["slides", "report"] }),
+  artifactTool({ artifacts: ["slides", "report", "dashboard"] }),
   { type: "web_search" },
 ];
 ```
+
+For a dashboard, create one data-plane helper. Its `generationTools` configure
+Cloud's generation plane, while `runTools` is passed to the customer-owned,
+authenticated route that serves renderer queries:
+
+```ts
+import { artifactTool, createDashboardTools } from "@openuidev/lang-core/cloud";
+
+type DashboardContext = {
+  analytics: { kpis(year: unknown): unknown };
+};
+
+const dashboard = createDashboardTools<DashboardContext>({
+  tools: [
+    {
+      type: "function",
+      name: "get_kpis",
+      description: "Returns KPIs for a selected year.",
+      parameters: {
+        type: "object",
+        properties: { year: { type: "string" } },
+      },
+      sample: { revenue: 1200000 },
+      execute: ({ year }, context) => context.analytics.kpis(year),
+    },
+  ],
+});
+
+artifactTool({
+  artifacts: [{ type: "dashboard", tools: dashboard }],
+});
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const context = await requireAuthenticatedContext(request);
+  const result = await dashboard.runTools(body, context);
+  return Response.json(result.body, { status: result.status });
+}
+```
+
+Pass the `createDashboardTools()` result directly as `tools`. Static dashboards can
+omit `tools`.
 
 ### Merge incremental edits
 
@@ -143,7 +185,12 @@ const merged = mergeStatements(original, patch);
 
 | Export | Description |
 | :--- | :--- |
-| `artifactTool(options?)` | From `@openuidev/lang-core/cloud`. Responses `tools[]` entry for Cloud's managed slides/report artifacts. |
+| `artifactTool(options?)` | From `@openuidev/lang-core/cloud`. Responses `tools[]` entry for Cloud's managed slides, report, and dashboard artifacts. Dashboard entries accept the helper returned by `createDashboardTools()`. |
+| `createDashboardTools(options)` | From `@openuidev/lang-core/cloud`. Builds route-ready dashboard tool dispatch, chat tool definitions, generation metadata, and the optional sandbox script execute-loop. |
+
+For separately declared configuration and tool definitions, the Cloud subpath exports
+`ArtifactToolOptions`, `CreateDashboardToolsOptions`, `DashboardToolDef`, and `DashboardTools`.
+Nested types are available through these types' properties, and return types are inferred.
 
 ## Telemetry
 

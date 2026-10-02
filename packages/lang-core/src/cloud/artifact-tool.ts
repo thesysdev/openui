@@ -1,11 +1,16 @@
-export type ArtifactKind = "slides" | "report";
+import type { DashboardTools } from "./dashboard";
+import type { DashboardGenerationTool } from "./dashboard/types";
 
-export interface ArtifactOption {
+type ArtifactKind = "slides" | "report" | "dashboard";
+
+interface ArtifactOption {
   type: ArtifactKind;
   /** Per-artifact instruction, folded into the Cloud tool description. */
   instruction?: string;
   /** Override this package's pinned library version for this artifact. */
   libraryVersion?: string;
+  /** Dashboard only: the result of `createDashboardTools()`. Context is unused here. */
+  tools?: DashboardTools<never>;
 }
 
 export interface ArtifactToolOptions {
@@ -13,14 +18,14 @@ export interface ArtifactToolOptions {
   artifacts?: Array<ArtifactKind | ArtifactOption>;
 }
 
-export interface ArtifactWireEntry {
+interface ArtifactWireEntry {
   artifact_type: ArtifactKind;
   instruction?: string;
   library_version?: string;
 }
 
 /** The Responses `tools[]` entry enabling OpenUI Cloud's managed artifact tool. */
-export interface ResponsesArtifactToolEntry {
+interface ResponsesArtifactToolEntry {
   type: "artifact";
   /** Absent → all supported artifact types enabled. */
   artifacts?: ArtifactWireEntry[];
@@ -30,13 +35,34 @@ export interface ResponsesArtifactToolEntry {
  * Wire pins for OpenUI Cloud's managed artifact libraries. Cloud rejects a
  * non-numeric or too-old version.
  */
-export const SLIDES_LIBRARY_VERSION = "0.1.0";
-export const REPORT_LIBRARY_VERSION = "0.1.0";
+const SLIDES_LIBRARY_VERSION = "0.1.0";
+const REPORT_LIBRARY_VERSION = "0.1.0";
+const DASHBOARD_LIBRARY_VERSION = "0.1.0";
 
 const DEFAULT_LIBRARY_VERSION: Record<ArtifactKind, string> = {
   slides: SLIDES_LIBRARY_VERSION,
   report: REPORT_LIBRARY_VERSION,
+  dashboard: DASHBOARD_LIBRARY_VERSION,
 };
+
+/**
+ * Renders dashboard data-tool definitions into the artifact instruction, which
+ * Cloud folds into the generate/edit tool description.
+ */
+function renderDashboardToolDocs(tools: DashboardGenerationTool[]): string {
+  const blocks = tools.map((tool) =>
+    [
+      `### ${tool.name}`,
+      ...(tool.description ? [tool.description] : []),
+      `parameters: ${JSON.stringify(tool.parameters ?? { type: "object", properties: {} })}`,
+      ...(tool.sample !== undefined ? [`sample_output: ${JSON.stringify(tool.sample)}`] : []),
+    ].join("\n"),
+  );
+  return [
+    "Data tools available for dashboards in this conversation. When calling this tool, pass every relevant definition in the structured `tools` argument, copying name/description/parameters/sample_output verbatim from below:",
+    ...blocks,
+  ].join("\n\n");
+}
 
 /**
  * Build the Responses `tools[]` entry that enables Cloud's managed artifact tool.
@@ -46,6 +72,7 @@ const DEFAULT_LIBRARY_VERSION: Record<ArtifactKind, string> = {
  *   tools: [artifactTool({
  *     artifacts: [
  *       { type: "slides", instruction: "Use the corporate template." },
+ *       { type: "dashboard", tools: dashboardTools },
  *       "report",
  *     ],
  *   })]
@@ -85,9 +112,16 @@ export function artifactTool(options: ArtifactToolOptions = {}): ResponsesArtifa
       throw new Error(`artifactTool: duplicate artifact '${opt.type}'.`);
     }
     seen.add(opt.type);
+    if (opt.tools !== undefined && opt.type !== "dashboard") {
+      throw new Error(
+        `artifactTool: \`tools\` is only valid on the 'dashboard' entry (got '${opt.type}').`,
+      );
+    }
+    const toolDocs = opt.tools ? renderDashboardToolDocs(opt.tools.generationTools) : undefined;
+    const instruction = [opt.instruction, toolDocs].filter(Boolean).join("\n\n");
     return {
       artifact_type: opt.type,
-      ...(opt.instruction && { instruction: opt.instruction }),
+      ...(instruction && { instruction }),
       library_version: opt.libraryVersion ?? DEFAULT_LIBRARY_VERSION[opt.type],
     };
   });
