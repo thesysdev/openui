@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { observability, toErrorInfo } from "@openuidev/observability";
-import { act, createElement } from "react";
+import { act, createElement, useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { OpenUIDevtoolsWidget, type OpenUIDevtoolsWidgetProps } from "./OpenUIDevtoolsWidget";
@@ -96,14 +97,19 @@ function click(el: Element): void {
   act(() => el.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 }
 
+/** Publishes on the bus, then lets the widget apply the batch it queued. */
+async function emit(publish: () => void): Promise<void> {
+  await act(async () => publish());
+}
+
 function buttonByText(text: string): HTMLButtonElement | undefined {
   return [...container.querySelectorAll("button")].find((b) => b.textContent === text) as
     HTMLButtonElement | undefined;
 }
 
 /** Emits a settled stream event and expands its row, exposing the Debug button. */
-function seedStream(response: string): void {
-  act(() =>
+async function seedStream(response: string): Promise<void> {
+  await emit(() =>
     observability.info({
       kind: "react-lang:stream",
       id: "stream-debug-entry",
@@ -129,8 +135,8 @@ function streamDebugButton(): HTMLButtonElement | undefined {
  * The default response is blank so the editor opens effectively empty (the
  * button is disabled on a truly empty response).
  */
-function openDebugTray(response = " "): void {
-  seedStream(response);
+async function openDebugTray(response = " "): Promise<void> {
+  await seedStream(response);
   const debug = streamDebugButton();
   if (!debug) throw new Error("stream Debug button not found");
   click(debug);
@@ -197,30 +203,32 @@ describe("OpenUIDevtools", () => {
     expect(toggle().getAttribute("aria-expanded")).toBe("true");
   });
 
-  it("lists an emitted error event and shows the error-count badge", () => {
+  it("lists an emitted error event and shows the error-count badge", async () => {
     render({ enabled: true, errorsOnly: false });
-    act(() => observability.error({ kind: "boom", error: toErrorInfo(new Error("kaboom")) }));
+    await emit(() =>
+      observability.error({ kind: "boom", error: toErrorInfo(new Error("kaboom")) }),
+    );
 
     expect(container.textContent).toContain("boom");
     // Badge count of error-severity events.
     expect(toggle().textContent).toContain("1");
   });
 
-  it("auto-opens the drawer on an error when autoOpenOnError is true", () => {
+  it("auto-opens the drawer on an error when autoOpenOnError is true", async () => {
     render({ enabled: true, autoOpenOnError: true });
     expect(toggle().getAttribute("aria-expanded")).toBe("false");
 
-    act(() => observability.error({ kind: "boom" }));
+    await emit(() => observability.error({ kind: "boom" }));
     expect(toggle().getAttribute("aria-expanded")).toBe("true");
   });
 
-  it("does not auto-open when autoOpenOnError is false", () => {
+  it("does not auto-open when autoOpenOnError is false", async () => {
     render({ enabled: true, autoOpenOnError: false });
-    act(() => observability.error({ kind: "boom" }));
+    await emit(() => observability.error({ kind: "boom" }));
     expect(toggle().getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("restores auto-open on error from a previous session", () => {
+  it("restores auto-open on error from a previous session", async () => {
     render({ enabled: true, autoOpenOnError: true });
     openSettings();
     expect(checkboxLabeled("Auto-open on error").checked).toBe(true);
@@ -232,11 +240,11 @@ describe("OpenUIDevtools", () => {
     openSettings();
     expect(checkboxLabeled("Auto-open on error").checked).toBe(false);
 
-    act(() => observability.error({ kind: "boom" }));
+    await emit(() => observability.error({ kind: "boom" }));
     expect(toggle().getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("restores the errors-only filter from a previous session", () => {
+  it("restores the errors-only filter from a previous session", async () => {
     render({ enabled: true, errorsOnly: false });
     openSettings();
     act(() => checkboxLabeled("Show errors only").click());
@@ -246,34 +254,34 @@ describe("OpenUIDevtools", () => {
     openSettings();
     expect(checkboxLabeled("Show errors only").checked).toBe(true);
 
-    act(() => observability.info({ kind: "just-info" }));
-    act(() => observability.error({ kind: "real-error" }));
+    await emit(() => observability.info({ kind: "just-info" }));
+    await emit(() => observability.error({ kind: "real-error" }));
     expect(container.textContent).not.toContain("just-info");
     expect(container.textContent).toContain("real-error");
   });
 
-  it("filters out info events when errorsOnly is set", () => {
+  it("filters out info events when errorsOnly is set", async () => {
     render({ enabled: true, errorsOnly: true });
-    act(() => observability.info({ kind: "just-info" }));
-    act(() => observability.warn({ kind: "useful-warning" }));
-    act(() => observability.error({ kind: "real-error" }));
+    await emit(() => observability.info({ kind: "just-info" }));
+    await emit(() => observability.warn({ kind: "useful-warning" }));
+    await emit(() => observability.error({ kind: "real-error" }));
 
     expect(container.textContent).not.toContain("just-info");
     expect(container.textContent).toContain("useful-warning");
     expect(container.textContent).toContain("real-error");
   });
 
-  it("coalesces successive snapshots of any event with a stable id", () => {
+  it("coalesces successive snapshots of any event with a stable id", async () => {
     render({ enabled: true, errorsOnly: false });
 
-    act(() =>
+    await emit(() =>
       observability.info({
         id: "job-1",
         kind: "job:progress",
         message: "Starting",
       }),
     );
-    act(() =>
+    await emit(() =>
       observability.warn({
         id: "job-1",
         kind: "job:progress",
@@ -286,11 +294,11 @@ describe("OpenUIDevtools", () => {
     expect(container.textContent).toContain("Needs attention");
   });
 
-  it("expands the stack trace on the error card", () => {
+  it("expands the stack trace on the error card", async () => {
     render({ enabled: true, errorsOnly: false });
     const err = new Error("kaboom");
     err.stack = "Error: kaboom\n    at boom (app.ts:1:1)";
-    act(() => observability.error({ kind: "boom", error: toErrorInfo(err) }));
+    await emit(() => observability.error({ kind: "boom", error: toErrorInfo(err) }));
 
     expect(container.textContent).toContain("kaboom");
     expect(container.textContent).not.toContain("at boom (app.ts:1:1)");
@@ -305,10 +313,10 @@ describe("OpenUIDevtools", () => {
     expect(buttonByText("Copy")).toBeDefined();
   });
 
-  it("coalesces react-lang stream updates by their stable event id", () => {
+  it("coalesces react-lang stream updates by their stable event id", async () => {
     render({ enabled: true, errorsOnly: false });
 
-    act(() =>
+    await emit(() =>
       observability.info({
         kind: "react-lang:stream",
         id: "stream-1",
@@ -318,7 +326,7 @@ describe("OpenUIDevtools", () => {
         parser: { statementCount: 1, orphaned: [] },
       }),
     );
-    act(() =>
+    await emit(() =>
       observability.info({
         kind: "react-lang:stream",
         id: "stream-1",
@@ -347,10 +355,53 @@ describe("OpenUIDevtools", () => {
     expect(container.textContent).toContain("Orphaned: unused");
   });
 
-  it("replaces a stream update with its settled diagnostics", () => {
+  it("absorbs a burst of stream updates published from passive effects", async () => {
+    // react-lang publishes every streamed chunk from a passive effect. When a
+    // stream catches up after a long render, the chunks land as one burst of
+    // sync commits; updating the widget inside each of those effect flushes
+    // tripped React's nested-update limit ("Maximum update depth exceeded").
+    render({ enabled: true, errorsOnly: false });
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    let setChunk: (chunk: number) => void = () => {};
+    function Publisher() {
+      const [chunk, set] = useState(0);
+      setChunk = set;
+      useEffect(() => {
+        if (chunk === 0) return;
+        observability.info({
+          kind: "react-lang:stream",
+          id: "stream-burst",
+          phase: "streaming",
+          updateIndex: chunk,
+          response: `root = Card("chunk ${chunk}")`,
+          parser: { statementCount: chunk, orphaned: [] },
+        });
+      }, [chunk]);
+      return null;
+    }
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const hostRoot = createRoot(host);
+    act(() => hostRoot.render(createElement(Publisher)));
+
+    await act(async () => {
+      for (let chunk = 1; chunk <= 80; chunk++) flushSync(() => setChunk(chunk));
+    });
+
+    expect(consoleError.mock.calls.flat().join(" ")).not.toContain("Maximum update depth");
+    expect(container.textContent?.match(/OpenUI Lang stream/g)).toHaveLength(1);
+    expect(overviewStats()).toContain("80 statements");
+
+    consoleError.mockRestore();
+    act(() => hostRoot.unmount());
+    host.remove();
+  });
+
+  it("replaces a stream update with its settled diagnostics", async () => {
     render({ enabled: true, errorsOnly: false });
 
-    act(() =>
+    await emit(() =>
       observability.info({
         kind: "react-lang:stream",
         id: "stream-1",
@@ -359,7 +410,7 @@ describe("OpenUIDevtools", () => {
         response: "root = Ghost()",
       }),
     );
-    act(() =>
+    await emit(() =>
       observability.error({
         kind: "react-lang:stream",
         id: "stream-1",
@@ -400,10 +451,10 @@ describe("OpenUIDevtools", () => {
     expect(toggle().textContent).toContain("1");
   });
 
-  it("debugs a stream response in OpenUI Debug", () => {
+  it("debugs a stream response in OpenUI Debug", async () => {
     seedLibrary();
     render({ enabled: true, errorsOnly: false });
-    act(() =>
+    await emit(() =>
       observability.info({
         kind: "react-lang:stream",
         id: "stream-1",
@@ -428,10 +479,10 @@ describe("OpenUIDevtools", () => {
     expect(editor?.value).toBe('root = Card("from stream")');
   });
 
-  it("hides provisional errors while the stream is still running", () => {
+  it("hides provisional errors while the stream is still running", async () => {
     render({ enabled: true, errorsOnly: false });
 
-    act(() =>
+    await emit(() =>
       observability.info({
         kind: "react-lang:stream",
         id: "stream-1",
@@ -452,10 +503,10 @@ describe("OpenUIDevtools", () => {
     expect(container.textContent).toContain("Orphaned: draft");
   });
 
-  it("keeps an expanded stream open when a settled error snapshot is refreshed", () => {
+  it("keeps an expanded stream open when a settled error snapshot is refreshed", async () => {
     render({ enabled: true, errorsOnly: false });
 
-    act(() =>
+    await emit(() =>
       observability.error({
         kind: "react-lang:stream",
         id: "stream-1",
@@ -471,7 +522,7 @@ describe("OpenUIDevtools", () => {
     click(expand!);
     expect(container.textContent).toContain("First error");
 
-    act(() =>
+    await emit(() =>
       observability.error({
         kind: "react-lang:stream",
         id: "stream-1",
@@ -521,10 +572,10 @@ describe("OpenUIDevtools", () => {
     expect(container.querySelector('button[aria-label="Open OpenUI Inspect"]')).not.toBeNull();
   });
 
-  it("removes a resolved stream from the errors-only view", () => {
+  it("removes a resolved stream from the errors-only view", async () => {
     render({ enabled: true, errorsOnly: true, autoOpenOnError: false });
 
-    act(() =>
+    await emit(() =>
       observability.error({
         kind: "react-lang:stream",
         id: "stream-1",
@@ -534,7 +585,7 @@ describe("OpenUIDevtools", () => {
     );
     expect(container.textContent).toContain("OpenUI Lang stream");
 
-    act(() =>
+    await emit(() =>
       observability.info({
         kind: "react-lang:stream",
         id: "stream-1",
@@ -547,16 +598,16 @@ describe("OpenUIDevtools", () => {
     expect(container.textContent).toContain("No events captured yet.");
   });
 
-  it("disables OpenUI Debug until a library is registered", () => {
+  it("disables OpenUI Debug until a library is registered", async () => {
     render({ enabled: true });
-    seedStream('root = Card("x")');
+    await seedStream('root = Card("x")');
     expect(streamDebugButton()?.disabled).toBe(true);
   });
 
-  it("opens OpenUI Debug from a late-mounted registry entry", () => {
+  it("opens OpenUI Debug from a late-mounted registry entry", async () => {
     seedLibrary();
     render({ enabled: true });
-    seedStream('root = Card("x")');
+    await seedStream('root = Card("x")');
     const debug = streamDebugButton();
     expect(debug?.disabled).toBe(false);
     click(debug!);
@@ -564,10 +615,10 @@ describe("OpenUIDevtools", () => {
     expect(container.querySelector('textarea[aria-label="OpenUI Lang"]')).not.toBeNull();
   });
 
-  it("shows Debug panels and stream controls", () => {
+  it("shows Debug panels and stream controls", async () => {
     seedLibrary();
     render({ enabled: true });
-    openDebugTray();
+    await openDebugTray();
     expect(container.querySelector('[aria-label="Playback controls"]')).not.toBeNull();
     expect(container.querySelector('button[aria-label="Stream"]')).not.toBeNull();
     const tabs = container.querySelector('[role="tablist"]')?.textContent ?? "";
@@ -581,7 +632,7 @@ describe("OpenUIDevtools", () => {
   it("switches to the validation panel", async () => {
     seedLibrary();
     render({ enabled: true });
-    openDebugTray();
+    await openDebugTray();
     await act(async () => {
       await Promise.resolve();
     });
@@ -592,9 +643,9 @@ describe("OpenUIDevtools", () => {
     expect(container.textContent).toContain("Add some OpenUI Lang to validate it.");
   });
 
-  it("does not list library registration pings as events", () => {
+  it("does not list library registration pings as events", async () => {
     render({ enabled: true, errorsOnly: false });
-    act(() =>
+    await emit(() =>
       observability.info({
         kind: "react-lang:library",
         root: "Card",
@@ -607,21 +658,21 @@ describe("OpenUIDevtools", () => {
     expect(container.textContent).toContain("No events captured yet.");
   });
 
-  it("opens OpenUI Debug on its own tray beside Inspect", () => {
+  it("opens OpenUI Debug on its own tray beside Inspect", async () => {
     seedLibrary();
     render({ enabled: true });
     click(toggle());
-    openDebugTray();
+    await openDebugTray();
 
     expect(trayShown("OpenUI Inspect")).toBe(true);
     expect(trayShown("OpenUI Debug")).toBe(true);
   });
 
-  it("closes only the Debug tray, leaving Inspect open", () => {
+  it("closes only the Debug tray, leaving Inspect open", async () => {
     seedLibrary();
     render({ enabled: true });
     click(toggle());
-    openDebugTray();
+    await openDebugTray();
 
     click(container.querySelector('button[aria-label="Close OpenUI Debug"]')!);
 
@@ -630,11 +681,11 @@ describe("OpenUIDevtools", () => {
     expect(toggle().getAttribute("aria-expanded")).toBe("true");
   });
 
-  it("closes only the Inspect tray, leaving Debug open", () => {
+  it("closes only the Inspect tray, leaving Debug open", async () => {
     seedLibrary();
     render({ enabled: true });
     click(toggle());
-    openDebugTray();
+    await openDebugTray();
 
     click(container.querySelector('button[aria-label="Close OpenUI Inspect"]')!);
 
@@ -642,7 +693,7 @@ describe("OpenUIDevtools", () => {
     expect(trayShown("OpenUI Debug")).toBe(true);
   });
 
-  it("ejects OpenUI Debug into a separate window", () => {
+  it("ejects OpenUI Debug into a separate window", async () => {
     seedLibrary();
     const popupDoc = document.implementation.createHTMLDocument("debug");
     const popup = {
@@ -656,7 +707,7 @@ describe("OpenUIDevtools", () => {
     const open = vi.spyOn(window, "open").mockReturnValue(popup as unknown as Window);
 
     render({ enabled: true });
-    openDebugTray();
+    await openDebugTray();
     click(container.querySelector('button[aria-label="Open OpenUI Debug in a new window"]')!);
 
     expect(open).toHaveBeenCalled();
@@ -666,7 +717,7 @@ describe("OpenUIDevtools", () => {
     open.mockRestore();
   });
 
-  it("focuses the ejected window when OpenUI Debug is clicked again", () => {
+  it("focuses the ejected window when OpenUI Debug is clicked again", async () => {
     seedLibrary();
     const popupDoc = document.implementation.createHTMLDocument("debug");
     const popup = {
@@ -680,7 +731,7 @@ describe("OpenUIDevtools", () => {
     const open = vi.spyOn(window, "open").mockReturnValue(popup as unknown as Window);
 
     render({ enabled: true });
-    openDebugTray();
+    await openDebugTray();
     click(container.querySelector('button[aria-label="Open OpenUI Debug in a new window"]')!);
     popup.focus.mockClear();
 
@@ -692,7 +743,7 @@ describe("OpenUIDevtools", () => {
     open.mockRestore();
   });
 
-  it("returns an ejected window to the tray", () => {
+  it("returns an ejected window to the tray", async () => {
     seedLibrary();
     const popupDoc = document.implementation.createHTMLDocument("debug");
     const popup = {
@@ -706,7 +757,7 @@ describe("OpenUIDevtools", () => {
     const open = vi.spyOn(window, "open").mockReturnValue(popup as unknown as Window);
 
     render({ enabled: true });
-    openDebugTray();
+    await openDebugTray();
     click(container.querySelector('button[aria-label="Open OpenUI Debug in a new window"]')!);
     expect(trayShown("OpenUI Debug")).toBe(false);
 
@@ -717,12 +768,12 @@ describe("OpenUIDevtools", () => {
     open.mockRestore();
   });
 
-  it("stays in the drawer when the popup is blocked", () => {
+  it("stays in the drawer when the popup is blocked", async () => {
     seedLibrary();
     const open = vi.spyOn(window, "open").mockReturnValue(null);
 
     render({ enabled: true });
-    openDebugTray();
+    await openDebugTray();
     click(container.querySelector('button[aria-label="Open OpenUI Debug in a new window"]')!);
 
     expect(trayShown("OpenUI Debug")).toBe(true);

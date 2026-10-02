@@ -91,12 +91,29 @@ export function OpenUIDevtoolsWidget({
   const styles = uiStyles(theme(mode));
 
   // Read configRef inside the (stable) subscription without re-subscribing.
+  //
+  // The bus delivers synchronously, and a streaming Renderer publishes from a
+  // passive effect on every chunk. Setting state during that delivery is an
+  // update scheduled while React flushes another root's passive effects; a
+  // stream that catches up in one burst of 50+ chunks then trips React's
+  // "Maximum update depth exceeded". Queue events and apply each batch in one
+  // update once the current flush has finished.
   useEffect(() => {
     if (!isEnabled) return;
+    let queued: ObservabilityEvent[] = [];
+    const flush = () => {
+      const batch = queued;
+      queued = [];
+      setEvents((prev) =>
+        batch.reduce((next, event) => addOrReplaceEvent(next, event, maxEvents), prev),
+      );
+      if (configRef.current.autoOpen && batch.some((event) => event.level === "error")) {
+        setOpen(true);
+      }
+    };
     return observability.listenAll((event) => {
       if (isLibraryEvent(event)) return;
-      setEvents((prev) => addOrReplaceEvent(prev, event, maxEvents));
-      if (event.level === "error" && configRef.current.autoOpen) setOpen(true);
+      if (queued.push(event) === 1) queueMicrotask(flush);
     });
   }, [isEnabled, maxEvents, configRef]);
 
