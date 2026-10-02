@@ -4,15 +4,15 @@ import "@openuidev/react-ui/styles/index.css";
 import {
   AgentInterface,
   fetchLLM,
-  openAIAdapter,
   openAIMessageFormat,
+  openAIReadableStreamAdapter,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
 import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 
 const llm = fetchLLM({
   url: "/api/chat",
-  streamAdapter: openAIAdapter(),
+  streamAdapter: openAIReadableStreamAdapter(),
   messageFormat: openAIMessageFormat,
 });
 
