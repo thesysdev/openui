@@ -1,0 +1,105 @@
+---
+title: "MCP Apps put the interface at the wrong level"
+description: "An exploration of interface composition across tools, what we learned from a Generative UI MCP, and why the host is the natural place for it."
+author: "Rabi Guha"
+date: 2026-10-03
+---
+
+The real power of MCP comes from chaining tools together and reasoning across their results, but MCP Apps ties interfaces to individual tools, making that same composition harder at the UI layer. We explored this by building a Generative UI MCP, and the experiment pointed us toward a higher layer: the [host](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2025-11-25/architecture/index.mdx), the application running the agent, where the context of the whole task comes together.
+
+This post builds on the ideas we presented at AGNTCon + MCPCon Japan 2026.
+
+{/* Add links to the talk slides and recording before publication. */}
+
+## MCP's power is in composition
+
+Imagine asking your agent to "find a good hotel near the conference venue."
+
+The agent may already know your preferences from the conversation. To find the right hotel, it could use MCP Servers that provide access to:
+
+- Booking.com for live hotel listings and prices.
+- Tripadvisor for traveller reviews.
+- SAP Concur for company travel policy.
+- A maps service for distances and travel times to the venue.
+
+The agent combines these results with your preferences to recommend a hotel that fits your stay, commute, and company policy. That's the power of composition: tools built independently can work together around your task.
+
+> Image placeholder: a simple task-to-tools diagram for the hotel request.
+
+## Now tools can bring their own interfaces
+
+[MCP Apps](https://apps.extensions.modelcontextprotocol.io/api/documents/overview.html) extends MCP so tools can present interactive interfaces alongside their results. A hotel search tool could show photos, prices, and room-selection controls; a maps tool could let you explore the neighbourhood.
+
+The mechanism is straightforward: an MCP Server associates a tool with a UI resource, which the host displays in a sandboxed iframe. The MCP Server authors the interface, while the host supplies the environment in which it runs. That interface can use a predefined template or be generated dynamically, including with a framework like [OpenUI](https://www.openui.com/).
+
+> Image placeholder: a hotel service presenting its own interactive search interface.
+
+## But who owns the UI?
+
+The agent arrives at a recommendation by reasoning across several MCP Servers. Which MCP Server's UI should it show? Booking.com has the hotel photos and prices. The maps tool can show their locations. Tripadvisor supplies the independent reviews and ratings that helped the agent choose.
+
+With separate MCP Apps for each service, the user could see Booking.com's view alongside a map, without either representing the combined recommendation. An MCP Server could extend its UI to accept travel times, ratings, and policy data, but its author would have to anticipate those combinations. That becomes harder as more tools enter the task.
+
+Now suppose you shortlist two hotels and ask to compare them. If the listing interface doesn't support that comparison, the agent may fall back to a Markdown table to bring the information together. The agent can compose the results, but the available interfaces don't give it the same freedom.
+
+> Image placeholder: Maps, Concur, Tripadvisor, and the assistant contributing context, with the question: who owns the UI?
+
+
+## Sometimes the tool is the right place
+
+Some tasks fit within one tool's interface. Consider an agent working on a design through Figma MCP. The brief, references, and design decisions may come from elsewhere, but the result is a design file that lives entirely within a Figma canvas. That canvas is also where the user can inspect and edit it.
+
+In this case, the tool's interface covers the outcome of the task. The problem starts when the outcome spans several tools and no single interface can represent it.
+
+> Image placeholder: a Figma canvas as the destination of an agent-driven design task.
+
+## More often than not, it isn't
+
+There is a long history of building interfaces above the services that supply their data. [HousingMaps](https://web.mit.edu/adamross/www/SHAH_CSER07.pdf) combined Craigslist housing listings with Google Maps so people could browse homes by location. The useful interface came from bringing the two disconnected data sources together. [Retool](https://retool.com/resources/top-operations-integrations-in-retool) applies the same idea to enterprise workflows, bringing data and actions from databases, CRMs, and support systems into one interface built around a team's workflow.
+
+In both cases, the application decides how the pieces fit together, with each source contributing to the interface without defining the whole experience. We call an interface **host-authored** when the host decides how contributions from multiple tools fit together around the task.
+
+The difference is that those earlier compositions were designed in advance by a developer who knew the sources. The open question is whether an agent can do this at runtime, for combinations nobody planned.
+
+> Image placeholder: HousingMaps alongside a Retool workflow spanning multiple services.
+
+
+## Can't the host just generate this?
+
+Hosts can already generate interfaces using connected services, as [Claude Artifacts](https://support.claude.com/en/articles/17153992-what-are-artifacts-and-how-do-i-use-them) demonstrates. Those interfaces can be interactive, but generating a new interface doesn't automatically reuse the room selector or map supplied by an MCP App. 
+
+## We built a Generative UI MCP to explore this
+
+We built an internal Generative UI MCP Server with one tool: take the results gathered by the agent and generate an interface using OpenUI. Since we didn't control the host, we instructed its agent to call this tool last whenever an answer needed a visual interface.
+
+> Image placeholder: the Generative UI MCP flow, from context gathered by the host to the resulting interface.
+
+**What worked:** The combined hotel view brought prices, travel times, reviews, and policy constraints into one place, so the user could compare options across tools.
+
+> Image placeholder: screenshot of the combined hotel view.
+
+**What didn't:**
+
+- **Unreliable invocation.** The host's agent didn't consistently call the tool. A "call me last" instruction left interface generation dependent on the model following that instruction after gathering the results.
+- **Cost and latency.** The MCP Server couldn't use the host's model, so each interface required a second LLM call.
+- **Lost context.** The MCP Server saw only what the agent passed to it, leaving out any conversation context the agent didn't include.
+- **No composition of existing UI.** It generated a new interface from the results, but still didn't compose the MCP Apps interfaces exposed by the underlying MCP Servers.
+
+## The host is the natural destination
+
+The experiment points toward making interface composition a native capability of the host. MCP Servers could supply **UI atoms**: pieces of interface that the host can combine with those from other tools. A hotel tool might contribute a room selector, while a maps tool contributes a location view.
+
+Each MCP Server would define its UI atoms and describe how they can be used. The host's agent would use the context of the task to compose them into an interface. But this direction raises more questions than it solves:
+
+- **Isolation.** Each atom would still need its own sandbox. How could atoms exchange data without exposing one MCP Server's information to another?
+- **State.** The host would need to own shared state, such as the current hotel selection. How would changes reach the relevant atoms and keep them in sync?
+- **Genericity.** Atoms need to carry an MCP Server's functionality while remaining compatible with other atoms. We expect a small shared vocabulary of data types rather than a shared set of widgets. What should that vocabulary contain?
+- **Incentives.** Vendors may want to retain their branded interfaces. Could atoms be optional, with the full app still available when it fits the task?
+
+These are open questions we haven't solved. They would need to be worked through before UI atoms could compose as readily as tool results do today.
+
+## Where we see this going
+
+The person choosing a hotel needs to compare options and make a booking. The interface should bring together what they need for that decision, even when it comes from several tools. For MCP App authors, composable UI atoms could let their interfaces participate in workflows they didn't have to anticipate or build themselves.
+
+MCP let agents compose tools. The next step is letting them compose the screen you act on. For now, having the host build an interface from the tools' data and actions seems the most viable starting point. Composable UI atoms remain a direction to explore, with the same goal: letting the interface follow the task across tools.
