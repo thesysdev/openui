@@ -27,7 +27,7 @@ A LibrarySpec is one JSON document.
 | `schema` | The validation schema (JSON Schema). One `$defs` entry per component. |
 | `components` | Per component: `signature` and `description` (derived from `schema`), `order` (section 2.3), and optional `aliases`, a list of old names (section 3.2). |
 | `componentGroups` | Optional. Named groups that split the component list into titled parts. |
-| `functions` | Registered functions: declarations only. |
+| `functions` | Custom functions: declarations only. |
 
 Example:
 
@@ -111,17 +111,17 @@ JSON object key order is not portable. Readers MUST use `order`, not the key ord
 
 Each entry in `components` has a `signature` and a `description`. The `signature` is derived from the schema. If they disagree, the schema wins, and a consumer SHOULD rebuild the signature from it. The format is in section 5.
 
-### 2.5 The functions registry
+### 2.5 Custom functions
 
-A library declares pure functions with `defineFunction({ name, description, params, returns, impl })`. The spec keeps name, description, `params` (a JSON Schema object), `order` (the positional order of the params, as for components), and `returns`. `impl` never serializes. Each client implements the function itself.
+A library declares pure functions with `defineFunction({ name, description, params, returns, fn })`. The spec keeps name, description, `params` (a JSON Schema object), `order` (the positional order of the params, as for components), and `returns`. `fn` never serializes. It receives one object keyed by the `params` names. Each client implements the function itself.
 
-A program calls a registered function like a built-in, with the `@` prefix and positional arguments in `order`:
+A program calls a custom function like a built-in, with the `@` prefix and positional arguments in `order`:
 
 ```
 price = TextContent(@FormatCurrency(total, "USD"))
 ```
 
-The prompt lists registered functions next to the built-ins. Lookup goes to built-ins first, then registered functions. A call to a name that is not a built-in, an action step, or a registered function evaluates to null, like an unresolved reference, and reports `unknown-function`. The statement is not dropped ([language.md](./language.md), sections 3.6 and 8.2).
+The prompt lists custom functions next to the built-ins. Lookup goes to built-ins first, then custom functions. A call to a name that is not a built-in, an action step, or a custom function evaluates to null, like an unresolved reference, and reports `unknown-function`. The statement is not dropped ([language.md](./language.md), sections 3.6 and 8.2).
 
 Fixtures: `evaluation/*-function-*`, `errors/*-unknown-function-*`
 
@@ -140,11 +140,11 @@ Fixtures: none. The spec shape is checked on the library, not by program fixture
 ### 3.1 Conformance
 
 - Component names MUST start with an uppercase letter and match the identifier rule.
-- Registered function names MUST start with an uppercase letter, like the built-ins (`@FormatCurrency`).
+- Custom function names MUST start with an uppercase letter, like the built-ins (`@FormatCurrency`).
 - Required props MUST come before optional props in `order`. A required prop that has a `default` counts as optional here, so it may be added at the end.
 - A library MUST NOT define components named `Query`, `Mutation`, or `Action`.
 - A library MUST NOT use a built-in name for a component or a function. New built-in names are reserved when added (for example `@Take`).
-- Registered functions MUST be pure. They read their arguments and return a value. They do not touch state, the network, or the clock.
+- Custom functions MUST be pure and synchronous. They read their arguments and return a value. They do not touch state, the network, or the clock.
 - `root`, when present, and every component in `componentGroups` MUST exist in `components`.
 
 Fixtures: none. These are definition-time checks on the library.
@@ -184,7 +184,7 @@ Fixtures: none in `spec/fixtures/`. A golden-file test generates the prompt for 
 | `tools` | Tool descriptors: a name string, or `{ name, description?, inputSchema, outputSchema, annotations? }`. |
 | `preamble`, `examples`, `toolExamples`, `additionalRules` | Extra text the host adds to the prompt. |
 
-The built-in function section appears when `toolCalls` or `bindings` is on. Registered functions are listed with it.
+The built-in function section appears when `toolCalls` or `bindings` is on. Custom functions get their own section, printed whenever the library has any, since they also work in plain props.
 
 The inline mode section MUST teach two rules. First, openui-lang belongs only inside fences, and a `text`-tagged fence shows code without rendering it. Second, independent UI blocks go in separate fences with prose between them.
 
@@ -205,7 +205,7 @@ What the 1.0 prompt changes:
 
 1. The syntax rules: statement shape, positional arguments, and the entry statement `root`.
 2. The component list (section 5).
-3. The built-ins and registered functions, then the tool section, when the options turn them on.
+3. The built-ins and the tool section, when the options turn them on, and the custom functions, when the library has any.
 4. The hoisting and streaming guidance.
 5. The edit mode and inline mode sections, when the options turn them on.
 

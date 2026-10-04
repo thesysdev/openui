@@ -36,7 +36,7 @@ state_name    = "$" identifier ;
 function_name = "@" identifier ;
 ```
 
-`$name` is a state variable, and the `$` is part of the name. `@name` calls a built-in or a registered function. Clients MUST NOT give `$` and `@` other meanings.
+`$name` is a state variable, and the `$` is part of the name. `@name` calls a built-in or a custom function. Clients MUST NOT give `$` and `@` other meanings.
 
 #### Keywords
 
@@ -119,7 +119,7 @@ A call is a component name or an `@` name followed by `( arguments )`.
 - Arguments are positional. `null` skips an optional argument.
 - Commas between arguments, array elements, and object entries are optional. Trailing commas are ignored.
 - The name after `@` is uppercase by convention, but either case parses.
-- Built-ins and registered functions need the `@`. `Count(x)` parses as the reference `Count`, and the arguments are lost. Only `Action([...])` works with or without `@`.
+- Built-ins and custom functions need the `@`. `Count(x)` parses as the reference `Count`, and the arguments are lost. Only `Action([...])` works with or without `@`.
 
 #### Member access and indexing
 
@@ -301,14 +301,15 @@ rows = @Each(tickets.rows, "t", Row(t.title, Button("Close", Action([@Run(close)
 
 Fixtures: `evaluation/*-each-*`
 
-### 3.6 Registered functions
+### 3.6 Custom functions
 
-A library declares extra functions in its functions registry ([prompt.md](./prompt.md), section 2.5). Programs call them with `@`. Arguments are positional, in the function's `order` array (the same rule as components).
+A library declares extra functions in its `functions` list ([prompt.md](./prompt.md), section 2.5). Programs call them with `@`. Arguments are positional, in the function's `order` array (the same rule as components).
 
-- Built-ins are looked up first. A library function with a built-in name is never called.
-- A `@Name` call that is not a built-in, action step, or registered function evaluates to null and reports `unknown-function`. The statement is kept.
-- Registered functions MUST be pure. The runtime MAY cache results and MAY call them any number of times, in any order.
-- A function that throws reports `runtime-error`.
+- Built-ins are looked up first. A library MUST NOT register a function named like a built-in, an action step, `Query`, `Mutation`, or one of its components.
+- A `@Name` call that is not a built-in, action step, or custom function evaluates to null and reports `unknown-function`. The statement is kept.
+- Custom functions MUST be pure and synchronous. The runtime MAY cache results and MAY call them any number of times, in any order.
+- Arguments are checked against `params`, and missing ones take their defaults. A call with invalid arguments, or a function that throws, reports `runtime-error`, and the prop that holds the call evaluates to null.
+- While streaming, a call runs as soon as the statement that holds it is complete. A call in the pending statement evaluates to null until that statement completes.
 
 Fixtures: `evaluation/*-function-*`, `errors/*-unknown-function-*`
 
@@ -482,7 +483,7 @@ A **fatal** error means nothing renders. Any other error leaves the rest of the 
 | `type-mismatch` | parser | Argument does not match the prop's type or enum | Schema default if any. Otherwise the optional prop or array item is removed; a required prop drops the component |
 | `excess-args` | parser | More arguments than props | Extra arguments dropped, component renders |
 | `inline-reserved` | parser | `Query` or `Mutation` in a value position | Expression evaluates to nothing |
-| `unknown-function` | parser | `@Name` is not a built-in, an action step, or a registered function | The call evaluates to null. The statement is kept |
+| `unknown-function` | parser | `@Name` is not a built-in, an action step, or a custom function | The call evaluates to null. The statement is kept |
 | `state-query` | parser | `Query` or `Mutation` bound to a `$` name | Non-fatal. The statement runs; the hint says to name it without `$` |
 | `no-root` | parser | No usable entry (section 2.2), stream complete | Non-fatal when the first statement calls the root component and renders. Fatal otherwise |
 | `parse-failed` | parser | The response has text but yields no statements | Fatal |
@@ -639,5 +640,5 @@ A step is `{ "click": "<statementId>" }`, `{ "type": ["<statementId>", "<text>"]
 
 ## Appendix C. Changelog
 
-- **2026-09-30**: 1.0. The entry is the `root` statement, or a first statement that calls the library's root component, with a real `no-root` code. Added `@Take`, registered functions, single-step actions, `===` and `!==`, any-value `@ToAssistant` context, form state read when the step runs, the `state-query` and `unknown-function` codes, and the fixture layout. Streaming must equal a batch parse, and edits merge with the parser's statement boundaries.
+- **2026-09-30**: 1.0. The entry is the `root` statement, or a first statement that calls the library's root component, with a real `no-root` code. Added `@Take`, custom functions, single-step actions, `===` and `!==`, any-value `@ToAssistant` context, form state read when the step runs, the `state-query` and `unknown-function` codes, and the fixture layout. Streaming must equal a batch parse, and edits merge with the parser's statement boundaries.
 - Earlier drafts: 0.9 community review (2026-07-22) and 1.0-beta (2026-08-05). See the git history.

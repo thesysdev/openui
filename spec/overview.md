@@ -12,11 +12,11 @@ This file explains. The other two define. Where they disagree, language.md and p
 
 ## What's new in 1.0
 
-1.0 makes OpenUI ready for production. It adds a message protocol for streaming and storing responses, rules that keep stored UIs working as a library grows, and registered functions. It also brings a batch of fixes and small conveniences.
+1.0 makes OpenUI ready for production. It adds a message protocol for streaming and storing responses, rules that keep stored UIs working as a library grows, and custom functions. It also brings a batch of fixes and small conveniences.
 
 - **Message protocol.** One format for streamed and stored responses (section 4).
 - **Production readiness.** Backward-compatibility rules for libraries (section 3), a LibrarySpec with `id` and `version`, a versioned system prompt, and conformance fixtures any client can test against.
-- **Registered functions.** A library adds its own `@` functions, like `@FormatCurrency` (section 2.11).
+- **Custom functions.** A library adds its own `@` functions, like `@FormatCurrency` (section 2.11).
 - **Small conveniences.** `@Take` for top-N lists, single-step actions, and any value as `@ToAssistant` context.
 - **Fixes.** One clear entry rule, streamed results that always match a full parse, edits that keep multi-line statements whole, and `===` read as `==`.
 
@@ -289,7 +289,7 @@ submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Reset($
 
 A mutation result has `status` (`idle`, `loading`, `success`, `error`), `data`, and `error`, so the page can show progress. Name queries without `$`: `tickets = Query(...)`. A `$` name cannot read the result, and the client warns about it. Rules in language.md, section 6.
 
-### 2.11 Registered functions
+### 2.11 Custom functions
 
 A library can add its own functions. The model calls them like built-ins:
 
@@ -297,7 +297,7 @@ A library can add its own functions. The model calls them like built-ins:
 price = TextContent(@FormatCurrency(total, "USD"))
 ```
 
-The library declares each one with `defineFunction({ name, description, params, returns, impl })`. Arguments are positional, like components. The prompt lists them next to the built-ins, and each client keeps the implementation. Functions are pure: same inputs, same output, no side effects. A call to an unknown `@` name evaluates to null and reports `unknown-function`. Rules in language.md, section 3.6, and prompt.md, section 2.5.
+The library declares each one with `defineFunction({ name, description, params, returns, fn })`. The program passes arguments by position, like components, and `fn` receives them as one object keyed by the `params` names. The prompt lists them next to the built-ins, and each client keeps the implementation. Functions are pure and synchronous: same inputs, same output, no side effects. A call to an unknown `@` name evaluates to null and reports `unknown-function`. Rules in language.md, section 3.6, and prompt.md, section 2.5.
 
 ### 2.12 Error recovery
 
