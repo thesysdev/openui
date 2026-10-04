@@ -72,10 +72,9 @@ export function isElementNode(value: unknown): value is ElementNode {
 }
 
 /**
- * Validation error codes for expression syntax and schema-related issues.
+ * Validation error codes for schema-related issues.
  */
 export type ValidationErrorCode =
-  | "invalid-expression"
   | "missing-required"
   | "null-required"
   | "unknown-component"
