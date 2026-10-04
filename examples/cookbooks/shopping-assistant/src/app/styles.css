@@ -1,0 +1,22 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--openui-background);
+}
+.shop-app {
+  height: 100dvh;
+}
+
+.thread-context {
+  font-size: 13px;
+  color: var(--openui-text-neutral-secondary);
+}
+.thread-context a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

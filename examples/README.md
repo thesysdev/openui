@@ -46,6 +46,7 @@ Each example has one primary home. Complete workflows with a companion tutorial 
 | [Conversational analytics](./cookbooks/conversational-analytics) | Formula 1 lap-time analysis with OpenUI Gateway, streamed charts, and visible tool calls                               | [Walkthrough](https://www.openui.com/cookbooks/conversational-analytics) |
 | [Document comparison](./cookbooks/document-comparison)           | Annual-report comparison with retrieval, page-cited evidence, and a customized Agent Interface                         | [Walkthrough](https://www.openui.com/cookbooks/document-comparison)      |
 | [Booking assistant](./cookbooks/booking-assistant)               | Adaptive booking forms prefilled from a request, live hotel search through an MCP server, and a summary before booking | [Walkthrough](https://www.openui.com/cookbooks/booking-assistant)        |
+| [Shopping assistant](./cookbooks/shopping-assistant)             | Product cards, variant forms, and a live cart from a Shopify store's catalog and cart MCP tools                        | [Walkthrough](https://www.openui.com/cookbooks/shopping-assistant)       |
 
 ### Design systems
 
