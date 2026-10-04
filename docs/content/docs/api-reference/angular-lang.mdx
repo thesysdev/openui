@@ -1,0 +1,263 @@
+---
+title: "@openuidev/angular-lang"
+description: API reference for Angular component libraries, streaming rendering, actions, state, and validation.
+---
+
+Use this package to define Angular components a model can render, generate prompts from their schemas, and render streamed OpenUI Lang. It provides standalone Angular components and injection helpers. You supply your component library, styling, chat interface, and model transport.
+
+For a runnable chat integration with NG-ZORRO X, see the [Angular example](https://github.com/thesysdev/openui/tree/main/examples/app-frameworks/angular).
+
+## Install
+
+```bash
+npm install @openuidev/angular-lang zod rxjs
+```
+
+Version `0.3.0` requires `@angular/core` and `@angular/common` `^22.1.5`, RxJS `^7.8.2`, and Zod `^3.25.0 || ^4.0.0`. Use the `zod/v4` API when defining schemas. Your Angular application supplies its normal compiler and build tooling; the renderer does not require `zone.js` or `@angular/platform-browser-dynamic`.
+
+## Define a library
+
+`defineComponent(config)` accepts a name, description, ordered Zod object schema, and Angular component class. It returns a `DefinedComponent` whose `.ref` can be used in another component's schema, such as `z.array(Child.ref)`.
+
+Registered components should accept the `props`, `renderNode`, and `statementId` inputs. Props may be incomplete while the model streams; use optional access and empty-array fallbacks in templates.
+
+```ts
+import { Component, Input } from "@angular/core";
+import { createLibrary, defineComponent } from "@openuidev/angular-lang";
+import { z } from "zod/v4";
+
+@Component({
+  selector: "demo-greeting",
+  template: `<p>Hello, {{ props?.name }}!</p>`,
+})
+export class GreetingComponent {
+  @Input() props: { name?: string } | null = null;
+  @Input() renderNode: ((value: unknown) => unknown) | null = null;
+  @Input() statementId: string | undefined;
+}
+
+const Greeting = defineComponent({
+  name: "Greeting",
+  description: "Greet the user by name.",
+  props: z.object({ name: z.string() }),
+  component: GreetingComponent,
+});
+
+export const library = createLibrary({
+  components: [Greeting],
+  root: "Greeting",
+});
+
+const systemPrompt = library.prompt({
+  preamble: "You are a helpful assistant.",
+  examples: ['root = Greeting("Alice")'],
+});
+const schema = library.toJSONSchema();
+```
+
+`createLibrary(definition)` accepts `components` and an optional `root`, `id`, or `componentGroups`. It returns the component registry, `prompt(options?)`, and `toJSONSchema()`. Use `PromptOptions` for prompt options such as `preamble`, `additionalRules`, and `examples`.
+
+The order of schema properties determines the positional argument order in OpenUI Lang. Generate the model prompt from the same definitions the renderer uses. For a Node backend, share the schema definitions and use `@openuidev/lang-core` to generate prompts without importing Angular component classes. The example demonstrates this split.
+
+## `Renderer`
+
+`Renderer` is an alias for `OpenUiRendererComponent`. Import it in the host component's `imports` and use the `<openui-renderer>` selector. Pass the accumulated response text as it streams.
+
+```ts
+import { Component, Input } from "@angular/core";
+import { Renderer, type ActionEvent } from "@openuidev/angular-lang";
+import { library } from "./library";
+
+@Component({
+  selector: "assistant-message",
+  imports: [Renderer],
+  template: `
+    <openui-renderer
+      [response]="response"
+      [library]="library"
+      [isStreaming]="isStreaming"
+      (action)="handleAction($event)"
+    />
+  `,
+})
+export class AssistantMessageComponent {
+  @Input() response: string | null = null;
+  @Input() isStreaming = false;
+  readonly library = library;
+
+  handleAction(event: ActionEvent): void {
+    // Forward continuation actions to your application's normal send-message path.
+    console.log(event.humanFriendlyMessage, event.formState);
+  }
+}
+```
+
+### Inputs
+
+| Input          | Type                                   | Purpose                                                             |
+| :------------- | :------------------------------------- | :------------------------------------------------------------------ |
+| `response`     | `string \| null`                       | Accumulated OpenUI Lang text; defaults to `null`                    |
+| `library`      | `Library \| null`                      | Library returned by `createLibrary`; supply it to render components |
+| `isStreaming`  | `boolean`                              | Whether the model is still producing text; defaults to `false`      |
+| `initialState` | `Record<string, unknown> \| undefined` | State for initial hydration                                         |
+| `toolProvider` | `OpenUiToolProvider`                   | Async function map or MCP-like client; defaults to `null`           |
+| `queryLoader`  | `Type<unknown> \| null`                | Angular component displayed while a query is loading                |
+
+### Outputs
+
+| Output          | Payload                   | Purpose                                              |
+| :-------------- | :------------------------ | :--------------------------------------------------- |
+| `(action)`      | `ActionEvent`             | Continuation or URL action dispatched by a component |
+| `(stateUpdate)` | `Record<string, unknown>` | Updated store snapshot                               |
+| `(parseResult)` | `ParseResult \| null`     | Current parse result                                 |
+| `(error)`       | `OpenUIError[]`           | Structured parser, tool, and render errors           |
+
+Use Angular event bindings such as `(action)`, not React-style callback attributes. The exported `RendererProps` / `OpenUiRendererProps` interface also describes callback names for host integrations; the Angular component itself exposes the outputs above.
+
+The renderer preserves matching component instances as their props change during streaming. A component render failure emits a `render-error` and preserves the last successfully rendered subtree.
+
+## Nested components with `RenderNode`
+
+`RenderNode` is an alias for `OpenUiRenderNodeComponent`, with selector `<openui-render-node>`. It renders values, arrays, and parsed element nodes. Inputs are `value`, `library`, `context`, and optional `formName`.
+
+Use the parent renderer's context when rendering nested children:
+
+```ts
+import { Component, Input } from "@angular/core";
+import { RenderNode, injectOpenUiContext } from "@openuidev/angular-lang";
+
+@Component({
+  selector: "demo-container",
+  imports: [RenderNode],
+  template: `
+    <section>
+      <openui-render-node
+        [value]="openUi.renderNode(props?.children)"
+        [library]="openUi.library"
+        [context]="openUi"
+      />
+    </section>
+  `,
+})
+export class ContainerComponent {
+  @Input() props: { children?: unknown[] } | null = null;
+  @Input() renderNode: ((value: unknown) => unknown) | null = null;
+  @Input() statementId: string | undefined;
+  readonly openUi = injectOpenUiContext();
+}
+```
+
+Register the container with `defineComponent` and describe its allowed children using their `.ref` schemas. Passing `formName` to `RenderNode` provides that name to its descendant components through `OPENUI_FORM_NAME`.
+
+## Context and signals
+
+Call injection helpers in a component constructor or field initializer inside the renderer subtree. They rely on `OPENUI_CONTEXT`.
+
+| Helper                      | Returns                           |
+| :-------------------------- | :-------------------------------- |
+| `injectOpenUiContext()`     | Full `OpenUiContextValue`         |
+| `injectRenderNode()`        | `(value: unknown) => unknown`     |
+| `injectTriggerAction()`     | Runtime `triggerAction` function  |
+| `injectIsStreaming()`       | `Signal<boolean>`                 |
+| `injectIsQueryLoading()`    | `Signal<boolean>`                 |
+| `injectGetFieldValue()`     | Runtime `getFieldValue` function  |
+| `injectSetFieldValue()`     | Runtime `setFieldValue` function  |
+| `injectFormName()`          | Current form name, or `undefined` |
+| `injectStore()`             | Underlying runtime store          |
+| `injectEvaluationContext()` | Runtime evaluation context        |
+
+Capture the signals once, then invoke them in templates or event handlers:
+
+```ts
+readonly isStreaming = injectIsStreaming();
+readonly isQueryLoading = injectIsQueryLoading();
+// Template: <button [disabled]="isStreaming() || isQueryLoading()">Submit</button>
+```
+
+The full context's `isStreaming` and `isQueryLoading` properties are reactive boolean getters. `getFieldValue(formName, name)` tracks store changes when read from a template or `computed()`. Do not save only its initial value when the UI needs to update.
+
+### Actions
+
+```ts
+triggerAction(
+  userMessage: string,
+  formName?: string,
+  action?: ActionPlan | ActionConfig,
+): void | Promise<void>;
+```
+
+Calling `triggerAction("Explain the chart")` emits a `BuiltinActionType.ContinueConversation` action. Handle `(action)` in the host to send a new model turn. Preserve `humanFriendlyMessage`, relevant `params.context`, and `formState` when serializing the turn. The renderer does not call an LLM itself.
+
+`ActionEvent` includes `type`, `params`, `humanFriendlyMessage`, and optional `formState` and `formName`. `BuiltinActionType.OpenUrl` is a separate action for the host to handle. `ActionPlan` steps can also update/reset state or run queries and mutations; those steps execute in the runtime.
+
+### Field state and defaults
+
+The context provides these functions:
+
+```ts
+getFieldValue(formName: string | undefined, name: string): unknown;
+
+setFieldValue(
+  formName: string | undefined,
+  componentType: string | undefined,
+  name: string,
+  value: unknown,
+  shouldTriggerSaveCallback?: boolean,
+): void;
+```
+
+`setDefaultValue(options, context?)` persists a default when `existingValue` is `undefined`, `defaultValue` is defined, and `isStreaming` is false. `SetDefaultValueOptions` accepts those three values plus `name`, optional `formName`, `componentType`, and `shouldTriggerSaveCallback` (defaults to `false`).
+
+In lifecycle hooks such as `ngOnChanges`, pass an already-injected context: `setDefaultValue(options, this.openUi)`. Lifecycle hooks are not Angular injection contexts. Pass the current streaming state explicitly when applying defaults to streamed fields.
+
+## Form validation
+
+Validation helpers are opt-in for your custom form components:
+
+| Export                               | Purpose                                                                |
+| :----------------------------------- | :--------------------------------------------------------------------- |
+| `createFormValidation()`             | Create a `FormValidationContextValue`                                  |
+| `provideFormValidation(value)`       | Return Angular providers sharing a validation context with descendants |
+| `injectFormValidation()`             | Inject the closest context, or `null` when none was provided           |
+| `OPENUI_FORM_VALIDATION`             | Injection token for the validation context                             |
+| `parseRules`, `parseStructuredRules` | Convert validation declarations into parsed rules                      |
+| `validate`, `builtInValidators`      | Run validation or access built-in validators                           |
+
+The context exposes an `errors` writable signal, `getFieldError`, `validateField`, `registerField`, `unregisterField`, `validateForm`, and `clearFieldError`. Register fields with `registerField(name, rules, getValue)`, unregister them when destroyed, and call `validateForm()` before triggering the submit action. A validation context reports errors; your components render those messages and enforce submission behavior.
+
+## Tool providers
+
+`OpenUiToolProvider` is a map of async functions, an `McpClientLike` object, or `null`. A function-map entry receives an argument object and returns a promise. MCP-like clients expose `callTool({ name, arguments })`.
+
+```ts
+toolProvider = {
+  async get_status(args: Record<string, unknown>) {
+    const response = await fetch(`/api/status?id=${encodeURIComponent(String(args["id"]))}`);
+    if (!response.ok) throw new Error("Could not load status");
+    return response.json();
+  },
+};
+```
+
+Pass it through `[toolProvider]`. The runtime executes `Query()` calls and mutations invoked by action steps. Keep secrets and privileged operations in your server endpoints. Use `[queryLoader]` and `injectIsQueryLoading()` to provide loading feedback.
+
+## Parser and errors
+
+Parser and prompt utilities are re-exported from `@openuidev/lang-core`. A parser takes the library's JSON schema and optional root name:
+
+```ts
+import { createParser } from "@openuidev/angular-lang";
+
+const parser = createParser(library.toJSONSchema(), "Greeting");
+const result = parser.parse('root = Greeting("Alice")');
+
+console.log(result.root, result.meta.errors, result.meta.unresolved);
+```
+
+Other exports include `createStreamingParser`, `parse`, `mergeStatements`, `generatePrompt`, and `generateSystemPrompt`. In server-only code, import these directly from `@openuidev/lang-core`.
+
+Inspect `ParseResult.meta.errors` and the renderer's `(error)` output. `OpenUIError.code` distinguishes `missing-required`, `null-required`, `unknown-component`, `excess-args`, `tool-not-found`, `tool-error`, `mcp-error`, and `render-error`. Check unresolved references and the presence of a root before treating a complete model response as valid.
+
+## Types
+
+The package exports `Library`, `LibraryDefinition`, `DefinedComponent`, `ComponentRenderer` (an Angular `Type<unknown>`), `ComponentRenderProps`, `ComponentGroup`, `PromptOptions`, `RendererProps`, `OpenUiRendererProps`, `OpenUiToolProvider`, `OpenUiContextValue`, `SetDefaultValueOptions`, `FormValidationContextValue`, and the shared Lang Core action, parser, schema, and error types.

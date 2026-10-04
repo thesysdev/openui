@@ -1,6 +1,7 @@
 import {
   EventType,
   agUIAdapter,
+  fetchLLM,
   type ChatLLM,
   type ChatStorage,
   type Message,
@@ -55,17 +56,18 @@ export function createGrokBuildChatProps(options: CreateGrokBuildChatOptions = {
 } {
   const storage = options.storage ?? getClientStorage();
   const store = options.store ?? createThreadStore(storage);
+  const llm = fetchLLM({
+    url: "/api/chat",
+    streamAdapter: agUIAdapter(),
+  });
+
+  // Wrap send so we can persist the user turn before the request and tee the
+  // AG-UI stream for the assistant transcript. fetchLLM still owns the POST.
   const send: ChatLLM["send"] = async ({ messages, threadId, signal }): Promise<Response> => {
     options.onThreadChange?.(threadId);
     store.saveMessages(threadId, messages);
 
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages, threadId }),
-      signal,
-    });
-
+    const response = await llm.send({ messages, threadId, signal });
     if (!response.ok || !response.body) return response;
     const [clientBody, persistenceBody] = response.body.tee();
     void persistAssistantFromStream(persistenceBody, threadId, messages, store).catch(
@@ -80,7 +82,7 @@ export function createGrokBuildChatProps(options: CreateGrokBuildChatOptions = {
   };
 
   return {
-    llm: { send, streamProtocol: agUIAdapter() },
+    llm: { send, streamProtocol: llm.streamProtocol },
     storage: {
       thread: {
         listThreads: () => store.fetchThreadList(),

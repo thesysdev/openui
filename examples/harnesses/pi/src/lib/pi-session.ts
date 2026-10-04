@@ -14,8 +14,17 @@
  * requires, `import.meta`, and on-disk prompt/skill/theme reads).
  */
 import type { AgentSession } from "@earendil-works/pi-coding-agent";
+import { join } from "node:path";
+import { cloudInstructions } from "./cloud-prompt";
 
 type PiSdk = typeof import("@earendil-works/pi-coding-agent");
+
+const DEFAULT_MODEL = "google/gemini-3.6-flash-free";
+const MODELS_PATH = join(process.cwd(), "src/lib/openui-cloud-models.json");
+const OPENUI_INSTRUCTIONS = `You are a coding agent connected to OpenUI. Use reasoning and tools normally before answering.
+Do not emit OpenUI Lang in reasoning, progress messages, tool arguments, or tool results.
+After all required work is complete, your final assistant response must consist entirely of valid openui-lang code with no markdown or explanatory prose.
+Before sending the final response, verify that root is a Stack and every referenced identifier is defined.`;
 
 let sdkPromise: Promise<PiSdk> | undefined;
 function loadSdk(): Promise<PiSdk> {
@@ -41,8 +50,6 @@ export interface PiSessionEntry {
 interface GetOrCreateOptions {
   /** Workspace the coding agent operates in. */
   cwd: string;
-  /** OpenUI Lang system prompt (generated client-side from the component library). */
-  systemPrompt?: string;
 }
 
 const IDLE_TTL_MS = 30 * 60 * 1000; // evict sessions idle for 30 min
@@ -96,26 +103,43 @@ function toolOptions(): { tools?: string[] } {
   return {};
 }
 
-async function createSession(
-  cwd: string,
-  systemPrompt: string | undefined,
-): Promise<PiSessionEntry> {
-  const { createAgentSession, DefaultResourceLoader, getAgentDir, SettingsManager } =
-    await loadSdk();
+async function createSession(cwd: string): Promise<PiSessionEntry> {
+  const apiKey = process.env.THESYS_API_KEY?.trim();
+  if (!apiKey) {
+    throw new Error("Missing required env var: THESYS_API_KEY");
+  }
+
+  const {
+    AuthStorage,
+    createAgentSession,
+    DefaultResourceLoader,
+    getAgentDir,
+    ModelRegistry,
+    SettingsManager,
+  } = await loadSdk();
 
   evictOldestIfFull();
 
   const agentDir = getAgentDir();
   const settingsManager = SettingsManager.create(cwd, agentDir);
+  const authStorage = AuthStorage.inMemory();
+  authStorage.setRuntimeApiKey("openui-cloud", apiKey);
+  const modelRegistry = ModelRegistry.create(authStorage, MODELS_PATH);
+  const modelId = process.env.OPENUI_MODEL?.trim() || DEFAULT_MODEL;
+  const model = modelRegistry.find("openui-cloud", modelId);
+  if (!model) {
+    throw new Error(
+      `OpenUI Cloud model "${modelId}" is not in src/lib/openui-cloud-models.json`,
+    );
+  }
 
-  // Inject the OpenUI Lang instructions via appendSystemPrompt so the Pi model
-  // emits generative UI markup. createAgentSession only auto-reloads the loader
-  // it creates itself, so a custom loader must be reloaded here.
+  // Extra coding-agent rules are preserved as customer instructions after the
+  // Cloud config block built from the generated openuiLibrary spec.
   const resourceLoader = new DefaultResourceLoader({
     cwd,
     agentDir,
     settingsManager,
-    appendSystemPrompt: systemPrompt ? [systemPrompt] : [],
+    appendSystemPrompt: [cloudInstructions(OPENUI_INSTRUCTIONS)],
   });
   await resourceLoader.reload();
 
@@ -124,6 +148,9 @@ async function createSession(
     agentDir,
     settingsManager,
     resourceLoader,
+    authStorage,
+    modelRegistry,
+    model,
     ...toolOptions(),
   });
 
@@ -132,7 +159,7 @@ async function createSession(
 
 export async function getOrCreateSession(
   conversationId: string,
-  { cwd, systemPrompt }: GetOrCreateOptions,
+  { cwd }: GetOrCreateOptions,
 ): Promise<PiSessionEntry> {
   const now = Date.now();
   evictIdle(now);
@@ -148,7 +175,7 @@ export async function getOrCreateSession(
   const inFlight = CREATING.get(conversationId);
   if (inFlight) return inFlight;
 
-  const creation = createSession(cwd, systemPrompt)
+  const creation = createSession(cwd)
     .then((entry) => {
       SESSIONS.set(conversationId, entry);
       return entry;

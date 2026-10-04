@@ -1,5 +1,8 @@
 import spawn from "cross-spawn";
 
+import { QUIET_COMMAND_CAPTURE_LIMIT } from "./command-output";
+import { withSpinner } from "./spinner";
+
 const DIAGNOSTIC_TAIL_LIMIT = 16 * 1024;
 
 export type CommandResult = {
@@ -10,8 +13,25 @@ export type CommandResult = {
   diagnosticTail: string;
 };
 
+/** Quiet npm/npx progress when we spawn a nested package-manager CLI. */
+export function mutedNpmEnv(base: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  return {
+    ...base,
+    npm_config_loglevel: "error",
+    NPM_CONFIG_LOGLEVEL: "error",
+  };
+}
+
 export type RunCommandOptions = {
   env?: NodeJS.ProcessEnv;
+  /** When false, capture stdout/stderr without writing them to the parent. Default true. */
+  echo?: boolean;
+  /** Default inherit so interactive CLIs can prompt. Use ignore for login probes. */
+  stdin?: "inherit" | "ignore";
+  /** Inherit stdout/stderr so the child sees a TTY (needed for `vercel login`). */
+  inheritOutput?: boolean;
+  /** Max bytes retained in `diagnosticTail` when output is piped. Default 16KiB. */
+  captureLimit?: number;
 };
 
 /**
@@ -31,10 +51,17 @@ export function runCommand(
 ): Promise<CommandResult> {
   return new Promise((resolve) => {
     const startedAt = Date.now();
+    const echo = options.echo !== false;
+    const inheritOutput = Boolean(options.inheritOutput);
+    const captureLimit = options.captureLimit ?? DIAGNOSTIC_TAIL_LIMIT;
     const child = spawn(command, args, {
       cwd,
       env: options.env,
-      stdio: ["inherit", "pipe", "pipe"],
+      stdio: [
+        options.stdin === "ignore" ? "ignore" : "inherit",
+        inheritOutput ? "inherit" : "pipe",
+        inheritOutput ? "inherit" : "pipe",
+      ],
     });
     let diagnosticTail = "";
     let settled = false;
@@ -42,16 +69,18 @@ export function runCommand(
     let forceKillTimer: NodeJS.Timeout | undefined;
 
     const observe = (chunk: Buffer) => {
-      diagnosticTail = (diagnosticTail + chunk.toString("utf8")).slice(-DIAGNOSTIC_TAIL_LIMIT);
+      diagnosticTail = (diagnosticTail + chunk.toString("utf8")).slice(-captureLimit);
     };
-    child.stdout?.on("data", (chunk: Buffer) => {
-      process.stdout.write(chunk);
-      observe(chunk);
-    });
-    child.stderr?.on("data", (chunk: Buffer) => {
-      process.stderr.write(chunk);
-      observe(chunk);
-    });
+    if (!inheritOutput) {
+      child.stdout?.on("data", (chunk: Buffer) => {
+        if (echo) process.stdout.write(chunk);
+        observe(chunk);
+      });
+      child.stderr?.on("data", (chunk: Buffer) => {
+        if (echo) process.stderr.write(chunk);
+        observe(chunk);
+      });
+    }
 
     const finish = (result: Omit<CommandResult, "diagnosticTail" | "durationMs">) => {
       if (settled) return;
@@ -86,4 +115,25 @@ export function runCommand(
     child.once("error", (error) => finish({ status: null, signal: forwardedSignal, error }));
     child.once("close", (status, signal) => finish({ status, signal: forwardedSignal ?? signal }));
   });
+}
+
+export type QuietCommandOptions = {
+  command: string;
+  args: string[];
+  cwd: string;
+  label: string;
+  env?: NodeJS.ProcessEnv;
+  captureLimit?: number;
+};
+
+/** Run a command with output captured and a spinner in the terminal. */
+export async function runQuietCommand(opts: QuietCommandOptions): Promise<CommandResult> {
+  return withSpinner(opts.label, () =>
+    runCommand(opts.command, opts.args, opts.cwd, {
+      echo: false,
+      stdin: "ignore",
+      captureLimit: opts.captureLimit ?? QUIET_COMMAND_CAPTURE_LIMIT,
+      env: opts.env,
+    }),
+  );
 }

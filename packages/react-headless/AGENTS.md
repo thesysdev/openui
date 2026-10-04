@@ -30,6 +30,8 @@ Build order: **`react-headless`** → `react-lang` → `react-ui`. This package 
 | `src/stream/adapters/openai-completions.ts`                 | Adapter for OpenAI Chat Completions streaming (`ChatCompletionChunk`).                                                                      |
 | `src/stream/adapters/openai-responses.ts`                   | Adapter for OpenAI Responses API streaming (`ResponseStreamEvent`).                                                                         |
 | `src/stream/adapters/openai-readable-stream.ts`             | Adapter for OpenAI SDK's `Stream.toReadableStream()` — parses NDJSON (no SSE prefix) `ChatCompletionChunk` objects.                         |
+| `src/stream/adapters/langgraph.ts`                          | Adapter for LangGraph named-event SSE (`event: messages` blocks); `onInterrupt` option.                                                      |
+| `src/stream/adapters/eve.ts`                                | Adapter for Vercel Eve NDJSON session streams; `onEvent` option, exports `EVE_INPUT_REQUESTED_EVENT`.                                        |
 | `src/stream/adapters/openai-message-format.ts`              | `MessageFormat` for OpenAI Completions (`ChatCompletionMessageParam[]` ↔ AG-UI).                                                           |
 | `src/stream/adapters/openai-conversation-message-format.ts` | `MessageFormat` for OpenAI Responses/Conversations API (`ResponseInputItem[]` ↔ AG-UI).                                                    |
 | `src/types/`                                                | Shared types: `message.ts` (re-exports from `@ag-ui/core`), `messageFormat.ts`, `stream.ts`.                                                |

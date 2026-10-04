@@ -28,6 +28,7 @@ import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { CloudCtaSection } from "../cloud/CloudCtaSection";
 import { BevelButton } from "../components/Button/BevelButton";
+import { InsightBar } from "../components/InsightBar/InsightBar";
 import {
   FeatureGridSection,
   type GridFeature,
@@ -115,9 +116,7 @@ function Section({
           <p>{description}</p>
         </div>
       </div>
-      <div className={s.insightBar}>
-        <p>{insight}</p>
-      </div>
+      <InsightBar>{insight}</InsightBar>
       <div className={s.sectionBody}>{children}</div>
     </section>
   );
@@ -348,13 +347,13 @@ export function BenchmarksContent() {
         </div>
 
         <CloudCtaSection
-          title="Improve your Generative UI reliability with OpenUI Cloud."
+          title="Improve your Generative UI reliability with OpenUI Gateway."
           primary={{
-            label: "Get OpenUI Cloud",
+            label: "Get OpenUI Gateway",
             href: "https://console.thesys.dev/keys",
             external: true,
           }}
-          secondary={{ label: "Learn more", href: "/docs/openui-cloud" }}
+          secondary={{ label: "Learn more", href: "/cloud/gateway" }}
         />
       </VizSkin>
     </main>

@@ -4,6 +4,8 @@
   "exclude": [
     "vitest.config.ts",
     "src/**/__tests__/**",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
     "src/**/stories/**",
     "src/__test-helpers/**",
     "src/scripts/**",

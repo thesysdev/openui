@@ -6,10 +6,15 @@
     "react-lang",
     "react-headless",
     "react-ui",
-    "react-email",
-    "cli",
-    "devtools",
+    "assistant-ui",
     "langchain",
-    "assistant-ui"
+    "server",
+    "react-email",
+    "devtools",
+    "cli",
+    "angular-lang",
+    "vue-lang",
+    "svelte-lang",
+    "a2ui"
   ]
 }

@@ -1,0 +1,134 @@
+---
+title: Getting Started
+description: Create a new OpenUI application or add OpenUI to an existing agent.
+---
+
+import { OpenUIFlowDiagram } from "@/components/openui-flow-diagram";
+
+## Create a new app
+
+You need Node.js 20 or later. Run:
+
+```bash
+npx @openuidev/cli@latest create
+```
+
+The interactive setup asks how to connect to a model and which agent framework to use, then creates the project, installs its dependencies, and can start the development server for you. See the [CLI reference](/docs/api-reference/cli) for templates, framework options, and deploying a preview.
+
+## End-to-end integration
+
+Add OpenUI to an existing application: define the components the model can use, call a model with a system prompt generated from them, and render the response.
+
+<OpenUIFlowDiagram />
+
+### 1. Create a component library
+
+Create a library containing the components the model can use:
+
+```tsx title="src/lib/openui.tsx"
+import { createLibrary } from "@openuidev/react-lang";
+import { Chart, Metric, Stack } from "./components";
+
+export const library = createLibrary({
+  root: "Stack",
+  components: [Stack, Metric, Chart],
+});
+```
+
+Learn more about defining components in the [OpenUI Lang documentation](/docs/openui-lang/defining-components).
+
+### 2. Export the library specification
+
+Use the OpenUI CLI to serialize the component library for your server:
+
+```bash
+npx @openuidev/cli@latest generate src/lib/openui.tsx --spec --out src/lib/openui.spec.json
+```
+
+The generated specification describes the available components and their properties. Regenerate it whenever the component library changes.
+
+### 3. Call a model
+
+Generate the system prompt from the library specification and send it with the user's message.
+
+```ts title="server.ts" tab="OpenUI Gateway (recommended)" tab-group="call-model"
+import OpenAI from "openai";
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import library from "./lib/openui.spec.json";
+
+const gateway = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+
+const completion = await gateway.chat.completions.create({
+  model: "openai/gpt-5",
+  messages: [
+    { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
+    { role: "user", content: "Compare quarterly revenue by region." },
+  ],
+  stream: true,
+});
+```
+
+```ts title="server.ts" tab="OpenAI" tab-group="call-model"
+import OpenAI from "openai";
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import { createAutofix } from "@openuidev/server/openai";
+import library from "./lib/openui.spec.json";
+
+const model = new OpenAI();
+const autofix = createAutofix({ apiKey: process.env.THESYS_API_KEY!, library });
+
+const messages = [{ role: "user" as const, content: "Compare quarterly revenue by region." }];
+
+const source = await model.chat.completions.create({
+  model: "gpt-5",
+  messages: [{ role: "system", content: generateSystemPrompt({ library }) }, ...messages],
+  stream: true,
+});
+
+// Autofix adds the library itself, so pass only the conversation.
+// Return this from your API route as a server-sent events response.
+const response = autofix.completions.stream({ stream: source, messages }).toResponse();
+```
+
+Both examples use a `THESYS_API_KEY`. Run the command below to sign in with Thesys, create a key, and write it to your `.env` file. Keep the key on the server and never expose it to browser code.
+
+```bash
+npx @openuidev/cli@latest generate-api-key
+```
+
+The OpenAI example uses [Autofix](/docs/autofix) to repair invalid OpenUI Lang against your library before it reaches your application. Gateway does this for you as the response streams.
+
+You can also use Anthropic, Gemini, or any other LLM provider. Send the generated system prompt with your provider's SDK.
+
+### 4. Render the UI
+
+Pass the accumulated OpenUI Lang text to `<Renderer />`. Set `isStreaming` until the server stream closes.
+
+```tsx title="src/components/generated-interface.tsx"
+"use client";
+
+import { Renderer } from "@openuidev/react-lang";
+import { library } from "@/lib/openui";
+
+export function GeneratedInterface({ response, isStreaming }) {
+  return (
+    <Renderer
+      response={response}
+      library={library}
+      isStreaming={isStreaming}
+      onAction={(action) => console.log(action)}
+    />
+  );
+}
+```
+
+The renderer displays the interface progressively as the response arrives.
+
+## Next steps
+
+- **Add a chat interface:** use [Agent Interface](/docs/agent/getting-started/introduction) for a complete chat UI, add OpenUI to [assistant-ui or CopilotKit](/docs/build-agents), or render generated UI in a [custom chat UI](/docs/build-agents/custom-chat-ui).
+- **Go deeper on OpenUI Lang:** learn about [defining components](/docs/openui-lang/defining-components), [system prompts](/docs/openui-lang/system-prompts), and the [renderer](/docs/openui-lang/renderer).
+- **Run it in production:** read [OpenUI in production](/docs/production), set up [Reliability Monitoring](/docs/reliability), and [deploy your app](/docs/deploy).

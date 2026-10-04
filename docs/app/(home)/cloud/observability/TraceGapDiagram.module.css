@@ -1,0 +1,212 @@
+/* One card split down the middle, rather than two cards with a gap between
+   them: the two sides are halves of a single argument, and a shared edge says
+   so where two separate cards said they were separate things. Plain text
+   inside, since the contrast between the halves is the whole diagram. */
+.diagram {
+  /* Light: a white card lifted off the page by an edge and a shadow. Dark
+     inverts to a tint of the ground with neither, since a shadow on black shows
+     nothing and an edge there only fences the card in. */
+  --trace-surface: var(--openui-foreground);
+  --trace-stroke: rgba(10, 10, 10, 0.08);
+  --trace-shadow: var(--home-shadow-card);
+  /* The split between the halves. Lighter than the row rules inside each half:
+     it separates two columns that already read as separate, so it does not need
+     to announce itself. */
+  --trace-divider: color-mix(in srgb, var(--openui-text-neutral-primary) 5%, transparent);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  /* The halves square off against the rounded corners, so the card clips them. */
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--trace-stroke);
+  border-radius: 20px;
+  background: var(--trace-surface);
+  box-shadow: var(--trace-shadow);
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--home-font-text);
+}
+
+[data-theme="dark"] .diagram {
+  --trace-surface: rgba(255, 255, 255, 0.04);
+  --trace-stroke: transparent;
+  --trace-shadow: none;
+}
+
+.half {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  /* Even on all four sides. The last row carries its own 14px below the text,
+     so the bottom reads a little deeper than the top, which suits a block that
+     ends on a list. */
+  padding: 32px;
+}
+
+/* The split. Declared on the second half rather than as a track of its own, so
+   it cannot fall out of step with the grid. */
+.half + .half {
+  border-left: 1px solid var(--trace-divider);
+}
+
+/* Inherits the diagram's text face rather than setting mono of its own, so the
+   label reads as the same voice as the lines under it. */
+.eyebrow {
+  margin: 0 0 1rem;
+  color: var(--openui-text-neutral-secondary);
+  font-size: var(--home-label-size);
+  font-weight: var(--home-label-weight);
+  line-height: 1;
+}
+
+.heading {
+  /* Enough that the rule below reads as the top of the list rather than an
+     underline on the gloss line, and the eyebrow above reads as a label on the
+     half rather than a third line of the title. */
+  margin: 0 0 1.75rem;
+  font-family: var(--home-font-display);
+  /* Set locally rather than from --home-heading-*, which is 22px/500 here and
+     drops to 16px/400 on a phone. This heading is the diagram's own title, not
+     a card heading inside a list of them, so it carries the larger size at the
+     display face's usual weight. */
+  font-size: clamp(1.125rem, 2.2vw, 1.625rem);
+  font-weight: 500;
+  line-height: var(--home-heading-leading);
+  letter-spacing: var(--home-heading-tracking);
+}
+
+/* The heading's second line, set like the page's own title/subtitle pair: same
+   size and weight, dropped to the secondary colour. */
+.headingGloss {
+  display: block;
+  color: var(--openui-text-neutral-secondary);
+}
+
+/* Equal rows over whatever height the taller half settles at, so a line in one
+   stays level with the line it answers in the other. The halves are grid items
+   on a stretch-aligned row, so they share that height already. */
+.list {
+  display: grid;
+  grid-template-rows: repeat(4, minmax(min-content, 1fr));
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding-block: 14px;
+  /* A gradient rather than a border, so the rule can fade out at both ends.
+     Painted at the top of the row, 1px tall, full width. */
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    var(--home-hairline) 8%,
+    var(--home-hairline) 92%,
+    transparent
+  );
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: 100% 1px;
+  /* The same tokens the section lead uses (gateway/sections.module.css .lead),
+     so the rows read at the size of the paragraph that introduces them and move
+     with it if that scale is ever retuned. */
+  font-size: var(--home-lead-size);
+  line-height: var(--home-lead-leading);
+}
+
+/* Both lists are set identically. The marks carry the contrast, so weighting
+   one side as well would say the same thing twice. */
+.mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  /* One shape for both sides; only the colour separates them. */
+  border-radius: 7px;
+  color: #fff;
+}
+
+.markPass {
+  background: #049156;
+}
+
+.markFail {
+  background: #b91c1c;
+}
+
+@media (max-width: 1023px) {
+  .half {
+    padding: 28px 24px;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Stacked: two halves of wrapping phrases side by side on a phone leaves each
+     line three or four words deep. The pairing gives way to legibility here,
+     which is why each half keeps a heading that stands on its own. */
+  .diagram {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The split turns with the layout. */
+  .half + .half {
+    border-top: 1px solid var(--trace-divider);
+    border-left: none;
+  }
+
+  /* Stacked, the card runs to ~830px on a phone, which is more than a screen.
+     The height is in the padding rather than the type: each row is 24px of text
+     inside 32px of padding, so tightening the spacing buys far more than
+     shrinking the words would, and costs nothing in legibility. */
+  .half {
+    padding: 16px;
+  }
+
+  .eyebrow {
+    margin-bottom: 10px;
+  }
+
+  .heading {
+    margin-bottom: 16px;
+    font-size: 1.0625rem;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .list li {
+    align-items: flex-start;
+    padding-block: 10px;
+    /* A step under --home-lead-size, which is 1rem here. The rows are short
+       statements rather than running prose, so they take the smaller measure
+       without becoming harder to scan. */
+    font-size: 0.9375rem;
+  }
+
+  /* Smaller tiles to match the tighter rows. Wrapping lines also push the mark
+     off the first one once it is centred, so it sits on the first line's
+     optical centre instead. */
+  .mark {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    border-radius: 6px;
+  }
+
+  /* The glyph's size prop is set once in the component, so the breakpoint
+     resizes the rendered SVG rather than the prop. */
+  .mark svg {
+    width: 11px;
+    height: 11px;
+  }
+}

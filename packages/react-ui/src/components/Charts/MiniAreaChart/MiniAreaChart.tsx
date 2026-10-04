@@ -1,38 +1,27 @@
-import clsx from "clsx";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Area, AreaChart as RechartsAreaChart, XAxis } from "recharts";
-import { usePrintContext } from "../../../context/PrintContext";
-import { AreaChartVariant } from "../AreaChart/types";
-import { ChartConfig, ChartContainer } from "../Charts";
+import { area, line } from "d3-shape";
+import { useId } from "react";
+import { useEffectiveAnimation } from "../hooks/core/useEffectiveAnimation";
+import { MiniChartFrame } from "../shared/mini/MiniChartFrame";
 import {
-  DATA_KEY,
-  getRecentDataThatFits,
-  transformDataForChart,
-} from "../utils/AreaAndLine/MiniAreaAndLineUtils";
-import { getLineType } from "../utils/AreaAndLine/common";
-import { useChartPalette, type PaletteName } from "../utils/PalletUtils";
-import { get2dChartConfig } from "../utils/dataUtils";
-import { MiniAreaChartData } from "./types";
+  MINI_POINT_RADIUS,
+  type MiniChartPoint,
+  miniCurves,
+  miniLineGeometry,
+} from "../shared/mini/miniChartUtils";
+import { CHART_CLASS_PREFIX } from "../utils/constants";
+import { useChartPalette } from "../utils/paletteUtils";
+import type { MiniAreaChartProps } from "./types";
 
-export interface MiniAreaChartProps {
-  data: MiniAreaChartData;
-  theme?: PaletteName;
-  customPalette?: string[];
-  variant?: AreaChartVariant;
-  opacity?: number;
-  isAnimationActive?: boolean;
-  onAreaClick?: (data: any) => void;
-  size?: number | string;
-  className?: string;
-  areaColor?: string;
-  useGradient?: boolean;
-}
+const CLASS = `${CHART_CLASS_PREFIX}-mini-area-chart`;
 
-export const MiniAreaChart = ({
+/**
+ * A compact, axis-free area sparkline: the most recent values that fit, one series, a gradient fill under a 1.5px
+ * line.
+ */
+export function MiniAreaChart({
   data,
-  theme = "ocean",
   customPalette,
-  variant: areaChartVariant = "natural",
+  variant = "natural",
   opacity = 0.5,
   isAnimationActive = false,
   onAreaClick,
@@ -40,108 +29,71 @@ export const MiniAreaChart = ({
   className,
   areaColor,
   useGradient = true,
-}: MiniAreaChartProps) => {
-  const printContext = usePrintContext();
-  isAnimationActive = printContext ? false : isAnimationActive;
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState<number>(0);
-
-  const variant = getLineType(areaChartVariant);
-
-  useEffect(() => {
-    if (!containerRef.current) {
-      return () => {};
-    }
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      // there is only one entry in the entries array because we are only observing the chart container
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-
-    resizeObserver.observe(containerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
-  // Get the most recent data that fits in the container
-  const filteredData = useMemo(() => {
-    return getRecentDataThatFits(data, containerWidth);
-  }, [data, containerWidth]);
-
-  // Transform the filtered data to a consistent format for recharts
-  const chartData = useMemo(() => {
-    return transformDataForChart(filteredData);
-  }, [filteredData]);
-
-  const colors = useChartPalette({
-    chartThemeName: theme,
-    customPalette: customPalette || (areaColor ? [areaColor] : undefined),
+}: MiniAreaChartProps) {
+  const animate = useEffectiveAnimation(isAnimationActive);
+  const [color = ""] = useChartPalette({
+    customPalette: customPalette ?? (areaColor ? [areaColor] : undefined),
     themePaletteName: "areaChartPalette",
     dataLength: 1,
   });
-
-  const transformedKeys = useMemo(() => ({ [DATA_KEY]: DATA_KEY }), []);
-
-  const chartConfig: ChartConfig = useMemo(() => {
-    return get2dChartConfig([DATA_KEY], colors, transformedKeys);
-  }, [colors, transformedKeys]);
-
-  const id = useId();
-
-  // Generate unique gradient ID to avoid conflicts when multiple charts are on the same page
-  const gradientId = useMemo(() => `miniAreaGradient-${id}`, [id]);
-  const color = `var(--color-${DATA_KEY})`;
+  const gradientId = `${CLASS}-gradient-${useId().replace(/:/g, "")}`;
+  const curve = miniCurves[variant] ?? miniCurves.natural;
+  const animated = animate ? ` ${CHART_CLASS_PREFIX}-mini-chart-mark--animated` : "";
 
   return (
-    <ChartContainer
-      config={chartConfig}
-      style={{
-        width: size,
-        height: size,
-        aspectRatio: 1 / 1,
-        minHeight: 100,
-        minWidth: 100,
+    <MiniChartFrame chart="area" size={size} className={className} onClick={onAreaClick}>
+      {(width, height) => {
+        const { points, x, y } = miniLineGeometry(data, width, height);
+        const areaD =
+          area<MiniChartPoint>()
+            .x((_, i) => x(i))
+            .y0(y(0))
+            .y1((p) => y(p.value))
+            .curve(curve)(points) ?? "";
+        const lineD =
+          line<MiniChartPoint>()
+            .x((_, i) => x(i))
+            .y((p) => y(p.value))
+            .curve(curve)(points) ?? "";
+        return (
+          <>
+            {useGradient && (
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={color} stopOpacity={0.6} />
+                  <stop offset="95%" stopColor={color} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+            )}
+            <path
+              className={`${CLASS}-area${animated}`}
+              d={areaD}
+              fill={useGradient ? `url(#${gradientId})` : color}
+              fillOpacity={useGradient ? 1 : opacity}
+            />
+            <path
+              className={`${CLASS}-line${animated}`}
+              d={lineD}
+              fill="none"
+              stroke={color}
+              strokeWidth={1.5}
+            />
+            {/* A single value has no area to draw: it's marked with a dot. */}
+            {points.length === 1 && (
+              <circle
+                className={`${CLASS}-point${animated}`}
+                cx={x(0)}
+                cy={y(points[0]!.value)}
+                r={MINI_POINT_RADIUS}
+                fill={useGradient ? `url(#${gradientId})` : color}
+                fillOpacity={useGradient ? 1 : opacity}
+                stroke={color}
+                strokeWidth={1.5}
+              />
+            )}
+          </>
+        );
       }}
-      rechartsProps={{
-        aspect: 1 / 1,
-      }}
-      onClick={onAreaClick}
-      ref={containerRef}
-      className={clsx("openui-charts-mini-area-chart-container", className)}
-    >
-      <RechartsAreaChart
-        accessibilityLayer
-        data={chartData}
-        margin={{
-          top: 10,
-        }}
-      >
-        {useGradient && (
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={color} stopOpacity={0.6} />
-              <stop offset="95%" stopColor={color} stopOpacity={0} />
-            </linearGradient>
-          </defs>
-        )}
-
-        <XAxis dataKey="label" hide={true} />
-
-        <Area
-          dataKey={DATA_KEY}
-          type={variant}
-          stroke={color}
-          fill={useGradient ? `url(#${gradientId})` : color}
-          fillOpacity={useGradient ? 1 : opacity}
-          isAnimationActive={isAnimationActive}
-          strokeWidth={1.5}
-        />
-      </RechartsAreaChart>
-    </ChartContainer>
+    </MiniChartFrame>
   );
-};
+}

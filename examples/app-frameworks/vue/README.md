@@ -15,7 +15,7 @@ A chat application built with [Nuxt 3](https://nuxt.com), [Vercel AI SDK](https:
 
 - Node.js 18+
 - pnpm, npm, or Bun
-- An OpenAI API key
+- An OpenUI Cloud API key (https://console.thesys.dev/keys)
 
 ### Install dependencies
 
@@ -31,19 +31,11 @@ pnpm install --ignore-workspace
 cp .env.example .env
 ```
 
-Edit `.env` and add your OpenAI API key:
+Edit `.env` and add your OpenUI Cloud API key:
 
 ```
-OPENAI_API_KEY=sk-...
+THESYS_API_KEY=sk-th-...
 ```
-
-### Generate the system prompt (optional)
-
-```bash
-pnpm generate:prompt
-```
-
-The generated prompt lives at the ignored path `generated/system-prompt.txt`. The dev and build commands regenerate it automatically, so this step is only needed when you want to inspect the generated artifacts without starting the app.
 
 ### Run
 
@@ -74,12 +66,11 @@ components/
     ├── Button.vue
     └── Chart.vue
 lib/
-├── library.ts                 # OpenUI component definitions (Stack, Card, TextContent, Button, Chart)
+├── define-library.ts          # Shared schemas (server cannot import .vue files)
+├── library.ts                 # Vue renderers wired onto those schemas
 └── tools.ts                   # AI tool definitions (weather, stocks, math, search)
 server/
 └── api/chat.post.ts           # AI SDK streaming endpoint
-generated/
-└── system-prompt.txt          # Generated locally; ignored by Git
 assets/
 └── app.css                    # Tailwind CSS entry point
 ```
@@ -87,8 +78,8 @@ assets/
 ## Adding components
 
 1. Create a Vue component in `components/openui/`
-2. Define it with `defineComponent()` in `lib/library.ts`
-3. Restart the dev server, or run `pnpm generate:prompt`, to update `generated/system-prompt.txt`
+2. Register it in `lib/define-library.ts` and wire the Vue file in `lib/library.ts`
+3. Restart the dev server so the chat route picks up the new spec
 
 See the [`@openuidev/vue-lang` README](../../../packages/vue-lang/README.md) for the full API.
 

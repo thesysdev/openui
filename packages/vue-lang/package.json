@@ -1,6 +1,6 @@
 {
 	"name": "@openuidev/vue-lang",
-	"version": "0.1.4",
+	"version": "0.3.0",
 	"description": "Define component libraries, generate LLM system prompts, and render streaming OpenUI Lang output in Vue 3 — the Vue runtime for OpenUI generative UI",
 	"license": "MIT",
 	"type": "module",

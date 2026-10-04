@@ -1,0 +1,87 @@
+# Booking assistant
+
+A runnable companion to the [booking assistant cookbook](https://www.openui.com/cookbooks/booking-assistant). Describe a trip in your own words, get a form prefilled with what the assistant understood, fill in what's missing, pick from stays with live prices and photos, and review the stay before continuing to the booking site.
+
+Stays come from [trivago's public MCP server](https://mcp.trivago.com/docs), which compares prices across booking sites for any destination and needs no API key. There is no data to download. It runs on Next.js, Agent Interface, OpenUI Gateway's Chat Completions API, and the MCP TypeScript SDK.
+
+## Run
+
+Requirements: Node.js 22.13+ and npm. This is a standalone example outside the package workspace.
+
+```bash
+npm ci
+```
+
+Configure `THESYS_API_KEY` from the [Thesys Console](https://console.thesys.dev/keys) privately in `.env.local`. Optional `OPENUI_MODEL` selects a supported `provider/model` identifier; the default is `openai/gpt-5.5`.
+
+```bash
+npm run dev
+```
+
+Open http://localhost:3000. To use another port, run `npm run dev -- --port 3001`.
+
+Try:
+
+- “Book a room in Goa for two this weekend.” The form arrives with the destination, dates, and adults filled in, and the budget in rupees.
+- “We're two adults and two kids, ages 6 and 9, looking for a hotel in Barcelona with a pool.” The form adds a field for the children's ages.
+- After a search, “Make it under ₹3,000 a night.” The assistant searches again and says how many stays were over budget.
+
+## How it works
+
+1. Agent Interface sends the thread's messages to `/api/chat`, which calls OpenUI Gateway's Chat Completions API.
+2. For a new request, the model replies with a form prefilled with every detail it understood, with validation rules on the required fields.
+3. When the user submits the form, Agent Interface sends the button label and the form's values as the next message, and the model calls `search_stays`.
+4. The server validates the arguments, calls `trivago-accommodation-search` on trivago's MCP server, applies the budget, and returns the best matches with prices, ratings, a photo, and a booking link.
+5. The model shows the stays as cards with photos, then a summary. **Continue to booking** opens the stay on trivago, where the guest chooses a booking site and pays there.
+
+## Files
+
+| File                                  | Purpose                                                               |
+| ------------------------------------- | --------------------------------------------------------------------- |
+| `src/lib/trivago.ts`                  | MCP client for trivago's accommodation search, and its filter options |
+| `src/lib/tools/search-stays.ts`       | Function schema, argument validation, budget filter, and results      |
+| `src/library.ts`                      | The chat library, with its DatePicker replaced                        |
+| `src/components/date-picker.tsx`      | A DatePicker that the model can prefill with YYYY-MM-DD dates         |
+| `src/lib/prompt.ts`                   | Booking rules and one example for each step of the flow               |
+| `src/lib/gateway-history.ts`          | Loads a thread's stored turns from Gateway as chat messages           |
+| `src/app/api/chat/route.ts`           | `runTools()` generation, streaming, and turn storage                  |
+| `src/app/api/frontend-token/route.ts` | Frontend token for Gateway thread storage                             |
+| `src/lib/theme.ts`                    | Light and dark theme overrides                                        |
+| `src/components/booking-chat.tsx`     | Agent Interface, chat transport, thread storage, theme, and starters  |
+| `src/app/styles.css`                  | Page layout and full-width photos on the stay cards                   |
+
+`npm run generate` creates the ignored component specification before dev/build/verify. The server passes that specification to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, and Agent Interface renders responses with the same component library.
+
+## The MCP server
+
+`search_stays` is a function tool that runs on this server and calls trivago's MCP server with the MCP SDK's Streamable HTTP client. trivago's search result embeds every photo as image data, about 665 KB per search, and includes formatting instructions for the model. The tool keeps only the structured hotel list and returns the fields the cards need, a few thousand tokens, and it never forwards the third-party instructions.
+
+trivago has no price filter, so the tool applies the budget and reports how many stays it left out and the cheapest of them. Prices are live and can change until the guest books. Check [trivago's MCP documentation](https://mcp.trivago.com/docs) for its terms before you deploy.
+
+## Forms
+
+The model prefills fields with literal values. Submitted form state contains only the fields the user changed, so the prompt tells the model to use its prefilled value for any field missing from the state.
+
+React UI's `DatePicker` stores `Date` objects, which a model cannot write and which reach the model as UTC timestamps. `src/components/date-picker.tsx` keeps the same name and props but reads and writes `YYYY-MM-DD` strings, so a prefilled date shows in the picker and a submitted date is the calendar day the user picked.
+
+## Conversations
+
+The OpenAI SDK sends requests to `https://api.thesys.dev/v1/embed/chat/completions` using `THESYS_API_KEY`. Chat Completions does not store conversations, so the chat route stores each turn in the thread's Gateway conversation and loads the earlier turns from there for every turn.
+
+Agent Interface stores the thread list with Gateway's [Conversations API](https://www.openui.com/docs/gateway/api/conversations) through `useOpenuiCloudStorage()`. The browser calls Gateway directly with a short-lived [frontend token](https://www.openui.com/docs/gateway/authentication#frontend-tokens) from `/api/frontend-token`, which mints it with `THESYS_API_KEY` for one local user (`DEMO_USER_ID`, default `demo-user`) and app (`APP_ID`, default `booking-assistant-cookbook`), so the key stays on the server and the browser reaches only those threads. Chat Completions doesn't write turns to a conversation, so the chat route appends each turn, including the tool calls and their results, with `storeChatCompletionHistory()` from [`@openuidev/server`](https://www.openui.com/docs/api-reference/server#conversation-history). A stopped or failed answer still keeps the user's message. Threads stay listed after a reload, and a thread you open again loads its messages. To keep threads in your own database instead, use `restStorage`.
+
+The chat route uses only the new message from the browser. `loadChatCompletionHistory()` in `src/lib/gateway-history.ts` loads the earlier turns from the thread's Gateway conversation, including their searches and results, and the response ends once the turn is stored, so the next step finds it. Each stay card's value is the stay's booking link, so choosing a card sends the link back with the form, and the summary's **Continue to booking** button opens it. A submitted form arrives as one message with the form's values.
+
+The route runs the tool with the OpenAI SDK's [`runTools()`](https://github.com/openai/openai-node#automated-function-calls) and returns the runner's `toReadableStream()`, one JSON chunk per line, which `openAIReadableStreamAdapter()` reads. Chat Completions has no chunk for a tool result, so in a live answer **Behind the scenes** shows each call's arguments but not its result. The tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK; see the [agent runtime integrations](https://www.openui.com/docs/agent/agent-runtimes/langgraph-platform) and the [agent framework examples](../../agent-frameworks).
+
+The app binds to loopback, and every browser shares one local user's threads. For deployment, add [authentication](https://www.openui.com/docs/gateway/authentication), mint each frontend token for the signed-in user, check that each `threadId` belongs to that user before storing a turn in it, and add request-size and rate limits to both routes.
+
+## Verify
+
+```bash
+npm run verify
+```
+
+`verify` generates the component specification and runs a production build with type checking. It needs no credentials and makes no network calls to trivago.
+
+In the browser, submit a form with a required field cleared to see validation, expand **Behind the scenes** to inspect `search_stays`, open a stay's summary and follow **Continue to booking**, and switch the operating system between light and dark mode.

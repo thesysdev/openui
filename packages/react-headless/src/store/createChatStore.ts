@@ -1,7 +1,10 @@
+import { observability } from "@openuidev/observability";
 import { createStore } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
+import { getResponseErrorMessage } from "../adapters/httpError";
 import type { ChatLLM, ChatStorage } from "../adapters/types";
 import { processStreamedMessage } from "../stream/processStreamedMessage";
+import { buildObservabilityErrorDetail, levelForStatus } from "./observability";
 import type { ChatStore, Message, Thread, ThreadStateEntry, UserMessage } from "./types";
 
 export interface CreateChatStoreConfig {
@@ -298,14 +301,42 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
               }
             }
 
-            const response = await configRef.current.llm.send({
+            const runId = crypto.randomUUID();
+            observability.info({
+              kind: "LLM:request",
               threadId: runKey,
-              messages: readRun(get(), runKey)?.messages ?? [],
-              signal: abortController.signal,
+              runId,
+              userMessage: optimisticMessage,
             });
 
-            if (response instanceof Response && !response.ok) {
-              throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+            let response: Response;
+            try {
+              response = await configRef.current.llm.send({
+                threadId: runKey,
+                messages: readRun(get(), runKey)?.messages ?? [],
+                signal: abortController.signal,
+              });
+
+              observability(levelForStatus(response.status), {
+                kind: response.ok ? "LLM:response" : "LLM:error",
+                threadId: runKey,
+                status: response.status,
+                ok: response.ok,
+                runId,
+                ...(await buildObservabilityErrorDetail(response)),
+              });
+
+              if (!response.ok) {
+                throw new Error(await getResponseErrorMessage(response));
+              }
+            } catch (e) {
+              observability.error({
+                kind: "LLM:error",
+                threadId: runKey,
+                runId,
+                error: e instanceof Error ? e : new Error(String(e)),
+              });
+              throw e;
             }
 
             await processStreamedMessage({

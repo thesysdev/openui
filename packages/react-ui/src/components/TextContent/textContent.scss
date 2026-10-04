@@ -18,7 +18,7 @@
 .text-content {
   box-sizing: border-box;
   color: cssUtils.$text-neutral-primary;
-  @include cssUtils.typography(primary, default);
+  @include cssUtils.typography(body, default);
   border: 1px solid;
 
   &-sunk {

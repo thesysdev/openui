@@ -606,6 +606,15 @@ export const OPENUI_MODEL_BOARD = [
     costPerPass: 0.37,
   },
   {
+    id: "oui-1",
+    label: "OUI-1 (DiffusionGemma 26B-A4B, finetuned)",
+    provider: "Thesys",
+    score: 71.7,
+    costPerPass: 0,
+    unpriced: true,
+    serving: "Self-hosted · A100 FP8",
+  },
+  {
     id: "qwen-3-6-27b",
     label: "Qwen3.6 27B",
     provider: "Alibaba",

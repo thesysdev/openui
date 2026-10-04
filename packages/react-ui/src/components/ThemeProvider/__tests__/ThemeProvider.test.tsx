@@ -1,6 +1,6 @@
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useChartPalette } from "../../Charts/utils/PalletUtils";
+import { useChartPalette } from "../../Charts/utils/paletteUtils";
 import { defaultDarkTheme, defaultLightTheme } from "../defaultTheme";
 import { ThemeProvider, useTheme } from "../ThemeProvider";
 import type { ChartColorPalette, Theme } from "../types";
@@ -103,13 +103,11 @@ describe("chart palette flow (theme -> useTheme -> useChartPalette)", () => {
       themeFromContext = theme;
       // Exactly what BarChart does.
       barColors = useChartPalette({
-        chartThemeName: "ocean",
         themePaletteName: "barChartPalette",
         dataLength: 2,
       });
       // lineChartPalette is not set -> must fall back to defaultChartPalette.
       lineColors = useChartPalette({
-        chartThemeName: "ocean",
         themePaletteName: "lineChartPalette",
         dataLength: 2,
       });

@@ -33,6 +33,13 @@
   flex: 1 1 0;
   min-width: 0;
   height: 100%;
+  /* The column clips vertically so the marquee can run, and CSS will not allow
+     overflow-x: visible alongside overflow-y: hidden. So widen the clip box
+     instead: the padding gives card shadows room at the column edges, and the
+     matching negative margin keeps the layout footprint and the 12px gap
+     exactly as they were. Box-sizing is border-box, so the cards stay 335px. */
+  padding-inline: 16px;
+  margin-inline: -16px;
   overflow: hidden;
 }
 
@@ -77,16 +84,25 @@
     gap: 0.5rem;
   }
 
+  /* 230px of card plus the 16px of shadow bleed either side. The column sizes
+     its border box, so basing this on the card alone left only 198px of content
+     box and the slot below overhung the clip by 16px, cutting every card's
+     right edge off. */
   .column {
-    flex: 0 0 230px;
+    flex: 0 0 262px;
   }
 
   /* Render the card at 320px then scale the whole box down with zoom (shrinks the
      layout box too, so columns stay tight and the loop has no gaps). 320 * 0.72 ≈ 230.
      The wide base width lets tweet text breathe so cards aren't squeezed/too tall,
-     while the 0.72 scale keeps the cards compact. */
+     while the 0.72 scale keeps the cards compact.
+
+     The width is a percentage rather than a flat 320px because under zoom a
+     percentage resolves in the slot's own scaled space: 100% of the column's
+     230px content box lays the card out at ~320px and paints it at 230, so it
+     tracks the column instead of overhanging it. */
   .slot {
-    width: 320px;
+    width: 100%;
     zoom: 0.72;
     margin-bottom: 0.625rem;
   }

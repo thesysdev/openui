@@ -3,7 +3,7 @@ import {
   isDemoCreditsExhaustedError,
 } from "@/lib/demo-credits";
 import { BASE_URL } from "@/lib/source";
-import { generatePrompt, type PromptSpec } from "@openuidev/lang-core";
+import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
 import { readFileSync } from "fs";
 import { type NextRequest } from "next/server";
 import { join } from "path";
@@ -15,25 +15,27 @@ import {
 } from "../../../../demo/github/github/prompt-config";
 import { GITHUB_TOOL_SPECS } from "../../../../demo/github/github/types";
 
-// ── Component spec from generated JSON ────────────────────────────────────
+// ── Library spec from `openui generate --spec` ────────────────────────────
 
-const componentSpec = JSON.parse(
-  readFileSync(join(process.cwd(), "generated/playground-component-spec.json"), "utf-8"),
-) as PromptSpec;
+const librarySpec = JSON.parse(
+  readFileSync(join(process.cwd(), "generated/playground-library.spec.json"), "utf-8"),
+) as LibrarySpec;
 
 // ── GitHub system prompt ──────────────────────────────────────────────────
 
 function buildGitHubPrompt(): string {
-  return generatePrompt({
-    ...componentSpec,
-    tools: GITHUB_TOOL_SPECS,
-    toolExamples: GITHUB_TOOL_EXAMPLES,
-    additionalRules: GITHUB_ADDITIONAL_RULES,
-    preamble: GITHUB_PREAMBLE,
-    editMode: true,
-    inlineMode: true,
-    toolCalls: true,
-    bindings: true,
+  return generateSystemPrompt({
+    library: librarySpec,
+    promptOptions: {
+      tools: GITHUB_TOOL_SPECS,
+      toolExamples: GITHUB_TOOL_EXAMPLES,
+      additionalRules: GITHUB_ADDITIONAL_RULES,
+      preamble: GITHUB_PREAMBLE,
+      editMode: true,
+      inlineMode: true,
+      toolCalls: true,
+      bindings: true,
+    },
   });
 }
 

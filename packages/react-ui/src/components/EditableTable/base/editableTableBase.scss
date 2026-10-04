@@ -1,0 +1,108 @@
+@use "../../../cssUtils" as cssUtils;
+@use "../../_shared/chatUtils" as chatUtils;
+
+.openui-editable-table-wrapper {
+  border: 1px solid cssUtils.$border-default;
+  border-radius: cssUtils.$radius-xl cssUtils.$radius-xl 0 0;
+  overflow: hidden;
+  position: relative;
+}
+
+// Horizontal scroll container for the table. When content width exceeds the
+// container, the scroll controls will become visible and enable snapping by column.
+.openui-editable-table-scroll-container {
+  overflow: auto;
+  // Hide scrollbar while preserving scroll functionality
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // IE/Edge
+  &::-webkit-scrollbar {
+    display: none; // Chrome/Safari/Opera
+  }
+}
+
+// Scroll control button containers; they host IconButtons.
+// Visibility is toggled via the `--disabled` modifier from component state.
+.openui-editable-table-scroll-control {
+  position: absolute;
+  top: cssUtils.$space-s;
+  z-index: chatUtils.$z-content;
+  width: fit-content;
+  height: fit-content;
+  border-radius: cssUtils.$radius-s;
+  background-color: cssUtils.$elevated;
+  cursor: pointer;
+
+  &.openui-editable-table-scroll-control--disabled {
+    cursor: not-allowed;
+    display: none;
+  }
+
+  &.openui-editable-table-scroll-control--left {
+    left: cssUtils.$space-s;
+  }
+
+  &.openui-editable-table-scroll-control--right {
+    right: cssUtils.$space-s;
+  }
+}
+
+.openui-editable-table-table {
+  border-collapse: collapse;
+
+  & .openui-select-trigger {
+    @include cssUtils.typography(body, small);
+    width: 100%;
+  }
+
+  thead {
+    th {
+      text-align: left;
+      padding: cssUtils.$space-s cssUtils.$space-m;
+      border-right: 1px solid cssUtils.$border-default;
+      background-color: cssUtils.$highlight-subtle;
+      color: cssUtils.$text-neutral-secondary;
+      @include cssUtils.typography(body, small);
+      height: 48px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    th:last-child {
+      border-right: 0;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid cssUtils.$border-default;
+    }
+
+    tr:last-child {
+      border-bottom: 0;
+    }
+
+    td {
+      height: 48px;
+      padding: 0;
+      border-right: 1px solid cssUtils.$border-default;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    td:last-child {
+      border-right: 0;
+    }
+  }
+}
+
+.openui-editable-table-header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: cssUtils.$space-s;
+}
+
+.openui-editable-table-header-icon {
+  flex-shrink: 0;
+}

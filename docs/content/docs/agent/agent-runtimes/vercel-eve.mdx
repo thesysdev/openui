@@ -1,0 +1,248 @@
+---
+title: Vercel Eve
+description: Connect Agent Interface to Vercel Eve's resumable agent sessions.
+---
+
+OpenUI can render output from a [Vercel Eve](https://github.com/vercel/eve) agent without replacing Eve's session protocol. This example uses Eve's built-in HTTP channel for delivery and resumable streaming. `eveAdapter()` from `@openuidev/react-headless` maps Eve's NDJSON session stream to AG-UI for `<AgentInterface />`.
+
+The agent receives the OpenUI component-library prompt when a session starts, so its responses use OpenUI Lang and render as cards, tables, charts, forms, and other interactive components.
+
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/vercel-eve)
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl h-[500px] flex p-2">
+  <video
+    src="/videos/vercel-eve.mp4"
+    noControls
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
+## How it connects
+
+| Piece              | File                           | Role                                                                                 |
+| ------------------ | ------------------------------ | ------------------------------------------------------------------------------------ |
+| OpenUI chat        | `src/app/page.tsx`             | Renders `<AgentInterface />` with the built-in `openuiLibrary`.                      |
+| Session bridge     | `src/eve-chat.ts`              | Delivers turns through Eve's HTTP API and returns Eve's raw NDJSON stream.           |
+| Event adapter      | `eveAdapter()`                 | Maps Eve text, tool-call, and failure events to AG-UI (`@openuidev/react-headless`). |
+| Agent instructions | `agent/instructions/openui.ts` | Adds the Gateway-compatible OpenUI instructions when each Eve session starts.        |
+
+The Next.js app and Eve development server start together through `withEve()`. The browser uses
+Eve's same-origin session endpoints directly, so the integration does not need a custom backend
+route or CORS configuration. OpenUI threads retain Eve's session ID, continuation token, and
+stream cursor, preserving multi-turn context and resumable delivery.
+
+## Connecting OpenUI
+
+The page creates Eve-backed chat callbacks and passes them to `<AgentInterface />`. `eveAdapter()` consumes Eve's NDJSON session stream:
+
+```tsx
+import { AgentInterface } from "@openuidev/react-ui";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
+import { createEveChatProps } from "../eve-chat";
+
+const { llm, storage } = createEveChatProps();
+
+<AgentInterface
+  llm={llm}
+  storage={storage}
+  componentLibrary={openuiLibrary}
+  agentName="Eve + OpenUI"
+/>;
+```
+
+`createEveChatProps()` sets `llm.streamProtocol` to `eveAdapter()` and provides OpenUI's thread callbacks. The example stores thread metadata, transcripts, Eve session IDs, continuation tokens, and stream cursors in `localStorage`, so each OpenUI thread resumes the corresponding Eve conversation.
+
+## Teaching Eve OpenUI Lang
+
+Eve loads instructions from `agent/instructions`. A dynamic instruction adds the component library's generated prompt once when a session starts:
+
+```ts
+import { cloudInstructions } from "../../src/lib/cloud-prompt";
+import { defineDynamic, defineInstructions } from "eve/instructions";
+
+export default defineDynamic({
+  events: {
+    "session.started": () =>
+      defineInstructions({
+        markdown: cloudInstructions(),
+      }),
+  },
+});
+```
+
+`cloudInstructions()` loads the generated specification for the same `openuiLibrary` used by the
+renderer and wraps it for OpenUI Gateway.
+
+## The session bridge
+
+The browser talks to the same-origin Eve endpoints installed by `withEve()`:
+
+```text
+POST /eve/v1/session
+POST /eve/v1/session/:id
+GET  /eve/v1/session/:id/stream?startIndex=N
+```
+
+The first turn creates a session. Follow-up turns send the saved continuation token, and the
+stream request resumes from the saved event index. Completed sessions clear the cursor; waiting
+and failed sessions remain resumable.
+
+```ts
+const delivered = await fetch(
+  state.sessionId ? `/eve/v1/session/${state.sessionId}` : "/eve/v1/session",
+  {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ message, continuationToken: state.continuationToken }),
+  },
+);
+
+const streamed = await fetch(`/eve/v1/session/${sessionId}/stream?startIndex=${state.streamIndex}`);
+```
+
+## Tool calls and streamed UI
+
+Eve emits typed session events. `eveAdapter()` from `@openuidev/react-headless` converts the events OpenUI needs:
+
+```text
+actions.requested  -> TOOL_CALL_START / TOOL_CALL_ARGS / TOOL_CALL_END
+action.result      -> TOOL_CALL_RESULT
+message.appended   -> TEXT_MESSAGE_CONTENT
+message.completed  -> TEXT_MESSAGE_CONTENT (non-streaming fallback)
+turn.failed        -> RUN_ERROR
+session.failed     -> RUN_ERROR
+```
+
+Tool calls and text share one assistant message ID. OpenUI renders tool activity in its behind-the-scenes section and the final OpenUI Lang response in the conversation.
+
+The included `get_weather` tool calls Open-Meteo. The example disables Eve's built-in
+`ask_question` tool so clarifying questions remain visible in the chat. Additional Eve tools
+automatically surface through the same AG-UI tool-call mapping.
+
+## Thread persistence
+
+`src/thread-store.ts` keeps OpenUI thread metadata and transcripts in browser `localStorage`.
+`src/eve-chat.ts` stores the Eve session ID, continuation token, and stream index under the same
+thread ID. Reopening a thread therefore restores both the visible transcript and its server-side
+Eve conversation.
+
+## Authentication and security
+
+The demo channel uses anonymous authentication for local development. Replace `none()` in `agent/channels/eve.ts` with an authenticated Eve channel before exposing the application.
+
+## Project layout
+
+```text
+examples/agent-frameworks/vercel-eve/
+|- agent/agent.ts                    # Eve model and build configuration
+|- agent/channels/eve.ts             # Eve HTTP session channel
+|- agent/instructions/identity.md    # Standing agent identity
+|- agent/instructions/openui.ts      # Generated OpenUI Lang instructions
+|- agent/tools/get_weather.ts        # Open-Meteo weather tool
+|- agent/tools/ask_question.ts       # Disables Eve's built-in ask_question tool
+|- src/app/page.tsx                  # OpenUI AgentInterface chat
+|- src/eve-chat.ts                   # Session transport, eveAdapter, persistence
+|- src/library.ts                    # Component library used to generate the prompt spec
+|- src/lib/cloud-prompt.ts           # Gateway-compatible OpenUI Lang instructions
+|- src/thread-store.ts               # Browser thread and transcript storage
+|- next.config.ts                    # Installs Eve with withEve()
+```
+
+## Run the example
+
+Eve 0.11 requires Node.js 24. From the repository root, follow these steps:
+
+```bash tab="pnpm" tab-group="pkg"
+# 1. Install workspace dependencies.
+pnpm install
+
+# 2. Enter the example.
+cd examples/agent-frameworks/vercel-eve
+
+# 3. Configure OpenUI Gateway.
+cp .env.example .env
+# Edit .env and set THESYS_API_KEY.
+
+# 4. Start Next.js and the embedded Eve development server.
+pnpm dev
+```
+
+```bash tab="bun" tab-group="pkg"
+# 1. Install workspace dependencies.
+bun install
+
+# 2. Enter the example.
+cd examples/agent-frameworks/vercel-eve
+
+# 3. Configure OpenUI Gateway.
+cp .env.example .env
+# Edit .env and set THESYS_API_KEY.
+
+# 4. Start Next.js and the embedded Eve development server.
+bun dev
+```
+
+```bash tab="yarn" tab-group="pkg"
+# 1. Install workspace dependencies.
+yarn install
+
+# 2. Enter the example.
+cd examples/agent-frameworks/vercel-eve
+
+# 3. Configure OpenUI Gateway.
+cp .env.example .env
+# Edit .env and set THESYS_API_KEY.
+
+# 4. Start Next.js and the embedded Eve development server.
+yarn dev
+```
+
+```bash tab="npm" tab-group="pkg"
+# 1. Install workspace dependencies.
+npm install
+
+# 2. Enter the example.
+cd examples/agent-frameworks/vercel-eve
+
+# 3. Configure OpenUI Gateway.
+cp .env.example .env
+# Edit .env and set THESYS_API_KEY.
+
+# 4. Start Next.js and the embedded Eve development server.
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) and start a conversation. The example requires
+`THESYS_API_KEY` and accepts an optional `OPENUI_MODEL` override. The default model is
+`google/gemini-3.6-flash-free`.
+
+The repository scripts also expose Eve directly when you need to build or run the agent separately:
+
+```bash tab="pnpm" tab-group="pkg"
+pnpm eve:dev
+pnpm eve:build
+pnpm eve:start
+```
+
+```bash tab="bun" tab-group="pkg"
+bun eve:dev
+bun eve:build
+bun eve:start
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn eve:dev
+yarn eve:build
+yarn eve:start
+```
+
+```bash tab="npm" tab-group="pkg"
+npm run eve:dev
+npm run eve:build
+npm run eve:start
+```

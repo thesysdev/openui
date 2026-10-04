@@ -1,0 +1,52 @@
+---
+title: Setup
+description: Enable reliability tracking through Gateway, Autofix, or the Observability SDK.
+---
+
+## Using Gateway or Autofix
+
+Reliability tracking is automatically enabled for generations through [Gateway](/docs/gateway) and requests sent to [Autofix](/docs/autofix). Open the [Reliability dashboard](https://console.thesys.dev/reliability) to inspect those requests. No SDK installation is required for this tracking.
+
+## Using your own model integration
+
+If you use neither Gateway nor Autofix, install `@openuidev/observability-cloud` in the application that renders OpenUI interfaces. The Observability SDK sends supported runtime telemetry to Reliability Monitoring.
+
+You can also use the SDK alongside Gateway or Autofix to capture supported parsing and rendering signals from your application.
+
+### 1. Install the SDK
+
+```bash tab="pnpm" tab-group="pkg"
+pnpm add @openuidev/observability-cloud
+```
+
+```bash tab="bun" tab-group="pkg"
+bun add @openuidev/observability-cloud
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn add @openuidev/observability-cloud
+```
+
+```bash tab="npm" tab-group="pkg"
+npm install @openuidev/observability-cloud
+```
+
+### 2. Create a client key
+
+Create a client API key in the [Thesys Console](https://console.thesys.dev/client-api-keys). Client keys are intended for application runtime telemetry; do not substitute a Gateway server API key.
+
+### 3. Initialize once
+
+Initialize the SDK at the root of the application before rendering OpenUI responses:
+
+```ts
+import * as Observability from "@openuidev/observability-cloud";
+
+Observability.init({
+  apiKey: "pk-th-…",
+});
+```
+
+Deploy the application and exercise representative generative UI flows. Runtime errors will begin appearing in the Console's reliability views.
+
+Continue with [Dashboard](/docs/reliability/dashboard) to interpret the data.

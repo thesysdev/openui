@@ -327,27 +327,27 @@
 }
 
 .modelProviderLogo[data-provider="google"] {
-  background-image: url("../../../packages/openui-cli/src/templates/openui-cloud/public/logos/google-light.svg");
+  background-image: url("/chat/google-light.svg");
 }
 
 .modelProviderLogo[data-provider="openai"] {
-  background-image: url("../../../packages/openui-cli/src/templates/openui-cloud/public/logos/openai-light.svg");
+  background-image: url("/chat/openai-light.svg");
 }
 
 .modelProviderLogo[data-provider="anthropic"] {
-  background-image: url("../../../packages/openui-cli/src/templates/openui-cloud/public/logos/anthropic-light.svg");
+  background-image: url("/chat/anthropic-light.svg");
 }
 
 :global(.dark) .modelProviderLogo[data-provider="google"] {
-  background-image: url("../../../packages/openui-cli/src/templates/openui-cloud/public/logos/google-dark.svg");
+  background-image: url("/chat/google-dark.svg");
 }
 
 :global(.dark) .modelProviderLogo[data-provider="openai"] {
-  background-image: url("../../../packages/openui-cli/src/templates/openui-cloud/public/logos/openai-dark.svg");
+  background-image: url("/chat/openai-dark.svg");
 }
 
 :global(.dark) .modelProviderLogo[data-provider="anthropic"] {
-  background-image: url("../../../packages/openui-cli/src/templates/openui-cloud/public/logos/anthropic-dark.svg");
+  background-image: url("/chat/anthropic-dark.svg");
 }
 
 .cloudMobileHeader :global(.openui-agent-mobile-header-logo-container) {

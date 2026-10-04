@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Monitor } from "lucide-react";
+import { MiniBarChart, MiniBarChartProps } from "../..";
 import { Card } from "../../../Card";
-import { MiniBarChart, MiniBarChartProps } from "../MiniBarChart";
 
 // Simple array of numbers for 1D bar chart
 const simpleBarChartData = [
@@ -56,16 +56,6 @@ const meta: Meta<MiniBarChartProps> = {
         category: "Data",
       },
     },
-    theme: {
-      description:
-        "The color palette theme for the chart. Each theme provides a different set of colors for the bars.",
-      control: "select",
-      options: ["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"],
-      table: {
-        defaultValue: { summary: "ocean" },
-        category: "Appearance",
-      },
-    },
     radius: {
       description: "The radius of the rounded corners of the bars",
       control: "number",
@@ -103,7 +93,6 @@ export const SimpleNumberArray: Story = {
   name: "Simple Number Array",
   args: {
     data: simpleBarChartData,
-    theme: "ocean",
     radius: 2,
     isAnimationActive: true,
     size: "100%",
@@ -124,7 +113,6 @@ const salesData = [2347891, 1893456, 3456789, 2987654, 1765432, 4321098];
         
 <MiniBarChart 
   data={salesData}
-  theme="ocean"
   radius={2}
   isAnimationActive={true}
   size={200}
@@ -139,7 +127,6 @@ export const LabeledData: Story = {
   name: "Labeled Data",
   args: {
     data: labeledBarChartData,
-    theme: "emerald",
     radius: 1,
     isAnimationActive: true,
     size: 200,
@@ -163,7 +150,6 @@ const revenueData = [
         
 <MiniBarChart 
   data={revenueData}
-  theme="emerald"
   radius={1}
   isAnimationActive={true}
   size={200}
@@ -178,7 +164,6 @@ export const SmallSize: Story = {
   name: "Small Size",
   args: {
     data: [10, 20, 15, 30, 25, 35, 18],
-    theme: "sunset",
     radius: 1,
     isAnimationActive: true,
     size: 120,
@@ -188,28 +173,5 @@ export const SmallSize: Story = {
       <h4 style={{ marginBottom: "12px", fontSize: "14px", fontWeight: "600" }}>Weekly Stats</h4>
       <MiniBarChart {...args} />
     </Card>
-  ),
-};
-
-export const DifferentThemes: Story = {
-  name: "Different Themes",
-  render: () => (
-    <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-      {(["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"] as const).map((theme) => (
-        <Card key={theme} style={{ width: "200px", padding: "16px" }}>
-          <h4
-            style={{
-              marginBottom: "12px",
-              fontSize: "14px",
-              fontWeight: "600",
-              textTransform: "capitalize",
-            }}
-          >
-            {theme} Theme
-          </h4>
-          <MiniBarChart data={[15, 25, 20, 35, 30, 18, 22]} theme={theme} radius={2} size={160} />
-        </Card>
-      ))}
-    </div>
   ),
 };

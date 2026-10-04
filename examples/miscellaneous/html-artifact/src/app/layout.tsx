@@ -1,4 +1,3 @@
-import { ThemeProvider } from "@/hooks/use-system-theme";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -14,9 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

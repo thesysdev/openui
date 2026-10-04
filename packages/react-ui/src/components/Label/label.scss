@@ -2,7 +2,7 @@
 
 .openui-label {
   box-sizing: border-box;
-  @include cssUtils.typography(primary, default);
+  @include cssUtils.typography(body, default);
   color: cssUtils.$text-neutral-primary;
 
   &-disabled {

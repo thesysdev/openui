@@ -14,7 +14,7 @@ Demonstrates:
 
 - Node.js 18+ and pnpm, npm, or Bun
 - A [Supabase](https://supabase.com) project (free tier is fine)
-- An [OpenRouter](https://openrouter.ai) API key, or any OpenAI-compatible LLM provider
+- An [OpenUI Cloud](https://console.thesys.dev/keys) API key
 
 ## Setup
 
@@ -66,8 +66,7 @@ cp .env.local.example .env.local
 | ------------------------------- | ----------------------------------------------------- |
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase dashboard → Settings → API → Project URL     |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase dashboard → Settings → API → anon/public key |
-| `OPENROUTER_API_KEY`            | [openrouter.ai/keys](https://openrouter.ai/keys)      |
-| `OPENROUTER_MODEL` _(optional)_ | Defaults to `openai/gpt-5.5`                          |
+| `THESYS_API_KEY`            | [console.thesys.dev/keys](https://console.thesys.dev/keys) |
 
 ### 5. Install and run
 
@@ -120,7 +119,7 @@ User types message
       → POST /api/threads/create  → INSERT into threads
   → ChatProvider calls processMessage
       → POST /api/chat with { messages, threadId }
-          → OpenRouter streams assistant reply
+          → OpenUI Cloud streams assistant reply
           → After stream: DELETE + re-INSERT all messages for thread_id
   → User reopens thread
       → ChatProvider calls loadThread

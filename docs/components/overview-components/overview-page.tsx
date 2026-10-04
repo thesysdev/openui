@@ -246,7 +246,7 @@ export function AssistantMessage({ content, isStreaming }) {
         <div className="mb-6">
           <CodeBlock
             title="Quick example"
-            code={`import "@openuidev/react-ui/components.css";
+            code={`import "@openuidev/react-ui/styles/index.css";
 import {
   AgentInterface,
   openAIAdapter,

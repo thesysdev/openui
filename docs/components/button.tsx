@@ -7,9 +7,16 @@ interface ButtonProps {
   text: string;
   size?: "lg";
   variant?: "primary" | "secondary" | "tertiary";
+  external?: boolean;
 }
 
-export function Button({ href, text, size = "lg", variant = "primary" }: ButtonProps) {
+export function Button({
+  href,
+  text,
+  size = "lg",
+  variant = "primary",
+  external = false,
+}: ButtonProps) {
   const sizeClasses = size === "lg" ? "openui-button-base-large" : "";
   const variantClasses = {
     primary: "openui-button-base-primary",
@@ -20,6 +27,8 @@ export function Button({ href, text, size = "lg", variant = "primary" }: ButtonP
   return (
     <Link
       href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
       className={`openui-button-base no-underline ${sizeClasses} ${variantClasses} ${
         variant === "tertiary" ? styles.tertiary : ""
       }`}

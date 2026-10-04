@@ -1,0 +1,197 @@
+figure.figure {
+  gap: 20px;
+  margin: 72px 0 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.failureFill {
+  background-image: url("./assets/failure-root.svg");
+}
+
+.referenceFill {
+  background-image: url("./assets/failure-reference.svg");
+}
+
+.argumentFill {
+  background-image: url("./assets/failure-arguments.svg");
+}
+
+.truncationFill {
+  background-color: #b9b9b9;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.52) 0 4px,
+    transparent 4px 9px
+  );
+}
+
+:global(.dark) .truncationFill,
+:global([data-theme="dark"]) .truncationFill {
+  background-color: #696969;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.22) 0 4px,
+    transparent 4px 9px
+  );
+}
+
+.bar {
+  display: grid;
+  height: clamp(64px, 7vw, 88px);
+}
+
+.segment {
+  grid-row: 1 / -1;
+  min-width: 0;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+/* The Figma textures include a 3px light separator at their right edge. It is
+   intentional on the light canvas but reads as a white glitch on black. A
+   tiny dark-mode overscan clips that baked edge without changing the segment
+   proportions or the hatch scale perceptibly. */
+:global([data-theme="dark"]) .segment:not(:last-child) {
+  background-size: calc(100% + 4px) 100%;
+}
+
+.segment:last-child {
+  border: 0;
+}
+
+.connectors {
+  position: relative;
+  height: 72px;
+}
+
+.horizontalConnectors,
+.verticalConnectors {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: color-mix(in srgb, var(--openui-text-neutral-primary) 22%, transparent);
+  stroke-width: 1.1px;
+  stroke-dasharray: 1.35 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+
+:global(.dark) .horizontalConnectors,
+:global(.dark) .verticalConnectors,
+:global([data-theme="dark"]) .horizontalConnectors,
+:global([data-theme="dark"]) .verticalConnectors {
+  stroke: color-mix(in srgb, var(--openui-text-neutral-primary) 12%, transparent);
+}
+
+.verticalConnectors {
+  display: none;
+}
+
+.labels {
+  display: grid;
+  min-height: 91px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 16px 0 0;
+  font-family: var(--home-font-mono);
+  text-align: left;
+}
+
+.mobileKey {
+  display: none;
+}
+
+.share {
+  color: var(--openui-text-neutral-primary);
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 25.5px;
+}
+
+.family {
+  color: var(--openui-text-neutral-secondary);
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
+  text-wrap: wrap;
+}
+
+/* Keep the data horizontal on phones. The bar still communicates proportion;
+   the labels become direct, roomy rows instead of squeezing into four narrow
+   columns or rotating the entire chart. */
+@media (max-width: 639px) {
+  figure.figure {
+    margin-top: 48px;
+  }
+
+  .chartBody {
+    display: block;
+  }
+
+  .bar {
+    height: 64px;
+  }
+
+  .segment {
+    grid-row: 1 / -1;
+  }
+
+  .connectors {
+    display: none;
+  }
+
+  .labels {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    margin-top: 20px;
+  }
+
+  .label {
+    display: grid;
+    grid-template-columns: 12px 3.25rem minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-top: 1px solid var(--home-hairline);
+    text-align: left;
+  }
+
+  .label:first-child {
+    border-top: 0;
+  }
+
+  .mobileKey {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background-size: 100% 100%;
+  }
+
+  .share {
+    width: auto;
+    text-align: left;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .family {
+    width: 100%;
+    max-width: none;
+    text-align: right;
+    text-wrap: balance;
+  }
+}

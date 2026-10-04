@@ -1,14 +1,14 @@
 # OpenUI + Vercel Eve Harness
 
 A generative-UI chat application backed by a [Vercel Eve](https://github.com/vercel/eve)
-agent. Eve keeps its native session and resumable-streaming protocol, while a small adapter
-translates Eve events into AG-UI events that OpenUI renders as live React components.
+agent. Eve keeps its native session and resumable-streaming protocol. OpenUI's
+`eveAdapter()` from `@openuidev/react-headless` maps Eve's NDJSON stream to AG-UI.
 
 ## Prerequisites
 
 - Node.js 24
 - pnpm, npm, or Bun
-- An API key for an OpenAI-compatible model provider
+- An API key for [OpenUI Cloud](https://console.thesys.dev/keys)
 
 ## Run locally
 
@@ -25,9 +25,7 @@ translates Eve events into AG-UI events that OpenUI renders as live React compon
    cp .env.example .env
    ```
 
-   Set `LLM_API_KEY` in `.env`. `LLM_MODEL` and `LLM_BASE_URL` select the model and any
-   OpenAI-compatible endpoint. `OPENAI_API_KEY`, `OPENAI_MODEL`, and `OPENAI_BASE_URL` are
-   accepted as aliases.
+   Set `THESYS_API_KEY` in `.env`. The Eve agent calls OpenUI Cloud Chat Completions as its model provider. Ask "What's the weather in Berlin?" to exercise the included Eve tool.
 
 3. Start the Next.js application and embedded Eve development server:
 
@@ -49,15 +47,16 @@ Browser / OpenUI FullScreen
 Eve HTTP channel ──► Eve agent ──► model + tools
   │
   ▼
-Eve session events ──► AG-UI adapter ──► OpenUI renderer
+Eve session events ──► eveAdapter() ──► OpenUI renderer
 ```
 
-- `src/app/page.tsx` renders OpenUI's `<FullScreen>` chat with the built-in component library.
-- `src/eve-chat.ts` delivers turns through Eve's HTTP session protocol and persists session
-  cursors per OpenUI thread.
-- `src/eve-stream.ts` converts Eve text, tool-call, and failure events into AG-UI events.
+- `src/app/page.tsx` renders OpenUI's `<AgentInterface />` with `openuiLibrary`.
+- `src/eve-chat.ts` delivers turns through Eve's HTTP session protocol, returns the raw NDJSON
+  stream, and persists session cursors per OpenUI thread. `eveAdapter()` maps that stream to AG-UI.
 - `agent/instructions/openui.ts` injects the generated OpenUI Lang prompt when an Eve session
-  starts.
+  starts. `agent/instructions/identity.md` is the agent's standing identity.
+- `agent/tools/get_weather.ts` is an example Eve tool (Open-Meteo). Eve's built-in
+  `ask_question` is disabled so clarifying questions stay in chat text.
 - `src/thread-store.ts` stores thread metadata, transcripts, continuation tokens, and stream
   positions in browser `localStorage`.
 
@@ -65,9 +64,8 @@ Eve session events ──► AG-UI adapter ──► OpenUI renderer
 
 | Environment variable | Default                                          | Purpose                                        |
 | -------------------- | ------------------------------------------------ | ---------------------------------------------- |
-| `LLM_API_KEY`        | `OPENAI_API_KEY`                                 | API key sent to the configured model provider. |
-| `LLM_MODEL`          | `OPENAI_MODEL` or `gpt-5.5`                      | Model used by the Eve agent.                   |
-| `LLM_BASE_URL`       | `OPENAI_BASE_URL` or `https://api.openai.com/v1` | OpenAI-compatible API endpoint.                |
+| `THESYS_API_KEY`     | —                                                | OpenUI Cloud API key.                          |
+| `OPENUI_MODEL`       | `google/gemini-3.6-flash-free`                   | Cloud model id for Eve's Chat Completions call. |
 
 ## Eve commands
 
@@ -90,13 +88,16 @@ pnpm start
 
 ```text
 examples/agent-frameworks/vercel-eve/
-|- agent/agent.ts                    # Eve model and build configuration
+|- agent/agent.ts                    # Eve model (Cloud Completions) and build config
 |- agent/channels/eve.ts             # Eve HTTP session channel
+|- agent/instructions/identity.md    # Standing agent identity
 |- agent/instructions/openui.ts      # Generated OpenUI Lang instructions
-|- agent/tools/get_current_time.ts   # Example Eve tool
-|- src/app/page.tsx                  # OpenUI FullScreen chat
-|- src/eve-chat.ts                   # Eve session transport and persistence
-|- src/eve-stream.ts                 # Eve-to-AG-UI event mapping
+|- agent/tools/get_weather.ts        # Example Eve tool
+|- agent/tools/ask_question.ts       # Disables Eve's built-in ask_question
+|- src/library.ts                    # openuiLibrary re-export for `openui generate --spec`
+|- src/lib/cloud-prompt.ts           # Reads spec.json into generateSystemPrompt({ cloud: true, library })
+|- src/app/page.tsx                  # OpenUI AgentInterface chat
+|- src/eve-chat.ts                   # Eve session transport, eveAdapter, persistence
 |- src/thread-store.ts               # Browser thread and transcript storage
 |- next.config.ts                    # Installs Eve through withEve()
 ```

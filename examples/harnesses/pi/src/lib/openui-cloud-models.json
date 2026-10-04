@@ -1,0 +1,17 @@
+{
+  "providers": {
+    "openui-cloud": {
+      "baseUrl": "https://api.thesys.dev/v1/embed",
+      "api": "openai-completions",
+      "apiKey": "$THESYS_API_KEY",
+      "models": [
+        {
+          "id": "google/gemini-3.6-flash-free",
+          "name": "Gemini 3.6 Flash (OpenUI Cloud)",
+          "contextWindow": 1048576,
+          "maxTokens": 16384
+        }
+      ]
+    }
+  }
+}

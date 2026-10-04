@@ -50,7 +50,7 @@ The backend and mobile client are separate install units, so either can be insta
 
 - Node.js 18+
 - pnpm, npm, or Bun
-- An OpenAI API key
+- An OpenUI Cloud API key (https://console.thesys.dev/keys)
 
 ### 1. Install dependencies
 
@@ -70,7 +70,7 @@ cp backend/env.example backend/.env.local
 Add your key to `backend/.env.local`:
 
 ```
-OPENAI_API_KEY=sk-...
+THESYS_API_KEY=sk-th-...
 ```
 
 ### 3. Generate the system prompt

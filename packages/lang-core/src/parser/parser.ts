@@ -472,7 +472,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
   // a prefix of the new cleaned text (e.g. an opening ```fence``` just appeared
   // and shifted the stripped output), the watermark + cache are stale, so reset
   // and re-scan. When the prefix is stable (the common streaming case) the cache
-  // is kept, so a partial trailing statement never blanks already-completed ones.
+  // is kept; pending text is overlaid on a copy when building the current result.
   function refreshCleaned() {
     const next = preprocess(buf);
     if (!next.startsWith(cleaned.slice(0, completedEnd))) {
@@ -581,13 +581,11 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       );
     }
 
-    // Merge: completed cache + re-parsed pending statement.
-    // Pending statements can only add NEW IDs — they cannot overwrite completed ones.
-    // This prevents mid-stream partial text (e.g. `root = Card`) from corrupting
-    // existing completed statements during edit streaming.
+    // New IDs can render progressively; existing IDs are replaced only when
+    // the pending expression no longer needs automatic closing.
     const allStmtMap = new Map(completedStmtMap);
     for (const s of stmts) {
-      if (completedStmtMap.has(s.id)) continue;
+      if (completedStmtMap.has(s.id) && wasIncomplete) continue;
       const expr = parseExpression(s.tokens);
       const stmt = classifyStatement(s, expr);
       allStmtMap.set(s.id, stmt);

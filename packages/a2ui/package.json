@@ -1,0 +1,95 @@
+{
+  "name": "@openuidev/a2ui",
+  "version": "0.3.0",
+  "description": "A2UI v1.0 protocol support with OpenUI Lang component updates and React rendering",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.cts",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./react": {
+      "import": {
+        "types": "./dist/react.d.mts",
+        "default": "./dist/react.mjs"
+      },
+      "require": {
+        "types": "./dist/react.d.cts",
+        "default": "./dist/react.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsdown",
+    "watch": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "lint:check": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "format:fix": "prettier --write ./src README.md",
+    "format:check": "prettier --check ./src README.md",
+    "check:publint": "publint",
+    "check:attw": "attw --pack . --ignore-rules=no-resolution",
+    "prepare": "pnpm run build",
+    "prepublishOnly": "pnpm run check:publint && pnpm run check:attw",
+    "ci": "pnpm run lint:check && pnpm run format:check"
+  },
+  "keywords": [
+    "a2ui",
+    "openui",
+    "openui-lang",
+    "generative-ui",
+    "renderer",
+    "protocol"
+  ],
+  "homepage": "https://openui.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesysdev/openui.git",
+    "directory": "packages/a2ui"
+  },
+  "bugs": {
+    "url": "https://github.com/thesysdev/openui/issues"
+  },
+  "author": "engineering@thesys.dev",
+  "dependencies": {
+    "@openuidev/lang-core": "workspace:^"
+  },
+  "peerDependencies": {
+    "@openuidev/react-lang": ">=0.3.0 <0.4.0",
+    "react": "catalog:",
+    "zod": "catalog:"
+  },
+  "peerDependenciesMeta": {
+    "@openuidev/react-lang": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@openuidev/react-lang": "workspace:^",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "jsdom": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "vitest": "^4.0.18"
+  }
+}

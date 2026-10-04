@@ -1,0 +1,207 @@
+@use "../../../../../cssUtils" as cssUtils;
+@use "../../../prefix" as brand;
+
+.#{brand.$prefix}-stacked-legend-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.#{brand.$prefix}-stacked-legend-header {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 cssUtils.$space-xs cssUtils.$space-xs cssUtils.$space-l;
+  color: cssUtils.$text-neutral-secondary;
+
+  &-buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: cssUtils.$space-xs;
+  }
+}
+
+.#{brand.$prefix}-stacked-legend-header-title {
+  @include cssUtils.typography(label, small);
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.#{brand.$prefix}-stacked-legend-scroll-button {
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.#{brand.$prefix}-stacked-legend {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  // Center rows vertically within the legend's full height (matches the
+  // pie beside it). `safe` falls back to flex-start when the list overflows,
+  // so long lists still scroll from the top without clipping.
+  justify-content: safe center;
+  min-width: 200px;
+  overflow-y: scroll;
+  height: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &__item {
+    // Padding inside the size, with or without a global box-sizing reset: a
+    // wider row spills past the legend, whose scroll overflow clips the values.
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px;
+    border-radius: cssUtils.$radius-m;
+    transition: all 0.2s ease-in-out;
+    height: 32px;
+    // Rows keep their height when the list overflows; the list scrolls.
+    flex-shrink: 0;
+
+    &:hover {
+      background-color: cssUtils.$sunk;
+    }
+
+    &--active {
+      background-color: cssUtils.$sunk;
+    }
+
+    &-label {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    &-color-container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      // The row's height, not taller: a taller box spills past the last row
+      // and reads as list overflow (scroll arrows on a list that fits).
+      height: 100%;
+      width: 32px;
+      flex-shrink: 0;
+    }
+
+    &-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      transition: all 0.2s ease-in-out;
+
+      .#{brand.$prefix}-stacked-legend__item:hover & {
+        transform: scale(1.2);
+      }
+
+      .#{brand.$prefix}-stacked-legend__item--active & {
+        transform: scale(1.3);
+      }
+    }
+
+    &-label-text {
+      @include cssUtils.typography(label, small);
+      color: cssUtils.$text-neutral-primary;
+      transition: color 0.2s ease-in-out;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    &-value {
+      @include cssUtils.typography(label, small);
+      color: cssUtils.$text-neutral-primary;
+      transition: all 0.2s ease-in-out;
+      flex-shrink: 0;
+    }
+  }
+
+  &-show-more-button {
+    width: 100%;
+    justify-content: center;
+    margin-top: cssUtils.$space-2xs;
+  }
+}
+
+.#{brand.$prefix}-stacked-legend-separator {
+  margin: cssUtils.$space-2xs 0;
+}
+
+// Chart + built-in stacked legend (ChartWithStackedLegend), the Pie/Radial
+// `legendVariant="stacked"` layout: legend under the chart on narrow
+// containers, side by side (half the width each) from 400px up.
+.#{brand.$prefix}-chart-with-stacked-legend {
+  display: flex;
+  position: relative;
+  gap: 20px;
+  align-items: center;
+
+  &--column {
+    flex-direction: column;
+  }
+
+  &--row {
+    flex-direction: row;
+    min-height: 296px;
+  }
+
+  &__chart {
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__legend {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  &--column &__legend {
+    align-items: flex-start;
+  }
+
+  &--row &__chart {
+    flex: 1;
+  }
+
+  &--row &__legend {
+    flex: 1;
+    min-width: 0;
+    height: 296px;
+    align-items: center;
+
+    // Vertically center the list alongside the chart.
+    .#{brand.$prefix}-stacked-legend-container {
+      justify-content: center;
+    }
+
+    .#{brand.$prefix}-stacked-legend {
+      height: auto;
+      max-height: 100%;
+    }
+  }
+}

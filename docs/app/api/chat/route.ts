@@ -1,13 +1,19 @@
+import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
+import { openuiChatPromptOptions } from "@openuidev/react-ui/genui-lib/prompt-options";
 import { readFileSync } from "fs";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions.mjs";
 import { join } from "path";
 
-const openUiSystemPrompt = readFileSync(
-  join(process.cwd(), "generated/chat-system-prompt.txt"),
-  "utf-8",
-);
+const librarySpec = JSON.parse(
+  readFileSync(join(process.cwd(), "generated/chat-library.spec.json"), "utf-8"),
+) as LibrarySpec;
+
+const openUiSystemPrompt = generateSystemPrompt({
+  library: librarySpec,
+  promptOptions: openuiChatPromptOptions,
+});
 
 const markdownSystemPrompt = `You are a helpful assistant. Respond using clear, well-structured GitHub-Flavored Markdown.
 

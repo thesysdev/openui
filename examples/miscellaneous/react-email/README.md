@@ -18,7 +18,7 @@ Describe an email in natural language, and the AI generates a live preview with 
 
 - Node.js 20+
 - pnpm, npm, or Bun
-- An [OpenAI API key](https://platform.openai.com/api-keys)
+- An [OpenUI Cloud API key](https://console.thesys.dev/keys)
 
 ## Getting Started
 
@@ -30,7 +30,7 @@ cd openui/examples/miscellaneous/react-email
 pnpm install --ignore-workspace
 ```
 
-2. Copy `.env.example` to `.env.local` and add your OpenAI API key:
+2. Copy `.env.example` to `.env.local` and add your OpenUI Cloud API key:
 
 ```bash
 cp .env.example .env.local
@@ -39,7 +39,7 @@ cp .env.example .env.local
 Edit `.env.local`:
 
 ```
-OPENAI_API_KEY=sk-your-api-key-here
+THESYS_API_KEY=sk-th-...
 ```
 
 3. Start the development server:
@@ -54,7 +54,7 @@ The app will be available at [http://localhost:3000](http://localhost:3000).
 
 | Command      | Description                                     |
 | ------------ | ----------------------------------------------- |
-| `pnpm dev`   | Start dev server (auto-generates system prompt) |
+| `pnpm dev`   | Start dev server (auto-generates library spec) |
 | `pnpm build` | Production build                                |
 | `pnpm start` | Start production server                         |
 | `pnpm lint`  | Run ESLint                                      |
@@ -78,7 +78,7 @@ src/
   app/
     page.tsx                          # Main app — compose + editor views
     layout.tsx                        # Root layout with theme provider
-    api/chat/route.ts                 # OpenAI streaming API route
+    api/chat/route.ts                 # Cloud Completions streaming API route
   components/
     composePage/
       index.tsx                       # Landing page with conversation starters
@@ -98,13 +98,16 @@ src/
     useClipboard.ts                   # Copy-to-clipboard hook
     useAutoScroll.ts                  # Auto-scroll with user override
     useEmailRendering.tsx             # HTML rendering + streaming lifecycle
+  lib/
+    cloud-prompt.ts                   # Wraps the generated spec in Cloud's prompt
   generated/
-    system-prompt.txt                 # Auto-generated from @openuidev/react-email
+    spec.json                         # Auto-generated from @openuidev/react-email
+    prompt-options.json               # Examples + rules for the Cloud prompt
 ```
 
 ## How It Works
 
-1. The system prompt is auto-generated at build time from `@openuidev/react-email`'s `emailLibrary` and `emailPromptOptions`
+1. The library spec is generated at build time from `@openuidev/react-email`; the chat route wraps it in OpenUI Cloud's managed prompt
 2. User describes an email (or clicks a starter)
 3. The AI responds in OpenUI Lang format
 4. The `Renderer` from `@openuidev/react-lang` parses and renders the email components in real time using `emailLibrary`

@@ -9,7 +9,7 @@ An AI-powered spreadsheet app that pairs a full-featured [Handsontable](https://
 ## Features
 
 - **Live spreadsheet** — Handsontable grid with Excel-like editing, 386+ formula functions (via HyperFormula), context menus, column resizing, and CSV export
-- **AI chat panel** — OpenUI `AgentInterface` chat surface (artifact rendering + thread history) that understands the spreadsheet context and responds with rich UI (charts, tables, markdown)
+- **AI chat panel** — OpenUI chat panel that understands the spreadsheet context and responds with rich UI (charts, tables, markdown)
 - **Bidirectional sync** — AI tool calls mutate the server-side table store, then push updates back to the grid via a `SpreadsheetTable` component
 - **Formula-aware row operations** — Adding or deleting rows automatically shifts cell references in formulas (mirrors Excel/Sheets behavior)
 - **Aggregate recalculation** — Total/Average/Sum/Count/Max/Min rows auto-update their formula ranges after structural changes
@@ -20,12 +20,12 @@ An AI-powered spreadsheet app that pairs a full-featured [Handsontable](https://
 ```
 ┌─────────────────────────────────┐  ┌──────────────────────────┐
 │         Spreadsheet Panel       │  │       Chat Panel          │
-│  PersistentSpreadsheet.tsx      │  │  OpenUI <AgentInterface>  │
+│  PersistentSpreadsheet.tsx      │  │  Custom chat + Renderer   │
 │  (Handsontable + HyperFormula)  │  │  spreadsheet-library.tsx  │
 └──────────────┬──────────────────┘  └────────────┬─────────────┘
                │                                  │
                │  POST /api/table                 │  POST /api/chat (SSE)
-               │  (user edits → server store)     │  (messages → OpenAI → tool calls → SSE)
+               │  (user edits → server store)     │  (messages → Cloud Completions → tools)
                ▼                                  ▼
         ┌─────────────────────────────────────────────┐
         │              Server (Next.js API Routes)     │
@@ -38,7 +38,7 @@ An AI-powered spreadsheet app that pairs a full-featured [Handsontable](https://
 **Data flow:**
 
 1. User types a message in the chat panel
-2. The message hits `POST /api/chat`, which streams an OpenAI completion with tool calls
+2. The message hits `POST /api/chat`, which streams an OpenUI Cloud completion with tool calls
 3. Tools (`get_table_data`, `update_cells`, `add_rows`, `delete_rows`, `set_formula`, `query_table`, `add_column`, `recalculate_aggregates`) read/write the in-memory `tableStore`
 4. After write operations, the LLM emits a `SpreadsheetTable` component in its OpenUI Lang response
 5. The `useSpreadsheetSync` hook picks up the new data and pushes it into Handsontable via React context
@@ -62,7 +62,7 @@ An AI-powered spreadsheet app that pairs a full-featured [Handsontable](https://
 ### Prerequisites
 
 - Node.js 18+
-- An [OpenAI API key](https://platform.openai.com/api-keys) (GPT-5.5 recommended)
+- An [OpenUI Cloud API key](https://console.thesys.dev/keys)
 
 ### Setup
 
@@ -71,7 +71,7 @@ cd examples/miscellaneous/handsontable
 
 # Copy the environment template and add your API key
 cp env.example .env
-# Edit .env and set OPENAI_API_KEY=sk-...
+# Edit .env and set THESYS_API_KEY=sk-th-...
 
 # Install dependencies
 pnpm install --ignore-workspace
@@ -86,8 +86,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the spreadsheet with 
 
 | Variable         | Required | Default   | Description                       |
 | ---------------- | -------- | --------- | --------------------------------- |
-| `OPENAI_API_KEY` | Yes      | —         | Your OpenAI API key               |
-| `OPENAI_MODEL`   | No       | `gpt-5.5` | Model to use for chat completions |
+| `THESYS_API_KEY` | Yes      | —         | Your OpenUI Cloud API key               |
 
 ## Project Structure
 
@@ -103,17 +102,17 @@ hands-on-table-chat/
 │   │   ├── useSpreadsheetSync.ts     # Hook to push AI data into the grid
 │   │   └── api/
 │   │       ├── chat/
-│   │       │   ├── route.ts           # POST endpoint — OpenAI streaming + tool loop
+│   │       │   ├── route.ts           # POST endpoint — Cloud Completions + tool loop
 │   │       │   ├── tools.ts           # 8 spreadsheet tools for the LLM
 │   │       │   ├── tableStore.ts      # In-memory table state + formula shifting
 │   │       │   └── messageStore.ts    # Conversation history store
 │   │       └── table/
 │   │           └── route.ts           # GET/POST for client ↔ server table sync
 │   ├── generated/
-│   │   └── system-prompt.txt          # Auto-generated OpenUI Lang prompt
+│   │   └── spec.json                  # Auto-generated library spec
 │   └── lib/
 │       └── spreadsheet-library.tsx    # OpenUI component library with SpreadsheetTable
-├── env.example                        # Environment variable template
+├── .env.example                       # Environment variable template
 ├── package.json
 ├── tsconfig.json
 ├── next.config.ts
@@ -128,10 +127,10 @@ hands-on-table-chat/
 | [`handsontable`](https://handsontable.com/)                                                | Excel-like data grid                               |
 | [`@handsontable/react-wrapper`](https://www.npmjs.com/package/@handsontable/react-wrapper) | React bindings for Handsontable                    |
 | [`hyperformula`](https://hyperformula.handsontable.com/)                                   | Formula engine (386+ Excel-compatible functions)   |
-| [`@openuidev/react-ui`](https://openui.com/docs)                                           | OpenUI `AgentInterface` chat component             |
+| [`@openuidev/react-ui`](https://openui.com/docs)                                           | OpenUI chat panel                                  |
 | [`@openuidev/react-headless`](https://openui.com/docs)                                     | OpenUI adapter and message formatting              |
 | [`@openuidev/react-lang`](https://openui.com/docs)                                         | OpenUI Lang component library DSL                  |
-| [`openai`](https://www.npmjs.com/package/openai)                                           | OpenAI SDK for chat completions with tool calling  |
+| [`openai`](https://www.npmjs.com/package/openai)                                           | OpenAI SDK pointed at OpenUI Cloud Completions     |
 | [`next`](https://nextjs.org/)                                                              | React framework with API routes and SSE streaming. |
 
 ## Try These Prompts

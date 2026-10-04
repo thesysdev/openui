@@ -3,13 +3,13 @@ title: Sidebar
 description: Add your own nav items to the left sidebar, or replace it entirely through the Sidebar slot.
 ---
 
-The left sidebar holds the header, the thread list, and (when artifact storage is configured) an artifact entry. Add a couple of your own links above the threads, or take over the whole region.
+The left sidebar holds the header and thread list. Add a couple of your own links above the threads, or take over the whole region.
 
 Both go through the `Sidebar` slot. Its children replace the sidebar's inner content, so you re-include the default pieces you want to keep. `SidebarContent` and `SidebarSeparator` are primitives you compose inside the slot, not slots themselves.
 
 ## Add nav items above the thread list
 
-The common case: a few of your own links, the default thread list underneath. Pass children to the `Sidebar` slot and re-include `SidebarHeader`, `ArtifactNav`, and `ThreadList`.
+The common case: a few of your own links, with the default thread list underneath. Pass children to the `Sidebar` slot and re-include `SidebarHeader` and `ThreadList`.
 
 ```tsx
 import { AgentInterface } from "@openuidev/react-ui";
@@ -29,11 +29,10 @@ import { Home, LayoutDashboard } from "lucide-react";
       <AgentInterface.SidebarSeparator />
 
       {/* keep the defaults */}
-      <AgentInterface.ArtifactNav />
       <AgentInterface.ThreadList />
     </AgentInterface.SidebarContent>
   </AgentInterface.Sidebar>
-</AgentInterface>
+</AgentInterface>;
 ```
 
 A `SidebarItem` with `path` navigates. Without one, handle the click yourself via `onClick`. When `path` is set, the item highlights while its route is active, and clicking it calls the router. Your `onClick` runs first; call `event.preventDefault()` to suppress navigation.
@@ -77,8 +76,6 @@ import { Home, LifeBuoy } from "lucide-react";
         Home
       </AgentInterface.SidebarItem>
 
-      <AgentInterface.SidebarSeparator />
-      <AgentInterface.ArtifactNav />
       <AgentInterface.ThreadList />
       <AgentInterface.SidebarSeparator />
 
@@ -90,9 +87,7 @@ import { Home, LifeBuoy } from "lucide-react";
       </AgentInterface.SidebarItem>
     </AgentInterface.SidebarContent>
   </AgentInterface.Sidebar>
-</AgentInterface>
+</AgentInterface>;
 ```
-
-<Callout type="info">`ArtifactNav` renders nothing unless `storage.artifact` is configured. It auto-appears in the default sidebar and stays safe to include in a custom one regardless. With [artifact categories](/docs/agent/core-concepts/artifacts) it renders one entry per category, otherwise a single "Artifacts" item.</Callout>
 
 Put `SidebarHeader` inside the slot, not at the top level. When you replace the sidebar, you compose the header there too. `NewChatButton` is not part of the default sidebar content (it lives in the mobile header), so place it yourself if you want it on desktop.

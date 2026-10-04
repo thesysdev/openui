@@ -1,0 +1,148 @@
+@use "../../../../cssUtils" as cssUtils;
+
+.openui-editable-table-cell-base {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: cssUtils.$space-s cssUtils.$space-m;
+  color: cssUtils.$text-neutral-primary;
+  @include cssUtils.typography(body, small);
+}
+
+.openui-editable-table-cell-input {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  background-color: transparent;
+  outline: none;
+  appearance: textfield;
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    appearance: none;
+  }
+}
+
+.openui-editable-table-display {
+  &-text {
+    position: absolute;
+    width: calc(100% - cssUtils.$space-m * 2);
+    left: cssUtils.$space-m;
+    top: 50%;
+    transform: translateY(-50%);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    @include cssUtils.typography(body, small);
+  }
+
+  &-number {
+    position: absolute;
+    width: calc(100% - cssUtils.$space-m * 2);
+    left: cssUtils.$space-m;
+    top: 50%;
+    transform: translateY(-50%);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+    @include cssUtils.typography(number, small);
+  }
+
+  &-url {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    @include cssUtils.typography(body, small);
+
+    &-container {
+      display: flex;
+      align-items: center;
+      gap: cssUtils.$space-s;
+      // Mirror non-URL display positioning for vertical centering inside the cell
+      position: absolute;
+      width: calc(100% - cssUtils.$space-m * 2);
+      left: cssUtils.$space-m;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      color: cssUtils.$text-neutral-secondary;
+    }
+
+    &-warning-icon {
+      flex-shrink: 0;
+      color: cssUtils.$text-danger-primary;
+      // TODO: Make this visible when the URL validation is implemented
+      display: none;
+    }
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.openui-editable-table-cell-outline {
+  &-top,
+  &-bottom {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 0px;
+    background-color: cssUtils.$border-interactive-selected;
+
+    &-selected {
+      height: 1px;
+    }
+
+    &-editing {
+      height: 1.5px;
+    }
+  }
+
+  &-top {
+    top: 0;
+  }
+
+  &-bottom {
+    bottom: 0;
+  }
+
+  &-left,
+  &-right {
+    position: absolute;
+    top: 0;
+    width: 0px;
+    height: 100%;
+    background-color: cssUtils.$border-interactive-selected;
+
+    &-selected {
+      width: 1px;
+    }
+
+    &-editing {
+      width: 1.5px;
+    }
+  }
+
+  &-left {
+    left: 0;
+  }
+
+  &-right {
+    right: 0;
+  }
+}
+
+.openui-editable-table-select-trigger {
+  width: 100%;
+}
+
+.openui-editable-table-select-item {
+  @include cssUtils.typography(body, small);
+}

@@ -162,5 +162,5 @@ upstream LangGraph requests.
   types.
 
 See the repository's
-[`examples/agent-frameworks/langchain`](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/langchain)
+[`examples/agent-frameworks/langgraph-platform`](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/langgraph-platform)
 for a complete local and LangGraph Platform example.

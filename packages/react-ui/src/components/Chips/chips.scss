@@ -1,0 +1,65 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: cssUtils.$space-s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.openui-chip-item {
+  @include cssUtils.button-reset;
+  display: inline-flex;
+  align-items: center;
+  gap: cssUtils.$space-xs;
+  padding: cssUtils.$space-xs cssUtils.$space-s;
+  border: 1px solid cssUtils.$border-interactive;
+  border-radius: cssUtils.$radius-m;
+  box-sizing: border-box;
+  cursor: pointer;
+  background: transparent;
+  color: cssUtils.$text-neutral-primary;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+  @include cssUtils.typography(label, default);
+
+  &:not(:disabled):not(.openui-chip-item--selected):hover {
+    border-color: cssUtils.$border-default;
+    background-color: cssUtils.$sunk-light;
+  }
+
+  &:focus-visible {
+    outline: 2px solid cssUtils.$border-accent;
+    outline-offset: 2px;
+  }
+
+  &--selected {
+    border-color: cssUtils.$border-interactive-selected;
+    background-color: cssUtils.$highlight-strong;
+  }
+
+  &:disabled,
+  &--disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.openui-chip-item__icon {
+  display: flex;
+  align-items: center;
+
+  & > * {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.openui-chip-item__text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

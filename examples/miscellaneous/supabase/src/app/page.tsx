@@ -8,6 +8,7 @@ import {
   openAIMessageFormat,
   restStorage,
 } from "@openuidev/react-ui";
+import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useEffect, useMemo, useState } from "react";
 
@@ -75,7 +76,13 @@ export default function Page() {
 
   return (
     <div className="h-screen w-screen overflow-hidden">
-      <AgentInterface key={threadListKey} storage={storage} llm={llm} agentName="Supabase Chat" />
+      <AgentInterface
+        key={threadListKey}
+        storage={storage}
+        llm={llm}
+        componentLibrary={openuiLibrary}
+        agentName="Supabase Chat"
+      />
     </div>
   );
 }

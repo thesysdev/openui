@@ -1,23 +1,30 @@
+import tailwindcss from "@tailwindcss/vite";
+
+const openuiDeps = [
+  "@openuidev/lang-core",
+  "@openuidev/vue-lang",
+  "zod",
+];
+
 export default defineNuxtConfig({
   compatibilityDate: "2025-03-01",
   ssr: false,
   modules: [],
   css: ["~/assets/app.css"],
   nitro: {
-    // lang-core uses bundler-style extensionless imports in dist/
-    // so Nitro must bundle (not externalize) it for Node ESM compat
+    // Bundle these so Node doesn't load workspace lang-core as a raw ESM
+    // file (that path cannot resolve the example's `zod`).
     externals: {
-      inline: ["@openuidev/lang-core", "@openuidev/vue-lang"],
+      inline: openuiDeps,
     },
   },
   vite: {
+    plugins: [tailwindcss()],
+    ssr: {
+      noExternal: openuiDeps,
+    },
     optimizeDeps: {
       include: ["@openuidev/vue-lang"],
-    },
-  },
-  postcss: {
-    plugins: {
-      "@tailwindcss/postcss": {},
     },
   },
 });

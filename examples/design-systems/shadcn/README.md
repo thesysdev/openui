@@ -30,7 +30,7 @@ Card([
 ])
 ```
 
-On the client, the `<AgentInterface />` component from `@openuidev/react-ui` handles everything — thread history, conversation state, streaming, input, and rendering. You give it an `llm` describing how to call your backend and parse its stream, and a `componentLibrary`. It parses the incoming SSE stream with `openAIAdapter()` and renders each OpenUI Lang node using `shadcnChatLibrary` — the custom 45-component library defined in `src/lib/shadcn-genui/`.
+On the client, the `<AgentInterface />` component from `@openuidev/react-ui` handles everything — thread history, conversation state, streaming, input, and rendering. You give it an `llm` describing how to call your backend and parse its stream, and a `componentLibrary`. Threads stay in memory (no Cloud storage). It parses Chat Completions SSE with `openAIAdapter()` and renders each OpenUI Lang node using `shadcnChatLibrary` — the custom 45-component library defined in `src/lib/shadcn-genui/`.
 
 ---
 
@@ -40,21 +40,21 @@ On the client, the `<AgentInterface />` component from `@openuidev/react-ui` han
 ┌────────────────────────────────────┐        ┌────────────────────────────────────┐
 │   Browser                          │  HTTP  │   Next.js API Route                │
 │                                    │ ──────►│                                    │
-│  • <AgentInterface /> manages UI   │        │  • Loads system-prompt.txt         │
-│  • openAIAdapter() parses SSE      │◄────── │  • Calls LLM with runTools         │
-│  • shadcnChatLibrary renders nodes │  SSE   │  • Executes tools server-side      │
-│  • Conversation starters included  │        │  • Streams response as SSE events  │
+│  • <AgentInterface /> manages UI   │        │  • OpenUI Cloud Completions proxy  │
+│  • openAIAdapter()                 │◄────── │  • Full thread sent each turn      │
+│  • shadcnChatLibrary renders nodes │  SSE   │  • App tools via runChatToolLoop   │
+│  • In-memory threads               │        │  • Streams Completions SSE events  │
 └────────────────────────────────────┘        └────────────────────────────────────┘
 ```
 
 ### Request / Response Flow
 
-1. User types a message. `<AgentInterface />` calls `llm.send`, which sends `POST /api/chat` with the conversation history formatted via `openAIMessageFormat.toApi()`.
-2. The API route reads `system-prompt.txt`, instantiates an OpenAI client, and calls `runTools` — the OpenAI SDK's built-in multi-step tool execution loop.
-3. If the LLM calls a tool, `runTools` executes it server-side and feeds the result back into the model automatically, emitting SSE events for the tool call and result.
-4. The LLM generates a final OpenUI Lang response. Text deltas are streamed as SSE `chunk` events. The stream ends with `data: [DONE]`.
-5. On the client, `openAIAdapter()` parses the SSE events and hands the accumulated text to `<AgentInterface />`'s internal renderer.
-6. The renderer passes the text to `<Renderer response={text} library={shadcnChatLibrary} />`, which parses the OpenUI Lang markup and renders each node as a shadcn/ui component in real time.
+1. User types a message. `<AgentInterface />` calls `llm.send`, which sends `POST /api/chat` with the full thread formatted via `openAIMessageFormat`.
+2. The API route loads the generated library spec, wraps it with `generateSystemPrompt({ cloud: true })`, and calls OpenUI Cloud's Chat Completions API with the full message history.
+3. If the model calls an app-owned tool, `runChatToolLoop` executes it on this server and continues until the model returns a final answer.
+4. The model streams OpenUI Lang as Chat Completions SSE events.
+5. On the client, `openAIAdapter()` parses the events and hands the accumulated text to `<AgentInterface />`.
+6. The renderer parses OpenUI Lang against `shadcnChatLibrary` and renders each node as a shadcn/ui component in real time.
 
 ---
 
@@ -64,12 +64,10 @@ On the client, the `<AgentInterface />` component from `@openuidev/react-ui` han
 shadcn/
 ├── src/
 │   ├── app/
-│   │   ├── api/chat/route.ts      # Streaming chat endpoint (OpenAI SDK + SSE)
+│   │   ├── api/chat/route.ts      # OpenUI Cloud Completions proxy + app tools
 │   │   ├── page.tsx               # Single page — mounts <AgentInterface />
 │   │   └── layout.tsx             # Root layout with ThemeProvider
 │   ├── components/ui/             # Base shadcn/ui primitives (accordion, card, table, etc.)
-│   ├── hooks/
-│   │   └── use-system-theme.tsx   # Detects and provides system light/dark preference
 │   ├── lib/
 │   │   └── shadcn-genui/          # Custom OpenUI component library
 │   │       ├── index.tsx          # Library export — createLibrary() call
@@ -79,7 +77,7 @@ shadcn/
 │   │       ├── unions.ts          # Zod union types for component children
 │   │       └── components/        # One file per component (45+ total)
 │   └── generated/
-│       └── system-prompt.txt      # Auto-generated — do not edit manually
+│       └── spec.json              # Auto-generated library spec — do not edit manually
 └── package.json
 ```
 
@@ -91,7 +89,7 @@ shadcn/
 
 - Node.js 18+
 - pnpm, npm, or Bun
-- An OpenAI API key
+- An OpenUI Cloud API key (https://console.thesys.dev/keys)
 
 ### 1. Install dependencies
 
@@ -105,7 +103,7 @@ pnpm install --ignore-workspace
 Create a `.env.local` file in the `examples/design-systems/shadcn/` directory:
 
 ```
-OPENAI_API_KEY=sk-...
+THESYS_API_KEY=sk-th-...
 ```
 
 ### 3. Start the dev server
@@ -114,7 +112,7 @@ OPENAI_API_KEY=sk-...
 pnpm dev
 ```
 
-This runs `generate:prompt` first (compiles the component library → `src/generated/system-prompt.txt`) then starts the Next.js dev server at `http://localhost:3000`.
+This runs `generate` first (compiles the component library → `src/generated/spec.json`) then starts the Next.js dev server at `http://localhost:3000`.
 
 ---
 
@@ -122,58 +120,37 @@ This runs `generate:prompt` first (compiles the component library → `src/gener
 
 ### System Prompt Generation
 
-The `src/lib/shadcn-genui/index.tsx` file defines the entire component library using `createLibrary()`. At dev time, the OpenUI CLI reads this library and generates `src/generated/system-prompt.txt` — a text file containing every component's name, prop schema, description, and usage examples. This is what the LLM receives as its system prompt.
+The `src/lib/shadcn-genui/index.tsx` file defines the entire component library using `createLibrary()`. At dev time, the OpenUI CLI reads this library and writes `src/generated/spec.json`. Cloud's `generateSystemPrompt({ cloud: true, library })` turns that spec into the managed system prompt.
 
 Re-run generation any time you change component definitions:
 
 ```bash
-pnpm generate:prompt
+pnpm generate
 ```
 
 ### `src/app/api/chat/route.ts` — Backend
 
-The route uses `client.chat.completions.runTools()` from the OpenAI SDK, which handles the full agentic loop: if the LLM calls a tool, the SDK executes it and feeds the result back automatically until the model produces a final text response.
+The route proxies OpenUI Cloud's Chat Completions API. Completions is message-based, so the full thread is sent every turn. App-owned tools run in `runChatToolLoop`.
 
-The response is streamed as **Server-Sent Events (SSE)**. Three types of SSE events are emitted:
-
-| Event type       | When emitted              | What it carries                               |
-| ---------------- | ------------------------- | --------------------------------------------- |
-| Tool call start  | LLM invokes a tool        | Tool name and ID                              |
-| Tool call result | Tool execution completes  | Enriched JSON with `_request` and `_response` |
-| Text chunk       | LLM generates text tokens | The OpenUI Lang markup delta                  |
-
-Messages are cleaned before sending to the API: `tool` role messages are stripped, and `tool_calls` are removed from assistant messages (since `runTools` reruns the agentic loop server-side on each request).
+The response is streamed as **Chat Completions SSE** for `openAIAdapter()`.
 
 ### `src/app/page.tsx` — Frontend
 
-The entire chat interface is the `<AgentInterface />` component from `@openuidev/react-ui`. You configure it with two core props:
+The entire chat interface is the `<AgentInterface />` component from `@openuidev/react-ui`. You configure it with:
 
 | Prop               | Value                      | Purpose                                                                   |
 | ------------------ | -------------------------- | ------------------------------------------------------------------------- |
 | `llm`              | `{ send, streamProtocol }` | How to call your backend (`send`) and parse its stream (`streamProtocol`) |
 | `componentLibrary` | `shadcnChatLibrary`        | Which components to render OpenUI Lang nodes with                         |
 
-`storage` is optional — omit it for the built-in in-memory default (wiped on reload). Pass a `ChatStorage` adapter to persist the thread list.
-
-`llm.send` calls `fetch("/api/chat", ...)` with the conversation history formatted via `openAIMessageFormat.toApi()`, and `llm.streamProtocol` is set to `openAIAdapter()`:
+`llm` is created with `fetchLLM({ streamAdapter: openAIAdapter(), messageFormat: openAIMessageFormat })`. Threads stay in memory — there is no `storage` prop.
 
 ```tsx
 <AgentInterface
-  llm={{
-    send: ({ messages, signal }) =>
-      fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: openAIMessageFormat.toApi(messages) }),
-        signal,
-      }),
-    streamProtocol: openAIAdapter(),
-  }}
+  llm={llm}
   componentLibrary={shadcnChatLibrary}
 />
 ```
-
-`openAIAdapter()` and `openAIMessageFormat` are imported from `@openuidev/react-ui`. `openAIAdapter()` knows how to parse the OpenAI-style SSE format emitted by this route, and `openAIMessageFormat.toApi()` converts the internal message objects into the format the OpenAI API expects.
 
 The page also passes 7 built-in `starters` (each a `{ displayText, prompt }` pair) to showcase the component library:
 
@@ -274,7 +251,7 @@ Returns mock search results for any query.
 | Script                 | Description                                                  |
 | ---------------------- | ------------------------------------------------------------ |
 | `pnpm dev`             | Generate system prompt, then start the Next.js dev server    |
-| `pnpm generate:prompt` | Recompile `shadcn-genui` → `src/generated/system-prompt.txt` |
+| `pnpm generate` | Recompile `shadcn-genui` → `src/generated/spec.json` |
 | `pnpm build`           | Build for production                                         |
 | `pnpm start`           | Start the production server                                  |
 

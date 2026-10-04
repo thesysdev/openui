@@ -14,10 +14,10 @@ header = CardHeader("Q1 Sales")
 tbl = Table([Col("Product"), Col("Revenue", "number")], [["Widget", 1200]])
 ```
 
-On the client, `<AgentInterface />` from `@openuidev/react-ui` provides the artifact chat interface — thread history, streaming, input, and rendering. It requires an `llm` object whose `send()` calls the backend and whose `streamProtocol` parses the incoming SSE stream with `openAIAdapter()`, and a `componentLibrary` (`muiChatLibrary` — the custom component library defined in `src/lib/mui-genui/`) used to render each OpenUI Lang node. `storage` is optional — threads live in memory by default and reset on reload.
+On the client, `<AgentInterface />` from `@openuidev/react-ui` provides the chat interface. It uses `openAIAdapter()` for Chat Completions SSE. Threads stay in memory (no Cloud storage). `muiChatLibrary` renders each OpenUI Lang node.
 
 ```tsx
-<AgentInterface llm={{ send, streamProtocol: openAIAdapter() }} componentLibrary={muiChatLibrary} />
+<AgentInterface llm={llm} componentLibrary={muiChatLibrary} />
 ```
 
 ## Architecture
@@ -26,17 +26,17 @@ On the client, `<AgentInterface />` from `@openuidev/react-ui` provides the arti
 ┌────────────────────────────────────┐        ┌────────────────────────────────────┐
 │   Browser                          │  HTTP  │   Next.js API Route                │
 │                                    │ ──────►│                                    │
-│  • <AgentInterface /> manages UI   │        │  • Loads system-prompt.txt         │
-│  • openAIAdapter() parses SSE      │◄────── │  • Calls LLM with runTools         │
-│  • muiChatLibrary renders nodes    │  SSE   │  • Executes tools server-side      │
-│  • MUI ThemeProvider + CssBaseline │        │  • Streams response as SSE events  │
+│  • <AgentInterface /> manages UI   │        │  • Loads spec.json                 │
+│  • openAIAdapter()                 │◄────── │  • OpenUI Cloud Completions proxy  │
+│  • muiChatLibrary renders nodes    │  SSE   │  • App tools via runChatToolLoop   │
+│  • MUI ThemeProvider + CssBaseline │        │  • Streams Completions SSE events  │
 └────────────────────────────────────┘        └────────────────────────────────────┘
 ```
 
-1. The user types a message. `<AgentInterface />` invokes the `llm.send()` callback, which `POST`s to `/api/chat` with the conversation history formatted via `openAIMessageFormat.toApi()`.
-2. The API route reads `src/generated/system-prompt.txt`, instantiates an OpenAI client, and calls `runTools` — the OpenAI SDK's multi-step tool-execution loop.
-3. Tool calls run server-side; results are fed back to the model automatically and emitted as SSE events.
-4. The LLM streams a final OpenUI Lang response. The stream ends with `data: [DONE]`.
+1. The user types a message. `<AgentInterface />` invokes `llm.send()`, which `POST`s to `/api/chat` with the full thread formatted via `openAIMessageFormat`.
+2. The API route loads the generated library spec, calls OpenUI Cloud's Chat Completions API, and runs app-owned tools with `runChatToolLoop`.
+3. Tool calls run server-side; results are appended as `role: "tool"` messages and the loop continues until the model answers.
+4. The model streams OpenUI Lang as Chat Completions SSE events.
 5. The client parses the events with `openAIAdapter()` and renders each node as a Material UI component as it streams in.
 
 ## Project Structure
@@ -46,7 +46,7 @@ material-ui/
 ├── src/
 │   ├── library.ts                 # Entry the OpenUI CLI reads to generate the prompt
 │   ├── app/
-│   │   ├── api/chat/route.ts      # Streaming chat endpoint (OpenAI SDK + SSE)
+│   │   ├── api/chat/route.ts      # OpenUI Cloud Completions proxy + app tools
 │   │   ├── page.tsx               # Mounts <AgentInterface /> + color-mode toggle
 │   │   ├── layout.tsx             # Root layout with ColorModeProvider
 │   │   └── globals.css            # Minimal full-height reset
@@ -62,7 +62,7 @@ material-ui/
 │   │       ├── unions.ts          # Zod union types for component children
 │   │       └── components/        # One file per component (MUI wrappers)
 │   └── generated/
-│       └── system-prompt.txt      # Auto-generated — do not edit manually
+│       └── spec.json              # Auto-generated library spec — do not edit manually
 └── package.json
 ```
 
@@ -80,7 +80,7 @@ The library exposes a representative subset of Material UI components mapped to 
 | Layout     | `Tabs` / `TabItem`, `Accordion` / `AccordionItem`                                             |
 | Follow-ups | `FollowUpBlock` / `FollowUpItem`                                                              |
 
-Each component is defined with `defineComponent({ name, props, description, component })` where `props` is a Zod schema. The schema and description are serialized into the system prompt by `pnpm generate:prompt` (the OpenUI CLI reads `src/library.ts`), and `component` renders the node with Material UI primitives.
+Each component is defined with `defineComponent({ name, props, description, component })` where `props` is a Zod schema. The schema and description are serialized into `src/generated/spec.json` by `pnpm generate` (the OpenUI CLI reads `src/library.ts`), and `component` renders the node with Material UI primitives.
 
 ## Theming
 
@@ -92,7 +92,7 @@ The app wraps everything in MUI's `ThemeProvider` + `CssBaseline` via `ColorMode
 
 - Node.js 20.x
 - pnpm, npm, or Bun
-- An OpenAI API key
+- An OpenUI Cloud API key (https://console.thesys.dev/keys)
 
 ### Setup
 
@@ -106,8 +106,7 @@ pnpm install --ignore-workspace
 Provide your API key:
 
 ```bash
-cp .env.example .env.local
-# edit .env.local and set OPENAI_API_KEY
+pnpm generate:apiKey
 ```
 
 ### Develop
@@ -116,14 +115,14 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-`pnpm dev` first runs `generate:prompt` to (re)generate `src/generated/system-prompt.txt` from the library, then starts Next.js on http://localhost:3000.
+`pnpm dev` first runs `generate` to (re)write `src/generated/spec.json` from the library, then starts Next.js on http://localhost:3000.
 
 ### Regenerate the system prompt
 
-Whenever you add or change a component, regenerate the prompt:
+Whenever you add or change a component, regenerate the spec:
 
 ```bash
-pnpm generate:prompt
+pnpm generate
 ```
 
 ### Build
@@ -137,7 +136,7 @@ pnpm build
 1. Create `src/lib/mui-genui/components/<name>.tsx` and export a `defineComponent({ ... })`.
 2. If it can appear inside other containers, add its `.ref` to `ContentChildUnion` in `unions.ts`.
 3. Register it in the `components` array (and a `componentGroups` entry) in `index.tsx`.
-4. Run `pnpm generate:prompt` so the LLM learns about it.
+4. Run `pnpm generate` so the LLM learns about it.
 
 ## Verify
 

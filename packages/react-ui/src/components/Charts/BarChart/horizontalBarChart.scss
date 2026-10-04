@@ -1,0 +1,142 @@
+// The HORIZONTAL BarChart's layout + look — a faithful port of react-ui's
+// `horizontalBarChart.scss`, re-prefixed `#{brand.$prefix}-horizontal-bar-chart*` and
+// pulling the same design tokens from `@openuidev/react-ui/scssUtils`.
+//
+// Owns the scrolling-body / fixed-bottom-axis flex layout (openui's
+// container / inner-wrapper / inner / main-container / x-axis-container), the
+// full-width category label (ellipsis-truncated in CSS via the renderer's
+// `<foreignObject>`), the value-tick + gridline styling, and the bars'
+// grow-from-the-zero-line entrance. `@forward`ed from `src/styles.scss` — never
+// imported from a `.tsx` (eslint-banned).
+
+@use "../../../cssUtils" as cssUtils;
+@use "../shared/cartesian/chartBase" as base;
+@use "../prefix" as brand;
+
+.#{brand.$prefix}-horizontal-bar-chart {
+  &-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  // The flex ROW that holds the inner body beside the scroll-buttons column.
+  // Clips overflow so the scrolling body scrolls internally (never the page).
+  &-container-inner-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+  }
+
+  // The inner body (flex:1) — the MEASURED node (see the impl's SCROLL-GUTTER
+  // CONTRACT). `min-width:0` lets it shrink so the category label's ellipsis has
+  // a real width to truncate against.
+  &-container-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+  }
+
+  // The vertically-scrolling rows body. `height:100%` + the default flex-shrink
+  // lets it fill the space above the flex-shrink:0 bottom axis. Scrollbar hidden
+  // across engines (the ScrollButtonsVertical column drives scrolling instead).
+  &-main-container {
+    height: 100%;
+    overflow-y: auto;
+
+    // Chrome / Safari / Opera
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    // Firefox
+    scrollbar-width: none;
+    // IE / Edge
+    -ms-overflow-style: none;
+  }
+
+  // The fixed bottom value-axis band, pinned below the scrolling body.
+  &-x-axis-container {
+    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-top: 1px solid cssUtils.$border-default;
+    padding-top: cssUtils.$space-2xs;
+  }
+
+  // The per-row category label (rendered once, above its bar group, inside a
+  // full-width `<foreignObject>` so this div can ellipsis-truncate in CSS).
+  &-category-label {
+    display: flex;
+    align-items: center;
+    color: cssUtils.$text-neutral-secondary;
+    @include cssUtils.typography(label, extra-small);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 100%;
+    padding-left: cssUtils.$space-m;
+    box-sizing: border-box;
+  }
+}
+
+// Bottom value-axis tick labels — the shared native-SVG tick typography + fill.
+.#{brand.$prefix}-horizontal-bar-chart-x-tick {
+  @include base.svg-tick-label;
+}
+
+// Vertical gridlines at the value ticks (dashed), matching the other cartesian
+// grids. `VerticalGrid` emits bare `<line>`s, so the stroke lives here.
+.#{brand.$prefix}-horizontal-bar-chart-grid-vertical line {
+  stroke: cssUtils.$border-default;
+  stroke-dasharray: 3 3;
+}
+
+// The internal decorative line never eats the row's hover (the svg-level handler
+// hit-tests the pointer's y against the row offsets).
+.#{brand.$prefix}-horizontal-bar-chart-internal-line {
+  pointer-events: none;
+}
+
+// The hovered-ROW highlight band (full row width, one group tall), springing on
+// Y behind the bars. Mirrors the vertical BarChart's `-hover-highlight` fill/
+// opacity (openui's cursor is `var(--openui-highlight)`); never eats the hover.
+.#{brand.$prefix}-horizontal-bar-chart-crosshair {
+  fill: cssUtils.$text-neutral-primary;
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+// Entrance: each bar (and its internal line — the renderer tags both with the
+// same `--animated` class) grows rightward from the value-zero line
+// (`transform-origin: left center` + `scaleX`). Gate the WHOLE rule behind
+// reduced-motion so opt-out users get the settled bar immediately — gating only
+// the animation would strand bars at `scaleX(0)`. The painter sets the per-row
+// `animationDelay` for the stagger.
+@media (prefers-reduced-motion: no-preference) {
+  .#{brand.$prefix}-horizontal-bar-chart-bar--animated {
+    transform-box: fill-box;
+    transform-origin: left center;
+    animation: #{brand.$prefix}-horizontal-bar-grow 0.6s ease-out both;
+  }
+  // A negative bar's zero-line edge is its RIGHT (its left edge is the outer
+  // end) — grow leftward from there so it expands outward from zero like a
+  // positive bar, not inward toward it.
+  .#{brand.$prefix}-horizontal-bar-chart-bar--animated.#{brand.$prefix}-horizontal-bar-chart-bar--negative {
+    transform-origin: right center;
+  }
+}
+
+@keyframes #{brand.$prefix}-horizontal-bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}

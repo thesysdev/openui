@@ -39,7 +39,11 @@ import {
 import { NavProvider, useNav } from "./_shared/navContext";
 import { StartersProvider } from "./_shared/startersContext";
 import { useAgentInterfaceStore } from "./_shared/store";
-import type { AssistantMessageComponent, UserMessageComponent } from "./_shared/types";
+import type {
+  AssistantMessageComponent,
+  ToolCallTimelineComponent,
+  UserMessageComponent,
+} from "./_shared/types";
 import { ArtifactBrowserPage } from "./ArtifactBrowserPage";
 import { ArtifactNav } from "./ArtifactNav";
 import { ArtifactViewPage } from "./ArtifactViewPage";
@@ -61,6 +65,8 @@ import { Workspace } from "./Workspace";
 export interface AgentInterfaceComponents {
   AssistantMessage?: AssistantMessageComponent;
   UserMessage?: UserMessageComponent;
+  /** Replaces the built-in turn-level tool activity timeline. */
+  ToolCallTimeline?: ToolCallTimelineComponent;
 }
 
 export interface AgentInterfaceProps extends Omit<ChatProviderProps, "children"> {
@@ -252,6 +258,7 @@ export const AgentInterface: AgentInterfaceComponent = ((props: AgentInterfacePr
                 agentName={agentName ?? ""}
                 resolvedAssistantMessage={resolvedAssistantMessage}
                 resolvedUserMessage={resolvedUserMessage}
+                toolCallTimeline={components?.ToolCallTimeline}
                 scrollVariant={scrollVariant}
                 scrollOnLoad={scrollOnLoad}
               />
@@ -269,6 +276,7 @@ interface AgentInterfaceBodyProps {
   agentName: string;
   resolvedAssistantMessage: AssistantMessageComponent | undefined;
   resolvedUserMessage: UserMessageComponent | undefined;
+  toolCallTimeline?: ToolCallTimelineComponent;
   scrollVariant?: ScrollVariant;
   scrollOnLoad?: boolean;
 }
@@ -374,6 +382,7 @@ const AgentInterfaceBody = ({
   agentName,
   resolvedAssistantMessage,
   resolvedUserMessage,
+  toolCallTimeline,
   scrollVariant,
   scrollOnLoad,
 }: AgentInterfaceBodyProps) => {
@@ -448,6 +457,7 @@ const AgentInterfaceBody = ({
                 loader={<MessageLoading />}
                 assistantMessage={resolvedAssistantMessage}
                 userMessage={resolvedUserMessage}
+                toolCallTimeline={toolCallTimeline}
               />
             </ScrollArea>
             {slots.composer ?? <Composer />}

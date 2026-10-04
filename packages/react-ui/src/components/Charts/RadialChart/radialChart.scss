@@ -1,84 +1,22 @@
 @use "../../../cssUtils" as cssUtils;
+@use "../shared/cartesian/chartBase" as base;
+@use "../prefix" as brand;
 
-// Main wrapper for the entire chart component
-.openui-radial-chart-container-wrapper {
-  display: flex;
-  position: relative;
-  gap: 20px;
+@include base.centered-container("radial-chart");
+@include base.centered-svg-wrapper("radial-chart");
 
-  // Default legend is always a column layout
-  &.legend-default {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  // Stacked legend uses a column layout by default (mobile-first)
-  &.legend-stacked.layout-column {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  // Switches to a row layout on wider containers
-  &.legend-stacked.layout-row {
-    flex-direction: row;
-    align-items: center; // Vertically center chart and legend
-    max-height: 296px;
-
-    .openui-radial-chart-legend-container {
-      height: 296px;
-    }
-  }
+.#{brand.$prefix}-radial-chart-grid-circle {
+  stroke: cssUtils.$border-default;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
 }
 
-// Container for the chart itself
-.openui-radial-chart-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  width: 100%;
-  height: 100%;
-
-  // When in a row layout, the chart container should be flexible
-  .layout-row & {
-    flex: 1;
-    min-width: 0; // Prevent flexbox overflow issues
-  }
-}
-
-// Recharts chart styles
-.openui-radial-chart {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .recharts-polar-grid {
-    opacity: 0.3;
-  }
-}
-
-// Container for the legend component
-.openui-radial-chart-legend-container {
-  display: flex;
-  justify-content: center;
-
-  // Default legend is centered at the bottom
-  .legend-default & {
-    width: 100%;
-    align-items: center;
-  }
-
-  // Stacked legend in column layout
-  .layout-column.legend-stacked & {
-    width: 100%;
-    align-items: flex-start;
-  }
-
-  // Stacked legend in row layout
-  .layout-row.legend-stacked & {
-    flex: 1;
-    min-width: 0; // Prevent flexbox overflow
-    height: 100%;
-    align-items: center; // Vertically center legend content
+// Entrances are decorative: gate the whole rule (pre-state included) behind
+// reduced-motion so users who opt out get the natural static state immediately
+// — gating only the animation would strand elements at the opacity: 0 start.
+@media (prefers-reduced-motion: no-preference) {
+  .#{brand.$prefix}-radial-chart-bar--animated {
+    opacity: 0;
+    animation: #{brand.$prefix}-fade-appear 0.5s ease-out forwards;
   }
 }

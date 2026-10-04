@@ -1,0 +1,36 @@
+---
+title: Models
+description: Find and use model identifiers supported by OpenUI Gateway.
+---
+
+OpenUI Gateway supports hundreds of models from OpenAI, Anthropic, Google, Meta, Mistral, and other model labs.
+
+Pass the model ID directly to the `model` field in either the Chat Completions or Responses API:
+
+```ts
+const response = await gateway.chat.completions.create({
+  model: "openai/gpt-5.6-sol",
+  messages,
+});
+```
+
+## Supported models
+
+View [supported models on Models.dev](https://models.dev/providers/openrouter/) and copy the value from the **Model ID** column. Model IDs normally follow an `{author}/{model-slug}` format, such as `openai/gpt-5.6-sol`.
+
+Use the complete ID. Do not pass only the model name:
+
+```ts
+model: "openai/gpt-5.6-sol" // Correct
+model: "gpt-5.6-sol"        // Missing the author
+```
+
+{/* TODO: Document provider routing after confirming the exact subset of OpenRouter provider options supported by Gateway. */}
+
+## Availability and capabilities
+
+Input and output modalities, context length, tool support, and supported parameters vary by model. Check the model details on Models.dev before selecting a model.
+
+For Generative UI, choose a model that produces text and follows structured output instructions reliably. Use the [OpenUI model benchmarks](/benchmarks/language) as a guide when comparing models, alongside the latency, cost, context length, and capabilities required by your application. Gateway can validate and correct eligible OpenUI Lang errors, but the selected model still determines the quality and latency of the generated interface. See [Reliability](/docs/gateway/reliability) for details.
+
+Add your own provider credentials with [BYOK](/docs/gateway/byok). For managed model usage and Gateway credits, see [Pricing](/docs/gateway/pricing-credits).

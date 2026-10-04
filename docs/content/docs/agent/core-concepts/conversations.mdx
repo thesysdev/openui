@@ -5,14 +5,14 @@ description: How to persist conversations and make them accessible to Agent Inte
 
 Every conversation with `AgentInterface` is stored through a `storage` adapter. Each message is persisted (its content, any extra context, and the complete response including text and tool calls), and `AgentInterface` reloads the threads and messages of the selected conversation automatically.
 
-On OpenUI Cloud, `useOpenuiCloudStorage` is that adapter. Cloud stores and reloads every conversation, so you run no database and write no persistence logic.
+Connect an application-owned storage adapter to store and reload conversations from your database. Without one, Agent Interface keeps the conversation in memory for the current page session.
 
 This persistence lets users return to previous conversations, and the full history informs the agent's future responses.
 
 ## What gets stored
 
 - **Threads:** the containers for a conversation. Each has an `id`, a title, and metadata like `createdAt`.
-- **Messages:** the turns inside a thread. Each has a `role` (`user`, `assistant`, or `tool`) and its content, including any [generative UI](/docs/agent/core-concepts/generative-ui) or [artifacts](/docs/agent/core-concepts/artifacts) the assistant produced.
+- **Messages:** the turns inside a thread. Each has a `role` (`user`, `assistant`, or `tool`) and its content, including any [generative UI](/docs/agent/core-concepts/generative-ui) the assistant produced.
 
 <img
   src="/images/agent/conversation-history-sidebar.png"
@@ -34,5 +34,3 @@ function ChatCount() {
 ```
 
 Both are selector hooks: pass a function that picks the slice you need, and the component re-renders only when that slice changes. They work anywhere inside `AgentInterface`. See [Hooks](/docs/agent/reference/hooks) for the full state.
-
-<Callout type="info">**Self-hosted:** the scaffold stores conversations in a local store it generates. To use your own database, implement the storage contract. See [Adapters & formats](/docs/agent/reference/adapters-and-formats).</Callout>

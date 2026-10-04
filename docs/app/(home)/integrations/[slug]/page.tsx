@@ -74,42 +74,6 @@ export default async function IntegrationDetailPage(props: { params: Promise<{ s
               <p className={styles.detailLead}>{integration.howItWorks}</p>
             </section>
 
-            <section className={styles.flowSection}>
-              <h2>The integration path</h2>
-              <ol className={styles.flowList}>
-                <li>
-                  <span className={styles.flowNumber}>1</span>
-                  <div>
-                    <h3>Describe the interface</h3>
-                    <p>
-                      Generate a component prompt from the same OpenUI library that will render the
-                      response.
-                    </p>
-                  </div>
-                </li>
-                <li>
-                  <span className={styles.flowNumber}>2</span>
-                  <div>
-                    <h3>Stream structured output</h3>
-                    <p>
-                      Let {integration.name} own its part of the stack while OpenUI Lang travels as
-                      incremental text or mapped agent events.
-                    </p>
-                  </div>
-                </li>
-                <li>
-                  <span className={styles.flowNumber}>3</span>
-                  <div>
-                    <h3>Render and interact</h3>
-                    <p>
-                      Parse the stream with the matching OpenUI runtime, render real components, and
-                      return validated actions to the application.
-                    </p>
-                  </div>
-                </li>
-              </ol>
-            </section>
-
             {integration.install ? (
               <section className={styles.installSection}>
                 <div>
@@ -122,6 +86,21 @@ export default async function IntegrationDetailPage(props: { params: Promise<{ s
                 </div>
               </section>
             ) : null}
+
+            <section className={styles.flowSection}>
+              <h2>Integration steps</h2>
+              <ol className={styles.flowList}>
+                {integration.steps.map((step, index) => (
+                  <li key={step.title}>
+                    <span className={styles.flowNumber}>{index + 1}</span>
+                    <div>
+                      <h3>{step.title}</h3>
+                      <p>{step.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
           </article>
 
           <aside className={styles.resourceSidebar}>

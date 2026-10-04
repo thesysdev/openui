@@ -1,4 +1,5 @@
-import type { AssistantMessage, UserMessage } from "@openuidev/react-headless";
+import type { AssistantMessage, ToolActivity, UserMessage } from "@openuidev/react-headless";
+import type { TimelineStep } from "../../../ToolCall";
 
 /**
  * Custom component for rendering assistant messages.
@@ -31,4 +32,16 @@ export type AssistantMessageComponent = React.ComponentType<{
  */
 export type UserMessageComponent = React.ComponentType<{
   message: UserMessage;
+}>;
+
+/**
+ * Custom component for rendering the tool activity timeline for one assistant turn.
+ * When provided, replaces the default timeline while tools are running and after
+ * the assistant answer arrives.
+ */
+export type ToolCallTimelineComponent = React.ComponentType<{
+  activities: ToolActivity[];
+  steps: TimelineStep[];
+  isLast: boolean;
+  awaitingResponse: boolean;
 }>;

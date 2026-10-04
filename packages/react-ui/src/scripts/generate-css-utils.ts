@@ -94,6 +94,8 @@ $typography: (
     heading: typography(openui-text-numbers-heading-lg),
     heading-small: typography(openui-text-numbers-heading-sm),
     heading-medium: typography(openui-text-numbers-heading-md),
+    title: typography(openui-text-numbers-heading-lg),
+    title-medium: typography(openui-text-numbers-heading-md),
     heading-large: typography(openui-text-numbers-heading-lg),
     heading-xl: typography(openui-text-numbers-heading-xl),
   ),

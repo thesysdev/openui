@@ -1,12 +1,17 @@
-import { readFileSync } from "fs";
+import { library, promptOptions } from "@/library";
+import { generateSystemPrompt } from "@openuidev/lang-core";
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
-import { join } from "path";
 
-const SYSTEM_PROMPT = readFileSync(
-  join(process.cwd(), "src", "generated", "system-prompt.txt"),
-  "utf-8",
-);
+const SYSTEM_PROMPT = generateSystemPrompt({
+  cloud: true,
+  library: library.toSpec(),
+  promptOptions: {
+    examples: promptOptions.examples,
+    preamble: promptOptions.preamble,
+    additionalRules: promptOptions.additionalRules,
+  },
+});
 console.info("[OpenUI Lang] System prompt loaded:\n", SYSTEM_PROMPT);
 
 const conversationLog: Array<{ role: string; content: string }> = [];
@@ -43,12 +48,16 @@ function extractText(msg: any): string {
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.THESYS_API_KEY;
   if (!apiKey) {
-    return Response.json({ error: "OPENAI_API_KEY is not configured" }, { status: 500 });
+    return Response.json({ error: "THESYS_API_KEY is not configured" }, { status: 500 });
   }
 
-  const openai = new OpenAI({ apiKey });
+  // Chat Completions → POST /v1/embed/chat/completions (plain-text deltas for RN)
+  const openai = new OpenAI({
+    apiKey,
+    baseURL: "https://api.thesys.dev/v1/embed",
+  });
   const { messages } = await req.json();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,7 +65,7 @@ export async function POST(req: NextRequest) {
   if (lastUserMsg) conversationLog.push({ role: "user", content: extractText(lastUserMsg) });
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-5.5",
+    model: "google/gemini-3.6-flash-free",
     stream: true,
     messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
   });

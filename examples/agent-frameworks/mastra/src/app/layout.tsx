@@ -1,10 +1,15 @@
-import { ThemeProvider } from "@/hooks/use-system-theme";
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
 export const metadata: Metadata = {
-  title: "OpenUI Chat",
-  description: "Generative UI Chat with OpenAI SDK",
+  title: "OpenUI + Mastra Chat",
+  description: "Generative UI Chat with Mastra",
 };
 
 export default function RootLayout({
@@ -14,9 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }

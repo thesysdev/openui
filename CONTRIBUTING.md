@@ -66,6 +66,11 @@ Before opening a pull request, please make sure that:
 - Documentation or examples are updated when public behavior changes.
 - Relevant lint, test, and build commands have been run.
 - Any skipped checks are explained in the pull request description.
+- If the change affects a published package under `packages/`, a changeset is
+  included: run `pnpm changeset`, pick the affected packages and bump levels
+  (patch for fixes and compatible changes; minor for breaking changes — all
+  packages are 0.x), and commit the generated file. Releases are automated
+  from these; see [`.changeset/README.md`](./.changeset/README.md).
 
 ## Bug Reports
 

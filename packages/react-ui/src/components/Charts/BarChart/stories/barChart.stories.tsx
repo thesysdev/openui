@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Monitor, TabletSmartphone } from "lucide-react";
 import { useState } from "react";
+import { BarChart, BarChartProps } from "../..";
 import { Card } from "../../../Card";
-import { BarChart, BarChartProps } from "../BarChart";
 
 // 📊 ALL DATA VARIATIONS - For easy switching in stories
 const dataVariations = {
@@ -603,7 +603,7 @@ const icons = {
  * - **Responsive Design**: Adjusts gracefully to the size of its container.
  *
  * ### Customization
- * - **Theming**: Six built-in color palettes, or use custom colors with `customPalette`.
+ * - **Colors**: Uses the ThemeProvider's chart palette, or custom colors with `customPalette`.
  * - **Bar Styling**: Customize the corner radius of the bars.
  * - **Axis and Grid Control**: Toggle visibility of axes and grid lines.
  */
@@ -630,7 +630,6 @@ const monthlyData = [
 <ScrollableBarChart
   data={monthlyData}
   categoryKey="month"
-  theme="ocean"
 />
 
 // With custom colors
@@ -686,19 +685,8 @@ const salesData = [
         category: "📊 Data Configuration",
       },
     },
-    theme: {
-      description:
-        "Specifies the color palette for the chart's bars, tooltips, and legend. Ignored when customPalette is provided.",
-      control: "select",
-      options: ["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"],
-      table: {
-        defaultValue: { summary: "ocean" },
-        category: "🎨 Visual Styling",
-      },
-    },
     customPalette: {
-      description:
-        "Custom array of colors to use instead of the theme palette. Overrides the theme prop when provided.",
+      description: "Custom array of colors to use instead of the ThemeProvider's chart palette.",
       control: "object",
       table: {
         type: { summary: "string[]" },
@@ -715,7 +703,7 @@ const salesData = [
         category: "🎨 Visual Styling",
       },
     },
-    radius: {
+    barRadius: {
       description: "Sets the corner radius for the top of each bar, creating a rounded look.",
       control: { type: "number", min: 0, max: 20 },
       table: {
@@ -820,9 +808,8 @@ export const DataExplorer: Story = {
   args: {
     data: barChartData,
     categoryKey: "month",
-    theme: "ocean",
     variant: "grouped",
-    radius: 4,
+    barRadius: 4,
     grid: true,
     isAnimationActive: true,
     showYAxis: true,
@@ -961,9 +948,8 @@ export const SmallDataStory: Story = {
   args: {
     data: dataVariations.small as any,
     categoryKey: "month" as any,
-    theme: "ocean",
     variant: "grouped",
-    radius: 2,
+    barRadius: 2,
     grid: true,
     isAnimationActive: true,
     showYAxis: true,
@@ -987,9 +973,8 @@ export const LargeDataStory: Story = {
   args: {
     data: dataVariations.large as any,
     categoryKey: "month" as any,
-    theme: "emerald",
     variant: "grouped",
-    radius: 2,
+    barRadius: 2,
     grid: true,
     isAnimationActive: true,
     showYAxis: true,
@@ -1013,9 +998,8 @@ export const WeeklyDataStory: Story = {
   args: {
     data: dataVariations.weekly as any,
     categoryKey: "week" as any,
-    theme: "sunset",
     variant: "grouped",
-    radius: 2,
+    barRadius: 2,
     grid: true,
     isAnimationActive: true,
     showYAxis: true,
@@ -1040,9 +1024,8 @@ export const BigNumbersStory: Story = {
   args: {
     data: dataVariations.bigNumbers as any,
     categoryKey: "company" as any,
-    theme: "vivid",
     variant: "grouped",
-    radius: 2,
+    barRadius: 2,
     grid: true,
     isAnimationActive: true,
     showYAxis: true,
@@ -1066,9 +1049,8 @@ export const EdgeCaseStory: Story = {
   args: {
     data: dataVariations.edge as any,
     categoryKey: "period" as any,
-    theme: "orchid",
     variant: "grouped",
-    radius: 2,
+    barRadius: 2,
     grid: true,
     isAnimationActive: true,
     showYAxis: true,
@@ -1092,9 +1074,8 @@ export const NumberRangesStory: Story = {
   args: {
     data: dataVariations.numbers as any,
     categoryKey: "category" as any,
-    theme: "spectrum",
     variant: "grouped",
-    radius: 2,
+    barRadius: 2,
     grid: true,
     isAnimationActive: true,
     showYAxis: true,
@@ -1119,9 +1100,8 @@ export const ExpandCollapseMarketingStory: Story = {
   args: {
     data: dataVariations.expandCollapseMarketing as any,
     categoryKey: "channel" as any,
-    theme: "emerald",
     variant: "grouped",
-    radius: 4,
+    barRadius: 4,
     grid: true,
     isAnimationActive: true,
     showYAxis: true,
@@ -1166,9 +1146,8 @@ export const CustomPaletteStory: Story = {
       "#B4C6FF",
       "#CBD7FF",
     ],
-    theme: "ocean", // This will be overridden by customPalette
     variant: "grouped",
-    radius: 4,
+    barRadius: 4,
     grid: true,
     legend: true,
     isAnimationActive: true,
@@ -1229,7 +1208,7 @@ export const CustomPaletteStory: Story = {
     docs: {
       description: {
         story:
-          'Demonstrates how to use the `customPalette` prop to provide your own color scheme for the chart. When `customPalette` is provided, it overrides the `theme` prop and uses your specified colors instead of the predefined theme palettes.\n\n**Key Features:**\n- 🎨 **Custom Colors**: Override default theme colors with your own palette\n- 🔄 **Theme Override**: The `theme` prop is ignored when `customPalette` is provided\n- 📊 **Consistent Distribution**: Colors are distributed evenly across data series\n- 🎯 **Brand Matching**: Perfect for matching your application\'s brand colors\n\n**Usage:**\n```tsx\n<BarChart\n  data={data}\n  categoryKey="month"\n  customPalette={["#FF6B6B", "#4ECDC4", "#45B7D1"]}\n  // theme prop is ignored when customPalette is provided\n/>\n```',
+          'Demonstrates how to use the `customPalette` prop to provide your own color scheme for the chart. When `customPalette` is provided, it overrides the ThemeProvider\'s chart palette and uses your specified colors instead.\n\n**Key Features:**\n- 🎨 **Custom Colors**: Override the default chart colors with your own palette\n- 📊 **Consistent Distribution**: Colors are distributed evenly across data series\n- 🎯 **Brand Matching**: Perfect for matching your application\'s brand colors\n\n**Usage:**\n```tsx\n<BarChart\n  data={data}\n  categoryKey="month"\n  customPalette={["#FF6B6B", "#4ECDC4", "#45B7D1"]}\n/>\n```',
       },
     },
   },
@@ -1251,7 +1230,6 @@ export const ResponsiveBehaviorDemo: Story = {
   args: {
     data: dataVariations.default as any,
     categoryKey: "month" as any,
-    theme: "sunset",
     variant: "grouped",
     grid: true,
     legend: true,

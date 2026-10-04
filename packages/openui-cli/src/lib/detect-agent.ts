@@ -1,3 +1,5 @@
+import { isTruthyEnv } from "./env";
+
 export const UNKNOWN_AGENT_NAME = "unknown";
 
 export type DetectedAgentName =
@@ -9,7 +11,6 @@ export type DetectedAgentName =
   | "ambiguous"
   | typeof UNKNOWN_AGENT_NAME;
 
-const isTruthyEnv = (value?: string) => value === "1" || value?.toLowerCase() === "true";
 const isPresent = (value?: string) => Boolean(value?.trim());
 
 /**

@@ -1,0 +1,50 @@
+@use "../../cssUtils" as cssUtils;
+@use "../_shared/chatUtils" as chatUtils;
+
+.openui-tooltip-body {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-2xs;
+  width: 100%;
+  max-width: 248px;
+}
+
+.openui-tooltip-heading {
+  @include cssUtils.typography(body, small);
+  color: cssUtils.$text-neutral-primary;
+  width: 100%;
+}
+
+.openui-tooltip-text-content {
+  @include cssUtils.typography(body, small);
+  color: cssUtils.$text-neutral-secondary;
+  width: 100%;
+}
+
+.openui-tooltip-content {
+  box-sizing: border-box;
+  background-color: cssUtils.$elevated;
+  padding: cssUtils.$space-xs cssUtils.$space-s;
+  outline: 1px solid cssUtils.$border-default;
+  z-index: chatUtils.$z-overlay;
+  border-radius: cssUtils.$radius-s;
+  user-select: none;
+  animation-duration: 400ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+
+  &[data-state="delayed-open"] {
+    &[data-side="top"] {
+      animation-name: openui-slide-down-and-fade;
+    }
+    &[data-side="right"] {
+      animation-name: openui-slide-left-and-fade;
+    }
+    &[data-side="bottom"] {
+      animation-name: openui-slide-up-and-fade;
+    }
+    &[data-side="left"] {
+      animation-name: openui-slide-right-and-fade;
+    }
+  }
+}

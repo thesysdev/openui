@@ -17,3 +17,6 @@ next-env.d.ts
 # misc
 .DS_Store
 *.log
+
+# generated OpenUI prompt and schema
+/src/generated/

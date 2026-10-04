@@ -1,437 +1,198 @@
 import clsx from "clsx";
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
-import { usePrintContext } from "../../../context/PrintContext";
-import { ChartConfig, ChartContainer, ChartTooltip } from "../Charts";
-import { SideBarChartData, SideBarTooltipProvider } from "../context/SideBarTooltipContext";
+import { useCallback } from "react";
+
 import {
+  useCartesianChartOrchestrator,
+  useEffectiveAnimation,
   useExportChartData,
-  useMaxLabelHeight,
-  useTransformedKeys,
-  useYAxisLabelWidth,
+  useXScale,
+  useYScale,
 } from "../hooks";
-import {
-  ActiveDot,
-  cartesianGrid,
-  CustomTooltipContent,
-  DefaultLegend,
-  ScrollButtonsHorizontal,
-  SideBarTooltip,
-  XAxisTick,
-  YAxisTick,
-} from "../shared";
-import { LabelTooltipProvider } from "../shared/LabelTooltip/LabelTooltip";
-import { LegendItem, XAxisTickVariant } from "../types";
-import {
-  findNearestSnapPosition,
-  getSnapPositions,
-  getWidthOfData,
-  getWidthOfGroup,
-} from "../utils/AreaAndLine/AreaAndLineUtils";
-import { getLineType } from "../utils/AreaAndLine/common";
-import { PaletteName, useChartPalette } from "../utils/PalletUtils";
-import {
-  get2dChartConfig,
-  getColorForDataKey,
-  getDataKeys,
-  getLegendItems,
-} from "../utils/dataUtils";
-import { LineChartData, LineChartVariant } from "./types";
+import { CartesianXAxis } from "../shared/cartesian/axes/CartesianXAxis";
+import { ClipDefs } from "../shared/cartesian/ClipDefs";
+import { CartesianChartLayout } from "../shared/cartesian/layouts/CartesianChartLayout";
+import { LineDotCrosshair } from "../shared/cartesian/LineDotCrosshair";
+import { findNearestDataIndex } from "../utils/mouseUtils";
+import { LineSeries } from "./parts/LineSeries";
 
-type LineChartOnClick = React.ComponentProps<typeof RechartsLineChart>["onClick"];
-type LineClickData = Parameters<NonNullable<LineChartOnClick>>[0];
+import { CHART_CLASS_PREFIX } from "../utils/constants";
+import type { LineChartData, LineChartProps } from "./types";
 
-export interface LineChartProps<T extends LineChartData> {
-  data: T;
-  categoryKey: keyof T[number];
-  theme?: PaletteName;
-  customPalette?: string[];
-  variant?: LineChartVariant;
-  tickVariant?: XAxisTickVariant;
-  grid?: boolean;
-  legend?: boolean;
-  icons?: Partial<Record<keyof T[number], React.ComponentType>>;
-  isAnimationActive?: boolean;
-  showYAxis?: boolean;
-  xAxisLabel?: React.ReactNode;
-  yAxisLabel?: React.ReactNode;
-  className?: string;
-  height?: number;
-  width?: number;
-  strokeWidth?: number;
+/**
+ * Empty-data guard lives here, in a hook-free dispatcher: the chart impl below
+ * calls hooks unconditionally, so the "no data" branch must short-circuit
+ * *before* any hook runs (a count → 0 transition on a mounted chart would
+ * otherwise break the Rules of Hooks).
+ */
+export function LineChart<T extends LineChartData>(props: LineChartProps<T>) {
+  if (!props.data || props.data.length === 0) {
+    return (
+      <div
+        className={clsx(
+          `${CHART_CLASS_PREFIX}-line-chart-container ${CHART_CLASS_PREFIX}-chart-empty`,
+          props.className,
+        )}
+      >
+        <span className={`${CHART_CLASS_PREFIX}-chart-empty-text`}>No data available</span>
+      </div>
+    );
+  }
+  return <LineChartImpl {...props} />;
 }
 
-const X_AXIS_PADDING = 36;
-const CHART_CONTAINER_BOTTOM_MARGIN = 10;
-
-export const LineChart = <T extends LineChartData>({
+function LineChartImpl<T extends LineChartData>({
   data,
   categoryKey,
-  theme = "ocean",
   customPalette,
-  variant: lineChartVariant = "natural",
-  tickVariant = "multiLine",
+  variant = "natural",
+  tickVariant: tickVariantProp,
+  showDots = false,
+  dotRadius = 3,
   grid = true,
-  icons = {},
+  legend: showLegend = true,
+  icons,
   isAnimationActive = false,
   showYAxis = true,
   xAxisLabel,
   yAxisLabel,
-  legend = true,
   className,
   height,
-  width,
-  strokeWidth = 2,
-}: LineChartProps<T>) => {
-  const printContext = usePrintContext();
-  isAnimationActive = printContext ? false : isAnimationActive;
+  width: fixedWidth,
+  fitLegendInHeight,
+  condensed = false,
+  density,
+  onClick,
+  crosshair = false,
+  highlight = false,
+  activeDots = true,
+  yTickCount,
+}: LineChartProps<T>) {
+  const animate = useEffectiveAnimation(isAnimationActive);
+  const mode = condensed ? "fit" : "scroll";
 
-  const dataKeys = useMemo(() => {
-    return getDataKeys(data, categoryKey as string);
-  }, [data, categoryKey]);
-
-  const variant = getLineType(lineChartVariant);
-
-  const { yAxisWidth, setLabelWidth } = useYAxisLabelWidth(data, dataKeys);
-
-  const widthOfGroup = useMemo(() => {
-    return getWidthOfGroup(data);
-  }, [data]);
-
-  const maxLabelHeight = useMaxLabelHeight(data, categoryKey as string, tickVariant, widthOfGroup);
-
-  const transformedKeys = useTransformedKeys(dataKeys);
-
-  const colors = useChartPalette({
-    chartThemeName: theme,
-    customPalette,
+  const orch = useCartesianChartOrchestrator({
+    layout: mode,
+    data,
+    categoryKey,
     themePaletteName: "lineChartPalette",
-    dataLength: dataKeys.length,
+    customPalette,
+    showLegend,
+    showYAxis,
+    height,
+    fixedWidth,
+    fitLegendInHeight,
+    tickVariantProp: tickVariantProp ?? (condensed ? "singleLine" : "multiLine"),
+    chartIdPrefix: "d3lc",
+    icons,
+    onClick,
+    density,
+    yTickCount,
   });
 
-  const chartConfig: ChartConfig = useMemo(() => {
-    return get2dChartConfig(dataKeys, colors, transformedKeys, undefined, icons);
-  }, [dataKeys, icons, colors, transformedKeys]);
+  const xScale = useXScale(
+    data,
+    orch.data.catKey,
+    orch.dimensions.chartAreaWidth,
+    orch.dimensions.widthOfGroup,
+  );
+  const yScale = useYScale(data, orch.data.dataKeys, orch.dimensions.chartInnerHeight, false);
 
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const mainContainerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState<number>(0);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-  const [isSideBarTooltipOpen, setIsSideBarTooltipOpen] = useState(false);
-  const [isLegendExpanded, setIsLegendExpanded] = useState(false);
-  const [sideBarTooltipData, setSideBarTooltipData] = useState<SideBarChartData>({
-    title: "",
-    values: [],
-  });
+  const getYValue = useCallback(
+    (row: Record<string, string | number>, key: string) => Number(row[key]) || 0,
+    [],
+  );
 
-  // Use provided width or observed width
-  const effectiveWidth = useMemo(() => {
-    return width ?? containerWidth;
-  }, [width, containerWidth]);
+  const findIndex = useCallback((mouseX: number) => findNearestDataIndex(xScale, mouseX), [xScale]);
+  const mouseHandlers = orch.hover.createMouseHandlers(findIndex);
 
-  const effectiveContainerWidth = useMemo(() => {
-    const dynamicYAxisWidth = showYAxis ? yAxisWidth : 0;
-    return Math.max(0, effectiveWidth - dynamicYAxisWidth - 40); // -40 because we are giving 20px padding in xAxis on each side
-  }, [effectiveWidth, showYAxis, yAxisWidth]);
-
-  const dataWidth = useMemo(() => {
-    return getWidthOfData(data, effectiveContainerWidth);
-  }, [data, effectiveContainerWidth]);
-
-  // Calculate snap positions for proper scrolling alignment
-  const snapPositions = useMemo(() => {
-    return getSnapPositions(data);
-  }, [data]);
-
-  const chartHeight = useMemo(() => {
-    return height ?? 296 + maxLabelHeight;
-  }, [height, maxLabelHeight]);
-
-  // Check scroll boundaries
-  const updateScrollState = useCallback(() => {
-    if (mainContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = mainContainerRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1); // -1 for floating point precision
-    }
-  }, []);
-
-  const scrollLeft = useCallback(() => {
-    if (mainContainerRef.current) {
-      const currentScroll = mainContainerRef.current.scrollLeft;
-      const targetIndex = findNearestSnapPosition(snapPositions, currentScroll, "left");
-      const targetPosition = snapPositions[targetIndex] ?? 0;
-
-      mainContainerRef.current.scrollTo({
-        left: targetPosition,
-        behavior: "smooth",
-      });
-    }
-  }, [snapPositions]);
-
-  const scrollRight = useCallback(() => {
-    if (mainContainerRef.current) {
-      const currentScroll = mainContainerRef.current.scrollLeft;
-      const targetIndex = findNearestSnapPosition(snapPositions, currentScroll, "right");
-      const targetPosition = snapPositions[targetIndex] ?? 0;
-
-      mainContainerRef.current.scrollTo({
-        left: targetPosition,
-        behavior: "smooth",
-      });
-    }
-  }, [snapPositions]);
-
-  useEffect(() => {
-    // Only set up ResizeObserver if width is not provided
-    if (width || !chartContainerRef.current) {
-      return () => {};
-    }
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      // there is only one entry in the entries array because we are observing the chart container
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-
-    resizeObserver.observe(chartContainerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [width]);
-
-  // Update scroll state when container width or data width changes
-  useEffect(() => {
-    updateScrollState();
-  }, [effectiveWidth, dataWidth, updateScrollState]);
-
-  useEffect(() => {
-    setIsSideBarTooltipOpen(false);
-    setIsLegendExpanded(false);
-  }, [dataKeys]);
-
-  // Add scroll event listener to update button states
-  useEffect(() => {
-    const mainContainer = mainContainerRef.current;
-    if (!mainContainer) return;
-
-    const handleScroll = () => {
-      updateScrollState();
-    };
-
-    mainContainer.addEventListener("scroll", handleScroll);
-    return () => {
-      mainContainer.removeEventListener("scroll", handleScroll);
-    };
-  }, [updateScrollState]);
-
-  const legendItems: LegendItem[] = useMemo(() => {
-    return getLegendItems(dataKeys, colors, icons);
-  }, [dataKeys, colors, icons]);
-
+  // PPTX print-export JSON — mirrors react-ui's LineChart call (type:'line').
+  // react-ui also passes `extraOptions: { lineSize: strokeWidth }`, but viz's
+  // LineChart exposes no stroke-width prop (stroke is CSS-driven), so there is
+  // no real value to emit — the field is omitted rather than faked. Undefined
+  // off the print path.
   const exportData = useExportChartData({
     type: "line",
     data,
-    categoryKey: categoryKey as string,
-    dataKeys,
-    colors,
-    legend,
+    categoryKey: orch.data.catKey,
+    dataKeys: orch.data.dataKeys,
+    colors: orch.data.colors,
+    legend: showLegend,
     xAxisLabel,
     yAxisLabel,
-    extraOptions: {
-      lineSize: strokeWidth,
-    },
   });
 
-  const id = useId();
-
-  const onLineClick = useCallback(
-    (data: LineClickData) => {
-      if (data?.activePayload?.length && data.activePayload.length > 10) {
-        setIsSideBarTooltipOpen(true);
-        setSideBarTooltipData({
-          title: data.activeLabel as string,
-          values: data.activePayload.map((payload) => ({
-            value: payload.value as number,
-            label: payload.name || payload.dataKey,
-            color: getColorForDataKey(payload.dataKey, dataKeys, colors),
-          })),
-        });
-      }
-    },
-    [dataKeys, colors],
-  );
-
-  const yAxis = useMemo(() => {
-    if (!showYAxis) {
-      return null;
-    }
-    return (
-      <div className="openui-line-chart-y-axis-container">
-        {/* Y-axis only chart - synchronized with main chart */}
-        <RechartsLineChart
-          key={`y-axis-chart-${id}`}
-          width={yAxisWidth}
-          height={chartHeight}
-          data={data}
-          margin={{
-            top: 20,
-            bottom: maxLabelHeight + CHART_CONTAINER_BOTTOM_MARGIN, // this is required for to give space for x-axis
-            left: 0,
-            right: 0,
-          }}
-          onClick={onLineClick}
-        >
-          <YAxis
-            width={yAxisWidth}
-            tickLine={false}
-            axisLine={false}
-            tick={<YAxisTick setLabelWidth={setLabelWidth} />}
-          />
-          {/* Invisible lines to maintain scale synchronization */}
-          {dataKeys.map((key) => {
-            return (
-              <Line
-                key={`y-axis-${key}`}
-                dataKey={key}
-                type={variant}
-                stroke="transparent"
-                strokeWidth={0}
-                dot={false}
-                activeDot={false}
-                isAnimationActive={isAnimationActive}
-              />
-            );
-          })}
-        </RechartsLineChart>
-      </div>
-    );
-  }, [
-    showYAxis,
-    id,
-    chartHeight,
-    data,
-    onLineClick,
-    dataKeys,
-    variant,
-    isAnimationActive,
-    maxLabelHeight,
-    yAxisWidth,
-  ]);
-
   return (
-    <LabelTooltipProvider>
-      <SideBarTooltipProvider
-        isSideBarTooltipOpen={isSideBarTooltipOpen}
-        setIsSideBarTooltipOpen={setIsSideBarTooltipOpen}
-        data={sideBarTooltipData}
-        setData={setSideBarTooltipData}
-      >
-        <div
-          className={clsx("openui-line-chart-container", className)}
-          data-openui-chart={exportData}
-          style={{
-            width: width ? `${width}px` : undefined,
-          }}
-        >
-          <div className="openui-line-chart-container-inner" ref={chartContainerRef}>
-            {/* Y-axis of the chart */}
-            {yAxis}
-            <div className="openui-line-chart-main-container" ref={mainContainerRef}>
-              <ChartContainer
-                config={chartConfig}
-                style={{ width: dataWidth, minWidth: "100%", height: chartHeight }}
-                rechartsProps={{
-                  width: "100%",
-                  height: "100%",
-                  minHeight: 1,
-                  minWidth: 1,
-                  initialDimension: { width: 1, height: 1 },
-                }}
-              >
-                <RechartsLineChart
-                  accessibilityLayer
-                  key={`line-chart-${id}`}
-                  data={data}
-                  margin={{
-                    top: 20,
-                    bottom: CHART_CONTAINER_BOTTOM_MARGIN,
-                  }}
-                  onClick={onLineClick}
-                >
-                  {grid && cartesianGrid()}
-                  <XAxis
-                    dataKey={categoryKey as string}
-                    tickLine={false}
-                    axisLine={false}
-                    height={maxLabelHeight}
-                    textAnchor="middle"
-                    interval={0}
-                    tick={
-                      <XAxisTick
-                        variant={tickVariant}
-                        widthOfGroup={widthOfGroup}
-                        labelHeight={maxLabelHeight}
-                      />
-                    }
-                    orientation="bottom"
-                    padding={{
-                      left: X_AXIS_PADDING,
-                      right: X_AXIS_PADDING,
-                    }}
-                  />
-
-                  <ChartTooltip
-                    content={<CustomTooltipContent parentRef={mainContainerRef} />}
-                    offset={15}
-                  />
-
-                  {dataKeys.map((key) => {
-                    const transformedKey = transformedKeys[key];
-                    const color = `var(--color-${transformedKey})`;
-                    return (
-                      <Line
-                        key={`main-${key}`}
-                        dataKey={key}
-                        type={variant}
-                        stroke={color}
-                        strokeWidth={strokeWidth}
-                        dot={false}
-                        activeDot={<ActiveDot key={`active-dot-${key}-${id}`} />}
-                        isAnimationActive={isAnimationActive}
-                      />
-                    );
-                  })}
-                </RechartsLineChart>
-              </ChartContainer>
-            </div>
-            {isSideBarTooltipOpen && <SideBarTooltip height={chartHeight} />}
-          </div>
-          {/* if the data width is greater than the effective width, then show the scroll buttons */}
-          <ScrollButtonsHorizontal
-            dataWidth={dataWidth}
-            effectiveWidth={effectiveWidth}
-            canScrollLeft={canScrollLeft}
-            canScrollRight={canScrollRight}
-            isSideBarTooltipOpen={isSideBarTooltipOpen}
-            onScrollLeft={scrollLeft}
-            onScrollRight={scrollRight}
+    <CartesianChartLayout
+      orch={orch}
+      yScale={yScale}
+      mouseHandlers={mouseHandlers}
+      classPrefix="line-chart"
+      chartType="line"
+      exportData={exportData}
+      ariaLabel="Line chart"
+      showYAxis={showYAxis}
+      grid={grid}
+      showLegend={showLegend}
+      xAxisLabel={xAxisLabel}
+      yAxisLabel={yAxisLabel}
+      yTickCount={yTickCount}
+      className={className}
+      defs={
+        <defs>
+          <ClipDefs
+            chartId={orch.identity.chartId}
+            chartWidth={orch.dimensions.chartAreaWidth}
+            chartHeight={orch.dimensions.chartInnerHeight}
           />
-          {legend && (
-            <DefaultLegend
-              items={legendItems}
-              yAxisLabel={yAxisLabel}
-              xAxisLabel={xAxisLabel}
-              containerWidth={effectiveWidth}
-              isExpanded={isLegendExpanded}
-              setIsExpanded={setIsLegendExpanded}
-            />
-          )}
-        </div>
-      </SideBarTooltipProvider>
-    </LabelTooltipProvider>
+        </defs>
+      }
+      series={
+        <>
+          <LineSeries
+            data={data}
+            dataKeys={orch.data.dataKeys}
+            xScale={xScale}
+            yScale={yScale}
+            variant={variant}
+            categoryKey={orch.data.catKey}
+            colors={orch.data.colorMap}
+            showDots={showDots}
+            dotRadius={dotRadius}
+            isAnimationActive={animate}
+          />
+          <LineDotCrosshair
+            hoveredIndex={orch.hover.hoveredIndex}
+            xScale={xScale}
+            yScale={yScale}
+            data={data}
+            dataKeys={orch.data.dataKeys}
+            categoryKey={orch.data.catKey}
+            colors={orch.data.colorMap}
+            chartHeight={orch.dimensions.chartInnerHeight}
+            getYValue={getYValue}
+            classPrefix={`${CHART_CLASS_PREFIX}-line-chart`}
+            crosshair={crosshair}
+            highlight={highlight}
+            activeDots={activeDots}
+          />
+        </>
+      }
+      xAxis={
+        <CartesianXAxis
+          mode={mode}
+          scale={xScale}
+          classPrefix={`${CHART_CLASS_PREFIX}-line-chart`}
+          tickVariant={orch.dimensions.tickVariant}
+          widthOfGroup={orch.dimensions.widthOfGroup}
+          labelHeight={orch.xAxis.xAxisHeight}
+          labelWidth={orch.xAxis.labelWidth}
+          maxLines={orch.xAxis.maxLines}
+          labelInterval={orch.dimensions.labelInterval}
+          angle={orch.xAxis.angle}
+          chartWidth={orch.dimensions.chartAreaWidth}
+          yAxisWidth={orch.dimensions.effectiveYAxisWidth}
+        />
+      }
+    />
   );
-};
+}

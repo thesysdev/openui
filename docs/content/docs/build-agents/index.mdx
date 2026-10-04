@@ -1,0 +1,46 @@
+---
+title: Overview
+description: Add OpenUI Lang to an existing agent framework or chat UI.
+---
+
+Add Generative UI to an agent built with any chat framework. Keep the existing conversation experience and render agent responses with OpenUI Lang.
+
+OpenUI works with all agent frameworks and chat UIs. Instead of returning plain text or Markdown, the agent returns OpenUI Lang. The chat application passes that response to the OpenUI Lang renderer, which turns it into an interactive interface.
+
+Every integration has two parts:
+
+1. Add the instructions generated from the component library to the agent's system prompt.
+2. Render the streamed OpenUI Lang response in the chat UI.
+
+<img
+  src="/images/build-agents-architecture.svg"
+  alt="Architecture diagram showing an existing chat UI sending a request to its backend, which calls model providers directly. The model returns OpenUI Lang, which the renderer displays in the chat UI."
+/>
+
+The backend can route model requests through the [Gateway](/docs/gateway) to correct invalid OpenUI Lang and fall back to another provider when a model provider is unavailable.
+
+## Set up the backend
+
+<Cards>
+  <Card title="Backend setup" href="/docs/build-agents/backend-setup">
+    Define the component library, add its generated instructions to the agent, and improve
+    reliability with Gateway.
+  </Card>
+</Cards>
+
+## Choose a chat UI
+
+<Cards>
+  <Card title="assistant-ui" href="/docs/build-agents/assistant-ui">
+    Keep assistant-ui in charge of the conversation and tool lifecycle while OpenUI renders its
+    generated interfaces.
+  </Card>
+  <Card title="CopilotKit" href="/docs/build-agents/copilotkit">
+    Add OpenUI rendering to an application whose agent experience is built with CopilotKit.
+  </Card>
+  <Card title="Custom Chat UI" href="/docs/build-agents/custom-chat-ui">
+    Connect an existing message list and composer directly to the OpenUI Lang renderer.
+  </Card>
+</Cards>
+
+Starting without an existing chat UI? Use [Agent Interface](/docs/agent/getting-started/introduction) for a complete React chat experience.
