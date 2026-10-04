@@ -471,7 +471,6 @@ function getValidationErrorCounts(
   | "validation_error_count"
 > {
   const counts: Record<ValidationErrorCode, number> = {
-    "invalid-expression": 0,
     "type-mismatch": 0,
     "unknown-component": 0,
     "missing-required": 0,
