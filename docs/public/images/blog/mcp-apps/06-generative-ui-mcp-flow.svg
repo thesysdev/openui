@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-label="The Generative UI MCP is invoked after the host gathers context">
+<title>The Generative UI MCP is invoked after the host gathers context</title>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#9AA7BD" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker><linearGradient id="photo" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#B5D7CF"/><stop offset=".52" stop-color="#E8E6CD"/><stop offset="1" stop-color="#739F92"/></linearGradient></defs>
+<rect x="1" y="1" width="1198" height="558" rx="26" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="60" y="70" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">Our Generative UI MCP experiment</text>
+<text x="60" y="108" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500">The host gathered context, then had to call a second tool for the screen.</text>
+<rect x="61" y="214" width="231" height="185" rx="18" fill="#FFFFFF" stroke="#BFC8E2" stroke-width="2"/>
+<rect x="79" y="232" width="44" height="44" rx="22" fill="#EEF1FF" stroke="none" stroke-width="0"/>
+<text x="101" y="261" text-anchor="middle" fill="#465DFF" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="700">1</text>
+<text x="79" y="323" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="650">Host agent</text>
+<text x="79" y="359" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500">Gathers tool results</text>
+<rect x="343" y="214" width="231" height="185" rx="18" fill="#FFFFFF" stroke="#BFC8E2" stroke-width="2"/>
+<rect x="361" y="232" width="44" height="44" rx="22" fill="#EEF1FF" stroke="none" stroke-width="0"/>
+<text x="383" y="261" text-anchor="middle" fill="#465DFF" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="700">2</text>
+<text x="361" y="323" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="650">visualize(data)</text>
+<text x="361" y="359" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500">Passes selected context</text>
+<rect x="625" y="214" width="231" height="185" rx="18" fill="#FFFFFF" stroke="#BFC8E2" stroke-width="2"/>
+<rect x="643" y="232" width="44" height="44" rx="22" fill="#EEF1FF" stroke="none" stroke-width="0"/>
+<text x="665" y="261" text-anchor="middle" fill="#465DFF" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="700">3</text>
+<text x="643" y="323" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="650">OpenUI model</text>
+<text x="643" y="359" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500">Generates an interface</text>
+<rect x="907" y="214" width="231" height="185" rx="18" fill="#FFFFFF" stroke="#BFC8E2" stroke-width="2"/>
+<rect x="925" y="232" width="44" height="44" rx="22" fill="#EEF1FF" stroke="none" stroke-width="0"/>
+<text x="947" y="261" text-anchor="middle" fill="#465DFF" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="700">4</text>
+<text x="925" y="323" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="650">MCP App</text>
+<text x="925" y="359" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500">Renders in an iframe</text>
+<path d="M296 305 L334 305" fill="none" stroke="#465DFF" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M578 305 L616 305" fill="none" stroke="#465DFF" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M860 305 L898 305" fill="none" stroke="#465DFF" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="347" y="426" width="514" height="58" rx="12" fill="#FFF7E9" stroke="#EBD8AD" stroke-width="2"/>
+<text x="604" y="464" text-anchor="middle" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600">A second model call and a context handoff</text>
+</svg>

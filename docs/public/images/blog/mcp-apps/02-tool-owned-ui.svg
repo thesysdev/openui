@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="570" viewBox="0 0 1200 570" role="img" aria-label="An MCP App renders a tool authored hotel interface inside a host">
+<title>An MCP App renders a tool authored hotel interface inside a host</title>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#9AA7BD" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker><linearGradient id="photo" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#B5D7CF"/><stop offset=".52" stop-color="#E8E6CD"/><stop offset="1" stop-color="#739F92"/></linearGradient></defs>
+<rect x="1" y="1" width="1198" height="568" rx="26" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="60" y="70" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">The hotel tool brings its own UI</text>
+<text x="60" y="108" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500">The host displays the tool&#x27;s HTML alongside the conversation.</text>
+<rect x="60" y="147" width="1080" height="360" rx="22" fill="#F9FAFD" stroke="#DDE3EE" stroke-width="2"/>
+<text x="90" y="187" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="650">Host conversation</text>
+<rect x="91" y="210" width="310" height="95" rx="16" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="110" y="248" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500">Find a quiet hotel near</text>
+<text x="110" y="277" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500">the conference</text>
+<path d="M407 258 L483 258" fill="none" stroke="#465DFF" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="500" y="181" width="589" height="278" rx="18" fill="#FFFFFF" stroke="#BAC5FF" stroke-width="2"/>
+<text x="525" y="220" text-anchor="start" fill="#465DFF" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">Hotel search MCP App</text>
+<path d="M525 238 L1062 238" fill="none" stroke="#DDE3EE" stroke-width="2" stroke-linecap="round"/>
+<rect x="525" y="259" width="187" height="161" rx="11" fill="#E8F1EA" stroke="none" stroke-width="0"/>
+<path d="M547 412 Q592.3199999999999 336.28 701 281" fill="none" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+<path d="M528 288 Q622.24 315.35 703 386" fill="none" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"/>
+<circle cx="629.72" cy="337.89" r="16" fill="#15846B" stroke="#FFFFFF" stroke-width="5"/>
+<circle cx="629.72" cy="337.89" r="4" fill="#FFFFFF"/>
+<text x="741" y="288" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="700">Hotel Niwa Tokyo</text>
+<text x="741" y="326" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600">¥24,000 / night</text>
+<text x="741" y="360" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="500">Rooms and availability</text>
+<rect x="741" y="384" width="196" height="45" rx="12" fill="#465DFF" stroke="#465DFF" stroke-width="2"/>
+<text x="839" y="414" text-anchor="middle" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="650">View rooms</text>
+<text x="500" y="488" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500">UI resource supplied by the hotel tool</text>
+</svg>

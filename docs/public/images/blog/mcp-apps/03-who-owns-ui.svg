@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" role="img" aria-label="Separate MCP Apps do not own the combined hotel decision">
+<title>Separate MCP Apps do not own the combined hotel decision</title>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#9AA7BD" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker><linearGradient id="photo" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#B5D7CF"/><stop offset=".52" stop-color="#E8E6CD"/><stop offset="1" stop-color="#739F92"/></linearGradient></defs>
+<rect x="1" y="1" width="1198" height="598" rx="26" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="60" y="70" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">Who owns the combined view?</text>
+<text x="60" y="108" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500">Each service can show its part, but none sees the whole task.</text>
+<rect x="61" y="160" width="298" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="81" y="190" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Hotel</text>
+<text x="81" y="217" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Room options</text>
+<rect x="61" y="253" width="298" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="81" y="283" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Reviews</text>
+<text x="81" y="310" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Guest ratings</text>
+<rect x="61" y="346" width="298" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="81" y="376" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Maps</text>
+<text x="81" y="403" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Commute</text>
+<rect x="61" y="439" width="298" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="81" y="469" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Policy</text>
+<text x="81" y="496" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Spending limit</text>
+<path d="M362 196 L551 335" fill="none" stroke="#C5CDDA" stroke-width="2" stroke-linecap="round"/>
+<path d="M362 289 L551 335" fill="none" stroke="#C5CDDA" stroke-width="2" stroke-linecap="round"/>
+<path d="M362 382 L551 335" fill="none" stroke="#C5CDDA" stroke-width="2" stroke-linecap="round"/>
+<path d="M362 475 L551 335" fill="none" stroke="#C5CDDA" stroke-width="2" stroke-linecap="round"/>
+<rect x="560" y="181" width="578" height="322" rx="22" fill="#FBFCFF" stroke="#BFC8FF" stroke-width="2"/>
+<text x="589" y="222" text-anchor="start" fill="#465DFF" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="700">Host answer</text>
+<rect x="589" y="247" width="228" height="119" rx="13" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="611" y="281" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="650">Hotel listing UI</text>
+<text x="611" y="318" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500">Price · rooms</text>
+<rect x="838" y="247" width="270" height="119" rx="13" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="860" y="281" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="650">Map UI</text>
+<text x="860" y="318" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500">Location · routes</text>
+<rect x="589" y="383" width="519" height="88" rx="13" fill="#EEF1FF" stroke="#BDC8FF" stroke-width="2"/>
+<text x="849" y="423" text-anchor="middle" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="650">The comparison still needs an owner</text>
+<text x="849" y="451" text-anchor="middle" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="450">Reviews + distance + policy + preference</text>
+</svg>

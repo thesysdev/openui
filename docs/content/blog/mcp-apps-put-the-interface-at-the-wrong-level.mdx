@@ -24,7 +24,7 @@ The agent may already know your preferences from the conversation. To find the r
 
 The agent combines these results with your preferences to recommend a hotel that fits your stay, commute, and company policy. That's the power of composition: tools built independently can work together around your task.
 
-> Image placeholder: a simple task-to-tools diagram for the hotel request.
+![Four independent sources—hotel listings, reviews, maps, and company policy—feed one agent recommendation for the trip.](/images/blog/mcp-apps/01-composed-recommendation.svg)
 
 ## Now tools can bring their own interfaces
 
@@ -32,7 +32,7 @@ The agent combines these results with your preferences to recommend a hotel that
 
 The mechanism is straightforward: an MCP Server associates a tool with a UI resource, which the host displays in a sandboxed iframe. The MCP Server authors the interface, while the host supplies the environment in which it runs. That interface can use a predefined template or be generated dynamically, including with a framework like [OpenUI](https://www.openui.com/).
 
-> Image placeholder: a hotel service presenting its own interactive search interface.
+![The hotel search tool supplies an interactive hotel card that the host displays inside its conversation.](/images/blog/mcp-apps/02-tool-owned-ui.svg)
 
 ## But who owns the UI?
 
@@ -42,7 +42,7 @@ With separate MCP Apps for each service, the user could see Booking.com's view a
 
 Now suppose you shortlist two hotels and ask to compare them. If the listing interface doesn't support that comparison, the agent may fall back to a Markdown table to bring the information together. The agent can compose the results, but the available interfaces don't give it the same freedom.
 
-> Image placeholder: Maps, Concur, Tripadvisor, and the assistant contributing context, with the question: who owns the UI?
+![Separate hotel and map interfaces leave the combined recommendation—reviews, distance, policy, and preference—without one owner.](/images/blog/mcp-apps/03-who-owns-ui.svg)
 
 
 ## Sometimes the tool is the right place
@@ -51,7 +51,7 @@ Some tasks fit within one tool's interface. Consider an agent working on a desig
 
 In this case, the tool's interface covers the outcome of the task. The problem starts when the outcome spans several tools and no single interface can represent it.
 
-> Image placeholder: a Figma canvas as the destination of an agent-driven design task.
+![For a design task, the editable Figma file is both the outcome and the place to inspect it.](/images/blog/mcp-apps/04-single-tool-canvas.svg)
 
 ## More often than not, it isn't
 
@@ -61,7 +61,7 @@ In both cases, the application decides how the pieces fit together, with each so
 
 The difference is that those earlier compositions were designed in advance by a developer who knew the sources. The open question is whether an agent can do this at runtime, for combinations nobody planned.
 
-> Image placeholder: HousingMaps alongside a Retool workflow spanning multiple services.
+![HousingMaps combined listings and maps; Retool combines enterprise sources into a workflow. Both interfaces were designed in advance.](/images/blog/mcp-apps/05-prebuilt-composition.svg)
 
 
 ## Can't the host just generate this?
@@ -72,11 +72,11 @@ Hosts can already generate interfaces using connected services, as [Claude Artif
 
 We built an internal Generative UI MCP Server with one tool: take the results gathered by the agent and generate an interface using OpenUI. Since we didn't control the host, we instructed its agent to call this tool last whenever an answer needed a visual interface.
 
-> Image placeholder: the Generative UI MCP flow, from context gathered by the host to the resulting interface.
+![The host gathers results, calls visualize with selected context, OpenUI generates the screen, and an MCP App renders it.](/images/blog/mcp-apps/06-generative-ui-mcp-flow.svg)
 
 **What worked:** The combined hotel view brought prices, travel times, reviews, and policy constraints into one place, so the user could compare options across tools.
 
-> Image placeholder: screenshot of the combined hotel view.
+![Illustrative hotel comparison combining reviews, travel time, policy, and the traveller's preference in one view.](/images/blog/mcp-apps/07-combined-hotel-view.svg)
 
 **What didn't:**
 

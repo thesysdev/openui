@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="580" viewBox="0 0 1200 580" role="img" aria-label="HousingMaps and Retool combine multiple sources into applications">
+<title>HousingMaps and Retool combine multiple sources into applications</title>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#9AA7BD" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker><linearGradient id="photo" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#B5D7CF"/><stop offset=".52" stop-color="#E8E6CD"/><stop offset="1" stop-color="#739F92"/></linearGradient></defs>
+<rect x="1" y="1" width="1198" height="578" rx="26" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="60" y="70" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">Apps have long composed sources</text>
+<text x="60" y="108" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500">A developer connected known inputs before anyone used the interface.</text>
+<text x="62" y="181" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700">HousingMaps</text>
+<rect x="62" y="208" width="275" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="82" y="238" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Listings</text>
+<text x="82" y="265" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Homes for rent</text>
+<rect x="62" y="296" width="275" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="82" y="326" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Maps</text>
+<text x="82" y="353" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Where they are</text>
+<path d="M343 243 L439 290" fill="none" stroke="#B4BFD0" stroke-width="3" stroke-linecap="round"/>
+<path d="M343 331 L439 290" fill="none" stroke="#B4BFD0" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="448" y="222" width="201" height="137" rx="17" fill="#EEF1FF" stroke="#BBC6FF" stroke-width="2"/>
+<text x="548" y="276" text-anchor="middle" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="650">Homes</text>
+<text x="548" y="308" text-anchor="middle" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="650">on a map</text>
+<path d="M674 171 L674 409" fill="none" stroke="#DDE3EE" stroke-width="2" stroke-linecap="round"/>
+<text x="708" y="181" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700">Retool</text>
+<rect x="708" y="208" width="218" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="728" y="238" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Database</text>
+<text x="728" y="265" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Records</text>
+<rect x="708" y="296" width="218" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="728" y="326" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">CRM</text>
+<text x="728" y="353" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Customers</text>
+<rect x="708" y="384" width="218" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="728" y="414" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Support</text>
+<text x="728" y="441" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Tickets</text>
+<path d="M930 244 L970 338" fill="none" stroke="#B4BFD0" stroke-width="2" stroke-linecap="round"/>
+<path d="M930 332 L970 338" fill="none" stroke="#B4BFD0" stroke-width="2" stroke-linecap="round"/>
+<path d="M930 420 L970 338" fill="none" stroke="#B4BFD0" stroke-width="2" stroke-linecap="round"/>
+<rect x="980" y="270" width="166" height="139" rx="16" fill="#E7F6F0" stroke="#A9D8C5" stroke-width="2"/>
+<text x="1063" y="322" text-anchor="middle" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="650">One</text>
+<text x="1063" y="353" text-anchor="middle" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="650">workflow</text>
+<text x="60" y="527" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500">The developer designed both experiences ahead of time</text>
+</svg>
