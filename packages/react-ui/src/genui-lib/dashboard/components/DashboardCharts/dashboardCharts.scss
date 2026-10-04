@@ -1,0 +1,55 @@
+.openui-dashboard-radar-chart {
+  width: 100%;
+  min-width: 0;
+}
+
+.openui-dashboard-radar-chart .openui-radar-chart-container {
+  flex: 0 0 var(--openui-dashboard-chart-height, 296px);
+  height: var(--openui-dashboard-chart-height, 296px);
+  min-height: 0;
+}
+
+.openui-dashboard-shell-card--medium
+  .openui-dashboard-radar-chart
+  .openui-radar-chart-container-wrapper {
+  gap: var(--openui-space-s-m);
+}
+
+.openui-radial-chart-container-wrapper.openui-dashboard-radial-chart.legend-default,
+.openui-radial-chart-container-wrapper.openui-dashboard-radial-chart.legend-stacked.layout-column {
+  overflow: visible;
+}
+
+.openui-radial-chart-container-wrapper.openui-dashboard-radial-chart.legend-default
+  .openui-radial-chart-container,
+.openui-radial-chart-container-wrapper.openui-dashboard-radial-chart.legend-stacked.layout-column
+  .openui-radial-chart-container {
+  flex: 0 0 var(--openui-dashboard-chart-height, 296px);
+  height: var(--openui-dashboard-chart-height, 296px);
+  min-height: 0;
+  overflow: visible;
+}
+
+.openui-radial-chart-container-wrapper.openui-dashboard-radial-chart.legend-default
+  .openui-radial-chart-legend-container,
+.openui-radial-chart-container-wrapper.openui-dashboard-radial-chart.legend-stacked.layout-column
+  .openui-radial-chart-legend-container {
+  height: auto;
+  min-height: 0;
+}
+
+.openui-dashboard-radial-chart .openui-stacked-legend-container,
+.openui-dashboard-radial-chart .openui-stacked-legend,
+.openui-dashboard-radial-chart .openui-stacked-legend__item {
+  box-sizing: border-box;
+}
+
+.openui-dashboard-radial-chart .openui-stacked-legend-container,
+.openui-dashboard-radial-chart .openui-stacked-legend {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.openui-dashboard-radial-chart .openui-stacked-legend__item-value {
+  min-width: max-content;
+}

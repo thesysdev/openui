@@ -46,6 +46,16 @@
         "default": "./dist/genui-lib/index.cjs"
       }
     },
+    "./genui-lib/dashboard": {
+      "import": {
+        "types": "./dist/genui-lib/dashboard/index.d.mts",
+        "default": "./dist/genui-lib/dashboard/index.mjs"
+      },
+      "require": {
+        "types": "./dist/genui-lib/dashboard/index.d.cts",
+        "default": "./dist/genui-lib/dashboard/index.cjs"
+      }
+    },
     "./genui-lib/prompt-options": {
       "import": {
         "types": "./dist/genui-lib/prompt-options/index.d.mts",

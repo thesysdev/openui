@@ -1,5 +1,7 @@
 import type { PromptOptions } from "@openuidev/react-lang";
 
+export { dashboardAdditionalRules, dashboardExamples, dashboardPromptOptions } from "./dashboard";
+
 // Server-safe prompt data for the OpenUI component library.
 
 // ── Examples ──

@@ -1,0 +1,69 @@
+@use "../../../../../cssUtils" as cssUtils;
+
+$dashboard-pie-chart-column-breakpoint: 480px;
+$dashboard-stacked-legend-column-width: 399px;
+
+.openui-dashboard-pie-chart {
+  container-type: inline-size;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+}
+
+@container (max-width: #{$dashboard-pie-chart-column-breakpoint}) {
+  .openui-dashboard-pie-chart .openui-pie-chart-container-wrapper.legend-stacked {
+    width: $dashboard-stacked-legend-column-width;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+}
+
+.openui-dashboard-pie-chart .openui-pie-chart-container-wrapper.legend-default,
+.openui-dashboard-pie-chart .openui-pie-chart-container-wrapper.legend-stacked.layout-column {
+  gap: cssUtils.$space-l;
+  overflow: visible;
+}
+
+.openui-dashboard-pie-chart
+  .openui-pie-chart-container-wrapper.legend-default
+  .openui-pie-chart-container,
+.openui-dashboard-pie-chart
+  .openui-pie-chart-container-wrapper.legend-stacked.layout-column
+  .openui-pie-chart-container {
+  flex: 0 0 var(--openui-dashboard-pie-chart-height, 296px);
+  height: var(--openui-dashboard-pie-chart-height, 296px);
+  min-height: 0;
+  overflow: visible;
+}
+
+.openui-dashboard-pie-chart
+  .openui-pie-chart-container-wrapper.legend-default
+  > .openui-chart-legend-container.openui-chart-legend--bottom {
+  padding-top: 0;
+}
+
+.openui-dashboard-pie-chart
+  .openui-pie-chart-container-wrapper.legend-default
+  .openui-pie-chart-legend-container,
+.openui-dashboard-pie-chart
+  .openui-pie-chart-container-wrapper.legend-stacked.layout-column
+  .openui-pie-chart-legend-container {
+  height: auto;
+  min-height: 0;
+}
+
+.openui-dashboard-pie-chart .openui-stacked-legend-container,
+.openui-dashboard-pie-chart .openui-stacked-legend,
+.openui-dashboard-pie-chart .openui-stacked-legend__item {
+  box-sizing: border-box;
+}
+
+.openui-dashboard-pie-chart .openui-stacked-legend-container,
+.openui-dashboard-pie-chart .openui-stacked-legend {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.openui-dashboard-pie-chart .openui-stacked-legend__item-value {
+  min-width: max-content;
+}

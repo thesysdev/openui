@@ -1,0 +1,42 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+
+.#{brand.$prefix}-metric-indicator {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: cssUtils.$space-3xs;
+}
+
+.#{brand.$prefix}-metric-indicator__row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: cssUtils.$space-xs;
+  min-width: 0;
+}
+
+.#{brand.$prefix}-metric-indicator__main-value {
+  color: cssUtils.$text-neutral-primary;
+  @include cssUtils.typography(number, heading-medium);
+}
+
+.#{brand.$prefix}-metric-indicator__subtext {
+  min-width: 0;
+  color: cssUtils.$text-neutral-secondary;
+  @include cssUtils.typography(body, default);
+}
+
+.#{brand.$prefix}-metric-indicator__trend {
+  color: cssUtils.$text-neutral-secondary;
+  @include cssUtils.typography(number, default);
+
+  &--success {
+    color: cssUtils.$text-success-primary;
+  }
+
+  &--danger {
+    color: cssUtils.$text-danger-primary;
+  }
+}

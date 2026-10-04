@@ -1,0 +1,150 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+
+.#{brand.$prefix}-small-card-block {
+  // Custom-property values are plain text to Sass — interpolate or the
+  // variable name leaks into the compiled CSS verbatim.
+  --#{brand.$prefix}-small-card-gap: #{cssUtils.$space-m};
+  width: 100%;
+  container-type: inline-size;
+
+  &[data-layout="carousel"] {
+    padding: 0;
+  }
+}
+
+.#{brand.$prefix}-small-card-block__grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--#{brand.$prefix}-small-card-gap);
+  width: 100%;
+}
+
+.#{brand.$prefix}-small-card-block__row {
+  display: grid;
+  gap: var(--#{brand.$prefix}-small-card-gap);
+  width: 100%;
+  align-items: stretch;
+}
+
+.#{brand.$prefix}-small-card-block__row--1 {
+  grid-template-columns: 1fr;
+}
+.#{brand.$prefix}-small-card-block__row--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.#{brand.$prefix}-small-card-block__row--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.#{brand.$prefix}-small-card-block__row--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.#{brand.$prefix}-small-card-block__row--5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.#{brand.$prefix}-small-card-block__item {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+}
+
+// ── Carousel ──
+.#{brand.$prefix}-small-card-block__carousel {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &--mask-left.#{brand.$prefix}-small-card-block__carousel--mask-right {
+    mask-image: linear-gradient(to right, #0000, #000 48px, #000 calc(100% - 48px), #0000);
+    -webkit-mask-image: linear-gradient(to right, #0000, #000 48px, #000 calc(100% - 48px), #0000);
+  }
+  &--mask-left:not(.#{brand.$prefix}-small-card-block__carousel--mask-right) {
+    mask-image: linear-gradient(to right, #0000, #000 48px, #000);
+    -webkit-mask-image: linear-gradient(to right, #0000, #000 48px, #000);
+  }
+  &--mask-right:not(.#{brand.$prefix}-small-card-block__carousel--mask-left) {
+    mask-image: linear-gradient(to left, #0000, #000 48px, #000);
+    -webkit-mask-image: linear-gradient(to left, #0000, #000 48px, #000);
+  }
+}
+
+.#{brand.$prefix}-small-card-block__carousel-track {
+  display: flex;
+  gap: var(--#{brand.$prefix}-small-card-gap);
+  padding: cssUtils.$space-2xs 0;
+  width: max-content;
+}
+
+.#{brand.$prefix}-small-card-block__carousel-item {
+  display: grid;
+  flex-shrink: 0;
+  width: 17.5rem;
+}
+
+// ── Responsive ──
+.#{brand.$prefix}-small-card-block__grid--responsive {
+  @container (max-width: 1367px) {
+    .#{brand.$prefix}-small-card-block__row--5 {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .#{brand.$prefix}-small-card-block__row--5 > .#{brand.$prefix}-small-card-block__item {
+      grid-column: span 2;
+    }
+    .#{brand.$prefix}-small-card-block__row--5
+      > .#{brand.$prefix}-small-card-block__item:nth-last-child(-n + 2) {
+      grid-column: span 3;
+    }
+  }
+  @container (max-width: 1023px) {
+    .#{brand.$prefix}-small-card-block__row--4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @container (max-width: 48rem) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    .#{brand.$prefix}-small-card-block__row {
+      display: contents;
+    }
+    .#{brand.$prefix}-small-card-block__row--5 > .#{brand.$prefix}-small-card-block__item {
+      grid-column: auto;
+    }
+  }
+  @container (max-width: 30rem) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.#{brand.$prefix}-small-card-block__grid--odd-count {
+  @container (max-width: 48rem) {
+    .#{brand.$prefix}-small-card-block__row:last-child
+      > .#{brand.$prefix}-small-card-block__item:last-child {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.#{brand.$prefix}-small-card-block__carousel--responsive {
+  @container (max-width: 30rem) {
+    .#{brand.$prefix}-small-card-block__carousel-item {
+      width: 15rem;
+    }
+  }
+}
+
+.#{brand.$prefix}-small-card-block--overview-card.#{brand.$prefix}-small-card-block--carousel {
+  .#{brand.$prefix}-small-card-block__carousel-item {
+    width: 15rem;
+  }
+  @container (max-width: 30rem) {
+    .#{brand.$prefix}-small-card-block__carousel-item {
+      width: 12.5rem;
+    }
+  }
+}

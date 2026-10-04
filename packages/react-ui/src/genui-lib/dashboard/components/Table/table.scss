@@ -1,0 +1,130 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+@use "../shared/typography" as dashType;
+
+.#{brand.$prefix}-table-wrapper {
+  position: relative;
+  border-radius: cssUtils.$radius-2xl;
+  border: 1px solid cssUtils.$border-default;
+  overflow: hidden;
+}
+
+.#{brand.$prefix} .openui-table-container {
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.#{brand.$prefix}
+  .#{brand.$prefix}-shell-card:is(
+    .#{brand.$prefix}-shell-card--medium,
+    .#{brand.$prefix}-shell-card--large
+  )
+  .openui-scrollable-table-wrapper {
+  width: calc(100% + var(--openui-space-l, 20px) + var(--openui-space-l, 20px)) !important;
+  margin-inline: calc(-1 * var(--openui-space-l, 20px));
+}
+
+.#{brand.$prefix}
+  .#{brand.$prefix}-shell-card:is(
+    .#{brand.$prefix}-shell-card--medium,
+    .#{brand.$prefix}-shell-card--large
+  )
+  :is(.openui-table-head, .openui-table-cell):first-child {
+  padding-left: var(--openui-space-l, 20px) !important;
+}
+
+.#{brand.$prefix}
+  .#{brand.$prefix}-shell-card:is(
+    .#{brand.$prefix}-shell-card--medium,
+    .#{brand.$prefix}-shell-card--large
+  )
+  :is(.openui-table-head, .openui-table-cell):last-child {
+  padding-right: var(--openui-space-l, 20px) !important;
+}
+
+.#{brand.$prefix}-table-scroll-container {
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.#{brand.$prefix}-table {
+  width: 100%;
+  border-collapse: collapse;
+  @include cssUtils.typography(body, default);
+  color: cssUtils.$text-neutral-primary;
+}
+
+.#{brand.$prefix}-table__head {
+  background-color: cssUtils.$sunk;
+}
+
+.#{brand.$prefix}-table__th {
+  padding: cssUtils.$space-s cssUtils.$space-m;
+  @include dashType.typography(table-header);
+  color: cssUtils.$text-neutral-secondary;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid cssUtils.$border-default;
+
+  &--right {
+    text-align: right;
+  }
+}
+
+.#{brand.$prefix}-table__tr {
+  transition: background-color 0.12s ease;
+
+  &:hover {
+    background-color: cssUtils.$highlight-subtle;
+  }
+  &:not(:last-child) .#{brand.$prefix}-table__td {
+    border-bottom: 1px solid cssUtils.$border-default;
+  }
+}
+
+.#{brand.$prefix}-table__td {
+  padding: cssUtils.$space-s cssUtils.$space-m;
+  white-space: nowrap;
+
+  &--right {
+    text-align: right;
+  }
+}
+
+.#{brand.$prefix}-table__td .openui-tag,
+.#{brand.$prefix} .openui-table-cell .openui-tag {
+  width: fit-content;
+}
+
+// Action cell styles
+.#{brand.$prefix}-table-action-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: fit-content;
+}
+
+.#{brand.$prefix}-table-action-single-button {
+  background: none;
+  border: none;
+  padding: 0 cssUtils.$space-2xs;
+  margin-left: -4px;
+  border-radius: cssUtils.$radius-s;
+  background-color: transparent;
+  font-family: cssUtils.$font-body;
+  font-size: cssUtils.$font-size-sm;
+  font-weight: cssUtils.$font-weight-regular;
+  color: cssUtils.$text-neutral-primary;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: cssUtils.$space-xs;
+
+  &:hover {
+    background-color: cssUtils.$highlight-strong;
+  }
+}

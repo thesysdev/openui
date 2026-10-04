@@ -1,0 +1,52 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+
+.#{brand.$prefix}-list {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-l;
+  // Pre-unification, dashboard and report shared one list block name, so
+  // report's root rule leaked these two declarations onto dashboard lists —
+  // the shipped look bakes them in. Keep them now that the blocks are
+  // de-collided; remove deliberately if dashboard lists should drop the
+  // outer padding.
+  width: 100%;
+  padding: 16px 0;
+}
+
+.#{brand.$prefix}-list--small {
+  gap: cssUtils.$space-m;
+
+  .openui-list-block {
+    gap: cssUtils.$space-m;
+  }
+
+  .openui-list-item-wrapper {
+    gap: cssUtils.$space-s;
+  }
+
+  .openui-list-item {
+    gap: cssUtils.$space-s-m;
+  }
+
+  .openui-list-item-indicator {
+    width: 36px;
+    height: 36px;
+
+    &-no-subtitle {
+      width: 20px;
+      height: 20px;
+    }
+
+    &-number {
+      @include cssUtils.typography(number, small);
+    }
+  }
+
+  .openui-list-item-title,
+  .openui-list-item-subtitle,
+  .openui-list-item-action-label,
+  .openui-list-item-action-icon {
+    @include cssUtils.typography(body, small);
+  }
+}

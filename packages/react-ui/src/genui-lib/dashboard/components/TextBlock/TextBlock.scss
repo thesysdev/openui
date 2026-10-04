@@ -1,0 +1,150 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+@use "../shared/typography" as dashType;
+
+.#{brand.$prefix}-text-block {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-3xs;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.#{brand.$prefix}-text-block__primary {
+  color: cssUtils.$text-neutral-primary;
+}
+
+.#{brand.$prefix}-text-block__secondary {
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.#{brand.$prefix}-text-block__secondary--positive {
+  color: cssUtils.$text-success-primary;
+}
+
+.#{brand.$prefix}-text-block__secondary--negative {
+  color: cssUtils.$text-danger-primary;
+}
+
+.#{brand.$prefix}-text-block__tertiary {
+  display: none;
+}
+
+// ── Variant: text-subtext ──
+.#{brand.$prefix}-text-block--text-subtext .#{brand.$prefix}-text-block__primary {
+  @include cssUtils.typography(body, default);
+}
+.#{brand.$prefix}-text-block--text-subtext .#{brand.$prefix}-text-block__secondary {
+  @include cssUtils.typography(body, small);
+}
+
+// ── Variant: highlight-text-number-subtext ──
+.#{brand.$prefix}-text-block--highlight-text-number-subtext {
+  gap: 0;
+}
+.#{brand.$prefix}-text-block--highlight-text-number-subtext .#{brand.$prefix}-text-block__primary {
+  @include dashType.typography(highlight);
+}
+.#{brand.$prefix}-text-block--highlight-text-number-subtext
+  .#{brand.$prefix}-text-block__secondary {
+  @include cssUtils.typography(body, small);
+}
+
+// ── Variant: text ──
+.#{brand.$prefix}-text-block--text .#{brand.$prefix}-text-block__primary {
+  @include cssUtils.typography(body, default);
+}
+
+// ── Variant: highlight-text ──
+.#{brand.$prefix}-text-block--highlight-text .#{brand.$prefix}-text-block__primary {
+  @include dashType.typography(highlight);
+}
+
+// ── Variant: number ──
+.#{brand.$prefix}-text-block--number .#{brand.$prefix}-text-block__primary {
+  @include dashType.typography(metric);
+}
+
+// ── Variant: highlight-number ──
+.#{brand.$prefix}-text-block--highlight-number .#{brand.$prefix}-text-block__primary {
+  @include dashType.typography(metric, lg);
+}
+
+// ── Size: xs ──
+.#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--text-subtext,
+.#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--highlight-text-number-subtext {
+  gap: 0;
+}
+.#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--text-subtext
+  .#{brand.$prefix}-text-block__primary,
+.#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--text
+  .#{brand.$prefix}-text-block__primary {
+  font-size: cssUtils.$font-size-sm;
+  font-weight: cssUtils.$font-weight-regular;
+}
+.#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--text.#{brand.$prefix}-text-block--type-number
+  .#{brand.$prefix}-text-block__primary,
+.#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--number
+  .#{brand.$prefix}-text-block__primary {
+  font-size: cssUtils.$font-size-sm;
+  font-weight: cssUtils.$font-weight-bold;
+}
+.#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--highlight-text-number-subtext
+  .#{brand.$prefix}-text-block__primary,
+.#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--highlight-text
+  .#{brand.$prefix}-text-block__primary,
+.#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--highlight-number
+  .#{brand.$prefix}-text-block__primary {
+  font-size: cssUtils.$font-size-sm;
+  font-weight: cssUtils.$font-weight-heavy;
+}
+.#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--text-subtext
+  .#{brand.$prefix}-text-block__secondary,
+.#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--highlight-text-number-subtext
+  .#{brand.$prefix}-text-block__secondary {
+  font-size: cssUtils.$font-size-sm;
+  font-weight: cssUtils.$font-weight-regular;
+}
+
+// ── Size: sm (default) — uses base variant styles ──
+
+// ── Size: md ──
+.#{brand.$prefix}-text-block--size-md.#{brand.$prefix}-text-block--text-subtext,
+.#{brand.$prefix}-text-block--size-md.#{brand.$prefix}-text-block--highlight-text,
+.#{brand.$prefix}-text-block--size-md.#{brand.$prefix}-text-block--highlight-text-number-subtext {
+  gap: 0;
+}
+
+// ── Size: lg ──
+.#{brand.$prefix}-text-block--size-lg.#{brand.$prefix}-text-block--text
+  .#{brand.$prefix}-text-block__primary {
+  font-size: cssUtils.$font-size-md;
+}
+.#{brand.$prefix}-text-block--size-lg.#{brand.$prefix}-text-block--highlight-text
+  .#{brand.$prefix}-text-block__primary {
+  font-size: cssUtils.$font-size-md;
+  font-weight: cssUtils.$font-weight-heavy;
+}
+.#{brand.$prefix}-text-block--size-lg.#{brand.$prefix}-text-block--highlight-number
+  .#{brand.$prefix}-text-block__primary {
+  font-size: cssUtils.$font-size-2xl;
+  font-weight: cssUtils.$font-weight-heavy;
+}
+.#{brand.$prefix}-text-block--size-lg.#{brand.$prefix}-text-block--text-subtext,
+.#{brand.$prefix}-text-block--size-lg.#{brand.$prefix}-text-block--highlight-text-number-subtext {
+  gap: 0;
+}
+
+// ── Alignment ──
+.#{brand.$prefix}-text-block--align-left {
+  align-items: flex-start;
+  text-align: left;
+}
+.#{brand.$prefix}-text-block--align-center {
+  align-items: center;
+  text-align: center;
+}
+.#{brand.$prefix}-text-block--align-right {
+  align-items: flex-end;
+  text-align: right;
+}

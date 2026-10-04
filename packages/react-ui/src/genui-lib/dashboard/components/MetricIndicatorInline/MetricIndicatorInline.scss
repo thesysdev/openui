@@ -1,0 +1,69 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+@use "../shared/typography" as dashType;
+
+.#{brand.$prefix}-metric-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: cssUtils.$space-3xs;
+
+  &--variant-inline {
+    gap: 0;
+  }
+
+  &--has-subtext {
+    gap: cssUtils.$space-3xs;
+  }
+
+  &__row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: cssUtils.$space-xs;
+    min-width: 0;
+  }
+
+  &--variant-inline &__row {
+    align-items: baseline;
+    gap: cssUtils.$space-2xs;
+  }
+
+  &__main-value {
+    color: cssUtils.$text-neutral-primary;
+    @include dashType.typography(metric);
+  }
+
+  &__previous-value {
+    color: cssUtils.$text-neutral-secondary;
+    text-decoration: line-through;
+    @include dashType.typography(metric, sm);
+    margin-bottom: 1px;
+  }
+
+  &__subtext {
+    color: cssUtils.$text-neutral-secondary;
+    min-width: 0;
+    @include cssUtils.typography(body, small);
+  }
+
+  &--variant-inline &__subtext {
+    margin-top: 0;
+  }
+
+  &__trend {
+    font-family: cssUtils.$font-body;
+    font-size: cssUtils.$font-size-sm;
+    font-weight: cssUtils.$font-weight-bold;
+    line-height: cssUtils.$line-height-label;
+    margin-bottom: 1px;
+
+    &--success {
+      color: cssUtils.$text-success-primary;
+    }
+    &--danger {
+      color: cssUtils.$text-danger-primary;
+    }
+  }
+}

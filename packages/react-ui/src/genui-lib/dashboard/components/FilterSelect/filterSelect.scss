@@ -1,0 +1,269 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../shared/zIndex" as zIndex;
+@use "../../_prefix.scss" as brand;
+
+.#{brand.$prefix}-filter-select {
+  display: flex;
+  flex-direction: column;
+  width: 180px;
+  gap: cssUtils.$space-3xs;
+  min-width: 0;
+}
+
+.#{brand.$prefix}-filter-select__label {
+  color: cssUtils.$text-neutral-secondary;
+  @include cssUtils.typography(label, small);
+}
+
+// ── Single-select ────────────────────────────────────────────────────────────
+
+.#{brand.$prefix}-filter-single-select {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.#{brand.$prefix}-filter-single-select__trigger {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 32px;
+  gap: cssUtils.$space-xs;
+  padding: 0 cssUtils.$space-s;
+  border: 1px solid cssUtils.$border-interactive;
+  border-radius: cssUtils.$radius-m;
+  background: cssUtils.$foreground;
+  color: cssUtils.$text-neutral-primary;
+  cursor: pointer;
+  @include cssUtils.typography(label, small);
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  &--empty {
+    color: cssUtils.$text-neutral-secondary;
+  }
+}
+
+.#{brand.$prefix}-filter-single-select__value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.#{brand.$prefix}-filter-single-select__chevron {
+  flex-shrink: 0;
+  color: cssUtils.$text-neutral-primary;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+.#{brand.$prefix}-filter-single-select__content {
+  position: absolute;
+  z-index: zIndex.$dropdown;
+  top: calc(100% + #{cssUtils.$space-2xs});
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 180px;
+  max-width: min(320px, calc(100vw - 32px));
+  gap: cssUtils.$space-3xs;
+  padding: cssUtils.$space-2xs;
+  border: 1px solid cssUtils.$border-default;
+  border-radius: cssUtils.$radius-l;
+  background: cssUtils.$foreground;
+  box-shadow: cssUtils.$shadow-m;
+}
+
+.#{brand.$prefix}-filter-single-select__radio-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  gap: cssUtils.$space-s;
+  padding: cssUtils.$space-2xs cssUtils.$space-xs;
+  border-radius: cssUtils.$radius-s;
+  color: cssUtils.$text-neutral-primary;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: cssUtils.$sunk;
+  }
+}
+
+.#{brand.$prefix}-filter-single-select__radio-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.#{brand.$prefix}-filter-single-select__radio-control {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid cssUtils.$border-interactive;
+  border-radius: cssUtils.$radius-full;
+  background: cssUtils.$foreground;
+}
+
+.#{brand.$prefix}-filter-single-select__radio-input:checked
+  + .#{brand.$prefix}-filter-single-select__radio-control {
+  border-color: cssUtils.$border-interactive-selected;
+  background:
+    radial-gradient(circle, cssUtils.$border-interactive-selected 0 4px, transparent 4.5px),
+    cssUtils.$foreground;
+}
+
+.#{brand.$prefix}-filter-single-select__radio-input:focus-visible
+  + .#{brand.$prefix}-filter-single-select__radio-control {
+  outline: 2px solid cssUtils.$border-interactive-selected;
+  outline-offset: 2px;
+}
+
+.#{brand.$prefix}-filter-single-select__radio-label {
+  overflow: hidden;
+  @include cssUtils.typography(label, small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Multi-select ─────────────────────────────────────────────────────────────
+
+.#{brand.$prefix}-filter-multi-select {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.#{brand.$prefix}-filter-multi-select__trigger {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 32px;
+  gap: cssUtils.$space-xs;
+  padding: cssUtils.$space-2xs cssUtils.$space-s;
+  border: 1px solid cssUtils.$border-interactive;
+  border-radius: cssUtils.$radius-m;
+  background: cssUtils.$foreground;
+  color: cssUtils.$text-neutral-primary;
+  cursor: pointer;
+  @include cssUtils.typography(label, small);
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  &--empty {
+    color: cssUtils.$text-neutral-secondary;
+  }
+}
+
+.#{brand.$prefix}-filter-multi-select__placeholder {
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.#{brand.$prefix}-filter-multi-select__summary {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: cssUtils.$space-xs;
+  min-width: 0;
+}
+
+.#{brand.$prefix}-filter-multi-select__summary-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.#{brand.$prefix}-filter-multi-select__count {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 cssUtils.$space-2xs;
+  border-radius: cssUtils.$radius-full;
+  background: cssUtils.$sunk;
+  color: cssUtils.$text-neutral-secondary;
+  @include cssUtils.typography(label, extra-small);
+}
+
+.#{brand.$prefix}-filter-multi-select__chevron {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: cssUtils.$text-neutral-primary;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+.#{brand.$prefix}-filter-multi-select__dropdown {
+  position: absolute;
+  z-index: zIndex.$dropdown;
+  top: calc(100% + #{cssUtils.$space-2xs});
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 180px;
+  max-width: min(320px, calc(100vw - 32px));
+  max-height: 240px;
+  border: 1px solid cssUtils.$border-default;
+  border-radius: cssUtils.$radius-l;
+  background: cssUtils.$foreground;
+  box-shadow: cssUtils.$shadow-m;
+  overflow: hidden;
+}
+
+.#{brand.$prefix}-filter-multi-select__options {
+  overflow-y: auto;
+  flex: 1;
+  padding: cssUtils.$space-2xs;
+}
+
+.#{brand.$prefix}-filter-multi-select__option {
+  box-sizing: border-box;
+  width: 100%;
+  padding: cssUtils.$space-2xs cssUtils.$space-xs;
+  border-radius: cssUtils.$radius-s;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: cssUtils.$sunk;
+  }
+}

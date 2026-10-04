@@ -141,6 +141,12 @@ export { safeOpenUrl, safeUrl } from "./components/_shared/utils";
 
 // Genui-lib standard library
 export {
+  dashboardAdditionalRules,
+  dashboardComponentGroups,
+  dashboardComponents,
+  dashboardExamples,
+  dashboardLibrary,
+  dashboardPromptOptions,
   openuiAdditionalRules,
   openuiChatAdditionalRules,
   openuiChatComponentGroups,
@@ -152,6 +158,8 @@ export {
   openuiLibrary,
   openuiPromptOptions,
 } from "./genui-lib";
+
+export * from "./genui-lib/dashboard/theme";
 
 // this is the context providers that are used in the shell
 export * from "./context/LayoutContext";

@@ -1,0 +1,60 @@
+@use "sass:map";
+@use "../../_prefix.scss" as brand;
+
+// Dashboard-private typography roles.
+//
+// Shaped to mirror `cssUtils.typography()`: a nested `role -> variant` map, read
+// by a same-named mixin, so both read alike at a call site:
+//
+//   @include cssUtils.typography(body, small);   // openui's scale
+//   @include dashType.typography(metric, lg);    // the dashboard-only gap
+//
+// These cover the combinations openui's shorthand scale CANNOT express: its
+// `-heavy` tier stops at weight 500, while dashboard cards need 600/700. Reach
+// for `cssUtils.typography(...)` whenever openui already covers the combination
+// — this mixin is only for the gap. Values live in DashboardThemeProvider.tsx
+// rather than being baked in here, so they stay themeable at runtime.
+//
+// One deliberate divergence: an unknown role or variant is a BUILD ERROR here.
+// `cssUtils.typography()` fails silently — `map.get` returns null, Sass drops
+// the declaration, and a rule whose only content was the mixin vanishes from the
+// output entirely. That is how several dead call sites shipped elsewhere in this
+// repo; this mixin cannot do that.
+
+@function -font-var($role-name) {
+  @return "--#{brand.$prefix}-font-#{$role-name}";
+}
+
+$typography: (
+  // Metric values, on the body family with label leading.
+  metric: (
+      // 700 @ 14px — the primary value
+      default: -font-var(metric),
+      // 600 @ 13px — previous value, trend
+      sm: -font-var(metric-sm),
+      // 700 @ 20px — oversized highlight metric
+      lg: -font-var(metric-lg)
+    ),
+  // Highlight card copy — body family, prose leading.
+  highlight: (
+      // 700 @ 14px
+      default: -font-var(highlight)
+    ),
+  // Table column headers — label family, label leading.
+  table-header: (
+      // 600 @ 13px
+      default: -font-var(table-header)
+    )
+);
+
+@mixin typography($role, $variant: default) {
+  $font-var: map.get($typography, $role, $variant);
+  @if $font-var == null {
+    @error 'Unknown dashboard typography role `#{$role}, #{$variant}`. '
+      + 'Known roles: #{map.keys($typography)}.';
+  }
+  // Deliberately no `letter-spacing` companion (unlike cssUtils.typography):
+  // every dashboard letter-spacing token is 0 and the rules these replace set
+  // none, so pairing one in would newly force `0` over an inherited `normal`.
+  font: var(#{$font-var});
+}
