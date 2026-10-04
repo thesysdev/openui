@@ -1,7 +1,7 @@
 "use client";
 
 import { defineComponent, type ComponentRenderProps } from "@openuidev/react-lang";
-import { HorizontalBarChart } from "../../../../../components/Charts/HorizontalBarChart";
+import { HorizontalBarChart } from "../../../../../components/Charts";
 import { DASHBOARD_CHART_PALETTE } from "../../shared/chartPalette";
 import { buildChartData, DASHBOARD_CHART_HEIGHT } from "../chartHelpers";
 import { horizontalBarChartPropsSchema, type HorizontalBarChartProps } from "./schema";
