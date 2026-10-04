@@ -1,7 +1,7 @@
 "use client";
 
 import { defineComponent, type ComponentRenderProps } from "@openuidev/react-lang";
-import { AreaChartCondensed } from "../../../../../components/Charts/AreaChartCondensed";
+import { AreaChartCondensed } from "../../../../../components/Charts";
 import { DASHBOARD_CHART_PALETTE } from "../../shared/chartPalette";
 import {
   buildChartData,
