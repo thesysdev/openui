@@ -1,0 +1,55 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+
+.#{brand.$prefix}-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: cssUtils.$space-l;
+  width: 100%;
+  max-width: 1440px;
+  padding: cssUtils.$space-l cssUtils.$space-2xs cssUtils.$space-m;
+  margin: 0 auto;
+}
+
+.#{brand.$prefix}-header__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: cssUtils.$space-m;
+}
+
+.#{brand.$prefix}-header__title {
+  @include cssUtils.typography(heading, large);
+
+  color: cssUtils.$text-neutral-primary;
+}
+
+.#{brand.$prefix}-header__subtitle {
+  @include cssUtils.typography(body, default);
+
+  max-width: 720px;
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.#{brand.$prefix}-header__controls {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: cssUtils.$space-m;
+}
+
+@media (max-width: 768px) {
+  .#{brand.$prefix}-header {
+    flex-direction: column;
+  }
+
+  .#{brand.$prefix}-header__controls {
+    justify-content: flex-start;
+    width: 100%;
+    padding-top: 0;
+  }
+}

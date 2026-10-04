@@ -65,25 +65,26 @@ function App() {
 
 `AgentInterface` is the single chat surface. It adapts its layout responsively and accepts:
 
-| Prop               | Description                                                                                  |
-| :----------------- | :------------------------------------------------------------------------------------------- |
+| Prop               | Description                                                                                                                                                                           |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `storage`          | Optional persistence adapter for thread history; defaults to in-memory (wiped on reload). Use `restStorage({ baseUrl })` from `@openuidev/react-ui` to back it with your own REST API |
-| `llm`              | Chat transport, usually built with `fetchLLM`; any `ChatLLM` (`{ send({ threadId, messages, signal }), streamProtocol }`) works |
-| `componentLibrary` | OpenUI Lang library used to render assistant messages (e.g. `openuiChatLibrary`)             |
-| `theme`            | Theme configuration, e.g. `{ mode: "light" }`                                                |
-| `agentName`        | Name displayed in the header                                                                 |
-| `starters`         | Conversation-starter prompts shown on the welcome screen                                     |
+| `llm`              | Chat transport, usually built with `fetchLLM`; any `ChatLLM` (`{ send({ threadId, messages, signal }), streamProtocol }`) works                                                       |
+| `componentLibrary` | OpenUI Lang library used to render assistant messages (e.g. `openuiChatLibrary`)                                                                                                      |
+| `theme`            | Theme configuration, e.g. `{ mode: "light" }`                                                                                                                                         |
+| `agentName`        | Name displayed in the header                                                                                                                                                          |
+| `starters`         | Conversation-starter prompts shown on the welcome screen                                                                                                                              |
 
 See the [chat docs](https://openui.com/docs/chat) for full configuration.
 
 ## Built-in Component Libraries
 
-The package ships with two preconfigured OpenUI Lang libraries:
+The package ships with three preconfigured OpenUI Lang libraries:
 
 | Export              | Description                                                               |
 | :------------------ | :------------------------------------------------------------------------ |
 | `openuiLibrary`     | Full component library for charts, tables, forms, cards, images, and more |
 | `openuiChatLibrary` | Chat-optimized subset with follow-ups, steps, and callouts                |
+| `dashboardLibrary`  | Dashboard layouts, KPI cards, interactive filters, charts, and tables     |
 
 Use them directly when building custom chat experiences:
 
@@ -103,6 +104,84 @@ import { openuiLibrary, openuiPromptOptions } from "@openuidev/react-ui";
 
 const systemPrompt = openuiLibrary.prompt(openuiPromptOptions);
 ```
+
+### Dashboards
+
+Import the dashboard library and its generation instructions from React UI:
+
+```tsx
+"use client";
+
+import { Renderer, type RendererProps } from "@openuidev/react-lang";
+import { dashboardLibrary } from "@openuidev/react-ui/genui-lib";
+import "@openuidev/react-ui/styles/index.css";
+
+type DashboardPreviewProps = Pick<RendererProps, "response" | "isStreaming" | "toolProvider">;
+
+export function DashboardPreview({ response, isStreaming, toolProvider }: DashboardPreviewProps) {
+  return (
+    <Renderer
+      response={response}
+      library={dashboardLibrary}
+      isStreaming={isStreaming}
+      toolProvider={toolProvider}
+    />
+  );
+}
+```
+
+`Dashboard` automatically applies its own typography and inherits the surrounding
+`ThemeProvider`'s light or dark mode. The normal React UI stylesheet includes all
+dashboard styles. There is no dependency on `@openuidev/thesys` or its chart package.
+Charts measure browser layout, so SSR applications should load the preview on the
+client (for example, with `next/dynamic` and `ssr: false` in a Next.js client module).
+
+For self-hosted generation, use
+`dashboardLibrary.prompt(dashboardPromptOptions)`. For the generalized Cloud chat
+endpoint, first serialize the library in a build script:
+
+```ts
+import { writeFileSync } from "node:fs";
+import { dashboardLibrary } from "@openuidev/react-ui/genui-lib/dashboard";
+
+writeFileSync(
+  "dashboard-library.json",
+  JSON.stringify({
+    ...dashboardLibrary.toSpec(),
+    schema: dashboardLibrary.toJSONSchema(),
+  }),
+);
+```
+
+Then build the system message on the server using that JSON and the server-safe
+prompt-options entry point:
+
+```ts
+import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
+import { dashboardPromptOptions } from "@openuidev/react-ui/genui-lib/prompt-options";
+import dashboardSpec from "./dashboard-library.json";
+
+const systemPrompt = generateSystemPrompt({
+  cloud: true,
+  library: dashboardSpec as LibrarySpec,
+  promptOptions: dashboardPromptOptions,
+  // Add script: { tools } when generated scripts should compose your tools.
+});
+```
+
+Pass this as the system message to `/v1/embed/chat/completions`. Use the matching
+library in the client Renderer and provide a `toolProvider` for live queries and
+mutations. The examples explain direct tool bindings, reactive filters, and script
+bindings for aggregation and joins; their tool names are examples, not built-in
+data sources.
+
+`dashboardComponents` can be spread into a custom `createLibrary` call. Individual
+definitions such as `DashboardComponent`, `SmallCardComponent`, `TrendComponent`,
+and `FilterOptionComponent` are exported from
+`@openuidev/react-ui/genui-lib/dashboard`. That entry also exports
+`DashboardThemeProvider`, `defaultDashboardLightTheme`, and
+`defaultDashboardDarkTheme`. `dashboardExamples`, `dashboardAdditionalRules`, and
+`dashboardComponentGroups` are available separately when customizing a prompt.
 
 ## Theming
 

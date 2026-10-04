@@ -87,6 +87,15 @@ export default defineConfig([
     entry: { index: "src/genui-lib/index.ts" },
     plugins: [fixEsmExternalPaths],
   },
+  // Dashboard definitions and theme — CJS + ESM with bundled declarations.
+  ...(["cjs", "esm"] as const).map((format) => ({
+    ...shared,
+    format: [format],
+    dts: true,
+    outDir: "dist/genui-lib/dashboard",
+    entry: { index: "src/genui-lib/dashboard/index.ts" },
+    plugins: format === "esm" ? [fixEsmExternalPaths] : [],
+  })),
   // Individual components — CJS only
   { ...shared, format: ["cjs"], entry: componentEntries },
 ]);

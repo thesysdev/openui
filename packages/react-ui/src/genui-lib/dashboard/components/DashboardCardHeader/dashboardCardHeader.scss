@@ -1,0 +1,63 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+
+.#{brand.$prefix}-card-header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 0;
+  gap: cssUtils.$space-m;
+}
+
+.#{brand.$prefix}-card-header__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.#{brand.$prefix}-card-header__content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.#{brand.$prefix}-card-header__content .#{brand.$prefix}-text-block {
+  gap: cssUtils.$space-3xs;
+}
+
+.#{brand.$prefix}-card-header__content
+  .#{brand.$prefix}-text-block--title-text
+  .#{brand.$prefix}-text-block__primary {
+  color: cssUtils.$text-neutral-primary;
+  @include cssUtils.typography(body, large-heavy);
+}
+
+.#{brand.$prefix}-card-header__content
+  .#{brand.$prefix}-text-block--number-title-text
+  .#{brand.$prefix}-text-block__primary {
+  color: cssUtils.$text-neutral-primary;
+  @include cssUtils.typography(number, heading-medium);
+}
+
+.#{brand.$prefix}-card-header__content
+  .#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--title-text
+  .#{brand.$prefix}-text-block__secondary,
+.#{brand.$prefix}-card-header__content
+  .#{brand.$prefix}-text-block--size-xs.#{brand.$prefix}-text-block--number-title-text
+  .#{brand.$prefix}-text-block__secondary {
+  color: cssUtils.$text-neutral-secondary;
+  @include cssUtils.typography(body, default);
+}
+
+.#{brand.$prefix}-card-header__controls {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: cssUtils.$space-2xs;
+}

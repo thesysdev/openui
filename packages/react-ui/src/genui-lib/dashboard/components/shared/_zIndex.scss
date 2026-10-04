@@ -1,0 +1,12 @@
+// Dashboard z-index scale — single source of truth, ordered low → high.
+
+// Ground floor — normal flow / explicit baseline.
+$base: 0;
+
+// Floating popovers anchored to a trigger inside the page.
+// Used by: FilterSelect single-select, FilterSelect multi-select.
+$dropdown: 10;
+
+// Fullscreen card modal — overlay + frame layered above everything else.
+// Used by: ShellCard expanded modal (overlay, frame).
+$modal: 10000;

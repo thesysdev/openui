@@ -1,0 +1,103 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+
+.#{brand.$prefix}-card-row {
+  --#{brand.$prefix}-card-row-gap: #{cssUtils.$space-m-l};
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--#{brand.$prefix}-card-row-gap);
+  width: 100%;
+
+  &--align-start {
+    align-items: flex-start;
+  }
+
+  &--align-stretch {
+    align-items: stretch;
+  }
+
+  &--type-small,
+  &--type-medium,
+  &--type-medium-large,
+  &--type-large {
+    width: 100%;
+  }
+}
+
+.#{brand.$prefix}-card-row > .#{brand.$prefix}-shell-card {
+  flex: 1 1 0;
+  max-width: none;
+}
+
+.#{brand.$prefix}-card-row--type-small > .#{brand.$prefix}-shell-card--small {
+  flex-basis: 220px;
+}
+
+.#{brand.$prefix}-card-row--type-medium > .#{brand.$prefix}-shell-card--medium {
+  flex-basis: 360px;
+}
+
+.#{brand.$prefix}-card-row--type-large > .#{brand.$prefix}-shell-card--large {
+  flex-basis: 100%;
+}
+
+.#{brand.$prefix}-card-row--type-medium-large > .#{brand.$prefix}-shell-card--medium {
+  flex: 1 1 360px;
+}
+
+.#{brand.$prefix}-card-row--type-medium-large > .#{brand.$prefix}-shell-card--large {
+  flex: 2 1 832px;
+}
+
+@media (min-width: 1080px) and (max-width: 1279px) {
+  .#{brand.$prefix}-card-row--type-small.#{brand.$prefix}-card-row--count-5
+    > .#{brand.$prefix}-shell-card--small {
+    flex-basis: calc(
+      (100% - var(--#{brand.$prefix}-card-row-gap) - var(--#{brand.$prefix}-card-row-gap)) / 3
+    );
+  }
+
+  .#{brand.$prefix}-card-row--type-small.#{brand.$prefix}-card-row--count-4
+    > .#{brand.$prefix}-shell-card--small {
+    flex-basis: calc(
+      (
+          100% - var(--#{brand.$prefix}-card-row-gap) - var(--#{brand.$prefix}-card-row-gap) - var(
+              --#{brand.$prefix}-card-row-gap
+            )
+        ) /
+        4
+    );
+  }
+
+  .#{brand.$prefix}-card-row--type-medium > .#{brand.$prefix}-shell-card--medium {
+    flex-basis: 320px;
+  }
+
+  .#{brand.$prefix}-card-row--type-medium-large > .#{brand.$prefix}-shell-card--medium {
+    flex: 1 1 320px;
+  }
+
+  .#{brand.$prefix}-card-row--type-medium-large > .#{brand.$prefix}-shell-card--large {
+    flex: 2 1 720px;
+  }
+}
+
+@media (max-width: 1079px) {
+  .#{brand.$prefix}-card-row--type-small > .#{brand.$prefix}-shell-card--small,
+  .#{brand.$prefix}-card-row--type-medium > .#{brand.$prefix}-shell-card--medium {
+    flex-basis: calc((100% - var(--#{brand.$prefix}-card-row-gap)) / 2);
+  }
+
+  .#{brand.$prefix}-card-row--type-large > .#{brand.$prefix}-shell-card--large,
+  .#{brand.$prefix}-card-row--type-medium-large > .#{brand.$prefix}-shell-card--large,
+  .#{brand.$prefix}-card-row--type-medium-large > .#{brand.$prefix}-shell-card--medium {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .#{brand.$prefix}-card-row > .#{brand.$prefix}-shell-card {
+    flex-basis: 100%;
+  }
+}

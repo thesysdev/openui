@@ -1,0 +1,104 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+
+.#{brand.$prefix}-filter-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: cssUtils.$space-s;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+
+  &--compact {
+    gap: cssUtils.$space-xs;
+  }
+}
+
+.#{brand.$prefix}-filter-bar .#{brand.$prefix}-filter-select__label {
+  display: none;
+}
+
+.#{brand.$prefix}-filter-bar__side {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: cssUtils.$space-s;
+  min-width: 0;
+  overflow: visible;
+
+  > * {
+    flex: 0 0 auto;
+  }
+
+  > .openui-input {
+    width: 180px;
+  }
+}
+
+.#{brand.$prefix}-filter-bar .openui-date-picker-renderer-floating-container {
+  width: 180px;
+  align-self: flex-end;
+}
+
+.#{brand.$prefix}-filter-bar .openui-date-picker-renderer-floating-input-container {
+  height: 32px;
+  padding: 0 cssUtils.$space-s;
+  border-color: cssUtils.$border-interactive;
+  border-radius: cssUtils.$radius-m;
+  background: cssUtils.$foreground;
+  box-shadow: none;
+  @include cssUtils.typography(label, small);
+}
+
+.#{brand.$prefix}-filter-bar .openui-date-picker-renderer-floating-input-container-text {
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+.#{brand.$prefix}-filter-bar
+  .openui-date-picker-renderer-floating-input-container-has-no-selected-date {
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.#{brand.$prefix}-filter-bar__side--left {
+  flex: 1 1 auto;
+}
+
+.#{brand.$prefix}-filter-bar__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  max-width: 0;
+  gap: cssUtils.$space-s;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(calc(-1 * #{cssUtils.$space-xs}));
+  transition:
+    max-width 180ms ease,
+    opacity 140ms ease,
+    transform 180ms ease;
+
+  > * {
+    flex: 0 0 auto;
+  }
+}
+
+.#{brand.$prefix}-filter-bar__actions--visible {
+  max-width: 320px;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.#{brand.$prefix}-filter-bar__side--right {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.#{brand.$prefix}-filter-bar--compact .#{brand.$prefix}-filter-bar__side,
+.#{brand.$prefix}-filter-bar--compact .#{brand.$prefix}-filter-bar__actions {
+  gap: cssUtils.$space-xs;
+}

@@ -1,0 +1,30 @@
+// Dashboard barrel — every leaf .scss under dashboard/ is @use'd here.
+
+// Shared
+@use "./components/shared/dashboardTheme";
+@use "./components/shared/cardShell";
+
+// Overview card primitives
+@use "./components/OverviewCardBlock/smallCardBlock";
+@use "./components/OverviewCardBlock/imageText";
+@use "./components/OverviewCardBlock/overviewCardBlock";
+
+// Kept primitives
+@use "./components/TextBlock/TextBlock";
+@use "./components/IconTag/IconTag";
+@use "./components/MetricIndicatorInline/MetricIndicatorInline";
+@use "./components/InlineMarkdownRenderer/InlineMarkdownRenderer";
+@use "./components/Table/table";
+
+// Dashboard components
+@use "./components/MetricIndicator/metricIndicator";
+@use "./components/DashboardCardHeader/dashboardCardHeader";
+@use "./components/DashboardHeader/dashboardHeader";
+@use "./components/Section/section";
+@use "./components/CardRow/cardRow";
+@use "./components/FilterBar/filterBar";
+@use "./components/FilterSelect/filterSelect";
+@use "./components/EntityList/entityList";
+@use "./components/List/List";
+@use "./components/DashboardCharts/dashboardCharts";
+@use "./components/DashboardCharts/PieChart/dashboardPieChart";

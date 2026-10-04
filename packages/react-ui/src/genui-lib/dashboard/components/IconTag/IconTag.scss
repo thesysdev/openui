@@ -1,0 +1,81 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+
+.#{brand.$prefix}-icon-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.#{brand.$prefix}-icon-tag--xs {
+  width: 20px;
+  height: 20px;
+  border-radius: cssUtils.$radius-xs;
+  & svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+.#{brand.$prefix}-icon-tag--s {
+  width: 24px;
+  height: 24px;
+  border-radius: cssUtils.$radius-s;
+  & svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+.#{brand.$prefix}-icon-tag--m {
+  width: 32px;
+  height: 32px;
+  border-radius: cssUtils.$radius-s;
+  & svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+.#{brand.$prefix}-icon-tag--l {
+  width: 36px;
+  height: 36px;
+  border-radius: cssUtils.$radius-m;
+  & svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+.#{brand.$prefix}-icon-tag--xl {
+  width: 40px;
+  height: 40px;
+  border-radius: cssUtils.$radius-m;
+  & svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.#{brand.$prefix}-icon-tag--neutral {
+  background-color: cssUtils.$highlight;
+  color: cssUtils.$text-neutral-primary;
+}
+.#{brand.$prefix}-icon-tag--info {
+  background-color: cssUtils.$info-background;
+  color: cssUtils.$text-info-primary;
+}
+.#{brand.$prefix}-icon-tag--success {
+  background-color: cssUtils.$success-background;
+  color: cssUtils.$text-success-primary;
+}
+.#{brand.$prefix}-icon-tag--warning {
+  background-color: cssUtils.$alert-background;
+  color: cssUtils.$text-alert-primary;
+}
+.#{brand.$prefix}-icon-tag--danger {
+  background-color: cssUtils.$danger-background;
+  color: cssUtils.$text-danger-primary;
+}
+.#{brand.$prefix}-icon-tag--inverted {
+  background-color: cssUtils.$inverted-background;
+  color: cssUtils.$background;
+}

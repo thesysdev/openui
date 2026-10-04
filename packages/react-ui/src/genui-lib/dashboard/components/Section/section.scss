@@ -1,0 +1,31 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+
+.#{brand.$prefix}-section {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-xl;
+  width: 100%;
+}
+
+.#{brand.$prefix}-section__header,
+.#{brand.$prefix}-section__filter,
+.#{brand.$prefix}-section__rows {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.#{brand.$prefix}-section__filter {
+  margin-bottom: cssUtils.$space-s;
+}
+
+.#{brand.$prefix}-section__rows {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-l;
+
+  &--without-header {
+    margin-top: 0;
+  }
+}

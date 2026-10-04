@@ -1,0 +1,27 @@
+@use "../../../../cssUtils" as cssUtils;
+@use "../../_prefix.scss" as brand;
+
+// Typography tokens are provided by DashboardThemeProvider.
+
+.#{brand.$prefix} {
+  box-sizing: border-box;
+  min-height: 100%;
+  padding: cssUtils.$space-2xl;
+  background-color: cssUtils.$background;
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-l;
+}
+
+.openui-shell-thread-artifact-panel:has(.#{brand.$prefix}) {
+  overflow: hidden;
+}
+.openui-shell-thread-artifact-panel .openui-artifact-panel:has(.#{brand.$prefix}) {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}

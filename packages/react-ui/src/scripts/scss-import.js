@@ -46,6 +46,8 @@ function generateScssIndex() {
   });
 
   // Write to index.scss (in the components directory)
+  indexScssContent += '@forward "../genui-lib/dashboard/styles.scss";\n';
+
   const indexScssPath = path.join(dirname, "..", "components", "index.scss");
   fs.writeFileSync(indexScssPath, indexScssContent);
 }
