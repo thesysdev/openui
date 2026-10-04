@@ -1,0 +1,314 @@
+---
+title: Shopping assistant
+description: Build a chat assistant that finds products in a Shopify store, lets the shopper pick a size and color, and keeps a live cart through Shopify's catalog and cart MCP tools.
+---
+
+import { buttonVariants } from "fumadocs-ui/components/ui/button";
+import { ArrowUpRight, Github } from "lucide-react";
+import { CookbookShoppingDiagram } from "@/components/cookbook-shopping-diagram";
+
+Shopping online still means translating what you want into filters. “Running shoes under $100 in size 9” becomes a category page, a price slider, a size filter that hides some products and not others, and a product page for each candidate to check whether your size is actually in stock. Chat assistants can take the sentence as it is, but a reply in text is a poor way to compare products, and an assistant that only describes a cart can't let you change it.
+
+A shopping assistant built with generative UI answers with the interface each step needs. A language model reads the request, searches the store, and shows the matches as product cards with photos and prices. When the shopper picks one, it shows that product's options as a form, with the size they mentioned already chosen and sold-out options disabled. The cart is a form too, with a quantity for each item and the total, so the shopper can change it with a click or in words.
+
+The catalog and the cart can come straight from the store. The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is a standard way for applications to offer tools to AI models, and every Shopify store now serves MCP tools for searching its catalog and building a cart, with no API key.
+
+In this cookbook, you'll learn how to:
+
+- Search a store through its MCP server from a function tool, and pass the model only the products and variants that fit the request.
+- Show products as cards with photos, prices, and a button for each.
+- Turn a product's options into a form, with values the shopper named already chosen and sold-out values disabled.
+- Keep a cart the shopper can change by editing quantities or asking in words.
+- Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
+- Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity.
+
+<div className="not-prose my-6">
+  <a
+    href="https://github.com/thesysdev/openui/tree/main/examples/cookbooks/shopping-assistant"
+    target="_blank"
+    rel="noopener noreferrer"
+    className={buttonVariants({
+      color: "secondary",
+      className: "min-h-11 gap-2.5 rounded-lg px-4 py-2.5 no-underline",
+    })}
+  >
+    <Github className="size-4" aria-hidden="true" />
+    View example on GitHub
+    <ArrowUpRight className="size-4 text-fd-muted-foreground" aria-hidden="true" />
+  </a>
+</div>
+
+## What you'll build
+
+The example shops OpenUI's demo store, [openui.myshopify.com](https://openui.myshopify.com), through the same [catalog](https://shopify.dev/docs/agents/catalog/storefront-catalog) and [cart](https://shopify.dev/docs/agents/carts-and-checkout/cart-mcp) MCP tools every Shopify store serves. It sells OpenUI merch in US dollars, a dozen products featuring Shiro, OpenUI's mascot: tees, a hoodie, and a crewneck in sizes Small to X-Large, sneakers and slides in US sizes 6 to 12, caps and beanies, and small gifts such as a plush, stickers, a mug, and a tote. Each has real sizes, colors, stock, and carts. The assistant never takes payment: its last step opens the store's own checkout with the items in the cart. Set one environment variable to point the example at your own store. There is nothing to download or host: the only key you need is for OpenUI Gateway.
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl flex p-2">
+  <video
+    src="/videos/cookbooks/shopping-assistant.mp4"
+    aria-label="The shopping assistant showing shoes under $100 in size 9 as product cards, opening the options for Shiro Canvas Sneakers with size 9 already chosen, adding a black pair to the cart, and adding Shiro Slides to the same cart by asking in words"
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
+Try this conversation:
+
+1. **“Find shoes under $100 in size 9.”** See the shoes that have size 9 in stock within the budget, as cards with photos and prices.
+2. **Select options on Shiro Canvas Sneakers.** Size 9 is already chosen. Pick Black, then **Add to cart**.
+3. **“Also add the slides in my size.”** The assistant adds them to the same cart and shows the new total.
+4. **Set the slides to 2 and click Update cart.** The cart and its total update in place. **Continue to checkout** opens the store's checkout with the same items.
+
+## How it works
+
+A shopping assistant splits the work between the model, your application, and the store. The model understands the request and presents each step. Your application decides what the model can do to the store and what it sees. The store keeps the catalog, the cart, and the checkout.
+
+<CookbookShoppingDiagram />
+
+1. **The shopper describes what they want.** Agent Interface sends the message to your server's chat route, which adds a system prompt that describes the shopping flow and your components and two function tools, `search_products` and `update_cart`, then calls OpenUI Gateway.
+2. **The model searches and shows products.** It calls `search_products` with a product word, the budget, and the size. Your server searches the store's catalog, keeps the products with a variant that fits, and returns their photos, prices, options, and variants. The model shows them as cards.
+3. **The shopper picks a variant.** A card's button asks for that product's options. The model writes a form with a set of choices for each option, the size already chosen, and sold-out values disabled. When the shopper submits it, the model finds the matching variant and calls `update_cart`.
+4. **The shopper reviews the cart.** Your server changes the store's cart and returns every item with its price and the totals. The model shows the cart as a form with a quantity per item and a button that opens the store's checkout.
+
+### Why product variants
+
+A product is what a shopper browses; a variant is what they buy. Shiro Canvas Sneakers come in 7 sizes and 2 colors, 14 variants in all, each with its own stock and sometimes its own price. Filtering on the product alone shows a hoodie whose color is sold out in your size, and a cart can only hold variants.
+
+The example handles both levels. The search keeps a product only when an in-stock variant fits the size, color, and budget, and returns every value of each option, marked in stock or not. The form shows those options rather than a list of variants. When the shopper adds the product, your server asks the store for the variant with the chosen values, so the model never handles variant ids. Because the search result stays in the thread's history, “add the slides in my size” works several turns later without searching again.
+
+### Why wrap the store's tools in your own
+
+The store's tools are built for any agent: a product comes with every photo at full size, up to a few megabytes each, HTML descriptions, collections, and tags, and a cart update replaces every line in the cart. Giving them to the model directly would cost many tokens per search and ask the model to rewrite the whole cart for every change.
+
+Function tools put your application in between. `search_products` returns the fields the cards and the form need, with photos resized by the store's CDN, and names the products it left out and why, such as sold out or over budget, so the model can say so. `update_cart` takes only what changes and merges it into the store's cart. Your server also validates every argument, and it treats the store's results as data, so text in them never reaches your model as instructions.
+
+## Run the example
+
+You need Node.js 22.13 or newer and npm.
+
+```bash
+git clone https://github.com/thesysdev/openui.git
+cd openui/examples/cookbooks/shopping-assistant
+npm ci
+```
+
+Configure `THESYS_API_KEY` from the [Thesys Console](https://console.thesys.dev/keys) privately in the example's `.env.local`, then start the app:
+
+```bash
+npm run dev
+```
+
+Open [localhost:3000](http://localhost:3000) and try a starter. The default model is `openai/gpt-5.5`; use `OPENUI_MODEL` to select another supported [Gateway model](/docs/gateway/models). To shop another store, set `SHOPIFY_STORE` to its domain, such as `your-store.myshopify.com`.
+
+## Build it step by step
+
+Each step covers one part of the example, in the order a request flows through it: the store's MCP server, the tools, the components, the prompt, and the chat interface.
+
+### 1. Connect to the store's MCP server
+
+Every Shopify store serves its catalog and cart tools over MCP at `https://<store>/api/ucp/mcp`. They follow the [Universal Commerce Protocol](https://ucp.dev) (UCP), so each request names the agent's UCP profile, a public document that lists the capabilities the agent supports. The example opens one MCP session per tool call with the MCP TypeScript SDK and returns only the structured result:
+
+```ts title="src/lib/shopify.ts"
+const client = new Client({
+  name: "openui-shopping-assistant",
+  version: "0.1.0",
+});
+await client.connect(new StreamableHTTPClientTransport(serverUrl), {
+  signal,
+});
+try {
+  return await run(async (name, args) => {
+    const result = await client.callTool(
+      { name, arguments: args },
+      undefined,
+      { signal, timeout: 30_000 },
+    );
+    return result.structuredContent;
+  });
+} finally {
+  await client.close();
+}
+```
+
+Searches call `search_catalog`. Cart changes call `get_cart`, then `create_cart` or `update_cart`, each with an idempotency key so a retried request can't add an item twice. The example uses Shopify's example profile; publish your own before deploying. See [shopify.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/lib/shopify.ts) for the complete client, which also reports errors from the store.
+
+### 2. Expose a search tool
+
+Give Gateway a function tool named `search_products`. It takes a product word, a budget, and the option values the shopper named:
+
+```json
+{
+  "query": "shoes",
+  "max_price": 100,
+  "option_values": ["9"]
+}
+```
+
+The store matches words literally, so the tool's description asks for one or two product words: “running shoes” finds nothing in the demo store, while “shoes” finds the sneakers and the slides. Your server fetches the 25 best matches and keeps a product only when an in-stock variant has every requested value within the budget. A search result lists at most 10 variants per product, so for a requested size or color the server asks the store with `get_product`, which returns the in-stock variants with those values:
+
+```ts title="src/lib/tools/search-products.ts"
+// A search result lists at most 10 variants, so ask the store
+// for the ones with these values.
+const checked = selected.length
+  ? await selectVariants(product.id, selected, signal)
+  : product;
+const inStock = checked.variants.filter(
+  (variant) => variant.availability?.available,
+);
+if (!inStock.length)
+  return {
+    reason: selected.length
+      ? `no ${args.option_values.join(" / ")} in stock`
+      : "sold out",
+  };
+```
+
+A value can also match a word of the product's title, because stores often sell each color as its own product, such as “Black Sunnies”. The result lists up to six products with every value of each option, marked in stock when the store checked it, and a `left_out` list, so the model can say that a product is sold out or over budget instead of searching again. See [search-products.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/lib/tools/search-products.ts).
+
+### 3. Expose a cart tool
+
+The second tool, `update_cart`, takes the thread's cart id, products to add with the chosen value of each option, and quantities to set for items already in the cart:
+
+```json
+{
+  "cart_id": null,
+  "add": [
+    {
+      "product_id": "gid://shopify/Product/9050328301686",
+      "options": [
+        { "name": "Size", "value": "9" },
+        { "name": "Color", "value": "Black" }
+      ],
+      "quantity": 1
+    }
+  ],
+  "set": []
+}
+```
+
+Your server finds the variant with the chosen values by calling `get_product` with them, so it works for any variant, including those a search didn't list:
+
+```ts title="src/lib/tools/update-cart.ts"
+const selected = item.options.map((option) => ({
+  name: option.name,
+  label: option.value,
+}));
+const product = await selectVariants(item.product_id, selected, signal);
+const inStock = product.variants.filter(
+  (variant) => variant.availability?.available,
+);
+if (!inStock.length)
+  throw new Error(`That choice of ${product.title} is out of stock.`);
+if (inStock.length > 1)
+  throw new Error(
+    `Choose a value for each option of ${product.title} before adding it.`,
+  );
+return inStock[0].id;
+```
+
+The store's `update_cart` replaces every line in the cart, so your server then reads the cart, adds the variants or replaces quantities, and writes the full cart back.
+
+A quantity of 0 removes the item. Without a cart id, or when the cart has expired, the first change creates a cart. The result holds every item with its unit price and line total, the totals, the new cart id, and a checkout link when the store has one. The model passes that cart id to the next change, so each thread keeps its own cart. See [update-cart.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/lib/tools/update-cart.ts).
+
+### 4. Choose the components
+
+Use the chat library, React UI's built-in library for Agent Interface answers, as it is. It has everything a shopping flow needs:
+
+```ts title="src/library.ts"
+export { openuiChatLibrary as library } from "@openuidev/react-ui/genui-lib";
+```
+
+Every answer is one `Card`. `CompositeCardBlock` lays out product cards with a photo, a title, a description, a price, and a button. `ImageGallery` shows a product's photos, `Chips` covers each option, and `ChipItem` can be disabled for a sold-out value. `Form` groups the fields and checks their validation rules when the shopper clicks a primary button, and `EntityList` lists the cart's totals. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
+
+### 5. Describe the shopping flow
+
+The [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/lib/prompt.ts) names the store, then describes each step and the components it uses. Each product card's button sends a message that names the product:
+
+> Give every Button an `Action([@ToAssistant("message")])` or `Action([@OpenUrl(url)])` action, never an object such as `{type: "continue_conversation"}`. The message is what the shopper sends, so name the product in it.
+
+The variant form rule lists every value of each option and prefills the ones the shopper named, so “size 9” arrives already chosen. It disables a value the search marked out of stock, such as a hoodie color with no X-Large left. When the shopper submits, the form sends the chosen values, not a variant id, and another rule tells the model to find the variant:
+
+> On 'Add to cart', call update_cart with the product in add: its id from search_products, each option's name with the chosen value, and the quantity. The server finds the variant.
+
+The cart form names each quantity field with the item's variant id, so **Update cart** sends every quantity with the variant it belongs to. The form sends only the fields the shopper changed, so a rule tells the model to use its prefilled value for the rest. One OpenUI Lang example for each step, the product cards, the variant form, and the cart, shows the model how the components fit together.
+
+### 6. Connect Agent Interface
+
+Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's stream with `openAIReadableStreamAdapter()`:
+
+```tsx title="src/components/shop-chat.tsx"
+const llm = fetchLLM({
+  url: "/api/chat",
+  streamAdapter: openAIReadableStreamAdapter(),
+  messageFormat: openAIMessageFormat,
+});
+
+const storage = useOpenuiCloudStorage({
+  token: "/api/frontend-token",
+  features: { artifact: false },
+});
+
+<AgentInterface
+  llm={llm}
+  storage={storage}
+  componentLibrary={library}
+  agentName="Shop assistant"
+/>;
+```
+
+Chat Completions does not store conversations, so the chat route loads each thread's earlier turns from Gateway, with their searches, cart changes, and results, and sends them with every turn.
+
+<Callout type="info" title="Thread storage">
+
+`useOpenuiCloudStorage()` keeps the thread list in Gateway, and the chat route saves each turn, tool calls included, with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so threads, their messages, and their carts stay after a reload.
+
+</Callout>
+
+The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/app/api/chat/route.ts) runs the tools whenever the model calls them and streams the answer to Agent Interface as the model writes it, so **Behind the scenes** shows each search and cart change.
+
+The example also customizes Agent Interface with a theme from `createTheme`, a logo, starters for four kinds of request, and a thread header that names the store. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
+
+## Verify it works
+
+In the browser:
+
+1. Ask **“Find shoes under $100 in size 9.”** Confirm you see Shiro Canvas Sneakers at $90.00 and Shiro Slides at $35.00.
+2. Click **Select options** on Shiro Canvas Sneakers. Confirm size 9 is chosen, then click **Add to cart** without a color. The color field should report that it is required, and nothing is sent.
+3. Pick Black and add it. Confirm the cart shows Shiro Canvas Sneakers - 9 / Black with a total of $90.00, and expand **Behind the scenes** to see the `update_cart` call.
+4. Ask **“Also add the slides in my size.”** Confirm the same cart now totals $125.00.
+5. Set a quantity to 0 and click **Update cart**. The item should disappear and the total drop.
+6. Ask for **“a Shiro hoodie in X-Large”** and open its options. Cream should be disabled, because it's sold out in X-Large.
+7. Click **Continue to checkout**. The store's checkout should open with the items in your cart. Leave it without paying.
+8. Reload the page and open an earlier thread. Confirm its messages load, and that a follow-up changes the same cart.
+9. Switch your operating system between light and dark mode, and confirm the theme follows.
+
+Generated layouts can vary. Products, prices, photos, and variant ids should always come from a tool result.
+
+## Adapt it to your store
+
+Set `SHOPIFY_STORE` to your store's domain. The cart result includes the store's `continue_url`, which the **Continue to checkout** button opens, so the shopper pays on the store. A store that returns none gets a note that it has no checkout instead. Before relying on these tools in production, publish your own UCP profile and check Shopify's [guide to building commerce agents](https://shopify.dev/docs/agents) for authentication and rate limits. To check out inside the assistant instead, add Shopify's [Checkout MCP](https://shopify.dev/docs/agents/checkout/mcp) tools, which require an authorization token.
+
+For another commerce platform, keep the `search_products` and `update_cart` contracts and replace the calls in `shopify.ts`. The pattern carries over to anything with options to choose before an action: a plan with tiers and add-ons, a room with dates and guests, a ticket with seats. Show the choices as cards, turn the chosen one's options into a form, and keep the result where the person can change it.
+
+This example calls Gateway directly from a Next.js route, but the tools and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
+
+This example runs locally without authentication. Before deploying it, add [authentication](/docs/gateway/authentication), limits on request size, and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/shopping-assistant) for the implementation notes.
+
+## References
+
+- [`@openuidev/react-ui`](/docs/api-reference/react-ui): `AgentInterface` and the chat library.
+- [`@openuidev/react-headless`](/docs/api-reference/react-headless): `fetchLLM()`, `openAIReadableStreamAdapter()`, and `useOpenuiCloudStorage()`, which the example imports through `@openuidev/react-ui`.
+- [`@openuidev/lang-core`](/docs/openui-lang/system-prompts): `generateSystemPrompt()`.
+- [`@openuidev/server`](/docs/api-reference/server#conversation-history): `storeChatCompletionHistory()`.
+- [`@openuidev/cli`](/docs/api-reference/cli): `openui generate`.
+- [OpenAI SDK](https://github.com/openai/openai-node): `runTools()` and `toReadableStream()`.
+- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk): the Streamable HTTP client that calls the store's MCP server.
+- [Shopify Storefront Catalog MCP](https://shopify.dev/docs/agents/catalog/storefront-catalog) and [Cart MCP](https://shopify.dev/docs/agents/carts-and-checkout/cart-mcp): the store's tools.
+- [Gateway Chat Completions API](/docs/gateway/api/chat-completions).
+- [Agent Interface quickstart](/docs/agent/getting-started/quickstart).
+- [Connect a backend](/docs/agent/reference/self-hosting).
+
+Products, prices, and photos: [openui.myshopify.com](https://openui.myshopify.com), OpenUI's demo Shopify store, fetched live for each search.
