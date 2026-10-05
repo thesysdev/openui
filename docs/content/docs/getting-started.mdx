@@ -74,11 +74,11 @@ const completion = await gateway.chat.completions.create({
 ```ts title="server.ts" tab="OpenAI" tab-group="call-model"
 import OpenAI from "openai";
 import { generateSystemPrompt } from "@openuidev/lang-core";
-import { createAutofix } from "@openuidev/server/openai";
+import { createClient } from "@openuidev/server";
 import library from "./lib/openui.spec.json";
 
 const model = new OpenAI();
-const autofix = createAutofix({ apiKey: process.env.THESYS_API_KEY!, library });
+const openui = createClient();
 
 const messages = [{ role: "user" as const, content: "Compare quarterly revenue by region." }];
 
@@ -90,7 +90,9 @@ const source = await model.chat.completions.create({
 
 // Autofix adds the library itself, so pass only the conversation.
 // Return this from your API route as a server-sent events response.
-const response = autofix.completions.stream({ stream: source, messages }).toResponse();
+const response = openui.completions.autofix
+  .stream({ library, stream: source, messages })
+  .toResponse();
 ```
 
 Both examples use a `THESYS_API_KEY`. Run the command below to sign in with Thesys, create a key, and write it to your `.env` file. Keep the key on the server and never expose it to browser code.

@@ -12,6 +12,26 @@ import type {
 } from "./types";
 import { AutofixError } from "./types";
 
+/** Bind local validation and repair without a streaming provider. */
+export function createAutofixFix(
+  options: AutofixOptions,
+): (input: AutofixInput) => Promise<AutofixResult> {
+  const { library } = options;
+  if (!library?.schema)
+    throw new AutofixError("A library spec with schema is required", "invalid_library");
+  const parser = createParser(library.schema, library.root);
+  const endpoint = `${(options.apiBaseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, "")}/v1/autofix`;
+  const fetchFn = options.fetch ?? globalThis.fetch;
+
+  return fixGeneration.bind(null, {
+    library,
+    apiKey: options.apiKey,
+    parser,
+    endpoint,
+    fetchFn,
+  });
+}
+
 /** Create helpers to validate and repair complete or streamed model output. */
 export function createAutofix<Chunk>(
   options: AutofixOptions,
@@ -20,21 +40,7 @@ export function createAutofix<Chunk>(
   fix(input: AutofixInput): Promise<AutofixResult>;
   stream(input: AutofixStreamInput<Chunk>): AutofixStream<Chunk>;
 } {
-  const { library } = options;
-  if (!library?.schema)
-    throw new AutofixError("A library spec with schema is required", "invalid_library");
-  const parser = createParser(library.schema, library.root);
-  const endpoint = `${(options.apiBaseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, "")}/v1/autofix`;
-  const fetchFn = options.fetch ?? globalThis.fetch;
-
-  const fix = fixGeneration.bind(null, {
-    library,
-    apiKey: options.apiKey,
-    parser,
-    endpoint,
-    fetchFn,
-  });
-
+  const fix = createAutofixFix(options);
   return {
     fix,
     // Wrap model emissions with validation and repair before the stream finishes.
