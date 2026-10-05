@@ -132,7 +132,38 @@ chatCompletionMessagesToItems([
 ]);
 ```
 
-## Script execution
+## Application tools and generated scripts
+
+Register your server tools with `createToolExecutor`. It runs registered names directly and resolves other names against the scripts in the complete OpenUI response through `/v1/app/execute`.
+
+```ts
+import { createToolExecutor } from "@openuidev/server";
+
+const executor = createToolExecutor({
+  apiKey: process.env.THESYS_API_KEY,
+  tools: {
+    get_sales: async (args, signal) => readSales(args, { signal }),
+    get_customers: async (args, signal) => readCustomers(args, { signal }),
+  },
+});
+
+export async function POST(request: Request) {
+  // Authorize the request using your application's session before dispatching.
+  const input = await request.json(); // { name, arguments?, response? }
+  const result = await executor.execute(input, { signal: request.signal });
+  return Response.json({ result });
+}
+```
+
+`response` is the complete generated response, required only for scripts. Registered tools take precedence over scripts with the same name and do not make an execution-endpoint request. Unknown script names are rejected by the endpoint. Script continuations can call only the registered tools; an unknown continuation name is sent back as a tool error and never starts another script.
+
+Handlers receive `(arguments, signal)` and can return a value or a promise. Register tools inside the request handler when they need to close over the current user's session. The executor carries continuation state, sends tool results back to the endpoint, and returns the final script result. Tool registration here is for execution; keep supplying the corresponding descriptions and schemas in `generateSystemPrompt({ cloud: true, script: { tools } })` for generation.
+
+`apiBaseUrl` overrides the gateway origin (default `https://api.thesys.dev`); `fetch` overrides the transport. `timeoutMs` sets the overall deadline, defaulting to 60 seconds, for both direct tools and script executions. Forward the handler signal to data calls. Calls within a script continuation run sequentially, with the same limits as `executeScript` below.
+
+Endpoint failures throw `ToolExecutionError` with `code` and optional HTTP `status`; errors thrown by direct handlers propagate unchanged. Catch these at your route boundary to return the application's error response. Browser-only tools remain in the frontend provider and cannot be invoked by this server executor.
+
+## Custom execution engines
 
 `executeScript` drives an execution engine until it completes, dispatching requested tools between steps. It does not depend on Chat Completions, OpenUI bundles, HTTP, or JSON serialization.
 
