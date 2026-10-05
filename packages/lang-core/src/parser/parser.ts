@@ -298,13 +298,13 @@ function buildResult(
 // ─────────────────────────────────────────────────────────────────────────────
 
 function skipString(input: string, start: number): number {
-  if (input[start] !== '"') return start;
+  if (input.charCodeAt(start) !== 34 /* " */) return start;
   let i = start + 1;
   while (i < input.length) {
-    const c = input[i];
-    if (c === "\\") {
+    const c = input.charCodeAt(i);
+    if (c === 92 /* \\ */) {
       i += 2; // skip escape character and the escaped character
-    } else if (c === '"') {
+    } else if (c === 34) {
       return i + 1; // return index after the closing quote
     } else {
       i++;
@@ -327,6 +327,8 @@ export function stripFences(input: string): string {
 type FenceTail = "none" | "open" | "closed" | "other";
 
 function scanFences(input: string): { text: string; tail: FenceTail } {
+  // No ``` anywhere: no fence can be found (the scan below would return the input as is).
+  if (!input.includes("```")) return { text: input, tail: "none" };
   const blocks: string[] = [];
   let tail: FenceTail = "none";
   let i = 0;
@@ -424,46 +426,49 @@ function scanFences(input: string): { text: string; tail: FenceTail } {
 }
 
 /**
- * Strips // and # line comments outside of strings (" and ' delimiters; a string may span
- * lines). Feeding text in pieces (stream parser) gives the same output as all at once.
+ * Strips // and # line comments outside of strings (" and ' delimiters; a string may
+ * span lines). Text is fed with append(), all at once or in pieces (stream parser): the
+ * output is the same.
  */
 class CommentStripper {
   out = "";
   private lineStart = 0; // start of the current line in `out`
-  private quote: false | '"' | "'" = false;
+  private quote = 0; // char code of the open string's quote, 0 outside strings
   private esc = false;
   private inComment = false;
   private slash = false;
 
   append(text: string): this {
-    let run = this.inComment ? -1 : 0; // start of the not-yet-appended slice of `text`
+    let { out, lineStart, quote, esc, inComment, slash } = this;
+    let run = inComment ? -1 : 0; // start of the not-yet-appended slice of `text`
     for (let i = 0; i < text.length; i++) {
-      const c = text[i];
-      if (c === "\n") {
+      const c = text.charCodeAt(i);
+      if (c === 10 /* \n */) {
         if (run < 0) run = i;
-        this.lineStart = this.out.length + (i + 1 - run);
-        this.inComment = this.esc = this.slash = false;
+        lineStart = out.length + (i + 1 - run);
+        inComment = esc = slash = false;
       } else if (run < 0) {
         continue;
-      } else if (this.quote) {
-        if (this.esc) this.esc = false;
-        else if (c === "\\") this.esc = true;
-        else if (c === this.quote) this.quote = false;
-      } else if (c === '"' || c === "'") {
-        this.quote = c;
-        this.slash = false;
-      } else if (c === "#" || (c === "/" && this.slash)) {
-        const out = this.out + text.slice(run, i);
-        const cut = c === "#" ? out.length : out.length - 1;
-        this.out = out.slice(0, this.lineStart) + out.slice(this.lineStart, cut).trimEnd();
+      } else if (quote) {
+        if (esc) esc = false;
+        else if (c === 92 /* \\ */) esc = true;
+        else if (c === quote) quote = 0;
+      } else if (c === 34 /* " */ || c === 39 /* ' */) {
+        quote = c;
+        slash = false;
+      } else if (c === 35 /* # */ || (c === 47 /* / */ && slash)) {
+        out += text.slice(run, i);
+        const cut = c === 35 ? out.length : out.length - 1;
+        out = out.slice(0, lineStart) + out.slice(lineStart, cut).trimEnd();
         run = -1;
-        this.inComment = true;
-        this.slash = false;
+        inComment = true;
+        slash = false;
       } else {
-        this.slash = c === "/";
+        slash = c === 47;
       }
     }
-    if (run >= 0) this.out += text.slice(run);
+    if (run >= 0) out += run === 0 ? text : text.slice(run);
+    Object.assign(this, { out, lineStart, quote, esc, inComment, slash });
     return this;
   }
 }

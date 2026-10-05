@@ -16,44 +16,45 @@ export interface RawStmt {
  * can be parsed without syntax errors.
  */
 export function autoClose(input: string): { text: string; wasIncomplete: boolean } {
-  const stack: string[] = [];
-  let inStr: false | '"' | "'" = false;
+  const stack: number[] = []; // char codes of open brackets
+  let quote = 0; // char code of the open string's quote, 0 outside strings
   let esc = false;
 
   for (let i = 0; i < input.length; i++) {
-    const c = input[i];
+    const c = input.charCodeAt(i);
     if (esc) {
       esc = false;
       continue;
     }
-    if (c === "\\" && inStr) {
-      esc = true;
+    if (quote) {
+      if (c === 92 /* \\ */) esc = true;
+      else if (c === quote) quote = 0;
       continue;
     }
-    if (inStr) {
-      if (c === inStr) inStr = false;
+    if (c === 34 /* " */ || c === 39 /* ' */) {
+      quote = c;
       continue;
     }
-    if (c === '"' || c === "'") {
-      inStr = c;
-      continue;
+    if (c === 40 /* ( */ || c === 91 /* [ */ || c === 123 /* { */) stack.push(c);
+    else if (c === 41 /* ) */) {
+      if (stack[stack.length - 1] === 40) stack.pop();
+    } else if (c === 93 /* ] */) {
+      if (stack[stack.length - 1] === 91) stack.pop();
+    } else if (c === 125 /* } */) {
+      if (stack[stack.length - 1] === 123) stack.pop();
     }
-    if (c === "(" || c === "[" || c === "{") stack.push(c);
-    else if (c === ")" && stack[stack.length - 1] === "(") stack.pop();
-    else if (c === "]" && stack[stack.length - 1] === "[") stack.pop();
-    else if (c === "}" && stack[stack.length - 1] === "{") stack.pop();
   }
 
-  const wasIncomplete = !!inStr || stack.length > 0;
+  const wasIncomplete = quote !== 0 || stack.length > 0;
   if (!wasIncomplete) return { text: input, wasIncomplete: false };
 
   let out = input;
-  if (inStr) {
+  if (quote) {
     if (esc) out += "\\";
-    out += inStr; // close with matching quote
+    out += String.fromCharCode(quote); // close with matching quote
   }
   for (let j = stack.length - 1; j >= 0; j--)
-    out += stack[j] === "(" ? ")" : stack[j] === "[" ? "]" : "}";
+    out += stack[j] === 40 ? ")" : stack[j] === 91 ? "]" : "}";
 
   return { text: out, wasIncomplete: true };
 }
