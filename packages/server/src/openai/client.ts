@@ -3,6 +3,7 @@ import { postJSON, resolveClientOptions, type ServerClientOptions } from "../sha
 import { createClientAutofix } from "../shared/client-autofix";
 import { openAIAdapter } from "./adapter";
 import { messagesToItems } from "./messages-to-items";
+import { openAIResponsesAdapter } from "./responses-adapter";
 import type { AppendMessagesInput } from "./types";
 
 /** Configure OpenAI-format Autofix and conversation persistence. */
@@ -11,6 +12,7 @@ export function createServerClient(options: ServerClientOptions = {}) {
   return {
     autofix: {
       completions: createClientAutofix(config, openAIAdapter),
+      responses: createClientAutofix(config, openAIResponsesAdapter),
     },
     conversations: {
       /** Append only the new turn. Currently accepts Chat Completions messages. */

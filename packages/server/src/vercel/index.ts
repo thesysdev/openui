@@ -2,6 +2,7 @@ import { resolveClientOptions, type ServerClientOptions } from "../shared/client
 import { createClientAutofix } from "../shared/client-autofix";
 import type { AutofixOptions } from "../shared/types";
 import { vercelAIAdapter } from "./adapter";
+import { eveStreamAdapter } from "./eve-adapter";
 
 export { ServerClientError } from "../shared/client";
 export type { ServerClientOptions } from "../shared/client";
@@ -13,7 +14,10 @@ export type { AutofixResult, AutofixStream } from "../shared/types";
 export function createServerClient(options: ServerClientOptions = {}) {
   const config = resolveClientOptions(options);
   return {
-    autofix: { ai: createClientAutofix(config, vercelAIAdapter) },
+    autofix: {
+      ai: createClientAutofix(config, vercelAIAdapter),
+      eve: createClientAutofix(config, eveStreamAdapter),
+    },
   };
 }
 
@@ -31,3 +35,5 @@ export function createAutofix(options: AutofixOptions) {
     },
   };
 }
+
+export type { MessageStreamEvent as EveStreamEvent } from "eve/client";

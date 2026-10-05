@@ -25,10 +25,11 @@ npm install @openuidev/server
 
 ## Import paths
 
-| Import                     | Client capabilities                                   |
-| -------------------------- | ----------------------------------------------------- |
-| `@openuidev/server/openai` | `autofix.completions`, `conversations.appendMessages` |
-| `@openuidev/server/vercel` | `autofix.ai`                                          |
+| Import                        | Capabilities                                                               |
+| ----------------------------- | -------------------------------------------------------------------------- |
+| `@openuidev/server/openai`    | `autofix.completions`, `autofix.responses`, `conversations.appendMessages` |
+| `@openuidev/server/vercel`    | `autofix.ai`, `autofix.eve`                                                |
+| `@openuidev/server/langchain` | `autofix.langgraph`                                                        |
 
 ## `createServerClient(options?)`
 
@@ -172,6 +173,18 @@ Use either `chunks` or `toResponse()` once. `result` settles after consumption a
 | `invalid_response`     | Repair response could not be read.                               |
 | `stream_consumed`      | The stream was consumed more than once.                          |
 | `fix_failed`           | Streamed output could not be repaired; diagnostics are attached. |
+
+## Additional Autofix adapters
+
+Use the same `{ library, stream, messages?, signal? }` contract with native SDK events:
+
+| Import                        | Method                     | HTTP framing        |
+| ----------------------------- | -------------------------- | ------------------- |
+| `@openuidev/server/openai`    | `autofix.responses.stream` | Responses SSE       |
+| `@openuidev/server/vercel`    | `autofix.eve.stream`       | Eve NDJSON          |
+| `@openuidev/server/langchain` | `autofix.langgraph.stream` | Named LangGraph SSE |
+
+All streams accept `AsyncIterable` or `ReadableStream`. Use `.toResponse()` for HTTP output, or consume `.chunks` once. Each namespace also exposes `.fix()` for completed text. Repair runs at successful final text boundaries; tool-bearing, failed, or interrupted turns pass through.
 
 ## Conversation history
 

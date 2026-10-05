@@ -24,10 +24,11 @@ const openui = createServerClient({
 
 A missing or empty key throws `ServerClientError` with `code: "missing_api_key"` when the client is created. Each operation receives its own library, conversation, and cancellation signal; these are not shared between requests.
 
-| Import                     | Capabilities                                          |
-| -------------------------- | ----------------------------------------------------- |
-| `@openuidev/server/openai` | `autofix.completions`, `conversations.appendMessages` |
-| `@openuidev/server/vercel` | `autofix.ai`                                          |
+| Import                        | Capabilities                                                               |
+| ----------------------------- | -------------------------------------------------------------------------- |
+| `@openuidev/server/openai`    | `autofix.completions`, `autofix.responses`, `conversations.appendMessages` |
+| `@openuidev/server/vercel`    | `autofix.ai`, `autofix.eve`                                                |
+| `@openuidev/server/langchain` | `autofix.langgraph`                                                        |
 
 ## Autofix
 
@@ -104,6 +105,21 @@ Pass AI SDK UI message events, not the raw model event stream. `toResponse()` us
 | `result`       | Autofix result after consumption, or `null` when repair validation did not run. |
 
 Use either `chunks` or `toResponse()` once. `result` settles after that consumer finishes. Persist `result.content` when present, rather than joined deltas. A failed streamed repair throws `AutofixError` with `code: "fix_failed"` and repair diagnostics.
+
+### Responses, LangGraph, and Eve streams
+
+```ts
+// @openuidev/server/openai
+openui.autofix.responses.stream({ library, stream: responseEvents, signal });
+
+// @openuidev/server/langchain
+openui.autofix.langgraph.stream({ library, stream: graphEvents, signal });
+
+// @openuidev/server/vercel
+openui.autofix.eve.stream({ library, stream: eveEvents, signal });
+```
+
+Use `.toResponse()` to forward the selected protocol: Responses SSE, named LangGraph SSE, or Eve NDJSON. Streams accept an `AsyncIterable` or `ReadableStream`. Pair Responses with `openAIResponsesAdapter()` and LangGraph with `langGraphAdapter()` on the frontend. Repair runs at successful final text boundaries; tool-bearing, failed, or interrupted turns pass through. Each adapter also exposes `.fix()` for completed text with the same repair contract.
 
 ## Conversation persistence
 
