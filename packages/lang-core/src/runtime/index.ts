@@ -14,7 +14,7 @@ export type {
   ToolProvider,
 } from "./queryManager";
 
-export { evaluateElementProps } from "./evaluate-tree";
+export { evaluateElementProps, evaluateRoot } from "./evaluate-tree";
 export type { EvalContext } from "./evaluate-tree";
 
 export { resolveStateField } from "./state-field";
