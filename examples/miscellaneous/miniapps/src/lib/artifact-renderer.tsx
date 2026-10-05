@@ -13,12 +13,26 @@ import { dashboardLibrary } from "@openuidev/react-ui/genui-lib";
 import type { MiniApp } from "./miniapp";
 import { readAppState, saveAppState } from "./storage";
 
-function MiniAppView({ app, isStreaming }: { app: MiniApp; isStreaming: boolean }) {
+function MiniAppView({
+  app,
+  isStreaming,
+  onClose,
+}: {
+  app: MiniApp;
+  isStreaming: boolean;
+  onClose: () => void;
+}) {
   const [initialState] = useState(() => readAppState(app.id));
   const [storageError, setStorageError] = useState<string | null>(null);
   const { processMessage } = useThread();
   return (
     <div className="miniapp-content">
+      <header className="miniapp-header">
+        <h2>{app.name}</h2>
+        <Button variant="secondary" size="small" onClick={onClose} aria-label="Close MiniApp">
+          Close
+        </Button>
+      </header>
       {storageError && <p role="alert">{storageError}</p>}
       <Renderer
         response={app.response}
@@ -91,6 +105,11 @@ export const miniAppRenderer = defineArtifactRenderer<MiniApp>({
   ),
   // AgentInterface supplies the preview and portal; use Renderer for its content.
   actual: (app, controls) => (
-    <MiniAppView key={app.id} app={app} isStreaming={controls.isStreaming} />
+    <MiniAppView
+      key={app.id}
+      app={app}
+      isStreaming={controls.isStreaming}
+      onClose={controls.close}
+    />
   ),
 });

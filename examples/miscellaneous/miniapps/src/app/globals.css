@@ -75,6 +75,21 @@ body {
   padding: 24px;
   min-width: 0;
 }
+.miniapp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.miniapp-header h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.miniapp-header button {
+  flex-shrink: 0;
+}
 .miniapp-preview {
   width: 100%;
   display: flex;
