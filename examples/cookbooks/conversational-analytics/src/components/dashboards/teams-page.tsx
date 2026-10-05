@@ -1,6 +1,6 @@
 "use client";
 
-import { Car3D } from "../car-3d";
+import { TeamCar } from "./team-car";
 import { TeamLogo } from "../f1-team-logos";
 import { Ask, AskChart, Head, Missing, Settle } from "./ask";
 import { Avatar } from "./avatar";
@@ -69,7 +69,7 @@ export function TeamsPage() {
                     </span>
                   </span>
                   <span className="f1d-tcard-car">
-                    <Car3D colour={colour} width={92} shadow={false} title={`${t.team} car`} />
+                    <TeamCar team={t.team} colour={colour} width={92} />
                   </span>
                 </Ask>
               );

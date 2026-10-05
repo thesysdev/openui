@@ -6,7 +6,7 @@ import { ChampionshipProgress, RankedBars, StatCallout } from "../f1-charts-spec
 import { findCircuit } from "../f1-genui";
 import { Ask, AskChart, Head, Missing, Settle } from "./ask";
 import { Avatar } from "./avatar";
-import { Car3D } from "../car-3d";
+import { TeamCar } from "./team-car";
 import { FinishLine } from "../finish-line";
 import { surname, useF1, type DriverStanding, type Progression, type Results, type Schedule, type ScheduleRow, type Standings, type TeamStanding } from "./data";
 import { DriverRows, seasonOf, TeamRows } from "./rows";
@@ -404,7 +404,7 @@ function Podium({ podium, label }: { podium: Results["rows"]; label: string }) {
         perspective={50}
         onFloor={[<div key="floor" className="f1d-podium-floor" aria-hidden />].concat(order.map((r) => (
           <div key={r.code} className="f1d-podium-car" style={{ left: `${SLOTS[r.position!].left}%`, top: `${SLOTS[r.position!].top}%` }}>
-            <Car3D colour={r.teamColour ?? "#E10600"} width={r.position === 1 ? 118 : 88} shadow={false} title={`${r.team ?? r.code} car`} />
+            <TeamCar team={r.team} colour={r.teamColour ?? "#E10600"} width={r.position === 1 ? 118 : 88} />
           </div>
         )))}
       >

@@ -497,9 +497,15 @@
     animation: none;
   }
 }
+/* The cars stand up on the tilted floor: preserve-3d on the floor, then each car cancels the
+   floor's 1.6× scale and 50° tilt, pivoting on its nose so it stays on its spot. */
+:has(> .f1d-podium-car) {
+  transform-style: preserve-3d;
+}
 .f1d-podium-car {
   position: absolute;
-  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  transform: translateX(-50%) scale3d(0.625, 0.625, 1) rotateX(-50deg) scale(1.05);
   pointer-events: none;
 }
 /* The three columns lie flat over the floor; each is one button, label on top, car below. */
