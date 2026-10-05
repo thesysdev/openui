@@ -106,10 +106,13 @@ export async function openf1<T = Record<string, unknown>>(
       const data = await fetchWithRetry(url, options.signal);
       const entry: CacheEntry = { url, fetchedAt: Date.now(), final: !!options.final, data };
       memory.set(url, entry);
-      await mkdir(dirname(path), { recursive: true });
-      const tmp = `${path}.${process.pid}.tmp`;
-      await writeFile(tmp, JSON.stringify(entry));
-      await rename(tmp, path);
+      // Hosts with a read-only filesystem (e.g. Vercel) keep the in-memory copy only.
+      try {
+        await mkdir(dirname(path), { recursive: true });
+        const tmp = `${path}.${process.pid}.tmp`;
+        await writeFile(tmp, JSON.stringify(entry));
+        await rename(tmp, path);
+      } catch {}
       return data;
     } catch (error) {
       if (cached) return cached.data; // stale beats nothing
