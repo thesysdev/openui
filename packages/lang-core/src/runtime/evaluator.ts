@@ -375,6 +375,18 @@ function substituteRef(node: ASTNode, varName: string, value: unknown): ASTNode 
     case "Member": {
       // Member access on the loop var: t.id → resolve t, then access .id
       if (isASTNode(node.obj)) {
+        // Fast path: convert only the accessed field, not the whole row
+        const o = node.obj as ASTNode;
+        if (
+          o.k === "Ref" &&
+          o.n === varName &&
+          typeof value === "object" &&
+          value !== null &&
+          !Array.isArray(value) &&
+          Object.prototype.propertyIsEnumerable.call(value, node.field)
+        ) {
+          return toLiteralAST((value as Record<string, unknown>)[node.field]);
+        }
         const subObj = substituteRef(node.obj as ASTNode, varName, value);
         // If obj resolved to a literal, we can inline the member access result
         if (subObj.k === "Obj") {
