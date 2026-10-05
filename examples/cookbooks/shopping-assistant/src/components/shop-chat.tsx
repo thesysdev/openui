@@ -32,8 +32,8 @@ const starters = [
     icon: <Shirt size={16} />,
   },
   {
-    displayText: "A starter kit under $100",
-    prompt: "Put together a starter kit for a new teammate under $100.",
+    displayText: "A gift set under $100",
+    prompt: "Put together a gift set under $100 for a friend who loves OpenUI.",
     icon: <Gift size={16} />,
   },
   {
