@@ -281,7 +281,7 @@ Thrown errors include a `code` string:
 
 ## Conversation history
 
-Persist only the new turn — not the full `messages` array — or items will be duplicated. Use the master API key. System and developer messages are skipped.
+Persist only the new turn — not the full `messages` array — or items will be duplicated. Use `frontendToken` for owner-scoped writes or `apiKey` for trusted server writes within the organization. System and developer messages are skipped.
 
 ### `storeChatCompletionHistory(options)`
 
@@ -289,7 +289,7 @@ Persist only the new turn — not the full `messages` array — or items will be
 import { storeChatCompletionHistory } from "@openuidev/server/openai";
 
 await storeChatCompletionHistory({
-  apiKey: process.env.THESYS_API_KEY!,
+  frontendToken,
   conversationId: threadId,
   messages: [
     { role: "user", content: lastUserText },
@@ -300,7 +300,8 @@ await storeChatCompletionHistory({
 
 ```ts
 function storeChatCompletionHistory(options: {
-  apiKey: string;
+  frontendToken?: string;
+  apiKey?: string;
   conversationId: string;
   messages: ChatCompletionMessageParam[];
   apiBaseUrl?: string;
