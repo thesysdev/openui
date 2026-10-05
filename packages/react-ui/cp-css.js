@@ -2,7 +2,12 @@ import fs from "fs";
 import { camelCase } from "lodash-es";
 import path from "path";
 import { fileURLToPath } from "url";
-import { mirrorStylesWithLayer, stripBom, writeLayeredCopy } from "./css-layer-utils.mjs";
+import {
+  mirrorStylesWithLayer,
+  stripBom,
+  UNLAYERED_DEFAULTS,
+  writeLayeredCopy,
+} from "./css-layer-utils.mjs";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -61,11 +66,13 @@ function copyCssFiles() {
   // Strip Sass's leading BOM from the unlayered sass output before copying, so
   // the default exports (./components.css, ./styles/*) ship BOM-free.
   stripBomFromCssInDir(srcDir);
-  const defaultsCssSrc = path.join(dirname, "dist", "openui-defaults.css");
-  if (fs.existsSync(defaultsCssSrc)) {
-    const content = fs.readFileSync(defaultsCssSrc, "utf8");
-    const stripped = stripBom(content);
-    if (stripped !== content) fs.writeFileSync(defaultsCssSrc, stripped, "utf8");
+  for (const name of UNLAYERED_DEFAULTS) {
+    const defaultsCssSrc = path.join(dirname, "dist", name);
+    if (fs.existsSync(defaultsCssSrc)) {
+      const content = fs.readFileSync(defaultsCssSrc, "utf8");
+      const stripped = stripBom(content);
+      if (stripped !== content) fs.writeFileSync(defaultsCssSrc, stripped, "utf8");
+    }
   }
 
   // Read all component directories
@@ -95,9 +102,11 @@ function copyCssFiles() {
   const cssUtilsSrc = fs.readFileSync(path.join(dirname, "src", "cssUtils.scss"), "utf8");
   fs.writeFileSync(path.join(distDir, "cssUtils.scss"), cssUtilsSrc);
 
-  const defaultsCssPath = path.join(dirname, "dist", "openui-defaults.css");
-  if (fs.existsSync(defaultsCssPath)) {
-    fs.copyFileSync(defaultsCssPath, path.join(distDir, "openui-defaults.css"));
+  for (const name of UNLAYERED_DEFAULTS) {
+    const defaultsCssPath = path.join(dirname, "dist", name);
+    if (fs.existsSync(defaultsCssPath)) {
+      fs.copyFileSync(defaultsCssPath, path.join(distDir, name));
+    }
   }
 
   // Emit the opt-in layered mirror (./layered-components.css and

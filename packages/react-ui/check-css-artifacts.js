@@ -7,6 +7,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { UNLAYERED_DEFAULTS } from "./css-layer-utils.mjs";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.join(dirname, "dist");
@@ -35,6 +36,16 @@ assert(
   "layered/styles/openui-defaults.css must stay unlayered",
 );
 
+// Scheme-pinned defaults: unlayered in both trees, and a plain :root block with
+// NO prefers-color-scheme guard (that is their whole purpose).
+for (const name of UNLAYERED_DEFAULTS.filter((n) => n !== "openui-defaults.css")) {
+  for (const rel of [path.join("styles", name), path.join("layered", "styles", name)]) {
+    assert(!/^\s*@layer/.test(read(rel)), `${rel} must stay unlayered`);
+    assert(!read(rel).includes("prefers-color-scheme"), `${rel} must not use prefers-color-scheme`);
+    assert(read(rel).includes(":root"), `${rel} must define a :root block`);
+  }
+}
+
 const unlayered = fs.readdirSync(path.join(dist, "styles")).filter((f) => f.endsWith(".css"));
 const layered = fs
   .readdirSync(path.join(dist, "layered", "styles"))
@@ -51,7 +62,7 @@ assert(
 // ./styles/<component>.css, an index-only check would miss it.
 // openui-defaults.css is asserted unlayered separately above.
 for (const name of unlayered) {
-  if (name === "openui-defaults.css") continue;
+  if (UNLAYERED_DEFAULTS.includes(name)) continue;
   assert(!/^\s*@layer/.test(read(path.join("styles", name))), `styles/${name} must stay unlayered`);
 }
 
@@ -70,7 +81,7 @@ for (const f of [
   const content = read(f);
   assert(!content.includes("\uFEFF"), `${f} contains a BOM`);
   const base = path.basename(f);
-  if (base !== "openui-defaults.css" && content.trim() !== "") {
+  if (!UNLAYERED_DEFAULTS.includes(base) && content.trim() !== "") {
     assert(content.startsWith("@layer openui{"), `${f} is not wrapped in @layer openui`);
   }
 }

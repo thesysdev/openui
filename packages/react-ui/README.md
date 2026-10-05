@@ -174,7 +174,17 @@ This places Tailwind's Preflight (in `base`) below OpenUI components so its elem
 
 - Import OpenUI CSS from **exactly one place** — multiple import sites under chunk-splitting bundlers (e.g. Turbopack) can register `openui` before your layer-order statement and lock the wrong order.
 - Wrap app-wide resets in a layer below `openui` (e.g. `@layer base { * { margin: 0; } }`) — unlayered resets beat all layered styles regardless of specificity.
-- `./defaults.css` and the `ThemeProvider` runtime style injection stay unlayered in both modes so runtime theming always overrides component defaults.
+- `./defaults.css`, `./defaults-light.css`, `./defaults-dark.css` and the `ThemeProvider` runtime style injection stay unlayered in both modes so runtime theming always overrides component defaults.
+
+### Pinning a color scheme
+
+`defaults.css` follows the device: the dark tokens only apply under `@media (prefers-color-scheme: dark)`. An app that forces a scheme with `<ThemeProvider mode="dark">` would otherwise get the stock light tokens for anything it has not overridden on a device whose system scheme is light. Import one of the pinned stylesheets instead of `defaults.css` — each is a complete token set in a plain `:root` block with no media query:
+
+```ts
+import "@openuidev/react-ui/defaults-dark.css"; // dark-only app
+// or
+import "@openuidev/react-ui/defaults-light.css"; // light-only app
+```
 
 ### Browser support
 
@@ -214,6 +224,8 @@ import { Charts } from "@openuidev/react-ui/Charts";
 | `@openuidev/react-ui/index.css`                | Alias of `styles/index.css`                          |
 | `@openuidev/react-ui/layered/styles/index.css` | Full stylesheet wrapped in `@layer openui` (opt-in)  |
 | `@openuidev/react-ui/defaults.css`             | Theme tokens, always unlayered                       |
+| `@openuidev/react-ui/defaults-light.css`       | Light tokens pinned, no media query, unlayered       |
+| `@openuidev/react-ui/defaults-dark.css`        | Dark tokens pinned, no media query, unlayered        |
 | `@openuidev/react-ui/genui-lib`                | OpenUI Lang libraries and prompt options             |
 | `@openuidev/react-ui/styles/*`                 | Per-component compiled styles (unlayered)            |
 | `@openuidev/react-ui/layered/styles/*`         | Per-component styles wrapped in `@layer openui`      |

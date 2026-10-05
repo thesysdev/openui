@@ -31,8 +31,15 @@ export function writeLayeredCopy(srcFile, destFile) {
 // Mirror every top-level *.css file in srcDir into destDir wrapped in
 // @layer openui. Files named in `unwrapped` are copied verbatim — they must
 // stay in the unlayered cascade (openui-defaults.css backs the runtime
-// theming override contract). Non-CSS files (e.g. cssUtils.scss) are skipped.
-export function mirrorStylesWithLayer(srcDir, destDir, unwrapped = ["openui-defaults.css"]) {
+// theming override contract, and its scheme-pinned variants). Non-CSS files
+// (e.g. cssUtils.scss) are skipped.
+export const UNLAYERED_DEFAULTS = [
+  "openui-defaults.css",
+  "openui-defaults-light.css",
+  "openui-defaults-dark.css",
+];
+
+export function mirrorStylesWithLayer(srcDir, destDir, unwrapped = UNLAYERED_DEFAULTS) {
   fs.mkdirSync(destDir, { recursive: true });
   for (const name of fs.readdirSync(srcDir)) {
     if (!name.endsWith(".css")) continue;

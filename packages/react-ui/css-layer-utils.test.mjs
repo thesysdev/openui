@@ -1,8 +1,13 @@
-import { describe, expect, it } from "vitest";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { mirrorStylesWithLayer, wrapInLayer, writeLayeredCopy } from "./css-layer-utils.mjs";
+import { describe, expect, it } from "vitest";
+import {
+  mirrorStylesWithLayer,
+  UNLAYERED_DEFAULTS,
+  wrapInLayer,
+  writeLayeredCopy,
+} from "./css-layer-utils.mjs";
 
 describe("wrapInLayer", () => {
   it("wraps plain css in @layer openui", () => {
@@ -48,5 +53,50 @@ describe("mirrorStylesWithLayer", () => {
     expect(fs.readFileSync(path.join(dest, "button.css"), "utf8")).toBe("@layer openui{.b{color:red}}");
     expect(fs.readFileSync(path.join(dest, "openui-defaults.css"), "utf8")).toBe(":root{--x:1}");
     expect(fs.existsSync(path.join(dest, "cssUtils.scss"))).toBe(false);
+  });
+
+  it("keeps the scheme-pinned defaults unlayered", () => {
+    const src = fs.mkdtempSync(path.join(os.tmpdir(), "css-layer-src-"));
+    const dest = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "css-layer-dest-")), "layered");
+    for (const name of UNLAYERED_DEFAULTS) {
+      fs.writeFileSync(path.join(src, name), ":root{--x:1}");
+    }
+    mirrorStylesWithLayer(src, dest);
+    expect(UNLAYERED_DEFAULTS).toContain("openui-defaults-light.css");
+    expect(UNLAYERED_DEFAULTS).toContain("openui-defaults-dark.css");
+    for (const name of UNLAYERED_DEFAULTS) {
+      expect(fs.readFileSync(path.join(dest, name), "utf8")).toBe(":root{--x:1}");
+    }
+  });
+});
+
+describe("scheme-pinned defaults (generated)", () => {
+  const read = (name) => fs.readFileSync(path.join(import.meta.dirname, "src", name), "utf8");
+  const tokens = (css) =>
+    [...css.matchAll(/^\s*(--openui-[\w-]+):\s*(.+);$/gm)].map((m) => m.slice(1));
+
+  it("carry the same token names as openui-defaults.scss, with no media query", () => {
+    const base = tokens(read("openui-defaults.scss"));
+    // base file lists light tokens then dark overrides; compare against the light block.
+    const baseLight = tokens(read("openui-defaults.scss").split("@media")[0]);
+    for (const file of ["openui-defaults-light.scss", "openui-defaults-dark.scss"]) {
+      const css = read(file);
+      expect(css).not.toContain("prefers-color-scheme");
+      expect(tokens(css).map(([k]) => k)).toEqual(baseLight.map(([k]) => k));
+    }
+    expect(base.length).toBeGreaterThan(baseLight.length);
+  });
+
+  it("light equals the light tokens and dark applies the dark overrides", () => {
+    const [baseCss, darkOverrides] = read("openui-defaults.scss").split("@media");
+    const light = new Map(tokens(read("openui-defaults-light.scss")));
+    const dark = new Map(tokens(read("openui-defaults-dark.scss")));
+    expect(light).toEqual(new Map(tokens(baseCss)));
+    for (const [key, value] of tokens(darkOverrides)) {
+      expect(dark.get(key)).toBe(value);
+    }
+    // A scheme-independent token (spacing) is identical in both.
+    expect(dark.get("--openui-space-000")).toBe(light.get("--openui-space-000"));
+    expect(dark.get("--openui-background")).not.toBe(light.get("--openui-background"));
   });
 });

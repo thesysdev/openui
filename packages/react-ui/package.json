@@ -30,6 +30,12 @@
     "./defaults.css": {
       "default": "./dist/styles/openui-defaults.css"
     },
+    "./defaults-light.css": {
+      "default": "./dist/styles/openui-defaults-light.css"
+    },
+    "./defaults-dark.css": {
+      "default": "./dist/styles/openui-defaults-dark.css"
+    },
     "./styles/*": {
       "default": "./dist/styles/*"
     },
