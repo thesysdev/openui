@@ -377,13 +377,16 @@ export function validateSchemaValue(
   // Child components: only their position is checked here.
   if (isElementNode(value)) return validateElementPosition(value, s, component, path, ctx);
   if (isCompositeSchema(s)) {
-    // A plain object in a component-only slot is invalid. Scalars render as text.
-    const isObject = typeof value === "object" && !Array.isArray(value);
-    if (!isObject || !isOnlyComponentSlot(s, ctx)) return false;
+    // Data (an object, array, string, number or boolean) in a component-only slot is invalid.
+    if (!isOnlyComponentSlot(s, ctx)) return false;
     pushValidationIssue(ctx, component, path, {
       code: "type-mismatch",
       expected: slotRefNames(s).join(" | "),
-      actual: "plain object",
+      actual: Array.isArray(value)
+        ? "array"
+        : typeof value === "object"
+          ? "plain object"
+          : typeof value,
     });
     return true;
   }

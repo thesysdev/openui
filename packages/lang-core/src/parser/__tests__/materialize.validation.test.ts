@@ -298,11 +298,16 @@ describe("components in data slots", () => {
     expect(errors.find((e) => e.component === "CardBox")).toMatchObject({ path: "/text" });
     expect(errors.find((e) => e.component === "ObjBox")).toMatchObject({ path: "/info/author" });
   });
-  it("a plain object in a component slot is a type-mismatch and is pruned, also through a reference", () => {
-    const inline = parser.parse('root = SlotBox([CardBox("hi"), { text: "a" }, "b"])');
-    expect(inline.root?.props.children).toHaveLength(2); // scalars still render as text
+  it("data in a component slot is a type-mismatch and is pruned, also through a reference", () => {
+    const inline = parser.parse(
+      'root = SlotBox([CardBox("hi"), { text: "a" }, "b", 3, [CardBox("x")]])',
+    );
+    expect(inline.root?.props.children).toHaveLength(1);
     expect(inline.meta.errors.map((e) => e.message)).toEqual([
       'field "/children/1" expects CardBox but got plain object',
+      'field "/children/2" expects CardBox but got string',
+      'field "/children/3" expects CardBox but got number',
+      'field "/children/4" expects CardBox but got array',
     ]);
     const viaRef = parser.parse('root = SlotBox(items)\nitems = [{ text: "a" }]');
     expect(viaRef.root?.props.children).toEqual([]);

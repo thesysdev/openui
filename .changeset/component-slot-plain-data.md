@@ -2,4 +2,4 @@
 "@openuidev/lang-core": patch
 ---
 
-Report a plain object in a component slot as a `type-mismatch` and prune it, instead of passing it through to render as a blank component. Strings, numbers and booleans in component slots are unchanged.
+Report data (an object, array, string, number or boolean) in a slot that only takes components as a `type-mismatch` and prune it, instead of passing it through to render as a blank component or stray text. Slots whose schema also allows data are unchanged.
