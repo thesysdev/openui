@@ -252,7 +252,7 @@ export function StackDiagramSection() {
                   <span className={styles.itemIcon}>
                     <Browser size={ICON_SIZE} />
                   </span>
-                  <span className={styles.itemTitle}>App surface</span>
+                  <span className={styles.itemTitle}>Agent Interface</span>
                 </div>
                 <span className={styles.layerArrow}>
                   <ArrowRight size={12} weight="bold" />
@@ -276,8 +276,12 @@ export function StackDiagramSection() {
           </div>
 
           <div className={styles.connector}>
+            {/* Four lanes: the left pair streams UI up, the right pair carries
+                actions down. */}
             <span className={styles.rails}>
               <Rail direction="up" />
+              <Rail direction="up" />
+              <Rail direction="down" />
               <Rail direction="down" />
             </span>
             <div className={styles.langLayer}>
