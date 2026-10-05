@@ -101,6 +101,26 @@ function resized(url: string) {
   return image.toString();
 }
 
+// One photo per color: a store attaches each color's photo to its variants, and a search result
+// lists only the featured photo at the product level. Each photo is labelled with the variant's
+// options other than size, such as "Black", so the answer can show the chosen color.
+function photos(product: Product) {
+  const byUrl = new Map<string, string>();
+  for (const variant of product.variants)
+    for (const media of variant.media ?? []) {
+      const key = media.url.split("?")[0];
+      if (byUrl.has(key)) continue;
+      const label = (variant.options ?? [])
+        .filter((option) => !/size|title/i.test(option.name))
+        .map((option) => option.label)
+        .join(" / ");
+      byUrl.set(key, label || product.title);
+    }
+  for (const media of product.media ?? [])
+    if (!byUrl.has(media.url.split("?")[0])) byUrl.set(media.url.split("?")[0], product.title);
+  return [...byUrl].slice(0, 4).map(([url, label]) => ({ url: resized(url), label }));
+}
+
 // Keep what the product cards and the variant form need. The cart finds the variant from the
 // product id and the chosen values, so variant ids aren't needed here.
 function toResult(product: Product) {
@@ -110,9 +130,7 @@ function toResult(product: Product) {
     id: product.id,
     title: product.title,
     description: description.length > 160 ? `${description.slice(0, 159)}…` : description,
-    photos: (product.media ?? product.variants[0]?.media ?? [])
-      .slice(0, 4)
-      .map((media) => resized(media.url)),
+    photos: photos(product),
     price: formatPrice(min.amount, min.currency),
     // in_stock is null when stock wasn't checked for that value.
     options: realOptions(product).map((option) => ({

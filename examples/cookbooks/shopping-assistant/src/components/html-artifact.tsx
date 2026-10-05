@@ -2,6 +2,7 @@
 
 import { defineComponent, useIsStreaming } from "@openuidev/react-lang";
 import { Button, DetailedViewPanel, useDetailedView } from "@openuidev/react-ui";
+import { toPng } from "html-to-image";
 import { useEffect, useId, useRef } from "react";
 import { z } from "zod/v4";
 
@@ -17,20 +18,26 @@ function withPolicy(document: string) {
     : policy + document;
 }
 
-function download(title: string, document: string) {
+// Save the page as a PNG at twice its size. The card is the element with class "card" when the
+// model wrote one, otherwise the whole body. Shopify's CDN allows cross-origin reads, so the
+// product photos are drawn into the image.
+async function download(title: string, frame: HTMLIFrameElement | null) {
+  const page = frame?.contentDocument;
+  if (!page) return;
+  const card = page.querySelector<HTMLElement>(".card") ?? page.body;
   const link = window.document.createElement("a");
-  link.href = URL.createObjectURL(new Blob([document], { type: "text/html" }));
-  link.download = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.html`;
+  link.href = await toPng(card, { pixelRatio: 2, backgroundColor: "#ffffff", cacheBust: true });
+  link.download = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`;
   link.click();
-  URL.revokeObjectURL(link.href);
 }
 
 // A printable page, such as a gift card, written by the model as a complete HTML document. The
-// answer shows a button; the page opens in Agent Interface's side panel with Print and Download.
+// answer shows a button; the page opens in Agent Interface's side panel with Print and Download,
+// which saves it as a PNG.
 export const HtmlArtifact = defineComponent({
   name: "HtmlArtifact",
   description:
-    "A printable page, such as a gift card, shown in a side panel with Print and Download buttons. document is a complete, self-contained HTML document with inline CSS.",
+    "A printable page, such as a gift card, shown in a side panel with Print and Download (as an image) buttons. document is a complete, self-contained HTML document with inline CSS, with the page inside one element with class card.",
   props: z.object({ title: z.string(), document: z.string() }),
   component: ({ props }) => {
     const isStreaming = useIsStreaming();
@@ -61,7 +68,7 @@ export const HtmlArtifact = defineComponent({
               <Button variant="primary" onClick={() => frame.current?.contentWindow?.print()}>
                 Print
               </Button>
-              <Button variant="secondary" onClick={() => download(props.title, props.document)}>
+              <Button variant="secondary" onClick={() => void download(props.title, frame.current)}>
                 Download
               </Button>
             </div>

@@ -62,9 +62,9 @@ Try this conversation:
 1. **“Find shoes under $100 in size 9.”** See the shoes that have size 9 in stock within the budget, as cards with photos and prices.
 2. **Select options on Shiro Canvas Sneakers.** Size 9 is already chosen. Pick Black, then **Add to cart**.
 3. **“Also add the slides in my size.”** The assistant adds them to the same cart and shows the new total.
-4. **Set the slides to 2 and click Update cart.** The cart and its total update in place. **Continue to checkout** opens the store's checkout with the same items.
+4. **Click Edit cart, set the slides to 2, and click Save changes.** The cart comes back with the new total. **Continue to checkout** opens the store's checkout with the same items.
 5. **“Put together a gift set under $100 for a friend who loves OpenUI.”** Get a bundle of three to five products, all selected. Deselect one, pick a size if asked, and click **Add bundle to cart**.
-6. **Make a gift card for this set.** Fill in who it's for and who it's from, keep or edit the suggested message, and click **Create card**. The card opens in a side panel, ready to print or download.
+6. **Make a gift card for this set.** Fill in who it's for and who it's from, keep or edit the suggested message, and click **Create card**. The card opens in a side panel, ready to print or to download as an image.
 
 ## How it works
 
@@ -75,7 +75,7 @@ A shopping assistant splits the work between the model, your application, and th
 1. **The shopper describes what they want.** Agent Interface sends the message to your server's chat route, which adds a system prompt that describes the shopping flow and your components and two function tools, `search_products` and `update_cart`, then calls OpenUI Gateway.
 2. **The model searches and shows products.** It calls `search_products` with a product word, the budget, and the size. Your server searches the store's catalog, keeps the products with a variant that fits, and returns their photos, prices, options, and variants. The model shows them as cards.
 3. **The shopper picks a variant.** A card's button asks for that product's options. The model writes a form with a set of choices for each option, the size already chosen, and sold-out values disabled. When the shopper submits it, the model calls `update_cart` with the chosen values, and your server finds the matching variant.
-4. **The shopper reviews the cart.** Your server changes the store's cart and returns every item with its price and the totals. The model shows the cart as a form with a quantity per item and a button that opens the store's checkout.
+4. **The shopper reviews the cart.** Your server changes the store's cart and returns every item with its price and the totals. The model shows a review of the cart: what changed, a table of items, the total, and a button that opens the store's checkout. Changing quantities is a separate step, **Edit cart**, with a form that only saves.
 
 ### Why product variants
 
@@ -91,7 +91,7 @@ The store's cart update replaces the whole cart, so your server reads the cart f
 
 ### Why the gift card is an HTML page
 
-Every other answer is built from the chat library's components, which is what keeps them consistent and safe to render. A gift card is different: it's a page to print, with its own size, layout, and typography, so the model writes it as a complete HTML document. The answer shows a button, and the page opens in Agent Interface's side panel with **Print** and **Download**.
+Every other answer is built from the chat library's components, which is what keeps them consistent and safe to render. A gift card is different: it's a page to print, with its own size, layout, and typography, so the model writes it as a complete HTML document. The answer shows a button, and the page opens in Agent Interface's side panel with **Print** and **Download**, which saves the card as a PNG image.
 
 Generated HTML is untrusted, so the page renders in a sandboxed iframe that runs no scripts, and a content security policy lets it load only the store's product photos. The model sees the same photos in its search results, so the card shows exactly what's in the gift.
 
@@ -99,7 +99,7 @@ Generated HTML is untrusted, so the page renders in a sandboxed iframe that runs
 
 The store's tools are built for any agent: a product comes with every photo at full size, up to a few megabytes each, HTML descriptions, collections, and tags. Giving them to the model directly would cost many tokens per search.
 
-Function tools put your application in between. `search_products` returns the fields the cards and the form need, with photos resized by the store's CDN, and names the products it left out and why, such as sold out or over budget, so the model can say so. `update_cart` takes only what changes and merges it into the store's cart. Your server also validates every argument, and it treats the store's results as data, so text in them never reaches your model as instructions.
+Function tools put your application in between. `search_products` returns the fields the cards and the form need, with one photo per color resized by the store's CDN, and names the products it left out and why, such as sold out or over budget, so the model can say so. `update_cart` takes only what changes and merges it into the store's cart. Your server also validates every argument, and it treats the store's results as data, so text in them never reaches your model as instructions.
 
 ## Run the example
 
@@ -250,7 +250,7 @@ const Card = defineComponent({
 
 Spreading `Card` and `HtmlArtifact` after the chat library's components replaces its `Card` and adds the new component. Without the new `Card`, the prompt would tell the model that an answer can't contain a gift card. [html-artifact.tsx](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/components/html-artifact.tsx) renders the button, the side panel, and the sandboxed page, following the [HTML artifact example](https://github.com/thesysdev/openui/tree/main/examples/miscellaneous/html-artifact).
 
-Every answer is one `Card`. `CompositeCardBlock` lays out product cards with a photo, a title, a description, a price, and a button. `ImageGallery` shows a product's photos, `Chips` covers each option, and `ChipItem` can be disabled for a sold-out value. `OptionCards` of type `multiple` shows a bundle as selectable product cards. By default, an option card shows its image as a small thumbnail; one CSS rule in [styles.css](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/app/styles.css) stretches it across the card. `Form` groups the fields and checks their validation rules when the shopper clicks a primary button, and `EntityList` lists the cart's totals. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
+Every answer is one `Card`. `CompositeCardBlock` lays out product cards with a photo, a title, a description, a price, and a button. `ImageGallery` shows a product's photos, one per color, `Chips` covers each option, and `ChipItem` can be disabled for a sold-out value. `OptionCards` of type `multiple` shows a bundle as selectable product cards. By default, an option card shows its image as a small thumbnail; one CSS rule in [styles.css](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/app/styles.css) stretches it across the card. `Form` groups the fields and checks their validation rules when the shopper clicks a primary button, `Table` and `EntityList` show the cart's items and totals. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
 
 ### 5. Describe the shopping flow
 
@@ -274,7 +274,7 @@ For a gift card, the model first asks for the names and a message with a short f
 
 The same rule limits the page to an inline style sheet and the product photos from the search, and keeps prices off the card.
 
-The cart form names each quantity field with the item's variant id, so **Update cart** sends every quantity with the variant it belongs to. The form sends only the fields the shopper changed, so a rule tells the model to use its prefilled value for the rest. One OpenUI Lang example for each step, the product cards, the variant form, the bundle, the gift card form, the gift card, and the cart, shows the model how the components fit together.
+The cart review has no inputs; **Edit cart** shows a separate form whose quantity fields are named with each item's variant id, so **Save changes** sends every quantity with the variant it belongs to. The form sends only the fields the shopper changed, so a rule tells the model to use its prefilled value for the rest. One OpenUI Lang example for each step, the product cards, the variant form, the bundle, the gift card form, the gift card, and the cart, shows the model how the components fit together.
 
 ### 6. Connect Agent Interface
 
@@ -320,10 +320,10 @@ In the browser:
 2. Click **Select options** on Shiro Canvas Sneakers. Confirm size 9 is chosen, then click **Add to cart** without a color. The color field should report that it is required, and nothing is sent.
 3. Pick Black and add it. Confirm the cart shows Shiro Canvas Sneakers - 9 / Black with a total of $90.00, and expand **Behind the scenes** to see the `update_cart` call.
 4. Ask **“Also add the slides in my size.”** Confirm the same cart now totals $125.00.
-5. Set a quantity to 0 and click **Update cart**. The item should disappear and the total drop.
+5. Click **Edit cart**, set a quantity to 0, and click **Save changes**. The review should come back without the item and with a lower total.
 6. Ask for **“a Shiro hoodie in X-Large”** and open its options. Cream should be disabled, because it's sold out in X-Large.
 7. Ask for **“a gift set under $100 for a friend who loves OpenUI”**. Confirm the bundle's total is under $100, deselect an item, and add the rest; the cart should hold exactly the selected items.
-8. Click **Make a gift card for this set**, fill in the names, and click **Create card**. Confirm the side panel opens with a card that shows the names, the message, and photos of the gift's products, and that **Print** opens the print dialog.
+8. Click **Make a gift card for this set**, fill in the names, and click **Create card**. Confirm the side panel opens with a card that shows the names, the message, and photos of the gift's products, that **Print** opens the print dialog, and that **Download** saves a PNG of the card.
 9. Click **Continue to checkout**. The store's checkout should open with the items in your cart. Leave it without paying.
 10. Reload the page and open an earlier thread. Confirm its messages load, and that a follow-up changes the same cart.
 11. Switch your operating system between light and dark mode, and confirm the theme follows.

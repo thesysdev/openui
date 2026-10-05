@@ -54,3 +54,14 @@ body {
   border-radius: var(--openui-radius-m);
   background: #ffffff;
 }
+
+/* Quantities are typed numbers. Hide the browser's unstyled up and down arrows. */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
