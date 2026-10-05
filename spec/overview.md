@@ -16,7 +16,7 @@ This file explains. The other two define. Where they disagree, language.md and p
 
 - **Message protocol.** One format for streamed and stored responses (section 4).
 - **Production readiness.** Backward-compatibility rules for libraries (section 3), a LibrarySpec with `id` and `version`, a versioned system prompt, and conformance fixtures any client can test against.
-- **Custom functions.** A library adds its own `@` functions, like `@FormatCurrency` (section 2.11).
+- **Custom functions.** A library adds its own `@` functions, like `@Percent` (section 2.11).
 - **Small conveniences.** `@Take` for top-N lists, single-step actions, and any value as `@ToAssistant` context.
 - **Fixes.** One clear entry rule, streamed results that always match a full parse, edits that keep multi-line statements whole, and `===` read as `==`.
 
@@ -294,7 +294,7 @@ A mutation result has `status` (`idle`, `loading`, `success`, `error`), `data`, 
 A library can add its own functions. The model calls them like built-ins:
 
 ```openui-lang
-price = TextContent(@FormatCurrency(total, "USD"))
+share = TextContent(@Percent(done, total))
 ```
 
 The library declares each one with `defineFunction({ name, description, params, returns, fn })`. The program passes arguments by position, like components, and `fn` receives them as one object keyed by the `params` names. The prompt lists them next to the built-ins, and each client keeps the implementation. Functions are pure and synchronous: same inputs, same output, no side effects. A call to an unknown `@` name evaluates to null and reports `unknown-function`. Rules in language.md, section 3.6, and prompt.md, section 2.5.

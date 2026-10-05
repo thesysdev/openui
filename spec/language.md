@@ -308,7 +308,8 @@ A library declares extra functions in its `functions` list ([prompt.md](./prompt
 - Built-ins are looked up first. A library MUST NOT register a function named like a built-in, an action step, `Query`, `Mutation`, or one of its components.
 - A `@Name` call that is not a built-in, action step, or custom function evaluates to null and reports `unknown-function`. The statement is kept.
 - Custom functions MUST be pure and synchronous. The runtime MAY cache results and MAY call them any number of times, in any order.
-- Arguments are checked against `params`, and missing ones take their defaults. A call with invalid arguments, or a function that throws, reports `runtime-error`, and the prop that holds the call evaluates to null.
+- Arguments are checked against `params` the same way component props are. Literal arguments are checked when parsing, with the same codes (`type-mismatch`, `missing-required`, and `excess-args` for extra arguments). Arguments that are only known at runtime are checked when the call runs. Missing optional arguments take their defaults.
+- A call with invalid runtime arguments, a function that throws, or a return value that does not match `returns` reports `runtime-error`, and the call evaluates to null.
 - While streaming, a call runs as soon as the statement that holds it is complete. A call in the pending statement evaluates to null until that statement completes.
 
 Fixtures: `evaluation/*-function-*`, `errors/*-unknown-function-*`
@@ -526,6 +527,7 @@ Fixtures: `errors/*-shape-*`
 Arguments map to props by position against the library schema, then each prop is checked per section 8.2. Also:
 
 - A list prop needs `[...]`, even for one item. A bare value is a `type-mismatch`.
+- A slot that takes only components accepts any component. Data there (an object, array, string, number, or boolean) is a `type-mismatch`, and the value is left out.
 - Inside arrays, invalid components and unresolved references are left out, in computed expressions too (section 2.3). Explicit `null` literals are kept and render nothing.
 - A call to a name in a component's `aliases` ([prompt.md](./prompt.md), section 3.2) resolves to that component. It is not unknown.
 - An unknown component in a value position is dropped. In a computed expression it stays in the tree for the error to point at, but renders nothing.

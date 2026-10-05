@@ -72,17 +72,17 @@ Example:
     }
   },
   "functions": {
-    "FormatCurrency": {
-      "description": "Format a number as money",
+    "Percent": {
+      "description": "Format part / total as a percentage",
       "params": {
         "type": "object",
         "properties": {
-          "amount": { "type": "number" },
-          "currency": { "type": "string" }
+          "part": { "type": "number" },
+          "total": { "type": "number" }
         },
-        "required": ["amount"]
+        "required": ["part", "total"]
       },
-      "order": ["amount", "currency"],
+      "order": ["part", "total"],
       "returns": { "type": "string" }
     }
   }
@@ -118,7 +118,7 @@ A library declares pure functions with `defineFunction({ name, description, para
 A program calls a custom function like a built-in, with the `@` prefix and positional arguments in `order`:
 
 ```
-price = TextContent(@FormatCurrency(total, "USD"))
+share = TextContent(@Percent(done, total))
 ```
 
 The prompt lists custom functions next to the built-ins. Lookup goes to built-ins first, then custom functions. A call to a name that is not a built-in, an action step, or a custom function evaluates to null, like an unresolved reference, and reports `unknown-function`. The statement is not dropped ([language.md](./language.md), sections 3.6 and 8.2).
@@ -140,7 +140,7 @@ Fixtures: none. The spec shape is checked on the library, not by program fixture
 ### 3.1 Conformance
 
 - Component names MUST start with an uppercase letter and match the identifier rule.
-- Custom function names MUST start with an uppercase letter, like the built-ins (`@FormatCurrency`).
+- Custom function names MUST start with an uppercase letter, like the built-ins (`@Percent`).
 - Required props MUST come before optional props in `order`. A required prop that has a `default` counts as optional here, so it may be added at the end.
 - A library MUST NOT define components named `Query`, `Mutation`, or `Action`.
 - A library MUST NOT use a built-in name for a component or a function. New built-in names are reserved when added (for example `@Take`).
@@ -179,12 +179,13 @@ Fixtures: none in `spec/fixtures/`. A golden-file test generates the prompt for 
 | `promptVersion` | `"1.0"` (default) or `"0.x"`. See section 4.3. |
 | `toolCalls` | Teaches `Query`, `Mutation`, and `@Run`. Defaults to true when `tools` is given. |
 | `bindings` | Teaches `$variables`, `@Set`, `@Reset`, and `$binding<type>` props. Defaults to true when `toolCalls` is on. |
+| `builtinFunctions` | Lists the built-in functions even when `toolCalls` and `bindings` are off. |
 | `editMode` | Teaches editing by changed statements (section 6.4). |
 | `inlineMode` | Teaches prose plus fenced code. |
 | `tools` | Tool descriptors: a name string, or `{ name, description?, inputSchema, outputSchema, annotations? }`. |
 | `preamble`, `examples`, `toolExamples`, `additionalRules` | Extra text the host adds to the prompt. |
 
-The built-in function section appears when `toolCalls` or `bindings` is on. Custom functions get their own section, printed whenever the library has any, since they also work in plain props.
+The built-in function section appears when `toolCalls` or `bindings` is on, or when `builtinFunctions` is true. Custom functions are listed in the same section, which prints whenever the library has any, since they also work in plain props.
 
 The inline mode section MUST teach two rules. First, openui-lang belongs only inside fences, and a `text`-tagged fence shows code without rendering it. Second, independent UI blocks go in separate fences with prose between them.
 
