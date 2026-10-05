@@ -10,9 +10,9 @@ root = Dashboard([header, section])
 header = DashboardHeader("Sales Dashboard", "Sample data — Q1 overview")
 section = Section([row1, row2, row3])
 row1 = CardRow([card1, card2, card3])
-card1 = SmallCard("Total Revenue", "$1.2M", Trend("up", 12.5))
-card2 = SmallCard("Active Users", "2,847", Trend("up", 8.1))
-card3 = SmallCard("Churn Rate", "2.4%", Trend("down", 0.3))
+card1 = SmallCard("Total Revenue", "$1.2M")
+card2 = SmallCard("Active Users", "2,847")
+card3 = SmallCard("Churn Rate", "2.4%")
 row2 = CardRow([chartCard])
 chartCard = MediumCard([chartHeader, chart])
 chartHeader = DashboardCardHeader("Revenue Trend", "Last 30 days")
@@ -20,7 +20,34 @@ chart = LineChart(["Jan", "Feb", "Mar"], [Series("Revenue", [120, 150, 180])])
 row3 = CardRow([tableCard])
 tableCard = LargeCard([tableHeader, table])
 tableHeader = DashboardCardHeader("Top Products")
-table = Table([Col("Product", ["Widget Pro", "Widget Lite"]), Col("Units", [842, 1205], "number"), Col("Revenue (USD)", [12400, 9800], "number")])`,
+table = Table([Col("Product", ["Widget Pro", "Widget Lite"]), Col("Units", [842, 1205], "number"), Col("Revenue (USD)", [12400, 9800], "number")])
+
+These are explicitly illustrative figures. No comparison period was supplied, so the KPI cards omit Trend.`,
+
+  `Static dashboard — user-provided data with a supported comparison:
+The user supplies January revenue of $200 and February revenue of $250, and asks for month-over-month growth. February growth is (250 - 200) / 200 * 100 = 25%. No earlier period is supplied for January or the combined total, so neither gets a trend. These are the user's figures, not sample data.
+
+root = Dashboard([header, section])
+header = DashboardHeader("Monthly Sales", "January and February · User-provided figures · USD")
+section = Section([row])
+row = CardRow([jan, feb, total])
+jan = SmallCard("January", "$200")
+feb = SmallCard("February", "$250", Trend("up", 25))
+total = SmallCard("Total Revenue", "$450")`,
+
+  `Missing customer values — preserve real zeros and disclose coverage:
+Provided tool: get_customer({id}) returns {id, lifetime_value}, where lifetime_value may be null. The user asks for four customers and their average. Declare a script returning display strings for table values, a nullable numeric average, and known/missing counts. It must render null as Not available and average only known finite values. For values [1200, 860, 0, null], the average is $686.67 across 3 of 4 customers; the real zero counts, the null does not.
+
+root = Dashboard([header, section])
+header = DashboardHeader("Customer Lifetime Values", "USD · Average excludes unavailable values")
+section = Section([metrics, records])
+values = Query("customer_lifetime_values", {ids: ["C-100", "C-101", "C-102", "C-103"]}, {ids: [], lifetimeValues: [], average: null, knownCount: 0, missingCount: 0})
+metrics = CardRow([averageCard])
+averageCard = SmallCard({title: "Average Lifetime Value"}, {value: values.average == null ? "Not available" : "$" + @Round(values.average, 2), subtext: "Based on " + values.knownCount + " customers; " + values.missingCount + " unavailable"})
+records = CardRow([tableCard])
+tableCard = LargeCard([tableHeader, table])
+tableHeader = DashboardCardHeader("Customers")
+table = Table([Col("Customer", values.ids), Col("Lifetime Value (USD)", values.lifetimeValues)])`,
 
   `### Example A — direct tool binds only (the common case: NO script)
 Provided tools: \`get_summary({period}) → {revenue, orders, aov}\` and \`get_trend({period}) → {days: [], revenue: []}\`.
@@ -120,6 +147,9 @@ export const dashboardAdditionalRules: string[] = [
   "Use only the component signatures, builtins, and exact tool names supplied for this request. The tool names in the examples are placeholders, not additional available tools.",
   'For live dashboards, bind tool-provided values through Query and never invent data. Defaults must match the result shape and field types. Give display strings meaningful defaults instead of empty strings: use names, labels, units, or context already known from the request, and an honest fallback such as "Awaiting data" when unknown. Keep known titles and labels independent of Query results. Numeric defaults remain zero and collections remain empty; IDs, URLs, dates, and enums must obey their field contracts. A Query variable is the result itself, not a data/status wrapper.',
   'For a static dashboard with no tools, illustrative data is allowed only when the DashboardHeader subtitle explicitly says "Sample data". Do not describe illustrative data as live or real-time.',
+  'User-provided figures are actual input for the requested dashboard. Do not label them "Sample data" unless the user identifies them as examples. If required figures are missing, say they are unavailable rather than inventing them; use illustrative figures only when the user requests a sample or demo.',
+  "Trend is optional. Include a trend badge only when the user supplies a change or the available data supports a comparison of the same metric over identified periods. Compute percentage change as (current - previous) / previous * 100 when previous is nonzero. Omit the badge when the comparison is missing or undefined. A transaction count is not a trend percentage, and growth of one period must not be attached to a combined total.",
+  'Missing numeric values are not zeros. Preserve known zeros, exclude unavailable values from averages, and show "Not available" for missing table values or aggregates with no known values. State the known/missing coverage when an aggregate excludes records. Use a separate display column for unavailable table values; keep available calculation values numeric. Do not coalesce a missing record value to zero.',
   "Every Query must feed a rendered widget. Every visible filter must feed the arguments of every Query it affects. Use shared $bindings and exact tool argument names.",
   "Prefer a direct Query when one tool already provides the needed output. Prefer inline arithmetic and supported @builtins for simple totals, rates, differences, and derived metrics, including across two Queries. Guard division against zero.",
   "Use a computed script binding for row-level joins, fan-out over fixed or dynamic entity sets, grouping, reshaping, or calculations requiring loops or schedules. Never hide a required computation by dropping the metric or substituting a constant.",
@@ -132,8 +162,8 @@ export const dashboardAdditionalRules: string[] = [
   'Button actions for Calculate/Apply/Reset must be Action([...]). With result = Query("loan_schedule", {termYears: $termYears}, {payment: 0}), use Button("Calculate", Action([@Run(result)]), "primary") and Button("Reset", Action([@Reset($termYears), @Run(result)]), "secondary"). Never pass a bare array of action steps.',
   "Use string defaults for FilterSelect bindings because option values are strings. The calculation script converts numeric arguments to numbers. Keep one canonical reactive variable per input, or use explicit draft variables when calculation must wait for Apply.",
   "Arguments are positional. Use Trend(direction, value) for trends and FilterOption(value, label) for filter options; do not use raw object literals in those component slots.",
-  "SmallCard has three forms: SmallCard(title, metric, Trend(...)) for KPIs; SmallCard(IconText(Icon(...), variant), [MetricIndicator(...)]) for icon cards; SmallCard({title, subtitle?, icon?}, {value, subtext?}) for snippet rows.",
-  'Use OverviewCardBlock with OverviewCardItem children: OverviewCardItem(title, value?, valueSubtext?, trend?, subtitle?, icon?). For example: OverviewCardItem("MRR", "$48.2K", "USD", Trend("up", 12.5)).',
+  "SmallCard has three forms: SmallCard(title, metric, optionalTrend?) for KPIs, normally SmallCard(title, metric) with no trend; SmallCard(IconText(Icon(...), variant), [MetricIndicator(...)]) for icon cards; SmallCard({title, subtitle?, icon?}, {value, subtext?}) for snippet rows. Add Trend(...) only for a supported comparison.",
+  'Use OverviewCardBlock with OverviewCardItem children: OverviewCardItem(title, value?, valueSubtext?, trend?, subtitle?, icon?). For example: OverviewCardItem("MRR", "$48.2K", "USD"). Omit trend unless a comparison is supported by the supplied data.',
   'Table is column-oriented: Table([Col("Product", names), Col("Revenue", revenues, "number")]). Each column contains its own array with the same row count. Never put a rows array in a second Table argument.',
   'Icon takes a lucide name string and optional category, for example Icon("dollar-sign", "finance"). Include a category for a meaningful fallback when the exact icon is unavailable.',
   "Only include controls with a real purpose. Do not add a Refresh button unless the user asks for manual refresh; Queries run when their inputs change.",
