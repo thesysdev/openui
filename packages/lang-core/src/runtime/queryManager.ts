@@ -132,6 +132,22 @@ function buildCacheKey(toolName: string, args: unknown, deps: unknown): string {
   return toolName + "::" + stableStringify(args) + depsKey;
 }
 
+/** Same keys in the same order with identical values (arrays compared per item). */
+function sameSnapshot(a: QuerySnapshot, b: QuerySnapshot): boolean {
+  const ka = Object.keys(a);
+  const kb = Object.keys(b);
+  if (ka.length !== kb.length) return false;
+  for (let i = 0; i < ka.length; i++) {
+    if (ka[i] !== kb[i]) return false;
+    const x = a[ka[i]];
+    const y = b[kb[i]];
+    if (x === y) continue;
+    if (!Array.isArray(x) || !Array.isArray(y) || x.length !== y.length) return false;
+    for (let j = 0; j < x.length; j++) if (x[j] !== y[j]) return false;
+  }
+  return true;
+}
+
 // ── Factory ──────────────────────────────────────────────────────────────────
 
 export function createQueryManager(toolProvider: ToolProvider | null): QueryManager {
@@ -185,6 +201,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       if (m.error) out.__openui_errors.push(m.error);
     }
 
+    if (sameSnapshot(out, snapshot)) return false;
     try {
       const outJson = JSON.stringify(out);
       if (outJson === snapshotJson) return false;

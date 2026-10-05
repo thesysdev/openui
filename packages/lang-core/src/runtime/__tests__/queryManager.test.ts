@@ -86,3 +86,19 @@ describe("QueryManager refresh interval lifecycle", () => {
     expect(callTool.mock.calls.length).toBe(before);
   });
 });
+
+describe("QueryManager snapshot", () => {
+  it("keeps the snapshot and does not notify when re-evaluation changes nothing", async () => {
+    const qm = createQueryManager({
+      callTool: vi.fn().mockResolvedValue([{ id: 1 }]),
+    } as ToolProvider);
+    qm.evaluateQueries([node("q1")]);
+    await flushMicrotasks();
+    const snapshot = qm.getSnapshot();
+    const listener = vi.fn();
+    qm.subscribe(listener);
+    qm.evaluateQueries([node("q1")]);
+    expect(listener).not.toHaveBeenCalled();
+    expect(qm.getSnapshot()).toBe(snapshot);
+  });
+});
