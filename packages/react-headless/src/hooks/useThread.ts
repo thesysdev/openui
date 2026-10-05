@@ -12,6 +12,7 @@ import type {
 type ThreadSlice = ThreadState & ThreadActions;
 type ThreadListSlice = ThreadListState & ThreadListActions;
 
+// The active thread lives directly in the store's flat fields.
 const threadSelector = (s: ChatStore): ThreadSlice => ({
   messages: s.messages,
   isRunning: s.isRunning,
@@ -32,6 +33,7 @@ const threadListSelector = (s: ChatStore): ThreadListSlice => ({
   threadListError: s.threadListError,
   selectedThreadId: s.selectedThreadId,
   hasMoreThreads: s.hasMoreThreads,
+  isCreatingThread: s.isCreatingThread,
   loadThreads: s.loadThreads,
   loadMoreThreads: s.loadMoreThreads,
   switchToNewThread: s.switchToNewThread,

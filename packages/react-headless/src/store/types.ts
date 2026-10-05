@@ -20,6 +20,7 @@ export type ThreadListState = {
   threadListError: Error | null;
   selectedThreadId: string | null;
   hasMoreThreads: boolean;
+  isCreatingThread: boolean;
 };
 
 export type ThreadListActions = {
@@ -39,15 +40,15 @@ export type ThreadState = {
   isRunning: boolean;
   isLoadingMessages: boolean;
   threadError: Error | null;
-  /**
-   * Tool calls whose arguments have closed (`TOOL_CALL_END` seen) but whose
-   * result message has not yet arrived — i.e. the tool is currently executing.
-   * Drives the `"executing"` status in {@link ToolActivity}; reset to an empty
-   * set when a new message run starts or the thread switches. The reference is
-   * stable across unrelated store updates (a new `Set` is created only when the
-   * membership changes), so selector consumers don't re-render needlessly.
-   */
   executingToolCallIds: Set<string>;
+};
+
+export type ThreadStateEntry = ThreadState & {
+  /**
+   * @internal the in-flight run's controller, or `null` when idle.
+   * Intentionally not exposed to avoid usage from public contract
+   */
+  abortController: AbortController | null;
 };
 
 export type ThreadActions = {
@@ -65,9 +66,16 @@ export type ChatStore = ThreadListState &
   ThreadListActions &
   ThreadState &
   ThreadActions & {
+    /**
+     * Threads streaming in the BACKGROUND — i.e. runs on threads that are not the
+     * active view. The active thread lives in the flat {@link ThreadState} fields
+     * above; a background entry is dropped the moment its run completes (a return
+     * trip reloads it from storage), so this holds only genuinely in-flight threads.
+     */
+    inFlightThreads: Record<string, ThreadStateEntry>;
     /** @internal */
     _nextCursor?: string | undefined;
-    /** @internal */
+    /** @internal the active thread's in-flight run controller, or `null` when idle. */
     _abortController: AbortController | null;
   };
 

@@ -25,6 +25,7 @@ export const MobileHeader = ({
   children,
 }: MobileHeaderProps) => {
   const switchToNewThread = useThreadList((s) => s.switchToNewThread);
+  const isCreatingThread = useThreadList((s) => s.isCreatingThread);
   const { agentName: ctxAgentName, setIsSidebarOpen } = useAgentInterfaceStore((state) => ({
     agentName: state.agentName,
     setIsSidebarOpen: state.setIsSidebarOpen,
@@ -66,6 +67,7 @@ export const MobileHeader = ({
       size="medium"
       icon={<SquarePen size="1em" />}
       onClick={switchToNewThread}
+      disabled={isCreatingThread}
       variant="secondary"
       aria-label="New chat"
     />
