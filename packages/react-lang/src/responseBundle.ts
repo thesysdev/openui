@@ -31,6 +31,7 @@ export function parseResponseBundle(response: string | null, streaming: boolean)
   let program = response ?? "";
   const metadata: ResponseMetadata = {};
   const scripts = new Set<string>();
+  let scriptRevision: string | undefined;
   let error: string | undefined;
   let complete = true;
   let framed = false;
@@ -95,6 +96,11 @@ export function parseResponseBundle(response: string | null, streaming: boolean)
               throw new Error("Invalid or duplicate script definition");
             scripts.add(script.name);
           }
+          scriptRevision = JSON.stringify(
+            values
+              .map((script) => ({ name: script.name as string, code: script.code as string }))
+              .sort((a, b) => a.name.localeCompare(b.name)),
+          );
           complete = framed ? tail === END : tail === "" || tail === END;
           if (!complete) error = "Incomplete response bundle";
         } catch {
@@ -107,5 +113,13 @@ export function parseResponseBundle(response: string | null, streaming: boolean)
     }
   } else if (framed) complete = false;
   if (!complete && !streaming) error ??= "Incomplete response bundle";
-  return { program, metadata, scripts, complete, isBundle, error: streaming ? undefined : error };
+  return {
+    program,
+    metadata,
+    scripts,
+    complete,
+    isBundle,
+    error: streaming ? undefined : error,
+    ...(scripts.size ? { scriptRevision } : {}),
+  };
 }

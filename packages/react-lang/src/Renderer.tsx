@@ -12,6 +12,12 @@ import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
 
+export interface QueryErrorProps {
+  errors: OpenUIError[];
+  retry: () => void;
+  isRetrying: boolean;
+}
+
 export interface RendererProps {
   /** OpenUI Lang code or the complete Cloud response bundle. */
   response: string | null;
@@ -41,12 +47,15 @@ export interface RendererProps {
    */
   toolProvider?:
     Record<string, (args: Record<string, unknown>) => Promise<unknown>> | McpClientLike | null;
-  /** Custom loading indicator shown while queries are fetching. Defaults to a spinner. */
+  /** Loading indicator while queries await generation or fetch data. Defaults to a spinner. */
   queryLoader?: React.ReactNode;
+  /** Customize the query failure view. Results stay hidden until failed queries recover. */
+  queryError?: (props: QueryErrorProps) => React.ReactNode;
   /**
    * Called with structured, LLM-friendly errors from the parser and query system.
-   * Only includes errors fixable by changing the openui-lang code (unknown components,
-   * missing required props, tool-not-found). Suitable for an automated LLM correction loop.
+   * Includes generation errors (unknown components, missing required props)
+   * and tool execution failures. Retry data-source failures instead of treating
+   * every query error as a reason to regenerate the program.
    * Called with [] when all errors are resolved.
    */
   onError?: (errors: OpenUIError[]) => void;
@@ -146,7 +155,16 @@ function renderDeep(value: unknown): React.ReactNode {
  * Renders a single ElementNode.
  */
 function RenderNode({ node }: { node: ElementNode }) {
-  const { library, reportError } = useOpenUI();
+  const { library, reportError, queryPlaceholders } = useOpenUI();
+  if (queryPlaceholders?.has(node)) {
+    const label = queryPlaceholders.get(node);
+    return (
+      <div role="status" aria-busy="true" style={{ padding: "1rem", minHeight: "3rem" }}>
+        {label && <div>{label}</div>}
+        <div>Loading data…</div>
+      </div>
+    );
+  }
   const Comp = library.components[node.typeName]?.component;
 
   if (!Comp) return null;
@@ -182,6 +200,8 @@ function ensureLoadingStyle() {
 
 const DefaultQueryLoader = () => (
   <div
+    role="status"
+    aria-label="Loading data"
     style={{
       position: "absolute",
       top: 8,
@@ -207,6 +227,7 @@ export function Renderer({
   onParseResult,
   toolProvider,
   queryLoader,
+  queryError,
   onError,
   publishObservability,
 }: RendererProps) {
@@ -245,20 +266,21 @@ export function Renderer({
   });
   const resolvedToolProvider = toolProvider != null ? stableToolProvider.current : null;
 
-  const { result, parseResult, contextValue, isQueryLoading } = useOpenUIState(
-    {
-      response,
-      library,
-      isStreaming,
-      onAction,
-      onStateUpdate,
-      initialState,
-      toolProvider: resolvedToolProvider,
-      onError,
-      publishObservability,
-    },
-    renderDeep,
-  );
+  const { result, parseResult, contextValue, isQueryLoading, queryErrors, retryQueries } =
+    useOpenUIState(
+      {
+        response,
+        library,
+        isStreaming,
+        onAction,
+        onStateUpdate,
+        initialState,
+        toolProvider: resolvedToolProvider,
+        onError,
+        publishObservability,
+      },
+      renderDeep,
+    );
 
   // Fire onParseResult with the RAW parse result (not evaluated),
   // so hosts only see changes when the parser output actually changes.
@@ -272,9 +294,23 @@ export function Renderer({
 
   return (
     <OpenUIContext.Provider value={contextValue}>
-      <div style={{ position: "relative" }}>
-        {isQueryLoading && (queryLoader ?? <DefaultQueryLoader />)}
-        <div style={{ opacity: isQueryLoading ? 0.7 : 1, transition: "opacity 0.2s ease" }}>
+      <div aria-busy={isQueryLoading} style={{ position: "relative" }}>
+        {queryErrors.length > 0 &&
+          (queryError ? (
+            queryError({ errors: queryErrors, retry: retryQueries, isRetrying: isQueryLoading })
+          ) : (
+            <div role="alert">
+              <p>Unable to load data. Results are unavailable until the failed requests recover.</p>
+              <button type="button" onClick={retryQueries} disabled={isQueryLoading}>
+                {isQueryLoading ? "Retrying…" : "Retry"}
+              </button>
+            </div>
+          ))}
+        {isQueryLoading && queryErrors.length === 0 && (queryLoader ?? <DefaultQueryLoader />)}
+        <div
+          hidden={queryErrors.length > 0}
+          style={{ opacity: isQueryLoading ? 0.7 : 1, transition: "opacity 0.2s ease" }}
+        >
           <RenderNode node={result.root} />
         </div>
       </div>
