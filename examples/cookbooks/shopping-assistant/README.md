@@ -52,6 +52,7 @@ Try:
 | `src/app/api/frontend-token/route.ts` | Frontend token for Gateway thread storage                               |
 | `src/lib/theme.ts`                    | Light and dark theme overrides                                          |
 | `src/components/shop-chat.tsx`        | Agent Interface, chat transport, thread storage, theme, and starters    |
+| `src/app/styles.css`                  | Page layout and full-width photos on the bundle cards                   |
 
 `npm run generate` creates the ignored component specification before dev/build/verify. The server passes that specification to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, and Agent Interface renders responses with the same component library.
 

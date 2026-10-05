@@ -230,7 +230,7 @@ Use the chat library, React UI's built-in library for Agent Interface answers, a
 export { openuiChatLibrary as library } from "@openuidev/react-ui/genui-lib";
 ```
 
-Every answer is one `Card`. `CompositeCardBlock` lays out product cards with a photo, a title, a description, a price, and a button. `ImageGallery` shows a product's photos, `Chips` covers each option, and `ChipItem` can be disabled for a sold-out value. `OptionCards` of type `multiple` shows a bundle as selectable product cards. `Form` groups the fields and checks their validation rules when the shopper clicks a primary button, and `EntityList` lists the cart's totals and discounts. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
+Every answer is one `Card`. `CompositeCardBlock` lays out product cards with a photo, a title, a description, a price, and a button. `ImageGallery` shows a product's photos, `Chips` covers each option, and `ChipItem` can be disabled for a sold-out value. `OptionCards` of type `multiple` shows a bundle as selectable product cards. By default, an option card shows its image as a small thumbnail; one CSS rule in [styles.css](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/app/styles.css) stretches it across the card. `Form` groups the fields and checks their validation rules when the shopper clicks a primary button, and `EntityList` lists the cart's totals and discounts. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
 
 ### 5. Describe the shopping flow
 
