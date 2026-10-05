@@ -27,7 +27,6 @@ Try:
 - “Also add the slides in my size.” The assistant adds them to the same cart without asking again.
 - Change a quantity in the cart, or set it to 0, and click **Update cart**.
 - “Put together a starter kit for a new teammate under $100.” The assistant proposes a bundle with every product selected; deselect what you don't want, pick a size, and add the rest in one step.
-- Enter a discount code, such as SHIRO10, in the cart and click **Update cart**.
 
 ## How it works
 
@@ -35,7 +34,7 @@ Try:
 2. The model calls `search_products`. The server calls `search_catalog` on the store's MCP server, keeps the products with an in-stock variant that fits the size, color, and budget, and returns their photos, prices, options, and variants.
 3. The model shows the products as cards. **Select options** asks for that product's variant form: one set of chips per option, with sold-out values disabled, and a quantity.
 4. When the shopper submits the form, the model calls `update_cart` with the product id and the chosen values. The server finds the variant with `get_product`, reads the cart, applies the change, and writes the full cart back with `create_cart` or `update_cart`.
-5. The model shows the cart as a form with a quantity per item, a discount code field, the totals and discounts, and **Continue to checkout** when the store returns a checkout link.
+5. The model shows the cart as a form with a quantity per item, the totals, and **Continue to checkout** when the store returns a checkout link.
 6. For a kit or gift set, the model proposes a bundle as a form of selectable product cards, and adds the selected ones with one `update_cart` call.
 
 ## Files
@@ -63,7 +62,7 @@ Shopify stores speak the [Universal Commerce Protocol](https://ucp.dev) (UCP) ov
 The app calls the store from two function tools rather than giving the model the store's tools directly:
 
 - `search_products` keeps each product's title, a short description, up to four photos resized by Shopify's CDN (tens of kilobytes instead of up to a few megabytes), the price, and every value of each option, marked in stock when the store checked it. It filters the store's 25 best matches by size, color, and budget itself, asking the store with `get_product` for the in-stock variants with a requested size or color, because a search result lists at most 10 variants per product. It filters by price itself because the store's price filter needs the currency's minor units before the model knows the currency, and reports what it left out and why, such as sold out or over budget.
-- `update_cart` takes products to add, with the chosen value of each option, and quantities to set for items in the cart. The server finds each product's variant with `get_product`, so the model never handles variant ids. It also takes discount codes; because the store's update replaces the whole cart, the server sends the codes that applied with every change and drops codes the store rejected. The result lists applied and rejected codes without the store's message text. `update_cart` on the store replaces every line, so the server reads the cart first and merges the change, and the model never has to repeat the whole cart. An expired cart is replaced by a new one.
+- `update_cart` takes products to add, with the chosen value of each option, and quantities to set for items in the cart. The server finds each product's variant with `get_product`, so the model never handles variant ids. `update_cart` on the store replaces every line, so the server reads the cart first and merges the change, and the model never has to repeat the whole cart. An expired cart is replaced by a new one.
 
 Neither tool forwards the store's messages or tool descriptions to the model; they reach it only as structured data. Prices are live and can change until the shopper checks out.
 

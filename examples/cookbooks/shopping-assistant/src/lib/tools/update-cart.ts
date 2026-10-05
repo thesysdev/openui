@@ -9,7 +9,7 @@ export const updateCartTool = {
   function: {
     name: "update_cart",
     description:
-      "Add items to the shopper's cart, change their quantities, apply discount codes, or read the cart. Returns every item with its price, the totals, the discounts, and a checkout link when the store has one.",
+      "Add items to the shopper's cart, change their quantities, or read the cart. Returns every item with its price, the totals, and a checkout link when the store has one.",
     parameters: {
       type: "object",
       properties: {
@@ -59,14 +59,8 @@ export const updateCartTool = {
             additionalProperties: false,
           },
         },
-        discount_codes: {
-          type: ["array", "null"],
-          items: { type: "string" },
-          description:
-            "Discount codes the shopper gave, replacing those on the cart; an empty array removes them. Null leaves the codes as they are.",
-        },
       },
-      required: ["cart_id", "add", "set", "discount_codes"],
+      required: ["cart_id", "add", "set"],
       additionalProperties: false,
     },
     strict: true,
@@ -100,7 +94,6 @@ const argsSchema = z
           .strict(),
       )
       .max(50),
-    discount_codes: z.array(z.string().trim().min(1).max(50)).max(5).nullable(),
   })
   .strict();
 
@@ -117,15 +110,7 @@ async function findVariant(item: z.infer<typeof argsSchema>["add"][number], sign
 }
 
 function toResult(cart: Cart | null) {
-  if (!cart)
-    return {
-      cart_id: null,
-      items: [],
-      item_count: 0,
-      totals: {},
-      discounts: null,
-      checkout_url: null,
-    };
+  if (!cart) return { cart_id: null, items: [], item_count: 0, totals: {}, checkout_url: null };
   const price = (amount: number) => formatPrice(amount, cart.currency);
   const total = (totals: Cart["totals"], type: string) =>
     totals.find((entry) => entry.type === type)?.amount ?? 0;
@@ -142,20 +127,6 @@ function toResult(cart: Cart | null) {
     item_count: cart.line_items.reduce((count, line) => count + line.quantity, 0),
     // subtotal and total, plus tax, discount, or shipping when the store estimates them.
     totals: Object.fromEntries(cart.totals.map((entry) => [entry.type, price(entry.amount)])),
-    // The store's own message about a rejected code isn't passed on; the code is enough.
-    discounts: {
-      applied: (cart.discounts?.applied ?? []).map((discount) => ({
-        code: discount.code ?? null,
-        title: discount.title,
-        amount: price(discount.amount),
-      })),
-      rejected: (cart.discounts?.codes ?? []).filter(
-        (code) =>
-          !(cart.discounts?.applied ?? []).some(
-            (discount) => discount.code?.toLowerCase() === code.toLowerCase(),
-          ),
-      ),
-    },
     checkout_url: cart.continue_url ?? null,
   };
 }
@@ -181,7 +152,6 @@ export async function executeUpdateCart(
       for (const line of args.set) next.set(line.variant_id, line.quantity);
       return [...next].map(([variantId, quantity]) => ({ variantId, quantity }));
     },
-    args.discount_codes,
     signal,
   );
   return JSON.stringify(toResult(cart));
