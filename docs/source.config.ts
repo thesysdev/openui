@@ -3,12 +3,18 @@ import { defineCollections, defineConfig, defineDocs } from "fumadocs-mdx/config
 import lastModified from "fumadocs-mdx/plugins/last-modified";
 import { z } from "zod";
 
+const docsPageSchema = pageSchema.extend({
+  customHeader: z.boolean().optional().default(false),
+  // Hides the previous/next page links at the bottom of the page.
+  hideFooter: z.boolean().optional().default(false),
+});
+
 // You can customise Zod schemas for frontmatter and `meta.json` here
 // see https://fumadocs.dev/docs/mdx/collections
 export const docs = defineDocs({
   dir: "content/docs",
   docs: {
-    schema: pageSchema,
+    schema: docsPageSchema,
     postprocess: {
       includeProcessedMarkdown: true,
     },

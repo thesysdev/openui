@@ -1,0 +1,194 @@
+/* Hero lockup only. The sections below the hero share sections.module.css, so
+   this file stays the page's own typography and nothing else. The lockup is the
+   one Cloud and Observability use, with the product name in the tag. */
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 2px;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: normal;
+}
+
+.cloudTag {
+  display: inline-flex;
+  align-items: center;
+  margin-top: -3px;
+  padding: 2px 6px 3px;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  font-size: 17px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.title {
+  display: block;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.subtitle {
+  display: block;
+  flex: 0 0 400px;
+  width: 400px;
+  max-width: 400px;
+  margin-top: 40px;
+  margin-left: auto;
+  padding-top: 12px;
+  font-size: 22px;
+  font-weight: var(--home-heading-weight);
+  line-height: var(--home-lead-leading);
+  letter-spacing: var(--home-heading-tracking);
+  text-wrap: balance;
+}
+
+.ctaGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sectionRhythm {
+  --gateway-section-gap: 160px;
+  --gateway-page-surface: #fff;
+  --gateway-band-surface: var(--openui-background);
+}
+
+[data-theme="dark"] .sectionRhythm {
+  --gateway-page-surface: #000;
+  --gateway-band-surface: var(--openui-background);
+}
+
+.heroArtSpace {
+  --gateway-stage-stroke: #f8f8f8;
+
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 1280 / 520;
+  border: 1px solid var(--gateway-stage-stroke);
+  border-radius: 24px;
+}
+
+[data-theme="dark"] .heroArtSpace {
+  --gateway-stage-stroke: #0e0e0e;
+}
+
+.heroShader {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.heroShader > * {
+  width: 100%;
+  height: 100%;
+}
+
+.heroArtwork {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.problemBand,
+.repairBand {
+  width: 100%;
+  background: var(--gateway-page-surface);
+}
+
+.usageBand {
+  width: 100%;
+  padding: var(--gateway-section-gap) 0 calc(var(--gateway-section-gap) / 2);
+  background: var(--gateway-page-surface);
+}
+
+/* The banner is a continuation of the repair story. The following section
+   owns the major gap, so the banner must not add a second one. */
+.autofixBridge {
+  display: flow-root;
+}
+
+.autofixBridge.autofixBridge > section {
+  margin-bottom: 0;
+}
+
+.faqContactLink {
+  color: var(--openui-text-neutral-primary);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.faqContactLink:hover {
+  opacity: 0.7;
+}
+
+@media (max-width: 899.98px) {
+  .titleBlock {
+    align-items: center;
+    gap: 12px;
+  }
+
+  .title {
+    font-size: inherit;
+  }
+
+  .subtitle {
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .ctaGroup {
+    flex-direction: column;
+    width: 320px;
+    max-width: 100%;
+  }
+
+  .heroArtSpace {
+    aspect-ratio: 390 / 720;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 899.98px) {
+  .ctaGroup {
+    flex-direction: row;
+    width: auto;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .sectionRhythm {
+    --gateway-section-gap: 96px;
+  }
+}
+
+@media (max-width: 767px) {
+  .subtitle {
+    flex: 0 1 auto;
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: normal;
+  }
+
+  .heroArtSpace {
+    border-radius: 12px;
+  }
+}

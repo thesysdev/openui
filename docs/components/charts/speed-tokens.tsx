@@ -1,7 +1,7 @@
 "use client";
 
 import { FORMATS, FORMAT_ORDER, type FormatId, tokens } from "@/lib/benchmark-data";
-import { Chart, Row, styles as s, slotClass } from "./primitives";
+import { Chart, ChartDataDisclosure, DataTable, Row, styles as s, slotClass } from "./primitives";
 
 /* Streaming speed, derived from the current benchmark: the mean output per
    screen over all 1,104 scored runs, decoded at a fixed 50 tokens per second. */
@@ -70,6 +70,37 @@ export function SpeedTokens({ note }: { note?: React.ReactNode | null } = {}) {
           );
         })}
       </div>
+      <ChartDataDisclosure label="View streaming data">
+        <DataTable>
+          <caption>
+            Estimated streaming time from mean output tokens at 50 tokens per second
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Format</th>
+              <th scope="col" data-numeric="true">
+                Mean output tokens
+              </th>
+              <th scope="col" data-numeric="true">
+                Decode rate
+              </th>
+              <th scope="col" data-numeric="true">
+                Estimated seconds
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {FORMAT_ORDER.map((format) => (
+              <tr key={`data-${format}`}>
+                <th scope="row">{FORMATS.find((item) => item.id === format)!.label}</th>
+                <td data-numeric="true">{tokens.outputPerScreen[format].toLocaleString()}</td>
+                <td data-numeric="true">{DECODE_TPS} tok/s</td>
+                <td data-numeric="true">{secs(format).toFixed(1)}s</td>
+              </tr>
+            ))}
+          </tbody>
+        </DataTable>
+      </ChartDataDisclosure>
     </Chart>
   );
 }

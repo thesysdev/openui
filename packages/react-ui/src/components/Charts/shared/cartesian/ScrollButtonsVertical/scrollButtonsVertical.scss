@@ -1,0 +1,39 @@
+@use "../../../../../cssUtils" as cssUtils;
+@use "../../../prefix" as brand;
+
+.#{brand.$prefix}-chart-vertical-scroll {
+  &-buttons-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    // Wide enough for the react-ui extra-small IconButton (~28px) + the left
+    // pad, so the button doesn't overflow the column and get clipped by the
+    // chart wrapper's `overflow: hidden`.
+    width: 36px;
+    height: calc(100% - 44px);
+    flex-shrink: 0;
+    padding-left: cssUtils.$space-2xs;
+
+    // Nested under the container (specificity 0,2,0) so these beat react-ui's
+    // single-class IconButton rules — the `-secondary` transparent background
+    // and the base `transition` — whatever order the stylesheets load in
+    // (react-ui's generated components index forwards Charts before
+    // IconButton). IconButton's own `:hover` / `:active` / `:disabled` states
+    // still win on specificity.
+    .#{brand.$prefix}-chart-vertical-scroll-button {
+      background-color: cssUtils.$foreground;
+      pointer-events: auto;
+
+      &--disabled {
+        visibility: hidden;
+        cursor: not-allowed;
+        // Looks inert but isn't: visible→hidden under a transition holds
+        // `visible` until it completes (the brief linger on disable), and this
+        // declaration overrides react-ui's base `transition: all 0.12s ease`
+        // on the same element.
+        transition: visibility 0.1s linear;
+      }
+    }
+  }
+}

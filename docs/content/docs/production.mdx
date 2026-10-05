@@ -1,0 +1,85 @@
+---
+title: OpenUI in production
+description: Track generation failures, fix invalid OpenUI Lang, and keep model requests working in production.
+---
+
+import { GatewayReliabilityVisualization } from "@/components/gateway-reliability-visualization";
+
+Running Generative UI reliably in production takes more than getting an interface to render once. Models can use unknown components, supply invalid properties, leave references unresolved, or stop before completing a response. Model Provider outages can also interrupt generation.
+
+In our [**reliability benchmark**](/blog/generative-ui-benchmark), OpenUI achieved the highest overall structural validity and the fewest blank screens among the tested frameworks, but no framework was error-free.
+
+Production applications need ways to track these failures, fix invalid output, and recover from provider interruptions. OpenUI provides the following tools:
+
+<Cards>
+  <Card title="Gateway" href="/docs/gateway">
+    OpenRouter for Generative UI. Access models across providers with automatic fallbacks and correction of invalid OpenUI Lang during streaming.
+  </Card>
+  <Card title="Autofix" href="/docs/autofix">
+    Fix invalid OpenUI Lang while keeping your existing model provider and inference setup.
+  </Card>
+  <Card title="Reliability Monitoring" href="/docs/reliability">
+    Track generation failures, investigate affected interfaces, and identify recurring errors.
+  </Card>
+</Cards>
+
+## Gateway
+
+OpenUI Gateway provides a unified API to access models across providers through a single endpoint. It sits between your application and the LLM, validates generated OpenUI Lang, and fixes errors as the response streams to your application. It also provides automatic provider fallbacks.
+
+<GatewayReliabilityVisualization />
+
+Integrate OpenUI Gateway with your existing backend stack, including LangGraph, Vercel AI SDK, or the OpenAI SDK. Gateway provides OpenAI-compatible Chat Completions and Responses APIs:
+
+<Tabs items={["Chat Completions", "Responses API"]}>
+  <Tab value="Chat Completions">
+    ```ts title="server.ts"
+    import OpenAI from "openai";
+
+    const gateway = new OpenAI({
+      apiKey: process.env.THESYS_API_KEY,
+      baseURL: "https://api.thesys.dev/v1/embed",
+    });
+
+    const completion = await gateway.chat.completions.create({
+      model: "openai/gpt-5",
+      messages: [
+        { role: "user", content: "Compare quarterly revenue by region." },
+      ],
+      stream: true,
+    });
+    ```
+  </Tab>
+  <Tab value="Responses API">
+    ```ts title="server.ts"
+    import OpenAI from "openai";
+
+    const gateway = new OpenAI({
+      apiKey: process.env.THESYS_API_KEY,
+      baseURL: "https://api.thesys.dev/v1/embed",
+    });
+
+    const response = await gateway.responses.create({
+      model: "openai/gpt-5",
+      input: "Compare quarterly revenue by region.",
+      stream: true,
+    });
+    ```
+  </Tab>
+</Tabs>
+
+Learn more about OpenUI Gateway [here](/docs/gateway).
+
+## Autofix
+
+When you call a model provider directly, invalid OpenUI Lang reaches your application without any correction. The Autofix API fixes it while you keep your existing inference setup. After generation completes, validate the output with the OpenUI Lang parser. If validation fails, send the generation, component specification, and conversation context to Autofix, which returns corrected OpenUI Lang.
+
+Learn more in the [Autofix docs](/docs/autofix).
+
+## Reliability Monitoring
+
+Fixing errors keeps interfaces working, but it doesn't tell you why they fail. Reliability Monitoring tracks how often generated interfaces fail and which errors recur, with insights into how to fix them. Inspect the affected OpenUI Lang to find the root cause, then improve your component library, system prompt, or model selection.
+
+Monitoring is automatically enabled for Gateway generations and Autofix requests. If you use neither, connect the Observability SDK to track parsing and rendering errors in your application.
+
+Learn more in the [Reliability Monitoring docs](/docs/reliability).

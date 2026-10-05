@@ -136,5 +136,5 @@ Footnotes:
 - The averages are the equal-weight mean of the six per-model structural-validity rates, computed from the exact run fractions (the per-model cells are shown rounded to one decimal). Every model ran 4 generations per prompt.
 - Prompt composition per format: all three carry the same two worked examples; OpenUI's prompt also adds its component groups and three rules (lang-core's official options), json-render its three custom rules, A2UI nothing beyond the examples.
 - Scoring is each SDK's own shipped code plus one shared structural-validation layer with a component-count floor; the layer credits json-render's native children slot wherever a component's single ref prop allows it, and consumes A2UI validation errors its itemized checks would miss.
-- The full judgment-call list, all code, prompts, and every raw output: [benchmark repo](https://github.com/thesysdev/openui/tree/main/benchmarks/openui-bench).
+- The full judgment-call list, all code, prompts, and every raw output: [benchmark repo](https://github.com/thesysdev/generative-ui-bench).
 - The method builds on Mobile Reality's [MDMA benchmark](https://github.com/MobileReality/mdma/tree/main/benchmarks/genui-formats).

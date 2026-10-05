@@ -14,8 +14,17 @@
   --ink-note: var(--openui-text-neutral-tertiary, #8f8da3);
   --rule: color-mix(in srgb, var(--ink) 6%, transparent);
   --chip: color-mix(in srgb, var(--ink) 6%, transparent);
+  /* the page's own table tokens, so a disclosure table framed like the
+     marketing tables stays framed like them in both themes */
+  --table-rule: var(--openui-border-default, color-mix(in srgb, var(--ink) 12%, transparent));
+  --table-zebra: var(--openui-highlight-subtle, color-mix(in srgb, var(--ink) 3%, transparent));
   /* the card surface token — distinct from the page background in both modes */
   --surface: var(--openui-foreground, #fff);
+
+  /* Published so a full-bleed child can escape exactly this much and no
+     more. Any rule that changes the card's inline padding must change this
+     with it — the /benchmarks page sets both to 0. */
+  --card-pad: 28px;
 
   margin: 2.5rem 0;
   padding: 20px 28px;
@@ -128,6 +137,13 @@
   height: 10px;
   background: var(--c);
   flex: none;
+}
+
+.paretoKeyLine {
+  width: 22px;
+  height: 0;
+  border-top: 1.5px solid var(--ink);
+  opacity: 0.62;
 }
 
 /* rows -------------------------------------------------------------- */
@@ -577,6 +593,8 @@
 
 @media (max-width: 640px) {
   .viz {
+    --card-pad: 18px;
+
     padding: 16px 18px;
     gap: 20px;
   }
@@ -651,6 +669,15 @@
 
 /* frontier ------------------------------------------------------------ */
 
+.chartControlRow {
+  position: relative;
+  z-index: 8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .axisToggle {
   display: inline-flex;
   align-self: flex-start;
@@ -676,6 +703,182 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
+.modelSelect {
+  position: relative;
+  margin-left: auto;
+  color: var(--ink);
+  font-size: 0.875rem;
+}
+
+.modelSelect > summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 34px;
+  padding: 6px 10px 6px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.modelSelect > summary::-webkit-details-marker {
+  display: none;
+}
+
+.modelSelect > summary:hover {
+  background: var(--chip);
+}
+
+.modelSelect > summary strong {
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.modelSelectChevron {
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  transition: transform 140ms ease;
+}
+
+.modelSelect[open] .modelSelectChevron {
+  transform: rotate(180deg);
+}
+
+.modelSelectMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(360px, calc(100vw - 32px));
+  padding: 10px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.14);
+}
+
+.modelSelectActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 2px 10px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+}
+
+.modelSelectActions span {
+  margin-right: auto;
+}
+
+.modelSelectActions button {
+  border: 0;
+  border-radius: 5px;
+  background: var(--chip);
+  color: var(--ink);
+  font: inherit;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.modelSelectActions button:hover {
+  background: color-mix(in srgb, var(--ink) 10%, var(--surface));
+}
+
+.modelSelectList {
+  max-height: 344px;
+  overflow-y: auto;
+  padding-top: 6px;
+  scrollbar-width: thin;
+}
+
+.modelSelectGroup {
+  padding: 4px 0 6px;
+}
+
+.modelSelectGroup + .modelSelectGroup {
+  margin-top: 5px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
+}
+
+.modelSelectGroupTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 6px 5px;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.modelSelectGroupTitle strong {
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.modelSelectGroupTitle .modelSelectDot {
+  width: 8px;
+  height: 8px;
+}
+
+.modelSelectGroupTitle > span:last-child {
+  margin-left: auto;
+  letter-spacing: 0;
+  opacity: 0.65;
+}
+
+.modelSelectList label {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modelSelectList label:hover {
+  background: var(--chip);
+}
+
+.modelSelectList input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--ink);
+}
+
+.modelSelectDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+@media (max-width: 620px) {
+  .chartControlRow {
+    align-items: center;
+  }
+
+  .axisBtn {
+    padding-inline: 9px;
+    font-size: 0.75rem;
+  }
+
+  .modelSelect > summary {
+    gap: 6px;
+    padding-inline: 9px;
+    font-size: 0.75rem;
+  }
+
+  .modelSelect > summary > span:first-child {
+    display: none;
+  }
+}
+
 /* Holder for live-pixel SVG charts: until the ResizeObserver delivers the real
    width (SSR, first paint, hidden tabs), the default-width SVG must clip
    inside the card rather than widen the page. Vertical overflow stays open so
@@ -683,6 +886,211 @@
 .svgHolder {
   overflow-x: clip;
   overflow-y: visible;
+}
+
+.svgHolder.edgeAligned {
+  overflow-x: visible;
+}
+
+/* exact, server-rendered chart data -------------------------------------- */
+
+.dataDisclosure {
+  margin-top: 2px;
+  color: var(--ink);
+}
+
+.dataDisclosure > summary {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 0 2px;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  font-weight: 450;
+  opacity: 0.62;
+  cursor: pointer;
+  list-style: none;
+  transition:
+    color 140ms ease,
+    opacity 140ms ease;
+}
+
+/* a chevron, drawn from two borders so it inherits the summary's colour and
+   needs no asset: pointing down while collapsed, up once open */
+.dataDisclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.dataDisclosure > summary::after {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: -3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 180ms ease;
+}
+
+.dataDisclosure[open] > summary::after {
+  margin-top: 3px;
+  transform: rotate(-135deg);
+}
+
+.dataDisclosure > summary:hover,
+.dataDisclosure > summary:focus-visible,
+.dataDisclosure[open] > summary {
+  color: var(--ink);
+  opacity: 0.9;
+}
+
+/* The body no longer scrolls: each table carries its own scroller, so a wide
+   table slides under headings that stay put. Spacing steps down from here —
+   disclosure 22, section 34, heading 14, note 12 — so the nesting is legible
+   without rules or indentation. */
+.dataDisclosureBody {
+  max-width: 100%;
+  padding: 22px 0 2px;
+}
+
+.dataSection + .dataSection {
+  margin-top: 34px;
+}
+
+.dataSectionHeading {
+  margin: 0 0 14px;
+  padding-left: 4px;
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 550;
+}
+
+/* One table, one scroller. No max-width here: a block element already fills
+   its container, and this rule sits after the mobile override in source
+   order, so a max-width would silently beat the full-bleed width there. */
+.dataScroller {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* Full bleed at the same width the marketing tables use, so every table on
+   the page reaches the screen edges together rather than at two different
+   breakpoints. Placed after the base rule: an earlier @media block loses to
+   a later plain rule at equal specificity. */
+@media (max-width: 767px) {
+  /* A wide table scrolls the full width of the phone instead of sliding
+     inside an inset window that reads as cutting it off on both sides. */
+  .dataScroller {
+    /* Break out to the screen edges regardless of how much page gutter,
+       card padding and section margin sit between here and the window.
+       50% resolves against this element's own containing block, so
+       (50% - 50vw) is exactly the distance to the viewport edge whatever
+       that stack adds up to — no inset to hardcode and none to keep in sync.
+       The same amount is padded back in, so the first column still lines up
+       with the text above it while the last one can reach the screen. */
+    box-sizing: border-box;
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    padding-inline: calc(50vw - 50%);
+    scroll-padding-inline: calc(50vw - 50%);
+  }
+}
+
+/* Same frame as the marketing tables on the page — rounded outline, ruled
+   cells, alternating rows — one size down, so the exact numbers read as a
+   quieter member of the same family rather than raw output. The "best value
+   in the row" emphasis those tables carry does not apply here: these rows are
+   not competing series, and the model board marks its standouts with its own
+   Pareto frontier column. */
+.dataTable {
+  width: 100%;
+  min-width: 820px;
+  border: 1px solid var(--table-rule);
+  border-radius: 12px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dataTable th:nth-last-child(2),
+.dataTable td:nth-last-child(2) {
+  min-width: 104px;
+}
+
+.dataTable th:last-child,
+.dataTable td:last-child {
+  min-width: 112px;
+}
+
+.dataTable caption,
+.tableCaption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.dataTable th,
+.dataTable td {
+  padding: 7px 12px;
+  border-right: 1px solid var(--table-rule);
+  border-bottom: 1px solid var(--table-rule);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.dataTable th:last-child,
+.dataTable td:last-child {
+  border-right: 0;
+}
+
+.dataTable tbody tr:last-child th,
+.dataTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.dataTable tbody tr:nth-child(even) {
+  background: var(--table-zebra);
+}
+
+.dataTable th {
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+/* the name anchors the row; every measured value stays grey */
+.dataTable tbody th {
+  color: var(--ink);
+}
+
+.dataTable tbody td {
+  color: var(--ink-muted);
+}
+
+.dataTable td[data-numeric="true"],
+.dataTable th[data-numeric="true"] {
+  text-align: right;
+}
+
+.dataNote {
+  margin: 12px 0 0;
+  padding-left: 4px;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* a second legend row sits closer to the one above it than to the chart */
+.legendTight {
+  margin-top: -14px;
 }
 
 /* vivid repair funnel */
@@ -1893,4 +2301,26 @@
 .note strong {
   font-weight: 550;
   color: var(--ink-muted);
+}
+
+/* axis titles: one style for both hero charts, distinct from the in-plot
+   header so a rotated y title never reads as a heading */
+.axisTitle {
+  font-size: 12.5px;
+  fill: var(--ink-muted);
+  letter-spacing: 0.01em;
+}
+
+/* Provider hues are chosen against a white page, where they need to be dark
+   enough to read. On a dark surface that same darkness sinks into the
+   background, so every dot carrying one is lifted together. One rule, rather
+   than a second hand-tuned palette that would drift from the first. */
+@media (prefers-color-scheme: dark) {
+  :global(html:not([data-theme="light"]):not(.light)) .viz .providerHue {
+    filter: brightness(1.45) saturate(1.08);
+  }
+}
+:global(.dark) .viz .providerHue,
+:global([data-theme="dark"]) .viz .providerHue {
+  filter: brightness(1.45) saturate(1.08);
 }

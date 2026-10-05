@@ -1,8 +1,0 @@
-root = Card([header, pitch, signupForm])
-header = CardHeader("The Weekly Product Digest", "A newsletter for product people")
-pitch = TextContent("Every week, subscribers get a concise roundup of the best product thinking — new launches, teardown insights, and practical frameworks — delivered straight to their inbox.", "large")
-signupForm = Form("newsletter-signup", formButtons, [emailField])
-emailField = FormControl("Email address", emailInput, "We'll never share your email. Unsubscribe anytime.")
-emailInput = Input("email", "you@example.com", "email", ["required"])
-formButtons = Buttons([subscribeBtn])
-subscribeBtn = Button("Subscribe", null, "primary")

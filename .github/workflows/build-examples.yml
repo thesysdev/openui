@@ -1,0 +1,44 @@
+name: Build Examples
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "examples/**"
+      - "scripts/manage-starters.mjs"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - ".npmrc"
+      - ".github/workflows/build-examples.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "examples/**"
+      - "scripts/manage-starters.mjs"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - ".npmrc"
+      - ".github/workflows/build-examples.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: v24.21.0
+          cache: pnpm
+          cache-dependency-path: "examples/**/pnpm-lock.yaml"
+
+      - name: Install dependencies
+        run: pnpm examples:install
+
+      - name: Verify examples
+        run: pnpm examples:verify

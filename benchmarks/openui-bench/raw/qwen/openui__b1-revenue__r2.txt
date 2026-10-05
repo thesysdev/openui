@@ -1,8 +1,0 @@
-root = Card([header, comparison, progress, insight])
-header = CardHeader("Mid-Morning Check-In", "Today at 11:00 AM")
-comparison = Table([colMetric, colToday, colYesterday])
-colMetric = Col("Metric", ["Revenue", "Transactions", "Avg. Ticket"])
-colToday = Col("Today", ["$1,247", "38", "$32.82"])
-colYesterday = Col("Yesterday (same time)", ["$1,085", "33", "$32.88"])
-progress = Progress(62, "Progress toward daily target ($2,000)")
-insight = Callout("success", "Ahead of pace", "You are up $162 (+14.9%) compared to yesterday at this time. Keep it up!")

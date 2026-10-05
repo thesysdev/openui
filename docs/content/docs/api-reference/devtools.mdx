@@ -11,7 +11,15 @@ Development-only UI widget for OpenUI apps. Renders a floating button that opens
   className="w-full rounded-lg border"
 />
 
-## Install
+## Installation
+
+### CDN (via `react-lang`)
+
+If your app uses [`@openuidev/react-lang`](/docs/api-reference/react-lang), the widget shows up automatically in development.
+
+### Package Installation
+
+Install the package and render `<OpenUIDevtools />` when you want custom props. A manually mounted instance always wins over the auto-mount:
 
 ```bash tab="pnpm" tab-group="pkg"
 pnpm add -D @openuidev/devtools
@@ -40,7 +48,9 @@ function App() {
   return (
     <>
       {/* your app */}
-      {process.env.NODE_ENV === "development" && <OpenUIDevtools />}
+      {process.env.NODE_ENV === "development" && (
+        <OpenUIDevtools theme="dark" position="bottom-left" maxEvents={100} />
+      )}
     </>
   );
 }
@@ -53,7 +63,7 @@ function App() {
 | `enabled`         | dev-only         | Force the widget on/off.                                         |
 | `position`        | `"bottom-right"` | Corner for the toggle button: `top-left`/`top-right`/`bottom-*`. |
 | `maxEvents`       | `50`             | How many events to keep; oldest are dropped first.               |
-| `errorsOnly`      | `true`           | Capture only error/warning events, or every event.               |
+| `errorsOnly`      | `false`          | Initial state of the "errors only" display filter.               |
 | `autoOpenOnError` | `true`           | Initial state of the drawer's "auto-open on error" checkbox.     |
-| `bus`             | shared singleton | An `Observability` instance to listen to.                        |
 | `theme`           | `"light"`        | `"light"` or `"dark"` theme for the drawer.                      |
+| `version`         | `@latest`        | CDN pin: `"0"` (major), `"0.1"` (minor), or `"0.1.0"` (exact).    |

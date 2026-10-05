@@ -4,7 +4,7 @@
   --openui-date-picker-day-size: calc(#{cssUtils.$space-2xl} + #{cssUtils.$space-2xs});
   --openui-date-picker-cell-radius: #{cssUtils.$radius-m};
 
-  @include cssUtils.typography(primary, default);
+  @include cssUtils.typography(body, default);
   width: fit-content;
   max-width: 100%;
   box-sizing: border-box;

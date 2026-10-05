@@ -1,8 +1,0 @@
-
-
-root = Card([header, uptimeSection, incidentSection])
-header = CardHeader("Platform Status", "API service health — June 2025")
-uptimeSection = Card([uptimeLabel, uptimeBar], "sunk", "column", "m")
-uptimeLabel = TextContent("API Uptime This Month", "small-heavy")
-uptimeBar = Progress(99.97, "99.97% — 42m 18s total downtime")
-incidentSection = Callout("info", "Most Recent Incident", "Elevated error rates on /v2/payments endpoint due to a database connection pool exhaustion. Resolved on June 18, 2025 at 14:32 UTC after scaling the pool and restarting affected pods. Duration: 23 minutes.")

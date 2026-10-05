@@ -1,0 +1,136 @@
+---
+title: Shadcn Chat
+description: An example of connecting OpenUI Lang to a custom component library, using shadcn/ui as the design system.
+---
+
+OpenUI Lang is not tied to any component library. The LLM generates abstract UI structure; your library definition decides how that structure renders. This example wires OpenUI Lang to [shadcn/ui](https://ui.shadcn.com/) — swapping in a custom `shadcnChatLibrary` in place of the built-in libraries — to show that any design system can sit behind the same protocol.
+
+[View source on GitHub →](https://github.com/thesysdev/openui/tree/main/examples/design-systems/shadcn)
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl h-[500px] flex  p-2">
+  <video
+    src="/videos/shadcn-demo-chat.mp4"
+    noControls
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
+## Bringing your own component library
+
+The bridge between OpenUI Lang and shadcn/ui is built with two primitives: `defineComponent` and `createLibrary` from `@openuidev/react-lang`.
+
+`defineComponent` maps a single OpenUI Lang node to a React component. Here's the root `Card` component from `shadcn-genui/index.tsx`:
+
+```tsx
+const ChatCard = defineComponent({
+  name: "Card",
+  props: z.object({
+    children: z.array(ChatCardChildUnion),
+  }),
+  description:
+    "Vertical container for all content in a chat response. Children stack top to bottom automatically.",
+  component: ({ props, renderNode }) => (
+    <Card>
+      <CardContent className="p-0 space-y-3">{renderNode(props.children)}</CardContent>
+    </Card>
+  ),
+});
+```
+
+- `name` — the OpenUI Lang node name the LLM will emit
+- `props` — a Zod schema that validates the node's props as they stream in
+- `description` — included in the generated system prompt so the LLM knows when and how to use the component
+- `component` — the React component that renders it; `renderNode` recursively renders children
+
+Once you've defined your components, `createLibrary` assembles them into a library you pass to the renderer:
+
+```tsx
+export const shadcnChatLibrary = createLibrary({
+  root: "Card",
+  componentGroups: shadcnComponentGroups,
+  components: [ChatCard, CardHeader, TextContent, Alert /* ... */],
+});
+```
+
+Swap `shadcnChatLibrary` for a library built on any other design system — Material UI, Radix, your own primitives — and the rest of the stack stays the same.
+
+See [Defining Components](/docs/openui-lang/defining-components) for the full `defineComponent` API.
+
+## Architecture
+
+```
+Browser (AgentInterface) -- POST /api/chat --> Next.js route --> Gateway --> model
+                         <-- SSE stream --                       (corrected OpenUI Lang)
+```
+
+The client sends a conversation to `/api/chat`. The API route loads the generated component instructions, sends the messages through the [Gateway](/docs/gateway), and returns SSE events. On the client, the stream adapter parses the response and `shadcnChatLibrary` maps each OpenUI Lang node to a shadcn/ui component that renders progressively as tokens arrive.
+
+The key decoupling: the server streams OpenUI Lang — an abstract description of UI structure. The client's `shadcnChatLibrary` decides how each node renders. That's where shadcn/ui enters, and that's also where you'd plug in any other design system.
+
+The API route also supports **server-side tool execution**. When the model invokes a tool (weather, stock price, or web search), the route runs it and feeds the result back into the completion loop before streaming the final UI response.
+
+## Project layout
+
+```
+examples/design-systems/shadcn/
+|- src/app/              # Next.js app (layout, page, API route)
+|- src/hooks/            # Theme detection and context
+|- src/components/ui/    # Base shadcn/ui primitives
+|- src/lib/shadcn-genui/ # Generative UI component library (40+ components)
+|- src/generated/        # Generated system prompt
+```
+
+## Run the example
+
+Run these commands from `examples/design-systems/shadcn`.
+
+1. Install dependencies:
+
+```bash tab="pnpm" tab-group="pkg"
+cd examples/design-systems/shadcn
+pnpm install
+```
+
+```bash tab="bun" tab-group="pkg"
+cd examples/design-systems/shadcn
+bun install
+```
+
+```bash tab="yarn" tab-group="pkg"
+cd examples/design-systems/shadcn
+yarn install
+```
+
+```bash tab="npm" tab-group="pkg"
+cd examples/design-systems/shadcn
+npm install
+```
+
+2. Create a `.env.local` file with your API key:
+
+```bash
+THESYS_API_KEY=sk-th-...
+```
+
+3. Start the dev server:
+
+```bash tab="pnpm" tab-group="pkg"
+pnpm dev
+```
+
+```bash tab="bun" tab-group="pkg"
+bun dev
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn dev
+```
+
+```bash tab="npm" tab-group="pkg"
+npm run dev
+```

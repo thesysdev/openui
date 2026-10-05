@@ -13,6 +13,7 @@ export const BarChartCondensedSchema = z.object({
   variant: z.enum(["grouped", "stacked"]).optional(),
   xLabel: z.string().optional(),
   yLabel: z.string().optional(),
+  height: z.number().optional(),
 });
 
 export const BarChartCondensed = defineComponent({
@@ -29,6 +30,7 @@ export const BarChartCondensed = defineComponent({
       variant: props.variant as "grouped" | "stacked" | undefined,
       xAxisLabel: props.xLabel,
       yAxisLabel: props.yLabel,
+      height: props.height as number | undefined,
       isAnimationActive: false,
     });
   },

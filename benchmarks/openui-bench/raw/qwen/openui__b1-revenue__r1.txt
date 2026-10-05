@@ -1,9 +1,0 @@
-
-
-root = Card([header, revenueNow, comparisonTable, statusCallout])
-header = CardHeader("Mid-morning check-in", "Store revenue performance")
-revenueNow = TextContent("Revenue so far today: **$1,842.10** as of 10:45 AM.", "large-heavy")
-comparisonTable = Table([metricColumn, valueColumn])
-metricColumn = Col("Comparison", ["Revenue at same time yesterday", "Difference", "Change"])
-valueColumn = Col("Value", ["$1,526.00", "+$316.10", "+20.7%"])
-statusCallout = Callout("success", "Ahead of yesterday", "Revenue is $316.10 higher than it was at this time yesterday.")

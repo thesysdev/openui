@@ -1,0 +1,109 @@
+@use "../../../cssUtils" as cssUtils;
+@use "../shared/cartesian/chartBase" as base;
+@use "../prefix" as brand;
+
+@include base.centered-container("heatmap-chart");
+
+.#{brand.$prefix}-heatmap-chart-x-tick {
+  @include base.svg-tick-label;
+}
+
+.#{brand.$prefix}-heatmap-chart-y-tick {
+  @include base.svg-tick-label;
+}
+
+// Channel-3 update transition (ungated, like line/area/bar's d/height
+// tweens): streamed chunks shift the quantize domain and recolor settled
+// cells — tween the recolor instead of hard-snapping the whole grid every
+// chunk. Also smooths recolors from legend toggles changing the extent.
+// The label shares the transition so its auto-contrast fill crossfades WITH
+// the cell underneath instead of snapping against a mid-tween background.
+.#{brand.$prefix}-heatmap-chart-cell,
+.#{brand.$prefix}-heatmap-chart-cell-label {
+  transition: fill 0.2s ease;
+}
+
+// Color IS the value encoding here — a print snapshot taken mid-tween (e.g.
+// while a stream recolors the grid) would print wrong values. Snap in print.
+@media print {
+  .#{brand.$prefix}-heatmap-chart-cell,
+  .#{brand.$prefix}-heatmap-chart-cell-label {
+    transition: none;
+  }
+}
+
+// Ink, not $foreground: react-ui's $foreground is a light surface neutral.
+.#{brand.$prefix}-heatmap-chart-cell:hover {
+  stroke: cssUtils.$text-neutral-primary;
+  stroke-width: 1.5;
+}
+
+// In-cell value labels: never a hover target (the cell beneath owns hover),
+// fill set inline per cell (auto-contrast against the bucket color).
+.#{brand.$prefix}-heatmap-chart-cell-label {
+  @include cssUtils.typography(label, extra-small);
+  pointer-events: none;
+  user-select: none;
+}
+
+// No numeric value for this cell. Dim via fill-opacity, NOT opacity — the
+// entrance keyframe's forwards fill holds `opacity: 1` and would silently
+// defeat an opacity dim on the same element.
+.#{brand.$prefix}-heatmap-chart-cell--empty {
+  fill: cssUtils.$border-default;
+  fill-opacity: 0.35;
+}
+
+// Entrances are decorative: gate the whole rule (pre-state included) behind
+// reduced-motion so users who opt out get the natural static state immediately
+// — gating only the animation would strand elements at the opacity: 0 start.
+@media (prefers-reduced-motion: no-preference) {
+  .#{brand.$prefix}-heatmap-chart-cell--animated,
+  .#{brand.$prefix}-heatmap-chart-cell-label--animated {
+    opacity: 0;
+    animation: #{brand.$prefix}-fade-appear 0.4s ease-out forwards;
+  }
+}
+
+// The value→color key under the grid. HTML (like the row legend) so it
+// survives print; height is measured and deducted by the orchestrator.
+.#{brand.$prefix}-heatmap-chart-color-scale {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 0 2px;
+}
+
+.#{brand.$prefix}-heatmap-chart-color-scale-label {
+  @include cssUtils.typography(label, extra-small);
+  color: cssUtils.$text-neutral-secondary;
+  white-space: nowrap;
+}
+
+.#{brand.$prefix}-heatmap-chart-color-scale-ramp {
+  position: relative;
+  display: flex;
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.#{brand.$prefix}-heatmap-chart-color-scale-bucket {
+  flex: 1;
+}
+
+// Diverging ramps pin zero to the strip's exact center (the domain is
+// symmetric by construction) — mark it.
+.#{brand.$prefix}-heatmap-chart-color-scale-ramp--diverging::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-50%);
+  background: cssUtils.$text-neutral-primary;
+  opacity: 0.55;
+}

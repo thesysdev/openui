@@ -1,0 +1,84 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-overview-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 158px;
+  padding: cssUtils.$space-s-m;
+  border: 1px solid cssUtils.$border-default;
+  border-radius: cssUtils.$radius-2xl;
+  background-color: cssUtils.$sunk-light;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  &--clickable {
+    background-color: cssUtils.$foreground;
+    border-color: cssUtils.$border-interactive;
+    box-shadow: cssUtils.$shadow-m;
+    cursor: pointer;
+
+    &:hover {
+      box-shadow: none;
+      transform: scale(0.995);
+    }
+
+    &:focus-visible {
+      outline: 2px solid cssUtils.$border-accent;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.openui-overview-card__vertical {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: cssUtils.$space-l;
+  min-width: 0;
+  min-height: 0;
+}
+
+.openui-overview-card__top-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: cssUtils.$space-s;
+  width: 100%;
+  min-width: 0;
+}
+
+.openui-overview-card__chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.openui-overview-card__slot {
+  width: 100%;
+  min-width: 0;
+}
+
+.openui-overview-card__slot--top {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: cssUtils.$space-s;
+  min-height: cssUtils.$space-xl;
+}
+
+.openui-overview-card__slot--bottom {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-2xs;
+}

@@ -2,7 +2,6 @@
 import svgPaths from "@/imports/svg-urruvoh2be";
 import { Monitor, Moon, Sun } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
-import Link from "next/link";
 import { useId, useSyncExternalStore } from "react";
 import styles from "./Footer.module.css";
 
@@ -185,9 +184,6 @@ export function Footer() {
               the separator below. */}
           <div className={styles.brandRow}>
             <ThesysLogo />
-            <nav className={styles.footerNav} aria-label="Footer navigation">
-              <Link href="/integrations">Integrations</Link>
-            </nav>
             <ThemeTabs />
           </div>
 

@@ -1,8 +1,0 @@
-root = Card([header, taskCard, actionButtons], "card", "column", "l")
-header = CardHeader("Focus", "Your most urgent task")
-taskCard = Card([taskTitle, deadline, status], "sunk", "column", "m")
-taskTitle = Heading("Submit the quarterly budget review", "h2")
-deadline = TextCallout("warning", "Deadline", "Due today at 4:00 PM")
-status = TextCallout("info", "Current status", "In progress")
-actionButtons = Buttons([doneButton])
-doneButton = Button("Mark as done", null, "primary")

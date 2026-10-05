@@ -1,6 +1,6 @@
 {
 	"name": "@openuidev/svelte-lang",
-	"version": "0.1.2",
+	"version": "0.3.0",
 	"description": "Define component libraries, generate LLM system prompts, and render streaming OpenUI Lang output in Svelte 5 — the Svelte runtime for OpenUI generative UI",
 	"license": "MIT",
 	"type": "module",

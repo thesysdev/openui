@@ -3,7 +3,7 @@ import { observability, toErrorInfo } from "@openuidev/observability";
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { OpenUIDevtools, type OpenUIDevtoolsProps } from "./index";
+import { OpenUIDevtoolsWidget, type OpenUIDevtoolsWidgetProps } from "./OpenUIDevtoolsWidget";
 
 vi.mock("@openuidev/react-lang", async () => {
   const { createElement: el } = await import("react");
@@ -79,8 +79,8 @@ afterEach(() => {
   container.remove();
 });
 
-function render(props: OpenUIDevtoolsProps): void {
-  act(() => root.render(createElement(OpenUIDevtools, props)));
+function render(props: OpenUIDevtoolsWidgetProps): void {
+  act(() => root.render(createElement(OpenUIDevtoolsWidget, props)));
 }
 
 /** The floating toggle button. */
@@ -177,7 +177,7 @@ function checkboxLabeled(text: string): HTMLInputElement {
   return input;
 }
 
-function remount(props: OpenUIDevtoolsProps): void {
+function remount(props: OpenUIDevtoolsWidgetProps): void {
   act(() => root.unmount());
   root = createRoot(container);
   render(props);
@@ -555,7 +555,7 @@ describe("OpenUIDevtools", () => {
     const secondRoot = createRoot(second);
 
     render({ enabled: true });
-    act(() => secondRoot.render(createElement(OpenUIDevtools, { enabled: true })));
+    act(() => secondRoot.render(createElement(OpenUIDevtoolsWidget, { enabled: true })));
 
     expect(document.querySelectorAll('button[aria-label="Open OpenUI Inspect"]')).toHaveLength(1);
 
@@ -572,7 +572,7 @@ describe("OpenUIDevtools", () => {
     const manual = document.createElement("div");
     document.body.appendChild(manual);
     const manualRoot = createRoot(manual);
-    act(() => manualRoot.render(createElement(OpenUIDevtools, { enabled: true })));
+    act(() => manualRoot.render(createElement(OpenUIDevtoolsWidget, { enabled: true })));
 
     expect(container.querySelector('button[aria-label="Open OpenUI Inspect"]')).toBeNull();
     expect(manual.querySelector('button[aria-label="Open OpenUI Inspect"]')).not.toBeNull();

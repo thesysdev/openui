@@ -1,0 +1,3 @@
+# npm lockfiles are the canonical CI locks for standalone examples.
+**/bun.lock
+**/bun.lockb

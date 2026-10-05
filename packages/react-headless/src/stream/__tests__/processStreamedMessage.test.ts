@@ -176,4 +176,110 @@ describe("processStreamedMessage — interleaved output message items", () => {
 
     expect(created.filter((m) => m.role === "assistant")).toHaveLength(1);
   });
+
+  it("splits text after tools even when the wire messageId stays the same", async () => {
+    // LangGraph + ChatOpenAI Responses collapses interleaved message items into
+    // one AG-UI messageId; processStreamedMessage still segments on text→tools→text.
+    const adapter = adapterFromEvents([
+      { type: EventType.TEXT_MESSAGE_START, messageId: "run-1", role: "assistant" },
+      { type: EventType.TEXT_MESSAGE_CONTENT, messageId: "run-1", delta: "Let me search." },
+      { type: EventType.TOOL_CALL_START, toolCallId: "tc-1", toolCallName: "web_search" },
+      { type: EventType.TOOL_CALL_ARGS, toolCallId: "tc-1", delta: '{"q":"a"}' },
+      { type: EventType.TOOL_CALL_END, toolCallId: "tc-1" },
+      {
+        type: EventType.TOOL_CALL_RESULT,
+        toolCallId: "tc-1",
+        content: '{"hits":1}',
+        messageId: "out-1",
+        role: "tool",
+      },
+      { type: EventType.TEXT_MESSAGE_CONTENT, messageId: "run-1", delta: "Found it." },
+    ]);
+
+    const created: Message[] = [];
+    const updatedById = new Map<string, Message>();
+
+    await processStreamedMessage({
+      response: new Response(""),
+      createMessage: (m) => created.push(m),
+      updateMessage: (m) => updatedById.set(m.id, m),
+      adapter,
+    });
+    await flush();
+
+    expect(created.map((m) => m.role)).toEqual(["assistant", "tool", "assistant"]);
+
+    const seg1 = created[0] as Message & { content?: string; toolCalls?: unknown[] };
+    const seg2 = created[2] as Message & { content?: string; toolCalls?: unknown[] };
+    const finalSeg1 = (updatedById.get(seg1.id) ?? seg1) as typeof seg1;
+    const finalSeg2 = (updatedById.get(seg2.id) ?? seg2) as typeof seg2;
+
+    expect(finalSeg1.content).toBe("Let me search.");
+    expect(finalSeg1.toolCalls).toHaveLength(1);
+    expect(finalSeg2.content).toBe("Found it.");
+    expect(finalSeg2.toolCalls ?? []).toHaveLength(0);
+  });
+
+  it("keeps parallel tool calls on one segment and does not create a blank trailing assistant", async () => {
+    // Responses opens a new message item (START) after parallel tools; content
+    // may arrive later. An empty assistant must not be committed — it would
+    // become `last` and blank the answer until remount.
+    const adapter = adapterFromEvents([
+      { type: EventType.TEXT_MESSAGE_START, messageId: "item-1", role: "assistant" },
+      { type: EventType.TEXT_MESSAGE_CONTENT, messageId: "item-1", delta: "Calling both." },
+      { type: EventType.TOOL_CALL_START, toolCallId: "tc-1", toolCallName: "get_weather" },
+      { type: EventType.TOOL_CALL_ARGS, toolCallId: "tc-1", delta: '{"city":"NYC"}' },
+      { type: EventType.TOOL_CALL_END, toolCallId: "tc-1" },
+      { type: EventType.TOOL_CALL_START, toolCallId: "tc-2", toolCallName: "get_weather" },
+      { type: EventType.TOOL_CALL_ARGS, toolCallId: "tc-2", delta: '{"city":"SF"}' },
+      { type: EventType.TOOL_CALL_END, toolCallId: "tc-2" },
+      {
+        type: EventType.TOOL_CALL_RESULT,
+        toolCallId: "tc-1",
+        content: '{"temp":20}',
+        messageId: "out-1",
+        role: "tool",
+      },
+      {
+        type: EventType.TOOL_CALL_RESULT,
+        toolCallId: "tc-2",
+        content: '{"temp":18}',
+        messageId: "out-2",
+        role: "tool",
+      },
+      // New message item after tools — no content yet on this event.
+      { type: EventType.TEXT_MESSAGE_START, messageId: "item-2", role: "assistant" },
+      { type: EventType.TEXT_MESSAGE_CONTENT, messageId: "item-2", delta: "" },
+      {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "item-2",
+        delta: "NYC is 20°C and SF is 18°C.",
+      },
+    ]);
+
+    const created: Message[] = [];
+    const updatedById = new Map<string, Message>();
+
+    await processStreamedMessage({
+      response: new Response(""),
+      createMessage: (m) => created.push(m),
+      updateMessage: (m) => updatedById.set(m.id, m),
+      adapter,
+    });
+    await flush();
+
+    const assistants = created.filter((m) => m.role === "assistant");
+    expect(assistants).toHaveLength(2);
+    expect(created.map((m) => m.role)).toEqual(["assistant", "tool", "tool", "assistant"]);
+
+    const seg1 = assistants[0] as Message & { content?: string; toolCalls?: unknown[] };
+    const seg2 = assistants[1] as Message & { content?: string; toolCalls?: unknown[] };
+    const finalSeg1 = (updatedById.get(seg1.id) ?? seg1) as typeof seg1;
+    const finalSeg2 = (updatedById.get(seg2.id) ?? seg2) as typeof seg2;
+
+    expect(finalSeg1.content).toBe("Calling both.");
+    expect(finalSeg1.toolCalls).toHaveLength(2);
+    expect(finalSeg2.content).toBe("NYC is 20°C and SF is 18°C.");
+    expect(finalSeg2.toolCalls ?? []).toHaveLength(0);
+  });
 });

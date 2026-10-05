@@ -1,8 +1,0 @@
-root = Card([header, pitch, form])
-header = CardHeader("Weekly Product Newsletter", "Stay in the loop")
-pitch = TextContent("Every week you'll get one concise email with product updates, tips, and the roadmap ahead.")
-form = Form("newsletter-signup", formButtons, [emailField])
-emailField = FormControl("Email address", emailInput, "We'll only send the weekly digest.")
-emailInput = Input("email", "you@example.com", "email")
-formButtons = Buttons([subscribeBtn])
-subscribeBtn = Button("Subscribe", null, "primary")

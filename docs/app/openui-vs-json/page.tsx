@@ -1,0 +1,227 @@
+"use client";
+
+import { CodePanel } from "@/app/demos/components/CodePanel/CodePanel";
+import { Header } from "@/app/demos/components/Header/Header";
+import { PreviewPanel } from "@/app/demos/components/PreviewPanel/PreviewPanel";
+import {
+  MODELS,
+  STARTER_PROMPTS,
+  type Model,
+  type Status,
+  type Theme,
+} from "@/app/demos/constants";
+import { DemoCreditsDialog } from "@/components/DemoCreditsDialog";
+import { isDemoCreditsErrorPayload } from "@/lib/demo-credits";
+import { Send, Square } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useCallback, useRef, useState } from "react";
+
+export default function DemosPage() {
+  const { theme, setTheme } = useTheme();
+  const [prompt, setPrompt] = useState("");
+  const [model, setModel] = useState<Model>("anthropic/claude-sonnet-4.6");
+  const [code, setCode] = useState("");
+  const [parsedJson, setParsedJson] = useState<string | null>(null);
+  const [status, setStatus] = useState<Status>("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [showPlaygroundCreditsDialog, setShowPlaygroundCreditsDialog] = useState(false);
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const currentTheme: Theme =
+    theme === "light" || theme === "dark" || theme === "system" ? theme : "system";
+
+  const cycleTheme = () => {
+    setTheme(currentTheme === "system" ? "light" : currentTheme === "light" ? "dark" : "system");
+  };
+
+  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setPrompt(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = `${e.target.scrollHeight}px`;
+  };
+
+  const handleChipClick = (text: string) => {
+    setPrompt(text);
+    textareaRef.current?.focus();
+  };
+
+  const handleSubmit = useCallback(async () => {
+    if (!prompt.trim() || status === "streaming") return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setCode("");
+    setParsedJson(null);
+    setErrorMsg("");
+    setShowPlaygroundCreditsDialog(false);
+    setStatus("streaming");
+
+    try {
+      const res = await fetch("/api/playground/stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model, prompt: prompt.trim() }),
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        if (isDemoCreditsErrorPayload((err as { error?: unknown }).error)) {
+          setShowPlaygroundCreditsDialog(true);
+          setStatus("idle");
+          return;
+        }
+
+        throw new Error(
+          (err as { error?: { message?: string } }).error?.message ?? `Server error ${res.status}`,
+        );
+      }
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const raw = decoder.decode(value, { stream: true });
+        for (const line of raw.split("\n")) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data:")) continue;
+          const data = trimmed.slice(5).trim();
+          if (data === "[DONE]") {
+            setStatus("done");
+            return;
+          }
+          let parsed: {
+            error?: unknown;
+            choices?: Array<{ delta?: { content?: string }; finish_reason?: string }>;
+          };
+          try {
+            parsed = JSON.parse(data);
+          } catch {
+            // skip malformed chunks
+            continue;
+          }
+
+          const content = parsed.choices?.[0]?.delta?.content;
+          if (content) setCode((prev) => prev + content);
+        }
+      }
+      setStatus("done");
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") {
+        setStatus("idle");
+        return;
+      }
+      setErrorMsg(err instanceof Error ? err.message : "Unknown error");
+      setStatus("error");
+    }
+  }, [model, prompt, status]);
+
+  const handleStop = () => {
+    abortRef.current?.abort();
+    setStatus("idle");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  const isDisabled = status === "streaming";
+
+  return (
+    <div className="app">
+      <Header
+        theme={currentTheme}
+        onThemeToggle={cycleTheme}
+        hasApiKey={false}
+        onChangeKey={() => {}}
+      />
+
+      <div className="app-body">
+        <div className="content-wrapper">
+          <div className="prompt-section">
+            <h1 className="prompt-heading">What do you want to build?</h1>
+
+            <div className="prompt-container">
+              <textarea
+                ref={textareaRef}
+                className="prompt-textarea"
+                placeholder="Describe the UI you want to generate…"
+                value={prompt}
+                onChange={handlePromptChange}
+                onKeyDown={handleKeyDown}
+                disabled={isDisabled}
+                rows={2}
+              />
+              <div className="prompt-actions">
+                <select
+                  className="model-select"
+                  aria-label="Model"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value as Model)}
+                  disabled={isDisabled}
+                >
+                  {MODELS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+
+                {status === "streaming" ? (
+                  <button className="stop-btn" onClick={handleStop}>
+                    <Square size={12} fill="currentColor" />
+                    Stop
+                  </button>
+                ) : (
+                  <button className="send-btn" onClick={handleSubmit} disabled={!prompt.trim()}>
+                    <Send size={14} />
+                    Generate
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="chips-row">
+              {STARTER_PROMPTS.map((p) => (
+                <button
+                  key={p}
+                  className="chip"
+                  onClick={() => handleChipClick(p)}
+                  disabled={isDisabled}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {status === "error" && errorMsg && <div className="error-banner">{errorMsg}</div>}
+
+          <div className="split-screen">
+            <CodePanel code={code} status={status} parsedJson={parsedJson} />
+            <PreviewPanel
+              code={code}
+              isStreaming={status === "streaming"}
+              onParseResult={(r) => setParsedJson(r ? JSON.stringify(r, null, 2) : null)}
+              theme={currentTheme}
+            />
+          </div>
+        </div>
+      </div>
+      <DemoCreditsDialog
+        open={showPlaygroundCreditsDialog}
+        onClose={() => setShowPlaygroundCreditsDialog(false)}
+      />
+    </div>
+  );
+}

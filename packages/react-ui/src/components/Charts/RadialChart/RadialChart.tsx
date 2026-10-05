@@ -1,399 +1,180 @@
-import clsx from "clsx";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Cell, PolarGrid, RadialBar, RadialBarChart, ResponsiveContainer } from "recharts";
-import { usePrintContext } from "../../../context/PrintContext";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../Charts";
-import { useExportChartData, useTransformedKeys } from "../hooks";
-import { DefaultLegend } from "../shared/DefaultLegend/DefaultLegend";
-import { StackedLegend } from "../shared/StackedLegend/StackedLegend";
-import { LegendItem } from "../types/Legend";
-import { getCategoricalChartConfig } from "../utils/dataUtils";
-import { PaletteName, useChartPalette } from "../utils/PalletUtils";
-import { RadialChartData } from "./types";
-import {
-  calculateRadialChartDimensions,
-  createRadialAnimationConfig,
-  createRadialEventHandlers,
-  getRadialHoverStyles,
-  transformRadialDataWithPercentages,
-  useRadialChartHover,
-} from "./utils/RadialChartUtils";
+import { useMemo } from "react";
 
-export interface RadialChartProps<T extends RadialChartData> {
-  data: T;
-  categoryKey: keyof T[number];
-  dataKey: keyof T[number];
-  theme?: PaletteName;
-  customPalette?: string[];
-  variant?: "semicircle" | "circular";
-  format?: "percentage" | "number";
-  legend?: boolean;
-  legendVariant?: "default" | "stacked";
-  grid?: boolean;
-  isAnimationActive?: boolean;
-  cornerRadius?: number;
-  onMouseEnter?: (data: any, index: number) => void;
-  onMouseLeave?: () => void;
-  onClick?: (data: any, index: number) => void;
-  className?: string;
-  maxChartSize?: number;
-  minChartSize?: number;
-  height?: number | string;
-  width?: number | string;
+import {
+  useCategoricalChartOrchestrator,
+  useEffectiveAnimation,
+  useExportChartData,
+} from "../hooks";
+import { ChartShell } from "../shared/core/ChartShell";
+import { DefaultLegend } from "../shared/core/DefaultLegend/DefaultLegend";
+import { useResolvedLegendKey } from "../shared/core/legend/LegendStoreProvider";
+import { ChartTooltip } from "../shared/core/PortalTooltip/ChartTooltip";
+import { ChartWithStackedLegend } from "../shared/core/StackedLegend/ChartWithStackedLegend";
+import { CHART_CLASS_PREFIX } from "../utils/constants";
+import { RadialBars } from "./parts/RadialBars";
+import { RadialGrid } from "./parts/RadialGrid";
+import type { RadialChartData, RadialChartProps } from "./types";
+
+const BAR_GAP = 2;
+
+/**
+ * `legendVariant="stacked"` (the default) lays the chart out with its built-in stacked legend. The inline legend is
+ * used for `"default"`, and none when the chart publishes to an external
+ * legend (`legendKey`, or a surrounding `LegendStoreProvider`'s key).
+ */
+export function RadialChart<T extends RadialChartData>(props: RadialChartProps<T>) {
+  const { legend = true, legendVariant = "stacked", legendKey, width, height, className } = props;
+  const externalLegendKey = useResolvedLegendKey(legendKey);
+
+  if (legend && legendVariant === "stacked" && externalLegendKey === undefined) {
+    return (
+      <ChartWithStackedLegend width={width} height={height} className={className}>
+        <RadialChartImpl {...props} width={undefined} height={undefined} className={undefined} />
+      </ChartWithStackedLegend>
+    );
+  }
+  return <RadialChartImpl {...props} />;
 }
 
-const STACKED_LEGEND_BREAKPOINT = 400;
-const MIN_CHART_SIZE = 150;
-const MAX_CHART_SIZE = 500;
-
-export const RadialChart = <T extends RadialChartData>({
-  data,
-  categoryKey,
-  dataKey,
-  theme = "ocean",
-  customPalette,
-  variant = "circular",
-  format = "number",
-  legend = true,
-  legendVariant = "stacked",
-  grid = false,
-  isAnimationActive = false,
-  cornerRadius = 10,
-  onMouseEnter,
-  onMouseLeave,
-  onClick,
-  className,
-  maxChartSize = MAX_CHART_SIZE,
-  minChartSize = MIN_CHART_SIZE,
-  height,
-  width,
-}: RadialChartProps<T>) => {
-  const printContext = usePrintContext();
-  isAnimationActive = printContext ? false : isAnimationActive;
-
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [wrapperRect, setWrapperRect] = useState({ width: 0, height: 0 });
-  const [hoveredLegendKey, setHoveredLegendKey] = useState<string | null>(null);
-  const [isLegendExpanded, setIsLegendExpanded] = useState(false);
-  const { activeIndex, handleMouseEnter, handleMouseLeave } = useRadialChartHover();
-
-  // Determine layout mode based on container width
-  const isRowLayout =
-    legend && legendVariant === "stacked" && wrapperRect.width >= STACKED_LEGEND_BREAKPOINT;
-
-  // Sort data by value (highest to lowest) for radial chart rendering
-  const sortedProcessedData = useMemo(
-    () => [...data].sort((a, b) => Number(b[dataKey]) - Number(a[dataKey])),
-    [data, dataKey],
-  );
-
-  const categories = useMemo(
-    () => sortedProcessedData.map((item) => String(item[categoryKey])),
-    [sortedProcessedData, categoryKey],
-  );
-  const transformedKeys = useTransformedKeys(categories);
-
-  // Memoize string conversions to avoid repeated calls
-  const categoryKeyString = useMemo(() => String(categoryKey), [categoryKey]);
-  const dataKeyString = useMemo(() => String(dataKey), [dataKey]);
-  const formatKey = useMemo(
-    () => (format === "percentage" ? "percentage" : dataKeyString),
-    [format, dataKeyString],
-  );
-
-  // Use provided dimensions or observed dimensions from the wrapper
-  const effectiveWidth = wrapperRect.width;
-  const effectiveHeight = wrapperRect.height;
-
-  // Calculate chart dimensions based on the smaller dimension of the container
-  const chartSize = useMemo(() => {
-    // Compute the available width for the chart. In row layout, chart and legend sit side-by-side.
-    // Subtract the 20px gap defined in CSS to avoid over-estimating available width.
-    const containerWidth = isRowLayout ? Math.max(0, (effectiveWidth - 20) / 2) : effectiveWidth;
-
-    // If wrapper height isn't explicitly provided (or is very small), prefer sizing by width to
-    // avoid a feedback loop where height depends on the chart, which then clamps the size.
-    const heightIsUsable = effectiveHeight >= minChartSize;
-
-    let size = heightIsUsable ? Math.min(containerWidth, effectiveHeight) : containerWidth;
-    size = Math.min(size, maxChartSize);
-    return Math.max(minChartSize, size);
-  }, [effectiveWidth, effectiveHeight, isRowLayout]);
-
-  const chartSizeStyle = useMemo(
-    () => ({
-      width: chartSize,
-      height: chartSize,
-    }),
-    [chartSize],
-  );
-
-  const rechartsProps: Omit<React.ComponentProps<typeof ResponsiveContainer>, "children"> = useMemo(
-    () => ({
-      width: "100%",
-      height: "100%",
-      minWidth: 1,
-      minHeight: 1,
-      initialDimension: { width: 1, height: 1 },
-    }),
-    [],
-  );
-
-  // Calculate chart radii
-  const dimensions = useMemo(() => calculateRadialChartDimensions(chartSize), [chartSize]);
-
-  // Get color palette and distribute colors
-  const colors = useChartPalette({
-    chartThemeName: theme,
+function RadialChartImpl<T extends RadialChartData>(props: RadialChartProps<T>) {
+  const {
+    data,
+    categoryKey,
+    dataKey,
     customPalette,
+    variant = "circular",
+    format = "number",
+    legend: showLegend = true,
+    grid: showGrid = false,
+    isAnimationActive = false,
+    cornerRadius = 10,
+    maxChartSize = 500,
+    minChartSize = 150,
+    height,
+    width,
+    fitLegendInHeight,
+    className,
+    onClick,
+    legendKey,
+  } = props;
+
+  const isSemiCircular = variant === "semiCircular";
+
+  const orch = useCategoricalChartOrchestrator({
+    data,
+    categoryKey,
+    dataKey,
     themePaletteName: "radialChartPalette",
-    dataLength: sortedProcessedData.length,
+    customPalette,
+    format,
+    showLegend,
+    isSemiCircular,
+    maxChartSize,
+    minChartSize,
+    height,
+    width,
+    fitLegendInHeight,
+    legendKey,
   });
 
+  const animate = useEffectiveAnimation(isAnimationActive);
+
+  // Radial-specific geometry
+  const maxRadius = orch.dimensions.chartSize * 0.45;
+  const minRadius = maxRadius * 0.25;
+  // semiCircular viewport shows the TOP half-plane (centerY sits at the bottom
+  // edge), so the sweep must run 9→12→3 o'clock (d3 angles: 0 = 12 o'clock,
+  // clockwise) — same convention as PieChart's semiCircular.
+  const startAngle = isSemiCircular ? -Math.PI / 2 : 0;
+  const endAngle = isSemiCircular ? Math.PI / 2 : 2 * Math.PI;
+
+  const maxValue = useMemo(
+    () => Math.max(...orch.data.visibleSlices.map((s) => s.value), 0),
+    [orch.data.visibleSlices],
+  );
+
+  // PPTX print-export JSON — mirrors react-ui's RadialChart call, which (like
+  // its PieChart) emits type:'pie' with a single series = [dataKey] and no
+  // extraOptions. Colors are the resolved slice palette in sorted-data order.
+  // Undefined off the print path.
   const exportData = useExportChartData({
     type: "pie",
-    data: sortedProcessedData,
-    categoryKey: categoryKey as string,
-    dataKeys: [dataKey as string],
-    colors,
-    legend,
+    data: orch.data.sortedData,
+    categoryKey: orch.data.catKey,
+    dataKeys: [orch.data.valKey],
+    colors: orch.data.slices.map((s) => s.color),
+    legend: showLegend,
   });
-
-  // Memoize expensive data transformations and configurations
-  const transformedData = useMemo(
-    () => transformRadialDataWithPercentages(sortedProcessedData as T, dataKey, colors),
-    [sortedProcessedData, dataKey, colors],
-  );
-
-  const chartConfig = useMemo(
-    () => getCategoricalChartConfig(sortedProcessedData as T, categoryKey, colors, transformedKeys),
-    [sortedProcessedData, categoryKey, colors, transformedKeys],
-  );
-
-  const animationConfig = useMemo(
-    () => createRadialAnimationConfig({ isAnimationActive }),
-    [isAnimationActive],
-  );
-
-  const eventHandlers = useMemo(
-    () => createRadialEventHandlers(onMouseEnter, onMouseLeave, onClick),
-    [onMouseEnter, onMouseLeave, onClick],
-  );
-
-  // Create legend items for both variants
-  const legendItems = useMemo(
-    () =>
-      sortedProcessedData.map((item, index) => ({
-        key: String(item[categoryKey]),
-        label: String(item[categoryKey]),
-        value: Number(item[dataKey]),
-        color: colors[index] || "#000000",
-      })),
-    [sortedProcessedData, categoryKey, dataKey, colors],
-  );
-
-  const defaultLegendItems = useMemo((): LegendItem[] => {
-    return legendItems.map(({ key, label, color }) => ({ key, label, color }));
-  }, [legendItems]);
-
-  // Handle legend item hover to highlight radial bar
-  const handleLegendItemHover = useCallback(
-    (index: number | null) => {
-      if (legendVariant !== "stacked") return;
-      if (index !== null) {
-        const item = sortedProcessedData[index];
-        if (item) {
-          const categoryValue = String(item[categoryKey]);
-          setHoveredLegendKey(categoryValue);
-          // Find the index in the transformed data (which is also sorted)
-          const transformedIndex = transformedData.findIndex(
-            (d) => String((d as any)[categoryKey]) === categoryValue,
-          );
-          if (transformedIndex !== -1) {
-            handleMouseEnter(transformedData[transformedIndex], transformedIndex);
-          }
-        }
-      } else {
-        setHoveredLegendKey(null);
-        handleMouseLeave();
-      }
-    },
-    [
-      sortedProcessedData,
-      categoryKey,
-      transformedData,
-      handleMouseEnter,
-      handleMouseLeave,
-      legendVariant,
-    ],
-  );
-
-  // Enhanced chart hover handlers
-  const handleChartMouseEnter = useCallback(
-    (entry: any, index: number) => {
-      handleMouseEnter(entry, index);
-      if (legend && legendVariant === "stacked") {
-        setHoveredLegendKey(String(entry[categoryKey]));
-      }
-      eventHandlers.onMouseEnter?.(entry, index);
-    },
-    [handleMouseEnter, categoryKey, legend, legendVariant, eventHandlers.onMouseEnter],
-  );
-
-  const handleChartMouseLeave = useCallback(() => {
-    handleMouseLeave();
-    if (legend && legendVariant === "stacked") {
-      setHoveredLegendKey(null);
-    }
-    eventHandlers.onMouseLeave?.();
-  }, [handleMouseLeave, legend, legendVariant, eventHandlers.onMouseLeave]);
-
-  // Setup ResizeObserver to watch the wrapper element
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) return;
-
-    // Use ResizeObserver if component is in responsive mode (no fixed width/height)
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setWrapperRect({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        });
-      }
-    });
-    observer.observe(wrapper);
-    return () => observer.disconnect();
-  }, []);
-
-  const renderLegend = useCallback(() => {
-    if (!legend) return null;
-    if (legendVariant === "stacked") {
-      return (
-        <div className="openui-radial-chart-legend-container">
-          <StackedLegend
-            items={legendItems}
-            onItemHover={setHoveredLegendKey}
-            activeKey={hoveredLegendKey}
-            onLegendItemHover={handleLegendItemHover}
-            containerWidth={isRowLayout ? undefined : wrapperRect.width}
-          />
-        </div>
-      );
-    }
-    return (
-      <DefaultLegend
-        items={defaultLegendItems}
-        containerWidth={wrapperRect.width}
-        isExpanded={isLegendExpanded}
-        setIsExpanded={setIsLegendExpanded}
-      />
-    );
-  }, [
-    legend,
-    legendVariant,
-    legendItems,
-    hoveredLegendKey,
-    handleLegendItemHover,
-    wrapperRect.width,
-    isRowLayout,
-    defaultLegendItems,
-    isLegendExpanded,
-  ]);
-
-  const wrapperClassName = clsx("openui-radial-chart-container-wrapper", className, {
-    "layout-row": isRowLayout,
-    "layout-column": !isRowLayout,
-    "legend-default": legend && legendVariant === "default",
-    "legend-stacked": legend && legendVariant === "stacked",
-  });
-
-  // Correct angles for semicircle (top half)
-  const startAngle = variant === "semicircle" ? 180 : 0;
-  const endAngle = variant === "semicircle" ? 0 : 360;
-
-  const wrapperStyle = useMemo(() => {
-    const formatDimension = (value: number | string | undefined) => {
-      if (typeof value === "number") {
-        return `${value}px`;
-      }
-      return value;
-    };
-    const dimensions = {
-      width: formatDimension(width),
-      height: formatDimension(height),
-    };
-
-    if (dimensions.width === undefined) {
-      delete dimensions.width;
-    }
-
-    if (dimensions.height === undefined) {
-      delete dimensions.height;
-    }
-    return dimensions;
-  }, [width, height]);
 
   return (
-    <div
-      ref={wrapperRef}
-      className={wrapperClassName}
-      style={wrapperStyle}
-      aria-description="radial-chart-wrapper"
-      data-openui-chart={exportData}
+    <ChartShell
+      containerRef={orch.refs.containerRef}
+      classPrefix={`${CHART_CLASS_PREFIX}-radial-chart`}
+      className={className}
+      style={orch.style.containerStyle}
+      isEmpty={orch.isEmpty}
+      exportData={exportData}
     >
-      <div className="openui-radial-chart-container">
-        <div className="openui-radial-chart-container-inner">
-          <div style={chartSizeStyle}>
-            <ChartContainer
-              config={chartConfig}
-              className="openui-radial-chart"
-              rechartsProps={rechartsProps}
+      {() => (
+        <>
+          <div className={`${CHART_CLASS_PREFIX}-radial-chart-svg-wrapper`}>
+            <svg
+              width={orch.dimensions.svgWidth}
+              height={orch.dimensions.svgHeight}
+              viewBox={`0 0 ${orch.dimensions.svgWidth} ${orch.dimensions.svgHeight}`}
+              role="img"
+              aria-label="Radial chart"
             >
-              <RadialBarChart
-                data={transformedData}
-                startAngle={startAngle}
-                endAngle={endAngle}
-                innerRadius={dimensions.innerRadius}
-                outerRadius={dimensions.outerRadius}
-              >
-                {grid && <PolarGrid gridType="circle" />}
-                <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      showPercentage={format === "percentage"}
-                      nameKey={categoryKeyString}
-                    />
-                  }
-                />
-                <RadialBar
-                  dataKey={formatKey}
-                  background={!grid}
+              <g transform={`translate(${orch.dimensions.centerX}, ${orch.dimensions.centerY})`}>
+                {showGrid && (
+                  <RadialGrid
+                    maxRadius={maxRadius}
+                    minRadius={minRadius}
+                    startAngle={startAngle}
+                    endAngle={endAngle}
+                  />
+                )}
+                <RadialBars
+                  slices={orch.data.visibleSlices}
+                  maxValue={maxValue}
+                  maxRadius={maxRadius}
+                  minRadius={minRadius}
+                  startAngle={startAngle}
+                  endAngle={endAngle}
                   cornerRadius={cornerRadius}
-                  {...animationConfig}
-                  activeIndex={activeIndex ?? undefined}
-                  onMouseEnter={handleChartMouseEnter}
-                  onMouseLeave={handleChartMouseLeave}
-                  onClick={eventHandlers.onClick}
-                >
-                  {transformedData.map((entry, index) => {
-                    const categoryValue = String(entry[categoryKey as keyof typeof entry] || "");
-                    const config = chartConfig[categoryValue];
-                    const hoverStyles = getRadialHoverStyles(index, activeIndex);
-                    const fill = config?.color || colors[index];
-                    return (
-                      <Cell key={`cell-${index}`} fill={fill} {...hoverStyles} stroke="none" />
-                    );
-                  })}
-                </RadialBar>
-              </RadialBarChart>
-            </ChartContainer>
+                  barGap={BAR_GAP}
+                  hoveredIndex={orch.hover.hoveredIndex}
+                  animate={animate}
+                  data={orch.data.visibleRows}
+                  onMouseMove={orch.hover.handleMouseMove}
+                  onMouseLeave={orch.hover.handleMouseLeave}
+                  onClick={onClick}
+                />
+              </g>
+            </svg>
           </div>
-        </div>
-      </div>
-      {renderLegend()}
-    </div>
+
+          {showLegend && !orch.usesRemoteLegend && (
+            <DefaultLegend
+              ref={orch.refs.legendRef}
+              items={orch.data.legendItems}
+              containerWidth={orch.dimensions.containerWidth}
+              isExpanded={orch.legend.isLegendExpanded}
+              setIsExpanded={orch.legend.setIsLegendExpanded}
+              onItemClick={orch.data.toggleSlice}
+              hiddenSeries={orch.data.hiddenSlices}
+            />
+          )}
+
+          {orch.tooltip.tooltipPayload && orch.hover.mousePos && (
+            <ChartTooltip
+              label={orch.tooltip.tooltipPayload.label}
+              items={orch.tooltip.tooltipPayload.items}
+              viewportPosition={orch.hover.mousePos}
+            />
+          )}
+        </>
+      )}
+    </ChartShell>
   );
-};
+}

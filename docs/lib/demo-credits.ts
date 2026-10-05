@@ -4,11 +4,10 @@ export const DEMO_CREDITS_EXHAUSTED_MESSAGE =
   "We're recharging the hosted demo credits. Until then, please download the repo and run it locally to see the live demo.";
 
 export const DEMO_CREDITS_LOCAL_COMMANDS = [
-  "git clone https://github.com/thesysdev/openui.git",
-  "cd openui",
-  "pnpm install",
-  'echo "OPENAI_API_KEY=sk-your-key-here" > examples/openui-chat/.env.local',
-  "pnpm --filter openui-chat dev",
+  "pnpm dlx @openuidev/cli@latest create --name openui-demo --template openui-self-hosted --no-interactive",
+  "cd openui-demo",
+  "# Configure OPENAI_API_KEY in .env.local",
+  "pnpm dev",
 ] as const;
 
 export type DemoCreditsErrorPayload = {

@@ -378,7 +378,9 @@ function appendAssistantSegments(message: ValidUIMessage, result: Message[]): vo
     if (value.type === "text" && typeof value.text === "string") {
       // AI SDK step markers are authoritative. Older/custom UIMessage data may
       // omit them, so retain the previous text-part boundary behavior there.
-      if (!hasStepMarkers && hasBody()) flush();
+      // Text after tool calls is always a new item (commentary between calls,
+      // then the answer), matching the live adapter.
+      if (toolCalls.length > 0 || (!hasStepMarkers && hasBody())) flush();
       segmentStarted = true;
       text += value.text;
       continue;

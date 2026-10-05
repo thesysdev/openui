@@ -13,17 +13,19 @@ export const ListBlock = defineComponent({
   props: z.object({
     items: z.array(ListItem.ref),
     variant: z.enum(["number", "image"]).optional(),
+    size: z.enum(["default", "small"]).optional(),
   }),
   description:
-    "A list of items with number or image indicators. Each item can optionally have an action.",
+    "A list of items with number or image indicators. Each item can optionally have an action. size small renders a compact list.",
   component: ({ props }) => {
     const triggerAction = useTriggerAction();
     const items = (props.items ?? []) as any[];
     const variant = (props.variant as "number" | "image") ?? "number";
+    const size = (props.size as "default" | "small") ?? "default";
     const listHasSubtitle = items.some((item) => !!item?.props?.subtitle);
 
     return (
-      <OpenUIListBlock variant={variant}>
+      <OpenUIListBlock variant={variant} size={size}>
         {items.map((item, index) => {
           const title = String(item?.props?.title ?? "");
           const subtitle = item?.props?.subtitle ? String(item.props.subtitle) : undefined;

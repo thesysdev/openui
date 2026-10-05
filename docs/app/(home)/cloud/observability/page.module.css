@@ -1,0 +1,594 @@
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 2px;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: normal;
+}
+
+.title {
+  display: block;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+/* Both hero lockups render this same title node, so the break is switched off
+   by default and only enabled at the width where this page's desktop hero takes
+   over. Below that the title wraps on its
+   own and a hard break would land in the wrong place. */
+.titleBreak {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .titleBreak {
+    display: inline;
+  }
+}
+
+.cloudTag {
+  display: inline-flex;
+  align-items: center;
+  margin-top: -3px;
+  padding: 2px 6px 3px;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  font-size: 17px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* Narrows the shared tagline's measure without touching the home page, which
+   uses the same component at its full 75rem width. */
+.taglineText {
+  display: block;
+  max-width: 46rem;
+  margin-inline: auto;
+  text-wrap: balance;
+}
+
+/* Reads as a caption under the tagline, so it drops out of the display scale
+   and back to body type. */
+.taglineNote {
+  display: block;
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: var(--openui-text-neutral-secondary);
+}
+
+[data-theme="dark"] .taglineNote {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* A second line under the subtitle. Green, because it is the one line here that
+   is an offer rather than a description, and #049156 is the green already on
+   this page in the trace diagram's pass marks. */
+/* A block, so it takes its own line and inherits the lockup's text-align: the
+   desktop hero sets it left, the mobile one centre. The flex box lives on the
+   inner span, which is inline-level and so gets positioned by that alignment.
+   One element doing both would pin the line to the left at every width. */
+.subtitleTerms {
+  display: block;
+  margin-top: 12px;
+  /* No size of its own: it reads at the subtitle's measure, as a second line of
+     the same block rather than a footnote to it. */
+  color: #049156;
+}
+
+.subtitleTermsInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+[data-theme="dark"] .subtitleTerms {
+  /* The solid reads as near-black on the dark ground, so the line lifts. */
+  color: #3ecf8e;
+}
+
+.subtitle {
+  display: block;
+  flex: 0 0 400px;
+  width: 400px;
+  max-width: 400px;
+  margin-top: 40px;
+  margin-left: auto;
+  padding-top: 12px;
+  font-size: 22px;
+  font-weight: var(--home-heading-weight);
+  line-height: var(--home-lead-leading);
+  letter-spacing: var(--home-heading-tracking);
+  text-wrap: balance;
+}
+
+.ctaGroup {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.heroImage {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sectionRhythm {
+  /* One shared measure keeps feature, setup, trust and FAQ boundaries from
+     accumulating unrelated one-off margins. */
+  --observability-section-gap: 160px;
+}
+
+/* Grey, like the trust section that follows it: the two read as one band of
+   practical detail after the feature flow. */
+.integrationSection {
+  width: 100%;
+  padding-block: var(--observability-section-gap);
+  background: var(--openui-background);
+  /* The snippet is nine lines and measures 343px with the code block's own
+     padding. The component defaults to 420px, which left ~80px of empty panel
+     below the last line. The phone override below still wins at that width. */
+  --cloud-code-min-height: 344px;
+}
+
+/* Scoped to this page. EnterpriseSection is shared with /cloud and
+   /cloud/gateway, which keep its own 160px and its own grey.
+
+   The class is doubled to lift it to (0,2,0). Its own .section rule sets both
+   of these at (0,1,0), and which of two equally specific rules wins comes down
+   to the order the two CSS modules happen to load in, which is not something
+   to rely on. */
+.trustSection.trustSection {
+  padding-block: clamp(4rem, 7vw, 6rem);
+  /* Sits on the page rather than in a band: the grey now belongs to the setup
+     block below, which is the one thing on the page that is a detour. */
+  background: transparent;
+}
+
+/* Less below than above: the footer follows, and the shared gap on both sides
+   left the page ending on a long empty stretch. */
+.faqBand {
+  padding: var(--observability-section-gap) var(--home-section-padding-inline)
+    calc(var(--observability-section-gap) / 2);
+}
+
+.faqBand > section {
+  margin-top: 0;
+}
+
+@media (max-width: 1279px) {
+  .integrationSection > div {
+    width: calc(100% - 64px);
+  }
+}
+
+@media (max-width: 1023px) {
+  .sectionRhythm {
+    --observability-section-gap: 96px;
+  }
+}
+
+@media (max-width: 767px) {
+  .integrationSection {
+    /* Keeps the panel's desktop measure and scales the whole thing down, so the
+       snippet reads at the same proportions rather than losing its right-hand
+       half to the clip. The desktop --cloud-code-min-height above rides along
+       in the same scaled space, which is what holds the ratio. */
+    --cloud-code-mobile-zoom: 0.54;
+    --cloud-code-mobile-padding-block: 28px;
+    /* Content-sized, so the panel hugs the snippet. Left at the desktop 344px
+       the shorter padding above would be matched by 40px of empty panel below,
+       which is the one thing equal padding cannot survive. */
+    --cloud-code-min-height: 0;
+    /* The steps explain the snippet, so they follow it here. */
+    --cloud-setup-content-display: contents;
+  }
+
+  .integrationSection > div {
+    width: calc(100% - 32px);
+  }
+}
+
+.heroImageDark {
+  display: none;
+}
+
+[data-theme="dark"] .heroImageLight {
+  display: none;
+}
+
+[data-theme="dark"] .heroImageDark {
+  display: block;
+}
+
+@media (max-width: 899px) {
+  .title {
+    font-size: inherit;
+  }
+
+  .subtitle {
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .ctaGroup {
+    flex-direction: column;
+    width: 320px;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .titleBlock {
+    align-items: center;
+    gap: 12px;
+  }
+
+  .subtitle {
+    /* The base rule pins this to 400px, which is wider than a small phone and
+       bled off both edges. Let it track the hero width instead. */
+    flex: 0 1 auto;
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: normal;
+  }
+}
+
+/* Holds the hero's space until the artwork lands. Same 1280x600 the Cloud hero
+   image uses, so swapping in the <Image> pair changes nothing about the layout.
+   Delete this rule once it is replaced. */
+.heroPlaceholder {
+  width: 100%;
+  aspect-ratio: 1280 / 600;
+  border-radius: 24px;
+  background: rgba(10, 10, 10, 0.04);
+}
+
+[data-theme="dark"] .heroPlaceholder {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ---- Hero email capture ----
+   Input and submit share one pill, so the pair reads as a single control beside
+   the secondary button rather than as two competing ones. */
+.emailForm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 4px 4px 18px;
+  /* Stronger than the shared hairline token, which is ~6% and disappears on
+     this surface. An input has to read as something you can type into. Stays
+     below the focus-within step below, so focus is still a visible change. */
+  border: 1px solid rgba(10, 10, 10, 0.16);
+  border-radius: 999px;
+  /* A hint of fill rather than the plain surface, so the field reads as an input
+     on a page that is otherwise the same colour. */
+  background: rgba(10, 10, 10, 0.03);
+}
+
+[data-theme="dark"] .emailForm {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.emailForm:focus-within {
+  border-color: rgba(10, 10, 10, 0.28);
+}
+
+[data-theme="dark"] .emailForm:focus-within {
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+/* The placeholder names the field for everyone else; this is for screen readers,
+   which should not have to rely on it. */
+.emailLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.emailInput {
+  /* Fixed, so swapping the icon button for a labelled one grows the pill rather
+     than squeezing the field. */
+  flex: 0 0 auto;
+  min-width: 0;
+  width: 16rem;
+  border: 0;
+  background: none;
+  outline: none;
+  font-family: var(--home-font-text);
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--openui-text-neutral-primary);
+}
+
+.emailInput::placeholder {
+  color: var(--openui-text-neutral-secondary);
+}
+
+.emailInput:disabled {
+  opacity: 0.6;
+}
+
+/* The hero sits on a stage now, so it ends on its own edge rather than
+   dissolving into the page. The stroke is the shader's base colour, so the edge
+   matches the fill inside it. Keep in step with TONES in FadedDitherCanvas.tsx
+   and with .shot in FeaturesSection.module.css. */
+.heroStage {
+  --hero-stroke: #f8f8f8;
+
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--hero-stroke);
+  border-radius: 24px;
+}
+
+[data-theme="dark"] .heroStage {
+  --hero-stroke: #0e0e0e;
+}
+
+/* The mobile hero keeps the old treatment: no stage behind it, so it dissolves
+   into the page at its lower edge rather than ending on a straight line.
+   Masked rather than overlaid with a gradient, so it works on either theme
+   without having to match a background colour. */
+.heroImageMobile {
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+}
+
+.heroShader {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.heroShader > * {
+  width: 100%;
+  height: 100%;
+}
+
+/* Keep the action persistent: the waitlist should never depend on a hover state
+   to explain what the arrow does. */
+.emailSubmit {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  /* Not centred: min-width leaves a few pixels of slack that centring splits
+     between the two ends, which pushed the badge ~13px off the right edge while
+     the padding said 8. Pinning each end to its own padding makes the space
+     around the badge match the 8px above and below it. */
+  justify-content: space-between;
+  min-width: 10.25rem;
+  height: 3rem;
+  gap: 10px;
+  /* 7, not 8: the badge is centred in the 46px the 1px borders leave, so it
+     already sits 7px inside the padding box and 8px inside the button. Matching
+     that on the right is what puts the same 8px on all three sides. */
+  padding: 0 7px 0 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  background: #0a0a0a;
+  box-shadow: var(--home-bevel-on-dark);
+  color: #ffffff;
+  font-family: "Inter Display", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+[data-theme="dark"] .emailSubmit {
+  border-color: rgba(0, 0, 0, 0.08);
+  background: var(--home-surface-raised);
+  box-shadow: var(--home-bevel);
+  color: #0d0d0f;
+}
+
+.emailSubmit:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.emailSubmit:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.emailSubmit:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* A tooltip under the field, not a line in the layout: absolutely positioned, so
+   it appears and disappears without moving the control above it. Kept mounted
+   and faded rather than swapped in, so screen readers announce it once.
+
+   Centred on the field via the 50% + translate pair, which works whatever the
+   notice's own width turns out to be. */
+.emailNotice {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  z-index: 5;
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  background: var(--openui-foreground);
+  box-shadow:
+    0 6px 20px -10px rgb(0 0 0 / 0.2),
+    0 2px 6px -3px rgb(0 0 0 / 0.1);
+  font-family: var(--home-font-text);
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--openui-text-neutral-primary);
+  pointer-events: none;
+  opacity: 0;
+  /* The -50% centres it; the 4px is the slide, so both live in one transform. */
+  transform: translate(-50%, -4px);
+  visibility: hidden;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0s linear 0.2s;
+}
+
+[data-theme="dark"] .emailNotice {
+  background: #24242a;
+}
+
+/* A failure has to look different from a confirmation, or the two read as the
+   same event. Same pill, different text colour. */
+.emailNoticeError {
+  color: #b42318;
+}
+
+[data-theme="dark"] .emailNoticeError {
+  color: #f97066;
+}
+
+.emailNoticeVisible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  visibility: visible;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0s;
+}
+
+/* The fade is decoration; anyone who has asked for less motion still gets the
+   message, just without the slide. */
+@media (prefers-reduced-motion: reduce) {
+  .emailNotice {
+    transform: translate(-50%, 0);
+  }
+}
+
+.emailSubmitText {
+  line-height: 1.5rem;
+  white-space: nowrap;
+}
+
+.emailSubmitBadge {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #0a0a0a;
+}
+
+[data-theme="dark"] .emailSubmitBadge {
+  background: #0a0a0a;
+  color: #ffffff;
+}
+
+.emailSubmitIcon {
+  flex: none;
+}
+
+@media (min-width: 768px) and (max-width: 899.98px) {
+  .emailForm {
+    width: 100%;
+  }
+
+  .emailInput {
+    flex: 1 1 auto;
+    width: auto;
+  }
+}
+
+/* ---- Phone ----
+   The pill splits: the field is its own input, and the button sits under it at
+   full width, always labelled. Swapping an icon in a shared pill is a desktop
+   affordance; on a phone the button wants its own tap target. */
+@media (max-width: 767px) {
+  .emailForm {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  /* The dark rules above are [data-theme] + class, and a media query adds no
+     specificity, so plain `.emailForm` here loses to them and the pill's fill
+     survives as a ghost panel behind the stack. Match the specificity to clear
+     it. */
+  [data-theme="dark"] .emailForm,
+  .emailForm:focus-within,
+  [data-theme="dark"] .emailForm:focus-within {
+    border-color: transparent;
+    background: none;
+  }
+
+  .emailInput {
+    flex: 1 1 auto;
+    width: 100%;
+    padding: 13px 18px;
+    border: 1px solid rgba(10, 10, 10, 0.16);
+    border-radius: 9999px;
+    background: rgba(10, 10, 10, 0.03);
+  }
+
+  .emailSubmit {
+    width: 100%;
+    height: 3rem;
+    justify-content: space-between;
+    padding: 0 8px 0 20px;
+    border-radius: 9999px;
+    font-family: "Inter Display", sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .emailSubmitText {
+    font-size: 16px;
+  }
+
+  /* The field carries the border the shared pill used to. */
+  [data-theme="dark"] .emailInput {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  /* Centred under the stack rather than under the field alone. */
+  .emailNotice {
+    white-space: normal;
+    text-align: center;
+  }
+}

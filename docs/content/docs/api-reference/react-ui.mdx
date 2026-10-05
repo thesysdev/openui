@@ -21,7 +21,9 @@ Import one complete React UI stylesheet exactly once, normally from your applica
 | `@openuidev/react-ui/styles/index.css`         | Default, unlayered styles. Override them with normal CSS specificity.                  |
 | `@openuidev/react-ui/layered/styles/index.css` | The same component styles wrapped in `@layer openui` for cascade-layered applications. |
 
-Choose one variant. Do not import `@openuidev/react-ui/components.css` or the default `styles/index.css` alongside the layered stylesheet. The unlayered rules would take precedence over every named layer and defeat the intended ordering. Importing `components.css` with the default full stylesheet also duplicates the component rules in current releases.
+`@openuidev/react-ui/components.css` and `@openuidev/react-ui/index.css` are aliases of `styles/index.css`: all three contain the same stylesheet, so import only one of them.
+
+Use either the default stylesheet or the layered one, not both. Unlayered CSS always outranks layered CSS, so if the default stylesheet is also loaded, its OpenUI rules override Tailwind utilities and any other styles you keep in layers, cancelling out the layered variant.
 
 For a single component, use `@openuidev/react-ui/styles/<Component>.css` or its layered counterpart at `@openuidev/react-ui/layered/styles/<Component>.css` instead of a full stylesheet.
 

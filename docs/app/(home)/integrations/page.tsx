@@ -1,9 +1,8 @@
-import { PageHero, PageHeroAccent } from "@/app/(home)/components/PageHero/PageHero";
+import { PageHero } from "@/app/(home)/components/PageHero/PageHero";
 import { Footer } from "@/app/(home)/sections/Footer/Footer";
-import { ArrowRight, Boxes, Layers3 } from "lucide-react";
+import { ArrowRight, Boxes } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CategoryNav } from "./category-nav";
 import { getIntegrationsByCategory, integrationCategories } from "./data";
 import { IntegrationLogo } from "./integration-logo";
 import styles from "./page.module.css";
@@ -26,59 +25,19 @@ export default function IntegrationsPage() {
   return (
     <main className={styles.page}>
       <PageHero
-        eyebrow="OpenUI ecosystem"
-        title={
-          <>
-            Build with the tools
-            <br />
-            <PageHeroAccent>you already use.</PageHeroAccent>
-          </>
-        }
-        subtitle={
-          <>
-            Start with an AI framework, design system, or frontend platform your team already knows.
-          </>
-        }
+        title="OpenUI integrations"
+        subtitle="Explore integrations for the frameworks, design systems, and platforms in your stack."
         smallSubtitle
       />
 
       <div className={styles.contentBand}>
-        <section className={styles.directory} aria-labelledby="integration-directory-title">
-          <div className={styles.directoryIntro}>
-            <div>
-              <p className={styles.sectionEyebrow}>
-                <Layers3 size={14} aria-hidden="true" />
-                Integration directory
-              </p>
-              <h2 id="integration-directory-title" className={styles.sectionTitle}>
-                OpenUI across your stack
-              </h2>
-            </div>
-            <p className={styles.directoryDescription}>
-              Three simple ways into OpenUI. Popular starting points appear first, and each page
-              links to the relevant docs or runnable source.
-            </p>
-          </div>
-
-          <CategoryNav
-            categories={integrationCategories.map((category) => ({
-              count: getIntegrationsByCategory(category.id).length,
-              id: category.id,
-              label: category.shortTitle,
-            }))}
-          />
-
+        <section className={styles.directory}>
           <div className={styles.categoryList}>
             {integrationCategories.map((category) => {
               const items = getIntegrationsByCategory(category.id);
 
               return (
-                <section
-                  className={styles.categorySection}
-                  data-accent={category.accent}
-                  id={category.id}
-                  key={category.id}
-                >
+                <section className={styles.categorySection} id={category.id} key={category.id}>
                   <header className={styles.categoryHeader}>
                     <div className={styles.categoryHeading}>
                       <h2>{category.title}</h2>

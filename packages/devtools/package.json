@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/devtools",
-  "version": "0.0.8",
+  "version": "0.2.2",
   "description": "Development-only UI widget for OpenUI apps: surfaces errors captured by @openuidev/observability",
   "license": "MIT",
   "type": "module",
@@ -26,7 +26,7 @@
   },
   "scripts": {
     "test": "vitest run --passWithNoTests",
-    "build": "tsdown",
+    "build": "tsdown && node scripts/build-browser.mjs",
     "watch": "tsdown --watch",
     "typecheck": "tsc --noEmit",
     "lint:check": "eslint ./src",
@@ -40,8 +40,8 @@
     "ci": "pnpm run lint:check && pnpm run format:check"
   },
   "peerDependencies": {
-    "@openuidev/observability": "workspace:^",
-    "@openuidev/react-lang": "workspace:^",
+    "@openuidev/observability": ">=0.0.4 <0.1.0",
+    "@openuidev/react-lang": ">=0.3.0 <0.4.0",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
@@ -74,6 +74,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "esbuild": "^0.25.12",
     "jsdom": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

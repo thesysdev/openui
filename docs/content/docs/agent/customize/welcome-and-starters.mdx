@@ -16,8 +16,8 @@ const llm = fetchLLM({ url: "/api/chat", streamAdapter: agUIAdapter() });
 
 const starters = [
   {
-    displayText: "Summarize my latest report",
-    prompt: "Summarize the key findings from my most recent quarterly report.",
+    displayText: "Summarize customer feedback",
+    prompt: "Summarize the themes in the latest customer feedback.",
   },
   {
     displayText: "Build a revenue dashboard",
@@ -32,7 +32,11 @@ export default function App() {
 
 Each entry is `{ displayText, prompt, icon? }`. Clicking a starter sends its `prompt` as a user message, exactly as if the user typed it, so write `prompt` as a full instruction. Omit `icon` for a default lightbulb, pass a React node for a custom glyph, or pass `<></>` for none. `starterVariant` is `"short"` (compact pills) or `"long"` (a vertical list with icons).
 
-<Callout type="info">`starters` and `starterVariant` set on `AgentInterface` flow down to the Welcome and Composer slots. Each slot can override with its own value. Pass `[]` to a slot to suppress inherited starters there.</Callout>
+<Callout type="info">
+  `starters` and `starterVariant` set on `AgentInterface` flow down to the Welcome and Composer
+  slots. Each slot can override with its own value. Pass `[]` to a slot to suppress inherited
+  starters there.
+</Callout>
 
 ## The Welcome slot
 
@@ -42,7 +46,7 @@ Each entry is `{ displayText, prompt, icon? }`. Clicking a starter sends its `pr
 <AgentInterface llm={llm}>
   <AgentInterface.Welcome
     title="What can I help you build?"
-    description="Ask about your reports and dashboards, or pick a starter below."
+    description="Ask about your data and dashboards, or pick a starter below."
     image={{ url: "/logo.svg" }}
     starters={starters}
     starterVariant="long"
@@ -61,18 +65,17 @@ import { AgentInterface, useThread } from "@openuidev/react-ui";
 
 function Starter({ label, prompt }: { label: string; prompt: string }) {
   const processMessage = useThread((s) => s.processMessage);
-  return (
-    <button onClick={() => processMessage({ role: "user", content: prompt })}>
-      {label}
-    </button>
-  );
+  return <button onClick={() => processMessage({ role: "user", content: prompt })}>{label}</button>;
 }
 
 <AgentInterface llm={llm}>
   <AgentInterface.Welcome>
     <div className="my-welcome">
       <h1>What can I help you build?</h1>
-      <Starter label="Build a dashboard" prompt="Build a revenue dashboard for the last six months." />
+      <Starter
+        label="Build a dashboard"
+        prompt="Build a revenue dashboard for the last six months."
+      />
     </div>
   </AgentInterface.Welcome>
 </AgentInterface>;

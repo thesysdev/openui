@@ -1,0 +1,58 @@
+{
+  "templates": [
+    {
+      "name": "OpenUI Cloud",
+      "key": "openui-cloud",
+      "description": "Hosted models, managed conversation history, built-in tools, and ready-to-use reports and presentations. Recommended default for prototypes and evaluations.",
+      "overlays": [
+        {
+          "name": "Default — minimal SDK route",
+          "key": "default",
+          "description": "Minimal SDK route"
+        },
+        {
+          "name": "LangGraph",
+          "key": "langgraph",
+          "description": "LangGraph agent with the selected model backend"
+        },
+        {
+          "name": "Vercel AI SDK",
+          "key": "vercel-ai-sdk",
+          "description": "Vercel AI SDK agent with the selected model backend"
+        },
+        {
+          "name": "Vercel Eve",
+          "key": "vercel-eve",
+          "description": "Eve agent rendered through Agent Interface"
+        }
+      ]
+    },
+    {
+      "name": "OpenUI Self-hosted",
+      "key": "openui-self-hosted",
+      "description": "Bring your own OpenAI-compatible provider, AI route, and persistence. Available only via --template.",
+      "overlays": [
+        {
+          "name": "Default — minimal SDK route",
+          "key": "default",
+          "description": "Minimal SDK route"
+        },
+        {
+          "name": "LangGraph",
+          "key": "langgraph",
+          "description": "LangGraph agent with the selected model backend"
+        },
+        {
+          "name": "Vercel AI SDK",
+          "key": "vercel-ai-sdk",
+          "description": "Vercel AI SDK agent with the selected model backend"
+        },
+        {
+          "name": "Vercel Eve",
+          "key": "vercel-eve",
+          "description": "Eve agent rendered through Agent Interface"
+        }
+      ]
+    }
+  ]
+}

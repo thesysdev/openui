@@ -15,12 +15,17 @@ const TOOL_BLOCK_TYPES = new Set([
   "server_tool_call_chunk",
 ]);
 
+/** Provider-executed tool results (Cloud artifacts, search, MCP). */
+const TOOL_RESULT_BLOCK_TYPES = new Set(["server_tool_call_result", "server_tool_result"]);
+
 interface ToolCallState {
   id: string;
   name: string;
   started: boolean;
   ended: boolean;
   argsEmitted: boolean;
+  /** Args already emitted as AG-UI deltas — used to diff snapshot-style updates. */
+  argsEmittedSoFar: string;
 }
 
 /**
@@ -31,6 +36,12 @@ interface ToolCallState {
  * clients can then subscribe to `custom:openui`, or use {@link streamOpenUI}
  * and {@link createLangChainStreamResponse} to relay that channel as AG-UI
  * Server-Sent Events.
+ *
+ * Provider-executed Cloud tools (artifacts, search, MCP) never hit LangGraph's
+ * `tools` channel. ChatOpenAI surfaces their `function_call_output` as
+ * passthrough `provider` events (or occasionally as `server_tool_*_result`
+ * content blocks). Those are mapped to `TOOL_CALL_RESULT` here so the browser
+ * can render artifact previews live — without waiting for a storage reload.
  */
 export function openUIStreamTransformer(): StreamTransformer<{
   openui: StreamChannel<AGUIEvent>;
@@ -46,6 +57,8 @@ export function openUIStreamTransformer(): StreamTransformer<{
 
   const toolCallsByIndex = new Map<string, ToolCallState>();
   const toolOutputByCallId = new Map<string, string>();
+  // Dedup across tools-channel + provider `added`/`done` + content-block paths.
+  const emittedToolResultIds = new Set<string>();
 
   const emit = (event: AGUIEvent) => channel.push(event);
 
@@ -94,6 +107,7 @@ export function openUIStreamTransformer(): StreamTransformer<{
         started: false,
         ended: false,
         argsEmitted: false,
+        argsEmittedSoFar: "",
       };
       toolCallsByIndex.set(key, state);
     } else if (!state.started) {
@@ -114,12 +128,24 @@ export function openUIStreamTransformer(): StreamTransformer<{
 
     const args = getArgsString(block);
     if (emitArgs && args && state.started) {
-      emit({
-        type: EventType.TOOL_CALL_ARGS,
-        toolCallId: state.id,
-        delta: args,
-      });
-      state.argsEmitted = true;
+      // ChatOpenAI Responses stream sends the FULL accumulated args string on
+      // every block-delta. AG-UI TOOL_CALL_ARGS deltas are append-only, so
+      // re-emitting the snapshot would corrupt JSON (and blank Cloud artifact
+      // previews that parse artifact_content from args). Emit only the suffix.
+      const delta = args.startsWith(state.argsEmittedSoFar)
+        ? args.slice(state.argsEmittedSoFar.length)
+        : args;
+      if (delta) {
+        emit({
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: state.id,
+          delta,
+        });
+        state.argsEmittedSoFar = args.startsWith(state.argsEmittedSoFar)
+          ? args
+          : state.argsEmittedSoFar + args;
+        state.argsEmitted = true;
+      }
     }
 
     return state;
@@ -138,6 +164,42 @@ export function openUIStreamTransformer(): StreamTransformer<{
   const endToolCallById = (toolCallId: string) => {
     const state = Array.from(toolCallsByIndex.values()).find(({ id }) => id === toolCallId);
     if (state) endToolCall(state);
+  };
+
+  const emitToolResult = (
+    toolCallId: string,
+    content: string,
+    options?: { isError?: boolean; error?: string; messageId?: string },
+  ) => {
+    if (!toolCallId || emittedToolResultIds.has(toolCallId)) return;
+    emittedToolResultIds.add(toolCallId);
+    endToolCallById(toolCallId);
+    emit({
+      type: EventType.TOOL_CALL_RESULT,
+      messageId: options?.messageId ?? `tool-result-${toolCallId}`,
+      toolCallId,
+      content,
+      role: "tool",
+      ...(options?.isError ? { isError: true, error: options.error ?? content } : {}),
+    });
+  };
+
+  const emitServerToolResultBlock = (block: Partial<ContentBlock> & Record<string, unknown>) => {
+    const toolCallId = getServerToolResultCallId(block);
+    if (!toolCallId) return;
+    const isError = block.status === "error";
+    emitToolResult(toolCallId, serializeToolOutput(block.output), {
+      isError,
+      ...(isError ? { error: serializeToolOutput(block.output) } : {}),
+    });
+  };
+
+  const emitProviderFunctionCallOutput = (payload: unknown) => {
+    const item = getFunctionCallOutputItem(payload);
+    if (!item) return;
+    emitToolResult(item.call_id, serializeToolOutput(item.output), {
+      messageId: item.id ?? `tool-result-${item.call_id}`,
+    });
   };
 
   const resetMessage = (data: Extract<MessagesData, { event: "message-start" }>) => {
@@ -163,7 +225,7 @@ export function openUIStreamTransformer(): StreamTransformer<{
     toolCallsByIndex.clear();
   };
 
-  const processMessages = (data: MessagesData) => {
+  const processMessages = (data: MessagesData | ProviderMessageEvent) => {
     if (data.event === "message-start") {
       resetMessage(data);
       return;
@@ -177,6 +239,8 @@ export function openUIStreamTransformer(): StreamTransformer<{
         if (isTextBlock(block)) {
           ensureTextStart();
           emitTextDelta(typeof block.text === "string" ? block.text : "");
+        } else if (isToolResultBlock(block)) {
+          emitServerToolResultBlock(block);
         } else if (isToolBlock(block)) {
           syncToolCall(data.index, block, true);
         }
@@ -198,7 +262,9 @@ export function openUIStreamTransformer(): StreamTransformer<{
 
       case "content-block-finish": {
         const block = data.content;
-        if (isToolBlock(block)) {
+        if (isToolResultBlock(block)) {
+          emitServerToolResultBlock(block);
+        } else if (isToolBlock(block)) {
           const state = syncToolCall(data.index, block, false);
           if (!state.argsEmitted) {
             syncToolCall(data.index, block, true);
@@ -219,6 +285,17 @@ export function openUIStreamTransformer(): StreamTransformer<{
         runErrorEmitted = true;
         return;
 
+      case "provider":
+        // ChatOpenAI's Responses stream maps unknown items (including Cloud
+        // function_call_output) to provider passthrough events.
+        if (
+          data.name === "response.output_item.added" ||
+          data.name === "response.output_item.done"
+        ) {
+          emitProviderFunctionCallOutput(data.payload);
+        }
+        return;
+
       default:
         return;
     }
@@ -235,26 +312,13 @@ export function openUIStreamTransformer(): StreamTransformer<{
       case "tool-finished": {
         const streamedOutput = toolOutputByCallId.get(toolCallId);
         toolOutputByCallId.delete(toolCallId);
-        endToolCallById(toolCallId);
-        emit({
-          type: EventType.TOOL_CALL_RESULT,
-          messageId: `tool-result-${toolCallId}`,
-          toolCallId,
-          content: serializeToolOutput(data.output, streamedOutput),
-          role: "tool",
-        });
+        emitToolResult(toolCallId, serializeToolOutput(data.output, streamedOutput));
         return;
       }
 
       case "tool-error":
         toolOutputByCallId.delete(toolCallId);
-        endToolCallById(toolCallId);
-        emit({
-          type: EventType.TOOL_CALL_RESULT,
-          messageId: `tool-result-${toolCallId}`,
-          toolCallId,
-          content: data.message,
-          role: "tool",
+        emitToolResult(toolCallId, data.message, {
           isError: true,
           error: data.message,
         });
@@ -274,7 +338,7 @@ export function openUIStreamTransformer(): StreamTransformer<{
       // Do not filter by namespace: DeepAgents emits model and tool events
       // from nested `model_request:*` and `tools:*` namespaces.
       if (event.method === "messages") {
-        processMessages(event.params.data as MessagesData);
+        processMessages(event.params.data as MessagesData | ProviderMessageEvent);
       } else if (event.method === "tools") {
         processTools(event.params.data as ToolsEventData);
       }
@@ -297,6 +361,14 @@ export function openUIStreamTransformer(): StreamTransformer<{
   };
 }
 
+/** ChatOpenAI Responses passthrough — not in MessagesData, but forwarded live. */
+interface ProviderMessageEvent {
+  event: "provider";
+  provider?: string;
+  name: string;
+  payload: unknown;
+}
+
 function serializeToolOutput(output: unknown, streamedOutput?: string): string {
   if (typeof output === "string") return output;
   if (output === undefined && streamedOutput !== undefined) return streamedOutput;
@@ -317,6 +389,10 @@ function isToolBlock(block: Partial<ContentBlock> & Record<string, unknown>): bo
   return typeof block.type === "string" && TOOL_BLOCK_TYPES.has(block.type);
 }
 
+function isToolResultBlock(block: Partial<ContentBlock> & Record<string, unknown>): boolean {
+  return typeof block.type === "string" && TOOL_RESULT_BLOCK_TYPES.has(block.type);
+}
+
 function getToolCallId(block: Partial<ContentBlock> & Record<string, unknown>): string | undefined {
   return typeof block.id === "string" && block.id.length > 0 ? block.id : undefined;
 }
@@ -327,8 +403,35 @@ function getToolCallName(
   return typeof block.name === "string" && block.name.length > 0 ? block.name : undefined;
 }
 
+function getServerToolResultCallId(
+  block: Partial<ContentBlock> & Record<string, unknown>,
+): string | undefined {
+  // LangChain core uses camelCase; protocol-v2 uses snake_case.
+  const camel = block["toolCallId"];
+  if (typeof camel === "string" && camel.length > 0) return camel;
+  const snake = block["tool_call_id"];
+  if (typeof snake === "string" && snake.length > 0) return snake;
+  return undefined;
+}
+
 function getArgsString(block: Partial<ContentBlock> & Record<string, unknown>): string {
   if (typeof block.args === "string") return block.args;
   if (block.args != null && typeof block.args === "object") return JSON.stringify(block.args);
   return "";
+}
+
+function getFunctionCallOutputItem(
+  payload: unknown,
+): { call_id: string; output: unknown; id?: string } | null {
+  if (typeof payload !== "object" || payload === null) return null;
+  const item = (payload as { item?: unknown }).item;
+  if (typeof item !== "object" || item === null) return null;
+  const record = item as { type?: unknown; call_id?: unknown; output?: unknown; id?: unknown };
+  if (record.type !== "function_call_output") return null;
+  if (typeof record.call_id !== "string" || record.call_id.length === 0) return null;
+  return {
+    call_id: record.call_id,
+    output: record.output,
+    ...(typeof record.id === "string" && record.id.length > 0 ? { id: record.id } : {}),
+  };
 }

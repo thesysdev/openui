@@ -10,7 +10,7 @@ import {
   formatLabel,
   runCounts,
 } from "@/lib/benchmark-data";
-import { Chart, Chip, styles as s, slotClass } from "./primitives";
+import { Chart, ChartDataDisclosure, Chip, DataTable, styles as s, slotClass } from "./primitives";
 
 /* Every run ends complete, partial, or blank. Each column keeps its natural
    direction — a long "complete" bar is good, a long "blank" bar is not — and
@@ -130,6 +130,46 @@ export function RenderSplit({
           );
         })}
       </div>
+      <ChartDataDisclosure label="View validity and render data">
+        <DataTable>
+          <caption>Structural validity and render success by format</caption>
+          <thead>
+            <tr>
+              <th scope="col">Format</th>
+              <th scope="col" data-numeric="true">
+                Valid runs
+              </th>
+              <th scope="col" data-numeric="true">
+                Partial runs
+              </th>
+              <th scope="col" data-numeric="true">
+                Blank runs
+              </th>
+              <th scope="col" data-numeric="true">
+                Validity
+              </th>
+              <th scope="col" data-numeric="true">
+                Render success
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map((format) => {
+              const row = rates(format);
+              return (
+                <tr key={`data-${format}`}>
+                  <th scope="row">{formatLabel(format)}</th>
+                  <td data-numeric="true">{row.counts.complete}</td>
+                  <td data-numeric="true">{row.counts.partial}</td>
+                  <td data-numeric="true">{row.counts.blank}</td>
+                  <td data-numeric="true">{row.inFull.toFixed(1)}%</td>
+                  <td data-numeric="true">{row.atAll.toFixed(1)}%</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </DataTable>
+      </ChartDataDisclosure>
     </Chart>
   );
 }

@@ -391,9 +391,10 @@
   background: var(--openui-highlight-strong);
 }
 
-/* Same chip as the header's New badge: solid and inverted, so the two statuses
-   in the nav read as one kind of thing. */
-.comingSoon {
+/* Same chip as the header's New badge: solid and inverted, so every status in
+   the nav reads as one kind of thing. Shared by "Coming soon" and "Early
+   access"; the text is uppercased here rather than in the data. */
+.itemTag {
   /* Hugs its text instead of stretching, now that it sits on its own line in the
      card's text column. */
   flex: none;
@@ -412,7 +413,7 @@
   white-space: nowrap;
 }
 
-[data-theme="dark"] .comingSoon {
+[data-theme="dark"] .itemTag {
   background: #f3f3f4;
   color: #0d0d0f;
 }

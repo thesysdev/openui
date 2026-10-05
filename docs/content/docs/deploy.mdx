@@ -1,0 +1,60 @@
+---
+title: Deploy your app
+description: Deploy an OpenUI app to Vercel with the OpenUI CLI.
+---
+
+Deploy a working OpenUI app from your project folder:
+
+```bash
+npx @openuidev/cli@latest deploy
+```
+
+The command defaults to Vercel as the deployment platform. The CLI will prompt you to authenticate and connect the project to your Vercel organization and suitable project.
+
+## Before you start
+
+- Have a working OpenUI web app.
+- Run your app's build command and try a prompt locally.
+- Have a Vercel account and the API keys your app needs.
+
+Your app must be compatible with Vercel. If it uses a separately hosted backend, deploy that backend separately and configure a reachable URL.
+
+## Deploy
+
+Run the command from the folder containing your app's `package.json`, or pass the folder explicitly:
+
+```bash
+npx @openuidev/cli@latest deploy ./my-app
+```
+
+On first use, follow the prompts to sign in and select a Vercel team and project. Later runs reuse the project link.
+
+To choose the deployment environment explicitly:
+
+```bash
+# Preview
+npx @openuidev/cli@latest deploy --target preview
+
+# Production
+npx @openuidev/cli@latest deploy --prod
+```
+
+Without either flag, Vercel chooses the deployment environment. Check the destination and access settings before sharing the URL.
+
+## Configure API keys
+
+The CLI reads supported keys, such as `THESYS_API_KEY` and `OPENAI_API_KEY`, from your shell, `.env.local`, and `.env`. Shell values take priority, followed by `.env.local`.
+
+These values are attached to the deployment's build and runtime. The CLI also asks whether to save missing file values to the Vercel project for future deployments.
+
+That save applies to **production, preview, and development** wherever the key is missing. Existing saved values are not overwritten. Declining still uses local values for the current deployment.
+
+To manage environment variables in Vercel yourself and skip automatic attachment and saving, use:
+
+```bash
+npx @openuidev/cli@latest deploy --skip-env
+```
+
+Only supported keys are forwarded automatically; configure other application variables in Vercel. Keep server API keys out of browser-exposed variables such as `NEXT_PUBLIC_*`.
+
+See the [CLI reference](/docs/api-reference/cli#deploy) for all options.

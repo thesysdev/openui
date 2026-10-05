@@ -1,3 +1,11 @@
+/* UNREACHABLE. next.config.mjs redirects /cloud to the home page, and a redirect
+   wins over a route, so nothing here renders — editing it changes no live page.
+
+   The file is kept, rather than deleted, as the source to mine while the home
+   page absorbs the cloud pitch: the section order below is the argument /cloud
+   used to make. Delete it, and any section beside it that nothing else imports,
+   once that move is finished. CloudFeatureMarquee and CloudCtaSection are NOT
+   only used here — the chat upgrade sheet and the benchmarks page import them. */
 import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -72,14 +80,14 @@ export default function OpenUICloudPage() {
                 href="https://console.thesys.dev/keys"
                 external
                 variant="primary"
-                label="Get API Key"
+                label="Get API key"
                 badge={<ArrowUpRight size={16} strokeWidth={2.25} />}
               />
               <BevelButton
                 href="https://zcal.co/t/thesys/demo"
                 external
                 variant="secondary"
-                label="Get a demo"
+                label="Book a demo"
                 badge={<ArrowUpRight size={16} strokeWidth={2.25} />}
               />
             </div>

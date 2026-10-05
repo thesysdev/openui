@@ -10,8 +10,8 @@ import {
   Watch,
 } from "lucide-react";
 import { useState } from "react";
+import { AreaChart, AreaChartProps } from "../..";
 import { Card } from "../../../Card";
-import { AreaChart, AreaChartProps } from "../AreaChart";
 
 // 🔥 COMPREHENSIVE DATA VARIATIONS - Designed to test label collision scenarios
 const dataVariations = {
@@ -468,7 +468,7 @@ const icons = {
  * - **Responsive Design**: Adapts fluidly to its container's size.
  *
  * ### Customization
- * - **Theming**: Comes with six pre-built color palettes.
+ * - **Colors**: Uses the ThemeProvider's chart palette, or custom colors with `customPalette`.
  * - **Area Styles**: Supports `linear`, `natural` (smooth), and `step` interpolation.
  * - **Styling Options**: Control grid visibility, axes, and more.
  */
@@ -495,7 +495,6 @@ const trafficData = [
 <ScrollableAreaChart
   data={trafficData}
   categoryKey="date"
-  theme="ocean"
 />
 \`\`\`
 
@@ -544,19 +543,8 @@ const salesData = [
         category: "📊 Data Configuration",
       },
     },
-    theme: {
-      description:
-        "Specifies the color palette for the chart's areas, tooltips, and legend. Ignored when customPalette is provided.",
-      control: "select",
-      options: ["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"],
-      table: {
-        defaultValue: { summary: "ocean" },
-        category: "🎨 Visual Styling",
-      },
-    },
     customPalette: {
-      description:
-        "Custom array of colors to use instead of the theme palette. Overrides the theme prop when provided.",
+      description: "Custom array of colors to use instead of the ThemeProvider's chart palette.",
       control: "object",
       table: {
         type: { summary: "string[]" },
@@ -676,7 +664,6 @@ export const DataExplorer: Story = {
   args: {
     data: areaChartData,
     categoryKey: "month",
-    theme: "ocean",
     variant: "natural",
     grid: true,
     legend: true,
@@ -831,7 +818,6 @@ export const BigLabelsStory: Story = {
   args: {
     data: dataVariations.bigLabels as any,
     categoryKey: "category" as any,
-    theme: "emerald",
     variant: "natural",
     grid: true,
     legend: true,
@@ -865,7 +851,6 @@ export const DenseTimelineStory: Story = {
   args: {
     data: dataVariations.denseTimeline as any,
     categoryKey: "period" as any,
-    theme: "sunset",
     variant: "natural",
     grid: true,
     legend: true,
@@ -898,7 +883,6 @@ export const CompanyNamesStory: Story = {
   args: {
     data: dataVariations.companyNames as any,
     categoryKey: "company" as any,
-    theme: "vivid",
     variant: "natural",
     grid: true,
     legend: true,
@@ -931,7 +915,6 @@ export const CountryDataStory: Story = {
   args: {
     data: dataVariations.countryData as any,
     categoryKey: "country" as any,
-    theme: "orchid",
     variant: "natural",
     grid: true,
     legend: true,
@@ -964,7 +947,6 @@ export const MixedLengthsStory: Story = {
   args: {
     data: dataVariations.mixedLengths as any,
     categoryKey: "item" as any,
-    theme: "spectrum",
     variant: "linear",
     grid: true,
     legend: true,
@@ -997,7 +979,6 @@ export const EdgeCasesStory: Story = {
   args: {
     data: dataVariations.edgeCases as any,
     categoryKey: "name" as any,
-    theme: "ocean",
     variant: "step",
     grid: true,
     legend: true,
@@ -1030,7 +1011,6 @@ export const MinimalDataStory: Story = {
   args: {
     data: dataVariations.minimal as any,
     categoryKey: "category" as any,
-    theme: "emerald",
     variant: "natural",
     grid: true,
     legend: true,
@@ -1064,7 +1044,6 @@ export const ExpandCollapseMarketingStory: Story = {
   args: {
     data: dataVariations.expandCollapseMarketing as any,
     categoryKey: "channel" as any,
-    theme: "vivid",
     variant: "natural",
     grid: true,
     legend: true,
@@ -1099,7 +1078,6 @@ export const CustomPaletteStory: Story = {
   args: {
     data: dataVariations.default as any,
     categoryKey: "month" as any,
-    theme: "ocean", // This will be overridden by customPalette
     variant: "natural",
     grid: true,
     legend: true,
@@ -1161,7 +1139,7 @@ export const CustomPaletteStory: Story = {
     docs: {
       description: {
         story:
-          'Demonstrates how to use the `customPalette` prop to provide your own color scheme for the chart. When `customPalette` is provided, it overrides the `theme` prop and uses your specified colors instead of the predefined theme palettes.\n\n**Key Features:**\n- 🎨 **Custom Colors**: Override default theme colors with your own palette\n- 🔄 **Theme Override**: The `theme` prop is ignored when `customPalette` is provided\n- 📊 **Consistent Distribution**: Colors are distributed evenly across data series\n- 🎯 **Brand Matching**: Perfect for matching your application\'s brand colors\n\n**Usage:**\n```tsx\n<AreaChart\n  data={data}\n  categoryKey="month"\n  customPalette={["#FF6B6B", "#4ECDC4", "#45B7D1"]}\n  // theme prop is ignored when customPalette is provided\n/>\n```',
+          'Demonstrates how to use the `customPalette` prop to provide your own color scheme for the chart. When `customPalette` is provided, it overrides the ThemeProvider\'s chart palette and uses your specified colors instead.\n\n**Key Features:**\n- 🎨 **Custom Colors**: Override the default chart colors with your own palette\n- 📊 **Consistent Distribution**: Colors are distributed evenly across data series\n- 🎯 **Brand Matching**: Perfect for matching your application\'s brand colors\n\n**Usage:**\n```tsx\n<AreaChart\n  data={data}\n  categoryKey="month"\n  customPalette={["#FF6B6B", "#4ECDC4", "#45B7D1"]}\n/>\n```',
       },
     },
   },
@@ -1183,7 +1161,6 @@ export const ResponsiveBehaviorDemo: Story = {
   args: {
     data: dataVariations.bigLabels as any,
     categoryKey: "category" as any,
-    theme: "sunset",
     variant: "natural",
     grid: true,
     legend: true,

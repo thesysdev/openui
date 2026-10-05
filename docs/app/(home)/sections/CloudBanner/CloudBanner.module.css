@@ -1,4 +1,4 @@
-/* Floating announcement pill linking to the benchmarks page. Enter and exit are
+/* Floating announcement pill linking to the Gateway page. Enter and exit are
    pure transitions, so the exit is the reverse of the entrance. */
 
 .banner {
@@ -56,21 +56,6 @@
 
 .lead {
   color: #fff;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  margin-inline: 0.12em;
-  font-size: 0.85em;
-  line-height: 1;
-  padding: 0.16em 0.34em;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  border-radius: 0.45em;
-  /* Nudge up so the box reads as centered on the caps of "OpenUI" */
-  vertical-align: middle;
-  position: relative;
-  top: -0.05em;
 }
 
 .rest {

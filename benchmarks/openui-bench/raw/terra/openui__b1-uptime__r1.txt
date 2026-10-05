@@ -1,7 +1,0 @@
-root = Card([header, uptimeCard, incidentNote], "clear", "column", "l")
-header = CardHeader("Platform Status", "Live service health for the platform team")
-uptimeCard = Card([uptimeHeading, uptimeValue, uptimeProgress], "card", "column", "s")
-uptimeHeading = Heading("API uptime this month", "h3")
-uptimeValue = TextContent("99.98%", "large-heavy")
-uptimeProgress = Progress(99.98, "August availability")
-incidentNote = Callout("success", "Most recent incident resolved", "Elevated API latency affected a subset of requests on August 16 from 14:12–14:27 UTC. The issue was resolved at 14:27 UTC after traffic was shifted away from an overloaded dependency.")

@@ -1,25 +1,63 @@
-import { GitHubButton } from "@/app/(home)/components/GitHubButton/GitHubButton";
 import { Footer } from "@/app/(home)/sections/Footer/Footer";
+import { BENCHMARK_CANONICAL_URL } from "@/lib/benchmark-agent-data";
+import {
+  BRIEFS,
+  CATALOG_COMPONENTS,
+  FORMATS,
+  LINKS,
+  MODELS,
+  REPO_ROOT,
+  RUNS_PER_FORMAT,
+} from "@/lib/benchmark-data";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
+import { BevelButton } from "../../components/Button/BevelButton";
 import { PillLink } from "../../components/Button/Button";
+import benchmarkStyles from "../benchmarks.module.css";
 
 export const metadata: Metadata = {
   title: "Benchmark methodology | OpenUI",
   description:
-    "How the OpenUI generative UI benchmark is run and scored: the models, the component catalog, each SDK's own prompts and parsers, and the two rubrics.",
+    "How the OpenUI generative UI benchmark is run and scored: 46 briefs, 70 equivalent components, controlled generation settings, and SDK-native validation.",
+  alternates: { canonical: "/benchmarks/methodology" },
+  openGraph: {
+    type: "article",
+    url: "/benchmarks/methodology",
+    title: "Generative UI benchmark methodology | OpenUI",
+    description: "A concise explanation of how the benchmark is generated and scored.",
+    modifiedTime: "2026-08-26",
+  },
 };
 
 const SECTIONS = [
-  { id: "how-we-ran-it", label: "How we ran it" },
-  { id: "rubrics", label: "Rubrics" },
-];
+  { id: "setup", label: "Benchmark setup" },
+  { id: "scoring", label: "What counts as valid" },
+  { id: "reproduce", label: "Reproduce the results" },
+  { id: "notes", label: "Important notes" },
+] as const;
 
-/* Same layout as a blog post (app/blog/[slug]/page.tsx) — gradient band, TOC
-   rail, prose column, footer — with the post's Methodology section as the
-   body. The text is the blog's, not a second version of it. */
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "@id": `${BENCHMARK_CANONICAL_URL}/methodology#article`,
+  headline: "Generative UI benchmark methodology",
+  description: "How the OpenUI generative UI benchmark is generated, scored, and reproduced.",
+  url: `${BENCHMARK_CANONICAL_URL}/methodology`,
+  dateModified: "2026-08-26",
+  author: { "@type": "Organization", name: "OpenUI by Thesys" },
+  isPartOf: { "@id": `${BENCHMARK_CANONICAL_URL}#dataset` },
+  codeRepository: REPO_ROOT,
+};
+
 export default function BenchmarkMethodologyPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replaceAll("<", "\\u003c"),
+        }}
+      />
       <div className="min-h-screen bg-[linear-gradient(to_bottom,var(--openui-foreground),var(--openui-background)_10rem,var(--openui-background)_calc(100%_-_10rem),var(--openui-foreground))] [[data-theme=dark]_&]:bg-[linear-gradient(to_bottom,#000,var(--swatch-neutral-950)_28rem,var(--swatch-neutral-950)_calc(100%_-_28rem),#000)]">
         <main className="mx-auto flex w-full max-w-[var(--home-container-wide)] gap-4 px-4 pt-16 pb-40 lg:gap-28 lg:pr-8 min-[1249px]:pl-0 min-[1024px]:max-[1248px]:pl-8">
           <aside className="hidden w-56 shrink-0 lg:block">
@@ -40,60 +78,137 @@ export default function BenchmarkMethodologyPage() {
               Methodology
             </h1>
             <p className="mb-4 text-[length:var(--home-lead-size)] font-[family-name:var(--home-font-text)] leading-[var(--home-lead-leading)] text-[color:var(--openui-text-neutral-secondary)]">
-              How the generative UI benchmark is run and scored.
+              One catalog, the same 46 interface briefs, and a shared scoring standard.
             </p>
-            <div className="-ml-3 flex flex-wrap items-center gap-1 border-b border-[color:var(--home-hairline)] pb-6">
-              <PillLink href="/benchmarks" variant="ghost">
-                Benchmarks
+            <nav
+              aria-label="Methodology actions"
+              className="flex flex-wrap items-center gap-2 border-b border-[color:var(--home-hairline)] pb-6"
+            >
+              <BevelButton
+                href="/benchmarks"
+                label="Benchmark"
+                variant="secondary"
+                className={benchmarkStyles.heroButton}
+                badge={
+                  <ArrowRight
+                    className={benchmarkStyles.actionIcon}
+                    strokeWidth={2.25}
+                    aria-hidden="true"
+                  />
+                }
+              />
+              <PillLink
+                href={REPO_ROOT}
+                variant="ghost"
+                external
+                arrow={<ArrowUpRight size={16} strokeWidth={2.25} aria-hidden="true" />}
+              >
+                Source
               </PillLink>
-              <PillLink href="/blog/generative-ui-benchmark" variant="ghost">
-                Read the full write-up
-              </PillLink>
-            </div>
+            </nav>
 
             <article className="prose mt-8 min-w-0">
-              <h2 id="how-we-ran-it">How we ran it</h2>
-              <p>
-                We chose 6 frontier models from various model families to test the 3 different
-                Generative UI formats, OpenUI, Google A2UI and Vercel json-render.
-              </p>
-              <p>
-                For all of these combinations we used the same catalog of 70 components, built
-                entirely from OpenUI&rsquo;s public component library: the open-source chat set, six
-                chat blocks from the same library, and twelve components from the public shadcn-chat
-                example. The exact catalog is committed in the repo.
-              </p>
-              <p>
-                For each format we used that SDK&rsquo;s own official prompt generator and parser,
-                and gave all three the same two worked examples, so no format was hand-tuned against
-                the others.
-              </p>
-              <p>Every model ran every prompt 4 times, giving 1,104 runs per format.</p>
-              <p>
-                In total 46 different prompts were used that mirror real life requests. None of them
-                name a component or a layout to mimic real life user queries.
-              </p>
+              <section id="setup" aria-labelledby="setup-heading">
+                <h2 id="setup-heading">Benchmark setup</h2>
+                <p>
+                  We test how reliably models generate working interfaces, without telling them
+                  which components or layouts to use.
+                </p>
+                <ul>
+                  <li>
+                    <strong>{BRIEFS} briefs</strong> across five complexity bands, from simple
+                    screens to dense workspaces.
+                  </li>
+                  <li>
+                    <strong>{CATALOG_COMPONENTS} equivalent components</strong> available to every
+                    format.
+                  </li>
+                  <li>
+                    <strong>Four generations per brief</strong>, with a 16,384-token output limit.
+                  </li>
+                  <li>
+                    <strong>Temperature 0.7</strong> where supported, with minimal or no reasoning.
+                  </li>
+                </ul>
+                <p>
+                  For the framework comparison, the same briefs run across {MODELS.length} models
+                  and {FORMATS.length} formats: OpenUI, Google A2UI, and Vercel json-render. That is{" "}
+                  {RUNS_PER_FORMAT.toLocaleString("en-US")} generations per format.
+                </p>
+                <p>
+                  Each format uses the prompt generated by its own SDK. All three receive the same
+                  two worked examples, and their component catalogs are checked against one shared
+                  reference catalog.
+                </p>
+              </section>
 
-              <h2 id="rubrics">Rubrics</h2>
-              <p>For evaluation we used the following rubrics:</p>
-              <ul>
-                <li>
-                  <strong>Structural validity:</strong> a run passes when it parses, has a root,
-                  every reference resolves, nothing is orphaned or invented, required props and
-                  enums are valid, and the output is not truncated. It also needs at least as many
-                  components as the brief has requirements; that is a count floor, not a check that
-                  each requirement was addressed. Higher is better.
-                </li>
-                <li>
-                  <strong>Render success:</strong> whether anything reached the screen at all,
-                  measured separately from structural validity. Higher is better.
-                </li>
-              </ul>
+              <section id="scoring" aria-labelledby="scoring-heading">
+                <h2 id="scoring-heading">What counts as valid</h2>
+                <p>
+                  Each format is parsed and validated by its own shipped SDK, followed by the same
+                  completeness checks for all three formats.
+                </p>
+                <p>A generation passes structural validity when it:</p>
+                <ul>
+                  <li>parses and produces a root;</li>
+                  <li>uses known components and valid required or enum props;</li>
+                  <li>resolves every reference, with nothing orphaned;</li>
+                  <li>does not end because it hit the output limit; and</li>
+                  <li>
+                    contains at least as many reachable components as the brief has requirements.
+                  </li>
+                </ul>
+                <p>
+                  <strong>Render success is separate.</strong> It records whether a non-blank screen
+                  appeared at all. A screen can render and still fail structural validity.
+                </p>
+              </section>
+
+              <section id="reproduce" aria-labelledby="reproduce-heading">
+                <h2 id="reproduce-heading">Reproduce the results</h2>
+                <p>
+                  Raw model outputs and scored verdicts are committed to the benchmark repository.
+                  The scorer runs offline, so the published outputs can be rescored without model
+                  API keys. Recreating the committed result files with no diff is the integrity
+                  check.
+                </p>
+                <p>
+                  The repository README contains the exact Node and A2UI Python setup, plus commands
+                  for rescoring one model or the full benchmark.
+                </p>
+                <p>
+                  <a href={LINKS.latestReadme}>Read the reproduction instructions</a> or inspect the{" "}
+                  <a href={LINKS.rawOutputs}>published raw outputs</a>.
+                </p>
+              </section>
+
+              <section id="notes" aria-labelledby="notes-heading">
+                <h2 id="notes-heading">Important notes</h2>
+                <div className="not-prose my-6 border-l-2 border-[color:var(--openui-text-neutral-primary)] pl-5 text-sm leading-6 text-[color:var(--openui-text-neutral-secondary)]">
+                  Every row is scored by one build of the shipped OpenUI parser,{` `}
+                  <strong>lang-core 0.2.16</strong>, whose parser validates enum and scalar prop
+                  values. Raw outputs and per-run verdicts are committed for independent rescoring.
+                </div>
+                <ul>
+                  <li>
+                    The component-count floor prevents tiny valid outputs from passing, but it does
+                    not judge visual quality or prove every requirement was understood.
+                  </li>
+                  <li>
+                    Cost uses measured tokens and list prices. Hidden reasoning tokens can make the
+                    actual bill higher.
+                  </li>
+                  <li>
+                    Self-hosted model costs are marked as not comparable rather than treated as
+                    free.
+                  </li>
+                  <li>
+                    OpenUI built this benchmark. The method and outputs are published so the results
+                    can be inspected and challenged.
+                  </li>
+                </ul>
+              </section>
             </article>
-
-            <div className="mt-12 border-t border-[color:var(--home-hairline)] pt-8">
-              <GitHubButton variant="desktopGlow" />
-            </div>
           </div>
         </main>
       </div>

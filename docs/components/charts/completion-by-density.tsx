@@ -10,7 +10,14 @@ import {
   completionByDensityFor,
 } from "@/lib/benchmark-data";
 import { useEffect, useRef, useState } from "react";
-import { Chart, styles as s, slotClass, useVizSkin } from "./primitives";
+import {
+  Chart,
+  ChartDataDisclosure,
+  DataTable,
+  styles as s,
+  slotClass,
+  useVizSkin,
+} from "./primitives";
 
 /* Drawn at the container's real pixel width. the SVG never scales, so text
    is always its true size and the plot always fills the card. */
@@ -254,6 +261,37 @@ export function CompletionByDensity({
           </span>
         ))}
       </div>
+      <ChartDataDisclosure label="View complexity data">
+        <DataTable>
+          <caption>Structural validity by brief requirement count and generative UI format</caption>
+          <thead>
+            <tr>
+              <th scope="col">Requirements per screen</th>
+              <th scope="col" data-numeric="true">
+                Runs
+              </th>
+              {shownFormats.map((format) => (
+                <th key={format} scope="col" data-numeric="true">
+                  {FORMATS.find((item) => item.id === format)!.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {completionByDensity.map((row) => (
+              <tr key={`data-${row.band}`}>
+                <th scope="row">{row.band}</th>
+                <td data-numeric="true">{row.runs}</td>
+                {shownFormats.map((format) => (
+                  <td key={format} data-numeric="true">
+                    {row[format].toFixed(1)}%
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </DataTable>
+      </ChartDataDisclosure>
     </Chart>
   );
 }

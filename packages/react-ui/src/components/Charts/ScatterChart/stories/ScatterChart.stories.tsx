@@ -10,8 +10,8 @@ import {
   Watch,
 } from "lucide-react";
 import { useState } from "react";
+import { ScatterChart, ScatterChartProps } from "../..";
 import { Card } from "../../../Card";
-import { ScatterChart, ScatterChartProps } from "../ScatterChart";
 
 const customColorPalette = [
   "#0A0E60",
@@ -439,9 +439,8 @@ const icons = {
  * - **Responsive Design**: Adapts to any container size.
  *
  * ### Customization
- * - **Theming**: Six pre-built color palettes or custom colors.
- * - **Shape Options**: Multiple point shapes (circle, diamond, square, etc.).
- * - **Axis Configuration**: Customizable axis labels, units, and domains.
+ * - **Colors**: Uses the ThemeProvider's chart palette, or custom colors with `customPalette`.
+ * - **Axis Configuration**: Customizable axis labels.
  */
 const meta: Meta<ScatterChartProps> = {
   title: "Components/Charts/ScatterChart",
@@ -465,20 +464,13 @@ const scatterData = [
 // Basic implementation
 <ScatterChart
   data={scatterData}
-  xAxisDataKey="x"
-  yAxisDataKey="y"
-  theme="ocean"
 />
 
-// With custom labels and units
+// With custom axis labels
 <ScatterChart
   data={scatterData}
-  xAxisDataKey="x"
-  yAxisDataKey="y"
   xAxisLabel="Temperature (°C)"
   yAxisLabel="Sales ($)"
-  xAxisUnit="°C"
-  yAxisUnit="$"
 />
 \`\`\`
 
@@ -515,45 +507,11 @@ const scatterData = [
         category: "📊 Data Configuration",
       },
     },
-    xAxisDataKey: {
-      description: "The key in your data object that represents the X-axis values.",
-      control: "text",
-      table: {
-        defaultValue: { summary: "x" },
-        category: "📊 Data Configuration",
-      },
-    },
-    yAxisDataKey: {
-      description: "The key in your data object that represents the Y-axis values.",
-      control: "text",
-      table: {
-        defaultValue: { summary: "y" },
-        category: "📊 Data Configuration",
-      },
-    },
-    theme: {
-      description: "Specifies the color palette for the chart points and legend.",
-      control: "select",
-      options: ["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"],
-      table: {
-        defaultValue: { summary: "ocean" },
-        category: "🎨 Visual Styling",
-      },
-    },
     customPalette: {
-      description: "Custom array of colors to use instead of the theme palette.",
+      description: "Custom array of colors to use instead of the ThemeProvider's chart palette.",
       control: "object",
       table: {
         type: { summary: "string[]" },
-        category: "🎨 Visual Styling",
-      },
-    },
-    shape: {
-      description: "The shape of the scatter points.",
-      control: "select",
-      options: ["circle", "square"],
-      table: {
-        defaultValue: { summary: "circle" },
         category: "🎨 Visual Styling",
       },
     },
@@ -637,15 +595,10 @@ export const BasicScatter: Story = {
   name: "📈 Basic Scatter Chart",
   args: {
     data: dataVariations.default,
-    xAxisDataKey: "x",
-    yAxisDataKey: "y",
-    theme: "ocean",
     grid: true,
     legend: true,
     isAnimationActive: true,
     showYAxis: true,
-    showXAxis: true,
-    shape: "circle",
     width: 700,
     height: 400,
   },
@@ -662,65 +615,17 @@ export const CorrelationAnalysis: Story = {
   name: "📊 Correlation Analysis",
   args: {
     data: dataVariations.correlation,
-    xAxisDataKey: "x",
-    yAxisDataKey: "y",
-    theme: "emerald",
     grid: true,
     legend: true,
     isAnimationActive: true,
     xAxisLabel: "Marketing Spend",
     yAxisLabel: "Sales Revenue",
-    shape: "circle",
   },
   render: (args: any) => (
     <Card style={{ width: "700px" }}>
       <ScatterChart {...args} />
     </Card>
   ),
-};
-
-/**
- * ## Shape Comparison
- *
- * Compare different point shapes available in the scatter chart.
- * Each shape provides a different visual style for your data points.
- */
-export const ShapeComparison: Story = {
-  name: "🔷 Shape Comparison",
-  args: {
-    data: dataVariations.default as never,
-    xAxisDataKey: "x",
-    yAxisDataKey: "y",
-    theme: "sunset",
-    grid: true,
-    legend: true,
-    isAnimationActive: false,
-  },
-  render: (args: any) => {
-    const shapes = ["circle", "square"] as const;
-
-    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        {shapes.map((shape) => (
-          <div key={shape}>
-            <h4
-              style={{
-                margin: "0 0 8px 0",
-                fontSize: "14px",
-                fontWeight: "600",
-                textTransform: "capitalize",
-              }}
-            >
-              {shape} Shape
-            </h4>
-            <Card style={{ width: "500px", height: "600px" }}>
-              <ScatterChart {...args} shape={shape} height={"100%"} />
-            </Card>
-          </div>
-        ))}
-      </div>
-    );
-  },
 };
 
 /**
@@ -733,13 +638,9 @@ export const DataExplorer: Story = {
   name: "🎛️ Data Explorer",
   args: {
     data: dataVariations.default as never,
-    xAxisDataKey: "x",
-    yAxisDataKey: "y",
-    theme: "ocean",
     grid: true,
     legend: true,
     isAnimationActive: true,
-    shape: "circle",
   },
   render: (args: any) => {
     const [selectedDataType, setSelectedDataType] =

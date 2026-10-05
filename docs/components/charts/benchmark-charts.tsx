@@ -21,7 +21,16 @@ import {
   tokens,
 } from "@/lib/benchmark-data";
 import type { ReactNode } from "react";
-import { Chart, Chip, Row, styles as s, slotClass, useVizSkin } from "./primitives";
+import {
+  Chart,
+  ChartDataDisclosure,
+  Chip,
+  DataTable,
+  Row,
+  styles as s,
+  slotClass,
+  useVizSkin,
+} from "./primitives";
 
 const slotOf = (id: FormatId) => FORMATS.find((f) => f.id === id)!.series;
 const markOf = (id: FormatId) => FORMATS.find((f) => f.id === id)!.mark;
@@ -70,8 +79,12 @@ export function CompletionByModel({
     >
       <MarketingTable
         compact
+        edgeToEdgeMobile
         className={`${s.benchmarkTable} ${s.tableWide} ${flatTable ? s.tableFlat : ""}`}
       >
+        <caption className={s.tableCaption}>
+          Structural validity percentage for each model and generative UI format
+        </caption>
         <thead>
           <tr>
             <th scope="col">Model</th>
@@ -388,6 +401,37 @@ export function TokenMatrix({
           );
         })}
       </div>
+      <ChartDataDisclosure label="View token data">
+        <DataTable>
+          <caption>System prompt and mean output tokens per screen by format</caption>
+          <thead>
+            <tr>
+              <th scope="col">Format</th>
+              <th scope="col" data-numeric="true">
+                System prompt
+              </th>
+              <th scope="col" data-numeric="true">
+                Mean output
+              </th>
+              <th scope="col" data-numeric="true">
+                Combined
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map((format) => (
+              <tr key={`data-${format}`}>
+                <th scope="row">{formatLabel(format)}</th>
+                <td data-numeric="true">{tokens.systemPrompt[format].toLocaleString()}</td>
+                <td data-numeric="true">{tokens.outputPerScreen[format].toLocaleString()}</td>
+                <td data-numeric="true">
+                  {(tokens.systemPrompt[format] + tokens.outputPerScreen[format]).toLocaleString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </DataTable>
+      </ChartDataDisclosure>
     </Chart>
   );
 }
@@ -435,7 +479,14 @@ export function CostPerPass({
           a priced model to the filter.
         </p>
       ) : (
-        <MarketingTable compact className={`${s.benchmarkTable} ${flatTable ? s.tableFlat : ""}`}>
+        <MarketingTable
+          compact
+          edgeToEdgeMobile
+          className={`${s.benchmarkTable} ${flatTable ? s.tableFlat : ""}`}
+        >
+          <caption className={s.tableCaption}>
+            Cost in USD for one 46-screen benchmark pass by model and generative UI format
+          </caption>
           <thead>
             <tr>
               <th scope="col">Model</th>

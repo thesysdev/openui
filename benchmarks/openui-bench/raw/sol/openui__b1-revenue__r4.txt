@@ -1,7 +1,0 @@
-root = Card([header, revenueCard, comparison])
-header = CardHeader("Today’s revenue", "Mid-morning check-in")
-revenueCard = Card([revenueLabel, revenueValue, progress], "sunk", "column", "s")
-revenueLabel = TextContent("Revenue so far today", "small-heavy")
-revenueValue = Heading("$1,842.50", "h1")
-progress = Progress(46, "46% of today’s $4,000 target")
-comparison = Callout("success", "Up 12.4% from yesterday", "At the same time yesterday, revenue was $1,639.20 — today is ahead by $203.30.")

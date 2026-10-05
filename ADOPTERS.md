@@ -25,6 +25,7 @@ Organizations using OpenUI in their products or internal workflows.
 | [Oodle](https://www.oodle.ai/)                  | [Gaurav Maheshwari](https://blog.oodle.ai/how-we-taught-our-ai-to-draw/) | Oodle uses OpenUI Lang to let its AI assistant render streaming, composable observability UI for metrics, logs, traces, charts, timelines, and incident investigations.                                                                                       |
 | [prox](https://useprox.com/)                    | [Gregory Makodzeba](https://www.linkedin.com/in/gregory-makodzeba/)      | Prox is an AI product-support platform that turns manuals and product data into cited, interactive answers like troubleshooters, selectors, calculators, and guides.                                                                                          |
 | [Productboard](https://www.productboard.com/)   | [Patrick Zachar](https://x.com/patrickzachar)                            | Productboard draws from your customer signals, codebase, and strategy to ensure every product decision is grounded, every spec is delivery-ready, and every launch informs your roadmap.                                                                      |
+| [Automatio AI](https://automatio.ai/)           | [Kinder • Grinder](https://x.com/kinder_grinder)                         | Automatio is a unified AI agent for any automation that builds and deploys real applications, researches and structures web data, generates media, and runs recurring workflows from plain English prompts.                                                  |
 
 <!--
 Example row, copy and edit:
@@ -36,6 +37,11 @@ Example row, copy and edit:
 
 Frameworks that integrate with, support, or generate OpenUI interfaces.
 
+- **assistant-ui** — Renders streaming OpenUI programs as assistant-ui Tool UI while assistant-ui retains control of the conversation and tool lifecycle.
+
+  - Status: `Official integration`
+  - [Documentation](https://www.assistant-ui.com/docs/tools/openui) · [Example](https://github.com/assistant-ui/assistant-ui/tree/main/examples/with-openui)
+
 - **Lynx** — Renders OpenUI Lang as cross-platform interfaces through the OpenUI renderer and component library in `@lynx-js/genui`.
 
   - Status: `Official integration`
@@ -44,11 +50,11 @@ Frameworks that integrate with, support, or generate OpenUI interfaces.
 - **LangChain** — Generates and renders interactive OpenUI dashboards and reports in LangChain and LangGraph applications.
 
   - Status: `Official integration`
-  - [Documentation](https://docs.langchain.com/oss/python/langchain/frontend/integrations/openui) · [Example](https://github.com/thesysdev/openui/tree/main/examples/langchain-chat)
+  - [Documentation](https://docs.langchain.com/oss/python/langchain/frontend/integrations/openui) · [Example](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/langgraph-platform)
 
 - **Mastra** — Connects Mastra agent backends to OpenUI's Agent Interface over AG-UI for streaming tool-powered generative interfaces.
   - Status: `Official integration`
-  - [Documentation](https://mastra.ai/docs) · [Example](https://github.com/thesysdev/openui/tree/main/examples/mastra-chat)
+  - [Documentation](https://mastra.ai/docs) · [Example](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra)
 
 ## How to add an entry
 

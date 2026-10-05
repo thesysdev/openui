@@ -163,7 +163,7 @@ The result is that the spectrum becomes per-component rather than per-applicatio
 
 This also keeps the governance story simple. The security review localizes to one component instead of the entire output surface, prompt guidance can steer the model toward catalog primitives first, and deployments that don't want arbitrary generation can omit the component from the catalog entirely; the same mechanism that enables the escape hatch is the mechanism that disables it.
 
-OpenUI ships a working implementation of this pattern: [`examples/html-artifact`](https://github.com/thesysdev/openui/tree/main/examples/html-artifact), documented in the [Open-ended HTML guide](/docs/agent/guides/open-ended-html).
+OpenUI ships a working implementation of this pattern: [`examples/miscellaneous/html-artifact`](https://github.com/thesysdev/openui/tree/main/examples/miscellaneous/html-artifact), documented in the [Open-ended HTML guide](/docs/agent/guides/open-ended-html).
 
 ![A rendered page built from catalog primitives (Heading, Card, BarChart, Button) with one demarcated GeneratedView region in a sandboxed iframe: catalog primitives by default, Open-Ended only where the catalog doesn't reach](./images/generative-ui-catalog.png)
 

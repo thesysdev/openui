@@ -1,0 +1,13 @@
+@import "@openuidev/react-ui/styles/index.css";
+
+html,
+body {
+  margin: 0;
+}
+
+.app-shell {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  width: 100vw;
+}

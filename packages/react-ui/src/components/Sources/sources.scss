@@ -1,0 +1,135 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-listed-sources-item-container {
+  width: 180px !important;
+  padding: cssUtils.$space-000 !important;
+  border-radius: cssUtils.$radius-l !important;
+  overflow: hidden;
+  background-color: transparent !important;
+  &--has-url {
+    &:hover {
+      background-color: cssUtils.$highlight-subtle !important;
+      border-color: cssUtils.$border-interactive !important;
+    }
+  }
+}
+
+.openui-listed-source-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: cssUtils.$space-2xs;
+  padding: cssUtils.$space-s;
+  height: 100%;
+  &--has-url {
+    cursor: pointer;
+  }
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: cssUtils.$space-s;
+  }
+
+  &__source-name {
+    color: cssUtils.$text-neutral-primary;
+    @include cssUtils.typography(label, small);
+  }
+  &__title {
+    color: cssUtils.$text-neutral-secondary;
+    @include cssUtils.typography(body, small);
+  }
+  &__logo {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid cssUtils.$border-default;
+    border-radius: cssUtils.$radius-s;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+}
+
+.openui-listed-sources {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-m;
+
+  &-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: cssUtils.$space-s;
+
+    &__title {
+      color: cssUtils.$text-neutral-secondary;
+      @include cssUtils.typography(label, heavy);
+    }
+
+    &__buttons {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: cssUtils.$space-s;
+    }
+  }
+
+  &-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: cssUtils.$space-s;
+    border-radius: cssUtils.$radius-m;
+    border: 1px solid cssUtils.$border-default;
+    cursor: pointer;
+    text-align: left;
+    width: 180px;
+
+    &__header {
+      display: flex;
+      align-items: center;
+      gap: cssUtils.$space-s;
+    }
+
+    &__source-name {
+      color: cssUtils.$text-neutral-secondary;
+      @include cssUtils.typography(label, small);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    &__title {
+      color: cssUtils.$text-neutral-secondary;
+      @include cssUtils.typography(body, small);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    &__date-range {
+      color: cssUtils.$text-neutral-secondary;
+      @include cssUtils.typography(body, small);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    &__logo {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid cssUtils.$border-default;
+      border-radius: cssUtils.$radius-s;
+      overflow: hidden;
+
+      &-image {
+        border-radius: cssUtils.$radius-s;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+}

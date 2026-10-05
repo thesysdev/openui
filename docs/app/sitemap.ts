@@ -3,13 +3,26 @@ import { integrations } from "./(home)/integrations/data";
 
 const STATIC_PATHS = [
   "/",
-  "/cloud",
-  "/demos",
+  "/openui-vs-json",
   "/compare",
   "/lab",
   "/integrations",
   "/chat",
   "/blog",
+  "/benchmarks",
+  "/benchmarks/language",
+  "/benchmarks/language/agent.md",
+  "/benchmarks/language/data.json",
+  "/benchmarks/language/data.csv",
+  "/benchmarks/framework",
+  "/benchmarks/framework/agent.md",
+  "/benchmarks/framework/data.json",
+  "/benchmarks/framework/data.csv",
+  "/benchmarks/methodology",
+  "/benchmarks/agent.md",
+  "/benchmarks/data.json",
+  "/benchmarks/data.schema.json",
+  "/benchmarks/data.csv",
 ];
 
 export default async function sitemap() {

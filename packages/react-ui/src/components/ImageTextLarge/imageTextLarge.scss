@@ -1,0 +1,28 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-image-text-large {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: cssUtils.$space-m;
+}
+
+.openui-image-text-large__image-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 60px;
+  max-height: 180px;
+  border-radius: cssUtils.$radius-m;
+  overflow: hidden;
+  background-color: cssUtils.$sunk;
+  line-height: 0;
+}
+
+.openui-image-text-large__image {
+  display: block;
+  width: 100%;
+  height: 180px;
+  max-height: 180px;
+  object-fit: cover;
+}

@@ -1,0 +1,185 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-text-content-markdown {
+  color: cssUtils.$text-neutral-primary;
+  @include cssUtils.typography(body, default);
+  max-width: none;
+
+  /* Heading Styles */
+  & h1,
+  & h2,
+  & h3,
+  & h4,
+  & h5,
+  & h6 {
+    @include cssUtils.typography(heading, extra-small);
+    color: cssUtils.$text-neutral-primary;
+    margin-bottom: 18px;
+    &:has(+ p) {
+      margin-bottom: 8px;
+    }
+    + strong {
+      @include cssUtils.typography(heading, extra-small);
+    }
+  }
+  /* Paragraph Styles */
+  & p {
+    color: cssUtils.$text-neutral-primary;
+    @include cssUtils.typography(body, default);
+    margin-bottom: 0;
+    &:has(+ p) {
+      margin-bottom: 18px;
+    }
+    &:has(+ ol) {
+      margin-bottom: 8px;
+    }
+    &:has(+ ul) {
+      margin-bottom: 8px;
+    }
+  }
+
+  & strong {
+    color: cssUtils.$text-neutral-primary;
+    @include cssUtils.typography(body, heavy);
+  }
+
+  & li {
+    margin-bottom: 8px;
+    @include cssUtils.typography(body, default);
+    :last-child {
+      margin-bottom: 0;
+    }
+    &::marker {
+      @include cssUtils.typography(body, default);
+      color: cssUtils.$text-neutral-secondary;
+    }
+  }
+  & li ul {
+    margin-top: 8px;
+  }
+
+  & li li {
+    margin-top: 8px;
+  }
+  & li ol {
+    margin-top: 8px;
+  }
+  & ol {
+    list-style-type: decimal;
+    padding-left: 20px;
+    margin-bottom: 20px;
+    @include cssUtils.typography(body, default);
+    color: cssUtils.$text-neutral-primary;
+    :last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  & ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin-bottom: 24px;
+    @include cssUtils.typography(body, default);
+    color: cssUtils.$text-neutral-primary;
+    :last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  & .openui-code-block-syntax-highlighter {
+    padding: 25px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+
+    &:first-child {
+      margin-top: 0 !important;
+    }
+
+    &:last-child {
+      margin-bottom: 0 !important;
+    }
+  }
+
+  & hr {
+    margin-top: 48px;
+    margin-bottom: 48px;
+    + * {
+      margin-top: 0;
+    }
+  }
+
+  /* Blockquote Styles */
+  & blockquote {
+    color: cssUtils.$text-neutral-primary;
+    border-left: 4px solid color-mix(in oklab, cssUtils.$text-neutral-primary 70%, transparent);
+    padding: 0px 0 0px 8px;
+    font-style: italic;
+    margin-left: 0;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    padding-left: 16px;
+    quotes: "\201C" "\201D" "\2018" "\2019";
+    line-height: 1.625;
+  }
+
+  & blockquote strong {
+    @include cssUtils.typography(body, heavy);
+  }
+
+  & blockquote > *:first-child::before {
+    content: open-quote;
+    font-size: 1em;
+    line-height: 1;
+    vertical-align: top;
+    margin-right: 0.2em;
+  }
+
+  & blockquote > *:last-child::after {
+    content: close-quote;
+    font-size: 1em;
+    line-height: 1.5;
+    vertical-align: top;
+    margin-left: 0.2em;
+  }
+
+  & blockquote * {
+    font-style: inherit;
+    color: inherit;
+    line-height: inherit;
+  }
+
+  & .openui-table-container {
+    margin-bottom: 20px;
+  }
+
+  > *:first-child {
+    margin-top: 0;
+  }
+
+  > *:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.openui-text-content-markdown-dark-mode {
+  & p,
+  & h1,
+  & h2,
+  & h3,
+  & h4,
+  & h5,
+  & h6 {
+    color: cssUtils.$text-neutral-primary;
+  }
+
+  .katex {
+    margin-top: cssUtils.$space-xs;
+    display: inline-block;
+  }
+}
+
+.openui-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-xl;
+}

@@ -1,7 +1,0 @@
-root = Card([header, statusRow, deadline, progress, action])
-header = CardHeader("Finalize Q3 Budget Report", "Priority: Critical · Assigned to you")
-statusRow = Tag("In Progress", null, "md", "warning")
-deadline = TextContent("**Deadline:** Today, 5:00 PM — 3 hours remaining", "default")
-progress = Progress(72, "Completion")
-action = Buttons([doneBtn])
-doneBtn = Button("Mark as Done", null, "primary")

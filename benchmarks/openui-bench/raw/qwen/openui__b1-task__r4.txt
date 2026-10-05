@@ -1,7 +1,0 @@
-root = Card([header, statusTag, progress, separator, actions])
-header = CardHeader("Finalize Q3 budget proposal", "Deadline: Today, 5:00 PM")
-statusTag = Tag("In Progress", null, "md", "warning")
-progress = Progress(70, "70% complete")
-separator = Separator()
-actions = Buttons([doneBtn])
-doneBtn = Button("Mark as Done", null, "primary", null, "large")

@@ -1,0 +1,85 @@
+// Faithful port of react-ui's `singleStackedBarChart.scss`, re-prefixed
+// `#{brand.$prefix}-segmented-bar*` and pulling the same design tokens from
+// `@openuidev/react-ui/scssUtils`. A thin div-based stacked progress bar: 20px
+// track, rounded + soft-shadowed, per-segment shadow + rounded outer corners +
+// a centered 1px accent line, with an optional width tween.
+
+@use "../../../cssUtils" as cssUtils;
+@use "../shared/cartesian/chartBase" as base;
+@use "../prefix" as brand;
+
+// The persistent container (rendered by ChartShell): the centered column shared
+// by the non-cartesian charts, plus openui's justify-center + the legend gap.
+@include base.centered-container("segmented-bar");
+
+.#{brand.$prefix}-segmented-bar-container {
+  justify-content: center;
+
+  // Gap between the bar and the DefaultLegend (default variant only) — openui's
+  // `-container-gap`. The StackedLegend spaces itself with margin-top below.
+  &--gap {
+    gap: cssUtils.$space-m;
+  }
+}
+
+// The thin bar track.
+.#{brand.$prefix}-segmented-bar {
+  // Padding inside the size, with or without a global box-sizing reset.
+  width: 100%;
+  box-sizing: border-box;
+  height: 20px;
+  font-family: inherit;
+  background-color: cssUtils.$background;
+  border-radius: cssUtils.$radius-s;
+  overflow: hidden;
+  box-shadow: cssUtils.$shadow-s;
+  display: flex;
+  padding: cssUtils.$space-2xs;
+  gap: cssUtils.$space-3xs;
+}
+
+.#{brand.$prefix}-segmented-bar-segment {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2px;
+  box-shadow: cssUtils.$shadow-s;
+  position: relative;
+  overflow: hidden;
+  transition:
+    box-shadow 0.2s ease,
+    filter 0.2s ease,
+    opacity 0.2s ease;
+
+  &:first-child {
+    border-radius: cssUtils.$radius-xs 0 0 cssUtils.$radius-xs;
+  }
+
+  &:last-child {
+    border-radius: 0 cssUtils.$radius-xs cssUtils.$radius-xs 0;
+  }
+
+  // The centered 1px accent line inside each segment.
+  &-line {
+    position: absolute;
+    transform: translateY(-50%);
+    background-color: cssUtils.$border-accent-emphasis;
+    top: 50%;
+    left: 5px;
+    width: calc(100% - 10px);
+    height: 1px;
+    z-index: 1;
+    min-width: 2px;
+  }
+
+  // The width tween (each segment grows/shrinks as its share shifts). Openui's
+  // `-animated`; gated in JS so printing snaps to the settled frame.
+  &--animated {
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+.#{brand.$prefix}-segmented-bar-stacked-legend {
+  margin-top: cssUtils.$space-s;
+}

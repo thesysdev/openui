@@ -1,0 +1,562 @@
+---
+title: "@openuidev/a2ui"
+description: A2UI v1.0 protocol support with OpenUI Lang component updates and an optional React renderer.
+---
+
+`@openuidev/a2ui` implements the [A2UI v1.0 candidate](https://github.com/a2ui-project/a2ui/blob/main/specification/v1_0/docs/a2ui_protocol.md) surface lifecycle while using OpenUI Lang for component payloads.
+
+The package deliberately changes one part of the protocol: `createSurface.components` and `updateComponents.components` are arrays of OpenUI Lang statements instead of A2UI component JSON. All other lifecycle and message envelopes retain their A2UI v1.0 shapes, including surface creation and deletion, data-model updates, actions, function calls and responses, errors, capabilities, and renderer metadata.
+
+```json
+{
+  "version": "v1.0",
+  "updateComponents": {
+    "surfaceId": "main",
+    "components": [
+      "root = Stack([title, save])",
+      "title = TextContent(\"Account settings\")",
+      "save = Button(\"Save\", onClick: @ToAssistant(\"Save these settings\"))"
+    ]
+  }
+}
+```
+
+This gives you A2UI's stateful, bidirectional protocol and OpenUI Lang's compact, streaming-friendly component representation.
+
+## Package structure
+
+The package has two public entrypoints:
+
+| Entrypoint              | Environment        | Responsibility                                                                                 |
+| :---------------------- | :----------------- | :--------------------------------------------------------------------------------------------- |
+| `@openuidev/a2ui`       | Framework-agnostic | Protocol validation, surfaces, statement patches, data model, actions, functions, and metadata |
+| `@openuidev/a2ui/react` | React (optional)   | Subscribes to a surface and renders its OpenUI Lang source with `@openuidev/react-lang`        |
+
+The core client depends on `@openuidev/lang-core`; it does not depend on React. A Vue, Svelte, native, or server-side host can use the same client and provide its own rendering adapter.
+
+## Installation
+
+Install the framework-neutral client and its Zod peer:
+
+```bash
+npm install @openuidev/a2ui zod
+```
+
+For React rendering, also install the optional renderer peers:
+
+```bash
+npm install react @openuidev/react-lang
+```
+
+Install the package that provides your component library as well. For example, the built-in OpenUI library is exported by `@openuidev/react-ui`:
+
+```bash
+npm install @openuidev/react-ui
+```
+
+## Protocol flow
+
+A typical surface moves through the following lifecycle:
+
+1. The agent sends `createSurface` to allocate a surface and optionally seed its components and data model.
+2. The agent sends one or more `updateComponents` messages. Each message patches OpenUI Lang statements by statement ID.
+3. The agent can send `updateDataModel` at any time. Renderer state changes can flow back through action context or renderer metadata.
+4. User interactions produce A2UI `action` messages from the renderer to the agent.
+5. Either side can invoke catalog functions with `callRendererFunction` or `callAgentFunction` and settle them with the corresponding function-response envelope.
+6. The agent sends `deleteSurface` when the UI is no longer needed.
+
+The package owns protocol state, not transport. Your application is responsible for carrying messages over SSE, NDJSON, WebSocket, AG-UI, an agent SDK, or another channel, and for passing each decoded message to `client.process()`.
+
+### Supported messages
+
+| Direction        | Message                    | Purpose                                                        |
+| :--------------- | :------------------------- | :------------------------------------------------------------- |
+| Agent → renderer | `createSurface`            | Creates a surface, optionally with components and a data model |
+| Agent → renderer | `updateComponents`         | Adds, replaces, or removes OpenUI Lang statements              |
+| Agent → renderer | `updateDataModel`          | Applies a JSON Pointer update to surface data                  |
+| Agent → renderer | `deleteSurface`            | Removes a surface and rejects its pending function calls       |
+| Agent → renderer | `callRendererFunction`     | Invokes a registered renderer function                         |
+| Agent → renderer | `agentFunctionResponse`    | Settles a function call initiated by the renderer              |
+| Renderer → agent | `action`                   | Reports a user or component interaction                        |
+| Renderer → agent | `callAgentFunction`        | Invokes an agent function                                      |
+| Renderer → agent | `rendererFunctionResponse` | Returns the result of a requested renderer function            |
+| Renderer → agent | `error`                    | Reports validation, lifecycle, or function errors              |
+
+## Create a client
+
+Create one client for the set of surfaces handled by a renderer:
+
+```ts
+import { createA2UIClient } from "@openuidev/a2ui";
+import { openuiLibrary } from "@openuidev/react-ui";
+
+const client = createA2UIClient({
+  schema: openuiLibrary.toJSONSchema(),
+  rootName: openuiLibrary.root,
+  rendererCapabilities: {
+    "v1.0": {
+      supportedCatalogIds: ["com.example:openui"],
+    },
+  },
+  onMessage(message, metadata) {
+    transport.send({ message, metadata });
+  },
+});
+```
+
+### `A2UIClientOptions`
+
+| Option                 | Type                                       | Description                                                                            |
+| :--------------------- | :----------------------------------------- | :------------------------------------------------------------------------------------- |
+| `schema`               | `LibraryJSONSchema`                        | Required OpenUI component schema, normally from `library.toJSONSchema()`               |
+| `rootName`             | `string`                                   | Expected root component name from the library                                          |
+| `functions`            | `Record<string, function \| registration>` | Renderer functions that incoming `callRendererFunction` messages may invoke            |
+| `rendererCapabilities` | `RendererCapabilities`                     | Catalog IDs and optional inline catalogs advertised in outgoing metadata               |
+| `onMessage`            | `(message, metadata) => void`              | Receives renderer-to-agent messages emitted by actions, functions, and protocol errors |
+| `now`                  | `() => Date`                               | Optional clock override, useful for deterministic action timestamps in tests           |
+| `createId`             | `() => string`                             | Optional ID generator for renderer-initiated agent function calls                      |
+
+The schema and the rendered library must describe the same components. `catalogId` is a protocol identifier and capability check; the client does not download a catalog or choose a component library from that ID.
+
+## Process agent messages
+
+Pass decoded agent-to-renderer messages to `process()` in arrival order:
+
+```ts
+await client.process({
+  version: "v1.0",
+  createSurface: {
+    surfaceId: "main",
+    catalogId: "com.example:openui",
+    sendDataModel: true,
+    dataModel: {
+      user: { name: "Alice" },
+    },
+  },
+});
+
+await client.process({
+  version: "v1.0",
+  updateComponents: {
+    surfaceId: "main",
+    components: ["root = Stack([greeting])", 'greeting = TextContent("Hello, " + $user.name)'],
+  },
+});
+```
+
+`process(input)` validates the envelope at runtime and returns:
+
+```ts
+interface ProcessResult {
+  ok: boolean;
+  outbound: RendererToAgentMessage[];
+  issues?: Array<{ path: string; message: string }>;
+}
+```
+
+`outbound` contains the messages emitted while processing that input. The same messages are also delivered to `onMessage` and `subscribeMessages()` listeners. A host can use either mechanism, but should avoid sending the same outbound message twice.
+
+## Component updates
+
+Each `components` entry is an OpenUI Lang statement or multiline statement block. Updates are merged by statement ID:
+
+```json
+{
+  "version": "v1.0",
+  "updateComponents": {
+    "surfaceId": "main",
+    "components": ["status = Badge(\"Saving\")"]
+  }
+}
+```
+
+- A new ID adds a statement.
+- An existing ID replaces its previous statement without changing its position.
+- `statementId = null` removes that statement.
+- `root` remains the surface root.
+- Statements may arrive before they are reachable from `root`; the client preserves them so a later patch can attach them.
+- Entries are applied in array order, so a later entry for the same ID wins.
+
+For example:
+
+```ts
+await client.process({
+  version: "v1.0",
+  updateComponents: {
+    surfaceId: "main",
+    components: [
+      'status = Badge("Saved")', // replace status
+      "oldHelpText = null", // remove oldHelpText
+    ],
+  },
+});
+```
+
+### Streaming component generation
+
+An `updateComponents` message is a statement patch, not a raw text-delta event. When an LLM is generating OpenUI Lang, keep the current accumulated statement or statement block and send replacements under the same statement ID:
+
+```ts
+for await (const sourceSoFar of generateOpenUILang()) {
+  await client.process({
+    version: "v1.0",
+    updateComponents: {
+      surfaceId: "main",
+      components: [sourceSoFar],
+    },
+  });
+}
+```
+
+For true progressive rendering:
+
+- Send `createSurface` as soon as the surface is known.
+- Forward patches as model output arrives instead of buffering the complete generation.
+- Send the accumulated source for an ID, not only the latest token delta. Statement replacement then produces a coherent surface snapshot.
+- Stream raw OpenUI Lang without Markdown code fences. A fenced block cannot be interpreted until its closing fence arrives.
+- Set the React adapter's `isStreaming` prop while the turn is active. The underlying OpenUI renderer can then render the usable prefix and tolerate incomplete trailing syntax.
+- Mark streaming complete only after the final patch has been processed.
+
+Transport boundaries and Lang statement boundaries do not need to match, but every `client.process()` call must receive a valid A2UI JSON envelope.
+
+## Surface state
+
+Read or subscribe to the framework-neutral surface store:
+
+```ts
+const unsubscribe = client.subscribe(() => {
+  const surface = client.getSurface("main");
+  console.log(surface?.source, surface?.dataModel, surface?.revision);
+});
+
+const allSurfaces = client.getSurfaces();
+
+unsubscribe();
+```
+
+Each snapshot has the following shape:
+
+```ts
+interface SurfaceSnapshot {
+  surfaceId: string;
+  catalogId?: string;
+  metadata?: A2UIMessageMetadata;
+  sendDataModel: boolean;
+  source: string;
+  dataModel: JsonObject;
+  parseResult: ParseResult | null;
+  errors: OpenUIError[];
+  revision: number;
+}
+```
+
+`source` is the merged OpenUI Lang document. `parseResult` and `errors` come from `@openuidev/lang-core`. `revision` increases whenever any surface changes and is suitable for external-store subscriptions.
+
+## Data-model updates
+
+`updateDataModel` applies a JSON Pointer patch to a surface:
+
+```ts
+await client.process({
+  version: "v1.0",
+  updateDataModel: {
+    surfaceId: "main",
+    path: "/user/name",
+    value: "Bob",
+  },
+});
+```
+
+The data model is always an object. The update behavior is:
+
+| Input                          | Result                                                             |
+| :----------------------------- | :----------------------------------------------------------------- |
+| Missing `path`, `""`, or `"/"` | Replaces the root object                                           |
+| Nested object path             | Creates missing object or array containers as needed               |
+| `null` at a property path      | Deletes that property                                              |
+| `null` at an array index       | Removes that item with `splice` semantics                          |
+| `null` at the root             | Resets the model to `{}`                                           |
+| Primitive or array at the root | Produces a validation error because the root must remain an object |
+
+OpenUI Lang bindings use the same top-level keys. A data-model value such as `{ user: { name: "Bob" } }` is exposed to Lang as `$user`, so `$user.name` resolves to `"Bob"`.
+
+The React adapter also synchronizes form state back into the surface data model. Use the framework-neutral method directly when building another adapter:
+
+```ts
+client.updateSurfaceFromOpenUIState("main", openUIState);
+```
+
+## Render a surface in React
+
+Import the renderer from the optional React entrypoint:
+
+```tsx
+import { A2UIRenderer } from "@openuidev/a2ui/react";
+import { openuiLibrary } from "@openuidev/react-ui";
+
+export function Surface({ isStreaming }: { isStreaming: boolean }) {
+  return (
+    <A2UIRenderer
+      client={client}
+      surfaceId="main"
+      library={openuiLibrary}
+      isStreaming={isStreaming}
+      onError={(errors) => console.error(errors)}
+    />
+  );
+}
+```
+
+The component subscribes to the client with `useSyncExternalStore`, reads the requested surface, and passes its merged source and data model to the `@openuidev/react-lang` renderer. It returns `null` until that surface exists.
+
+### `A2UIRendererProps`
+
+| Prop            | Type                            | Description                                                                               |
+| :-------------- | :------------------------------ | :---------------------------------------------------------------------------------------- |
+| `client`        | `A2UIClient`                    | Required protocol client                                                                  |
+| `surfaceId`     | `string`                        | Surface to subscribe to and render                                                        |
+| `library`       | `Library`                       | React component library matching the schema given to the client                           |
+| `isStreaming`   | `boolean`                       | Whether the surrounding transport is still delivering the current agent turn              |
+| `mapAction`     | `(event, surface) => options`   | Maps an OpenUI action to A2UI name, source component, user message, context, and metadata |
+| `onAction`      | `(event, surface) => void`      | Observes actions after built-in handling                                                  |
+| `onOpenUrl`     | `(url, event, surface) => void` | Handles `@OpenUrl`; defaults to a safe `window.open` in browsers                          |
+| `onStateUpdate` | `(state, surface) => void`      | Observes OpenUI state after it has been merged into the A2UI data model                   |
+| `onParseResult` | `(result) => void`              | Receives OpenUI Lang parse results                                                        |
+| `onError`       | `(errors) => void`              | Receives OpenUI parser/runtime errors                                                     |
+| `formStateKeys` | `readonly string[]`             | Adds top-level data-model keys that should also hydrate form namespaces                   |
+| `toolProvider`  | `RendererProps["toolProvider"]` | Overrides the default A2UI routing for OpenUI Lang `Query()` and `Mutation()` calls       |
+| `queryLoader`   | `ReactNode`                     | UI shown while a query is loading                                                         |
+
+`@OpenUrl` is handled locally and is not emitted as an A2UI action. Other OpenUI actions are converted to A2UI actions automatically.
+
+Without a `toolProvider`, the adapter routes OpenUI Lang `Query()` and `Mutation()` calls to the agent with `callAgentFunction`. Pass a `toolProvider` to execute those calls locally instead. The client's `functions` option handles the opposite direction: `callRendererFunction` messages sent by the agent.
+
+## Actions
+
+You can dispatch an action directly from any renderer adapter:
+
+```ts
+client.dispatchAction({
+  surfaceId: "main",
+  sourceComponentId: "saveButton",
+  name: "save",
+  context: { section: "profile" },
+});
+```
+
+This emits an A2UI renderer-to-agent message through `onMessage`:
+
+```json
+{
+  "version": "v1.0",
+  "action": {
+    "name": "save",
+    "surfaceId": "main",
+    "sourceComponentId": "saveButton",
+    "timestamp": "2026-01-01T12:00:00.000Z",
+    "context": { "section": "profile" }
+  }
+}
+```
+
+The React adapter calls `dispatchOpenUIAction()` for you. By default it uses the OpenUI action type as `name`, forwards the human-friendly message as `userMessage`, includes action params and form state in `context`, and uses `"root"` as the source component. Customize that mapping when your agent expects a more specific component ID or domain-specific action name:
+
+```tsx
+<A2UIRenderer
+  client={client}
+  surfaceId="main"
+  library={openuiLibrary}
+  mapAction={(event) => ({
+    name: event.type === "continue_conversation" ? "submit" : event.type,
+    sourceComponentId: "profileForm",
+    context: { origin: "settings" },
+  })}
+/>
+```
+
+## Agent functions
+
+Use `callAgentFunction()` when the renderer needs a correlated result from an agent-side function:
+
+```ts
+const response = client.callAgentFunction({
+  surfaceId: "main",
+  call: "saveProfile",
+  args: { section: "profile" },
+});
+```
+
+The client emits the current renderer-to-agent envelope:
+
+```json
+{
+  "version": "v1.0",
+  "callAgentFunction": {
+    "surfaceId": "main",
+    "functionCallId": "generated-call-id",
+    "callFunction": {
+      "call": "saveProfile",
+      "args": { "section": "profile" }
+    }
+  }
+}
+```
+
+Pass the matching agent response back to the client:
+
+```ts
+await client.process({
+  version: "v1.0",
+  agentFunctionResponse: {
+    functionCallId: "generated-call-id",
+    value: { saved: true },
+  },
+});
+
+await response; // { saved: true }
+```
+
+An `agentFunctionResponse.error` rejects the promise with `A2UIFunctionError`. The React adapter uses this same path for OpenUI Lang `Query()` and `Mutation()` calls when no local `toolProvider` is supplied.
+
+## Renderer functions
+
+Register functions that the agent may ask the renderer to execute:
+
+```ts
+const client = createA2UIClient({
+  schema: openuiLibrary.toJSONSchema(),
+  functions: {
+    getLocation: {
+      catalogId: "com.example:functions",
+      allowedCallers: "agentOnly",
+      async handler() {
+        return { latitude: 37.7749, longitude: -122.4194 };
+      },
+    },
+  },
+  onMessage(message, metadata) {
+    transport.send({ message, metadata });
+  },
+});
+```
+
+Incoming call:
+
+```json
+{
+  "version": "v1.0",
+  "callRendererFunction": {
+    "functionCallId": "call-1",
+    "callFunction": {
+      "call": "getLocation",
+      "catalogId": "com.example:functions",
+      "args": {}
+    }
+  }
+}
+```
+
+The client always emits a correlated result:
+
+```json
+{
+  "version": "v1.0",
+  "rendererFunctionResponse": {
+    "functionCallId": "call-1",
+    "value": { "latitude": 37.7749, "longitude": -122.4194 }
+  }
+}
+```
+
+Registrations support `"rendererOnly"`, `"agentOnly"`, and `"rendererOrAgent"`. Object registrations default to `"rendererOnly"`, so set `allowedCallers` and `catalogId` explicitly for agent-callable functions. A direct function value is renderer-only shorthand and is never callable by an incoming agent message.
+
+Unknown functions, disallowed calls, and handler failures produce protocol error messages correlated by `functionCallId`.
+
+## Capabilities and renderer metadata
+
+Configure capabilities when creating the client:
+
+```ts
+const client = createA2UIClient({
+  schema,
+  rendererCapabilities: {
+    "v1.0": {
+      supportedCatalogIds: ["com.example:openui"],
+      inlineCatalogs: [],
+    },
+  },
+});
+```
+
+If the renderer advertises at least one catalog ID, `createSurface` rejects an unsupported `catalogId`. The package does not automatically negotiate or install component libraries; your agent and renderer must be configured with the same OpenUI Lang component schema.
+
+When a surface sets `sendDataModel: true`, `getRendererMetadata()` includes its current data model:
+
+```ts
+const metadata = client.getRendererMetadata();
+// {
+//   a2uiRendererCapabilities: { ... },
+//   a2uiRendererDataModel: {
+//     version: "v1.0",
+//     surfaces: { main: { ... } }
+//   }
+// }
+```
+
+The metadata is supplied as the second argument to `onMessage` and message subscribers. Your transport decides whether it is attached to a model request, agent context, or another protocol-specific location.
+
+## Runtime validation and TypeScript types
+
+Zod is the source of truth for runtime validation and inferred TypeScript types.
+
+```ts
+import {
+  agentToRendererMessageSchema,
+  rendererToAgentMessageSchema,
+  validateAgentToRendererMessage,
+  type AgentToRendererMessage,
+  type RendererToAgentMessage,
+} from "@openuidev/a2ui";
+
+const result = agentToRendererMessageSchema.safeParse(input);
+const validated = validateAgentToRendererMessage(input);
+```
+
+The package exports runtime Zod schemas for every message and shared protocol structure, including capabilities and renderer data-model metadata. The public TypeScript message types are inferred from those definitions, keeping runtime behavior and static types aligned without maintaining a second schema format.
+
+## Client API
+
+| Method                                             | Description                                                             |
+| :------------------------------------------------- | :---------------------------------------------------------------------- |
+| `process(input)`                                   | Validates and applies one agent-to-renderer message                     |
+| `getSurface(surfaceId)`                            | Returns one surface snapshot, or `undefined`                            |
+| `getSurfaces()`                                    | Returns all current surface snapshots                                   |
+| `subscribe(listener)`                              | Subscribes to surface-store changes and returns an unsubscribe function |
+| `subscribeMessages(listener)`                      | Subscribes to emitted renderer-to-agent messages and metadata           |
+| `dispatchAction(input)`                            | Emits an A2UI action                                                    |
+| `dispatchOpenUIAction(surfaceId, event, options?)` | Converts an OpenUI action event into an A2UI action                     |
+| `callAgentFunction(input)`                         | Emits `callAgentFunction` and returns its correlated response promise   |
+| `updateSurfaceFromOpenUIState(surfaceId, state)`   | Merges OpenUI bindings and form state into a surface data model         |
+| `getRendererDataModel()`                           | Returns opted-in surface models in the A2UI renderer-data-model shape   |
+| `getRendererMetadata()`                            | Returns configured capabilities and opted-in data-model metadata        |
+| `dispose()`                                        | Rejects pending function calls, clears surfaces, and removes listeners  |
+
+## Errors and cleanup
+
+Malformed envelopes are rejected before they mutate state. When the invalid input identifies a surface or function call, the client also emits a correlated A2UI error message. OpenUI Lang validation errors are stored on the surface and emitted as `VALIDATION_FAILED` messages.
+
+Call `dispose()` when the client is no longer needed:
+
+```ts
+client.dispose();
+```
+
+Deleting a surface or disposing the client rejects pending agent-function promises for that surface with `A2UIFunctionError`.
+
+## Compatibility notes
+
+- This package is currently experimental and implements the v1.0 message profile described above.
+- It is not wire-compatible with a renderer that expects A2UI JSON component objects in `components`; both sides must agree that the array contains OpenUI Lang.
+- The protocol client is framework-neutral. Only `@openuidev/a2ui/react` requires React and `@openuidev/react-lang`.
+- The protocol does not define your transport. Preserve message order per surface and pass complete JSON envelopes to `process()`.
+- The agent and renderer must use the same OpenUI component library/schema.

@@ -1,6 +1,0 @@
-root = Card([header, revenueCard, comparison], "card", "column", "l")
-header = CardHeader("Mid-morning check-in", "Today so far")
-revenueCard = Card([revenueLabel, revenueValue], "sunk", "column", "xs")
-revenueLabel = TextContent("Revenue so far today", "small-heavy")
-revenueValue = TextContent("$2,840", "large-heavy")
-comparison = Callout("success", "Up 12.7% from yesterday", "At the same time yesterday, revenue was $2,520 — today is $320 ahead.")

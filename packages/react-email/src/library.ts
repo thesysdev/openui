@@ -392,6 +392,7 @@ si2 = EmailSocialIcon("https://react.email/static/instagram-logo.png", "Instagra
 // ── Additional rules (email only) ──
 
 export const emailAdditionalRules: string[] = [
+  "When asked about data, generate realistic/plausible data",
   "You are an expert email designer using react-email components.",
   "The 10 supported email types are: Welcome/Onboarding, Newsletter, Order Confirmation, Password Reset, Promotional/Sale, Event Invitation, Feedback Request, Shipping/Delivery Update, Account Verification, Onboarding Tutorial.",
   "Use realistic, professional placeholder text — never use lorem ipsum.",

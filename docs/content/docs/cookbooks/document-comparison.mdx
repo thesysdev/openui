@@ -1,0 +1,355 @@
+---
+title: Document comparison
+description: Build a chat assistant that compares stocks (NVIDIA, AMD, and Intel) annual reports with page-cited tables and charts.
+---
+
+import { buttonVariants } from "fumadocs-ui/components/ui/button";
+import { ArrowUpRight, Github } from "lucide-react";
+import { CookbookComparisonDiagram } from "@/components/cookbook-comparison-diagram";
+
+Comparing documents is everyday work: vendor proposals, contracts, policies, annual reports. The answers are spread across long files, and each document states the same fact in a different place and in different words. Reading three 150-page reports side by side takes hours, and a summary written as paragraphs hides exactly what you wanted to compare.
+
+A language model can read and compare, but long documents do not fit in a single request. Retrieval solves that: search each document for the passages about one criterion, and give the model only those passages, with their page numbers. Generative UI solves the presentation: the model answers with a comparison table, charts, callouts for gaps and conflicts, and the quoted evidence behind every value.
+
+In this cookbook, you'll learn how to:
+
+- Turn PDFs into searchable passages that keep their page numbers, using embeddings for search by meaning.
+- Give the model a search function tool, so it retrieves evidence for each criterion instead of answering from memory.
+- Make the model show its work: page-cited values, charts chosen from the shape of the data, callouts for missing or conflicting information, and source cards that open each quoted page.
+- Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity, with your own theme, sidebar, and pages.
+- Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
+- Send the conversation with each question, so a follow-up can add a criterion to the comparison.
+
+<div className="not-prose my-6">
+  <a
+    href="https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison"
+    target="_blank"
+    rel="noopener noreferrer"
+    className={buttonVariants({
+      color: "secondary",
+      className: "min-h-11 gap-2.5 rounded-lg px-4 py-2.5 no-underline",
+    })}
+  >
+    <Github className="size-4" aria-hidden="true" />
+    View example on GitHub
+    <ArrowUpRight className="size-4 text-fd-muted-foreground" aria-hidden="true" />
+  </a>
+</div>
+
+## What you'll build
+
+The example compares the latest annual reports (Form 10-K) from **NVIDIA**, **AMD**, and **Intel**: 396 pages, published as PDFs on each company's investor relations site. They make a realistic test. The same facts, such as revenue, R&D spending, and headcount, appear in different sections and wording in each report, and NVIDIA's fiscal year ends in January while the others end in December, a conflict the comparison should point out. The same approach works for vendor proposals, contracts, or any set of PDFs.
+
+<div className="bg-[rgba(0,0,0,0.05)] dark:bg-gray-900 rounded-2xl flex p-2">
+  <video
+    src="/videos/cookbooks/document-comparison.mp4"
+    aria-label="The document comparison example comparing three years of R&D spending across NVIDIA, AMD, and Intel with a table, charts, and page-linked sources, then adding operating income through a follow-up and opening the Documents page"
+    playsInline
+    muted
+    preload="metadata"
+    className="w-full rounded-lg m-auto"
+    autoPlay
+    loop
+  />
+</div>
+
+Try this conversation:
+
+1. **“Compare revenue and growth.”** Get a table of page-cited values, bar charts, and a note that the fiscal years differ.
+2. **“How has R&D spending changed over three years?”** See each company's trend in a line chart.
+3. **“Break down revenue by segment.”** See every company's segments in one bar chart, with a table row per segment.
+4. **Click a follow-up such as “Compare headcount.”** Add a criterion to the comparison.
+
+Every answer ends with **Sources**: a card for each quoted page, with the company, page, and quote, that opens the report at that page.
+
+## How it works
+
+A document comparison assistant splits the work between your application and the model. Your application owns the documents and the search. The model decides what to look for in each document and how to present what it finds.
+
+<CookbookComparisonDiagram />
+
+1. **The user asks for a comparison.** Agent Interface sends the conversation to your server's chat route, which calls OpenUI Gateway with a `search_documents` function tool and a system prompt that describes the documents and your components.
+2. **The model searches once per criterion.** For “revenue and R&D”, it calls `search_documents` twice, in parallel, with short descriptions such as “research and development expenses for the fiscal year”. Separate searches keep one criterion's passages from crowding out another's. Your server embeds each description with OpenAI, compares it with the passage embeddings it loaded from SQLite, and returns each document's closest passages with their page numbers and a `found` flag.
+3. **The model compares the evidence.** It writes OpenUI Lang with a table of page-cited values, charts suited to the data, callouts for conflicts or gaps, and source cards that quote each passage. Gateway validates the generated OpenUI Lang against your component library as it streams.
+4. **Agent Interface renders it progressively.** Tables and charts appear as their data arrives. The next request includes the earlier questions and answers, so a follow-up such as “compare headcount” searches for the new criterion and extends the comparison.
+
+### Why retrieve passages
+
+The three reports contain about 220,000 words, roughly 290,000 tokens. Sending them with every question would be slow and expensive, and it exceeds many models' context windows. Retrieval sends only the passages that matter, two per document per criterion by default, so each question stays fast and inexpensive.
+
+Passages also keep their page numbers, which makes every value checkable against the original PDF. When a document has no passage close to the question, the tool says so with `found: false`. When the closest passages mention the topic but do not contain the answer, the model says that instead. Either way, the answer reports a gap rather than inventing a number.
+
+### Why embeddings
+
+Annual reports describe the same thing in different words. NVIDIA reports “revenue” and AMD “net revenue”, and one report counts “employees” where another describes its “workforce”. An embedding represents a passage's meaning as a vector, so a single query finds the matching passage in each report even when the words differ. Keyword search would find only the reports that happen to use the query's wording.
+
+## Run the example
+
+You need Node.js 22.13 or newer and npm.
+
+```bash
+git clone https://github.com/thesysdev/openui.git
+cd openui/examples/cookbooks/document-comparison
+npm ci
+```
+
+The example needs two keys, configured privately in the example's `.env.local`:
+
+- `THESYS_API_KEY` from the [Thesys Console](https://console.thesys.dev/keys), for generation.
+- `OPENAI_API_KEY` from the [OpenAI Platform](https://platform.openai.com/api-keys), for embeddings.
+
+Then prepare the documents and start the app:
+
+```bash
+npm run prepare:documents
+npm run dev
+```
+
+The first run downloads about 83 MB of PDFs, which later runs reuse, and embeds 1,564 passages for about a cent. Open [localhost:3000](http://localhost:3000) and try a starter question. The default model is `openai/gpt-5.5`; use `OPENUI_MODEL` to select another supported [Gateway model](/docs/gateway/models).
+
+## Build it step by step
+
+Each step covers one part of the example, in the order a request flows through it: the documents, the search tool, the components, the chat interface, and the streamed answer.
+
+### 1. Prepare the documents
+
+`npm run prepare:documents` downloads each report listed in [documents.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/lib/documents.ts) and extracts its text page by page. It then splits each page into overlapping passages, so every passage keeps the page it came from:
+
+```ts title="scripts/prepare-documents.ts"
+// Split each page into overlapping passages that keep their page number.
+function passages(text: string, size = 1200, overlap = 200) {
+  const clean = text.replace(/\s+/g, " ").trim();
+  const result: string[] = [];
+  for (let start = 0; start < clean.length; start += size - overlap) {
+    result.push(clean.slice(start, start + size));
+    if (start + size >= clean.length) break;
+  }
+  return result.filter((passage) => passage.length > 80);
+}
+```
+
+The overlap keeps a sentence that crosses a passage boundary intact in at least one passage. The script embeds the passages with OpenAI's `text-embedding-3-small` in batches of 100 and stores each one in `data/documents.sqlite` with its document, page, text, and embedding. See [prepare-documents.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/scripts/prepare-documents.ts) for the complete script.
+
+### 2. Expose a search tool
+
+Give Gateway a function tool named `search_documents`. It accepts one criterion at a time, described in plain words:
+
+```json
+{
+  "query": "research and development expenses for the fiscal year",
+  "document_ids": [],
+  "passages_per_document": 2
+}
+```
+
+An empty `document_ids` searches every document. The [tool definition](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/lib/tools/search-documents.ts) lists the prepared documents' ids as an enum, so the model can only name documents that exist. Your server validates the arguments, embeds the query, and ranks each document's passages by similarity:
+
+```ts title="src/lib/tools/search-documents.ts"
+const [queryEmbedding] = await embed([args.query], signal);
+const results = selected.map((document) => {
+  const url = sources.find((source) => source.id === document.id)?.url;
+  const matches = passages
+    .filter((passage) => passage.documentId === document.id)
+    .map((passage) => ({
+      ...passage,
+      score: similarity(queryEmbedding, passage.embedding),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, args.passages_per_document);
+  const bestScore = matches[0]?.score ?? 0;
+  return {
+    document_id: document.id,
+    found: bestScore >= weakMatch,
+    passages: matches.map((match) => ({
+      page: match.page,
+      url: url && `${url}#page=${match.page}`,
+      text: match.text,
+    })),
+  };
+});
+```
+
+Results are grouped by document, so every document is represented even when one report discusses the criterion at greater length than the others. `found` is false when a document's best match falls below a similarity of 0.3, which usually means the report does not discuss the criterion. Each passage's `url` adds `#page=` to the PDF's address, which opens most PDF viewers at that page, so the answer can link to its evidence. Agent Interface shows each search and its arguments in the **Behind the scenes** timeline.
+
+The example keeps all 1,564 embeddings in memory and compares them in JavaScript, which takes a few milliseconds. For thousands of documents, store the embeddings in a vector database instead; the tool's arguments and result stay the same.
+
+### 3. Choose the components
+
+Use the chat library, React UI's built-in library for Agent Interface answers. It already has every part of a comparison, so the example uses it as is:
+
+```ts title="src/library.ts"
+export { openuiChatLibrary as library } from "@openuidev/react-ui/genui-lib";
+```
+
+Every answer is one `Card`. `Table` holds the page-cited values, `BarChart`, `LineChart`, and `HorizontalBarChart` cover single values, trends, and breakdowns, `Callout` flags gaps and conflicts, and `FollowUpBlock` suggests criteria to add. The `Card`'s second argument lists the sources, and the `Card` renders them as a strip of source cards below the answer:
+
+```text
+root = Card([header, table, chart, gap, followUps], sources)
+sources = [{title: "“Revenue for the fiscal year was $10.0 billion, up 5% from a year ago.”", sourceName: "Company A · Page 12", url: "https://example.com/company-a.pdf#page=12"}]
+```
+
+Each card shows the site's icon, the company and page, and the quote, and opens the report at that page. The prompt names the components an answer uses and rules out form controls. Generate the server specification from the same library with `npm run generate`, which also runs before development and builds.
+
+### 4. Customize Agent Interface
+
+Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's stream with `openAIReadableStreamAdapter()`:
+
+```tsx title="src/components/comparison-chat.tsx"
+const llm = fetchLLM({
+  url: "/api/chat",
+  streamAdapter: openAIReadableStreamAdapter(),
+  messageFormat: openAIMessageFormat,
+});
+
+const storage = useOpenuiCloudStorage({
+  token: "/api/frontend-token",
+  features: { artifact: false },
+});
+```
+
+Chat Completions does not store conversations, so the chat route loads each thread's earlier turns from Gateway, with their searches and passages, and sends them with every question. That is what lets a follow-up add a criterion to the comparison.
+
+<Callout type="info" title="Thread storage">
+
+`useOpenuiCloudStorage()` keeps the thread list in Gateway, and the chat route saves each turn, tool calls included, with [`storeChatCompletionHistory()`](/docs/api-reference/server#conversation-history), so threads and their messages stay after a reload.
+
+</Callout>
+
+The example also customizes Agent Interface through its public props and slots. The props set the theme, brand, and starters:
+
+```tsx title="src/components/comparison-chat.tsx"
+const mode = useSystemThemeMode();
+const theme = useMemo(() => ({ mode, lightTheme, darkTheme }), [mode]);
+
+<AgentInterface
+  llm={llm}
+  storage={storage}
+  componentLibrary={library}
+  agentName="Filing analyst"
+  logoUrl="/logo.svg"
+  theme={theme}
+  starters={starters}
+  starterVariant="long"
+>
+  {/* The slots below */}
+</AgentInterface>;
+```
+
+- **Theme.** [theme.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/lib/theme.ts) uses `createTheme` to set the accent and user-message colors for light and dark mode, and `useSystemThemeMode` follows the operating system's setting.
+- **Brand.** `agentName` and `logoUrl` fill the default sidebar header, which keeps the logo in the collapsed sidebar. [logo.svg](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/public/logo.svg) switches colors for dark mode with a `prefers-color-scheme` media query.
+- **Starters.** `starterVariant="long"` shows starters as a list with icons. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
+
+Its children replace the sidebar, add the Documents page, and fill the thread header:
+
+```tsx title="src/components/comparison-chat.tsx"
+<AgentInterface.Sidebar>
+  <AgentInterface.SidebarHeader />
+  <AgentInterface.SidebarContent>
+    <AgentInterface.NewChatButton />
+    <AgentInterface.SidebarItem path="documents" icon={<FileText size={16} />}>
+      Documents
+    </AgentInterface.SidebarItem>
+    <AgentInterface.SidebarSeparator />
+    <AgentInterface.ThreadList />
+  </AgentInterface.SidebarContent>
+</AgentInterface.Sidebar>
+
+<AgentInterface.Route path="documents">
+  <DocumentLibrary />
+</AgentInterface.Route>
+
+<AgentInterface.ThreadHeader>
+  <span className="thread-context">
+    Comparing NVIDIA · AMD · Intel annual reports
+  </span>
+</AgentInterface.ThreadHeader>
+```
+
+- **Sidebar.** Supplying `AgentInterface.Sidebar` replaces the default sidebar, so the example composes its own header, New chat button, Documents item, and thread list. See [Sidebar](/docs/agent/customize/sidebar).
+- **Pages.** A `SidebarItem` with a `path` opens the matching `AgentInterface.Route` in place of the chat. The Documents page lists each report with its page count and a link to the source PDF, and returns to the chat with `useNav`.
+
+### 5. Stream the answer
+
+The chat route passes the search tool and the [prompt](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/document-comparison/src/lib/prompt.ts) to Gateway:
+
+```ts title="src/app/api/chat/route.ts"
+const searchTool = searchDocumentsTool(documents);
+const runner = gateway.chat.completions.runTools(
+  {
+    model: process.env.OPENUI_MODEL || "openai/gpt-5.5",
+    messages: [
+      { role: "system", content: comparisonPrompt(documents) },
+      ...thread,
+    ],
+    tools: [
+      {
+        type: "function",
+        function: {
+          ...searchTool.function,
+          function: (args: string) =>
+            executeSearchDocuments(args, { signal: request.signal }).catch(
+              (error: unknown) =>
+                JSON.stringify({
+                  error: error instanceof Error ? error.message : String(error),
+                }),
+            ),
+        },
+      },
+    ],
+    max_completion_tokens: 6000,
+    stream: true,
+  },
+  { signal: request.signal, maxChatCompletions: 4 },
+);
+```
+
+When the model asks for a search, the route runs search_documents and sends the passages back to the model. This repeats until the model stops searching and writes its answer. maxChatCompletions: 4 caps the number of rounds, so a question can't turn into an endless string of searches. If a report comes back with found: false, the model can use one of those rounds to search that report again with different wording.
+
+The prompt turns the evidence into a consistent answer:
+
+- **One search per criterion**, in parallel when the question has several.
+- **Nothing written before the searches finish.** Agent Interface shows text that arrives before a tool call as a step in **Behind the scenes**, and a status message written in OpenUI Lang would appear there as code.
+- **A table** with one short, page-cited value per cell, such as “$215.9 billion (p. 37)”: one row per criterion and one column per document, or one row per part when a criterion has several, such as each company's segments.
+- **Charts chosen from the data**, each at full width: a line chart when a report gives several years of figures, one horizontal bar chart with a bar per company and segment for a breakdown, and a bar chart for one value per document. A document without a value is left out of the chart rather than plotted as zero.
+- **Callouts** for information that conflicts or is not directly comparable, such as different fiscal year ends, and for criteria a document does not disclose.
+- **Sources** in the `Card`'s second argument, one per quoted page with the company, page, and a quote of at most 20 words, linked to that page of the PDF.
+
+## Verify it works
+
+In the browser:
+
+1. Ask **“Compare revenue and growth.”** Open a card in Sources to check a value on its page. NVIDIA reports fiscal 2026 revenue of $215.9 billion, up 65%, on page 37.
+2. Expand **Behind the scenes** and confirm the model called `search_documents` once per criterion.
+3. Ask **“How has R&D spending changed over three years?”** and **“Break down revenue by segment.”** Confirm the first uses a line chart, and the second a single bar chart with a table row per segment.
+4. Ask **“Compare each CEO's total compensation.”** Annual reports refer readers to the proxy statement for executive pay, so the table should say “Not found” with a callout explaining why, and no chart.
+5. Open **Documents** in the sidebar and confirm it lists the three reports with their page counts.
+6. Reload the page and open an earlier thread. Confirm its messages load.
+7. Switch your operating system between light and dark mode, and confirm the theme follows.
+
+Generated layouts can vary. Values should always match a quoted passage.
+
+## Adapt it to your documents
+
+Add your own PDFs to the example's `documents/` folder and run `npm run prepare:documents` again; they are compared alongside the samples. To compare only your documents, remove the entries from `sources` in `src/lib/documents.ts`, then update the starters and thread header in `comparison-chat.tsx`.
+
+The importer reads a PDF's text layer, so run OCR on scanned documents first. For large collections, store the embeddings in a vector database and keep the `search_documents` tool's contract.
+
+This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
+
+This example runs locally without authentication. Before deploying it, add [authentication](/docs/gateway/authentication), limits on request size, and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
+
+## References
+
+- [`@openuidev/react-ui`](/docs/api-reference/react-ui): `AgentInterface` and the chat library.
+- [`@openuidev/react-headless`](/docs/api-reference/react-headless): `fetchLLM()`, `openAIReadableStreamAdapter()`, and `useOpenuiCloudStorage()`, which the example imports through `@openuidev/react-ui`.
+- [`@openuidev/lang-core`](/docs/openui-lang/system-prompts): `generateSystemPrompt()`.
+- [`@openuidev/server`](/docs/api-reference/server#conversation-history): `storeChatCompletionHistory()`.
+- [`@openuidev/cli`](/docs/api-reference/cli): `openui generate`.
+- [OpenAI SDK](https://github.com/openai/openai-node): `runTools()`, `toReadableStream()`, and embeddings.
+- [`unpdf`](https://github.com/unjs/unpdf): PDF text extraction.
+- [Gateway Chat Completions API](/docs/gateway/api/chat-completions).
+- [Agent Interface quickstart](/docs/agent/getting-started/quickstart).
+- [Agent tools](/docs/agent/core-concepts/tools).
+- [Connect a backend](/docs/agent/reference/self-hosting).
+
+Documents: the Form 10-K annual reports of NVIDIA, AMD, and Intel, downloaded from each company's investor relations site during setup. They are not included in this repository.

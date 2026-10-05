@@ -1,11 +1,11 @@
 /**
- * openui-bench — single source of truth for every number on the benchmark
- * blog post.
+ * generative-ui-bench — single source of truth for every number on the
+ * benchmark blog post.
  *
  * Rules for this file:
  *  - Charts read from here. Never hardcode a number in a chart component.
- *  - Every value is computed from the committed results files in
- *    benchmarks/openui-bench (results-<model>-{native,official}.json),
+ *  - Every value is computed from the committed results files in the
+ *    generative-ui-bench repo (results-<model>-{native,official}.json),
  *    never typed from prose.
  */
 
@@ -39,7 +39,7 @@ export const MODELS = [
   { id: "sol", mark: "openai", label: "Sol", family: "GPT-5.6", vendor: "OpenAI", gensPerBrief: 4 },
   { id: "opus", mark: "anthropic", label: "Claude Opus 4.8", vendor: "Anthropic", gensPerBrief: 4 },
   { id: "kimi", mark: "moonshot", label: "Kimi K3", vendor: "Moonshot", gensPerBrief: 4 },
-  { id: "gemini", mark: "gemini", label: "Gemini 3.6 Flash", vendor: "Google", gensPerBrief: 4 },
+  { id: "gemini", mark: "gemini", label: "Gemini 3.7 Flash", vendor: "Google", gensPerBrief: 4 },
   { id: "qwen", mark: "qwen", label: "Qwen3.8 2.4T", vendor: "Alibaba", gensPerBrief: 4 },
   { id: "muse", mark: "meta", label: "Muse Spark 1.2", vendor: "Meta", gensPerBrief: 4 },
 ] as const;
@@ -82,14 +82,14 @@ export const runCounts: Record<ModelId, Record<FormatId, RunCount>> = {
     jsonRender: { runs: 184, complete: 161, renderable: 184 },
   },
   kimi: {
-    openui: { runs: 184, complete: 178, renderable: 184 },
+    openui: { runs: 184, complete: 177, renderable: 184 },
     a2ui: { runs: 184, complete: 176, renderable: 179 },
     jsonRender: { runs: 184, complete: 131, renderable: 184 },
   },
   gemini: {
-    openui: { runs: 184, complete: 175, renderable: 184 },
-    a2ui: { runs: 184, complete: 175, renderable: 180 },
-    jsonRender: { runs: 184, complete: 142, renderable: 184 },
+    openui: { runs: 184, complete: 182, renderable: 184 },
+    a2ui: { runs: 184, complete: 173, renderable: 178 },
+    jsonRender: { runs: 184, complete: 171, renderable: 184 },
   },
   qwen: {
     openui: { runs: 184, complete: 169, renderable: 183 },
@@ -97,7 +97,7 @@ export const runCounts: Record<ModelId, Record<FormatId, RunCount>> = {
     jsonRender: { runs: 184, complete: 149, renderable: 180 },
   },
   muse: {
-    openui: { runs: 184, complete: 178, renderable: 184 },
+    openui: { runs: 184, complete: 177, renderable: 184 },
     a2ui: { runs: 184, complete: 178, renderable: 179 },
     jsonRender: { runs: 184, complete: 150, renderable: 184 },
   },
@@ -452,6 +452,350 @@ export const costPer1kScreens = (modelId: ModelId, id: FormatId) =>
   (costPerPass[modelId]![id] / BRIEFS) * 1000;
 
 /* ------------------------------------------------------------------ */
+/* OpenUI model board — the expanded, OpenUI-only provider comparison  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * API-model results from the 24–25 Aug 2026 OpenUI model-board run.
+ * Every row used the same 46 briefs, four generations per brief, frozen
+ * OpenUI prompt and validator. Cost is the measured price of one 46-screen
+ * pass; charts divide by BRIEFS so the horizontal axis stays cost per task.
+ *
+ * The two self-hosted starting-line models are intentionally absent because
+ * the source run reports serving hardware rather than a comparable API cost.
+ */
+export const OPENUI_MODEL_BOARD = [
+  {
+    id: "grok-4-6",
+    label: "Grok 4.6",
+    provider: "xAI",
+    score: 99.5,
+    costPerPass: 0.85,
+  },
+  {
+    id: "gpt-5-6-sol",
+    label: "GPT-5.6 Sol",
+    provider: "OpenAI",
+    score: 99.5,
+    costPerPass: 2.19,
+  },
+  {
+    id: "claude-opus-4-8",
+    label: "Claude Opus 4.8",
+    provider: "Anthropic",
+    score: 98.9,
+    costPerPass: 2.27,
+  },
+  {
+    id: "gemini-3-7-flash",
+    label: "Gemini 3.7 Flash",
+    provider: "Google",
+    score: 98.9,
+    costPerPass: 0.46,
+  },
+  {
+    id: "claude-sonnet-5",
+    label: "Claude Sonnet 5",
+    provider: "Anthropic",
+    score: 98.4,
+    costPerPass: 0.93,
+  },
+  {
+    id: "gpt-5-6-terra",
+    label: "GPT-5.6 Terra",
+    provider: "OpenAI",
+    score: 98.4,
+    costPerPass: 1.11,
+  },
+  {
+    id: "kimi-k3",
+    label: "Kimi K3",
+    provider: "Moonshot",
+    score: 96.2,
+    costPerPass: 1.53,
+  },
+  {
+    id: "claude-opus-5",
+    label: "Claude Opus 5",
+    provider: "Anthropic",
+    score: 96.2,
+    costPerPass: 3.56,
+  },
+  {
+    id: "muse-spark-1-2",
+    label: "Muse Spark 1.2",
+    provider: "Meta",
+    score: 96.2,
+    costPerPass: 0.72,
+  },
+  {
+    id: "claude-sonnet-4-6",
+    label: "Claude Sonnet 4.6",
+    provider: "Anthropic",
+    score: 92.9,
+    costPerPass: 2.07,
+  },
+  {
+    id: "qwen-3-8-2-4t",
+    label: "Qwen3.8 2.4T",
+    provider: "Alibaba",
+    score: 91.8,
+    costPerPass: 0.78,
+  },
+  {
+    id: "glm-5-3",
+    label: "GLM-5.3",
+    provider: "Zhipu",
+    score: 90.8,
+    costPerPass: 0.55,
+  },
+  {
+    id: "inkling-small",
+    label: "Inkling Small",
+    provider: "Thinking Machines",
+    score: 88.6,
+    costPerPass: 0.15,
+  },
+  {
+    id: "deepseek-v4-flash",
+    label: "DeepSeek V4 Flash",
+    provider: "DeepSeek",
+    score: 85.8,
+    costPerPass: 0.02,
+  },
+  {
+    id: "deepseek-v4-pro",
+    label: "DeepSeek V4 Pro",
+    provider: "DeepSeek",
+    score: 84.2,
+    costPerPass: 0.41,
+  },
+  {
+    id: "gpt-5-6-luna",
+    label: "GPT-5.6 Luna",
+    provider: "OpenAI",
+    score: 83.7,
+    costPerPass: 0.1,
+  },
+  {
+    id: "qwen-3-8-27b",
+    label: "Qwen3.8 27B",
+    provider: "Alibaba",
+    score: 78.8,
+    costPerPass: 0.25,
+  },
+  {
+    id: "gemini-3-6-flash",
+    label: "Gemini 3.6 Flash",
+    provider: "Google",
+    score: 78.8,
+    costPerPass: 0.42,
+  },
+  {
+    id: "gemini-3-5-flash-lite",
+    label: "Gemini 3.5 Flash-Lite",
+    provider: "Google",
+    score: 78.3,
+    costPerPass: 0.19,
+  },
+  {
+    id: "inkling",
+    label: "Inkling",
+    provider: "Thinking Machines",
+    score: 73.4,
+    costPerPass: 0.37,
+  },
+  {
+    id: "oui-1",
+    label: "OUI-1 (DiffusionGemma 26B-A4B, finetuned)",
+    provider: "Thesys",
+    score: 71.7,
+    costPerPass: 0,
+    unpriced: true,
+    serving: "Self-hosted · A100 FP8",
+  },
+  {
+    id: "qwen-3-6-27b",
+    label: "Qwen3.6 27B",
+    provider: "Alibaba",
+    score: 68.5,
+    costPerPass: 0.29,
+  },
+  {
+    id: "qwen-3-6-35b-a3b",
+    label: "Qwen3.6 35B-A3B",
+    provider: "Alibaba",
+    score: 61.4,
+    costPerPass: 0.08,
+  },
+  {
+    id: "gemma-4-31b",
+    label: "Gemma 4 31B",
+    provider: "Google",
+    score: 46.7,
+    costPerPass: 0.04,
+  },
+  {
+    id: "phi-4",
+    label: "Phi-4",
+    provider: "Microsoft",
+    score: 44.0,
+    costPerPass: 0.02,
+  },
+  {
+    id: "gemma-4-26b-a4b",
+    label: "Gemma 4 26B-A4B",
+    provider: "Google",
+    score: 29.9,
+    costPerPass: 0.03,
+  },
+  {
+    id: "ministral-8b",
+    label: "Ministral 8B",
+    provider: "Mistral",
+    score: 27.2,
+    costPerPass: 0.04,
+  },
+  {
+    id: "granite-4-1-8b",
+    label: "Granite 4.1 8B",
+    provider: "IBM",
+    score: 14.7,
+    costPerPass: 0.01,
+  },
+  {
+    id: "lfm-2-5-2-6b",
+    label: "LFM 2.5 2.6B",
+    provider: "Liquid",
+    score: 3.3,
+    costPerPass: 0.0,
+  },
+  {
+    id: "diffusion-gemma-26b-a4b",
+    label: "DiffusionGemma 26B-A4B",
+    provider: "Google",
+    score: 13.0,
+    costPerPass: 0,
+    unpriced: true,
+    serving: "Self-hosted · A100 FP8",
+  },
+  {
+    id: "ling-3-tiny",
+    label: "Ling 3.0 Tiny",
+    provider: "InclusionAI",
+    score: 9.8,
+    costPerPass: 0,
+    unpriced: true,
+    serving: "Self-hosted · llama.cpp Q8",
+  },
+] as const;
+
+/**
+ * A model has to clear this structural-validity score to be selected in the
+ * chart's opening view. Below it, a model is not a candidate anyone is
+ * choosing between, and plotting it stretches the axis over empty space.
+ * A threshold rather than a hand-kept list, so the default follows the data
+ * whenever scores are regenerated. Every model stays in the table, the
+ * downloads and the filter, and selecting one expands the axis to fit it.
+ */
+export const MODEL_BOARD_DEFAULT_MIN_SCORE = 70;
+
+export const MODEL_BOARD_DEFAULT_HIDDEN_IDS = OPENUI_MODEL_BOARD.filter(
+  (point) => point.score < MODEL_BOARD_DEFAULT_MIN_SCORE,
+).map((point) => point.id);
+
+export const modelBoardDefaultSelected = (modelId: string) => {
+  const point = OPENUI_MODEL_BOARD.find((entry) => entry.id === modelId);
+  return point ? point.score >= MODEL_BOARD_DEFAULT_MIN_SCORE : true;
+};
+
+/** How many models the board carries. Derived so copy cannot drift from data. */
+export const MODEL_BOARD_SIZE = OPENUI_MODEL_BOARD.length;
+
+export type ModelBoardPoint = (typeof OPENUI_MODEL_BOARD)[number];
+export type ModelBoardProvider = ModelBoardPoint["provider"];
+export const modelBoardCostPerTask = (point: ModelBoardPoint) => point.costPerPass / BRIEFS;
+
+/**
+ * Explicit family membership for the model-board lines. Keeping this beside
+ * the measurements makes the relationship available to tables, data exports
+ * and agents instead of leaving it encoded only in SVG geometry.
+ */
+export const MODEL_BOARD_FAMILIES = [
+  {
+    id: "gpt-5-6",
+    label: "GPT-5.6",
+    provider: "OpenAI",
+    models: ["gpt-5-6-sol", "gpt-5-6-terra", "gpt-5-6-luna"],
+  },
+  {
+    id: "claude",
+    label: "Claude",
+    provider: "Anthropic",
+    models: ["claude-opus-5", "claude-opus-4-8", "claude-sonnet-5", "claude-sonnet-4-6"],
+  },
+  {
+    id: "gemini-flash",
+    label: "Gemini Flash",
+    provider: "Google",
+    models: ["gemini-3-7-flash", "gemini-3-6-flash", "gemini-3-5-flash-lite"],
+  },
+  {
+    id: "gemma-4",
+    label: "Gemma 4",
+    provider: "Google",
+    models: ["gemma-4-31b", "gemma-4-26b-a4b"],
+  },
+  {
+    id: "qwen-3-8",
+    label: "Qwen3.8",
+    provider: "Alibaba",
+    models: ["qwen-3-8-2-4t", "qwen-3-8-27b"],
+  },
+  {
+    id: "qwen-3-6",
+    label: "Qwen3.6",
+    provider: "Alibaba",
+    models: ["qwen-3-6-27b", "qwen-3-6-35b-a3b"],
+  },
+  {
+    id: "deepseek-v4",
+    label: "DeepSeek V4",
+    provider: "DeepSeek",
+    models: ["deepseek-v4-pro", "deepseek-v4-flash"],
+  },
+  {
+    id: "inkling",
+    label: "Inkling",
+    provider: "Thinking Machines",
+    models: ["inkling", "inkling-small"],
+  },
+] as const satisfies ReadonlyArray<{
+  id: string;
+  label: string;
+  provider: ModelBoardProvider;
+  models: readonly string[];
+}>;
+
+export const modelBoardFamilyFor = (modelId: string) =>
+  MODEL_BOARD_FAMILIES.find((family) => family.models.includes(modelId as never));
+
+export const modelBoardFrontier = () =>
+  OPENUI_MODEL_BOARD.filter(
+    (point) =>
+      !("unpriced" in point) &&
+      !OPENUI_MODEL_BOARD.some(
+        (other) =>
+          other !== point &&
+          !("unpriced" in other) &&
+          modelBoardCostPerTask(other) <= modelBoardCostPerTask(point) &&
+          other.score >= point.score &&
+          (modelBoardCostPerTask(other) < modelBoardCostPerTask(point) ||
+            other.score > point.score),
+      ),
+  ).sort((a, b) => modelBoardCostPerTask(b) - modelBoardCostPerTask(a));
+
+/* ------------------------------------------------------------------ */
 /* 6. Production: failure taxonomy + repair                            */
 /* ------------------------------------------------------------------ */
 
@@ -522,7 +866,7 @@ export const userVisibleFailureRate = () => production.userVisibleShare;
 
 export const CONFOUNDS = {
   promptConditions:
-    "One condition for all models and formats. OpenUI's prompt carries its component groups, two rules and two worked examples through lang-core's official generatePrompt options; json-render runs catalog.prompt() with three custom rules; A2UI runs its generator's prompt as-is. The competitors' official options got no worked examples, an asymmetry we plan to close in a follow-up.",
+    "One condition for all models and formats. Each format uses the system prompt generated by its own SDK, and all three carry the same two worked examples. The 70-component protocol catalogs are checked against one shared reference catalog.",
   attachRule:
     "Prompt content moves these numbers about as much as format choice does: one rule telling the model to attach every component it defines was worth 13 points to OpenUI on Kimi in earlier runs.",
   scoring:
@@ -680,20 +1024,37 @@ export const frontierLine = (...args: Parameters<typeof frontierPoints>) =>
 /* ------------------------------------------------------------------ */
 
 export const BENCHMARK_VERSION = "v1";
-export const BENCHMARK_UPDATED = "18 Aug 2026";
+export const BENCHMARK_UPDATED = "25 Aug 2026";
 
-export const REPO_ROOT = "https://github.com/thesysdev/openui/tree/main/benchmarks";
+/* Provenance points at main rather than a pinned scorer tag: the published
+   numbers track the repository's current state, so there is one place to look
+   and no second regime to keep straight. */
+export const REPO_ROOT = "https://github.com/thesysdev/generative-ui-bench";
+const REPO_TREE = `${REPO_ROOT}/tree/main`;
 export const LINKS = {
-  rawData: `${REPO_ROOT}/openui-bench/results`,
-  rawOutputs: `${REPO_ROOT}/openui-bench/raw`,
-  harness: `${REPO_ROOT}/openui-bench`,
-  briefs: `${REPO_ROOT}/openui-bench/briefs/briefs.mjs`,
-  catalog: `${REPO_ROOT}/openui-bench/catalog/public-catalog.json`,
+  rawData: `${REPO_TREE}/results`,
+  rawOutputs: `${REPO_TREE}/raw`,
+  harness: REPO_ROOT,
+  briefs: `${REPO_TREE}/briefs/briefs.ts`,
+  catalog: `${REPO_TREE}/catalog/public-catalog.json`,
+  latestHarness: REPO_TREE,
+  latestReadme: `${REPO_TREE}/README.md`,
   speedHarness: REPO_ROOT,
-  dispute: "https://github.com/thesysdev/openui/issues/new",
+  dispute: `${REPO_ROOT}/issues/new`,
 };
 
 export const CHANGELOG = [
+  {
+    date: "25 Aug 2026",
+    version: "v2",
+    entries: [
+      "Rescored 24–25 Aug 2026 against one build of the shipped OpenUI parser, lang-core 0.2.16, whose parser validates enum and scalar prop values. Every row on the site and in the repository is now on that single regime.",
+      "Google's seat in the cross-format slice moves from Gemini 3.6 Flash to Gemini 3.7 Flash. Gemini 3.6 Flash stays on the model board.",
+      "Rows 14 and 21–29 ran with an 8,192-token output ceiling for condition uniformity, because Phi-4's native context cannot fit the prompt plus a 16,384-token output request. Legs that truncated were rerun at the headline ceiling under a pre-registered replace-with-whatever-it-gives rule; no truncations remain except two on DiffusionGemma, which is served at a 16,384-token total window.",
+      "GPT-5.6 Terra reflects a rescore of its committed raws after the original results file was found to be from a different roll.",
+      "Ling 3.0 Flash was run and excluded: its serving returned empty outputs on 42 of 184 legs, which is not scoreable fairly.",
+    ],
+  },
   {
     date: "18 Aug 2026",
     version: "v1",

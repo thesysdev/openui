@@ -1,8 +1,0 @@
-{"op":"add","path":"/root","value":"cityOps"}
-{"op":"add","path":"/elements/cityOps","value":{"type":"Card","props":{"variant":"clear","direction":"column","gap":"l"},"children":["header","weatherRow","focusPanel","metricsRow","analyticsRow","operationsRow","incidentsSection","vehiclesSection","reportsSection","planningRow"]}}
-{"op":"add","path":"/elements/header","value":{"type":"CardHeader","props":{"title":"City Operations Center","subtitle":"Live coordination dashboard • Tuesday, 18 August 2026 • 09:42"}}}
-{"op":"add","path":"/elements/weatherRow","value":{"type":"Card","props":{"direction":"row","gap":"m","align":"center","justify":"between","wrap":true},"children":["weatherCard","systemStatus"]}}
-{"op":"add","path":"/elements/weatherCard","value":{"type":"Card","props":{"variant":"sunk","direction":"column","gap":"xs"},"children":["weatherTitle","weatherDetail"]}}
-{"op":"add","path":"/elements/weatherTitle","value":{"type":"TextContent","props":{"text":{"$template":"Current weather — ${/weather/condition}","size":"large-heavy"},"children":[]}}
-{"op":"add","path":"/elements/weatherDetail","value":{"type":"TextContent","props":{"text":{"$template":"${/weather/temperature} • Feels like ${/weather/feelsLike} • Wind ${/weather/wind} • Humidity ${/weather/humidity}","size":"default"},"children":[]}}
-{"op":"add","path":"/state/weather","value":{"condition":"Partly cloudy","temperature":"22°C","feelsLike":"23°C","wind":"NW 14 km/h","humidity":"54%"}}

@@ -2,6 +2,16 @@
   margin-top: 2.5rem;
 }
 
+.title {
+  margin: 0 auto 1.5rem;
+  color: var(--openui-text-neutral-secondary);
+  font-family: var(--home-font-text);
+  font-size: var(--home-body-size);
+  line-height: var(--home-body-leading);
+  text-align: center;
+  text-wrap: balance;
+}
+
 .inner {
   display: flex;
   align-items: center;
@@ -15,8 +25,6 @@
   flex: 1;
   overflow: hidden;
   padding-block: 0.25rem;
-  mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
 }
 
 .track {

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "types": []
+  },
+  "exclude": ["src/**/*.spec.ts"],
+  "include": ["src/**/*.ts"]
+}

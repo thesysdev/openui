@@ -1,7 +1,0 @@
-@import "tailwindcss";
-@import "@openuidev/react-ui/styles/index.css";
-
-@keyframes openui-loading-bar {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}

@@ -2,7 +2,7 @@
 
 import { defineComponent } from "@openuidev/react-lang";
 import React from "react";
-import { MarkDownRenderer } from "../../components/MarkDownRenderer";
+import { TextContentWrapper } from "../../components/TextContentWrapper";
 import { TextContentSchema } from "./schema";
 const BODY_SIZE_VARS: Record<string, string> = {
   small: "--openui-text-body-sm",
@@ -32,7 +32,7 @@ export const TextContent = defineComponent({
     const text = props.text == null ? "" : String(props.text);
     return (
       <div style={style}>
-        <MarkDownRenderer textMarkdown={text} />
+        <TextContentWrapper textMarkdown={text} />
       </div>
     );
   },

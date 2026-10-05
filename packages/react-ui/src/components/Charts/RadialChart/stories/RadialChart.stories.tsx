@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
+import { RadialChart, RadialChartProps } from "../..";
 import { Card } from "../../../Card";
-import { RadialChart, RadialChartProps } from "../RadialChart";
 
 /**
  * Sample data sets for demonstrating various RadialChart configurations
@@ -85,7 +85,7 @@ const customColorPalette = [
  * - **Animation Support**: Smooth transitions and loading animations
  *
  * ### Customization Options
- * - **Theme System**: Pre-built color palettes (ocean, orchid, emerald, sunset, spectrum, vivid)
+ * - **Colors**: Uses the ThemeProvider's chart palette, or custom colors with `customPalette`
 
  * - **Layout Flexibility**: Responsive design that adapts to container dimensions
  */
@@ -108,7 +108,6 @@ import { RadialChart } from '@openuidev/react-ui/Charts/RadialChart';
   data={yourData}
   categoryKey="category"
   dataKey="value"
-  theme="ocean"
   variant="circular"
 />
 \`\`\`
@@ -187,32 +186,14 @@ const exampleData = [
         category: "📊 Data Configuration",
       },
     },
-    theme: {
-      description: `
-**Color Theme Selection.** Choose from professionally designed color palettes:
-
-- **ocean**: Cool blues and teals (professional, corporate)
-- **orchid**: Purple and pink tones (creative, modern)  
-- **emerald**: Green variations (nature, growth, finance)
-- **sunset**: Warm oranges and reds (energy, attention-grabbing)
-- **spectrum**: Full color range (diverse, comprehensive)
-- **vivid**: High-contrast colors (accessibility, clarity)
-      `,
-      control: "select",
-      options: ["ocean", "orchid", "emerald", "sunset", "spectrum", "vivid"],
-      table: {
-        defaultValue: { summary: "ocean" },
-        category: "🎨 Visual Styling",
-      },
-    },
     customPalette: {
       description: `
-**Custom Color Palette.** Override the theme colors with your own color array.
+**Custom Color Palette.** Override the ThemeProvider's chart palette with your own color array.
 
 **Usage:**
 - Provide an array of hex color strings
 - Colors will be applied in order to chart segments
-- Takes precedence over theme colors when provided
+- Takes precedence over the ThemeProvider's chart palette when provided
 - Useful for brand-specific color requirements
 
 **Example:**
@@ -358,7 +339,7 @@ type Story = StoryObj<typeof meta>;
  *
  * **Key Features Shown:**
  * - Standard circular layout with full 360° display
- * - Professional ocean color theme
+ * - Chart palette from the ThemeProvider
  * - Stacked legend for optimal space utilization
  * - Smooth animations for polished user experience
  * - Number format for clear value display
@@ -369,7 +350,6 @@ export const DefaultConfiguration: Story = {
     data: monthlyRevenueData,
     categoryKey: "month",
     dataKey: "value",
-    theme: "ocean",
     variant: "circular",
     format: "number",
     legend: true,
@@ -401,63 +381,9 @@ in a clear, professional manner with optimal default settings for readability an
 **Configuration Details:**
 - **Data**: 12 months of revenue data
 - **Layout**: Full circular display
-- **Colors**: Ocean theme (blues and teals)
+- **Colors**: The ThemeProvider's chart palette
 - **Legend**: Stacked layout for space efficiency
 - **Animations**: Enabled for smooth interactions
-        `,
-      },
-    },
-  },
-};
-
-/**
- * ## Theme Showcase
- *
- * RadialChart includes six professionally designed color themes, each optimized
- * for different contexts and brand requirements.
- */
-export const ThemeShowcase: Story = {
-  name: "🎨 Theme Variations",
-  args: {
-    data: monthlyRevenueData.slice(0, 6),
-    categoryKey: "month",
-    dataKey: "value",
-    theme: "emerald",
-    variant: "circular",
-    format: "number",
-    legend: true,
-    legendVariant: "stacked",
-    grid: false,
-    isAnimationActive: true,
-    cornerRadius: 10,
-  },
-  render: (args: any) => (
-    <Card style={{ width: "600px", height: "auto", padding: "24px" }}>
-      <div style={{ marginBottom: "20px" }}>
-        <h3 style={{ margin: "0 0 8px 0", fontSize: "18px", fontWeight: "600" }}>
-          Financial Growth Metrics
-        </h3>
-        <p style={{ margin: 0, color: "#666", fontSize: "14px" }}>
-          Using the emerald theme for finance-related data visualization
-        </p>
-      </div>
-      <RadialChart {...args} />
-    </Card>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: `
-**Theme Selection Guide:**
-
-- **Ocean** 🌊: Corporate, professional, trustworthy (recommended for business)
-- **Orchid** 🌸: Creative, modern, innovative (great for design/marketing)
-- **Emerald** 🍃: Growth, finance, nature (perfect for financial data)
-- **Sunset** 🌅: Energy, attention, warmth (ideal for alerts/important metrics)
-- **Spectrum** 🌈: Diverse, comprehensive (when you need many distinct colors)
-- **Vivid** ⚡: High contrast, accessible (optimized for accessibility requirements)
-
-**Best Practice:** Choose themes that align with your brand colors and data context.
         `,
       },
     },
@@ -475,7 +401,6 @@ export const VisualEnhancement: Story = {
     data: monthlyRevenueData.slice(0, 6),
     categoryKey: "month",
     dataKey: "value",
-    theme: "sunset",
     variant: "circular",
     format: "percentage",
     legend: true,
@@ -591,7 +516,7 @@ export const CustomPalette: Story = {
 **Custom Palette Features:**
 
 - **Brand Alignment**: Use your exact brand colors for consistent visual identity
-- **Override Themes**: Takes precedence over theme-based color selection
+- **Palette Override**: Takes precedence over the ThemeProvider's chart palette
 - **Flexible Array**: Provide any number of colors - they'll cycle automatically for larger datasets
 - **Hex Color Support**: Standard hex color format (#RRGGBB)
 
@@ -640,7 +565,6 @@ export const LargeDatasetDemo: Story = {
     data: comprehensiveFinancialData,
     categoryKey: "category",
     dataKey: "amount",
-    theme: "spectrum",
     variant: "circular",
     format: "number",
     legend: true,
@@ -720,7 +644,6 @@ export const ResponsiveDemo: Story = {
     data: monthlyRevenueData,
     categoryKey: "month",
     dataKey: "value",
-    theme: "spectrum",
     variant: "circular",
     format: "number",
     legend: true,

@@ -8,5 +8,6 @@ export {
   type LibraryLike,
   type RegisteredLibrary,
 } from "./libraryRegistry";
+export { withDevtoolsAttribution } from "./links";
 export { useDevtoolsSingleton } from "./singleton";
 export { useDevtoolsConfig, type DevtoolsConfig } from "./useDevtoolsConfig";

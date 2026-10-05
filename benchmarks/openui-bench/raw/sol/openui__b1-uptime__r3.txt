@@ -1,7 +1,0 @@
-root = Card([header, statusRow, incident])
-header = CardHeader("Platform Status", "Current service health and recent incidents")
-statusRow = Card([uptimeLabel, uptimeValue, uptimeProgress], "sunk", "column", "s")
-uptimeLabel = Tag("API operational", null, "md", "success")
-uptimeValue = TextContent("99.98% uptime this month", "large-heavy")
-uptimeProgress = Progress(99.98, "Monthly API uptime")
-incident = Callout("success", "Most recent incident resolved", "Elevated API latency affected some requests for 18 minutes. Service was fully restored on August 14, 2026 at 16:42 UTC.")

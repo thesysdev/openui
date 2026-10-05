@@ -1,0 +1,1108 @@
+.canvas {
+  display: flex;
+  flex: 0 1 720px;
+  align-self: center;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 0;
+  padding: 28px 28px 0;
+  overflow: hidden;
+  aspect-ratio: 720 / 400;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--openui-text-neutral-primary) 3%, var(--openui-background));
+  color: var(--openui-text-neutral-primary);
+  font-family: var(--home-font-text);
+}
+
+.window {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 12%, transparent);
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  background: var(--openui-foreground);
+  box-shadow: 0 16px 44px color-mix(in srgb, #000 8%, transparent);
+}
+
+.consoleNav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 38px;
+  padding: 0 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 10%, transparent);
+  color: var(--openui-text-neutral-secondary);
+  font-size: 9px;
+}
+
+.consoleMark {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--openui-text-neutral-primary);
+  color: var(--openui-foreground);
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.activeNav {
+  color: var(--openui-text-neutral-primary);
+  font-weight: 600;
+}
+
+.triageBody {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  height: calc(100% - 38px);
+}
+
+.reviewList {
+  min-width: 0;
+  padding: 16px;
+  border-right: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 10%, transparent);
+}
+
+.reviewHeader,
+.reviewHeader > span,
+.reviewHeader button,
+.monthRow,
+.reviewItems article,
+.drawerTopline,
+.openSession,
+.sessionHeader,
+.sessionHeader > span,
+.sessionHeader button,
+.responsePanel > span,
+.detailTabs,
+.evalToast,
+.selectedAction {
+  display: flex;
+  align-items: center;
+}
+
+.reviewHeader {
+  justify-content: space-between;
+}
+.reviewHeader > span {
+  gap: 6px;
+}
+.reviewHeader strong {
+  font-family: var(--home-font-display);
+  font-size: 17px;
+  font-weight: 580;
+}
+.reviewHeader i {
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--openui-text-neutral-primary) 7%, transparent);
+  color: var(--openui-text-neutral-secondary);
+  font-size: 8px;
+  font-style: normal;
+}
+
+.reviewHeader button,
+.sessionHeader button {
+  gap: 4px;
+  padding: 5px 7px;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 12%, transparent);
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 8px;
+}
+
+.monthRow {
+  justify-content: space-between;
+  margin: 12px 0 7px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--openui-text-neutral-primary) 5%, transparent);
+  color: var(--openui-text-neutral-secondary);
+  font-size: 8px;
+}
+
+.reviewItems {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.reviewItems article {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 5px 7px;
+  padding: 9px;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 9%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--openui-text-neutral-primary) 2%, transparent);
+}
+
+.reviewItems .selectedReview {
+  border-color: color-mix(in srgb, #d99b31 48%, transparent);
+  background: color-mix(in srgb, #d99b31 8%, transparent);
+}
+
+.issueBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  width: fit-content;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, #d99b31 14%, transparent);
+  color: #a56b00;
+  font-size: 7px;
+}
+
+.reviewItems strong {
+  grid-column: 1 / 3;
+  font-size: 9px;
+  font-weight: 540;
+}
+.reviewItems small {
+  grid-column: 1 / 3;
+  color: var(--openui-text-neutral-secondary);
+  font-size: 7px;
+}
+.reviewItems svg {
+  grid-column: 3;
+  grid-row: 1 / 4;
+  align-self: center;
+  color: var(--openui-text-neutral-secondary);
+}
+
+.issueDrawer {
+  min-width: 0;
+  padding: 18px;
+}
+.drawerTopline {
+  justify-content: space-between;
+  color: var(--openui-text-neutral-secondary);
+  font-size: 8px;
+}
+.highBadge {
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #dc3f48 10%, transparent);
+  color: #dc3f48;
+}
+.issueDrawer h3 {
+  margin: 12px 0 7px;
+  font-family: var(--home-font-display);
+  font-size: 15px;
+  font-weight: 580;
+  line-height: 1.2;
+}
+.issueSummary {
+  margin: 0;
+  color: var(--openui-text-neutral-secondary);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.evidenceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.evidenceGrid div,
+.reviewerNote {
+  padding: 9px;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 9%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--openui-text-neutral-primary) 3%, transparent);
+}
+
+.evidenceGrid small,
+.reviewerNote small {
+  color: var(--openui-text-neutral-secondary);
+  font-size: 7px;
+}
+.evidenceGrid p,
+.reviewerNote p {
+  margin: 5px 0 0;
+  font-size: 8px;
+  line-height: 1.35;
+}
+.reviewerNote {
+  margin-top: 7px;
+  border-left: 2px solid #d99b31;
+}
+.drawerFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  color: var(--openui-text-neutral-secondary);
+  font-size: 7px;
+}
+.drawerFooter b {
+  color: var(--openui-text-neutral-primary);
+  font-weight: 600;
+}
+.openSession {
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--openui-text-neutral-primary);
+  font: inherit;
+  font-size: 8px;
+  font-weight: 550;
+}
+
+/* Evals is intentionally a full product surface rather than an invented
+   marketing card. It reuses the console's quiet sidebar, dense data rows and
+   contextual right drawer, then adds only the controls the proposed workflow
+   needs. */
+.evalWindow {
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--openui-background) 94%, var(--openui-text-neutral-primary));
+}
+
+.productTopbar {
+  display: flex;
+  height: 34px;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 8%, transparent);
+  background: var(--openui-foreground);
+  color: var(--openui-text-neutral-secondary);
+  font-size: 7px;
+}
+
+.productTopbar strong {
+  color: var(--openui-text-neutral-primary);
+  font-weight: 560;
+}
+.topbarActions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.topbarActions button {
+  padding: 4px 6px;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 10%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--openui-text-neutral-primary);
+  font: inherit;
+}
+.topbarActions i {
+  display: grid;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  border-radius: 5px;
+  background: #eee8ff;
+  color: #6e56cf;
+  font-size: 7px;
+  font-style: normal;
+}
+
+.productBody {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: 112px minmax(0, 1fr);
+}
+.productSidebar {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 7px;
+  border-right: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 8%, transparent);
+  background: var(--openui-foreground);
+  color: var(--openui-text-neutral-secondary);
+  font-size: 7px;
+}
+
+.appSwitcher,
+.sidebarItem,
+.sidebarActive {
+  display: flex;
+  min-width: 0;
+  height: 20px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 7px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+
+.appSwitcher {
+  margin-bottom: 3px;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 10%, transparent);
+  color: var(--openui-text-neutral-primary);
+  font-weight: 540;
+}
+.appSwitcher > span {
+  color: #6e56cf;
+}
+.appSwitcher small {
+  margin-left: auto;
+  color: var(--openui-text-neutral-secondary);
+}
+.productSidebar > p {
+  margin: 7px 7px 1px;
+  color: color-mix(in srgb, var(--openui-text-neutral-secondary) 70%, transparent);
+  font-size: 6px;
+}
+.sidebarItem small,
+.sidebarActive small {
+  margin-left: auto;
+}
+.sidebarActive {
+  background: color-mix(in srgb, var(--openui-text-neutral-primary) 7%, transparent);
+  color: var(--openui-text-neutral-primary);
+  font-weight: 580;
+}
+.sidebarActive::before {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #6e56cf;
+  content: "";
+}
+
+.evalsMain {
+  min-width: 0;
+  padding: 11px 13px 0;
+  overflow: hidden;
+}
+.evalsHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.evalsHeading h3 {
+  margin: 0;
+  font-family: var(--home-font-display);
+  font-size: 16px;
+  font-weight: 590;
+  line-height: 1;
+}
+.evalsHeading p {
+  margin: 4px 0 0;
+  color: var(--openui-text-neutral-secondary);
+  font-size: 7px;
+}
+.runButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--openui-text-neutral-primary);
+  color: var(--openui-foreground);
+  font: inherit;
+  font-size: 7px;
+  font-weight: 570;
+}
+
+.evalMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 9px;
+}
+.evalMetrics > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 8%, transparent);
+  border-radius: 7px;
+  background: var(--openui-foreground);
+}
+.evalMetrics b {
+  font-size: 9px;
+  font-weight: 570;
+}
+.evalMetrics small {
+  color: var(--openui-text-neutral-secondary);
+  font-size: 6px;
+}
+.evalMetrics .regressionCount {
+  color: #dc3f48;
+}
+
+.evalWorkspace {
+  display: grid;
+  min-height: 0;
+  height: 232px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(190px, 0.65fr);
+  margin-top: 7px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 9%, transparent);
+  border-radius: 8px 8px 0 0;
+  background: var(--openui-foreground);
+}
+
+.evalList {
+  min-width: 0;
+  border-right: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 9%, transparent);
+}
+.evalToolbar {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 0.65fr;
+  gap: 4px;
+  padding: 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 8%, transparent);
+}
+.evalToolbar button,
+.evalToolbar > span {
+  display: flex;
+  min-width: 0;
+  height: 20px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 9%, transparent);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--openui-text-neutral-secondary);
+  font: inherit;
+  font-size: 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.evalToolbar button:first-child {
+  color: var(--openui-text-neutral-primary);
+}
+.evalTableHeader,
+.evalRow,
+.evalRowSelected {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) 0.55fr 0.52fr 0.35fr;
+  align-items: center;
+}
+.evalTableHeader {
+  height: 20px;
+  padding: 0 7px;
+  color: var(--openui-text-neutral-secondary);
+  font-size: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.evalRow,
+.evalRowSelected {
+  min-height: 40px;
+  padding: 0 7px;
+  border-top: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 7%, transparent);
+  font-size: 6px;
+}
+.evalRowSelected {
+  background: color-mix(in srgb, #6e56cf 8%, transparent);
+  box-shadow: inset 2px 0 #6e56cf;
+}
+.evalRow > span,
+.evalRowSelected > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+.evalRow b,
+.evalRowSelected b {
+  overflow: hidden;
+  font-size: 7px;
+  font-weight: 560;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.evalRow small,
+.evalRowSelected small {
+  overflow: hidden;
+  color: var(--openui-text-neutral-secondary);
+  font-size: 5.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.evalRow i,
+.evalRowSelected i {
+  width: fit-content;
+  padding: 2px 4px;
+  border-radius: 999px;
+  font-size: 5.5px;
+  font-style: normal;
+}
+.evalRow i[data-result="Failed"],
+.evalRowSelected i[data-result="Failed"] {
+  background: color-mix(in srgb, #dc3f48 10%, transparent);
+  color: #dc3f48;
+}
+.evalRow i[data-result="Passed"],
+.evalRowSelected i[data-result="Passed"] {
+  background: color-mix(in srgb, #07864d 10%, transparent);
+  color: #07864d;
+}
+.evalRow i[data-result="Not run"],
+.evalRowSelected i[data-result="Not run"] {
+  background: color-mix(in srgb, var(--openui-text-neutral-primary) 6%, transparent);
+  color: var(--openui-text-neutral-secondary);
+}
+
+.evalDetail {
+  min-width: 0;
+  padding: 9px;
+}
+.evalDetailTop,
+.evalDetailTop > span,
+.runComparison,
+.historyButton {
+  display: flex;
+  align-items: center;
+}
+.evalDetailTop {
+  justify-content: space-between;
+}
+.evalDetailTop > span {
+  gap: 5px;
+}
+.evalDetailTop i {
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #dc3f48 10%, transparent);
+  color: #dc3f48;
+  font-size: 5.5px;
+  font-style: normal;
+}
+.evalDetailTop small,
+.evalSource {
+  color: var(--openui-text-neutral-secondary);
+  font-size: 5.5px;
+}
+.evalDetail h4 {
+  margin: 7px 0 3px;
+  font-size: 10px;
+  font-weight: 580;
+  line-height: 1.2;
+}
+.evalSource {
+  margin: 0;
+}
+.evalContext {
+  margin-top: 8px;
+  padding: 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--openui-text-neutral-primary) 4%, transparent);
+}
+.evalContext small {
+  color: var(--openui-text-neutral-secondary);
+  font-size: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+.evalContext p {
+  margin: 2px 0 6px;
+  font-size: 6px;
+  line-height: 1.35;
+}
+.evalContext p:last-child {
+  margin-bottom: 0;
+}
+.runComparison {
+  gap: 5px;
+  margin-top: 7px;
+}
+.runComparison > span {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 8%, transparent);
+  border-radius: 5px;
+}
+.runComparison small {
+  color: var(--openui-text-neutral-secondary);
+  font-size: 5px;
+}
+.runComparison b {
+  font-size: 7px;
+  font-weight: 570;
+}
+.runComparison i {
+  color: #dc3f48;
+  font-size: 5px;
+  font-style: normal;
+}
+.runComparison span:last-child i {
+  color: #07864d;
+}
+.historyButton {
+  gap: 4px;
+  margin-top: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--openui-text-neutral-primary);
+  font: inherit;
+  font-size: 6px;
+  font-weight: 550;
+}
+
+.sessionHeader {
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 10%, transparent);
+}
+
+.sessionHeader > span {
+  min-width: 0;
+  gap: 5px;
+}
+.sessionHeader strong {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sessionHeader small {
+  color: var(--openui-text-neutral-secondary);
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.sessionBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+  height: calc(100% - 82px);
+}
+
+.replayPane {
+  min-width: 0;
+  padding: 15px;
+  border-right: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 10%, transparent);
+}
+.agentBubble,
+.userBubble {
+  width: fit-content;
+  max-width: 86%;
+  margin: 0;
+  padding: 7px 9px;
+  border-radius: 7px;
+  font-size: 8px;
+  line-height: 1.35;
+}
+.agentBubble {
+  background: color-mix(in srgb, var(--openui-text-neutral-primary) 5%, transparent);
+}
+.userBubble {
+  margin: 9px 0 9px auto;
+  background: #eee8ff;
+  color: #6e56cf;
+}
+
+.responsePanel {
+  padding: 9px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--openui-text-neutral-primary) 4%, transparent);
+}
+.responsePanel > span {
+  justify-content: space-between;
+  font-size: 7px;
+}
+.responsePanel strong {
+  font-size: 8px;
+}
+.revenueChart {
+  position: relative;
+  height: 75px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.revenueChart i {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 23px,
+    color-mix(in srgb, var(--openui-text-neutral-primary) 8%, transparent) 24px
+  );
+}
+.revenueChart svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.revenueChart path {
+  fill: none;
+  stroke: #2589ff;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.detailsPane {
+  min-width: 0;
+  padding: 12px;
+}
+.detailTabs {
+  gap: 10px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 9%, transparent);
+  color: var(--openui-text-neutral-secondary);
+  font-size: 7px;
+}
+.detailTabs strong {
+  color: var(--openui-text-neutral-primary);
+}
+.summaryStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 10px;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 9%, transparent);
+  border-radius: 8px;
+}
+.summaryStats span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px;
+}
+.summaryStats span:nth-child(odd) {
+  border-right: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 9%, transparent);
+}
+.summaryStats span:nth-child(-n + 2) {
+  border-bottom: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 9%, transparent);
+}
+.summaryStats b {
+  font-size: 10px;
+  font-weight: 550;
+}
+.summaryStats small {
+  color: var(--openui-text-neutral-secondary);
+  font-size: 7px;
+}
+.summaryStats .errorCount {
+  color: #dc3f48;
+}
+
+.actionMenu {
+  position: absolute;
+  top: 68px;
+  right: 14px;
+  z-index: 2;
+  display: flex;
+  width: 156px;
+  flex-direction: column;
+  padding: 6px;
+  border: 1px solid color-mix(in srgb, var(--openui-text-neutral-primary) 12%, transparent);
+  border-radius: 10px;
+  background: var(--openui-foreground);
+  box-shadow: 0 12px 34px color-mix(in srgb, #000 16%, transparent);
+  font-size: 8px;
+}
+
+.actionMenu > span {
+  padding: 7px 8px;
+  border-radius: 6px;
+}
+.selectedAction {
+  gap: 6px;
+  background: color-mix(in srgb, var(--openui-text-neutral-primary) 7%, transparent);
+  font-weight: 550;
+}
+
+.evalToast {
+  position: absolute;
+  right: 20px;
+  bottom: 16px;
+  z-index: 3;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, #07864d 24%, transparent);
+  border-radius: 8px;
+  background: var(--openui-foreground);
+  box-shadow: 0 10px 28px color-mix(in srgb, #000 12%, transparent);
+  font-size: 7px;
+}
+
+.evalToast > span {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border-radius: 50%;
+  background: #07864d;
+  color: #fff;
+}
+.evalToast strong {
+  font-weight: 600;
+}
+
+@media (max-width: 1023px) {
+  .canvas {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .canvas {
+    padding: 14px 12px 0;
+    border-radius: 12px;
+  }
+  .window {
+    border-radius: 11px 11px 0 0;
+  }
+  .consoleNav {
+    gap: 8px;
+    height: 28px;
+    padding-inline: 8px;
+    font-size: 5px;
+  }
+  .consoleMark {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    font-size: 5px;
+  }
+  .triageBody {
+    height: calc(100% - 28px);
+  }
+  .reviewList,
+  .issueDrawer {
+    padding: 8px;
+  }
+  .reviewHeader strong {
+    font-size: 10px;
+  }
+  .reviewHeader button,
+  .sessionHeader button {
+    padding: 3px 4px;
+    font-size: 5px;
+  }
+  .reviewItems article {
+    padding: 5px;
+  }
+  .reviewItems strong,
+  .issueDrawer p,
+  .evidenceGrid p,
+  .reviewerNote p {
+    font-size: 5px;
+  }
+  .reviewItems small,
+  .issueBadge,
+  .drawerTopline,
+  .evidenceGrid small,
+  .reviewerNote small,
+  .openSession {
+    font-size: 4px;
+  }
+  .issueDrawer h3 {
+    margin-top: 6px;
+    font-size: 8px;
+  }
+  .evidenceGrid {
+    gap: 3px;
+    margin-top: 6px;
+  }
+  .evidenceGrid div,
+  .reviewerNote {
+    padding: 5px;
+  }
+  .sessionHeader {
+    height: 32px;
+    padding-inline: 8px;
+  }
+  .sessionHeader strong {
+    font-size: 6px;
+  }
+  .sessionHeader small {
+    font-size: 5px;
+  }
+  .sessionBody {
+    height: calc(100% - 60px);
+  }
+  .replayPane,
+  .detailsPane {
+    padding: 7px;
+  }
+  .agentBubble,
+  .userBubble {
+    padding: 4px;
+    font-size: 5px;
+  }
+  .responsePanel {
+    padding: 5px;
+  }
+  .revenueChart {
+    height: 40px;
+  }
+  .actionMenu {
+    top: 46px;
+    right: 8px;
+    width: 94px;
+    padding: 3px;
+    font-size: 5px;
+  }
+  .actionMenu > span {
+    padding: 4px;
+  }
+  .evalToast {
+    right: 8px;
+    bottom: 7px;
+    padding: 4px 6px;
+    font-size: 4px;
+  }
+
+  .productTopbar {
+    height: 24px;
+    padding-inline: 6px;
+    font-size: 4px;
+  }
+  .topbarActions button {
+    padding: 2px 3px;
+  }
+  .topbarActions i {
+    width: 12px;
+    height: 12px;
+    font-size: 4px;
+  }
+  .productBody {
+    grid-template-columns: 68px minmax(0, 1fr);
+  }
+  .productSidebar {
+    gap: 0;
+    padding: 4px 3px;
+    font-size: 4px;
+  }
+  .appSwitcher,
+  .sidebarItem,
+  .sidebarActive {
+    height: 12px;
+    gap: 2px;
+    padding-inline: 3px;
+    border-radius: 3px;
+  }
+  .productSidebar > p {
+    margin: 3px 3px 0;
+    font-size: 3px;
+  }
+  .evalsMain {
+    padding: 5px 6px 0;
+  }
+  .evalsHeading h3 {
+    font-size: 9px;
+  }
+  .evalsHeading p,
+  .runButton {
+    font-size: 4px;
+  }
+  .runButton {
+    gap: 2px;
+    padding: 3px 4px;
+    border-radius: 4px;
+  }
+  .evalMetrics {
+    gap: 2px;
+    margin-top: 4px;
+  }
+  .evalMetrics > span {
+    gap: 0;
+    padding: 3px 4px;
+    border-radius: 4px;
+  }
+  .evalMetrics b {
+    font-size: 5px;
+  }
+  .evalMetrics small {
+    font-size: 3px;
+  }
+  .evalWorkspace {
+    height: 138px;
+    grid-template-columns: minmax(0, 1.3fr) minmax(105px, 0.7fr);
+    margin-top: 3px;
+    border-radius: 5px 5px 0 0;
+  }
+  .evalToolbar {
+    gap: 2px;
+    padding: 3px;
+  }
+  .evalToolbar button,
+  .evalToolbar > span {
+    height: 12px;
+    padding-inline: 3px;
+    font-size: 3px;
+  }
+  .evalTableHeader {
+    height: 12px;
+    padding-inline: 4px;
+    font-size: 3px;
+  }
+  .evalRow,
+  .evalRowSelected {
+    min-height: 24px;
+    padding-inline: 4px;
+    font-size: 3px;
+  }
+  .evalRow b,
+  .evalRowSelected b {
+    font-size: 4px;
+  }
+  .evalRow small,
+  .evalRowSelected small,
+  .evalRow i,
+  .evalRowSelected i {
+    font-size: 3px;
+  }
+  .evalDetail {
+    padding: 5px;
+  }
+  .evalDetail h4 {
+    margin-top: 3px;
+    font-size: 5px;
+  }
+  .evalDetailTop i,
+  .evalDetailTop small,
+  .evalSource {
+    font-size: 3px;
+  }
+  .evalContext {
+    margin-top: 3px;
+    padding: 3px;
+  }
+  .evalContext small {
+    font-size: 2.5px;
+  }
+  .evalContext p {
+    margin-block: 1px 3px;
+    font-size: 3px;
+  }
+  .runComparison {
+    gap: 2px;
+    margin-top: 3px;
+  }
+  .runComparison > span {
+    padding: 2px;
+  }
+  .runComparison small,
+  .runComparison i,
+  .historyButton {
+    font-size: 2.5px;
+  }
+  .runComparison b {
+    font-size: 3.5px;
+  }
+}

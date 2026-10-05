@@ -1,5 +1,0 @@
-root = Card([header, uptime, incidentAlert, incidentDetail])
-header = CardHeader("Platform Status", "API Service — This Month")
-uptime = Progress(99.94, "API Uptime (This Month): 99.94%")
-incidentAlert = Alert("Latest Incident Resolved", "Elevated API latency in us-east-1 caused by a database connection pool exhaustion.", "success")
-incidentDetail = TextContent("**Most recent incident:** On Feb 14 at 09:22 UTC, the API experienced elevated latency and intermittent 503 errors for roughly 34 minutes. Engineers expanded the connection pool and rerouted traffic. **Resolved:** Feb 14 at 09:56 UTC.", "small")

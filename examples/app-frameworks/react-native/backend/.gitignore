@@ -1,0 +1,8 @@
+node_modules/
+.next/
+.env*
+*.tsbuildinfo
+next-env.d.ts
+
+# generated OpenUI prompt and schema
+/src/generated/

@@ -105,6 +105,67 @@ describe("langGraphAdapter", () => {
       });
     });
 
+    it("splits text that follows tool calls onto a new AG-UI message", async () => {
+      const body =
+        sse("messages", [
+          {
+            type: "AIMessageChunk",
+            content: "Let me do this",
+            id: "msg-1",
+            tool_call_chunks: [{ id: "tc-1", name: "get_weather", args: "{}", index: 0 }],
+          },
+          { langgraph_node: "agent" },
+        ]) +
+        sse("messages", [
+          {
+            type: "AIMessageChunk",
+            content: "root = Card()",
+            id: "msg-1",
+          },
+          { langgraph_node: "agent" },
+        ]) +
+        sse("end", null);
+
+      const events = await collect(langGraphAdapter().parse(makeSSEResponse(body)));
+      const textEvents = events.filter(
+        (event: any) =>
+          event.type === EventType.TEXT_MESSAGE_START ||
+          event.type === EventType.TEXT_MESSAGE_CONTENT ||
+          event.type === EventType.TEXT_MESSAGE_END,
+      );
+
+      expect(textEvents).toEqual([
+        {
+          type: EventType.TEXT_MESSAGE_START,
+          messageId: "msg-1",
+          role: "assistant",
+        },
+        {
+          type: EventType.TEXT_MESSAGE_CONTENT,
+          messageId: "msg-1",
+          delta: "Let me do this",
+        },
+        {
+          type: EventType.TEXT_MESSAGE_END,
+          messageId: "msg-1",
+        },
+        {
+          type: EventType.TEXT_MESSAGE_START,
+          messageId: "msg-1#1",
+          role: "assistant",
+        },
+        {
+          type: EventType.TEXT_MESSAGE_CONTENT,
+          messageId: "msg-1#1",
+          delta: "root = Card()",
+        },
+        {
+          type: EventType.TEXT_MESSAGE_END,
+          messageId: "msg-1#1",
+        },
+      ]);
+    });
+
     it("handles non-tuple message format (plain object)", async () => {
       const body =
         sse("messages", { type: "ai", content: "plain", id: "msg-1" }) + sse("end", null);
@@ -196,8 +257,132 @@ describe("langGraphAdapter", () => {
       expect((toolArgs as any).delta).toBe('{"query":"test"}');
 
       const toolEnd = events.filter((e: any) => e.type === EventType.TOOL_CALL_END);
-      // One from the complete tool_calls handling + one from the "end" event cleanup
-      expect(toolEnd.length).toBeGreaterThanOrEqual(1);
+      expect(toolEnd).toHaveLength(1);
+    });
+
+    it("preserves model → tool result → model ordering across graph steps", async () => {
+      const body =
+        sse("messages", [
+          {
+            type: "ai",
+            id: "ai-call",
+            content: "",
+            tool_calls: [{ id: "call-1", name: "get_weather", args: { location: "Berlin" } }],
+          },
+          { langgraph_node: "model", langgraph_step: 1 },
+        ]) +
+        sse("messages", [
+          {
+            type: "tool",
+            id: "tool-result",
+            content: '{"temperature_c":21}',
+            tool_call_id: "call-1",
+            status: "success",
+          },
+          { langgraph_node: "tools", langgraph_step: 2 },
+        ]) +
+        sse("messages", [
+          { type: "ai", id: "ai-final", content: "It is 21°C." },
+          { langgraph_node: "model", langgraph_step: 3 },
+        ]) +
+        sse("end", null);
+
+      const events = await collect(langGraphAdapter().parse(makeSSEResponse(body)));
+
+      expect(events.map((event: any) => event.type)).toEqual([
+        EventType.TEXT_MESSAGE_START,
+        EventType.TOOL_CALL_START,
+        EventType.TOOL_CALL_ARGS,
+        EventType.TOOL_CALL_END,
+        EventType.TEXT_MESSAGE_END,
+        EventType.TOOL_CALL_RESULT,
+        EventType.TEXT_MESSAGE_START,
+        EventType.TEXT_MESSAGE_CONTENT,
+        EventType.TEXT_MESSAGE_END,
+      ]);
+      expect(events.filter((event: any) => event.type === EventType.TEXT_MESSAGE_START)).toEqual([
+        expect.objectContaining({ messageId: "ai-call" }),
+        expect.objectContaining({ messageId: "ai-final" }),
+      ]);
+      expect(events.find((event: any) => event.type === EventType.TOOL_CALL_RESULT)).toMatchObject({
+        messageId: "tool-result",
+        toolCallId: "call-1",
+        content: '{"temperature_c":21}',
+      });
+    });
+
+    it("closes a streamed tool call once when its ToolMessage arrives", async () => {
+      const body =
+        sse("messages", [
+          {
+            type: "AIMessageChunk",
+            id: "ai-call",
+            content: "",
+            tool_call_chunks: [{ id: "call-1", name: "get_weather", args: '{"', index: 0 }],
+            // LangChain projects partial chunks here too. The projection is
+            // incomplete and must not be consumed alongside the chunks.
+            tool_calls: [{ id: "call-1", name: "get_weather", args: {} }],
+          },
+          { langgraph_node: "model", langgraph_step: 1 },
+        ]) +
+        sse("messages", [
+          {
+            type: "AIMessageChunk",
+            id: "ai-call",
+            content: "",
+            tool_call_chunks: [{ args: 'location":"Berlin"}', index: 0 }],
+          },
+          { langgraph_node: "model", langgraph_step: 1 },
+        ]) +
+        sse("messages", [
+          {
+            type: "ToolMessage",
+            id: "tool-result",
+            content: "done",
+            tool_call_id: "call-1",
+            status: "success",
+          },
+          { langgraph_node: "tools", langgraph_step: 2 },
+        ]) +
+        sse("end", null);
+
+      const events = await collect(langGraphAdapter().parse(makeSSEResponse(body)));
+
+      expect(events.filter((event: any) => event.type === EventType.TOOL_CALL_END)).toHaveLength(1);
+      expect(events.filter((event: any) => event.type === EventType.TOOL_CALL_RESULT)).toHaveLength(
+        1,
+      );
+      expect(
+        events
+          .filter((event: any) => event.type === EventType.TOOL_CALL_ARGS)
+          .map((event: any) => event.delta)
+          .join(""),
+      ).toBe('{"location":"Berlin"}');
+    });
+
+    it("surfaces an errored ToolMessage as an errored tool result", async () => {
+      const body = sse("messages", [
+        {
+          type: "tool",
+          id: "tool-result",
+          content: "lookup failed",
+          tool_call_id: "call-1",
+          status: "error",
+        },
+        { langgraph_node: "tools", langgraph_step: 2 },
+      ]);
+
+      const events = await collect(langGraphAdapter().parse(makeSSEResponse(body)));
+
+      expect(events).toEqual([
+        expect.objectContaining({
+          type: EventType.TOOL_CALL_RESULT,
+          toolCallId: "call-1",
+          content: "lookup failed",
+          isError: true,
+          error: "lookup failed",
+        }),
+      ]);
     });
   });
 

@@ -1,7 +1,0 @@
-root = Card([header, task, status, deadline, actions], "card", "column", "l")
-header = CardHeader("Focus", "Your single most urgent task")
-task = Heading("Submit quarterly tax return", "h2")
-status = Tag("In progress", null, "md", "warning")
-deadline = Alert("Due today at 5:00 PM", "Complete and submit the return before the filing deadline.", "warning")
-actions = Buttons([doneButton])
-doneButton = Button("Mark as done", null, "primary", "normal", "large")

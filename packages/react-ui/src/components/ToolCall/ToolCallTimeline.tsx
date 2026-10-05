@@ -239,7 +239,10 @@ export function ToolCallTimeline({
     }
   }, [isThreadRunning, revealedCount, displaySteps.length]);
 
-  if (activities.length === 0) return null;
+  // Guard the array that is actually indexed below. `steps` is caller-supplied
+  // and can be empty even when `activities` is not, and `??` keeps an empty
+  // array rather than falling back to `activities`.
+  if (activities.length === 0 || displaySteps.length === 0) return null;
 
   const revealing = revealedCount < displaySteps.length;
   const showCompact = (thinking || revealing) && !expanded && !userCollapsed;

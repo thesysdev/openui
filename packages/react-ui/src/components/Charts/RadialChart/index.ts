@@ -1,2 +1,2 @@
-export * from "./RadialChart";
-export * from "./types";
+export { RadialChart } from "./RadialChart";
+export type { RadialChartData, RadialChartProps } from "./types";

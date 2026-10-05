@@ -1,8 +1,10 @@
 import type { ObservabilityLevel } from "@openuidev/observability";
 import type { StreamWireEvent } from "../events/stream";
 
-/** Must be kept in sync with packages/observability-cloud/package.json on release. */
-export const SDK_VERSION = "0.0.1";
+declare const __SDK_VERSION__: string;
+
+/** Injected from package.json at build time (tsdown define; vitest.config.ts mirrors it for tests). */
+export const SDK_VERSION = __SDK_VERSION__;
 
 export interface WireEventBase {
   id: string;

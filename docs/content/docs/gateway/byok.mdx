@@ -1,0 +1,20 @@
+---
+title: BYOK
+description: Route Gateway requests through your own OpenAI, Anthropic, or Google provider key.
+---
+
+Bring your own key (BYOK) lets an organization use its existing provider account while keeping the Gateway API, OpenUI Lang correction, and routing layer in the request path.
+
+## Add a provider key
+
+Add an OpenAI, Anthropic, or Google key from the [BYOK page in the Thesys Console](https://console.thesys.dev/byok). Only organization administrators can add or update provider credentials. Once configured, members of the organization can use models from that provider with the normal `{provider}/{model}` identifier.
+
+BYOK is available on every plan, including the free tier.
+
+## Provider-specific routing and billing
+
+A key applies only to its matching provider. For example, an OpenAI key is used for `openai/*` requests. Requests sent to another provider use managed Gateway credits unless that provider also has a configured key.
+
+Provider keys are not exposed to application clients. Applications continue to authenticate to the Gateway with their Gateway API key.
+
+See [Models](/docs/gateway/models) for identifiers and [Pricing](/docs/gateway/pricing-credits) for how managed usage and BYOK relate.

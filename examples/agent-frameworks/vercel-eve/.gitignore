@@ -1,0 +1,18 @@
+node_modules
+.env*
+!.env.example
+.eve
+.vercel
+.workflow-data
+.next
+.output
+.nitro
+dist
+.DS_Store
+*.tsbuildinfo
+
+# Local-only live integration smoke test (needs a running agent + API key)
+scripts/verify-thread-context.mjs
+
+# generated OpenUI prompt and schema
+/src/generated/

@@ -1,9 +1,0 @@
-{"op":"add","path":"/root","value":"university-dashboard"}
-{"op":"add","path":"/elements/university-dashboard","value":{"type":"Card","props":{"variant":"clear","direction":"column","gap":"l"},"children":["dashboard-header","department-filter-card","semester-comparison","overview-row","enrollment-section","applications-section","operations-row","faculty-section","risk-section","engagement-row","events-section","actions-row"]}}
-{"op":"add","path":"/elements/dashboard-header","value":{"type":"CardHeader","props":{"title":"University Administration Overview","subtitle":"Fall 2026 · Institutional performance, student success, and campus operations"}}}
-{"op":"add","path":"/elements/department-filter-card","value":{"type":"Card","props":{"direction":"row","gap":"m","align":"end"},"children":["department-filter-heading","department-filter-control"]}}
-{"op":"add","path":"/elements/department-filter-heading","value":{"type":"TextContent","props":{"text":"Focus dashboard by department","size":"small-heavy"},"children":[]}}
-{"op":"add","path":"/elements/department-filter-control","value":{"type":"FormControl","props":{"label":"Department","input":"department-select","hint":"Metrics update for the selected academic unit"},"children":[]}}
-{"op":"add","path":"/elements/department-select","value":{"type":"Select","props":{"name":"department","items":["dept-all","dept-business","dept-engineering","dept-arts","dept-science"],"value":{"$bindState":"/filters/department"}},"children":[]}}
-{"op":"add","path":"/state/filters","value":{}}
-{"op":"add","path":"/state/filters/department","value":"all"}

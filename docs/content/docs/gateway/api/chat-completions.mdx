@@ -1,0 +1,72 @@
+---
+title: Chat Completions
+---
+
+Gateway provides OpenAI compatible Chat Completions API endpoints, letting you use multiple AI providers through a familiar interface. You can use existing OpenAI client libraries, switch to Gateway with a URL change, and keep your current tools and workflows without code rewrites.
+
+The Chat Completions API implements the same specification as the [**OpenAI Chat Completions API**](https://platform.openai.com/docs/api-reference/chat).
+
+**Endpoint:** POST [https://api.thesys.dev/v1/embed/chat/completions](https://api.thesys.dev/v1/embed/chat/completions)
+
+## Configure the client
+
+```ts title="lib/gateway.ts"
+import OpenAI from "openai";
+
+export const gateway = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+```
+
+See [Authentication](/docs/gateway/authentication) before using the client in a server route.
+
+## Generate OpenUI Lang
+
+Configure the system message for OpenUI generation, then send the same messages shape used by the OpenAI SDK:
+
+```ts title="server.ts"
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import { gateway } from "./lib/gateway";
+import library from "./openui.spec.json";
+
+const completion = await gateway.chat.completions.create({
+  model: "openai/gpt-5",
+  messages: [
+    { role: "system", content: generateSystemPrompt({ cloud: true, library }) },
+    { role: "user", content: "Compare quarterly revenue by region." },
+  ],
+  stream: true,
+});
+```
+
+The assistant message contains OpenUI Lang. When the request is configured for OpenUI generation, the Gateway validates and corrects that language while it streams.
+
+## Plain text requests
+
+The endpoint also supports ordinary model traffic. Send your own system prompt without OpenUI generation instructions, and the Gateway forwards a text-oriented request without applying OpenUI Lang correction.
+
+```ts
+const completion = await gateway.chat.completions.create({
+  model: "anthropic/claude-sonnet-5",
+  messages: [{ role: "user", content: "Summarize this support ticket." }],
+});
+```
+
+Unknown providers can route through OpenRouter where supported. Use [Models](/docs/gateway/models) for the standard provider naming convention.
+
+## Stream to an agent UI
+
+Relay the server response without changing its SSE shape. In the browser, configure [Agent Interface adapters and message formats](/docs/agent/reference/adapters-and-formats) for the Chat Completions stream.
+
+Chat Completions is message-based. Your application owns conversation history and sends the relevant `system`, `user`, `assistant`, and `tool` messages on every turn. Use the [Responses API](/docs/gateway/api/responses) when you want Gateway-managed persistent conversations.
+
+## Function tools
+
+Chat Completions returns function tool calls to the application; it does not execute them. Run the standard loop:
+
+1. Send messages and function declarations.
+2. Read `tool_calls` from the assistant message.
+3. Execute each function in your application.
+4. Append the assistant tool-call message and each tool result.
+5. Continue until the model returns the final OpenUI Lang response.

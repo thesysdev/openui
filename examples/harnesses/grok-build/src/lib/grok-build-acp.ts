@@ -13,13 +13,13 @@ import {
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { Readable, Writable } from "node:stream";
-import { systemPrompt } from "../library";
 import {
   cancelGrokBuildInteractions,
   requestGrokBuildInteraction,
 } from "./grok-build-interactions";
+import { localSystemPrompt } from "./openui-prompt";
 
-const OPENUI_RULES = systemPrompt;
+const OPENUI_RULES = localSystemPrompt();
 const OPENUI_RULES_HASH = createHash("sha256").update(OPENUI_RULES).digest("hex");
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

@@ -1,9 +1,0 @@
-
-
-{"op":"add","path":"/root","value":"main"}
-{"op":"add","path":"/elements/main","value":{"type":"Card","props":{"variant":"card","direction":"column","gap":"l","align":"stretch","justify":"start","wrap":false},"children":["console-header","store-bar","kpi-row","sales-target-section","foot-traffic-section","week-compare-section","best-sellers-section","out-of-stock-section","shift-section","promo-section","register-section","returns-section","reorder-section"]}}
-{"op":"add","path":"/elements/console-header","value":{"type":"CardHeader","props":{"title":"Store Manager Daily Console","subtitle":"Tuesday operations, performance, staffing, inventory, and promotions"},"children":[]}}
-{"op":"add","path":"/elements/store-bar","value":{"type":"Card","props":{"variant":"clear","direction":"row","gap":"m","align":"center","justify":"between","wrap":true},"children":["store-control","store-apply","store-viewing"]}}
-{"op":"add","path":"/elements/store-control","value":{"type":"FormControl","props":{"label":"Store","input":"store-select","hint":"Switch to another store location"},"children":[]}}
-{"op":"add","path":"/elements/store-select","value":{"type":"Select","props":{"name":"store","items":["store-opt-1","store-opt-2","store-opt-3"],"placeholder":"Choose store","value":{"$bindState":"/selectedStore"},"size":"medium"},"children":[]}}
-{"op":"add","path":"/elements/store-opt-1","value":{"type":"

@@ -69,6 +69,82 @@ describe("Vercel AI SDK stream integration", () => {
     ).toEqual([{ id: "assistant-1", role: "assistant", content: "onetwo" }]);
   });
 
+  it("keeps pre-tool commentary on its own assistant message when answer text follows", async () => {
+    const messages: Message[] = [];
+
+    await processStreamedMessage({
+      response: responseFromChunks(
+        { type: "start-step" },
+        { type: "text-start", id: "text-1" },
+        { type: "text-delta", id: "text-1", delta: "Let me do this" },
+        { type: "text-end", id: "text-1" },
+        {
+          type: "tool-input-available",
+          toolCallId: "call-1",
+          toolName: "get_weather",
+          input: { location: "Berlin" },
+        },
+        { type: "tool-output-available", toolCallId: "call-1", output: { temp: 21 } },
+        { type: "text-start", id: "text-2" },
+        { type: "text-delta", id: "text-2", delta: "root = Card()" },
+        { type: "text-end", id: "text-2" },
+        { type: "finish-step" },
+      ),
+      adapter: vercelAIAdapter(),
+      createMessage: (message) => messages.push(message),
+      updateMessage: (message) => {
+        const index = messages.findIndex((candidate) => candidate.id === message.id);
+        if (index !== -1) messages[index] = message;
+      },
+    });
+
+    const assistants = messages.filter((message) => message.role === "assistant");
+    expect(assistants).toHaveLength(2);
+    expect(assistants[0]).toMatchObject({
+      role: "assistant",
+      content: "Let me do this",
+    });
+    expect(assistants[1]).toMatchObject({ role: "assistant", content: "root = Card()" });
+
+    expect(
+      vercelAIMessageFormat
+        .fromApi([
+          {
+            id: "assistant-1",
+            role: "assistant",
+            parts: [
+              { type: "step-start" },
+              { type: "text", text: "Let me do this" },
+              {
+                type: "dynamic-tool",
+                toolName: "get_weather",
+                toolCallId: "call-1",
+                state: "output-available",
+                input: { location: "Berlin" },
+                output: { temp: 21 },
+              },
+              { type: "text", text: "root = Card()" },
+            ],
+          },
+        ])
+        .filter((message) => message.role === "assistant"),
+    ).toEqual([
+      {
+        id: "assistant-1",
+        role: "assistant",
+        content: "Let me do this",
+        toolCalls: [
+          {
+            id: "call-1",
+            type: "function",
+            function: { name: "get_weather", arguments: '{"location":"Berlin"}' },
+          },
+        ],
+      },
+      { id: "assistant-1-segment-2", role: "assistant", content: "root = Card()" },
+    ]);
+  });
+
   it("preserves tool-only step order and emits no empty model text blocks", async () => {
     const messages: Message[] = [];
 

@@ -1,0 +1,6 @@
+.nuxt/
+.output/
+node_modules/
+
+# generated OpenUI prompt and schema
+/generated/

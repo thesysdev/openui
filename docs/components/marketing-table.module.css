@@ -54,11 +54,18 @@
 
 @media (max-width: 767px) {
   .edgeToEdgeMobile {
+    /* Break out to the screen edges regardless of how much page gutter,
+       card padding and section margin sit between here and the window.
+       50% resolves against this element's own containing block, so
+       (50% - 50vw) is exactly the distance to the viewport edge whatever
+       that stack adds up to — no inset to hardcode and none to keep in sync.
+       The same amount is padded back in, so the first column still lines up
+       with the text above it while the last one can reach the screen. */
     box-sizing: border-box;
-    width: calc(100% + 32px);
-    margin-left: -16px;
-    padding-inline: 16px;
-    scroll-padding-inline: 16px;
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    padding-inline: calc(50vw - 50%);
+    scroll-padding-inline: calc(50vw - 50%);
   }
 
   .table {

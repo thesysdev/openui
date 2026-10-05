@@ -1,0 +1,7 @@
+.next
+node_modules
+.env
+.env.local
+
+# generated OpenUI prompt and schema
+/src/generated/

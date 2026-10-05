@@ -1,0 +1,137 @@
+@use "../../../cssUtils" as cssUtils;
+@use "../shared/cartesian/chartBase" as base;
+@use "../prefix" as brand;
+
+@include base.centered-container("calendar-heatmap");
+
+.#{brand.$prefix}-calendar-heatmap-month-label,
+.#{brand.$prefix}-calendar-heatmap-weekday-label {
+  @include base.svg-tick-label;
+}
+
+// Cell fill is set inline per cell from a level CSS var (declared on the
+// container), so a later task's per-level styles can override a level without
+// touching the painter.
+.#{brand.$prefix}-calendar-heatmap-cell:hover {
+  stroke: cssUtils.$foreground;
+  stroke-width: 1.5;
+}
+
+// Ghost cells are decorative padding (only rendered when hideGhostCells is
+// false) — dim them via fill-opacity, NOT opacity, so the entrance keyframe's
+// forwards `opacity: 1` can't defeat the dim.
+.#{brand.$prefix}-calendar-heatmap-cell--ghost {
+  fill-opacity: 0.4;
+}
+
+// Entrances are decorative: gate the whole rule (pre-state included) behind
+// reduced-motion so users who opt out get the natural static state immediately
+// — gating only the animation would strand cells at opacity: 0.
+@media (prefers-reduced-motion: no-preference) {
+  .#{brand.$prefix}-calendar-heatmap-cell--animated {
+    opacity: 0;
+    animation: #{brand.$prefix}-calendar-cell-in 0.4s ease-out forwards;
+  }
+}
+
+@keyframes #{brand.$prefix}-calendar-cell-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Level-hover dimming: while a LEGEND level is hovered (and only then — cell
+// hover highlights its legend swatch but never re-shades the grid; bklit
+// parity), the plot group carries `data-<prefix>-highlight-level=N` and every
+// cell not on level N dims. Driven by ONE attribute swap on the group — cells
+// keep their static `--level-N` class, so there's no per-cell JS churn. Dim via
+// fill-opacity (like ghost/rowOpacity) so it never fights the entrance keyframe.
+@for $level from 0 through 4 {
+  [data-#{brand.$prefix}-highlight-level="#{$level}"]
+    .#{brand.$prefix}-calendar-heatmap-cell:not(
+      .#{brand.$prefix}-calendar-heatmap-cell--level-#{$level}
+    ) {
+    fill-opacity: 0.3;
+  }
+}
+
+// The dim + legend-swatch fade are hover feedback, not entrances — but still
+// motion, so gate the transitions behind reduced-motion (the end states above
+// apply regardless).
+@media (prefers-reduced-motion: no-preference) {
+  .#{brand.$prefix}-calendar-heatmap-cell,
+  .#{brand.$prefix}-calendar-heatmap-legend-swatch-slot {
+    transition:
+      fill-opacity 0.2s ease,
+      opacity 0.2s ease;
+  }
+}
+
+// ── Column separators ─────────────────────────────────────────────────────────
+
+// Base stroke token so an unstyled rule still reads in both themes; the `stroke`
+// prop overrides it inline when set.
+.#{brand.$prefix}-calendar-heatmap-separator {
+  stroke: cssUtils.$border-default;
+  stroke-width: 1;
+}
+
+.#{brand.$prefix}-calendar-heatmap-quarter-label {
+  @include cssUtils.typography(label, extra-small);
+  color: cssUtils.$text-neutral-secondary;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+// ── Less → More scale legend ──────────────────────────────────────────────────
+
+.#{brand.$prefix}-calendar-heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: cssUtils.$space-s;
+  width: 100%;
+  padding-top: cssUtils.$space-m;
+
+  &-label {
+    @include cssUtils.typography(label, extra-small);
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  &-swatches {
+    display: flex;
+    align-items: center;
+    gap: cssUtils.$space-3xs;
+  }
+
+  &-swatch-slot {
+    display: inline-flex;
+    cursor: pointer;
+  }
+
+  &-swatch {
+    display: block;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border-radius: cssUtils.$radius-2xs;
+  }
+
+  &-gradient {
+    position: relative;
+    width: 60px;
+    height: 12px;
+    flex-shrink: 0;
+    border-radius: cssUtils.$radius-2xs;
+  }
+
+  &-gradient-hit {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    cursor: pointer;
+  }
+}

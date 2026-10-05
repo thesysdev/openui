@@ -1,6 +1,0 @@
-root = Card([header, amountSection, dueDateCallout, payButton])
-header = CardHeader("Invoice #2024-0187", "Issued by Alex Morgan Design")
-amountSection = TextContent("**Amount Due**\n\n$2,450.00 USD", "large")
-dueDateCallout = Callout("warning", "Payment Due", "This invoice is due on July 15, 2025. Please submit payment before the deadline to avoid late fees.")
-payButton = Buttons([payNowBtn])
-payNowBtn = Button("Pay Now — $2,450.00", null, "primary", null, "large")

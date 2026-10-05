@@ -1,6 +1,7 @@
 import { type ObservabilityEvent } from "@openuidev/observability";
 import { CreditCard, KeyRound } from "lucide-react";
 import { useState, type CSSProperties } from "react";
+import { withDevtoolsAttribution } from "../lib/links";
 import { FONT, useStyles, useTheme, type ThemeTokens } from "../theme";
 import { LevelIcon } from "./LevelIcon";
 import { nestedRowBox } from "./rowBox";
@@ -76,7 +77,14 @@ export function QuotaErrorRow({
               onMouseEnter={() => setHoveredCta("purchase")}
               onMouseLeave={() => setHoveredCta(null)}
               onClick={() =>
-                window.open("https://console.thesys.dev/billing", "_blank", "noopener,noreferrer")
+                window.open(
+                  withDevtoolsAttribution(
+                    "https://console.thesys.dev/billing",
+                    "quota_error_purchase_credits",
+                  ),
+                  "_blank",
+                  "noopener,noreferrer",
+                )
               }
             >
               <CreditCard size={13} />
@@ -94,7 +102,11 @@ export function QuotaErrorRow({
               onMouseEnter={() => setHoveredCta("byok")}
               onMouseLeave={() => setHoveredCta(null)}
               onClick={() =>
-                window.open("https://console.thesys.dev/byok", "_blank", "noopener,noreferrer")
+                window.open(
+                  withDevtoolsAttribution("https://console.thesys.dev/byok", "quota_error_byok"),
+                  "_blank",
+                  "noopener,noreferrer",
+                )
               }
             >
               <KeyRound size={13} />

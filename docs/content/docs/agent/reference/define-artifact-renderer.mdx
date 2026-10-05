@@ -3,7 +3,7 @@ title: defineArtifactRenderer
 description: Full reference for the artifact-renderer config — type, toolName, the parser contract, preview/actual, controls, and registry matching.
 ---
 
-A **renderer** describes how one kind of artifact — a dashboard, a report, a slide deck, a code file — turns into UI: an inline preview inside the chat message and a full view in a side panel or page. You build one with `defineArtifactRenderer(config)` and pass the results to `<AgentInterface>` through the [`artifactRenderers`](/docs/agent/reference/agentinterface-props#artifactrenderers) prop.
+A **renderer** describes how one kind of artifact — a dashboard, data explorer, or code file — turns into UI: an inline preview inside the chat message and a full view in a side panel or page. You build one with `defineArtifactRenderer(config)` and pass the results to `<AgentInterface>` through the [`artifactRenderers`](/docs/agent/reference/agentinterface-props#artifactrenderers) prop.
 
 ```tsx
 import { defineArtifactRenderer } from "@openuidev/react-ui";
@@ -23,7 +23,7 @@ const codeArtifactRenderer = defineArtifactRenderer({
 
 `defineArtifactRenderer` returns its argument unchanged. Its only job is type inference: it infers the `Props` type from the `parser`'s return value, so `preview` and `actual` receive a fully-typed `props` without you annotating anything by hand. (Without it you'd have to write `const r: ArtifactRendererConfig<CodeArtifact> = { ... }`.)
 
-For a walkthrough of building a renderer end to end, see [Custom artifacts](/docs/agent/guides/custom-artifacts). This page is the precise contract.
+This page documents the precise renderer contract.
 
 ## Config type
 
@@ -59,13 +59,13 @@ interface ArtifactRendererControls {
 
 All five fields (`type`, `toolName`, `parser`, `preview`, `actual`) are required.
 
-| Field | Type | Purpose |
-| --- | --- | --- |
-| `type` | `string` | The artifact kind — the key for the storage path and for category filters. |
-| `toolName` | `string \| string[]` | The tool call(s) this renderer matches on the tool-call path. |
-| `parser` | `(raw, ctx) => ParsedArtifact \| null` | Converts the raw envelope into typed `props` plus an optional `meta` registry entry. |
-| `preview` | `(props, controls) => ReactNode` | The compact inline view rendered in the chat message. |
-| `actual` | `(props, controls) => ReactNode` | The full view rendered in the detailed-view panel or full-page browser. |
+| Field      | Type                                   | Purpose                                                                              |
+| ---------- | -------------------------------------- | ------------------------------------------------------------------------------------ |
+| `type`     | `string`                               | The artifact kind — the key for the storage path and for category filters.           |
+| `toolName` | `string \| string[]`                   | The tool call(s) this renderer matches on the tool-call path.                        |
+| `parser`   | `(raw, ctx) => ParsedArtifact \| null` | Converts the raw envelope into typed `props` plus an optional `meta` registry entry. |
+| `preview`  | `(props, controls) => ReactNode`       | The compact inline view rendered in the chat message.                                |
+| `actual`   | `(props, controls) => ReactNode`       | The full view rendered in the detailed-view panel or full-page browser.              |
 
 ## `type`
 
@@ -87,10 +87,10 @@ The artifact kind — a literal string like `"code_artifact"` or `"code_block"`.
 toolName: string | string[];
 ```
 
-The tool call(s) this renderer matches on the tool-call path. Literal strings only — **no `RegExp`, no wildcards, no patterns**. A single string matches one tool; an array registers the *same* renderer for several tool names (e.g. a create and an edit tool that both yield the same artifact):
+The tool call(s) this renderer matches on the tool-call path. Literal strings only — **no `RegExp`, no wildcards, no patterns**. A single string matches one tool; an array registers the _same_ renderer for several tool names (e.g. a create and an edit tool that both yield the same artifact):
 
 ```ts
-toolName: ["presentation:create", "presentation:edit"],
+toolName: ["dashboard:create", "dashboard:edit"],
 ```
 
 On a duplicate `toolName` across renderers, the first registration wins.
@@ -104,16 +104,16 @@ parser: (
 ) => { props: Props; meta: { id; version; heading } | null } | null;
 ```
 
-The parser converts the raw envelope into typed `props` plus an optional `meta` registry entry. The SDK **does not pre-parse JSON** — `args` and `response` arrive exactly as the backend emitted them (typically a JSON *string* for `args`, the raw deserialized value for `response`, depending on your stream adapter). Your parser owns deserialization and validation.
+The parser converts the raw envelope into typed `props` plus an optional `meta` registry entry. The SDK **does not pre-parse JSON** — `args` and `response` arrive exactly as the backend emitted them (typically a JSON _string_ for `args`, the raw deserialized value for `response`, depending on your stream adapter). Your parser owns deserialization and validation.
 
 ### Two invocation paths
 
 The same parser is called on both paths, with different inputs:
 
-| | `args` | `response` | `ctx.isStreaming` |
-| --- | --- | --- | --- |
+|                                            | `args`                           | `response`                                  | `ctx.isStreaming`                                          |
+| ------------------------------------------ | -------------------------------- | ------------------------------------------- | ---------------------------------------------------------- |
 | **Tool-call path** (matched by `toolName`) | the call's arguments, as emitted | the tool result, or `null` until it arrives | `true` while args stream in; `false` once the result lands |
-| **Storage path** (matched by `type`) | `undefined` | `artifact.content` | always `false` |
+| **Storage path** (matched by `type`)       | `undefined`                      | `artifact.content`                          | always `false`                                             |
 
 Concretely, the storage path always calls:
 
@@ -123,16 +123,16 @@ parser({ args: undefined, response: artifact.content }, { isStreaming: false });
 
 Two consequences your parser must respect:
 
-1. **It is called on every update during streaming.** While `ctx.isStreaming` is `true`, `args` may be a *partial* JSON string (the LLM is still emitting it) and `response` may be `null` (the tool result hasn't paired in yet). Tolerate both — wrap JSON parsing in `try/catch`, and bail with `return null` until you have enough to render.
-2. **Read everything you need out of `response`, not `args`.** Only the tool-call path populates `args`, and only the storage path guarantees a complete `response`. Treat `args` as a streaming nicety (useful for an early preview) and `response` as the source of truth. To make one renderer work on both paths, ensure whatever your tool *returns* has the same shape as whatever you *persist* as `artifact.content`.
+1. **It is called on every update during streaming.** While `ctx.isStreaming` is `true`, `args` may be a _partial_ JSON string (the LLM is still emitting it) and `response` may be `null` (the tool result hasn't paired in yet). Tolerate both — wrap JSON parsing in `try/catch`, and bail with `return null` until you have enough to render.
+2. **Read everything you need out of `response`, not `args`.** Only the tool-call path populates `args`, and only the storage path guarantees a complete `response`. Treat `args` as a streaming nicety (useful for an early preview) and `response` as the source of truth. To make one renderer work on both paths, ensure whatever your tool _returns_ has the same shape as whatever you _persist_ as `artifact.content`.
 
 ### Return value
 
-| Return | Effect |
-| --- | --- |
-| `null` (outer) | Skip rendering this call entirely — no preview, no actual, no registry entry. |
+| Return                                      | Effect                                                                                             |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `null` (outer)                              | Skip rendering this call entirely — no preview, no actual, no registry entry.                      |
 | `{ props, meta: { id, version, heading } }` | Render `preview`/`actual` with `props`, **and** register an entry in the per-thread ThreadContext. |
-| `{ props, meta: null }` | Render `preview`/`actual` with `props`, but do **not** register in ThreadContext. |
+| `{ props, meta: null }`                     | Render `preview`/`actual` with `props`, but do **not** register in ThreadContext.                  |
 
 `meta` controls the [per-thread artifact registry](/docs/agent/reference/hooks#useartifactlist) — the list backing `useArtifactList` and the [Workspace](/docs/agent/reference/components#agentinterfaceworkspace) rail:
 
@@ -181,21 +181,21 @@ Both `preview` and `actual` receive a `controls` object:
 
 ```ts
 interface ArtifactRendererControls {
-  isActive: boolean;    // this renderer's detailed view is the currently active one
+  isActive: boolean; // this renderer's detailed view is the currently active one
   isStreaming: boolean; // true while the tool call is still streaming; always false for storage-opened artifacts
-  open: () => void;     // activate this renderer's detailed view
-  close: () => void;    // close this renderer's detailed view if active
-  toggle: () => void;   // toggle this renderer's detailed view
+  open: () => void; // activate this renderer's detailed view
+  close: () => void; // close this renderer's detailed view if active
+  toggle: () => void; // toggle this renderer's detailed view
 }
 ```
 
-| Field | Meaning |
-| --- | --- |
-| `isActive` | `true` when this renderer's detailed view is the currently active one. Lets a preview reflect that its panel is already open (e.g. highlight the card). |
+| Field         | Meaning                                                                                                                                                                                                        |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isActive`    | `true` when this renderer's detailed view is the currently active one. Lets a preview reflect that its panel is already open (e.g. highlight the card).                                                        |
 | `isStreaming` | Mirrors the `ctx.isStreaming` your parser saw — `true` while arguments arrive incrementally and no tool result has paired in, then `false` once the result lands. Always `false` for storage-opened artifacts. |
-| `open` | Activate this renderer's detailed view. |
-| `close` | Close this renderer's detailed view if active. |
-| `toggle` | Toggle this renderer's detailed view. |
+| `open`        | Activate this renderer's detailed view.                                                                                                                                                                        |
+| `close`       | Close this renderer's detailed view if active.                                                                                                                                                                 |
+| `toggle`      | Toggle this renderer's detailed view.                                                                                                                                                                          |
 
 The **same component instance is reused** across the streaming → completed transition (no remount), so you can swap UI states off `isStreaming` — a skeleton or "streaming…" badge during partial args, then the final view once the result lands.
 
@@ -209,14 +209,16 @@ Pass an array of configs to `<AgentInterface artifactRenderers={[...]}>`. The in
 ```tsx
 <AgentInterface
   llm={llm}
-  artifactRenderers={[codeArtifactRenderer, presentationRenderer, codeBlockRenderer]}
+  artifactRenderers={[codeArtifactRenderer, dashboardRenderer, codeBlockRenderer]}
 />
 ```
 
 **First-wins on duplicates.** If two renderers register the same `toolName`, the first one in the array wins and the later one is ignored (with a dev-mode `console.warn`). The same rule applies independently to `type`. Because the rules are independent, a renderer whose `type` collides with an earlier one is still indexed under its own (non-colliding) `toolName`s — only the type-based lookup is deduped. **Put your custom renderers before any SDK defaults** so yours win.
 
 <Callout type="warn">
-The registry is built once and stays stable for the provider's lifetime; later changes to the `artifactRenderers` prop are ignored (with a dev-mode warning). Pass a stable array — don't construct a fresh `artifactRenderers` value on every render expecting it to swap renderers in.
+  The registry is built once and stays stable for the provider's lifetime; later changes to the
+  `artifactRenderers` prop are ignored (with a dev-mode warning). Pass a stable array — don't
+  construct a fresh `artifactRenderers` value on every render expecting it to swap renderers in.
 </Callout>
 
 ### Looking renderers up at runtime
@@ -287,8 +289,6 @@ export const codeBlockRenderer = defineArtifactRenderer({
 
 ## See also
 
-- [Custom artifacts](/docs/agent/guides/custom-artifacts) — the build-it walkthrough, including the storage path and `artifactCategories`.
-- [Artifacts](/docs/agent/core-concepts/artifacts) — what artifacts are and where they show up.
 - [Hooks](/docs/agent/reference/hooks) — `useArtifactRenderer`, `useArtifactRendererRegistry`, `useArtifactList`.
 - [`<AgentInterface>` props](/docs/agent/reference/agentinterface-props) — `artifactRenderers`, `artifactCategories`.
 - [Components](/docs/agent/reference/components#agentinterfaceworkspace) — the Workspace rail backed by the registry.

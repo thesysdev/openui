@@ -1,8 +1,0 @@
-root = Card([header, description, signupForm])
-header = CardHeader("The Product Weekly", "A newsletter for product people")
-description = TextContent("Every Monday, subscribers get one hand-picked breakdown of a great product decision, plus three links worth your time — no fluff, no spam.", "large")
-signupForm = Form("newsletter-signup", formButtons, [emailField])
-emailField = FormControl("Email address", emailInput, "We'll only ever send the weekly issue. Unsubscribe anytime.")
-emailInput = Input("email", "you@example.com", "email", ["required"])
-formButtons = Buttons([subscribeBtn])
-subscribeBtn = Button("Subscribe", null, "primary", null, "large")

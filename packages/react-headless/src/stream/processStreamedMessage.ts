@@ -60,18 +60,56 @@ export const processStreamedMessage = async ({
     });
   };
 
+  /** Flush the open assistant and start a fresh one (interleaved segments). */
+  const startNewAssistantSegment = () => {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+      if (!isFirst) updateMessage(currentMessage);
+    }
+    currentMessage = newAssistantMessage(runId);
+    isFirst = true;
+    currentTextItemId = null;
+  };
+
+  const messageHasBody = (msg: AssistantMessage) =>
+    (msg.content?.length ?? 0) > 0 || (msg.toolCalls?.length ?? 0) > 0;
+
+  /** Publish the open assistant only once it has text or tool calls — never an empty shell. */
+  const commitCurrentMessage = () => {
+    if (isFirst) {
+      if (!messageHasBody(currentMessage)) return;
+      createMessage(currentMessage);
+      isFirst = false;
+    } else {
+      debouncedUpdate(currentMessage);
+    }
+  };
+
   for await (const event of adapter.parse(response)) {
     switch (event.type) {
       // TEXT_MESSAGE_CHUNK and TEXT_MESSAGE_CONTENT are very similar events but TEXT_MESSAGE_CHUNK
       // optionally allows for a role change. Since we don't support role changes in processMessage
       // right now, we treat both the same.
       case EventType.TEXT_MESSAGE_CHUNK:
-      case EventType.TEXT_MESSAGE_CONTENT:
+      case EventType.TEXT_MESSAGE_CONTENT: {
+        // Ignore empty deltas — a zero-length content event after tools would
+        // otherwise open a blank assistant segment that shadows the real answer
+        // (common around parallel tool calls when a new message item is opened).
+        if (!event.delta) break;
+        // Some adapters (LangGraph / ChatOpenAI Responses) keep one wire
+        // messageId for a whole model step even when Responses interleaved
+        // several message items. Text after tools means a new segment — same
+        // split Responses adapters express via a new TEXT_MESSAGE_START id.
+        if ((currentMessage.toolCalls?.length ?? 0) > 0) {
+          startNewAssistantSegment();
+        }
         currentMessage = {
           ...currentMessage,
           content: (currentMessage.content || "") + event.delta,
         };
         break;
+      }
 
       case EventType.TOOL_CALL_START:
         inFlightToolCallIds.add(event.toolCallId);
@@ -164,15 +202,7 @@ export const processStreamedMessage = async ({
         const hasBody =
           (currentMessage.content?.length ?? 0) > 0 || (currentMessage.toolCalls?.length ?? 0) > 0;
         if (hasBody && startId !== currentTextItemId) {
-          if (rafId !== null) {
-            // Flush the pending update so the finished segment's final state
-            // lands before the next segment is created.
-            cancelAnimationFrame(rafId);
-            rafId = null;
-            if (!isFirst) updateMessage(currentMessage);
-          }
-          currentMessage = newAssistantMessage(runId);
-          isFirst = true;
+          startNewAssistantSegment();
         }
         currentTextItemId = startId;
         break;
@@ -241,19 +271,16 @@ export const processStreamedMessage = async ({
       }
     }
 
-    if (isFirst) {
-      createMessage(currentMessage);
-      isFirst = false;
-    } else {
-      // debounce the message update using raf
-      debouncedUpdate(currentMessage);
-    }
+    commitCurrentMessage();
   }
 
   if (rafId !== null) {
     // flush any update
     cancelAnimationFrame(rafId);
     updateMessage(currentMessage);
+  } else if (isFirst && messageHasBody(currentMessage)) {
+    // Last event was a no-op (e.g. empty delta) after body landed in memory only.
+    createMessage(currentMessage);
   }
 
   return currentMessage;

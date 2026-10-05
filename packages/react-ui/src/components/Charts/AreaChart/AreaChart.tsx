@@ -1,448 +1,233 @@
 import clsx from "clsx";
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { Area, AreaChart as RechartsAreaChart, XAxis, YAxis } from "recharts";
-import { usePrintContext } from "../../../context/PrintContext";
-import { ChartConfig, ChartContainer, ChartTooltip } from "../Charts";
-import { SideBarChartData, SideBarTooltipProvider } from "../context/SideBarTooltipContext";
+import { useCallback, useMemo } from "react";
+
 import {
+  useCartesianChartOrchestrator,
+  useEffectiveAnimation,
   useExportChartData,
-  useMaxLabelHeight,
-  useTransformedKeys,
-  useYAxisLabelWidth,
+  useStackedData,
+  useXScale,
+  useYScale,
 } from "../hooks";
-import {
-  ActiveDot,
-  cartesianGrid,
-  CustomTooltipContent,
-  DefaultLegend,
-  ScrollButtonsHorizontal,
-  SideBarTooltip,
-  XAxisTick,
-  YAxisTick,
-} from "../shared";
-import { LabelTooltipProvider } from "../shared/LabelTooltip/LabelTooltip";
-import { LegendItem, XAxisTickVariant } from "../types";
-import {
-  findNearestSnapPosition,
-  getSnapPositions,
-  getWidthOfData,
-  getWidthOfGroup,
-} from "../utils/AreaAndLine/AreaAndLineUtils";
-import { getLineType } from "../utils/AreaAndLine/common";
-import { PaletteName, useChartPalette } from "../utils/PalletUtils";
-import {
-  get2dChartConfig,
-  getColorForDataKey,
-  getDataKeys,
-  getLegendItems,
-} from "../utils/dataUtils";
-import { AreaChartData, AreaChartVariant } from "./types";
+import { CartesianXAxis } from "../shared/cartesian/axes/CartesianXAxis";
+import { CartesianChartLayout } from "../shared/cartesian/layouts/CartesianChartLayout";
+import { LineDotCrosshair } from "../shared/cartesian/LineDotCrosshair";
+import { findNearestDataIndex } from "../utils/mouseUtils";
+import { AreaSeries } from "./parts/AreaSeries";
+import { GradientDefs } from "./parts/GradientDefs";
 
-// this a technic to get the type of the onClick event of the bar chart
-// we need to do this because the onClick event type is not exported by recharts
-type AreaChartOnClick = React.ComponentProps<typeof RechartsAreaChart>["onClick"];
-type AreaClickData = Parameters<NonNullable<AreaChartOnClick>>[0];
+import { CHART_CLASS_PREFIX } from "../utils/constants";
+import type { AreaChartData, AreaChartProps } from "./types";
 
-export interface AreaChartProps<T extends AreaChartData> {
-  data: T;
-  categoryKey: keyof T[number];
-  theme?: PaletteName;
-  customPalette?: string[];
-  variant?: AreaChartVariant;
-  tickVariant?: XAxisTickVariant;
-  grid?: boolean;
-  legend?: boolean;
-  icons?: Partial<Record<keyof T[number], React.ComponentType>>;
-  isAnimationActive?: boolean;
-  showYAxis?: boolean;
-  xAxisLabel?: React.ReactNode;
-  yAxisLabel?: React.ReactNode;
-  className?: string;
-  height?: number;
-  width?: number;
+/**
+ * Empty-data guard lives here, in a hook-free dispatcher: the chart impl below
+ * calls hooks unconditionally, so the "no data" branch must short-circuit
+ * *before* any hook runs (a count → 0 transition on a mounted chart would
+ * otherwise break the Rules of Hooks).
+ */
+export function AreaChart<T extends AreaChartData>(props: AreaChartProps<T>) {
+  if (!props.data || props.data.length === 0) {
+    return (
+      <div
+        className={clsx(
+          `${CHART_CLASS_PREFIX}-area-chart-container ${CHART_CLASS_PREFIX}-chart-empty`,
+          props.className,
+        )}
+      >
+        <span className={`${CHART_CLASS_PREFIX}-chart-empty-text`}>No data available</span>
+      </div>
+    );
+  }
+  return <AreaChartImpl {...props} />;
 }
 
-const X_AXIS_PADDING = 36;
-const CHART_CONTAINER_BOTTOM_MARGIN = 10;
+// Stacked areas keep one running total per row — a negative value lowers the
+// stack — matching Recharts' area charts (bars stack by sign instead).
+const AREA_STACK_OFFSET = "none";
 
-const AreaChartComponent = <T extends AreaChartData>({
+function AreaChartImpl<T extends AreaChartData>({
   data,
   categoryKey,
-  theme = "ocean",
   customPalette,
-  variant: areaChartVariant = "natural",
-  tickVariant = "multiLine",
+  variant = "natural",
+  tickVariant: tickVariantProp,
+  stacked = true,
   grid = true,
-  icons = {},
+  legend: showLegend = true,
+  icons,
   isAnimationActive = false,
   showYAxis = true,
   xAxisLabel,
   yAxisLabel,
-  legend = true,
   className,
   height,
-  width,
-}: AreaChartProps<T>) => {
-  const printContext = usePrintContext();
-  isAnimationActive = printContext ? false : isAnimationActive;
+  width: fixedWidth,
+  fitLegendInHeight,
+  condensed = false,
+  density,
+  onClick,
+  crosshair = false,
+  highlight = false,
+  activeDots = true,
+  yTickCount,
+}: AreaChartProps<T>) {
+  const animate = useEffectiveAnimation(isAnimationActive);
+  const mode = condensed ? "fit" : "scroll";
 
-  const dataKeys = useMemo(() => {
-    return getDataKeys(data, categoryKey as string);
-  }, [data, categoryKey]);
-
-  const variant = getLineType(areaChartVariant);
-
-  const { yAxisWidth, setLabelWidth } = useYAxisLabelWidth(data, dataKeys);
-
-  const widthOfGroup = useMemo(() => {
-    return getWidthOfGroup(data);
-  }, [data]);
-
-  const maxLabelHeight = useMaxLabelHeight(data, categoryKey as string, tickVariant, widthOfGroup);
-
-  const transformedKeys = useTransformedKeys(dataKeys);
-
-  const colors = useChartPalette({
-    chartThemeName: theme,
-    customPalette,
+  const orch = useCartesianChartOrchestrator({
+    layout: mode,
+    data,
+    categoryKey,
     themePaletteName: "areaChartPalette",
-    dataLength: dataKeys.length,
+    customPalette,
+    showLegend,
+    showYAxis,
+    height,
+    fixedWidth,
+    fitLegendInHeight,
+    tickVariantProp: tickVariantProp ?? (condensed ? "singleLine" : "multiLine"),
+    chartIdPrefix: "d3ac",
+    icons,
+    onClick,
+    density,
+    stacked,
+    stackOffset: AREA_STACK_OFFSET,
+    yTickCount,
   });
 
-  const chartConfig: ChartConfig = useMemo(() => {
-    return get2dChartConfig(dataKeys, colors, transformedKeys, undefined, icons);
-  }, [dataKeys, icons, colors, transformedKeys]);
+  const xScale = useXScale(
+    data,
+    orch.data.catKey,
+    orch.dimensions.chartAreaWidth,
+    orch.dimensions.widthOfGroup,
+  );
+  const stackedData = useStackedData(data, orch.data.dataKeys, stacked, AREA_STACK_OFFSET);
 
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const mainContainerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState<number>(0);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-  const [isSideBarTooltipOpen, setIsSideBarTooltipOpen] = useState(false);
-  const [isLegendExpanded, setIsLegendExpanded] = useState(false);
-  const [sideBarTooltipData, setSideBarTooltipData] = useState<SideBarChartData>({
-    title: "",
-    values: [],
-  });
-
-  // Use provided width or observed width
-  const effectiveWidth = useMemo(() => {
-    return width ?? containerWidth;
-  }, [width, containerWidth]);
-
-  const effectiveContainerWidth = useMemo(() => {
-    const dynamicYAxisWidth = showYAxis ? yAxisWidth : 0;
-    return Math.max(0, effectiveWidth - dynamicYAxisWidth - 40); // -40 because we are giving 20px padding in xAxis on each side
-  }, [effectiveWidth, showYAxis, yAxisWidth]);
-
-  const dataWidth = useMemo(() => {
-    return getWidthOfData(data, effectiveContainerWidth);
-  }, [data, effectiveContainerWidth]);
-
-  // Calculate snap positions for proper scrolling alignment
-  const snapPositions = useMemo(() => {
-    return getSnapPositions(data);
-  }, [data]);
-
-  const chartHeight = useMemo(() => {
-    return height ?? 296 + maxLabelHeight;
-  }, [height, maxLabelHeight]);
-
-  // Check scroll boundaries
-  const updateScrollState = useCallback(() => {
-    if (mainContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = mainContainerRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1); // -1 for floating point precision
+  // Unstacked series whose values are entirely <= 0 hang below the zero line —
+  // flip their fill gradient so the strongest opacity stays at the data edge.
+  // Stacked series sit on the running total, so their gradient never flips.
+  const negativeKeys = useMemo(() => {
+    const keys = new Set<string>();
+    if (stacked) return keys;
+    for (const key of orch.data.dataKeys) {
+      let max = -Infinity;
+      for (const row of data) max = Math.max(max, Number(row[key]) || 0);
+      if (max <= 0) keys.add(key);
     }
-  }, []);
+    return keys;
+  }, [data, orch.data.dataKeys, stacked]);
+  const yScale = useYScale(
+    data,
+    orch.data.dataKeys,
+    orch.dimensions.chartInnerHeight,
+    stacked,
+    AREA_STACK_OFFSET,
+  );
 
-  const scrollLeft = useCallback(() => {
-    if (mainContainerRef.current) {
-      const currentScroll = mainContainerRef.current.scrollLeft;
-      const targetIndex = findNearestSnapPosition(snapPositions, currentScroll, "left");
-      const targetPosition = snapPositions[targetIndex] ?? 0;
-
-      mainContainerRef.current.scrollTo({
-        left: targetPosition,
-        behavior: "smooth",
-      });
-    }
-  }, [snapPositions]);
-
-  const scrollRight = useCallback(() => {
-    if (mainContainerRef.current) {
-      const currentScroll = mainContainerRef.current.scrollLeft;
-      const targetIndex = findNearestSnapPosition(snapPositions, currentScroll, "right");
-      const targetPosition = snapPositions[targetIndex] ?? 0;
-
-      mainContainerRef.current.scrollTo({
-        left: targetPosition,
-        behavior: "smooth",
-      });
-    }
-  }, [snapPositions]);
-
-  useEffect(() => {
-    // Only set up ResizeObserver if width is not provided
-    if (width || !chartContainerRef.current) {
-      return () => {};
-    }
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      // there is only one entry in the entries array because we are observing the chart container
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
+  const getYValue = useCallback(
+    (_row: Record<string, string | number>, key: string, seriesIndex: number) => {
+      if (stackedData && orch.hover.hoveredIndex !== null) {
+        const series = stackedData[seriesIndex];
+        const point = series?.[orch.hover.hoveredIndex];
+        // The running total after this series — the edge its line is drawn on.
+        return point ? point[1] : 0;
       }
-    });
+      return Number(_row[key]) || 0;
+    },
+    [stackedData, orch.hover.hoveredIndex],
+  );
 
-    resizeObserver.observe(chartContainerRef.current);
-    setContainerWidth(chartContainerRef.current.getBoundingClientRect().width);
+  const findIndex = useCallback((mouseX: number) => findNearestDataIndex(xScale, mouseX), [xScale]);
+  const mouseHandlers = orch.hover.createMouseHandlers(findIndex);
 
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [width]);
-
-  // Update scroll state when container width or data width changes
-  useEffect(() => {
-    updateScrollState();
-  }, [effectiveWidth, dataWidth, updateScrollState]);
-
-  useEffect(() => {
-    setIsSideBarTooltipOpen(false);
-    setIsLegendExpanded(false);
-  }, [dataKeys]);
-
-  // Add scroll event listener to update button states
-  useEffect(() => {
-    const mainContainer = mainContainerRef.current;
-    if (!mainContainer) return;
-
-    const handleScroll = () => {
-      updateScrollState();
-    };
-
-    mainContainer.addEventListener("scroll", handleScroll);
-    return () => {
-      mainContainer.removeEventListener("scroll", handleScroll);
-    };
-  }, [updateScrollState]);
-
-  const legendItems: LegendItem[] = useMemo(() => {
-    return getLegendItems(dataKeys, colors, icons);
-  }, [dataKeys, colors, icons]);
-
+  // PPTX print-export JSON — mirrors react-ui's AreaChart call (type:'area',
+  // no extraOptions). Undefined off the print path.
   const exportData = useExportChartData({
     type: "area",
     data,
-    categoryKey: categoryKey as string,
-    dataKeys,
-    colors,
-    legend,
+    categoryKey: orch.data.catKey,
+    dataKeys: orch.data.dataKeys,
+    colors: orch.data.colors,
+    legend: showLegend,
     xAxisLabel,
     yAxisLabel,
   });
 
-  const id = useId();
-
-  const gradientID = useMemo(() => `area-chart-gradient-${id}`, [id]);
-
-  const onAreaClick = useCallback(
-    (data: AreaClickData) => {
-      if (data?.activePayload?.length && data.activePayload.length > 10) {
-        setIsSideBarTooltipOpen(true);
-        setSideBarTooltipData({
-          title: data.activeLabel as string,
-          values: data.activePayload.map((payload) => ({
-            value: payload.value as number,
-            label: payload.name || payload.dataKey,
-            color: getColorForDataKey(payload.dataKey, dataKeys, colors),
-          })),
-        });
-      }
-    },
-    [dataKeys, colors],
-  );
-
-  const yAxis = useMemo(() => {
-    if (!showYAxis) {
-      return null;
-    }
-    return (
-      <div className="openui-area-chart-y-axis-container">
-        {/* Y-axis only chart - synchronized with main chart */}
-        <RechartsAreaChart
-          key={`y-axis-chart-${id}`}
-          width={yAxisWidth}
-          height={chartHeight}
-          data={data}
-          margin={{
-            top: 20,
-            bottom: maxLabelHeight + CHART_CONTAINER_BOTTOM_MARGIN, // this is required for to give space for x-axis
-            left: 0,
-            right: 0,
-          }}
-        >
-          <YAxis
-            width={yAxisWidth}
-            tickLine={false}
-            axisLine={false}
-            tick={<YAxisTick setLabelWidth={setLabelWidth} />}
-          />
-          {/* Invisible area to maintain scale synchronization */}
-          {dataKeys.map((key) => {
-            return (
-              <Area
-                key={`y-axis-${key}`}
-                dataKey={key}
-                type={variant}
-                stroke="none"
-                fill="transparent"
-                fillOpacity={0}
-                stackId="a"
-              />
-            );
-          })}
-        </RechartsAreaChart>
-      </div>
-    );
-  }, [showYAxis, chartHeight, data, dataKeys, variant, id, maxLabelHeight, yAxisWidth]);
-
   return (
-    <LabelTooltipProvider>
-      <SideBarTooltipProvider
-        isSideBarTooltipOpen={isSideBarTooltipOpen}
-        setIsSideBarTooltipOpen={setIsSideBarTooltipOpen}
-        data={sideBarTooltipData}
-        setData={setSideBarTooltipData}
-      >
-        <div
-          className={clsx("openui-area-chart-container", className)}
-          data-openui-chart={exportData}
-          style={{
-            width: width ? `${width}px` : undefined,
-          }}
-        >
-          <div className="openui-area-chart-container-inner" ref={chartContainerRef}>
-            {/* Y-axis of the chart */}
-            {yAxis}
-            <div className="openui-area-chart-main-container" ref={mainContainerRef}>
-              <ChartContainer
-                config={chartConfig}
-                style={{ width: dataWidth, minWidth: "100%", height: chartHeight }}
-                rechartsProps={{
-                  width: "100%",
-                  height: "100%",
-                  minHeight: 1,
-                  minWidth: 1,
-                  initialDimension: { width: 1, height: 1 },
-                }}
-              >
-                <RechartsAreaChart
-                  accessibilityLayer
-                  key={`area-chart-${id}`}
-                  data={data}
-                  margin={{
-                    top: 20,
-                    bottom: CHART_CONTAINER_BOTTOM_MARGIN,
-                  }}
-                  onClick={onAreaClick}
-                >
-                  {grid && cartesianGrid()}
-                  <XAxis
-                    dataKey={categoryKey as string}
-                    tickLine={false}
-                    axisLine={false}
-                    textAnchor="middle"
-                    interval={0}
-                    height={maxLabelHeight}
-                    tick={
-                      <XAxisTick
-                        variant={tickVariant}
-                        widthOfGroup={widthOfGroup}
-                        labelHeight={maxLabelHeight}
-                      />
-                    }
-                    orientation="bottom"
-                    padding={{
-                      left: X_AXIS_PADDING,
-                      right: X_AXIS_PADDING,
-                    }}
-                  />
-
-                  <ChartTooltip
-                    content={<CustomTooltipContent parentRef={mainContainerRef} />}
-                    offset={15}
-                  />
-
-                  {dataKeys.map((key) => {
-                    const transformedKey = transformedKeys[key];
-                    const color = `var(--color-${transformedKey})`;
-                    return (
-                      <defs key={`gradient-${transformedKey}`}>
-                        <linearGradient
-                          id={`${gradientID}-${transformedKey}`}
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop offset="5%" stopColor={color} stopOpacity={0.6} />
-                          <stop offset="95%" stopColor={color} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                    );
-                  })}
-
-                  {dataKeys.map((key) => {
-                    const transformedKey = transformedKeys[key];
-                    const color = `var(--color-${transformedKey})`;
-                    return (
-                      <Area
-                        key={`main-${key}`}
-                        dataKey={key}
-                        type={variant}
-                        stroke={color}
-                        fill={`url(#${gradientID}-${transformedKey})`}
-                        fillOpacity={1}
-                        stackId="a"
-                        activeDot={<ActiveDot key={`active-dot-${key}-${id}`} />}
-                        dot={false}
-                        isAnimationActive={isAnimationActive}
-                      />
-                    );
-                  })}
-                </RechartsAreaChart>
-              </ChartContainer>
-            </div>
-            {isSideBarTooltipOpen && <SideBarTooltip height={chartHeight} />}
-          </div>
-          {/* if the data width is greater than the effective width, then show the scroll buttons */}
-          <ScrollButtonsHorizontal
-            dataWidth={dataWidth}
-            effectiveWidth={effectiveWidth}
-            canScrollLeft={canScrollLeft}
-            canScrollRight={canScrollRight}
-            isSideBarTooltipOpen={isSideBarTooltipOpen}
-            onScrollLeft={scrollLeft}
-            onScrollRight={scrollRight}
+    <CartesianChartLayout
+      orch={orch}
+      yScale={yScale}
+      mouseHandlers={mouseHandlers}
+      classPrefix="area-chart"
+      chartType="area"
+      exportData={exportData}
+      ariaLabel="Area chart"
+      showYAxis={showYAxis}
+      grid={grid}
+      showLegend={showLegend}
+      xAxisLabel={xAxisLabel}
+      yAxisLabel={yAxisLabel}
+      yTickCount={yTickCount}
+      className={className}
+      defs={
+        <GradientDefs
+          negativeKeys={negativeKeys}
+          dataKeys={orch.data.dataKeys}
+          transformedKeys={orch.data.transformedKeys}
+          colors={orch.data.colorMap}
+          chartId={orch.identity.chartId}
+          chartWidth={orch.dimensions.chartAreaWidth}
+          chartHeight={orch.dimensions.chartInnerHeight}
+        />
+      }
+      series={
+        <>
+          <AreaSeries
+            data={data}
+            dataKeys={orch.data.dataKeys}
+            xScale={xScale}
+            yScale={yScale}
+            variant={variant}
+            stackedData={stackedData}
+            categoryKey={orch.data.catKey}
+            transformedKeys={orch.data.transformedKeys}
+            colors={orch.data.colorMap}
+            chartId={orch.identity.chartId}
+            isAnimationActive={animate}
           />
-          {legend && (
-            <DefaultLegend
-              items={legendItems}
-              yAxisLabel={yAxisLabel}
-              xAxisLabel={xAxisLabel}
-              containerWidth={effectiveWidth}
-              isExpanded={isLegendExpanded}
-              setIsExpanded={setIsLegendExpanded}
-            />
-          )}
-        </div>
-      </SideBarTooltipProvider>
-    </LabelTooltipProvider>
+          <LineDotCrosshair
+            hoveredIndex={orch.hover.hoveredIndex}
+            xScale={xScale}
+            yScale={yScale}
+            data={data}
+            dataKeys={orch.data.dataKeys}
+            categoryKey={orch.data.catKey}
+            colors={orch.data.colorMap}
+            chartHeight={orch.dimensions.chartInnerHeight}
+            getYValue={getYValue}
+            classPrefix={`${CHART_CLASS_PREFIX}-area-chart`}
+            crosshair={crosshair}
+            highlight={highlight}
+            activeDots={activeDots}
+          />
+        </>
+      }
+      xAxis={
+        <CartesianXAxis
+          mode={mode}
+          scale={xScale}
+          classPrefix={`${CHART_CLASS_PREFIX}-area-chart`}
+          tickVariant={orch.dimensions.tickVariant}
+          widthOfGroup={orch.dimensions.widthOfGroup}
+          labelHeight={orch.xAxis.xAxisHeight}
+          labelWidth={orch.xAxis.labelWidth}
+          maxLines={orch.xAxis.maxLines}
+          labelInterval={orch.dimensions.labelInterval}
+          angle={orch.xAxis.angle}
+          chartWidth={orch.dimensions.chartAreaWidth}
+          yAxisWidth={orch.dimensions.effectiveYAxisWidth}
+        />
+      }
+    />
   );
-};
-
-// Added React.memo for performance optimization to avoid unnecessary re-renders
-export const AreaChart = React.memo(AreaChartComponent) as typeof AreaChartComponent;
+}

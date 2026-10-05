@@ -1,0 +1,19 @@
+packages:
+  - "."
+
+# Allow native build scripts so `pnpm install` never stops at (or nags about)
+# approve-builds. pnpm reads this from a different place per major version, so
+# the same list appears three times: package.json "pnpm" field (<=10.13),
+# onlyBuiltDependencies here (10.14-10.x), allowBuilds here (>=11).
+onlyBuiltDependencies:
+  - "@openuidev/lang-core"
+  - esbuild
+  - sharp
+  - unrs-resolver
+allowBuilds:
+  "@openuidev/lang-core": true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - "@openuidev/*"

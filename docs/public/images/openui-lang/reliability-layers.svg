@@ -9,7 +9,7 @@
   <title id="title">Generative UI reliability pipeline</title>
   <desc id="description">
     A component schema and system prompt guide the selected model. The model produces generated UI,
-    which is validated and corrected before reaching users. Observability measures the result and
+    which is validated and corrected before reaching users. Reliability Monitoring measures the result and
     provides feedback for improvements across the pipeline.
   </desc>
 
@@ -149,8 +149,8 @@
 
   <rect class="observe" x="48" y="285" width="1024" height="78" rx="10" />
   <rect class="accent-fill" x="48" y="285" width="6" height="78" rx="3" />
-  <text class="observe-title ink" x="76" y="317">Observability</text>
-  <text class="observe-copy muted" x="210" y="317">
+  <text class="observe-title ink" x="76" y="317">Reliability Monitoring</text>
+  <text class="observe-copy muted" x="270" y="317">
     Measure errors, identify recurring failures, and verify improvements
   </text>
   <text class="observe-copy muted" x="76" y="344">

@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/langchain",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "LangChain and LangGraph integration primitives for streaming OpenUI generative interfaces",
   "license": "MIT",
   "engines": {

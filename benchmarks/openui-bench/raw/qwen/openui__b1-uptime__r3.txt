@@ -1,9 +1,0 @@
-
-
-root = Card([header, statusBadge, uptimeProgress, uptimeNote, separator, incidentCallout])
-header = CardHeader("Platform Status", "API service health — June 2025")
-statusBadge = Tag("Operational", null, "md", "success")
-uptimeProgress = Progress(99.97, "API Uptime — June 2025")
-uptimeNote = TextContent("The API has maintained **99.97%** uptime this month, exceeding our 99.9% SLA target.", "default")
-separator = Separator("horizontal", true)
-incidentCallout = Callout("info", "Recent Incident — Elevated Latency", "On June 18 at 14:32 UTC, increased response times were observed on the /v2/orders endpoint due to a database connection pool exhaustion. The issue was resolved at 15:07 UTC after scaling the pool and restarting affected pods. Total impact duration: 35 minutes.")

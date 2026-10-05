@@ -7,7 +7,7 @@ The system prompt tells the LLM how to output valid OpenUI Lang. Generate a seri
 
 ## 1. CLI (recommended for most setups)
 
-`openui generate` emits two artifacts from the same library: a prebuilt prompt and a serialized library spec. Use the **spec** with `generateSystemPrompt`; retain the prompt only for static or legacy integrations.
+`openui generate` emits two outputs from the same library: a prebuilt prompt and a serialized library spec. Use the **spec** with `generateSystemPrompt`; retain the prompt only for static or legacy integrations.
 
 ```bash tab="pnpm" tab-group="pkg"
 pnpx @openuidev/cli@latest generate ./src/library.ts
@@ -71,7 +71,7 @@ const systemPrompt = generateSystemPrompt({
     editMode: true, // Enable incremental editing (LLM outputs patches, not full regen)
     inlineMode: true, // Enable text + code responses (LLM can answer questions without code)
 
-    // Custom instructions
+    // Preamble and extra rules
     preamble: "You build dashboards using openui-lang.",
     additionalRules: ['Use @Reset after form submit, not @Set($var, "")'],
   },
@@ -84,6 +84,34 @@ const systemPrompt = generateSystemPrompt({
 | `bindings`   | `$variables`, `@Set`, `@Reset`, built-in functions, reactive filters          | `true` if `toolCalls` is true |
 | `editMode`   | Incremental editing - LLM outputs only changed statements                     | `false`                       |
 | `inlineMode` | Text + fenced code responses - LLM can answer questions without generating UI | `false`                       |
+
+### Gateway and Autofix
+
+Pass `cloud: true` with the generated library specification to emit a configuration block for Gateway or Autofix. Gateway uses it to assemble the system prompt; Autofix uses it to validate and repair generated OpenUI Lang against your component library. The option name is retained for compatibility.
+
+For Gateway requests, `instructions` adds extra prose after the configuration block.
+
+```ts
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import librarySpec from "./generated/system-prompt.spec.json";
+
+const instructions = generateSystemPrompt({
+  cloud: true,
+  library: librarySpec,
+});
+```
+
+Add Gateway-compatible prompt options when needed:
+
+```ts
+const instructions = generateSystemPrompt({
+  cloud: true,
+  library: librarySpec,
+  promptOptions: { preamble: "You build dashboards for Acme." },
+});
+```
+
+See the [Generative UI Quickstart](/docs/gateway/generate-openui-lang) for the Gateway workflow, or the [Autofix API](/docs/autofix) to repair output from your existing model integration.
 
 Built-in functions (`@Count`, `@Filter`, `@Sort`, `@Each`, etc.) are automatically included when either `toolCalls` or `bindings` is enabled. For static UI libraries without data fetching, they are omitted to keep the prompt concise.
 

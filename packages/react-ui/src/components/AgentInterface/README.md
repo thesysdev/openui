@@ -168,20 +168,20 @@ Defined as `AgentInterfaceProps` in `AgentInterface.tsx`. It `extends Omit<ChatP
 
 **AgentInterface-specific:**
 
-| Prop                   | Type                                  | Default | Notes                                                                                                     |
-| ---------------------- | ------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------- |
-| `componentLibrary`     | `Library` (react-lang)                | —       | Auto-derive assistant (and user) message rendering via GenUI when `components.AssistantMessage` is absent |
-| `components`           | `{ AssistantMessage?; UserMessage? }` | —       | Explicit render overrides; take precedence over `componentLibrary`                                        |
-| `theme`                | `ThemeProps`                          | —       | Passed to `<ThemeProvider>`                                                                               |
-| `disableThemeProvider` | `boolean`                             | `false` | Skip the internal `<ThemeProvider>` wrapper                                                               |
-| `logoUrl`              | `string`                              | `""`    | Brand logo (default `SidebarHeader` + `MobileHeader`)                                                     |
-| `agentName`            | `string`                              | `""`    | Agent display name                                                                                        |
-| `starters`             | `ConversationStarterProps[]`          | —       | Global starters inherited by Welcome (if active) or the Composer                                          |
-| `starterVariant`       | `"short" \| "long"`                   | —       | Layout variant for inherited starters                                                                     |
-| `path`                 | `string`                              | —       | **Controlled** current path (pair with `onNavigate`); `undefined` = thread view                           |
-| `defaultPath`          | `string`                              | —       | **Uncontrolled** initial path (ignored when `onNavigate` is set)                                          |
-| `onNavigate`           | `(next: string \| undefined) => void` | —       | Presence selects controlled mode                                                                          |
-| `children`             | `ReactNode`                           | —       | Slots (see above)                                                                                         |
+| Prop                   | Type                                                     | Default | Notes                                                                                                     |
+| ---------------------- | -------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------- |
+| `componentLibrary`     | `Library` (react-lang)                                   | —       | Auto-derive assistant (and user) message rendering via GenUI when `components.AssistantMessage` is absent |
+| `components`           | `{ AssistantMessage?; UserMessage?; ToolCallTimeline? }` | —       | Explicit render overrides; `ToolCallTimeline` replaces the turn-level tool activity UI                    |
+| `theme`                | `ThemeProps`                                             | —       | Passed to `<ThemeProvider>`                                                                               |
+| `disableThemeProvider` | `boolean`                                                | `false` | Skip the internal `<ThemeProvider>` wrapper                                                               |
+| `logoUrl`              | `string`                                                 | `""`    | Brand logo (default `SidebarHeader` + `MobileHeader`)                                                     |
+| `agentName`            | `string`                                                 | `""`    | Agent display name                                                                                        |
+| `starters`             | `ConversationStarterProps[]`                             | —       | Global starters inherited by Welcome (if active) or the Composer                                          |
+| `starterVariant`       | `"short" \| "long"`                                      | —       | Layout variant for inherited starters                                                                     |
+| `path`                 | `string`                                                 | —       | **Controlled** current path (pair with `onNavigate`); `undefined` = thread view                           |
+| `defaultPath`          | `string`                                                 | —       | **Uncontrolled** initial path (ignored when `onNavigate` is set)                                          |
+| `onNavigate`           | `(next: string \| undefined) => void`                    | —       | Presence selects controlled mode                                                                          |
+| `children`             | `ReactNode`                                              | —       | Slots (see above)                                                                                         |
 
 ### Custom message components
 
@@ -191,6 +191,12 @@ type AssistantMessageComponent = React.ComponentType<{
   isStreaming: boolean;
 }>;
 type UserMessageComponent = React.ComponentType<{ message: UserMessage }>;
+type ToolCallTimelineComponent = React.ComponentType<{
+  activities: ToolActivity[];
+  steps: TimelineStep[];
+  isLast: boolean;
+  awaitingResponse: boolean;
+}>;
 ```
 
 Provided via `components`, these **fully replace** the default rendering (including the container
@@ -199,16 +205,16 @@ and avatar). Resolution order, per message kind:
 
 ### Named exports (from `index.ts`)
 
-| Export                                            | Kind             | Purpose                                    |
-| ------------------------------------------------- | ---------------- | ------------------------------------------ |
-| `AgentInterface`                                  | component        | The compound root                          |
-| `AgentInterfaceProps`, `AgentInterfaceComponents` | types            | Root props / override map                  |
-| `SidebarItem`, `SidebarItemProps`                 | component + type | Standalone nav row                         |
-| `ArtifactNav`, `ArtifactNavProps`                 | component + type | Artifact-category nav                      |
-| `useNav`, `NavContextValue`                       | hook + type      | Read/drive navigation from inside the tree |
-| `RouteProps`                                      | type             | `<AgentInterface.Route>` props             |
-| `WorkspaceProps`                                  | type             | `<AgentInterface.Workspace>` props         |
-| `artifactListPath`, `artifactViewPath`            | functions        | Build reserved `artifacts/…` paths         |
+| Export                                                                         | Kind             | Purpose                                    |
+| ------------------------------------------------------------------------------ | ---------------- | ------------------------------------------ |
+| `AgentInterface`                                                               | component        | The compound root                          |
+| `AgentInterfaceProps`, `AgentInterfaceComponents`, `ToolCallTimelineComponent` | types            | Root props / override map                  |
+| `SidebarItem`, `SidebarItemProps`                                              | component + type | Standalone nav row                         |
+| `ArtifactNav`, `ArtifactNavProps`                                              | component + type | Artifact-category nav                      |
+| `useNav`, `NavContextValue`                                                    | hook + type      | Read/drive navigation from inside the tree |
+| `RouteProps`                                                                   | type             | `<AgentInterface.Route>` props             |
+| `WorkspaceProps`                                                               | type             | `<AgentInterface.Workspace>` props         |
+| `artifactListPath`, `artifactViewPath`                                         | functions        | Build reserved `artifacts/…` paths         |
 
 ---
 

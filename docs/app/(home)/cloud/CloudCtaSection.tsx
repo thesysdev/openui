@@ -10,8 +10,8 @@ interface CtaAction {
 
 export function CloudCtaSection({
   title = "Turn your OpenUI application into a production-grade experience.",
-  primary = { label: "Get API Key", href: "https://console.thesys.dev/keys", external: true },
-  secondary = { label: "Talk to our team", href: "https://zcal.co/t/thesys/demo", external: true },
+  primary = { label: "Get API key", href: "https://console.thesys.dev/keys", external: true },
+  secondary = { label: "Book a demo", href: "https://zcal.co/t/thesys/demo", external: true },
 }: {
   title?: string;
   primary?: CtaAction;

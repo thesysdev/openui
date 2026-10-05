@@ -63,7 +63,7 @@ docs/
 │   │   └── components/                     # Accordion, Button, StackChip, TweetWall, etc.
 │   │
 │   ├── docs/                               # Fumadocs documentation pages
-│   │   ├── layout.tsx                      # DocsLayout (sidebar, nav)
+│   │   ├── layout.tsx                      # DocsLayout (global/nested sidebar, nav)
 │   │   └── [[...slug]]/page.tsx            # Catch-all rendering MDX from content/docs/
 │   │
 │   ├── components/                         # Component / Design System pages
@@ -98,9 +98,12 @@ docs/
 │
 ├── content/
 │   ├── docs/                               # MDX content (Fumadocs source)
-│   │   ├── meta.json                       # Root sidebar config
+│   │   ├── index.mdx                       # Global docs overview at /docs
+│   │   ├── meta.json                       # Root content order
 │   │   ├── openui-lang/                    # OpenUI Lang docs
 │   │   ├── agent/                          # Agent Interface docs
+│   │   ├── build-agents/                   # Existing chat UI and agent framework guides
+│   │   ├── cookbooks/                      # Practical tutorials and runnable examples
 │   │   ├── api-reference/                  # API reference
 │   │   └── mcp/                            # MCP docs
 │   └── blog/                               # Blog MDX content
@@ -155,7 +158,24 @@ Active component-preview specific modules are located under `app/components/` an
 
 ### Navigation
 
-A custom `DocsNavbar` component (`components/docs-navbar.tsx`) provides top-level horizontal tabs: Overview, OpenUI, Agent Interface, OpenUI Cloud, and API Reference. It replaces Fumadocs' default nav and is used across the docs pages.
+`components/docs-navbar.tsx` provides the shared docs header, search, theme control, mobile
+sidebar trigger, and five top-level tabs: **Docs** (`/docs`), **Cookbooks** (`/cookbooks`),
+**Examples** (`/examples`), **Demos** (`/demos`), and **API Reference** (`/docs/api-reference`).
+Each tab stays active on its child pages, and each tab's sidebar comes from its folder's
+`meta.json`. Examples is a single page whose `meta.json` links to its sections, and Demos is a
+single page of cards with no sidebar.
+
+All tabs share one content source in `content/docs`. The loader in `lib/source.ts` serves the
+`cookbooks`, `examples`, and `demos` folders from their own top-level paths instead of `/docs`,
+and `components/docs-shell.tsx` gives those routes the same docs layout. API Reference stays under
+`/docs` because package READMEs and the rest of the docs link to it there.
+
+Within the Docs tab there are two sidebar modes. The global sidebar introduces the documentation
+through Start, Build, and Production groups. Links with chevrons enter a nested section sidebar
+for OpenUI Lang, Build Agents (including Agent Interface), Reliability Monitoring, or Gateway.
+Production overview and Autofix are direct pages in the global sidebar. Nested page lists continue
+to come from each section's `meta.json`; “All docs” restores the global sidebar without changing
+the current page. Direct links into a section start in nested mode.
 
 ## Path aliases
 

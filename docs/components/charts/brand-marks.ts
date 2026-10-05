@@ -28,3 +28,8 @@ export const BRAND_VIEWBOX: Record<string, string> = {
 };
 
 export const markViewBox = (id?: string) => (id && BRAND_VIEWBOX[id]) || "0 0 24 24";
+
+/* Brand colours for the model marks. Hexes are simple-icons' published values
+   except Anthropic, which uses its clay brand colour rather than the black
+   wordmark. Marks that are monochrome by design (OpenAI, Moonshot) take the
+   theme's ink so they stay visible in both light and dark. */

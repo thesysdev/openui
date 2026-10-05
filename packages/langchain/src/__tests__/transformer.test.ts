@@ -130,6 +130,107 @@ describe("openUIStreamTransformer", () => {
     ]);
   });
 
+  it("diffs ChatOpenAI Responses snapshot-style tool args into append deltas", () => {
+    const transformer = openUIStreamTransformer();
+    const { openui } = transformer.init();
+
+    transformer.process(messageEvent({ event: "message-start", id: "message-snap", role: "ai" }));
+    transformer.process(
+      messageEvent({
+        event: "content-block-start",
+        index: 0,
+        content: {
+          type: "tool_call_chunk",
+          id: "call-snap",
+          name: "thesys_generate_report",
+          args: "",
+        },
+      }),
+    );
+    // Responses stream re-sends the full accumulated args string each delta.
+    transformer.process(
+      messageEvent({
+        event: "content-block-delta",
+        index: 0,
+        delta: {
+          type: "block-delta",
+          fields: {
+            type: "tool_call_chunk",
+            id: "call-snap",
+            name: "thesys_generate_report",
+            args: '{"artifact_id":"art-1","type":"report","artifact_content":"',
+          },
+        },
+      }),
+    );
+    transformer.process(
+      messageEvent({
+        event: "content-block-delta",
+        index: 0,
+        delta: {
+          type: "block-delta",
+          fields: {
+            type: "tool_call_chunk",
+            id: "call-snap",
+            name: "thesys_generate_report",
+            args: '{"artifact_id":"art-1","type":"report","artifact_content":"root = ReportView()"}',
+          },
+        },
+      }),
+    );
+    // Identical snapshot must not emit another args event.
+    transformer.process(
+      messageEvent({
+        event: "content-block-delta",
+        index: 0,
+        delta: {
+          type: "block-delta",
+          fields: {
+            type: "tool_call_chunk",
+            id: "call-snap",
+            name: "thesys_generate_report",
+            args: '{"artifact_id":"art-1","type":"report","artifact_content":"root = ReportView()"}',
+          },
+        },
+      }),
+    );
+    transformer.process(
+      messageEvent({
+        event: "content-block-finish",
+        index: 0,
+        content: {
+          type: "tool_call",
+          id: "call-snap",
+          name: "thesys_generate_report",
+          args: {
+            artifact_id: "art-1",
+            type: "report",
+            artifact_content: "root = ReportView()",
+          },
+        },
+      }),
+    );
+
+    expect(channelItems(openui)).toEqual([
+      {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "call-snap",
+        toolCallName: "thesys_generate_report",
+      },
+      {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call-snap",
+        delta: '{"artifact_id":"art-1","type":"report","artifact_content":"',
+      },
+      {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call-snap",
+        delta: 'root = ReportView()"}',
+      },
+      { type: EventType.TOOL_CALL_END, toolCallId: "call-snap" },
+    ]);
+  });
+
   it("ends an active tool call before an early result and ignores a later message end", () => {
     const transformer = openUIStreamTransformer();
     const { openui } = transformer.init();
@@ -272,6 +373,148 @@ describe("openUIStreamTransformer", () => {
       },
       { type: EventType.TEXT_MESSAGE_END, messageId: "message-4" },
       { type: EventType.RUN_ERROR, message: "model unavailable" },
+    ]);
+  });
+
+  it("maps Cloud function_call_output provider events to tool results", () => {
+    const transformer = openUIStreamTransformer();
+    const { openui } = transformer.init();
+    const sentinel =
+      ']]>openui:artifact {"artifact_id":"art-1","type":"report","name":"Q4"}\nroot = ReportView()';
+
+    transformer.process(messageEvent({ event: "message-start", id: "message-cloud", role: "ai" }));
+    transformer.process(
+      messageEvent({
+        event: "content-block-start",
+        index: 0,
+        content: {
+          type: "tool_call_chunk",
+          id: "call-artifact",
+          name: "thesys_generate_report",
+          args: '{"type":"report"}',
+        },
+      }),
+    );
+    transformer.process(
+      messageEvent({
+        event: "content-block-finish",
+        index: 0,
+        content: {
+          type: "tool_call",
+          id: "call-artifact",
+          name: "thesys_generate_report",
+          args: { type: "report" },
+        },
+      }),
+    );
+    // ChatOpenAI Responses stream: Cloud's function_call_output is a provider
+    // passthrough — not a LangGraph tools-channel event.
+    transformer.process(
+      runtimeMessageEvent({
+        event: "provider",
+        provider: "openai",
+        name: "response.output_item.done",
+        payload: {
+          type: "response.output_item.done",
+          item: {
+            type: "function_call_output",
+            id: "fco-1",
+            call_id: "call-artifact",
+            output: sentinel,
+          },
+        },
+      }),
+    );
+    // added + done must not double-emit
+    transformer.process(
+      runtimeMessageEvent({
+        event: "provider",
+        provider: "openai",
+        name: "response.output_item.added",
+        payload: {
+          type: "response.output_item.added",
+          item: {
+            type: "function_call_output",
+            id: "fco-1",
+            call_id: "call-artifact",
+            output: sentinel,
+          },
+        },
+      }),
+    );
+    transformer.process(messageEvent({ event: "message-finish" }));
+
+    expect(channelItems(openui)).toEqual([
+      {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "call-artifact",
+        toolCallName: "thesys_generate_report",
+      },
+      {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call-artifact",
+        delta: '{"type":"report"}',
+      },
+      { type: EventType.TOOL_CALL_END, toolCallId: "call-artifact" },
+      {
+        type: EventType.TOOL_CALL_RESULT,
+        messageId: "fco-1",
+        toolCallId: "call-artifact",
+        content: sentinel,
+        role: "tool",
+      },
+    ]);
+  });
+
+  it("maps server_tool_call_result content blocks to tool results", () => {
+    const transformer = openUIStreamTransformer();
+    const { openui } = transformer.init();
+
+    transformer.process(messageEvent({ event: "message-start", id: "message-server", role: "ai" }));
+    transformer.process(
+      messageEvent({
+        event: "content-block-start",
+        index: 0,
+        content: {
+          type: "server_tool_call",
+          id: "call-search",
+          name: "web_search",
+          args: { query: "openui" },
+        },
+      }),
+    );
+    transformer.process(
+      messageEvent({
+        event: "content-block-finish",
+        index: 1,
+        content: {
+          type: "server_tool_call_result",
+          toolCallId: "call-search",
+          status: "success",
+          output: { results: ["hit"] },
+        },
+      }),
+    );
+
+    expect(channelItems(openui)).toEqual([
+      {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "call-search",
+        toolCallName: "web_search",
+      },
+      {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call-search",
+        delta: '{"query":"openui"}',
+      },
+      { type: EventType.TOOL_CALL_END, toolCallId: "call-search" },
+      {
+        type: EventType.TOOL_CALL_RESULT,
+        messageId: "tool-result-call-search",
+        toolCallId: "call-search",
+        content: '{"results":["hit"]}',
+        role: "tool",
+      },
     ]);
   });
 });

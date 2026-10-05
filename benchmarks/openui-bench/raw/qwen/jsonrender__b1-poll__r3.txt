@@ -1,9 +1,0 @@
-{"op":"add","path":"/root","value":"main"}
-{"op":"add","path":"/elements/main","value":{"type":"Card","props":{"gap":"m"},"children":["question","poll-options","vote-btn"]}}
-{"op":"add","path":"/elements/question","value":{"type":"Heading","props":{"text":"Where should we go for lunch on Friday?","level":"h2"}}}
-{"op":"add","path":"/elements/poll-options","value":{"type":"RadioGroup","props":{"name":"lunch-vote","items":["opt-1","opt-2","opt-3"],"value":{"$bindState":"/selectedRestaurant"}},"children":[]}}
-{"op":"add","path":"/elements/opt-1","value":{"type":"RadioItem","props":{"label":"Bella Italia","description":"Homemade pasta & wood-fired pizza","value":"bella-italia"}}}
-{"op":"add","path":"/elements/opt-2","value":{"type":"RadioItem","props":{"label":"Sakura Sushi","description":"Fresh sushi bowls & ramen","value":"sakura-sushi"}}}
-{"op":"add","path":"/elements/opt-3","value":{"type":"RadioItem","props":{"label":"The Green Fork","description":"Farm-to-table salads & grain bowls","value":"green-fork"}}}
-{"op":"add","path":"/state/selectedRestaurant","value":""}
-{"op":"add","path":"/elements/vote-btn","value":{"type":"Button","props":{"label":"Cast My Vote","variant":"primary","size":"large"}}}

@@ -154,6 +154,116 @@ describe("vercelAIAdapter", () => {
     ]);
   });
 
+  it("splits regular text that follows tool calls onto a new AG-UI message", async () => {
+    const events = await parse(
+      sse({ type: "start-step" }) +
+        sse({ type: "text-start", id: "text-1" }) +
+        sse({ type: "text-delta", id: "text-1", delta: "Let me do this" }) +
+        sse({ type: "text-end", id: "text-1" }) +
+        sse({
+          type: "tool-input-available",
+          toolCallId: "call-1",
+          toolName: "get_weather",
+          input: { location: "Berlin" },
+        }) +
+        sse({ type: "tool-output-available", toolCallId: "call-1", output: { temp: 21 } }) +
+        sse({ type: "text-start", id: "text-2" }) +
+        sse({ type: "text-delta", id: "text-2", delta: "root = Card()" }) +
+        sse({ type: "text-end", id: "text-2" }) +
+        sse({ type: "finish-step" }),
+    );
+
+    expect(
+      events.filter(
+        (event) =>
+          event.type === EventType.TEXT_MESSAGE_START ||
+          event.type === EventType.TEXT_MESSAGE_CONTENT ||
+          event.type === EventType.TEXT_MESSAGE_END,
+      ),
+    ).toEqual([
+      {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "text-1",
+        role: "assistant",
+      },
+      {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "text-1",
+        delta: "Let me do this",
+      },
+      {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "text-1",
+      },
+      {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "text-2",
+        role: "assistant",
+      },
+      {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "text-2",
+        delta: "root = Card()",
+      },
+      {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "text-2",
+      },
+    ]);
+  });
+
+  it("splits text around a server-executed dynamic tool inside one model step", async () => {
+    // Cloud-run tools (artifacts, image/web search, MCP) don't end the AI SDK
+    // step, so commentary and the answer land in the same step. They reach the
+    // client as ordinary dynamic tool chunks, so the split is tool-type agnostic.
+    const events = await parse(
+      sse({ type: "start-step" }) +
+        sse({ type: "text-start", id: "text-1" }) +
+        sse({ type: "text-delta", id: "text-1", delta: "Let me look that up" }) +
+        sse({ type: "text-end", id: "text-1" }) +
+        sse({
+          type: "tool-input-start",
+          toolCallId: "mcp-1",
+          toolName: "deepwiki_search",
+          dynamic: true,
+        }) +
+        sse({
+          type: "tool-input-available",
+          toolCallId: "mcp-1",
+          toolName: "deepwiki_search",
+          input: { query: "OpenUI" },
+          dynamic: true,
+        }) +
+        sse({
+          type: "tool-output-available",
+          toolCallId: "mcp-1",
+          output: { hits: 2 },
+          dynamic: true,
+        }) +
+        sse({ type: "text-start", id: "text-2" }) +
+        sse({ type: "text-delta", id: "text-2", delta: "root = Card()" }) +
+        sse({ type: "text-end", id: "text-2" }) +
+        sse({ type: "finish-step" }),
+    );
+
+    expect(
+      events
+        .filter((event) => "messageId" in event && event.type !== EventType.TOOL_CALL_RESULT)
+        .map((event) => [event.type, (event as { messageId: string }).messageId]),
+    ).toEqual([
+      [EventType.TEXT_MESSAGE_START, "text-1"],
+      [EventType.TEXT_MESSAGE_CONTENT, "text-1"],
+      [EventType.TEXT_MESSAGE_END, "text-1"],
+      [EventType.TEXT_MESSAGE_START, "text-2"],
+      [EventType.TEXT_MESSAGE_CONTENT, "text-2"],
+      [EventType.TEXT_MESSAGE_END, "text-2"],
+    ]);
+    expect(events.find((event) => event.type === EventType.TOOL_CALL_START)).toMatchObject({
+      toolCallId: "mcp-1",
+      parentMessageId: "text-1",
+    });
+  });
+
   it("maps text start, delta, and end chunks", async () => {
     const events = await parse(
       sse({ type: "text-start", id: "text-1" }) +

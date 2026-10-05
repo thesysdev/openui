@@ -1,5 +1,5 @@
 import { Footer } from "@/app/(home)/sections/Footer/Footer";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -48,7 +48,7 @@ export default async function IntegrationDetailPage(props: { params: Promise<{ s
   const related = getRelatedIntegrations(integration);
 
   return (
-    <main className={styles.detailPage} data-accent={category.accent}>
+    <main className={styles.detailPage}>
       <div className={styles.detailHero}>
         <div className={styles.detailHeroInner}>
           <Link className={styles.detailBackLink} href="/integrations">
@@ -57,14 +57,11 @@ export default async function IntegrationDetailPage(props: { params: Promise<{ s
           </Link>
 
           <div className={styles.detailLockup}>
-            <IntegrationLogo className={styles.detailMark} integration={integration} />
-            <div className={styles.detailTitleBlock}>
-              <div className={styles.detailTags}>
-                <span>{integration.type}</span>
-              </div>
+            <div className={styles.detailHeadingRow}>
+              <IntegrationLogo className={styles.detailMark} integration={integration} />
               <h1>{integration.name}</h1>
-              <p>{integration.summary}</p>
             </div>
+            <p>{integration.summary}</p>
           </div>
         </div>
       </div>
@@ -73,45 +70,8 @@ export default async function IntegrationDetailPage(props: { params: Promise<{ s
         <div className={styles.detailLayout}>
           <article className={styles.detailArticle}>
             <section>
-              <p className={styles.detailEyebrow}>Integration overview</p>
               <h2>How it connects to OpenUI</h2>
               <p className={styles.detailLead}>{integration.howItWorks}</p>
-            </section>
-
-            <section className={styles.flowSection}>
-              <h2>The integration path</h2>
-              <ol className={styles.flowList}>
-                <li>
-                  <span className={styles.flowNumber}>1</span>
-                  <div>
-                    <h3>Describe the interface</h3>
-                    <p>
-                      Generate a component prompt from the same OpenUI library that will render the
-                      response.
-                    </p>
-                  </div>
-                </li>
-                <li>
-                  <span className={styles.flowNumber}>2</span>
-                  <div>
-                    <h3>Stream structured output</h3>
-                    <p>
-                      Let {integration.name} own its part of the stack while OpenUI Lang travels as
-                      incremental text or mapped agent events.
-                    </p>
-                  </div>
-                </li>
-                <li>
-                  <span className={styles.flowNumber}>3</span>
-                  <div>
-                    <h3>Render and interact</h3>
-                    <p>
-                      Parse the stream with the matching OpenUI runtime, render real components, and
-                      return validated actions to the application.
-                    </p>
-                  </div>
-                </li>
-              </ol>
             </section>
 
             {integration.install ? (
@@ -127,21 +87,19 @@ export default async function IntegrationDetailPage(props: { params: Promise<{ s
               </section>
             ) : null}
 
-            <section className={styles.checklistSection}>
-              <h2>What stays consistent</h2>
-              <div className={styles.checkGrid}>
-                {[
-                  "One schema for prompting and rendering",
-                  "Progressive rendering while output streams",
-                  "Typed components instead of arbitrary markup",
-                  "Host application retains its runtime behavior",
-                ].map((item) => (
-                  <div className={styles.checkItem} key={item}>
-                    <Check size={15} aria-hidden="true" />
-                    <span>{item}</span>
-                  </div>
+            <section className={styles.flowSection}>
+              <h2>Integration steps</h2>
+              <ol className={styles.flowList}>
+                {integration.steps.map((step, index) => (
+                  <li key={step.title}>
+                    <span className={styles.flowNumber}>{index + 1}</span>
+                    <div>
+                      <h3>{step.title}</h3>
+                      <p>{step.description}</p>
+                    </div>
+                  </li>
                 ))}
-              </div>
+              </ol>
             </section>
           </article>
 

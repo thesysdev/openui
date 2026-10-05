@@ -22,7 +22,11 @@ import {
 import { useAgentInterfaceLabels } from "./_shared/labelsContext";
 import { useAgentInterfaceStore } from "./_shared/store";
 import { TimelineEntry } from "./_shared/tool-renderer";
-import type { AssistantMessageComponent, UserMessageComponent } from "./_shared/types";
+import type {
+  AssistantMessageComponent,
+  ToolCallTimelineComponent,
+  UserMessageComponent,
+} from "./_shared/types";
 
 import { Callout } from "../Callout";
 import { DotMatrixLoader } from "../DotMatrixLoader";
@@ -356,6 +360,7 @@ const InterleavedTurn = ({
   segments,
   allMessages,
   assistantMessage: CustomAssistantMessage,
+  toolCallTimeline: CustomToolCallTimeline,
   className,
   isRunning,
   lastAssistantId,
@@ -363,17 +368,28 @@ const InterleavedTurn = ({
   segments: AssistantMessage[];
   allMessages: Message[];
   assistantMessage?: AssistantMessageComponent;
+  toolCallTimeline?: ToolCallTimelineComponent;
   className?: string;
   isRunning: boolean;
   lastAssistantId: string | null;
 }) => {
-  const last = segments[segments.length - 1]!;
+  // Ignore trailing empty assistants (e.g. TEXT_MESSAGE_START after parallel
+  // tools with no content yet / never). Those would become `last` and blank the
+  // answer slot until a chat remount rebuilds from storage.
+  const activeSegments = useMemo(() => {
+    const withBody = segments.filter(
+      (s) => (s.content?.length ?? 0) > 0 || (s.toolCalls?.length ?? 0) > 0,
+    );
+    return withBody.length > 0 ? withBody : segments;
+  }, [segments]);
+
+  const last = activeSegments[activeSegments.length - 1]!;
   const turnLive = isRunning && lastAssistantId === last.id;
 
   // One id-keyed pairing across every segment's tool calls (synthetic message).
   const turnMessage = useMemo(
-    () => ({ ...segments[0]!, toolCalls: segments.flatMap((s) => s.toolCalls ?? []) }),
-    [segments],
+    () => ({ ...activeSegments[0]!, toolCalls: activeSegments.flatMap((s) => s.toolCalls ?? []) }),
+    [activeSegments],
   );
   const turnActivities = useToolActivities(turnMessage, allMessages);
 
@@ -387,18 +403,30 @@ const InterleavedTurn = ({
   const steps = useMemo<TimelineStep[]>(() => {
     const byCallId = new Map(turnActivities.map((a) => [a.toolCall.id, a]));
     const rows: TimelineStep[] = [];
-    for (const seg of segments) {
+    const claimed = new Set<string>();
+    for (const seg of activeSegments) {
       if (seg.id !== answer?.id) {
         const prose = separateContentAndContext(seg.content ?? "").content;
         if (prose) rows.push({ type: "text", id: seg.id, text: prose });
       }
       for (const tc of seg.toolCalls ?? []) {
         const activity = byCallId.get(tc.id);
-        if (activity) rows.push({ type: "activity", activity });
+        if (activity) {
+          rows.push({ type: "activity", activity });
+          claimed.add(tc.id);
+        }
       }
     }
+    // Provider-executed tools (OpenUI Cloud reports, search, MCP) arrive as tool
+    // results whose call sits on no assistant message, so `pairToolActivity`
+    // synthesizes them as orphans. No segment claims those, and dropping them
+    // both hid the activity and could leave `rows` empty while `turnActivities`
+    // was not — which crashed the timeline. Append them in arrival order.
+    for (const activity of turnActivities) {
+      if (!claimed.has(activity.toolCall.id)) rows.push({ type: "activity", activity });
+    }
     return rows;
-  }, [segments, turnActivities, answer?.id]);
+  }, [activeSegments, turnActivities, answer?.id]);
 
   // Matched renderers (artifact/search previews) render OUTSIDE the tray so
   // they stay visible after it collapses.
@@ -411,15 +439,23 @@ const InterleavedTurn = ({
 
   return (
     <>
-      {turnActivities.length > 0 && (
-        <ToolCallTimeline
-          activities={turnActivities}
-          steps={steps}
-          isLast={turnLive}
-          forceDefault
-          awaitingResponse={turnLive && !answerStarted}
-        />
-      )}
+      {turnActivities.length > 0 &&
+        (CustomToolCallTimeline ? (
+          <CustomToolCallTimeline
+            activities={turnActivities}
+            steps={steps}
+            isLast={turnLive}
+            awaitingResponse={turnLive && !answerStarted}
+          />
+        ) : (
+          <ToolCallTimeline
+            activities={turnActivities}
+            steps={steps}
+            isLast={turnLive}
+            forceDefault
+            awaitingResponse={turnLive && !answerStarted}
+          />
+        ))}
       {matched.map((activity) => (
         <TimelineEntry
           key={activity.id}
@@ -455,6 +491,7 @@ const RenderGroup = ({
   group,
   allMessages,
   assistantMessage: CustomAssistantMessage,
+  toolCallTimeline,
   userMessage,
   className,
   isRunning,
@@ -463,6 +500,7 @@ const RenderGroup = ({
   group: Message[];
   allMessages: Message[];
   assistantMessage?: AssistantMessageComponent;
+  toolCallTimeline?: ToolCallTimelineComponent;
   userMessage?: UserMessageComponent;
   className?: string;
   isRunning: boolean;
@@ -480,6 +518,7 @@ const RenderGroup = ({
       segments={assistants}
       allMessages={allMessages}
       assistantMessage={CustomAssistantMessage}
+      toolCallTimeline={toolCallTimeline}
       className={className}
       isRunning={isRunning}
       lastAssistantId={lastAssistantId}
@@ -504,11 +543,13 @@ export const Messages = ({
   loader,
   assistantMessage,
   userMessage,
+  toolCallTimeline,
 }: {
   className?: string;
   loader?: React.ReactNode;
   assistantMessage?: AssistantMessageComponent;
   userMessage?: UserMessageComponent;
+  toolCallTimeline?: ToolCallTimelineComponent;
 }) => {
   const messages = useThread((s) => s.messages);
   const isRunning = useThread((s) => s.isRunning);
@@ -531,6 +572,7 @@ export const Messages = ({
           allMessages={messages}
           assistantMessage={assistantMessage}
           userMessage={userMessage}
+          toolCallTimeline={toolCallTimeline}
           className={className}
           isRunning={isRunning}
           lastAssistantId={lastAssistantId}
