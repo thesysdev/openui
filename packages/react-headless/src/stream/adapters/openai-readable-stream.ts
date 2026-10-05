@@ -9,7 +9,7 @@ import { sseLineIterator } from "./_shared/sseLines";
  */
 export const openAIReadableStreamAdapter = (): StreamProtocolAdapter => ({
   async *parse(response: Response): AsyncIterable<AGUIEvent> {
-    const messageId = crypto.randomUUID();
+    let messageId: string = crypto.randomUUID();
     const toolCallIds: Record<number, string> = {};
     let messageStarted = false;
 
@@ -19,12 +19,13 @@ export const openAIReadableStreamAdapter = (): StreamProtocolAdapter => ({
 
       try {
         const json = JSON.parse(data) as ChatCompletionChunk;
+        if (!messageStarted) messageId = json.id || messageId;
         const choice = json.choices?.[0];
         const delta = choice?.delta;
 
         if (!delta) continue;
 
-        if (!messageStarted && (delta.content || delta.role)) {
+        if (!messageStarted && (delta.content || delta.role || delta.tool_calls?.length)) {
           yield {
             type: EventType.TEXT_MESSAGE_START,
             messageId,
