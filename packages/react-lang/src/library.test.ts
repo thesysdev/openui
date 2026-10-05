@@ -54,6 +54,13 @@ describe("createLibrary publish", () => {
     remove();
   });
 
+  it("registers a derived library next to its base", () => {
+    const base = createLibrary({ root: "Card", id: "demo", components: [makeComponent("Card")] });
+    const a = base.extend({ components: { add: [makeComponent("Note")] } });
+    const b = base.extend({ components: { add: [makeComponent("Tip")] } });
+    expect(Object.values(registry())).toEqual([base, a, b]);
+  });
+
   it("replaces a library with the same key on re-create (HMR)", () => {
     const Card = makeComponent("Card");
     createLibrary({ root: "Card", id: "demo", components: [Card] });

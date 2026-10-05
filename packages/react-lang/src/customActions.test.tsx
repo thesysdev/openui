@@ -3,7 +3,7 @@ import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, expectTypeOf, it, vi } from "vitest";
 import { z } from "zod/v4";
-import type { ActionEvent } from "./index";
+import type { ActionEvent, RendererProps } from "./index";
 import {
   createLibrary,
   defineAction,
@@ -83,4 +83,16 @@ it("types onAction events from the library's actions", () => {
     response={null}
     onAction={(e) => expectTypeOf(e).toEqualTypeOf<ActionEvent>()}
   />;
+});
+
+it("types actions added with extend in onAction", () => {
+  const share = defineAction({
+    name: "Share",
+    description: "share",
+    params: z.object({ to: z.string() }),
+  });
+  const extended = createLibrary({ components: [] }).extend({ actions: { add: [share] } });
+  type Event = Parameters<NonNullable<RendererProps<typeof extended>["onAction"]>>[0];
+  expectTypeOf<Extract<Event, { type: "Share" }>["params"]>().toEqualTypeOf<{ to: string }>();
+  expectTypeOf<Extract<Event["type"], "open_url">>().not.toBeNever();
 });

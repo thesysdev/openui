@@ -71,5 +71,5 @@ export function defineComponent<T extends $ZodObject>(config: {
  * ```
  */
 export function createLibrary(input: LibraryDefinition): Library {
-  return coreCreateLibrary<ComponentRenderer<any>>(input) as Library;
+  return coreCreateLibrary(input) as Library;
 }
