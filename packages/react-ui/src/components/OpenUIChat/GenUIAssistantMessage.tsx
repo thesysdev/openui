@@ -8,11 +8,11 @@ import { useCallback, useMemo } from "react";
 import { getLastAssistantMessageId } from "../../utils/messages";
 import {
   separateContentAndContext,
-  wrapContent,
   wrapContentWithHeader,
   wrapContext,
 } from "../../utils/sentinelParser";
 import { AssistantMessageContainer } from "./AssistantMessageContainer";
+import { buildActionUserMessage } from "./utils/actionMessage";
 
 /** Renders the OpenUI-Lang response for one assistant message. */
 export const GenUIAssistantMessage = ({
@@ -70,15 +70,7 @@ export const GenUIAssistantMessage = ({
   const handleAction = useCallback(
     (event: ActionEvent) => {
       if (event.type === BuiltinActionType.ContinueConversation) {
-        const contentPart = event.humanFriendlyMessage
-          ? wrapContent(event.humanFriendlyMessage)
-          : "";
-        const messageCtx: (string | object)[] = [`User clicked: ${event.humanFriendlyMessage}`];
-        if (event.formState) {
-          messageCtx.push(event.formState);
-        }
-        const contextPart = wrapContext(JSON.stringify(messageCtx));
-        const llmMessage = `${contentPart}${contextPart}`;
+        const llmMessage = buildActionUserMessage(event);
 
         processMessage({
           role: "user",

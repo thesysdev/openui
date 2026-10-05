@@ -8,10 +8,10 @@ type LegacyActionInput = {
   type?: string;
   params?: Record<string, unknown>;
   url?: string;
-  context?: string;
+  context?: unknown;
 };
 
-/** Serialize item context for the ToAssistant `context` string (the only ActionPlan channel the executor forwards). */
+/** Item context as text, for a ToAssistant step whose `context` is a string or absent. */
 function formatItemContext(context: Record<string, unknown>): string {
   return `Selected item: ${JSON.stringify(context)}`;
 }
@@ -22,6 +22,10 @@ function isActionPlan(action: unknown): action is ActionPlan {
     action !== null &&
     Array.isArray((action as { steps?: unknown }).steps)
   );
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function dropUndefined(context: Record<string, unknown>): Record<string, unknown> {
@@ -35,9 +39,9 @@ function dropUndefined(context: Record<string, unknown>): Record<string, unknown
  *
  * - Legacy `{ type?, params? }` (and the bare `{ url }` / `{ context }` shapes):
  *   returns `{ type, params }` with url/context/params and item context merged.
- * - `ActionPlan` (`{ steps }`): returns a copy whose ToAssistant steps get the
- *   item context appended to their `context` string (react-lang forwards only
- *   `step.context` to the host for that step type); other steps untouched.
+ * - `ActionPlan` (`{ steps }`): returns a copy whose ToAssistant steps carry the
+ *   item context in `context`: appended to a string, added as `selectedItem` to
+ *   an object; other steps untouched.
  * - `undefined`: returns a ContinueConversation action carrying the item context.
  */
 export function withItemContext(
@@ -57,7 +61,13 @@ export function withItemContext(
       ...action,
       steps: action.steps.map((step) => {
         if (step.type !== ACTION_STEPS.ToAssistant) return step;
-        return { ...step, context: step.context ? `${step.context}\n${suffix}` : suffix };
+        if (step.context === undefined || step.context === "") return { ...step, context: suffix };
+        if (isPlainObject(step.context)) {
+          return { ...step, context: { ...step.context, selectedItem: context } };
+        }
+        const existing =
+          typeof step.context === "string" ? step.context : JSON.stringify(step.context);
+        return { ...step, context: `${existing}\n${suffix}` };
       }),
     };
   }
