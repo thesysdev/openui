@@ -45,6 +45,11 @@ export function useOpenUIErrors({
   const lastErrorKeyRef = useRef("");
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  // toJSONSchema() rebuilds the whole library schema; build it once per library, on first use.
+  const schemaRef = useRef<{
+    library: Library;
+    schema: ReturnType<Library["toJSONSchema"]>;
+  } | null>(null);
 
   useEffect(() => {
     if (isStreaming) {
@@ -76,10 +81,13 @@ export function useOpenUIErrors({
     }
 
     if (result?.meta.errors.length) {
+      if (schemaRef.current?.library !== library) {
+        schemaRef.current = { library, schema: library.toJSONSchema() };
+      }
       errors.push(
         ...enrichErrors(
           result.meta.errors,
-          library.toJSONSchema(),
+          schemaRef.current.schema,
           Object.keys(library.components),
         ),
       );
