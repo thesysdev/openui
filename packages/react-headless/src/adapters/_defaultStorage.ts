@@ -44,10 +44,14 @@ export function createDefaultInMemoryStorage(): ChatStorage {
         messagesByThread.delete(id);
       },
       async updateMessage(threadId: string, message: Message) {
-        const messages = messagesByThread.get(threadId) ?? [];
+        const messages = messagesByThread.get(threadId);
+        if (!messages) return;
+        const exists = messages.some((m) => m.id === message.id);
         messagesByThread.set(
           threadId,
-          messages.map((m) => (m.id === message.id ? message : m)),
+          exists
+            ? messages.map((m) => (m.id === message.id ? message : m))
+            : [...messages, message],
         );
       },
     },

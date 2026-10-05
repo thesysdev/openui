@@ -223,9 +223,9 @@ That's the whole frontend change — one prop. You implement the endpoints `rest
 | Get messages  | `GET`    | `/api/threads/get/{threadId}`    | —                                                                 | the thread's `Message[]`   |
 | Update thread | `PATCH`  | `/api/threads/update/{threadId}` | the full `Thread`                                                 | the updated `Thread`       |
 | Delete thread | `DELETE` | `/api/threads/delete/{threadId}` | —                                                                 | nothing                    |
-| Update message | `PATCH` | `/api/threads/messages/{threadId}/{messageId}` | `{ messages: [...] }` (the edited message via the message format; may be several wire items) | nothing |
+| Update message | `PATCH` | `/api/threads/messages/{threadId}/{messageId}` | `{ content: "..." }` (update text while preserving other stored fields) | nothing |
 
-`restStorage` throws a descriptive error on any non-`ok` response. The client swallows `updateMessage` failures so a backend that hasn't added this route yet doesn't surface a thread error. The `Thread` shape at the boundary is `{ id, title, createdAt: string | number, isPending? }`. By default `restStorage` uses the identity message format; pass `messageFormat` (and optional `headers` / `fetch`) if your backend stores a provider-specific shape — it is applied to the `create` and `update message` bodies (`toApi`) and the `get/{threadId}` response (`fromApi`).
+`restStorage` throws a descriptive error on any non-`ok` response. The client swallows `updateMessage` failures so a backend that hasn't added this route yet doesn't surface a thread error. The `Thread` shape at the boundary is `{ id, title, createdAt: string | number, isPending? }`. By default `restStorage` uses the identity message format; pass `messageFormat` (and optional `headers` / `fetch`) if your backend stores a provider-specific shape — it is applied to the `create` body (`toApi`) and the `get/{threadId}` response (`fromApi`). Message updates bypass the converter and send only `{ content }`. The backend must update the target text while preserving other parts and tool results. Synthetic segment IDs must be mapped to the corresponding stored message and text segment.
 
 ```tsx
 import { openAIMessageFormat } from "@openuidev/react-ui";
@@ -277,8 +277,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: { threadId
 
 // app/api/threads/messages/[threadId]/[messageId]/route.ts — persist an in-message edit
 export async function PATCH(req: NextRequest, { params }: { params: { threadId: string; messageId: string } }) {
-  const { messages } = await req.json(); // messageFormat.toApi([editedMessage]) — one AG-UI message may be several wire items
-  await db.updateMessage(params.threadId, params.messageId, messages);
+  const { content } = await req.json();
+  // Update the target text segment, preserving other message parts and tool results.
+  await db.updateMessageContent(params.threadId, params.messageId, content);
   return new NextResponse(null, { status: 204 });
 }
 ```

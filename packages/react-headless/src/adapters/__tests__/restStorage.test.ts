@@ -83,7 +83,7 @@ describe("restStorage", () => {
     expect(result).toEqual(updated);
   });
 
-  it("updateMessage PATCHes {base}/messages/:threadId/:messageId with the full toApi result", async () => {
+  it("updateMessage PATCHes {base}/messages/:threadId/:messageId with only the edited content", async () => {
     fetchSpy.mockResolvedValue(json({}, true));
     const toApi = vi.fn((msgs) => msgs.flatMap((m: any) => [{ custom: m.id }, { extra: true }]));
     const messageFormat: MessageFormat = { toApi, fromApi: (d) => d as any };
@@ -95,9 +95,9 @@ describe("restStorage", () => {
     expect(url).toBe("/api/threads/messages/t1/m1");
     expect(opts.method).toBe("PATCH");
     expect(opts.headers["Content-Type"]).toBe("application/json");
-    expect(toApi).toHaveBeenCalledWith([message]);
+    expect(toApi).not.toHaveBeenCalled();
     expect(JSON.parse(opts.body)).toEqual({
-      messages: [{ custom: "m1" }, { extra: true }],
+      content: "hi",
     });
   });
 

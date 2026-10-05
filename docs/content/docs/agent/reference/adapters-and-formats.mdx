@@ -284,7 +284,7 @@ Each `ThreadStorage` operation maps to exactly one HTTP call under `baseUrl`. Th
 | Get messages  | `GET`    | `{baseUrl}/get/{threadId}`                                           | —                                                   | `Message[]` (run through `messageFormat.fromApi`) |
 | Update thread | `PATCH`  | `{baseUrl}/update/{thread.id}`                                       | the `Thread`                                        | the updated `Thread`                              |
 | Delete thread | `DELETE` | `{baseUrl}/delete/{id}`                                              | —                                                   | —                                                 |
-| Update message | `PATCH` | `{baseUrl}/messages/{threadId}/{message.id}` | `{ messages: messageFormat.toApi([message]) }` | — |
+| Update message | `PATCH` | `{baseUrl}/messages/{threadId}/{message.id}` | `{ content: message.content }` | — |
 
 With `baseUrl: "/api/threads"` the concrete paths are `/api/threads/get`, `/api/threads/create`, `/api/threads/get/{threadId}`, `/api/threads/update/{thread.id}`, `/api/threads/delete/{id}`, and `/api/threads/messages/{threadId}/{message.id}`.
 
@@ -292,15 +292,16 @@ With `baseUrl: "/api/threads"` the concrete paths are `/api/threads/get`, `/api/
 
 Message updates use `message.id` to identify the stored message. Your backend and storage message format must preserve the IDs emitted by the stream. OpenAI Chat Completions streams use the completion ID, but `openAIMessageFormat.fromApi` generates IDs because the standard message format has none; use a custom storage format that restores your saved IDs. Vercel streams use `start.messageId` when available, with `-segment-N` suffixes for additional rendered segments, matching `vercelAIMessageFormat`. LangGraph adds `#N` when a wire ID is reused across segments. Backends storing a whole message must map those segments to the original message. Streams without message IDs, including Eve, use client-generated IDs and require backend coordination for persistence.
 
-OpenUI Cloud storage implements `updateMessage` through its conversation-item endpoint. The default in-memory storage updates messages already held in memory.
+OpenUI Cloud storage implements `updateMessage` through its conversation-item endpoint. The default in-memory storage inserts edited messages when missing and replaces existing ones, so those edits survive switching threads during the current session. It does not retain unedited streamed messages or persist across page reloads.
 
 ### Message format application
 
-`messageFormat` applies at these points:
+`messageFormat` applies at two points:
 
 - **Create** — the request body's `messages` is `messageFormat.toApi([firstMessage])`.
-- **Update message** — the request body's `messages` is `messageFormat.toApi([message])`. One AG-UI message can expand to several wire items; the array is the full conversion, not a single item.
 - **Get messages** — the `{baseUrl}/get/{threadId}` response is run through `messageFormat.fromApi` on the way back.
+
+Message updates bypass `messageFormat.toApi` and send only `{ content }`. The backend must update the target text while preserving other message fields, parts, tool calls, and tool results. For synthetic segment IDs, resolve the original stored message and update only the corresponding text segment.
 
 With the default `identityMessageFormat`, messages cross the wire as the canonical `Message` type unchanged. Pass a provider-specific format (e.g. `openAIMessageFormat`) when your backend stores messages in that provider's shape.
 
