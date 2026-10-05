@@ -386,9 +386,9 @@ function evaluateActionCall(
       return null;
     }
     case "ToAssistant": {
-      // ToAssistant("message") or ToAssistant("message", "context")
+      // The context may be any value and is passed through unchanged; null means none.
       const message = args.length > 0 ? String(evaluate(args[0], context) ?? "") : "";
-      const ctx = args.length > 1 ? String(evaluate(args[1], context) ?? "") : undefined;
+      const ctx = args.length > 1 ? (evaluate(args[1], context) ?? undefined) : undefined;
       return { type: ACTION_STEPS.ToAssistant, message, context: ctx };
     }
     case "OpenUrl": {

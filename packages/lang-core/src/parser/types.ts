@@ -200,7 +200,7 @@ export enum BuiltinActionType {
  */
 export type ActionStep =
   | { type: "run"; statementId: string; refType: "query" | "mutation" }
-  | { type: "continue_conversation"; message: string; context?: string }
+  | { type: "continue_conversation"; message: string; context?: unknown }
   | { type: "open_url"; url: string }
   | { type: "set"; target: string; valueAST: ASTNode }
   | { type: "reset"; targets: string[] };

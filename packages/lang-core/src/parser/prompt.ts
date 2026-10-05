@@ -225,7 +225,7 @@ result = Mutation("tool_name", {arg1: $binding, arg2: "value"})
 
 function actionSection(flags: { toolCalls: boolean; bindings: boolean }): string {
   const steps = [
-    '- @ToAssistant("message") — Send a message to the assistant (for conversational buttons like "Tell me more", "Explain this")',
+    '- @ToAssistant("message", context?) — Send a message to the assistant (for conversational buttons like "Tell me more", "Explain this"). The optional context is any value (object, array, string, number) passed to the assistant as hidden data, e.g. @ToAssistant("Show details", {orderId: 42})',
     '- @OpenUrl("https://...") — Navigate to a URL',
   ];
 
