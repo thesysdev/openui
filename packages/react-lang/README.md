@@ -113,6 +113,20 @@ function AssistantMessage({ response, isStreaming }) {
 | `onStateUpdate` | `(state: Record<string, any>) => void` | Callback when form field values change |
 | `initialState` | `Record<string, any>` | Initial form state for hydration |
 | `onParseResult` | `(result: ParseResult \| null) => void` | Callback when the parse result changes |
+| `devtools` | `{ runId?: string; runTitle?: string }` | Optional metadata for grouping rendered responses in OpenUI Inspect |
+
+To group responses from the same generation in Inspect, pass a stable `devtools.runId` to each Renderer and optionally set `devtools.runTitle` to the user's prompt:
+
+```tsx
+<Renderer
+  response={message.content}
+  library={library}
+  isStreaming={isStreaming}
+  devtools={{ runId: message.generationId, runTitle: userPrompt }}
+/>
+```
+
+Create a new run ID for each generation and reuse it across all messages from that generation. Renderers without a run ID appear as individual stream rows. Inspect captures renderers while they stream; mounting historical content with `isStreaming={false}` does not create a new stream entry. `AgentInterface` supplies the run ID automatically.
 
 ### Parser (Server-Side)
 

@@ -108,8 +108,27 @@ interface RendererProps {
     | null;
   queryLoader?: React.ReactNode;
   onError?: (errors: OpenUIError[]) => void;
+  devtools?: {
+    runId?: string;
+    runTitle?: string;
+  };
 }
 ```
+
+### Inspect grouping
+
+Pass `devtools.runId` to group rendered responses from one generation in OpenUI Inspect. Use the same ID for every message from that generation and a new ID for the next generation. The optional `devtools.runTitle` labels the group, for example with the user's prompt.
+
+```tsx
+<Renderer
+  response={message.content}
+  library={library}
+  isStreaming={isStreaming}
+  devtools={{ runId: message.generationId, runTitle: userPrompt }}
+/>
+```
+
+Renderers without a run ID appear as individual stream rows. Inspect captures renderers while they stream; mounting historical content with `isStreaming={false}` does not create a new stream entry. `AgentInterface` supplies the run ID automatically.
 
 ## Tool Provider
 

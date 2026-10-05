@@ -51,8 +51,13 @@ export interface RendererProps {
    */
   onError?: (errors: OpenUIError[]) => void;
   publishObservability?: boolean;
-  /** LLM run that produced `response`. Echoed on stream observability events. */
-  runId?: string;
+  /** Optional metadata for grouping rendered responses in OpenUI Inspect. */
+  devtools?: {
+    /** Renderers with the same ID appear in one run group. Keep it stable during a generation. */
+    runId?: string;
+    /** Display title for the run group, such as the user's prompt. */
+    runTitle?: string;
+  };
 }
 
 // ─── Error boundary ───
@@ -211,7 +216,7 @@ export function Renderer({
   queryLoader,
   onError,
   publishObservability,
-  runId,
+  devtools,
 }: RendererProps) {
   useInsertionEffect(() => {
     ensureLoadingStyle();
@@ -259,7 +264,8 @@ export function Renderer({
       toolProvider: resolvedToolProvider,
       onError,
       publishObservability,
-      runId,
+      runId: devtools?.runId,
+      runTitle: devtools?.runTitle,
     },
     renderDeep,
   );

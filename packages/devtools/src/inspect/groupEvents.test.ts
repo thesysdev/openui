@@ -31,7 +31,7 @@ describe("groupEventsByRunId", () => {
     expect(runGroupTitle(items[0]!.type === "run" ? items[0].events : [])).toBe("Who waited?");
   });
 
-  it("keeps one stream row when a run published two stream identities", () => {
+  it("keeps distinct Renderer streams within the same run", () => {
     const items = groupEventsByRunId([
       event({ kind: "LLM:request", runId: "run-1" }, { timestamp: 1 }),
       event(
@@ -47,8 +47,7 @@ describe("groupEventsByRunId", () => {
     expect(run?.type).toBe("run");
     if (run?.type !== "run") return;
     const streams = run.events.filter((item) => item.detail["kind"] === "react-lang:stream");
-    expect(streams).toHaveLength(1);
-    expect(streams[0]?.detail["id"]).toBe("s-new");
+    expect(streams.map((stream) => stream.detail["id"])).toEqual(["s-old", "s-new"]);
   });
 
   it("orders request, then response, then stream", () => {

@@ -51,6 +51,8 @@ export interface UseOpenUIStateOptions {
   publishObservability?: boolean;
   /** LLM run that produced `response`. Echoed on stream observability events. */
   runId?: string;
+  /** Display title for the Inspect run group. */
+  runTitle?: string;
 }
 
 export interface OpenUIState {
@@ -82,6 +84,7 @@ export function useOpenUIState(
     onError,
     publishObservability,
     runId,
+    runTitle,
   }: UseOpenUIStateOptions,
   renderDeep: (value: unknown) => React.ReactNode,
 ): OpenUIState {
@@ -466,6 +469,7 @@ export function useOpenUIState(
     publish: publishObservability,
     __libraryId: library.__libraryId,
     runId,
+    runTitle,
   });
 
   return { result: evaluatedResult, parseResult: result, contextValue, isQueryLoading };

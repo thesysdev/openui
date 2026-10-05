@@ -17,8 +17,8 @@ export function eventKind(event: ObservabilityEvent): string | undefined {
 
 /**
  * Collapse events that share a `runId` into one list item, parked at the
- * newest event of that run. Lone runIds stay as ordinary rows so a single
- * in-flight request does not grow a wrapper.
+ * newest event of that run. A standalone Renderer stream can form a group
+ * on its own; a lone in-flight request stays an ordinary row.
  */
 export function groupEventsByRunId(events: ObservabilityEvent[]): InspectListItem[] {
   const buckets = new Map<string, ObservabilityEvent[]>();
@@ -39,7 +39,7 @@ export function groupEventsByRunId(events: ObservabilityEvent[]): InspectListIte
       continue;
     }
     const bucket = buckets.get(runId)!;
-    if (bucket.length === 1) {
+    if (bucket.length === 1 && eventKind(event) !== STREAM_KIND) {
       items.push({ type: "event", event });
       continue;
     }
@@ -50,12 +50,16 @@ export function groupEventsByRunId(events: ObservabilityEvent[]): InspectListIte
   return items;
 }
 
-/** One request, one response/error, one stream — chronological inside the card. */
+/** Request, response/error, then each Renderer stream inside the card. */
 export function presentRunEvents(events: ObservabilityEvent[]): ObservabilityEvent[] {
   return sortRunEvents(collapseStreams(events));
 }
 
 export function runGroupTitle(events: ObservabilityEvent[]): string {
+  for (const event of events) {
+    const title = event.detail["runTitle"];
+    if (typeof title === "string" && title.trim()) return title.trim();
+  }
   for (const event of events) {
     if (eventKind(event) !== "LLM:request") continue;
     const text = userMessageText(event.detail["userMessage"]);
@@ -85,10 +89,18 @@ export function displayEventKind(kind: string): string {
 }
 
 function collapseStreams(events: ObservabilityEvent[]): ObservabilityEvent[] {
-  const streams = events.filter((event) => eventKind(event) === STREAM_KIND);
-  if (streams.length <= 1) return events;
-  const chosen = streams.reduce((best, event) => (preferStream(event, best) ? event : best));
-  return [...events.filter((event) => eventKind(event) !== STREAM_KIND), chosen];
+  const streams = new Map<string, ObservabilityEvent>();
+  const remaining: ObservabilityEvent[] = [];
+  for (const event of events) {
+    const id = event.detail["id"];
+    if (eventKind(event) !== STREAM_KIND || typeof id !== "string") {
+      remaining.push(event);
+      continue;
+    }
+    const previous = streams.get(id);
+    if (!previous || preferStream(event, previous)) streams.set(id, event);
+  }
+  return [...remaining, ...streams.values()];
 }
 
 function preferStream(candidate: ObservabilityEvent, best: ObservabilityEvent): boolean {
