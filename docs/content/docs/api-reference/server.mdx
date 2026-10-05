@@ -28,8 +28,8 @@ npm install @openuidev/server
 | Import                        | Capabilities                                                               |
 | ----------------------------- | -------------------------------------------------------------------------- |
 | `@openuidev/server/openai`    | `autofix.completions`, `autofix.responses`, `conversations.appendMessages` |
-| `@openuidev/server/vercel`    | `autofix.ai`, `autofix.eve`                                                |
-| `@openuidev/server/langchain` | `autofix.langgraph`                                                        |
+| `@openuidev/server/vercel`    | `autofix.ai`, `autofix.eve`, `conversations.appendMessages`                |
+| `@openuidev/server/langchain` | `autofix.langgraph`, `conversations.appendMessages`                        |
 
 ## `createServerClient(options?)`
 
@@ -190,7 +190,7 @@ All streams accept `AsyncIterable` or `ReadableStream`. Use `.toResponse()` for 
 
 ### `conversations.appendMessages(input)`
 
-Currently accepts **Chat Completions messages only**. User and assistant messages, function calls, and tool results become Conversations API items. System and developer messages are skipped. An empty converted turn makes no request.
+Accepts native history for the selected client. OpenAI defaults to Completions; pass `format: "responses"` with native Responses items. Vercel accepts `UIMessage[]`; LangChain accepts serialized SDK `Message[]`. Text, user media, and function calls/results preserve their order. System/developer instructions are skipped. Unsupported representations throw `ServerClientError` (`unsupported_message`) before any write.
 
 ```ts
 await openui.conversations.appendMessages({
@@ -204,14 +204,18 @@ await openui.conversations.appendMessages({
 ```
 
 ```ts
-interface AppendMessagesInput {
+type AppendMessagesInput = {
   conversationId: string;
-  messages: ChatCompletionMessageParam[];
   signal?: AbortSignal;
-}
+} & (
+  | { format?: "completions"; messages: ChatCompletionMessageParam[] }
+  | { format: "responses"; messages: (ResponseInputItem | ResponseOutputItem)[] }
+);
 ```
 
 Returns a `ConversationItemList`. The conversation must already exist. Pass only the new turn, not full replay; replay duplicates items. Writes are not retried automatically. Responses generation using `conversation` and `store: true` already persists its turn and must not append it again.
+
+Vercel stores completed text and reasoning, user files/images, and static or dynamic tool calls/results. It skips `step-start` and application `data-*` metadata. Unsupported source parts and streaming/incomplete parts are rejected. LangGraph stores human/AI/tool messages, including user images and explicit tool-call IDs; removal directives, legacy function messages, and unparsed tool calls are rejected. Each provider entry point exports its own `AppendMessagesInput`.
 
 ## Deprecated helpers
 

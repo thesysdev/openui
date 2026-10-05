@@ -1,7 +1,10 @@
+import type { Message } from "@langchain/langgraph-sdk";
+import { createConversations, type AppendMessagesOptions } from "../conversations/append";
 import { resolveClientOptions, type ServerClientOptions } from "../shared/client";
 import { createClientAutofix } from "../shared/client-autofix";
 import type { AutofixOptions } from "../shared/types";
 import { langGraphAdapter } from "./adapter";
+import { langGraphMessagesToItems } from "./messages-to-items";
 
 export { ServerClientError } from "../shared/client";
 export type { ServerClientOptions } from "../shared/client";
@@ -12,8 +15,12 @@ export type { LangGraphStreamEvent } from "./types";
 
 /** Configure native LangGraph SDK event streams. */
 export function createServerClient(options: ServerClientOptions = {}) {
+  const config = resolveClientOptions(options);
   return {
-    autofix: { langgraph: createClientAutofix(resolveClientOptions(options), langGraphAdapter) },
+    conversations: createConversations(config, (input: AppendMessagesInput) =>
+      langGraphMessagesToItems(input.messages),
+    ),
+    autofix: { langgraph: createClientAutofix(config, langGraphAdapter) },
   };
 }
 export type ServerClient = ReturnType<typeof createServerClient>;
@@ -30,3 +37,5 @@ export function createAutofix(options: AutofixOptions) {
     },
   };
 }
+
+export type AppendMessagesInput = AppendMessagesOptions & { messages: Message[] };

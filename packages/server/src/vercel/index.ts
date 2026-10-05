@@ -1,8 +1,11 @@
+import type { UIMessage } from "ai";
+import { createConversations, type AppendMessagesOptions } from "../conversations/append";
 import { resolveClientOptions, type ServerClientOptions } from "../shared/client";
 import { createClientAutofix } from "../shared/client-autofix";
 import type { AutofixOptions } from "../shared/types";
 import { vercelAIAdapter } from "./adapter";
 import { eveStreamAdapter } from "./eve-adapter";
+import { vercelMessagesToItems } from "./messages-to-items";
 
 export { ServerClientError } from "../shared/client";
 export type { ServerClientOptions } from "../shared/client";
@@ -14,6 +17,9 @@ export type { AutofixResult, AutofixStream } from "../shared/types";
 export function createServerClient(options: ServerClientOptions = {}) {
   const config = resolveClientOptions(options);
   return {
+    conversations: createConversations(config, (input: AppendMessagesInput) =>
+      vercelMessagesToItems(input.messages),
+    ),
     autofix: {
       ai: createClientAutofix(config, vercelAIAdapter),
       eve: createClientAutofix(config, eveStreamAdapter),
@@ -37,3 +43,5 @@ export function createAutofix(options: AutofixOptions) {
 }
 
 export type { MessageStreamEvent as EveStreamEvent } from "eve/client";
+
+export type AppendMessagesInput = AppendMessagesOptions & { messages: UIMessage[] };

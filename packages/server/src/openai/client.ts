@@ -1,9 +1,10 @@
-import type { ConversationItemList } from "openai/resources/conversations/items";
-import { postJSON, resolveClientOptions, type ServerClientOptions } from "../shared/client";
+import { createConversations } from "../conversations/append";
+import { resolveClientOptions, type ServerClientOptions } from "../shared/client";
 import { createClientAutofix } from "../shared/client-autofix";
 import { openAIAdapter } from "./adapter";
 import { messagesToItems } from "./messages-to-items";
 import { openAIResponsesAdapter } from "./responses-adapter";
+import { responsesToItems } from "./responses-to-items";
 import type { AppendMessagesInput } from "./types";
 
 /** Configure OpenAI-format Autofix and conversation persistence. */
@@ -14,26 +15,11 @@ export function createServerClient(options: ServerClientOptions = {}) {
       completions: createClientAutofix(config, openAIAdapter),
       responses: createClientAutofix(config, openAIResponsesAdapter),
     },
-    conversations: {
-      /** Append only the new turn. Currently accepts Chat Completions messages. */
-      async appendMessages({
-        conversationId,
-        messages,
-        signal,
-      }: AppendMessagesInput): Promise<ConversationItemList> {
-        signal?.throwIfAborted();
-        const items = messagesToItems(messages);
-        if (items.length === 0) {
-          return { object: "list", data: [], first_id: "", last_id: "", has_more: false };
-        }
-        return (await postJSON(
-          config,
-          `/v1/conversations/${encodeURIComponent(conversationId)}/items`,
-          { items },
-          signal,
-        )) as ConversationItemList;
-      },
-    },
+    conversations: createConversations(config, (input: AppendMessagesInput) =>
+      input.format === "responses"
+        ? responsesToItems(input.messages)
+        : messagesToItems(input.messages),
+    ),
   };
 }
 

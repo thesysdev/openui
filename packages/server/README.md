@@ -27,8 +27,8 @@ A missing or empty key throws `ServerClientError` with `code: "missing_api_key"`
 | Import                        | Capabilities                                                               |
 | ----------------------------- | -------------------------------------------------------------------------- |
 | `@openuidev/server/openai`    | `autofix.completions`, `autofix.responses`, `conversations.appendMessages` |
-| `@openuidev/server/vercel`    | `autofix.ai`, `autofix.eve`                                                |
-| `@openuidev/server/langchain` | `autofix.langgraph`                                                        |
+| `@openuidev/server/vercel`    | `autofix.ai`, `autofix.eve`, `conversations.appendMessages`                |
+| `@openuidev/server/langchain` | `autofix.langgraph`, `conversations.appendMessages`                        |
 
 ## Autofix
 
@@ -123,7 +123,9 @@ Use `.toResponse()` to forward the selected protocol: Responses SSE, named LangG
 
 ## Conversation persistence
 
-`appendMessages` currently accepts **Chat Completions messages only**. It converts user, assistant, tool calls, and tool results to Conversations API items. System and developer messages are skipped.
+`appendMessages` accepts the native history format for each client. Completions is the OpenAI default; set `format: "responses"` for Responses input/output items. Vercel accepts completed AI SDK `UIMessage[]`; LangChain accepts serialized LangGraph SDK `Message[]`.
+
+Text, user images/files, and function calls/results become Conversations API items in their original order. System/developer instructions are skipped. An unsupported message or incomplete UI part throws `ServerClientError` with `code: "unsupported_message"` before writing any items. Vercel `step-start` and application `data-*` parts are metadata and are skipped; reasoning summaries are stored. LangGraph removal directives and legacy function messages are rejected.
 
 ```ts
 await openui.conversations.appendMessages({
@@ -134,6 +136,19 @@ await openui.conversations.appendMessages({
   ],
   signal,
 });
+```
+
+```ts
+// OpenAI Responses client: append native response.output or input items.
+await openui.conversations.appendMessages({
+  conversationId: threadId,
+  format: "responses",
+  messages: response.output,
+  signal,
+});
+
+// Vercel or LangChain clients: their native completed messages.
+await openui.conversations.appendMessages({ conversationId: threadId, messages, signal });
 ```
 
 The conversation must already exist. Append only the new turn, not the full conversation replay, or items will be duplicated. Writes are not retried automatically. If Responses generation already uses `conversation` and `store: true`, do not append that same turn again.

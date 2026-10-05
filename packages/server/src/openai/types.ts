@@ -1,11 +1,14 @@
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
-export interface AppendMessagesInput {
-  conversationId: string;
-  /** Chat Completions messages for the new turn, not the full conversation replay. */
-  messages: ChatCompletionMessageParam[];
-  signal?: AbortSignal;
-}
+import type { ResponseInputItem, ResponseOutputItem } from "openai/resources/responses/responses";
+import type { AppendMessagesOptions } from "../conversations/append";
+
+/** Completions remains the default; select Responses explicitly for native items. */
+export type AppendMessagesInput = AppendMessagesOptions &
+  (
+    | { format?: "completions"; messages: ChatCompletionMessageParam[] }
+    | { format: "responses"; messages: (ResponseInputItem | ResponseOutputItem)[] }
+  );
 
 /** @deprecated Use ServerClientOptions and AppendMessagesInput instead. */
 export type StoreChatCompletionHistoryOptions = {
