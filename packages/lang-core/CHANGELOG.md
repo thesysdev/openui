@@ -1,5 +1,11 @@
 # @openuidev/lang-core
 
+## 0.3.1
+
+### Patch Changes
+
+- [#1140](https://github.com/thesysdev/openui/pull/1140) [`55df79c`](https://github.com/thesysdev/openui/commit/55df79c2ff645b4c24b03be9c798f57cdf36dd99) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Fix streaming parsing so the latest definition of a repeated statement ID renders progressively as it arrives, matching how new statements stream. Completed programs use the last definition, matching the non-streaming parser.
+
 ## 0.3.0
 
 ### Minor Changes
