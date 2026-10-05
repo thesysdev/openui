@@ -288,6 +288,28 @@ root = Title("hello")
   });
 });
 
+describe("streaming fences and comments", () => {
+  it("matches a fresh parse of the same text at every chunk", () => {
+    const text = `Here's the plan:
+
+\`\`\`openui
+root = Stack([a, b]) // layout
+# a heading comment
+a = Title("x // not a comment") # trailing
+b = Title('it''s "#1"')
+  // a comment that empties its line
+\`\`\`
+c = Title("after the fence, ignored")`;
+    for (const size of [1, 3]) {
+      const sp = createStreamParser(schema);
+      for (let i = 0; i < text.length; i += size) {
+        const fresh = createStreamParser(schema).push(text.slice(0, i + size));
+        expect(sp.push(text.slice(i, i + size))).toEqual(fresh);
+      }
+    }
+  });
+});
+
 // ── redefined statement IDs (parse vs stream) ───────────────────────────────
 
 describe("redefined statement IDs", () => {
