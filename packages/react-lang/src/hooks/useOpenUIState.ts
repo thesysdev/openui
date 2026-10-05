@@ -21,6 +21,7 @@ import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import type { OpenUIContextValue } from "../context";
 import type { Library } from "../library";
+import { queryPlaceholders } from "../queryPlaceholders";
 import { parseResponseBundle } from "../responseBundle";
 import { useOpenUIErrors } from "./useOpenUIErrors";
 import { useStreamingObservability } from "./useStreamingObservability";
@@ -60,6 +61,9 @@ export interface OpenUIState {
   contextValue: OpenUIContextValue;
   /** Whether any Query is currently fetching data. */
   isQueryLoading: boolean;
+  /** Failed queries whose fallback values must not be presented as current data. */
+  queryErrors: OpenUIError[];
+  retryQueries: () => void;
 }
 
 /**
@@ -87,8 +91,16 @@ export function useOpenUIState(
   const blocked = isStreaming || !bundle.complete || !!bundle.error;
   // Bare DSL keeps its existing manager, cached results and imperative actions while streaming.
   const bundleBlocked = bundle.isBundle && blocked;
-  // Recreate the manager when a bundled script changes, even if Query args do not.
-  const scriptRevision = bundle.scripts.size ? response : null;
+  // Keep the last completed script revision while an edit streams its base and patches.
+  const settledScripts = useRef({ revision: null as string | null, names: new Set<string>() });
+  if (!blocked) {
+    settledScripts.current = {
+      revision: "scriptRevision" in bundle ? (bundle.scriptRevision ?? null) : null,
+      names: bundle.scripts,
+    };
+  }
+  const scriptRevision = settledScripts.current.revision;
+  const scriptNames = settledScripts.current.names;
 
   // ─── Streaming parser (incremental — caches completed statements) ───
   const sp = useMemo(() => createStreamingParser(library.toJSONSchema(), library.root), [library]);
@@ -119,8 +131,8 @@ export function useOpenUIState(
 
   // ─── QueryManager ───
   const queryManager = useMemo<QueryManager>(
-    () => createQueryManager(bundleBlocked ? null : (toolProvider ?? null)),
-    [toolProvider, bundleBlocked, scriptRevision],
+    () => createQueryManager(toolProvider ?? null),
+    [toolProvider],
   );
 
   useEffect(() => {
@@ -174,21 +186,22 @@ export function useOpenUIState(
 
   // ─── Evaluate and submit queries ───
   useEffect(() => {
-    // Bundled previews use a provider-less manager: register defaults for rendering
-    // while execution stays paused. Preserve bare DSL's existing streaming behavior.
+    // Register the streamed layout without executing it, retaining the completed cache.
     if (blocked && !bundleBlocked) return;
 
     const queryStmts = result?.queryStatements ?? [];
     const evaluatedNodes = queryStmts.map((qn) => {
       const relevantDeps: Record<string, unknown> = {};
+      const toolName = qn.toolAST ? (evaluate(qn.toolAST, evaluationContext) as string) : "";
       if (qn.deps) {
         for (const ref of qn.deps) {
           relevantDeps[ref] = storeSnapshot[ref];
         }
       }
+      if (scriptNames.has(toolName)) relevantDeps.__openuiScriptRevision = scriptRevision;
       return {
         statementId: qn.statementId,
-        toolName: qn.toolAST ? (evaluate(qn.toolAST, evaluationContext) as string) : "",
+        toolName,
         args: qn.argsAST ? evaluate(qn.argsAST, evaluationContext) : null,
         defaults: qn.defaultsAST ? evaluate(qn.defaultsAST, evaluationContext) : null,
         refreshInterval:
@@ -201,7 +214,7 @@ export function useOpenUIState(
     });
 
     // Always call — empty array clears removed queries and their errors
-    queryManager.evaluateQueries(evaluatedNodes);
+    queryManager.evaluateQueries(evaluatedNodes, { enabled: !bundleBlocked });
   }, [
     blocked,
     bundleBlocked,
@@ -209,6 +222,8 @@ export function useOpenUIState(
     evaluationContext,
     queryManager,
     storeSnapshot,
+    scriptRevision,
+    scriptNames,
   ]);
 
   // ─── Register mutations ───
@@ -405,35 +420,16 @@ export function useOpenUIState(
     renderErrorsRef.current.push(error);
   }, []);
 
-  const isQueryLoading = querySnapshot.__openui_loading.length > 0;
-
-  // ─── Context value ───
-  const contextValue = useMemo<OpenUIContextValue>(
-    () => ({
-      library,
-      renderNode: renderDeep,
-      triggerAction,
-      isStreaming: blocked,
-      getFieldValue,
-      setFieldValue,
-      store,
-      evaluationContext,
-      reportError,
-      isQueryLoading,
-    }),
-    [
-      library,
-      renderDeep,
-      blocked,
-      isQueryLoading,
-      triggerAction,
-      getFieldValue,
-      setFieldValue,
-      store,
-      evaluationContext,
-      reportError,
-    ],
+  const isQueryLoading =
+    querySnapshot.__openui_loading.length > 0 ||
+    (isStreaming && bundleBlocked && (result?.queryStatements.length ?? 0) > 0);
+  const queryErrors = useMemo(
+    () => querySnapshot.__openui_errors.filter((error) => error.source === "query"),
+    [querySnapshot],
   );
+  const retryQueries = useCallback(() => {
+    queryManager.invalidate(queryErrors.map((error) => error.statementId!));
+  }, [queryManager, queryErrors]);
 
   // ─── Evaluate props ───
   const runtimeErrorsRef = useRef<OpenUIError[]>([]);
@@ -460,6 +456,45 @@ export function useOpenUIState(
     }
   }, [result, evaluationContext, library, store, storeSnapshot, querySnapshot]);
 
+  const placeholders = useMemo(() => {
+    if (!result?.root || !evaluatedResult?.root) return undefined;
+    const pending = new Set(
+      (result.queryStatements ?? [])
+        .filter((query) => !queryManager.hasResult(query.statementId))
+        .map((query) => query.statementId),
+    );
+    return queryPlaceholders(result.root, evaluatedResult.root, pending);
+  }, [result, evaluatedResult, queryManager, querySnapshot]);
+
+  const contextValue = useMemo<OpenUIContextValue>(
+    () => ({
+      library,
+      renderNode: renderDeep,
+      triggerAction,
+      isStreaming: blocked,
+      getFieldValue,
+      setFieldValue,
+      store,
+      evaluationContext,
+      reportError,
+      isQueryLoading,
+      queryPlaceholders: placeholders,
+    }),
+    [
+      library,
+      renderDeep,
+      blocked,
+      isQueryLoading,
+      triggerAction,
+      getFieldValue,
+      setFieldValue,
+      store,
+      evaluationContext,
+      reportError,
+      placeholders,
+    ],
+  );
+
   // Keep error collection first: its effect refreshes this ref before the
   // observability effect publishes the terminal stream event.
   const { errorsRef, errorRevision } = useOpenUIErrors({
@@ -485,5 +520,12 @@ export function useOpenUIState(
     __libraryId: library.__libraryId,
   });
 
-  return { result: evaluatedResult, parseResult: result, contextValue, isQueryLoading };
+  return {
+    result: evaluatedResult,
+    parseResult: result,
+    contextValue,
+    isQueryLoading,
+    queryErrors,
+    retryQueries,
+  };
 }

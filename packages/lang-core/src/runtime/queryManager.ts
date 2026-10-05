@@ -57,8 +57,10 @@ export interface QuerySnapshot extends Record<string, unknown> {
 }
 
 export interface QueryManager {
-  evaluateQueries(queryNodes: QueryNode[]): void;
+  evaluateQueries(queryNodes: QueryNode[], options?: { enabled?: boolean }): void;
   getResult(statementId: string): unknown;
+  /** Whether current or previous successful data is available, excluding defaults. */
+  hasResult(statementId: string): boolean;
   isLoading(statementId: string): boolean;
   isAnyLoading(): boolean;
   invalidate(statementIds?: string[]): void;
@@ -83,7 +85,6 @@ interface QueryEntry {
   defaults: unknown;
   cacheKey: string;
   prevCacheKey?: string;
-  loading: boolean;
   everFetched: boolean;
   refreshInterval: number;
   timer?: ReturnType<typeof setInterval>;
@@ -148,6 +149,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
   let snapshotJson = JSON.stringify(snapshot);
   let disposed = false;
   let generation = 0;
+  let enabled = true;
 
   // ── Snapshot & notification ──────────────────────────────────────────────
 
@@ -173,7 +175,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       } else {
         out[sid] = q.defaults;
       }
-      if (q.loading) {
+      if (entry?.inFlight) {
         out.__openui_loading.push(sid);
         if (q.everFetched) out.__openui_refetching.push(sid);
       }
@@ -206,7 +208,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
   // ── Fetch execution ──────────────────────────────────────────────────────
 
   async function executeFetch(cacheKey: string, statementId: string) {
-    if (!toolProvider) return;
+    if (!toolProvider || !enabled) return;
 
     const q = queries.get(statementId);
     if (!q) return;
@@ -216,6 +218,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
     const fetchKey = cacheKey;
     const toolName = q.toolName;
     const args = q.args;
+    const fetchGeneration = generation;
 
     // Mark in-flight — use undefined as "no data yet" sentinel (distinct from null)
     let entry = cache.get(fetchKey);
@@ -225,41 +228,37 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
     } else {
       entry.inFlight = true;
     }
-    q.loading = true;
     rebuildSnapshot();
     notify();
 
     try {
       const data = await toolProvider.callTool(toolName, (args as Record<string, unknown>) ?? {});
-      if (disposed) return;
-      // Query removed or moved to a different cache key while in-flight — discard
-      const current = queries.get(statementId);
-      if (!current || current.cacheKey !== fetchKey) {
-        entry.inFlight = false;
-        return;
-      }
-
+      if (disposed || fetchGeneration !== generation || cache.get(fetchKey) !== entry) return;
       entry.data = data ?? null;
-      current.everFetched = true;
-      current.error = undefined;
+      // Several queries can share a request. Update only its current consumers.
+      for (const current of queries.values()) {
+        if (current.cacheKey !== fetchKey) continue;
+        current.everFetched = true;
+        current.error = undefined;
 
-      // Clean up previous cache entry — clear prevCacheKey FIRST so
-      // cleanupCacheEntry doesn't see this query as a live reference.
-      if (current.prevCacheKey && current.prevCacheKey !== fetchKey) {
-        const prevKey = current.prevCacheKey;
-        current.prevCacheKey = undefined;
-        cleanupCacheEntry(prevKey);
+        // Clear the old reference before checking whether its cache can be removed.
+        if (current.prevCacheKey && current.prevCacheKey !== fetchKey) {
+          const prevKey = current.prevCacheKey;
+          current.prevCacheKey = undefined;
+          cleanupCacheEntry(prevKey);
+        }
       }
     } catch (err) {
+      if (disposed || fetchGeneration !== generation || cache.get(fetchKey) !== entry) return;
       // Only update error state if this fetch is still current
-      const current = queries.get(statementId);
-      if (current && current.cacheKey === fetchKey) {
+      for (const [currentId, current] of queries) {
+        if (current.cacheKey !== fetchKey) continue;
         if (err instanceof ToolNotFoundError) {
           current.error = {
             source: "query",
             code: "tool-not-found",
             message: `Query tool "${toolName}" not found`,
-            statementId,
+            statementId: currentId,
             component: "Query",
             toolName,
             hint: err.availableTools.length
@@ -271,7 +270,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
             source: "query",
             code: "mcp-error",
             message: `Query "${toolName}" returned an error: ${err.toolErrorText}`,
-            statementId,
+            statementId: currentId,
             component: "Query",
             toolName,
           };
@@ -281,7 +280,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
             source: "query",
             code: "tool-error",
             message: `Query "${toolName}" failed: ${msg}`,
-            statementId,
+            statementId: currentId,
             component: "Query",
             toolName,
           };
@@ -289,19 +288,18 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       }
       console.error(`Query "${toolName}" failed:`, err);
     } finally {
-      entry.inFlight = false;
-      const current = queries.get(statementId);
-      // Only clear loading if this fetch is still current
-      if (current && current.cacheKey === fetchKey) {
-        current.loading = false;
-        if (rebuildSnapshot()) notify();
-        // Re-fetch if invalidation occurred while in-flight
-        if (current.needsRefetch) {
-          current.needsRefetch = false;
-          executeFetch(current.cacheKey, statementId);
+      if (!disposed && fetchGeneration === generation && cache.get(fetchKey) === entry) {
+        entry.inFlight = false;
+        let refetchId: string | undefined;
+        for (const [currentId, current] of queries) {
+          if (current.cacheKey === fetchKey && current.needsRefetch) {
+            current.needsRefetch = false;
+            refetchId ??= currentId;
+          }
         }
-      } else {
         if (rebuildSnapshot()) notify();
+        // Re-fetch only if the invalidated selection is still current.
+        if (refetchId) executeFetch(fetchKey, refetchId);
       }
     }
   }
@@ -316,8 +314,9 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
 
   // ── Query evaluation ─────────────────────────────────────────────────────
 
-  function evaluateQueries(queryNodes: QueryNode[]) {
+  function evaluateQueries(queryNodes: QueryNode[], options?: { enabled?: boolean }) {
     if (disposed) return;
+    enabled = options?.enabled !== false;
 
     const activeIds = new Set(queryNodes.map((n) => n.statementId));
 
@@ -343,6 +342,8 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
         // Track previous cache key for fallback display
         if (existing.cacheKey !== cacheKey) {
           existing.prevCacheKey = existing.cacheKey;
+          existing.error = undefined;
+          existing.needsRefetch = false;
         }
         existing.toolName = node.toolName;
         existing.args = node.args;
@@ -354,7 +355,6 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
           args: node.args,
           defaults: node.defaults,
           cacheKey,
-          loading: false,
           everFetched: false,
           refreshInterval: 0,
           needsRefetch: false,
@@ -366,12 +366,12 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       // Fire fetch if no settled data and not already in-flight
       const entry = cache.get(cacheKey);
       const hasSettledData = entry && entry.data !== undefined && !entry.inFlight;
-      if (toolProvider && !hasSettledData && !entry?.inFlight) {
+      if (enabled && toolProvider && !hasSettledData && !entry?.inFlight) {
         executeFetch(cacheKey, node.statementId);
       }
 
       // Configure auto-refresh timer
-      const newInterval = node.refreshInterval ?? 0;
+      const newInterval = enabled ? (node.refreshInterval ?? 0) : 0;
       if (newInterval !== q.refreshInterval) {
         if (q.timer) {
           clearInterval(q.timer);
@@ -409,26 +409,38 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
   }
 
   function isLoading(statementId: string): boolean {
-    return queries.get(statementId)?.loading ?? false;
+    const q = queries.get(statementId);
+    return q ? (cache.get(q.cacheKey)?.inFlight ?? false) : false;
+  }
+
+  function hasResult(statementId: string): boolean {
+    const q = queries.get(statementId);
+    if (!q) return false;
+    return (
+      cache.get(q.cacheKey)?.data !== undefined ||
+      (q.prevCacheKey !== undefined && cache.get(q.prevCacheKey)?.data !== undefined)
+    );
   }
 
   function isAnyLoading(): boolean {
     for (const q of queries.values()) {
-      if (q.loading) return true;
+      if (cache.get(q.cacheKey)?.inFlight) return true;
     }
     return false;
   }
 
   function invalidate(statementIds?: string[]) {
-    if (disposed || !toolProvider) return;
+    if (disposed || !toolProvider || !enabled) return;
 
     const targets = statementIds?.length
       ? statementIds.filter((sid) => queries.has(sid))
       : [...queries.keys()];
 
+    const invalidatedKeys = new Set<string>();
     for (const sid of targets) {
       const q = queries.get(sid);
-      if (!q) continue;
+      if (!q || invalidatedKeys.has(q.cacheKey)) continue;
+      invalidatedKeys.add(q.cacheKey);
       const entry = cache.get(q.cacheKey);
       if (entry?.inFlight) {
         q.needsRefetch = true;
@@ -473,7 +485,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
     evaluatedArgs: Record<string, unknown>,
     refreshQueryIds?: string[],
   ): Promise<boolean> {
-    if (disposed || !toolProvider) return false;
+    if (disposed || !toolProvider || !enabled) return false;
     const m = mutations.get(statementId);
     if (!m) return false;
 
@@ -572,15 +584,16 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
         q.timer = undefined;
       }
       q.refreshInterval = 0;
-      q.loading = false;
       q.needsRefetch = false;
     }
     mutations.clear();
+    for (const entry of cache.values()) entry.inFlight = false;
   }
 
   return {
     evaluateQueries,
     getResult,
+    hasResult,
     isLoading,
     isAnyLoading,
     invalidate,

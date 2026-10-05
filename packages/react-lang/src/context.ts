@@ -1,4 +1,10 @@
-import type { ActionPlan, EvaluationContext, OpenUIError, Store } from "@openuidev/lang-core";
+import type {
+  ActionPlan,
+  ElementNode,
+  EvaluationContext,
+  OpenUIError,
+  Store,
+} from "@openuidev/lang-core";
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect } from "react";
 import type { Library } from "./library";
@@ -29,6 +35,8 @@ export interface OpenUIContextValue {
 
   /** Whether any Query is currently fetching data (e.g., MCP tool calls in-flight). */
   isQueryLoading: boolean;
+  /** Widgets awaiting their first successful query result. */
+  queryPlaceholders?: WeakMap<ElementNode, string | undefined>;
 
   /** Get a field value. Top-level for $bindings, nested under formName for form fields. */
   getFieldValue: (formName: string | undefined, name: string) => any;
