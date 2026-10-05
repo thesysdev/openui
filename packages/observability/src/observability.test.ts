@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ObservabilityEvent } from "./index";
 import { observability } from "./index";
