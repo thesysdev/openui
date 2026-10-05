@@ -13,7 +13,7 @@ import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
 
 export interface RendererProps {
-  /** Raw response text (openui-lang code). */
+  /** Raw response: openui-lang code, or a stored message with protocol markers (see buildMessage). */
   response: string | null;
   /** Component library from createLibrary(). */
   library: Library;

@@ -6,6 +6,7 @@ import {
   createStreamingParser,
   evaluate,
   evaluateElementProps,
+  parseMessage,
   type ActionEvent,
   type ActionPlan,
   type EvalContext,
@@ -38,6 +39,7 @@ function unwrapFieldValue(v: unknown): unknown {
 }
 
 export interface UseOpenUIStateOptions {
+  /** Raw response: openui-lang code, or a stored message with protocol markers. */
   response: string | null;
   library: Library;
   isStreaming: boolean;
@@ -70,7 +72,7 @@ export interface OpenUIState {
  */
 export function useOpenUIState(
   {
-    response,
+    response: raw,
     library,
     isStreaming,
     onAction,
@@ -82,6 +84,12 @@ export function useOpenUIState(
   }: UseOpenUIStateOptions,
   renderDeep: (value: unknown) => React.ReactNode,
 ): OpenUIState {
+  // Strip protocol markers; plain responses pass through unchanged.
+  const response = useMemo(
+    () => raw && parseMessage(raw, { streaming: isStreaming }).content,
+    [raw, isStreaming],
+  );
+
   // ─── Streaming parser (incremental — caches completed statements) ───
   const sp = useMemo(() => createStreamingParser(library.toJSONSchema(), library.root), [library]);
 

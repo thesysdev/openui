@@ -31,6 +31,10 @@ export type {
 // openui-lang parser (server-side use)
 export { createParser, createStreamingParser } from "@openuidev/lang-core";
 
+// Message protocol: marker lines around a stored response
+export { buildMessage, parseMessage } from "@openuidev/lang-core";
+export type { BuildMessageInput, ParseMessageOptions, ParsedMessage } from "@openuidev/lang-core";
+
 // Standalone prompt generation (no Zod deps — usable on backend)
 export { generatePrompt, generateSystemPrompt } from "@openuidev/lang-core";
 export type {
