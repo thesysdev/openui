@@ -1,0 +1,58 @@
+{
+  "name": "@openuidev/example-miniapps",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate": "openui generate src/lib/chat-library.ts --spec --out src/generated/chat.json && openui generate src/lib/dashboard-library.ts --spec --out src/generated/dashboard.json",
+    "predev": "npm run generate",
+    "dev": "next dev --webpack",
+    "prebuild": "npm run generate",
+    "build": "next build --webpack",
+    "start": "next start",
+    "deploy": "openui deploy",
+    "lint": "eslint .",
+    "preverify": "npm run generate",
+    "verify": "npm run lint && next build --webpack"
+  },
+  "dependencies": {
+    "@openuidev/lang-core": "0.3.0",
+    "@openuidev/react-headless": "0.16.3",
+    "@openuidev/react-lang": "0.3.0",
+    "@openuidev/react-ui": "0.16.3",
+    "@openuidev/server": "0.1.0",
+    "next": "16.3.5",
+    "openai": "^6.49.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^4.3.6",
+    "zustand": "4.5.7",
+    "@ag-ui/core": "^0.0.45"
+  },
+  "devDependencies": {
+    "@openuidev/cli": "0.4.1",
+    "@types/node": "^22.15.32",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "prettier": "^3.9.6",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@openuidev/lang-core",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
+  "allowScripts": {
+    "@openuidev/lang-core": true,
+    "esbuild": true,
+    "sharp": true,
+    "unrs-resolver": true
+  }
+}
