@@ -96,7 +96,7 @@ export function evaluate(
         if (builtin.lazy) return evaluateLazyBuiltin(node.name, node.args, context, schemaCtx);
         return builtin.fn!(evaluateArgs(node, context));
       }
-      // Action calls → evaluate to ActionPlan/ActionStep
+      // Action calls → evaluate to an ActionPlan
       if (ACTION_NAMES.has(node.name)) {
         return evaluateActionCall(node.name, node.args, context);
       }
@@ -357,33 +357,46 @@ function callFunction(
   return checked === INVALID ? null : (checked ?? null);
 }
 
-/**
- * Evaluate Action/Run/ToAssistant/OpenUrl Comp nodes into ActionPlan/ActionStep values.
- */
-function evaluateActionCall(
+/** True for an evaluated action plan (`{ steps: [...] }`). */
+export function isActionPlan(value: unknown): value is ActionPlan {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Array.isArray((value as { steps?: unknown }).steps)
+  );
+}
+
+/** Flatten plans (and stray step objects) into one plan; other values are dropped. */
+export function flattenPlans(values: unknown[]): ActionPlan {
+  return {
+    steps: values.flatMap((v): ActionStep[] => {
+      if (isActionPlan(v)) return v.steps;
+      return v != null && typeof v === "object" && "type" in v ? [v as ActionStep] : [];
+    }),
+  };
+}
+
+/** A step call is a one-step plan, an invalid step an empty plan; Action([...]) flattens. */
+function evaluateActionCall(name: string, args: ASTNode[], context: EvaluationContext): ActionPlan {
+  if (name === "Action") {
+    const list = args.length > 0 ? evaluate(args[0], context) : [];
+    return flattenPlans(Array.isArray(list) ? list : []);
+  }
+  const step = evaluateActionStep(name, args, context);
+  return { steps: step ? [step] : [] };
+}
+
+function evaluateActionStep(
   name: string,
   args: ASTNode[],
   context: EvaluationContext,
-): ActionPlan | ActionStep | null {
+): ActionStep | null {
   switch (name) {
-    case "Action": {
-      // Action([step1, step2, ...]) → ActionPlan
-      const stepsArg = args.length > 0 ? evaluate(args[0], context) : [];
-      const rawSteps = Array.isArray(stepsArg) ? stepsArg : [];
-      const steps: ActionStep[] = rawSteps.filter(
-        (s): s is ActionStep => s != null && typeof s === "object" && "type" in s,
-      );
-      return { steps };
-    }
     case "Run": {
-      // Run(runtimeRef) → ActionStep { type: "run", statementId, refType }
-      if (args.length === 0) return null;
+      // Run(runtimeRef); an unresolved Ref is invalid
       const refNode = args[0];
-      if (refNode.k === "RuntimeRef") {
-        return { type: ACTION_STEPS.Run, statementId: refNode.n, refType: refNode.refType };
-      }
-      // Unresolved Ref — skip (filtered out by Action's step array)
-      return null;
+      if (refNode?.k !== "RuntimeRef") return null;
+      return { type: ACTION_STEPS.Run, statementId: refNode.n, refType: refNode.refType };
     }
     case "ToAssistant": {
       // The context may be any value and is passed through unchanged; null means none.
@@ -392,23 +405,17 @@ function evaluateActionCall(
       return { type: ACTION_STEPS.ToAssistant, message, context: ctx };
     }
     case "OpenUrl": {
-      // OpenUrl("url")
       const url = args.length > 0 ? String(evaluate(args[0], context) ?? "") : "";
       return { type: ACTION_STEPS.OpenUrl, url };
     }
     case "Set": {
-      // Set($varName, value) → ActionStep { type: "set", target, valueAST }
-      // First arg must be a StateRef (the $variable), second arg is the value expression.
-      // valueAST is preserved as-is and evaluated at click time by triggerAction.
-      // Loop variables (e.g. t.id from Each) are pre-resolved by Each's substituteRef.
-      if (args.length < 2) return null;
-      const targetNode = args[0];
-      if (targetNode.k !== "StateRef") return null;
-      return { type: ACTION_STEPS.Set, target: targetNode.n, valueAST: args[1] };
+      // Set($varName, value). valueAST is evaluated at click time by triggerAction;
+      // loop variables (e.g. t.id from Each) are pre-resolved by Each's substituteRef.
+      if (args.length < 2 || args[0].k !== "StateRef") return null;
+      return { type: ACTION_STEPS.Set, target: args[0].n, valueAST: args[1] };
     }
     case "Reset": {
-      // Reset($var1, $var2, ...) → ActionStep { type: "reset", targets: [...] }
-      // All args must be StateRef nodes. Restores to declared defaults at runtime.
+      // Reset($var1, $var2, ...) restores declared defaults at runtime.
       const targets = args
         .filter((a): a is ASTNode & { k: "StateRef" } => a.k === "StateRef")
         .map((a) => a.n);

@@ -22,6 +22,23 @@ describe("tagSchemaId", () => {
     const prompt = lib.prompt();
 
     expect(prompt).toContain("action?: ActionExpression");
+    expect(prompt).toContain("accept one @step or a list of @steps");
+    expect(prompt).not.toContain("Action([@");
+  });
+
+  it("untagged action props learn Action([...]) for several steps", () => {
+    const Button = defineComponent({
+      name: "Button",
+      props: z.object({ label: z.string(), action: z.any().optional() }),
+      description: "A button",
+      component: Dummy,
+    });
+    const prompt = createLibrary({ components: [Button], root: "Button" }).prompt({
+      toolCalls: true,
+    });
+
+    expect(prompt).toContain('Button("Refresh", Action([@Run(query1), @Run(query2)])');
+    expect(prompt).not.toMatch(/, \[@Run/);
   });
 
   it("tagged schema inside array is discovered", () => {

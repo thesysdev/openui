@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { ActionEvent } from "@openuidev/lang-core";
+import { tagSchemaId, type ActionEvent } from "@openuidev/lang-core";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it } from "vitest";
@@ -13,10 +13,12 @@ import { Renderer } from "../../Renderer";
 /** Render `response`, click every `Btn` in order, and return the action events. */
 async function clickAll(response: string): Promise<ActionEvent[]> {
   const clicks = new Map<string, () => void | Promise<void>>();
+  const actionExpression = z.any();
+  tagSchemaId(actionExpression, "ActionExpression");
   const Btn = defineComponent({
     name: "Btn",
     description: "",
-    props: z.object({ label: z.string(), action: z.any().optional() }),
+    props: z.object({ label: z.string(), action: actionExpression.optional() }),
     component: ({ props }) => {
       const trigger = useTriggerAction();
       clicks.set(props.label, () => trigger(props.label, undefined, props.action as any));
@@ -42,14 +44,21 @@ async function clickAll(response: string): Promise<ActionEvent[]> {
   return events;
 }
 
-it("delivers the @ToAssistant context unchanged in params.context", async () => {
+it("delivers bare, list and Action([...]) steps, with the @ToAssistant context", async () => {
   const events = await clickAll(
     [
-      `root = Stack([a, b, c])`,
-      `a = Btn("a", Action([@ToAssistant("A", { ticket: "T-42" })]))`,
-      `b = Btn("b", Action([@ToAssistant("B", 0)]))`,
+      `root = Stack([a, b, c, d])`,
+      `a = Btn("a", @ToAssistant("A", { ticket: "T-42" }))`,
+      `b = Btn("b", [@OpenUrl("https://x.test"), @ToAssistant("B", 0)])`,
       `c = Btn("c", Action([@ToAssistant("C")]))`,
+      `d = Btn("d", {type: "custom", params: {id: 1}})`,
     ].join("\n"),
   );
-  expect(events.map((e) => e.params)).toEqual([{ context: { ticket: "T-42" } }, { context: 0 }, {}]);
+  expect(events.map((e) => [e.type, e.humanFriendlyMessage, e.params])).toEqual([
+    ["continue_conversation", "A", { context: { ticket: "T-42" } }],
+    ["open_url", "", { url: "https://x.test" }],
+    ["continue_conversation", "B", { context: 0 }],
+    ["continue_conversation", "C", {}],
+    ["custom", "d", { id: 1 }],
+  ]);
 });

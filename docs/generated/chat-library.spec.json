@@ -456,8 +456,8 @@
         "- Use ListBlock with ListItem references for numbered lists.",
         "- Use FollowUpBlock with FollowUpItem references at the end of a response to suggest next actions.",
         "- A ListItem is clickable ONLY when given an action (5th argument); without one it is plain text.",
-        "- Clicking a FollowUpItem, or a ListItem with a continue_conversation action, sends text to the LLM as a user message.",
-        "- Example: list = ListBlock([item1, item2])  item1 = ListItem(\"Option A\", \"Details about A\", null, null, { type: \"continue_conversation\", context: \"Option A\" })"
+        "- Clicking a FollowUpItem, or a ListItem with a @ToAssistant action, sends text to the LLM as a user message.",
+        "- Example: list = ListBlock([item1, item2])  item1 = ListItem(\"Option A\", \"Details about A\", null, null, @ToAssistant(\"Option A\"))"
       ]
     },
     {

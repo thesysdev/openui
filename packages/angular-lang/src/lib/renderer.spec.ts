@@ -2,7 +2,7 @@ import { Component, Input } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod/v4";
-import { injectOpenUiContext } from "./context";
+import { injectOpenUiContext, injectTriggerAction } from "./context";
 import { createLibrary, defineComponent } from "./library";
 import { OpenUiRenderNodeComponent } from "./render-node.component";
 import { OpenUiRendererComponent } from "./renderer.component";
@@ -39,6 +39,18 @@ class TestStackComponent {
   protected readonly context = injectOpenUiContext();
 }
 
+@Component({
+  selector: "test-btn",
+  standalone: true,
+  template: `<button (click)="trigger(props?.label ?? '', undefined, props?.action)">x</button>`,
+})
+class TestBtnComponent {
+  @Input() props: { label: string; action?: any } | null = null;
+  @Input() renderNode: ((value: unknown) => unknown) | null = null;
+  @Input() statementId: string | undefined = undefined;
+  protected readonly trigger = injectTriggerAction();
+}
+
 describe("OpenUiRendererComponent", () => {
   beforeEach(async () => {
     TestBed.resetTestingModule();
@@ -49,6 +61,31 @@ describe("OpenUiRendererComponent", () => {
 
   afterEach(() => {
     TestBed.resetTestingModule();
+  });
+
+  it("delivers a bare @ToAssistant step", async () => {
+    const Btn = defineComponent({
+      name: "Btn",
+      description: "",
+      props: z.object({ label: z.string(), action: z.any().optional() }),
+      component: TestBtnComponent,
+    });
+    const library = createLibrary({ components: [Btn], root: "Btn" });
+
+    const fixture = TestBed.createComponent(OpenUiRendererComponent);
+    const events: Array<{ type: string; humanFriendlyMessage: string }> = [];
+    fixture.componentInstance.action.subscribe((e) => events.push(e));
+    fixture.componentRef.setInput("library", library);
+    fixture.componentRef.setInput("response", 'root = Btn("x", @ToAssistant("Hi"))');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector("button").click();
+    await fixture.whenStable();
+    expect(events.map((e) => [e.type, e.humanFriendlyMessage])).toEqual([
+      ["continue_conversation", "Hi"],
+    ]);
   });
 
   it("renders a simple root component from OpenUI source", async () => {

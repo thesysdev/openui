@@ -15,8 +15,9 @@ import { isASTNode } from "../parser/ast";
 import type { ElementNode } from "../parser/types";
 import { isElementNode } from "../parser/types";
 import { isReactiveSchema } from "../reactive";
+import { schemaIdTags, unwrap } from "../signature";
 import type { EvaluationContext, SchemaContext } from "./evaluator";
-import { evaluate, isReactiveAssign } from "./evaluator";
+import { evaluate, flattenPlans, isActionPlan, isReactiveAssign } from "./evaluator";
 
 export interface PropEvalCallbacks {
   /** How to recurse into an ElementNode (evaluator vs evaluate-tree differ here). */
@@ -28,8 +29,28 @@ export interface PropEvalCallbacks {
 /**
  * Evaluate a single prop value with schema awareness. Handles AST nodes,
  * ReactiveAssign markers, nested ElementNodes, arrays, and ActionPlans.
+ * On an ActionExpression prop a list of plans (nulls ignored) becomes one plan; other lists stay data.
  */
 export function evaluatePropCore(
+  value: unknown,
+  context: EvaluationContext,
+  schemaCtx: SchemaContext,
+  reactiveSchema: unknown | undefined,
+  callbacks: PropEvalCallbacks,
+): unknown {
+  const result = evaluatePropValue(value, context, schemaCtx, reactiveSchema, callbacks);
+  if (
+    Array.isArray(result) &&
+    result.some(isActionPlan) &&
+    result.every((v) => v == null || isActionPlan(v)) &&
+    schemaIdTags.get(unwrap(reactiveSchema) as object) === "ActionExpression"
+  ) {
+    return flattenPlans(result);
+  }
+  return result;
+}
+
+function evaluatePropValue(
   value: unknown,
   context: EvaluationContext,
   schemaCtx: SchemaContext,
@@ -82,10 +103,9 @@ export function evaluatePropCore(
     return callbacks.recurseElement(value as ElementNode);
   }
 
-  // ActionPlan / ActionStep — preserve as-is (deferred click-time evaluation)
+  // ActionPlan — preserve as-is (deferred click-time evaluation)
+  if (isActionPlan(value)) return value;
   const obj = value as Record<string, unknown>;
-  if ("steps" in obj && Array.isArray(obj.steps)) return value;
-  if ("type" in obj && "valueAST" in obj) return value;
 
   // Plain data object — recurse if contains nested objects
   // NOTE: reactiveSchema is passed through — fixes nested reactive drop bug
