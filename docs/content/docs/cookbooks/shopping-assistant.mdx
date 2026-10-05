@@ -9,7 +9,7 @@ import { CookbookShoppingDiagram } from "@/components/cookbook-shopping-diagram"
 
 Shopping online still means translating what you want into filters. “Running shoes under $100 in size 9” becomes a category page, a price slider, a size filter that hides some products and not others, and a product page for each candidate to check whether your size is actually in stock. Chat assistants can take the sentence as it is, but a reply in text is a poor way to compare products, and an assistant that only describes a cart can't let you change it.
 
-A shopping assistant built with generative UI answers with the interface each step needs. A language model reads the request, searches the store, and shows the matches as product cards with photos and prices. When the shopper picks one, it shows that product's options as a form, with the size they mentioned already chosen and sold-out options disabled. The cart is a form too, with a quantity for each item and the total, so the shopper can change it with a click or in words.
+A shopping assistant built with generative UI answers with the interface each step needs. A language model reads the request, searches the store, and shows the matches as product cards with photos and prices. When the shopper picks one, it shows that product's options as a form, with the size they mentioned already chosen and sold-out options disabled. Asked for a starter kit under a budget, it composes a bundle the shopper can trim before adding it all at once. The cart is a form too, with a quantity for each item, a field for a discount code, and the total, so the shopper can change it with a click or in words.
 
 The catalog and the cart can come straight from the store. The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is a standard way for applications to offer tools to AI models, and every Shopify store now serves MCP tools for searching its catalog and building a cart, with no API key.
 
@@ -18,7 +18,8 @@ In this cookbook, you'll learn how to:
 - Search a store through its MCP server from a function tool, and pass the model only the products and variants that fit the request.
 - Show products as cards with photos, prices, and a button for each.
 - Turn a product's options into a form, with values the shopper named already chosen and sold-out values disabled.
-- Keep a cart the shopper can change by editing quantities or asking in words.
+- Let the model compose a multi-item bundle that the shopper edits before adding it in one step.
+- Keep a cart on the store that the shopper changes by editing quantities, entering a discount code, or asking in words.
 - Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
 - Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity.
 
@@ -61,6 +62,7 @@ Try this conversation:
 2. **Select options on Shiro Canvas Sneakers.** Size 9 is already chosen. Pick Black, then **Add to cart**.
 3. **“Also add the slides in my size.”** The assistant adds them to the same cart and shows the new total.
 4. **Set the slides to 2 and click Update cart.** The cart and its total update in place. **Continue to checkout** opens the store's checkout with the same items.
+5. **“Put together a starter kit for a new teammate under $100.”** Get a bundle of three to five products, all selected. Deselect one, pick a tee size, and click **Add bundle to cart**.
 
 ## How it works
 
@@ -70,8 +72,8 @@ A shopping assistant splits the work between the model, your application, and th
 
 1. **The shopper describes what they want.** Agent Interface sends the message to your server's chat route, which adds a system prompt that describes the shopping flow and your components and two function tools, `search_products` and `update_cart`, then calls OpenUI Gateway.
 2. **The model searches and shows products.** It calls `search_products` with a product word, the budget, and the size. Your server searches the store's catalog, keeps the products with a variant that fits, and returns their photos, prices, options, and variants. The model shows them as cards.
-3. **The shopper picks a variant.** A card's button asks for that product's options. The model writes a form with a set of choices for each option, the size already chosen, and sold-out values disabled. When the shopper submits it, the model finds the matching variant and calls `update_cart`.
-4. **The shopper reviews the cart.** Your server changes the store's cart and returns every item with its price and the totals. The model shows the cart as a form with a quantity per item and a button that opens the store's checkout.
+3. **The shopper picks a variant.** A card's button asks for that product's options. The model writes a form with a set of choices for each option, the size already chosen, and sold-out values disabled. When the shopper submits it, the model calls `update_cart` with the chosen values, and your server finds the matching variant.
+4. **The shopper reviews the cart.** Your server changes the store's cart and returns every item with its price, the totals, and any discount. The model shows the cart as a form with a quantity per item, a discount code field, and a button that opens the store's checkout.
 
 ### Why product variants
 
@@ -79,9 +81,15 @@ A product is what a shopper browses; a variant is what they buy. Shiro Canvas Sn
 
 The example handles both levels. The search keeps a product only when an in-stock variant fits the size, color, and budget, and returns every value of each option, marked in stock or not. The form shows those options rather than a list of variants. When the shopper adds the product, your server asks the store for the variant with the chosen values, so the model never handles variant ids. Because the search result stays in the thread's history, “add the slides in my size” works several turns later without searching again.
 
+### Why the cart lives on the store
+
+The model never keeps the cart itself. Each change goes through `update_cart` to the store, and every answer shows the cart the store returned, so items, prices, discounts, and the checkout link always agree, and a thread opened days later still has its cart. The cart is also something the shopper keeps changing: a bundle adds several items at once, a quantity field changes one, a code changes the total, and a sentence such as “remove the slides” does any of these.
+
+The store's cart update replaces the whole cart, so your server reads the cart first, applies only the change, and sends the cart back with its discount codes. The model sends what changed and never has to repeat the cart.
+
 ### Why wrap the store's tools in your own
 
-The store's tools are built for any agent: a product comes with every photo at full size, up to a few megabytes each, HTML descriptions, collections, and tags, and a cart update replaces every line in the cart. Giving them to the model directly would cost many tokens per search and ask the model to rewrite the whole cart for every change.
+The store's tools are built for any agent: a product comes with every photo at full size, up to a few megabytes each, HTML descriptions, collections, and tags. Giving them to the model directly would cost many tokens per search.
 
 Function tools put your application in between. `search_products` returns the fields the cards and the form need, with photos resized by the store's CDN, and names the products it left out and why, such as sold out or over budget, so the model can say so. `update_cart` takes only what changes and merges it into the store's cart. Your server also validates every argument, and it treats the store's results as data, so text in them never reaches your model as instructions.
 
@@ -185,7 +193,8 @@ The second tool, `update_cart`, takes the thread's cart id, products to add with
       "quantity": 1
     }
   ],
-  "set": []
+  "set": [],
+  "discount_codes": null
 }
 ```
 
@@ -209,9 +218,9 @@ if (inStock.length > 1)
 return inStock[0].id;
 ```
 
-The store's `update_cart` replaces every line in the cart, so your server then reads the cart, adds the variants or replaces quantities, and writes the full cart back.
+The store's `update_cart` replaces the whole cart, so your server then reads the cart, adds the variants or replaces quantities, and writes the full cart back with its discount codes. `discount_codes` replaces the codes when the shopper gives one, and `null` keeps the codes that applied, dropping any the store rejected.
 
-A quantity of 0 removes the item. Without a cart id, or when the cart has expired, the first change creates a cart. The result holds every item with its unit price and line total, the totals, the new cart id, and a checkout link when the store has one. The model passes that cart id to the next change, so each thread keeps its own cart. See [update-cart.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/lib/tools/update-cart.ts).
+A quantity of 0 removes the item. Without a cart id, or when the cart has expired, the first change creates a cart. The result holds every item with its unit price and line total, the totals, the applied and rejected discount codes, the new cart id, and a checkout link when the store has one. The model passes that cart id to the next change, so each thread keeps its own cart. See [update-cart.ts](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/lib/tools/update-cart.ts).
 
 ### 4. Choose the components
 
@@ -221,7 +230,7 @@ Use the chat library, React UI's built-in library for Agent Interface answers, a
 export { openuiChatLibrary as library } from "@openuidev/react-ui/genui-lib";
 ```
 
-Every answer is one `Card`. `CompositeCardBlock` lays out product cards with a photo, a title, a description, a price, and a button. `ImageGallery` shows a product's photos, `Chips` covers each option, and `ChipItem` can be disabled for a sold-out value. `Form` groups the fields and checks their validation rules when the shopper clicks a primary button, and `EntityList` lists the cart's totals. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
+Every answer is one `Card`. `CompositeCardBlock` lays out product cards with a photo, a title, a description, a price, and a button. `ImageGallery` shows a product's photos, `Chips` covers each option, and `ChipItem` can be disabled for a sold-out value. `OptionCards` of type `multiple` shows a bundle as selectable product cards. `Form` groups the fields and checks their validation rules when the shopper clicks a primary button, and `EntityList` lists the cart's totals and discounts. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
 
 ### 5. Describe the shopping flow
 
@@ -233,7 +242,13 @@ The variant form rule lists every value of each option and prefills the ones the
 
 > On 'Add to cart', call update_cart with the product in add: its id from search_products, each option's name with the chosen value, and the quantity. The server finds the variant.
 
-The cart form names each quantity field with the item's variant id, so **Update cart** sends every quantity with the variant it belongs to. The form sends only the fields the shopper changed, so a rule tells the model to use its prefilled value for the rest. One OpenUI Lang example for each step, the product cards, the variant form, and the cart, shows the model how the components fit together.
+A bundle is one more form. Asked for a kit or a gift set, the model browses the catalog and picks products that fit the budget together:
+
+> Show them as a Form named 'bundle' with one OptionCards of type 'multiple', every card preselected: the value is the product id, the title is its title, the subtitle is its price and the option values you chose, such as an in-stock color, and the top content is Image(title, first photo).
+
+When the shopper submits, the form sends the product ids still selected and any size they picked, and the model adds them all with one `update_cart` call.
+
+The cart form names each quantity field with the item's variant id, so **Update cart** sends every quantity with the variant it belongs to. The form sends only the fields the shopper changed, so a rule tells the model to use its prefilled value for the rest. The cart form's last field is an optional discount code, which the model passes as `discount_codes`. One OpenUI Lang example for each step, the product cards, the variant form, the bundle, and the cart, shows the model how the components fit together.
 
 ### 6. Connect Agent Interface
 
@@ -269,7 +284,7 @@ Chat Completions does not store conversations, so the chat route loads each thre
 
 The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/app/api/chat/route.ts) runs the tools whenever the model calls them and streams the answer to Agent Interface as the model writes it, so **Behind the scenes** shows each search and cart change.
 
-The example also customizes Agent Interface with a theme from `createTheme`, a logo, starters for four kinds of request, and a thread header that names the store. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
+The example also customizes Agent Interface with a theme from `createTheme`, a logo, starters for four kinds of request, including a bundle, and a thread header that names the store. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
 
 ## Verify it works
 
@@ -281,9 +296,11 @@ In the browser:
 4. Ask **“Also add the slides in my size.”** Confirm the same cart now totals $125.00.
 5. Set a quantity to 0 and click **Update cart**. The item should disappear and the total drop.
 6. Ask for **“a Shiro hoodie in X-Large”** and open its options. Cream should be disabled, because it's sold out in X-Large.
-7. Click **Continue to checkout**. The store's checkout should open with the items in your cart. Leave it without paying.
-8. Reload the page and open an earlier thread. Confirm its messages load, and that a follow-up changes the same cart.
-9. Switch your operating system between light and dark mode, and confirm the theme follows.
+7. Ask for **“a starter kit for a new teammate under $100”**. Confirm the bundle's total is under $100, deselect an item, and add the rest; the cart should hold exactly the selected items.
+8. Enter **SHIRO10** in the cart's discount code field and click **Update cart**. Confirm the totals show the discount, and that an unknown code such as WELCOME50 gets a warning instead.
+9. Click **Continue to checkout**. The store's checkout should open with the items in your cart. Leave it without paying.
+10. Reload the page and open an earlier thread. Confirm its messages load, and that a follow-up changes the same cart.
+11. Switch your operating system between light and dark mode, and confirm the theme follows.
 
 Generated layouts can vary. Products, prices, photos, and variant ids should always come from a tool result.
 

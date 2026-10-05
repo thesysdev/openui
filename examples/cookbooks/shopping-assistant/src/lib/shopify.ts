@@ -59,6 +59,15 @@ const cartSchema = z.object({
     }),
   ),
   totals: z.array(totalSchema),
+  // The codes submitted, and the discounts that applied. A code that didn't apply stays in codes.
+  discounts: z
+    .object({
+      codes: z.array(z.string()).nullish(),
+      applied: z
+        .array(z.object({ code: z.string().nullish(), title: z.string(), amount: z.number() }))
+        .nullish(),
+    })
+    .nullish(),
   // A link that opens the store's checkout with the cart's items. Some stores have none.
   continue_url: z.string().nullish(),
 });
@@ -150,12 +159,15 @@ export async function selectVariants(id: string, selected: Selection, signal?: A
 
 type Line = { variantId: string; quantity: number };
 
-// Read the cart, let `change` compute the new lines, and write them. update_cart replaces every
-// line, so the lines always come from the store's current cart. Without a cart, or once it has
-// expired, the first change creates one.
+// Read the cart, let `change` compute the new lines, and write them. update_cart replaces the
+// whole cart, so the lines and the discount codes always start from the store's current cart,
+// and the codes are sent again with every change. `codes` replaces them; null keeps the ones
+// that applied.
+// Without a cart, or once it has expired, the first change creates one.
 export async function changeCart(
   cartId: string | null,
   change: (lines: Line[]) => Line[],
+  codes: string[] | null,
   signal?: AbortSignal,
 ) {
   return withStore(signal, async (call) => {
@@ -172,21 +184,28 @@ export async function changeCart(
       quantity: line.quantity,
     }));
     const next = change(lines ?? []).filter((line) => line.quantity > 0);
+    // Keep only the codes that applied, so a rejected code isn't sent again with every change.
+    const currentCodes = current?.discounts?.codes ?? [];
+    const appliedCodes = (current?.discounts?.applied ?? []).flatMap((discount) =>
+      discount.code ? [discount.code.toLowerCase()] : [],
+    );
+    const nextCodes =
+      codes ?? currentCodes.filter((code) => appliedCodes.includes(code.toLowerCase()));
     const lineItems = next.map((line) => ({
       item: { id: line.variantId },
       quantity: line.quantity,
     }));
 
     // Nothing to write: return the cart as it is.
-    if (current && JSON.stringify(next) === JSON.stringify(lines)) return current;
+    const unchanged =
+      JSON.stringify(next) === JSON.stringify(lines) &&
+      JSON.stringify(nextCodes) === JSON.stringify(currentCodes);
+    if (current && unchanged) return current;
     if (!current && !next.length) return null;
+    const cart = { line_items: lineItems, discounts: { codes: nextCodes } };
     const result = current
-      ? await call("update_cart", {
-          meta: meta(true),
-          id: current.id,
-          cart: { line_items: lineItems },
-        })
-      : await call("create_cart", { meta: meta(true), cart: { line_items: lineItems } });
+      ? await call("update_cart", { meta: meta(true), id: current.id, cart })
+      : await call("create_cart", { meta: meta(true), cart });
     return cartSchema.parse(result);
   });
 }
