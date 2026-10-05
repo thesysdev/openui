@@ -18,6 +18,32 @@ pnpm add @openuidev/react-lang
 
 **Peer dependencies:** `react >=19.0.0`
 
+## Query failures
+
+When a query fails, `Renderer` shows an error with a Retry button and hides its rendered results until the failed queries succeed. This prevents query defaults or cached values from appearing as current data after an outage. Retrying preserves the mounted components and their input state. `onError` continues to receive structured errors.
+
+Use `queryError` to customize the failure view. It also applies to `WithPreviewRenderer`:
+
+```tsx
+<Renderer
+  response={response}
+  library={library}
+  toolProvider={toolProvider}
+  queryError={({ retry, isRetrying }) => (
+    <div role="alert">
+      <p>We couldn't load your data. Please try again.</p>
+      <button type="button" onClick={retry} disabled={isRetrying}>
+        {isRetrying ? "Retrying…" : "Try again"}
+      </button>
+    </div>
+  )}
+/>
+```
+
+The callback also receives `errors`, an array of structured query errors. Results remain hidden during retries and reappear after recovery.
+
+`queryLoader` is shown both while a streamed MiniApp is waiting to execute its queries and while data is fetching. Widgets that depend on queries without successful data show loading placeholders; static layout and labels can render progressively. During streaming edits, previously loaded results remain visible with the loading indicator until the updated response is ready.
+
 ## Overview
 
 `@openuidev/react-lang` is the React runtime layer for OpenUI Lang. It covers the loop most apps need:
