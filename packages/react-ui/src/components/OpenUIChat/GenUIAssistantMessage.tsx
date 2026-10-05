@@ -104,7 +104,7 @@ export const GenUIAssistantMessage = ({
           onAction={handleAction}
           onStateUpdate={handleStateUpdate}
           initialState={initialState}
-          devtools={{ runId: message.runId }}
+          devtools={message.runId ? { run: { id: message.runId } } : undefined}
         />
       )}
     </AssistantMessageContainer>

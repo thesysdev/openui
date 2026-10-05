@@ -113,16 +113,16 @@ function AssistantMessage({ response, isStreaming }) {
 | `onStateUpdate` | `(state: Record<string, any>) => void` | Callback when form field values change |
 | `initialState` | `Record<string, any>` | Initial form state for hydration |
 | `onParseResult` | `(result: ParseResult \| null) => void` | Callback when the parse result changes |
-| `devtools` | `{ runId?: string; runTitle?: string }` | Optional metadata for grouping rendered responses in OpenUI Inspect |
+| `devtools` | `{ run?: { id: string; title?: string } }` | Optional metadata for grouping rendered responses in OpenUI Inspect |
 
-To group responses from the same generation in Inspect, pass a stable `devtools.runId` to each Renderer and optionally set `devtools.runTitle` to the user's prompt:
+To group responses from the same generation in Inspect, pass `devtools.run` to each Renderer with a stable `id` and an optional `title`, such as the user's prompt:
 
 ```tsx
 <Renderer
   response={message.content}
   library={library}
   isStreaming={isStreaming}
-  devtools={{ runId: message.generationId, runTitle: userPrompt }}
+  devtools={{ run: { id: message.generationId, title: userPrompt } }}
 />
 ```
 

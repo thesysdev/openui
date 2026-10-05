@@ -53,10 +53,12 @@ export interface RendererProps {
   publishObservability?: boolean;
   /** Optional metadata for grouping rendered responses in OpenUI Inspect. */
   devtools?: {
-    /** Renderers with the same ID appear in one run group. Keep it stable during a generation. */
-    runId?: string;
-    /** Display title for the run group, such as the user's prompt. */
-    runTitle?: string;
+    run?: {
+      /** Renderers with the same ID appear in one run group. Keep it stable during a generation. */
+      id: string;
+      /** Display title for the run group, such as the user's prompt. */
+      title?: string;
+    };
   };
 }
 
@@ -264,8 +266,8 @@ export function Renderer({
       toolProvider: resolvedToolProvider,
       onError,
       publishObservability,
-      runId: devtools?.runId,
-      runTitle: devtools?.runTitle,
+      runId: devtools?.run?.id,
+      runTitle: devtools?.run?.title,
     },
     renderDeep,
   );
