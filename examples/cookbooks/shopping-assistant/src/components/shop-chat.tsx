@@ -8,7 +8,7 @@ import {
   useOpenuiCloudStorage,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
-import { Footprints, Gift, Shirt, Sticker } from "lucide-react";
+import { Footprints, Gift, Shirt, Store } from "lucide-react";
 import { useMemo } from "react";
 import { darkTheme, lightTheme } from "../lib/theme";
 import { library } from "../library";
@@ -20,15 +20,16 @@ const llm = fetchLLM({
   messageFormat: openAIMessageFormat,
 });
 
+// Most starters are for shoppers who don't know what they want yet; one names a product.
 const starters = [
   {
-    displayText: "Shoes under $100 in size 9",
-    prompt: "Find shoes under $100 in size 9.",
-    icon: <Footprints size={16} />,
+    displayText: "Show me what you sell",
+    prompt: "What do you sell? Show me a few favorites.",
+    icon: <Store size={16} />,
   },
   {
-    displayText: "A Shiro hoodie in X-Large",
-    prompt: "I'd like a Shiro hoodie in X-Large. Which colors do you have?",
+    displayText: "Something cozy to wear",
+    prompt: "I want something cozy to wear this winter. What would you recommend?",
     icon: <Shirt size={16} />,
   },
   {
@@ -37,9 +38,9 @@ const starters = [
     icon: <Gift size={16} />,
   },
   {
-    displayText: "Stickers and a Shiro cap",
-    prompt: "Add a sticker pack and a Shiro cap to my cart.",
-    icon: <Sticker size={16} />,
+    displayText: "Shoes under $100 in size 9",
+    prompt: "Find shoes under $100 in size 9.",
+    icon: <Footprints size={16} />,
   },
 ];
 
@@ -77,7 +78,7 @@ export default function ShopChat({ store }: { store: string }) {
         <AgentInterface.Welcome
           image={{ url: "/logo.svg" }}
           title="What are you shopping for?"
-          description="Describe what you need, with a size, color, or budget if you have one. I'll find products, help you pick the right variant, and keep your cart up to date."
+          description="Tell me what you're looking for, or just ask what we have. I'll find products, help you pick sizes and colors, keep your cart up to date, and design a printable gift card to go with it."
         />
         <AgentInterface.Composer placeholder="Search the store…" />
       </AgentInterface>

@@ -53,7 +53,12 @@ const cartSchema = z.object({
   currency: z.string(),
   line_items: z.array(
     z.object({
-      item: z.object({ id: z.string(), title: z.string(), price: z.number() }),
+      item: z.object({
+        id: z.string(),
+        title: z.string(),
+        price: z.number(),
+        image_url: z.string().nullish(),
+      }),
       quantity: z.number(),
       totals: z.array(totalSchema),
     }),
@@ -145,6 +150,26 @@ export async function selectVariants(id: string, selected: Selection, signal?: A
       catalog: { id, ...(selected.length ? { selected } : {}) },
     });
     return z.object({ product: productSchema }).parse(result).product;
+  });
+}
+
+// Shopify's CDN resizes images: a full-size product photo can be a few megabytes, and 640 pixels
+// wide, tens of kilobytes.
+export function resized(url: string) {
+  const image = new URL(url);
+  if (image.hostname === "cdn.shopify.com") image.searchParams.set("width", "640");
+  return image.toString();
+}
+
+// The cart as the store has it now, or null when it has expired.
+export async function getCart(cartId: string, signal?: AbortSignal) {
+  return withStore(signal, async (call) => {
+    try {
+      return cartSchema.parse(await call("get_cart", { meta: meta(), id: cartId }));
+    } catch (error) {
+      if (error instanceof StoreError && error.code === "not_found") return null;
+      throw error;
+    }
   });
 }
 

@@ -9,7 +9,7 @@ import { CookbookShoppingDiagram } from "@/components/cookbook-shopping-diagram"
 
 Shopping online still means translating what you want into filters. “Running shoes under $100 in size 9” becomes a category page, a price slider, a size filter that hides some products and not others, and a product page for each candidate to check whether your size is actually in stock. Chat assistants can take the sentence as it is, but a reply in text is a poor way to compare products, and an assistant that only describes a cart can't let you change it.
 
-A shopping assistant built with generative UI answers with the interface each step needs. A language model reads the request, searches the store, and shows the matches as product cards with photos and prices. When the shopper picks one, it shows that product's options as a form, with the size they mentioned already chosen and sold-out options disabled. Asked for a gift set under a budget, it composes a bundle the shopper can trim before adding it all at once, and it can design a printable gift card to go with it. The cart is a form too, with a quantity for each item and the total, so the shopper can change it with a click or in words.
+A shopping assistant built with generative UI answers with the interface each step needs. A language model reads the request, searches the store, and shows the matches as product cards with photos and prices. When the shopper picks one, it shows that product's options as a form, with the size they mentioned already chosen and sold-out options disabled. Asked for a gift set under a budget, it composes a bundle the shopper can trim before adding it all at once, and it can design a printable gift card to go with it. The cart lives in a panel beside the chat: it stays open while the shopper keeps browsing, updates with every change, and takes a click to change a quantity or check out.
 
 The catalog and the cart can come straight from the store. The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is a standard way for applications to offer tools to AI models, and every Shopify store now serves MCP tools for searching its catalog and building a cart, with no API key.
 
@@ -20,7 +20,7 @@ In this cookbook, you'll learn how to:
 - Turn a product's options into a form, with values the shopper named already chosen and sold-out values disabled.
 - Let the model compose a multi-item bundle that the shopper edits before adding it in one step.
 - Generate a printable gift card as an HTML page that opens in Agent Interface's side panel, by adding one component to the chat library.
-- Keep a cart on the store that the shopper changes by editing quantities or asking in words.
+- Keep a live cart in Agent Interface's side panel that reads from the store, stays open while the shopper browses, and changes quantities without a model turn.
 - Generate answers with [OpenUI Gateway](/docs/gateway), OpenUI's hosted model API that routes requests to model providers and corrects generated UI, through its OpenAI-compatible [Chat Completions API](/docs/gateway/api/chat-completions).
 - Customize [Agent Interface](/docs/agent/getting-started/introduction), OpenUI's ready-made React chat shell with threads, streaming messages, and tool activity.
 
@@ -62,7 +62,7 @@ Try this conversation:
 1. **“Find shoes under $100 in size 9.”** See the shoes that have size 9 in stock within the budget, as cards with photos and prices.
 2. **Select options on Shiro Canvas Sneakers.** Size 9 is already chosen. Pick Black, then **Add to cart**.
 3. **“Also add the slides in my size.”** The assistant adds them to the same cart and shows the new total.
-4. **Click Edit cart, set the slides to 2, and click Save changes.** The cart comes back with the new total. **Continue to checkout** opens the store's checkout with the same items.
+4. **In the cart panel, click + on the slides.** The total updates right away, with no new answer. Keep chatting and the panel stays open; **Continue to checkout** opens the store's checkout with the same items.
 5. **“Put together a gift set under $100 for a friend who loves OpenUI.”** Get a bundle of three to five products, all selected. Deselect one, pick a size if asked, and click **Add bundle to cart**.
 6. **Make a gift card for this set.** Fill in who it's for and who it's from, keep or edit the suggested message, and click **Create card**. The card opens in a side panel, ready to print or to download as an image.
 
@@ -75,7 +75,7 @@ A shopping assistant splits the work between the model, your application, and th
 1. **The shopper describes what they want.** Agent Interface sends the message to your server's chat route, which adds a system prompt that describes the shopping flow and your components and two function tools, `search_products` and `update_cart`, then calls OpenUI Gateway.
 2. **The model searches and shows products.** It calls `search_products` with a product word, the budget, and the size. Your server searches the store's catalog, keeps the products with a variant that fits, and returns their photos, prices, options, and variants. The model shows them as cards.
 3. **The shopper picks a variant.** A card's button asks for that product's options. The model writes a form with a set of choices for each option, the size already chosen, and sold-out values disabled. When the shopper submits it, the model calls `update_cart` with the chosen values, and your server finds the matching variant.
-4. **The shopper reviews the cart.** Your server changes the store's cart and returns every item with its price and the totals. The model shows a review of the cart: what changed, a table of items, the total, and a button that opens the store's checkout. Changing quantities is a separate step, **Edit cart**, with a form that only saves.
+4. **The cart opens beside the chat.** Your server changes the store's cart, and the model answers with a short confirmation and a cart panel, which loads the cart from the store and opens in Agent Interface's side panel. The shopper changes quantities there, and the panel stays open while they keep shopping.
 
 ### Why product variants
 
@@ -85,7 +85,9 @@ The example handles both levels. The search keeps a product only when an in-stoc
 
 ### Why the cart lives on the store
 
-The model never keeps the cart itself. Each change goes through `update_cart` to the store, and every answer shows the cart the store returned, so items, prices, and the checkout link always agree, and a thread opened days later still has its cart. The cart is also something the shopper keeps changing: a bundle adds several items at once, a quantity field changes one, and a sentence such as “remove the slides” does either.
+The model never keeps the cart itself. Each change goes through `update_cart` to the store, and every answer shows the cart the store returned, so items, prices, and the checkout link always agree, and a thread opened days later still has its cart. The cart is also something the shopper keeps changing: a bundle adds several items at once, a sentence such as “remove the slides” changes one, and the panel's + and − buttons change one with no model turn at all.
+
+The panel shows that cart beside the chat. The model passes it only the cart id; the panel loads the cart from the store through a small route in your app, and quantity changes in the panel go to the store the same way. Because the panel, the model, and the checkout all read the same cart, nothing can drift: after a change in the panel, the next answer reads the cart again before describing it.
 
 The store's cart update replaces the whole cart, so your server reads the cart first, applies only the change, and sends the whole cart back. The model sends what changed and never has to repeat the cart.
 
@@ -231,7 +233,7 @@ A quantity of 0 removes the item. Without a cart id, or when the cart has expire
 
 ### 4. Choose the components
 
-Use the chat library, React UI's built-in library for Agent Interface answers. It has every component the shopping steps need, and the example adds one more, `HtmlArtifact`, for the gift card. A `Card` lists the components it can hold, so the example also redefines `Card` with the same props and renderer plus `HtmlArtifact`:
+Use the chat library, React UI's built-in library for Agent Interface answers. It has every component the shopping steps need, and the example adds two that open Agent Interface's side panel: `CartPanel` for the cart and `HtmlArtifact` for the gift card. A `Card` lists the components it can hold, so the example also redefines `Card` with the same props and renderer plus the two new components:
 
 ```ts title="src/library.ts"
 const chatCard = openuiChatLibrary.components.Card;
@@ -241,14 +243,18 @@ const Card = defineComponent({
   description: chatCard.description,
   props: chatCard.props.extend({
     children: z.array(
-      z.union([...chatChildren.element.options, HtmlArtifact.ref]),
+      z.union([
+        ...chatChildren.element.options,
+        CartPanel.ref,
+        HtmlArtifact.ref,
+      ]),
     ),
   }),
   component: chatCard.component,
 });
 ```
 
-Spreading `Card` and `HtmlArtifact` after the chat library's components replaces its `Card` and adds the new component. Without the new `Card`, the prompt would tell the model that an answer can't contain a gift card. [html-artifact.tsx](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/components/html-artifact.tsx) renders the button, the side panel, and the sandboxed page, following the [HTML artifact example](https://github.com/thesysdev/openui/tree/main/examples/miscellaneous/html-artifact).
+Spreading the three after the chat library's components replaces its `Card` and adds the new components. Without the new `Card`, the prompt would tell the model that an answer can't contain them. [cart-panel.tsx](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/components/cart-panel.tsx) renders the cart, and [html-artifact.tsx](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/components/html-artifact.tsx) renders the button, the side panel, and the sandboxed page, following the [HTML artifact example](https://github.com/thesysdev/openui/tree/main/examples/miscellaneous/html-artifact).
 
 Every answer is one `Card`. `CompositeCardBlock` lays out product cards with a photo, a title, a description, a price, and a button. `ImageGallery` shows a product's photos, one per color, `Chips` covers each option, and `ChipItem` can be disabled for a sold-out value. `OptionCards` of type `multiple` shows a bundle as selectable product cards. By default, an option card shows its image as a small thumbnail; one CSS rule in [styles.css](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/app/styles.css) stretches it across the card. `Form` groups the fields and checks their validation rules when the shopper clicks a primary button, `Table` and `EntityList` show the cart's items and totals. Generate the server specification from the library with `npm run generate`, which also runs before development and builds.
 
@@ -274,9 +280,30 @@ For a gift card, the model first asks for the names and a message with a short f
 
 The same rule limits the page to an inline style sheet and the product photos from the search, and keeps prices off the card.
 
-The cart review has no inputs; **Edit cart** shows a separate form whose quantity fields are named with each item's variant id, so **Save changes** sends every quantity with the variant it belongs to. The form sends only the fields the shopper changed, so a rule tells the model to use its prefilled value for the rest. One OpenUI Lang example for each step, the product cards, the variant form, the bundle, the gift card form, the gift card, and the cart, shows the model how the components fit together.
+After every cart change, the answer is a short confirmation and the cart panel:
 
-### 6. Connect Agent Interface
+> After update_cart, reply with a CardHeader that says what changed, such as 'Added Shiro Slides' or 'Removed the mug', with the item count and total as its subtitle, then CartPanel with the cart_id from that result.
+
+The same rule tells the model never to list the items or add a checkout button in the answer, since the panel has them. The form sends only the fields the shopper changed, so a rule tells the model to use its prefilled value for the rest. One OpenUI Lang example for each step, the product cards, the variant form, the bundle, the gift card form, the gift card, and the cart confirmation, shows the model how the components fit together.
+
+### 6. Show the cart beside the chat
+
+`CartPanel(cartId)` puts a **View cart** button in the answer and opens the cart in Agent Interface's side panel. It opens by itself after a cart change streams in, and the side panel stays open while later answers arrive. Each time it opens, it loads the cart from the store:
+
+```tsx title="src/components/cart-panel.tsx"
+const { open, isActive } = useDetailedView(viewId);
+
+useEffect(() => {
+  if (!isActive || !props.cartId) return;
+  fetch(`/api/cart?id=${encodeURIComponent(props.cartId)}`)
+    .then((response) => response.json())
+    .then(setCart);
+}, [isActive, props.cartId]);
+```
+
+[`/api/cart`](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/app/api/cart/route.ts) reads the cart with `get_cart`, and its `POST` sets one item's quantity through the same server code `update_cart` uses. The panel's + and − buttons call it, so a quantity change is instant and needs no model turn.
+
+### 7. Connect Agent Interface
 
 Agent Interface provides the sidebar, composer, tool timeline, and stop control. Connect generation to the local chat route with `fetchLLM`. It sends the thread's messages in Chat Completions format and reads the route's stream with `openAIReadableStreamAdapter()`:
 
@@ -310,7 +337,7 @@ Chat Completions does not store conversations, so the chat route loads each thre
 
 The [chat route](https://github.com/thesysdev/openui/blob/main/examples/cookbooks/shopping-assistant/src/app/api/chat/route.ts) runs the tools whenever the model calls them and streams the answer to Agent Interface as the model writes it, so **Behind the scenes** shows each search and cart change.
 
-The example also customizes Agent Interface with a theme from `createTheme`, a logo, starters for four kinds of request, including a bundle, and a thread header that names the store. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
+The example also customizes Agent Interface with a theme from `createTheme`, a logo, starters for three open-ended requests and one specific one, and a thread header that names the store. See [Welcome and starters](/docs/agent/customize/welcome-and-starters).
 
 ## Verify it works
 
@@ -320,7 +347,7 @@ In the browser:
 2. Click **Select options** on Shiro Canvas Sneakers. Confirm size 9 is chosen, then click **Add to cart** without a color. The color field should report that it is required, and nothing is sent.
 3. Pick Black and add it. Confirm the cart shows Shiro Canvas Sneakers - 9 / Black with a total of $90.00, and expand **Behind the scenes** to see the `update_cart` call.
 4. Ask **“Also add the slides in my size.”** Confirm the same cart now totals $125.00.
-5. Click **Edit cart**, set a quantity to 0, and click **Save changes**. The review should come back without the item and with a lower total.
+5. In the cart panel, click **Remove** on an item. It should disappear and the total drop without a new answer. Then ask **“What's in my cart?”** and confirm the answer matches the panel.
 6. Ask for **“a Shiro hoodie in X-Large”** and open its options. Cream should be disabled, because it's sold out in X-Large.
 7. Ask for **“a gift set under $100 for a friend who loves OpenUI”**. Confirm the bundle's total is under $100, deselect an item, and add the rest; the cart should hold exactly the selected items.
 8. Click **Make a gift card for this set**, fill in the names, and click **Create card**. Confirm the side panel opens with a card that shows the names, the message, and photos of the gift's products, that **Print** opens the print dialog, and that **Download** saves a PNG of the card.

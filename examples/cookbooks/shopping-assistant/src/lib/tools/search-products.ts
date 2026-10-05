@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import {
   formatPrice,
   majorUnits,
+  resized,
   searchCatalog,
   selectVariants,
   type Product,
@@ -92,14 +93,6 @@ const plainText = (html: string) =>
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-
-// Shopify's CDN resizes images: a full-size product photo can be a few megabytes, and 640 pixels
-// wide, tens of kilobytes.
-function resized(url: string) {
-  const image = new URL(url);
-  if (image.hostname === "cdn.shopify.com") image.searchParams.set("width", "640");
-  return image.toString();
-}
 
 // One photo per color: a store attaches each color's photo to its variants, and a search result
 // lists only the featured photo at the product level. Each photo is labelled with the variant's

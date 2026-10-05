@@ -65,3 +65,97 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* The cart panel: one row per item with its photo, a quantity stepper, and the line total, then
+   the total and checkout. */
+.cart-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 16px 16px;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: auto;
+  color: var(--openui-text-neutral-primary);
+}
+.cart-panel__item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.cart-panel__item img,
+.cart-panel__photo {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: var(--openui-radius-m);
+  object-fit: cover;
+  background: #f2f2f2;
+}
+.cart-panel__details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cart-panel__title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.cart-panel__note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--openui-text-neutral-secondary);
+}
+.cart-panel__error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--openui-text-danger-primary, #d93025);
+}
+.cart-panel__quantity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 14px;
+}
+.cart-panel__quantity button {
+  min-width: 28px;
+  height: 28px;
+  border: 1px solid var(--openui-border-default, rgba(128, 128, 128, 0.4));
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.cart-panel__quantity button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.cart-panel__quantity .cart-panel__remove {
+  border: 0;
+  padding: 0 4px;
+  color: var(--openui-text-neutral-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.cart-panel__total {
+  font-size: 14px;
+  font-weight: 600;
+}
+.cart-panel__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--openui-border-default, rgba(128, 128, 128, 0.3));
+}
+.cart-panel__sum {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 600;
+}

@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { changeCart, formatPrice, selectVariants, type Cart } from "../shopify";
+import { changeCart, formatPrice, resized, selectVariants, type Cart } from "../shopify";
 
 // The update_cart function tool: its JSON schema for Gateway, argument validation, the cart
 // change, and the executor that runTools() calls.
@@ -109,8 +109,17 @@ async function findVariant(item: z.infer<typeof argsSchema>["add"][number], sign
   return inStock[0].id;
 }
 
-function toResult(cart: Cart | null) {
-  if (!cart) return { cart_id: null, items: [], item_count: 0, totals: {}, checkout_url: null };
+// What the model and the cart panel see of a cart.
+export type CartSummary = ReturnType<typeof cartSummary>;
+export function cartSummary(cart: Cart | null) {
+  if (!cart)
+    return {
+      cart_id: null,
+      items: [],
+      item_count: 0,
+      totals: {} as Record<string, string>,
+      checkout_url: null,
+    };
   const price = (amount: number) => formatPrice(amount, cart.currency);
   const total = (totals: Cart["totals"], type: string) =>
     totals.find((entry) => entry.type === type)?.amount ?? 0;
@@ -123,6 +132,7 @@ function toResult(cart: Cart | null) {
       quantity: line.quantity,
       price: price(line.item.price),
       total: price(total(line.totals, "total")),
+      image: line.item.image_url ? resized(line.item.image_url) : null,
     })),
     item_count: cart.line_items.reduce((count, line) => count + line.quantity, 0),
     // subtotal and total, plus tax, discount, or shipping when the store estimates them.
@@ -154,5 +164,5 @@ export async function executeUpdateCart(
     },
     signal,
   );
-  return JSON.stringify(toResult(cart));
+  return JSON.stringify(cartSummary(cart));
 }
