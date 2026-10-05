@@ -7,6 +7,7 @@ import {
   useThread,
   useToolActivities,
 } from "@openuidev/react-headless";
+import { RendererDevtoolsProvider } from "@openuidev/react-lang";
 import clsx from "clsx";
 import React, { memo, useId, useMemo, useRef } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
@@ -385,6 +386,10 @@ const InterleavedTurn = ({
 
   const last = activeSegments[activeSegments.length - 1]!;
   const turnLive = isRunning && lastAssistantId === last.id;
+  const devtoolsRun = useMemo(
+    () => (last.runId ? { id: last.runId, title: last.runTitle } : undefined),
+    [last.runId, last.runTitle],
+  );
 
   // One id-keyed pairing across every segment's tool calls (synthetic message).
   const turnMessage = useMemo(
@@ -438,7 +443,7 @@ const InterleavedTurn = ({
   const answerStarted = !!answer && lastContent.length > 0;
 
   return (
-    <>
+    <RendererDevtoolsProvider run={devtoolsRun}>
       {turnActivities.length > 0 &&
         (CustomToolCallTimeline ? (
           <CustomToolCallTimeline
@@ -482,7 +487,7 @@ const InterleavedTurn = ({
           )}
         </MessageProvider>
       )}
-    </>
+    </RendererDevtoolsProvider>
   );
 };
 

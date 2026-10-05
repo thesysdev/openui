@@ -22,6 +22,8 @@ interface Parameters {
   adapter?: StreamProtocolAdapter;
   /** LLM run that produced this stream. Copied onto each assistant message. */
   runId?: string;
+  /** Inspect run title. Copied onto each assistant message. */
+  runTitle?: string;
 }
 
 /**
@@ -35,8 +37,9 @@ export const processStreamedMessage = async ({
   clearToolExecuting = () => {},
   adapter = agUIAdapter(),
   runId,
+  runTitle,
 }: Parameters): Promise<AssistantMessage | void> => {
-  let currentMessage: AssistantMessage = newAssistantMessage(runId);
+  let currentMessage: AssistantMessage = newAssistantMessage(runId, runTitle);
 
   let isFirst = true;
 
@@ -67,7 +70,7 @@ export const processStreamedMessage = async ({
       rafId = null;
       if (!isFirst) updateMessage(currentMessage);
     }
-    currentMessage = newAssistantMessage(runId);
+    currentMessage = newAssistantMessage(runId, runTitle);
     isFirst = true;
     currentTextItemId = null;
   };
@@ -286,12 +289,13 @@ export const processStreamedMessage = async ({
   return currentMessage;
 };
 
-function newAssistantMessage(runId?: string): AssistantMessage {
+function newAssistantMessage(runId?: string, runTitle?: string): AssistantMessage {
   return {
     id: crypto.randomUUID(),
     role: "assistant",
     content: "",
     toolCalls: [],
     ...(runId ? { runId } : {}),
+    ...(runTitle ? { runTitle } : {}),
   };
 }

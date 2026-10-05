@@ -16,6 +16,8 @@ export type {
 // openui-lang renderer
 export { Renderer } from "./Renderer";
 export type { RendererProps } from "./Renderer";
+export { RendererDevtoolsProvider } from "./RendererDevtoolsProvider";
+export type { RendererDevtoolsRun } from "./RendererDevtoolsProvider";
 
 // openui-lang action types
 export { ACTION_STEPS, BuiltinActionType } from "@openuidev/lang-core";

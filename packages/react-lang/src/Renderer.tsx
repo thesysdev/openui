@@ -11,6 +11,7 @@ import React, { Component, Fragment, useEffect, useInsertionEffect, useRef } fro
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
+import { useRendererDevtoolsRun, type RendererDevtoolsRun } from "./RendererDevtoolsProvider";
 
 export interface RendererProps {
   /** Raw response text (openui-lang code). */
@@ -53,12 +54,8 @@ export interface RendererProps {
   publishObservability?: boolean;
   /** Optional metadata for grouping rendered responses in OpenUI Inspect. */
   devtools?: {
-    run?: {
-      /** Renderers with the same ID appear in one run group. Keep it stable during a generation. */
-      id: string;
-      /** Display title for the run group, such as the user's prompt. */
-      title?: string;
-    };
+    /** Overrides the run supplied by RendererDevtoolsProvider for this Renderer. */
+    run?: RendererDevtoolsRun;
   };
 }
 
@@ -220,6 +217,8 @@ export function Renderer({
   publishObservability,
   devtools,
 }: RendererProps) {
+  const inheritedRun = useRendererDevtoolsRun();
+  const run = devtools?.run ?? inheritedRun;
   useInsertionEffect(() => {
     ensureLoadingStyle();
   }, []);
@@ -266,8 +265,8 @@ export function Renderer({
       toolProvider: resolvedToolProvider,
       onError,
       publishObservability,
-      runId: devtools?.run?.id,
-      runTitle: devtools?.run?.title,
+      runId: run?.id,
+      runTitle: run?.title,
     },
     renderDeep,
   );

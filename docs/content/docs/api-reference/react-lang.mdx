@@ -119,18 +119,24 @@ interface RendererProps {
 
 ### Inspect grouping
 
-Pass `devtools.run` to group rendered responses from one generation in OpenUI Inspect. Its `id` is required: use the same ID for every message from that generation and a new ID for the next generation. The optional `title` labels the group, for example with the user's prompt.
+Wrap the renderers for one generation in `RendererDevtoolsProvider` to group their responses in OpenUI Inspect. Supply the run once: its `id` is required and the optional `title` labels the group, for example with the user's prompt. Every nested Renderer inherits the run.
 
 ```tsx
-<Renderer
-  response={message.content}
-  library={library}
-  isStreaming={isStreaming}
-  devtools={{ run: { id: message.generationId, title: userPrompt } }}
-/>
+import { Renderer, RendererDevtoolsProvider } from "@openuidev/react-lang";
+
+<RendererDevtoolsProvider run={{ id: generationId, title: userPrompt }}>
+  {messages.map((message) => (
+    <Renderer
+      key={message.id}
+      response={message.content}
+      library={library}
+      isStreaming={message.isStreaming}
+    />
+  ))}
+</RendererDevtoolsProvider>
 ```
 
-Renderers without a run ID appear as individual stream rows. Inspect captures renderers while they stream; mounting historical content with `isStreaming={false}` does not create a new stream entry. `AgentInterface` supplies the run ID automatically.
+Use a separate provider and a new run ID for each generation. A Renderer can override the inherited run with `devtools={{ run: { id, title } }}`. Renderers without a run ID appear as individual stream rows. Inspect captures renderers while they stream; mounting historical content with `isStreaming={false}` does not create a new stream entry. `AgentInterface` supplies the run ID and title through a provider around each turn, including custom message and tool renderers.
 
 ## Tool Provider
 
