@@ -5,6 +5,7 @@ import {
   type Library as CoreLibrary,
   type LibraryDefinition as CoreLibraryDefinition,
   type ComponentRenderProps as CoreRenderProps,
+  type DefinedAction,
 } from "@openuidev/lang-core";
 import type { ReactNode } from "react";
 import type { z } from "zod/v4";
@@ -34,9 +35,14 @@ export type DefinedComponent<T extends $ZodObject = $ZodObject> = CoreDefinedCom
   ComponentRenderer<z.infer<T>>
 >;
 
-export type Library = CoreLibrary<ComponentRenderer<any>>;
+type AnyAction = DefinedAction<any, string>;
 
-export type LibraryDefinition = CoreLibraryDefinition<ComponentRenderer<any>>;
+export type Library<A extends AnyAction = AnyAction> = CoreLibrary<ComponentRenderer<any>, A>;
+
+export type LibraryDefinition<A extends AnyAction = AnyAction> = CoreLibraryDefinition<
+  ComponentRenderer<any>,
+  A
+>;
 
 // ─── defineComponent (React) ────────────────────────────────────────────────
 
@@ -51,8 +57,10 @@ export function defineComponent<T extends $ZodObject>(config: {
 
 // ─── createLibrary (React) ──────────────────────────────────────────────────
 
-export function createLibrary(input: LibraryDefinition): Library {
-  const library = coreCreateLibrary<ComponentRenderer<any>>(input) as Library;
+export function createLibrary<A extends AnyAction = AnyAction>(
+  input: LibraryDefinition<A>,
+): Library<A> {
+  const library = coreCreateLibrary<ComponentRenderer<any>, A>(input);
   if (process.env["NODE_ENV"] !== "production") {
     publishLibrary(library);
   }
