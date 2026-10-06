@@ -89,7 +89,7 @@ export default function Home() {
         artifactRenderers={artifactRenderers}
         artifactCategories={artifactCategories}
         agentName="MiniApps"
-        theme={{ mode }}
+        theme={{ mode: 'light' }}
         starters={[
           {
             displayText: "Compare npm downloads",
