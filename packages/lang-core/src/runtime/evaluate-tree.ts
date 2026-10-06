@@ -38,22 +38,31 @@ export function evaluateElementProps(el: ElementNode, evalCtx: EvalContext): Ele
   const def = evalCtx.library.components[el.typeName];
   const evaluated: Record<string, unknown> = {};
 
-  for (const [key, value] of Object.entries(el.props)) {
+  let key = "";
+  const report = (msg: string) => {
+    evalCtx.errors?.push({
+      source: "runtime",
+      code: "runtime-error",
+      component: el.typeName,
+      statementId: el.statementId,
+      message: `Evaluating prop "${key}" on ${el.typeName} failed: ${msg}`,
+      hint: `Check the expression used for prop "${key}"`,
+    });
+  };
+  // Library function calls that evaluate to null report why here
+  const propCtx = evalCtx.ctx.functions
+    ? { ...evalCtx, ctx: { ...evalCtx.ctx, reportError: report } }
+    : evalCtx;
+
+  for (const [propKey, value] of Object.entries(el.props)) {
+    key = propKey;
     const propSchema = def?.props?.shape?.[key];
     try {
-      evaluated[key] = evaluatePropValue(value, evalCtx, schemaCtx, propSchema);
+      evaluated[key] = evaluatePropValue(value, propCtx, schemaCtx, propSchema);
     } catch (e) {
       // Use raw value as fallback for this prop, collect structured error
       evaluated[key] = value;
-      const msg = e instanceof Error ? e.message : String(e);
-      evalCtx.errors?.push({
-        source: "runtime",
-        code: "runtime-error",
-        component: el.typeName,
-        statementId: el.statementId,
-        message: `Evaluating prop "${key}" on ${el.typeName} failed: ${msg}`,
-        hint: `Check the expression used for prop "${key}"`,
-      });
+      report(e instanceof Error ? e.message : String(e));
     }
   }
 

@@ -1,20 +1,8 @@
-/**
- * Shared parser/runtime registry hub for:
- *   - Runtime data builtins (evaluator.ts imports `.fn`)
- *   - Prompt builtin docs (prompt.ts imports `.signature` + `.description`)
- *   - Parser/runtime call classification (`isBuiltin`, action names, reserved calls)
- */
+/** Built-in functions (defined like library functions), action steps and reserved calls. */
 
-export interface BuiltinDef {
-  /** PascalCase name matching the openui-lang syntax: Count, Sum, etc. */
-  name: string;
-  /** Signature for prompt docs: "@Count(array) → number" */
-  signature: string;
-  /** One-line description for prompt docs */
-  description: string;
-  /** Runtime implementation */
-  fn: (...args: unknown[]) => unknown;
-}
+import { z } from "zod/v4";
+import { defineFunction, type DefinedFunction } from "../functions";
+import type { CallDef, ParamMap } from "./types";
 
 /** Resolve a field path on an object. Supports dot-paths: "state.name" → obj.state.name */
 function resolveField(obj: any, path: string): unknown {
@@ -38,68 +26,88 @@ function toNumber(val: unknown): number {
   return 0;
 }
 
-export const BUILTINS: Record<string, BuiltinDef> = {
-  Count: {
+const sumOf = (arr: unknown[]) => arr.reduce((a: number, b: unknown) => a + toNumber(b), 0);
+const array = () => z.array(z.any());
+const numbers = () => z.object({ numbers: z.array(z.number()) });
+const number = () => z.object({ number: z.number() });
+
+/** A built-in function. A lazy one (@Each) has no `fn`: the evaluator runs it on raw args. */
+export type BuiltinFunction = Omit<DefinedFunction<any, any>, "fn"> & {
+  fn?: (args: any) => unknown;
+  lazy?: true;
+};
+
+const builtins: BuiltinFunction[] = [
+  defineFunction({
     name: "Count",
-    signature: "Count(array) → number",
     description: "Returns array length",
-    fn: (arr) => (Array.isArray(arr) ? arr.length : 0),
-  },
-  First: {
+    params: z.object({ array: array() }),
+    returns: z.number(),
+    fn: ({ array }) => (Array.isArray(array) ? array.length : 0),
+  }),
+  defineFunction({
     name: "First",
-    signature: "First(array) → element",
     description: "Returns first element of array",
-    fn: (arr) => (Array.isArray(arr) ? (arr[0] ?? null) : null),
-  },
-  Last: {
+    params: z.object({ array: array() }),
+    returns: z.any(),
+    fn: ({ array }) => (Array.isArray(array) ? (array[0] ?? null) : null),
+  }),
+  defineFunction({
     name: "Last",
-    signature: "Last(array) → element",
     description: "Returns last element of array",
-    fn: (arr) => (Array.isArray(arr) ? (arr[arr.length - 1] ?? null) : null),
-  },
-  Sum: {
+    params: z.object({ array: array() }),
+    returns: z.any(),
+    fn: ({ array }) => (Array.isArray(array) ? (array[array.length - 1] ?? null) : null),
+  }),
+  defineFunction({
     name: "Sum",
-    signature: "Sum(numbers[]) → number",
     description: "Sum of numeric array",
-    fn: (arr) =>
-      Array.isArray(arr) ? arr.reduce((a: number, b: unknown) => a + toNumber(b), 0) : 0,
-  },
-  Avg: {
+    params: numbers(),
+    returns: z.number(),
+    fn: ({ numbers }) => (Array.isArray(numbers) ? sumOf(numbers) : 0),
+  }),
+  defineFunction({
     name: "Avg",
-    signature: "Avg(numbers[]) → number",
     description: "Average of numeric array",
-    fn: (arr) =>
-      Array.isArray(arr) && arr.length
-        ? (arr.reduce((a: number, b: unknown) => a + toNumber(b), 0) as number) / arr.length
-        : 0,
-  },
-  Min: {
+    params: numbers(),
+    returns: z.number(),
+    fn: ({ numbers }) =>
+      Array.isArray(numbers) && numbers.length ? sumOf(numbers) / numbers.length : 0,
+  }),
+  defineFunction({
     name: "Min",
-    signature: "Min(numbers[]) → number",
     description: "Minimum value in array",
-    fn: (arr) =>
-      Array.isArray(arr) && arr.length
-        ? arr.reduce((acc: number, b: unknown) => Math.min(acc, toNumber(b)), toNumber(arr[0]))
+    params: numbers(),
+    returns: z.number(),
+    fn: ({ numbers }) =>
+      Array.isArray(numbers) && numbers.length
+        ? numbers.reduce((acc, b) => Math.min(acc, toNumber(b)), toNumber(numbers[0]))
         : 0,
-  },
-  Max: {
+  }),
+  defineFunction({
     name: "Max",
-    signature: "Max(numbers[]) → number",
     description: "Maximum value in array",
-    fn: (arr) =>
-      Array.isArray(arr) && arr.length
-        ? arr.reduce((acc: number, b: unknown) => Math.max(acc, toNumber(b)), toNumber(arr[0]))
+    params: numbers(),
+    returns: z.number(),
+    fn: ({ numbers }) =>
+      Array.isArray(numbers) && numbers.length
+        ? numbers.reduce((acc, b) => Math.max(acc, toNumber(b)), toNumber(numbers[0]))
         : 0,
-  },
-  Sort: {
+  }),
+  defineFunction({
     name: "Sort",
-    signature: "Sort(array, field, direction?) → sorted array",
     description: 'Sort array by field. Direction: "asc" (default) or "desc"',
-    fn: (arr, field, dir) => {
-      if (!Array.isArray(arr)) return arr;
+    params: z.object({
+      array: array(),
+      field: z.string(),
+      direction: z.enum(["asc", "desc"]).optional(),
+    }),
+    returns: array(),
+    fn: ({ array, field, direction }) => {
+      if (!Array.isArray(array)) return array;
       const f = String(field ?? "");
-      const desc = String(dir ?? "asc") === "desc";
-      return [...arr].sort((a: any, b: any) => {
+      const desc = String(direction ?? "asc") === "desc";
+      return [...array].sort((a: any, b: any) => {
         const av = f ? resolveField(a, f) : a;
         const bv = f ? resolveField(b, f) : b;
         const aIsNumeric =
@@ -114,17 +122,22 @@ export const BUILTINS: Record<string, BuiltinDef> = {
         return desc ? -cmp : cmp;
       });
     },
-  },
-  Filter: {
+  }),
+  defineFunction({
     name: "Filter",
-    signature:
-      'Filter(array, field, operator: "==" | "!=" | ">" | "<" | ">=" | "<=" | "contains", value) → filtered array',
     description: "Filter array by field value",
-    fn: (arr, field, op, value) => {
-      if (!Array.isArray(arr)) return [];
+    params: z.object({
+      array: array(),
+      field: z.string(),
+      operator: z.enum(["==", "!=", ">", "<", ">=", "<=", "contains"]),
+      value: z.any(),
+    }),
+    returns: array(),
+    fn: ({ array, field, operator, value }) => {
+      if (!Array.isArray(array)) return [];
       const f = String(field ?? "");
-      const o = String(op ?? "==");
-      return arr.filter((item: any) => {
+      const o = String(operator ?? "==");
+      return array.filter((item: any) => {
         const v = f ? resolveField(item, f) : item;
         switch (o) {
           case "==":
@@ -146,51 +159,53 @@ export const BUILTINS: Record<string, BuiltinDef> = {
         }
       });
     },
-  },
-  Round: {
+  }),
+  defineFunction({
     name: "Round",
-    signature: "Round(number, decimals?) → number",
     description: "Round to N decimal places (default 0)",
-    fn: (n, decimals) => {
-      const num = toNumber(n);
+    params: z.object({ number: z.number(), decimals: z.number().optional() }),
+    returns: z.number(),
+    fn: ({ number, decimals }) => {
+      const num = toNumber(number);
       const d = decimals != null ? toNumber(decimals) : 0;
       const factor = Math.pow(10, d);
       return Math.round(num * factor) / factor;
     },
-  },
-  Abs: {
+  }),
+  defineFunction({
     name: "Abs",
-    signature: "Abs(number) → number",
     description: "Absolute value",
-    fn: (n) => Math.abs(toNumber(n)),
-  },
-  Floor: {
+    params: number(),
+    returns: z.number(),
+    fn: ({ number }) => Math.abs(toNumber(number)),
+  }),
+  defineFunction({
     name: "Floor",
-    signature: "Floor(number) → number",
     description: "Round down to nearest integer",
-    fn: (n) => Math.floor(toNumber(n)),
-  },
-  Ceil: {
+    params: number(),
+    returns: z.number(),
+    fn: ({ number }) => Math.floor(toNumber(number)),
+  }),
+  defineFunction({
     name: "Ceil",
-    signature: "Ceil(number) → number",
     description: "Round up to nearest integer",
-    fn: (n) => Math.ceil(toNumber(n)),
-  },
-};
-
-/**
- * Lazy builtins — these receive AST nodes (not evaluated values) and
- * control their own evaluation. Handled specially in evaluator.ts.
- */
-export const LAZY_BUILTINS: Set<string> = new Set(["Each"]);
-
-export const LAZY_BUILTIN_DEFS: Record<string, { signature: string; description: string }> = {
-  Each: {
-    signature: "Each(array, varName, template)",
+    params: number(),
+    returns: z.number(),
+    fn: ({ number }) => Math.ceil(toNumber(number)),
+  }),
+  {
+    name: "Each",
     description:
       "Evaluate template for each element. varName is the loop variable — use it ONLY inside the template expression (inline). Do NOT create a separate statement for the template.",
+    params: z.object({ array: array(), varName: z.string(), template: z.any() }),
+    lazy: true,
   },
-};
+];
+
+/** All built-in functions by name, in prompt order. */
+export const BUILTINS: Record<string, BuiltinFunction> = Object.fromEntries(
+  builtins.map((b) => [b.name, b]),
+);
 
 /** Maps parser-level action step names → runtime step type values. Single source of truth. */
 export const ACTION_STEPS = {
@@ -204,16 +219,26 @@ export const ACTION_STEPS = {
 /** All action expression names (steps + the Action container) */
 export const ACTION_NAMES: Set<string> = new Set(["Action", ...Object.keys(ACTION_STEPS)]);
 
-/** Set of builtin names for fast lookup (includes action expressions) */
-export const BUILTIN_NAMES: Set<string> = new Set([
-  ...Object.keys(BUILTINS),
-  ...LAZY_BUILTINS,
-  ...ACTION_NAMES,
-]);
+/** The language's calls, the base of every library's call registry. */
+export const BUILTIN_CALLS: ReadonlyMap<string, CallDef> = new Map(
+  builtins.map((b) => [
+    b.name,
+    {
+      params: Object.keys(b.params.shape).map((name) => ({ name, required: false })),
+      builtin: true,
+      ...(b.lazy ? { lazy: true } : {}),
+    },
+  ]),
+);
 
-/** Check if a name is a builtin function (not a component) */
+/** The library's call registry (the built-ins plus its functions), or the built-ins alone. */
+export function callsOf(cat: ParamMap | undefined): ReadonlyMap<string, CallDef> {
+  return cat?.calls ?? BUILTIN_CALLS;
+}
+
+/** True for a built-in function, action step, or Action (not a component). */
 export function isBuiltin(name: string): boolean {
-  return BUILTIN_NAMES.has(name);
+  return BUILTIN_CALLS.has(name) || ACTION_NAMES.has(name);
 }
 
 /** Reserved statement-level call names — not builtins, not components */
@@ -224,5 +249,4 @@ export function isReservedCall(name: string): boolean {
   return name in RESERVED_CALLS;
 }
 
-/** Re-export toNumber for evaluator compatibility */
 export { toNumber };

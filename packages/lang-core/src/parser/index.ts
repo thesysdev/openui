@@ -29,8 +29,7 @@ export type { SerializeOptions } from "./serialize";
 export { compileSchema } from "./parser";
 
 // Shared builtin registry
-export { BUILTINS, BUILTIN_NAMES, isBuiltin } from "./builtins";
-export type { BuiltinDef } from "./builtins";
+export { BUILTINS, isBuiltin } from "./builtins";
 
 // Typed statement model + AST utilities
 export { isASTNode, isRuntimeExpr } from "./ast";

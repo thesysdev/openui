@@ -4,10 +4,17 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { ASTNode } from "../parser/ast";
-import { isASTNode } from "../parser/ast";
-import { ACTION_NAMES, ACTION_STEPS, BUILTINS, LAZY_BUILTINS, toNumber } from "../parser/builtins";
-import type { ActionPlan, ActionStep, ElementNode } from "../parser/types";
+import { isASTNode, toLiteralAST } from "../parser/ast";
+import { ACTION_NAMES, ACTION_STEPS, BUILTINS, toNumber } from "../parser/builtins";
+import type {
+  ActionPlan,
+  ActionStep,
+  ElementNode,
+  FunctionSchema,
+  MaterializeCtx,
+} from "../parser/types";
 import { isElementNode } from "../parser/types";
+import { getSchemaDefaultValue, INVALID, validateSchemaValue } from "../parser/validation";
 import { isReactiveSchema } from "../reactive";
 import { evaluatePropCore } from "./evaluate-prop";
 
@@ -24,6 +31,15 @@ export interface EvaluationContext {
   resolveRef(name: string): unknown;
   /** Extra scope for $value injection during reactive prop evaluation */
   extraScope?: Record<string, unknown>;
+  /** Library functions: `library.toJSONSchema().functions` entries plus each `fn`. */
+  functions?: Record<string, RuntimeFunction>;
+  /** Reports a runtime error, such as a library function call that evaluated to null. */
+  reportError?: (message: string) => void;
+}
+
+/** A library function as the evaluator runs it. */
+export interface RuntimeFunction extends FunctionSchema {
+  fn: (args: any) => unknown;
 }
 
 export interface ReactiveAssign {
@@ -74,19 +90,19 @@ export function evaluate(
 
     // ── Component ─────────────────────────────────────────────────────────
     case "Comp": {
-      // Lazy builtins — control their own evaluation
-      if (LAZY_BUILTINS.has(node.name)) {
-        return evaluateLazyBuiltin(node.name, node.args, context, schemaCtx);
-      }
-      // Check shared builtin registry first
+      // Built-ins coerce their args, so they skip validation. Lazy ones get them unevaluated.
       const builtin = BUILTINS[node.name];
       if (builtin) {
-        const args = node.args.map((a) => evaluate(a, context));
-        return builtin.fn(...args);
+        if (builtin.lazy) return evaluateLazyBuiltin(node.name, node.args, context, schemaCtx);
+        return builtin.fn!(evaluateArgs(node, context));
       }
       // Action calls → evaluate to ActionPlan/ActionStep
       if (ACTION_NAMES.has(node.name)) {
         return evaluateActionCall(node.name, node.args, context);
+      }
+      const fns = context.functions;
+      if (fns && Object.prototype.hasOwnProperty.call(fns, node.name)) {
+        return callFunction(node.name, fns[node.name]!, node, context);
       }
       // If parser already mapped args→props (via materializeExpr), use named props.
       // With schema context: emit ReactiveAssign for StateRef on reactive props.
@@ -284,20 +300,61 @@ function evaluatePropInline(
   });
 }
 
-/** Convert a resolved runtime value back to a literal AST node for deferred evaluation. */
-function toLiteralAST(value: unknown): ASTNode {
-  if (value === null || value === undefined) return { k: "Null" };
-  if (typeof value === "string") return { k: "Str", v: value };
-  if (typeof value === "number") return { k: "Num", v: value };
-  if (typeof value === "boolean") return { k: "Bool", v: value };
-  if (Array.isArray(value)) return { k: "Arr", els: value.map(toLiteralAST) };
-  if (typeof value === "object") {
-    return {
-      k: "Obj",
-      entries: Object.entries(value).map(([k, v]) => [k, toLiteralAST(v)] as [string, ASTNode]),
-    };
+function evaluateArgs(
+  node: ASTNode & { k: "Comp" },
+  context: EvaluationContext,
+): Record<string, unknown> {
+  const args: Record<string, unknown> = {};
+  for (const key in node.mappedProps) args[key] = evaluate(node.mappedProps[key]!, context);
+  return args;
+}
+
+/** Validates a runtime value with the parser's validator, reporting each issue. */
+function checkValue(
+  value: unknown,
+  schema: unknown,
+  name: string,
+  path: string,
+  context: EvaluationContext,
+): unknown {
+  const ctx = { errors: [], partial: false } as unknown as MaterializeCtx;
+  const checked = validateSchemaValue(value, schema, name, path, ctx);
+  for (const e of ctx.errors) context.reportError?.(`@${name}: ${e.message}`);
+  return checked;
+}
+
+/** A required arg still null (state not set yet, query loading): the call waits silently. */
+function missesRequired(args: Record<string, unknown>, params: RuntimeFunction["params"]): boolean {
+  return !!params.required?.some(
+    (key) => args[key] == null && getSchemaDefaultValue(params.properties?.[key]) === undefined,
+  );
+}
+
+/** Invalid args or return values, or a throwing `fn`, make the call null and report why. */
+function callFunction(
+  name: string,
+  def: RuntimeFunction,
+  node: ASTNode & { k: "Comp" },
+  context: EvaluationContext,
+): unknown {
+  const raw = evaluateArgs(node, context);
+  // An explicit null for an optional param is omitted, so its default applies
+  for (const key in raw) {
+    if (raw[key] === null && !def.params.required?.includes(key)) delete raw[key];
   }
-  return { k: "Null" };
+  if (missesRequired(raw, def.params)) return null;
+  const args = checkValue(raw, def.params, name, "", context);
+  if (args === INVALID) return null;
+  let result: unknown;
+  try {
+    result = def.fn(args);
+  } catch (e) {
+    context.reportError?.(`@${name} threw: ${e instanceof Error ? e.message : String(e)}`);
+    return null;
+  }
+  if (!def.returns) return result;
+  const checked = checkValue(result, def.returns, name, "/returns", context);
+  return checked === INVALID ? null : (checked ?? null);
 }
 
 /**
@@ -418,15 +475,9 @@ function substituteRef(node: ASTNode, varName: string, value: unknown): ASTNode 
         ),
       };
     case "Comp": {
-      const result = { ...node, args: node.args.map((a) => substituteRef(a, varName, value)) };
-      // Also substitute in mappedProps (added by materializer for catalog components)
-      if (node.mappedProps) {
-        const subProps: Record<string, ASTNode> = {};
-        for (const [k, v] of Object.entries(node.mappedProps)) {
-          subProps[k] = substituteRef(v, varName, value);
-        }
-        (result as any).mappedProps = subProps;
-      }
+      const sub = (a: ASTNode) => substituteRef(a, varName, value);
+      const result = { ...node, args: node.args.map(sub) };
+      if (node.mappedProps) result.mappedProps = mapValues(node.mappedProps, sub);
       return result;
     }
     case "Assign":
@@ -434,6 +485,15 @@ function substituteRef(node: ASTNode, varName: string, value: unknown): ASTNode 
     default:
       return node;
   }
+}
+
+function mapValues(
+  record: Record<string, ASTNode>,
+  fn: (node: ASTNode) => ASTNode,
+): Record<string, ASTNode> {
+  const out: Record<string, ASTNode> = {};
+  for (const key in record) out[key] = fn(record[key]!);
+  return out;
 }
 
 /**

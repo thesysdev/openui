@@ -4,11 +4,13 @@
 
 import type { ASTNode } from "./ast";
 import { isASTNode, isRuntimeExpr } from "./ast";
-import { isBuiltin, isReservedCall, LAZY_BUILTINS, RESERVED_CALLS } from "./builtins";
+import { ACTION_NAMES, callsOf, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { isElementNode, type MaterializeCtx } from "./types";
 import {
   buildParamsSignature,
   INVALID,
+  mapCallArgs,
+  nameArgs,
   pushValidationIssue,
   resolveInvalidValue,
   validateSchemaValue,
@@ -66,6 +68,27 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
   }
 }
 
+/** Calls in the registry, action steps and reserved calls stay AST for the runtime. */
+function isRuntimeCall(name: string, ctx: MaterializeCtx): boolean {
+  return callsOf(ctx.cat).has(name) || ACTION_NAMES.has(name) || isReservedCall(name);
+}
+
+/** A runtime call keeps its AST; a registered non-lazy call also gets mappedProps. */
+function materializeCall(
+  node: ASTNode & { k: "Comp" },
+  ctx: MaterializeCtx,
+  materializeArg: (a: ASTNode) => ASTNode,
+): ASTNode {
+  const args = node.args.map(materializeArg);
+  const def = callsOf(ctx.cat).get(node.name);
+  if (!def || def.lazy) return { ...node, args };
+  // Built-ins coerce their args, so only library calls are checked
+  const mappedProps = def.builtin
+    ? nameArgs(args, def.params)
+    : mapCallArgs(node.name, args, def, ctx);
+  return mappedProps ? { ...node, args, mappedProps } : { k: "Null" };
+}
+
 /**
  * If node is a lazy builtin like Each(arr, varName, template), temporarily
  * scope the iterator variable during materialization so template refs resolve.
@@ -76,7 +99,7 @@ function materializeLazyBuiltin(
   ctx: MaterializeCtx,
   scopedRefs: ReadonlySet<string>,
 ): ASTNode | null {
-  if (!LAZY_BUILTINS.has(node.name) || node.args.length < 3) return null;
+  if (!callsOf(ctx.cat).get(node.name)?.lazy || node.args.length < 3) return null;
   const varArg = node.args[1];
   const varName = varArg.k === "Ref" ? varArg.n : varArg.k === "Str" ? varArg.v : null;
   if (!varName) return null;
@@ -105,11 +128,11 @@ function materializeExprInternal(
     case "Comp": {
       const lazy = materializeLazyBuiltin(node, ctx, scopedRefs);
       if (lazy) return lazy;
-      const recursedArgs = node.args.map((a) => materializeExprInternal(a, ctx, scopedRefs));
-      // Builtins, reserved calls, and action calls: recurse args, keep as-is
-      if (isBuiltin(node.name) || isReservedCall(node.name)) {
-        return { ...node, args: recursedArgs };
+      // Built-ins, library functions, action steps, reserved calls: keep as AST
+      if (isRuntimeCall(node.name, ctx)) {
+        return materializeCall(node, ctx, (a) => materializeExprInternal(a, ctx, scopedRefs));
       }
+      const recursedArgs = node.args.map((a) => materializeExprInternal(a, ctx, scopedRefs));
       // Catalog component: add mappedProps for the evaluator
       const def = ctx.cat?.get(node.name);
       if (def) {
@@ -230,17 +253,17 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
     case "Comp": {
       const { name, args } = node;
 
-      // Builtins (Sum, Count, Filter, Action, etc.) → preserve as ASTNode for runtime
-      if (isBuiltin(name)) {
-        const lazy = materializeLazyBuiltin(node, ctx, new Set());
-        if (lazy) return lazy;
-        return { ...node, args: args.map((a) => materializeExpr(a, ctx)) };
-      }
-
       // Inline Query/Mutation (not from a statement-level declaration) → validation error
       if (isReservedCall(name)) {
         pushValidationIssue(ctx, name, "", { code: "inline-reserved" });
         return null;
+      }
+
+      // Built-ins, library functions and action steps → preserve as ASTNode for runtime
+      if (isRuntimeCall(name, ctx)) {
+        const lazy = materializeLazyBuiltin(node, ctx, new Set());
+        if (lazy) return lazy;
+        return materializeCall(node, ctx, (a) => materializeExpr(a, ctx));
       }
 
       const def = ctx.cat?.get(name);
@@ -304,7 +327,7 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
         // A required prop with unsalvageable data (no default) drops the
         // component — its error was already reported during validation.
         if (dropComponent) return null;
-      } else if (!isBuiltin(name) && !isReservedCall(name)) {
+      } else {
         // Unknown component: error and drop from tree
         pushValidationIssue(ctx, name, "", {
           code: "unknown-component",
