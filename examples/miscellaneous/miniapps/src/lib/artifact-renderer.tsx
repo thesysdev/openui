@@ -20,7 +20,7 @@ function MiniAppView({ app, isStreaming }: { app: MiniApp; isStreaming: boolean 
   return (
     <div className="miniapp-content">
       {storageError && <p role="alert">{storageError}</p>}
-      <Renderer
+      <Renderer.Root
         response={app.response}
         library={dashboardLibrary}
         isStreaming={isStreaming}
@@ -35,12 +35,6 @@ function MiniAppView({ app, isStreaming }: { app: MiniApp; isStreaming: boolean 
             );
           }
         }}
-        queryLoader={
-          <div className="query-loader" role="status">
-            <DotMatrixLoader variant="compact" />
-            <span>Loading data…</span>
-          </div>
-        }
         onAction={(action) => processMessage({ role: "user", content: JSON.stringify(action) })}
         toolProvider={{
           async callTool({
@@ -66,7 +60,18 @@ function MiniAppView({ app, isStreaming }: { app: MiniApp; isStreaming: boolean 
             return { content: [], structuredContent: body.result };
           },
         }}
-      />
+      >
+        <div style={{ position: "relative" }}>
+          <Renderer.Content />
+          <Renderer.QueryLoading>
+            <div className="query-loader" role="status">
+              <DotMatrixLoader variant="compact" />
+              <span>Loading data…</span>
+            </div>
+          </Renderer.QueryLoading>
+          <Renderer.QueryError />
+        </div>
+      </Renderer.Root>
     </div>
   );
 }

@@ -30,7 +30,7 @@ Change the agent's `builderTool` description and instructions to match your prod
 
 The host selects the target version. A null target creates a new app; an explicit missing ID fails instead of silently creating a new one. An edit supplies that version's entire saved response as `baseResponse`. Keep the last completed version when generation fails or is cancelled, and replace the displayed response with the returned version on success.
 
-Keep `isStreaming` true for the entire builder run, including script generation. Avoid changing the renderer's React key on every response update. Save input state separately from generated text. Customize `queryLoader` for data fetching, and keep source errors visible rather than treating placeholder values as fetched data.
+Keep `isStreaming` true for the entire builder run, including script generation. Avoid changing the renderer's React key on every response update. Save input state separately from generated text. Compose `Renderer.Root`, `Renderer.Content`, `Renderer.QueryLoading`, and `Renderer.QueryError` to customize data-fetching feedback. Put the content and loading overlay inside a positioned container, and keep source errors visible rather than treating placeholder values as fetched data.
 
 ## Manual checks
 
