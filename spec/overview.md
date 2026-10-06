@@ -335,7 +335,7 @@ header = Header("Monthly Revenue", "Last 6 months")
 ```
 
 - `content` holds the program (or prose).
-- `context` holds JSON the host keeps with the message, such as form values and click data.
+- `context` holds JSON the host keeps with the message, such as form values and click data. The host defines its shape.
 - `end` says the stream finished. A stored message without it was cut off.
 
 The same format works while streaming and in storage. The model never writes or sees these lines: the host strips them before it sends history to the model and before it shows the message. prompt.md, section 6.3, gives the reference format for turning a click into the next user turn.

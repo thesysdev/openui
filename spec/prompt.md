@@ -314,13 +314,13 @@ kind       = lowercase_letter { lowercase_letter } ;
 line_end   = "\n" | "\r\n" | end of message ;
 ```
 
-The kind ends at the first `?`, space, or line end. Example:
+The kind ends at the first `?` or line end. Example:
 
 ```
 ]]>openui:content?library=support%401.2.0
 ```
 
-The attributes are a query string in `application/x-www-form-urlencoded` form, as produced by `URLSearchParams`. Pairs are `key=value`, joined by `&`. `%40` is the encoded `@`, and a space is written `+`. Readers decode the string the same way.
+The attributes are a query string in `application/x-www-form-urlencoded` form, as produced by `URLSearchParams`. Pairs are `key=value`, joined by `&`. `%40` is the encoded `@`, and a space is written `+`. Readers decode the string the same way and accept an unencoded `@`.
 
 A marker counts only at the very start of a line. `]]>openui:` in the middle of a line is ordinary text.
 
@@ -331,12 +331,14 @@ Fixtures: `messages/*-marker-*`
 | kind | shape | body |
 | --- | --- | --- |
 | `content` | Opens a section. | The program, or prose with fenced programs. |
-| `context` | Opens a section. | JSON: form state and click context. The host defines its shape. |
+| `context` | Opens a section. | JSON defined by the host. OpenUI requires no structure. |
 | `end` | One line. No body. | The stream reached its last chunk. |
 
 A section body starts on the line after its marker and runs up to the next marker line, or to the end of the message. The newline just before the next marker line is not part of the body.
 
 In a stored message, a missing `end` line means the stream died before it finished.
+
+The reference chat client stores `[formState]` as the context of an assistant turn, and the array in section 6.3 for a user turn. That is its own usage, not a shape OpenUI requires.
 
 Example:
 
@@ -381,12 +383,8 @@ Fixtures: `messages/*-strip-*`
 
 ### 7.6 Older forms
 
-Readers accept these forms and never write them:
-
-- A `content` line with space-separated attributes that are not encoded: `]]>openui:content library=support@1.2.0`.
-- The attribute `libraryVersion=<version>`. It gives a version and no library id.
-- The artifact header `]]>openui:artifact {json}`, then a newline and the program. The JSON holds the header fields. The text after the newline is the content.
-- The XML envelope, in a message with no marker lines: `<content>` around the response, then `<context>` around the JSON. Readers read them as the `content` and `context` sections.
+- The attribute `libraryVersion` (a version with no library id) is still written by some hosts. Readers return it like any other attribute.
+- Other envelopes, such as an XML `<content>`/`<context>` wrapper or an artifact header, are host-specific. OpenUI readers do not read them; the host that writes them reads them.
 
 Fixtures: `messages/*-legacy-*`
 
