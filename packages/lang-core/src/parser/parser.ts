@@ -8,7 +8,7 @@ import { isASTNode, walkAST } from "./ast";
 import { ACTION_DEFS, BUILTIN_CALLS, isBuiltin, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
-import { materializeValue, nameRawCallArgs } from "./materialize";
+import { materializeValue, nameRawCallArgs, withStatementId } from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
@@ -248,8 +248,7 @@ function buildResult(
   if (entry) {
     const materialized = materializeValue(syms.get(entry.id)!, ctx);
     if (isElementNode(materialized)) {
-      root = materialized;
-      root.statementId = entry.id;
+      root = withStatementId(materialized, entry.id);
     } else if (isASTNode(materialized) && containsComponent(materialized)) {
       rootExpression = materialized;
     }

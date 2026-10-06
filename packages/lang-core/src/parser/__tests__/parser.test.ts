@@ -370,3 +370,36 @@ a = Title("y")`;
     expect(titleText(sp.push(`")\n`))).toBe("y");
   });
 });
+
+// ── shared references and deep trees ─────────────────────────────────────────
+
+describe("materialize performance", () => {
+  it("materializes a statement referenced many times once", () => {
+    // a_i = Stack([a_{i+1}, a_{i+1}]): 2^24 leaves if every use were rebuilt.
+    const lines = ["root = Stack([a0])"];
+    for (let i = 0; i < 24; i++) lines.push(`a${i} = Stack([a${i + 1}, a${i + 1}])`);
+    lines.push(`a24 = Title("leaf", "extra")`);
+    const result = parse(lines.join("\n"), schema);
+    const a0 = (result.root!.props.children as any[])[0];
+    expect(a0.props.children[0]).toBe(a0.props.children[1]);
+    expect(a0.props.children[0].statementId).toBe("a1");
+    // An error inside the shared statement is reported once, attributed to it.
+    expect(result.meta.errors).toMatchObject([{ code: "excess-args", statementId: "a24" }]);
+  });
+
+  it("keeps each alias's statementId on a shared node", () => {
+    const result = parse(`root = Stack([a, b])\nb = a\na = Title("x")`, schema);
+    expect((result.root!.props.children as any[]).map((c) => c.statementId)).toEqual(["a", "b"]);
+    expect(parse(`root = a\na = Title("x")`, schema).root!.statementId).toBe("root");
+  });
+
+  it("propagates hasDynamicProps through a deep chain", () => {
+    const chain = (leaf: string) => {
+      const lines = ["root = c0"];
+      for (let i = 0; i < 500; i++) lines.push(`c${i} = Stack([c${i + 1}])`);
+      return parse([...lines, `c500 = Title(${leaf})`].join("\n"), schema).root!;
+    };
+    expect(chain('"x"').hasDynamicProps).toBe(false);
+    expect(chain("$v").hasDynamicProps).toBe(true);
+  });
+});

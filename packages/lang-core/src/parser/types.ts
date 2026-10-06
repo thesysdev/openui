@@ -144,6 +144,8 @@ export interface MaterializeCtx {
   currentStatementId?: string;
   /** Statement IDs not yet reached — delete as they're touched. Remaining = orphaned. */
   unreached?: Set<string>;
+  /** Per-pass cache of resolved refs, keyed by `${mode}:${name}`. */
+  memo?: Map<string, unknown>;
 }
 
 /**

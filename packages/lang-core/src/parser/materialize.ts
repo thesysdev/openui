@@ -5,7 +5,13 @@
 import type { ASTNode } from "./ast";
 import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST, walkAST } from "./ast";
 import { getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
-import { isElementNode, type CallDef, type MaterializeCtx, type ParamDef } from "./types";
+import {
+  isElementNode,
+  type CallDef,
+  type ElementNode,
+  type MaterializeCtx,
+  type ParamDef,
+} from "./types";
 import {
   buildParamsSignature,
   INVALID,
@@ -23,7 +29,7 @@ export function containsDynamicValue(v: unknown): boolean {
   if (isASTNode(v)) return true;
   if (Array.isArray(v)) return v.some(containsDynamicValue);
   if (isElementNode(v)) {
-    return Object.values(v.props).some(containsDynamicValue);
+    return v.hasDynamicProps ?? Object.values(v.props).some(containsDynamicValue);
   }
   const obj = v as Record<string, unknown>;
   // A `{steps: [...]}` literal is evaluated too, so data cannot pose as custom action steps
@@ -32,8 +38,25 @@ export function containsDynamicValue(v: unknown): boolean {
 }
 
 /**
+ * Tag an element with the statement it came from. An element already tagged with another
+ * statement is a shared memoized node reached through an alias (`b = a`): copy it.
+ */
+export function withStatementId(el: ElementNode, id: string): ElementNode {
+  if (el.statementId === undefined || el.statementId === id) {
+    el.statementId = id;
+    return el;
+  }
+  return { ...el, statementId: id };
+}
+
+/**
  * Resolve a Ref node: inline from symbol table, detect cycles, emit RuntimeRef
  * for Query/Mutation declarations. Shared by materializeValue and materializeExpr.
+ *
+ * Results are memoized per pass so each statement materializes once (shared refs
+ * are otherwise exponential). Skipped when the subtree hit an unresolved or cyclic
+ * ref (context-dependent). Use-site validation copies on write, so a shared result is
+ * never pruned in place. Errors inside a memoized statement are reported once.
  */
 function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): unknown | ASTNode {
   if (ctx.visited.has(name)) {
@@ -52,15 +75,17 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
       target.name === RESERVED_CALLS.Mutation ? ("mutation" as const) : ("query" as const);
     return { k: "RuntimeRef", n: name, refType };
   }
+  const key = `${mode}:${name}`;
+  const memo = (ctx.memo ??= new Map());
+  if (memo.has(key)) return memo.get(key);
   ctx.visited.add(name);
   const prevStatementId = ctx.currentStatementId;
   ctx.currentStatementId = name;
+  const unresBefore = ctx.unres.length;
   try {
-    const result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
-    // Tag ElementNode with its source statement name
-    if (mode === "value" && isElementNode(result)) {
-      result.statementId = name;
-    }
+    let result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
+    if (mode === "value" && isElementNode(result)) result = withStatementId(result, name);
+    if (ctx.unres.length === unresBefore) memo.set(key, result);
     return result;
   } finally {
     ctx.currentStatementId = prevStatementId;
