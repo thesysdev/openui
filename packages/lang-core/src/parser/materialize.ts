@@ -8,6 +8,7 @@ import { isBuiltin, isReservedCall, LAZY_BUILTINS, RESERVED_CALLS } from "./buil
 import { isElementNode, type MaterializeCtx } from "./types";
 import {
   buildParamsSignature,
+  INVALID,
   pushValidationIssue,
   resolveInvalidValue,
   validateSchemaValue,
@@ -254,18 +255,18 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
           const param = def.params[i];
           const value = materializeValue(args[i], ctx);
           props[param.name] = value;
+          if (param.schema === undefined) continue;
           // Single validation entry point: scalar leaf type/enum for simple
           // props, recursive key/type checks (with pruning) for nested shapes.
-          if (
-            param.schema !== undefined &&
-            validateSchemaValue(value, param.schema, name, `/${param.name}`, ctx)
-          ) {
+          let next = validateSchemaValue(value, param.schema, name, `/${param.name}`, ctx);
+          if (next === INVALID) {
             // Invalid prop value (error already reported). Same resolution rule as
             // every nested edge; propagation here means dropping the component.
-            if (resolveInvalidValue(props, param.name, param.required, param.defaultValue)) {
-              dropComponent = true;
-            }
+            next = resolveInvalidValue(param.required, param.defaultValue);
+            if (next === INVALID) dropComponent = true;
+            else if (next === undefined) delete props[param.name];
           }
+          if (next !== INVALID && next !== undefined) props[param.name] = next;
         }
 
         // Report excess positional args (extra args are silently dropped)
