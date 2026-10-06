@@ -1,12 +1,12 @@
 import { createLibrary, defineComponent } from "@openuidev/react-lang";
 import { openuiChatLibrary } from "@openuidev/react-ui/genui-lib";
 import { z } from "zod/v4";
-import { CartPanel } from "./components/cart-panel";
+import { CartLink } from "./components/cart";
 import { HtmlArtifact } from "./components/html-artifact";
 
 // The chat library generates the server's specification and renders in the client. It gains two
-// components that open Agent Interface's side panel: CartPanel for the cart, and HtmlArtifact
-// for printable pages such as gift cards.
+// components: CartLink, which marks a cart change and opens the cart from the header, and
+// HtmlArtifact, which opens printable pages such as gift cards in the side panel.
 
 // Card lists the components it can hold, so redefine it with the same props, description, and
 // renderer, plus the two new components. Without this, the model is told a Card can't contain them.
@@ -16,7 +16,7 @@ const Card = defineComponent({
   name: "Card",
   description: chatCard.description,
   props: chatCard.props.extend({
-    children: z.array(z.union([...chatChildren.element.options, CartPanel.ref, HtmlArtifact.ref])),
+    children: z.array(z.union([...chatChildren.element.options, CartLink.ref, HtmlArtifact.ref])),
   }),
   component: chatCard.component,
 });
@@ -26,13 +26,13 @@ export const library = createLibrary({
   componentGroups: [
     ...(openuiChatLibrary.componentGroups ?? []),
     {
-      name: "Side panels",
-      components: ["CartPanel", "HtmlArtifact"],
+      name: "Cart and printable pages",
+      components: ["CartLink", "HtmlArtifact"],
       notes: [
-        "- CartPanel and HtmlArtifact show a button in the answer and open the side panel beside the chat.",
-        "- CartPanel loads the cart itself; never repeat its items or checkout button in the answer.",
+        "- CartLink opens the cart in the header, which loads the cart itself; never repeat its items or a checkout button in the answer.",
+        "- HtmlArtifact shows a button in the answer and opens the page in the side panel.",
       ],
     },
   ],
-  components: Object.values({ ...openuiChatLibrary.components, Card, CartPanel, HtmlArtifact }),
+  components: Object.values({ ...openuiChatLibrary.components, Card, CartLink, HtmlArtifact }),
 });

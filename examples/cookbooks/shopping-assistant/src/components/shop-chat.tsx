@@ -12,6 +12,7 @@ import { Footprints, Gift, Shirt, Store } from "lucide-react";
 import { useMemo } from "react";
 import { darkTheme, lightTheme } from "../lib/theme";
 import { library } from "../library";
+import { CartButton, CartProvider } from "./cart";
 
 // Send the thread's messages in Chat Completions format and read the runner's stream from the route.
 const llm = fetchLLM({
@@ -55,33 +56,38 @@ export default function ShopChat({ store }: { store: string }) {
     features: { artifact: false },
   });
   return (
-    <div className="shop-app">
-      <AgentInterface
-        llm={llm}
-        storage={storage}
-        componentLibrary={library}
-        agentName="Shop assistant"
-        logoUrl="/logo.svg"
-        theme={theme}
-        starters={starters}
-        starterVariant="long"
-      >
-        <AgentInterface.ThreadHeader>
-          <span className="thread-context">
-            Products and cart from{" "}
-            <a href={`https://${store}`} target="_blank" rel="noreferrer">
-              {store}
-            </a>{" "}
-            · You check out on the store
-          </span>
-        </AgentInterface.ThreadHeader>
-        <AgentInterface.Welcome
-          image={{ url: "/logo.svg" }}
-          title="What are you shopping for?"
-          description="Tell me what you're looking for, or just ask what we have. I'll find products, help you pick sizes and colors, keep your cart up to date, and design a printable gift card to go with it."
-        />
-        <AgentInterface.Composer placeholder="Search the store…" />
-      </AgentInterface>
-    </div>
+    <CartProvider>
+      <div className="shop-app">
+        <AgentInterface
+          llm={llm}
+          storage={storage}
+          componentLibrary={library}
+          agentName="Shop assistant"
+          logoUrl="/logo.svg"
+          theme={theme}
+          starters={starters}
+          starterVariant="long"
+        >
+          <AgentInterface.ThreadHeader>
+            <div className="thread-header">
+              <span className="thread-context">
+                Products and cart from{" "}
+                <a href={`https://${store}`} target="_blank" rel="noreferrer">
+                  {store}
+                </a>{" "}
+                · You check out on the store
+              </span>
+              <CartButton />
+            </div>
+          </AgentInterface.ThreadHeader>
+          <AgentInterface.Welcome
+            image={{ url: "/logo.svg" }}
+            title="What are you shopping for?"
+            description="Tell me what you're looking for, or just ask what we have. I'll find products, help you pick sizes and colors, keep your cart up to date, and design a printable gift card to go with it."
+          />
+          <AgentInterface.Composer placeholder="Search the store…" />
+        </AgentInterface>
+      </div>
+    </CartProvider>
   );
 }

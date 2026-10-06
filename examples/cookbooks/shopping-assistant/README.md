@@ -26,7 +26,7 @@ Try:
 - “Find shoes under $100 in size 9.” The assistant searches for shoes, keeps those with size 9 in stock within the budget, and shows them as cards.
 - **Select options** on Shiro Canvas Sneakers. Size 9 is already chosen; pick a color and a quantity, then **Add to cart**.
 - “Also add the slides in my size.” The assistant adds them to the same cart without asking again.
-- The cart opens in the side panel beside the chat. Click + or − on an item: the total updates right away, with no new answer, and the panel stays open while you keep chatting.
+- Open **Cart** in the header at any point. Click + or − on an item: the count and total update right away, with no new answer.
 - “Put together a gift set under $100 for a friend who loves OpenUI.” The assistant proposes a bundle with every product selected; deselect what you don't want, pick a size if asked, and add the rest in one step.
 - **Make a gift card for this set.** Fill in the names and message, and a printable card opens in the side panel, with **Print** and **Download** (as a PNG).
 
@@ -36,28 +36,28 @@ Try:
 2. The model calls `search_products`. The server calls `search_catalog` on the store's MCP server, keeps the products with an in-stock variant that fits the size, color, and budget, and returns their photos, prices, options, and variants.
 3. The model shows the products as cards. **Select options** asks for that product's variant form: one set of chips per option, with sold-out values disabled, and a quantity.
 4. When the shopper submits the form, the model calls `update_cart` with the product id and the chosen values. The server finds the variant with `get_product`, reads the cart, applies the change, and writes the full cart back with `create_cart` or `update_cart`.
-5. The model answers with a short confirmation and `CartPanel`, which loads the cart from the store through `/api/cart` and opens it in Agent Interface's side panel, with each item's photo, + and − buttons, the total, and **Continue to checkout** when the store returns a checkout link. The panel stays open while the conversation continues, and after each cart change the gift card is offered as a follow-up.
+5. The model answers with a short confirmation and `CartLink`, which marks the cart change. A cart button in the thread header finds the thread's cart id in those marks, shows the item count, and opens the cart as a popover, loaded from the store through `/api/cart`, with each item's photo, + and − buttons, the total, and **Continue to checkout** when the store returns a checkout link. After each cart change the gift card is offered as a follow-up.
 6. For a kit or gift set, the model proposes a bundle as a form of selectable product cards, and adds the selected ones with one `update_cart` call.
 7. For a gift card, the model asks for the names and a message, then writes the card as a complete HTML document in an `HtmlArtifact`, which opens in Agent Interface's side panel.
 
 ## Files
 
-| File                                  | Purpose                                                                                                    |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `src/lib/shopify.ts`                  | MCP client for the store's catalog and cart tools, and price formatting                                    |
-| `src/lib/tools/search-products.ts`    | Function schema, argument validation, stock and budget filter, results                                     |
-| `src/lib/tools/update-cart.ts`        | Function schema, argument validation, cart changes, and cart summary                                       |
-| `src/library.ts`                      | The chat library, with `CartPanel` and `HtmlArtifact` added and `Card` redefined to hold them              |
-| `src/components/cart-panel.tsx`       | The cart: a button in the answer and a side panel with the store's cart, quantity buttons, and checkout    |
-| `src/app/api/cart/route.ts`           | Reads the cart and sets an item's quantity for the cart panel                                              |
-| `src/components/html-artifact.tsx`    | The gift card: a button in the answer and a side panel with the sandboxed page                             |
-| `src/lib/prompt.ts`                   | Shopping rules and one example for each step                                                               |
-| `src/lib/gateway-history.ts`          | Loads a thread's stored turns from Gateway as chat messages                                                |
-| `src/app/api/chat/route.ts`           | `runTools()` generation, streaming, and turn storage                                                       |
-| `src/app/api/frontend-token/route.ts` | Frontend token for Gateway thread storage                                                                  |
-| `src/lib/theme.ts`                    | Light and dark theme overrides                                                                             |
-| `src/components/shop-chat.tsx`        | Agent Interface, chat transport, thread storage, theme, and starters                                       |
-| `src/app/styles.css`                  | Page layout, full-width photos on the bundle cards, the cart and gift card panels, and plain number fields |
+| File                                  | Purpose                                                                                                             |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/shopify.ts`                  | MCP client for the store's catalog and cart tools, and price formatting                                             |
+| `src/lib/tools/search-products.ts`    | Function schema, argument validation, stock and budget filter, results                                              |
+| `src/lib/tools/update-cart.ts`        | Function schema, argument validation, cart changes, and cart summary                                                |
+| `src/library.ts`                      | The chat library, with `CartLink` and `HtmlArtifact` added and `Card` redefined to hold them                        |
+| `src/components/cart.tsx`             | The header's cart button and popover, and `CartLink`, which marks cart changes in answers                           |
+| `src/app/api/cart/route.ts`           | Reads the cart and sets an item's quantity for the header's cart                                                    |
+| `src/components/html-artifact.tsx`    | The gift card: a button in the answer and a side panel with the sandboxed page                                      |
+| `src/lib/prompt.ts`                   | Shopping rules and one example for each step                                                                        |
+| `src/lib/gateway-history.ts`          | Loads a thread's stored turns from Gateway as chat messages                                                         |
+| `src/app/api/chat/route.ts`           | `runTools()` generation, streaming, and turn storage                                                                |
+| `src/app/api/frontend-token/route.ts` | Frontend token for Gateway thread storage                                                                           |
+| `src/lib/theme.ts`                    | Light and dark theme overrides                                                                                      |
+| `src/components/shop-chat.tsx`        | Agent Interface, chat transport, thread storage, theme, and starters                                                |
+| `src/app/styles.css`                  | Page layout, full-width photos on the bundle cards, the header's cart, the gift card panel, and plain number fields |
 
 `npm run generate` creates the ignored component specification before dev/build/verify. The server passes that specification to `generateSystemPrompt({ cloud: true, library: spec, promptOptions })`, and Agent Interface renders responses with the same component library.
 
@@ -78,15 +78,15 @@ The cart's `continue_url` opens the store's checkout with the cart's items, and 
 
 The variant form sends the chosen option values, not a variant id. The model passes them to `update_cart` with the product id from the search result, which stays in the thread's history, and the server finds the variant. Submitted form state contains only the fields the shopper changed, so the prompt tells the model to use its prefilled value for any field missing from the state.
 
-## The cart panel
+## The cart
 
-`CartPanel(cartId)` is the first of two components the example adds to the chat library. After every cart change, the model answers with a one-line confirmation and `CartPanel` with the cart id from the `update_cart` result. The answer shows a **View cart** button, and the cart opens in Agent Interface's side panel: by itself after a change that just streamed in, and from the button for an answer in a thread you open again. The side panel stays open while later answers arrive, so the cart stays beside the chat.
+The cart lives in Agent Interface's thread header, so it's there for the whole conversation: a button with the item count that opens the cart as a popover. After every cart change, the model answers with a one-line confirmation and `CartLink` with the cart id from the `update_cart` result. `CartLink` renders a **View cart** button and opens the popover once after a change streams in.
 
-The model passes only the cart id. The panel loads the cart from `/api/cart`, which calls the store's `get_cart`, so its items, photos, and totals are always the store's. Its + and − buttons and **Remove** post one quantity to the same route, which changes the cart with the same server code as `update_cart`, so a change needs no model turn. The model doesn't see those changes until it asks: the prompt tells it to read the cart with `update_cart` before describing it.
+The cart button keeps no state of its own. It reads the thread's messages with `useThread()` and takes the cart id from the latest `CartLink`, so a new chat has no cart button and a thread opened again finds its cart. It loads the cart from `/api/cart`, which calls the store's `get_cart`, so its items, photos, and totals are always the store's. Its + and − buttons and **Remove** post one quantity to the same route, which changes the cart with the same server code as `update_cart`, so a change needs no model turn. The model doesn't see those changes until it asks: the prompt tells it to read the cart with `update_cart` before describing it.
 
 ## The gift card
 
-`HtmlArtifact(title, document)` is the second component the example adds to the chat library, following the [HTML artifact example](../../miscellaneous/html-artifact). The model writes the card as a complete HTML document with an inline style sheet. While it streams, the answer shows a status line; when it's done, the answer shows a button, and the page opens in Agent Interface's side panel with **Print** and **Download**. **Download** saves the card as a PNG with [`html-to-image`](https://github.com/bubkoo/html-to-image), which can draw the product photos because Shopify's CDN allows cross-origin reads. The panel opens by itself for a card that just streamed, not for cards in a thread you open again.
+`HtmlArtifact(title, document)` is the other component the example adds to the chat library, following the [HTML artifact example](../../miscellaneous/html-artifact). The model writes the card as a complete HTML document with an inline style sheet. While it streams, the answer shows a status line; when it's done, the answer shows a button, and the page opens in Agent Interface's side panel with **Print** and **Download**. **Download** saves the card as a PNG with [`html-to-image`](https://github.com/bubkoo/html-to-image), which can draw the product photos because Shopify's CDN allows cross-origin reads. The panel opens by itself for a card that just streamed, not for cards in a thread you open again.
 
 The page renders in an iframe sandboxed without scripts. `allow-same-origin` lets the **Print** button reach the iframe's window and `allow-modals` lets it open the print dialog; with no `allow-scripts`, nothing in the page runs. A content security policy injected into the document allows inline styles and images from `cdn.shopify.com` only, so the card can't load anything else. Before deploying, also validate the document on the server and limit its size.
 
