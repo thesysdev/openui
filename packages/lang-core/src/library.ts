@@ -1,13 +1,24 @@
 import { object as zObject } from "zod/v4";
 import * as z from "zod/v4/core";
-import type { DefinedFunction } from "./functions";
+import type { DefinedAction, DefinedFunction } from "./functions";
 import { isBuiltin, isReservedCall } from "./parser/builtins";
 import type { ComponentPromptSpec, LibrarySpec, PromptSpec, ToolSpec } from "./parser/prompt";
 import { generatePrompt } from "./parser/prompt";
-import type { FunctionSchema, JSONSchemaDef, LibraryJSONSchema } from "./parser/types";
+import type {
+  ActionEvent,
+  BuiltinActionType,
+  FunctionSchema,
+  JSONSchemaDef,
+  LibraryJSONSchema,
+} from "./parser/types";
 import { assertV4Schema, schemaSignature, tagSchemaId, type SchemaRegistry } from "./signature";
 
-export { defineFunction, type DefinedFunction } from "./functions";
+export {
+  defineAction,
+  defineFunction,
+  type DefinedAction,
+  type DefinedFunction,
+} from "./functions";
 export type { LibraryJSONSchema } from "./parser/types";
 export { buildSignature, tagSchemaId } from "./signature";
 
@@ -124,9 +135,11 @@ function buildComponentSpecs(
   return specs;
 }
 
-/** Function specs in the same shape as component specs. Undefined when there are none. */
+type CallDefinition = DefinedFunction<any, any> | DefinedAction<any>;
+
+/** Function or action specs in the same shape as component specs. Undefined when there are none. */
 function buildCallSpecs(
-  calls: Record<string, DefinedFunction<any, any>>,
+  calls: Record<string, CallDefinition>,
   reg: SchemaRegistry,
 ): Record<string, ComponentPromptSpec> | undefined {
   const entries = Object.entries(calls);
@@ -134,7 +147,7 @@ function buildCallSpecs(
   const specs: Record<string, ComponentPromptSpec> = {};
   for (const [name, def] of entries) {
     specs[name] = {
-      signature: schemaSignature(name, def.params, def.returns, reg),
+      signature: schemaSignature(name, def.params, "returns" in def ? def.returns : undefined, reg),
       description: def.description,
     };
   }
@@ -143,11 +156,15 @@ function buildCallSpecs(
 
 // ─── Library ────────────────────────────────────────────────────────────────
 
-export interface Library<C = unknown> {
+type AnyAction = DefinedAction<any, string>;
+
+export interface Library<C = unknown, A extends AnyAction = AnyAction> {
   readonly components: Record<string, DefinedComponent<any, C>>;
   readonly componentGroups: ComponentGroup[] | undefined;
   /** Library functions keyed by name. Empty when the library has none. */
   readonly functions: Record<string, DefinedFunction<any, any>>;
+  /** Custom actions keyed by name. Empty when the library has none. */
+  readonly actions: { readonly [K in A as K["name"]]: K };
   readonly root: string | undefined;
   readonly id: string | undefined;
   /** Instance id minted by `createLibrary()`. Distinct from the optional public `id`. */
@@ -158,11 +175,27 @@ export interface Library<C = unknown> {
   toJSONSchema(): LibraryJSONSchema;
 }
 
-export interface LibraryDefinition<C = unknown> {
+type LibraryAction<L> = L extends { readonly actions: infer R } ? R[keyof R] : never;
+type CustomActionEvent<A> =
+  A extends DefinedAction<infer T, infer N>
+    ? Omit<ActionEvent, "type" | "params"> & { type: N; params: z.infer<T> }
+    : never;
+
+/** The `onAction` event for library `L`: a union discriminated on `type` when it has custom actions. */
+export type LibraryActionEvent<L> = [LibraryAction<L>] extends [never]
+  ? ActionEvent
+  : string extends LibraryAction<L>["name"]
+    ? ActionEvent
+    : | (Omit<ActionEvent, "type"> & { type: `${BuiltinActionType}` | "custom" })
+      | CustomActionEvent<LibraryAction<L>>;
+
+export interface LibraryDefinition<C = unknown, A extends AnyAction = AnyAction> {
   components: DefinedComponent<any, C>[];
   componentGroups?: ComponentGroup[];
   /** Library functions, called as `@Name(...)` in programs. */
   functions?: DefinedFunction<any, any>[];
+  /** Custom actions, used as `@Name(...)` steps in action props. */
+  actions?: A[];
   root?: string;
   id?: string;
 }
@@ -180,7 +213,9 @@ function createLibraryId(): string {
 /**
  * Create a component library from an array of defined components.
  */
-export function createLibrary<C = unknown>(input: LibraryDefinition<C>): Library<C> {
+export function createLibrary<C = unknown, A extends AnyAction = AnyAction>(
+  input: LibraryDefinition<C, A>,
+): Library<C, A> {
   const componentsRecord: Record<string, DefinedComponent<any, C>> = {};
   const reg = z.registry<{ id: string }>();
   const __libraryId = createLibraryId();
@@ -201,7 +236,7 @@ export function createLibrary<C = unknown>(input: LibraryDefinition<C>): Library
   const claim = (kind: string, name: string) => {
     if (isBuiltin(name) || isReservedCall(name) || names.has(name)) {
       throw new Error(
-        `[createLibrary] ${kind} "${name}" collides with a built-in, component, or function of the same name. Rename it.`,
+        `[createLibrary] ${kind} "${name}" collides with a built-in, component, function, or action of the same name. Rename it.`,
       );
     }
     names.add(name);
@@ -211,15 +246,22 @@ export function createLibrary<C = unknown>(input: LibraryDefinition<C>): Library
     claim("Function", fn.name);
     functionsRecord[fn.name] = fn;
   }
+  const actionsRecord: Record<string, DefinedAction<any>> = {};
+  for (const action of input.actions ?? []) {
+    claim("Action", action.name);
+    actionsRecord[action.name] = action;
+  }
   const callSpecs = () => {
     const functions = buildCallSpecs(functionsRecord, reg);
-    return functions ? { functions } : {};
+    const actions = buildCallSpecs(actionsRecord, reg);
+    return { ...(functions ? { functions } : {}), ...(actions ? { actions } : {}) };
   };
 
-  const library: Library<C> = {
+  const library: Library<C, A> = {
     components: componentsRecord,
     componentGroups: input.componentGroups,
     functions: functionsRecord,
+    actions: actionsRecord as Library<C, A>["actions"],
     root: input.root,
     id: input.id,
     __libraryId,
@@ -258,7 +300,7 @@ export function createLibrary<C = unknown>(input: LibraryDefinition<C>): Library
   }
 
   function callSchemas(
-    calls: Record<string, DefinedFunction<any, any>>,
+    calls: Record<string, CallDefinition>,
   ): Record<string, FunctionSchema> | undefined {
     const entries = Object.entries(calls);
     if (!entries.length) return undefined;
@@ -268,7 +310,7 @@ export function createLibrary<C = unknown>(input: LibraryDefinition<C>): Library
         {
           description: def.description,
           params: toCallJSONSchema(def.params) as JSONSchemaDef,
-          ...(def.returns ? { returns: toCallJSONSchema(def.returns) } : {}),
+          ...("returns" in def && def.returns ? { returns: toCallJSONSchema(def.returns) } : {}),
         },
       ]),
     );
@@ -288,6 +330,8 @@ export function createLibrary<C = unknown>(input: LibraryDefinition<C>): Library
     }
     const functions = callSchemas(functionsRecord);
     if (functions) schema.functions = functions;
+    const actions = callSchemas(actionsRecord);
+    if (actions) schema.actions = actions;
     return schema;
   }
 

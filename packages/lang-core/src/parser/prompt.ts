@@ -1,6 +1,6 @@
 import { schemaSignature } from "../signature";
 import { recordSystemPromptGeneration } from "../telemetry/runtime";
-import { BUILTINS } from "./builtins";
+import { BUILTIN_STEPS, BUILTINS, type BuiltinStep } from "./builtins";
 import { generateCloudConfig } from "./cloud-config";
 import type { LibraryJSONSchema } from "./types";
 
@@ -36,6 +36,8 @@ export interface BaseSpec {
   componentGroups?: ComponentGroup[];
   /** Library functions, listed next to the built-ins. Signatures are pre-built. */
   functions?: Record<string, ComponentPromptSpec>;
+  /** Custom library actions, listed with the built-in action steps. Signatures are pre-built. */
+  actions?: Record<string, ComponentPromptSpec>;
 }
 
 export interface PromptSpec extends BaseSpec {
@@ -227,24 +229,24 @@ result = Mutation("tool_name", {arg1: $binding, arg2: "value"})
 - Show loading state: \`result.status == "loading" ? TextContent("Saving...") : null\``;
 }
 
-function actionSection(flags: { toolCalls: boolean; bindings: boolean }): string {
+const ACTION_HEADER = "## Action — Button Behavior";
+
+/** The built-in steps the prompt lists: @Run needs toolCalls, @Set and @Reset need bindings. */
+function builtinSteps(flags: { toolCalls: boolean; bindings: boolean }): BuiltinStep[] {
+  return Object.values(BUILTIN_STEPS).filter((s) => {
+    if (s.name === "Run") return flags.toolCalls;
+    if (s.name === "Set" || s.name === "Reset") return flags.bindings;
+    return true;
+  });
+}
+
+function actionSection(flags: { toolCalls: boolean; bindings: boolean }, custom: string[]): string {
   const steps = [
-    '- @ToAssistant("message", context?) — Send a message to the assistant (for conversational buttons like "Tell me more", "Explain this"). The optional context is any value (object, array, string, number) passed to the assistant as hidden data, e.g. @ToAssistant("Show details", {orderId: 42})',
-    '- @OpenUrl("https://...") — Navigate to a URL',
+    ...builtinSteps(flags).map(
+      (s) => `- ${functionLine({ ...s, signature: schemaSignature(s.name, s.params) })}`,
+    ),
+    ...custom,
   ];
-
-  if (flags.bindings) {
-    steps.push(
-      "- @Set($variable, value) — Set a $variable to a specific value",
-      '- @Reset($var1, $var2, ...) — Reset $variables to their declared defaults (e.g. @Reset($title, $priority) restores $title="" and $priority="medium")',
-    );
-  }
-
-  if (flags.toolCalls) {
-    steps.unshift(
-      "- @Run(queryOrMutationRef) — Execute a Mutation or re-fetch a Query (ref must be a declared Query/Mutation)",
-    );
-  }
 
   const examples: string[] = [];
   if (flags.toolCalls) {
@@ -273,7 +275,7 @@ viewBtn = Button("View", @OpenUrl("https://example.com"))
     );
   }
 
-  return `## Action — Button Behavior
+  return `${ACTION_HEADER}
 
 An action wires a button click to operations. Pass a single @-prefixed step, e.g. Button("Ask", @ToAssistant("Tell me more")), or a list of steps, e.g. Button("Read", [@OpenUrl("https://example.com"), @ToAssistant("Summarize this page")]). Steps execute in order.
 Buttons without an action automatically send their label to the assistant (equivalent to @ToAssistant(label)).
@@ -556,12 +558,9 @@ function generateComponentSignatures(
   ];
   if (flags.usesActionExpression) {
     const allSteps = [
-      flags.toolCalls ? "@Run" : "",
-      "@ToAssistant",
-      "@OpenUrl",
-      flags.bindings ? "@Set" : "",
-      flags.bindings ? "@Reset" : "",
-    ].filter(Boolean);
+      ...builtinSteps(flags).map((step) => step.name),
+      ...Object.keys(spec.actions ?? {}),
+    ].map((name) => `@${name}`);
     lines.push(
       `Props typed \`ActionExpression\` accept one @step or a list of @steps. See the Action section for available steps (${allSteps.join(", ")}).`,
     );
@@ -650,10 +649,16 @@ export function generatePrompt(spec: PromptSpec): string {
     parts.push(mutationSection());
   }
 
-  // Action section — only when components use ActionExpression (v0.5 action syntax)
+  // Library actions get the Action section alone when no component uses ActionExpression
+  const customActions = Object.values(spec.actions ?? {}).map((a) => `- ${functionLine(a)}`);
   if (usesActionExpression) {
     parts.push("");
-    parts.push(actionSection({ toolCalls, bindings }));
+    parts.push(actionSection({ toolCalls, bindings }, customActions));
+  } else if (customActions.length) {
+    parts.push("");
+    parts.push(
+      `${ACTION_HEADER}\n\nPass one step, or Action([...]) with several steps, as a button's action.\n\nAvailable steps:\n${customActions.join("\n")}`,
+    );
   }
 
   // Interactive filters (needs both toolCalls and bindings)

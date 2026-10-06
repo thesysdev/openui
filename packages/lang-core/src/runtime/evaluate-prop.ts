@@ -17,7 +17,7 @@ import { isElementNode } from "../parser/types";
 import { isReactiveSchema } from "../reactive";
 import { schemaIdTags, unwrap } from "../signature";
 import type { EvaluationContext, SchemaContext } from "./evaluator";
-import { evaluate, flattenPlans, isActionPlan, isReactiveAssign } from "./evaluator";
+import { evaluate, flattenPlans, isActionPlan, isReactiveAssign, ownSteps } from "./evaluator";
 
 export interface PropEvalCallbacks {
   /** How to recurse into an ElementNode (evaluator vs evaluate-tree differ here). */
@@ -47,7 +47,7 @@ export function evaluatePropCore(
   ) {
     return flattenPlans(result);
   }
-  return result;
+  return isActionPlan(result) ? ownSteps(result) : result;
 }
 
 function evaluatePropValue(

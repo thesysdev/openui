@@ -32,3 +32,19 @@ export function defineFunction<
   if (config.returns) assertV4Schema(config.returns, config.name);
   return config;
 }
+
+/** A library action step, delivered to `onAction` as `{ type: name, params }` on click. */
+export interface DefinedAction<T extends z.$ZodObject = z.$ZodObject, N extends string = string> {
+  name: N;
+  description: string;
+  /** Parameters as a Zod object. Key order is the positional order in programs. */
+  params: T;
+}
+
+/** Define a library action for `createLibrary({ actions })`. */
+export function defineAction<const N extends string, T extends z.$ZodObject>(
+  config: DefinedAction<T, N>,
+): DefinedAction<T, N> {
+  assertParamsObject(config.params, config.name);
+  return config;
+}

@@ -19,13 +19,15 @@ export interface FunctionSchema {
 /**
  * The JSON Schema document produced by `library.toJSONSchema()`.
  * All component schemas live in `$defs`, keyed by component name.
- * Library functions, when the library has any, live in `functions`.
+ * Library functions and actions live in `functions` and `actions`.
  */
 export interface LibraryJSONSchema {
   $defs?: Record<string, JSONSchemaDef>;
   /** Component names as keys. Other `$defs` are data shapes. */
   properties?: Record<string, unknown>;
   functions?: Record<string, FunctionSchema>;
+  /** Custom actions, when the library has any. They have no `returns`. */
+  actions?: Record<string, FunctionSchema>;
 }
 
 /** Scalar JSON Schema types we can reliably check a positional literal against. */
@@ -42,16 +44,17 @@ export interface ParamDef {
   schema?: unknown;
 }
 
-/** A call the parser keeps for the runtime: a built-in or library function. */
+/** A call the parser keeps for the runtime: a built-in or library function or action step. */
 export interface CallDef {
+  kind: "function" | "action";
   params: ParamDef[];
   /** Built-ins coerce their args: the runtime maps them by name, unvalidated. */
   builtin?: true;
-  /** Lazy built-ins (@Each) get their args unevaluated. */
+  /** Lazy built-ins (@Each, Action, @Run, @Set, @Reset) get their args unevaluated. */
   lazy?: true;
 }
 
-/** Component params by name, plus `calls`: the built-ins and library functions. */
+/** Component params by name, plus `calls`: the built-ins and library functions and actions. */
 export type ParamMap = Map<string, { params: ParamDef[] }> & {
   calls?: Map<string, CallDef>;
 };
@@ -203,7 +206,9 @@ export type ActionStep =
   | { type: "continue_conversation"; message: string; context?: unknown }
   | { type: "open_url"; url: string }
   | { type: "set"; target: string; valueAST: ASTNode }
-  | { type: "reset"; targets: string[] };
+  | { type: "reset"; targets: string[] }
+  /** A library action from `defineAction`; delivered to `onAction` as `{ type: name, params }`. */
+  | { type: "custom_action"; name: string; params: Record<string, unknown> };
 
 /**
  * An ordered sequence of steps to execute when a button is clicked.

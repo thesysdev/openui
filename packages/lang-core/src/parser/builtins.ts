@@ -1,8 +1,14 @@
-/** Built-in functions (defined like library functions), action steps and reserved calls. */
+/** Built-in functions and action steps (defined like library ones), and reserved calls. */
 
 import { z } from "zod/v4";
-import { defineFunction, type DefinedFunction } from "../functions";
-import type { CallDef, ParamMap } from "./types";
+import {
+  defineAction,
+  defineFunction,
+  type DefinedAction,
+  type DefinedFunction,
+} from "../functions";
+import { tagSchemaId } from "../signature";
+import type { ActionStep, CallDef, ParamMap } from "./types";
 
 /** Resolve a field path on an object. Supports dot-paths: "state.name" → obj.state.name */
 function resolveField(obj: any, path: string): unknown {
@@ -216,29 +222,107 @@ export const ACTION_STEPS = {
   Reset: "reset",
 } as const;
 
-/** All action expression names (steps + the Action container) */
-export const ACTION_NAMES: Set<string> = new Set(["Action", ...Object.keys(ACTION_STEPS)]);
+/** A schema that only names its type in prompt signatures, e.g. `$variable`. */
+function named(id: string) {
+  const schema = z.any();
+  tagSchemaId(schema, id);
+  return schema;
+}
 
-/** The language's calls, the base of every library's call registry. */
-export const BUILTIN_CALLS: ReadonlyMap<string, CallDef> = new Map(
-  builtins.map((b) => [
-    b.name,
-    {
-      params: Object.keys(b.params.shape).map((name) => ({ name, required: false })),
-      builtin: true,
-      ...(b.lazy ? { lazy: true } : {}),
-    },
-  ]),
+/** A built-in step: `step` builds it from coerced args; a lazy one reads raw args in the evaluator. */
+export type BuiltinStep = DefinedAction<any> & {
+  step?: (args: any) => ActionStep;
+  lazy?: true;
+};
+
+const steps: BuiltinStep[] = [
+  {
+    ...defineAction({
+      name: "Run",
+      description: "Execute a Mutation or re-fetch a Query (ref must be a declared Query/Mutation)",
+      params: z.object({ ref: named("Query | Mutation") }),
+    }),
+    lazy: true,
+  },
+  {
+    ...defineAction({
+      name: "ToAssistant",
+      description:
+        'Send a message to the assistant (for conversational buttons like "Tell me more", "Explain this"). The optional context is any value (object, array, string, number) passed to the assistant as hidden data, e.g. @ToAssistant("Show details", {orderId: 42})',
+      params: z.object({ message: z.string(), context: z.any().optional() }),
+    }),
+    // The context may be any value and is passed through unchanged; null means none
+    step: ({ message, context }) => ({
+      type: ACTION_STEPS.ToAssistant,
+      message: String(message ?? ""),
+      context: context ?? undefined,
+    }),
+  },
+  {
+    ...defineAction({
+      name: "OpenUrl",
+      description: "Navigate to a URL",
+      params: z.object({ url: z.string() }),
+    }),
+    step: ({ url }) => ({ type: ACTION_STEPS.OpenUrl, url: String(url ?? "") }),
+  },
+  {
+    ...defineAction({
+      name: "Set",
+      description: "Set a $variable to a specific value",
+      params: z.object({ variable: named("$variable"), value: z.any() }),
+    }),
+    lazy: true,
+  },
+  {
+    ...defineAction({
+      name: "Reset",
+      description:
+        'Reset $variables to their declared defaults; pass several to reset each (e.g. @Reset($title, $priority) restores $title="" and $priority="medium")',
+      params: z.object({ variable: named("$variable") }),
+    }),
+    lazy: true,
+  },
+];
+
+/** All built-in steps by name, in prompt order. */
+export const BUILTIN_STEPS: Record<string, BuiltinStep> = Object.fromEntries(
+  steps.map((s) => [s.name, s]),
 );
 
-/** The library's call registry (the built-ins plus its functions), or the built-ins alone. */
+const callDef = (kind: CallDef["kind"], def: BuiltinFunction | BuiltinStep): CallDef => ({
+  kind,
+  params: Object.keys(def.params.shape).map((name) => ({ name, required: false })),
+  builtin: true,
+  ...(def.lazy ? { lazy: true } : {}),
+});
+
+/** The built-in functions, steps and Action: the base of every library's call registry. */
+export const BUILTIN_CALLS: ReadonlyMap<string, CallDef> = new Map([
+  ...builtins.map((b) => [b.name, callDef("function", b)] as const),
+  ...steps.map((s) => [s.name, callDef("action", s)] as const),
+  [
+    "Action",
+    { kind: "action", params: [{ name: "steps", required: true }], builtin: true, lazy: true },
+  ],
+]);
+
+/** The library's call registry (the built-ins plus its functions and actions), or the built-ins alone. */
 export function callsOf(cat: ParamMap | undefined): ReadonlyMap<string, CallDef> {
   return cat?.calls ?? BUILTIN_CALLS;
 }
 
-/** True for a built-in function, action step, or Action (not a component). */
+/** True for a built-in function, step, or Action (not a component). */
 export function isBuiltin(name: string): boolean {
-  return BUILTIN_CALLS.has(name) || ACTION_NAMES.has(name);
+  return BUILTIN_CALLS.has(name);
+}
+
+/** True for a step call: a built-in step, Action, or one of `actions`. */
+export function isStep(name: string, actions?: object): boolean {
+  return (
+    BUILTIN_CALLS.get(name)?.kind === "action" ||
+    (!!actions && Object.prototype.hasOwnProperty.call(actions, name))
+  );
 }
 
 /** Reserved statement-level call names — not builtins, not components */

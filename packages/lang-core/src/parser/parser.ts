@@ -669,10 +669,13 @@ export function compileSchema(schema: LibraryJSONSchema): ParamMap {
     if (components && !components.has(name)) continue;
     map.set(name, { params: compileParams(def) });
   }
-  // The call registry: the built-ins plus the library's functions
+  // The call registry: the built-ins plus the library's functions and actions
   map.calls = new Map(BUILTIN_CALLS);
   for (const [name, fn] of Object.entries(schema.functions ?? {})) {
-    map.calls.set(name, { params: compileParams(fn.params) });
+    map.calls.set(name, { kind: "function", params: compileParams(fn.params) });
+  }
+  for (const [name, action] of Object.entries(schema.actions ?? {})) {
+    map.calls.set(name, { kind: "action", params: compileParams(action.params) });
   }
   return map;
 }

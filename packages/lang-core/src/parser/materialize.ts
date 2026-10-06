@@ -4,7 +4,7 @@
 
 import type { ASTNode } from "./ast";
 import { isASTNode, isRuntimeExpr } from "./ast";
-import { ACTION_NAMES, callsOf, isReservedCall, RESERVED_CALLS } from "./builtins";
+import { callsOf, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { isElementNode, type MaterializeCtx } from "./types";
 import {
   buildParamsSignature,
@@ -28,6 +28,8 @@ export function containsDynamicValue(v: unknown): boolean {
     return Object.values(v.props).some(containsDynamicValue);
   }
   const obj = v as Record<string, unknown>;
+  // A `{steps: [...]}` literal is evaluated too, so data cannot pose as custom action steps
+  if (Array.isArray(obj.steps)) return true;
   return Object.values(obj).some(containsDynamicValue);
 }
 
@@ -68,9 +70,9 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
   }
 }
 
-/** Calls in the registry, action steps and reserved calls stay AST for the runtime. */
+/** Registry calls (functions and steps) and reserved calls stay AST for the runtime. */
 function isRuntimeCall(name: string, ctx: MaterializeCtx): boolean {
-  return callsOf(ctx.cat).has(name) || ACTION_NAMES.has(name) || isReservedCall(name);
+  return callsOf(ctx.cat).has(name) || isReservedCall(name);
 }
 
 /** A runtime call keeps its AST; a registered non-lazy call also gets mappedProps. */
@@ -86,7 +88,11 @@ function materializeCall(
   const mappedProps = def.builtin
     ? nameArgs(args, def.params)
     : mapCallArgs(node.name, args, def, ctx);
-  return mappedProps ? { ...node, args, mappedProps } : { k: "Null" };
+  if (mappedProps) return { ...node, args, mappedProps };
+  // An invalid action step is an empty plan, a no-op
+  return def.kind === "action"
+    ? { k: "Comp", name: "Action", args: [{ k: "Arr", els: [] }] }
+    : { k: "Null" };
 }
 
 /**
@@ -99,7 +105,8 @@ function materializeLazyBuiltin(
   ctx: MaterializeCtx,
   scopedRefs: ReadonlySet<string>,
 ): ASTNode | null {
-  if (!callsOf(ctx.cat).get(node.name)?.lazy || node.args.length < 3) return null;
+  const def = callsOf(ctx.cat).get(node.name);
+  if (def?.kind !== "function" || !def.lazy || node.args.length < 3) return null;
   const varArg = node.args[1];
   const varName = varArg.k === "Ref" ? varArg.n : varArg.k === "Str" ? varArg.v : null;
   if (!varName) return null;

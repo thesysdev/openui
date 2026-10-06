@@ -5,7 +5,7 @@
 
 import type { ASTNode } from "../parser/ast";
 import { isASTNode, toLiteralAST } from "../parser/ast";
-import { ACTION_NAMES, ACTION_STEPS, BUILTINS, toNumber } from "../parser/builtins";
+import { ACTION_STEPS, BUILTIN_STEPS, BUILTINS, isStep, toNumber } from "../parser/builtins";
 import type {
   ActionPlan,
   ActionStep,
@@ -33,6 +33,8 @@ export interface EvaluationContext {
   extraScope?: Record<string, unknown>;
   /** Library functions: `library.toJSONSchema().functions` entries plus each `fn`. */
   functions?: Record<string, RuntimeFunction>;
+  /** Custom actions: the `library.toJSONSchema().actions` entries. */
+  actions?: Record<string, FunctionSchema>;
   /** Reports a runtime error, such as a library function call that evaluated to null. */
   reportError?: (message: string) => void;
 }
@@ -96,13 +98,27 @@ export function evaluate(
         if (builtin.lazy) return evaluateLazyBuiltin(node.name, node.args, context, schemaCtx);
         return builtin.fn!(evaluateArgs(node, context));
       }
-      // Action calls → evaluate to an ActionPlan
-      if (ACTION_NAMES.has(node.name)) {
-        return evaluateActionCall(node.name, node.args, context);
-      }
+      // Built-in steps and Action([...]) → an ActionPlan
+      if (isStep(node.name)) return evaluateActionCall(node, context);
       const fns = context.functions;
       if (fns && Object.prototype.hasOwnProperty.call(fns, node.name)) {
         return callFunction(node.name, fns[node.name]!, node, context);
+      }
+      // Custom actions: a one-step plan; invalid args give an empty plan, a no-op
+      const acts = context.actions;
+      if (acts && Object.prototype.hasOwnProperty.call(acts, node.name)) {
+        const def = acts[node.name]!;
+        const args = evaluateArgs(node, context);
+        if (missesRequired(args, def.params)) return { steps: [] };
+        const params = checkValue(args, def.params, node.name, "", context);
+        if (params === INVALID) return { steps: [] };
+        const step: ActionStep = {
+          type: "custom_action",
+          name: node.name,
+          params: params as Record<string, unknown>,
+        };
+        customSteps.add(step);
+        return { steps: [step] };
       }
       // If parser already mapped args→props (via materializeExpr), use named props.
       // With schema context: emit ReactiveAssign for StateRef on reactive props.
@@ -368,45 +384,43 @@ export function isActionPlan(value: unknown): value is ActionPlan {
 
 /** Flatten plans (and stray step objects) into one plan; other values are dropped. */
 export function flattenPlans(values: unknown[]): ActionPlan {
-  return {
+  return ownSteps({
     steps: values.flatMap((v): ActionStep[] => {
       if (isActionPlan(v)) return v.steps;
       return v != null && typeof v === "object" && "type" in v ? [v as ActionStep] : [];
     }),
-  };
+  });
+}
+
+/** The custom steps made by real calls; a custom step read from data is not among them. */
+const customSteps = new WeakSet<ActionStep>();
+
+/** Drops the custom steps no real call made, so data cannot pose as a custom action. */
+export function ownSteps(plan: ActionPlan): ActionPlan {
+  const own = (s: ActionStep) => s.type !== "custom_action" || customSteps.has(s);
+  return plan.steps.every(own) ? plan : { ...plan, steps: plan.steps.filter(own) };
 }
 
 /** A step call is a one-step plan, an invalid step an empty plan; Action([...]) flattens. */
-function evaluateActionCall(name: string, args: ASTNode[], context: EvaluationContext): ActionPlan {
+function evaluateActionCall(node: ASTNode & { k: "Comp" }, context: EvaluationContext): ActionPlan {
+  const { name, args } = node;
   if (name === "Action") {
     const list = args.length > 0 ? evaluate(args[0], context) : [];
     return flattenPlans(Array.isArray(list) ? list : []);
   }
-  const step = evaluateActionStep(name, args, context);
+  const def = BUILTIN_STEPS[name]!;
+  const step = def.step ? def.step(evaluateArgs(node, context)) : evaluateLazyStep(name, args);
   return { steps: step ? [step] : [] };
 }
 
-function evaluateActionStep(
-  name: string,
-  args: ASTNode[],
-  context: EvaluationContext,
-): ActionStep | null {
+/** The steps whose args are refs, read as AST. */
+function evaluateLazyStep(name: string, args: ASTNode[]): ActionStep | null {
   switch (name) {
     case "Run": {
       // Run(runtimeRef); an unresolved Ref is invalid
       const refNode = args[0];
       if (refNode?.k !== "RuntimeRef") return null;
       return { type: ACTION_STEPS.Run, statementId: refNode.n, refType: refNode.refType };
-    }
-    case "ToAssistant": {
-      // The context may be any value and is passed through unchanged; null means none.
-      const message = args.length > 0 ? String(evaluate(args[0], context) ?? "") : "";
-      const ctx = args.length > 1 ? (evaluate(args[1], context) ?? undefined) : undefined;
-      return { type: ACTION_STEPS.ToAssistant, message, context: ctx };
-    }
-    case "OpenUrl": {
-      const url = args.length > 0 ? String(evaluate(args[0], context) ?? "") : "";
-      return { type: ACTION_STEPS.OpenUrl, url };
     }
     case "Set": {
       // Set($varName, value). valueAST is evaluated at click time by triggerAction;
