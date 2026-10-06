@@ -30,7 +30,7 @@ export interface A2UIRendererProps {
   /** Additional top-level data-model keys that should hydrate form namespaces. */
   formStateKeys?: readonly string[];
   toolProvider?: OpenUIRendererProps["toolProvider"];
-  queryLoader?: OpenUIRendererProps["queryLoader"];
+  children?: OpenUIRendererProps["children"];
 }
 
 function collectFormStateKeys(result: ParseResult | null): string[] {
@@ -67,7 +67,7 @@ export function A2UIRenderer({
   isStreaming = false,
   formStateKeys,
   toolProvider,
-  queryLoader,
+  children,
 }: A2UIRendererProps) {
   const subscribe = useCallback((notify: () => void) => client.subscribe(notify), [client]);
   const getSnapshot = useCallback(() => client.getSurface(surfaceId), [client, surfaceId]);
@@ -139,7 +139,7 @@ export function A2UIRenderer({
       onParseResult={onParseResult}
       onError={onError}
       toolProvider={toolProvider ?? agentToolProvider}
-      queryLoader={queryLoader}
+      children={children}
     />
   );
 }

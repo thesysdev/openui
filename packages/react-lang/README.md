@@ -22,27 +22,32 @@ pnpm add @openuidev/react-lang
 
 When a query fails, `Renderer` shows an error with a Retry button and hides its rendered results until the failed queries succeed. This prevents query defaults or cached values from appearing as current data after an outage. Retrying preserves the mounted components and their input state. `onError` continues to receive structured errors.
 
-Use `queryError` to customize the failure view. It also applies to `WithPreviewRenderer`:
+Use slots to customize loading and failure views:
 
 ```tsx
-<Renderer
-  response={response}
-  library={library}
-  toolProvider={toolProvider}
-  queryError={({ retry, isRetrying }) => (
-    <div role="alert">
-      <p>We couldn't load your data. Please try again.</p>
-      <button type="button" onClick={retry} disabled={isRetrying}>
-        {isRetrying ? "Retrying…" : "Try again"}
-      </button>
-    </div>
-  )}
-/>
+<Renderer.Root response={response} library={library} toolProvider={toolProvider}>
+  <div style={{ position: "relative" }}>
+    <Renderer.Content />
+    <Renderer.QueryLoading />
+    <Renderer.QueryError>
+      <div role="alert">
+        <p>We couldn't load your data. Please try again.</p>
+        <Renderer.Retry>Try again</Renderer.Retry>
+      </div>
+    </Renderer.QueryError>
+  </div>
+</Renderer.Root>
 ```
 
-The callback also receives `errors`, an array of structured query errors. Results remain hidden during retries and reappear after recovery.
+`Renderer.Root` owns one runtime and renders only its children. Slots can sit inside wrappers or portals under that root. `Renderer.Content` keeps generated components mounted while queries load or fail; failed results remain hidden until recovery. Omitting a slot omits its presentation. Plain `Renderer` supplies the default content, spinner, and retry view.
 
-`queryLoader` is shown both while a streamed MiniApp is waiting to execute its queries and while data is fetching. Widgets that depend on queries without successful data show loading placeholders; static layout and labels can render progressively. During streaming edits, previously loaded results remain visible with the loading indicator until the updated response is ready.
+`Renderer.QueryLoading` shows its children while queries await generation or fetch data, unless failures are being displayed. Omit children for the default spinner. Position custom overlays within your own relative container. `Renderer.QueryError` shows its children on failure; omit children for the default retry view. `Renderer.Retry` disables itself during loading and when no queries have failed. Use `asChild` with one custom button that forwards button props and refs; its click handler can prevent the retry with `event.preventDefault()`.
+
+Use `useRendererQuery()` inside the root to read `{ isLoading, errors, retry, isRetrying }` in your own components. Generation progress remains available through `useIsStreaming()`. Do not create another root for each slot.
+
+`Renderer` accepts slot children to replace its default content composition. For previews, compose `WithPreviewRenderer.Root`, `Trigger`, `Content`, and `Close`. Place Renderer slots inside the preview Content; it supplies their runtime while open. Closing disposes that runtime. To preserve state across your own panel closing, keep `Renderer.Root` mounted and toggle only its content or portal.
+
+Widgets that depend on queries without successful data show loading placeholders; static layout and labels can render progressively. During streaming edits, previously loaded results remain visible with loading feedback until the updated response is ready.
 
 ## Overview
 
@@ -306,50 +311,49 @@ program keeps the same query names and arguments.
 
 ### Choosing a renderer and adding previews
 
-Use `Renderer` when you want to display the UI directly without a preview.
-Use `WithPreviewRenderer` when you want an inline preview that opens the rendered UI.
+Use `Renderer` for a directly visible interface. Use `WithPreviewRenderer` for a preview that opens the UI. Without children, WithPreviewRenderer supplies a name button, an inline panel, a close button, and the default Renderer views.
 
-`WithPreviewRenderer` wraps `Renderer` with metadata and presentation. It defaults to
-an inline name button that opens an inline content region. Metadata is optional;
-missing names display as “Untitled artifact”. All Renderer props pass through.
+For custom presentation, compose its slots. The example below uses an existing application-owned `panelElement`:
 
 ```tsx
 import { createPortal } from "react-dom";
-import { WithPreviewRenderer } from "@openuidev/react-lang";
+import { Renderer, WithPreviewRenderer } from "@openuidev/react-lang";
 
-<WithPreviewRenderer
+<WithPreviewRenderer.Root
   response={message.content}
   library={library}
   toolProvider={tools}
   isStreaming={isStreaming}
-  renderPreview={({ metadata, isOpen, open, close }) => (
-    <button aria-expanded={isOpen} onClick={isOpen ? close : open}>
-      {metadata.name || "View artifact"}
-    </button>
+>
+  <WithPreviewRenderer.Trigger>Open MiniApp</WithPreviewRenderer.Trigger>
+  {panelElement && createPortal(
+    <WithPreviewRenderer.Content className="miniapp-panel">
+      <WithPreviewRenderer.Close>Close</WithPreviewRenderer.Close>
+      <Renderer.Content />
+      <Renderer.QueryLoading />
+      <Renderer.QueryError />
+    </WithPreviewRenderer.Content>,
+    panelElement,
   )}
-  renderContent={({ children, metadata, close, contentId }) =>
-    panelElement && createPortal(
-      <section id={contentId} aria-label={metadata.name || "Artifact"}>
-        <button onClick={close}>Close</button>
-        {children}
-      </section>,
-      panelElement,
-    )
-  }
-/>
+</WithPreviewRenderer.Root>
 ```
 
-This is a composition pattern: `renderPreview` controls the inline preview and
-`renderContent` places the expanded Renderer in your panel, modal, or portal.
-The host owns the target element and any dialog focus/keyboard behavior. No
-portal library or `react-dom` import is imposed by the wrapper.
+| Slot | Purpose |
+| --- | --- |
+| `WithPreviewRenderer.Root` | Owns metadata and open state; renders only supplied children. |
+| `WithPreviewRenderer.Trigger` | Toggles visibility, with `aria-expanded` and `aria-controls`. Defaults to the MiniApp name and generation status. |
+| `WithPreviewRenderer.Content` | Mounts a positioned section and one Renderer runtime while open. Without children, supplies a close button and default Renderer views. |
+| `WithPreviewRenderer.Close` | Closes the preview. Defaults to a labelled close button. |
 
-Use `open` and `onOpenChange` for controlled visibility, or `defaultOpen` for
-initially expanded content. `onMetadata` is available on `WithPreviewRenderer` only.
-The expanded Renderer mounts only while open; closing disposes its query manager
-and resets its local state. Persist form state with `onStateUpdate` and restore
-it with `initialState` when needed. Reopening refetches queries. Use a stable key
-per artifact to keep separate messages' presentation state independent.
+`Trigger` and `Close` accept button props and `asChild` for one custom button that forwards props and its ref. Child click handlers run first and can cancel the action with `preventDefault()`. No slot dependency is needed in your application.
+
+`useRendererPreview()` returns `{ metadata, isOpen, isStreaming, contentId, open, close }` inside the preview root, including while closed. Use it for custom titles or controls. `useRendererQuery()` and Renderer slots belong inside the preview Content, where the runtime exists. Mount one Content per preview, and do not nest another Renderer root inside it.
+
+Use `open` and `onOpenChange` for controlled visibility, or `defaultOpen` for initial visibility. `onMetadata` reports metadata changes. `WithPreviewRenderer` with explicit children uses the same custom composition as `.Root`; omit children for the complete default presentation.
+
+Content accepts section props such as `className`, `style`, and `aria-label`; its ID is assigned by the preview so the trigger stays linked. Use your own React portal to position it. Your host owns modal focus, keyboard behavior, and the portal container.
+
+Closed previews do not start queries. Closing unmounts the content and disposes its runtime; reopening refetches data. Persist input state with `onStateUpdate` and restore it with `initialState`. If your own panel must keep its runtime while closed, compose it around a persistently mounted `Renderer.Root` instead.
 
 Streaming edits may contain multiple content sections: a base-plus-patch preview,
 retry previews, and a final merged result. The last content section wins. Queries

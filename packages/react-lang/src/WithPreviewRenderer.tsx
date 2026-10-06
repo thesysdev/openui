@@ -1,19 +1,26 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentPropsWithRef,
+} from "react";
+import { ButtonSlot } from "./ButtonSlot";
 import { Renderer, type RendererProps } from "./Renderer";
 import { parseResponseBundle, type ResponseMetadata } from "./responseBundle";
 
-export interface RendererPreviewProps {
+export interface RendererPreviewState {
   metadata: ResponseMetadata;
   isOpen: boolean;
   isStreaming: boolean;
-  /** ID for the default content region, also usable by a custom presentation. */
+  /** ID of the expanded content region. */
   contentId: string;
   open: () => void;
   close: () => void;
-}
-
-export interface RendererContentProps extends RendererPreviewProps {
-  children: ReactNode;
 }
 
 export interface WithPreviewRendererProps extends RendererProps {
@@ -24,24 +31,36 @@ export interface WithPreviewRendererProps extends RendererProps {
   onOpenChange?: (open: boolean) => void;
   /** Metadata belongs to the preview presentation, not the underlying Renderer. */
   onMetadata?: (metadata: ResponseMetadata) => void;
-  /** Customize the inline preview/trigger. Return null to hide it. */
-  renderPreview?: (props: RendererPreviewProps) => ReactNode;
-  /**
-   * Customize the expanded content. Called only while open.
-   * Return a panel, dialog, or a host-created portal containing children.
-   * The host owns portal targets, focus management, and dialog accessibility.
-   */
-  renderContent?: (props: RendererContentProps) => ReactNode;
+  /** Compose Trigger, Content, and Close. Omit for the default preview and panel. */
+  children?: React.ReactNode;
 }
 
-/** Adds an inline preview and expandable content to Renderer. Use Renderer directly when no preview is needed. */
-export function WithPreviewRenderer({
+const PreviewContext = createContext<{
+  state: RendererPreviewState;
+  rendererProps: RendererProps;
+} | null>(null);
+
+function usePreviewContext() {
+  const context = useContext(PreviewContext);
+  if (!context) {
+    throw new Error(
+      "Preview slots must be used within WithPreviewRenderer.Root or WithPreviewRenderer.",
+    );
+  }
+  return context;
+}
+
+/** Read metadata and control the nearest preview. Available even while its content is closed. */
+export function useRendererPreview(): RendererPreviewState {
+  return usePreviewContext().state;
+}
+
+function PreviewRoot({
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
   onMetadata,
-  renderPreview,
-  renderContent,
+  children,
   ...rendererProps
 }: WithPreviewRendererProps) {
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
@@ -52,9 +71,10 @@ export function WithPreviewRenderer({
     () => parseResponseBundle(rendererProps.response, isStreaming),
     [rendererProps.response, isStreaming],
   );
+  const metadataName = bundle.metadata.name;
   const metadata = useMemo<ResponseMetadata>(
-    () => ({ ...bundle.metadata }),
-    [bundle.metadata.name],
+    () => (metadataName === undefined ? {} : { name: metadataName }),
+    [metadataName],
   );
   const metadataCallback = useRef(onMetadata);
   metadataCallback.current = onMetadata;
@@ -72,43 +92,107 @@ export function WithPreviewRenderer({
   );
   const open = useCallback(() => setOpen(true), [setOpen]);
   const close = useCallback(() => setOpen(false), [setOpen]);
-  const previewProps: RendererPreviewProps = {
-    metadata,
-    isOpen,
-    isStreaming,
-    contentId,
-    open,
-    close,
-  };
-  const name = metadata.name || "Untitled artifact";
-  const children = isOpen ? <Renderer {...rendererProps} /> : null;
+  const state = useMemo(
+    () => ({ metadata, isOpen, isStreaming, contentId, open, close }),
+    [metadata, isOpen, isStreaming, contentId, open, close],
+  );
 
   return (
-    <>
-      {renderPreview ? (
-        renderPreview(previewProps)
-      ) : (
-        <button
-          type="button"
-          aria-expanded={isOpen}
-          aria-controls={isOpen ? contentId : undefined}
-          onClick={isOpen ? close : open}
-        >
-          {name}
-          {isStreaming ? " (generating…)" : ""}
-        </button>
-      )}
-      {isOpen &&
-        (renderContent ? (
-          renderContent({ ...previewProps, children })
-        ) : (
-          <section id={contentId} aria-label={name}>
-            <button type="button" onClick={close}>
-              Close {name}
-            </button>
-            {children}
-          </section>
-        ))}
-    </>
+    <PreviewContext.Provider value={{ state, rendererProps }}>{children}</PreviewContext.Provider>
   );
 }
+
+export interface PreviewButtonProps extends ComponentPropsWithRef<"button"> {
+  /** Apply behavior to one custom button that forwards button props and its ref. */
+  asChild?: boolean;
+}
+
+function PreviewTrigger({ asChild, children, onClick, disabled, ...props }: PreviewButtonProps) {
+  const { metadata, isOpen, isStreaming, contentId, open, close } = useRendererPreview();
+  const Button = asChild ? ButtonSlot : "button";
+  return (
+    <Button
+      type="button"
+      {...props}
+      disabled={disabled}
+      aria-expanded={isOpen}
+      aria-controls={isOpen ? contentId : undefined}
+      onClick={(event) => {
+        if (disabled || event.defaultPrevented) return;
+        onClick?.(event);
+        if (!event.defaultPrevented) (isOpen ? close : open)();
+      }}
+    >
+      {children === undefined
+        ? `${metadata.name || "Untitled artifact"}${isStreaming ? " (generating…)" : ""}`
+        : children}
+    </Button>
+  );
+}
+
+function PreviewClose({ asChild, children, onClick, disabled, ...props }: PreviewButtonProps) {
+  const { metadata, close } = useRendererPreview();
+  const Button = asChild ? ButtonSlot : "button";
+  return (
+    <Button
+      type="button"
+      {...props}
+      disabled={disabled}
+      onClick={(event) => {
+        if (disabled || event.defaultPrevented) return;
+        onClick?.(event);
+        if (!event.defaultPrevented) close();
+      }}
+    >
+      {children === undefined ? `Close ${metadata.name || "Untitled artifact"}` : children}
+    </Button>
+  );
+}
+
+export type PreviewContentProps = ComponentPropsWithRef<"section">;
+
+/** Mount one content slot per preview. Query hooks and Renderer slots belong inside it. */
+function PreviewContent({ children, style, ...props }: PreviewContentProps) {
+  const { state, rendererProps } = usePreviewContext();
+  if (!state.isOpen) return null;
+  return (
+    <section
+      aria-label={state.metadata.name || "Untitled artifact"}
+      {...props}
+      id={state.contentId}
+      style={{ position: "relative", ...style }}
+    >
+      {children === undefined ? (
+        <>
+          <PreviewClose />
+          <Renderer {...rendererProps} />
+        </>
+      ) : (
+        <Renderer {...rendererProps}>{children}</Renderer>
+      )}
+    </section>
+  );
+}
+
+function DefaultWithPreviewRenderer({ children, ...props }: WithPreviewRendererProps) {
+  return (
+    <PreviewRoot {...props}>
+      {children === undefined ? (
+        <>
+          <PreviewTrigger />
+          <PreviewContent />
+        </>
+      ) : (
+        children
+      )}
+    </PreviewRoot>
+  );
+}
+
+/** Adds a preview and expandable content. Use Renderer for a directly visible interface. */
+export const WithPreviewRenderer = Object.assign(DefaultWithPreviewRenderer, {
+  Root: PreviewRoot,
+  Trigger: PreviewTrigger,
+  Content: PreviewContent,
+  Close: PreviewClose,
+});

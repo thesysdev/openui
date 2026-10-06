@@ -7,12 +7,24 @@ import type {
   ToolProvider,
 } from "@openuidev/lang-core";
 import { ToolNotFoundError, extractToolResult } from "@openuidev/lang-core";
-import React, { Component, Fragment, useEffect, useInsertionEffect, useRef } from "react";
+import React, {
+  Component,
+  Fragment,
+  createContext,
+  useContext,
+  useEffect,
+  useInsertionEffect,
+  useMemo,
+  useRef,
+} from "react";
+import { ButtonSlot } from "./ButtonSlot";
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
 
-export interface QueryErrorProps {
+export interface RendererQueryState {
+  /** Whether any query is waiting for generation or fetching data. */
+  isLoading: boolean;
   errors: OpenUIError[];
   retry: () => void;
   isRetrying: boolean;
@@ -47,10 +59,8 @@ export interface RendererProps {
    */
   toolProvider?:
     Record<string, (args: Record<string, unknown>) => Promise<unknown>> | McpClientLike | null;
-  /** Loading indicator while queries await generation or fetch data. Defaults to a spinner. */
-  queryLoader?: React.ReactNode;
-  /** Customize the query failure view. Results stay hidden until failed queries recover. */
-  queryError?: (props: QueryErrorProps) => React.ReactNode;
+  /** Custom slot composition. Omit to use the default content, loading, and error views. */
+  children?: React.ReactNode;
   /**
    * Called with structured, LLM-friendly errors from the parser and query system.
    * Includes generation errors (unknown components, missing required props)
@@ -217,7 +227,7 @@ const DefaultQueryLoader = () => (
   />
 );
 
-export function Renderer({
+function RendererRoot({
   response,
   library,
   isStreaming = false,
@@ -226,8 +236,7 @@ export function Renderer({
   initialState,
   onParseResult,
   toolProvider,
-  queryLoader,
-  queryError,
+  children,
   onError,
   publishObservability,
 }: RendererProps) {
@@ -288,32 +297,138 @@ export function Renderer({
     onParseResultRef.current?.(parseResult);
   }, [parseResult]);
 
-  if (!result?.root) {
-    return null;
-  }
+  const query = useMemo<RendererQueryState>(
+    () => ({
+      isLoading: isQueryLoading,
+      errors: queryErrors,
+      retry: retryQueries,
+      isRetrying: queryErrors.length > 0 && isQueryLoading,
+    }),
+    [isQueryLoading, queryErrors, retryQueries],
+  );
+  const value = useMemo(() => ({ root: result?.root ?? null, query }), [result?.root, query]);
 
   return (
     <OpenUIContext.Provider value={contextValue}>
-      <div aria-busy={isQueryLoading} style={{ position: "relative" }}>
-        {queryErrors.length > 0 &&
-          (queryError ? (
-            queryError({ errors: queryErrors, retry: retryQueries, isRetrying: isQueryLoading })
-          ) : (
-            <div role="alert">
-              <p>Unable to load data. Results are unavailable until the failed requests recover.</p>
-              <button type="button" onClick={retryQueries} disabled={isQueryLoading}>
-                {isQueryLoading ? "Retrying…" : "Retry"}
-              </button>
-            </div>
-          ))}
-        {isQueryLoading && queryErrors.length === 0 && (queryLoader ?? <DefaultQueryLoader />)}
-        <div
-          hidden={queryErrors.length > 0}
-          style={{ opacity: isQueryLoading ? 0.7 : 1, transition: "opacity 0.2s ease" }}
-        >
-          <RenderNode node={result.root} />
-        </div>
-      </div>
+      <RendererContext.Provider value={value}>{children}</RendererContext.Provider>
     </OpenUIContext.Provider>
   );
 }
+
+const RendererContext = createContext<{
+  root: ElementNode | null;
+  query: RendererQueryState;
+} | null>(null);
+
+function useRendererContext() {
+  const context = useContext(RendererContext);
+  if (!context) {
+    throw new Error("Renderer slots must be used within Renderer.Root or Renderer.");
+  }
+  return context;
+}
+
+/** Access query loading, failures, and retry within the nearest Renderer root. */
+export function useRendererQuery(): RendererQueryState {
+  return useRendererContext().query;
+}
+
+export type RendererContentSlotProps = Omit<React.ComponentPropsWithRef<"div">, "children">;
+
+/** Displays generated content, preserving mounted components while queries load or fail. */
+function RendererContent({ style, hidden, ...props }: RendererContentSlotProps) {
+  const { root, query } = useRendererContext();
+  if (!root) return null;
+  return (
+    <div
+      {...props}
+      aria-busy={query.isLoading}
+      hidden={hidden || query.errors.length > 0}
+      style={{ opacity: query.isLoading ? 0.7 : 1, transition: "opacity 0.2s ease", ...style }}
+    >
+      <RenderNode node={root} />
+    </div>
+  );
+}
+
+export interface RendererSlotProps {
+  children?: React.ReactNode;
+}
+
+/** Shows query loading feedback, except while a query failure is being displayed. */
+function RendererQueryLoading({ children }: RendererSlotProps) {
+  const { isLoading, errors } = useRendererQuery();
+  if (!isLoading || errors.length > 0) return null;
+  return <>{children === undefined ? <DefaultQueryLoader /> : children}</>;
+}
+
+function DefaultQueryError() {
+  const { isRetrying } = useRendererQuery();
+  return (
+    <div role="alert">
+      <p>Unable to load data. Results are unavailable until the failed requests recover.</p>
+      <RendererRetry>{isRetrying ? "Retrying…" : "Retry"}</RendererRetry>
+    </div>
+  );
+}
+
+/** Shows query failures. Omit children for the built-in retry view. */
+function RendererQueryError({ children }: RendererSlotProps) {
+  const { errors } = useRendererQuery();
+  if (errors.length === 0) return null;
+  return <>{children === undefined ? <DefaultQueryError /> : children}</>;
+}
+
+export interface RendererRetryProps extends React.ComponentPropsWithRef<"button"> {
+  /** Apply retry behavior to one child button. It must forward button props and its ref. */
+  asChild?: boolean;
+}
+
+function RendererRetry({ asChild, children, onClick, disabled, ...props }: RendererRetryProps) {
+  const { retry, isLoading, errors } = useRendererQuery();
+  const isDisabled = disabled || isLoading || errors.length === 0;
+  const Button = asChild ? ButtonSlot : "button";
+  return (
+    <Button
+      type="button"
+      {...props}
+      disabled={isDisabled}
+      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+        if (isDisabled || event.defaultPrevented) return;
+        onClick?.(event);
+        if (!event.defaultPrevented) retry();
+      }}
+    >
+      {children}
+    </Button>
+  );
+}
+
+function DefaultRendererContent() {
+  const { root, query } = useRendererContext();
+  if (!root) return null;
+  return (
+    <div aria-busy={query.isLoading} style={{ position: "relative" }}>
+      <RendererQueryError />
+      <RendererQueryLoading />
+      <RendererContent />
+    </div>
+  );
+}
+
+function DefaultRenderer({ children, ...props }: RendererProps) {
+  return (
+    <RendererRoot {...props}>
+      {children === undefined ? <DefaultRendererContent /> : children}
+    </RendererRoot>
+  );
+}
+
+/** Render with the default presentation, or compose slots around one shared runtime. */
+export const Renderer = Object.assign(DefaultRenderer, {
+  Root: RendererRoot,
+  Content: RendererContent,
+  QueryLoading: RendererQueryLoading,
+  QueryError: RendererQueryError,
+  Retry: RendererRetry,
+});
