@@ -42,13 +42,12 @@ jobs:
       - name: Update package metadata and README
         working-directory: package
         run: |
-          latest=$(node -p "require('./package.json').version")
-          next=$(node -p "const [a,b,c]='$latest'.split('.').map(Number); [a,b,c+1].join('.')")
-          npm pkg set version="$next" description="$NOTICE" \
+          npm version patch --no-git-tag-version --ignore-scripts
+          npm pkg set description="$NOTICE" \
             repository.type=git repository.url="git+https://github.com/thesysdev/openui.git"
           npm pkg delete repository.directory
           { printf '> **%s**\n\n' "$NOTICE"; cat README.md; } > README.tmp && mv README.tmp README.md
-          echo "Publishing ${{ matrix.package }}@$next (from $latest)"
+          echo "Publishing ${{ matrix.package }}@$(npm pkg get version | tr -d '"')"
 
       - name: Publish
         working-directory: package
