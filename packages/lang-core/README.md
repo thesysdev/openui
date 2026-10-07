@@ -107,42 +107,6 @@ const tools = [
 ];
 ```
 
-#### Standalone generation and edits
-
-The Cloud config builder also accepts `script`, `baseResponse`, and `meta` as top-level
-options. These require a backend that supports the generalized embed config; older backends
-reject the new fields.
-
-```ts
-const editPrompt = generateSystemPrompt({
-  cloud: true,
-  script: {
-    tools: [
-      {
-        name: "get_orders",
-        description: "List orders with their revenue and refund status.",
-        parameters: { type: "object", properties: {} },
-        output: [{ revenue: 120, refunded: false }],
-      },
-    ],
-  },
-  baseResponse: previousBundle,
-  meta: { name: "Net revenue" },
-});
-```
-
-Send the requested change as a user message alongside this system config. The developer
-selects the message to edit and supplies its complete previous bundle, including scripts and
-metadata. Omit `baseResponse` for initial generation.
-
-`script.tools` describes tools available to generated scripts; it does not contain execution
-callbacks. Its `CloudScriptTool` shape uses `parameters` and optional `output`, distinct
-from the self-hosted `ToolSpec` shape. Supply script tools when an edit requires script changes.
-
-`meta` currently supports only an optional `name`. The backend inherits the previous name
-on edits unless a new name is supplied. Lang-core serializes these options;
-it does not merge bundles, generate scripts, or execute them in `generateSystemPrompt`.
-
 ### Merge incremental edits
 
 ```ts
