@@ -150,7 +150,7 @@ export const openuiComponentGroups: ComponentGroup[] = [
       "- data is an array of { id, values } rows where values are ordered positionally to match columns. Edited data is submitted when the user clicks Save Changes.",
       '- Table is COLUMN-oriented: Table([Col("Label", dataArray), Col("Count", countArray, "number")]). Use array pluck for data: data.rows.fieldName',
       '- Col data can be component arrays for styled cells: Col("Status", @Each(data.rows, "item", Tag(item.status, null, "sm", item.status == "open" ? "success" : "danger")))',
-      '- Row actions: Col("Actions", @Each(data.rows, "t", Button("Edit", [@Set($showEdit, true), @Set($editId, t.id)])))',
+      '- Row actions: Col("Actions", @Each(data.rows, "t", Button("Edit", Action([@Set($showEdit, true), @Set($editId, t.id)]))))',
       '- Sortable: sorted = @Sort(data.rows, $sortField, "desc"). Bind $sortField to Select. Use sorted.fieldName for Col data',
       '- Searchable: filtered = @Filter(data.rows, "title", "contains", $search). Bind $search to Input',
       "- Chain sort + filter: filtered = @Filter(...) then sorted = @Sort(filtered, ...) — use sorted for both Table and Charts",
@@ -228,7 +228,7 @@ export const openuiComponentGroups: ComponentGroup[] = [
     components: ["Button", "Buttons", "IconButton"],
     notes: [
       "- Icon renders a lucide icon by kebab-case name; it is also used as the icon of IconButton, IconText and OptionCard.",
-      '- Toggle in @Each: @Each(rows, "t", Button(t.status == "open" ? "Close" : "Reopen", [...]))',
+      '- Toggle in @Each: @Each(rows, "t", Button(t.status == "open" ? "Close" : "Reopen", Action([...])))',
     ],
   },
   {

@@ -229,6 +229,23 @@ function named(id: string) {
   return schema;
 }
 
+const actionSchema = z.union([
+  z.object({ type: z.literal("open_url"), url: z.string() }),
+  z.object({ type: z.literal("continue_conversation"), context: z.string().optional() }),
+  z.object({ type: z.string(), params: z.record(z.string(), z.any()).optional() }),
+]);
+tagSchemaId(actionSchema, "ActionExpression");
+
+/**
+ * Schema for a component's action prop: `action: action().optional()`. Tagged
+ * `ActionExpression`, so the prompt teaches the @step syntax (one @step, or
+ * Action([...]) for several). Its JSON schema describes the legacy `{ type, ... }`
+ * action objects, which also still work. Returns the same schema on every call.
+ */
+export function action() {
+  return actionSchema;
+}
+
 /** A built-in step: `step` builds it from coerced args; a lazy one reads raw args in the evaluator. */
 export type BuiltinStep = DefinedAction<any> & {
   step?: (args: any) => ActionStep;

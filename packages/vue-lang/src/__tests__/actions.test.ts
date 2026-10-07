@@ -24,11 +24,11 @@ const Btn = defineComponent({
 });
 const library = createLibrary({ components: [Btn], root: "Btn" });
 
-it("delivers bare and list steps with any @ToAssistant context, also for a reactive library", async () => {
+it("delivers bare and Action([...]) steps with any @ToAssistant context, also for a reactive library", async () => {
   const events: Array<{ type: string; params: unknown }> = [];
   for (const [lib, action] of [
     [library, `@ToAssistant("A", "")`],
-    [reactive(library), `[@OpenUrl("u"), @ToAssistant("B", 0)]`],
+    [reactive(library), `Action([@OpenUrl("u"), @ToAssistant("B", 0)])`],
   ] as const) {
     const wrapper = mount(Renderer, {
       props: {

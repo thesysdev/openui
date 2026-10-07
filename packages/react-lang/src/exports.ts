@@ -1,5 +1,5 @@
 // define library
-export { defineAction, defineFunction, tagSchemaId } from "@openuidev/lang-core";
+export { action, defineAction, defineFunction, tagSchemaId } from "@openuidev/lang-core";
 export type { DefinedAction, DefinedFunction } from "@openuidev/lang-core";
 export { createLibrary, defineComponent } from "./library";
 export type {
