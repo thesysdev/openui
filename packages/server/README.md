@@ -117,7 +117,7 @@ Accepts Chat Completions messages only and returns a `ConversationItemList`. It 
 ## Execute tools and scripts
 
 ```ts
-const result = await client.tools.execute({
+const result = await openUIClient.tools.execute({
   name: "summary",
   arguments: { period: "last_month" },
   tools: {
