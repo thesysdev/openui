@@ -325,11 +325,15 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
             }
 
             const content = stringifyOutput(item.output);
+            // A failed search is flagged like the other server-run tools.
+            const status = String(item.status ?? "");
+            const failed = FAILED_ITEM_STATUSES.has(status);
             yield {
               type: EventType.TOOL_CALL_RESULT,
               messageId: toolCallId,
               toolCallId,
               content,
+              ...(failed ? { isError: true, error: `web_search ${status}` } : {}),
             };
             break;
           }

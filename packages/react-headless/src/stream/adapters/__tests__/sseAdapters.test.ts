@@ -447,6 +447,34 @@ describe("openAIResponsesAdapter", () => {
     expect(image.at(-1)).toMatchObject({ content: '{"status":"completed","image":"generated"}' });
   });
 
+  it.each([
+    ["failed", true],
+    ["completed", false],
+  ])("flags a web_search_call whose status is %s only when it failed", async (status, failed) => {
+    const body =
+      sse(
+        responsesEvent("response.output_item.added", {
+          output_index: 0,
+          item: { id: "ws_1", type: "web_search_call", status: "in_progress" },
+        }),
+      ) +
+      sse(
+        responsesEvent("response.output_item.done", {
+          output_index: 0,
+          item: {
+            id: "ws_1",
+            type: "web_search_call",
+            status,
+            action: { type: "search", query: "tokyo" },
+          },
+        }),
+      );
+    const events = await collect(openAIResponsesAdapter().parse(makeResponse(body)));
+    const result = events.find((e) => e.type === EventType.TOOL_CALL_RESULT);
+    if (failed) expect(result).toMatchObject({ isError: true, error: "web_search failed" });
+    else expect(result).not.toHaveProperty("isError");
+  });
+
   it("surfaces a plain JSON error body (no SSE framing) as RUN_ERROR", async () => {
     const events = await collect(
       openAIResponsesAdapter().parse(
