@@ -1,7 +1,7 @@
 import { object as zObject } from "zod/v4";
 import * as z from "zod/v4/core";
 import type { DefinedFunction } from "./functions";
-import { isBuiltin, isReservedCall } from "./parser/builtins";
+import { ACTION_DEFS, isBuiltin, isReservedCall } from "./parser/builtins";
 import type { ComponentPromptSpec, LibrarySpec, PromptSpec, ToolSpec } from "./parser/prompt";
 import { generatePrompt } from "./parser/prompt";
 import type { FunctionSchema, JSONSchemaDef, LibraryJSONSchema } from "./parser/types";
@@ -188,6 +188,11 @@ export function createLibrary<C = unknown>(input: LibraryDefinition<C>): Library
   for (const comp of input.components) {
     reg.add(comp.props as z.$ZodType, { id: comp.name });
     componentsRecord[comp.name] = comp;
+  }
+
+  // Action slots are $refs like component slots; a component of the same name wins
+  for (const [id, schema] of Object.entries(ACTION_DEFS)) {
+    if (!componentsRecord[id]) reg.add(schema, { id });
   }
 
   if (input.root && !componentsRecord[input.root]) {

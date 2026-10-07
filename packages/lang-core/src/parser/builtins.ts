@@ -2,7 +2,7 @@
 
 import { z } from "zod/v4";
 import { defineFunction, type DefinedFunction } from "../functions";
-import { tagSchemaId } from "../signature";
+import { tagActionRef, tagSchemaId } from "../signature";
 import type { CallDef, ParamMap } from "./types";
 
 /** Resolve a field path on an object. Supports dot-paths: "state.name" → obj.state.name */
@@ -217,9 +217,13 @@ export const ACTION_STEPS = {
   Reset: "reset",
 } as const;
 
+const openUrlData = () => z.object({ type: z.literal("open_url"), url: z.string() });
+const toAssistantData = () =>
+  z.object({ type: z.literal("continue_conversation"), context: z.string().optional() });
+
 const actionSchema = z.union([
-  z.object({ type: z.literal("open_url"), url: z.string() }),
-  z.object({ type: z.literal("continue_conversation"), context: z.string().optional() }),
+  openUrlData(),
+  toAssistantData(),
   z.object({ type: z.string(), params: z.record(z.string(), z.any()).optional() }),
 ]);
 tagSchemaId(actionSchema, "ActionExpression");
@@ -233,6 +237,28 @@ tagSchemaId(actionSchema, "ActionExpression");
 export function action() {
   return actionSchema;
 }
+
+/** A slot schema naming one action, typed like an action prop: `z.union([steps.OpenUrl.ref])`. */
+export type ActionRef = z.ZodType<z.infer<typeof actionSchema>>;
+
+// actionRef("OpenUrl", data) -> `$defs.OpenUrl` = data in JSON, `@OpenUrl` in prompt signatures
+function actionRef(name: string, data: z.ZodType): ActionRef {
+  tagActionRef(data, name);
+  return data as unknown as ActionRef;
+}
+
+/** Refs of the built-in steps that have a legacy JSON shape, for restricted action slots. */
+export const steps = {
+  OpenUrl: { ref: actionRef("OpenUrl", openUrlData()) },
+  ToAssistant: { ref: actionRef("ToAssistant", toAssistantData()) },
+};
+
+/** The action `$defs` of every library, e.g. action: {$ref: "#/$defs/ActionExpression"}. */
+export const ACTION_DEFS: Record<string, z.ZodType> = {
+  ActionExpression: actionSchema,
+  OpenUrl: steps.OpenUrl.ref,
+  ToAssistant: steps.ToAssistant.ref,
+};
 
 /** All action expression names (steps + the Action container) */
 export const ACTION_NAMES: Set<string> = new Set(["Action", ...Object.keys(ACTION_STEPS)]);

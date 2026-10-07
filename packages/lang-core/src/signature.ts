@@ -20,6 +20,13 @@ export function tagSchemaId(schema: object, id: string): void {
   schemaIdTags.set(schema, id);
 }
 
+// Action refs print as `@Name` in signatures: share?: @CopyToClipboard | @OpenUrl
+const actionRefTags = new WeakMap<object, string>();
+
+export function tagActionRef(schema: object, name: string): void {
+  actionRefTags.set(schema, name);
+}
+
 // ─── Zod v3 detection ──────────────────────────────────────────────────────
 
 export function assertV4Schema(schema: unknown, componentName: string): void {
@@ -124,6 +131,8 @@ function resolveTypeAnnotation(schema: unknown, reg?: SchemaRegistry): string | 
 }
 
 function resolveBaseType(inner: unknown, reg?: SchemaRegistry): string | undefined {
+  const actionRef = typeof inner === "object" && inner !== null && actionRefTags.get(inner);
+  if (actionRef) return `@${actionRef}`;
   const directId = getSchemaId(inner, reg);
   if (directId) return directId;
 

@@ -32,8 +32,10 @@ export {
   BUILTINS,
   action,
   isBuiltin,
+  steps,
   toNumber,
 } from "./parser/builtins";
+export type { ActionRef } from "./parser/builtins";
 export { enrichErrors } from "./parser/enrich-errors";
 export { parseExpression } from "./parser/expressions";
 export { tokenize } from "./parser/lexer";
