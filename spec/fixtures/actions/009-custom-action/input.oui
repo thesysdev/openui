@@ -1,0 +1,4 @@
+root = Stack([copy, both, share])
+copy = Button("Copy", @CopyToClipboard("hello"))
+both = Button("Both", Action([@CopyToClipboard("a b"), @ToAssistant("Copied")]))
+share = Button("Share", null, null, @CopyToClipboard("link"))

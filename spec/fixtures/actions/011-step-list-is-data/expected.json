@@ -1,0 +1,45 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Button",
+          "props": {
+            "label": "Save",
+            "action": [
+              {
+                "action": [
+                  {
+                    "step": "Set",
+                    "args": [
+                      "$saved",
+                      true
+                    ]
+                  }
+                ]
+              },
+              {
+                "action": [
+                  {
+                    "step": "ToAssistant",
+                    "args": [
+                      "Saved"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "state": {
+    "$saved": false
+  }
+}

@@ -1,0 +1,2 @@
+root = Stack([Text("a"), "plain", {title: "x"}, card])
+card = Card("T", [Text("b"), 5])

@@ -1,0 +1,48 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Button",
+          "props": {
+            "label": "Go",
+            "action": {
+              "action": [
+                {
+                  "step": "OpenUrl",
+                  "args": [
+                    "https://openui.com"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "label": "Ask",
+            "action": {
+              "action": [
+                {
+                  "step": "ToAssistant",
+                  "args": [
+                    "Docs please"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "state": {
+    "$mode": "docs"
+  }
+}

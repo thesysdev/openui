@@ -1,0 +1,32 @@
+{
+  "steps": [
+    {
+      "click": "copy"
+    },
+    {
+      "click": "both"
+    }
+  ],
+  "expected": {
+    "events": [
+      {
+        "type": "CopyToClipboard",
+        "params": {
+          "text": "hello"
+        },
+        "humanFriendlyMessage": ""
+      },
+      {
+        "type": "CopyToClipboard",
+        "params": {
+          "text": "a b"
+        },
+        "humanFriendlyMessage": ""
+      },
+      {
+        "type": "continue_conversation",
+        "humanFriendlyMessage": "Copied"
+      }
+    ]
+  }
+}

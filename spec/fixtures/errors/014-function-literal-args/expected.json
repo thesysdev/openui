@@ -1,0 +1,45 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Input",
+          "props": {
+            "name": "a",
+            "placeholder": "X"
+          }
+        },
+        {
+          "type": "Input",
+          "props": {
+            "name": "b"
+          }
+        },
+        {
+          "type": "Input",
+          "props": {
+            "name": "c"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "code": "excess-args",
+      "statementId": "a"
+    },
+    {
+      "code": "type-mismatch",
+      "statementId": "b"
+    },
+    {
+      "code": "missing-required",
+      "statementId": "c"
+    }
+  ],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

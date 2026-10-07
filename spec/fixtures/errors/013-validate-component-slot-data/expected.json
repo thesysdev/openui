@@ -1,0 +1,46 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "a"
+          }
+        },
+        {
+          "type": "Card",
+          "props": {
+            "title": "T",
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "b"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "code": "type-mismatch",
+      "statementId": "root"
+    },
+    {
+      "code": "type-mismatch",
+      "statementId": "root"
+    },
+    {
+      "code": "type-mismatch",
+      "statementId": "card"
+    }
+  ],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

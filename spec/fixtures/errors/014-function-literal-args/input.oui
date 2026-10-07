@@ -1,0 +1,4 @@
+root = Stack([a, b, c])
+a = Input("a", @Upper("x", "y"))
+b = Input("b", @Upper(3))
+c = Input("c", @Upper())

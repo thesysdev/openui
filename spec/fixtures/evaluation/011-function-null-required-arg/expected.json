@@ -1,0 +1,33 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Input",
+          "props": {
+            "name": "a"
+          }
+        },
+        {
+          "type": "Input",
+          "props": {
+            "name": "b"
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "text": "null"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [
+    "missing"
+  ],
+  "orphans": [],
+  "incomplete": false
+}
