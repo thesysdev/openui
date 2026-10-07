@@ -7,7 +7,8 @@ const shared: UserConfig = {
   sourcemap: true,
   target: "es2022",
   deps: {
-    neverBundle: [/^(?![./]|[A-Za-z]:[/\\])/],
+    // These SDKs are type-only imports; include their declarations for consumers.
+    neverBundle: [/^(?![./#]|[A-Za-z]:[/\\]|@langchain\/langgraph-sdk(?:\/|$)|eve(?:\/|$))/],
   },
 };
 
@@ -28,12 +29,6 @@ export default defineConfig([
     ...shared,
     entry: { index: "src/vercel/index.ts" },
     outDir: "dist/vercel",
-    clean: false,
-  },
-  {
-    ...shared,
-    entry: { index: "src/langchain/index.ts" },
-    outDir: "dist/langchain",
     clean: false,
   },
 ]);

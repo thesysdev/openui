@@ -85,19 +85,19 @@ The stream exposes `chunks` (native events), `toResponse()` (HTTP output), and `
 
 ```ts
 client.openai.responses.autofix.stream({ library, stream: responseEvents, messages, signal });
-client.langgraph.autofix.stream({ library, stream: graphEvents, messages, signal });
+client.langchain.langgraph.autofix.stream({ library, stream: graphEvents, messages, signal });
 client.vercel.eve.autofix.stream({ library, stream: eveEvents, messages, signal });
 ```
 
-| Namespace                           | Native events      | HTTP output |
-| ----------------------------------- | ------------------ | ----------- |
-| `client.openai.completions.autofix` | Chat Completions   | SSE         |
-| `client.openai.responses.autofix`   | OpenAI Responses   | SSE         |
-| `client.vercel.ai.autofix`          | AI SDK UI messages | SSE         |
-| `client.vercel.eve.autofix`         | Eve messages       | NDJSON      |
-| `client.langgraph.autofix`          | LangGraph SDK      | Named SSE   |
+| Namespace                            | Native events      | HTTP output |
+| ------------------------------------ | ------------------ | ----------- |
+| `client.openai.completions.autofix`  | Chat Completions   | SSE         |
+| `client.openai.responses.autofix`    | OpenAI Responses   | SSE         |
+| `client.vercel.ai.autofix`           | AI SDK UI messages | SSE         |
+| `client.vercel.eve.autofix`          | Eve messages       | NDJSON      |
+| `client.langchain.langgraph.autofix` | LangGraph SDK      | Named SSE   |
 
-Streams accept `AsyncIterable` or `ReadableStream`. Fixes run at successful final text boundaries; tool-bearing, failed, and interrupted turns pass through. Completed output always uses `client.autofix.fix({ library, generation, messages, signal })`.
+Streams accept `AsyncIterable` or `ReadableStream`. Fixes run at successful final text boundaries; tool-bearing, failed, and interrupted turns pass through.
 
 ## Append Completions messages
 

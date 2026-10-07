@@ -1,5 +1,8 @@
-import type { Client } from "@langchain/langgraph-sdk";
+import type { StreamEvent } from "@langchain/langgraph-sdk";
 
-/** Native LangGraph SDK event envelope, shared by runs.stream() and runs.joinStream(). */
-export type LangGraphStreamEvent =
-  ReturnType<Client["runs"]["joinStream"]> extends AsyncIterable<infer Event> ? Event : never;
+/** Native event envelope shared by LangGraph runs.stream() and runs.joinStream(). */
+export interface LangGraphStreamEvent {
+  event: StreamEvent;
+  data: unknown;
+  id?: string;
+}

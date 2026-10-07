@@ -28,7 +28,9 @@ export function createClient(options: ClientOptions = {}) {
         autofix: { stream: createClientAutofix(config, openAIResponsesAdapter).stream },
       },
     },
-    langgraph: { autofix: { stream: createClientAutofix(config, langGraphAdapter).stream } },
+    langchain: {
+      langgraph: { autofix: { stream: createClientAutofix(config, langGraphAdapter).stream } },
+    },
     vercel: {
       ai: { autofix: { stream: createClientAutofix(config, vercelAIAdapter).stream } },
       eve: { autofix: { stream: createClientAutofix(config, eveStreamAdapter).stream } },

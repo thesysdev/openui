@@ -45,16 +45,6 @@
         "types": "./dist/vercel/index.d.cts",
         "default": "./dist/vercel/index.cjs"
       }
-    },
-    "./langchain": {
-      "import": {
-        "types": "./dist/langchain/index.d.mts",
-        "default": "./dist/langchain/index.mjs"
-      },
-      "require": {
-        "types": "./dist/langchain/index.d.cts",
-        "default": "./dist/langchain/index.cjs"
-      }
     }
   },
   "scripts": {
@@ -90,12 +80,12 @@
     "@openuidev/lang-core": "workspace:^"
   },
   "devDependencies": {
+    "@langchain/langgraph-sdk": "^1.12.1",
     "ai": "^7.0.10",
+    "eve": "^0.64.0",
     "openai": "^7.20.0",
     "tsdown": "^0.21.7",
-    "vitest": "^4.1.0",
-    "@langchain/langgraph-sdk": "^1.12.1",
-    "eve": "^0.64.0"
+    "vitest": "^4.1.0"
   },
   "typesVersions": {
     "*": {
@@ -104,22 +94,7 @@
       ],
       "vercel": [
         "dist/vercel/index.d.cts"
-      ],
-      "langchain": [
-        "dist/langchain/index.d.cts"
       ]
-    }
-  },
-  "peerDependencies": {
-    "@langchain/langgraph-sdk": "^1.12.1",
-    "eve": "^0.64.0"
-  },
-  "peerDependenciesMeta": {
-    "@langchain/langgraph-sdk": {
-      "optional": true
-    },
-    "eve": {
-      "optional": true
     }
   }
 }
