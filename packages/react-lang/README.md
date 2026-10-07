@@ -45,7 +45,7 @@ Use slots to customize loading and failure views:
 
 Use `useRendererQuery()` inside the root to read `{ isLoading, errors, retry, isRetrying }` in your own components. Generation progress remains available through `useIsStreaming()`. Do not create another root for each slot.
 
-`Renderer` accepts slot children to replace its default content composition. For previews, compose `WithPreviewRenderer.Root`, `Trigger`, `Content`, and `Close`. Place Renderer slots inside the preview Content; it supplies their runtime while open. Closing disposes that runtime. To preserve state across your own panel closing, keep `Renderer.Root` mounted and toggle only its content or portal.
+`Renderer` accepts slot children to replace its default content composition.
 
 Widgets that depend on queries without successful data show loading placeholders; static layout and labels can render progressively. During streaming edits, previously loaded results remain visible with loading feedback until the updated response is ready.
 
@@ -131,8 +131,7 @@ function AssistantMessage({ response, isStreaming }) {
 
 | Export | Description |
 | :--- | :--- |
-| `Renderer` | Render OpenUI Lang directly, without a preview |
-| `WithPreviewRenderer` | Add an inline preview that opens the rendered UI |
+| `Renderer` | Render OpenUI Lang |
 
 **`RendererProps`:**
 
@@ -258,7 +257,7 @@ const schema = library.toJSONSchema();
 
 Pass the complete response to `Renderer`, including content, scripts, and end
 sentinels. It renders the program while streaming. Bare OpenUI Lang remains
-supported. Use `WithPreviewRenderer` for metadata and preview presentation.
+supported.
 
 ```tsx
 <Renderer
@@ -312,52 +311,6 @@ Malformed bundles do not execute. Script transport and tool errors flow through
 For edits, replace `response` with the complete updated bundle returned by Cloud.
 Changed script bundles invalidate cached query results, including when the
 program keeps the same query names and arguments.
-
-### Choosing a renderer and adding previews
-
-Use `Renderer` for a directly visible interface. Use `WithPreviewRenderer` for a preview that opens the UI. Without children, WithPreviewRenderer supplies a name button, an inline panel, a close button, and the default Renderer views.
-
-For custom presentation, compose its slots. The example below uses an existing application-owned `panelElement`:
-
-```tsx
-import { createPortal } from "react-dom";
-import { Renderer, WithPreviewRenderer } from "@openuidev/react-lang";
-
-<WithPreviewRenderer.Root
-  response={message.content}
-  library={library}
-  toolProvider={tools}
-  isStreaming={isStreaming}
->
-  <WithPreviewRenderer.Trigger>Open MiniApp</WithPreviewRenderer.Trigger>
-  {panelElement && createPortal(
-    <WithPreviewRenderer.Content className="miniapp-panel">
-      <WithPreviewRenderer.Close>Close</WithPreviewRenderer.Close>
-      <Renderer.Content />
-      <Renderer.QueryLoading />
-      <Renderer.QueryError />
-    </WithPreviewRenderer.Content>,
-    panelElement,
-  )}
-</WithPreviewRenderer.Root>
-```
-
-| Slot | Purpose |
-| --- | --- |
-| `WithPreviewRenderer.Root` | Owns metadata and open state; renders only supplied children. |
-| `WithPreviewRenderer.Trigger` | Toggles visibility, with `aria-expanded` and `aria-controls`. Defaults to the MiniApp name and generation status. |
-| `WithPreviewRenderer.Content` | Mounts a positioned section and one Renderer runtime while open. Without children, supplies a close button and default Renderer views. |
-| `WithPreviewRenderer.Close` | Closes the preview. Defaults to a labelled close button. |
-
-`Trigger` and `Close` accept button props and `asChild` for one custom button that forwards props and its ref. Child click handlers run first and can cancel the action with `preventDefault()`. No slot dependency is needed in your application.
-
-`useRendererPreview()` returns `{ metadata, isOpen, isStreaming, contentId, open, close }` inside the preview root, including while closed. Use it for custom titles or controls. `useRendererQuery()` and Renderer slots belong inside the preview Content, where the runtime exists. Mount one Content per preview, and do not nest another Renderer root inside it.
-
-Use `open` and `onOpenChange` for controlled visibility, or `defaultOpen` for initial visibility. `onMetadata` reports metadata changes. `WithPreviewRenderer` with explicit children uses the same custom composition as `.Root`; omit children for the complete default presentation.
-
-Content accepts section props such as `className`, `style`, and `aria-label`; its ID is assigned by the preview so the trigger stays linked. Use your own React portal to position it. Your host owns modal focus, keyboard behavior, and the portal container.
-
-Closed previews do not start queries. Closing unmounts the content and disposes its runtime; reopening refetches data. Persist input state with `onStateUpdate` and restore it with `initialState`. If your own panel must keep its runtime while closed, compose it around a persistently mounted `Renderer.Root` instead.
 
 Streaming edits may contain multiple content sections: a base-plus-patch preview,
 retry previews, and a final merged result. The last content section wins. Queries

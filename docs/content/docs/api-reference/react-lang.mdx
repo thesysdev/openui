@@ -124,7 +124,7 @@ interface RendererProps {
 
 Root accepts the same runtime props as Renderer and renders only its children. Put overlays in your own positioned container. Slots share context through wrappers and React portals. `useRendererQuery()` returns `{ isLoading, errors, retry, isRetrying }` within that root. Failed results remain hidden while retrying; their mounted state is preserved.
 
-`Renderer` accepts slot children to replace its default content composition. For previews, use the WithPreviewRenderer slots described below. Without children, both renderers keep their default views. For `asChild`, pass one button that forwards button props and refs; calling `preventDefault()` in its click handler cancels the retry.
+`Renderer` accepts slot children to replace its default content composition. Without children, Renderer keeps its default views. For `asChild`, pass one button that forwards button props and refs; calling `preventDefault()` in its click handler cancels the retry.
 
 ```tsx
 <Renderer.Root response={response} library={library} toolProvider={tools}>
@@ -138,35 +138,6 @@ Root accepts the same runtime props as Renderer and renders only its children. P
   </div>
 </Renderer.Root>
 ```
-
-## Preview slots
-
-`WithPreviewRenderer` supplies an inline trigger and expandable content by default. Customize it with `WithPreviewRenderer.Root`, `Trigger`, `Content`, and `Close`:
-
-```tsx
-<WithPreviewRenderer.Root
-  response={response}
-  library={library}
-  toolProvider={tools}
-  isStreaming={isStreaming}
->
-  <WithPreviewRenderer.Trigger>Open MiniApp</WithPreviewRenderer.Trigger>
-  <WithPreviewRenderer.Content>
-    <WithPreviewRenderer.Close>Close</WithPreviewRenderer.Close>
-    <Renderer.Content />
-    <Renderer.QueryLoading />
-    <Renderer.QueryError />
-  </WithPreviewRenderer.Content>
-</WithPreviewRenderer.Root>
-```
-
-The root accepts Renderer runtime props plus `open`, `defaultOpen`, `onOpenChange`, and `onMetadata`. It renders only its children. Content mounts one Renderer runtime while open and accepts section props. Omit Content's children for a default close button and Renderer presentation. Mount one Content per preview; do not wrap its Renderer slots in another root. Content can be placed in a React portal.
-
-Trigger toggles visibility and links to Content through `aria-expanded` and `aria-controls`. Close closes the preview. Both accept button props and `asChild`; a custom child must forward props and refs. Its click handler can cancel the action with `preventDefault()`.
-
-`useRendererPreview()` exposes `{ metadata, isOpen, isStreaming, contentId, open, close }` anywhere under the preview root. Query state and Renderer slots are available inside Content only. Closing disposes the runtime; use `initialState` and `onStateUpdate` to restore saved inputs on reopening. Closed previews do not run queries.
-
-Custom children of `WithPreviewRenderer` now compose the preview itself. Use these slots instead of the previous `renderPreview` and `renderContent` callbacks. Your application remains responsible for modal focus and keyboard behavior.
 
 ## Tool Provider
 

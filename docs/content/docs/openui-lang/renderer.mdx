@@ -151,7 +151,3 @@ const Dashboard = defineComponent({
   component: ({ props, renderNode }) => <div>{renderNode(props.cards)}</div>,
 });
 ```
-
-## Composing a preview
-
-Use `WithPreviewRenderer` for its default preview and expanded view. For a custom panel, compose `WithPreviewRenderer.Root`, `Trigger`, `Content`, and `Close`. Place `Renderer.Content`, `Renderer.QueryLoading`, and `Renderer.QueryError` inside the preview Content; it creates their shared runtime while open. Use `useRendererPreview()` to read metadata and control visibility. See the [React API reference](/docs/api-reference/react-lang#preview-slots) for examples and lifecycle behavior.
