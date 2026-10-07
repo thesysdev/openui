@@ -24,10 +24,11 @@ A LibrarySpec is one JSON document.
 | `id` | The library name, for example `support`. |
 | `version` | The library version, for example `1.2.0`. |
 | `root` | Optional. The root component name, for example `Card`. |
-| `schema` | The validation schema (JSON Schema). One `$defs` entry per component. |
+| `schema` | The validation schema (JSON Schema). Top-level `properties` names the components, and `$defs` has one entry per component and per action shape (section 2.3). |
 | `components` | Per component: `signature` and `description` (derived from `schema`), `order` (section 2.3), and optional `aliases`, a list of old names (section 3.2). |
 | `componentGroups` | Optional. Named groups that split the component list into titled parts. |
 | `functions` | Custom functions: declarations only. |
+| `actions` | Custom actions: declarations only (section 2.5). |
 
 Example:
 
@@ -37,12 +38,16 @@ Example:
   "version": "1.2.0",
   "root": "Card",
   "schema": {
+    "properties": {
+      "Card": { "$ref": "#/$defs/Card" },
+      "Button": { "$ref": "#/$defs/Button" }
+    },
     "$defs": {
       "Card": {
         "type": "object",
         "description": "A container",
         "properties": {
-          "children": { "type": "array", "items": { "x-openui": "component" } }
+          "children": { "type": "array", "items": { "$ref": "#/$defs/Button" } }
         },
         "required": ["children"]
       },
@@ -51,10 +56,17 @@ Example:
         "description": "A clickable button",
         "properties": {
           "label": { "type": "string" },
-          "action": { "x-openui": "action" },
+          "action": { "$ref": "#/$defs/ActionExpression" },
           "variant": { "type": "string", "enum": ["primary", "secondary"] }
         },
         "required": ["label"]
+      },
+      "ActionExpression": {
+        "anyOf": [
+          { "type": "object", "properties": { "type": { "const": "open_url" }, "url": { "type": "string" } }, "required": ["type", "url"] },
+          { "type": "object", "properties": { "type": { "const": "continue_conversation" }, "context": { "type": "string" } }, "required": ["type"] },
+          { "type": "object", "properties": { "type": { "type": "string" }, "params": { "type": "object" } }, "required": ["type"] }
+        ]
       }
     }
   },
@@ -85,6 +97,17 @@ Example:
       "order": ["part", "total"],
       "returns": { "type": "string" }
     }
+  },
+  "actions": {
+    "CopyToClipboard": {
+      "description": "Copy text to the clipboard",
+      "params": {
+        "type": "object",
+        "properties": { "text": { "type": "string" } },
+        "required": ["text"]
+      },
+      "order": ["text"]
+    }
   }
 }
 ```
@@ -103,7 +126,10 @@ The schema is the single source of truth for a component's arguments.
 
 - Each component's `order` array in `components` lists its prop names in positional order. `Button("Save", a, "primary")` maps `label`, `action`, `variant` in that order.
 - `required` lists the props that must be present. A prop's `default` fills a missing required argument before the component is dropped.
-- A prop that takes a component, an action, or a `$binding` carries the `x-openui` keyword: `"x-openui": "component"`, `"action"`, or `"binding"`. A list of components marks its `items`. A binding prop also carries its value type, for example `{ "type": "string", "x-openui": "binding" }`.
+- A prop that takes a component is a `$ref` to that component's `$defs` entry, `{ "$ref": "#/$defs/Card" }`, or an `anyOf` of such `$ref`s. A list of components puts this in its `items`.
+- An action prop is `{ "$ref": "#/$defs/ActionExpression" }` and takes any action. The `ActionExpression` entry describes the legacy action objects (`{ "type": ... }`). A prop that takes only some actions is an `anyOf` of `$ref`s to action names, for example `#/$defs/CopyToClipboard` and `#/$defs/OpenUrl`, each with its own `$defs` entry.
+- A reader classifies each `$ref` by its name. Components are the names in the schema's top-level `properties`. Actions are the names in `actions` plus the built-in names `ActionExpression`, `OpenUrl`, and `ToAssistant`.
+- A binding prop carries the `x-openui` keyword and its value type, for example `{ "type": "string", "x-openui": "binding" }`.
 
 JSON object key order is not portable. Readers MUST use `order`, not the key order of `properties`.
 
@@ -111,7 +137,7 @@ JSON object key order is not portable. Readers MUST use `order`, not the key ord
 
 Each entry in `components` has a `signature` and a `description`. The `signature` is derived from the schema. If they disagree, the schema wins, and a consumer SHOULD rebuild the signature from it. The format is in section 5.
 
-### 2.5 Custom functions
+### 2.5 Custom functions and actions
 
 A library declares pure functions with `defineFunction({ name, description, params, returns, fn })`. The spec keeps name, description, `params` (a JSON Schema object), `order` (the positional order of the params, as for components), and `returns`. `fn` never serializes. It receives one object keyed by the `params` names. Each client implements the function itself.
 
@@ -123,7 +149,9 @@ share = TextContent(@Percent(done, total))
 
 The prompt lists custom functions next to the built-ins. Lookup goes to built-ins first, then custom functions. A call to a name that is not a built-in, an action step, or a custom function evaluates to null, like an unresolved reference, and reports `unknown-function`. The statement is not dropped ([language.md](./language.md), sections 3.6 and 8.2).
 
-Fixtures: `evaluation/*-function-*`, `errors/*-unknown-function-*`
+**Custom actions.** A library declares its own action steps with `defineAction({ name, description, params })`. The spec keeps them in `actions`: name, description, `params`, and `order`, with no `returns`. A program uses one as a step, `@CopyToClipboard("text")`, alone or inside `Action([...])`. The client does not run it. The host receives it in `onAction` ([language.md](./language.md), section 6.3). The prompt lists custom actions with the built-in steps.
+
+Fixtures: `evaluation/*-function-*`, `errors/*-unknown-function-*`, `actions/*-custom-*`
 
 ### 2.6 What the spec does not do
 
@@ -140,10 +168,10 @@ Fixtures: none. The spec shape is checked on the library, not by program fixture
 ### 3.1 Conformance
 
 - Component names MUST start with an uppercase letter and match the identifier rule.
-- Custom function names MUST start with an uppercase letter, like the built-ins (`@Percent`).
+- Custom function and action names MUST start with an uppercase letter, like the built-ins (`@Percent`).
 - Required props MUST come before optional props in `order`. A required prop that has a `default` counts as optional here, so it may be added at the end.
 - A library MUST NOT define components named `Query`, `Mutation`, or `Action`.
-- A library MUST NOT use a built-in name for a component or a function. New built-in names are reserved when added (for example `@Take`).
+- A library MUST NOT use a built-in name for a component, a function, or an action. New built-in names are reserved when added (for example `@Take`).
 - Custom functions MUST be pure and synchronous. They read their arguments and return a value. They do not touch state, the network, or the clock.
 - `root`, when present, and every component in `componentGroups` MUST exist in `components`.
 

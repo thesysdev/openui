@@ -36,7 +36,7 @@ state_name    = "$" identifier ;
 function_name = "@" identifier ;
 ```
 
-`$name` is a state variable, and the `$` is part of the name. `@name` calls a built-in or a custom function. Clients MUST NOT give `$` and `@` other meanings.
+`$name` is a state variable, and the `$` is part of the name. `@name` calls a built-in, a custom function, or an action step. Clients MUST NOT give `$` and `@` other meanings.
 
 #### Keywords
 
@@ -54,7 +54,7 @@ The only keywords are `true`, `false`, and `null`.
 
 `Query` and `Mutation` are statement forms. `Action` is an expression form (section 2.1). None of them is a component.
 
-Library components and functions (section 3.6) MUST NOT use any name in this table. New built-in names are reserved when they are added ([prompt.md](./prompt.md), section 3).
+Library components, functions (section 3.6), and actions (section 6.3) MUST NOT use any name in this table. New built-in names are reserved when they are added ([prompt.md](./prompt.md), section 3).
 
 #### Operators and punctuation
 
@@ -412,13 +412,14 @@ Fixtures: `actions/*-mutation-*`
 
 ### 6.3 Action plans and steps
 
-`Action([step, step, ...])` builds a plan, which a component's action prop triggers. An action position is a prop marked `"x-openui": "action"` ([prompt.md](./prompt.md), section 2.3). Steps run in order. A mutation run is awaited. Query fetches and host events are sent without waiting.
+`Action([step, step, ...])` builds a plan, which a component's action prop triggers. An action position is a prop whose schema is a `$ref` to `ActionExpression`, or an `anyOf` of `$ref`s to action names ([prompt.md](./prompt.md), section 2.3). Steps run in order. A mutation run is awaited. Query fetches and host events are sent without waiting.
 
 - `@Set($var, value)`: evaluates `value` when the step runs, and writes it.
 - `@Reset($a, $b, ...)`: restores the declared defaults (null if none).
 - `@Run(ref)`: runs a mutation or fetches a query again. A failed mutation stops the remaining steps. `@Run` on a query never stops the plan.
 - `@ToAssistant(message, context?)`: sends a `continue_conversation` event with the message, the optional context, and the form state.
 - `@OpenUrl(url)`: sends an `open_url` event.
+- `@Name(args)`, a custom action from the library's `actions` ([prompt.md](./prompt.md), section 2.5): sends an event with `type` set to `Name`, `params` holding the arguments keyed by the action's param names, and an empty `humanFriendlyMessage`. Arguments map by position in the action's `order` and are checked like custom function arguments (section 3.6). A step whose arguments are invalid does nothing.
 
 `@Run`, `@Set`, and `@Reset` name their targets instead of evaluating them: `@Run` takes a query or mutation reference, `@Set` and `@Reset` take state variables. The `@Each` template is deferred the same way.
 
@@ -444,7 +445,7 @@ Events reach the host in one shape:
 - `formState` holds each field as `{ value, componentType }`: that form's fields inside a form, the page-level state outside one.
 - `open_url` events carry the same fields, with `params.url` and an empty `humanFriendlyMessage`.
 
-Fixtures: `actions/*-plan-*`, `actions/*-single-step-*`, `actions/*-event-*`
+Fixtures: `actions/*-plan-*`, `actions/*-single-step-*`, `actions/*-event-*`, `actions/*-custom-*`
 
 ### 6.4 Tool resolution
 
@@ -527,7 +528,7 @@ Fixtures: `errors/*-shape-*`
 Arguments map to props by position against the library schema, then each prop is checked per section 8.2. Also:
 
 - A list prop needs `[...]`, even for one item. A bare value is a `type-mismatch`.
-- A slot that takes only components accepts any component. Data there (an object, array, string, number, or boolean) is a `type-mismatch`, and the value is left out.
+- A slot that takes only components (every option of its schema is a `$ref` to a component) accepts any component. Data there (an object, array, string, number, or boolean) is a `type-mismatch`, and the value is left out.
 - Inside arrays, invalid components and unresolved references are left out, in computed expressions too (section 2.3). Explicit `null` literals are kept and render nothing.
 - A call to a name in a component's `aliases` ([prompt.md](./prompt.md), section 3.2) resolves to that component. It is not unknown.
 - An unknown component in a value position is dropped. In a computed expression it stays in the tree for the error to point at, but renders nothing.

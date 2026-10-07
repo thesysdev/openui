@@ -11,9 +11,9 @@ spec/fixtures/
 
 ## The test library
 
-`library.json` is a LibrarySpec ([prompt.md](../prompt.md), section 2) with `root: "Stack"`, twelve components, and one custom function, `@Upper(text)`, which returns the text in upper case. The function has no implementation in the file, so a runner supplies it.
+`library.json` is a LibrarySpec ([prompt.md](../prompt.md), section 2) with `root: "Stack"`, twelve components, one custom function, `@Upper(text)`, which returns the text in upper case, and one custom action, `@CopyToClipboard(text)`. The function has no implementation in the file, so a runner supplies it.
 
-Positional order comes from each component's `order` array. Bindable props carry `"x-openui": "binding"`, action props `"x-openui": "action"`, and component lists mark their `items` with `"x-openui": "component"`.
+Positional order comes from each component's `order` array. Bindable props carry `"x-openui": "binding"`. Component slots are `$ref`s to `$defs` entries: the children of `Stack`, `Card`, and `Form` take any component, `Table` columns take `Col`, and `Select` items take `SelectItem`. `Button.action` is `{ "$ref": "#/$defs/ActionExpression" }`, and `Button.share` takes only `@CopyToClipboard` or `@OpenUrl`.
 
 ## Program cases
 
