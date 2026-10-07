@@ -99,14 +99,24 @@ describe("in-stream error frames → RUN_ERROR", () => {
     });
 
     it("tolerates a string error and a numeric code, and falls back to a generic message", async () => {
-      const events = await collect(
-        make().parse(
-          makeResponse(frame({ error: "rate limited" }) + frame({ error: { code: 429 } })),
-        ),
-      );
-      expect(events).toEqual([
+      expect(await collect(make().parse(makeResponse(frame({ error: "rate limited" }))))).toEqual([
         { type: EventType.RUN_ERROR, message: "rate limited" },
+      ]);
+      expect(await collect(make().parse(makeResponse(frame({ error: { code: 429 } }))))).toEqual([
         { type: EventType.RUN_ERROR, message: "Stream error", code: "429" },
+      ]);
+    });
+
+    it("stops at the first error record: a RUN_ERROR is terminal", async () => {
+      const body =
+        frame(chunk({ role: "assistant", content: "partial" })) +
+        frame(providerError) +
+        frame(chunk({ content: "after" }, "stop"));
+      const events = await collect(make().parse(makeResponse(body)));
+      expect(events.map((e) => e.type)).toEqual([
+        EventType.TEXT_MESSAGE_START,
+        EventType.TEXT_MESSAGE_CONTENT,
+        EventType.RUN_ERROR,
       ]);
     });
   });

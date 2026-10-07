@@ -1,14 +1,10 @@
 import { AGUIEvent, StreamProtocolAdapter } from "../../types";
 import { errorFrameToRunError } from "./_shared/errorFrame";
-import { sseLineIterator } from "./_shared/sseLines";
+import { sseDataPayloads } from "./_shared/sseLines";
 
 export const agUIAdapter = (): StreamProtocolAdapter => ({
   async *parse(response: Response): AsyncIterable<AGUIEvent> {
-    for await (const line of sseLineIterator(response)) {
-      if (!line.startsWith("data: ")) continue;
-      const data = line.slice(6).trim();
-      if (!data || data === "[DONE]") continue;
-
+    for await (const data of sseDataPayloads(response)) {
       try {
         const event = JSON.parse(data);
         if (!event?.type) {

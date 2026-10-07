@@ -1,5 +1,7 @@
 import type { UIMessage, UIMessageChunk } from "ai";
 import { AGUIEvent, EventType, StreamProtocolAdapter } from "../../types";
+import { errorFrameToRunError } from "./_shared/errorFrame";
+import { truncatedRunError } from "./_shared/truncation";
 
 const MISSING_AI_SDK_MESSAGE =
   'vercelAIAdapter requires the optional peer dependency "ai" (Vercel AI SDK v6 or v7).';
@@ -75,7 +77,27 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
   async *parse(response): AsyncIterable<AGUIEvent> {
     if (!response.body) throw new Error("No response body");
 
-    const chunks = await parseUIMessageStream(response.body);
+    // A UI message stream is always text/event-stream. A JSON body is a route
+    // (or proxy) that answered a failure as `{"error":…}` under HTTP 200 —
+    // surface it instead of handing the SDK a body with no events in it.
+    let body: ReadableStream<Uint8Array> = response.body;
+    if (response.headers.get("content-type")?.includes("application/json")) {
+      const text = await response.text();
+      let record: unknown;
+      try {
+        record = JSON.parse(text);
+      } catch {
+        // Not JSON after all; let the SDK parse it as usual.
+      }
+      const runError = errorFrameToRunError(record);
+      if (runError) {
+        yield runError;
+        return;
+      }
+      body = new Response(text).body!;
+    }
+
+    const chunks = await parseUIMessageStream(body);
     const startedTools = new Set<string>();
     const streamedToolArgs = new Set<string>();
     const endedTools = new Set<string>();
@@ -130,6 +152,16 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
       const event = startStepMessage(partId);
       return event ? [event] : [];
     };
+
+    function* closeOpenMessage(): Generator<AGUIEvent> {
+      if (activeStep?.messageStarted && activeStep.messageId) {
+        yield {
+          type: EventType.TEXT_MESSAGE_END,
+          messageId: activeStep.messageId,
+        };
+        activeStep.messageStarted = false;
+      }
+    }
 
     const toolParent = () =>
       activeStep?.messageId ? { parentMessageId: activeStep.messageId } : {};
@@ -283,14 +315,30 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
             message: chunk.errorText,
           };
           return;
+
+        // The stream was cut short on the server; without this the partial
+        // answer rendered as if it were complete.
+        case "abort":
+          yield* closeOpenMessage();
+          yield {
+            type: EventType.RUN_ERROR,
+            message: chunk.reason
+              ? `The response was aborted (${chunk.reason}).`
+              : "The response was aborted.",
+            code: "abort",
+          };
+          return;
+
+        case "finish":
+          if (chunk.finishReason === "length" || chunk.finishReason === "content-filter") {
+            yield* closeOpenMessage();
+            yield truncatedRunError(chunk.finishReason);
+            return;
+          }
+          break;
       }
     }
 
-    if (activeStep?.messageStarted && activeStep.messageId) {
-      yield {
-        type: EventType.TEXT_MESSAGE_END,
-        messageId: activeStep.messageId,
-      };
-    }
+    yield* closeOpenMessage();
   },
 });

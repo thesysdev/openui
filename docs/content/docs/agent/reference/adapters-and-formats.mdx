@@ -358,11 +358,14 @@ interface StreamProtocolAdapter {
 `fetchLLM` calls `parse` on the `Response` your route returns and consumes the yielded AG-UI events. All seven bundled adapters are factories you call to get an instance — `agUIAdapter()`, `openAIAdapter()`, `openAIReadableStreamAdapter()`, `openAIResponsesAdapter()`, `vercelAIAdapter()`, `langGraphAdapter()`, `eveAdapter()`; only `langGraphAdapter()` and `eveAdapter()` accept options.
 
 <Callout type="info">
-  The line-oriented adapters log and skip malformed lines. `vercelAIAdapter()` delegates validation
-  to the Vercel AI SDK and rejects invalid UIMessage chunks. Provider-level failures are surfaced
-  as a `RUN_ERROR` event by all seven adapters: each maps its protocol's error events, and the AG-UI,
-  OpenAI Completions, OpenAI readable-stream, and OpenAI Responses adapters also map the untyped
-  `{"error":{…}}` record that OpenAI-compatible servers send inside an HTTP 200 stream.
+  The line-oriented adapters log and skip malformed lines, and accept `data:` with or without the
+  optional space after the colon. `vercelAIAdapter()` delegates validation to the Vercel AI SDK and
+  rejects invalid UIMessage chunks. Provider-level failures are surfaced as a `RUN_ERROR` event by
+  all seven adapters: each maps its protocol's error events, and the AG-UI, OpenAI Completions,
+  OpenAI readable-stream, and OpenAI Responses adapters also map the untyped `{"error":{…}}` record
+  that OpenAI-compatible servers send inside an HTTP 200 stream (or as a plain JSON body under HTTP
+  200). A response the provider cut short — a token limit, a content filter, or an aborted stream —
+  is also a `RUN_ERROR`, with the provider's reason as `code`; text that already streamed is kept.
 </Callout>
 
 ### Selection guide
@@ -389,7 +392,7 @@ import { agUIAdapter } from "@openuidev/react-ui";
 const llm = fetchLLM({ url: "/api/chat", streamAdapter: agUIAdapter() });
 ```
 
-- **Wire shape:** Server-Sent Events whose `data:` payload is already a serialized AG-UI event (`data: {"type":"TEXT_MESSAGE_CONTENT",…}`). `[DONE]` sentinels and blank lines are ignored. An untyped `{"error":{…}}` record becomes `RUN_ERROR`; any other record without a `type` is logged and skipped.
+- **Wire shape:** Server-Sent Events whose `data:` payload is already a serialized AG-UI event (`data: {"type":"TEXT_MESSAGE_CONTENT",…}`). `[DONE]` sentinels and blank lines are ignored. An untyped `{"error":{…}}` record becomes `RUN_ERROR`; any other record without a `type` is logged and skipped. A body with no `data:` lines that is a JSON error object (a route answering a failure with `application/json` under HTTP 200) also becomes `RUN_ERROR`.
 - **When to use:** Your route does the provider translation itself and emits AG-UI events directly. This is the lowest-overhead option when you control the backend — no per-provider parsing in the browser. It pairs naturally with `identityMessageFormat`, since both sides already speak AG-UI.
 
 ### `openAIAdapter`
@@ -405,7 +408,7 @@ const llm = fetchLLM({
 ```
 
 - **Wire shape:** OpenAI **Chat Completions** streaming SSE — the raw `data: {…}` chunk format from `chat.completions.create({ stream: true })` (each line is a `ChatCompletionChunk`).
-- **What it emits:** `TEXT_MESSAGE_START` on the first content/role delta, `TEXT_MESSAGE_CONTENT` per content delta, `TOOL_CALL_START` / `TOOL_CALL_ARGS` for streamed tool calls (indexed by `tool_calls[].index`), and end events driven by `finish_reason` (`stop` → `TEXT_MESSAGE_END`, `tool_calls` → `TOOL_CALL_END` for each open call). An in-stream error record (`{"error":{"message":…,"code":…}}`) → `RUN_ERROR`.
+- **What it emits:** `TEXT_MESSAGE_START` on the first content/role delta, `TEXT_MESSAGE_CONTENT` per content delta, `TOOL_CALL_START` / `TOOL_CALL_ARGS` for streamed tool calls (indexed by `tool_calls[].index`), and end events driven by `finish_reason`: any finish reason ends the step — `TOOL_CALL_END` for each open call, then `TEXT_MESSAGE_END` (so a tool-call turn that finishes with `stop`, as Gemini and some OpenAI-compatible proxies send, still completes its calls). `length` and `content_filter` are followed by `RUN_ERROR`. `delta.refusal` is rendered as text. An in-stream error record (`{"error":{"message":…,"code":…}}`) → `RUN_ERROR`.
 - **When to use:** Your route forwards the OpenAI Completions stream as-is (the most common OpenAI setup). Pair with `openAIMessageFormat`.
 
 ### `openAIReadableStreamAdapter`
@@ -442,7 +445,7 @@ const llm = fetchLLM({
 ```
 
 - **Wire shape:** OpenAI **Responses API** (and Conversations API) streaming SSE — the item-based `ResponseStreamEvent` stream from `responses.create({ stream: true })`.
-- **What it handles:** `response.output_item.added` (assistant message start, `function_call` start, and server-side `function_call_output` → `TOOL_CALL_RESULT`), `response.output_text.delta` / `.done` for text, `response.function_call_arguments.delta` / `.done` for tool-call arguments (mapping `item_id` → `call_id`), and `error` / `response.failed` (or an untyped `{"error":{…}}` record) → `RUN_ERROR`. Lifecycle/metadata events (`response.created`, `response.completed`, etc.) are ignored.
+- **What it handles:** `response.output_item.added` (assistant message start, `function_call` start, and server-side `function_call_output` → `TOOL_CALL_RESULT`), `response.output_text.delta` / `.done` for text, `response.function_call_arguments.delta` / `.done` for tool-call arguments (mapping `item_id` → `call_id`), `response.refusal.delta` / `.done` as text, and `error` / `response.failed` (or an untyped `{"error":{…}}` record) → `RUN_ERROR`; `response.incomplete` (`max_output_tokens`, `content_filter`) → `RUN_ERROR` with the reason as `code`. Server-run tools — `web_search_call`, `file_search_call`, `code_interpreter_call`, `image_generation_call`, and MCP calls — show as tool calls with their result (`isError` when the item failed); `custom_tool_call` and `computer_call` are client tool calls (`TOOL_CALL_START` / `TOOL_CALL_ARGS` / `TOOL_CALL_END`, like `function_call`). Lifecycle/metadata events (`response.created`, `response.completed`, etc.) are ignored.
 - **When to use:** You call the newer Responses or Conversations API rather than Chat Completions. Pair with `openAIConversationMessageFormat`.
 
 ### `vercelAIAdapter`
@@ -458,7 +461,7 @@ const llm = fetchLLM({
 ```
 
 - **Wire shape:** Vercel AI SDK v6 UIMessage SSE, as returned by `result.toUIMessageStreamResponse()`.
-- **What it handles:** streamed text, streamed or complete tool input, successful, failed, or denied tool output, and SDK error chunks. The adapter delegates SSE decoding and chunk validation to the Vercel AI SDK, then projects the validated chunks into AG-UI events.
+- **What it handles:** streamed text, streamed or complete tool input, successful, failed, or denied tool output, and SDK error chunks. An `abort` chunk, or a `finish` chunk with `finishReason` `length` / `content-filter`, ends the run with `RUN_ERROR`; a JSON error body (`application/json` under HTTP 200) does too. The adapter delegates SSE decoding and chunk validation to the Vercel AI SDK, then projects the validated chunks into AG-UI events.
 - **Current scope:** reasoning, sources, assistant files, custom data, metadata, and tool-approval-request chunks have no equivalent in the current AgentInterface stream processor and are ignored. Approval-gated tools therefore need a custom flow today. Provider-executed tool chunks (`providerExecuted: true`) are rejected because AG-UI cannot preserve their assistant-contained result semantics.
 - **When to use:** Your route uses Vercel AI SDK `streamText()` and returns its UIMessage stream response. Pair with `vercelAIMessageFormat` so the route receives `UIMessage[]` that can be passed to `convertToModelMessages()`.
 
@@ -485,8 +488,8 @@ const llm = fetchLLM({
 });
 ```
 
-- **Wire shape:** LangGraph **named-event** SSE — `event: <type>\ndata: <json>\n\n` blocks, in the `messages` stream mode. Handles the `messages`, `metadata`, `updates`, `error`, and `end` event types; other event types (`values`, `debug`, `tasks`, `checkpoints`, `custom`) are ignored.
-- **What it handles:** AI message chunks → `TEXT_MESSAGE_*`; both streamed (`tool_call_chunks`) and complete (`tool_calls`) tool calls → `TOOL_CALL_*`; `error` events → `RUN_ERROR`. It closes out any open message/tool calls on the `end` event (or at stream end if no `end` arrives).
+- **Wire shape:** LangGraph **named-event** SSE — `event: <type>\ndata: <json>\n\n` blocks, in the `messages` stream mode, with LF or CRLF line endings. Handles the `messages`, `metadata`, `updates`, `error`, and `end` event types; other event types (`values`, `debug`, `tasks`, `checkpoints`, `custom`) are ignored.
+- **What it handles:** AI message chunks → `TEXT_MESSAGE_*`; both streamed (`tool_call_chunks`) and complete (`tool_calls`, used when `tool_call_chunks` is absent or empty) tool calls → `TOOL_CALL_*`; `error` events → `RUN_ERROR`. It closes out any open message/tool calls on the `end` event (or at stream end if no `end` arrives).
 - **Options** (`LangGraphAdapterOptions`):
   - `onInterrupt?: (interrupt: unknown) => void` — invoked with the `__interrupt__` payload when a LangGraph interrupt surfaces in an `updates` event. `eveAdapter()` is the other adapter that takes options.
 - **When to use:** Your backend streams from a LangGraph deployment. Pair with `langGraphMessageFormat`.
@@ -505,7 +508,7 @@ const llm: ChatLLM = {
 ```
 
 - **Wire shape:** Vercel Eve's newline-delimited JSON session stream (`GET /eve/v1/session/:id/stream`) — one harness event per line, no `data:` prefix.
-- **What it handles:** `actions.requested` → `TOOL_CALL_START` / `TOOL_CALL_ARGS` / `TOOL_CALL_END`; `action.result` → `TOOL_CALL_RESULT`; `message.appended` → `TEXT_MESSAGE_CONTENT` (with `message.completed` as the fallback for steps that streamed no deltas); `input.requested` → a `CUSTOM` event named `eve.input.requested` (exported as `EVE_INPUT_REQUESTED_EVENT`); `turn.failed` / `session.failed` → `RUN_ERROR`. Tool calls and text share one assistant message id. Parsing stops at the turn boundary (`session.completed`, `session.waiting`, `session.failed`).
+- **What it handles:** `actions.requested` → `TOOL_CALL_START` / `TOOL_CALL_ARGS` / `TOOL_CALL_END`; `action.result` → `TOOL_CALL_RESULT` (with `isError` when the action failed); `message.appended` → `TEXT_MESSAGE_CONTENT` (with `message.completed` as the fallback for steps that streamed no deltas); `input.requested` → a `CUSTOM` event named `eve.input.requested` (exported as `EVE_INPUT_REQUESTED_EVENT`); `turn.failed` / `session.failed` → `RUN_ERROR`. Tool calls and text share one assistant message id. Parsing stops at the turn boundary (`session.completed`, `session.waiting`, `session.failed`).
 - **Options** (`EveAdapterOptions`):
   - `onEvent?: (event: EveStreamEvent) => void` — receives every raw Eve event before translation, including types the adapter does not map (`session.started`, `reasoning.appended`, …).
 - **When to use:** Your browser talks to an Eve session directly (or through a same-origin proxy such as `withEve()`) and you want Eve's turns rendered by `AgentInterface`. Eve keeps the conversation server-side, so there is no paired message format: `send` delivers only the latest user turn and returns the session stream. See [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) for the complete bridge.

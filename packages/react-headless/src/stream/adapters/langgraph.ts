@@ -90,6 +90,9 @@ export const langGraphAdapter = (options?: LangGraphAdapterOptions): StreamProto
     let messageStarted = false;
     let sawToolsOnCurrentMessage = false;
     let buffer = "";
+    // A chunk that ends in "\r" may be the first half of a CRLF; hold it until
+    // the next read shows whether a "\n" follows.
+    let pendingCR = false;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -98,7 +101,19 @@ export const langGraphAdapter = (options?: LangGraphAdapterOptions): StreamProto
       // function_call_arguments payload) can span several network reads. Hold the
       // trailing partial block until the next read; on done, flush what remains
       // (the old early `if (done) break` dropped the final un-terminated block).
-      buffer += done ? decoder.decode() : decoder.decode(value, { stream: true });
+      let text = done ? decoder.decode() : decoder.decode(value, { stream: true });
+      if (pendingCR) {
+        text = `\r${text}`;
+        pendingCR = false;
+      }
+      if (!done && text.endsWith("\r")) {
+        pendingCR = true;
+        text = text.slice(0, -1);
+      }
+      // CRLF and CR line endings are valid SSE (some reverse proxies and
+      // Windows-hosted servers send them). Normalize to LF so the "\n\n" block
+      // split below fires; before, a CRLF stream produced no events at all.
+      buffer += text.replace(/\r\n?/g, "\n");
 
       // SSE events are separated by double newlines; keep the last (possibly
       // incomplete) block in the buffer until more arrives.
@@ -264,8 +279,15 @@ export const langGraphAdapter = (options?: LangGraphAdapterOptions): StreamProto
             // Handle complete tool calls only for non-streaming messages.
             // LangChain chunks can also carry a provisional tool_calls
             // projection (often with args: {}). tool_call_chunks is the
-            // authoritative source whenever that field is present.
-            if (msg.tool_call_chunks === undefined && msg.tool_calls && msg.tool_calls.length > 0) {
+            // authoritative source whenever it has entries. An empty array is
+            // not: AIMessageChunk normalises a missing field to [], so a model
+            // that streams tool_calls without chunk deltas arrives as
+            // `tool_call_chunks: []` plus a complete tool_calls list.
+            if (
+              (msg.tool_call_chunks === undefined || msg.tool_call_chunks.length === 0) &&
+              msg.tool_calls &&
+              msg.tool_calls.length > 0
+            ) {
               for (let i = 0; i < msg.tool_calls.length; i++) {
                 const tc = msg.tool_calls[i];
                 if (!tc) continue;

@@ -38,3 +38,56 @@ export async function* sseLineIterator(response: Response): AsyncGenerator<strin
   // complete final line sitting in the buffer.
   if (buffer.trim()) yield buffer;
 }
+
+/**
+ * The payload of an SSE `data:` line, or `undefined` for any other line.
+ *
+ * The SSE spec strips one optional space after the colon, so `data:{…}` and
+ * `data: {…}` carry the same value. Servers written with Go's
+ * `fmt.Fprintf(w, "data:%s\n\n")`, several Python frameworks and hand-rolled
+ * routes omit the space; matching only `"data: "` dropped every one of their
+ * events.
+ *
+ * @internal
+ */
+export function sseData(line: string): string | undefined {
+  if (!line.startsWith("data:")) return undefined;
+  const value = line.slice(5);
+  return (value.startsWith(" ") ? value.slice(1) : value).trim();
+}
+
+/** Upper bound on how much of a non-SSE body is kept for the fallback below. */
+const MAX_PLAIN_BODY = 64 * 1024;
+
+/**
+ * Yields the payload of every SSE `data:` line, skipping empty payloads and
+ * `[DONE]` sentinels.
+ *
+ * A body with no `data:` line at all is not SSE — typically a route (or a proxy
+ * in front of it) that answered a failure with a plain JSON body under HTTP
+ * 200. When such a body is a JSON object, its text is yielded once at the end
+ * as a single payload, so the adapter can map an `{"error":{…}}` object exactly
+ * like the same record arriving in-stream instead of ending on a blank turn.
+ *
+ * @internal
+ */
+export async function* sseDataPayloads(response: Response): AsyncGenerator<string> {
+  let sawData = false;
+  let plain = "";
+
+  for await (const line of sseLineIterator(response)) {
+    const payload = sseData(line);
+    if (payload === undefined) {
+      if (!sawData && plain.length < MAX_PLAIN_BODY) plain += `${line}\n`;
+      continue;
+    }
+    sawData = true;
+    if (!payload || payload === "[DONE]") continue;
+    yield payload;
+  }
+
+  if (!sawData) {
+    const body = plain.trim();
+    if (body.startsWith("{")) yield body;
+  }
+}

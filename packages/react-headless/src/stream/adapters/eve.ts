@@ -71,18 +71,23 @@ export const eveAdapter = (options: EveAdapterOptions = {}): StreamProtocolAdapt
       } else if (event.type === "action.result") {
         const { result, status, error } = event.data;
         if (result.kind !== "tool-result") continue;
-        const content =
-          status === "completed"
-            ? typeof result.output === "string"
-              ? result.output
-              : JSON.stringify(result.output ?? null)
-            : JSON.stringify({ error: error?.message ?? `tool ${status}` });
+        const failed = status !== "completed";
+        const errorText = error?.message ?? `tool ${status}`;
+        const content = failed
+          ? JSON.stringify({ error: errorText })
+          : typeof result.output === "string"
+            ? result.output
+            : JSON.stringify(result.output ?? null);
         yield {
           type: EventType.TOOL_CALL_RESULT,
           messageId: crypto.randomUUID(),
           toolCallId: result.callId,
           content,
           role: "tool",
+          // Flag the failure the way the LangGraph and Vercel adapters do, so the
+          // tool card shows an error instead of a successful result whose text
+          // happens to be an error object.
+          ...(failed ? { isError: true, error: errorText } : {}),
         };
       } else if (event.type === "message.appended") {
         const { messageDelta, stepIndex } = event.data;
