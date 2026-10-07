@@ -106,7 +106,7 @@ interface RendererProps {
     | Record<string, (args: Record<string, unknown>) => Promise<unknown>>
     | McpClientLike
     | null;
-  /** Optional loading indicator. Nothing is shown when omitted. */
+  /** Custom loading indicator. Defaults to a spinner. */
   queryLoader?: React.ReactNode;
   children?: React.ReactNode;
   onError?: (errors: OpenUIError[]) => void;
@@ -115,12 +115,12 @@ interface RendererProps {
 
 ## Renderer slots
 
-`Renderer` keeps query defaults or cached results visible while loading and after failures, and reports errors through `onError`. No loader or error/retry view is shown by default. Provide `queryLoader` to add a loading indicator. To customize loading feedback and opt into an error/retry presentation, use `Renderer.Root` with these slots:
+`Renderer` keeps query defaults or cached results visible while loading and after failures, and reports errors through `onError`. A spinner is shown while queries load; provide `queryLoader` to customize it. No error/retry view is shown by default. To customize loading feedback and opt into an error/retry presentation, use `Renderer.Root` with these slots:
 
 | Slot | Purpose |
 | --- | --- |
 | `Renderer.Content` | Generated UI; accepts div props and stays mounted during query failures. |
-| `Renderer.QueryLoading` | Children shown while queries wait or fetch; omitted children use `queryLoader`, or render nothing if it is absent. |
+| `Renderer.QueryLoading` | Children shown while queries wait or fetch; omitted children use `queryLoader` or the default spinner. |
 | `Renderer.QueryError` | Children shown when queries fail; renders nothing without children. |
 | `Renderer.Retry` | A retry button; accepts standard button props. |
 

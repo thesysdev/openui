@@ -34,8 +34,8 @@ export function AssistantMessage({
 | `initialState`  | `Record<string, any>`                                                                          | Hydrates form state on load (e.g. from persisted message).                                                                                       |
 | `onParseResult` | `(result: ParseResult \| null) => void`                                                        | Debug/inspect latest parse result.                                                                                                               |
 | `toolProvider`  | `Record<string, (args: Record<string, unknown>) => Promise<unknown>> \| McpClientLike \| null` | Handles `Query()` / `Mutation()` tool calls. Pass a function map or an [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) client. |
-| `queryLoader` | `React.ReactNode` | Optional loading indicator; nothing is shown when omitted. |
-| `children` | `React.ReactNode` | Optional Renderer slot composition; omit to keep content visible with an optional `queryLoader`. |
+| `queryLoader` | `React.ReactNode` | Custom loading indicator; defaults to a spinner. |
+| `children` | `React.ReactNode` | Optional Renderer slot composition; omit to keep content visible with a loading indicator. |
 | `onError`       | `(errors: OpenUIError[]) => void`                                                              | Structured, LLM-friendly errors from the parser and query system. Suitable for automated correction loops. Called with `[]` when resolved.       |
 
 ## Connecting tools

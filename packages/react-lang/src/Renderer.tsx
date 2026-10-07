@@ -13,6 +13,7 @@ import React, {
   createContext,
   useContext,
   useEffect,
+  useInsertionEffect,
   useMemo,
   useRef,
 } from "react";
@@ -57,9 +58,9 @@ export interface RendererProps {
    */
   toolProvider?:
     Record<string, (args: Record<string, unknown>) => Promise<unknown>> | McpClientLike | null;
-  /** Optional loading indicator. Nothing is shown when omitted. */
+  /** Custom loading indicator. Defaults to a spinner. */
   queryLoader?: React.ReactNode;
-  /** Custom slot composition. Omit to keep content visible with an optional queryLoader. */
+  /** Custom slot composition. Omit to keep content visible with a loading indicator. */
   children?: React.ReactNode;
   /**
    * Called with structured, LLM-friendly errors from the parser and query system.
@@ -186,7 +187,37 @@ function RenderNodeInner({ el, Comp }: { el: ElementNode; Comp: ComponentRendere
   return <Comp props={el.props} renderNode={renderNode} statementId={el.statementId} />;
 }
 
+// ─── Loading style injection (once per document) ───
+
+let loadingStyleInjected = false;
+function ensureLoadingStyle() {
+  if (loadingStyleInjected || typeof document === "undefined") return;
+  loadingStyleInjected = true;
+  const style = document.createElement("style");
+  style.textContent = `@keyframes openui-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+  document.head.appendChild(style);
+}
+
 // ─── Public component ───
+
+const DefaultQueryLoader = () => (
+  <div
+    role="status"
+    aria-label="Loading data"
+    style={{
+      position: "absolute",
+      top: 8,
+      right: 8,
+      width: 16,
+      height: 16,
+      border: "2px solid #e5e7eb",
+      borderTopColor: "#3b82f6",
+      borderRadius: "50%",
+      animation: "openui-spin 0.6s linear infinite",
+      zIndex: 10,
+    }}
+  />
+);
 
 function RendererRoot({
   response,
@@ -202,6 +233,10 @@ function RendererRoot({
   onError,
   publishObservability,
 }: RendererProps) {
+  useInsertionEffect(() => {
+    ensureLoadingStyle();
+  }, []);
+
   const onParseResultRef = useRef(onParseResult);
   onParseResultRef.current = onParseResult;
 
@@ -324,7 +359,7 @@ function RendererQueryLoading({ children }: RendererSlotProps) {
     queryLoader,
   } = useRendererContext();
   if (!isLoading || errors.length > 0) return null;
-  return <>{children === undefined ? queryLoader : children}</>;
+  return <>{children === undefined ? (queryLoader ?? <DefaultQueryLoader />) : children}</>;
 }
 
 /** Shows the supplied content when queries fail; renders nothing without children. */
@@ -360,7 +395,7 @@ function DefaultRendererContent() {
   if (!root) return null;
   return (
     <div aria-busy={query.isLoading} style={{ position: "relative" }}>
-      {query.isLoading && queryLoader}
+      {query.isLoading && (queryLoader ?? <DefaultQueryLoader />)}
       <div style={{ opacity: query.isLoading ? 0.7 : 1, transition: "opacity 0.2s ease" }}>
         <RenderNode node={root} />
       </div>
