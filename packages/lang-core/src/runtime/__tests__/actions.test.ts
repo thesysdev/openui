@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
 import { createLibrary, defineAction, defineComponent, defineFunction } from "../../library";
 import { createParser } from "../../parser";
-import { action } from "../../parser/builtins";
+import { action, steps } from "../../parser/builtins";
 import { evaluateElementProps } from "../evaluate-tree";
 
 const Button = defineComponent({
@@ -104,6 +104,20 @@ describe("custom actions", () => {
     expect(actionsOf(`@Each(rows, "r", Button("Go", Action([r.plan, @OpenUrl("u")])))`)).toEqual([
       { steps: [open] },
     ]);
+  });
+
+  it("names a custom action in a restricted slot with its ref", () => {
+    const Share = defineComponent({
+      name: "Share",
+      props: z.object({ share: z.union([copy.ref, steps.OpenUrl.ref]) }),
+      description: "",
+      component: null,
+    });
+    const shareLib = createLibrary({ root: "Share", components: [Share], actions: [copy] });
+    expect(shareLib.prompt()).toContain("Share(share: @CopyToClipboard | @OpenUrl)");
+    expect(shareLib.toJSONSchema().$defs?.CopyToClipboard).toMatchObject({
+      properties: { type: { const: "CopyToClipboard" }, params: { required: ["text"] } },
+    });
   });
 
   it("rejects a name taken by a built-in, step, component, or function", () => {

@@ -255,6 +255,7 @@ export function createLibrary<C = unknown, A extends AnyAction = AnyAction>(
   for (const action of input.actions ?? []) {
     claim("Action", action.name);
     actionsRecord[action.name] = action;
+    reg.add(action.ref, { id: action.name });
   }
   const callSpecs = () => {
     const functions = buildCallSpecs(functionsRecord, reg);

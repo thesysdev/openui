@@ -7,7 +7,7 @@ import {
   type DefinedAction,
   type DefinedFunction,
 } from "../functions";
-import { tagActionRef, tagSchemaId } from "../signature";
+import { actionRef, tagSchemaId } from "../signature";
 import type { ActionStep, CallDef, ParamMap } from "./types";
 
 /** Resolve a field path on an object. Supports dot-paths: "state.name" → obj.state.name */
@@ -253,12 +253,6 @@ export function action() {
 /** A slot schema naming one action, typed like an action prop: `z.union([steps.OpenUrl.ref])`. */
 export type ActionRef = z.ZodType<z.infer<typeof actionSchema>>;
 
-// actionRef("OpenUrl", data) -> `$defs.OpenUrl` = data in JSON, `@OpenUrl` in prompt signatures
-function actionRef(name: string, data: z.ZodType): ActionRef {
-  tagActionRef(data, name);
-  return data as unknown as ActionRef;
-}
-
 /** Refs of the built-in steps that have a legacy JSON shape, for restricted action slots. */
 export const steps = {
   OpenUrl: { ref: actionRef("OpenUrl", openUrlData()) },
@@ -294,6 +288,7 @@ const builtinSteps: BuiltinStep[] = [
         'Send a message to the assistant (for conversational buttons like "Tell me more", "Explain this"). The optional context is any value (object, array, string, number) passed to the assistant as hidden data, e.g. @ToAssistant("Show details", {orderId: 42})',
       params: z.object({ message: z.string(), context: z.any().optional() }),
     }),
+    ref: steps.ToAssistant.ref,
     // The context may be any value and is passed through unchanged; null means none
     step: ({ message, context }) => ({
       type: ACTION_STEPS.ToAssistant,
@@ -307,6 +302,7 @@ const builtinSteps: BuiltinStep[] = [
       description: "Navigate to a URL",
       params: z.object({ url: z.string() }),
     }),
+    ref: steps.OpenUrl.ref,
     step: ({ url }) => ({ type: ACTION_STEPS.OpenUrl, url: String(url ?? "") }),
   },
   {

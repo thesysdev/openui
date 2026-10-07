@@ -669,9 +669,9 @@ function compileParams(def: JSONSchemaDef, defs: ActionDefs): ParamDef[] {
 export function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const map: ParamMap = new Map();
   const components = schema.properties && new Set(Object.keys(schema.properties));
-  // Action $defs (ActionExpression, OpenUrl, ...) are data shapes, never components
+  // Action $defs (ActionExpression, OpenUrl, custom actions) are data shapes, never components
   const defs: ActionDefs = new Map();
-  for (const name of Object.keys(ACTION_DEFS)) {
+  for (const name of [...Object.keys(ACTION_DEFS), ...Object.keys(schema.actions ?? {})]) {
     const body = schema.$defs?.[name];
     if (body && !components?.has(name)) defs.set(`#/$defs/${name}`, body);
   }
