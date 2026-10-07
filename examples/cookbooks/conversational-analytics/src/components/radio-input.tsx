@@ -179,6 +179,11 @@ export function RadioInput({
         value={text}
         maxLength={maxLength}
         placeholder={placeholder}
+        // Driver and team names aren't dictionary words; don't squiggle or "fix" them.
+        spellCheck={false}
+        autoCorrect="off"
+        autoCapitalize="off"
+        autoComplete="off"
         onChange={(e) => {
           if (sound === true) playTick();
           setText(e.target.value);
