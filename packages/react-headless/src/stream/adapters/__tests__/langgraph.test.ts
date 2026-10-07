@@ -576,6 +576,38 @@ describe("langGraphAdapter — CRLF and empty tool_call_chunks", () => {
     expect(JSON.stringify(events)).not.toContain("late");
   });
 
+  it("keeps streaming text when tool_call_chunks is null", async () => {
+    const body =
+      sse("messages", ai("Hello ", { tool_call_chunks: null })) +
+      sse("messages", ai("there")) +
+      sse("end", null);
+    const events = await collect(langGraphAdapter().parse(makeSSEResponse(body)));
+    expect(events).toEqual([
+      expect.objectContaining({ type: EventType.TEXT_MESSAGE_START }),
+      expect.objectContaining({ type: EventType.TEXT_MESSAGE_CONTENT, delta: "Hello " }),
+      expect.objectContaining({ type: EventType.TEXT_MESSAGE_CONTENT, delta: "there" }),
+      expect.objectContaining({ type: EventType.TEXT_MESSAGE_END }),
+    ]);
+  });
+
+  it("announces complete tool_calls when tool_call_chunks is null", async () => {
+    const body = sse(
+      "messages",
+      ai("", {
+        tool_call_chunks: null,
+        tool_calls: [{ id: "call_1", name: "get_weather", args: { city: "Tokyo" } }],
+      }),
+    );
+    const events = await collect(langGraphAdapter().parse(makeSSEResponse(body)));
+    expect(events).toEqual(
+      expect.arrayContaining([
+        { type: EventType.TOOL_CALL_START, toolCallId: "call_1", toolCallName: "get_weather" },
+        { type: EventType.TOOL_CALL_ARGS, toolCallId: "call_1", delta: '{"city":"Tokyo"}' },
+        { type: EventType.TOOL_CALL_END, toolCallId: "call_1" },
+      ]),
+    );
+  });
+
   it("announces tool_calls that arrive with an empty tool_call_chunks array", async () => {
     const body = sse(
       "messages",

@@ -134,6 +134,83 @@ describe("Chat Completions adapters", () => {
     ]);
   });
 
+  it.each([
+    ["SSE", openAIAdapter, sse],
+    ["NDJSON", openAIReadableStreamAdapter, ndjson],
+  ])("keeps one named tool call when %s chunks repeat its id", async (_, adapter, frame) => {
+    const body = [
+      completionChunk(toolDelta('{"city":')),
+      completionChunk({
+        tool_calls: [
+          {
+            index: 0,
+            id: "call_1",
+            function: { arguments: '"Tokyo"}' },
+          },
+        ],
+      }),
+      completionChunk({}, "tool_calls"),
+    ]
+      .map(frame)
+      .join("");
+    const events = await collect(adapter().parse(makeResponse(body)));
+    expect(events.filter((e) => e.type === EventType.TOOL_CALL_START)).toEqual([
+      { type: EventType.TOOL_CALL_START, toolCallId: "call_1", toolCallName: "get_weather" },
+    ]);
+    expect(events.filter((e) => e.type === EventType.TOOL_CALL_END)).toHaveLength(1);
+    const { messages, error } = await consume(adapter(), makeResponse(body));
+    expect(error).toBeUndefined();
+    expect(messages).toEqual([
+      expect.objectContaining({
+        toolCalls: [
+          {
+            id: "call_1",
+            type: "function",
+            function: { name: "get_weather", arguments: '{"city":"Tokyo"}' },
+          },
+        ],
+      }),
+    ]);
+  });
+
+  it("keeps parallel calls distinct when argument chunks repeat both ids", async () => {
+    const body = [
+      completionChunk({
+        tool_calls: [
+          { index: 0, id: "call_1", function: { name: "weather", arguments: '{"city":' } },
+          { index: 1, id: "call_2", function: { name: "time", arguments: '{"zone":' } },
+        ],
+      }),
+      completionChunk({
+        tool_calls: [
+          { index: 0, id: "call_1", function: { arguments: '"Tokyo"}' } },
+          { index: 1, id: "call_2", function: { arguments: '"Asia/Tokyo"}' } },
+        ],
+      }),
+      completionChunk({}, "tool_calls"),
+    ]
+      .map(sse)
+      .join("");
+    const { messages, error } = await consume(openAIAdapter(), makeResponse(body));
+    expect(error).toBeUndefined();
+    expect(messages).toEqual([
+      expect.objectContaining({
+        toolCalls: [
+          {
+            id: "call_1",
+            type: "function",
+            function: { name: "weather", arguments: '{"city":"Tokyo"}' },
+          },
+          {
+            id: "call_2",
+            type: "function",
+            function: { name: "time", arguments: '{"zone":"Asia/Tokyo"}' },
+          },
+        ],
+      }),
+    ]);
+  });
+
   it("does not invent an ending for a stream that stops without a finish_reason", async () => {
     // It may have been cut off; closing the calls would make it look complete.
     const body =

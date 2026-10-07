@@ -81,12 +81,16 @@ export function chatCompletionsMapper() {
 
           if (toolCall.id) {
             toolCallIds[index] = toolCall.id;
-            openToolCallIds.add(toolCall.id);
-            yield {
-              type: EventType.TOOL_CALL_START,
-              toolCallId: toolCall.id,
-              toolCallName: toolCall.function?.name || "",
-            };
+            // Some gateways repeat the id on every argument delta. Start
+            // the call once so later unnamed deltas do not create duplicate cards.
+            if (!openToolCallIds.has(toolCall.id)) {
+              openToolCallIds.add(toolCall.id);
+              yield {
+                type: EventType.TOOL_CALL_START,
+                toolCallId: toolCall.id,
+                toolCallName: toolCall.function?.name || "",
+              };
+            }
           }
 
           const toolCallId = toolCallIds[index];

@@ -17,7 +17,7 @@ interface LangGraphAIMessage {
     name?: string;
     args?: string;
     index?: number;
-  }>;
+  }> | null;
 }
 
 /** LangGraph tool result (or chunk) received between model invocations. */
@@ -283,11 +283,7 @@ export const langGraphAdapter = (options?: LangGraphAdapterOptions): StreamProto
             // not: AIMessageChunk normalises a missing field to [], so a model
             // that streams tool_calls without chunk deltas arrives as
             // `tool_call_chunks: []` plus a complete tool_calls list.
-            if (
-              (msg.tool_call_chunks === undefined || msg.tool_call_chunks.length === 0) &&
-              msg.tool_calls &&
-              msg.tool_calls.length > 0
-            ) {
+            if (!msg.tool_call_chunks?.length && msg.tool_calls && msg.tool_calls.length > 0) {
               for (let i = 0; i < msg.tool_calls.length; i++) {
                 const tc = msg.tool_calls[i];
                 if (!tc) continue;

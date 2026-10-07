@@ -80,7 +80,9 @@ function toOpenAI(message: Message): ChatCompletionMessageParam {
 // ── Inbound (OpenAI Completions → AG-UI) ────────────────────────
 
 function fromOpenAIAssistant(msg: ChatCompletionAssistantMessageParam): AssistantMessage {
-  const content = typeof msg.content === "string" ? msg.content : undefined;
+  const text = typeof msg.content === "string" ? msg.content : undefined;
+  // Match streaming: refusal text is part of the assistant's answer.
+  const content = msg.refusal ? (text ?? "") + msg.refusal : text;
 
   const result: AssistantMessage = {
     id: crypto.randomUUID(),

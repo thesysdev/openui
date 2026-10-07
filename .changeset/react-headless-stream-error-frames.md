@@ -12,3 +12,6 @@ Stream adapters no longer end a turn silently when something went wrong:
 - The SSE adapters accept `data:` without the optional space; `langGraphAdapter` accepts CRLF line endings and announces complete `tool_calls` when `tool_call_chunks` is empty.
 - `eveAdapter` flags an `action.result` whose status is not `completed` with `isError`, so the tool shows as failed.
 - Every adapter now stops emitting at its first `RUN_ERROR` (`eveAdapter` still reads to the turn boundary so `onEvent` sees the rest of the turn), and `agUIAdapter` skips (and logs) records that have no AG-UI `type` instead of passing them on.
+- Chat Completions adapters keep one tool call when a gateway repeats its id on argument chunks, preserving the name and accumulated arguments.
+- LangGraph accepts `tool_call_chunks: null` as well as an absent or empty array, without interrupting subsequent text or complete tool calls.
+- `openAIMessageFormat.fromApi` restores stored assistant refusal text so it stays visible after reload.

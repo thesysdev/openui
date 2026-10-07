@@ -411,7 +411,7 @@ const llm = fetchLLM({
 ```
 
 - **Wire shape:** OpenAI **Chat Completions** streaming SSE — the raw `data: {…}` chunk format from `chat.completions.create({ stream: true })` (each line is a `ChatCompletionChunk`).
-- **What it emits:** `TEXT_MESSAGE_START` on the first content/role delta, `TEXT_MESSAGE_CONTENT` per content delta, `TOOL_CALL_START` / `TOOL_CALL_ARGS` for streamed tool calls (indexed by `tool_calls[].index`), and end events driven by `finish_reason`: any finish reason ends the step — `TOOL_CALL_END` for each open call, then `TEXT_MESSAGE_END` (so a tool-call turn that finishes with `stop`, as Gemini and some OpenAI-compatible proxies send, ends its calls exactly like a `tool_calls` turn). `length` and `content_filter` instead end the message and raise `RUN_ERROR`, leaving open tool calls unended because their arguments may be incomplete. `delta.refusal` is rendered as text. An in-stream error record (`{"error":{"message":…,"code":…}}`) → `RUN_ERROR`.
+- **What it emits:** `TEXT_MESSAGE_START` on the first content/role delta, `TEXT_MESSAGE_CONTENT` per content delta, `TOOL_CALL_START` / `TOOL_CALL_ARGS` for streamed tool calls (indexed by `tool_calls[].index`; repeated ids on argument chunks keep one named call), and end events driven by `finish_reason`: any finish reason ends the step — `TOOL_CALL_END` for each open call, then `TEXT_MESSAGE_END` (so a tool-call turn that finishes with `stop`, as Gemini and some OpenAI-compatible proxies send, ends its calls exactly like a `tool_calls` turn). `length` and `content_filter` instead end the message and raise `RUN_ERROR`, leaving open tool calls unended because their arguments may be incomplete. `delta.refusal` is rendered as text. An in-stream error record (`{"error":{"message":…,"code":…}}`) → `RUN_ERROR`.
 - **When to use:** Your route forwards the OpenAI Completions stream as-is (the most common OpenAI setup). Pair with `openAIMessageFormat`.
 
 ### `openAIReadableStreamAdapter`
@@ -492,7 +492,7 @@ const llm = fetchLLM({
 ```
 
 - **Wire shape:** LangGraph **named-event** SSE — `event: <type>\ndata: <json>\n\n` blocks, in the `messages` stream mode, with LF or CRLF line endings. Handles the `messages`, `metadata`, `updates`, `error`, and `end` event types; other event types (`values`, `debug`, `tasks`, `checkpoints`, `custom`) are ignored.
-- **What it handles:** AI message chunks → `TEXT_MESSAGE_*`; both streamed (`tool_call_chunks`) and complete (`tool_calls`, used when `tool_call_chunks` is absent or empty) tool calls → `TOOL_CALL_*`; `error` events → `RUN_ERROR`. It closes out any open message/tool calls on the `end` event (or at stream end if no `end` arrives).
+- **What it handles:** AI message chunks → `TEXT_MESSAGE_*`; both streamed (`tool_call_chunks`) and complete (`tool_calls`, used when `tool_call_chunks` is absent, null, or empty) tool calls → `TOOL_CALL_*`; `error` events → `RUN_ERROR`. It closes out any open message/tool calls on the `end` event (or at stream end if no `end` arrives).
 - **Options** (`LangGraphAdapterOptions`):
   - `onInterrupt?: (interrupt: unknown) => void` — invoked with the `__interrupt__` payload when a LangGraph interrupt surfaces in an `updates` event. `eveAdapter()` is the other adapter that takes options.
 - **When to use:** Your backend streams from a LangGraph deployment. Pair with `langGraphMessageFormat`.
@@ -571,7 +571,7 @@ import { openAIMessageFormat } from "@openuidev/react-ui";
 ```
 
 - **Shape:** OpenAI **Chat Completions** messages (`ChatCompletionMessageParam[]`). 1-to-1: each canonical message becomes exactly one Completions message and vice versa.
-- **Conversions:** strips/regenerates `id`; `toolCalls` ↔ `tool_calls`; `toolCallId` ↔ `tool_call_id`; multipart user `content` ↔ OpenAI content parts (binary parts become `image_url`). `reasoning`/`activity` messages have no Completions equivalent and map to an empty `system` message outbound.
+- **Conversions:** strips/regenerates `id`; `toolCalls` ↔ `tool_calls`; `toolCallId` ↔ `tool_call_id`; stored assistant `refusal` text is included in the restored answer; multipart user `content` ↔ OpenAI content parts (binary parts become `image_url`). `reasoning`/`activity` messages have no Completions equivalent and map to an empty `system` message outbound.
 - **When to use:** Pair with `openAIAdapter()` or `openAIReadableStreamAdapter()`.
 
 ### `openAIConversationMessageFormat`
