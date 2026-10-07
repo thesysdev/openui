@@ -7,7 +7,7 @@ export type MarketingFaq = {
   answer: string[];
 };
 
-const FAQS: MarketingFaq[] = [
+export const FAQS: MarketingFaq[] = [
   {
     question: "What should I use to build a Generative UI app?",
     answer: [
