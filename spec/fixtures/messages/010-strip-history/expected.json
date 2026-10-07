@@ -1,4 +1,0 @@
-{
-  "mode": "strip",
-  "result": "root = Card([title, saveBtn])\ntitle = TextContent(\"Order\")\nsaveBtn = Button(\"Save\", @ToAssistant(\"Save order\", {\"orderId\": 42}))"
-}

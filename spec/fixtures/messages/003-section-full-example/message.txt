@@ -1,7 +1,0 @@
-]]>openui:content?library=support%401.2.0
-root = Card([title, saveBtn])
-title = TextContent("Order")
-saveBtn = Button("Save", @ToAssistant("Save order", {"orderId": 42}))
-]]>openui:context
-{"formState":{"note":"rush"},"context":{"orderId":42}}
-]]>openui:end

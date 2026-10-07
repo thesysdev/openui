@@ -126,8 +126,7 @@
     "Card": {
       "signature": "Card(title: string, children?: any[])",
       "description": "A titled container",
-      "order": ["title", "children"],
-      "aliases": ["Panel"]
+      "order": ["title", "children"]
     },
     "Text": {
       "signature": "Text(text: string, variant?: \"body\" | \"heading\")",

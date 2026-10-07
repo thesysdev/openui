@@ -1,4 +1,0 @@
-]]>openui:content
-A
-]]>openui:end
-B

@@ -532,7 +532,7 @@ Arguments map to props by position against the library schema, then each prop is
 - A call to a name in a component's `aliases` ([prompt.md](./prompt.md), section 3.2) resolves to that component. It is not unknown.
 - An unknown component in a value position is dropped. In a computed expression it stays in the tree for the error to point at, but renders nothing.
 
-Fixtures: `errors/*-validate-*`, `errors/*-alias-*`
+Fixtures: `errors/*-validate-*`
 
 ## 9. The program tree and serialization
 
@@ -586,7 +586,7 @@ A client claims conformance by passing a tagged fixture release. If the prose an
 spec/fixtures/<area>/<NNN-short-name>/
 ```
 
-The areas are `grammar`, `entry`, `streaming`, `evaluation`, `state`, `actions`, `editing`, `errors`, and `messages`. Each "Fixtures:" line names a folder or a narrower pattern such as `entry/001-*`.
+The areas are `grammar`, `entry`, `streaming`, `evaluation`, `state`, `actions`, `editing`, and `errors`. Each "Fixtures:" line names a folder or a narrower pattern such as `entry/001-*`.
 
 Each case holds:
 

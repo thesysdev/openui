@@ -11,7 +11,7 @@ spec/fixtures/
 
 ## The test library
 
-`library.json` is a LibrarySpec ([prompt.md](../prompt.md), section 2) with `root: "Stack"`, twelve components, one alias (`Panel` for `Card`), and one registered function, `@Upper(text)`, which returns the text in upper case. The function has no implementation in the file, so a runner supplies it.
+`library.json` is a LibrarySpec ([prompt.md](../prompt.md), section 2) with `root: "Stack"`, twelve components, and one custom function, `@Upper(text)`, which returns the text in upper case. The function has no implementation in the file, so a runner supplies it.
 
 Positional order comes from each component's `order` array. Bindable props carry `"x-openui": "binding"`, action props `"x-openui": "action"`, and component lists mark their `items` with `"x-openui": "component"`.
 
@@ -59,17 +59,6 @@ State cases with user input (`state/*-binding-*`, `state/*-form-*`) use `steps.j
 ## Validation cases
 
 `state/*-validation-*` cases hold `validation.json` instead of a program: `{ "cases": [{ "rules", "value", "valid" }] }`. `rules` is the validation rules object (language.md, section 5.4). The runner checks each value against the rules and compares only pass or fail, not the message.
-
-## Message cases
-
-Files: `message.txt` (the raw stored message, byte for byte, usually with no final newline) and `expected.json` with a `mode`:
-
-| mode | input | `result` |
-| --- | --- | --- |
-| `read` | `message.txt`; `"streaming": true` reads it as a message still streaming | `{ content, context, end, attributes }`, compared on the listed keys only. `content` and `context` are section bodies as text, `context` is `null` when there is none, `attributes` are the decoded attributes of the winning `content` marker |
-| `strip` | `message.txt`, a stored assistant message | the text the model sees for it in history: the program, with every marker line and the stored context removed |
-| `turn` | `message.txt`, a stored user turn in the reference format (prompt.md, section 6.3) | `{ content, context, modelText }`, where `modelText` is `content`, a newline, then `context and form values = ` and the context |
-| `write` | `input`: `{ content, library: { id, version }, context, end }` | the stored message text |
 
 ## known-failing.json
 

@@ -253,7 +253,7 @@ The model's earlier responses appear in history as the OpenUI Lang text it wrote
 
 The host removes every marker line (section 7) from history before the model sees it. The rules in section 3.2 keep stored programs readable across library changes.
 
-Fixtures: `messages/*-strip-*`
+Fixtures: none in `spec/fixtures/`.
 
 ### 6.2 Error feedback
 
@@ -292,7 +292,7 @@ This equals `Button("Save", Action([@ToAssistant("Save order")]))`. It works for
 
 The model receives one user message: `<message text>`, a newline, then `context and form values = <that JSON>`. All marker lines are removed. The third element, the `@ToAssistant` context, is new in 1.0. Earlier assistant turns reach the model as their program text only, with markers and stored form state removed.
 
-Fixtures: `actions/`, `messages/*-turn-*`
+Fixtures: `actions/`
 
 ### 6.4 Edit mode
 
@@ -324,7 +324,7 @@ The attributes are a query string in `application/x-www-form-urlencoded` form, a
 
 A marker counts only at the very start of a line. `]]>openui:` in the middle of a line is ordinary text.
 
-Fixtures: `messages/*-marker-*`
+Fixtures: none in `spec/fixtures/`.
 
 ### 7.2 Kinds and sections
 
@@ -352,7 +352,7 @@ saveBtn = Button("Save", @ToAssistant("Save order", {"orderId": 42}))
 ]]>openui:end
 ```
 
-Fixtures: `messages/*-section-*`
+Fixtures: none in `spec/fixtures/`.
 
 ### 7.3 Reading messages
 
@@ -365,7 +365,7 @@ Fixtures: `messages/*-section-*`
 
 While a response streams, the last line may be incomplete. If that line starts with `]]>openui:`, or is a prefix of it, the reader holds it back until its newline arrives or the stream ends.
 
-Fixtures: `messages/*-read-*`
+Fixtures: none in `spec/fixtures/`.
 
 ### 7.4 Writing messages
 
@@ -373,20 +373,20 @@ The host writes the markers. It puts a `content` line before the response and, w
 
 The attribute tells a later reader which library wrote the message. It does not change how the program is parsed.
 
-Fixtures: `messages/*-write-*`
+Fixtures: none in `spec/fixtures/`.
 
 ### 7.5 What the model sees
 
 Nothing of this protocol. The party that builds a model request MUST strip every marker line, and every section body it does not use, before the text reaches the model. The party that shows a message MUST strip every marker line before display. The prompt never teaches the syntax.
 
-Fixtures: `messages/*-strip-*`
+Fixtures: none in `spec/fixtures/`.
 
 ### 7.6 Older forms
 
 - The attribute `libraryVersion` (a version with no library id) is still written by some hosts. Readers return it like any other attribute.
 - Other envelopes, such as an XML `<content>`/`<context>` wrapper or an artifact header, are host-specific. OpenUI readers do not read them; the host that writes them reads them.
 
-Fixtures: `messages/*-legacy-*`
+Fixtures: none in `spec/fixtures/`.
 
 ## Appendix A. Changelog
 

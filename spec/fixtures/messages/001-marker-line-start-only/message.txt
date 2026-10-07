@@ -1,2 +1,0 @@
-]]>openui:content
-root = Stack([Text("see ]]>openui:end here")])

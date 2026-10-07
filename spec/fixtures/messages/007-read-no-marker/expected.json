@@ -1,9 +1,0 @@
-{
-  "mode": "read",
-  "result": {
-    "content": "root = Stack([])",
-    "context": null,
-    "end": false,
-    "attributes": {}
-  }
-}

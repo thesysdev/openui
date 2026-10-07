@@ -1,2 +1,0 @@
-]]>openui:artifact {"artifact_id":"art_1","type":"slides","name":"Hello","version":"1"}
-root = Stack([])

@@ -1,3 +1,0 @@
-]]>openui:content
-root = Stack([])
-]]>ope
