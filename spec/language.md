@@ -219,7 +219,7 @@ A bare name refers to the statement with that name, wherever it is in the progra
 - A statement referenced from two places is evaluated separately at each. Only the tree is copied: the state store is shared, and a query referenced twice fetches once, with both places reading the same result.
 - References to query or mutation statements resolve to their results (section 6).
 
-Value statements the entry cannot reach are **orphans**. They go into the parse metadata and are not rendered. State, query, and mutation statements are never orphans, and a query runs whether or not the entry reaches it.
+Value statements the entry cannot reach are **orphans**. When there is no entry, every value statement is an orphan. They go into the parse metadata and are not rendered. State, query, and mutation statements are never orphans, and a query runs whether or not the entry reaches it.
 
 Fixtures: `evaluation/*-ref-*`, including `evaluation/*-ref-array-*`
 
@@ -423,7 +423,7 @@ Fixtures: `actions/*-mutation-*`
 
 `@Run`, `@Set`, and `@Reset` name their targets instead of evaluating them: `@Run` takes a query or mutation reference, `@Set` and `@Reset` take state variables. The `@Each` template is deferred the same way.
 
-**Single steps.** Every step call evaluates to a plan of one step, wherever it is written, so one step needs no wrapper: `Button("Save", @ToAssistant("Save"))` equals `Button("Save", Action([@ToAssistant("Save")]))`. Several steps need `Action([...])`. A plain list of steps, such as `[@Set($saved, true), @ToAssistant("Saved")]`, is not a plan. It is plain data, a list of one-step plans, and the component receives it as it is, with no error.
+**Single steps.** Every step call evaluates to a plan of one step, wherever it is written, so one step needs no wrapper: `Button("Save", @ToAssistant("Save"))` equals `Button("Save", Action([@ToAssistant("Save")]))`. Several steps need `Action([...])`. A plain list of steps, such as `[@Set($saved, true), @ToAssistant("Saved")]`, is not a plan. It is plain data, a list of one-step plans, and the component receives it as it is. It is not reported as an error, even though a strict JSON Schema reader would find that a list does not match `ActionExpression`.
 
 **Context.** The `context` of `@ToAssistant` may be any value. The host receives it unchanged in `params.context` and decides how it reaches the model ([prompt.md](./prompt.md), section 6.3).
 
