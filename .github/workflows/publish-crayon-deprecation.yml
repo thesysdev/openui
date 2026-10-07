@@ -1,0 +1,56 @@
+name: Publish @crayonai deprecation release
+
+# Republishes the latest @crayonai/* release as a new patch version whose
+# npm description and README state that Crayon has been replaced by OpenUI.
+# Uses npm trusted publishing: each @crayonai package needs a trusted
+# publisher for this repository and this workflow file.
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - "@crayonai/react-ui"
+          - "@crayonai/react-core"
+          - "@crayonai/stream"
+    env:
+      NOTICE: "DEPRECATED: Crayon has been replaced by OpenUI, which is not a drop-in replacement. See https://www.openui.com/docs"
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      # CRITICAL: npm 11.5.1+ required for trusted publishing
+      - name: Install npm 11.6.4
+        run: npm install -g npm@11.6.4
+
+      - name: Fetch latest published tarball
+        run: |
+          tarball=$(npm pack "${{ matrix.package }}@latest" --silent)
+          tar -xzf "$tarball"
+
+      - name: Update package metadata and README
+        working-directory: package
+        run: |
+          latest=$(node -p "require('./package.json').version")
+          next=$(node -p "const [a,b,c]='$latest'.split('.').map(Number); [a,b,c+1].join('.')")
+          npm pkg set version="$next" description="$NOTICE" \
+            repository.type=git repository.url="git+https://github.com/thesysdev/openui.git"
+          npm pkg delete repository.directory
+          { printf '> **%s**\n\n' "$NOTICE"; cat README.md; } > README.tmp && mv README.tmp README.md
+          echo "Publishing ${{ matrix.package }}@$next (from $latest)"
+
+      - name: Publish
+        working-directory: package
+        run: npm publish --access public --ignore-scripts
+        # Note: provenance is automatically generated with trusted publishing
