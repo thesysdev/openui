@@ -63,14 +63,13 @@ Each example has one primary home. Complete workflows with a companion tutorial 
 
 ### Miscellaneous
 
-| Example                                        | Demonstrates                                                                      |
-| ---------------------------------------------- | --------------------------------------------------------------------------------- |
-| [Autofix](./miscellaneous/autofix)             | Direct OpenAI generation with `@openuidev/server` Autofix repair                  |
-| [Handsontable](./miscellaneous/handsontable)   | Generated spreadsheet interfaces backed by Handsontable                           |
-| [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts as an OpenUI capability                                  |
-| [MiniApps](./miscellaneous/miniapps)           | Streamed dashboard artifacts, live GitHub/npm tools, and localStorage persistence |
-| [React Email](./miscellaneous/react-email)     | Generating and previewing emails with the OpenUI React Email library              |
-| [Supabase](./miscellaneous/supabase)           | Persisted OpenUI conversations and threads with Supabase                          |
+| Example                                        | Demonstrates                                                         |
+| ---------------------------------------------- | -------------------------------------------------------------------- |
+| [Autofix](./miscellaneous/autofix)             | Direct OpenAI generation with `@openuidev/server` Autofix repair     |
+| [Handsontable](./miscellaneous/handsontable)   | Generated spreadsheet interfaces backed by Handsontable              |
+| [HTML artifact](./miscellaneous/html-artifact) | Sandboxed HTML artifacts as an OpenUI capability                     |
+| [React Email](./miscellaneous/react-email)     | Generating and previewing emails with the OpenUI React Email library |
+| [Supabase](./miscellaneous/supabase)           | Persisted OpenUI conversations and threads with Supabase             |
 
 ## Run and verify
 
