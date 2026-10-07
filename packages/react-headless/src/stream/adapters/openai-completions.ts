@@ -14,10 +14,8 @@ export const openAIAdapter = (): StreamProtocolAdapter => ({
         console.error("Failed to parse OpenAI SSE event", e);
         continue;
       }
-      yield* mapper.chunk(json);
-      if (mapper.failed) return;
+      yield* mapper.push(json);
+      if (mapper.terminated) return;
     }
-
-    yield* mapper.end();
   },
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { vercelAIAdapter } from "../../../index";
 import { EventType, type AGUIEvent } from "../../../types";
+import { makeResponse as makeTypedResponse } from "./streamTestHelpers";
 
 function sse(chunk: unknown): string {
   return `data: ${JSON.stringify(chunk)}\n\n`;
@@ -613,5 +614,66 @@ describe("vercelAIAdapter", () => {
     await expect(collect(vercelAIAdapter().parse(new Response(null)))).rejects.toThrow(
       "No response body",
     );
+  });
+});
+
+describe("vercelAIAdapter — truncation, abort and JSON error bodies", () => {
+  const text =
+    sse({ type: "text-start", id: "t1" }) + sse({ type: "text-delta", id: "t1", delta: "partial" });
+  const types = (events: AGUIEvent[]) => events.map((e) => e.type);
+
+  it.each([
+    ["length", /maximum output length/],
+    ["content-filter", /content filter/],
+  ])("finishReason %s raises RUN_ERROR after the text", async (finishReason, message) => {
+    const events = await parse(
+      text +
+        sse({ type: "text-end", id: "t1" }) +
+        sse({ type: "finish", finishReason }) +
+        "data: [DONE]\n\n",
+    );
+    const last = events.at(-1) as { type: string; message: string; code: string };
+    expect(types(events)).toEqual([
+      EventType.TEXT_MESSAGE_START,
+      EventType.TEXT_MESSAGE_CONTENT,
+      EventType.TEXT_MESSAGE_END,
+      EventType.RUN_ERROR,
+    ]);
+    expect(last.message).toMatch(message);
+    expect(last.code).toBe(finishReason);
+  });
+
+  it("a normal finish is not an error", async () => {
+    const events = await parse(
+      text + sse({ type: "text-end", id: "t1" }) + sse({ type: "finish", finishReason: "stop" }),
+    );
+    expect(types(events)).not.toContain(EventType.RUN_ERROR);
+  });
+
+  it("an abort chunk raises RUN_ERROR with the reason in the message", async () => {
+    const events = await parse(
+      sse({ type: "start-step" }) +
+        text +
+        sse({ type: "abort", reason: "cancelled" }) +
+        "data: [DONE]\n\n",
+    );
+    expect(types(events).slice(-2)).toEqual([EventType.TEXT_MESSAGE_END, EventType.RUN_ERROR]);
+    expect(events.at(-1)).toEqual({
+      type: EventType.RUN_ERROR,
+      message: "The response was aborted (cancelled).",
+      code: "abort",
+    });
+  });
+
+  it("surfaces a JSON error body under HTTP 200 as RUN_ERROR", async () => {
+    const events = await collect(
+      vercelAIAdapter().parse(
+        makeTypedResponse(
+          '{"error":{"message":"upstream exploded"}}',
+          "application/json; charset=utf-8",
+        ),
+      ),
+    );
+    expect(events).toEqual([{ type: EventType.RUN_ERROR, message: "upstream exploded" }]);
   });
 });

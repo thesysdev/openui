@@ -56,12 +56,21 @@ const HOSTED_TOOLS: Record<
 
 const FAILED_ITEM_STATUSES = new Set(["failed", "incomplete"]);
 
+/** A hosted tool item's call id — its item id, or a stable stand-in when a backend omits it. */
+const hostedToolCallId = (item: { id?: string | null; type: string }, outputIndex?: number) =>
+  item.id ?? `${item.type}_${outputIndex ?? 0}`;
+
 export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
   async *parse(response: Response): AsyncIterable<AGUIEvent> {
     // Map item_id → call_id so TOOL_CALL_ARGS can reference the correct toolCallId
     const itemIdToCallId: Record<string, string> = {};
     // The text output-item currently streaming.
     let textItemId: string | null = null;
+    // Hosted tool calls by output_index, so output_item.done resolves to the id
+    // its output_item.added announced (even if one of the two lacked an id) and
+    // can start a call whose added event never arrived.
+    const hostedIdsByIndex = new Map<number, string>();
+    const startedHostedIds = new Set<string>();
 
     // sseDataPayloads buffers across reads, so a single SSE `data:` line (e.g. a
     // multi-KB artifact function_call_output payload) that spans several network
@@ -75,7 +84,10 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
           // gateways emit it in-stream) is not a ResponseStreamEvent —
           // surface it like the typed `error` event handled below.
           const runError = errorFrameToRunError(event);
-          if (runError) yield runError;
+          if (runError) {
+            yield runError;
+            return;
+          }
           continue;
         }
 
@@ -113,22 +125,14 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
                 toolCallId: item.id,
                 toolCallName: "web_search",
               };
-            } else if (HOSTED_TOOLS[item.type] && item.id) {
+            } else if (HOSTED_TOOLS[item.type]) {
+              const toolCallId = hostedToolCallId(item, event.output_index);
+              hostedIdsByIndex.set(event.output_index, toolCallId);
+              startedHostedIds.add(toolCallId);
               yield {
                 type: EventType.TOOL_CALL_START,
-                toolCallId: item.id,
+                toolCallId,
                 toolCallName: HOSTED_TOOLS[item.type]!.name,
-              };
-            } else if (item.type === "custom_tool_call" || item.type === "computer_call") {
-              // Client-executed like function_call: the app runs the action and
-              // sends the result back, so the card ends at TOOL_CALL_END.
-              // custom_tool_call streams its free-form input as deltas;
-              // computer_call carries its action on the done item.
-              itemIdToCallId[item.id ?? item.call_id] = item.call_id;
-              yield {
-                type: EventType.TOOL_CALL_START,
-                toolCallId: item.call_id,
-                toolCallName: item.type === "custom_tool_call" ? item.name : "computer",
               };
             } else if (item.type === "mcp_call") {
               yield {
@@ -155,28 +159,13 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
             break;
           }
 
+          // A refusal is the model's answer to the user, streamed in its own
+          // content part; render it as text, exactly like output text.
           case "response.output_text.delta":
+          case "response.refusal.delta":
             // A delta for a not-yet-seen item id opens its message — covers
             // backends that switch item id on the delta without a preceding
             // `output_item.added` (idempotent when that event did fire).
-            if (event.item_id !== textItemId) {
-              textItemId = event.item_id;
-              yield {
-                type: EventType.TEXT_MESSAGE_START,
-                messageId: event.item_id,
-                role: "assistant",
-              };
-            }
-            yield {
-              type: EventType.TEXT_MESSAGE_CONTENT,
-              messageId: event.item_id,
-              delta: event.delta,
-            };
-            break;
-
-          case "response.refusal.delta":
-            // A refusal is the model's answer to the user, streamed in its own
-            // content part. Render it as text instead of an empty message.
             if (event.item_id !== textItemId) {
               textItemId = event.item_id;
               yield {
@@ -218,21 +207,6 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
             };
             break;
           }
-
-          case "response.custom_tool_call_input.delta":
-            yield {
-              type: EventType.TOOL_CALL_ARGS,
-              toolCallId: itemIdToCallId[event.item_id] ?? event.item_id,
-              delta: event.delta,
-            };
-            break;
-
-          case "response.custom_tool_call_input.done":
-            yield {
-              type: EventType.TOOL_CALL_END,
-              toolCallId: itemIdToCallId[event.item_id] ?? event.item_id,
-            };
-            break;
 
           case "response.mcp_call_arguments.delta":
             yield {
@@ -289,24 +263,20 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
               break;
             }
 
-            if (event.item.type === "computer_call") {
-              const call = event.item;
-              const action = call.actions ?? call.action;
-              if (action) {
-                yield {
-                  type: EventType.TOOL_CALL_ARGS,
-                  toolCallId: call.call_id,
-                  delta: JSON.stringify(action),
-                };
-              }
-              yield { type: EventType.TOOL_CALL_END, toolCallId: call.call_id };
-              break;
-            }
-
             const hosted = HOSTED_TOOLS[event.item.type];
             if (hosted) {
               const hostedItem = event.item as HostedToolItem;
-              const toolCallId = String(hostedItem.id ?? event.item.type);
+              const toolCallId =
+                hostedIdsByIndex.get(event.output_index) ??
+                hostedToolCallId(event.item, event.output_index);
+              if (!startedHostedIds.has(toolCallId)) {
+                startedHostedIds.add(toolCallId);
+                yield {
+                  type: EventType.TOOL_CALL_START,
+                  toolCallId,
+                  toolCallName: hosted.name,
+                };
+              }
               const args = hosted.args(hostedItem);
               if (args !== undefined) {
                 yield {
@@ -360,20 +330,21 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
             break;
           }
 
+          // A RUN_ERROR ends the run: stop reading, like every other adapter.
           case "error":
             yield {
               type: EventType.RUN_ERROR,
               message: event.message,
               code: event.code ?? undefined,
             };
-            break;
+            return;
 
           case "response.incomplete": {
             // max_output_tokens or content_filter ended the answer early;
             // without this the partial text looked complete.
             const reason = event.response?.incomplete_details?.reason ?? "incomplete";
             yield truncatedRunError(reason);
-            break;
+            return;
           }
 
           case "response.failed":
@@ -382,7 +353,7 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
               message: event.response?.error?.message ?? "Response failed",
               code: event.response?.error?.code ?? undefined,
             };
-            break;
+            return;
 
           // Intentionally unhandled — these are lifecycle/metadata events:
           // response.created, response.in_progress, response.completed,

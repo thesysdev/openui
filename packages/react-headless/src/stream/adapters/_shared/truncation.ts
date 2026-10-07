@@ -4,6 +4,17 @@ const LENGTH_REASONS = new Set(["length", "max_output_tokens", "max_tokens"]);
 const FILTER_REASONS = new Set(["content_filter", "content-filter"]);
 
 /**
+ * Whether a provider's finish / incomplete reason means the answer was cut
+ * short (a token limit or a content filter). Covers the Chat Completions,
+ * Responses and Vercel AI SDK spellings.
+ *
+ * @internal
+ */
+export function isTruncationReason(reason: string | null | undefined): reason is string {
+  return reason != null && (LENGTH_REASONS.has(reason) || FILTER_REASONS.has(reason));
+}
+
+/**
  * A `RUN_ERROR` for a response the provider ended before it was complete — a
  * token limit (`length`, `max_output_tokens`) or a content filter.
  *

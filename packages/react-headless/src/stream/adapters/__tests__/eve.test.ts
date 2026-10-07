@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { EventType } from "../../../types";
 import { EVE_INPUT_REQUESTED_EVENT, eveAdapter } from "../eve";
+import { consume, installAnimationFrame, makeResponse } from "./streamTestHelpers";
 
 // ── Helpers ──
 
@@ -302,5 +303,64 @@ describe("eveAdapter", () => {
         "session.waiting",
       ]);
     });
+  });
+});
+
+describe("eveAdapter — failed tool results", () => {
+  beforeAll(installAnimationFrame);
+
+  const base = { sequence: 1, stepIndex: 0, turnId: "turn-1" };
+  const requested = {
+    type: "actions.requested",
+    data: {
+      ...base,
+      actions: [
+        { kind: "tool-call", callId: "call_1", toolName: "get_weather", input: { city: "Tokyo" } },
+      ],
+    },
+  };
+  const failed = {
+    type: "action.result",
+    data: {
+      ...base,
+      status: "failed",
+      result: { kind: "tool-result", callId: "call_1", output: null },
+      error: { code: "TOOL_ERROR", message: "upstream 500" },
+    },
+  };
+
+  it("flags a failed action.result as a tool error", async () => {
+    const events = await collect(eveAdapter().parse(makeNdjsonResponse([requested, failed])));
+    expect(
+      events.find((e) => (e as { type: string }).type === EventType.TOOL_CALL_RESULT),
+    ).toMatchObject({
+      toolCallId: "call_1",
+      content: '{"error":"upstream 500"}',
+      isError: true,
+      error: "upstream 500",
+    });
+  });
+
+  it("shows the failure on the tool message in the consumer", async () => {
+    const body = [requested, failed].map((e) => JSON.stringify(e)).join("\n") + "\n";
+    const { messages } = await consume(eveAdapter(), makeResponse(body, "application/x-ndjson"));
+    expect(messages.find((m) => m.role === "tool")).toMatchObject({ error: "upstream 500" });
+  });
+
+  it("leaves a completed result unflagged", async () => {
+    const ok = {
+      type: "action.result",
+      data: {
+        ...base,
+        status: "completed",
+        result: { kind: "tool-result", callId: "call_1", output: "sunny" },
+      },
+    };
+    const events = await collect(eveAdapter().parse(makeNdjsonResponse([requested, ok])));
+    const toolResult = events.find(
+      (e) => (e as { type: string }).type === EventType.TOOL_CALL_RESULT,
+    );
+    expect(toolResult).toMatchObject({ content: "sunny" });
+    expect(toolResult).not.toHaveProperty("isError");
   });
 });

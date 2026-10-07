@@ -1,4 +1,4 @@
-import { AGUIEvent, StreamProtocolAdapter } from "../../types";
+import { AGUIEvent, EventType, StreamProtocolAdapter } from "../../types";
 import { errorFrameToRunError } from "./_shared/errorFrame";
 import { sseDataPayloads } from "./_shared/sseLines";
 
@@ -12,11 +12,16 @@ export const agUIAdapter = (): StreamProtocolAdapter => ({
           // backend (or a proxy in front of it) reports a failure inside a 200
           // stream — surface it rather than yielding an event nobody handles.
           const runError = errorFrameToRunError(event);
-          if (runError) yield runError;
-          else console.error("Skipping SSE record without an AG-UI event type", event);
+          if (runError) {
+            yield runError;
+            return;
+          }
+          console.error("Skipping SSE record without an AG-UI event type", event);
           continue;
         }
         yield event as AGUIEvent;
+        // A RUN_ERROR ends the run: stop reading, like every other adapter.
+        if (event.type === EventType.RUN_ERROR) return;
       } catch (e) {
         console.error("Failed to parse SSE event", e);
       }

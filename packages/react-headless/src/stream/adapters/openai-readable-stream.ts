@@ -22,10 +22,8 @@ export const openAIReadableStreamAdapter = (): StreamProtocolAdapter => ({
         console.error("Failed to parse OpenAI NDJSON chunk", e);
         continue;
       }
-      yield* mapper.chunk(json);
-      if (mapper.failed) return;
+      yield* mapper.push(json);
+      if (mapper.terminated) return;
     }
-
-    yield* mapper.end();
   },
 });

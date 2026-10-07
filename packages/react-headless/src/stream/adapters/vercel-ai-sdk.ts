@@ -1,7 +1,7 @@
 import type { UIMessage, UIMessageChunk } from "ai";
 import { AGUIEvent, EventType, StreamProtocolAdapter } from "../../types";
 import { errorFrameToRunError } from "./_shared/errorFrame";
-import { truncatedRunError } from "./_shared/truncation";
+import { isTruncationReason, truncatedRunError } from "./_shared/truncation";
 
 const MISSING_AI_SDK_MESSAGE =
   'vercelAIAdapter requires the optional peer dependency "ai" (Vercel AI SDK v6 or v7).';
@@ -330,7 +330,7 @@ export const vercelAIAdapter = (): StreamProtocolAdapter => ({
           return;
 
         case "finish":
-          if (chunk.finishReason === "length" || chunk.finishReason === "content-filter") {
+          if (isTruncationReason(chunk.finishReason)) {
             yield* closeOpenMessage();
             yield truncatedRunError(chunk.finishReason);
             return;

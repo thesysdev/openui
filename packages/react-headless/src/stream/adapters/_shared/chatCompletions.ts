@@ -1,16 +1,15 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
 import { AGUIEvent, EventType } from "../../../types";
 import { errorFrameToRunError } from "./errorFrame";
-import { truncatedRunError } from "./truncation";
+import { isTruncationReason, truncatedRunError } from "./truncation";
 
 /**
  * Maps OpenAI Chat Completions stream chunks to AG-UI events.
  *
  * Shared by `openAIAdapter` (SSE) and `openAIReadableStreamAdapter` (NDJSON),
  * which differ only in how a chunk is framed on the wire. Create one per
- * response; feed each parsed chunk to `chunk()` and call `end()` once the body
- * is exhausted. A `RUN_ERROR` is terminal: once `failed` is true the adapter
- * stops reading and nothing else is emitted.
+ * response and feed each parsed chunk to `push()`. A `RUN_ERROR` ends the run:
+ * once `terminated` is true the adapter stops reading and emits nothing else.
  *
  * @internal
  */
@@ -20,7 +19,7 @@ export function chatCompletionsMapper() {
   const openToolCallIds = new Set<string>();
   let messageStarted = false;
   let messageEnded = false;
-  let failed = false;
+  let terminated = false;
 
   function* startMessage(): Generator<AGUIEvent> {
     if (messageStarted) return;
@@ -28,34 +27,25 @@ export function chatCompletionsMapper() {
     yield { type: EventType.TEXT_MESSAGE_START, messageId, role: "assistant" };
   }
 
-  // Every finish reason ends the model step, so it closes the step's tool
-  // calls — not only "tool_calls". Gemini's and several OpenAI-compatible
-  // proxies' native endpoints finish a tool-call turn with "stop", which left
-  // the call "streaming" forever.
-  function* closeStep(): Generator<AGUIEvent> {
-    for (const toolCallId of openToolCallIds) {
-      yield { type: EventType.TOOL_CALL_END, toolCallId };
-    }
-    openToolCallIds.clear();
-    if (messageStarted && !messageEnded) {
-      messageEnded = true;
-      yield { type: EventType.TEXT_MESSAGE_END, messageId };
-    }
+  function* endMessage(): Generator<AGUIEvent> {
+    if (!messageStarted || messageEnded) return;
+    messageEnded = true;
+    yield { type: EventType.TEXT_MESSAGE_END, messageId };
   }
 
   return {
-    get failed() {
-      return failed;
+    get terminated() {
+      return terminated;
     },
 
-    *chunk(json: unknown): Generator<AGUIEvent> {
+    *push(json: unknown): Generator<AGUIEvent> {
       // An OpenAI-style error object delivered in-stream (`{"error":{…}}`, as
       // the OpenAI SDK, OpenRouter and the OpenUI Gateway emit it under HTTP
       // 200) has no `choices`. Surface it instead of skipping it as an empty
       // chunk, which left the UI with a blank turn and no error.
       const runError = errorFrameToRunError(json);
       if (runError) {
-        failed = true;
+        terminated = true;
         yield runError;
         return;
       }
@@ -67,14 +57,12 @@ export function chatCompletionsMapper() {
         // A refusal streams in `delta.refusal` instead of `delta.content`. It is
         // the model's answer to the user, so render it as text rather than
         // ending the turn with an empty message.
-        const refusal = (delta as { refusal?: string | null }).refusal;
-
-        if (delta.content || delta.role || refusal) yield* startMessage();
+        if (delta.content || delta.role || delta.refusal) yield* startMessage();
         if (delta.content) {
           yield { type: EventType.TEXT_MESSAGE_CONTENT, messageId, delta: delta.content };
         }
-        if (refusal) {
-          yield { type: EventType.TEXT_MESSAGE_CONTENT, messageId, delta: refusal };
+        if (delta.refusal) {
+          yield { type: EventType.TEXT_MESSAGE_CONTENT, messageId, delta: delta.refusal };
         }
 
         for (const toolCall of delta.tool_calls ?? []) {
@@ -102,20 +90,28 @@ export function chatCompletionsMapper() {
       }
 
       const finishReason = choice?.finish_reason;
-      if (finishReason) {
-        yield* closeStep();
-        // A token limit or content filter ends the answer early; say so instead
-        // of rendering the partial text as if it were complete.
-        if (finishReason === "length" || finishReason === "content_filter") {
-          failed = true;
-          yield truncatedRunError(finishReason);
-        }
-      }
-    },
+      if (!finishReason) return;
 
-    /** Closes anything still open when the stream ends without a finish_reason. */
-    *end(): Generator<AGUIEvent> {
-      yield* closeStep();
+      // A token limit or content filter ends the answer early; say so instead
+      // of rendering the partial text as if it were complete. Open tool calls
+      // are left unended — their arguments may be cut off mid-JSON — and the
+      // consumer clears them when it handles the RUN_ERROR.
+      if (isTruncationReason(finishReason)) {
+        yield* endMessage();
+        terminated = true;
+        yield truncatedRunError(finishReason);
+        return;
+      }
+
+      // Every other finish reason ends the model step, so it closes the step's
+      // tool calls — not only "tool_calls". Gemini's and several OpenAI-
+      // compatible proxies' native endpoints finish a tool-call turn with
+      // "stop", which left the call "streaming" forever.
+      for (const toolCallId of openToolCallIds) {
+        yield { type: EventType.TOOL_CALL_END, toolCallId };
+      }
+      openToolCallIds.clear();
+      yield* endMessage();
     },
   };
 }

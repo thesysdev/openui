@@ -363,9 +363,11 @@ interface StreamProtocolAdapter {
   rejects invalid UIMessage chunks. Provider-level failures are surfaced as a `RUN_ERROR` event by
   all seven adapters: each maps its protocol's error events, and the AG-UI, OpenAI Completions,
   OpenAI readable-stream, and OpenAI Responses adapters also map the untyped `{"error":{…}}` record
-  that OpenAI-compatible servers send inside an HTTP 200 stream (or as a plain JSON body under HTTP
-  200). A response the provider cut short — a token limit, a content filter, or an aborted stream —
-  is also a `RUN_ERROR`, with the provider's reason as `code`; text that already streamed is kept.
+  that OpenAI-compatible servers send inside an HTTP 200 stream (or as a plain JSON error body
+  under HTTP 200). The Chat Completions, Responses, and Vercel AI SDK adapters also end a response
+  the provider cut short — a token limit or a content filter — with a `RUN_ERROR` whose `code` is the
+  provider's reason (and a Vercel `abort` chunk with `code: "abort"`); text that already streamed is
+  kept. Every adapter stops reading at its first `RUN_ERROR`.
 </Callout>
 
 ### Selection guide
@@ -408,7 +410,7 @@ const llm = fetchLLM({
 ```
 
 - **Wire shape:** OpenAI **Chat Completions** streaming SSE — the raw `data: {…}` chunk format from `chat.completions.create({ stream: true })` (each line is a `ChatCompletionChunk`).
-- **What it emits:** `TEXT_MESSAGE_START` on the first content/role delta, `TEXT_MESSAGE_CONTENT` per content delta, `TOOL_CALL_START` / `TOOL_CALL_ARGS` for streamed tool calls (indexed by `tool_calls[].index`), and end events driven by `finish_reason`: any finish reason ends the step — `TOOL_CALL_END` for each open call, then `TEXT_MESSAGE_END` (so a tool-call turn that finishes with `stop`, as Gemini and some OpenAI-compatible proxies send, still completes its calls). `length` and `content_filter` are followed by `RUN_ERROR`. `delta.refusal` is rendered as text. An in-stream error record (`{"error":{"message":…,"code":…}}`) → `RUN_ERROR`.
+- **What it emits:** `TEXT_MESSAGE_START` on the first content/role delta, `TEXT_MESSAGE_CONTENT` per content delta, `TOOL_CALL_START` / `TOOL_CALL_ARGS` for streamed tool calls (indexed by `tool_calls[].index`), and end events driven by `finish_reason`: any finish reason ends the step — `TOOL_CALL_END` for each open call, then `TEXT_MESSAGE_END` (so a tool-call turn that finishes with `stop`, as Gemini and some OpenAI-compatible proxies send, still completes its calls). `length` and `content_filter` instead end the message and raise `RUN_ERROR`, leaving open tool calls unended because their arguments may be incomplete. `delta.refusal` is rendered as text. An in-stream error record (`{"error":{"message":…,"code":…}}`) → `RUN_ERROR`.
 - **When to use:** Your route forwards the OpenAI Completions stream as-is (the most common OpenAI setup). Pair with `openAIMessageFormat`.
 
 ### `openAIReadableStreamAdapter`
@@ -445,7 +447,7 @@ const llm = fetchLLM({
 ```
 
 - **Wire shape:** OpenAI **Responses API** (and Conversations API) streaming SSE — the item-based `ResponseStreamEvent` stream from `responses.create({ stream: true })`.
-- **What it handles:** `response.output_item.added` (assistant message start, `function_call` start, and server-side `function_call_output` → `TOOL_CALL_RESULT`), `response.output_text.delta` / `.done` for text, `response.function_call_arguments.delta` / `.done` for tool-call arguments (mapping `item_id` → `call_id`), `response.refusal.delta` / `.done` as text, and `error` / `response.failed` (or an untyped `{"error":{…}}` record) → `RUN_ERROR`; `response.incomplete` (`max_output_tokens`, `content_filter`) → `RUN_ERROR` with the reason as `code`. Server-run tools — `web_search_call`, `file_search_call`, `code_interpreter_call`, `image_generation_call`, and MCP calls — show as tool calls with their result (`isError` when the item failed); `custom_tool_call` and `computer_call` are client tool calls (`TOOL_CALL_START` / `TOOL_CALL_ARGS` / `TOOL_CALL_END`, like `function_call`). Lifecycle/metadata events (`response.created`, `response.completed`, etc.) are ignored.
+- **What it handles:** `response.output_item.added` (assistant message start, `function_call` start, and server-side `function_call_output` → `TOOL_CALL_RESULT`), `response.output_text.delta` / `.done` for text, `response.function_call_arguments.delta` / `.done` for tool-call arguments (mapping `item_id` → `call_id`), `response.refusal.delta` / `.done` as text, and `error` / `response.failed` (or an untyped `{"error":{…}}` record) → `RUN_ERROR`; `response.incomplete` (`max_output_tokens`, `content_filter`) → `RUN_ERROR` with the reason as `code`. Server-run tools — `web_search_call`, `file_search_call`, `code_interpreter_call`, `image_generation_call`, and MCP calls — show as tool calls with their result (`isError` when the item failed). Lifecycle/metadata events (`response.created`, `response.completed`, etc.) are ignored.
 - **When to use:** You call the newer Responses or Conversations API rather than Chat Completions. Pair with `openAIConversationMessageFormat`.
 
 ### `vercelAIAdapter`

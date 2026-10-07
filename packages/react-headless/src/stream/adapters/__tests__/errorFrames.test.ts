@@ -1,36 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { EventType, type AGUIEvent } from "../../../types";
+import { EventType } from "../../../types";
 import { agUIAdapter } from "../ag-ui";
 import { openAIAdapter } from "../openai-completions";
 import { openAIReadableStreamAdapter } from "../openai-readable-stream";
 import { openAIResponsesAdapter } from "../openai-responses";
+import { collect, completionChunk, makeResponse, ndjson, sse } from "./streamTestHelpers";
 
-function makeResponse(body: string): Response {
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      controller.enqueue(new TextEncoder().encode(body));
-      controller.close();
-    },
-  });
-  return new Response(stream, { headers: { "Content-Type": "text/event-stream" } });
-}
-
-async function collect(iterable: AsyncIterable<AGUIEvent>): Promise<AGUIEvent[]> {
-  const events: AGUIEvent[] = [];
-  for await (const event of iterable) events.push(event);
-  return events;
-}
-
-const sse = (record: unknown) => `data: ${JSON.stringify(record)}\n\n`;
-const ndjson = (record: unknown) => `${JSON.stringify(record)}\n`;
-
-const chunk = (delta: Record<string, unknown>, finish: string | null = null) => ({
-  id: "chatcmpl-1",
-  object: "chat.completion.chunk",
-  created: 1,
-  model: "google/gemini-3.6-flash-free",
-  choices: [{ index: 0, delta, finish_reason: finish }],
-});
+const chunk = completionChunk;
 
 // Frames captured from the OpenUI Gateway (dev) on 2026-09-30, all under HTTP 200.
 const configError = {

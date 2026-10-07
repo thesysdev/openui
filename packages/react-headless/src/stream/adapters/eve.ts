@@ -108,6 +108,8 @@ export const eveAdapter = (options: EveAdapterOptions = {}): StreamProtocolAdapt
         };
       } else if (event.type === "turn.failed" || event.type === "session.failed") {
         yield { type: EventType.RUN_ERROR, message: event.data.message };
+        // A RUN_ERROR ends the run: stop reading, like every other adapter.
+        return;
       }
 
       if (TURN_BOUNDARY_TYPES.has(event.type)) break;

@@ -345,7 +345,8 @@ export const langGraphAdapter = (options?: LangGraphAdapterOptions): StreamProto
               message: err.message || err.error || "Unknown error",
               code: err.error ?? undefined,
             };
-            break;
+            // A RUN_ERROR ends the run: stop reading, like every other adapter.
+            return;
           }
 
           case "end": {

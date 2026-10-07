@@ -1,3 +1,5 @@
+import { errorFrameToRunError } from "./errorFrame";
+
 /**
  * Shared line iterator for streamed HTTP responses.
  *
@@ -56,7 +58,7 @@ export function sseData(line: string): string | undefined {
   return (value.startsWith(" ") ? value.slice(1) : value).trim();
 }
 
-/** Upper bound on how much of a non-SSE body is kept for the fallback below. */
+/** Upper bound on the size of a non-SSE body the fallback below will inspect. */
 const MAX_PLAIN_BODY = 64 * 1024;
 
 /**
@@ -65,20 +67,25 @@ const MAX_PLAIN_BODY = 64 * 1024;
  *
  * A body with no `data:` line at all is not SSE — typically a route (or a proxy
  * in front of it) that answered a failure with a plain JSON body under HTTP
- * 200. When such a body is a JSON object, its text is yielded once at the end
- * as a single payload, so the adapter can map an `{"error":{…}}` object exactly
+ * 200. When such a body (up to 64 KB) is an `{"error":{…}}` object, its text is
+ * yielded once at the end as a single payload, so the adapter maps it exactly
  * like the same record arriving in-stream instead of ending on a blank turn.
+ * Any other non-SSE body is ignored, as before.
  *
  * @internal
  */
 export async function* sseDataPayloads(response: Response): AsyncGenerator<string> {
   let sawData = false;
   let plain = "";
+  let plainTooLarge = false;
 
   for await (const line of sseLineIterator(response)) {
     const payload = sseData(line);
     if (payload === undefined) {
-      if (!sawData && plain.length < MAX_PLAIN_BODY) plain += `${line}\n`;
+      if (!sawData && !plainTooLarge) {
+        plain += `${line}\n`;
+        plainTooLarge = plain.length > MAX_PLAIN_BODY;
+      }
       continue;
     }
     sawData = true;
@@ -86,8 +93,17 @@ export async function* sseDataPayloads(response: Response): AsyncGenerator<strin
     yield payload;
   }
 
-  if (!sawData) {
+  if (!sawData && !plainTooLarge) {
     const body = plain.trim();
-    if (body.startsWith("{")) yield body;
+    if (isErrorBody(body)) yield body;
+  }
+}
+
+function isErrorBody(body: string): boolean {
+  if (!body.startsWith("{")) return false;
+  try {
+    return errorFrameToRunError(JSON.parse(body)) !== undefined;
+  } catch {
+    return false;
   }
 }

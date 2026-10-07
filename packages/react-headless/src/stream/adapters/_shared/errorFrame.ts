@@ -15,17 +15,23 @@ import { AGUIEvent, EventType } from "../../../types";
 export function errorFrameToRunError(record: unknown): AGUIEvent | undefined {
   if (!record || typeof record !== "object" || !("error" in record)) return undefined;
   const raw = (record as { error: unknown }).error;
-  if (raw == null) return undefined;
 
-  const err =
-    typeof raw === "object" ? (raw as { message?: unknown; code?: unknown }) : { message: raw };
-  const message =
-    typeof err.message === "string" && err.message.length > 0
-      ? err.message
-      : typeof raw === "string" && raw.length > 0
-        ? raw
-        : "Stream error";
-  const code = err.code != null && err.code !== "" ? String(err.code) : undefined;
+  // Only a real error counts: a non-empty string, or an object carrying a
+  // message or a code. A chunk that merely has an `error` field set to
+  // false / "" / 0 / {} is not a failure and must keep its content.
+  if (typeof raw === "string") {
+    return raw.length > 0 ? { type: EventType.RUN_ERROR, message: raw } : undefined;
+  }
+  if (!raw || typeof raw !== "object") return undefined;
 
-  return { type: EventType.RUN_ERROR, message, ...(code ? { code } : {}) };
+  const { message, code } = raw as { message?: unknown; code?: unknown };
+  const hasMessage = typeof message === "string" && message.length > 0;
+  const codeText = typeof code === "string" || typeof code === "number" ? String(code) : undefined;
+  if (!hasMessage && !codeText) return undefined;
+
+  return {
+    type: EventType.RUN_ERROR,
+    message: hasMessage ? message : "Stream error",
+    ...(codeText ? { code: codeText } : {}),
+  };
 }
