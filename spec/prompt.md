@@ -25,7 +25,7 @@ A LibrarySpec is one JSON document.
 | `version` | The library version, for example `1.2.0`. |
 | `root` | Optional. The root component name, for example `Card`. |
 | `schema` | The validation schema (JSON Schema). Top-level `properties` names the components, and `$defs` has one entry per component and per action shape (section 2.3). |
-| `components` | Per component: `signature` and `description` (derived from `schema`), `order` (section 2.3), and optional `aliases`, a list of old names (section 3.2). |
+| `components` | Per component: `signature` and `description` (derived from `schema`), `order` (section 2.3). |
 | `componentGroups` | Optional. Named groups that split the component list into titled parts. |
 | `functions` | Custom functions: declarations only. |
 | `actions` | Custom actions: declarations only (section 2.5). |
@@ -79,8 +79,7 @@ Example:
     "Button": {
       "signature": "Button(label: string, action?: ActionExpression, variant?: \"primary\" | \"secondary\")",
       "description": "A clickable button",
-      "order": ["label", "action", "variant"],
-      "aliases": ["ActionButton"]
+      "order": ["label", "action", "variant"]
     }
   },
   "functions": {
@@ -171,7 +170,7 @@ Fixtures: none. The spec shape is checked on the library, not by program fixture
 - Custom function and action names MUST start with an uppercase letter, like the built-ins (`@Percent`).
 - Required props MUST come before optional props in `order`. A required prop that has a `default` counts as optional here, so it may be added at the end.
 - A library MUST NOT define components named `Query`, `Mutation`, or `Action`.
-- A library MUST NOT use a built-in name for a component, a function, or an action. New built-in names are reserved when added (for example `@Take`).
+- A library MUST NOT use a built-in name for a component, a function, or an action. New built-in names are reserved when added.
 - Custom functions MUST be pure and synchronous. They read their arguments and return a value. They do not touch state, the network, or the clock.
 - `root`, when present, and every component in `componentGroups` MUST exist in `components`.
 
@@ -182,9 +181,8 @@ Fixtures: none. These are definition-time checks on the library.
 Stored programs are plain text. They stay readable as long as libraries follow these rules:
 
 1. **Only add props at the end.** Never reorder props. Never remove a prop.
-2. **A renamed component lists its old name in `aliases`.** Props are positional, so a prop rename never touches a stored program. Only component names need aliases.
-3. **New required props need a default.** An old program cannot supply it, so the `default` fills it. With a default, the prop counts as optional (section 3.1), so it goes at the end, as rule 1 says.
-4. **New built-in names are reserved.** Library components and functions MUST NOT use them.
+2. **New required props need a default.** An old program cannot supply it, so the `default` fills it. With a default, the prop counts as optional (section 3.1), so it goes at the end, as rule 1 says.
+3. **New built-in names are reserved.** Library components and functions MUST NOT use them.
 
 Position is the meaning of an argument, which is why rule 1 matters most. [overview.md](./overview.md), section "Keeping stored UIs working", says the same in plain words.
 
@@ -227,7 +225,7 @@ What the 1.0 prompt changes:
 - It prints the validation rules type once, not once per component.
 - It uses no em dashes.
 - It teaches that a prop typed as a list takes `[...]` even for one item.
-- It teaches the entry rule, single-step actions, and `@Take`.
+- It teaches the entry rule and single-step actions.
 - It teaches that arguments are positional only. To skip an optional argument, write `null`.
 
 ### 4.4 Order of the prompt

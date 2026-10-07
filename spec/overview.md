@@ -17,7 +17,7 @@ This file explains. The other two define. Where they disagree, language.md and p
 - **Message protocol.** One format for streamed and stored responses (section 4).
 - **Production readiness.** Backward-compatibility rules for libraries (section 3), a LibrarySpec with `id` and `version`, a versioned system prompt, and conformance fixtures any client can test against.
 - **Custom functions.** A library adds its own `@` functions, like `@Percent` (section 2.11).
-- **Small conveniences.** `@Take` for top-N lists, single-step actions, and any value as `@ToAssistant` context.
+- **Small conveniences.** Single-step actions and any value as `@ToAssistant` context.
 - **Fixes.** One clear entry rule, streamed results that always match a full parse, edits that keep multi-line statements whole, and `===` read as `==`.
 
 ## 1. Introduction
@@ -234,7 +234,7 @@ Member access on a list gives that field of every element: if `sales.rows` is a 
 Built-ins start with `@`:
 
 - Aggregation: `@Count`, `@Sum`, `@Avg`, `@Min`, `@Max`, `@First`, `@Last`.
-- Reshaping: `@Filter`, `@Sort`, `@Take`.
+- Reshaping: `@Filter`, `@Sort`.
 - Math: `@Round`, `@Abs`, `@Floor`, `@Ceil`.
 - Iteration: `@Each`.
 
@@ -242,8 +242,8 @@ They nest, and they turn data into props:
 
 ```openui-lang
 urgent = @Filter(tickets.rows, "priority", "==", "high")
-topFive = @Take(@Sort(urgent, "createdAt", "desc"), 5)
-rows = @Each(topFive, "t", Row(t.title, Tag(t.priority)))
+newest = @Sort(urgent, "createdAt", "desc")
+rows = @Each(newest, "t", Row(t.title, Tag(t.priority)))
 ```
 
 `@Each(list, name, template)` builds the template once per element, with `name` bound to that element. Every built-in is defined in language.md, sections 3.4 and 3.5.
@@ -312,14 +312,13 @@ Send the error back to the model, and it can answer with a one-line fix through 
 
 ## 3. Keeping stored UIs working
 
-A stored program has no prop names. `Button("Save", saveAction, "primary")` means what the prop order meant when it was written. Four rules keep stored programs rendering as a library changes:
+A stored program has no prop names. `Button("Save", saveAction, "primary")` means what the prop order meant when it was written. Three rules keep stored programs rendering as a library changes:
 
 1. **Add props only at the end** of a component's prop list.
 2. **Never reorder or remove a prop.** Leave an unused prop in place and ignore it.
-3. **A renamed component lists its old name in `aliases`**, so stored calls keep working. Props are positional, so a prop rename changes nothing.
-4. **A new required prop needs a default**, because stored calls do not pass it.
+3. **A new required prop needs a default**, because stored calls do not pass it.
 
-Built-in names are reserved, so a library never uses a name like `@Take`. Each library has an `id` and a `version`. They are metadata and do not change parsing. The same rules for library authors are in prompt.md, section 3.2.
+Built-in names are reserved, so a library never uses a name like `@Count`. Each library has an `id` and a `version`. They are metadata and do not change parsing. The same rules for library authors are in prompt.md, section 3.2.
 
 ## 4. Streaming and storing responses
 

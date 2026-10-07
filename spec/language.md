@@ -48,7 +48,7 @@ The only keywords are `true`, `false`, and `null`.
 | --- | --- |
 | Keyword literals | `true`, `false`, `null` |
 | Reserved call forms | `Query`, `Mutation`, `Action` |
-| Built-in functions | `@Count`, `@First`, `@Last`, `@Take`, `@Sum`, `@Avg`, `@Min`, `@Max`, `@Filter`, `@Sort`, `@Round`, `@Abs`, `@Floor`, `@Ceil`, `@Each` |
+| Built-in functions | `@Count`, `@First`, `@Last`, `@Sum`, `@Avg`, `@Min`, `@Max`, `@Filter`, `@Sort`, `@Round`, `@Abs`, `@Floor`, `@Ceil`, `@Each` |
 | Action steps | `@Set`, `@Reset`, `@Run`, `@ToAssistant`, `@OpenUrl` |
 | State prefix | every `$name` |
 
@@ -273,7 +273,6 @@ Fixtures: `evaluation/*-member-*`
 | --- | --- | --- |
 | `@Count` | `(array) → number` | Element count. 0 for non-arrays. |
 | `@First`, `@Last` | `(array) → value` | First or last element. Null for empty arrays and non-arrays. |
-| `@Take` | `(array, n) → array` | The first `n` elements. `n` goes through `toNumber` and is floored. `n <= 0` or a non-array gives `[]`. |
 | `@Sum` | `(array) → number` | Sum with `toNumber`. 0 for non-arrays. |
 | `@Avg` | `(array) → number` | Mean with `toNumber`. 0 for empty arrays and non-arrays. |
 | `@Min`, `@Max` | `(array) → number` | Minimum or maximum with `toNumber`. 0 for empty arrays and non-arrays. |
@@ -531,7 +530,6 @@ Arguments map to props by position against the library schema, then each prop is
 - A list prop needs `[...]`, even for one item. A bare value is a `type-mismatch`.
 - A slot that takes only components (every option of its schema is a `$ref` to a component) accepts any component. Data there (an object, array, string, number, or boolean) is a `type-mismatch`, and the value is left out.
 - Inside arrays, invalid components and unresolved references are left out, in computed expressions too (section 2.3). Explicit `null` literals are kept and render nothing.
-- A call to a name in a component's `aliases` ([prompt.md](./prompt.md), section 3.2) resolves to that component. It is not unknown.
 - An unknown component in a value position is dropped. In a computed expression it stays in the tree for the error to point at, but renders nothing.
 
 Fixtures: `errors/*-validate-*`
@@ -644,5 +642,5 @@ A step is `{ "click": "<statementId>" }`, `{ "type": ["<statementId>", "<text>"]
 
 ## Appendix C. Changelog
 
-- **2026-09-30**: 1.0. The entry is the `root` statement, or a first statement that calls the library's root component, with a real `no-root` code. Added `@Take`, custom functions, custom actions, single-step actions, `===` and `!==`, any-value `@ToAssistant` context, form state read when the step runs, the `state-query` and `unknown-function` codes, and the fixture layout. Streaming must equal a batch parse, and edits merge with the parser's statement boundaries.
+- **2026-09-30**: 1.0. The entry is the `root` statement, or a first statement that calls the library's root component, with a real `no-root` code. Added custom functions, custom actions, single-step actions, `===` and `!==`, any-value `@ToAssistant` context, form state read when the step runs, the `state-query` and `unknown-function` codes, and the fixture layout. Streaming must equal a batch parse, and edits merge with the parser's statement boundaries.
 - Earlier drafts: 0.9 community review (2026-07-22) and 1.0-beta (2026-08-05). See the git history.
