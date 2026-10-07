@@ -3,7 +3,7 @@ import type {
   ChatCompletionMessageParam,
 } from "openai/resources/chat/completions";
 
-// A conversation item, in the shape storeChatCompletionHistory() stores it.
+// A conversation item stored by the server client.
 type ConversationItem = {
   type: string;
   role?: string;
@@ -15,7 +15,7 @@ type ConversationItem = {
 };
 
 // Loads a thread's stored turns from its Gateway conversation as Chat Completions messages, the
-// reverse of storeChatCompletionHistory(): questions, answers, tool calls, and tool results.
+// reverse of appendMessages(): questions, answers, tool calls, and tool results.
 export async function loadChatCompletionHistory(options: {
   apiKey: string;
   conversationId: string;

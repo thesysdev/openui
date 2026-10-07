@@ -1,4 +1,4 @@
-import { storeChatCompletionHistory } from "@openuidev/server/openai";
+import { createClient } from "@openuidev/server";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { loadChatCompletionHistory } from "../../../lib/gateway-history";
@@ -30,6 +30,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.THESYS_API_KEY;
   if (!apiKey) throw new Error("Set THESYS_API_KEY in .env.local, then restart.");
 
+  const client = createClient({ apiKey });
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
   const searchTool = searchStaysTool();
 
@@ -73,7 +74,12 @@ export async function POST(request: Request) {
   const stored = runner
     .done()
     .catch(() => {})
-    .then(() => storeChatCompletionHistory({ apiKey, conversationId: threadId, messages: turn }))
+    .then(() =>
+      client.openai.completions.conversations.appendMessages({
+        conversationId: threadId,
+        messages: turn,
+      }),
+    )
     .catch((error: unknown) =>
       console.error("Could not store the turn in the Gateway conversation.", error),
     );
