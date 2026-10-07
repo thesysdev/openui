@@ -77,7 +77,9 @@ function ArrowUpIcon() {
 const swap = (shown: boolean): CSSProperties => ({
   opacity: shown ? 1 : 0,
   transform: shown ? "none" : "scale(0.6)",
-  transition: "opacity 160ms, transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+  // Fully hidden once faded, so the outgoing side never shows through.
+  visibility: shown ? "visible" : "hidden",
+  transition: `opacity 160ms, transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear ${shown ? "0s" : "160ms"}`,
 });
 
 /** Drives the bar heights straight on the DOM so typing never re-renders the meter. */

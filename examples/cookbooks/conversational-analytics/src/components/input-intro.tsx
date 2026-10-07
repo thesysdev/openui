@@ -14,6 +14,8 @@ const INTRO_MS = 840;
 export function InputIntro({ children, autoFocus = false }: { children: ReactNode; autoFocus?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const [land, setLand] = useState<{ x: number; y: number; size: number; from: number } | null>(null);
+  // Once the flying copy lands it leaves the page, so it can never sit on top of the input's own mascot.
+  const [landed, setLanded] = useState(false);
 
   // Measure the real mascot's seat before first paint, so the flying copy lands exactly on it
   // and the animation (in styles.css) only starts once there is somewhere to land.
@@ -44,8 +46,12 @@ export function InputIntro({ children, autoFocus = false }: { children: ReactNod
   return (
     <div ref={ref} className="input-intro" data-play={land ? "" : undefined} style={vars}>
       <div className="input-intro__body">{children}</div>
-      {land && (
-        <span className="input-intro__mascot" aria-hidden>
+      {land && !landed && (
+        <span
+          className="input-intro__mascot"
+          aria-hidden
+          onAnimationEnd={(e) => e.animationName === "input-intro-mascot" && setLanded(true)}
+        >
           <Mascot size={land.size} alt="" />
         </span>
       )}
