@@ -6,13 +6,23 @@ import {
   LANGUAGE_BENCHMARK_URL,
   MODEL_BOARD_UPDATED_ISO,
 } from "@/lib/benchmark-agent-data";
-import { BENCHMARK_VERSION, LINKS, MODEL_BOARD_SIZE } from "@/lib/benchmark-data";
+import {
+  BENCHMARK_VERSION,
+  LINKS,
+  MODEL_BOARD_SIZE,
+  RUNS_PER_FORMAT,
+  tokens,
+} from "@/lib/benchmark-data";
 import type { Metadata } from "next";
 import { Footer } from "../sections/Footer/Footer";
 import { BenchmarksContent } from "./BenchmarksContent";
 
+const { outputPerScreen } = tokens;
+const fewerTokensThan = (json: number) => Math.round((1 - outputPerScreen.openui / json) * 100);
+const TOKEN_ANSWER = `Use a compact UI language instead of JSON. Across ${RUNS_PER_FORMAT.toLocaleString("en-US")} runs per format on the same 46 interfaces, OpenUI Lang averaged ${outputPerScreen.openui.toLocaleString("en-US")} output tokens per screen, versus ${outputPerScreen.jsonRender.toLocaleString("en-US")} for json-render and ${outputPerScreen.a2ui.toLocaleString("en-US")} for A2UI, both JSON formats. That is ${fewerTokensThan(outputPerScreen.jsonRender)}% and ${fewerTokensThan(outputPerScreen.a2ui)}% fewer tokens, which lowers cost and shortens streaming time.`;
+
 export const metadata: Metadata = {
-  title: "Benchmarks | OpenUI",
+  title: "Generative UI Benchmark: JSON vs OpenUI Lang token usage | OpenUI",
   description: `We generated the same 46 interfaces with 6 models and 3 UI formats. OpenUI produced the fewest blank screens, used the fewest tokens, and cost the least on every priced model.`,
   alternates: {
     canonical: "/benchmarks",
@@ -79,6 +89,17 @@ const structuredData = {
       hasPart: [
         { "@id": `${LANGUAGE_BENCHMARK_URL}#dataset` },
         { "@id": `${FRAMEWORK_BENCHMARK_URL}#dataset` },
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": `${BENCHMARK_CANONICAL_URL}#faq`,
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "Is JSON or a compact UI language cheaper for an LLM to generate?",
+          acceptedAnswer: { "@type": "Answer", text: TOKEN_ANSWER },
+        },
       ],
     },
     {

@@ -254,7 +254,7 @@ export function BenchmarksContent() {
           <Section
             id="cost"
             title="Token consumption and cost"
-            question="Tokens and dollars for the same screens"
+            question="Is JSON or a compact UI language cheaper for an LLM to generate?"
             description={
               <>
                 46 screens, <br />
