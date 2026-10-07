@@ -44,7 +44,7 @@ export interface ParamDef {
   schema?: unknown;
 }
 
-/** A call the parser keeps for the runtime: a built-in or library function or action step. */
+/** `@Percent(part, total)` -> params [{name: "part"}, {name: "total"}], kept as AST */
 export interface CallDef {
   kind: "function" | "action";
   params: ParamDef[];
@@ -54,9 +54,9 @@ export interface CallDef {
   lazy?: true;
 }
 
-/** Component params by name, plus `calls`: the built-ins and library functions and actions. */
+/** "Card" -> its params; callDefs: "Sum" -> built-in CallDef, "Percent" -> library CallDef */
 export type ParamMap = Map<string, { params: ParamDef[] }> & {
-  calls?: Map<string, CallDef>;
+  callDefs?: Map<string, CallDef>;
 };
 
 /**

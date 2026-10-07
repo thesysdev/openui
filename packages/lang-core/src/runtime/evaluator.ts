@@ -316,6 +316,7 @@ function evaluatePropInline(
   });
 }
 
+// @Percent(done, 10) with done = 3 -> {part: 3, total: 10}
 function evaluateArgs(
   node: ASTNode & { k: "Comp" },
   context: EvaluationContext,
@@ -325,7 +326,7 @@ function evaluateArgs(
   return args;
 }
 
-/** Validates a runtime value with the parser's validator, reporting each issue. */
+// returns z.string() but fn gives 5 -> reports "@Percent: ... expects string but got number"
 function checkValue(
   value: unknown,
   schema: unknown,
@@ -339,14 +340,14 @@ function checkValue(
   return checked;
 }
 
-/** A required arg still null (state not set yet, query loading): the call waits silently. */
+// @Percent($p) with $p unset -> null, no error
 function missesRequired(args: Record<string, unknown>, params: RuntimeFunction["params"]): boolean {
   return !!params.required?.some(
     (key) => args[key] == null && getSchemaDefaultValue(params.properties?.[key]) === undefined,
   );
 }
 
-/** Invalid args or return values, or a throwing `fn`, make the call null and report why. */
+// @Percent(1, 0) where fn throws -> null, reports "@Percent threw: ..."
 function callFunction(
   name: string,
   def: RuntimeFunction,

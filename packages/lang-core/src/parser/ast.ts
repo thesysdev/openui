@@ -166,7 +166,7 @@ export type Statement =
   | { kind: "query"; id: string; call: CallNode; expr: ASTNode; deps?: string[] }
   | { kind: "mutation"; id: string; call: CallNode; expr: ASTNode };
 
-/** Convert a resolved runtime value back to a literal AST node for deferred evaluation. */
+// {n: [1]} -> {k:"Obj", entries: [["n", {k:"Arr", els:[Num 1]}]]}
 export function toLiteralAST(value: unknown): ASTNode {
   if (value === null || value === undefined) return { k: "Null" };
   if (typeof value === "string") return { k: "Str", v: value };
@@ -182,7 +182,7 @@ export function toLiteralAST(value: unknown): ASTNode {
   return { k: "Null" };
 }
 
-/** The plain value of an all-literal AST (literals, arrays and objects of them), else undefined. */
+// {k:"Arr", els:[Num 1]} -> {v: [1]}; a Ref or call -> undefined
 export function literalValue(node: ASTNode): { v: unknown } | undefined {
   switch (node.k) {
     case "Str":
