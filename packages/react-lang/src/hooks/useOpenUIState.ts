@@ -185,8 +185,8 @@ export function useOpenUIState(
 
   // ─── Evaluate and submit queries ───
   useEffect(() => {
-    // Register the streamed layout without executing it, retaining the completed cache.
-    if (blocked && !bundleBlocked) return;
+    // Keep the existing query lifecycle until streaming finishes and the bundle is ready.
+    if (blocked) return;
 
     const queryStmts = result?.queryStatements ?? [];
     const evaluatedNodes = queryStmts.map((qn) => {
@@ -203,20 +203,18 @@ export function useOpenUIState(
         toolName,
         args: qn.argsAST ? evaluate(qn.argsAST, evaluationContext) : null,
         defaults: qn.defaultsAST ? evaluate(qn.defaultsAST, evaluationContext) : null,
-        refreshInterval:
-          !blocked && qn.refreshAST
-            ? (evaluate(qn.refreshAST, evaluationContext) as number)
-            : undefined,
+        refreshInterval: qn.refreshAST
+          ? (evaluate(qn.refreshAST, evaluationContext) as number)
+          : undefined,
         deps: Object.keys(relevantDeps).length > 0 ? relevantDeps : undefined,
         complete: qn.complete,
       };
     });
 
     // Always call — empty array clears removed queries and their errors
-    queryManager.evaluateQueries(evaluatedNodes, { enabled: !bundleBlocked });
+    queryManager.evaluateQueries(evaluatedNodes);
   }, [
     blocked,
-    bundleBlocked,
     result?.queryStatements,
     evaluationContext,
     queryManager,
@@ -427,8 +425,9 @@ export function useOpenUIState(
     [querySnapshot],
   );
   const retryQueries = useCallback(() => {
+    if (bundleBlocked) return;
     queryManager.invalidate(queryErrors.map((error) => error.statementId!));
-  }, [queryManager, queryErrors]);
+  }, [bundleBlocked, queryManager, queryErrors]);
 
   // ─── Evaluate props ───
   const runtimeErrorsRef = useRef<OpenUIError[]>([]);

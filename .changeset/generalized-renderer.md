@@ -7,4 +7,4 @@
 
 Add optional Renderer slots for content, query loading, errors, and retry controls. Keep `queryLoader` supported on `Renderer` and `A2UIRenderer`. Loading and error/retry views render nothing unless supplied by the application.
 
-Improve query loading and retry behavior, preserve successful data and mounted input state, and ignore obsolete query responses.
+Preserve the existing query lifecycle while waiting for generation to finish. Keep mounted input state through retries and refresh query results when generated scripts change.
