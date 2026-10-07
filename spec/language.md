@@ -353,7 +353,7 @@ Fixtures: `state/*-store-*`
 
 ### 5.2 Two-way binding
 
-A `$variable` passed to a prop the library marks as bindable (`"x-openui": "binding"`, [prompt.md](./prompt.md), section 2.3) creates a two-way binding: the component shows the value and writes user changes back. The prompt prints bindable props as `$binding<type>`. A `$variable` passed to any other prop evaluates to its current value.
+A `$variable` passed to a bindable prop, one whose signature prints it as `$binding<type>` ([prompt.md](./prompt.md), section 2.3), creates a two-way binding: the component shows the value and writes user changes back. A `$variable` passed to any other prop evaluates to its current value.
 
 ```openui-lang
 $query = ""

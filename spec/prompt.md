@@ -129,13 +129,13 @@ The schema is the single source of truth for a component's arguments.
 - A prop that takes a component is a `$ref` to that component's `$defs` entry, `{ "$ref": "#/$defs/Card" }`, or an `anyOf` of such `$ref`s. A list of components puts this in its `items`.
 - An action prop is `{ "$ref": "#/$defs/ActionExpression" }` and takes any action. The `ActionExpression` entry describes the legacy action objects (`{ "type": ... }`). A prop that takes only some actions is an `anyOf` of `$ref`s to action names, for example `#/$defs/CopyToClipboard` and `#/$defs/OpenUrl`, each with its own `$defs` entry.
 - A reader classifies each `$ref` by its name. Components are the names in the schema's top-level `properties`. Actions are the names in `actions` plus the built-in names `ActionExpression`, `OpenUrl`, and `ToAssistant`.
-- A binding prop carries the `x-openui` keyword and its value type, for example `{ "type": "string", "x-openui": "binding" }`.
+- The schema has no marker for binding props. A binding prop has only its value type in the schema, for example `{ "type": "string" }`. Its `signature` prints it as `$binding<string>` (section 5.1), and that is where a reader learns it.
 
 JSON object key order is not portable. Readers MUST use `order`, not the key order of `properties`.
 
 ### 2.4 Derived signatures
 
-Each entry in `components` has a `signature` and a `description`. The `signature` is derived from the schema. If they disagree, the schema wins, and a consumer SHOULD rebuild the signature from it. The format is in section 5.
+Each entry in `components` has a `signature` and a `description`. The `signature` is derived from the schema. If they disagree, the schema wins, and a consumer SHOULD rebuild the signature from it. The one exception is `$binding<type>`, which only the signature carries. The format is in section 5.
 
 ### 2.5 Custom functions and actions
 

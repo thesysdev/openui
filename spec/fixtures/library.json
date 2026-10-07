@@ -89,7 +89,7 @@
         "properties": {
           "name": { "type": "string" },
           "placeholder": { "type": "string" },
-          "value": { "type": "string", "x-openui": "binding" },
+          "value": { "type": "string" },
           "rules": { "type": "object" }
         },
         "required": ["name"]
@@ -100,7 +100,7 @@
         "properties": {
           "name": { "type": "string" },
           "items": { "type": "array", "items": { "$ref": "#/$defs/SelectItem" } },
-          "value": { "type": "string", "x-openui": "binding" }
+          "value": { "type": "string" }
         },
         "required": ["name", "items"]
       },
