@@ -106,7 +106,7 @@ interface RendererProps {
     | Record<string, (args: Record<string, unknown>) => Promise<unknown>>
     | McpClientLike
     | null;
-  /** Custom loading indicator. Defaults to a spinner. */
+  /** Optional loading indicator. Nothing is shown when omitted. */
   queryLoader?: React.ReactNode;
   children?: React.ReactNode;
   onError?: (errors: OpenUIError[]) => void;
@@ -115,13 +115,13 @@ interface RendererProps {
 
 ## Renderer slots
 
-`Renderer` keeps query defaults or cached results visible while loading and after failures, and reports errors through `onError`. Use the `queryLoader` prop to customize its loading indicator. To customize loading feedback and opt into an error/retry presentation, use `Renderer.Root` with these slots:
+`Renderer` keeps query defaults or cached results visible while loading and after failures, and reports errors through `onError`. No loader or error/retry view is shown by default. Provide `queryLoader` to add a loading indicator. To customize loading feedback and opt into an error/retry presentation, use `Renderer.Root` with these slots:
 
 | Slot | Purpose |
 | --- | --- |
 | `Renderer.Content` | Generated UI; accepts div props and stays mounted during query failures. |
-| `Renderer.QueryLoading` | Children shown while queries wait or fetch; omitted children use `queryLoader` or the default spinner. |
-| `Renderer.QueryError` | Children shown when queries fail; omitted children use the default retry view. |
+| `Renderer.QueryLoading` | Children shown while queries wait or fetch; omitted children use `queryLoader`, or render nothing if it is absent. |
+| `Renderer.QueryError` | Children shown when queries fail; renders nothing without children. |
 | `Renderer.Retry` | A retry button; accepts standard button props. |
 
 Root accepts the same runtime props as Renderer and renders only its children. Put overlays in your own positioned container. Slots share context through wrappers and React portals. `useRendererQuery()` returns `{ isLoading, errors, retry, isRetrying }` within that root. `Renderer.Content` renders defaults or cached data while queries load and hides content on failure while preserving mounted state through retries.
@@ -132,7 +132,7 @@ Root accepts the same runtime props as Renderer and renders only its children. P
 <Renderer.Root response={response} library={library} toolProvider={tools}>
   <div style={{ position: "relative" }}>
     <Renderer.Content />
-    <Renderer.QueryLoading />
+    <Renderer.QueryLoading>Loading data…</Renderer.QueryLoading>
     <Renderer.QueryError>
       <p role="alert">Data is unavailable.</p>
       <Renderer.Retry>Try again</Renderer.Retry>

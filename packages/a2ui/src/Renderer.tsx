@@ -30,7 +30,7 @@ export interface A2UIRendererProps {
   /** Additional top-level data-model keys that should hydrate form namespaces. */
   formStateKeys?: readonly string[];
   toolProvider?: OpenUIRendererProps["toolProvider"];
-  /** Custom loading indicator. Defaults to a spinner. */
+  /** Optional loading indicator. Nothing is shown when omitted. */
   queryLoader?: OpenUIRendererProps["queryLoader"];
   children?: OpenUIRendererProps["children"];
 }

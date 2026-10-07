@@ -20,7 +20,7 @@ pnpm add @openuidev/react-lang
 
 ## Query failures
 
-Without slot children, `Renderer` keeps query defaults or cached results visible while loading and after failures. It displays a spinner while loading, and `onError` receives structured errors. Use `queryLoader` to customize that indicator, or slot children for custom layouts.
+Without slot children, `Renderer` keeps query defaults or cached results visible while loading and after failures. No loader or error/retry view is shown by default, and `onError` receives structured errors. Provide `queryLoader` for a loading indicator, or slot children for custom layouts.
 
 Use slots to customize loading and failure views:
 
@@ -28,7 +28,7 @@ Use slots to customize loading and failure views:
 <Renderer.Root response={response} library={library} toolProvider={toolProvider}>
   <div style={{ position: "relative" }}>
     <Renderer.Content />
-    <Renderer.QueryLoading />
+    <Renderer.QueryLoading>Loading data…</Renderer.QueryLoading>
     <Renderer.QueryError>
       <div role="alert">
         <p>We couldn't load your data. Please try again.</p>
@@ -39,9 +39,9 @@ Use slots to customize loading and failure views:
 </Renderer.Root>
 ```
 
-`Renderer.Root` owns one runtime and renders only its children. Slots can sit inside wrappers or portals under that root. `Renderer.Content` keeps generated components mounted while queries load or fail; failed results remain hidden until recovery. Omitting a slot omits its presentation. Plain `Renderer` supplies content and a loading indicator without hiding results on failure.
+`Renderer.Root` owns one runtime and renders only its children. Slots can sit inside wrappers or portals under that root. `Renderer.Content` keeps generated components mounted while queries load or fail; failed results remain hidden until recovery. Omitting a slot omits its presentation. Plain `Renderer` supplies content and an optional `queryLoader` without hiding results on failure.
 
-`Renderer.QueryLoading` shows its children while queries await generation or fetch data, unless failures are being displayed. Omit children to use `queryLoader`, falling back to the default spinner. Position custom overlays within your own relative container. `Renderer.QueryError` shows its children on failure; omit children for the default retry view. `Renderer.Retry` disables itself during loading and when no queries have failed. It accepts standard button props; its click handler can prevent the retry with `event.preventDefault()`.
+`Renderer.QueryLoading` shows its children while queries await generation or fetch data, unless failures are being displayed. Omit children to use `queryLoader`; without either, the slot renders nothing. Position custom overlays within your own relative container. `Renderer.QueryError` shows its children on failure and renders nothing without children. Add `Renderer.Retry` explicitly if you want a retry button. `Renderer.Retry` disables itself during loading and when no queries have failed. It accepts standard button props; its click handler can prevent the retry with `event.preventDefault()`.
 
 Use `useRendererQuery()` inside the root to read `{ isLoading, errors, retry, isRetrying }` in your own components. Generation progress remains available through `useIsStreaming()`. Do not create another root for each slot.
 
@@ -143,7 +143,7 @@ function AssistantMessage({ response, isStreaming }) {
 | `onAction` | `(event: ActionEvent) => void` | Callback when a component triggers an action |
 | `onStateUpdate` | `(state: Record<string, any>) => void` | Callback when form field values change |
 | `initialState` | `Record<string, any>` | Initial form state for hydration |
-| `queryLoader` | `React.ReactNode` | Custom loading indicator; defaults to a spinner |
+| `queryLoader` | `React.ReactNode` | Optional loading indicator; nothing is shown when omitted |
 | `onParseResult` | `(result: ParseResult \| null) => void` | Callback when the parse result changes |
 
 ### Parser (Server-Side)
