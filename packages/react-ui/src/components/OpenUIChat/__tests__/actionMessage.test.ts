@@ -1,19 +1,16 @@
-import { BuiltinActionType } from "@openuidev/react-lang";
+import { BuiltinActionType, parseMessage } from "@openuidev/react-lang";
 import { expect, it } from "vitest";
-import { separateContentAndContext } from "../../../utils/sentinelParser";
 import { buildActionUserMessage } from "../utils/actionMessage";
 
 const contextOf = (params: Record<string, unknown>, formState?: Record<string, unknown>) =>
-  JSON.parse(
-    separateContentAndContext(
-      buildActionUserMessage({
-        type: BuiltinActionType.ContinueConversation,
-        humanFriendlyMessage: "Save",
-        params,
-        formState,
-      }),
-    ).contextString ?? "null",
-  );
+  parseMessage(
+    buildActionUserMessage({
+      type: BuiltinActionType.ContinueConversation,
+      humanFriendlyMessage: "Save",
+      params,
+      formState,
+    }),
+  ).context;
 
 it("adds the @ToAssistant context as the third element, holding the form slot", () => {
   expect(contextOf({ context: 0 })).toEqual(["User clicked: Save", {}, 0]);

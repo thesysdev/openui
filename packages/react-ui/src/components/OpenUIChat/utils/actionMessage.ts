@@ -1,9 +1,7 @@
-import type { ActionEvent } from "@openuidev/react-lang";
-import { wrapContent, wrapContext } from "../../../utils/sentinelParser";
+import { buildMessage, type ActionEvent } from "@openuidev/react-lang";
 
 /** The stored user turn for a continue_conversation event; context is `["User clicked: msg", formState, context?]`. */
 export function buildActionUserMessage(event: ActionEvent): string {
-  const contentPart = event.humanFriendlyMessage ? wrapContent(event.humanFriendlyMessage) : "";
   const messageCtx: unknown[] = [`User clicked: ${event.humanFriendlyMessage}`];
   const actionContext = event.params?.["context"];
   if (event.formState || actionContext !== undefined) {
@@ -12,5 +10,7 @@ export function buildActionUserMessage(event: ActionEvent): string {
   if (actionContext !== undefined) {
     messageCtx.push(actionContext);
   }
-  return `${contentPart}${wrapContext(JSON.stringify(messageCtx))}`;
+  const built = buildMessage({ content: event.humanFriendlyMessage, context: messageCtx });
+  // No message: stored without the content line, e.g. "\n]]>openui:context\n[...]"
+  return event.humanFriendlyMessage ? built : built.slice(built.indexOf("\n") + 1);
 }

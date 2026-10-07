@@ -23,6 +23,10 @@ export type {
   ToolDescriptor,
 } from "./library";
 
+// ── Message protocol ──
+export { buildMessage, parseMessage } from "./message";
+export type { BuildMessageInput, ParseMessageOptions, ParsedMessage } from "./message";
+
 // ── Parser ──
 export { createParser, createStreamingParser, parse } from "./parser";
 export type { Parser, StreamParser } from "./parser";
