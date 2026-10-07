@@ -1,3 +1,4 @@
+import { BRIEFS, tokens } from "@/lib/benchmark-data";
 import type { ReactNode } from "react";
 import styles from "./FaqSection.module.css";
 
@@ -6,6 +7,9 @@ export type MarketingFaq = {
   /* One entry per paragraph. */
   answer: string[];
 };
+
+const fewerOutputTokensThan = (format: "jsonRender" | "a2ui") =>
+  Math.round((1 - tokens.outputPerScreen.openui / tokens.outputPerScreen[format]) * 100);
 
 const FAQS: MarketingFaq[] = [
   {
@@ -20,7 +24,7 @@ const FAQS: MarketingFaq[] = [
     answer: [
       "OpenUI Lang is a compact, streaming-first language that LLMs write to build interfaces from your own components.",
       "It is not JSON. Each line defines one component, such as root = Stack([header, chart]), so the interface renders while the response is still streaming.",
-      "The same screen takes up to 67% fewer tokens than the JSON equivalent.",
+      `Across the same ${BRIEFS} interfaces in our benchmark, OpenUI Lang averaged ${tokens.outputPerScreen.openui.toLocaleString("en-US")} output tokens per screen: ${fewerOutputTokensThan("jsonRender")}% fewer than json-render and ${fewerOutputTokensThan("a2ui")}% fewer than A2UI, both JSON formats.`,
     ],
   },
   {
