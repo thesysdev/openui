@@ -8,9 +8,14 @@
  */
 
 import type { Library } from "../library";
-import type { ElementNode, OpenUIError } from "../parser/types";
+import {
+  isElementNode,
+  type ElementNode,
+  type OpenUIError,
+  type ParseResult,
+} from "../parser/types";
 import { evaluatePropCore } from "./evaluate-prop";
-import type { EvaluationContext, SchemaContext } from "./evaluator";
+import { evaluate, type EvaluationContext, type SchemaContext } from "./evaluator";
 import type { Store } from "./store";
 
 /** Context passed through the evaluation chain — no module-level state. */
@@ -68,6 +73,24 @@ export function evaluateElementProps(el: ElementNode, evalCtx: EvalContext): Ele
   }
 
   return { ...el, props: evaluated };
+}
+
+/** Evaluate `root`, or the component a runtime entry (`rootExpression`) picks; null if none. */
+export function evaluateRoot(
+  result: Pick<ParseResult, "root" | "rootExpression">,
+  evalCtx: EvalContext,
+): ElementNode | null {
+  if (result.root) return evaluateElementProps(result.root, evalCtx);
+  if (!result.rootExpression) return null;
+  const value = evaluate(result.rootExpression, evalCtx.ctx, { library: evalCtx.library });
+  if (isElementNode(value)) return evaluateElementProps(value, evalCtx);
+  evalCtx.errors?.push({
+    source: "runtime",
+    code: "no-root",
+    statementId: "root",
+    message: "root does not evaluate to a component",
+  });
+  return null;
 }
 
 /**

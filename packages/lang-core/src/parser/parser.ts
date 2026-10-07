@@ -5,7 +5,7 @@ import {
 } from "../telemetry/runtime";
 import type { ASTNode, Statement } from "./ast";
 import { isASTNode, walkAST } from "./ast";
-import { ACTION_DEFS, BUILTIN_CALLS, isBuiltin, RESERVED_CALLS } from "./builtins";
+import { ACTION_DEFS, BUILTIN_CALLS, isBuiltin, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
 import { materializeValue, nameRawCallArgs } from "./materialize";
@@ -13,6 +13,7 @@ import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
   isElementNode,
+  type ElementNode,
   type JSONSchemaDef,
   type LibraryJSONSchema,
   type MaterializeCtx,
@@ -23,7 +24,7 @@ import {
   type QueryStatementInfo,
   type ValidationError,
 } from "./types";
-import { getSchemaDefaultValue } from "./validation";
+import { getSchemaDefaultValue, pushValidationIssue } from "./validation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Result building
@@ -160,47 +161,54 @@ function extractStatements(
 
 const DEFAULT_ROOT_STATEMENT_ID = "root";
 
-function isComponentStatement(
-  stmt: Statement,
-): stmt is Extract<Statement, { kind: "value" }> & { expr: Extract<ASTNode, { k: "Comp" }> } {
-  return (
-    stmt.kind === "value" &&
-    stmt.expr.k === "Comp" &&
-    !isBuiltin(stmt.expr.name) &&
-    stmt.expr.name !== RESERVED_CALLS.Query &&
-    stmt.expr.name !== RESERVED_CALLS.Mutation
-  );
+/** A call to a library component: not an `@` function, built-in, Query or Mutation. */
+function isComponentCall(node: ASTNode | undefined): node is Extract<ASTNode, { k: "Comp" }> {
+  return node?.k === "Comp" && !node.fn && !isBuiltin(node.name) && !isReservedCall(node.name);
 }
 
-function pickEntryId(
+/** Entry: `root`, else the first non-declaration statement if it calls the root component. */
+function pickEntry(
   stmtMap: Map<string, Statement>,
-  typedStmts: Statement[],
-  firstId: string,
   rootName?: string,
-): string {
-  if (stmtMap.has(DEFAULT_ROOT_STATEMENT_ID)) return DEFAULT_ROOT_STATEMENT_ID;
-  if (rootName && stmtMap.has(rootName)) return rootName;
+): { id: string; fallback: boolean } | null {
+  if (stmtMap.has(DEFAULT_ROOT_STATEMENT_ID))
+    return { id: DEFAULT_ROOT_STATEMENT_ID, fallback: false };
+  for (const stmt of stmtMap.values()) {
+    if (stmt.kind !== "value") continue;
+    const callsRoot = !!rootName && isComponentCall(stmt.expr) && stmt.expr.name === rootName;
+    return callsRoot ? { id: stmt.id, fallback: true } : null;
+  }
+  return null;
+}
 
-  const preferredComponent = rootName
-    ? typedStmts.find((stmt) => isComponentStatement(stmt) && stmt.expr.name === rootName)
-    : undefined;
-  if (preferredComponent) return preferredComponent.id;
+/** Follow refs to the entry's value; a component call that did not render was dropped by validation. */
+function resolvesToComponentCall(node: ASTNode | undefined, syms: Map<string, ASTNode>): boolean {
+  const seen = new Set<string>();
+  while (node?.k === "Ref" && !seen.has(node.n)) {
+    seen.add(node.n);
+    node = syms.get(node.n);
+  }
+  return isComponentCall(node);
+}
 
-  const firstComponent = typedStmts.find(isComponentStatement);
-  return firstComponent?.id ?? firstId;
+/** True when a runtime expression can produce a component, e.g. `$t ? A : B`. */
+function containsComponent(node: ASTNode): boolean {
+  let found = false;
+  walkAST(node, (current) => {
+    if (isComponentCall(current)) found = true;
+  });
+  return found;
 }
 
 function buildResult(
   stmtMap: Map<string, Statement>,
   typedStmts: Statement[],
-  firstId: string,
   wasIncomplete: boolean,
   stmtCount: number,
   cat: ParamMap | undefined,
   rootName?: string,
 ): ParseResult {
-  const entryId = pickEntryId(stmtMap, typedStmts, firstId, rootName);
-  if (!stmtMap.has(entryId)) return emptyResult(wasIncomplete);
+  const entry = pickEntry(stmtMap, rootName);
 
   const syms = new Map<string, ASTNode>();
   for (const [id, stmt] of stmtMap) {
@@ -212,7 +220,7 @@ function buildResult(
   // Exclude root, state ($var), query, and mutation declarations — they're consumed separately.
   const unreached = new Set<string>();
   for (const [id, stmt] of stmtMap) {
-    if (id === entryId) continue;
+    if (id === entry?.id) continue;
     if (stmt.kind === "state" || stmt.kind === "query" || stmt.kind === "mutation") continue;
     unreached.add(id);
   }
@@ -223,23 +231,47 @@ function buildResult(
     unres,
     visited: new Set(),
     partial: wasIncomplete,
-    currentStatementId: entryId,
+    currentStatementId: entry?.id,
     unreached,
   };
-  const materialized = materializeValue(syms.get(entryId)!, ctx);
 
-  const root = isElementNode(materialized) ? materialized : null;
-  if (root) root.statementId = entryId;
+  let root: ElementNode | null = null;
+  let rootExpression: ASTNode | undefined;
+  if (entry) {
+    const materialized = materializeValue(syms.get(entry.id)!, ctx);
+    if (isElementNode(materialized)) {
+      root = materialized;
+      root.statementId = entry.id;
+    } else if (isASTNode(materialized) && containsComponent(materialized)) {
+      rootExpression = materialized;
+    }
+  }
 
   const { stateDeclarations, queryStatements, mutationStatements } = extractStatements(
     typedStmts,
     ctx,
   );
 
-  const orphaned = [...unreached];
+  // Streaming consumers drop parser errors until the stream ends, so this reads as a stream-end check.
+  ctx.currentStatementId = entry?.id;
+  const component = rootName ?? "";
+  if (!entry) {
+    pushValidationIssue(ctx, component, "", { code: "no-root", reason: "missing" });
+  } else if (!root && !rootExpression && !resolvesToComponentCall(syms.get(entry.id), syms)) {
+    pushValidationIssue(ctx, component, "", { code: "no-root", reason: "not-component" });
+  } else if (entry.fallback) {
+    pushValidationIssue(ctx, component, "", {
+      code: "no-root",
+      reason: root ? "fallback" : "missing",
+    });
+  }
+
+  // With no entry nothing is reachable; `no-root` alone describes the problem.
+  const orphaned = entry ? [...unreached] : [];
 
   return {
     root,
+    ...(rootExpression ? { rootExpression } : {}),
     meta: {
       incomplete: wasIncomplete,
       unresolved: unres,
@@ -423,17 +455,15 @@ export function parse(input: string, cat: ParamMap, rootName?: string): ParseRes
   if (!stmts.length) return emptyResult(wasIncomplete);
 
   const stmtMap = new Map<string, Statement>();
-  let firstId = "";
   for (const s of stmts) {
     const expr = parseExpression(s.tokens);
     const stmt = classifyStatement(s, expr);
     stmtMap.set(s.id, stmt);
-    if (!firstId) firstId = s.id;
   }
   // Derive from map to deduplicate — Map.set overwrites duplicates
   const typedStmts = [...stmtMap.values()];
 
-  return buildResult(stmtMap, typedStmts, firstId, wasIncomplete, stmtMap.size, cat, rootName);
+  return buildResult(stmtMap, typedStmts, wasIncomplete, stmtMap.size, cat, rootName);
 }
 
 export interface StreamParser {
@@ -457,7 +487,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
   const completedStmtMap = new Map<string, Statement>();
 
   let completedCount = 0;
-  let firstId = "";
 
   function addStmt(text: string) {
     // `text` is sliced from `cleaned`, so it's already fence/comment-free.
@@ -468,7 +497,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       const stmt = classifyStatement(s, expr);
       completedStmtMap.set(s.id, stmt);
       completedCount++;
-      if (!firstId) firstId = s.id;
     }
   }
 
@@ -483,7 +511,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       completedEnd = 0;
       completedStmtMap.clear();
       completedCount = 0;
-      firstId = "";
     }
     cleaned = next;
   }
@@ -559,7 +586,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       return buildResult(
         completedStmtMap,
         [...completedStmtMap.values()],
-        firstId,
         false,
         completedCount,
         cat,
@@ -577,7 +603,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       return buildResult(
         completedStmtMap,
         [...completedStmtMap.values()],
-        firstId,
         wasIncomplete,
         completedCount,
         cat,
@@ -597,11 +622,9 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     // Derive from map to deduplicate
     const allTypedStmts = [...allStmtMap.values()];
 
-    const fid = firstId || stmts[0].id;
     return buildResult(
       allStmtMap,
       allTypedStmts,
-      fid,
       wasIncomplete,
       completedCount + stmts.length,
       cat,
@@ -615,7 +638,6 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     completedEnd = 0;
     completedStmtMap.clear();
     completedCount = 0;
-    firstId = "";
   }
 
   return {

@@ -107,7 +107,9 @@ export type ValidationErrorCode =
   | "unknown-component"
   | "inline-reserved"
   | "excess-args"
-  | "type-mismatch";
+  | "type-mismatch"
+  | "unknown-function"
+  | "no-root";
 
 /**
  * A prop validation error. Components with missing required props are
@@ -124,6 +126,8 @@ export interface ValidationError {
   message: string;
   /** Statement name that triggered the error (e.g. "header", "chart"). */
   statementId?: string;
+  /** "warning" when the program still renders (e.g. the `no-root` fallback); absent means error. */
+  severity?: "warning";
 }
 
 export interface MaterializeCtx {
@@ -148,7 +152,7 @@ export type OpenUIErrorSource = "parser" | "runtime" | "query" | "mutation";
  * Machine-readable error codes for the openui-lang pipeline.
  *
  * - Parser: "unknown-component", "missing-required", "null-required", "inline-reserved",
- *   "parse-exception", "parse-failed"
+ *   "excess-args", "type-mismatch", "unknown-function", "no-root", "parse-exception", "parse-failed"
  * - Runtime: "runtime-error" (prop evaluation), "render-error" (React render)
  * - Query/Mutation: "tool-not-found", "tool-error", "mcp-error"
  */
@@ -187,6 +191,8 @@ export interface OpenUIError {
   toolName?: string;
   /** Actionable fix context for the LLM (e.g. available components, correct signature). */
   hint?: string;
+  /** "warning" when the program still renders; absent means error. */
+  severity?: "warning";
 }
 
 /**
@@ -276,6 +282,8 @@ export interface MutationStatementInfo {
 export interface ParseResult {
   /** The root ElementNode (typically a Root component), or null if parsing hasn't produced one yet. */
   root: ElementNode | null;
+  /** Set when the entry picks a component at runtime (`root = $t ? A : B`); see `evaluateRoot`. */
+  rootExpression?: ASTNode;
   meta: {
     /** True if the parser detected truncated/incomplete input. */
     incomplete: boolean;

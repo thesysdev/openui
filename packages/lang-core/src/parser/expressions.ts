@@ -138,7 +138,11 @@ export function parseExpression(tokens: Token[]): ASTNode {
 
     // @-prefixed builtin call: @Count(...), @Each(...), @Set(...), etc.
     if (tok.t === T.BuiltinCall) {
-      if (tokens[pos + 1]?.t === T.LParen) return parseComp();
+      if (tokens[pos + 1]?.t === T.LParen) {
+        const call = parseComp();
+        if (call.k === "Comp" && !isBuiltin(call.name)) call.fn = true;
+        return call;
+      }
       adv();
       return { k: "Ref", n: tok.v as string };
     }

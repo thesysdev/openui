@@ -5,7 +5,7 @@ import {
   createStore,
   createStreamingParser,
   evaluate,
-  evaluateElementProps,
+  evaluateRoot,
   parseMessage,
   type ActionEvent,
   type ActionPlan,
@@ -452,12 +452,12 @@ export function useOpenUIState(
   const runtimeErrorsRef = useRef<OpenUIError[]>([]);
 
   const evaluatedResult = useMemo<ParseResult | null>(() => {
-    if (!result?.root) return result;
+    if (!result?.root && !result?.rootExpression) return result;
     // Fresh errors array each pass — avoids mutating memoized context
     const errors: OpenUIError[] = [];
     const evalCtx: EvalContext = { ctx: evaluationContext, library, store, errors };
     try {
-      const evaluatedRoot = evaluateElementProps(result.root, evalCtx);
+      const evaluatedRoot = evaluateRoot(result, evalCtx);
       runtimeErrorsRef.current = errors;
       return { ...result, root: evaluatedRoot };
     } catch (e) {

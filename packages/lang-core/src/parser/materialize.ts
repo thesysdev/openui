@@ -188,6 +188,10 @@ function materializeExprInternal(
       return node;
 
     case "Comp": {
+      if (node.fn && !isRuntimeCall(node.name, ctx)) {
+        pushValidationIssue(ctx, node.name, "", { code: "unknown-function" });
+        return { k: "Null" };
+      }
       const lazy = materializeLazyBuiltin(node, ctx, scopedRefs);
       if (lazy) return lazy;
       // Built-ins, library functions, action steps, reserved calls: keep as AST
@@ -314,6 +318,11 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
     // ── Component nodes ──────────────────────────────────────────────────
     case "Comp": {
       const { name, args } = node;
+
+      if (node.fn && !isRuntimeCall(name, ctx)) {
+        pushValidationIssue(ctx, name, "", { code: "unknown-function" });
+        return null;
+      }
 
       // Inline Query/Mutation (not from a statement-level declaration) → validation error
       if (isReservedCall(name)) {

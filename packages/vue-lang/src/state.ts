@@ -473,6 +473,7 @@ export function useOpenUIState(
           component: e.component,
           path: e.path || undefined,
           statementId: e.statementId,
+          ...(e.severity && { severity: e.severity }),
         })),
       );
     }
