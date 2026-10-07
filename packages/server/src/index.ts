@@ -4,6 +4,7 @@ import { createCompletionsConversations } from "./openai/client";
 import { openAIResponsesAdapter } from "./openai/responses-adapter";
 import { resolveClientOptions, type ClientOptions } from "./shared/client";
 import { createClientAutofix, createClientFix } from "./shared/client-autofix";
+import { createTools } from "./tools/execute";
 import { vercelAIAdapter } from "./vercel/adapter";
 import { eveStreamAdapter } from "./vercel/eve-adapter";
 
@@ -18,6 +19,7 @@ export type { AutofixResult, AutofixStream } from "./shared/types";
 export function createClient(options: ClientOptions = {}) {
   const config = resolveClientOptions(options);
   return {
+    tools: createTools(config),
     autofix: createClientFix(config),
     openai: {
       completions: {
@@ -42,3 +44,5 @@ export type Client = ReturnType<typeof createClient>;
 
 export type { MessageStreamEvent as EveStreamEvent } from "eve/client";
 export type { LangGraphStreamEvent } from "./langchain/types";
+
+export type { ExecuteToolInput, ToolArtifactRef, ToolExecutor } from "./tools/types";

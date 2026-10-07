@@ -96,7 +96,7 @@ Use either `chunks` or `toResponse()` once. `result` settles after consumption.
 | `toResponse()` | SSE `Response` for the matching frontend.                                        |
 | `result`       | Settled Autofix result. Persist `content` when present, rather than joined text. |
 
-`result` is `null` when Autofix validation did not run. A failed streamed fix throws with `code: "fix_failed"`. See the [server client reference](/docs/api-reference/server) for configuration and conversation persistence.
+`result` is `null` when Autofix validation did not run. A failed streamed fix throws with `code: "fix_failed"`. See the [server client reference](/docs/api-reference/server) for configuration, persistence, and tool execution.
 
 ## Call the API directly
 

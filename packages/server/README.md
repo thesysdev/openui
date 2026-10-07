@@ -113,3 +113,27 @@ await openUIClient.openai.completions.conversations.appendMessages({
 ```
 
 Accepts Chat Completions messages only and returns a `ConversationItemList`. It converts user/assistant messages and function calls/results into Conversations API items; system/developer instructions are skipped. An empty converted turn makes no request. The conversation must already exist. Append only the new turn to avoid duplicate items; writes are not retried automatically.
+
+## Execute tools and scripts
+
+```ts
+const result = await client.tools.execute({
+  name: "summary",
+  arguments: { period: "last_month" },
+  tools: {
+    getRevenue: async (args, { context, signal }) => loadRevenue(args, context.userId, signal),
+  },
+  response: generatedOpenUIBundle,
+  context: { userId: authenticatedUser.id },
+  signal: request.signal,
+  timeoutMs: 60_000,
+});
+```
+
+The method returns the final value. A registered `name` dispatches a local tool directly; otherwise `response` supplies the complete OpenUI bundle containing the named script. For stored scripts, replace `response` with `artifact: { id, version? }`. Scripts execute in the Gateway sandbox, not on the host server. Response bundles use `/v1/app/execute`; stored artifacts use `/v1/dashboards/execute`.
+
+Tools receive trusted per-request `context` and an abort signal. Derive context from authenticated server state; tools validate their own arguments and enforce authorization. Only own properties of the registry are callable.
+
+The continuation loop validates call IDs before execution, preserves customer-tool failures as sandbox results, and limits runs to eight tool-call rounds and sixteen customer-tool calls. The total deadline defaults to 60 seconds, including tools. Cancellation propagates to requests and executors; work that ignores it is no longer awaited. Snapshot failures do not replay previously executed tools.
+
+The root exports `ExecuteToolInput`, `ToolArtifactRef`, and `ToolExecutor`.
