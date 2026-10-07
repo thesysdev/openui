@@ -23,12 +23,12 @@ Files: `input.oui` (streaming cases: `chunks.json`) and `expected.json`.
 
 - `state`: the state defaults after the stream ends, `{ "$name": value }`. When present it must match exactly.
 - `statements` (editing cases): the statement names of the merged program, in order.
-- `errorObjects`: full error objects (language.md, section 8.3). Only the listed keys are compared.
+- `errorObjects`: the structural fields of the error object (language.md, section 8.3): `source`, `code`, `statementId`, `component`, `path`. Only the listed keys are compared. `message` and `hint` are text for the model and are never compared.
 
 How the tree is summarized:
 
 - A component is `{ "type", "props" }`. A prop that is null or absent is left out. Array elements are kept as they are, including `null`.
-- An action is `{ "action": [{ "step", "args" }] }`. Step names drop the `@`: `ToAssistant`, `OpenUrl`, `Set`, `Reset`, `Run`. `ToAssistant` args are the message, plus the context when there is one. `Set` args are the target and its value, evaluated with the state at stream end. `Reset` args are the targets, and `Run` args are the statement id. A lone step in an action prop is summarized as a plan of one step.
+- An action is `{ "action": [{ "step", "args" }] }`. Step names drop the `@`: `ToAssistant`, `OpenUrl`, `Set`, `Reset`, `Run`. `ToAssistant` args are the message, plus the context when there is one. `Set` args are the target and its value, evaluated with the state at stream end. `Reset` args are the targets, and `Run` args are the statement id. A custom action step uses the action name, and its args are the arguments in the action's `order`. Every step call is a plan of one step (language.md, section 6.3), so a lone step is summarized as a plan of one step, and a plain list of steps as a list of such plans.
 - A binding is `{ "$binding": "$name" }`.
 - Values come from evaluating the tree when the stream ends. No query has returned yet, so a reference to a query reads its defaults, and a reference to a mutation reads `{ "status": "idle", "data": null, "error": null }`.
 
@@ -38,6 +38,18 @@ Comparison:
 - `unresolved` and `orphans` are compared as sets.
 - Streaming cases must match both after the last chunk plus the end of the stream, and as a batch parse of the joined chunks (language.md, section 4: streaming equals parsing).
 - `*-roundtrip-*` cases also serialize the rendered tree, parse it again, and expect the same `root`.
+
+## Testing your implementation
+
+The cases work like [toml-test](https://github.com/toml-lang/toml-test): your implementation reads text and prints JSON, and a small harness diffs it.
+
+A case is a folder with `input.oui` (or `chunks.json`) and `expected.json`, plus `patch.oui` for editing cases, `steps.json` for action and form cases, and `validation.json` for validation cases. To test a client:
+
+1. Write an adapter that loads `library.json`, parses `input.oui` with it (or pushes each chunk of `chunks.json`, then ends the stream), evaluates the tree at stream end, and prints the canonical JSON: `root`, `errors` as `{ code, statementId }`, `unresolved`, `orphans`, `incomplete`, `state`, and `statements` for editing cases.
+2. Run it on every case and diff its output with `expected.json` using the comparison rules above: `errors` as a multiset, `unresolved` and `orphans` as sets, everything else exactly, and for streaming cases the streamed result and a batch parse of the joined chunks must both match.
+3. For `steps.json`, mount the program with test renderers for `Form`, `Input`, and `Button`, replay the steps, and compare the host events and the state.
+
+The canonical form holds only spec concepts: component types and props, resolved values, error codes, unresolved names, orphans, `incomplete`, state, and statements. It never holds parser internals or message text.
 
 ## Editing cases
 

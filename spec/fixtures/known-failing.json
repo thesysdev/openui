@@ -25,7 +25,6 @@
   "errors/002-unknown-function-null": "An unknown @Name is reported as unknown-component, not unknown-function evaluating to null (3.6).",
   "errors/003-no-root-unresolved-root": "No no-root error code (8.2).",
   "errors/004-state-query-dollar-name": "No state-query diagnostic for `$x = Query(...)` (2.1).",
-  "errors/005-shape-missing-required-metric": "The hint joins signature and note with an em dash, not `. ` as in the 8.3 example.",
   "actions/002-single-step#steps": "A lone step runs the legacy path: wrong message, and @Set sends a `set` event (6.3).",
   "actions/003-event-context-any-value#steps": "The @ToAssistant context reaches the host as a string (6.3).",
   "actions/004-event-form-state-per-step#steps": "Form state is read when the click starts, so an earlier @Set is not visible (6.3).",

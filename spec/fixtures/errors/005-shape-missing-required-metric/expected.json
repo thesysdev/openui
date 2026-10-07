@@ -27,8 +27,7 @@
       "code": "missing-required",
       "statementId": "chart",
       "component": "Metric",
-      "path": "/value",
-      "hint": "Signature: Metric(label*, value*). * marks required"
+      "path": "/value"
     }
   ]
 }
