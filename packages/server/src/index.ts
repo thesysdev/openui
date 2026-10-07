@@ -45,4 +45,12 @@ export type Client = ReturnType<typeof createClient>;
 export type { MessageStreamEvent as EveStreamEvent } from "eve/client";
 export type { LangGraphStreamEvent } from "./langchain/types";
 
-export type { ExecuteToolInput, ToolArtifactRef, ToolExecutor } from "./tools/types";
+export type {
+  ExecuteToolInput,
+  RegisteredTools,
+  ToolDefinition,
+  ToolExecutionOptions,
+  ToolExecutionRequest,
+  ToolExecutor,
+  ToolRegistration,
+} from "./tools/types";

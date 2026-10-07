@@ -1,6 +1,6 @@
 # `@openuidev/server`
 
-Use `createClient` to fix invalid OpenUI Lang and save completed Chat Completions turns to conversation history on the OpenUI Gateway.
+Use `createClient` to fix invalid OpenUI Lang, execute tools and generated scripts, and save completed Chat Completions turns to conversation history on the OpenUI Gateway.
 
 ## Install
 
@@ -116,24 +116,111 @@ Accepts Chat Completions messages only and returns a `ConversationItemList`. It 
 
 ## Execute tools and scripts
 
+Register server tools once. The same registry provides definitions for generation and handlers for execution:
+
+```ts
+type AppContext = { userId: string };
+
+const appTools = openUIClient.tools.create<AppContext>({
+  get_orders: {
+    description: "Read orders for a selected year.",
+    parameters: {
+      type: "object",
+      properties: { year: { type: "integer" } },
+      required: ["year"],
+    },
+    output: { orders: [{ region: "West", revenue: 120 }] },
+    execute: (args, { context, signal }) => readOrders(args, { userId: context.userId, signal }),
+  },
+});
+```
+
+`readOrders` is your application's data function. Each registration requires JSON Schema `parameters` and an `execute` handler. `description` and illustrative `output` are optional. Handlers receive arguments as `Record<string, unknown>`; they validate inputs and authorize access to actual data. The example output describes a possible result for generation, not the data returned at runtime.
+
+### Use the definitions for generation
+
+```ts
+import { generateSystemPrompt } from "@openuidev/lang-core";
+import library from "./openui.spec.json";
+
+const systemPrompt = generateSystemPrompt({
+  cloud: true,
+  library,
+  script: { tools: appTools.definitions },
+});
+```
+
+`definitions` contains only `{ name, description?, parameters, output? }`. Handlers, request context and client credentials are excluded. Metadata must be JSON serializable. You can create separate registries for different MiniApp libraries using the same client.
+
+### Execute a direct tool or a generated script
+
+```ts
+// A registered name runs directly on your server; no response bundle is needed.
+const orders = await appTools.execute(
+  { name: "get_orders", arguments: { year: 2026 } },
+  { context: { userId: authenticatedUser.id }, signal: request.signal },
+);
+
+// A generated script can call those same registered tools.
+const summary = await appTools.execute(
+  { name: "sales_summary", arguments: { year: 2026 }, response: generatedOpenUIBundle },
+  { context: { userId: authenticatedUser.id }, signal: request.signal, timeoutMs: 60_000 },
+);
+```
+
+`execute` returns the final value. Registered names take precedence over scripts with the same name. Other names require the complete generated `response`, including its scripts; no parsing or splitting is needed. Scripts execute through `/v1/app/execute` in the Gateway sandbox. The helper runs any requested registered tools on your server and resumes the script until it finishes. Unknown tools or scripts produce errors.
+
+Context, cancellation and the deadline belong to each call. A typed context is required when your registry declares one. For tools that need no context, omit the generic and call `appTools.execute({ name, arguments, response })` without a second argument. Client creation still requires a Gateway API key.
+
+### Connect an execution route
+
+Keep your registry in a server module. Derive context from authenticated server state and select only execution input from the body:
+
+```ts
+import { ServerClientError } from "@openuidev/server";
+import { requireAppContext } from "./auth";
+import { appTools } from "./app-tools";
+
+export async function POST(request: Request) {
+  const context = await requireAppContext(request);
+  const { name, arguments: args, response } = await request.json();
+
+  try {
+    const result = await appTools.execute(
+      { name, arguments: args, response },
+      { context, signal: request.signal },
+    );
+    return Response.json({ result });
+  } catch (error) {
+    if (request.signal.aborted) throw error;
+    const code = error instanceof ServerClientError ? error.code : "tool_exec_error";
+    const status = error instanceof ServerClientError ? (error.status ?? 500) : 500;
+    return Response.json({ error: { code, message: "Tool execution failed." } }, { status });
+  }
+}
+```
+
+Export `appTools` from the registration module. `requireAppContext` is your authentication helper; retain your application's normal authentication and error handling. The request body cannot supply the registry, trusted context or execution settings. If you store MiniApps by ID, authorize and load the selected response on your server, then pass that full response to `execute`.
+
+Your Renderer's `toolProvider.callTool` can handle browser-only actions explicitly and forward other names to this route. Browser-only handlers are not available to generated scripts; register script-accessible tools on the server.
+
+### Use an existing handler map
+
+If you already manage tool metadata elsewhere, keep the one-shot form:
+
 ```ts
 const result = await openUIClient.tools.execute({
-  name: "summary",
-  arguments: { period: "last_month" },
+  name: "sales_summary",
+  arguments: { year: 2026 },
   tools: {
-    getRevenue: async (args, { context, signal }) => loadRevenue(args, context.userId, signal),
+    get_orders: (args, { context, signal }) => readOrders(args, { userId: context.userId, signal }),
   },
   response: generatedOpenUIBundle,
   context: { userId: authenticatedUser.id },
   signal: request.signal,
-  timeoutMs: 60_000,
 });
 ```
 
-The method returns the final value. A registered `name` dispatches a local tool directly; otherwise `response` supplies the complete OpenUI bundle containing the named script. For stored scripts, replace `response` with `artifact: { id, version? }`. Scripts execute in the Gateway sandbox, not on the host server. Response bundles use `/v1/app/execute`; stored artifacts use `/v1/dashboards/execute`.
+Both forms use the same execution loop. Tools requested together run concurrently; dependent operations belong in successive script calls. Runs are limited to eight tool-call rounds and sixteen customer-tool calls. The total deadline defaults to 60 seconds, including tools. Cancellation propagates to requests and handlers; work that ignores it is no longer awaited. Tool failures are returned to the script, and snapshot failures never automatically replay previously executed tools.
 
-Tools receive trusted per-request `context` and an abort signal. Derive context from authenticated server state; tools validate their own arguments and enforce authorization. Only own properties of the registry are callable.
-
-The continuation loop validates call IDs before execution, preserves customer-tool failures as sandbox results, and limits runs to eight tool-call rounds and sixteen customer-tool calls. The total deadline defaults to 60 seconds, including tools. Cancellation propagates to requests and executors; work that ignores it is no longer awaited. Snapshot failures do not replay previously executed tools.
-
-The root exports `ExecuteToolInput`, `ToolArtifactRef`, and `ToolExecutor`.
+The root exports `ToolDefinition`, `ToolRegistration`, `RegisteredTools`, `ToolExecutionRequest`, `ToolExecutionOptions`, `ExecuteToolInput`, and the handler type `ToolExecutor`.
