@@ -1,7 +1,7 @@
 name: Publish @crayonai deprecation release
 
 # Republishes the latest @crayonai/* release as a new patch version whose
-# npm description and README state that Crayon has been replaced by OpenUI.
+# npm description and README point users to OpenUI.
 # Uses npm trusted publishing: each @crayonai package needs a trusted
 # publisher for this repository and this workflow file.
 
@@ -23,7 +23,7 @@ jobs:
           - "@crayonai/react-core"
           - "@crayonai/stream"
     env:
-      NOTICE: "DEPRECATED: Crayon has been replaced by OpenUI, which is not a drop-in replacement. See https://www.openui.com/docs"
+      NOTICE: "Crayon is now OpenUI. This package is no longer updated. OpenUI brings a new API, so see https://www.openui.com/docs to get started."
     steps:
       - uses: actions/setup-node@v4
         with:
