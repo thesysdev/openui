@@ -16,9 +16,11 @@ export function createClient(options: ClientOptions = {}) {
   const config = resolveClientOptions(options);
   return {
     autofix: createClientFix(config),
-    completions: {
-      autofix: { stream: createClientAutofix(config, openAIAdapter).stream },
-      conversations: createCompletionsConversations(config),
+    openai: {
+      completions: {
+        autofix: { stream: createClientAutofix(config, openAIAdapter).stream },
+        conversations: createCompletionsConversations(config),
+      },
     },
     vercel: { ai: { autofix: { stream: createClientAutofix(config, vercelAIAdapter).stream } } },
   };

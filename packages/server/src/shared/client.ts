@@ -4,13 +4,13 @@ export interface ClientOptions {
   /** Defaults to process.env.THESYS_API_KEY. */
   apiKey?: string;
   /** Gateway origin, without /v1. */
-  apiBaseUrl?: string;
+  baseUrl?: string;
   fetch?: typeof globalThis.fetch;
 }
 
 export interface ClientConfig {
   apiKey: string;
-  apiBaseUrl: string;
+  baseUrl: string;
   fetch: typeof globalThis.fetch;
 }
 
@@ -37,12 +37,12 @@ export function resolveClientOptions(options: ClientOptions = {}): ClientConfig 
   }
   return {
     apiKey,
-    apiBaseUrl: (options.apiBaseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, ""),
+    baseUrl: (options.baseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, ""),
     fetch: options.fetch ?? globalThis.fetch,
   };
 }
 
-/** Send a Gateway JSON request without retrying writes or tool execution. */
+/** Send a Gateway JSON request without retrying writes. */
 export async function postJSON(
   config: ClientConfig,
   path: string,
@@ -50,7 +50,7 @@ export async function postJSON(
   signal?: AbortSignal,
 ): Promise<unknown> {
   signal?.throwIfAborted();
-  const response = await config.fetch(`${config.apiBaseUrl}${path}`, {
+  const response = await config.fetch(`${config.baseUrl}${path}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${config.apiKey}`,

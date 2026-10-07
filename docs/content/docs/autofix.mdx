@@ -3,7 +3,7 @@ title: Autofix API
 description: Fix invalid OpenUI Lang from any model with one API call.
 ---
 
-The Autofix API repairs invalid OpenUI Lang after your model has generated it. Keep your existing model provider, inference setup, and agent framework. Send the conversation with the generation as the last assistant turn, and the API returns the repair result. You do not need to generate through Gateway's Chat Completions or Responses API.
+The Autofix API fixes invalid OpenUI Lang after your model has generated it. Keep your existing model provider, inference setup, and agent framework. Send the conversation with the generation as the last assistant turn, and the API returns the fix result. You do not need to generate through Gateway's Chat Completions or Responses API.
 
 Use Autofix for correction after generation, or [Gateway](/docs/gateway) for model access with in-built correction.
 
@@ -24,7 +24,7 @@ flowchart LR
 
 ## Use the server package
 
-Create a server client from `@openuidev/server/openai` or `@openuidev/server/vercel`. It reads `process.env.THESYS_API_KEY` by default. Use the spec from `openui generate --spec` for the same library as your renderer, including its schema. Keep the key on the server.
+Import `createClient` from `@openuidev/server`. Use the spec from `openui generate --spec` for the same library as your renderer, including its schema. Keep the key on the server.
 
 ```ts title="lib/server.ts" tab="OpenAI" tab-group="autofix-sdk"
 import { createClient } from "@openuidev/server";
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return openui.completions.autofix
+  return openui.openai.completions.autofix
     .stream({ library, stream: source, messages, signal: request.signal })
     .toResponse();
 }
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
 
 Pair Chat Completions with `openAIAdapter()` and AI SDK UI message events with `useChat`.
 
-For completed output, use `openui.autofix.fix({ library, response, messages, signal })`. Optional `messages` is repair context in Chat Completions format, before the generation. On `fix_failed`, choose a fallback; otherwise render or persist `result.content`.
+For completed output, use `openui.autofix.fix({ library, generation, messages, signal })`. Optional `messages` supplies conversation context in Chat Completions format, before the generation. On `fix_failed`, choose a fallback; otherwise render or persist `result.content`.
 
 ### Consume the stream
 
@@ -96,7 +96,7 @@ Use either `chunks` or `toResponse()` once. `result` settles after consumption.
 | `toResponse()` | SSE `Response` for the matching frontend.                                        |
 | `result`       | Settled Autofix result. Persist `content` when present, rather than joined text. |
 
-`result` is `null` when Autofix validation did not run. A failed streamed repair throws with `code: "fix_failed"`. The previous `createAutofix` helper remains available as a deprecated compatibility wrapper. See the [server client reference](/docs/api-reference/server) for configuration, persistence, and tool execution.
+`result` is `null` when Autofix validation did not run. A failed streamed fix throws with `code: "fix_failed"`. See the [server client reference](/docs/api-reference/server) for configuration and conversation persistence.
 
 ## Call the API directly
 
@@ -344,7 +344,7 @@ These are the same codes the OpenUI SDK reports in the browser, so an applicatio
 
 ## Framing
 
-The generation may be bare OpenUI Lang, a fenced code block, or an assistant turn as the OpenUI SDK stores it after the user has touched a form inside it: `]]>openui:content`, the program, `]]>openui:context` with the form state, `]]>openui:end`. Only the program inside is checked and repaired. A fixed generation comes back in the same wrapping it arrived in, header line, context section and end marker unchanged, so the SDK reads the answer the way it reads history.
+The generation may be bare OpenUI Lang, a fenced code block, or an assistant turn as the OpenUI SDK stores it after the user has touched a form inside it: `]]>openui:content`, the program, `]]>openui:context` with the form state, `]]>openui:end`. Only the program inside is checked and corrected. A fixed generation comes back in the same wrapping it arrived in, header line, context section and end marker unchanged, so the SDK reads the answer the way it reads history.
 
 ## Limits
 

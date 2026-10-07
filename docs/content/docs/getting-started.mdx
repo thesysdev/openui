@@ -90,7 +90,7 @@ const source = await model.chat.completions.create({
 
 // Autofix adds the library itself, so pass only the conversation.
 // Return this from your API route as a server-sent events response.
-const response = openui.completions.autofix
+const response = openui.openai.completions.autofix
   .stream({ library, stream: source, messages })
   .toResponse();
 ```
@@ -101,7 +101,7 @@ Both examples use a `THESYS_API_KEY`. Run the command below to sign in with Thes
 npx @openuidev/cli@latest generate-api-key
 ```
 
-The OpenAI example uses [Autofix](/docs/autofix) to repair invalid OpenUI Lang against your library before it reaches your application. Gateway does this for you as the response streams.
+The OpenAI example uses [Autofix](/docs/autofix) to fix invalid OpenUI Lang against your library before it reaches your application. Gateway does this for you as the response streams.
 
 You can also use Anthropic, Gemini, or any other LLM provider. Send the generated system prompt with your provider's SDK.
 

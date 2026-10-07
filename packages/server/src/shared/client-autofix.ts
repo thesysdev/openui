@@ -20,7 +20,10 @@ export function createClientAutofix<Chunk>(config: ClientConfig, adapter: Stream
   const pipeline = (library: AutofixOptions["library"]) => {
     let existing = pipelines.get(library);
     if (!existing) {
-      existing = createAutofix({ ...config, library }, adapter);
+      existing = createAutofix(
+        { apiKey: config.apiKey, apiBaseUrl: config.baseUrl, fetch: config.fetch, library },
+        adapter,
+      );
       pipelines.set(library, existing);
     }
     return existing;
@@ -32,19 +35,23 @@ export function createClientAutofix<Chunk>(config: ClientConfig, adapter: Stream
 }
 
 /** Completed OpenUI text; the provider is irrelevant once the response is assembled. */
-export type ClientFixInput = Omit<AutofixInput, "generation"> &
-  Pick<AutofixOptions, "library"> & { response: string };
+export type ClientFixInput = AutofixInput & Pick<AutofixOptions, "library">;
 
 export function createClientFix(config: ClientConfig) {
   const fixes = new WeakMap<AutofixOptions["library"], ReturnType<typeof createAutofixFix>>();
   return {
-    fix({ library, response, ...input }: ClientFixInput): Promise<AutofixResult> {
+    fix({ library, ...input }: ClientFixInput): Promise<AutofixResult> {
       let fix = fixes.get(library);
       if (!fix) {
-        fix = createAutofixFix({ ...config, library });
+        fix = createAutofixFix({
+          apiKey: config.apiKey,
+          apiBaseUrl: config.baseUrl,
+          fetch: config.fetch,
+          library,
+        });
         fixes.set(library, fix);
       }
-      return fix({ ...input, generation: response });
+      return fix(input);
     },
   };
 }
