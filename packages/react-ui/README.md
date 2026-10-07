@@ -116,17 +116,10 @@ import { Renderer, type RendererProps } from "@openuidev/react-lang";
 import { dashboardLibrary } from "@openuidev/react-ui/genui-lib";
 import "@openuidev/react-ui/styles/index.css";
 
-type DashboardPreviewProps = Pick<RendererProps, "response" | "isStreaming" | "toolProvider">;
+type DashboardPreviewProps = Pick<RendererProps, "response" | "isStreaming">;
 
-export function DashboardPreview({ response, isStreaming, toolProvider }: DashboardPreviewProps) {
-  return (
-    <Renderer
-      response={response}
-      library={dashboardLibrary}
-      isStreaming={isStreaming}
-      toolProvider={toolProvider}
-    />
-  );
+export function DashboardPreview({ response, isStreaming }: DashboardPreviewProps) {
+  return <Renderer response={response} library={dashboardLibrary} isStreaming={isStreaming} />;
 }
 ```
 
@@ -136,44 +129,13 @@ dashboard styles. There is no dependency on `@openuidev/thesys` or its chart pac
 Charts measure browser layout, so SSR applications should load the preview on the
 client (for example, with `next/dynamic` and `ssr: false` in a Next.js client module).
 
-For self-hosted generation, use
-`dashboardLibrary.prompt(dashboardPromptOptions)`. For the generalized Cloud chat
-endpoint, first serialize the library in a build script:
+For self-hosted generation, use the library's prompt options:
 
 ```ts
-import { writeFileSync } from "node:fs";
-import { dashboardLibrary } from "@openuidev/react-ui/genui-lib/dashboard";
+import { dashboardLibrary, dashboardPromptOptions } from "@openuidev/react-ui";
 
-writeFileSync(
-  "dashboard-library.json",
-  JSON.stringify({
-    ...dashboardLibrary.toSpec(),
-    schema: dashboardLibrary.toJSONSchema(),
-  }),
-);
+const systemPrompt = dashboardLibrary.prompt(dashboardPromptOptions);
 ```
-
-Then build the system message on the server using that JSON and the server-safe
-prompt-options entry point:
-
-```ts
-import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
-import { dashboardPromptOptions } from "@openuidev/react-ui/genui-lib/prompt-options";
-import dashboardSpec from "./dashboard-library.json";
-
-const systemPrompt = generateSystemPrompt({
-  cloud: true,
-  library: dashboardSpec as LibrarySpec,
-  promptOptions: dashboardPromptOptions,
-  // Add script: { tools } when generated scripts should compose your tools.
-});
-```
-
-Pass this as the system message to `/v1/embed/chat/completions`. Use the matching
-library in the client Renderer and provide a `toolProvider` for live queries and
-mutations. The examples explain direct tool bindings, reactive filters, and script
-bindings for aggregation and joins; their tool names are examples, not built-in
-data sources.
 
 `dashboardComponents` can be spread into a custom `createLibrary` call. Individual
 definitions such as `DashboardComponent`, `SmallCardComponent`, `TrendComponent`,
