@@ -21,7 +21,6 @@ import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import type { OpenUIContextValue } from "../context";
 import type { Library } from "../library";
-import { queryPlaceholders } from "../queryPlaceholders";
 import { parseResponseBundle } from "../responseBundle";
 import { useOpenUIErrors } from "./useOpenUIErrors";
 import { useStreamingObservability } from "./useStreamingObservability";
@@ -456,16 +455,6 @@ export function useOpenUIState(
     }
   }, [result, evaluationContext, library, store, storeSnapshot, querySnapshot]);
 
-  const placeholders = useMemo(() => {
-    if (!result?.root || !evaluatedResult?.root) return undefined;
-    const pending = new Set(
-      (result.queryStatements ?? [])
-        .filter((query) => !queryManager.hasResult(query.statementId))
-        .map((query) => query.statementId),
-    );
-    return queryPlaceholders(result.root, evaluatedResult.root, pending);
-  }, [result, evaluatedResult, queryManager, querySnapshot]);
-
   const contextValue = useMemo<OpenUIContextValue>(
     () => ({
       library,
@@ -478,7 +467,6 @@ export function useOpenUIState(
       evaluationContext,
       reportError,
       isQueryLoading,
-      queryPlaceholders: placeholders,
     }),
     [
       library,
@@ -491,7 +479,6 @@ export function useOpenUIState(
       store,
       evaluationContext,
       reportError,
-      placeholders,
     ],
   );
 

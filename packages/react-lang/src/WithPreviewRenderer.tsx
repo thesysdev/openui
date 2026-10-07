@@ -9,7 +9,6 @@ import {
   useState,
   type ComponentPropsWithRef,
 } from "react";
-import { ButtonSlot } from "./ButtonSlot";
 import { Renderer, type RendererProps } from "./Renderer";
 import { parseResponseBundle, type ResponseMetadata } from "./responseBundle";
 
@@ -102,16 +101,12 @@ function PreviewRoot({
   );
 }
 
-export interface PreviewButtonProps extends ComponentPropsWithRef<"button"> {
-  /** Apply behavior to one custom button that forwards button props and its ref. */
-  asChild?: boolean;
-}
+export type PreviewButtonProps = ComponentPropsWithRef<"button">;
 
-function PreviewTrigger({ asChild, children, onClick, disabled, ...props }: PreviewButtonProps) {
+function PreviewTrigger({ children, onClick, disabled, ...props }: PreviewButtonProps) {
   const { metadata, isOpen, isStreaming, contentId, open, close } = useRendererPreview();
-  const Button = asChild ? ButtonSlot : "button";
   return (
-    <Button
+    <button
       type="button"
       {...props}
       disabled={disabled}
@@ -126,15 +121,14 @@ function PreviewTrigger({ asChild, children, onClick, disabled, ...props }: Prev
       {children === undefined
         ? `${metadata.name || "Untitled artifact"}${isStreaming ? " (generating…)" : ""}`
         : children}
-    </Button>
+    </button>
   );
 }
 
-function PreviewClose({ asChild, children, onClick, disabled, ...props }: PreviewButtonProps) {
+function PreviewClose({ children, onClick, disabled, ...props }: PreviewButtonProps) {
   const { metadata, close } = useRendererPreview();
-  const Button = asChild ? ButtonSlot : "button";
   return (
-    <Button
+    <button
       type="button"
       {...props}
       disabled={disabled}
@@ -145,7 +139,7 @@ function PreviewClose({ asChild, children, onClick, disabled, ...props }: Previe
       }}
     >
       {children === undefined ? `Close ${metadata.name || "Untitled artifact"}` : children}
-    </Button>
+    </button>
   );
 }
 

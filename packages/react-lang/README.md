@@ -41,13 +41,13 @@ Use slots to customize loading and failure views:
 
 `Renderer.Root` owns one runtime and renders only its children. Slots can sit inside wrappers or portals under that root. `Renderer.Content` keeps generated components mounted while queries load or fail; failed results remain hidden until recovery. Omitting a slot omits its presentation. Plain `Renderer` supplies content and a loading indicator without hiding results on failure.
 
-`Renderer.QueryLoading` shows its children while queries await generation or fetch data, unless failures are being displayed. Omit children to use `queryLoader`, falling back to the default spinner. Position custom overlays within your own relative container. `Renderer.QueryError` shows its children on failure; omit children for the default retry view. `Renderer.Retry` disables itself during loading and when no queries have failed. Use `asChild` with one custom button that forwards button props and refs; its click handler can prevent the retry with `event.preventDefault()`.
+`Renderer.QueryLoading` shows its children while queries await generation or fetch data, unless failures are being displayed. Omit children to use `queryLoader`, falling back to the default spinner. Position custom overlays within your own relative container. `Renderer.QueryError` shows its children on failure; omit children for the default retry view. `Renderer.Retry` disables itself during loading and when no queries have failed. It accepts standard button props; its click handler can prevent the retry with `event.preventDefault()`.
 
 Use `useRendererQuery()` inside the root to read `{ isLoading, errors, retry, isRetrying }` in your own components. Generation progress remains available through `useIsStreaming()`. Do not create another root for each slot.
 
 `Renderer` accepts slot children to replace its default content composition.
 
-With `Renderer.Content`, widgets that depend on queries without successful data show loading placeholders; static layout and labels can render progressively. During streaming edits, previously loaded results remain visible with loading feedback until the updated response is ready.
+While queries load, `Renderer.Content` renders their defaults or previously successful data. During streaming edits, previously loaded results remain visible with loading feedback until the updated response is ready.
 
 ## Overview
 

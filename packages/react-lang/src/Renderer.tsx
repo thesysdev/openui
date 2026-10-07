@@ -17,7 +17,6 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import { ButtonSlot } from "./ButtonSlot";
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
@@ -167,16 +166,7 @@ function renderDeep(value: unknown): React.ReactNode {
  * Renders a single ElementNode.
  */
 function RenderNode({ node }: { node: ElementNode }) {
-  const { library, reportError, queryPlaceholders } = useOpenUI();
-  if (queryPlaceholders?.has(node)) {
-    const label = queryPlaceholders.get(node);
-    return (
-      <div role="status" aria-busy="true" style={{ padding: "1rem", minHeight: "3rem" }}>
-        {label && <div>{label}</div>}
-        <div>Loading data…</div>
-      </div>
-    );
-  }
+  const { library, reportError } = useOpenUI();
   const Comp = library.components[node.typeName]?.component;
 
   if (!Comp) return null;
@@ -389,17 +379,13 @@ function RendererQueryError({ children }: RendererSlotProps) {
   return <>{children === undefined ? <DefaultQueryError /> : children}</>;
 }
 
-export interface RendererRetryProps extends React.ComponentPropsWithRef<"button"> {
-  /** Apply retry behavior to one child button. It must forward button props and its ref. */
-  asChild?: boolean;
-}
+export type RendererRetryProps = React.ComponentPropsWithRef<"button">;
 
-function RendererRetry({ asChild, children, onClick, disabled, ...props }: RendererRetryProps) {
+function RendererRetry({ children, onClick, disabled, ...props }: RendererRetryProps) {
   const { retry, isLoading, errors } = useRendererQuery();
   const isDisabled = disabled || isLoading || errors.length === 0;
-  const Button = asChild ? ButtonSlot : "button";
   return (
-    <Button
+    <button
       type="button"
       {...props}
       disabled={isDisabled}
@@ -410,25 +396,20 @@ function RendererRetry({ asChild, children, onClick, disabled, ...props }: Rende
       }}
     >
       {children}
-    </Button>
+    </button>
   );
 }
 
 function DefaultRendererContent() {
   const { root, query, queryLoader } = useRendererContext();
-  const context = useOpenUI();
-  // Preserve query defaults and cached content for callers that do not opt into slots.
-  const legacyContext = useMemo(() => ({ ...context, queryPlaceholders: undefined }), [context]);
   if (!root) return null;
   return (
-    <OpenUIContext.Provider value={legacyContext}>
-      <div aria-busy={query.isLoading} style={{ position: "relative" }}>
-        {query.isLoading && (queryLoader ?? <DefaultQueryLoader />)}
-        <div style={{ opacity: query.isLoading ? 0.7 : 1, transition: "opacity 0.2s ease" }}>
-          <RenderNode node={root} />
-        </div>
+    <div aria-busy={query.isLoading} style={{ position: "relative" }}>
+      {query.isLoading && (queryLoader ?? <DefaultQueryLoader />)}
+      <div style={{ opacity: query.isLoading ? 0.7 : 1, transition: "opacity 0.2s ease" }}>
+        <RenderNode node={root} />
       </div>
-    </OpenUIContext.Provider>
+    </div>
   );
 }
 
