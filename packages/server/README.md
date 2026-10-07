@@ -81,6 +81,24 @@ return openUIClient.vercel.ai.autofix
 
 The stream exposes `chunks` (native events), `toResponse()` (HTTP output), and `result` (Autofix result or null if validation did not run). Consume either `chunks` or `toResponse()` once. `result` settles after consumption finishes. A failed streamed fix throws `AutofixError` with `code: "fix_failed"` and diagnostics.
 
+## Additional Autofix adapters
+
+```ts
+client.openai.responses.autofix.stream({ library, stream: responseEvents, messages, signal });
+client.langgraph.autofix.stream({ library, stream: graphEvents, messages, signal });
+client.vercel.eve.autofix.stream({ library, stream: eveEvents, messages, signal });
+```
+
+| Namespace                           | Native events      | HTTP output |
+| ----------------------------------- | ------------------ | ----------- |
+| `client.openai.completions.autofix` | Chat Completions   | SSE         |
+| `client.openai.responses.autofix`   | OpenAI Responses   | SSE         |
+| `client.vercel.ai.autofix`          | AI SDK UI messages | SSE         |
+| `client.vercel.eve.autofix`         | Eve messages       | NDJSON      |
+| `client.langgraph.autofix`          | LangGraph SDK      | Named SSE   |
+
+Streams accept `AsyncIterable` or `ReadableStream`. Fixes run at successful final text boundaries; tool-bearing, failed, and interrupted turns pass through. Completed output always uses `client.autofix.fix({ library, generation, messages, signal })`.
+
 ## Append Completions messages
 
 ```ts

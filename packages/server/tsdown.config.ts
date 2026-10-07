@@ -30,4 +30,10 @@ export default defineConfig([
     outDir: "dist/vercel",
     clean: false,
   },
+  {
+    ...shared,
+    entry: { index: "src/langchain/index.ts" },
+    outDir: "dist/langchain",
+    clean: false,
+  },
 ]);
