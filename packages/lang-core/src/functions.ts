@@ -8,22 +8,22 @@ function assertParamsObject(params: z.$ZodType, name: string): void {
   }
 }
 
-/** A library function, called like a built-in: `@Percent(done, total)`. */
+/** defineFunction({name: "Percent", params, fn}) -> called as @Percent(done, total) */
 export interface DefinedFunction<
   T extends z.$ZodObject = z.$ZodObject,
   R extends z.$ZodType | undefined = z.$ZodType | undefined,
 > {
   name: string;
   description: string;
-  /** Parameters as a Zod object. Key order is the positional order in programs. */
+  /** z.object({part, total}) -> @Percent(part, total), in key order */
   params: T;
-  /** Return value schema, shown in the prompt and checked at runtime. */
+  /** z.string() -> the return type in the prompt signature, checked at runtime */
   returns?: R;
-  /** Gets the args as one object with defaults applied. Invalid args or results, or a throw, give null. */
+  /** `@Percent(3, 4)` -> fn({part: 3, total: 4}); bad args or result, or a throw -> null */
   fn: (args: z.infer<T>) => R extends z.$ZodType ? z.infer<R> : unknown;
 }
 
-/** Define a library function for `createLibrary({ functions })`. */
+/** createLibrary({ functions: [defineFunction({name: "Percent", ...})] }) */
 export function defineFunction<
   T extends z.$ZodObject,
   R extends z.$ZodType | undefined = undefined,

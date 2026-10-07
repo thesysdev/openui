@@ -231,9 +231,9 @@ export const BUILTIN_CALLS: ReadonlyMap<string, CallDef> = new Map(
   ]),
 );
 
-/** The library's call registry (the built-ins plus its functions), or the built-ins alone. */
-export function callsOf(cat: ParamMap | undefined): ReadonlyMap<string, CallDef> {
-  return cat?.calls ?? BUILTIN_CALLS;
+// getCallDefs(cat).get("Percent") -> the library's @Percent; no cat -> built-ins only
+export function getCallDefs(cat: ParamMap | undefined): ReadonlyMap<string, CallDef> {
+  return cat?.callDefs ?? BUILTIN_CALLS;
 }
 
 /** True for a built-in function, action step, or Action (not a component). */

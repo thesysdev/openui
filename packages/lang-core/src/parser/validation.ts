@@ -1,7 +1,6 @@
-import { isASTNode, literalValue, toLiteralAST, type ASTNode } from "./ast";
+import { isASTNode } from "./ast";
 import {
   isElementNode,
-  type CallDef,
   type ElementNode,
   type MaterializeCtx,
   type ParamDef,
@@ -176,13 +175,10 @@ export function pushValidationIssue(
 // Invalid-value resolution — the edge rule
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Returned by validateSchemaValue for a value that cannot be salvaged. */
+// "x" against {type: "number"} -> INVALID, after reporting the type-mismatch
 export const INVALID: unique symbol = Symbol("invalid");
 
-/**
- * The edge rule for an invalid value: its schema default if present, else
- * INVALID on a required edge (the parent is invalid too), else undefined (omit it).
- */
+// invalid value: default 5 -> 5; no default -> INVALID if required, else undefined (omit)
 export function resolveInvalidValue(required: boolean, defaultValue: unknown): unknown {
   if (defaultValue !== undefined) return defaultValue;
   return required ? INVALID : undefined;
@@ -398,50 +394,4 @@ export function validateSchemaValue(
   if (type === "object") return validateObjectValue(value, s, component, path, ctx);
   if (type === "array") return validateArrayValue(value, s, component, path, ctx);
   return validateLeafValue(value, s, component, path, ctx) ? INVALID : value;
-}
-
-/** A call's positional args by param name; excess args are dropped. */
-export function nameArgs(args: ASTNode[], params: ParamDef[]): Record<string, ASTNode> {
-  const named: Record<string, ASTNode> = {};
-  for (let i = 0; i < params.length && i < args.length; i++) named[params[i]!.name] = args[i]!;
-  return named;
-}
-
-/** Names a library call's args and validates literal ones like component props (dynamic ones at runtime). */
-export function mapCallArgs(
-  name: string,
-  args: ASTNode[],
-  def: CallDef,
-  ctx: MaterializeCtx,
-): Record<string, ASTNode> | null {
-  const { params } = def;
-  if (args.length > params.length) {
-    pushValidationIssue(ctx, name, "", {
-      code: "excess-args",
-      declared: params.length,
-      got: args.length,
-    });
-  }
-  const mapped = nameArgs(args, params);
-  let invalid = false;
-  for (const p of params) {
-    const arg = mapped[p.name];
-    const lit = arg ? literalValue(arg) : { v: undefined };
-    if (!lit) continue;
-    if (lit.v == null) {
-      if (!p.required || p.defaultValue !== undefined) continue;
-      pushValidationIssue(ctx, name, `/${p.name}`, {
-        code: arg ? "null-required" : "missing-required",
-        signature: buildParamsSignature(name, params),
-      });
-      invalid = true;
-      continue;
-    }
-    let next = validateSchemaValue(lit.v, p.schema, name, `/${p.name}`, ctx);
-    if (next === INVALID) next = resolveInvalidValue(p.required, p.defaultValue);
-    if (next === INVALID) invalid = true;
-    else if (next === undefined) delete mapped[p.name];
-    else if (next !== lit.v) mapped[p.name] = toLiteralAST(next);
-  }
-  return invalid ? null : mapped;
 }
