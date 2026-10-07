@@ -7,14 +7,14 @@ export const openAIAdapter = (): StreamProtocolAdapter => ({
     const mapper = chatCompletionsMapper();
 
     for await (const data of sseDataPayloads(response)) {
-      let json: unknown;
+      // One bad record (unparseable, or a shape the mapper cannot read) is
+      // logged and skipped; the rest of the answer still renders.
       try {
-        json = JSON.parse(data);
+        yield* mapper.push(JSON.parse(data));
       } catch (e) {
         console.error("Failed to parse OpenAI SSE event", e);
         continue;
       }
-      yield* mapper.push(json);
       if (mapper.terminated) return;
     }
   },

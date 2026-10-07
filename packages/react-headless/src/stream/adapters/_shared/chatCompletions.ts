@@ -56,7 +56,7 @@ export function chatCompletionsMapper() {
         return;
       }
 
-      const choice = (json as ChatCompletionChunk).choices?.[0];
+      const choice = (json as ChatCompletionChunk | null)?.choices?.[0];
       const delta = choice?.delta;
 
       if (delta) {
@@ -75,7 +75,8 @@ export function chatCompletionsMapper() {
           yield { type: EventType.TEXT_MESSAGE_CONTENT, messageId, delta: delta.refusal };
         }
 
-        for (const toolCall of delta.tool_calls ?? []) {
+        for (const toolCall of Array.isArray(delta.tool_calls) ? delta.tool_calls : []) {
+          if (!toolCall || typeof toolCall !== "object") continue;
           const index = toolCall.index;
 
           if (toolCall.id) {

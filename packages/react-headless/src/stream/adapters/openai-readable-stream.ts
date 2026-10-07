@@ -15,14 +15,14 @@ export const openAIReadableStreamAdapter = (): StreamProtocolAdapter => ({
       const data = line.trim();
       if (!data) continue;
 
-      let json: unknown;
+      // One bad record (unparseable, or a shape the mapper cannot read) is
+      // logged and skipped; the rest of the answer still renders.
       try {
-        json = JSON.parse(data);
+        yield* mapper.push(JSON.parse(data));
       } catch (e) {
         console.error("Failed to parse OpenAI NDJSON chunk", e);
         continue;
       }
-      yield* mapper.push(json);
       if (mapper.terminated) return;
     }
   },

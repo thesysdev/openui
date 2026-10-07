@@ -187,6 +187,39 @@ describe("Chat Completions adapters", () => {
     expect(new Set(ids.slice(2)).size).toBe(1);
   });
 
+  it.each([
+    ["a null record", null],
+    [
+      "a non-array tool_calls",
+      { choices: [{ index: 0, delta: { tool_calls: 5 }, finish_reason: null }] },
+    ],
+    [
+      "a null tool call",
+      { choices: [{ index: 0, delta: { tool_calls: [null] }, finish_reason: null }] },
+    ],
+  ])("skips %s and keeps the answer that follows (both framings)", async (_, record) => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const after = [
+      completionChunk({ role: "assistant", content: "after" }),
+      completionChunk({}, "stop"),
+    ];
+    const sseEvents = await collect(
+      openAIAdapter().parse(makeResponse(sse(record) + after.map(sse).join(""))),
+    );
+    const ndjsonEvents = await collect(
+      openAIReadableStreamAdapter().parse(
+        makeResponse(ndjson(record) + after.map(ndjson).join(""), "application/x-ndjson"),
+      ),
+    );
+    for (const events of [sseEvents, ndjsonEvents]) {
+      expect(events).toContainEqual(
+        expect.objectContaining({ type: EventType.TEXT_MESSAGE_CONTENT, delta: "after" }),
+      );
+      expect(types(events)).not.toContain(EventType.RUN_ERROR);
+    }
+    error.mockRestore();
+  });
+
   it("ignores a non-streamed chat.completion body instead of reading it as truncated", async () => {
     const completion = {
       id: "chatcmpl-1",
