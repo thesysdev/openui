@@ -186,11 +186,7 @@ CORRECT: \`Col("Actions", @Each(rows, "t", Button("Edit", @Set($id, t.id))))\`
 WRONG: \`myBtn = Button("Edit", @Set($id, t.id))\` then \`Col("Actions", @Each(rows, "t", myBtn))\` — t is undefined in myBtn.`;
 }
 
-/** Several steps as one action: a bare list only on ActionExpression props. */
-const stepList = (steps: string, bareList: boolean) =>
-  bareList ? `[${steps}]` : `Action([${steps}])`;
-
-function querySection(bareList: boolean): string {
+function querySection(): string {
   return `## Query — Live Data Fetching
 
 Fetch data from available tools. Returns defaults instantly, swaps in real data when it arrives.
@@ -205,8 +201,8 @@ metrics = Query("tool_name", {arg1: value, arg2: $binding}, {defaultField: 0, de
 - Fourth arg (optional): refresh interval in seconds (e.g. 30 for auto-refresh every 30s)
 - Use dot access on results: metrics.totalEvents, metrics.data.day (array pluck)
 - Query results must use regular identifiers: \`metrics = Query(...)\`, NOT \`$metrics = Query(...)\`
-- Manual refresh: \`Button("Refresh", ${stepList("@Run(query1), @Run(query2)", bareList)}, "secondary")\` — re-fetches the listed queries
-- Refresh all queries: list a @Run step for each query`;
+- Manual refresh: \`Button("Refresh", Action([@Run(query1), @Run(query2)]), "secondary")\` — re-fetches the listed queries
+- Refresh all queries: create Action with @Run for each query`;
 }
 
 function mutationSection(): string {
@@ -253,7 +249,7 @@ function actionSection(flags: { toolCalls: boolean; bindings: boolean }): string
 $binding = "default"
 result = Mutation("tool_name", {field: $binding})
 data = Query("tool_name", {}, {rows: []})
-onSubmit = [@Run(result), @Run(data), @Reset($binding)]
+onSubmit = Action([@Run(result), @Run(data), @Reset($binding)])
 \`\`\``);
   }
 
@@ -263,8 +259,7 @@ viewBtn = Button("View", @OpenUrl("https://example.com"))
 \`\`\``);
 
   const rules = [
-    '- An action can be assigned to a variable or inlined: Button("Go", onSubmit) and Button("Go", [...]) both work',
-    "- Action([...]) around the list is also accepted but not needed",
+    '- An action can be assigned to a variable or inlined: Button("Go", onSubmit) and Button("Go", Action([...])) both work',
   ];
   if (flags.toolCalls) {
     rules.push(
@@ -275,7 +270,7 @@ viewBtn = Button("View", @OpenUrl("https://example.com"))
 
   return `## Action — Button Behavior
 
-An action wires a button click to operations. Pass a single @-prefixed step, e.g. Button("Ask", @ToAssistant("Tell me more")), or a list of steps, e.g. Button("Read", [@OpenUrl("https://example.com"), @ToAssistant("Summarize this page")]). Steps execute in order.
+An action wires a button click to operations. Pass one @-prefixed step bare, e.g. Button("Ask", @ToAssistant("Tell me more")). Put several steps in Action([...]), e.g. Button("Read", Action([@OpenUrl("https://example.com"), @ToAssistant("Summarize this page")])). Steps execute in order.
 Buttons without an action automatically send their label to the assistant (equivalent to @ToAssistant(label)).
 
 Available steps:
@@ -405,7 +400,7 @@ If the user asks "what is this?", "explain the chart", "how does this work", etc
 - The parser extracts code from fences automatically. Text outside fences is shown as chat.`;
 }
 
-function toolWorkflowSection(bareList: boolean): string {
+function toolWorkflowSection(): string {
   return `## Data Workflow
 
 When tools are available, follow this workflow:
@@ -432,7 +427,7 @@ data = Query("tool_name", {}, {rows: []})
 openCount = @Count(@Filter(data.rows, "field", "==", "value"))
 list = @Each(data.rows, "item", SomeComp(item.title, item.field))
 createResult = Mutation("create_tool", {title: $title})
-submitBtn = Button("Create", ${stepList("@Run(createResult), @Run(data), @Reset($title)", bareList)})
+submitBtn = Button("Create", Action([@Run(createResult), @Run(data), @Reset($title)]))
 \`\`\`
 Everything derives from the Query — when data refreshes, the entire dashboard updates automatically.`;
 }
@@ -563,7 +558,7 @@ function generateComponentSignatures(
       flags.bindings ? "@Reset" : "",
     ].filter(Boolean);
     lines.push(
-      `Props typed \`ActionExpression\` accept one @step or a list of @steps. See the Action section for available steps (${allSteps.join(", ")}).`,
+      `Props typed \`ActionExpression\` accept one @step, or Action([@steps...]) for several. See the Action section for available steps (${allSteps.join(", ")}).`,
     );
   }
   const usesBindings =
@@ -645,7 +640,7 @@ export function generatePrompt(spec: PromptSpec): string {
   // Query + Mutation sections
   if (toolCalls) {
     parts.push("");
-    parts.push(querySection(usesActionExpression));
+    parts.push(querySection());
     parts.push("");
     parts.push(mutationSection());
   }
@@ -665,7 +660,7 @@ export function generatePrompt(spec: PromptSpec): string {
   // Tool workflow
   if (toolCalls) {
     parts.push("");
-    parts.push(toolWorkflowSection(usesActionExpression));
+    parts.push(toolWorkflowSection());
   }
 
   // Tools list (only if actual tools provided)

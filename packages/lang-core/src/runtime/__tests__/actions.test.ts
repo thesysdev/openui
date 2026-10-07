@@ -11,7 +11,6 @@ const Button = defineComponent({
   props: z.object({
     label: z.string(),
     action: actionExpression.optional(),
-    data: z.any().optional(),
   }),
   description: "",
   component: null as any,
@@ -19,12 +18,11 @@ const Button = defineComponent({
 const library = createLibrary({ root: "Button", components: [Button] });
 const parser = createParser(library.toJSONSchema(), "Button");
 
-function propsOf(action: string, data = "null", preamble = ""): any {
-  const { root } = parser.parse(`root = Button("Go", ${action}, ${data})\n${preamble}`);
+function actionOf(action: string, preamble = ""): any {
+  const { root } = parser.parse(`root = Button("Go", ${action})\n${preamble}`);
   const ctx = { getState: () => undefined, resolveRef: () => null };
-  return evaluateElementProps(root!, { ctx, library, store: null }).props;
+  return evaluateElementProps(root!, { ctx, library, store: null }).props.action;
 }
-const actionOf = (action: string, preamble?: string) => propsOf(action, "null", preamble).action;
 const typesOf = (action: string, preamble?: string) =>
   actionOf(action, preamble).steps.map((s: { type: string }) => s.type);
 
@@ -36,30 +34,12 @@ describe("action plans", () => {
     });
   });
 
-  it("evaluates a list of steps to one plan and leaves other lists as data", () => {
-    expect(typesOf(`[@Set($a, 1), @ToAssistant("Saved")]`)).toEqual([
-      "set",
-      "continue_conversation",
-    ]);
-    expect(typesOf(`steps`, `steps = [@OpenUrl("u"), @Reset($a)]`)).toEqual(["open_url", "reset"]);
-    expect(propsOf("null", `[]`).data).toEqual([]);
-    expect(propsOf("null", `[1, @OpenUrl("u")]`).data).toHaveLength(2);
-  });
-
-  it("keeps data lists whose items have steps as data", () => {
-    const rows = `[{name: "Pasta", steps: ["boil", "drain"]}, {name: "Rice", steps: ["rinse"]}]`;
-    expect(propsOf("null", rows).data).toEqual([
-      { name: "Pasta", steps: ["boil", "drain"] },
-      { name: "Rice", steps: ["rinse"] },
-    ]);
-    expect(propsOf("null", "rows", `rows = ${rows}`).data).toHaveLength(2);
-  });
-
   it("flattens nested Action([...]) plans and drops invalid steps", () => {
     expect(typesOf(`Action([@Set($a, 1), Action([@OpenUrl("u")])])`)).toEqual(["set", "open_url"]);
     expect(actionOf(`@Set("a", 1)`)).toEqual({ steps: [] });
-    expect(typesOf(`[@Reset("a"), @OpenUrl("u")]`)).toEqual(["open_url"]);
-    expect(typesOf(`[$f ? @Set($a, 1) : null, @OpenUrl("u")]`)).toEqual(["open_url"]);
+    expect(typesOf(`Action([@Reset("a"), @OpenUrl("u")])`)).toEqual(["open_url"]);
+    expect(typesOf(`Action([$f ? @Set($a, 1) : null, @OpenUrl("u")])`)).toEqual(["open_url"]);
+    expect(actionOf(`[@OpenUrl("u")]`)).toEqual([{ steps: [{ type: "open_url", url: "u" }] }]);
   });
 
   it("leaves legacy action configs unchanged", () => {

@@ -44,12 +44,12 @@ async function clickAll(response: string): Promise<ActionEvent[]> {
   return events;
 }
 
-it("delivers bare, list and Action([...]) steps, with the @ToAssistant context", async () => {
+it("delivers bare and Action([...]) steps, with the @ToAssistant context", async () => {
   const events = await clickAll(
     [
       `root = Stack([a, b, c, d])`,
       `a = Btn("a", @ToAssistant("A", { ticket: "T-42" }))`,
-      `b = Btn("b", [@OpenUrl("https://x.test"), @ToAssistant("B", 0)])`,
+      `b = Btn("b", Action([@OpenUrl("https://x.test"), @ToAssistant("B", 0)]))`,
       `c = Btn("c", Action([@ToAssistant("C")]))`,
       `d = Btn("d", {type: "custom", params: {id: 1}})`,
     ].join("\n"),
