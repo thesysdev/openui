@@ -3,14 +3,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { ASTNode } from "./ast";
-import { isASTNode, isRuntimeExpr } from "./ast";
-import { callsOf, isReservedCall, RESERVED_CALLS } from "./builtins";
-import { isElementNode, type MaterializeCtx } from "./types";
+import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST, walkAST } from "./ast";
+import { getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
+import { isElementNode, type CallDef, type MaterializeCtx, type ParamDef } from "./types";
 import {
   buildParamsSignature,
   INVALID,
-  mapCallArgs,
-  nameArgs,
   pushValidationIssue,
   resolveInvalidValue,
   validateSchemaValue,
@@ -72,17 +70,63 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
 
 /** Registry calls (functions and steps) and reserved calls stay AST for the runtime. */
 function isRuntimeCall(name: string, ctx: MaterializeCtx): boolean {
-  return callsOf(ctx.cat).has(name) || isReservedCall(name);
+  return getCallDefs(ctx.cat).has(name) || isReservedCall(name);
 }
 
-/** A runtime call keeps its AST; a registered non-lazy call also gets mappedProps. */
+// [Num 1, Ref x] with params [a, b] -> {a: Num 1, b: Ref x}; extra args dropped
+export function nameArgs(args: ASTNode[], params: ParamDef[]): Record<string, ASTNode> {
+  const named: Record<string, ASTNode> = {};
+  for (let i = 0; i < params.length && i < args.length; i++) named[params[i]!.name] = args[i]!;
+  return named;
+}
+
+// @Percent("x", 4) -> type-mismatch at parse time, call becomes null
+export function mapCallArgs(
+  name: string,
+  args: ASTNode[],
+  def: CallDef,
+  ctx: MaterializeCtx,
+): Record<string, ASTNode> | null {
+  const { params } = def;
+  if (args.length > params.length) {
+    pushValidationIssue(ctx, name, "", {
+      code: "excess-args",
+      declared: params.length,
+      got: args.length,
+    });
+  }
+  const mapped = nameArgs(args, params);
+  let invalid = false;
+  for (const p of params) {
+    const arg = mapped[p.name];
+    const lit = arg ? literalValue(arg) : { v: undefined };
+    if (!lit) continue;
+    if (lit.v == null) {
+      if (!p.required || p.defaultValue !== undefined) continue;
+      pushValidationIssue(ctx, name, `/${p.name}`, {
+        code: arg ? "null-required" : "missing-required",
+        signature: buildParamsSignature(name, params),
+      });
+      invalid = true;
+      continue;
+    }
+    let next = validateSchemaValue(lit.v, p.schema, name, `/${p.name}`, ctx);
+    if (next === INVALID) next = resolveInvalidValue(p.required, p.defaultValue);
+    if (next === INVALID) invalid = true;
+    else if (next === undefined) delete mapped[p.name];
+    else if (next !== lit.v) mapped[p.name] = toLiteralAST(next);
+  }
+  return invalid ? null : mapped;
+}
+
+// @Percent(3, total) -> mappedProps {part: Num 3, total: <total AST>}
 function materializeCall(
   node: ASTNode & { k: "Comp" },
   ctx: MaterializeCtx,
   materializeArg: (a: ASTNode) => ASTNode,
 ): ASTNode {
   const args = node.args.map(materializeArg);
-  const def = callsOf(ctx.cat).get(node.name);
+  const def = getCallDefs(ctx.cat).get(node.name);
   if (!def || def.lazy) return { ...node, args };
   // Built-ins coerce their args, so only library calls are checked
   const mappedProps = def.builtin
@@ -95,6 +139,17 @@ function materializeCall(
     : { k: "Null" };
 }
 
+// Query("s", {n: @Count(rows)}): names @Count's args in place
+export function nameRawCallArgs(args: ASTNode[], ctx: MaterializeCtx): void {
+  for (const arg of args) {
+    walkAST(arg, (node) => {
+      if (node.k !== "Comp") return;
+      const def = getCallDefs(ctx.cat).get(node.name);
+      if (def && !def.lazy) node.mappedProps = nameArgs(node.args, def.params);
+    });
+  }
+}
+
 /**
  * If node is a lazy builtin like Each(arr, varName, template), temporarily
  * scope the iterator variable during materialization so template refs resolve.
@@ -105,7 +160,7 @@ function materializeLazyBuiltin(
   ctx: MaterializeCtx,
   scopedRefs: ReadonlySet<string>,
 ): ASTNode | null {
-  const def = callsOf(ctx.cat).get(node.name);
+  const def = getCallDefs(ctx.cat).get(node.name);
   if (def?.kind !== "function" || !def.lazy || node.args.length < 3) return null;
   const varArg = node.args[1];
   const varName = varArg.k === "Ref" ? varArg.n : varArg.k === "Str" ? varArg.v : null;

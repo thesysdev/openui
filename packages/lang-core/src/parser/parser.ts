@@ -5,10 +5,10 @@ import {
 } from "../telemetry/runtime";
 import type { ASTNode, Statement } from "./ast";
 import { isASTNode, walkAST } from "./ast";
-import { BUILTIN_CALLS, callsOf, isBuiltin, RESERVED_CALLS } from "./builtins";
+import { BUILTIN_CALLS, isBuiltin, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
-import { materializeValue } from "./materialize";
+import { materializeValue, nameRawCallArgs } from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
@@ -23,7 +23,7 @@ import {
   type QueryStatementInfo,
   type ValidationError,
 } from "./types";
-import { getSchemaDefaultValue, nameArgs } from "./validation";
+import { getSchemaDefaultValue } from "./validation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Result building
@@ -89,17 +89,6 @@ function classifyStatement(raw: RawStmt, expr: ASTNode): Statement {
   }
   // Everything else → value declaration
   return { kind: "value", id: raw.id, expr };
-}
-
-/** Query and Mutation args are evaluated unmaterialized, so their calls get mappedProps in place. */
-function nameRawCallArgs(args: ASTNode[], ctx: MaterializeCtx): void {
-  for (const arg of args) {
-    walkAST(arg, (node) => {
-      if (node.k !== "Comp") return;
-      const def = callsOf(ctx.cat).get(node.name);
-      if (def && !def.lazy) node.mappedProps = nameArgs(node.args, def.params);
-    });
-  }
 }
 
 /**
@@ -670,12 +659,12 @@ export function compileSchema(schema: LibraryJSONSchema): ParamMap {
     map.set(name, { params: compileParams(def) });
   }
   // The call registry: the built-ins plus the library's functions and actions
-  map.calls = new Map(BUILTIN_CALLS);
+  map.callDefs = new Map(BUILTIN_CALLS);
   for (const [name, fn] of Object.entries(schema.functions ?? {})) {
-    map.calls.set(name, { kind: "function", params: compileParams(fn.params) });
+    map.callDefs.set(name, { kind: "function", params: compileParams(fn.params) });
   }
   for (const [name, action] of Object.entries(schema.actions ?? {})) {
-    map.calls.set(name, { kind: "action", params: compileParams(action.params) });
+    map.callDefs.set(name, { kind: "action", params: compileParams(action.params) });
   }
   return map;
 }
