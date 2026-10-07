@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.THESYS_API_KEY;
   if (!apiKey) throw new Error("Set THESYS_API_KEY in .env.local, then restart.");
 
-  const client = createClient({ apiKey });
+  const openUIClient = createClient({ apiKey });
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
   const searchTool = searchStaysTool();
 
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     .done()
     .catch(() => {})
     .then(() =>
-      client.openai.completions.conversations.appendMessages({
+      openUIClient.openai.completions.conversations.appendMessages({
         conversationId: threadId,
         messages: turn,
       }),

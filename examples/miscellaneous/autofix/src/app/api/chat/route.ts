@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   }
 
   const openai = new OpenAI();
-  const client = createClient();
+  const openUIClient = createClient();
 
   const source = await openai.chat.completions.create(
     {
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return client.openai.completions.autofix
+  return openUIClient.openai.completions.autofix
     .stream({ library: spec, stream: source, messages, signal: request.signal })
     .toResponse();
 }

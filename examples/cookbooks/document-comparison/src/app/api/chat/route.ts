@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   const documents = listDocuments(db);
   db.close();
 
-  const client = createClient({ apiKey });
+  const openUIClient = createClient({ apiKey });
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
   const searchTool = searchDocumentsTool(documents);
 
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     .done()
     .catch(() => {})
     .then(() =>
-      client.openai.completions.conversations.appendMessages({
+      openUIClient.openai.completions.conversations.appendMessages({
         conversationId: threadId,
         messages: turn,
       }),

@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   const drivers = listDrivers(db);
   db.close();
 
-  const client = createClient({ apiKey });
+  const openUIClient = createClient({ apiKey });
   const gateway = new OpenAI({ apiKey, baseURL: "https://api.thesys.dev/v1/embed" });
   const lapTimesTool = queryLapTimesTool(drivers);
 
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
     .done()
     .catch(() => {})
     .then(() =>
-      client.openai.completions.conversations.appendMessages({
+      openUIClient.openai.completions.conversations.appendMessages({
         conversationId: threadId,
         messages: turn,
       }),

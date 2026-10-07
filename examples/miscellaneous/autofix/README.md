@@ -14,7 +14,7 @@ Set `OPENAI_API_KEY` and `THESYS_API_KEY` in `.env.local`, then run `pnpm dev` a
 
 ## How it works
 
-`/api/chat` streams OpenAI Chat Completions through `client.openai.completions.autofix.stream({ library: spec, stream, messages, signal }).toResponse()`. The client decodes that SSE with `openAIAdapter()`.
+`/api/chat` streams OpenAI Chat Completions through `openUIClient.openai.completions.autofix.stream({ library: spec, stream, messages, signal }).toResponse()`. The client decodes that SSE with `openAIAdapter()`.
 
 `createClient()` reads `THESYS_API_KEY` from the server environment. The generated library spec is passed to each Autofix operation.
 
