@@ -162,95 +162,93 @@
         },
         "required": ["type", "params"]
       }
+    },
+    "functions": {
+      "Upper": {
+        "description": "The text in upper case",
+        "params": {
+          "type": "object",
+          "properties": {
+            "text": { "type": "string" }
+          },
+          "required": ["text"]
+        },
+        "returns": { "type": "string" }
+      }
+    },
+    "actions": {
+      "CopyToClipboard": {
+        "description": "Copies text to the clipboard",
+        "params": {
+          "type": "object",
+          "properties": {
+            "text": { "type": "string" }
+          },
+          "required": ["text"]
+        }
+      }
     }
   },
   "components": {
     "Stack": {
       "signature": "Stack(children: any[], direction?: \"row\" | \"column\")",
-      "description": "Lays out children in a column or a row",
-      "order": ["children", "direction"]
+      "description": "Lays out children in a column or a row"
     },
     "Card": {
       "signature": "Card(title: string, children?: any[])",
-      "description": "A titled container",
-      "order": ["title", "children"]
+      "description": "A titled container"
     },
     "Text": {
       "signature": "Text(text: string, variant?: \"body\" | \"heading\")",
-      "description": "A run of text",
-      "order": ["text", "variant"]
+      "description": "A run of text"
     },
     "Tag": {
       "signature": "Tag(text: string, color?: \"gray\" | \"green\" | \"red\")",
-      "description": "A small colored label",
-      "order": ["text", "color"]
+      "description": "A small colored label"
     },
     "Metric": {
       "signature": "Metric(label: string, value: number)",
-      "description": "A labeled number",
-      "order": ["label", "value"]
+      "description": "A labeled number"
     },
     "Button": {
       "signature": "Button(label: string, action?: ActionExpression, variant?: \"primary\" | \"secondary\", share?: @CopyToClipboard | @OpenUrl)",
-      "description": "A clickable button",
-      "order": ["label", "action", "variant", "share"]
+      "description": "A clickable button"
     },
     "Form": {
       "signature": "Form(name: string, children: any[])",
-      "description": "Groups its inputs under a form name",
-      "order": ["name", "children"]
+      "description": "Groups its inputs under a form name"
     },
     "Input": {
       "signature": "Input(name: string, placeholder?: string, value?: $binding<string>, rules?: {})",
-      "description": "A text field",
-      "order": ["name", "placeholder", "value", "rules"]
+      "description": "A text field"
     },
     "Select": {
       "signature": "Select(name: string, items: any[], value?: $binding<string>)",
-      "description": "A dropdown",
-      "order": ["name", "items", "value"]
+      "description": "A dropdown"
     },
     "SelectItem": {
       "signature": "SelectItem(value: string, label: string)",
-      "description": "One option of a Select",
-      "order": ["value", "label"]
+      "description": "One option of a Select"
     },
     "Table": {
       "signature": "Table(columns: any[])",
-      "description": "A table built from columns",
-      "order": ["columns"]
+      "description": "A table built from columns"
     },
     "Col": {
       "signature": "Col(label: string, data?: any[])",
-      "description": "One table column: a header and its cell values",
-      "order": ["label", "data"]
+      "description": "One table column: a header and its cell values"
     }
   },
   "functions": {
     "Upper": {
-      "description": "The text in upper case",
-      "params": {
-        "type": "object",
-        "properties": {
-          "text": { "type": "string" }
-        },
-        "required": ["text"]
-      },
-      "order": ["text"],
-      "returns": { "type": "string" }
+      "signature": "Upper(text: string) → string",
+      "description": "The text in upper case"
     }
   },
   "actions": {
     "CopyToClipboard": {
-      "description": "Copies text to the clipboard",
-      "params": {
-        "type": "object",
-        "properties": {
-          "text": { "type": "string" }
-        },
-        "required": ["text"]
-      },
-      "order": ["text"]
+      "signature": "CopyToClipboard(text: string)",
+      "description": "Copies text to the clipboard"
     }
   }
 }

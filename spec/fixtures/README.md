@@ -13,7 +13,7 @@ spec/fixtures/
 
 `library.json` is a LibrarySpec ([prompt.md](../prompt.md), section 2) with `root: "Stack"`, twelve components, one custom function, `@Upper(text)`, which returns the text in upper case, and one custom action, `@CopyToClipboard(text)`. The function has no implementation in the file, so a runner supplies it.
 
-Positional order comes from each component's `order` array. Bindable props are the ones whose signature prints `$binding<string>` (`Input.value`, `Select.value`); the schema has no marker for them. Component slots are `$ref`s to `$defs` entries: the children of `Stack`, `Card`, and `Form` take any component, `Table` columns take `Col`, and `Select` items take `SelectItem`. `Button.action` is `{ "$ref": "#/$defs/ActionExpression" }`, and `Button.share` takes only `@CopyToClipboard` or `@OpenUrl`.
+Positional order is the key order of each component's `properties` in `$defs`, and of each function's and action's `params` in `schema.functions` and `schema.actions`. Bindable props are the ones whose signature prints `$binding<string>` (`Input.value`, `Select.value`); the schema has no marker for them. Component slots are `$ref`s to `$defs` entries: the children of `Stack`, `Card`, and `Form` take any component, `Table` columns take `Col`, and `Select` items take `SelectItem`. `Button.action` is `{ "$ref": "#/$defs/ActionExpression" }`, and `Button.share` takes only `@CopyToClipboard` or `@OpenUrl`.
 
 ## Program cases
 
@@ -28,7 +28,7 @@ Files: `input.oui` (streaming cases: `chunks.json`) and `expected.json`.
 How the tree is summarized:
 
 - A component is `{ "type", "props" }`. A prop that is null or absent is left out. Array elements are kept as they are, including `null`.
-- An action is `{ "action": [{ "step", "args" }] }`. Step names drop the `@`: `ToAssistant`, `OpenUrl`, `Set`, `Reset`, `Run`. `ToAssistant` args are the message, plus the context when there is one. `Set` args are the target and its value, evaluated with the state at stream end. `Reset` args are the targets, and `Run` args are the statement id. A custom action step uses the action name, and its args are the arguments in the action's `order`. Every step call is a plan of one step (language.md, section 6.3), so a lone step is summarized as a plan of one step, and a plain list of steps as a list of such plans.
+- An action is `{ "action": [{ "step", "args" }] }`. Step names drop the `@`: `ToAssistant`, `OpenUrl`, `Set`, `Reset`, `Run`. `ToAssistant` args are the message, plus the context when there is one. `Set` args are the target and its value, evaluated with the state at stream end. `Reset` args are the targets, and `Run` args are the statement id. A custom action step uses the action name, and its args are the arguments in the key order of the action's `params`. Every step call is a plan of one step (language.md, section 6.3), so a lone step is summarized as a plan of one step, and a plain list of steps as a list of such plans.
 - A binding is `{ "$binding": "$name" }`.
 - Values come from evaluating the tree when the stream ends. No query has returned yet, so a reference to a query reads its defaults, and a reference to a mutation reads `{ "status": "idle", "data": null, "error": null }`.
 

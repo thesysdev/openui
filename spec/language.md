@@ -302,7 +302,7 @@ Fixtures: `evaluation/*-each-*`
 
 ### 3.6 Custom functions
 
-A library declares extra functions in its `functions` list ([prompt.md](./prompt.md), section 2.5). Programs call them with `@`. Arguments are positional, in the function's `order` array (the same rule as components).
+A library declares extra functions in its `functions` list ([prompt.md](./prompt.md), section 2.5). Programs call them with `@`. Arguments are positional, in the key order of the function's `params` (the same rule as components).
 
 - Built-ins are looked up first. A library MUST NOT register a function named like a built-in, an action step, `Query`, `Mutation`, or one of its components.
 - A `@Name` call that is not a built-in, action step, or custom function evaluates to null and reports `unknown-function`. The statement is kept.
@@ -419,7 +419,7 @@ Fixtures: `actions/*-mutation-*`
 - `@Run(ref)`: runs a mutation or fetches a query again. A failed mutation stops the remaining steps. `@Run` on a query never stops the plan.
 - `@ToAssistant(message, context?)`: sends a `continue_conversation` event with the message, the optional context, and the form state.
 - `@OpenUrl(url)`: sends an `open_url` event.
-- `@Name(args)`, a custom action from the library's `actions` ([prompt.md](./prompt.md), section 2.5): sends an event with `type` set to `Name`, `params` holding the arguments keyed by the action's param names, and an empty `humanFriendlyMessage`. Arguments map by position in the action's `order` and are checked like custom function arguments (section 3.6). A step whose arguments are invalid does nothing.
+- `@Name(args)`, a custom action from the library's `actions` ([prompt.md](./prompt.md), section 2.5): sends an event with `type` set to `Name`, `params` holding the arguments keyed by the action's param names, and an empty `humanFriendlyMessage`. Arguments map by position in the key order of the action's `params` and are checked like custom function arguments (section 3.6). A step whose arguments are invalid does nothing.
 
 `@Run`, `@Set`, and `@Reset` name their targets instead of evaluating them: `@Run` takes a query or mutation reference, `@Set` and `@Reset` take state variables. The `@Each` template is deferred the same way.
 

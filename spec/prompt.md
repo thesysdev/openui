@@ -22,20 +22,19 @@ A LibrarySpec is one JSON document.
 | field | meaning |
 | --- | --- |
 | `id` | The library name, for example `support`. |
-| `version` | The library version, for example `1.2.0`. |
+| `version` | Optional. The library version, for example `1.2.0`. `toSpec()` does not emit it. A host that versions its library adds it. |
 | `root` | Optional. The root component name, for example `Card`. |
-| `schema` | The validation schema (JSON Schema). Top-level `properties` names the components, and `$defs` has one entry per component and per action shape (section 2.3). |
-| `components` | Per component: `signature` and `description` (derived from `schema`), `order` (section 2.3). |
+| `schema` | The validation schema (JSON Schema). Top-level `properties` names the components, `$defs` has one entry per component and per action shape, and `functions` and `actions` hold the params of the custom functions and actions (section 2.3). |
+| `components` | Per component: `signature` and `description`, derived from `schema`. |
 | `componentGroups` | Optional. Named groups that split the component list into titled parts. |
-| `functions` | Custom functions: declarations only. |
-| `actions` | Custom actions: declarations only (section 2.5). |
+| `functions` | Custom functions: `signature` and `description`. |
+| `actions` | Custom actions: `signature` and `description` (section 2.5). |
 
 Example:
 
 ```json
 {
   "id": "support",
-  "version": "1.2.0",
   "root": "Card",
   "schema": {
     "properties": {
@@ -68,44 +67,52 @@ Example:
           { "type": "object", "properties": { "type": { "type": "string" }, "params": { "type": "object" } }, "required": ["type"] }
         ]
       }
+    },
+    "functions": {
+      "Percent": {
+        "description": "Format part / total as a percentage",
+        "params": {
+          "type": "object",
+          "properties": {
+            "part": { "type": "number" },
+            "total": { "type": "number" }
+          },
+          "required": ["part", "total"]
+        },
+        "returns": { "type": "string" }
+      }
+    },
+    "actions": {
+      "CopyToClipboard": {
+        "description": "Copy text to the clipboard",
+        "params": {
+          "type": "object",
+          "properties": { "text": { "type": "string" } },
+          "required": ["text"]
+        }
+      }
     }
   },
   "components": {
     "Card": {
-      "signature": "Card(children: any[])",
-      "description": "A container",
-      "order": ["children"]
+      "signature": "Card(children: Button[])",
+      "description": "A container"
     },
     "Button": {
       "signature": "Button(label: string, action?: ActionExpression, variant?: \"primary\" | \"secondary\")",
-      "description": "A clickable button",
-      "order": ["label", "action", "variant"]
+      "description": "A clickable button"
     }
   },
   "functions": {
     "Percent": {
-      "description": "Format part / total as a percentage",
-      "params": {
-        "type": "object",
-        "properties": {
-          "part": { "type": "number" },
-          "total": { "type": "number" }
-        },
-        "required": ["part", "total"]
-      },
-      "order": ["part", "total"],
-      "returns": { "type": "string" }
+      "signature": "Percent(part: number, total: number) → string",
+      "description": "Format part / total as a percentage"
     }
   },
   "actions": {
     "CopyToClipboard": {
-      "description": "Copy text to the clipboard",
-      "params": {
-        "type": "object",
-        "properties": { "text": { "type": "string" } },
-        "required": ["text"]
-      },
-      "order": ["text"]
+      "signature": "CopyToClipboard(text: string)",
+      "description": "Copy text to the clipboard"
     }
   }
 }
@@ -123,14 +130,14 @@ Example:
 
 The schema is the single source of truth for a component's arguments.
 
-- Each component's `order` array in `components` lists its prop names in positional order. `Button("Save", a, "primary")` maps `label`, `action`, `variant` in that order.
+- The key order of a component's `properties` in `$defs` is its positional order. `Button("Save", a, "primary")` maps `label`, `action`, `variant` in that order.
 - `required` lists the props that must be present. A prop's `default` fills a missing required argument before the component is dropped.
 - A prop that takes a component is a `$ref` to that component's `$defs` entry, `{ "$ref": "#/$defs/Card" }`, or an `anyOf` of such `$ref`s. A list of components puts this in its `items`.
 - An action prop is `{ "$ref": "#/$defs/ActionExpression" }` and takes any action. The `ActionExpression` entry describes the legacy action objects (`{ "type": ... }`). A prop that takes only some actions is an `anyOf` of `$ref`s to action names, for example `#/$defs/CopyToClipboard` and `#/$defs/OpenUrl`, each with its own `$defs` entry.
 - A reader classifies each `$ref` by its name. Components are the names in the schema's top-level `properties`. Actions are the names in `actions` plus the built-in names `ActionExpression`, `OpenUrl`, and `ToAssistant`.
 - The schema has no marker for binding props. A binding prop has only its value type in the schema, for example `{ "type": "string" }`. Its `signature` prints it as `$binding<string>` (section 5.1), and that is where a reader learns it.
 
-JSON object key order is not portable. Readers MUST use `order`, not the key order of `properties`.
+Readers MUST keep the key order of `properties` when they read the schema, because it is the positional order.
 
 ### 2.4 Derived signatures
 
@@ -138,9 +145,9 @@ Each entry in `components` has a `signature` and a `description`. The `signature
 
 ### 2.5 Custom functions and actions
 
-A library declares pure functions with `defineFunction({ name, description, params, returns, fn })`. The spec keeps name, description, `params` (a JSON Schema object), `order` (the positional order of the params, as for components), and `returns`. `fn` never serializes. It receives one object keyed by the `params` names. Each client implements the function itself.
+A library declares pure functions with `defineFunction({ name, description, params, returns, fn })`. The schema keeps its description, `params` (a JSON Schema object whose key order is the positional order, as for components), and `returns` in `schema.functions`. The LibrarySpec's `functions` keeps its signature and description. `fn` never serializes. It receives one object keyed by the `params` names. Each client implements the function itself.
 
-A program calls a custom function like a built-in, with the `@` prefix and positional arguments in `order`:
+A program calls a custom function like a built-in, with the `@` prefix and positional arguments in the key order of `params`:
 
 ```
 share = TextContent(@Percent(done, total))
@@ -148,7 +155,7 @@ share = TextContent(@Percent(done, total))
 
 The prompt lists custom functions next to the built-ins. Lookup goes to built-ins first, then custom functions. A call to a name that is not a built-in, an action step, or a custom function evaluates to null, like an unresolved reference, and reports `unknown-function`. The statement is not dropped ([language.md](./language.md), sections 3.6 and 8.2).
 
-**Custom actions.** A library declares its own action steps with `defineAction({ name, description, params })`. The spec keeps them in `actions`: name, description, `params`, and `order`, with no `returns`. A program uses one as a step, `@CopyToClipboard("text")`, alone or inside `Action([...])`. The client does not run it. The host receives it in `onAction` ([language.md](./language.md), section 6.3). The prompt lists custom actions with the built-in steps.
+**Custom actions.** A library declares its own action steps with `defineAction({ name, description, params })`. The schema keeps their description and `params` in `schema.actions`, with no `returns`. The LibrarySpec's `actions` keeps their signatures and descriptions. A program uses one as a step, `@CopyToClipboard("text")`, alone or inside `Action([...])`. The client does not run it. The host receives it in `onAction` ([language.md](./language.md), section 6.3). The prompt lists custom actions with the built-in steps.
 
 Fixtures: `evaluation/*-function-*`, `errors/*-unknown-function-*`, `actions/*-custom-*`
 
@@ -168,7 +175,7 @@ Fixtures: none. The spec shape is checked on the library, not by program fixture
 
 - Component names MUST start with an uppercase letter and match the identifier rule.
 - Custom function and action names MUST start with an uppercase letter, like the built-ins (`@Percent`).
-- Required props MUST come before optional props in `order`. A required prop that has a `default` counts as optional here, so it may be added at the end.
+- Required props MUST come before optional props in positional order. A required prop that has a `default` counts as optional here, so it may be added at the end.
 - A library MUST NOT define components named `Query`, `Mutation`, or `Action`.
 - A library MUST NOT use a built-in name for a component, a function, or an action. New built-in names are reserved when added.
 - Custom functions MUST be pure and synchronous. They read their arguments and return a value. They do not touch state, the network, or the clock.
