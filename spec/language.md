@@ -309,7 +309,8 @@ A library declares extra functions in its `functions` list ([prompt.md](./prompt
 - A `@Name` call that is not a built-in, action step, or custom function evaluates to null and reports `unknown-function`. The statement is kept.
 - Custom functions MUST be pure and synchronous. The runtime MAY cache results and MAY call them any number of times, in any order.
 - Arguments are checked against `params` the same way component props are. Literal arguments are checked when parsing, with the same codes (`type-mismatch`, `missing-required`, and `excess-args` for extra arguments). Arguments that are only known at runtime are checked when the call runs. Missing optional arguments take their defaults.
-- A call with invalid runtime arguments, a function that throws, or a return value that does not match `returns` reports `runtime-error`, and the call evaluates to null.
+- A required argument that is null when the call runs, with no default (an unset `$variable`, an unresolved reference), makes the call evaluate to null with no error.
+- A call with other invalid runtime arguments, a function that throws, or a return value that does not match `returns` reports `runtime-error`, and the call evaluates to null.
 - While streaming, a call runs as soon as the statement that holds it is complete. A call in the pending statement evaluates to null until that statement completes.
 
 Fixtures: `evaluation/*-function-*`, `errors/*-unknown-function-*`
@@ -423,7 +424,7 @@ Fixtures: `actions/*-mutation-*`
 
 `@Run`, `@Set`, and `@Reset` name their targets instead of evaluating them: `@Run` takes a query or mutation reference, `@Set` and `@Reset` take state variables. The `@Each` template is deferred the same way.
 
-**Single steps.** Any step written directly in an action position is a plan of one step: `Button("Save", @ToAssistant("Save"))` equals `Button("Save", Action([@ToAssistant("Save")]))`.
+**Single steps.** Every step call evaluates to a plan of one step, wherever it is written, so one step needs no wrapper: `Button("Save", @ToAssistant("Save"))` equals `Button("Save", Action([@ToAssistant("Save")]))`. Several steps need `Action([...])`. A plain list of steps, such as `[@Set($saved, true), @ToAssistant("Saved")]`, is not a plan. It is plain data, a list of one-step plans, and the component receives it as it is, with no error.
 
 **Context.** The `context` of `@ToAssistant` may be any value. The host receives it unchanged in `params.context` and decides how it reaches the model ([prompt.md](./prompt.md), section 6.3).
 
@@ -643,5 +644,5 @@ A step is `{ "click": "<statementId>" }`, `{ "type": ["<statementId>", "<text>"]
 
 ## Appendix C. Changelog
 
-- **2026-09-30**: 1.0. The entry is the `root` statement, or a first statement that calls the library's root component, with a real `no-root` code. Added `@Take`, custom functions, single-step actions, `===` and `!==`, any-value `@ToAssistant` context, form state read when the step runs, the `state-query` and `unknown-function` codes, and the fixture layout. Streaming must equal a batch parse, and edits merge with the parser's statement boundaries.
+- **2026-09-30**: 1.0. The entry is the `root` statement, or a first statement that calls the library's root component, with a real `no-root` code. Added `@Take`, custom functions, custom actions, single-step actions, `===` and `!==`, any-value `@ToAssistant` context, form state read when the step runs, the `state-query` and `unknown-function` codes, and the fixture layout. Streaming must equal a batch parse, and edits merge with the parser's statement boundaries.
 - Earlier drafts: 0.9 community review (2026-07-22) and 1.0-beta (2026-08-05). See the git history.

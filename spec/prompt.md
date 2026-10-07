@@ -307,7 +307,7 @@ A step can stand alone in an action position. It is a plan of one step:
 Button("Save", @ToAssistant("Save order"))
 ```
 
-This equals `Button("Save", Action([@ToAssistant("Save order")]))`. It works for `@ToAssistant`, `@OpenUrl`, `@Set`, `@Reset`, and `@Run`.
+This equals `Button("Save", Action([@ToAssistant("Save order")]))`. It works for `@ToAssistant`, `@OpenUrl`, `@Set`, `@Reset`, `@Run`, and custom actions. Several steps need `Action([...])`. A plain list of steps is data, not a plan.
 
 **Reference format.** Hosts may use their own format. The reference chat client and the reference backend use this one. The user turn is stored as:
 
