@@ -88,7 +88,7 @@ await openUIClient.openai.completions.conversations.appendMessages({
   conversationId: threadId,
   messages: [
     { role: "user", content: lastUserText },
-    { role: "assistant", content: correctedAssistantText },
+    { role: "assistant", content: lastAssistantResponse },
   ],
   signal,
 });
