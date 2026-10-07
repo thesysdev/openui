@@ -564,6 +564,18 @@ describe("langGraphAdapter — CRLF and empty tool_call_chunks", () => {
     expect(deltas).toEqual(["Hello ", "there"]);
   });
 
+  it("stops at an error event: nothing after the RUN_ERROR", async () => {
+    const body =
+      sse("messages", ai("partial")) +
+      sse("error", { error: "GraphRecursionError", message: "Recursion limit reached" }) +
+      sse("messages", ai("late"));
+    const events = await collect(langGraphAdapter().parse(makeSSEResponse(body)));
+    const last = events.at(-1) as { type: string; message: string };
+    expect(last.type).toBe(EventType.RUN_ERROR);
+    expect(last.message).toBe("Recursion limit reached");
+    expect(JSON.stringify(events)).not.toContain("late");
+  });
+
   it("announces tool_calls that arrive with an empty tool_call_chunks array", async () => {
     const body = sse(
       "messages",

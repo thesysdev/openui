@@ -363,11 +363,12 @@ interface StreamProtocolAdapter {
   rejects invalid UIMessage chunks. Provider-level failures are surfaced as a `RUN_ERROR` event by
   all seven adapters: each maps its protocol's error events, and the AG-UI, OpenAI Completions,
   OpenAI readable-stream, and OpenAI Responses adapters also map the untyped `{"error":{…}}` record
-  that OpenAI-compatible servers send inside an HTTP 200 stream (or as a plain JSON error body
-  under HTTP 200). The Chat Completions, Responses, and Vercel AI SDK adapters also end a response
+  that OpenAI-compatible servers send inside an HTTP 200 stream; the SSE adapters (AG-UI, OpenAI
+  Completions, OpenAI Responses) and the Vercel AI SDK adapter also accept it as a plain JSON error
+  body under HTTP 200. The Chat Completions, Responses, and Vercel AI SDK adapters also end a response
   the provider cut short — a token limit or a content filter — with a `RUN_ERROR` whose `code` is the
   provider's reason (and a Vercel `abort` chunk with `code: "abort"`); text that already streamed is
-  kept. Every adapter stops reading at its first `RUN_ERROR`.
+  kept. Every adapter stops emitting at its first `RUN_ERROR`.
 </Callout>
 
 ### Selection guide

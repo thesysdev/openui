@@ -152,6 +152,7 @@ describe("Chat Completions adapters", () => {
     ["an empty string", ""],
     ["0", 0],
     ["an empty object", {}],
+    ["an object with only code 0", { code: 0 }],
   ])("keeps a chunk whose `error` field is %s", async (_, error) => {
     const body =
       sse({ ...completionChunk({ role: "assistant", content: "hi" }), error }) +
@@ -162,6 +163,28 @@ describe("Chat Completions adapters", () => {
       EventType.TEXT_MESSAGE_CONTENT,
       EventType.TEXT_MESSAGE_END,
     ]);
+  });
+
+  it("opens a new message for text after a finished step, so START/END stay paired", async () => {
+    const body =
+      sse(completionChunk({ role: "assistant", content: null })) +
+      sse(completionChunk(toolDelta())) +
+      sse(completionChunk({}, "tool_calls")) +
+      sse(completionChunk({ content: "after" })) +
+      sse(completionChunk({}, "stop"));
+    const events = await collect(openAIAdapter().parse(makeResponse(body)));
+    const text = events.filter((e) => e.type.startsWith("TEXT_MESSAGE"));
+    expect(text.map((e) => e.type)).toEqual([
+      EventType.TEXT_MESSAGE_START,
+      EventType.TEXT_MESSAGE_END,
+      EventType.TEXT_MESSAGE_START,
+      EventType.TEXT_MESSAGE_CONTENT,
+      EventType.TEXT_MESSAGE_END,
+    ]);
+    const ids = text.map((e) => (e as { messageId: string }).messageId);
+    expect(ids[0]).toBe(ids[1]);
+    expect(ids[2]).not.toBe(ids[0]);
+    expect(new Set(ids.slice(2)).size).toBe(1);
   });
 
   it("ignores a non-streamed chat.completion body instead of reading it as truncated", async () => {
@@ -329,6 +352,31 @@ describe("openAIResponsesAdapter", () => {
       [EventType.TOOL_CALL_ARGS, "code_interpreter_call_2"],
       [EventType.TOOL_CALL_RESULT, "code_interpreter_call_2"],
     ]);
+  });
+
+  it("keeps interleaved hosted tools with ids apart, even without output_index", async () => {
+    const added = (id: string) =>
+      sse(
+        responsesEvent("response.output_item.added", {
+          item: { id, type: "file_search_call", status: "in_progress" },
+        }),
+      );
+    const done = (id: string) =>
+      sse(
+        responsesEvent("response.output_item.done", {
+          item: { id, type: "file_search_call", status: "completed", queries: [id], results: [] },
+        }),
+      );
+    const events = await collect(
+      openAIResponsesAdapter().parse(
+        makeResponse(added("fs_a") + added("fs_b") + done("fs_a") + done("fs_b")),
+      ),
+    );
+    const results = events
+      .filter((e) => e.type === EventType.TOOL_CALL_RESULT)
+      .map((e) => (e as { toolCallId: string }).toolCallId);
+    expect(results).toEqual(["fs_a", "fs_b"]);
+    expect(types(events).filter((t) => t === EventType.TOOL_CALL_START)).toHaveLength(2);
   });
 
   it("starts a hosted tool from its done item when no added event arrived, without id collisions", async () => {

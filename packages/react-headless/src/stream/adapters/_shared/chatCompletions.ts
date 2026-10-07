@@ -14,7 +14,7 @@ import { isTruncationReason, truncatedRunError } from "./truncation";
  * @internal
  */
 export function chatCompletionsMapper() {
-  const messageId = crypto.randomUUID();
+  let messageId = crypto.randomUUID();
   const toolCallIds: Record<number, string> = {};
   const openToolCallIds = new Set<string>();
   let messageStarted = false;
@@ -22,7 +22,13 @@ export function chatCompletionsMapper() {
   let terminated = false;
 
   function* startMessage(): Generator<AGUIEvent> {
-    if (messageStarted) return;
+    if (messageStarted && !messageEnded) return;
+    // Text after a finished step (some proxies stream several steps in one
+    // response) opens a new message, so START / END always pair up.
+    if (messageEnded) {
+      messageId = crypto.randomUUID();
+      messageEnded = false;
+    }
     messageStarted = true;
     yield { type: EventType.TEXT_MESSAGE_START, messageId, role: "assistant" };
   }
@@ -57,7 +63,11 @@ export function chatCompletionsMapper() {
         // A refusal streams in `delta.refusal` instead of `delta.content`. It is
         // the model's answer to the user, so render it as text rather than
         // ending the turn with an empty message.
-        if (delta.content || delta.role || delta.refusal) yield* startMessage();
+        // A bare role delta opens the first message only; after a finished step it
+        // would just open an empty one.
+        if (delta.content || delta.refusal || (delta.role && !messageStarted)) {
+          yield* startMessage();
+        }
         if (delta.content) {
           yield { type: EventType.TEXT_MESSAGE_CONTENT, messageId, delta: delta.content };
         }

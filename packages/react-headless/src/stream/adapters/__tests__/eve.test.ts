@@ -272,17 +272,30 @@ describe("eveAdapter", () => {
       expect(events[0].message).toBe("model unavailable");
     });
 
-    it("emits RUN_ERROR for turn.failed but keeps reading", async () => {
+    it("emits nothing after turn.failed but still reads to the turn boundary for onEvent", async () => {
+      const onEvent = vi.fn();
       const response = makeNdjsonResponse([
+        { type: "message.appended", data: { messageDelta: "partial", stepIndex: 0 } },
         { type: "turn.failed", data: { message: "step exploded" } },
+        { type: "message.appended", data: { messageDelta: "late", stepIndex: 1 } },
         waiting,
       ]);
 
-      const events = (await collect(eveAdapter().parse(response))) as Array<{
+      const events = (await collect(eveAdapter({ onEvent }).parse(response))) as Array<{
         type: EventType;
       }>;
 
-      expect(events.map((e) => e.type)).toEqual([EventType.RUN_ERROR]);
+      expect(events.map((e) => e.type)).toEqual([
+        EventType.TEXT_MESSAGE_START,
+        EventType.TEXT_MESSAGE_CONTENT,
+        EventType.RUN_ERROR,
+      ]);
+      expect(onEvent.mock.calls.map(([e]) => e.type)).toEqual([
+        "message.appended",
+        "turn.failed",
+        "message.appended",
+        "session.waiting",
+      ]);
     });
   });
 

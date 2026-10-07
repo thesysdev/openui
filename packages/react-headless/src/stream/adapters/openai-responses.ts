@@ -56,21 +56,24 @@ const HOSTED_TOOLS: Record<
 
 const FAILED_ITEM_STATUSES = new Set(["failed", "incomplete"]);
 
-/** A hosted tool item's call id — its item id, or a stable stand-in when a backend omits it. */
-const hostedToolCallId = (item: { id?: string | null; type: string }, outputIndex?: number) =>
-  item.id ?? `${item.type}_${outputIndex ?? 0}`;
-
 export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
   async *parse(response: Response): AsyncIterable<AGUIEvent> {
     // Map item_id → call_id so TOOL_CALL_ARGS can reference the correct toolCallId
     const itemIdToCallId: Record<string, string> = {};
     // The text output-item currently streaming.
     let textItemId: string | null = null;
-    // Hosted tool calls by output_index, so output_item.done resolves to the id
-    // its output_item.added announced (even if one of the two lacked an id) and
-    // can start a call whose added event never arrived.
-    const hostedIdsByIndex = new Map<number, string>();
+    // Hosted tool calls use their item id. When a backend omits it, a stand-in id
+    // is made unique per call and remembered by output_index, so the done event
+    // resolves to the call its added event started; a done item with no added
+    // event still starts its own call.
     const startedHostedIds = new Set<string>();
+    const standInIdsByIndex = new Map<number, string>();
+    const standInId = (type: string, outputIndex: number | undefined): string => {
+      const base = `${type}_${outputIndex ?? 0}`;
+      let id = base;
+      for (let n = 2; startedHostedIds.has(id); n++) id = `${base}_${n}`;
+      return id;
+    };
 
     // sseDataPayloads buffers across reads, so a single SSE `data:` line (e.g. a
     // multi-KB artifact function_call_output payload) that spans several network
@@ -126,8 +129,8 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
                 toolCallName: "web_search",
               };
             } else if (HOSTED_TOOLS[item.type]) {
-              const toolCallId = hostedToolCallId(item, event.output_index);
-              hostedIdsByIndex.set(event.output_index, toolCallId);
+              const toolCallId = item.id ?? standInId(item.type, event.output_index);
+              if (!item.id) standInIdsByIndex.set(event.output_index, toolCallId);
               startedHostedIds.add(toolCallId);
               yield {
                 type: EventType.TOOL_CALL_START,
@@ -266,9 +269,10 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
             const hosted = HOSTED_TOOLS[event.item.type];
             if (hosted) {
               const hostedItem = event.item as HostedToolItem;
+              const fromAdded = standInIdsByIndex.get(event.output_index);
+              standInIdsByIndex.delete(event.output_index);
               const toolCallId =
-                hostedIdsByIndex.get(event.output_index) ??
-                hostedToolCallId(event.item, event.output_index);
+                fromAdded ?? event.item.id ?? standInId(event.item.type, event.output_index);
               if (!startedHostedIds.has(toolCallId)) {
                 startedHostedIds.add(toolCallId);
                 yield {

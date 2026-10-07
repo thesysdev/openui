@@ -26,7 +26,10 @@ export function errorFrameToRunError(record: unknown): AGUIEvent | undefined {
 
   const { message, code } = raw as { message?: unknown; code?: unknown };
   const hasMessage = typeof message === "string" && message.length > 0;
-  const codeText = typeof code === "string" || typeof code === "number" ? String(code) : undefined;
+  const codeText =
+    (typeof code === "string" && code.length > 0) || (typeof code === "number" && code !== 0)
+      ? String(code)
+      : undefined;
   if (!hasMessage && !codeText) return undefined;
 
   return {

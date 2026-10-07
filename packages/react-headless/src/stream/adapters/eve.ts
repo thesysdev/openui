@@ -35,6 +35,9 @@ export const eveAdapter = (options: EveAdapterOptions = {}): StreamProtocolAdapt
     const messageId = crypto.randomUUID();
     const streamedSteps = new Set<number>();
     let started = false;
+    // After a RUN_ERROR nothing more is emitted, but the stream is still read to
+    // the turn boundary so `onEvent` sees the rest of the turn.
+    let failed = false;
 
     const start = (): AGUIEvent[] => {
       if (started) return [];
@@ -51,6 +54,10 @@ export const eveAdapter = (options: EveAdapterOptions = {}): StreamProtocolAdapt
         continue;
       }
       options.onEvent?.(event);
+      if (failed) {
+        if (TURN_BOUNDARY_TYPES.has(event.type)) break;
+        continue;
+      }
 
       if (event.type === "actions.requested") {
         for (const action of event.data.actions) {
@@ -108,13 +115,12 @@ export const eveAdapter = (options: EveAdapterOptions = {}): StreamProtocolAdapt
         };
       } else if (event.type === "turn.failed" || event.type === "session.failed") {
         yield { type: EventType.RUN_ERROR, message: event.data.message };
-        // A RUN_ERROR ends the run: stop reading, like every other adapter.
-        return;
+        failed = true;
       }
 
       if (TURN_BOUNDARY_TYPES.has(event.type)) break;
     }
 
-    if (started) yield { type: EventType.TEXT_MESSAGE_END, messageId };
+    if (started && !failed) yield { type: EventType.TEXT_MESSAGE_END, messageId };
   },
 });
