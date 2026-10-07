@@ -1,7 +1,7 @@
 import { object as zObject } from "zod/v4";
 import * as z from "zod/v4/core";
 import type { DefinedAction, DefinedFunction } from "./functions";
-import { isBuiltin, isReservedCall } from "./parser/builtins";
+import { ACTION_DEFS, isBuiltin, isReservedCall } from "./parser/builtins";
 import type { ComponentPromptSpec, LibrarySpec, PromptSpec, ToolSpec } from "./parser/prompt";
 import { generatePrompt } from "./parser/prompt";
 import type {
@@ -429,6 +429,11 @@ export function createLibrary<C = unknown, A extends AnyAction = never>(
     componentsRecord[comp.name] = comp;
   }
 
+  // Action slots are $refs like component slots; a component of the same name wins
+  for (const [id, schema] of Object.entries(ACTION_DEFS)) {
+    if (!componentsRecord[id]) reg.add(schema, { id });
+  }
+
   if (input.root && !componentsRecord[input.root]) {
     const available = Object.keys(componentsRecord).join(", ");
     throw new Error(
@@ -454,6 +459,7 @@ export function createLibrary<C = unknown, A extends AnyAction = never>(
   for (const action of input.actions ?? []) {
     claim("Action", action.name);
     actionsRecord[action.name] = action;
+    reg.add(action.ref, { id: action.name });
   }
   const callSpecs = () => {
     const functions = buildCallSpecs(functionsRecord, reg);

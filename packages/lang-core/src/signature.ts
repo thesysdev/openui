@@ -1,4 +1,5 @@
 import * as z from "zod/v4/core";
+import type { ActionRef } from "./parser/builtins";
 import { isReactiveSchema } from "./reactive";
 
 // Zod introspection and the one prompt signature builder for components,
@@ -18,6 +19,15 @@ export const schemaIdTags = new WeakMap<object, string>();
  */
 export function tagSchemaId(schema: object, id: string): void {
   schemaIdTags.set(schema, id);
+}
+
+// Action refs print as `@Name` in signatures: share?: @CopyToClipboard | @OpenUrl
+const actionRefTags = new WeakMap<object, string>();
+
+// actionRef("OpenUrl", data) -> `$defs.OpenUrl` = data in JSON, `@OpenUrl` in prompt signatures
+export function actionRef(name: string, data: z.$ZodType): ActionRef {
+  actionRefTags.set(data, name);
+  return data as unknown as ActionRef;
 }
 
 // ─── Zod v3 detection ──────────────────────────────────────────────────────
@@ -124,6 +134,8 @@ function resolveTypeAnnotation(schema: unknown, reg?: SchemaRegistry): string | 
 }
 
 function resolveBaseType(inner: unknown, reg?: SchemaRegistry): string | undefined {
+  const actionRef = typeof inner === "object" && inner !== null && actionRefTags.get(inner);
+  if (actionRef) return `@${actionRef}`;
   const directId = getSchemaId(inner, reg);
   if (directId) return directId;
 

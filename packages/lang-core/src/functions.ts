@@ -1,5 +1,7 @@
+import { literal, object } from "zod/v4";
 import type * as z from "zod/v4/core";
-import { assertV4Schema } from "./signature";
+import type { ActionRef } from "./parser/builtins";
+import { actionRef, assertV4Schema } from "./signature";
 
 function assertParamsObject(params: z.$ZodType, name: string): void {
   assertV4Schema(params, name);
@@ -39,12 +41,16 @@ export interface DefinedAction<T extends z.$ZodObject = z.$ZodObject, N extends 
   description: string;
   /** Parameters as a Zod object. Key order is the positional order in programs. */
   params: T;
+  /** For a slot that takes only some actions: `z.union([copy.ref, steps.OpenUrl.ref])` */
+  ref: ActionRef;
 }
 
 /** Define a library action for `createLibrary({ actions })`. */
 export function defineAction<const N extends string, T extends z.$ZodObject>(
-  config: DefinedAction<T, N>,
+  config: Omit<DefinedAction<T, N>, "ref">,
 ): DefinedAction<T, N> {
   assertParamsObject(config.params, config.name);
-  return config;
+  // copy.ref in JSON: {type: "CopyToClipboard", params: {text: string}}
+  const data = object({ type: literal(config.name), params: config.params });
+  return { ...config, ref: actionRef(config.name, data) };
 }

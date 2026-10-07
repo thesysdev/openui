@@ -1,17 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
 import { createLibrary, defineComponent, tagSchemaId } from "../library";
-import { action } from "../parser/builtins";
+import { createParser } from "../parser";
+import { action, steps } from "../parser/builtins";
 
 const Dummy = null as any;
 
 // ─── tagSchemaId + registry integration ─────────────────────────────────────
 
 describe("tagSchemaId", () => {
-  it("action() is tagged ActionExpression", () => {
+  it("action slots are ActionExpression or restricted @Name refs, $refs in JSON", () => {
     const Button = defineComponent({
       name: "Button",
-      props: z.object({ label: z.string(), action: action().optional() }),
+      props: z.object({
+        label: z.string(),
+        action: action().optional(),
+        share: z.union([steps.ToAssistant.ref, steps.OpenUrl.ref]).optional(),
+      }),
       description: "A button",
       component: Dummy,
     });
@@ -19,8 +24,15 @@ describe("tagSchemaId", () => {
     const lib = createLibrary({ components: [Button], root: "Button" });
     const prompt = lib.prompt();
 
-    expect(prompt).toContain("action?: ActionExpression");
+    expect(prompt).toContain("action?: ActionExpression, share?: @ToAssistant | @OpenUrl)");
     expect(prompt).toContain("Put several steps in Action([...])");
+    const schema = lib.toJSONSchema();
+    expect(schema.$defs?.Button.properties?.action).toEqual({ $ref: "#/$defs/ActionExpression" });
+    // A legacy object in an action slot is data, not a component: no type-mismatch
+    const parsed = createParser(schema, "Button").parse(
+      'root = Button("x", {type: "continue_conversation", context: "x"})',
+    );
+    expect(parsed.meta.errors).toEqual([]);
   });
 
   it("tagged schema inside array is discovered", () => {
