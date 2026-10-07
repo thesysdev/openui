@@ -7,7 +7,7 @@ import {
   type DefinedAction,
   type DefinedFunction,
 } from "../functions";
-import { tagSchemaId } from "../signature";
+import { tagActionRef, tagSchemaId } from "../signature";
 import type { ActionStep, CallDef, ParamMap } from "./types";
 
 /** Resolve a field path on an object. Supports dot-paths: "state.name" → obj.state.name */
@@ -229,9 +229,13 @@ function named(id: string) {
   return schema;
 }
 
+const openUrlData = () => z.object({ type: z.literal("open_url"), url: z.string() });
+const toAssistantData = () =>
+  z.object({ type: z.literal("continue_conversation"), context: z.string().optional() });
+
 const actionSchema = z.union([
-  z.object({ type: z.literal("open_url"), url: z.string() }),
-  z.object({ type: z.literal("continue_conversation"), context: z.string().optional() }),
+  openUrlData(),
+  toAssistantData(),
   z.object({ type: z.string(), params: z.record(z.string(), z.any()).optional() }),
 ]);
 tagSchemaId(actionSchema, "ActionExpression");
@@ -246,13 +250,35 @@ export function action() {
   return actionSchema;
 }
 
+/** A slot schema naming one action, typed like an action prop: `z.union([steps.OpenUrl.ref])`. */
+export type ActionRef = z.ZodType<z.infer<typeof actionSchema>>;
+
+// actionRef("OpenUrl", data) -> `$defs.OpenUrl` = data in JSON, `@OpenUrl` in prompt signatures
+function actionRef(name: string, data: z.ZodType): ActionRef {
+  tagActionRef(data, name);
+  return data as unknown as ActionRef;
+}
+
+/** Refs of the built-in steps that have a legacy JSON shape, for restricted action slots. */
+export const steps = {
+  OpenUrl: { ref: actionRef("OpenUrl", openUrlData()) },
+  ToAssistant: { ref: actionRef("ToAssistant", toAssistantData()) },
+};
+
+/** The action `$defs` of every library, e.g. action: {$ref: "#/$defs/ActionExpression"}. */
+export const ACTION_DEFS: Record<string, z.ZodType> = {
+  ActionExpression: actionSchema,
+  OpenUrl: steps.OpenUrl.ref,
+  ToAssistant: steps.ToAssistant.ref,
+};
+
 /** A built-in step: `step` builds it from coerced args; a lazy one reads raw args in the evaluator. */
 export type BuiltinStep = DefinedAction<any> & {
   step?: (args: any) => ActionStep;
   lazy?: true;
 };
 
-const steps: BuiltinStep[] = [
+const builtinSteps: BuiltinStep[] = [
   {
     ...defineAction({
       name: "Run",
@@ -304,7 +330,7 @@ const steps: BuiltinStep[] = [
 
 /** All built-in steps by name, in prompt order. */
 export const BUILTIN_STEPS: Record<string, BuiltinStep> = Object.fromEntries(
-  steps.map((s) => [s.name, s]),
+  builtinSteps.map((s) => [s.name, s]),
 );
 
 const callDef = (kind: CallDef["kind"], def: BuiltinFunction | BuiltinStep): CallDef => ({
@@ -317,7 +343,7 @@ const callDef = (kind: CallDef["kind"], def: BuiltinFunction | BuiltinStep): Cal
 /** The built-in functions, steps and Action: the base of every library's call registry. */
 export const BUILTIN_CALLS: ReadonlyMap<string, CallDef> = new Map([
   ...builtins.map((b) => [b.name, callDef("function", b)] as const),
-  ...steps.map((s) => [s.name, callDef("action", s)] as const),
+  ...builtinSteps.map((s) => [s.name, callDef("action", s)] as const),
   [
     "Action",
     { kind: "action", params: [{ name: "steps", required: true }], builtin: true, lazy: true },

@@ -542,6 +542,9 @@ function renderToolsSection(tools: (string | ToolSpec)[]): string {
 
 // ─── Component signatures ───────────────────────────────────────────────────
 
+// A restricted action slot in a signature, e.g. `share?: @CopyToClipboard | @OpenUrl`
+const RESTRICTED_SLOT = /[:|] @[A-Z]/;
+
 function generateComponentSignatures(
   spec: PromptSpec,
   flags: { toolCalls: boolean; bindings: boolean; usesActionExpression: boolean },
@@ -559,6 +562,9 @@ function generateComponentSignatures(
     lines.push(
       `Props typed \`ActionExpression\` accept one @step, or Action([@steps...]) for several. See the Action section for available steps (${allSteps.join(", ")}).`,
     );
+    if (Object.values(spec.components).some((c) => RESTRICTED_SLOT.test(c.signature ?? ""))) {
+      lines.push("Props typed like `@OpenUrl | @ToAssistant` accept only the steps listed.");
+    }
   }
   const usesBindings =
     flags.bindings || Object.values(spec.components).some((c) => c.signature?.includes("$binding"));
@@ -614,8 +620,8 @@ export function generatePrompt(spec: PromptSpec): string {
   const supportsExpressions = toolCalls || bindings;
 
   // Detect component-level feature usage
-  const usesActionExpression = Object.values(spec.components).some((c) =>
-    c.signature?.includes("ActionExpression"),
+  const usesActionExpression = Object.values(spec.components).some(
+    (c) => c.signature?.includes("ActionExpression") || RESTRICTED_SLOT.test(c.signature ?? ""),
   );
 
   const parts: string[] = [];
