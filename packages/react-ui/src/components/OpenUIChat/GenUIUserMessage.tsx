@@ -3,29 +3,23 @@
 import type { UserMessage } from "@openuidev/react-headless";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { separateContentAndContext } from "../../utils/sentinelParser";
+import { readMessage } from "../../utils/messages";
 
 /**
- * Extracts the first plain object from a context string.
+ * Extracts the first plain object from a message context.
  * The triggerAction context format is: ["action description string", { formState }]
  */
-function parseContextForDisplay(contextString: string | null): Record<string, any> {
-  if (!contextString) return {};
-  try {
-    const parsed = JSON.parse(contextString);
-    if (Array.isArray(parsed)) {
-      const stateObj = parsed.find(
-        (item) => item !== null && typeof item === "object" && !Array.isArray(item),
-      );
-      return stateObj ?? {};
-    }
-    if (typeof parsed === "object" && parsed !== null) {
-      return parsed;
-    }
-    return {};
-  } catch {
-    return {};
+function parseContextForDisplay(context: unknown): Record<string, any> {
+  if (Array.isArray(context)) {
+    const stateObj = context.find(
+      (item) => item !== null && typeof item === "object" && !Array.isArray(item),
+    );
+    return stateObj ?? {};
   }
+  if (typeof context === "object" && context !== null) {
+    return context;
+  }
+  return {};
 }
 
 function getEntries(state: Record<string, any>): { label: string; value: string }[] {
@@ -107,8 +101,8 @@ function FormDataAccordion({ state }: { state: Record<string, any> }) {
  */
 export const GenUIUserMessage = ({ message }: { message: UserMessage }) => {
   const rawContent = typeof message.content === "string" ? message.content : "";
-  const { content: humanText, contextString } = separateContentAndContext(rawContent);
-  const formState = parseContextForDisplay(contextString);
+  const { content: humanText, context } = readMessage(rawContent);
+  const formState = parseContextForDisplay(context);
   const hasFormData = Object.keys(formState).length > 0;
 
   return (
