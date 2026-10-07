@@ -16,6 +16,14 @@ const FAQS: MarketingFaq[] = [
     ],
   },
   {
+    question: "What is OpenUI Lang?",
+    answer: [
+      "OpenUI Lang is a compact, streaming-first language that LLMs write to build interfaces from your own components.",
+      "It is not JSON. Each line defines one component, such as root = Stack([header, chart]), so the interface renders while the response is still streaming.",
+      "The same screen takes up to 67% fewer tokens than the JSON equivalent.",
+    ],
+  },
+  {
     /* Asked because people keep reading the hero screenshot as the whole
        product. Stated plainly and near the top: the misunderstanding is common
        enough that it is worth its own question rather than a clause elsewhere. */

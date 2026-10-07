@@ -1,7 +1,7 @@
 {
   "name": "@openuidev/server",
   "version": "0.1.0",
-  "description": "Server utilities for OpenUI & OpenUI Gateway",
+  "description": "Server utilities for OpenUI by Thesys and OpenUI Gateway, including Autofix for repairing OpenUI Lang generations",
   "license": "MIT",
   "engines": {
     "node": ">=18"
