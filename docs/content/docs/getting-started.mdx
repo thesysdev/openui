@@ -78,7 +78,7 @@ import { createClient } from "@openuidev/server";
 import library from "./lib/openui.spec.json";
 
 const model = new OpenAI();
-const openui = createClient();
+const openUIClient = createClient();
 
 const messages = [{ role: "user" as const, content: "Compare quarterly revenue by region." }];
 
@@ -90,7 +90,7 @@ const source = await model.chat.completions.create({
 
 // Autofix adds the library itself, so pass only the conversation.
 // Return this from your API route as a server-sent events response.
-const response = openui.openai.completions.autofix
+const response = openUIClient.openai.completions.autofix
   .stream({ library, stream: source, messages })
   .toResponse();
 ```

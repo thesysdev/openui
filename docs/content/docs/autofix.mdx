@@ -29,18 +29,18 @@ Import `createClient` from `@openuidev/server`. Use the spec from `openui genera
 ```ts title="lib/server.ts" tab="OpenAI" tab-group="autofix-sdk"
 import { createClient } from "@openuidev/server";
 
-export const openui = createClient();
+export const openUIClient = createClient();
 ```
 
 ```ts title="lib/server.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
 import { createClient } from "@openuidev/server";
 
-export const openui = createClient();
+export const openUIClient = createClient();
 ```
 
 ```ts title="app/api/chat/route.ts" tab="OpenAI" tab-group="autofix-sdk"
 import OpenAI from "openai";
-import { openui } from "../../../lib/server";
+import { openUIClient } from "../../../lib/server";
 import library from "../../../generated/openui.spec.json";
 
 const model = new OpenAI();
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     { signal: request.signal },
   );
 
-  return openui.openai.completions.autofix
+  return openUIClient.openai.completions.autofix
     .stream({ library, stream: source, messages, signal: request.signal })
     .toResponse();
 }
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
 ```ts title="app/api/chat/route.ts" tab="Vercel AI SDK" tab-group="autofix-sdk"
 import { streamText, toUIMessageStream } from "ai";
-import { openui } from "../../../lib/server";
+import { openUIClient } from "../../../lib/server";
 import library from "../../../generated/openui.spec.json";
 
 export async function POST(request: Request) {
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     abortSignal: request.signal,
   });
 
-  return openui.vercel.ai.autofix
+  return openUIClient.vercel.ai.autofix
     .stream({
       library,
       stream: toUIMessageStream({ stream: result.stream }),
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
 
 Pair Chat Completions with `openAIAdapter()` and AI SDK UI message events with `useChat`.
 
-For completed output, use `openui.autofix.fix({ library, generation, messages, signal })`. Optional `messages` supplies conversation context in Chat Completions format, before the generation. On `fix_failed`, choose a fallback; otherwise render or persist `result.content`.
+For completed output, use `openUIClient.autofix.fix({ library, generation, messages, signal })`. Optional `messages` supplies conversation context in Chat Completions format, before the generation. On `fix_failed`, choose a fallback; otherwise render or persist `result.content`.
 
 ### Consume the stream
 

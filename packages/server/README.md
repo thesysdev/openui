@@ -25,13 +25,13 @@ npm install @openuidev/server
 ```ts
 import { createClient } from "@openuidev/server";
 
-const client = createClient(); // Reads process.env.THESYS_API_KEY.
+const openUIClient = createClient(); // Reads process.env.THESYS_API_KEY.
 ```
 
 Explicit options override the environment:
 
 ```ts
-const client = createClient({
+const openUIClient = createClient({
   apiKey: "your-server-key",
   baseUrl: "https://api.thesys.dev", // Gateway origin, without /v1.
   fetch: customFetch,
@@ -47,7 +47,7 @@ Fix a completed generation from any model provider:
 ```ts
 import library from "./openui.spec.json";
 
-const result = await client.autofix.fix({
+const result = await openUIClient.autofix.fix({
   library,
   generation: generatedOpenUI,
   messages, // Optional conversation context in Chat Completions format.
@@ -62,7 +62,7 @@ Results have `status: "already_valid" | "fixed" | "fix_failed"`, `original`, `co
 ## Fix streaming output
 
 ```ts
-const result = client.openai.completions.autofix.stream({
+const result = openUIClient.openai.completions.autofix.stream({
   library,
   stream: completionEvents,
   messages,
@@ -74,7 +74,7 @@ return result.toResponse();
 For Vercel AI SDK UI message events:
 
 ```ts
-return client.vercel.ai.autofix
+return openUIClient.vercel.ai.autofix
   .stream({ library, stream: uiMessageEvents, messages, signal })
   .toResponse();
 ```
@@ -84,7 +84,7 @@ The stream exposes `chunks` (native events), `toResponse()` (HTTP output), and `
 ## Append Completions messages
 
 ```ts
-await client.openai.completions.conversations.appendMessages({
+await openUIClient.openai.completions.conversations.appendMessages({
   conversationId: threadId,
   messages: [
     { role: "user", content: lastUserText },

@@ -57,7 +57,7 @@ function toolOutputOf(content: ChatCompletionToolMessageParam["content"]): strin
  * Pass the new turn, not the full replay, or items will be duplicated.
  * System / developer messages are skipped (instructions, not history).
  */
-/** @deprecated Prefer client.openai.completions.conversations.appendMessages. */
+/** @deprecated Prefer openUIClient.openai.completions.conversations.appendMessages. */
 export function chatCompletionMessagesToItems(
   messages: ChatCompletionMessageParam[],
 ): ResponseInputItem[] {
@@ -131,7 +131,7 @@ const EMPTY_ITEM_LIST: ConversationItemList = {
  * creates it via `POST /v1/conversations`. Pass only the new turn, not the
  * full replay, or items will be duplicated.
  */
-/** @deprecated Prefer client.openai.completions.conversations.appendMessages. */
+/** @deprecated Prefer openUIClient.openai.completions.conversations.appendMessages. */
 export async function storeChatCompletionHistory(
   options: StoreChatCompletionHistoryOptions,
 ): Promise<ConversationItemList> {
