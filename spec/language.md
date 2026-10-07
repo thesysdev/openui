@@ -308,12 +308,12 @@ A library declares extra functions in its `functions` list ([prompt.md](./prompt
 - Built-ins are looked up first. A library MUST NOT register a function named like a built-in, an action step, `Query`, `Mutation`, or one of its components.
 - A `@Name` call that is not a built-in, action step, or custom function evaluates to null and reports `unknown-function`. The statement is kept.
 - Custom functions MUST be pure and synchronous. The runtime MAY cache results and MAY call them any number of times, in any order.
-- Arguments are checked against `params` the same way component props are. Literal arguments are checked when parsing, with the same codes (`type-mismatch`, `missing-required`, and `excess-args` for extra arguments). Arguments that are only known at runtime are checked when the call runs. Missing optional arguments take their defaults.
+- Arguments are checked against `params` the same way component props are. Literal arguments are checked when parsing, with the same codes (`type-mismatch`, `missing-required`, and `excess-args` for extra arguments). A call whose literal arguments fail these checks evaluates to null; extra arguments are only dropped. Arguments that are only known at runtime are checked when the call runs. Missing optional arguments take their defaults.
 - A required argument that is null when the call runs, with no default (an unset `$variable`, an unresolved reference), makes the call evaluate to null with no error.
 - A call with other invalid runtime arguments, a function that throws, or a return value that does not match `returns` reports `runtime-error`, and the call evaluates to null.
 - While streaming, a call runs as soon as the statement that holds it is complete. A call in the pending statement evaluates to null until that statement completes.
 
-Fixtures: `evaluation/*-function-*`, `errors/*-unknown-function-*`
+Fixtures: `evaluation/*-function-*`, `errors/*-unknown-function-*`, `errors/*-function-literal-*`
 
 ## 4. Streaming
 
@@ -446,7 +446,7 @@ Events reach the host in one shape:
 - `formState` holds each field as `{ value, componentType }`: that form's fields inside a form, the page-level state outside one.
 - `open_url` events carry the same fields, with `params.url` and an empty `humanFriendlyMessage`.
 
-Fixtures: `actions/*-plan-*`, `actions/*-single-step-*`, `actions/*-event-*`, `actions/*-custom-*`
+Fixtures: `actions/*-plan-*`, `actions/*-single-step-*`, `actions/*-event-*`, `actions/*-custom-*`, `actions/*-step-list-*`
 
 ### 6.4 Tool resolution
 
