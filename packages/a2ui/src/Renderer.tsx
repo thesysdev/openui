@@ -30,6 +30,8 @@ export interface A2UIRendererProps {
   /** Additional top-level data-model keys that should hydrate form namespaces. */
   formStateKeys?: readonly string[];
   toolProvider?: OpenUIRendererProps["toolProvider"];
+  /** Custom loading indicator. Defaults to a spinner. */
+  queryLoader?: OpenUIRendererProps["queryLoader"];
   children?: OpenUIRendererProps["children"];
 }
 
@@ -67,6 +69,7 @@ export function A2UIRenderer({
   isStreaming = false,
   formStateKeys,
   toolProvider,
+  queryLoader,
   children,
 }: A2UIRendererProps) {
   const subscribe = useCallback((notify: () => void) => client.subscribe(notify), [client]);
@@ -139,6 +142,7 @@ export function A2UIRenderer({
       onParseResult={onParseResult}
       onError={onError}
       toolProvider={toolProvider ?? agentToolProvider}
+      queryLoader={queryLoader}
       children={children}
     />
   );

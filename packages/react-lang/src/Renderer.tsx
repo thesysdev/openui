@@ -59,7 +59,9 @@ export interface RendererProps {
    */
   toolProvider?:
     Record<string, (args: Record<string, unknown>) => Promise<unknown>> | McpClientLike | null;
-  /** Custom slot composition. Omit to use the default content, loading, and error views. */
+  /** Custom loading indicator. Defaults to a spinner. */
+  queryLoader?: React.ReactNode;
+  /** Custom slot composition. Omit to keep content visible with a loading indicator. */
   children?: React.ReactNode;
   /**
    * Called with structured, LLM-friendly errors from the parser and query system.
@@ -236,6 +238,7 @@ function RendererRoot({
   initialState,
   onParseResult,
   toolProvider,
+  queryLoader,
   children,
   onError,
   publishObservability,
@@ -306,7 +309,10 @@ function RendererRoot({
     }),
     [isQueryLoading, queryErrors, retryQueries],
   );
-  const value = useMemo(() => ({ root: result?.root ?? null, query }), [result?.root, query]);
+  const value = useMemo(
+    () => ({ root: result?.root ?? null, query, queryLoader }),
+    [result?.root, query, queryLoader],
+  );
 
   return (
     <OpenUIContext.Provider value={contextValue}>
@@ -318,6 +324,7 @@ function RendererRoot({
 const RendererContext = createContext<{
   root: ElementNode | null;
   query: RendererQueryState;
+  queryLoader?: React.ReactNode;
 } | null>(null);
 
 function useRendererContext() {
@@ -357,9 +364,12 @@ export interface RendererSlotProps {
 
 /** Shows query loading feedback, except while a query failure is being displayed. */
 function RendererQueryLoading({ children }: RendererSlotProps) {
-  const { isLoading, errors } = useRendererQuery();
+  const {
+    query: { isLoading, errors },
+    queryLoader,
+  } = useRendererContext();
   if (!isLoading || errors.length > 0) return null;
-  return <>{children === undefined ? <DefaultQueryLoader /> : children}</>;
+  return <>{children === undefined ? (queryLoader ?? <DefaultQueryLoader />) : children}</>;
 }
 
 function DefaultQueryError() {
@@ -405,14 +415,20 @@ function RendererRetry({ asChild, children, onClick, disabled, ...props }: Rende
 }
 
 function DefaultRendererContent() {
-  const { root, query } = useRendererContext();
+  const { root, query, queryLoader } = useRendererContext();
+  const context = useOpenUI();
+  // Preserve query defaults and cached content for callers that do not opt into slots.
+  const legacyContext = useMemo(() => ({ ...context, queryPlaceholders: undefined }), [context]);
   if (!root) return null;
   return (
-    <div aria-busy={query.isLoading} style={{ position: "relative" }}>
-      <RendererQueryError />
-      <RendererQueryLoading />
-      <RendererContent />
-    </div>
+    <OpenUIContext.Provider value={legacyContext}>
+      <div aria-busy={query.isLoading} style={{ position: "relative" }}>
+        {query.isLoading && (queryLoader ?? <DefaultQueryLoader />)}
+        <div style={{ opacity: query.isLoading ? 0.7 : 1, transition: "opacity 0.2s ease" }}>
+          <RenderNode node={root} />
+        </div>
+      </div>
+    </OpenUIContext.Provider>
   );
 }
 

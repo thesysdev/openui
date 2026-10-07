@@ -5,6 +5,6 @@
 "@openuidev/server": minor
 ---
 
-Add composable Renderer slots for content, query loading, errors, and retry controls. Replace the `queryLoader` prop on `Renderer` and `A2UIRenderer` with `Renderer.QueryLoading` children.
+Add optional Renderer slots for content, query loading, errors, and retry controls. Preserve the default rendering behavior and the fully supported `queryLoader` prop on `Renderer` and `A2UIRenderer`.
 
 Improve query loading and retry behavior, preserve successful data and mounted input state, and ignore obsolete query responses.

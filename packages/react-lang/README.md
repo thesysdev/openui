@@ -20,7 +20,7 @@ pnpm add @openuidev/react-lang
 
 ## Query failures
 
-When a query fails, `Renderer` shows an error with a Retry button and hides its rendered results until the failed queries succeed. This prevents query defaults or cached values from appearing as current data after an outage. Retrying preserves the mounted components and their input state. `onError` continues to receive structured errors.
+Without slot children, `Renderer` keeps query defaults or cached results visible while loading and after failures. It displays a spinner while loading, and `onError` receives structured errors. Use `queryLoader` to customize that indicator, or slot children for custom layouts.
 
 Use slots to customize loading and failure views:
 
@@ -39,15 +39,15 @@ Use slots to customize loading and failure views:
 </Renderer.Root>
 ```
 
-`Renderer.Root` owns one runtime and renders only its children. Slots can sit inside wrappers or portals under that root. `Renderer.Content` keeps generated components mounted while queries load or fail; failed results remain hidden until recovery. Omitting a slot omits its presentation. Plain `Renderer` supplies the default content, spinner, and retry view.
+`Renderer.Root` owns one runtime and renders only its children. Slots can sit inside wrappers or portals under that root. `Renderer.Content` keeps generated components mounted while queries load or fail; failed results remain hidden until recovery. Omitting a slot omits its presentation. Plain `Renderer` supplies content and a loading indicator without hiding results on failure.
 
-`Renderer.QueryLoading` shows its children while queries await generation or fetch data, unless failures are being displayed. Omit children for the default spinner. Position custom overlays within your own relative container. `Renderer.QueryError` shows its children on failure; omit children for the default retry view. `Renderer.Retry` disables itself during loading and when no queries have failed. Use `asChild` with one custom button that forwards button props and refs; its click handler can prevent the retry with `event.preventDefault()`.
+`Renderer.QueryLoading` shows its children while queries await generation or fetch data, unless failures are being displayed. Omit children to use `queryLoader`, falling back to the default spinner. Position custom overlays within your own relative container. `Renderer.QueryError` shows its children on failure; omit children for the default retry view. `Renderer.Retry` disables itself during loading and when no queries have failed. Use `asChild` with one custom button that forwards button props and refs; its click handler can prevent the retry with `event.preventDefault()`.
 
 Use `useRendererQuery()` inside the root to read `{ isLoading, errors, retry, isRetrying }` in your own components. Generation progress remains available through `useIsStreaming()`. Do not create another root for each slot.
 
 `Renderer` accepts slot children to replace its default content composition.
 
-Widgets that depend on queries without successful data show loading placeholders; static layout and labels can render progressively. During streaming edits, previously loaded results remain visible with loading feedback until the updated response is ready.
+With `Renderer.Content`, widgets that depend on queries without successful data show loading placeholders; static layout and labels can render progressively. During streaming edits, previously loaded results remain visible with loading feedback until the updated response is ready.
 
 ## Overview
 
@@ -143,6 +143,7 @@ function AssistantMessage({ response, isStreaming }) {
 | `onAction` | `(event: ActionEvent) => void` | Callback when a component triggers an action |
 | `onStateUpdate` | `(state: Record<string, any>) => void` | Callback when form field values change |
 | `initialState` | `Record<string, any>` | Initial form state for hydration |
+| `queryLoader` | `React.ReactNode` | Custom loading indicator; defaults to a spinner |
 | `onParseResult` | `(result: ParseResult \| null) => void` | Callback when the parse result changes |
 
 ### Parser (Server-Side)

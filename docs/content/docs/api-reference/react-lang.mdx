@@ -106,6 +106,8 @@ interface RendererProps {
     | Record<string, (args: Record<string, unknown>) => Promise<unknown>>
     | McpClientLike
     | null;
+  /** Custom loading indicator. Defaults to a spinner. */
+  queryLoader?: React.ReactNode;
   children?: React.ReactNode;
   onError?: (errors: OpenUIError[]) => void;
 }
@@ -113,16 +115,16 @@ interface RendererProps {
 
 ## Renderer slots
 
-`Renderer` uses the default content, loading indicator, and retry view. For custom layouts, use `Renderer.Root` with these slots:
+`Renderer` keeps query defaults or cached results visible while loading and after failures, and reports errors through `onError`. Use the `queryLoader` prop to customize its loading indicator. To opt into placeholders and an error/retry presentation, use `Renderer.Root` with these slots:
 
 | Slot | Purpose |
 | --- | --- |
 | `Renderer.Content` | Generated UI; accepts div props and stays mounted during query failures. |
-| `Renderer.QueryLoading` | Children shown while queries wait or fetch; omitted children use the default spinner. |
+| `Renderer.QueryLoading` | Children shown while queries wait or fetch; omitted children use `queryLoader` or the default spinner. |
 | `Renderer.QueryError` | Children shown when queries fail; omitted children use the default retry view. |
 | `Renderer.Retry` | A retry button; supports `asChild` for a custom button. |
 
-Root accepts the same runtime props as Renderer and renders only its children. Put overlays in your own positioned container. Slots share context through wrappers and React portals. `useRendererQuery()` returns `{ isLoading, errors, retry, isRetrying }` within that root. Failed results remain hidden while retrying; their mounted state is preserved.
+Root accepts the same runtime props as Renderer and renders only its children. Put overlays in your own positioned container. Slots share context through wrappers and React portals. `useRendererQuery()` returns `{ isLoading, errors, retry, isRetrying }` within that root. `Renderer.Content` shows placeholders until the first successful query result and hides content on failure while preserving mounted state through retries.
 
 `Renderer` accepts slot children to replace its default content composition. Without children, Renderer keeps its default views. For `asChild`, pass one button that forwards button props and refs; calling `preventDefault()` in its click handler cancels the retry.
 
