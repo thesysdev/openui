@@ -284,13 +284,8 @@ Every Query/Mutation goes through the supplied provider. Renderer does not reser
 an execution tool name or implement a script transport. Existing function maps
 also work; use the single `callTool` form when your backend handles dispatch.
 
-In the example, the host attaches the complete response to each request. Use
-`createToolExecutor` from `@openuidev/server` in your `/api/tools` route. Register
-server tools once, then call `appTools.execute({ name, arguments, response },
-{ context, signal })` and return `{ result }`. The helper handles registered tools
-first and runs generated scripts through `/v1/app/execute`, including tool-call
-continuations. See the [server helper](../server/README.md#execute-tools-and-scripts)
-for registration and route examples.
+In the example, the host attaches the complete response to each request. The
+application's backend handles execution and returns the final `{ result }`.
 
 Keep credentials and customer authorization on the server. Unknown tools/scripts
 return errors. The provider returns an MCP-compatible result envelope. Browser-only
