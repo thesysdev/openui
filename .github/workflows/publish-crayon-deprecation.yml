@@ -23,7 +23,7 @@ jobs:
           - "@crayonai/react-core"
           - "@crayonai/stream"
     env:
-      NOTICE: "Crayon is now OpenUI. This package is no longer updated. OpenUI brings a new API, so see https://www.openui.com/docs to get started."
+      NOTICE: "Crayon is now OpenUI. This package is no longer updated. Get started with OpenUI at https://www.openui.com/docs"
     steps:
       - uses: actions/setup-node@v4
         with:
