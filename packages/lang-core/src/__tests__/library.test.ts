@@ -1,19 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
 import { createLibrary, defineComponent, tagSchemaId } from "../library";
+import { action } from "../parser/builtins";
 
 const Dummy = null as any;
 
 // ─── tagSchemaId + registry integration ─────────────────────────────────────
 
 describe("tagSchemaId", () => {
-  it("tagged schema appears in prompt signatures", () => {
-    const actionSchema = z.any();
-    tagSchemaId(actionSchema, "ActionExpression");
-
+  it("action() is tagged ActionExpression", () => {
     const Button = defineComponent({
       name: "Button",
-      props: z.object({ label: z.string(), action: actionSchema.optional() }),
+      props: z.object({ label: z.string(), action: action().optional() }),
       description: "A button",
       component: Dummy,
     });
@@ -22,23 +20,7 @@ describe("tagSchemaId", () => {
     const prompt = lib.prompt();
 
     expect(prompt).toContain("action?: ActionExpression");
-    expect(prompt).toContain("accept one @step or a list of @steps");
-    expect(prompt).not.toContain("Action([@");
-  });
-
-  it("untagged action props learn Action([...]) for several steps", () => {
-    const Button = defineComponent({
-      name: "Button",
-      props: z.object({ label: z.string(), action: z.any().optional() }),
-      description: "A button",
-      component: Dummy,
-    });
-    const prompt = createLibrary({ components: [Button], root: "Button" }).prompt({
-      toolCalls: true,
-    });
-
-    expect(prompt).toContain('Button("Refresh", Action([@Run(query1), @Run(query2)])');
-    expect(prompt).not.toMatch(/, \[@Run/);
+    expect(prompt).toContain("Put several steps in Action([...])");
   });
 
   it("tagged schema inside array is discovered", () => {

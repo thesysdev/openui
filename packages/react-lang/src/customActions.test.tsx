@@ -47,11 +47,11 @@ async function click(action: string, rest = "") {
   return onAction.mock.calls.map(([e]) => [e.type, e.params]);
 }
 
-it("delivers custom actions with their params, bare and in a list", async () => {
+it("delivers custom actions with their params, bare and in Action([...])", async () => {
   expect(await click('@CopyToClipboard("a", "md")')).toEqual([
     ["CopyToClipboard", { text: "a", format: "md" }],
   ]);
-  expect(await click('[@CopyToClipboard("b"), @OpenUrl("u")]')).toEqual([
+  expect(await click('Action([@CopyToClipboard("b"), @OpenUrl("u")])')).toEqual([
     ["CopyToClipboard", { text: "b", format: "plain" }],
     ["open_url", { url: "u" }],
   ]);

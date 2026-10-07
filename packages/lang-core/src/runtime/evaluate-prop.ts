@@ -15,9 +15,8 @@ import { isASTNode } from "../parser/ast";
 import type { ElementNode } from "../parser/types";
 import { isElementNode } from "../parser/types";
 import { isReactiveSchema } from "../reactive";
-import { schemaIdTags, unwrap } from "../signature";
 import type { EvaluationContext, SchemaContext } from "./evaluator";
-import { evaluate, flattenPlans, isActionPlan, isReactiveAssign, ownSteps } from "./evaluator";
+import { evaluate, isActionPlan, isReactiveAssign, ownSteps } from "./evaluator";
 
 export interface PropEvalCallbacks {
   /** How to recurse into an ElementNode (evaluator vs evaluate-tree differ here). */
@@ -29,7 +28,6 @@ export interface PropEvalCallbacks {
 /**
  * Evaluate a single prop value with schema awareness. Handles AST nodes,
  * ReactiveAssign markers, nested ElementNodes, arrays, and ActionPlans.
- * On an ActionExpression prop a list of plans (nulls ignored) becomes one plan; other lists stay data.
  */
 export function evaluatePropCore(
   value: unknown,
@@ -39,14 +37,7 @@ export function evaluatePropCore(
   callbacks: PropEvalCallbacks,
 ): unknown {
   const result = evaluatePropValue(value, context, schemaCtx, reactiveSchema, callbacks);
-  if (
-    Array.isArray(result) &&
-    result.some(isActionPlan) &&
-    result.every((v) => v == null || isActionPlan(v)) &&
-    schemaIdTags.get(unwrap(reactiveSchema) as object) === "ActionExpression"
-  ) {
-    return flattenPlans(result);
-  }
+  // Only real calls make custom steps: a plan read from data loses them
   return isActionPlan(result) ? ownSteps(result) : result;
 }
 

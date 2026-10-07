@@ -384,7 +384,7 @@ export function isActionPlan(value: unknown): value is ActionPlan {
 }
 
 /** Flatten plans (and stray step objects) into one plan; other values are dropped. */
-export function flattenPlans(values: unknown[]): ActionPlan {
+function flattenPlans(values: unknown[]): ActionPlan {
   return ownSteps({
     steps: values.flatMap((v): ActionStep[] => {
       if (isActionPlan(v)) return v.steps;

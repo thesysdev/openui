@@ -115,7 +115,7 @@ export const openuiAdditionalRules: string[] = [
   "For forms, always provide the second Form argument with Buttons(...) actions: Form(name, buttons, fields).",
   "Never nest Form inside Form.",
   'Use @Reset($var1, $var2) after form submit to restore defaults — not @Set($var, "")',
-  "Multi-query refresh: [@Run(mutation), @Run(query1), @Run(query2), @Reset(...)]",
+  "Multi-query refresh: Action([@Run(mutation), @Run(query1), @Run(query2), @Reset(...)])",
   "$variables are reactive: changing via Select or @Set re-evaluates all Queries and expressions referencing them",
   "Use existing components (Tabs, Accordion, Modal) before inventing ternary show/hide patterns",
   "Card blocks (SnippetCardBlock, OverviewCardBlock, ContextCardBlock, CompositeCardBlock, VisualCardBlock) need at least 2 items; every item in a block must have the same structure.",

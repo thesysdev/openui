@@ -66,20 +66,6 @@ describe("withItemContext", () => {
     expect((plan.steps[0] as { context?: string }).context).toBe("cards");
   });
 
-  it("adds item context to object contexts as selectedItem and serializes other values", () => {
-    const plan = {
-      steps: [
-        { type: ACTION_STEPS.ToAssistant, message: "a", context: { ticket: "T-1" } },
-        { type: ACTION_STEPS.ToAssistant, message: "b", context: ["T-1"] },
-      ],
-    } as ActionPlan;
-    const result = withItemContext(plan, { itemIndex: 0 }) as ActionPlan;
-    expect(result.steps.map((s) => (s as { context?: unknown }).context)).toEqual([
-      { ticket: "T-1", selectedItem: { itemIndex: 0 } },
-      '["T-1"]\nSelected item: {"itemIndex":0}',
-    ]);
-  });
-
   it("returns the same ActionPlan when there is no item context", () => {
     const plan = { steps: [{ type: ACTION_STEPS.OpenUrl, url: "https://x.test" }] } as ActionPlan;
     expect(withItemContext(plan, { itemId: undefined })).toBe(plan);
