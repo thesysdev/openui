@@ -1,0 +1,30 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Card",
+          "props": {
+            "title": "A",
+            "children": [
+              {
+                "type": "Card",
+                "props": {
+                  "title": "B",
+                  "children": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [
+    "a"
+  ],
+  "orphans": [],
+  "incomplete": false
+}

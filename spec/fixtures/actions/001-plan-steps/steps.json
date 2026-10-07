@@ -1,0 +1,22 @@
+{
+  "steps": [
+    {
+      "click": "bump"
+    },
+    {
+      "click": "go"
+    }
+  ],
+  "expected": {
+    "events": [
+      {
+        "type": "continue_conversation",
+        "humanFriendlyMessage": "done"
+      }
+    ],
+    "state": {
+      "$n": 5,
+      "$m": 7
+    }
+  }
+}

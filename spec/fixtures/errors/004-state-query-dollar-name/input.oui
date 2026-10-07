@@ -1,0 +1,2 @@
+$items = Query("listTickets", {}, {rows: []})
+root = Stack([Metric("n", @Count($items.rows))])

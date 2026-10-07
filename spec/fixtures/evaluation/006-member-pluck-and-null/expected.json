@@ -1,0 +1,53 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Table",
+          "props": {
+            "columns": [
+              {
+                "type": "Col",
+                "props": {
+                  "label": "names",
+                  "data": [
+                    "a",
+                    "b"
+                  ]
+                }
+              },
+              {
+                "type": "Col",
+                "props": {
+                  "label": "ns",
+                  "data": [
+                    1,
+                    null
+                  ]
+                }
+              },
+              {
+                "type": "Col",
+                "props": {
+                  "label": "misc",
+                  "data": [
+                    2,
+                    "b",
+                    "v",
+                    null,
+                    null
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

@@ -1,0 +1,71 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Button",
+          "props": {
+            "label": "Save",
+            "action": {
+              "action": [
+                {
+                  "step": "ToAssistant",
+                  "args": [
+                    "Save order"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "label": "Pick B",
+            "action": {
+              "action": [
+                {
+                  "step": "Set",
+                  "args": [
+                    "$sel",
+                    "b"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "label": "Docs",
+            "action": {
+              "action": [
+                {
+                  "step": "OpenUrl",
+                  "args": [
+                    "https://openui.com"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "text": "a"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "state": {
+    "$sel": "a"
+  }
+}

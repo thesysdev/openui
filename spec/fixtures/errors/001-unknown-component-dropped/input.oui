@@ -1,0 +1,2 @@
+root = Stack([Text("a"), chart])
+chart = Chart([1, 2])

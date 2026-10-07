@@ -1,0 +1,60 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "outer"
+          }
+        },
+        {
+          "type": "Stack",
+          "props": {
+            "children": [
+              {
+                "type": "Card",
+                "props": {
+                  "title": "A",
+                  "children": [
+                    {
+                      "type": "Tag",
+                      "props": {
+                        "text": "x"
+                      }
+                    },
+                    {
+                      "type": "Tag",
+                      "props": {
+                        "text": "y"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Card",
+                "props": {
+                  "title": "B",
+                  "children": [
+                    {
+                      "type": "Tag",
+                      "props": {
+                        "text": "z"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

@@ -1,0 +1,3 @@
+page = Stack([a])
+a = Text("A")
+x = Text("X")

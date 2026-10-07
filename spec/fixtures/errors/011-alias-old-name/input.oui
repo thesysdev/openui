@@ -1,0 +1,2 @@
+root = Stack([p])
+p = Panel("Old name")

@@ -1,0 +1,30 @@
+{
+  "steps": [
+    {
+      "type": [
+        "email",
+        "a@b.co"
+      ]
+    },
+    {
+      "click": "send"
+    }
+  ],
+  "expected": {
+    "events": [
+      {
+        "type": "continue_conversation",
+        "humanFriendlyMessage": "Send",
+        "formName": "contact",
+        "formState": {
+          "contact": {
+            "email": {
+              "value": "a@b.co",
+              "componentType": "input"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

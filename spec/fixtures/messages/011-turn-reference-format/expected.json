@@ -1,0 +1,8 @@
+{
+  "mode": "turn",
+  "result": {
+    "content": "Save order",
+    "context": "[\"User clicked: Save order\", {\"note\": {\"value\": \"rush\", \"componentType\": \"input\"}}, {\"orderId\": 42}]",
+    "modelText": "Save order\ncontext and form values = [\"User clicked: Save order\", {\"note\": {\"value\": \"rush\", \"componentType\": \"input\"}}, {\"orderId\": 42}]"
+  }
+}

@@ -1,0 +1,6 @@
+stray text before any marker
+]]>openui:thinking?x=1
+some reasoning
+]]>openui:content
+root = Stack([])
+]]>openui:end

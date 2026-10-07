@@ -1,0 +1,3 @@
+root = Stack([g, Stack(@Each(groups, "g", Card(g.title, @Each(g.items, "g", Tag(g)))))])
+groups = [{title: "A", items: ["x", "y"]}, {title: "B", items: ["z"]}]
+g = Text("outer")

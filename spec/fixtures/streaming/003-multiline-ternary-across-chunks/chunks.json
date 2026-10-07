@@ -1,0 +1,5 @@
+[
+  "$n = 0\nroot = Stack([Text(s)])\ns = $n > 0\n",
+  "  ? \"some\"\n",
+  "  : \"none\"\n"
+]

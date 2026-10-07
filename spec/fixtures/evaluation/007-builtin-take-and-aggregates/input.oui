@@ -1,0 +1,4 @@
+root = Stack([Table([t, a])])
+rows = [{status: "open", n: 1, who: {city: "Paris"}}, {status: "closed", n: 5, who: {city: "Oslo"}}, {status: "reopened", n: 3, who: {city: "Paris"}}]
+t = Col("take", [@Take([1, 2, 3], 2), @Take([1, 2, 3], 1.9), @Take([1, 2], 0), @Take("x", 2), @Take([1, 2], "5"), @Take([1, 2, 3], -1)])
+a = Col("agg", [@Count(rows), @Count("x"), @First([]), @Last([1, 2]), @Sum([1, "2", true]), @Avg([]), @Avg([1, 2]), @Min([3, 1, 2]), @Max([]), @Round(2.5), @Round(-2.5), @Round(1.26, 1), @Abs(-3), @Floor(2.7), @Ceil("2.1"), @Count(@Filter(rows, "status", "contains", "open")), @Count(@Filter(rows, "n", ">", 2)), @Count(@Filter(rows, "status", "~~", "x")), @Count(@Filter(rows, "who.city", "==", "Paris")), @Filter([1, 2, 3], "", ">=", 2)])

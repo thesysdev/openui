@@ -1,0 +1,31 @@
+{
+  "steps": [
+    {
+      "click": "save"
+    },
+    {
+      "click": "pick"
+    },
+    {
+      "click": "docs"
+    }
+  ],
+  "expected": {
+    "events": [
+      {
+        "type": "continue_conversation",
+        "humanFriendlyMessage": "Save order"
+      },
+      {
+        "type": "open_url",
+        "humanFriendlyMessage": "",
+        "params": {
+          "url": "https://openui.com"
+        }
+      }
+    ],
+    "state": {
+      "$sel": "b"
+    }
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "id": "fixtures",
+  "version": "1.0.0",
+  "root": "Stack",
+  "schema": {
+    "$defs": {
+      "Stack": {
+        "type": "object",
+        "description": "Lays out children in a column or a row",
+        "properties": {
+          "children": { "type": "array", "items": { "x-openui": "component" } },
+          "direction": { "type": "string", "enum": ["row", "column"] }
+        },
+        "required": ["children"]
+      },
+      "Card": {
+        "type": "object",
+        "description": "A titled container",
+        "properties": {
+          "title": { "type": "string" },
+          "children": { "type": "array", "items": { "x-openui": "component" } }
+        },
+        "required": ["title"]
+      },
+      "Text": {
+        "type": "object",
+        "description": "A run of text",
+        "properties": {
+          "text": { "type": "string" },
+          "variant": { "type": "string", "enum": ["body", "heading"] }
+        },
+        "required": ["text"]
+      },
+      "Tag": {
+        "type": "object",
+        "description": "A small colored label",
+        "properties": {
+          "text": { "type": "string" },
+          "color": { "type": "string", "enum": ["gray", "green", "red"] }
+        },
+        "required": ["text"]
+      },
+      "Metric": {
+        "type": "object",
+        "description": "A labeled number",
+        "properties": {
+          "label": { "type": "string" },
+          "value": { "type": "number" }
+        },
+        "required": ["label", "value"]
+      },
+      "Button": {
+        "type": "object",
+        "description": "A clickable button",
+        "properties": {
+          "label": { "type": "string" },
+          "action": { "x-openui": "action" },
+          "variant": { "type": "string", "enum": ["primary", "secondary"] }
+        },
+        "required": ["label"]
+      },
+      "Form": {
+        "type": "object",
+        "description": "Groups its inputs under a form name",
+        "properties": {
+          "name": { "type": "string" },
+          "children": { "type": "array", "items": { "x-openui": "component" } }
+        },
+        "required": ["name", "children"]
+      },
+      "Input": {
+        "type": "object",
+        "description": "A text field",
+        "properties": {
+          "name": { "type": "string" },
+          "placeholder": { "type": "string" },
+          "value": { "type": "string", "x-openui": "binding" },
+          "rules": { "type": "object" }
+        },
+        "required": ["name"]
+      },
+      "Select": {
+        "type": "object",
+        "description": "A dropdown",
+        "properties": {
+          "name": { "type": "string" },
+          "items": { "type": "array", "items": { "x-openui": "component" } },
+          "value": { "type": "string", "x-openui": "binding" }
+        },
+        "required": ["name", "items"]
+      },
+      "SelectItem": {
+        "type": "object",
+        "description": "One option of a Select",
+        "properties": {
+          "value": { "type": "string" },
+          "label": { "type": "string" }
+        },
+        "required": ["value", "label"]
+      },
+      "Table": {
+        "type": "object",
+        "description": "A table built from columns",
+        "properties": {
+          "columns": { "type": "array", "items": { "x-openui": "component" } }
+        },
+        "required": ["columns"]
+      },
+      "Col": {
+        "type": "object",
+        "description": "One table column: a header and its cell values",
+        "properties": {
+          "label": { "type": "string" },
+          "data": { "type": "array" }
+        },
+        "required": ["label"]
+      }
+    }
+  },
+  "components": {
+    "Stack": {
+      "signature": "Stack(children: any[], direction?: \"row\" | \"column\")",
+      "description": "Lays out children in a column or a row",
+      "order": ["children", "direction"]
+    },
+    "Card": {
+      "signature": "Card(title: string, children?: any[])",
+      "description": "A titled container",
+      "order": ["title", "children"],
+      "aliases": ["Panel"]
+    },
+    "Text": {
+      "signature": "Text(text: string, variant?: \"body\" | \"heading\")",
+      "description": "A run of text",
+      "order": ["text", "variant"]
+    },
+    "Tag": {
+      "signature": "Tag(text: string, color?: \"gray\" | \"green\" | \"red\")",
+      "description": "A small colored label",
+      "order": ["text", "color"]
+    },
+    "Metric": {
+      "signature": "Metric(label: string, value: number)",
+      "description": "A labeled number",
+      "order": ["label", "value"]
+    },
+    "Button": {
+      "signature": "Button(label: string, action?: ActionExpression, variant?: \"primary\" | \"secondary\")",
+      "description": "A clickable button",
+      "order": ["label", "action", "variant"]
+    },
+    "Form": {
+      "signature": "Form(name: string, children: any[])",
+      "description": "Groups its inputs under a form name",
+      "order": ["name", "children"]
+    },
+    "Input": {
+      "signature": "Input(name: string, placeholder?: string, value?: $binding<string>, rules?: {})",
+      "description": "A text field",
+      "order": ["name", "placeholder", "value", "rules"]
+    },
+    "Select": {
+      "signature": "Select(name: string, items: any[], value?: $binding<string>)",
+      "description": "A dropdown",
+      "order": ["name", "items", "value"]
+    },
+    "SelectItem": {
+      "signature": "SelectItem(value: string, label: string)",
+      "description": "One option of a Select",
+      "order": ["value", "label"]
+    },
+    "Table": {
+      "signature": "Table(columns: any[])",
+      "description": "A table built from columns",
+      "order": ["columns"]
+    },
+    "Col": {
+      "signature": "Col(label: string, data?: any[])",
+      "description": "One table column: a header and its cell values",
+      "order": ["label", "data"]
+    }
+  },
+  "functions": {
+    "Upper": {
+      "description": "The text in upper case",
+      "params": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string" }
+        },
+        "required": ["text"]
+      },
+      "order": ["text"],
+      "returns": { "type": "string" }
+    }
+  }
+}

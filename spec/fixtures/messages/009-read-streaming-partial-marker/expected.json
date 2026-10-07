@@ -1,0 +1,9 @@
+{
+  "mode": "read",
+  "streaming": true,
+  "result": {
+    "content": "root = Stack([])",
+    "context": null,
+    "end": false
+  }
+}

@@ -1,0 +1,3 @@
+root = Stack([a, b])
+a = Text("A")
+b = Text("B")

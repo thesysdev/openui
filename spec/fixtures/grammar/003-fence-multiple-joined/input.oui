@@ -1,0 +1,8 @@
+First part:
+```openui
+root = Stack([a, b])
+a = Text("use ``` here")
+```
+And the rest, in a fence that is never closed:
+```openui
+b = Text("B")

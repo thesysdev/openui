@@ -1,0 +1,3 @@
+root = Stack([Table([c, o]) Text("end"),])
+c = Col("v", [1 + 2 * 3 - 4 / 2, -2 * -3, 7 % 4, 10 - 2 - 3, 2 > 1 == true, !!"x" && "ok", 1 || 2 && 0, (1 + 2) * 3])
+o = Col("o", [{name: "x", "quoted key": 1, 2: "two", $s: 3, Card: 4}])

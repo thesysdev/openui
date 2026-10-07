@@ -1,0 +1,5 @@
+root = Stack([a, b, c])
+$x = 1
+a = Text("A")
+b = Text("B")
+c = Text("C")

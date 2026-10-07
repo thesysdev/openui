@@ -1,0 +1,7 @@
+root = Stack([Table([names, ns, misc])])
+rows = [{name: "a", n: 1}, {name: "b"}]
+o = {k: "v"}
+nothing = null
+names = Col("names", rows.name)
+ns = Col("ns", rows.n)
+misc = Col("misc", [rows.length, rows[1].name, o["k"], nothing.field, o[nothing]])

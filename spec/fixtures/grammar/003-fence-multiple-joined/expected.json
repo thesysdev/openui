@@ -1,0 +1,25 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "use ``` here"
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "text": "B"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

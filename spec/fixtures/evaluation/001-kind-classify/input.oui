@@ -1,0 +1,6 @@
+root = Stack([Text(label), Button("Go", go), Text(Query("listTickets", {}, {}) == null ? "null" : "value")])
+$count = 2
+label = "Count: " + $count
+go = Action([@Set($count, 3)])
+data = Query("listTickets", {}, {rows: []})
+unused = Text("x")

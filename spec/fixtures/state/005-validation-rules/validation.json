@@ -1,0 +1,138 @@
+{
+  "cases": [
+    {
+      "rules": {
+        "required": true
+      },
+      "value": "",
+      "valid": false
+    },
+    {
+      "rules": {
+        "required": true
+      },
+      "value": [],
+      "valid": false
+    },
+    {
+      "rules": {
+        "required": true
+      },
+      "value": "x",
+      "valid": true
+    },
+    {
+      "rules": {
+        "email": true
+      },
+      "value": "a@b.co",
+      "valid": true
+    },
+    {
+      "rules": {
+        "email": true
+      },
+      "value": "a b@c.d",
+      "valid": false
+    },
+    {
+      "rules": {
+        "email": true
+      },
+      "value": "",
+      "valid": true
+    },
+    {
+      "rules": {
+        "url": true
+      },
+      "value": "https://openui.com/x",
+      "valid": true
+    },
+    {
+      "rules": {
+        "url": true
+      },
+      "value": "openui.com",
+      "valid": false
+    },
+    {
+      "rules": {
+        "numeric": true
+      },
+      "value": "12abc",
+      "valid": true
+    },
+    {
+      "rules": {
+        "numeric": true
+      },
+      "value": "abc",
+      "valid": false
+    },
+    {
+      "rules": {
+        "numeric": true
+      },
+      "value": 3,
+      "valid": true
+    },
+    {
+      "rules": {
+        "minLength": 3
+      },
+      "value": "ab",
+      "valid": false
+    },
+    {
+      "rules": {
+        "minLength": 3
+      },
+      "value": [],
+      "valid": true
+    },
+    {
+      "rules": {
+        "maxLength": 3
+      },
+      "value": "abcd",
+      "valid": false
+    },
+    {
+      "rules": {
+        "min": 5
+      },
+      "value": 4,
+      "valid": false
+    },
+    {
+      "rules": {
+        "max": 5
+      },
+      "value": 5,
+      "valid": true
+    },
+    {
+      "rules": {
+        "pattern": "^[A-Z]{2}\\d{3}$"
+      },
+      "value": "AB123",
+      "valid": true
+    },
+    {
+      "rules": {
+        "pattern": "^[A-Z]{2}\\d{3}$"
+      },
+      "value": "ab123",
+      "valid": false
+    },
+    {
+      "rules": {
+        "required": true,
+        "email": true
+      },
+      "value": "nope",
+      "valid": false
+    }
+  ]
+}

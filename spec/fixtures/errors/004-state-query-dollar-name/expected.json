@@ -1,0 +1,25 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Metric",
+          "props": {
+            "label": "n",
+            "value": 0
+          }
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "code": "state-query",
+      "statementId": "$items"
+    }
+  ],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

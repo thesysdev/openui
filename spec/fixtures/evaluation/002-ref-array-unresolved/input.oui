@@ -1,0 +1,2 @@
+root = Stack([title, missing, Metric("count", @Count([title, b])), title])
+title = Text("Hello")

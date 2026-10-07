@@ -1,0 +1,6 @@
+root = Stack([t, u, v]) // the page
+# a note line
+t = Text("a // not a comment")
+u = Text('b # not a comment either')
+v = Text("line one
+// still inside the string")

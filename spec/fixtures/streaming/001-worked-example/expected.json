@@ -1,0 +1,41 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "Tickets",
+            "variant": "heading"
+          }
+        },
+        {
+          "type": "Stack",
+          "props": {
+            "children": [
+              {
+                "type": "Metric",
+                "props": {
+                  "label": "Open",
+                  "value": 0
+                }
+              },
+              {
+                "type": "Metric",
+                "props": {
+                  "label": "Closed",
+                  "value": 8
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

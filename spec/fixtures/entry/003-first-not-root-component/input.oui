@@ -1,0 +1,2 @@
+title = Text("Orders")
+page = Stack([title])

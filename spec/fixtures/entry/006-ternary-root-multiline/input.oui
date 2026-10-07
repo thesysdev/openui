@@ -1,0 +1,6 @@
+$dark = false
+root = $dark
+  ? darkPage
+  : lightPage
+darkPage = Card("Dark")
+lightPage = Card("Light")

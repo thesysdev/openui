@@ -1,0 +1,4 @@
+]]>openui:content
+Save order
+]]>openui:context
+["User clicked: Save order", {"note": {"value": "rush", "componentType": "input"}}, {"orderId": 42}]

@@ -1,0 +1,5 @@
+$sel = "a"
+root = Stack([save, pick, docs, Text($sel)])
+save = Button("Save", @ToAssistant("Save order"))
+pick = Button("Pick B", @Set($sel, "b"))
+docs = Button("Docs", @OpenUrl("https://openui.com"))

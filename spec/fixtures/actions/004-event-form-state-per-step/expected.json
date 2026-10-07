@@ -1,0 +1,39 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Button",
+          "props": {
+            "label": "Send",
+            "action": {
+              "action": [
+                {
+                  "step": "Set",
+                  "args": [
+                    "$note",
+                    "new"
+                  ]
+                },
+                {
+                  "step": "ToAssistant",
+                  "args": [
+                    "Send"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "state": {
+    "$note": "old"
+  }
+}

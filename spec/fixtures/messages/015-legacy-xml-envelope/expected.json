@@ -1,0 +1,7 @@
+{
+  "mode": "read",
+  "result": {
+    "content": "root = Stack([])",
+    "context": "{\"a\":1}"
+  }
+}

@@ -1,0 +1,6 @@
+]]>openui:content
+first
+]]>openui:context
+{"a":1}
+]]>openui:content
+second

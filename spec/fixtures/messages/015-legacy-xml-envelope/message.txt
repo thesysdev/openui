@@ -1,0 +1,2 @@
+<content>root = Stack([])</content>
+<context>{"a":1}</context>

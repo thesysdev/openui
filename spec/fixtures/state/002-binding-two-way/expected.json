@@ -1,0 +1,32 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Input",
+          "props": {
+            "name": "search",
+            "placeholder": "Search",
+            "value": {
+              "$binding": "$query"
+            }
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "text": "You typed: "
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "state": {
+    "$query": ""
+  }
+}

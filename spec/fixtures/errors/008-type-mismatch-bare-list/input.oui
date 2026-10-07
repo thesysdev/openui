@@ -1,0 +1,2 @@
+root = Stack([card])
+card = Card("T", Text("a"))

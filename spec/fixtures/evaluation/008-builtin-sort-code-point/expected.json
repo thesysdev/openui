@@ -1,0 +1,66 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Table",
+          "props": {
+            "columns": [
+              {
+                "type": "Col",
+                "props": {
+                  "label": "sorted",
+                  "data": [
+                    [
+                      "B",
+                      "Z",
+                      "a",
+                      "b",
+                      "é"
+                    ],
+                    [
+                      "9",
+                      "10",
+                      "100"
+                    ],
+                    [
+                      {
+                        "n": 3,
+                        "id": "b"
+                      },
+                      {
+                        "n": 2,
+                        "id": "c"
+                      },
+                      {
+                        "n": 1,
+                        "id": "a"
+                      }
+                    ],
+                    "x",
+                    [
+                      {
+                        "k": null
+                      },
+                      {
+                        "k": "a"
+                      },
+                      {
+                        "k": "b"
+                      }
+                    ]
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

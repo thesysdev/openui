@@ -1,0 +1,5 @@
+$n = 1
+$m = 7
+root = Stack([bump, go])
+bump = Button("Bump", Action([@Set($m, 9)]))
+go = Button("Go", Action([@Set($n, 5), @Reset($m), @ToAssistant("done")]))

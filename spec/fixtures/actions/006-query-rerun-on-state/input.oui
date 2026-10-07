@@ -1,0 +1,4 @@
+$status = "open"
+root = Stack([filter, Metric("Tickets", @Count(tickets.rows))])
+filter = Input("status", "Status", $status)
+tickets = Query("listTickets", {status: $status}, {rows: []})

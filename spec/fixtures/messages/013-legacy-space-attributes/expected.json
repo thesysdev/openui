@@ -1,0 +1,9 @@
+{
+  "mode": "read",
+  "result": {
+    "content": "root = Stack([])",
+    "attributes": {
+      "library": "support@1.2.0"
+    }
+  }
+}

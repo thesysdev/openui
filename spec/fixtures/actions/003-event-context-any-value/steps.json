@@ -1,0 +1,33 @@
+{
+  "steps": [
+    {
+      "click": "save"
+    },
+    {
+      "click": "zero"
+    }
+  ],
+  "expected": {
+    "events": [
+      {
+        "type": "continue_conversation",
+        "humanFriendlyMessage": "Save order",
+        "params": {
+          "context": {
+            "orderId": 42,
+            "tags": [
+              "rush"
+            ]
+          }
+        }
+      },
+      {
+        "type": "continue_conversation",
+        "humanFriendlyMessage": "Pick zero",
+        "params": {
+          "context": 0
+        }
+      }
+    ]
+  }
+}

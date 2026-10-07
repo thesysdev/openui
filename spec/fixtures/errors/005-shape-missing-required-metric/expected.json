@@ -1,0 +1,34 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "a"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "code": "missing-required",
+      "statementId": "chart"
+    }
+  ],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "errorObjects": [
+    {
+      "source": "parser",
+      "code": "missing-required",
+      "statementId": "chart",
+      "component": "Metric",
+      "path": "/value",
+      "hint": "Signature: Metric(label*, value*). * marks required"
+    }
+  ]
+}

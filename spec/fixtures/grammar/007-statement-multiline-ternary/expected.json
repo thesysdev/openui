@@ -1,0 +1,29 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "Empty"
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "text": "Off"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "state": {
+    "$count": 0,
+    "$on": false
+  }
+}

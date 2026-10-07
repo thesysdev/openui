@@ -1,0 +1,9 @@
+{
+  "mode": "read",
+  "result": {
+    "content": "root = Stack([Text(\"see ]]>openui:end here\")])",
+    "context": null,
+    "end": false,
+    "attributes": {}
+  }
+}
