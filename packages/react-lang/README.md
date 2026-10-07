@@ -285,13 +285,17 @@ Every Query/Mutation goes through the supplied provider. Renderer does not reser
 an execution tool name or implement a script transport. Existing function maps
 also work; use the single `callTool` form when your backend handles dispatch.
 
-In the example, the host attaches the complete response to each request. Your
-server first executes registered tools, then resolves unregistered names against
-the response's scripts through `/v1/app/execute`. The server owns the continuation
-loop: run requested customer tools, send their results and opaque state back to
-the execution endpoint, and return the final `{ result }` to the provider. Keep
-credentials and customer authorization on that server. Unknown tools/scripts
-should return an error. The provider returns an MCP-compatible result envelope.
+In the example, the host attaches the complete response to each request. Use
+`createToolExecutor` from `@openuidev/server` in your `/api/tools` route. Register
+server tools once, then call `appTools.execute({ name, arguments, response },
+{ context, signal })` and return `{ result }`. The helper handles registered tools
+first and runs generated scripts through `/v1/app/execute`, including tool-call
+continuations. See the [server helper](../server/README.md#execute-tools-and-scripts)
+for registration and route examples.
+
+Keep credentials and customer authorization on the server. Unknown tools/scripts
+return errors. The provider returns an MCP-compatible result envelope. Browser-only
+actions can be handled directly inside `callTool` before forwarding other names.
 
 Providers own timeouts, cancellation and execution limits. On response changes
 or unmount, Renderer ignores obsolete query results; it does not cancel calls
