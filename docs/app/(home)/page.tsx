@@ -53,6 +53,7 @@ const structuredData = {
         "https://www.npmjs.com/org/openuidev",
         "https://x.com/thesysdev",
         "https://www.linkedin.com/company/thesysdev/",
+        "https://www.wikidata.org/wiki/Q141611890",
       ],
     },
     {
