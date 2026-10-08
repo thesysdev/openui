@@ -11,7 +11,7 @@ export type MarketingFaq = {
 const fewerOutputTokensThan = (format: "jsonRender" | "a2ui") =>
   Math.round((1 - tokens.outputPerScreen.openui / tokens.outputPerScreen[format]) * 100);
 
-const FAQS: MarketingFaq[] = [
+export const FAQS: MarketingFaq[] = [
   {
     question: "What should I use to build a Generative UI app?",
     answer: [
