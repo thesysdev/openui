@@ -104,7 +104,7 @@ Every framework overlay includes a `get_weather` example backed by Open-Meteo. A
 
 **OpenUI examples**
 
-Interactive `openui create` lists starter templates, and option to create an app from listed [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). `--example <name>` skips both menus. `--example` cannot be combined with `--template` or `--backend-framework`. Any other folder name in the catalog works the same way.
+Interactive `openui create` lists starter templates and up to five featured [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). `--example <name>` skips both menus. `--example` cannot be combined with `--template` or `--backend-framework`. Any other folder name in the catalog works the same way.
 
 **Conversation storage**
 
@@ -545,3 +545,7 @@ collection.
     `createLibrary`, `PromptOptions`, and the `Library` interface that `openui generate` read.
   </Card>
 </Cards>
+
+The backend framework picker shows up to five examples marked `featured: true`
+in `examples/examples.json`, in catalog order. Select “More examples…” for the
+complete catalog, or pass any catalog name through `--example`.

@@ -15,6 +15,8 @@ export type ExampleProject = {
   envFile: ".env";
   /** Primary env var to prompt for. Omit when the example needs several keys. */
   envKey?: string;
+  /** Show this example in the curated interactive picker. */
+  featured?: boolean;
 };
 
 function catalogError(message: string): CreateError {
@@ -27,6 +29,7 @@ function parseCatalogEntry(item: unknown): ExampleProject {
     description?: unknown;
     path?: unknown;
     envKey?: unknown;
+    featured?: unknown;
   };
   if (
     typeof entry.title !== "string" ||
@@ -36,6 +39,9 @@ function parseCatalogEntry(item: unknown): ExampleProject {
     throw catalogError(
       `${EXAMPLES_CATALOG_PATH} has an example missing title, description, or path.`,
     );
+  }
+  if (entry.featured !== undefined && typeof entry.featured !== "boolean") {
+    throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an invalid featured flag.`);
   }
   const relative = entry.path.replace(/^\/+/, "");
   const name = relative.split("/").filter(Boolean).at(-1);
@@ -53,6 +59,7 @@ function parseCatalogEntry(item: unknown): ExampleProject {
     description: entry.description,
     path: relative.startsWith("examples/") ? relative : `examples/${relative}`,
     envFile: ".env",
+    featured: entry.featured === true,
     envKey: typeof entry.envKey === "string" ? entry.envKey : undefined,
   };
 }
@@ -73,6 +80,11 @@ export async function loadExamplesCatalog(
 ): Promise<ExampleProject[]> {
   const { content } = await fetchSourceFile(EXAMPLES_CATALOG_PATH, { onRetry: opts.onRetry });
   return parseExamplesCatalog(content);
+}
+
+/** Keep catalog order so curators control which five examples are shown. */
+export function featuredExamples(examples: ExampleProject[]): ExampleProject[] {
+  return examples.filter((example) => example.featured === true).slice(0, 5);
 }
 
 export function findExample(name: string, examples: ExampleProject[]): ExampleProject {

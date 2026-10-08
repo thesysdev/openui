@@ -150,7 +150,7 @@ Every framework overlay includes `get_weather` as its example app-owned function
 
 #### OpenUI examples
 
-Interactive `openui create` offers to scaffold [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). Pass `--example <name>` to skip the menus. `--example` cannot be combined with `--template` or `--backend-framework`.
+Interactive `openui create` offers up to five featured [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). Pass `--example <name>` to skip the menus. `--example` cannot be combined with `--template` or `--backend-framework`.
 
 ```bash
 openui create --example shadcn
@@ -379,3 +379,7 @@ openui create --no-telemetry
 ## License
 
 [MIT](https://github.com/thesysdev/openui/blob/main/LICENSE)
+
+The backend framework picker shows up to five examples marked `featured: true`
+in `examples/examples.json`, in catalog order. Select “More examples…” for the
+complete catalog, or pass any catalog name through `--example`.

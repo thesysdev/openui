@@ -16,7 +16,8 @@
       "title": "Mastra",
       "description": "A Mastra agent connected to OpenUI through AG-UI.",
       "path": "agent-frameworks/mastra",
-      "envKey": "THESYS_API_KEY"
+      "envKey": "THESYS_API_KEY",
+      "featured": true
     },
     {
       "title": "Vercel AI SDK",
@@ -82,13 +83,15 @@
       "title": "Material UI",
       "description": "A broad Material UI component library for generated interfaces.",
       "path": "design-systems/material-ui",
-      "envKey": "THESYS_API_KEY"
+      "envKey": "THESYS_API_KEY",
+      "featured": true
     },
     {
       "title": "shadcn/ui",
       "description": "A broad shadcn/ui component library for generated interfaces.",
       "path": "design-systems/shadcn",
-      "envKey": "THESYS_API_KEY"
+      "envKey": "THESYS_API_KEY",
+      "featured": true
     },
     {
       "title": "Grok Build",
@@ -100,7 +103,8 @@
       "title": "Pi",
       "description": "A Pi coding-agent session on OpenUI Cloud.",
       "path": "harnesses/pi",
-      "envKey": "THESYS_API_KEY"
+      "envKey": "THESYS_API_KEY",
+      "featured": true
     },
     {
       "title": "Autofix",
