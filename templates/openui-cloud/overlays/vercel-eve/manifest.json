@@ -23,7 +23,8 @@
       "@langchain/core",
       "@langchain/langgraph",
       "@langchain/openai",
-      "langchain"
+      "langchain",
+      "@openuidev/server"
     ]
   },
   "files": {

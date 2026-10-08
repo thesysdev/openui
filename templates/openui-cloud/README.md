@@ -45,12 +45,18 @@ starters do not attach Responses-only provider tools.
 
 ## Conversation storage
 
-The browser persists conversation history through `useOpenuiCloudStorage()`
-with a short-lived token from `/api/frontend-token`. LangGraph and Vercel AI SDK
-send the full message history to `/api/chat` on each request. The model route
-uses stateless Chat Completions; it does not append turns using a Responses
-`conversation` parameter. The Eve overlay maps each Cloud thread to an Eve
-session cursor in the browser.
+The browser creates and reads conversations through `useOpenuiCloudStorage()`
+with a short-lived token from `/api/frontend-token`. The LangGraph route uses
+`storeLangGraphHistory` from `@openuidev/server/langgraph` to persist the new user
+message before generation. After a successful run, its `afterAgent` middleware
+stores the new assistant messages, tool calls, and tool results before the stream
+ends. Replayed history is excluded. If generation is stopped or fails, the user
+message remains saved; unfinished output is not saved.
+
+The model route still sends full history to stateless Chat Completions. The
+browser storage adapter does not write messages, so turns are not saved twice.
+Vercel AI SDK and Eve use their own generation paths; this LangGraph persistence
+hook does not apply to those overlays.
 
 Add a LangGraph checkpointer only for graph-specific durable state, interrupts,
 or resumable runs.

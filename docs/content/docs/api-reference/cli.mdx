@@ -107,7 +107,7 @@ Interactive `openui create` lists starter templates, and option to create an app
 
 **Conversation storage**
 
-Cloud conversation history is persisted by the browser through `useOpenuiCloudStorage()` with a short-lived frontend token. LangGraph and Vercel AI SDK send the full message history to `/api/chat` for stateless Chat Completions. Eve maps Cloud threads to its session protocol.
+Cloud conversations are created and read by the browser through `useOpenuiCloudStorage()` with a short-lived frontend token. The LangGraph route saves the new user message before generation with `storeLangGraphHistory`; its `afterAgent` middleware saves only the new assistant messages and tool calls/results on success. LangGraph and Vercel AI SDK send the full message history to `/api/chat` for stateless Chat Completions. Eve maps Cloud threads to its session protocol.
 
 Self-hosted variants keep messages in memory for the current page session. Pass a storage implementation to `AgentInterface` for persistence. Add a LangGraph checkpointer only for graph-specific durable state, interrupts, or resumable runs.
 

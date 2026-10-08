@@ -11,7 +11,8 @@
       "@langchain/core",
       "@langchain/langgraph",
       "@langchain/openai",
-      "langchain"
+      "langchain",
+      "@openuidev/server"
     ]
   },
   "gettingStarted": "The generated Vercel AI SDK route calls OpenUI Cloud Chat Completions. Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise the included AI SDK tool.",

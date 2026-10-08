@@ -159,7 +159,7 @@ openui create --example vue
 
 #### Conversation storage
 
-Cloud conversation history is persisted by the browser through `useOpenuiCloudStorage()` with a short-lived frontend token. LangGraph and Vercel AI SDK routes receive the full message history on each request and use stateless Chat Completions. Add a LangGraph checkpointer only for graph-specific durable state, interrupts, or resumable runs.
+Cloud conversations are created and read by the browser through `useOpenuiCloudStorage()` with a short-lived frontend token. The LangGraph route saves the new user message before generation with `storeLangGraphHistory`; its `afterAgent` middleware saves only the new assistant messages and tool calls/results on success. LangGraph and Vercel AI SDK routes receive the full message history on each request and use stateless Chat Completions. Add a LangGraph checkpointer only for graph-specific durable state, interrupts, or resumable runs.
 
 The self-hosted variants do not configure durable storage. `AgentInterface` keeps the conversation in memory for the current page session and sends that history to `/api/chat`; refreshing the page loses it. Pass a storage implementation to `AgentInterface` and back it with your own database when persistence is required; add a LangGraph checkpointer only for graph-specific durable state.
 

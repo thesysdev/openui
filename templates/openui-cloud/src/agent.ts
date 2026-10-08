@@ -2,6 +2,7 @@ import { tool } from "@langchain/core/tools";
 import { StateSchema } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 import { generateSystemPrompt } from "@openuidev/lang-core";
+import { storeLangGraphHistory } from "@openuidev/server/langgraph";
 import { createAgent, createMiddleware } from "langchain";
 import { z } from "zod";
 import librarySpec from "./generated/spec.json";
@@ -22,6 +23,8 @@ const getWeather = tool(
 );
 
 const CloudAgentState = new StateSchema({
+  conversationId: z.string(),
+  historyLength: z.number().int().nonnegative(),
   model: z.string().default(DEFAULT_MODEL),
 });
 
@@ -44,11 +47,25 @@ const selectedModel = createMiddleware({
   },
 });
 
+const persistTurn = createMiddleware({
+  name: "OpenUICloudHistory",
+  stateSchema: CloudAgentState,
+  afterAgent: async (state) => {
+    // The route already saved the new user message. Ignore all replayed input
+    // and save the completed assistant/tool messages exactly once per run.
+    await storeLangGraphHistory({
+      apiKey: requiredEnv("THESYS_API_KEY"),
+      conversationId: state.conversationId,
+      messages: state.messages.slice(state.historyLength),
+    });
+  },
+});
+
 /** LangGraph owns the tool loop; OpenUI Cloud provides Chat Completions. */
 export const graph = createAgent({
   model: cloudModel(DEFAULT_MODEL),
   tools: [getWeather],
   systemPrompt: generateSystemPrompt({ cloud: true, library: librarySpec }),
   stateSchema: CloudAgentState,
-  middleware: [selectedModel],
+  middleware: [selectedModel, persistTurn],
 });
