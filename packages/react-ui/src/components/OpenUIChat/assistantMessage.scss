@@ -68,5 +68,9 @@
     overflow-wrap: break-word;
     max-width: 100%;
     height: fit-content;
+    // Wrapped text gets more room above and below; one line stays a pill.
+    &[data-multiline] {
+      padding-block: cssUtils.$space-m;
+    }
   }
 }

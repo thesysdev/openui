@@ -358,6 +358,11 @@ $thread-content-max-width: calc(
     overflow-wrap: break-word;
     max-width: 100%;
     height: fit-content;
+
+    // Wrapped text gets more room above and below; one line stays a pill.
+    &[data-multiline] {
+      padding-block: cssUtils.$space-m;
+    }
   }
 
   // Attachments rendered inside the user bubble (images, audio/video, file chips)
@@ -587,16 +592,20 @@ $thread-header-action-min-height: 32px;
 // clear them, and a mask softly fades messages out as they pass beneath.
 // (The welcome screen keeps the stacked layout.)
 $floating-fade: 40px;
+// The header floats over the messages: they stay visible beneath it, dimmed
+// to $floating-top-min-alpha at the very top and fully opaque just below it.
+$floating-top-fade: 12px;
+$floating-top-min-alpha: 0.3;
 
 // Eased fade: alpha stops along a smooth S-curve, so content dissolves
 // gradually instead of along a hard linear ramp.
 $fade-curve: 0, 0.03, 0.1, 0.22, 0.4, 0.6, 0.78, 0.9, 0.97, 1;
 
-@function eased-stops($from, $to, $reverse: false) {
+@function eased-stops($from, $to, $reverse: false, $min: 0) {
   $stops: ();
   $count: length($fade-curve) - 1;
   @for $i from 0 through $count {
-    $alpha: nth($fade-curve, $i + 1);
+    $alpha: $min + (1 - $min) * nth($fade-curve, $i + 1);
     @if $reverse {
       $alpha: 1 - $alpha;
     }
@@ -647,20 +656,18 @@ $floating-header-height: 48px;
 
   .openui-agent-thread-scroll-area {
     // Rest the first and last messages just inside the fully opaque band.
-    padding-top: calc(var(--openui-agent-floating-top) + #{$floating-fade});
+    padding-top: calc(var(--openui-agent-floating-top) + #{$floating-top-fade});
     padding-bottom: calc(var(--openui-agent-floating-bottom) + #{$floating-fade});
-    scroll-padding-top: calc(var(--openui-agent-floating-top) + #{$floating-fade});
+    scroll-padding-top: calc(var(--openui-agent-floating-top) + #{$floating-top-fade});
     scroll-padding-bottom: calc(var(--openui-agent-floating-bottom) + #{$floating-fade});
-    // Fully hidden under the header row, easing in over $floating-fade below
-    // it; mirrored at the bottom, fully hidden by the composer's top edge.
-    $top-start: calc(var(--openui-agent-floating-top) - 4px);
-    $top-end: calc(var(--openui-agent-floating-top) + #{$floating-fade});
+    // Dimmed (not hidden) behind the header row, reaching full opacity just
+    // below it; at the bottom, fully hidden by the composer's top edge.
+    $top-end: calc(var(--openui-agent-floating-top) + #{$floating-top-fade});
     $bottom-start: calc(100% - var(--openui-agent-floating-bottom) - #{$floating-fade});
     $bottom-end: calc(100% - var(--openui-agent-floating-bottom) + 8px);
     $mask: linear-gradient(
       to bottom,
-      transparent 0,
-      eased-stops($top-start, $top-end),
+      eased-stops(0px, $top-end, false, $floating-top-min-alpha),
       eased-stops($bottom-start, $bottom-end, true),
       transparent 100%
     );
