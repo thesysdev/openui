@@ -422,6 +422,21 @@ $sidebar-header-fade-duration: 140ms;
   }
 }
 
+// SidebarFooter: pinned under the thread list. The container's 36px gap is
+// pulled in to 8px so the footer sits close to the list's faded bottom edge.
+.openui-agent-sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-2xs;
+  flex-shrink: 0;
+  margin-top: calc(#{cssUtils.$space-s} - #{cssUtils.$space-2xl});
+
+  .openui-agent-container--mobile & {
+    margin-top: 0;
+    padding: 0 cssUtils.$space-m-l;
+  }
+}
+
 // Draggable right edge (SidebarResizeEdge). No visual of its own.
 .openui-agent-sidebar-resize-edge {
   position: absolute;

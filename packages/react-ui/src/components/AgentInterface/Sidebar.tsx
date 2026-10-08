@@ -287,6 +287,20 @@ export const SidebarContent = ({
   );
 };
 
+/**
+ * Pinned to the bottom of the sidebar, below the thread list. Holds controls
+ * like `ThemeModeToggle`.
+ */
+export const SidebarFooter = ({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) => {
+  return <div className={clsx("openui-agent-sidebar-footer", className)}>{children}</div>;
+};
+
 export const SidebarSeparator = () => {
   return <div className="openui-agent-sidebar-separator" />;
 };

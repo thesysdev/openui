@@ -13,11 +13,13 @@ import {
   openAIConversationMessageFormat,
   openAIResponsesAdapter,
   useOpenuiCloudStorage,
-  useSystemThemeMode,
+  useThemeModePreference,
 } from "@openuidev/react-ui";
 
 export default function CloudChat() {
-  const mode = useSystemThemeMode();
+  // Follows the system theme until the footer toggle is first used, then
+  // remembers the choice.
+  const { setPreference, mode } = useThemeModePreference();
   const [selectedModel, setSelectedModel] = usePersistedModel();
   const llm = fetchLLM({
     url: "/api/chat",
@@ -48,6 +50,9 @@ export default function CloudChat() {
           logo={<BrandLogo />}
           agentName={<BrandWordmark mode={mode} />}
         />
+        <AgentInterface.SidebarFooter>
+          <AgentInterface.ThemeModeToggle mode={mode} onModeChange={setPreference} />
+        </AgentInterface.SidebarFooter>
         <AgentInterface.MobileHeader
           agentName=""
           logo={

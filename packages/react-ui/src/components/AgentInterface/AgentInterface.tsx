@@ -55,10 +55,17 @@ import { HistoryButton } from "./HistoryButton";
 import { MobileHeader } from "./MobileHeader";
 import { NewChatButton } from "./NewChatButton";
 import { Route } from "./Route";
-import { SidebarContainer, SidebarContent, SidebarHeader, SidebarSeparator } from "./Sidebar";
+import {
+  SidebarContainer,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarSeparator,
+} from "./Sidebar";
 import { SidebarItem } from "./SidebarItem";
 import { SidebarSlot } from "./SidebarSlot";
 import { MessageLoading, Messages, ScrollArea, ThreadContainer, ThreadHeader } from "./Thread";
+import { ThemeModeToggle } from "./ThemeModeToggle";
 import { ThreadList } from "./ThreadList";
 import { WelcomeGlow } from "./WelcomeGlow";
 import { WelcomeScreen } from "./WelcomeScreen";
@@ -110,6 +117,7 @@ export interface AgentInterfaceProps extends Omit<ChatProviderProps, "children">
 interface ExtractedSlots {
   sidebar?: ReactElement;
   sidebarHeader?: ReactElement;
+  sidebarFooter?: ReactElement;
   mobileHeader?: ReactElement;
   threadHeader?: ReactElement;
   welcome?: ReactElement;
@@ -124,6 +132,7 @@ type SingleSlotKey = Exclude<keyof ExtractedSlots, "rest" | "routes">;
 const SLOT_KEY_BY_TYPE = new Map<unknown, SingleSlotKey>([
   [SidebarSlot, "sidebar"],
   [SidebarHeader, "sidebarHeader"],
+  [SidebarFooter, "sidebarFooter"],
   [MobileHeader, "mobileHeader"],
   [ThreadHeader, "threadHeader"],
   [ChatHeader, "threadHeader"],
@@ -170,6 +179,8 @@ interface AgentInterfaceComponent extends FC<AgentInterfaceProps> {
   SidebarHeader: typeof SidebarHeader;
   SidebarContent: typeof SidebarContent;
   SidebarSeparator: typeof SidebarSeparator;
+  SidebarFooter: typeof SidebarFooter;
+  ThemeModeToggle: typeof ThemeModeToggle;
   SidebarItem: typeof SidebarItem;
   ArtifactNav: typeof ArtifactNav;
   Workspace: typeof Workspace;
@@ -419,6 +430,7 @@ const AgentInterfaceBody = ({
             <SidebarContent>
               <ThreadList />
             </SidebarContent>
+            {slots.sidebarFooter}
           </>
         )}
       </SidebarContainer>
@@ -481,6 +493,8 @@ AgentInterface.Sidebar = SidebarSlot;
 AgentInterface.SidebarHeader = SidebarHeader;
 AgentInterface.SidebarContent = SidebarContent;
 AgentInterface.SidebarSeparator = SidebarSeparator;
+AgentInterface.SidebarFooter = SidebarFooter;
+AgentInterface.ThemeModeToggle = ThemeModeToggle;
 AgentInterface.SidebarItem = SidebarItem;
 AgentInterface.ArtifactNav = ArtifactNav;
 AgentInterface.Workspace = Workspace;

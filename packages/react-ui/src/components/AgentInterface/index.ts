@@ -10,6 +10,8 @@ export type { ArtifactNavProps } from "./ArtifactNav";
 export type { ChatHeaderProps } from "./ChatHeader";
 export type { RouteProps } from "./Route";
 export { SidebarItem } from "./SidebarItem";
+export { ThemeModeToggle } from "./ThemeModeToggle";
+export type { ThemeModeToggleProps } from "./ThemeModeToggle";
 export type { SidebarItemProps } from "./SidebarItem";
 export { WelcomeGlow } from "./WelcomeGlow";
 export type { WorkspaceProps } from "./Workspace";

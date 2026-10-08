@@ -144,26 +144,33 @@ for (const [key, value] of entries) {
 defaultsLines.push("}");
 defaultsLines.push("");
 
-// ─── Dark mode defaults via prefers-color-scheme ─────────────────────────────
+// ─── Dark mode defaults ──────────────────────────────────────────────────────
+// Dark follows prefers-color-scheme unless the page pins a mode with
+// `data-openui-theme="light" | "dark"` on <html> (set before paint by apps with
+// a theme switcher, so the first frame is already in the chosen mode).
 const darkEntries = Object.entries(defaultDarkTheme).filter(
   ([, value]) => typeof value === "string",
 ) as [string, string][];
 
-defaultsLines.push("@media (prefers-color-scheme: dark) {");
-defaultsLines.push("  :root {");
-
-for (const [key, value] of darkEntries) {
-  if (sectionHeaders[key]) {
-    defaultsLines.push("");
-    defaultsLines.push(`    ${sectionHeaders[key]}`);
-    defaultsLines.push("");
+const pushDarkBlock = (selector: string, indent: string) => {
+  defaultsLines.push(`${indent}${selector} {`);
+  for (const [key, value] of darkEntries) {
+    if (sectionHeaders[key]) {
+      defaultsLines.push("");
+      defaultsLines.push(`${indent}  ${sectionHeaders[key]}`);
+      defaultsLines.push("");
+    }
+    const kebab = camelToKebab(key);
+    defaultsLines.push(`${indent}  --openui-${kebab}: ${value};`);
   }
-  const kebab = camelToKebab(key);
-  defaultsLines.push(`    --openui-${kebab}: ${value};`);
-}
+  defaultsLines.push(`${indent}}`);
+};
 
-defaultsLines.push("  }");
+defaultsLines.push("@media (prefers-color-scheme: dark) {");
+pushDarkBlock(':root:not([data-openui-theme="light"])', "  ");
 defaultsLines.push("}");
+defaultsLines.push("");
+pushDarkBlock(':root[data-openui-theme="dark"]', "");
 defaultsLines.push("");
 
 const defaultsOutputPath = path.resolve(__dirname, "../openui-defaults.scss");
