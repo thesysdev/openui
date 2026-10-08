@@ -331,7 +331,18 @@ const FONT_HEADING = '"Inter", sans-serif';
 const FONT_LABEL = '"Inter", sans-serif';
 const FONT_NUMBERS = '"Inter", sans-serif';
 
-const typographyTheme: TypographyTheme = {
+// Inter is a variable font, so Regular and Medium sit between the named
+// weights: 440 / 560 in light mode, with Regular nudged to 450 in dark mode,
+// where light-on-dark text reads thinner. Every non-code style tracks -1%.
+const TRACKING = "-0.01em";
+
+const createTypographyTheme = ({
+  regular,
+  medium,
+}: {
+  regular: string;
+  medium: string;
+}): TypographyTheme => ({
   fontBody: FONT_BODY,
   fontCode: FONT_CODE,
   fontHeading: FONT_HEADING,
@@ -349,8 +360,8 @@ const typographyTheme: TypographyTheme = {
   fontSize4xl: "32px",
   fontSize5xl: "36px",
 
-  fontWeightRegular: "375",
-  fontWeightMedium: "475",
+  fontWeightRegular: regular,
+  fontWeightMedium: medium,
   fontWeightBold: "600",
   fontWeightHeavy: "700",
 
@@ -360,83 +371,83 @@ const typographyTheme: TypographyTheme = {
   lineHeightLabel: "1.25",
   lineHeightCode: "1.5",
 
-  letterSpacingNormal: "0",
+  letterSpacingNormal: TRACKING,
   letterSpacingTight: "-0.1px",
   letterSpacingTighter: "-0.2px",
 
   // Body
-  textBodyXs: `400 12px/1.5 ${FONT_BODY}`,
-  textBodyXsLetterSpacing: "0",
-  textBodyXsHeavy: `500 12px/1.5 ${FONT_BODY}`,
-  textBodyXsHeavyLetterSpacing: "0",
-  textBodySm: `400 14px/1.5 ${FONT_BODY}`,
-  textBodySmLetterSpacing: "0",
-  textBodySmHeavy: `500 14px/1.5 ${FONT_BODY}`,
-  textBodySmHeavyLetterSpacing: "0",
-  textBodyDefault: `400 16px/1.5 ${FONT_BODY}`,
-  textBodyDefaultLetterSpacing: "0",
-  textBodyDefaultHeavy: `500 16px/1.5 ${FONT_BODY}`,
-  textBodyDefaultHeavyLetterSpacing: "0",
-  textBodyLg: `400 18px/1.5 ${FONT_BODY}`,
-  textBodyLgLetterSpacing: "0",
-  textBodyLgHeavy: `500 18px/1.5 ${FONT_BODY}`,
-  textBodyLgHeavyLetterSpacing: "0",
+  textBodyXs: `${regular} 12px/1.5 ${FONT_BODY}`,
+  textBodyXsLetterSpacing: TRACKING,
+  textBodyXsHeavy: `${medium} 12px/1.5 ${FONT_BODY}`,
+  textBodyXsHeavyLetterSpacing: TRACKING,
+  textBodySm: `${regular} 14px/1.5 ${FONT_BODY}`,
+  textBodySmLetterSpacing: TRACKING,
+  textBodySmHeavy: `${medium} 14px/1.5 ${FONT_BODY}`,
+  textBodySmHeavyLetterSpacing: TRACKING,
+  textBodyDefault: `${regular} 16px/1.5 ${FONT_BODY}`,
+  textBodyDefaultLetterSpacing: TRACKING,
+  textBodyDefaultHeavy: `${medium} 16px/1.5 ${FONT_BODY}`,
+  textBodyDefaultHeavyLetterSpacing: TRACKING,
+  textBodyLg: `${regular} 18px/1.5 ${FONT_BODY}`,
+  textBodyLgLetterSpacing: TRACKING,
+  textBodyLgHeavy: `${medium} 18px/1.5 ${FONT_BODY}`,
+  textBodyLgHeavyLetterSpacing: TRACKING,
 
   // Heading
   textHeadingXs: `600 16px/1.25 ${FONT_HEADING}`,
-  textHeadingXsLetterSpacing: "0",
+  textHeadingXsLetterSpacing: TRACKING,
   textHeadingSm: `600 18px/1.25 ${FONT_HEADING}`,
-  textHeadingSmLetterSpacing: "0",
+  textHeadingSmLetterSpacing: TRACKING,
   textHeadingMd: `600 24px/1.1 ${FONT_HEADING}`,
-  textHeadingMdLetterSpacing: "0",
+  textHeadingMdLetterSpacing: TRACKING,
   textHeadingLg: `600 28px/1.1 ${FONT_HEADING}`,
   textHeadingLgLetterSpacing: "-0.1px",
   textHeadingXl: `700 32px/1.1 ${FONT_HEADING}`,
   textHeadingXlLetterSpacing: "-0.1px",
 
   // Label
-  textLabelXs: `400 12px/1.25 ${FONT_LABEL}`,
-  textLabelXsLetterSpacing: "0",
-  textLabelXsHeavy: `500 12px/1.25 ${FONT_LABEL}`,
-  textLabelXsHeavyLetterSpacing: "0",
-  textLabelSm: `400 14px/1.25 ${FONT_LABEL}`,
-  textLabelSmLetterSpacing: "0",
-  textLabelSmHeavy: `500 14px/1.25 ${FONT_LABEL}`,
-  textLabelSmHeavyLetterSpacing: "0",
-  textLabelDefault: `400 16px/1.25 ${FONT_LABEL}`,
-  textLabelDefaultLetterSpacing: "0",
-  textLabelDefaultHeavy: `500 16px/1.25 ${FONT_LABEL}`,
-  textLabelDefaultHeavyLetterSpacing: "0",
-  textLabelLg: `400 18px/1.25 ${FONT_LABEL}`,
-  textLabelLgLetterSpacing: "0",
-  textLabelLgHeavy: `500 18px/1.25 ${FONT_LABEL}`,
-  textLabelLgHeavyLetterSpacing: "0",
+  textLabelXs: `${regular} 12px/1.25 ${FONT_LABEL}`,
+  textLabelXsLetterSpacing: TRACKING,
+  textLabelXsHeavy: `${medium} 12px/1.25 ${FONT_LABEL}`,
+  textLabelXsHeavyLetterSpacing: TRACKING,
+  textLabelSm: `${regular} 14px/1.25 ${FONT_LABEL}`,
+  textLabelSmLetterSpacing: TRACKING,
+  textLabelSmHeavy: `${medium} 14px/1.25 ${FONT_LABEL}`,
+  textLabelSmHeavyLetterSpacing: TRACKING,
+  textLabelDefault: `${regular} 16px/1.25 ${FONT_LABEL}`,
+  textLabelDefaultLetterSpacing: TRACKING,
+  textLabelDefaultHeavy: `${medium} 16px/1.25 ${FONT_LABEL}`,
+  textLabelDefaultHeavyLetterSpacing: TRACKING,
+  textLabelLg: `${regular} 18px/1.25 ${FONT_LABEL}`,
+  textLabelLgLetterSpacing: TRACKING,
+  textLabelLgHeavy: `${medium} 18px/1.25 ${FONT_LABEL}`,
+  textLabelLgHeavyLetterSpacing: TRACKING,
 
   // Numbers
-  textNumbersXs: `400 12px/1.5 ${FONT_NUMBERS}`,
-  textNumbersXsLetterSpacing: "0",
-  textNumbersXsHeavy: `500 12px/1.5 ${FONT_NUMBERS}`,
-  textNumbersXsHeavyLetterSpacing: "0",
-  textNumbersSm: `400 14px/1.5 ${FONT_NUMBERS}`,
-  textNumbersSmLetterSpacing: "0",
-  textNumbersSmHeavy: `500 14px/1.5 ${FONT_NUMBERS}`,
-  textNumbersSmHeavyLetterSpacing: "0",
-  textNumbersDefault: `400 16px/1.5 ${FONT_NUMBERS}`,
-  textNumbersDefaultLetterSpacing: "0",
-  textNumbersDefaultHeavy: `500 16px/1.5 ${FONT_NUMBERS}`,
-  textNumbersDefaultHeavyLetterSpacing: "0",
-  textNumbersLg: `400 18px/1.5 ${FONT_NUMBERS}`,
-  textNumbersLgLetterSpacing: "0",
-  textNumbersLgHeavy: `500 18px/1.5 ${FONT_NUMBERS}`,
-  textNumbersLgHeavyLetterSpacing: "0",
+  textNumbersXs: `${regular} 12px/1.5 ${FONT_NUMBERS}`,
+  textNumbersXsLetterSpacing: TRACKING,
+  textNumbersXsHeavy: `${medium} 12px/1.5 ${FONT_NUMBERS}`,
+  textNumbersXsHeavyLetterSpacing: TRACKING,
+  textNumbersSm: `${regular} 14px/1.5 ${FONT_NUMBERS}`,
+  textNumbersSmLetterSpacing: TRACKING,
+  textNumbersSmHeavy: `${medium} 14px/1.5 ${FONT_NUMBERS}`,
+  textNumbersSmHeavyLetterSpacing: TRACKING,
+  textNumbersDefault: `${regular} 16px/1.5 ${FONT_NUMBERS}`,
+  textNumbersDefaultLetterSpacing: TRACKING,
+  textNumbersDefaultHeavy: `${medium} 16px/1.5 ${FONT_NUMBERS}`,
+  textNumbersDefaultHeavyLetterSpacing: TRACKING,
+  textNumbersLg: `${regular} 18px/1.5 ${FONT_NUMBERS}`,
+  textNumbersLgLetterSpacing: TRACKING,
+  textNumbersLgHeavy: `${medium} 18px/1.5 ${FONT_NUMBERS}`,
+  textNumbersLgHeavyLetterSpacing: TRACKING,
   textNumbersHeadingSm: `600 18px/1.25 ${FONT_NUMBERS}`,
-  textNumbersHeadingSmLetterSpacing: "0",
+  textNumbersHeadingSmLetterSpacing: TRACKING,
   textNumbersHeadingMd: `600 24px/1.1 ${FONT_NUMBERS}`,
-  textNumbersHeadingMdLetterSpacing: "0",
+  textNumbersHeadingMdLetterSpacing: TRACKING,
   textNumbersHeadingLg: `600 28px/1.1 ${FONT_NUMBERS}`,
-  textNumbersHeadingLgLetterSpacing: "0",
+  textNumbersHeadingLgLetterSpacing: TRACKING,
   textNumbersHeadingXl: `600 32px/1.1 ${FONT_NUMBERS}`,
-  textNumbersHeadingXlLetterSpacing: "0",
+  textNumbersHeadingXlLetterSpacing: TRACKING,
 
   // Code
   textCodeSm: `400 12px/1.5 ${FONT_CODE}`,
@@ -447,7 +458,10 @@ const typographyTheme: TypographyTheme = {
   textCodeDefaultLetterSpacing: "0",
   textCodeDefaultHeavy: `700 14px/1.5 ${FONT_CODE}`,
   textCodeDefaultHeavyLetterSpacing: "0",
-};
+});
+
+const lightTypographyTheme = createTypographyTheme({ regular: "440", medium: "560" });
+const darkTypographyTheme = createTypographyTheme({ regular: "450", medium: "560" });
 
 // ---------------------------------------------------------------------------
 // Effects – resolved from shadows.css (light values)
@@ -487,7 +501,7 @@ const darkEffectTheme: EffectTheme = {
 export const defaultLightTheme: Theme = Object.freeze({
   ...lightColorTheme,
   ...layoutTheme,
-  ...typographyTheme,
+  ...lightTypographyTheme,
   ...lightEffectTheme,
 });
 
@@ -501,6 +515,6 @@ export const defaultLightTheme: Theme = Object.freeze({
 export const defaultDarkTheme: Theme = Object.freeze({
   ...darkColorTheme,
   ...layoutTheme,
-  ...typographyTheme,
+  ...darkTypographyTheme,
   ...darkEffectTheme,
 });

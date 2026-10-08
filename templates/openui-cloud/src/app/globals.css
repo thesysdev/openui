@@ -63,6 +63,13 @@ body {
   height: 100%;
 }
 
+/* Default text takes the theme's Regular weight and -1% tracking, like the
+   react-ui typography tokens. */
+body {
+  font-weight: var(--openui-font-weight-regular);
+  letter-spacing: var(--openui-letter-spacing-normal);
+}
+
 /* Thread-header layout for a title-less header holding the model switcher
    (used by the langgraph and vercel-ai-sdk overlays): hide the empty title
    slot, let the actions row fill and distribute. */
