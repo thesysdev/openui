@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 // Variable Inter (no fixed weights), so the theme's in-between weights
-// (440 / 450 Regular, 560 Medium) render as set.
+// (440 / 420 Regular, 560 Medium) render as set.
 const inter = Inter({
   subsets: ["latin"],
 });
