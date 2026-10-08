@@ -379,5 +379,5 @@ openui create --no-telemetry
 [MIT](https://github.com/thesysdev/openui/blob/main/LICENSE)
 
 The backend framework picker shows up to five examples marked `featured: true`
-in `examples/examples.json`, in catalog order. Select “More examples…” for the
+in `examples/examples.json`, in catalog order. Select “More OpenUI Examples →” for the
 complete catalog, or pass any catalog name through `--example`.

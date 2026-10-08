@@ -80,16 +80,16 @@
       "envKey": "THESYS_API_KEY"
     },
     {
-      "title": "Material UI",
-      "description": "A broad Material UI component library for generated interfaces.",
-      "path": "design-systems/material-ui",
+      "title": "ShadCN",
+      "description": "A broad shadcn/ui component library for generated interfaces.",
+      "path": "design-systems/shadcn",
       "envKey": "THESYS_API_KEY",
       "featured": true
     },
     {
-      "title": "shadcn/ui",
-      "description": "A broad shadcn/ui component library for generated interfaces.",
-      "path": "design-systems/shadcn",
+      "title": "Material UI",
+      "description": "A broad Material UI component library for generated interfaces.",
+      "path": "design-systems/material-ui",
       "envKey": "THESYS_API_KEY",
       "featured": true
     },
@@ -100,7 +100,7 @@
       "envKey": "XAI_API_KEY"
     },
     {
-      "title": "Pi",
+      "title": "Pi Harness",
       "description": "A Pi coding-agent session on OpenUI Cloud.",
       "path": "harnesses/pi",
       "envKey": "THESYS_API_KEY",

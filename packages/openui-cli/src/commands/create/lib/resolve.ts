@@ -158,7 +158,7 @@ export async function resolveCreateSelection(params: {
       description: overlay.description,
     }));
     if (featured.length > 0) {
-      starterChoices.push(new Separator("Featured examples"));
+      starterChoices.push(new Separator());
       starterChoices.push(
         ...featured.map((example) => ({
           value: `${EXAMPLE_CHOICE_PREFIX}${example.name}`,
@@ -170,13 +170,13 @@ export async function resolveCreateSelection(params: {
     if (examples.length > 0) {
       starterChoices.push({
         value: OPENUI_EXAMPLES_CHOICE,
-        name: "More examples…",
+        name: "More OpenUI Examples →",
         description: "Browse the complete OpenUI example catalog",
       });
     }
 
     const selected = await prompt<string>(
-      "Choose your backend framework or example",
+      "Choose your backend framework",
       starterChoices,
       starterChoices.length,
     );
