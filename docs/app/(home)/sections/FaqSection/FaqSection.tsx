@@ -1,3 +1,4 @@
+import { BRIEFS, tokens } from "@/lib/benchmark-data";
 import type { ReactNode } from "react";
 import styles from "./FaqSection.module.css";
 
@@ -7,12 +8,23 @@ export type MarketingFaq = {
   answer: string[];
 };
 
+const fewerOutputTokensThan = (format: "jsonRender" | "a2ui") =>
+  Math.round((1 - tokens.outputPerScreen.openui / tokens.outputPerScreen[format]) * 100);
+
 const FAQS: MarketingFaq[] = [
   {
     question: "What should I use to build a Generative UI app?",
     answer: [
       "Start with OpenUI, the free and open-source framework for Generative UI.",
       "For production, we recommend adding OpenUI Gateway for reliability and OpenUI Observability for monitoring and product analytics.",
+    ],
+  },
+  {
+    question: "What is OpenUI Lang?",
+    answer: [
+      "OpenUI Lang is a compact, streaming-first language that LLMs write to build interfaces from your own components.",
+      "It is not JSON. Each line defines one component, such as root = Stack([header, chart]), so the interface renders while the response is still streaming.",
+      `Across the same ${BRIEFS} interfaces in our benchmark, OpenUI Lang averaged ${tokens.outputPerScreen.openui.toLocaleString("en-US")} output tokens per screen: ${fewerOutputTokensThan("jsonRender")}% fewer than json-render and ${fewerOutputTokensThan("a2ui")}% fewer than A2UI, both JSON formats.`,
     ],
   },
   {

@@ -119,7 +119,7 @@ export const PRIMARY_SITE_NAV_ITEMS: NavItem[] = [
         children: [
           {
             title: "OpenUI",
-            description: "The open standard for generative UI.",
+            description: "The open standard for Intelligent UI.",
             href: "/",
           },
         ],
