@@ -131,3 +131,26 @@ chatCompletionMessagesToItems([
   { role: "assistant", content: "hi" },
 ]);
 ```
+
+### LangGraph
+
+Import `storeLangGraphHistory` from `@openuidev/server/langgraph`. Pass completed
+LangChain message instances or plain objects with `type`, `content`, `tool_calls`,
+and `tool_call_id`. No LangChain runtime dependency is required.
+
+```ts
+import { storeLangGraphHistory } from "@openuidev/server/langgraph";
+
+await storeLangGraphHistory({
+  apiKey: process.env.THESYS_API_KEY!,
+  conversationId: threadId,
+  messages: newTurnMessages,
+});
+```
+
+Store only the new turn, including tool calls and results. Passing the full
+replayed history or individual streaming chunks creates duplicate items.
+The conversation must already exist. System/developer instructions are skipped;
+text and user `image_url` blocks are supported. Use `langGraphMessagesToItems`
+for conversion without a network request. `apiBaseUrl` and `fetch` work as in
+`storeChatCompletionHistory`; storage failures reject the returned promise.
