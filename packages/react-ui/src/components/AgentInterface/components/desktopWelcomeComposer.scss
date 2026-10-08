@@ -6,9 +6,13 @@
 // rounded rectangle as the draft grows.
 .openui-agent-desktop-welcome-composer {
   background-color: cssUtils.$foreground;
-  border: 1px solid cssUtils.$sunk;
+  // 0.5px hairline ring hugging the outside edge (transparent 1px border keeps
+  // the 56px resting height unchanged), very faint so it reads as an edge.
+  border: 1px solid transparent;
   border-radius: cssUtils.$radius-6xl;
-  box-shadow: 0 4px 16px oklch(0 0 0 / 0.06);
+  box-shadow:
+    0 0 0 0.5px oklch(0 0 0 / 0.08),
+    0 4px 16px oklch(0 0 0 / 0.06);
   overflow: clip;
   display: flex;
   flex-direction: row;

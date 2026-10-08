@@ -1,7 +1,7 @@
 import { useThreadList } from "@openuidev/react-headless";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import clsx from "clsx";
-import { History } from "lucide-react";
+import { Clock } from "lucide-react";
 import { useState } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
 import { useOptionalSidebarVisualState } from "./Sidebar";
@@ -47,7 +47,7 @@ export const HistoryButton = ({ className }: { className?: string }) => {
             className={clsx("openui-agent-history-button", className)}
             aria-label="Chat history"
           >
-            <History size="1em" aria-hidden="true" />
+            <Clock size="1em" aria-hidden="true" />
           </button>
         </DropdownMenu.Trigger>
       </SidebarTooltip>

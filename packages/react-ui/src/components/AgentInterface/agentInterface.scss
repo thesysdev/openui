@@ -26,9 +26,11 @@
   width: 100dvw;
   overflow: hidden;
 
-  // Shell surface the sidebar sits on: plain white. On desktop the thread card
-  // is separated from it by its outline (see thread.scss).
-  background: cssUtils.$foreground;
+  // Shell surface the sidebar sits on: a very faint grey wash (1% black); the
+  // thread is a white raised card above it on desktop (see thread.scss).
+  // Mobile stays a single flat surface.
+  background:
+    linear-gradient(oklch(0.097 0 0 / 0.01), oklch(0.097 0 0 / 0.01)), cssUtils.$foreground;
   box-sizing: border-box;
   & * {
     box-sizing: border-box;
