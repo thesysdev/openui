@@ -1,11 +1,14 @@
 ---
 title: "How ChatGPT Intelligent UI works"
-description: "We reverse-engineered how Intelligent UI works in ChatGPT. An intermediary inference language, a server-side conversion and a native renderer work together with a design system to bring generative UI to life."
+description: "We reverse-engineered how Intelligent UI works in ChatGPT. An inference format, server-side compilation, a client runtime and rendering work together with a design system and catalog to bring Generative UI to life."
 author: Thesys Engineering Team
 date: 2026-10-08
 ---
 
+import { ArchitectureDiagram } from "./components/architecture-diagram";
 import { ImageResolutionDemo } from "./components/image-resolution-demo";
+import { SliderInteraction } from "./components/slider-interaction";
+import { StreamTimeline } from "./components/stream-timeline";
 
 ## What is Intelligent UI?
 
@@ -23,20 +26,17 @@ The observations in this article were made on ChatGPT for the web in October 202
 
 ## Building blocks
 
-ChatGPT's implementation divides the work between the model, OpenAI's server, and the client:
+ChatGPT's implementation divides the work between the model, the backend server, and the client:
 
-- [Inference format](#1-inference-format): the model writes the interface as Markdown combined with JSX-like tags and JavaScript.
-- [Server-side compilation](#11-server-side-compilation-script--data-json): the server converts each partial response into a JavaScript program and a JSON document of text and data.
-- [Client runtime and rendering](#2-client-side): a sandboxed runtime executes the program, and ChatGPT draws the result with its native components.
-- [Design system and catalog](#3-design-system-and-catalog): the components, properties, and design tokens available to the model.
+- [Inference format](#inference-format): the model writes the interface in DIL, which combines Markdown with JSX-like tags and JavaScript.
+- [Server-side compilation](#server-side-compilation): the server converts each partial response into a JavaScript program and a JSON document of text and data.
+- [Client runtime](#client-runtime): a sandboxed runtime executes the program and produces UI operations.
+- [Rendering](#rendering): ChatGPT applies the operations to its own native components.
+- [Design system and catalog](#design-system-and-catalog): the components, properties, and design tokens available to the model.
 
-<figure>
+<ArchitectureDiagram />
 
-[![ChatGPT Intelligent UI architecture: the model emits DIL, the server compiles JavaScript and JSON data, a sandboxed worker executes the program, and the native renderer applies UI operations. User events return to the worker for local state updates without a model call.](/images/blog/intelligent-ui/chatgpt-intelligent-ui-architecture.png)](/images/blog/intelligent-ui/chatgpt-intelligent-ui-architecture.png)
-
-</figure>
-
-## 1. Inference format
+## Inference format
 
 This is what the model writes. In ChatGPT, it is a language OpenAI calls DIL: Markdown for prose, JSX-like tags for components, and JavaScript for state and logic. We will follow one small response through every layer:
 
@@ -69,9 +69,9 @@ A dedicated format is needed because the model writes the interface token by tok
 - **It has to be easy to write reliably,** so it is built from notation the model already knows well.
 - **It has to stay usable while half-written.** Statements sit on their own lines, and any open element can be closed automatically. That lets the server cut a partial response at its last complete construct and still compile it.
 
-### 1.1 Server-side compilation: script + data JSON
+## Server-side compilation
 
-The client never executes the model's output as written. OpenAI's server compiles it into a JavaScript program and a JSON document, which are stored with the message (as `model_dil_v2`). The response compiles to this (formatted for readability):
+The client never executes the model's output as written. The backend server compiles it into a JavaScript program and a JSON document, which are stored with the message (as `model_dil_v2`). The response compiles to this (formatted for readability):
 
 ```js
 function __dilSafe(evaluate, failureValue) {
@@ -118,22 +118,15 @@ Compilation does work that every client would otherwise have to repeat:
 
 The JSON document holds the text constants and any data the server resolves for the response, such as image search results (see [Data](#data)).
 
-## 2. Client side
+## Client runtime
 
 The client receives the compiled program and the JSON document. Its work is split between a runtime, which executes the program, and a renderer, which draws the result.
-
-### 2.1 JavaScript runtime
 
 The program is model-written code, so it does not run in the ChatGPT page. ChatGPT loads a hidden iframe (`runner.html`), sandboxed with `allow-scripts` and a content security policy of `default-src 'none'`, which starts a Web Worker.
 
 - **Lockdown.** Before evaluating a program, the worker removes network access, timers, messaging, and dynamic code evaluation from its global scope, and freezes the remaining globals.
 - **Evaluation.** It then evaluates the program with `new Function`. The runtime objects (`DIL`, `__dil`, `GenUI`) and the catalog's composite components are passed in as parameters.
 - **Watchdog.** A program that does not respond within a timeout is quarantined, and the worker is restarted.
-
-{/*
-![Image placeholder: the ChatGPT page, the hidden runner iframe and the Web Worker, with messages between them](images/fig-03-runtime.png)
-*Figure 3. Where the compiled program runs.*
-*/}
 
 The runtime is a small reconciler in the style of React. It renders the component and keeps hook state in keyed slots. It then compares the resulting tree with the previous one and encodes the differences as a list of operations. It does not draw anything.
 
@@ -157,23 +150,19 @@ CREATE #13 text "/mo"                                                 PLACE unde
 
 Functions never leave the worker; the slider's handler is sent only as an identifier (`fn#1`). On the wire, the operations are encoded as a binary sequence of integers, with strings held in a separate table.
 
-### 2.2 Rendering
+## Rendering
 
-The ChatGPT page applies the operations to its own component tree. Each `CREATE` instantiates a native component from ChatGPT's design system, and the page animates changes as they arrive. The page accepts operations only for known component types, so model output cannot introduce arbitrary markup or styles (with some exceptions).
+The ChatGPT page applies the operations to its own component tree. Each `CREATE` instantiates a native component from ChatGPT's design system, and the page animates changes as they arrive. The page accepts operations only for known component types, so model output cannot introduce arbitrary markup or styles. The exceptions are the raw CSS values some properties accept (see [Design system and catalog](#design-system-and-catalog)) and `AppBlock` apps, which run in an iframe (see [AppBlock escape hatch](#appblock-escape-hatch)).
 
 Interaction runs in the opposite direction. When the user drags the slider to 9, the page sends the handler's identifier and arguments to the worker. The worker calls `setSeats(9)`, re-renders, and returns update operations.
 
 No model call is involved.
 
-<figure>
-
-[![ChatGPT Intelligent UI slider interaction: dragging from 8 to 9 seats sends a callback to the sandboxed worker, which updates state and returns UI operations. The native renderer changes the monthly price from $232 to $261 without another model call.](/images/blog/intelligent-ui/chatgpt-intelligent-ui-interaction-flow.png)](/images/blog/intelligent-ui/chatgpt-intelligent-ui-interaction-flow.png)
-
-</figure>
+<SliderInteraction />
 
 The operation protocol does not depend on the platform. The worker's sandbox also permits the globals of Hermes, the JavaScript engine used by React Native. This suggests that ChatGPT's mobile apps run the same runtime and apply the operations with their own native renderers; we have not verified this directly.
 
-## 3. Design system and catalog
+## Design system and catalog
 
 The catalog defines what the model can request. It is needed because the model does not build an interface from raw layout and styling rules. It chooses from components ChatGPT already knows how to draw, and styles them with design tokens such as `padding={3}`. Raw CSS values, such as pixel widths and hex colours, are accepted for some properties, but design tokens are preferred. As a result:
 
@@ -244,15 +233,11 @@ We captured one response of 6,341 characters. Its text streamed over 18.7 second
 
 The compiled program is a single nested expression whose closing brackets change with every recompile, so it cannot be appended to and is replaced in full. Re-sent code made up 83% of the roughly 275 KB of patches for this response. Updates arrived at a median interval of 230 ms, and full recompiles every 290 ms. In two other captures, updates arrived about every 410 ms.
 
-<figure>
-
-[![Timeline of a streamed ChatGPT Intelligent UI response: raw text arrives alongside 52 structure updates, 14 constants-only updates, and 10 updates with no UI change. Five image requests resolve in 1.4 to 1.7 seconds. The timeline includes setup and stream completion.](/images/blog/intelligent-ui/chatgpt-dil-stream-timeline.png)](/images/blog/intelligent-ui/chatgpt-dil-stream-timeline.png)
-
-</figure>
+<StreamTimeline />
 
 ### On the client
 
-The page passes each new program to the sandboxed worker. The worker evaluates it, re-renders with the existing state, and sends update operations to the page. State keeps its values across recompiles because of the keys added during compilation (Section 1.1). If a new program fails to evaluate or render, the worker keeps the last one that worked.
+The page passes each new program to the sandboxed worker. The worker evaluates it, re-renders with the existing state, and sends update operations to the page. State keeps its values across recompiles because of the keys added during [compilation](#server-side-compilation). If a new program fails to evaluate or render, the worker keeps the last one that worked.
 
 The page then animates each change:
 
@@ -263,7 +248,9 @@ The page then animates each change:
 
 ## Data
 
-Tool results contain values a user may act on: a retailer's price, a place's address, or an image from a page. Passing those values through the model risks copying errors or invented details. In our captures, ChatGPT supplied some data separately from the model's output. We observed field binding for product results, while weather figures from a web search were written directly into the response by the model. Where data was supplied separately, the model wrote a request or a reference, and the server supplied the data with the compiled program in `appData`. We observed two mechanisms.
+Tool results contain values a user may act on: a retailer's price, a place's address, or an image from a page. Passing those values through the model risks copying errors or invented details. So ChatGPT supplies some of this data separately from the model's output: the model writes a request or a reference, and the server fills in the values alongside the compiled program, in `appData`. We saw two mechanisms for this, described below.
+
+Not all tool data takes this route. Weather figures from a web search, for example, were written into the response by the model itself.
 
 ### Server-defined components
 
@@ -313,14 +300,9 @@ The server supplies the referenced fields with the response:
 
 The price on screen comes from the search result itself, not from the model's copy of it.
 
-{/*
-![Image placeholder: a product comparison whose images, names and prices come from search results](images/fig-07-product-comparison.png)
-*Figure 7. A product comparison built from bound tool results.*
-*/}
+## Actions
 
-## Actions (buttons, forms, and more)
-
-Most interactions never leave the response. Dragging a slider or ticking a checkbox changes state inside the worker, and the page receives only the resulting operations (Section 2.2). Actions are the interactions that reach outside the response. The program reaches them through a small `GenUI` object provided by the host, with functions like:
+Most interactions never leave the response. Dragging a slider or ticking a checkbox changes state inside the worker, and the page receives only the resulting operations (see [Rendering](#rendering)). Actions are the interactions that reach outside the response. The program reaches them through a small `GenUI` object provided by the host, with functions like:
 
 - `issueNewTurn(text)`
 - `copy(text)`
@@ -343,12 +325,7 @@ Develop a detailed dog vest design concept based on my moodboard. Style: cozy. M
 
 The message is stored exactly like a typed one, with nothing marking it as coming from the interface. Forms work the same way: `<form onSubmit={…}>` together with `<button submit>` calls `issueNewTurn` with the form's values.
 
-{/*
-![Image placeholder: a button in a response and the user message it sends](images/fig-08-issue-new-turn.png)
-*Figure 8. A button sends the current selections as a new user message.*
-*/}
-
-## Escape hatch: AppBlock, an app in an iframe
+## AppBlock escape hatch
 
 Some requests call for things the native components are not designed for, such as a drum machine that synthesizes sound with Web Audio. For these, the model can write an `AppBlock`: a self-contained web app in HTML, CSS, and JavaScript, embedded in the response. This is the start of one, shortened:
 
@@ -395,7 +372,7 @@ An app in an iframe sits outside ChatGPT's design system. Left alone, it would l
 
 Unlike a native response, the app draws its own interface. Its state lives in its own JavaScript variables, and in our captures it made no calls back to ChatGPT.
 
-<figure>
+<figure className="mx-auto max-w-[520px]">
 
 [![Drum Lab running as an AppBlock in ChatGPT: a 16-step drum sequencer with tempo, swing and volume controls, six performance pads, groove presets and pattern export.](/images/blog/intelligent-ui/chatgpt-appblock-drum-lab.png)](/images/blog/intelligent-ui/chatgpt-appblock-drum-lab.png)
 
