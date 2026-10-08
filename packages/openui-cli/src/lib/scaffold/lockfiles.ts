@@ -10,7 +10,7 @@ export function applyLockfileHygiene(params: {
   packageManager: PackageManagerName;
   backendFramework: string;
 }): void {
-  const { targetDir, overlay, packageManager, backendFramework } = params;
+  const { targetDir, overlay, packageManager } = params;
   // An overlay that changes dependencies without a lock must not keep the base lock
   const overlayShipsNpmLock = Boolean(
     overlay && fs.existsSync(path.join(overlay.dir, "package-lock.json")),
@@ -21,9 +21,7 @@ export function applyLockfileHygiene(params: {
   // The Cloud template ships pnpm's lock/workspace files for reproducible pnpm
   // installs and native-build policy. A framework changes dependencies, so
   // regenerate its lock; non-pnpm scaffolds do not need either pnpm file.
-  if (packageManager !== "pnpm" || backendFramework !== "default") {
-    fs.rmSync(path.join(targetDir, "pnpm-lock.yaml"), { force: true });
-  }
+  fs.rmSync(path.join(targetDir, "pnpm-lock.yaml"), { force: true });
   if (packageManager !== "pnpm") {
     fs.rmSync(path.join(targetDir, "pnpm-workspace.yaml"), { force: true });
   }

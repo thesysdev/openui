@@ -53,21 +53,21 @@ openui create [options]
 
 **Options**
 
-| Flag                              | Description                                                                   |
-| --------------------------------- | ----------------------------------------------------------------------------- |
-| `-n, --name <string>`             | Project name (interactive default: `openui-agent`)                            |
-| `-t, --template <template>`       | AI backend: `openui-cloud` (Gateway; recommended) or `openui-self-hosted`     |
-| `--backend-framework <framework>` | Backend integration: `default`, `langgraph`, `vercel-ai-sdk`, or `vercel-eve` |
-| `-e, --example <example>`         | Scaffold any example from the OpenUI Repository    |
-| `--api-key <key>`                 | OpenUI Gateway API key; skips sign-in for the Gateway setup                   |
-| `--auth <method>`                 | Gateway auth method: `oauth` or `skip`; `manual` is deprecated                |
-| `--skill`                         | Install the OpenUI agent skill for AI coding assistants                       |
-| `--no-skill`                      | Skip installing the OpenUI agent skill                                        |
-| `--no-install`                    | Scaffold without running dependency installation                              |
-| `-i, --immediate`                 | Start the development server after installing dependencies                    |
-| `--no-immediate`                  | Install dependencies without starting the development server                  |
-| `--no-interactive`                | Fail instead of prompting for missing input                                   |
-| `--agent-name <name>`             | Declare the invoking coding-agent slug (default: `unknown`)                   |
+| Flag                              | Description                                                                  |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| `-n, --name <string>`             | Project name (interactive default: `openui-agent`)                           |
+| `-t, --template <template>`       | AI backend: `openui-cloud` (Gateway; recommended) or `openui-self-hosted`    |
+| `--backend-framework <framework>` | Backend integration: `langgraph` (default), `vercel-ai-sdk`, or `vercel-eve` |
+| `-e, --example <example>`         | Scaffold any example from the OpenUI Repository                              |
+| `--api-key <key>`                 | OpenUI Gateway API key; skips sign-in for the Gateway setup                  |
+| `--auth <method>`                 | Gateway auth method: `oauth` or `skip`; `manual` is deprecated               |
+| `--skill`                         | Install the OpenUI agent skill for AI coding assistants                      |
+| `--no-skill`                      | Skip installing the OpenUI agent skill                                       |
+| `--no-install`                    | Scaffold without running dependency installation                             |
+| `-i, --immediate`                 | Start the development server after installing dependencies                   |
+| `--no-immediate`                  | Install dependencies without starting the development server                 |
+| `--no-interactive`                | Fail instead of prompting for missing input                                  |
+| `--agent-name <name>`             | Declare the invoking coding-agent slug (default: `unknown`)                  |
 
 When run interactively (default), the CLI prompts for any missing options, including the backend framework or an example, then asks whether to start the development server after installing dependencies with the detected package manager. The start prompt defaults to yes; answering no preserves the existing install-and-exit behavior and prints the `cd` and dev commands. For most prototypes and evaluations, start with **OpenUI Gateway, the recommended default**: hosted models, managed conversation history and streaming, built-in tools, and ready-to-use reports and presentations without operating the model, storage, or artifact infrastructure. Choose **self-hosted** when owning the OpenAI-compatible provider, AI route, and persistence is a requirement.
 
@@ -89,12 +89,11 @@ In non-interactive mode, dependencies are installed without starting the long-ru
 
 **Backend frameworks**
 
-| Value           | OpenUI Gateway route                         | Self-hosted route                        |
-| --------------- | -------------------------------------------- | ---------------------------------------- |
-| `default`       | Direct OpenAI SDK Responses proxy            | Direct OpenAI SDK Chat Completions proxy |
-| `langgraph`     | LangGraph Agent Server + Gateway provider    | LangGraph Agent Server + your provider   |
-| `vercel-ai-sdk` | Vercel AI SDK Next.js agent + Gateway        | Vercel AI SDK `streamText()` route       |
-| `vercel-eve`    | Vercel Eve agent + Gateway provider          | Vercel Eve agent + your provider         |
+| Value           | OpenUI Gateway route                  | Self-hosted route                  |
+| --------------- | ------------------------------------- | ---------------------------------- |
+| `langgraph`     | LangGraph + Gateway Chat Completions  | LangGraph + your provider          |
+| `vercel-ai-sdk` | Vercel AI SDK Next.js agent + Gateway | Vercel AI SDK `streamText()` route |
+| `vercel-eve`    | Vercel Eve agent + Gateway provider   | Vercel Eve agent + your provider   |
 
 The CLI applies the selected framework's final route/page files, dependencies, and deployment configuration over the base template. Both Vercel AI SDK variants are standard Next.js deployments with `streamText()`, `toUIMessageStreamResponse()`, and `vercelAIAdapter()`. Both LangGraph variants separate the Agent Server described by `langgraph.json` from the Next.js frontend/proxy. The proxy uses `@openuidev/langchain`, and the browser consumes its AG-UI stream with `agUIAdapter()`. Both Eve variants wrap Next.js with `withEve()` and talk to Eve's native `/eve/v1/session*` protocol from the browser; a small client adapter maps Eve events to AG-UI for `agUIAdapter()`.
 
@@ -253,12 +252,12 @@ openui deploy [dir] [options]
 
 **Options**
 
-| Flag                  | Description                                                                 |
-| --------------------- | --------------------------------------------------------------------------- |
-| `-y, --yes`           | Skip confirmation prompts (also saves missing env keys to the Vercel project) |
-| `--skip-env`          | Do not pass or save local `.env` / `.env.local` values                      |
-| `--no-interactive`    | Skip prompts (implies `--yes`)                                              |
-| `--verbose`           | Stream full Vercel build logs (hidden by default; failures print a log tail) |
+| Flag               | Description                                                                   |
+| ------------------ | ----------------------------------------------------------------------------- |
+| `-y, --yes`        | Skip confirmation prompts (also saves missing env keys to the Vercel project) |
+| `--skip-env`       | Do not pass or save local `.env` / `.env.local` values                        |
+| `--no-interactive` | Skip prompts (implies `--yes`)                                                |
+| `--verbose`        | Stream full Vercel build logs (hidden by default; failures print a log tail)  |
 
 Extra flags after `deploy` are forwarded as-is to the target deployment platform, which validates them. `--skip-env` is OpenUI-specific so it does not collide with the target platform's env specific args.
 

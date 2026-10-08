@@ -2,7 +2,7 @@ import type { CloudAuthMethod, ResolvedAuthMethod } from "../../../lib/auth/mint
 
 /** Template `key` from `templates/templates.json`. */
 export type TemplateName = string;
-/** Overlay `key` from the selected template's `overlays` list, or `default`. */
+/** Overlay `key` from the selected template's `overlays` list. */
 export type OverlayName = string;
 
 export interface CreateAppOptions {

@@ -153,12 +153,12 @@ jobs:
       - uses: ./.github/actions/cli-scaffold-e2e
         with:
           template: ${{ matrix.template }}
-          backend-framework: default
+          backend-framework: langgraph
           node-version: ${{ matrix.node-version }}
           package-manager: ${{ matrix.package-manager }}
           package-manager-version: ${{ matrix.package-manager-version }}
 
-  # The default overlay is covered above across operating systems and package
+  # LangGraph is covered above across operating systems and package
   # manager majors; overlays only change dependencies and app code, so one
   # current Linux configuration per package manager is enough.
   cli-e2e-overlays:
@@ -172,7 +172,6 @@ jobs:
           - openui-cloud
           - openui-self-hosted
         overlay:
-          - langgraph
           - vercel-ai-sdk
           - vercel-eve
         package-manager:

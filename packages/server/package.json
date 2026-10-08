@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Server utilities for OpenUI & OpenUI Gateway",
   "license": "MIT",
   "engines": {
@@ -45,6 +45,16 @@
         "types": "./dist/vercel/index.d.cts",
         "default": "./dist/vercel/index.cjs"
       }
+    },
+    "./langgraph": {
+      "import": {
+        "types": "./dist/langgraph/index.d.mts",
+        "default": "./dist/langgraph/index.mjs"
+      },
+      "require": {
+        "types": "./dist/langgraph/index.d.cts",
+        "default": "./dist/langgraph/index.cjs"
+      }
     }
   },
   "scripts": {
@@ -80,6 +90,7 @@
     "@openuidev/lang-core": "workspace:^"
   },
   "devDependencies": {
+    "@langchain/core": "^1.2.3",
     "ai": "^7.0.10",
     "openai": "^7.20.0",
     "tsdown": "^0.21.7",
@@ -92,7 +103,18 @@
       ],
       "vercel": [
         "dist/vercel/index.d.cts"
+      ],
+      "langgraph": [
+        "dist/langgraph/index.d.cts"
       ]
+    }
+  },
+  "peerDependencies": {
+    "@langchain/core": "^1.2.3"
+  },
+  "peerDependenciesMeta": {
+    "@langchain/core": {
+      "optional": true
     }
   }
 }
