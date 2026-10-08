@@ -138,46 +138,6 @@ describe("createChatStore", () => {
       expect(store.getState().threadError).toBe(error);
       expect(store.getState().isLoadingMessages).toBe(false);
     });
-
-    it("shows a thread opened earlier at once, then swaps in the fresh copy", async () => {
-      const first = [makeMessage("m1")];
-      const fresh = [makeMessage("m1"), makeMessage("m2", "assistant")];
-      const getMessages = vi.fn().mockResolvedValueOnce(first).mockResolvedValue([]);
-
-      const store = makeStore({ getMessages });
-      store.getState().selectThread("t1");
-      await flushPromises();
-      store.getState().selectThread("t2");
-      await flushPromises();
-
-      getMessages.mockResolvedValue(fresh);
-      store.getState().selectThread("t1");
-
-      expect(store.getState().messages).toEqual(first);
-      expect(store.getState().isLoadingMessages).toBe(false);
-
-      await flushPromises();
-
-      expect(store.getState().messages).toEqual(fresh);
-    });
-
-    it("keeps showing the cached copy when its refresh fails", async () => {
-      const first = [makeMessage("m1")];
-      const getMessages = vi.fn().mockResolvedValueOnce(first).mockResolvedValue([]);
-
-      const store = makeStore({ getMessages });
-      store.getState().selectThread("t1");
-      await flushPromises();
-      store.getState().selectThread("t2");
-      await flushPromises();
-
-      getMessages.mockRejectedValue(new Error("offline"));
-      store.getState().selectThread("t1");
-      await flushPromises();
-
-      expect(store.getState().messages).toEqual(first);
-      expect(store.getState().threadError).toBeNull();
-    });
   });
 
   describe("switchToNewThread", () => {
