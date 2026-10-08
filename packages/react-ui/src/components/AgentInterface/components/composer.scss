@@ -1,10 +1,16 @@
 @use "../../../cssUtils" as cssUtils;
+@use "../column";
 
 $thread-content-inline-padding: cssUtils.$space-m-l;
+// Same reading column as the messages (see ../_column.scss), so the input's
+// edges line up with the conversation above it.
 $thread-content-max-width: calc(
-  768px + #{$thread-content-inline-padding} + #{$thread-content-inline-padding}
+  #{column.$content-width} + #{$thread-content-inline-padding} + #{$thread-content-inline-padding}
 );
 
+// Pill composer: one row of input + round send button. The radius is half the
+// 56px resting height, so it reads as a pill on one line and eases into a
+// rounded rectangle as the draft grows.
 .openui-agent-thread-composer {
   max-width: $thread-content-max-width;
   width: 100%;
@@ -13,7 +19,7 @@ $thread-content-max-width: calc(
 
   .openui-agent-container--mobile & {
     margin: 0;
-    padding: cssUtils.$space-m cssUtils.$space-m cssUtils.$space-m-l;
+    padding: cssUtils.$space-m $thread-content-inline-padding cssUtils.$space-m-l;
   }
 
   .openui-agent-thread-container--detailed-view-active & {
@@ -22,14 +28,20 @@ $thread-content-max-width: calc(
 
   &__input-wrapper {
     background-color: cssUtils.$foreground;
-    border: 1px solid cssUtils.$border-interactive;
-    border-radius: cssUtils.$radius-3xl;
-    box-shadow: cssUtils.$shadow-l;
+    border: 1px solid cssUtils.$sunk;
+    border-radius: cssUtils.$radius-6xl;
+    box-shadow: 0 4px 16px oklch(0 0 0 / 0.06);
     overflow: clip;
     display: flex;
-    flex-direction: column;
-    gap: cssUtils.$space-s;
-    padding: cssUtils.$space-m;
+    flex-direction: row;
+    // Bottom-align so the send button stays on the last line as the draft
+    // grows; input and button share a 32px row height, so one line still
+    // reads as vertically centred.
+    align-items: flex-end;
+    gap: cssUtils.$space-m;
+    min-height: 56px;
+    // 11px + a 32px row + 11px + 2px border = the 56px resting height.
+    padding: 11px cssUtils.$space-m 11px cssUtils.$space-xl;
 
     &[data-overflow-top],
     &[data-overflow-bottom] {
@@ -80,7 +92,9 @@ $thread-content-max-width: calc(
       border-radius: cssUtils.$radius-full;
     }
 
-    padding: 0 cssUtils.$space-3xs;
+    flex: 1;
+    min-width: 0;
+    padding: 6px 0;
     resize: none;
     max-height: 200px;
     outline: none;
@@ -88,6 +102,8 @@ $thread-content-max-width: calc(
     background: transparent;
     overflow-y: auto;
     @include cssUtils.typography(body, default);
+    font-size: 15px;
+    line-height: 20px;
     color: cssUtils.$text-neutral-primary;
 
     &::placeholder {
@@ -98,9 +114,22 @@ $thread-content-max-width: calc(
   &__action-bar {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
   }
+}
 
-  &__submit-button {
-    margin-left: auto;
+// Round, neutral send button. Scoped under the composer root (plus the
+// IconButton class) so it outranks IconButton's square/primary rules.
+.openui-agent-thread-composer .openui-agent-thread-composer__submit-button.openui-icon-button {
+  border-color: transparent;
+  border-radius: cssUtils.$radius-full;
+  background-color: cssUtils.$inverted-background;
+  box-shadow: none;
+  color: cssUtils.$foreground;
+
+  &:not(:disabled):hover,
+  &:not(:disabled):active {
+    background-color: cssUtils.$inverted-background;
+    opacity: 0.85;
   }
 }

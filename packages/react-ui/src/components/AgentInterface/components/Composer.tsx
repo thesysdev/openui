@@ -13,7 +13,7 @@ export interface ComposerProps {
   placeholder?: string;
 }
 
-export const Composer = ({ className, placeholder = "Type your query here" }: ComposerProps) => {
+export const Composer = ({ className, placeholder = "Ask anything..." }: ComposerProps) => {
   const { textContent, setTextContent } = useComposerState();
   const processMessage = useThread((s) => s.processMessage);
   const cancelMessage = useThread((s) => s.cancelMessage);
@@ -59,7 +59,7 @@ export const Composer = ({ className, placeholder = "Type your query here" }: Co
 
     // Reset to 0 (not "auto") so scrollHeight reflects content, not container
     input.style.height = "0px";
-    input.style.height = `${Math.max(input.scrollHeight, 24)}px`;
+    input.style.height = `${Math.max(input.scrollHeight, 32)}px`;
     updateInputOverflow();
   }, [textContent, updateInputOverflow]);
 
@@ -98,7 +98,7 @@ export const Composer = ({ className, placeholder = "Type your query here" }: Co
           <IconButton
             onClick={isRunning ? cancelMessage : handleSubmit}
             icon={isRunning ? <Square size="1em" fill="currentColor" /> : <ArrowUp size="1em" />}
-            size="extra-small"
+            size="small"
             variant="primary"
             aria-label={isRunning ? "Cancel message" : "Send message"}
             className="openui-agent-thread-composer__submit-button"

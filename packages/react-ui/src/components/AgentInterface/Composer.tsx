@@ -1,6 +1,6 @@
 import { useThread } from "@openuidev/react-headless";
 import clsx from "clsx";
-import type { ReactNode } from "react";
+import { useCallback, useRef, type ReactNode } from "react";
 import type { ConversationStarterProps } from "../../types/ConversationStarter";
 import { useStartersFromContext } from "./_shared/startersContext";
 import { isChatEmpty } from "./_shared/utils";
@@ -18,6 +18,34 @@ export interface ComposerProps {
   children?: ReactNode;
 }
 
+/**
+ * Publishes the composer slot's height on its panel as
+ * `--openui-agent-composer-slot-height`, so the scroll area (which runs behind
+ * the floating composer) can pad and fade by exactly that much. A callback ref
+ * re-attaches the observer whenever the slot element is replaced.
+ */
+const useComposerSlotHeight = () => {
+  const disposeRef = useRef<(() => void) | null>(null);
+  return useCallback((slot: HTMLDivElement | null) => {
+    // React 18 detaches by calling the ref with null; React 19 calls the
+    // returned cleanup instead. Either path disconnects the observer.
+    disposeRef.current?.();
+    disposeRef.current = null;
+    if (!slot) return;
+    const update = () =>
+      slot.parentElement?.style.setProperty(
+        "--openui-agent-composer-slot-height",
+        `${slot.offsetHeight}px`,
+      );
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(slot);
+    const dispose = () => observer.disconnect();
+    disposeRef.current = dispose;
+    return dispose;
+  }, []);
+};
+
 export const Composer = ({
   className,
   placeholder,
@@ -28,9 +56,14 @@ export const Composer = ({
   const fromCtx = useStartersFromContext();
   const messages = useThread((s) => s.messages);
   const isLoadingMessages = useThread((s) => s.isLoadingMessages);
+  const slotRef = useComposerSlotHeight();
 
   if (children != null) {
-    return <div className={clsx("openui-agent-composer-slot", className)}>{children}</div>;
+    return (
+      <div ref={slotRef} className={clsx("openui-agent-composer-slot", className)}>
+        {children}
+      </div>
+    );
   }
 
   const effectiveStarters = ownStarters ?? fromCtx.starters;
@@ -41,7 +74,7 @@ export const Composer = ({
     effectiveStarters.length > 0;
 
   return (
-    <div className={clsx("openui-agent-composer-slot", className)}>
+    <div ref={slotRef} className={clsx("openui-agent-composer-slot", className)}>
       {showStarters && (
         <ConversationStarter starters={effectiveStarters!} variant={effectiveVariant} />
       )}

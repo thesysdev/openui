@@ -1,0 +1,74 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-agent-rename-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: oklch(0 0 0 / 0.12);
+}
+
+// Same soft surface as the shared menus (ring + layered shadow, no border).
+.openui-agent-rename-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 10001;
+  width: min(400px, calc(100vw - 32px));
+  transform: translate(-50%, -50%);
+  padding: cssUtils.$space-m-l;
+  border-radius: cssUtils.$radius-3xl;
+  background-color: cssUtils.$foreground;
+  color: cssUtils.$text-neutral-primary;
+  box-shadow:
+    0 0 0 1px oklch(0 0 0 / 0.05),
+    0 4px 12px -2px oklch(0 0 0 / 0.05),
+    0 24px 48px -12px oklch(0 0 0 / 0.12);
+
+  &:focus {
+    outline: none;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: cssUtils.$space-m;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+  }
+
+  &__input {
+    width: 100%;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: cssUtils.$space-s;
+  }
+
+  // Neutral black primary, matching the composer's send button (no brand blue).
+  &__actions .openui-button-base.openui-button-base-primary {
+    border-color: transparent;
+    border-radius: cssUtils.$radius-full;
+    background-color: cssUtils.$inverted-background;
+    color: cssUtils.$foreground;
+
+    &:not(:disabled):hover {
+      background-color: cssUtils.$inverted-background;
+      opacity: 0.85;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+    }
+  }
+
+  &__actions .openui-button-base-tertiary {
+    border-radius: cssUtils.$radius-full;
+  }
+}

@@ -13,6 +13,21 @@ interface AgentInterfaceState {
   setLogoUrl: (url: string) => void;
 }
 
+// Whether the desktop sidebar was left open, written by SidebarContainer.
+// Collapsed unless the user left it open; also collapsed on the server, where
+// storage can't be read.
+export const SIDEBAR_OPEN_STORAGE_KEY = "openui-agent-sidebar-open";
+
+const readSidebarOpen = () => {
+  try {
+    return (
+      typeof window !== "undefined" && window.localStorage.getItem(SIDEBAR_OPEN_STORAGE_KEY) === "1"
+    );
+  } catch {
+    return false;
+  }
+};
+
 export const createAgentInterfaceStore = ({
   logoUrl,
   agentName,
@@ -21,7 +36,7 @@ export const createAgentInterfaceStore = ({
   agentName: string;
 }) =>
   create<AgentInterfaceState>((set) => ({
-    isSidebarOpen: true,
+    isSidebarOpen: readSidebarOpen(),
     isWorkspaceOpen: false,
     agentName: agentName,
     logoUrl: logoUrl,

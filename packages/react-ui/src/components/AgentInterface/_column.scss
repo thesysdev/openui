@@ -1,0 +1,8 @@
+// One reading column for the agent interface: conversation messages, the
+// in-thread composer, and the welcome screen (greeting, composer, tabs,
+// starters) all share it, so their edges line up at every width.
+//
+// ≈ 72ch of the 16px Inter body text, a comfortable reading measure. Kept in
+// px (not ch) so it resolves to the same width on elements with other font
+// sizes.
+$content-width: 728px;

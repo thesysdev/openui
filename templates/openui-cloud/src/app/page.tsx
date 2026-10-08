@@ -1,6 +1,6 @@
 import "@openuidev/react-ui/styles/index.css";
 
-import CloudChat from "@/components/cloud-chat";
+import CloudChat from "@/components/cloud-chat-client";
 
 export const dynamic = "force-dynamic";
 

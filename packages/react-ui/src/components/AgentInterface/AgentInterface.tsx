@@ -47,9 +47,11 @@ import type {
 import { ArtifactBrowserPage } from "./ArtifactBrowserPage";
 import { ArtifactNav } from "./ArtifactNav";
 import { ArtifactViewPage } from "./ArtifactViewPage";
+import { ChatHeader } from "./ChatHeader";
 import { Composer } from "./Composer";
 import { Container } from "./Container";
 import { type ConversationStarterVariant } from "./ConversationStarter";
+import { HistoryButton } from "./HistoryButton";
 import { MobileHeader } from "./MobileHeader";
 import { NewChatButton } from "./NewChatButton";
 import { Route } from "./Route";
@@ -124,6 +126,7 @@ const SLOT_KEY_BY_TYPE = new Map<unknown, SingleSlotKey>([
   [SidebarHeader, "sidebarHeader"],
   [MobileHeader, "mobileHeader"],
   [ThreadHeader, "threadHeader"],
+  [ChatHeader, "threadHeader"],
   [WelcomeScreen, "welcome"],
   [Composer, "composer"],
   [Workspace, "workspace"],
@@ -173,10 +176,12 @@ interface AgentInterfaceComponent extends FC<AgentInterfaceProps> {
   Route: typeof Route;
   MobileHeader: typeof MobileHeader;
   ThreadHeader: typeof ThreadHeader;
+  ChatHeader: typeof ChatHeader;
   Welcome: typeof WelcomeScreen;
   WelcomeGlow: typeof WelcomeGlow;
   Composer: typeof Composer;
   NewChatButton: typeof NewChatButton;
+  HistoryButton: typeof HistoryButton;
   ThreadList: typeof ThreadList;
   Messages: typeof Messages;
   MessageLoading: typeof MessageLoading;
@@ -407,6 +412,7 @@ const AgentInterfaceBody = ({
               {slots.sidebarHeader ?? <SidebarHeader />}
               <div className="openui-agent-sidebar-primary-actions">
                 <NewChatButton />
+                <HistoryButton />
                 <ArtifactNav className="openui-agent-sidebar-artifact-nav" />
               </div>
             </div>
@@ -481,10 +487,12 @@ AgentInterface.Workspace = Workspace;
 AgentInterface.Route = Route;
 AgentInterface.MobileHeader = MobileHeader;
 AgentInterface.ThreadHeader = ThreadHeader;
+AgentInterface.ChatHeader = ChatHeader;
 AgentInterface.Welcome = WelcomeScreen;
 AgentInterface.WelcomeGlow = WelcomeGlow;
 AgentInterface.Composer = Composer;
 AgentInterface.NewChatButton = NewChatButton;
+AgentInterface.HistoryButton = HistoryButton;
 AgentInterface.ThreadList = ThreadList;
 AgentInterface.Messages = Messages;
 AgentInterface.MessageLoading = MessageLoading;

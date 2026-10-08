@@ -50,20 +50,27 @@ export const useDetailedViewResize = ({
   // steps and ARIA can read it without measuring (which would be wrong mid-transition).
   const widthRef = useRef<number>(INITIAL_CHAT_WIDTH);
 
+  // Detail view state on the previous run, so the sidebar is only moved on a
+  // real open/close of the detail view, never on mount (where it would
+  // override the sidebar state the user left).
+  const wasDetailedViewActiveRef = useRef(false);
+
   // Handle sidebar visibility and panel widths when detailed-view state changes
   useEffect(() => {
     if (isMobile) return;
+    const changed = wasDetailedViewActiveRef.current !== isDetailedViewActive;
+    wasDetailedViewActiveRef.current = isDetailedViewActive;
 
     if (isDetailedViewActive) {
       // Desktop view active: close sidebar and set chat width to 420px
-      setIsSidebarOpen(false);
+      if (changed) setIsSidebarOpen(false);
       if (chatPanelRef.current) {
         chatPanelRef.current.style.width = `${INITIAL_CHAT_WIDTH}px`;
       }
       widthRef.current = INITIAL_CHAT_WIDTH;
     } else {
       // Desktop view inactive: open sidebar and reset chat width
-      setIsSidebarOpen(true);
+      if (changed) setIsSidebarOpen(true);
       if (chatPanelRef.current) {
         chatPanelRef.current.style.width = "100%";
       }

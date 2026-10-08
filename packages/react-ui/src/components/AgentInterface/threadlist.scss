@@ -1,4 +1,5 @@
 @use "../../cssUtils" as cssUtils;
+@use "../menu";
 
 $thread-list-mask-height: cssUtils.$space-xl;
 
@@ -98,8 +99,8 @@ $thread-list-mask-height: cssUtils.$space-xl;
   display: flex;
   padding-left: cssUtils.$space-xs;
   padding-bottom: cssUtils.$space-xs;
-  color: cssUtils.$text-neutral-tertiary;
-  @include cssUtils.typography(label, small);
+  color: cssUtils.$text-neutral-secondary;
+  @include cssUtils.typography(label, extra-small);
 
   &:not(:first-child) {
     padding-top: cssUtils.$space-xs;
@@ -141,11 +142,19 @@ $thread-list-mask-height: cssUtils.$space-xl;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  border-radius: calc(cssUtils.$radius-s + 1px);
+  // Same 6px bleed and radius as the New Chat row, so selected and hover
+  // rects have room around the icon and title.
+  width: calc(100% + 12px);
+  margin: 0 -6px;
+  border-radius: calc(cssUtils.$radius-s + 3px);
+
+  .openui-agent-container--mobile & {
+    width: 100%;
+    margin: 0;
+  }
 
   &--selected {
-    background-color: cssUtils.$sunk;
+    background-color: cssUtils.$sunk-deep;
   }
 
   &--actions-open {
@@ -169,24 +178,28 @@ $thread-list-mask-height: cssUtils.$space-xl;
   }
 
   &--selected:hover {
-    background-color: cssUtils.$sunk;
+    background-color: cssUtils.$sunk-deep;
   }
 
   &--selected.openui-agent-thread-button--actions-open {
-    background-color: cssUtils.$sunk;
+    background-color: cssUtils.$sunk-deep;
   }
 }
 
 .openui-agent-thread-button-title {
   @include cssUtils.button-reset;
   @include cssUtils.typography(label, small);
+  display: flex;
+  align-items: center;
+  gap: cssUtils.$space-s;
   color: cssUtils.$text-neutral-primary;
   padding: cssUtils.$space-xs;
+  padding-left: calc(cssUtils.$space-xs + 6px);
   width: 100%;
+  min-width: 0;
   text-align: left;
   cursor: pointer;
   white-space: nowrap;
-  text-overflow: ellipsis;
   overflow: hidden;
 
   .openui-agent-container--mobile & {
@@ -195,6 +208,17 @@ $thread-list-mask-height: cssUtils.$space-xl;
     padding: cssUtils.$space-s-m;
     padding-right: calc(24px + cssUtils.$space-s-m);
   }
+}
+
+.openui-agent-thread-button-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.openui-agent-thread-button-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .openui-agent-thread-button-dropdown-trigger {
@@ -225,15 +249,21 @@ $thread-list-mask-height: cssUtils.$space-xl;
   display: flex;
   flex-direction: column;
   min-width: 180px;
-  padding: cssUtils.$space-xs;
-  border: 1px solid cssUtils.$border-default;
-  border-radius: cssUtils.$radius-l;
-  background-color: cssUtils.$foreground;
+  @include menu.surface;
   transform: translateX(-4px);
   z-index: 9999;
 }
 
-.openui-agent-thread-button-dropdown-menu-item {
-  outline: none;
+// Shared menu row: 32px, edge to edge, plain highlight.
+.openui-agent-thread-button-dropdown-menu-item.openui-button-base {
+  @include menu.item;
   width: 100%;
+  justify-content: flex-start;
+  border: none;
+
+  &:hover,
+  &:focus-visible,
+  &[data-highlighted] {
+    background-color: cssUtils.$highlight;
+  }
 }

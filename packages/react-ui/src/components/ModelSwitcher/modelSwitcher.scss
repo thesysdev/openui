@@ -3,32 +3,72 @@
 .openui-model-switcher {
   min-width: 0;
 
-  &-trigger {
+  // Compact pill: 32px, filled, flat (no border or shadow); small logo, 12px
+  // name, faint chevron.
+  & &-trigger {
     display: flex;
-    height: 36px;
+    height: 32px;
     width: auto;
     max-width: 240px;
     align-items: center;
     justify-content: flex-start;
-    gap: cssUtils.$space-2xs;
-    border-radius: cssUtils.$radius-l;
-    border: 1px solid cssUtils.$border-interactive;
-    background-color: cssUtils.$foreground;
-    padding-inline: cssUtils.$space-s;
+    gap: cssUtils.$space-xs;
+    border: none;
+    border-radius: cssUtils.$radius-full;
+    background-color: cssUtils.$highlight;
+    padding: 0 cssUtils.$space-m;
     color: cssUtils.$text-neutral-primary;
-    box-shadow: cssUtils.$shadow-s;
-    @include cssUtils.typography(label, small);
+    box-shadow: none;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 12px;
+
+    &:hover,
+    &[data-state="open"] {
+      background-color: cssUtils.$highlight-strong;
+      color: cssUtils.$text-neutral-primary;
+    }
+
+    .openui-model-switcher-logo {
+      width: 14px;
+      height: 14px;
+    }
+
+    // The badge dot doesn't fit the pill; the name and logo carry the model.
+    .openui-model-switcher-badge-trigger {
+      display: none;
+    }
+
+    .openui-select-trigger-icon {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+      opacity: 0.4;
+    }
   }
 
-  &-content {
-    max-height: 360px;
-    width: min(360px, calc(100vw - 32px));
+  // Menu look (ring, shadow, 32px edge-to-edge rows, labels) comes from the
+  // shared Select styles; only size it here.
+  &-content.openui-select-content {
+    // Fill the space Radix reports below the trigger, ending 12px above the
+    // thread card's bottom edge so the menu's insets match ChatHeader's 12px
+    // inset from the card's top-left (Radix already reserves the viewport margin).
+    max-height: calc(var(--radix-select-content-available-height, 376px) - 6px);
+    width: min(283px, calc(100vw - 32px));
     overflow: auto;
-    border-radius: cssUtils.$radius-xl;
   }
 
-  &-item {
-    border-radius: cssUtils.$radius-m;
+  // Row badge ("Free"): a small pill rather than the default sm Tag.
+  &-row .openui-tag.openui-tag-sm {
+    height: 18px;
+    padding: 0 cssUtils.$space-s;
+    border-radius: cssUtils.$radius-full;
+    flex-shrink: 0;
+
+    .openui-tag-text {
+      font-size: 11px;
+      line-height: 18px;
+    }
   }
 
   &-row {

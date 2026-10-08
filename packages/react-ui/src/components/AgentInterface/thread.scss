@@ -1,4 +1,5 @@
 @use "../../cssUtils" as cssUtils;
+@use "./column";
 
 // =============================================================================
 // Thread Layout Structure
@@ -13,6 +14,15 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+
+  // Desktop: the thread is a rounded card inset from the shell, with the
+  // sidebar rail sitting on the shell beside it.
+  .openui-agent-container:not(.openui-agent-container--mobile) > & {
+    margin: cssUtils.$space-2xs cssUtils.$space-2xs cssUtils.$space-2xs 0;
+    border-radius: cssUtils.$radius-3xl;
+    outline: 1px solid cssUtils.$border-default;
+    background-color: cssUtils.$foreground;
+  }
 }
 
 // Full-screen loading overlay while a thread's messages load. The container
@@ -132,7 +142,7 @@ $top-mask-height: calc(cssUtils.$space-l + cssUtils.$space-3xs);
 $bottom-mask-height: calc(cssUtils.$space-2xl + cssUtils.$space-2xl);
 $thread-content-inline-padding: cssUtils.$space-m-l;
 $thread-content-max-width: calc(
-  880px + #{$thread-content-inline-padding} + #{$thread-content-inline-padding}
+  #{column.$content-width} + #{$thread-content-inline-padding} + #{$thread-content-inline-padding}
 );
 
 .openui-agent-thread-scroll-container {
@@ -335,12 +345,15 @@ $thread-content-max-width: calc(
     padding-right: 0;
   }
 
+  // Filled pill (same fill as the send and New chat buttons), one type step
+  // down (body small). The radius is half a single-line bubble's height, so
+  // one line reads as a full pill and longer messages keep rounded corners.
   &__content {
-    @include cssUtils.typography(body, default);
-    padding: cssUtils.$space-s cssUtils.$space-m calc(cssUtils.$space-s + 1px) cssUtils.$space-m;
-    background-color: cssUtils.$chat-user-response-bg;
-    color: cssUtils.$chat-user-response-text;
-    border-radius: cssUtils.$radius-xl;
+    @include cssUtils.typography(body, small);
+    padding: cssUtils.$space-s cssUtils.$space-m-l calc(cssUtils.$space-s + 1px);
+    background-color: cssUtils.$inverted-background;
+    color: cssUtils.$foreground;
+    border-radius: cssUtils.$radius-4xl;
     white-space: pre-wrap;
     overflow-wrap: break-word;
     max-width: 100%;
@@ -467,6 +480,18 @@ $thread-header-action-min-height: 32px;
 
 .openui-agent-thread-message-loading {
   display: flex;
+  align-items: center;
+  // Same line box as the "Working" row (toolCall.scss toggle), so the mascot
+  // sits at the same spot when that row takes over.
+  @include cssUtils.typography(body, small);
+  min-height: 1lh;
+}
+
+// A live "Working" timeline already shows the mascot in its own row, so the
+// separate loader below it would be a duplicate.
+.openui-agent-thread-messages:has(.openui-behind-the-scenes--working)
+  .openui-agent-thread-message-loading {
+  display: none;
 }
 
 // =============================================================================
@@ -545,4 +570,109 @@ $thread-header-action-min-height: 32px;
   color: cssUtils.$text-neutral-primary;
   overflow-wrap: break-word;
   min-width: 0;
+}
+
+// =============================================================================
+// Full-height conversation scroll
+// =============================================================================
+// In a conversation the scroll area runs the full height of the panel: the
+// chat header floats over its top and the composer over its bottom. The
+// scroll content pads by their heights so the first and last messages still
+// clear them, and a mask softly fades messages out as they pass beneath.
+// (The welcome screen keeps the stacked layout.)
+$floating-fade: 40px;
+
+// Eased fade: alpha stops along a smooth S-curve, so content dissolves
+// gradually instead of along a hard linear ramp.
+$fade-curve: 0, 0.03, 0.1, 0.22, 0.4, 0.6, 0.78, 0.9, 0.97, 1;
+
+@function eased-stops($from, $to, $reverse: false) {
+  $stops: ();
+  $count: length($fade-curve) - 1;
+  @for $i from 0 through $count {
+    $alpha: nth($fade-curve, $i + 1);
+    @if $reverse {
+      $alpha: 1 - $alpha;
+    }
+    $stops: append(
+      $stops,
+      rgba(0, 0, 0, $alpha) calc(#{$from} + (#{$to} - #{$from}) * #{$i / $count}),
+      comma
+    );
+  }
+  @return $stops;
+}
+$floating-header-height: 48px;
+
+// Scoped under the containers so these win over the stacked-layout padding
+// rules above.
+.openui-agent-container
+  .openui-agent-thread-container
+  .openui-agent-thread-chat-panel:not(:has(.openui-agent-welcome-screen)) {
+  --openui-agent-floating-top: 0px;
+  --openui-agent-floating-bottom: var(--openui-agent-composer-slot-height, 88px);
+
+  > .openui-agent-chat-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    background: transparent;
+  }
+
+  > .openui-agent-composer-slot {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+  }
+
+  .openui-agent-thread-scroll-container {
+    flex-grow: 1;
+
+    // The mask below replaces the solid overlay fades.
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
+
+  .openui-agent-thread-scroll-area {
+    // Rest the first and last messages just inside the fully opaque band.
+    padding-top: calc(var(--openui-agent-floating-top) + #{$floating-fade});
+    padding-bottom: calc(var(--openui-agent-floating-bottom) + #{$floating-fade});
+    scroll-padding-top: calc(var(--openui-agent-floating-top) + #{$floating-fade});
+    scroll-padding-bottom: calc(var(--openui-agent-floating-bottom) + #{$floating-fade});
+    // Fully hidden under the header row, easing in over $floating-fade below
+    // it; mirrored at the bottom, fully hidden by the composer's top edge.
+    $top-start: calc(var(--openui-agent-floating-top) - 4px);
+    $top-end: calc(var(--openui-agent-floating-top) + #{$floating-fade});
+    $bottom-start: calc(100% - var(--openui-agent-floating-bottom) - #{$floating-fade});
+    $bottom-end: calc(100% - var(--openui-agent-floating-bottom) + 8px);
+    $mask: linear-gradient(
+      to bottom,
+      transparent 0,
+      eased-stops($top-start, $top-end),
+      eased-stops($bottom-start, $bottom-end, true),
+      transparent 100%
+    );
+    mask-image: $mask;
+    -webkit-mask-image: $mask;
+  }
+
+  .openui-agent-thread-scroll-latest {
+    bottom: calc(var(--openui-agent-floating-bottom) + #{cssUtils.$space-s});
+  }
+}
+
+// Reserve the header's height only on desktop; on mobile the chat header is
+// hidden and the in-flow mobile header sits above the scroll area instead.
+.openui-agent-container:not(.openui-agent-container--mobile)
+  .openui-agent-thread-container
+  .openui-agent-thread-chat-panel:not(:has(.openui-agent-welcome-screen)):has(
+    > .openui-agent-chat-header
+  ) {
+  --openui-agent-floating-top: #{$floating-header-height};
 }

@@ -1,12 +1,12 @@
 @use "../../cssUtils" as cssUtils;
+@use "./column";
 
 // Container styles
 .openui-agent-conversation-starter {
   width: 100%;
-  // Starters sit above the composer input, so track the composer's 768px
-  // column (see components/composer.scss), not the 880px thread column —
-  // otherwise the row starts left of the input once both hit max-width.
-  max-width: calc(768px + cssUtils.$space-m-l * 2);
+  // Starters sit above the composer input, so track the composer's
+  // column (see components/composer.scss) so the row lines up with the input.
+  max-width: calc(#{column.$content-width} + #{cssUtils.$space-m-l} * 2);
   margin: 0 auto;
   padding: 0 cssUtils.$space-m-l cssUtils.$space-m;
   box-sizing: border-box;
@@ -30,6 +30,14 @@
     flex-direction: column;
     gap: 0;
     margin-bottom: cssUtils.$space-m;
+  }
+
+  // Card variant - a row of equal-width cards, inset from the composer edges.
+  &--card {
+    display: flex;
+    align-items: stretch;
+    gap: cssUtils.$space-xs;
+    padding: 0 cssUtils.$space-m;
   }
 
   &__carousel-content {
@@ -179,4 +187,68 @@
   &:not(:disabled):active {
     background-color: cssUtils.$highlight-subtle;
   }
+}
+
+// Card variant item (icon above wrapping text)
+$starter-muted: color-mix(in oklch, #{cssUtils.$text-neutral-primary} 60%, transparent);
+.openui-agent-conversation-starter-item-card {
+  appearance: none;
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: cssUtils.$space-m;
+  padding: cssUtils.$space-m-l;
+  background-color: cssUtils.$sunk-light;
+  border: none;
+  border-radius: cssUtils.$radius-3xl;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: $starter-muted;
+  text-align: left;
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: $starter-muted;
+
+    & > svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  // Two lines max; longer copy ends with an ellipsis.
+  &__text {
+    display: -webkit-box;
+    min-width: 0;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  &:not(:disabled):hover {
+    background-color: cssUtils.$sunk;
+    color: cssUtils.$text-neutral-primary;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2.5px cssUtils.$border-default;
+  }
+}
+
+// The welcome screen zeroes starter padding; keep the card row's inset.
+.openui-agent-welcome-screen__desktop-starters
+  .openui-agent-conversation-starter.openui-agent-conversation-starter--card {
+  padding: 0 cssUtils.$space-m;
 }

@@ -63,8 +63,9 @@ body {
   height: 100%;
 }
 
-/* Thread-header layout for a title-less header holding the model switcher:
-   hide the empty title slot, let the actions row fill and distribute. */
+/* Thread-header layout for a title-less header holding the model switcher
+   (used by the langgraph and vercel-ai-sdk overlays): hide the empty title
+   slot, let the actions row fill and distribute. */
 .openui-cloud-thread-header .openui-agent-thread-header__title {
   display: none;
 }
@@ -73,4 +74,33 @@ body {
   flex: 1 1 auto;
   min-width: 0;
   justify-content: space-between;
+}
+
+/* Sidebar brand: wordmark lockup when expanded, mascot mark only when collapsed. */
+.openui-agent-sidebar-header:not(.openui-agent-sidebar-header--collapsed) .brand-logo {
+  display: none;
+}
+
+.brand-wordmark {
+  display: flex;
+  align-items: center;
+  /* Lines the wordmark up with the New Chat icon below it. */
+  padding-left: 8px;
+}
+
+.brand-wordmark img {
+  display: block;
+  height: 28px;
+  width: auto;
+}
+
+/* Welcome mark above the greeting. */
+.brand-welcome-mark {
+  display: block;
+  width: 98px;
+  height: auto;
+}
+
+.openui-agent-container--mobile .brand-welcome-mark {
+  width: 72px;
 }

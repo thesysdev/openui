@@ -40,3 +40,17 @@
   align-items: center;
   gap: cssUtils.$space-s;
 }
+
+// Matches the collapsed rail's round New chat button.
+.openui-agent-container .openui-agent-mobile-header-new-chat.openui-icon-button {
+  border-color: transparent;
+  border-radius: cssUtils.$radius-full;
+  background-color: cssUtils.$inverted-background;
+  color: cssUtils.$foreground;
+
+  &:not(:disabled):hover,
+  &:not(:disabled):active {
+    background-color: cssUtils.$inverted-background;
+    opacity: 0.85;
+  }
+}

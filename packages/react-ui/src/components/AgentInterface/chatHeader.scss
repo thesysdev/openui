@@ -1,0 +1,89 @@
+@use "../../cssUtils" as cssUtils;
+@use "../menu";
+
+// Sidebar padding-y minus the thread card's top inset (see thread.scss), so
+// the header row centres on the sidebar logo row; used for the side inset too.
+$chat-header-inset: calc(#{cssUtils.$space-m-l} - #{cssUtils.$space-2xs});
+$chat-header-row-height: 32px;
+
+.openui-agent-chat-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: cssUtils.$space-m;
+  min-height: calc(#{$chat-header-row-height} + #{$chat-header-inset});
+  padding: $chat-header-inset $chat-header-inset 0;
+  flex-shrink: 0;
+
+  .openui-agent-container--mobile & {
+    display: none;
+  }
+
+  &__start,
+  &__center,
+  &__end {
+    display: flex;
+    align-items: center;
+    gap: cssUtils.$space-s;
+    min-width: 0;
+    min-height: $chat-header-row-height;
+  }
+
+  &__start {
+    justify-content: flex-start;
+  }
+
+  &__center {
+    justify-content: center;
+  }
+
+  &__end {
+    justify-content: flex-end;
+  }
+
+  // Selected chat title, centred and truncated.
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: cssUtils.$space-xs;
+    min-width: 0;
+    max-width: 360px;
+    color: cssUtils.$text-neutral-primary;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  &__title-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__actions-trigger {
+    border-radius: cssUtils.$radius-full;
+  }
+}
+
+.openui-agent-chat-header__actions-menu {
+  min-width: 180px;
+  z-index: 9999;
+  @include menu.surface;
+}
+
+.openui-agent-chat-header__actions-item {
+  @include menu.item;
+  gap: cssUtils.$space-s;
+  font-size: 14px;
+  color: cssUtils.$text-neutral-primary;
+  cursor: default;
+  user-select: none;
+
+  &[data-highlighted] {
+    background-color: cssUtils.$highlight;
+  }
+
+  &--destructive {
+    color: cssUtils.$text-danger-primary;
+  }
+}

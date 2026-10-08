@@ -7,6 +7,7 @@ export { AgentInterface } from "./AgentInterface";
 export type { AgentInterfaceComponents, AgentInterfaceProps } from "./AgentInterface";
 export { ArtifactNav } from "./ArtifactNav";
 export type { ArtifactNavProps } from "./ArtifactNav";
+export type { ChatHeaderProps } from "./ChatHeader";
 export type { RouteProps } from "./Route";
 export { SidebarItem } from "./SidebarItem";
 export type { SidebarItemProps } from "./SidebarItem";

@@ -1,5 +1,7 @@
 "use client";
 
+import { BrandLogo, BrandWordmark } from "@/components/brand-logo";
+import { WelcomeMascot } from "@/components/welcome-mascot";
 import { usePersistedModel } from "@/hooks/use-persisted-model";
 import { MODEL_OPTIONS } from "@/lib/models";
 import { OPENUI_LOGOS, PROMPT_TEMPLATES, STARTERS } from "@/lib/starters";
@@ -42,9 +44,13 @@ export default function CloudChat() {
         theme={{ mode }}
         starters={STARTERS}
       >
+        <AgentInterface.SidebarHeader
+          logo={<BrandLogo />}
+          agentName={<BrandWordmark mode={mode} />}
+        />
         <AgentInterface.MobileHeader
           agentName=""
-          actions={
+          logo={
             <ModelSwitcher
               models={MODEL_OPTIONS}
               value={selectedModel}
@@ -52,17 +58,21 @@ export default function CloudChat() {
             />
           }
         />
-        <AgentInterface.ThreadHeader className="openui-cloud-thread-header">
-          <ModelSwitcher
-            models={MODEL_OPTIONS}
-            value={selectedModel}
-            onValueChange={setSelectedModel}
-          />
-        </AgentInterface.ThreadHeader>
+        <AgentInterface.ChatHeader
+          showChatTitle={false}
+          start={
+            <ModelSwitcher
+              models={MODEL_OPTIONS}
+              value={selectedModel}
+              onValueChange={setSelectedModel}
+            />
+          }
+        />
         <AgentInterface.Welcome
-          title="Good to see you"
-          description="What's on your mind today?"
+          image={<WelcomeMascot className="brand-welcome-mark" />}
+          title="What's on your mind today?"
           promptTemplates={PROMPT_TEMPLATES}
+          starterVariant="card"
           glowAnimation
         />
       </AgentInterface>

@@ -30,7 +30,7 @@ export interface DesktopWelcomeComposerProps {
 
 export const DesktopWelcomeComposer = ({
   className,
-  placeholder = "Type your query here",
+  placeholder = "Ask anything...",
   value,
   onChange,
   drafting,
@@ -73,7 +73,7 @@ export const DesktopWelcomeComposer = ({
 
     // Reset to 0 (not "auto") so scrollHeight reflects content, not container
     input.style.height = "0px";
-    input.style.height = `${Math.max(input.scrollHeight, 24)}px`;
+    input.style.height = `${Math.max(input.scrollHeight, 32)}px`;
   }, [textContent, textareaRef]);
 
   return (
@@ -101,7 +101,7 @@ export const DesktopWelcomeComposer = ({
           disabled={!textContent.trim() && !isRunning}
           aria-label={isRunning ? "Cancel" : "Send"}
           icon={isRunning ? <Square size="1em" fill="currentColor" /> : <ArrowUp size="1em" />}
-          size="extra-small"
+          size="small"
           variant="primary"
           className="openui-agent-desktop-welcome-composer__submit-button"
         />

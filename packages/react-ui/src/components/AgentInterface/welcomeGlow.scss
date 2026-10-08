@@ -28,86 +28,35 @@
     z-index: 1;
   }
 
-  &::before,
-  &::after,
-  &__blob {
+  // The docs site's Faded Dither (see WelcomeDither.tsx), played once: it
+  // appears around the composer and quickly pulls in to merge into it.
+  &__dither {
     position: absolute;
     z-index: 0;
+    top: -220px;
+    bottom: -120px;
+    left: 50%;
+    width: min(1180px, 100vw);
+    transform: translateX(-50%);
     pointer-events: none;
     opacity: 0;
-  }
-
-  &::before {
-    content: "";
-    top: -180px;
-    left: 50%;
-    width: 620px;
-    height: 210px;
-    border-radius: 50%;
-    background: radial-gradient(
-      ellipse,
-      color-mix(in oklch, var(--openui-interactive-accent-default) 38%, transparent) 0%,
-      color-mix(in oklch, var(--openui-interactive-accent-default) 20%, transparent) 45%,
-      transparent 75%
+    // Stipple colour, read by the shader. A touch under the site's light
+    // tone (#e6e6e6 on #f8f8f8, about 7% ink) so it stays in the background.
+    color: var(
+      --openui-agent-welcome-dither-color,
+      color-mix(in srgb, var(--openui-text-neutral-primary) 6%, transparent)
     );
-    filter: blur(40px);
-    animation: openui-agent-welcome-glow-drop 1.5s linear
-      calc(var(--openui-agent-welcome-settle-delay) + 0.5s) 1 both;
-  }
-
-  &::after {
-    content: "";
-    inset: -2px;
-    box-sizing: border-box;
-    border: 8px solid color-mix(in oklch, var(--openui-interactive-accent-default) 90%, transparent);
-    border-radius: 18px;
-    background: transparent;
-    filter: blur(8px);
-    -webkit-mask-image: radial-gradient(closest-side, black 35%, transparent 100%);
-    mask-image: radial-gradient(closest-side, black 35%, transparent 100%);
+    -webkit-mask-image: radial-gradient(closest-side, black 30%, transparent 100%);
+    mask-image: radial-gradient(closest-side, black 30%, transparent 100%);
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
-    -webkit-mask-position: 50% -30px;
-    mask-position: 50% -30px;
-    animation: openui-agent-welcome-glow-halo 1.5s linear
-      calc(var(--openui-agent-welcome-settle-delay) + 0.5s) 1 both;
-  }
-
-  &__blob {
-    top: -150px;
-    left: 50%;
-    border-radius: 50%;
-    animation: openui-agent-welcome-glow-blob-drop 1.5s linear 1 both;
-
-    &--accent {
-      --openui-agent-welcome-blob-x: -200px;
-      --openui-agent-welcome-blob-peak: 0.2;
-
-      width: 360px;
-      height: 160px;
-      background: radial-gradient(
-        ellipse,
-        color-mix(in oklch, var(--openui-interactive-accent-default) 42%, transparent) 0%,
-        transparent 70%
-      );
-      filter: blur(30px);
-      animation-delay: calc(var(--openui-agent-welcome-settle-delay) + 0.6s);
-    }
-
-    &--foreground {
-      --openui-agent-welcome-blob-x: 90px;
-      --openui-agent-welcome-blob-peak: 1;
-
-      width: 240px;
-      height: 110px;
-      background: radial-gradient(
-        ellipse,
-        color-mix(in oklch, var(--openui-foreground) 100%, transparent) 0%,
-        transparent 70%
-      );
-      filter: blur(24px);
-      animation-delay: calc(var(--openui-agent-welcome-settle-delay) + 0.55s);
-    }
+    -webkit-mask-position: 50% 62%;
+    mask-position: 50% 62%;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    // WelcomeDither reads this delay and duration to time the pull-in.
+    animation: openui-agent-welcome-dither 1.4s linear
+      calc(var(--openui-agent-welcome-settle-delay) + 0.3s) 1 both;
   }
 }
 
@@ -123,92 +72,18 @@
   }
 }
 
-@keyframes openui-agent-welcome-glow-blob-drop {
+@keyframes openui-agent-welcome-dither {
   0% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--openui-agent-welcome-blob-x) * 0.3), -220px) scale(0.8);
-    animation-timing-function: cubic-bezier(0.45, 0, 0.65, 0.5);
   }
 
-  12% {
-    opacity: calc(var(--openui-agent-welcome-blob-peak) * 0.3);
-  }
-
-  30% {
-    opacity: var(--openui-agent-welcome-blob-peak);
-    transform: translate(calc(-50% + var(--openui-agent-welcome-blob-x)), 2px) scale(1);
-    animation-timing-function: ease-in-out;
-  }
-
-  52%,
-  100% {
-    opacity: 0;
-    transform: translate(calc(-50% + var(--openui-agent-welcome-blob-x) * 0.6), 44px)
-      scale(0.85, 0.5);
-  }
-}
-
-@keyframes openui-agent-welcome-glow-drop {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -240px) scale(0.8);
-    animation-timing-function: cubic-bezier(0.45, 0, 0.65, 0.5);
-  }
-
-  10% {
-    opacity: 0.18;
-  }
-
-  22% {
-    opacity: 0.35;
-  }
-
-  30% {
-    opacity: 0.65;
-    transform: translate(-50%, 4px) scale(1);
-    animation-timing-function: ease-in-out;
-  }
-
-  52%,
-  100% {
-    opacity: 0;
-    transform: translate(-50%, 52px) scale(0.9, 0.45);
-  }
-}
-
-@keyframes openui-agent-welcome-glow-halo {
-  0%,
-  30% {
-    opacity: 0;
-    -webkit-mask-size: 480px 110px;
-    mask-size: 480px 110px;
-  }
-
-  38% {
-    opacity: 0.85;
-    -webkit-mask-size: 700px 150px;
-    mask-size: 700px 150px;
-    animation-timing-function: ease-out;
-  }
-
-  48% {
-    opacity: 0.85;
-    -webkit-mask-size: 1400px 380px;
-    mask-size: 1400px 380px;
-    animation-timing-function: ease-out;
-  }
-
-  62% {
-    opacity: 0.75;
-    -webkit-mask-size: 2200px 760px;
-    mask-size: 2200px 760px;
-    animation-timing-function: ease-in-out;
+  12%,
+  90% {
+    opacity: 1;
   }
 
   100% {
     opacity: 0;
-    -webkit-mask-size: 2500px 860px;
-    mask-size: 2500px 860px;
   }
 }
 
@@ -221,11 +96,7 @@
     }
   }
 
-  .openui-agent-welcome-glow {
-    &::before,
-    &::after,
-    &__blob {
-      animation: none;
-    }
+  .openui-agent-welcome-glow__dither {
+    display: none;
   }
 }

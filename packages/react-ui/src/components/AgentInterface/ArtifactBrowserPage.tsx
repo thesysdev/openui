@@ -9,11 +9,11 @@ import {
 import { Boxes, Search, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "../Button";
-import { DotMatrixLoader } from "../DotMatrixLoader";
 import { IconButton } from "../IconButton";
 import { artifactListPath, artifactViewPath } from "./_shared/artifactPaths";
 import { useAgentInterfaceLabels } from "./_shared/labelsContext";
 import { useNav } from "./_shared/navContext";
+import { MascotLoader } from "./components/MascotLoader";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -281,7 +281,7 @@ export const ArtifactBrowserPage = ({ categoryName }: { categoryName?: string })
           })}
           {isLoading && (
             <div className="openui-agent-artifact-browser__loading">
-              <DotMatrixLoader />
+              <MascotLoader size={40} />
             </div>
           )}
           {!isLoading && nextCursor !== undefined && (

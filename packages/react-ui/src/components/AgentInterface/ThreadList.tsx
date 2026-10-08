@@ -1,7 +1,7 @@
 import { useThreadList } from "@openuidev/react-headless";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import clsx from "clsx";
-import { EllipsisIcon, Trash2Icon } from "lucide-react";
+import { EllipsisIcon, MessageCircle, PencilIcon, Trash2Icon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
 import { Button } from "../Button";
@@ -9,6 +9,7 @@ import { IconButton } from "../IconButton";
 import { Skeleton } from "../Skeleton";
 import { useOptionalNav } from "./_shared/navContext";
 import { useAgentInterfaceStore } from "./_shared/store";
+import { RenameChatDialog } from "./RenameChatDialog";
 
 const THREAD_SKELETON_WIDTHS = ["78%", "62%", "86%", "70%"];
 
@@ -53,6 +54,7 @@ export const ThreadButton = ({
   const { layout } = useLayoutContext();
   const nav = useOptionalNav();
   const [isActionsOpen, setIsActionsOpen] = useState(false);
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
 
   return (
     <div
@@ -78,7 +80,8 @@ export const ThreadButton = ({
           }
         }}
       >
-        {title}
+        <MessageCircle className="openui-agent-thread-button-icon" size="1em" aria-hidden="true" />
+        <span className="openui-agent-thread-button-label">{title}</span>
       </button>
       <DropdownMenu.Root open={isActionsOpen} onOpenChange={setIsActionsOpen}>
         <DropdownMenu.Trigger asChild>
@@ -96,7 +99,20 @@ export const ThreadButton = ({
             side="bottom"
             align="start"
             sideOffset={4}
+            onCloseAutoFocus={(e) => {
+              if (isRenameOpen) e.preventDefault();
+            }}
           >
+            <DropdownMenu.Item asChild onSelect={() => setIsRenameOpen(true)}>
+              <Button
+                className="openui-agent-thread-button-dropdown-menu-item"
+                iconLeft={<PencilIcon size="1em" />}
+                size="extra-small"
+                variant="tertiary"
+              >
+                Rename
+              </Button>
+            </DropdownMenu.Item>
             <DropdownMenu.Item
               asChild
               onSelect={() => {
@@ -116,6 +132,7 @@ export const ThreadButton = ({
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
+      <RenameChatDialog threadId={id} open={isRenameOpen} onOpenChange={setIsRenameOpen} />
     </div>
   );
 };

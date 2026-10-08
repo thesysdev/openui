@@ -1,6 +1,6 @@
 import { useThreadList } from "@openuidev/react-headless";
 import clsx from "clsx";
-import { Menu, SquarePen } from "lucide-react";
+import { PanelLeft, SquarePen } from "lucide-react";
 import type { ReactNode } from "react";
 import { IconButton } from "../IconButton";
 import { useAgentInterfaceStore } from "./_shared/store";
@@ -50,9 +50,9 @@ export const MobileHeader = ({
   const defaultMenuButton = (
     <IconButton
       size="medium"
-      icon={<Menu size="1em" />}
+      icon={<PanelLeft size="1em" strokeWidth={2} />}
       onClick={() => setIsSidebarOpen(true)}
-      variant="secondary"
+      variant="tertiary"
       aria-label="Open sidebar"
     />
   );
@@ -61,12 +61,14 @@ export const MobileHeader = ({
     <span className="openui-agent-mobile-header-agent-name">{ctxAgentName}</span>
   );
 
+  // The same filled round button as the collapsed rail's New chat.
   const defaultNewChatButton = (
     <IconButton
       size="medium"
       icon={<SquarePen size="1em" />}
+      className="openui-agent-mobile-header-new-chat"
       onClick={switchToNewThread}
-      variant="secondary"
+      variant="primary"
       aria-label="New chat"
     />
   );

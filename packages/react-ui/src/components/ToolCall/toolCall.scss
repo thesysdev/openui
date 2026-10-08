@@ -37,10 +37,8 @@
   align-items: flex-start;
   gap: cssUtils.$space-s;
   width: 100%;
-  // Closes the whole run off from the answer that follows it.
-  padding-block-end: cssUtils.$space-m;
+  // Spaces the run from the answer that follows it; no divider line.
   margin-block-end: cssUtils.$space-m;
-  border-block-end: 1px solid cssUtils.$border-default;
 
   &__toggle {
     @include cssUtils.button-reset;
@@ -257,7 +255,8 @@
 
     // 6px offset = half of 14px icon - half of 1px border
     margin-inline-start: 6px;
-    border-inline-start: 1px solid cssUtils.$border-interactive;
+    // Kept as a transparent rail so the indent holds; no visible line.
+    border-inline-start: 1px solid transparent;
   }
 
   &__connector--last {
