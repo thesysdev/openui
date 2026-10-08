@@ -6,7 +6,7 @@ import { useLayoutContext } from "../../../context/LayoutContext";
 import { useAutoFocus } from "../../../hooks/useAutoFocus";
 import { useComposerState } from "../../../hooks/useComposerState";
 import { IconButton } from "../../IconButton";
-import { shouldSubmitOnEnter } from "../_shared/utils/composerKeyboard";
+import { useComposerComposition } from "../_shared/utils/useComposerComposition";
 
 export interface ComposerProps {
   className?: string;
@@ -30,6 +30,24 @@ export const Composer = ({ className, placeholder = "Type your query here" }: Co
     focusKey: selectedThreadId,
   });
 
+  const {
+    handleSubmit,
+    handleChange,
+    handleCompositionStart,
+    handleCompositionEnd,
+    handleBlur,
+    handleFocus,
+    handleKeyDown,
+  } = useComposerComposition({
+    textContent,
+    setTextContent,
+    processMessage,
+    isRunning,
+    isLoadingMessages,
+    textareaRef: inputRef,
+    resetKey: selectedThreadId,
+  });
+
   const updateInputOverflow = useCallback(() => {
     const input = inputRef.current;
     if (!input) return;
@@ -39,19 +57,6 @@ export const Composer = ({ className, placeholder = "Type your query here" }: Co
     setHasInputOverflowTop(maxScrollTop > 0 && input.scrollTop > 0);
     setHasInputOverflowBottom(maxScrollTop > 0 && input.scrollTop < maxScrollTop - 1);
   }, []);
-
-  const handleSubmit = () => {
-    if (!textContent.trim() || isRunning || isLoadingMessages) {
-      return;
-    }
-
-    processMessage({
-      role: "user",
-      content: textContent,
-    });
-
-    setTextContent("");
-  };
 
   useLayoutEffect(() => {
     const input = inputRef.current;
@@ -82,17 +87,16 @@ export const Composer = ({ className, placeholder = "Type your query here" }: Co
           ref={inputRef}
           value={textContent}
           autoFocus
-          onChange={(e) => setTextContent(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
           onScroll={updateInputOverflow}
           className="openui-agent-thread-composer__input"
           placeholder={placeholder}
           rows={1}
-          onKeyDown={(e) => {
-            if (shouldSubmitOnEnter(e)) {
-              e.preventDefault();
-              handleSubmit();
-            }
-          }}
+          onKeyDown={handleKeyDown}
         />
         <div className="openui-agent-thread-composer__action-bar">
           <IconButton
