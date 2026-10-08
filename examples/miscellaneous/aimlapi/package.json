@@ -1,0 +1,53 @@
+{
+  "name": "@openuidev/example-aimlapi",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
+    "predev": "npm run generate",
+    "dev": "next dev",
+    "prebuild": "npm run generate",
+    "build": "next build",
+    "preverify": "npm run generate",
+    "verify": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "^2.0.0",
+    "@openuidev/lang-core": "0.2.18",
+    "@openuidev/react-headless": "0.9.13",
+    "@openuidev/react-lang": "0.2.15",
+    "@openuidev/react-ui": "0.13.10",
+    "ai": "^6.0.116",
+    "next": "16.2.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@openuidev/cli": "0.2.12",
+    "@types/node": "^22.15.32",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.6",
+    "typescript": "^5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@openuidev/lang-core",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ],
+    "overrides": {
+      "postcss@<8.5.10": ">=8.5.10"
+    }
+  },
+  "allowScripts": {
+    "@openuidev/lang-core": true,
+    "sharp": true,
+    "unrs-resolver": true
+  }
+}
