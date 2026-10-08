@@ -60,6 +60,41 @@ describe("processStreamedMessage — tool status + errors", () => {
     expect(cleared).toEqual(["tc-1"]);
   });
 
+  it("publishes a call before its result, even while the assistant update is debounced", async () => {
+    // Server-side tools stream their call and result back to back. The second
+    // call only reaches the store through the debounced update, so without a
+    // flush its result would land first and pair with no call (a nameless tool).
+    let published: AssistantMessage | null = null;
+    const callIdsWhenResultLanded: string[][] = [];
+
+    await processStreamedMessage({
+      response: new Response(""),
+      createMessage: (m) => {
+        if (m.role === "assistant") published = m as AssistantMessage;
+        if (m.role === "tool") {
+          callIdsWhenResultLanded.push(published?.toolCalls?.map((tc) => tc.id) ?? []);
+        }
+      },
+      updateMessage: (m) => {
+        if (m.role === "assistant") published = m as AssistantMessage;
+      },
+      adapter: adapterFromEvents([
+        { type: EventType.TOOL_CALL_START, toolCallId: "tc-1", toolCallName: "get_weather" },
+        { type: EventType.TOOL_CALL_START, toolCallId: "tc-2", toolCallName: "web_search" },
+        {
+          type: EventType.TOOL_CALL_RESULT,
+          toolCallId: "tc-2",
+          content: "results",
+          messageId: "tm-2",
+          role: "tool",
+        },
+      ]),
+    });
+    await flush();
+
+    expect(callIdsWhenResultLanded).toEqual([["tc-1", "tc-2"]]);
+  });
+
   it("surfaces isError/error from TOOL_CALL_RESULT onto ToolMessage.error", async () => {
     const created: Message[] = [];
 

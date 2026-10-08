@@ -220,6 +220,17 @@ export const processStreamedMessage = async ({
         clearToolExecuting(event.toolCallId);
         inFlightToolCallIds.delete(event.toolCallId);
 
+        // The call this result answers may still be waiting on the debounced
+        // assistant update (server-side tools stream their call and result
+        // back to back). Publish it first, or the result briefly pairs with no
+        // call and renders as a nameless tool — for as long as the frame is
+        // deferred, which in a background tab is until it's shown again.
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+          updateMessage(currentMessage);
+        }
+
         // Surface a failure onto the @ag-ui/core ToolMessage.error field. The
         // TOOL_CALL_RESULT schema is `passthrough`, so adapters may carry an
         // `isError` flag and/or `error` string; map either onto `error` so the
