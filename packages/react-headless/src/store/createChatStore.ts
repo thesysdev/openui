@@ -23,6 +23,10 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
   const { storage } = configRef.current;
   const { thread: threadStorage } = storage;
 
+  // Messages of threads already opened this session, so switching back to one
+  // shows it at once while a fresh copy loads in the background.
+  const messageCache = new Map<string, Message[]>();
+
   const store = createStore<ChatStore>()(
     subscribeWithSelector((set, get) => ({
       // Thread List State
@@ -95,19 +99,42 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
 
       selectThread: (threadId: string) => {
         // Re-selecting the active thread is a no-op — don't wipe and refetch.
-        if (get().selectedThreadId === threadId) return;
+        const current = get();
+        if (current.selectedThreadId === threadId) return;
+        // Keep the thread being left (including anything just streamed) for
+        // when the user comes back to it.
+        if (current.selectedThreadId) {
+          messageCache.set(current.selectedThreadId, current.messages);
+        }
         get().cancelMessage();
+        const cached = messageCache.get(threadId);
         set({
           selectedThreadId: threadId,
-          messages: [],
-          isLoadingMessages: true,
+          messages: cached ?? [],
+          isLoadingMessages: !cached,
           threadError: null,
           executingToolCallIds: new Set<string>(),
         });
         threadStorage
           .getMessages(threadId)
-          .then((messages) => set({ messages, isLoadingMessages: false }))
-          .catch((e) => set({ threadError: e, isLoadingMessages: false }));
+          .then((messages) => {
+            messageCache.set(threadId, messages);
+            const state = get();
+            // The user may have moved on, or started a new run on the cached
+            // copy; only then is the fresh copy left alone.
+            if (state.selectedThreadId !== threadId || state.isRunning) return;
+            if (cached && JSON.stringify(cached) === JSON.stringify(messages)) {
+              set({ isLoadingMessages: false });
+              return;
+            }
+            set({ messages, isLoadingMessages: false });
+          })
+          .catch((e) => {
+            if (get().selectedThreadId !== threadId) return;
+            // A failed refresh of a cached thread keeps showing the cache.
+            if (cached) return;
+            set({ threadError: e, isLoadingMessages: false });
+          });
       },
 
       updateThread: (thread: Thread) => {
@@ -131,6 +158,7 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
         threadStorage
           .deleteThread(threadId)
           .then(() => {
+            messageCache.delete(threadId);
             const state = get();
             set({ threads: state.threads.filter((t) => t.id !== threadId) });
             if (state.selectedThreadId === threadId) {
