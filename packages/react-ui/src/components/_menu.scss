@@ -32,9 +32,12 @@ $row-height: 32px;
   border: none;
   border-radius: $radius;
   overflow: hidden;
-  background-color: cssUtils.$foreground;
+  // Lifted a step above the card it opens over: a no-op on the white light
+  // surface, a visibly raised grey in dark mode.
+  background-color: color-mix(in oklch, cssUtils.$foreground, cssUtils.$text-white 6%);
+  // The ring is drawn in the text color so it stays visible on dark surfaces.
   box-shadow:
-    0 0 0 1px oklch(0 0 0 / 0.05),
+    0 0 0 1px color-mix(in oklch, #{cssUtils.$text-neutral-primary} 6%, transparent),
     0 4px 12px -2px oklch(0 0 0 / 0.05),
     0 16px 32px -8px oklch(0 0 0 / 0.08);
   padding: $gutter 0;

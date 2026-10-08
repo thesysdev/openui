@@ -4,7 +4,8 @@
   position: fixed;
   inset: 0;
   z-index: 10000;
-  background: oklch(0 0 0 / 0.12);
+  // 30% of the theme overlay: a light dim in light mode, a deeper one in dark.
+  background: color-mix(in oklch, cssUtils.$overlay 30%, transparent);
 }
 
 // Same soft surface as the shared menus (ring + layered shadow, no border).
@@ -17,10 +18,10 @@
   transform: translate(-50%, -50%);
   padding: cssUtils.$space-m-l;
   border-radius: cssUtils.$radius-3xl;
-  background-color: cssUtils.$foreground;
+  background-color: color-mix(in oklch, cssUtils.$foreground, cssUtils.$text-white 6%);
   color: cssUtils.$text-neutral-primary;
   box-shadow:
-    0 0 0 1px oklch(0 0 0 / 0.05),
+    0 0 0 1px color-mix(in oklch, #{cssUtils.$text-neutral-primary} 6%, transparent),
     0 4px 12px -2px oklch(0 0 0 / 0.05),
     0 24px 48px -12px oklch(0 0 0 / 0.12);
 

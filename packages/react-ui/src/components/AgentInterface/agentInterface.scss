@@ -26,11 +26,11 @@
   width: 100dvw;
   overflow: hidden;
 
-  // Shell surface the sidebar sits on: a very faint grey wash (1% black); the
-  // thread is a white raised card above it on desktop (see thread.scss).
-  // Mobile stays a single flat surface.
-  background:
-    linear-gradient(oklch(0.097 0 0 / 0.01), oklch(0.097 0 0 / 0.01)), cssUtils.$foreground;
+  // Shell surface the sidebar sits on: the card surface pulled 40% toward the
+  // page background, so it reads as a faint grey under the white thread card
+  // in light mode and as a darker well under the card in dark mode (see
+  // thread.scss). Mobile stays a single flat surface.
+  background: color-mix(in oklch, cssUtils.$background 40%, cssUtils.$foreground);
   box-sizing: border-box;
   & * {
     box-sizing: border-box;

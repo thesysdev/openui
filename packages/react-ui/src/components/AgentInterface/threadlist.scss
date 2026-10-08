@@ -188,11 +188,21 @@ $thread-list-mask-height: cssUtils.$space-xl;
 
 .openui-agent-thread-button-title {
   @include cssUtils.button-reset;
-  @include cssUtils.typography(label, small);
+  @include cssUtils.typography(label, extra-small);
   display: flex;
   align-items: center;
   gap: cssUtils.$space-s;
-  color: cssUtils.$text-neutral-primary;
+  // Titles sit back in secondary; the open thread and the hovered row step up
+  // to primary.
+  color: cssUtils.$text-neutral-secondary;
+  transition: color 120ms ease;
+
+  .openui-agent-thread-button:hover &,
+  .openui-agent-thread-button:focus-within &,
+  .openui-agent-thread-button--actions-open &,
+  .openui-agent-thread-button--selected & {
+    color: cssUtils.$text-neutral-primary;
+  }
   padding: cssUtils.$space-xs;
   padding-left: calc(cssUtils.$space-xs + 6px);
   width: 100%;
@@ -212,7 +222,11 @@ $thread-list-mask-height: cssUtils.$space-xl;
 
 .openui-agent-thread-button-icon {
   flex-shrink: 0;
-  font-size: 16px;
+  font-size: 14px;
+
+  .openui-agent-container--mobile & {
+    font-size: 16px;
+  }
 }
 
 .openui-agent-thread-button-label {

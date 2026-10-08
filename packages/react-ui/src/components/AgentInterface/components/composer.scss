@@ -27,13 +27,14 @@ $thread-content-max-width: calc(
   }
 
   &__input-wrapper {
-    background-color: cssUtils.$foreground;
+    // A shade above the card in dark mode (a no-op on the white light surface).
+    background-color: color-mix(in oklch, cssUtils.$foreground, cssUtils.$text-white 3%);
     // 0.5px hairline ring hugging the outside edge (transparent 1px border keeps
     // the 56px resting height unchanged), very faint so it reads as an edge.
     border: 1px solid transparent;
     border-radius: cssUtils.$radius-6xl;
     box-shadow:
-      0 0 0 0.5px oklch(0 0 0 / 0.08),
+      0 0 0 0.5px color-mix(in oklch, #{cssUtils.$text-neutral-primary} 8%, transparent),
       0 4px 16px oklch(0 0 0 / 0.06);
     overflow: clip;
     display: flex;

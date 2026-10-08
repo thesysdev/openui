@@ -5,6 +5,10 @@ $sidebar-padding-y: cssUtils.$space-m-l;
 $sidebar-padding-x: cssUtils.$space-m;
 $sidebar-header-inline-offset: 0px;
 $sidebar-collapsed-control-size: 32px;
+// Expanded nav rows (New Chat) run a step smaller than the rail's buttons, to
+// match the 12px nav type.
+$sidebar-nav-row-height: 28px;
+$sidebar-nav-icon-size: 14px;
 $sidebar-logo-size: 30px;
 $sidebar-collapsed-padding-x: 18px;
 $sidebar-collapsed-mark-width: 36px;
@@ -301,7 +305,7 @@ $sidebar-header-fade-duration: 140ms;
 
 .openui-agent-sidebar-item {
   @include cssUtils.button-reset;
-  @include cssUtils.typography(label, small);
+  @include cssUtils.typography(label, extra-small);
 
   display: flex;
   align-items: center;
@@ -446,17 +450,21 @@ $sidebar-header-fade-duration: 140ms;
 
 // Expanded New Chat is a plain nav item laid out like a thread row: its icon
 // shares the thread icons' column and its label the thread titles' column.
-// The 32px box (the rail's button size) is pulled 2px left so the 16px glyph
-// inside it lands on that column. It shows as selected while on a fresh chat.
+// The 28px box is pulled 1px left so the 14px glyph inside it lands on that
+// column, and the 1px gap puts the label on the titles' column. It shows as
+// selected while on a fresh chat.
 .openui-agent-sidebar-container
   .openui-agent-new-chat-button:not(.openui-agent-new-chat-button--collapsed) {
+  @include cssUtils.typography(label, extra-small);
+
   // Bleed 6px past the column each side (padding puts the content back) so
   // the selected/hover rect has room around the icon and label.
   width: calc(100% + 12px);
-  height: $sidebar-collapsed-control-size;
-  margin: 0 -6px;
+  height: $sidebar-nav-row-height;
+  // The 2px top and bottom keep its centre level with the rail's 32px button.
+  margin: 2px -6px;
   padding-left: 6px;
-  gap: 0;
+  gap: 1px;
   border-radius: calc(cssUtils.$radius-s + 3px);
 
   &.openui-agent-new-chat-button--selected,
@@ -465,10 +473,10 @@ $sidebar-header-fade-duration: 140ms;
   }
 
   .openui-agent-new-chat-button__icon {
-    width: $sidebar-collapsed-control-size;
-    height: $sidebar-collapsed-control-size;
-    margin: 0 0 0 -2px;
-    font-size: 16px;
+    width: $sidebar-nav-row-height;
+    height: $sidebar-nav-row-height;
+    margin: 0 0 0 -1px;
+    font-size: $sidebar-nav-icon-size;
   }
 }
 

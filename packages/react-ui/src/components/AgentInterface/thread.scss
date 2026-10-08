@@ -20,7 +20,7 @@
   .openui-agent-container:not(.openui-agent-container--mobile) > & {
     margin: cssUtils.$space-2xs cssUtils.$space-2xs cssUtils.$space-2xs 0;
     border-radius: cssUtils.$radius-3xl;
-    outline: 1px solid cssUtils.$sunk; // 4% black: a light edge on the faint grey shell
+    outline: 1px solid cssUtils.$sunk; // 4% ink: a light edge on the shell
     background-color: cssUtils.$foreground;
   }
 }
