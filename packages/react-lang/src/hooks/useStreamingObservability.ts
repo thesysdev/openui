@@ -20,6 +20,10 @@ export interface UseStreamingObservabilityOptions {
   publish?: boolean;
   /** `createLibrary()` instance id, echoed on stream events for Debug matching. */
   __libraryId?: string;
+  /** LLM run that produced this stream. Groups Inspect events with the request/response pair. */
+  runId?: string;
+  /** Display title for the Inspect run group. */
+  runTitle?: string;
 }
 
 export interface StreamingObservabilityState {
@@ -86,6 +90,9 @@ export function advanceStreamingObservability(
   idFactory: () => string = createStreamId,
 ): StreamingObservabilityUpdate | null {
   if (isStreaming) {
+    // Same content flipping back to streaming is not a new run — that happens
+    // when a historical assistant is marked live because a new user turn started.
+    if (state.settled && state.lastResponse === response) return null;
     // A mounted Renderer can be reused for another message. Once the previous
     // stream has settled, the next streaming transition starts a new identity.
     if (state.settled) Object.assign(state, createStreamingObservabilityState());
@@ -136,11 +143,18 @@ export function useStreamingObservability({
   errorRevision,
   publish = true,
   __libraryId,
+  runId,
+  runTitle,
 }: UseStreamingObservabilityOptions): void {
   const streamRef = useRef<StreamingObservabilityState>(createStreamingObservabilityState());
+  const runIdRef = useRef(runId);
 
   useEffect(() => {
     if (!publish) return;
+    if (runIdRef.current !== runId) {
+      Object.assign(streamRef.current, createStreamingObservabilityState());
+      runIdRef.current = runId;
+    }
     const errors = errorsRef.current;
     const settledErrorKey = isStreaming ? null : JSON.stringify(errors);
     const update = advanceStreamingObservability(
@@ -150,6 +164,10 @@ export function useStreamingObservability({
       settledErrorKey,
     );
     const libraryIdFields = __libraryId !== undefined ? { __libraryId } : {};
+    const runFields = {
+      ...(runId !== undefined ? { runId } : {}),
+      ...(runTitle !== undefined ? { runTitle } : {}),
+    };
 
     if (isStreaming) {
       if (update) {
@@ -163,6 +181,7 @@ export function useStreamingObservability({
           parser: parserMetadata(result),
           ...captureStreamTiming(streamRef.current),
           ...libraryIdFields,
+          ...runFields,
           message: "OpenUI Lang is streaming",
         });
       }
@@ -182,11 +201,22 @@ export function useStreamingObservability({
         errorCount: errors.length,
         ...captureStreamTiming(streamRef.current),
         ...libraryIdFields,
+        ...runFields,
         message:
           errors.length > 0
             ? `OpenUI Lang settled with ${errors.length} error${errors.length === 1 ? "" : "s"}`
             : "OpenUI Lang settled",
       } satisfies SettledStreamEventDetail);
     }
-  }, [publish, isStreaming, response, result, errorsRef, errorRevision, __libraryId]);
+  }, [
+    publish,
+    isStreaming,
+    response,
+    result,
+    errorsRef,
+    errorRevision,
+    __libraryId,
+    runId,
+    runTitle,
+  ]);
 }

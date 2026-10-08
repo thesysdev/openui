@@ -4,13 +4,7 @@ import { observability, type ObservabilityEvent } from "@openuidev/observability
 import { Inbox, RotateCcw, Settings, X } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { DEFAULT_EDITOR_PCT, useDebug } from "./debug";
-import {
-  EventRow,
-  getQuotaError,
-  getReactLangStreamDetail,
-  QuotaErrorRow,
-  ReactLangStreamEventRow,
-} from "./inspect";
+import { groupEventsByRunId, InspectEvent, RunGroup } from "./inspect";
 import {
   addOrReplaceEvent,
   isLibraryEvent,
@@ -216,26 +210,43 @@ export function OpenUIDevtoolsWidget({
                 No events captured yet.
               </div>
             ) : (
-              visibleEvents.map((event, index) => {
+              groupEventsByRunId(visibleEvents).map((item, index) => {
+                if (item.type === "run") {
+                  const defaultOpen =
+                    index === 0 || item.events.some((event) => event.level === "error");
+                  return (
+                    <RunGroup key={item.runId} events={item.events} defaultOpen={defaultOpen}>
+                      {item.events.map((event, eventIndex) => (
+                        <InspectEvent
+                          key={
+                            typeof event.detail["id"] === "string"
+                              ? event.detail["id"]
+                              : `${event.timestamp}-${eventIndex}`
+                          }
+                          event={event}
+                          embedded
+                          last={eventIndex === item.events.length - 1}
+                          canOpenInDebug={debug.canOpen}
+                          onOpenInDebug={debug.openWith}
+                        />
+                      ))}
+                    </RunGroup>
+                  );
+                }
+
+                const event = item.event;
                 const key =
                   typeof event.detail["id"] === "string"
                     ? event.detail["id"]
                     : `${event.timestamp}-${index}`;
-                const quotaError = getQuotaError(event);
-                if (quotaError) return <QuotaErrorRow key={key} info={quotaError} />;
-                const stream = getReactLangStreamDetail(event);
-                if (stream) {
-                  return (
-                    <ReactLangStreamEventRow
-                      key={key}
-                      event={event}
-                      stream={stream}
-                      canOpenInDebug={debug.canOpen}
-                      onOpenInDebug={debug.openWith}
-                    />
-                  );
-                }
-                return <EventRow key={key} event={event} />;
+                return (
+                  <InspectEvent
+                    key={key}
+                    event={event}
+                    canOpenInDebug={debug.canOpen}
+                    onOpenInDebug={debug.openWith}
+                  />
+                );
               })
             )}
           </div>

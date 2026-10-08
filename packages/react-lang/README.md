@@ -113,6 +113,26 @@ function AssistantMessage({ response, isStreaming }) {
 | `onStateUpdate` | `(state: Record<string, any>) => void` | Callback when form field values change |
 | `initialState` | `Record<string, any>` | Initial form state for hydration |
 | `onParseResult` | `(result: ParseResult \| null) => void` | Callback when the parse result changes |
+| `devtools` | `{ run?: { id: string; title?: string } }` | Optional metadata for grouping rendered responses in OpenUI Inspect |
+
+To group responses from the same generation in Inspect, wrap them in `RendererDevtoolsProvider`. Supply the run once with a stable `id` and an optional `title`, such as the user's prompt. Every nested Renderer inherits it:
+
+```tsx
+import { Renderer, RendererDevtoolsProvider } from "@openuidev/react-lang";
+
+<RendererDevtoolsProvider run={{ id: generationId, title: userPrompt }}>
+  {messages.map((message) => (
+    <Renderer
+      key={message.id}
+      response={message.content}
+      library={library}
+      isStreaming={message.isStreaming}
+    />
+  ))}
+</RendererDevtoolsProvider>
+```
+
+Use a separate provider and a new run ID for each generation. A Renderer can override the inherited run with `devtools={{ run: { id, title } }}`. Renderers without a run ID appear as individual stream rows. Inspect captures renderers while they stream; mounting historical content with `isStreaming={false}` does not create a new stream entry. `AgentInterface` supplies the run ID and title through a provider around each turn, including custom message and tool renderers.
 
 ### Parser (Server-Side)
 

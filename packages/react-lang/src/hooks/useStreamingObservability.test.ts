@@ -85,6 +85,17 @@ describe("streaming observability lifecycle", () => {
     expect(idFactory).toHaveBeenCalledTimes(2);
   });
 
+  it("does not start a new id when a settled Renderer is marked streaming with the same response", () => {
+    const state = createStreamingObservabilityState();
+    const idFactory = vi.fn(() => "stream-1");
+
+    advanceStreamingObservability(state, true, "first", null, idFactory);
+    advanceStreamingObservability(state, false, "first", "[]", idFactory);
+
+    expect(advanceStreamingObservability(state, true, "first", null, idFactory)).toBeNull();
+    expect(idFactory).toHaveBeenCalledOnce();
+  });
+
   it("republishes settled with a new updateIndex when the error snapshot changes", () => {
     const state = createStreamingObservabilityState();
     const idFactory = () => "stream-1";

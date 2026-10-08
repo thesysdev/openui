@@ -1,9 +1,10 @@
 import { type ObservabilityEvent } from "@openuidev/observability";
 import { Bug, Check, ChevronDown, ChevronRight, Copy } from "lucide-react";
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { tokenColor, tokenizeLang } from "../lib";
-import { FONT, MONO, useStyles, type ThemeTokens } from "../theme";
+import { FONT, MONO, useStyles, useTheme, type ThemeTokens } from "../theme";
 import { LevelIcon } from "./LevelIcon";
+import { nestedRowBox } from "./rowBox";
 
 export interface ReactLangStreamDetail {
   phase: "streaming" | "settled";
@@ -62,26 +63,42 @@ export function ReactLangStreamEventRow({
   stream,
   onOpenInDebug,
   canOpenInDebug = false,
+  embedded = false,
+  last = false,
 }: {
   event: ObservabilityEvent;
   stream: ReactLangStreamDetail;
   onOpenInDebug?: (response: string, libraryId?: string) => void;
   canOpenInDebug?: boolean;
+  embedded?: boolean;
+  last?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(
+    () => stream.phase === "settled" && stream.errors.length > 0,
+  );
   const [hovered, setHovered] = useState(false);
   const [hoveredAction, setHoveredAction] = useState<string | null>(null);
   const [responseCopied, setResponseCopied] = useState(false);
   const styles = useStyles(streamRowStyles);
+  const theme = useTheme();
   const colors = useStyles(tokenColor);
+  const isStreaming = stream.phase === "streaming";
+  const visibleErrors = isStreaming ? [] : stream.errors;
+  const hasErrors = visibleErrors.length > 0;
+  const openedForError = useRef(hasErrors);
   // Collapsed rows skip tokenizing: a live stream re-renders this on every chunk.
   const responseTokens = useMemo(
     () => (expanded && stream.response ? tokenizeLang(stream.response) : []),
     [expanded, stream.response],
   );
-  const isStreaming = stream.phase === "streaming";
   const elapsedMs = useStreamElapsedMs(stream, isStreaming);
-  const visibleErrors = isStreaming ? [] : stream.errors;
+
+  useEffect(() => {
+    if (!hasErrors || openedForError.current) return;
+    openedForError.current = true;
+    setExpanded(true);
+  }, [hasErrors]);
+
   const statementCount = stream.parser?.statementCount;
   const orphaned = stream.parser?.orphaned ?? [];
   const parserIssues = [
@@ -109,7 +126,11 @@ export function ReactLangStreamEventRow({
 
   return (
     <div
-      style={{ ...styles.row, ...(hovered ? styles.rowHover : null) }}
+      style={{
+        ...styles.row,
+        ...(embedded ? nestedRowBox(theme, last) : null),
+        ...(hovered && !embedded ? styles.rowHover : null),
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -347,7 +368,12 @@ function streamRowStyles(t: ThemeTokens) {
     // Longhands, not the `border` shorthand: rowHover overrides borderColor, and
     // React blanks a shorthand's longhands when a later style touches one of them.
     row: {
-      borderWidth: 1,
+      // Four longhands: `borderWidth` is a shorthand, and mixing it with
+      // `borderBottomWidth` in the embedded override leaves a leftover box stroke.
+      borderTopWidth: 1,
+      borderRightWidth: 1,
+      borderBottomWidth: 1,
+      borderLeftWidth: 1,
       borderStyle: "solid",
       borderColor: t.border,
       borderRadius: 12,

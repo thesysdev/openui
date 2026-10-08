@@ -220,6 +220,70 @@ describe("OpenUIDevtools", () => {
     expect(toggle().getAttribute("aria-expanded")).toBe("false");
   });
 
+  it("auto-opens the drawer when a stream settles with errors", () => {
+    render({ enabled: true, autoOpenOnError: true, errorsOnly: false });
+    expect(toggle().getAttribute("aria-expanded")).toBe("false");
+
+    act(() =>
+      observability.info({
+        kind: "react-lang:stream",
+        id: "stream-1",
+        phase: "streaming",
+        runId: "run-1",
+      }),
+    );
+    expect(toggle().getAttribute("aria-expanded")).toBe("false");
+
+    act(() =>
+      observability.error({
+        kind: "react-lang:stream",
+        id: "stream-1",
+        phase: "settled",
+        runId: "run-1",
+        errors: [
+          { source: "parser", code: "unknown-component", message: "Unknown component Ghost" },
+        ],
+      }),
+    );
+    expect(toggle().getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("opens a collapsed run group when an error arrives later", () => {
+    render({ enabled: true, autoOpenOnError: false, errorsOnly: false });
+
+    act(() => {
+      observability.info({
+        kind: "LLM:request",
+        runId: "run-old",
+        userMessage: { role: "user", content: "older prompt" },
+      });
+      observability.info({ kind: "LLM:response", runId: "run-old", status: 200 });
+      observability.info({
+        kind: "LLM:request",
+        runId: "run-new",
+        userMessage: { role: "user", content: "newer prompt" },
+      });
+      observability.info({ kind: "LLM:response", runId: "run-new", status: 200 });
+    });
+
+    const older = container.querySelector<HTMLElement>('[role="group"][aria-label="older prompt"]');
+    expect(older?.querySelector("button")?.getAttribute("aria-expanded")).toBe("false");
+
+    act(() =>
+      observability.error({
+        kind: "react-lang:stream",
+        id: "stream-old",
+        phase: "settled",
+        runId: "run-old",
+        errors: [{ message: "late parse error" }],
+      }),
+    );
+
+    expect(older?.querySelector("button")?.getAttribute("aria-expanded")).toBe("true");
+    expect(older?.querySelector('[aria-label="error"]')).not.toBeNull();
+    expect(container.textContent).toContain("late parse error");
+  });
+
   it("restores auto-open on error from a previous session", () => {
     render({ enabled: true, autoOpenOnError: true });
     openSettings();
@@ -385,14 +449,12 @@ describe("OpenUIDevtools", () => {
     expect(container.textContent).not.toContain("Streaming");
     expect(overviewStats()).toContain("1 statement");
     expect(overviewStats()).toContain("1 error");
-    expect(container.textContent).not.toContain("Unknown component Ghost");
+    expect(toggle().getAttribute("aria-expanded")).toBe("true");
 
     const expand = container.querySelector<HTMLButtonElement>(
       'button[aria-label="Toggle OpenUI Lang stream details"]',
     );
-    expect(expand).not.toBeNull();
-    click(expand!);
-
+    expect(expand?.getAttribute("aria-expanded")).toBe("true");
     expect(container.textContent).toContain("parser / unknown-component");
     expect(container.textContent).toContain("Unknown component Ghost");
     expect(container.textContent).toContain("Use a component registered in the library");
@@ -468,7 +530,7 @@ describe("OpenUIDevtools", () => {
     const expand = container.querySelector<HTMLButtonElement>(
       'button[aria-label="Toggle OpenUI Lang stream details"]',
     );
-    click(expand!);
+    expect(expand?.getAttribute("aria-expanded")).toBe("true");
     expect(container.textContent).toContain("First error");
 
     act(() =>

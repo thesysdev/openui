@@ -53,6 +53,10 @@ export interface SettledStreamEventDetail {
   message: string;
   /** `createLibrary()` instance id for the Renderer that produced this stream. */
   __libraryId?: string;
+  /** LLM run that produced this stream. Matches `LLM:*` events from the chat store. */
+  runId?: string;
+  /** Display title for the Inspect run group. */
+  runTitle?: string;
 }
 
 /** Wire shape for settled stream events sent to cloud ingest. */

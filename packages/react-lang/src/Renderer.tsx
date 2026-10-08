@@ -11,6 +11,7 @@ import React, { Component, Fragment, useEffect, useInsertionEffect, useRef } fro
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
+import { useRendererDevtoolsRun, type RendererDevtoolsRun } from "./RendererDevtoolsProvider";
 
 export interface RendererProps {
   /** Raw response text (openui-lang code). */
@@ -51,6 +52,11 @@ export interface RendererProps {
    */
   onError?: (errors: OpenUIError[]) => void;
   publishObservability?: boolean;
+  /** Optional metadata for grouping rendered responses in OpenUI Inspect. */
+  devtools?: {
+    /** Overrides the run supplied by RendererDevtoolsProvider for this Renderer. */
+    run?: RendererDevtoolsRun;
+  };
 }
 
 // ─── Error boundary ───
@@ -209,7 +215,10 @@ export function Renderer({
   queryLoader,
   onError,
   publishObservability,
+  devtools,
 }: RendererProps) {
+  const inheritedRun = useRendererDevtoolsRun();
+  const run = devtools?.run ?? inheritedRun;
   useInsertionEffect(() => {
     ensureLoadingStyle();
   }, []);
@@ -256,6 +265,8 @@ export function Renderer({
       toolProvider: resolvedToolProvider,
       onError,
       publishObservability,
+      runId: run?.id,
+      runTitle: run?.title,
     },
     renderDeep,
   );

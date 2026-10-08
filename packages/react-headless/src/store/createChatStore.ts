@@ -175,11 +175,13 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
           }
 
           const runId = crypto.randomUUID();
+          const runTitle = getRunTitle(optimisticMessage);
 
           observability.info({
             kind: "LLM:request",
             threadId,
             runId,
+            runTitle,
             // message is a reserved keyword for the observability library expecting string
             userMessage: optimisticMessage,
           });
@@ -198,6 +200,7 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
               status: response.status,
               ok: response.ok,
               runId,
+              runTitle,
               ...(await buildObservabilityErrorDetail(response)),
             });
 
@@ -209,6 +212,7 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
               kind: "LLM:error",
               threadId,
               runId,
+              runTitle,
               error: e instanceof Error ? e : new Error(String(e)),
             });
             throw e;
@@ -216,6 +220,8 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
 
           await processStreamedMessage({
             response,
+            runId,
+            runTitle,
             createMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
             updateMessage: (msg) =>
               set((s) => ({
@@ -281,3 +287,12 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
 
   return store;
 };
+
+function getRunTitle(message: UserMessage): string | undefined {
+  const content = message.content;
+  const text =
+    typeof content === "string"
+      ? content
+      : (content ?? []).map((part) => (part.type === "text" ? part.text : "")).join("");
+  return text.trim() || undefined;
+}

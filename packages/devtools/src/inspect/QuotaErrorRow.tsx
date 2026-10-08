@@ -2,8 +2,9 @@ import { type ObservabilityEvent } from "@openuidev/observability";
 import { CreditCard, KeyRound } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 import { withDevtoolsAttribution } from "../lib/links";
-import { FONT, useStyles, type ThemeTokens } from "../theme";
+import { FONT, useStyles, useTheme, type ThemeTokens } from "../theme";
 import { LevelIcon } from "./LevelIcon";
+import { nestedRowBox } from "./rowBox";
 
 export interface QuotaErrorInfo {
   title: string;
@@ -37,12 +38,26 @@ export function getQuotaError(event: ObservabilityEvent): QuotaErrorInfo | undef
 }
 
 /** Billing/rate-limit list entry — the highlighted card a known 429 code renders as. */
-export function QuotaErrorRow({ info }: { info: QuotaErrorInfo }) {
+export function QuotaErrorRow({
+  info,
+  embedded = false,
+  last = false,
+}: {
+  info: QuotaErrorInfo;
+  embedded?: boolean;
+  last?: boolean;
+}) {
   const styles = useStyles(quotaRowStyles);
+  const theme = useTheme();
   const [hoveredCta, setHoveredCta] = useState<string | null>(null);
 
   return (
-    <div style={styles.row}>
+    <div
+      style={{
+        ...styles.row,
+        ...(embedded ? nestedRowBox(theme, last) : null),
+      }}
+    >
       <div style={styles.creditsNote}>
         <div style={styles.creditsHeader}>
           <LevelIcon level="warning" />
@@ -115,7 +130,12 @@ function asString(value: unknown): string | undefined {
 function quotaRowStyles(t: ThemeTokens) {
   return {
     row: {
-      border: `1px solid ${t.border}`,
+      borderTopWidth: 1,
+      borderRightWidth: 1,
+      borderBottomWidth: 1,
+      borderLeftWidth: 1,
+      borderStyle: "solid",
+      borderColor: t.border,
       borderRadius: 12,
       padding: 12,
       display: "flex",
