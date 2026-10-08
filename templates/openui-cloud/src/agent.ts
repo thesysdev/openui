@@ -24,7 +24,7 @@ const getWeather = tool(
 
 const CloudAgentState = new StateSchema({
   conversationId: z.string(),
-  historyLength: z.number().int().nonnegative(),
+  turnStart: z.number().int().nonnegative(),
   model: z.string().default(DEFAULT_MODEL),
 });
 
@@ -51,12 +51,12 @@ const persistTurn = createMiddleware({
   name: "OpenUICloudHistory",
   stateSchema: CloudAgentState,
   afterAgent: async (state) => {
-    // The route already saved the new user message. Ignore all replayed input
-    // and save the completed assistant/tool messages exactly once per run.
+    // Save the completed turn in one call: new user message, assistant messages,
+    // tool calls, and tool results. Exclude all replayed history.
     await storeLangGraphHistory({
       apiKey: requiredEnv("THESYS_API_KEY"),
       conversationId: state.conversationId,
-      messages: state.messages.slice(state.historyLength),
+      messages: state.messages.slice(state.turnStart),
     });
   },
 });

@@ -46,12 +46,11 @@ starters do not attach Responses-only provider tools.
 ## Conversation storage
 
 The browser creates and reads conversations through `useOpenuiCloudStorage()`
-with a short-lived token from `/api/frontend-token`. The LangGraph route uses
-`storeLangGraphHistory` from `@openuidev/server/langgraph` to persist the new user
-message before generation. After a successful run, its `afterAgent` middleware
-stores the new assistant messages, tool calls, and tool results before the stream
-ends. Replayed history is excluded. If generation is stopped or fails, the user
-message remains saved; unfinished output is not saved.
+with a short-lived token from `/api/frontend-token`. The LangGraph `afterAgent` middleware uses
+`storeLangGraphHistory` from `@openuidev/server/langgraph` once after a successful
+run to save the complete new turn: user message, assistant messages, tool calls,
+and tool results. Persistence finishes before the stream ends. Replayed history
+is excluded; failed or stopped runs are not persisted.
 
 The model route still sends full history to stateless Chat Completions. The
 browser storage adapter does not write messages, so turns are not saved twice.

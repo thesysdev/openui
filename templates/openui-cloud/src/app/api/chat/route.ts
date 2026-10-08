@@ -1,12 +1,10 @@
 import { graph } from "@/agent";
-import { requiredEnv } from "@/lib/env";
 import { resolveRequestedModel } from "@/lib/models";
 import {
   coerceMessageLikeToMessage,
   isHumanMessage,
   type BaseMessageLike,
 } from "@langchain/core/messages";
-import { storeLangGraphHistory } from "@openuidev/server/langgraph";
 
 export const runtime = "nodejs";
 
@@ -49,16 +47,8 @@ export async function POST(request: Request) {
     return Response.json({ error: "model is not available in this agent" }, { status: 400 });
   }
 
-  // Persist the question even if generation is stopped or fails. The graph's
-  // afterAgent middleware saves only the new assistant/tool messages on success.
-  await storeLangGraphHistory({
-    apiKey: requiredEnv("THESYS_API_KEY"),
-    conversationId: threadId,
-    messages: [question],
-  });
-
   const stream = await graph.stream(
-    { messages, model, conversationId: threadId, historyLength: messages.length },
+    { messages, model, conversationId: threadId, turnStart: messages.length - 1 },
     { streamMode: "messages", encoding: "text/event-stream", signal: request.signal },
   );
 
