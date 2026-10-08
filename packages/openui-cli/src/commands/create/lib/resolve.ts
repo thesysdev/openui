@@ -124,7 +124,7 @@ export async function resolveCreateSelection(params: {
   const { backendFramework, example, examples, overlays, interactive } = params;
   if (example) return { kind: "example", example: findExample(example, examples) };
   if (backendFramework) return { kind: "overlay", overlay: backendFramework };
-  if (!interactive) return { kind: "overlay", overlay: "default" };
+  if (!interactive) return { kind: "overlay", overlay: "langgraph" };
 
   const { select, Separator } = await import("@inquirer/prompts");
   const prompt = async <T extends string>(

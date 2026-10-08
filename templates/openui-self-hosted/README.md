@@ -22,7 +22,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `src/app/api/chat/route.ts` and improving your agent
 by adding system prompts or tools. A LangGraph scaffold puts the
-implementation in `src/agent/agent.ts` instead.
+implementation in `src/agent.ts` instead.
 
 The generated app includes a `get_weather` tool example. Ask “What’s the weather in Berlin?” to exercise its native tool loop.
 
@@ -35,7 +35,7 @@ pnpm run deploy
 pnpm run deploy -- --prod
 ```
 
-The command deploys to Vercel. Allowlisted keys from `.env` / `.env.local` (including `OPENAI_API_KEY`) 
+The command deploys to Vercel. Allowlisted keys from `.env` / `.env.local` (including `OPENAI_API_KEY`)
 are passed to that deployment unless you use `--skip-env`. Persist them on the Vercel project for later
 deploys.
 
@@ -58,3 +58,5 @@ To learn more about OpenUI, take a look at the following resources:
 
 - [OpenUI Documentation](https://openui.com/docs) - learn about OpenUI features and API.
 - [OpenUI GitHub repository](https://github.com/thesysdev/openui) - your feedback and contributions are welcome!
+
+LangGraph is the default backend and uses Chat Completions with your provider.

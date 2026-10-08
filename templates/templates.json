@@ -6,12 +6,7 @@
       "description": "Hosted models, managed conversation history, built-in tools, and ready-to-use reports and presentations. Recommended default for prototypes and evaluations.",
       "overlays": [
         {
-          "name": "Default — minimal SDK route",
-          "key": "default",
-          "description": "Minimal SDK route"
-        },
-        {
-          "name": "LangGraph",
+          "name": "LangGraph (default)",
           "key": "langgraph",
           "description": "LangGraph agent with the selected model backend"
         },
@@ -33,12 +28,7 @@
       "description": "Bring your own OpenAI-compatible provider, AI route, and persistence. Available only via --template.",
       "overlays": [
         {
-          "name": "Default — minimal SDK route",
-          "key": "default",
-          "description": "Minimal SDK route"
-        },
-        {
-          "name": "LangGraph",
+          "name": "LangGraph (default)",
           "key": "langgraph",
           "description": "LangGraph agent with the selected model backend"
         },
