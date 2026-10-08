@@ -135,8 +135,9 @@ chatCompletionMessagesToItems([
 ### LangGraph
 
 Import `storeLangGraphHistory` from `@openuidev/server/langgraph`. Pass completed
-LangChain message instances or plain objects with `type`, `content`, `tool_calls`,
-and `tool_call_id`. No LangChain runtime dependency is required.
+`BaseMessage` instances from `@langchain/core/messages`, the message types used
+by LangGraph. This entry point requires the optional `@langchain/core` peer
+dependency; other server entry points do not.
 
 ```ts
 import { storeLangGraphHistory } from "@openuidev/server/langgraph";

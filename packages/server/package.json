@@ -90,6 +90,7 @@
     "@openuidev/lang-core": "workspace:^"
   },
   "devDependencies": {
+    "@langchain/core": "^1.2.3",
     "ai": "^7.0.10",
     "openai": "^7.20.0",
     "tsdown": "^0.21.7",
@@ -106,6 +107,14 @@
       "langgraph": [
         "dist/langgraph/index.d.cts"
       ]
+    }
+  },
+  "peerDependencies": {
+    "@langchain/core": "^1.2.3"
+  },
+  "peerDependenciesMeta": {
+    "@langchain/core": {
+      "optional": true
     }
   }
 }
