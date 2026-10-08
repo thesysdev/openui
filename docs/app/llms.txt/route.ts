@@ -1,4 +1,5 @@
 import { BASE_URL, source } from "@/lib/source";
+import { integrations } from "../(home)/integrations/data";
 
 export const dynamic = "force-static";
 export const revalidate = false;
@@ -15,6 +16,11 @@ export async function GET() {
     return `- [${page.data.title}](${markdownUrl}): ${description} Canonical source: ${canonicalUrl}`;
   });
 
+  const integrationPages = integrations.map(
+    (integration) =>
+      `- [OpenUI + ${integration.name}](${new URL(`/integrations/${integration.slug}`, BASE_URL)}): ${integration.summary}`,
+  );
+
   const index = [
     "# OpenUI",
     "",
@@ -28,6 +34,11 @@ export async function GET() {
     "## Documentation",
     "",
     ...pages,
+    "",
+    "## Integrations",
+    "",
+    `- [All integrations](${new URL("/integrations", BASE_URL)}): Use OpenUI with AI frameworks, design systems, and frontend platforms.`,
+    ...integrationPages,
     "",
     "## Benchmarks",
     "",
