@@ -3,13 +3,13 @@
 <a href="https://www.openui.com" target="_blank" rel="noopener noreferrer">
   <img 
     src="./assets/banner.png" 
-    alt="OpenUI - The Open Standard for Intelligent UI" 
+    alt="OpenUI - The Open Standard for Generative UI" 
     width="100%" 
     style="cursor: pointer;"
   >
 </a>
 
-# OpenUI - The Open Standard for Intelligent UI
+# OpenUI - The Open Standard for Generative UI
 
 <p align="center">
   <a href="https://github.com/thesysdev/openui/actions/workflows/build-js.yml"><img alt="Build" src="https://github.com/thesysdev/openui/actions/workflows/build-js.yml/badge.svg"></a>

@@ -656,7 +656,7 @@ export function Tagline({ children, compact }: { children?: ReactNode; compact?:
 
 export function HeroSection({
   title = "OpenUI",
-  subtitle = "The Open Standard for Intelligent UI",
+  subtitle = "The Open Standard for Generative UI",
   command = primaryCTA,
   commandLabel,
   secondaryCommand,

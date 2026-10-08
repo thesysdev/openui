@@ -68,7 +68,7 @@ export default function HomePage() {
         <HeroSection
           align="left"
           desktopFromTablet
-          subtitle="Open Standard for Intelligent UI"
+          subtitle="Open Standard for Generative UI"
           showPlaygroundButton={false}
           showTagline={false}
           commandTrailing={<AgentPicker command={AGENT_SETUP_PROMPT} />}
