@@ -1,9 +1,4 @@
-import type {
-  CloudPromptOptions,
-  LibrarySpec,
-  SystemPromptOptions,
-  SystemPromptSpec,
-} from "./prompt";
+import type { CloudPromptOptions, LibrarySpec, SystemPromptOptions } from "./prompt";
 import { validateChatLibrary } from "./validate-library";
 
 /** `]]>openui:config\n` — request-direction config block header. Trailing newline is part of the wire contract. */
@@ -15,13 +10,9 @@ const CLOUD_CONFIG_MARKER = "]]>openui:config\n";
  */
 const CLOUD_CHAT_LIBRARY_VERSION = "0.1.0";
 
-type CloudSpec = Extract<SystemPromptSpec, { cloud: true }>;
-
-type CloudConfig = (
+type CloudConfig =
   | { libraryVersion: string }
-  | { chatLibrary: Omit<LibrarySpec, "components">; systemPromptOptions?: CloudPromptOptions }
-) &
-  Pick<CloudSpec, "script" | "baseResponse" | "meta">;
+  | { chatLibrary: Omit<LibrarySpec, "components">; systemPromptOptions?: CloudPromptOptions };
 
 function pickCloudPromptOptions(
   options: SystemPromptOptions | CloudPromptOptions | undefined,
@@ -34,7 +25,11 @@ function pickCloudPromptOptions(
   return Object.keys(picked).length > 0 ? picked : undefined;
 }
 
-export function generateCloudConfig(spec: CloudSpec): string {
+export function generateCloudConfig(spec: {
+  library?: LibrarySpec;
+  promptOptions?: SystemPromptOptions | CloudPromptOptions;
+  instructions?: string;
+}): string {
   let config: CloudConfig;
 
   if (spec.library) {
@@ -58,10 +53,6 @@ export function generateCloudConfig(spec: CloudSpec): string {
     }
     config = { libraryVersion: CLOUD_CHAT_LIBRARY_VERSION };
   }
-
-  if (spec.script !== undefined) config.script = spec.script;
-  if (spec.baseResponse !== undefined) config.baseResponse = spec.baseResponse;
-  if (spec.meta !== undefined) config.meta = { name: spec.meta.name };
 
   const block = `${CLOUD_CONFIG_MARKER}${JSON.stringify(config)}`;
   return spec.instructions ? `${block}\n${spec.instructions}` : block;
