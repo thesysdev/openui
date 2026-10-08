@@ -9,10 +9,10 @@ date: 2026-10-08
 
 Intelligent UI is the capability, introduced with GPT-6, that allows ChatGPT to respond with interactive interfaces rendered inline in the conversation ([OpenAI announcement](https://openai.com/index/gpt-6-for-everyone/)). A single response can combine prose with components such as sliders, forms, tables, charts, maps, and product cards. These components respond to input without a further model call, and they are drawn with ChatGPT's own design system rather than embedded as a web page.
 
-<!--
+{/*
 ![Image placeholder: three Intelligent UI responses side by side](images/fig-01-examples.png)
 *Figure 1. Three Intelligent UI responses.*
--->
+*/}
 
 The observations in this article were made on ChatGPT for the web in October 2026, using GPT-6 and GPT-6 Thinking.
 
@@ -25,10 +25,10 @@ ChatGPT's implementation divides the work between the model, OpenAI's server, an
 - [Client runtime and rendering](#2-client-side): a sandboxed runtime executes the program, and ChatGPT draws the result with its native components.
 - [Design system and catalog](#3-design-system-and-catalog): the components, properties, and design tokens available to the model.
 
-<!--
+{/*
 ![Image placeholder: architecture of Intelligent UI from model output to rendered interface](images/fig-02-architecture.png)
 *Figure 2. The path of a response from the model, through the server compiler, to the sandboxed runtime and the native renderer.*
--->
+*/}
 
 ## 1. Inference format
 
@@ -124,10 +124,10 @@ The program is model-written code, so it does not run in the ChatGPT page. ChatG
 - **Evaluation.** It then evaluates the program with `new Function`. The runtime objects (`DIL`, `__dil`, `GenUI`) and the catalog's composite components are passed in as parameters.
 - **Watchdog.** A program that does not respond within a timeout is quarantined, and the worker is restarted.
 
-<!--
+{/*
 ![Image placeholder: the ChatGPT page, the hidden runner iframe and the Web Worker, with messages between them](images/fig-03-runtime.png)
 *Figure 3. Where the compiled program runs.*
--->
+*/}
 
 The runtime is a small reconciler in the style of React. It renders the component and keeps hook state in keyed slots. It then compares the resulting tree with the previous one and encodes the differences as a list of operations. It does not draw anything.
 
@@ -165,10 +165,10 @@ worker → page:  SET #9.value = 9
 
 No model call is involved.
 
-<!--
+{/*
 ![Image placeholder: the example rendered in ChatGPT, before and after dragging the slider](images/fig-04-example-rendered.png)
 *Figure 4. The example as rendered by ChatGPT.*
--->
+*/}
 
 The operation protocol does not depend on the platform. The worker's sandbox also permits the globals of Hermes, the JavaScript engine used by React Native. This suggests that ChatGPT's mobile apps run the same runtime and apply the operations with their own native renderers; we have not verified this directly.
 
@@ -243,10 +243,10 @@ We captured one response of 6,341 characters, delivered in 84 updates over 19 se
 
 The compiled program is a single nested expression whose closing brackets change with every recompile, so it cannot be appended to and is replaced in full. Resent code made up 83% of the roughly 275 KB of patches for this response. Updates arrived at a median interval of 230 ms. In another capture, the interval was about 410 ms.
 
-<!--
+{/*
 ![Image placeholder: timeline of one streamed response showing text, compiled updates and image results over time](images/fig-05-stream-timeline.png)
 *Figure 5. Updates over the course of one streamed response.*
--->
+*/}
 
 ### On the client
 
@@ -286,10 +286,10 @@ In the image-search responses we captured, image URLs were supplied by the serve
 - `Entity`, for product and place chips;
 - `Cite`, for source links.
 
-<!--
+{/*
 ![Image placeholder: an image placeholder in a streaming response, followed by the resolved image](images/fig-06-image-resolution.png)
 *Figure 6. An image placeholder and the resolved image.*
--->
+*/}
 
 ### Binding tool results
 
@@ -314,10 +314,10 @@ The server supplies the referenced fields with the response:
 
 The price on screen comes from the search result itself, not from the model's copy of it.
 
-<!--
+{/*
 ![Image placeholder: a product comparison whose images, names and prices come from search results](images/fig-07-product-comparison.png)
 *Figure 7. A product comparison built from bound tool results.*
--->
+*/}
 
 ## Actions (buttons, forms, and more)
 
@@ -344,10 +344,10 @@ Develop a detailed dog vest design concept based on my moodboard. Style: cozy. M
 
 The message is stored exactly like a typed one, with nothing marking it as coming from the interface. Forms work the same way: `<form onSubmit={…}>` together with `<button submit>` calls `issueNewTurn` with the form's values.
 
-<!--
+{/*
 ![Image placeholder: a button in a response and the user message it sends](images/fig-08-issue-new-turn.png)
 *Figure 8. A button sends the current selections as a new user message.*
--->
+*/}
 
 ## Escape hatch: AppBlock, an app in an iframe
 
@@ -396,10 +396,10 @@ An app in an iframe sits outside ChatGPT's design system. Left alone, it would l
 
 Unlike a native response, the app draws its own interface. Its state lives in its own JavaScript variables, and in our captures it made no calls back to ChatGPT.
 
-<!--
+{/*
 ![Image placeholder: the Drum Lab app rendered inside its iframe in a ChatGPT response](images/fig-09-appblock.png)
 *Figure 9. An `AppBlock` app rendered in its iframe.*
--->
+*/}
 
 ## Markdown fallback
 
