@@ -1,5 +1,4 @@
 ---
-"@openuidev/lang-core": patch
 "@openuidev/react-lang": minor
 "@openuidev/a2ui": minor
 "@openuidev/server": minor
