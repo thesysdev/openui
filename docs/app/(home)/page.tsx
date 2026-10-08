@@ -41,7 +41,7 @@ const structuredData = {
       alternateName: "OpenUI by Thesys",
       url: BASE_URL,
       description:
-        "Full-stack, framework-agnostic Generative UI built on OpenUI Lang, a streaming-first language with first-party runtimes for React, Vue, Svelte, and Angular.",
+        "The open standard for Intelligent UI. Full-stack, framework-agnostic Generative UI built on OpenUI Lang, a streaming-first language with first-party runtimes for React, Vue, Svelte, and Angular.",
       applicationCategory: "DeveloperApplication",
       operatingSystem: "Cross-platform",
       license: "https://opensource.org/licenses/MIT",
@@ -80,7 +80,7 @@ export default function HomePage() {
         <HeroSection
           align="left"
           desktopFromTablet
-          subtitle="Open Standard for Generative UI"
+          subtitle="Open Standard for Intelligent UI"
           showPlaygroundButton={false}
           showTagline={false}
           commandTrailing={<AgentPicker command={AGENT_SETUP_PROMPT} />}
