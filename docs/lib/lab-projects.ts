@@ -32,6 +32,19 @@ export interface ProjectItem {
 
 export const labProjects: ProjectItem[] = [
   {
+    name: "AnswerUI",
+    description:
+      "A chat app that answers with live OpenUI interfaces. Works with any OpenAI-compatible model, local ones too.",
+    type: "App",
+    status: "Community",
+    accent: "green",
+    icon: MonitorSmartphone,
+    links: [
+      { label: "GitHub", href: "https://github.com/0xcro3dile/answerui", external: true },
+      { label: "npm", href: "https://www.npmjs.com/package/answerui-app", external: true },
+    ],
+  },
+  {
     name: "Curio",
     description:
       "An open-source reading companion that uses OpenUI generative UI to explore words and phrases without leaving the text.",
