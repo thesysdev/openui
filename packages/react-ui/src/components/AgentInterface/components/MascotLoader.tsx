@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { useState } from "react";
-import { MASCOT_BODY_PATHS, MASCOT_EYES, MASCOT_VIEWBOX } from "./mascotPaths";
+import { MascotArt } from "./Mascot";
+import { MASCOT_VIEWBOX } from "./mascotPaths";
 
 /** Keep in sync with the pulse duration in mascotLoader.scss. */
 const PULSE_MS = 1600;
@@ -28,15 +29,7 @@ export const MascotLoader = ({ size = 28, className }: { size?: number; classNam
       className={clsx("openui-agent-mascot-loader", className)}
     >
       <g className="openui-agent-mascot-loader__body" style={{ animationDelay: `${delay}ms` }}>
-        {MASCOT_BODY_PATHS.map((p, i) => (
-          <path key={i} d={p.d} fill={p.fill} />
-        ))}
-        {MASCOT_EYES.map((eye, i) => (
-          <g key={i}>
-            <path d={eye.eye} fill="black" />
-            <path d={eye.glint} fill="white" />
-          </g>
-        ))}
+        <MascotArt />
       </g>
     </svg>
   );

@@ -487,6 +487,12 @@ $thread-header-action-min-height: 32px;
   min-height: 1lh;
 }
 
+// The timeline belongs to the answer below it, so it sits closer to that answer
+// than the list's gap between messages.
+.openui-agent-thread-messages > .openui-behind-the-scenes {
+  margin-block-end: calc(#{cssUtils.$space-m} - 2 * #{cssUtils.$space-l});
+}
+
 // A live "Working" timeline already shows the mascot in its own row, so the
 // separate loader below it would be a duplicate.
 .openui-agent-thread-messages:has(.openui-behind-the-scenes--working)

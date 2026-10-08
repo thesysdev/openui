@@ -1,7 +1,8 @@
 import type { ToolActivity, ToolCallStatus } from "@openuidev/react-headless";
 import clsx from "clsx";
-import { AlertCircle, Blocks, Globe, ImageIcon, SquareCode } from "lucide-react";
 import { createContext, createElement, useContext, useId, useState, type ReactNode } from "react";
+import { toolIcon } from "./ToolGlyphs";
+import { toolLabel, useToolLabels, type ToolLabels } from "./toolLabels";
 
 /**
  * Compound, reusable building blocks for rendering one tool call + its result.
@@ -24,7 +25,7 @@ interface ToolCallContextValue {
   isLast: boolean;
   /**
    * Whether the owning thread is still running. The in-progress affordances
-   * (icon spin, name shimmer) require this so a tool call that closed its args
+   * (glyph animation, name shimmer) require this so a tool call that closed its args
    * but never received a result does NOT animate forever after the run ends.
    * Defaults to `true` for standalone (thread-less) primitive use.
    */
@@ -68,26 +69,14 @@ const isRunning = (status: ToolCallStatus) => status === "streaming" || status =
 
 // ── Shared label / formatting helpers ──
 
-const LABELS: Record<ToolCallStatus, (name: string) => string> = {
-  streaming: (n) => `Calling the ${n} tool`,
-  executing: (n) => `Running the ${n} tool`,
-  complete: (n) => `Called the ${n} tool`,
-  error: (n) => `${n} failed`,
-};
-
-// Used when the tool name is empty/blank — avoids the doubled-word "tool tool"
-// that an interpolated `${name || "tool"}` fallback would produce.
-const NAMELESS_LABELS: Record<ToolCallStatus, string> = {
-  streaming: "Calling the tool",
-  executing: "Running the tool",
-  complete: "Called the tool",
-  error: "Tool failed",
-};
-
-/** Default human label for a status + tool name. @category Functions */
-export function defaultLabel(status: ToolCallStatus, name: string): string {
-  if (!name || !name.trim()) return NAMELESS_LABELS[status];
-  return LABELS[status](name);
+/**
+ * Default human label for a status + tool name ("Searching the web", "Used
+ * image search"); see {@link toolLabel} and {@link ToolLabelsProvider}.
+ *
+ * @category Functions
+ */
+export function defaultLabel(status: ToolCallStatus, name: string, overrides?: ToolLabels): string {
+  return toolLabel(status, name, overrides);
 }
 
 /** Pretty-prints a JSON result string, falling back to the raw string. @category Functions */
@@ -138,18 +127,6 @@ function resolveLegacyResponse(activity: ToolActivity): unknown {
   return value != null ? value : undefined;
 }
 
-// Built-in tool families that get their own glyph. Matched on the name
-const TOOL_ICONS: { match: RegExp; icon: typeof SquareCode }[] = [
-  { match: /image[_-]?search/i, icon: ImageIcon },
-  { match: /web[_-]?search/i, icon: Globe },
-  { match: /artifact|generate[_-]?report/i, icon: Blocks },
-];
-
-export function toolIcon(toolName: string, status: ToolCallStatus): typeof SquareCode {
-  if (status === "error") return AlertCircle;
-  return TOOL_ICONS.find((entry) => entry.match.test(toolName))?.icon ?? SquareCode;
-}
-
 // ── Parts ──
 
 interface PartProps<State> {
@@ -163,6 +140,8 @@ function Root({
   isLast = false,
   running = true,
   defaultOpen = false,
+  open,
+  onOpenChange,
   className,
   children,
 }: {
@@ -170,11 +149,21 @@ function Root({
   isLast?: boolean;
   /** Whether the owning thread is still running (gates the in-progress animations). */
   running?: boolean;
+  /** Initial expand state when uncontrolled. */
   defaultOpen?: boolean;
+  /** Controlled expand state, e.g. so a list can keep one call open at a time. */
+  open?: boolean;
+  /** Called with the requested expand state; pair with `open`. */
+  onOpenChange?: (open: boolean) => void;
   className?: string;
   children: ReactNode;
 }) {
-  const [isOpen, setOpen] = useState(defaultOpen);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
+  const isOpen = open ?? uncontrolledOpen;
+  const setOpen = (value: boolean) => {
+    if (open === undefined) setUncontrolledOpen(value);
+    onOpenChange?.(value);
+  };
   const panelId = useId();
   const triggerId = useId();
   return (
@@ -191,7 +180,11 @@ function Root({
   );
 }
 
-const StatusIcon = ({ render, className }: PartProps<{ status: ToolCallStatus }>) => {
+const StatusIcon = ({
+  render,
+  className,
+  size = 14,
+}: PartProps<{ status: ToolCallStatus }> & { size?: number }) => {
   const { activity, isLast, running } = useToolCall();
   const spin = isRunning(activity.status) && isLast && running;
   const Icon = toolIcon(activity.toolName, activity.status);
@@ -200,14 +193,10 @@ const StatusIcon = ({ render, className }: PartProps<{ status: ToolCallStatus }>
     "span",
     { status: activity.status },
     {
-      className: clsx(
-        "openui-tool-call__icon-wrapper",
-        { "openui-tool-call__icon--blinking": spin },
-        className,
-      ),
+      className: clsx("openui-tool-call__icon-wrapper", className),
       "data-status": activity.status,
       "data-spin": spin,
-      children: <Icon size={14} className="openui-tool-call__icon" />,
+      children: <Icon size={size} animate={spin} className="openui-tool-call__icon" />,
     },
   );
 };
@@ -230,7 +219,8 @@ const StatusText = ({
   className,
 }: PartProps<{ status: ToolCallStatus; label: string }>) => {
   const { activity, isLast, running } = useToolCall();
-  const label = activity.statusMessage ?? defaultLabel(activity.status, activity.toolName);
+  const labels = useToolLabels();
+  const label = activity.statusMessage ?? defaultLabel(activity.status, activity.toolName, labels);
   const shimmer = isRunning(activity.status) && isLast && running;
   return renderPart(
     render,

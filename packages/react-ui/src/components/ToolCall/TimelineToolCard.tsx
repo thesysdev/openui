@@ -1,8 +1,9 @@
 import type { ToolActivity } from "@openuidev/react-headless";
-import { ChevronDown } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { memo } from "react";
 import { SourceIcon } from "./SourceIcon";
-import { ToolCall, toolIcon } from "./ToolCallPrimitives";
+import { ToolCall } from "./ToolCallPrimitives";
+import { TIMELINE_GLYPH, toolIcon } from "./ToolGlyphs";
 import { extractToolSources, type ToolResultSource } from "./toolSources";
 
 /** Favicon + title rows for the links a tool's result carries (see
@@ -33,7 +34,7 @@ const ToolSources = ({ sources }: { sources: ToolResultSource[] }) => {
  * Timeline-shaped composition of the compound {@link ToolCall} parts: one row —
  * tool glyph, status label, chevron — that expands into either the result's
  * sources or a SINGLE block holding the request and the response together. The
- * running affordances (glyph blink, label shimmer) are
+ * running affordances (animated glyph, label shimmer) are
  * `(streaming|executing) && isLast`, derived from the lifecycle status rather
  * than a separate `isThinking` flag. `ToolCall.Root` is the single
  * `.openui-tool-call` container, so we compose *inside* it.
@@ -44,16 +45,27 @@ export const TimelineToolCard = memo(function TimelineToolCard({
   activity,
   isLast,
   isRunning = true,
+  inProgress,
+  open,
+  onOpenChange,
 }: {
   activity: ToolActivity;
   isLast: boolean;
-  /** Whether the owning thread is still running — gates the running shimmer/spin
-   *  so a closed-args call with no result doesn't animate forever after the run ends. */
+  /** Whether the owning thread is still running — gates the running shimmer/glyph
+   *  animation so a closed-args call with no result doesn't animate forever after
+   *  the run ends. */
   isRunning?: boolean;
+  /** Show the in-progress look (animated glyph, shimmer) whatever the status — e.g.
+   *  while a timeline is still on this step after a server-side tool already finished. */
+  inProgress?: boolean;
+  /** Controlled expand state; leave unset for the row to manage its own. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const Icon = toolIcon(activity.toolName, activity.status);
   const running =
-    (activity.status === "streaming" || activity.status === "executing") && isLast && isRunning;
+    inProgress ??
+    ((activity.status === "streaming" || activity.status === "executing") && isLast && isRunning);
   // Links speak for themselves; the raw block would only repeat them. A failure
   // always falls back to it, since that's where the error text lives.
   const sources =
@@ -67,20 +79,13 @@ export const TimelineToolCard = memo(function TimelineToolCard({
       isLast={isLast}
       running={isRunning}
       defaultOpen={activity.isError}
+      open={open}
+      onOpenChange={onOpenChange}
     >
       <ToolCall.Trigger className="openui-tool-call__title-row">
-        <ToolCall.StatusIcon
-          render={(_state, props) => (
-            <span
-              className={`openui-tool-call__icon-wrapper${
-                props["data-spin"] ? " openui-tool-call__icon--blinking" : ""
-              }`}
-              data-status={props["data-status"] as string}
-            >
-              <Icon size={14} className="openui-tool-call__icon" />
-            </span>
-          )}
-        />
+        <span className="openui-tool-call__icon-wrapper" data-status={activity.status}>
+          <Icon {...TIMELINE_GLYPH} animate={running} className="openui-tool-call__icon" />
+        </span>
         <ToolCall.StatusText
           render={(_state, props) => (
             <span
@@ -97,7 +102,8 @@ export const TimelineToolCard = memo(function TimelineToolCard({
             </span>
           )}
         />
-        <ChevronDown size={14} className="openui-tool-call__chevron" />
+        {/* Points right while closed and turns down when open (see toolCall.scss). */}
+        <ChevronRight size={14} className="openui-tool-call__chevron" />
       </ToolCall.Trigger>
 
       <ToolCall.Content className="openui-tool-call__content">

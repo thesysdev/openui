@@ -14,6 +14,7 @@ import { ScrollVariant, useScrollToBottom } from "../../hooks/useScrollToBottom"
 import { getLastAssistantMessageId, getMatchedRendererActivities } from "../../utils/messages";
 import { hasLangSyntax, separateContentAndContext } from "../../utils/sentinelParser";
 import { ToolCallTimeline, type TimelineStep } from "../ToolCall";
+import { TimelineWorkingIndicator } from "../ToolCall/ToolCallTimeline";
 import {
   DetailedViewOverlay,
   DetailedViewPanel,
@@ -34,7 +35,6 @@ import { MarkDownRenderer } from "../MarkDownRenderer";
 import { AgentInterfaceTooltip } from "./_shared/AgentInterfaceTooltip";
 import { GalleryHorizontalEndIcon } from "./_shared/GalleryHorizontalEndIcon";
 import { AmbientLoader } from "./components/AmbientLoader";
-import { MascotLoader } from "./components/MascotLoader";
 import { ScrollToLatest } from "./components/ScrollToLatest";
 import { ResizableSeparator } from "./ResizableSeparator";
 import { useDetailedViewResize } from "./useDetailedViewResize";
@@ -310,7 +310,7 @@ export const RenderMessage = memo(
 export const MessageLoading = () => {
   return (
     <div className="openui-agent-thread-message-loading">
-      <MascotLoader size={24} />
+      <TimelineWorkingIndicator />
     </div>
   );
 };
