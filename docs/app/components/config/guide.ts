@@ -315,7 +315,7 @@ const DEFAULT_CSS: Record<string, string> = {
   "--openui-highlight": "oklch(0.097 0 0 / 0.04)",
   "--openui-highlight-strong": "oklch(0.097 0 0 / 0.08)",
   "--openui-text-neutral-primary": "oklch(0.097 0 0 / 1)",
-  "--openui-text-neutral-secondary": "oklch(0.097 0 0 / 0.5)",
+  "--openui-text-neutral-secondary": "oklch(0.097 0 0 / 0.6)",
   "--openui-text-neutral-tertiary": "oklch(0.097 0 0 / 0.2)",
   "--openui-border-default": "oklch(0.097 0 0 / 0.06)",
   "--openui-border-interactive": "oklch(0.097 0 0 / 0.12)",
