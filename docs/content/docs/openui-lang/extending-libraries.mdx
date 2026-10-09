@@ -1,0 +1,107 @@
+---
+title: Extending a Library
+description: Add components, functions, and actions to an existing library with library.extend.
+---
+
+`library.extend(...)` derives a new library from an existing one and adds components, functions, or actions to it. Use it to build on `openuiLibrary` or `openuiChatLibrary` from `@openuidev/react-ui` without copying their component lists. The base library is not changed.
+
+## Example
+
+```tsx
+import { defineAction, defineComponent, defineFunction } from "@openuidev/react-lang";
+import { openuiChatLibrary, openuiChatPromptOptions } from "@openuidev/react-ui";
+import { z } from "zod/v4";
+
+const ProductCard = defineComponent({
+  name: "ProductCard",
+  description: "A product with its name and price",
+  props: z.object({ name: z.string(), price: z.number() }),
+  component: ({ props }) => (
+    <div>
+      <strong>{props.name}</strong> ${props.price.toFixed(2)}
+    </div>
+  ),
+});
+
+const formatCurrency = defineFunction({
+  name: "FormatCurrency",
+  description: "Formats a number as US dollars",
+  params: z.object({ amount: z.number() }),
+  returns: z.string(),
+  fn: ({ amount }) => `$${amount.toFixed(2)}`,
+});
+
+const addToCart = defineAction({
+  name: "AddToCart",
+  description: "Adds a product to the cart",
+  params: z.object({ productId: z.string() }),
+});
+
+// Create it once, at module scope.
+export const shopLibrary = openuiChatLibrary.extend({
+  components: { add: [ProductCard] },
+  functions: { add: [formatCurrency] },
+  actions: { add: [addToCart] },
+});
+
+export const systemPrompt = shopLibrary.prompt(openuiChatPromptOptions);
+```
+
+Pass `shopLibrary` to the `Renderer` or to `AgentInterface` in place of the base library. The model can now use all three:
+
+```text
+root = Card([lamp, total, addBtn])
+lamp = ProductCard("Desk lamp", 39)
+total = TextContent("Total: " + @FormatCurrency(39 * 2))
+addBtn = Button("Add to cart", @AddToCart("lamp-01"))
+```
+
+## What `extend` takes
+
+```ts
+library.extend({
+  components?: { add?: DefinedComponent[] },
+  functions?: { add?: DefinedFunction[] },
+  actions?: { add?: DefinedAction[] },
+});
+```
+
+The result is the same library that `createLibrary` would build from the base's components, groups, root, functions, and actions plus the additions. Two things are different:
+
+- The derived library has no `id`, even when the base has one.
+- Added components are not in any of the base's `componentGroups`. When the base has groups, the prompt lists the new components under an "Other" heading.
+
+The typed `onAction` of the derived library includes the added actions. See [Typed onAction](/docs/openui-lang/custom-actions#typed-onaction).
+
+## Where added components go
+
+A slot that takes only components accepts any component of the library, so the model can place `ProductCard` inside `Card(...)` even though the `Card` signature in the prompt does not list it. If the model does not pick up the new component on its own, add a rule or an example to the prompt options:
+
+```ts
+const systemPrompt = shopLibrary.prompt({
+  ...openuiChatPromptOptions,
+  additionalRules: [
+    ...(openuiChatPromptOptions.additionalRules ?? []),
+    "Show each product with ProductCard inside a Card.",
+  ],
+});
+```
+
+## Adding only
+
+In this release, `extend` only adds. `override` and `remove` are part of the type, but they throw:
+
+```text
+[extend] components.override is not supported yet.
+```
+
+Names must be new:
+
+- A component name that already exists throws `[extend] Component "Card" already exists.`
+- A function or action name that is taken throws the same error as `createLibrary`, for example `[createLibrary] Action "AddToCart" collides with a built-in, component, function, or action of the same name. Rename it.`
+
+To replace or drop a base component, build a new library with `createLibrary` from the parts you want.
+
+## Create derived libraries once
+
+Parsers are cached per library object. Calling `extend` inside a React component creates a new library on every render, and the `Renderer` then rebuilds its parser and parses again from the start. Create the derived library once, at module scope, as in the example above.
