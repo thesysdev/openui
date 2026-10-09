@@ -1,0 +1,119 @@
+---
+title: What's New in 1.0
+description: Custom functions and actions, single-step actions, library.extend, the message format, and the entry rule.
+---
+
+OpenUI Lang 1.0 adds ways for a library to grow (custom functions, custom actions, `library.extend`), a message format for streaming and storing responses, and a clear rule for where a program starts. It also makes actions shorter to write. Programs written for 0.5 keep working, with the exceptions listed in [Migrating to 1.0](/docs/openui-lang/migrating-to-1-0).
+
+## Custom functions
+
+A library can add its own `@` functions with `defineFunction`. The model calls them like the built-ins, and the client runs them.
+
+```ts
+const percent = defineFunction({
+  name: "Percent",
+  description: "Formats part / total as a percentage",
+  params: z.object({ part: z.number(), total: z.number().default(100) }),
+  returns: z.string(),
+  fn: ({ part, total }) => `${((part / total) * 100).toFixed(1)}%`,
+});
+
+const library = createLibrary({ root: "Card", components, functions: [percent] });
+```
+
+```text
+share = TextContent("Share: " + @Percent(done, total))
+```
+
+Arguments are checked like component props, and a failed call evaluates to `null` instead of breaking the page. The built-in functions are now defined the same way, so their prompt lines carry types, for example `@Sum(numbers: number[]) → number`. See [Custom Functions](/docs/openui-lang/custom-functions).
+
+## Custom actions
+
+A library can add its own action steps with `defineAction`. The model uses them like `@OpenUrl`, and your `onAction` handler receives them with typed `params`.
+
+```text
+copyBtn = Button("Copy", @CopyToClipboard(order.id))
+```
+
+```tsx
+<Renderer
+  library={library}
+  response={response}
+  onAction={(event) => {
+    if (event.type === "CopyToClipboard") void navigator.clipboard.writeText(event.params.text);
+  }}
+/>
+```
+
+`AgentInterface` takes an `onAction` prop for the same purpose. See [Custom Actions](/docs/openui-lang/custom-actions).
+
+## Single-step actions
+
+One step no longer needs `Action([...])`:
+
+```text
+askBtn = Button("Tell me more", @ToAssistant("Tell me more about this order"))
+saveBtn = Button("Save", Action([@Run(save), @Run(orders), @Reset($note)]))
+```
+
+Several steps still go in `Action([...])`. The prompt teaches both forms. See [Action Expressions](/docs/openui-lang/action-expressions).
+
+## Context for `@ToAssistant`
+
+The second argument of `@ToAssistant` can be any value, and the host receives it unchanged in `event.params.context`:
+
+```text
+approveBtn = Button("Approve", @ToAssistant("Approve this order", {orderId: 42}))
+```
+
+## Action props
+
+- `action()` returns the schema for an action prop: `action: action().optional()`. It replaces `tagSchemaId(z.any(), "ActionExpression")`.
+- In the JSON Schema, an action prop is `{"$ref": "#/$defs/ActionExpression"}`, like a component slot.
+- A prop can name the steps it takes, for example `z.union([copyToClipboard.ref, steps.OpenUrl.ref])`, printed as `@CopyToClipboard | @OpenUrl`. This shapes the prompt and the JSON Schema only. The runtime does not enforce it yet.
+
+See [Action Expressions](/docs/openui-lang/action-expressions#action-props-in-your-components).
+
+## `library.extend`
+
+Derive a library from an existing one and add components, functions, and actions:
+
+```ts
+const shopLibrary = openuiChatLibrary.extend({
+  components: { add: [ProductCard] },
+  functions: { add: [formatCurrency] },
+  actions: { add: [addToCart] },
+});
+```
+
+In 1.0, `extend` only adds. Overriding and removing are not supported yet. See [Extending a Library](/docs/openui-lang/extending-libraries).
+
+## Message format
+
+`buildMessage` and `parseMessage` read and write responses wrapped in `]]>openui:` marker lines, with optional context such as form values. The `Renderer` accepts a stored message as `response`.
+
+```text
+]]>openui:content
+root = Card([title])
+title = TextContent("Order 42")
+]]>openui:context
+{"formState":{"note":"rush"}}
+]]>openui:end
+```
+
+See [Storing Messages](/docs/openui-lang/messages).
+
+## Entry rule
+
+The entry is the `root` statement. Without one, the first statement after the declarations is used if it calls the library's root component, with a `no-root` warning. Otherwise nothing renders and `no-root` is reported. `root` can also pick a component at runtime, as in `root = $compact ? compactView : fullView`. See [Entry Statement](/docs/openui-lang/entry).
+
+## Smaller changes
+
+- Errors have an optional `severity: "warning"` for problems that did not stop the page from rendering.
+- A call to an unknown `@Name(...)` reports `unknown-function` and evaluates to `null`. The statement still renders.
+- Data (a string, number, boolean, object, or array) in a slot that only takes components reports `type-mismatch` and is left out, instead of rendering as a blank component or stray text.
+- The new `builtinFunctions` prompt option lists the built-in functions in a library without `toolCalls` or `bindings`.
+
+## Renderer support
+
+The React renderer (`@openuidev/react-lang`) supports everything on this page. The Vue, Svelte, and Angular renderers get the entry rule and the new error codes, but not custom functions, custom actions, or entries that pick a component at runtime.
