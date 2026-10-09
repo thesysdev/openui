@@ -105,8 +105,6 @@ Every framework overlay includes a `get_weather` example backed by Open-Meteo. A
 
 Interactive `openui create` lists starter templates, and option to create an app from listed [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). `--example <name>` skips both menus. `--example` cannot be combined with `--template` or `--backend-framework`. Any other folder name in the catalog works the same way.
 
-Examples configured with `THESYS_API_KEY` offer browser sign-in to generate a key, just like the Gateway template. You can also pass `--api-key <key>` or use `--auth skip` to add it later. The catalog’s `env.file` setting controls where the key is saved: FastAPI and React Native use `backend/.env`, and Supabase uses `.env.local`. Other environment settings are preserved.
-
 **Conversation storage**
 
 Every Gateway-backed variant uses Gateway as its durable conversation and artifact store. The browser connects directly through `useOpenuiCloudStorage()` with a short-lived frontend token. For default, LangGraph, and Vercel AI SDK routes, the `threadId` sent to `/api/chat` is the Gateway conversation ID, and each backend appends model turns to it with `conversation: threadId` and `store: true`. The Vercel AI SDK route does not create a second store. The Eve Gateway overlay keeps that Gateway thread store and maps each Gateway `threadId` to an Eve session cursor in the browser; it does not use `/api/chat`. The Gateway-backed LangGraph relay creates and deletes a temporary Agent Server thread for each run; configure a separate LangGraph checkpointer only when graph state, interrupts, or resumable runs must persist independently.
