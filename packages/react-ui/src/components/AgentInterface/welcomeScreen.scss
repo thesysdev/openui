@@ -80,6 +80,7 @@ $welcome-optical-lift: 36px;
     margin: 0;
     font-size: 24px;
     font-weight: 400;
+    font-variation-settings: cssUtils.$font-variation-regular;
     line-height: 1.25;
 
     .openui-agent-container--mobile & {
@@ -94,6 +95,7 @@ $welcome-optical-lift: 36px;
     margin: 0;
     max-width: 800px;
     font-weight: 500;
+    font-variation-settings: normal;
   }
 
   &__composer-starters-container {

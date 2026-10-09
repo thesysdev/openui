@@ -50,6 +50,7 @@
   @include cssUtils.typography(heading, large);
   color: cssUtils.$text-neutral-primary;
   font-weight: 500;
+  font-variation-settings: normal;
   margin: 0;
   padding-left: 4px;
   min-width: 0;

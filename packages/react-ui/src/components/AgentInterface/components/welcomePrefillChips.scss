@@ -48,6 +48,7 @@ $prefill-tab-muted: color-mix(in oklch, #{cssUtils.$text-neutral-primary} 60%, t
   font-family: inherit;
   font-size: 12px;
   font-weight: 400;
+  font-variation-settings: cssUtils.$font-variation-regular;
   line-height: 12px;
   cursor: pointer;
   transition:

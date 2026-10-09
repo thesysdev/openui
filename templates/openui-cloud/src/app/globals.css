@@ -63,11 +63,28 @@ body {
   height: 100%;
 }
 
-/* Default text takes the theme's Regular weight and -1% tracking, like the
-   react-ui typography tokens. */
+/* Default text takes the theme's Regular weight ("wght" 440 light / 420 dark,
+   font-weight 400 as the fallback) and -1% tracking, like the react-ui
+   typography tokens. Grayscale smoothing (Tailwind's `antialiased`,
+   as shadcn uses) keeps macOS from rendering text a shade heavier. */
 body {
   font-weight: var(--openui-font-weight-regular);
+  font-variation-settings: var(--openui-font-variation-regular);
   letter-spacing: var(--openui-letter-spacing-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Bold set by the browser (b, strong) would otherwise inherit the Regular
+   "wght" axis and render at Regular. */
+b,
+strong {
+  font-variation-settings: var(--openui-font-variation-medium);
+}
+
+/* The devtools overlay sets its own weights; keep the body's axis out of it. */
+[data-openui-devtools-root] {
+  font-variation-settings: normal;
 }
 
 /* Thread-header layout for a title-less header holding the model switcher

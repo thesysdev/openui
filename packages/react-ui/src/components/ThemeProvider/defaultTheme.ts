@@ -331,16 +331,20 @@ const FONT_HEADING = '"Inter", sans-serif';
 const FONT_LABEL = '"Inter", sans-serif';
 const FONT_NUMBERS = '"Inter", sans-serif';
 
-// Regular is 400 and Medium 560 (Inter is loaded as a variable font, so the
-// in-between Medium renders as set). Every non-code style tracks -1%.
+// Inter is a variable font. font-weight stays at 400 / 560 as the fallback,
+// and the "wght" axis is set through font-variation-settings: Regular 440 in
+// light mode, eased to 420 in dark mode where light-on-dark text reads
+// heavier, and Medium 560. Every non-code style tracks -1%.
 const TRACKING = "-0.01em";
 
 const createTypographyTheme = ({
   regular,
   medium,
+  regularAxis,
 }: {
   regular: string;
   medium: string;
+  regularAxis: string;
 }): TypographyTheme => ({
   fontBody: FONT_BODY,
   fontCode: FONT_CODE,
@@ -363,6 +367,9 @@ const createTypographyTheme = ({
   fontWeightMedium: medium,
   fontWeightBold: "600",
   fontWeightHeavy: "700",
+
+  fontVariationRegular: `"wght" ${regularAxis}`,
+  fontVariationMedium: `"wght" ${medium}`,
 
   lineHeightBody: "1.5",
   lineHeightHeading: "1.25",
@@ -459,7 +466,16 @@ const createTypographyTheme = ({
   textCodeDefaultHeavyLetterSpacing: "0",
 });
 
-const typographyTheme = createTypographyTheme({ regular: "400", medium: "560" });
+const lightTypographyTheme = createTypographyTheme({
+  regular: "400",
+  medium: "560",
+  regularAxis: "440",
+});
+const darkTypographyTheme = createTypographyTheme({
+  regular: "400",
+  medium: "560",
+  regularAxis: "420",
+});
 
 // ---------------------------------------------------------------------------
 // Effects – resolved from shadows.css (light values)
@@ -499,7 +515,7 @@ const darkEffectTheme: EffectTheme = {
 export const defaultLightTheme: Theme = Object.freeze({
   ...lightColorTheme,
   ...layoutTheme,
-  ...typographyTheme,
+  ...lightTypographyTheme,
   ...lightEffectTheme,
 });
 
@@ -513,6 +529,6 @@ export const defaultLightTheme: Theme = Object.freeze({
 export const defaultDarkTheme: Theme = Object.freeze({
   ...darkColorTheme,
   ...layoutTheme,
-  ...typographyTheme,
+  ...darkTypographyTheme,
   ...darkEffectTheme,
 });
