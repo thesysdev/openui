@@ -331,9 +331,8 @@ const FONT_HEADING = '"Inter", sans-serif';
 const FONT_LABEL = '"Inter", sans-serif';
 const FONT_NUMBERS = '"Inter", sans-serif';
 
-// Inter is a variable font, so Regular and Medium sit between the named
-// weights: 440 / 560 in light mode, with Regular eased to 420 in dark mode,
-// where light-on-dark text reads heavier. Every non-code style tracks -1%.
+// Regular is 400 and Medium 560 (Inter is loaded as a variable font, so the
+// in-between Medium renders as set). Every non-code style tracks -1%.
 const TRACKING = "-0.01em";
 
 const createTypographyTheme = ({
@@ -460,8 +459,7 @@ const createTypographyTheme = ({
   textCodeDefaultHeavyLetterSpacing: "0",
 });
 
-const lightTypographyTheme = createTypographyTheme({ regular: "440", medium: "560" });
-const darkTypographyTheme = createTypographyTheme({ regular: "420", medium: "560" });
+const typographyTheme = createTypographyTheme({ regular: "400", medium: "560" });
 
 // ---------------------------------------------------------------------------
 // Effects – resolved from shadows.css (light values)
@@ -501,7 +499,7 @@ const darkEffectTheme: EffectTheme = {
 export const defaultLightTheme: Theme = Object.freeze({
   ...lightColorTheme,
   ...layoutTheme,
-  ...lightTypographyTheme,
+  ...typographyTheme,
   ...lightEffectTheme,
 });
 
@@ -515,6 +513,6 @@ export const defaultLightTheme: Theme = Object.freeze({
 export const defaultDarkTheme: Theme = Object.freeze({
   ...darkColorTheme,
   ...layoutTheme,
-  ...darkTypographyTheme,
+  ...typographyTheme,
   ...darkEffectTheme,
 });

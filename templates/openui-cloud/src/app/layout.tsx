@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-// Variable Inter (no fixed weights), so the theme's in-between weights
-// (440 / 420 Regular, 560 Medium) render as set.
+// Variable Inter (no fixed weights), so the theme's in-between Medium (560)
+// renders as set.
 const inter = Inter({
   subsets: ["latin"],
 });
