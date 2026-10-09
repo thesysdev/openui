@@ -51,10 +51,10 @@ re-fetches with the new value. This happens automatically - no wiring needed.
 
 ## Changing state from buttons
 
-Use `@Set` inside an `Action` to change a variable when a button is clicked:
+Use `@Set` as a button's action to change a variable when the button is clicked:
 
 ```text
-btn = Button("Show 30 days", Action([@Set($days, "30")]))
+btn = Button("Show 30 days", @Set($days, "30"))
 ```
 
 You can set multiple variables at once:
@@ -70,7 +70,7 @@ saveBtn = Button("Save", Action([@Set($showEdit, false), @Set($saved, true)]))
 ```text
 $title = ""
 $priority = "medium"
-resetBtn = Button("Clear", Action([@Reset($title, $priority)]))
+resetBtn = Button("Clear", @Reset($title, $priority))
 ```
 
 After click: `$title` goes back to `""`, `$priority` goes back to `"medium"`.
