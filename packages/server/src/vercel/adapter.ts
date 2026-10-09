@@ -1,5 +1,5 @@
 import type { UIMessageChunk } from "ai";
-import { MAX_AUTOFIX_GENERATION_LENGTH, type StreamAdapter } from "../shared/types";
+import type { StreamAdapter } from "../shared/types";
 import { isUIOutput, splitClosedFence, unwrapOpenUIFence } from "../shared/utils";
 
 /** Preserve AI SDK UI message chunks and repair text before a successful final step closes. */
@@ -7,7 +7,7 @@ export const vercelAIAdapter: StreamAdapter<UIMessageChunk> = {
   protocol: "vercel-ai",
   // Track text within each step and wait for the finish reason before attempting repair.
   async *transform(source, fix) {
-    const texts = new Map<string, string | null>();
+    const texts = new Map<string, string>();
     const closings = new Map<string, string>();
     let held: UIMessageChunk[] = [];
     let hasTools = false;
@@ -61,14 +61,6 @@ export const vercelAIAdapter: StreamAdapter<UIMessageChunk> = {
         // Still tracking this text part.
         if (previous != null) {
           const combined = previous + event.delta;
-          // Too large to send to Autofix; stop holding.
-          if (combined.length > MAX_AUTOFIX_GENERATION_LENGTH) {
-            texts.set(event.id, null);
-            const closing = closings.get(event.id);
-            closings.delete(event.id);
-            yield closing ? { ...event, delta: closing + event.delta } : event;
-            continue;
-          }
           texts.set(event.id, combined);
           const split = splitClosedFence(combined);
           // Hold the closing fence so a later repair stays inside it.
