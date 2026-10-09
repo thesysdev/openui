@@ -7,6 +7,10 @@ const docsPageSchema = pageSchema.extend({
   customHeader: z.boolean().optional().default(false),
   // Hides the previous/next page links at the bottom of the page.
   hideFooter: z.boolean().optional().default(false),
+  // Hides the left sidebar. Pages that keep their TOC widen to the `full` page width.
+  sidebar: z.boolean().optional().default(true),
+  // Hides Copy Markdown and Open, for pages whose Markdown is mostly component tags.
+  pageActions: z.boolean().optional().default(true),
 });
 
 // You can customise Zod schemas for frontmatter and `meta.json` here

@@ -6,7 +6,7 @@ import { blogPosts, docs } from "fumadocs-mdx:collections/server";
 export const BASE_URL = "https://www.openui.com";
 
 /** Docs sections served from their own top-level path, like `/cookbooks`, instead of under `/docs`. */
-export const TOP_LEVEL_SECTIONS = ["cookbooks", "examples", "demos"];
+export const TOP_LEVEL_SECTIONS = ["cookbooks", "demos"];
 
 export function isTopLevelSection(slugs: string[] | undefined): boolean {
   return TOP_LEVEL_SECTIONS.includes(slugs?.[0] ?? "");
