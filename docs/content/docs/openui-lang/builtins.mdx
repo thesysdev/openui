@@ -5,7 +5,9 @@ description: Transform, filter, and aggregate data with @-prefixed built-in func
 
 Built-in functions start with `@` - this tells the LLM "this is a function, not a component."
 
-Built-ins are included in the system prompt when `toolCalls` or `bindings` is enabled. They are primarily used with `Query` results for data transformation, filtering, and aggregation.
+Built-ins are included in the system prompt when `toolCalls` or `bindings` is enabled, or when you set the `builtinFunctions` prompt option. They are primarily used with `Query` results for data transformation, filtering, and aggregation.
+
+A library can add its own functions next to these. See [Custom Functions](/docs/openui-lang/custom-functions).
 
 ## Aggregation
 
@@ -71,16 +73,19 @@ The second argument (`"t"`) is the loop variable name. Use it inside the templat
 
 ## Action steps
 
-These are used inside `Action([...])` to wire button clicks:
+These wire button clicks. Pass one step on its own, or several steps inside `Action([...])`:
 
-| Step                   | What it does                           |
-| ---------------------- | -------------------------------------- |
-| `@Run(ref)`            | Execute a Mutation or re-fetch a Query |
-| `@Set($var, value)`    | Change a `$variable`                   |
-| `@Reset($var1, $var2)` | Restore `$variables` to defaults       |
-| `@ToAssistant("msg")`  | Send a message to the LLM              |
-| `@OpenUrl("url")`      | Open a URL in a new tab                |
+| Step                            | What it does                                     |
+| ------------------------------- | ------------------------------------------------ |
+| `@Run(ref)`                     | Execute a Mutation or re-fetch a Query           |
+| `@Set($var, value)`             | Change a `$variable`                             |
+| `@Reset($var1, $var2)`          | Restore `$variables` to defaults                 |
+| `@ToAssistant("msg", context?)` | Send a message to the LLM, with optional context |
+| `@OpenUrl("url")`               | Open a URL in a new tab                          |
 
 ```text
+askBtn = Button("Tell me more", @ToAssistant("Tell me more about this ticket"))
 submitBtn = Button("Create", Action([@Run(mutation), @Run(query), @Reset($title)]))
 ```
+
+A library can add its own steps. See [Action Expressions](/docs/openui-lang/action-expressions) and [Custom Actions](/docs/openui-lang/custom-actions).
