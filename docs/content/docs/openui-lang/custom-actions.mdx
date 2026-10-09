@@ -1,0 +1,210 @@
+---
+title: Custom Actions
+description: Define your own action steps with defineAction and handle them in onAction.
+---
+
+The built-in steps send messages, open links, change state, and run tools. A custom action is a step your app defines, such as copying text, adding an item to a cart, or opening a panel in your app. The model uses it like a built-in step. The renderer does not run it. It sends an event to your `onAction` handler, and your code does the work.
+
+## Define an action
+
+```tsx
+import {
+  action,
+  createLibrary,
+  defineAction,
+  defineComponent,
+  useTriggerAction,
+} from "@openuidev/react-lang";
+import { z } from "zod/v4";
+
+const copyToClipboard = defineAction({
+  name: "CopyToClipboard",
+  description: "Copies text to the clipboard",
+  params: z.object({
+    text: z.string(),
+    format: z.enum(["plain", "markdown"]).default("plain"),
+  }),
+});
+
+const Button = defineComponent({
+  name: "Button",
+  description: "A clickable button",
+  props: z.object({
+    label: z.string(),
+    action: action().optional(),
+  }),
+  component: ({ props }) => {
+    const triggerAction = useTriggerAction();
+    return (
+      <button onClick={() => triggerAction(props.label, undefined, props.action)}>
+        {props.label}
+      </button>
+    );
+  },
+});
+
+export const library = createLibrary({
+  root: "Button",
+  components: [Button],
+  actions: [copyToClipboard],
+});
+```
+
+The model can now write:
+
+```text
+root = Button("Copy order ID", @CopyToClipboard("ORD-1042"))
+```
+
+Handle the event in `onAction`:
+
+```tsx
+import { Renderer } from "@openuidev/react-lang";
+
+export function Message({ response }: { response: string }) {
+  return (
+    <Renderer
+      library={library}
+      response={response}
+      onAction={(event) => {
+        if (event.type === "CopyToClipboard") {
+          void navigator.clipboard.writeText(event.params.text);
+        }
+      }}
+    />
+  );
+}
+```
+
+`Button` is a minimal component with an action prop. See [Action Expressions](/docs/openui-lang/action-expressions#action-props-in-your-components) for how `action()` and `triggerAction` work. The `Button` in `@openuidev/react-ui` works the same way.
+
+## Fields
+
+| Field         | Description                                                                  |
+| :------------ | :--------------------------------------------------------------------------- |
+| `name`        | The name after `@` in programs, and the `type` of the event `onAction` gets. |
+| `description` | Shown next to the signature in the prompt.                                   |
+| `params`      | A `z.object(...)`. Key order is the positional order of the arguments.       |
+
+`defineAction` returns the definition with a `.ref`, used for [slots that take only some actions](/docs/openui-lang/action-expressions#slots-that-take-only-some-actions).
+
+## Using it in a program
+
+A custom action works anywhere a built-in step does: alone, or with other steps in `Action([...])`:
+
+```text
+copyBtn = Button("Copy", @CopyToClipboard(order.id))
+copyAndClose = Button("Copy and close", Action([@CopyToClipboard(order.id), @Set($open, false)]))
+```
+
+Steps run in order. A custom step reaches `onAction` when its turn comes, in order with the events from `@ToAssistant` and `@OpenUrl`.
+
+Arguments are positional, in the key order of `params`, and defaults apply. `@CopyToClipboard("ORD-1042")` delivers `{ text: "ORD-1042", format: "plain" }`.
+
+## The event
+
+```ts
+{
+  type: "CopyToClipboard",
+  params: { text: "ORD-1042", format: "plain" },
+  humanFriendlyMessage: "",
+  formState: { /* the form's field values */ },
+  formName: undefined, // the enclosing form, if any
+}
+```
+
+`formState` and `formName` work as they do for the built-in events. See [Interactivity](/docs/openui-lang/interactivity#actionevent).
+
+## Typed `onAction`
+
+`Renderer` types `onAction` from its `library`. When the library has custom actions, the event is a union on `type`, and checking `type` narrows `params`:
+
+```tsx
+<Renderer
+  library={library}
+  response={response}
+  onAction={(event) => {
+    if (event.type === "CopyToClipboard") {
+      // event.params is { text: string; format: "plain" | "markdown" }
+      console.log(event.params.format);
+    }
+  }}
+/>
+```
+
+A misspelled name, such as `event.type === "CopyToClipbord"`, is a type error. The built-in events (`continue_conversation` and `open_url`) stay in the union.
+
+To type a handler outside the `Renderer`, use `LibraryActionEvent`:
+
+```ts
+import type { LibraryActionEvent } from "@openuidev/react-lang";
+
+function handleAction(event: LibraryActionEvent<typeof library>) {
+  if (event.type === "CopyToClipboard") {
+    void navigator.clipboard.writeText(event.params.text);
+  }
+}
+```
+
+## Invalid arguments
+
+Arguments are checked like [custom function](/docs/openui-lang/custom-functions#validation) arguments and component props:
+
+- If a required argument is missing or has the wrong type, the step does nothing. The other steps in the same `Action([...])` still run.
+- If an optional argument has the wrong type, it falls back to its default, or is left out when it has none.
+
+```text
+copyBtn = Button("Copy", @CopyToClipboard(42))
+```
+
+`42` is not a string, so the parser reports `type-mismatch` and the click does nothing. Arguments from references or `$variables` are checked when the action prop is evaluated, and report `runtime-error`. A required argument that is `null` at that point (for example an unset `$variable`) makes the step do nothing, with no error.
+
+## Only real calls create custom steps
+
+Only an `@CopyToClipboard(...)` call written in the program creates a custom step. Data cannot pose as one. These never reach `onAction` as a custom action:
+
+- an object literal shaped like a step or an action plan;
+- a `$variable` or a query row that holds such an object;
+- a legacy action object such as `{type: "CopyToClipboard", params: {text: "x"}}`.
+
+This keeps tool data and model-written literals from triggering your handlers.
+
+## In the prompt
+
+The prompt lists custom actions with the built-in steps in its Action section. The line for `@CopyToClipboard` starts with this signature, followed by the description:
+
+```text
+- @CopyToClipboard(text: string, format?: "plain" | "markdown")
+```
+
+The note on `ActionExpression` props in the component section also names it among the available steps. If no component has an action prop, the prompt still prints a short Action section that lists your custom actions.
+
+`library.toSpec()` and `library.toJSONSchema()` include custom actions under `actions`, so the spec from `openui generate` carries them to `generateSystemPrompt`.
+
+## With AgentInterface
+
+`AgentInterface` from `@openuidev/react-ui` handles `@ToAssistant` (it sends a new user message) and `@OpenUrl` (it opens the link in a new tab). Pass `onAction` to handle your custom actions:
+
+```tsx
+import { AgentInterface } from "@openuidev/react-ui";
+
+<AgentInterface
+  llm={llm}
+  componentLibrary={library}
+  onAction={(event) => {
+    if (event.type === "CopyToClipboard") {
+      void navigator.clipboard.writeText(String(event.params.text));
+    }
+  }}
+/>;
+```
+
+The `Button` in `@openuidev/react-ui` validates its form before a custom action runs, as it does for `@ToAssistant` and mutations.
+
+## Reserved names
+
+Action names follow the same rules as [custom function names](/docs/openui-lang/custom-functions#reserved-names). A name that is already a built-in, an action step, `Action`, `Query`, `Mutation`, or a component, function, or action in the same library makes `createLibrary` throw.
+
+## Renderer support
+
+Custom actions work in the React `Renderer` from `@openuidev/react-lang`. The Vue, Svelte, and Angular renderers do not support them yet.
