@@ -46,7 +46,7 @@ describe("custom actions", () => {
   });
   const lib = createLibrary({ root: "Button", components: [Button], actions: [copy] });
   const schema = lib.toJSONSchema();
-  const actionWith = (action: string, state: Record<string, unknown> = {}) => {
+  const actionWith = (action: string, state: Record<string, unknown> = {}): any => {
     const { root } = createParser(schema, "Button").parse(`root = Button("Go", ${action})`);
     const ctx = {
       getState: (n: string) => state[n],
@@ -91,7 +91,7 @@ describe("custom actions", () => {
       const { root } = createParser(s, "Card").parse(src);
       const ctx = { getState: () => true, resolveRef: () => null, actions: s.actions };
       const el = evaluateElementProps(root!, { ctx, library: cardLib, store: null });
-      return el.props.children.map((c: any) => c.props.action);
+      return (el.props.children as any[]).map((c) => c.props.action);
     };
     const open = { type: "open_url", url: "u" };
     expect(actionsOf(`@Each(rows, "r", Button("Go", @CopyToClipboard(r.id)))`)).toEqual([real]);

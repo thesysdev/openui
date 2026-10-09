@@ -46,7 +46,7 @@ const library = {
       components: ["TextContent"],
     },
   ],
-} as LibrarySpec;
+} as unknown as LibrarySpec; // a spec without components, as Cloud stores it
 
 describe("generateSystemPrompt — self-hosted", () => {
   const spec: LibrarySpec = {
