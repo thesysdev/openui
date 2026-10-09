@@ -1,6 +1,7 @@
 import type {
   ResponseFunctionToolCallOutputItem,
   ResponseStreamEvent,
+  ResponseUsage,
 } from "openai/resources/responses/responses";
 import { AGUIEvent, EventType, StreamProtocolAdapter } from "../../types";
 
@@ -8,7 +9,13 @@ import { AGUIEvent, EventType, StreamProtocolAdapter } from "../../types";
 const stringifyOutput = (output: unknown): string =>
   typeof output === "string" ? output : output != null ? JSON.stringify(output) : "";
 
-export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
+export interface OpenAIResponsesAdapterOptions {
+  onUsage?: (usage: ResponseUsage) => void;
+}
+
+export const openAIResponsesAdapter = (
+  options?: OpenAIResponsesAdapterOptions,
+): StreamProtocolAdapter => ({
   async *parse(response: Response): AsyncIterable<AGUIEvent> {
     const reader = response.body?.getReader();
     if (!reader) throw new Error("No response body");
@@ -246,6 +253,13 @@ export const openAIResponsesAdapter = (): StreamProtocolAdapter => ({
                 code: event.response?.error?.code ?? undefined,
               };
               break;
+
+            case "response.completed": {
+              if (event.response?.usage && options?.onUsage) {
+                options.onUsage(event.response.usage);
+              }
+              break;
+            }
 
             // Intentionally unhandled — these are lifecycle/metadata events:
             // response.created, response.in_progress, response.completed,
