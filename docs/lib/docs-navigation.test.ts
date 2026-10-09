@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   GLOBAL_DOCS_TREE,
+  NESTED_DOCS_SECTIONS,
   getDefaultSidebarMode,
   getGlobalActiveItemUrl,
   getNestedDocsTree,
@@ -67,7 +68,10 @@ describe("global docs navigation", () => {
   it("treats nested roots as navigation sections rather than products", () => {
     assert.equal(getNestedRootForEntryUrl("/docs/openui-lang"), "openui-lang");
     assert.equal(getNestedRootForEntryUrl("/docs/build-agents"), "build-agents");
-    assert.equal(getNestedRootForEntryUrl("/docs/agent/getting-started/introduction"), undefined);
+    assert.equal(
+      getNestedRootForEntryUrl("/docs/agent/getting-started/introduction"),
+      "agent-interface",
+    );
     assert.equal(getNestedRootForEntryUrl("/docs/gateway"), "gateway");
     assert.equal(getNestedRootForEntryUrl("/docs/autofix"), undefined);
     assert.equal(getNestedRootForEntryUrl("/docs/production"), undefined);
@@ -89,7 +93,7 @@ describe("global docs navigation", () => {
     });
     assert.deepEqual(getDefaultSidebarMode("/docs/agent/core-concepts/artifacts"), {
       kind: "nested",
-      root: "build-agents",
+      root: "agent-interface",
     });
     assert.deepEqual(getDefaultSidebarMode("/docs/build-agents/assistant-ui"), {
       kind: "nested",
@@ -320,7 +324,7 @@ describe("nested docs navigation", () => {
     });
   });
 
-  it("nests Agent Interface after the Build Agents chat UI comparison page", () => {
+  it("links to Agent Interface after the Build Agents chat UI comparison page", () => {
     assert.deepEqual(getNestedDocsTree(fullTree, "build-agents"), {
       type: "root",
       $id: "docs:nested:build-agents",
@@ -348,32 +352,34 @@ describe("nested docs navigation", () => {
         { type: "separator", name: "Chat UI" },
         { type: "page", name: "Choose a chat UI", url: "/docs/build-agents/chat-ui" },
         {
-          type: "folder",
+          type: "page",
           name: "Agent Interface",
-          defaultOpen: false,
-          children: [
-            {
-              type: "page",
-              name: "Introduction",
-              url: "/docs/agent/getting-started/introduction",
-            },
-            { type: "separator", name: "Core Concepts" },
-            { type: "page", name: "Artifacts", url: "/docs/agent/core-concepts/artifacts" },
-            { type: "separator", name: "Guides" },
-            {
-              type: "page",
-              name: "Custom artifacts",
-              url: "/docs/agent/guides/custom-artifacts",
-            },
-            { type: "separator", name: "Reference" },
-            {
-              type: "page",
-              name: "Props",
-              url: "/docs/agent/reference/agentinterface-props",
-            },
-          ],
+          url: "/docs/agent/getting-started/introduction",
         },
         { type: "page", name: "assistant-ui", url: "/docs/build-agents/assistant-ui" },
+      ],
+    });
+  });
+
+  it("gives Agent Interface its own sidebar, entered from Build Agents", () => {
+    assert.equal(NESTED_DOCS_SECTIONS["agent-interface"].parent, "build-agents");
+    assert.deepEqual(getNestedDocsTree(fullTree, "agent-interface"), {
+      type: "root",
+      $id: "docs:nested:agent-interface",
+      name: "Agent Interface",
+      children: [
+        { type: "separator", name: "Getting Started" },
+        {
+          type: "page",
+          name: "Introduction",
+          url: "/docs/agent/getting-started/introduction",
+        },
+        { type: "separator", name: "Core Concepts" },
+        { type: "page", name: "Artifacts", url: "/docs/agent/core-concepts/artifacts" },
+        { type: "separator", name: "Guides" },
+        { type: "page", name: "Custom artifacts", url: "/docs/agent/guides/custom-artifacts" },
+        { type: "separator", name: "Reference" },
+        { type: "page", name: "Props", url: "/docs/agent/reference/agentinterface-props" },
       ],
     });
   });
@@ -381,7 +387,7 @@ describe("nested docs navigation", () => {
   it("maps any page within a nested section to its root", () => {
     assert.equal(getNestedRootForPathname("/docs/openui-lang/renderer"), "openui-lang");
     assert.equal(getNestedRootForPathname("/docs/api-reference"), undefined);
-    assert.equal(getNestedRootForPathname("/docs/agent/customize/sidebar"), "build-agents");
+    assert.equal(getNestedRootForPathname("/docs/agent/customize/sidebar"), "agent-interface");
     assert.equal(getNestedRootForPathname("/docs/build-agents/custom-chat-ui"), "build-agents");
     assert.equal(getNestedRootForPathname("/docs"), undefined);
   });

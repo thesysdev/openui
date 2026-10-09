@@ -2,7 +2,8 @@ import type * as PageTree from "fumadocs-core/page-tree";
 
 export type TabFolder = "cookbooks" | "examples" | "demos" | "api-reference";
 
-export type NestedDocsRoot = "openui-lang" | "build-agents" | "gateway" | "reliability";
+export type NestedDocsRoot =
+  "openui-lang" | "build-agents" | "agent-interface" | "gateway" | "reliability";
 
 export type SidebarMode =
   | { kind: "global" }
@@ -22,6 +23,8 @@ type NestedSection = {
   entryUrl: string;
   pathPrefix: string;
   treeFolder: string;
+  /** The section this one is entered from. Its sidebar's back link returns there instead of to all docs. */
+  parent?: NestedDocsRoot;
 };
 
 export const NESTED_DOCS_SECTIONS: Record<NestedDocsRoot, NestedSection> = {
@@ -36,6 +39,13 @@ export const NESTED_DOCS_SECTIONS: Record<NestedDocsRoot, NestedSection> = {
     entryUrl: "/docs/build-agents",
     pathPrefix: "/docs/build-agents",
     treeFolder: "build-agents",
+  },
+  "agent-interface": {
+    title: "Agent Interface",
+    entryUrl: "/docs/agent/getting-started/introduction",
+    pathPrefix: "/docs/agent",
+    treeFolder: "agent",
+    parent: "build-agents",
   },
   gateway: {
     title: "Gateway",
@@ -119,8 +129,6 @@ export function getNestedRootForEntryUrl(url: string): NestedDocsRoot | undefine
 }
 
 export function getNestedRootForPathname(pathname: string): NestedDocsRoot | undefined {
-  if (isPathWithin(pathname, "/docs/agent")) return "build-agents";
-
   return (Object.entries(NESTED_DOCS_SECTIONS) as [NestedDocsRoot, NestedSection][])
     .sort(([, a], [, b]) => b.pathPrefix.length - a.pathPrefix.length)
     .find(([, section]) => isPathWithin(pathname, section.pathPrefix))?.[0];
@@ -150,7 +158,9 @@ export function getSidebarModeForPathname(
 export function getGlobalActiveItemUrl(pathname: string): string | undefined {
   if (promotedGlobalUrls.has(pathname)) return pathname;
 
-  const root = getNestedRootForPathname(pathname);
+  let root = getNestedRootForPathname(pathname);
+  // A section entered from another one highlights its parent in the global sidebar.
+  while (root && NESTED_DOCS_SECTIONS[root].parent) root = NESTED_DOCS_SECTIONS[root].parent;
   return root ? NESTED_DOCS_SECTIONS[root].entryUrl : undefined;
 }
 
@@ -184,9 +194,6 @@ export function getNestedDocsTree(tree: PageTree.Root, root: NestedDocsRoot): Pa
   if (!folder) throw new Error(`Nested docs root "${root}" was not found in the page tree.`);
 
   if (root === "build-agents") {
-    const agentFolder = findNestedFolder(tree.children, "agent");
-    if (!agentFolder) throw new Error('Nested docs folder "agent" was not found in the page tree.');
-
     const chatUIIndex = folder.children.findIndex(
       (node) => node.type === "separator" && node.name === "Chat UI",
     );
@@ -195,22 +202,17 @@ export function getNestedDocsTree(tree: PageTree.Root, root: NestedDocsRoot): Pa
     }
     // The Chat UI group opens with its "Choose a chat UI" page.
     const insertIndex = chatUIIndex + 2;
+    const agentInterface = NESTED_DOCS_SECTIONS["agent-interface"];
 
     // Agent Interface is the first chat UI option, right after the page that compares them.
-    // It starts collapsed; Fumadocs still opens it while one of its pages is active.
+    // It has its own sidebar, so it appears here as an entry into that section.
     return {
       type: "root",
       $id: "docs:nested:build-agents",
       name: "Build Agents",
       children: [
         ...folder.children.slice(0, insertIndex),
-        {
-          type: "folder",
-          name: "Agent Interface",
-          defaultOpen: false,
-          // The first child is the "Getting Started" separator, redundant under the folder name.
-          children: agentFolder.children.slice(1),
-        },
+        { type: "page", name: agentInterface.title, url: agentInterface.entryUrl },
         ...folder.children.slice(insertIndex),
       ],
     };

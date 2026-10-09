@@ -55,9 +55,35 @@ function GlobalSidebarItem({ item }: { item: PageTree.Item }) {
   );
 }
 
+function isOtherSectionEntry(url: string, root: NestedDocsRoot): boolean {
+  const target = getNestedRootForEntryUrl(url);
+  return target !== undefined && target !== root;
+}
+
+// Inside a nested sidebar, links into another nested section get the same chevron as global entries.
+function withSectionChevrons(tree: PageTree.Root, root: NestedDocsRoot): PageTree.Root {
+  return {
+    ...tree,
+    children: tree.children.map((node) =>
+      node.type === "page" && isOtherSectionEntry(node.url, root)
+        ? {
+            ...node,
+            name: (
+              <span className="flex flex-1 items-center gap-2">
+                <span className="min-w-0 flex-1">{node.name}</span>
+                <ChevronRight aria-hidden className="ms-auto" size={16} />
+              </span>
+            ),
+          }
+        : node,
+    ),
+  };
+}
+
 function NestedSidebarHeader({ root }: { root: NestedDocsRoot }) {
-  const { showGlobal } = useDocsNavigation();
+  const { enterNested, showGlobal } = useDocsNavigation();
   const { setOpen } = useSidebar();
+  const parent = NESTED_DOCS_SECTIONS[root].parent;
 
   return (
     <div className="flex flex-col gap-4">
@@ -65,12 +91,16 @@ function NestedSidebarHeader({ root }: { root: NestedDocsRoot }) {
         type="button"
         className="flex items-center gap-2 rounded-lg p-2 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-accent/50 hover:text-fd-accent-foreground"
         onClick={() => {
+          if (parent) {
+            enterNested(parent);
+            return;
+          }
           showGlobal();
           setOpen(false);
         }}
       >
         <ChevronLeft aria-hidden className="size-4" />
-        All docs
+        {parent ? NESTED_DOCS_SECTIONS[parent].title : "All docs"}
       </button>
       <p className="px-2 text-sm font-semibold text-fd-foreground">
         {NESTED_DOCS_SECTIONS[root].title}
@@ -107,7 +137,9 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
     sidebarMode.kind === "global" || sidebarMode.kind === "nested" ? undefined : sidebarMode.kind;
   const activeTree = useMemo(() => {
     if (tabFolder) return getTabTree(tree, tabFolder);
-    return nestedRoot ? getNestedDocsTree(tree, nestedRoot) : GLOBAL_DOCS_TREE;
+    return nestedRoot
+      ? withSectionChevrons(getNestedDocsTree(tree, nestedRoot), nestedRoot)
+      : GLOBAL_DOCS_TREE;
   }, [tabFolder, nestedRoot, tree]);
 
   return (
