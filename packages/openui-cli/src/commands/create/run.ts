@@ -28,7 +28,11 @@ import {
   resolveProjectIdentity,
 } from "./lib/resolve";
 import { aiSetupFromTemplate, CreateTelemetryClient } from "./lib/telemetry";
-import { findCatalogOverlay } from "./lib/templates-catalog";
+import {
+  DEFAULT_OVERLAY_KEY,
+  DEFAULT_PROJECT_NAME,
+  findCatalogOverlay,
+} from "./lib/templates-catalog";
 
 export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): Promise<void> {
   const tel = new CreateTelemetryClient(ctx.telemetry);
@@ -50,17 +54,23 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
 
   if (!localSourceDir()) await ensureGitAvailable();
   const sourceRetryReporter = tel.reportNetworkRetry("source_checkout");
+  const requestedBackendFramework =
+    options.backendFramework ?? (options.useDefaults ? DEFAULT_OVERLAY_KEY : undefined);
   const catalog = await loadCreateCatalog({
     example: options.example,
     template: options.template,
-    backendFramework: options.backendFramework,
+    backendFramework: requestedBackendFramework,
     interactive,
     onRetry: sourceRetryReporter,
   });
-  const { name, targetDir } = await resolveProjectIdentity(options.name, interactive, tel);
+  const { name, targetDir } = await resolveProjectIdentity(
+    options.name ?? (options.useDefaults ? DEFAULT_PROJECT_NAME : undefined),
+    interactive,
+    tel,
+  );
 
   const selected = await resolveCreateSelection({
-    backendFramework: options.backendFramework,
+    backendFramework: requestedBackendFramework,
     example: options.example,
     examples: catalog.examples,
     overlays: catalog.templateEntry?.overlays ?? [],
@@ -102,7 +112,7 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
     backend_framework: backendFramework,
     backend_framework_source: options.backendFramework
       ? "flag"
-      : interactive
+      : interactive && !options.useDefaults
         ? "prompt"
         : "default",
   });
@@ -163,7 +173,9 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
     }
   };
 
-  console.info();
+  console.info(
+    `\nCreating "${name}" with --template ${template} --backend-framework ${backendFramework}`,
+  );
   if (ctx.verbose) {
     console.info(`Scaffolding ${template} into "${name}"...\n`);
     await runScaffold();
@@ -221,6 +233,8 @@ export async function runCreateApp(options: CreateAppOptions, ctx: CliContext): 
       name,
       devCmd,
       template,
+      backendFramework,
+      showChangeSetupHint: Boolean(options.useDefaults),
       backendGettingStarted: overlay?.manifest.gettingStarted,
       skillInstalled,
       envWritten: envResult.envWritten,

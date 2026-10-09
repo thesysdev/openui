@@ -31,6 +31,12 @@ bunx @openuidev/cli@latest --help
 
 ## Quick Start
 
+Create the default app (`openui-agent`, OpenUI Cloud template, LangGraph backend) with no options:
+
+```bash
+npx @openuidev/cli@latest
+```
+
 Create a new app (you'll be prompted to pick a template):
 
 ```bash

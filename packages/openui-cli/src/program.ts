@@ -72,10 +72,17 @@ function handleCliError(e: unknown, event: string, extra?: Record<string, unknow
   process.exitCode = cancelled ? e.exitCode : 1;
 }
 
+/** Bare `openui` in a terminal scaffolds the default app; elsewhere it keeps printing help. */
+function withDefaultCommand(argv: string[]): string[] {
+  const isBare = argv.length <= 2;
+  const isTerminal = Boolean(process.stdin.isTTY && process.stdout.isTTY);
+  return isBare && isTerminal ? [...argv, "create", "--use-defaults"] : argv;
+}
+
 export async function runProgram(): Promise<void> {
   const program = buildProgram();
   try {
-    await program.parseAsync(process.argv);
+    await program.parseAsync(withDefaultCommand(process.argv));
   } catch (e) {
     const cancelled = e instanceof CliCancelledError;
     const event = `cli_${activeCommand.replace(/-/g, "_")}_failed`;
