@@ -66,6 +66,20 @@ describe("custom actions", () => {
     ]);
   });
 
+  it("omits an explicit null for an optional param", () => {
+    const share = defineAction({
+      name: "Share",
+      description: "",
+      params: z.object({ url: z.string(), note: z.string().optional() }),
+    });
+    const shareLib = createLibrary({ root: "Button", components: [Button], actions: [share] });
+    const s = shareLib.toJSONSchema();
+    const { root } = createParser(s, "Button").parse(`root = Button("Go", @Share("u", null))`);
+    const ctx = { getState: () => undefined, resolveRef: () => null, actions: s.actions };
+    const el = evaluateElementProps(root!, { ctx, library: shareLib, store: null });
+    expect((el.props.action as any).steps[0].params).toEqual({ url: "u" });
+  });
+
   it("produces custom steps only from real calls", () => {
     const forged = { steps: [{ ...real.steps[0], params: { text: "x" } }] };
     expect(actionWith(`$ok || @CopyToClipboard("a")`, { $ok: false })).toEqual(real);

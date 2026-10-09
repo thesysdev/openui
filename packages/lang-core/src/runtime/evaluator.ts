@@ -118,7 +118,7 @@ export function evaluate(
       const acts = context.actions;
       if (acts && Object.prototype.hasOwnProperty.call(acts, node.name)) {
         const def = acts[node.name]!;
-        const args = evaluateArgs(node, context);
+        const args = callArgs(node, context, def.params);
         if (missesRequired(args, def.params)) return { steps: [] };
         const params = checkValue(args, def.params, node.name, "", context);
         if (params === INVALID) return { steps: [] };
@@ -339,8 +339,23 @@ function evaluateArgs(
   return args;
 }
 
-const paramsOf = (schema: JSONSchemaDef): ParamDef[] =>
-  Object.keys(schema.properties ?? {}).map((name) => ({ name, required: false }));
+/** A library function's or action's args; an explicit null for an optional param is omitted, so its default applies. */
+function callArgs(
+  node: ASTNode & { k: "Comp" },
+  context: EvaluationContext,
+  params: JSONSchemaDef,
+): Record<string, unknown> {
+  const names = Object.keys(params.properties ?? {});
+  const args = evaluateArgs(
+    node,
+    context,
+    names.map((name) => ({ name, required: false })),
+  );
+  for (const key in args) {
+    if (args[key] === null && !params.required?.includes(key)) delete args[key];
+  }
+  return args;
+}
 
 // returns z.string() but fn gives 5 -> reports "@Percent: ... expects string but got number"
 function checkValue(
@@ -370,11 +385,7 @@ function callFunction(
   node: ASTNode & { k: "Comp" },
   context: EvaluationContext,
 ): unknown {
-  const raw = evaluateArgs(node, context, paramsOf(def.params));
-  // An explicit null for an optional param is omitted, so its default applies
-  for (const key in raw) {
-    if (raw[key] === null && !def.params.required?.includes(key)) delete raw[key];
-  }
+  const raw = callArgs(node, context, def.params);
   if (missesRequired(raw, def.params)) return null;
   const args = checkValue(raw, def.params, name, "", context);
   if (args === INVALID) return null;
