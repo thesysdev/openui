@@ -310,7 +310,7 @@ A library declares extra functions in its `functions` list ([prompt.md](./prompt
 - Arguments are checked against `params` the same way component props are. Literal arguments are checked when parsing, with the same codes (`type-mismatch`, `missing-required`, and `excess-args` for extra arguments). A call whose literal arguments fail these checks evaluates to null; extra arguments are only dropped. Arguments that are only known at runtime are checked when the call runs. Missing optional arguments take their defaults.
 - A required argument that is null when the call runs, with no default (an unset `$variable`, an unresolved reference), makes the call evaluate to null with no error.
 - A call with other invalid runtime arguments, a function that throws, or a return value that does not match `returns` reports `runtime-error`, and the call evaluates to null.
-- While streaming, a call runs as soon as the statement that holds it is complete. A call in the pending statement evaluates to null until that statement completes.
+- While streaming, a call runs on every update, like the built-ins. A call whose arguments are not yet valid evaluates to null, and the error is not reported until the stream ends.
 
 Fixtures: `evaluation/*-function-*`, `errors/*-unknown-function-*`, `errors/*-function-literal-*`
 
