@@ -325,7 +325,7 @@ The component subscribes to the client with `useSyncExternalStore`, reads the re
 | `onError`       | `(errors) => void`              | Receives OpenUI parser/runtime errors                                                     |
 | `formStateKeys` | `readonly string[]`             | Adds top-level data-model keys that should also hydrate form namespaces                   |
 | `toolProvider`  | `RendererProps["toolProvider"]` | Overrides the default A2UI routing for OpenUI Lang `Query()` and `Mutation()` calls       |
-| `queryLoader`   | `ReactNode`                     | UI shown while a query is loading                                                         |
+| `children` | `React.ReactNode` | Optional Renderer slot composition; omit for default content, loading, and error views. |
 
 `@OpenUrl` is handled locally and is not emitted as an A2UI action. Other OpenUI actions are converted to A2UI actions automatically.
 

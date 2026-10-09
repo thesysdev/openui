@@ -82,7 +82,8 @@ async function loadCreateHelpText(): Promise<string> {
 
   sections.push(`OpenUI examples:
   Loaded at runtime from examples/examples.json in the OpenUI repo.
-  Pick "Scaffold from OpenUI Examples" in the interactive prompt, or pass
+  Pick a featured example beside the backend choices, choose "More examples…"
+  for the complete list, or pass
   --example <name> with any catalog folder name.`);
 
   return `\n${sections.join("\n\n")}\n`;

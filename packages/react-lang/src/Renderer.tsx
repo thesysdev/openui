@@ -7,13 +7,30 @@ import type {
   ToolProvider,
 } from "@openuidev/lang-core";
 import { ToolNotFoundError, extractToolResult } from "@openuidev/lang-core";
-import React, { Component, Fragment, useEffect, useInsertionEffect, useRef } from "react";
+import React, {
+  Component,
+  Fragment,
+  createContext,
+  useContext,
+  useEffect,
+  useInsertionEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
 
+export interface RendererQueryState {
+  /** Whether any query is waiting for generation or fetching data. */
+  isLoading: boolean;
+  errors: OpenUIError[];
+  retry: () => void;
+  isRetrying: boolean;
+}
+
 export interface RendererProps {
-  /** Raw response text (openui-lang code). */
+  /** OpenUI Lang code or the complete Cloud response bundle. */
   response: string | null;
   /** Component library from createLibrary(). */
   library: Library;
@@ -41,12 +58,15 @@ export interface RendererProps {
    */
   toolProvider?:
     Record<string, (args: Record<string, unknown>) => Promise<unknown>> | McpClientLike | null;
-  /** Custom loading indicator shown while queries are fetching. Defaults to a spinner. */
+  /** Custom loading indicator. Defaults to a spinner. */
   queryLoader?: React.ReactNode;
+  /** Custom slot composition. Omit to keep content visible with a loading indicator. */
+  children?: React.ReactNode;
   /**
    * Called with structured, LLM-friendly errors from the parser and query system.
-   * Only includes errors fixable by changing the openui-lang code (unknown components,
-   * missing required props, tool-not-found). Suitable for an automated LLM correction loop.
+   * Includes generation errors (unknown components, missing required props)
+   * and tool execution failures. Retry data-source failures instead of treating
+   * every query error as a reason to regenerate the program.
    * Called with [] when all errors are resolved.
    */
   onError?: (errors: OpenUIError[]) => void;
@@ -182,6 +202,8 @@ function ensureLoadingStyle() {
 
 const DefaultQueryLoader = () => (
   <div
+    role="status"
+    aria-label="Loading data"
     style={{
       position: "absolute",
       top: 8,
@@ -197,7 +219,7 @@ const DefaultQueryLoader = () => (
   />
 );
 
-export function Renderer({
+function RendererRoot({
   response,
   library,
   isStreaming = false,
@@ -207,6 +229,7 @@ export function Renderer({
   onParseResult,
   toolProvider,
   queryLoader,
+  children,
   onError,
   publishObservability,
 }: RendererProps) {
@@ -245,20 +268,21 @@ export function Renderer({
   });
   const resolvedToolProvider = toolProvider != null ? stableToolProvider.current : null;
 
-  const { result, parseResult, contextValue, isQueryLoading } = useOpenUIState(
-    {
-      response,
-      library,
-      isStreaming,
-      onAction,
-      onStateUpdate,
-      initialState,
-      toolProvider: resolvedToolProvider,
-      onError,
-      publishObservability,
-    },
-    renderDeep,
-  );
+  const { result, parseResult, contextValue, isQueryLoading, queryErrors, retryQueries } =
+    useOpenUIState(
+      {
+        response,
+        library,
+        isStreaming,
+        onAction,
+        onStateUpdate,
+        initialState,
+        toolProvider: resolvedToolProvider,
+        onError,
+        publishObservability,
+      },
+      renderDeep,
+    );
 
   // Fire onParseResult with the RAW parse result (not evaluated),
   // so hosts only see changes when the parser output actually changes.
@@ -266,18 +290,132 @@ export function Renderer({
     onParseResultRef.current?.(parseResult);
   }, [parseResult]);
 
-  if (!result?.root) {
-    return null;
-  }
+  const query = useMemo<RendererQueryState>(
+    () => ({
+      isLoading: isQueryLoading,
+      errors: queryErrors,
+      retry: retryQueries,
+      isRetrying: queryErrors.length > 0 && isQueryLoading,
+    }),
+    [isQueryLoading, queryErrors, retryQueries],
+  );
+  const value = useMemo(
+    () => ({ root: result?.root ?? null, query, queryLoader }),
+    [result?.root, query, queryLoader],
+  );
 
   return (
     <OpenUIContext.Provider value={contextValue}>
-      <div style={{ position: "relative" }}>
-        {isQueryLoading && (queryLoader ?? <DefaultQueryLoader />)}
-        <div style={{ opacity: isQueryLoading ? 0.7 : 1, transition: "opacity 0.2s ease" }}>
-          <RenderNode node={result.root} />
-        </div>
-      </div>
+      <RendererContext.Provider value={value}>{children}</RendererContext.Provider>
     </OpenUIContext.Provider>
   );
 }
+
+const RendererContext = createContext<{
+  root: ElementNode | null;
+  query: RendererQueryState;
+  queryLoader?: React.ReactNode;
+} | null>(null);
+
+function useRendererContext() {
+  const context = useContext(RendererContext);
+  if (!context) {
+    throw new Error("Renderer slots must be used within Renderer.Root or Renderer.");
+  }
+  return context;
+}
+
+/** Access query loading, failures, and retry within the nearest Renderer root. */
+export function useRendererQuery(): RendererQueryState {
+  return useRendererContext().query;
+}
+
+export type RendererContentSlotProps = Omit<React.ComponentPropsWithRef<"div">, "children">;
+
+/** Displays generated content, preserving mounted components while queries load or fail. */
+function RendererContent({ style, hidden, ...props }: RendererContentSlotProps) {
+  const { root, query } = useRendererContext();
+  if (!root) return null;
+  return (
+    <div
+      {...props}
+      aria-busy={query.isLoading}
+      hidden={hidden || query.errors.length > 0}
+      style={{ opacity: query.isLoading ? 0.7 : 1, transition: "opacity 0.2s ease", ...style }}
+    >
+      <RenderNode node={root} />
+    </div>
+  );
+}
+
+export interface RendererSlotProps {
+  children?: React.ReactNode;
+}
+
+/** Shows query loading feedback, except while a query failure is being displayed. */
+function RendererQueryLoading({ children }: RendererSlotProps) {
+  const {
+    query: { isLoading, errors },
+    queryLoader,
+  } = useRendererContext();
+  if (!isLoading || errors.length > 0) return null;
+  return <>{children === undefined ? (queryLoader ?? <DefaultQueryLoader />) : children}</>;
+}
+
+/** Shows the supplied content when queries fail; renders nothing without children. */
+function RendererQueryError({ children }: RendererSlotProps) {
+  const { errors } = useRendererQuery();
+  if (errors.length === 0) return null;
+  return <>{children}</>;
+}
+
+export type RendererRetryProps = React.ComponentPropsWithRef<"button">;
+
+function RendererRetry({ children, onClick, disabled, ...props }: RendererRetryProps) {
+  const { retry, isLoading, errors } = useRendererQuery();
+  const isDisabled = disabled || isLoading || errors.length === 0;
+  return (
+    <button
+      type="button"
+      {...props}
+      disabled={isDisabled}
+      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+        if (isDisabled || event.defaultPrevented) return;
+        onClick?.(event);
+        if (!event.defaultPrevented) retry();
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function DefaultRendererContent() {
+  const { root, query, queryLoader } = useRendererContext();
+  if (!root) return null;
+  return (
+    <div aria-busy={query.isLoading} style={{ position: "relative" }}>
+      {query.isLoading && (queryLoader ?? <DefaultQueryLoader />)}
+      <div style={{ opacity: query.isLoading ? 0.7 : 1, transition: "opacity 0.2s ease" }}>
+        <RenderNode node={root} />
+      </div>
+    </div>
+  );
+}
+
+function DefaultRenderer({ children, ...props }: RendererProps) {
+  return (
+    <RendererRoot {...props}>
+      {children === undefined ? <DefaultRendererContent /> : children}
+    </RendererRoot>
+  );
+}
+
+/** Render with the default presentation, or compose slots around one shared runtime. */
+export const Renderer = Object.assign(DefaultRenderer, {
+  Root: RendererRoot,
+  Content: RendererContent,
+  QueryLoading: RendererQueryLoading,
+  QueryError: RendererQueryError,
+  Retry: RendererRetry,
+});
