@@ -133,7 +133,8 @@ const createColorTheme = ({
 
   const overlayBase = isDark ? swatch(neutral, 25) : swatch(neutral, 1000);
   const neutralPrimary = isDark ? swatch(neutral, 50) : swatch(neutral, 1000);
-  const neutralSecondary = withAlpha(neutralPrimary, 0.5);
+  // 0.6 keeps secondary text at 4.5:1 or better on both the page and card surfaces.
+  const neutralSecondary = withAlpha(neutralPrimary, 0.6);
   const neutralTertiary = withAlpha(neutralPrimary, 0.2);
 
   const accentText =

@@ -1,3 +1,10 @@
+// The still mascot (components/Mascot.tsx).
+.openui-agent-mascot {
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
 // Mascot loader (components/MascotLoader.tsx). Drawn at low opacity so it reads
 // as a light grey, and the whole mascot breathes by pulsing that opacity. The
 // eyes stay still.

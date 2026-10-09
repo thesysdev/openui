@@ -31,11 +31,18 @@
 
 // ── "Behind the scenes" wrapper ──
 
+// Rows inside the card are inset by this much; the card is pulled out by the
+// same amount (plus its border) so row glyphs and labels sit in the same
+// columns as the header's.
+$timeline-row-inset: cssUtils.$space-m;
+// Glyph slot shared by the header and every row (glyphs draw at 20px in it).
+$timeline-glyph-slot: 24px;
+
 .openui-behind-the-scenes {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: cssUtils.$space-s;
+  gap: cssUtils.$space-3xs;
   width: 100%;
   // Spaces the run from the answer that follows it; no divider line.
   margin-block-end: cssUtils.$space-m;
@@ -45,10 +52,10 @@
     display: flex;
     align-items: center;
     gap: cssUtils.$space-s;
-    // Flush with the message content — the tray carries no chrome of its own.
-    padding: 0;
+    // Flush with the message content — the header carries no chrome of its own.
+    padding: cssUtils.$space-2xs 0;
     @include cssUtils.typography(body, small);
-    color: cssUtils.$text-neutral-secondary;
+    color: cssUtils.$text-neutral-primary;
     cursor: pointer;
     background-color: transparent;
     text-align: start;
@@ -56,9 +63,78 @@
     // button-reset strips chrome, so restore a visible keyboard focus ring.
     @include focus-ring;
 
-    &:hover .openui-behind-the-scenes__toggle-label {
-      color: cssUtils.$text-neutral-primary;
+    // Collapsed, the chevron only shows on hover or keyboard focus. Open, it
+    // stays visible and turns down.
+    &:hover .openui-behind-the-scenes__toggle-icon,
+    &:focus-visible .openui-behind-the-scenes__toggle-icon {
+      opacity: 1;
     }
+
+    &[aria-expanded="true"] .openui-behind-the-scenes__toggle-icon {
+      opacity: 1;
+      transform: rotate(90deg);
+    }
+  }
+
+  // A finished run's collapsed header steps back: label and mascot in the
+  // secondary tone (the mascot is drawn in black, so it takes secondary's 60%
+  // alpha as opacity). Opening it brings the label back to primary.
+  &--settled &__toggle[aria-expanded="false"] {
+    .openui-behind-the-scenes__toggle-label {
+      color: cssUtils.$text-neutral-secondary;
+    }
+
+    .openui-behind-the-scenes__mascot {
+      opacity: 0.6;
+    }
+  }
+
+  // TimelineWorkingIndicator: the same header, but nothing to toggle yet.
+  &__toggle--static {
+    cursor: default;
+  }
+
+  // One line of header content; a new line slides up into place as the old one
+  // slides up and out (HeaderTicker in ToolCallTimeline.tsx).
+  &__ticker {
+    display: inline-grid;
+    overflow: hidden;
+    // A little room on every side so the clip doesn't crop the mascot's
+    // overhang or a glyph's animation (the search lens hops past its box).
+    padding: cssUtils.$space-2xs;
+    margin: calc(-1 * #{cssUtils.$space-2xs});
+  }
+
+  &__ticker-item {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    gap: cssUtils.$space-s;
+    white-space: nowrap;
+  }
+
+  // Keep the durations in sync with TICKER_SLIDE_MS in ToolCallTimeline.tsx.
+  &__ticker-item--in {
+    animation: openui-behind-the-scenes-slide-in 0.32s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  &__ticker-item--out {
+    animation: openui-behind-the-scenes-slide-out 0.32s cubic-bezier(0.4, 0, 0.6, 1) both;
+  }
+
+  &__glyph {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: $timeline-glyph-slot;
+    height: $timeline-glyph-slot;
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  // Slightly wider than the slot; it overhangs evenly so labels stay aligned.
+  &__mascot {
+    max-width: none;
+    margin-inline: -2px;
   }
 
   &__toggle-label {
@@ -66,21 +142,49 @@
   }
 
   &__toggle-label--shimmer {
-    @include text-shimmer(cssUtils.$text-neutral-tertiary, cssUtils.$text-neutral-secondary);
+    @include text-shimmer(cssUtils.$text-neutral-primary, cssUtils.$foreground);
   }
 
   &__toggle-icon {
     flex-shrink: 0;
     color: cssUtils.$text-neutral-secondary;
-    transition: transform 0.2s ease;
+    opacity: 0;
+    transition:
+      transform 0.2s ease,
+      opacity 0.15s ease;
   }
 
+  // Opens to the list's height (grid-rows 0fr → 1fr). Pulled out by the row
+  // inset so the card's rows line up with the header.
+  &__collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    width: calc(100% + #{$timeline-row-inset} + 1px);
+    margin-inline-start: calc(-1 * (#{$timeline-row-inset} + 1px));
+    transition:
+      grid-template-rows 0.25s ease,
+      opacity 0.2s ease;
+
+    &--open {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+  }
+
+  &__collapse-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  // The steps, as rows in one card split by dotted rules.
   &__items {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: cssUtils.$space-xs;
     width: 100%;
+    border: 1px dashed cssUtils.$border-interactive;
+    border-radius: cssUtils.$radius-2xl;
+    background-color: cssUtils.$foreground;
     // Long runs must not push the conversation far down the page: past this
     // height the timeline scrolls internally. Overridable per app via the
     // custom property.
@@ -95,8 +199,6 @@
       display: none;
     }
 
-    padding-inline-end: cssUtils.$space-s;
-
     // Each edge dissolves only while a row is hidden behind it. Widths come from
     // JS (CSS can't ask about scroll position); at 0 the mask is a no-op.
     --openui-timeline-fade-top: 0px;
@@ -110,6 +212,31 @@
     );
     -webkit-mask-image: $edges;
     mask-image: $edges;
+
+    .openui-tool-call__title-row {
+      padding: cssUtils.$space-xs $timeline-row-inset;
+    }
+
+    // Details sit under the label, inside the row's own section.
+    .openui-tool-call__content {
+      margin: 0;
+      padding: 0 $timeline-row-inset cssUtils.$space-s-m
+        calc(#{$timeline-row-inset} + #{$timeline-glyph-slot} + #{cssUtils.$space-s});
+    }
+
+    // The card is already the frame: no second card inside it.
+    .openui-tool-call__sources,
+    .openui-tool-call__block {
+      border: 0;
+      border-radius: 0;
+      background-color: transparent;
+      padding: 0;
+    }
+
+    // Sources line up with the label above them.
+    .openui-tool-call__source {
+      padding-inline: 0;
+    }
   }
 
   &__items--fade-top {
@@ -120,30 +247,13 @@
     --openui-timeline-fade-bottom: 2rem;
   }
 
-  // Graceful auto-close of the compact "Working…" tray
-  &__compact {
-    display: grid;
-    grid-template-rows: 1fr;
-    width: 100%;
-    transition:
-      grid-template-rows 0.2s ease,
-      opacity 0.2s ease;
-
-    &--closed {
-      grid-template-rows: 0fr;
-      opacity: 0;
-    }
-  }
-
-  &__compact-inner {
-    overflow: hidden;
-    min-height: 0;
-  }
-
-  // Opacity only: the list already slides as it follows the newest row, and a
-  // rise on top of that reads as two competing motions.
-  &__reveal-item {
+  // Opacity only, so a new row doesn't jump while the list follows it.
+  &__item {
     animation: openui-behind-the-scenes-reveal 0.25s ease;
+
+    & + & {
+      border-top: 1px dashed cssUtils.$border-interactive;
+    }
   }
 }
 
@@ -153,6 +263,28 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes openui-behind-the-scenes-slide-in {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes openui-behind-the-scenes-slide-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
   }
 }
 
@@ -185,8 +317,21 @@
       color: cssUtils.$text-neutral-primary;
     }
 
+    // Collapsed, the chevron only shows on hover or keyboard focus. Open, it
+    // stays visible and turns down.
+    .openui-tool-call__chevron {
+      color: cssUtils.$text-neutral-secondary;
+      opacity: 0;
+    }
+
+    &:hover .openui-tool-call__chevron,
+    &:focus-visible .openui-tool-call__chevron {
+      opacity: 1;
+    }
+
     &[aria-expanded="true"] .openui-tool-call__chevron {
-      transform: rotate(180deg);
+      opacity: 1;
+      transform: rotate(90deg);
     }
   }
 
@@ -217,21 +362,23 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.3;
+    min-width: $timeline-glyph-slot;
+    min-height: $timeline-glyph-slot;
   }
 
   &__icon {
     flex-shrink: 0;
-    color: cssUtils.$text-neutral-primary;
+    color: cssUtils.$text-neutral-secondary;
   }
 
+  // Legacy ToolCallComponent only; the glyphs animate themselves.
   &__icon--blinking {
     animation: openui-tool-call-icon-blink 1.5s ease-in-out infinite;
   }
 
   &__name {
     @include cssUtils.typography(body, small);
-    color: cssUtils.$text-neutral-secondary;
+    color: cssUtils.$text-neutral-primary;
     -webkit-text-fill-color: currentColor;
     white-space: nowrap;
     overflow: hidden;
@@ -242,7 +389,7 @@
   }
 
   &__name--shimmer {
-    @include text-shimmer(cssUtils.$text-neutral-tertiary, cssUtils.$text-neutral-secondary);
+    @include text-shimmer(cssUtils.$text-neutral-primary, cssUtils.$foreground);
   }
 
   &__connector {
@@ -327,7 +474,7 @@
 
   &__source-title {
     @include cssUtils.typography(label, small);
-    color: cssUtils.$text-neutral-secondary;
+    color: cssUtils.$text-neutral-primary;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -335,7 +482,7 @@
 
   &__source-desc {
     @include cssUtils.typography(label, small);
-    color: cssUtils.$text-neutral-tertiary;
+    color: cssUtils.$text-neutral-secondary;
     // Let the description shrink + truncate so it never squeezes the title.
     flex: 1 1 25%;
     min-width: 0;
@@ -407,10 +554,6 @@
   // Glyph + label alone, no border or fill. The one status to skip the muted
   // icon — a failure has to be legible.
   &--error {
-    .openui-tool-call__icon-wrapper {
-      opacity: 1;
-    }
-
     .openui-tool-call__icon {
       color: cssUtils.$text-danger-primary;
     }
@@ -526,8 +669,6 @@
   }
 }
 
-// Shares an element with the wrapper's resting 0.3, so it replaces that rather
-// than compounding — these are the running glyph's real opacity.
 @keyframes openui-tool-call-icon-blink {
   0%,
   100% {
@@ -548,47 +689,254 @@
 }
 
 // ── Timeline thinking steps ──
-// Prose the model emitted alongside its tool calls, rendered as a timeline
-// step so it reads as part of the run instead of a loose paragraph. Geometry
-// mirrors .openui-tool-call's title row: same start padding, 14px glyph, same
-// gap — the text column lines up with tool names.
-.openui-tool-call-timeline {
-  &__text-step {
-    display: flex;
-    align-items: flex-start;
-    gap: cssUtils.$space-s;
-    // Flush with the tool rows: prose is their peer, not an indented aside.
-    padding-inline-start: 0;
-    // Breathing room against the neighboring timeline entries.
-    margin-block: cssUtils.$space-s;
-    width: 100%;
+// Prose the model emitted alongside its tool calls, shown when its "Thought
+// process" row is opened. Doubled-up selector so these rules WIN over
+// `.openui-markdown-renderer`'s own class and tag rules (body/default
+// typography, primary color on p/strong/…) regardless of which stylesheet
+// lands later in the build.
+.openui-tool-call-timeline__text-step-body.openui-tool-call-timeline__text-step-body {
+  @include cssUtils.typography(body, small);
+  color: cssUtils.$text-neutral-secondary;
+  min-width: 0;
+
+  * {
+    margin: 0;
+    font: inherit;
+    color: inherit !important;
+    line-height: inherit;
+  }
+}
+
+// ── Tool glyphs (ToolGlyphs.tsx) ──
+// Lucide shapes looped with lucide-animated's motion while `--animate` is set.
+
+.openui-tool-glyph {
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+
+  * {
+    transform-box: fill-box;
+    transform-origin: center;
   }
 
-  // Doubled-up selector so these rules WIN over `.openui-markdown-renderer`'s
-  // own class and tag rules (body/default typography, primary color on
-  // p/strong/…) regardless of which stylesheet lands later in the build.
-  &__text-step &__text-step-body {
-    @include cssUtils.typography(body, small);
-    color: cssUtils.$text-neutral-primary;
-    min-width: 0;
-    flex: 1;
+  // Draw-on strokes (pathLength = 1).
+  .openui-tool-glyph__hill,
+  .openui-tool-glyph__fold {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0;
+  }
 
-    * {
-      margin: 0;
-      font: inherit;
-      color: inherit !important;
-      line-height: inherit;
-    }
+  // Masks the sun's rays behind the cloud.
+  .openui-tool-glyph__cloud {
+    fill: cssUtils.$foreground;
+  }
+}
+
+.openui-tool-glyph--animate {
+  // search: x [0, 0, -3, 0], y [0, -4, 0, 0]
+  .openui-tool-glyph__lens {
+    animation: openui-tool-glyph-hop 2s ease-in-out infinite;
+  }
+
+  // image: the sun pops, then the hill draws across
+  .openui-tool-glyph__sun {
+    animation: openui-tool-glyph-pop 2.4s ease-out infinite;
+  }
+
+  .openui-tool-glyph__hill {
+    animation: openui-tool-glyph-draw 2.4s ease-in-out infinite;
+  }
+
+  // cloud-sun: x/y [-1, 1, -1, 1, 0]; rays fade in by index (inline delays)
+  .openui-tool-glyph__cloud {
+    animation: openui-tool-glyph-wiggle 2.4s ease-in-out infinite;
+  }
+
+  .openui-tool-glyph__ray {
+    animation: openui-tool-glyph-fade-in 2.4s ease-out infinite;
+  }
+
+  // blocks: the loose block travels [-4, 4] and back
+  .openui-tool-glyph__block {
+    animation: openui-tool-glyph-slot-in 2.4s cubic-bezier(0.45, 0, 0.3, 1) infinite;
+  }
+
+  // terminal: cursor opacity [1, 0, 1]
+  .openui-tool-glyph__cursor {
+    animation: openui-tool-glyph-blink 0.8s steps(1) infinite;
+  }
+
+  // brain: each fold's pathLength / pathOffset breathe, mirrored
+  .openui-tool-glyph__fold {
+    animation: openui-tool-glyph-fold-stem 1.4s ease-in-out infinite alternate;
+  }
+
+  .openui-tool-glyph__fold--side {
+    animation-name: openui-tool-glyph-fold-side;
+  }
+
+  .openui-tool-glyph__fold--top {
+    animation-name: openui-tool-glyph-fold-top;
+  }
+
+  .openui-tool-glyph__fold--lower {
+    animation-name: openui-tool-glyph-fold-lower;
+  }
+
+  // badge-alert: scale [1, 1.1, …, 1], rotate [0, -3, 3, -2, 2, 0]
+  .openui-tool-glyph__badge {
+    animation: openui-tool-glyph-shake 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes openui-tool-glyph-hop {
+  0% {
+    transform: translate(0, 0);
+  }
+  16% {
+    transform: translate(0, -4px);
+  }
+  33% {
+    transform: translate(-3px, 0);
+  }
+  50%,
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes openui-tool-glyph-pop {
+  0% {
+    transform: scale(0);
+  }
+  14% {
+    transform: scale(1.25);
+  }
+  22%,
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes openui-tool-glyph-draw {
+  0%,
+  10% {
+    stroke-dashoffset: 1;
+  }
+  45%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes openui-tool-glyph-wiggle {
+  0%,
+  50%,
+  100% {
+    transform: translate(0, 0);
+  }
+  10%,
+  30% {
+    transform: translate(-1px, -1px);
+  }
+  20%,
+  40% {
+    transform: translate(1px, 1px);
+  }
+}
+
+@keyframes openui-tool-glyph-fade-in {
+  0% {
+    opacity: 0;
+  }
+  12%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes openui-tool-glyph-slot-in {
+  0%,
+  12%,
+  84%,
+  100% {
+    transform: translate(0, 0);
+  }
+  36%,
+  60% {
+    transform: translate(-4px, 4px);
+  }
+}
+
+@keyframes openui-tool-glyph-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes openui-tool-glyph-fold-stem {
+  to {
+    stroke-dasharray: 0.4 1;
+    stroke-dashoffset: -0.25;
+  }
+}
+
+@keyframes openui-tool-glyph-fold-side {
+  to {
+    stroke-dasharray: 0.5 1;
+    stroke-dashoffset: -0.25;
+  }
+}
+
+@keyframes openui-tool-glyph-fold-top {
+  to {
+    stroke-dasharray: 0.8 1;
+    stroke-dashoffset: -0.07;
+  }
+}
+
+@keyframes openui-tool-glyph-fold-lower {
+  to {
+    stroke-dasharray: 0.8 1;
+    stroke-dashoffset: -0.14;
+  }
+}
+
+@keyframes openui-tool-glyph-shake {
+  0%,
+  25%,
+  100% {
+    transform: scale(1) rotate(0);
+  }
+  5% {
+    transform: scale(1.1) rotate(-3deg);
+  }
+  10% {
+    transform: scale(1.1) rotate(3deg);
+  }
+  15% {
+    transform: scale(1.1) rotate(-2deg);
+  }
+  20% {
+    transform: scale(1.1) rotate(2deg);
   }
 }
 
 // ── Reduced motion ──
-// Honor `prefers-reduced-motion: reduce`: stop the infinite icon blink + text
+// Honor `prefers-reduced-motion: reduce`: stop the looping glyphs and text
 // shimmer (the shimmer also paints text via a clipped gradient, so reset it to a
-// solid fill or it would freeze half-transparent), drop the staggered reveal
-// fade, and disable the decorative chevron/hover transitions.
+// solid fill or it would freeze half-transparent), drop the row fade-in and the
+// header slide, and disable the decorative chevron/hover transitions.
 @media (prefers-reduced-motion: reduce) {
-  .openui-behind-the-scenes__reveal-item,
+  .openui-behind-the-scenes__item,
+  .openui-behind-the-scenes__ticker-item--in,
+  .openui-behind-the-scenes__ticker-item--out,
+  .openui-tool-glyph.openui-tool-glyph--animate *,
   .openui-tool-call__icon--blinking {
     animation: none;
   }
@@ -606,7 +954,7 @@
   }
 
   .openui-behind-the-scenes__toggle-icon,
-  .openui-behind-the-scenes__compact,
+  .openui-behind-the-scenes__collapse,
   .openui-tool-call__chevron,
   .openui-tool-call__source,
   .openui-tool-code-block,

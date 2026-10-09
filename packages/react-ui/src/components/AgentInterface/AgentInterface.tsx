@@ -64,8 +64,8 @@ import {
 } from "./Sidebar";
 import { SidebarItem } from "./SidebarItem";
 import { SidebarSlot } from "./SidebarSlot";
-import { MessageLoading, Messages, ScrollArea, ThreadContainer, ThreadHeader } from "./Thread";
 import { ThemeModeToggle } from "./ThemeModeToggle";
+import { MessageLoading, Messages, ScrollArea, ThreadContainer, ThreadHeader } from "./Thread";
 import { ThreadList } from "./ThreadList";
 import { WelcomeGlow } from "./WelcomeGlow";
 import { WelcomeScreen } from "./WelcomeScreen";
