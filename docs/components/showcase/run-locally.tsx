@@ -45,13 +45,7 @@ export function RunLocally({ title, name, env }: RunLocallyProps) {
           </button>
         </div>
         <p className={styles.runNote}>
-          {env?.key === "THESYS_API_KEY" ? (
-            <>
-              The CLI copies the example into a new folder and offers browser sign-in to generate a
-              Thesys API key, which it saves to <code>{env.file}</code>. You can skip this step and
-              add the key later.
-            </>
-          ) : env?.key ? (
+          {env?.key ? (
             <>
               The CLI copies the example into a new folder and asks for your <code>{env.key}</code>,
               which it saves to <code>{env.file}</code>.
