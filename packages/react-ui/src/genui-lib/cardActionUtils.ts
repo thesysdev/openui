@@ -57,7 +57,7 @@ export function withItemContext(
       ...action,
       steps: action.steps.map((step) => {
         if (step.type !== ACTION_STEPS.ToAssistant) return step;
-        if (!step.context) return { ...step, context: suffix };
+        if (step.context == null) return { ...step, context: suffix };
         const existing =
           typeof step.context === "string" ? step.context : JSON.stringify(step.context);
         return { ...step, context: `${existing}\n${suffix}` };
