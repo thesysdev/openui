@@ -16,6 +16,7 @@ The only required prop is `llm`. Everything else is optional and falls back to a
 | `artifactRenderers`    | `ReadonlyArray<ArtifactRendererConfig<any>>` | No       | none                           |
 | `artifactCategories`   | `ArtifactCategory[]`                         | No       | none (single "Artifacts" item) |
 | `componentLibrary`     | `Library`                                    | No       | none (markdown rendering)      |
+| `onAction`             | `(event: ActionEvent) => void`               | No       | none                           |
 | `components`           | `AgentInterfaceComponents`                   | No       | none                           |
 | `theme`                | `ThemeProps`                                 | No       | built-in theme                 |
 | `disableThemeProvider` | `boolean`                                    | No       | `false`                        |
@@ -57,6 +58,7 @@ These props control how the assistant's output is rendered — both durable arti
 | `artifactRenderers`  | `ReadonlyArray<ArtifactRendererConfig<any>>` | No       | none    | Renderers that display artifacts (from a tool call or from stored content).           |
 | `artifactCategories` | `ArtifactCategory[]`                         | No       | none    | User-defined groupings for the artifact browser and workspace rail.                   |
 | `componentLibrary`   | `Library`                                    | No       | none    | Turns on Generative UI — rich interactive components rendered inline in chat.         |
+| `onAction`           | `(event: ActionEvent) => void`               | No       | none    | Receives custom actions from Generative UI components.                                |
 | `components`         | `AgentInterfaceComponents`                   | No       | none    | Replace assistant answers, user messages, and the turn's tool timeline independently. |
 
 ### `artifactRenderers`
@@ -101,6 +103,22 @@ import { AgentInterface } from "@openuidev/react-ui";
 import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 
 <AgentInterface llm={llm} componentLibrary={openuiLibrary} />;
+```
+
+### `onAction`
+
+`AgentInterface` handles the built-in actions of Generative UI components itself: `@ToAssistant` sends a new user message and `@OpenUrl` opens the link in a new tab. Pass `onAction` to handle the [custom actions](/docs/openui-lang/custom-actions) your `componentLibrary` defines.
+
+```tsx
+<AgentInterface
+  llm={llm}
+  componentLibrary={library}
+  onAction={(event) => {
+    if (event.type === "CopyToClipboard") {
+      void navigator.clipboard.writeText(String(event.params.text));
+    }
+  }}
+/>
 ```
 
 ### `components`
