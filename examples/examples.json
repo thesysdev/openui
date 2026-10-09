@@ -80,6 +80,12 @@
       "envKey": "THESYS_API_KEY"
     },
     {
+      "title": "Shopping assistant",
+      "description": "Browse a Shopify store's catalog as product cards, pick a size and color, and keep a live cart through Shopify's catalog and cart MCP tools.",
+      "path": "cookbooks/shopping-assistant",
+      "envKey": "THESYS_API_KEY"
+    },
+    {
       "title": "Material UI",
       "description": "A broad Material UI component library for generated interfaces.",
       "path": "design-systems/material-ui",
