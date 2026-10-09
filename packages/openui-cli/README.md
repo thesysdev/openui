@@ -105,8 +105,8 @@ Options:
 - `-i, --immediate`: Start the development server after installing dependencies; the CLI refuses to start when the template's required API key is unavailable
 - `--no-immediate`: Install dependencies without starting the development server
 - `--no-interactive`: Fail instead of prompting for missing required input
-- `--api-key <key>`: (cloud template) OpenUI Cloud API key; skips sign-in
-- `--auth <method>`: (cloud template) How to obtain the key — `oauth` or `skip`; `manual` remains available for backward compatibility but is deprecated
+- `--api-key <key>`: (cloud templates and examples) OpenUI Cloud API key; skips sign-in
+- `--auth <method>`: (cloud templates and examples) How to obtain the key — `oauth` or `skip`; `manual` remains available for backward compatibility but is deprecated
 - `--agent-name <name>`: Declare the invoking coding agent as a lowercase kebab-case product slug (default: `unknown`)
 
 `--immediate` and `--no-immediate` are mutually exclusive; passing both exits with an error.
@@ -156,6 +156,10 @@ openui create --example shadcn
 openui create --name my-mastra-app --example mastra
 openui create --example vue
 ```
+
+Examples whose primary key is `THESYS_API_KEY` offer the same browser sign-in and key generation as Cloud templates. Use `--api-key <key>` to supply a key or `--auth skip` to configure it later. Other provider keys still use the existing paste prompt.
+
+The example catalog uses `env: { "file": "backend/.env", "key": "THESYS_API_KEY" }`. The `file` is a relative `.env` or `.env.local` path (default: `.env`); `key` is the primary API key to prompt for. FastAPI and React Native write the key to `backend/.env`; Supabase uses `.env.local`. Other variables in the example's env file are preserved.
 
 #### Conversation storage
 

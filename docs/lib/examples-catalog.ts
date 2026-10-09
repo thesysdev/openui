@@ -28,8 +28,8 @@ export type RepoExample = {
   category: ExampleCategoryId;
   sourceUrl: string;
   guideUrl?: string;
-  /** The key the CLI asks for while scaffolding. Omitted when the example needs several. */
-  envKey?: string;
+  /** Environment setup used by the CLI while scaffolding. */
+  env?: { file: string; key?: string };
 };
 
 export const REPO_EXAMPLES: RepoExample[] = catalog.examples.map((example) => {
@@ -42,7 +42,7 @@ export const REPO_EXAMPLES: RepoExample[] = catalog.examples.map((example) => {
     category,
     sourceUrl: `${EXAMPLES_REPO_URL}/${example.path}`,
     guideUrl: EXAMPLE_GUIDES[example.path],
-    envKey: example.envKey,
+    env: example.env,
   };
 });
 

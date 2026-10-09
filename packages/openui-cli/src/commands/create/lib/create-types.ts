@@ -15,6 +15,7 @@ export interface CreateAppOptions {
   noInstall?: boolean;
   immediate?: boolean;
   apiKey?: string;
+  envFile?: string;
   auth?: CloudAuthMethod;
 }
 
