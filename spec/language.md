@@ -59,10 +59,10 @@ Library components, functions (section 3.6), and actions (section 6.3) MUST NOT 
 #### Operators and punctuation
 
 ```text
-=  ==  !=  ===  !==  >  <  >=  <=  +  -  *  /  %  &&  ||  !  ?  :  .  ,  (  )  [  ]  {  }
+=  ==  !=  >  <  >=  <=  +  -  *  /  %  &&  ||  !  ?  :  .  ,  (  )  [  ]  {  }
 ```
 
-`===` and `!==` mean exactly `==` and `!=`. A single `&` or `|` means `&&` or `||`.
+A single `&` or `|` means `&&` or `||`.
 
 #### String literals
 
@@ -132,7 +132,7 @@ From lowest to highest. Binary operators are left-associative.
 1. `? :` (ternary, right-associative)
 2. `||`
 3. `&&`
-4. `==` `!=` `===` `!==`
+4. `==` `!=`
 5. `>` `<` `>=` `<=`
 6. `+` `-`
 7. `*` `/` `%`
@@ -150,7 +150,7 @@ expression     = ternary ;
 ternary        = or [ "?" ternary ":" ternary ] ;
 or             = and { "||" and } ;
 and            = equality { "&&" equality } ;
-equality       = comparison { ( "==" | "!=" | "===" | "!==" ) comparison } ;
+equality       = comparison { ( "==" | "!=" ) comparison } ;
 comparison     = additive { ( ">" | "<" | ">=" | "<=" ) additive } ;
 additive       = multiplicative { ( "+" | "-" ) multiplicative } ;
 multiplicative = unary { ( "*" | "/" | "%" ) unary } ;
@@ -247,7 +247,7 @@ Fixtures: `evaluation/*-coerce-*`
 
 - `+`: if either side is a string, it joins strings, and null becomes `""`. Otherwise it adds with `toNumber`.
 - `-`, `*`, `/`, `%`: numeric with `toNumber`. A divisor of 0 gives 0.
-- `==`, `!=`, `===`, `!==`: loose equality per IsLooselyEqual. `5 === "5"` is true.
+- `==`, `!=`: loose equality per IsLooselyEqual. `5 == "5"` is true.
 - `>`, `<`, `>=`, `<=`: both sides with `toNumber`.
 - `&&`, `||`: short-circuit and return the deciding operand.
 - `!` negates truthiness. Unary `-` negates `toNumber` of its operand.
@@ -642,5 +642,5 @@ A step is `{ "click": "<statementId>" }`, `{ "type": ["<statementId>", "<text>"]
 
 ## Appendix C. Changelog
 
-- **2026-09-30**: 1.0. The entry is the `root` statement, or a first statement that calls the library's root component, with a real `no-root` code. Added custom functions, custom actions, single-step actions, `===` and `!==`, any-value `@ToAssistant` context, form state read when the step runs, the `state-query` and `unknown-function` codes, and the fixture layout. Streaming must equal a batch parse, and edits merge with the parser's statement boundaries.
+- **2026-09-30**: 1.0. The entry is the `root` statement, or a first statement that calls the library's root component, with a real `no-root` code. Added custom functions, custom actions, single-step actions, any-value `@ToAssistant` context, form state read when the step runs, the `state-query` and `unknown-function` codes, and the fixture layout. Streaming must equal a batch parse, and edits merge with the parser's statement boundaries.
 - Earlier drafts: 0.9 community review (2026-07-22) and 1.0-beta (2026-08-05). See the git history.

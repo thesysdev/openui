@@ -18,7 +18,7 @@ This file explains. The other two define. Where they disagree, language.md and p
 - **Production readiness.** Backward-compatibility rules for libraries (section 3), a LibrarySpec with `id` and `version`, a versioned system prompt, and conformance fixtures any client can test against.
 - **Custom functions.** A library adds its own `@` functions, like `@Percent` (section 2.11).
 - **Small conveniences.** Single-step actions and any value as `@ToAssistant` context.
-- **Fixes.** One clear entry rule, streamed results that always match a full parse, edits that keep multi-line statements whole, and `===` read as `==`.
+- **Fixes.** One clear entry rule, streamed results that always match a full parse, and edits that keep multi-line statements whole.
 
 ## 1. Introduction
 
@@ -227,7 +227,7 @@ status = TextContent(total > 100000 ? "On track" : "Behind target")
 share = @Round(part / total * 100, 1)
 ```
 
-Member access on a list gives that field of every element: if `sales.rows` is a list of objects, `sales.rows.amount` is the list of their amounts. `===` and `!==` are read as `==` and `!=`. Rules in language.md, sections 1.5 and 3.2.
+Member access on a list gives that field of every element: if `sales.rows` is a list of objects, `sales.rows.amount` is the list of their amounts. Rules in language.md, sections 1.5 and 3.2.
 
 ### 2.8 Built-in functions
 
