@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-label="Illustrative combined hotel comparison from four sources">
+<title>Illustrative combined hotel comparison from four sources</title>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#9AA7BD" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker><linearGradient id="photo" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#B5D7CF"/><stop offset=".52" stop-color="#E8E6CD"/><stop offset="1" stop-color="#739F92"/></linearGradient></defs>
+<rect x="1" y="1" width="1198" height="758" rx="26" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="60" y="70" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">One view for the whole hotel decision</text>
+<text x="60" y="108" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500">Illustrative output from the Japan talk · example data</text>
+<rect x="60" y="144" width="1080" height="553" rx="20" fill="#FBFCFF" stroke="#DDE4F2" stroke-width="2"/>
+<text x="88" y="192" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="700">A quiet stay near the conference</text>
+<rect x="89" y="212" width="935" height="48" rx="11" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="110" y="243" text-anchor="start" fill="#15846B" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="650">Reviews</text>
+<text x="271" y="243" text-anchor="start" fill="#465DFF" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="650">Distance</text>
+<text x="444" y="243" text-anchor="start" fill="#15846B" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="650">Policy</text>
+<text x="596" y="243" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500">Your preference: quiet</text>
+<rect x="90" y="287" width="1019" height="222" rx="16" fill="#FFFFFF" stroke="#C6D6CB" stroke-width="2"/>
+<rect x="113" y="311" width="277" height="173" rx="11" fill="#E8F1EA" stroke="none" stroke-width="0"/>
+<path d="M135 476 Q212.72 394.03999999999996 379 333" fill="none" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+<path d="M116 340 Q257.03999999999996 371.55 381 450" fill="none" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"/>
+<circle cx="268.12" cy="395.77" r="16" fill="#15846B" stroke="#FFFFFF" stroke-width="5"/>
+<circle cx="268.12" cy="395.77" r="4" fill="#FFFFFF"/>
+<text x="421" y="343" text-anchor="start" fill="#15846B" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700">Recommended</text>
+<text x="421" y="386" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="31" font-weight="700">Hotel Niwa Tokyo</text>
+<text x="421" y="425" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="500">4.7 / 5 reviews · 18 min away</text>
+<text x="421" y="459" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="500">Quiet area · Within policy</text>
+<rect x="901" y="349" width="177" height="113" rx="12" fill="#E7F6F0" stroke="#B4D8CA" stroke-width="2"/>
+<text x="989" y="396" text-anchor="middle" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700">¥24,000</text>
+<text x="989" y="429" text-anchor="middle" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">per night</text>
+<text x="91" y="559" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="650">Compare with</text>
+<rect x="90" y="576" width="491" height="83" rx="13" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="113" y="610" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="650">The Aoyama Grand</text>
+<text x="113" y="639" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500">Lively area · over policy</text>
+<rect x="598" y="576" width="511" height="83" rx="13" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="621" y="610" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="650">Hotel Toranomon Hills</text>
+<text x="621" y="639" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500">Short commute · higher nightly rate</text>
+</svg>

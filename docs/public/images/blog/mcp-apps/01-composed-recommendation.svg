@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" role="img" aria-label="A hotel recommendation combines several independent tools">
+<title>A hotel recommendation combines several independent tools</title>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#9AA7BD" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker><linearGradient id="photo" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#B5D7CF"/><stop offset=".52" stop-color="#E8E6CD"/><stop offset="1" stop-color="#739F92"/></linearGradient></defs>
+<rect x="1" y="1" width="1198" height="598" rx="26" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="60" y="70" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">One hotel question, several sources</text>
+<text x="60" y="108" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500">The agent can reason across them before it answers.</text>
+<rect x="60" y="148" width="300" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="80" y="178" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Booking</text>
+<text x="80" y="205" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Rates and availability</text>
+<rect x="60" y="237" width="300" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="80" y="267" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Tripadvisor</text>
+<text x="80" y="294" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Reviews and ratings</text>
+<rect x="60" y="326" width="300" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="80" y="356" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Maps</text>
+<text x="80" y="383" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Travel time</text>
+<rect x="60" y="415" width="300" height="72" rx="14" fill="#FAFBFE" stroke="#DDE3EE" stroke-width="2"/>
+<text x="80" y="445" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="650">Concur</text>
+<text x="80" y="472" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="500">Company policy</text>
+<path d="M363 184 L470 315" fill="none" stroke="#BEC8DC" stroke-width="2" stroke-linecap="round"/>
+<path d="M363 273 L470 315" fill="none" stroke="#BEC8DC" stroke-width="2" stroke-linecap="round"/>
+<path d="M363 362 L470 315" fill="none" stroke="#BEC8DC" stroke-width="2" stroke-linecap="round"/>
+<path d="M363 451 L470 315" fill="none" stroke="#BEC8DC" stroke-width="2" stroke-linecap="round"/>
+<rect x="472" y="224" width="245" height="180" rx="22" fill="#EEF1FF" stroke="#BEC7FF" stroke-width="2"/>
+<text x="594" y="279" text-anchor="middle" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700">Agent</text>
+<text x="594" y="316" text-anchor="middle" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="450">combines the</text>
+<text x="594" y="345" text-anchor="middle" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="450">task context</text>
+<path d="M720 314 L794 314" fill="none" stroke="#465DFF" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="806" y="185" width="331" height="259" rx="22" fill="#FFFFFF" stroke="#AFC0B7" stroke-width="2"/>
+<rect x="828" y="208" width="287" height="38" rx="10" fill="#E7F6F0" stroke="#15846B" stroke-width="1"/>
+<text x="844" y="235" text-anchor="start" fill="#15846B" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="650">Recommended for this trip</text>
+<text x="829" y="299" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="700">Hotel Niwa Tokyo</text>
+<text x="829" y="335" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="500">18 min · 4.7/5 · in policy</text>
+<path d="M829 357 L1114 357" fill="none" stroke="#DDE3EE" stroke-width="2" stroke-linecap="round"/>
+<text x="829" y="397" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600">One decision, four sources</text>
+</svg>

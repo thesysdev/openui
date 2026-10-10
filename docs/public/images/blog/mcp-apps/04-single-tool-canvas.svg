@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="550" viewBox="0 0 1200 550" role="img" aria-label="A design file fits within the Figma tool interface">
+<title>A design file fits within the Figma tool interface</title>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#9AA7BD" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker><linearGradient id="photo" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#B5D7CF"/><stop offset=".52" stop-color="#E8E6CD"/><stop offset="1" stop-color="#739F92"/></linearGradient></defs>
+<rect x="1" y="1" width="1198" height="548" rx="26" fill="#FFFFFF" stroke="#DDE3EE" stroke-width="2"/>
+<text x="60" y="70" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700">Sometimes the tool&#x27;s canvas is enough</text>
+<text x="60" y="108" text-anchor="start" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500">A design task can end inside the file the tool already owns.</text>
+<rect x="65" y="211" width="319" height="116" rx="18" fill="#EEF1FF" stroke="#C2CBFF" stroke-width="2"/>
+<text x="89" y="253" text-anchor="start" fill="#465DFF" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">Agent task</text>
+<text x="89" y="289" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="550">Update this design</text>
+<path d="M391 268 L487 268" fill="none" stroke="#465DFF" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="507" y="143" width="622" height="315" rx="18" fill="#FFFFFF" stroke="#AFC0D7" stroke-width="2"/>
+<rect x="507" y="143" width="622" height="44" rx="18" fill="#F2F4F8" stroke="#AFC0D7" stroke-width="2"/>
+<text x="530" y="173" text-anchor="start" fill="#172033" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="650">Figma · Design file</text>
+<rect x="532" y="209" width="570" height="219" rx="10" fill="#F5F6FA" stroke="none" stroke-width="0"/>
+<rect x="661" y="228" width="302" height="183" rx="9" fill="#FFFFFF" stroke="#D9DEEC" stroke-width="2"/>
+<rect x="683" y="246" width="259" height="33" rx="7" fill="#EEF1FF" stroke="none" stroke-width="0"/>
+<rect x="683" y="293" width="146" height="95" rx="7" fill="#CBD5FF" stroke="none" stroke-width="0"/>
+<rect x="843" y="293" width="99" height="12" rx="5" fill="#909AB4" stroke="none" stroke-width="0"/>
+<rect x="843" y="316" width="82" height="12" rx="5" fill="#CAD0DE" stroke="none" stroke-width="0"/>
+<rect x="843" y="350" width="81" height="28" rx="6" fill="#465DFF" stroke="none" stroke-width="0"/>
+<text x="818" y="489" text-anchor="middle" fill="#647087" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="500">The output is the editable canvas</text>
+</svg>
