@@ -22,6 +22,7 @@ const getWeatherTool = tool(
 const model = new ChatOpenAI({
   model: process.env.OPENAI_MODEL ?? "gpt-5.2",
   streaming: true,
+  useResponsesApi: false,
   configuration: process.env.OPENAI_BASE_URL ? { baseURL: process.env.OPENAI_BASE_URL } : undefined,
 });
 

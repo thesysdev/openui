@@ -52,7 +52,7 @@ export function RepoExamples() {
                   <h4 className={styles.cardTitle}>{example.title}</h4>
                   <p className={styles.cardDescription}>{example.description}</p>
                   <div className={styles.cardLinks}>
-                    <RunLocally title={example.title} name={example.name} envKey={example.envKey} />
+                    <RunLocally title={example.title} name={example.name} env={example.env} />
                     <CardLink label="Source" href={example.sourceUrl} external />
                     {example.guideUrl ? (
                       <Link className={styles.cardLink} href={example.guideUrl}>

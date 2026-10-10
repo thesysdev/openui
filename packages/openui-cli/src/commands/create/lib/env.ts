@@ -95,6 +95,7 @@ export async function resolveCloudEnv(
   interactive: boolean,
   tel: CreateTelemetryClient,
 ): Promise<EnvResult> {
+  const envFile = options.envFile ?? DEFAULT_ENV_FILE;
   let apiKey: string | null = null;
   let authMethod: EnvResult["authMethod"];
   try {
@@ -105,6 +106,7 @@ export async function resolveCloudEnv(
       apiKey: options.apiKey,
       auth: options.auth,
       projectName: name,
+      envFile,
       interactive,
       tel: tel.authClient(),
     });
@@ -135,7 +137,7 @@ export async function resolveCloudEnv(
       ...properties,
     });
     console.error(`\n[!] Could not obtain an API key: ${msg}`);
-    console.error(`  Add THESYS_API_KEY to .env later (keys: ${THESYS_KEYS_URL}).\n`);
+    console.error(`  Add THESYS_API_KEY to ${envFile} later (keys: ${THESYS_KEYS_URL}).\n`);
   }
   return {
     envWritten: apiKey != null,

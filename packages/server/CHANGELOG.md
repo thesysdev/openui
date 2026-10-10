@@ -1,5 +1,13 @@
 # @openuidev/server
 
+## 0.1.1
+
+### Patch Changes
+
+- [#1325](https://github.com/thesysdev/openui/pull/1325) [`23f985a`](https://github.com/thesysdev/openui/commit/23f985af5c706788da4ab9870425e9bbfe57c1a1) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Add LangGraph message conversion and conversation-history storage through the new langgraph entry point.
+- Updated dependencies [[`7c8f5e9`](https://github.com/thesysdev/openui/commit/7c8f5e9ae2e914063f7b47fc131fd46a7e178985)]:
+  - @openuidev/lang-core@0.3.2
+
 ## 0.1.0
 
 ### Minor Changes

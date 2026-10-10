@@ -1,5 +1,11 @@
 # @openuidev/cli
 
+## 0.5.1
+
+### Patch Changes
+
+- [#1322](https://github.com/thesysdev/openui/pull/1322) [`6fb4741`](https://github.com/thesysdev/openui/commit/6fb4741c261cafcefa012c962b00b3686756a4a3) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Make LangGraph the default starter using Chat Completions and remove the minimal OpenAI SDK template. Persist completed turns in Cloud starters with the published server package.
+
 ## 0.5.0
 
 ### Minor Changes

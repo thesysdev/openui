@@ -1,5 +1,11 @@
 # @openuidev/lang-core
 
+## 0.3.2
+
+### Patch Changes
+
+- [#1287](https://github.com/thesysdev/openui/pull/1287) [`7c8f5e9`](https://github.com/thesysdev/openui/commit/7c8f5e9ae2e914063f7b47fc131fd46a7e178985) Thanks [@Aditya-thesys](https://github.com/Aditya-thesys)! - Report data (an object, array, string, number or boolean) in a slot that only takes components as a `type-mismatch` and prune it, instead of passing it through to render as a blank component or stray text. Slots whose schema also allows data are unchanged.
+
 ## 0.3.1
 
 ### Patch Changes

@@ -30,4 +30,10 @@ export default defineConfig([
     outDir: "dist/vercel",
     clean: false,
   },
+  {
+    ...shared,
+    entry: { index: "src/langgraph/index.ts" },
+    outDir: "dist/langgraph",
+    clean: false,
+  },
 ]);

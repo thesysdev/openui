@@ -16,8 +16,14 @@ export type {
 } from "./library";
 
 // openui-lang renderer
-export { Renderer } from "./Renderer";
-export type { RendererProps } from "./Renderer";
+export { Renderer, useRendererQuery } from "./Renderer";
+export type {
+  RendererContentSlotProps,
+  RendererProps,
+  RendererQueryState,
+  RendererRetryProps,
+  RendererSlotProps,
+} from "./Renderer";
 
 // openui-lang action types
 export { ACTION_STEPS, BuiltinActionType } from "@openuidev/lang-core";
@@ -93,3 +99,12 @@ export {
   validate,
 } from "@openuidev/lang-core";
 export type { ParsedRule, ValidatorFn } from "@openuidev/lang-core";
+
+export type { ResponseMetadata } from "./responseBundle";
+export { WithPreviewRenderer, useRendererPreview } from "./WithPreviewRenderer";
+export type {
+  PreviewButtonProps,
+  PreviewContentProps,
+  RendererPreviewState,
+  WithPreviewRendererProps,
+} from "./WithPreviewRenderer";

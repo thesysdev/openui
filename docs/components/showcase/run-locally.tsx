@@ -9,11 +9,11 @@ import styles from "./showcase.module.css";
 type RunLocallyProps = {
   title: string;
   name: string;
-  envKey?: string;
+  env?: { file: string; key?: string };
 };
 
 /** Shows the exact `openui create` command for an example and what it will ask for. */
-export function RunLocally({ title, name, envKey }: RunLocallyProps) {
+export function RunLocally({ title, name, env }: RunLocallyProps) {
   const command = `npx @openuidev/cli@latest create --example ${name}`;
   const [copied, onCopy] = useCopyButton(() => navigator.clipboard.writeText(command));
 
@@ -45,10 +45,10 @@ export function RunLocally({ title, name, envKey }: RunLocallyProps) {
           </button>
         </div>
         <p className={styles.runNote}>
-          {envKey ? (
+          {env?.key ? (
             <>
-              The CLI copies the example into a new folder and asks for your <code>{envKey}</code>,
-              which it saves to <code>.env</code>.
+              The CLI copies the example into a new folder and asks for your <code>{env.key}</code>,
+              which it saves to <code>{env.file}</code>.
             </>
           ) : (
             <>

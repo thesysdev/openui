@@ -18,7 +18,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `src/app/api/chat/route.ts` and improving your agent
 by adding system prompts or tools. A LangGraph scaffold puts the implementation in
-`src/agent/agent.ts` instead.
+`src/agent.ts` instead.
 
 ## Deploy
 
@@ -39,26 +39,26 @@ deploys.
 The Vercel AI SDK scaffold is a standard Next.js app: `streamText()` owns the
 agent loop and UIMessage stream, so the whole project can be deployed to Vercel.
 
-In both variants, your framework executes application tools. OpenUI Cloud
-provides managed conversation storage and executes its provider tools: web
-search, image search, and configured MCP servers.
+LangGraph is the default backend. LangGraph and Vercel AI SDK use OpenUI Cloud
+Chat Completions and execute application tools inside the framework. These
+starters do not attach Responses-only provider tools.
 
 ## Conversation storage
 
-OpenUI Cloud is the durable conversation store in every Cloud
-variant. The browser connects directly through `useOpenuiCloudStorage()` with a
-short-lived token from `/api/frontend-token`. For default, LangGraph, and
-Vercel AI SDK routes, the `threadId` sent to `/api/chat` is the Cloud
-conversation id, and the route appends each model turn to it with
-`conversation: threadId` and `store: true`. The Eve overlay uses that same Cloud
-thread store and maps each Cloud `threadId` to an Eve session cursor in the
-browser; it does not use `/api/chat`.
-Browser `localStorage` holds only the selected model (and, for Eve, the session
-cursor), not conversation messages.
+The browser creates and reads conversations through `useOpenuiCloudStorage()`
+with a short-lived token from `/api/frontend-token`. The LangGraph `afterAgent` middleware uses
+`storeLangGraphHistory` from `@openuidev/server/langgraph` once after a successful
+run to save the complete new turn: user message, assistant messages, tool calls,
+and tool results. Persistence finishes before the stream ends. Replayed history
+is excluded; failed or stopped runs are not persisted.
 
-The Vercel AI SDK route does not create a second store. Add a LangGraph
-checkpointer separately only if the graph needs durable state, interrupts, or
-resumable runs.
+The model route still sends full history to stateless Chat Completions. The
+browser storage adapter does not write messages, so turns are not saved twice.
+Vercel AI SDK and Eve use their own generation paths; this LangGraph persistence
+hook does not apply to those overlays.
+
+Add a LangGraph checkpointer only for graph-specific durable state, interrupts,
+or resumable runs.
 
 ## Switching Models
 
