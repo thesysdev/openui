@@ -66,6 +66,14 @@ describe("withItemContext", () => {
     expect((plan.steps[0] as { context?: string }).context).toBe("cards");
   });
 
+  it("keeps a falsy ToAssistant context such as 0", () => {
+    const plan = {
+      steps: [{ type: ACTION_STEPS.ToAssistant, message: "m", context: 0 }],
+    } as unknown as ActionPlan;
+    const [step] = (withItemContext(plan, { itemIndex: 1 }) as ActionPlan).steps;
+    expect((step as { context?: unknown }).context).toBe('0\nSelected item: {"itemIndex":1}');
+  });
+
   it("returns the same ActionPlan when there is no item context", () => {
     const plan = { steps: [{ type: ACTION_STEPS.OpenUrl, url: "https://x.test" }] } as ActionPlan;
     expect(withItemContext(plan, { itemId: undefined })).toBe(plan);

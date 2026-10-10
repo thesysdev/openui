@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 import { createLibrary, defineAction, defineComponent, defineFunction } from "../../library";
 import { createParser } from "../../parser";
 import { action, steps } from "../../parser/builtins";
+import type { OpenUIError } from "../../parser/types";
 import { evaluateElementProps } from "../evaluate-tree";
 
 const Button = defineComponent({
@@ -36,6 +37,24 @@ describe("action plans", () => {
     });
     expect(actionOf(`@ToAssistant("Save", null)`).steps[0].context).toBeUndefined();
   });
+
+  it("keeps data with a null in its steps array as data", () => {
+    const Text = defineComponent({
+      name: "Text",
+      props: z.object({ text: z.any() }),
+      description: "",
+      component: null as any,
+    });
+    const textLib = createLibrary({ root: "Text", components: [Text] });
+    const { root } = createParser(textLib.toJSONSchema(), "Text").parse(
+      `root = Text({title: "Recipe", steps: ["Boil", null]})`,
+    );
+    const ctx = { getState: () => undefined, resolveRef: () => null };
+    const errors: OpenUIError[] = [];
+    const el = evaluateElementProps(root!, { ctx, library: textLib, store: null, errors });
+    expect(errors).toEqual([]);
+    expect(el.props.text).toEqual({ title: "Recipe", steps: ["Boil", null] });
+  });
 });
 
 describe("custom actions", () => {
@@ -64,6 +83,20 @@ describe("custom actions", () => {
     expect(actionWith(`Action([@CopyToClipboard($n), @OpenUrl("u")])`, { $n: 3 }).steps).toEqual([
       { type: "open_url", url: "u" },
     ]);
+  });
+
+  it("omits an explicit null for an optional param", () => {
+    const share = defineAction({
+      name: "Share",
+      description: "",
+      params: z.object({ url: z.string(), note: z.string().optional() }),
+    });
+    const shareLib = createLibrary({ root: "Button", components: [Button], actions: [share] });
+    const s = shareLib.toJSONSchema();
+    const { root } = createParser(s, "Button").parse(`root = Button("Go", @Share("u", null))`);
+    const ctx = { getState: () => undefined, resolveRef: () => null, actions: s.actions };
+    const el = evaluateElementProps(root!, { ctx, library: shareLib, store: null });
+    expect((el.props.action as any).steps[0].params).toEqual({ url: "u" });
   });
 
   it("produces custom steps only from real calls", () => {

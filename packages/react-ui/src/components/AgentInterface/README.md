@@ -171,6 +171,7 @@ Defined as `AgentInterfaceProps` in `AgentInterface.tsx`. It `extends Omit<ChatP
 | Prop                   | Type                                                     | Default | Notes                                                                                                     |
 | ---------------------- | -------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------- |
 | `componentLibrary`     | `Library` (react-lang)                                   | —       | Auto-derive assistant (and user) message rendering via GenUI when `components.AssistantMessage` is absent |
+| `onAction`             | `(event: ActionEvent) => void`                           | —       | GenUI actions the chat does not handle itself, such as custom actions from `defineAction`                 |
 | `components`           | `{ AssistantMessage?; UserMessage?; ToolCallTimeline? }` | —       | Explicit render overrides; `ToolCallTimeline` replaces the turn-level tool activity UI                    |
 | `theme`                | `ThemeProps`                                             | —       | Passed to `<ThemeProvider>`                                                                               |
 | `disableThemeProvider` | `boolean`                                                | `false` | Skip the internal `<ThemeProvider>` wrapper                                                               |
