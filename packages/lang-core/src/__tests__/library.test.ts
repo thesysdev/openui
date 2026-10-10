@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 import { createLibrary, defineComponent, tagSchemaId, type Library } from "../library";
 import { createParser } from "../parser";
 import { action, steps } from "../parser/builtins";
+import type { LibrarySpec } from "../parser/prompt";
 
 const Dummy = null as any;
 
@@ -174,7 +175,7 @@ describe("per-library registry", () => {
     expect(spec.root).toBe("Card");
     expect(spec.components["Card"]?.signature).toContain("title");
     expect(spec.componentGroups).toEqual([{ name: "Content", components: ["TextContent"] }]);
-    expect(spec.schema).toEqual(lib.toJSONSchema());
+    expect((spec as LibrarySpec).schema).toEqual(lib.toJSONSchema());
   });
 
   it("toSpec carries the createLibrary id, omitted when unset", () => {

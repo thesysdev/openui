@@ -28,7 +28,7 @@
 		"prepare": "pnpm run build",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
 		"test": "vitest run",
-		"ci": "pnpm run lint:check && pnpm run format:check"
+		"ci": "pnpm run lint:check && pnpm run format:check && pnpm run test && tsc -p tsconfig.test.json --noEmit"
 	},
 	"keywords": [
 		"openui",

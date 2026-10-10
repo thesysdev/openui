@@ -42,7 +42,7 @@
     "@react-email/components": "^0.0.41"
   },
   "peerDependencies": {
-    "@openuidev/react-lang": ">=0.3.0 <0.5.0",
+    "@openuidev/react-lang": ">=1.0.0 <2.0.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zod": "catalog:"

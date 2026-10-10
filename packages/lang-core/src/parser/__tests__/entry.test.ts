@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { evaluateRoot } from "../../runtime/evaluate-tree";
-import type { ParamMap } from "../parser";
 import { parse } from "../parser";
+import type { ParamMap } from "../types";
 
 const schema: ParamMap = new Map([
   ["Card", { params: [{ name: "children", required: true }] }],
