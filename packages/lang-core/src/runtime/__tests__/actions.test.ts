@@ -85,6 +85,31 @@ describe("custom actions", () => {
     ]);
   });
 
+  it("makes a step a no-op when an optional arg is invalid, even with a default", () => {
+    const exportFile = defineAction({
+      name: "ExportFile",
+      description: "",
+      params: z.object({ name: z.string(), format: z.enum(["csv", "pdf"]).default("csv") }),
+    });
+    const exportLib = createLibrary({
+      root: "Button",
+      components: [Button],
+      actions: [exportFile],
+    });
+    const s = exportLib.toJSONSchema();
+    const planOf = (call: string, state: Record<string, unknown> = {}) => {
+      const { root } = createParser(s, "Button").parse(`root = Button("Go", ${call})`);
+      const ctx = { getState: (n: string) => state[n], resolveRef: () => null, actions: s.actions };
+      return evaluateElementProps(root!, { ctx, library: exportLib, store: null }).props.action;
+    };
+    expect(planOf(`@ExportFile("report", "xlsx")`)).toEqual({ steps: [] });
+    expect(planOf(`@ExportFile("report", $f)`, { $f: "xlsx" })).toEqual({ steps: [] });
+    expect((planOf(`@ExportFile("report")`) as any).steps[0].params).toEqual({
+      name: "report",
+      format: "csv",
+    });
+  });
+
   it("omits an explicit null for an optional param", () => {
     const share = defineAction({
       name: "Share",
