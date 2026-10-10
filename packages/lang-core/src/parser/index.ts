@@ -23,6 +23,9 @@ export type { ComponentGroup, ComponentPromptSpec, PromptSpec, ToolSpec } from "
 
 export { mergeStatements } from "./merge";
 
+export { jsonToOpenUI } from "./serialize";
+export type { SerializeOptions } from "./serialize";
+
 export { compileSchema } from "./parser";
 
 // Shared builtin registry
