@@ -1,0 +1,207 @@
+---
+title: Functions
+description: Call built-in and custom @ functions, and define your own with defineFunction.
+---
+
+Functions start with `@`. The `@` marks a function call, not a component. OpenUI Lang has built-in functions, and a library can add its own. The client runs them, not the model.
+
+## Calling a function
+
+```text
+openTickets = @Filter(tickets.rows, "status", "==", "open")
+```
+
+Arguments are positional, the same rule as component props. `null` in place of an optional argument skips it. Calls can be nested:
+
+```text
+openCount = @Count(@Filter(tickets.rows, "status", "==", "open"))
+```
+
+The `@` is required. `Count(x)` is not a function call.
+
+### Invalid arguments
+
+Built-ins convert their arguments instead of validating them. `@Sum(["1", 2])` gives `3`.
+
+Custom function arguments go through the same checks as component props, so a mistake in one call does not break the page.
+
+Literal arguments are checked when the program is parsed:
+
+| Problem                          | Error code                            | Result                                           |
+| :------------------------------- | :------------------------------------ | :----------------------------------------------- |
+| Wrong type for a required param  | `type-mismatch`                       | The call evaluates to `null`.                    |
+| Required param missing or `null` | `missing-required` or `null-required` | The call evaluates to `null`.                    |
+| Wrong type for an optional param | `type-mismatch`                       | The argument is dropped and the default applies. |
+| More arguments than params       | `excess-args`                         | The extra arguments are dropped. The call runs.  |
+
+Arguments that are only known at runtime (a `$variable`, a reference, a query result, an expression) are checked when the call runs:
+
+- A required argument that is `null` or missing, with no default, makes the call evaluate to `null` with no error. This covers an unset `$variable` or a query that has not returned yet.
+- A required argument of the wrong type reports `runtime-error`, and the call evaluates to `null`.
+- An optional argument of the wrong type reports `runtime-error`, and its default applies. The call runs.
+- If the function throws, the call reports `runtime-error` (`@Percent threw: ...`) and evaluates to `null`.
+- If the result does not match its `returns` schema, the call reports `runtime-error` and evaluates to `null`. Without `returns`, the result is used as is.
+
+The React `Renderer` sends these errors to `onError` once the stream has ended.
+
+Custom actions are stricter. Any invalid argument there, optional or not, makes the step a no-op.
+
+### Unknown functions
+
+A call to an `@Name` that is not a built-in, an action step, or a library function reports `unknown-function` and evaluates to `null`. The rest of the statement still renders:
+
+```text
+root = TextContent("Total: " + @Total(items))
+```
+
+If the library has no `Total` function, this renders "Total: ".
+
+## Built-in functions
+
+Built-ins are included in the system prompt when `toolCalls` or `bindings` is enabled, or when you set the `builtinFunctions` prompt option. They are primarily used with `Query` results for data transformation, filtering, and aggregation.
+
+### Aggregation
+
+| Function        | What it does    | Example                           |
+| --------------- | --------------- | --------------------------------- |
+| `@Count(array)` | Length of array | `@Count(tickets.rows)` → `42`     |
+| `@Sum(array)`   | Sum of numbers  | `@Sum(data.rows.amount)` → `1250` |
+| `@Avg(array)`   | Average         | `@Avg(data.rows.score)` → `4.2`   |
+| `@Min(array)`   | Smallest value  | `@Min(data.rows.price)` → `9.99`  |
+| `@Max(array)`   | Largest value   | `@Max(data.rows.price)` → `99.99` |
+| `@First(array)` | First element   | `@First(data.rows)`               |
+| `@Last(array)`  | Last element    | `@Last(data.rows)`                |
+
+### Filtering & Sorting
+
+| Function                           | What it does                                                                      |
+| ---------------------------------- | --------------------------------------------------------------------------------- |
+| `@Filter(array, field, op, value)` | Keep items where field matches. Ops: `==`, `!=`, `>`, `<`, `>=`, `<=`, `contains` |
+| `@Sort(array, field, direction?)`  | Sort by field. Direction: `"asc"` (default) or `"desc"`                           |
+
+```text
+sorted = @Sort(tickets.rows, "created", "desc")
+```
+
+Nesting `@Count` and `@Filter` is the main pattern for KPI cards:
+
+```text
+kpi = Card([
+  TextContent("Open Tickets", "small"),
+  TextContent("" + @Count(@Filter(data.rows, "status", "==", "open")), "large-heavy")
+])
+```
+
+### Math
+
+| Function                    | What it does              |
+| --------------------------- | ------------------------- |
+| `@Round(number, decimals?)` | Round to N decimal places |
+| `@Abs(number)`              | Absolute value            |
+| `@Floor(number)`            | Round down                |
+| `@Ceil(number)`             | Round up                  |
+
+### Iteration with @Each
+
+Render a template for every item in an array:
+
+```text
+@Each(tickets.rows, "t", Tag(t.priority, null, "sm"))
+```
+
+The second argument (`"t"`) is the loop variable name. Use it inside the template.
+
+### Action steps
+
+`@Run`, `@Set`, `@Reset`, `@ToAssistant`, and `@OpenUrl` are action steps, not functions. They wire button clicks. See [Actions](/docs/openui-lang/actions).
+
+### Built-in signatures
+
+The built-in functions are defined with `defineFunction` inside `@openuidev/lang-core`, so their prompt lines are generated the same way as custom ones:
+
+```text
+@Sum(numbers: number[]) → number
+@Round(number: number, decimals?: number) → number
+@Filter(array: any[], field: string, operator: "==" | "!=" | ">" | "<" | ">=" | "<=" | "contains", value: any) → any[]
+```
+
+`BUILTINS` (the built-in definitions by name) and `isBuiltin(name)` are exported from `@openuidev/lang-core`.
+
+## Custom functions
+
+A library can add its own functions next to the built-ins. The model calls them with an `@` prefix, like `@Count`, and the renderer runs your implementation on the client. Use them for formatting and small calculations that the model should not do by hand.
+
+### Define a function
+
+```tsx
+import { createLibrary, defineComponent, defineFunction } from "@openuidev/react-lang";
+import { z } from "zod/v4";
+
+const percent = defineFunction({
+  name: "Percent",
+  description: "Formats part / total as a percentage",
+  params: z.object({
+    part: z.number(),
+    total: z.number().default(100),
+  }),
+  returns: z.string(),
+  fn: ({ part, total }) => `${((part / total) * 100).toFixed(1)}%`,
+});
+
+const TextContent = defineComponent({
+  name: "TextContent",
+  description: "A line of text",
+  props: z.object({ text: z.string() }),
+  component: ({ props }) => <p>{props.text}</p>,
+});
+
+export const library = createLibrary({
+  root: "TextContent",
+  components: [TextContent],
+  functions: [percent],
+});
+```
+
+The model can now write:
+
+```text
+root = TextContent("Done: " + @Percent(42, 120))
+```
+
+This renders "Done: 35.0%".
+
+To add a function to an existing library, such as `openuiLibrary` from `@openuidev/react-ui`, use [`library.extend`](/docs/openui-lang/defining-components#extending-a-library).
+
+### Fields
+
+| Field         | Description                                                                                    |
+| :------------ | :--------------------------------------------------------------------------------------------- |
+| `name`        | The name after `@` in programs. Start it with an uppercase letter, like the built-ins.         |
+| `description` | Shown next to the signature in the prompt.                                                     |
+| `params`      | A `z.object(...)`. Key order is the positional order of the arguments.                         |
+| `returns`     | Optional. A Zod schema for the result. It is printed in the prompt and checked at runtime.     |
+| `fn`          | The implementation. It receives one object keyed by the `params` names, with defaults applied. |
+
+`params` must be a `z.object(...)`. Anything else throws when you call `defineFunction`.
+
+### What `fn` receives
+
+Arguments map to `params` in key order. `fn` receives them as one object:
+
+| Call                 | `fn` receives              |
+| :------------------- | :------------------------- |
+| `@Percent(42, 120)`  | `{ part: 42, total: 120 }` |
+| `@Percent(42)`       | `{ part: 42, total: 100 }` |
+| `@Percent(42, null)` | `{ part: 42, total: 100 }` |
+
+A missing optional argument, or `null` in its place, takes the param's default. An optional param with no default is left out of the object. Keep `fn` pure and synchronous; it can run many times.
+
+## Using functions in your app
+
+Pass the library to the `Renderer` from `@openuidev/react-lang`, or to `AgentInterface`. The renderer runs `fn` and sends errors to `onError`:
+
+```tsx
+<Renderer library={library} response={response} onError={(errors) => console.warn(errors)} />
+```
+
+The Vue, Svelte, and Angular renderers do not run custom functions yet. Parsers built from `library.toJSONSchema()`, including Autofix in `@openuidev/server`, accept the calls.

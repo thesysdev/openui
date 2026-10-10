@@ -86,29 +86,72 @@ const TabItemSchema = z.object({
 });
 ```
 
-## Naming reusable helper schemas
+## Action props
 
-Use `tagSchemaId(...)` when a prop uses a standalone helper schema and you want a readable name in generated prompt signatures instead of `any`.
+Use `action()` for a prop that takes an action, such as a button's click behavior:
 
 ```tsx
-import { defineComponent, tagSchemaId } from "@openuidev/react-lang";
+import { action, defineComponent, useTriggerAction } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-
-const ActionExpression = z.any();
-tagSchemaId(ActionExpression, "ActionExpression");
 
 const Button = defineComponent({
   name: "Button",
   description: "Triggers an action",
   props: z.object({
     label: z.string(),
-    action: ActionExpression.optional(),
+    action: action().optional(),
   }),
-  component: ({ props }) => <button>{props.label}</button>,
+  component: ({ props }) => {
+    const triggerAction = useTriggerAction();
+    return (
+      <button onClick={() => triggerAction(props.label, undefined, props.action)}>
+        {props.label}
+      </button>
+    );
+  },
 });
 ```
 
-Without `tagSchemaId(...)`, the generated prompt would fall back to `action?: any`. Components already get their names automatically through `defineComponent(...)`, so this is only needed for non-component helper schemas.
+The prompt prints the prop as `action?: ActionExpression` and teaches the model the available steps. See [Actions](/docs/openui-lang/actions).
+
+## Naming reusable helper schemas
+
+Use `tagSchemaId(...)` when a prop uses a standalone helper schema and you want a readable name in generated prompt signatures.
+
+```tsx
+import { defineComponent, tagSchemaId } from "@openuidev/react-lang";
+import { z } from "zod/v4";
+
+const ValidationRules = z.record(z.string(), z.any());
+tagSchemaId(ValidationRules, "ValidationRules");
+
+const Input = defineComponent({
+  name: "Input",
+  description: "A text input",
+  props: z.object({
+    name: z.string(),
+    rules: ValidationRules.optional(),
+  }),
+  component: ({ props }) => <input name={props.name} />,
+});
+```
+
+The prompt prints `rules?: ValidationRules` instead of `rules?: Record<string, any>`. The tag changes the prompt only, not the JSON Schema. Components already get their names automatically through `defineComponent(...)`, so this is only needed for non-component helper schemas.
+
+## Functions and actions
+
+A library can also add its own `@` functions and action steps:
+
+```ts
+const library = createLibrary({
+  root: "Stack",
+  components: [Stack, Card, TextContent, Button],
+  functions: [percent], // defineFunction(...)
+  actions: [copyToClipboard], // defineAction(...)
+});
+```
+
+See [Functions](/docs/openui-lang/functions) and [Actions](/docs/openui-lang/actions). To add to an existing library instead, see [Extending a library](#extending-a-library).
 
 ## The `root` field
 
@@ -127,6 +170,8 @@ This serves two purposes:
 2. **Enables streaming**: because the root statement comes first, the UI shell renders immediately while child components stream in.
 
 The `root` must match the `name` of one of the components in your library. If omitted, the prompt uses "Root" as a placeholder.
+
+The root component also decides the fallback when a program has no `root` statement. See [Entry Statement](/docs/openui-lang/specification-v10#entry-statement).
 
 For the built-in libraries: `openuiLibrary` uses `Stack` (flexible layout container), while `openuiChatLibrary` uses `Card` (vertical container optimized for chat responses).
 
@@ -207,6 +252,27 @@ const prompt = library.prompt(options);
 ```
 
 See [System Prompts](/docs/openui-lang/system-prompts) for full details on prompt generation.
+
+## Extending a library
+
+`library.extend(...)` derives a new library from an existing one, such as `openuiChatLibrary` from `@openuidev/react-ui`. The base library is not changed.
+
+```tsx
+export const shopLibrary = openuiChatLibrary.extend({
+  components: {
+    add: [{ component: ProductCard, slots: ["Card.children"] }],
+    override: [CodeBlock],
+    remove: ["RadarChart"],
+  },
+  functions: { add: [formatCurrency] },
+  actions: { add: [addToCart] },
+});
+```
+
+- `add` takes new components. `slots` puts one in a parent's signature, as `"Parent.prop"`.
+- The shorthand `"Card"` works when the parent has exactly one content slot.
+- `override` replaces a component of the same name. `remove` drops it from the library and from every parent.
+- Create the derived library once, at module scope. A new library on every render makes the `Renderer` parse again from the start.
 
 ## Best practices for LLM generation
 

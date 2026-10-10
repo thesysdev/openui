@@ -1,0 +1,256 @@
+---
+title: Actions
+description: Write actions as one step or Action([...]), define custom actions, and handle them in React.
+---
+
+An action is what runs when the user clicks: send a message to the model, open a link, change state, run a mutation, or run a [custom action](#custom-actions). The model writes it as one or more `@` steps, and a component receives it through an action prop.
+
+## One step
+
+A single step needs no wrapper:
+
+```text
+askBtn = Button("Explain this chart", @ToAssistant("Explain the revenue chart"))
+docsBtn = Button("Docs", @OpenUrl("https://example.com/docs"))
+```
+
+`@ToAssistant("...")` here is the same as `Action([@ToAssistant("...")])`.
+
+## Several steps
+
+Put several steps in `Action([...])`. They run in order:
+
+```text
+saveBtn = Button("Save", Action([@Run(createTicket), @Run(tickets), @Reset($title)]))
+```
+
+An action can be its own statement and be used in several places:
+
+```text
+onSave = Action([@Run(createTicket), @Run(tickets), @Reset($title)])
+saveBtn = Button("Save", onSave)
+```
+
+## Steps
+
+| Step                              | What it does                                                                                                       |
+| :-------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
+| `@ToAssistant(message, context?)` | Sends a `continue_conversation` event with the message. `context` can be any value and reaches the host unchanged. |
+| `@OpenUrl(url)`                   | Sends an `open_url` event with `params.url`.                                                                       |
+| `@Set($var, value)`               | Sets a `$variable`. `value` is evaluated when the step runs.                                                       |
+| `@Reset($a, $b, ...)`             | Restores `$variables` to their declared defaults.                                                                  |
+| `@Run(ref)`                       | Runs a `Mutation` or fetches a `Query` again. A failed mutation stops the steps after it.                          |
+| `@Name(...)`                      | A [custom action](#custom-actions) from your library. Sends an event with `type: "Name"`.                          |
+
+### Context for `@ToAssistant`
+
+The second argument of `@ToAssistant` is optional context: a string, number, object, or array. The host receives it unchanged in `event.params.context`:
+
+```text
+approveBtn = Button("Approve", @ToAssistant("Approve this order", {orderId: 42}))
+```
+
+```ts
+{
+  type: "continue_conversation",
+  humanFriendlyMessage: "Approve this order",
+  params: { context: { orderId: 42 } },
+  formState: { /* ... */ },
+  formName: undefined,
+}
+```
+
+With no context, or `null`, `params` is `{}`. How the context reaches the model is up to the host. The chat in `@openuidev/react-ui` adds it to the stored user turn, after the form state. See [Message Protocol](/docs/openui-lang/message-protocol#the-react-ui-chat-format).
+
+## Custom actions
+
+The built-in steps send messages, open links, change state, and run tools. A custom action is a step your app defines, such as copying text, adding an item to a cart, or opening a panel in your app. The model uses it like a built-in step. The renderer does not run it. It sends an event to your `onAction` handler, and your code does the work.
+
+### Define an action
+
+```tsx
+import { createLibrary, defineAction } from "@openuidev/react-lang";
+import { z } from "zod/v4";
+
+const copyToClipboard = defineAction({
+  name: "CopyToClipboard",
+  description: "Copies text to the clipboard",
+  params: z.object({
+    text: z.string(),
+    format: z.enum(["plain", "markdown"]).default("plain"),
+  }),
+});
+
+export const library = createLibrary({
+  root: "Button",
+  components: [Button], // a component with an action prop
+  actions: [copyToClipboard],
+});
+```
+
+The model can now write:
+
+```text
+root = Button("Copy order ID", @CopyToClipboard("ORD-1042"))
+```
+
+`Button` is a minimal component with an action prop. See [Action props in your components](#action-props-in-your-components). The `Button` in `@openuidev/react-ui` works the same way.
+
+### Fields
+
+| Field         | Description                                                                  |
+| :------------ | :--------------------------------------------------------------------------- |
+| `name`        | The name after `@` in programs, and the `type` of the event `onAction` gets. |
+| `description` | Shown next to the signature in the prompt.                                   |
+| `params`      | A `z.object(...)`. Key order is the positional order of the arguments.       |
+
+`defineAction` returns the definition with a `.ref`, used for [slots that take only some actions](#slots-that-take-only-some-actions).
+
+### Using it in a program
+
+A custom action works anywhere a built-in step does: alone, or with other steps in `Action([...])`:
+
+```text
+copyBtn = Button("Copy", @CopyToClipboard(order.id))
+copyAndClose = Button("Copy and close", Action([@CopyToClipboard(order.id), @Set($open, false)]))
+```
+
+Arguments are positional, in the key order of `params`, and defaults apply. `@CopyToClipboard("ORD-1042")` delivers `{ text: "ORD-1042", format: "plain" }`.
+
+### The event
+
+```ts
+{
+  type: "CopyToClipboard",
+  params: { text: "ORD-1042", format: "plain" },
+  humanFriendlyMessage: "",
+  formState: { /* the form's field values */ },
+  formName: undefined, // the enclosing form, if any
+}
+```
+
+`formState` and `formName` work as they do for the built-in events. See [Interactivity](/docs/openui-lang/interactivity#actionevent).
+
+## Handling actions in your app
+
+### Action props in your components
+
+Use `action()` for a prop that takes an action:
+
+```tsx
+import { action, defineComponent, useTriggerAction } from "@openuidev/react-lang";
+import { z } from "zod/v4";
+
+export const Button = defineComponent({
+  name: "Button",
+  description: "A clickable button",
+  props: z.object({
+    label: z.string(),
+    action: action().optional(),
+  }),
+  component: ({ props }) => {
+    const triggerAction = useTriggerAction();
+    return (
+      <button onClick={() => triggerAction(props.label, undefined, props.action)}>
+        {props.label}
+      </button>
+    );
+  },
+});
+```
+
+At runtime the prop holds an evaluated plan, `{ steps: [...] }`. Pass it to `triggerAction(label, formName, action)`, which runs the steps in order and sends events to `onAction`. When the prop is empty, `triggerAction(label)` sends a `continue_conversation` event with the label as the message.
+
+### Slots that take only some actions
+
+A prop can name the steps it accepts. Build it from the `.ref` of a custom action and the built-in step refs in `steps`:
+
+```tsx
+import { defineComponent, steps, useTriggerAction } from "@openuidev/react-lang";
+import { z } from "zod/v4";
+
+const ShareButton = defineComponent({
+  name: "ShareButton",
+  description: "Shares a link or copies it",
+  props: z.object({
+    label: z.string(),
+    share: z.union([copyToClipboard.ref, steps.OpenUrl.ref]),
+  }),
+  component: ({ props }) => {
+    const triggerAction = useTriggerAction();
+    return (
+      <button onClick={() => triggerAction(props.label, undefined, props.share)}>
+        {props.label}
+      </button>
+    );
+  },
+});
+```
+
+<Callout type="warn">
+  Restricted slots are not enforced yet. They shape the prompt and the JSON Schema only. At runtime
+  the slot accepts any step or `Action([...])`, so `ShareButton("Ask", @ToAssistant("Hi"))` still
+  sends a `continue_conversation` event.
+</Callout>
+
+### `onAction` on the `Renderer`
+
+Handle custom actions in `onAction`:
+
+```tsx
+import { Renderer } from "@openuidev/react-lang";
+
+export function Message({ response }: { response: string }) {
+  return (
+    <Renderer
+      library={library}
+      response={response}
+      onAction={(event) => {
+        if (event.type === "CopyToClipboard") {
+          void navigator.clipboard.writeText(event.params.text);
+        }
+      }}
+    />
+  );
+}
+```
+
+`Renderer` types `onAction` from its `library`. When the library has custom actions, the event is a union on `type`, and checking `type` narrows `params`. Here `event.params` is `{ text: string; format: "plain" | "markdown" }`.
+
+To type a handler outside the `Renderer`, use `LibraryActionEvent`:
+
+```ts
+import type { LibraryActionEvent } from "@openuidev/react-lang";
+
+function handleAction(event: LibraryActionEvent<typeof library>) {
+  if (event.type === "CopyToClipboard") {
+    void navigator.clipboard.writeText(event.params.text);
+  }
+}
+```
+
+### `onAction` on `AgentInterface`
+
+`AgentInterface` from `@openuidev/react-ui` handles `@ToAssistant` (it sends a new user message) and `@OpenUrl` (it opens the link in a new tab). Its `onAction` prop receives the actions the chat does not handle, such as your custom actions:
+
+```tsx
+import { AgentInterface } from "@openuidev/react-ui";
+
+<AgentInterface
+  llm={llm}
+  componentLibrary={library}
+  onAction={(event) => {
+    if (event.type === "CopyToClipboard") {
+      void navigator.clipboard.writeText(String(event.params.text));
+    }
+  }}
+/>;
+```
+
+Here `onAction` takes a plain `ActionEvent`, so `params` is not typed from the library.
+
+When you pass `components.AssistantMessage`, `AgentInterface` does not render the messages and does not call `onAction`. Pass `onAction` to the `Renderer` in your message component instead.
+
+### Renderer support
+
+Custom actions work in the React `Renderer` from `@openuidev/react-lang`. The Vue, Svelte, and Angular renderers do not support them yet.

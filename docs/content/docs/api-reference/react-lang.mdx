@@ -10,9 +10,15 @@ Use this package for OpenUI Lang authoring and rendering.
 ```ts
 import {
   defineComponent,
+  defineFunction,
+  defineAction,
+  action,
+  steps,
   createLibrary,
   Renderer,
   BuiltinActionType,
+  buildMessage,
+  parseMessage,
   createParser,
   createStreamingParser,
 } from "@openuidev/react-lang";
@@ -47,7 +53,8 @@ interface DefinedComponent<T extends z.ZodObject<any> = z.ZodObject<any>> {
 Creates a `Library` from an array of defined components.
 
 ```ts
-function createLibrary(input: LibraryDefinition): Library;
+/** The result has functions, actions, and extend set (Required<Library>). */
+function createLibrary(input: LibraryDefinition): Required<Library>;
 ```
 
 Core types:
@@ -56,7 +63,13 @@ Core types:
 interface LibraryDefinition {
   components: DefinedComponent[];
   componentGroups?: ComponentGroup[];
+  /** Custom functions, called as `@Name(...)` in programs. */
+  functions?: DefinedFunction[];
+  /** Custom action steps, used as `@Name(...)` in action props. */
+  actions?: DefinedAction[];
   root?: string;
+  /** Optional public id. `toSpec()` includes it. */
+  id?: string;
 }
 
 interface ComponentGroup {
@@ -68,11 +81,18 @@ interface ComponentGroup {
 interface Library {
   readonly components: Record<string, DefinedComponent>;
   readonly componentGroups: ComponentGroup[] | undefined;
+  /** Optional, so a hand-built Library object still type-checks. createLibrary always sets it. */
+  readonly functions?: Record<string, DefinedFunction>;
+  /** Optional, like functions. */
+  readonly actions?: Record<string, DefinedAction>;
   readonly root: string | undefined;
+  readonly id: string | undefined;
 
   prompt(options?: PromptOptions): string;
-  toJSONSchema(): object;
+  toJSONSchema(): LibraryJSONSchema;
   toSpec(): PromptSpec;
+  /** Derive a new library. Optional, like functions. */
+  extend?(extension: LibraryExtension): Library;
 }
 
 interface PromptOptions {
@@ -86,7 +106,112 @@ interface PromptOptions {
   toolCalls?: boolean;
   /** Enable $variables, @Set, @Reset, built-in functions. Default: true if toolCalls. */
   bindings?: boolean;
+  /** List the built-in functions (@Count, @Sum, ...). Default: true if toolCalls or bindings. */
+  builtinFunctions?: boolean;
 }
+```
+
+`createLibrary` throws when a function or action name is a built-in name, `Action`, `Query`, `Mutation`, or the name of a component, function, or action in the same library.
+
+## `defineFunction(config)`
+
+Defines a custom function, called as `@Name(...)` in programs. See [Functions](/docs/openui-lang/functions#custom-functions).
+
+```ts
+function defineFunction<
+  T extends z.ZodObject,
+  R extends z.ZodType | undefined = undefined,
+>(config: {
+  name: string;
+  description: string;
+  /** Key order is the positional order of the arguments. */
+  params: T;
+  /** Printed in the prompt signature and checked at runtime. */
+  returns?: R;
+  /** Receives one object keyed by the params names, with defaults applied. */
+  fn: (args: z.infer<T>) => R extends z.ZodType ? z.infer<R> : unknown;
+}): DefinedFunction<T, R>;
+```
+
+A call with an invalid required argument, an `fn` that throws, or a result that does not match `returns` evaluates to `null`. An invalid optional argument falls back to its default.
+
+## `defineAction(config)`
+
+Defines a custom action step. The renderer does not run it: it calls `onAction` with `{ type: name, params }`. A step with any invalid argument is a no-op. See [Actions](/docs/openui-lang/actions#custom-actions).
+
+```ts
+function defineAction<const N extends string, T extends z.ZodObject>(config: {
+  name: N;
+  description: string;
+  /** Key order is the positional order of the arguments. */
+  params: T;
+}): DefinedAction<T, N>;
+
+interface DefinedAction<T, N> {
+  name: N;
+  description: string;
+  params: T;
+  /** For slots that take only some actions: `z.union([copy.ref, steps.OpenUrl.ref])` */
+  ref: ActionRef;
+}
+```
+
+## `action()` and `steps`
+
+`action()` returns the schema for an action prop, tagged `ActionExpression`. In the JSON Schema the prop is `{"$ref": "#/$defs/ActionExpression"}`.
+
+```ts
+props: z.object({ label: z.string(), action: action().optional() });
+```
+
+`steps.OpenUrl.ref` and `steps.ToAssistant.ref` name built-in steps in a restricted slot, together with the `.ref` of custom actions. Restricted slots shape the prompt and the JSON Schema only; the runtime accepts any step. See [Actions](/docs/openui-lang/actions#slots-that-take-only-some-actions).
+
+## `library.extend(extension)`
+
+Returns a new library with the additions. The base library is unchanged. See [Extending a library](/docs/openui-lang/defining-components#extending-a-library).
+
+```ts
+interface LibraryExtension {
+  components?: {
+    /** With slots ("Parent.prop", or "Parent" when it has one content slot), it joins those unions. */
+    add?: (DefinedComponent | { component: DefinedComponent; slots: string[] })[];
+    /** Replaces the component of the same name. Every parent points at the new one. */
+    override?: DefinedComponent[];
+    /** Drops it from the library, every parent union, and componentGroups. */
+    remove?: string[];
+  };
+  functions?: { add?: DefinedFunction[] };
+  actions?: { add?: DefinedAction[] };
+}
+```
+
+`extend` throws when an added name exists, an overridden or removed name does not, a removal is the root or the only type of a slot, or a slot does not resolve to one content slot. The derived library has no `id`. Create it once at module scope, since parsers are cached per library object.
+
+## `buildMessage(input)` and `parseMessage(raw, options?)`
+
+Write and read a stored message with `]]>openui:` marker lines. See [Message Protocol](/docs/openui-lang/message-protocol).
+
+```ts
+function buildMessage(input: {
+  content: string;
+  /** A string is written as is, anything else as JSON. Omitted when null or undefined. */
+  context?: unknown;
+  attributes?: Record<string, string>;
+  end?: boolean;
+}): string;
+
+function parseMessage(
+  raw: string,
+  options?: {
+    /** Hold back a last line that may be a marker cut mid-stream. */ streaming?: boolean;
+  },
+): {
+  content: string;
+  /** Parsed JSON, else raw text. null when absent. */
+  context: unknown;
+  attributes: Record<string, string>;
+  end: boolean;
+};
 ```
 
 ## `<Renderer />`
@@ -94,18 +219,18 @@ interface PromptOptions {
 Parses OpenUI Lang text and renders nodes with your `Library`.
 
 ```ts
-interface RendererProps {
+interface RendererProps<L extends Library = Library> {
+  /** OpenUI Lang text, or a stored message with ]]>openui: marker lines. */
   response: string | null;
-  library: Library;
+  library: L;
   isStreaming?: boolean;
-  onAction?: (event: ActionEvent) => void;
+  /** Typed from the library: checking event.type narrows params for custom actions. */
+  onAction?: (event: LibraryActionEvent<L>) => void;
   onStateUpdate?: (state: Record<string, unknown>) => void;
   initialState?: Record<string, any>;
   onParseResult?: (result: ParseResult | null) => void;
   toolProvider?:
-    | Record<string, (args: Record<string, unknown>) => Promise<unknown>>
-    | McpClientLike
-    | null;
+    Record<string, (args: Record<string, unknown>) => Promise<unknown>> | McpClientLike | null;
   /** Custom loading indicator. Defaults to a spinner. */
   queryLoader?: React.ReactNode;
   children?: React.ReactNode;
@@ -117,12 +242,12 @@ interface RendererProps {
 
 `Renderer` keeps query defaults or cached results visible while loading and after failures, and reports errors through `onError`. A spinner is shown while queries load; provide `queryLoader` to customize it. No error/retry view is shown by default. To customize loading feedback and opt into an error/retry presentation, use `Renderer.Root` with these slots:
 
-| Slot | Purpose |
-| --- | --- |
-| `Renderer.Content` | Generated UI; accepts div props and stays mounted during query failures. |
+| Slot                    | Purpose                                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| `Renderer.Content`      | Generated UI; accepts div props and stays mounted during query failures.                               |
 | `Renderer.QueryLoading` | Children shown while queries wait or fetch; omitted children use `queryLoader` or the default spinner. |
-| `Renderer.QueryError` | Children shown when queries fail; renders nothing without children. |
-| `Renderer.Retry` | A retry button; accepts standard button props. |
+| `Renderer.QueryError`   | Children shown when queries fail; renders nothing without children.                                    |
+| `Renderer.Retry`        | A retry button; accepts standard button props.                                                         |
 
 Root accepts the same runtime props as Renderer and renders only its children. Put overlays in your own positioned container. Slots share context through wrappers and React portals. `useRendererQuery()` returns `{ isLoading, errors, retry, isRetrying }` within that root. `Renderer.Content` renders defaults or cached data while queries load and hides content on failure while preserving mounted state through retries.
 
@@ -145,8 +270,8 @@ Root accepts the same runtime props as Renderer and renders only its children. P
 
 Handles `Query()` and `Mutation()` tool calls at runtime. The `toolProvider` prop accepts two forms:
 
-- **Function map** — `Record<string, (args) => Promise<unknown>>` — the simplest option
-- **MCP client** — any object implementing `callTool({ name, arguments })` (e.g. from `@modelcontextprotocol/sdk`)
+- **Function map**: `Record<string, (args) => Promise<unknown>>`. The simplest option.
+- **MCP client**: any object implementing `callTool({ name, arguments })` (e.g. from `@modelcontextprotocol/sdk`)
 
 The Renderer detects which form was passed and normalizes internally.
 
@@ -163,6 +288,8 @@ interface OpenUIError {
   component?: string;
   path?: string;
   hint?: string;
+  /** "warning" when the page still rendered; absent means error. */
+  severity?: "warning";
 }
 
 class ToolNotFoundError extends Error {
@@ -171,7 +298,7 @@ class ToolNotFoundError extends Error {
 }
 ```
 
-Error codes: `unknown-component`, `missing-required`, `null-required`, `inline-reserved`, `tool-not-found`, `parse-failed`, `parse-exception`, `runtime-error`, `render-error`.
+Error codes: `unknown-component`, `missing-required`, `null-required`, `type-mismatch`, `excess-args`, `inline-reserved`, `unknown-function`, `no-root`, `tool-not-found`, `tool-error`, `mcp-error`, `parse-failed`, `parse-exception`, `runtime-error`, `render-error`.
 
 ## Actions
 
@@ -195,19 +322,23 @@ Action steps (runtime types from the evaluator):
 ```ts
 type ActionStep =
   | { type: "run"; statementId: string; refType: "query" | "mutation" }
-  | { type: "continue_conversation"; message: string; context?: string }
+  | { type: "continue_conversation"; message: string; context?: unknown }
   | { type: "open_url"; url: string }
   | { type: "set"; target: string; valueAST: ASTNode }
-  | { type: "reset"; targets: string[] };
+  | { type: "reset"; targets: string[] }
+  | { type: "custom_action"; name: string; params: Record<string, unknown> };
 ```
+
+Every step call evaluates to a plan, `{ steps: ActionStep[] }`. A step that cannot run gives a plan with no steps.
 
 | Step type                 | Triggered by          | Description                                                        |
 | ------------------------- | --------------------- | ------------------------------------------------------------------ |
 | `"run"`                   | `@Run(ref)`           | Execute a Mutation or re-fetch a Query. `refType` indicates which. |
 | `"set"`                   | `@Set($var, val)`     | Change a `$variable`. `valueAST` is evaluated at click time.       |
 | `"reset"`                 | `@Reset($a, $b)`      | Restore `$variables` to declared defaults.                         |
-| `"continue_conversation"` | `@ToAssistant("msg")` | Send message to LLM. Optional `context`.                           |
+| `"continue_conversation"` | `@ToAssistant("msg")` | Send message to LLM. Optional `context` of any type.               |
 | `"open_url"`              | `@OpenUrl("url")`     | Open URL in new tab.                                               |
+| `"custom_action"`         | `@Name(...)`          | A custom action. Reaches `onAction` as `{ type: name, params }`.   |
 
 ## Parser APIs
 
@@ -254,7 +385,11 @@ type ValidationErrorCode =
   | "missing-required"
   | "null-required"
   | "unknown-component"
-  | "inline-reserved";
+  | "inline-reserved"
+  | "excess-args"
+  | "type-mismatch"
+  | "unknown-function"
+  | "no-root";
 
 interface ValidationError {
   code: ValidationErrorCode;
@@ -262,15 +397,19 @@ interface ValidationError {
   path: string;
   message: string;
   statementId?: string;
+  /** "warning" when the program still renders, e.g. a no-root fallback entry. */
+  severity?: "warning";
 }
 
 interface ParseResult {
   root: ElementNode | null;
+  /** Set when the entry picks a component at runtime (`root = $t ? A : B`). */
+  rootExpression?: ASTNode;
   meta: {
     incomplete: boolean;
     /** References used but not yet defined (dropped as null in output). */
     unresolved: string[];
-    /** Value statements defined but not reachable from root. Excludes $state, Query, and Mutation. */
+    /** Value statements defined but not reachable from the entry. Excludes $state, Query, and Mutation. Empty when there is no entry. */
     orphaned: string[];
     statementCount: number;
     /**
@@ -308,8 +447,9 @@ function useRenderNode(): (value: unknown) => React.ReactNode;
 function useTriggerAction(): (
   userMessage: string,
   formName?: string,
-  action?: { type?: string; params?: Record<string, any> },
-) => void;
+  /** An evaluated action prop (ActionPlan), or a legacy { type, params } object. */
+  action?: ActionPlan | { type?: string; params?: Record<string, any> },
+) => void | Promise<void>;
 function useIsStreaming(): boolean;
 function useIsQueryLoading(): boolean;
 function useGetFieldValue(): (formName: string | undefined, name: string) => any;

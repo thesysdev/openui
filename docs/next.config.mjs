@@ -122,6 +122,32 @@ const config = {
         destination: "/docs/openui-lang/architecture",
         permanent: true,
       },
+      // 1.0 docs: merged pages.
+      {
+        source: "/docs/openui-lang/:page(builtins|custom-functions)",
+        destination: "/docs/openui-lang/functions",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/:page(action-expressions|custom-actions)",
+        destination: "/docs/openui-lang/actions",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/extending-libraries",
+        destination: "/docs/openui-lang/defining-components#extending-a-library",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/entry",
+        destination: "/docs/openui-lang/specification-v10#entry-statement",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/messages",
+        destination: "/docs/openui-lang/message-protocol",
+        permanent: true,
+      },
       {
         source: "/docs/agent",
         destination: "/docs/agent/getting-started/introduction",

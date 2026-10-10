@@ -3,6 +3,10 @@ title: Evolution Guide
 description: How OpenUI Lang evolved from static UI generation to interactive, data-driven apps.
 ---
 
+## v0.5 → 1.0
+
+1.0 lets a library grow with its own functions, actions, and `library.extend`, adds a message format for storing responses, and sets one rule for where a program starts. One action step no longer needs `Action([...])`. See [What's New in 1.0](/docs/openui-lang/whats-new).
+
 ## v0.1 → v0.5
 
 OpenUI Lang started as a way to generate static UI from LLM output, a token-efficient alternative to JSON for rendering chat responses. v0.5 turns it into a language for building **standalone interactive apps** that run independently of the LLM.
@@ -13,7 +17,7 @@ OpenUI Lang started as a way to generate static UI from LLM output, a token-effi
 | ------------------- | ----------------------------- | --------------------------------------------------------------- |
 | **Purpose**         | Generate UI responses in chat | Build interactive apps with live data                           |
 | **Data**            | Hardcoded in the output       | Fetched from your tools via `Query` / `Mutation`                |
-| **State**           | None - static render          | Reactive `$variables` with two-way binding                      |
+| **State**           | None, static render           | Reactive `$variables` with two-way binding                      |
 | **Interactivity**   | Send message back to LLM      | Buttons call tools directly via `@Run`, update state via `@Set` |
 | **LLM role**        | Generates UI on every turn    | Generates UI once, then gets out of the way                     |
 | **Data transforms** | None                          | `@Count`, `@Filter`, `@Sort`, `@Each`, `@Sum`, etc.             |
@@ -35,7 +39,7 @@ Data is hardcoded. No interactivity beyond clicking a button to send a message b
 
 ### v0.5: Interactive app with live data
 
-The LLM generates code that **connects to your tools**. The runtime fetches data, handles user interactions, and updates the UI - all without going back to the LLM.
+The LLM generates code that **connects to your tools**. The runtime fetches data, handles user interactions, and updates the UI without going back to the LLM.
 
 ```text
 $days = "7"
@@ -57,7 +61,7 @@ What's different:
 
 ### Reactive state
 
-Declare variables, bind them to inputs, reference them in expressions. Everything updates automatically.
+Declare variables, bind them to inputs, and reference them in expressions. A change updates everything that reads them.
 
 ```text
 $search = ""
@@ -69,7 +73,7 @@ See [Reactive State](/docs/openui-lang/reactive-state).
 
 ### Data fetching
 
-`Query` reads data from your tools. `Mutation` writes. The runtime calls your MCP endpoint directly - no LLM involved.
+`Query` reads data from your tools. `Mutation` writes. The runtime calls your MCP endpoint directly, without the LLM.
 
 ```text
 tickets = Query("list_tickets", {}, {rows: []})
@@ -87,11 +91,11 @@ openCount = @Count(@Filter(tickets.rows, "status", "==", "open"))
 sorted = @Sort(tickets.rows, "created", "desc")
 ```
 
-See [Built-in Functions](/docs/openui-lang/builtins).
+See [Built-in functions](/docs/openui-lang/functions#built-in-functions).
 
 ### Action composition
 
-Buttons can run mutations, refresh queries, set state, and reset forms - all in a single action.
+One button action can run mutations, refresh queries, set state, and reset forms.
 
 ```text
 submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Set($success, true), @Reset($title)]))
@@ -101,11 +105,11 @@ submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Set($su
 
 Components can accept `$variables` as props for reactive binding. For example, a Modal's `open` prop or a Callout's `visible` prop can be bound to a `$variable`, and the component reads and writes the variable directly.
 
-This is a library-level feature (component authors use `useStateField`), not a language change. The language just passes the `$variable` as a positional argument.
+This is a library-level feature (component authors use `useStateField`), not a language change. The language passes the `$variable` as a positional argument.
 
 ### Incremental editing
 
-LLM outputs only changed statements. The parser merges by name - existing code stays intact.
+LLM outputs only changed statements. The parser merges by name, so the rest of the code stays.
 
 See [Incremental Editing](/docs/openui-lang/incremental-editing).
 
@@ -118,4 +122,4 @@ The core language is unchanged:
 - Forward references and streaming-first rendering
 - Component resolution and validation
 
-v0.5 is a superset - all v0.1 code is valid v0.5 code.
+v0.5 is a superset: all v0.1 code is valid v0.5 code.

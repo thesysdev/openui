@@ -80,6 +80,12 @@ count = Count(items)
 count = @Count(items)
 ```
 
+The reverse also fails: components are called without `@`. `@Card(...)` reports `unknown-function` and evaluates to null.
+
+### Why does nothing render?
+
+Check `onError` for `no-root`. A response without a `root` statement renders only when its first statement after the `$variable`, `Query`, and `Mutation` declarations calls the library's root component. See [Entry Statement](/docs/openui-lang/specification-v10#entry-statement).
+
 ### Query or Mutation used inline
 
 `Query` and `Mutation` must be top-level statements, not inside component arguments.
@@ -136,7 +142,10 @@ Error codes:
 - `null-required`: required prop explicitly set to null
 - `inline-reserved`: Query/Mutation used inline instead of top-level
 - `tool-not-found`: tool name not found in toolProvider (hint lists available tools)
-- `parse-failed`: response produced no renderable root
+- `type-mismatch`: argument does not match the prop's type or enum
+- `unknown-function`: `@Name(...)` is not a built-in, action step, or library function (the call evaluates to null)
+- `no-root`: no usable entry statement; with `severity: "warning"` the page still rendered from a fallback entry (see [Entry Statement](/docs/openui-lang/specification-v10#entry-statement))
+- `parse-failed`: response text produced no statements
 - `parse-exception`: parser crashed on malformed input
 - `runtime-error`: expression evaluation failed on a prop (falls back to raw value)
 - `render-error`: React component threw during render (falls back to last good state)
