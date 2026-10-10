@@ -1,121 +1,96 @@
 ---
-title: OpenUI SDK
-description: Package guide for the full OpenUI SDK surface, including framework-agnostic, React, Angular, Vue, Svelte, email, browser-bundle, and CLI entrypoints.
+title: API Reference
+description: Reference for every OpenUI package, grouped by what it does.
 ---
 
-The OpenUI SDK is split into packages that build on each other:
+## Where to start
 
-- **`@openuidev/lang-core`** — Framework-agnostic parser, prompt-generation, runtime-evaluation, and type layer. Use this when you need OpenUI Lang outside React, or when a backend/Edge function needs to generate prompts and parse streamed output without pulling in UI bindings.
+- **A React chat app, fast:** [`@openuidev/react-ui`](/docs/api-reference/react-ui) gives you `AgentInterface`, a ready-made chat surface.
+- **Your own React chat UI:** [`@openuidev/react-headless`](/docs/api-reference/react-headless) for chat state and streaming, with [`@openuidev/react-lang`](/docs/api-reference/react-lang) to render OpenUI Lang.
+- **A backend, or a framework other than React:** [`@openuidev/lang-core`](https://github.com/thesysdev/openui/tree/main/packages/lang-core) for prompts and parsing, or the [Vue](/docs/api-reference/vue-lang), [Svelte](/docs/api-reference/svelte-lang), or [Angular](/docs/api-reference/angular-lang) bindings.
 
-- **`@openuidev/react-lang`** — React runtime. Define component libraries with Zod schemas, generate system prompts, parse OpenUI Lang, and render streamed output to React. This is the foundation for React integrations.
-
-- **`@openuidev/react-headless`** — Headless chat state management. Provides `ChatProvider`, thread/message hooks, streaming protocol adapters (OpenAI, Vercel AI SDK, AG-UI), and message format converters. Use this when you want full control over your chat UI.
-
-- **`@openuidev/react-ui`** — `AgentInterface`, a ready-to-use chat surface with thread history and support for OpenUI component libraries. Depends on both packages above. Use this for the fastest path to a working chat interface.
-
-- **`@openuidev/assistant-ui`** — OpenUI tool renderers, model instructions, and toolkit wiring for applications built with assistant-ui. The core integration supports any assistant-ui runtime; an optional `/ai-sdk` subpath adds Vercel AI SDK continuation behavior.
-
-- **`@openuidev/langchain`** — LangChain and LangGraph integration primitives for transforming protocol-v2 agent streams into AG-UI events and relaying them to an OpenUI frontend over Web-standard Server-Sent Events.
-
-- **`@openuidev/server`** — Server utilities for OpenUI Gateway. Repair invalid OpenUI Lang with Autofix, and persist a completed turn as Conversations API items. Import from `/openai` or `/vercel`.
-
-- **`@openuidev/react-email`** — Pre-built email component library and prompt options for model-generated emails that can be rendered to HTML with React Email.
-
-- **`@openuidev/vue-lang`** — Vue 3 bindings for defining model-renderable components, generating prompts from those definitions, and rendering streamed OpenUI Lang in Vue apps.
-
-- **`@openuidev/svelte-lang`** — Svelte 5 bindings for defining model-renderable components, generating prompts, and rendering streamed OpenUI Lang in Svelte apps.
-
-- **`@openuidev/browser-bundle`** — Prebuilt browser bundle for CDN, iframe, and no-build integrations. It packages the renderer, UI library, React, ReactDOM, and styles into script-tag-friendly assets.
-
-- **`@openuidev/devtools`** — Development-only floating widget that surfaces the events captured by `@openuidev/observability`, with error messages and stack traces.
-
-- **`@openuidev/cli`** — Command-line tool for scaffolding new OpenUI chat apps, generating system prompts or JSON schemas from library definitions, and deploying projects.
-
-- **`@openuidev/angular-lang`** — Angular bindings for defining component libraries with Zod schemas, generating prompts, and rendering streamed OpenUI Lang with reactive state and actions.
-
-- **`@openuidev/a2ui`** — Framework-agnostic A2UI v1.0 protocol client that uses OpenUI Lang statements for component payloads. Add the optional React entrypoint to render surfaces with `@openuidev/react-lang`.
-
-## Choosing a package
-
-| If you need...                                                              | Start here                                                                                           |
-| :-------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
-| Prompt generation or parsing without a UI framework                         | [`@openuidev/lang-core`](https://github.com/thesysdev/openui/tree/main/packages/lang-core)           |
-| React rendering primitives for OpenUI Lang                                  | [`@openuidev/react-lang`](/docs/api-reference/react-lang)                                            |
-| Chat state and streaming without prebuilt UI                                | [`@openuidev/react-headless`](/docs/api-reference/react-headless)                                    |
-| A ready-made React chat surface                                             | [`@openuidev/react-ui`](/docs/api-reference/react-ui)                                                |
-| OpenUI tool rendering in an assistant-ui application                        | [`@openuidev/assistant-ui`](/docs/api-reference/assistant-ui)                                        |
-| A LangChain or LangGraph agent connected to an OpenUI frontend              | [`@openuidev/langchain`](/docs/api-reference/langchain)                                              |
-| Autofix or conversation history on the Gateway                              | [`@openuidev/server`](/docs/api-reference/server)                                                    |
-| Model-generated emails                                                      | [`@openuidev/react-email`](/docs/api-reference/react-email)                                          |
-| Vue integration                                                             | [`@openuidev/vue-lang`](/docs/api-reference/vue-lang)                                                |
-| Svelte integration                                                          | [`@openuidev/svelte-lang`](/docs/api-reference/svelte-lang)                                          |
-| Script-tag, CDN, or iframe embeds                                           | [`@openuidev/browser-bundle`](https://github.com/thesysdev/openui/tree/main/packages/browser-bundle) |
-| An in-app panel showing captured errors during development                  | [`@openuidev/devtools`](/docs/api-reference/devtools)                                                |
-| App scaffolding, prompt/schema generation, and deploy from the command line | [`@openuidev/cli`](/docs/api-reference/cli)                                                          |
-| Angular integration                                                         | [`@openuidev/angular-lang`](/docs/api-reference/angular-lang)                                        |
-| A2UI lifecycle and messages with OpenUI Lang component payloads             | [`@openuidev/a2ui`](/docs/api-reference/a2ui)                                                        |
-
-## Packages
+## Core
 
 <Cards>
   <Card
     title="@openuidev/lang-core"
     href="https://github.com/thesysdev/openui/tree/main/packages/lang-core"
   >
-    Framework-agnostic parser, prompt-generation, runtime-evaluation, and type APIs for OpenUI Lang.
+    Framework-agnostic parser, prompt generation, and runtime for OpenUI Lang. Docs on GitHub.
   </Card>
+</Cards>
+
+## Renderers
+
+<Cards>
   <Card title="@openuidev/react-lang" href="/docs/api-reference/react-lang">
-    defineComponent, createLibrary, Renderer, parser APIs, action types, context hooks, and form
-    validation.
-  </Card>
-  <Card title="@openuidev/react-headless" href="/docs/api-reference/react-headless">
-    ChatProvider, useThread/useThreadList, stream protocol adapters (OpenAI, AG-UI), and message
-    format converters.
-  </Card>
-  <Card title="@openuidev/react-ui" href="/docs/api-reference/react-ui">
-    AgentInterface, a ready-to-use artifact chat surface with thread history, and two built-in
-    component libraries (general-purpose and chat-optimized).
-  </Card>
-  <Card title="@openuidev/assistant-ui" href="/docs/api-reference/assistant-ui">
-    Tool renderers, toolkit and instruction factories, interactive form handling, and optional
-    runtime-specific continuation helpers for assistant-ui applications.
-  </Card>
-  <Card title="@openuidev/langchain" href="/docs/api-reference/langchain">
-    LangGraph stream transformation, stateless run helpers, and AG-UI SSE relay APIs for OpenUI
-    frontends.
-  </Card>
-  <Card title="@openuidev/server" href="/docs/api-reference/server">
-    Autofix helpers for Chat Completions and the Vercel AI SDK, plus conversation history
-    persistence.
-  </Card>
-  <Card title="@openuidev/react-email" href="/docs/api-reference/react-email">
-    API reference for the pre-built email templates library and prompt options.
+    Define component libraries, generate prompts, and render streamed OpenUI Lang in React.
   </Card>
   <Card title="@openuidev/vue-lang" href="/docs/api-reference/vue-lang">
-    Vue 3 bindings for defining model-renderable components and rendering streamed OpenUI Lang.
+    Vue 3 bindings to define components and render streamed OpenUI Lang.
   </Card>
   <Card title="@openuidev/svelte-lang" href="/docs/api-reference/svelte-lang">
-    Svelte 5 bindings for defining model-renderable components and rendering streamed OpenUI Lang.
+    Svelte 5 bindings to define components and render streamed OpenUI Lang.
+  </Card>
+  <Card title="@openuidev/angular-lang" href="/docs/api-reference/angular-lang">
+    Angular bindings to define components and render streamed OpenUI Lang.
+  </Card>
+</Cards>
+
+## Chat
+
+<Cards>
+  <Card title="@openuidev/react-headless" href="/docs/api-reference/react-headless">
+    Chat state, thread hooks, and stream adapters, with no UI.
+  </Card>
+  <Card title="@openuidev/react-ui" href="/docs/api-reference/react-ui">
+    `AgentInterface`, a ready-made chat surface with thread history.
+  </Card>
+</Cards>
+
+## Agent integrations
+
+<Cards>
+  <Card title="@openuidev/assistant-ui" href="/docs/api-reference/assistant-ui">
+    OpenUI tool renderers and model instructions for assistant-ui apps.
+  </Card>
+  <Card title="@openuidev/langchain" href="/docs/api-reference/langchain">
+    Relay LangChain and LangGraph agent streams to an OpenUI frontend.
+  </Card>
+  <Card title="@openuidev/a2ui" href="/docs/api-reference/a2ui">
+    A2UI v1.0 client that uses OpenUI Lang for component payloads.
+  </Card>
+</Cards>
+
+## Server
+
+<Cards>
+  <Card title="@openuidev/server" href="/docs/api-reference/server">
+    Autofix and conversation history for OpenUI Gateway.
+  </Card>
+</Cards>
+
+## Component libraries
+
+<Cards>
+  <Card title="@openuidev/react-email" href="/docs/api-reference/react-email">
+    Email components and prompt options for model-generated emails.
+  </Card>
+</Cards>
+
+## Tooling
+
+<Cards>
+  <Card title="@openuidev/cli" href="/docs/api-reference/cli">
+    Scaffold apps, generate prompts and library specs, and deploy.
+  </Card>
+  <Card title="@openuidev/devtools" href="/docs/api-reference/devtools">
+    Development-only widget that shows captured errors and stack traces.
   </Card>
   <Card
     title="@openuidev/browser-bundle"
     href="https://github.com/thesysdev/openui/tree/main/packages/browser-bundle"
   >
-    CDN, iframe, and no-build browser bundle for the renderer, UI library, React, and styles.
-  </Card>
-  <Card title="@openuidev/devtools" href="/docs/api-reference/devtools">
-    Development-only floating widget surfacing captured events with error messages and stack traces.
-  </Card>
-  <Card title="@openuidev/cli" href="/docs/api-reference/cli">
-    openui create (scaffold a Next.js app), openui generate-api-key (mint a Gateway key), openui
-    deploy, and openui generate (system prompt + library spec from a library definition).
-  </Card>
-  <Card title="@openuidev/angular-lang" href="/docs/api-reference/angular-lang">
-    Angular component definitions, Renderer inputs and outputs, injection helpers, and form
-    validation.
-  </Card>
-  <Card title="@openuidev/a2ui" href="/docs/api-reference/a2ui">
-    A2UI v1.0 surface lifecycle, messages, actions, data model, functions, and schemas with OpenUI
-    Lang component updates.
+    Script-tag bundle for CDN, iframe, and no-build embeds. Docs on GitHub.
   </Card>
 </Cards>

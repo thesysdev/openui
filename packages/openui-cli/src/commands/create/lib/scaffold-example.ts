@@ -165,7 +165,7 @@ export async function scaffoldExample(params: {
   const { example, targetDir, name, packageManager, onRetry } = params;
 
   try {
-    await checkoutSource(example.path, { dest: targetDir, onRetry });
+    await checkoutSource(example.path, { dest: targetDir, repo: example.repo, onRetry });
   } catch (err) {
     if (err instanceof CreateError) throw err;
     throw new CreateError(
@@ -180,7 +180,7 @@ export async function scaffoldExample(params: {
   if (layout.jsPackages.length === 0 && layout.pythonPackages.length === 0) {
     throw new CreateError(
       "scaffold",
-      `Example "${example.name}" was not found at ${example.path}.`,
+      `Example "${example.name}" was not found at ${example.repo ? `${example.repo.owner}/${example.repo.name}/${example.path}`.replace(/\/$/, "") : example.path}.`,
       "filesystem",
       "EXAMPLE_MISSING",
     );

@@ -334,7 +334,7 @@ Add your own PDFs to the example's `documents/` folder and run `npm run prepare:
 
 The importer reads a PDF's text layer, so run OCR on scanned documents first. For large collections, store the embeddings in a vector database and keep the `search_documents` tool's contract.
 
-This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/agent/agent-runtimes/langgraph-platform), [Vercel AI SDK](/docs/agent/agent-runtimes/vercel-ai-sdk), and [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
+This example calls Gateway directly from a Next.js route, but the tool and prompt can also run on an agent framework such as LangGraph, the Vercel AI SDK, Mastra, or Google ADK. Agent Interface stays the same and reads the framework's stream with the matching adapter. See our [LangGraph Platform](/docs/build-agents/frameworks/langgraph), [Vercel AI SDK](/docs/build-agents/frameworks/vercel-ai-sdk), and [Vercel Eve](/docs/build-agents/frameworks/vercel-eve) integrations, or the [Mastra](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/mastra) and [Google ADK](https://github.com/thesysdev/openui/tree/main/examples/agent-frameworks/google-adk) examples.
 
 This example runs locally without authentication. Before deploying it, add [authentication](/docs/gateway/authentication), limits on request size, and rate limits. See the [example README](https://github.com/thesysdev/openui/tree/main/examples/cookbooks/document-comparison) for the implementation notes.
 
@@ -349,7 +349,7 @@ This example runs locally without authentication. Before deploying it, add [auth
 - [`unpdf`](https://github.com/unjs/unpdf): PDF text extraction.
 - [Gateway Chat Completions API](/docs/gateway/api/chat-completions).
 - [Agent Interface quickstart](/docs/agent/getting-started/quickstart).
-- [Agent tools](/docs/agent/core-concepts/tools).
+- [Agent tools](/docs/build-agents/tools).
 - [Connect a backend](/docs/agent/reference/self-hosting).
 
 Documents: the Form 10-K annual reports of NVIDIA, AMD, and Intel, downloaded from each company's investor relations site during setup. They are not included in this repository.

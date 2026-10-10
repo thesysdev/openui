@@ -507,7 +507,7 @@ const llm: ChatLLM = {
 - **What it handles:** `actions.requested` → `TOOL_CALL_START` / `TOOL_CALL_ARGS` / `TOOL_CALL_END`; `action.result` → `TOOL_CALL_RESULT`; `message.appended` → `TEXT_MESSAGE_CONTENT` (with `message.completed` as the fallback for steps that streamed no deltas); `input.requested` → a `CUSTOM` event named `eve.input.requested` (exported as `EVE_INPUT_REQUESTED_EVENT`); `turn.failed` / `session.failed` → `RUN_ERROR`. Tool calls and text share one assistant message id. Parsing stops at the turn boundary (`session.completed`, `session.waiting`, `session.failed`).
 - **Options** (`EveAdapterOptions`):
   - `onEvent?: (event: EveStreamEvent) => void` — receives every raw Eve event before translation, including types the adapter does not map (`session.started`, `reasoning.appended`, …).
-- **When to use:** Your browser talks to an Eve session directly (or through a same-origin proxy such as `withEve()`) and you want Eve's turns rendered by `AgentInterface`. Eve keeps the conversation server-side, so there is no paired message format: `send` delivers only the latest user turn and returns the session stream. See [Vercel Eve](/docs/agent/agent-runtimes/vercel-eve) for the complete bridge.
+- **When to use:** Your browser talks to an Eve session directly (or through a same-origin proxy such as `withEve()`) and you want Eve's turns rendered by `AgentInterface`. Eve keeps the conversation server-side, so there is no paired message format: `send` delivers only the latest user turn and returns the session stream. See [Vercel Eve](/docs/build-agents/frameworks/vercel-eve) for the complete bridge.
 
 ### AG-UI event vocabulary
 

@@ -15,24 +15,23 @@ export function resolveInstallInvocation(params: {
   packageManager: PackageManager;
   targetDir: string;
 }): { installCmd: string; installArgs: string[] } {
-  const { backendFramework, packageManager, targetDir } = params;
+  const { packageManager, targetDir } = params;
   // Framework scaffolds without an npm lock must resolve ranges against the
   // registry (`npm install`). When a backend overlay ships package-lock.json,
   // keep the normal `npm ci` path. --prefer-offline is only safe for `npm ci`,
   // where the lockfile pins exact versions and cache hits are content-addressed;
   // bare `npm install` can fail with ETARGET on a stale packument cache.
-  const frameworkInstall = backendFramework !== "default";
   const hasNpmLock = fs.existsSync(path.join(targetDir, "package-lock.json"));
   const installCmd =
-    frameworkInstall && packageManager.name === "npm" && !hasNpmLock
+    packageManager.name === "npm" && !hasNpmLock
       ? "npm install --no-audit --no-fund --progress=false"
-      : frameworkInstall && packageManager.name === "pnpm"
+      : packageManager.name === "pnpm"
         ? "pnpm install --no-frozen-lockfile"
         : packageManager.installCmd;
   const installArgs =
-    frameworkInstall && packageManager.name === "npm" && !hasNpmLock
+    packageManager.name === "npm" && !hasNpmLock
       ? ["install", "--no-audit", "--no-fund", "--progress=false"]
-      : frameworkInstall && packageManager.name === "pnpm"
+      : packageManager.name === "pnpm"
         ? ["install", "--no-frozen-lockfile"]
         : packageManager.installArgs;
   return { installCmd, installArgs };

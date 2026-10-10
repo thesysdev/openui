@@ -1,5 +1,19 @@
 # @openuidev/svelte-lang
 
+## 0.4.0
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @openuidev/lang-core@0.4.0
+
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies [[`7c8f5e9`](https://github.com/thesysdev/openui/commit/7c8f5e9ae2e914063f7b47fc131fd46a7e178985)]:
+  - @openuidev/lang-core@0.3.2
+
 ## 0.3.1
 
 ### Patch Changes
