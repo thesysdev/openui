@@ -1,0 +1,29 @@
+{
+  "steps": [
+    {
+      "tool": "createTicket",
+      "result": {
+        "id": 7
+      }
+    },
+    {
+      "click": "create"
+    }
+  ],
+  "expected": {
+    "events": [
+      {
+        "type": "continue_conversation",
+        "humanFriendlyMessage": "Created"
+      }
+    ],
+    "toolCalls": [
+      {
+        "tool": "createTicket",
+        "args": {
+          "title": "Bug"
+        }
+      }
+    ]
+  }
+}

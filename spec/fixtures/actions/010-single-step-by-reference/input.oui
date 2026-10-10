@@ -1,0 +1,5 @@
+$mode = "docs"
+root = Stack([go, ask])
+docsStep = @OpenUrl("https://openui.com")
+go = Button("Go", docsStep)
+ask = Button("Ask", $mode == "docs" ? @ToAssistant("Docs please") : null)

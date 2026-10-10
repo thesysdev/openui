@@ -1,0 +1,18 @@
+{
+  "//": "Cases that fail on release/openui-1.0 b9351c0a5, with the reason. Runners report them but do not fail on them. `#steps` marks the steps.json part run by react-lang. Remove an id once it passes.",
+  "grammar/001-fence-line-start": "A fence opens at any triple backtick, not only at the start of a line (1.2).",
+  "grammar/002-fence-prose-quote": "A double quote in prose hides the fence opener (1.2).",
+  "grammar/007-statement-multiline-ternary": "`a ? b :` followed by a newline ends the statement and loses the else branch (1.4 rule 3).",
+  "grammar/009-member-digits-index": "`m.0.1` lexes as a decimal and plucks, instead of m[0][1] (1.5).",
+  "entry/003-first-not-root-component": "With no entry, no value statement is reported as an orphan (2.3).",
+  "entry/005-first-is-state-declaration": "A later component statement renders as a fallback entry; no fatal no-root (2.2).",
+  "streaming/002-final-redefinition-needs-closing": "No end of stream: a final redefinition that needs implicit closing is discarded (4 rule 7).",
+  "streaming/004-ternary-else-across-chunks": "`a ? b :` followed by a newline ends the statement, in both parsers (1.4 rule 3).",
+  "evaluation/002-ref-array-unresolved": "An unresolved reference is kept in an array inside a computed expression, so @Count gives 2 (2.3).",
+  "evaluation/008-builtin-sort-code-point": "@Sort compares strings with localeCompare, not by code point (3.4).",
+  "evaluation/009-each-nested-shadowing": "A nested @Each with the same variable does not shadow the outer one (3.5).",
+  "editing/003-state-set-null": "A `$x = null` patch deletes the state declaration instead of keeping it with default null (7).",
+  "editing/004-multiline-ternary-patch": "The merge splits a multi-line ternary at its newlines (7).",
+  "editing/007-redefinition-in-existing": "A name defined twice in the existing program stays duplicated after the merge (2.4, 7).",
+  "actions/005-query-args-references#steps": "A reference in Query args is sent as null (6.1)."
+}

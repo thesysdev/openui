@@ -1,0 +1,63 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Button",
+          "props": {
+            "label": "Bump",
+            "action": {
+              "action": [
+                {
+                  "step": "Set",
+                  "args": [
+                    "$m",
+                    9
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "label": "Go",
+            "action": {
+              "action": [
+                {
+                  "step": "Set",
+                  "args": [
+                    "$n",
+                    5
+                  ]
+                },
+                {
+                  "step": "Reset",
+                  "args": [
+                    "$m"
+                  ]
+                },
+                {
+                  "step": "ToAssistant",
+                  "args": [
+                    "done"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "state": {
+    "$n": 1,
+    "$m": 7
+  }
+}

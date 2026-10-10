@@ -1,0 +1,56 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Table",
+          "props": {
+            "columns": [
+              {
+                "type": "Col",
+                "props": {
+                  "label": "coerce",
+                  "data": [
+                    10,
+                    0,
+                    2,
+                    1,
+                    "a",
+                    true,
+                    true,
+                    false
+                  ]
+                }
+              },
+              {
+                "type": "Col",
+                "props": {
+                  "label": "op",
+                  "data": [
+                    0,
+                    0,
+                    "a1",
+                    "3x",
+                    "fallback",
+                    0,
+                    true,
+                    -3,
+                    true
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "state": {
+    "$u": null
+  }
+}

@@ -1,0 +1,2 @@
+root = Stack([header, Card("Details", [Text("Body", "body"), Tag("new", "green")])], "column")
+header = Text("Title", "heading")

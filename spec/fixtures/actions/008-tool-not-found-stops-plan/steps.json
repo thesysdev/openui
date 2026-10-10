@@ -1,0 +1,11 @@
+{
+  "steps": [
+    {
+      "click": "create"
+    }
+  ],
+  "expected": {
+    "events": [],
+    "toolCalls": []
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        { "type": "Text", "props": { "text": "2" } },
+        { "type": "Text", "props": { "text": "3" } }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "statements": ["root", "a", "b"]
+}

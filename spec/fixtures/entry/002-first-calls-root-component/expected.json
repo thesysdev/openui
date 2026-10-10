@@ -1,0 +1,23 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "Orders"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "code": "no-root"
+    }
+  ],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

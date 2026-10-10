@@ -1,0 +1,36 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Input",
+          "props": {
+            "name": "note",
+            "placeholder": "Note"
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "label": "Send",
+            "action": {
+              "action": [
+                {
+                  "step": "ToAssistant",
+                  "args": [
+                    "Send"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

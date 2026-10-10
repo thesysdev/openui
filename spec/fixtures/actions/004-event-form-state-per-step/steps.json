@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "click": "send"
+    }
+  ],
+  "expected": {
+    "events": [
+      {
+        "type": "continue_conversation",
+        "humanFriendlyMessage": "Send",
+        "formState": {
+          "$note": "new"
+        }
+      }
+    ],
+    "state": {
+      "$note": "new"
+    }
+  }
+}

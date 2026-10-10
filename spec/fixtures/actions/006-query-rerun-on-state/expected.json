@@ -1,0 +1,33 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Input",
+          "props": {
+            "name": "status",
+            "placeholder": "Status",
+            "value": {
+              "$binding": "$status"
+            }
+          }
+        },
+        {
+          "type": "Metric",
+          "props": {
+            "label": "Tickets",
+            "value": 0
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "state": {
+    "$status": "open"
+  }
+}

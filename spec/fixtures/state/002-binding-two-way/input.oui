@@ -1,0 +1,3 @@
+$query = ""
+root = Stack([search, Text("You typed: " + $query)])
+search = Input("search", "Search", $query)

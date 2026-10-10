@@ -1,0 +1,31 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Table",
+          "props": {
+            "columns": [
+              {
+                "type": "Col",
+                "props": {
+                  "label": "d",
+                  "data": [
+                    2,
+                    3,
+                    4
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

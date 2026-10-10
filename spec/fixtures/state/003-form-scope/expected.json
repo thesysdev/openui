@@ -1,0 +1,44 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Form",
+          "props": {
+            "name": "contact",
+            "children": [
+              {
+                "type": "Input",
+                "props": {
+                  "name": "email",
+                  "placeholder": "Email"
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "label": "Send",
+                  "action": {
+                    "action": [
+                      {
+                        "step": "ToAssistant",
+                        "args": [
+                          "Send"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

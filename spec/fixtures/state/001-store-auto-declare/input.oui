@@ -1,0 +1,2 @@
+$v = "x"
+root = Stack([Text($name == null ? "anon" : $name), Text($v)])

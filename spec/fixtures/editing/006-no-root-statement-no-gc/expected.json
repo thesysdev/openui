@@ -1,0 +1,30 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "A"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "code": "no-root"
+    }
+  ],
+  "unresolved": [],
+  "orphans": [
+    "x"
+  ],
+  "incomplete": false,
+  "statements": [
+    "page",
+    "a",
+    "x"
+  ]
+}

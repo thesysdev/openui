@@ -1,0 +1,2 @@
+root = Stack([Table([c])]);
+c = Col("n", [1 -2, 3, 4 - 1, -5])

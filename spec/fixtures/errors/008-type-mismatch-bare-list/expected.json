@@ -1,0 +1,24 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Card",
+          "props": {
+            "title": "T"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "code": "type-mismatch",
+      "statementId": "card"
+    }
+  ],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

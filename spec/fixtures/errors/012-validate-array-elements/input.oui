@@ -1,0 +1,1 @@
+root = Stack([Text("a"), Chart(1), null, missing])

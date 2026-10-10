@@ -1,0 +1,24 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Tag",
+          "props": {
+            "text": "x"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "code": "type-mismatch",
+      "statementId": "t"
+    }
+  ],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

@@ -1,0 +1,52 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Button",
+          "props": {
+            "label": "Save",
+            "action": {
+              "action": [
+                {
+                  "step": "ToAssistant",
+                  "args": [
+                    "Save order",
+                    {
+                      "orderId": 42,
+                      "tags": [
+                        "rush"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "label": "Zero",
+            "action": {
+              "action": [
+                {
+                  "step": "ToAssistant",
+                  "args": [
+                    "Pick zero",
+                    0
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

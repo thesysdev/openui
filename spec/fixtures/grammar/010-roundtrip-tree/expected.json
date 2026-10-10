@@ -1,0 +1,43 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "Title",
+            "variant": "heading"
+          }
+        },
+        {
+          "type": "Card",
+          "props": {
+            "title": "Details",
+            "children": [
+              {
+                "type": "Text",
+                "props": {
+                  "text": "Body",
+                  "variant": "body"
+                }
+              },
+              {
+                "type": "Tag",
+                "props": {
+                  "text": "new",
+                  "color": "green"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "direction": "column"
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

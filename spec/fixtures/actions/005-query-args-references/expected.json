@@ -1,0 +1,25 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Metric",
+          "props": {
+            "label": "Tickets",
+            "value": 0
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [
+    "pageSize"
+  ],
+  "incomplete": false,
+  "state": {
+    "$status": "open"
+  }
+}

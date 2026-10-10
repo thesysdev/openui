@@ -1,0 +1,57 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Table",
+          "props": {
+            "columns": [
+              {
+                "type": "Col",
+                "props": {
+                  "label": "v",
+                  "data": [
+                    5,
+                    6,
+                    3,
+                    5,
+                    true,
+                    "ok",
+                    1,
+                    9
+                  ]
+                }
+              },
+              {
+                "type": "Col",
+                "props": {
+                  "label": "o",
+                  "data": [
+                    {
+                      "2": "two",
+                      "name": "x",
+                      "quoted key": 1,
+                      "s": 3,
+                      "Card": 4
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "text": "end"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

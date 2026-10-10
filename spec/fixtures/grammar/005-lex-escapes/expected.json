@@ -1,0 +1,31 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "q\"d\\b\ttA"
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "text": "it's"
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "text": "x\ny"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

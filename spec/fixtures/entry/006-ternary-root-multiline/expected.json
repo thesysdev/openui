@@ -1,0 +1,15 @@
+{
+  "root": {
+    "type": "Card",
+    "props": {
+      "title": "Light"
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "state": {
+    "$dark": false
+  }
+}

@@ -1,0 +1,2 @@
+root = Stack([t])
+t = Text(@Nope(1) == null ? "was null" : "not null")

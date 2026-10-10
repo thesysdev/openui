@@ -1,0 +1,27 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "a"
+          }
+        },
+        null
+      ]
+    }
+  },
+  "errors": [
+    {
+      "code": "unknown-component",
+      "statementId": "root"
+    }
+  ],
+  "unresolved": [
+    "missing"
+  ],
+  "orphans": [],
+  "incomplete": false
+}

@@ -1,0 +1,38 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Button",
+          "props": {
+            "label": "Create",
+            "action": {
+              "action": [
+                {
+                  "step": "Run",
+                  "args": [
+                    "newTicket"
+                  ]
+                },
+                {
+                  "step": "ToAssistant",
+                  "args": [
+                    "Created"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false,
+  "state": {
+    "$title": "Bug"
+  }
+}

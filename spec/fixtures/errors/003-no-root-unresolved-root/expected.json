@@ -1,0 +1,15 @@
+{
+  "root": null,
+  "errors": [
+    {
+      "code": "no-root"
+    }
+  ],
+  "unresolved": [
+    "main"
+  ],
+  "orphans": [
+    "other"
+  ],
+  "incomplete": false
+}

@@ -1,0 +1,47 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "Count: 2"
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "label": "Go",
+            "action": {
+              "action": [
+                {
+                  "step": "Set",
+                  "args": [
+                    "$count",
+                    3
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "text": "null"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [
+    "unused"
+  ],
+  "incomplete": false,
+  "state": {
+    "$count": 2
+  }
+}

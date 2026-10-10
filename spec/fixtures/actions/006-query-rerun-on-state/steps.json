@@ -1,0 +1,36 @@
+{
+  "steps": [
+    {
+      "tool": "listTickets",
+      "result": {
+        "rows": []
+      }
+    },
+    {
+      "type": [
+        "filter",
+        "closed"
+      ]
+    }
+  ],
+  "expected": {
+    "events": [],
+    "state": {
+      "$status": "closed"
+    },
+    "toolCalls": [
+      {
+        "tool": "listTickets",
+        "args": {
+          "status": "open"
+        }
+      },
+      {
+        "tool": "listTickets",
+        "args": {
+          "status": "closed"
+        }
+      }
+    ]
+  }
+}

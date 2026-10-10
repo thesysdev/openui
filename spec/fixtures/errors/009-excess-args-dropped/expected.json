@@ -1,0 +1,25 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "a",
+            "variant": "body"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "code": "excess-args",
+      "statementId": "t"
+    }
+  ],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

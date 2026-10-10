@@ -1,0 +1,6 @@
+[
+  "root = Stack([header, kpis])\nheader = Te",
+  "xt(\"Tickets\", \"heading\")\nkpis = Stack([open",
+  ", closed])\nopen = Metric(\"Open\", @Count(@Filter(tickets.rows, \"status\", \"==\", \"open\")))\n",
+  "closed = Metric(\"Closed\", 8)\ntickets = Query(\"listTickets\", {}, { rows: [] })\n"
+]

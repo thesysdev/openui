@@ -1,0 +1,254 @@
+{
+  "id": "fixtures",
+  "version": "1.0.0",
+  "root": "Stack",
+  "schema": {
+    "properties": {
+      "Stack": { "$ref": "#/$defs/Stack" },
+      "Card": { "$ref": "#/$defs/Card" },
+      "Text": { "$ref": "#/$defs/Text" },
+      "Tag": { "$ref": "#/$defs/Tag" },
+      "Metric": { "$ref": "#/$defs/Metric" },
+      "Button": { "$ref": "#/$defs/Button" },
+      "Form": { "$ref": "#/$defs/Form" },
+      "Input": { "$ref": "#/$defs/Input" },
+      "Select": { "$ref": "#/$defs/Select" },
+      "SelectItem": { "$ref": "#/$defs/SelectItem" },
+      "Table": { "$ref": "#/$defs/Table" },
+      "Col": { "$ref": "#/$defs/Col" }
+    },
+    "$defs": {
+      "Stack": {
+        "type": "object",
+        "description": "Lays out children in a column or a row",
+        "properties": {
+          "children": { "type": "array", "items": { "anyOf": [{ "$ref": "#/$defs/Stack" }, { "$ref": "#/$defs/Card" }, { "$ref": "#/$defs/Text" }, { "$ref": "#/$defs/Tag" }, { "$ref": "#/$defs/Metric" }, { "$ref": "#/$defs/Button" }, { "$ref": "#/$defs/Form" }, { "$ref": "#/$defs/Input" }, { "$ref": "#/$defs/Select" }, { "$ref": "#/$defs/SelectItem" }, { "$ref": "#/$defs/Table" }, { "$ref": "#/$defs/Col" }] } },
+          "direction": { "type": "string", "enum": ["row", "column"] }
+        },
+        "required": ["children"]
+      },
+      "Card": {
+        "type": "object",
+        "description": "A titled container",
+        "properties": {
+          "title": { "type": "string" },
+          "children": { "type": "array", "items": { "anyOf": [{ "$ref": "#/$defs/Stack" }, { "$ref": "#/$defs/Card" }, { "$ref": "#/$defs/Text" }, { "$ref": "#/$defs/Tag" }, { "$ref": "#/$defs/Metric" }, { "$ref": "#/$defs/Button" }, { "$ref": "#/$defs/Form" }, { "$ref": "#/$defs/Input" }, { "$ref": "#/$defs/Select" }, { "$ref": "#/$defs/SelectItem" }, { "$ref": "#/$defs/Table" }, { "$ref": "#/$defs/Col" }] } }
+        },
+        "required": ["title"]
+      },
+      "Text": {
+        "type": "object",
+        "description": "A run of text",
+        "properties": {
+          "text": { "type": "string" },
+          "variant": { "type": "string", "enum": ["body", "heading"] }
+        },
+        "required": ["text"]
+      },
+      "Tag": {
+        "type": "object",
+        "description": "A small colored label",
+        "properties": {
+          "text": { "type": "string" },
+          "color": { "type": "string", "enum": ["gray", "green", "red"] }
+        },
+        "required": ["text"]
+      },
+      "Metric": {
+        "type": "object",
+        "description": "A labeled number",
+        "properties": {
+          "label": { "type": "string" },
+          "value": { "type": "number" }
+        },
+        "required": ["label", "value"]
+      },
+      "Button": {
+        "type": "object",
+        "description": "A clickable button",
+        "properties": {
+          "label": { "type": "string" },
+          "action": { "$ref": "#/$defs/ActionExpression" },
+          "variant": { "type": "string", "enum": ["primary", "secondary"] },
+          "share": { "anyOf": [{ "$ref": "#/$defs/CopyToClipboard" }, { "$ref": "#/$defs/OpenUrl" }] }
+        },
+        "required": ["label"]
+      },
+      "Form": {
+        "type": "object",
+        "description": "Groups its inputs under a form name",
+        "properties": {
+          "name": { "type": "string" },
+          "children": { "type": "array", "items": { "anyOf": [{ "$ref": "#/$defs/Stack" }, { "$ref": "#/$defs/Card" }, { "$ref": "#/$defs/Text" }, { "$ref": "#/$defs/Tag" }, { "$ref": "#/$defs/Metric" }, { "$ref": "#/$defs/Button" }, { "$ref": "#/$defs/Form" }, { "$ref": "#/$defs/Input" }, { "$ref": "#/$defs/Select" }, { "$ref": "#/$defs/SelectItem" }, { "$ref": "#/$defs/Table" }, { "$ref": "#/$defs/Col" }] } }
+        },
+        "required": ["name", "children"]
+      },
+      "Input": {
+        "type": "object",
+        "description": "A text field",
+        "properties": {
+          "name": { "type": "string" },
+          "placeholder": { "type": "string" },
+          "value": { "type": "string" },
+          "rules": { "type": "object" }
+        },
+        "required": ["name"]
+      },
+      "Select": {
+        "type": "object",
+        "description": "A dropdown",
+        "properties": {
+          "name": { "type": "string" },
+          "items": { "type": "array", "items": { "$ref": "#/$defs/SelectItem" } },
+          "value": { "type": "string" }
+        },
+        "required": ["name", "items"]
+      },
+      "SelectItem": {
+        "type": "object",
+        "description": "One option of a Select",
+        "properties": {
+          "value": { "type": "string" },
+          "label": { "type": "string" }
+        },
+        "required": ["value", "label"]
+      },
+      "Table": {
+        "type": "object",
+        "description": "A table built from columns",
+        "properties": {
+          "columns": { "type": "array", "items": { "$ref": "#/$defs/Col" } }
+        },
+        "required": ["columns"]
+      },
+      "Col": {
+        "type": "object",
+        "description": "One table column: a header and its cell values",
+        "properties": {
+          "label": { "type": "string" },
+          "data": { "type": "array" }
+        },
+        "required": ["label"]
+      },
+      "ActionExpression": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": { "type": { "type": "string", "const": "open_url" }, "url": { "type": "string" } },
+            "required": ["type", "url"]
+          },
+          {
+            "type": "object",
+            "properties": { "type": { "type": "string", "const": "continue_conversation" }, "context": { "type": "string" } },
+            "required": ["type"]
+          },
+          {
+            "type": "object",
+            "properties": { "type": { "type": "string" }, "params": { "type": "object" } },
+            "required": ["type"]
+          }
+        ]
+      },
+      "OpenUrl": {
+        "type": "object",
+        "properties": { "type": { "type": "string", "const": "open_url" }, "url": { "type": "string" } },
+        "required": ["type", "url"]
+      },
+      "CopyToClipboard": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "const": "CopyToClipboard" },
+          "params": { "type": "object", "properties": { "text": { "type": "string" } }, "required": ["text"] }
+        },
+        "required": ["type", "params"]
+      }
+    },
+    "functions": {
+      "Upper": {
+        "description": "The text in upper case",
+        "params": {
+          "type": "object",
+          "properties": {
+            "text": { "type": "string" }
+          },
+          "required": ["text"]
+        },
+        "returns": { "type": "string" }
+      }
+    },
+    "actions": {
+      "CopyToClipboard": {
+        "description": "Copies text to the clipboard",
+        "params": {
+          "type": "object",
+          "properties": {
+            "text": { "type": "string" }
+          },
+          "required": ["text"]
+        }
+      }
+    }
+  },
+  "components": {
+    "Stack": {
+      "signature": "Stack(children: any[], direction?: \"row\" | \"column\")",
+      "description": "Lays out children in a column or a row"
+    },
+    "Card": {
+      "signature": "Card(title: string, children?: any[])",
+      "description": "A titled container"
+    },
+    "Text": {
+      "signature": "Text(text: string, variant?: \"body\" | \"heading\")",
+      "description": "A run of text"
+    },
+    "Tag": {
+      "signature": "Tag(text: string, color?: \"gray\" | \"green\" | \"red\")",
+      "description": "A small colored label"
+    },
+    "Metric": {
+      "signature": "Metric(label: string, value: number)",
+      "description": "A labeled number"
+    },
+    "Button": {
+      "signature": "Button(label: string, action?: ActionExpression, variant?: \"primary\" | \"secondary\", share?: @CopyToClipboard | @OpenUrl)",
+      "description": "A clickable button"
+    },
+    "Form": {
+      "signature": "Form(name: string, children: any[])",
+      "description": "Groups its inputs under a form name"
+    },
+    "Input": {
+      "signature": "Input(name: string, placeholder?: string, value?: $binding<string>, rules?: {})",
+      "description": "A text field"
+    },
+    "Select": {
+      "signature": "Select(name: string, items: any[], value?: $binding<string>)",
+      "description": "A dropdown"
+    },
+    "SelectItem": {
+      "signature": "SelectItem(value: string, label: string)",
+      "description": "One option of a Select"
+    },
+    "Table": {
+      "signature": "Table(columns: any[])",
+      "description": "A table built from columns"
+    },
+    "Col": {
+      "signature": "Col(label: string, data?: any[])",
+      "description": "One table column: a header and its cell values"
+    }
+  },
+  "functions": {
+    "Upper": {
+      "signature": "Upper(text: string) → string",
+      "description": "The text in upper case"
+    }
+  },
+  "actions": {
+    "CopyToClipboard": {
+      "signature": "CopyToClipboard(text: string)",
+      "description": "Copies text to the clipboard"
+    }
+  }
+}

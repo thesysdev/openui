@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "click": "go"
+    },
+    {
+      "click": "ask"
+    }
+  ],
+  "expected": {
+    "events": [
+      {
+        "type": "open_url",
+        "humanFriendlyMessage": "",
+        "params": {
+          "url": "https://openui.com"
+        }
+      },
+      {
+        "type": "continue_conversation",
+        "humanFriendlyMessage": "Docs please"
+      }
+    ]
+  }
+}

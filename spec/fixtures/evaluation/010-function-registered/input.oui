@@ -1,0 +1,1 @@
+root = Stack([Text(@Upper("hi")), Text(@Count([1, 2]) + "")])

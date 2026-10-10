@@ -1,0 +1,4 @@
+root = Stack([a, b, c])
+a = Text("q\"d\\b\tt\u0041")
+b = Text('it\'s')
+c = Text('x\ny')

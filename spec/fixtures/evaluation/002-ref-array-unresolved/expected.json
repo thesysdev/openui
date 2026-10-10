@@ -1,0 +1,35 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Text",
+          "props": {
+            "text": "Hello"
+          }
+        },
+        {
+          "type": "Metric",
+          "props": {
+            "label": "count",
+            "value": 1
+          }
+        },
+        {
+          "type": "Text",
+          "props": {
+            "text": "Hello"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [
+    "b",
+    "missing"
+  ],
+  "orphans": [],
+  "incomplete": false
+}

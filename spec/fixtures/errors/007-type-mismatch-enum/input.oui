@@ -1,0 +1,2 @@
+root = Stack([t])
+t = Tag("x", "purple")

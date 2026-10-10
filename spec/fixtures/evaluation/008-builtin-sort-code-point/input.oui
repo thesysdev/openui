@@ -1,0 +1,3 @@
+root = Stack([Table([s])])
+rows = [{n: 1, id: "a"}, {n: 3, id: "b"}, {n: 2, id: "c"}]
+s = Col("sorted", [@Sort(["b", "B", "a", "é", "Z"], ""), @Sort(["10", "9", "100"], ""), @Sort(rows, "n", "desc"), @Sort("x", ""), @Sort([{k: "b"}, {k: null}, {k: "a"}], "k")])

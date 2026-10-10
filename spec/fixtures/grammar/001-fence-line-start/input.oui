@@ -1,0 +1,4 @@
+Here is the UI. Inline code like ```x = 1``` does not open a fence.
+```openui-lang
+root = Stack([Text("Hi")])
+```

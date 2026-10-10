@@ -1,0 +1,67 @@
+{
+  "root": {
+    "type": "Stack",
+    "props": {
+      "children": [
+        {
+          "type": "Button",
+          "props": {
+            "label": "Copy",
+            "action": {
+              "action": [
+                {
+                  "step": "CopyToClipboard",
+                  "args": [
+                    "hello"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "label": "Both",
+            "action": {
+              "action": [
+                {
+                  "step": "CopyToClipboard",
+                  "args": [
+                    "a b"
+                  ]
+                },
+                {
+                  "step": "ToAssistant",
+                  "args": [
+                    "Copied"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "Button",
+          "props": {
+            "label": "Share",
+            "share": {
+              "action": [
+                {
+                  "step": "CopyToClipboard",
+                  "args": [
+                    "link"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "unresolved": [],
+  "orphans": [],
+  "incomplete": false
+}

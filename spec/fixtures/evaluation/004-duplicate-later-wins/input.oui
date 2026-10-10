@@ -1,0 +1,3 @@
+root = Stack([t])
+t = Text("first")
+t = Text("second")
