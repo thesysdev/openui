@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
 import { createLibrary, defineComponent, defineFunction } from "../../library";
+import { parseExpression } from "../../parser/expressions";
+import { tokenize } from "../../parser/lexer";
 import { createParser, createStreamingParser } from "../../parser/parser";
 import type { ElementNode, OpenUIError } from "../../parser/types";
 import { evaluateElementProps } from "../evaluate-tree";
+import { evaluate } from "../evaluator";
 
 const Text = defineComponent({
   name: "Text",
@@ -89,6 +92,13 @@ describe("library functions", () => {
     const stream = createStreamingParser(schema, "Text");
     expect(evalRoot(stream.push("root = Text(@Percent(1").root!).value).toBe("1.0%");
     expect(evalRoot(stream.push("2, 4))").root!).value).toBe("300.0%");
+  });
+
+  it("take positional args from an AST made by parseExpression() alone", () => {
+    const ctx = { getState: () => undefined, resolveRef: () => null, functions };
+    const evalSource = (src: string) => evaluate(parseExpression(tokenize(src)), ctx);
+    expect(evalSource("@Sum([1, 2, 3])")).toBe(6);
+    expect(evalSource("@Percent(1, 4)")).toBe("25.0%");
   });
 
   it("reject a name taken by a built-in or a component", () => {
