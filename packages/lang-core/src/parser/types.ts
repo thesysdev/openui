@@ -1,10 +1,12 @@
 import type { ASTNode } from "./ast";
 
 export type JSONSchemaProperty = Record<string, unknown>;
+/** A JSON Schema object; other keywords (e.g. the `anyOf` of `ActionExpression`) pass through. */
 export type JSONSchemaDef = {
   properties?: JSONSchemaProperty;
   required?: string[];
   description?: string;
+  [keyword: string]: unknown;
 };
 
 /** A function's params and return value as JSON Schema. */
