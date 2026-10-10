@@ -301,9 +301,11 @@ function RendererRoot<L extends Library = Library>({
     }),
     [isQueryLoading, queryErrors, retryQueries],
   );
+  // Keyed on the evaluated result, not its root: a static tree keeps the same root
+  // when form state changes, and fields read their values while rendering.
   const value = useMemo(
     () => ({ root: result?.root ?? null, query, queryLoader }),
-    [result?.root, query, queryLoader],
+    [result, query, queryLoader],
   );
 
   return (
