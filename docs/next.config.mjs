@@ -46,10 +46,21 @@ const config = {
         destination: "/cookbooks/conversational-analytics",
         permanent: false,
       },
-      // Cookbooks, Examples, and Demos moved from /docs to their own top-level paths.
+      // Cookbooks and Demos moved from /docs to their own top-level paths.
       {
-        source: "/docs/:section(cookbooks|examples|demos)/:path*",
+        source: "/docs/:section(cookbooks|demos)/:path*",
         destination: "/:section/:path*",
+        permanent: true,
+      },
+      // The Examples tab is now Integrations, under /docs.
+      {
+        source: "/examples",
+        destination: "/docs/integrations",
+        permanent: true,
+      },
+      {
+        source: "/docs/examples",
+        destination: "/docs/integrations",
         permanent: true,
       },
       {
@@ -160,11 +171,6 @@ const config = {
       {
         source: "/docs/build-agents/backend-setup",
         destination: "/docs/build-agents/ui-generation",
-        permanent: true,
-      },
-      {
-        source: "/docs/integrations",
-        destination: "/docs/build-agents",
         permanent: true,
       },
       ...["assistant-ui", "copilotkit"].map((integration) => ({
@@ -366,12 +372,12 @@ const config = {
         destination: "/llms.mdx/docs/:path*",
       },
       {
-        source: "/:section(cookbooks|examples|demos)/:path*.mdx",
+        source: "/:section(cookbooks|demos)/:path*.mdx",
         destination: "/llms.mdx/docs/:section/:path*",
       },
       {
-        source: "/:section(examples|demos).mdx",
-        destination: "/llms.mdx/docs/:section",
+        source: "/demos.mdx",
+        destination: "/llms.mdx/docs/demos",
       },
     ];
   },

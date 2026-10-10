@@ -193,13 +193,16 @@ describe("nested docs navigation", () => {
       },
       {
         type: "folder",
-        name: "Examples",
+        name: "Integrations",
         root: true,
-        $ref: { folder: "examples" },
+        $ref: { folder: "integrations" },
         children: [
-          { type: "page", name: "Featured projects", url: "/examples#featured-projects" },
-          { type: "separator", name: "Community" },
-          { type: "page", name: "Community projects", url: "/examples#community-projects" },
+          {
+            type: "page",
+            name: "Agent frameworks",
+            url: "/docs/integrations#agent-frameworks",
+          },
+          { type: "page", name: "Harnesses", url: "/docs/integrations#harnesses" },
         ],
       },
       {
@@ -261,11 +264,11 @@ describe("nested docs navigation", () => {
     ],
   };
 
-  it("gives the Cookbooks, Examples, Demos, and API Reference tabs their own sidebars", () => {
+  it("gives the Cookbooks, Integrations, Demos, and API Reference tabs their own sidebars", () => {
     const tabs = [
       ["/cookbooks", "cookbooks"],
       ["/cookbooks/conversational-analytics", "cookbooks"],
-      ["/examples", "examples"],
+      ["/docs/integrations", "integrations"],
       ["/demos", "demos"],
       ["/docs/api-reference", "api-reference"],
     ] as const;
@@ -294,14 +297,17 @@ describe("nested docs navigation", () => {
         },
       ],
     });
-    assert.deepEqual(getTabTree(fullTree, "examples"), {
+    assert.deepEqual(getTabTree(fullTree, "integrations"), {
       type: "root",
-      $id: "docs:examples",
-      name: "Examples",
+      $id: "docs:integrations",
+      name: "Integrations",
       children: [
-        { type: "page", name: "Featured projects", url: "/examples#featured-projects" },
-        { type: "separator", name: "Community" },
-        { type: "page", name: "Community projects", url: "/examples#community-projects" },
+        {
+          type: "page",
+          name: "Agent frameworks",
+          url: "/docs/integrations#agent-frameworks",
+        },
+        { type: "page", name: "Harnesses", url: "/docs/integrations#harnesses" },
       ],
     });
     assert.deepEqual(getTabTree(fullTree, "api-reference"), {

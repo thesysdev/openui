@@ -85,7 +85,13 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.className} ${geistMono.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.className} ${geistMono.variable}`}
+      // Lets Next.js skip smooth scrolling on route changes; in-page anchors still scroll smoothly.
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <body className="flex flex-col min-h-screen">
         <PHProvider>
           <RootProvider theme={{ defaultTheme: "system", enableSystem: true }}>

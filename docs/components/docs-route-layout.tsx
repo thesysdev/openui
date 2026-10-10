@@ -111,10 +111,12 @@ function NestedSidebarHeader({ root }: { root: NestedDocsRoot }) {
 
 type DocsRouteLayoutProps = {
   tree: React.ComponentProps<typeof DocsLayout>["tree"];
+  /** URLs of pages with `sidebar: false` in their frontmatter. */
+  noSidebarUrls: string[];
   children: ReactNode;
 };
 
-export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
+export function DocsRouteLayout({ tree, noSidebarUrls, children }: DocsRouteLayoutProps) {
   const pathname = usePathname();
   const [sidebarOverride, setSidebarOverride] = useState<SidebarModeOverride>();
   const sidebarMode = getSidebarModeForPathname(pathname, sidebarOverride);
@@ -131,8 +133,7 @@ export function DocsRouteLayout({ tree, children }: DocsRouteLayoutProps) {
   const navigationContext = useMemo(() => ({ enterNested, showGlobal }), [enterNested, showGlobal]);
 
   const nestedRoot = sidebarMode.kind === "nested" ? sidebarMode.root : undefined;
-  // Demos is a single page of cards, so it has no sidebar.
-  const hasSidebar = sidebarMode.kind !== "demos";
+  const hasSidebar = !noSidebarUrls.includes(pathname);
   const tabFolder =
     sidebarMode.kind === "global" || sidebarMode.kind === "nested" ? undefined : sidebarMode.kind;
   const activeTree = useMemo(() => {
