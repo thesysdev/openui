@@ -369,7 +369,7 @@ Fixtures: none in `spec/fixtures/`.
 
 A section body starts on the line after its marker and runs up to the next marker line, or to the end of the message. The newline just before the next marker line is not part of the body.
 
-In a stored message, a missing `end` line means the stream died before it finished.
+In a stored message, a missing `end` line means the stream died before it finished. A reader still renders the content.
 
 The reference chat client stores `[formState]` as the context of an assistant turn, and the array in section 6.3 for a user turn. That is its own usage, not a shape OpenUI requires.
 
