@@ -3,7 +3,7 @@ title: What's New in 1.0
 description: Custom functions and actions, single-step actions, library.extend, the message format, and the entry rule.
 ---
 
-OpenUI Lang 1.0 adds ways for a library to grow (custom functions, custom actions, `library.extend`), a message format for streaming and storing responses, and a clear rule for where a program starts. It also makes actions shorter to write. Programs written for 0.5 keep working, with the exceptions listed in [Migrating to 1.0](/docs/openui-lang/migrating-to-1-0).
+OpenUI Lang 1.0 adds ways for a library to grow (custom functions, custom actions, `library.extend`), a message format for streaming and storing responses, and a clear rule for where a program starts. It also makes actions shorter to write. Most programs written for 0.5 keep working. See [Upgrading](#upgrading) for what changes.
 
 ## Custom functions
 
@@ -76,17 +76,21 @@ See [Action Expressions](/docs/openui-lang/action-expressions#action-props-in-yo
 
 ## `library.extend`
 
-Derive a library from an existing one and add components, functions, and actions:
+Derive a library from an existing one. Add, override, or remove components, and add functions and actions:
 
 ```ts
 const shopLibrary = openuiChatLibrary.extend({
-  components: { add: [ProductCard] },
+  components: {
+    add: [{ component: ProductCard, slots: ["Card"] }],
+    override: [CodeBlock],
+    remove: ["RadarChart"],
+  },
   functions: { add: [formatCurrency] },
   actions: { add: [addToCart] },
 });
 ```
 
-In 1.0, `extend` only adds. Overriding and removing are not supported yet. See [Extending a Library](/docs/openui-lang/extending-libraries).
+The derived library has no `id`. Create it once at module scope. See [Extending a Library](/docs/openui-lang/extending-libraries).
 
 ## Message format
 
@@ -117,3 +121,29 @@ The entry is the `root` statement. Without one, the first statement after the de
 ## Renderer support
 
 The React renderer (`@openuidev/react-lang`) supports everything on this page. The Vue, Svelte, and Angular renderers get the entry rule and the new error codes, but not custom functions, custom actions, or entries that pick a component at runtime.
+
+## Upgrading
+
+Upgrade `@openuidev/lang-core` and `@openuidev/react-lang` together, and ship the server that generates your system prompt at the same time. A 1.0 prompt teaches one action step without a wrapper, such as `@ToAssistant("Hi")`, and a 0.3 client does not run it. Then regenerate any prompt or spec files you keep, for example the output of `openui generate`.
+
+| Package                                                                     | Version |
+| :-------------------------------------------------------------------------- | :------ |
+| `lang-core`, `react-lang`                                                   | 1.0.0   |
+| `vue-lang`, `svelte-lang`, `angular-lang`, `a2ui`                           | 0.4.0   |
+| `react-ui`, `react-headless`                                                | 0.18.0  |
+| `devtools`                                                                  | 0.3.0   |
+| `assistant-ui`                                                              | 0.2.0   |
+| `react-email`                                                               | 0.4.0   |
+| `server`                                                                    | 0.2.0   |
+
+What changes for existing apps:
+
+- A program without `root` renders only when its first statement after the declarations calls the library's root component. In our benchmark corpus, 151 of 24,423 programs (0.6%) stop rendering because of this. See [Entry Statement](/docs/openui-lang/entry).
+- A program whose `root` statement comes last shows nothing while it streams, until the `root` line arrives. Write `root` first, as the generated prompt asks.
+- An output cut off before its `root` statement renders blank instead of a partial tree.
+- `@Card(...)` is no longer a component call. It reports `unknown-function` and evaluates to `null`.
+- The React `Renderer` reports `no-root` instead of `parse-failed` when a response has statements but no entry renders.
+- `event.params.context` on a `continue_conversation` event can be any value, not only a string.
+- `BUILTIN_NAMES`, `ACTION_NAMES`, `LAZY_BUILTINS`, and the `BuiltinDef` type are removed from `@openuidev/lang-core`. Use `isBuiltin(name)` and `BUILTINS`.
+- If a component checks whether its action prop is set, check `props.action?.steps?.length`. A step that cannot run now gives a plan with no steps instead of `null`.
+- `functions`, `actions`, and `extend` are optional on the `Library` type, so a `Library` object you build by hand still type-checks.
