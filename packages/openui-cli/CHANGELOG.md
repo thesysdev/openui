@@ -1,5 +1,13 @@
 # @openuidev/cli
 
+## 0.5.2
+
+### Patch Changes
+
+- [#1336](https://github.com/thesysdev/openui/pull/1336) [`adc0234`](https://github.com/thesysdev/openui/commit/adc023433e0ebfd4e1fd33a48b12ee8b2cace8bb) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Offer browser sign-in and API key generation when scaffolding OpenUI examples. Read the primary key and destination from the example catalog's nested `env` object, including backend `.env` files and `.env.local`, and preserve other environment settings.
+
+- [#1342](https://github.com/thesysdev/openui/pull/1342) [`9aa0771`](https://github.com/thesysdev/openui/commit/9aa077167a9788fb5c053732f01d63bae0894ec4) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Let `create --example` scaffold from other `thesysdev` GitHub repositories, and add Open Intelligent UI to the example catalog.
+
 ## 0.5.1
 
 ### Patch Changes
