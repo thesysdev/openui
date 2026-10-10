@@ -15,11 +15,11 @@
     "prepare:data": "tsx scripts/prepare-data.ts"
   },
   "dependencies": {
-    "@openuidev/lang-core": "0.3.0",
-    "@openuidev/react-headless": "0.16.3",
-    "@openuidev/react-lang": "0.3.0",
-    "@openuidev/react-ui": "0.16.3",
-    "@openuidev/server": "0.1.0",
+    "@openuidev/lang-core": "0.4.1",
+    "@openuidev/react-headless": "0.17.1",
+    "@openuidev/react-lang": "0.4.1",
+    "@openuidev/react-ui": "0.17.1",
+    "@openuidev/server": "0.2.0",
     "next": "16.2.6",
     "openai": "^6.49.0",
     "react": "19.2.4",
@@ -27,7 +27,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.4.1",
+    "@openuidev/cli": "0.5.2",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
     "@types/react-dom": "^19",

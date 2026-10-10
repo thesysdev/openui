@@ -9,20 +9,20 @@ importers:
   .:
     dependencies:
       '@openuidev/lang-core':
-        specifier: 0.3.0
-        version: 0.3.0(zod@4.6.5)
+        specifier: 0.4.1
+        version: 0.4.1(zod@4.6.5)
       '@openuidev/react-headless':
-        specifier: 0.16.3
-        version: 0.16.3(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
+        specifier: 0.17.1
+        version: 0.17.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
       '@openuidev/react-lang':
-        specifier: 0.3.0
-        version: 0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)
+        specifier: 0.4.1
+        version: 0.4.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)
       '@openuidev/react-ui':
-        specifier: 0.16.3
-        version: 0.16.3(@openuidev/react-headless@0.16.3(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
+        specifier: 0.17.1
+        version: 0.17.1(@openuidev/react-headless@0.17.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.4.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
       '@openuidev/server':
-        specifier: 0.1.0
-        version: 0.1.0(zod@4.6.5)
+        specifier: 0.2.0
+        version: 0.2.0(zod@4.6.5)
       lucide-react:
         specifier: ^0.575.0
         version: 0.575.0(react@19.2.4)
@@ -43,8 +43,8 @@ importers:
         version: 4.6.5
     devDependencies:
       '@openuidev/cli':
-        specifier: 0.4.1
-        version: 0.4.1(@types/node@22.20.4)
+        specifier: 0.5.2
+        version: 0.5.2(@types/node@22.20.4)
       '@types/node':
         specifier: ^22.15.32
         version: 22.20.4
@@ -757,23 +757,23 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@openuidev/cli@0.4.1':
-    resolution: {integrity: sha512-I8wbgc7ifPRb3N4LHZNyHtHf4eJFleQReiw2DWeiwEzbFO/2eoQ09lDTcw4w8uUxnbdP8CqyDvenlKU6gXaTgw==}
+  '@openuidev/cli@0.5.2':
+    resolution: {integrity: sha512-Fr2+CTTN3h3ytIdHLvTyBwWOFDMX9pMa89oLzjyie8dQ7RtfzroIcXV5at9lbQBqO+1aCwll3d1D3c8K/Vx3sA==}
     hasBin: true
 
-  '@openuidev/devtools@0.2.2':
-    resolution: {integrity: sha512-MAA7VsK+Ir9kanBqoPSCgkr10HVk/79BVZMaLiHc4tlnvCl6pN2Ouzl+XFy7d/41n7J27XJxC7vcuQhn2sF1Wg==}
+  '@openuidev/devtools@0.2.3':
+    resolution: {integrity: sha512-L/O4jUwSR9O+4tfI6mpYCh/eWHEucs6ssR9ZMmM0GvnF0dL809/MRBrBCGCVB3LG89gV12Rh2wWclgYhNLOgLg==}
     peerDependencies:
       '@openuidev/observability': '>=0.0.4 <0.1.0'
-      '@openuidev/react-lang': '>=0.3.0 <0.4.0'
+      '@openuidev/react-lang': '>=0.3.0 <0.5.0'
       react: ^18.3.1 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
     peerDependenciesMeta:
       '@openuidev/react-lang':
         optional: true
 
-  '@openuidev/lang-core@0.3.0':
-    resolution: {integrity: sha512-hOLvRQnsbp8hORqXcup/4MlPj5cl7ytFmxTUhYqhLzqLyMeqkGx9YG8Dca45zS+jovuDyZMESn5ejshcojEgQA==}
+  '@openuidev/lang-core@0.4.1':
+    resolution: {integrity: sha512-t9XSiORKTgyn6pWv8qqBkgD45PBhORdGWpQAHo3APvj9SYy7YprKURQgmXNu3z6E/Ds8tsLAI+AZjX3errH+jQ==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       zod: ^3.25.0 || ^4.0.0
@@ -784,8 +784,8 @@ packages:
   '@openuidev/observability@0.0.4':
     resolution: {integrity: sha512-4fjIrWu3TqTlfDE/m7cG10CH1vV7wQk5GPwMOmXeF9vJtkg92dg4Bdk3AjKgud7H7Xypwwjgt52VcLGZCE2CJQ==}
 
-  '@openuidev/react-headless@0.16.3':
-    resolution: {integrity: sha512-Fuz2A1n1z8fkDUGkUN1y9HN5i6Eac1iWfHsHe2mCK/Td+0OxEFyFEDQa2rr2xrTTrzqyR9M+6sTHJj5UrxdgkA==}
+  '@openuidev/react-headless@0.17.1':
+    resolution: {integrity: sha512-nYuwK6c+cZOLJYxfEayec9jlNRyEZZPwRGyiScc6Q3W0DjmoK9bfHcrIdCkgj1MY6GGvyb7qJfRtN5towR0TKg==}
     peerDependencies:
       ai: ^6.0.0 || ^7.0.0
       react: ^18.3.1 || ^19.0.0
@@ -794,8 +794,8 @@ packages:
       ai:
         optional: true
 
-  '@openuidev/react-lang@0.3.0':
-    resolution: {integrity: sha512-IidbqkQnTscPj7SQRPvneaihxoGv+ldq9QS0rOi70nFTYA9I5K/0ua9/kZLtUg3vZL/5wDecuKcmczjFj6qF7g==}
+  '@openuidev/react-lang@0.4.1':
+    resolution: {integrity: sha512-dO0M+TV6Wi1TXS86XjbuEnAeD6Y3DQ+cZVhpL/Q8rul3II4e8Z7J8KRlljf45XlG1AtBaWBeK3QBty+x9KdJWQ==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       react: '*'
@@ -807,19 +807,24 @@ packages:
       react-dom:
         optional: true
 
-  '@openuidev/react-ui@0.16.3':
-    resolution: {integrity: sha512-HKDqkC0DdAw/RZL3nx7M25QaUcLb6W9b/AzIQLen8ywKPZBs3pGbfQ+Fykce6OqvCB2ym5+fpnWxOW7lE6jFSA==}
+  '@openuidev/react-ui@0.17.1':
+    resolution: {integrity: sha512-t+Jc73Wjy0SKLubY6CZIwkY4tpdC3oOYtDn/NfphFukLWIS/vtTPqMRyRiUaPs3Z1ySTC0h7Awov2WRAo8PjaQ==}
     peerDependencies:
-      '@openuidev/react-headless': '>=0.14.0 <0.17.0'
-      '@openuidev/react-lang': '>=0.3.0 <0.4.0'
+      '@openuidev/react-headless': '>=0.14.0 <0.18.0'
+      '@openuidev/react-lang': '>=0.3.0 <0.5.0'
       react: ^18.3.1 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
       zod: ^3.25.0 || ^4.0.0
       zustand: ^4.5.5
 
-  '@openuidev/server@0.1.0':
-    resolution: {integrity: sha512-Cm7nejELDHw0PoPlY67C4EW6b7DYx1ZnyCYyO5J6SIs6JjSBrY7rNzrnwB3DhAf4LmgO5sN/1WiD94BdZTNLPQ==}
+  '@openuidev/server@0.2.0':
+    resolution: {integrity: sha512-ftuFyJryHNYCHepgtkNaNnmiWrMUIE446h+0QMYKoTy9+o+wS/Ws5BYXZpwUKWvvicV0qt8LucoLsXV3y/R1hg==}
     engines: {node: '>=18'}
+    peerDependencies:
+      '@langchain/core': ^1.2.3
+    peerDependenciesMeta:
+      '@langchain/core':
+        optional: true
 
   '@posthog/core@1.55.2':
     resolution: {integrity: sha512-2mYxGbDmTLUs096VbcZqSWo0lrI48/BrX65r54NynxxFq409BOx9w73HxOAtOKZ1vblkdV6/GxQTe7KDcIQidg==}
@@ -1335,33 +1340,6 @@ packages:
     resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
     engines: {node: '>=12'}
 
-  '@types/d3-array@3.2.2':
-    resolution: {integrity: sha512-hOLWVbm7uRza0BYXpIIW5pxfrKe0W+D5lrFiAEYR+pb6w3N2SwSMaJbXdUfSEv+dT4MfHBLtn5js0LAWaO6otw==}
-
-  '@types/d3-color@3.1.3':
-    resolution: {integrity: sha512-iO90scth9WAbmgv7ogoq57O9YpKmFBbmoEoCHDB2xMBY0+/KVrqAaCDyCE16dUspeOvIxFFRI+0sEtqDqy2b4A==}
-
-  '@types/d3-ease@3.0.2':
-    resolution: {integrity: sha512-NcV1JjO5oDzoK26oMzbILE6HW7uVXOHLQvHshBUW4UMdZGfiY6v5BeQwh9a9tCzv+CeefZQHJt5SRgK154RtiA==}
-
-  '@types/d3-interpolate@3.0.4':
-    resolution: {integrity: sha512-mgLPETlrpVV1YRJIglr4Ez47g7Yxjl1lj7YKsiMCb27VJH9W8NVM6Bb9d8kkpG/uAQS5AmbA48q2IAolKKo1MA==}
-
-  '@types/d3-path@3.1.1':
-    resolution: {integrity: sha512-VMZBYyQvbGmWyWVea0EHs/BwLgxc+MKi1zLDCONksozI4YJMcTt8ZEuIR4Sb1MMTE8MMW49v0IwI5+b7RmfWlg==}
-
-  '@types/d3-scale@4.0.9':
-    resolution: {integrity: sha512-dLmtwB8zkAeO/juAMfnV+sItKjlsw2lKdZVVy6LRr0cBmegxSABiLEpGVmSJJ8O08i4+sGR6qQtb6WtuwJdvVw==}
-
-  '@types/d3-shape@3.2.0':
-    resolution: {integrity: sha512-kVd74ta9eof3eJOvbNd1vGKS/XERRyQbT26Og63hIsvDO84cjD5gEOhsXf26w3FSoNlPVz84DOFcKv/oou+fMw==}
-
-  '@types/d3-time@3.0.4':
-    resolution: {integrity: sha512-yuzZug1nkAAaBlBBikKZTgzCeA+k1uy4ZFwWANOfKw5z5LRhV0gNA7gNkKm7HoK+HRN0wX3EkxGk0fpbWhmB7g==}
-
-  '@types/d3-timer@3.0.2':
-    resolution: {integrity: sha512-Ps3T8E8dZDam6fUyNiMkekK3XUsaUEik+idO9/YjPtfj2qruF8tFBXS7XhtE4iIXBLxhmLjP3SXpLhVf21I9Lw==}
-
   '@types/debug@4.1.13':
     resolution: {integrity: sha512-KSVgmQmzMwPlmtljOomayoR89W4FynCAi3E8PPs7vmDVPe84hT+vGPKkJfThkmXs0x0jAaa9U8uW8bbfyS2fWw==}
 
@@ -1488,10 +1466,6 @@ packages:
     resolution: {integrity: sha512-zg/chbXyeBtMQ1LbD/WSoW2DpC3I0mpmPdW+ynRTj/x2DAWYrIY7qeZIHidozwV24m4iavr15lNwIwLxRmOxhA==}
     engines: {node: '>=12'}
 
-  d3-ease@3.0.1:
-    resolution: {integrity: sha512-wR/XK3D3XcLIZwpbvQwQ5fK+8Ykds1ip7A2Txe0yxncXSdq1L9skcG7blcedkOX+ZcgxGAmLX1FrRGbADwzi0w==}
-    engines: {node: '>=12'}
-
   d3-format@3.1.2:
     resolution: {integrity: sha512-AJDdYOdnyRDV5b6ArilzCPPwc1ejkHcoyFarqlPqT7zRYjhavcT3uSrqcMvsgh2CgoPbK3RCwyHaVyxYcP2Arg==}
     engines: {node: '>=12'}
@@ -1508,6 +1482,10 @@ packages:
     resolution: {integrity: sha512-GZW464g1SH7ag3Y7hXjf8RoUuAFIqklOAq3MRl4OaWabTFJY9PN/E1YklhXLh+OQ3fM9yS2nOkCoS+WLZ6kvxQ==}
     engines: {node: '>=12'}
 
+  d3-selection@3.0.0:
+    resolution: {integrity: sha512-fmTRWbNMmsmWq6xJV8D19U/gw/bwrHfNXxrIN+HfZgnzqTHp9jOmKMhsTUjXOJnZOdZY9Q28y4yebKzqDKlxlQ==}
+    engines: {node: '>=12'}
+
   d3-shape@3.2.0:
     resolution: {integrity: sha512-SaLBuwGm3MOViRq2ABk3eLoxwZELpH6zhl3FbAoJ7Vm1gofKx6El1Ib5z23NUEhF9AsGl7y+dzLe5Cw2AArGTA==}
     engines: {node: '>=12'}
@@ -1518,10 +1496,6 @@ packages:
 
   d3-time@3.1.0:
     resolution: {integrity: sha512-VqKjzBLejbSMT4IgbmVgDjpkYrNWUYJnbCGo874u7MMKIWsILRX+OpX/gTk8MqjpT1A/c6HY2dCA77ZN0lkQ2Q==}
-    engines: {node: '>=12'}
-
-  d3-timer@3.0.1:
-    resolution: {integrity: sha512-ndfJ/JxxMd3nw31uyKoY2naivF+r29V+Lc0svZxe1JvvIRmi8hUsrMvdOwgS1o6uBHmiz91geQ0ylPP0aj1VUA==}
     engines: {node: '>=12'}
 
   date-fns-jalali@4.1.0-0:
@@ -1538,9 +1512,6 @@ packages:
     peerDependenciesMeta:
       supports-color:
         optional: true
-
-  decimal.js-light@2.5.1:
-    resolution: {integrity: sha512-qIMFpTMZmny+MMIitAB6D7iVPEorVw6YQRWkvarTkT4tBeSLLiHzcwj6q0MmYSFCiVpiqPJTJEYIrpcPzVEIvg==}
 
   decode-named-character-reference@1.3.0:
     resolution: {integrity: sha512-GtpQYB283KrPp6nRw50q3U9/VfOutZOe103qlN7BPP6Ad27xYnOIWv4lPzo8HCAL+mMZofJ9KEy30fq6MfaK6Q==}
@@ -1570,9 +1541,6 @@ packages:
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
-
-  dom-helpers@5.2.1:
-    resolution: {integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==}
 
   dotenv@17.4.2:
     resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
@@ -1605,15 +1573,8 @@ packages:
   estree-util-is-identifier-name@3.0.0:
     resolution: {integrity: sha512-hFtqIDZTIUZ9BXLb8y4pYGyk6+wekIivNVTcmvk8NoOh+VeRn5y6cEHzbURrWbfp1fIqdVipilzj+lfaadNZmg==}
 
-  eventemitter3@4.0.7:
-    resolution: {integrity: sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==}
-
   extend@3.0.2:
     resolution: {integrity: sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==}
-
-  fast-equals@5.4.3:
-    resolution: {integrity: sha512-8unmvA0qrfpFWBYUate9BTGtQdKHWBYt+KdAIkag7Vvxe7wz8Q2nJg7fLMC0bJqe0bjP31kca7Ckaawrs4Istg==}
-    engines: {node: '>=6.0.0'}
 
   fast-string-truncated-width@3.0.3:
     resolution: {integrity: sha512-0jjjIEL6+0jag3l2XWWizO64/aZVtpiGE3t0Zgqxv0DPuxiMjvB3M24fCyhZUO4KomJQPj3LTSUnDP3GpdwC0g==}
@@ -1730,9 +1691,6 @@ packages:
   jose@6.2.12:
     resolution: {integrity: sha512-9NiFmJEex0sy2Dk58j2UGBSHgUs2ypF9eZSu4L6vjOX3Dp96Sw1F3uL+H+D1sx02jZZdzUT0HgvCy59CuvXcWw==}
 
-  js-tokens@4.0.0:
-    resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
-
   katex@0.16.47:
     resolution: {integrity: sha512-Eeo8Ys1doU1z+x8AZsPpQu+p/QcZBI5PeOo7QGQdy2x2m0MU/hYagBbGOmXwr5KVbEfVuWv9LpnQWeehogurjg==}
     hasBin: true
@@ -1740,15 +1698,8 @@ packages:
   lodash-es@4.18.1:
     resolution: {integrity: sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A==}
 
-  lodash@4.18.1:
-    resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
-
   longest-streak@3.1.0:
     resolution: {integrity: sha512-9Ri+o0JYgehTaVBBDoMqIl8GXtbWg711O3srftcHhZ0dqnETqLaoIK0x17fUw9rFSlK/0NlsKe0Ahhyl5pXE2g==}
-
-  loose-envify@1.4.0:
-    resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
-    hasBin: true
 
   lowlight@1.20.0:
     resolution: {integrity: sha512-8Ktj+prEb1RoCPkEOrPMYUN/nCggB7qAWe3a7OpMjWQkh3l2RD5wKRQ+o8Q8YuI9RG/xs95waaI/E6ym/7NsTw==}
@@ -1947,10 +1898,6 @@ packages:
   oauth4webapi@3.8.8:
     resolution: {integrity: sha512-8N28E+a/oxfXWBgOMt+ZP/JUf/XR+IFbvkAEPP3gznXOMv9BpAAwiIj0TFNz3tGTPc0ZQ8zmWBNgN1nAys0gng==}
 
-  object-assign@4.1.1:
-    resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
-    engines: {node: '>=0.10.0'}
-
   open@10.2.0:
     resolution: {integrity: sha512-YgBpdJHPyQ2UE5x+hlSXcnejzAvD0b22U2OuAP+8OnlJT+PjWPxtgmGqKKc+RgTM63U9gN0YzrYc71R2WT/hTA==}
     engines: {node: '>=18'}
@@ -2008,9 +1955,6 @@ packages:
     resolution: {integrity: sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==}
     engines: {node: '>=6'}
 
-  prop-types@15.8.1:
-    resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
-
   property-information@7.2.0:
     resolution: {integrity: sha512-IAtzIB6sUiWaJYrX9smp3V46pBGbBeLFRGdh25kg1334VcBlD8HzhPeNIWQH9zhGmo2itIe25EHt9dQP7G5hmg==}
 
@@ -2024,12 +1968,6 @@ packages:
     resolution: {integrity: sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ==}
     peerDependencies:
       react: ^19.2.4
-
-  react-is@16.13.1:
-    resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
-
-  react-is@18.3.1:
-    resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
   react-markdown@10.1.0:
     resolution: {integrity: sha512-qKxVopLT/TyA6BX3Ue5NwabOsAzm0Q7kAPwq6L+wWDwisYs7R8vZ0nRXqq6rkueboxpkjvLGU9fWifiX/ZZFxQ==}
@@ -2057,12 +1995,6 @@ packages:
       '@types/react':
         optional: true
 
-  react-smooth@4.0.4:
-    resolution: {integrity: sha512-gnGKTpYwqL0Iii09gHobNolvX4Kiq4PKx6eWBCYYix+8cdw+cGo3do906l1NBPKkSWx1DghC1dlWG9L2uGd61Q==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-
   react-style-singleton@2.2.3:
     resolution: {integrity: sha512-b6jSvxvVnyptAiLjbkWLE/lOnR4lfTtDAl+eUC7RZy+QQWc6wRzIV2CE6xBuMmDxc2qIihtDCZD5NPOFl7fRBQ==}
     engines: {node: '>=10'}
@@ -2079,26 +2011,9 @@ packages:
     peerDependencies:
       react: '>= 0.14.0'
 
-  react-transition-group@4.4.5:
-    resolution: {integrity: sha512-pZcd1MCJoiKiBR2NRxeCRg13uCXbydPnmB4EOeRrY7480qNWO8IIgQG6zlDkm6uRMsURXPuKq0GWtiM59a5Q6g==}
-    peerDependencies:
-      react: '>=16.6.0'
-      react-dom: '>=16.6.0'
-
   react@19.2.4:
     resolution: {integrity: sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==}
     engines: {node: '>=0.10.0'}
-
-  recharts-scale@0.4.5:
-    resolution: {integrity: sha512-kivNFO+0OcUNu7jQquLXAxz1FIwZj8nrj+YkOKc5694NbjCvcT6aSZiIzNzd2Kul4o4rTto8QVR9lMNtxD4G1w==}
-
-  recharts@2.15.4:
-    resolution: {integrity: sha512-UT/q6fwS3c1dHbXv2uFgYJ9BMFHu3fwnd7AYZaEQhXuYQ4hgsxLvsUXzGdKeZrW5xopzDCvuA2N41WJ88I7zIw==}
-    engines: {node: '>=14'}
-    deprecated: 1.x and 2.x branches are no longer active. Bump to Recharts v3 to receive latest features and bugfixes. See https://github.com/recharts/recharts/wiki/3.0-migration-guide
-    peerDependencies:
-      react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   refractor@5.0.0:
     resolution: {integrity: sha512-QXOrHQF5jOpjjLfiNk5GFnWhRXvxjUVnlFxkeDmewR5sXkr3iM46Zo+CnRR8B+MDVqkULW4EcLVcRBNOPXHosw==}
@@ -2287,9 +2202,6 @@ packages:
 
   vfile@6.0.3:
     resolution: {integrity: sha512-KzIbH/9tXat2u30jf+smMwFCsno4wHVdNmzFyL+T/L3UGqqk6JKfVqOFOZEpZSHADH1k40ab6NUIXZq422ov3Q==}
-
-  victory-vendor@36.9.2:
-    resolution: {integrity: sha512-PnpQQMuxlwYdocC8fIJqVXvkeViHYzotI+NJrCuav0ZYFoq912ZHBk3mCeuj+5/VpodOjPe1z0Fk2ihgzlXqjQ==}
 
   web-namespaces@2.0.1:
     resolution: {integrity: sha512-bKr1DkiNa2krS7qxNtdrtHAmzuYGFQLiQ13TsorsdT6ULTkPLKuu5+GsFpDlg6JFjUTwX2DyhMPG2be8uPrqsQ==}
@@ -2769,7 +2681,7 @@ snapshots:
   '@next/swc-win32-x64-msvc@16.2.6':
     optional: true
 
-  '@openuidev/cli@0.4.1(@types/node@22.20.4)':
+  '@openuidev/cli@0.5.2(@types/node@22.20.4)':
     dependencies:
       '@inquirer/core': 11.2.1(@types/node@22.20.4)
       '@inquirer/prompts': 8.7.2(@types/node@22.20.4)
@@ -2785,44 +2697,44 @@ snapshots:
       - '@types/node'
       - rxjs
 
-  '@openuidev/devtools@0.2.2(@openuidev/observability@0.0.4)(@openuidev/react-lang@0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@openuidev/devtools@0.2.3(@openuidev/observability@0.0.4)(@openuidev/react-lang@0.4.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@openuidev/observability': 0.0.4
       lucide-react: 0.575.0(react@19.2.4)
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
     optionalDependencies:
-      '@openuidev/react-lang': 0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)
+      '@openuidev/react-lang': 0.4.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)
 
-  '@openuidev/lang-core@0.3.0(zod@4.6.5)':
+  '@openuidev/lang-core@0.4.1(zod@4.6.5)':
     dependencies:
       ci-info: 4.4.0
       zod: 4.6.5
 
   '@openuidev/observability@0.0.4': {}
 
-  '@openuidev/react-headless@0.16.3(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))':
+  '@openuidev/react-headless@0.17.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))':
     dependencies:
       '@ag-ui/core': 0.0.53
       '@openuidev/observability': 0.0.4
       react: 19.2.4
       zustand: 4.5.7(@types/react@19.3.0)(react@19.2.4)
 
-  '@openuidev/react-lang@0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)':
+  '@openuidev/react-lang@0.4.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)':
     dependencies:
-      '@openuidev/devtools': 0.2.2(@openuidev/observability@0.0.4)(@openuidev/react-lang@0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@openuidev/lang-core': 0.3.0(zod@4.6.5)
+      '@openuidev/devtools': 0.2.3(@openuidev/observability@0.0.4)(@openuidev/react-lang@0.4.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@openuidev/lang-core': 0.4.1(zod@4.6.5)
       '@openuidev/observability': 0.0.4
       react: 19.2.4
       zod: 4.6.5
     optionalDependencies:
       react-dom: 19.2.4(react@19.2.4)
 
-  '@openuidev/react-ui@0.16.3(@openuidev/react-headless@0.16.3(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))':
+  '@openuidev/react-ui@0.17.1(@openuidev/react-headless@0.17.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.4.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))':
     dependencies:
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@openuidev/react-headless': 0.16.3(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
-      '@openuidev/react-lang': 0.3.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)
+      '@openuidev/react-headless': 0.17.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4))
+      '@openuidev/react-lang': 0.4.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)
       '@radix-ui/react-accordion': 1.2.20(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@radix-ui/react-aspect-ratio': 1.1.15(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@radix-ui/react-checkbox': 1.3.11(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -2840,6 +2752,9 @@ snapshots:
       '@radix-ui/react-tooltip': 1.2.16(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@tanstack/react-table': 8.21.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       clsx: 2.1.1
+      d3-scale: 4.0.2
+      d3-selection: 3.0.0
+      d3-shape: 3.2.0
       date-fns: 4.4.0
       lodash-es: 4.18.1
       lucide-react: 0.562.0(react@19.2.4)
@@ -2848,7 +2763,6 @@ snapshots:
       react-dom: 19.2.4(react@19.2.4)
       react-markdown: 10.1.0(@types/react@19.3.0)(react@19.2.4)
       react-syntax-highlighter: 16.1.1(react@19.2.4)
-      recharts: 2.15.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       rehype-katex: 7.0.1
       remark-breaks: 4.0.0
       remark-emoji: 5.0.2
@@ -2863,9 +2777,9 @@ snapshots:
       - '@types/react-dom'
       - supports-color
 
-  '@openuidev/server@0.1.0(zod@4.6.5)':
+  '@openuidev/server@0.2.0(zod@4.6.5)':
     dependencies:
-      '@openuidev/lang-core': 0.3.0(zod@4.6.5)
+      '@openuidev/lang-core': 0.4.1(zod@4.6.5)
     transitivePeerDependencies:
       - '@modelcontextprotocol/sdk'
       - zod
@@ -3391,30 +3305,6 @@ snapshots:
 
   '@tanstack/table-core@8.21.3': {}
 
-  '@types/d3-array@3.2.2': {}
-
-  '@types/d3-color@3.1.3': {}
-
-  '@types/d3-ease@3.0.2': {}
-
-  '@types/d3-interpolate@3.0.4':
-    dependencies:
-      '@types/d3-color': 3.1.3
-
-  '@types/d3-path@3.1.1': {}
-
-  '@types/d3-scale@4.0.9':
-    dependencies:
-      '@types/d3-time': 3.0.4
-
-  '@types/d3-shape@3.2.0':
-    dependencies:
-      '@types/d3-path': 3.1.1
-
-  '@types/d3-time@3.0.4': {}
-
-  '@types/d3-timer@3.0.2': {}
-
   '@types/debug@4.1.13':
     dependencies:
       '@types/ms': 2.1.0
@@ -3513,8 +3403,6 @@ snapshots:
 
   d3-color@3.1.0: {}
 
-  d3-ease@3.0.1: {}
-
   d3-format@3.1.2: {}
 
   d3-interpolate@3.0.1:
@@ -3531,6 +3419,8 @@ snapshots:
       d3-time: 3.1.0
       d3-time-format: 4.1.0
 
+  d3-selection@3.0.0: {}
+
   d3-shape@3.2.0:
     dependencies:
       d3-path: 3.1.0
@@ -3543,8 +3433,6 @@ snapshots:
     dependencies:
       d3-array: 3.2.4
 
-  d3-timer@3.0.1: {}
-
   date-fns-jalali@4.1.0-0: {}
 
   date-fns@4.4.0: {}
@@ -3552,8 +3440,6 @@ snapshots:
   debug@4.4.3:
     dependencies:
       ms: 2.1.3
-
-  decimal.js-light@2.5.1: {}
 
   decode-named-character-reference@1.3.0:
     dependencies:
@@ -3578,11 +3464,6 @@ snapshots:
   devlop@1.1.0:
     dependencies:
       dequal: 2.0.3
-
-  dom-helpers@5.2.1:
-    dependencies:
-      '@babel/runtime': 7.29.7
-      csstype: 3.2.3
 
   dotenv@17.4.2: {}
 
@@ -3654,11 +3535,7 @@ snapshots:
 
   estree-util-is-identifier-name@3.0.0: {}
 
-  eventemitter3@4.0.7: {}
-
   extend@3.0.2: {}
-
-  fast-equals@5.4.3: {}
 
   fast-string-truncated-width@3.0.3: {}
 
@@ -3804,21 +3681,13 @@ snapshots:
 
   jose@6.2.12: {}
 
-  js-tokens@4.0.0: {}
-
   katex@0.16.47:
     dependencies:
       commander: 8.3.0
 
   lodash-es@4.18.1: {}
 
-  lodash@4.18.1: {}
-
   longest-streak@3.1.0: {}
-
-  loose-envify@1.4.0:
-    dependencies:
-      js-tokens: 4.0.0
 
   lowlight@1.20.0:
     dependencies:
@@ -4253,8 +4122,6 @@ snapshots:
 
   oauth4webapi@3.8.8: {}
 
-  object-assign@4.1.1: {}
-
   open@10.2.0:
     dependencies:
       default-browser: 5.5.1
@@ -4301,12 +4168,6 @@ snapshots:
 
   prismjs@1.30.0: {}
 
-  prop-types@15.8.1:
-    dependencies:
-      loose-envify: 1.4.0
-      object-assign: 4.1.1
-      react-is: 16.13.1
-
   property-information@7.2.0: {}
 
   react-day-picker@9.14.0(react@19.2.4):
@@ -4321,10 +4182,6 @@ snapshots:
     dependencies:
       react: 19.2.4
       scheduler: 0.27.0
-
-  react-is@16.13.1: {}
-
-  react-is@18.3.1: {}
 
   react-markdown@10.1.0(@types/react@19.3.0)(react@19.2.4):
     dependencies:
@@ -4363,14 +4220,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.3.0
 
-  react-smooth@4.0.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-    dependencies:
-      fast-equals: 5.4.3
-      prop-types: 15.8.1
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-      react-transition-group: 4.4.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-
   react-style-singleton@2.2.3(@types/react@19.3.0)(react@19.2.4):
     dependencies:
       get-nonce: 1.0.1
@@ -4389,33 +4238,7 @@ snapshots:
       react: 19.2.4
       refractor: 5.0.0
 
-  react-transition-group@4.4.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-    dependencies:
-      '@babel/runtime': 7.29.7
-      dom-helpers: 5.2.1
-      loose-envify: 1.4.0
-      prop-types: 15.8.1
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-
   react@19.2.4: {}
-
-  recharts-scale@0.4.5:
-    dependencies:
-      decimal.js-light: 2.5.1
-
-  recharts@2.15.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-    dependencies:
-      clsx: 2.1.1
-      eventemitter3: 4.0.7
-      lodash: 4.18.1
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-      react-is: 18.3.1
-      react-smooth: 4.0.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      recharts-scale: 0.4.5
-      tiny-invariant: 1.3.3
-      victory-vendor: 36.9.2
 
   refractor@5.0.0:
     dependencies:
@@ -4664,23 +4487,6 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
-
-  victory-vendor@36.9.2:
-    dependencies:
-      '@types/d3-array': 3.2.2
-      '@types/d3-ease': 3.0.2
-      '@types/d3-interpolate': 3.0.4
-      '@types/d3-scale': 4.0.9
-      '@types/d3-shape': 3.2.0
-      '@types/d3-time': 3.0.4
-      '@types/d3-timer': 3.0.2
-      d3-array: 3.2.4
-      d3-ease: 3.0.1
-      d3-interpolate: 3.0.1
-      d3-scale: 4.0.2
-      d3-shape: 3.2.0
-      d3-time: 3.1.0
-      d3-timer: 3.0.1
 
   web-namespaces@2.0.1: {}
 

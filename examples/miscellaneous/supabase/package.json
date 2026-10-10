@@ -15,10 +15,10 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@openuidev/lang-core": "0.3.0",
-    "@openuidev/react-headless": "0.16.3",
-    "@openuidev/react-lang": "0.3.0",
-    "@openuidev/react-ui": "0.16.3",
+    "@openuidev/lang-core": "0.4.1",
+    "@openuidev/react-headless": "0.17.1",
+    "@openuidev/react-lang": "0.4.1",
+    "@openuidev/react-ui": "0.17.1",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.49.4",
     "next": "16.2.6",
@@ -29,7 +29,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.4.1",
+    "@openuidev/cli": "0.5.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
