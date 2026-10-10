@@ -4,7 +4,8 @@
 
 export interface Store {
   get(name: string): unknown;
-  set(name: string, value: unknown): void;
+  /** `pristine: true` restores a declared default that a later parse may still replace. */
+  set(name: string, value: unknown, options?: { pristine?: boolean }): void;
   subscribe(listener: () => void): () => void;
   getSnapshot(): Record<string, unknown>;
   initialize(defaults: Record<string, unknown>, persisted: Record<string, unknown>): void;
@@ -13,6 +14,8 @@ export interface Store {
 
 export function createStore(): Store {
   const state = new Map<string, unknown>();
+  // Keys still holding their declared default; a later parse may replace it.
+  const pristine = new Set<string>();
   const listeners = new Set<() => void>();
   let snapshot: Record<string, unknown> = {};
 
@@ -31,7 +34,9 @@ export function createStore(): Store {
     return state.get(name);
   }
 
-  function set(name: string, value: unknown): void {
+  function set(name: string, value: unknown, options?: { pristine?: boolean }): void {
+    if (options?.pristine) pristine.add(name);
+    else pristine.delete(name);
     const existing = state.get(name);
     if (Object.is(existing, value)) return;
     // Shallow-compare plain objects (form data)
@@ -74,24 +79,36 @@ export function createStore(): Store {
   }
 
   function initialize(defaults: Record<string, unknown>, persisted: Record<string, unknown>): void {
-    // Apply persisted values (explicit restore) and defaults for NEW keys only.
-    // Existing user-modified $binding values are always preserved — never
-    // overwrite with defaults, never delete. During streaming, declarations
-    // can temporarily disappear; deleting user state here would cause data loss.
+    // Defaults replace a pristine value (e.g. one read from a truncated statement
+    // while streaming). User-set and persisted values are never overwritten, and
+    // keys are never deleted: declarations can briefly disappear while streaming.
+    let changed = false;
     for (const key of Object.keys(persisted)) {
-      state.set(key, persisted[key]);
+      pristine.delete(key);
+      if (!state.has(key) || !Object.is(state.get(key), persisted[key])) {
+        state.set(key, persisted[key]);
+        changed = true;
+      }
     }
     for (const key of Object.keys(defaults)) {
       if (!state.has(key)) {
         state.set(key, defaults[key]);
+        pristine.add(key);
+        changed = true;
+      } else if (pristine.has(key) && !Object.is(state.get(key), defaults[key])) {
+        state.set(key, defaults[key]);
+        changed = true;
       }
     }
-    rebuildSnapshot();
-    notify();
+    if (changed) {
+      rebuildSnapshot();
+      notify();
+    }
   }
 
   function dispose(): void {
     state.clear();
+    pristine.clear();
     listeners.clear();
     snapshot = {};
   }

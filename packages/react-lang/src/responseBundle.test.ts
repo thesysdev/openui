@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { parseResponseBundle } from "./responseBundle";
 
 const program = '```openui-lang\nroot = Text("Hello")\n```\n';
+// The newline before a marker line is not part of the program (spec 7.2).
+const body = program.trimEnd();
 const script = { name: "sales_total", code: "async ({ tools }) => tools.get_sales({})" };
 
 function scriptsSection(values: unknown, count: unknown = 1) {
@@ -32,7 +34,7 @@ describe("parseResponseBundle", () => {
       const response = ` \n]]>openui:content?thesys=true&name=Sales+%26+Growth+%E2%82%AC\n${program}]]>openui:end\n`;
 
       expect(parseResponseBundle(response, false)).toEqual({
-        program,
+        program: body,
         metadata: { name: "Sales & Growth €" },
         scripts: new Set(),
         complete: true,
@@ -45,7 +47,7 @@ describe("parseResponseBundle", () => {
       const response = `]]>openui:content\n${program}]]>openui:end`;
 
       expect(parseResponseBundle(response, false)).toMatchObject({
-        program,
+        program: body,
         metadata: {},
         complete: true,
         error: undefined,
@@ -56,7 +58,7 @@ describe("parseResponseBundle", () => {
       const response = `]]>openui:content?name=Sales\r\n${program.replaceAll("\n", "\r\n")}${scriptsSection([script]).replaceAll("\n", "\r\n")}]]>openui:end\r\n`;
 
       expect(parseResponseBundle(response, false)).toMatchObject({
-        program: program.replaceAll("\n", "\r\n"),
+        program: body.replaceAll("\n", "\r\n"),
         metadata: { name: "Sales" },
         scripts: new Set(["sales_total"]),
         complete: true,
@@ -70,7 +72,7 @@ describe("parseResponseBundle", () => {
       const response = `${previous}]]>openui:content\n${replacement}]]>openui:end`;
 
       expect(parseResponseBundle(response, false)).toEqual({
-        program: replacement,
+        program: replacement.trimEnd(),
         metadata: {},
         scripts: new Set(),
         complete: true,
@@ -86,7 +88,7 @@ describe("parseResponseBundle", () => {
       const response = `]]>openui:content\n${program}${scriptsSection(values, 2)}]]>openui:end`;
 
       expect(parseResponseBundle(response, false)).toMatchObject({
-        program,
+        program: body,
         scripts: new Set(["sales_total", "save_sales"]),
         complete: true,
         error: undefined,
@@ -107,7 +109,7 @@ describe("parseResponseBundle", () => {
       const response = `${program}${scriptsSection([script])}${end}`;
 
       expect(parseResponseBundle(response, false)).toMatchObject({
-        program,
+        program: body,
         isBundle: true,
         scripts: new Set(["sales_total"]),
         complete: true,
@@ -133,12 +135,12 @@ describe("parseResponseBundle", () => {
       const response = `]]>openui:content\n${program}${scriptsSection(values, count)}]]>openui:end`;
 
       expect(parseResponseBundle(response, false)).toMatchObject({
-        program,
+        program: body,
         complete: false,
         error: "Invalid scripts bundle",
       });
       expect(parseResponseBundle(response, true)).toMatchObject({
-        program,
+        program: body,
         complete: false,
         error: undefined,
       });
@@ -150,7 +152,7 @@ describe("parseResponseBundle", () => {
         const response = `]]>openui:content\n${program}${section}]]>openui:end`;
 
         expect(parseResponseBundle(response, false)).toMatchObject({
-          program,
+          program: body,
           complete: false,
           error: "Invalid scripts bundle",
         });
@@ -166,42 +168,59 @@ describe("parseResponseBundle", () => {
       for (let length = 1; length <= response.length; length++) {
         const parsed = parseResponseBundle(response.slice(0, length), true);
         expect(parsed.error, `prefix length ${length}`).toBeUndefined();
-        expect(parsed.complete, `prefix length ${length}`).toBe(length === response.length);
-        expect(parsed.isBundle).toBe(true);
+        // A marker line, the end line included, is held back until its newline or the stream end.
+        expect(parsed.isBundle, `prefix length ${length}`).toBe(length >= header.length);
+        if (parsed.isBundle) expect(parsed.complete, `prefix length ${length}`).toBe(false);
         const visibleLength = Math.max(0, Math.min(program.length, length - header.length));
-        expect(parsed.program).toBe(program.slice(0, visibleLength));
+        expect(parsed.program.trimEnd()).toBe(program.slice(0, visibleLength).trimEnd());
       }
+      expect(parseResponseBundle(response, false)).toMatchObject({
+        complete: true,
+        error: undefined,
+      });
     });
 
     it.each(["]]", "]]>openui:content?name=Sales"])(
-      "reports an unfinished header only when streaming stops: %j",
+      "holds back an unfinished header while streaming: %j",
       (response) => {
         expect(parseResponseBundle(response, true)).toMatchObject({
           program: "",
-          complete: false,
           error: undefined,
-        });
-        expect(parseResponseBundle(response, false)).toMatchObject({
-          program: "",
-          complete: false,
-          error: "Incomplete response header",
         });
       },
     );
 
-    it.each([
-      "",
-      "]]>openui:scripts",
-      scriptsSection([script]),
-      "]]>openui:unknown",
-      "]]>openui:end\nunexpected content",
-    ])("does not mark an unfinished or invalid envelope complete: %j", (tail) => {
-      const response = `]]>openui:content\n${program}${tail}`;
+    it("reads a header without a body as an empty program", () => {
+      expect(parseResponseBundle("]]>openui:content?name=Sales", false)).toMatchObject({
+        program: "",
+        metadata: { name: "Sales" },
+        complete: true,
+        error: undefined,
+      });
+    });
+
+    it.each(["", scriptsSection([script]), "]]>openui:unknown"])(
+      "renders a stored message without an end line: %j",
+      (tail) => {
+        const response = `]]>openui:content\n${program}${tail}`;
+
+        expect(parseResponseBundle(response, false)).toMatchObject({
+          program: tail ? body : program,
+          complete: true,
+          error: undefined,
+        });
+        // While streaming, the end line is what finishes a framed response.
+        expect(parseResponseBundle(response, true)).toMatchObject({ complete: false });
+      },
+    );
+
+    it("rejects a scripts line without its JSON", () => {
+      const response = `]]>openui:content\n${program}]]>openui:scripts`;
 
       expect(parseResponseBundle(response, false)).toMatchObject({
-        program,
+        program: body,
         complete: false,
-        error: "Incomplete response bundle",
+        error: "Invalid scripts bundle",
       });
     });
   });
@@ -223,7 +242,7 @@ describe("parseResponseBundle", () => {
       expect(
         parseResponseBundle(`]]>openui:content\n${content}]]>openui:end`, false),
       ).toMatchObject({
-        program: content,
+        program: content.trimEnd(),
         complete: true,
         error: undefined,
       });
@@ -234,11 +253,17 @@ describe("parseResponseBundle", () => {
       const response = `]]>openui:content\n${program}${scriptsSection([{ ...script, code }])}]]>openui:end`;
 
       expect(parseResponseBundle(response, false)).toMatchObject({
-        program,
+        program: body,
         scripts: new Set(["sales_total"]),
         complete: true,
         error: undefined,
       });
     });
+  });
+
+  it("reads the sanitizer retry when its content line follows the failed attempt mid-line", () => {
+    const header = "]]>openui:content?thesys=true";
+    const response = `${header}\nroot = Text("Broken${header}\n${body}\n]]>openui:end`;
+    expect(parseResponseBundle(response, false)).toMatchObject({ program: body, complete: true });
   });
 });

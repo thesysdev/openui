@@ -109,8 +109,8 @@
     "ci": "pnpm run lint:check && pnpm run format:check && pnpm run test"
   },
   "peerDependencies": {
-    "@openuidev/react-headless": ">=0.14.0 <0.18.0",
-    "@openuidev/react-lang": ">=0.3.0 <0.5.0",
+    "@openuidev/react-headless": ">=0.14.0 <0.19.0",
+    "@openuidev/react-lang": ">=1.0.0 <2.0.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zustand": "catalog:",

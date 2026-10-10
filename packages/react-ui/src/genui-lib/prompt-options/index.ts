@@ -33,7 +33,7 @@ emailField = FormControl("Email", Input("email", "you@example.com", "email", { r
 countryField = FormControl("Country", Select("country", countryOpts, "Select...", { required: true }))
 msgField = FormControl("Message", TextArea("message", "Tell us more...", 4, { required: true, minLength: 10 }))
 countryOpts = [SelectItem("us", "United States"), SelectItem("uk", "United Kingdom"), SelectItem("de", "Germany")]
-btns = Buttons([Button("Submit", Action([@ToAssistant("Submit")]), "primary"), Button("Cancel", Action([@ToAssistant("Cancel")]), "secondary")])`,
+btns = Buttons([Button("Submit", @ToAssistant("Submit"), "primary"), Button("Cancel", @ToAssistant("Cancel"), "secondary")])`,
 
   `Example 4 — Tabs with mixed content:
 
@@ -69,13 +69,13 @@ p1header = IconText(p1icon, "neutral", "m", "Widget Pro", "Best seller", true, "
 p1icon = Icon("package", "shopping")
 p1body = MetricIndicatorInline("2,410 units", "Sold this month", { direction: "up", value: 12 })
 p1footer = { price: BoldText("text", "$29.00"), button: p1btn }
-p1btn = Button("View Details", Action([@ToAssistant("Show details for Widget Pro")]), "secondary")
+p1btn = Button("View Details", @ToAssistant("Show details for Widget Pro"), "secondary")
 p2 = CompositeCardItem("widget-mini", p2header, [p2body], p2footer)
 p2header = IconText(p2icon, "neutral", "m", "Widget Mini", "New arrival", true, "horizontal")
 p2icon = Icon("box", "shopping")
 p2body = MetricIndicatorInline("980 units", "Sold this month", { direction: "up", value: 4 })
 p2footer = { price: BoldText("text", "$14.00"), button: p2btn }
-p2btn = Button("View Details", Action([@ToAssistant("Show details for Widget Mini")]), "secondary")`,
+p2btn = Button("View Details", @ToAssistant("Show details for Widget Mini"), "secondary")`,
 
   `Example 6 — Editable table and a selection form:
 
@@ -105,7 +105,7 @@ tool2 = ChipItem("slack", "Slack", tool2icon)
 tool2icon = Icon("message-square", "communication")
 tool3 = ChipItem("notion", "Notion", tool3icon)
 tool3icon = Icon("notebook", "text")
-formButtons = Buttons([Button("Save", Action([@ToAssistant("Save preferences")]), "primary")])`,
+formButtons = Buttons([Button("Save", @ToAssistant("Save preferences"), "primary")])`,
 ];
 
 export const openuiAdditionalRules: string[] = [
@@ -139,7 +139,7 @@ export const openuiChatExamples: string[] = [
 root = Card([header, intro, highlights, statsHeader, statsCards, sectionsBlock, actionBtns], [src1, src2])
 header = CardHeader("Paris", "The City of Light · France's Eternal Capital")
 intro = TextContent("Paris is one of the world's most visited cities — a timeless blend of iconic landmarks, world-class cuisine, art, and romance [1]. In 2026 the city is buzzing with new energy: the **Grand Palais** has reopened after a €466M renovation, and you can now **swim in the Seine** for the first time in over a century [2].")
-highlights = ContextCardBlock([h1, h2, h3], "grid", true, { type: "continue_conversation", context: "Tell me more about this aspect of Paris" })
+highlights = ContextCardBlock([h1, h2, h3], "grid", true, @ToAssistant("Tell me more about this aspect of Paris"))
 h1 = ContextCardItem("art-museums", "Art & Museums", "143 museums including the Louvre & newly reopened Grand Palais.", "gray", "https://cdn.britannica.com/03/121003-050-2544BD4E/Interior-Louvre-Museum-Paris.jpg")
 h2 = ContextCardItem("gastronomy", "Gastronomy", "9,000+ restaurants, 130+ Michelin stars, and the world's best baguettes.", "gray")
 h3 = ContextCardItem("fashion-capital", "Fashion Capital", "Home to Chanel, Dior, Louis Vuitton & Hermès — the global luxury hub.", "gray", "https://thumbs.dreamstime.com/z/dior-storefront-facade-chanel-store-lvmh-s-french-designer-modehouse-christian-adjacent-to-luxury-fashion-beauty-brand-327161553.jpg")
@@ -159,7 +159,7 @@ ov3icon = Icon("circle-dollar-sign", "finance")
 ov3metric = MetricIndicatorInline("€23.4B", "generated")
 sectionsBlock = SectionBlock([secLandmarks, secFood, secWhen], false)
 secLandmarks = SectionItem("landmarks", "Iconic Landmarks", [landmarksCarousel])
-landmarksCarousel = VisualCardBlock([lm1, lm2, lm3, lm4], "carousel", true, { type: "continue_conversation", context: "Tell me more about this Paris landmark" })
+landmarksCarousel = VisualCardBlock([lm1, lm2, lm3, lm4], "carousel", true, @ToAssistant("Tell me more about this Paris landmark"))
 lm1 = VisualCardItem(lm1body, "eiffel-tower", "https://c8.alamy.com/comp/RYEB13/aerial-view-of-the-eiffel-tower-with-the-park-champ-de-mars-and-the-river-seine-paris-france-RYEB13.jpg", lm1tag, "Aerial view of the Eiffel Tower")
 lm1body = BoldText("text", "Eiffel Tower", "Open daily 9am–midnight")
 lm1tag = Tag("Must-See", lm1tagIcon, "sm", "info")
@@ -177,7 +177,7 @@ lm4body = BoldText("text", "Palace of Versailles", "Royal gardens & grand halls"
 lm4tag = Tag("Day Trip", lm4tagIcon, "sm", "neutral")
 lm4tagIcon = Icon("train-front", "travel")
 secFood = SectionItem("food", "Food & Drink", [foodCards])
-foodCards = ContextCardBlock([f1, f2, f3], "grid", true, { type: "continue_conversation", context: "Tell me more about eating and drinking in Paris" })
+foodCards = ContextCardBlock([f1, f2, f3], "grid", true, @ToAssistant("Tell me more about eating and drinking in Paris"))
 f1 = ContextCardItem("bistros", "Bistros", "Classic French fare — try Les Arlots for confit beef cheeks.", "gray", "https://everydayparisian.com/wp-content/uploads/2023/01/IMG_0221-768x1024.webp")
 f2 = ContextCardItem("fine-dining", "Fine Dining", "Septime leads a new wave of creative Michelin-starred cuisine.", "gray", "https://production-data.worldofmouth.app/images/72b2e6db-97ea-49c4-aa5d-3b7c8121c812.jpg")
 f3 = ContextCardItem("bakeries", "Bakeries", "Shinya Pain for sourdough. Grand Prix-winning baguettes citywide.", "gray", "https://www.davidlebovitz.com/wp-content/uploads/2018/09/Le-petit-grain-paris-bakery-boulangerie-patisserie-pastry-shop-8-640x895.jpg")
@@ -185,18 +185,18 @@ secWhen = SectionItem("when", "Best Time to Visit", [whenTabs])
 whenTabs = Tabs([tabSpring, tabSummer])
 tabSpring = TabItem("spring", "Spring", [springList])
 springList = ListBlock([sp1, sp2, sp3], "number")
-sp1 = ListItem("Cherry blossoms at Parc de Sceaux", "March – May", null, null, { type: "continue_conversation", context: "Tell me about cherry blossom season in Paris" })
-sp2 = ListItem("Picnics along the Seine & in city parks", "Warm, lively atmosphere", null, null, { type: "continue_conversation", context: "Where are the best picnic spots in Paris?" })
-sp3 = ListItem("Fewer crowds than summer", "Ideal for sightseeing", null, null, { type: "continue_conversation", context: "How busy is Paris in spring?" })
+sp1 = ListItem("Cherry blossoms at Parc de Sceaux", "March – May", null, null, @ToAssistant("Tell me about cherry blossom season in Paris"))
+sp2 = ListItem("Picnics along the Seine & in city parks", "Warm, lively atmosphere", null, null, @ToAssistant("Where are the best picnic spots in Paris?"))
+sp3 = ListItem("Fewer crowds than summer", "Ideal for sightseeing", null, null, @ToAssistant("How busy is Paris in spring?"))
 tabSummer = TabItem("summer", "Summer", [summerList])
 summerList = ListBlock([su1, su2, su3], "number")
-su1 = ListItem("Swim in the Seine — open July & August 2026", "First time in 102 years", null, null, { type: "continue_conversation", context: "Tell me about swimming in the Seine" })
-su2 = ListItem("Open-air cinema at Parc de la Villette", "Free films under the stars", null, null, { type: "continue_conversation", context: "Tell me about the open-air cinema at Parc de la Villette" })
-su3 = ListItem("Bastille Day celebrations on July 14", "Fireworks at the Eiffel Tower", null, null, { type: "continue_conversation", context: "What happens in Paris on Bastille Day?" })
+su1 = ListItem("Swim in the Seine — open July & August 2026", "First time in 102 years", null, null, @ToAssistant("Tell me about swimming in the Seine"))
+su2 = ListItem("Open-air cinema at Parc de la Villette", "Free films under the stars", null, null, @ToAssistant("Tell me about the open-air cinema at Parc de la Villette"))
+su3 = ListItem("Bastille Day celebrations on July 14", "Fireworks at the Eiffel Tower", null, null, @ToAssistant("What happens in Paris on Bastille Day?"))
 actionBtns = Buttons([btn1, btn2, btn3], "row")
-btn1 = Button("Plan a Trip to Paris", { type: "continue_conversation", context: "Help me plan a trip to Paris" }, "primary")
-btn2 = Button("Best Hotels in Paris", { type: "continue_conversation", context: "Show me the best hotels in Paris" }, "secondary")
-btn3 = Button("Build a Paris Itinerary", { type: "continue_conversation", context: "Build a 5-day Paris itinerary for me" }, "secondary")
+btn1 = Button("Plan a Trip to Paris", @ToAssistant("Help me plan a trip to Paris"), "primary")
+btn2 = Button("Best Hotels in Paris", @ToAssistant("Show me the best hotels in Paris"), "secondary")
+btn3 = Button("Build a Paris Itinerary", @ToAssistant("Build a 5-day Paris itinerary for me"), "secondary")
 src1 = { title: "Paris Travel Guide 2025", sourceName: "Travel and Tour World", url: "https://www.travelandtourworld.com/news/article/from-iconic-landmarks-to-hidden-gems-the-ultimate-paris-travel-guide-for-2025-you-need-to-read-now/" }
 src2 = { title: "Best Things to Do in Paris 2026", sourceName: "Time Out Paris", url: "http://www.timeout.fr/paris/en/for-tourists" }`,
 
@@ -250,7 +250,7 @@ colCac = Col("CAC ($)", [188, 395, 132, 109, 218, 154], "number")
 colRevenue = Col("Revenue ($k)", [82.4, 68.1, 54.6, 38.2, 26.8, 14.4], "number")
 colStatus = Col("Status", ["Scaling", "Optimizing", "Scaling", "Growing", "Stable", "Stable"], "string")
 deepDiveHeader = InlineHeader("Support Health & Marketing ROI", "Click a card to explore deeper insights")
-compositeCards = CompositeCardBlock([cardSupport, cardMarketing], "grid", true, { type: "continue_conversation", context: "Explore this deep-dive area in more detail" })
+compositeCards = CompositeCardBlock([cardSupport, cardMarketing], "grid", true, @ToAssistant("Explore this deep-dive area in more detail"))
 cardSupport = CompositeCardItem("support-health", supportHeader, [supportMetric, supportChart, supportList])
 supportHeader = IconText(supportIcon, "neutral", "m", "Support Health", "Ticket volume & resolution trends", false, "horizontal")
 supportIcon = Icon("headphones", "communication")
@@ -274,15 +274,15 @@ mkt1 = { left: "Total Ad Spend (Apr)", right: "$51,600", rightVariant: "number" 
 mkt2 = { left: "Cost per Lead", right: "$48.20", rightVariant: "number" }
 mkt3 = { left: "Top Channel", right: "Organic Search", rightVariant: "text" }
 actionButtons = Buttons([btnChannels, btnForecast], "row")
-btnChannels = Button("Break Down by Channel", { type: "continue_conversation", context: "Break down this month's revenue by acquisition channel" }, "primary")
-btnForecast = Button("Forecast Next Quarter", { type: "continue_conversation", context: "Forecast revenue and active users for next quarter" }, "secondary")`,
+btnChannels = Button("Break Down by Channel", @ToAssistant("Break down this month's revenue by acquisition channel"), "primary")
+btnForecast = Button("Forecast Next Quarter", @ToAssistant("Forecast revenue and active users for next quarter"), "secondary")`,
 
   `Example 3 — Form response (help-me-choose/plan asks: inspiration cards FIRST, then a compact form). The inspiration-card images below came from an image tool call — include such cards ONLY when you have real URLs; with no real URLs, start directly with the form:
 
 root = Card([header, intro, inspoCards, form])
 header = CardHeader("Plan Your Trip", "A few ideas to spark inspiration — then tell me your preferences")
 intro = TextContent("Tap a style to jump straight in, or fill the quick form below for a tailored plan.")
-inspoCards = VisualCardBlock([insp1, insp2], "grid", true, { type: "continue_conversation", context: "Plan me a trip in this style with destinations, itinerary, and costs" })
+inspoCards = VisualCardBlock([insp1, insp2], "grid", true, @ToAssistant("Plan me a trip in this style with destinations, itinerary, and costs"))
 insp1 = VisualCardItem(insp1body, "inspo-beach", "https://www.travelandleisure.com/thmb/cuAB7XMQ6s_Gji-no956KNopT7M=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-maldives-TROPVACAY0325-1b5047d5931d4850b47d082966f9f563.jpg", insp1tag, "Maldives overwater villas")
 insp1body = BoldText("text", "Tropical Beach Escape", "Overwater villas & snorkeling")
 insp1tag = Tag("Relaxation", insp1icon, "sm", "info")
@@ -293,8 +293,8 @@ insp2tag = Tag("Active", insp2icon, "sm", "warning")
 insp2icon = Icon("mountain", "nature")
 form = Form("trip-planner", formButtons, [fcDestination, fcDates, fcTravellers, fcTripType, fcBudget, fcStay, fcNotes])
 formButtons = Buttons([btnSubmit, btnSkip], "row")
-btnSubmit = Button("Plan My Trip", { type: "continue_conversation", context: "Help me plan a trip based on my form submission" }, "primary")
-btnSkip = Button("Just Surprise Me", { type: "continue_conversation", context: "Skip the form and surprise me with a destination and itinerary" }, "secondary")
+btnSubmit = Button("Plan My Trip", @ToAssistant("Help me plan a trip based on my form submission"), "primary")
+btnSkip = Button("Just Surprise Me", @ToAssistant("Skip the form and surprise me with a destination and itinerary"), "secondary")
 fcDestination = FormControl("Destination", destinationInput, "Leave blank if you'd like suggestions")
 destinationInput = Input("destination", "e.g. Tokyo, Japan — or leave blank", "text")
 fcDates = FormControl("Travel Dates", datesPicker, "Select your start and end dates")
@@ -335,7 +335,7 @@ notesArea = TextArea("special-requests", "e.g. vegetarian meals, wheelchair acce
 root = Card([header, intro, posters, linksHeader, trackCards], [src1, src2])
 header = CardHeader("Retro-Energetic Indian Tracks", "New Hindi releases with 80s/90s dance DNA")
 intro = TextContent("These recent tracks channel retro synths and 90s party percussion [1][2]. Tap a poster to explore a track, or use its button to watch the exact official video.")
-posters = VisualCardBlock([v1, v2], "grid", true, { type: "continue_conversation", context: "Tell me more about this track and its retro influences" })
+posters = VisualCardBlock([v1, v2], "grid", true, @ToAssistant("Tell me more about this track and its retro influences"))
 v1 = VisualCardItem(v1body, "tamma", "https://i.ytimg.com/vi/PQHeOb0Q9oo/hq720.jpg", v1tag, "Tamma Tamma video poster")
 v1body = BoldText("text", "Tamma Tamma", "Dhurandhar · Ranveer Singh")
 v1tag = Tag("80s Electro-Disco", v1icon, "sm", "success")
@@ -351,13 +351,13 @@ t1h = IconText(t1icon, "neutral", "m", "Tamma Tamma", "Bappi Lahiri classic, ele
 t1icon = Icon("disc-3", "multimedia")
 t1body = Text("text", "Heavy analog synths and brass over a fast disco groove.", "Retro Electro-Disco")
 t1tags = TagBlock(["2026 Film Hit", "Peak Party"])
-t1btn = Button("Watch on YouTube", { type: "open_url", url: "https://www.youtube.com/watch?v=PQHeOb0Q9oo" }, "primary")
+t1btn = Button("Watch on YouTube", @OpenUrl("https://www.youtube.com/watch?v=PQHeOb0Q9oo"), "primary")
 t2 = CompositeCardItem("t-sajan", t2h, [t2body, t2tags], { button: t2btn })
 t2h = IconText(t2icon, "neutral", "m", "Sajan Re", "Nora Fatehi · Badshah · Sanjoy", true, "horizontal")
 t2icon = Icon("music", "multimedia")
 t2body = Text("text", "Synthwave melody hooks over a modern club beat.", "Retro-Fusion Electro")
 t2tags = TagBlock(["Club Anthem", "Nora x Badshah"])
-t2btn = Button("Watch on YouTube", { type: "open_url", url: "https://www.youtube.com/watch?v=COUSCnFazzc" }, "primary")
+t2btn = Button("Watch on YouTube", @OpenUrl("https://www.youtube.com/watch?v=COUSCnFazzc"), "primary")
 src1 = { title: "Tamma Tamma (Full Video) - Dhurandhar", sourceName: "YouTube (T-Series)", url: "https://www.youtube.com/watch?v=PQHeOb0Q9oo" }
 src2 = { title: "Sajan Re (Official Music Video)", sourceName: "YouTube (T-Series)", url: "https://www.youtube.com/watch?v=COUSCnFazzc" }`,
 
@@ -393,8 +393,8 @@ export const openuiChatAdditionalRules: string[] = [
   "If no image URL is in context, compose without image components — icons, gray ContextCardItems, and charts still make rich layouts.",
   "Argument-order trap: Image takes alt FIRST, while ImageBlock, ImageText, and ImageTextLarge take src FIRST — alt text in a src slot ships a broken image.",
   'Card blocks (SnippetCardBlock, OverviewCardBlock, ContextCardBlock, CompositeCardBlock, VisualCardBlock) need at least 2 items, all with the same structure; use layout "grid" for primary side-by-side comparison and "carousel" for secondary browsing.',
-  'The card-block action is BLOCK-LEVEL: one action shared by every card, with the clicked card\'s details attached automatically — keep continue_conversation context generic (e.g. "Tell me more about this destination"), and never use a block-level open_url since it would send every card to the same URL.',
-  'Card items have NO per-item action: to give each item its own external link, use CompositeCardItem with footer { button: Button(label, { type: "open_url", url }) } — never claim a card opens a link it cannot.',
+  'The card-block action is BLOCK-LEVEL: one action shared by every card, with the clicked card\'s details attached automatically — keep the @ToAssistant message generic (e.g. "Tell me more about this destination"), and never use a block-level @OpenUrl since it would send every card to the same URL.',
+  "Card items have NO per-item action: to give each item its own external link, use CompositeCardItem with footer { button: Button(label, @OpenUrl(url)) } — never claim a card opens a link it cannot.",
   "Text, BoldText, IconText, ImageText, ImageTextLarge and MetricIndicator* are inline building blocks used INSIDE card items — do not place them directly in the root Card.",
   'EntityList size "small" is reserved for CompositeCardItem body content (no header/footer); use size "default" elsewhere.',
   "Tag variant must be semantically correct (success=positive, danger=negative, warning=cautionary, info=informational, neutral=label); Tag takes an optional Icon second, so use Tag(text, icon, size, variant) when a variant is needed.",
@@ -410,8 +410,8 @@ export const openuiChatAdditionalRules: string[] = [
   'Every Form MUST have EXACTLY ONE submit Button with variant "primary" — that button validates the form; other buttons (secondary/tertiary escape hatches like "Just Surprise Me") skip validation, and there is never a reset button.',
   "Prefer structured inputs (Select, Chips, OptionCards, DatePicker, Slider) over free-text Input, give every FormControl a clear label (and a hint where it prevents mistakes), and keep each field name unique within the response.",
   "Validation rules ({ required: true, email: true, minLength: 8, ... }) are enforced with inline errors — use them for genuinely essential fields, but never require a free-text field where leaving it blank is meaningful.",
-  "Form inputs work ONLY inside a FormControl within a Form; for tappable suggestion choices OUTSIDE a form, use Buttons of continue_conversation Buttons — never a bare OptionCards or Chips.",
-  "Only add Buttons for real actions: form submit, open_url with a URL from a tool or the user (never fabricated), or a continue_conversation follow-up — never a button for an app action (open, download, export, edit) you cannot perform.",
+  "Form inputs work ONLY inside a FormControl within a Form; for tappable suggestion choices OUTSIDE a form, use Buttons whose Button actions are @ToAssistant, never a bare OptionCards or Chips.",
+  "Only add Buttons for real actions: form submit, @OpenUrl with a URL from a tool or the user (never fabricated), or a @ToAssistant follow-up. Never add a button for an app action (open, download, export, edit) you cannot perform.",
   'Every Button label must accurately describe what clicking it does; use "primary" for the main action and "secondary"/"tertiary" only for lower-emphasis supporting actions.',
   "Icon: always include the category argument — it enables fallback matching when the exact lucide name is unavailable.",
   "Pass sources on Card ONLY when the answer relies on real references you actually have, and cite them inline in TextContent as [1], [2] (1-based index into sources).",

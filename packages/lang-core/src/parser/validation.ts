@@ -136,7 +136,9 @@ export type ValidationIssue =
   | { code: "null-required"; signature?: string }
   | { code: "unknown-component"; available?: string[] }
   | { code: "inline-reserved" }
-  | { code: "excess-args"; declared: number; got: number };
+  | { code: "excess-args"; declared: number; got: number }
+  | { code: "unknown-function" }
+  | { code: "no-root"; reason: "missing" | "not-component" | "fallback" };
 
 function validationMessage(component: string, path: string, issue: ValidationIssue): string {
   switch (issue.code) {
@@ -152,6 +154,16 @@ function validationMessage(component: string, path: string, issue: ValidationIss
       return `${component}() must be declared as a top-level statement, not used inline as a value`;
     case "excess-args":
       return `${component} takes ${issue.declared} arg(s), got ${issue.got} (${issue.got - issue.declared} excess dropped)`;
+    case "unknown-function":
+      return `Unknown function "@${component}": not a built-in or action step. The call evaluates to null`;
+    case "no-root":
+      if (issue.reason === "not-component") return "root does not evaluate to a component";
+      if (issue.reason === "fallback") {
+        return `No root statement. Rendering the first statement, which calls the root component ${component}`;
+      }
+      return component
+        ? `No root statement, and the first statement does not call the root component ${component}`
+        : "No root statement";
   }
 }
 
@@ -168,6 +180,8 @@ export function pushValidationIssue(
     path,
     message: validationMessage(component, path, issue),
     statementId: ctx.currentStatementId,
+    ...(issue.code === "no-root" &&
+      issue.reason === "fallback" && { severity: "warning" as const }),
   });
 }
 
@@ -175,24 +189,13 @@ export function pushValidationIssue(
 // Invalid-value resolution — the edge rule
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Override invalid value with a default one if present.
- * Propagate upwards if it's a required key.
- * Else, delete the key.
- */
-export function resolveInvalidValue(
-  container: Record<string, unknown>,
-  key: string,
-  required: boolean,
-  defaultValue: unknown,
-): boolean {
-  if (defaultValue !== undefined) {
-    container[key] = defaultValue;
-    return false;
-  }
-  if (required) return true;
-  delete container[key];
-  return false;
+// "x" against {type: "number"} -> INVALID, after reporting the type-mismatch
+export const INVALID: unique symbol = Symbol("invalid");
+
+// invalid value: default 5 -> 5; no default -> INVALID if required, else undefined (omit)
+export function resolveInvalidValue(required: boolean, defaultValue: unknown): unknown {
+  if (defaultValue !== undefined) return defaultValue;
+  return required ? INVALID : undefined;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -238,7 +241,8 @@ function isOnlyComponentSlot(s: Record<string, unknown>, ctx: MaterializeCtx): b
 /**
  * Validate an object-shaped slot: container type, required keys (absent/null
  * ones fill silently from their schema default), then each declared property
- * recursively, resolving invalid children via the edge rule.
+ * recursively, resolving invalid children via the edge rule. Copies the object
+ * only when a key changes.
  */
 function validateObjectValue(
   value: unknown,
@@ -246,16 +250,17 @@ function validateObjectValue(
   component: string,
   path: string,
   ctx: MaterializeCtx,
-): boolean {
+): unknown {
   if (typeof value !== "object" || Array.isArray(value)) {
     pushValidationIssue(ctx, component, path, {
       code: "type-mismatch",
       expected: "object",
       actual: jsType(value),
     });
-    return true;
+    return INVALID;
   }
   const obj = value as Record<string, unknown>;
+  let out: Record<string, unknown> | undefined;
   const props =
     s["properties"] && typeof s["properties"] === "object"
       ? (s["properties"] as Record<string, unknown>)
@@ -269,7 +274,7 @@ function validateObjectValue(
       if (!present || obj[key] == null) {
         const fallback = getSchemaDefaultValue(props[key]);
         if (fallback !== undefined) {
-          obj[key] = fallback;
+          (out ??= { ...obj })[key] = fallback;
           continue;
         }
         pushValidationIssue(ctx, component, `${path}/${key}`, {
@@ -280,21 +285,27 @@ function validateObjectValue(
     }
   }
   for (const key of Object.keys(props)) {
-    if (key in obj) {
-      const sub = props[key];
-      if (validateSchemaValue(obj[key], sub, component, `${path}/${key}`, ctx)) {
-        if (resolveInvalidValue(obj, key, required.includes(key), getSchemaDefaultValue(sub))) {
-          invalid = true;
-        }
+    if (!(key in obj)) continue;
+    const sub = props[key];
+    let next = validateSchemaValue(obj[key], sub, component, `${path}/${key}`, ctx);
+    if (next === INVALID) {
+      next = resolveInvalidValue(required.includes(key), getSchemaDefaultValue(sub));
+      if (next === INVALID) {
+        invalid = true;
+        continue;
       }
     }
+    if (next === obj[key]) continue;
+    out ??= { ...obj };
+    if (next === undefined) delete out[key];
+    else out[key] = next;
   }
-  return invalid;
+  return invalid ? INVALID : (out ?? obj);
 }
 
 /**
- * Validate an array slot: Invalid items are pruned in
- * place: validated first so error paths keep original indices
+ * Validate an array slot. Invalid items are pruned; error paths keep the
+ * original indices. Copies the array only when an item changes.
  */
 function validateArrayValue(
   value: unknown,
@@ -302,27 +313,24 @@ function validateArrayValue(
   component: string,
   path: string,
   ctx: MaterializeCtx,
-): boolean {
+): unknown {
   if (!Array.isArray(value)) {
     pushValidationIssue(ctx, component, path, {
       code: "type-mismatch",
       expected: "array",
       actual: jsType(value),
     });
-    return true;
+    return INVALID;
   }
   const items = s["items"];
-  if (!items || typeof items !== "object" || Array.isArray(items)) return false;
-  let invalid: number[] | undefined;
+  if (!items || typeof items !== "object" || Array.isArray(items)) return value;
+  let out: unknown[] | undefined;
   for (let i = 0; i < value.length; i++) {
-    if (validateSchemaValue(value[i], items, component, `${path}/${i}`, ctx)) {
-      (invalid ??= []).push(i);
-    }
+    const next = validateSchemaValue(value[i], items, component, `${path}/${i}`, ctx);
+    if (next !== value[i] && !out) out = value.slice(0, i);
+    if (out && next !== INVALID) out.push(next);
   }
-  if (invalid) {
-    for (let i = invalid.length - 1; i >= 0; i--) value.splice(invalid[i], 1); // prune the array
-  }
-  return false;
+  return out ?? value;
 }
 
 /**
@@ -349,17 +357,20 @@ function validateLeafValue(
 }
 
 /**
- * Recursively validate a materialized value against a JSON Schema fragment,
- * pruning unsalvageable data along the way. Dispatches on the schema shape:
- * objects and arrays descend recursively (reporting nested errors with
- * JSON-pointer paths), leaf scalars check type/enum, and component elements
- * get a position check only (their own args validate separately).
+ * Recursively validate a materialized value against a JSON Schema fragment.
+ * Dispatches on the schema shape: objects and arrays descend recursively
+ * (reporting nested errors with JSON-pointer paths), leaf scalars check
+ * type/enum, and component elements get a position check only (their own args
+ * validate separately).
  *
  * Every violation is reported, then the same rule (resolveInvalidValue)
  * applies at each recursion edge: schema default → substitute; REQUIRED edge →
  * parent invalid, caller repeats one level up; OPTIONAL edge → prune. ARRAY
  * ITEMS are always pruned. Absent/null required keys fill silently from their
  * schema default; reported violations keep their error even when a default steps in.
+ *
+ * Never mutates: returns the value itself when nothing changes, a cleaned copy
+ * when something does, or INVALID.
  */
 export function validateSchemaValue(
   value: unknown,
@@ -367,18 +378,20 @@ export function validateSchemaValue(
   component: string,
   path: string,
   ctx: MaterializeCtx,
-): boolean {
-  if (!schema || typeof schema !== "object" || Array.isArray(schema)) return false;
+): unknown {
+  if (!schema || typeof schema !== "object" || Array.isArray(schema)) return value;
   const s = schema as Record<string, unknown>;
   // Absence is handled by required checks on the parent; skip null/undefined.
-  if (value == null) return false;
+  if (value == null) return value;
   // Dynamic runtime expressions ($var, builtins) resolve later — don't flag.
-  if (isASTNode(value)) return false;
+  if (isASTNode(value)) return value;
   // Child components: only their position is checked here.
-  if (isElementNode(value)) return validateElementPosition(value, s, component, path, ctx);
+  if (isElementNode(value)) {
+    return validateElementPosition(value, s, component, path, ctx) ? INVALID : value;
+  }
   if (isCompositeSchema(s)) {
     // Data (an object, array, string, number or boolean) in a component-only slot is invalid.
-    if (!isOnlyComponentSlot(s, ctx)) return false;
+    if (!isOnlyComponentSlot(s, ctx)) return value;
     pushValidationIssue(ctx, component, path, {
       code: "type-mismatch",
       expected: slotRefNames(s).join(" | "),
@@ -388,11 +401,11 @@ export function validateSchemaValue(
           ? "plain object"
           : typeof value,
     });
-    return true;
+    return INVALID;
   }
 
   const type = s["type"];
   if (type === "object") return validateObjectValue(value, s, component, path, ctx);
   if (type === "array") return validateArrayValue(value, s, component, path, ctx);
-  return validateLeafValue(value, s, component, path, ctx);
+  return validateLeafValue(value, s, component, path, ctx) ? INVALID : value;
 }

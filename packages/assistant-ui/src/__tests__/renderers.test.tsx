@@ -257,4 +257,12 @@ describe("OpenUIPrompt", () => {
     await renderPrompt(makeProps());
     expect(container.querySelector('[role="alert"]')).toBeNull();
   });
+
+  it("does not show the fallback for a warning when the program renders", async () => {
+    const args = { ui: 'card = Card([h])\nh = CardHeader("Entry", "B")' };
+    await renderPrompt(makeProps({ args, argsText: JSON.stringify(args) }));
+
+    expect(container.textContent).toContain("Entry");
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+  });
 });

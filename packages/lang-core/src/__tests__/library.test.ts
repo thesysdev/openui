@@ -1,19 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
-import { createLibrary, defineComponent, tagSchemaId } from "../library";
+import { createLibrary, defineComponent, tagSchemaId, type Library } from "../library";
+import { createParser } from "../parser";
+import { action, steps } from "../parser/builtins";
+import type { LibrarySpec } from "../parser/prompt";
 
 const Dummy = null as any;
 
 // ─── tagSchemaId + registry integration ─────────────────────────────────────
 
 describe("tagSchemaId", () => {
-  it("tagged schema appears in prompt signatures", () => {
-    const actionSchema = z.any();
-    tagSchemaId(actionSchema, "ActionExpression");
-
+  it("action slots are ActionExpression or restricted @Name refs, $refs in JSON", () => {
     const Button = defineComponent({
       name: "Button",
-      props: z.object({ label: z.string(), action: actionSchema.optional() }),
+      props: z.object({
+        label: z.string(),
+        action: action().optional(),
+        share: z.union([steps.ToAssistant.ref, steps.OpenUrl.ref]).optional(),
+      }),
       description: "A button",
       component: Dummy,
     });
@@ -21,7 +25,15 @@ describe("tagSchemaId", () => {
     const lib = createLibrary({ components: [Button], root: "Button" });
     const prompt = lib.prompt();
 
-    expect(prompt).toContain("action?: ActionExpression");
+    expect(prompt).toContain("action?: ActionExpression, share?: @ToAssistant | @OpenUrl)");
+    expect(prompt).toContain("Put several steps in Action([...])");
+    const schema = lib.toJSONSchema();
+    expect(schema.$defs?.Button.properties?.action).toEqual({ $ref: "#/$defs/ActionExpression" });
+    // A legacy object in an action slot is data, not a component: no type-mismatch
+    const parsed = createParser(schema, "Button").parse(
+      'root = Button("x", {type: "continue_conversation", context: "x"})',
+    );
+    expect(parsed.meta.errors).toEqual([]);
   });
 
   it("tagged schema inside array is discovered", () => {
@@ -163,7 +175,7 @@ describe("per-library registry", () => {
     expect(spec.root).toBe("Card");
     expect(spec.components["Card"]?.signature).toContain("title");
     expect(spec.componentGroups).toEqual([{ name: "Content", components: ["TextContent"] }]);
-    expect(spec.schema).toEqual(lib.toJSONSchema());
+    expect((spec as LibrarySpec).schema).toEqual(lib.toJSONSchema());
   });
 
   it("toSpec carries the createLibrary id, omitted when unset", () => {
@@ -264,5 +276,23 @@ describe("assertV4Schema", () => {
         component: Dummy,
       }),
     ).not.toThrow();
+  });
+});
+
+// ─── Library type ───────────────────────────────────────────────────────────
+
+describe("Library type", () => {
+  it("accepts a hand-built library with only the pre-1.0 members", () => {
+    const mock: Library = {
+      components: {},
+      componentGroups: undefined,
+      root: undefined,
+      id: undefined,
+      __libraryId: "mock",
+      prompt: () => "",
+      toSpec: () => createLibrary({ components: [] }).toSpec(),
+      toJSONSchema: () => createLibrary({ components: [] }).toJSONSchema(),
+    };
+    expect(mock.functions).toBeUndefined();
   });
 });

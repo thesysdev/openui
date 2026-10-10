@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ParamMap } from "../parser";
 import { createStreamParser, parse } from "../parser";
+import type { ParamMap } from "../types";
 
 // ── Test schema ──────────────────────────────────────────────────────────────
 

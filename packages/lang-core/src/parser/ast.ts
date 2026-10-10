@@ -28,7 +28,14 @@
  * - `Assign`     — state assignment: `$count = $count + 1`
  */
 export type ASTNode =
-  | { k: "Comp"; name: string; args: ASTNode[]; mappedProps?: Record<string, ASTNode> }
+  | {
+      k: "Comp";
+      name: string;
+      args: ASTNode[];
+      mappedProps?: Record<string, ASTNode>;
+      /** Set on an `@Name(...)` call whose name is not a built-in or action step. */
+      fn?: true;
+    }
   | { k: "Str"; v: string }
   | { k: "Num"; v: number }
   | { k: "Bool"; v: boolean }
@@ -165,3 +172,51 @@ export type Statement =
   | { kind: "state"; id: string; init: ASTNode }
   | { kind: "query"; id: string; call: CallNode; expr: ASTNode; deps?: string[] }
   | { kind: "mutation"; id: string; call: CallNode; expr: ASTNode };
+
+// {n: [1]} -> {k:"Obj", entries: [["n", {k:"Arr", els:[Num 1]}]]}
+export function toLiteralAST(value: unknown): ASTNode {
+  if (value === null || value === undefined) return { k: "Null" };
+  if (typeof value === "string") return { k: "Str", v: value };
+  if (typeof value === "number") return { k: "Num", v: value };
+  if (typeof value === "boolean") return { k: "Bool", v: value };
+  if (Array.isArray(value)) return { k: "Arr", els: value.map(toLiteralAST) };
+  if (typeof value === "object") {
+    return {
+      k: "Obj",
+      entries: Object.entries(value).map(([k, v]) => [k, toLiteralAST(v)] as [string, ASTNode]),
+    };
+  }
+  return { k: "Null" };
+}
+
+// {k:"Arr", els:[Num 1]} -> {v: [1]}; a Ref or call -> undefined
+export function literalValue(node: ASTNode): { v: unknown } | undefined {
+  switch (node.k) {
+    case "Str":
+    case "Num":
+    case "Bool":
+      return { v: node.v };
+    case "Null":
+      return { v: null };
+    case "Arr": {
+      const v: unknown[] = [];
+      for (const e of node.els) {
+        const lit = literalValue(e);
+        if (!lit) return undefined;
+        v.push(lit.v);
+      }
+      return { v };
+    }
+    case "Obj": {
+      const v: Record<string, unknown> = {};
+      for (const [k, e] of node.entries) {
+        const lit = literalValue(e);
+        if (!lit) return undefined;
+        v[k] = lit.v;
+      }
+      return { v };
+    }
+    default:
+      return undefined;
+  }
+}

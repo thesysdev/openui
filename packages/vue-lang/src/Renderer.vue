@@ -8,7 +8,7 @@ import type {
   ToolProvider,
 } from "@openuidev/lang-core";
 import { BuiltinActionType, extractToolResult, ToolNotFoundError } from "@openuidev/lang-core";
-import { computed, h, toRef, watch, type Component, type VNode } from "vue";
+import { computed, h, toRaw, toRef, watch, type Component, type VNode } from "vue";
 import { provideOpenUIContext } from "./context.js";
 import type { Library, RenderNodeResult } from "./library.js";
 import RenderNode from "./RenderNode.vue";
@@ -93,7 +93,7 @@ function renderNode(value: unknown): RenderNodeResult {
 const { result, parseResult, contextValue, isQueryLoading } = useOpenUIState(
   {
     response: toRef(props, "response"),
-    library: props.library,
+    library: toRaw(props.library),
     isStreaming: toRef(props, "isStreaming"),
     onAction: (e) => props.onAction?.(e),
     onStateUpdate: (s) => props.onStateUpdate?.(s),

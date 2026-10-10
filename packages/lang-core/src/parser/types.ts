@@ -1,20 +1,36 @@
 import type { ASTNode } from "./ast";
 
 export type JSONSchemaProperty = Record<string, unknown>;
+/** A JSON Schema object; keywords are added as libraries use them (anyOf: the ActionExpression union). */
 export type JSONSchemaDef = {
   properties?: JSONSchemaProperty;
   required?: string[];
   description?: string;
+  type?: string;
+  anyOf?: JSONSchemaProperty[];
 };
+
+/** A function's params and return value as JSON Schema. */
+export interface FunctionSchema {
+  description?: string;
+  /** JSON Schema object of the params. Property order is the positional order in programs. */
+  params: JSONSchemaDef;
+  /** JSON Schema of the return value. */
+  returns?: JSONSchemaProperty;
+}
 
 /**
  * The JSON Schema document produced by `library.toJSONSchema()`.
  * All component schemas live in `$defs`, keyed by component name.
+ * Library functions and actions live in `functions` and `actions`.
  */
 export interface LibraryJSONSchema {
   $defs?: Record<string, JSONSchemaDef>;
   /** Component names as keys. Other `$defs` are data shapes. */
   properties?: Record<string, unknown>;
+  functions?: Record<string, FunctionSchema>;
+  /** Custom actions, when the library has any. They have no `returns`. */
+  actions?: Record<string, FunctionSchema>;
 }
 
 /** Scalar JSON Schema types we can reliably check a positional literal against. */
@@ -31,8 +47,20 @@ export interface ParamDef {
   schema?: unknown;
 }
 
-/** Internal parameter map for positional-arg to named-prop mapping. */
-export type ParamMap = Map<string, { params: ParamDef[] }>;
+/** `@Percent(part, total)` -> params [{name: "part"}, {name: "total"}], kept as AST */
+export interface CallDef {
+  kind: "function" | "action";
+  params: ParamDef[];
+  /** Built-ins coerce their args: the runtime maps them by name, unvalidated. */
+  builtin?: true;
+  /** Lazy built-ins (@Each, Action, @Run, @Set, @Reset) get their args unevaluated. */
+  lazy?: true;
+}
+
+/** "Card" -> its params; callDefs: "Sum" -> built-in CallDef, "Percent" -> library CallDef */
+export type ParamMap = Map<string, { params: ParamDef[] }> & {
+  callDefs?: Map<string, CallDef>;
+};
 
 /**
  * A fully resolved component node from the parser.
@@ -82,7 +110,9 @@ export type ValidationErrorCode =
   | "unknown-component"
   | "inline-reserved"
   | "excess-args"
-  | "type-mismatch";
+  | "type-mismatch"
+  | "unknown-function"
+  | "no-root";
 
 /**
  * A prop validation error. Components with missing required props are
@@ -99,6 +129,8 @@ export interface ValidationError {
   message: string;
   /** Statement name that triggered the error (e.g. "header", "chart"). */
   statementId?: string;
+  /** "warning" when the program still renders (e.g. the `no-root` fallback); absent means error. */
+  severity?: "warning";
 }
 
 export interface MaterializeCtx {
@@ -123,7 +155,7 @@ export type OpenUIErrorSource = "parser" | "runtime" | "query" | "mutation";
  * Machine-readable error codes for the openui-lang pipeline.
  *
  * - Parser: "unknown-component", "missing-required", "null-required", "inline-reserved",
- *   "parse-exception", "parse-failed"
+ *   "excess-args", "type-mismatch", "unknown-function", "no-root", "parse-exception", "parse-failed"
  * - Runtime: "runtime-error" (prop evaluation), "render-error" (React render)
  * - Query/Mutation: "tool-not-found", "tool-error", "mcp-error"
  */
@@ -162,6 +194,8 @@ export interface OpenUIError {
   toolName?: string;
   /** Actionable fix context for the LLM (e.g. available components, correct signature). */
   hint?: string;
+  /** "warning" when the program still renders; absent means error. */
+  severity?: "warning";
 }
 
 /**
@@ -178,10 +212,12 @@ export enum BuiltinActionType {
  */
 export type ActionStep =
   | { type: "run"; statementId: string; refType: "query" | "mutation" }
-  | { type: "continue_conversation"; message: string; context?: string }
+  | { type: "continue_conversation"; message: string; context?: unknown }
   | { type: "open_url"; url: string }
   | { type: "set"; target: string; valueAST: ASTNode }
-  | { type: "reset"; targets: string[] };
+  | { type: "reset"; targets: string[] }
+  /** A library action from `defineAction`; delivered to `onAction` as `{ type: name, params }`. */
+  | { type: "custom_action"; name: string; params: Record<string, unknown> };
 
 /**
  * An ordered sequence of steps to execute when a button is clicked.
@@ -249,6 +285,8 @@ export interface MutationStatementInfo {
 export interface ParseResult {
   /** The root ElementNode (typically a Root component), or null if parsing hasn't produced one yet. */
   root: ElementNode | null;
+  /** Set when the entry picks a component at runtime (`root = $t ? A : B`); see `evaluateRoot`. */
+  rootExpression?: ASTNode;
   meta: {
     /** True if the parser detected truncated/incomplete input. */
     incomplete: boolean;

@@ -1,34 +1,39 @@
 // ── Library (framework-generic) ──
-export { buildSignature, createLibrary, defineComponent, tagSchemaId } from "./library";
+export {
+  buildSignature,
+  createLibrary,
+  defineAction,
+  defineComponent,
+  defineFunction,
+  tagSchemaId,
+} from "./library";
 export type {
   ComponentGroup,
   ComponentRenderProps,
+  DefinedAction,
   DefinedComponent,
+  DefinedFunction,
   Library,
+  LibraryActionEvent,
   LibraryDefinition,
+  LibraryExtension,
   LibraryJSONSchema,
   PromptOptions,
   SubComponentOf,
   ToolDescriptor,
 } from "./library";
 
+// ── Message protocol ──
+export { buildMessage, parseMessage } from "./message";
+export type { BuildMessageInput, ParseMessageOptions, ParsedMessage } from "./message";
+
 // ── Parser ──
 export { createParser, createStreamingParser, parse } from "./parser";
 export type { Parser, StreamParser } from "./parser";
-export { isASTNode, isRuntimeExpr, walkAST } from "./parser/ast";
-export type { ASTNode, CallNode, RuntimeExprNode, Statement } from "./parser/ast";
-// Low-level parsing pipeline (tokenize → split → parseExpression) for consumers
-// that walk partial/streaming openui-lang source without a full parser.
-export {
-  ACTION_NAMES,
-  ACTION_STEPS,
-  BUILTINS,
-  BUILTIN_NAMES,
-  LAZY_BUILTINS,
-  isBuiltin,
-  toNumber,
-} from "./parser/builtins";
-export type { BuiltinDef } from "./parser/builtins";
+export { walkAST } from "./parser/ast";
+export type { ASTNode } from "./parser/ast";
+export { ACTION_STEPS, action, steps } from "./parser/builtins";
+export type { ActionRef } from "./parser/builtins";
 export { enrichErrors } from "./parser/enrich-errors";
 export { parseExpression } from "./parser/expressions";
 export { tokenize } from "./parser/lexer";
@@ -46,7 +51,6 @@ export type {
 export { jsonToOpenUI } from "./parser/serialize";
 export type { SerializeOptions } from "./parser/serialize";
 export { autoClose, split } from "./parser/statements";
-export type { Token } from "./parser/tokens";
 export { BuiltinActionType } from "./parser/types";
 export type {
   ActionEvent,
@@ -67,7 +71,7 @@ export type {
 export { isReactiveSchema, markReactive } from "./reactive";
 
 // ── Runtime ──
-export { evaluateElementProps } from "./runtime/evaluate-tree";
+export { evaluateElementProps, evaluateRoot } from "./runtime/evaluate-tree";
 export type { EvalContext } from "./runtime/evaluate-tree";
 export { evaluate, isReactiveAssign, stripReactiveAssign } from "./runtime/evaluator";
 export type { EvaluationContext, ReactiveAssign } from "./runtime/evaluator";

@@ -8,9 +8,14 @@
  */
 
 import type { Library } from "../library";
-import type { ElementNode, OpenUIError } from "../parser/types";
+import {
+  isElementNode,
+  type ElementNode,
+  type OpenUIError,
+  type ParseResult,
+} from "../parser/types";
 import { evaluatePropCore } from "./evaluate-prop";
-import type { EvaluationContext, SchemaContext } from "./evaluator";
+import { evaluate, type EvaluationContext, type SchemaContext } from "./evaluator";
 import type { Store } from "./store";
 
 /** Context passed through the evaluation chain — no module-level state. */
@@ -38,26 +43,54 @@ export function evaluateElementProps(el: ElementNode, evalCtx: EvalContext): Ele
   const def = evalCtx.library.components[el.typeName];
   const evaluated: Record<string, unknown> = {};
 
-  for (const [key, value] of Object.entries(el.props)) {
+  let key = "";
+  const report = (msg: string) => {
+    evalCtx.errors?.push({
+      source: "runtime",
+      code: "runtime-error",
+      component: el.typeName,
+      statementId: el.statementId,
+      message: `Evaluating prop "${key}" on ${el.typeName} failed: ${msg}`,
+      hint: `Check the expression used for prop "${key}"`,
+    });
+  };
+  // Library function calls and actions that fail report why here
+  const propCtx =
+    evalCtx.ctx.functions || evalCtx.ctx.actions
+      ? { ...evalCtx, ctx: { ...evalCtx.ctx, reportError: report } }
+      : evalCtx;
+
+  for (const [propKey, value] of Object.entries(el.props)) {
+    key = propKey;
     const propSchema = def?.props?.shape?.[key];
     try {
-      evaluated[key] = evaluatePropValue(value, evalCtx, schemaCtx, propSchema);
+      evaluated[key] = evaluatePropValue(value, propCtx, schemaCtx, propSchema);
     } catch (e) {
       // Use raw value as fallback for this prop, collect structured error
       evaluated[key] = value;
-      const msg = e instanceof Error ? e.message : String(e);
-      evalCtx.errors?.push({
-        source: "runtime",
-        code: "runtime-error",
-        component: el.typeName,
-        statementId: el.statementId,
-        message: `Evaluating prop "${key}" on ${el.typeName} failed: ${msg}`,
-        hint: `Check the expression used for prop "${key}"`,
-      });
+      report(e instanceof Error ? e.message : String(e));
     }
   }
 
   return { ...el, props: evaluated };
+}
+
+/** Evaluate `root`, or the component a runtime entry (`rootExpression`) picks; null if none. */
+export function evaluateRoot(
+  result: Pick<ParseResult, "root" | "rootExpression">,
+  evalCtx: EvalContext,
+): ElementNode | null {
+  if (result.root) return evaluateElementProps(result.root, evalCtx);
+  if (!result.rootExpression) return null;
+  const value = evaluate(result.rootExpression, evalCtx.ctx, { library: evalCtx.library });
+  if (isElementNode(value)) return evaluateElementProps(value, evalCtx);
+  evalCtx.errors?.push({
+    source: "runtime",
+    code: "no-root",
+    statementId: "root",
+    message: "root does not evaluate to a component",
+  });
+  return null;
 }
 
 /**

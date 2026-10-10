@@ -6,18 +6,11 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "fixed": [
-    [
-      "@openuidev/lang-core",
-      "@openuidev/react-lang",
-      "@openuidev/svelte-lang",
-      "@openuidev/vue-lang",
-      "@openuidev/angular-lang",
-      "@openuidev/a2ui"
-    ],
+    ["@openuidev/lang-core", "@openuidev/react-lang"],
     ["@openuidev/react-headless", "@openuidev/react-ui"]
   ],
   "linked": [],
-  "ignore": [],
+  "ignore": ["@openuidev/browser-bundle"],
   "privatePackages": { "version": false, "tag": false },
   "bumpVersionsWithWorkspaceProtocolOnly": true
 }

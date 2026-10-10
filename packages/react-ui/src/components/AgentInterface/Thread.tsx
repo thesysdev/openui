@@ -11,8 +11,12 @@ import clsx from "clsx";
 import React, { memo, useId, useMemo, useRef } from "react";
 import { useLayoutContext } from "../../context/LayoutContext";
 import { ScrollVariant, useScrollToBottom } from "../../hooks/useScrollToBottom";
-import { getLastAssistantMessageId, getMatchedRendererActivities } from "../../utils/messages";
-import { hasLangSyntax, separateContentAndContext } from "../../utils/sentinelParser";
+import {
+  getLastAssistantMessageId,
+  getMatchedRendererActivities,
+  hasLangSyntax,
+  readMessage,
+} from "../../utils/messages";
 import { ToolCallTimeline, type TimelineStep } from "../ToolCall";
 import {
   DetailedViewOverlay,
@@ -393,7 +397,7 @@ const InterleavedTurn = ({
   );
   const turnActivities = useToolActivities(turnMessage, allMessages);
 
-  const lastContent = separateContentAndContext(last.content ?? "").content;
+  const lastContent = readMessage(last.content ?? "", turnLive).content;
   // Show the last segment as the answer once it looks like Lang, or once the run
   // settles.
   const answer = !turnLive || hasLangSyntax(lastContent) ? last : null;
@@ -406,7 +410,7 @@ const InterleavedTurn = ({
     const claimed = new Set<string>();
     for (const seg of activeSegments) {
       if (seg.id !== answer?.id) {
-        const prose = separateContentAndContext(seg.content ?? "").content;
+        const prose = readMessage(seg.content ?? "", turnLive && seg === last).content;
         if (prose) rows.push({ type: "text", id: seg.id, text: prose });
       }
       for (const tc of seg.toolCalls ?? []) {
@@ -426,7 +430,7 @@ const InterleavedTurn = ({
       if (!claimed.has(activity.toolCall.id)) rows.push({ type: "activity", activity });
     }
     return rows;
-  }, [activeSegments, turnActivities, answer?.id]);
+  }, [activeSegments, turnActivities, answer?.id, turnLive, last]);
 
   // Matched renderers (artifact/search previews) render OUTSIDE the tray so
   // they stay visible after it collapses.

@@ -46,7 +46,7 @@ const library = {
       components: ["TextContent"],
     },
   ],
-} as LibrarySpec;
+} as unknown as LibrarySpec; // a spec without components, as Cloud stores it
 
 describe("generateSystemPrompt — self-hosted", () => {
   const spec: LibrarySpec = {
@@ -61,6 +61,13 @@ describe("generateSystemPrompt — self-hosted", () => {
     expect(prompt).toContain("openui-lang");
     expect(prompt).toContain("Card(children: Component[])");
     expect(prompt.startsWith(CONFIG_MARKER)).toBe(false);
+  });
+
+  it("without tools, names no Query and no library component outside the spec", () => {
+    const prompt = generateSystemPrompt({ library: spec, promptOptions: { bindings: true } });
+    expect(prompt).toContain("IMPORTANT @Each rule");
+    expect(prompt).not.toContain("Query");
+    expect(prompt).not.toContain("Col(");
   });
 });
 

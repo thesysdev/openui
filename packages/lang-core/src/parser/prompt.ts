@@ -1,5 +1,6 @@
+import { schemaSignature } from "../signature";
 import { recordSystemPromptGeneration } from "../telemetry/runtime";
-import { BUILTINS, LAZY_BUILTIN_DEFS } from "./builtins";
+import { BUILTIN_STEPS, BUILTINS, type BuiltinStep } from "./builtins";
 import { generateCloudConfig } from "./cloud-config";
 import type { LibraryJSONSchema } from "./types";
 
@@ -33,6 +34,10 @@ export interface BaseSpec {
   root?: string;
   components: Record<string, ComponentPromptSpec>;
   componentGroups?: ComponentGroup[];
+  /** Library functions, listed next to the built-ins. Signatures are pre-built. */
+  functions?: Record<string, ComponentPromptSpec>;
+  /** Custom library actions, listed with the built-in action steps. Signatures are pre-built. */
+  actions?: Record<string, ComponentPromptSpec>;
 }
 
 export interface PromptSpec extends BaseSpec {
@@ -43,6 +48,8 @@ export interface PromptSpec extends BaseSpec {
   toolCalls?: boolean;
   /** Enable $variables, @Set, @Reset, interactive filters. Default: true if toolCalls. */
   bindings?: boolean;
+  /** List the built-in functions (@Count, @Sum, ...). Default: true if toolCalls or bindings. */
+  builtinFunctions?: boolean;
   preamble?: string;
   /** General examples (static/layout patterns). Both `examples` and `toolExamples` are included when present. */
   examples?: string[];
@@ -153,18 +160,22 @@ function syntaxRules(
   return lines.join("\n");
 }
 
-function builtinFunctionsSection(): string {
-  // Auto-generated from shared builtin registry — single source of truth
-  const builtinLines = Object.values(BUILTINS).map((b) => `@${b.signature} — ${b.description}`);
-  const lazyLines = Object.values(LAZY_BUILTIN_DEFS).map(
-    (b) => `@${b.signature} — ${b.description}`,
-  );
-  const lines = [...builtinLines, ...lazyLines].join("\n");
+function functionLine(f: { signature: string; description?: string }): string {
+  return f.description ? `@${f.signature} — ${f.description}` : `@${f.signature}`;
+}
+
+function builtinFunctionsSection(custom: string[], toolCalls: boolean): string {
+  const lines = [
+    ...Object.values(BUILTINS).map((b) =>
+      functionLine({ ...b, signature: schemaSignature(b.name, b.params, b.returns) }),
+    ),
+    ...custom,
+  ].join("\n");
 
   return `## Built-in Functions
 
 Data functions prefixed with \`@\` to distinguish from components. These are the ONLY functions available — do NOT invent new ones.
-Use @-prefixed built-in functions (@Count, @Sum, @Avg, @Min, @Max, @Round) on Query results — do NOT hardcode computed values.
+Use @-prefixed built-in functions (@Count, @Sum, @Avg, @Min, @Max, @Round) on ${toolCalls ? "Query results" : "data"}. Do NOT hardcode computed values.
 
 ${lines}
 
@@ -173,8 +184,8 @@ Builtins compose — output of one is input to the next:
 Array pluck: \`data.rows.field\` extracts a field from every row → use with @Sum, @Avg, charts, tables.
 
 IMPORTANT @Each rule: The loop variable (e.g. "item") is ONLY available inside the @Each template expression. Always inline the template — do NOT extract it to a separate statement.
-CORRECT: \`Col("Actions", @Each(rows, "t", Button("Edit", Action([@Set($id, t.id)]))))\`
-WRONG: \`myBtn = Button("Edit", Action([@Set($id, t.id)]))\` then \`Col("Actions", @Each(rows, "t", myBtn))\` — t is undefined in myBtn.`;
+CORRECT: \`list = @Each(rows, "t", Comp(t.name))\`
+WRONG: \`item = Comp(t.name)\` then \`list = @Each(rows, "t", item)\`, because t is undefined in item.`;
 }
 
 function querySection(): string {
@@ -214,24 +225,24 @@ result = Mutation("tool_name", {arg1: $binding, arg2: "value"})
 - Show loading state: \`result.status == "loading" ? TextContent("Saving...") : null\``;
 }
 
-function actionSection(flags: { toolCalls: boolean; bindings: boolean }): string {
+const ACTION_HEADER = "## Action — Button Behavior";
+
+/** The built-in steps the prompt lists: @Run needs toolCalls, @Set and @Reset need bindings. */
+function builtinSteps(flags: { toolCalls: boolean; bindings: boolean }): BuiltinStep[] {
+  return Object.values(BUILTIN_STEPS).filter((s) => {
+    if (s.name === "Run") return flags.toolCalls;
+    if (s.name === "Set" || s.name === "Reset") return flags.bindings;
+    return true;
+  });
+}
+
+function actionSection(flags: { toolCalls: boolean; bindings: boolean }, custom: string[]): string {
   const steps = [
-    '- @ToAssistant("message") — Send a message to the assistant (for conversational buttons like "Tell me more", "Explain this")',
-    '- @OpenUrl("https://...") — Navigate to a URL',
+    ...builtinSteps(flags).map(
+      (s) => `- ${functionLine({ ...s, signature: schemaSignature(s.name, s.params) })}`,
+    ),
+    ...custom,
   ];
-
-  if (flags.bindings) {
-    steps.push(
-      "- @Set($variable, value) — Set a $variable to a specific value",
-      '- @Reset($var1, $var2, ...) — Reset $variables to their declared defaults (e.g. @Reset($title, $priority) restores $title="" and $priority="medium")',
-    );
-  }
-
-  if (flags.toolCalls) {
-    steps.unshift(
-      "- @Run(queryOrMutationRef) — Execute a Mutation or re-fetch a Query (ref must be a declared Query/Mutation)",
-    );
-  }
 
   const examples: string[] = [];
   if (flags.toolCalls) {
@@ -246,11 +257,11 @@ onSubmit = Action([@Run(result), @Run(data), @Reset($binding)])
 
   examples.push(`Example — simple nav:
 \`\`\`
-viewBtn = Button("View", Action([@OpenUrl("https://example.com")]))
+viewBtn = Button("View", @OpenUrl("https://example.com"))
 \`\`\``);
 
   const rules = [
-    '- Action can be assigned to a variable or inlined: Button("Go", onSubmit) and Button("Go", Action([...])) both work',
+    '- An action can be assigned to a variable or inlined: Button("Go", onSubmit) and Button("Go", Action([...])) both work',
   ];
   if (flags.toolCalls) {
     rules.push(
@@ -259,10 +270,10 @@ viewBtn = Button("View", Action([@OpenUrl("https://example.com")]))
     );
   }
 
-  return `## Action — Button Behavior
+  return `${ACTION_HEADER}
 
-Action([@steps...]) wires button clicks to operations. Steps are @-prefixed built-in actions. Steps execute in order.
-Buttons without an explicit Action prop automatically send their label to the assistant (equivalent to Action([@ToAssistant(label)])).
+An action wires a button click to operations. Pass one @-prefixed step bare, e.g. Button("Ask", @ToAssistant("Tell me more")). Put several steps in Action([...]), e.g. Button("Read", Action([@OpenUrl("https://example.com"), @ToAssistant("Summarize this page")])). Steps execute in order.
+Buttons without an action automatically send their label to the assistant (equivalent to @ToAssistant(label)).
 
 Available steps:
 ${steps.join("\n")}
@@ -340,13 +351,21 @@ To remove a component, re-declare its parent without that component in the paren
 - If you are about to output more than 10 statements, reconsider — most edits need fewer`;
 }
 
-function streamingRules(rootName: string, flags: { supportsExpressions: boolean }): string {
+function streamingRules(
+  rootName: string,
+  flags: { supportsExpressions: boolean; toolCalls: boolean },
+): string {
   const steps = [`1. \`root = ${rootName}(...)\` — UI shell appears immediately`];
   if (flags.supportsExpressions) {
     steps.push("2. $variable declarations — state ready for bindings");
-    steps.push("3. Query statements — defaults resolve immediately so components render with data");
-    steps.push("4. Component definitions — fill in with data already available");
-    steps.push("5. Data values — leaf content last");
+    if (flags.toolCalls) {
+      steps.push(
+        "3. Query statements — defaults resolve immediately so components render with data",
+      );
+    }
+    const n = steps.length;
+    steps.push(`${n + 1}. Component definitions — fill in with data already available`);
+    steps.push(`${n + 2}. Data values — leaf content last`);
   } else {
     steps.push("2. Component definitions — fill in as they stream");
     steps.push("3. Data values — leaf content last");
@@ -397,7 +416,7 @@ function toolWorkflowSection(): string {
 When tools are available, follow this workflow:
 1. FIRST: Call the most relevant tool to inspect the real data shape before generating code
 2. Use Query() for READ operations (data that should stay live) — NEVER hardcode tool results as literal arrays or objects
-3. Use Mutation() for WRITE operations (create, update, delete) — triggered by button clicks via Action([@Run(mutationRef)])
+3. Use Mutation() for WRITE operations (create, update, delete) — triggered by button clicks via @Run(mutationRef)
 4. Use the real data from step 1 as condensed Query defaults (3-5 rows) so the UI renders immediately
 5. Use @-prefixed builtins (@Count, @Filter, @Sort, @Sum) on Query results for KPIs and aggregations — the runtime evaluates these live on every refresh
 6. Hardcoded arrays are ONLY for static display data (labels, options) where no tool exists
@@ -531,6 +550,9 @@ function renderToolsSection(tools: (string | ToolSpec)[]): string {
 
 // ─── Component signatures ───────────────────────────────────────────────────
 
+// A restricted action slot in a signature, e.g. `share?: @CopyToClipboard | @OpenUrl`
+const RESTRICTED_SLOT = /[:|] @[A-Z]/;
+
 function generateComponentSignatures(
   spec: PromptSpec,
   flags: { toolCalls: boolean; bindings: boolean; usesActionExpression: boolean },
@@ -542,15 +564,15 @@ function generateComponentSignatures(
   ];
   if (flags.usesActionExpression) {
     const allSteps = [
-      flags.toolCalls ? "@Run" : "",
-      "@ToAssistant",
-      "@OpenUrl",
-      flags.bindings ? "@Set" : "",
-      flags.bindings ? "@Reset" : "",
-    ].filter(Boolean);
+      ...builtinSteps(flags).map((step) => step.name),
+      ...Object.keys(spec.actions ?? {}),
+    ].map((name) => `@${name}`);
     lines.push(
-      `Props typed \`ActionExpression\` accept an Action([@steps...]) expression. See the Action section for available steps (${allSteps.join(", ")}).`,
+      `Props typed \`ActionExpression\` accept one @step, or Action([@steps...]) for several. See the Action section for available steps (${allSteps.join(", ")}).`,
     );
+    if (Object.values(spec.components).some((c) => RESTRICTED_SLOT.test(c.signature ?? ""))) {
+      lines.push("Props typed like `@OpenUrl | @ToAssistant` accept only the steps listed.");
+    }
   }
   const usesBindings =
     flags.bindings || Object.values(spec.components).some((c) => c.signature?.includes("$binding"));
@@ -606,8 +628,8 @@ export function generatePrompt(spec: PromptSpec): string {
   const supportsExpressions = toolCalls || bindings;
 
   // Detect component-level feature usage
-  const usesActionExpression = Object.values(spec.components).some((c) =>
-    c.signature?.includes("ActionExpression"),
+  const usesActionExpression = Object.values(spec.components).some(
+    (c) => c.signature?.includes("ActionExpression") || RESTRICTED_SLOT.test(c.signature ?? ""),
   );
 
   const parts: string[] = [];
@@ -618,10 +640,14 @@ export function generatePrompt(spec: PromptSpec): string {
   parts.push("");
   parts.push(generateComponentSignatures(spec, { toolCalls, bindings, usesActionExpression }));
 
-  // Built-in functions — only when expressions are enabled (Query/reactive state)
-  if (supportsExpressions) {
+  // Library functions get the section alone when built-ins are not listed
+  const customFunctions = Object.values(spec.functions ?? {}).map(functionLine);
+  if (spec.builtinFunctions ?? supportsExpressions) {
     parts.push("");
-    parts.push(builtinFunctionsSection());
+    parts.push(builtinFunctionsSection(customFunctions, toolCalls));
+  } else if (customFunctions.length) {
+    parts.push("");
+    parts.push(`## Built-in Functions\n\n${customFunctions.join("\n")}`);
   }
 
   // Query + Mutation sections
@@ -632,10 +658,16 @@ export function generatePrompt(spec: PromptSpec): string {
     parts.push(mutationSection());
   }
 
-  // Action section — only when components use ActionExpression (v0.5 action syntax)
+  // Library actions get the Action section alone when no component uses ActionExpression
+  const customActions = Object.values(spec.actions ?? {}).map((a) => `- ${functionLine(a)}`);
   if (usesActionExpression) {
     parts.push("");
-    parts.push(actionSection({ toolCalls, bindings }));
+    parts.push(actionSection({ toolCalls, bindings }, customActions));
+  } else if (customActions.length) {
+    parts.push("");
+    parts.push(
+      `${ACTION_HEADER}\n\nPass one step, or Action([...]) with several steps, as a button's action.\n\nAvailable steps:\n${customActions.join("\n")}`,
+    );
   }
 
   // Interactive filters (needs both toolCalls and bindings)
@@ -657,7 +689,7 @@ export function generatePrompt(spec: PromptSpec): string {
   }
 
   parts.push("");
-  parts.push(streamingRules(rootName, { supportsExpressions }));
+  parts.push(streamingRules(rootName, { supportsExpressions, toolCalls }));
 
   // Append both examples and toolExamples when both are present
   const allExamples = [...(spec.examples ?? []), ...(spec.toolExamples ?? [])];

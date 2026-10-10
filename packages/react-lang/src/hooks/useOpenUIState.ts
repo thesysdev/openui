@@ -5,7 +5,7 @@ import {
   createStore,
   createStreamingParser,
   evaluate,
-  evaluateElementProps,
+  evaluateRoot,
   type ActionEvent,
   type ActionPlan,
   type EvalContext,
@@ -39,6 +39,7 @@ function unwrapFieldValue(v: unknown): unknown {
 }
 
 export interface UseOpenUIStateOptions {
+  /** Raw response: openui-lang code, or a stored message with protocol markers. */
   response: string | null;
   library: Library;
   isStreaming: boolean;
@@ -74,7 +75,7 @@ export interface OpenUIState {
  */
 export function useOpenUIState(
   {
-    response,
+    response: raw,
     library,
     isStreaming,
     onAction,
@@ -86,7 +87,8 @@ export function useOpenUIState(
   }: UseOpenUIStateOptions,
   renderDeep: (value: unknown) => React.ReactNode,
 ): OpenUIState {
-  const bundle = useMemo(() => parseResponseBundle(response, isStreaming), [response, isStreaming]);
+  // Strip protocol markers and read Cloud scripts; plain responses pass through unchanged.
+  const bundle = useMemo(() => parseResponseBundle(raw, isStreaming), [raw, isStreaming]);
   const blocked = isStreaming || !bundle.complete || !!bundle.error;
   // Bare DSL keeps its existing manager, cached results and imperative actions while streaming.
   const bundleBlocked = bundle.isBundle && blocked;
@@ -102,7 +104,20 @@ export function useOpenUIState(
   const scriptNames = settledScripts.current.names;
 
   // ─── Streaming parser (incremental — caches completed statements) ───
-  const sp = useMemo(() => createStreamingParser(library.toJSONSchema(), library.root), [library]);
+  const schema = useMemo(() => library.toJSONSchema(), [library]);
+  const sp = useMemo(() => createStreamingParser(schema, library.root), [schema, library.root]);
+  // Library functions: the schema's entries plus each `fn`, for the evaluator
+  const functions = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(schema.functions ?? {}).flatMap(([name, s]) => {
+          // A hand-built library may list a function in its schema without an implementation
+          const fn = library.functions?.[name]?.fn;
+          return fn ? [[name, { ...s, fn }]] : [];
+        }),
+      ),
+    [schema, library.functions],
+  );
 
   // ─── Parse result ───
   const parseExceptionRef = useRef<OpenUIError | null>(null);
@@ -140,6 +155,9 @@ export function useOpenUIState(
   }, [queryManager]);
 
   // ─── Initialize Store ───
+  // Declared defaults are not a user change, so they do not fire onStateUpdate: a saved
+  // default read from a half-streamed statement would come back as initialState and stick.
+  const initializingRef = useRef(false);
   const storeInitKeyRef = useRef<unknown>(Symbol());
   useEffect(() => {
     if (!result?.stateDeclarations && !initialState) return;
@@ -159,7 +177,9 @@ export function useOpenUIState(
         }
       }
     }
+    initializingRef.current = true;
     store.initialize(result?.stateDeclarations ?? {}, bindingDefaults);
+    initializingRef.current = false;
   }, [result?.stateDeclarations, store, initialState]);
 
   // ─── Subscribe to Store and QueryManager for re-renders ───
@@ -179,8 +199,10 @@ export function useOpenUIState(
         if (mutResult) return mutResult;
         return queryManager.getResult(name);
       },
+      functions,
+      actions: schema.actions,
     }),
-    [store, queryManager],
+    [store, queryManager, functions, schema.actions],
   );
 
   // ─── Evaluate and submit queries ───
@@ -249,7 +271,7 @@ export function useOpenUIState(
     lastInitSnapshotRef.current = store.getSnapshot();
     const unsub = store.subscribe(() => {
       const currentSnapshot = store.getSnapshot();
-      if (currentSnapshot === lastInitSnapshotRef.current) return;
+      if (initializingRef.current || currentSnapshot === lastInitSnapshotRef.current) return;
       lastInitSnapshotRef.current = null;
       propsRef.current.onStateUpdate?.(currentSnapshot);
     });
@@ -316,12 +338,15 @@ export function useOpenUIState(
       action?: ActionPlan | { type?: string; params?: Record<string, any> },
     ) => {
       if (bundleBlocked) return;
-      const formPayload = getFormPayload(formName);
       const { onAction: handler } = propsRef.current;
 
       // Legacy action config path (v0.1 compat) — { type?, params? }
       if (action && !("steps" in action)) {
+        const formPayload = getFormPayload(formName);
         const actionType = action.type || BuiltinActionType.ContinueConversation;
+        // Only a real call delivers a custom action; a legacy object cannot pose as one
+        if (schema.actions && Object.prototype.hasOwnProperty.call(schema.actions, actionType))
+          return;
         const params = { ...(action.params || {}) };
         // v0.1 compat — url and context were top-level, not in params
         if ((action as any).url) params.url = (action as any).url;
@@ -337,6 +362,7 @@ export function useOpenUIState(
       }
 
       // ActionPlan path (v0.5) — sequential steps with halt-on-mutation-failure
+      // Form state is read per step so an earlier @Set in the same plan is visible.
       const actionPlan = action as ActionPlan | undefined;
       if (actionPlan?.steps) {
         for (const step of actionPlan.steps) {
@@ -359,9 +385,9 @@ export function useOpenUIState(
             case ACTION_STEPS.ToAssistant:
               handler?.({
                 type: BuiltinActionType.ContinueConversation,
-                params: step.context ? { context: step.context } : {},
+                params: step.context !== undefined ? { context: step.context } : {},
                 humanFriendlyMessage: step.message,
-                formState: formPayload,
+                formState: getFormPayload(formName),
                 formName,
               });
               break;
@@ -370,7 +396,16 @@ export function useOpenUIState(
                 type: BuiltinActionType.OpenUrl,
                 params: { url: step.url },
                 humanFriendlyMessage: "",
-                formState: formPayload,
+                formState: getFormPayload(formName),
+                formName,
+              });
+              break;
+            case "custom_action":
+              handler?.({
+                type: step.name,
+                params: step.params,
+                humanFriendlyMessage: "",
+                formState: getFormPayload(formName),
                 formName,
               });
               break;
@@ -386,7 +421,7 @@ export function useOpenUIState(
             case ACTION_STEPS.Reset: {
               const decls = resultRef.current?.stateDeclarations ?? {};
               for (const target of step.targets) {
-                store.set(target, decls[target] ?? null);
+                store.set(target, decls[target] ?? null, { pristine: true });
               }
               break;
             }
@@ -400,11 +435,11 @@ export function useOpenUIState(
         type: BuiltinActionType.ContinueConversation,
         params: {},
         humanFriendlyMessage: userMessage,
-        formState: formPayload,
+        formState: getFormPayload(formName),
         formName,
       });
     },
-    [bundleBlocked, queryManager, evaluationContext, getFormPayload, store],
+    [bundleBlocked, queryManager, evaluationContext, getFormPayload, store, schema.actions],
   );
 
   // ─── reportError (for error boundary) ───
@@ -433,12 +468,12 @@ export function useOpenUIState(
   const runtimeErrorsRef = useRef<OpenUIError[]>([]);
 
   const evaluatedResult = useMemo<ParseResult | null>(() => {
-    if (!result?.root) return result;
+    if (!result?.root && !result?.rootExpression) return result;
     // Fresh errors array each pass — avoids mutating memoized context
     const errors: OpenUIError[] = [];
     const evalCtx: EvalContext = { ctx: evaluationContext, library, store, errors };
     try {
-      const evaluatedRoot = evaluateElementProps(result.root, evalCtx);
+      const evaluatedRoot = evaluateRoot(result, evalCtx);
       runtimeErrorsRef.current = errors;
       return { ...result, root: evaluatedRoot };
     } catch (e) {
@@ -484,7 +519,7 @@ export function useOpenUIState(
   // Keep error collection first: its effect refreshes this ref before the
   // observability effect publishes the terminal stream event.
   const { errorsRef, errorRevision } = useOpenUIErrors({
-    response,
+    response: bundle.program,
     isStreaming,
     result,
     evaluatedResult,

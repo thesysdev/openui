@@ -1,5 +1,6 @@
 // define library
-export { tagSchemaId } from "@openuidev/lang-core";
+export { action, defineAction, defineFunction, steps, tagSchemaId } from "@openuidev/lang-core";
+export type { ActionRef, DefinedAction, DefinedFunction } from "@openuidev/lang-core";
 export { createLibrary, defineComponent } from "./library";
 export type {
   ComponentGroup,
@@ -8,6 +9,7 @@ export type {
   DefinedComponent,
   Library,
   LibraryDefinition,
+  LibraryExtension,
   PromptOptions,
   SubComponentOf,
   ToolDescriptor,
@@ -30,12 +32,17 @@ export type {
   ActionPlan,
   ActionStep,
   ElementNode,
+  LibraryActionEvent,
   OpenUIError,
   ParseResult,
 } from "@openuidev/lang-core";
 
 // openui-lang parser (server-side use)
 export { createParser, createStreamingParser } from "@openuidev/lang-core";
+
+// Message protocol: marker lines around a stored response
+export { buildMessage, parseMessage } from "@openuidev/lang-core";
+export type { BuildMessageInput, ParseMessageOptions, ParsedMessage } from "@openuidev/lang-core";
 
 // Standalone prompt generation (no Zod deps — usable on backend)
 export { generatePrompt, generateSystemPrompt } from "@openuidev/lang-core";

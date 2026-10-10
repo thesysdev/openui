@@ -1,6 +1,7 @@
 import type {
   ActionEvent,
   ElementNode,
+  LibraryActionEvent,
   McpClientLike,
   OpenUIError,
   ParseResult,
@@ -29,15 +30,15 @@ export interface RendererQueryState {
   isRetrying: boolean;
 }
 
-export interface RendererProps {
-  /** OpenUI Lang code or the complete Cloud response bundle. */
+export interface RendererProps<L extends Library = Library> {
+  /** Raw response: openui-lang code, or a stored message with protocol markers (see buildMessage). */
   response: string | null;
   /** Component library from createLibrary(). */
-  library: Library;
+  library: L;
   /** Whether the LLM is still streaming (form interactions disabled during streaming). */
   isStreaming?: boolean;
-  /** Callback when a component triggers an action. */
-  onAction?: (event: ActionEvent) => void;
+  /** Callback when a component triggers an action. Typed by the library's custom actions. */
+  onAction?: (event: LibraryActionEvent<L>) => void;
   /**
    * Called whenever a form field value changes. Receives the raw form state map.
    * The consumer decides how to persist this (e.g. embed in message, store separately).
@@ -67,6 +68,7 @@ export interface RendererProps {
    * Includes generation errors (unknown components, missing required props)
    * and tool execution failures. Retry data-source failures instead of treating
    * every query error as a reason to regenerate the program.
+   * Can include warnings (`severity: "warning"`) for programs that still render.
    * Called with [] when all errors are resolved.
    */
   onError?: (errors: OpenUIError[]) => void;
@@ -219,7 +221,7 @@ const DefaultQueryLoader = () => (
   />
 );
 
-function RendererRoot({
+function RendererRoot<L extends Library = Library>({
   response,
   library,
   isStreaming = false,
@@ -232,7 +234,7 @@ function RendererRoot({
   children,
   onError,
   publishObservability,
-}: RendererProps) {
+}: RendererProps<L>) {
   useInsertionEffect(() => {
     ensureLoadingStyle();
   }, []);
@@ -274,7 +276,8 @@ function RendererRoot({
         response,
         library,
         isStreaming,
-        onAction,
+        // The hook builds plain ActionEvents; LibraryActionEvent<L> is the same shape, narrowed.
+        onAction: onAction as ((event: ActionEvent) => void) | undefined,
         onStateUpdate,
         initialState,
         toolProvider: resolvedToolProvider,
@@ -401,7 +404,7 @@ function DefaultRendererContent() {
   );
 }
 
-function DefaultRenderer({ children, ...props }: RendererProps) {
+function DefaultRenderer<L extends Library = Library>({ children, ...props }: RendererProps<L>) {
   return (
     <RendererRoot {...props}>
       {children === undefined ? <DefaultRendererContent /> : children}
