@@ -307,9 +307,10 @@ A library declares extra functions in its `functions` list ([prompt.md](./prompt
 - Built-ins are looked up first. A library MUST NOT register a function named like a built-in, an action step, `Query`, `Mutation`, or one of its components.
 - A `@Name` call that is not a built-in, action step, or custom function evaluates to null and reports `unknown-function`. The statement is kept.
 - Custom functions MUST be pure and synchronous. The runtime MAY cache results and MAY call them any number of times, in any order.
-- Arguments are checked against `params` the same way component props are. Literal arguments are checked when parsing, with the same codes (`type-mismatch`, `missing-required`, and `excess-args` for extra arguments). A call whose literal arguments fail these checks evaluates to null; extra arguments are only dropped. Arguments that are only known at runtime are checked when the call runs. Missing optional arguments take their defaults.
+- Arguments are checked against `params` the same way component props are, with the same recovery (section 8.2). An invalid argument takes its default if it has one. Otherwise an invalid optional argument or array item is left out, and an invalid required argument makes the call evaluate to null. Extra arguments are dropped. Missing optional arguments take their defaults.
+- Literal arguments are checked when parsing, with the same codes (`type-mismatch`, `missing-required`, `null-required`, and `excess-args` for extra arguments). Arguments that are only known at runtime are checked when the call runs, and a failed check reports `runtime-error`.
 - A required argument that is null when the call runs, with no default (an unset `$variable`, an unresolved reference), makes the call evaluate to null with no error.
-- A call with other invalid runtime arguments, a function that throws, or a return value that does not match `returns` reports `runtime-error`, and the call evaluates to null.
+- A function that throws, or a return value that does not match `returns`, reports `runtime-error`, and the call evaluates to null.
 - While streaming, a call runs on every update, like the built-ins. A call whose arguments are not yet valid evaluates to null, and the error is not reported until the stream ends.
 
 Fixtures: `evaluation/*-function-*`, `errors/*-unknown-function-*`, `errors/*-function-literal-*`
@@ -419,7 +420,7 @@ Fixtures: `actions/*-mutation-*`
 - `@Run(ref)`: runs a mutation or fetches a query again. A failed mutation stops the remaining steps. `@Run` on a query never stops the plan.
 - `@ToAssistant(message, context?)`: sends a `continue_conversation` event with the message, the optional context, and the form state.
 - `@OpenUrl(url)`: sends an `open_url` event.
-- `@Name(args)`, a custom action from the library's `actions` ([prompt.md](./prompt.md), section 2.5): sends an event with `type` set to `Name`, `params` holding the arguments keyed by the action's param names, and an empty `humanFriendlyMessage`. Arguments map by position in the key order of the action's `params` and are checked like custom function arguments (section 3.6). A step whose arguments are invalid does nothing.
+- `@Name(args)`, a custom action from the library's `actions` ([prompt.md](./prompt.md), section 2.5): sends an event with `type` set to `Name`, `params` holding the arguments keyed by the action's param names, and an empty `humanFriendlyMessage`. Arguments map by position in the key order of the action's `params` and are checked like custom function arguments (section 3.6), with one difference: any invalid argument, even an optional one with a default, makes the step do nothing. A literal one is reported when parsing (for example `type-mismatch`), and one known only at runtime reports `runtime-error`. A required argument that is null when the step is built, with no default, also makes it do nothing, with no error. Extra arguments are only dropped.
 
 `@Run`, `@Set`, and `@Reset` name their targets instead of evaluating them: `@Run` takes a query or mutation reference, `@Set` and `@Reset` take state variables. The `@Each` template is deferred the same way.
 
