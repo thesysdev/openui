@@ -3,9 +3,10 @@ import type { AutofixDiagnostic, AutofixResult, BaseAutofixInput } from "./types
 import { AutofixError } from "./types";
 
 // Collect parser errors, missing references, and incomplete output into diagnostics.
-export function errorsOf({ root, meta }: ParseResult): AutofixDiagnostic[] {
+// Warnings (the program still renders) are not errors and never trigger a fix.
+export function errorsOf({ root, rootExpression, meta }: ParseResult): AutofixDiagnostic[] {
   return [
-    ...meta.errors,
+    ...meta.errors.filter((error) => error.severity !== "warning"),
     ...meta.unresolved.map((name) => ({
       code: "unresolved",
       statementId: name,
@@ -17,7 +18,9 @@ export function errorsOf({ root, meta }: ParseResult): AutofixDiagnostic[] {
       message: `Statement "${name}" is not reachable from root`,
     })),
     ...(meta.incomplete ? [{ code: "incomplete", message: "Generation ends mid-statement" }] : []),
-    ...(root === null ? [{ code: "missing-root", message: "No root element" }] : []),
+    ...(root === null && !rootExpression
+      ? [{ code: "missing-root", message: "No root element" }]
+      : []),
   ];
 }
 

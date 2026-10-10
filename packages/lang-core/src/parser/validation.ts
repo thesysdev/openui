@@ -136,7 +136,9 @@ export type ValidationIssue =
   | { code: "null-required"; signature?: string }
   | { code: "unknown-component"; available?: string[] }
   | { code: "inline-reserved" }
-  | { code: "excess-args"; declared: number; got: number };
+  | { code: "excess-args"; declared: number; got: number }
+  | { code: "unknown-function" }
+  | { code: "no-root"; reason: "missing" | "not-component" | "fallback" };
 
 function validationMessage(component: string, path: string, issue: ValidationIssue): string {
   switch (issue.code) {
@@ -152,6 +154,16 @@ function validationMessage(component: string, path: string, issue: ValidationIss
       return `${component}() must be declared as a top-level statement, not used inline as a value`;
     case "excess-args":
       return `${component} takes ${issue.declared} arg(s), got ${issue.got} (${issue.got - issue.declared} excess dropped)`;
+    case "unknown-function":
+      return `Unknown function "@${component}": not a built-in or action step. The call evaluates to null`;
+    case "no-root":
+      if (issue.reason === "not-component") return "root does not evaluate to a component";
+      if (issue.reason === "fallback") {
+        return `No root statement. Rendering the first statement, which calls the root component ${component}`;
+      }
+      return component
+        ? `No root statement, and the first statement does not call the root component ${component}`
+        : "No root statement";
   }
 }
 
@@ -168,6 +180,8 @@ export function pushValidationIssue(
     path,
     message: validationMessage(component, path, issue),
     statementId: ctx.currentStatementId,
+    ...(issue.code === "no-root" &&
+      issue.reason === "fallback" && { severity: "warning" as const }),
   });
 }
 

@@ -102,6 +102,10 @@ function materializeExprInternal(
       return node;
 
     case "Comp": {
+      if (node.fn) {
+        pushValidationIssue(ctx, node.name, "", { code: "unknown-function" });
+        return { k: "Null" };
+      }
       const lazy = materializeLazyBuiltin(node, ctx, scopedRefs);
       if (lazy) return lazy;
       const recursedArgs = node.args.map((a) => materializeExprInternal(a, ctx, scopedRefs));
@@ -228,6 +232,11 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
     // ── Component nodes ──────────────────────────────────────────────────
     case "Comp": {
       const { name, args } = node;
+
+      if (node.fn) {
+        pushValidationIssue(ctx, name, "", { code: "unknown-function" });
+        return null;
+      }
 
       // Builtins (Sum, Count, Filter, Action, etc.) → preserve as ASTNode for runtime
       if (isBuiltin(name)) {

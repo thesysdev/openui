@@ -599,6 +599,7 @@ export class OpenUiRendererComponent implements OnChanges, OnDestroy {
       path: validationError.path,
       message: validationError.message,
       statementId: validationError.statementId,
+      ...(validationError.severity && { severity: validationError.severity }),
     }));
   }
 }

@@ -65,13 +65,12 @@ export function useOpenUIErrors({
       errors.push(parseExceptionRef.current);
     }
 
-    if (response && !result?.root && !parseExceptionRef.current) {
+    // A missing or unusable entry is reported by the parser as `no-root`.
+    if (response && !result?.meta.statementCount && !parseExceptionRef.current) {
       errors.push({
         source: "parser",
         code: "parse-failed",
-        message: result
-          ? "Code parsed but produced no renderable root component"
-          : "Response could not be parsed as valid openui-lang",
+        message: "Response could not be parsed as valid openui-lang",
         hint: `The entire response must be valid openui-lang code starting with root = ${library.root ?? "Root"}(...)`,
       });
     }

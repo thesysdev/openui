@@ -28,7 +28,14 @@
  * - `Assign`     — state assignment: `$count = $count + 1`
  */
 export type ASTNode =
-  | { k: "Comp"; name: string; args: ASTNode[]; mappedProps?: Record<string, ASTNode> }
+  | {
+      k: "Comp";
+      name: string;
+      args: ASTNode[];
+      mappedProps?: Record<string, ASTNode>;
+      /** Set on an `@Name(...)` call whose name is not a built-in or action step. */
+      fn?: true;
+    }
   | { k: "Str"; v: string }
   | { k: "Num"; v: number }
   | { k: "Bool"; v: boolean }

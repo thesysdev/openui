@@ -477,6 +477,9 @@ function getValidationErrorCounts(
     "null-required": 0,
     "inline-reserved": 0,
     "excess-args": 0,
+    "type-mismatch": 0,
+    "unknown-function": 0,
+    "no-root": 0,
   };
 
   for (const error of result.meta.errors) counts[error.code] += 1;

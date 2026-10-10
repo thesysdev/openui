@@ -35,6 +35,7 @@ export function enrichErrors(
       component: ve.component,
       path: ve.path || undefined,
       statementId: ve.statementId,
+      ...(ve.severity && { severity: ve.severity }),
     };
     if (ve.code === "unknown-component" && componentNames.length) {
       error.hint = `Available components: ${componentNames.join(", ")}`;
