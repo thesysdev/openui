@@ -1,5 +1,13 @@
 # @openuidev/a2ui
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`05c1b25`](https://github.com/thesysdev/openui/commit/05c1b2500275711155625d1056f46a8222b954e2)]:
+  - @openuidev/react-lang@0.4.1
+  - @openuidev/lang-core@0.4.1
+
 ## 0.4.0
 
 ### Minor Changes

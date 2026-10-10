@@ -1,5 +1,13 @@
 # @openuidev/react-lang
 
+## 0.4.1
+
+### Patch Changes
+
+- [#1349](https://github.com/thesysdev/openui/pull/1349) [`05c1b25`](https://github.com/thesysdev/openui/commit/05c1b2500275711155625d1056f46a8222b954e2) Thanks [@AbhinRustagi](https://github.com/AbhinRustagi)! - Fix form fields without reactive bindings appearing frozen after typing or restoring saved state. Propagate form-store updates through Renderer slots even when the evaluated UI tree is unchanged, and include the fix in the browser bundle.
+- Updated dependencies []:
+  - @openuidev/lang-core@0.4.1
+
 ## 0.4.0
 
 ### Minor Changes
