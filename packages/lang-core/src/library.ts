@@ -188,10 +188,6 @@ export interface LibraryExtension<C = unknown, A extends AnyAction = AnyAction> 
 interface ExtensionVerbs<T> {
   /** Joins the library and is listed in the prompt. */
   add?: T[];
-  /** Not supported yet: throws. */
-  override?: T[];
-  /** Not supported yet: throws. */
-  remove?: string[];
 }
 
 type LibraryAction<L> = L extends { readonly actions?: infer R }
@@ -322,13 +318,6 @@ export function createLibrary<C = unknown, A extends AnyAction = never>(
 
     // lib.extend({ components: { add: [ProductCard] }, functions: { add: [percent] } })
     extend<A2 extends AnyAction = never>(extension: LibraryExtension<C, A2>) {
-      for (const kind of ["components", "functions", "actions"] as const) {
-        for (const verb of ["override", "remove"] as const) {
-          if (extension[kind]?.[verb]) {
-            throw new Error(`[extend] ${kind}.${verb} is not supported yet.`);
-          }
-        }
-      }
       const components = [...input.components];
       for (const comp of extension.components?.add ?? []) {
         if (components.some((c) => c.name === comp.name)) {

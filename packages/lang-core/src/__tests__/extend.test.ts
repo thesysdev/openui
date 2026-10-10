@@ -41,18 +41,6 @@ describe("library.extend", () => {
     );
   });
 
-  it("throws on override and remove", () => {
-    expect(() => base.extend({ components: { override: [comp("Text")] } })).toThrow(
-      "[extend] components.override is not supported yet.",
-    );
-    expect(() => base.extend({ components: { remove: ["Text"] } })).toThrow(
-      "[extend] components.remove is not supported yet.",
-    );
-    expect(() => base.extend({ functions: { remove: ["Sum"] } })).toThrow(
-      "[extend] functions.remove is not supported yet.",
-    );
-  });
-
   it("extend({}) matches the base, and the base is untouched", () => {
     const before = base.prompt();
     const lib = base.extend({});
