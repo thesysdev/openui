@@ -1,9 +1,9 @@
 ---
 title: "<AgentInterface> props"
-description: Every prop of AgentInterface, grouped by area (adapters, rendering, theme, branding, starters, routing, and children).
+description: Complete prop reference for AgentInterfaceProps — adapters, rendering, theme, branding, starters, routing, and children.
 ---
 
-`AgentInterface` from `@openuidev/react-ui` is the only chat component you mount. It owns the layout: sidebar, thread list, composer, routing, and the workspace rail. You configure all of it through `AgentInterfaceProps`. This page lists every prop, grouped by what it controls.
+`AgentInterface` from `@openuidev/react-ui` is the only chat component you mount. It owns the full layout — sidebar, thread list, composer, routing, and the workspace rail — and you configure all of it through `AgentInterfaceProps`. This page is the complete prop reference, grouped by what each prop controls, with links to the relevant concept and how-to pages for each area.
 
 The only required prop is `llm`. Everything else is optional and falls back to a sensible default.
 
@@ -11,22 +11,21 @@ The only required prop is `llm`. Everything else is optional and falls back to a
 
 | Prop                   | Type                                         | Required | Default                        |
 | ---------------------- | -------------------------------------------- | -------- | ------------------------------ |
-| `llm`                  | `ChatLLM`                                    | **Yes**  | none                           |
+| `llm`                  | `ChatLLM`                                    | **Yes**  | —                              |
 | `storage`              | `ChatStorage`                                | No       | internal in-memory (ephemeral) |
 | `artifactRenderers`    | `ReadonlyArray<ArtifactRendererConfig<any>>` | No       | none                           |
 | `artifactCategories`   | `ArtifactCategory[]`                         | No       | none (single "Artifacts" item) |
 | `componentLibrary`     | `Library`                                    | No       | none (markdown rendering)      |
-| `onAction`             | `(event: ActionEvent) => void`               | No       | none                           |
 | `components`           | `AgentInterfaceComponents`                   | No       | none                           |
 | `theme`                | `ThemeProps`                                 | No       | built-in theme                 |
 | `disableThemeProvider` | `boolean`                                    | No       | `false`                        |
 | `logoUrl`              | `string`                                     | No       | none                           |
 | `agentName`            | `string`                                     | No       | none                           |
 | `starters`             | `ConversationStarterProps[]`                 | No       | none                           |
-| `starterVariant`       | `"short" \| "long"`                          | No       | none                           |
-| `path`                 | `string`                                     | No       | none (uncontrolled)            |
+| `starterVariant`       | `"short" \| "long"`                          | No       | —                              |
+| `path`                 | `string`                                     | No       | — (uncontrolled)               |
 | `defaultPath`          | `string`                                     | No       | thread view (`undefined`)      |
-| `onNavigate`           | `(next: string \| undefined) => void`        | No       | none (uncontrolled)            |
+| `onNavigate`           | `(next: string \| undefined) => void`        | No       | — (uncontrolled)               |
 | `children`             | `ReactNode`                                  | No       | none                           |
 
 The rest of this page explains each group.
@@ -37,12 +36,12 @@ These two props connect `AgentInterface` to your backend. They are independent c
 
 | Prop      | Type          | Required | Default                        | Description                                           |
 | --------- | ------------- | -------- | ------------------------------ | ----------------------------------------------------- |
-| `llm`     | `ChatLLM`     | **Yes**  | none                           | Sends messages to your backend and streams the reply. |
+| `llm`     | `ChatLLM`     | **Yes**  | —                              | Sends messages to your backend and streams the reply. |
 | `storage` | `ChatStorage` | No       | internal in-memory (ephemeral) | Persists thread history (and, optionally, artifacts). |
 
-`llm` is a `ChatLLM`, usually built with `fetchLLM()`. `fetchLLM()` POSTs `{ threadId, messages }` to your route and parses the streamed response. See [Conversations](/docs/agent/core-concepts/conversations) for the model, and the [Adapters & formats reference](/docs/agent/reference/adapters-and-formats) for the full `ChatLLM` / `fetchLLM()` surface and the stream adapters that parse each provider's stream.
+`llm` is a `ChatLLM` — usually built with `fetchLLM()`, which POSTs `{ threadId, messages }` to your route and parses the streamed response. See [Conversations](/docs/agent/core-concepts/conversations) for the model, and the [Adapters & formats reference](/docs/agent/reference/adapters-and-formats) for the full `ChatLLM` / `fetchLLM()` surface and the stream adapters that parse each provider's stream.
 
-`storage` is a `ChatStorage`: `{ thread: ThreadStorage; artifact?: ArtifactStorage }`. Omit it and conversations live only in memory: a page refresh clears everything. Build one with `restStorage()`, or implement the interfaces yourself. The full adapter interfaces (`ChatLLM`, `ChatStorage`, `ThreadStorage`, `ArtifactStorage`, `fetchLLM`, `restStorage`) are in the [Adapters & formats reference](/docs/agent/reference/adapters-and-formats).
+`storage` is a `ChatStorage` — `{ thread: ThreadStorage; artifact?: ArtifactStorage }`. Omit it and conversations live only in memory: a page refresh clears everything. Build one with `restStorage()`, or implement the interfaces yourself. The full adapter interfaces (`ChatLLM`, `ChatStorage`, `ThreadStorage`, `ArtifactStorage`, `fetchLLM`, `restStorage`) are in the [Adapters & formats reference](/docs/agent/reference/adapters-and-formats).
 
 <Callout type="info">
   The provider API call always happens on your server. `fetchLLM()` only ever talks to your own
@@ -51,14 +50,13 @@ These two props connect `AgentInterface` to your backend. They are independent c
 
 ## Rendering
 
-These props control how the assistant's output renders: artifacts such as dashboards and apps, and the message body.
+These props control how the assistant's output is rendered — both durable artifacts such as dashboards and apps, and the inline message body.
 
 | Prop                 | Type                                         | Required | Default | Description                                                                           |
 | -------------------- | -------------------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------- |
 | `artifactRenderers`  | `ReadonlyArray<ArtifactRendererConfig<any>>` | No       | none    | Renderers that display artifacts (from a tool call or from stored content).           |
 | `artifactCategories` | `ArtifactCategory[]`                         | No       | none    | User-defined groupings for the artifact browser and workspace rail.                   |
-| `componentLibrary`   | `Library`                                    | No       | none    | Turns on Generative UI: components rendered inline in chat.                           |
-| `onAction`           | `(event: ActionEvent) => void`               | No       | none    | Receives the Generative UI actions the chat does not handle, such as custom actions.  |
+| `componentLibrary`   | `Library`                                    | No       | none    | Turns on Generative UI — rich interactive components rendered inline in chat.         |
 | `components`         | `AgentInterfaceComponents`                   | No       | none    | Replace assistant answers, user messages, and the turn's tool timeline independently. |
 
 ### `artifactRenderers`
@@ -81,7 +79,7 @@ const codeArtifact = defineArtifactRenderer({
 
 ### `artifactCategories`
 
-Categories group artifacts in the artifact browser. They do not depend on whether an artifact is static or live. Each is `{ name: string; filter: { type: string[] } }`. Without categories, the sidebar shows a single "Artifacts" item; with them, one item per category.
+Categories are **user-defined organization** for the artifact browser — they are orthogonal to whether an artifact is static or live. Each is `{ name: string; filter: { type: string[] } }`. Without categories, the sidebar shows a single "Artifacts" item; with them, one item per category.
 
 ```tsx
 <AgentInterface
@@ -105,27 +103,9 @@ import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 <AgentInterface llm={llm} componentLibrary={openuiLibrary} />;
 ```
 
-### `onAction`
-
-`AgentInterface` handles two actions of Generative UI components itself: `@ToAssistant` sends a new user message and `@OpenUrl` opens the link in a new tab. Those never reach `onAction`. `onAction` receives the other actions, such as the [custom actions](/docs/openui-lang/custom-actions) your `componentLibrary` defines.
-
-```tsx
-<AgentInterface
-  llm={llm}
-  componentLibrary={library}
-  onAction={(event) => {
-    if (event.type === "CopyToClipboard") {
-      void navigator.clipboard.writeText(String(event.params.text));
-    }
-  }}
-/>
-```
-
-`onAction` is only called for messages that `AgentInterface` renders from `componentLibrary`. When you pass `components.AssistantMessage`, it is not called. Pass `onAction` to the `Renderer` in your component instead.
-
 ### `components`
 
-Override the message components directly: `{ AssistantMessage?, ToolCallTimeline?, UserMessage? }`. Message rendering precedence is **`components` > `componentLibrary` > built-in default**, so an explicit `components` entry always wins. See [Message rendering](/docs/agent/customize/message-rendering).
+Override the message components directly: `{ AssistantMessage?, ToolCallTimeline?, UserMessage? }`. Message rendering precedence is **`components` > `componentLibrary` > built-in default** — an explicit `components` entry always wins. See [Message rendering](/docs/agent/customize/message-rendering).
 
 ## Theme
 
@@ -152,9 +132,9 @@ Conversation starters are the suggested prompts shown on the welcome screen and 
 | Prop             | Type                         | Required | Default | Description                                    |
 | ---------------- | ---------------------------- | -------- | ------- | ---------------------------------------------- |
 | `starters`       | `ConversationStarterProps[]` | No       | none    | Suggested prompts to seed a conversation.      |
-| `starterVariant` | `"short" \| "long"`          | No       | none    | Layout variant for how starters are presented. |
+| `starterVariant` | `"short" \| "long"`          | No       | —       | Layout variant for how starters are presented. |
 
-Each starter is `{ displayText: string; prompt: string; icon?: ReactNode }`. `displayText` is the label on the suggestion chip and `prompt` is the message sent when it is clicked. These props set the defaults for the `Welcome` and `Composer` slots; either slot can also take its own `starters` / `starterVariant`. See [Welcome & starters](/docs/agent/customize/welcome-and-starters).
+Each starter is `{ displayText: string; prompt: string; icon?: ReactNode }` — `displayText` is the label on the suggestion chip and `prompt` is the message sent when it is clicked. These props set the defaults for the `Welcome` and `Composer` slots; either slot can also take its own `starters` / `starterVariant`. See [Welcome & starters](/docs/agent/customize/welcome-and-starters).
 
 ## Routing
 
@@ -162,11 +142,11 @@ Each starter is `{ displayText: string; prompt: string; icon?: ReactNode }`. `di
 
 | Prop          | Type                                  | Required | Default                   | Description                                                    |
 | ------------- | ------------------------------------- | -------- | ------------------------- | -------------------------------------------------------------- |
-| `path`        | `string`                              | No       | none (uncontrolled)       | Controlled current route.                                      |
+| `path`        | `string`                              | No       | — (uncontrolled)          | Controlled current route.                                      |
 | `defaultPath` | `string`                              | No       | thread view (`undefined`) | Uncontrolled initial route.                                    |
-| `onNavigate`  | `(next: string \| undefined) => void` | No       | none (uncontrolled)       | Navigation callback; **its presence selects controlled mode**. |
+| `onNavigate`  | `(next: string \| undefined) => void` | No       | — (uncontrolled)          | Navigation callback; **its presence selects controlled mode**. |
 
-Controlled mode is chosen by the **presence of `onNavigate`**, not by `path !== undefined`, because `undefined` is a valid path (the thread view). In controlled mode, drive `path` from your own router and update it inside `onNavigate`. In uncontrolled mode, set an initial route with `defaultPath` and let the component manage navigation internally.
+Controlled mode is chosen by the **presence of `onNavigate`**, not by `path !== undefined` — because `undefined` is a meaningful path (the thread view). In controlled mode, drive `path` from your own router and update it inside `onNavigate`. In uncontrolled mode, set an initial route with `defaultPath` and let the component manage navigation internally.
 
 Controlled consumers must round-trip the reserved artifact-browser paths (`artifacts/{category}` and `artifacts/{category}/{id}`), which are matched before your own `AgentInterface.Route` entries. Read the current route and navigate from anywhere inside the component with the `useNav()` hook (from `@openuidev/react-ui`).
 
@@ -184,7 +164,7 @@ Controlled consumers must round-trip the reserved artifact-browser paths (`artif
 | ---------- | ----------- | -------- | ------- | -------------------------------------------- |
 | `children` | `ReactNode` | No       | none    | Slots, primitives, Routes, and free content. |
 
-`children` is where composition happens. Pass the compound statics on `AgentInterface`: slots (`AgentInterface.Sidebar`, `.Welcome`, `.Composer`, `.Workspace`, and so on), primitives (`AgentInterface.SidebarItem`, `.ThreadList`, `.Messages`, and so on), and `AgentInterface.Route` for multi-page content. Slots not provided fall back to their built-in defaults. See the [Components reference](/docs/agent/reference/components).
+`children` is where composition happens. Pass the compound statics on `AgentInterface` — slots (`AgentInterface.Sidebar`, `.Welcome`, `.Composer`, `.Workspace`, …), primitives (`AgentInterface.SidebarItem`, `.ThreadList`, `.Messages`, …), and `AgentInterface.Route` for multi-page content. Slots not provided fall back to their built-in defaults. See the [Components reference](/docs/agent/reference/components).
 
 ```tsx
 <AgentInterface llm={llm}>
@@ -200,7 +180,7 @@ Controlled consumers must round-trip the reserved artifact-browser paths (`artif
 
 ## Related references
 
-- [Adapters & formats](/docs/agent/reference/adapters-and-formats): `ChatLLM`, `ChatStorage`, `ThreadStorage`, `ArtifactStorage`, `fetchLLM`, `restStorage`, the stream adapters, and the message formats used to build `llm` and `storage`.
-- [`defineArtifactRenderer`](/docs/agent/reference/define-artifact-renderer): the shape of each `artifactRenderers` entry.
-- [Hooks](/docs/agent/reference/hooks): `useNav`, `useThread`, `useArtifactStorage`, and the rest.
-- [Components](/docs/agent/reference/components): the slots and primitives you pass as `children`.
+- [Adapters & formats](/docs/agent/reference/adapters-and-formats) — `ChatLLM`, `ChatStorage`, `ThreadStorage`, `ArtifactStorage`, `fetchLLM`, `restStorage`, the stream adapters, and the message formats used to build `llm` and `storage`.
+- [`defineArtifactRenderer`](/docs/agent/reference/define-artifact-renderer) — the shape of each `artifactRenderers` entry.
+- [Hooks](/docs/agent/reference/hooks) — `useNav`, `useThread`, `useArtifactStorage`, and the rest.
+- [Components](/docs/agent/reference/components) — the slots and primitives you pass as `children`.
