@@ -299,10 +299,8 @@ function RendererRoot({
     }),
     [isQueryLoading, queryErrors, retryQueries],
   );
-  const value = useMemo(
-    () => ({ root: result?.root ?? null, query, queryLoader }),
-    [result?.root, query, queryLoader],
-  );
+  // Fields read the form store during render, so propagate every Renderer update to the slots.
+  const value = { root: result?.root ?? null, query, queryLoader };
 
   return (
     <OpenUIContext.Provider value={contextValue}>
