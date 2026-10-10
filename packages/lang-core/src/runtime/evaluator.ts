@@ -114,13 +114,14 @@ export function evaluate(
       if (fns && Object.prototype.hasOwnProperty.call(fns, node.name)) {
         return callFunction(node.name, fns[node.name]!, node, context);
       }
-      // Custom actions: a one-step plan; invalid args give an empty plan, a no-op
+      // Custom actions: a one-step plan; any invalid arg gives an empty plan, a no-op,
+      // even an optional one with a default: @ExportFile("r", "xlsx") must not export csv
       const acts = context.actions;
       if (acts && Object.prototype.hasOwnProperty.call(acts, node.name)) {
         const def = acts[node.name]!;
         const args = callArgs(node, context, def.params);
         if (missesRequired(args, def.params)) return { steps: [] };
-        const params = checkValue(args, def.params, node.name, "", context);
+        const params = checkValue(args, def.params, node.name, "", context, true);
         if (params === INVALID) return { steps: [] };
         const step: ActionStep = {
           type: "custom_action",
@@ -357,18 +358,20 @@ function callArgs(
   return args;
 }
 
-// returns z.string() but fn gives 5 -> reports "@Percent: ... expects string but got number"
+// returns z.string() but fn gives 5 -> reports "@Percent: ... expects string but got number".
+// strict: any reported error gives INVALID instead of falling back to a default.
 function checkValue(
   value: unknown,
   schema: unknown,
   name: string,
   path: string,
   context: EvaluationContext,
+  strict = false,
 ): unknown {
   const ctx = { errors: [], partial: false } as unknown as MaterializeCtx;
   const checked = validateSchemaValue(value, schema, name, path, ctx);
   for (const e of ctx.errors) context.reportError?.(`@${name}: ${e.message}`);
-  return checked;
+  return strict && ctx.errors.length > 0 ? INVALID : checked;
 }
 
 // @Percent($p) with $p unset -> null, no error
