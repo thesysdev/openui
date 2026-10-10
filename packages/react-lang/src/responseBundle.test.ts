@@ -190,26 +190,39 @@ describe("parseResponseBundle", () => {
       },
     );
 
-    it("reports a header without a body only when streaming stops", () => {
+    it("reads a header without a body as an empty program", () => {
       expect(parseResponseBundle("]]>openui:content?name=Sales", false)).toMatchObject({
         program: "",
-        complete: false,
-        error: "Incomplete response bundle",
+        metadata: { name: "Sales" },
+        complete: true,
+        error: undefined,
       });
     });
 
-    it.each(["", "]]>openui:scripts", scriptsSection([script]), "]]>openui:unknown"])(
-      "does not mark an unfinished envelope complete: %j",
+    it.each(["", scriptsSection([script]), "]]>openui:unknown"])(
+      "renders a stored message without an end line: %j",
       (tail) => {
         const response = `]]>openui:content\n${program}${tail}`;
 
         expect(parseResponseBundle(response, false)).toMatchObject({
           program: tail ? body : program,
-          complete: false,
-          error: "Incomplete response bundle",
+          complete: true,
+          error: undefined,
         });
+        // While streaming, the end line is what finishes a framed response.
+        expect(parseResponseBundle(response, true)).toMatchObject({ complete: false });
       },
     );
+
+    it("rejects a scripts line without its JSON", () => {
+      const response = `]]>openui:content\n${program}]]>openui:scripts`;
+
+      expect(parseResponseBundle(response, false)).toMatchObject({
+        program: body,
+        complete: false,
+        error: "Invalid scripts bundle",
+      });
+    });
   });
 
   describe("markers inside content", () => {
@@ -246,5 +259,11 @@ describe("parseResponseBundle", () => {
         error: undefined,
       });
     });
+  });
+
+  it("reads the sanitizer retry when its content line follows the failed attempt mid-line", () => {
+    const header = "]]>openui:content?thesys=true";
+    const response = `${header}\nroot = Text("Broken${header}\n${body}\n]]>openui:end`;
+    expect(parseResponseBundle(response, false)).toMatchObject({ program: body, complete: true });
   });
 });

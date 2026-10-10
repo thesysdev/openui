@@ -84,6 +84,9 @@ export function OpenUIContent({
     [onError],
   );
 
+  // Warnings (a program without `root` whose entry renders) are not render failures.
+  const failures = errors.filter((error) => error.severity !== "warning");
+
   const content = (
     <>
       <Renderer
@@ -95,8 +98,8 @@ export function OpenUIContent({
         {...(initialState !== undefined && { initialState })}
         {...(onAction !== undefined && { onAction })}
       />
-      {!isStreaming && errors.length > 0 && ErrorFallback !== null && (
-        <ErrorFallback errors={errors} />
+      {!isStreaming && failures.length > 0 && ErrorFallback !== null && (
+        <ErrorFallback errors={failures} />
       )}
     </>
   );

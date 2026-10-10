@@ -10,6 +10,9 @@ export interface ResponseMetadata {
 // parseMessage reads the rest (content, attributes, end).
 const SCRIPTS = "]]>openui:scripts";
 const CONTENT_LINE = /^\]\]>openui:content(?:\?.*)?\r?$/;
+// OpenUI Cloud's sanitizer retry writes its content line right after the failed attempt's
+// last character, with no newline. Start it on its own line so the retry wins.
+const RETRY_HEADER = /(?<=[^\n])(?=\]\]>openui:content(?:\?|\r?\n|$))/g;
 
 interface Scripts {
   names: Set<string>;
@@ -83,14 +86,13 @@ function readScripts(header: string, payload: string): Scripts | null {
 
 /** Reads an OpenUI Cloud response: a stored message (see parseMessage) plus its scripts section. */
 export function parseResponseBundle(response: string | null, streaming: boolean) {
-  let text = response ?? "";
+  let text = (response ?? "").replace(RETRY_HEADER, "\n");
   const start = contentStart(text, streaming);
   const framed = start >= 0;
   const body = Math.max(start, 0);
   // The scripts section is the first marker after the winning content, as Cloud writes it.
   let section = false;
   let scripts: Scripts | null = null;
-  let invalid = false;
   const at = markerIndex(text.slice(body), framed && streaming);
   if (at >= 0) {
     const from = body + at;
@@ -106,7 +108,6 @@ export function parseResponseBundle(response: string | null, streaming: boolean)
           text.slice(from + SCRIPTS.length, newline),
           text.slice(newline + 1, to),
         );
-        invalid = !scripts;
       }
       // The newline before the section belongs to its marker (spec 7.2), unless the program is empty.
       let before = text.slice(0, from);
@@ -130,14 +131,14 @@ export function parseResponseBundle(response: string | null, streaming: boolean)
     };
   }
   if (framed && attributes.name !== undefined) metadata.name = attributes.name;
-  // A framed response is finished at its end line; an unframed one (program, then scripts) without one.
-  let error = invalid ? "Invalid scripts bundle" : undefined;
-  if (!error && !end && (framed || !scripts)) error = "Incomplete response bundle";
+  const error = section && !scripts ? "Invalid scripts bundle" : undefined;
   return {
     program: content,
     metadata,
     scripts: scripts?.names ?? new Set<string>(),
-    complete: !error,
+    // The end line only says the response is finished, so a stored message renders without one.
+    // While streaming, a framed response is complete at its end line.
+    complete: !error && (end || !streaming || !framed),
     isBundle: true,
     error: streaming ? undefined : error,
     ...(scripts?.names.size ? { scriptRevision: scripts.revision } : {}),

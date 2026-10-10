@@ -68,6 +68,7 @@ export interface RendererProps<L extends Library = Library> {
    * Includes generation errors (unknown components, missing required props)
    * and tool execution failures. Retry data-source failures instead of treating
    * every query error as a reason to regenerate the program.
+   * Can include warnings (`severity: "warning"`) for programs that still render.
    * Called with [] when all errors are resolved.
    */
   onError?: (errors: OpenUIError[]) => void;
@@ -301,9 +302,11 @@ function RendererRoot<L extends Library = Library>({
     }),
     [isQueryLoading, queryErrors, retryQueries],
   );
+  // Keyed on the evaluated result, not its root: a static tree keeps the same root
+  // when form state changes, and fields read their values while rendering.
   const value = useMemo(
     () => ({ root: result?.root ?? null, query, queryLoader }),
-    [result?.root, query, queryLoader],
+    [result, query, queryLoader],
   );
 
   return (
