@@ -1,0 +1,67 @@
+---
+title: "Tools: agent-side vs. UI-side"
+description: Fetch data in the agent before it responds, or let the generated UI fetch it live.
+---
+
+With OpenUI, a tool can run in one of two places: in the agent, before it writes the response, or in the generated interface, after it renders. Your existing agent tools keep working unchanged. UI-side tools are an optional addition.
+
+## Which to use
+
+Ask one question: does the user need the data to change without asking the agent again?
+
+- **Agent-side**, when a snapshot is enough. The agent fetches the data, answers with an interface, and the user asks a follow-up for anything new. Good for answers, summaries, and one-off lookups.
+- **UI-side**, when the user should filter, refresh, or edit the data in place. The interface calls the tool itself, so each change is a function call instead of a new model turn. Good for dashboards, filterable tables, and forms that create or update records.
+
+Most agents start with agent-side tools and add UI-side tools for the interfaces users keep working in.
+
+## Agent-side tools
+
+The model calls the tool during its turn, your backend runs it, and the result returns to the model. The model then writes its OpenUI Lang response with the data filled in:
+
+```text title="Tool call and result"
+get_weather({ city: "Tokyo" })  →  { tempC: 22, sky: "Clear" }
+```
+
+```text title="OpenUI Lang response"
+root = Card([CardHeader("Tokyo", "Clear"), TextContent("22°C", "large-heavy")])
+```
+
+The values are written into the response, so the card shows the weather at the time of the answer.
+
+Agent-side tools need nothing OpenUI-specific: the agent framework declares and runs them as it already does, and the implementations and provider keys stay on the server. The [agent framework guides](/docs/build-agents/frameworks/vercel-ai-sdk) show this for each framework.
+
+## UI-side tools
+
+The model doesn't fetch the data. It writes OpenUI Lang that calls the tool from the interface: `Query()` to read and `Mutation()` to write. The renderer runs those calls in the browser and feeds the results into components.
+
+```text
+tickets = Query("list_tickets", {}, {rows: []})
+tbl = Table([Col("Title", tickets.rows.title), Col("Priority", tickets.rows.priority)])
+root = Stack([CardHeader("Open tickets"), tbl])
+```
+
+`Query` takes the tool name, its arguments, and a default value. The table renders immediately with the default (`{rows: []}`) and fills in when `list_tickets` responds.
+
+To filter or write data, the model binds the query to a `$variable` and adds a `Mutation` that a button runs:
+
+```text
+$priority = "high"
+$title = ""
+tickets = Query("list_tickets", {priority: $priority}, {rows: []})
+createTicket = Mutation("create_ticket", {title: $title, priority: $priority})
+filter = Select("priority", $priority, [SelectItem("high", "High"), SelectItem("low", "Low")])
+addBtn = Button("Add", Action([@Run(createTicket), @Run(tickets), @Reset($title)]))
+form = Form("create", addBtn, [FormControl("Title", Input("title", $title))])
+tbl = Table([Col("Title", tickets.rows.title), Col("Priority", tickets.rows.priority)])
+root = Stack([CardHeader("Tickets"), filter, form, tbl])
+```
+
+Changing the filter re-runs `list_tickets` with the new priority. Clicking **Add** runs `create_ticket`, re-fetches the list, and clears the title. None of this involves the model. See [Queries & Mutations](/docs/openui-lang/queries-mutations) for auto-refresh, error states, and the rest of the language.
+
+UI-side tools live in two places. The system prompt describes each tool's name, input, and output, so the model can write the calls. The renderer's `toolProvider` implements them and runs them in the browser. See [System Prompts](/docs/openui-lang/system-prompts#2-generatesystemprompt-recommended-backend-integration) and [Queries & Mutations](/docs/openui-lang/queries-mutations#how-tools-connect-to-the-runtime) for setup.
+
+Treat their arguments as untrusted. The model chooses them, and the calls come from the browser, so validate them in your API routes like any client request.
+
+## Using both
+
+The two kinds combine well. Ask "How is the Acme account doing?" and the agent calls an agent-side `find_account` tool to work out which account the user means. It then responds with a dashboard whose `Query("account_metrics", {id: "acc_123"}, ...)` loads that account's live data, so the user can change the date range or refresh the numbers without another turn.

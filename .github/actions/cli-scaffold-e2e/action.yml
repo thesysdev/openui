@@ -8,7 +8,7 @@ inputs:
   backend-framework:
     description: Overlay key passed to `openui create --backend-framework`.
     required: false
-    default: default
+    default: langgraph
   node-version:
     description: Node.js major version used to run the CLI and the generated app.
     required: true

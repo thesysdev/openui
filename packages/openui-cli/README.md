@@ -12,7 +12,7 @@ It currently supports:
 - scaffolding a new OpenUI app from one of two templates:
   - **OpenUI Cloud (recommended)** — hosted models with managed conversations, streaming, built-in tools, and ready-to-use report and presentation artifacts
   - **Self-hosted** — bring an OpenAI-compatible model key and own the AI route and persistence
-- keeping the default minimal SDK route or adding a LangGraph, Vercel AI SDK, or Vercel Eve backend to either template
+- using the default LangGraph backend or choosing Vercel AI SDK or Vercel Eve for either template
 - scaffolding an example from [OpenUI Examples](https://github.com/thesysdev/openui/blob/main/examples)
 - minting an OpenUI Cloud API key into an existing project's env file
 - sending anonymous feedback to the OpenUI team
@@ -44,7 +44,7 @@ npx @openuidev/cli@latest create --template openui-cloud
 npx @openuidev/cli@latest create --template openui-self-hosted
 ```
 
-Choose a backend framework directly (the default is `default`, the template's minimal SDK route):
+Choose a backend framework directly (the default is `langgraph`):
 
 ```bash
 npx @openuidev/cli@latest create --template openui-cloud --backend-framework langgraph
@@ -97,7 +97,7 @@ Options:
 
 - `-n, --name <string>`: Project name (interactive default: `openui-agent`)
 - `-t, --template <template>`: AI backend — `openui-cloud` (managed) or `openui-self-hosted` (bring your provider)
-- `--backend-framework <framework>`: API route implementation — `default`, `langgraph`, `vercel-ai-sdk`, or `vercel-eve`
+- `--backend-framework <framework>`: API route implementation — `langgraph` (default), `vercel-ai-sdk`, or `vercel-eve`
 - `-e, --example <example>`: Scaffold any example from `examples/examples.json`
 - `--skill`: Install the OpenUI agent skill for AI coding assistants
 - `--no-skill`: Skip installing the OpenUI agent skill
@@ -105,8 +105,8 @@ Options:
 - `-i, --immediate`: Start the development server after installing dependencies; the CLI refuses to start when the template's required API key is unavailable
 - `--no-immediate`: Install dependencies without starting the development server
 - `--no-interactive`: Fail instead of prompting for missing required input
-- `--api-key <key>`: (cloud template) OpenUI Cloud API key; skips sign-in
-- `--auth <method>`: (cloud template) How to obtain the key — `oauth` or `skip`; `manual` remains available for backward compatibility but is deprecated
+- `--api-key <key>`: (cloud templates and examples) OpenUI Cloud API key; skips sign-in
+- `--auth <method>`: (cloud templates and examples) How to obtain the key — `oauth` or `skip`; `manual` remains available for backward compatibility but is deprecated
 - `--agent-name <name>`: Declare the invoking coding agent as a lowercase kebab-case product slug (default: `unknown`)
 
 `--immediate` and `--no-immediate` are mutually exclusive; passing both exits with an error.
@@ -115,7 +115,7 @@ What it does:
 
 - prompts for the project name, defaulting to `openui-agent`, if you do not pass `--name`
 - uses the `openui-cloud` template when you do not pass `--template` (interactive runs no longer ask; `--template openui-self-hosted` still works)
-- prompts for a backend framework or example after the template; non-interactive usage defaults to `default`
+- prompts for a backend framework or example after the template; non-interactive usage defaults to `langgraph`
 - copies the bundled template or example into a new directory
 - rewrites monorepo-local dependencies (`workspace:`, `file:`, `catalog:`) in the generated `package.json` to `latest`
 - installs dependencies automatically using the detected package manager (unless `--no-install`)
@@ -131,18 +131,17 @@ What it does:
 
 #### Backend frameworks
 
-Overlay names are loaded from the fetched template's `overlays/` directory (`default` is the base template with no overlay). Current templates ship:
+Framework choices are loaded from the template catalog. LangGraph is the default; the SDK-only `default` option has been removed. Current templates ship:
 
-| Value           | OpenUI Cloud route                           | Self-hosted route                        |
-| --------------- | -------------------------------------------- | ---------------------------------------- |
-| `default`       | Direct OpenAI SDK Responses proxy            | Direct OpenAI SDK Chat Completions proxy |
-| `langgraph`     | LangGraph + Cloud provider                   | LangGraph + your provider                |
-| `vercel-ai-sdk` | Vercel AI SDK Next.js agent + Cloud provider | Vercel AI SDK `streamText()` route       |
-| `vercel-eve`    | Vercel Eve agent + Cloud provider            | Vercel Eve agent + your provider         |
+| Value           | OpenUI Cloud route                           | Self-hosted route                  |
+| --------------- | -------------------------------------------- | ---------------------------------- |
+| `langgraph`     | LangGraph + Cloud provider                   | LangGraph + your provider          |
+| `vercel-ai-sdk` | Vercel AI SDK Next.js agent + Cloud provider | Vercel AI SDK `streamText()` route |
+| `vercel-eve`    | Vercel Eve agent + Cloud provider            | Vercel Eve agent + your provider   |
 
-The default implementation is part of each base template. For LangGraph or Vercel AI SDK, the CLI applies a framework-specific set of files plus a manifest for its dependencies, scripts, removals, and onboarding text. Both Vercel AI SDK variants are standard Next.js deployments whose `streamText()` result returns `toUIMessageStreamResponse()` for `vercelAIAdapter()`.
+Each base template is a complete LangGraph app. The CLI copies it directly for LangGraph, or applies an overlay for Vercel AI SDK or Eve. LangGraph and Vercel AI SDK use Chat Completions; their native streams are decoded by the matching browser adapters.
 
-In Cloud framework variants, the selected framework owns the agent orchestration and application tool loop. OpenUI Cloud is attached as the model provider and conversation store. Reports, presentations, web search, image search, and configured MCP tools remain provider-executed Cloud tools on the default, LangGraph, and Vercel AI SDK Cloud routes, while application tools such as `get_weather` execute inside the selected framework. The Eve Cloud overlay uses Cloud as the Chat Completions provider and does not attach those provider-executed Cloud tools. Choosing a Cloud framework does not configure a user-owned model provider; choose `openui-self-hosted` for that.
+In Cloud framework variants, the selected framework owns agent orchestration and application tools such as `get_weather`. OpenUI Cloud supplies the Chat Completions model provider. These starters do not attach Responses-only provider tools. Choose `openui-self-hosted` to supply your own model provider.
 
 The Cloud graph needs `THESYS_API_KEY`; the self-hosted graph needs the selected provider credentials such as `OPENAI_API_KEY`.
 
@@ -150,7 +149,7 @@ Every framework overlay includes `get_weather` as its example app-owned function
 
 #### OpenUI examples
 
-Interactive `openui create` offers to scaffold [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). Pass `--example <name>` to skip the menus. `--example` cannot be combined with `--template` or `--backend-framework`.
+Interactive `openui create` offers featured [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). Pass `--example <name>` to skip the menus. `--example` cannot be combined with `--template` or `--backend-framework`.
 
 ```bash
 openui create --example shadcn
@@ -158,9 +157,13 @@ openui create --name my-mastra-app --example mastra
 openui create --example vue
 ```
 
+Examples whose primary key is `THESYS_API_KEY` offer the same browser sign-in and key generation as Cloud templates. Use `--api-key <key>` to supply a key or `--auth skip` to configure it later. Other provider keys still use the existing paste prompt.
+
+The example catalog uses `env: { "file": "backend/.env", "key": "THESYS_API_KEY" }`. The `file` is a relative `.env` or `.env.local` path (default: `.env`); `key` is the primary API key to prompt for. FastAPI and React Native write the key to `backend/.env`; Supabase uses `.env.local`. Other variables in the example's env file are preserved.
+
 #### Conversation storage
 
-Every OpenUI Cloud variant uses OpenUI Cloud as its only durable conversation and artifact store. The browser connects directly through `useOpenuiCloudStorage()` with a short-lived frontend token, and `/api/chat` appends each turn to the same Cloud conversation with `conversation: threadId` and `store: true`. Vercel does not add a second store. Configure a LangGraph checkpointer separately only when the graph itself needs durable state, interrupts, or resumable runs.
+Cloud conversations are created and read by the browser through `useOpenuiCloudStorage()` with a short-lived frontend token. The LangGraph `afterAgent` middleware calls `storeLangGraphHistory` once after success to save the complete new turn: user message, assistant messages, tool calls, and tool results. Failed or stopped runs are not persisted. LangGraph and Vercel AI SDK routes receive the full message history on each request and use stateless Chat Completions. Add a LangGraph checkpointer only for graph-specific durable state, interrupts, or resumable runs.
 
 The self-hosted variants do not configure durable storage. `AgentInterface` keeps the conversation in memory for the current page session and sends that history to `/api/chat`; refreshing the page loses it. Pass a storage implementation to `AgentInterface` and back it with your own database when persistence is required; add a LangGraph checkpointer only for graph-specific durable state.
 
@@ -218,7 +221,6 @@ Options:
 Extra flags after `deploy` are forwarded as-is to the target deployment platform, which validates them. `--skip-env` is OpenUI-specific so it does not collide with the target platform's env specific args.
 
 Unlinked projects are linked to the platform first. Allowlisted keys from `.env` / `.env.local` that are missing on different deployment environments can be saved to the project (auto-accepted with `--yes`). Build logs are quiet by default; use `--verbose` to stream them.
-
 
 ```bash
 openui deploy
@@ -379,3 +381,7 @@ openui create --no-telemetry
 ## License
 
 [MIT](https://github.com/thesysdev/openui/blob/main/LICENSE)
+
+The backend framework picker shows examples marked `featured: true`
+in `examples/examples.json`, in catalog order. Select “More OpenUI Examples →” for the
+complete catalog, or pass any catalog name through `--example`.

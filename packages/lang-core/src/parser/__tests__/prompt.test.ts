@@ -62,6 +62,13 @@ describe("generateSystemPrompt — self-hosted", () => {
     expect(prompt).toContain("Card(children: Component[])");
     expect(prompt.startsWith(CONFIG_MARKER)).toBe(false);
   });
+
+  it("without tools, names no Query and no library component outside the spec", () => {
+    const prompt = generateSystemPrompt({ library: spec, promptOptions: { bindings: true } });
+    expect(prompt).toContain("IMPORTANT @Each rule");
+    expect(prompt).not.toContain("Query");
+    expect(prompt).not.toContain("Col(");
+  });
 });
 
 describe("generateSystemPrompt({ cloud: true }) — sentinel", () => {

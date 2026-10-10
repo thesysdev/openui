@@ -12,13 +12,17 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@langchain/core": "^1.2.5",
+    "@langchain/langgraph": "^1.4.9",
+    "@langchain/openai": "^1.5.6",
     "@openuidev/lang-core": "0.3.0",
     "@openuidev/react-headless": "0.16.3",
     "@openuidev/react-lang": "0.3.0",
     "@openuidev/react-ui": "0.16.3",
+    "@openuidev/server": "^0.1.1",
+    "langchain": "^1.5.5",
     "lucide-react": "^0.575.0",
     "next": "^16.3.0",
-    "openai": "^6.49.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "zod": "^4.4.3",

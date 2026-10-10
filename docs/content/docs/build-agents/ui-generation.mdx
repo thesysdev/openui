@@ -1,0 +1,160 @@
+---
+title: Set up UI generation
+description: Configure an agent backend to respond with OpenUI Lang built from your components.
+---
+
+Keep the existing agent framework, tools, and streaming transport. To make the agent respond with generated UI, give it a component library to build from and the instructions for writing OpenUI Lang with that library.
+
+If you followed [Getting Started](/docs/getting-started), steps 2 to 4 will look familiar. This page covers the same setup from the point of view of an agent backend.
+
+## 1. Install the packages
+
+```bash tab="pnpm" tab-group="pkg"
+pnpm add @openuidev/react-lang @openuidev/react-ui @openuidev/lang-core
+```
+
+```bash tab="bun" tab-group="pkg"
+bun add @openuidev/react-lang @openuidev/react-ui @openuidev/lang-core
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn add @openuidev/react-lang @openuidev/react-ui @openuidev/lang-core
+```
+
+```bash tab="npm" tab-group="pkg"
+npm install @openuidev/react-lang @openuidev/react-ui @openuidev/lang-core
+```
+
+`@openuidev/react-lang` renders OpenUI Lang, `@openuidev/react-ui` provides the built-in component library, and `@openuidev/lang-core` generates the system prompt on the server. If the agent uses only your own components, you can leave out `@openuidev/react-ui`.
+
+## 2. Define a component library
+
+The component library is the set of components the agent can use. Create one for the application's design system, or start with OpenUI's built-in library:
+
+```tsx title="src/lib/openui.tsx" tab="Custom" tab-group="component-library"
+import { createLibrary } from "@openuidev/react-lang";
+import { Chart, Metric, Stack } from "./components";
+
+export const library = createLibrary({
+  root: "Stack",
+  components: [Stack, Metric, Chart],
+});
+```
+
+```tsx title="src/lib/openui.tsx" tab="Built-in" tab-group="component-library"
+export {
+  openuiLibrary as library,
+  openuiPromptOptions as promptOptions,
+} from "@openuidev/react-ui";
+```
+
+The chat UI imports `library` from this file to render responses, so the agent and the renderer always share the same components. See [Defining Components](/docs/openui-lang/defining-components) to build a custom library.
+
+## 3. Export the library specification
+
+The backend doesn't need the React components, only a description of them. Use the OpenUI CLI to serialize the library:
+
+```bash
+npx @openuidev/cli@latest generate src/lib/openui.tsx --spec --out src/lib/openui.spec.json
+```
+
+The specification lists each component and its props. Regenerate it whenever the library changes, for example in a `prebuild` script.
+
+## 4. Generate the system prompt
+
+`generateSystemPrompt` turns the specification into the instructions the agent needs to write OpenUI Lang. It produces one of two forms, depending on where the model request goes:
+
+```ts title="server.ts" tab="OpenUI Gateway (recommended)" tab-group="call-model"
+import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
+import library from "./lib/openui.spec.json";
+
+// A compact configuration block. Gateway expands it into the full prompt.
+const openuiInstructions = generateSystemPrompt({
+  cloud: true,
+  library: library as LibrarySpec,
+});
+```
+
+```ts title="server.ts" tab="Your own provider" tab-group="call-model"
+import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
+import library from "./lib/openui.spec.json";
+
+// The complete prompt, ready to send to any model.
+const openuiInstructions = generateSystemPrompt({
+  library: library as LibrarySpec,
+});
+```
+
+With `cloud: true`, Gateway assembles the prompt on its side and keeps it up to date with the language. Without it, the full prompt is generated locally and works with any provider.
+
+Pass `openuiInstructions` through the agent framework's system-instruction option. If the agent already has a system prompt, append the OpenUI instructions after it.
+
+## 5. Call the model
+
+Route model requests through Gateway to correct invalid OpenUI Lang as it streams and fall back to another provider when one is unavailable. To keep your own provider, repair the output with [Autofix](/docs/autofix) instead.
+
+```ts title="server.ts" tab="OpenUI Gateway (recommended)" tab-group="call-model"
+import OpenAI from "openai";
+
+const gateway = new OpenAI({
+  apiKey: process.env.THESYS_API_KEY,
+  baseURL: "https://api.thesys.dev/v1/embed",
+});
+
+const completion = await gateway.chat.completions.create({
+  model: "openai/gpt-5",
+  messages: [{ role: "system", content: openuiInstructions }, ...messages],
+  stream: true,
+});
+```
+
+```ts title="server.ts" tab="Your own provider" tab-group="call-model"
+import OpenAI from "openai";
+import { createAutofix } from "@openuidev/server/openai";
+
+const model = new OpenAI();
+const autofix = createAutofix({ apiKey: process.env.THESYS_API_KEY!, library });
+
+const source = await model.chat.completions.create({
+  model: "gpt-5",
+  messages: [{ role: "system", content: openuiInstructions }, ...messages],
+  stream: true,
+});
+
+// Autofix adds the library itself, so pass only the conversation.
+const response = autofix.completions.stream({ stream: source, messages }).toResponse();
+```
+
+Both options use a `THESYS_API_KEY`. Create one and write it to `.env` with:
+
+```bash
+npx @openuidev/cli@latest generate-api-key
+```
+
+Gateway is OpenAI-compatible, so agent frameworks that accept an OpenAI client or base URL can use it without other changes. See the [Gateway documentation](/docs/gateway) for supported models and APIs.
+
+## 6. Stream the response to the chat UI
+
+The agent's response is now OpenUI Lang text instead of Markdown. If the agent framework already streams text to its chat UI, keep that transport: nothing about it changes.
+
+When writing the route by hand, stream the text deltas:
+
+```ts title="app/api/chat/route.ts"
+const encoder = new TextEncoder();
+
+const body = new ReadableStream({
+  async start(controller) {
+    for await (const chunk of completion) {
+      const text = chunk.choices[0]?.delta?.content;
+      if (text) controller.enqueue(encoder.encode(text));
+    }
+    controller.close();
+  },
+});
+
+return new Response(body, {
+  headers: { "Content-Type": "text/plain; charset=utf-8" },
+});
+```
+
+The chat UI accumulates the text and passes it to the renderer, which draws each component as its line arrives.

@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/meta-image.png?v=20260725-1708",
+        url: "/meta-image.png?v=20261008",
         width: 1800,
         height: 942,
         alt: "OpenUI Cloud preview",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     title: "OpenUI Cloud — Generative UI, ready for production",
     description:
       "The managed backend for production agent interfaces, powered by the open-source OpenUI rendering engine.",
-    images: ["/meta-image.png?v=20260725-1708"],
+    images: ["/meta-image.png?v=20261008"],
   },
 };
 

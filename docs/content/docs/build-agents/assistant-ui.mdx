@@ -3,32 +3,113 @@ title: assistant-ui
 description: Render OpenUI Lang in an existing assistant-ui chat.
 ---
 
-This guide assumes the application already has a working assistant-ui chat. First, follow the [backend setup guide](/docs/build-agents/backend-setup) to configure the agent to return OpenUI Lang.
+This guide assumes the application already has a working [assistant-ui](https://www.assistant-ui.com) chat, and that its backend responds with OpenUI Lang. If it doesn't yet, follow [Set up UI generation](/docs/build-agents/ui-generation) first.
 
-In the existing `AssistantMessage` component, replace the Markdown text renderer passed to [`MessagePrimitive.Parts`](https://www.assistant-ui.com/docs/primitives/message) with the OpenUI Lang renderer. The thread shell, composer, runtime, and message layout remain unchanged.
+The change is in one place: the assistant message's text part. The thread, composer, runtime, and message layout stay the same.
+
+## Install
+
+Skip this step if the chat UI and the backend share a package and you already installed these in [Set up UI generation](/docs/build-agents/ui-generation#1-install-the-packages).
+
+```bash tab="pnpm" tab-group="pkg"
+pnpm add @openuidev/react-lang @openuidev/react-ui
+```
+
+```bash tab="bun" tab-group="pkg"
+bun add @openuidev/react-lang @openuidev/react-ui
+```
+
+```bash tab="yarn" tab-group="pkg"
+yarn add @openuidev/react-lang @openuidev/react-ui
+```
+
+```bash tab="npm" tab-group="pkg"
+npm install @openuidev/react-lang @openuidev/react-ui
+```
+
+`@openuidev/react-lang` renders OpenUI Lang. `@openuidev/react-ui` provides the built-in component library and its styles; if the agent uses only your own components, skip it and the styles import below.
+
+When using the built-in library, import its styles once, from the application's global stylesheet:
+
+```css title="app/globals.css"
+@import "@openuidev/react-ui/styles/index.css";
+```
+
+The examples below import `library` from `src/lib/openui.tsx`, the file created in [Set up UI generation](/docs/build-agents/ui-generation#2-define-a-component-library). If the chat UI lives in a separate package, define the same library there so it renders every component the agent can write.
 
 ## Render OpenUI Lang
+
+In the existing `AssistantMessage` component, replace the Markdown text renderer passed to [`MessagePrimitive.Parts`](https://www.assistant-ui.com/docs/primitives/message) with the OpenUI renderer:
 
 ```tsx title="src/components/assistant-message.tsx"
 "use client";
 
-import { type TextMessagePartProps } from "@assistant-ui/react";
+import { MessagePrimitive, type TextMessagePartProps } from "@assistant-ui/react";
 import { Renderer } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui";
+import { library } from "@/lib/openui";
 
-function OpenUIRenderer({ text, status }: TextMessagePartProps) {
+function OpenUIText({ text, status }: TextMessagePartProps) {
+  return <Renderer response={text} library={library} isStreaming={status.type === "running"} />;
+}
+
+export function AssistantMessage() {
   return (
-    <Renderer response={text} library={openuiLibrary} isStreaming={status.type === "running"} />
+    <MessagePrimitive.Root>
+      <MessagePrimitive.Parts components={{ Text: OpenUIText }} />
+    </MessagePrimitive.Root>
   );
 }
 ```
 
-Then update the existing message-parts configuration:
+`text` is the accumulated response supplied by assistant-ui, and `status.type` stays `"running"` until the stream closes, so the renderer draws each component as it arrives.
 
-```tsx
-<MessagePrimitive.Parts components={{ Text: OpenUIRenderer }} />
+See [The Renderer](/docs/openui-lang/renderer) for all of its props, including error handling.
+
+## Handle actions
+
+Buttons, follow-ups, and forms in a generated interface report clicks through the renderer's `onAction` callback. Without it, they do nothing. Handle the two built-in action types:
+
+- `continue_conversation`: send a new user turn. Include the form values so the model knows what the user entered, as described in [Conversation history](/docs/build-agents/conversation-history#user-actions).
+- `open_url`: open `event.params.url` in a new tab.
+
+Append the user turn with assistant-ui's `useAui()` API:
+
+```tsx title="src/components/assistant-message.tsx"
+"use client";
+
+import { useAui, type TextMessagePartProps } from "@assistant-ui/react";
+import { BuiltinActionType, Renderer, type ActionEvent } from "@openuidev/react-lang";
+import { library } from "@/lib/openui";
+
+function toModelMessage(event: ActionEvent) {
+  const lines = [`User clicked: ${event.humanFriendlyMessage}`];
+  if (event.formState) lines.push(`Form values: ${JSON.stringify(event.formState)}`);
+  return lines.join("\n");
+}
+
+function OpenUIText({ text, status }: TextMessagePartProps) {
+  const aui = useAui();
+
+  const onAction = (event: ActionEvent) => {
+    if (event.type === BuiltinActionType.ContinueConversation) {
+      aui.thread.append({
+        role: "user",
+        content: [{ type: "text", text: toModelMessage(event) }],
+      });
+    } else if (event.type === BuiltinActionType.OpenUrl) {
+      window.open(String(event.params?.url), "_blank", "noopener,noreferrer");
+    }
+  };
+
+  return (
+    <Renderer
+      response={text}
+      library={library}
+      isStreaming={status.type === "running"}
+      onAction={onAction}
+    />
+  );
+}
 ```
 
-`text` is the accumulated agent response supplied by assistant-ui.
-
-Continue with [The Renderer](/docs/openui-lang/renderer) for the complete API.
+The appended message starts a new run, just like a message typed in the composer.

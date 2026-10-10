@@ -7,7 +7,15 @@
       "ai": "^7.0.111",
       "zod": "^4.4.3"
     },
-    "removeDependencies": ["openai"]
+    "removeDependencies": [
+      "@langchain/core",
+      "@langchain/langgraph",
+      "@langchain/openai",
+      "langchain"
+    ]
   },
-  "gettingStarted": "The generated API route uses the Vercel AI SDK. Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise its native tool loop."
+  "gettingStarted": "The generated API route uses the Vercel AI SDK. Share a preview with `{{packageManager}} run deploy`.\nAsk \"What's the weather in Berlin?\" to exercise its native tool loop.",
+  "files": {
+    "remove": ["src/agent.ts"]
+  }
 }

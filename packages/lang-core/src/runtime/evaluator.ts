@@ -5,13 +5,23 @@
 
 import type { ASTNode } from "../parser/ast";
 import { isASTNode, toLiteralAST } from "../parser/ast";
-import { ACTION_STEPS, BUILTIN_STEPS, BUILTINS, isStep, toNumber } from "../parser/builtins";
+import {
+  ACTION_STEPS,
+  BUILTIN_CALLS,
+  BUILTIN_STEPS,
+  BUILTINS,
+  isStep,
+  toNumber,
+} from "../parser/builtins";
+import { nameArgs } from "../parser/materialize";
 import type {
   ActionPlan,
   ActionStep,
   ElementNode,
   FunctionSchema,
+  JSONSchemaDef,
   MaterializeCtx,
+  ParamDef,
 } from "../parser/types";
 import { isElementNode } from "../parser/types";
 import { getSchemaDefaultValue, INVALID, validateSchemaValue } from "../parser/validation";
@@ -104,13 +114,14 @@ export function evaluate(
       if (fns && Object.prototype.hasOwnProperty.call(fns, node.name)) {
         return callFunction(node.name, fns[node.name]!, node, context);
       }
-      // Custom actions: a one-step plan; invalid args give an empty plan, a no-op
+      // Custom actions: a one-step plan; any invalid arg gives an empty plan, a no-op,
+      // even an optional one with a default: @ExportFile("r", "xlsx") must not export csv
       const acts = context.actions;
       if (acts && Object.prototype.hasOwnProperty.call(acts, node.name)) {
         const def = acts[node.name]!;
-        const args = evaluateArgs(node, context);
+        const args = callArgs(node, context, def.params);
         if (missesRequired(args, def.params)) return { steps: [] };
-        const params = checkValue(args, def.params, node.name, "", context);
+        const params = checkValue(args, def.params, node.name, "", context, true);
         if (params === INVALID) return { steps: [] };
         const step: ActionStep = {
           type: "custom_action",
@@ -320,24 +331,47 @@ function evaluatePropInline(
 function evaluateArgs(
   node: ASTNode & { k: "Comp" },
   context: EvaluationContext,
+  params: ParamDef[] = BUILTIN_CALLS.get(node.name)?.params ?? [],
 ): Record<string, unknown> {
+  // The parser names args in mappedProps; an AST from parseExpression() alone is named here
+  const named = node.mappedProps ?? nameArgs(node.args, params);
   const args: Record<string, unknown> = {};
-  for (const key in node.mappedProps) args[key] = evaluate(node.mappedProps[key]!, context);
+  for (const key in named) args[key] = evaluate(named[key]!, context);
   return args;
 }
 
-// returns z.string() but fn gives 5 -> reports "@Percent: ... expects string but got number"
+/** A library function's or action's args; an explicit null for an optional param is omitted, so its default applies. */
+function callArgs(
+  node: ASTNode & { k: "Comp" },
+  context: EvaluationContext,
+  params: JSONSchemaDef,
+): Record<string, unknown> {
+  const names = Object.keys(params.properties ?? {});
+  const args = evaluateArgs(
+    node,
+    context,
+    names.map((name) => ({ name, required: false })),
+  );
+  for (const key in args) {
+    if (args[key] === null && !params.required?.includes(key)) delete args[key];
+  }
+  return args;
+}
+
+// returns z.string() but fn gives 5 -> reports "@Percent: ... expects string but got number".
+// strict: any reported error gives INVALID instead of falling back to a default.
 function checkValue(
   value: unknown,
   schema: unknown,
   name: string,
   path: string,
   context: EvaluationContext,
+  strict = false,
 ): unknown {
   const ctx = { errors: [], partial: false } as unknown as MaterializeCtx;
   const checked = validateSchemaValue(value, schema, name, path, ctx);
   for (const e of ctx.errors) context.reportError?.(`@${name}: ${e.message}`);
-  return checked;
+  return strict && ctx.errors.length > 0 ? INVALID : checked;
 }
 
 // @Percent($p) with $p unset -> null, no error
@@ -354,11 +388,7 @@ function callFunction(
   node: ASTNode & { k: "Comp" },
   context: EvaluationContext,
 ): unknown {
-  const raw = evaluateArgs(node, context);
-  // An explicit null for an optional param is omitted, so its default applies
-  for (const key in raw) {
-    if (raw[key] === null && !def.params.required?.includes(key)) delete raw[key];
-  }
+  const raw = callArgs(node, context, def.params);
   if (missesRequired(raw, def.params)) return null;
   const args = checkValue(raw, def.params, name, "", context);
   if (args === INVALID) return null;
@@ -398,7 +428,7 @@ const customSteps = new WeakSet<ActionStep>();
 
 /** Drops the custom steps no real call made, so data cannot pose as a custom action. */
 export function ownSteps(plan: ActionPlan): ActionPlan {
-  const own = (s: ActionStep) => s.type !== "custom_action" || customSteps.has(s);
+  const own = (s: ActionStep | null) => s?.type !== "custom_action" || customSteps.has(s);
   return plan.steps.every(own) ? plan : { ...plan, steps: plan.steps.filter(own) };
 }
 
