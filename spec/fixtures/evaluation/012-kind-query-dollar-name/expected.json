@@ -13,12 +13,7 @@
       ]
     }
   },
-  "errors": [
-    {
-      "code": "state-query",
-      "statementId": "$items"
-    }
-  ],
+  "errors": [],
   "unresolved": [],
   "orphans": [],
   "incomplete": false

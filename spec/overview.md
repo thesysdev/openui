@@ -287,7 +287,7 @@ createResult = Mutation("create_ticket", { title: $title })
 submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Reset($title)]))
 ```
 
-A mutation result has `status` (`idle`, `loading`, `success`, `error`), `data`, and `error`, so the page can show progress. Name queries without `$`: `tickets = Query(...)`. A `$` name cannot read the result, and the client warns about it. Rules in language.md, section 6.
+A mutation result has `status` (`idle`, `loading`, `success`, `error`), `data`, and `error`, so the page can show progress. Name queries without `$`: `tickets = Query(...)`. A `$` name cannot read the result. Rules in language.md, section 6.
 
 ### 2.11 Custom functions
 

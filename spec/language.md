@@ -183,14 +183,14 @@ Each statement is classified in this order:
 3. A `$` name on the left: a **state declaration**. The right side is its default.
 4. Anything else: a **value statement**.
 
-So `$x = Query(...)` is a query statement with the id `$x`, and it runs. But `$x` in an expression reads the state store and never sees the result. The client reports the non-fatal `state-query` diagnostic with the hint "name queries without `$`: `x = Query(...)`". The same goes for `$x = Mutation(...)`.
+So `$x = Query(...)` is a query statement with the id `$x`, and it runs. But `$x` in an expression reads the state store and never sees the result. The same goes for `$x = Mutation(...)`. Generators SHOULD name queries and mutations without `$`.
 
 - A **value position** is a direct argument of a component call or a direct element of an array literal, before any operator applies.
 - A **computed expression** is any other context: an operand, a ternary branch, an object value.
 
 `Query` and `Mutation` are valid only as the whole right side. In a value position they report `inline-reserved` and evaluate to nothing. In a computed expression they evaluate to null with no error. `Action(...)` is an ordinary expression. It may appear inline or be bound to a statement.
 
-Fixtures: `evaluation/*-kind-*`, `errors/*-state-query-*`
+Fixtures: `evaluation/*-kind-*`
 
 ### 2.2 Entry
 
@@ -486,7 +486,6 @@ A **fatal** error means nothing renders. Any other error leaves the rest of the 
 | `excess-args` | parser | More arguments than props | Extra arguments dropped, component renders |
 | `inline-reserved` | parser | `Query` or `Mutation` in a value position | Expression evaluates to nothing |
 | `unknown-function` | parser | `@Name` is not a built-in, an action step, or a custom function | The call evaluates to null. The statement is kept |
-| `state-query` | parser | `Query` or `Mutation` bound to a `$` name | Non-fatal. The statement runs; the hint says to name it without `$` |
 | `no-root` | parser | No usable entry (section 2.2), stream complete | Non-fatal when the first statement calls the root component and renders. Fatal otherwise |
 | `parse-failed` | parser | The response has text but yields no statements | Fatal |
 | `parse-exception` | parser | The parser itself failed | Fatal. The client MUST catch it |
@@ -642,5 +641,5 @@ A step is `{ "click": "<statementId>" }`, `{ "type": ["<statementId>", "<text>"]
 
 ## Appendix C. Changelog
 
-- **2026-09-30**: 1.0. The entry is the `root` statement, or a first statement that calls the library's root component, with a real `no-root` code. Added custom functions, custom actions, single-step actions, any-value `@ToAssistant` context, form state read when the step runs, the `state-query` and `unknown-function` codes, and the fixture layout. Streaming must equal a batch parse, and edits merge with the parser's statement boundaries.
+- **2026-09-30**: 1.0. The entry is the `root` statement, or a first statement that calls the library's root component, with a real `no-root` code. Added custom functions, custom actions, single-step actions, any-value `@ToAssistant` context, form state read when the step runs, the `unknown-function` code, and the fixture layout. Streaming must equal a batch parse, and edits merge with the parser's statement boundaries.
 - Earlier drafts: 0.9 community review (2026-07-22) and 1.0-beta (2026-08-05). See the git history.
