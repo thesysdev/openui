@@ -186,7 +186,11 @@ export interface LibraryExtension<C = unknown, A extends AnyAction = AnyAction> 
     add?: (DefinedComponent<any, C> | { component: DefinedComponent<any, C>; slots: string[] })[];
     /** Replacements (schema and renderer) by name. Every parent points at the new one. */
     override?: DefinedComponent<any, C>[];
-    /** Names to drop from the library, every parent union and componentGroups. */
+    /**
+     * Names to drop from the library, every parent union and componentGroups.
+     * Throws when a prop would be left with no type, even an optional one
+     * (`image?: Image` with Image removed): override that parent instead.
+     */
     remove?: string[];
   };
   functions?: ExtensionVerbs<DefinedFunction<any, any>>;
