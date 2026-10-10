@@ -4,23 +4,20 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { EXAMPLE_CATEGORIES } from "./example-categories";
 
-const contentRoot = join(import.meta.dirname, "../content/docs");
+const integrationsPage = readFileSync(
+  join(import.meta.dirname, "../content/docs/integrations/index.mdx"),
+  "utf8",
+);
 
-function sidebarLinks(folder: string): string[] {
-  const meta = JSON.parse(readFileSync(join(contentRoot, folder, "meta.json"), "utf8")) as {
-    pages: string[];
-  };
-  return meta.pages.flatMap((entry) => entry.match(/\((?<url>[^)]+)\)$/)?.groups?.url ?? []);
-}
-
-describe("showcase sidebars", () => {
-  // The Examples sidebar links to sections that RepoExamples renders from EXAMPLE_CATEGORIES.
-  it("links to every example category", () => {
-    const links = sidebarLinks("examples");
+describe("integrations page", () => {
+  // Section headings live in the MDX so they show in the TOC; ExampleCategory renders the cards.
+  it("has a heading and cards for every example category", () => {
     for (const category of EXAMPLE_CATEGORIES) {
       assert.ok(
-        links.includes(`/examples#${category.id}`),
-        `Missing sidebar link for ${category.id}`,
+        integrationsPage.includes(
+          `## ${category.title}\n\n<ExampleCategory id="${category.id}" />`,
+        ),
+        `Missing section for ${category.id}`,
       );
     }
   });

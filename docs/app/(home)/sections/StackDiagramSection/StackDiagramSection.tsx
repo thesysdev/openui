@@ -199,7 +199,7 @@ const DESCRIPTIONS: Record<
     title: "Bring your agent backend",
     description: "Use any framework, tools, APIs, and data sources.",
     cloud: ["Data persistence", "Reliability", "Observability", "Inbuilt tools"],
-    docsHref: "/docs/agent/core-concepts/tools",
+    docsHref: "/docs/build-agents/tools",
     worksWith: FRAMEWORK_BADGES,
   },
   model: {

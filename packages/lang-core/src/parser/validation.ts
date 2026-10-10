@@ -21,6 +21,11 @@ function jsType(value: unknown): string {
   return Array.isArray(value) ? "array" : typeof value;
 }
 
+/** `{ $ref: "#/$defs/Name" }` → `"Name"`. */
+function refName(s: Record<string, unknown>): string | undefined {
+  return typeof s["$ref"] === "string" ? s["$ref"].split("/").pop() : undefined;
+}
+
 /** Composite shapes can't be reliably matched to a single plain value. */
 function isCompositeSchema(s: Record<string, unknown>): boolean {
   return "$ref" in s || "anyOf" in s || "oneOf" in s || "allOf" in s;
@@ -66,9 +71,8 @@ export function getTypeFromSchema(property: unknown): string | undefined {
   }
   const p = property as Record<string, unknown>;
   // $refs and compound types aren't validator-checkable but still make useful hints.
-  if (typeof p.$ref === "string") {
-    return p.$ref.split("/").pop();
-  }
+  const ref = refName(p);
+  if (ref) return ref;
   // Scalar/enum leaves: share the validator's schema-leaf interpretation so
   // signatures and type-mismatch messages never disagree.
   const leaf = getScalarTypeInfo(p);
@@ -220,6 +224,17 @@ function validateElementPosition(
   return false;
 }
 
+/** The `$ref` names a slot allows: one for `$ref`, several for anyOf/oneOf. */
+function slotRefNames(s: Record<string, unknown>): (string | undefined)[] {
+  return ((s["anyOf"] ?? s["oneOf"] ?? [s]) as Record<string, unknown>[]).map(refName);
+}
+
+/** True when every option of the slot is a `$ref` to a component. */
+function isOnlyComponentSlot(s: Record<string, unknown>, ctx: MaterializeCtx): boolean {
+  const names = slotRefNames(s);
+  return names.length > 0 && names.every((n) => n !== undefined && ctx.cat?.has(n));
+}
+
 /**
  * Validate an object-shaped slot: container type, required keys (absent/null
  * ones fill silently from their schema default), then each declared property
@@ -361,7 +376,20 @@ export function validateSchemaValue(
   if (isASTNode(value)) return false;
   // Child components: only their position is checked here.
   if (isElementNode(value)) return validateElementPosition(value, s, component, path, ctx);
-  if (isCompositeSchema(s)) return false;
+  if (isCompositeSchema(s)) {
+    // Data (an object, array, string, number or boolean) in a component-only slot is invalid.
+    if (!isOnlyComponentSlot(s, ctx)) return false;
+    pushValidationIssue(ctx, component, path, {
+      code: "type-mismatch",
+      expected: slotRefNames(s).join(" | "),
+      actual: Array.isArray(value)
+        ? "array"
+        : typeof value === "object"
+          ? "plain object"
+          : typeof value,
+    });
+    return true;
+  }
 
   const type = s["type"];
   if (type === "object") return validateObjectValue(value, s, component, path, ctx);

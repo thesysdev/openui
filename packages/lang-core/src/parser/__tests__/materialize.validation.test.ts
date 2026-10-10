@@ -100,7 +100,7 @@ const schema: LibraryJSONSchema = {
       properties: { theme: { type: "string", default: "dark" } },
       required: ["theme"],
     },
-    // arg0 → `children`: a component slot (anyOf of $refs) — membership unchecked
+    // arg0 → `children`: a component slot (anyOf of $refs)
     SlotBox: {
       properties: {
         children: { type: "array", items: { anyOf: [{ $ref: "#/$defs/CardBox" }] } },
@@ -288,7 +288,7 @@ describe("components in data slots", () => {
     ]);
   });
 
-  it("component slots ($ref/anyOf) stay unchecked; a misplaced component's own args still validate", () => {
+  it("component slots ($ref/anyOf) accept any component; a misplaced component's own args still validate", () => {
     const slot = parser.parse('root = SlotBox([CardBox("hi"), EnumBox("active")])');
     expect(slot.meta.errors).toEqual([]);
     expect((slot.root?.props.children as unknown[]).length).toBe(2);
@@ -297,6 +297,33 @@ describe("components in data slots", () => {
     expect(errors).toHaveLength(2);
     expect(errors.find((e) => e.component === "CardBox")).toMatchObject({ path: "/text" });
     expect(errors.find((e) => e.component === "ObjBox")).toMatchObject({ path: "/info/author" });
+  });
+  it("data in a component slot is a type-mismatch and is pruned, also through a reference", () => {
+    const inline = parser.parse(
+      'root = SlotBox([CardBox("hi"), { text: "a" }, "b", 3, [CardBox("x")]])',
+    );
+    expect(inline.root?.props.children).toHaveLength(1);
+    expect(inline.meta.errors.map((e) => e.message)).toEqual([
+      'field "/children/1" expects CardBox but got plain object',
+      'field "/children/2" expects CardBox but got string',
+      'field "/children/3" expects CardBox but got number',
+      'field "/children/4" expects CardBox but got array',
+    ]);
+    const viaRef = parser.parse('root = SlotBox(items)\nitems = [{ text: "a" }]');
+    expect(viaRef.root?.props.children).toEqual([]);
+    expect(viaRef.meta.errors[0]).toMatchObject({ code: "type-mismatch", path: "/children/0" });
+  });
+  it("a $ref to a non-component def (e.g. a recursive object) is not a component slot", () => {
+    const p = createParser({
+      properties: { Tree: {} },
+      $defs: {
+        Tree: { properties: { node: { $ref: "#/$defs/__schema0" } }, required: ["node"] },
+        __schema0: { type: "object", properties: { label: { type: "string" } } },
+      },
+    });
+    const r = p.parse('root = Tree({ label: "a" })');
+    expect(r.meta.errors).toEqual([]);
+    expect(r.root?.props.node).toEqual({ label: "a" });
   });
 });
 

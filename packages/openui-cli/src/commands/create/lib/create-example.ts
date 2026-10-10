@@ -4,7 +4,7 @@ import { resolveInstallPackageManager } from "../../../lib/detect-package-manage
 import { CliCancelledError, cliErrorProperties, CreateError } from "../../../lib/errors";
 import { withSpinner } from "../../../lib/spinner";
 import type { CreateAppOptions, EnvResult } from "./create-types";
-import { writeEnvVar } from "./env";
+import { resolveCloudEnv, writeEnvVar } from "./env";
 import type { ExampleProject } from "./examples-catalog";
 import { installRequestedSkill, shouldInstallSkill } from "./install-skill";
 import {
@@ -37,7 +37,7 @@ export async function runCreateExample(params: {
   });
 
   tel.trackEnvResolutionStarted({ example: example.name });
-  const envResult = await resolveExampleEnv(example, interactive);
+  const envResult = await resolveExampleEnv(example, name, options, interactive, tel);
 
   const installSkill = await shouldInstallSkill(options.skill, false);
   tel.trackSkillInstalled({ skill_installed: installSkill });
@@ -83,8 +83,8 @@ export async function runCreateExample(params: {
   tel.trackScaffoldSucceeded({ example: example.name });
 
   try {
-    if (envResult.envKeyValue && example.envKey) {
-      writeEnvVar(path.join(targetDir, example.envFile), example.envKey, envResult.envKeyValue);
+    if (envResult.envKeyValue && example.env.key) {
+      writeEnvVar(path.join(targetDir, example.env.file), example.env.key, envResult.envKeyValue);
     }
   } catch (err) {
     const properties = cliErrorProperties(err, {
@@ -102,6 +102,8 @@ export async function runCreateExample(params: {
   tel.trackEnvResolved({
     example: example.name,
     env_written: envResult.envWritten,
+    auth_method: envResult.authMethod,
+    auth_succeeded: envResult.authSucceeded,
   });
 
   layout ??= exampleLayout(targetDir);
@@ -126,14 +128,16 @@ export async function runCreateExample(params: {
     duration_ms: Date.now() - t0,
     skill_installed: skillInstalled,
     env_written: envResult.envWritten,
+    auth_method: envResult.authMethod,
+    auth_succeeded: envResult.authSucceeded,
     dependency_installed: false,
   });
-  const envKey = example.envKey;
+  const envKey = example.env.key;
   const envNote = envKey
     ? envResult.envWritten
-      ? `✅ ${example.envFile} updated with ${envKey}.`
-      : `Add ${envKey}=… to ${example.envFile} (see the example README).`
-    : `Add your API keys to ${example.envFile} (see the example README).`;
+      ? `✅ ${example.env.file} updated with ${envKey}.`
+      : `Add ${envKey}=… to ${example.env.file} (see the example README).`
+    : `Add your API keys to ${example.env.file} (see the example README).`;
   const skillMessage = skillInstalled
     ? "The OpenUI agent skill was installed.\nAI coding assistants will use it to help you build with OpenUI.\n"
     : "";
@@ -154,13 +158,26 @@ export async function runCreateExample(params: {
 
 async function resolveExampleEnv(
   example: ExampleProject,
+  name: string,
+  options: CreateAppOptions,
   interactive: boolean,
+  tel: CreateTelemetryClient,
 ): Promise<EnvResult & { envKeyValue?: string }> {
-  if (!example.envKey) {
+  if (!example.env.key) {
     return { envWritten: false };
   }
 
-  const apiKey = interactive ? await promptForProviderKey(example.envKey) : null;
+  if (example.env.key === "THESYS_API_KEY") {
+    const result = await resolveCloudEnv(
+      name,
+      { ...options, envFile: example.env.file },
+      interactive,
+      tel,
+    );
+    return { ...result, envKeyValue: result.envVars?.[example.env.key] || undefined };
+  }
+
+  const apiKey = interactive ? await promptForProviderKey(example.env.key) : null;
   return {
     envWritten: apiKey != null,
     envKeyValue: apiKey ?? undefined,
