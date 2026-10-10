@@ -53,7 +53,8 @@ interface DefinedComponent<T extends z.ZodObject<any> = z.ZodObject<any>> {
 Creates a `Library` from an array of defined components.
 
 ```ts
-function createLibrary(input: LibraryDefinition): Library;
+/** The result has functions, actions, and extend set (Required<Library>). */
+function createLibrary(input: LibraryDefinition): Required<Library>;
 ```
 
 Core types:
@@ -80,16 +81,18 @@ interface ComponentGroup {
 interface Library {
   readonly components: Record<string, DefinedComponent>;
   readonly componentGroups: ComponentGroup[] | undefined;
-  readonly functions: Record<string, DefinedFunction>;
-  readonly actions: Record<string, DefinedAction>;
+  /** Optional, so a hand-built Library object still type-checks. createLibrary always sets it. */
+  readonly functions?: Record<string, DefinedFunction>;
+  /** Optional, like functions. */
+  readonly actions?: Record<string, DefinedAction>;
   readonly root: string | undefined;
   readonly id: string | undefined;
 
   prompt(options?: PromptOptions): string;
   toJSONSchema(): LibraryJSONSchema;
   toSpec(): PromptSpec;
-  /** Derive a new library with added components, functions, and actions. */
-  extend(extension: LibraryExtension): Library;
+  /** Derive a new library. Optional, like functions. */
+  extend?(extension: LibraryExtension): Library;
 }
 
 interface PromptOptions {
@@ -130,11 +133,11 @@ function defineFunction<
 }): DefinedFunction<T, R>;
 ```
 
-A call with invalid arguments, an `fn` that throws, or a result that does not match `returns` evaluates to `null`.
+A call with an invalid required argument, an `fn` that throws, or a result that does not match `returns` evaluates to `null`. An invalid optional argument falls back to its default.
 
 ## `defineAction(config)`
 
-Defines a custom action step. The renderer does not run it: it calls `onAction` with `{ type: name, params }`. See [Custom Actions](/docs/openui-lang/custom-actions).
+Defines a custom action step. The renderer does not run it: it calls `onAction` with `{ type: name, params }`. A step with any invalid argument is a no-op. See [Custom Actions](/docs/openui-lang/custom-actions).
 
 ```ts
 function defineAction<const N extends string, T extends z.ZodObject>(config: {
@@ -169,13 +172,20 @@ Returns a new library with the additions. The base library is unchanged. See [Ex
 
 ```ts
 interface LibraryExtension {
-  components?: { add?: DefinedComponent[] };
+  components?: {
+    /** With slots ("Parent.prop", or "Parent" when it has one content slot), it joins those unions. */
+    add?: (DefinedComponent | { component: DefinedComponent; slots: string[] })[];
+    /** Replaces the component of the same name. Every parent points at the new one. */
+    override?: DefinedComponent[];
+    /** Drops it from the library, every parent union, and componentGroups. */
+    remove?: string[];
+  };
   functions?: { add?: DefinedFunction[] };
   actions?: { add?: DefinedAction[] };
 }
 ```
 
-`override` and `remove` are part of the type but throw "not supported yet". A name that already exists throws. The derived library has no `id`.
+`extend` throws when an added name exists, an overridden or removed name does not, a removal is the root or the only type of a slot, or a slot does not resolve to one content slot. The derived library has no `id`. Create it once at module scope, since parsers are cached per library object.
 
 ## `buildMessage(input)` and `parseMessage(raw, options?)`
 
