@@ -302,12 +302,8 @@ function RendererRoot<L extends Library = Library>({
     }),
     [isQueryLoading, queryErrors, retryQueries],
   );
-  // Keyed on the evaluated result, not its root: a static tree keeps the same root
-  // when form state changes, and fields read their values while rendering.
-  const value = useMemo(
-    () => ({ root: result?.root ?? null, query, queryLoader }),
-    [result, query, queryLoader],
-  );
+  // Fields read the form store during render, so propagate every Renderer update to the slots.
+  const value = { root: result?.root ?? null, query, queryLoader };
 
   return (
     <OpenUIContext.Provider value={contextValue}>
