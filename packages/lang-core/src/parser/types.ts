@@ -6,6 +6,7 @@ export type JSONSchemaDef = {
   properties?: JSONSchemaProperty;
   required?: string[];
   description?: string;
+  type?: string;
   anyOf?: JSONSchemaProperty[];
 };
 
