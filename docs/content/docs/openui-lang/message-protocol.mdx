@@ -5,6 +5,18 @@ description: Store and stream responses in the OpenUI message format with buildM
 
 The OpenUI message format carries both directions of a turn: the assistant's content, and the user's context (such as form values and click context) sent back with the next message. When you save a model response so you can show it again later, store it in this format: the response text wrapped in marker lines that start with `]]>openui:`. The same text works while a response streams and after it is stored. Your app writes and reads these lines. The model never sees them.
 
+<Mermaid
+  chart={`
+sequenceDiagram
+    participant S as Server / LLM
+    participant C as Client
+    S->>C: Assistant message: ]]>openui:content (+ ]]>openui:end)
+    Note over C: Renders the program
+    C->>S: User click (@ToAssistant): ]]>openui:content + ]]>openui:context (message, formState, context)
+    S-->>C: On reload: stored messages
+`}
+/>
+
 ```text
 ]]>openui:content?library=support%401.2.0
 root = Card([title, saveBtn])

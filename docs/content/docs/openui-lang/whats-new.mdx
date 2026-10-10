@@ -109,7 +109,7 @@ See [Message Protocol](/docs/openui-lang/message-protocol).
 
 ## Entry rule
 
-The entry is the `root` statement. Without one, the first statement after the declarations is used if it calls the library's root component, with a `no-root` warning. Otherwise nothing renders and `no-root` is reported. `root` can also pick a component at runtime, as in `root = $compact ? compactView : fullView`. See [Which statement renders](/docs/openui-lang/renderer#which-statement-renders).
+The entry is the `root` statement. Without one, the first statement after the declarations is used if it calls the library's root component, with a `no-root` warning. Otherwise nothing renders and `no-root` is reported. `root` can also pick a component at runtime, as in `root = $compact ? compactView : fullView`. See [Entry Statement](/docs/openui-lang/specification-v10#entry-statement).
 
 ## Smaller changes
 
@@ -138,7 +138,7 @@ Upgrade `@openuidev/lang-core` and `@openuidev/react-lang` together, and ship th
 
 What changes for existing apps:
 
-- A program without `root` renders only when its first statement after the declarations calls the library's root component. In our benchmark corpus, 151 of 24,423 programs (0.6%) stop rendering because of this. See [Which statement renders](/docs/openui-lang/renderer#which-statement-renders).
+- A program without `root` renders only when its first statement after the declarations calls the library's root component. In our benchmark corpus, 151 of 24,423 programs (0.6%) stop rendering because of this. See [Entry Statement](/docs/openui-lang/specification-v10#entry-statement).
 - A program whose `root` statement comes last shows nothing while it streams, until the `root` line arrives. Write `root` first, as the generated prompt asks.
 - An output cut off before its `root` statement renders blank instead of a partial tree.
 - `@Card(...)` is no longer a component call. It reports `unknown-function` and evaluates to `null`.
