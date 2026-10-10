@@ -240,8 +240,8 @@ interface RendererProps<L extends Library = Library> {
 
 Handles `Query()` and `Mutation()` tool calls at runtime. The `toolProvider` prop accepts two forms:
 
-- **Function map** — `Record<string, (args) => Promise<unknown>>` — the simplest option
-- **MCP client** — any object implementing `callTool({ name, arguments })` (e.g. from `@modelcontextprotocol/sdk`)
+- **Function map**: `Record<string, (args) => Promise<unknown>>`. The simplest option.
+- **MCP client**: any object implementing `callTool({ name, arguments })` (e.g. from `@modelcontextprotocol/sdk`)
 
 The Renderer detects which form was passed and normalizes internally.
 

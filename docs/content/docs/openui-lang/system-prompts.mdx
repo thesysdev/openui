@@ -49,7 +49,7 @@ The CLI auto-detects exported `PromptOptions` (examples, rules) alongside your l
 
 ## 2. `generateSystemPrompt` (recommended backend integration)
 
-For backends that need dynamic prompts — different tools, preambles, or feature flags per request — use `generateSystemPrompt` from `@openuidev/lang-core`. It has no React dependency, so it works in any Node, Edge, or serverless backend. Import the spec emitted by the command above and build the prompt at runtime:
+For backends that build the prompt per request, with different tools, preambles, or feature flags, use `generateSystemPrompt` from `@openuidev/lang-core`. It has no React dependency, so it works in any Node, Edge, or serverless backend. Import the spec emitted by the command above and build the prompt at runtime:
 
 ```ts
 import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
@@ -82,8 +82,8 @@ const systemPrompt = generateSystemPrompt({
 | ------------------ | -------------------------------------------------------------------------------------- | ----------------------------------- |
 | `toolCalls`        | `Query()`, `Mutation()`, `@Run`, built-in functions, tool workflow rules               | `true` if `tools` provided          |
 | `bindings`         | `$variables`, `@Set`, `@Reset`, built-in functions, reactive filters                   | `true` if `toolCalls` is true       |
-| `editMode`         | Incremental editing - LLM outputs only changed statements                              | `false`                             |
-| `inlineMode`       | Text + fenced code responses - LLM can answer questions without generating UI          | `false`                             |
+| `editMode`         | Incremental editing: the LLM outputs only changed statements                           | `false`                             |
+| `inlineMode`       | Text and fenced code: the LLM can answer without generating UI                         | `false`                             |
 | `builtinFunctions` | Lists the built-in functions (`@Count`, `@Sum`, ...) without `toolCalls` or `bindings` | `true` if `toolCalls` or `bindings` |
 
 ### Gateway and Autofix

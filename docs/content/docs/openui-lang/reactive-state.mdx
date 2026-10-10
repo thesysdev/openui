@@ -47,7 +47,7 @@ data = Query("analytics", {days: $days}, {rows: []})
 ```
 
 When `$days` changes (user picks "30" in the Select), the title updates and the Query
-re-fetches with the new value. This happens automatically - no wiring needed.
+re-fetches with the new value. You do not wire this up.
 
 ## Changing state from buttons
 
@@ -98,4 +98,4 @@ When a `$variable` changes:
 3. All expressions that reference it re-evaluate
 4. The UI re-renders with new values
 
-No event listeners. No useEffect. No wiring. Just declare and reference.
+You only declare the variable and reference it.

@@ -116,7 +116,7 @@ If no `onError` callback is provided, errors are logged to `console.warn` instea
 - Parser re-runs as chunks arrive.
 - Forward references resolve when their statements arrive.
 - Unresolved references and invalid components are dropped from arrays (not left as null holes).
-- `meta.orphaned` lists defined-but-unreachable statements on every chunk — useful for real-time debugging.
+- `meta.orphaned` lists defined but unreachable statements on every chunk. Use it to debug while streaming.
 - There is no `nodePlaceholder` prop in the current renderer API.
 
 ## Actions
