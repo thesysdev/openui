@@ -45,10 +45,11 @@ export const Button = defineComponent({
           // Validate form for primary buttons before firing action
           if (formValidation && variant === "primary") {
             if (action?.steps) {
-              // v0.5 ActionPlan — validate if any step is ToAssistant or mutation
+              // v0.5 ActionPlan: validate if any step is ToAssistant, a mutation, or a custom action
               const needsValidation = action.steps.some(
                 (s) =>
                   s.type === ACTION_STEPS.ToAssistant ||
+                  s.type === "custom_action" ||
                   (s.type === ACTION_STEPS.Run && s.refType === "mutation"),
               );
               if (needsValidation && !formValidation.validateForm()) return;

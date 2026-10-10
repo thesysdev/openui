@@ -1,6 +1,7 @@
 import type {
   ActionEvent,
   ElementNode,
+  LibraryActionEvent,
   McpClientLike,
   OpenUIError,
   ParseResult,
@@ -12,15 +13,15 @@ import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
 
-export interface RendererProps {
+export interface RendererProps<L extends Library = Library> {
   /** Raw response text (openui-lang code). */
   response: string | null;
   /** Component library from createLibrary(). */
-  library: Library;
+  library: L;
   /** Whether the LLM is still streaming (form interactions disabled during streaming). */
   isStreaming?: boolean;
-  /** Callback when a component triggers an action. */
-  onAction?: (event: ActionEvent) => void;
+  /** Callback when a component triggers an action. Typed by the library's custom actions. */
+  onAction?: (event: LibraryActionEvent<L>) => void;
   /**
    * Called whenever a form field value changes. Receives the raw form state map.
    * The consumer decides how to persist this (e.g. embed in message, store separately).
@@ -197,7 +198,7 @@ const DefaultQueryLoader = () => (
   />
 );
 
-export function Renderer({
+export function Renderer<L extends Library = Library>({
   response,
   library,
   isStreaming = false,
@@ -209,7 +210,7 @@ export function Renderer({
   queryLoader,
   onError,
   publishObservability,
-}: RendererProps) {
+}: RendererProps<L>) {
   useInsertionEffect(() => {
     ensureLoadingStyle();
   }, []);
@@ -250,7 +251,8 @@ export function Renderer({
       response,
       library,
       isStreaming,
-      onAction,
+      // The hook builds plain ActionEvents; LibraryActionEvent<L> is the same shape, narrowed.
+      onAction: onAction as ((event: ActionEvent) => void) | undefined,
       onStateUpdate,
       initialState,
       toolProvider: resolvedToolProvider,

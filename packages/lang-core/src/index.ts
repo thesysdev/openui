@@ -2,6 +2,7 @@
 export {
   buildSignature,
   createLibrary,
+  defineAction,
   defineComponent,
   defineFunction,
   tagSchemaId,
@@ -9,9 +10,11 @@ export {
 export type {
   ComponentGroup,
   ComponentRenderProps,
+  DefinedAction,
   DefinedComponent,
   DefinedFunction,
   Library,
+  LibraryActionEvent,
   LibraryDefinition,
   LibraryJSONSchema,
   PromptOptions,
@@ -26,15 +29,7 @@ export { isASTNode, isRuntimeExpr, walkAST } from "./parser/ast";
 export type { ASTNode, CallNode, RuntimeExprNode, Statement } from "./parser/ast";
 // Low-level parsing pipeline (tokenize → split → parseExpression) for consumers
 // that walk partial/streaming openui-lang source without a full parser.
-export {
-  ACTION_NAMES,
-  ACTION_STEPS,
-  BUILTINS,
-  action,
-  isBuiltin,
-  steps,
-  toNumber,
-} from "./parser/builtins";
+export { ACTION_STEPS, BUILTINS, action, isBuiltin, steps, toNumber } from "./parser/builtins";
 export type { ActionRef } from "./parser/builtins";
 export { enrichErrors } from "./parser/enrich-errors";
 export { parseExpression } from "./parser/expressions";

@@ -16,7 +16,7 @@ import type { ElementNode } from "../parser/types";
 import { isElementNode } from "../parser/types";
 import { isReactiveSchema } from "../reactive";
 import type { EvaluationContext, SchemaContext } from "./evaluator";
-import { evaluate, isActionPlan, isReactiveAssign } from "./evaluator";
+import { evaluate, isActionPlan, isReactiveAssign, ownSteps } from "./evaluator";
 
 export interface PropEvalCallbacks {
   /** How to recurse into an ElementNode (evaluator vs evaluate-tree differ here). */
@@ -30,6 +30,18 @@ export interface PropEvalCallbacks {
  * ReactiveAssign markers, nested ElementNodes, arrays, and ActionPlans.
  */
 export function evaluatePropCore(
+  value: unknown,
+  context: EvaluationContext,
+  schemaCtx: SchemaContext,
+  reactiveSchema: unknown | undefined,
+  callbacks: PropEvalCallbacks,
+): unknown {
+  const result = evaluatePropValue(value, context, schemaCtx, reactiveSchema, callbacks);
+  // Only real calls make custom steps: a plan read from data loses them
+  return isActionPlan(result) ? ownSteps(result) : result;
+}
+
+function evaluatePropValue(
   value: unknown,
   context: EvaluationContext,
   schemaCtx: SchemaContext,

@@ -4,7 +4,7 @@
 
 import type { ASTNode } from "./ast";
 import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST, walkAST } from "./ast";
-import { ACTION_NAMES, getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
+import { getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { isElementNode, type CallDef, type MaterializeCtx, type ParamDef } from "./types";
 import {
   buildParamsSignature,
@@ -26,6 +26,8 @@ export function containsDynamicValue(v: unknown): boolean {
     return Object.values(v.props).some(containsDynamicValue);
   }
   const obj = v as Record<string, unknown>;
+  // A `{steps: [...]}` literal is evaluated too, so data cannot pose as custom action steps
+  if (Array.isArray(obj.steps)) return true;
   return Object.values(obj).some(containsDynamicValue);
 }
 
@@ -66,9 +68,9 @@ function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): 
   }
 }
 
-/** Calls in the registry, action steps and reserved calls stay AST for the runtime. */
+/** Registry calls (functions and steps) and reserved calls stay AST for the runtime. */
 function isRuntimeCall(name: string, ctx: MaterializeCtx): boolean {
-  return getCallDefs(ctx.cat).has(name) || ACTION_NAMES.has(name) || isReservedCall(name);
+  return getCallDefs(ctx.cat).has(name) || isReservedCall(name);
 }
 
 // [Num 1, Ref x] with params [a, b] -> {a: Num 1, b: Ref x}; extra args dropped
@@ -95,6 +97,7 @@ export function mapCallArgs(
   }
   const mapped = nameArgs(args, params);
   let invalid = false;
+  const errorsBefore = ctx.errors.length;
   for (const p of params) {
     const arg = mapped[p.name];
     const lit = arg ? literalValue(arg) : { v: undefined };
@@ -114,6 +117,9 @@ export function mapCallArgs(
     else if (next === undefined) delete mapped[p.name];
     else if (next !== lit.v) mapped[p.name] = toLiteralAST(next);
   }
+  // An action never runs with a value the model did not write:
+  // @ExportFile("report", "xlsx") is a no-op, not an export with the "csv" default
+  if (def.kind === "action" && ctx.errors.length > errorsBefore) invalid = true;
   return invalid ? null : mapped;
 }
 
@@ -130,7 +136,11 @@ function materializeCall(
   const mappedProps = def.builtin
     ? nameArgs(args, def.params)
     : mapCallArgs(node.name, args, def, ctx);
-  return mappedProps ? { ...node, args, mappedProps } : { k: "Null" };
+  if (mappedProps) return { ...node, args, mappedProps };
+  // An invalid action step is an empty plan, a no-op
+  return def.kind === "action"
+    ? { k: "Comp", name: "Action", args: [{ k: "Arr", els: [] }] }
+    : { k: "Null" };
 }
 
 // Query("s", {n: @Count(rows)}): names @Count's args in place
@@ -154,7 +164,8 @@ function materializeLazyBuiltin(
   ctx: MaterializeCtx,
   scopedRefs: ReadonlySet<string>,
 ): ASTNode | null {
-  if (!getCallDefs(ctx.cat).get(node.name)?.lazy || node.args.length < 3) return null;
+  const def = getCallDefs(ctx.cat).get(node.name);
+  if (def?.kind !== "function" || !def.lazy || node.args.length < 3) return null;
   const varArg = node.args[1];
   const varName = varArg.k === "Ref" ? varArg.n : varArg.k === "Str" ? varArg.v : null;
   if (!varName) return null;

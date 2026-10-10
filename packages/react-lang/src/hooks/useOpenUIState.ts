@@ -171,8 +171,9 @@ export function useOpenUIState(
         return queryManager.getResult(name);
       },
       functions,
+      actions: schema.actions,
     }),
-    [store, queryManager, functions],
+    [store, queryManager, functions, schema.actions],
   );
 
   // ─── Evaluate and submit queries ───
@@ -302,6 +303,9 @@ export function useOpenUIState(
       if (action && !("steps" in action)) {
         const formPayload = getFormPayload(formName);
         const actionType = action.type || BuiltinActionType.ContinueConversation;
+        // Only a real call delivers a custom action; a legacy object cannot pose as one
+        if (schema.actions && Object.prototype.hasOwnProperty.call(schema.actions, actionType))
+          return;
         const params = { ...(action.params || {}) };
         // v0.1 compat — url and context were top-level, not in params
         if ((action as any).url) params.url = (action as any).url;
@@ -355,6 +359,15 @@ export function useOpenUIState(
                 formName,
               });
               break;
+            case "custom_action":
+              handler?.({
+                type: step.name,
+                params: step.params,
+                humanFriendlyMessage: "",
+                formState: getFormPayload(formName),
+                formName,
+              });
+              break;
             case ACTION_STEPS.Set: {
               if (!step.valueAST) {
                 console.warn(`[openui] Set action for ${step.target} has no valueAST — skipping`);
@@ -385,7 +398,7 @@ export function useOpenUIState(
         formName,
       });
     },
-    [queryManager, evaluationContext, getFormPayload, store],
+    [queryManager, evaluationContext, getFormPayload, store, schema.actions],
   );
 
   // ─── reportError (for error boundary) ───

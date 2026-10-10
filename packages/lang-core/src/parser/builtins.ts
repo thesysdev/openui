@@ -1,9 +1,14 @@
-/** Built-in functions (defined like library functions), action steps and reserved calls. */
+/** Built-in functions and action steps (defined like library ones), and reserved calls. */
 
 import { z } from "zod/v4";
-import { defineFunction, type DefinedFunction } from "../functions";
-import { tagActionRef, tagSchemaId } from "../signature";
-import type { CallDef, ParamMap } from "./types";
+import {
+  defineAction,
+  defineFunction,
+  type DefinedAction,
+  type DefinedFunction,
+} from "../functions";
+import { actionRef, tagSchemaId } from "../signature";
+import type { ActionStep, CallDef, ParamMap } from "./types";
 
 /** Resolve a field path on an object. Supports dot-paths: "state.name" → obj.state.name */
 function resolveField(obj: any, path: string): unknown {
@@ -217,6 +222,13 @@ export const ACTION_STEPS = {
   Reset: "reset",
 } as const;
 
+/** A schema that only names its type in prompt signatures, e.g. `$variable`. */
+function named(id: string) {
+  const schema = z.any();
+  tagSchemaId(schema, id);
+  return schema;
+}
+
 const openUrlData = () => z.object({ type: z.literal("open_url"), url: z.string() });
 const toAssistantData = () =>
   z.object({ type: z.literal("continue_conversation"), context: z.string().optional() });
@@ -241,12 +253,6 @@ export function action() {
 /** A slot schema naming one action, typed like an action prop: `z.union([steps.OpenUrl.ref])`. */
 export type ActionRef = z.ZodType<z.infer<typeof actionSchema>>;
 
-// actionRef("OpenUrl", data) -> `$defs.OpenUrl` = data in JSON, `@OpenUrl` in prompt signatures
-function actionRef(name: string, data: z.ZodType): ActionRef {
-  tagActionRef(data, name);
-  return data as unknown as ActionRef;
-}
-
 /** Refs of the built-in steps that have a legacy JSON shape, for restricted action slots. */
 export const steps = {
   OpenUrl: { ref: actionRef("OpenUrl", openUrlData()) },
@@ -260,29 +266,102 @@ export const ACTION_DEFS: Record<string, z.ZodType> = {
   ToAssistant: steps.ToAssistant.ref,
 };
 
-/** All action expression names (steps + the Action container) */
-export const ACTION_NAMES: Set<string> = new Set(["Action", ...Object.keys(ACTION_STEPS)]);
+/** A built-in step: `step` builds it from coerced args; a lazy one reads raw args in the evaluator. */
+export type BuiltinStep = DefinedAction<any> & {
+  step?: (args: any) => ActionStep;
+  lazy?: true;
+};
 
-/** The language's calls, the base of every library's call registry. */
-export const BUILTIN_CALLS: ReadonlyMap<string, CallDef> = new Map(
-  builtins.map((b) => [
-    b.name,
-    {
-      params: Object.keys(b.params.shape).map((name) => ({ name, required: false })),
-      builtin: true,
-      ...(b.lazy ? { lazy: true } : {}),
-    },
-  ]),
+const builtinSteps: BuiltinStep[] = [
+  {
+    ...defineAction({
+      name: "Run",
+      description: "Execute a Mutation or re-fetch a Query (ref must be a declared Query/Mutation)",
+      params: z.object({ ref: named("Query | Mutation") }),
+    }),
+    lazy: true,
+  },
+  {
+    ...defineAction({
+      name: "ToAssistant",
+      description:
+        'Send a message to the assistant (for conversational buttons like "Tell me more", "Explain this"). The optional context is any value (object, array, string, number) passed to the assistant as hidden data, e.g. @ToAssistant("Show details", {orderId: 42})',
+      params: z.object({ message: z.string(), context: z.any().optional() }),
+    }),
+    ref: steps.ToAssistant.ref,
+    // The context may be any value and is passed through unchanged; null means none
+    step: ({ message, context }) => ({
+      type: ACTION_STEPS.ToAssistant,
+      message: String(message ?? ""),
+      context: context ?? undefined,
+    }),
+  },
+  {
+    ...defineAction({
+      name: "OpenUrl",
+      description: "Navigate to a URL",
+      params: z.object({ url: z.string() }),
+    }),
+    ref: steps.OpenUrl.ref,
+    step: ({ url }) => ({ type: ACTION_STEPS.OpenUrl, url: String(url ?? "") }),
+  },
+  {
+    ...defineAction({
+      name: "Set",
+      description: "Set a $variable to a specific value",
+      params: z.object({ variable: named("$variable"), value: z.any() }),
+    }),
+    lazy: true,
+  },
+  {
+    ...defineAction({
+      name: "Reset",
+      description:
+        'Reset $variables to their declared defaults; pass several to reset each (e.g. @Reset($title, $priority) restores $title="" and $priority="medium")',
+      params: z.object({ variable: named("$variable") }),
+    }),
+    lazy: true,
+  },
+];
+
+/** All built-in steps by name, in prompt order. */
+export const BUILTIN_STEPS: Record<string, BuiltinStep> = Object.fromEntries(
+  builtinSteps.map((s) => [s.name, s]),
 );
+
+const callDef = (kind: CallDef["kind"], def: BuiltinFunction | BuiltinStep): CallDef => ({
+  kind,
+  params: Object.keys(def.params.shape).map((name) => ({ name, required: false })),
+  builtin: true,
+  ...(def.lazy ? { lazy: true } : {}),
+});
+
+/** The built-in functions, steps and Action: the base of every library's call registry. */
+export const BUILTIN_CALLS: ReadonlyMap<string, CallDef> = new Map([
+  ...builtins.map((b) => [b.name, callDef("function", b)] as const),
+  ...builtinSteps.map((s) => [s.name, callDef("action", s)] as const),
+  [
+    "Action",
+    { kind: "action", params: [{ name: "steps", required: true }], builtin: true, lazy: true },
+  ],
+]);
 
 // getCallDefs(cat).get("Percent") -> the library's @Percent; no cat -> built-ins only
 export function getCallDefs(cat: ParamMap | undefined): ReadonlyMap<string, CallDef> {
   return cat?.callDefs ?? BUILTIN_CALLS;
 }
 
-/** True for a built-in function, action step, or Action (not a component). */
+/** True for a built-in function, step, or Action (not a component). */
 export function isBuiltin(name: string): boolean {
-  return BUILTIN_CALLS.has(name) || ACTION_NAMES.has(name);
+  return BUILTIN_CALLS.has(name);
+}
+
+/** True for a step call: a built-in step, Action, or one of `actions`. */
+export function isStep(name: string, actions?: object): boolean {
+  return (
+    BUILTIN_CALLS.get(name)?.kind === "action" ||
+    (!!actions && Object.prototype.hasOwnProperty.call(actions, name))
+  );
 }
 
 /** Reserved statement-level call names — not builtins, not components */

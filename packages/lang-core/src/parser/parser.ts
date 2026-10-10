@@ -669,9 +669,9 @@ function compileParams(def: JSONSchemaDef, defs: ActionDefs): ParamDef[] {
 export function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const map: ParamMap = new Map();
   const components = schema.properties && new Set(Object.keys(schema.properties));
-  // Action $defs (ActionExpression, OpenUrl, ...) are data shapes, never components
+  // Action $defs (ActionExpression, OpenUrl, custom actions) are data shapes, never components
   const defs: ActionDefs = new Map();
-  for (const name of Object.keys(ACTION_DEFS)) {
+  for (const name of [...Object.keys(ACTION_DEFS), ...Object.keys(schema.actions ?? {})]) {
     const body = schema.$defs?.[name];
     if (body && !components?.has(name)) defs.set(`#/$defs/${name}`, body);
   }
@@ -680,10 +680,13 @@ export function compileSchema(schema: LibraryJSONSchema): ParamMap {
     if (components ? !components.has(name) : defs.has(`#/$defs/${name}`)) continue;
     map.set(name, { params: compileParams(def, defs) });
   }
-  // The call registry: the built-ins plus the library's functions
+  // The call registry: the built-ins plus the library's functions and actions
   map.callDefs = new Map(BUILTIN_CALLS);
   for (const [name, fn] of Object.entries(schema.functions ?? {})) {
-    map.callDefs.set(name, { params: compileParams(fn.params, defs) });
+    map.callDefs.set(name, { kind: "function", params: compileParams(fn.params, defs) });
+  }
+  for (const [name, action] of Object.entries(schema.actions ?? {})) {
+    map.callDefs.set(name, { kind: "action", params: compileParams(action.params, defs) });
   }
   return map;
 }

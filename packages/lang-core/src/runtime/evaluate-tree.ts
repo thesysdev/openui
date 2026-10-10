@@ -49,10 +49,11 @@ export function evaluateElementProps(el: ElementNode, evalCtx: EvalContext): Ele
       hint: `Check the expression used for prop "${key}"`,
     });
   };
-  // Library function calls that evaluate to null report why here
-  const propCtx = evalCtx.ctx.functions
-    ? { ...evalCtx, ctx: { ...evalCtx.ctx, reportError: report } }
-    : evalCtx;
+  // Library function calls and actions that fail report why here
+  const propCtx =
+    evalCtx.ctx.functions || evalCtx.ctx.actions
+      ? { ...evalCtx, ctx: { ...evalCtx.ctx, reportError: report } }
+      : evalCtx;
 
   for (const [propKey, value] of Object.entries(el.props)) {
     key = propKey;
