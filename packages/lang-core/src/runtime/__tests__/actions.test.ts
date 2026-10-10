@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 import { createLibrary, defineAction, defineComponent, defineFunction } from "../../library";
 import { createParser } from "../../parser";
 import { action, steps } from "../../parser/builtins";
+import type { OpenUIError } from "../../parser/types";
 import { evaluateElementProps } from "../evaluate-tree";
 
 const Button = defineComponent({
@@ -35,6 +36,24 @@ describe("action plans", () => {
       ticket: "T-42",
     });
     expect(actionOf(`@ToAssistant("Save", null)`).steps[0].context).toBeUndefined();
+  });
+
+  it("keeps data with a null in its steps array as data", () => {
+    const Text = defineComponent({
+      name: "Text",
+      props: z.object({ text: z.any() }),
+      description: "",
+      component: null as any,
+    });
+    const textLib = createLibrary({ root: "Text", components: [Text] });
+    const { root } = createParser(textLib.toJSONSchema(), "Text").parse(
+      `root = Text({title: "Recipe", steps: ["Boil", null]})`,
+    );
+    const ctx = { getState: () => undefined, resolveRef: () => null };
+    const errors: OpenUIError[] = [];
+    const el = evaluateElementProps(root!, { ctx, library: textLib, store: null, errors });
+    expect(errors).toEqual([]);
+    expect(el.props.text).toEqual({ title: "Recipe", steps: ["Boil", null] });
   });
 });
 

@@ -425,7 +425,7 @@ const customSteps = new WeakSet<ActionStep>();
 
 /** Drops the custom steps no real call made, so data cannot pose as a custom action. */
 export function ownSteps(plan: ActionPlan): ActionPlan {
-  const own = (s: ActionStep) => s.type !== "custom_action" || customSteps.has(s);
+  const own = (s: ActionStep | null) => s?.type !== "custom_action" || customSteps.has(s);
   return plan.steps.every(own) ? plan : { ...plan, steps: plan.steps.filter(own) };
 }
 
