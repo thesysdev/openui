@@ -30,11 +30,9 @@ export type { BuildMessageInput, ParseMessageOptions, ParsedMessage } from "./me
 // ── Parser ──
 export { createParser, createStreamingParser, parse } from "./parser";
 export type { Parser, StreamParser } from "./parser";
-export { isASTNode, isRuntimeExpr, walkAST } from "./parser/ast";
-export type { ASTNode, CallNode, RuntimeExprNode, Statement } from "./parser/ast";
-// Low-level parsing pipeline (tokenize → split → parseExpression) for consumers
-// that walk partial/streaming openui-lang source without a full parser.
-export { ACTION_STEPS, BUILTINS, action, isBuiltin, steps, toNumber } from "./parser/builtins";
+export { walkAST } from "./parser/ast";
+export type { ASTNode } from "./parser/ast";
+export { ACTION_STEPS, action, steps } from "./parser/builtins";
 export type { ActionRef } from "./parser/builtins";
 export { enrichErrors } from "./parser/enrich-errors";
 export { parseExpression } from "./parser/expressions";
@@ -50,10 +48,7 @@ export type {
   SystemPromptSpec,
   ToolSpec,
 } from "./parser/prompt";
-export { jsonToOpenUI } from "./parser/serialize";
-export type { SerializeOptions } from "./parser/serialize";
 export { autoClose, split } from "./parser/statements";
-export type { Token } from "./parser/tokens";
 export { BuiltinActionType } from "./parser/types";
 export type {
   ActionEvent,
