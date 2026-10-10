@@ -21,11 +21,6 @@
     "reference/hooks",
     "reference/adapters-and-formats",
     "reference/define-artifact-renderer",
-    "reference/self-hosting",
-    "---Examples---",
-    "agent-runtimes/vercel-ai-sdk",
-    "agent-runtimes/langgraph-platform",
-    "agent-runtimes/pi",
-    "agent-runtimes/vercel-eve"
+    "reference/self-hosting"
   ]
 }

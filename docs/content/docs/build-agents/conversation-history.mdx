@@ -1,0 +1,76 @@
+---
+title: Conversation history
+description: Send earlier turns, tool results, and user actions back to the model.
+---
+
+Each model request contains the whole conversation so far. With OpenUI, earlier assistant turns are OpenUI Lang instead of Markdown, and some user turns come from clicks in a generated interface instead of the composer. This page covers what to send for each.
+
+## Earlier assistant turns
+
+Send each earlier assistant response back **as the OpenUI Lang it was generated as**, not as a summary or the rendered text:
+
+```ts
+const messages = [
+  { role: "user", content: "Show revenue by region" },
+  {
+    role: "assistant",
+    content: `root = Stack([CardHeader("Revenue by region"), chart])
+chart = BarChart(["NA", "EU", "APAC"], [Series("Revenue", [420, 310, 180])])`,
+  },
+  { role: "user", content: "Make it a pie chart" },
+];
+```
+
+The model then knows exactly which interface the user is looking at and can change it ("make it a pie chart", "add Q3") instead of starting over.
+
+Most chat UIs already store the assistant's raw text and resend it, so this usually needs no change.
+
+## Tool calls and results
+
+Keep agent-side tool calls and their results in the history the way the agent framework stores them. On later turns, the model can reuse the data instead of calling the tool again.
+
+UI-side tools are different: `Query()` and `Mutation()` run in the browser and their results never enter the conversation. The model sees the OpenUI Lang that declares the query, not the rows it loaded. If the agent needs that data to answer a follow-up, give it an agent-side tool that returns the same data.
+
+## User actions
+
+Buttons and follow-ups in a generated interface send a new user turn. The renderer reports them through `onAction` with a `continue_conversation` event:
+
+| Field                  | Contains                                                     |
+| :--------------------- | :----------------------------------------------------------- |
+| `humanFriendlyMessage` | The button or follow-up label, such as `"Book this flight"`. |
+| `formState`            | The values of the form fields when the user clicked.         |
+| `formName`             | The form that scoped the action, if any.                     |
+
+Show `humanFriendlyMessage` in the chat as the user's message, but send the model the form values too. A label like "Submit" means nothing to the model without the data behind it:
+
+```ts
+function toModelMessage(event: ActionEvent) {
+  const lines = [`User clicked: ${event.humanFriendlyMessage}`];
+  if (event.formState) lines.push(`Form values: ${JSON.stringify(event.formState)}`);
+  return lines.join("\n");
+}
+```
+
+Each chat UI guide shows where to call this: [assistant-ui](/docs/build-agents/assistant-ui#handle-actions), [CopilotKit](/docs/build-agents/copilotkit#handle-actions), and [custom chat UI](/docs/build-agents/custom-chat-ui#handle-actions). [Agent Interface](/docs/agent/getting-started/introduction) does this automatically.
+
+## Form values on earlier turns
+
+When the user fills in a form and reloads the thread, the form would render empty again. To keep the values, save them with the message and restore them when rendering:
+
+```tsx
+<Renderer
+  response={message.content}
+  library={library}
+  initialState={message.formState}
+  onStateUpdate={(state) => saveFormState(message.id, state)}
+/>
+```
+
+`saveFormState` is your own persistence, for example a field on the message in your thread store. See [Interactivity](/docs/openui-lang/interactivity#form-state) for details.
+
+## Long conversations
+
+Generated interfaces are longer than typical chat replies, so long threads grow quickly. To keep requests small:
+
+- **Cache the prefix.** The system prompt and earlier turns rarely change. See [prompt caching](/docs/gateway/prompt-caching).
+- **Trim old turns.** For very long threads, keep the latest few interfaces in full and replace older assistant turns with a one-line summary of what they showed.

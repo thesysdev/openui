@@ -1,5 +1,5 @@
 ---
-title: Pi Agent Harness
+title: Pi
 description: Connect Agent Interface to the pi coding agent over an OpenAI-compatible stream.
 ---
 
@@ -186,3 +186,13 @@ pnpm dev -- /path/to/your/project
 ```
 
 Open [http://localhost:3000](http://localhost:3000) and try "Summarize the files in this project as a card" or "Read package.json and list its scripts". pi's tools run and the result renders as generative UI.
+
+## Use a different chat UI
+
+This guide renders the agent with Agent Interface. The backend doesn't depend on it: to use another chat UI, keep the backend from this guide, connect the chat UI to pi with that chat UI's own integration, then follow its OpenUI guide to render responses and handle actions.
+
+<Cards>
+  <Card title="assistant-ui" href="/docs/build-agents/assistant-ui" />
+  <Card title="CopilotKit" href="/docs/build-agents/copilotkit" />
+  <Card title="Custom chat UI" href="/docs/build-agents/custom-chat-ui" />
+</Cards>

@@ -10,12 +10,12 @@ export const EXAMPLES_REPO_URL = "https://github.com/thesysdev/openui/tree/main/
 
 /** Docs pages that walk through an example, keyed by its path in `examples/`. */
 const EXAMPLE_GUIDES: Record<string, string> = {
-  "agent-frameworks/langgraph-platform": "/docs/agent/agent-runtimes/langgraph-platform",
-  "agent-frameworks/vercel-ai-sdk": "/docs/agent/agent-runtimes/vercel-ai-sdk",
-  "agent-frameworks/vercel-eve": "/docs/agent/agent-runtimes/vercel-eve",
+  "agent-frameworks/langgraph-platform": "/docs/build-agents/frameworks/langgraph",
+  "agent-frameworks/vercel-ai-sdk": "/docs/build-agents/frameworks/vercel-ai-sdk",
+  "agent-frameworks/vercel-eve": "/docs/build-agents/frameworks/vercel-eve",
   "app-frameworks/angular": "/docs/api-reference/angular-lang",
   "design-systems/shadcn": "/docs/openui-lang/examples/design-systems/shadcn",
-  "harnesses/pi": "/docs/agent/agent-runtimes/pi",
+  "harnesses/pi": "/docs/build-agents/frameworks/pi",
   "miscellaneous/html-artifact": "/docs/agent/guides/open-ended-html",
   "miscellaneous/react-email": "/docs/openui-lang/examples/miscellaneous/react-email",
 };
