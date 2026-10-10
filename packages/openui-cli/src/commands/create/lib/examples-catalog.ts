@@ -6,7 +6,7 @@ import type { RetryAttemptInfo } from "../../../lib/retry";
 
 export const EXAMPLES_CATALOG_PATH = "examples/examples.json";
 
-/** GitHub owners whose repositories `--example <owner>/<repo>[/<path>]` may clone. */
+/** GitHub owners whose repositories `--example repo:<owner>/<repo>[/<path>]` may clone. */
 const ALLOWED_EXAMPLE_REPO_OWNERS = ["thesysdev"];
 
 /** Catalog `path` prefix for an example outside the OpenUI repo: `repo:<owner>/<repo>[/<path>]`. */
@@ -148,13 +148,13 @@ function sameRepo(a: SourceRepo | undefined, b: SourceRepo): boolean {
   );
 }
 
-/** Resolve `<owner>/<repo>[/<path>]`, preferring a matching catalog entry for its env setup. */
+/** Resolve `repo:<owner>/<repo>[/<path>]`, preferring a matching catalog entry for its env setup. */
 function findRepoExample(spec: string, examples: ExampleProject[]): ExampleProject {
   const parsed = parseRepoSpec(spec);
   if (!parsed) {
     throw new CreateError(
       "args_resolution",
-      `unsupported example repository "${spec}". Use <owner>/<repo>[/<path>] with a repository from ${ALLOWED_EXAMPLE_REPO_OWNERS.join(", ")}, or an example name from ${EXAMPLES_CATALOG_PATH}.`,
+      `unsupported example repository "${spec}". Use ${REPO_PATH_PREFIX}<owner>/<repo>[/<path>] with a repository from ${ALLOWED_EXAMPLE_REPO_OWNERS.join(", ")}, or an example name from ${EXAMPLES_CATALOG_PATH}.`,
       "invalid_input",
       "INVALID_EXAMPLE",
     );
@@ -175,7 +175,7 @@ function findRepoExample(spec: string, examples: ExampleProject[]): ExampleProje
 }
 
 export function findExample(name: string, examples: ExampleProject[]): ExampleProject {
-  if (name.includes("/") || name.startsWith(REPO_PATH_PREFIX)) {
+  if (name.startsWith(REPO_PATH_PREFIX) && name.includes("/")) {
     return findRepoExample(name, examples);
   }
   const normalized = name.toLowerCase();
