@@ -2,6 +2,7 @@ import { useThread, type ToolActivity } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { MascotLoader } from "../AgentInterface/components/MascotLoader";
 import { MarkDownRenderer } from "../MarkDownRenderer";
 import { TimelineEntry } from "../_shared/tool-renderer/TimelineEntry";
 import type { ToolDetailedViewPanel } from "../_shared/tool-renderer/ToolActivityRenderer";
@@ -270,7 +271,12 @@ export function ToolCallTimeline({
       : "Behind the scenes";
 
   return (
-    <div className="openui-behind-the-scenes">
+    <div
+      className={clsx("openui-behind-the-scenes", {
+        // While working, the mascot in this row stands in for the thread loader.
+        "openui-behind-the-scenes--working": working,
+      })}
+    >
       <div role="status" aria-live="polite" style={VISUALLY_HIDDEN}>
         {liveLabel}
       </div>
@@ -290,6 +296,7 @@ export function ToolCallTimeline({
           }
         }}
       >
+        {working && <MascotLoader size={24} className="openui-behind-the-scenes__mascot" />}
         <span
           className={clsx("openui-behind-the-scenes__toggle-label", {
             // While the run is live the label itself shimmers, matching the

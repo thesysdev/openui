@@ -1,0 +1,65 @@
+@use "../cssUtils" as cssUtils;
+
+// Shared menu look (Select menus, dropdown menus): a single hairline ring with
+// soft layered shadows (no CSS border, so edges never double), 32px rows that
+// run edge to edge with a plain square highlight, and a 16px content inset.
+// Clipping: the menu keeps 4px top/bottom padding and clips to its radius, and
+// a row that is the menu's very first/last child takes a matching corner
+// (menu radius - 4px), so a highlight never pokes past or gets cut by the ring.
+
+$gutter: cssUtils.$space-2xs;
+$radius: cssUtils.$radius-2xl;
+$edge-row-radius: calc(#{$radius} - #{$gutter});
+$inset-x: cssUtils.$space-m-l;
+$row-height: 32px;
+
+// Rounds the first/last direct child of a menu container (the menu itself,
+// or a Select viewport) to sit concentric inside the menu's corners.
+@mixin edge-rows {
+  // Doubled pseudo-class outranks the rows' own `border-radius: 0`.
+  > :first-child:first-child {
+    border-top-left-radius: $edge-row-radius;
+    border-top-right-radius: $edge-row-radius;
+  }
+
+  > :last-child:last-child {
+    border-bottom-left-radius: $edge-row-radius;
+    border-bottom-right-radius: $edge-row-radius;
+  }
+}
+
+@mixin surface {
+  border: none;
+  border-radius: $radius;
+  overflow: hidden;
+  // Lifted a step above the card it opens over: a no-op on the white light
+  // surface, a visibly raised grey in dark mode.
+  background-color: color-mix(in oklch, cssUtils.$foreground, cssUtils.$text-white 6%);
+  // The ring is drawn in the text color so it stays visible on dark surfaces.
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, #{cssUtils.$text-neutral-primary} 6%, transparent),
+    0 4px 12px -2px oklch(0 0 0 / 0.05),
+    0 16px 32px -8px oklch(0 0 0 / 0.08);
+  padding: $gutter 0;
+  @include edge-rows;
+}
+
+@mixin item {
+  display: flex;
+  align-items: center;
+  height: $row-height;
+  padding: 0 $inset-x;
+  border-radius: 0;
+  outline: none;
+}
+
+@mixin label {
+  padding: cssUtils.$space-s $inset-x cssUtils.$space-2xs;
+  color: color-mix(in oklch, #{cssUtils.$text-neutral-primary} 60%, transparent);
+  font-size: 12px;
+  line-height: 12px;
+}
+
+@mixin separator {
+  margin: $gutter 0;
+}

@@ -1,0 +1,43 @@
+.mascot {
+  overflow: visible;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lid {
+  transform-box: view-box;
+  transition: transform 90ms ease-in;
+}
+
+.lid[data-blinking] {
+  transform: scaleY(0.1);
+}
+
+.squish {
+  transform-box: view-box;
+  transform-origin: 100px 158px;
+  animation: mascot-squish 600ms ease-in-out;
+}
+
+@keyframes mascot-squish {
+  0% {
+    transform: scale(1, 1);
+  }
+  30% {
+    transform: scale(1.025, 0.97);
+  }
+  60% {
+    transform: scale(0.99, 1.012);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lid,
+  .squish {
+    transition: none;
+    animation: none;
+  }
+}

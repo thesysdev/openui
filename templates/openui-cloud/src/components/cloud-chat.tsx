@@ -1,5 +1,7 @@
 "use client";
 
+import { BrandLogo, BrandWordmark } from "@/components/brand-logo";
+import { WelcomeMascot } from "@/components/welcome-mascot";
 import { usePersistedModel } from "@/hooks/use-persisted-model";
 import { MODEL_OPTIONS } from "@/lib/models";
 import { OPENUI_LOGOS, PROMPT_TEMPLATES, STARTERS } from "@/lib/starters";
@@ -11,11 +13,13 @@ import {
   langGraphMessageFormat,
   openuiLibrary,
   useOpenuiCloudStorage,
-  useSystemThemeMode,
+  useThemeModePreference,
 } from "@openuidev/react-ui";
 
 export default function CloudChat() {
-  const mode = useSystemThemeMode();
+  // Follows the system theme until the footer toggle is first used, then
+  // remembers the choice.
+  const { setPreference, mode } = useThemeModePreference();
   const [selectedModel, setSelectedModel] = usePersistedModel();
   // The /api/chat route runs the LangGraph agent in-process and streams its
   // native `messages`-mode SSE. Outgoing messages are converted to LangChain
@@ -45,9 +49,16 @@ export default function CloudChat() {
         theme={{ mode }}
         starters={STARTERS}
       >
+        <AgentInterface.SidebarHeader
+          logo={<BrandLogo />}
+          agentName={<BrandWordmark mode={mode} />}
+        />
+        <AgentInterface.SidebarFooter>
+          <AgentInterface.ThemeModeToggle mode={mode} onModeChange={setPreference} />
+        </AgentInterface.SidebarFooter>
         <AgentInterface.MobileHeader
           agentName=""
-          actions={
+          logo={
             <ModelSwitcher
               models={MODEL_OPTIONS}
               value={selectedModel}
@@ -55,17 +66,21 @@ export default function CloudChat() {
             />
           }
         />
-        <AgentInterface.ThreadHeader className="openui-cloud-thread-header">
-          <ModelSwitcher
-            models={MODEL_OPTIONS}
-            value={selectedModel}
-            onValueChange={setSelectedModel}
-          />
-        </AgentInterface.ThreadHeader>
+        <AgentInterface.ChatHeader
+          showChatTitle={false}
+          start={
+            <ModelSwitcher
+              models={MODEL_OPTIONS}
+              value={selectedModel}
+              onValueChange={setSelectedModel}
+            />
+          }
+        />
         <AgentInterface.Welcome
-          title="Good to see you"
-          description="What's on your mind today?"
+          image={<WelcomeMascot className="brand-welcome-mark" />}
+          title="What's on your mind today?"
           promptTemplates={PROMPT_TEMPLATES}
+          starterVariant="card"
           glowAnimation
         />
       </AgentInterface>

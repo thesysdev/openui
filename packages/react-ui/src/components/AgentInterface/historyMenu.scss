@@ -1,0 +1,53 @@
+@use "../../cssUtils" as cssUtils;
+@use "../menu";
+
+// Thread history menu opened from the collapsed rail, in the shared menu look.
+.openui-agent-history-menu {
+  z-index: 10000;
+  width: min(283px, calc(100vw - 32px));
+  max-height: min(420px, var(--radix-dropdown-menu-content-available-height, 420px));
+  overflow: auto;
+  outline: none;
+  @include menu.surface;
+
+  &__label {
+    @include menu.label;
+  }
+
+  &__item {
+    @include cssUtils.typography(label, small);
+
+    @include menu.item;
+    // Secondary like the sidebar's thread titles; the highlighted and the open
+    // thread step up to primary.
+    color: cssUtils.$text-neutral-secondary;
+    cursor: pointer;
+    user-select: none;
+
+    &[data-highlighted] {
+      background-color: cssUtils.$highlight;
+      color: cssUtils.$text-neutral-primary;
+    }
+
+    &--selected,
+    &--selected[data-highlighted] {
+      background-color: cssUtils.$sunk;
+      color: cssUtils.$text-neutral-primary;
+    }
+  }
+
+  &__title {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__empty {
+    @include cssUtils.typography(label, small);
+
+    padding: cssUtils.$space-s menu.$inset-x;
+    color: cssUtils.$text-neutral-secondary;
+  }
+}

@@ -11,6 +11,8 @@ import { useAgentInterfaceStore } from "./_shared/store";
 
 export const NewChatButton = ({ className }: { className?: string }) => {
   const switchToNewThread = useThreadList((s) => s.switchToNewThread);
+  // A fresh chat has no thread yet, so the New Chat row is the current place.
+  const isNewChatActive = useThreadList((s) => !s.selectedThreadId);
   const { isSidebarOpen } = useAgentInterfaceStore((state) => ({
     isSidebarOpen: state.isSidebarOpen,
   }));
@@ -51,7 +53,10 @@ export const NewChatButton = ({ className }: { className?: string }) => {
         type="button"
         className={clsx(
           "openui-agent-new-chat-button",
-          { "openui-agent-new-chat-button--collapsed": !showExpandedButton },
+          {
+            "openui-agent-new-chat-button--collapsed": !showExpandedButton,
+            "openui-agent-new-chat-button--selected": isNewChatActive,
+          },
           className,
         )}
         onClick={handleNewChat}

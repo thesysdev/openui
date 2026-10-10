@@ -1,7 +1,11 @@
 @use "../../cssUtils" as cssUtils;
 @use "./sidebar.scss";
+@use "./historyMenu.scss";
+@use "./themeModeToggle.scss";
 @use "./threadlist.scss";
 @use "./thread.scss";
+@use "./chatHeader.scss";
+@use "./renameChatDialog.scss";
 @use "./mobileHeader.scss";
 @use "./resizableSeparator.scss";
 @use "./conversationStarter.scss";
@@ -11,6 +15,7 @@
 @use "./components/welcomePrefillChips.scss";
 @use "./components/composer.scss";
 @use "./components/ambientLoader.scss";
+@use "./components/mascotLoader.scss";
 @use "./artifactBrowser.scss";
 @use "./workspaceSidebar.scss";
 @use "./_shared/shared.scss";
@@ -22,7 +27,11 @@
   width: 100dvw;
   overflow: hidden;
 
-  background: cssUtils.$foreground;
+  // Shell surface the sidebar sits on: the card surface pulled 40% toward the
+  // page background, so it reads as a faint grey under the white thread card
+  // in light mode and as a darker well under the card in dark mode (see
+  // thread.scss). Mobile stays a single flat surface.
+  background: color-mix(in oklch, cssUtils.$background 40%, cssUtils.$foreground);
   box-sizing: border-box;
   & * {
     box-sizing: border-box;
@@ -30,6 +39,18 @@
 
   &.openui-agent-container--mobile {
     padding: 0;
+    background: cssUtils.$foreground;
+  }
+}
+
+// Collapsed rail spacing: mark, then a 12px gap to the round actions.
+.openui-agent-sidebar-container--collapsed {
+  .openui-agent-sidebar-actions {
+    gap: cssUtils.$space-m;
+  }
+
+  .openui-agent-sidebar-primary-actions {
+    gap: cssUtils.$space-m;
   }
 }
 
@@ -118,6 +139,49 @@
       opacity: 0;
       overflow: hidden;
     }
+
+    // Collapsed rail: the primary action is a filled round button.
+    .openui-agent-new-chat-button__icon {
+      width: 32px;
+      height: 32px;
+      margin: 0;
+      border-radius: cssUtils.$radius-full;
+      background-color: cssUtils.$inverted-background;
+      color: cssUtils.$foreground;
+      font-size: 14px;
+    }
+
+    &:hover .openui-agent-new-chat-button__icon {
+      background-color: cssUtils.$inverted-background;
+      opacity: 0.85;
+    }
+  }
+}
+
+// Collapsed rail: secondary round button that opens the thread history.
+.openui-agent-history-button {
+  @include cssUtils.button-reset;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: cssUtils.$radius-full;
+  background-color: cssUtils.$sunk-deep;
+  color: cssUtils.$text-neutral-primary;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 90ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  &:hover {
+    background-color: cssUtils.$highlight-strong;
+  }
+
+  &:focus-visible {
+    outline: 2px solid cssUtils.$border-interactive;
+    outline-offset: 2px;
   }
 }
 
@@ -126,6 +190,20 @@
   left: cssUtils.$space-m-l;
   bottom: cssUtils.$space-l;
   z-index: 1;
+}
+
+// Same filled neutral treatment as the collapsed-rail New chat button.
+.openui-agent-container .openui-agent-new-chat-floating-button.openui-button-base {
+  border-color: transparent;
+  border-radius: cssUtils.$radius-full;
+  background-color: cssUtils.$inverted-background;
+  color: cssUtils.$foreground;
+
+  &:not(:disabled):hover,
+  &:not(:disabled):active {
+    background-color: cssUtils.$inverted-background;
+    opacity: 0.85;
+  }
 }
 
 .openui-agent-tooltip,

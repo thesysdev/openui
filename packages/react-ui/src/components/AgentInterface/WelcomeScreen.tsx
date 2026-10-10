@@ -53,6 +53,17 @@ interface WelcomeScreenWithContentProps extends WelcomeScreenBaseProps {
    */
   promptTemplates?: PromptTemplate[];
   /**
+   * Label of the leading tab (shown with `promptTemplates`) that lists the
+   * default starters.
+   * @default "Getting started"
+   */
+  startersTabLabel?: string;
+  /**
+   * Icon of the leading starters tab.
+   * @default <Rocket />
+   */
+  startersTabIcon?: ReactNode;
+  /**
    * Children are not allowed when using props-based content
    */
   children?: never;
@@ -70,6 +81,8 @@ interface WelcomeScreenWithChildrenProps extends WelcomeScreenBaseProps {
   starters?: never;
   starterVariant?: never;
   promptTemplates?: never;
+  startersTabLabel?: never;
+  startersTabIcon?: never;
 }
 
 export type WelcomeScreenProps = WelcomeScreenWithContentProps | WelcomeScreenWithChildrenProps;
@@ -133,7 +146,8 @@ export const WelcomeScreen = (props: WelcomeScreenProps) => {
   }
 
   // Props-based content
-  const { title, description, image } = props as WelcomeScreenWithContentProps;
+  const { title, description, image, startersTabLabel, startersTabIcon } =
+    props as WelcomeScreenWithContentProps;
 
   const renderImage = () => {
     if (!image) return null;
@@ -165,6 +179,13 @@ export const WelcomeScreen = (props: WelcomeScreenProps) => {
     requestAnimationFrame(() => {
       input.setSelectionRange(chip.prompt.length, chip.prompt.length);
     });
+  };
+
+  const handleStartersClick = () => {
+    if (isRunning || !selectedChip) return;
+    // Drop the chip's stem only if the user hasn't extended it.
+    if (draft === selectedChip.prompt) setDraft("");
+    setSelectedChip(null);
   };
 
   const handleContextualSelect = (starter: ConversationStarterProps) => {
@@ -205,7 +226,7 @@ export const WelcomeScreen = (props: WelcomeScreenProps) => {
         {/* Desktop-only welcome composer */}
         <div
           className="openui-agent-welcome-screen__composer-starters-container"
-          data-has-prefill-chips={(hasChips && draft.length === 0) || undefined}
+          data-has-prefill-chips={(hasChips && (draft.length === 0 || !!selectedChip)) || undefined}
         >
           <div className="openui-agent-welcome-screen__desktop-composer">
             <WelcomeGlow>
@@ -229,6 +250,9 @@ export const WelcomeScreen = (props: WelcomeScreenProps) => {
               draft={draft}
               selectedChip={selectedChip}
               onChipClick={handleChipClick}
+              onStartersClick={handleStartersClick}
+              startersLabel={startersTabLabel}
+              startersIcon={startersTabIcon}
               onContextualSelect={handleContextualSelect}
               disabled={isRunning}
             />

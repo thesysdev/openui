@@ -1,7 +1,11 @@
 import clsx from "clsx";
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { WelcomeDither } from "./WelcomeDither";
 
 const WelcomeGlowContext = createContext(false);
+
+// Per page load, shared by every WelcomeGlow.
+let ditherPlayed = false;
 
 export const WelcomeGlowProvider = ({
   children,
@@ -22,6 +26,14 @@ export interface WelcomeGlowProps {
  */
 export const WelcomeGlow = ({ children, className }: WelcomeGlowProps) => {
   const enabled = useContext(WelcomeGlowContext);
+  // The dither greets the first home screen of a visit only: not every new
+  // chat or thread switch that lands back on the welcome. Unmounting it once
+  // played also stops the frame loop.
+  const [ditherDone, setDitherDone] = useState(ditherPlayed);
+  // Marked as soon as it starts, so leaving mid-animation doesn't replay it.
+  useEffect(() => {
+    if (enabled) ditherPlayed = true;
+  }, [enabled]);
 
   if (!enabled) {
     return <>{children}</>;
@@ -29,14 +41,12 @@ export const WelcomeGlow = ({ children, className }: WelcomeGlowProps) => {
 
   return (
     <div className={clsx("openui-agent-welcome-glow", className)}>
-      <span
-        aria-hidden="true"
-        className="openui-agent-welcome-glow__blob openui-agent-welcome-glow__blob--accent"
-      />
-      <span
-        aria-hidden="true"
-        className="openui-agent-welcome-glow__blob openui-agent-welcome-glow__blob--foreground"
-      />
+      {!ditherDone && (
+        <WelcomeDither
+          className="openui-agent-welcome-glow__dither"
+          onDone={() => setDitherDone(true)}
+        />
+      )}
       {children}
     </div>
   );

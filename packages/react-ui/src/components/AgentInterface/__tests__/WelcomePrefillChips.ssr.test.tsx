@@ -27,6 +27,7 @@ describe("WelcomePrefillChips SSR", () => {
         draft=""
         selectedChip={null}
         onChipClick={() => undefined}
+        onStartersClick={() => undefined}
         onContextualSelect={() => undefined}
         disabled={false}
       />,
@@ -39,7 +40,7 @@ describe("WelcomePrefillChips SSR", () => {
     expect(html).not.toContain("data-hidden");
   });
 
-  it("hides layer 1 when drafting and shows contextual starters for the selected chip", () => {
+  it("keeps the tab row and swaps in contextual starters for the selected chip", () => {
     const html = render(
       <WelcomePrefillChips
         chips={CHIPS}
@@ -48,12 +49,32 @@ describe("WelcomePrefillChips SSR", () => {
         draft="Create a presentation about "
         selectedChip={CHIPS[0]!}
         onChipClick={() => undefined}
+        onStartersClick={() => undefined}
+        onContextualSelect={() => undefined}
+        disabled={false}
+      />,
+    );
+    expect(html).not.toContain("data-hidden");
+    expect(html).toContain('aria-selected="true"');
+    expect(html).toContain("Our Q2 business review");
+    expect(html).not.toContain("Quarterly deck");
+  });
+
+  it("hides the tab row while free typing", () => {
+    const html = render(
+      <WelcomePrefillChips
+        chips={CHIPS}
+        starters={STARTERS}
+        starterVariant="long"
+        draft="Something else"
+        selectedChip={null}
+        onChipClick={() => undefined}
+        onStartersClick={() => undefined}
         onContextualSelect={() => undefined}
         disabled={false}
       />,
     );
     expect(html).toContain("data-hidden");
-    expect(html).toContain("Our Q2 business review");
   });
 
   it("disables chips while running", () => {
@@ -65,6 +86,7 @@ describe("WelcomePrefillChips SSR", () => {
         draft=""
         selectedChip={null}
         onChipClick={() => undefined}
+        onStartersClick={() => undefined}
         onContextualSelect={() => undefined}
         disabled={true}
       />,

@@ -6,7 +6,7 @@ import { ConversationStarterIcon, ConversationStarterProps } from "../../types/C
 import { Carousel, CarouselContent } from "../Carousel";
 import { isChatEmpty } from "./_shared/utils";
 
-export type ConversationStarterVariant = "short" | "long";
+export type ConversationStarterVariant = "short" | "long" | "card";
 
 interface ConversationStarterItemProps extends ConversationStarterProps {
   onClick: () => void;
@@ -61,6 +61,21 @@ const ConversationStarterItem = ({
     );
   }
 
+  if (variant === "card") {
+    return (
+      <button
+        type="button"
+        className="openui-agent-conversation-starter-item-card"
+        onClick={onClick}
+      >
+        {shouldRenderIcon && (
+          <span className="openui-agent-conversation-starter-item-card__icon">{renderedIcon}</span>
+        )}
+        <span className="openui-agent-conversation-starter-item-card__text">{displayText}</span>
+      </button>
+    );
+  }
+
   // Long variant (detailed list style)
   return (
     <button type="button" className="openui-agent-conversation-starter-item-long" onClick={onClick}>
@@ -84,6 +99,7 @@ export interface ConversationStarterContainerProps {
    * Variant of the conversation starter
    * - "short": Pill-style horizontal buttons (default)
    * - "long": Vertical list items with icons and hover arrow
+   * - "card": A row of equal-width cards, icon above text
    */
   variant?: ConversationStarterVariant;
   /**
@@ -162,7 +178,7 @@ export const ConversationStarter = ({
     >
       {starters.map((item, index) => (
         <Fragment key={`${item.displayText}-${index}`}>
-          {index > 0 && (
+          {index > 0 && variant === "long" && (
             <div className="openui-agent-conversation-starter__separator" aria-hidden="true" />
           )}
           <ConversationStarterItem

@@ -1,4 +1,5 @@
 @use "../../cssUtils" as cssUtils;
+@use "../menu";
 
 .openui-select-trigger {
   box-sizing: border-box;
@@ -70,18 +71,14 @@
   max-height: 372px;
   min-width: var(--radix-select-trigger-width);
   overflow: hidden;
-  border-radius: cssUtils.$radius-xl;
-  background-color: cssUtils.$foreground;
-  border: 1px solid cssUtils.$border-default;
-  box-shadow: cssUtils.$shadow-m;
+  @include menu.surface;
+  padding: 0; // the viewport carries the vertical padding
   color: cssUtils.$text-neutral-primary;
   transform-origin: top center;
   animation: select-show 0.18s ease-out forwards;
 }
 
 .openui-select-content-sm {
-  border-radius: cssUtils.$radius-l;
-
   .openui-select-label,
   .openui-select-item,
   .openui-select-item-text,
@@ -104,7 +101,7 @@
 
 .openui-select-viewport {
   box-sizing: border-box;
-  padding: 4px;
+  padding: menu.$gutter 0;
 
   &[data-position="popper"] {
     width: 100%;
@@ -119,9 +116,8 @@
 
 .openui-select-label {
   box-sizing: border-box;
-  padding: cssUtils.$space-3xs cssUtils.$space-xs;
   @include cssUtils.typography(body, default);
-  color: cssUtils.$text-neutral-tertiary;
+  @include menu.label;
 }
 
 .openui-select-item {
@@ -132,21 +128,12 @@
   user-select: none;
   align-items: center;
   justify-content: space-between;
-  border-radius: cssUtils.$radius-s;
-  padding-top: cssUtils.$space-2xs;
-  padding-bottom: cssUtils.$space-2xs;
   @include cssUtils.typography(body, default);
+  @include menu.item;
   color: cssUtils.$text-neutral-primary;
-  outline: 0;
 
-  // Variants based on showTick
+  // Room for the check indicator on the trailing edge.
   &--with-tick {
-    padding-left: cssUtils.$space-xs;
-    padding-right: cssUtils.$space-xl;
-  }
-
-  &--without-tick {
-    padding-left: cssUtils.$space-xs;
     padding-right: cssUtils.$space-xl;
   }
 
@@ -172,8 +159,6 @@
 
   &[data-state="checked"] {
     background-color: cssUtils.$highlight;
-    outline: 1px solid cssUtils.$border-interactive;
-    outline-offset: -1px;
   }
 
   // Check indicator
@@ -203,7 +188,7 @@
 
 .openui-select-separator {
   box-sizing: border-box;
-  margin: 4px -4px;
+  @include menu.separator;
   height: 1px;
   border-top: 1px solid cssUtils.$border-default;
 }

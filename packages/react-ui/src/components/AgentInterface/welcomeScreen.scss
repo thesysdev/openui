@@ -1,6 +1,15 @@
 @use "../../cssUtils" as cssUtils;
+@use "./column";
+@use "./chatHeader" as chatHeader;
 
 $center-align-spacing: calc(32px + cssUtils.$space-s);
+// Single centred column shared by the greeting, composer, chips and starters.
+// Matches the in-thread input width (see _column.scss) so the new-chat input
+// has the same edges as the conversation's.
+$welcome-column-width: column.$content-width;
+// Optical lift: the composer sits this far above the card's true centre,
+// which reads as centred (extra bottom padding moves the centre up by half).
+$welcome-optical-lift: 36px;
 
 .openui-agent-welcome-screen {
   display: flex;
@@ -11,7 +20,7 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   align-items: center;
   width: 100%;
   height: 100%;
-  max-width: 880px;
+  max-width: calc(#{column.$content-width} + 2 * #{$center-align-spacing});
   margin: 0 auto;
   padding: cssUtils.$space-m $center-align-spacing cssUtils.$space-2xl;
 
@@ -26,14 +35,14 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
     padding-right: cssUtils.$space-m;
   }
 
-  // Header section (icon + title/description)
+  // Header section (icon + title/description), centred above the composer
   &__header {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: cssUtils.$space-xl;
+    align-items: center;
+    gap: cssUtils.$space-l;
     width: 100%;
-    max-width: 748px;
+    max-width: $welcome-column-width;
   }
 
   // Image container - minimal wrapper, styling handled by consumer
@@ -56,11 +65,11 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   &__content {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: cssUtils.$space-m;
+    align-items: center;
+    gap: cssUtils.$space-s;
     width: 100%;
     max-width: 748px;
-    text-align: left;
+    text-align: center;
   }
 
   // Title/greeting text
@@ -69,7 +78,14 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
     width: 100%;
     color: cssUtils.$text-neutral-primary;
     margin: 0;
-    font-weight: 500;
+    font-size: 24px;
+    font-weight: 400;
+    font-variation-settings: cssUtils.$font-variation-regular;
+    line-height: 1.25;
+
+    .openui-agent-container--mobile & {
+      font-size: 20px;
+    }
   }
 
   // Description text
@@ -79,6 +95,7 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
     margin: 0;
     max-width: 800px;
     font-weight: 500;
+    font-variation-settings: normal;
   }
 
   &__composer-starters-container {
@@ -86,13 +103,21 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
     flex-direction: column;
     gap: cssUtils.$space-2xl;
     width: 100%;
+    max-width: $welcome-column-width;
+
+    // Everything in the column fills it, so edges line up with the composer.
+    .openui-agent-welcome-glow,
+    .openui-agent-desktop-welcome-composer,
+    .openui-agent-conversation-starter {
+      max-width: 100%;
+    }
   }
 
   // Prefill-chips welcome (chips mode only): tighter gap while the chip row
   // is visible; when drafting hides the layers, collapse the reserved space.
   // Scoped by __starters-layers so welcomes without chips are unaffected.
   &__composer-starters-container[data-has-prefill-chips] {
-    gap: cssUtils.$space-l;
+    gap: cssUtils.$space-xl;
   }
 
   &__composer-starters-container:not([data-has-prefill-chips])
@@ -145,7 +170,7 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
   // When welcome screen has the desktop composer variant
   &--with-composer {
     // Adjust gap for desktop layout
-    gap: cssUtils.$space-3xl;
+    gap: cssUtils.$space-2xl;
 
     // On mobile, use normal gap
     .openui-agent-container--mobile & {
@@ -184,4 +209,66 @@ $center-align-spacing: calc(32px + cssUtils.$space-s);
       display: none;
     }
   }
+}
+
+// Desktop: pin the composer to the exact centre of the thread card. The
+// greeting fills the top 1fr row and the starters the bottom one, so their
+// heights (and chip swaps) never push the composer off-centre.
+.openui-agent-container:not(.openui-agent-container--mobile)
+  .openui-agent-welcome-screen--with-composer {
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  // One full-width column (the base rule's justify-content: center would
+  // otherwise shrink it to the content).
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 0;
+  // Same column box as the in-thread composer (column width + 16px gutters,
+  // see components/composer.scss) so the input edges match at every width.
+  max-width: calc(#{$welcome-column-width} + 2 * #{cssUtils.$space-m-l});
+  padding-left: cssUtils.$space-m-l;
+  padding-right: cssUtils.$space-m-l;
+  padding-bottom: calc(#{cssUtils.$space-m} + 2 * #{$welcome-optical-lift});
+
+  .openui-agent-welcome-screen__header {
+    grid-row: 1;
+    align-self: end;
+    margin-bottom: cssUtils.$space-2xl;
+  }
+
+  // Lift the composer and starters into the grid so the composer owns row 2.
+  .openui-agent-welcome-screen__composer-starters-container {
+    display: contents;
+  }
+
+  .openui-agent-welcome-screen__desktop-composer,
+  .openui-agent-welcome-screen__desktop-starters {
+    width: 100%;
+    max-width: $welcome-column-width;
+  }
+
+  .openui-agent-welcome-screen__desktop-composer {
+    grid-row: 2;
+  }
+
+  .openui-agent-welcome-screen__desktop-starters {
+    grid-row: 3;
+    align-self: start;
+    margin: cssUtils.$space-2xl 0 0;
+  }
+
+  [data-has-prefill-chips] .openui-agent-welcome-screen__desktop-starters {
+    margin-top: cssUtils.$space-xl;
+  }
+}
+
+// The chat header row sits above the welcome; pad the bottom by its height so
+// the centre row lines up with the card's centre, not the space below it.
+.openui-agent-container:not(.openui-agent-container--mobile)
+  .openui-agent-thread-chat-panel:has(> .openui-agent-chat-header)
+  > .openui-agent-welcome-screen--with-composer {
+  padding-bottom: calc(
+    #{cssUtils.$space-m} + #{chatHeader.$chat-header-row-height} +
+      #{chatHeader.$chat-header-inset} + 2 * #{$welcome-optical-lift}
+  );
 }

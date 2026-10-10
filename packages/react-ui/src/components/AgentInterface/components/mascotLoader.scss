@@ -1,0 +1,30 @@
+// Mascot loader (components/MascotLoader.tsx). Drawn at low opacity so it reads
+// as a light grey, and the whole mascot breathes by pulsing that opacity. The
+// eyes stay still.
+
+.openui-agent-mascot-loader {
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.openui-agent-mascot-loader__body {
+  opacity: 0.4;
+  animation: openui-agent-mascot-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes openui-agent-mascot-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .openui-agent-mascot-loader__body {
+    animation: none;
+  }
+}

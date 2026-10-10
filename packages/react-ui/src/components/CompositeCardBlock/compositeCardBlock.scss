@@ -67,6 +67,7 @@
   strong em,
   em strong {
     font-weight: cssUtils.$font-weight-medium;
+    font-variation-settings: cssUtils.$font-variation-medium;
   }
 
   em,

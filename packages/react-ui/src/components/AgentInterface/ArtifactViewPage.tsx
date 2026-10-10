@@ -9,10 +9,10 @@ import {
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "../Button";
-import { DotMatrixLoader } from "../DotMatrixLoader";
 import { IconButton } from "../IconButton";
 import { artifactListPath } from "./_shared/artifactPaths";
 import { useNav } from "./_shared/navContext";
+import { MascotLoader } from "./components/MascotLoader";
 
 /**
  * Full-page artifact view (reserved path `artifacts/{category}/{id}`),
@@ -102,7 +102,7 @@ export const ArtifactViewPage = ({
   } else if (!artifact) {
     body = (
       <div className="openui-agent-artifact-view__loading">
-        <DotMatrixLoader />
+        <MascotLoader size={40} />
       </div>
     );
   } else if (!renderer) {

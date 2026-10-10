@@ -29,12 +29,12 @@ import type {
 } from "./_shared/types";
 
 import { Callout } from "../Callout";
-import { DotMatrixLoader } from "../DotMatrixLoader";
 import { IconButton } from "../IconButton";
 import { MarkDownRenderer } from "../MarkDownRenderer";
 import { AgentInterfaceTooltip } from "./_shared/AgentInterfaceTooltip";
 import { GalleryHorizontalEndIcon } from "./_shared/GalleryHorizontalEndIcon";
 import { AmbientLoader } from "./components/AmbientLoader";
+import { MascotLoader } from "./components/MascotLoader";
 import { ScrollToLatest } from "./components/ScrollToLatest";
 import { ResizableSeparator } from "./ResizableSeparator";
 import { useDetailedViewResize } from "./useDetailedViewResize";
@@ -81,20 +81,21 @@ export const ThreadContainer = ({
       className={clsx("openui-agent-thread-container", className, {
         "openui-agent-thread-container--detailed-view-active": isDetailedViewActive,
       })}
-      style={{
-        visibility: isLoadingMessages ? "hidden" : undefined,
-      }}
     >
-      {/* Full-screen loading state while a thread's messages load. The
-          container above hides via `visibility` (keeps layout + scroll state);
-          this overlay opts back in with `visibility: visible`. */}
+      {/* Loading state while a thread's messages load. Only the content below
+          hides (via `visibility`, which keeps layout + scroll state), so the
+          card itself stays on screen around the spinner. */}
       {isLoadingMessages && (
         <AmbientLoader
           className="openui-agent-thread-container__loading"
           label="Loading conversation…"
         />
       )}
-      <div className="openui-agent-thread-wrapper" ref={containerRef}>
+      <div
+        className="openui-agent-thread-wrapper"
+        ref={containerRef}
+        style={{ visibility: isLoadingMessages ? "hidden" : undefined }}
+      >
         {/* Chat panel - always visible */}
         <div
           ref={chatPanelRef}
@@ -309,7 +310,7 @@ export const RenderMessage = memo(
 export const MessageLoading = () => {
   return (
     <div className="openui-agent-thread-message-loading">
-      <DotMatrixLoader variant="compact" />
+      <MascotLoader size={24} />
     </div>
   );
 };
@@ -602,7 +603,7 @@ export const ThreadHeader = ({
   );
 };
 
-const WorkspaceToggleButton = () => {
+export const WorkspaceToggleButton = () => {
   const artifacts = useArtifactList();
   const { isDetailedViewActive } = useActiveDetailedView();
   const { workspaceToggle } = useAgentInterfaceLabels();

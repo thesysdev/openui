@@ -5,10 +5,16 @@ $sidebar-padding-y: cssUtils.$space-m-l;
 $sidebar-padding-x: cssUtils.$space-m;
 $sidebar-header-inline-offset: 0px;
 $sidebar-collapsed-control-size: 32px;
+// Expanded nav rows (New Chat) run a step smaller than the rail's buttons, to
+// match the 12px nav type.
+$sidebar-nav-row-height: 28px;
+$sidebar-nav-icon-size: 14px;
 $sidebar-logo-size: 30px;
+$sidebar-collapsed-padding-x: 18px;
+$sidebar-collapsed-mark-width: 36px;
 $sidebar-collapsed-width: calc(
-  #{$sidebar-collapsed-control-size} + #{$sidebar-padding-x} + #{$sidebar-padding-x} +
-    #{$sidebar-header-inline-offset}
+  #{$sidebar-collapsed-control-size} + #{$sidebar-collapsed-padding-x} +
+    #{$sidebar-collapsed-padding-x} + #{$sidebar-header-inline-offset}
 );
 $sidebar-mobile-width: 294px;
 $sidebar-mobile-padding-y: cssUtils.$space-l;
@@ -17,18 +23,21 @@ $sidebar-fade-duration: 90ms;
 $sidebar-resize-duration: 160ms;
 $sidebar-mobile-slide-duration: 400ms;
 $sidebar-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
-$sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
+// The brand and toggle cross-fade a touch slower than the body text so the
+// swap between mascot and wordmark reads as one move, not a blink.
+$sidebar-header-fade-duration: 140ms;
 
 .openui-agent-sidebar-container {
-  border-right: 1px solid cssUtils.$border-default;
+  position: relative;
   height: 100%;
-  width: $sidebar-width;
+  // Set by SidebarResizeEdge when the edge is dragged.
+  width: var(--openui-agent-sidebar-width, #{$sidebar-width});
   padding: $sidebar-padding-y $sidebar-padding-x;
   display: flex;
   flex-direction: column;
   gap: cssUtils.$space-2xl;
-  background-color: cssUtils.$highlight-subtle;
-  box-shadow: $sidebar-shadow;
+  // Sits directly on the shell surface; the thread card provides the edge.
+  background-color: transparent;
   z-index: 999;
   transition:
     width $sidebar-resize-duration $sidebar-motion-ease,
@@ -51,9 +60,10 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
 
   &--collapsed {
     width: $sidebar-collapsed-width;
+    padding: cssUtils.$space-m-l $sidebar-collapsed-padding-x;
     transform: translateX(0);
-    background-color: cssUtils.$foreground;
-    cursor: e-resize;
+    background-color: transparent;
+    cursor: default;
 
     .openui-agent-container--mobile & {
       width: $sidebar-mobile-width;
@@ -68,6 +78,11 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
     display: none;
   }
 
+  // Follow the pointer while the edge is dragged, no easing.
+  &--resizing {
+    transition: none;
+  }
+
   &[data-sidebar-visual-state="collapsing"],
   &[data-sidebar-visual-state="expanding"] {
     .openui-agent-sidebar-content,
@@ -75,6 +90,21 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
     .openui-agent-sidebar-item__label,
     .openui-agent-sidebar-item__trailing,
     .openui-agent-sidebar-header__agent-name {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    // The wordmark eases in from where the mascot sat.
+    .openui-agent-sidebar-header__agent-name {
+      transform: translateX(-6px);
+    }
+
+    // Mascot and toggle both stand aside while the width moves: the mascot
+    // fades before the rail grows and fades back once it has shrunk, and the
+    // toggle appears only once it has reached its resting edge, instead of
+    // popping in at the rail and sliding across.
+    .openui-agent-sidebar-header__logo,
+    .openui-agent-sidebar-header__toggle-button {
       opacity: 0;
       pointer-events: none;
     }
@@ -110,7 +140,7 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
     align-self: flex-start;
     flex-shrink: 0;
     border-radius: cssUtils.$radius-s;
-    transition: opacity $sidebar-fade-duration $sidebar-motion-ease;
+    transition: opacity $sidebar-header-fade-duration $sidebar-motion-ease;
 
     .openui-agent-container--mobile & {
       width: 36px;
@@ -128,7 +158,9 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
     color: cssUtils.$text-neutral-primary;
     text-overflow: ellipsis;
     white-space: nowrap;
-    transition: opacity $sidebar-fade-duration $sidebar-motion-ease;
+    transition:
+      opacity $sidebar-header-fade-duration $sidebar-motion-ease,
+      transform $sidebar-header-fade-duration $sidebar-motion-ease;
 
     .openui-agent-sidebar-container--collapsed & {
       display: none;
@@ -157,6 +189,17 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
       left: 0;
     }
 
+    // The brand mark is wider than the 32px control column; centre it on
+    // the column so it lines up with the round actions below.
+    .openui-agent-sidebar-header__logo {
+      width: $sidebar-collapsed-mark-width;
+      max-width: none;
+      height: auto;
+      margin-left: 0;
+      left: calc((#{$sidebar-collapsed-control-size} - #{$sidebar-collapsed-mark-width}) / 2);
+      border-radius: 0;
+    }
+
     // Hide the toggle button at rest ONLY when a logo fills the slot (detected
     // with :has) — the logo is the resting face and the button appears on hover.
     // With no logo the slot is empty, so the button stays visible at rest
@@ -169,7 +212,7 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
 }
 
 .openui-agent-sidebar-content {
-  width: calc(#{$sidebar-width} - (#{$sidebar-padding-x} * 2));
+  width: calc(var(--openui-agent-sidebar-width, #{$sidebar-width}) - (#{$sidebar-padding-x} * 2));
   flex: 1;
   min-height: 0;
 
@@ -200,20 +243,21 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
 }
 
 .openui-agent-sidebar-header__toggle-button {
-  transition: opacity $sidebar-fade-duration $sidebar-motion-ease;
+  transition: opacity $sidebar-header-fade-duration $sidebar-motion-ease;
 
   .openui-agent-container--mobile & {
     display: none;
   }
 }
 
-// Collapsed rail: logo at rest, open button on hover or keyboard focus. Key off
-// the binary --collapsed class (the same isCollapsedLayout state that hides the
-// button above), never data-sidebar-visual-state — its transitional values open
+// Collapsed rail: logo at rest, open button on hovering the logo's slot (not
+// the whole rail) or keyboard focus. Key off the binary --collapsed class (the
+// same isCollapsedLayout state that hides the button above), never
+// data-sidebar-visual-state — its transitional values open
 // a window where the button is hidden but cannot be revealed. Keyboard focus is
 // matched via :focus-visible so the residual focus a mouse click leaves on the
 // toggle doesn't pin the button over the logo at rest.
-.openui-agent-sidebar-container--collapsed:hover,
+.openui-agent-sidebar-container--collapsed .openui-agent-sidebar-header__top-row:hover,
 .openui-agent-sidebar-container--collapsed:has(:focus-visible) {
   .openui-agent-sidebar-header__logo {
     opacity: 0;
@@ -261,7 +305,7 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
 
 .openui-agent-sidebar-item {
   @include cssUtils.button-reset;
-  @include cssUtils.typography(label, small);
+  @include cssUtils.typography(label, extra-small);
 
   display: flex;
   align-items: center;
@@ -288,7 +332,7 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
 
   &--selected,
   &--selected:not(:disabled):hover {
-    background-color: cssUtils.$sunk;
+    background-color: cssUtils.$sunk-deep;
   }
 
   .openui-agent-sidebar-container--collapsed & {
@@ -309,13 +353,13 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
       background-color: transparent;
 
       .openui-agent-sidebar-item__icon {
-        background-color: cssUtils.$sunk;
+        background-color: cssUtils.$sunk-deep;
       }
     }
 
     &.openui-agent-sidebar-item--selected:not(:disabled):hover {
       .openui-agent-sidebar-item__icon {
-        background-color: cssUtils.$sunk;
+        background-color: cssUtils.$sunk-deep;
       }
     }
   }
@@ -375,5 +419,107 @@ $sidebar-shadow: inset -10px 0 18px -18px cssUtils.$sunk-deep;
   .openui-agent-sidebar-container--collapsed & {
     width: 0;
     opacity: 0;
+  }
+}
+
+// SidebarFooter: pinned under the thread list. The container's 36px gap is
+// pulled in to 8px so the footer sits close to the list's faded bottom edge.
+.openui-agent-sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: cssUtils.$space-2xs;
+  flex-shrink: 0;
+  margin-top: calc(#{cssUtils.$space-s} - #{cssUtils.$space-2xl});
+
+  .openui-agent-container--mobile & {
+    margin-top: 0;
+    padding: 0 cssUtils.$space-m-l;
+  }
+}
+
+// Draggable right edge (SidebarResizeEdge). No visual of its own.
+.openui-agent-sidebar-resize-edge {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  bottom: 0;
+  width: 8px;
+  z-index: 1;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .openui-agent-sidebar-container,
+  .openui-agent-sidebar-header__logo,
+  .openui-agent-sidebar-header__agent-name,
+  .openui-agent-sidebar-header__toggle-button {
+    transition: none;
+  }
+
+  .openui-agent-sidebar-container[data-sidebar-visual-state]
+    .openui-agent-sidebar-header__agent-name {
+    transform: none;
+  }
+}
+
+// Expanded New Chat is a plain nav item laid out like a thread row: its icon
+// shares the thread icons' column and its label the thread titles' column.
+// The 28px box is pulled 1px left so the 14px glyph inside it lands on that
+// column, and the 1px gap puts the label on the titles' column. It shows as
+// selected while on a fresh chat.
+.openui-agent-sidebar-container
+  .openui-agent-new-chat-button:not(.openui-agent-new-chat-button--collapsed) {
+  @include cssUtils.typography(label, extra-small);
+
+  // Bleed 6px past the column each side (padding puts the content back) so
+  // the selected/hover rect has room around the icon and label.
+  width: calc(100% + 12px);
+  height: $sidebar-nav-row-height;
+  // The 2px top and bottom keep its centre level with the rail's 32px button.
+  margin: 2px -6px;
+  padding-left: 6px;
+  gap: 1px;
+  border-radius: calc(cssUtils.$radius-s + 3px);
+
+  &.openui-agent-new-chat-button--selected,
+  &.openui-agent-new-chat-button--selected:hover {
+    background-color: cssUtils.$sunk-deep;
+  }
+
+  .openui-agent-new-chat-button__icon {
+    width: $sidebar-nav-row-height;
+    height: $sidebar-nav-row-height;
+    margin: 0 0 0 -1px;
+    font-size: $sidebar-nav-icon-size;
+  }
+}
+
+// Open sidebar uses the rail's 12px gap under the header too, so New Chat
+// sits at the same height whether the sidebar is open or collapsed.
+.openui-agent-container:not(.openui-agent-container--mobile) .openui-agent-sidebar-actions {
+  gap: cssUtils.$space-m;
+}
+
+// Tighter step from the actions (New Chat) down to the Threads list.
+.openui-agent-container:not(.openui-agent-container--mobile) .openui-agent-sidebar-container {
+  gap: cssUtils.$space-l;
+}
+
+// Room for the thread rows' 6px bleed: the content area and the thread list
+// both clip, so each grows 6px past the column with padding putting their
+// children back in place.
+.openui-agent-container:not(.openui-agent-container--mobile) {
+  .openui-agent-sidebar-content:not(.openui-agent-sidebar-content--collapsed) {
+    width: calc(
+      var(--openui-agent-sidebar-width, #{$sidebar-width}) - (#{$sidebar-padding-x} * 2) + 12px
+    );
+    margin: 0 -6px;
+    padding: 0 6px;
+  }
+
+  .openui-agent-sidebar-content .openui-agent-thread-list {
+    margin: 0 -6px;
+    padding: 0 6px;
   }
 }

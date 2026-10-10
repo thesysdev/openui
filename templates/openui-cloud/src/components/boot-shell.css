@@ -1,0 +1,17 @@
+/* Boot shell (cloud-chat-client.tsx). The rail matches the sidebar the app is
+   about to render: collapsed (68px) unless it was left open, then the saved
+   width. Both come from <html> attributes set before paint in layout.tsx. */
+.boot-shell__rail {
+  flex-shrink: 0;
+  width: 68px;
+}
+
+html[data-openui-sidebar="open"] .boot-shell__rail {
+  width: var(--openui-agent-sidebar-width, 272px);
+}
+
+@media (max-width: 767px) {
+  .boot-shell__rail {
+    display: none;
+  }
+}

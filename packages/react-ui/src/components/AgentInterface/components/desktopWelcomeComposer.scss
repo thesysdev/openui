@@ -1,18 +1,32 @@
 @use "../../../cssUtils" as cssUtils;
+@use "../column";
 
+// Pill composer: one row of input + round send button. The radius is half the
+// 56px resting height, so it reads as a pill on one line and eases into a
+// rounded rectangle as the draft grows.
 .openui-agent-desktop-welcome-composer {
-  background-color: cssUtils.$foreground;
-  border: 1px solid cssUtils.$border-interactive;
-  border-radius: cssUtils.$radius-3xl;
-  box-shadow: cssUtils.$shadow-s;
+  // A shade above the card in dark mode (a no-op on the white light surface).
+  background-color: color-mix(in oklch, cssUtils.$foreground, cssUtils.$text-white 3%);
+  // 0.5px hairline ring hugging the outside edge (transparent 1px border keeps
+  // the 56px resting height unchanged), very faint so it reads as an edge.
+  border: 1px solid transparent;
+  border-radius: cssUtils.$radius-6xl;
+  box-shadow:
+    0 0 0 0.5px color-mix(in oklch, #{cssUtils.$text-neutral-primary} 8%, transparent),
+    0 4px 16px oklch(0 0 0 / 0.06);
   overflow: clip;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  // Bottom-align so the send button stays on the last line as the draft
+  // grows; input and button share a 32px row height, so one line still
+  // reads as vertically centred.
+  align-items: flex-end;
   gap: cssUtils.$space-m;
-  padding: cssUtils.$space-m;
+  // 11px + a 32px row + 11px + 2px border = the 56px resting height.
+  padding: 11px cssUtils.$space-m 11px cssUtils.$space-xl;
   width: 100%;
-  max-width: 768px;
-  min-height: calc(cssUtils.$space-3xl + cssUtils.$space-3xl + cssUtils.$space-m);
+  max-width: column.$content-width; // same as the in-thread input
+  min-height: 56px;
 
   &__input {
     scrollbar-width: thin;
@@ -31,16 +45,19 @@
       border-radius: cssUtils.$radius-full;
     }
 
-    padding: 0 cssUtils.$space-3xs;
+    padding: 6px 0;
     flex: 1;
+    min-width: 0;
     resize: none;
     max-height: 200px;
-    min-height: 24px;
     outline: none;
     border: none;
     background: transparent;
     overflow-y: auto;
     @include cssUtils.typography(body, default);
+    font-size: 15px;
+    line-height: 20px;
+    min-height: 32px;
     color: cssUtils.$text-neutral-primary;
 
     &::placeholder {
@@ -51,13 +68,28 @@
   &__action-bar {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
   }
+}
 
-  &__submit-button {
-    margin-left: auto;
+// Round, neutral send button. Scoped under the composer root (plus the
+// IconButton class) so it outranks IconButton's square/primary rules.
+.openui-agent-desktop-welcome-composer
+  .openui-agent-desktop-welcome-composer__submit-button.openui-icon-button {
+  border-color: transparent;
+  border-radius: cssUtils.$radius-full;
+  background-color: cssUtils.$inverted-background;
+  box-shadow: none;
+  color: cssUtils.$foreground;
 
-    &:disabled {
-      filter: grayscale(1);
-    }
+  &:not(:disabled):hover,
+  &:not(:disabled):active {
+    background-color: cssUtils.$inverted-background;
+    opacity: 0.85;
+  }
+  &:disabled {
+    background-color: cssUtils.$inverted-background;
+    color: cssUtils.$foreground;
+    cursor: default;
   }
 }

@@ -46,34 +46,45 @@ lines.push("$chat-container-bg: $background;");
 // ─── Static typography system ────────────────────────────────────────────────
 lines.push("");
 lines.push(`\
-@function typography($font-name) {
-  @return (font: var(--#{$font-name}), letter-spacing: var(--#{$font-name}-letter-spacing));
+// $variation picks the Inter "wght" axis token: regular or medium for the
+// theme's Regular/Medium styles, null for fixed weights (600/700, code), where
+// the font shorthand's reset leaves font-weight in charge.
+@function typography($font-name, $variation: null) {
+  $axis: null;
+  @if $variation {
+    $axis: var(--openui-font-variation-#{$variation});
+  }
+  @return (
+    font: var(--#{$font-name}),
+    letter-spacing: var(--#{$font-name}-letter-spacing),
+    variation: $axis
+  );
 }
 
 $typography: (
   body: (
-    default: typography(openui-text-body-default),
-    heavy: typography(openui-text-body-default-heavy),
-    small: typography(openui-text-body-sm),
-    small-heavy: typography(openui-text-body-sm-heavy),
-    large: typography(openui-text-body-lg),
-    large-heavy: typography(openui-text-body-lg-heavy),
-    link: typography(openui-text-body-default),
-    medium: typography(openui-text-body-default),
+    default: typography(openui-text-body-default, regular),
+    heavy: typography(openui-text-body-default-heavy, medium),
+    small: typography(openui-text-body-sm, regular),
+    small-heavy: typography(openui-text-body-sm-heavy, medium),
+    large: typography(openui-text-body-lg, regular),
+    large-heavy: typography(openui-text-body-lg-heavy, medium),
+    link: typography(openui-text-body-default, regular),
+    medium: typography(openui-text-body-default, regular),
   ),
   label: (
-    default: typography(openui-text-label-default),
-    heavy: typography(openui-text-label-default-heavy),
-    large: typography(openui-text-label-lg),
-    large-heavy: typography(openui-text-label-lg-heavy),
-    medium: typography(openui-text-label-default),
-    medium-heavy: typography(openui-text-label-default-heavy),
-    small: typography(openui-text-label-sm),
-    small-heavy: typography(openui-text-label-sm-heavy),
-    extra-small: typography(openui-text-label-xs),
-    extra-small-heavy: typography(openui-text-label-xs-heavy),
-    2-extra-small: typography(openui-text-label-xs),
-    2-extra-small-heavy: typography(openui-text-label-xs-heavy),
+    default: typography(openui-text-label-default, regular),
+    heavy: typography(openui-text-label-default-heavy, medium),
+    large: typography(openui-text-label-lg, regular),
+    large-heavy: typography(openui-text-label-lg-heavy, medium),
+    medium: typography(openui-text-label-default, regular),
+    medium-heavy: typography(openui-text-label-default-heavy, medium),
+    small: typography(openui-text-label-sm, regular),
+    small-heavy: typography(openui-text-label-sm-heavy, medium),
+    extra-small: typography(openui-text-label-xs, regular),
+    extra-small-heavy: typography(openui-text-label-xs-heavy, medium),
+    2-extra-small: typography(openui-text-label-xs, regular),
+    2-extra-small-heavy: typography(openui-text-label-xs-heavy, medium),
   ),
   heading: (
     xl: typography(openui-text-heading-xl),
@@ -83,14 +94,14 @@ $typography: (
     extra-small: typography(openui-text-heading-xs),
   ),
   number: (
-    large: typography(openui-text-numbers-lg),
-    large-heavy: typography(openui-text-numbers-lg-heavy),
-    heavy: typography(openui-text-numbers-default-heavy),
-    default: typography(openui-text-numbers-default),
-    small: typography(openui-text-numbers-sm),
-    small-heavy: typography(openui-text-numbers-sm-heavy),
-    extra-small: typography(openui-text-numbers-xs),
-    extra-small-heavy: typography(openui-text-numbers-xs-heavy),
+    large: typography(openui-text-numbers-lg, regular),
+    large-heavy: typography(openui-text-numbers-lg-heavy, medium),
+    heavy: typography(openui-text-numbers-default-heavy, medium),
+    default: typography(openui-text-numbers-default, regular),
+    small: typography(openui-text-numbers-sm, regular),
+    small-heavy: typography(openui-text-numbers-sm-heavy, medium),
+    extra-small: typography(openui-text-numbers-xs, regular),
+    extra-small-heavy: typography(openui-text-numbers-xs-heavy, medium),
     heading: typography(openui-text-numbers-heading-lg),
     heading-small: typography(openui-text-numbers-heading-sm),
     heading-medium: typography(openui-text-numbers-heading-md),
@@ -110,6 +121,8 @@ $typography: (
 @mixin typography($font-name, $font-variant) {
   font: map.get($typography, $font-name, $font-variant, font);
   letter-spacing: map.get($typography, $font-name, $font-variant, letter-spacing);
+  // The font shorthand resets font-variation-settings, so set the axis after it.
+  font-variation-settings: map.get($typography, $font-name, $font-variant, variation);
 }
 
 @mixin button-reset {
@@ -144,26 +157,33 @@ for (const [key, value] of entries) {
 defaultsLines.push("}");
 defaultsLines.push("");
 
-// ─── Dark mode defaults via prefers-color-scheme ─────────────────────────────
+// ─── Dark mode defaults ──────────────────────────────────────────────────────
+// Dark follows prefers-color-scheme unless the page pins a mode with
+// `data-openui-theme="light" | "dark"` on <html> (set before paint by apps with
+// a theme switcher, so the first frame is already in the chosen mode).
 const darkEntries = Object.entries(defaultDarkTheme).filter(
   ([, value]) => typeof value === "string",
 ) as [string, string][];
 
-defaultsLines.push("@media (prefers-color-scheme: dark) {");
-defaultsLines.push("  :root {");
-
-for (const [key, value] of darkEntries) {
-  if (sectionHeaders[key]) {
-    defaultsLines.push("");
-    defaultsLines.push(`    ${sectionHeaders[key]}`);
-    defaultsLines.push("");
+const pushDarkBlock = (selector: string, indent: string) => {
+  defaultsLines.push(`${indent}${selector} {`);
+  for (const [key, value] of darkEntries) {
+    if (sectionHeaders[key]) {
+      defaultsLines.push("");
+      defaultsLines.push(`${indent}  ${sectionHeaders[key]}`);
+      defaultsLines.push("");
+    }
+    const kebab = camelToKebab(key);
+    defaultsLines.push(`${indent}  --openui-${kebab}: ${value};`);
   }
-  const kebab = camelToKebab(key);
-  defaultsLines.push(`    --openui-${kebab}: ${value};`);
-}
+  defaultsLines.push(`${indent}}`);
+};
 
-defaultsLines.push("  }");
+defaultsLines.push("@media (prefers-color-scheme: dark) {");
+pushDarkBlock(':root:not([data-openui-theme="light"])', "  ");
 defaultsLines.push("}");
+defaultsLines.push("");
+pushDarkBlock(':root[data-openui-theme="dark"]', "");
 defaultsLines.push("");
 
 const defaultsOutputPath = path.resolve(__dirname, "../openui-defaults.scss");
