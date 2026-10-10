@@ -54,7 +54,7 @@ The component receives a plain array, not one action, and no error is reported. 
 
 The prompt lists `@Run` only when the `toolCalls` option is on, and `@Set` and `@Reset` only when `bindings` is on. See [Queries & Mutations](/docs/openui-lang/queries-mutations) and [Reactive State](/docs/openui-lang/reactive-state).
 
-A step that cannot run does nothing, and the other steps still run. Examples are `@Run(x)` when there is no `Query` or `Mutation` named `x`, `@Reset("title")` without the `$`, and a custom action with an invalid required argument.
+A step that cannot run does nothing, and the other steps still run. Examples are `@Run(x)` when there is no `Query` or `Mutation` named `x`, `@Reset("title")` without the `$`, and a custom action with any invalid argument.
 
 ### Context for `@ToAssistant`
 

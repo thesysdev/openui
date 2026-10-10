@@ -148,16 +148,26 @@ function handleAction(event: LibraryActionEvent<typeof library>) {
 
 ## Invalid arguments
 
-Arguments are checked like [custom function](/docs/openui-lang/custom-functions#validation) arguments and component props:
-
-- If a required argument is missing or has the wrong type, the step does nothing. The other steps in the same `Action([...])` still run.
-- If an optional argument has the wrong type, it falls back to its default, or is left out when it has none.
+Any invalid argument makes the step do nothing. The other steps in the same `Action([...])` still run.
 
 ```text
-copyBtn = Button("Copy", @CopyToClipboard(42))
+copyBtn = Button("Copy", @CopyToClipboard("ORD-1042", "html"))
 ```
 
-`42` is not a string, so the parser reports `type-mismatch` and the click does nothing. Arguments from references or `$variables` are checked when the action prop is evaluated, and report `runtime-error`. A required argument that is `null` at that point (for example an unset `$variable`) makes the step do nothing, with no error.
+`"html"` is not `"plain"` or `"markdown"`. The step does not run with the default `"plain"` in its place, because the model asked for something else. The click does nothing.
+
+| Argument                                                    | Error              | When               |
+| :---------------------------------------------------------- | :----------------- | :----------------- |
+| A literal of the wrong type, required or optional           | `type-mismatch`    | Parse time         |
+| A required argument left out                                | `missing-required` | Parse time         |
+| A `$variable` or reference that holds the wrong type        | `runtime-error`    | When it evaluates  |
+| A required argument that is `null`, such as an unset `$var` | none               | When it evaluates  |
+
+In each case the step is a no-op. An optional argument that is left out, or `null`, is not an error: its default applies.
+
+`@CopyToClipboard("ORD-1042")` still delivers `{ text: "ORD-1042", format: "plain" }`.
+
+Custom functions are less strict: an invalid optional argument falls back to its default. See [Custom Functions](/docs/openui-lang/custom-functions#validation).
 
 ## Only real calls create custom steps
 
@@ -183,7 +193,7 @@ The note on `ActionExpression` props in the component section also names it amon
 
 ## With AgentInterface
 
-`AgentInterface` from `@openuidev/react-ui` handles `@ToAssistant` (it sends a new user message) and `@OpenUrl` (it opens the link in a new tab). Pass `onAction` to handle your custom actions:
+`AgentInterface` from `@openuidev/react-ui` handles `@ToAssistant` (it sends a new user message) and `@OpenUrl` (it opens the link in a new tab). Its `onAction` prop receives the actions the chat does not handle, such as your custom actions:
 
 ```tsx
 import { AgentInterface } from "@openuidev/react-ui";
@@ -198,6 +208,10 @@ import { AgentInterface } from "@openuidev/react-ui";
   }}
 />;
 ```
+
+Here `onAction` takes a plain `ActionEvent`, so `params` is not typed from the library.
+
+When you pass `components.AssistantMessage`, `AgentInterface` does not render the messages and does not call `onAction`. Pass `onAction` to the `Renderer` in your message component instead.
 
 Inside a `Form`, a primary `Button` from `@openuidev/react-ui` validates the form before a custom action runs, as it does for `@ToAssistant` and mutations. If validation fails, no step runs.
 

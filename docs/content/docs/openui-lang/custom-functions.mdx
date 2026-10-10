@@ -104,11 +104,14 @@ Literal arguments are checked when the program is parsed:
 Arguments that are only known at runtime (a `$variable`, a reference, a query result, an expression) are checked when the call runs:
 
 - A required argument that is `null` or missing, with no default, makes the call evaluate to `null` with no error. This covers an unset `$variable` or a query that has not returned yet.
-- Any other invalid argument reports `runtime-error`, and the call evaluates to `null`.
+- A required argument of the wrong type reports `runtime-error`, and the call evaluates to `null`.
+- An optional argument of the wrong type reports `runtime-error`, and its default applies. The call runs.
 - If `fn` throws, the call reports `runtime-error` (`@Percent threw: ...`) and evaluates to `null`.
 - If the result does not match `returns`, the call reports `runtime-error` and evaluates to `null`. Without `returns`, the result is used as is.
 
 The React `Renderer` sends these errors to `onError` once the stream has ended.
+
+Custom actions are stricter. Any invalid argument there, optional or not, makes the step a no-op. See [Custom Actions](/docs/openui-lang/custom-actions#invalid-arguments).
 
 ## When functions run
 
