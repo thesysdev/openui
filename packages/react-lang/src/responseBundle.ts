@@ -10,6 +10,9 @@ export interface ResponseMetadata {
 // parseMessage reads the rest (content, attributes, end).
 const SCRIPTS = "]]>openui:scripts";
 const CONTENT_LINE = /^\]\]>openui:content(?:\?.*)?\r?$/;
+// OpenUI Cloud's sanitizer retry writes its content line right after the failed attempt's
+// last character, with no newline. Start it on its own line so the retry wins.
+const RETRY_HEADER = /(?<=[^\n])(?=\]\]>openui:content(?:\?|\r?\n|$))/g;
 
 interface Scripts {
   names: Set<string>;
@@ -83,7 +86,7 @@ function readScripts(header: string, payload: string): Scripts | null {
 
 /** Reads an OpenUI Cloud response: a stored message (see parseMessage) plus its scripts section. */
 export function parseResponseBundle(response: string | null, streaming: boolean) {
-  let text = response ?? "";
+  let text = (response ?? "").replace(RETRY_HEADER, "\n");
   const start = contentStart(text, streaming);
   const framed = start >= 0;
   const body = Math.max(start, 0);

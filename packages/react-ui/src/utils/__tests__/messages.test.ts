@@ -41,3 +41,9 @@ it("reads and writes stored messages like the old sentinelParser", () => {
     "root = A()",
   );
 });
+
+it("reads the sanitizer retry when its content line follows the failed attempt mid-line", () => {
+  const header = "]]>openui:content?thesys=true";
+  const raw = `${header}\nroot = A("Broken${header}\nroot = B()\n]]>openui:end`;
+  expect(readMessage(raw).content).toBe("root = B()");
+});

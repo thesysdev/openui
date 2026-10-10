@@ -28,9 +28,13 @@ export function getMatchedRendererActivities(
   return activities.filter((a) => !!(registry && lookupArtifactRenderer(registry, a.toolName)));
 }
 
+// OpenUI Cloud's sanitizer retry writes its content line right after the failed attempt's
+// last character, with no newline. Start it on its own line so the retry wins.
+const RETRY_HEADER = /(?<=[^\n])(?=\]\]>openui:content(?:\?|\r?\n|$))/g;
+
 /** parseMessage, plus older stored XML: `<content version="2">root = A()</content><context>[1]</context>` */
 export function readMessage(raw: string, streaming = false): ParsedMessage {
-  const parsed = parseMessage(raw, { streaming });
+  const parsed = parseMessage(raw.replace(RETRY_HEADER, "\n"), { streaming });
   if (raw.includes("]]>openui:")) return parsed;
   let content = parsed.content;
   let context: unknown = null;
