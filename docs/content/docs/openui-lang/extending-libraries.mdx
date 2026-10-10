@@ -137,17 +137,17 @@ Remove that name from your prompt options, or the model may still write it.
 
 `extend` throws at once on a mistake, so it shows up when the module loads:
 
-| Mistake                                                    | Error                                                                                         |
-| :--------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
-| `add` with a name that exists                              | `[extend] Component "Card" already exists. Use override.`                                     |
-| `override` with a name that does not exist                 | `[extend] Cannot override "ProductCard": not in the library. Use add.`                        |
-| `remove` with a name that does not exist                   | `[extend] Cannot remove "Nope": not in the library.`                                          |
-| `remove` of the library's root component                   | `[extend] Cannot remove "Card": it is the library root.`                                      |
-| `remove` of the only component a slot allows               | `[extend] Cannot remove "TabItem": it is the only type allowed in Tabs.items.`                |
-| `remove` of a component added or overridden in the call    | `[extend] Cannot remove "ProductCard": it is added or overridden in the same call.`           |
-| A slot on a parent with no union of components             | `[extend] Slot "Tabs" for "ProductCard": "Tabs" has no content slot (...)`                    |
-| A slot that is not one content slot                        | `[extend] Slot "Card.kids" for "ProductCard" must be one content slot. Candidates: Card.children.` |
-| A function or action name that is taken                    | `[createLibrary] Action "AddToCart" collides with a built-in, component, function, or action of the same name. Rename it.` |
+| Mistake                                                 | Error                                                                                                                      |
+| :------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------- |
+| `add` with a name that exists                           | `[extend] Component "Card" already exists. Use override.`                                                                  |
+| `override` with a name that does not exist              | `[extend] Cannot override "ProductCard": not in the library. Use add.`                                                     |
+| `remove` with a name that does not exist                | `[extend] Cannot remove "Nope": not in the library.`                                                                       |
+| `remove` of the library's root component                | `[extend] Cannot remove "Card": it is the library root.`                                                                   |
+| `remove` of the only component a slot allows            | `[extend] Cannot remove "TabItem": it is the only type allowed in Tabs.items.`                                             |
+| `remove` of a component added or overridden in the call | `[extend] Cannot remove "ProductCard": it is added or overridden in the same call.`                                        |
+| A slot on a parent with no union of components          | `[extend] Slot "Tabs" for "ProductCard": "Tabs" has no content slot (...)`                                                 |
+| A slot that is not one content slot                     | `[extend] Slot "Card.kids" for "ProductCard" must be one content slot. Candidates: Card.children.`                         |
+| A function or action name that is taken                 | `[createLibrary] Action "AddToCart" collides with a built-in, component, function, or action of the same name. Rename it.` |
 
 ## The derived library
 

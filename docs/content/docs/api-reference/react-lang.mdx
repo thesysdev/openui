@@ -230,9 +230,7 @@ interface RendererProps<L extends Library = Library> {
   initialState?: Record<string, any>;
   onParseResult?: (result: ParseResult | null) => void;
   toolProvider?:
-    | Record<string, (args: Record<string, unknown>) => Promise<unknown>>
-    | McpClientLike
-    | null;
+    Record<string, (args: Record<string, unknown>) => Promise<unknown>> | McpClientLike | null;
   queryLoader?: React.ReactNode;
   onError?: (errors: OpenUIError[]) => void;
 }

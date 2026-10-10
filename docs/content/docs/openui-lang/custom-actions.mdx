@@ -156,12 +156,12 @@ copyBtn = Button("Copy", @CopyToClipboard("ORD-1042", "html"))
 
 `"html"` is not `"plain"` or `"markdown"`. The step does not run with the default `"plain"` in its place, because the model asked for something else. The click does nothing.
 
-| Argument                                                    | Error              | When               |
-| :---------------------------------------------------------- | :----------------- | :----------------- |
-| A literal of the wrong type, required or optional           | `type-mismatch`    | Parse time         |
-| A required argument left out                                | `missing-required` | Parse time         |
-| A `$variable` or reference that holds the wrong type        | `runtime-error`    | When it evaluates  |
-| A required argument that is `null`, such as an unset `$var` | none               | When it evaluates  |
+| Argument                                                    | Error              | When              |
+| :---------------------------------------------------------- | :----------------- | :---------------- |
+| A literal of the wrong type, required or optional           | `type-mismatch`    | Parse time        |
+| A required argument left out                                | `missing-required` | Parse time        |
+| A `$variable` or reference that holds the wrong type        | `runtime-error`    | When it evaluates |
+| A required argument that is `null`, such as an unset `$var` | none               | When it evaluates |
 
 In each case the step is a no-op. An optional argument that is left out, or `null`, is not an error: its default applies.
 
