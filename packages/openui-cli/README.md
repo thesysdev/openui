@@ -158,7 +158,7 @@ openui create --example vue
 openui create --example thesysdev/open-intelligent-ui
 ```
 
-`--example <owner>/<repo>` clones a GitHub repository's default branch; append `/<path>` to scaffold one folder inside it. Only `thesysdev` repositories are supported. Catalog entries can point at another repository with `"repo": "<owner>/<repo>"` (plus an optional `path` and `category`).
+`--example <owner>/<repo>` clones a GitHub repository's default branch; append `/<path>` to scaffold one folder inside it. Only `thesysdev` repositories are supported. Catalog entries can point at another repository with `"path": "repo:<owner>/<repo>[/<path>]"` (plus an optional `category` for the picker group).
 
 Examples whose primary key is `THESYS_API_KEY` offer the same browser sign-in and key generation as Cloud templates. Use `--api-key <key>` to supply a key or `--auth skip` to configure it later. Other provider keys still use the existing paste prompt.
 

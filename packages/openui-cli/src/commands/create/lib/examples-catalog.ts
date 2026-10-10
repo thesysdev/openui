@@ -9,6 +9,9 @@ export const EXAMPLES_CATALOG_PATH = "examples/examples.json";
 /** GitHub owners whose repositories `--example <owner>/<repo>[/<path>]` may clone. */
 const ALLOWED_EXAMPLE_REPO_OWNERS = ["thesysdev"];
 
+/** Catalog `path` prefix for an example outside the OpenUI repo: `repo:<owner>/<repo>[/<path>]`. */
+const REPO_PATH_PREFIX = "repo:";
+
 const REPO_SEGMENT_RE = /^[A-Za-z0-9_.-]+$/;
 
 export type ExampleProject = {
@@ -35,23 +38,22 @@ function catalogError(message: string): CreateError {
   return new CreateError("args_resolution", message, "invalid_input", "EXAMPLES_CATALOG_INVALID");
 }
 
-function parseCatalogRepo(value: unknown): SourceRepo {
-  const parts = typeof value === "string" ? value.split("/") : [];
-  const [owner, name] = parts;
-  if (parts.length !== 2 || !owner || !name || !isAllowedRepo(owner, name)) {
-    throw catalogError(
-      `${EXAMPLES_CATALOG_PATH} has an example with an invalid repo. Use <owner>/<repo> from ${ALLOWED_EXAMPLE_REPO_OWNERS.join(", ")}.`,
-    );
+/** Parse `[repo:]<owner>/<repo>[/<path>]`; `undefined` when invalid or the owner is not allowed. */
+function parseRepoSpec(spec: string): { repo: SourceRepo; subpath: string } | undefined {
+  const withoutPrefix = spec.startsWith(REPO_PATH_PREFIX)
+    ? spec.slice(REPO_PATH_PREFIX.length)
+    : spec;
+  const [owner = "", name = "", ...rest] = withoutPrefix.replace(/^\/+|\/+$/g, "").split("/");
+  const subpath = rest.filter(Boolean);
+  if (
+    !REPO_SEGMENT_RE.test(owner) ||
+    !REPO_SEGMENT_RE.test(name) ||
+    !ALLOWED_EXAMPLE_REPO_OWNERS.includes(owner.toLowerCase()) ||
+    subpath.some((part) => part === "." || part === "..")
+  ) {
+    return undefined;
   }
-  return { owner, name };
-}
-
-function isAllowedRepo(owner: string, name: string): boolean {
-  return (
-    REPO_SEGMENT_RE.test(owner) &&
-    REPO_SEGMENT_RE.test(name) &&
-    ALLOWED_EXAMPLE_REPO_OWNERS.includes(owner.toLowerCase())
-  );
+  return { repo: { owner, name }, subpath: subpath.join("/") };
 }
 
 function parseCatalogEntry(item: unknown): ExampleProject {
@@ -59,7 +61,6 @@ function parseCatalogEntry(item: unknown): ExampleProject {
     title?: unknown;
     description?: unknown;
     path?: unknown;
-    repo?: unknown;
     category?: unknown;
     env?: unknown;
     featured?: unknown;
@@ -67,7 +68,7 @@ function parseCatalogEntry(item: unknown): ExampleProject {
   if (
     typeof entry.title !== "string" ||
     typeof entry.description !== "string" ||
-    (entry.repo === undefined && typeof entry.path !== "string")
+    typeof entry.path !== "string"
   ) {
     throw catalogError(
       `${EXAMPLES_CATALOG_PATH} has an example missing title, description, or path.`,
@@ -76,14 +77,21 @@ function parseCatalogEntry(item: unknown): ExampleProject {
   if (entry.featured !== undefined && typeof entry.featured !== "boolean") {
     throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an invalid featured flag.`);
   }
-  if (entry.path !== undefined && typeof entry.path !== "string") {
-    throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an invalid path.`);
-  }
   if (entry.category !== undefined && typeof entry.category !== "string") {
     throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an invalid category.`);
   }
-  const repo = entry.repo === undefined ? undefined : parseCatalogRepo(entry.repo);
-  const relative = (entry.path ?? "").replace(/^\/+/, "").replace(/\/+$/, "");
+  let repo: SourceRepo | undefined;
+  let relative = entry.path.replace(/^\/+/, "");
+  if (relative.startsWith(REPO_PATH_PREFIX)) {
+    const parsed = parseRepoSpec(relative);
+    if (!parsed) {
+      throw catalogError(
+        `${EXAMPLES_CATALOG_PATH} has an invalid path "${entry.path}". Use ${REPO_PATH_PREFIX}<owner>/<repo>[/<path>] with a repository from ${ALLOWED_EXAMPLE_REPO_OWNERS.join(", ")}.`,
+      );
+    }
+    repo = parsed.repo;
+    relative = parsed.subpath;
+  }
   const name = relative.split("/").filter(Boolean).at(-1) ?? repo?.name;
   if (!name) {
     throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an empty path.`);
@@ -151,9 +159,8 @@ function sameRepo(a: SourceRepo | undefined, b: SourceRepo): boolean {
 
 /** Resolve `<owner>/<repo>[/<path>]`, preferring a matching catalog entry for its env setup. */
 function findRepoExample(spec: string, examples: ExampleProject[]): ExampleProject {
-  const [owner = "", name = "", ...rest] = spec.replace(/^\/+|\/+$/g, "").split("/");
-  const subpath = rest.filter(Boolean).join("/");
-  if (!isAllowedRepo(owner, name) || rest.some((part) => part === "." || part === "..")) {
+  const parsed = parseRepoSpec(spec);
+  if (!parsed) {
     throw new CreateError(
       "args_resolution",
       `unsupported example repository "${spec}". Use <owner>/<repo>[/<path>] with a repository from ${ALLOWED_EXAMPLE_REPO_OWNERS.join(", ")}, or an example name from ${EXAMPLES_CATALOG_PATH}.`,
@@ -161,14 +168,14 @@ function findRepoExample(spec: string, examples: ExampleProject[]): ExampleProje
       "INVALID_EXAMPLE",
     );
   }
-  const repo = { owner, name };
+  const { repo, subpath } = parsed;
   const match = examples.find(
     (entry) => sameRepo(entry.repo, repo) && entry.path.toLowerCase() === subpath.toLowerCase(),
   );
   if (match) return match;
   return {
-    name: subpath.split("/").at(-1) || name,
-    label: `${owner}/${name}${subpath ? `/${subpath}` : ""}`,
+    name: subpath.split("/").at(-1) || repo.name,
+    label: `${repo.owner}/${repo.name}${subpath ? `/${subpath}` : ""}`,
     description: "",
     path: subpath,
     repo,
@@ -178,7 +185,9 @@ function findRepoExample(spec: string, examples: ExampleProject[]): ExampleProje
 }
 
 export function findExample(name: string, examples: ExampleProject[]): ExampleProject {
-  if (name.includes("/")) return findRepoExample(name, examples);
+  if (name.includes("/") || name.startsWith(REPO_PATH_PREFIX)) {
+    return findRepoExample(name, examples);
+  }
   const normalized = name.toLowerCase();
   const match = examples.find((entry) => entry.name.toLowerCase() === normalized);
   if (!match) {

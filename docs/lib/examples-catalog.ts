@@ -33,8 +33,8 @@ export type RepoExample = {
 };
 
 export const REPO_EXAMPLES: RepoExample[] = catalog.examples.flatMap((example) => {
-  // Entries with `repo` live in another repository, outside `examples/`.
-  if ("repo" in example) return [];
+  // `repo:` paths live in another repository, outside `examples/`.
+  if (example.path.startsWith("repo:")) return [];
   const [category, name] = example.path.split("/") as [ExampleCategoryId, string];
 
   return {
