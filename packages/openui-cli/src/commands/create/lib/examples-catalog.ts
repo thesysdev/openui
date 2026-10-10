@@ -22,8 +22,6 @@ export type ExampleProject = {
   path: string;
   /** Source repository. Omitted means the OpenUI repo. */
   repo?: SourceRepo;
-  /** Picker group, e.g. `app-frameworks`. */
-  category: string;
   env: {
     /** Environment file relative to the example root. */
     file: string;
@@ -61,7 +59,6 @@ function parseCatalogEntry(item: unknown): ExampleProject {
     title?: unknown;
     description?: unknown;
     path?: unknown;
-    category?: unknown;
     env?: unknown;
     featured?: unknown;
   };
@@ -76,9 +73,6 @@ function parseCatalogEntry(item: unknown): ExampleProject {
   }
   if (entry.featured !== undefined && typeof entry.featured !== "boolean") {
     throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an invalid featured flag.`);
-  }
-  if (entry.category !== undefined && typeof entry.category !== "string") {
-    throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an invalid category.`);
   }
   let repo: SourceRepo | undefined;
   let relative = entry.path.replace(/^\/+/, "");
@@ -118,9 +112,6 @@ function parseCatalogEntry(item: unknown): ExampleProject {
     description: entry.description,
     path: repo || relative.startsWith("examples/") ? relative : `examples/${relative}`,
     repo,
-    category:
-      entry.category ??
-      ((repo ? undefined : relative.replace(/^examples\//, "").split("/")[0]) || "miscellaneous"),
     env: { file, key: typeof env.key === "string" ? env.key : undefined },
     featured: entry.featured === true,
   };
@@ -179,7 +170,6 @@ function findRepoExample(spec: string, examples: ExampleProject[]): ExampleProje
     description: "",
     path: subpath,
     repo,
-    category: "miscellaneous",
     env: { file: ".env" },
   };
 }
@@ -238,7 +228,9 @@ export function groupedExampleChoices(
 ): unknown[] {
   const groups = new Map<string, ExampleProject[]>();
   for (const example of examples) {
-    const key = example.category;
+    const key = example.repo
+      ? "miscellaneous"
+      : (example.path.replace(/^examples\//, "").split("/")[0] ?? "miscellaneous");
     const group = groups.get(key) ?? [];
     group.push(example);
     groups.set(key, group);
