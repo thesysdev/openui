@@ -266,6 +266,7 @@ The 1.0 prompt joins the two with a space, a hyphen, and a space. The `0.x` prom
 - Unions are joined by `|`.
 - An optional prop has `?` before the colon: `variant?: "primary"`.
 - A prop that binds to state prints as `$binding<type>`.
+- A restricted action slot prints its actions with `@`: `share?: @CopyToClipboard | @OpenUrl`.
 - Names such as `ActionExpression` come from ids the library gives to shared schemas.
 
 ### 5.2 Descriptions

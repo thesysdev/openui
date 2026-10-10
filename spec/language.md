@@ -413,7 +413,7 @@ Fixtures: `actions/*-mutation-*`
 
 ### 6.3 Action plans and steps
 
-`Action([step, step, ...])` builds a plan, which a component's action prop triggers. An action position is a prop whose schema is a `$ref` to `ActionExpression`, or an `anyOf` of `$ref`s to action names ([prompt.md](./prompt.md), section 2.3). Steps run in order. A mutation run is awaited. Query fetches and host events are sent without waiting.
+`Action([step, step, ...])` builds a plan, which a component's action prop triggers. An action position is a prop whose schema is a `$ref` to `ActionExpression`, or an `anyOf` of `$ref`s to action names ([prompt.md](./prompt.md), section 2.3). Such a restricted slot shapes the prompt and the schema only. In 1.0 it accepts any step or plan. Steps run in order. A mutation run is awaited. Query fetches and host events are sent without waiting.
 
 - `@Set($var, value)`: evaluates `value` when the step runs, and writes it.
 - `@Reset($a, $b, ...)`: restores the declared defaults (null if none).
