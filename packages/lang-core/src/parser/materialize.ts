@@ -97,6 +97,7 @@ export function mapCallArgs(
   }
   const mapped = nameArgs(args, params);
   let invalid = false;
+  const errorsBefore = ctx.errors.length;
   for (const p of params) {
     const arg = mapped[p.name];
     const lit = arg ? literalValue(arg) : { v: undefined };
@@ -116,6 +117,9 @@ export function mapCallArgs(
     else if (next === undefined) delete mapped[p.name];
     else if (next !== lit.v) mapped[p.name] = toLiteralAST(next);
   }
+  // An action never runs with a value the model did not write:
+  // @ExportFile("report", "xlsx") is a no-op, not an export with the "csv" default
+  if (def.kind === "action" && ctx.errors.length > errorsBefore) invalid = true;
   return invalid ? null : mapped;
 }
 

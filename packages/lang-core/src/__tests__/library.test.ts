@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
-import { createLibrary, defineComponent, tagSchemaId } from "../library";
+import { createLibrary, defineComponent, tagSchemaId, type Library } from "../library";
 import { createParser } from "../parser";
 import { action, steps } from "../parser/builtins";
 
@@ -275,5 +275,23 @@ describe("assertV4Schema", () => {
         component: Dummy,
       }),
     ).not.toThrow();
+  });
+});
+
+// ─── Library type ───────────────────────────────────────────────────────────
+
+describe("Library type", () => {
+  it("accepts a hand-built library with only the pre-1.0 members", () => {
+    const mock: Library = {
+      components: {},
+      componentGroups: undefined,
+      root: undefined,
+      id: undefined,
+      __libraryId: "mock",
+      prompt: () => "",
+      toSpec: () => createLibrary({ components: [] }).toSpec(),
+      toJSONSchema: () => createLibrary({ components: [] }).toJSONSchema(),
+    };
+    expect(mock.functions).toBeUndefined();
   });
 });

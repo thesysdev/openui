@@ -97,10 +97,11 @@ export function useOpenUIState(
   const functions = useMemo(
     () =>
       Object.fromEntries(
-        Object.entries(schema.functions ?? {}).map(([name, s]) => [
-          name,
-          { ...s, fn: library.functions[name]!.fn },
-        ]),
+        Object.entries(schema.functions ?? {}).flatMap(([name, s]) => {
+          // A hand-built library may list a function in its schema without an implementation
+          const fn = library.functions?.[name]?.fn;
+          return fn ? [[name, { ...s, fn }]] : [];
+        }),
       ),
     [schema, library.functions],
   );
@@ -305,11 +306,11 @@ export function useOpenUIState(
       formName?: string,
       action?: ActionPlan | { type?: string; params?: Record<string, any> },
     ) => {
-      const formPayload = getFormPayload(formName);
       const { onAction: handler } = propsRef.current;
 
       // Legacy action config path (v0.1 compat) — { type?, params? }
       if (action && !("steps" in action)) {
+        const formPayload = getFormPayload(formName);
         const actionType = action.type || BuiltinActionType.ContinueConversation;
         // Only a real call delivers a custom action; a legacy object cannot pose as one
         if (schema.actions && Object.prototype.hasOwnProperty.call(schema.actions, actionType))
@@ -329,6 +330,7 @@ export function useOpenUIState(
       }
 
       // ActionPlan path (v0.5) — sequential steps with halt-on-mutation-failure
+      // Form state is read per step so an earlier @Set in the same plan is visible.
       const actionPlan = action as ActionPlan | undefined;
       if (actionPlan?.steps) {
         for (const step of actionPlan.steps) {
@@ -353,7 +355,7 @@ export function useOpenUIState(
                 type: BuiltinActionType.ContinueConversation,
                 params: step.context !== undefined ? { context: step.context } : {},
                 humanFriendlyMessage: step.message,
-                formState: formPayload,
+                formState: getFormPayload(formName),
                 formName,
               });
               break;
@@ -362,7 +364,7 @@ export function useOpenUIState(
                 type: BuiltinActionType.OpenUrl,
                 params: { url: step.url },
                 humanFriendlyMessage: "",
-                formState: formPayload,
+                formState: getFormPayload(formName),
                 formName,
               });
               break;
@@ -371,7 +373,7 @@ export function useOpenUIState(
                 type: step.name,
                 params: step.params,
                 humanFriendlyMessage: "",
-                formState: formPayload,
+                formState: getFormPayload(formName),
                 formName,
               });
               break;
@@ -401,7 +403,7 @@ export function useOpenUIState(
         type: BuiltinActionType.ContinueConversation,
         params: {},
         humanFriendlyMessage: userMessage,
-        formState: formPayload,
+        formState: getFormPayload(formName),
         formName,
       });
     },
