@@ -13,6 +13,7 @@ import {
   DgScoreboard,
   DgSpeedArc,
 } from "@/components/charts/diffusion-charts";
+import { CodeBlockTabs } from "@/components/code-block-tabs";
 import { DocsCard } from "@/components/docs-card";
 import { FakeVisual } from "@/components/fake-visual";
 import { Mermaid } from "@/components/mermaid";
@@ -26,6 +27,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
     ...defaultMdxComponents,
     ...TabsComponents,
+    CodeBlockTabs,
     Card: DocsCard,
     TweetEmbed,
     FakeVisual,

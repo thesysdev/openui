@@ -252,27 +252,53 @@
 }
 
 /* GitHub button pinned to the bottom of the mobile tray, separated like a section. */
+/* Docs and GitHub side by side, as two equal buttons. */
 .mobileTrayFooter {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.625rem;
-  /* Takes up the slack, so the button sits at the bottom of the screen when the
-     sections are collapsed and is simply pushed down when they are not. */
+  /* Takes up the slack, so the buttons sit at the bottom of the screen when the
+     sections are collapsed. Sticky, so they stay there when open sections make
+     the tray scroll. The negative margin cancels .mobileTrayInner's bottom
+     padding, so the footer's own background covers the gap under it. */
+  position: sticky;
+  bottom: 0;
   margin-top: auto;
-  padding-top: 1.5rem;
+  margin-bottom: -1rem;
+  padding-block: 1rem;
+  border-top: 1px solid var(--openui-border-default);
+  background: var(--openui-foreground);
 }
 
-/* Full-width GitHub button with the trailing arrow pushed to the right edge. */
+[data-theme="dark"] .mobileTrayFooter {
+  background: #000;
+}
+
+/* Docs: a secondary button beside the primary GitHub one. Same size and shape as
+   the compact GitHub pill; colours from the site's secondary pill
+   (.pillSecondary in Button.module.css), which follow the theme tokens. */
+.mobileTrayDocsLink {
+  box-sizing: border-box;
+  display: inline-flex;
+  height: 2.5rem;
+  align-items: center;
+  gap: 0.375rem;
+  padding-inline: 0.875rem;
+  border: 1px solid var(--openui-border-default);
+  border-radius: 999px;
+  background: var(--openui-foreground);
+  box-shadow: var(--openui-shadow-l);
+  color: var(--openui-text-neutral-primary);
+  font-family: "Inter", "Segoe UI", sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* Both buttons fill their column, contents centred. */
 .mobileTrayFooter a {
   width: 100%;
-  justify-content: flex-start;
-}
-
-/* Trailing arrow: same lucide ArrowRight as the homepage mobile CTA. */
-.mobileTrayArrow {
-  margin-left: auto;
-  flex-shrink: 0;
-  color: currentColor;
+  justify-content: center;
 }
 
 @media (min-width: 1024px) {
