@@ -3,10 +3,10 @@
  *
  * This is the reference for adding your own tools — declare the tool to the
  * model (`getWeatherTool`) and execute it on your server (`executeGetWeather`),
- * wired together through `runFunctionToolLoop` in the chat route.
+ * wired together by the selected agent framework.
  */
 
-/** OpenAI Responses `type: "function"` declaration sent to the model. */
+/** Shared tool metadata used by the framework adapters. */
 export const getWeatherTool = {
   type: "function" as const,
   name: "get_weather",

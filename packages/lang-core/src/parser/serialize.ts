@@ -6,9 +6,9 @@
 import type { Library } from "../library";
 import type { ASTNode } from "./ast";
 import { isASTNode } from "./ast";
-import { isBuiltin } from "./builtins";
+import { getCallDefs } from "./builtins";
 import { compileSchema } from "./parser";
-import { isElementNode, type ElementNode, type ParamMap } from "./types";
+import { isElementNode, type CallDef, type ElementNode, type ParamMap } from "./types";
 
 // ─── Operator precedence (mirrors expressions.ts) ────────────────────────────
 
@@ -57,7 +57,8 @@ class StatementCollector {
 
 // ─── AST node serializer ─────────────────────────────────────────────────────
 
-function serializeASTNode(node: ASTNode): string {
+/** `calls` are the library's call names (built-ins, functions, actions), written with `@`. */
+function serializeASTNode(node: ASTNode, calls: ReadonlyMap<string, CallDef>): string {
   switch (node.k) {
     case "Str":
       return JSON.stringify(node.v);
@@ -74,28 +75,30 @@ function serializeASTNode(node: ASTNode): string {
     case "RuntimeRef":
       return node.n;
     case "Arr":
-      return "[" + node.els.map(serializeASTNode).join(", ") + "]";
+      return "[" + node.els.map((el) => serializeASTNode(el, calls)).join(", ") + "]";
     case "Obj":
-      return "{" + node.entries.map(([k, v]) => `${k}: ${serializeASTNode(v)}`).join(", ") + "}";
+      return (
+        "{" + node.entries.map(([k, v]) => `${k}: ${serializeASTNode(v, calls)}`).join(", ") + "}"
+      );
     case "BinOp": {
-      const left = serializeBinOpChild(node.left, node.op, "left");
-      const right = serializeBinOpChild(node.right, node.op, "right");
+      const left = serializeBinOpChild(node.left, node.op, "left", calls);
+      const right = serializeBinOpChild(node.right, node.op, "right", calls);
       return `${left} ${node.op} ${right}`;
     }
     case "UnaryOp":
-      return `${node.op}${serializeASTNode(node.operand)}`;
+      return `${node.op}${serializeASTNode(node.operand, calls)}`;
     case "Ternary":
-      return `${serializeASTNode(node.cond)} ? ${serializeASTNode(node.then)} : ${serializeASTNode(node.else)}`;
+      return `${serializeASTNode(node.cond, calls)} ? ${serializeASTNode(node.then, calls)} : ${serializeASTNode(node.else, calls)}`;
     case "Member":
-      return `${serializeASTNode(node.obj)}.${node.field}`;
+      return `${serializeASTNode(node.obj, calls)}.${node.field}`;
     case "Index":
-      return `${serializeASTNode(node.obj)}[${serializeASTNode(node.index)}]`;
+      return `${serializeASTNode(node.obj, calls)}[${serializeASTNode(node.index, calls)}]`;
     case "Assign":
-      return `${node.target} = ${serializeASTNode(node.value)}`;
+      return `${node.target} = ${serializeASTNode(node.value, calls)}`;
     case "Comp": {
-      const args = node.args.map(serializeASTNode).join(", ");
-      // Builtin (not Action) → @-prefix
-      if (isBuiltin(node.name) && node.name !== "Action") {
+      const args = node.args.map((arg) => serializeASTNode(arg, calls)).join(", ");
+      // Built-ins, library functions and actions (not Action) → @-prefix
+      if (calls.has(node.name) && node.name !== "Action") {
         return `@${node.name}(${args})`;
       }
       // Action, reserved calls (Query/Mutation), catalog components → no prefix
@@ -110,8 +113,13 @@ function serializeASTNode(node: ASTNode): string {
 }
 
 /** Wrap a BinOp child in parens if its precedence is lower than the parent's. */
-function serializeBinOpChild(child: ASTNode, parentOp: string, _side: "left" | "right"): string {
-  const inner = serializeASTNode(child);
+function serializeBinOpChild(
+  child: ASTNode,
+  parentOp: string,
+  _side: "left" | "right",
+  calls: ReadonlyMap<string, CallDef>,
+): string {
+  const inner = serializeASTNode(child, calls);
   if (child.k !== "BinOp") return inner;
   const parentPrec = PRECEDENCE[parentOp] ?? 0;
   const childPrec = PRECEDENCE[child.op] ?? 0;
@@ -134,7 +142,7 @@ function serializeValue(value: unknown, paramMap: ParamMap, collector: Statement
 
   // ASTNode (surviving runtime expressions in dynamic props)
   if (isASTNode(value)) {
-    return serializeASTNode(value);
+    return serializeASTNode(value, getCallDefs(paramMap));
   }
 
   // Array

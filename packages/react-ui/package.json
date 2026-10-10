@@ -2,7 +2,7 @@
   "type": "module",
   "name": "@openuidev/react-ui",
   "license": "MIT",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "description": "Component library for Generative UI SDK",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -110,7 +110,7 @@
   },
   "peerDependencies": {
     "@openuidev/react-headless": ">=0.14.0 <0.18.0",
-    "@openuidev/react-lang": ">=0.3.0 <0.4.0",
+    "@openuidev/react-lang": ">=0.3.0 <0.5.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zustand": "catalog:",

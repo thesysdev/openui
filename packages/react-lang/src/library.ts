@@ -65,7 +65,7 @@ export function defineComponent<T extends $ZodObject>(config: {
 
 export function createLibrary<A extends AnyAction = never>(
   input: LibraryDefinition<A>,
-): Library<A> {
+): Required<Library<A>> {
   return published(coreCreateLibrary<ComponentRenderer<any>, A>(input));
 }
 
@@ -74,15 +74,16 @@ let extendCount = 0;
 // Dev-only devtools registration. Each derived library gets its own key so it
 // does not replace its base or a sibling.
 function published<A extends AnyAction>(
-  library: Library<A>,
+  library: Required<Library<A>>,
   key = libraryKey(library),
-): Library<A> {
+): Required<Library<A>> {
   if (process.env["NODE_ENV"] !== "production") {
     publishLibrary(library, key);
   }
   const extend = library.extend;
   return Object.assign(library, {
-    extend: ((ext) =>
-      published(extend(ext), `${key}:extend-${++extendCount}`)) as Library<A>["extend"],
+    extend: ((ext) => published(extend(ext), `${key}:extend-${++extendCount}`)) as Required<
+      Library<A>
+    >["extend"],
   });
 }

@@ -42,13 +42,21 @@ body {
   background: var(--openui-foreground);
 }
 
+/* Smooth scroll for in-page anchors such as TOC links. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* Override Fumadocs `max-w-[900px]` on `<article id="nd-page">` */
 #nd-page {
   max-width: 800px !important;
 }
 
 #nd-page[data-full="true"],
-#nd-page[data-full=""] {
+#nd-page[data-full=""],
+#nd-page[data-no-sidebar] {
   max-width: 1168px !important;
 }
 
@@ -82,6 +90,10 @@ body {
 /* Pages with no docs sidebar tree (no placeholder) — keep layout vars consistent */
 #nd-docs-layout:not(:has([data-sidebar-placeholder])) {
   --fd-sidebar-width: 0px !important;
+}
+
+/* A sidebar-less page can still have a TOC (Integrations); only drop its column when there is none. */
+#nd-docs-layout:not(:has([data-sidebar-placeholder])):not(:has(#nd-toc)) {
   --fd-toc-width: 0px !important;
 }
 

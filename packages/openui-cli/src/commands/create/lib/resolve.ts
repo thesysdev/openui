@@ -3,6 +3,7 @@ import { resolveArgs } from "../../../lib/resolve-args";
 import type { RetryAttemptInfo } from "../../../lib/retry";
 import type { OverlayName, TemplateName } from "./create-types";
 import {
+  featuredExamples,
   findExample,
   groupedExampleChoices,
   loadExamplesCatalog,
@@ -111,6 +112,7 @@ export async function resolveProjectIdentity(
 
 const OPENUI_EXAMPLES_CHOICE = "openui-examples";
 const GO_BACK_CHOICE = "__back__";
+const EXAMPLE_CHOICE_PREFIX = "example:";
 
 export async function resolveCreateSelection(params: {
   backendFramework?: OverlayName;
@@ -124,8 +126,9 @@ export async function resolveCreateSelection(params: {
   const { backendFramework, example, examples, overlays, interactive } = params;
   if (example) return { kind: "example", example: findExample(example, examples) };
   if (backendFramework) return { kind: "overlay", overlay: backendFramework };
-  if (!interactive) return { kind: "overlay", overlay: "default" };
+  if (!interactive) return { kind: "overlay", overlay: "langgraph" };
 
+  const featured = featuredExamples(examples);
   const { select, Separator } = await import("@inquirer/prompts");
   const prompt = async <T extends string>(
     message: string,
@@ -154,12 +157,21 @@ export async function resolveCreateSelection(params: {
       name: overlay.name,
       description: overlay.description,
     }));
-    if (examples.length > 0) {
+    if (featured.length > 0) {
       starterChoices.push(new Separator());
+      starterChoices.push(
+        ...featured.map((example) => ({
+          value: `${EXAMPLE_CHOICE_PREFIX}${example.name}`,
+          name: example.label,
+          description: example.description,
+        })),
+      );
+    }
+    if (examples.length > 0) {
       starterChoices.push({
         value: OPENUI_EXAMPLES_CHOICE,
-        name: "Scaffold from OpenUI Examples",
-        description: "Browse examples from the OpenUI repo",
+        name: "More OpenUI Examples →",
+        description: "Browse the complete OpenUI example catalog",
       });
     }
 
@@ -168,6 +180,12 @@ export async function resolveCreateSelection(params: {
       starterChoices,
       starterChoices.length,
     );
+    if (selected.startsWith(EXAMPLE_CHOICE_PREFIX)) {
+      return {
+        kind: "example",
+        example: findExample(selected.slice(EXAMPLE_CHOICE_PREFIX.length), examples),
+      };
+    }
     if (selected !== OPENUI_EXAMPLES_CHOICE) {
       return { kind: "overlay", overlay: selected as OverlayName };
     }

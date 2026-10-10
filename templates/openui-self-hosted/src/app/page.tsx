@@ -4,16 +4,19 @@ import "@openuidev/react-ui/styles/index.css";
 import {
   AgentInterface,
   fetchLLM,
-  openAIMessageFormat,
-  openAIReadableStreamAdapter,
+  langGraphAdapter,
+  langGraphMessageFormat,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
 import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 
+// The /api/chat route runs the LangGraph agent in-process and streams its
+// native `messages`-mode SSE. Outgoing messages are converted to LangChain
+// shape here so the route can pass them to the graph as-is.
 const llm = fetchLLM({
   url: "/api/chat",
-  streamAdapter: openAIReadableStreamAdapter(),
-  messageFormat: openAIMessageFormat,
+  streamAdapter: langGraphAdapter(),
+  messageFormat: langGraphMessageFormat,
 });
 
 export default function Home() {

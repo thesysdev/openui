@@ -46,10 +46,21 @@ const config = {
         destination: "/cookbooks/conversational-analytics",
         permanent: false,
       },
-      // Cookbooks, Examples, and Demos moved from /docs to their own top-level paths.
+      // Cookbooks and Demos moved from /docs to their own top-level paths.
       {
-        source: "/docs/:section(cookbooks|examples|demos)/:path*",
+        source: "/docs/:section(cookbooks|demos)/:path*",
         destination: "/:section/:path*",
+        permanent: true,
+      },
+      // The Examples tab is now Integrations, under /docs.
+      {
+        source: "/examples",
+        destination: "/docs/integrations",
+        permanent: true,
+      },
+      {
+        source: "/docs/examples",
+        destination: "/docs/integrations",
         permanent: true,
       },
       {
@@ -128,22 +139,38 @@ const config = {
       },
       {
         source: "/docs/agent/vercel-ai-sdk",
-        destination: "/docs/agent/agent-runtimes/vercel-ai-sdk",
+        destination: "/docs/build-agents/frameworks/vercel-ai-sdk",
         permanent: true,
       },
       {
         source: "/docs/agent/langchain",
-        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        destination: "/docs/build-agents/frameworks/langgraph",
         permanent: true,
       },
       {
         source: "/docs/agent/harnesses/:path*",
-        destination: "/docs/agent/agent-runtimes/:path*",
+        destination: "/docs/build-agents/frameworks/:path*",
+        permanent: true,
+      },
+      // Agent framework guides moved out of Agent Interface into Build Agents.
+      {
+        source: "/docs/agent/agent-runtimes/langgraph-platform",
+        destination: "/docs/build-agents/frameworks/langgraph",
         permanent: true,
       },
       {
-        source: "/docs/integrations",
-        destination: "/docs/build-agents",
+        source: "/docs/agent/agent-runtimes/:path*",
+        destination: "/docs/build-agents/frameworks/:path*",
+        permanent: true,
+      },
+      {
+        source: "/docs/agent/core-concepts/tools",
+        destination: "/docs/build-agents/tools",
+        permanent: true,
+      },
+      {
+        source: "/docs/build-agents/backend-setup",
+        destination: "/docs/build-agents/ui-generation",
         permanent: true,
       },
       ...["assistant-ui", "copilotkit"].map((integration) => ({
@@ -158,42 +185,42 @@ const config = {
       },
       {
         source: "/docs/integrations/vercel-ai-sdk",
-        destination: "/docs/agent/agent-runtimes/vercel-ai-sdk",
+        destination: "/docs/build-agents/frameworks/vercel-ai-sdk",
         permanent: true,
       },
       {
         source: "/docs/integrations/langchain",
-        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        destination: "/docs/build-agents/frameworks/langgraph",
         permanent: true,
       },
       {
         source: "/docs/integrations/harnesses/:path*",
-        destination: "/docs/agent/agent-runtimes/:path*",
+        destination: "/docs/build-agents/frameworks/:path*",
         permanent: true,
       },
       {
         source: "/docs/openui-lang/examples/agent-frameworks/vercel-ai-sdk",
-        destination: "/docs/agent/agent-runtimes/vercel-ai-sdk",
+        destination: "/docs/build-agents/frameworks/vercel-ai-sdk",
         permanent: true,
       },
       {
         source: "/docs/openui-lang/examples/agent-frameworks/langchain",
-        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        destination: "/docs/build-agents/frameworks/langgraph",
         permanent: true,
       },
       {
         source: "/docs/openui-lang/examples/agent-frameworks/langgraph-platform",
-        destination: "/docs/agent/agent-runtimes/langgraph-platform",
+        destination: "/docs/build-agents/frameworks/langgraph",
         permanent: true,
       },
       {
         source: "/docs/openui-lang/examples/agent-frameworks/vercel-eve",
-        destination: "/docs/agent/agent-runtimes/vercel-eve",
+        destination: "/docs/build-agents/frameworks/vercel-eve",
         permanent: true,
       },
       {
         source: "/docs/openui-lang/examples/harnesses/pi",
-        destination: "/docs/agent/agent-runtimes/pi",
+        destination: "/docs/build-agents/frameworks/pi",
         permanent: true,
       },
       {
@@ -345,12 +372,12 @@ const config = {
         destination: "/llms.mdx/docs/:path*",
       },
       {
-        source: "/:section(cookbooks|examples|demos)/:path*.mdx",
+        source: "/:section(cookbooks|demos)/:path*.mdx",
         destination: "/llms.mdx/docs/:section/:path*",
       },
       {
-        source: "/:section(examples|demos).mdx",
-        destination: "/llms.mdx/docs/:section",
+        source: "/demos.mdx",
+        destination: "/llms.mdx/docs/demos",
       },
     ];
   },

@@ -15,10 +15,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_TITLE = "OpenUI - The Open Standard for Generative UI";
+const SITE_TITLE = "OpenUI - The Open Standard for Intelligent UI";
 const SITE_DESCRIPTION =
-  "Full-stack, framework-agnostic Generative UI built on OpenUI Lang, a streaming-first language with first-party runtimes for React, Vue, Svelte, and Angular, and up to 67% fewer tokens than JSON.";
-const SITE_IMAGE = "/meta-image.png?v=20260725-1708";
+  "OpenUI is the open standard for Intelligent UI. Full-stack, framework-agnostic Generative UI built on OpenUI Lang, a streaming-first language with first-party runtimes for React, Vue, Svelte, and Angular, and up to 67% fewer tokens than JSON.";
+const SITE_IMAGE = "/meta-image.png?v=20261008";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -31,6 +31,7 @@ export const metadata: Metadata = {
   referrer: "origin-when-cross-origin",
   keywords: [
     "OpenUI",
+    "Intelligent UI",
     "Generative UI",
     "AI UI",
     "OpenUI Lang",
@@ -84,7 +85,13 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.className} ${geistMono.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.className} ${geistMono.variable}`}
+      // Lets Next.js skip smooth scrolling on route changes; in-page anchors still scroll smoothly.
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <body className="flex flex-col min-h-screen">
         <PHProvider>
           <RootProvider theme={{ defaultTheme: "system", enableSystem: true }}>

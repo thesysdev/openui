@@ -4,7 +4,7 @@ import { AGENT_SETUP_PROMPT, AgentPicker } from "./components/AgentPicker/AgentP
 import styles from "./page.module.css";
 import { BANNER_END_ANCHOR_ID, CloudBanner } from "./sections/CloudBanner/CloudBanner";
 import { CloudSection } from "./sections/CloudSection/CloudSection";
-import { FaqSection } from "./sections/FaqSection/FaqSection";
+import { FAQS, FaqSection } from "./sections/FaqSection/FaqSection";
 import { FeatureGridSection } from "./sections/FeatureGridSection/FeatureGridSection";
 import { Footer } from "./sections/Footer/Footer";
 import { HeroSection } from "./sections/HeroSection/HeroSection";
@@ -38,19 +38,31 @@ const structuredData = {
       "@type": "SoftwareApplication",
       "@id": `${BASE_URL}/#software`,
       name: "OpenUI",
+      alternateName: "OpenUI by Thesys",
       url: BASE_URL,
       description:
-        "Full-stack, framework-agnostic Generative UI built on OpenUI Lang, a streaming-first language with first-party runtimes for React, Vue, Svelte, and Angular.",
+        "The open standard for Intelligent UI. Full-stack, framework-agnostic Generative UI built on OpenUI Lang, a streaming-first language with first-party runtimes for React, Vue, Svelte, and Angular.",
       applicationCategory: "DeveloperApplication",
       operatingSystem: "Cross-platform",
       license: "https://opensource.org/licenses/MIT",
+      creator: { "@id": "https://www.thesys.dev/#organization" },
       publisher: { "@id": "https://www.thesys.dev/#organization" },
+      softwareHelp: { "@type": "CreativeWork", url: `${BASE_URL}/docs` },
       sameAs: [
         "https://github.com/thesysdev/openui",
         "https://www.npmjs.com/org/openuidev",
         "https://x.com/thesysdev",
         "https://www.linkedin.com/company/thesysdev/",
       ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": `${BASE_URL}/#faq`,
+      mainEntity: FAQS.map(({ question, answer }) => ({
+        "@type": "Question",
+        name: question,
+        acceptedAnswer: { "@type": "Answer", text: answer.join(" ") },
+      })),
     },
   ],
 };
@@ -68,7 +80,7 @@ export default function HomePage() {
         <HeroSection
           align="left"
           desktopFromTablet
-          subtitle="Open Standard for Generative UI"
+          subtitle="Open Standard for Intelligent UI"
           showPlaygroundButton={false}
           showTagline={false}
           commandTrailing={<AgentPicker command={AGENT_SETUP_PROMPT} />}

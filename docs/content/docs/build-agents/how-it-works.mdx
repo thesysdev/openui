@@ -1,0 +1,31 @@
+---
+title: How it works
+description: What happens in one turn of an agent that responds with OpenUI Lang.
+---
+
+import { AgentTurnDiagram } from "@/components/agent-turn-diagram";
+
+An OpenUI agent is a regular agent with one change: it writes its responses in OpenUI Lang instead of Markdown. Everything else, from the agent loop and tools to the transport and the chat UI, stays the way it was.
+
+## One turn, end to end
+
+<AgentTurnDiagram />
+
+1. **The user sends a message.** The chat UI sends the conversation to the agent backend, as it would for any agent.
+2. **The agent prompts the model.** Its system prompt includes instructions generated from your component library, so the model knows which components exist and how to write OpenUI Lang. See [Set up UI generation](/docs/build-agents/ui-generation).
+3. **The model calls tools if it needs data.** The agent runs them and returns the results, exactly as before. See [Tools](/docs/build-agents/tools).
+4. **The model streams OpenUI Lang.** Instead of a Markdown answer, it writes OpenUI Lang that composes your components:
+
+   ```text
+   root = Stack([CardHeader("Q3 revenue", "Up 18% on Q2"), chart])
+   chart = BarChart(["Jul", "Aug", "Sep"], [Series("Revenue", [380, 410, 440])])
+   ```
+
+5. **The chat UI renders it.** The chat UI passes the accumulated text to the OpenUI renderer, which draws each component as soon as its line arrives. The renderer uses the same component library as the agent's prompt, so every component the agent writes is one the chat UI can draw.
+6. **The user interacts.** The chat UI sends user interactions in the generated interface, such as button clicks, follow-ups, and form submissions, back to the agent as a new user turn, and the loop continues. See [Conversation history](/docs/build-agents/conversation-history).
+
+## Where Gateway fits
+
+Models occasionally write invalid OpenUI Lang, such as an unknown component or a missing required prop. [Gateway](/docs/gateway) sits between the agent and the model provider: it corrects invalid output as it streams and fails over to another provider when one is unavailable. It's OpenAI-compatible, so most agent frameworks can use it by changing the base URL.
+
+To keep calling your provider directly, repair responses with [Autofix](/docs/autofix) instead. Gateway is optional either way: the turn above works the same without it.
