@@ -16,7 +16,7 @@ import type { ElementNode } from "../parser/types";
 import { isElementNode } from "../parser/types";
 import { isReactiveSchema } from "../reactive";
 import type { EvaluationContext, SchemaContext } from "./evaluator";
-import { evaluate, isReactiveAssign } from "./evaluator";
+import { evaluate, isActionPlan, isReactiveAssign } from "./evaluator";
 
 export interface PropEvalCallbacks {
   /** How to recurse into an ElementNode (evaluator vs evaluate-tree differ here). */
@@ -82,10 +82,9 @@ export function evaluatePropCore(
     return callbacks.recurseElement(value as ElementNode);
   }
 
-  // ActionPlan / ActionStep — preserve as-is (deferred click-time evaluation)
+  // ActionPlan — preserve as-is (deferred click-time evaluation)
+  if (isActionPlan(value)) return value;
   const obj = value as Record<string, unknown>;
-  if ("steps" in obj && Array.isArray(obj.steps)) return value;
-  if ("type" in obj && "valueAST" in obj) return value;
 
   // Plain data object — recurse if contains nested objects
   // NOTE: reactiveSchema is passed through — fixes nested reactive drop bug

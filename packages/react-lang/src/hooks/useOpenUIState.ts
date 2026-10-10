@@ -296,11 +296,11 @@ export function useOpenUIState(
       formName?: string,
       action?: ActionPlan | { type?: string; params?: Record<string, any> },
     ) => {
-      const formPayload = getFormPayload(formName);
       const { onAction: handler } = propsRef.current;
 
       // Legacy action config path (v0.1 compat) — { type?, params? }
       if (action && !("steps" in action)) {
+        const formPayload = getFormPayload(formName);
         const actionType = action.type || BuiltinActionType.ContinueConversation;
         const params = { ...(action.params || {}) };
         // v0.1 compat — url and context were top-level, not in params
@@ -317,6 +317,7 @@ export function useOpenUIState(
       }
 
       // ActionPlan path (v0.5) — sequential steps with halt-on-mutation-failure
+      // Form state is read per step so an earlier @Set in the same plan is visible.
       const actionPlan = action as ActionPlan | undefined;
       if (actionPlan?.steps) {
         for (const step of actionPlan.steps) {
@@ -339,9 +340,9 @@ export function useOpenUIState(
             case ACTION_STEPS.ToAssistant:
               handler?.({
                 type: BuiltinActionType.ContinueConversation,
-                params: step.context ? { context: step.context } : {},
+                params: step.context !== undefined ? { context: step.context } : {},
                 humanFriendlyMessage: step.message,
-                formState: formPayload,
+                formState: getFormPayload(formName),
                 formName,
               });
               break;
@@ -350,7 +351,7 @@ export function useOpenUIState(
                 type: BuiltinActionType.OpenUrl,
                 params: { url: step.url },
                 humanFriendlyMessage: "",
-                formState: formPayload,
+                formState: getFormPayload(formName),
                 formName,
               });
               break;
@@ -380,7 +381,7 @@ export function useOpenUIState(
         type: BuiltinActionType.ContinueConversation,
         params: {},
         humanFriendlyMessage: userMessage,
-        formState: formPayload,
+        formState: getFormPayload(formName),
         formName,
       });
     },

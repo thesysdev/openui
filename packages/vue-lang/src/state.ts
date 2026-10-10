@@ -341,7 +341,7 @@ export function useOpenUIState(
           case ACTION_STEPS.ToAssistant:
             options.onAction?.({
               type: BuiltinActionType.ContinueConversation,
-              params: step.context ? { context: step.context } : {},
+              params: step.context !== undefined ? { context: step.context } : {},
               humanFriendlyMessage: step.message,
               formState: formPayload,
               formName,

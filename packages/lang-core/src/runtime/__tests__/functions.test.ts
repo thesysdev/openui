@@ -98,6 +98,7 @@ describe("library functions", () => {
     const ctx = { getState: () => undefined, resolveRef: () => null, functions };
     const evalSource = (src: string) => evaluate(parseExpression(tokenize(src)), ctx);
     expect(evalSource("@Sum([1, 2, 3])")).toBe(6);
+    expect(evalSource('@ToAssistant("hi")')).toMatchObject({ steps: [{ message: "hi" }] });
     expect(evalSource("@Percent(1, 4)")).toBe("25.0%");
   });
 

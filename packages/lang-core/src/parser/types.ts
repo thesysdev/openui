@@ -1,10 +1,13 @@
 import type { ASTNode } from "./ast";
 
 export type JSONSchemaProperty = Record<string, unknown>;
+/** A JSON Schema object; keywords are added as libraries use them (anyOf: the ActionExpression union). */
 export type JSONSchemaDef = {
   properties?: JSONSchemaProperty;
   required?: string[];
   description?: string;
+  type?: string;
+  anyOf?: JSONSchemaProperty[];
 };
 
 /** A function's params and return value as JSON Schema. */
@@ -200,7 +203,7 @@ export enum BuiltinActionType {
  */
 export type ActionStep =
   | { type: "run"; statementId: string; refType: "query" | "mutation" }
-  | { type: "continue_conversation"; message: string; context?: string }
+  | { type: "continue_conversation"; message: string; context?: unknown }
   | { type: "open_url"; url: string }
   | { type: "set"; target: string; valueAST: ASTNode }
   | { type: "reset"; targets: string[] };

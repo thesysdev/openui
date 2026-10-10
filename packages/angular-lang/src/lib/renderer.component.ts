@@ -530,7 +530,7 @@ export class OpenUiRendererComponent implements OnChanges, OnDestroy {
           case "continue_conversation":
             this.action.emit({
               type: BuiltinActionType.ContinueConversation,
-              params: step.context ? { context: step.context } : {},
+              params: step.context !== undefined ? { context: step.context } : {},
               humanFriendlyMessage: step.message,
               formState: formPayload,
               formName,
