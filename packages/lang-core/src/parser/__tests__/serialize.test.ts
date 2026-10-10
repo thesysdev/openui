@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod/v4";
 import type { Library } from "../../library";
+import { createLibrary, defineAction, defineComponent, defineFunction } from "../../library";
+import { action } from "../builtins";
 import { mergeStatements } from "../merge";
-import { parse } from "../parser";
+import { createParser, parse } from "../parser";
 import { jsonToOpenUI } from "../serialize";
 import type { ElementNode, ParamMap } from "../types";
 
@@ -106,6 +109,35 @@ function isElNode(v: unknown): v is ElementNode {
 // ── Basic serialization ─────────────────────────────────────────────────────
 
 describe("jsonToOpenUI", () => {
+  it("writes @ before library functions and actions", () => {
+    const Btn = defineComponent({
+      name: "Btn",
+      description: "",
+      props: z.object({ label: z.any(), action: action().optional() }),
+      component: null,
+    });
+    const upper = defineFunction({
+      name: "Upper",
+      description: "",
+      params: z.object({ s: z.string() }),
+      fn: ({ s }) => s.toUpperCase(),
+    });
+    const copy = defineAction({
+      name: "Copy",
+      description: "",
+      params: z.object({ t: z.string() }),
+    });
+    const lib = createLibrary({
+      root: "Btn",
+      components: [Btn],
+      functions: [upper],
+      actions: [copy],
+    });
+    const src = 'root = Btn(@Upper($name), @Copy("x"))';
+    const { root } = createParser(lib.toJSONSchema(), "Btn").parse(src);
+    expect(jsonToOpenUI(root!, lib)).toBe(src);
+  });
+
   describe("single component", () => {
     it("serializes a simple component", () => {
       const node: ElementNode = {

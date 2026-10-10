@@ -9,11 +9,12 @@ import {
   type ChatProviderProps,
   type UserMessage,
 } from "@openuidev/react-headless";
-import type { Library } from "@openuidev/react-lang";
+import type { ActionEvent, Library } from "@openuidev/react-lang";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import {
   Children,
   isValidElement,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -72,6 +73,8 @@ export interface AgentInterfaceComponents {
 export interface AgentInterfaceProps extends Omit<ChatProviderProps, "children"> {
   /** Component library for auto-GenUI rendering when `components.AssistantMessage` is not provided. */
   componentLibrary?: Library;
+  /** Receives the actions the chat does not handle itself, such as custom actions from `defineAction`. */
+  onAction?: (event: ActionEvent) => void;
   /** Explicit component overrides. Takes precedence over GenUI auto-derivation. */
   components?: AgentInterfaceComponents;
   /** Theme props passed to <ThemeProvider>. */
@@ -191,6 +194,7 @@ export const AgentInterface: AgentInterfaceComponent = ((props: AgentInterfacePr
     artifactCategories,
     artifactAutoOpen,
     componentLibrary,
+    onAction,
     components,
     theme,
     disableThemeProvider,
@@ -218,16 +222,25 @@ export const AgentInterface: AgentInterfaceComponent = ((props: AgentInterfacePr
     slots.sidebarHeader = undefined;
   }
 
+  // Read through a ref so a new onAction does not remount every message
+  const onActionRef = useRef(onAction);
+  onActionRef.current = onAction;
+  const forwardAction = useCallback((event: ActionEvent) => onActionRef.current?.(event), []);
+
   const resolvedAssistantMessage = useMemo<AssistantMessageComponent | undefined>(() => {
     if (components?.AssistantMessage) return components.AssistantMessage;
     if (componentLibrary) {
       const Cmp = ({ message }: { message: AssistantMessage }) => (
-        <GenUIAssistantMessage message={message} library={componentLibrary} />
+        <GenUIAssistantMessage
+          message={message}
+          library={componentLibrary}
+          onAction={forwardAction}
+        />
       );
       return Cmp;
     }
     return undefined;
-  }, [components?.AssistantMessage, componentLibrary]);
+  }, [components?.AssistantMessage, componentLibrary, forwardAction]);
 
   const resolvedUserMessage = useMemo<UserMessageComponent | undefined>(() => {
     if (components?.UserMessage) return components.UserMessage;
