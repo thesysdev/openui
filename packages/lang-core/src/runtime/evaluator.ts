@@ -5,13 +5,16 @@
 
 import type { ASTNode } from "../parser/ast";
 import { isASTNode, toLiteralAST } from "../parser/ast";
-import { ACTION_NAMES, ACTION_STEPS, BUILTINS, toNumber } from "../parser/builtins";
+import { ACTION_NAMES, ACTION_STEPS, BUILTIN_CALLS, BUILTINS, toNumber } from "../parser/builtins";
+import { nameArgs } from "../parser/materialize";
 import type {
   ActionPlan,
   ActionStep,
   ElementNode,
   FunctionSchema,
+  JSONSchemaDef,
   MaterializeCtx,
+  ParamDef,
 } from "../parser/types";
 import { isElementNode } from "../parser/types";
 import { getSchemaDefaultValue, INVALID, validateSchemaValue } from "../parser/validation";
@@ -304,11 +307,17 @@ function evaluatePropInline(
 function evaluateArgs(
   node: ASTNode & { k: "Comp" },
   context: EvaluationContext,
+  params: ParamDef[] = BUILTIN_CALLS.get(node.name)?.params ?? [],
 ): Record<string, unknown> {
+  // The parser names args in mappedProps; an AST from parseExpression() alone is named here
+  const named = node.mappedProps ?? nameArgs(node.args, params);
   const args: Record<string, unknown> = {};
-  for (const key in node.mappedProps) args[key] = evaluate(node.mappedProps[key]!, context);
+  for (const key in named) args[key] = evaluate(named[key]!, context);
   return args;
 }
+
+const paramsOf = (schema: JSONSchemaDef): ParamDef[] =>
+  Object.keys(schema.properties ?? {}).map((name) => ({ name, required: false }));
 
 // returns z.string() but fn gives 5 -> reports "@Percent: ... expects string but got number"
 function checkValue(
@@ -338,7 +347,7 @@ function callFunction(
   node: ASTNode & { k: "Comp" },
   context: EvaluationContext,
 ): unknown {
-  const raw = evaluateArgs(node, context);
+  const raw = evaluateArgs(node, context, paramsOf(def.params));
   // An explicit null for an optional param is omitted, so its default applies
   for (const key in raw) {
     if (raw[key] === null && !def.params.required?.includes(key)) delete raw[key];
