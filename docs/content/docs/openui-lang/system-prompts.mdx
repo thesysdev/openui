@@ -49,7 +49,7 @@ The CLI auto-detects exported `PromptOptions` (examples, rules) alongside your l
 
 ## 2. `generateSystemPrompt` (recommended backend integration)
 
-For backends that need dynamic prompts — different tools, preambles, or feature flags per request — use `generateSystemPrompt` from `@openuidev/lang-core`. It has no React dependency, so it works in any Node, Edge, or serverless backend. Import the spec emitted by the command above and build the prompt at runtime:
+For backends that build the prompt per request, with different tools, preambles, or feature flags, use `generateSystemPrompt` from `@openuidev/lang-core`. It has no React dependency, so it works in any Node, Edge, or serverless backend. Import the spec emitted by the command above and build the prompt at runtime:
 
 ```ts
 import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
@@ -78,12 +78,13 @@ const systemPrompt = generateSystemPrompt({
 });
 ```
 
-| Flag         | What it enables                                                               | Default                       |
-| ------------ | ----------------------------------------------------------------------------- | ----------------------------- |
-| `toolCalls`  | `Query()`, `Mutation()`, `@Run`, built-in functions, tool workflow rules      | `true` if `tools` provided    |
-| `bindings`   | `$variables`, `@Set`, `@Reset`, built-in functions, reactive filters          | `true` if `toolCalls` is true |
-| `editMode`   | Incremental editing - LLM outputs only changed statements                     | `false`                       |
-| `inlineMode` | Text + fenced code responses - LLM can answer questions without generating UI | `false`                       |
+| Flag               | What it enables                                                                        | Default                             |
+| ------------------ | -------------------------------------------------------------------------------------- | ----------------------------------- |
+| `toolCalls`        | `Query()`, `Mutation()`, `@Run`, built-in functions, tool workflow rules               | `true` if `tools` provided          |
+| `bindings`         | `$variables`, `@Set`, `@Reset`, built-in functions, reactive filters                   | `true` if `toolCalls` is true       |
+| `editMode`         | Incremental editing: the LLM outputs only changed statements                           | `false`                             |
+| `inlineMode`       | Text and fenced code: the LLM can answer without generating UI                         | `false`                             |
+| `builtinFunctions` | Lists the built-in functions (`@Count`, `@Sum`, ...) without `toolCalls` or `bindings` | `true` if `toolCalls` or `bindings` |
 
 ### Gateway and Autofix
 
@@ -113,7 +114,7 @@ const instructions = generateSystemPrompt({
 
 See the [Generative UI Quickstart](/docs/gateway/generate-openui-lang) for the Gateway workflow, or the [Autofix API](/docs/autofix) to repair output from your existing model integration.
 
-Built-in functions (`@Count`, `@Filter`, `@Sort`, `@Each`, etc.) are automatically included when either `toolCalls` or `bindings` is enabled. For static UI libraries without data fetching, they are omitted to keep the prompt concise.
+Built-in functions (`@Count`, `@Filter`, `@Sort`, `@Each`, etc.) are automatically included when either `toolCalls` or `bindings` is enabled. For static UI libraries without data fetching, they are omitted to keep the prompt concise. Set `builtinFunctions: true` to include them anyway. A library's own [custom functions](/docs/openui-lang/custom-functions) are always listed.
 
 ### `library.prompt()` (frontend shorthand)
 
@@ -133,7 +134,9 @@ The generated prompt includes:
 
 - Syntax rules and expression types
 - Component signatures (from your registered components)
-- Built-in function reference (`@Count`, `@Filter`, `@Sort`, etc.) — only when `toolCalls` or `bindings` enabled
+- Built-in function reference (`@Count`, `@Filter`, `@Sort`, etc.), only when `toolCalls`, `bindings`, or `builtinFunctions` is enabled
+- Your [custom functions](/docs/openui-lang/custom-functions), when the library has any
+- The Action section with the available steps, including your [custom actions](/docs/openui-lang/custom-actions), when a component has an action prop or the library has custom actions
 - Query/Mutation/Action workflow (if `toolCalls` enabled)
 - `$variable` and reactive binding rules (if `bindings` enabled)
 - Tool descriptions and tool examples (if `tools` provided)

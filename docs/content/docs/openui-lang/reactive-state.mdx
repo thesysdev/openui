@@ -47,14 +47,14 @@ data = Query("analytics", {days: $days}, {rows: []})
 ```
 
 When `$days` changes (user picks "30" in the Select), the title updates and the Query
-re-fetches with the new value. This happens automatically - no wiring needed.
+re-fetches with the new value. You do not wire this up.
 
 ## Changing state from buttons
 
-Use `@Set` inside an `Action` to change a variable when a button is clicked:
+Use `@Set` as a button's action to change a variable when the button is clicked:
 
 ```text
-btn = Button("Show 30 days", Action([@Set($days, "30")]))
+btn = Button("Show 30 days", @Set($days, "30"))
 ```
 
 You can set multiple variables at once:
@@ -70,7 +70,7 @@ saveBtn = Button("Save", Action([@Set($showEdit, false), @Set($saved, true)]))
 ```text
 $title = ""
 $priority = "medium"
-resetBtn = Button("Clear", Action([@Reset($title, $priority)]))
+resetBtn = Button("Clear", @Reset($title, $priority))
 ```
 
 After click: `$title` goes back to `""`, `$priority` goes back to `"medium"`.
@@ -98,4 +98,4 @@ When a `$variable` changes:
 3. All expressions that reference it re-evaluate
 4. The UI re-renders with new values
 
-No event listeners. No useEffect. No wiring. Just declare and reference.
+You only declare the variable and reference it.
