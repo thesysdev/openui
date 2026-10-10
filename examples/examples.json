@@ -19,6 +19,17 @@
       }
     },
     {
+      "title": "Open Intelligent UI",
+      "description": "An open-source take on ChatGPT's Intelligent UI: travel answers with a live map, photos, and an editable itinerary.",
+      "path": "repo:thesysdev/open-intelligent-ui",
+      "category": "cookbooks",
+      "env": {
+        "file": ".env",
+        "key": "THESYS_API_KEY"
+      },
+      "featured": true
+    },
+    {
       "title": "Mastra",
       "description": "A Mastra agent connected to OpenUI through AG-UI.",
       "path": "agent-frameworks/mastra",
@@ -117,17 +128,6 @@
         "file": ".env",
         "key": "THESYS_API_KEY"
       }
-    },
-    {
-      "title": "Open Intelligent UI",
-      "description": "An open-source take on ChatGPT's Intelligent UI: travel answers with a live map, photos, and an editable itinerary.",
-      "path": "repo:thesysdev/open-intelligent-ui",
-      "category": "cookbooks",
-      "env": {
-        "file": ".env",
-        "key": "THESYS_API_KEY"
-      },
-      "featured": true
     },
     {
       "title": "Material UI",

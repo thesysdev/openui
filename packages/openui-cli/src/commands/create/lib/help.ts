@@ -84,8 +84,7 @@ async function loadCreateHelpText(): Promise<string> {
   Loaded at runtime from examples/examples.json in the OpenUI repo.
   Pick a featured example beside the backend choices, choose "More examples…"
   for the complete list, or pass
-  --example <name> with any catalog folder name. --example <owner>/<repo>[/<path>]
-  clones a thesysdev GitHub repository (or a folder inside it) instead.`);
+  --example <name> with any catalog folder name.`);
 
   return `\n${sections.join("\n\n")}\n`;
 }
