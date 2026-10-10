@@ -16,6 +16,5 @@
   "editing/004-multiline-ternary-patch": "The merge splits a multi-line ternary at its newlines (7).",
   "editing/007-redefinition-in-existing": "A name defined twice in the existing program stays duplicated after the merge (2.4, 7).",
   "errors/004-state-query-dollar-name": "No state-query diagnostic for `$x = Query(...)` (2.1).",
-  "actions/004-event-form-state-per-step#steps": "Form state is read when the click starts, so an earlier @Set is not visible (6.3).",
   "actions/005-query-args-references#steps": "A reference in Query args is sent as null (6.1)."
 }
