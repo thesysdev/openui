@@ -102,7 +102,19 @@ export function useOpenUIState(
   const scriptNames = settledScripts.current.names;
 
   // ─── Streaming parser (incremental — caches completed statements) ───
-  const sp = useMemo(() => createStreamingParser(library.toJSONSchema(), library.root), [library]);
+  const schema = useMemo(() => library.toJSONSchema(), [library]);
+  const sp = useMemo(() => createStreamingParser(schema, library.root), [schema, library.root]);
+  // Library functions: the schema's entries plus each `fn`, for the evaluator
+  const functions = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(schema.functions ?? {}).map(([name, s]) => [
+          name,
+          { ...s, fn: library.functions[name]!.fn },
+        ]),
+      ),
+    [schema, library.functions],
+  );
 
   // ─── Parse result ───
   const parseExceptionRef = useRef<OpenUIError | null>(null);
@@ -179,8 +191,9 @@ export function useOpenUIState(
         if (mutResult) return mutResult;
         return queryManager.getResult(name);
       },
+      functions,
     }),
-    [store, queryManager],
+    [store, queryManager, functions],
   );
 
   // ─── Evaluate and submit queries ───

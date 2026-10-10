@@ -5,17 +5,19 @@ import {
 } from "../telemetry/runtime";
 import type { ASTNode, Statement } from "./ast";
 import { isASTNode, walkAST } from "./ast";
-import { isBuiltin, RESERVED_CALLS } from "./builtins";
+import { BUILTIN_CALLS, isBuiltin, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
-import { materializeValue } from "./materialize";
+import { materializeValue, nameRawCallArgs } from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
   isElementNode,
+  type JSONSchemaDef,
   type LibraryJSONSchema,
   type MaterializeCtx,
   type MutationStatementInfo,
+  type ParamDef,
   type ParamMap,
   type ParseResult,
   type QueryStatementInfo,
@@ -111,6 +113,7 @@ function extractStatements(
         stateDeclarations[stmt.id] = materializeValue(stmt.init, ctx);
         break;
       case "query":
+        nameRawCallArgs(stmt.call.args, ctx);
         queryStatements.push({
           statementId: stmt.id,
           toolAST: stmt.call.args[0] ?? null,
@@ -122,6 +125,7 @@ function extractStatements(
         });
         break;
       case "mutation":
+        nameRawCallArgs(stmt.call.args, ctx);
         mutationStatements.push({
           statementId: stmt.id,
           toolAST: stmt.call.args[0] ?? null,
@@ -635,25 +639,30 @@ export interface Parser {
   parse(input: string): ParseResult;
 }
 
+function compileParams(def: JSONSchemaDef): ParamDef[] {
+  const properties = def.properties ?? {};
+  const required = def.required ?? [];
+  return Object.keys(properties).map((key) => ({
+    name: key,
+    required: required.includes(key),
+    defaultValue: getSchemaDefaultValue(properties[key]),
+    schema: properties[key],
+  }));
+}
+
 export function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const map: ParamMap = new Map();
-  const defs = schema.$defs ?? {};
   const components = schema.properties && new Set(Object.keys(schema.properties));
-
-  for (const [name, def] of Object.entries(defs)) {
+  for (const [name, def] of Object.entries(schema.$defs ?? {})) {
     // Skip non-component defs, e.g. zod's hoisted recursive schemas (__schema0).
     if (components && !components.has(name)) continue;
-    const properties = def.properties ?? {};
-    const required = def.required ?? [];
-    const params = Object.keys(properties).map((key) => ({
-      name: key,
-      required: required.includes(key),
-      defaultValue: getSchemaDefaultValue(properties[key]),
-      schema: properties[key],
-    }));
-    map.set(name, { params });
+    map.set(name, { params: compileParams(def) });
   }
-
+  // The call registry: the built-ins plus the library's functions
+  map.callDefs = new Map(BUILTIN_CALLS);
+  for (const [name, fn] of Object.entries(schema.functions ?? {})) {
+    map.callDefs.set(name, { params: compileParams(fn.params) });
+  }
   return map;
 }
 

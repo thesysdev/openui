@@ -7,14 +7,25 @@ export type JSONSchemaDef = {
   description?: string;
 };
 
+/** A function's params and return value as JSON Schema. */
+export interface FunctionSchema {
+  description?: string;
+  /** JSON Schema object of the params. Property order is the positional order in programs. */
+  params: JSONSchemaDef;
+  /** JSON Schema of the return value. */
+  returns?: JSONSchemaProperty;
+}
+
 /**
  * The JSON Schema document produced by `library.toJSONSchema()`.
  * All component schemas live in `$defs`, keyed by component name.
+ * Library functions, when the library has any, live in `functions`.
  */
 export interface LibraryJSONSchema {
   $defs?: Record<string, JSONSchemaDef>;
   /** Component names as keys. Other `$defs` are data shapes. */
   properties?: Record<string, unknown>;
+  functions?: Record<string, FunctionSchema>;
 }
 
 /** Scalar JSON Schema types we can reliably check a positional literal against. */
@@ -31,8 +42,19 @@ export interface ParamDef {
   schema?: unknown;
 }
 
-/** Internal parameter map for positional-arg to named-prop mapping. */
-export type ParamMap = Map<string, { params: ParamDef[] }>;
+/** `@Percent(part, total)` -> params [{name: "part"}, {name: "total"}], kept as AST */
+export interface CallDef {
+  params: ParamDef[];
+  /** Built-ins coerce their args: the runtime maps them by name, unvalidated. */
+  builtin?: true;
+  /** Lazy built-ins (@Each) get their args unevaluated. */
+  lazy?: true;
+}
+
+/** "Card" -> its params; callDefs: "Sum" -> built-in CallDef, "Percent" -> library CallDef */
+export type ParamMap = Map<string, { params: ParamDef[] }> & {
+  callDefs?: Map<string, CallDef>;
+};
 
 /**
  * A fully resolved component node from the parser.

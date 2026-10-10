@@ -1,5 +1,6 @@
+import { schemaSignature } from "../signature";
 import { recordSystemPromptGeneration } from "../telemetry/runtime";
-import { BUILTINS, LAZY_BUILTIN_DEFS } from "./builtins";
+import { BUILTINS } from "./builtins";
 import { generateCloudConfig } from "./cloud-config";
 import type { LibraryJSONSchema } from "./types";
 
@@ -33,6 +34,8 @@ export interface BaseSpec {
   root?: string;
   components: Record<string, ComponentPromptSpec>;
   componentGroups?: ComponentGroup[];
+  /** Library functions, listed next to the built-ins. Signatures are pre-built. */
+  functions?: Record<string, ComponentPromptSpec>;
 }
 
 export interface PromptSpec extends BaseSpec {
@@ -43,6 +46,8 @@ export interface PromptSpec extends BaseSpec {
   toolCalls?: boolean;
   /** Enable $variables, @Set, @Reset, interactive filters. Default: true if toolCalls. */
   bindings?: boolean;
+  /** List the built-in functions (@Count, @Sum, ...). Default: true if toolCalls or bindings. */
+  builtinFunctions?: boolean;
   preamble?: string;
   /** General examples (static/layout patterns). Both `examples` and `toolExamples` are included when present. */
   examples?: string[];
@@ -153,13 +158,17 @@ function syntaxRules(
   return lines.join("\n");
 }
 
-function builtinFunctionsSection(): string {
-  // Auto-generated from shared builtin registry — single source of truth
-  const builtinLines = Object.values(BUILTINS).map((b) => `@${b.signature} — ${b.description}`);
-  const lazyLines = Object.values(LAZY_BUILTIN_DEFS).map(
-    (b) => `@${b.signature} — ${b.description}`,
-  );
-  const lines = [...builtinLines, ...lazyLines].join("\n");
+function functionLine(f: { signature: string; description?: string }): string {
+  return f.description ? `@${f.signature} — ${f.description}` : `@${f.signature}`;
+}
+
+function builtinFunctionsSection(custom: string[]): string {
+  const lines = [
+    ...Object.values(BUILTINS).map((b) =>
+      functionLine({ ...b, signature: schemaSignature(b.name, b.params, b.returns) }),
+    ),
+    ...custom,
+  ].join("\n");
 
   return `## Built-in Functions
 
@@ -618,10 +627,14 @@ export function generatePrompt(spec: PromptSpec): string {
   parts.push("");
   parts.push(generateComponentSignatures(spec, { toolCalls, bindings, usesActionExpression }));
 
-  // Built-in functions — only when expressions are enabled (Query/reactive state)
-  if (supportsExpressions) {
+  // Library functions get the section alone when built-ins are not listed
+  const customFunctions = Object.values(spec.functions ?? {}).map(functionLine);
+  if (spec.builtinFunctions ?? supportsExpressions) {
     parts.push("");
-    parts.push(builtinFunctionsSection());
+    parts.push(builtinFunctionsSection(customFunctions));
+  } else if (customFunctions.length) {
+    parts.push("");
+    parts.push(`## Built-in Functions\n\n${customFunctions.join("\n")}`);
   }
 
   // Query + Mutation sections
