@@ -139,6 +139,16 @@ const config = {
         permanent: true,
       },
       {
+        source: "/docs/openui-lang/entry",
+        destination: "/docs/openui-lang/renderer#which-statement-renders",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/messages",
+        destination: "/docs/openui-lang/message-protocol",
+        permanent: true,
+      },
+      {
         source: "/docs/agent",
         destination: "/docs/agent/getting-started/introduction",
         permanent: true,

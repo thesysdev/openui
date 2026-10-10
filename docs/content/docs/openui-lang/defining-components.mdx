@@ -171,7 +171,7 @@ This serves two purposes:
 
 The `root` must match the `name` of one of the components in your library. If omitted, the prompt uses "Root" as a placeholder.
 
-The root component also decides the fallback when a program has no `root` statement. See [Entry Statement](/docs/openui-lang/entry).
+The root component also decides the fallback when a program has no `root` statement. See [Which statement renders](/docs/openui-lang/renderer#which-statement-renders).
 
 For the built-in libraries: `openuiLibrary` uses `Stack` (flexible layout container), while `openuiChatLibrary` uses `Card` (vertical container optimized for chat responses).
 
@@ -260,7 +260,7 @@ See [System Prompts](/docs/openui-lang/system-prompts) for full details on promp
 ```tsx
 export const shopLibrary = openuiChatLibrary.extend({
   components: {
-    add: [{ component: ProductCard, slots: ["Card"] }],
+    add: [{ component: ProductCard, slots: ["Card.children"] }],
     override: [CodeBlock],
     remove: ["RadarChart"],
   },
@@ -269,7 +269,8 @@ export const shopLibrary = openuiChatLibrary.extend({
 });
 ```
 
-- `add` takes new components. `slots` puts one in a parent's signature, as `"Parent.prop"` or just `"Parent"` when the parent has one content slot.
+- `add` takes new components. `slots` puts one in a parent's signature, as `"Parent.prop"`.
+- The shorthand `"Card"` works when the parent has exactly one content slot.
 - `override` replaces a component of the same name. `remove` drops it from the library and from every parent. A mistake, such as adding a name that exists, throws when the module loads.
 - Create the derived library once, at module scope. A new library on every render makes the `Renderer` parse again from the start.
 

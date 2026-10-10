@@ -1,5 +1,5 @@
 ---
-title: OpenUI Lang 1.0 specification
+title: v1.0
 description: Language specification for OpenUI Lang 1.0. The entry rule, @-calls, action expressions, stored messages, and error codes.
 ---
 
@@ -50,7 +50,7 @@ page = Card([title])
 title = TextContent("Orders")
 ```
 
-In every other case nothing renders, and `no-root` is reported when the stream ends. While streaming, a missing entry is not an error. See [Entry Statement](/docs/openui-lang/entry).
+In every other case nothing renders, and `no-root` is reported when the stream ends. While streaming, a missing entry is not an error. See [Which statement renders](/docs/openui-lang/renderer#which-statement-renders).
 
 ## Function Calls
 
@@ -141,7 +141,7 @@ title = TextContent("Order 42")
 | `]]>openui:context` | Starts host data, such as form state. Usually JSON    |
 | `]]>openui:end`     | The stream finished. A message without it was cut off |
 
-A marker counts only at the start of a line. With several `content` sections, the last one wins. Text with no markers is the content. A message with no `end` line still renders. See [Storing Messages](/docs/openui-lang/messages).
+A marker counts only at the start of a line. With several `content` sections, the last one wins. Text with no markers is the content. A message with no `end` line still renders. See [Message Protocol](/docs/openui-lang/message-protocol).
 
 ## Error Codes
 

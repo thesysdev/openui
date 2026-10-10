@@ -247,7 +247,7 @@ Because the runtime may call `fn` many times and in any order, keep it pure and 
 
 A library cannot replace a built-in. Built-ins added in later releases become reserved too, so prefer specific names such as `FormatCurrency` over generic ones.
 
-## Using custom functions in React
+## Using functions in your app
 
 Pass the library to the `Renderer` from `@openuidev/react-lang`, or to `AgentInterface`. The renderer runs `fn` and sends errors to `onError`:
 

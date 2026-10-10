@@ -26,7 +26,7 @@ export function AssistantMessage({
 
 | Prop            | Type                                                                                           | Description                                                                                                                                      |
 | :-------------- | :--------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `response`      | `string \| null`                                                                               | Raw OpenUI Lang response text, or a stored message with `]]>openui:` marker lines. See [Storing Messages](/docs/openui-lang/messages).           |
+| `response`      | `string \| null`                                                                               | Raw OpenUI Lang response text, or a stored message with `]]>openui:` marker lines. See [Message Protocol](/docs/openui-lang/message-protocol).   |
 | `library`       | `Library`                                                                                      | Library created by `createLibrary(...)`.                                                                                                         |
 | `isStreaming`   | `boolean`                                                                                      | Indicates stream is in progress.                                                                                                                 |
 | `onAction`      | `(event: LibraryActionEvent<L>) => void`                                                       | Receives structured action events from interactive components. Typed from the library's custom actions.                                          |
@@ -34,8 +34,8 @@ export function AssistantMessage({
 | `initialState`  | `Record<string, any>`                                                                          | Hydrates form state on load (e.g. from persisted message).                                                                                       |
 | `onParseResult` | `(result: ParseResult \| null) => void`                                                        | Debug/inspect latest parse result.                                                                                                               |
 | `toolProvider`  | `Record<string, (args: Record<string, unknown>) => Promise<unknown>> \| McpClientLike \| null` | Handles `Query()` / `Mutation()` tool calls. Pass a function map or an [MCP](https://modelcontextprotocol.io/docs/getting-started/intro) client. |
-| `queryLoader` | `React.ReactNode` | Custom loading indicator; defaults to a spinner. |
-| `children` | `React.ReactNode` | Optional Renderer slot composition; omit to keep content visible with a loading indicator. |
+| `queryLoader`   | `React.ReactNode`                                                                              | Custom loading indicator; defaults to a spinner.                                                                                                 |
+| `children`      | `React.ReactNode`                                                                              | Optional Renderer slot composition; omit to keep content visible with a loading indicator.                                                       |
 | `onError`       | `(errors: OpenUIError[]) => void`                                                              | Structured, LLM-friendly errors from the parser and query system. Suitable for automated correction loops. Called with `[]` when resolved.       |
 
 ## Connecting tools
@@ -65,6 +65,12 @@ await client.connect(new StreamableHTTPClientTransport(new URL("/api/mcp")));
 
 These examples are simplified for demonstration. In production, you'll need to handle authentication, error boundaries, and connection lifecycle.
 
+## Which statement renders
+
+The statement named `root` renders. With no `root` statement, the first statement after the `$variable`, `Query`, and `Mutation` declarations renders if it calls the library's root component, and the parser reports `no-root` as a warning. Otherwise nothing renders, and `no-root` is reported when the stream ends.
+
+A program whose `root` statement comes last shows nothing while it streams, until the `root` line arrives.
+
 ## Error handling
 
 `onError` receives structured errors suitable for sending back to the LLM for correction:
@@ -90,23 +96,23 @@ These examples are simplified for demonstration. In production, you'll need to h
 
 Error codes:
 
-| Code                | Source         | Description                                                                |
-| :------------------ | :------------- | :------------------------------------------------------------------------- |
-| `unknown-component` | parser         | Component name not in the library                                          |
-| `missing-required`  | parser         | Required prop not provided                                                 |
-| `null-required`     | parser         | Required prop explicitly null                                              |
-| `type-mismatch`     | parser         | Argument does not match the prop's type or enum                            |
-| `excess-args`       | parser         | More positional args than schema params (extras dropped, still renders)    |
-| `inline-reserved`   | parser         | Query/Mutation used inline instead of top-level                            |
-| `unknown-function`  | parser         | `@Name(...)` is not a built-in, action step, or library function           |
-| `no-root`           | parser         | No usable entry statement (see [Entry Statement](/docs/openui-lang/entry)) |
-| `parse-failed`      | parser         | Response text produced no statements                                       |
-| `parse-exception`   | parser         | Parser crashed on malformed input                                          |
-| `tool-not-found`    | query/mutation | Tool name not found in toolProvider                                        |
-| `tool-error`        | query/mutation | The tool call failed                                                       |
-| `mcp-error`         | query/mutation | The MCP tool returned an error                                             |
-| `runtime-error`     | runtime        | Expression evaluation or a library function call failed on a prop          |
-| `render-error`      | runtime        | React component threw during render                                        |
+| Code                | Source         | Description                                                                         |
+| :------------------ | :------------- | :---------------------------------------------------------------------------------- |
+| `unknown-component` | parser         | Component name not in the library                                                   |
+| `missing-required`  | parser         | Required prop not provided                                                          |
+| `null-required`     | parser         | Required prop explicitly null                                                       |
+| `type-mismatch`     | parser         | Argument does not match the prop's type or enum                                     |
+| `excess-args`       | parser         | More positional args than schema params (extras dropped, still renders)             |
+| `inline-reserved`   | parser         | Query/Mutation used inline instead of top-level                                     |
+| `unknown-function`  | parser         | `@Name(...)` is not a built-in, action step, or library function                    |
+| `no-root`           | parser         | No usable entry statement (see [Which statement renders](#which-statement-renders)) |
+| `parse-failed`      | parser         | Response text produced no statements                                                |
+| `parse-exception`   | parser         | Parser crashed on malformed input                                                   |
+| `tool-not-found`    | query/mutation | Tool name not found in toolProvider                                                 |
+| `tool-error`        | query/mutation | The tool call failed                                                                |
+| `mcp-error`         | query/mutation | The MCP tool returned an error                                                      |
+| `runtime-error`     | runtime        | Expression evaluation or a library function call failed on a prop                   |
+| `render-error`      | runtime        | React component threw during render                                                 |
 
 An error with `severity: "warning"` did not stop the page from rendering, for example a `no-root` fallback entry. Skip warnings when you send errors back to the LLM.
 

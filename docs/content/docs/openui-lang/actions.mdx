@@ -72,7 +72,7 @@ approveBtn = Button("Approve", @ToAssistant("Approve this order", {orderId: 42})
 }
 ```
 
-With no context, or `null`, `params` is `{}`. How the context reaches the model is up to the host. The chat in `@openuidev/react-ui` adds it to the stored user turn, after the form state. See [Storing Messages](/docs/openui-lang/messages#the-react-ui-chat-format).
+With no context, or `null`, `params` is `{}`. How the context reaches the model is up to the host. The chat in `@openuidev/react-ui` adds it to the stored user turn, after the form state. See [Message Protocol](/docs/openui-lang/message-protocol#the-react-ui-chat-format).
 
 ### Steps that cannot run
 
@@ -198,7 +198,7 @@ The note on `ActionExpression` props in the component section also names it amon
 
 Action names follow the same rules as [custom function names](/docs/openui-lang/functions#reserved-names). A name that is already a built-in, an action step, `Action`, `Query`, `Mutation`, or a component, function, or action in the same library makes `createLibrary` throw.
 
-## Using actions in React
+## Handling actions in your app
 
 ### Action props in your components
 
