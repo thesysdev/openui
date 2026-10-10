@@ -115,7 +115,7 @@ interface PromptOptions {
 
 ## `defineFunction(config)`
 
-Defines a custom function, called as `@Name(...)` in programs. See [Custom Functions](/docs/openui-lang/custom-functions).
+Defines a custom function, called as `@Name(...)` in programs. See [Functions](/docs/openui-lang/functions#custom-functions).
 
 ```ts
 function defineFunction<
@@ -137,7 +137,7 @@ A call with an invalid required argument, an `fn` that throws, or a result that 
 
 ## `defineAction(config)`
 
-Defines a custom action step. The renderer does not run it: it calls `onAction` with `{ type: name, params }`. A step with any invalid argument is a no-op. See [Custom Actions](/docs/openui-lang/custom-actions).
+Defines a custom action step. The renderer does not run it: it calls `onAction` with `{ type: name, params }`. A step with any invalid argument is a no-op. See [Actions](/docs/openui-lang/actions#custom-actions).
 
 ```ts
 function defineAction<const N extends string, T extends z.ZodObject>(config: {
@@ -164,11 +164,11 @@ interface DefinedAction<T, N> {
 props: z.object({ label: z.string(), action: action().optional() });
 ```
 
-`steps.OpenUrl.ref` and `steps.ToAssistant.ref` name built-in steps in a restricted slot, together with the `.ref` of custom actions. Restricted slots shape the prompt and the JSON Schema only; the runtime accepts any step. See [Action Expressions](/docs/openui-lang/action-expressions).
+`steps.OpenUrl.ref` and `steps.ToAssistant.ref` name built-in steps in a restricted slot, together with the `.ref` of custom actions. Restricted slots shape the prompt and the JSON Schema only; the runtime accepts any step. See [Actions](/docs/openui-lang/actions#slots-that-take-only-some-actions).
 
 ## `library.extend(extension)`
 
-Returns a new library with the additions. The base library is unchanged. See [Extending a Library](/docs/openui-lang/extending-libraries).
+Returns a new library with the additions. The base library is unchanged. See [Extending a library](/docs/openui-lang/defining-components#extending-a-library).
 
 ```ts
 interface LibraryExtension {

@@ -112,7 +112,7 @@ const Button = defineComponent({
 });
 ```
 
-The prompt prints the prop as `action?: ActionExpression` and teaches the model the available steps. See [Action Expressions](/docs/openui-lang/action-expressions).
+The prompt prints the prop as `action?: ActionExpression` and teaches the model the available steps. See [Actions](/docs/openui-lang/actions).
 
 ## Naming reusable helper schemas
 
@@ -151,7 +151,7 @@ const library = createLibrary({
 });
 ```
 
-See [Custom Functions](/docs/openui-lang/custom-functions) and [Custom Actions](/docs/openui-lang/custom-actions). To add to an existing library instead, see [Extending a Library](/docs/openui-lang/extending-libraries).
+See [Functions](/docs/openui-lang/functions) and [Actions](/docs/openui-lang/actions). To add to an existing library instead, see [Extending a library](#extending-a-library).
 
 ## The `root` field
 
@@ -252,6 +252,26 @@ const prompt = library.prompt(options);
 ```
 
 See [System Prompts](/docs/openui-lang/system-prompts) for full details on prompt generation.
+
+## Extending a library
+
+`library.extend(...)` derives a new library from an existing one, such as `openuiChatLibrary` from `@openuidev/react-ui`. The base library is not changed.
+
+```tsx
+export const shopLibrary = openuiChatLibrary.extend({
+  components: {
+    add: [{ component: ProductCard, slots: ["Card"] }],
+    override: [CodeBlock],
+    remove: ["RadarChart"],
+  },
+  functions: { add: [formatCurrency] },
+  actions: { add: [addToCart] },
+});
+```
+
+- `add` takes new components. `slots` puts one in a parent's signature, as `"Parent.prop"` or just `"Parent"` when the parent has one content slot.
+- `override` replaces a component of the same name. `remove` drops it from the library and from every parent. A mistake, such as adding a name that exists, throws when the module loads.
+- Create the derived library once, at module scope. A new library on every render makes the `Renderer` parse again from the start.
 
 ## Best practices for LLM generation
 

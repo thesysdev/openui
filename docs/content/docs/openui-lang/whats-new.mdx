@@ -25,7 +25,7 @@ const library = createLibrary({ root: "Card", components, functions: [percent] }
 share = TextContent("Share: " + @Percent(done, total))
 ```
 
-Arguments are checked like component props, and a failed call evaluates to `null` instead of breaking the page. The built-in functions are now defined the same way, so their prompt lines carry types, for example `@Sum(numbers: number[]) → number`. See [Custom Functions](/docs/openui-lang/custom-functions).
+Arguments are checked like component props, and a failed call evaluates to `null` instead of breaking the page. The built-in functions are now defined the same way, so their prompt lines carry types, for example `@Sum(numbers: number[]) → number`. See [Functions](/docs/openui-lang/functions#custom-functions).
 
 ## Custom actions
 
@@ -45,7 +45,7 @@ copyBtn = Button("Copy", @CopyToClipboard(order.id))
 />
 ```
 
-`AgentInterface` takes an `onAction` prop for the same purpose. See [Custom Actions](/docs/openui-lang/custom-actions).
+`AgentInterface` takes an `onAction` prop for the same purpose. See [Actions](/docs/openui-lang/actions#custom-actions).
 
 ## Single-step actions
 
@@ -56,7 +56,7 @@ askBtn = Button("Tell me more", @ToAssistant("Tell me more about this order"))
 saveBtn = Button("Save", Action([@Run(save), @Run(orders), @Reset($note)]))
 ```
 
-Several steps still go in `Action([...])`. The prompt teaches both forms. See [Action Expressions](/docs/openui-lang/action-expressions).
+Several steps still go in `Action([...])`. The prompt teaches both forms. See [Actions](/docs/openui-lang/actions).
 
 ## Context for `@ToAssistant`
 
@@ -72,7 +72,7 @@ approveBtn = Button("Approve", @ToAssistant("Approve this order", {orderId: 42})
 - In the JSON Schema, an action prop is `{"$ref": "#/$defs/ActionExpression"}`, like a component slot.
 - A prop can name the steps it takes, for example `z.union([copyToClipboard.ref, steps.OpenUrl.ref])`, printed as `@CopyToClipboard | @OpenUrl`. This shapes the prompt and the JSON Schema only. The runtime does not enforce it yet.
 
-See [Action Expressions](/docs/openui-lang/action-expressions#action-props-in-your-components).
+See [Actions](/docs/openui-lang/actions#action-props-in-your-components).
 
 ## `library.extend`
 
@@ -90,7 +90,7 @@ const shopLibrary = openuiChatLibrary.extend({
 });
 ```
 
-The derived library has no `id`. Create it once at module scope. See [Extending a Library](/docs/openui-lang/extending-libraries).
+The derived library has no `id`. Create it once at module scope. See [Extending a library](/docs/openui-lang/defining-components#extending-a-library).
 
 ## Message format
 

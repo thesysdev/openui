@@ -114,7 +114,7 @@ const instructions = generateSystemPrompt({
 
 See the [Generative UI Quickstart](/docs/gateway/generate-openui-lang) for the Gateway workflow, or the [Autofix API](/docs/autofix) to repair output from your existing model integration.
 
-Built-in functions (`@Count`, `@Filter`, `@Sort`, `@Each`, etc.) are automatically included when either `toolCalls` or `bindings` is enabled. For static UI libraries without data fetching, they are omitted to keep the prompt concise. Set `builtinFunctions: true` to include them anyway. A library's own [custom functions](/docs/openui-lang/custom-functions) are always listed.
+Built-in functions (`@Count`, `@Filter`, `@Sort`, `@Each`, etc.) are automatically included when either `toolCalls` or `bindings` is enabled. For static UI libraries without data fetching, they are omitted to keep the prompt concise. Set `builtinFunctions: true` to include them anyway. A library's own [custom functions](/docs/openui-lang/functions#custom-functions) are always listed.
 
 ### `library.prompt()` (frontend shorthand)
 
@@ -135,8 +135,8 @@ The generated prompt includes:
 - Syntax rules and expression types
 - Component signatures (from your registered components)
 - Built-in function reference (`@Count`, `@Filter`, `@Sort`, etc.), only when `toolCalls`, `bindings`, or `builtinFunctions` is enabled
-- Your [custom functions](/docs/openui-lang/custom-functions), when the library has any
-- The Action section with the available steps, including your [custom actions](/docs/openui-lang/custom-actions), when a component has an action prop or the library has custom actions
+- Your [custom functions](/docs/openui-lang/functions#custom-functions), when the library has any
+- The Action section with the available steps, including your [custom actions](/docs/openui-lang/actions#custom-actions), when a component has an action prop or the library has custom actions
 - Query/Mutation/Action workflow (if `toolCalls` enabled)
 - `$variable` and reactive binding rules (if `bindings` enabled)
 - Tool descriptions and tool examples (if `tools` provided)

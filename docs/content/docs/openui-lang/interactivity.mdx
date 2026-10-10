@@ -46,7 +46,7 @@ enum BuiltinActionType {
 - `ContinueConversation`: sends the user's intent back to the LLM (`@ToAssistant`). The optional context from `@ToAssistant(message, context)` arrives unchanged in `params.context`, and can be any value.
 - `OpenUrl`: opens a URL in a new tab (`@OpenUrl`). The URL is in `params.url`.
 
-A [custom action](/docs/openui-lang/custom-actions) from your library arrives with its own name as `type` and its arguments in `params`. When the library has custom actions, `onAction` is typed from the library, and checking `event.type` narrows `event.params`.
+A [custom action](/docs/openui-lang/actions#custom-actions) from your library arrives with its own name as `type` and its arguments in `params`. When the library has custom actions, `onAction` is typed from the library, and checking `event.type` narrows `event.params`.
 
 The following action steps are handled internally by the runtime (not dispatched to `onAction`):
 
@@ -61,7 +61,7 @@ askBtn = Button("Tell me more", @ToAssistant("Tell me more about these tickets")
 submitBtn = Button("Create", Action([@Run(createResult), @Run(tickets), @Reset($title)]))
 ```
 
-See [Action Expressions](/docs/openui-lang/action-expressions) for the full rules.
+See [Actions](/docs/openui-lang/actions) for the full rules.
 
 See [Reactive State](/docs/openui-lang/reactive-state) for `$variables` and [Queries & Mutations](/docs/openui-lang/queries-mutations) for `@Run`.
 
@@ -90,7 +90,7 @@ const MyButton = defineComponent({
 });
 ```
 
-`triggerAction(userMessage, formName?, action?)` accepts optional second and third arguments. To let the model choose what a component does on click, give it an `action()` prop and pass that prop as the third argument. See [Action props in your components](/docs/openui-lang/action-expressions#action-props-in-your-components).
+`triggerAction(userMessage, formName?, action?)` accepts optional second and third arguments. To let the model choose what a component does on click, give it an `action()` prop and pass that prop as the third argument. See [Action props in your components](/docs/openui-lang/actions#action-props-in-your-components).
 
 ---
 
