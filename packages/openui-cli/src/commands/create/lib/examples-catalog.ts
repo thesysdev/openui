@@ -160,9 +160,7 @@ function findRepoExample(spec: string, examples: ExampleProject[]): ExampleProje
     );
   }
   const { repo, subpath } = parsed;
-  const match = examples.find(
-    (entry) => sameRepo(entry.repo, repo) && entry.path.toLowerCase() === subpath.toLowerCase(),
-  );
+  const match = examples.find((entry) => sameRepo(entry.repo, repo) && entry.path === subpath);
   if (match) return match;
   return {
     name: subpath.split("/").at(-1) || repo.name,
