@@ -10,7 +10,7 @@ For the language, see [language.md](./language.md). For the big picture, see [ov
 
 The model learns your UI system from two places:
 
-1. **The system prompt.** Generated from the LibrarySpec, a set of options, and a prompt version (section 4). It teaches the language, the component list, and only the features the client supports.
+1. **The system prompt.** Generated from the LibrarySpec and a set of options (section 4). It teaches the language, the component list, and only the features the client supports.
 2. **The conversation.** User messages, the model's earlier OpenUI Lang responses, and context the host adds (error reports, form values, click data, the current program in edit mode).
 
 Nothing else is sent. The prompt MUST NOT teach features the target client does not support.
@@ -21,7 +21,7 @@ A LibrarySpec is one JSON document.
 
 | field | meaning |
 | --- | --- |
-| `id` | The library name, for example `support`. |
+| `id` | Optional. The library name, for example `support`. `toSpec()` emits it when the library has one. A library made with `extend` does not inherit it. |
 | `version` | Optional. The library version, for example `1.2.0`. `toSpec()` does not emit it. A host that versions its library adds it. |
 | `root` | Optional. The root component name, for example `Card`. |
 | `schema` | The validation schema (JSON Schema). Top-level `properties` names the components, `$defs` has one entry per component and per action shape, and `functions` and `actions` hold the params of the custom functions and actions (section 2.3). |
@@ -199,7 +199,7 @@ Fixtures: none. These are authoring rules for library owners.
 
 ### 4.1 Determinism
 
-The system prompt is a function of the LibrarySpec, the options, and the prompt version. The same inputs give byte-identical prompts on every platform.
+The system prompt is a function of the LibrarySpec and the options. The same inputs give byte-identical prompts on every platform.
 
 The entry point is `generateSystemPrompt({ library, promptOptions })`. The flat `generatePrompt(spec)` form is deprecated.
 
@@ -209,7 +209,6 @@ Fixtures: none in `spec/fixtures/`. A golden-file test generates the prompt for 
 
 | option | effect |
 | --- | --- |
-| `promptVersion` | `"1.0"` (default) or `"0.x"`. See section 4.3. |
 | `toolCalls` | Teaches `Query`, `Mutation`, and `@Run`. Defaults to true when `tools` is given. |
 | `bindings` | Teaches `$variables`, `@Set`, `@Reset`, and `$binding<type>` props. Defaults to true when `toolCalls` is on. |
 | `builtinFunctions` | Lists the built-in functions even when `toolCalls` and `bindings` are off. |
@@ -220,20 +219,14 @@ Fixtures: none in `spec/fixtures/`. A golden-file test generates the prompt for 
 
 The built-in function section appears when `toolCalls` or `bindings` is on, or when `builtinFunctions` is true. Custom functions are listed in the same section, which prints whenever the library has any, since they also work in plain props.
 
-The inline mode section MUST teach two rules. First, openui-lang belongs only inside fences, and a `text`-tagged fence shows code without rendering it. Second, independent UI blocks go in separate fences with prose between them.
+The inline mode section teaches that openui-lang goes inside fences, with prose around them, and that a question gets an answer in text only.
 
-### 4.3 Prompt versions
+### 4.3 What the 1.0 prompt teaches
 
-- **`1.0`** is the default.
-- **`0.x`** is a frozen copy of the previous prompt, for models trained on it. It never changes.
-
-What the 1.0 prompt changes:
-
-- It prints the validation rules type once, not once per component.
-- It uses no em dashes.
-- It teaches that a prop typed as a list takes `[...]` even for one item.
-- It teaches the entry rule and single-step actions.
-- It teaches that arguments are positional only. To skip an optional argument, write `null`.
+- The entry statement `root`, written first.
+- Positional arguments only, with optional arguments left out from the end.
+- Single-step actions: one step bare, several in `Action([...])`.
+- Restricted action slots and `$binding<type>` props, when the library has them.
 
 ### 4.4 Order of the prompt
 
@@ -252,10 +245,10 @@ Fixtures: none in `spec/fixtures/`. Covered by the golden-file test in section 4
 Each component is one line in the prompt: the signature, a separator, and the description.
 
 ```
-Button(label: string, action?: ActionExpression, variant?: "primary" | "secondary") - A clickable button
+Button(label: string, action?: ActionExpression, variant?: "primary" | "secondary")
 ```
 
-The 1.0 prompt joins the two with a space, a hyphen, and a space. The `0.x` prompt keeps its original em dash separator. The line MUST stay on one line.
+The separator is a space, an em dash, and a space, followed here by `A clickable button`. The line MUST stay on one line.
 
 ### 5.1 Signature format
 
@@ -424,5 +417,5 @@ Fixtures: none in `spec/fixtures/`.
 
 ## Appendix A. Changelog
 
-- **2026-09-30: 1.0.** The LibrarySpec is one document with `id`, `version`, `root`, the schema, signatures, and `functions`. Prompts are deterministic, with versions `1.0` and `0.x`. Libraries follow backward-compatibility rules. The message protocol uses `content`, `context`, and `end` marker lines.
+- **2026-09-30: 1.0.** The LibrarySpec is one document with `id`, `version`, `root`, the schema, signatures, and `functions`. Prompts are deterministic. Libraries follow backward-compatibility rules. The message protocol uses `content`, `context`, and `end` marker lines.
 - Earlier drafts: 0.9 community review (2026-07-22) and 1.0-beta (2026-08-05). See the git history for their changes.

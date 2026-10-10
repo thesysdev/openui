@@ -15,7 +15,7 @@ This file explains. The other two define. Where they disagree, language.md and p
 1.0 makes OpenUI ready for production. It adds a message protocol for streaming and storing responses, rules that keep stored UIs working as a library grows, and custom functions. It also brings a batch of fixes and small conveniences.
 
 - **Message protocol.** One format for streamed and stored responses (section 4).
-- **Production readiness.** Backward-compatibility rules for libraries (section 3), a LibrarySpec with `id` and `version`, a versioned system prompt, and conformance fixtures any client can test against.
+- **Production readiness.** Backward-compatibility rules for libraries (section 3), a LibrarySpec with `id` and `version`, a deterministic system prompt, and conformance fixtures any client can test against.
 - **Custom functions.** A library adds its own `@` functions, like `@Percent` (section 2.11).
 - **Small conveniences.** Single-step actions and any value as `@ToAssistant` context.
 - **Fixes.** One clear entry rule, streamed results that always match a full parse, and edits that keep multi-line statements whole.
