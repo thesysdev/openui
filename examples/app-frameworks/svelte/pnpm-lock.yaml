@@ -18,11 +18,11 @@ importers:
         specifier: ^4.0.191
         version: 4.0.272(svelte@5.57.0)(zod@4.5.4)
       '@openuidev/lang-core':
-        specifier: 0.3.0
-        version: 0.3.0(zod@4.5.4)
+        specifier: 0.4.1
+        version: 0.4.1(zod@4.5.4)
       '@openuidev/svelte-lang':
-        specifier: 0.3.0
-        version: 0.3.0(svelte@5.57.0)(zod@4.5.4)
+        specifier: 0.4.0
+        version: 0.4.0(svelte@5.57.0)(zod@4.5.4)
       ai:
         specifier: ^6.0.116
         version: 6.0.272(zod@4.5.4)
@@ -34,8 +34,8 @@ importers:
         version: 4.5.4
     devDependencies:
       '@openuidev/cli':
-        specifier: 0.4.1
-        version: 0.4.1
+        specifier: 0.5.2
+        version: 0.5.2
       '@sveltejs/adapter-auto':
         specifier: ^4.0.0
         version: 4.0.0(@sveltejs/kit@2.70.3(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@5.1.1(svelte@5.57.0)(vite@6.4.3(jiti@2.7.0)(lightningcss@1.32.0)))(svelte@5.57.0)(typescript@5.9.3)(vite@6.4.3(jiti@2.7.0)(lightningcss@1.32.0)))
@@ -420,12 +420,12 @@ packages:
     resolution: {integrity: sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==}
     engines: {node: '>=8.0.0'}
 
-  '@openuidev/cli@0.4.1':
-    resolution: {integrity: sha512-I8wbgc7ifPRb3N4LHZNyHtHf4eJFleQReiw2DWeiwEzbFO/2eoQ09lDTcw4w8uUxnbdP8CqyDvenlKU6gXaTgw==}
+  '@openuidev/cli@0.5.2':
+    resolution: {integrity: sha512-Fr2+CTTN3h3ytIdHLvTyBwWOFDMX9pMa89oLzjyie8dQ7RtfzroIcXV5at9lbQBqO+1aCwll3d1D3c8K/Vx3sA==}
     hasBin: true
 
-  '@openuidev/lang-core@0.3.0':
-    resolution: {integrity: sha512-hOLvRQnsbp8hORqXcup/4MlPj5cl7ytFmxTUhYqhLzqLyMeqkGx9YG8Dca45zS+jovuDyZMESn5ejshcojEgQA==}
+  '@openuidev/lang-core@0.4.1':
+    resolution: {integrity: sha512-t9XSiORKTgyn6pWv8qqBkgD45PBhORdGWpQAHo3APvj9SYy7YprKURQgmXNu3z6E/Ds8tsLAI+AZjX3errH+jQ==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       zod: ^3.25.0 || ^4.0.0
@@ -433,8 +433,8 @@ packages:
       '@modelcontextprotocol/sdk':
         optional: true
 
-  '@openuidev/svelte-lang@0.3.0':
-    resolution: {integrity: sha512-ps/czPlXq6WzfMXECB1V2wRhDaDRmnA0D4poVcgCZOh9X7bssad9v3aFMpFkQ+vTKJNsVVyk8hk7YgpnjWonIQ==}
+  '@openuidev/svelte-lang@0.4.0':
+    resolution: {integrity: sha512-i9U9ZNmbsA8tnG14ns2dussKMt0KI0jxeEhCXdyLIASQogwim/L14lQhRChPNLhsjqIV1uY1kGOeXZXyz2ZQHw==}
     peerDependencies:
       svelte: '>=5.0.0'
       zod: ^3.25.0 || ^4.0.0
@@ -1415,7 +1415,7 @@ snapshots:
 
   '@opentelemetry/api@1.9.1': {}
 
-  '@openuidev/cli@0.4.1':
+  '@openuidev/cli@0.5.2':
     dependencies:
       '@inquirer/core': 11.2.1
       '@inquirer/prompts': 8.7.0
@@ -1431,14 +1431,14 @@ snapshots:
       - '@types/node'
       - rxjs
 
-  '@openuidev/lang-core@0.3.0(zod@4.5.4)':
+  '@openuidev/lang-core@0.4.1(zod@4.5.4)':
     dependencies:
       ci-info: 4.4.0
       zod: 4.5.4
 
-  '@openuidev/svelte-lang@0.3.0(svelte@5.57.0)(zod@4.5.4)':
+  '@openuidev/svelte-lang@0.4.0(svelte@5.57.0)(zod@4.5.4)':
     dependencies:
-      '@openuidev/lang-core': 0.3.0(zod@4.5.4)
+      '@openuidev/lang-core': 0.4.1(zod@4.5.4)
       svelte: 5.57.0
       zod: 4.5.4
     transitivePeerDependencies:

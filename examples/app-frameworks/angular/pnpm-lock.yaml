@@ -27,11 +27,11 @@ importers:
         specifier: 22.1.0
         version: 22.1.0(@angular/common@22.1.7(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(@angular/platform-browser@22.1.7(@angular/common@22.1.7(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2)))(rxjs@7.8.2)
       '@openuidev/angular-lang':
-        specifier: 0.3.0
-        version: 0.3.0(@angular/common@22.1.7(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(rxjs@7.8.2)(zod@4.4.3)
+        specifier: 0.4.1
+        version: 0.4.1(@angular/common@22.1.7(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(rxjs@7.8.2)(zod@4.4.3)
       '@openuidev/lang-core':
-        specifier: 0.3.0
-        version: 0.3.0(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(zod@4.4.3)
+        specifier: 0.4.1
+        version: 0.4.1(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(zod@4.4.3)
       ng-zorro-antd:
         specifier: 22.1.0
         version: 22.1.0(55f71db72f2c245fdc5c23adfdc83cd5)
@@ -868,8 +868,8 @@ packages:
       '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.4
       '@emnapi/runtime': ^1.7.1 || ^2.0.0-alpha.4
 
-  '@openuidev/angular-lang@0.3.0':
-    resolution: {integrity: sha512-KbYuITnksiFZeXE0h7hjWG2vIoYbY43qFjxswKdapn9bSBiZ8rFSbfnVm72F0GH8nbitRoBTvI97b7VWVYAcVA==}
+  '@openuidev/angular-lang@0.4.1':
+    resolution: {integrity: sha512-TsxCV4S46vGlSU9MN1qDvD5MJgEbhCp5le9utz8Gniw2FXDlacq8G7UCHTNNOuKAenMsSPm4pbsQHwHblksY2A==}
     engines: {node: ^22.22.3 || ^24.15.0 || ^26.0.0}
     peerDependencies:
       '@angular/common': ^22.1.5
@@ -877,8 +877,8 @@ packages:
       rxjs: ^7.8.2
       zod: ^3.25.0 || ^4.0.0
 
-  '@openuidev/lang-core@0.3.0':
-    resolution: {integrity: sha512-hOLvRQnsbp8hORqXcup/4MlPj5cl7ytFmxTUhYqhLzqLyMeqkGx9YG8Dca45zS+jovuDyZMESn5ejshcojEgQA==}
+  '@openuidev/lang-core@0.4.1':
+    resolution: {integrity: sha512-t9XSiORKTgyn6pWv8qqBkgD45PBhORdGWpQAHo3APvj9SYy7YprKURQgmXNu3z6E/Ds8tsLAI+AZjX3errH+jQ==}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.0.0'
       zod: ^3.25.0 || ^4.0.0
@@ -3001,18 +3001,18 @@ snapshots:
       '@tybys/wasm-util': 0.10.4
     optional: true
 
-  '@openuidev/angular-lang@0.3.0(@angular/common@22.1.7(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(rxjs@7.8.2)(zod@4.4.3)':
+  '@openuidev/angular-lang@0.4.1(@angular/common@22.1.7(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(rxjs@7.8.2)(zod@4.4.3)':
     dependencies:
       '@angular/common': 22.1.7(@angular/core@22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2))(rxjs@7.8.2)
       '@angular/core': 22.1.7(@angular/compiler@22.1.7)(rxjs@7.8.2)
-      '@openuidev/lang-core': 0.3.0(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(zod@4.4.3)
+      '@openuidev/lang-core': 0.4.1(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(zod@4.4.3)
       rxjs: 7.8.2
       tslib: 2.8.1
       zod: 4.4.3
     transitivePeerDependencies:
       - '@modelcontextprotocol/sdk'
 
-  '@openuidev/lang-core@0.3.0(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(zod@4.4.3)':
+  '@openuidev/lang-core@0.4.1(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(zod@4.4.3)':
     dependencies:
       ci-info: 4.4.0
       zod: 4.4.3
