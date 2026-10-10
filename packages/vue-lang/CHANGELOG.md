@@ -1,5 +1,12 @@
 # @openuidev/vue-lang
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @openuidev/lang-core@0.4.1
+
 ## 0.4.0
 
 ### Patch Changes
