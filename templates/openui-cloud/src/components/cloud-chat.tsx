@@ -7,9 +7,9 @@ import {
   AgentInterface,
   ModelSwitcher,
   fetchLLM,
+  langGraphAdapter,
+  langGraphMessageFormat,
   openuiLibrary,
-  openAIConversationMessageFormat,
-  openAIResponsesAdapter,
   useOpenuiCloudStorage,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
@@ -17,10 +17,13 @@ import {
 export default function CloudChat() {
   const mode = useSystemThemeMode();
   const [selectedModel, setSelectedModel] = usePersistedModel();
+  // The /api/chat route runs the LangGraph agent in-process and streams its
+  // native `messages`-mode SSE. Outgoing messages are converted to LangChain
+  // shape here so the route can pass them to the graph as-is.
   const llm = fetchLLM({
     url: "/api/chat",
-    streamAdapter: openAIResponsesAdapter(),
-    messageFormat: openAIConversationMessageFormat,
+    streamAdapter: langGraphAdapter(),
+    messageFormat: langGraphMessageFormat,
     body: { model: selectedModel },
   });
 

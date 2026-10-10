@@ -1,9 +1,14 @@
-import { buildMessage } from "@openuidev/react-lang";
+import { buildMessage, type BuildMessageInput } from "@openuidev/react-lang";
 import { expect, it } from "vitest";
 import { readMessage } from "../messages";
 
 // Stored bytes as the old sentinelParser wrote them (wrapContent, wrapContentWithHeader, wrapContext)
-const stored = [
+const stored: {
+  raw: string;
+  content: string;
+  context: unknown[] | null;
+  write?: Partial<BuildMessageInput>;
+}[] = [
   { raw: "Hello", content: "Hello", context: null },
   { raw: "]]>openui:content\nroot = A()", content: "root = A()", context: null, write: {} },
   {

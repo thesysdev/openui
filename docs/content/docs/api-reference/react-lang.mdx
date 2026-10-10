@@ -231,9 +231,39 @@ interface RendererProps<L extends Library = Library> {
   onParseResult?: (result: ParseResult | null) => void;
   toolProvider?:
     Record<string, (args: Record<string, unknown>) => Promise<unknown>> | McpClientLike | null;
+  /** Custom loading indicator. Defaults to a spinner. */
   queryLoader?: React.ReactNode;
+  children?: React.ReactNode;
   onError?: (errors: OpenUIError[]) => void;
 }
+```
+
+## Renderer slots
+
+`Renderer` keeps query defaults or cached results visible while loading and after failures, and reports errors through `onError`. A spinner is shown while queries load; provide `queryLoader` to customize it. No error/retry view is shown by default. To customize loading feedback and opt into an error/retry presentation, use `Renderer.Root` with these slots:
+
+| Slot                    | Purpose                                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| `Renderer.Content`      | Generated UI; accepts div props and stays mounted during query failures.                               |
+| `Renderer.QueryLoading` | Children shown while queries wait or fetch; omitted children use `queryLoader` or the default spinner. |
+| `Renderer.QueryError`   | Children shown when queries fail; renders nothing without children.                                    |
+| `Renderer.Retry`        | A retry button; accepts standard button props.                                                         |
+
+Root accepts the same runtime props as Renderer and renders only its children. Put overlays in your own positioned container. Slots share context through wrappers and React portals. `useRendererQuery()` returns `{ isLoading, errors, retry, isRetrying }` within that root. `Renderer.Content` renders defaults or cached data while queries load and hides content on failure while preserving mounted state through retries.
+
+`Renderer` accepts slot children to replace its default content composition. Without children, Renderer keeps its default views. Calling `preventDefault()` in the retry button’s click handler cancels the retry.
+
+```tsx
+<Renderer.Root response={response} library={library} toolProvider={tools}>
+  <div style={{ position: "relative" }}>
+    <Renderer.Content />
+    <Renderer.QueryLoading>Loading data…</Renderer.QueryLoading>
+    <Renderer.QueryError>
+      <p role="alert">Data is unavailable.</p>
+      <Renderer.Retry>Try again</Renderer.Retry>
+    </Renderer.QueryError>
+  </div>
+</Renderer.Root>
 ```
 
 ## Tool Provider

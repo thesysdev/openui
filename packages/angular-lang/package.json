@@ -1,6 +1,6 @@
 {
   "name": "@openuidev/angular-lang",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Angular bindings for OpenUI Lang. Define model-renderable Angular components, generate prompts from those definitions, and render OpenUI Lang in Angular applications.",
   "license": "MIT",
   "type": "module",

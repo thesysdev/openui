@@ -13,18 +13,28 @@ export function DocsPageView({ page }: { page: DocsSourcePage }) {
   const MDX = page.data.body;
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full} footer={{ enabled: !page.data.hideFooter }}>
+    <DocsPage
+      toc={page.data.toc}
+      full={page.data.full}
+      footer={{ enabled: !page.data.hideFooter }}
+      tableOfContent={{ style: "clerk" }}
+      tableOfContentPopover={{ style: "clerk" }}
+      // Without a sidebar there is room for the `full` page width next to the TOC (see global.css).
+      data-no-sidebar={!page.data.sidebar || undefined}
+    >
       {!page.data.customHeader && (
         <>
           <DocsTitle>{page.data.title}</DocsTitle>
           <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
-          <div className="flex flex-row gap-2 items-center border-b pb-6">
-            <LLMCopyButton markdownUrl={`${page.url}.mdx`} />
-            <ViewOptions
-              markdownUrl={page.url}
-              githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/docs/content/docs/${page.path}`}
-            />
-          </div>
+          {page.data.pageActions && (
+            <div className="flex flex-row gap-2 items-center border-b pb-6">
+              <LLMCopyButton markdownUrl={`${page.url}.mdx`} />
+              <ViewOptions
+                markdownUrl={page.url}
+                githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/docs/content/docs/${page.path}`}
+              />
+            </div>
+          )}
         </>
       )}
       <DocsBody>

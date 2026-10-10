@@ -3,19 +3,22 @@
 import type { AssistantMessage } from "@openuidev/react-headless";
 import { useThread } from "@openuidev/react-headless";
 import type { ActionEvent, Library } from "@openuidev/react-lang";
-import { buildMessage, BuiltinActionType, Renderer } from "@openuidev/react-lang";
+import { buildMessage, Renderer } from "@openuidev/react-lang";
 import { useCallback, useMemo } from "react";
 import { getLastAssistantMessageId, readMessage } from "../../utils/messages";
 import { AssistantMessageContainer } from "./AssistantMessageContainer";
-import { buildActionUserMessage } from "./utils/actionMessage";
+import { runChatAction } from "./utils/actionMessage";
 
 /** Renders the OpenUI-Lang response for one assistant message. */
 export const GenUIAssistantMessage = ({
   message,
   library,
+  onAction,
 }: {
   message: AssistantMessage;
   library: Library;
+  /** Receives the actions the chat does not handle itself, such as custom actions. */
+  onAction?: (event: ActionEvent) => void;
 }) => {
   const messages = useThread((s) => s.messages);
   const isRunning = useThread((s) => s.isRunning);
@@ -54,24 +57,10 @@ export const GenUIAssistantMessage = ({
     [updateMessage, message, content, attributes],
   );
 
-  // Build LLM-friendly message from action + form state, then dispatch
   const handleAction = useCallback(
-    (event: ActionEvent) => {
-      if (event.type === BuiltinActionType.ContinueConversation) {
-        const llmMessage = buildActionUserMessage(event);
-
-        processMessage({
-          role: "user",
-          content: llmMessage,
-        });
-      } else if (event.type === BuiltinActionType.OpenUrl) {
-        const url = event.params?.["url"] as string | undefined;
-        if (typeof window !== "undefined" && url) {
-          window.open(url, "_blank");
-        }
-      }
-    },
-    [processMessage],
+    (event: ActionEvent) =>
+      runChatAction(event, (content) => processMessage({ role: "user", content }), onAction),
+    [processMessage, onAction],
   );
 
   return (

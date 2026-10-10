@@ -18,6 +18,37 @@ pnpm add @openuidev/react-lang
 
 **Peer dependencies:** `react >=19.0.0`
 
+## Query failures
+
+Without slot children, `Renderer` keeps query defaults or cached results visible while loading and after failures. A spinner is shown while queries load, and `onError` receives structured errors. Provide `queryLoader` to customize the indicator, or slot children for custom layouts. No error/retry view is shown by default.
+
+Use slots to customize loading and failure views:
+
+```tsx
+<Renderer.Root response={response} library={library} toolProvider={toolProvider}>
+  <div style={{ position: "relative" }}>
+    <Renderer.Content />
+    <Renderer.QueryLoading>Loading data…</Renderer.QueryLoading>
+    <Renderer.QueryError>
+      <div role="alert">
+        <p>We couldn't load your data. Please try again.</p>
+        <Renderer.Retry>Try again</Renderer.Retry>
+      </div>
+    </Renderer.QueryError>
+  </div>
+</Renderer.Root>
+```
+
+`Renderer.Root` owns one runtime and renders only its children. Slots can sit inside wrappers or portals under that root. `Renderer.Content` keeps generated components mounted while queries load or fail; failed results remain hidden until recovery. Omitting a slot omits its presentation. Plain `Renderer` supplies content and a loading indicator without hiding results on failure.
+
+`Renderer.QueryLoading` shows its children while queries await generation or fetch data, unless failures are being displayed. Omit children to use `queryLoader`, falling back to the default spinner. Position custom overlays within your own relative container. `Renderer.QueryError` shows its children on failure and renders nothing without children. Add `Renderer.Retry` explicitly if you want a retry button. `Renderer.Retry` disables itself during loading and when no queries have failed. It accepts standard button props; its click handler can prevent the retry with `event.preventDefault()`.
+
+Use `useRendererQuery()` inside the root to read `{ isLoading, errors, retry, isRetrying }` in your own components. Generation progress remains available through `useIsStreaming()`. Do not create another root for each slot.
+
+`Renderer` accepts slot children to replace its default content composition.
+
+While queries load, `Renderer.Content` renders their defaults or previously successful data. During streaming edits, previously loaded results remain visible with loading feedback until the updated response is ready.
+
 ## Overview
 
 `@openuidev/react-lang` is the React runtime layer for OpenUI Lang. It covers the loop most apps need:
@@ -100,7 +131,7 @@ function AssistantMessage({ response, isStreaming }) {
 
 | Export | Description |
 | :--- | :--- |
-| `Renderer` | React component that parses and renders OpenUI Lang output |
+| `Renderer` | Render OpenUI Lang |
 
 **`RendererProps`:**
 
@@ -112,6 +143,7 @@ function AssistantMessage({ response, isStreaming }) {
 | `onAction` | `(event: ActionEvent) => void` | Callback when a component triggers an action |
 | `onStateUpdate` | `(state: Record<string, any>) => void` | Callback when form field values change |
 | `initialState` | `Record<string, any>` | Initial form state for hydration |
+| `queryLoader` | `React.ReactNode` | Custom loading indicator; defaults to a spinner |
 | `onParseResult` | `(result: ParseResult \| null) => void` | Callback when the parse result changes |
 
 ### Parser (Server-Side)

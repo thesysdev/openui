@@ -164,7 +164,7 @@ function functionLine(f: { signature: string; description?: string }): string {
   return f.description ? `@${f.signature} — ${f.description}` : `@${f.signature}`;
 }
 
-function builtinFunctionsSection(custom: string[]): string {
+function builtinFunctionsSection(custom: string[], toolCalls: boolean): string {
   const lines = [
     ...Object.values(BUILTINS).map((b) =>
       functionLine({ ...b, signature: schemaSignature(b.name, b.params, b.returns) }),
@@ -175,7 +175,7 @@ function builtinFunctionsSection(custom: string[]): string {
   return `## Built-in Functions
 
 Data functions prefixed with \`@\` to distinguish from components. These are the ONLY functions available — do NOT invent new ones.
-Use @-prefixed built-in functions (@Count, @Sum, @Avg, @Min, @Max, @Round) on Query results — do NOT hardcode computed values.
+Use @-prefixed built-in functions (@Count, @Sum, @Avg, @Min, @Max, @Round) on ${toolCalls ? "Query results" : "data"}. Do NOT hardcode computed values.
 
 ${lines}
 
@@ -184,8 +184,8 @@ Builtins compose — output of one is input to the next:
 Array pluck: \`data.rows.field\` extracts a field from every row → use with @Sum, @Avg, charts, tables.
 
 IMPORTANT @Each rule: The loop variable (e.g. "item") is ONLY available inside the @Each template expression. Always inline the template — do NOT extract it to a separate statement.
-CORRECT: \`Col("Actions", @Each(rows, "t", Button("Edit", @Set($id, t.id))))\`
-WRONG: \`myBtn = Button("Edit", @Set($id, t.id))\` then \`Col("Actions", @Each(rows, "t", myBtn))\` — t is undefined in myBtn.`;
+CORRECT: \`list = @Each(rows, "t", Comp(t.name))\`
+WRONG: \`item = Comp(t.name)\` then \`list = @Each(rows, "t", item)\`, because t is undefined in item.`;
 }
 
 function querySection(): string {
@@ -351,13 +351,21 @@ To remove a component, re-declare its parent without that component in the paren
 - If you are about to output more than 10 statements, reconsider — most edits need fewer`;
 }
 
-function streamingRules(rootName: string, flags: { supportsExpressions: boolean }): string {
+function streamingRules(
+  rootName: string,
+  flags: { supportsExpressions: boolean; toolCalls: boolean },
+): string {
   const steps = [`1. \`root = ${rootName}(...)\` — UI shell appears immediately`];
   if (flags.supportsExpressions) {
     steps.push("2. $variable declarations — state ready for bindings");
-    steps.push("3. Query statements — defaults resolve immediately so components render with data");
-    steps.push("4. Component definitions — fill in with data already available");
-    steps.push("5. Data values — leaf content last");
+    if (flags.toolCalls) {
+      steps.push(
+        "3. Query statements — defaults resolve immediately so components render with data",
+      );
+    }
+    const n = steps.length;
+    steps.push(`${n + 1}. Component definitions — fill in with data already available`);
+    steps.push(`${n + 2}. Data values — leaf content last`);
   } else {
     steps.push("2. Component definitions — fill in as they stream");
     steps.push("3. Data values — leaf content last");
@@ -636,7 +644,7 @@ export function generatePrompt(spec: PromptSpec): string {
   const customFunctions = Object.values(spec.functions ?? {}).map(functionLine);
   if (spec.builtinFunctions ?? supportsExpressions) {
     parts.push("");
-    parts.push(builtinFunctionsSection(customFunctions));
+    parts.push(builtinFunctionsSection(customFunctions, toolCalls));
   } else if (customFunctions.length) {
     parts.push("");
     parts.push(`## Built-in Functions\n\n${customFunctions.join("\n")}`);
@@ -681,7 +689,7 @@ export function generatePrompt(spec: PromptSpec): string {
   }
 
   parts.push("");
-  parts.push(streamingRules(rootName, { supportsExpressions }));
+  parts.push(streamingRules(rootName, { supportsExpressions, toolCalls }));
 
   // Append both examples and toolExamples when both are present
   const allExamples = [...(spec.examples ?? []), ...(spec.toolExamples ?? [])];

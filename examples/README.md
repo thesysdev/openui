@@ -17,6 +17,14 @@ Each example has one primary home. Complete workflows with a companion tutorial 
 
 `miscellaneous` is intentionally flat. If several examples develop the same stable integration seam, promote that seam to a top-level category instead of adding nested miscellaneous taxonomies.
 
+## CLI selection
+
+Set `"featured": true` on an entry in `examples.json` to show it in the CLI's
+backend framework picker. It shows up to five featured examples in catalog
+order beside the backend choices. “More examples…” opens the complete catalog,
+including entries with omitted or false flags. Every example is also available
+through `openui create --example <name>`.
+
 ## Catalog
 
 ### Agent frameworks

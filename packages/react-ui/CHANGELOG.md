@@ -1,5 +1,15 @@
 # @openuidev/react-ui
 
+## 0.17.1
+
+### Patch Changes
+
+- [#1343](https://github.com/thesysdev/openui/pull/1343) [`497681e`](https://github.com/thesysdev/openui/commit/497681eefecf7d61b863e98af7dec98555941cf8) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Widen the internal `react-lang` peer windows to include the 0.4.x line that the
+  Renderer slots release (a minor bump of the lang family) publishes.
+- Updated dependencies [[`f1f66c4`](https://github.com/thesysdev/openui/commit/f1f66c4266d6d76d73b94530b32653fecd1f6c01)]:
+  - @openuidev/react-lang@0.4.0
+  - @openuidev/react-headless@0.17.1
+
 ## 0.17.0
 
 ### Minor Changes

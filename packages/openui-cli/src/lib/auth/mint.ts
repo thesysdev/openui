@@ -177,6 +177,7 @@ export async function resolveCloudApiKey(opts: {
   apiKey?: string;
   auth?: CloudAuthMethod;
   projectName: string;
+  envFile?: string;
   interactive: boolean;
   tel: AuthTelemetryClient;
 }): Promise<{ key: string | null; method: ResolvedAuthMethod }> {
@@ -202,7 +203,10 @@ export async function resolveCloudApiKey(opts: {
           message: "Connect to OpenUI Cloud:",
           choices: [
             { name: "Sign in with Thesys (opens a browser, mints a key)", value: "oauth" },
-            { name: "Skip — add THESYS_API_KEY to .env later", value: "skip" },
+            {
+              name: `Skip — add THESYS_API_KEY to ${opts.envFile ?? ".env"} later`,
+              value: "skip",
+            },
           ],
         }) as Promise<CloudAuthMethod>,
     );

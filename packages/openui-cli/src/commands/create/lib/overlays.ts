@@ -44,18 +44,12 @@ export type OverlayChoice = {
   description?: string;
 };
 
-const DEFAULT_OVERLAY: OverlayChoice = {
-  name: "default",
-  label: "Default — minimal SDK route",
-  description: "Minimal SDK route",
-};
-
 export function listOverlays(templateDir: string): OverlayChoice[] {
   const overlaysDir = path.join(templateDir, OVERLAYS_DIR);
-  const choices = [DEFAULT_OVERLAY];
-  if (!fs.existsSync(overlaysDir)) return choices;
-
-  const extra: OverlayChoice[] = [];
+  const extra: OverlayChoice[] = fs.existsSync(path.join(templateDir, "src/agent.ts"))
+    ? [{ name: "langgraph", label: "LangGraph (default)" }]
+    : [];
+  if (!fs.existsSync(overlaysDir)) return extra;
   for (const entry of fs.readdirSync(overlaysDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const manifestPath = path.join(overlaysDir, entry.name, OVERLAY_MANIFEST);
@@ -68,18 +62,21 @@ export function listOverlays(templateDir: string): OverlayChoice[] {
     });
   }
   extra.sort((a, b) => a.name.localeCompare(b.name));
-  return [...choices, ...extra];
+  return extra;
 }
 
 export function resolveOverlay(
   templateDir: string,
   overlayName: string,
 ): TemplateOverlay | undefined {
-  if (overlayName === "default") return undefined;
-
   const overlayDir = path.join(templateDir, OVERLAYS_DIR, overlayName);
   const manifestPath = path.join(overlayDir, OVERLAY_MANIFEST);
   if (!fs.existsSync(manifestPath)) {
+    // LangGraph lives directly in the base template. Older template catalogs
+    // can still provide an overlay, which is resolved above this fallback.
+    if (overlayName === "langgraph" && fs.existsSync(path.join(templateDir, "src/agent.ts"))) {
+      return undefined;
+    }
     const available = listOverlays(templateDir)
       .map((overlay) => overlay.name)
       .join(" | ");

@@ -1,4 +1,6 @@
-import { ShowcaseGrid, type ShowcaseItem } from "./cards";
+import { EXAMPLES_REPO_URL } from "@/lib/examples-catalog";
+import { labProjects } from "@/lib/lab-projects";
+import { LinkCardGrid, ShowcaseGrid, type ShowcaseItem } from "./cards";
 
 const DEMOS: ShowcaseItem[] = [
   {
@@ -37,4 +39,50 @@ const DEMOS: ShowcaseItem[] = [
 
 export function Demos() {
   return <ShowcaseGrid items={DEMOS} />;
+}
+
+const FEATURED_PROJECTS: ShowcaseItem[] = [
+  {
+    name: "OpenClaw OS",
+    tagline: "Agent workspace",
+    description:
+      "The default workspace for OpenClaw. Agents generate interactive apps and artifacts that stay updated with live data.",
+    image: { light: "/nav/openclaw-light.webp", dark: "/nav/openclaw-dark.webp" },
+    links: [
+      { label: "Website", href: "/openclaw-os" },
+      { label: "GitHub", href: "https://github.com/thesysdev/openclaw-os", external: true },
+    ],
+  },
+  {
+    name: "AppLess",
+    tagline: "Phone OS concept",
+    description:
+      "An experimental phone with no apps. Ask for what you need and OpenUI streams a native interface for it on iOS and Android.",
+    image: { light: "/nav/appless-light.webp", dark: "/nav/appless-dark.webp" },
+    links: [{ label: "GitHub", href: "https://github.com/thesysdev/appless", external: true }],
+  },
+];
+
+export function FeaturedProjects() {
+  return <ShowcaseGrid items={FEATURED_PROJECTS} />;
+}
+
+export function CommunityProjects() {
+  // Community work that was merged into `examples/` already has a card on the Integrations page.
+  const projects = labProjects.filter(
+    (project) =>
+      project.status === "Community" &&
+      !project.links.some((link) => link.href.startsWith(EXAMPLES_REPO_URL)),
+  );
+
+  return (
+    <LinkCardGrid
+      items={projects.map((project) => ({
+        name: project.name,
+        description: project.description,
+        tag: project.type,
+        links: project.links.map((link) => ({ ...link, external: true })),
+      }))}
+    />
+  );
 }

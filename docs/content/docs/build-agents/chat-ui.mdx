@@ -1,0 +1,54 @@
+---
+title: Choose a chat UI
+description: Compare the chat UIs that can render OpenUI Lang and pick one for your agent.
+hideFooter: true
+---
+
+The chat UI has two jobs in an OpenUI agent:
+
+1. **Render responses.** Pass the streamed OpenUI Lang to the renderer instead of a Markdown renderer.
+2. **Send actions back.** When the user clicks a button or submits a form in a generated interface, send it to the agent as a new user turn.
+
+Everything else, such as the message list, the composer, threads, and the transport, works as it did before. Use OpenUI's own chat UI, or keep the one you have.
+
+## Compare the options
+
+|                         | [Agent Interface](/docs/agent/getting-started/introduction) | [assistant-ui](/docs/build-agents/assistant-ui) | [CopilotKit](/docs/build-agents/copilotkit) | [Custom chat UI](/docs/build-agents/custom-chat-ui) |
+| :---------------------- | :---------------------------------------------------------- | :---------------------------------------------- | :------------------------------------------ | :-------------------------------------------------- |
+| **You start with**      | No chat UI                                                  | An assistant-ui chat                            | A CopilotKit chat                           | A chat you built yourself                           |
+| **What OpenUI adds**    | The whole chat UI                                           | The assistant message's text part               | The assistant message's Markdown renderer   | The assistant message component                     |
+| **Actions**             | Built in                                                    | `onAction` with `useAui()`                      | `onAction` with `useAgent()`                | `onAction` with your send function                  |
+| **Threads and history** | Built in, with a storage adapter for your backend           | assistant-ui's runtime                          | CopilotKit's runtime                        | Yours                                               |
+| **Tool activity**       | Built in                                                    | assistant-ui's tool UIs                         | CopilotKit's tool rendering                 | Yours                                               |
+| **Best when**           | You want a complete chat UI and don't have one yet          | You already use assistant-ui                    | You already use CopilotKit                  | You own the chat UI and want full control           |
+
+If you're starting a new chat UI, use Agent Interface. If you already have one, keep it: adding OpenUI changes a single component.
+
+## What every chat UI needs
+
+Whichever chat UI you pick, these pieces come up:
+
+- **The same component library as the agent.** Import `library` from the file created in [Set up UI generation](/docs/build-agents/ui-generation#2-define-a-component-library), so the renderer knows every component the agent can write.
+- **The component styles.** Import `@openuidev/react-ui/styles/index.css` once when using the built-in components.
+- **`isStreaming`.** Keep it true until the response stream closes, so the interface builds up as lines arrive.
+- **`onAction`.** Send `continue_conversation` events back as a user turn with the form values, and open `open_url` events in a new tab. See [Conversation history](/docs/build-agents/conversation-history#user-actions).
+- **`toolProvider` (optional).** Pass it when generated interfaces load live data with `Query()`. See [Tools](/docs/build-agents/tools#ui-side-tools).
+
+Agent Interface handles streaming and actions for you; pass it the library through its `componentLibrary` prop. The other guides show each piece in that chat UI's own API.
+
+## Guides
+
+<Cards>
+  <Card title="Agent Interface" href="/docs/agent/getting-started/introduction">
+    OpenUI's complete React chat UI, with threads, streaming, tool activity, and actions built in.
+  </Card>
+  <Card title="assistant-ui" href="/docs/build-agents/assistant-ui">
+    Keep assistant-ui in charge of the conversation while OpenUI renders the assistant's responses.
+  </Card>
+  <Card title="CopilotKit" href="/docs/build-agents/copilotkit">
+    Add OpenUI rendering to an application whose chat is built with CopilotKit.
+  </Card>
+  <Card title="Custom chat UI" href="/docs/build-agents/custom-chat-ui">
+    Connect an existing message list and composer directly to the OpenUI renderer.
+  </Card>
+</Cards>
