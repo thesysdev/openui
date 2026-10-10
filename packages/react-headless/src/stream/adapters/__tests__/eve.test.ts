@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { EventType } from "../../../types";
 import { EVE_INPUT_REQUESTED_EVENT, eveAdapter } from "../eve";
+import { consume, installAnimationFrame, makeResponse } from "./streamTestHelpers";
 
 // ── Helpers ──
 
@@ -271,17 +272,30 @@ describe("eveAdapter", () => {
       expect(events[0].message).toBe("model unavailable");
     });
 
-    it("emits RUN_ERROR for turn.failed but keeps reading", async () => {
+    it("emits nothing after turn.failed but still reads to the turn boundary for onEvent", async () => {
+      const onEvent = vi.fn();
       const response = makeNdjsonResponse([
+        { type: "message.appended", data: { messageDelta: "partial", stepIndex: 0 } },
         { type: "turn.failed", data: { message: "step exploded" } },
+        { type: "message.appended", data: { messageDelta: "late", stepIndex: 1 } },
         waiting,
       ]);
 
-      const events = (await collect(eveAdapter().parse(response))) as Array<{
+      const events = (await collect(eveAdapter({ onEvent }).parse(response))) as Array<{
         type: EventType;
       }>;
 
-      expect(events.map((e) => e.type)).toEqual([EventType.RUN_ERROR]);
+      expect(events.map((e) => e.type)).toEqual([
+        EventType.TEXT_MESSAGE_START,
+        EventType.TEXT_MESSAGE_CONTENT,
+        EventType.RUN_ERROR,
+      ]);
+      expect(onEvent.mock.calls.map(([e]) => e.type)).toEqual([
+        "message.appended",
+        "turn.failed",
+        "message.appended",
+        "session.waiting",
+      ]);
     });
   });
 
@@ -302,5 +316,64 @@ describe("eveAdapter", () => {
         "session.waiting",
       ]);
     });
+  });
+});
+
+describe("eveAdapter — failed tool results", () => {
+  beforeAll(installAnimationFrame);
+
+  const base = { sequence: 1, stepIndex: 0, turnId: "turn-1" };
+  const requested = {
+    type: "actions.requested",
+    data: {
+      ...base,
+      actions: [
+        { kind: "tool-call", callId: "call_1", toolName: "get_weather", input: { city: "Tokyo" } },
+      ],
+    },
+  };
+  const failed = {
+    type: "action.result",
+    data: {
+      ...base,
+      status: "failed",
+      result: { kind: "tool-result", callId: "call_1", output: null },
+      error: { code: "TOOL_ERROR", message: "upstream 500" },
+    },
+  };
+
+  it("flags a failed action.result as a tool error", async () => {
+    const events = await collect(eveAdapter().parse(makeNdjsonResponse([requested, failed])));
+    expect(
+      events.find((e) => (e as { type: string }).type === EventType.TOOL_CALL_RESULT),
+    ).toMatchObject({
+      toolCallId: "call_1",
+      content: '{"error":"upstream 500"}',
+      isError: true,
+      error: "upstream 500",
+    });
+  });
+
+  it("shows the failure on the tool message in the consumer", async () => {
+    const body = [requested, failed].map((e) => JSON.stringify(e)).join("\n") + "\n";
+    const { messages } = await consume(eveAdapter(), makeResponse(body, "application/x-ndjson"));
+    expect(messages.find((m) => m.role === "tool")).toMatchObject({ error: "upstream 500" });
+  });
+
+  it("leaves a completed result unflagged", async () => {
+    const ok = {
+      type: "action.result",
+      data: {
+        ...base,
+        status: "completed",
+        result: { kind: "tool-result", callId: "call_1", output: "sunny" },
+      },
+    };
+    const events = await collect(eveAdapter().parse(makeNdjsonResponse([requested, ok])));
+    const toolResult = events.find(
+      (e) => (e as { type: string }).type === EventType.TOOL_CALL_RESULT,
+    );
+    expect(toolResult).toMatchObject({ content: "sunny" });
+    expect(toolResult).not.toHaveProperty("isError");
   });
 });

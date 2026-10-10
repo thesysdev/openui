@@ -35,6 +35,9 @@ export const eveAdapter = (options: EveAdapterOptions = {}): StreamProtocolAdapt
     const messageId = crypto.randomUUID();
     const streamedSteps = new Set<number>();
     let started = false;
+    // After a RUN_ERROR nothing more is emitted, but the stream is still read to
+    // the turn boundary so `onEvent` sees the rest of the turn.
+    let failed = false;
 
     const start = (): AGUIEvent[] => {
       if (started) return [];
@@ -51,6 +54,10 @@ export const eveAdapter = (options: EveAdapterOptions = {}): StreamProtocolAdapt
         continue;
       }
       options.onEvent?.(event);
+      if (failed) {
+        if (TURN_BOUNDARY_TYPES.has(event.type)) break;
+        continue;
+      }
 
       if (event.type === "actions.requested") {
         for (const action of event.data.actions) {
@@ -71,18 +78,23 @@ export const eveAdapter = (options: EveAdapterOptions = {}): StreamProtocolAdapt
       } else if (event.type === "action.result") {
         const { result, status, error } = event.data;
         if (result.kind !== "tool-result") continue;
-        const content =
-          status === "completed"
-            ? typeof result.output === "string"
-              ? result.output
-              : JSON.stringify(result.output ?? null)
-            : JSON.stringify({ error: error?.message ?? `tool ${status}` });
+        const failed = status !== "completed";
+        const errorText = error?.message ?? `tool ${status}`;
+        const content = failed
+          ? JSON.stringify({ error: errorText })
+          : typeof result.output === "string"
+            ? result.output
+            : JSON.stringify(result.output ?? null);
         yield {
           type: EventType.TOOL_CALL_RESULT,
           messageId: crypto.randomUUID(),
           toolCallId: result.callId,
           content,
           role: "tool",
+          // Flag the failure the way the LangGraph and Vercel adapters do, so the
+          // tool card shows an error instead of a successful result whose text
+          // happens to be an error object.
+          ...(failed ? { isError: true, error: errorText } : {}),
         };
       } else if (event.type === "message.appended") {
         const { messageDelta, stepIndex } = event.data;
@@ -103,11 +115,12 @@ export const eveAdapter = (options: EveAdapterOptions = {}): StreamProtocolAdapt
         };
       } else if (event.type === "turn.failed" || event.type === "session.failed") {
         yield { type: EventType.RUN_ERROR, message: event.data.message };
+        failed = true;
       }
 
       if (TURN_BOUNDARY_TYPES.has(event.type)) break;
     }
 
-    if (started) yield { type: EventType.TEXT_MESSAGE_END, messageId };
+    if (started && !failed) yield { type: EventType.TEXT_MESSAGE_END, messageId };
   },
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { EventType } from "../../../types";
 import { langGraphAdapter } from "../langgraph";
+import { makeResponse } from "./streamTestHelpers";
 
 // ── Helpers ──
 
@@ -529,5 +530,99 @@ describe("langGraphAdapter", () => {
         delta: "split",
       });
     });
+  });
+});
+
+describe("langGraphAdapter — CRLF and empty tool_call_chunks", () => {
+  const ai = (content: string, extra: Record<string, unknown> = {}) => [
+    { type: "AIMessageChunk", id: "run-1", content, ...extra },
+    { langgraph_step: 1, langgraph_node: "agent" },
+  ];
+  const lfBody =
+    sse("metadata", { run_id: "r" }) + sse("messages", ai("Hello ")) + sse("messages", ai("there"));
+  const withoutIds = (events: unknown[]) =>
+    events.map((e) => ({ ...(e as object), messageId: undefined }));
+
+  it("parses CRLF-terminated streams the same as LF", async () => {
+    const lf = await collect(langGraphAdapter().parse(makeSSEResponse(lfBody)));
+    const crlf = await collect(
+      langGraphAdapter().parse(makeSSEResponse(lfBody.replace(/\n/g, "\r\n"))),
+    );
+    expect(lf.map((e) => (e as { type: string }).type)).toContain(EventType.TEXT_MESSAGE_CONTENT);
+    expect(withoutIds(crlf)).toEqual(withoutIds(lf));
+  });
+
+  it("handles a CRLF split across two network reads", async () => {
+    const crlf = lfBody.replace(/\n/g, "\r\n");
+    const cut = crlf.indexOf("\r\n\r\n") + 1; // the first read ends on the "\r"
+    const events = await collect(
+      langGraphAdapter().parse(makeResponse([crlf.slice(0, cut), crlf.slice(cut)])),
+    );
+    const deltas = events
+      .filter((e) => (e as { type: string }).type === EventType.TEXT_MESSAGE_CONTENT)
+      .map((e) => (e as { delta: string }).delta);
+    expect(deltas).toEqual(["Hello ", "there"]);
+  });
+
+  it("stops at an error event: nothing after the RUN_ERROR", async () => {
+    const body =
+      sse("messages", ai("partial")) +
+      sse("error", { error: "GraphRecursionError", message: "Recursion limit reached" }) +
+      sse("messages", ai("late"));
+    const events = await collect(langGraphAdapter().parse(makeSSEResponse(body)));
+    const last = events.at(-1) as { type: string; message: string };
+    expect(last.type).toBe(EventType.RUN_ERROR);
+    expect(last.message).toBe("Recursion limit reached");
+    expect(JSON.stringify(events)).not.toContain("late");
+  });
+
+  it("keeps streaming text when tool_call_chunks is null", async () => {
+    const body =
+      sse("messages", ai("Hello ", { tool_call_chunks: null })) +
+      sse("messages", ai("there")) +
+      sse("end", null);
+    const events = await collect(langGraphAdapter().parse(makeSSEResponse(body)));
+    expect(events).toEqual([
+      expect.objectContaining({ type: EventType.TEXT_MESSAGE_START }),
+      expect.objectContaining({ type: EventType.TEXT_MESSAGE_CONTENT, delta: "Hello " }),
+      expect.objectContaining({ type: EventType.TEXT_MESSAGE_CONTENT, delta: "there" }),
+      expect.objectContaining({ type: EventType.TEXT_MESSAGE_END }),
+    ]);
+  });
+
+  it("announces complete tool_calls when tool_call_chunks is null", async () => {
+    const body = sse(
+      "messages",
+      ai("", {
+        tool_call_chunks: null,
+        tool_calls: [{ id: "call_1", name: "get_weather", args: { city: "Tokyo" } }],
+      }),
+    );
+    const events = await collect(langGraphAdapter().parse(makeSSEResponse(body)));
+    expect(events).toEqual(
+      expect.arrayContaining([
+        { type: EventType.TOOL_CALL_START, toolCallId: "call_1", toolCallName: "get_weather" },
+        { type: EventType.TOOL_CALL_ARGS, toolCallId: "call_1", delta: '{"city":"Tokyo"}' },
+        { type: EventType.TOOL_CALL_END, toolCallId: "call_1" },
+      ]),
+    );
+  });
+
+  it("announces tool_calls that arrive with an empty tool_call_chunks array", async () => {
+    const body = sse(
+      "messages",
+      ai("", {
+        tool_calls: [{ id: "call_1", name: "get_weather", args: { city: "Tokyo" } }],
+        tool_call_chunks: [],
+      }),
+    );
+    const events = await collect(langGraphAdapter().parse(makeSSEResponse(body)));
+    expect(events).toEqual(
+      expect.arrayContaining([
+        { type: EventType.TOOL_CALL_START, toolCallId: "call_1", toolCallName: "get_weather" },
+        { type: EventType.TOOL_CALL_ARGS, toolCallId: "call_1", delta: '{"city":"Tokyo"}' },
+        { type: EventType.TOOL_CALL_END, toolCallId: "call_1" },
+      ]),
+    );
   });
 });
