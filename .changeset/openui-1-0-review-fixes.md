@@ -10,7 +10,6 @@
 OpenUI 1.0 review fixes:
 
 - lang-core: the built-in functions prompt no longer uses react-ui's `Col` in its `@Each` example, and names Query only when tool calls are on.
-- lang-core: `JSONSchemaDef` accepts any JSON Schema keyword, so the CLI's spec for a library that uses `action()` passes to `generateSystemPrompt` without a cast.
+- lang-core: `JSONSchemaDef` adds `type` and `anyOf`, so the CLI's spec for a library that uses `action()` passes to `generateSystemPrompt` without a cast.
 - react-ui: the chat prompt's button rules name `@ToAssistant` and `@OpenUrl`.
-- react-ui: `AgentInterface` takes `onAction`, which receives the actions the chat does not handle itself, such as custom actions from `defineAction`.
 - react-ui, a2ui, assistant-ui, devtools, react-email: the `@openuidev/react-lang` peer window now covers the version this release publishes.
