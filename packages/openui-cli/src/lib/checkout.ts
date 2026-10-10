@@ -14,7 +14,23 @@ const FETCH_TIMEOUT_MS = 30_000;
 const SOURCE_OWNER = "thesysdev";
 const SOURCE_REPO = "openui";
 const SOURCE_REF = "main";
-const SOURCE_GIT_URL = `https://github.com/${SOURCE_OWNER}/${SOURCE_REPO}.git`;
+
+/** A GitHub repository to read from. Omitted means `thesysdev/openui@main`. */
+export type SourceRepo = {
+  owner: string;
+  name: string;
+};
+
+function resolveSourceRepo(repo: SourceRepo | undefined): SourceRepo & { ref: string } {
+  if (
+    !repo ||
+    (repo.owner.toLowerCase() === SOURCE_OWNER && repo.name.toLowerCase() === SOURCE_REPO)
+  ) {
+    return { owner: SOURCE_OWNER, name: SOURCE_REPO, ref: SOURCE_REF };
+  }
+  // Other repositories are read from their default branch.
+  return { ...repo, ref: "HEAD" };
+}
 
 /**
  * Absolute path to a source-repository checkout to read templates from
@@ -42,6 +58,7 @@ function localSourcePath(sourceDir: string, normalizedPath: string): string {
 
 export type SourceFetchOptions = {
   dest?: string;
+  repo?: SourceRepo;
   onRetry?: (info: RetryAttemptInfo) => void;
 };
 
@@ -164,8 +181,11 @@ export async function checkoutSource(
   repoPath: string,
   opts: SourceFetchOptions = {},
 ): Promise<CheckedOutSource> {
-  const normalizedPath = posixRepoPath(repoPath);
-  const sourceDir = localSourceDir();
+  const normalizedPath = posixRepoPath(repoPath).replace(/\/+$/, "");
+  const { owner, name: repoName, ref } = resolveSourceRepo(opts.repo);
+  const isOpenui = ref === SOURCE_REF;
+  const repoLabel = isOpenui ? `${owner}/${repoName}@${ref}` : `${owner}/${repoName}`;
+  const sourceDir = isOpenui ? localSourceDir() : undefined;
   if (sourceDir) {
     const dest = opts.dest ?? fs.mkdtempSync(path.join(os.tmpdir(), "openui-src-"));
     copyDir(localSourcePath(sourceDir, normalizedPath), dest);
@@ -175,18 +195,22 @@ export async function checkoutSource(
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openui-src-"));
     try {
       await runGit(["init", "--quiet"], { cwd: tmpDir });
-      await runGit(["remote", "add", "origin", SOURCE_GIT_URL], { cwd: tmpDir });
-      await runGit(["fetch", "--depth", "1", "--filter=blob:none", "origin", SOURCE_REF], {
+      await runGit(["remote", "add", "origin", `https://github.com/${owner}/${repoName}.git`], {
         cwd: tmpDir,
       });
-      await runGit(["sparse-checkout", "set", "--cone", normalizedPath], { cwd: tmpDir });
+      await runGit(["fetch", "--depth", "1", "--filter=blob:none", "origin", ref], {
+        cwd: tmpDir,
+      });
+      if (normalizedPath) {
+        await runGit(["sparse-checkout", "set", "--cone", normalizedPath], { cwd: tmpDir });
+      }
       await runGit(["checkout", "--quiet", "FETCH_HEAD"], { cwd: tmpDir });
 
-      const extracted = path.join(tmpDir, ...normalizedPath.split("/"));
+      const extracted = normalizedPath ? path.join(tmpDir, ...normalizedPath.split("/")) : tmpDir;
       if (!fs.existsSync(extracted)) {
         throw new CreateError(
           "source_checkout",
-          `Path "${normalizedPath}" was not in ${SOURCE_OWNER}/${SOURCE_REPO}@${SOURCE_REF}.`,
+          `Path "${normalizedPath}" was not in ${repoLabel}.`,
           "filesystem",
           "SOURCE_MISSING",
         );
@@ -205,5 +229,6 @@ export async function checkoutSource(
 function copyDir(from: string, to: string) {
   fs.rmSync(to, { recursive: true, force: true });
   fs.mkdirSync(path.dirname(to), { recursive: true });
-  fs.cpSync(from, to, { recursive: true });
+  const gitDir = path.join(from, ".git");
+  fs.cpSync(from, to, { recursive: true, filter: (src) => src !== gitDir });
 }

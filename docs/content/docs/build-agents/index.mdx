@@ -1,46 +1,85 @@
 ---
 title: Overview
-description: Add OpenUI Lang to an existing agent framework or chat UI.
+description: Build agents that respond with interactive interfaces made from your components.
 ---
 
-Add Generative UI to an agent built with any chat framework. Keep the existing conversation experience and render agent responses with OpenUI Lang.
+import { AgentTurnDiagram } from "@/components/agent-turn-diagram";
 
-OpenUI works with all agent frameworks and chat UIs. Instead of returning plain text or Markdown, the agent returns OpenUI Lang. The chat application passes that response to the OpenUI Lang renderer, which turns it into an interactive interface.
+Build an agent that answers with charts, forms, tables, and dashboards made from your own components, instead of plain text or Markdown.
 
-Every integration has two parts:
+<div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border">
+  <video
+    src="/videos/openui-introduction.mp4"
+    poster="/videos/openui-introduction-poster.jpg"
+    aria-label="An OpenUI agent answering a question with a generated interface of stat cards and tables"
+    autoPlay
+    muted
+    loop
+    playsInline
+    preload="metadata"
+    className="block h-auto w-full"
+  />
+</div>
 
-1. Add the instructions generated from the component library to the agent's system prompt.
-2. Render the streamed OpenUI Lang response in the chat UI.
+[Try the live demo →](/chat)
 
-<img
-  src="/images/build-agents-architecture.svg"
-  alt="Architecture diagram showing an existing chat UI sending a request to its backend, which calls model providers directly. The model returns OpenUI Lang, which the renderer displays in the chat UI."
-/>
+## Quickstart
 
-The backend can route model requests through the [Gateway](/docs/gateway) to correct invalid OpenUI Lang and fall back to another provider when a model provider is unavailable.
+To create a new agent app, run the OpenUI CLI and customize the project it generates. You need Node.js 20 or later:
+
+```bash
+npx @openuidev/cli@latest create
+```
+
+## How it works
+
+OpenUI works with any agent framework and chat UI. The agent writes its responses in [OpenUI Lang](/docs/openui-lang), and the chat UI renders them with the OpenUI renderer. The agent loop, tools, and conversation stay the way they are.
+
+<AgentTurnDiagram showSteps={false} />
+
+Every agent needs two changes:
+
+1. **The backend** adds instructions generated from the component library to the agent's system prompt, so the model writes OpenUI Lang.
+2. **The chat UI** renders the streamed OpenUI Lang with the renderer, and sends user interactions in the generated interface back to the agent.
+
+For a step-by-step walkthrough of one turn, read the [full explanation](/docs/build-agents/how-it-works).
 
 ## Set up the backend
 
 <Cards>
-  <Card title="Backend setup" href="/docs/build-agents/backend-setup">
-    Define the component library, add its generated instructions to the agent, and improve
-    reliability with Gateway.
+  <Card title="Set up UI generation" href="/docs/build-agents/ui-generation">
+    Define the component library and add its generated instructions to the agent.
+  </Card>
+  <Card title="Tools: agent-side vs. UI-side" href="/docs/build-agents/tools">
+    Fetch data in the agent before it responds, or let the generated UI fetch it live.
+  </Card>
+  <Card title="Conversation history" href="/docs/build-agents/conversation-history">
+    Send earlier turns, tool results, and user actions back to the model.
+  </Card>
+  <Card title="Agent frameworks" href="/docs/build-agents/frameworks/vercel-ai-sdk">
+    Complete guides for the Vercel AI SDK, LangGraph Platform, Vercel Eve, and Pi.
   </Card>
 </Cards>
 
 ## Choose a chat UI
 
+[Compare the options](/docs/build-agents/chat-ui) to see what each one handles for you.
+
 <Cards>
+  <Card title="Agent Interface" href="/docs/agent/getting-started/introduction">
+    OpenUI's complete React chat UI, with threads, streaming, tool activity, and actions built in.
+  </Card>
   <Card title="assistant-ui" href="/docs/build-agents/assistant-ui">
-    Keep assistant-ui in charge of the conversation and tool lifecycle while OpenUI renders its
-    generated interfaces.
+    Keep assistant-ui in charge of the conversation while OpenUI renders the assistant's responses.
   </Card>
   <Card title="CopilotKit" href="/docs/build-agents/copilotkit">
-    Add OpenUI rendering to an application whose agent experience is built with CopilotKit.
+    Add OpenUI rendering to an application whose chat is built with CopilotKit.
   </Card>
-  <Card title="Custom Chat UI" href="/docs/build-agents/custom-chat-ui">
-    Connect an existing message list and composer directly to the OpenUI Lang renderer.
+  <Card title="Custom chat UI" href="/docs/build-agents/custom-chat-ui">
+    Connect an existing message list and composer directly to the OpenUI renderer.
   </Card>
 </Cards>
 
-Starting without an existing chat UI? Use [Agent Interface](/docs/agent/getting-started/introduction) for a complete React chat experience.
+## Run it in production
+
+Route model requests through [Gateway](/docs/gateway) to correct invalid OpenUI Lang as it streams and fail over to another provider when one is unavailable. See [OpenUI in production](/docs/production) for Autofix, Reliability Monitoring, and deployment.

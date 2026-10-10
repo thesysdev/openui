@@ -4,7 +4,7 @@ import {
   API_REFERENCE_URL,
   COOKBOOKS_URL,
   DEMOS_URL,
-  EXAMPLES_URL,
+  INTEGRATIONS_URL,
   isPathWithin,
 } from "@/lib/docs-navigation";
 import { siteConfig } from "@/lib/layout.shared";
@@ -22,7 +22,7 @@ import { ThemeToggle } from "./theme-toggle";
 const tabs = [
   { title: "Docs", url: "/docs" },
   { title: "Cookbooks", url: COOKBOOKS_URL },
-  { title: "Examples", url: EXAMPLES_URL },
+  { title: "Integrations", url: INTEGRATIONS_URL },
   { title: "Demos", url: DEMOS_URL },
   { title: "API Reference", url: API_REFERENCE_URL },
 ];

@@ -11,7 +11,7 @@ import {
   SitePrimaryNav,
 } from "@/components/site-primary-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { BookOpen, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -84,8 +84,11 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
      rather than trailing loose underneath it. Benchmarks is deliberately not one
      of them: it is duplicated in the nav on purpose while it is new, and the
      tray already lists it under Other, so the second copy is dropped here. */
+  /* Documentation is the one link most visitors open the menu for, so it sits in
+     the sticky footer next to GitHub instead of being folded in with the rest. */
+  const docsLink = leafItems.find((leaf) => leaf.href === "/docs");
   const covered = new Set(sections.flatMap((section) => section.items.map((item) => item.href)));
-  const extras = leafItems.filter((leaf) => !covered.has(leaf.href));
+  const extras = leafItems.filter((leaf) => !covered.has(leaf.href) && leaf !== docsLink);
   if (extras.length > 0 && sections.length > 0) {
     const last = sections[sections.length - 1];
     sections[sections.length - 1] = { ...last, items: [...last.items, ...extras] };
@@ -191,18 +194,21 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
             })}
 
             <div className={styles.mobileTrayFooter}>
+              {docsLink && (
+                <Link
+                  className={styles.mobileTrayDocsLink}
+                  href={docsLink.href}
+                  onClick={onClose}
+                  aria-label={docsLink.title}
+                >
+                  <BookOpen size={18} aria-hidden="true" />
+                  <span>Docs</span>
+                </Link>
+              )}
               <GitHubButton
                 variant="desktopGlow"
                 compact
                 href="https://github.com/thesysdev/openui"
-                arrow={
-                  <ArrowRight
-                    className={styles.mobileTrayArrow}
-                    size={18}
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
-                }
               />
             </div>
           </div>

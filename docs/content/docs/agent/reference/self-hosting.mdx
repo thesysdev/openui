@@ -184,7 +184,7 @@ const llm = fetchLLM({
 });
 ```
 
-To let the model call tools, declare provider-format tools on the request, run the ones it asks for, and emit the matching `TOOL_CALL_START` / `TOOL_CALL_ARGS` / `TOOL_CALL_END` / `TOOL_CALL_RESULT` events between the text events, looping back to the provider with each result until it returns a turn with no tool calls. (`TOOL_CALL_RESULT.content` is always a string.) See [Tools](/docs/agent/core-concepts/tools).
+To let the model call tools, declare provider-format tools on the request, run the ones it asks for, and emit the matching `TOOL_CALL_START` / `TOOL_CALL_ARGS` / `TOOL_CALL_END` / `TOOL_CALL_RESULT` events between the text events, looping back to the provider with each result until it returns a turn with no tool calls. (`TOOL_CALL_RESULT.content` is always a string.) See [Tools](/docs/build-agents/tools).
 
 ## 2. Stream — your route must stream
 
