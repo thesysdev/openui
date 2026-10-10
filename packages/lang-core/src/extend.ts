@@ -10,7 +10,7 @@ import type {
   PromptOptions,
 } from "./library";
 import { isReactiveSchema, markReactive } from "./reactive";
-import { getUnionOptions, getZodDef, schemaIdTags, tagSchemaId, unwrap } from "./signature";
+import { copySchemaTags, getUnionOptions, getZodDef, unwrap } from "./signature";
 
 // ─── library.extend ─────────────────────────────────────────────────────────
 
@@ -25,7 +25,7 @@ export function extendDefinition<C>(
   base: LibraryDefinition<C, AnyAction>,
   ext: LibraryExtension<C, AnyAction>,
 ): { definition: LibraryDefinition<C, AnyAction>; removed: string[] } {
-  const changes = checkComponentChanges(base, ext.components);
+  const changes = applyComponentVerbs(base, ext.components);
   const slots = findContentSlots(changes);
   const placements = placeInSlots(changes, slots);
   return {
@@ -52,7 +52,7 @@ interface ComponentChanges<C> {
 }
 
 // add [Card], override [Image], remove ["Frame"] -> Stack, Text, Image (new), Card
-function checkComponentChanges<C>(
+function applyComponentVerbs<C>(
   base: LibraryDefinition<C, AnyAction>,
   verbs: LibraryExtension<C, AnyAction>["components"] = {},
 ): ComponentChanges<C> {
@@ -118,7 +118,9 @@ function placeInSlots<C>(changes: ComponentChanges<C>, slots: string[]): Map<str
   for (const [name, requested] of changes.slotRequests) {
     for (const slot of requested) {
       const path = resolveSlot(slot, name, slots, changes.byName);
-      placements.set(path, [...(placements.get(path) ?? []), name]);
+      const placed = placements.get(path) ?? [];
+      // slots: ["Stack.children", "Stack"] name one path; Card joins it once
+      if (!placed.includes(name)) placements.set(path, [...placed, name]);
     }
   }
   return placements;
@@ -133,43 +135,39 @@ function resolveSlot(slot: string, name: string, slots: string[], byName: Map<st
   const what = `Slot "${slot}" for "${name}"`;
   if (!byName.has(parent)) fail(`${what}: "${parent}" is not in the library.`);
   if (!candidates.length)
-    fail(`${what}: "${parent}" has no content slot (a prop holding a union of components).`);
+    fail(
+      `${what}: "${parent}" has no content slot (a prop that is a union of components, or an optional or array of one).`,
+    );
   return fail(`${what} must be one content slot. Candidates: ${candidates.join(", ")}.`);
 }
 
 /** The prop being rebuilt, its content-slot union if any, and the schemas slotted into it. */
-type Slot = { path: string; union: unknown; added: z.$ZodObject[] };
+type Slot = { path: string; union: unknown; added: unknown[] };
 
 // Zod parents hold their children's schema objects, not their names, so every parent of an
 // overridden, removed or slotted-in component is cloned to point at the final schemas.
-// Schemas with nothing to change keep their identity.
+// Schemas with nothing to change keep their identity. Built in two passes so cycles work:
+// every clone exists (with an empty shape) before any shape is filled, so Card(body: Stack)
+// slotted into Stack.children points at the new Stack, and the new Stack at the new Card.
 function rebuildComponents<C>(
-  { byName, nameOf, removed }: ComponentChanges<C>,
+  changes: ComponentChanges<C>,
   placements: Map<string, string[]>,
 ): Comp<C>[] {
-  const done = new Map<string, Comp<C>>();
-
-  // "Stack" -> Stack's props with every child component swapped for its final schema
-  const finalProps = (name: string): z.$ZodObject => {
-    const built = done.get(name);
-    if (built) return built.props;
+  const { byName, nameOf, removed } = changes;
+  const final = new Map<string, Comp<C>>(byName);
+  const shapes = new Map<string, Record<string, unknown>>();
+  for (const name of findRebuilt(changes, placements)) {
     const comp = byName.get(name)!;
-    done.set(name, comp); // a component nested in itself sees its current schema
-    const shape = comp.props.shape as Record<string, unknown>;
-    const next: Record<string, unknown> = {};
-    let changed = false;
-    for (const [prop, schema] of Object.entries(shape)) {
-      const path = `${name}.${prop}`;
-      const added = (placements.get(path) ?? []).map(finalProps);
-      next[prop] = rebind(schema, { path, union: slotUnion(schema, nameOf), added }, new Map());
-      if (next[prop] !== schema) changed = true;
-    }
-    if (!changed) return comp.props;
-    const props = cloneSchema(comp.props, { shape: next }) as z.$ZodObject;
-    tagSchemaId(props, name);
-    done.set(name, { ...comp, props, ref: props as unknown as Comp<C>["ref"] });
-    return props;
-  };
+    const shape: Record<string, unknown> = {};
+    const props = cloneSchema(comp.props, {
+      get shape() {
+        return shape; // filled below, read by zod only after
+      },
+    }) as z.$ZodObject;
+    final.set(name, { ...comp, props, ref: props as unknown as Comp<C>["ref"] });
+    shapes.set(name, shape);
+  }
+  const finalProps = (name: string) => final.get(name)!.props;
 
   const onlyType = (name: string | undefined, slot: Slot): never =>
     fail(`Cannot remove "${name}": it is the only type allowed in ${slot.path}.`);
@@ -185,31 +183,84 @@ function rebuildComponents<C>(
     if (!def || def.type === "lazy") return schema;
     if (memo.has(schema)) return memo.get(schema);
     memo.set(schema, schema); // cycle guard
-
-    let fields = def;
-    const options = getUnionOptions(schema);
-    if (options?.some((o) => nameOf.has(o))) {
-      // Text | Image | Frame, Frame removed and Card slotted in -> Text | Image | Card
-      const kept = options.filter((o) => !removed.has(nameOf.get(o) ?? ""));
-      if (!kept.length) onlyType(nameOf.get(options[0]), slot);
-      const added = schema === slot.union ? slot.added.filter((a) => !kept.includes(a)) : [];
-      fields = { ...def, options: [...kept, ...added] };
-    }
+    const walk = (child: unknown) => rebind(child, slot, memo);
 
     const patch: Record<string, unknown> = {};
-    const walk = (child: unknown) => rebind(child, slot, memo);
-    for (const [key, value] of Object.entries(fields)) {
-      if (key === "checks") continue;
+    const options = getUnionOptions(schema);
+    const holdsComponents = options?.some((o) => nameOf.has(o));
+    for (const [key, value] of Object.entries(def)) {
+      if (key === "checks" || (holdsComponents && key === "options")) continue;
       const next = rebindField(key, value, walk);
-      if (!sameField(next, def[key])) patch[key] = next;
+      if (!sameField(next, value)) patch[key] = next;
+    }
+    if (holdsComponents) {
+      // Text | Image | Frame, Frame removed and Card slotted in -> Text | Image | Card
+      const kept = options!.filter((o) => !removed.has(nameOf.get(o) ?? "")).map(walk);
+      const added = schema === slot.union ? slot.added.filter((a) => !kept.includes(a)) : [];
+      if (!kept.length && !added.length) onlyType(nameOf.get(options![0]), slot);
+      const next = [...kept, ...added];
+      if (!sameField(next, options)) patch.options = next;
     }
     const out = Object.keys(patch).length ? cloneSchema(schema, patch) : schema;
     memo.set(schema, out);
     return out;
   };
 
-  for (const name of byName.keys()) finalProps(name);
-  return [...byName.keys()].map((name) => done.get(name)!);
+  for (const [name, shape] of shapes) {
+    for (const [prop, schema] of Object.entries(byName.get(name)!.props.shape)) {
+      const path = `${name}.${prop}`;
+      const added = (placements.get(path) ?? []).map(finalProps);
+      shape[prop] = rebind(schema, { path, union: slotUnion(schema, nameOf), added }, new Map());
+    }
+  }
+  return [...final.values()];
+}
+
+// Stack gets a slotted-in Card, Frame nests a removed or overridden Image, or a component nests
+// one of those (repeated until nothing changes, so cycles settle) -> those names
+function findRebuilt<C>(
+  { byName, nameOf, removed }: ComponentChanges<C>,
+  placements: Map<string, string[]>,
+): Set<string> {
+  const nested = new Map<string, Set<unknown>>();
+  for (const [name, comp] of byName) {
+    const found = new Set<unknown>();
+    for (const schema of Object.values(comp.props.shape)) nestedComponents(schema, nameOf, found);
+    nested.set(name, found);
+  }
+  const stale = (s: unknown) => {
+    const name = nameOf.get(s)!;
+    return removed.has(name) || byName.get(name)!.props !== s;
+  };
+  const slotted = new Set([...placements.keys()].map((path) => path.split(".")[0]!));
+  const rebuilt = new Set([...byName.keys()].filter((n) => slotted.has(n)));
+  for (const [name, found] of nested) if ([...found].some(stale)) rebuilt.add(name);
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const [name, found] of nested) {
+      if (rebuilt.has(name) || ![...found].some((s) => rebuilt.has(nameOf.get(s)!))) continue;
+      rebuilt.add(name);
+      grew = true;
+    }
+  }
+  return rebuilt;
+}
+
+// Card(body: Stack, tags?: (Text | Image)[]) -> Stack, Text, Image; stops at each component
+function nestedComponents(
+  schema: unknown,
+  nameOf: Map<unknown, string>,
+  found: Set<unknown>,
+  seen = new Set<unknown>(),
+): void {
+  if (nameOf.has(schema)) return void found.add(schema);
+  const def = getZodDef(schema);
+  if (!def || def.type === "lazy" || seen.has(schema)) return;
+  seen.add(schema);
+  for (const [key, value] of Object.entries(def)) {
+    if (key === "checks") continue;
+    rebindField(key, value, (child) => nestedComponents(child, nameOf, found, seen));
+  }
 }
 
 // A def field holds a schema, an array of schemas, a shape of schemas, or plain data
@@ -234,15 +285,14 @@ function sameField(next: unknown, old: any): boolean {
 function cloneSchema(s: unknown, patch: Record<string, unknown>): unknown {
   const schema = s as z.$ZodType;
   const copy = z.clone(schema, z.util.mergeDefs(schema._zod.def, patch) as any);
-  const tag = schemaIdTags.get(schema);
-  if (tag) schemaIdTags.set(copy, tag);
+  copySchemaTags(schema, copy);
   if (isReactiveSchema(schema)) markReactive(copy);
   const meta = z.globalRegistry.get(schema);
   if (meta) z.globalRegistry.add(copy, meta);
   return copy;
 }
 
-// Media: ["Image", "Frame"] with Frame removed -> Media: ["Image"]; a group left empty goes
+// Media: ["Image", "Frame"] with Frame removed -> Media: ["Image"]; a group left empty is dropped
 function withoutRemoved(groups: ComponentGroup[] | undefined, removed: Set<string>) {
   return groups
     ?.map((g) => ({ ...g, components: g.components.filter((n) => !removed.has(n)) }))
