@@ -3,15 +3,9 @@
 import type { AssistantMessage } from "@openuidev/react-headless";
 import { useThread } from "@openuidev/react-headless";
 import type { ActionEvent, Library } from "@openuidev/react-lang";
-import { BuiltinActionType, Renderer } from "@openuidev/react-lang";
+import { buildMessage, BuiltinActionType, Renderer } from "@openuidev/react-lang";
 import { useCallback, useMemo } from "react";
-import { getLastAssistantMessageId } from "../../utils/messages";
-import {
-  separateContentAndContext,
-  wrapContent,
-  wrapContentWithHeader,
-  wrapContext,
-} from "../../utils/sentinelParser";
+import { getLastAssistantMessageId, readMessage } from "../../utils/messages";
 import { AssistantMessageContainer } from "./AssistantMessageContainer";
 
 /** Renders the OpenUI-Lang response for one assistant message. */
@@ -30,55 +24,48 @@ export const GenUIAssistantMessage = ({
   const lastAssistantId = useMemo(() => getLastAssistantMessageId(messages), [messages]);
   const isStreaming = isRunning && lastAssistantId === message.id;
 
-  // Strip the inline sentinels and separate any persisted form-state.
-  const { content, contextString, contentHeader } = useMemo(
+  // Strip the marker lines and separate any persisted form-state.
+  const { content, context, attributes } = useMemo(
     () =>
       message.content
-        ? separateContentAndContext(message.content)
-        : { content: null, contextString: null, contentHeader: undefined },
-    [message.content],
+        ? readMessage(message.content, isStreaming)
+        : { content: null, context: null, attributes: {} },
+    [message.content, isStreaming],
   );
 
   const initialState = useMemo(() => {
-    if (!contextString) return undefined;
-    try {
-      const parsed = JSON.parse(contextString);
-      if (Array.isArray(parsed) && typeof parsed[0] === "object") return parsed[0];
-      if (typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
-      return undefined;
-    } catch {
-      return undefined;
-    }
-  }, [contextString]);
+    if (Array.isArray(context) && typeof context[0] === "object") return context[0];
+    if (context && typeof context === "object" && !Array.isArray(context)) return context;
+    return undefined;
+  }, [context]);
 
-  // Persist form state into the inline-wrapped message content. The original
-  // header line (which may include `libraryVersion` and telemetry tags emitted
-  // by the backend) is reused so attrs survive the persist round-trip.
+  // Persist form state, keeping the content attributes, e.g. ?libraryVersion=0.5&thesys=true
   const handleStateUpdate = useCallback(
     (state: Record<string, any>) => {
       const hasState = Object.keys(state).length > 0;
-      const contentPart = wrapContentWithHeader(content ?? "", contentHeader);
-      const fullMessage = hasState
-        ? contentPart + wrapContext(JSON.stringify([state]))
-        : contentPart;
+      const fullMessage = buildMessage({
+        content: content ?? "",
+        attributes,
+        context: hasState ? [state] : undefined,
+      });
       updateMessage({ ...message, content: fullMessage });
     },
-    [updateMessage, message, content, contentHeader],
+    [updateMessage, message, content, attributes],
   );
 
   // Build LLM-friendly message from action + form state, then dispatch
   const handleAction = useCallback(
     (event: ActionEvent) => {
       if (event.type === BuiltinActionType.ContinueConversation) {
-        const contentPart = event.humanFriendlyMessage
-          ? wrapContent(event.humanFriendlyMessage)
-          : "";
         const messageCtx: (string | object)[] = [`User clicked: ${event.humanFriendlyMessage}`];
         if (event.formState) {
           messageCtx.push(event.formState);
         }
-        const contextPart = wrapContext(JSON.stringify(messageCtx));
-        const llmMessage = `${contentPart}${contextPart}`;
+        const built = buildMessage({ content: event.humanFriendlyMessage, context: messageCtx });
+        // No message: stored without the content line, e.g. "\n]]>openui:context\n[...]"
+        const llmMessage = event.humanFriendlyMessage
+          ? built
+          : built.slice(built.indexOf("\n") + 1);
 
         processMessage({
           role: "user",

@@ -30,7 +30,7 @@ export interface RendererQueryState {
 }
 
 export interface RendererProps {
-  /** OpenUI Lang code or the complete Cloud response bundle. */
+  /** Raw response: openui-lang code, or a stored message with protocol markers (see buildMessage). */
   response: string | null;
   /** Component library from createLibrary(). */
   library: Library;

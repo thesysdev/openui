@@ -39,6 +39,7 @@ function unwrapFieldValue(v: unknown): unknown {
 }
 
 export interface UseOpenUIStateOptions {
+  /** Raw response: openui-lang code, or a stored message with protocol markers. */
   response: string | null;
   library: Library;
   isStreaming: boolean;
@@ -74,7 +75,7 @@ export interface OpenUIState {
  */
 export function useOpenUIState(
   {
-    response,
+    response: raw,
     library,
     isStreaming,
     onAction,
@@ -86,7 +87,8 @@ export function useOpenUIState(
   }: UseOpenUIStateOptions,
   renderDeep: (value: unknown) => React.ReactNode,
 ): OpenUIState {
-  const bundle = useMemo(() => parseResponseBundle(response, isStreaming), [response, isStreaming]);
+  // Strip protocol markers and read Cloud scripts; plain responses pass through unchanged.
+  const bundle = useMemo(() => parseResponseBundle(raw, isStreaming), [raw, isStreaming]);
   const blocked = isStreaming || !bundle.complete || !!bundle.error;
   // Bare DSL keeps its existing manager, cached results and imperative actions while streaming.
   const bundleBlocked = bundle.isBundle && blocked;
@@ -484,7 +486,7 @@ export function useOpenUIState(
   // Keep error collection first: its effect refreshes this ref before the
   // observability effect publishes the terminal stream event.
   const { errorsRef, errorRevision } = useOpenUIErrors({
-    response,
+    response: bundle.program,
     isStreaming,
     result,
     evaluatedResult,

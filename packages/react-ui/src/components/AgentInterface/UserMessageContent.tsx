@@ -1,7 +1,7 @@
 import type { InputContent, Message } from "@openuidev/react-headless";
 import clsx from "clsx";
 import { useState } from "react";
-import { separateContentAndContext } from "../../utils/sentinelParser";
+import { readMessage } from "../../utils/messages";
 
 /**
  * Renders the content of a user message.
@@ -255,8 +255,8 @@ export const UserMessageContent = ({ message }: { message: Message }) => {
   const content = message.content;
 
   if (typeof content === "string") {
-    // Strip XML wrapper tags (<content>, <context>) so the bubble shows clean text.
-    const { content: humanText } = separateContentAndContext(content);
+    // Strip the marker lines (or older XML tags) so the bubble shows clean text.
+    const { content: humanText } = readMessage(content);
     return <>{humanText}</>;
   }
 

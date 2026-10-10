@@ -1,11 +1,20 @@
+import { parseMessage } from "@openuidev/lang-core";
+
 /** Metadata emitted by OpenUI Cloud. */
 export interface ResponseMetadata {
   name?: string;
 }
 
-const CONTENT = "]]>openui:content";
+// OpenUI Cloud writes its scripts after the program: `]]>openui:scripts {"count":1}`, then
+// `[{"name":"sales_total","code":"async ({ tools }) => …"}]`. This file cuts that section out;
+// parseMessage reads the rest (content, attributes, end).
 const SCRIPTS = "]]>openui:scripts";
-const END = "]]>openui:end";
+const CONTENT_LINE = /^\]\]>openui:content(?:\?.*)?\r?$/;
+
+interface Scripts {
+  names: Set<string>;
+  revision: string;
+}
 
 // Markers inside DSL/JSON strings are ordinary content.
 function markerIndex(text: string, partial = false): number {
@@ -27,99 +36,110 @@ function markerIndex(text: string, partial = false): number {
   return -1;
 }
 
-export function parseResponseBundle(response: string | null, streaming: boolean) {
-  let program = response ?? "";
-  const metadata: ResponseMetadata = {};
-  const scripts = new Set<string>();
-  let scriptRevision: string | undefined;
-  let error: string | undefined;
-  let complete = true;
-  let framed = false;
-  let body = program.trimStart();
-  if (body && (body.startsWith(CONTENT) || CONTENT.startsWith(body))) {
-    framed = true;
-    // A new content section replaces a progressive preview or failed retry.
-    const sections = [...body.matchAll(/^\]\]>openui:content(?:\?[^\r\n]*)?\r?$/gm)];
-    const last = sections[sections.length - 1];
-    if (last) body = body.slice(last.index);
-    const newline = body.indexOf("\n");
-    if (newline < 0)
-      return {
-        isBundle: true,
-        program: "",
-        metadata,
-        scripts,
-        complete: false,
-        error: streaming ? undefined : "Incomplete response header",
-      };
-    const header = body.slice(0, newline).trimEnd();
-    const name = new URLSearchParams(header.slice(CONTENT.length).replace(/^\?/, "")).get("name");
-    if (name !== null) metadata.name = name;
-    body = body.slice(newline + 1);
-  }
-  program = body;
-  const marker = markerIndex(body, framed && streaming);
-  const isBundle = framed || marker >= 0;
-  if (!isBundle) {
-    return { program: response ?? "", metadata, scripts, complete, isBundle, error };
-  }
-  if (marker >= 0) {
-    program = body.slice(0, marker);
-    let tail = body.slice(marker).trimEnd();
-    if (tail.startsWith(SCRIPTS)) {
-      complete = false;
-      const newline = tail.indexOf("\n");
-      if (newline >= 0) {
-        try {
-          const header = JSON.parse(tail.slice(SCRIPTS.length, newline));
-          let payload = tail.slice(newline + 1);
-          const end = markerIndex(payload);
-          if (end >= 0) {
-            tail = payload.slice(end).trim();
-            payload = payload.slice(0, end);
-          } else tail = "";
-          const values: unknown = JSON.parse(payload);
-          if (
-            !Array.isArray(values) ||
-            !Number.isSafeInteger(header.count) ||
-            header.count !== values.length
-          )
-            throw new Error("Invalid script count");
-          for (const script of values) {
-            if (
-              !script ||
-              typeof script.name !== "string" ||
-              !script.name ||
-              typeof script.code !== "string" ||
-              scripts.has(script.name)
-            )
-              throw new Error("Invalid or duplicate script definition");
-            scripts.add(script.name);
-          }
-          scriptRevision = JSON.stringify(
-            values
-              .map((script) => ({ name: script.name as string, code: script.code as string }))
-              .sort((a, b) => a.name.localeCompare(b.name)),
-          );
-          complete = framed ? tail === END : tail === "" || tail === END;
-          if (!complete) error = "Incomplete response bundle";
-        } catch {
-          error = "Invalid scripts bundle";
-        }
-      }
-    } else {
-      complete = tail === END;
-      if (!complete) error = "Incomplete response bundle";
+// Where the winning content begins: after the last content line. A line still streaming does not count yet.
+function contentStart(text: string, streaming: boolean): number {
+  let start = -1;
+  for (let i = 0; i < text.length;) {
+    const newline = text.indexOf("\n", i);
+    const lineEnd = newline < 0 ? text.length : newline;
+    if (text.startsWith("]]>openui:content", i) && CONTENT_LINE.test(text.slice(i, lineEnd))) {
+      if (newline >= 0) start = newline + 1;
+      else if (!streaming) start = text.length;
     }
-  } else if (framed) complete = false;
-  if (!complete && !streaming) error ??= "Incomplete response bundle";
+    if (newline < 0) break;
+    i = newline + 1;
+  }
+  return start;
+}
+
+function readScripts(header: string, payload: string): Scripts | null {
+  try {
+    const { count } = JSON.parse(header);
+    const values: unknown = JSON.parse(payload);
+    if (!Array.isArray(values) || !Number.isSafeInteger(count) || count !== values.length)
+      return null;
+    const names = new Set<string>();
+    for (const script of values) {
+      if (
+        !script ||
+        typeof script.name !== "string" ||
+        !script.name ||
+        typeof script.code !== "string" ||
+        names.has(script.name)
+      )
+        return null;
+      names.add(script.name);
+    }
+    const revision = JSON.stringify(
+      values
+        .map((script) => ({ name: script.name as string, code: script.code as string }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    );
+    return { names, revision };
+  } catch {
+    return null;
+  }
+}
+
+/** Reads an OpenUI Cloud response: a stored message (see parseMessage) plus its scripts section. */
+export function parseResponseBundle(response: string | null, streaming: boolean) {
+  let text = response ?? "";
+  const start = contentStart(text, streaming);
+  const framed = start >= 0;
+  const body = Math.max(start, 0);
+  // The scripts section is the first marker after the winning content, as Cloud writes it.
+  let section = false;
+  let scripts: Scripts | null = null;
+  let invalid = false;
+  const at = markerIndex(text.slice(body), framed && streaming);
+  if (at >= 0) {
+    const from = body + at;
+    const tail = text.slice(from);
+    if (tail.startsWith(SCRIPTS) || (framed && streaming && SCRIPTS.startsWith(tail))) {
+      section = true;
+      const newline = text.indexOf("\n", from);
+      let to = text.length;
+      if (newline >= 0) {
+        const next = markerIndex(text.slice(newline + 1));
+        if (next >= 0) to = newline + 1 + next;
+        scripts = readScripts(
+          text.slice(from + SCRIPTS.length, newline),
+          text.slice(newline + 1, to),
+        );
+        invalid = !scripts;
+      }
+      // The newline before the section belongs to its marker (spec 7.2), unless the program is empty.
+      let before = text.slice(0, from);
+      if (from > body) before = before.replace(/\r?\n$/, "");
+      const after = text.slice(to);
+      text = after ? `${before}\n${after}` : before;
+    }
+  }
+
+  const { content, attributes, end } = parseMessage(text, { streaming });
+  const metadata: ResponseMetadata = {};
+  if (!framed && !section && !end) {
+    const error: string | undefined = undefined;
+    return {
+      program: content,
+      metadata,
+      scripts: new Set<string>(),
+      complete: true,
+      isBundle: false,
+      error,
+    };
+  }
+  if (framed && attributes.name !== undefined) metadata.name = attributes.name;
+  // A framed response is finished at its end line; an unframed one (program, then scripts) without one.
+  let error = invalid ? "Invalid scripts bundle" : undefined;
+  if (!error && !end && (framed || !scripts)) error = "Incomplete response bundle";
   return {
-    program,
+    program: content,
     metadata,
-    scripts,
-    complete,
-    isBundle,
+    scripts: scripts?.names ?? new Set<string>(),
+    complete: !error,
+    isBundle: true,
     error: streaming ? undefined : error,
-    ...(scripts.size ? { scriptRevision } : {}),
+    ...(scripts?.names.size ? { scriptRevision: scripts.revision } : {}),
   };
 }
