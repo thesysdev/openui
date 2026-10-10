@@ -16,6 +16,7 @@ export type {
   Library,
   LibraryActionEvent,
   LibraryDefinition,
+  LibraryExtension,
   LibraryJSONSchema,
   PromptOptions,
   SubComponentOf,

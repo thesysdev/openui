@@ -9,6 +9,7 @@ export type {
   DefinedComponent,
   Library,
   LibraryDefinition,
+  LibraryExtension,
   PromptOptions,
   SubComponentOf,
   ToolDescriptor,

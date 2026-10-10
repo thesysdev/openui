@@ -1,5 +1,6 @@
 import { object as zObject } from "zod/v4";
 import * as z from "zod/v4/core";
+import { extendDefinition, warnOnStaleNames } from "./extend";
 import type { DefinedAction, DefinedFunction } from "./functions";
 import { ACTION_DEFS, isBuiltin, isReservedCall } from "./parser/builtins";
 import type { ComponentPromptSpec, LibrarySpec, PromptSpec, ToolSpec } from "./parser/prompt";
@@ -156,15 +157,15 @@ function buildCallSpecs(
 
 // ─── Library ────────────────────────────────────────────────────────────────
 
-type AnyAction = DefinedAction<any, string>;
+export type AnyAction = DefinedAction<any, string>;
 
 export interface Library<C = unknown, A extends AnyAction = AnyAction> {
   readonly components: Record<string, DefinedComponent<any, C>>;
   readonly componentGroups: ComponentGroup[] | undefined;
-  /** Library functions keyed by name. Empty when the library has none. */
-  readonly functions: Record<string, DefinedFunction<any, any>>;
-  /** Custom actions keyed by name. Empty when the library has none. */
-  readonly actions: { readonly [K in A as K["name"]]: K };
+  /** Library functions keyed by name; optional so hand-built libraries without them still type-check. */
+  readonly functions?: Record<string, DefinedFunction<any, any>>;
+  /** Custom actions keyed by name; optional like `functions`. */
+  readonly actions?: { readonly [K in A as K["name"]]: K };
   readonly root: string | undefined;
   readonly id: string | undefined;
   /** Instance id minted by `createLibrary()`. Distinct from the optional public `id`. */
@@ -173,9 +174,37 @@ export interface Library<C = unknown, A extends AnyAction = AnyAction> {
   prompt(options?: PromptOptions): string;
   toSpec(): PromptSpec;
   toJSONSchema(): LibraryJSONSchema;
+  /** Derive a new library (the base stays untouched); create it at module scope, parsers memoize by identity. */
+  extend?<A2 extends AnyAction = never>(
+    extension: LibraryExtension<C, A2>,
+  ): Required<Library<C, A | A2>>;
 }
 
-type LibraryAction<L> = L extends { readonly actions: infer R } ? R[keyof R] : never;
+export interface LibraryExtension<C = unknown, A extends AnyAction = AnyAction> {
+  components?: {
+    /** New components; with `slots` ("Parent.prop", or "Parent" with one slot) they join those unions. */
+    add?: (DefinedComponent<any, C> | { component: DefinedComponent<any, C>; slots: string[] })[];
+    /** Replacements (schema and renderer) by name. Every parent points at the new one. */
+    override?: DefinedComponent<any, C>[];
+    /**
+     * Names to drop from the library, every parent union and componentGroups.
+     * Throws when a prop would be left with no type, even an optional one
+     * (`image?: Image` with Image removed): override that parent instead.
+     */
+    remove?: string[];
+  };
+  functions?: ExtensionVerbs<DefinedFunction<any, any>>;
+  actions?: ExtensionVerbs<A>;
+}
+
+interface ExtensionVerbs<T> {
+  /** Joins the library and is listed in the prompt. */
+  add?: T[];
+}
+
+type LibraryAction<L> = L extends { readonly actions?: infer R }
+  ? NonNullable<R>[keyof NonNullable<R>]
+  : never;
 type CustomActionEvent<A> =
   A extends DefinedAction<infer T, infer N>
     ? Omit<ActionEvent, "type" | "params"> & { type: N; params: z.infer<T> }
@@ -213,9 +242,10 @@ function createLibraryId(): string {
 /**
  * Create a component library from an array of defined components.
  */
-export function createLibrary<C = unknown, A extends AnyAction = AnyAction>(
+// A defaults to never so a library without actions extends to a real union.
+export function createLibrary<C = unknown, A extends AnyAction = never>(
   input: LibraryDefinition<C, A>,
-): Library<C, A> {
+): Required<Library<C, A>> {
   const componentsRecord: Record<string, DefinedComponent<any, C>> = {};
   const reg = z.registry<{ id: string }>();
   const __libraryId = createLibraryId();
@@ -263,11 +293,11 @@ export function createLibrary<C = unknown, A extends AnyAction = AnyAction>(
     return { ...(functions ? { functions } : {}), ...(actions ? { actions } : {}) };
   };
 
-  const library: Library<C, A> = {
+  const library: Required<Library<C, A>> = {
     components: componentsRecord,
     componentGroups: input.componentGroups,
     functions: functionsRecord,
-    actions: actionsRecord as Library<C, A>["actions"],
+    actions: actionsRecord as Required<Library<C, A>>["actions"],
     root: input.root,
     id: input.id,
     __libraryId,
@@ -296,6 +326,13 @@ export function createLibrary<C = unknown, A extends AnyAction = AnyAction>(
 
     toJSONSchema(): LibraryJSONSchema {
       return buildJSONSchema();
+    },
+
+    // lib.extend({ components: { add: [ProductCard] }, functions: { add: [percent] } })
+    extend<A2 extends AnyAction = never>(extension: LibraryExtension<C, A2>) {
+      const { definition, removed } = extendDefinition<C>(input, extension);
+      const derived = createLibrary(definition) as Required<Library<C, A | A2>>;
+      return warnOnStaleNames(library, derived, removed);
     },
   };
 

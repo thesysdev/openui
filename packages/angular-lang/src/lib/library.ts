@@ -55,5 +55,5 @@ export function defineComponent<T extends $ZodObject>(config: {
  * Create an Angular OpenUI component library.
  */
 export function createLibrary(input: LibraryDefinition): Library {
-  return coreCreateLibrary<ComponentRenderer>(input) as Library;
+  return coreCreateLibrary(input) as Library;
 }

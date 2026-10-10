@@ -30,6 +30,14 @@ export function actionRef(name: string, data: z.$ZodType): ActionRef {
   return data as unknown as ActionRef;
 }
 
+// A cloned schema keeps its prompt name: Card's clone still prints as Card, an action ref as @Name
+export function copySchemaTags(from: object, to: object): void {
+  const id = schemaIdTags.get(from);
+  if (id) schemaIdTags.set(to, id);
+  const action = actionRefTags.get(from);
+  if (action) actionRefTags.set(to, action);
+}
+
 // ─── Zod v3 detection ──────────────────────────────────────────────────────
 
 export function assertV4Schema(schema: unknown, componentName: string): void {

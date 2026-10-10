@@ -29,13 +29,9 @@ function getRegistry(): LibraryRegistry {
   return (store[DEVTOOLS_LIBRARIES_KEY] ??= {});
 }
 
-function upsertRegistry(library: Library): void {
-  getRegistry()[libraryKey(library)] = library;
-}
-
 /** Dev-only: stash the live library and emit a serializable registration ping. */
-export function publishLibrary(library: Library): void {
-  upsertRegistry(library);
+export function publishLibrary(library: Library, key = libraryKey(library)): void {
+  getRegistry()[key] = library;
   observability.info({
     kind: LIBRARY_EVENT_KIND,
     __libraryId: library.__libraryId,

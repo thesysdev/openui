@@ -89,10 +89,11 @@ export function useOpenUIState(
   const functions = useMemo(
     () =>
       Object.fromEntries(
-        Object.entries(schema.functions ?? {}).map(([name, s]) => [
-          name,
-          { ...s, fn: library.functions[name]!.fn },
-        ]),
+        Object.entries(schema.functions ?? {}).flatMap(([name, s]) => {
+          // A hand-built library may list a function in its schema without an implementation
+          const fn = library.functions?.[name]?.fn;
+          return fn ? [[name, { ...s, fn }]] : [];
+        }),
       ),
     [schema, library.functions],
   );
