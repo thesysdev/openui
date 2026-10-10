@@ -194,7 +194,7 @@ Fixtures: `evaluation/*-kind-*`
 
 ### 2.2 Entry
 
-The entry is the statement named `root`. Its value must evaluate to a component: a component call, a reference to a statement whose value is one, or any expression that gives one. For example, `root = $t ? A : B` is a valid entry when `A` and `B` are component statements. When the value is not a component, the client reports a fatal `no-root` at stream end with the hint "root must be a component call", with no fallback.
+The entry is the statement named `root`. Its value must evaluate to a component: a component call, a reference to a statement whose value is one, or any expression that gives one. For example, `root = $t ? A : B` is a valid entry when `A` and `B` are component statements. When the value is not a component, the client reports a fatal `no-root` at stream end, with no fallback.
 
 With no `root` statement, if the first statement calls the library's root component (the LibrarySpec `root` field, [prompt.md](./prompt.md), section 2.2), it is the entry. It renders with a non-fatal `no-root`.
 
