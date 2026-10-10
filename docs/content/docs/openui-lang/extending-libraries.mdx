@@ -1,9 +1,9 @@
 ---
 title: Extending a Library
-description: Add components, functions, and actions to an existing library with library.extend.
+description: Add, override, and remove components, and add functions and actions, with library.extend.
 ---
 
-`library.extend(...)` derives a new library from an existing one and adds components, functions, or actions to it. Use it to build on `openuiLibrary` or `openuiChatLibrary` from `@openuidev/react-ui` without copying their component lists. The base library is not changed.
+`library.extend(...)` derives a new library from an existing one. Use it to build on `openuiLibrary` or `openuiChatLibrary` from `@openuidev/react-ui` without copying their component lists. The base library is not changed.
 
 ## Example
 
@@ -39,7 +39,7 @@ const addToCart = defineAction({
 
 // Create it once, at module scope.
 export const shopLibrary = openuiChatLibrary.extend({
-  components: { add: [ProductCard] },
+  components: { add: [{ component: ProductCard, slots: ["Card"] }] },
   functions: { add: [formatCurrency] },
   actions: { add: [addToCart] },
 });
@@ -50,57 +50,110 @@ export const systemPrompt = shopLibrary.prompt(openuiChatPromptOptions);
 Pass `shopLibrary` to the `Renderer` or to `AgentInterface` in place of the base library. The model can now use all three:
 
 ```text
-root = Card([lamp, total, addBtn])
+root = Card([lamp, total, buttons])
 lamp = ProductCard("Desk lamp", 39)
 total = TextContent("Total: " + @FormatCurrency(39 * 2))
-addBtn = Button("Add to cart", @AddToCart("lamp-01"))
+buttons = Buttons([Button("Add to cart", @AddToCart("lamp-01"))])
 ```
 
 ## What `extend` takes
 
 ```ts
 library.extend({
-  components?: { add?: DefinedComponent[] },
-  functions?: { add?: DefinedFunction[] },
-  actions?: { add?: DefinedAction[] },
+  components?: {
+    add?: (DefinedComponent | { component: DefinedComponent; slots: string[] })[];
+    override?: DefinedComponent[];
+    remove?: string[];
+  };
+  functions?: { add?: DefinedFunction[] };
+  actions?: { add?: DefinedAction[] };
 });
 ```
 
-The result is the same library that `createLibrary` would build from the base's components, groups, root, functions, and actions plus the additions. Two things are different:
+All parts are optional. One call can use several of them.
 
-- The derived library has no `id`, even when the base has one.
-- Added components are not in any of the base's `componentGroups`. When the base has groups, the prompt lists the new components under an "Other" heading.
+## Add a component
 
-The typed `onAction` of the derived library includes the added actions. See [Typed onAction](/docs/openui-lang/custom-actions#typed-onaction).
-
-## Where added components go
-
-A slot that takes only components accepts any component of the library, so the model can place `ProductCard` inside `Card(...)` even though the `Card` signature in the prompt does not list it. If the model does not pick up the new component on its own, add a rule or an example to the prompt options:
+A component on its own joins the library and the prompt:
 
 ```ts
-const systemPrompt = shopLibrary.prompt({
-  ...openuiChatPromptOptions,
-  additionalRules: [
-    ...(openuiChatPromptOptions.additionalRules ?? []),
-    "Show each product with ProductCard inside a Card.",
-  ],
+const lib = openuiChatLibrary.extend({ components: { add: [ProductCard] } });
+```
+
+No parent's signature names it. The parser still accepts it in a slot that only takes components, so `Card([ProductCard("Desk lamp", 39)])` renders. When the base has `componentGroups`, the prompt lists added components under an "Other" heading.
+
+To put it in a parent's signature, name the slot:
+
+```ts
+const lib = openuiChatLibrary.extend({
+  components: { add: [{ component: ProductCard, slots: ["Card.children"] }] },
 });
 ```
 
-## Adding only
+The prompt then prints `Card(children: (TextContent | ... | ProductCard)[], ...)`, so the model sees where `ProductCard` goes.
 
-In this release, `extend` only adds. `override` and `remove` are part of the type, but they throw:
+A slot is `"Parent.prop"`, where the prop holds a union of components, optionally in an array. `"Parent"` alone works when the parent has exactly one such prop. `Card` has one (`children`), so `slots: ["Card"]` is the same as `slots: ["Card.children"]`.
 
-```text
-[extend] components.override is not supported yet.
+## Override a component
+
+`override` replaces a component of the same name, schema and renderer:
+
+```ts
+const CodeBlock = defineComponent({
+  name: "CodeBlock",
+  description: "Code with a copy button",
+  props: z.object({ language: z.string(), code: z.string() }),
+  component: ({ props }) => <pre data-language={props.language}>{props.code}</pre>,
+});
+
+const lib = openuiChatLibrary.extend({ components: { override: [CodeBlock] } });
 ```
 
-Names must be new:
+Every parent that took the old `CodeBlock`, such as `Card`, now takes the new one. It stays in its component group.
 
-- A component name that already exists throws `[extend] Component "Card" already exists.`
-- A function or action name that is taken throws the same error as `createLibrary`, for example `[createLibrary] Action "AddToCart" collides with a built-in, component, function, or action of the same name. Rename it.`
+## Remove a component
 
-To replace or drop a base component, build a new library with `createLibrary` from the parts you want.
+`remove` takes component names:
+
+```ts
+const lib = openuiChatLibrary.extend({ components: { remove: ["RadarChart"] } });
+```
+
+The component is dropped from the library, from every parent's union, and from `componentGroups`. A group left empty is dropped too.
+
+If a removed name still appears in a group's notes, or in the `examples`, `toolExamples`, or `additionalRules` you pass to `prompt()`, `extend` logs one warning per name:
+
+```text
+[extend] Removed Carousel still named in prompt notes, examples or rules.
+```
+
+Remove that name from your prompt options, or the model may still write it.
+
+## Add functions and actions
+
+`functions.add` and `actions.add` work like `functions` and `actions` in `createLibrary`. See [Custom Functions](/docs/openui-lang/custom-functions) and [Custom Actions](/docs/openui-lang/custom-actions). The typed `onAction` of the derived library includes the added actions and keeps the built-in events. See [Typed onAction](/docs/openui-lang/custom-actions#typed-onaction).
+
+## Errors
+
+`extend` throws at once on a mistake, so it shows up when the module loads:
+
+| Mistake                                                    | Error                                                                                         |
+| :--------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
+| `add` with a name that exists                              | `[extend] Component "Card" already exists. Use override.`                                     |
+| `override` with a name that does not exist                 | `[extend] Cannot override "ProductCard": not in the library. Use add.`                        |
+| `remove` with a name that does not exist                   | `[extend] Cannot remove "Nope": not in the library.`                                          |
+| `remove` of the library's root component                   | `[extend] Cannot remove "Card": it is the library root.`                                      |
+| `remove` of the only component a slot allows               | `[extend] Cannot remove "TabItem": it is the only type allowed in Tabs.items.`                |
+| `remove` of a component added or overridden in the call    | `[extend] Cannot remove "ProductCard": it is added or overridden in the same call.`           |
+| A slot on a parent with no union of components             | `[extend] Slot "Tabs" for "ProductCard": "Tabs" has no content slot (...)`                    |
+| A slot that is not one content slot                        | `[extend] Slot "Card.kids" for "ProductCard" must be one content slot. Candidates: Card.children.` |
+| A function or action name that is taken                    | `[createLibrary] Action "AddToCart" collides with a built-in, component, function, or action of the same name. Rename it.` |
+
+## The derived library
+
+- It has no `id`, even when the base has one.
+- It is a full library: it has `prompt`, `toSpec`, `toJSONSchema`, and `extend`, so you can extend it again.
+- In development, `@openuidev/react-lang` registers each derived library with the devtools under its own key, so it does not replace its base.
 
 ## Create derived libraries once
 
