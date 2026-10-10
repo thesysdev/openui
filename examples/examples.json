@@ -119,6 +119,17 @@
       }
     },
     {
+      "title": "Open Intelligent UI",
+      "description": "An open-source take on ChatGPT's Intelligent UI: travel answers with a live map, photos, and an editable itinerary.",
+      "repo": "thesysdev/open-intelligent-ui",
+      "category": "cookbooks",
+      "env": {
+        "file": ".env",
+        "key": "THESYS_API_KEY"
+      },
+      "featured": true
+    },
+    {
       "title": "Material UI",
       "description": "A broad Material UI component library for generated interfaces.",
       "path": "design-systems/material-ui",

@@ -58,7 +58,7 @@ openui create [options]
 | `-n, --name <string>`             | Project name (interactive default: `openui-agent`)                           |
 | `-t, --template <template>`       | AI backend: `openui-cloud` (Gateway; recommended) or `openui-self-hosted`    |
 | `--backend-framework <framework>` | Backend integration: `langgraph` (default), `vercel-ai-sdk`, or `vercel-eve` |
-| `-e, --example <example>`         | Scaffold any example from the OpenUI Repository                              |
+| `-e, --example <example>`         | Scaffold an example by name, or `<owner>/<repo>[/<path>]` (thesysdev only)   |
 | `--api-key <key>`                 | OpenUI Gateway API key; skips sign-in for the Gateway setup                  |
 | `--auth <method>`                 | Gateway auth method: `oauth` or `skip`; `manual` is deprecated               |
 | `--skill`                         | Install the OpenUI agent skill for AI coding assistants                      |
@@ -103,7 +103,7 @@ Every backend includes a `get_weather` example backed by Open-Meteo. Ask “What
 
 **OpenUI examples**
 
-Interactive `openui create` lists starter templates and featured [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). `--example <name>` skips both menus. `--example` cannot be combined with `--template` or `--backend-framework`. Any other folder name in the catalog works the same way.
+Interactive `openui create` lists starter templates and featured [OpenUI examples](https://github.com/thesysdev/openui/blob/main/examples). `--example <name>` skips both menus. `--example` cannot be combined with `--template` or `--backend-framework`. Any other folder name in the catalog works the same way. Pass `--example <owner>/<repo>[/<path>]` to clone a `thesysdev` GitHub repository (or one folder inside it) from its default branch, for example `--example thesysdev/open-intelligent-ui`.
 
 **Conversation storage**
 

@@ -1,17 +1,26 @@
 import { styleText } from "node:util";
 
-import { fetchSourceFile } from "../../../lib/checkout";
+import { fetchSourceFile, type SourceRepo } from "../../../lib/checkout";
 import { CreateError } from "../../../lib/errors";
 import type { RetryAttemptInfo } from "../../../lib/retry";
 
 export const EXAMPLES_CATALOG_PATH = "examples/examples.json";
 
+/** GitHub owners whose repositories `--example <owner>/<repo>[/<path>]` may clone. */
+const ALLOWED_EXAMPLE_REPO_OWNERS = ["thesysdev"];
+
+const REPO_SEGMENT_RE = /^[A-Za-z0-9_.-]+$/;
+
 export type ExampleProject = {
   name: string;
   label: string;
   description: string;
-  /** Path inside the OpenUI repo, e.g. `examples/app-frameworks/vue`. */
+  /** Path inside the source repo, e.g. `examples/app-frameworks/vue`; `""` is the repo root. */
   path: string;
+  /** Source repository. Omitted means the OpenUI repo. */
+  repo?: SourceRepo;
+  /** Picker group, e.g. `app-frameworks`. */
+  category: string;
   env: {
     /** Environment file relative to the example root. */
     file: string;
@@ -26,18 +35,39 @@ function catalogError(message: string): CreateError {
   return new CreateError("args_resolution", message, "invalid_input", "EXAMPLES_CATALOG_INVALID");
 }
 
+function parseCatalogRepo(value: unknown): SourceRepo {
+  const parts = typeof value === "string" ? value.split("/") : [];
+  const [owner, name] = parts;
+  if (parts.length !== 2 || !owner || !name || !isAllowedRepo(owner, name)) {
+    throw catalogError(
+      `${EXAMPLES_CATALOG_PATH} has an example with an invalid repo. Use <owner>/<repo> from ${ALLOWED_EXAMPLE_REPO_OWNERS.join(", ")}.`,
+    );
+  }
+  return { owner, name };
+}
+
+function isAllowedRepo(owner: string, name: string): boolean {
+  return (
+    REPO_SEGMENT_RE.test(owner) &&
+    REPO_SEGMENT_RE.test(name) &&
+    ALLOWED_EXAMPLE_REPO_OWNERS.includes(owner.toLowerCase())
+  );
+}
+
 function parseCatalogEntry(item: unknown): ExampleProject {
   const entry = item as {
     title?: unknown;
     description?: unknown;
     path?: unknown;
+    repo?: unknown;
+    category?: unknown;
     env?: unknown;
     featured?: unknown;
   };
   if (
     typeof entry.title !== "string" ||
     typeof entry.description !== "string" ||
-    typeof entry.path !== "string"
+    (entry.repo === undefined && typeof entry.path !== "string")
   ) {
     throw catalogError(
       `${EXAMPLES_CATALOG_PATH} has an example missing title, description, or path.`,
@@ -46,8 +76,15 @@ function parseCatalogEntry(item: unknown): ExampleProject {
   if (entry.featured !== undefined && typeof entry.featured !== "boolean") {
     throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an invalid featured flag.`);
   }
-  const relative = entry.path.replace(/^\/+/, "");
-  const name = relative.split("/").filter(Boolean).at(-1);
+  if (entry.path !== undefined && typeof entry.path !== "string") {
+    throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an invalid path.`);
+  }
+  if (entry.category !== undefined && typeof entry.category !== "string") {
+    throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an invalid category.`);
+  }
+  const repo = entry.repo === undefined ? undefined : parseCatalogRepo(entry.repo);
+  const relative = (entry.path ?? "").replace(/^\/+/, "").replace(/\/+$/, "");
+  const name = relative.split("/").filter(Boolean).at(-1) ?? repo?.name;
   if (!name) {
     throw catalogError(`${EXAMPLES_CATALOG_PATH} has an example with an empty path.`);
   }
@@ -71,7 +108,11 @@ function parseCatalogEntry(item: unknown): ExampleProject {
     name,
     label: entry.title,
     description: entry.description,
-    path: relative.startsWith("examples/") ? relative : `examples/${relative}`,
+    path: repo || relative.startsWith("examples/") ? relative : `examples/${relative}`,
+    repo,
+    category:
+      entry.category ??
+      ((repo ? undefined : relative.replace(/^examples\//, "").split("/")[0]) || "miscellaneous"),
     env: { file, key: typeof env.key === "string" ? env.key : undefined },
     featured: entry.featured === true,
   };
@@ -100,7 +141,44 @@ export function featuredExamples(examples: ExampleProject[]): ExampleProject[] {
   return examples.filter((example) => example.featured === true).slice(0, 5);
 }
 
+function sameRepo(a: SourceRepo | undefined, b: SourceRepo): boolean {
+  const left = a ?? { owner: "thesysdev", name: "openui" };
+  return (
+    left.owner.toLowerCase() === b.owner.toLowerCase() &&
+    left.name.toLowerCase() === b.name.toLowerCase()
+  );
+}
+
+/** Resolve `<owner>/<repo>[/<path>]`, preferring a matching catalog entry for its env setup. */
+function findRepoExample(spec: string, examples: ExampleProject[]): ExampleProject {
+  const [owner = "", name = "", ...rest] = spec.replace(/^\/+|\/+$/g, "").split("/");
+  const subpath = rest.filter(Boolean).join("/");
+  if (!isAllowedRepo(owner, name) || rest.some((part) => part === "." || part === "..")) {
+    throw new CreateError(
+      "args_resolution",
+      `unsupported example repository "${spec}". Use <owner>/<repo>[/<path>] with a repository from ${ALLOWED_EXAMPLE_REPO_OWNERS.join(", ")}, or an example name from ${EXAMPLES_CATALOG_PATH}.`,
+      "invalid_input",
+      "INVALID_EXAMPLE",
+    );
+  }
+  const repo = { owner, name };
+  const match = examples.find(
+    (entry) => sameRepo(entry.repo, repo) && entry.path.toLowerCase() === subpath.toLowerCase(),
+  );
+  if (match) return match;
+  return {
+    name: subpath.split("/").at(-1) || name,
+    label: `${owner}/${name}${subpath ? `/${subpath}` : ""}`,
+    description: "",
+    path: subpath,
+    repo,
+    category: "miscellaneous",
+    env: { file: ".env" },
+  };
+}
+
 export function findExample(name: string, examples: ExampleProject[]): ExampleProject {
+  if (name.includes("/")) return findRepoExample(name, examples);
   const normalized = name.toLowerCase();
   const match = examples.find((entry) => entry.name.toLowerCase() === normalized);
   if (!match) {
@@ -151,7 +229,7 @@ export function groupedExampleChoices(
 ): unknown[] {
   const groups = new Map<string, ExampleProject[]>();
   for (const example of examples) {
-    const key = example.path.replace(/^examples\//, "").split("/")[0] ?? "miscellaneous";
+    const key = example.category;
     const group = groups.get(key) ?? [];
     group.push(example);
     groups.set(key, group);

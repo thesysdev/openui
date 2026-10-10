@@ -15,7 +15,10 @@ export const createCommand = new Command("create")
   .option("-n, --name <string>", "Project name (interactive default: openui-agent)")
   .option("-t, --template <template>", "AI backend to use (default: openui-cloud)")
   .option("--backend-framework <framework>", "Backend framework to use (default: langgraph)")
-  .option("-e, --example <example>", "Create from an example in examples/examples.json")
+  .option(
+    "-e, --example <example>",
+    "Create from an example in examples/examples.json or a thesysdev GitHub repo (<owner>/<repo>[/<path>])",
+  )
   .option("--api-key <key>", "OpenUI Cloud API key (cloud templates and examples; skips sign-in)")
   .option("--auth <method>", "Cloud auth method: oauth | skip (manual is deprecated)")
   .option("--skill", "Install the OpenUI agent skill for AI coding assistants")

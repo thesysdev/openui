@@ -98,7 +98,7 @@ Options:
 - `-n, --name <string>`: Project name (interactive default: `openui-agent`)
 - `-t, --template <template>`: AI backend — `openui-cloud` (managed) or `openui-self-hosted` (bring your provider)
 - `--backend-framework <framework>`: API route implementation — `langgraph` (default), `vercel-ai-sdk`, or `vercel-eve`
-- `-e, --example <example>`: Scaffold any example from `examples/examples.json`
+- `-e, --example <example>`: Scaffold any example from `examples/examples.json`, or a `thesysdev` GitHub repository as `<owner>/<repo>[/<path>]`
 - `--skill`: Install the OpenUI agent skill for AI coding assistants
 - `--no-skill`: Skip installing the OpenUI agent skill
 - `--no-install`: Scaffold without running the package install
@@ -155,7 +155,10 @@ Interactive `openui create` offers featured [OpenUI examples](https://github.com
 openui create --example shadcn
 openui create --name my-mastra-app --example mastra
 openui create --example vue
+openui create --example thesysdev/open-intelligent-ui
 ```
+
+`--example <owner>/<repo>` clones a GitHub repository's default branch; append `/<path>` to scaffold one folder inside it. Only `thesysdev` repositories are supported. Catalog entries can point at another repository with `"repo": "<owner>/<repo>"` (plus an optional `path` and `category`).
 
 Examples whose primary key is `THESYS_API_KEY` offer the same browser sign-in and key generation as Cloud templates. Use `--api-key <key>` to supply a key or `--auth skip` to configure it later. Other provider keys still use the existing paste prompt.
 
