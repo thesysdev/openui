@@ -5,6 +5,8 @@ export function getStartedMessage(o: {
   name: string;
   devCmd: string;
   template: TemplateName;
+  backendFramework: string;
+  showChangeSetupHint?: boolean;
   backendGettingStarted?: string;
   skillInstalled: boolean;
   envWritten: boolean;
@@ -33,6 +35,15 @@ export function getStartedMessage(o: {
         `> ${o.devCmd} run dev`,
       ].join("\n");
 
+  const setupNote = [
+    `Template: ${o.template}\nBackend framework: ${o.backendFramework}`,
+    ...(o.showChangeSetupHint
+      ? [
+          "To pick a different template or backend framework, see:\n> npx @openuidev/cli@latest create --help",
+        ]
+      : []),
+  ].join("\n\n");
+
   const deployHint = "Share a preview:\n> npx @openuidev/cli@latest deploy";
   const feedbackHint =
     'Found a bug or have an idea?\n> npx @openuidev/cli@latest feedback "<message>"';
@@ -42,6 +53,7 @@ export function getStartedMessage(o: {
   return `\n${[
     skillMessage.trim(),
     "Done!",
+    setupNote,
     envNote,
     frameworkNote,
     nextStep,

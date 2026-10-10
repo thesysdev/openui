@@ -5,6 +5,8 @@ import type { RetryAttemptInfo } from "../../../lib/retry";
 export const TEMPLATES_CATALOG_PATH = "templates/templates.json";
 
 export const DEFAULT_TEMPLATE_KEY = "openui-cloud";
+export const DEFAULT_OVERLAY_KEY = "langgraph";
+export const DEFAULT_PROJECT_NAME = "openui-agent";
 
 export type CatalogOverlay = {
   name: string;

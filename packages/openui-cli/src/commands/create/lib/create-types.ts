@@ -17,6 +17,8 @@ export interface CreateAppOptions {
   apiKey?: string;
   envFile?: string;
   auth?: CloudAuthMethod;
+  /** Bare `openui` run: use the default name and backend framework without prompting. */
+  useDefaults?: boolean;
 }
 
 export type AiSetup = "openui_cloud" | "openai_compatible_provider";

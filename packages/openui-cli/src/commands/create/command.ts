@@ -1,4 +1,4 @@
-import { Command } from "commander";
+import { Command, Option } from "commander";
 
 import { normalizeAuth } from "../../lib/auth/mint";
 import { context } from "../../lib/context";
@@ -24,6 +24,7 @@ export const createCommand = new Command("create")
   .option("--no-install", "Scaffold without running the package install")
   .option("-i, --immediate", "Start the development server after installing dependencies")
   .option("--no-immediate", "Install dependencies without starting the development server")
+  .addOption(new Option("--use-defaults").hideHelp())
   .helpOption(false)
   .option("-h, --help", "display help for command")
   .action(
@@ -38,6 +39,7 @@ export const createCommand = new Command("create")
       interactive: boolean;
       install: boolean;
       immediate?: boolean;
+      useDefaults?: boolean;
       help?: boolean;
     }) => {
       if (options.help) {
@@ -64,6 +66,7 @@ export const createCommand = new Command("create")
           noInteractive: !options.interactive,
           noInstall: !options.install,
           immediate: options.immediate,
+          useDefaults: options.useDefaults,
         },
         context,
       );

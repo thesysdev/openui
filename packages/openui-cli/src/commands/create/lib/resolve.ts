@@ -13,6 +13,8 @@ import {
 import { resolveAvailableTarget } from "./target-dir";
 import type { CreateTelemetryClient } from "./telemetry";
 import {
+  DEFAULT_OVERLAY_KEY,
+  DEFAULT_PROJECT_NAME,
   DEFAULT_TEMPLATE_KEY,
   findCatalogOverlay,
   findCatalogTemplate,
@@ -101,7 +103,7 @@ export async function resolveProjectIdentity(
       name: requestedName
         ? { value: requestedName }
         : {
-            prompt: { type: "input", message: "Project name?", default: "openui-agent" },
+            prompt: { type: "input", message: "Project name?", default: DEFAULT_PROJECT_NAME },
             required: true,
           },
     },
@@ -126,7 +128,7 @@ export async function resolveCreateSelection(params: {
   const { backendFramework, example, examples, overlays, interactive } = params;
   if (example) return { kind: "example", example: findExample(example, examples) };
   if (backendFramework) return { kind: "overlay", overlay: backendFramework };
-  if (!interactive) return { kind: "overlay", overlay: "langgraph" };
+  if (!interactive) return { kind: "overlay", overlay: DEFAULT_OVERLAY_KEY };
 
   const featured = featuredExamples(examples);
   const { select, Separator } = await import("@inquirer/prompts");
