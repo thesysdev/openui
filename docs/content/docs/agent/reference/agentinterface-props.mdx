@@ -58,7 +58,7 @@ These props control how the assistant's output is rendered — both durable arti
 | `artifactRenderers`  | `ReadonlyArray<ArtifactRendererConfig<any>>` | No       | none    | Renderers that display artifacts (from a tool call or from stored content).           |
 | `artifactCategories` | `ArtifactCategory[]`                         | No       | none    | User-defined groupings for the artifact browser and workspace rail.                   |
 | `componentLibrary`   | `Library`                                    | No       | none    | Turns on Generative UI — rich interactive components rendered inline in chat.         |
-| `onAction`           | `(event: ActionEvent) => void`               | No       | none    | Receives custom actions from Generative UI components.                                |
+| `onAction`           | `(event: ActionEvent) => void`               | No       | none    | Receives the Generative UI actions the chat does not handle, such as custom actions.  |
 | `components`         | `AgentInterfaceComponents`                   | No       | none    | Replace assistant answers, user messages, and the turn's tool timeline independently. |
 
 ### `artifactRenderers`
@@ -107,7 +107,7 @@ import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
 
 ### `onAction`
 
-`AgentInterface` handles the built-in actions of Generative UI components itself: `@ToAssistant` sends a new user message and `@OpenUrl` opens the link in a new tab. Pass `onAction` to handle the [custom actions](/docs/openui-lang/custom-actions) your `componentLibrary` defines.
+`AgentInterface` handles two actions of Generative UI components itself: `@ToAssistant` sends a new user message and `@OpenUrl` opens the link in a new tab. Those never reach `onAction`. `onAction` receives the other actions, such as the [custom actions](/docs/openui-lang/custom-actions) your `componentLibrary` defines.
 
 ```tsx
 <AgentInterface
@@ -120,6 +120,8 @@ import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
   }}
 />
 ```
+
+`onAction` is only called for messages that `AgentInterface` renders from `componentLibrary`. When you pass `components.AssistantMessage`, it is not called. Pass `onAction` to the `Renderer` in your component instead.
 
 ### `components`
 
