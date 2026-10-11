@@ -5,6 +5,8 @@ author: "Rabi Guha"
 date: 2026-10-03
 ---
 
+import Image from "next/image";
+
 The real power of MCP comes from chaining tools together and reasoning across their results, but MCP Apps ties interfaces to individual tools, making that same composition harder at the UI layer. We explored this by building a Generative UI MCP, and the experiment pointed us toward a higher layer: the [host](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2025-11-25/architecture/index.mdx), the application running the agent, where the context of the whole task comes together.
 
 This post builds on the ideas we presented at AGNTCon + MCPCon Japan 2026.
@@ -32,7 +34,14 @@ The agent combines these results with your preferences to recommend a hotel that
 
 The mechanism is straightforward: an MCP Server associates a tool with a UI resource, which the host displays in a sandboxed iframe. The MCP Server authors the interface, while the host supplies the environment in which it runs. That interface can use a predefined template or be generated dynamically, including with a framework like [OpenUI](https://www.openui.com/).
 
-![The hotel search tool supplies an interactive hotel card that the host displays inside its conversation.](/images/blog/mcp-apps/02-tool-owned-ui.svg)
+<Image
+  src="/images/blog/mcp-apps/02-tool-owned-ui.webp"
+  alt="Illustrative Rakuten hotel-search interface from the Japan talk, with prices, filters, and room-selection actions."
+  width={2880}
+  height={1880}
+  className="rounded-lg"
+  unoptimized
+/>
 
 ## But who owns the UI?
 
@@ -43,7 +52,6 @@ With separate MCP Apps for each service, the user could see Booking.com's view a
 Now suppose you shortlist two hotels and ask to compare them. If the listing interface doesn't support that comparison, the agent may fall back to a Markdown table to bring the information together. The agent can compose the results, but the available interfaces don't give it the same freedom.
 
 ![Separate hotel and map interfaces leave the combined recommendation—reviews, distance, policy, and preference—without one owner.](/images/blog/mcp-apps/03-who-owns-ui.svg)
-
 
 ## Sometimes the tool is the right place
 
@@ -63,10 +71,9 @@ The difference is that those earlier compositions were designed in advance by a 
 
 ![HousingMaps combined listings and maps; Retool combines enterprise sources into a workflow. Both interfaces were designed in advance.](/images/blog/mcp-apps/05-prebuilt-composition.svg)
 
-
 ## Can't the host just generate this?
 
-Hosts can already generate interfaces using connected services, as [Claude Artifacts](https://support.claude.com/en/articles/17153992-what-are-artifacts-and-how-do-i-use-them) demonstrates. Those interfaces can be interactive, but generating a new interface doesn't automatically reuse the room selector or map supplied by an MCP App. 
+Hosts can already generate interfaces using connected services, as [Claude Artifacts](https://support.claude.com/en/articles/17153992-what-are-artifacts-and-how-do-i-use-them) demonstrates. Those interfaces can be interactive, but generating a new interface doesn't automatically reuse the room selector or map supplied by an MCP App.
 
 ## We built a Generative UI MCP to explore this
 
@@ -76,7 +83,14 @@ We built an internal Generative UI MCP Server with one tool: take the results ga
 
 **What worked:** The combined hotel view brought prices, travel times, reviews, and policy constraints into one place, so the user could compare options across tools.
 
-![Illustrative hotel comparison combining reviews, travel time, policy, and the traveller's preference in one view.](/images/blog/mcp-apps/07-combined-hotel-view.svg)
+<Image
+  src="/images/blog/mcp-apps/07-combined-hotel-view.webp"
+  alt="Illustrative OpenUI hotel comparison from the Japan talk, combining reviews, travel time, policy, and a quiet-stay preference."
+  width={2880}
+  height={1960}
+  className="rounded-lg"
+  unoptimized
+/>
 
 **What didn't:**
 
