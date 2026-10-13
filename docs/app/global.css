@@ -28,6 +28,8 @@ body {
   color: var(--openui-text-neutral-primary);
   background: var(--openui-background);
   font-family: var(--openui-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #nd-docs-layout {
