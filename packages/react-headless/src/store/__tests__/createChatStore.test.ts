@@ -156,6 +156,41 @@ describe("createChatStore", () => {
       expect(store.getState().messages).toEqual([]);
       expect(store.getState().threadError).toBeNull();
     });
+
+    it("persists current messages via cacheMessages before clearing", () => {
+      const cacheMessages = vi.fn().mockResolvedValue(undefined);
+      const store = makeStore({ cacheMessages });
+
+      const msgs = [makeMessage("m1"), makeMessage("m2", "assistant")];
+      store.setState({
+        selectedThreadId: "t1",
+        messages: msgs,
+      });
+
+      store.getState().switchToNewThread();
+
+      expect(cacheMessages).toHaveBeenCalledWith("t1", msgs);
+    });
+
+    it("does not call cacheMessages when no thread is selected", () => {
+      const cacheMessages = vi.fn().mockResolvedValue(undefined);
+      const store = makeStore({ cacheMessages });
+
+      store.setState({ messages: [makeMessage("m1")] });
+      store.getState().switchToNewThread();
+
+      expect(cacheMessages).not.toHaveBeenCalled();
+    });
+
+    it("does not call cacheMessages when messages are empty", () => {
+      const cacheMessages = vi.fn().mockResolvedValue(undefined);
+      const store = makeStore({ cacheMessages });
+
+      store.setState({ selectedThreadId: "t1", messages: [] });
+      store.getState().switchToNewThread();
+
+      expect(cacheMessages).not.toHaveBeenCalled();
+    });
   });
 
   describe("createThread", () => {
@@ -322,6 +357,24 @@ describe("createChatStore", () => {
 
       expect(createThread).toHaveBeenCalledOnce();
       expect(store.getState().selectedThreadId).toBe("t-auto");
+    });
+
+    it("persists messages via cacheMessages after streaming completes", async () => {
+      const cacheMessages = vi.fn().mockResolvedValue(undefined);
+      const send = vi.fn().mockResolvedValue(new Response("", { status: 200 }));
+
+      const store = makeStore({
+        cacheMessages,
+        send,
+        streamProtocol: { parse: async function* () {} },
+      });
+      store.setState({ selectedThreadId: "t1" });
+
+      await store.getState().processMessage({ role: "user", content: "hello" });
+
+      const finalMessages = store.getState().messages;
+      expect(finalMessages.length).toBeGreaterThan(0);
+      expect(cacheMessages).toHaveBeenCalledWith("t1", finalMessages);
     });
 
     it("no-ops when already running", async () => {
