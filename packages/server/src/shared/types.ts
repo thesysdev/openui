@@ -1,8 +1,6 @@
 import type { LibraryJSONSchema, LibrarySpec } from "@openuidev/lang-core";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
-export const MAX_AUTOFIX_GENERATION_LENGTH = 100_000;
-
 export interface AutofixOptions {
   apiKey: string;
   /** The same generated library spec used by the renderer. Schema is required for local checks. */
