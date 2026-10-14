@@ -11,6 +11,7 @@ export interface ThreadStorage {
   getMessages(threadId: string): Promise<Message[]>;
   updateThread(thread: Thread): Promise<Thread>;
   deleteThread(id: string): Promise<void>;
+  updateMessage?(threadId: string, message: Message): Promise<void>;
 }
 
 // ── Artifact storage (global, cross-thread) ──

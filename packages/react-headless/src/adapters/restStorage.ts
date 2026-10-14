@@ -7,11 +7,12 @@ export interface RestStorageOptions {
   /**
    * Base URL for thread endpoints (the old `threadApiUrl`). The factory hits
    * the same conventions the legacy default used:
-   *   - list:   GET    {baseUrl}/get  (·  ?cursor={cursor})
-   *   - create: POST   {baseUrl}/create
-   *   - get:    GET    {baseUrl}/get/{threadId}
-   *   - update: PATCH  {baseUrl}/update/{threadId}
-   *   - delete: DELETE {baseUrl}/delete/{threadId}
+   *   - list:    GET    {baseUrl}/get  (·  ?cursor={cursor})
+   *   - create:  POST   {baseUrl}/create
+   *   - get:     GET    {baseUrl}/get/{threadId}
+   *   - update:  PATCH  {baseUrl}/update/{threadId}
+   *   - delete:  DELETE {baseUrl}/delete/{threadId}
+   *   - message: PATCH  {baseUrl}/messages/{threadId}/{messageId}
    */
   baseUrl: string;
   /** Wire-format conversion. Defaults to identity (canonical Message). */
@@ -83,6 +84,16 @@ export function restStorage({
       },
       async deleteThread(id: string): Promise<void> {
         await request(`${baseUrl}/delete/${id}`, { method: "DELETE" });
+      },
+      async updateMessage(threadId: string, message: Message): Promise<void> {
+        // Patch only content so provider-specific tool calls and results survive.
+        await request(
+          `${baseUrl}/messages/${encodeURIComponent(threadId)}/${encodeURIComponent(message.id)}`,
+          {
+            method: "PATCH",
+            body: JSON.stringify({ content: message.content }),
+          },
+        );
       },
     },
   };

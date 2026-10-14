@@ -1,6 +1,7 @@
 import { observability } from "@openuidev/observability";
 import { createStore } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
+import { shallow } from "zustand/shallow";
 import { getResponseErrorMessage } from "../adapters/httpError";
 import type { ChatLLM, ChatStorage } from "../adapters/types";
 import { processStreamedMessage } from "../stream/processStreamedMessage";
@@ -22,6 +23,8 @@ const mergeThreadList = (existing: Thread[], incoming: Thread[]): Thread[] =>
 export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig>) => {
   const { storage } = configRef.current;
   const { thread: threadStorage } = storage;
+  // Latest queued request for each [threadId, messageId] pair.
+  const inFlightRequests = new Map<string, Promise<void>>();
 
   const store = createStore<ChatStore>()(
     subscribeWithSelector((set, get) => ({
@@ -221,6 +224,7 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
               set((s) => ({
                 messages: s.messages.map((m) => (m.id === msg.id ? msg : m)),
               })),
+            existingMessageIds: get().messages.map((m) => m.id),
             // A tool's args have closed (TOOL_CALL_END) → it is now executing.
             markToolExecuting: (id) =>
               set((s) =>
@@ -260,9 +264,27 @@ export const createChatStore = (configRef: React.RefObject<CreateChatStoreConfig
       },
 
       updateMessage: (message: Message) => {
-        set((s) => ({
-          messages: s.messages.map((m) => (m.id === message.id ? message : m)),
-        }));
+        const state = get();
+        const currentMessage = state.messages.find((m) => m.id === message.id);
+        if (currentMessage && shallow(currentMessage, message)) return;
+
+        set({ messages: state.messages.map((m) => (m.id === message.id ? message : m)) });
+
+        const threadId = state.selectedThreadId;
+        if (threadId === null || !threadStorage.updateMessage) return;
+
+        // Capture the thread and edited message before queuing: switching threads
+        // must not redirect a pending save. Each message saves in edit order.
+        const key = JSON.stringify([threadId, message.id]);
+        const previousRequest = inFlightRequests.get(key) ?? Promise.resolve();
+        const request = previousRequest
+          .then(() => threadStorage.updateMessage!(threadId, message))
+          // Preserve optimistic edits and let subsequent saves proceed after a failure.
+          .catch(() => {});
+        inFlightRequests.set(key, request);
+        void request.then(() => {
+          if (inFlightRequests.get(key) === request) inFlightRequests.delete(key);
+        });
       },
 
       setMessages: (messages: Message[]) => {
