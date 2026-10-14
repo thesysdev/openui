@@ -7,12 +7,13 @@ import { MarkDownRenderer } from "../../components/MarkDownRenderer";
 import { Steps as OpenUISteps, StepsItem as OpenUIStepsItem } from "../../components/Steps";
 import { StepsItemSchema } from "./schema";
 
-export { StepsItemSchema } from "./schema";
+export { StepsItemDetailsChildUnion, StepsItemSchema } from "./schema";
 
 export const StepsItem = defineComponent({
   name: "StepsItem",
   props: StepsItemSchema,
-  description: "title and details text for one step",
+  description:
+    "One step: title, plus details as markdown text or an array of content components (e.g. CodeBlock, Image)",
   component: () => null,
 });
 
@@ -32,7 +33,7 @@ export const Steps = defineComponent({
             typeof details === "string" ? (
               <MarkDownRenderer textMarkdown={details} />
             ) : (
-              (renderNode(details) as React.ReactElement)
+              (renderNode(details) as React.ReactNode)
             );
 
           return (
