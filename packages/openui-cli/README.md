@@ -171,11 +171,13 @@ The self-hosted variants do not configure durable storage. `AgentInterface` keep
 
 - **OpenUI Cloud** — obtains an OpenUI Cloud API key and writes `THESYS_API_KEY` plus `DEMO_USER_ID=demo-user` to `.env`. The key is resolved by, in order:
   - `--api-key <key>` if provided
+  - a saved sign-in from `openui auth login` (mints a key without opening the browser)
   - the `--auth` method, otherwise an interactive prompt offering:
     - `oauth` — sign in with Thesys in the browser and mint a key for your org
     - `skip` — leave `THESYS_API_KEY` empty and add it later (get one at <https://console.thesys.dev/keys>)
   - `--auth manual` is deprecated but remains available for backward compatibility; use `--api-key` for scripted setup instead
-  - in non-interactive mode without `--api-key`, the cloud template fails because a key is required
+  - when run by a coding agent (or without a TTY) and not signed in, the CLI starts a background sign-in, prints the link, and scaffolds without a key. Then run `openui generate-api-key` in the project; it waits for the sign-in to finish
+  - in a non-interactive terminal without `--api-key`, the cloud template fails because a key is required
 - **Self-hosted** — prompts for your OpenAI-compatible provider API key and writes `OPENAI_API_KEY` to `.env` (interactive mode only). Leave blank to skip.
 
 Examples:
@@ -227,6 +229,26 @@ openui deploy
 openui deploy ./my-app
 openui deploy ./my-app --prod
 openui deploy --skip-env -- --force
+```
+
+### `openui auth`
+
+Signs in to Thesys once so `create` and `generate-api-key` can mint API keys without opening the browser each time. The sign-in is saved in `~/.config/openui/session.json` until its access token expires.
+
+```bash
+openui auth login [--json]
+openui auth logout
+```
+
+In a terminal, sign-in opens the browser and waits. When a coding agent runs the CLI (or there's no TTY), any command that needs sign-in (`auth login`, `generate-api-key`, `create`) starts it in the background, prints the link, and exits with `75`. The agent shows the link to the user and re-runs the command, which waits up to 60 seconds for the sign-in to finish:
+
+- `0`: signed in, and the command carried on
+- `75`: still waiting; re-run the same command
+- `1`: sign-in failed or expired; re-run for a new link
+
+```bash
+openui generate-api-key   # exit 75, prints the sign-in link
+openui generate-api-key   # waits for the sign-in, then writes the key
 ```
 
 ### `openui generate-api-key`

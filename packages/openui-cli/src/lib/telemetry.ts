@@ -3,6 +3,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import type { PostHog } from "posthog-node";
 
+import { configDir } from "./config-dir";
 import { isTruthyEnv } from "./env";
 import { cliErrorProperties } from "./errors";
 import { createPostHogClient } from "./posthog";
@@ -11,8 +12,6 @@ import type { RetryAttemptInfo } from "./retry";
 const SHUTDOWN_TIMEOUT_MS = 2000;
 
 const isTelemetryDebug = () => process.env["OPENUI_TELEMETRY_DEBUG"] === "1";
-const configDir = () =>
-  path.join(process.env["XDG_CONFIG_HOME"] ?? path.join(os.homedir(), ".config"), "openui");
 const isCi = () => {
   const e = process.env;
   return isTruthyEnv(e["CI"]) || !!e["GITHUB_ACTIONS"] || !!e["GITLAB_CI"] || !!e["BUILDKITE"];
@@ -71,6 +70,10 @@ export class Telemetry {
       superProps: {},
       enabled: false,
     };
+  }
+
+  get enabled(): boolean {
+    return this.session.enabled;
   }
 
   init(opts: { cliVersion: string; flagEnabled: boolean }) {

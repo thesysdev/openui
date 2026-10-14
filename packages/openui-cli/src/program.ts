@@ -6,6 +6,7 @@ import { Command } from "commander";
 
 import { commands } from "./commands";
 import { CreateTelemetryClient } from "./commands/create/lib/telemetry";
+import { SIGN_IN_PENDING_EXIT_CODE, SignInPendingError } from "./lib/auth/background";
 import { context as ctx } from "./lib/context";
 import { detectAgent, UNKNOWN_AGENT_NAME } from "./lib/detect-agent";
 import { CliCancelledError, cliErrorProperties, CreateError } from "./lib/errors";
@@ -69,7 +70,11 @@ function handleCliError(e: unknown, event: string, extra?: Record<string, unknow
   const capturedEvent = cancelled ? event.replace(/_failed$/, "_cancelled") : event;
   ctx.telemetry.capture(capturedEvent, { ...extra, ...errorProperties });
 
-  process.exitCode = cancelled ? e.exitCode : 1;
+  process.exitCode = cancelled
+    ? e.exitCode
+    : e instanceof SignInPendingError
+      ? SIGN_IN_PENDING_EXIT_CODE
+      : 1;
 }
 
 export async function runProgram(): Promise<void> {

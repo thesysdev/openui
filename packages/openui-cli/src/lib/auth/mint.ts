@@ -1,5 +1,7 @@
 import { CliCancelledError, CreateError } from "../errors";
 import { Authenticator } from "./authenticator";
+import { canSignInInline, signInInBackground } from "./background";
+import { clearSession, loadSession, saveSession, type SavedSession } from "./session";
 import type { AuthTelemetryClient } from "./telemetry";
 
 // Thesys console OAuth + key mint (same flow as create-c1-app). The OpenUI Cloud
@@ -99,16 +101,22 @@ async function cloudAuthPrompt<T>(
   }
 }
 
-/** Sign in via the browser and mint an OpenUI Cloud API key for the user's org. */
-export async function mintCloudApiKey(
-  projectName: string,
+/** Sign in via the browser (blocking), save the session, and return it. */
+export async function signIn(
   tel: AuthTelemetryClient,
-): Promise<string> {
-  const auth = new Authenticator({ issuerUrl: THESYS_ISSUER_URL, clientId: THESYS_CLIENT_ID });
+  onAuthorizationUrl?: (url: string) => void,
+): Promise<SavedSession> {
+  const auth = new Authenticator({
+    issuerUrl: THESYS_ISSUER_URL,
+    clientId: THESYS_CLIENT_ID,
+    onAuthorizationUrl,
+  });
   tel.trackOidcStarted();
   await cloudAuthStep("oidc_discovery", "OIDC_DISCOVERY_FAILED", () => auth.initialize());
-  const { accessToken, userInfo } = await cloudAuthStep("browser_auth", "OIDC_FAILED", () =>
-    auth.authenticate(),
+  const { accessToken, expiresIn, userInfo } = await cloudAuthStep(
+    "browser_auth",
+    "OIDC_FAILED",
+    () => auth.authenticate(),
   );
 
   const { fetchUserInfo } = await import("openid-client");
@@ -128,18 +136,33 @@ export async function mintCloudApiKey(
     );
   }
 
-  console.info("🔑 Creating an OpenUI Cloud API key…");
-  const res = await cloudAuthStep("key_mint_request", "API_KEY_MINT_FAILED", () =>
+  const sub = (profile["sub"] as string | undefined) ?? (userInfo?.["sub"] as string | undefined);
+  if (sub) tel.aliasOidcSubject(sub);
+
+  const session = { accessToken, orgId, sub, expiresAt: Date.now() + (expiresIn ?? 3600) * 1000 };
+  saveSession(session);
+  return session;
+}
+
+async function requestApiKey(session: SavedSession, projectName: string): Promise<Response> {
+  return cloudAuthStep("key_mint_request", "API_KEY_MINT_FAILED", () =>
     fetch(`${THESYS_API_URL}/application/application.createApiKeyWithOidc`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${session.accessToken}`,
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify({ name: projectName || "OpenUI Cloud App", orgId, usageType: "C1" }),
+      body: JSON.stringify({
+        name: projectName || "OpenUI Cloud App",
+        orgId: session.orgId,
+        usageType: "C1",
+      }),
     }),
   );
+}
+
+async function readApiKey(res: Response): Promise<string> {
   if (!res.ok) {
     throw new CloudAuthError(
       "key_mint_request",
@@ -160,12 +183,30 @@ export async function mintCloudApiKey(
       "The server did not return an API key.",
     );
   }
-
-  const oidcSub =
-    (profile["sub"] as string | undefined) ?? (userInfo?.["sub"] as string | undefined);
-  if (oidcSub) tel.aliasOidcSubject(oidcSub);
-
   return data.apiKey;
+}
+
+/**
+ * Mint an OpenUI Cloud API key for the user's org. Reuses a saved sign-in when
+ * there is one; otherwise signs in via the browser, or — when this process can't
+ * hold the terminal — via a background sign-in (see signInInBackground).
+ * `nextStep` tells the agent what to run once the user has the link.
+ */
+export async function mintCloudApiKey(
+  projectName: string,
+  tel: AuthTelemetryClient,
+  nextStep = "re-run this command",
+): Promise<string> {
+  const saved = loadSession();
+  if (saved) {
+    const res = await requestApiKey(saved, projectName);
+    if (res.status !== 401) return readApiKey(res);
+    clearSession(); // revoked or expired early → sign in again
+  }
+
+  const session = canSignInInline() ? await signIn(tel) : await signInInBackground(nextStep);
+  console.info("🔑 Creating an OpenUI Cloud API key…");
+  return readApiKey(await requestApiKey(session, projectName));
 }
 
 /**
@@ -184,14 +225,23 @@ export async function resolveCloudApiKey(opts: {
   const provided = opts.apiKey?.trim();
   if (provided) return { key: provided, method: "apikey-flag" };
 
+  // If the user hasn't signed in yet, the project gets scaffolded without a key,
+  // so the follow-up is generate-api-key rather than re-running create.
+  const nextStep = "run `openui generate-api-key` inside the project";
+
   let method = opts.auth;
+  if (!method && loadSession()) method = "oauth"; // already signed in → mint silently
+  if (!method && !canSignInInline()) {
+    await signInInBackground(nextStep); // returns once signed in, else throws with the link
+    method = "oauth";
+  }
   if (!method) {
     if (!opts.interactive) {
       throw new CloudAuthError(
         "method_resolution",
         "AUTH_REQUIRED",
         `An API key is required in non-interactive mode. Pass --api-key <key> ` +
-          `(get one at ${THESYS_KEYS_URL}).`,
+          `(get one at ${THESYS_KEYS_URL}) or --auth oauth to sign in.`,
       );
     }
     const { select } = await import("@inquirer/prompts");
@@ -225,5 +275,5 @@ export async function resolveCloudApiKey(opts: {
     return { key: key.trim() || null, method: "manual" };
   }
 
-  return { key: await mintCloudApiKey(opts.projectName, opts.tel), method: "oauth" };
+  return { key: await mintCloudApiKey(opts.projectName, opts.tel, nextStep), method: "oauth" };
 }

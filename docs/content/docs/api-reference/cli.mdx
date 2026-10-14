@@ -309,6 +309,30 @@ npx @openuidev/cli@latest deploy --prod --yes
 npx @openuidev/cli@latest deploy ./my-app --skip-env
 ```
 
+## `auth`
+
+Signs in to Thesys once so `create` and `generate-api-key` can mint API keys without opening the browser each time. The sign-in is saved until its access token expires.
+
+```
+openui auth login [--json]
+openui auth logout
+```
+
+In a terminal, sign-in opens the browser and waits. When a coding agent runs the CLI (or there's no TTY), any command that needs sign-in (`auth login`, `generate-api-key`, `create`) starts it in the background, prints the link, and exits with `75`. The agent shows the link to the user and re-runs the same command, which waits up to 60 seconds for the sign-in to finish:
+
+| Exit code | Meaning                                          |
+| --------- | ------------------------------------------------ |
+| `0`       | Signed in; the command carried on                |
+| `75`      | Still waiting; re-run the same command           |
+| `1`       | Sign-in failed or expired; re-run for a new link |
+
+`create` can't be re-run on the same directory, so it scaffolds without a key and tells the agent to run `generate-api-key` next.
+
+```bash
+openui generate-api-key   # exit 75, prints the sign-in link
+openui generate-api-key   # waits for the sign-in, then writes the key
+```
+
 ## `generate-api-key`
 
 Signs in with Thesys in the browser, mints an OpenUI Gateway API key, and writes it to a project env file.
