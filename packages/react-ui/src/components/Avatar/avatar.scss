@@ -1,0 +1,117 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-avatar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  vertical-align: -0.2em;
+  // Neutral tint: primary text at 8%, visible on page and card surfaces in
+  // both themes (the sunk token is too faint without an outline).
+  // The fill is a variable so circles can draw their outline in it.
+  --openui-avatar-bg: oklch(from #{cssUtils.$text-neutral-primary} l c h / 0.08);
+  background-color: cssUtils.$sunk;
+  background-color: var(--openui-avatar-bg);
+  color: cssUtils.$text-neutral-secondary;
+
+  // inline matches an Icon on the same text line (1.15em, centered in the
+  // IconText frame); md and lg are fixed for standalone use.
+  // Inline avatars are 4px larger than an Icon on the same line: a filled
+  // shape reads smaller than an icon of the same box.
+  &--inline {
+    width: calc(1.15em + 4px);
+    height: calc(1.15em + 4px);
+  }
+  &--md {
+    width: 32px;
+    height: 32px;
+  }
+  &--lg {
+    width: 48px;
+    height: 48px;
+  }
+
+  // A 1px ring in the avatar's own fill: a circle reads smaller than a
+  // rounded square of the same box, so this evens them out.
+  &--circle {
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px var(--openui-avatar-bg);
+  }
+  // Logos: a rounded square, about a quarter of the size.
+  &--rounded {
+    border-radius: 25%;
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  &--rounded &__image {
+    object-fit: contain;
+    background-color: cssUtils.$foreground;
+  }
+
+  // Icon centered in the shape at about 60% of its size.
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    // 70% of the avatar, with a 2-unit stroke, reads at the same weight as
+    // a plain Icon next to it (a lucide glyph only fills ~80% of its box).
+    width: 70%;
+    height: 70%;
+    svg {
+      width: 100%;
+      height: 100%;
+      stroke-width: 2;
+    }
+  }
+
+  // Tints: soft semantic background with the matching primary foreground,
+  // so icons stay readable in light and dark themes.
+  &--color-info {
+    --openui-avatar-bg: #{cssUtils.$info-background};
+    background-color: var(--openui-avatar-bg);
+    color: cssUtils.$text-info-primary;
+  }
+  &--color-success {
+    --openui-avatar-bg: #{cssUtils.$success-background};
+    background-color: var(--openui-avatar-bg);
+    color: cssUtils.$text-success-primary;
+  }
+  &--color-warning {
+    --openui-avatar-bg: #{cssUtils.$alert-background};
+    background-color: var(--openui-avatar-bg);
+    color: cssUtils.$text-alert-primary;
+  }
+  &--color-danger {
+    --openui-avatar-bg: #{cssUtils.$danger-background};
+    background-color: var(--openui-avatar-bg);
+    color: cssUtils.$text-danger-primary;
+  }
+  &--color-purple {
+    --openui-avatar-bg: #{cssUtils.$purple-background};
+    background-color: var(--openui-avatar-bg);
+    color: cssUtils.$text-purple-primary;
+  }
+  &--color-pink {
+    --openui-avatar-bg: #{cssUtils.$pink-background};
+    background-color: var(--openui-avatar-bg);
+    color: cssUtils.$text-pink-primary;
+  }
+  &--color-inverted {
+    --openui-avatar-bg: #{cssUtils.$inverted-background};
+    background-color: var(--openui-avatar-bg);
+    color: cssUtils.$background;
+  }
+}
+
+// Inside IconText the frame sizes icons; give the avatar the same box.
+.openui-text-with-icon__frame .openui-avatar--inline {
+  width: calc(var(--icon-scale, 1.15) * 1em + 4px);
+  height: calc(var(--icon-scale, 1.15) * 1em + 4px);
+  vertical-align: middle;
+}

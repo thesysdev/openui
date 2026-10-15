@@ -8,7 +8,7 @@ import {
 } from "@components/components/preview";
 import { ListBlock, ListItem } from "@openuidev/react-ui";
 import { ChevronRight, FileText, Globe, LayoutPanelTop } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import styles from "./page.module.css";
 
 type ListVariant = "number" | "icon" | "image";
@@ -24,6 +24,14 @@ function ListsPreview({
   interactionMode: ListInteractionMode;
 }) {
   const descriptionFor = (text: string) => (showDescription ? text : undefined);
+  // ListItem shows a number, or a leading icon or image with variant "plain".
+  const itemVariant = variant === "number" ? "number" : "plain";
+  const leadingFor = (icon: ReactNode, src: string, alt: string) =>
+    variant === "icon" ? (
+      icon
+    ) : variant === "image" ? (
+      <img src={src} alt={alt} width={24} height={24} />
+    ) : undefined;
 
   const commonActionProps = useMemo(() => {
     if (interactionMode === "static") {
@@ -38,33 +46,30 @@ function ListsPreview({
   return (
     <div className={styles.previewWrapper}>
       <div className={styles.previewInner}>
-        <ListBlock variant={variant}>
+        <ListBlock variant={itemVariant}>
           <ListItem
-            variant={variant}
+            variant={itemVariant}
             index={0}
             listHasSubtitle={showDescription}
-            icon={variant === "icon" ? <FileText size={16} /> : undefined}
-            image={variant === "image" ? { src: "/file.svg", alt: "File" } : undefined}
+            leading={leadingFor(<FileText size={16} />, "/file.svg", "File")}
             title="Connect your data"
             subtitle={descriptionFor("Link your database or upload a CSV to get started.")}
             {...commonActionProps}
           />
           <ListItem
-            variant={variant}
+            variant={itemVariant}
             index={1}
             listHasSubtitle={showDescription}
-            icon={variant === "icon" ? <Globe size={16} /> : undefined}
-            image={variant === "image" ? { src: "/globe.svg", alt: "Globe" } : undefined}
+            leading={leadingFor(<Globe size={16} />, "/globe.svg", "Globe")}
             title="Choose a goal"
             subtitle={descriptionFor("Summarize, classify, extract, or generate UI from prompts.")}
             {...commonActionProps}
           />
           <ListItem
-            variant={variant}
+            variant={itemVariant}
             index={2}
             listHasSubtitle={showDescription}
-            icon={variant === "icon" ? <LayoutPanelTop size={16} /> : undefined}
-            image={variant === "image" ? { src: "/window.svg", alt: "Window" } : undefined}
+            leading={leadingFor(<LayoutPanelTop size={16} />, "/window.svg", "Window")}
             title="Review and refine"
             subtitle={descriptionFor("Edit the result and rerun with tighter instructions.")}
             {...commonActionProps}

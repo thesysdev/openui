@@ -1,6 +1,7 @@
 @use "../../cssUtils" as cssUtils;
 @use "./cards/smallCardBlock";
 @use "./cards/mediumCardBlock";
+@use "./disclosureSection";
 
 // ── Keyframes shared by chat primitives ──
 @keyframes openui-spin {

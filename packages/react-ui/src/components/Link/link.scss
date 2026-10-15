@@ -1,0 +1,49 @@
+@use "../../cssUtils" as cssUtils;
+
+// Favicon before a link's text, sized in em so it tracks the font size.
+// Still within the line box, so it never changes the line height.
+.openui-link-favicon {
+  position: relative;
+  display: inline-flex;
+  width: 1em;
+  height: 1em;
+  margin-inline-end: 0.3em;
+  vertical-align: -0.15em;
+  border-radius: 3px;
+  overflow: hidden;
+  color: cssUtils.$text-neutral-secondary;
+
+  img,
+  svg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  // The image loads on top of the globe and only appears once it has loaded.
+  img {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+}
+
+.openui-link-favicon--loaded img {
+  position: static;
+  opacity: 1;
+}
+
+// Many favicons are dark glyphs on transparent; give them a light backing in
+// dark mode rather than filtering (which would distort brand colors).
+.openui-favicon-link--dark .openui-link-favicon--loaded {
+  background-color: #fff;
+  padding: 1px;
+}
+
+// A link keeps focus after it is clicked, and any later keypress (even a
+// screenshot shortcut) makes it :focus-visible. Keep that ring light.
+a.openui-favicon-link:focus-visible {
+  outline: 1.5px solid color-mix(in oklab, currentColor 35%, transparent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}

@@ -211,9 +211,10 @@ export interface TypographyTheme {
   fontWeightBold?: string;
   fontWeightHeavy?: string;
 
-  // Font variation settings ("wght" axis) for Regular and Medium
+  // Font variation settings ("wght" axis) for Regular, Medium and Bold
   fontVariationRegular?: string;
   fontVariationMedium?: string;
+  fontVariationBold?: string;
 
   // Line heights
   lineHeightBody?: string;

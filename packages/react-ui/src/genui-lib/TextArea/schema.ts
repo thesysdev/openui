@@ -8,4 +8,5 @@ export const TextAreaSchema = z.object({
   rows: z.number().optional(),
   rules: rulesSchema,
   value: reactive(z.string().optional()),
+  variant: z.enum(["default", "inline"]).optional(),
 });

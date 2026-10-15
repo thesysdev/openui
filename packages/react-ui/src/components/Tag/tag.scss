@@ -1,48 +1,56 @@
 @use "../../cssUtils" as cssUtils;
 
+// One size: a 24px pill with real side padding around the label.
 .openui-tag {
   box-sizing: border-box;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   overflow: hidden;
   max-width: 100%;
-  gap: cssUtils.$space-2xs;
+  height: 24px;
+  padding: 0 10px;
+  gap: 4px;
+  border-radius: 999px;
   @include cssUtils.typography(label, small);
 
+  // A leading icon or avatar sits a little closer to the edge.
+  &:has(.openui-tag-icon) {
+    padding-left: 6px;
+  }
+  // A 20px avatar sits 2px in from the pill's edge, concentric with its
+  // rounded end.
+  &:has(.openui-tag-icon .openui-avatar) {
+    padding-left: 2px;
+  }
+
   &-icon {
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    flex: none;
     & svg {
-      stroke-width: 2.5;
+      stroke-width: 2;
       width: 14px;
       height: 14px;
     }
+    // Avatars and emoji fill the pill's inner height.
+    & .openui-avatar {
+      width: 20px;
+      height: 20px;
+    }
+    & .openui-emoji {
+      font-size: 14px;
+      // Emoji glyphs have no side bearing, so give the label a little room.
+      margin-right: 2px;
+    }
   }
 
+  // overflow:hidden (for the ellipsis) clips to the line box, so the line
+  // must cover the font's full descent: 18px for 14px text in a 24px pill.
   &-text {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-  }
-
-  &-sm {
-    padding: cssUtils.$space-2xs cssUtils.$space-xs;
-    border-radius: cssUtils.$radius-s;
-    height: 24px;
-  }
-
-  &-md {
-    padding: cssUtils.$space-xs cssUtils.$space-s;
-    border-radius: cssUtils.$radius-s;
-    gap: cssUtils.$space-xs;
-    height: 32px;
-  }
-
-  &-lg {
-    padding: cssUtils.$space-s cssUtils.$space-m;
-    border-radius: cssUtils.$radius-m;
-    gap: cssUtils.$space-xs;
-    height: 36px;
+    line-height: 18px;
   }
 
   &-neutral {
@@ -68,5 +76,21 @@
   &-danger {
     background-color: cssUtils.$danger-background;
     color: cssUtils.$text-danger-primary;
+  }
+
+  // Same palette as Avatar.
+  &-purple {
+    background-color: cssUtils.$purple-background;
+    color: cssUtils.$text-purple-primary;
+  }
+
+  &-pink {
+    background-color: cssUtils.$pink-background;
+    color: cssUtils.$text-pink-primary;
+  }
+
+  &-inverted {
+    background-color: cssUtils.$inverted-background;
+    color: cssUtils.$background;
   }
 }

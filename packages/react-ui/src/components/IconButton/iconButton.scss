@@ -214,3 +214,49 @@
     border-radius: cssUtils.$radius-full;
   }
 }
+
+// ─── Agent (genui) icon buttons ───
+// Round, 32px or 40px, matching the agent Button pills. Scoped to
+// .openui-genui-icon-button so app chrome icon buttons are unchanged.
+.openui-icon-button.openui-genui-icon-button {
+  border-radius: 999px;
+  box-shadow: none;
+
+  &--default {
+    width: 32px;
+    height: 32px;
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+  &--large {
+    width: 40px;
+    height: 40px;
+    & svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  // Primary: the black inverted fill (white in dark mode), like Button.
+  &.openui-icon-button-primary {
+    background-color: cssUtils.$inverted-background;
+    border-color: cssUtils.$inverted-background;
+    color: cssUtils.$background;
+    &:not(:disabled):hover {
+      background-color: cssUtils.$inverted-background;
+      opacity: 0.85;
+    }
+    &:not(:disabled):active {
+      opacity: 0.75;
+    }
+    &:disabled {
+      opacity: 0.4;
+    }
+  }
+
+  &.openui-icon-button-secondary {
+    box-shadow: none;
+  }
+}

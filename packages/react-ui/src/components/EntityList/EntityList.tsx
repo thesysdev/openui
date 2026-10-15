@@ -1,10 +1,12 @@
 import clsx from "clsx";
-import { forwardRef } from "react";
+import { forwardRef, type ReactNode } from "react";
 import { InlineMarkdownRenderer } from "../InlineMarkdownRenderer";
 
 export interface EntityListRow {
-  left: string;
-  right: string;
+  /** A label string, or a composed node such as an EntityTitle or LeadingText. */
+  left: string | ReactNode;
+  /** A value string, or a node such as a Metric, Tag or Text. */
+  right?: string | ReactNode;
   rightVariant?: "text" | "number";
 }
 
@@ -22,27 +24,39 @@ export interface EntityListProps {
 
 type RowType = "header" | "body" | "footer";
 
+const renderCell = (value: string | ReactNode) =>
+  typeof value === "string" ? <InlineMarkdownRenderer content={value} /> : value;
+
 function EntityListRowView({ row, rowType }: { row: EntityListRow; rowType: RowType }) {
   const rightVariant = row.rightVariant ?? "text";
+  // A composed left side (EntityTitle, LeadingText) takes the free width and
+  // centers with the value, instead of the 50/50 label/value split.
+  const composed = typeof row.left !== "string";
   return (
-    <div className={clsx("openui-entity-list__row", `openui-entity-list__row--${rowType}`)}>
-      <span
+    <div
+      className={clsx("openui-entity-list__row", `openui-entity-list__row--${rowType}`, {
+        "openui-entity-list__row--composed": composed,
+      })}
+    >
+      <div
         className={clsx(
           "openui-entity-list__cell-left",
           `openui-entity-list__cell-left--${rowType}`,
         )}
       >
-        <InlineMarkdownRenderer content={row.left} />
-      </span>
-      <span
-        className={clsx(
-          "openui-entity-list__cell-right",
-          `openui-entity-list__cell-right--${rightVariant}`,
-          `openui-entity-list__cell-right--${rowType}`,
-        )}
-      >
-        <InlineMarkdownRenderer content={row.right} />
-      </span>
+        {renderCell(row.left)}
+      </div>
+      {row.right != null && row.right !== "" && (
+        <div
+          className={clsx(
+            "openui-entity-list__cell-right",
+            `openui-entity-list__cell-right--${rightVariant}`,
+            `openui-entity-list__cell-right--${rowType}`,
+          )}
+        >
+          {renderCell(row.right)}
+        </div>
+      )}
     </div>
   );
 }

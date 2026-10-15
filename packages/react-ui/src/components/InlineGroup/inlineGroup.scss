@@ -1,0 +1,10 @@
+// A centered row with a small em gap, so a slot given several pieces needs no
+// direction or gap of its own.
+.openui-inline-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375em;
+  min-width: 0;
+  max-width: 100%;
+}

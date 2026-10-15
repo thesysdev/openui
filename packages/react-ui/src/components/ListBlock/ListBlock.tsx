@@ -7,20 +7,18 @@ import {
   isValidElement,
   ReactElement,
 } from "react";
-import { ListItemProps, ListItemSize, ListItemVariant } from "../ListItem";
+import { ListItemProps, ListItemVariant } from "../ListItem";
 
 export interface ListBlockProps {
-  /** Controls the indicator shown on every ListItem. Defaults to "number". */
+  /** "number" puts an accent number before every title; "plain" shows none. Defaults to "number". */
   variant?: ListItemVariant;
-  /** "small" tightens spacing and typography (used inside cards). Defaults to "default". */
-  size?: ListItemSize;
   children: ReactElement<ListItemProps> | ReactElement<ListItemProps>[];
   className?: string;
   style?: CSSProperties;
 }
 
 const ListBlock = forwardRef<HTMLDivElement, ListBlockProps>((props, ref) => {
-  const { children, variant = "number", size = "default", className, style } = props;
+  const { children, variant = "number", className, style } = props;
 
   const childArray = Children.toArray(children);
   const listHasSubtitle = childArray.some(
@@ -31,7 +29,6 @@ const ListBlock = forwardRef<HTMLDivElement, ListBlockProps>((props, ref) => {
     if (isValidElement(child)) {
       return cloneElement(child as ReactElement<ListItemProps>, {
         variant,
-        size,
         listHasSubtitle,
         index,
       });
@@ -40,15 +37,7 @@ const ListBlock = forwardRef<HTMLDivElement, ListBlockProps>((props, ref) => {
   });
 
   return (
-    <div
-      ref={ref}
-      className={clsx(
-        "openui-list-block",
-        size === "small" && "openui-list-block--small",
-        className,
-      )}
-      style={style}
-    >
+    <div ref={ref} className={clsx("openui-list-block", className)} style={style}>
       {enhancedChildren}
     </div>
   );

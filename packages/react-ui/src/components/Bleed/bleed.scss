@@ -1,0 +1,9 @@
+@use "../_shared/bleed";
+
+// No frame: just the shared breakout, with children stacked 12px apart.
+.openui-bleed {
+  @include bleed.breakout;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

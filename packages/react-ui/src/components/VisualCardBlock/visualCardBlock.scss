@@ -1,5 +1,6 @@
 @use "../../cssUtils" as cssUtils;
 @use "../_shared/chatUtils" as chatUtils;
+@use "../_shared/cards/clickable";
 
 // Photo + gradient sit behind content via pseudo-elements; no extra DOM for the image.
 .openui-visual-first-card {
@@ -43,19 +44,8 @@
   }
 
   &--clickable {
-    cursor: pointer;
-    box-shadow: cssUtils.$shadow-s;
     border-color: cssUtils.$border-interactive;
-
-    &:hover {
-      box-shadow: none;
-      transform: scale(0.995);
-    }
-
-    &:focus-visible {
-      outline: 2px solid cssUtils.$border-accent;
-      outline-offset: 2px;
-    }
+    @include clickable.clickable-card;
   }
 }
 

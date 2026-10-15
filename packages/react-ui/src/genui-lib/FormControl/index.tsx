@@ -30,14 +30,17 @@ export const FormControlRenderer = ({ props, renderNode }: FormControlRenderProp
   const isRequired = inputObj?.type === "element" && inputObj.props?.rules?.required === true;
 
   return (
-    <OpenUIFormControl>
-      <OpenUILabel className="text-sm font-medium" required={isRequired} htmlFor={fieldName}>
+    <OpenUIFormControl className="openui-genui-form-control" hasError={!!error}>
+      <OpenUILabel className="openui-genui-label" required={isRequired} htmlFor={fieldName}>
         {props.label as string}
       </OpenUILabel>
       {renderNode(props.input)}
       {error ? (
-        <OpenUIHint hasError={true}>
-          <AlertCircle size={14} />
+        <OpenUIHint
+          hasError={true}
+          className={props.hint ? undefined : "openui-genui-form-control__floating-error"}
+        >
+          <AlertCircle size={12} />
           {error}
         </OpenUIHint>
       ) : props.hint ? (

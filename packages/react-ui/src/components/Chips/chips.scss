@@ -8,53 +8,84 @@
   box-sizing: border-box;
 }
 
+// Pills at the genui button height. Selection follows OptionCards: the
+// outline stays put and a plain stroke check appears at the end.
 .openui-chip-item {
   @include cssUtils.button-reset;
+  @include cssUtils.typography(label, small-heavy);
   display: inline-flex;
   align-items: center;
-  gap: cssUtils.$space-xs;
-  padding: cssUtils.$space-xs cssUtils.$space-s;
+  gap: 0.429em;
+  height: 32px;
+  padding: 0 1em;
   border: 1px solid cssUtils.$border-interactive;
-  border-radius: cssUtils.$radius-m;
+  border-radius: 999px;
   box-sizing: border-box;
   cursor: pointer;
   background: transparent;
   color: cssUtils.$text-neutral-primary;
   transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease,
-    opacity 0.15s ease;
-  @include cssUtils.typography(label, default);
+    border-color 0.16s ease-out,
+    background-color 0.16s ease-out,
+    padding 0.18s ease-out,
+    transform 0.16s ease-out,
+    opacity 0.16s ease-out;
 
-  &:not(:disabled):not(.openui-chip-item--selected):hover {
-    border-color: cssUtils.$border-default;
-    background-color: cssUtils.$sunk-light;
+  &:has(.openui-chip-item__leading) {
+    padding-left: 0.5em;
+  }
+
+  &:not(:disabled):hover {
+    border-color: cssUtils.$border-interactive-emphasis;
+    background-color: cssUtils.$sunk;
+    transform: scale(1.01);
+  }
+
+  &:not(:disabled):active {
+    background-color: cssUtils.$highlight-strong;
+    transform: scale(0.98);
+    transition-duration: 0.08s;
+  }
+
+  // Selected: a grey fill in place of the outline, plus the check.
+  &--selected,
+  &--selected:not(:disabled):hover {
+    padding-right: 0.714em;
+    border-color: transparent;
+    background-color: cssUtils.$highlight-strong;
   }
 
   &:focus-visible {
-    outline: 2px solid cssUtils.$border-accent;
+    outline: 2px solid cssUtils.$inverted-background;
     outline-offset: 2px;
-  }
-
-  &--selected {
-    border-color: cssUtils.$border-interactive-selected;
-    background-color: cssUtils.$highlight-strong;
   }
 
   &:disabled,
   &--disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 }
 
-.openui-chip-item__icon {
-  display: flex;
+.openui-chip-item__leading {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
 
-  & > * {
-    width: 14px;
-    height: 14px;
+  // A bare Icon sits in a round sunk tile like OptionCards; Avatars and Emoji
+  // bring their own shape.
+  &:has(> svg) {
+    width: 20px;
+    background: cssUtils.$sunk;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
   }
 }
 
@@ -62,4 +93,50 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+// Always rendered so the pill can grow smoothly: collapsed to zero width
+// (with the gap cancelled) until selected, then it opens and the stroke draws.
+.openui-chip-item__check {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 0;
+  height: 14px;
+  margin-left: -0.429em;
+  overflow: hidden;
+  color: cssUtils.$text-neutral-primary;
+  transition:
+    width 0.18s ease-out,
+    margin-left 0.18s ease-out;
+
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+
+  path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.18s ease-out;
+  }
+
+  .openui-chip-item--selected & {
+    width: 14px;
+    margin-left: 0;
+
+    path {
+      stroke-dashoffset: 0;
+      transition-delay: 0.08s;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .openui-chip-item,
+  .openui-chip-item__check,
+  .openui-chip-item__check path {
+    transition: none;
+    transform: none !important;
+  }
 }

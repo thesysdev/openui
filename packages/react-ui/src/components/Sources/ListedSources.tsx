@@ -1,82 +1,64 @@
 import clsx from "clsx";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Key, memo, useCallback, useRef, useState } from "react";
-import { Carousel, CarouselContent, CarouselItem, CarouselRef } from "../Carousel";
-import { IconButton } from "../IconButton";
+import { Key, memo } from "react";
+import { DisclosureSection } from "../_shared/DisclosureSection";
+import { SourceFaviconImage } from "../SourceFaviconImage";
 import { SourceWithFavicon } from "./SourceContext";
 import { ListedSourceItem } from "./SourcesItem";
 
 export interface ListedSourcesProps {
   sources: SourceWithFavicon[];
+  /** Start expanded. Collapsed by default. */
+  defaultOpen?: boolean;
 }
+
+// Favicons stacked beside the collapsed header, one per distinct site.
+const FaviconStack = ({ sources }: { sources: SourceWithFavicon[] }) => {
+  const seen = new Set<string>();
+  const unique = sources.filter((s) => {
+    const k = s.faviconUrl || s.sourceName;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  return (
+    <span className="openui-listed-sources-favicons" aria-hidden>
+      {unique.slice(0, 4).map((s, i) => (
+        <span key={i} className="openui-listed-sources-favicons__item">
+          <SourceFaviconImage url={s.faviconUrl} alt="" width={14} height={14} />
+        </span>
+      ))}
+    </span>
+  );
+};
 
 export const ListedSources = memo((props: ListedSourcesProps) => {
   const sources = props.sources ?? [];
-
-  const ref = useRef<CarouselRef | null>(null);
-  const [scroll, setScroll] = useState({ left: false, right: false });
-
-  const handleScrollLeftEnabled = useCallback((enabled: boolean) => {
-    setScroll((prev) => ({ ...prev, left: enabled }));
-  }, []);
-
-  const handleScrollRightEnabled = useCallback((enabled: boolean) => {
-    setScroll((prev) => ({ ...prev, right: enabled }));
-  }, []);
-
   if (!sources.length) return null;
-
-  // Show buttons only if there's overflow (can scroll left or right)
-  const hasOverflow = scroll.left || scroll.right;
 
   return (
     <div className="openui-listed-sources">
-      <div className="openui-listed-sources-header">
-        <span className="openui-listed-sources-header__title">Sources</span>
-        {hasOverflow && (
-          <div className="openui-listed-sources-header__buttons">
-            <IconButton
-              variant="secondary"
-              size="small"
-              onClick={() => ref.current?.scroll("left")}
-              disabled={!scroll.left}
-              icon={<ChevronLeft />}
-            />
-            <IconButton
-              variant="secondary"
-              size="small"
-              onClick={() => ref.current?.scroll("right")}
-              disabled={!scroll.right}
-              icon={<ChevronRight />}
-            />
-          </div>
-        )}
-      </div>
-      <Carousel
-        variant="sunk"
-        ref={ref}
-        showButtons={false}
-        onScrollLeftEnabled={handleScrollLeftEnabled}
-        onScrollRightEnabled={handleScrollRightEnabled}
+      <DisclosureSection
+        label="Sources"
+        count={sources.length}
+        preview={<FaviconStack sources={sources} />}
+        defaultOpen={props.defaultOpen}
       >
-        <CarouselContent>
+        <div className="openui-listed-sources__grid">
           {sources.map((item: SourceWithFavicon, index: number) => {
-            const { key: _key, ...rest } = item as SourceWithFavicon & {
-              key?: Key;
-            };
+            const { key: _key, ...rest } = item as SourceWithFavicon & { key?: Key };
             return (
-              <CarouselItem
+              <div
                 key={item.url ?? index}
                 className={clsx("openui-listed-sources-item-container", {
                   "openui-listed-sources-item-container--has-url": item.url,
                 })}
               >
                 <ListedSourceItem {...rest} sourceId={index} />
-              </CarouselItem>
+              </div>
             );
           })}
-        </CarouselContent>
-      </Carousel>
+        </div>
+      </DisclosureSection>
     </div>
   );
 });

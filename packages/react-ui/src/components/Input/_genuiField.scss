@@ -1,0 +1,117 @@
+@use "../../cssUtils" as cssUtils;
+
+// ─── Agent (genui) fields ───
+// One look for every text-like field the agent renders (Input, TextArea,
+// Select, DatePicker): 14px text on a white surface with 8px corners.
+// Scoped to genui classes so app chrome that uses the base components keeps
+// its own sizes. The surface can be the control itself or a wrapper around
+// it (Input with its leading icon), so states key off :focus-within and :has.
+
+$height: 44px;
+$inline-height: 32px;
+// Corner radius for every field, single- or multi-line.
+$radius: cssUtils.$radius-m;
+
+@mixin surface {
+  box-sizing: border-box;
+  @include cssUtils.typography(body, small);
+  color: cssUtils.$text-neutral-primary;
+  background-color: cssUtils.$foreground;
+  border: 1px solid cssUtils.$border-interactive;
+  box-shadow: none;
+  transition:
+    box-shadow 0.16s ease,
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+
+  &:hover:not(:has(:disabled)):not([data-disabled]) {
+    border-color: cssUtils.$border-interactive-emphasis;
+  }
+
+  &:focus-within,
+  &[data-state="open"] {
+    outline: none;
+    border-color: cssUtils.$border-interactive-emphasis;
+    box-shadow: 0 0 0 3px cssUtils.$sunk;
+  }
+
+  &:has(:disabled),
+  &:disabled,
+  &[data-disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@mixin error {
+  border-color: cssUtils.$border-danger-emphasis;
+  box-shadow: 0 0 0 3px cssUtils.$border-danger;
+}
+
+// Single-line fields.
+@mixin pill {
+  @include surface;
+  height: $height;
+  padding: 0 1.143em;
+  border-radius: $radius;
+}
+
+// Multi-line fields.
+@mixin block {
+  @include surface;
+  padding: 0.857em 1.143em;
+  border-radius: $radius;
+}
+
+// Dense layouts (table cells, inline rows): no chrome until hovered or focused.
+@mixin inline {
+  height: $inline-height;
+  padding: 0 0.571em;
+  border-radius: cssUtils.$radius-s;
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+
+  &:hover:not(:has(:disabled)):not([data-disabled]) {
+    background-color: cssUtils.$sunk;
+    border-color: transparent;
+  }
+
+  &:focus-within,
+  &[data-state="open"] {
+    background-color: cssUtils.$foreground;
+    border-color: cssUtils.$border-interactive-emphasis;
+    box-shadow: none;
+  }
+}
+
+// The bare control inside a wrapper surface.
+@mixin control {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  font-variation-settings: inherit;
+  color: inherit;
+
+  &::placeholder {
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@mixin icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: cssUtils.$text-neutral-secondary;
+}

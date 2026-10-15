@@ -2,7 +2,7 @@
 
 import { ComponentRenderProps, defineComponent } from "@openuidev/react-lang";
 import { TextBlockView } from "../../components/TextBlock";
-import { getMetricSubtextTone } from "../Text";
+import { getMetricSubtextTone } from "../InlineText";
 import { BoldTextSchema, type BoldTextProps } from "./schema";
 
 export * from "./schema";

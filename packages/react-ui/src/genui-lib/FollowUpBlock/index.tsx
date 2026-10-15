@@ -1,6 +1,7 @@
 "use client";
 
 import { defineComponent, useTriggerAction } from "@openuidev/react-lang";
+import { Plus } from "lucide-react";
 import { z } from "zod/v4";
 import { FollowUpBlock as OpenUIFollowUpBlock } from "../../components/FollowUpBlock";
 import { FollowUpItem as OpenUIFollowUpItem } from "../../components/FollowUpItem";
@@ -20,7 +21,14 @@ export const FollowUpBlock = defineComponent({
       <OpenUIFollowUpBlock>
         {items.map((item, i) => {
           const text = String(item?.props?.text ?? "");
-          return <OpenUIFollowUpItem key={i} text={text} onClick={() => triggerAction(text)} />;
+          return (
+            <OpenUIFollowUpItem
+              key={i}
+              text={text}
+              icon={<Plus size={16} />}
+              onClick={() => triggerAction(text)}
+            />
+          );
         })}
       </OpenUIFollowUpBlock>
     );

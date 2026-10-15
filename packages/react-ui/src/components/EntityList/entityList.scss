@@ -13,10 +13,31 @@
   align-items: flex-start;
   gap: cssUtils.$space-m;
   padding: cssUtils.$space-m 0;
-  border-bottom: 1px solid cssUtils.$border-default;
+  // Dashed rules between rows, the same as the tool timeline's step rules.
+  border-bottom: 1px dashed cssUtils.$border-interactive;
   color: cssUtils.$text-neutral-primary;
 
   &:last-child {
+    border-bottom: none;
+  }
+
+  // A composed label (EntityTitle, LeadingText) takes the free width and
+  // centers with its value.
+  &--composed {
+    align-items: center;
+    .openui-entity-list__cell-left {
+      flex: 1 1 auto;
+      max-width: none;
+    }
+    .openui-entity-list__cell-right {
+      flex: none;
+      max-width: 50%;
+    }
+  }
+
+  // The header is a quiet 14px caption with no rule under it.
+  &--header {
+    padding: cssUtils.$space-xs 0;
     border-bottom: none;
   }
 }
@@ -32,6 +53,16 @@
 
 .openui-entity-list__cell-right {
   text-align: right;
+
+  // text-align doesn't move flex content: a Metric (value + delta) or an
+  // array of pieces lines up on the right edge like string values.
+  > .openui-metric,
+  > .openui-inline-group {
+    justify-content: flex-end;
+  }
+  > .openui-inline-group {
+    display: flex;
+  }
 }
 
 .openui-entity-list--default {
@@ -46,6 +77,7 @@
   .openui-entity-list__row--header {
     .openui-entity-list__cell-left,
     .openui-entity-list__cell-right {
+      @include cssUtils.typography(body, small-heavy);
       color: cssUtils.$text-neutral-secondary;
     }
   }

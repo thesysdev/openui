@@ -29,17 +29,17 @@ export const CardSourceContext = createContext<SourceWithFavicon[] | undefined>(
  * Returns the favicon URL for a given website using Google's favicon service.
  *
  * Attempts to parse the provided URL string and extract the hostname (domain).
- * If parsing succeeds, returns a URL (with size 128) from Google's s2/favicons API.
+ * If parsing succeeds, returns a URL (with the given size, 128 by default) from Google's s2/favicons API.
  * If the URL is invalid or parsing fails, returns an empty string.
  */
-export const getFaviconUrl = (url?: string) => {
+export const getFaviconUrl = (url?: string, size = 128) => {
   try {
     if (!url) {
       return "";
     }
     const parsedUrl = new URL(url);
     const domain = parsedUrl.hostname;
-    return `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+    return `https://www.google.com/s2/favicons?sz=${size}&domain=${domain}`;
   } catch {
     return "";
   }

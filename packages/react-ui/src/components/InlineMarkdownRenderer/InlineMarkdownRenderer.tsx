@@ -3,6 +3,7 @@ import { memo, ReactNode } from "react";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { remarkCitations } from "../_shared/remark/remarkCitations";
+import { remarkHighlight } from "../_shared/remark/remarkHighlight";
 import { TextContentCitation } from "../Citation";
 import { MarkDownRenderer } from "../MarkDownRenderer";
 import { useTheme } from "../ThemeProvider";
@@ -40,6 +41,7 @@ export const InlineMarkdownRenderer = memo(
               remarkCitations,
               [remarkBreaks, { breaks: false }],
               [remarkGfm, { singleTilde: false }],
+              remarkHighlight,
             ],
             components: {
               p: Fragment,

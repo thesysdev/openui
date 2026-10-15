@@ -13,3 +13,5 @@ export {
   openuiChatLibrary,
   openuiChatPromptOptions,
 } from "./openuiChatLibrary";
+
+export { openuiArchivedComponents } from "./archived";

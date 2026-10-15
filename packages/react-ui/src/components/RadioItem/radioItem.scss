@@ -23,7 +23,7 @@
   width: 16px;
   cursor: pointer;
   background-color: transparent;
-  margin-top: cssUtils.$space-2xs;
+  margin-top: 1px;
 
   &[data-state] {
     // This makes the root element a styling context for children
@@ -55,7 +55,7 @@
   }
 
   .openui-radio-item-root[data-state="checked"] & {
-    fill: cssUtils.$interactive-accent-default;
+    fill: cssUtils.$inverted-background;
   }
 }
 
@@ -65,8 +65,12 @@
     stroke: cssUtils.$border-interactive;
   }
 
+  .openui-radio-item-root[data-state="unchecked"]:hover:not(:disabled) & {
+    stroke: cssUtils.$border-interactive-emphasis;
+  }
+
   .openui-radio-item-root[data-state="checked"] & {
-    stroke: cssUtils.$border-accent;
+    stroke: cssUtils.$inverted-background;
   }
 }
 
@@ -81,7 +85,7 @@
   }
 
   .openui-radio-item-root[data-state="unchecked"]:hover:not(:disabled) & {
-    fill: cssUtils.$border-interactive;
+    fill: cssUtils.$foreground;
   }
 }
 .openui-radio-item-content {
@@ -92,18 +96,18 @@
 
 .openui-radio-item-label {
   flex: 1;
-  @include cssUtils.typography(body, default);
+  @include cssUtils.typography(label, small-heavy);
   color: cssUtils.$text-neutral-primary;
   cursor: pointer;
   overflow-wrap: anywhere;
   &:disabled {
-    color: cssUtils.$text-neutral-tertiary;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 }
 
 .openui-radio-item-description {
-  @include cssUtils.typography(body, default);
+  @include cssUtils.typography(body, small);
   color: cssUtils.$text-neutral-secondary;
   overflow-wrap: anywhere;
 }

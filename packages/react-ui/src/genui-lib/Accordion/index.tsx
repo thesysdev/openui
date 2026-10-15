@@ -9,6 +9,7 @@ import {
   AccordionItem as OpenUIAccordionItem,
   AccordionTrigger as OpenUIAccordionTrigger,
 } from "../../components/Accordion";
+import { renderIconSlot } from "../iconSlot";
 import { AccordionItemSchema } from "./schema";
 
 export { AccordionItemSchema } from "./schema";
@@ -16,12 +17,18 @@ export { AccordionItemSchema } from "./schema";
 export const AccordionItem = defineComponent({
   name: "AccordionItem",
   props: AccordionItemSchema,
-  description: "value is unique id, trigger is section title",
+  description:
+    'One collapsible item: AccordionItem(value, trigger, content, leading?), e.g. AccordionItem("refunds", "Can I get a refund?", [Markdown("Yes, within 30 days of purchase.")], Icon("receipt", "finance")). value is a unique id; trigger is the title the reader clicks, a short question or topic; content is what opens. leading is optional: an Icon for a topic, an inline Avatar (with an icon) for the person who owns that item, or an Emoji only in rare expressive content. Give every item a leading or none of them.',
   component: () => null,
 });
 
 type AccordionRenderProps = ComponentRenderProps<{
-  items: SubComponentOf<{ value: string; trigger: string; content: unknown[] }>[];
+  items: SubComponentOf<{
+    value: string;
+    trigger: string;
+    content: unknown[];
+    leading?: unknown;
+  }>[];
 }>;
 
 /** Shared renderer — also used by the chat library's Accordion variant (wider content union). */
@@ -49,7 +56,10 @@ export const AccordionRenderer = ({ props, renderNode }: AccordionRenderProps) =
     <OpenUIAccordion type="single" collapsible value={openItem} onValueChange={handleValueChange}>
       {items.map((item) => (
         <OpenUIAccordionItem key={item.props.value} value={item.props.value}>
-          <OpenUIAccordionTrigger text={item.props.trigger} />
+          <OpenUIAccordionTrigger
+            text={item.props.trigger}
+            icon={item.props.leading ? renderIconSlot(item.props.leading) : undefined}
+          />
           <OpenUIAccordionContent>{renderNode(item.props.content)}</OpenUIAccordionContent>
         </OpenUIAccordionItem>
       ))}
@@ -62,6 +72,7 @@ export const Accordion = defineComponent({
   props: z.object({
     items: z.array(AccordionItem.ref),
   }),
-  description: "Collapsible sections",
+  description:
+    "Collapsible items for supplementary detail the reader opens on demand, most often an FAQ: Accordion([item1, item2, item3]). Keep it to 3–5 items and place it last in its Section or Card; never hide primary information in it. For topics that are equally prominent parts of a long report use SectionBlock, and for alternative views use Tabs.",
   component: AccordionRenderer,
 });

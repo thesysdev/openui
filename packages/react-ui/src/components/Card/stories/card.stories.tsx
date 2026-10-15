@@ -28,11 +28,11 @@ const meta: Meta<typeof Card> = {
     },
     variant: {
       control: "radio",
-      options: ["card", "clear", "sunk"],
+      options: ["outlined", "lifted", "sunk"],
       description: "Determines the visual style of the card",
 
       table: {
-        defaultValue: { summary: "card" },
+        defaultValue: { summary: "outlined" },
         category: "Appearance",
       },
     },
@@ -47,7 +47,7 @@ type Story = StoryObj<typeof Card>;
 export const CardStory: Story = {
   args: {
     width: "standard",
-    variant: "card",
+    variant: "outlined",
   },
   render: (args) => (
     <div style={{ width: "500px" }}>

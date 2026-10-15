@@ -1,4 +1,5 @@
 @use "../../cssUtils" as cssUtils;
+@use "../Input/genuiField" as field;
 
 .openui-textarea {
   @include cssUtils.typography(body, default);
@@ -42,5 +43,29 @@
 
   &-error {
     border-color: cssUtils.$border-danger-emphasis;
+  }
+}
+
+// ─── Agent (genui) text area ───
+// Same surface as the genui input, with the 14px card radius.
+.openui-genui-textarea {
+  @include field.block;
+  display: block;
+  width: 100%;
+  resize: none;
+
+  &::placeholder {
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  &--inline {
+    @include field.inline;
+    height: auto;
+    padding: 0.286em 0.571em;
+  }
+
+  &--error,
+  &--error:focus-within {
+    @include field.error;
   }
 }

@@ -1,0 +1,62 @@
+@use "../../cssUtils" as cssUtils;
+
+// ValueLayout: ValueCard items without the tinted card, split by the same
+// dashed rules as EntityList and the tool timeline. Cells have no side
+// padding, so the outer items sit flush with surrounding content and nothing
+// extends past the container. Columns are spaced by a gap, and each cell
+// draws its left rule in the middle of that gap and a top rule across its
+// own width, so rules never meet at the corners. The grid clips the rules on
+// its outer edge (left of the first column, above the first row), which
+// works at any column count, including the responsive reflow.
+$rule: 1px dashed cssUtils.$border-interactive;
+$rule-inset: 12px;
+$column-gap: 24px;
+
+.openui-value-layout {
+  .openui-small-card-block__grid,
+  .openui-small-card-block__row,
+  .openui-small-card-block__carousel-track {
+    gap: 0 $column-gap;
+  }
+
+  .openui-small-card-block__grid,
+  .openui-small-card-block__carousel-track {
+    // Clip only the hidden outer rules; a couple of pixels of side room keep
+    // avatar outlines on the outer edge intact.
+    clip-path: inset(0 -2px);
+  }
+
+  .openui-small-card-block__item,
+  .openui-small-card-block__carousel-item {
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: calc($column-gap / -2);
+      top: $rule-inset;
+      bottom: $rule-inset;
+      border-left: $rule;
+      pointer-events: none;
+    }
+  }
+
+  .openui-small-card-block__item::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    border-top: $rule;
+    pointer-events: none;
+  }
+
+  // No fill and no side padding. ValueLayout has no actions, so its cells
+  // never hover.
+  .openui-value-card,
+  .openui-overview-card {
+    background-color: transparent;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}

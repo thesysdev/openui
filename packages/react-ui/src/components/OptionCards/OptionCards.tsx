@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
 import { InlineMarkdownRenderer } from "../InlineMarkdownRenderer";
 import { getRowConfiguration } from "../_shared/cards/smallCardBlockUtils";
+import { SelectionCheck } from "./SelectionCheck";
 
 export type OptionCardsSelectionType = "single" | "multiple";
 
@@ -9,11 +10,12 @@ export interface OptionCardsItem {
   value: string;
   /** Inline markdown supported. */
   title: string;
-  /** Inline markdown supported. */
-  subtitle?: string;
-  topContent?: ReactNode;
-  /** Controls the top slot sizing: a small icon tile or a larger image tile. */
-  topContentVariant?: "icon" | "image";
+  /** A string (inline markdown supported) or composed nodes. */
+  subtitle?: ReactNode;
+  /** Icon, Avatar, Emoji or Image shown above the title. */
+  leading?: ReactNode;
+  /** Controls the leading slot sizing: a round icon tile or a larger image tile. */
+  leadingVariant?: "icon" | "image";
   disabled?: boolean;
 }
 
@@ -73,8 +75,8 @@ const OptionCards = forwardRef<HTMLDivElement, OptionCardsProps>((props, ref) =>
               {rowItems.map((item) => {
                 const isSelected = selected.includes(item.value);
                 const isDisabled = disabled || item.disabled === true;
-                const hasTopContent = item.topContent != null;
-                const topVariant = item.topContentVariant ?? "icon";
+                const hasLeading = item.leading != null;
+                const leadingVariant = item.leadingVariant ?? "icon";
 
                 return (
                   <div key={item.value} className="openui-option-cards__item">
@@ -90,15 +92,16 @@ const OptionCards = forwardRef<HTMLDivElement, OptionCardsProps>((props, ref) =>
                       )}
                       onClick={() => onToggle?.(item.value)}
                     >
+                      <SelectionCheck checked={isSelected} className="openui-option-card__check" />
                       <div className="openui-option-card__content">
-                        {hasTopContent ? (
+                        {hasLeading ? (
                           <div
                             className={clsx(
-                              "openui-option-card__top",
-                              `openui-option-card__top--${topVariant}`,
+                              "openui-option-card__leading",
+                              `openui-option-card__leading--${leadingVariant}`,
                             )}
                           >
-                            {item.topContent}
+                            {item.leading}
                           </div>
                         ) : null}
                         <div className="openui-option-card__text">
@@ -107,7 +110,11 @@ const OptionCards = forwardRef<HTMLDivElement, OptionCardsProps>((props, ref) =>
                           </div>
                           {item.subtitle ? (
                             <div className="openui-option-card__subtitle">
-                              <InlineMarkdownRenderer content={item.subtitle} />
+                              {typeof item.subtitle === "string" ? (
+                                <InlineMarkdownRenderer content={item.subtitle} />
+                              ) : (
+                                item.subtitle
+                              )}
                             </div>
                           ) : null}
                         </div>

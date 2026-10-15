@@ -15,3 +15,13 @@
     flex-direction: column;
   }
 }
+
+// The agent's button groups space like the buttons inside them: 6px between
+// default buttons, 8px when the group holds large ones.
+.openui-buttons.openui-genui-buttons {
+  gap: 6px;
+
+  &:has(.openui-genui-button--large) {
+    gap: 8px;
+  }
+}

@@ -1,6 +1,6 @@
 import { autoUpdate, flip, offset, useFloating } from "@floating-ui/react-dom";
 import clsx from "clsx";
-import { ChevronDown } from "lucide-react";
+import { CalendarDays, ChevronDown } from "lucide-react";
 import { forwardRef, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useMultipleRefs } from "../../../../hooks/useMultipleRefs";
@@ -29,6 +29,10 @@ const FloatingDateInput = () => {
         setIsOpen(!isOpen);
       }}
     >
+      <CalendarDays
+        size={16}
+        className="openui-date-picker-renderer-floating-input-container-leading"
+      />
       <span className="openui-date-picker-renderer-floating-input-container-text">
         {mode === "single" ? formatSingleDate(selectedDate) : formatDateRange(selectedRange)}
       </span>

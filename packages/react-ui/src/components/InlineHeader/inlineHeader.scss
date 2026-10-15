@@ -12,6 +12,9 @@
     gap: cssUtils.$space-xs;
     color: cssUtils.$text-neutral-primary;
     @include cssUtils.typography(body, heavy);
+    // Headings are Bold; Medium is for links and actions.
+    font-weight: cssUtils.$font-weight-bold;
+    font-variation-settings: cssUtils.$font-variation-bold;
   }
 
   &-description {

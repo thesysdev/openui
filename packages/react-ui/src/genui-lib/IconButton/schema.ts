@@ -7,7 +7,8 @@ export const IconButtonSchema = z.object({
   icon: Icon.ref,
   action: actionPropSchema.optional(),
   variant: z.enum(["primary", "secondary", "tertiary"]).optional(),
-  size: z.enum(["extra-small", "small", "medium", "large"]).optional(),
-  shape: z.enum(["square", "circle"]).optional(),
+  // Round only, "default" (32px) | "large" (40px). Older sizes and the old
+  // shape argument are dropped by the parser and render at the default.
+  size: z.enum(["default", "large"]).optional(),
 });
 export type IconButtonProps = z.infer<typeof IconButtonSchema>;

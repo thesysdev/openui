@@ -308,3 +308,78 @@
     gap: cssUtils.$space-l;
   }
 }
+
+// Agent (genui) Tabs: pill triggers. The selected tab is a grey pill; the
+// others are ghost (no fill, secondary text) with a faint wash on hover. No
+// underline indicator or bottom rule. App chrome tabs are unaffected.
+.openui-tabs.openui-genui-tabs {
+  gap: cssUtils.$space-m;
+
+  .openui-tabs-list-container::after,
+  .openui-tabs-indicator {
+    display: none;
+  }
+
+  .openui-tabs-list {
+    gap: 4px;
+  }
+
+  .openui-tabs-trigger {
+    height: 32px;
+    padding: 0 14px;
+    gap: 6px;
+    border: none;
+    border-radius: 999px;
+    box-shadow: none;
+    background-color: transparent;
+    color: cssUtils.$text-neutral-secondary;
+    @include cssUtils.typography(body, small-heavy);
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+
+    &:has(.openui-tabs-trigger-icon) {
+      padding-left: 10px;
+    }
+
+    &[data-state="active"] {
+      border: none;
+      box-shadow: none;
+      background-color: oklch(from #{cssUtils.$text-neutral-primary} l c h / 0.07);
+      color: cssUtils.$text-neutral-primary;
+      @include cssUtils.typography(body, small-heavy);
+    }
+
+    &:not([data-state="active"]):hover {
+      border: none;
+      box-shadow: none;
+      background-color: oklch(from #{cssUtils.$text-neutral-primary} l c h / 0.04);
+      color: cssUtils.$text-neutral-primary;
+    }
+
+    // No browser focus ring. Radix focuses a tab on click in a way that
+    // counts as :focus-visible, so the selected tab shows focus through its
+    // grey fill only; keyboard focus on another tab gets a quiet neutral ring.
+    &:focus {
+      outline: none;
+    }
+    &:not([data-state="active"]):focus-visible {
+      outline: 2px solid cssUtils.$border-interactive-emphasis;
+      outline-offset: 2px;
+    }
+  }
+
+  // Leading: an inline Icon, Avatar or Emoji, without the old tile.
+  .openui-tabs-trigger-icon {
+    width: auto;
+    min-width: 1.1em;
+    height: auto;
+    background: none;
+
+    > svg {
+      width: 1.1em;
+      height: 1.1em;
+      stroke-width: 1.75;
+    }
+  }
+}

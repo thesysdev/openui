@@ -7,6 +7,7 @@ import {
   useIsStreaming,
   useStateField,
 } from "@openuidev/react-lang";
+import clsx from "clsx";
 import React from "react";
 import {
   Select as OpenUISelect,
@@ -22,14 +23,16 @@ export { SelectItemSchema } from "./schema";
 export const SelectItem = defineComponent({
   name: "SelectItem",
   props: SelectItemSchema,
-  description: "Option for Select",
+  description:
+    "One option in a Select: SelectItem(value, label); value is what the form submits, label is what the user sees.",
   component: () => null,
 });
 
 export const Select = defineComponent({
   name: "Select",
   props: createSelectSchema(SelectItem),
-  description: "",
+  description:
+    'A dropdown of SelectItems inside a FormControl, for picking one option from four or more: Select(name, items, placeholder?, rules?, value?, variant?), e.g. Select("country", [SelectItem("us", "United States"), SelectItem("uk", "United Kingdom"), SelectItem("de", "Germany")], "Select…", { required: true }). For two or three options, RadioGroup or Chips show every choice at once. value binds a $variable, e.g. a sort field that drives @Sort. variant "inline" is borderless until hover or focus, for table cells and dense rows; use "default" everywhere else.',
   component: ({ props }) => {
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
@@ -68,9 +71,12 @@ export const Select = defineComponent({
         value={value}
         onValueChange={handleChange}
         disabled={isStreaming}
-        size={({ small: "sm", medium: "md", large: "lg" } as const)[props.size as string] ?? "md"}
       >
-        <OpenUISelectTrigger>
+        <OpenUISelectTrigger
+          className={clsx("openui-genui-select", {
+            "openui-genui-select--inline": props.variant === "inline",
+          })}
+        >
           <OpenUISelectValue placeholder={props.placeholder || "Select..."} />
         </OpenUISelectTrigger>
         <OpenUISelectContent>

@@ -63,7 +63,41 @@ export const getMonthNumber = (monthName: string): number => {
   }
 };
 
-export const formatDateRange = (range: DateRange | undefined): string => {
+/**
+ * Values reach the picker from agent output and from stored state, where a
+ * Date has usually become an ISO string (or a timestamp). Coerce anything
+ * date-like to a valid Date and drop the rest, so rendering never throws.
+ */
+export const toDate = (value: unknown): Date | undefined => {
+  if (value == null || value === "") return undefined;
+  const date =
+    value instanceof Date
+      ? value
+      : typeof value === "string" || typeof value === "number"
+        ? new Date(value)
+        : undefined;
+  return date && !Number.isNaN(date.getTime()) ? date : undefined;
+};
+
+/** Accepts {from, to} or [from, to] with any date-like ends; a missing start drops the range. */
+export const toDateRange = (value: unknown): DateRange | undefined => {
+  if (value == null) return undefined;
+  let from: unknown;
+  let to: unknown;
+  if (Array.isArray(value)) {
+    [from, to] = value;
+  } else if (typeof value === "object" && !(value instanceof Date)) {
+    ({ from, to } = value as { from?: unknown; to?: unknown });
+  } else {
+    from = value;
+  }
+  const start = toDate(from);
+  if (!start) return undefined;
+  return { from: start, to: toDate(to) };
+};
+
+export const formatDateRange = (value: DateRange | undefined): string => {
+  const range = toDateRange(value);
   if (!range) return "Select a range";
 
   const { from, to } = range;
@@ -81,7 +115,8 @@ export const formatDateRange = (range: DateRange | undefined): string => {
   return `${format(from, "MMM d, yyyy")} - ${format(to, "MMM d, yyyy")}`;
 };
 
-export const formatSingleDate = (date: Date | undefined): string => {
+export const formatSingleDate = (value: Date | undefined): string => {
+  const date = toDate(value);
   if (!date) return "Select a date";
   return format(date, "MMM d, yyyy");
 };

@@ -335,7 +335,8 @@ const FONT_NUMBERS = '"Inter", sans-serif';
 // Inter is a variable font. font-weight stays at 400 / 560 as the fallback,
 // and the "wght" axis is set through font-variation-settings: Regular 440 in
 // light mode, eased to 420 in dark mode where light-on-dark text reads
-// heavier, and Medium 560. Every non-code style tracks -1%.
+// heavier, Medium 560 for links and actions, and Bold 640 for headings
+// (font-weight 600 as its fallback). Every non-code style tracks -1%.
 const TRACKING = "-0.01em";
 
 const createTypographyTheme = ({
@@ -371,6 +372,7 @@ const createTypographyTheme = ({
 
   fontVariationRegular: `"wght" ${regularAxis}`,
   fontVariationMedium: `"wght" ${medium}`,
+  fontVariationBold: `"wght" 640`,
 
   lineHeightBody: "1.5",
   lineHeightHeading: "1.25",

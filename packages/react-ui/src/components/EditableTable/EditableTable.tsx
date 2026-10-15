@@ -9,19 +9,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import clsx from "clsx";
-import {
-  CalendarDays,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Link,
-  List,
-  RotateCcw,
-  Type,
-} from "lucide-react";
+import { CalendarDays, Check, Hash, Link, List, RotateCcw, Type } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "../Button";
-import { IconButton } from "../IconButton";
 import { getCellRenderer } from "./base/components/cellRegistry";
 import type {
   EditableCellNavigateDirection,
@@ -41,6 +31,8 @@ export interface EditableTableColumn {
   key: string;
   header: string;
   type?: EditableCellType;
+  /** Leading header icon; defaults to one for the column type */
+  icon?: React.ReactNode;
   width?: number;
   /** Options for `select` type cells */
   options?: Array<{ value: string; label: string }>;
@@ -103,16 +95,26 @@ const CellRenderer = (info: CellRendererProps) => {
 const headerIcon = (type: EditableCellType) => {
   switch (type) {
     case "url":
-      return <Link size={16} />;
+      return <Link size={14} />;
     case "date-single":
-      return <CalendarDays size={16} />;
+      return <CalendarDays size={14} />;
     case "select":
-      return <List size={16} />;
-    case "text":
+      return <List size={14} />;
     case "number":
+      return <Hash size={14} />;
+    case "text":
     default:
-      return <Type size={16} />;
+      return <Type size={14} />;
   }
+};
+
+// Control cells (select, date) need room for the value plus the chevron.
+const DEFAULT_COLUMN_WIDTH: Record<EditableCellType, number> = {
+  text: 160,
+  number: 100,
+  url: 180,
+  select: 140,
+  "date-single": 160,
 };
 
 const PORTAL_CELL_TYPES: EditableCellType[] = ["date-single", "select"];
@@ -129,18 +131,6 @@ export const EditableTable = React.forwardRef<HTMLDivElement, EditableTableProps
       (CellPosition & { cellType: EditableCellType }) | null
     >(null);
     const tableRef = useRef<HTMLDivElement>(null);
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-    /**
-     * Horizontal scroll controls state
-     * - isScrollable: whether content overflows horizontally
-     * - canScrollLeft/canScrollRight: whether there is hidden content in that direction
-     * - columnLefts: cumulative left offsets of header cells relative to the scroll container
-     *   Used to snap scrolling by exactly one column at a time.
-     */
-    const [isScrollable, setIsScrollable] = useState(false);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(false);
-    const [columnLefts, setColumnLefts] = useState<number[]>([]);
 
     React.useImperativeHandle(ref, () => tableRef.current as HTMLDivElement);
 
@@ -264,7 +254,7 @@ export const EditableTable = React.forwardRef<HTMLDivElement, EditableTableProps
       columnHelper.accessor(col.key, {
         header: col.header,
         minSize: 0,
-        size: col.width || 120,
+        size: col.width || DEFAULT_COLUMN_WIDTH[col.type ?? "text"],
         meta: (col.options
           ? { options: col.options, type: col.type }
           : { type: col.type }) satisfies EditableColumnMeta,
@@ -278,142 +268,34 @@ export const EditableTable = React.forwardRef<HTMLDivElement, EditableTableProps
       meta: { updateData } satisfies EditableTableMeta,
     });
 
-    const headerIconForColumn = useCallback((column: Column<EditableTableRow>) => {
-      const type = (column.columnDef.meta as EditableColumnMeta | undefined)?.type;
-      return type ? headerIcon(type) : null;
-    }, []);
-
-    /**
-     * Measure scrollability and header column positions.
-     * - Recomputes on container resize via ResizeObserver
-     * - Updates button enabled/disabled state on scroll
-     * - Computes `columnLefts` by reading each <th> left position relative to the scroll container
-     */
-    useEffect(() => {
-      const container = scrollContainerRef.current;
-      const wrapper = tableRef.current;
-      if (!container || !wrapper) return;
-
-      const updateScrollButtons = () => {
-        setCanScrollLeft(container.scrollLeft > 0);
-        setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 1);
-      };
-
-      const compute = () => {
-        setIsScrollable(container.scrollWidth > container.clientWidth);
-        updateScrollButtons();
-
-        // Measure header cell left positions relative to the scroll container
-        const ths = wrapper.querySelectorAll<HTMLTableCellElement>("thead th");
-        if (!ths || ths.length === 0) {
-          setColumnLefts([]);
-          return;
-        }
-        const containerRect = container.getBoundingClientRect();
-        const lefts: number[] = [];
-        ths.forEach((th) => {
-          const rect = th.getBoundingClientRect();
-          const left = rect.left - containerRect.left + container.scrollLeft;
-          lefts.push(Math.max(0, Math.round(left)));
-        });
-        // Ensure unique and sorted
-        setColumnLefts(Array.from(new Set(lefts)).sort((a, b) => a - b));
-      };
-
-      compute();
-
-      const ro = new ResizeObserver(() => compute());
-      ro.observe(container);
-      container.addEventListener("scroll", updateScrollButtons);
-
-      return () => {
-        ro.disconnect();
-        container.removeEventListener("scroll", updateScrollButtons);
-      };
-    }, [columns, data]);
-
-    /**
-     * Scroll right to the start of the next column that is not fully visible.
-     * If no next column is found, scrolls to the maximum possible scroll position.
-     */
-    const scrollToNextColumn = useCallback(() => {
-      const container = scrollContainerRef.current;
-      if (!container || columnLefts.length === 0) return;
-      const current = container.scrollLeft;
-      const target = columnLefts.find((l) => l > current + 1);
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      const next = typeof target === "number" ? target : maxScroll;
-      container.scrollTo({ left: Math.min(next, maxScroll), behavior: "smooth" });
-    }, [columnLefts]);
-
-    /**
-     * Scroll left to the start of the previous column.
-     * Picks the nearest stored left offset smaller than current scrollLeft.
-     */
-    const scrollToPrevColumn = useCallback(() => {
-      const container = scrollContainerRef.current;
-      if (!container || columnLefts.length === 0) return;
-      const current = container.scrollLeft;
-      const prevs = columnLefts.filter((l) => l < current - 1);
-      const prev = prevs.at(-1) ?? 0;
-      container.scrollTo({ left: Math.max(0, prev), behavior: "smooth" });
-    }, [columnLefts]);
+    const headerIconForColumn = useCallback(
+      (column: Column<EditableTableRow>) => {
+        const custom = columns.find((c) => c.key === column.id)?.icon;
+        if (custom) return custom;
+        const type = (column.columnDef.meta as EditableColumnMeta | undefined)?.type;
+        return headerIcon(type ?? "text");
+      },
+      [columns],
+    );
 
     return (
       <div className={clsx("openui-editable-table-wrapper", className)} ref={tableRef} tabIndex={0}>
-        {isScrollable && (
-          <>
-            <div
-              className={clsx(
-                "openui-editable-table-scroll-control",
-                "openui-editable-table-scroll-control--left",
-                !canScrollLeft && "openui-editable-table-scroll-control--disabled",
-              )}
-            >
-              <IconButton
-                aria-label="Scroll left"
-                size="small"
-                variant="secondary"
-                onClick={scrollToPrevColumn}
-                disabled={!canScrollLeft}
-                icon={<ChevronLeft size={16} />}
-              />
-            </div>
-            <div
-              className={clsx(
-                "openui-editable-table-scroll-control",
-                "openui-editable-table-scroll-control--right",
-                !canScrollRight && "openui-editable-table-scroll-control--disabled",
-              )}
-            >
-              <IconButton
-                aria-label="Scroll right"
-                size="small"
-                variant="secondary"
-                onClick={scrollToNextColumn}
-                disabled={!canScrollRight}
-                icon={<ChevronRight size={16} />}
-              />
-            </div>
-          </>
-        )}
-        <div className="openui-editable-table-scroll-container" ref={scrollContainerRef}>
-          <table
-            className="openui-editable-table-table"
-            style={{ width: isScrollable ? "max-content" : "100%" }}
-          >
+        <div className="openui-editable-table-scroll-container">
+          <table className="openui-editable-table-table">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <th key={header.id} style={{ width: header.getSize() }}>
                       <div className="openui-editable-table-header-container">
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                        <div className="openui-editable-table-header-icon">
+                        <span className="openui-editable-table-header-icon">
                           {headerIconForColumn(header.column)}
-                        </div>
+                        </span>
+                        <span className="openui-editable-table-header-label">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </span>
                       </div>
                     </th>
                   ))}
@@ -459,6 +341,9 @@ export interface EditableTableChangesBarProps {
   className?: string;
 }
 
+// Agent pill styling: black primary and pill secondary, matching other genui buttons.
+const GENUI_BUTTON_CLASS = "openui-genui-button openui-genui-button--default";
+
 /**
  * Pending-changes summary bar shown beneath an EditableTable, with reset / save actions.
  * Renders nothing when `changedCellCount` is 0.
@@ -474,17 +359,26 @@ export const EditableTableChangesBar = ({
   if (changedCellCount <= 0) return null;
   return (
     <div className={clsx("openui-editable-table-changes-container", className)}>
-      <div className="openui-editable-table-changes-count">{changedCellCount} changes made</div>
+      <div className="openui-editable-table-changes-count">
+        {changedCellCount} {changedCellCount === 1 ? "change" : "changes"} made
+      </div>
       <div className="openui-editable-table-changes-buttons">
         <Button
           onClick={onReset}
           variant="secondary"
-          size="small"
+          size="medium"
+          className={GENUI_BUTTON_CLASS}
           iconLeft={<RotateCcw size={16} />}
         >
           {resetLabel}
         </Button>
-        <Button onClick={onSave} variant="primary" size="small" iconLeft={<Check size={16} />}>
+        <Button
+          onClick={onSave}
+          variant="primary"
+          size="medium"
+          className={GENUI_BUTTON_CLASS}
+          iconLeft={<Check size={16} />}
+        >
           {saveLabel}
         </Button>
       </div>

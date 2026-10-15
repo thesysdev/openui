@@ -9,6 +9,7 @@ export { CardHeaderSchema } from "./schema";
 export const CardHeader = defineComponent({
   name: "CardHeader",
   props: CardHeaderSchema,
-  description: "Header with optional title and subtitle",
+  description:
+    "Card title with optional subtitle. Only use directly inside a Card, never outside one.",
   component: ({ props }) => <OpenUICardHeader title={props.title} subtitle={props.subtitle} />,
 });

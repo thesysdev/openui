@@ -5,11 +5,9 @@
   display: flex;
   flex-direction: column;
 
-  &__header {
-    color: cssUtils.$text-neutral-secondary;
-    border-bottom: 1px solid cssUtils.$border-default;
-    padding-top: cssUtils.$space-s;
-    padding-bottom: cssUtils.$space-s;
-    margin-bottom: cssUtils.$space-m;
+  // Rows sit flush under the header: no rule or gap above the first one.
+  &__items {
+    display: flex;
+    flex-direction: column;
   }
 }

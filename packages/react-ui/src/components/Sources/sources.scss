@@ -1,61 +1,107 @@
 @use "../../cssUtils" as cssUtils;
 
 .openui-listed-sources-item-container {
-  width: 180px !important;
-  padding: cssUtils.$space-000 !important;
-  border-radius: cssUtils.$radius-l !important;
-  overflow: hidden;
-  background-color: transparent !important;
-  &--has-url {
-    &:hover {
-      background-color: cssUtils.$highlight-subtle !important;
-      border-color: cssUtils.$border-interactive !important;
-    }
+  box-sizing: border-box;
+  min-width: 0;
+  border: 1px solid cssUtils.$border-default;
+  border-radius: cssUtils.$radius-m;
+  background-color: transparent;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease;
+  &--has-url:hover {
+    background-color: cssUtils.$highlight-subtle;
+    border-color: cssUtils.$border-interactive;
+  }
+  &:focus-within {
+    border-color: cssUtils.$border-interactive-emphasis;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 }
 
 .openui-listed-source-item {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: cssUtils.$space-2xs;
-  padding: cssUtils.$space-s;
+  gap: cssUtils.$space-3xs;
+  min-width: 0;
   height: 100%;
+  padding: cssUtils.$space-xs cssUtils.$space-s;
+  border-radius: inherit;
   &--has-url {
     cursor: pointer;
   }
+  &:focus {
+    outline: none;
+  }
   &__header {
     display: flex;
-    align-items: flex-start;
-    gap: cssUtils.$space-s;
+    align-items: center;
+    gap: cssUtils.$space-xs;
+    min-width: 0;
   }
-
   &__source-name {
-    color: cssUtils.$text-neutral-primary;
-    @include cssUtils.typography(label, small);
+    @include cssUtils.typography(label, extra-small);
+    color: cssUtils.$text-neutral-secondary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   &__title {
-    color: cssUtils.$text-neutral-secondary;
-    @include cssUtils.typography(body, small);
+    @include cssUtils.typography(label, small);
+    color: cssUtils.$text-neutral-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   &__logo {
     flex-shrink: 0;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: cssUtils.$radius-xs;
+    overflow: hidden;
+  }
+}
+
+// Favicons stacked beside the collapsed "Sources" header.
+.openui-listed-sources-favicons {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: cssUtils.$space-3xs;
+
+  &__item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: cssUtils.$foreground;
+    box-shadow: 0 0 0 1.5px cssUtils.$background;
     border: 1px solid cssUtils.$border-default;
-    border-radius: cssUtils.$radius-s;
     box-sizing: border-box;
     overflow: hidden;
+
+    & + & {
+      margin-inline-start: -5px;
+    }
   }
 }
 
 .openui-listed-sources {
   display: flex;
   flex-direction: column;
-  gap: cssUtils.$space-m;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+    gap: cssUtils.$space-xs;
+  }
 
   &-header {
     display: flex;

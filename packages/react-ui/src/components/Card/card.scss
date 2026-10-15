@@ -1,5 +1,12 @@
 @use "../../cssUtils.scss" as cssUtils;
 
+// Same insets and radius as our card items (CompositeCard, InsightCard,
+// ValueCard): 12px, 18px on the right where text ends, 14px at the bottom.
+@mixin card-inset {
+  padding: 12px 18px 14px 12px;
+  border-radius: 14px;
+}
+
 .openui-card {
   display: flex;
   flex-direction: column;
@@ -9,8 +16,23 @@
   color: cssUtils.$text-neutral-primary;
   @include cssUtils.typography(body, default);
 
-  &-card {
+  // Border only: shows whatever surface it sits on.
+  &-outlined {
+    @include card-inset;
+    background-color: transparent;
+    border-color: cssUtils.$border-default;
     box-shadow: none;
+  }
+
+  // The outlined card raised off the page by a shadow.
+  &-lifted {
+    @include card-inset;
+    background-color: cssUtils.$foreground;
+    border-color: cssUtils.$border-default;
+    // Same soft, low shadow as CompositeCard.
+    box-shadow:
+      0 1px 2px oklch(0 0 0 / 0.04),
+      0 4px 16px -4px oklch(0 0 0 / 0.08);
   }
 
   &-clear {
@@ -21,11 +43,33 @@
   }
 
   &-sunk {
-    padding: cssUtils.$space-l;
-    border-radius: cssUtils.$radius-3xl;
+    @include card-inset;
+    // Light grey fill only (the ValueCard tint): no border, no shadow.
     background-color: cssUtils.$sunk;
-    border-color: cssUtils.$border-default;
-    box-shadow: cssUtils.$shadow-m;
+    box-shadow: none;
+  }
+
+  // A Card's own title: 14px Medium over a 13px secondary subtitle, the
+  // label sizes our card items use.
+  &__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: var(--openui-font-weight-medium);
+    font-variation-settings: var(--openui-font-variation-medium);
+    color: cssUtils.$text-neutral-primary;
+  }
+
+  &__subtitle {
+    font-size: 13px;
+    line-height: 18px;
+    color: cssUtils.$text-neutral-secondary;
   }
 
   &-standard {

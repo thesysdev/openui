@@ -7,3 +7,49 @@
   flex-direction: column;
   gap: cssUtils.$space-s;
 }
+
+// Agent (genui) form control: label, field and hint sit closer, and the hint
+// uses the 12px small text.
+.openui-genui-form-control {
+  gap: 0.571em;
+  @include cssUtils.typography(body, small);
+
+  .openui-hint {
+    @include cssUtils.typography(label, extra-small);
+    gap: 0.333em;
+  }
+}
+
+// An error with no hint to replace floats in the gap below the field instead
+// of pushing the next field down. A hint, when present, swaps in place.
+.openui-genui-form-control {
+  position: relative;
+
+  .openui-genui-form-control__floating-error {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// FormRow: short fields side by side, one column when the form is narrow.
+.openui-genui-form-row {
+  container-type: inline-size;
+  width: 100%;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--openui-form-row-columns, 2), minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+
+  @container (max-width: 28rem) {
+    &__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}

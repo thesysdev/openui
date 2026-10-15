@@ -1,0 +1,11 @@
+// Sized like an Icon: about 1.1em, centered on the line it sits in. Emoji
+// fonts carry their own color, so no color is set.
+.openui-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1em;
+  line-height: 1;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-variation-settings: normal;
+}

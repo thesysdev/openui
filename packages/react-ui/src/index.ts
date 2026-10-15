@@ -97,6 +97,7 @@ export * from "./components/InlineHeader";
 export * from "./components/InlineMarkdownRenderer";
 export * from "./components/Input";
 export * from "./components/Label";
+export * from "./components/Link";
 export * from "./components/ListBlock";
 export * from "./components/ListItem";
 export * from "./components/MarkDownRenderer";
@@ -112,7 +113,6 @@ export * from "./components/Select";
 export * from "./components/Separator";
 export * from "./components/Skeleton";
 export * from "./components/Slider";
-export * from "./components/SnippetCardBlock";
 export * from "./components/SourceFaviconImage";
 export * from "./components/Sources";
 export * from "./components/Steps";
@@ -128,6 +128,8 @@ export * from "./components/TextCallout";
 export * from "./components/TextContent";
 export * from "./components/TextContentWrapper";
 export * from "./components/ThemeProvider";
+export * from "./components/Timeline";
+export * from "./components/ValueCardBlock";
 
 export * from "./components/ToolCall";
 export * from "./components/ToolResult";
@@ -141,6 +143,7 @@ export { safeOpenUrl, safeUrl } from "./components/_shared/utils";
 // Genui-lib standard library
 export {
   openuiAdditionalRules,
+  openuiArchivedComponents,
   openuiChatAdditionalRules,
   openuiChatComponentGroups,
   openuiChatExamples,

@@ -93,6 +93,7 @@ export const MarkDownRenderer = memo((props: MarkDownRendererProps) => {
       className={clsx(
         props["variant"] && variantStyles[props["variant"] as keyof typeof variantStyles],
         "openui-markdown-renderer",
+        mode === "dark" && "openui-markdown-renderer--dark",
         props.className,
       )}
     >

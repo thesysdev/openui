@@ -74,11 +74,24 @@
     top: 50%;
     z-index: 10;
     transform: translateY(-50%);
-    background: cssUtils.$foreground;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: cssUtils.$radius-s;
+
+    // Frosted grey circle: translucent fill, backdrop blur, no outline.
+    .openui-icon-button {
+      border: none;
+      box-shadow: none;
+      color: cssUtils.$text-neutral-primary;
+      background-color: oklch(from #{cssUtils.$foreground} calc(l - 0.06) c h / 0.72);
+      backdrop-filter: blur(8px);
+
+      &:not(:disabled):hover,
+      &:not(:disabled):active {
+        background-color: oklch(from #{cssUtils.$foreground} calc(l - 0.1) c h / 0.86);
+        box-shadow: none;
+      }
+    }
 
     &-left {
       left: -12px;
@@ -101,4 +114,20 @@
   .openui-carousel-item {
     background-color: cssUtils.$highlight-subtle;
   }
+}
+
+// Slides that bring their own frame (genui Carousel slides are Cards).
+.openui-carousel--bare {
+  .openui-carousel-item {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+  }
+}
+
+// Card blocks (ImageCard, InsightCard, CompositeCardBlock, ValueCard) in
+// their carousel layout reuse these arrows; they sit over the block root.
+:is(.openui-small-card-block, .openui-medium-card-block)[data-layout="carousel"] {
+  position: relative;
 }

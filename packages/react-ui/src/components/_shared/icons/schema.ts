@@ -17,7 +17,7 @@ export const iconPropsSchema = z.object({
     .string()
     .optional()
     .describe(
-      "Optional icon category (e.g. 'finance', 'charts', 'security', 'travel', 'people', 'time') used to pick a topical fallback icon when `name` doesn't resolve.",
+      "Optional icon category (e.g. 'finance', 'travel'). Accepted for compatibility; it does not change the rendered icon.",
     ),
 });
 

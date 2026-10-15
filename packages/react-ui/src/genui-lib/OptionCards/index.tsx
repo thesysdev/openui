@@ -14,19 +14,20 @@ import {
 import React from "react";
 import { OptionCards as OpenUIOptionCards } from "../../components/OptionCards";
 import { useHydrateDefaultFieldValue } from "../formDefaultValueUtils";
+import { renderOneOrMany } from "../oneOrMany";
 import { getStoredDefaultValue, normalizeSelection, toggleSelection } from "../selectionFieldUtils";
 import { OptionCardsSchema, type OptionCardProps, type OptionCardsProps } from "./schema";
 
 export * from "./schema";
 
-function isImageTopContent(topContent: unknown): boolean {
-  const candidate = topContent as { type?: unknown; props?: { src?: unknown } } | null | undefined;
-
+function isImageLeading(leading: unknown): boolean {
+  // Only an Image gets the large tile; an Avatar also carries a src.
+  const candidate = leading as { type?: unknown; typeName?: unknown } | null | undefined;
   return (
     typeof candidate === "object" &&
     candidate !== null &&
     candidate.type === "element" &&
-    typeof candidate.props?.src === "string"
+    candidate.typeName === "Image"
   );
 }
 
@@ -110,13 +111,13 @@ function OptionCardsRenderer({ props, renderNode }: ComponentRenderProps<OptionC
       disabled={isStreaming}
       onToggle={handleToggle}
       items={items.map((item) => {
-        const topContent = item.props.topContent;
+        const leading = item.props.leading;
         return {
           value: item.props.value,
           title: item.props.title,
-          subtitle: item.props.subtitle,
-          topContent: topContent != null ? renderNode(topContent) : undefined,
-          topContentVariant: isImageTopContent(topContent) ? "image" : "icon",
+          subtitle: renderOneOrMany(item.props.subtitle, renderNode),
+          leading: leading != null ? renderNode(leading) : undefined,
+          leadingVariant: isImageLeading(leading) ? "image" : "icon",
           disabled: item.props.disabled,
         };
       })}
@@ -128,6 +129,6 @@ export const OptionCards = defineComponent({
   name: "OptionCards",
   props: OptionCardsSchema,
   description:
-    "A form field of selectable cards (title, optional subtitle, optional icon or image) laid out in a responsive grid for choosing one or many options; the selection is stored under `name`.",
+    'A form field of selectable cards in a responsive grid, inside a FormControl, for choosing one or many options that need a short explanation: OptionCards(name, "single" | "multiple", [OptionCard(...), ...], rules?). The selected card shows a checkmark. Use it for 2–6 meaningful choices such as a plan, trip type or working style; for many short labels use Chips, and for a long list use Select. Every card should have the same parts, all with a leading or none. The selection is stored under `name`.',
   component: OptionCardsRenderer,
 });

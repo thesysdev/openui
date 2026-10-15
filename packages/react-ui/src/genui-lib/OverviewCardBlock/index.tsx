@@ -55,6 +55,7 @@ function OverviewCardBlockRenderer({
         itemTitle: title,
         itemSubtitle: getStringProp(top, "subtitle") ?? getStringProp(top, "subtext"),
         itemMetricValue: bottom?.props.value,
+        itemMetricDelta: bottom?.props.delta,
       }),
     );
   };
@@ -78,13 +79,7 @@ function OverviewCardBlockRenderer({
         return {
           id,
           top: top ? renderNode(top) : undefined,
-          bottom: bottom
-            ? {
-                value: bottom.props.value,
-                subtext: bottom.props.subtext,
-                trend: bottom.props.trend,
-              }
-            : undefined,
+          bottomContent: bottom ? renderNode(bottom) : undefined,
         };
       })}
     />

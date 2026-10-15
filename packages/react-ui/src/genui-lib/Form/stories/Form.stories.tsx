@@ -50,14 +50,14 @@ export default meta;
 type Story = StoryObj<typeof OpenUIProgram>;
 
 const contactForm = `root = Stack([title, form])
-title = TextContent("Contact Us", "large-heavy")
+title = Text("Contact Us", "h2")
 form = Form("contact", btns, [nameField, emailField, countryField, msgField])
 nameField = FormControl("Name", Input("name", "Your name", "text", { required: true, minLength: 2 }))
 emailField = FormControl("Email", Input("email", "you@example.com", "email", { required: true, email: true }), "We never share your email.")
 countryField = FormControl("Country", Select("country", countryOpts, "Select a country...", { required: true }))
 msgField = FormControl("Message", TextArea("message", "Tell us more...", 4, { required: true, minLength: 10 }))
 countryOpts = [SelectItem("us", "United States"), SelectItem("uk", "United Kingdom"), SelectItem("de", "Germany")]
-btns = Buttons([Button("Submit", Action([@ToAssistant("Submit")]), "primary"), Button("Cancel", Action([@ToAssistant("Cancel")]), "secondary")])`;
+btns = Buttons([Button("Submit", @ToAssistant("Submit"), "primary"), Button("Cancel", @ToAssistant("Cancel"), "secondary")])`;
 
 export const Default: Story = {
   args: { response: contactForm },
@@ -86,7 +86,7 @@ food = CheckBoxItem("Food", "Local cuisine and restaurants", "food")
 planField = FormControl("Plan", RadioGroup("plan", [basic, premium]))
 basic = RadioItem("Basic", "Self-guided itinerary", "basic")
 premium = RadioItem("Premium", "Includes a personal guide", "premium")
-btns = Buttons([Button("Save preferences", Action([@ToAssistant("Save preferences")]), "primary")])`;
+btns = Buttons([Button("Save preferences", @ToAssistant("Save preferences"), "primary")])`;
 
 /** Form accepts every FormControl input type, not just text fields. */
 export const AllControlTypes: Story = {

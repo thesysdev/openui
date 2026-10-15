@@ -19,7 +19,6 @@ export const EditableDateCell: React.FC<CellRendererProps> = (props) => {
     columnId,
     isSelected,
     isEditing,
-    onSelect,
     onStartEdit,
     onFinishEdit,
     onNavigate,
@@ -89,11 +88,8 @@ export const EditableDateCell: React.FC<CellRendererProps> = (props) => {
       return;
     }
     e.stopPropagation();
-    if (!isSelected) {
-      onSelect(rowIndex, columnId);
-    } else {
-      onStartEdit(rowIndex, columnId);
-    }
+    // One click opens the picker; keyboard navigation still selects without editing.
+    onStartEdit(rowIndex, columnId);
   };
 
   const handleDateChange = (date: Date | undefined) => {
@@ -106,7 +102,7 @@ export const EditableDateCell: React.FC<CellRendererProps> = (props) => {
   return (
     <div
       ref={cellRef}
-      className="openui-editable-table-cell-base"
+      className="openui-editable-table-cell-base openui-editable-table-cell-base--control"
       onClickCapture={handleClick}
       onKeyDown={handleKeyDownWithPicker}
       tabIndex={0}
@@ -114,6 +110,7 @@ export const EditableDateCell: React.FC<CellRendererProps> = (props) => {
     >
       <CellOutline isSelected={isSelected} isEditing={isEditing} />
       <DatePicker
+        className="openui-genui-date-picker openui-genui-date-picker--inline"
         selectedSingleDate={editDate}
         setSelectedSingleDate={handleDateChange}
         mode="single"

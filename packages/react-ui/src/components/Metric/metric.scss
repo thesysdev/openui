@@ -1,0 +1,109 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-metric {
+  display: flex;
+  min-width: 0;
+  color: cssUtils.$text-neutral-primary;
+
+  &__main {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4em;
+    min-width: 0;
+  }
+
+  // A previous value, struck through after the current one (old → new price).
+  &__previous {
+    font-variant-numeric: tabular-nums;
+    color: cssUtils.$text-neutral-secondary;
+    text-decoration-line: line-through;
+  }
+
+  &__value {
+    font-variant-numeric: tabular-nums;
+    color: cssUtils.$text-neutral-primary;
+    // A value like "182 ms" never breaks across lines.
+    white-space: nowrap;
+  }
+
+  // Inline (not flex) so the change shares the value's text baseline; the
+  // arrow sits on that baseline like a glyph.
+  &__delta {
+    display: inline;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    color: cssUtils.$text-neutral-secondary;
+    &--positive {
+      color: cssUtils.$text-success-primary;
+    }
+    &--negative {
+      color: cssUtils.$text-danger-primary;
+    }
+  }
+
+  &__delta-arrow {
+    display: inline-block;
+    width: 0.9em;
+    height: 0.9em;
+    margin-right: 0.1em;
+    vertical-align: -0.1em;
+  }
+
+  &__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  // Horizontal: change beside the value.
+  &--horizontal {
+    flex-direction: row;
+    align-items: baseline;
+    gap: cssUtils.$space-xs;
+  }
+
+  // Vertical: change directly under the value, no gap.
+  &--vertical {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  // Values are Medium; headings are Bold. sm is 14px, default 16px, and
+  // large steps up the type scale to 18px. The font shorthand resets
+  // font-variant-numeric, so tabular figures are set after it.
+  &--size-sm {
+    .openui-metric__value {
+      @include cssUtils.typography(body, small-heavy);
+    }
+    .openui-metric__delta,
+    .openui-metric__previous {
+      @include cssUtils.typography(body, small);
+      font-size: cssUtils.$font-size-xs;
+    }
+  }
+  &--size-default {
+    .openui-metric__value {
+      @include cssUtils.typography(body, heavy);
+    }
+    .openui-metric__delta,
+    .openui-metric__previous {
+      @include cssUtils.typography(body, small);
+    }
+  }
+  &--size-large {
+    .openui-metric__value {
+      @include cssUtils.typography(body, large-heavy);
+    }
+    .openui-metric__delta,
+    .openui-metric__previous {
+      @include cssUtils.typography(body, small);
+    }
+  }
+  &[class*="--size-"] :is(.openui-metric__value, .openui-metric__delta, .openui-metric__previous) {
+    font-variant-numeric: tabular-nums;
+  }
+}

@@ -33,7 +33,8 @@ export const Table = defineComponent({
   props: z.object({
     columns: z.array(Col.ref),
   }),
-  description: "Data table — column-oriented. Each Col holds its own data array.",
+  description:
+    'Data table, column-oriented: Table([Col("Language", langs), Col("Users (M)", users, "number")]); each Col holds its own data array. It draws its own frame, so never wrap it in a Card (that doubles the border): place it directly in a Section, TabItem or AccordionItem, with a Heading or Text title above it if needed.',
   component: ({ props, renderNode }) => {
     const isQueryLoading = useIsQueryLoading();
     const effectivePageSize = DEFAULT_PAGE_SIZE;

@@ -1,9 +1,17 @@
 @use "../../cssUtils" as cssUtils;
 
+// Tags keep their natural width and wrap onto new lines, 6px apart both ways.
+// A tag only shrinks (and ellipsizes) when it alone is wider than the block.
 .openui-tag-block {
   box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
-  gap: cssUtils.$space-s;
+  gap: 6px;
   max-width: 100%;
+  min-width: 0;
+
+  > * {
+    flex: 0 0 auto;
+    max-width: 100%;
+  }
 }

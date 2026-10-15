@@ -2,31 +2,62 @@
 
 .openui-follow-up-item {
   @include cssUtils.button-reset;
-  @include cssUtils.typography(body, default);
+  @include cssUtils.typography(label, small-heavy);
   box-sizing: border-box;
-  padding: cssUtils.$space-s cssUtils.$space-000;
-  border-bottom: 1px solid cssUtils.$border-default;
-  background-color: transparent;
-  gap: cssUtils.$space-s;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: cssUtils.$space-s;
   width: 100%;
-  color: cssUtils.$text-neutral-primary;
+  min-height: 28px;
+  padding: cssUtils.$space-2xs cssUtils.$space-s;
+  border-radius: cssUtils.$radius-m;
+  background-color: transparent;
+  color: cssUtils.$text-neutral-secondary;
   cursor: pointer;
   text-align: left;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+
   &-icon {
-    size: 16px;
+    display: inline-flex;
+    flex-shrink: 0;
+    color: cssUtils.$text-neutral-tertiary;
+    transition: color 0.12s ease;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
   }
   &-text {
     flex: 1;
+    min-width: 0;
     white-space: break-spaces;
     word-break: break-word;
-    max-width: 100%;
     text-align: left;
+  }
+
+  &:hover {
+    background-color: cssUtils.$highlight-subtle;
     color: cssUtils.$text-neutral-primary;
   }
-  &:last-child {
-    border-bottom: none;
+  &:hover &-icon {
+    color: cssUtils.$text-neutral-primary;
+  }
+  &:focus {
+    outline: none;
+  }
+  &:focus-visible {
+    outline: 2px solid cssUtils.$border-interactive-emphasis;
+    outline-offset: -2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    &-icon {
+      transition: none;
+    }
   }
 }

@@ -1,5 +1,6 @@
 @use "../../cssUtils" as cssUtils;
 @use "../menu";
+@use "../Input/genuiField" as field;
 
 .openui-select-trigger {
   box-sizing: border-box;
@@ -191,4 +192,23 @@
   @include menu.separator;
   height: 1px;
   border-top: 1px solid cssUtils.$border-default;
+}
+
+// ─── Agent (genui) select ───
+// Same pill surface as the genui input. See ../Input/_genuiField.scss.
+.openui-select-trigger.openui-genui-select {
+  @include field.pill;
+  width: 100%;
+
+  &[data-placeholder] {
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  .openui-select-trigger-icon {
+    @include field.icon;
+  }
+
+  &--inline {
+    @include field.inline;
+  }
 }

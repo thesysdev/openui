@@ -12,7 +12,7 @@
     display: grid;
     width: 100%;
     max-height: 376px;
-    grid-gap: cssUtils.$space-s;
+    grid-gap: cssUtils.$space-2xs;
   }
 
   // Layout variations
@@ -86,57 +86,32 @@
     }
   }
 
-  &__show-all-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-  }
-
-  // Modal styles
+  // Lightbox styles. The backdrop is always dark, in both themes, so the
+  // photo reads as the focus.
   &__modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    animation: fadeIn 0.3s ease;
-    backdrop-filter: blur(3px);
-    background-color: cssUtils.$overlay;
-  }
-
-  &__modal-content {
-    width: calc(100% - 80px);
-    height: calc(100% - 80px);
-    max-width: 720px;
-    max-height: 640px;
-    overflow: hidden;
+    inset: 0;
     display: flex;
     flex-direction: column;
+    gap: 0.75em;
+    padding: 3em 1em 1em;
     box-sizing: border-box;
-    border: 1px solid cssUtils.$border-default;
-    background-color: cssUtils.$foreground;
-    border-radius: cssUtils.$radius-xl;
-    gap: cssUtils.$space-xl;
-    padding-top: cssUtils.$space-xl;
-    padding-bottom: cssUtils.$space-xl;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+    background-color: rgba(0, 0, 0, 0.92);
   }
-  &__modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-left: cssUtils.$space-xl;
-    padding-right: cssUtils.$space-xl;
-  }
-  &__modal-heading {
-    @include cssUtils.typography(heading, extra-small);
-    color: cssUtils.$text-neutral-primary;
+
+  &__modal-close.openui-icon-button {
+    position: absolute;
+    top: 0.75em;
+    right: 0.75em;
+    color: cssUtils.$text-white;
+
+    &:not(:disabled):hover,
+    &:not(:disabled):active {
+      background-color: rgba(255, 255, 255, 0.12);
+      border-color: transparent;
+    }
   }
 
   &__modal-main {
@@ -145,86 +120,63 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding-left: cssUtils.$space-xl;
-    padding-right: cssUtils.$space-xl;
 
+    // Show the photo at its native size at most, never upscaled, and
+    // shrink it to fit when it is larger than the lightbox
     img {
+      display: block;
+      width: auto;
+      height: auto;
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
-      border-radius: cssUtils.$radius-s;
     }
-    &:hover {
-      .openui-gallery__modal-details {
-        display: flex;
-      }
-    }
-  }
-
-  &__modal-carousel-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
   }
 
   &__modal-carousel {
     display: flex;
-    gap: cssUtils.$space-s;
+    justify-content: flex-start;
+    gap: 0.375em;
     overflow-x: auto;
     scroll-behavior: smooth;
     scrollbar-width: none;
-    padding-left: cssUtils.$space-xl;
-    padding-right: cssUtils.$space-xl;
+    // Room for the active ring so it is not clipped by the scroll container
+    padding: 0.125em;
+    flex-shrink: 0;
 
     &::-webkit-scrollbar {
       display: none;
     }
   }
 
-  &__modal-carousel-button-container {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: cssUtils.$foreground;
-    border-radius: cssUtils.$radius-xs;
-    overflow: hidden;
-    &-left {
-      left: 24px;
-    }
-    &-right {
-      right: 24px;
-    }
-  }
-
   &__modal-thumbnail {
-    flex: 1;
-    height: 116px;
-    min-width: 174px;
+    flex: 0 0 auto;
+    width: 3.5em;
+    height: 3.5em;
     cursor: pointer;
-    opacity: 0.6;
-    border-radius: cssUtils.$radius-s;
-    border: 1px solid transparent;
+    opacity: 0.5;
+    border-radius: cssUtils.$radius-m;
     overflow: hidden;
-    transition: opacity 0.2s ease;
-    box-sizing: border-box;
+    transition:
+      opacity 0.2s ease,
+      box-shadow 0.2s ease;
 
     &:hover {
       opacity: 0.8;
     }
 
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+    }
+
     &--active {
       opacity: 1;
-      border-color: cssUtils.$border-interactive-selected;
-      border-radius: cssUtils.$radius-s;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
     }
 
     img {
+      display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -286,15 +238,5 @@
     to {
       opacity: 1;
     }
-  }
-}
-
-@media (max-width: 768px) {
-  .openui-gallery__modal-content {
-    width: 100%;
-    height: 100%;
-    border-radius: 0;
-    max-height: none;
-    max-width: none;
   }
 }

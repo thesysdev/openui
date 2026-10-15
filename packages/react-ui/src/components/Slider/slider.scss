@@ -1,4 +1,5 @@
 @use "../../cssUtils" as cssUtils;
+@use "../Input/genuiField" as field;
 
 // ─── Base Slider ────────────────────────────────────────────────────────────
 
@@ -58,7 +59,7 @@
     position: absolute;
     height: 100%;
     border-radius: cssUtils.$radius-s;
-    background-color: cssUtils.$interactive-accent-default;
+    background-color: cssUtils.$inverted-background;
     margin-left: -10px;
     margin-right: -8px;
 
@@ -97,7 +98,7 @@
           width: 6px;
           height: 6px;
           border-radius: cssUtils.$radius-3xs;
-          background-color: cssUtils.$interactive-accent-default;
+          background-color: cssUtils.$inverted-background;
         }
       }
     }
@@ -177,7 +178,7 @@
   }
 
   &__label {
-    @include cssUtils.typography(label, default);
+    @include cssUtils.typography(label, small-heavy);
     color: cssUtils.$text-neutral-primary;
     padding-top: cssUtils.$space-xs;
   }
@@ -261,5 +262,151 @@
     height: 2px;
     background-color: cssUtils.$text-neutral-secondary;
     flex-shrink: 0;
+  }
+}
+
+// ─── Field Slider ───────────────────────────────────────────────────────────
+// A slider in the shape of a genui field (44px, 8px corners). The label sits
+// inside on the left, the fill sits behind it and follows the pointer, and the
+// value on the right is editable. See ./FieldSlider.tsx.
+
+.openui-field-slider {
+  @include field.surface;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.571em;
+  width: 100%;
+  height: field.$height;
+  // The value boxes carry 0.286em of their own, so the text lines up with
+  // the label's 1.143em inset.
+  padding: 0 0.857em 0 1.143em;
+  border-radius: field.$radius;
+  overflow: hidden;
+  cursor: ew-resize;
+  user-select: none;
+
+  // Dragging or typing doesn't need a focus outline on the whole field.
+  &:focus-within {
+    border-color: cssUtils.$border-interactive;
+    box-shadow: none;
+  }
+
+  &__root {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    touch-action: none;
+  }
+
+  &__track {
+    position: relative;
+    flex: 1;
+    height: 100%;
+  }
+
+  &__range {
+    position: absolute;
+    height: 100%;
+    background-color: cssUtils.$highlight-strong;
+    transition: background-color 0.16s ease;
+  }
+
+  &__tick {
+    position: absolute;
+    bottom: 0;
+    width: 1px;
+    height: 6px;
+    transform: translateX(-50%);
+    background-color: cssUtils.$border-interactive;
+  }
+
+  &__thumb {
+    display: block;
+    width: 2px;
+    height: 20px;
+    border-radius: 1px;
+    background-color: cssUtils.$border-interactive-emphasis;
+    outline: none;
+    transition:
+      background-color 0.16s ease,
+      height 0.16s ease;
+
+    &:focus-visible {
+      background-color: cssUtils.$inverted-background;
+      height: 28px;
+    }
+  }
+
+  &:hover:not(&--disabled) &__thumb,
+  &:active:not(&--disabled) &__thumb {
+    background-color: cssUtils.$inverted-background;
+  }
+
+  &:active:not(&--disabled) &__thumb {
+    height: 28px;
+  }
+
+  &__label,
+  &__values {
+    position: relative;
+    z-index: 1;
+  }
+
+  &__label {
+    @include cssUtils.typography(label, small-heavy);
+    color: cssUtils.$text-neutral-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+  }
+
+  &__values {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  &__value {
+    box-sizing: content-box;
+    min-width: 1ch;
+    height: 24px;
+    padding: 0 0.286em;
+    border: none;
+    border-radius: cssUtils.$radius-xs;
+    background: transparent;
+    outline: none;
+    font: inherit;
+    letter-spacing: inherit;
+    font-variation-settings: inherit;
+    font-variant-numeric: tabular-nums;
+    color: cssUtils.$text-neutral-primary;
+    text-align: right;
+    cursor: text;
+
+    &:hover:not(:disabled) {
+      background-color: cssUtils.$sunk;
+    }
+
+    &:focus {
+      background-color: cssUtils.$sunk;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  &__separator {
+    padding: 0 0.143em;
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  &--disabled {
+    cursor: not-allowed;
   }
 }

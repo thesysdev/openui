@@ -1,14 +1,10 @@
 import clsx from "clsx";
 import { CSSProperties, forwardRef, ReactNode } from "react";
 
+/** @deprecated Tag has a single 24px size; kept so existing callers compile. */
 export type TagSize = "sm" | "md" | "lg";
-export type TagVariant = "neutral" | "info" | "success" | "warning" | "danger";
-
-const sizeMap: Record<TagSize, string> = {
-  sm: "openui-tag-sm",
-  md: "openui-tag-md",
-  lg: "openui-tag-lg",
-};
+export type TagVariant =
+  "neutral" | "info" | "success" | "warning" | "danger" | "purple" | "pink" | "inverted";
 
 const variantMap: Record<TagVariant, string> = {
   neutral: "openui-tag-neutral",
@@ -16,6 +12,9 @@ const variantMap: Record<TagVariant, string> = {
   success: "openui-tag-success",
   warning: "openui-tag-warning",
   danger: "openui-tag-danger",
+  purple: "openui-tag-purple",
+  pink: "openui-tag-pink",
+  inverted: "openui-tag-inverted",
 };
 
 export interface TagProps {
@@ -23,16 +22,18 @@ export interface TagProps {
   styles?: CSSProperties;
   icon?: ReactNode;
   text: ReactNode;
+  /** @deprecated Ignored: every Tag is a 24px pill. */
   size?: TagSize;
   variant?: TagVariant;
 }
 
 export const Tag = forwardRef<HTMLDivElement, TagProps>((props, ref) => {
-  const { className, styles, icon, text, size = "md", variant = "neutral", ...rest } = props;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { className, styles, icon, text, size: _size, variant = "neutral", ...rest } = props;
   return (
     <div
       ref={ref}
-      className={clsx("openui-tag", sizeMap[size], variantMap[variant], className)}
+      className={clsx("openui-tag", variantMap[variant], className)}
       style={styles}
       {...rest}
     >

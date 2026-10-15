@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import React from "react";
 
-type CardVariant = "clear" | "card" | "sunk";
+// "clear" is internal only (the chat response wrapper); generated UI picks outlined, lifted or sunk.
+type CardVariant = "clear" | "outlined" | "lifted" | "sunk";
 type CardWidth = "standard" | "full";
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -11,7 +12,8 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const variantMap: Record<CardVariant, string> = {
   clear: "openui-card-clear",
-  card: "openui-card-card",
+  outlined: "openui-card-outlined",
+  lifted: "openui-card-lifted",
   sunk: "openui-card-sunk",
 };
 
@@ -21,7 +23,7 @@ const widthMap: Record<CardWidth, string> = {
 };
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>((props, ref) => {
-  const { className, children, variant = "card", width = "standard", ...rest } = props;
+  const { className, children, variant = "outlined", width = "standard", ...rest } = props;
 
   return (
     <div

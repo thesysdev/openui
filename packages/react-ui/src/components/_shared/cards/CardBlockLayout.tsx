@@ -1,12 +1,16 @@
 import clsx from "clsx";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   forwardRef,
+  useCallback,
+  useRef,
   type CSSProperties,
   type ForwardedRef,
   type HTMLAttributes,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
+import { IconButton } from "../../IconButton";
 import { getRowConfiguration, useCarouselMask } from "./smallCardBlockUtils";
 
 export type CardBlockLayoutVariant = "grid" | "carousel";
@@ -48,6 +52,20 @@ function CardBlockLayoutInner<T>(
     ...rest
   } = props;
   const { scrollRef, maskLeft, maskRight } = useCarouselMask();
+  // The arrows scroll by most of a view; they show only on the side that
+  // still has cards out of view, like the Carousel's.
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const setScrollEl = useCallback(
+    (el: HTMLDivElement | null) => {
+      trackRef.current = el;
+      scrollRef(el);
+    },
+    [scrollRef],
+  );
+  const scrollByView = (direction: 1 | -1) => {
+    const el = trackRef.current;
+    if (el) el.scrollBy({ left: direction * el.clientWidth * 0.8, behavior: "smooth" });
+  };
   const safeItems = items ?? [];
   const base = `openui-${size}-card-block`;
   const count = safeItems.length;
@@ -81,7 +99,7 @@ function CardBlockLayoutInner<T>(
     >
       {layout === "carousel" ? (
         <div
-          ref={scrollRef}
+          ref={setScrollEl}
           className={clsx(
             `${base}__carousel`,
             responsive && `${base}__carousel--responsive`,
@@ -93,7 +111,32 @@ function CardBlockLayoutInner<T>(
             {safeItems.map((item, index) => renderCell(item, index))}
           </div>
         </div>
-      ) : (
+      ) : null}
+      {layout === "carousel" && maskLeft && (
+        <div className="openui-carousel-button openui-carousel-button-left openui-card-block-nav">
+          <IconButton
+            icon={<ChevronLeft />}
+            shape="circle"
+            variant="secondary"
+            size="small"
+            aria-label="Scroll left"
+            onClick={() => scrollByView(-1)}
+          />
+        </div>
+      )}
+      {layout === "carousel" && maskRight && (
+        <div className="openui-carousel-button openui-carousel-button-right openui-card-block-nav">
+          <IconButton
+            icon={<ChevronRight />}
+            shape="circle"
+            variant="secondary"
+            size="small"
+            aria-label="Scroll right"
+            onClick={() => scrollByView(1)}
+          />
+        </div>
+      )}
+      {layout === "carousel" ? null : (
         <div
           className={clsx(
             `${base}__grid`,

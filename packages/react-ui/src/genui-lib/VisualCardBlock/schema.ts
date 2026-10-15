@@ -1,11 +1,11 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod/v4";
 import { actionPropSchema } from "../Action/schema";
-import { BoldText } from "../BoldText";
+import { Heading } from "../Heading";
 import { Tag } from "../Tag";
 
 export const VisualCardItemSchema = z.object({
-  body: BoldText.ref,
+  body: Heading.ref,
   id: z.string().optional(),
   bgImageSrc: z.string().optional(),
   tag: z.optional(Tag.ref),
@@ -18,7 +18,7 @@ export const VisualCardItem = defineComponent({
   name: "VisualCardItem",
   props: VisualCardItemSchema,
   description:
-    "A single photo-first card inside a VisualCardBlock: a BoldText body panel, an optional Tag, and a background image (bgImageSrc must be a real URL; bgImageAlt is its alt text).",
+    "A single photo-first card inside a VisualCardBlock: a Heading body panel (the card title and an optional subtitle), an optional Tag, and a background image (bgImageSrc must be a real URL; bgImageAlt is its alt text).",
   component: () => null,
 });
 

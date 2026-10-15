@@ -1,0 +1,126 @@
+@use "../../cssUtils" as cssUtils;
+@use "../_shared/cards/clickable";
+
+.openui-value-card {
+  display: flex;
+  // Horizontal is always one row: the value never drops below the label,
+  // so every card in a block keeps the same direction. A long value wraps
+  // inside its own column instead.
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px cssUtils.$space-m;
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  // Text on the right needs more inset than the round leading on the left
+  // to look equally spaced.
+  padding-right: 18px;
+  box-sizing: border-box;
+  // No outline: the sunk tint on our 14px radius sets the card apart.
+  border: none;
+  border-radius: 14px;
+  background-color: cssUtils.$sunk;
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  &--static {
+    box-shadow: none;
+  }
+
+  // Clickable cards keep the sunk tint and gain the hover wash and lift.
+  &--clickable {
+    @include clickable.clickable-card;
+  }
+}
+
+.openui-value-card__lhs {
+  display: flex;
+  align-items: center;
+  // Never narrower than a short label's words.
+  min-width: min(8em, 100%);
+  flex: 1 1 8em;
+}
+
+.openui-value-card__lhs > * {
+  min-width: 0;
+}
+
+.openui-value-card__rhs {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: right;
+  min-width: 0;
+  max-width: 100%;
+  margin-left: auto;
+  color: cssUtils.$text-neutral-primary;
+  @include cssUtils.typography(number, large-heavy);
+}
+
+.openui-value-card__rhs-content {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.openui-value-card__lhs .openui-icon-text,
+.openui-value-card__lhs .openui-image-text,
+.openui-value-card__lhs .openui-icon-text__content,
+.openui-value-card__lhs .openui-image-text__content,
+.openui-value-card__lhs .openui-text-block,
+.openui-value-card__rhs-content,
+.openui-value-card__rhs-content > *,
+.openui-value-card__rhs .openui-text-block {
+  min-width: 0;
+}
+
+.openui-value-card__lhs .openui-icon-text,
+.openui-value-card__lhs .openui-image-text,
+.openui-value-card__lhs .openui-text-block,
+.openui-value-card__rhs-content {
+  width: 100%;
+  overflow: hidden;
+}
+
+.openui-value-card__rhs .openui-text-block {
+  align-items: flex-end;
+  width: auto;
+  max-width: 100%;
+  overflow: hidden;
+  text-align: right;
+}
+
+.openui-value-card__lhs .openui-text-block__primary,
+.openui-value-card__lhs .openui-text-block__secondary,
+.openui-value-card__rhs .openui-text-block__primary,
+.openui-value-card__rhs .openui-text-block__secondary {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.openui-value-card__rhs .openui-text-block--align-left {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.openui-value-card__chevron {
+  color: cssUtils.$text-neutral-secondary;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// A value made of several pieces wraps within its own column, right-aligned.
+.openui-value-card__rhs .openui-inline-group {
+  justify-content: flex-end;
+}

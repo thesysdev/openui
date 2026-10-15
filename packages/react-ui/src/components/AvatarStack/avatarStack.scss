@@ -1,0 +1,75 @@
+@use "../../cssUtils" as cssUtils;
+
+// --s is one avatar's size; each avatar overlaps the previous by 30%.
+.openui-avatar-stack {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: -0.2em;
+  --s: 32px;
+
+  &--inline {
+    --s: calc(1.15em + 4px);
+  }
+  &--md {
+    --s: 32px;
+  }
+  &--lg {
+    --s: 48px;
+  }
+
+  &__item {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    width: var(--s);
+    height: var(--s);
+    .openui-avatar {
+      width: var(--s);
+      height: var(--s);
+    }
+    & + & {
+      margin-left: calc(var(--s) * -0.3);
+    }
+  }
+
+  // The first avatar sits on top. Each later one is cut where the previous
+  // one overlaps it: that avatar spans -70%..30% of this one, grown by a ~5%
+  // gap. SVG masks in a 100-unit box scale with every size, and match
+  // circle or rounded (25% radius) avatars.
+  &__item--cut-circle {
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 preserveAspectRatio=%22none%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M0 0H100V100H0Z M-75 50a55 55 0 1 0 110 0a55 55 0 1 0 -110 0Z%22/%3E%3C/svg%3E")
+      0 0 / 100% 100% no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 preserveAspectRatio=%22none%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M0 0H100V100H0Z M-75 50a55 55 0 1 0 110 0a55 55 0 1 0 -110 0Z%22/%3E%3C/svg%3E")
+      0 0 / 100% 100% no-repeat;
+  }
+  &__item--cut-rounded {
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 preserveAspectRatio=%22none%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M0 0H100V100H0Z M-45 -5H5A30 30 0 0 1 35 25V75A30 30 0 0 1 5 105H-45A30 30 0 0 1 -75 75V25A30 30 0 0 1 -45 -5Z%22/%3E%3C/svg%3E")
+      0 0 / 100% 100% no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 preserveAspectRatio=%22none%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M0 0H100V100H0Z M-45 -5H5A30 30 0 0 1 35 25V75A30 30 0 0 1 5 105H-45A30 30 0 0 1 -75 75V25A30 30 0 0 1 -45 -5Z%22/%3E%3C/svg%3E")
+      0 0 / 100% 100% no-repeat;
+  }
+
+  &__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  &__more {
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: cssUtils.$sunk;
+    color: cssUtils.$text-neutral-secondary;
+    font-weight: cssUtils.$font-weight-medium;
+    font-variation-settings: cssUtils.$font-variation-medium;
+    font-variant-numeric: tabular-nums;
+    // The count fills about half the chip.
+    font-size: calc(var(--s) * 0.5);
+    line-height: 1;
+    letter-spacing: 0;
+  }
+}

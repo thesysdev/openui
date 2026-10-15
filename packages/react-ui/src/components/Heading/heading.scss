@@ -1,0 +1,46 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-heading {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  &__title-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4em;
+  }
+
+  // Same line-height frame as TextWithIcon, sized off the title's font.
+  &__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    height: 1lh;
+    color: cssUtils.$text-neutral-primary;
+    // Icon at the title size, with the same 1.5 stroke as TextWithIcon.
+    svg {
+      width: 1em;
+      height: 1em;
+      stroke-width: 1.5;
+    }
+  }
+
+  &__title {
+    color: cssUtils.$text-neutral-primary;
+    min-width: 0;
+  }
+
+  // Gaps are in the description's own em, so they scale with the size.
+  &__description {
+    margin-top: 0.15em;
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  // Hero: more air between the h1 title and its description.
+  &--lg {
+    .openui-heading__description {
+      margin-top: 0.5em;
+    }
+  }
+}

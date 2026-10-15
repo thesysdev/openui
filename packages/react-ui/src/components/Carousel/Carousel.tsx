@@ -18,7 +18,7 @@ interface CarouselContextType {
   itemsToScroll: number;
   noSnap?: boolean;
   showButtons?: boolean;
-  variant?: "card" | "sunk";
+  variant?: "card" | "sunk" | "bare";
   isPrevVisible: boolean;
   isNextVisible: boolean;
 }
@@ -35,7 +35,7 @@ export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   itemsToScroll?: number;
   noSnap?: boolean;
   showButtons?: boolean;
-  variant?: "card" | "sunk";
+  variant?: "card" | "sunk" | "bare";
   onScrollLeftEnabled?: (enabled: boolean) => void;
   onScrollRightEnabled?: (enabled: boolean) => void;
 }
@@ -236,7 +236,7 @@ export const CarouselPrevious = forwardRef<
     <div className={clsx("openui-carousel-button openui-carousel-button-left", className)}>
       <IconButton
         ref={ref}
-        shape="square"
+        shape="circle"
         variant="secondary"
         size="small"
         onClick={() => scroll("left")}
@@ -257,7 +257,7 @@ export const CarouselNext = forwardRef<HTMLButtonElement, React.ComponentProps<t
       <div className={clsx("openui-carousel-button openui-carousel-button-right", className)}>
         <IconButton
           ref={ref}
-          shape="square"
+          shape="circle"
           variant="secondary"
           size="small"
           onClick={() => scroll("right")}
