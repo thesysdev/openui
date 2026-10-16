@@ -47,3 +47,27 @@ describe("entry rule", () => {
     expect(result.root?.props.text).toMatchObject({ k: "BinOp", right: { k: "Null" } });
   });
 });
+
+describe.each(["Query", "Mutation"])("unknown functions in %s", (kind) => {
+  it.each([
+    "@MissingTool()",
+    '"save", {amount: @MissingAmount(42)}',
+    '"save", {nested: [@MissingNested(42)]}',
+    '"save", {amount: @Sum([@MissingNested(42), 1])}',
+  ])("reports the function and owning statement for %s", (args) => {
+    const result = parse(`root = Title("Healthy")\njob = ${kind}(${args})`, schema);
+    expect(result.meta.errors).toEqual([
+      expect.objectContaining({ code: "unknown-function", statementId: "job" }),
+    ]);
+    expect(result.meta.errors[0]?.message).toContain("@Missing");
+    expect(result.root?.props.text).toBe("Healthy");
+  });
+
+  it("keeps built-in calls valid", () => {
+    const result = parse(
+      `root = Title("Healthy")\njob = ${kind}("save", {amount: @Sum([1, 2])})`,
+      schema,
+    );
+    expect(result.meta.errors).toEqual([]);
+  });
+});
