@@ -1,0 +1,210 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--openui-background);
+}
+.shop-app {
+  height: 100dvh;
+}
+
+.thread-context {
+  font-size: 13px;
+  color: var(--openui-text-neutral-secondary);
+}
+.thread-context a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Show each bundle product's photo across its card instead of as a small thumbnail. */
+.openui-option-card__top--image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+}
+
+/* The gift card's inline status and its side panel: Print and Download above the page. */
+.html-artifact__status {
+  font-size: 14px;
+  color: var(--openui-text-neutral-secondary);
+}
+.html-artifact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px 16px;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+}
+.html-artifact__actions {
+  display: flex;
+  gap: 8px;
+}
+.html-artifact iframe {
+  flex: 1;
+  width: 100%;
+  min-height: 480px;
+  border: 0;
+  border-radius: var(--openui-radius-m);
+  background: #ffffff;
+}
+
+/* Quantities are typed numbers. Hide the browser's unstyled up and down arrows. */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* The header: the store note on the left, the cart button on the right. */
+.thread-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+/* The cart: a button with the item count, and a popover below it. */
+.cart {
+  position: relative;
+}
+.cart__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--openui-border-default, rgba(128, 128, 128, 0.4));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--openui-text-neutral-primary);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.cart__count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--openui-interactive-accent-default, #5b3fd1);
+  color: var(--openui-text-accent-primary, #ffffff);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+.cart__popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  width: min(380px, calc(100vw - 32px));
+  max-height: 70vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  box-sizing: border-box;
+  border: 1px solid var(--openui-border-default, rgba(128, 128, 128, 0.3));
+  border-radius: 16px;
+  background: var(--openui-background);
+  color: var(--openui-text-neutral-primary);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+.cart__heading {
+  font-size: 15px;
+  font-weight: 600;
+}
+.cart__item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.cart__item img,
+.cart__photo {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: var(--openui-radius-m);
+  object-fit: cover;
+  background: #f2f2f2;
+}
+.cart__details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cart__title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.cart__note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--openui-text-neutral-secondary);
+}
+.cart__error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--openui-text-danger-primary, #d93025);
+}
+.cart__quantity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 14px;
+}
+.cart__quantity button {
+  min-width: 28px;
+  height: 28px;
+  border: 1px solid var(--openui-border-default, rgba(128, 128, 128, 0.4));
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.cart__quantity button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.cart__quantity .cart__remove {
+  border: 0;
+  padding: 0 4px;
+  color: var(--openui-text-neutral-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.cart__total {
+  font-size: 14px;
+  font-weight: 600;
+}
+.cart__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--openui-border-default, rgba(128, 128, 128, 0.3));
+}
+.cart__sum {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 600;
+}
