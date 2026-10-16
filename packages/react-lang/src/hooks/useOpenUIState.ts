@@ -18,7 +18,7 @@ import {
   type ToolProvider,
 } from "@openuidev/lang-core";
 import type React from "react";
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { OpenUIContextValue } from "../context";
 import type { Library } from "../library";
 import { parseResponseBundle } from "../responseBundle";
@@ -205,6 +205,52 @@ export function useOpenUIState(
     [store, queryManager, functions, schema.actions],
   );
 
+  // Deferred evaluations happen in effects or event handlers, outside prop evaluation.
+  // Keep their diagnostics per operation so a successful rerun clears only its own errors.
+  const [deferred, setDeferred] = useState<{
+    program: string | null;
+    errors: Record<string, OpenUIError[]>;
+  }>({ program: bundle.program, errors: {} });
+  useEffect(() => {
+    setDeferred((previous) =>
+      previous.program === bundle.program ? previous : { program: bundle.program, errors: {} },
+    );
+  }, [bundle.program]);
+  const evaluateDeferred = useCallback(
+    (node: Parameters<typeof evaluate>[0], key: string, statementId?: string) => {
+      const errors: OpenUIError[] = [];
+      const value = evaluate(node, {
+        ...evaluationContext,
+        reportError: (message) => {
+          errors.push({
+            source: "runtime",
+            code: "runtime-error",
+            statementId,
+            message: `Evaluating ${key} failed: ${message}`,
+          });
+        },
+      });
+      setDeferred((previous) => {
+        const current = previous.program === bundle.program ? previous.errors : {};
+        if (
+          previous.program === bundle.program &&
+          JSON.stringify(current[key] ?? []) === JSON.stringify(errors)
+        )
+          return previous;
+        const next = { ...current };
+        if (errors.length) next[key] = errors;
+        else delete next[key];
+        return { program: bundle.program, errors: next };
+      });
+      return value;
+    },
+    [evaluationContext, bundle.program],
+  );
+  const deferredErrors = useMemo(
+    () => (deferred.program === bundle.program ? Object.values(deferred.errors).flat() : []),
+    [deferred, bundle.program],
+  );
+
   // ─── Evaluate and submit queries ───
   useEffect(() => {
     // Keep the existing query lifecycle until streaming finishes and the bundle is ready.
@@ -213,7 +259,9 @@ export function useOpenUIState(
     const queryStmts = result?.queryStatements ?? [];
     const evaluatedNodes = queryStmts.map((qn) => {
       const relevantDeps: Record<string, unknown> = {};
-      const toolName = qn.toolAST ? (evaluate(qn.toolAST, evaluationContext) as string) : "";
+      const toolName = qn.toolAST
+        ? (evaluateDeferred(qn.toolAST, `Query ${qn.statementId} tool`, qn.statementId) as string)
+        : "";
       if (qn.deps) {
         for (const ref of qn.deps) {
           relevantDeps[ref] = storeSnapshot[ref];
@@ -223,10 +271,18 @@ export function useOpenUIState(
       return {
         statementId: qn.statementId,
         toolName,
-        args: qn.argsAST ? evaluate(qn.argsAST, evaluationContext) : null,
-        defaults: qn.defaultsAST ? evaluate(qn.defaultsAST, evaluationContext) : null,
+        args: qn.argsAST
+          ? evaluateDeferred(qn.argsAST, `Query ${qn.statementId} args`, qn.statementId)
+          : null,
+        defaults: qn.defaultsAST
+          ? evaluateDeferred(qn.defaultsAST, `Query ${qn.statementId} defaults`, qn.statementId)
+          : null,
         refreshInterval: qn.refreshAST
-          ? (evaluate(qn.refreshAST, evaluationContext) as number)
+          ? (evaluateDeferred(
+              qn.refreshAST,
+              `Query ${qn.statementId} refresh`,
+              qn.statementId,
+            ) as number)
           : undefined,
         deps: Object.keys(relevantDeps).length > 0 ? relevantDeps : undefined,
         complete: qn.complete,
@@ -238,7 +294,7 @@ export function useOpenUIState(
   }, [
     blocked,
     result?.queryStatements,
-    evaluationContext,
+    evaluateDeferred,
     queryManager,
     storeSnapshot,
     scriptRevision,
@@ -252,11 +308,17 @@ export function useOpenUIState(
     const mutStmts = result?.mutationStatements ?? [];
     const nodes = mutStmts.map((mn) => ({
       statementId: mn.statementId,
-      toolName: mn.toolAST ? (evaluate(mn.toolAST, evaluationContext) as string) : "",
+      toolName: mn.toolAST
+        ? (evaluateDeferred(
+            mn.toolAST,
+            `Mutation ${mn.statementId} tool`,
+            mn.statementId,
+          ) as string)
+        : "",
     }));
     // Always call — empty array clears removed mutations and their errors
     queryManager.registerMutations(nodes);
-  }, [blocked, result?.mutationStatements, evaluationContext, queryManager]);
+  }, [blocked, result?.mutationStatements, evaluateDeferred, queryManager]);
 
   // ─── Ref for stable callbacks ───
   const propsRef = useRef({ onAction, onStateUpdate });
@@ -373,7 +435,11 @@ export function useOpenUIState(
                   (m) => m.statementId === step.statementId,
                 );
                 const evaluatedArgs = mn?.argsAST
-                  ? (evaluate(mn.argsAST, evaluationContext) as Record<string, unknown>)
+                  ? (evaluateDeferred(
+                      mn.argsAST,
+                      `Mutation ${mn.statementId} args`,
+                      mn.statementId,
+                    ) as Record<string, unknown>)
                   : {};
                 const ok = await queryManager.fireMutation(step.statementId, evaluatedArgs);
                 if (!ok) return; // halt on failure
@@ -414,7 +480,7 @@ export function useOpenUIState(
                 console.warn(`[openui] Set action for ${step.target} has no valueAST — skipping`);
                 break;
               }
-              const value = evaluate(step.valueAST, evaluationContext);
+              const value = evaluateDeferred(step.valueAST, `Set ${step.target}`);
               store.set(step.target, value);
               break;
             }
@@ -439,7 +505,7 @@ export function useOpenUIState(
         formName,
       });
     },
-    [bundleBlocked, queryManager, evaluationContext, getFormPayload, store, schema.actions],
+    [bundleBlocked, queryManager, evaluateDeferred, getFormPayload, store, schema.actions],
   );
 
   // ─── reportError (for error boundary) ───
@@ -527,6 +593,7 @@ export function useOpenUIState(
     querySnapshot,
     parseExceptionRef,
     runtimeErrorsRef,
+    deferredErrors,
     renderErrorsRef,
     onError,
   });

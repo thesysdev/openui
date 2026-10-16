@@ -23,6 +23,7 @@ export interface UseOpenUIErrorsOptions {
   querySnapshot: QuerySnapshot;
   parseExceptionRef: CurrentRef<OpenUIError | null>;
   runtimeErrorsRef: CurrentRef<OpenUIError[]>;
+  deferredErrors?: OpenUIError[];
   renderErrorsRef: CurrentRef<OpenUIError[]>;
   onError?: (errors: OpenUIError[]) => void;
 }
@@ -38,6 +39,7 @@ export function useOpenUIErrors({
   parseExceptionRef,
   runtimeErrorsRef,
   renderErrorsRef,
+  deferredErrors,
   onError,
 }: UseOpenUIErrorsOptions): OpenUIErrorsResult {
   const errorsRef = useRef<OpenUIError[]>([]);
@@ -86,6 +88,7 @@ export function useOpenUIErrors({
     }
 
     errors.push(...runtimeErrorsRef.current);
+    errors.push(...(deferredErrors ?? []));
     errors.push(...renderErrorsRef.current);
     renderErrorsRef.current = [];
     errors.push(...(querySnapshot.__openui_errors ?? []));
@@ -112,6 +115,7 @@ export function useOpenUIErrors({
     library,
     parseExceptionRef,
     runtimeErrorsRef,
+    deferredErrors,
     renderErrorsRef,
   ]);
 
