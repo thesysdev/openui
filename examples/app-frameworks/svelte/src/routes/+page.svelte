@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Chat } from "@ai-sdk/svelte";
+  import type { UIMessage } from "ai";
   import { BuiltinActionType, type ActionEvent } from "@openuidev/svelte-lang";
   import { library } from "$lib/library";
   import ChatHeader from "./ChatHeader.svelte";
@@ -10,7 +11,15 @@
   import ChatInput from "./ChatInput.svelte";
 
   let messagesEnd = $state<HTMLDivElement>();
-  const chat = new Chat({});
+  const MESSAGES_KEY = "openui-svelte:messages";
+  function loadMessages(): UIMessage[] {
+    try {
+      return JSON.parse(localStorage.getItem(MESSAGES_KEY) ?? "[]");
+    } catch {
+      return [];
+    }
+  }
+  const chat = new Chat({ messages: loadMessages() });
 
   const isLoading = $derived(chat.status === "submitted" || chat.status === "streaming");
 
@@ -26,6 +35,16 @@
   }
 
   $effect(() => {
+    if (chat.status !== "ready" || chat.messages.length === 0) return;
+    try {
+      localStorage.setItem(MESSAGES_KEY, JSON.stringify(chat.messages));
+    } catch {}
+  });
+
+  $effect(() => {
+    // Read the messages (including the one still streaming) so this re-runs as they change.
+    void chat.messages.length;
+    void JSON.stringify(chat.messages.at(-1));
     messagesEnd?.scrollIntoView({ behavior: "smooth" });
   });
 
@@ -66,6 +85,12 @@
       </div>
     {/if}
   </div>
+
+  {#if chat.error && !isLoading}
+    <div role="alert" class="mx-auto mb-2 w-[calc(100%-2rem)] max-w-3xl rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+      {chat.error.message}
+    </div>
+  {/if}
 
   <ChatInput {isLoading} onSubmit={handleSend} onStop={() => chat.stop()} />
 </div>

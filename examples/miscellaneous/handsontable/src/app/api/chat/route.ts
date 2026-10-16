@@ -137,9 +137,9 @@ function sseToolCallArgs(
 }
 
 export async function POST(req: NextRequest) {
-  const { messages } = await req.json();
+  const { messages, tableId } = await req.json();
 
-  setCurrentThreadId("default");
+  setCurrentThreadId(typeof tableId === "string" && tableId ? tableId : "default");
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const lastUserMsg = (messages as any[])
@@ -171,9 +171,15 @@ export async function POST(req: NextRequest) {
   const encoder = new TextEncoder();
   let controllerClosed = false;
 
+  // Resolves on the first chunk, or with the error if the run fails before any output,
+  // so a rejected key or rate limit returns as an HTTP error the chat can show.
+  let settle!: (error?: unknown) => void;
+  const started = new Promise<unknown>((resolve) => (settle = resolve));
+
   const readable = new ReadableStream({
     start(controller) {
       const enqueue = (data: Uint8Array) => {
+        settle();
         if (controllerClosed) return;
         try {
           controller.enqueue(data);
@@ -244,6 +250,7 @@ export async function POST(req: NextRequest) {
       });
 
       runner.on("end", () => {
+        settle();
         enqueue(encoder.encode("data: [DONE]\n\n"));
         close();
       });
@@ -251,12 +258,22 @@ export async function POST(req: NextRequest) {
       runner.on("error", (err: any) => {
         const msg = err instanceof Error ? err.message : "Stream error";
         console.error("Chat route error:", msg);
+        settle(err);
         enqueue(encoder.encode(`data: ${JSON.stringify({ error: msg })}\n\n`));
         close();
       });
       /* eslint-enable @typescript-eslint/no-explicit-any */
     },
   });
+
+  const error = await started;
+  if (error) {
+    const status = (error as { status?: number }).status ?? 500;
+    return Response.json(
+      { error: error instanceof Error ? error.message : String(error) },
+      { status }
+    );
+  }
 
   return new Response(readable, {
     headers: {

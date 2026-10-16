@@ -16,6 +16,18 @@ const DEFAULT_DATA: CellValue[][] = Array.from({ length: 10 }, () =>
   Array(6).fill(null)
 );
 
+const isEmptyRow = (row: CellValue[]) => row.every((cell) => cell === null || cell === "");
+
+/**
+ * The grid's own data, with formulas kept as formulas (getData() would return their
+ * computed values) and without the blank spare rows the grid adds at the bottom.
+ */
+function readSourceData(hot: any): CellValue[][] {
+  const rows = (hot.getSourceData() as CellValue[][]).map((row) => [...row]);
+  while (rows.length > 0 && isEmptyRow(rows[rows.length - 1])) rows.pop();
+  return rows;
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 let HotTable: any = null;
 let HyperFormula: any = null;
@@ -114,11 +126,10 @@ export default function PersistentSpreadsheet() {
     const str = JSON.stringify(tableData);
     if (str !== lastContextDataRef.current && tableData?.data) {
       lastContextDataRef.current = str;
+      // Update the headers first, so nothing saved during loadData pairs new data with old headers.
+      if (tableData.colHeaders) colHeadersRef.current = tableData.colHeaders;
       hot.loadData(deepClone(tableData.data));
-      if (tableData.colHeaders) {
-        hot.updateSettings({ colHeaders: tableData.colHeaders });
-        colHeadersRef.current = tableData.colHeaders;
-      }
+      if (tableData.colHeaders) hot.updateSettings({ colHeaders: tableData.colHeaders });
     }
   }, [tableData, isInitialized]);
 
@@ -126,15 +137,22 @@ export default function PersistentSpreadsheet() {
     (changes: CellChange[] | null, source: ChangeSource) => {
       if (source === "loadData" || !changes) return;
       const hot = hotRef.current?.hotInstance;
-      if (hot) saveData(hot.getData() as CellValue[][]);
+      if (hot) saveData(readSourceData(hot));
     },
     [saveData]
   );
 
-  const handleStructuralChange = useCallback(() => {
-    const hot = hotRef.current?.hotInstance;
-    if (hot) saveData(hot.getData() as CellValue[][]);
-  }, [saveData]);
+  // The last argument of the row/column hooks is the change source. "auto" is the grid
+  // adding spare rows on load; saving then would upload the starting copy over the server's.
+  const handleStructuralChange = useCallback(
+    (...args: unknown[]) => {
+      const source = args[args.length - 1];
+      if (source === "auto" || source === "loadData") return;
+      const hot = hotRef.current?.hotInstance;
+      if (hot) saveData(readSourceData(hot));
+    },
+    [saveData]
+  );
 
   const handleExportCSV = useCallback(() => {
     const hot = hotRef.current?.hotInstance;

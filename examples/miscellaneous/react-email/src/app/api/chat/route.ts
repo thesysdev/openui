@@ -31,11 +31,22 @@ export async function POST(req: NextRequest) {
     ...cleanMessages,
   ];
 
-  const stream = await client.chat.completions.create({
-    model: "google/gemini-3.6-flash-free",
-    messages: chatMessages,
-    stream: true,
-  });
+  // A rejected key, rate limit, or bad request fails here, before streaming starts.
+  // Return it as JSON so the editor can show the real reason.
+  let stream;
+  try {
+    stream = await client.chat.completions.create({
+      model: "google/gemini-3.6-flash-free",
+      messages: chatMessages,
+      stream: true,
+    });
+  } catch (error) {
+    const status = (error as { status?: number }).status ?? 500;
+    return Response.json(
+      { error: error instanceof Error ? error.message : String(error) },
+      { status },
+    );
+  }
 
   const encoder = new TextEncoder();
   let controllerClosed = false;

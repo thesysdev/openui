@@ -1,5 +1,6 @@
 "use client";
 
+import { localStorageChat } from "@/lib/local-storage";
 import { shadcnChatLibrary } from "@/lib/shadcn-genui";
 import {
   AgentInterface,
@@ -8,7 +9,16 @@ import {
   openAIMessageFormat,
   useSystemThemeMode,
 } from "@openuidev/react-ui";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
+
+const { llm, storage } = localStorageChat(
+  fetchLLM({
+    url: "/api/chat",
+    streamAdapter: openAIAdapter(),
+    messageFormat: openAIMessageFormat,
+  }),
+  "openui-shadcn",
+);
 
 export default function Page() {
   const mode = useSystemThemeMode();
@@ -16,20 +26,11 @@ export default function Page() {
     document.body.setAttribute("data-theme", mode);
   }, [mode]);
 
-  const llm = useMemo(
-    () =>
-      fetchLLM({
-        url: "/api/chat",
-        streamAdapter: openAIAdapter(),
-        messageFormat: openAIMessageFormat,
-      }),
-    [],
-  );
-
   return (
     <div className="h-screen w-screen overflow-hidden relative">
       <AgentInterface
         llm={llm}
+        storage={storage}
         componentLibrary={shadcnChatLibrary}
         agentName="shadcn/ui Chat"
         theme={{ mode }}

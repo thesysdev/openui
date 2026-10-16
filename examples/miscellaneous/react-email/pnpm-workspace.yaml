@@ -15,3 +15,6 @@ allowBuilds:
 packages: ["."]
 minimumReleaseAgeExclude:
   - "@openuidev/*"
+# Same overrides as the package.json "pnpm" field, which pnpm 10.14+ no longer reads.
+overrides:
+  "postcss@<8.5.10": ">=8.5.10"

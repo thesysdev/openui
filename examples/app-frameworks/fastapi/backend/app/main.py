@@ -6,8 +6,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from openai import AsyncOpenAI
-from starlette.responses import StreamingResponse
+from openai import APIError, APIStatusError, AsyncOpenAI
+from starlette.responses import JSONResponse, StreamingResponse
 
 load_dotenv()
 
@@ -41,11 +41,21 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 @app.post("/api/chat")
 async def chat(body: dict):
     messages = body.get("messages") or []
-    stream = await client.chat.completions.create(
-        model=MODEL,
-        messages=[{"role": "system", "content": cloud_system_prompt()}, *messages],
-        stream=True,
-    )
+    # A rejected key, rate limit, or bad request fails here, before streaming starts.
+    # Return it as JSON so the chat shows the real reason instead of a bare 500.
+    try:
+        stream = await client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "system", "content": cloud_system_prompt()}, *messages],
+            stream=True,
+        )
+    except APIStatusError as error:
+        body = error.body if isinstance(error.body, dict) else {}
+        detail = body.get("error", body) if isinstance(body.get("error", body), dict) else body
+        message = detail.get("message") if isinstance(detail.get("message"), str) else error.message
+        return JSONResponse({"error": message}, status_code=error.status_code)
+    except APIError as error:
+        return JSONResponse({"error": error.message}, status_code=502)
 
     async def ndjson_stream():
         async for chunk in stream:

@@ -32,5 +32,8 @@ export default defineEventHandler(async (event) => {
     stopWhen: stepCountIs(5),
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toUIMessageStreamResponse({
+    // Pass the real error (for example a rejected key) to the client instead of the SDK's generic text.
+    onError: (error) => (error instanceof Error ? error.message : String(error)),
+  });
 });

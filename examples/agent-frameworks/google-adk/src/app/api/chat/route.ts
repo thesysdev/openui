@@ -34,9 +34,7 @@ interface ChatMessage {
 function messageText(message: ChatMessage | undefined): string {
   if (!message?.content) return "";
   if (typeof message.content === "string") return message.content;
-  return message.content
-    .map((part) => (typeof part.text === "string" ? part.text : ""))
-    .join("");
+  return message.content.map((part) => (typeof part.text === "string" ? part.text : "")).join("");
 }
 
 async function ensureSession(threadId: string): Promise<string> {
@@ -64,7 +62,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const resolvedThreadId = threadId || "default";
+    // Without a threadId, start a fresh session rather than sharing one across callers.
+    const resolvedThreadId = threadId || crypto.randomUUID();
     const sessionId = await ensureSession(resolvedThreadId);
     const encoder = new TextEncoder();
     const runId = crypto.randomUUID();

@@ -6,23 +6,22 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import { AgentInterface, fetchLLM, openAIAdapter, openAIMessageFormat } from "@openuidev/react-ui";
-import { useMemo } from "react";
 
 import { useColorMode } from "@/hooks/use-system-theme";
+import { localStorageChat } from "@/lib/local-storage";
 import { muiChatLibrary } from "@/lib/mui-genui";
+
+const { llm, storage } = localStorageChat(
+  fetchLLM({
+    url: "/api/chat",
+    streamAdapter: openAIAdapter(),
+    messageFormat: openAIMessageFormat,
+  }),
+  "openui-material-ui",
+);
 
 export default function Page() {
   const { mode, toggle } = useColorMode();
-
-  const llm = useMemo(
-    () =>
-      fetchLLM({
-        url: "/api/chat",
-        streamAdapter: openAIAdapter(),
-        messageFormat: openAIMessageFormat,
-      }),
-    [],
-  );
 
   return (
     <Box sx={{ height: "100vh", width: "100vw", overflow: "hidden", position: "relative" }}>
@@ -40,6 +39,7 @@ export default function Page() {
 
       <AgentInterface
         llm={llm}
+        storage={storage}
         componentLibrary={muiChatLibrary}
         agentName="Material UI Chat"
         theme={{ mode }}

@@ -160,6 +160,18 @@ export async function POST(req: NextRequest) {
           } else if (ame.type === "thinking_end") {
             thinkingId = undefined;
           }
+        } else if (event.type === "message_end") {
+          // A failed model call (e.g. a rejected key) ends the reply with an error
+          // instead of throwing, so show its message.
+          const message = event.message as {
+            role?: string;
+            stopReason?: string;
+            errorMessage?: string;
+          };
+          if (message.role === "assistant" && message.stopReason === "error") {
+            const reason = message.errorMessage || "The model request failed.";
+            enqueue(ndjsonChunk({ content: `\n\n**Pi error:** ${reason}` }));
+          }
         } else if (event.type === "tool_execution_start") {
           // Show each tool run (read/bash/edit/write …) and its input.
           enqueue(

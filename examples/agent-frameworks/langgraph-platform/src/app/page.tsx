@@ -1,25 +1,25 @@
 "use client";
 
+import { localStorageChat } from "@/lib/local-storage";
 import { AgentInterface, agUIAdapter, fetchLLM, useSystemThemeMode } from "@openuidev/react-ui";
 import { openuiLibrary } from "@openuidev/react-ui/genui-lib";
-import { useMemo } from "react";
+
+const { llm, storage } = localStorageChat(
+  fetchLLM({
+    url: "/api/chat",
+    streamAdapter: agUIAdapter(),
+  }),
+  "openui-langgraph",
+);
 
 export default function Page() {
   const mode = useSystemThemeMode();
-
-  const llm = useMemo(
-    () =>
-      fetchLLM({
-        url: "/api/chat",
-        streamAdapter: agUIAdapter(),
-      }),
-    [],
-  );
 
   return (
     <div className="app-shell">
       <AgentInterface
         llm={llm}
+        storage={storage}
         componentLibrary={openuiLibrary}
         agentName="OpenUI + DeepAgents Chat"
         theme={{ mode }}

@@ -204,6 +204,12 @@ body {
   color: #ededed;
 }
 
+.chat-bubble--error {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
 .chat-thinking {
   color: #888;
   font-size: 13px;

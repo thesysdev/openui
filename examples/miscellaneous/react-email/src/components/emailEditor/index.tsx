@@ -21,6 +21,7 @@ export function EmailEditor({ onNewEmail }: { onNewEmail: () => void }) {
   const messages = useThread((s) => s.messages);
   const isRunning = useThread((s) => s.isRunning);
   const processMessage = useThread((s) => s.processMessage);
+  const threadError = useThread((s) => s.threadError);
 
   const lastAssistantMessage = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -102,6 +103,23 @@ export function EmailEditor({ onNewEmail }: { onNewEmail: () => void }) {
           />
         )}
       </div>
+
+      {threadError && !isRunning && (
+        <div
+          role="alert"
+          style={{
+            margin: "0 16px 8px",
+            padding: "10px 14px",
+            borderRadius: 8,
+            fontSize: 13,
+            color: "#fecaca",
+            backgroundColor: "rgba(239, 68, 68, 0.12)",
+            border: "1px solid rgba(239, 68, 68, 0.35)",
+          }}
+        >
+          {threadError.message}
+        </div>
+      )}
 
       <MessageInput
         isDark={isDark}

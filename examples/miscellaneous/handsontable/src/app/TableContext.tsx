@@ -2,9 +2,10 @@
 
 import {
   createContext,
-  useContext,
-  useState,
   useCallback,
+  useContext,
+  useEffect,
+  useState,
   type ReactNode,
 } from "react";
 
@@ -16,8 +17,8 @@ interface TableData {
 }
 
 interface TableContextType {
-  threadId: string;
-  setThreadId: (id: string) => void;
+  /** This browser's table on the server. Null until it has been read from localStorage. */
+  tableId: string | null;
   tableData: TableData | null;
   syncTableData: (data: CellValue[][], colHeaders?: string[]) => Promise<void>;
 }
@@ -40,33 +41,57 @@ const INITIAL_TABLE: TableData = {
 
 const TableContext = createContext<TableContextType | null>(null);
 
+const TABLE_ID_KEY = "openui-handsontable:table-id";
+
+// Each browser gets its own table on the server, so visitors don't overwrite each other.
+function readTableId(): string {
+  try {
+    const saved = localStorage.getItem(TABLE_ID_KEY);
+    if (saved) return saved;
+    const id = crypto.randomUUID();
+    localStorage.setItem(TABLE_ID_KEY, id);
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
 export function TableProvider({ children }: { children: ReactNode }) {
-  const [threadId, setThreadIdState] = useState("default");
+  const [tableId, setTableId] = useState<string | null>(null);
   const [tableData, setTableDataState] = useState<TableData | null>(INITIAL_TABLE);
 
-  const setThreadId = useCallback((id: string) => setThreadIdState(id), []);
+  // Load this browser's table from the server instead of uploading the starting copy over it.
+  useEffect(() => {
+    const id = readTableId();
+    setTableId(id);
+    fetch(`/api/table?threadId=${encodeURIComponent(id)}`)
+      .then((res) => (res.ok ? (res.json() as Promise<TableData>) : null))
+      .then((saved) => {
+        if (saved?.data) setTableDataState(saved);
+      })
+      .catch((error) => console.error("Failed to load table data:", error));
+  }, []);
 
   const syncTableData = useCallback(
     async (data: CellValue[][], colHeaders?: string[]) => {
       setTableDataState({ data, colHeaders });
+      if (!tableId) return;
 
       try {
         await fetch("/api/table", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ threadId, data, colHeaders }),
+          body: JSON.stringify({ threadId: tableId, data, colHeaders }),
         });
       } catch (error) {
         console.error("Failed to sync table data:", error);
       }
     },
-    [threadId]
+    [tableId],
   );
 
   return (
-    <TableContext.Provider
-      value={{ threadId, setThreadId, tableData, syncTableData }}
-    >
+    <TableContext.Provider value={{ tableId, tableData, syncTableData }}>
       {children}
     </TableContext.Provider>
   );

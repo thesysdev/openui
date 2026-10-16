@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { BotBubble } from "../components/BotBubble";
 import { ChatInput } from "../components/ChatInput";
@@ -12,7 +12,8 @@ import { pushStream } from "../store/streamStore";
 
 type UserMessage = { id: string; type: "user"; text: string };
 type BotMessage = { id: string; type: "bot" };
-type ChatMessage = UserMessage | BotMessage;
+type ErrorMessage = { id: string; type: "error"; text: string };
+type ChatMessage = UserMessage | BotMessage | ErrorMessage;
 
 let _counter = 0;
 const uid = () => String(++_counter);
@@ -43,13 +44,23 @@ export default function ChatScreen({ backendUrl }: Props) {
       setIsStreaming(true);
 
       // 4. Stream chunks into the store
-      await sendMessage(newHistory, (accumulated, isDone) => {
-        pushStream(botId, { openui: accumulated, isStreaming: !isDone });
-        if (isDone) {
+      await sendMessage(
+        newHistory,
+        (accumulated, isDone) => {
+          pushStream(botId, { openui: accumulated, isStreaming: !isDone });
+          if (isDone) {
+            setIsStreaming(false);
+            historyRef.current = [...newHistory, { role: "assistant", content: accumulated }];
+          }
+        },
+        // Show failures (e.g. a rejected key) as plain text in place of the bot reply.
+        (message) => {
           setIsStreaming(false);
-          historyRef.current = [...newHistory, { role: "assistant", content: accumulated }];
-        }
-      });
+          setMessages((prev) =>
+            prev.map((m) => (m.id === botId ? { id: botId, type: "error", text: message } : m)),
+          );
+        },
+      );
     },
     [sendMessage],
   );
@@ -57,6 +68,13 @@ export default function ChatScreen({ backendUrl }: Props) {
   const renderItem = useCallback(({ item }: { item: ChatMessage }) => {
     if (item.type === "user") {
       return <UserBubble text={item.text} />;
+    }
+    if (item.type === "error") {
+      return (
+        <View style={styles.errorBubble}>
+          <Text style={styles.errorText}>{item.text}</Text>
+        </View>
+      );
     }
     return <BotBubble messageId={item.id} />;
   }, []);
@@ -86,6 +104,21 @@ export default function ChatScreen({ backendUrl }: Props) {
 }
 
 const styles = StyleSheet.create({
+  errorBubble: {
+    alignSelf: "flex-start",
+    maxWidth: "85%",
+    backgroundColor: "#fef2f2",
+    borderColor: "#fecaca",
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  errorText: {
+    color: "#b91c1c",
+    fontSize: 14,
+    lineHeight: 20,
+  },
   screen: {
     flex: 1,
     backgroundColor: "#f9fafb",

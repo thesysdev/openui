@@ -214,7 +214,7 @@ export const tools: any[] = [
     function: {
       name: "recalculate_aggregates",
       description:
-        "Recalculate all aggregate rows (Total, Average, Sum, Count, Max, Min) so their formulas cover the correct data range. ALWAYS call this after add_rows or delete_rows to keep totals and averages up to date.",
+        "Recalculate the existing formulas in aggregate rows (Total, Average, Sum, Count, Max, Min) so they cover the correct data range. Cells without a formula are left alone. ALWAYS call this after add_rows or delete_rows to keep totals and averages up to date.",
       parameters: { type: "object", properties: {}, required: [] },
       parse: JSON.parse,
       function: async () =>

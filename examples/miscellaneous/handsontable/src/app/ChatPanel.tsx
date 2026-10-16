@@ -13,6 +13,7 @@ import { BuiltinActionType, Renderer, type ActionEvent } from "@openuidev/react-
 import { ThemeProvider } from "@openuidev/react-ui";
 import { PanelRightClose, Send } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTableContext } from "./TableContext";
 
 const STARTERS = [
   {
@@ -36,9 +37,12 @@ const STARTERS = [
   },
   {
     displayText: "Compare Q1 vs Q4 growth",
-    prompt: "Show me a table comparing Q1 and Q4 revenue for each product with the percentage growth.",
+    prompt:
+      "Show me a table comparing Q1 and Q4 revenue for each product with the percentage growth.",
   },
 ];
+
+const MESSAGES_KEY = "openui-handsontable:messages";
 
 function messageText(message: Message): string {
   return typeof message.content === "string" ? message.content : "";
@@ -48,7 +52,22 @@ function ChatBody({ onClose }: { onClose: () => void }) {
   const messages = useThread((s) => s.messages);
   const isRunning = useThread((s) => s.isRunning);
   const processMessage = useThread((s) => s.processMessage);
+  const setMessages = useThread((s) => s.setMessages);
+  const threadError = useThread((s) => s.threadError);
   const [input, setInput] = useState("");
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(MESSAGES_KEY) ?? "[]");
+      if (Array.isArray(saved) && saved.length > 0) setMessages(saved as Message[]);
+    } catch {}
+  }, [setMessages]);
+  useEffect(() => {
+    if (isRunning || messages.length === 0) return;
+    try {
+      localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+    } catch {}
+  }, [messages, isRunning]);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const visibleMessages = useMemo(
@@ -142,6 +161,11 @@ function ChatBody({ onClose }: { onClose: () => void }) {
             </div>
           );
         })}
+        {threadError && !isRunning && (
+          <div role="alert" className="chat-bubble chat-bubble--error">
+            {threadError.message}
+          </div>
+        )}
       </div>
 
       <form className="chat-composer" onSubmit={handleSubmit}>
@@ -167,14 +191,17 @@ function ChatBody({ onClose }: { onClose: () => void }) {
 }
 
 export function ChatPanel({ onClose }: { onClose: () => void }) {
+  const { tableId } = useTableContext();
   const llm = useMemo(
     () =>
       fetchLLM({
         url: "/api/chat",
         streamAdapter: openAIAdapter(),
         messageFormat: openAIMessageFormat,
+        // Tells the route which table this browser's tools should read and edit.
+        body: { tableId },
       }),
-    [],
+    [tableId],
   );
 
   return (

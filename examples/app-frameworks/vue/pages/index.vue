@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from "vue";
 import { Chat } from "@ai-sdk/vue";
+import type { UIMessage } from "ai";
 import { BuiltinActionType, type ActionEvent } from "@openuidev/vue-lang";
 import { library } from "~/lib/library";
 import ChatHeader from "~/components/ChatHeader.vue";
@@ -14,12 +15,21 @@ const messagesEnd = ref<HTMLDivElement>();
 
 // Chat class internally uses Vue refs for messages/status/error
 // We poll state via a shallow ref that re-triggers on changes
-const chat = new Chat({ api: "/api/chat" });
+const MESSAGES_KEY = "openui-vue:messages";
+function loadMessages(): UIMessage[] {
+  try {
+    return JSON.parse(localStorage.getItem(MESSAGES_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+const chat = new Chat({ api: "/api/chat", messages: loadMessages() });
 
 // Reactive wrappers - Chat's VueChatState uses internal Vue refs
 // We need to access them through computed properties
 const messages = computed(() => chat.messages);
 const status = computed(() => chat.status);
+const error = computed(() => chat.error);
 const isLoading = computed(() => status.value === "submitted" || status.value === "streaming");
 
 function handleSend(text: string) {
@@ -42,6 +52,13 @@ watch(
   },
   { deep: true },
 );
+
+watch(status, (current) => {
+  if (current !== "ready" || chat.messages.length === 0) return;
+  try {
+    localStorage.setItem(MESSAGES_KEY, JSON.stringify(chat.messages));
+  } catch {}
+});
 
 const starters = [
   "What is Vue 3.5?",
@@ -77,6 +94,10 @@ const starters = [
 
         <div ref="messagesEnd"></div>
       </div>
+    </div>
+
+    <div v-if="error && !isLoading" role="alert" class="mx-auto mb-2 w-[calc(100%-2rem)] max-w-3xl rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+      {{ error.message }}
     </div>
 
     <ChatInput :is-loading="isLoading" @submit="handleSend" @stop="() => chat.stop()" />

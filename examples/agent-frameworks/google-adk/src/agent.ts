@@ -26,7 +26,11 @@ export const getWeather = new FunctionTool({
     const key = city.toLowerCase();
     const data = table[key];
     if (!data) {
-      return { city, error: "No weather data for this city." };
+      return {
+        city,
+        error:
+          "No weather data for this city. Tell the user it is unavailable; do not estimate it.",
+      };
     }
     return { city, ...data };
   },
@@ -47,7 +51,9 @@ export function createAgent() {
       baseURL: "https://api.thesys.dev/v1/embed",
       apiKey,
     }),
-    instruction: cloudInstructions(),
+    instruction: cloudInstructions(
+      "If a tool returns an error or no data, say so plainly. Never make up values a tool did not return.",
+    ),
     tools: [getWeather],
   });
 }

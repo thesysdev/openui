@@ -8,10 +8,15 @@ onlyBuiltDependencies:
   - sharp
   - unrs-resolver
 allowBuilds:
+  '@google/genai': set this to true or false
   "@openuidev/lang-core": true
   esbuild: true
+  protobufjs: set this to true or false
   sharp: true
   unrs-resolver: true
-packages: ["."]
+packages: [ "." ]
 minimumReleaseAgeExclude:
   - "@openuidev/*"
+# Same overrides as the package.json "pnpm" field, which pnpm 10.14+ no longer reads.
+overrides:
+  "postcss@<8.5.10": ">=8.5.10"

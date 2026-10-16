@@ -23,10 +23,16 @@ export async function POST(req: Request) {
     apiKey: requiredEnv("THESYS_API_KEY"),
   });
 
+  // Resolves on the first chunk, or with the error if the run fails before any output,
+  // so a rejected key or rate limit returns as an HTTP error the chat can show.
+  let settle!: (error?: unknown) => void;
+  const started = new Promise<unknown>((resolve) => (settle = resolve));
+
   const encoder = new TextEncoder();
   const body = new ReadableStream<Uint8Array>({
     async start(controller) {
       const enqueue = (chunk: unknown) => {
+        settle();
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
       };
       try {
@@ -40,13 +46,24 @@ export async function POST(req: Request) {
           signal: req.signal,
         });
       } catch (err) {
+        settle(err);
         enqueue({ error: err instanceof Error ? err.message : String(err) });
       } finally {
+        settle();
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
       }
     },
   });
+
+  const error = await started;
+  if (error) {
+    const status = (error as { status?: number }).status ?? 500;
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : String(error) },
+      { status },
+    );
+  }
 
   return new Response(body, {
     headers: {

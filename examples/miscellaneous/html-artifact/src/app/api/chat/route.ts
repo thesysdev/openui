@@ -19,11 +19,22 @@ export async function POST(req: NextRequest) {
     baseURL: "https://api.thesys.dev/v1/embed",
   });
 
-  const stream = await client.chat.completions.create({
-    model: DEFAULT_MODEL,
-    messages: [{ role: "system", content: cloudInstructions() }, ...messages],
-    stream: true,
-  });
+  // A rejected key, rate limit, or bad request fails here, before streaming starts.
+  // Return it as JSON so the chat shows the real reason instead of a bare 500.
+  let stream;
+  try {
+    stream = await client.chat.completions.create({
+      model: DEFAULT_MODEL,
+      messages: [{ role: "system", content: cloudInstructions() }, ...messages],
+      stream: true,
+    });
+  } catch (error) {
+    const status = (error as { status?: number }).status ?? 500;
+    return Response.json(
+      { error: error instanceof Error ? error.message : String(error) },
+      { status },
+    );
+  }
 
   const encoder = new TextEncoder();
   const readable = new ReadableStream({

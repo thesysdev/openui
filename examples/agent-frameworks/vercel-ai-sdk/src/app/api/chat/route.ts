@@ -62,5 +62,8 @@ export async function POST(req: Request) {
     conversationLog.push({ role: "assistant", content: text });
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toUIMessageStreamResponse({
+    // Pass the real error (for example a rejected key) to the client instead of the SDK's generic text.
+    onError: (error) => (error instanceof Error ? error.message : String(error)),
+  });
 }

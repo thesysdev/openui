@@ -83,7 +83,7 @@ pnpm eve:build
 pnpm eve:start
 ```
 
-For a production-style Next.js run:
+For a production-style run, build both and start both. `pnpm start` runs the Eve server on port 4274 and Next.js together, because Eve's Next.js plugin forwards to that server in production:
 
 ```bash
 pnpm build

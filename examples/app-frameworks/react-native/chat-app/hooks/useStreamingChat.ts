@@ -4,6 +4,17 @@ export type StreamMessage = { role: "user" | "assistant"; content: string };
 
 const ts = () => new Date().toISOString().slice(11, 23); // HH:mm:ss.mmm
 
+/** The backend sends `{ "error": "..." }` for failed requests. */
+function errorMessage(status: number, body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { error?: unknown };
+    if (typeof parsed.error === "string" && parsed.error) return parsed.error;
+  } catch {
+    // Not JSON: fall back to the status.
+  }
+  return `Request failed (${status}).`;
+}
+
 /**
  * Streams a chat response using XMLHttpRequest.
  *
@@ -21,6 +32,7 @@ export function useStreamingChat(apiUrl: string) {
   function sendMessage(
     history: StreamMessage[],
     onChunk: (accumulated: string, isDone: boolean) => void,
+    onError: (message: string) => void,
   ): Promise<void> {
     xhrRef.current?.abort();
 
@@ -51,7 +63,7 @@ export function useStreamingChat(apiUrl: string) {
         console.log(`[${ts()}][stream] done — ${accumulated.length} chars, status ${xhr.status}`);
         if (xhr.status < 200 || xhr.status >= 300) {
           console.warn(`[${ts()}][stream] bad status:`, xhr.status, accumulated);
-          onChunk(`Error ${xhr.status}: ${accumulated}`, true);
+          onError(errorMessage(xhr.status, accumulated));
         } else {
           onChunk(accumulated, true);
         }
@@ -60,7 +72,7 @@ export function useStreamingChat(apiUrl: string) {
 
       xhr.onerror = () => {
         console.error(`[${ts()}][stream] network error`);
-        onChunk(accumulated || "Network error. Please try again.", true);
+        onError("Network error. Please try again.");
         resolve();
       };
 

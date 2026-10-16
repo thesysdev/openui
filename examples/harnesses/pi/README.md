@@ -45,6 +45,8 @@ launch — see **Security** below.
 
 ## Prerequisites
 
+Node.js **22.19 or newer** (the Pi SDK fails on older versions with `markAsUncloneable is not a function`).
+
 All you need is an **[OpenUI Cloud](https://console.thesys.dev/keys)** API key. You do **not**
 need the Pi CLI installed — this app embeds the Pi SDK and points it at Cloud Completions.
 
