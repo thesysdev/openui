@@ -1,0 +1,98 @@
+name: Publish @crayonai deprecation release
+
+# Republishes the latest @crayonai npm packages and crayonai_stream on PyPI
+# as new patch releases whose descriptions and READMEs point users to OpenUI.
+# Each package needs a trusted publisher (npm / PyPI) for this repository
+# and this workflow file.
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+
+env:
+  NOTICE: "Crayon is now OpenUI. This package is no longer updated. Get started with OpenUI at https://www.openui.com/docs"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - "@crayonai/react-ui"
+          - "@crayonai/react-core"
+          - "@crayonai/stream"
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      # CRITICAL: npm 11.5.1+ required for trusted publishing
+      - name: Install npm 11.6.4
+        run: npm install -g npm@11.6.4
+
+      - name: Fetch latest published tarball
+        run: |
+          tarball=$(npm pack "${{ matrix.package }}@latest" --silent)
+          tar -xzf "$tarball"
+
+      - name: Update package metadata and README
+        working-directory: package
+        run: |
+          npm version patch --no-git-tag-version --ignore-scripts
+          npm pkg set description="$NOTICE" \
+            repository.type=git repository.url="git+https://github.com/thesysdev/openui.git"
+          npm pkg delete repository.directory
+          { printf '> **%s**\n\n' "$NOTICE"; cat README.md; } > README.tmp && mv README.tmp README.md
+          echo "Publishing ${{ matrix.package }}@$(npm pkg get version | tr -d '"')"
+
+      - name: Publish
+        working-directory: package
+        run: npm publish --access public --ignore-scripts
+        # Note: provenance is automatically generated with trusted publishing
+
+  pypi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Fetch latest published sdist
+        run: |
+          pip download crayonai_stream --no-deps --no-binary :all: -d sdist
+          mkdir pkg && tar -xzf sdist/*.tar.gz -C pkg --strip-components=1
+
+      - name: Update package metadata and README
+        working-directory: pkg
+        run: |
+          python - <<'PY'
+          import os, re
+          notice = os.environ["NOTICE"]
+          s = open("pyproject.toml").read()
+          old = re.search(r'^version = "(\d+)\.(\d+)\.(\d+)"$', s, re.M)
+          new = f'{old[1]}.{old[2]}.{int(old[3]) + 1}'
+          s = s.replace(old[0], f'version = "{new}"', 1)
+          s, count = re.subn(r'^description = ".*"$', lambda _: f'description = "{notice}"', s, count=1, flags=re.M)
+          assert count == 1
+          s, count = re.subn(r'^(license = .*)$', lambda match: f'{match[1]}\nclassifiers = ["Development Status :: 7 - Inactive"]', s, count=1, flags=re.M)
+          assert count == 1
+          open("pyproject.toml", "w").write(s)
+          open("README.md", "w").write(f"> **{notice}**\n\n" + open("README.md").read())
+          print(f"Publishing crayonai_stream {new}")
+          PY
+
+      - name: Build
+        working-directory: pkg
+        run: |
+          pip install build
+          python -m build
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: pkg/dist/
