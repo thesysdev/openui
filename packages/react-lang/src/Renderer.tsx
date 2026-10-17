@@ -6,6 +6,7 @@ import type {
   OpenUIError,
   ParseResult,
   ToolProvider,
+  ValidatorFn,
 } from "@openuidev/lang-core";
 import { ToolNotFoundError, extractToolResult } from "@openuidev/lang-core";
 import React, {
@@ -19,6 +20,7 @@ import React, {
   useRef,
 } from "react";
 import { OpenUIContext, useOpenUI, useRenderNode } from "./context";
+import { FormValidatorsContext } from "./hooks/useFormValidation";
 import { useOpenUIState } from "./hooks/useOpenUIState";
 import type { ComponentRenderer, Library } from "./library";
 
@@ -73,6 +75,14 @@ export interface RendererProps<L extends Library = Library> {
    */
   onError?: (errors: OpenUIError[]) => void;
   publishObservability?: boolean;
+  /**
+   * Custom form validators, keyed by rule name. Field rules that reference one
+   * of these names (e.g. `{ matches: "password" }`) call it; they take
+   * precedence over built-in rules of the same name. Validators receive
+   * `(value, arg, { fieldName, values })`, where `values` holds the current
+   * values of every field in the same form.
+   */
+  validators?: Record<string, ValidatorFn>;
 }
 
 // ─── Error boundary ───
@@ -234,6 +244,7 @@ function RendererRoot<L extends Library = Library>({
   children,
   onError,
   publishObservability,
+  validators,
 }: RendererProps<L>) {
   useInsertionEffect(() => {
     ensureLoadingStyle();
@@ -307,7 +318,9 @@ function RendererRoot<L extends Library = Library>({
 
   return (
     <OpenUIContext.Provider value={contextValue}>
-      <RendererContext.Provider value={value}>{children}</RendererContext.Provider>
+      <FormValidatorsContext.Provider value={validators}>
+        <RendererContext.Provider value={value}>{children}</RendererContext.Provider>
+      </FormValidatorsContext.Provider>
     </OpenUIContext.Provider>
   );
 }
