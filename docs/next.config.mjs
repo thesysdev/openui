@@ -246,6 +246,43 @@ const config = {
         destination: "/docs/openui-lang",
         permanent: true,
       },
+      // Pre-reorganisation flat example URLs.
+      ...Object.entries({
+        "shadcn-chat": "/docs/openui-lang/examples/design-systems/shadcn",
+        "react-email": "/docs/openui-lang/examples/miscellaneous/react-email",
+        "react-native": "/docs/openui-lang",
+        dashboard: "/cookbooks/conversational-analytics",
+        "langgraph-chat": "/docs/build-agents/frameworks/langgraph",
+        "langchain-chat": "/docs/build-agents/frameworks/langgraph",
+        "vercel-ai-chat": "/docs/build-agents/frameworks/vercel-ai-sdk",
+        "harnesses/pi-agent-harness": "/docs/build-agents/frameworks/pi",
+        "harnesses/vercel-eve": "/docs/build-agents/frameworks/vercel-eve",
+      }).map(([example, destination]) => ({
+        source: `/docs/openui-lang/examples/${example}`,
+        destination,
+        permanent: true,
+      })),
+      // The old /docs/chat section was replaced by the Agent Interface docs.
+      ...Object.entries({
+        "quick-start": "/docs/agent/getting-started/quickstart",
+        installation: "/docs/agent/getting-started/quickstart",
+        nextjs: "/docs/agent/reference/self-hosting",
+        connecting: "/docs/agent/reference/adapters-and-formats",
+        genui: "/docs/agent/core-concepts/generative-ui",
+        artifacts: "/docs/agent/core-concepts/artifacts",
+        welcome: "/docs/agent/customize/welcome-and-starters",
+        theming: "/docs/agent/reference/agentinterface-props#theme",
+        persistence: "/docs/build-agents/conversation-history",
+      }).map(([page, destination]) => ({
+        source: `/docs/chat/${page}`,
+        destination,
+        permanent: true,
+      })),
+      {
+        source: "/docs/chat/:path*",
+        destination: "/docs/build-agents/chat-ui",
+        permanent: true,
+      },
       {
         source: "/docs/agent/getting-started/openui-cloud",
         destination: "/docs/agent/getting-started/quickstart",
