@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="456" viewBox="0 0 1200 456" role="img" aria-label="A design brief passes through Figma MCP and becomes an editable file on the Figma canvas"><title>A design brief passes through Figma MCP and becomes an editable file on the Figma canvas</title>
+<defs><pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#ECEEF2" stroke-width="1"/></pattern><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r=".8" fill="#D7DBE2"/></pattern><radialGradient id="fade"><stop offset="55%" stop-color="white"/><stop offset="100%" stop-color="black"/></radialGradient><mask id="field"><rect width="1200" height="700" fill="url(#fade)"/></mask><filter id="lift" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#222B49" flood-opacity=".06"/></filter><linearGradient id="signal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9BE3D7"/><stop offset="1" stop-color="#9F99EF"/></linearGradient></defs>
+<rect width="1200" height="456" fill="white"/>
+<g mask="url(#field)"><rect x="24" y="24" width="1152" height="408" fill="url(#grid)" opacity=".8"/><rect x="24" y="282.71999999999997" width="1152" height="149.28" fill="white"/><rect x="24" y="282.71999999999997" width="1152" height="149.28" fill="url(#dots)" opacity=".75"/></g>
+<rect x="128" y="128" width="190" height="184" rx="12" fill="white" stroke="#D9DDE4" stroke-width="1.2" filter="url(#lift)"/>
+<g transform="translate(151 151) scale(1.0416666666666667)" fill="none" stroke="#25272B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H5v18h14V8Z M14 3v5h5 M8 12h8 M8 16h6"/></g>
+<text x="151" y="202" font-family="Inter, Arial, Helvetica, sans-serif" font-size="15" font-weight="500" text-anchor="start" fill="#25272B">Design a landing page</text>
+<path d="M151 225H288M151 243H272M151 261H279" fill="none" stroke="#D9DDE4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="223" y="347" font-family="Inter, Arial, Helvetica, sans-serif" font-size="17" font-weight="500" text-anchor="middle" fill="#25272B">Design brief</text>
+<path d="M320 220L486 220" fill="none" stroke="#B8BDC7" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M480 216L486 220L480 224" fill="none" stroke="#B8BDC7" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="495" y="177" width="86" height="86" rx="23" fill="#FAFBFD" stroke="#F0F1F4" stroke-width="1.2"/>
+<rect x="500" y="182" width="76" height="76" rx="18" fill="white" stroke="#D9DDE4" stroke-width="1.2" filter="url(#lift)"/>
+<g transform="translate(522 203) scale(1.375)" fill="none" stroke="#25272B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path fill="#F24E1E" stroke="none" d="M4 4a4 4 0 0 1 4-4h4v8H8a4 4 0 0 1-4-4Z"/><path fill="#FF7262" stroke="none" d="M12 0h4a4 4 0 0 1 0 8h-4Z"/><circle fill="#1ABCFE" stroke="none" cx="16" cy="12" r="4"/><path fill="#A259FF" stroke="none" d="M4 12a4 4 0 0 1 4-4h4v8H8a4 4 0 0 1-4-4Z"/><path fill="#0ACF83" stroke="none" d="M8 16h4v4a4 4 0 1 1-4-4Z"/></g>
+<text x="538" y="288" font-family="Inter, Arial, Helvetica, sans-serif" font-size="17" font-weight="500" text-anchor="middle" fill="#25272B">Figma MCP</text>
+<path d="M578 220L729 220" fill="none" stroke="#B8BDC7" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M723 216L729 220L723 224" fill="none" stroke="#B8BDC7" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="744" y="99" width="330" height="246" rx="11" fill="white" stroke="#D9DDE4" stroke-width="1.2" filter="url(#lift)"/>
+<path d="M744 134H1074" fill="none" stroke="#E4E7EC" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<g transform="translate(758 108) scale(0.7083333333333334)" fill="none" stroke="#7B8089" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path fill="#F24E1E" stroke="none" d="M4 4a4 4 0 0 1 4-4h4v8H8a4 4 0 0 1-4-4Z"/><path fill="#FF7262" stroke="none" d="M12 0h4a4 4 0 0 1 0 8h-4Z"/><circle fill="#1ABCFE" stroke="none" cx="16" cy="12" r="4"/><path fill="#A259FF" stroke="none" d="M4 12a4 4 0 0 1 4-4h4v8H8a4 4 0 0 1-4-4Z"/><path fill="#0ACF83" stroke="none" d="M8 16h4v4a4 4 0 1 1-4-4Z"/></g>
+<text x="784" y="122" font-family="Inter, Arial, Helvetica, sans-serif" font-size="13" font-weight="500" text-anchor="start" fill="#25272B">Landing page.fig</text>
+<rect x="745" y="135" width="65" height="209" rx="0" fill="#FCFCFD" stroke="none" stroke-width="1.2"/>
+<path d="M810 134V344" fill="none" stroke="#E4E7EC" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M760 164H799" fill="none" stroke="#D7DCE4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M760 190H788" fill="none" stroke="#D7DCE4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M760 216H794" fill="none" stroke="#D7DCE4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M760 242H784" fill="none" stroke="#D7DCE4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="839" y="159" width="208" height="160" rx="3" fill="white" stroke="#DCE0E7" stroke-width="1.2"/>
+<text x="854" y="181" font-family="Inter, Arial, Helvetica, sans-serif" font-size="10" font-weight="600" text-anchor="start" fill="#25272B">Acme</text>
+<path d="M854 198H979M854 211H944" fill="none" stroke="#D2D7E0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="854" y="229" width="58" height="14" rx="3" fill="#25272B" stroke="none" stroke-width="1.2"/>
+<rect x="854" y="261" width="177" height="40" rx="3" fill="#F3F4F8" stroke="none" stroke-width="1.2"/>
+<rect x="850" y="194" width="154" height="53" rx="1" fill="none" stroke="#A29CEA" stroke-width="1.2"/>
+<rect x="848" y="192" width="4" height="4" rx="0" fill="white" stroke="#928BE2" stroke-width="1.2"/>
+<rect x="848" y="245" width="4" height="4" rx="0" fill="white" stroke="#928BE2" stroke-width="1.2"/>
+<rect x="1002" y="192" width="4" height="4" rx="0" fill="white" stroke="#928BE2" stroke-width="1.2"/>
+<rect x="1002" y="245" width="4" height="4" rx="0" fill="white" stroke="#928BE2" stroke-width="1.2"/>
+<path d="M1020 261V278L1025 274L1030 283L1033 281L1028 272H1037Z" fill="none" stroke="#8C85DB" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="909" y="380" font-family="Inter, Arial, Helvetica, sans-serif" font-size="17" font-weight="500" text-anchor="middle" fill="#25272B">Editable Figma canvas</text>
+</svg>
