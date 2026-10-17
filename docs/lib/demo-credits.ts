@@ -49,9 +49,21 @@ function hasPaymentRequiredCode(value: unknown, depth = 0): boolean {
   return false;
 }
 
+function hasCreditsExhaustedMessage(value: unknown, depth = 0): boolean {
+  if (depth > 4 || value == null) return false;
+
+  if (typeof value === "string") {
+    return /credit|quota|rate[\s_-]*limit|too many requests|insufficient funds/i.test(value);
+  }
+
+  if (typeof value !== "object") return false;
+
+  return Object.values(value).some((child) => hasCreditsExhaustedMessage(child, depth + 1));
+}
+
 export function isDemoCreditsExhaustedError(error: unknown, status?: number): boolean {
-  if (status === 402) return true;
-  return hasPaymentRequiredCode(error);
+  if (status === 402 || status === 429) return true;
+  return hasPaymentRequiredCode(error) || hasCreditsExhaustedMessage(error);
 }
 
 export function createDemoCreditsExhaustedResponse(): Response {
