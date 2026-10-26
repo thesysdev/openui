@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createStreamParser, parse } from "../parser";
+import { createStreamParser, parse, stripFences } from "../parser";
 import type { ParamMap } from "../types";
 
 const schema: ParamMap = new Map([["Text", { params: [{ name: "text", required: true }] }]]);
@@ -18,9 +18,19 @@ const CASES: [string, string][] = [
   ["a stray closing fence after the program", program + "\n```"],
   ["no fence at all", program],
   ["prose with inline code before an unfenced program", "Use `x` or ```y``` here\n" + program],
+  [
+    "an opener with words after the tag",
+    "```openui lang\n" + program + "\n```\nHope this helps (really).",
+  ],
 ];
 
 describe("code fences", () => {
+  it.each([
+    ["CRLF line endings", "Here:\r\n```openui\r\n" + program + "\r\n```"],
+    ["a four-backtick fence", "````openui\n" + program + "\n````"],
+  ])("extracts only the program from %s", (_, input) => {
+    expect(stripFences(input).trim()).toBe(program);
+  });
   it.each(CASES)("renders %s", (_, input) => {
     expect(text(input)).toBe("hi");
   });

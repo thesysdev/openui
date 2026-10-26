@@ -379,8 +379,7 @@ export function stripFences(input: string): string {
         i = close === -1 ? input.length : lineEnd + close + 4;
         continue;
       }
-      i = fenceStart + 3;
-      continue;
+      // Anything else on the opener's line (```openui lang, a trailing \r) is skipped like a tag.
     }
 
     // Skip language tag until newline
