@@ -106,7 +106,7 @@ const config = {
       // while the marketing restructure settles — make it permanent once the
       // home page has actually absorbed the cloud sections.
       {
-        source: "/cloud",
+        source: "/cloud/:page(app)?",
         destination: "/",
         permanent: false,
       },
@@ -249,6 +249,11 @@ const config = {
       {
         source: "/docs/openui-lang/examples/app-frameworks/react-native",
         destination: "/docs/openui-lang",
+        permanent: true,
+      },
+      {
+        source: "/docs/openui-lang/src/library.ts",
+        destination: "/docs/openui-lang/defining-components",
         permanent: true,
       },
       // Pre-reorganisation flat example URLs.
