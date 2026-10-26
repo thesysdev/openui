@@ -1,6 +1,6 @@
 # The OpenUI Language
 
-**1.0**
+**1.1** (draft)
 
 The exact rules of OpenUI Lang. For a guided tour, read [overview.md](./overview.md). [prompt.md](./prompt.md) covers the LibrarySpec, the prompt, and stored responses. MUST, MUST NOT, SHOULD, and MAY are used as in RFC 2119.
 
