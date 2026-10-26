@@ -33,8 +33,8 @@ function toNumber(val: unknown): number {
 }
 
 const sumOf = (arr: unknown[]) => arr.reduce((a: number, b: unknown) => a + toNumber(b), 0);
-/** Applies a numeric function to a number, or to each element of a list (nested lists too); null elements stay null. */
-// Typed as the prompt shows it (number | number[]); nested lists and null elements pass through too.
+/** Applies a numeric function to a number, or to each element of a list (nested lists too); null elements stay null.
+ *  Typed as the prompt shows it (number | number[]). */
 const elementwise = (value: unknown, fn: (n: number) => number): number | number[] =>
   Array.isArray(value)
     ? (value.map((item) => (item == null ? null : elementwise(item, fn))) as number[])

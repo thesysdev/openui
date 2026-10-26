@@ -100,10 +100,10 @@ kpi = Card([
 
 | Function                    | What it does              |
 | --------------------------- | ------------------------- |
-| `@Round(number, decimals?)` | Round to N decimal places |
-| `@Abs(number)`              | Absolute value            |
-| `@Floor(number)`            | Round down                |
-| `@Ceil(number)`             | Round up                  |
+| `@Round(number, decimals?)` | Round to N decimal places; a list is rounded element by element |
+| `@Abs(number)`              | Absolute value; a list is handled element by element |
+| `@Floor(number)`            | Round down; a list is handled element by element |
+| `@Ceil(number)`             | Round up; a list is handled element by element |
 
 ### Iteration with @Each
 
@@ -125,7 +125,7 @@ The built-in functions are defined with `defineFunction` inside `@openuidev/lang
 
 ```text
 @Sum(numbers: number[]) → number
-@Round(number: number, decimals?: number) → number
+@Round(number: number | number[], decimals?: number) → number | number[]
 @Filter(array: any[], field: string, operator: "==" | "!=" | ">" | "<" | ">=" | "<=" | "contains", value: any) → any[]
 ```
 
