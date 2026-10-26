@@ -102,6 +102,26 @@ export function isElementNode(value: unknown): value is ElementNode {
 }
 
 /**
+ * The place of a child that is not written yet, kept in its array while streaming
+ * when the parser runs with `pendingSlots` (e.g. `Stack([intro, chart])` before `chart = ...`).
+ * Also follows the value of the statement that is still streaming.
+ */
+export interface PendingSlot {
+  type: "pending";
+  /** The referenced statement name. */
+  ref: string;
+}
+
+export function isPendingSlot(value: unknown): value is PendingSlot {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    (value as Record<string, unknown>).type === "pending" &&
+    typeof (value as Record<string, unknown>).ref === "string"
+  );
+}
+
+/**
  * Validation error codes for schema-related issues.
  */
 export type ValidationErrorCode =
@@ -144,6 +164,10 @@ export interface MaterializeCtx {
   currentStatementId?: string;
   /** Statement IDs not yet reached — delete as they're touched. Remaining = orphaned. */
   unreached?: Set<string>;
+  /** Keep a PendingSlot in arrays for refs not written yet (streaming only). */
+  pendingSlots?: boolean;
+  /** The statement still streaming; its array slots are followed by a PendingSlot. */
+  streamingStatementId?: string;
 }
 
 /**
@@ -301,6 +325,8 @@ export interface ParseResult {
      * redacted (dropped as null) and listed here.
      */
     errors: ValidationError[];
+    /** With `pendingSlots`: the statement still streaming (the last, incomplete one). */
+    streamingStatementId?: string;
   };
   /** $variable declarations — maps "$varName" to its materialized default value. */
   stateDeclarations: Record<string, unknown>;

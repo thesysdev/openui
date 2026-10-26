@@ -315,9 +315,14 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
         // Drop unresolved placeholders from arrays
         if (e.k === "Ph") continue;
         const value = materializeValue(e, ctx);
+        // While streaming, a ref not written yet or still streaming keeps its place
+        const pending =
+          ctx.pendingSlots &&
+          e.k === "Ref" &&
+          (!ctx.syms.has(e.n) || e.n === ctx.streamingStatementId);
         // Drop null entries from component/ref resolution (incomplete props, unresolved refs, unknown components)
-        if (value === null && (e.k === "Comp" || e.k === "Ref")) continue;
-        items.push(value);
+        if (value !== null || (e.k !== "Comp" && e.k !== "Ref")) items.push(value);
+        if (pending) items.push({ type: "pending", ref: e.n });
       }
       return items;
     }

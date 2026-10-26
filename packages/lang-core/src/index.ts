@@ -29,7 +29,7 @@ export type { BuildMessageInput, ParseMessageOptions, ParsedMessage } from "./me
 
 // ── Parser ──
 export { createParser, createStreamingParser, parse } from "./parser";
-export type { Parser, StreamParser } from "./parser";
+export type { ParseOptions, Parser, StreamParser } from "./parser";
 export { walkAST } from "./parser/ast";
 export type { ASTNode } from "./parser/ast";
 export { ACTION_STEPS, action, steps } from "./parser/builtins";
@@ -51,7 +51,7 @@ export type {
 export { jsonToOpenUI } from "./parser/serialize";
 export type { SerializeOptions } from "./parser/serialize";
 export { autoClose, split } from "./parser/statements";
-export { BuiltinActionType } from "./parser/types";
+export { BuiltinActionType, isPendingSlot } from "./parser/types";
 export type {
   ActionEvent,
   ActionPlan,
@@ -62,6 +62,7 @@ export type {
   OpenUIErrorCode,
   OpenUIErrorSource,
   ParseResult,
+  PendingSlot,
   QueryStatementInfo,
   ValidationError,
   ValidationErrorCode,
@@ -71,7 +72,7 @@ export type {
 export { isReactiveSchema, markReactive } from "./reactive";
 
 // ── Runtime ──
-export { evaluateElementProps, evaluateRoot } from "./runtime/evaluate-tree";
+export { evaluateElementProps, evaluateRoot, revealInOrder } from "./runtime/evaluate-tree";
 export type { EvalContext } from "./runtime/evaluate-tree";
 export { evaluate, isReactiveAssign, stripReactiveAssign } from "./runtime/evaluator";
 export type { EvaluationContext, ReactiveAssign } from "./runtime/evaluator";

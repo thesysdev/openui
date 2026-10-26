@@ -207,6 +207,21 @@ function containsComponent(node: ASTNode): boolean {
   return found;
 }
 
+export interface ParseOptions {
+  /**
+   * While the input is still streaming, keep a `{ type: "pending", ref }` slot in the
+   * root tree's arrays for refs not written yet, and after the statement still streaming,
+   * instead of dropping them. Lets a renderer reveal content in source order (see
+   * `revealInOrder`). State defaults never get slots. Complete parses are unchanged.
+   */
+  pendingSlots?: boolean;
+}
+
+/** Pending slots are on while streaming; `streamingId` is the statement still being written. */
+interface PendingInfo {
+  streamingId: string | undefined;
+}
+
 function buildResult(
   stmtMap: Map<string, Statement>,
   typedStmts: Statement[],
@@ -215,6 +230,7 @@ function buildResult(
   cat: ParamMap | undefined,
   rootName?: string,
   partialRef?: PartialRef,
+  pending?: PendingInfo,
 ): ParseResult {
   const entry = pickEntry(stmtMap, rootName);
 
@@ -241,6 +257,8 @@ function buildResult(
     partial: wasIncomplete,
     currentStatementId: entry?.id,
     unreached,
+    pendingSlots: !!pending,
+    streamingStatementId: pending?.streamingId,
   };
 
   let root: ElementNode | null = null;
@@ -255,6 +273,8 @@ function buildResult(
     }
   }
 
+  // Slots are for the rendered tree only: state defaults are data the runtime computes with
+  ctx.pendingSlots = false;
   const { stateDeclarations, queryStatements, mutationStatements } = extractStatements(
     typedStmts,
     ctx,
@@ -287,6 +307,7 @@ function buildResult(
       orphaned,
       statementCount: stmtCount,
       errors: errors,
+      ...(pending?.streamingId ? { streamingStatementId: pending.streamingId } : {}),
     },
     stateDeclarations,
     queryStatements,
@@ -455,7 +476,12 @@ function preprocess(input: string): string {
  * @param cat    - Param map for positional-arg → named-prop mapping
  * @returns      ParseResult with root ElementNode (or null) and metadata
  */
-export function parse(input: string, cat: ParamMap, rootName?: string): ParseResult {
+export function parse(
+  input: string,
+  cat: ParamMap,
+  rootName?: string,
+  options?: ParseOptions,
+): ParseResult {
   const trimmed = preprocess(input);
   if (!trimmed) return emptyResult();
 
@@ -472,7 +498,21 @@ export function parse(input: string, cat: ParamMap, rootName?: string): ParseRes
   // Derive from map to deduplicate — Map.set overwrites duplicates
   const typedStmts = [...stmtMap.values()];
 
-  return buildResult(stmtMap, typedStmts, wasIncomplete, stmtMap.size, cat, rootName);
+  // Truncated input: the last statement is the one still streaming
+  const pending =
+    options?.pendingSlots && wasIncomplete
+      ? { streamingId: stmts[stmts.length - 1]!.id }
+      : undefined;
+  return buildResult(
+    stmtMap,
+    typedStmts,
+    wasIncomplete,
+    stmtMap.size,
+    cat,
+    rootName,
+    undefined,
+    pending,
+  );
 }
 
 export interface StreamParser {
@@ -487,7 +527,11 @@ export interface StreamParser {
   getResult(complete?: boolean): ParseResult;
 }
 
-export function createStreamParser(cat: ParamMap, rootName?: string): StreamParser {
+export function createStreamParser(
+  cat: ParamMap,
+  rootName?: string,
+  options?: ParseOptions,
+): StreamParser {
   let buf = ""; // raw accumulated input (kept for set() diffing)
   // Preprocessed view of `buf` (fences + comments stripped, same as parse()'s
   // preprocess). The completed-statement scan runs over THIS, never the raw
@@ -590,6 +634,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     refreshCleaned();
     const pendingStart = scanNewCompleted();
     const pendingText = cleaned.slice(pendingStart).trim();
+    // Until the stream is complete, later statements may still arrive
+    const slots = options?.pendingSlots && !complete;
 
     // No pending text — all statements are complete
     if (!pendingText) {
@@ -601,6 +647,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         completedCount,
         cat,
         rootName,
+        undefined,
+        slots ? { streamingId: undefined } : undefined,
       );
     }
 
@@ -618,6 +666,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         completedCount,
         cat,
         rootName,
+        undefined,
+        slots ? { streamingId: undefined } : undefined,
       );
     }
 
@@ -652,6 +702,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       cat,
       rootName,
       tailName ? { name: tailName, stmts: pendingStmts } : undefined,
+      slots ? { streamingId: stmts[stmts.length - 1]!.id } : undefined,
     );
   }
 
@@ -746,13 +797,17 @@ export function compileSchema(schema: LibraryJSONSchema): ParamMap {
  * const result = parser.parse(openuiLangString);
  * ```
  */
-export function createParser(schema: LibraryJSONSchema, rootName?: string): Parser {
+export function createParser(
+  schema: LibraryJSONSchema,
+  rootName?: string,
+  options?: ParseOptions,
+): Parser {
   const paramMap = compileSchema(schema);
   return {
     parse(input: string): ParseResult {
       const telemetry = prepareParserParseTelemetry();
       try {
-        const result = parse(input, paramMap, rootName);
+        const result = parse(input, paramMap, rootName, options);
         captureParserParseResult(telemetry, result);
         return result;
       } catch (error) {
@@ -767,6 +822,10 @@ export function createParser(schema: LibraryJSONSchema, rootName?: string): Pars
  * Create a streaming parser from a library JSON Schema document.
  * Pass `library.toJSONSchema()` to get the schema.
  */
-export function createStreamingParser(schema: LibraryJSONSchema, rootName?: string): StreamParser {
-  return createStreamParser(compileSchema(schema), rootName);
+export function createStreamingParser(
+  schema: LibraryJSONSchema,
+  rootName?: string,
+  options?: ParseOptions,
+): StreamParser {
+  return createStreamParser(compileSchema(schema), rootName, options);
 }
