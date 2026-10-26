@@ -85,16 +85,21 @@ export function periodLabel(range: Range, against?: string): string {
   return `${dateLabel(days - 1)} – ${dateLabel(0, true)} vs ${against ?? `prior ${days} days`}`;
 }
 
-/** Sums a daily series into weeks for 90-day views, which are too noisy day by day. */
+/**
+ * Sums a daily series into weeks for 90-day views, which are too noisy day by
+ * day. Weeks end today, so the oldest days that don't fill one (90 % 7 = 6)
+ * make a short first week, and the weeks add up to the period's total.
+ */
 export function bucket(labels: string[], values: number[][], range: Range, average = false) {
   if (range !== "90d") return { labels, values };
   const size = 7;
   const out = values.map(() => [] as number[]);
   const outLabels: string[] = [];
-  for (let start = labels.length % size; start < labels.length; start += size) {
+  let end = labels.length % size || size;
+  for (let start = 0; start < labels.length; start = end, end += size) {
     outLabels.push(`Wk of ${labels[start]}`);
     values.forEach((series, i) => {
-      const week = series.slice(start, start + size);
+      const week = series.slice(start, end);
       out[i].push(average ? mean(week) : sum(week));
     });
   }
@@ -121,9 +126,10 @@ export function eventSpan(
   }
   const daily = dayLabels(days);
   const offset = days % 7;
+  // The same weeks as bucket(): a short first week of the oldest `offset` days, then full ones.
   const week = (daysAgo: number) => {
-    const index = Math.max(offset, days - 1 - daysAgo);
-    return `Wk of ${daily[offset + Math.floor((index - offset) / 7) * 7]}`;
+    const index = days - 1 - daysAgo;
+    return `Wk of ${daily[index < offset ? 0 : offset + Math.floor((index - offset) / 7) * 7]}`;
   };
   return { label, start: week(from), end: week(toDaysAgo), ...extra };
 }

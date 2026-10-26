@@ -46,6 +46,11 @@ const scratch: SpringState = { value: 0, velocity: 0, target: 0 };
 /**
  * Advance every scalar by `dt` seconds under `config`. Component-wise
  * identical to spring.ts's `advance`. Pure: mutates and returns `state`.
+ *
+ * A scalar whose value or target is not finite (NaN marks a gap in a line, or
+ * a mark with nothing to place) has no distance to spring across: it snaps to
+ * its target, so the gap opens or closes at once and never keeps the morph
+ * running.
  */
 export function advanceVector(
   state: VectorSpringState,
@@ -53,6 +58,11 @@ export function advanceVector(
   config: SpringConfig,
 ): VectorSpringState {
   for (let i = 0; i < state.values.length; i++) {
+    if (!Number.isFinite(state.values[i]!) || !Number.isFinite(state.targets[i]!)) {
+      state.values[i] = state.targets[i]!;
+      state.velocities[i] = 0;
+      continue;
+    }
     scratch.value = state.values[i]!;
     scratch.velocity = state.velocities[i]!;
     scratch.target = state.targets[i]!;
@@ -63,9 +73,17 @@ export function advanceVector(
   return state;
 }
 
-/** Whether EVERY scalar is within its rest thresholds (the slowest one gates). */
+/**
+ * Whether EVERY scalar is within its rest thresholds (the slowest one gates).
+ * A non-finite scalar is at rest once it sits on its target (NaN on NaN), the
+ * state advanceVector snaps it to.
+ */
 export function vectorAtRest(state: VectorSpringState, config: SpringConfig): boolean {
   for (let i = 0; i < state.values.length; i++) {
+    if (!Number.isFinite(state.values[i]!) || !Number.isFinite(state.targets[i]!)) {
+      if (Object.is(state.values[i], state.targets[i])) continue;
+      return false;
+    }
     scratch.value = state.values[i]!;
     scratch.velocity = state.velocities[i]!;
     scratch.target = state.targets[i]!;

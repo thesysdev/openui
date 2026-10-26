@@ -17,10 +17,10 @@
     "eval": "tsx scripts/eval/run.ts",
     "preverify": "npm run generate",
     "verify": "tsx scripts/check-kits.ts && tsx scripts/smoke-kits.tsx && next build",
-    "kits:pack": "pnpm --dir ../../../packages/dashboard-kits run build && pnpm --dir ../../../packages/dashboard-kits pack --pack-destination ../../examples/miscellaneous/dashboard-kits/.kits && npm install ./.kits/openuidev-dashboard-kits-0.0.0.tgz --no-audit --no-fund"
+    "kits:pack": "pnpm --dir ../../../packages/dashboard-kits run build && pnpm --dir ../../../packages/dashboard-kits pack --out ../../examples/miscellaneous/dashboard-kits/.kits/dashboard-kits.tgz && npm install ./.kits/dashboard-kits.tgz --no-audit --no-fund"
   },
   "dependencies": {
-    "@openuidev/dashboard-kits": "file:.kits/openuidev-dashboard-kits-0.0.0.tgz",
+    "@openuidev/dashboard-kits": "file:.kits/dashboard-kits.tgz",
     "@openuidev/lang-core": "0.3.2",
     "@openuidev/react-headless": "0.17.1",
     "@openuidev/react-lang": "0.3.2",

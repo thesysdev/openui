@@ -29,7 +29,8 @@ const MIN_WIDTH = 240;
  */
 export function TrendChart(props: TrendChartProps) {
   const hasData =
-    props.labels.length > 0 && props.series.some((s) => s.values.some(Number.isFinite));
+    props.labels.length > 0 &&
+    props.series.some((s) => s.values.slice(0, props.labels.length).some(Number.isFinite));
   if (!hasData) {
     return <ChartEmpty prefix={P} className={props.className} />;
   }
@@ -63,7 +64,21 @@ function TrendChartImpl({
   const focus = useSeriesFocus();
   const gradientId = `${P}-g${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
 
-  const drawn = useMemo(() => seriesProp.slice(0, 4), [seriesProp]);
+  const n = labels.length;
+  // One value per label: a longer series is cut, a shorter one padded with
+  // gaps, so every line breaks where its data ends instead of overrunning the
+  // morph buffer or diving to an empty slot.
+  const drawn = useMemo(
+    () =>
+      seriesProp
+        .slice(0, 4)
+        .map((s) =>
+          s.values.length === n
+            ? s
+            : { ...s, values: Array.from({ length: n }, (_, j) => s.values[j] ?? Number.NaN) },
+        ),
+    [seriesProp, n],
+  );
   const palette = useKitPalette(paletteCount(drawn), "lineChartPalette");
   const series = useMemo(
     () => comparisonInSeriesColor(colorSeries(drawn, palette), drawn),
@@ -72,7 +87,6 @@ function TrendChartImpl({
   // Three or more strong lines are told apart by dash as well as color.
   const patterns = useMemo(() => linePatterns(series), [series]);
   const variant = variantProp ?? (series.length > 2 ? "line" : "area");
-  const n = labels.length;
   const width = Math.max(size.width, MIN_WIDTH);
   const plotHeight = fill ? Math.min(maxHeight, Math.max(height, size.height)) : height;
   const plotBottom = plotHeight - MARGIN_BOTTOM;

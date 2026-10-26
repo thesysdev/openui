@@ -173,15 +173,6 @@
       "path": "miscellaneous/autofix"
     },
     {
-      "title": "Dashboard kits",
-      "description": "E-commerce and product analytics kits for the OpenUI dashboard artifact.",
-      "path": "miscellaneous/dashboard-kits",
-      "env": {
-        "file": ".env.local",
-        "key": "THESYS_API_KEY"
-      }
-    },
-    {
       "title": "Handsontable",
       "description": "Generated spreadsheet interfaces backed by Handsontable.",
       "path": "miscellaneous/handsontable",

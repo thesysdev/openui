@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type KeyboardEvent } from "react";
 import { formatNumber } from "../../../core/format";
 import { useContainerSize } from "../hooks";
 import { KIT_CHART_PREFIX } from "../utils/constants";
@@ -29,7 +29,8 @@ type Direction = "up" | "down" | "stay" | "in" | "out";
  * Where customers moved between segments: the segments then on the left, now
  * on the right, each scaled to its customers, and a ribbon per move colored
  * by direction (up a segment, down, staying, new in, lapsed out). Hovering a
- * ribbon or a segment brings it forward and reads it out.
+ * ribbon or a segment brings it forward and reads it out; arrow keys walk the
+ * ribbons for keyboard readers, as the other kit charts walk their points.
  */
 export function SegmentFlow({
   links,
@@ -99,6 +100,30 @@ export function SegmentFlow({
         )} ${unit} ${hover.side === "left" ? columns[0].toLowerCase() : columns[1].toLowerCase()}`
       : undefined;
 
+  // Arrow keys step through the ribbons in layout order (by segment then, then
+  // now) into the same readout a hover writes; Escape and blur clear it.
+  const onKeyDown = (event: KeyboardEvent) => {
+    const ribbons = layout.ribbons;
+    const current = hover?.link;
+    const at = current
+      ? ribbons.findIndex((r) => r.from === current.from && r.to === current.to)
+      : -1;
+    let next: number;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      next = Math.min(ribbons.length - 1, at + 1);
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      next = Math.max(0, (at === -1 ? ribbons.length : at) - 1);
+    } else if (event.key === "Escape") {
+      setHover(undefined);
+      event.preventDefault();
+      return;
+    } else return;
+    event.preventDefault();
+    const ribbon = ribbons[next];
+    if (ribbon) setHover({ link: ribbon });
+  };
+  const label = `${unit[0]!.toUpperCase()}${unit.slice(1)} by segment ${columns[0].toLowerCase()} and ${columns[1].toLowerCase()}`;
+
   return (
     <div className={clsx(P, className)}>
       <div className={`${P}-top`} aria-live="polite">
@@ -106,15 +131,18 @@ export function SegmentFlow({
         <span className={`${P}-readout`}>{readout ?? "Hover a segment or a move"}</span>
         <span>{columns[1]}</span>
       </div>
-      <div ref={frameRef} className={`${P}-frame`} onPointerLeave={() => setHover(undefined)}>
+      <div
+        ref={frameRef}
+        className={`${P}-frame`}
+        tabIndex={0}
+        role="img"
+        aria-label={`${label}. Use the arrow keys to read each move.`}
+        onPointerLeave={() => setHover(undefined)}
+        onBlur={() => setHover(undefined)}
+        onKeyDown={onKeyDown}
+      >
         {size.measured && (
-          <svg
-            width={size.width}
-            height={height}
-            className={`${P}-svg`}
-            role="img"
-            aria-label={`${unit[0]!.toUpperCase()}${unit.slice(1)} by segment ${columns[0].toLowerCase()} and ${columns[1].toLowerCase()}`}
-          >
+          <svg width={size.width} height={height} className={`${P}-svg`} aria-hidden>
             <g className={`${P}-ribbons`}>
               {layout.ribbons.map((r) => (
                 <path

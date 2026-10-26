@@ -97,12 +97,17 @@ export const STORE_EVENTS: StoreEvent[] = [
 /** Demand by calendar month against an average month, January first. */
 const SEASON = [0.86, 0.9, 0.97, 1, 1, 0.97, 0.95, 0.98, 1, 1.03, 1.12, 1.22];
 
-/** How busy a day is: its season, any promotion running, and the dip after one. */
-export function demandOn(ago: number): { lift: number; discountRate?: number } {
+/** How busy a day's season is, before any promotion. */
+export function seasonOn(ago: number): number {
   const date = new Date(TODAY - ago * DAY);
   // Gift shipping cuts off on Dec 22; the last days of December are quiet.
   const lateDecember = date.getUTCMonth() === 11 && date.getUTCDate() > 22;
-  let lift = lateDecember ? 0.92 : SEASON[date.getUTCMonth()];
+  return lateDecember ? 0.92 : SEASON[date.getUTCMonth()];
+}
+
+/** How busy a day is: its season, any promotion running, and the dip after one. */
+export function demandOn(ago: number): { lift: number; discountRate?: number } {
+  let lift = seasonOn(ago);
   for (const event of STORE_EVENTS) {
     if (event.kind !== "promo") continue;
     if (ago <= event.from && ago >= event.to) {

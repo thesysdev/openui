@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
 import { formatCurrency } from "../core/format";
 import { runTool } from "../core/prompt";
+import { AS_OF } from "../core/sample-data";
 import type { Kpi } from "../core/schemas";
 import { LAST_YEAR, STORE_EVENTS } from "./calendar";
 import { activeCustomers, ecommerceHandlers, hourShares } from "./data";
@@ -373,13 +374,14 @@ describe("store insights beside DriverCards", () => {
     aov: [],
   };
 
+  // 48 filter combinations, each run once whole and once per metric left out.
   it("leaves out only the change explain_change explains, for every filter", () => {
     for (const range of RANGES)
       for (const channel of CHANNELS)
-        for (const compare of ["previous_period", "last_year", "plan"])
+        for (const compare of ["previous_period", "last_year", "plan"]) {
+          const args = { range, channel, compare };
+          const all = run("get_store_insights", args).insights;
           for (const [metric, kinds] of Object.entries(ABOUT)) {
-            const args = { range, channel, compare };
-            const all = run("get_store_insights", args).insights;
             const rest = run("get_store_insights", { ...args, excluding: metric }).insights;
             const label = `${metric} ${range} ${channel} ${compare}`;
             const kept = all.filter((i: { kind?: string }) => !kinds.includes(i.kind ?? ""));
@@ -390,7 +392,8 @@ describe("store insights beside DriverCards", () => {
             // Everything else stays, in order; the cap of 8 can let one more in.
             expect(rest.slice(0, kept.length), label).toEqual(kept);
           }
-  });
+        }
+  }, 20_000);
 
   it("leads with profit unless the cards already explain it", () => {
     const first = (excluding?: string) =>
@@ -465,6 +468,16 @@ describe("comparisons and the calendar", () => {
   });
 });
 
+it("finds every sale's pull-forward dip against a season-adjusted baseline", () => {
+  // BFCM's baseline is November's weeks, its after-period December's busier days.
+  for (const event of ["fall-sale", "fall-sale-2025", "bfcm-2025"]) {
+    const promo = run("get_promo_impact", { event });
+    const after = promo.metrics.find((m: Kpi) => m.label === "Sales after").value;
+    expect(after, event).toMatch(/^−/);
+    expect(promo.summary, event).toMatch(/pulled demand forward/);
+  }
+});
+
 it("measures promotions on whole days", () => {
   const promo = run("get_promo_impact", { event: "fall-sale" });
   const last = promo.actual.at(-1);
@@ -480,6 +493,20 @@ describe("replenishment", () => {
     expect(beanie.stock).toBe(0);
     expect(beanie.lostRevenue).toBeGreaterThan(0);
     expect(beanie.replenishBy).toBe("Now");
+    // It sold nothing on its 4 days out, so 30 days' units are 26 days at its velocity.
+    const sold = run("get_product_performance", { range: "30d", limit: 16 }).products.find(
+      (p: { sku: string }) => p.sku === "ACC-BEA-03",
+    );
+    expect(Math.abs(beanie.dailySales * 26 - sold.units)).toBeLessThanOrEqual(2);
+  });
+
+  it("sells nothing of a sold-out product on its days out", () => {
+    const week = run("get_product_performance", { range: "7d", limit: 16 }).products;
+    const beanie = week.find((p: { sku: string }) => p.sku === "ACC-BEA-03");
+    // Out since Oct 7: the last 4 of the week's 7 days.
+    expect(beanie.trend.slice(-4)).toEqual([0, 0, 0, 0]);
+    expect(beanie.trend.slice(0, 3).every((v: number) => v > 0)).toBe(true);
+    expect(beanie.change).toBeLessThan(0);
   });
 
   it("finds the Trail Runner's gap before its order lands, and what it costs", () => {
@@ -498,6 +525,38 @@ describe("returns", () => {
       const sent = line(r.lines, "Sent back");
       const kept = line(r.lines, "Kept as exchanges");
       expect(Math.abs(sent - kept - refunds)).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it("each category returns at its own rate, on its share of sales", () => {
+    const rate = (r: { metrics: Kpi[] }) =>
+      parseFloat(r.metrics.find((m) => m.label === "Return rate")!.value as string);
+    for (const range of RANGES) {
+      const store = run("get_returns", { range });
+      const by = run("get_sales_by", { range, dimension: "category" }).items as {
+        name: string;
+        value: number;
+      }[];
+      const sales = total(by.map((i) => i.value));
+      const rates: Record<string, number> = {};
+      for (const [category, name] of [
+        ["apparel", "Apparel"],
+        ["footwear", "Footwear"],
+        ["accessories", "Accessories"],
+        ["home", "Home"],
+      ] as const) {
+        const r = run("get_returns", { range, category });
+        rates[category] = rate(r);
+        // Gross sales take the category's share of the store's, as get_sales_by does.
+        const share = by.find((i) => i.name === name)!.value / sales;
+        expect(line(r.lines, "Gross sales") / line(store.lines, "Gross sales"), name).toBeCloseTo(
+          share,
+          2,
+        );
+      }
+      expect(rates.footwear, range).toBeGreaterThan(rate(store));
+      expect(rates.accessories, range).toBeLessThan(rate(store));
+      expect(rates.home, range).toBeLessThan(rates.apparel!);
     }
   });
 
@@ -678,7 +737,34 @@ it("the monthly goal forecasts the same finish as the targets", () => {
   }
 });
 
+it("the pace-to-goal insight says what the goal card says", () => {
+  for (const channel of CHANNELS) {
+    const goal = run("get_sales_goal", { channel });
+    const pace = run("get_store_insights", {
+      range: "30d",
+      channel,
+      compare: "plan",
+    }).insights.find((i: { kind?: string }) => i.kind === "pace_to_goal");
+    expect(pace.title, channel).toContain(formatCurrency(goal.projected));
+    expect(pace.metric).toBe(`${Math.round((goal.projected / goal.goal) * 100)}%`);
+    // The card's on-pace band: within 2% of the goal.
+    expect(pace.tone).toBe(goal.projected >= goal.goal * 0.98 ? "positive" : "warning");
+  }
+});
+
 describe("operations", () => {
+  it("lists recent orders back from AS_OF, the newest at it", () => {
+    const minutes = (at: string) => {
+      const [, h, m, pm] = at.match(/(\d+):(\d+) (AM|PM)$/)!;
+      return ((Number(h) % 12) + (pm === "PM" ? 12 : 0)) * 60 + Number(m);
+    };
+    for (const channel of CHANNELS) {
+      const { orders } = run("get_recent_orders", { channel, limit: 8 });
+      expect(orders[0].placedAt, channel).toBe(AS_OF);
+      for (const o of orders) expect(minutes(o.placedAt)).toBeLessThanOrEqual(minutes(AS_OF));
+    }
+  });
+
   it("creatives add up to each platform's spend and store revenue", () => {
     const { creatives } = run("get_creatives", { range: "30d" });
     const channels = run("get_marketing_performance", { range: "30d" }).channels;

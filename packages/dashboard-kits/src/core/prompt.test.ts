@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
 import { coerceArgs } from "./prompt";
+import { compareSchema, rangeSchema } from "./schemas";
 
 describe("coerceArgs: numbers", () => {
   const input = z.object({
@@ -105,6 +106,19 @@ describe("coerceArgs: loose spellings, booleans, and lists", () => {
     expect(coerceArgs(input, { steps: "Created board" })).toEqual({ steps: ["Created board"] });
   });
 
+  it("splits a comma list of numeric choices instead of reading its first number", () => {
+    const days = z.object({ windows: z.array(z.union([z.literal(7), z.literal(28)])) });
+    expect(coerceArgs(days, { windows: "7,28" })).toEqual({ windows: [7, 28] });
+    expect(coerceArgs(days, { windows: "28d" })).toEqual({ windows: [28] });
+  });
+
+  it("reads a leading number for numeric choices", () => {
+    expect(coerceArgs(input, { window: "28d" })).toEqual({ window: 28 });
+    expect(coerceArgs(input, { window: "28 days" })).toEqual({ window: 28 });
+    expect(coerceArgs(input, { window: "last 28 days" })).toEqual({ window: 28 });
+    expect(coerceArgs(input, { window: "7d" })).toEqual({ window: 7 });
+  });
+
   it("leaves what it can't repair for the schema to reject", () => {
     expect(() => input.parse(coerceArgs(input, { strict: "maybe" }))).toThrow();
     expect(() =>
@@ -112,5 +126,74 @@ describe("coerceArgs: loose spellings, booleans, and lists", () => {
     ).toThrow();
     expect(() => input.parse(coerceArgs(input, { strict: true, steps: { a: 1 } }))).toThrow();
     expect(coerceArgs(input, { compare: ["banana"], strict: true })).toEqual({ strict: true });
+  });
+});
+
+describe("coerceArgs: what models actually send for a period or comparison", () => {
+  const input = z.object({
+    range: rangeSchema,
+    compare: compareSchema,
+    window: z.union([z.literal(7), z.literal(28)]).default(7),
+  });
+  const parsed = (args: Record<string, unknown>) => input.parse(coerceArgs(input, args));
+
+  it.each([
+    ["this month", "mtd"],
+    ["this_month", "mtd"],
+    ["This Month", "mtd"],
+    ["month to date", "mtd"],
+    ["month-to-date", "mtd"],
+    ["MTD", "mtd"],
+    ["7", "7d"],
+    [7, "7d"],
+    [30, "30d"],
+    ["last 7 days", "7d"],
+    ["last_7_days", "7d"],
+    ["past 90 days", "90d"],
+    ["the last 30 days", "30d"],
+    ["previous 2 weeks", "7d"],
+    ["last month", "30d"],
+    ["last quarter", "90d"],
+    ["1w", "7d"],
+    ["ytd", "90d"],
+    ["60d", "30d"],
+    ["banana", "30d"],
+  ])("range %j → %s", (range, expected) => {
+    expect(parsed({ range }).range).toBe(expected);
+  });
+
+  it.each([
+    ["yoy", "last_year"],
+    ["YoY", "last_year"],
+    ["year over year", "last_year"],
+    ["year-over-year", "last_year"],
+    ["last year", "last_year"],
+    ["vs last year", "last_year"],
+    ["Previous period", "previous_period"],
+    ["plan", "plan"],
+    ["banana", "previous_period"],
+  ])("compare %j → %s", (compare, expected) => {
+    expect(parsed({ compare }).compare).toBe(expected);
+  });
+
+  it.each([
+    ["28d", 28],
+    ["28 days", 28],
+    ["7 days", 7],
+    [30, 28],
+    ["banana", 7],
+  ])("window %j → %s", (window, expected) => {
+    expect(parsed({ window }).window).toBe(expected);
+  });
+
+  it("sends this month to 30 days where there is no month-to-date option", () => {
+    const days = z.object({ range: z.enum(["7d", "30d", "90d"]).default("7d") });
+    expect(coerceArgs(days, { range: "this month" })).toEqual({ range: "30d" });
+    expect(coerceArgs(days, { range: "month to date" })).toEqual({ range: "30d" });
+  });
+
+  it("aliases only to options the field has", () => {
+    const other = z.object({ compare: z.enum(["previous_period", "plan"]).optional() });
+    expect(coerceArgs(other, { compare: "yoy" })).toEqual({});
   });
 });

@@ -50,7 +50,8 @@ type Round = "top" | "bottom" | "none";
  */
 export function ColumnChart(props: ColumnChartProps) {
   const hasData =
-    props.labels.length > 0 && props.series.some((s) => s.values.some(Number.isFinite));
+    props.labels.length > 0 &&
+    props.series.some((s) => s.values.slice(0, props.labels.length).some(Number.isFinite));
   if (!hasData) {
     return <ChartEmpty prefix={P} className={props.className} />;
   }
@@ -301,7 +302,7 @@ const ColumnBars = memo(function ColumnBars(props: BarsProps) {
   useIsomorphicLayoutEffect(() => {
     const snap = !props.isAnimationActive || lastLayout.current !== props.layoutKey;
     lastLayout.current = props.layoutKey;
-    aim(props.flat, snap);
+    aim(props.flat, snap, props.isAnimationActive);
   }, [props.flat, props.layoutKey, props.isAnimationActive, aim]);
 
   const animate = props.isAnimationActive;

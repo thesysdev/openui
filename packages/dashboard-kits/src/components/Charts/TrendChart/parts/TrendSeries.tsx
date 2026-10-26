@@ -165,7 +165,7 @@ export const TrendSeries = memo(function TrendSeries(props: TrendSeriesProps) {
   useIsomorphicLayoutEffect(() => {
     const snap = !props.isAnimationActive || lastLayout.current !== props.layoutKey;
     lastLayout.current = props.layoutKey;
-    aim(props.flat, snap);
+    aim(props.flat, snap, props.isAnimationActive);
   }, [props.flat, props.layoutKey, props.isAnimationActive, aim]);
 
   const opacity = (name: string) =>

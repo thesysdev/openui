@@ -20,6 +20,16 @@ describe("packTrend / unpackTrend", () => {
     expect(outY.map((s) => [...s])).toEqual(ys);
     expect([...guides]).toEqual([1, 2, 3]);
   });
+
+  it("gives every series exactly one slot per point: cut when longer, NaN-padded when shorter", () => {
+    const xs = [0, 10, 20];
+    const flat = packTrend(xs, [[5, 6, 7, 8, 9], [1]], [1, 2, 3]);
+    expect(flat.length).toBe(3 * 3 + 3);
+    const { ys, guides } = unpackTrend(flat, 3, 2);
+    expect([...ys[0]!]).toEqual([5, 6, 7]);
+    expect([...ys[1]!]).toEqual([1, Number.NaN, Number.NaN]);
+    expect([...guides]).toEqual([1, 2, 3]);
+  });
 });
 
 describe("differencePaths", () => {

@@ -14,7 +14,9 @@ export const GUIDE_COUNT = 3;
  * The trend's morph vector: x per point, y per point for each series, then the
  * guides' y positions — `[x…, y(s0)…, y(s1)…, …, target, bandFrom, bandTo]`.
  * Guides ride the same morph as the lines, so a goal line glides with the data
- * when the scale changes instead of jumping ahead of it.
+ * when the scale changes instead of jumping ahead of it. Each series takes
+ * exactly one slot per point: extra values are dropped and missing ones are
+ * NaN, a gap the line generators break at.
  */
 export function packTrend(
   xs: ArrayLike<number>,
@@ -24,7 +26,9 @@ export function packTrend(
   const n = xs.length;
   const out = new Float64Array(n * (ys.length + 1) + GUIDE_COUNT);
   out.set(xs, 0);
-  ys.forEach((series, s) => out.set(series, n * (s + 1)));
+  ys.forEach((series, s) => {
+    for (let j = 0; j < n; j++) out[n * (s + 1) + j] = j < series.length ? series[j]! : Number.NaN;
+  });
   out.set(guides, n * (ys.length + 1));
   return out;
 }

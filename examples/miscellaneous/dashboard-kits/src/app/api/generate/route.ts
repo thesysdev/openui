@@ -6,15 +6,35 @@ import { getKitSpec } from "../../../kits/server";
 
 export const runtime = "nodejs";
 
+/** Longest prompt accepted; a dashboard request is a sentence or two. */
+const MAX_PROMPT_CHARS = 4_000;
+
 // Self-hosted serving: the kit's full system prompt (components, tools, rules,
 // and the gallery dashboards most relevant to the request as examples) is
 // built here and sent as the system message. The model streams
 // openui-lang back; the browser renders it with the same kit library.
 export async function POST(request: Request) {
-  const { kit: kitId, prompt } = (await request.json()) as { kit?: string; prompt?: string };
-  const kit = getKit(kitId ?? "");
-  if (!kit || !prompt?.trim()) {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json(
+      { error: "Send a JSON body with a kit id and a prompt." },
+      { status: 400 },
+    );
+  }
+  const { kit: kitId, prompt } = (body ?? {}) as { kit?: unknown; prompt?: unknown };
+  const kit = typeof kitId === "string" ? getKit(kitId) : undefined;
+  if (!kit || typeof prompt !== "string" || !prompt.trim()) {
     return Response.json({ error: "Send a kit id and a prompt." }, { status: 400 });
+  }
+  if (prompt.length > MAX_PROMPT_CHARS) {
+    return Response.json(
+      {
+        error: `Keep the prompt to ${MAX_PROMPT_CHARS.toLocaleString("en-US")} characters or fewer.`,
+      },
+      { status: 413 },
+    );
   }
   const llm = modelClient();
   if (!llm) {

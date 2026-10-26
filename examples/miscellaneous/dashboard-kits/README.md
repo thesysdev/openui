@@ -41,11 +41,11 @@ npm run kits:pack
 npm run dev
 ```
 
-`kits:pack` builds `packages/dashboard-kits` with the monorepo's pnpm, packs it into `.kits/`, and installs the tarball with the app's other dependencies. Run it again after changing the package. (npm cannot install the workspace package directly: its manifest uses pnpm `catalog:` versions.)
+`kits:pack` builds `packages/dashboard-kits` with the monorepo's pnpm, packs it to `.kits/dashboard-kits.tgz` (a fixed name, so a version bump does not break the dependency), and installs the tarball with the app's other dependencies. Run it again after changing the package. (npm cannot install the workspace package directly: its manifest uses pnpm `catalog:` versions.)
 
 Open http://localhost:3000. The gallery and the Prompt view work without credentials. For Generate, put one key in `.env.local`, then restart:
 
-- `THESYS_API_KEY`: an inference key from the [Thesys Console](https://console.thesys.dev/keys), sent to OpenUI Gateway
+- `THESYS_API_KEY`: an inference key from the [Thesys Console](https://console.thesys.dev/keys), sent to OpenUI Gateway (`THESYS_BASE_URL` overrides the Gateway URL; `OPENAI_BASE_URL` is never used with this key)
 - `OPENAI_API_KEY`: any OpenAI-compatible key; set `OPENAI_BASE_URL` for another provider
 
 `OPENUI_MODEL` optionally picks the model. The defaults are `openai/gpt-5.5` on Gateway and `gpt-5.5` on OpenAI.

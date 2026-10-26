@@ -28,18 +28,23 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=6144
 
-      - name: Run Packages CI
-        run: pnpm --filter "./packages/**" --workspace-concurrency=1 run ci
-
       # The dashboard kits render over the published thesys dashboard library,
       # which isn't in the workspace, so their example app installs the package
       # just built as a tarball and renders every gallery dashboard (`check`).
+      # The tarball has a fixed name (the app depends on
+      # file:.kits/dashboard-kits.tgz), so a version bump doesn't break it.
       # A fresh pack never matches the committed tarball checksum, hence the
-      # unfrozen install.
+      # unfrozen install. `precheck` writes the kit library specs to
+      # src/generated/; this runs before Packages CI so the package's
+      # prompt-size tests read those specs instead of skipping.
       - name: Check dashboard kits render
         working-directory: examples/miscellaneous/dashboard-kits
         run: |
-          mkdir -p .kits
-          pnpm --dir ../../../packages/dashboard-kits pack --pack-destination "$PWD/.kits"
+          pnpm --dir ../../../packages/dashboard-kits pack --out "$PWD/.kits/dashboard-kits.tgz"
           pnpm install --ignore-workspace --no-frozen-lockfile
           pnpm run check
+          test -s src/generated/ecommerce.spec.json
+          test -s src/generated/analytics.spec.json
+
+      - name: Run Packages CI
+        run: pnpm --filter "./packages/**" --workspace-concurrency=1 run ci

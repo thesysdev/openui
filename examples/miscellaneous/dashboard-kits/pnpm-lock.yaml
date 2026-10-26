@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@openuidev/dashboard-kits':
-        specifier: file:.kits/openuidev-dashboard-kits-0.0.0.tgz
-        version: file:.kits/openuidev-dashboard-kits-0.0.0.tgz(@openuidev/lang-core@0.3.2(zod@4.6.5))(@openuidev/react-lang@0.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@openuidev/react-ui@0.17.1(@openuidev/react-headless@0.17.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)
+        specifier: file:.kits/dashboard-kits.tgz
+        version: file:.kits/dashboard-kits.tgz(@openuidev/lang-core@0.3.2(zod@4.6.5))(@openuidev/react-lang@0.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@openuidev/react-ui@0.17.1(@openuidev/react-headless@0.17.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)
       '@openuidev/lang-core':
         specifier: 0.3.2
         version: 0.3.2(zod@4.6.5)
@@ -852,8 +852,8 @@ packages:
     resolution: {integrity: sha512-7Ir7ZT7Kow285LQLR3cCpcxEKzUapVMojKbUbXGZXzCEv9GOG8Z8NI17ejQNvO9aVax9b41h3+KIxbxY7agR6A==}
     hasBin: true
 
-  '@openuidev/dashboard-kits@file:.kits/openuidev-dashboard-kits-0.0.0.tgz':
-    resolution: {integrity: sha512-re9dDHH727QjnQgxMiJN2fXche+6KnCF3w0I3C7E8d+kg+T9kOa9ezA7UqGydma/j5EBrYMzxT6/HHfHnIcwpQ==, tarball: file:.kits/openuidev-dashboard-kits-0.0.0.tgz}
+  '@openuidev/dashboard-kits@file:.kits/dashboard-kits.tgz':
+    resolution: {integrity: sha512-re9dDHH727QjnQgxMiJN2fXche+6KnCF3w0I3C7E8d+kg+T9kOa9ezA7UqGydma/j5EBrYMzxT6/HHfHnIcwpQ==, tarball: file:.kits/dashboard-kits.tgz}
     version: 0.0.0
     peerDependencies:
       '@openuidev/lang-core': '>=0.3.0 <2.0.0'
@@ -3550,7 +3550,7 @@ snapshots:
       - '@types/node'
       - rxjs
 
-  '@openuidev/dashboard-kits@file:.kits/openuidev-dashboard-kits-0.0.0.tgz(@openuidev/lang-core@0.3.2(zod@4.6.5))(@openuidev/react-lang@0.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@openuidev/react-ui@0.17.1(@openuidev/react-headless@0.17.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)':
+  '@openuidev/dashboard-kits@file:.kits/dashboard-kits.tgz(@openuidev/lang-core@0.3.2(zod@4.6.5))(@openuidev/react-lang@0.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@openuidev/react-ui@0.17.1(@openuidev/react-headless@0.17.1(react@19.2.4)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(@openuidev/react-lang@0.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)(zustand@4.5.7(@types/react@19.3.0)(react@19.2.4)))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)':
     dependencies:
       '@openuidev/lang-core': 0.3.2(zod@4.6.5)
       '@openuidev/react-lang': 0.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.6.5)

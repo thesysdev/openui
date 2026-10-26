@@ -169,11 +169,12 @@ export function runTool(
  *   integers, clamped to its bounds;
  * - booleans: read from "true"/"false", "yes"/"no", "on"/"off", 1/0;
  * - choices (enums and literal unions): matched ignoring case, spaces,
- *   underscores, and hyphens ("Previous period" → "previous_period"); a
- *   period like "12m", "ytd", or "1y" goes to the closest day-count option
- *   ("90d"), a number to the closest numeric option; from a list, the first
- *   item that fits; anything else falls back to the field's default, or is
- *   dropped when the field is optional;
+ *   underscores, and hyphens ("Previous period" → "previous_period"), or by
+ *   a common alias ("this month" → "mtd", "yoy" → "last_year"); a period
+ *   like "12m", "ytd", "last 7 days", or a bare 7 goes to the closest
+ *   day-count option, a leading number ("28d") to the closest numeric
+ *   option; from a list, the first item that fits; anything else falls back
+ *   to the field's default, or is dropped when the field is optional;
  * - lists: a single value is wrapped (a comma-separated one split, for lists
  *   of choices), and each item repaired as above.
  *
@@ -238,7 +239,12 @@ function coerceValue(schema: z.ZodType, value: unknown): unknown {
     let items: unknown[];
     if (Array.isArray(value)) items = value;
     else if (typeof value === "object" && value !== null) return undefined;
-    else if (choices && typeof value === "string" && matchChoice(value, choices) === undefined)
+    // A comma always separates items: "7,28" must not read as the leading 7.
+    else if (
+      choices &&
+      typeof value === "string" &&
+      (value.includes(",") || matchChoice(value, choices) === undefined)
+    )
       items = value.split(",").map((part) => part.trim());
     else items = [value];
     return items.map((item) => coerceValue(element, item) ?? item);
@@ -254,7 +260,20 @@ function coerceValue(schema: z.ZodType, value: unknown): unknown {
   return value;
 }
 
-/** The option a model meant: exact, then loosely spelled, then the nearest period or number. */
+/** Other names a model uses for an option, spelled loosely; used only when the option exists. */
+const ALIASES: Record<string, string[]> = {
+  mtd: ["thismonth", "monthtodate", "thismonthtodate", "currentmonth"],
+  last_year: [
+    "yoy",
+    "yearoveryear",
+    "vslastyear",
+    "sameperiodlastyear",
+    "prioryear",
+    "previousyear",
+  ],
+};
+
+/** The option a model meant: exact, then loosely spelled or aliased, then the nearest period or number. */
 function matchChoice(value: unknown, options: unknown[]): unknown {
   if (options.includes(value)) return value;
   if (typeof value !== "string" && typeof value !== "number") return undefined;
@@ -265,24 +284,37 @@ function matchChoice(value: unknown, options: unknown[]): unknown {
       .replace(/[\s_-]+/g, "");
   const spelled = options.find((o) => loose(o) === loose(value));
   if (spelled !== undefined) return spelled;
+  const aliased = options.find((o) => ALIASES[String(o)]?.includes(loose(value)));
+  if (aliased !== undefined) return aliased;
   const numbers = options.filter((o): o is number => typeof o === "number");
-  const n = typeof value === "number" ? value : Number(value.trim());
+  // A leading number, so "28d" or "last 28 days" reads as 28.
+  const n = typeof value === "number" ? value : Number.parseFloat(periodText(value));
   if (numbers.length && Number.isFinite(n))
     return numbers.reduce((best, o) => (Math.abs(o - n) < Math.abs(best - n) ? o : best));
-  return typeof value === "string" ? nearestPeriod(value, options.map(String)) : undefined;
+  return nearestPeriod(String(value), options.map(String));
 }
 
-/** Days in a period a model might ask for: "12m", "6 weeks", "ytd", "quarter". */
+/** A period's text lowercased, spaced, and without a "last"/"past" prefix: "Last_7_days" → "7 days". */
+function periodText(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, " ")
+    .replace(/^(the )?(last|past|previous|prior|trailing) /, "");
+}
+
+/** Days in a period a model might ask for: "12m", "6 weeks", "last 7 days", "ytd", "quarter", "7". */
 function periodDays(text: string): number | undefined {
-  const t = text.trim().toLowerCase();
-  if (/^(ytd|year|this_?year|1y|12m|annual|last_?year|365d?)$/.test(t)) return 365;
-  if (/^(qtd|quarter|this_?quarter|3m|1q)$/.test(t)) return 90;
-  if (/^(week|this_?week|wtd)$/.test(t)) return 7;
-  if (/^(month|this_?month)$/.test(t)) return 30;
-  const m = t.match(/^(\d+)\s*(d|days?|w|weeks?|m|months?|y|years?)$/);
+  const t = periodText(text);
+  if (/^(ytd|year|this ?year|last ?year|1y|12m|annual|365d?)$/.test(t)) return 365;
+  if (/^(qtd|quarter|this ?quarter|3m|1q)$/.test(t)) return 90;
+  if (/^(week|this ?week|wtd)$/.test(t)) return 7;
+  if (/^(month|this ?month|mtd|month to date)$/.test(t)) return 30;
+  // A bare number is days.
+  const m = t.match(/^(\d+) ?(d|days?|w|weeks?|m|months?|y|years?)?$/);
   if (!m) return undefined;
   const n = Number(m[1]);
-  const unit = m[2]![0];
+  const unit = m[2]?.[0] ?? "d";
   return unit === "d" ? n : unit === "w" ? n * 7 : unit === "m" ? n * 30 : n * 365;
 }
 

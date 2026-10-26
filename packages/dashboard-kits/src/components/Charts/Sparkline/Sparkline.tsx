@@ -89,7 +89,7 @@ function SparklineImpl({
   useIsomorphicLayoutEffect(() => {
     const snap = !isAnimationActive || lastWidth.current !== width;
     lastWidth.current = width;
-    aim(flat, snap);
+    aim(flat, snap, isAnimationActive);
   }, [flat, width, isAnimationActive, aim]);
 
   const color = LINE_COLOR;

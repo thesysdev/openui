@@ -32,6 +32,12 @@
     position: relative;
     width: 100%;
     min-width: 0;
+    outline: none;
+
+    &:focus-visible {
+      box-shadow: 0 0 0 2px var(--kit-accent);
+      border-radius: 6px;
+    }
   }
 
   &-svg {

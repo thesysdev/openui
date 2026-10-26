@@ -30,7 +30,9 @@ export const TrendChart = defineComponent({
   }),
   component: ({ props }) => {
     const labels = props.labels ?? [];
-    const series = props.series ?? [];
+    // A series whose values have not arrived (a mid-stream or misnamed field)
+    // is dropped, not drawn: the chart reads every series' values.
+    const series = (props.series ?? []).filter((s) => Array.isArray(s?.values));
     if (labels.length === 0 || !series.some((s) => s.values.length > 0)) {
       return <Pending kind="trend" />;
     }

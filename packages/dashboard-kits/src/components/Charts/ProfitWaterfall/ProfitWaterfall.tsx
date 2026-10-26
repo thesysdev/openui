@@ -375,7 +375,7 @@ const WaterfallBars = memo(function WaterfallBars(props: BarsProps) {
   useIsomorphicLayoutEffect(() => {
     const snap = !props.isAnimationActive || lastLayout.current !== props.layoutKey;
     lastLayout.current = props.layoutKey;
-    aim(props.flat, snap);
+    aim(props.flat, snap, props.isAnimationActive);
   }, [props.flat, props.layoutKey, props.isAnimationActive, aim]);
 
   const { rows, starts, bandwidth } = props;

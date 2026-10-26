@@ -1,3 +1,5 @@
+"use client";
+
 // Client entry. Two layers, as in react-ui: plain React components (charts and
 // blocks, typed props, no openui-lang) and their openui-lang definitions for a
 // kit library. Each kit's own components and library live in

@@ -185,6 +185,8 @@ const DAY_FACTOR = Array.from({ length: HISTORY }, (_, t) => dayFactor(agoAt(t))
 
 /** A what-if: return chances by band (current, reactivated, resurrected) and activation, as multipliers. */
 type Boost = { bands: [number, number, number]; activation: number };
+/** A what-if starts this many days ago: the lifecycle card's "in 90 days". */
+const BOOST_DAYS = 90;
 const NO_BOOST: Boost = { bands: [1, 1, 1], activation: 1 };
 
 const segmentCache = new Map<string, Population>();
@@ -194,16 +196,20 @@ function segmentPopulation(pf: Platform, pl: Plan, boost: Boost = NO_BOOST): Pop
   if (cached) return cached;
   const signups = segmentSignups(pf, pl);
   const { activated, notActivated } = curves(pf, pl);
+  // A boost applies only over the last BOOST_DAYS days; before then the
+  // population is the plain one (with no boost, the same either way).
+  const from = HISTORY - BOOST_DAYS;
   const pop = simulate({
     signups,
     // The aha share is of all signups, as the population splits arrivals.
     activation: signups.map((_, t) =>
-      Math.min(0.95, ahaShare(pf, pl, agoAt(t)) * boost.activation),
+      Math.min(0.95, ahaShare(pf, pl, agoAt(t)) * (t >= from ? boost.activation : 1)),
     ),
     activated: { ...activated, bands: boost.bands },
     notActivated: { ...notActivated, bands: boost.bands },
     dayFactor: DAY_FACTOR,
     flowDays: 28,
+    bandsFrom: from,
   });
   segmentCache.set(key, pop);
   return pop;
@@ -1118,6 +1124,7 @@ const PAYWALLS = [
 const MONETISATION = { pql: 0.55, paidOfPql: 0.28, expandedOfPaid: 0.21 };
 /** Business trials: the share of new paying workspaces that start one, extend it, and convert once it ends. */
 const TRIALS = { startShare: 0.35, extendShare: 0.07, conversion: 0.15 };
+const TRIAL_DAYS = 14;
 const FREE_TO_PAID_BAND = {
   label: "Freemium self-serve: good 3–5%, great 6–8% (Lenny Rachitsky, Kyle Poyar)",
   from: 3,
@@ -1137,16 +1144,18 @@ function monetisation(range: Range) {
       paid * MONETISATION.expandedOfPaid * between(`expanded:${offset}:${span}`, 0.92, 1.08);
     return { created, team, pql, paid, expanded };
   };
-  // Business trials: a share of new paying Team workspaces start one; those
-  // started in the last 14 days are still running, a few extend, and the rest
-  // end converted or expired (our rules).
+  // Business trials: a share of new paying Team workspaces start one, for 14
+  // days. Trials that reached day 14 within the window (started 14 days
+  // earlier) either extend or end converted or expired; those started in the
+  // 14 days to the window's end are still running (our rules). Measuring
+  // outcomes by when trials end keeps every count real for a 7-day window.
   const trialsFor = (offset: number, span = days) => {
-    const started = funnelFor(offset, span).paid * TRIALS.startShare;
-    const trialing = started * Math.min(1, 14 / span);
-    const extended = started * TRIALS.extendShare;
-    const ended = started - trialing - extended;
+    const due = funnelFor(offset + TRIAL_DAYS, span).paid * TRIALS.startShare;
+    const trialing = funnelFor(offset, TRIAL_DAYS).paid * TRIALS.startShare;
+    const extended = due * TRIALS.extendShare;
+    const ended = due - extended;
     const converted = ended * TRIALS.conversion * between(`trial:${offset}:${span}`, 0.9, 1.1);
-    return { started, trialing, extended, converted, expired: ended - converted, ended };
+    return { due, trialing, extended, converted, expired: ended - converted, ended };
   };
   const now = funnelFor(0);
   const then = funnelFor(days);
@@ -1655,6 +1664,25 @@ function healthDistribution(scores: number[]) {
   };
 }
 
+/** A plan's paying workspaces, their average MRR, and the MRR a new one starts on. */
+function workspaceSizes(p: "team" | "business") {
+  const inPlan = payingWorkspaces().filter((w) => w.plan.toLowerCase() === p);
+  const average = sum(inPlan.map((w) => w.mrr)) / Math.max(1, inPlan.length);
+  return { inPlan, average, newSize: p === "team" ? NEW_WORKSPACE_MRR : average };
+}
+
+/** New paying workspaces in each of the last `months` whole months, oldest first, plan by plan. */
+function newWorkspacesByMonth(plans: readonly ("team" | "business")[], months: number): number[] {
+  const out = new Array<number>(months).fill(0);
+  for (const p of plans) {
+    const { newSize } = workspaceSizes(p);
+    mrrHistory([p])
+      .slice(-months)
+      .forEach((m, k) => (out[k] += m.new / newSize));
+  }
+  return out.map(Math.round);
+}
+
 /**
  * Paying workspaces at the end of each of the last `months` whole months,
  * oldest first: today's count walked back month by month, less each month's
@@ -1665,9 +1693,7 @@ function healthDistribution(scores: number[]) {
 function payingByMonth(plans: readonly ("team" | "business")[], months: number): number[] {
   const out = new Array<number>(months).fill(0);
   for (const p of plans) {
-    const inPlan = payingWorkspaces().filter((w) => w.plan.toLowerCase() === p);
-    const average = sum(inPlan.map((w) => w.mrr)) / Math.max(1, inPlan.length);
-    const newSize = p === "team" ? NEW_WORKSPACE_MRR : average;
+    const { inPlan, average, newSize } = workspaceSizes(p);
     const history = mrrHistory([p]).slice(-months);
     let count = inPlan.length;
     for (let k = months - 1; k >= 0; k--) {
@@ -1993,7 +2019,8 @@ function explainAnalytics({
  * The seven daily lifecycle states (Duolingo's model, on our 28-day MAU) for
  * the last 28 days: active users above the line by why they count, inactive
  * ones below by how long they have been away; each state's daily return rate;
- * and which rate, raised 2%, would add the most daily actives.
+ * and which rate, raised 2% for the last 90 days, would add the most daily
+ * actives (in the last week).
  */
 function lifecycleStates(platform: string, plan: string) {
   const days = 28;
@@ -2120,13 +2147,23 @@ const SOURCES = [
   { label: "Partner marketplace", share: 0.09, activation: 1.12 },
 ];
 
+/**
+ * Share of the window's actives by days active, 1 to `window`. The shape
+ * (light users, a weekday hump) is tilted so its mean days active is
+ * window × DAU ÷ WAU or MAU over the last 7 days: every user-day in the curve
+ * is a daily active, so it agrees with the DAU/MAU KPI.
+ */
 function stickinessShares(platform: string, plan: string, window: 7 | 28) {
   const engagement = factor(platform, plan, "retention");
+  const pop = population(platform, plan);
+  const target =
+    (window * mean(take(pop.dau, 7))) / mean(take(pop[window === 7 ? "wau" : "mau"], 7));
   if (window === 7) {
     const base = [0.27, 0.16, 0.12, 0.1, 0.11, 0.11, 0.13];
-    const shifted = base.map((v, i) => v * engagement ** ((i - 3) / 3));
-    const total = sum(shifted);
-    return shifted.map((v) => v / total);
+    return tiltToMean(
+      base.map((v, i) => v * engagement ** ((i - 3) / 3)),
+      target,
+    );
   }
   // A work tool's power users cluster near 20 of 28 days: every weekday.
   const raw = Array.from({ length: 28 }, (_, i) => {
@@ -2136,8 +2173,24 @@ function stickinessShares(platform: string, plan: string, window: 7 | 28) {
     const daily = d >= 26 ? 0.02 * engagement : 0;
     return light + work + daily + 0.008;
   });
-  const total = sum(raw);
-  return raw.map((v) => v / total);
+  return tiltToMean(raw, target);
+}
+
+/** Weights (index i = i + 1 days) scaled by e^(θ·i) and normalised, θ found so the mean days is `target`. */
+function tiltToMean(weights: number[], target: number): number[] {
+  const tilted = (theta: number) => {
+    const w = weights.map((v, i) => v * Math.exp(theta * i));
+    const total = sum(w);
+    return w.map((v) => v / total);
+  };
+  const meanDays = (shares: number[]) => sum(shares.map((v, i) => v * (i + 1)));
+  let [low, high] = [-6, 6];
+  for (let k = 0; k < 50; k++) {
+    const mid = (low + high) / 2;
+    if (meanDays(tilted(mid)) < target) low = mid;
+    else high = mid;
+  }
+  return tilted((low + high) / 2);
 }
 
 export const analyticsHandlers: Record<string, (args: any) => unknown> = {
@@ -2885,6 +2938,7 @@ export const analyticsHandlers: Record<string, (args: any) => unknown> = {
     const plans = plan === "all" ? (["team", "business"] as const) : ([plan] as const);
     const months = REVENUE_MONTHS;
     const history = mrrHistory(plans);
+    const newCounts = newWorkspacesByMonth(plans, 12);
     // Whole months up to the latest: September 2026 when today is Oct 10.
     const month = (monthsAgo: number, style: "short" | "long" = "short") =>
       new Date(Date.UTC(2026, 8 - monthsAgo, 1)).toLocaleDateString("en-US", {
@@ -2949,15 +3003,12 @@ export const analyticsHandlers: Record<string, (args: any) => unknown> = {
       ],
       comparisonLabel: `${monthName(0, "long")} 1`,
       labels: Array.from({ length: 12 }, (_, k) => monthName(11 - k)),
-      cohorts: cohortNrr(history, 12).map((row, k) => {
-        const start = history[months - 12 + k]!;
-        return {
-          cohort: monthName(11 - k),
-          // New paying workspaces that month: they start small, about 7 Team seats.
-          size: Math.round(start.new / NEW_WORKSPACE_MRR),
-          values: row.map((v) => round(v * 100, 1)),
-        };
-      }),
+      cohorts: cohortNrr(history, 12).map((row, k) => ({
+        cohort: monthName(11 - k),
+        // New paying workspaces that month, each plan's new MRR over its starting size.
+        size: newCounts[k]!,
+        values: row.map((v) => round(v * 100, 1)),
+      })),
       cohortLabels: Array.from({ length: 12 }, (_, m) => `Month ${m}`),
       nrr: trailing.map((r) => round(r.nrr * 100, 1)),
       nrrBand: NRR_BAND,
@@ -3109,16 +3160,19 @@ export const analyticsHandlers: Record<string, (args: any) => unknown> = {
 
     if (plan !== "free") {
       const dropped = payingWorkspaces()
+        .filter((w) => plan === "all" || w.plan.toLowerCase() === plan)
         .map((w) => ({ w, score: healthScore(healthParts(w)) }))
         .sort((a, b) => a.score - a.w.scoreWeekAgo - (b.score - b.w.scoreWeekAgo))[0]!;
       const drop = dropped.w.scoreWeekAgo - dropped.score;
-      insights.push({
-        tone: "negative",
-        kind: "workspace_risk",
-        title: `${dropped.w.name}'s health fell ${drop} points in 7 days`,
-        detail: `${dropped.w.active7} of its ${dropped.w.seats} seats were active this week and no one has done a core action for ${dropped.w.lastActiveDays} days. ${formatCurrency(dropped.w.mrr * 12)} ARR, renewing in ${dropped.w.renewalInDays} days.`,
-        metric: `−${drop} pts`,
-      });
+      // Only a workspace on the filtered plan, and only when one actually slipped.
+      if (drop > 0)
+        insights.push({
+          tone: "negative",
+          kind: "workspace_risk",
+          title: `${dropped.w.name}'s health fell ${drop} points in 7 days`,
+          detail: `${dropped.w.active7} of its ${dropped.w.seats} seats were active this week and no one has done a core action for ${dropped.w.lastActiveDays} days. ${formatCurrency(dropped.w.mrr * 12)} ARR, renewing in ${dropped.w.renewalInDays} days.`,
+          metric: `−${drop} pts`,
+        });
     }
 
     if (platform === "all" || platform === "android") {

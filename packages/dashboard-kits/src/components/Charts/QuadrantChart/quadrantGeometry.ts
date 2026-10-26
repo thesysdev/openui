@@ -156,7 +156,8 @@ export const BUBBLE_STRIDE = 5;
 /**
  * The chart's morph vector: every bubble's centre and radius and its label's
  * position, so a filter glides bubbles and labels together. A bubble without a
- * label carries NaN for it.
+ * label (its label did not fit) carries its own centre instead, so the vector
+ * stays finite and a label that fits again glides out from its bubble.
  */
 export function packBubbles(
   bubbles: Bubble[],
@@ -165,7 +166,7 @@ export function packBubbles(
   const out = new Float64Array(bubbles.length * BUBBLE_STRIDE);
   bubbles.forEach((b, i) => {
     const label = labels[i];
-    out.set([b.cx, b.cy, b.r, label?.x ?? Number.NaN, label?.y ?? Number.NaN], i * BUBBLE_STRIDE);
+    out.set([b.cx, b.cy, b.r, label?.x ?? b.cx, label?.y ?? b.cy], i * BUBBLE_STRIDE);
   });
   return out;
 }

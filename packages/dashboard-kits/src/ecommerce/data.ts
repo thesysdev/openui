@@ -43,7 +43,7 @@ import type {
   Why,
 } from "../core/schemas";
 import { normalCdf } from "../core/stats";
-import { demandOn, LAST_YEAR, STORE_EVENTS, trackedSessions } from "./calendar";
+import { demandOn, LAST_YEAR, seasonOn, STORE_EVENTS, trackedSessions } from "./calendar";
 import { definitionOf, METRICS, type MetricId } from "./metrics";
 import { ecommerceTools } from "./tools";
 
@@ -205,8 +205,10 @@ const MINUTES_SO_FAR = 15 * 60 + 48;
 
 /** The share of a day's orders a channel has usually taken by 3:48 PM, on today's kind of day. */
 function shareSoFar(ch: Channel): number {
-  return shareBy(ch, [0, 6].includes(dayOfWeek(0)), MINUTES_SO_FAR / 60);
+  // Fixed for the sample's today, and read by every series that ends today.
+  return (shareSoFarCache[ch] ??= shareBy(ch, [0, 6].includes(dayOfWeek(0)), MINUTES_SO_FAR / 60));
 }
+const shareSoFarCache: Partial<Record<Channel, number>> = {};
 
 /** The same for a set of channels, weighted by their orders. */
 function shareSoFarFor(chs: Channel[]): number {
@@ -812,7 +814,8 @@ const USUAL_DISCOUNT = 0.072;
 
 /**
  * A promotion against what the same days would have done without it: the
- * baseline is each weekday's average over the four weeks before the sale.
+ * baseline is each weekday's average over the four weeks before the sale,
+ * moved to each charted day's season.
  * Shows the lift during, the dip after (demand pulled forward), and the
  * lift the deeper discount needed to break even on product margin.
  */
@@ -840,12 +843,18 @@ function measurePromo(id: Input<"get_promo_impact">["event"]) {
         ? contributionOf(profitDays(all, 28, e.from + 1))
         : series(all, field, 28, e.from + 1);
     // 28 days ending the day before the sale: index i is (e.from + 28 − i) days ago.
+    // Each day is taken out of its season and put into the charted day's, so a
+    // sale late in November is measured against December's busier normal.
     const byWeekday = new Map<number, number[]>();
     before.forEach((v, i) => {
-      const day = dayOfWeek(e.from + 28 - i);
-      byWeekday.set(day, [...(byWeekday.get(day) ?? []), v]);
+      const ago = e.from + 28 - i;
+      const day = dayOfWeek(ago);
+      byWeekday.set(day, [...(byWeekday.get(day) ?? []), v / seasonOn(ago)]);
     });
-    return Array.from({ length: n }, (_, i) => mean(byWeekday.get(dayOfWeek(start - i)) ?? [0]));
+    return Array.from(
+      { length: n },
+      (_, i) => mean(byWeekday.get(dayOfWeek(start - i)) ?? [0]) * seasonOn(start - i),
+    );
   };
   const base = {
     sales: baselineOf("total"),
@@ -1833,6 +1842,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   home: "Home",
 };
 
+/** The calendar's stockout for a product, if it has one. */
+const stockoutOf = (name: string) =>
+  STORE_EVENTS.find((e) => e.kind === "stockout" && e.label.startsWith(name));
+
 function productSales(range: Range, channel: string, type: CustomerType = "all") {
   const chs = channelsFor(channel);
   const storefront = chs.filter((c) => STOREFRONT.includes(c));
@@ -1843,7 +1856,8 @@ function productSales(range: Range, channel: string, type: CustomerType = "all")
     (p) => p.weight * tilt(p.price) * between(`w:${p.sku}:${channel}`, 0.85, 1.15),
   );
   const totalWeight = sum(weights);
-  const units = sum(current(chs, "orders", range, type)) * 1.62;
+  const orderDays = current(chs, "orders", range, type);
+  const units = sum(orderDays) * 1.62;
   const prevUnits = sum(previous(chs, "orders", range, type)) * 1.62;
   const discountRate =
     sum(current(chs, "discounts", range, type)) / sum(current(chs, "gross", range, type));
@@ -1853,9 +1867,21 @@ function productSales(range: Range, channel: string, type: CustomerType = "all")
     ? sum(current(storefront, "orders", range, type)) / sum(current(chs, "orders", range, type))
     : 0;
   const views = storefront.length ? sum(current(storefront, "sessions", range, type)) * 0.565 : 0;
+  // A sold-out product sells nothing on its days out (index d is days − 1 − d ago).
+  const inStock = PRODUCTS.map((p) => {
+    const out = stockoutOf(p.name);
+    return orderDays.map((_, d) => {
+      const ago = orderDays.length - 1 - d;
+      return out && ago <= out.from && ago >= out.to ? 0 : 1;
+    });
+  });
   const raw = PRODUCTS.map((p, i) => {
     const u =
-      (units * weights[i] * between(`s:${p.sku}:${range}:${channel}`, 0.88, 1.18)) / totalWeight;
+      (units *
+        weights[i] *
+        between(`s:${p.sku}:${range}:${channel}`, 0.88, 1.18) *
+        (sum(orderDays.map((o, d) => o * inStock[i][d])) / sum(orderDays))) /
+      totalWeight;
     const pu =
       (prevUnits * weights[i] * between(`p:${p.sku}:${range}:${channel}`, 0.9, 1.1)) / totalWeight;
     return {
@@ -1874,9 +1900,10 @@ function productSales(range: Range, channel: string, type: CustomerType = "all")
     const v = Math.round((views * weights[i] * between(`v:${p.sku}`, 0.85, 1.15)) / totalWeight);
     const addToCartRate = p.cart * between(`c:${p.sku}:${range}`, 0.9, 1.1);
     const purchases = (u * storefrontShare) / 1.15;
-    const unitsDaily = current(chs, "orders", range, type).map(
+    const unitsDaily = orderDays.map(
       (o, d) =>
-        ((o * 1.62 * weights[i] * scale) / totalWeight) * between(`d:${p.sku}:${d}`, 0.75, 1.25),
+        ((o * 1.62 * weights[i] * scale * inStock[i][d]) / totalWeight) *
+        between(`d:${p.sku}:${d}`, 0.75, 1.25),
     );
     return {
       ...p,
@@ -1920,7 +1947,7 @@ function buildInventory() {
     const plan = STOCK_PLAN[p.sku] ?? {};
     // Velocity counts only the days the product was in stock, so a sold-out
     // product isn't mistaken for a slow one.
-    const out = STORE_EVENTS.find((e) => e.kind === "stockout" && e.label.startsWith(p.name));
+    const out = stockoutOf(p.name);
     const daysOut = out ? out.from - out.to + 1 : 0;
     const dailySales = p.units / (30 - daysOut);
     const unitRevenue = p.revenue / Math.max(1, p.units);
@@ -3818,11 +3845,18 @@ export const ecommerceHandlers: Record<string, (args: any) => unknown> = {
     const products = productSales(range, "all").filter(
       (p) => category === "all" || p.category === category,
     );
-    // Category returns are the store's returns shared out by each product's returns.
-    const weight = (list: typeof products) => sum(list.map((p) => p.revenue * p.returnRate));
-    const share = weight(products) / weight(productSales(range, "all"));
-    const t = (field: Field, get = current) => sum(get(all, field, range)) * share;
-    const daily = (field: Field, get = current) => get(all, field, range).map((v) => v * share);
+    // A category's sales are the store's shared out by its products' sales, and
+    // its returns by its products' returns, so return-prone categories show it.
+    const store = productSales(range, "all");
+    const weight = (list: typeof products, returned: boolean) =>
+      sum(list.map((p) => p.revenue * (returned ? p.returnRate : 1)));
+    const shareOf = (field: Field) => {
+      const returned = field !== "gross";
+      return weight(products, returned) / weight(store, returned);
+    };
+    const t = (field: Field, get = current) => sum(get(all, field, range)) * shareOf(field);
+    const daily = (field: Field, get = current) =>
+      get(all, field, range).map((v) => v * shareOf(field));
     const gross = t("gross");
     const refunds = t("returns");
     const exchangeShare = EXCHANGE_SHARE[category];
@@ -4011,10 +4045,12 @@ export const ecommerceHandlers: Record<string, (args: any) => unknown> = {
     let minutesAgo = 0;
     return {
       orders: Array.from({ length: limit }, (_, i) => {
-        minutesAgo += 2 + Math.floor(next() * 14);
+        const gap = 2 + Math.floor(next() * 14);
         const ch = chs[Math.floor(next() * chs.length)];
         const items = 1 + Math.floor(next() * next() * 4);
-        const placed = new Date(Date.UTC(2026, 9, 10, 16, 0) - minutesAgo * 60_000);
+        // Back from AS_OF, the time of the newest order, a few minutes at a time.
+        const placed = new Date(TODAY + (MINUTES_SO_FAR - minutesAgo) * 60_000);
+        minutesAgo += gap;
         const roll = next();
         return {
           id: `#${48210 - i * 3}`,
@@ -4115,12 +4151,15 @@ export const ecommerceHandlers: Record<string, (args: any) => unknown> = {
 
     const goal = ecommerceHandlers.get_sales_goal!({ channel }) as Goal;
     const soFar = goal.cumulative.at(-1) ?? 0;
-    const projected = (soFar / goal.cumulative.length) * goal.labels.length;
+    // The goal card's own plan-shaped forecast and on-pace band (within 2% of
+    // the goal), so the insight never contradicts the card beside it.
+    const projected = goal.projected!;
+    const [low, high] = goal.range!;
     insights.push({
-      tone: projected >= goal.goal ? "positive" : "warning",
+      tone: projected >= goal.goal * 0.98 ? "positive" : "warning",
       kind: "pace_to_goal",
       title: `October on pace for ${formatCurrency(projected)} of the ${formatCurrency(goal.goal)} goal`,
-      detail: `${formatCurrency(soFar)} so far in ${goal.cumulative.length} days; reaching the goal needs ${formatCurrency((goal.goal - soFar) / (goal.labels.length - goal.cumulative.length))} a day from here.`,
+      detail: `${formatCurrency(soFar)} so far in ${goal.cumulative.length} days, with a likely finish of ${formatCurrency(low)}–${formatCurrency(high)}; reaching the goal needs ${formatCurrency((goal.goal - soFar) / (goal.labels.length - goal.cumulative.length))} a day from here.`,
       metric: `${Math.round((projected / goal.goal) * 100)}%`,
     });
 

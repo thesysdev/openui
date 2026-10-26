@@ -232,7 +232,7 @@ export const ecommerceTools = [
   defineTool({
     name: "get_promo_impact",
     description:
-      'Did a promotion pay: daily sales against a baseline from the weeks before, the order lift against what covers the discount, the lift during, the dip after, the net profit effect, and a summary. TrendChart(promo.labels, [{name: "Actual", values: promo.actual, emphasis: "primary"}, {name: "Baseline", values: promo.baseline, emphasis: "muted"}], "currency", "area", promo.events) and KpiStrip(promo.metrics).',
+      'Did a promotion pay: daily sales against a baseline from the weeks before (adjusted for the season), the order lift against what covers the discount, the lift during, the dip after, the net profit effect, and a summary. TrendChart(promo.labels, [{name: "Actual", values: promo.actual, emphasis: "primary"}, {name: "Baseline", values: promo.baseline, emphasis: "muted"}], "currency", "area", promo.events) and KpiStrip(promo.metrics).',
     input: z.object({
       event: z
         .enum(["fall-sale", "fall-sale-2025", "bfcm-2025"])

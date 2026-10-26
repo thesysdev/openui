@@ -48,10 +48,8 @@ export const QuadrantBubbles = memo(function QuadrantBubbles({
       }
       dotRefs.current[i]?.setAttribute("r", String(r));
       hitRefs.current[i]?.setAttribute("r", String(Math.max(MIN_HIT_RADIUS, r! + 4)));
-      if (Number.isFinite(lx)) {
-        labelRefs.current[i]?.setAttribute("x", String(lx));
-        labelRefs.current[i]?.setAttribute("y", String(ly));
-      }
+      labelRefs.current[i]?.setAttribute("x", String(lx));
+      labelRefs.current[i]?.setAttribute("y", String(ly));
     }
   });
   // The first aim and any resize snap; only data changes glide.
@@ -59,7 +57,7 @@ export const QuadrantBubbles = memo(function QuadrantBubbles({
   useIsomorphicLayoutEffect(() => {
     const snap = !isAnimationActive || lastLayout.current !== layoutKey;
     lastLayout.current = layoutKey;
-    aim(flat, snap);
+    aim(flat, snap, isAnimationActive);
   }, [flat, layoutKey, isAnimationActive, aim]);
 
   return (

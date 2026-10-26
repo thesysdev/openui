@@ -15,7 +15,16 @@ export const GoalPace = defineComponent({
   }),
   component: ({ props }) => {
     const goal = props.goal;
-    if (!goal || goal.labels.length === 0 || goal.cumulative.length === 0 || !(goal.goal > 0)) {
+    // A goal whose day labels or running total have not arrived waits, rather
+    // than crashing on a missing array.
+    if (
+      !goal ||
+      !Array.isArray(goal.labels) ||
+      !Array.isArray(goal.cumulative) ||
+      goal.labels.length === 0 ||
+      goal.cumulative.length === 0 ||
+      !(goal.goal > 0)
+    ) {
       return <Pending kind="hero" />;
     }
     return <GoalPaceView goal={goal} />;

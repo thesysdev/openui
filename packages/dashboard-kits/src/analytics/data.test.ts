@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
 import { runTool } from "../core/prompt";
 import type { Kpi } from "../core/schemas";
+import { reviewOkNote } from "./components";
 import { analyticsHandlers, flattening } from "./data";
 import { analyticsKit } from "./kit";
+import { payingWorkspaces } from "./workspaces";
 
 // Relay's numbers have to add up: one population drives every count of users.
 
@@ -235,6 +237,38 @@ describe("lifecycle states and retention modes", () => {
     expect(states.sensitivity[0].value).toBeGreaterThan(0);
   });
 
+  it("draws the power-user curves from the same days active as DAU/WAU and DAU/MAU", () => {
+    for (const [platform, plan] of [
+      ["all", "all"],
+      ["web", "business"],
+      ["android", "free"],
+      ["ios", "team"],
+    ]) {
+      const users = run("get_active_users", { range: "7d", platform, plan });
+      const ratio = (field: "wau" | "mau") => total(users.dau) / total(users[field]);
+      for (const [window, field] of [
+        [7, "wau"],
+        [28, "mau"],
+      ] as const) {
+        const { buckets } = run("get_stickiness", { platform, plan, window });
+        const count = total(buckets.map((b: { users: number }) => b.users));
+        const days = total(buckets.map((b: { users: number; days: number }) => b.users * b.days));
+        const label = `${platform} ${plan} ${window}`;
+        expect(Math.abs(days / count / window - ratio(field)), label).toBeLessThan(0.003);
+      }
+    }
+  });
+
+  it("counts a 2% lift over the last 90 days only, smallest for activation", () => {
+    const { sensitivity } = run("get_lifecycle", { view: "states" });
+    const value = (name: RegExp) =>
+      sensitivity.find((s: { name: string }) => name.test(s.name)).value as number;
+    // Applied over the whole history, these were 928 and 378.
+    expect(value(/^Current/)).toBeLessThan(700);
+    expect(value(/activating/)).toBeLessThan(100);
+    expect(value(/activating/)).toBeGreaterThan(0);
+  });
+
   it("counts unbounded retention at or above exact retention", () => {
     const exact = run("get_retention_cohorts", { weeks: 6 }).cohorts;
     const unbounded = run("get_retention_cohorts", { weeks: 6, mode: "unbounded" }).cohorts;
@@ -295,6 +329,26 @@ describe("revenue retention", () => {
   it("adds the plans up to the whole", () => {
     const end = (plan: string) => run("get_revenue_retention", { plan }).walk.at(-1).value;
     expect(Math.abs(end("team") + end("business") - end("all"))).toBeLessThanOrEqual(1);
+  });
+
+  it("sizes NRR cohorts in line with paying-workspace growth, plan by plan", () => {
+    const sizes = (plan: string) =>
+      run("get_revenue_retention", { plan }).cohorts.map((c: { size: number }) => c.size);
+    for (const plan of ["team", "business", "all"]) {
+      const paying = run("get_account_health", { plan }).metrics.find(
+        (m: Kpi) => m.label === "Paying workspaces",
+      );
+      const [now, before] = [paying.value, paying.previous].map((v: string) =>
+        Number(v.replace(/,/g, "")),
+      );
+      // A month's new workspaces cover at least its net growth, and a year's
+      // fit inside today's paying workspaces.
+      expect(sizes(plan).at(-1), plan).toBeGreaterThanOrEqual(now - before);
+      expect(total(sizes(plan)), plan).toBeLessThan(now);
+    }
+    sizes("all").forEach((v: number, k: number) =>
+      expect(Math.abs(v - sizes("team")[k] - sizes("business")[k])).toBeLessThanOrEqual(1),
+    );
   });
 });
 
@@ -420,10 +474,25 @@ describe("monetisation and usage commits", () => {
     });
   });
 
-  it("starts trials from a third of new paying workspaces, and adds the outcomes up to them", () => {
-    const total = money.trials.reduce((a: number, t: { value: number }) => a + t.value, 0);
-    const paying = money.funnel.find((s: { label: string }) => s.label.startsWith("Paying")).value;
-    expect(Math.abs(total - paying * 0.35)).toBeLessThanOrEqual(3);
+  it("counts trial outcomes by when trials end, so every range has real ones", () => {
+    const running = new Set<number>();
+    for (const range of RANGES) {
+      const out = run("get_monetization", { range });
+      const count = (name: string) =>
+        out.trials.find((t: { name: string }) => t.name === name).value as number;
+      out.trials.forEach((t: { value: number }) =>
+        expect(t.value, range).toBeGreaterThanOrEqual(0),
+      );
+      expect(count("Converted") + count("Expired"), range).toBeGreaterThan(0);
+      running.add(count("Still in trial"));
+      const conversion = out.metrics.find((m: Kpi) => m.label.startsWith("Trial"));
+      for (const v of [conversion.value, conversion.previous])
+        expect(parseFloat(v), range).toBeGreaterThan(8);
+      for (const v of [conversion.value, conversion.previous])
+        expect(parseFloat(v), range).toBeLessThan(25);
+    }
+    // Trials still running are the last 14 days' starts, whatever the range.
+    expect(running.size).toBe(1);
   });
 
   it("gives every monetisation KPI a real weekly series", () => {
@@ -468,6 +537,13 @@ describe("weekly review", () => {
     });
     expect(rows.find((r: { key: string }) => r.key === "signups").cause).toBe("Cause unknown");
     expect(rows.find((r: { key: string }) => r.key === "activation").cause).toMatch(/checklist/);
+  });
+
+  it("never calls a metric with no plan on plan", () => {
+    const sticky = rows.find((r: { key: string }) => r.key === "stickiness");
+    expect(sticky.vsPlan).toBe("No plan");
+    expect(reviewOkNote(sticky)).not.toMatch(/on plan/i);
+    expect(reviewOkNote(rows.find((r: { key: string }) => r.key === "wau"))).toBe("On plan");
   });
 
   it("ends the MRR weeks on the revenue card's MRR", () => {
@@ -621,6 +697,21 @@ describe("filters move every card", () => {
     expect(ios.insights.some((i: { kind?: string }) => i.kind === "data_quality")).toBe(true);
     const program = analyticsKit.gallery.find((d) => d.title === "What changed and why")!;
     expect(program.program).toMatch(/get_product_insights", \{[^}]*excluding: \$why/);
+  });
+
+  it("names an at-risk workspace on the plan filtered to", () => {
+    for (const plan of ["team", "business"]) {
+      const risk = run("get_product_insights", { plan }).insights.find(
+        (i: { kind?: string }) => i.kind === "workspace_risk",
+      );
+      const name = risk.title.split("'s health")[0];
+      expect(
+        payingWorkspaces()
+          .find((w) => w.name === name)
+          ?.plan.toLowerCase(),
+        plan,
+      ).toBe(plan);
+    }
   });
 
   it("titles the feature matrix by its subject", () => {

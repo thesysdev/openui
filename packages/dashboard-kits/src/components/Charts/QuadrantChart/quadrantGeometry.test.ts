@@ -101,7 +101,7 @@ describe("quadrantNameBoxes", () => {
 });
 
 describe("packBubbles", () => {
-  it("lays out each bubble and its label at the stride, NaN where unlabeled", () => {
+  it("lays out each bubble and its label at the stride, the centre where unlabeled", () => {
     const flat = packBubbles(
       [
         { cx: 1, cy: 2, r: 3, label: "a" },
@@ -111,6 +111,7 @@ describe("packBubbles", () => {
     );
     expect(flat.length).toBe(2 * BUBBLE_STRIDE);
     expect([...flat.subarray(0, 5)]).toEqual([1, 2, 3, 7, 8]);
-    expect(Number.isNaN(flat[8]!)).toBe(true);
+    // Finite, so the morph can settle (NaN never reaches its rest threshold).
+    expect([...flat.subarray(5, 10)]).toEqual([4, 5, 6, 4, 5]);
   });
 });

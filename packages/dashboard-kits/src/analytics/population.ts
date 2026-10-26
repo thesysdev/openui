@@ -47,6 +47,11 @@ export interface PopulationInput {
   warmup?: number;
   /** Follow users over this many final days: where each state's users are at the end (see `flow`). */
   flowDays?: number;
+  /**
+   * The first day the curves' `bands` apply (a what-if starting then); before
+   * it, and through the warm-up, return chances are the plain ones. Default 0.
+   */
+  bandsFrom?: number;
 }
 
 /** States for a flow, by days since a user was last active: within 7, 8–28, 29–90, or longer. */
@@ -164,26 +169,29 @@ export function simulate(input: PopulationInput): Population {
   const weekEnds = (t: number) => (days - 1 - t) % 7 === 0;
   // Warm up at the first day's signups, on a plain week, so day one starts
   // from a settled population rather than an empty one.
+  const bandsFrom = input.bandsFrom ?? 0;
+  const plain = groups.map((g) => (bandsFrom > 0 ? { ...g.curve, bands: undefined } : g.curve));
   for (let w = 0; w < warmup; w++) {
     const factor = input.dayFactor[w % 7]!;
-    for (const g of groups) advance(g.v, g.curve, input.signups[0]! * g.share(0), factor);
+    groups.forEach((g, k) => advance(g.v, plain[k]!, input.signups[0]! * g.share(0), factor));
   }
   for (let t = 0; t < days; t++) {
     const factor = input.dayFactor[t]!;
     for (const [k, g] of groups.entries()) {
+      const curve = t >= bandsFrom ? g.curve : plain[k]!;
       // Last week's actives back for the first time this week leave the tag.
-      const firstBack = advance(g.tag, g.curve, 0, factor);
+      const firstBack = advance(g.tag, curve, 0, factor);
       out.returning[t] += firstBack.active;
       g.tag[1] = 0;
       const arrivals = input.signups[t]! * g.share(t);
       if (t > flowStart && flowStart >= 0) {
         flows[k]!.forEach((f, s) =>
-          advance(f, g.curve, s === FLOW_STATES.length ? arrivals : 0, factor),
+          advance(f, curve, s === FLOW_STATES.length ? arrivals : 0, factor),
         );
       }
       // Classify before ageing: who is away how long, and who comes back.
       const before = Float64Array.from(g.v);
-      const { back, active } = advance(g.v, g.curve, arrivals, factor);
+      const { back, active } = advance(g.v, curve, arrivals, factor);
       out.newUsers[t] += arrivals;
       for (let gap = 1; gap <= LONGEST; gap++) {
         const came = back[gap]!;

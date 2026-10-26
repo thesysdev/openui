@@ -319,7 +319,7 @@ export const analyticsTools = [
   defineTool({
     name: "get_lifecycle",
     description:
-      'Lifecycle. view "weekly": growth accounting with the quick ratio, for LifecycleChart. view "states": the daily states for 28 days (stack them in a ColumnChart; at risk is negative), each state\'s return rate, and the sensitivity: extra daily actives if that rate rose 2%.',
+      'Lifecycle. view "weekly": growth accounting with the quick ratio, for LifecycleChart. view "states": the daily states for 28 days (stack them in a ColumnChart; at risk is negative), each state\'s return rate, and the sensitivity: extra daily actives today if that rate had risen 2% for the last 90 days.',
     input: z.object({
       platform,
       plan,
@@ -352,7 +352,7 @@ export const analyticsTools = [
       sensitivity: z
         .array(itemSchema)
         .optional()
-        .describe("Extra daily actives if that rate rose 2%"),
+        .describe("Extra daily actives today if that rate had risen 2% for the last 90 days"),
       flow: z
         .array(
           z

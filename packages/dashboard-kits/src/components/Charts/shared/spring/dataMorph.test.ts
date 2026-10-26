@@ -48,6 +48,31 @@ describe("advanceVector / vectorAtRest", () => {
   });
 });
 
+describe("non-finite scalars (a gap, an unplaced mark)", () => {
+  // NaN never satisfies a distance threshold, so a morph carrying one used to
+  // keep the shared rAF loop running forever.
+  it.each([
+    ["NaN on NaN", [Number.NaN, 0], [Number.NaN, 100]],
+    ["a gap opening (finite → NaN)", [40, 0], [Number.NaN, 100]],
+    ["a gap closing (NaN → finite)", [Number.NaN, 0], [40, 100]],
+  ] as const)("%s settles in bounded steps", (_, values, targets) => {
+    const state = mkState([...values], [...targets]);
+    let steps = 0;
+    for (; steps < 2000 && !vectorAtRest(state, cfg); steps++) {
+      advanceVector(state, DT, cfg);
+    }
+    expect(steps).toBeLessThan(2000);
+    expect(Object.is(state.values[0], targets[0])).toBe(true);
+    expect(state.values[1]).toBeCloseTo(100, 0);
+    expect(state.velocities[0]).toBe(0);
+  });
+
+  it("is not at rest while a scalar still has to snap onto a NaN target", () => {
+    expect(vectorAtRest(mkState([40], [Number.NaN]), cfg)).toBe(false);
+    expect(vectorAtRest(mkState([Number.NaN], [Number.NaN]), cfg)).toBe(true);
+  });
+});
+
 describe("retargetVector", () => {
   it("same length: keeps live values + velocities, only targets move", () => {
     const state = mkState([10, 20], [50, 60]);

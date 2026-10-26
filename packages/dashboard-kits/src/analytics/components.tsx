@@ -1102,6 +1102,10 @@ export const CommitPacing = defineComponent({
   },
 });
 
+/** A row that is not an exception: on plan, or, for a metric with no plan, inside its usual range. */
+export const reviewOkNote = (m: Pick<ReviewMetric, "vsPlan">) =>
+  m.vsPlan === "No plan" ? "Within its usual range" : "On plan";
+
 export const WeeklyReview = defineComponent({
   name: "WeeklyReview",
   description:
@@ -1150,7 +1154,9 @@ export const WeeklyReview = defineComponent({
                   <span className="kit-small kit-muted">Owner: {m.owner}</span>
                 </>
               ) : (
-                <span className="kit-small kit-muted">On plan · {m.owner}</span>
+                <span className="kit-small kit-muted">
+                  {reviewOkNote(m)} · {m.owner}
+                </span>
               )}
             </div>
           </section>

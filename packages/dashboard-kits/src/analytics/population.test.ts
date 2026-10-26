@@ -20,6 +20,23 @@ const input = (days: number, activation = 0.3): PopulationInput => ({
 describe("simulate", () => {
   const p = simulate(input(60));
 
+  it("applies a what-if's bands only from bandsFrom", () => {
+    const bands: [number, number, number] = [1.2, 1.2, 1.2];
+    const boosted = (bandsFrom?: number) =>
+      simulate({
+        ...input(60),
+        activated: { ...input(60).activated, bands },
+        notActivated: { ...input(60).notActivated, bands },
+        bandsFrom,
+      });
+    const late = boosted(40);
+    for (let t = 0; t < 40; t++) expect(late.dau[t]).toBeCloseTo(p.dau[t]!, 9);
+    expect(late.dau[45]).toBeGreaterThan(p.dau[45]!);
+    // Boosted throughout, the population is bigger from the first day.
+    expect(boosted().dau[0]).toBeGreaterThan(p.dau[0]!);
+    expect(boosted().dau[59]).toBeGreaterThan(late.dau[59]!);
+  });
+
   it("keeps the lifecycle identities every day", () => {
     for (let t = 0; t < p.days; t++) {
       expect(p.dau[t]).toBeCloseTo(

@@ -129,7 +129,7 @@ export function PaceChart({
   useIsomorphicLayoutEffect(() => {
     const snap = !isAnimationActive || lastWidth.current !== width;
     lastWidth.current = width;
-    aim(flat, snap);
+    aim(flat, snap, isAnimationActive);
   }, [flat, width, isAnimationActive, aim]);
 
   const findIndex = useCallback((px: number) => findNearestDataIndex(x, px), [x]);

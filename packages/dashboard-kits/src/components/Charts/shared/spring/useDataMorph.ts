@@ -5,19 +5,26 @@
 // morph lives in a ref, retargeting never re-renders React, and the shared
 // ticker drops it on unmount.
 //
-// The morph is created LAZILY on the first ANIMATED aim. While every aim
-// snaps (`isAnimationActive={false}` — the default, and what every c1 surface
+// The morph is created LAZILY, on the first aim of an ANIMATED chart. While
+// animation is off (`isAnimationActive={false}`, what every c1 surface
 // passes), no morph exists at all: React's own `d`/`cx`/`cy` attribute commit
 // IS the snapped geometry, so the streaming hot path costs nothing beyond the
-// render it already paid for. Only if a morph was created (animate was on at
-// some point) does a snap aim need to run through it — the DOM may hold
-// mid-glide geometry that React's props no longer describe.
+// render it already paid for. An animated chart's first aim snaps (mount), and
+// still creates the morph so it holds that geometry: the first data change
+// then glides from it, where a morph born on that change would have no state
+// to glide from and snap again. Once a morph exists every snap runs through it
+// — the DOM may hold mid-glide geometry that React's props no longer describe.
 
 import { useEffect, useRef } from "react";
 import { createDataMorph, type DataMorph } from "./dataMorph";
 import type { SpringConfig } from "./spring";
 
-export type DataMorphAim = (targets: ArrayLike<number>, snap: boolean) => void;
+/**
+ * Aim the morph at `targets`. `snap` jumps there (mount, resize, animation
+ * off); `animated` is whether the chart animates at all (default true) — while
+ * it is false and nothing has glided, no morph is created.
+ */
+export type DataMorphAim = (targets: ArrayLike<number>, snap: boolean, animated?: boolean) => void;
 
 export function useDataMorph(
   config: SpringConfig,
@@ -47,11 +54,11 @@ export function useDataMorph(
   // without churn.
   const aimRef = useRef<DataMorphAim | null>(null);
   if (aimRef.current === null) {
-    aimRef.current = (targets, snap) => {
+    aimRef.current = (targets, snap, animated = true) => {
       if (morphRef.current === null) {
-        // No morph yet + snapping: React committed these targets as
-        // attributes this very render — nothing to do.
-        if (snap || typeof window === "undefined") return;
+        // No morph yet + snapping with animation off: React committed these
+        // targets as attributes this very render — nothing to do.
+        if ((snap && !animated) || typeof window === "undefined") return;
         morphRef.current = createDataMorph(configRef.current, (values) =>
           onUpdateRef.current(values),
         );

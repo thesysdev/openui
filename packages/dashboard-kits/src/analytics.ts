@@ -1,3 +1,5 @@
+"use client";
+
 // The product analytics kit, client side: its library factory and its components.
 
 export {
