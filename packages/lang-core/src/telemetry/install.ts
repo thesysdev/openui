@@ -135,7 +135,7 @@ export async function runInstallTelemetry(
   try {
     const io = createInstallTelemetryIO(options.io);
     const stateFile = getTelemetryStateFile(env, io);
-    const state = loadOrCreateState(stateFile, io);
+    let { state, changed } = loadOrCreateState(stateFile, io);
     const projectRoot = path.resolve(env["INIT_CWD"] || io.cwd());
     const projectIdentity = resolveProjectIdentity(projectRoot, env, io);
     const packageManager = detectPackageManager(env);
@@ -164,8 +164,9 @@ export async function runInstallTelemetry(
     if (!state.langCorePostinstallNoticeShown) {
       io.stderr(INSTALL_NOTICE);
       state.langCorePostinstallNoticeShown = true;
+      changed = true;
     }
-    persistState(stateFile, state, io);
+    if (changed) persistState(stateFile, state, io);
 
     if (isTruthyEnv(env["OPENUI_TELEMETRY_DEBUG"])) {
       io.stdout(`[OpenUI telemetry debug]\n${JSON.stringify(payload, null, 2)}\n`);
@@ -203,7 +204,10 @@ function getTelemetryStateFile(env: NodeJS.ProcessEnv, io: InstallTelemetryIO): 
   return path.join(configRoot, "openui", "telemetry.json");
 }
 
-function loadOrCreateState(stateFile: string, io: InstallTelemetryIO): StoredTelemetryState {
+function loadOrCreateState(
+  stateFile: string,
+  io: InstallTelemetryIO,
+): { state: StoredTelemetryState; changed: boolean } {
   let stored: Record<string, unknown> = {};
   try {
     const parsed = JSON.parse(io.readFile(stateFile)) as unknown;
@@ -212,13 +216,15 @@ function loadOrCreateState(stateFile: string, io: InstallTelemetryIO): StoredTel
     // Missing or corrupt state is replaced with a new best-effort state.
   }
 
+  const hasDistinctId = typeof stored["distinctId"] === "string" && Boolean(stored["distinctId"]);
   return {
-    ...stored,
-    distinctId:
-      typeof stored["distinctId"] === "string" && stored["distinctId"]
-        ? stored["distinctId"]
-        : io.randomUUID(),
-    langCorePostinstallNoticeShown: stored["langCorePostinstallNoticeShown"] === true,
+    state: {
+      ...stored,
+      distinctId: hasDistinctId ? (stored["distinctId"] as string) : io.randomUUID(),
+      langCorePostinstallNoticeShown: stored["langCorePostinstallNoticeShown"] === true,
+    },
+    // Only a newly created identity needs to be written back.
+    changed: !hasDistinctId,
   };
 }
 
