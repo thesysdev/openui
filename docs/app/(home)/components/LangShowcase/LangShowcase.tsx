@@ -58,7 +58,7 @@ const AGENTS: Agent[] = [
   },
   {
     id: "intelligent-ui",
-    label: "Open Intelligent UI",
+    label: "Intelligent UI",
     mascot: "/homepage/shiro/shiro-woodworker.svg",
     mascotAlt: "Shiro the woodworker",
     demo: SITE_NAV_LINKS.openIntelligentUiDemo.href,
