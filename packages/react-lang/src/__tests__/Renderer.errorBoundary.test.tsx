@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, createElement, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4";
 import { createLibrary, defineComponent } from "../library";
 import { Renderer } from "../Renderer";
@@ -36,6 +36,10 @@ const response = 'root = Card([child])\nchild = Child("hello")';
 beforeEach(() => {
   failing = false;
   renders = 0;
+  vi.useFakeTimers();
+});
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("ElementErrorBoundary", () => {
@@ -77,24 +81,30 @@ describe("ElementErrorBoundary", () => {
     }
     const el = document.createElement("div");
     act(() => createRoot(el).render(createElement(Host)));
-    expect(renders).toBeLessThan(10);
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(renders).toBeLessThan(20);
     expect(reports).toBeLessThan(5);
   });
 
   it("retries a failed component when an ancestor keeps re-rendering, but boundedly", () => {
     failing = true;
     function Ticker() {
-      const [tick, setTick] = useState(0);
+      const [, setTick] = useState(0);
       useEffect(() => {
-        if (tick < 50) setTick(tick + 1);
-      }, [tick]);
+        const id = setInterval(() => setTick((t) => t + 1), 16);
+        return () => clearInterval(id);
+      }, []);
       return createElement(Renderer, { response, library });
     }
     const el = document.createElement("div");
     act(() => createRoot(el).render(createElement(Ticker)));
-    // One retry per ancestor render would be 50+; a failed component should not
-    // be retried until something that could change its outcome changes.
-    expect(renders).toBeLessThan(10);
+    // 10s at 60fps is 625 ancestor renders. Retrying on each was 1254 renders
+    // of the child; the retries back off (50ms, doubling, up to 5s), so it is
+    // about ten retries, each rendering the child about twice.
+    // One act per frame, so each tick is its own render rather than one batch.
+    for (let frame = 0; frame < 625; frame++) act(() => vi.advanceTimersByTime(16));
+    expect(renders).toBeGreaterThan(1);
+    expect(renders).toBeLessThan(40);
   });
 
   it("recovers when a later streamed chunk fixes the props", () => {
