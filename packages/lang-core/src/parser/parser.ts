@@ -1,3 +1,4 @@
+import { evaluate } from "../runtime/evaluator";
 import {
   captureParserParseException,
   captureParserParseResult,
@@ -60,6 +61,20 @@ export function collectQueryDeps(node: unknown): string[] {
 }
 
 /**
+ * An expression default (`$total = 1 + 2`, `$tax = $price * 0.18`) is evaluated once, here, so the
+ * store starts with a value rather than the expression's syntax. It reads the defaults of states
+ * declared before it; query results and references read as null.
+ */
+function stateDefault(value: unknown, declared: Record<string, unknown>): unknown {
+  if (!isASTNode(value)) return value;
+  try {
+    return evaluate(value, { getState: (name) => declared[name] ?? null, resolveRef: () => null });
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Classify a raw statement + parsed expression into a typed Statement.
  * Determined at parse time from token type + expression shape.
  */
@@ -118,7 +133,10 @@ function extractStatements(
   for (const stmt of stmts) {
     switch (stmt.kind) {
       case "state":
-        stateDeclarations[stmt.id] = materializeValue(stmt.init, ctx);
+        stateDeclarations[stmt.id] = stateDefault(
+          materializeValue(stmt.init, ctx),
+          stateDeclarations,
+        );
         break;
       case "query":
         nameRawCallArgs(stmt.call.args, ctx, stmt.id);

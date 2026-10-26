@@ -1,0 +1,6 @@
+root = Stack([Metric("Total", $total), Metric("Double", $double), Metric("Later", $later)])
+$price = 100
+$total = 1 + 2
+$double = $price * 2
+$later = $after + 1
+$after = 5
