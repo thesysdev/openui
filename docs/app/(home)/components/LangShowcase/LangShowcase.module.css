@@ -180,8 +180,8 @@
 }
 
 .label {
-  /* Softened so the name sits into the panel rather than on it. */
-  opacity: 0.65;
+  /* Tinted with the panel's accent so the name reads as part of it. */
+  color: color-mix(in srgb, var(--accent) 55%, var(--ls-text));
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.14em;
