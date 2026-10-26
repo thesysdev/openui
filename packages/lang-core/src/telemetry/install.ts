@@ -16,7 +16,7 @@
  */
 import { id as ciInfoId, isCI as ciInfoIsCI } from "ci-info";
 import { execFileSync } from "node:child_process";
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, type WriteFileOptions } from "node:fs";
 import { homedir, release } from "node:os";
 import path from "node:path";
@@ -25,6 +25,7 @@ import {
   isTelemetryDisabled,
   isTruthyEnv,
   normalizeProjectIdentity,
+  PROJECT_ID_SALT,
   TELEMETRY_REQUEST_TIMEOUT_MS,
   TELEMETRY_SCHEMA_VERSION,
 } from "./shared";
@@ -69,7 +70,6 @@ export interface InstallTelemetryIO {
   architecture: string;
   release(): string;
   randomUUID(): string;
-  randomHex(bytes: number): string;
   isDocker(): boolean;
   stdout(message: string): void;
   stderr(message: string): void;
@@ -94,7 +94,6 @@ export type RunInstallTelemetryResult =
 
 interface StoredTelemetryState extends Record<string, unknown> {
   distinctId: string;
-  projectSalt: string;
   langCorePostinstallNoticeShown?: boolean;
 }
 
@@ -146,7 +145,7 @@ export async function runInstallTelemetry(
       event: INSTALL_EVENT,
       properties: {
         telemetry_schema_version: TELEMETRY_SCHEMA_VERSION,
-        project_id: hashProjectIdentity(state.projectSalt, projectIdentity.value),
+        project_id: hashProjectIdentity(PROJECT_ID_SALT, projectIdentity.value),
         project_id_source: projectIdentity.source,
         lang_core_version:
           env["OPENUI_LANG_CORE_PACKAGE_VERSION"] || env["npm_package_version"] || "unknown",
@@ -192,7 +191,6 @@ function createInstallTelemetryIO(overrides: Partial<InstallTelemetryIO> = {}): 
     architecture: process.arch,
     release,
     randomUUID,
-    randomHex: (bytes) => randomBytes(bytes).toString("hex"),
     isDocker: defaultIsDocker,
     stdout: (message) => process.stdout.write(message),
     stderr: (message) => process.stderr.write(message),
@@ -220,10 +218,6 @@ function loadOrCreateState(stateFile: string, io: InstallTelemetryIO): StoredTel
       typeof stored["distinctId"] === "string" && stored["distinctId"]
         ? stored["distinctId"]
         : io.randomUUID(),
-    projectSalt:
-      typeof stored["projectSalt"] === "string" && stored["projectSalt"]
-        ? stored["projectSalt"]
-        : io.randomHex(16),
     langCorePostinstallNoticeShown: stored["langCorePostinstallNoticeShown"] === true,
   };
 }

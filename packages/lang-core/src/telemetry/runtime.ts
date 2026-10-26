@@ -4,6 +4,7 @@ import {
   getPostHogConfig,
   isRuntimeTelemetryEnabled,
   normalizeProjectIdentity,
+  PROJECT_ID_SALT,
   TELEMETRY_REQUEST_TIMEOUT_MS,
   TELEMETRY_SCHEMA_VERSION,
 } from "./shared";
@@ -80,7 +81,7 @@ interface SystemPromptCaptureProperties {
   telemetry_schema_version: typeof TELEMETRY_SCHEMA_VERSION;
   system_prompt_config_hash_version: 1;
   system_prompt_config_hash: string;
-  project_hash_version?: 1;
+  project_hash_version?: 2;
   project_hash?: string;
   component_count: number;
   tool_count: number;
@@ -124,7 +125,7 @@ interface ParserParseCaptureProperties {
   $process_person_profile: false;
   event_id: string;
   telemetry_schema_version: typeof TELEMETRY_SCHEMA_VERSION;
-  project_hash_version?: 1;
+  project_hash_version?: 2;
   project_hash?: string;
   sdk_name: "@openuidev/lang-core";
   sdk_version: string;
@@ -336,7 +337,7 @@ async function getRepositoryIdentifier(
 export function calculateProjectHash(repositoryIdentifier: string): Promise<string> {
   const normalized = normalizeProjectIdentity(repositoryIdentifier);
   if (!normalized) return Promise.reject(new TypeError("Repository identifier is empty"));
-  return sha256(normalized);
+  return sha256(`${PROJECT_ID_SALT}\0${normalized}`);
 }
 
 function getProjectHash(state: TelemetryState, runtime: RuntimeInfo): Promise<string | undefined> {
@@ -416,7 +417,7 @@ async function sendSystemPromptCapture(
     sample_rate: SYSTEM_PROMPT_SAMPLE_RATE,
     ...(projectHash
       ? {
-          project_hash_version: 1 as const,
+          project_hash_version: 2 as const,
           project_hash: projectHash,
         }
       : {}),
@@ -533,7 +534,7 @@ async function sendParserParseCapture(
     ...outcome,
     ...(projectHash
       ? {
-          project_hash_version: 1 as const,
+          project_hash_version: 2 as const,
           project_hash: projectHash,
         }
       : {}),
