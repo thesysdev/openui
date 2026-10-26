@@ -9,8 +9,14 @@ import {
   TabsTrigger,
 } from "@/components/overview-components";
 import { genuiOutput } from "@/components/overview-components/genui";
-import { Renderer } from "@openuidev/react-lang";
-import { openuiLibrary } from "@openuidev/react-ui";
+import dynamic from "next/dynamic";
+
+// The docs route bundles the client components of every MDX page, so a static
+// import would put @openuidev/react-ui (~2 MB) on every docs page. Loaded on
+// demand, it only ships with the page that renders this example.
+const LangExamplePreview = dynamic(() =>
+  import("./lang-example-preview").then((m) => m.LangExamplePreview),
+);
 
 export const LangExample = () => {
   return (
@@ -103,7 +109,7 @@ const completion = await client.chat.completions.create({
           <span className="text-sm font-medium">Output Preview</span>
         </div>
         <div className="p-6">
-          <Renderer library={openuiLibrary} response={genuiOutput} isStreaming={false} />
+          <LangExamplePreview />
         </div>
       </SimpleCard>
     </div>

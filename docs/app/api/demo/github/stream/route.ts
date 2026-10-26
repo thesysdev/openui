@@ -2,7 +2,7 @@ import {
   createDemoCreditsExhaustedResponse,
   isDemoCreditsExhaustedError,
 } from "@/lib/demo-credits";
-import { BASE_URL } from "@/lib/source";
+import { BASE_URL } from "@/lib/site-url";
 import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
 import { readFileSync } from "fs";
 import { type NextRequest } from "next/server";
