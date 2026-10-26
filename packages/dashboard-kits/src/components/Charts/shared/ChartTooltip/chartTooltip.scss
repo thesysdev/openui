@@ -13,7 +13,10 @@
   min-width: 168px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: var(--kit-raised);
+  // OpenUI's elevated surface is a translucent tint in dark mode (8% white),
+  // so lay it over the solid card colour: alone, marks and labels under the
+  // readout showed through it.
+  background: linear-gradient(var(--kit-raised), var(--kit-raised)), var(--kit-card);
   box-shadow: var(--kit-shadow-pop);
   border: 1px solid var(--kit-border);
   pointer-events: none;
