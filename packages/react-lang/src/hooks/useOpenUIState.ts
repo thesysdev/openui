@@ -205,6 +205,21 @@ export function useOpenUIState(
     [store, queryManager, functions, schema.actions],
   );
 
+  // Results of the queries other queries read: their args are re-evaluated when one arrives.
+  // Compared by identity, so an unrelated snapshot change does not re-evaluate every query.
+  const waitedOn = useMemo(
+    () => [...new Set((result?.queryStatements ?? []).flatMap((qn) => qn.waitFor ?? []))],
+    [result?.queryStatements],
+  );
+  const waitedDataRef = useRef<unknown[]>([]);
+  const waitedData = useMemo(() => {
+    const next = waitedOn.map((id) => queryManager.getData(id));
+    const prev = waitedDataRef.current;
+    if (next.length === prev.length && next.every((value, i) => value === prev[i])) return prev;
+    return (waitedDataRef.current = next);
+    // querySnapshot: recompute when a result arrives.
+  }, [waitedOn, queryManager, querySnapshot]);
+
   // ─── Evaluate and submit queries ───
   useEffect(() => {
     // Keep the existing query lifecycle until streaming finishes and the bundle is ready.
@@ -236,14 +251,14 @@ export function useOpenUIState(
 
     // Always call — empty array clears removed queries and their errors
     queryManager.evaluateQueries(evaluatedNodes);
-    // querySnapshot: args that read another query's result are re-evaluated when it arrives.
+    // waitedData: args that read another query's result are re-evaluated when it arrives.
   }, [
     blocked,
     result?.queryStatements,
     evaluationContext,
     queryManager,
     storeSnapshot,
-    querySnapshot,
+    waitedData,
     scriptRevision,
     scriptNames,
   ]);

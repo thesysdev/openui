@@ -61,6 +61,8 @@ export interface QuerySnapshot extends Record<string, unknown> {
 export interface QueryManager {
   evaluateQueries(queryNodes: QueryNode[]): void;
   getResult(statementId: string): unknown;
+  /** The fetched result, or undefined before the first one (unlike getResult, never the defaults). */
+  getData(statementId: string): unknown;
   isLoading(statementId: string): boolean;
   isAnyLoading(): boolean;
   invalidate(statementIds?: string[]): void;
@@ -92,6 +94,7 @@ interface QueryEntry {
   needsRefetch: boolean;
   /** Registered but not fetched: a query in its waitFor has no result yet. */
   waiting?: boolean;
+  waitFor?: string[];
   error?: OpenUIError;
 }
 
@@ -104,8 +107,6 @@ interface MutationEntry {
 interface CacheEntry {
   data: unknown;
   inFlight: boolean;
-  /** The last fetch for this key failed: re-evaluating the same args does not retry it. */
-  failed?: boolean;
 }
 
 // ── Utilities ────────────────────────────────────────────────────────────────
@@ -179,7 +180,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       } else {
         out[sid] = q.defaults;
       }
-      if (q.loading || q.waiting) {
+      if (isPending(sid)) {
         out.__openui_loading.push(sid);
         if (q.everFetched) out.__openui_refetching.push(sid);
       }
@@ -231,7 +232,6 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
     } else {
       entry.inFlight = true;
     }
-    entry.failed = false;
     q.loading = true;
     rebuildSnapshot();
     notify();
@@ -258,7 +258,6 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
         cleanupCacheEntry(prevKey);
       }
     } catch (err) {
-      entry.failed = true;
       // Only update error state if this fetch is still current
       const current = queries.get(statementId);
       if (current && current.cacheKey === fetchKey) {
@@ -372,13 +371,14 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       const q = queries.get(node.statementId)!;
 
       // A query that reads another query's result waits until that result exists.
-      q.waiting = node.waitFor?.some((dep) => !hasData(dep)) ?? false;
+      q.waitFor = node.waitFor;
+      q.waiting = node.waitFor?.some((dep) => getData(dep) === undefined) ?? false;
       if (q.waiting) continue;
 
       // Fire fetch if no settled data and not already in-flight
       const entry = cache.get(cacheKey);
       const hasSettledData = entry && entry.data !== undefined && !entry.inFlight;
-      if (toolProvider && !hasSettledData && !entry?.inFlight && !entry?.failed) {
+      if (toolProvider && !hasSettledData && !entry?.inFlight) {
         executeFetch(cacheKey, node.statementId);
       }
 
@@ -391,7 +391,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
         }
         if (newInterval > 0) {
           q.timer = setInterval(() => {
-            if (disposed || !toolProvider) return;
+            if (disposed || !toolProvider || q.waiting) return;
             const entry = cache.get(q.cacheKey);
             if (!entry?.inFlight) {
               executeFetch(q.cacheKey, node.statementId);
@@ -407,12 +407,20 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
 
   // ── Query accessors ──────────────────────────────────────────────────────
 
-  /** True once the query has a fetched result (the current one, or the previous while refetching). */
-  function hasData(statementId: string): boolean {
+  /** The query's fetched result (the current one, or the previous while refetching); undefined before any. */
+  function getData(statementId: string): unknown {
     const q = queries.get(statementId);
-    if (!q) return false;
-    if (cache.get(q.cacheKey)?.data !== undefined) return true;
-    return q.prevCacheKey ? cache.get(q.prevCacheKey)?.data !== undefined : false;
+    if (!q) return undefined;
+    const data = cache.get(q.cacheKey)?.data;
+    return data !== undefined || !q.prevCacheKey ? data : cache.get(q.prevCacheKey)?.data;
+  }
+
+  /** Loading, or waiting for a query that is itself pending (not for one that failed or reads it back). */
+  function isPending(statementId: string, seen = new Set<string>()): boolean {
+    const q = queries.get(statementId);
+    if (!q || seen.has(statementId)) return false;
+    seen.add(statementId);
+    return q.loading || (!!q.waiting && (q.waitFor ?? []).some((dep) => isPending(dep, seen)));
   }
 
   function getResult(statementId: string): unknown {
@@ -448,7 +456,8 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
 
     for (const sid of targets) {
       const q = queries.get(sid);
-      if (!q) continue;
+      // A waiting query runs once the queries it reads have results, not on its placeholder args.
+      if (!q || q.waiting) continue;
       const entry = cache.get(q.cacheKey);
       if (entry?.inFlight) {
         q.needsRefetch = true;
@@ -601,6 +610,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
   return {
     evaluateQueries,
     getResult,
+    getData,
     isLoading,
     isAnyLoading,
     invalidate,

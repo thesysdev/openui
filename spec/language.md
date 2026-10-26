@@ -396,7 +396,6 @@ Fixtures: `state/*-validation-*`
 - A query runs when streaming ends, and again when a `$variable` its `args` read changes, whether written literally or reached through a referenced statement.
 - A query whose tool name or `args` read another query's result, directly or through a referenced statement, waits until that query has a result, then runs. It runs again whenever that result changes. Queries that read no other query run without waiting for each other. A query that never gets a result (its fetch failed) keeps the queries that read it waiting.
 - Queries that read each other's results, including a query that reads its own, can never run first. The client reports `query-cycle` and does not run them.
-- A failed fetch is not retried for the same arguments. It runs again when its arguments change, on its refresh interval, or when the host invalidates it.
 - While a fetch for changed arguments is in flight, the previous result stays visible. A result for stale arguments is discarded.
 - References resolve to the latest result, or to the defaults before the first one. The reserved keys `__openui_loading`, `__openui_refetching`, and `__openui_errors` expose fetch state to the host. Expressions cannot read them.
 - A refresh interval runs the query again on a timer.

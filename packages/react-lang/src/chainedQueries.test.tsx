@@ -3,7 +3,7 @@ import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
-import { createLibrary, defineComponent, type OpenUIError } from "./index";
+import { createLibrary, defineComponent, defineFunction, type OpenUIError } from "./index";
 import { Renderer } from "./Renderer";
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
@@ -20,7 +20,15 @@ const Stack = defineComponent({
   props: z.object({ children: z.array(z.any()) }),
   component: ({ props, renderNode }) => createElement("div", null, renderNode(props.children)),
 });
-const library = createLibrary({ root: "Stack", components: [Stack, Show] });
+let ticks = 0;
+const Tick = defineFunction({
+  name: "Tick",
+  description: "A new number on every call",
+  params: z.object({}),
+  returns: z.number(),
+  fn: () => ++ticks,
+});
+const library = createLibrary({ root: "Stack", components: [Stack, Show], functions: [Tick] });
 
 type Call = { tool: string; args: unknown };
 function deferred<T>() {
@@ -170,6 +178,22 @@ describe("chained queries", () => {
       );
       expect(t.calls.map((c) => c.tool)).toEqual(["customers"]);
       expect(t.errors().length).toBeGreaterThan(0);
+    } finally {
+      await t.close();
+    }
+  });
+
+  it("does not refetch when a result arrives and nothing waits for it", async () => {
+    const circular: Record<string, unknown> = { n: 1 };
+    circular.self = circular;
+    const t = await harness((tool) => (tool === "a" ? { ok: true } : circular));
+    try {
+      await t.render(
+        `root = Stack([Show(qa.ok), Show(qb.n)])\nqa = Query("a", {t: @Tick()}, {ok: false})\nqb = Query("b", {}, {n: 0})`,
+      );
+      for (let i = 0; i < 5; i++) await t.flush();
+      expect(t.calls.map((c) => c.tool).sort()).toEqual(["a", "b"]);
+      expect(t.shown()).toEqual(["true", "1"]);
     } finally {
       await t.close();
     }

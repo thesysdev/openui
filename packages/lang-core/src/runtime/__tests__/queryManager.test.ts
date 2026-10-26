@@ -124,18 +124,24 @@ describe("QueryManager waitFor", () => {
     ]);
   });
 
-  it("does not retry a failed fetch for the same args, but does when the args change", async () => {
+  it("does not report a query as loading when what it waits for failed or reads it back, nor refetch it", async () => {
     const callTool = vi.fn().mockRejectedValue(new Error("down"));
     const qm = createQueryManager({ callTool } as ToolProvider);
     const quiet = vi.spyOn(console, "error").mockImplementation(() => {});
-    qm.evaluateQueries([q("qa", "a", { n: 1 })]);
+    const nodes = [
+      q("qa", "a", {}),
+      q("qb", "b", { x: null }, ["qa"]),
+      q("c1", "c", { x: null }, ["c2"]),
+      q("c2", "c", { x: null }, ["c1"]),
+    ];
+    qm.evaluateQueries(nodes);
+    expect(qm.getSnapshot().__openui_loading).toEqual(["qa", "qb"]);
     await flushMicrotasks();
-    qm.evaluateQueries([q("qa", "a", { n: 1 })]);
+    qm.evaluateQueries(nodes);
     await flushMicrotasks();
-    expect(callTool).toHaveBeenCalledTimes(1);
-    qm.evaluateQueries([q("qa", "a", { n: 2 })]);
-    await flushMicrotasks();
-    expect(callTool).toHaveBeenCalledTimes(2);
+    expect(qm.getSnapshot().__openui_loading).toEqual([]);
+    qm.invalidate(["qb", "c1"]);
+    expect(callTool.mock.calls.map((c) => c[0])).toEqual(["a", "a"]);
     quiet.mockRestore();
   });
 });
