@@ -1,3 +1,4 @@
+import { prefetchFor } from "@/lib/prefetch";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import styles from "./showcase.module.css";
@@ -48,7 +49,7 @@ export function CardLink({
   }
 
   return (
-    <Link className={className} href={href}>
+    <Link className={className} href={href} prefetch={prefetchFor(href)}>
       {label}
     </Link>
   );
