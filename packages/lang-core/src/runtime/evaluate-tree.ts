@@ -94,22 +94,6 @@ export function evaluateRoot(
 }
 
 /**
- * Evaluate the root of a parse result: the root ElementNode, or, when the
- * entry picks a component at runtime (`root = $tab ? A : B`), the component
- * its `rootExpression` gives. Returns null when there is nothing to render.
- */
-export function evaluateRoot(
-  result: Pick<ParseResult, "root" | "rootExpression">,
-  evalCtx: EvalContext,
-): ElementNode | null {
-  if (result.root) return evaluateElementProps(result.root, evalCtx);
-  if (!result.rootExpression) return null;
-  // Same path as a prop holding a ternary of components (evaluatePropCore).
-  const value = evaluate(result.rootExpression, evalCtx.ctx, { library: evalCtx.library });
-  return isElementNode(value) ? evaluateElementProps(value, evalCtx) : null;
-}
-
-/**
  * Evaluate a single prop value with schema awareness.
  * Delegates to shared evaluatePropCore with evaluate-tree-specific recursion callbacks.
  */

@@ -65,12 +65,7 @@ export function useOpenUIErrors({
       errors.push(parseExceptionRef.current);
     }
 
-<<<<<<< Updated upstream
     // A missing or unusable entry is reported by the parser as `no-root`.
-=======
-    // A response with text but no statements. A missing or unusable entry is
-    // reported by the parser itself as `no-root` (in result.meta.errors).
->>>>>>> Stashed changes
     if (response && !result?.meta.statementCount && !parseExceptionRef.current) {
       errors.push({
         source: "parser",

@@ -6,13 +6,8 @@ export type JSONSchemaDef = {
   properties?: JSONSchemaProperty;
   required?: string[];
   description?: string;
-<<<<<<< Updated upstream
   type?: string;
   anyOf?: JSONSchemaProperty[];
-=======
-  /** Other names a call may use for this component. */
-  aliases?: string[];
->>>>>>> Stashed changes
 };
 
 /** A function's params and return value as JSON Schema. */
@@ -52,7 +47,6 @@ export interface ParamDef {
   schema?: unknown;
 }
 
-<<<<<<< Updated upstream
 /** `@Percent(part, total)` -> params [{name: "part"}, {name: "total"}], kept as AST */
 export interface CallDef {
   kind: "function" | "action";
@@ -67,10 +61,6 @@ export interface CallDef {
 export type ParamMap = Map<string, { params: ParamDef[] }> & {
   callDefs?: Map<string, CallDef>;
 };
-=======
-/** Internal parameter map for positional-arg to named-prop mapping. */
-export type ParamMap = Map<string, { params: ParamDef[]; aliases?: string[] }>;
->>>>>>> Stashed changes
 
 /**
  * A fully resolved component node from the parser.
@@ -122,10 +112,6 @@ export type ValidationErrorCode =
   | "excess-args"
   | "type-mismatch"
   | "unknown-function"
-<<<<<<< Updated upstream
-=======
-  | "state-query"
->>>>>>> Stashed changes
   | "no-root";
 
 /**
@@ -143,13 +129,8 @@ export interface ValidationError {
   message: string;
   /** Statement name that triggered the error (e.g. "header", "chart"). */
   statementId?: string;
-<<<<<<< Updated upstream
   /** "warning" when the program still renders (e.g. the `no-root` fallback); absent means error. */
   severity?: "warning";
-=======
-  /** Short fix hint, when the error has one (copied to OpenUIError.hint). */
-  hint?: string;
->>>>>>> Stashed changes
 }
 
 export interface MaterializeCtx {
@@ -174,12 +155,7 @@ export type OpenUIErrorSource = "parser" | "runtime" | "query" | "mutation";
  * Machine-readable error codes for the openui-lang pipeline.
  *
  * - Parser: "unknown-component", "missing-required", "null-required", "inline-reserved",
-<<<<<<< Updated upstream
  *   "excess-args", "type-mismatch", "unknown-function", "no-root", "parse-exception", "parse-failed"
-=======
- *   "excess-args", "type-mismatch", "unknown-function", "state-query", "no-root",
- *   "parse-exception", "parse-failed"
->>>>>>> Stashed changes
  * - Runtime: "runtime-error" (prop evaluation), "render-error" (React render)
  * - Query/Mutation: "tool-not-found", "tool-error", "mcp-error"
  */
@@ -309,15 +285,7 @@ export interface MutationStatementInfo {
 export interface ParseResult {
   /** The root ElementNode (typically a Root component), or null if parsing hasn't produced one yet. */
   root: ElementNode | null;
-<<<<<<< Updated upstream
   /** Set when the entry picks a component at runtime (`root = $t ? A : B`); see `evaluateRoot`. */
-=======
-  /**
-   * Set when `root` is null because the entry is an expression that picks a
-   * component at runtime, such as `root = $tab ? A : B`. Evaluate it to get
-   * the root ElementNode.
-   */
->>>>>>> Stashed changes
   rootExpression?: ASTNode;
   meta: {
     /** True if the parser detected truncated/incomplete input. */

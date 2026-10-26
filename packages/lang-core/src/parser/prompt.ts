@@ -160,7 +160,6 @@ function syntaxRules(
   return lines.join("\n");
 }
 
-<<<<<<< Updated upstream
 function functionLine(f: { signature: string; description?: string }): string {
   return f.description ? `@${f.signature} — ${f.description}` : `@${f.signature}`;
 }
@@ -172,19 +171,6 @@ function builtinFunctionsSection(custom: string[], toolCalls: boolean): string {
     ),
     ...custom,
   ].join("\n");
-=======
-function builtinFunctionsSection(): string {
-  // Auto-generated from shared builtin registry — single source of truth
-  // @Take is new in OpenUI 1.0 and is not taught by this prompt yet, so the
-  // generated prompt stays unchanged.
-  const builtinLines = Object.values(BUILTINS)
-    .filter((b) => b.name !== "Take")
-    .map((b) => `@${b.signature} — ${b.description}`);
-  const lazyLines = Object.values(LAZY_BUILTIN_DEFS).map(
-    (b) => `@${b.signature} — ${b.description}`,
-  );
-  const lines = [...builtinLines, ...lazyLines].join("\n");
->>>>>>> Stashed changes
 
   return `## Built-in Functions
 

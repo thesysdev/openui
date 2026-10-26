@@ -5,8 +5,9 @@
 import type { ASTNode } from "./ast";
 import { walkAST } from "./ast";
 import { parseExpression } from "./expressions";
-import { preprocess } from "./parser";
-import { scanStatements, splitStatementText } from "./statements";
+import { tokenize } from "./lexer";
+import { stripFences } from "./parser";
+import { split } from "./statements";
 
 interface ParsedStatement {
   id: string;
@@ -14,16 +15,54 @@ interface ParsedStatement {
   raw: string;
 }
 
-/**
- * Read a program with the parser's own rules: fence extraction, comment
- * stripping and trimming (spec 1.2), then the statement boundaries of spec 1.4.
- */
+function splitStatementSource(input: string): string[] {
+  const stmts: string[] = [];
+  let depth = 0;
+  let inStr: false | '"' | "'" = false;
+  let esc = false;
+  let start = 0;
+
+  for (let i = 0; i < input.length; i++) {
+    const c = input[i];
+
+    if (esc) {
+      esc = false;
+      continue;
+    }
+    if (c === "\\" && inStr) {
+      esc = true;
+      continue;
+    }
+    if (inStr) {
+      if (c === inStr) inStr = false;
+      continue;
+    }
+    if (c === '"' || c === "'") {
+      inStr = c;
+      continue;
+    }
+
+    if (c === "(" || c === "[" || c === "{") depth++;
+    else if (c === ")" || c === "]" || c === "}") depth = Math.max(0, depth - 1);
+    else if (c === "\n" && depth <= 0) {
+      const stmt = input.slice(start, i).trim();
+      if (stmt) stmts.push(stmt);
+      start = i + 1;
+    }
+  }
+
+  const tail = input.slice(start).trim();
+  if (tail) stmts.push(tail);
+  return stmts;
+}
+
 function parseStatements(input: string): ParsedStatement[] {
-  const text = preprocess(input);
+  const trimmed = input.trim();
+  if (!trimmed) return [];
+
   const result: ParsedStatement[] = [];
-  for (const [start, end] of scanStatements(text).ranges) {
-    const raw = text.slice(start, end).trim();
-    const stmt = splitStatementText(raw);
+  for (const raw of splitStatementSource(trimmed)) {
+    const stmt = split(tokenize(raw))[0];
     if (!stmt) continue;
     result.push({
       id: stmt.id,
@@ -101,7 +140,7 @@ function gcUnreachable(
  */
 export function mergeStatements(existing: string, patch: string, rootId = "root"): string {
   const existingStmts = parseStatements(existing);
-  const patchStmts = parseStatements(patch);
+  const patchStmts = parseStatements(stripFences(patch));
 
   if (!existingStmts.length) {
     return patchStmts.map((stmt) => stmt.raw).join("\n");
@@ -120,9 +159,8 @@ export function mergeStatements(existing: string, patch: string, rootId = "root"
   }
 
   for (const stmt of patchStmts) {
-    if (stmt.ast.k === "Null" && !stmt.id.startsWith("$")) {
-      // `name = null` in a patch means "delete this statement". A state
-      // declaration set to null keeps its store key, so it stays.
+    if (stmt.ast.k === "Null") {
+      // `name = null` in a patch means "delete this statement"
       merged.delete(stmt.id);
       asts.delete(stmt.id);
       const idx = order.indexOf(stmt.id);
