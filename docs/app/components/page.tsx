@@ -1,5 +1,9 @@
+import { createPageMetadata } from "@/lib/page-metadata";
 import Link from "next/link";
+import page from "./metadata";
 import styles from "./page.module.css";
+
+export const metadata = createPageMetadata(page);
 
 export default function HomePage() {
   return (

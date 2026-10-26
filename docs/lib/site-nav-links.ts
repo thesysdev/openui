@@ -5,7 +5,7 @@ export const SITE_NAV_LINKS = {
   gateway: { href: "/cloud/gateway" },
   observability: { href: "/cloud/observability" },
   gettingStarted: { href: "/docs/getting-started" },
-  cookbooks: { href: "/cookbooks" },
+  cookbooks: { href: "/cookbooks/conversational-analytics" },
   apiReference: { href: "/docs/api-reference" },
   demos: { href: "/demos", newTab: false },
   documentation: { href: "/docs", newTab: false },

@@ -149,6 +149,8 @@ export function DocsRouteLayout({ tree, noSidebarUrls, children }: DocsRouteLayo
         tree={activeTree}
         {...baseOptions()}
         nav={{ component: <DocsNavbar showSidebarTrigger={hasSidebar} /> }}
+        // DocsNavbar already links the logo home; the sidebar's own title link would render empty.
+        slots={{ navTitle: () => null }}
         sidebar={{
           enabled: hasSidebar,
           tabs: false,
