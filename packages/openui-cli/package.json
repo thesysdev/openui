@@ -10,7 +10,7 @@
     "README.md"
   ],
   "scripts": {
-    "build:cli": "tsc -p .",
+    "build:cli": "tsc -p . && node ../../scripts/copy-telemetry-state.mjs",
     "build": "pnpm run build:cli",
     "build:exec": "node dist/index.js",
     "lint:check": "eslint ./src",
@@ -60,5 +60,8 @@
     "open": "^10.1.0",
     "openid-client": "^6.1.7",
     "posthog-node": "^5.35.6"
+  },
+  "imports": {
+    "#openui-telemetry-state": "./dist/telemetry-state.cjs"
   }
 }

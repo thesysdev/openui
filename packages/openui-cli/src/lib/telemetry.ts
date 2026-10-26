@@ -1,6 +1,5 @@
-import * as fs from "node:fs";
+import { loadTelemetryState, saveTelemetryState } from "#openui-telemetry-state";
 import * as os from "node:os";
-import * as path from "node:path";
 import type { PostHog } from "posthog-node";
 
 import { isTruthyEnv } from "./env";
@@ -11,8 +10,6 @@ import type { RetryAttemptInfo } from "./retry";
 const SHUTDOWN_TIMEOUT_MS = 2000;
 
 const isTelemetryDebug = () => process.env["OPENUI_TELEMETRY_DEBUG"] === "1";
-const configDir = () =>
-  path.join(process.env["XDG_CONFIG_HOME"] ?? path.join(os.homedir(), ".config"), "openui");
 const isCi = () => {
   const e = process.env;
   return isTruthyEnv(e["CI"]) || !!e["GITHUB_ACTIONS"] || !!e["GITLAB_CI"] || !!e["BUILDKITE"];
@@ -22,37 +19,6 @@ const debugLogPostHogFailure = (stage: string, error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
   console.warn(`[OpenUI telemetry] PostHog ${stage} failed: ${message}`);
 };
-
-type Stored = { distinctId: string; firstRunNoticeShown?: boolean };
-
-function loadOrCreateState() {
-  const file = path.join(configDir(), "telemetry.json");
-  try {
-    const raw = JSON.parse(fs.readFileSync(file, "utf8")) as Stored;
-    return {
-      distinctId: raw.distinctId,
-      isFirstRun: !raw.firstRunNoticeShown,
-      persist: () => writeState(file, { ...raw, firstRunNoticeShown: true }),
-    };
-  } catch {
-    /* missing/corrupt → create */
-  }
-  const fresh: Stored = { distinctId: crypto.randomUUID(), firstRunNoticeShown: false };
-  return {
-    distinctId: fresh.distinctId,
-    isFirstRun: true,
-    persist: () => writeState(file, { ...fresh, firstRunNoticeShown: true }),
-  };
-}
-
-function writeState(file: string, s: Stored) {
-  try {
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(s));
-  } catch {
-    /* read-only fs / CI: best-effort */
-  }
-}
 
 type Session = {
   client?: PostHog;
@@ -83,8 +49,11 @@ export class Telemetry {
       isTruthyEnv(process.env["OPENUI_TELEMETRY_DISABLED"]) ||
       opts.flagEnabled === false;
     if (optedOut) return; // enabled stays false → all capture() are no-ops
-    const state = loadOrCreateState();
-    this.session.distinctId = state.distinctId;
+    let telemetryState = loadTelemetryState();
+    if (telemetryState.changed) {
+      telemetryState = saveTelemetryState(telemetryState, telemetryState.state);
+    }
+    this.session.distinctId = telemetryState.state.distinctId;
     this.session.superProps = {
       cli_version: opts.cliVersion,
       os: process.platform,
@@ -116,12 +85,12 @@ export class Telemetry {
       origError(...args);
     };
     if (isTelemetryDebug()) this.session.client.debug();
-    if (state.isFirstRun) {
+    if (telemetryState.state["firstRunNoticeShown"] !== true) {
       process.stderr.write(
         "\n◆ OpenUI CLI collects usage analytics; OAuth sign-ins may link usage to your OIDC account ID.\n" +
           "  No code, prompts, API keys, email, or personal name are collected. Opt out: set DO_NOT_TRACK=1 or pass --no-telemetry.\n\n",
       );
-      state.persist();
+      saveTelemetryState(telemetryState, { ...telemetryState.state, firstRunNoticeShown: true });
     }
   }
 

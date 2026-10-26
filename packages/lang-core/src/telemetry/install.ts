@@ -16,19 +16,16 @@
  */
 import { id as ciInfoId, isCI as ciInfoIsCI } from "ci-info";
 import { execFileSync } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
-import {
-  existsSync,
-  linkSync,
-  mkdirSync,
-  readFileSync,
-  renameSync,
-  unlinkSync,
-  writeFileSync,
-  type WriteFileOptions,
-} from "node:fs";
-import { homedir, release } from "node:os";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { release } from "node:os";
 import path from "node:path";
+import {
+  createTelemetryStateIO,
+  loadTelemetryState,
+  saveTelemetryState,
+  type TelemetryStateIO,
+} from "../../../../shared/telemetry/telemetry-state.cjs";
 import {
   getPostHogConfig,
   isTelemetryDisabled,
@@ -68,20 +65,12 @@ export interface InstallTelemetryPayload {
   properties: InstallTelemetryProperties;
 }
 
-export interface InstallTelemetryIO {
+export interface InstallTelemetryIO extends TelemetryStateIO {
   cwd(): string;
-  homedir(): string;
-  readFile(file: string): string;
-  writeFile(file: string, contents: string, options?: WriteFileOptions): void;
-  mkdir(directory: string): void;
-  rename(from: string, to: string): void;
-  link(existing: string, target: string): void;
-  unlink(file: string): void;
   getGitOrigin(projectRoot: string): string | undefined;
   platform: string;
   architecture: string;
   release(): string;
-  randomUUID(): string;
   isDocker(): boolean;
   stdout(message: string): void;
   stderr(message: string): void;
@@ -103,13 +92,6 @@ export type RunInstallTelemetryResult =
   | { status: "debug"; payload: InstallTelemetryPayload }
   | { status: "sent"; payload: InstallTelemetryPayload }
   | { status: "failed"; payload?: InstallTelemetryPayload };
-
-interface StoredTelemetryState extends Record<string, unknown> {
-  distinctId: string;
-  langCorePostinstallNoticeShown?: boolean;
-}
-
-type StoredStateStatus = "missing" | "readable" | "unreadable";
 
 interface ProjectIdentity {
   value: string;
@@ -148,15 +130,16 @@ export async function runInstallTelemetry(
   let payload: InstallTelemetryPayload | undefined;
   try {
     const io = createInstallTelemetryIO(options.io);
-    const stateFile = getTelemetryStateFile(env, io);
-    let { state, changed, status } = loadOrCreateState(stateFile, io);
-    if (!state.langCorePostinstallNoticeShown) {
+    let telemetryState = loadTelemetryState({ env, io });
+    let { state, changed } = telemetryState;
+    if (state["langCorePostinstallNoticeShown"] !== true) {
       io.stderr(INSTALL_NOTICE);
-      state.langCorePostinstallNoticeShown = true;
+      state = { ...state, langCorePostinstallNoticeShown: true };
       changed = true;
     }
-    if (changed && status !== "unreadable") {
-      state = persistState(stateFile, state, io, status === "missing");
+    if (changed) {
+      telemetryState = saveTelemetryState(telemetryState, state, io);
+      state = telemetryState.state;
     }
 
     const projectRoot = path.resolve(env["INIT_CWD"] || io.cwd());
@@ -198,128 +181,17 @@ export async function runInstallTelemetry(
 
 function createInstallTelemetryIO(overrides: Partial<InstallTelemetryIO> = {}): InstallTelemetryIO {
   return {
+    ...createTelemetryStateIO(),
     cwd: () => process.cwd(),
-    homedir,
-    readFile: (file) => readFileSync(file, "utf8"),
-    writeFile: (file, contents, options) => writeFileSync(file, contents, options),
-    mkdir: (directory) => mkdirSync(directory, { recursive: true, mode: 0o700 }),
-    rename: renameSync,
-    link: linkSync,
-    unlink: unlinkSync,
     getGitOrigin: defaultGetGitOrigin,
     platform: process.platform,
     architecture: process.arch,
     release,
-    randomUUID,
     isDocker: defaultIsDocker,
     stdout: (message) => process.stdout.write(message),
     stderr: (message) => process.stderr.write(message),
     ...overrides,
   };
-}
-
-function getTelemetryStateFile(env: NodeJS.ProcessEnv, io: InstallTelemetryIO): string {
-  const configRoot = env["XDG_CONFIG_HOME"] || path.join(io.homedir(), ".config");
-  return path.join(configRoot, "openui", "telemetry.json");
-}
-
-function readStoredState(
-  stateFile: string,
-  io: InstallTelemetryIO,
-): { stored: Record<string, unknown>; status: StoredStateStatus } {
-  let contents: string;
-  try {
-    contents = io.readFile(stateFile);
-  } catch (error) {
-    // State that exists but cannot be read is left untouched.
-    return { stored: {}, status: hasErrorCode(error, "ENOENT") ? "missing" : "unreadable" };
-  }
-
-  try {
-    const parsed = JSON.parse(contents) as unknown;
-    return { stored: isRecord(parsed) ? parsed : {}, status: "readable" };
-  } catch {
-    // Corrupt state is replaced with a new best-effort state.
-    return { stored: {}, status: "readable" };
-  }
-}
-
-function getStoredDistinctId(stored: Record<string, unknown>): string | undefined {
-  const distinctId = stored["distinctId"];
-  return typeof distinctId === "string" && distinctId ? distinctId : undefined;
-}
-
-function loadOrCreateState(
-  stateFile: string,
-  io: InstallTelemetryIO,
-): { state: StoredTelemetryState; changed: boolean; status: StoredStateStatus } {
-  const { stored, status } = readStoredState(stateFile, io);
-  const storedDistinctId = getStoredDistinctId(stored);
-
-  return {
-    state: {
-      ...stored,
-      distinctId: storedDistinctId ?? io.randomUUID(),
-      langCorePostinstallNoticeShown: stored["langCorePostinstallNoticeShown"] === true,
-    },
-    // Only a newly created identity needs to be written back.
-    changed: !storedDistinctId,
-    status,
-  };
-}
-
-/**
- * Writes the state without exposing partial files to concurrent installs. New state is published
- * only if no other process created it first; otherwise that process's identity is reused.
- */
-function persistState(
-  stateFile: string,
-  state: StoredTelemetryState,
-  io: InstallTelemetryIO,
-  create: boolean,
-): StoredTelemetryState {
-  const contents = JSON.stringify(state);
-  const temporaryFile = `${stateFile}.${io.randomUUID()}.tmp`;
-  try {
-    io.mkdir(path.dirname(stateFile));
-    io.writeFile(temporaryFile, contents, { mode: 0o600, flag: "wx" });
-
-    if (!create) {
-      io.rename(temporaryFile, stateFile);
-      return state;
-    }
-
-    try {
-      io.link(temporaryFile, stateFile);
-      return state;
-    } catch (error) {
-      if (!hasErrorCode(error, "EEXIST")) {
-        // Filesystems without hard links still get a create-only write.
-        try {
-          io.writeFile(stateFile, contents, { mode: 0o600, flag: "wx" });
-          return state;
-        } catch (fallbackError) {
-          if (!hasErrorCode(fallbackError, "EEXIST")) throw fallbackError;
-        }
-      }
-    }
-
-    const winnerDistinctId = getStoredDistinctId(readStoredState(stateFile, io).stored);
-    return winnerDistinctId ? { ...state, distinctId: winnerDistinctId } : state;
-  } catch {
-    // Read-only or ephemeral environments use the in-memory state for this run.
-    return state;
-  } finally {
-    try {
-      io.unlink(temporaryFile);
-    } catch {
-      // The temporary file was renamed into place or never created.
-    }
-  }
-}
-
-function hasErrorCode(error: unknown, code: string): boolean {
-  return isRecord(error) && error["code"] === code;
 }
 
 function resolveProjectIdentity(
@@ -362,10 +234,6 @@ function defaultIsDocker(): boolean {
   } catch {
     return false;
   }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 async function sendToPostHog(
