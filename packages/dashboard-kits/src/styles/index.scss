@@ -3,7 +3,7 @@
 // charts, the shared blocks, then each kit's own components.
 @use "theme";
 @use "base";
-@use "../components/Charts/charts";
+@use "../components/charts/charts";
 @use "../components/components";
-@use "ecommerce";
-@use "analytics";
+@use "../kits/ecommerce/ecommerce";
+@use "../kits/analytics/analytics";

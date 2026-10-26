@@ -95,4 +95,4 @@ This runs the kit contract check, the render smoke test, then a production build
 
 ## Add a kit
 
-Add the kit to `packages/dashboard-kits` (copy `src/analytics`, write the tools, handlers, components, and `kit.ts`, and add an entry point), then create its library in `src/kits/libraries.ts` here, register it in `client.ts` and `server.ts`, and add it to the `generate` script. `npm run check` tells you when it is consistent. DESIGN.md has the details.
+Add the kit to `packages/dashboard-kits` (copy `src/kits/analytics`, write the tools, handlers, components, and `kit.ts`, and add an entry point), then create its library in `src/kits/libraries.ts` here, register it in `client.ts` and `server.ts`, and add it to the `generate` script. `npm run check` tells you when it is consistent. DESIGN.md has the details.

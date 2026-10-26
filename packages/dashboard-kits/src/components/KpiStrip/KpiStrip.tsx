@@ -1,8 +1,8 @@
 import { useId } from "react";
 import { changeTone } from "../../core/format";
 import type { Kpi } from "../../core/schemas";
-import { Sparkline } from "../Charts/Sparkline";
-import { useContainerSize } from "../Charts/hooks";
+import { useContainerSize } from "../../hooks";
+import { Sparkline } from "../charts/Sparkline";
 import { DefinitionTip } from "../DefinitionTip";
 import { DeltaPill } from "../DeltaPill";
 import { RollingNumber } from "../RollingNumber";

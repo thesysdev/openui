@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from "react";
-import { useIsomorphicLayoutEffect } from "../Charts/hooks";
+import { useIsomorphicLayoutEffect } from "../../hooks";
 
 export interface ScrollRegionProps {
   /** Names the region for screen readers while it scrolls, e.g. "Channels table". */

@@ -1,5 +1,5 @@
 import type { TargetProgress } from "../../core/schemas";
-import { formatValue } from "../Charts/utils/format";
+import { formatValue } from "../charts/utils/format";
 
 export interface BulletListProps {
   targets: TargetProgress[];

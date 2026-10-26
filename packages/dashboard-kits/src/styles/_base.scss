@@ -224,7 +224,7 @@
   flex: 1 1 auto;
 }
 /* A row whose cards differ too much in height for any chart to make up
-   (see genui-lib/rowBalance.ts): every card takes the full width instead. */
+   (see library/rowBalance.ts): every card takes the full width instead. */
 .kit-theme .c1-card-row.kit-row--stacked > .c1-shell-card {
   flex: 1 1 100%;
 }

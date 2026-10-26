@@ -1,6 +1,6 @@
 import { formatChange, formatPercent } from "../../core/format";
 import type { Item, ValueFormat } from "../../core/schemas";
-import { formatValue } from "../Charts/utils/format";
+import { formatValue } from "../charts/utils/format";
 
 /** The filter value that means "no selection" for the kits' dashboard filters. */
 export const ALL = "all";

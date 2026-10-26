@@ -1,6 +1,6 @@
 import { useId } from "react";
 import type { Kpi, Trend } from "../../core/schemas";
-import { TrendChart } from "../Charts/TrendChart";
+import { TrendChart } from "../charts/TrendChart";
 import { DefinitionTip } from "../DefinitionTip";
 import { DeltaPill } from "../DeltaPill";
 import { UsualNote } from "../KpiStrip/KpiStrip";

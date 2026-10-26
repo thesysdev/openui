@@ -1,7 +1,7 @@
 import { useTheme } from "@openuidev/react-ui";
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
-import { useIsomorphicLayoutEffect } from "../Charts/hooks/useIsomorphicLayoutEffect";
+import { useIsomorphicLayoutEffect } from "../../hooks/useIsomorphicLayoutEffect";
 
 /** Space kept between a popup and the edge of the window. */
 const EDGE = 8;

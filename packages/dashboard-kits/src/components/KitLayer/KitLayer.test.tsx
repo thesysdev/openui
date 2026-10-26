@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, createElement } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { installDom, mount } from "../Charts/testDom";
+import { installDom, mount } from "../../test/testDom";
 import { DefinitionTip } from "../DefinitionTip";
 import { clampToWindow, placeBeside } from "./KitLayer";
 

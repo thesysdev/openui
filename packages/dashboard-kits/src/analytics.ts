@@ -19,5 +19,5 @@ export {
   ReleaseImpact,
   UserPaths,
   WeeklyReview,
-} from "./analytics/components";
-export { createAnalyticsLibrary } from "./analytics/library";
+} from "./kits/analytics/components";
+export { createAnalyticsLibrary } from "./kits/analytics/library";

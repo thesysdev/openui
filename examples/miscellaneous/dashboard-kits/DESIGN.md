@@ -6,12 +6,12 @@ The kits are in the `@openuidev/dashboard-kits` package (`packages/dashboard-kit
 
 A kit is everything a model needs to build dashboards for one domain, on top of the dashboard artifact's base components. Each kit has four parts:
 
-| Part          | What it is                                                                            | File                           |
-| ------------- | ------------------------------------------------------------------------------------- | ------------------------------ |
-| Components    | The kit's own components, placed into the base cards                                  | `components.tsx`, `library.ts` |
-| Prompt        | A preamble that names the business, definitions, rules, and worked example dashboards | `kit.ts`                       |
-| Data contract | Read-only tools with JSON Schema input and output, called with `Query()`              | `tools.ts`                     |
-| Sample data   | Tool implementations over one coherent demo business                                  | `data.ts`                      |
+| Part          | What it is                                                                            | File                        |
+| ------------- | ------------------------------------------------------------------------------------- | --------------------------- |
+| Components    | The kit's own components, placed into the base cards                                  | `components/`, `library.ts` |
+| Prompt        | A preamble that names the business, definitions, rules, and worked example dashboards | `kit.ts`                    |
+| Data contract | Read-only tools with JSON Schema input and output, called with `Query()`              | `tools.ts`                  |
+| Sample data   | Tool implementations over one coherent demo business                                  | `data/`                     |
 
 A kit library has three layers:
 
@@ -132,12 +132,7 @@ The galleries follow what well-regarded product dashboards do, checked against [
 
 ```
 packages/dashboard-kits/src/
-  components/               plain React components with typed props (no openui-lang)
-    Charts/                 TrendChart, ColumnChart, HeatGrid, GoalPace, Tracker, Sparkline, and the rest, all on d3
-      shared/               tooltip, legend, crosshair, d3 series geometry, spring (ported from react-ui)
-      hooks/ utils/         container size, chart hover, series focus, scales, formats, palette order
-    HeroMetric/ KpiStrip/ InsightList/ ConversionFunnel/ CohortGrid/ BarList/ ShareBar/ …
-  genui-lib/                openui-lang definitions of the shared blocks, Pending, createKitLibrary
+  index.ts ecommerce.ts analytics.ts server.ts   the entry points
   core/
     schemas.ts              shapes shared by tools and components: KPI, trend, insight, funnel step, cohort
     kit.ts                  KitDefinition, defineTool, toToolSpec
@@ -145,15 +140,20 @@ packages/dashboard-kits/src/
     prompt.ts               buildSystemPrompt, runTool
     tool-provider.ts        the Renderer's tool provider
     sample-data.ts, format.ts
-  ecommerce/   components.tsx  library.ts  tools.ts  data.ts  kit.ts
-  analytics/   components.tsx  library.ts  tools.ts  data.ts  kit.ts  charts/EngagementMatrix/
-  styles/                   theme tokens, shared primitives, each kit's component styles
-  index.ts ecommerce.ts analytics.ts server.ts   the entry points
+  components/               plain React components with typed props (no openui-lang), one folder each
+    charts/                 TrendChart, ColumnChart, HeatGrid, GoalPace, Tracker, Sparkline, and the rest, all on d3
+      shared/ utils/        tooltip, legend, crosshair, d3 series geometry, spring (ported from react-ui); scales, formats
+  library/                  openui-lang definitions of the shared blocks, Pending, createKitLibrary
+  hooks/  test/             shared hooks (container size, chart hover, series focus, palette); test helpers
+  kits/
+    ecommerce/              kit.ts  library.ts  tools.ts  metrics.ts  data/ (by topic + handlers.ts)  components/
+    analytics/              the same, plus population, moments, workspaces, experiments, revenue, alerts
+  styles/                   theme tokens and shared primitives
 
 examples/miscellaneous/dashboard-kits/src/kits/
   libraries.ts              dashboardLibrary + each kit
   client.ts server.ts       Renderer libraries and tool provider; specs, prompts, sample-data tools
-scripts/check-kits.ts       contract check for every kit
+examples/miscellaneous/dashboard-kits/scripts/check-kits.ts   contract check for every kit
 ```
 
 The package has four entry points. `@openuidev/dashboard-kits` has the shared blocks, both as openui-lang definitions and as plain React views; `/ecommerce` and `/analytics` have each kit's library factory and components; `/server` has the kit definitions, tool contracts, sample-data handlers, and prompt assembly, and imports no React. `/styles.css` is the compiled theme and component styles.
@@ -277,8 +277,8 @@ Not in this draft: mutations (`ActionCards` approve and dismiss only write to th
 
 ## Adding a kit
 
-1. Copy `packages/dashboard-kits/src/analytics` to `src/<id>` and add a `src/<id>.ts` entry point (and its line in `tsdown.config.ts` and the `exports` map).
-2. Write the tools in `tools.ts`, reusing `core/schemas.ts` shapes where they fit, then their handlers in `data.ts`.
+1. Copy `packages/dashboard-kits/src/kits/analytics` to `src/kits/<id>` and add a `src/<id>.ts` entry point (and its line in `tsdown.config.ts` and the `exports` map).
+2. Write the tools in `tools.ts`, reusing `core/schemas.ts` shapes where they fit, then their handlers in `data/` (`data/handlers.ts` maps tool names to them).
 3. Write the components with props that reuse the tool schemas, and list their slots, plus any shared blocks, in `library.ts`. Reuse a react-ui chart where one fits; build a new one under `components/Charts` in the same shape as `TrendChart`.
 4. Write the preamble, definitions, rules, gallery dashboards, and starters in `kit.ts`, then add the kit to `KITS` and `SAMPLE_HANDLERS` in `src/server.ts`.
 5. In this app, create the library in `src/kits/libraries.ts`, register it in `client.ts` and `server.ts`, add it to the `generate` script, run `npm run kits:pack`, and run `npm run check`.

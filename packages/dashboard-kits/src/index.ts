@@ -26,24 +26,24 @@ export {
   TrendChart,
   VarianceWalk,
   createKitLibrary,
-} from "./genui-lib";
-export type { CardSlot, KitComponent, KitLibraryDefinition } from "./genui-lib";
+} from "./library";
+export type { CardSlot, KitComponent, KitLibraryDefinition } from "./library";
 
 // Plain React components, for use outside openui-lang.
 export { BarList as BarListView } from "./components/BarList";
 export type { BarListProps } from "./components/BarList";
-export { ColumnChart as ColumnChartView } from "./components/Charts/ColumnChart";
-export type { ColumnChartProps } from "./components/Charts/ColumnChart";
-export { GoalPace as GoalPaceView } from "./components/Charts/GoalPace";
-export type { GoalPaceProps } from "./components/Charts/GoalPace";
-export { HeatGrid as HeatGridView } from "./components/Charts/HeatGrid";
-export type { HeatGridProps } from "./components/Charts/HeatGrid";
-export { Sparkline } from "./components/Charts/Sparkline";
-export type { SparklineProps } from "./components/Charts/Sparkline";
-export { Tracker as TrackerView } from "./components/Charts/Tracker";
-export type { TrackerProps } from "./components/Charts/Tracker";
-export { TrendChart as TrendChartView } from "./components/Charts/TrendChart";
-export type { TrendChartProps, TrendChartSeries } from "./components/Charts/TrendChart";
+export { ColumnChart as ColumnChartView } from "./components/charts/ColumnChart";
+export type { ColumnChartProps } from "./components/charts/ColumnChart";
+export { GoalPace as GoalPaceView } from "./components/charts/GoalPace";
+export type { GoalPaceProps } from "./components/charts/GoalPace";
+export { HeatGrid as HeatGridView } from "./components/charts/HeatGrid";
+export type { HeatGridProps } from "./components/charts/HeatGrid";
+export { Sparkline } from "./components/charts/Sparkline";
+export type { SparklineProps } from "./components/charts/Sparkline";
+export { Tracker as TrackerView } from "./components/charts/Tracker";
+export type { TrackerProps } from "./components/charts/Tracker";
+export { TrendChart as TrendChartView } from "./components/charts/TrendChart";
+export type { TrendChartProps, TrendChartSeries } from "./components/charts/TrendChart";
 export { CohortGrid as CohortGridView } from "./components/CohortGrid";
 export type { CohortGridProps } from "./components/CohortGrid";
 export { ConversionFunnel as ConversionFunnelView } from "./components/ConversionFunnel";

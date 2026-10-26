@@ -64,8 +64,14 @@ The package follows react-ui's structure: plain React components with typed prop
 
 ```
 src/
-  components/            plain React components (no openui-lang)
-    Charts/              the kit charts, built like react-ui's charts
+  index.ts ecommerce.ts analytics.ts server.ts   the public entry points
+  core/                  schemas, formats, kit types, prompt assembly, tool provider, sample-data helpers,
+                         metric definitions (metrics.ts), and the why math (explain.ts: shares, mix and rate,
+                         confidence, walks)
+  components/            plain React components (no openui-lang), one folder each
+    HeroMetric/ KpiStrip/ InsightList/ ConversionFunnel/ CohortGrid/ BarList/ ShareBar/ DataStatus/ …
+    KitLayer/            the page-level layer popups draw on, so cards can't clip them
+    charts/              the kit charts, built like react-ui's charts
       TrendChart/        TrendChart.tsx, types.ts, parts/, trendGeometry.ts (+ tests), trendChart.scss
       ProfitWaterfall/   variance walk and profit bridge, waterfallGeometry.ts (+ tests)
       QuadrantChart/     bubble quadrants (engagement matrix, feature value, products), quadrantGeometry.ts (+ tests)
@@ -78,16 +84,17 @@ src/
       ColumnChart/       grouped and diverging stacked columns, columnGeometry.ts (+ tests)
       HeatGrid/          weekday × hour heatmap, heatGeometry.ts (+ tests)
       shared/            tooltip, legend, crosshair, d3 series geometry, AnimatedPath, spring (ported from react-ui)
-      hooks/ utils/      container size, chart hover, series focus, scales, pointer → index, formats
-    HeroMetric/ KpiStrip/ InsightList/ ConversionFunnel/ CohortGrid/ BarList/ ShareBar/ …
-  genui-lib/             openui-lang definitions of the shared blocks, Pending, createKitLibrary
-  core/                  schemas, formats, kit types, prompt assembly, tool provider, sample-data helpers,
-                         metric definitions (metrics.ts), and the why math (explain.ts: shares, mix and rate,
-                         confidence, walks)
-  ecommerce/ analytics/  each kit: components, library, tools, kit (prompt and gallery), sample data, and its
-                         tested models (calendar; analytics: population, moments, workspaces, experiments, revenue
-                         and commit pacing, alert rules)
-  styles/                theme tokens, shared primitives, each kit's component styles
+      utils/             scales, pointer → index, formats
+  library/               openui-lang definitions of the shared components, Pending, createKitLibrary
+  hooks/                 container size, chart hover, series focus, kit palette
+  test/                  test helpers (a jsdom harness for components)
+  kits/
+    ecommerce/           kit.ts (prompt and gallery), library.ts, tools.ts, metrics.ts, calendar.ts,
+                         data/ (the sample store by topic, and handlers.ts for the tools),
+                         components/ (one file per component), _ecommerce.scss
+    analytics/           the same shape, plus its tested models: population, moments, workspaces,
+                         experiments, revenue and commit pacing, alert rules
+  styles/                theme tokens and shared primitives
 ```
 
 **Every chart is the kit's own, on d3.** `ColumnChart` (grouped, or stacked from zero with negative values below; the lifecycle chart, power user curve, and MRR movements use it), `HeatGrid` (the activity heatmap), the `ShareBar`, the period-over-period `TrendChart` (shaded gap, events, goal lines and benchmark bands, in-progress tail; lines far from zero fit their range, areas keep zero), `GoalPace`, `Tracker`, the KPI `Sparkline`, `ProfitWaterfall`, `SegmentFlow`, `QuadrantChart`, `SixTwelve`, and `BurnDown` all share one interaction model — a gliding hover follower and the shared tooltip, a legend that brings a series forward on hover and pins it on click, arrow keys — and react-ui's architecture: a hook-free empty-state dispatcher, an implementation with parts, d3 scales and d3-shape curves (react-ui's "natural" monotone curve), pure geometry with unit tests, react-ui's motion (a spring data morph so data changes glide, mounted hover followers so the crosshair, dots, and tooltip glide between points, and draw-on entrances), and a stylesheet per chart under the `kit` class prefix. Charts measure before their first paint and snap on resize, so only data changes animate.

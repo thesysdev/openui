@@ -2,16 +2,16 @@ import clsx from "clsx";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { formatPercent } from "../../core/format";
 import type { Item, ValueFormat } from "../../core/schemas";
-import { ALL } from "../BarList";
 import {
   useChartHover,
   useContainerSize,
   useIsomorphicLayoutEffect,
   useKitPalette,
-} from "../Charts/hooks";
-import { ChartTooltip } from "../Charts/shared";
-import { springPresets, useDataMorph } from "../Charts/shared/spring";
-import { formatValue } from "../Charts/utils/format";
+} from "../../hooks";
+import { ALL } from "../BarList";
+import { ChartTooltip } from "../charts/shared";
+import { springPresets, useDataMorph } from "../charts/shared/spring";
+import { formatValue } from "../charts/utils/format";
 import { segmentPath, shareAt, shareSpans } from "./shareGeometry";
 
 export interface ShareBarProps {
