@@ -46,7 +46,7 @@
 /* ...tinted from the Shiro, except F1, which takes the faint teal of its
    answer's charts. Multiply keeps the stipple, so the pattern reads exactly
    as before, only warmer or cooler. */
-.panel[data-agent="ikea"] {
+.panel[data-agent="intelligent-ui"] {
   --accent: #c98b4e;
   --tint-mix: 6%;
 }
@@ -166,11 +166,11 @@
 /* The woodworker's drawing is wider (it holds a hammer and a brush), so its
    face reads small at the shared width; it gets more room, and the padding
    shrinks to keep it centred on the strip. */
-[data-agent="ikea"] .mascot {
+[data-agent="intelligent-ui"] .mascot {
   width: 2.875rem;
 }
 
-[data-agent="ikea"] .head {
+[data-agent="intelligent-ui"] .head {
   padding-inline: 0.8125rem;
 }
 
@@ -311,11 +311,11 @@
     width: 1.875rem;
   }
 
-  [data-agent="ikea"] .mascot {
+  [data-agent="intelligent-ui"] .mascot {
     width: 2.375rem;
   }
 
-  [data-agent="ikea"] .head {
+  [data-agent="intelligent-ui"] .head {
     padding-inline: 0.625rem;
   }
 
