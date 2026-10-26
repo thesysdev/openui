@@ -1,0 +1,491 @@
+// Shared primitives every kit component uses: type tokens, text tones, tags, status chips, meters, and tables.
+
+.kit-theme {
+  --kit-label: 500 12px/1.3 var(--kit-font);
+  --kit-body: 400 13.5px/1.5 var(--kit-font);
+}
+.kit-num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.kit-strong {
+  font-weight: 600;
+  color: var(--kit-ink);
+}
+.kit-muted {
+  color: var(--kit-ink-3);
+}
+.kit-small {
+  font-size: 12px;
+}
+.kit-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.kit-text-good {
+  color: var(--kit-good-ink);
+}
+.kit-text-bad {
+  color: var(--kit-bad-ink);
+}
+.kit-text-neutral {
+  color: var(--kit-ink-3);
+}
+.kit-empty {
+  margin: 0;
+  padding: 16px 0;
+  font: var(--kit-body);
+  color: var(--kit-ink-3);
+}
+.kit-scroll {
+  overflow-x: auto;
+  min-width: 0;
+}
+// Focusable while it overflows (ScrollRegion), so it shows where focus is.
+.kit-scroll:focus-visible,
+.kit-exchange__scroll:focus-visible,
+.kit-experiment__variants:focus-visible {
+  outline: 2px solid var(--kit-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.kit-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.kit-meter {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--kit-accent) 12%, var(--kit-card));
+  overflow: hidden;
+}
+.kit-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--kit-accent);
+}
+
+.kit-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font: 500 11px/1.6 var(--kit-font);
+  white-space: nowrap;
+  background: var(--kit-neutral-bg);
+  color: var(--kit-ink-2);
+  vertical-align: 1px;
+}
+.kit-tag::first-letter {
+  text-transform: uppercase;
+}
+.kit-tag--paid {
+  background: var(--kit-info-bg);
+  color: var(--kit-info-ink);
+}
+.kit-tag--owned {
+  background: var(--kit-good-bg);
+  color: var(--kit-good-ink);
+}
+
+.kit-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px 2px 7px;
+  border-radius: 999px;
+  font: 500 12px/1.5 var(--kit-font);
+  white-space: nowrap;
+  background: var(--kit-neutral-bg);
+  color: var(--kit-ink-2);
+}
+.kit-status::first-letter {
+  text-transform: uppercase;
+}
+.kit-status svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.kit-status__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.kit-status--positive {
+  background: var(--kit-good-bg);
+  color: var(--kit-good-ink);
+}
+.kit-status--negative {
+  background: var(--kit-bad-bg);
+  color: var(--kit-bad-ink);
+}
+.kit-status--warning {
+  background: var(--kit-warn-bg);
+  color: var(--kit-warn-ink);
+}
+.kit-status--info {
+  background: var(--kit-info-bg);
+  color: var(--kit-info-ink);
+}
+
+.kit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--kit-body);
+  color: var(--kit-ink);
+}
+.kit-table th {
+  padding: 0 12px 10px;
+  text-align: left;
+  font: var(--kit-label);
+  color: var(--kit-ink-3);
+  border-bottom: 1px solid var(--kit-border);
+  white-space: nowrap;
+}
+.kit-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--kit-border);
+  vertical-align: middle;
+}
+// A row header reads like a body cell: same padding, type, and alignment.
+.kit-table tbody th {
+  padding: 11px 12px;
+  vertical-align: middle;
+  font: var(--kit-body);
+  color: var(--kit-ink);
+  white-space: normal;
+}
+.kit-table th:first-child,
+.kit-table td:first-child {
+  padding-left: 0;
+}
+.kit-table th:last-child,
+.kit-table td:last-child {
+  padding-right: 0;
+}
+.kit-table th.kit-num,
+.kit-table td.kit-num {
+  text-align: right;
+}
+.kit-table tbody tr:last-child td,
+.kit-table tbody tr:last-child th {
+  border-bottom: 0;
+}
+.kit-table tbody tr:hover th,
+.kit-table tbody tr:hover td {
+  background: color-mix(in oklab, var(--kit-sunk) 70%, transparent);
+}
+.kit-table tfoot td {
+  border-top: 1px solid var(--kit-border-strong);
+  border-bottom: 0;
+  padding-top: 12px;
+}
+.kit-events__bar {
+  width: 30%;
+  min-width: 120px;
+}
+.kit-events .kit-step {
+  font-size: 12px;
+}
+.kit-cell-title {
+  font-weight: 500;
+  color: var(--kit-ink);
+}
+.kit-cell-spark {
+  width: 84px;
+  padding-left: 0 !important;
+}
+.kit-cell-spark .kit-sparkline {
+  width: 84px;
+}
+
+/* A base dashboard card holding a filling chart (marked `data-kit-fill`) stretches
+   its body to the row height, so the chart takes the space a taller neighbour
+   leaves instead of a blank gap. */
+.kit-theme .c1-shell-card__content-wrap:has([data-kit-fill]) {
+  display: flex;
+  flex-direction: column;
+}
+.kit-theme .c1-shell-card__content:has([data-kit-fill]) {
+  flex: 1 1 auto;
+}
+/* A row whose cards differ too much in height for any chart to make up
+   (see core/library/rowBalance.ts): every card takes the full width instead. */
+.kit-theme .c1-card-row.kit-row--stacked > .c1-shell-card {
+  flex: 1 1 100%;
+}
+
+// Text for screen readers only, such as a table caption the card header already says.
+.kit-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// Recommended actions (ActionCards), shared by both kits.
+.kit-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font: var(--kit-body);
+}
+.kit-actions__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kit-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 16px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--kit-sunk);
+  border: 1px solid var(--kit-border);
+  transition: opacity 0.2s ease;
+
+  &--dismissed {
+    opacity: 0.55;
+  }
+  &--approved {
+    border-color: color-mix(in srgb, var(--kit-good) 45%, var(--kit-border));
+  }
+}
+.kit-action__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.kit-action__title {
+  font-weight: 600;
+  color: var(--kit-ink);
+}
+.kit-action__kind {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  vertical-align: 1px;
+  font: 500 11px/1.5 var(--kit-font);
+  background: var(--kit-neutral-bg);
+  color: var(--kit-ink-2);
+}
+.kit-action__kind--audience,
+.kit-action__kind--experiment {
+  background: var(--kit-info-bg);
+  color: var(--kit-info-ink);
+}
+.kit-action__detail {
+  font: 400 12.5px/1.5 var(--kit-font);
+  color: var(--kit-ink-2);
+}
+.kit-action__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  font: 400 12px/1.4 var(--kit-font);
+}
+.kit-action__impact {
+  font-weight: 600;
+  color: var(--kit-good-ink);
+}
+.kit-action__buttons {
+  display: flex;
+  gap: 6px;
+}
+.kit-action__approve,
+.kit-action__dismiss {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font: 600 12.5px var(--kit-font);
+  cursor: pointer;
+  border: 1px solid var(--kit-border);
+  background: var(--kit-card);
+  color: var(--kit-ink);
+
+  &:focus-visible {
+    outline: 2px solid var(--kit-accent);
+    outline-offset: 2px;
+  }
+}
+.kit-action__approve {
+  background: var(--kit-accent);
+  border-color: var(--kit-accent);
+  color: #fff;
+}
+.kit-action__done {
+  flex: none;
+  font: 600 12px var(--kit-font);
+  color: var(--kit-ink-3);
+}
+.kit-action--approved .kit-action__done {
+  color: var(--kit-good-ink);
+}
+// A decided action folds to one line: its decision, its title, and Undo.
+.kit-action--decided {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: none;
+}
+.kit-action__done-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 500 12.5px var(--kit-font);
+  color: var(--kit-ink-2);
+}
+.kit-action__undo,
+.kit-actions__more {
+  flex: none;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  font: 600 12px var(--kit-font);
+  color: var(--kit-accent-ink);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--kit-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+.kit-actions__more {
+  align-self: flex-start;
+  // A 24px target (WCAG 2.5.8), not just the line of text.
+  min-height: 24px;
+  padding-left: 0;
+}
+.kit-actions__note {
+  margin: 0;
+  font: 400 12px/1.5 var(--kit-font);
+  color: var(--kit-ink-3);
+}
+.kit-actions__log {
+  padding-top: 8px;
+  border-top: 1px dashed var(--kit-border);
+  font: 400 12px/1.5 var(--kit-font);
+  color: var(--kit-ink-2);
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--kit-ink-3);
+  }
+
+  ul {
+    margin: 6px 0 0;
+    padding-left: 16px;
+  }
+}
+// In a narrow card the buttons go under the text, so the text takes the
+// whole width and wraps less.
+.kit-actions {
+  container-type: inline-size;
+}
+// and the reason clamps to two lines (the full text is its tooltip), so the
+// card sits closer to the height of its neighbours.
+@container (max-width: 520px) {
+  .kit-action:not(.kit-action--decided) {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .kit-action__detail {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .kit-action__approve,
+  .kit-action__dismiss {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+}
+
+// ── Pacing tables: AI credit commits, ad budgets ──
+// Name over its detail; spans stack as blocks so the cell stays a table cell
+// and its border lines up with the row.
+.kit-commits th[scope="row"] > span {
+  display: block;
+}
+.kit-commits th[scope="row"] > span + span {
+  margin-top: 2px;
+}
+.kit-commits__name {
+  font-weight: 600;
+  color: var(--kit-ink);
+}
+.kit-commits__burn {
+  width: 22%;
+  min-width: 140px;
+}
+.kit-pace {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 150px;
+}
+.kit-pace__track {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--kit-sunk);
+}
+.kit-pace__band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--kit-good-bg);
+  outline: 1px solid color-mix(in srgb, var(--kit-good) 40%, transparent);
+}
+.kit-pace__mark {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 2px solid var(--kit-card);
+  background: var(--kit-good);
+  transform: translate(-50%, -50%);
+}
+.kit-pace__mark--under {
+  background: var(--kit-warn);
+}
+.kit-pace__mark--over {
+  background: var(--kit-accent);
+}
+.kit-pace__mark--bad {
+  background: var(--kit-bad);
+}

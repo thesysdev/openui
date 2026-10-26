@@ -1,0 +1,9 @@
+// Everything a kit dashboard needs on top of the base dashboard and react-ui
+// styles: the kit theme tokens (light and dark), shared primitives, the
+// charts, the shared blocks, then each kit's own components.
+@use "theme";
+@use "base";
+@use "../charts/charts";
+@use "../blocks/blocks";
+@use "../ecommerce/ecommerce";
+@use "../analytics/analytics";

@@ -1,7 +1,7 @@
 import type { LibrarySpec } from "@openuidev/lang-core";
 import { describe, expect, it } from "vitest";
-import { analyticsKit } from "../kits/analytics/kit";
-import { ecommerceKit } from "../kits/ecommerce/kit";
+import { analyticsKit } from "../analytics/kit";
+import { ecommerceKit } from "../ecommerce/kit";
 import type { KitDefinition } from "./kit";
 import { buildSystemPrompt, PROMPT_BUDGET, rankGallery } from "./prompt";
 

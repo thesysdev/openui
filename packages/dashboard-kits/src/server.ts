@@ -2,13 +2,14 @@
 // contracts, sample-data handlers, and prompt assembly. Nothing here imports
 // React, so a route handler can use it directly.
 
+import { analyticsHandlers } from "./analytics/data";
+import { analyticsKit } from "./analytics/kit";
 import type { KitDefinition } from "./core/kit";
 import type { ToolHandler } from "./core/prompt";
-import { analyticsHandlers } from "./kits/analytics/data";
-import { analyticsKit } from "./kits/analytics/kit";
-import { ecommerceHandlers } from "./kits/ecommerce/data";
-import { ecommerceKit } from "./kits/ecommerce/kit";
+import { ecommerceHandlers } from "./ecommerce/data";
+import { ecommerceKit } from "./ecommerce/kit";
 
+export { analyticsTools } from "./analytics/tools";
 export {
   BASE_COMPONENT_GROUPS,
   BASE_RULES,
@@ -20,8 +21,7 @@ export type { GalleryDashboard, KitDefinition, KitTool } from "./core/kit";
 export { buildSystemPrompt, PROMPT_BUDGET, rankGallery, runTool } from "./core/prompt";
 export type { PromptOptions, ToolHandler } from "./core/prompt";
 export * from "./core/schemas";
-export { analyticsTools } from "./kits/analytics/tools";
-export { ecommerceTools } from "./kits/ecommerce/tools";
+export { ecommerceTools } from "./ecommerce/tools";
 export { analyticsHandlers, analyticsKit, ecommerceHandlers, ecommerceKit };
 
 /** Every kit, in display order. */

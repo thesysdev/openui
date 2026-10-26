@@ -61,7 +61,7 @@
   },
   "scripts": {
     "build": "rimraf dist && tsdown && pnpm run build:scss",
-    "build:scss": "sass src/styles/index.scss dist/styles.css --style compressed --no-source-map",
+    "build:scss": "sass src/theme/index.scss dist/styles.css --style compressed --no-source-map",
     "watch": "concurrently \"tsdown --watch\" \"pnpm run build:scss --watch\"",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",

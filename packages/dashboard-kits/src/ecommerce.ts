@@ -12,5 +12,5 @@ export {
   MoneyBreakdown,
   ProductLeaderboard,
   ProductPerformance,
-} from "./kits/ecommerce/components";
-export { createEcommerceLibrary } from "./kits/ecommerce/library";
+} from "./ecommerce/blocks";
+export { createEcommerceLibrary } from "./ecommerce/library";

@@ -65,36 +65,22 @@ The package follows react-ui's structure: plain React components with typed prop
 ```
 src/
   index.ts ecommerce.ts analytics.ts server.ts   the public entry points
-  core/                  schemas, formats, kit types, prompt assembly, tool provider, sample-data helpers,
-                         metric definitions (metrics.ts), and the why math (explain.ts: shares, mix and rate,
-                         confidence, walks)
-  components/            plain React components (no openui-lang), one folder each
-    HeroMetric/ KpiStrip/ InsightList/ ConversionFunnel/ CohortGrid/ BarList/ ShareBar/ DataStatus/ …
+  core/                  kit contract, prompt assembly, schemas, formats, stats, tool provider,
+                         metric definitions, and the why math (explain.ts)
+    library/             createKitLibrary, row balancing, and the list of shared definitions
+    hooks/  test/        shared hooks (container size, chart hover, series focus, palette); test helpers
+  blocks/                one folder per shared block: its React component, its openui-lang
+                         definition (<Block>.definition.tsx), styles, and tests
+    KpiStrip/ HeroMetric/ InsightList/ ConversionFunnel/ CohortGrid/ BarList/ ShareBar/ DataStatus/ …
     KitLayer/            the page-level layer popups draw on, so cards can't clip them
-    charts/              the kit charts, built like react-ui's charts
-      TrendChart/        TrendChart.tsx, types.ts, parts/, trendGeometry.ts (+ tests), trendChart.scss
-      ProfitWaterfall/   variance walk and profit bridge, waterfallGeometry.ts (+ tests)
-      QuadrantChart/     bubble quadrants (engagement matrix, feature value, products), quadrantGeometry.ts (+ tests)
-      SegmentFlow/       customers moving between segments, flowGeometry.ts (+ tests)
-      SixTwelve/         the weekly review's 6 weeks beside 12 months, sixTwelveGeometry.ts (+ tests)
-      BurnDown/          a commit's use against a straight line through its term, burnGeometry.ts (+ tests)
-      GoalPace/          gauge + pace chart, goalGeometry.ts (+ tests)
-      Tracker/           status strip, trackerUtils.ts (+ tests)
-      Sparkline/         KPI sparkline
-      ColumnChart/       grouped and diverging stacked columns, columnGeometry.ts (+ tests)
-      HeatGrid/          weekday × hour heatmap, heatGeometry.ts (+ tests)
-      shared/            tooltip, legend, crosshair, d3 series geometry, AnimatedPath, spring (ported from react-ui)
-      utils/             scales, pointer → index, formats
-  library/               openui-lang definitions of the shared components, Pending, createKitLibrary
-  hooks/                 container size, chart hover, series focus, kit palette
-  test/                  test helpers (a jsdom harness for components)
-  kits/
-    ecommerce/           kit.ts (prompt and gallery), library.ts, tools.ts, metrics.ts, calendar.ts,
-                         data/ (the sample store by topic, and handlers.ts for the tools),
-                         components/ (one file per component), _ecommerce.scss
-    analytics/           the same shape, plus its tested models: population, moments, workspaces,
-                         experiments, revenue and commit pacing, alert rules
-  styles/                theme tokens and shared primitives
+  charts/                one folder per d3 chart, the same pattern: TrendChart/ ColumnChart/ HeatGrid/
+                         GoalPace/ Tracker/ Sparkline/ ProfitWaterfall/ QuadrantChart/ SegmentFlow/ …
+    shared/ utils/       tooltip, legend, crosshair, series geometry, spring (ported from react-ui); scales
+  ecommerce/             the e-commerce kit: kit.ts (prompt and gallery), library.ts, tools.ts, metrics.ts,
+                         data/ (the sample store by topic; handlers.ts for the tools), blocks/ (one file each)
+  analytics/             the product analytics kit, the same shape, plus its tested models
+                         (population, moments, workspaces, experiments, revenue, alerts)
+  theme/                 theme tokens and base styles (index.scss compiles to dist/styles.css)
 ```
 
 **Every chart is the kit's own, on d3.** `ColumnChart` (grouped, or stacked from zero with negative values below; the lifecycle chart, power user curve, and MRR movements use it), `HeatGrid` (the activity heatmap), the `ShareBar`, the period-over-period `TrendChart` (shaded gap, events, goal lines and benchmark bands, in-progress tail; lines far from zero fit their range, areas keep zero), `GoalPace`, `Tracker`, the KPI `Sparkline`, `ProfitWaterfall`, `SegmentFlow`, `QuadrantChart`, `SixTwelve`, and `BurnDown` all share one interaction model — a gliding hover follower and the shared tooltip, a legend that brings a series forward on hover and pins it on click, arrow keys — and react-ui's architecture: a hook-free empty-state dispatcher, an implementation with parts, d3 scales and d3-shape curves (react-ui's "natural" monotone curve), pure geometry with unit tests, react-ui's motion (a spring data morph so data changes glide, mounted hover followers so the crosshair, dots, and tooltip glide between points, and draw-on entrances), and a stylesheet per chart under the `kit` class prefix. Charts measure before their first paint and snap on resize, so only data changes animate.

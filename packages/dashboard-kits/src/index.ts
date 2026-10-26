@@ -26,36 +26,36 @@ export {
   TrendChart,
   VarianceWalk,
   createKitLibrary,
-} from "./library";
-export type { CardSlot, KitComponent, KitLibraryDefinition } from "./library";
+} from "./core/library";
+export type { CardSlot, KitComponent, KitLibraryDefinition } from "./core/library";
 
 // Plain React components, for use outside openui-lang.
-export { BarList as BarListView } from "./components/BarList";
-export type { BarListProps } from "./components/BarList";
-export { ColumnChart as ColumnChartView } from "./components/charts/ColumnChart";
-export type { ColumnChartProps } from "./components/charts/ColumnChart";
-export { GoalPace as GoalPaceView } from "./components/charts/GoalPace";
-export type { GoalPaceProps } from "./components/charts/GoalPace";
-export { HeatGrid as HeatGridView } from "./components/charts/HeatGrid";
-export type { HeatGridProps } from "./components/charts/HeatGrid";
-export { Sparkline } from "./components/charts/Sparkline";
-export type { SparklineProps } from "./components/charts/Sparkline";
-export { Tracker as TrackerView } from "./components/charts/Tracker";
-export type { TrackerProps } from "./components/charts/Tracker";
-export { TrendChart as TrendChartView } from "./components/charts/TrendChart";
-export type { TrendChartProps, TrendChartSeries } from "./components/charts/TrendChart";
-export { CohortGrid as CohortGridView } from "./components/CohortGrid";
-export type { CohortGridProps } from "./components/CohortGrid";
-export { ConversionFunnel as ConversionFunnelView } from "./components/ConversionFunnel";
-export type { ConversionFunnelProps } from "./components/ConversionFunnel";
-export { HeroMetric as HeroMetricView } from "./components/HeroMetric";
-export type { HeroMetricProps } from "./components/HeroMetric";
-export { InsightList as InsightListView } from "./components/InsightList";
-export type { InsightListProps } from "./components/InsightList";
-export { KpiStrip as KpiStripView } from "./components/KpiStrip";
-export type { KpiStripProps } from "./components/KpiStrip";
-export { ShareBar as ShareBarView } from "./components/ShareBar";
-export type { ShareBarProps } from "./components/ShareBar";
+export { BarList as BarListView } from "./blocks/BarList";
+export type { BarListProps } from "./blocks/BarList";
+export { CohortGrid as CohortGridView } from "./blocks/CohortGrid";
+export type { CohortGridProps } from "./blocks/CohortGrid";
+export { ConversionFunnel as ConversionFunnelView } from "./blocks/ConversionFunnel";
+export type { ConversionFunnelProps } from "./blocks/ConversionFunnel";
+export { HeroMetric as HeroMetricView } from "./blocks/HeroMetric";
+export type { HeroMetricProps } from "./blocks/HeroMetric";
+export { InsightList as InsightListView } from "./blocks/InsightList";
+export type { InsightListProps } from "./blocks/InsightList";
+export { KpiStrip as KpiStripView } from "./blocks/KpiStrip";
+export type { KpiStripProps } from "./blocks/KpiStrip";
+export { ShareBar as ShareBarView } from "./blocks/ShareBar";
+export type { ShareBarProps } from "./blocks/ShareBar";
+export { ColumnChart as ColumnChartView } from "./charts/ColumnChart";
+export type { ColumnChartProps } from "./charts/ColumnChart";
+export { GoalPace as GoalPaceView } from "./charts/GoalPace";
+export type { GoalPaceProps } from "./charts/GoalPace";
+export { HeatGrid as HeatGridView } from "./charts/HeatGrid";
+export type { HeatGridProps } from "./charts/HeatGrid";
+export { Sparkline } from "./charts/Sparkline";
+export type { SparklineProps } from "./charts/Sparkline";
+export { Tracker as TrackerView } from "./charts/Tracker";
+export type { TrackerProps } from "./charts/Tracker";
+export { TrendChart as TrendChartView } from "./charts/TrendChart";
+export type { TrendChartProps, TrendChartSeries } from "./charts/TrendChart";
 
 export type { GalleryDashboard, KitDefinition, KitTool } from "./core/kit";
 export { createToolProvider } from "./core/tool-provider";
