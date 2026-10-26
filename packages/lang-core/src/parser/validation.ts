@@ -1,4 +1,5 @@
 import { isASTNode } from "./ast";
+import { BUILTIN_NAMES } from "./builtins";
 import {
   isElementNode,
   type ElementNode,
@@ -138,6 +139,10 @@ export type ValidationIssue =
   | { code: "inline-reserved" }
   | { code: "excess-args"; declared: number; got: number }
   | { code: "unknown-function" }
+<<<<<<< Updated upstream
+=======
+  | { code: "state-query" }
+>>>>>>> Stashed changes
   | { code: "no-root"; reason: "missing" | "not-component" | "fallback" };
 
 function validationMessage(component: string, path: string, issue: ValidationIssue): string {
@@ -155,6 +160,7 @@ function validationMessage(component: string, path: string, issue: ValidationIss
     case "excess-args":
       return `${component} takes ${issue.declared} arg(s), got ${issue.got} (${issue.got - issue.declared} excess dropped)`;
     case "unknown-function":
+<<<<<<< Updated upstream
       return `Unknown function "@${component}": not a built-in or action step. The call evaluates to null`;
     case "no-root":
       if (issue.reason === "not-component") return "root does not evaluate to a component";
@@ -164,6 +170,44 @@ function validationMessage(component: string, path: string, issue: ValidationIss
       return component
         ? `No root statement, and no statement calls the root component ${component}`
         : "No root statement";
+=======
+      return `Unknown function "@${component}": not a built-in, action step, or registered function. The call evaluates to null`;
+    case "state-query":
+      return `${component}() is bound to a $ name, so reading that name gives the state value, not the result`;
+    case "no-root":
+      switch (issue.reason) {
+        case "missing":
+          return component
+            ? `No root statement, and the first statement does not call the root component ${component}`
+            : "No root statement";
+        case "not-component":
+          return "root does not evaluate to a component";
+        case "fallback":
+          return `No root statement. Rendering the first statement, which calls the root component ${component}`;
+      }
+  }
+}
+
+function validationHint(
+  component: string,
+  statementId: string | undefined,
+  issue: ValidationIssue,
+): string | undefined {
+  switch (issue.code) {
+    case "unknown-function":
+      return `Available functions: ${[...BUILTIN_NAMES]
+        .filter((name) => name !== "Action")
+        .map((name) => `@${name}`)
+        .join(", ")}`;
+    case "state-query":
+      return `name queries without \`$\`: \`${(statementId ?? "$x").slice(1)} = ${component}(...)\``;
+    case "no-root":
+      return issue.reason === "not-component"
+        ? "root must be a component call"
+        : `Start the program with root = ${component || "Component"}(...)`;
+    default:
+      return undefined;
+>>>>>>> Stashed changes
   }
 }
 
@@ -174,14 +218,19 @@ export function pushValidationIssue(
   path: string,
   issue: ValidationIssue,
 ): void {
+  const hint = validationHint(component, ctx.currentStatementId, issue);
   ctx.errors.push({
     code: issue.code,
     component,
     path,
     message: validationMessage(component, path, issue),
     statementId: ctx.currentStatementId,
+<<<<<<< Updated upstream
     ...(issue.code === "no-root" &&
       issue.reason === "fallback" && { severity: "warning" as const }),
+=======
+    ...(hint ? { hint } : {}),
+>>>>>>> Stashed changes
   });
 }
 

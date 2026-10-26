@@ -22,6 +22,19 @@ function resolveField(obj: any, path: string): unknown {
   return cur;
 }
 
+/** Compare two strings by Unicode code point, with no locale. */
+function compareCodePoints(a: string, b: string): number {
+  const ai = a[Symbol.iterator]();
+  const bi = b[Symbol.iterator]();
+  for (;;) {
+    const an = ai.next();
+    const bn = bi.next();
+    if (an.done || bn.done) return an.done === bn.done ? 0 : an.done ? -1 : 1;
+    const diff = an.value.codePointAt(0)! - bn.value.codePointAt(0)!;
+    if (diff !== 0) return diff;
+  }
+}
+
 function toNumber(val: unknown): number {
   if (typeof val === "number") return val;
   if (typeof val === "string") {
@@ -67,11 +80,23 @@ const builtins: BuiltinFunction[] = [
   defineFunction({
     name: "Last",
     description: "Returns last element of array",
+<<<<<<< Updated upstream
     params: z.object({ array: array() }),
     returns: z.any(),
     fn: ({ array }) => (Array.isArray(array) ? (array[array.length - 1] ?? null) : null),
   }),
   defineFunction({
+=======
+    fn: (arr) => (Array.isArray(arr) ? (arr[arr.length - 1] ?? null) : null),
+  },
+  Take: {
+    name: "Take",
+    signature: "Take(array, n) → array",
+    description: "First n elements of array",
+    fn: (arr, n) => (Array.isArray(arr) ? arr.slice(0, Math.max(0, Math.floor(toNumber(n)))) : []),
+  },
+  Sum: {
+>>>>>>> Stashed changes
     name: "Sum",
     description: "Sum of numeric array",
     params: numbers(),
@@ -130,7 +155,7 @@ const builtins: BuiltinFunction[] = [
           const diff = toNumber(av) - toNumber(bv);
           return desc ? -diff : diff;
         }
-        const cmp = String(av ?? "").localeCompare(String(bv ?? ""));
+        const cmp = compareCodePoints(String(av ?? ""), String(bv ?? ""));
         return desc ? -cmp : cmp;
       });
     },

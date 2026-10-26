@@ -479,6 +479,10 @@ function getValidationErrorCounts(
     "excess-args": 0,
     "type-mismatch": 0,
     "unknown-function": 0,
+<<<<<<< Updated upstream
+=======
+    "state-query": 0,
+>>>>>>> Stashed changes
     "no-root": 0,
   };
 

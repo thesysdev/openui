@@ -5,16 +5,26 @@ import {
 } from "../telemetry/runtime";
 import type { ASTNode, Statement } from "./ast";
 import { isASTNode, walkAST } from "./ast";
+<<<<<<< Updated upstream
 import { ACTION_DEFS, BUILTIN_CALLS, isBuiltin, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
 import { materializeValue, nameRawCallArgs } from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
+=======
+import { isBuiltin, isReservedCall, RESERVED_CALLS } from "./builtins";
+import { parseExpression } from "./expressions";
+import { materializeValue, resolveComponentName } from "./materialize";
+import { autoClose, scanStatements, splitStatementText, type RawStmt } from "./statements";
+>>>>>>> Stashed changes
 import { T } from "./tokens";
 import {
   isElementNode,
   type ElementNode,
+<<<<<<< Updated upstream
   type JSONSchemaDef,
+=======
+>>>>>>> Stashed changes
   type LibraryJSONSchema,
   type MaterializeCtx,
   type MutationStatementInfo,
@@ -169,6 +179,7 @@ function extractStatements(
 
 const DEFAULT_ROOT_STATEMENT_ID = "root";
 
+<<<<<<< Updated upstream
 /** A call to a library component: not an `@` function, built-in, Query or Mutation. */
 function isComponentCall(node: ASTNode | undefined): node is Extract<ASTNode, { k: "Comp" }> {
   return node?.k === "Comp" && !node.fn && !isBuiltin(node.name) && !isReservedCall(node.name);
@@ -184,39 +195,109 @@ function pickEntry(
   for (const stmt of stmtMap.values()) {
     if (stmt.kind === "value" && isComponentCall(stmt.expr) && stmt.expr.name === rootName)
       return { id: stmt.id, fallback: true };
+=======
+function isComponentStatement(
+  stmt: Statement,
+): stmt is Extract<Statement, { kind: "value" }> & { expr: Extract<ASTNode, { k: "Comp" }> } {
+  return (
+    stmt.kind === "value" &&
+    stmt.expr.k === "Comp" &&
+    !stmt.expr.fn &&
+    !isBuiltin(stmt.expr.name) &&
+    !isReservedCall(stmt.expr.name)
+  );
+}
+
+/**
+ * Pick the entry statement (spec section 2.2): the statement named `root`,
+ * else the first statement when it calls the library's root component
+ * (`fallback`, reported as a non-fatal no-root at stream end), else none.
+ */
+function pickEntry(
+  stmtMap: Map<string, Statement>,
+  firstId: string,
+  cat: ParamMap | undefined,
+  rootName?: string,
+): { id: string; fallback: boolean } | null {
+  if (stmtMap.has(DEFAULT_ROOT_STATEMENT_ID)) {
+    return { id: DEFAULT_ROOT_STATEMENT_ID, fallback: false };
+  }
+  const first = stmtMap.get(firstId);
+  if (
+    rootName &&
+    first &&
+    isComponentStatement(first) &&
+    resolveComponentName(cat, first.expr.name) === rootName
+  ) {
+    return { id: firstId, fallback: true };
+>>>>>>> Stashed changes
   }
   return null;
 }
 
+<<<<<<< Updated upstream
 /** Follow refs to the entry's value; a component call that did not render was dropped by validation. */
 function resolvesToComponentCall(node: ASTNode | undefined, syms: Map<string, ASTNode>): boolean {
+=======
+/**
+ * True when `node` is a component call, directly or through references. Such an
+ * entry that did not render was dropped by validation, which already reported why.
+ */
+function isComponentCall(node: ASTNode | undefined, syms: Map<string, ASTNode>): boolean {
+>>>>>>> Stashed changes
   const seen = new Set<string>();
   while (node?.k === "Ref" && !seen.has(node.n)) {
     seen.add(node.n);
     node = syms.get(node.n);
   }
+<<<<<<< Updated upstream
   return isComponentCall(node);
+=======
+  return node?.k === "Comp" && !node.fn && !isBuiltin(node.name) && !isReservedCall(node.name);
+>>>>>>> Stashed changes
 }
 
 /** True when a runtime expression can produce a component, e.g. `$t ? A : B`. */
 function containsComponent(node: ASTNode): boolean {
   let found = false;
   walkAST(node, (current) => {
+<<<<<<< Updated upstream
     if (isComponentCall(current)) found = true;
+=======
+    if (
+      current.k === "Comp" &&
+      !current.fn &&
+      !isBuiltin(current.name) &&
+      !isReservedCall(current.name)
+    ) {
+      found = true;
+    }
+>>>>>>> Stashed changes
   });
   return found;
 }
 
 function buildResult(
   stmtMap: Map<string, Statement>,
+<<<<<<< Updated upstream
   typedStmts: Statement[],
+=======
+  firstId: string,
+>>>>>>> Stashed changes
   wasIncomplete: boolean,
-  stmtCount: number,
   cat: ParamMap | undefined,
+<<<<<<< Updated upstream
   rootName?: string,
   partialRef?: PartialRef,
 ): ParseResult {
   const entry = pickEntry(stmtMap, rootName);
+=======
+  rootName: string | undefined,
+  final: boolean,
+): ParseResult {
+  const entry = pickEntry(stmtMap, firstId, cat, rootName);
+  const typedStmts = [...stmtMap.values()];
+>>>>>>> Stashed changes
 
   const syms = new Map<string, ASTNode>();
   for (const [id, stmt] of stmtMap) {
@@ -246,7 +327,14 @@ function buildResult(
   let root: ElementNode | null = null;
   let rootExpression: ASTNode | undefined;
   if (entry) {
+<<<<<<< Updated upstream
     const materialized = materializeValue(syms.get(entry.id)!, ctx);
+=======
+    // A reference back to the entry closes a cycle, so it is unresolved.
+    ctx.visited.add(entry.id);
+    const materialized = materializeValue(syms.get(entry.id)!, ctx);
+    ctx.visited.delete(entry.id);
+>>>>>>> Stashed changes
     if (isElementNode(materialized)) {
       root = materialized;
       root.statementId = entry.id;
@@ -261,6 +349,7 @@ function buildResult(
     partialRef,
   );
 
+<<<<<<< Updated upstream
   // Streaming consumers drop parser errors until the stream ends, so this reads as a stream-end check.
   ctx.currentStatementId = entry?.id;
   const component = rootName ?? "";
@@ -277,6 +366,30 @@ function buildResult(
 
   // With no entry nothing is reachable; `no-root` alone describes the problem.
   const orphaned = entry ? [...unreached] : [];
+=======
+  // `$x = Query(...)` runs, but `$x` in an expression reads the state store.
+  for (const stmt of typedStmts) {
+    if ((stmt.kind === "query" || stmt.kind === "mutation") && stmt.id.startsWith("$")) {
+      ctx.currentStatementId = stmt.id;
+      pushValidationIssue(ctx, stmt.call.callee, "", { code: "state-query" });
+    }
+  }
+
+  // The entry is checked only once the stream has ended.
+  if (final) {
+    ctx.currentStatementId = entry?.id;
+    const component = rootName ?? "";
+    if (!entry) {
+      pushValidationIssue(ctx, component, "", { code: "no-root", reason: "missing" });
+    } else if (!root && !rootExpression && !isComponentCall(syms.get(entry.id), syms)) {
+      pushValidationIssue(ctx, component, "", { code: "no-root", reason: "not-component" });
+    } else if (entry.fallback) {
+      pushValidationIssue(ctx, component, "", { code: "no-root", reason: "fallback" });
+    }
+  }
+
+  const orphaned = [...unreached];
+>>>>>>> Stashed changes
 
   return {
     root,
@@ -285,13 +398,30 @@ function buildResult(
       incomplete: wasIncomplete,
       unresolved: unres,
       orphaned,
-      statementCount: stmtCount,
+      statementCount: stmtMap.size,
       errors: errors,
     },
     stateDeclarations,
     queryStatements,
     mutationStatements,
   };
+}
+
+/** Parse statement texts into `stmtMap` (last definition wins). Returns the first statement id. */
+function addStatements(
+  text: string,
+  stmtMap: Map<string, Statement>,
+  skip?: (id: string) => boolean,
+): string {
+  let firstId = "";
+  for (const [start, end] of scanStatements(text).ranges) {
+    const raw = splitStatementText(text.slice(start, end));
+    if (!raw) continue;
+    if (!firstId) firstId = raw.id;
+    if (skip?.(raw.id)) continue;
+    stmtMap.set(raw.id, classifyStatement(raw, parseExpression(raw.tokens)));
+  }
+  return firstId;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -314,45 +444,30 @@ function skipString(input: string, start: number): number {
   return i; // return length if string was unclosed
 }
 
+/** Index of the next ``` that starts a line, at or after `from`, or -1. */
+function findFenceOpen(input: string, from: number): number {
+  let i = input.indexOf("```", from);
+  while (i > 0 && input[i - 1] !== "\n") i = input.indexOf("```", i + 1);
+  return i;
+}
+
 /** Extract code from markdown fences, or return as-is if no fences found.
- *  String-context-aware: skips ``` inside double-quoted strings. */
+ *  A fence opens only with ``` at the start of a line; prose quotes shield
+ *  nothing. Inside a fence, ``` inside double-quoted strings does not close it. */
 export function stripFences(input: string): string {
   const blocks: string[] = [];
   let i = 0;
 
   while (i < input.length) {
-    // Scan for opening ``` while tracking string context
-    let fenceStart = -1;
-    while (i < input.length) {
-      const nextI = skipString(input, i);
-      if (nextI > i) {
-        i = nextI;
-        continue;
-      }
-
-      const c = input[i];
-      if (
-        c === "`" &&
-        i + 1 < input.length &&
-        input[i + 1] === "`" &&
-        i + 2 < input.length &&
-        input[i + 2] === "`"
-      ) {
-        fenceStart = i;
-        break;
-      }
-      i++;
-    }
-
+    const fenceStart = findFenceOpen(input, i);
     if (fenceStart === -1) break;
 
     // Skip language tag until newline
     let j = fenceStart + 3;
     while (j < input.length && input[j] !== "\n") j++;
     if (j >= input.length) {
-      // No newline after opening fence (streaming) — take everything after fence marker + lang tag
-      blocks.push(input.slice(fenceStart + 3).replace(/^[^\n]*\n?/, ""));
-      i = input.length;
+      // No newline after opening fence (streaming): the language tag is still arriving
+      blocks.push("");
       break;
     }
     j++; // skip the newline
@@ -366,14 +481,7 @@ export function stripFences(input: string): string {
         k = nextK;
         continue;
       }
-      const c = input[k];
-      if (
-        c === "`" &&
-        k + 1 < input.length &&
-        input[k + 1] === "`" &&
-        k + 2 < input.length &&
-        input[k + 2] === "`"
-      ) {
+      if (input.startsWith("```", k)) {
         closePos = k;
         break;
       }
@@ -384,29 +492,13 @@ export function stripFences(input: string): string {
       blocks.push(input.slice(j, closePos));
       i = closePos + 3;
     } else {
-      // No closing fence found (streaming) — take everything after opening fence
+      // No closing fence found (streaming): take everything after opening fence
       blocks.push(input.slice(j));
-      i = input.length;
+      break;
     }
   }
 
-  if (blocks.length > 0) return blocks.join("\n");
-
-  // Fallback: if input starts with ``` but wasn't matched (e.g. no newline after fence)
-  if (input.startsWith("```")) {
-    let j = 3;
-    while (j < input.length && input[j] !== "\n") j++;
-    const start = j < input.length ? j + 1 : 3;
-    // Try to strip trailing ```
-    const body = input.slice(start);
-    const trailingFence = body.lastIndexOf("```");
-    if (trailingFence !== -1) {
-      return body.slice(0, trailingFence);
-    }
-    return body;
-  }
-
-  return input;
+  return blocks.length > 0 ? blocks.join("\n") : input;
 }
 
 /** Strip // and # line comments outside of strings (handles both " and ' delimiters). */
@@ -444,7 +536,7 @@ function stripComments(input: string): string {
 }
 
 /** Clean LLM response: strip fences, comments, whitespace. */
-function preprocess(input: string): string {
+export function preprocess(input: string): string {
   return stripComments(stripFences(input.trim())).trim();
 }
 
@@ -460,10 +552,8 @@ export function parse(input: string, cat: ParamMap, rootName?: string): ParseRes
   if (!trimmed) return emptyResult();
 
   const { text, wasIncomplete } = autoClose(trimmed);
-  const stmts = split(tokenize(text));
-  if (!stmts.length) return emptyResult(wasIncomplete);
-
   const stmtMap = new Map<string, Statement>();
+<<<<<<< Updated upstream
   for (const s of stmts) {
     const expr = parseExpression(s.tokens);
     const stmt = classifyStatement(s, expr);
@@ -473,6 +563,12 @@ export function parse(input: string, cat: ParamMap, rootName?: string): ParseRes
   const typedStmts = [...stmtMap.values()];
 
   return buildResult(stmtMap, typedStmts, wasIncomplete, stmtMap.size, cat, rootName);
+=======
+  const firstId = addStatements(text, stmtMap);
+  if (!stmtMap.size) return emptyResult(wasIncomplete);
+
+  return buildResult(stmtMap, firstId, wasIncomplete, cat, rootName, true);
+>>>>>>> Stashed changes
 }
 
 export interface StreamParser {
@@ -484,7 +580,19 @@ export interface StreamParser {
    *  Pass `complete` once the stream has ended. */
   set(fullText: string, complete?: boolean): ParseResult;
   /** Get the latest ParseResult without consuming new data. */
+<<<<<<< Updated upstream
   getResult(complete?: boolean): ParseResult;
+=======
+  getResult(): ParseResult;
+  /**
+   * Signal the end of the stream and get the final ParseResult. The pending
+   * tail becomes completed (including a redefinition of an earlier name) and
+   * end-of-stream checks such as `no-root` run, so the result equals `parse()`
+   * of the full text. A later `push()` starts a new stream; a later `set()`
+   * continues from the text it is given.
+   */
+  end(): ParseResult;
+>>>>>>> Stashed changes
 }
 
 export function createStreamParser(cat: ParamMap, rootName?: string): StreamParser {
@@ -496,6 +604,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
   let cleaned = "";
   let completedEnd = 0; // watermark: how far into `cleaned` is already completed
   const completedStmtMap = new Map<string, Statement>();
+<<<<<<< Updated upstream
 
   let completedCount = 0;
 
@@ -510,6 +619,10 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       completedCount++;
     }
   }
+=======
+  let firstId = "";
+  let ended = false;
+>>>>>>> Stashed changes
 
   // Recompute `cleaned` from `buf`. If the already-completed prefix is no longer
   // a prefix of the new cleaned text (e.g. an opening ```fence``` just appeared
@@ -521,73 +634,33 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     if (!next.startsWith(cleaned.slice(0, completedEnd))) {
       completedEnd = 0;
       completedStmtMap.clear();
+<<<<<<< Updated upstream
       completedCount = 0;
+=======
+      firstId = "";
+>>>>>>> Stashed changes
     }
     cleaned = next;
   }
 
+  // Move statements whose boundary is decided into the completed cache.
+  // Returns the start of the pending (not yet completed) text.
   function scanNewCompleted(): number {
-    let depth = 0,
-      ternaryDepth = 0,
-      inStr: false | '"' | "'" = false,
-      esc = false;
-    let stmtStart = completedEnd;
-
-    for (let i = completedEnd; i < cleaned.length; i++) {
-      const c = cleaned[i];
-      if (esc) {
-        esc = false;
-        continue;
+    const { ranges, pendingStart } = scanStatements(cleaned, completedEnd, false);
+    for (const [start, end] of ranges) {
+      const raw = splitStatementText(cleaned.slice(start, end));
+      if (raw) {
+        completedStmtMap.set(raw.id, classifyStatement(raw, parseExpression(raw.tokens)));
+        if (!firstId) firstId = raw.id;
       }
-      if (c === "\\" && inStr) {
-        esc = true;
-        continue;
-      }
-      if (inStr) {
-        if (c === inStr) inStr = false;
-        continue;
-      }
-      if (c === '"' || c === "'") {
-        inStr = c;
-        continue;
-      }
-
-      if (c === "(" || c === "[" || c === "{") depth++;
-      else if (c === ")" || c === "]" || c === "}") depth = Math.max(0, depth - 1);
-      // Track ternary ? and : at bracket depth 0 (colons inside {} are object key separators)
-      else if (c === "?" && depth === 0) ternaryDepth++;
-      else if (c === ":" && depth === 0 && ternaryDepth > 0) ternaryDepth--;
-      else if (c === "\n" && depth <= 0 && ternaryDepth <= 0) {
-        // Before splitting, look ahead past whitespace to see if the next
-        // meaningful character is `?` or `:` — ternary continuation.
-        let peek = i + 1;
-        while (
-          peek < cleaned.length &&
-          (cleaned[peek] === " " ||
-            cleaned[peek] === "\t" ||
-            cleaned[peek] === "\r" ||
-            cleaned[peek] === "\n")
-        )
-          peek++;
-        if (
-          peek < cleaned.length &&
-          (cleaned[peek] === "?" || (cleaned[peek] === ":" && ternaryDepth > 0))
-        ) {
-          continue; // ternary continuation — don't split
-        }
-        // Depth-0 newline = end of a statement
-        const t = cleaned.slice(stmtStart, i).trim();
-        if (t) addStmt(t);
-        stmtStart = i + 1; // next statement begins after this newline
-        completedEnd = i + 1; // advance the "already processed" watermark
-      }
+      completedEnd = end + 1;
     }
-
-    return stmtStart; // start of the current pending (incomplete) statement
+    return pendingStart;
   }
 
   function currentResult(complete = false): ParseResult {
     refreshCleaned();
+<<<<<<< Updated upstream
     const pendingStart = scanNewCompleted();
     const pendingText = cleaned.slice(pendingStart).trim();
 
@@ -603,10 +676,14 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         rootName,
       );
     }
+=======
+    const pendingText = cleaned.slice(scanNewCompleted()).trim();
+>>>>>>> Stashed changes
 
     // `cleaned` is already preprocessed (fences + comments stripped); just
     // autoclose the incomplete trailing statement so it's syntactically valid.
     const { text: closed, wasIncomplete } = autoClose(pendingText);
+<<<<<<< Updated upstream
     const stmts = split(tokenize(closed));
 
     if (!stmts.length) {
@@ -652,7 +729,19 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       cat,
       rootName,
       tailName ? { name: tailName, stmts: pendingStmts } : undefined,
+=======
+    const allStmtMap = new Map(completedStmtMap);
+    // While streaming, a pending statement that needed implicit closing never
+    // replaces a completed one. At stream end it does.
+    const pendingFirstId = addStatements(
+      closed,
+      allStmtMap,
+      (id) => !ended && wasIncomplete && completedStmtMap.has(id),
+>>>>>>> Stashed changes
     );
+
+    if (!allStmtMap.size) return emptyResult(cleaned ? wasIncomplete : true);
+    return buildResult(allStmtMap, firstId || pendingFirstId, wasIncomplete, cat, rootName, ended);
   }
 
   function reset() {
@@ -660,15 +749,31 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     cleaned = "";
     completedEnd = 0;
     completedStmtMap.clear();
+<<<<<<< Updated upstream
     completedCount = 0;
   }
 
   return {
     push(chunk, complete) {
+=======
+    firstId = "";
+    ended = false;
+  }
+
+  return {
+    push(chunk) {
+      // Chunks after the end signal are a new stream.
+      if (ended) reset();
+>>>>>>> Stashed changes
       buf += chunk;
       return currentResult(complete);
     },
+<<<<<<< Updated upstream
     set(fullText, complete) {
+=======
+    set(fullText) {
+      ended = false;
+>>>>>>> Stashed changes
       if (fullText.length < buf.length || !fullText.startsWith(buf)) {
         reset();
       }
@@ -677,6 +782,10 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       return currentResult(complete);
     },
     getResult: currentResult,
+    end() {
+      ended = true;
+      return currentResult();
+    },
   };
 }
 
@@ -713,6 +822,7 @@ function compileParams(def: JSONSchemaDef, defs: ActionDefs): ParamDef[] {
 
 export function compileSchema(schema: LibraryJSONSchema): ParamMap {
   const map: ParamMap = new Map();
+<<<<<<< Updated upstream
   const components = schema.properties && new Set(Object.keys(schema.properties));
   // Action $defs (ActionExpression, OpenUrl, custom actions) are data shapes, never components
   const defs: ActionDefs = new Map();
@@ -732,6 +842,23 @@ export function compileSchema(schema: LibraryJSONSchema): ParamMap {
   }
   for (const [name, action] of Object.entries(schema.actions ?? {})) {
     map.callDefs.set(name, { kind: "action", params: compileParams(action.params, defs) });
+=======
+  const defs = schema.$defs ?? {};
+
+  for (const [name, def] of Object.entries(defs)) {
+    const properties = def.properties ?? {};
+    const required = def.required ?? [];
+    const params = Object.keys(properties).map((key) => ({
+      name: key,
+      required: required.includes(key),
+      defaultValue: getSchemaDefaultValue(properties[key]),
+      schema: properties[key],
+    }));
+    const aliases = Array.isArray(def.aliases)
+      ? def.aliases.filter((alias): alias is string => typeof alias === "string")
+      : [];
+    map.set(name, aliases.length ? { params, aliases } : { params });
+>>>>>>> Stashed changes
   }
   return map;
 }

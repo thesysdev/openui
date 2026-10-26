@@ -140,6 +140,11 @@ export function parseExpression(tokens: Token[]): ASTNode {
     if (tok.t === T.BuiltinCall) {
       if (tokens[pos + 1]?.t === T.LParen) {
         const call = parseComp();
+<<<<<<< Updated upstream
+=======
+        // Mark `@Name(...)` calls that are not built-ins so materialization can
+        // report them as unknown functions instead of unknown components.
+>>>>>>> Stashed changes
         if (call.k === "Comp" && !isBuiltin(call.name)) call.fn = true;
         return call;
       }
@@ -259,11 +264,13 @@ export function parseExpression(tokens: Token[]): ASTNode {
     if (tok.t === T.Dot) {
       adv(); // consume .
       const fieldTok = cur();
+      // A digit field is an index: `m.0.1` is `m[0][1]`
+      if (fieldTok.t === T.Num) {
+        adv();
+        return { k: "Index", obj: left, index: { k: "Num", v: fieldTok.v as number } };
+      }
       const field =
-        fieldTok.t === T.Ident ||
-        fieldTok.t === T.Type ||
-        fieldTok.t === T.Str ||
-        fieldTok.t === T.Num
+        fieldTok.t === T.Ident || fieldTok.t === T.Type || fieldTok.t === T.Str
           ? (adv(), String(fieldTok.v))
           : fieldTok.t === T.StateVar
             ? (adv(), (fieldTok.v as string).replace(/^\$/, ""))

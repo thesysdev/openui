@@ -74,8 +74,9 @@ export function tokenize(src: string): Token[] {
     // ── Equals / EqEq ─────────────────────────────────────────────────
     if (c === "=") {
       if (i + 1 < n && src[i + 1] === "=") {
+        // `===` means exactly `==`
         tokens.push({ t: T.EqEq });
-        i += 2;
+        i += i + 2 < n && src[i + 2] === "=" ? 3 : 2;
       } else {
         tokens.push({ t: T.Equals });
         i++;
@@ -86,8 +87,9 @@ export function tokenize(src: string): Token[] {
     // ── Not / NotEq ───────────────────────────────────────────────────
     if (c === "!") {
       if (i + 1 < n && src[i + 1] === "=") {
+        // `!==` means exactly `!=`
         tokens.push({ t: T.NotEq });
-        i += 2;
+        i += i + 2 < n && src[i + 2] === "=" ? 3 : 2;
       } else {
         tokens.push({ t: T.Not });
         i++;
@@ -185,66 +187,11 @@ export function tokenize(src: string): Token[] {
       continue;
     }
 
-    // ── String literal: "..." ─────────────────────────────────────────
-    if (c === '"') {
-      const start = i;
-      i++; // skip opening quote
-      let isClosed = false;
-      // Fast-forward to the closing quote, respecting escapes
-      while (i < n) {
-        if (src[i] === "\\") {
-          i += 2; // skip backslash and the escaped character
-        } else if (src[i] === '"') {
-          i++; // include the closing quote
-          isClosed = true;
-          break;
-        } else {
-          i++;
-        }
-      }
-      const rawString = src.slice(start, i);
-      try {
-        // Let JavaScript's native JSON parser handle all unescaping (\n, \t, \uXXXX, etc.)
-        // If the string is incomplete (streaming), we add a closing quote to parse what we have so far.
-        const validJsonString = isClosed ? rawString : rawString + '"';
-        tokens.push({ t: T.Str, v: JSON.parse(validJsonString) });
-      } catch {
-        // Fallback if JSON.parse fails (e.g., malformed unicode escape during streaming)
-        // Strip the quotes and return the raw text so the UI doesn't crash
-        const stripped = rawString.replace(/^"|"$/g, "");
-        tokens.push({ t: T.Str, v: stripped });
-      }
-      continue;
-    }
-
-    // ── String literal: '...' (single quotes) ────────────────────────
-    if (c === "'") {
-      i++; // skip opening quote
-      let result = "";
-      let isClosed = false;
-      while (i < n) {
-        if (src[i] === "\\") {
-          i++; // skip backslash
-          if (i < n) {
-            const esc = src[i];
-            if (esc === "'") result += "'";
-            else if (esc === "\\") result += "\\";
-            else if (esc === "n") result += "\n";
-            else if (esc === "t") result += "\t";
-            else result += esc; // pass through other escaped chars
-            i++;
-          }
-        } else if (src[i] === "'") {
-          i++; // skip closing quote
-          isClosed = true;
-          break;
-        } else {
-          result += src[i];
-          i++;
-        }
-      }
-      void isClosed; // consumed for streaming parity with double-quote path
-      tokens.push({ t: T.Str, v: result });
+    // ── String literal: "..." or '...' ───────────────────────────────
+    if (c === '"' || c === "'") {
+      const { value, end } = readString(src, i);
+      tokens.push({ t: T.Str, v: value });
+      i = end;
       continue;
     }
 
@@ -277,6 +224,14 @@ export function tokenize(src: string): Token[] {
 
     // ── Number literal: 42, -3, 1.5, 1e10 ────────────────────────────
     const isDigit = c >= "0" && c <= "9";
+    // After `.`, a run of digits is an integer field (`m.0.1` is `m[0][1]`),
+    // never a decimal number.
+    if (isDigit && tokens.length > 0 && tokens[tokens.length - 1].t === T.Dot) {
+      const start = i;
+      while (i < n && src[i] >= "0" && src[i] <= "9") i++;
+      tokens.push({ t: T.Num, v: +src.slice(start, i) });
+      continue;
+    }
     const isNegDigit = c === "-" && i + 1 < n && src[i + 1] >= "0" && src[i + 1] <= "9";
     if (isDigit || isNegDigit) {
       const start = i;
@@ -377,4 +332,58 @@ export function tokenize(src: string): Token[] {
 
   tokens.push({ t: T.EOF });
   return tokens;
+}
+
+const DOUBLE_QUOTE_ESCAPES: Record<string, string> = {
+  '"': '"',
+  "\\": "\\",
+  "/": "/",
+  b: "\b",
+  f: "\f",
+  n: "\n",
+  r: "\r",
+  t: "\t",
+};
+
+const SINGLE_QUOTE_ESCAPES: Record<string, string> = {
+  "'": "'",
+  "\\": "\\",
+  n: "\n",
+  t: "\t",
+};
+
+/**
+ * Read a string literal starting at `start` (which holds the opening quote).
+ *
+ * Double-quoted strings use JSON escapes, single-quoted strings support only
+ * `\'`, `\\`, `\n` and `\t`. Any other escaped character is kept as is
+ * (without the backslash). Raw newlines are allowed inside strings. An
+ * unterminated string runs to the end of the input.
+ */
+function readString(src: string, start: number): { value: string; end: number } {
+  const quote = src[start];
+  const escapes = quote === '"' ? DOUBLE_QUOTE_ESCAPES : SINGLE_QUOTE_ESCAPES;
+  const n = src.length;
+  let value = "";
+  let i = start + 1;
+  while (i < n) {
+    const c = src[i];
+    if (c === quote) return { value, end: i + 1 };
+    if (c !== "\\") {
+      value += c;
+      i++;
+      continue;
+    }
+    i++; // skip backslash
+    if (i >= n) break;
+    const esc = src[i];
+    if (quote === '"' && esc === "u" && /^[0-9a-fA-F]{4}$/.test(src.slice(i + 1, i + 5))) {
+      value += String.fromCharCode(parseInt(src.slice(i + 1, i + 5), 16));
+      i += 5;
+      continue;
+    }
+    value += escapes[esc] ?? esc;
+    i++;
+  }
+  return { value, end: n };
 }

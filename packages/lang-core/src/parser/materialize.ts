@@ -3,9 +3,15 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { ASTNode } from "./ast";
+<<<<<<< Updated upstream
 import { isASTNode, isRuntimeExpr, literalValue, toLiteralAST, walkAST } from "./ast";
 import { getCallDefs, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { isElementNode, type CallDef, type MaterializeCtx, type ParamDef } from "./types";
+=======
+import { isASTNode, isRuntimeExpr } from "./ast";
+import { isBuiltin, isReservedCall, LAZY_BUILTINS, RESERVED_CALLS } from "./builtins";
+import { isElementNode, type MaterializeCtx, type ParamMap } from "./types";
+>>>>>>> Stashed changes
 import {
   buildParamsSignature,
   INVALID,
@@ -29,6 +35,19 @@ export function containsDynamicValue(v: unknown): boolean {
   // A `{steps: [...]}` literal is evaluated too, so data cannot pose as custom action steps
   if (Array.isArray(obj.steps)) return true;
   return Object.values(obj).some(containsDynamicValue);
+}
+
+/**
+ * Resolve a call name to its library component name: the name itself, or the
+ * component that lists it in `aliases`. Returns undefined for unknown names.
+ */
+export function resolveComponentName(cat: ParamMap | undefined, name: string): string | undefined {
+  if (!cat) return undefined;
+  if (cat.has(name)) return name;
+  for (const [componentName, def] of cat) {
+    if (def.aliases?.includes(name)) return componentName;
+  }
+  return undefined;
 }
 
 /**
@@ -200,7 +219,11 @@ function materializeExprInternal(
       return node;
 
     case "Comp": {
+<<<<<<< Updated upstream
       if (node.fn && !isRuntimeCall(node.name, ctx)) {
+=======
+      if (node.fn) {
+>>>>>>> Stashed changes
         pushValidationIssue(ctx, node.name, "", { code: "unknown-function" });
         return { k: "Null" };
       }
@@ -212,13 +235,14 @@ function materializeExprInternal(
       }
       const recursedArgs = node.args.map((a) => materializeExprInternal(a, ctx, scopedRefs));
       // Catalog component: add mappedProps for the evaluator
-      const def = ctx.cat?.get(node.name);
-      if (def) {
+      const componentName = resolveComponentName(ctx.cat, node.name);
+      const def = componentName ? ctx.cat?.get(componentName) : undefined;
+      if (componentName && def) {
         const mappedProps: Record<string, ASTNode> = {};
         for (let i = 0; i < def.params.length && i < recursedArgs.length; i++) {
           mappedProps[def.params[i].name] = recursedArgs[i];
         }
-        return { ...node, args: recursedArgs, mappedProps };
+        return { ...node, name: componentName, args: recursedArgs, mappedProps };
       }
       // Unknown component in expression: push error (same as value path)
       pushValidationIssue(ctx, node.name, "", {
@@ -229,7 +253,13 @@ function materializeExprInternal(
     }
 
     case "Arr":
-      return { ...node, els: node.els.map((e) => materializeExprInternal(e, ctx, scopedRefs)) };
+      return {
+        ...node,
+        els: node.els
+          .map((e) => materializeExprInternal(e, ctx, scopedRefs))
+          // An unresolved reference in an array is left out, not a null hole
+          .filter((e) => e.k !== "Ph"),
+      };
     case "Obj":
       return {
         ...node,
@@ -329,19 +359,34 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
 
     // ── Component nodes ──────────────────────────────────────────────────
     case "Comp": {
-      const { name, args } = node;
+      const { args } = node;
 
+      // `@Name(...)` that is not a built-in: unknown function, evaluates to null
+      if (node.fn) {
+        pushValidationIssue(ctx, node.name, "", { code: "unknown-function" });
+        return null;
+      }
+
+<<<<<<< Updated upstream
       if (node.fn && !isRuntimeCall(name, ctx)) {
         pushValidationIssue(ctx, name, "", { code: "unknown-function" });
         return null;
+=======
+      // Builtins (Sum, Count, Filter, Action, etc.) → preserve as ASTNode for runtime
+      if (isBuiltin(node.name)) {
+        const lazy = materializeLazyBuiltin(node, ctx, new Set());
+        if (lazy) return lazy;
+        return { ...node, args: args.map((a) => materializeExpr(a, ctx)) };
+>>>>>>> Stashed changes
       }
 
       // Inline Query/Mutation (not from a statement-level declaration) → validation error
-      if (isReservedCall(name)) {
-        pushValidationIssue(ctx, name, "", { code: "inline-reserved" });
+      if (isReservedCall(node.name)) {
+        pushValidationIssue(ctx, node.name, "", { code: "inline-reserved" });
         return null;
       }
 
+<<<<<<< Updated upstream
       // Built-ins, library functions and action steps → preserve as ASTNode for runtime
       if (isRuntimeCall(name, ctx)) {
         const lazy = materializeLazyBuiltin(node, ctx, new Set());
@@ -349,6 +394,10 @@ export function materializeValue(node: ASTNode, ctx: MaterializeCtx): unknown {
         return materializeCall(node, ctx, (a) => materializeExpr(a, ctx));
       }
 
+=======
+      // A call to an alias resolves to the aliased component
+      const name = resolveComponentName(ctx.cat, node.name) ?? node.name;
+>>>>>>> Stashed changes
       const def = ctx.cat?.get(name);
       const props: Record<string, unknown> = {};
 

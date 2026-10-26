@@ -127,7 +127,13 @@ export function useOpenUIState(
       : null;
     if (!bundle.program) return null;
     try {
+<<<<<<< Updated upstream
       return sp.set(bundle.program, !isStreaming);
+=======
+      const streamed = sp.set(response);
+      // The host ends the stream: finalize so the result equals a batch parse.
+      return isStreaming ? streamed : sp.end();
+>>>>>>> Stashed changes
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       parseExceptionRef.current = {
@@ -138,7 +144,11 @@ export function useOpenUIState(
       };
       return null;
     }
+<<<<<<< Updated upstream
   }, [sp, bundle.program, bundle.error, isStreaming]);
+=======
+  }, [sp, response, isStreaming]);
+>>>>>>> Stashed changes
 
   // ─── Store (holds everything: $bindings + form fields) ───
   const store = useMemo<Store>(() => createStore(), []);

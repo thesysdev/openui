@@ -33,7 +33,11 @@ export type ASTNode =
       name: string;
       args: ASTNode[];
       mappedProps?: Record<string, ASTNode>;
+<<<<<<< Updated upstream
       /** Set on an `@Name(...)` call whose name is not a built-in or action step. */
+=======
+      /** True for an `@Name(...)` call whose name is not a built-in or action step. */
+>>>>>>> Stashed changes
       fn?: true;
     }
   | { k: "Str"; v: string }

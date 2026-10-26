@@ -44,6 +44,7 @@ export function enrichErrors(
     } else if (ve.code === "inline-reserved") {
       error.hint = `Declare as a top-level statement: myVar = ${ve.component}(...)`;
     }
+    if (ve.hint) error.hint = ve.hint;
     return error;
   });
 }
