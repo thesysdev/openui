@@ -1,0 +1,3 @@
+root = Stack([Table([Col("Rounded", @Round(amounts, 1)), Col("Floor", @Floor(amounts)), Col("Ceil", @Ceil(amounts)), Col("Abs", @Abs(changes))]), Metric("One", @Round(2.345, 2))])
+amounts = [1.26, 2.71, null]
+changes = [-3, 4.5, [-1, -2]]

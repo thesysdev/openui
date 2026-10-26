@@ -33,9 +33,15 @@ function toNumber(val: unknown): number {
 }
 
 const sumOf = (arr: unknown[]) => arr.reduce((a: number, b: unknown) => a + toNumber(b), 0);
+/** Applies a numeric function to a number, or to each element of a list (nested lists too); null elements stay null. */
+// Typed as the prompt shows it (number | number[]); nested lists and null elements pass through too.
+const elementwise = (value: unknown, fn: (n: number) => number): number | number[] =>
+  Array.isArray(value)
+    ? (value.map((item) => (item == null ? null : elementwise(item, fn))) as number[])
+    : fn(toNumber(value));
+const numberOrList = () => z.union([z.number(), z.array(z.number())]);
 const array = () => z.array(z.any());
 const numbers = () => z.object({ numbers: z.array(z.number()) });
-const number = () => z.object({ number: z.number() });
 
 /** A built-in function. A lazy one (@Each) has no `fn`: the evaluator runs it on raw args. */
 export type BuiltinFunction = Omit<DefinedFunction<any, any>, "fn"> & {
@@ -168,36 +174,35 @@ const builtins: BuiltinFunction[] = [
   }),
   defineFunction({
     name: "Round",
-    description: "Round to N decimal places (default 0)",
-    params: z.object({ number: z.number(), decimals: z.number().optional() }),
-    returns: z.number(),
+    description: "Round to N decimal places (default 0). A list is rounded element by element",
+    params: z.object({ number: numberOrList(), decimals: z.number().optional() }),
+    returns: numberOrList(),
     fn: ({ number, decimals }) => {
-      const num = toNumber(number);
       const d = decimals != null ? toNumber(decimals) : 0;
       const factor = Math.pow(10, d);
-      return Math.round(num * factor) / factor;
+      return elementwise(number, (n) => Math.round(n * factor) / factor);
     },
   }),
   defineFunction({
     name: "Abs",
-    description: "Absolute value",
-    params: number(),
-    returns: z.number(),
-    fn: ({ number }) => Math.abs(toNumber(number)),
+    description: "Absolute value. A list is handled element by element",
+    params: z.object({ number: numberOrList() }),
+    returns: numberOrList(),
+    fn: ({ number }) => elementwise(number, Math.abs),
   }),
   defineFunction({
     name: "Floor",
-    description: "Round down to nearest integer",
-    params: number(),
-    returns: z.number(),
-    fn: ({ number }) => Math.floor(toNumber(number)),
+    description: "Round down to nearest integer. A list is handled element by element",
+    params: z.object({ number: numberOrList() }),
+    returns: numberOrList(),
+    fn: ({ number }) => elementwise(number, Math.floor),
   }),
   defineFunction({
     name: "Ceil",
-    description: "Round up to nearest integer",
-    params: number(),
-    returns: z.number(),
-    fn: ({ number }) => Math.ceil(toNumber(number)),
+    description: "Round up to nearest integer. A list is handled element by element",
+    params: z.object({ number: numberOrList() }),
+    returns: numberOrList(),
+    fn: ({ number }) => elementwise(number, Math.ceil),
   }),
   {
     name: "Each",

@@ -278,11 +278,15 @@ Fixtures: `evaluation/*-member-*`
 | `@Min`, `@Max` | `(array) → number` | Minimum or maximum with `toNumber`. 0 for empty arrays and non-arrays. |
 | `@Filter` | `(array, field, op, value) → array` | Keeps elements whose `field` satisfies `op value`. Ops: `==`, `!=` (loose), `>`, `<`, `>=`, `<=` (numeric), `contains` (case-sensitive substring of the field as a string). An empty `field` tests the elements themselves. A missing op means `==`. An unknown op matches nothing. `[]` for non-arrays. |
 | `@Sort` | `(array, field, direction?) → array` | Stable sort on `field`. An empty `field` sorts the elements themselves. When both values are numbers or strings that parse as numbers, they compare as numbers. Otherwise their string forms (null is `""`) compare with the runtime's locale collation (ECMAScript `localeCompare` with no arguments), so `a` sorts before `B`. Descending only when the third argument is `"desc"`. A non-array is returned unchanged. |
-| `@Round` | `(number, decimals?) → number` | Rounds to `decimals` places, default 0, with JavaScript `Math.round` (a half rounds up). |
-| `@Abs`, `@Floor`, `@Ceil` | `(number) → number` | With `toNumber`. |
+| `@Round` | `(number, decimals?) → number` | Rounds to `decimals` places, default 0, with JavaScript `Math.round` (a half rounds up). Given a list, rounds each element and returns a list (section 3.4.1). |
+| `@Abs`, `@Floor`, `@Ceil` | `(number) → number` | With `toNumber`. Given a list, applies to each element and returns a list (section 3.4.1). |
 | `@Each` | `(array, varName, template) → array` | Section 3.5. |
 
 Field arguments accept dot paths (`"customer.name"`).
+
+#### 3.4.1 Math on lists
+
+`@Round`, `@Abs`, `@Floor`, and `@Ceil` given a list apply to each element, nested lists included, and return a list of the same shape. A null element stays null. `@Round`'s `decimals` stays a single number. This is how a column plucked from rows (`@Round(rows.amount, 2)`) is formatted in one call.
 
 Fixtures: `evaluation/*-builtin-*`, including `evaluation/*-builtin-sort-*`
 
