@@ -381,12 +381,9 @@ describe("pending slots", () => {
 
   it("are kept only while streaming and only with the option", () => {
     const on = createStreamParser(schema, undefined, { pendingSlots: true }).push(src);
-    expect(on.meta.streamingStatementId).toBe("a");
     expect(kids(on)).toEqual(["fir", "?a", "second", "?c"]);
-    expect(kids(parse(src, schema, undefined, { pendingSlots: true }))).toEqual(kids(on));
 
     const off = createStreamParser(schema).push(src);
-    expect(off.meta).not.toHaveProperty("streamingStatementId");
     expect(kids(off)).toEqual(["fir", "second"]);
   });
 
@@ -394,7 +391,6 @@ describe("pending slots", () => {
     const full = src + '")';
     const on = createStreamParser(schema, undefined, { pendingSlots: true }).push(full, true);
     expect(on).toEqual(createStreamParser(schema).push(full, true));
-    expect(parse(full, schema, undefined, { pendingSlots: true })).toEqual(parse(full, schema));
   });
 
   it("never reach state defaults", () => {

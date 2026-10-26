@@ -49,12 +49,6 @@ it("shows field input in a program without dynamic props", async () => {
 
 // ── smoothStreaming ──────────────────────────────────────────────────────────
 
-const Stack = defineComponent({
-  name: "Stack",
-  description: "Stack",
-  props: z.object({ children: z.array(z.any()) }),
-  component: ({ props, renderNode }) => <div>{renderNode(props.children)}</div>,
-});
 const Note = defineComponent({
   name: "Note",
   description: "Note",
@@ -67,7 +61,20 @@ const Num = defineComponent({
   props: z.object({ value: z.any() }),
   component: ({ props }) => <b>{String(props.value)}</b>,
 });
-const streamLibrary = createLibrary({ components: [Stack, Note, Num], root: "Stack" });
+const Card = defineComponent({
+  name: "Card",
+  description: "Card",
+  props: z.object({ title: z.string(), body: z.string() }),
+  component: ({ props }) => <section>{`${props.title}:${props.body}`}</section>,
+});
+// Children typed as real libraries type them, so validation sees the pending slots
+const Stack = defineComponent({
+  name: "Stack",
+  description: "Stack",
+  props: z.object({ children: z.array(z.union([Note.ref, Num.ref, Card.ref])) }),
+  component: ({ props, renderNode }) => <div>{renderNode(props.children)}</div>,
+});
+const streamLibrary = createLibrary({ components: [Stack, Note, Num, Card], root: "Stack" });
 
 /** Renders each prefix of `src` while streaming, then `src` complete; returns the DOM at each step. */
 async function streamPrefixes(src: string, props: { smoothStreaming?: boolean } = {}) {
@@ -109,6 +116,13 @@ it("smoothStreaming shows content after a never-written ref when the stream ends
   const { steps, end } = await streamPrefixes(src, { smoothStreaming: true });
   expect(steps.at(-1)!.text).toBe("A");
   expect(end.text).toBe("AB");
+});
+
+it("smoothStreaming holds later siblings of an inline component waiting for a ref", async () => {
+  const src = 'root = Stack([Card("T", body), footer])\nfooter = Note("Footer")\nbody = "the body"';
+  const { steps, end } = await streamPrefixes(src, { smoothStreaming: true });
+  expect(steps.some(({ text }) => text.startsWith("Footer"))).toBe(false);
+  expect(end.text).toBe("T:the bodyFooter");
 });
 
 it("smoothStreaming off renders the same DOM as without the prop", async () => {

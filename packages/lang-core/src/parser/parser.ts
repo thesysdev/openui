@@ -307,7 +307,6 @@ function buildResult(
       orphaned,
       statementCount: stmtCount,
       errors: errors,
-      ...(pending?.streamingId ? { streamingStatementId: pending.streamingId } : {}),
     },
     stateDeclarations,
     queryStatements,
@@ -476,12 +475,7 @@ function preprocess(input: string): string {
  * @param cat    - Param map for positional-arg → named-prop mapping
  * @returns      ParseResult with root ElementNode (or null) and metadata
  */
-export function parse(
-  input: string,
-  cat: ParamMap,
-  rootName?: string,
-  options?: ParseOptions,
-): ParseResult {
+export function parse(input: string, cat: ParamMap, rootName?: string): ParseResult {
   const trimmed = preprocess(input);
   if (!trimmed) return emptyResult();
 
@@ -498,21 +492,7 @@ export function parse(
   // Derive from map to deduplicate — Map.set overwrites duplicates
   const typedStmts = [...stmtMap.values()];
 
-  // Truncated input: the last statement is the one still streaming
-  const pending =
-    options?.pendingSlots && wasIncomplete
-      ? { streamingId: stmts[stmts.length - 1]!.id }
-      : undefined;
-  return buildResult(
-    stmtMap,
-    typedStmts,
-    wasIncomplete,
-    stmtMap.size,
-    cat,
-    rootName,
-    undefined,
-    pending,
-  );
+  return buildResult(stmtMap, typedStmts, wasIncomplete, stmtMap.size, cat, rootName);
 }
 
 export interface StreamParser {
@@ -797,17 +777,13 @@ export function compileSchema(schema: LibraryJSONSchema): ParamMap {
  * const result = parser.parse(openuiLangString);
  * ```
  */
-export function createParser(
-  schema: LibraryJSONSchema,
-  rootName?: string,
-  options?: ParseOptions,
-): Parser {
+export function createParser(schema: LibraryJSONSchema, rootName?: string): Parser {
   const paramMap = compileSchema(schema);
   return {
     parse(input: string): ParseResult {
       const telemetry = prepareParserParseTelemetry();
       try {
-        const result = parse(input, paramMap, rootName, options);
+        const result = parse(input, paramMap, rootName);
         captureParserParseResult(telemetry, result);
         return result;
       } catch (error) {

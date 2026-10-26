@@ -369,7 +369,7 @@ interface LibraryJSONSchema {
   >;
 }
 
-function createParser(schema: LibraryJSONSchema, rootName?: string, options?: ParseOptions): Parser;
+function createParser(schema: LibraryJSONSchema, rootName?: string): Parser;
 function createStreamingParser(
   schema: LibraryJSONSchema,
   rootName?: string,

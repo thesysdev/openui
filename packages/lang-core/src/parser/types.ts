@@ -325,8 +325,6 @@ export interface ParseResult {
      * redacted (dropped as null) and listed here.
      */
     errors: ValidationError[];
-    /** With `pendingSlots`: the statement still streaming (the last, incomplete one). */
-    streamingStatementId?: string;
   };
   /** $variable declarations — maps "$varName" to its materialized default value. */
   stateDeclarations: Record<string, unknown>;
