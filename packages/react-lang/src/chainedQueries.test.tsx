@@ -199,6 +199,23 @@ describe("chained queries", () => {
     }
   });
 
+  it("runs a query with changing args once when another query waits for it", async () => {
+    const t = await harness((tool) => {
+      if (t.calls.length > 20) throw new Error("runaway");
+      return tool === "a" ? { ok: true } : { n: 1 };
+    });
+    try {
+      await t.render(
+        `root = Stack([Show(qb.n)])\nqa = Query("a", {t: @Tick()}, {ok: false})\nqb = Query("b", {x: qa.ok}, {n: 0})`,
+      );
+      for (let i = 0; i < 5; i++) await t.flush();
+      expect(t.calls.map((c) => c.tool)).toEqual(["a", "b"]);
+      expect(t.shown()).toEqual(["1"]);
+    } finally {
+      await t.close();
+    }
+  });
+
   it("reports queries that read each other and does not run them", async () => {
     const t = await harness(() => []);
     try {

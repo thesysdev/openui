@@ -13,6 +13,7 @@ import {
   type OpenUIError,
   type ParseResult,
   type QueryManager,
+  type QueryNode,
   type QuerySnapshot,
   type Store,
   type ToolProvider,
@@ -220,13 +221,36 @@ export function useOpenUIState(
     // querySnapshot: recompute when a result arrives.
   }, [waitedOn, queryManager, querySnapshot]);
 
+  // When only a waited-on result changed, re-evaluate just the queries that read it: evaluating
+  // the others again would refetch one whose args are not deterministic, and loop.
+  const lastEvalRef = useRef<{
+    key: unknown[];
+    waited: unknown[];
+    nodes: Map<string, QueryNode>;
+  } | null>(null);
+
   // ─── Evaluate and submit queries ───
   useEffect(() => {
     // Keep the existing query lifecycle until streaming finishes and the bundle is ready.
     if (blocked) return;
 
+    const key = [
+      result?.queryStatements,
+      evaluationContext,
+      queryManager,
+      storeSnapshot,
+      scriptRevision,
+      scriptNames,
+    ];
+    const last = lastEvalRef.current;
+    const onlyWaited = !!last && key.every((value, i) => value === last.key[i]);
+    const changed = new Set(
+      onlyWaited ? waitedOn.filter((_, i) => waitedData[i] !== last.waited[i]) : waitedOn,
+    );
     const queryStmts = result?.queryStatements ?? [];
-    const evaluatedNodes = queryStmts.map((qn) => {
+    const evaluatedNodes = queryStmts.map((qn): QueryNode => {
+      const prev = onlyWaited ? last.nodes.get(qn.statementId) : undefined;
+      if (prev && !qn.waitFor?.some((id) => changed.has(id))) return prev;
       const relevantDeps: Record<string, unknown> = {};
       const toolName = qn.toolAST ? (evaluate(qn.toolAST, evaluationContext) as string) : "";
       if (qn.deps) {
@@ -249,6 +273,11 @@ export function useOpenUIState(
       };
     });
 
+    lastEvalRef.current = {
+      key,
+      waited: waitedData,
+      nodes: new Map(evaluatedNodes.map((node) => [node.statementId, node])),
+    };
     // Always call — empty array clears removed queries and their errors
     queryManager.evaluateQueries(evaluatedNodes);
     // waitedData: args that read another query's result are re-evaluated when it arrives.
@@ -258,6 +287,7 @@ export function useOpenUIState(
     evaluationContext,
     queryManager,
     storeSnapshot,
+    waitedOn,
     waitedData,
     scriptRevision,
     scriptNames,
