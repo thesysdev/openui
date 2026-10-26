@@ -393,7 +393,10 @@ Fixtures: `state/*-validation-*`
 
 `name = Query(tool, args, defaults, refreshSeconds?)`: the tool name, the argument object, the result shown until data arrives, and an optional refresh interval in seconds.
 
-- A query runs when streaming ends, and again when a `$variable` written literally in its `args` changes. State reached through a referenced statement does not trigger a fetch.
+- A query runs when streaming ends, and again when a `$variable` its `args` read changes, whether written literally or reached through a referenced statement.
+- A query whose tool name or `args` read another query's result, directly or through a referenced statement, waits until that query has a result, then runs. It runs again whenever that result changes. Queries that read no other query run without waiting for each other. A query that never gets a result (its fetch failed) keeps the queries that read it waiting.
+- Queries that read each other's results, including a query that reads its own, can never run first. The client reports `query-cycle` and does not run them.
+- A failed fetch is not retried for the same arguments. It runs again when its arguments change, on its refresh interval, or when the host invalidates it.
 - While a fetch for changed arguments is in flight, the previous result stays visible. A result for stale arguments is discarded.
 - References resolve to the latest result, or to the defaults before the first one. The reserved keys `__openui_loading`, `__openui_refetching`, and `__openui_errors` expose fetch state to the host. Expressions cannot read them.
 - A refresh interval runs the query again on a timer.
@@ -488,6 +491,7 @@ A **fatal** error means nothing renders. Any other error leaves the rest of the 
 | `excess-args` | parser | More arguments than props | Extra arguments dropped, component renders |
 | `inline-reserved` | parser | `Query` or `Mutation` in a value position | Expression evaluates to nothing |
 | `unknown-function` | parser | `@Name` is not a built-in, an action, or a custom function | The call evaluates to null. The statement is kept |
+| `query-cycle` | parser | Queries read each other's results (section 6.1) | The queries in the cycle do not run and keep their defaults |
 | `no-root` | parser, runtime | No usable entry (section 2.2), stream complete. `runtime` when a `root` expression such as a ternary gives no component | Non-fatal when the fallback entry renders. Fatal otherwise |
 | `parse-failed` | parser | The response has text but yields no statements | Fatal |
 | `parse-exception` | parser | The parser itself failed | Fatal. The client MUST catch it |

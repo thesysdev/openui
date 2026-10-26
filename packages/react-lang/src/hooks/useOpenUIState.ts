@@ -230,17 +230,20 @@ export function useOpenUIState(
           : undefined,
         deps: Object.keys(relevantDeps).length > 0 ? relevantDeps : undefined,
         complete: qn.complete,
+        waitFor: qn.waitFor,
       };
     });
 
     // Always call — empty array clears removed queries and their errors
     queryManager.evaluateQueries(evaluatedNodes);
+    // querySnapshot: args that read another query's result are re-evaluated when it arrives.
   }, [
     blocked,
     result?.queryStatements,
     evaluationContext,
     queryManager,
     storeSnapshot,
+    querySnapshot,
     scriptRevision,
     scriptNames,
   ]);

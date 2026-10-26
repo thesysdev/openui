@@ -86,3 +86,56 @@ describe("QueryManager refresh interval lifecycle", () => {
     expect(callTool.mock.calls.length).toBe(before);
   });
 });
+
+describe("QueryManager waitFor", () => {
+  const q = (
+    statementId: string,
+    toolName: string,
+    args: unknown,
+    waitFor?: string[],
+  ): QueryNode => ({
+    statementId,
+    toolName,
+    args,
+    defaults: null,
+    deps: null,
+    complete: true,
+    waitFor,
+  });
+
+  it("does not fetch a query until every query it waits for has a result", async () => {
+    let release!: (v: unknown) => void;
+    const callTool = vi.fn((tool: string) =>
+      tool === "a" ? new Promise((r) => (release = r)) : Promise.resolve("b-data"),
+    );
+    const qm = createQueryManager({ callTool } as ToolProvider);
+    qm.evaluateQueries([q("qa", "a", {}), q("qb", "b", { x: null }, ["qa"])]);
+    await flushMicrotasks();
+    expect(callTool.mock.calls.map((c) => c[0])).toEqual(["a"]);
+    expect(qm.getSnapshot().__openui_loading).toEqual(["qa", "qb"]);
+
+    release([1]);
+    await flushMicrotasks();
+    qm.evaluateQueries([q("qa", "a", {}), q("qb", "b", { x: [1] }, ["qa"])]);
+    await flushMicrotasks();
+    expect(callTool.mock.calls).toEqual([
+      ["a", {}],
+      ["b", { x: [1] }],
+    ]);
+  });
+
+  it("does not retry a failed fetch for the same args, but does when the args change", async () => {
+    const callTool = vi.fn().mockRejectedValue(new Error("down"));
+    const qm = createQueryManager({ callTool } as ToolProvider);
+    const quiet = vi.spyOn(console, "error").mockImplementation(() => {});
+    qm.evaluateQueries([q("qa", "a", { n: 1 })]);
+    await flushMicrotasks();
+    qm.evaluateQueries([q("qa", "a", { n: 1 })]);
+    await flushMicrotasks();
+    expect(callTool).toHaveBeenCalledTimes(1);
+    qm.evaluateQueries([q("qa", "a", { n: 2 })]);
+    await flushMicrotasks();
+    expect(callTool).toHaveBeenCalledTimes(2);
+    quiet.mockRestore();
+  });
+});

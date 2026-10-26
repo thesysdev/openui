@@ -59,6 +59,60 @@ export function collectQueryDeps(node: unknown): string[] {
   return [...refs];
 }
 
+/** Names of the queries whose results the given expressions read (RuntimeRef to a Query). */
+function collectQueryReads(nodes: unknown[]): string[] {
+  const reads = new Set<string>();
+  for (const node of nodes) {
+    if (!isASTNode(node)) continue;
+    walkAST(node, (current) => {
+      if (current.k === "RuntimeRef" && current.refType === "query") reads.add(current.n);
+    });
+  }
+  return [...reads];
+}
+
+/**
+ * Queries that read each other's results, directly or around a loop, can never run first.
+ * Returns each such group (a strongly connected component of the waitFor graph, including a
+ * query that reads its own result), in statement order.
+ */
+function findQueryCycles(queries: QueryStatementInfo[]): string[][] {
+  const edges = new Map(queries.map((q) => [q.statementId, q.waitFor ?? []]));
+  const index = new Map<string, number>();
+  const low = new Map<string, number>();
+  const onStack = new Set<string>();
+  const stack: string[] = [];
+  const cycles: string[][] = [];
+  let next = 0;
+  const visit = (id: string) => {
+    index.set(id, next);
+    low.set(id, next++);
+    stack.push(id);
+    onStack.add(id);
+    for (const dep of edges.get(id) ?? []) {
+      if (!edges.has(dep)) continue;
+      if (!index.has(dep)) {
+        visit(dep);
+        low.set(id, Math.min(low.get(id)!, low.get(dep)!));
+      } else if (onStack.has(dep)) {
+        low.set(id, Math.min(low.get(id)!, index.get(dep)!));
+      }
+    }
+    if (low.get(id) !== index.get(id)) return;
+    const group: string[] = [];
+    let member: string;
+    do {
+      member = stack.pop()!;
+      onStack.delete(member);
+      group.push(member);
+    } while (member !== id);
+    if (group.length > 1 || (edges.get(id) ?? []).includes(id)) cycles.push(group);
+  };
+  for (const q of queries) if (!index.has(q.statementId)) visit(q.statementId);
+  const order = new Map(queries.map((q, i) => [q.statementId, i]));
+  return cycles.map((g) => g.sort((a, b) => order.get(a)! - order.get(b)!));
+}
+
 /**
  * Classify a raw statement + parsed expression into a typed Statement.
  * Determined at parse time from token type + expression shape.
@@ -124,6 +178,7 @@ function extractStatements(
         const args = materializeToolArgs(stmt.call.args, ctx, stmt.id);
         // Aliases can hide state reads that the raw statement did not expose.
         const deps = collectQueryDeps(args[1]);
+        const waitFor = collectQueryReads([args[0], args[1]]);
         queryStatements.push({
           statementId: stmt.id,
           toolAST: args[0] ?? null,
@@ -131,6 +186,7 @@ function extractStatements(
           defaultsAST: args[2] ?? null,
           refreshAST: args[3] ?? null,
           deps: deps.length > 0 ? deps : undefined,
+          waitFor: waitFor.length > 0 ? waitFor : undefined,
           complete: true,
         });
         break;
@@ -145,6 +201,14 @@ function extractStatements(
         break;
       }
     }
+  }
+
+  // A query waits for the queries it reads; a group that reads each other can never start.
+  for (const cycle of findQueryCycles(queryStatements)) {
+    const prev = ctx.currentStatementId;
+    ctx.currentStatementId = cycle[0];
+    pushValidationIssue(ctx, "Query", "", { code: "query-cycle", cycle });
+    ctx.currentStatementId = prev;
   }
 
   // Auto-declare: any $var referenced in code but not explicitly declared → null default.

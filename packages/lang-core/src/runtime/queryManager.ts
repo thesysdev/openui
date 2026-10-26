@@ -37,6 +37,8 @@ export interface QueryNode {
   /** Auto-refresh interval in seconds. */
   refreshInterval?: number;
   complete: boolean;
+  /** Queries whose results the args read: this query is not fetched until each has a result. */
+  waitFor?: string[];
 }
 
 export interface MutationNode {
@@ -88,6 +90,8 @@ interface QueryEntry {
   refreshInterval: number;
   timer?: ReturnType<typeof setInterval>;
   needsRefetch: boolean;
+  /** Registered but not fetched: a query in its waitFor has no result yet. */
+  waiting?: boolean;
   error?: OpenUIError;
 }
 
@@ -100,6 +104,8 @@ interface MutationEntry {
 interface CacheEntry {
   data: unknown;
   inFlight: boolean;
+  /** The last fetch for this key failed: re-evaluating the same args does not retry it. */
+  failed?: boolean;
 }
 
 // ── Utilities ────────────────────────────────────────────────────────────────
@@ -173,7 +179,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
       } else {
         out[sid] = q.defaults;
       }
-      if (q.loading) {
+      if (q.loading || q.waiting) {
         out.__openui_loading.push(sid);
         if (q.everFetched) out.__openui_refetching.push(sid);
       }
@@ -225,6 +231,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
     } else {
       entry.inFlight = true;
     }
+    entry.failed = false;
     q.loading = true;
     rebuildSnapshot();
     notify();
@@ -251,6 +258,7 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
         cleanupCacheEntry(prevKey);
       }
     } catch (err) {
+      entry.failed = true;
       // Only update error state if this fetch is still current
       const current = queries.get(statementId);
       if (current && current.cacheKey === fetchKey) {
@@ -363,10 +371,14 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
 
       const q = queries.get(node.statementId)!;
 
+      // A query that reads another query's result waits until that result exists.
+      q.waiting = node.waitFor?.some((dep) => !hasData(dep)) ?? false;
+      if (q.waiting) continue;
+
       // Fire fetch if no settled data and not already in-flight
       const entry = cache.get(cacheKey);
       const hasSettledData = entry && entry.data !== undefined && !entry.inFlight;
-      if (toolProvider && !hasSettledData && !entry?.inFlight) {
+      if (toolProvider && !hasSettledData && !entry?.inFlight && !entry?.failed) {
         executeFetch(cacheKey, node.statementId);
       }
 
@@ -394,6 +406,14 @@ export function createQueryManager(toolProvider: ToolProvider | null): QueryMana
   }
 
   // ── Query accessors ──────────────────────────────────────────────────────
+
+  /** True once the query has a fetched result (the current one, or the previous while refetching). */
+  function hasData(statementId: string): boolean {
+    const q = queries.get(statementId);
+    if (!q) return false;
+    if (cache.get(q.cacheKey)?.data !== undefined) return true;
+    return q.prevCacheKey ? cache.get(q.prevCacheKey)?.data !== undefined : false;
+  }
 
   function getResult(statementId: string): unknown {
     const q = queries.get(statementId);
