@@ -65,7 +65,7 @@ const AGENTS: Agent[] = [
     answer: {
       src: "/homepage/agents/ikea-kallax.gif",
       playMs: 14250,
-      alt: "The Open Intelligent UI answer streaming in: a step-by-step KALLAX guide with an exploded drawing of the shelf, a view toggle and a slider to separate the parts.",
+      alt: "The Intelligent UI answer streaming in: a step-by-step KALLAX guide with an exploded drawing of the shelf, a view toggle and a slider to separate the parts.",
       width: 1100,
       height: 1200,
     },
