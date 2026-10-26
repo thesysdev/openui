@@ -11,3 +11,6 @@ These cases protect a client from reading the source text differently from other
 | 008-expr-precedence-and-keys | Operator precedence and associativity, optional and trailing commas, and object keys written as names, strings, numbers, `$` names (the `$` is dropped), and component names. | [1.5](../../../language.md#15-expressions) |
 | 009-member-digits-field | `m[1][0]` indexes, `o.0` reads the key "0", and `m.0` on an array plucks. | [1.5](../../../language.md#15-expressions), [3.3](../../../language.md#33-member-access-and-pluck) |
 | 010-roundtrip-tree | The rendered tree serializes to text and parses back to the same `root`. | [9.2](../../../language.md#92-serialization) |
+| 011-fence-inline-mention-skipped | An inline ```` ```openui``` ```` pair in the prose is inline code, not an opener, so the real fence after it is the program. | [1.2](../../../language.md#12-source-text) |
+| 012-fence-one-line | ```` ```openui root = ...``` ```` on one line after prose: the enclosed text starts a statement, so it is the program. | [1.2](../../../language.md#12-source-text) |
+| 013-fence-stray-closing | A program followed by a lone closing fence: the only fence is empty, so fence lines are dropped and the program renders. | [1.2](../../../language.md#12-source-text) |

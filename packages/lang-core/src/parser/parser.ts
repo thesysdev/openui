@@ -314,6 +314,18 @@ function skipString(input: string, start: number): number {
   return i; // return length if string was unclosed
 }
 
+/** An opener line holding only an optional language tag. */
+const FENCE_TAG_ONLY = /^[ \t]*[\w.+-]*[ \t]*$/;
+/** Text that starts like an OpenUI Lang statement (`name =` or `$name =`). */
+const STATEMENT_START = /^\s*\$?[A-Za-z_]\w*\s*=(?!=)/;
+
+/** Code written on a fence's own line (```openui root = ...): the text after an optional tag, if it starts a statement. */
+function sameLineCode(text: string): string | null {
+  if (STATEMENT_START.test(text)) return text;
+  const untagged = text.replace(/^[A-Za-z][\w.+-]*[ \t]+/, "");
+  return untagged !== text && STATEMENT_START.test(untagged) ? untagged : null;
+}
+
 /** Extract code from markdown fences, or return as-is if no fences found.
  *  String-context-aware: skips ``` inside double-quoted strings. */
 export function stripFences(input: string): string {
@@ -345,6 +357,31 @@ export function stripFences(input: string): string {
     }
 
     if (fenceStart === -1) break;
+
+    // The rest of the opener's line: a language tag, or an inline ``` pair, or a one-line fence.
+    const lineEnd = input.indexOf("\n", fenceStart + 3);
+    const rest = input.slice(fenceStart + 3, lineEnd === -1 ? input.length : lineEnd);
+    const sameLineClose = rest.indexOf("```");
+    if (sameLineClose !== -1) {
+      // ```openui root = Card([])``` is a one-line fence; any other ``` pair is inline prose code.
+      const inner = sameLineCode(rest.slice(0, sameLineClose));
+      if (inner !== null) blocks.push(inner);
+      i = fenceStart + 3 + sameLineClose + 3;
+      continue;
+    }
+    if (!FENCE_TAG_ONLY.test(rest)) {
+      // ```openui root = ... with code on the opener's line (still streaming, or never closed)
+      const inner = sameLineCode(rest);
+      if (inner !== null) {
+        const tail = lineEnd === -1 ? "" : input.slice(lineEnd);
+        const close = tail.indexOf("\n```");
+        blocks.push(inner + (close === -1 ? tail : tail.slice(0, close)));
+        i = close === -1 ? input.length : lineEnd + close + 4;
+        continue;
+      }
+      i = fenceStart + 3;
+      continue;
+    }
 
     // Skip language tag until newline
     let j = fenceStart + 3;
@@ -390,7 +427,9 @@ export function stripFences(input: string): string {
     }
   }
 
-  if (blocks.length > 0) return blocks.join("\n");
+  if (blocks.some((b) => b.trim() !== "")) return blocks.join("\n");
+  // Only empty blocks: a stray fence line (e.g. a lone closing ``` after the program). Drop fence lines.
+  if (blocks.length > 0) return input.replace(/^[ \t]*```[^\n`]*$/gm, "");
 
   // Fallback: if input starts with ``` but wasn't matched (e.g. no newline after fence)
   if (input.startsWith("```")) {
