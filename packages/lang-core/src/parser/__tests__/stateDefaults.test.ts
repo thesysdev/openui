@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { parse } from "../parser";
+import { z } from "zod/v4";
+import { defineFunction } from "../../functions";
+import { createLibrary, defineComponent } from "../../library";
+import { compileSchema, parse } from "../parser";
 import type { ParamMap } from "../types";
 
-const schema: ParamMap = new Map([["Show", { params: [{ name: "value", required: true }] }]]);
+const schema = new Map([["Show", { params: [{ name: "value", required: true }] }]]) as ParamMap;
 const defaults = (source: string) => parse(`root = Show(1)\n${source}`, schema).stateDeclarations;
 
 describe("state defaults", () => {
@@ -26,5 +29,39 @@ describe("state defaults", () => {
       $b: [1, { k: true }],
       $c: null,
     });
+  });
+  it("evaluates expressions nested in list and object defaults", () => {
+    expect(defaults('$rows = [{price: 10 * 2}, 1 + 2]\n$cfg = {t: 3 * 3, label: "x"}')).toEqual({
+      $rows: [{ price: 20 }, 3],
+      $cfg: { t: 9, label: "x" },
+    });
+  });
+  it("keeps a default that calls a library function or an action as written", () => {
+    const library = createLibrary({
+      root: "Show",
+      components: [
+        defineComponent({
+          name: "Show",
+          description: "",
+          props: z.object({ value: z.any() }),
+          component: null,
+        }),
+      ],
+      functions: [
+        defineFunction({
+          name: "Percent",
+          description: "",
+          params: z.object({ a: z.number(), b: z.number() }),
+          returns: z.number(),
+          fn: ({ a, b }) => (a / b) * 100,
+        }),
+      ],
+    });
+    const d = parse(
+      "root = Show(1)\n$p = @Percent(1, 2)\n$s = @Set($x, 1)",
+      compileSchema(library.toJSONSchema()),
+    ).stateDeclarations as Record<string, { k?: string; name?: string }>;
+    expect([d.$p?.k, d.$p?.name]).toEqual(["Comp", "Percent"]);
+    expect([d.$s?.k, d.$s?.name]).toEqual(["Comp", "Set"]);
   });
 });

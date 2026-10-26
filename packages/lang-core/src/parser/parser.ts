@@ -62,16 +62,39 @@ export function collectQueryDeps(node: unknown): string[] {
 
 /**
  * An expression default (`$total = 1 + 2`, `$tax = $price * 0.18`) is evaluated once, here, so the
- * store starts with a value rather than the expression's syntax. It reads the defaults of states
- * declared before it; query results and references read as null.
+ * store starts with a value rather than the expression's syntax. Expressions nested in a list or
+ * object default are evaluated too. It reads the defaults of states declared before it; query
+ * results and references read as null. A default that calls a library function or an action is
+ * kept as written: those run only in the client, not at parse time.
  */
 function stateDefault(value: unknown, declared: Record<string, unknown>): unknown {
-  if (!isASTNode(value)) return value;
-  try {
-    return evaluate(value, { getState: (name) => declared[name] ?? null, resolveRef: () => null });
-  } catch {
-    return null;
+  if (isASTNode(value)) {
+    if (!onlyBuiltinFunctions(value)) return value;
+    try {
+      return evaluate(value, {
+        getState: (name) => declared[name] ?? null,
+        resolveRef: () => null,
+      });
+    } catch {
+      return null;
+    }
   }
+  if (Array.isArray(value)) return value.map((item) => stateDefault(item, declared));
+  if (value && typeof value === "object" && !isElementNode(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, stateDefault(item, declared)]),
+    );
+  }
+  return value;
+}
+
+/** True when every call in the expression is a built-in function such as @Count or @Round. */
+function onlyBuiltinFunctions(node: ASTNode): boolean {
+  let ok = true;
+  walkAST(node, (current) => {
+    if (current.k === "Comp" && BUILTIN_CALLS.get(current.name)?.kind !== "function") ok = false;
+  });
+  return ok;
 }
 
 /**
