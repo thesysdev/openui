@@ -17,7 +17,6 @@ const STATIC_PATHS = [
   "/cloud/gateway/models",
   "/cloud/observability",
   "/openclaw-os",
-  "/components",
   "/blog",
   "/benchmarks",
   "/benchmarks/language",

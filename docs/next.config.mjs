@@ -121,8 +121,8 @@ const config = {
         permanent: false,
       },
       {
-        source: "/components/blocks/accordian",
-        destination: "/components/blocks/accordion",
+        source: "/components/:path*",
+        destination: "/docs",
         permanent: true,
       },
       {
