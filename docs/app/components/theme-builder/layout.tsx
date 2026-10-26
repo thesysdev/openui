@@ -1,4 +1,3 @@
-import { createPageMetadata } from "@/lib/page-metadata";
 import {
   DM_Sans,
   Lato,
@@ -10,7 +9,6 @@ import {
   Source_Sans_3,
 } from "next/font/google";
 import type { ReactNode } from "react";
-import page from "./metadata";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -64,8 +62,6 @@ const fontClassName = [
   sourceSans3.variable,
   dmSans.variable,
 ].join(" ");
-
-export const metadata = createPageMetadata(page);
 
 export default function ThemeBuilderLayout({ children }: { children: ReactNode }) {
   return <div className={fontClassName}>{children}</div>;

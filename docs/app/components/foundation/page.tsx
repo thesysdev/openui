@@ -1,8 +1,4 @@
-import { createPageMetadata } from "@/lib/page-metadata";
-import page from "./metadata";
 import styles from "./page.module.css";
-
-export const metadata = createPageMetadata(page);
 
 export default function FoundationPage() {
   return (
