@@ -294,6 +294,7 @@ export default function ThemeBuilderPage() {
 
   return (
     <main className={styles.page}>
+      <h1 className="sr-only">Theme Builder</h1>
       <section className={styles.builderShell}>
         <ThemeProvider mode={mode} theme={themeOverrides} cssSelector={`.${styles.previewScope}`}>
           <div className={`${styles.previewPane} ${styles.previewScope}`}>

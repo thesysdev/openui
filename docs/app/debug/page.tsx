@@ -11,5 +11,10 @@ const Playground = dynamic(() => import("./components/Playground").then((m) => m
 });
 
 export default function DebugPage() {
-  return <Playground />;
+  return (
+    <>
+      <h1 className="sr-only">OpenUI Debug</h1>
+      <Playground />
+    </>
+  );
 }
