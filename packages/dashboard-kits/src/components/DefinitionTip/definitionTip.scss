@@ -4,13 +4,14 @@
   position: relative;
   min-width: 0;
 }
+// On the kit layer (see KitLayer): fixed to the window, placed beside its host.
 .kit-def {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 6px);
+  position: fixed;
+  z-index: 60;
+  top: 0;
   left: 0;
   width: max-content;
-  max-width: min(320px, 90vw);
+  max-width: min(320px, calc(100vw - 16px));
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -31,13 +32,11 @@
     transform 0.14s ease,
     visibility 0s linear 0.14s;
 }
-// A short delay before showing, so a click on a tile doesn't flash it.
-.kit-def-host:hover > .kit-def,
-.kit-def-host:focus-within > .kit-def {
+.kit-def[data-open] {
   opacity: 1;
   visibility: visible;
   transform: none;
-  transition-delay: 0.35s, 0.35s, 0s;
+  transition-delay: 0s;
 }
 .kit-def__formula {
   font-weight: 600;

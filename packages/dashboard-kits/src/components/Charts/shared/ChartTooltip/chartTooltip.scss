@@ -3,11 +3,12 @@
 @use "../../prefix" as brand;
 
 .kit-tooltip {
-  // Placed by a spring-driven transform from the frame's top-left corner.
-  position: absolute;
+  // On the kit layer (see KitLayer), placed by a spring-driven transform from
+  // the window's top-left corner.
+  position: fixed;
   top: 0;
   left: 0;
-  z-index: 3;
+  z-index: 60;
   will-change: transform;
   animation: #{brand.$prefix}-tooltip-in 0.12s ease both;
   min-width: 168px;

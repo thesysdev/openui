@@ -99,6 +99,11 @@
   color-scheme: dark;
 }
 
+/* Popups drawn on document.body (KitLayer): only the theme tokens, no box. */
+.kit-layer {
+  display: contents;
+}
+
 /* The base dashboard's filter triggers reset every style (`all: unset`) and set
    no focus ring of their own, so keyboard focus on them was invisible. */
 .kit-theme .c1-filter-single-select__trigger:focus-visible,

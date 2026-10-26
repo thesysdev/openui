@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { HoverTip } from "../KitLayer";
 
 export interface DataStatusItem {
   label: string;
@@ -32,11 +33,7 @@ export function DataStatus({ items }: DataStatusProps) {
               <i className="kit-data-status__dot" aria-hidden />
               <span className="kit-data-status__label">{item.label}</span> {item.value}
             </span>
-            {tip && (
-              <span id={tip} role="tooltip" className="kit-def">
-                {item.detail}
-              </span>
-            )}
+            {tip && <HoverTip id={tip}>{item.detail}</HoverTip>}
           </li>
         );
       })}
