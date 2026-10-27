@@ -195,7 +195,7 @@ function RegularCard({ card }: { card: BlogCardData }) {
 }
 
 export const metadata: Metadata = {
-  title: "Blog",
+  title: "Generative UI blog",
   description:
     "Articles on Generative UI from the OpenUI team: OpenUI Lang, agent interfaces, benchmarks, and building apps that respond with UI.",
 };
