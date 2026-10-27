@@ -174,7 +174,7 @@ export function useStreamingObservability({
         elapsedMs: durationMs,
         durationMs,
         ...(lastLibraryId !== undefined ? { __libraryId: lastLibraryId } : {}),
-        message: "Renderer unmounted midway",
+        message: "Stream interrupted",
       });
     };
   }, []);

@@ -371,13 +371,14 @@ describe("OpenUIDevtools", () => {
         response: "root = Car",
         startedAt: Date.now() - 1500,
         durationMs: 1500,
-        message: "Renderer unmounted midway",
+        message: "Stream interrupted",
       }),
     );
 
-    expect(container.textContent?.match(/OpenUI Lang stream/g)).toHaveLength(1);
+    expect(container.textContent).not.toContain("OpenUI Lang stream");
+    expect(container.textContent?.match(/Stream interrupted/g)).toHaveLength(1);
     expect(container.textContent).not.toContain("Streaming");
-    expect(container.textContent).toContain("Renderer unmounted midway");
+    expect(container.textContent).toContain("Unmounted");
     expect(container.textContent).toContain("1.5s");
   });
 

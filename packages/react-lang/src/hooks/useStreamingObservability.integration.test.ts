@@ -212,7 +212,7 @@ describe("streaming observability integration", () => {
     expect(events[1]?.level).toBe("warning");
     expect(events[1]?.detail.id).toBe(events[0]?.detail.id);
     expect(events[1]?.detail["response"]).toBe("root = ");
-    expect(events[1]?.detail["message"]).toBe("Renderer unmounted midway");
+    expect(events[1]?.detail["message"]).toBe("Stream interrupted");
   });
 
   it("does not publish unmounted after the stream settled", () => {
