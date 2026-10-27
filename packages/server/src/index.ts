@@ -18,6 +18,8 @@ export type {
   UnstoredArtifactResult,
 } from "./client/types";
 export { createInterpreter } from "./tools/execute";
+export { mcpTools } from "./tools/mcp";
+export type { McpCallToolResult, McpToolClient, McpToolInfo, McpToolsOptions } from "./tools/mcp";
 export { ToolExecutionError } from "./tools/types";
 export type {
   DataTool,
