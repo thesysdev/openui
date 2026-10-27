@@ -1,0 +1,167 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-artifact {
+  position: relative;
+
+  // ── Preview card ──
+  &-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: cssUtils.$space-s;
+    box-sizing: border-box;
+    width: 100%;
+    margin: cssUtils.$space-xs 0;
+    padding: cssUtils.$space-s cssUtils.$space-m;
+    border: 1px solid cssUtils.$border-default;
+    border-radius: cssUtils.$radius-m;
+    background: transparent;
+    color: cssUtils.$text-neutral-primary;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+
+    &:hover {
+      background: cssUtils.$elevated-light;
+    }
+  }
+
+  &-preview-text {
+    display: flex;
+    flex-direction: column;
+    gap: cssUtils.$space-3xs;
+    min-width: 0;
+  }
+
+  &-preview-title {
+    @include cssUtils.typography(body, heavy);
+  }
+
+  &-preview-description {
+    @include cssUtils.typography(body, small);
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  // ── Loaders ──
+  &-loader {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: cssUtils.$space-2xs;
+    @include cssUtils.typography(label, small);
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  &-spinner {
+    animation: openui-artifact-spin 0.9s linear infinite;
+  }
+
+  // ── Chrome ──
+  &-chrome {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background: cssUtils.$background;
+    color: cssUtils.$text-neutral-primary;
+  }
+
+  &-chrome-bar {
+    display: flex;
+    align-items: center;
+    gap: cssUtils.$space-s;
+    padding: cssUtils.$space-xs cssUtils.$space-m;
+    border-bottom: 1px solid cssUtils.$border-default;
+  }
+
+  &-chrome-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    @include cssUtils.typography(body, heavy);
+  }
+
+  &-chrome-actions {
+    display: flex;
+    align-items: center;
+    gap: cssUtils.$space-xs;
+  }
+
+  // ── Content ──
+  &-content {
+    position: relative;
+    flex: 1;
+    min-height: 120px;
+    overflow: auto;
+  }
+
+  &-loading {
+    position: absolute;
+    top: cssUtils.$space-xs;
+    right: cssUtils.$space-xs;
+    display: inline-flex;
+    align-items: center;
+    gap: cssUtils.$space-2xs;
+    padding: cssUtils.$space-3xs cssUtils.$space-s;
+    border: 1px solid cssUtils.$border-default;
+    border-radius: cssUtils.$radius-full;
+    background: cssUtils.$background;
+    box-shadow: cssUtils.$shadow-s;
+    @include cssUtils.typography(label, small);
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  // Nothing to show yet: center the loader in the empty content.
+  &-loading-empty {
+    inset: 0;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  &-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: cssUtils.$space-s;
+    margin: cssUtils.$space-s;
+    padding: cssUtils.$space-s cssUtils.$space-m;
+    border: 1px solid cssUtils.$border-danger;
+    border-radius: cssUtils.$radius-m;
+    background: cssUtils.$danger-background;
+    @include cssUtils.typography(body, small);
+  }
+
+  // ── Overlay ──
+  &-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: cssUtils.$space-xl;
+    background: cssUtils.$overlay;
+  }
+
+  &-dialog {
+    width: min(1200px, 100%);
+    height: min(900px, 100%);
+    overflow: hidden;
+    border-radius: cssUtils.$radius-l;
+    background: cssUtils.$background;
+    box-shadow: cssUtils.$shadow-xl;
+    outline: none;
+  }
+}
+
+@keyframes openui-artifact-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
