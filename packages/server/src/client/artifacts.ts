@@ -1,3 +1,4 @@
+import { generateSystemPrompt } from "@openuidev/lang-core";
 import { readSSE } from "../shared/sse";
 import { toToolDefinitions } from "../tools/execute";
 import { isRecord, type CloudApi } from "./api";
@@ -5,6 +6,7 @@ import {
   OpenUIApiError,
   type ArtifactError,
   type ArtifactLibrary,
+  type ArtifactPromptOptions,
   type ArtifactResult,
   type ArtifactResultFor,
   type ArtifactTool,
@@ -22,6 +24,7 @@ type ArtifactKind = "live" | "static" | "slides" | "report";
 type CreateParams = CreateArtifactBase & {
   library?: ArtifactLibrary;
   tools?: Record<string, ArtifactTool>;
+  promptOptions?: ArtifactPromptOptions;
 };
 
 const MAX_RECONNECTS = 3;
@@ -33,14 +36,42 @@ function invalidInput(message: string): never {
   throw new OpenUIApiError(message, "invalid_input");
 }
 
+const BUILT_IN = { library: "components", tools: "data", promptOptions: "prompts" } as const;
+
 // Type-checked callers can't pass these; plain JavaScript callers can.
-function reject(params: object, keys: Array<"library" | "tools">, kind: string): void {
+function reject(params: object, keys: Array<keyof typeof BUILT_IN>, kind: string): void {
   for (const key of keys) {
     if ((params as Record<string, unknown>)[key] !== undefined) {
-      invalidInput(
-        `${kind} use built-in ${key === "library" ? "components" : "data"}: remove \`${key}\``,
-      );
+      invalidInput(`${kind} use built-in ${BUILT_IN[key]}: remove \`${key}\``);
     }
+  }
+}
+
+/**
+ * What generation needs from your side, as OpenUI Cloud's config block: the
+ * library, prompt options, data tools and, for an edit, the previous artifact.
+ */
+function cloudConfig(input: {
+  library: ArtifactLibrary;
+  tools?: Record<string, ArtifactTool>;
+  promptOptions?: ArtifactPromptOptions;
+  content?: string;
+  title?: string;
+}): string {
+  try {
+    return generateSystemPrompt({
+      cloud: true,
+      library: input.library.toSpec(),
+      ...(input.promptOptions && { promptOptions: input.promptOptions }),
+      ...(input.tools && { script: { tools: toToolDefinitions(input.tools) } }),
+      ...(input.content !== undefined && { incrementalEdit: input.content }),
+      ...(input.title !== undefined && { meta: { name: input.title } }),
+    });
+  } catch (error) {
+    throw new OpenUIApiError(
+      error instanceof Error ? error.message : String(error),
+      "invalid_library",
+    );
   }
 }
 
@@ -69,32 +100,37 @@ export class Artifacts {
 
   /** A slide deck, with built-in components. */
   async createSlides<P extends CreateSlidesParams>(params: P): Promise<ArtifactResultFor<P>> {
-    reject(params, ["library", "tools"], "Slides");
+    reject(params, ["library", "tools", "promptOptions"], "Slides");
     return this.create("slides", params);
   }
 
   /** A report, with built-in components. */
   async createReport<P extends CreateReportParams>(params: P): Promise<ArtifactResultFor<P>> {
-    reject(params, ["library", "tools"], "Reports");
+    reject(params, ["library", "tools", "promptOptions"], "Reports");
     return this.create("report", params);
   }
 
   /** Edits an artifact in place. Renderers keep the current version until the edit is ready. */
   async edit<P extends EditArtifactParams>(params: P): Promise<ArtifactResultFor<P>> {
-    const { id, prompt, userId, library, tools, content, store, signal } = params;
+    const { id, prompt, userId, library, tools, promptOptions, content, store, signal } = params;
     if (typeof id !== "string" || !id) invalidInput("id is required");
     requireUser(userId);
     if (store === false && typeof content !== "string") {
       invalidInput("With store: false, pass the artifact's saved content");
+    }
+    if (!library && (tools || promptOptions)) {
+      invalidInput("tools and promptOptions need the artifact's library");
     }
     const response = await this.api.post(
       `/v1/artifacts/${encodeURIComponent(id)}/edit`,
       {
         prompt,
         user_id: userId,
-        ...(library && { library: library.toSpec() }),
-        ...(tools && { tools: toToolDefinitions(tools) }),
-        ...(content !== undefined && { content }),
+        // Your library's artifacts carry the previous version in the config;
+        // slides and reports send it as is.
+        ...(library
+          ? { config: cloudConfig({ library, tools, promptOptions, content }) }
+          : content !== undefined && { content }),
         ...(store !== undefined && { store }),
       },
       signal,
@@ -106,7 +142,8 @@ export class Artifacts {
     kind: ArtifactKind,
     params: P,
   ): Promise<ArtifactResultFor<P>> {
-    const { title, description, prompt, userId, library, tools, store, signal } = params;
+    const { title, description, prompt, userId, library, tools, promptOptions, store, signal } =
+      params;
     requireUser(userId);
     const response = await this.api.post(
       "/v1/artifacts",
@@ -116,8 +153,8 @@ export class Artifacts {
         ...(description !== undefined && { description }),
         prompt,
         user_id: userId,
-        ...(library && { library: library.toSpec() }),
-        ...(tools && { tools: toToolDefinitions(tools) }),
+        // Slides and reports use built-in libraries: no config.
+        ...(library && { config: cloudConfig({ library, tools, promptOptions, title }) }),
         ...(store !== undefined && { store }),
       },
       signal,

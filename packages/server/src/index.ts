@@ -4,6 +4,7 @@ export { OpenUIApiError } from "./client/types";
 export type {
   ArtifactError,
   ArtifactLibrary,
+  ArtifactPromptOptions,
   ArtifactResult,
   ArtifactResultFor,
   ArtifactTool,
