@@ -1,6 +1,8 @@
+import { observability } from "@openuidev/observability";
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import type { ArtifactStorage, ArtifactStreamEvent } from "../adapters/types";
 import { useArtifactStorage } from "../store/ArtifactStorageContext";
+import { ARTIFACT_EVENT_KIND, type ArtifactEventDetail } from "./artifactEvent";
 
 /** Why an artifact can't be shown. @category Types */
 export type ArtifactStreamErrorCode = "not-found" | "generation-failed" | "network-error";
@@ -39,6 +41,18 @@ interface Entry {
   /** A newer revision was seen while a stream was still running. */
   stale: boolean;
   idleTimer: ReturnType<typeof setTimeout> | null;
+  /** The current lifecycle, for the observability event. Spans reconnects. */
+  run: Run | null;
+}
+
+interface Run {
+  id: string;
+  startedAt: number;
+  firstDeltaAt?: number;
+  /** Total reconnects; `Entry.reconnects` resets on every event. */
+  reconnects: number;
+  resumed: boolean;
+  edit: boolean;
 }
 
 const MAX_RECONNECTS = 3;
@@ -86,6 +100,7 @@ class ArtifactStreamStore {
         if (entry.listeners.size > 0 || !entry.controller) return;
         entry.controller.abort();
         entry.controller = null;
+        entry.run = null;
         // Keep `lastEventId`, so the next subscriber resumes where this left off.
         entry.started = false;
       }, 0);
@@ -125,6 +140,7 @@ class ArtifactStreamStore {
         versions: new Set(),
         stale: false,
         idleTimer: null,
+        run: null,
       };
       this.entries.set(id, entry);
     }
@@ -142,6 +158,13 @@ class ArtifactStreamStore {
     entry.controller?.abort();
     const controller = new AbortController();
     entry.controller = controller;
+    entry.run ??= {
+      id: crypto.randomUUID(),
+      startedAt: Date.now(),
+      reconnects: 0,
+      resumed: entry.lastEventId !== undefined,
+      edit: entry.snapshot.program !== null,
+    };
     this.update(id, { isStreaming: true, error: null });
 
     let finished = false;
@@ -175,6 +198,7 @@ class ArtifactStreamStore {
     // The stream dropped before it ended: resume after a backoff, then give up.
     if (entry.reconnects < MAX_RECONNECTS) {
       entry.reconnects += 1;
+      if (entry.run) entry.run.reconnects += 1;
       await sleep(500 * 2 ** (entry.reconnects - 1));
       if (entry.listeners.size > 0 && !entry.controller) void this.connect(id);
       else entry.started = false;
@@ -184,6 +208,34 @@ class ArtifactStreamStore {
       isStreaming: false,
       error: streamError("network-error", "Couldn't reach the artifact's storage."),
     });
+    this.settle(id, "stream", "network-error");
+  }
+
+  /** Ends the lifecycle and publishes its observability event. */
+  private settle(id: string, source: ArtifactEventDetail["source"], errorCode?: string): void {
+    const entry = this.entry(id);
+    const run = entry.run;
+    if (!run) return;
+    entry.run = null;
+    const now = Date.now();
+    const detail: ArtifactEventDetail = {
+      id: run.id,
+      kind: ARTIFACT_EVENT_KIND,
+      artifactId: id,
+      ...(entry.snapshot.type !== undefined && { artifactType: entry.snapshot.type }),
+      status: errorCode ? "error" : "complete",
+      ...(errorCode !== undefined && { errorCode }),
+      source,
+      ...(run.firstDeltaAt !== undefined && {
+        timeToFirstDeltaMs: run.firstDeltaAt - run.startedAt,
+      }),
+      durationMs: now - run.startedAt,
+      reconnects: run.reconnects,
+      resumed: run.resumed,
+      edit: run.edit,
+      message: errorCode ? `Artifact failed: ${errorCode}` : "Artifact is ready",
+    };
+    observability(errorCode ? "error" : "info", { ...detail });
   }
 
   /** Storages without `stream`: read the stored artifact once. */
@@ -196,6 +248,7 @@ class ArtifactStreamStore {
         program: typeof artifact.content === "string" ? artifact.content : null,
         isStreaming: false,
       });
+      this.settle(id, "get");
     } catch (error) {
       this.update(id, {
         isStreaming: false,
@@ -204,6 +257,7 @@ class ArtifactStreamStore {
           error instanceof Error ? error.message : "This artifact couldn't be loaded.",
         ),
       });
+      this.settle(id, "get", "not-found");
     }
   }
 
@@ -225,6 +279,7 @@ class ArtifactStreamStore {
       case "delta": {
         const text = event.data?.text;
         if (typeof text !== "string") return;
+        if (entry.run && entry.run.firstDeltaAt === undefined) entry.run.firstDeltaAt = Date.now();
         // Edits stay hidden until `end`, so the current version stays on screen.
         if (entry.target === "pending") entry.pending += text;
         else this.update(id, { program: (snapshot.program ?? "") + text });
@@ -240,6 +295,7 @@ class ArtifactStreamStore {
           isStreaming: false,
           summary: event.data?.summary ?? snapshot.summary,
         });
+        this.settle(id, "stream");
         if (entry.stale) {
           entry.stale = false;
           void this.connect(id);
@@ -252,13 +308,16 @@ class ArtifactStreamStore {
         entry.lastEventId = undefined;
         // The backend may prefix codes, as in `artifact-not-found`.
         const code = event.data?.code?.replace(/^artifact[-/]/, "");
+        const errorCode =
+          code && ERROR_CODES.has(code) ? (code as ArtifactStreamErrorCode) : "generation-failed";
         this.update(id, {
           isStreaming: false,
           error: streamError(
-            code && ERROR_CODES.has(code) ? (code as ArtifactStreamErrorCode) : "generation-failed",
+            errorCode,
             event.data?.message ?? "The artifact couldn't be generated.",
           ),
         });
+        this.settle(id, "stream", errorCode);
       }
     }
   }
