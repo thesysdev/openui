@@ -13,7 +13,6 @@ import "./lib/components/map/map.css";
 export {
   configureIntelligentKit,
   endpoints,
-  withBase,
   type IntelligentKitConfig,
   type IntelligentKitEndpoints,
 } from "./lib/config";

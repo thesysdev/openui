@@ -27,6 +27,16 @@
     },
     "./styles.css": "./dist/styles.css"
   },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "typesVersions": {
+    "*": {
+      "lib": [
+        "dist/lib/index.d.cts"
+      ]
+    }
+  },
   "sideEffects": [
     "**/*.css"
   ],
@@ -59,5 +69,13 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zod": "catalog:"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thesysdev/openui.git",
+    "directory": "packages/kits/intelligent"
   }
 }

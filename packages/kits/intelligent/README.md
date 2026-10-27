@@ -26,7 +26,8 @@ import { library, promptOptions } from "@openuidev/intelligent-kit/lib";
 
 Both entrypoints pull the stylesheets in, so under a bundler the components are
 styled with no extra import. Hosts without a bundler can load the concatenated
-sheet instead:
+sheet instead, which also carries maplibre-gl's own stylesheet so `Map` is
+styled:
 
 ```ts
 import "@openuidev/intelligent-kit/styles.css";
@@ -38,7 +39,8 @@ import "@openuidev/intelligent-kit/styles.css";
 
 - `/lib` exports `library`, `baseComponents`, `baseComponentGroups`,
   `promptOptions`, `dashboardPromptOptions`, `functions`, `actions`,
-  `runLibraryAction`, the four worked examples and the demo data tools.
+  `runLibraryAction`, the four worked examples and `demoToolSpecs` (the Query
+  tool specs `dashboardPromptOptions` advertises to a model).
 - The root entrypoint exports every component definition (so a host can compose
   its own library from a subset, or extend this one) and the kit configuration.
 

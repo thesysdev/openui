@@ -10,18 +10,6 @@
  * serves those routes needs no configuration at all.
  */
 
-const trimEnd = (path: string) => path.replace(/\/+$/, "");
-
-/** NEXT_PUBLIC_BASE_PATH where a bundler inlines it; "" everywhere else. */
-const envBasePath = (): string => {
-  try {
-    return trimEnd(process.env.NEXT_PUBLIC_BASE_PATH ?? "");
-  } catch {
-    // `process` is not defined in a plain browser bundle.
-    return "";
-  }
-};
-
 export type IntelligentKitEndpoints = {
   /** Lead photo and coordinates of the Wikipedia article with exactly this title. */
   wiki: (title: string) => string;
@@ -32,25 +20,69 @@ export type IntelligentKitEndpoints = {
 };
 
 export type IntelligentKitConfig = {
-  /** Path the app is served under. Defaults to NEXT_PUBLIC_BASE_PATH, else "". */
+  /**
+   * Path the app is served under, e.g. "/demo/intelligent-ui". A leading slash
+   * is added if missing and trailing slashes are dropped, so the value cannot
+   * turn the endpoints into page-relative URLs. Defaults to
+   * NEXT_PUBLIC_BASE_PATH, else "".
+   */
   basePath?: string;
   /** Replace any subset of the endpoint URL builders. */
   endpoints?: Partial<IntelligentKitEndpoints>;
 };
 
-let basePath = envBasePath();
-let overrides: Partial<IntelligentKitEndpoints> = {};
+/**
+ * A base path is either empty or absolute. Without the leading slash the
+ * endpoints below would be resolved against whatever page the user is on, so
+ * the same request would go to a different path per route.
+ */
+const normaliseBasePath = (path: string): string => {
+  const trimmed = path.replace(/\/+$/, "");
+  if (trimmed === "") return "";
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+};
+
+/** NEXT_PUBLIC_BASE_PATH where a bundler inlines it; "" everywhere else. */
+const envBasePath = (): string => {
+  try {
+    return normaliseBasePath(process.env.NEXT_PUBLIC_BASE_PATH ?? "");
+  } catch {
+    // `process` is not defined in a plain browser bundle.
+    return "";
+  }
+};
+
+type ConfigState = { basePath: string; overrides: Partial<IntelligentKitEndpoints> };
+
+/**
+ * The state lives on globalThis under a registered symbol rather than in module
+ * scope, because this package ships both ESM and CJS: a host whose server code
+ * reaches one build and whose client code reaches the other would otherwise
+ * hold two independent configurations, and configuring one would silently
+ * leave the other on the defaults.
+ */
+const STATE_KEY = Symbol.for("@openuidev/intelligent-kit.config");
+
+const readState = (): ConfigState => {
+  const store = globalThis as unknown as Record<symbol, ConfigState | undefined>;
+  const existing = store[STATE_KEY];
+  if (existing) return existing;
+  const created: ConfigState = { basePath: envBasePath(), overrides: {} };
+  store[STATE_KEY] = created;
+  return created;
+};
 
 const builtIn: IntelligentKitEndpoints = {
-  wiki: (title) => `${basePath}/api/wiki?title=${encodeURIComponent(title)}`,
-  imageSearch: (query) => `${basePath}/api/image-search?q=${encodeURIComponent(query)}`,
-  streetRoute: (coords) => `${basePath}/api/street-route?coords=${encodeURIComponent(coords)}`,
+  wiki: (title) => `${readState().basePath}/api/wiki?title=${encodeURIComponent(title)}`,
+  imageSearch: (query) => `${readState().basePath}/api/image-search?q=${encodeURIComponent(query)}`,
+  streetRoute: (coords) => `${readState().basePath}/api/street-route?coords=${encodeURIComponent(coords)}`,
 };
 
 /** Point the kit at this host's routes. Call once, before rendering. */
 export const configureIntelligentKit = (config: IntelligentKitConfig): void => {
-  if (config.basePath !== undefined) basePath = trimEnd(config.basePath);
-  if (config.endpoints) overrides = { ...overrides, ...config.endpoints };
+  const state = readState();
+  if (config.basePath !== undefined) state.basePath = normaliseBasePath(config.basePath);
+  if (config.endpoints) state.overrides = { ...state.overrides, ...config.endpoints };
 };
 
 /**
@@ -58,10 +90,7 @@ export const configureIntelligentKit = (config: IntelligentKitConfig): void => {
  * the kit after these modules are evaluated.
  */
 export const endpoints: IntelligentKitEndpoints = {
-  wiki: (title) => (overrides.wiki ?? builtIn.wiki)(title),
-  imageSearch: (query) => (overrides.imageSearch ?? builtIn.imageSearch)(query),
-  streetRoute: (coords) => (overrides.streetRoute ?? builtIn.streetRoute)(coords),
+  wiki: (title) => (readState().overrides.wiki ?? builtIn.wiki)(title),
+  imageSearch: (query) => (readState().overrides.imageSearch ?? builtIn.imageSearch)(query),
+  streetRoute: (coords) => (readState().overrides.streetRoute ?? builtIn.streetRoute)(coords),
 };
-
-/** The configured base path prefixed to a hand-written path. */
-export const withBase = (path: string) => `${basePath}${path}`;

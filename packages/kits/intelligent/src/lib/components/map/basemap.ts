@@ -5,7 +5,14 @@ export type MapLibre = typeof import("maplibre-gl");
 /** Loads MapLibre on first use; Next emits its worker as a versioned same-origin asset. */
 export async function loadMapLibre(): Promise<MapLibre> {
   const lib = await import("maplibre-gl");
-  lib.setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString());
+  // A bundler rewrites `new URL(..., import.meta.url)` into a real same-origin
+  // asset URL, which is the case this is written for. It is not always that:
+  // in the CJS build import.meta.url becomes pathToFileURL(__filename), so this
+  // resolves to a file:// path next to the module that does not exist and that
+  // a browser cannot load as a worker. Set it only when it came out as a web
+  // URL; otherwise MapLibre falls back to its own worker resolution.
+  const workerUrl = new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString();
+  if (/^https?:\/\//.test(workerUrl)) lib.setWorkerUrl(workerUrl);
   return lib;
 }
 
