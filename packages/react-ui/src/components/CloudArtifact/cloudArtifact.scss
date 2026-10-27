@@ -60,8 +60,12 @@
   &-chrome {
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+    border: 1px solid cssUtils.$border-default;
+    border-radius: cssUtils.$radius-m;
     background: cssUtils.$background;
     color: cssUtils.$text-neutral-primary;
   }
@@ -135,28 +139,6 @@
     border-radius: cssUtils.$radius-m;
     background: cssUtils.$danger-background;
     @include cssUtils.typography(body, small);
-  }
-
-  // ── Overlay ──
-  &-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: cssUtils.$space-xl;
-    background: cssUtils.$overlay;
-  }
-
-  &-dialog {
-    width: min(1200px, 100%);
-    height: min(900px, 100%);
-    overflow: hidden;
-    border-radius: cssUtils.$radius-l;
-    background: cssUtils.$background;
-    box-shadow: cssUtils.$shadow-xl;
-    outline: none;
   }
 }
 

@@ -22,6 +22,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { cacheFor } from "./artifactCache";
 import {
   ContentConfigContext,
@@ -30,7 +31,6 @@ import {
   type ContentConfig,
 } from "./contexts";
 import { artifactError, toolError, type ArtifactError } from "./errors";
-import { OpenSurface } from "./overlay";
 import {
   Chrome,
   ChromeActions,
@@ -45,7 +45,6 @@ import {
   PreviewLoader,
   PreviewTitle,
   RegionProvider,
-  warnOnce,
 } from "./slots";
 
 /** Props every artifact renderer takes. */
@@ -58,7 +57,7 @@ export interface ArtifactRendererBaseProps {
   content?: string;
   /** `true` (default): a preview card that opens the artifact. `false`: standalone, inline. */
   preview?: boolean;
-  /** The element the artifact opens in. Omit for a fullscreen overlay. */
+  /** The element the artifact opens in, such as a side panel. Omit to open it under the card. */
   renderInHtmlElement?: HTMLElement | null;
   /** Controlled open state. Without it, the renderer manages it. */
   isOpen?: boolean;
@@ -94,24 +93,18 @@ export interface ArtifactRendererRootProps extends ArtifactRendererBaseProps {
 const NO_ID_ERROR = artifactError("not-found", "This response doesn’t reference an artifact.");
 const DELETED_ERROR = artifactError("not-found", "This artifact was deleted.");
 
-/** Top-level children: only the `Preview` and `Chrome` regions count. */
+/** Top-level children: only the first `Preview` and `Chrome` count, as in AgentInterface. */
 function extractRegions(children: ReactNode) {
   let preview: ReactElement | undefined;
   let chrome: ReactElement | undefined;
   Children.forEach(children, (child) => {
     if (!isValidElement(child)) return;
-    if (child.type === Preview) {
-      if (preview) warnOnce("regions:preview", "Only the first <Preview> slot is used.");
-      else preview = child;
-    } else if (child.type === Chrome) {
-      if (chrome) warnOnce("regions:chrome", "Only the first <Chrome> slot is used.");
-      else chrome = child;
-    } else {
-      warnOnce(
-        "regions:other",
-        "Only <Preview> and <Chrome> go at the top level of an artifact renderer; other children are ignored.",
-      );
-    }
+    const slot = child.type === Preview ? "Preview" : child.type === Chrome ? "Chrome" : null;
+    if (!slot) return;
+    if ((slot === "Preview" ? preview : chrome) !== undefined) {
+      console.warn(`[ArtifactRenderer] Multiple <${slot}> slot children — using the first.`);
+    } else if (slot === "Preview") preview = child;
+    else chrome = child;
   });
   return { preview, chrome };
 }
@@ -157,15 +150,6 @@ export function ArtifactRendererRoot({
   const id = idProp ?? reference?.id ?? null;
   const ownStorage = content !== undefined;
   const stream = useArtifactStream({ id, version: reference?.version, content });
-
-  useEffect(() => {
-    if (!id) {
-      warnOnce(
-        "no-id",
-        "An artifact renderer got neither an `id` nor a `response` with an artifact in it.",
-      );
-    }
-  }, [id]);
 
   // A delete from `useArtifactList` reaches every renderer showing the artifact.
   const storage = useArtifactStorage();
@@ -324,15 +308,10 @@ export function ArtifactRendererRoot({
           {preview ? (
             <>
               <RegionProvider region="preview">{regions.preview ?? <Preview />}</RegionProvider>
-              {isOpen && (
-                <OpenSurface
-                  target={renderInHtmlElement}
-                  label={title ?? "Artifact"}
-                  onClose={close}
-                >
-                  {chrome}
-                </OpenSurface>
-              )}
+              {/* `null`: your element isn't mounted yet (a ref callback hasn't run). */}
+              {isOpen &&
+                renderInHtmlElement !== null &&
+                (renderInHtmlElement ? createPortal(chrome, renderInHtmlElement) : chrome)}
             </>
           ) : (
             <RegionProvider region="chrome">

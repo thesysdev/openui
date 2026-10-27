@@ -1,17 +1,12 @@
 "use client";
 
-import { useCallback, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
   ArtifactRendererRoot,
   slots,
   type ArtifactRendererBaseProps,
   type RenderContentArgs,
 } from "./ArtifactRendererRoot";
-
-export interface CreateArtifactRendererOptions {
-  /** Shown in React DevTools. */
-  displayName?: string;
-}
 
 /**
  * Builds an artifact renderer around your own viewer, such as for slides or
@@ -24,52 +19,15 @@ export interface CreateArtifactRendererOptions {
  * ));
  * ```
  *
- * Props beyond the shared ones are passed to `render` as its second argument.
- *
  * @category Functions
  */
-export function createArtifactRenderer<ExtraProps extends object = Record<never, never>>(
-  render: (args: RenderContentArgs, props: ExtraProps) => ReactNode,
-  options: CreateArtifactRendererOptions = {},
+export function createArtifactRenderer(
+  render: (args: RenderContentArgs) => ReactNode,
+  displayName = "ArtifactRenderer",
 ) {
-  function ArtifactRenderer({
-    response,
-    id,
-    content,
-    preview,
-    renderInHtmlElement,
-    isOpen,
-    onOpenChange,
-    defaultOpen,
-    className,
-    onError,
-    children,
-    ...extra
-  }: ArtifactRendererBaseProps & ExtraProps) {
-    // `extra` is a new object every render, so this re-renders the artifact
-    // whenever the renderer does, which is what a parent passing new props wants.
-    const renderContent = useCallback(
-      (args: RenderContentArgs) => render(args, extra as unknown as ExtraProps),
-      [extra],
-    );
-    return (
-      <ArtifactRendererRoot
-        response={response}
-        id={id}
-        content={content}
-        preview={preview}
-        renderInHtmlElement={renderInHtmlElement}
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        defaultOpen={defaultOpen}
-        className={className}
-        onError={onError}
-        renderContent={renderContent}
-      >
-        {children}
-      </ArtifactRendererRoot>
-    );
+  function ArtifactRenderer(props: ArtifactRendererBaseProps) {
+    return <ArtifactRendererRoot {...props} renderContent={render} />;
   }
-  ArtifactRenderer.displayName = options.displayName ?? "ArtifactRenderer";
+  ArtifactRenderer.displayName = displayName;
   return Object.assign(ArtifactRenderer, slots);
 }
