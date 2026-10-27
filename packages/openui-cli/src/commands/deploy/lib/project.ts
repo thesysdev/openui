@@ -1,19 +1,10 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
-
 import { CreateError } from "../../../lib/errors";
-
-type ProjectPackageJson = {
-  name?: string;
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-};
+import { readPackageJson, type PackageJson } from "../../../lib/package-json";
 
 /** Parse the project's package.json. */
-export function readProjectPackageJson(projectDir: string): ProjectPackageJson {
-  const pkgPath = path.join(projectDir, "package.json");
+export function readProjectPackageJson(projectDir: string): PackageJson {
   try {
-    return JSON.parse(fs.readFileSync(pkgPath, "utf8")) as ProjectPackageJson;
+    return readPackageJson(projectDir);
   } catch {
     throw new CreateError(
       "args_resolution",

@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import * as fs from "node:fs";
 import * as path from "node:path";
 
 import { Command } from "commander";
@@ -9,17 +8,14 @@ import { CreateTelemetryClient } from "./commands/create/lib/telemetry";
 import { context as ctx } from "./lib/context";
 import { UNKNOWN_AGENT_NAME } from "./lib/detect-agent";
 import { CliCancelledError, cliErrorProperties, CreateError } from "./lib/errors";
+import { readPackageJson } from "./lib/package-json";
 
 let activeCommand = "unknown";
 
 function buildProgram(): Command {
   const program = new Command();
 
-  const cliVersion = (
-    JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8")) as {
-      version: string;
-    }
-  ).version;
+  const cliVersion = readPackageJson(path.join(__dirname, "..")).version as string;
   ctx.cliVersion = cliVersion;
 
   program.name("openui").description("CLI for OpenUI").version(cliVersion);
