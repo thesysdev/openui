@@ -24,6 +24,13 @@ export interface ArtifactSummary {
   /** Thread the artifact was created in. Drives the "go to original thread" action. */
   threadId: string;
   updatedAt?: string | number;
+  createdAt?: string | number;
+  /** One sentence on what it shows. */
+  description?: string;
+  /** What was built. If generation failed, what went wrong. */
+  summary?: string;
+  /** Whether the user pinned it. */
+  pinned?: boolean;
 }
 
 /** Full artifact. `content` must have the same shape as the tool-call `response` the renderer's parser expects. */
@@ -36,6 +43,8 @@ export interface ArtifactListParams {
   name?: string;
   /** Filter by artifact types. Server-side. */
   type?: string[];
+  /** Only pinned (`true`) or unpinned (`false`) artifacts. Server-side. */
+  pinned?: boolean;
   cursor?: string;
   limit?: number;
 }
@@ -72,6 +81,12 @@ export interface ArtifactStorage {
    * a failed connection throws. Storages without it are read with `get`.
    */
   stream?(id: string, options?: ArtifactStreamOptions): AsyncIterable<ArtifactStreamEvent>;
+  /** Optional. Pin an artifact for the user. */
+  pin?(id: string): Promise<ArtifactSummary>;
+  /** Optional. Unpin an artifact. */
+  unpin?(id: string): Promise<ArtifactSummary>;
+  /** Optional. Delete an artifact. */
+  delete?(id: string): Promise<void>;
 }
 
 /**
