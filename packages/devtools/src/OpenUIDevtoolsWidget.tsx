@@ -162,14 +162,8 @@ export function OpenUIDevtoolsWidget({
       <style>{INTER_FONT_FACE}</style>
       <DeployHint position={corner} hidden={open || debug.trayOpen || drag.dragging} />
       <div
-        style={{
-          ...styles.toggleWrap,
-          ...rootStyle(mode),
-          ...positionStyles[corner],
-          ...(drag.offset
-            ? { transform: `translate(${drag.offset.x}px, ${drag.offset.y}px)` }
-            : null),
-        }}
+        ref={drag.ref}
+        style={{ ...styles.toggleWrap, ...rootStyle(mode), ...positionStyles[corner] }}
       >
         <button
           style={{
