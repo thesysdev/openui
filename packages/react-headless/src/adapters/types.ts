@@ -40,11 +40,38 @@ export interface ArtifactListParams {
   limit?: number;
 }
 
+/**
+ * One event on an artifact's stream: its reference first, then its content in
+ * pieces, then `end` (or `error`). `eventId` is the resume point after a
+ * dropped connection.
+ */
+export type ArtifactStreamEvent =
+  | {
+      type: "reference";
+      eventId?: string;
+      data: { id: string; type?: string; title?: string; description?: string; revision?: number };
+    }
+  | { type: "delta"; eventId?: string; data: { text: string } }
+  | { type: "end"; eventId?: string; data: { revision?: number; summary?: string } }
+  | { type: "error"; eventId?: string; data: { code?: string; message?: string } };
+
+export interface ArtifactStreamOptions {
+  /** Resume after this event. */
+  lastEventId?: string;
+  signal?: AbortSignal;
+}
+
 export interface ArtifactStorage {
   list(params?: ArtifactListParams): Promise<{ artifacts: ArtifactSummary[]; nextCursor?: string }>;
   get(id: string): Promise<Artifact>;
   /** Persist edited artifact content. Called by renderer implementations (via `useArtifactStorage`), not by the framework. */
   update(patch: { id: string; content: unknown }): Promise<ArtifactSummary>;
+  /**
+   * Optional. Stream an artifact while it is generated, or replay a finished
+   * one. A missing artifact yields one `error` event with code `not-found`;
+   * a failed connection throws. Storages without it are read with `get`.
+   */
+  stream?(id: string, options?: ArtifactStreamOptions): AsyncIterable<ArtifactStreamEvent>;
 }
 
 /**
