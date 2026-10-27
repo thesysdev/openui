@@ -1,4 +1,5 @@
 import type { ObservabilityLevel } from "@openuidev/observability";
+import type { ArtifactWireEvent } from "../events/artifact";
 import type { StreamWireEvent } from "../events/stream";
 
 declare const __SDK_VERSION__: string;
@@ -13,9 +14,10 @@ export interface WireEventBase {
   timestamp: number;
 }
 
-/** Currently a single member; will widen to a union as more kinds ship. */
-export type WireEvent = StreamWireEvent;
+/** One member per event kind the cloud sink keeps. */
+export type WireEvent = StreamWireEvent | ArtifactWireEvent;
 
+export type { ArtifactWireEvent } from "../events/artifact";
 export type { StreamWireEvent, WireErrorEntry } from "../events/stream";
 
 export interface WireEnvelope {

@@ -1,4 +1,5 @@
 import type { ObservabilityEvent } from "@openuidev/observability";
+import { selectArtifactEvent } from "../events/artifact";
 import { selectStreamEvent } from "../events/stream";
 import type { WireEvent } from "./wire";
 
@@ -10,7 +11,7 @@ export interface SelectorOptions {
 }
 
 /** Kind-specific selectors. Add a new event by appending its select* function. */
-const eventSelectors = [selectStreamEvent] as const;
+const eventSelectors = [selectStreamEvent, selectArtifactEvent] as const;
 
 function hashToUnitInterval(input: string): number {
   let hash = 2166136261;
