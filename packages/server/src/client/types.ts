@@ -1,4 +1,4 @@
-import type { LibrarySpec } from "@openuidev/lang-core";
+import type { CloudPromptOptions, LibrarySpec } from "@openuidev/lang-core";
 import type { ToolDefinition } from "../tools/types";
 
 export interface OpenUIClientOptions {
@@ -34,20 +34,26 @@ export interface CreateArtifactBase {
   signal?: AbortSignal;
 }
 
+/** Extend the prompt built from your library: `examples`, `preamble`, `additionalRules`. */
+export type ArtifactPromptOptions = CloudPromptOptions;
+
 export interface CreateLiveArtifactParams extends CreateArtifactBase {
   library: ArtifactLibrary;
   tools: Record<string, ArtifactTool>;
+  promptOptions?: ArtifactPromptOptions;
 }
 
 export interface CreateStaticArtifactParams extends CreateArtifactBase {
   library: ArtifactLibrary;
   tools?: never;
+  promptOptions?: ArtifactPromptOptions;
 }
 
 /** Slides use built-in components and no data tools. */
 export interface CreateSlidesParams extends CreateArtifactBase {
   library?: never;
   tools?: never;
+  promptOptions?: never;
 }
 
 /** Reports use built-in components and no data tools. */
@@ -62,6 +68,8 @@ interface EditArtifactBase {
   library?: ArtifactLibrary;
   /** Live artifacts: the data tools they were created with. */
   tools?: Record<string, ArtifactTool>;
+  /** With `library`: extend the prompt, as when creating. */
+  promptOptions?: ArtifactPromptOptions;
   signal?: AbortSignal;
 }
 
