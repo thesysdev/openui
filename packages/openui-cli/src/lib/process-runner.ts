@@ -32,6 +32,8 @@ export type RunCommandOptions = {
   inheritOutput?: boolean;
   /** Max bytes retained in `diagnosticTail` when output is piped. Default 16KiB. */
   captureLimit?: number;
+  /** Stop the child (SIGTERM, then SIGKILL) when this signal aborts. */
+  signal?: AbortSignal;
 };
 
 /**
@@ -87,6 +89,7 @@ export function runCommand(
       settled = true;
       process.off("SIGINT", onSigint);
       process.off("SIGTERM", onSigterm);
+      options.signal?.removeEventListener("abort", onSigterm);
       if (forceKillTimer) clearTimeout(forceKillTimer);
       resolve({
         ...result,
@@ -112,6 +115,8 @@ export function runCommand(
 
     process.on("SIGINT", onSigint);
     process.on("SIGTERM", onSigterm);
+    if (options.signal?.aborted) onSigterm();
+    else options.signal?.addEventListener("abort", onSigterm, { once: true });
     child.once("error", (error) => finish({ status: null, signal: forwardedSignal, error }));
     child.once("close", (status, signal) => finish({ status, signal: forwardedSignal ?? signal }));
   });
