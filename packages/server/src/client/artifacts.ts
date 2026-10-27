@@ -8,6 +8,7 @@ import {
   type ArtifactResult,
   type ArtifactResultFor,
   type ArtifactTool,
+  type CreateArtifactBase,
   type CreateLiveArtifactParams,
   type CreateReportParams,
   type CreateSlidesParams,
@@ -18,7 +19,7 @@ import {
 
 type ArtifactKind = "live" | "static" | "slides" | "report";
 
-type CreateParams = CreateSlidesParams & {
+type CreateParams = CreateArtifactBase & {
   library?: ArtifactLibrary;
   tools?: Record<string, ArtifactTool>;
 };
