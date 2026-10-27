@@ -98,7 +98,7 @@ export function OpenUIDevtoolsWidget({
     setConfig,
   });
   const styles = uiStyles(theme(mode));
-  const drag = useCornerDrag((position) => setConfig({ position }));
+  const drag = useCornerDrag(corner, (position) => setConfig({ position }));
 
   // Read configRef inside the (stable) subscription without re-subscribing.
   useEffect(() => {

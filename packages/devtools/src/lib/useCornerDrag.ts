@@ -5,23 +5,46 @@ import type { DevtoolsPosition } from "../types";
 const DRAG_THRESHOLD = 4;
 const SNAP_TRANSITION = "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)";
 
-/** The viewport quadrant a point falls in. */
-export function cornerAt(x: number, y: number, width: number, height: number): DevtoolsPosition {
-  const vertical = y < height / 2 ? "top" : "bottom";
-  const horizontal = x < width / 2 ? "left" : "right";
-  return `${vertical}-${horizontal}`;
+/** Drags within this angle (22.5°) of an axis only switch that axis. */
+const AXIS_RATIO = Math.tan(Math.PI / 8);
+
+/**
+ * The corner a drag from `from` heads toward. Each axis switches side when
+ * the drag moves toward the other side, so a short flick is enough.
+ */
+export function cornerToward(from: DevtoolsPosition, dx: number, dy: number): DevtoolsPosition {
+  let vertical = from.startsWith("top") ? "top" : "bottom";
+  let horizontal = from.endsWith("left") ? "left" : "right";
+  if (Math.abs(dy) > Math.abs(dx) * AXIS_RATIO) {
+    if (dy > 0) vertical = "bottom";
+    else if (dy < 0) vertical = "top";
+  }
+  if (Math.abs(dx) > Math.abs(dy) * AXIS_RATIO) {
+    if (dx > 0) horizontal = "right";
+    else if (dx < 0) horizontal = "left";
+  }
+  return `${vertical}-${horizontal}` as DevtoolsPosition;
 }
 
 /**
  * Drag-to-snap for the launcher. While dragging, the element behind `ref`
  * follows the pointer (written straight to the DOM, so the widget doesn't
- * re-render per move). On release it reports the quadrant it was dropped in
- * and glides from the drop point into that corner. A press that never passes
+ * re-render per move). On release it reports the corner it was dragged
+ * toward and glides from the drop point into that corner. A press that never passes
  * the threshold stays a click; the click that ends a drag is swallowed.
  */
-export function useCornerDrag(onSnap: (corner: DevtoolsPosition) => void) {
+export function useCornerDrag(
+  corner: DevtoolsPosition,
+  onSnap: (corner: DevtoolsPosition) => void,
+) {
   const ref = useRef<HTMLDivElement>(null);
-  const start = useRef<{ x: number; y: number; id: number } | null>(null);
+  const start = useRef<{
+    x: number;
+    y: number;
+    pressX: number;
+    pressY: number;
+    id: number;
+  } | null>(null);
   const dragged = useRef(false);
   const frame = useRef(0);
   const dropRect = useRef<DOMRect | null>(null);
@@ -51,7 +74,13 @@ export function useCornerDrag(onSnap: (corner: DevtoolsPosition) => void) {
 
   const onPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
-    start.current = { x: event.clientX, y: event.clientY, id: event.pointerId };
+    start.current = {
+      x: event.clientX,
+      y: event.clientY,
+      pressX: event.clientX,
+      pressY: event.clientY,
+      id: event.pointerId,
+    };
     dragged.current = false;
     // Keep receiving moves once the pointer outruns the 40px button.
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -89,7 +118,7 @@ export function useCornerDrag(onSnap: (corner: DevtoolsPosition) => void) {
     setDragging(false);
     dropRect.current = el.getBoundingClientRect();
     if (snap) {
-      onSnap(cornerAt(event.clientX, event.clientY, window.innerWidth, window.innerHeight));
+      onSnap(cornerToward(corner, event.clientX - origin.pressX, event.clientY - origin.pressY));
     }
   };
 
