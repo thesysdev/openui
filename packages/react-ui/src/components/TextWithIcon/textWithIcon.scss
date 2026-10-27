@@ -1,0 +1,54 @@
+@use "../../cssUtils" as cssUtils;
+
+.openui-text-with-icon {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+  color: cssUtils.$text-neutral-primary;
+
+  &__frame {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    // One line of the text's own font: centers the icon on the first line.
+    height: 1lh;
+    // Spacing in the text's own em, so small text gets a small gap.
+    margin-inline-end: 0.4em;
+    color: inherit;
+
+    // The icon scales with the text: 1.15em for small/default, 1.1em for body
+    // and h3, up to 1.2em for h1 so heading icons don't look undersized. One 1.5 stroke at every size.
+    --icon-scale: 1.15;
+    svg {
+      width: calc(var(--icon-scale) * 1em);
+      height: calc(var(--icon-scale) * 1em);
+      stroke-width: 1.5;
+    }
+  }
+
+  &--body &__frame {
+    --icon-scale: 1.1;
+  }
+  &--h3 &__frame {
+    --icon-scale: 1.1;
+  }
+  &--h2 &__frame {
+    --icon-scale: 1.15;
+  }
+  &--h1 &__frame {
+    --icon-scale: 1.2;
+  }
+
+  &__text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &--secondary {
+    color: cssUtils.$text-neutral-secondary;
+    .openui-text-with-icon__text .openui-markdown-renderer :is(p, li) {
+      color: cssUtils.$text-neutral-secondary;
+    }
+  }
+}

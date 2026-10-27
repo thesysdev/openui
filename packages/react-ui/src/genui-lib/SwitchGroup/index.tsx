@@ -23,14 +23,16 @@ type SwitchItemProps = {
 export const SwitchItem = defineComponent({
   name: "SwitchItem",
   props: SwitchItemSchema,
-  description: "Individual switch toggle",
+  description:
+    'One toggle in a SwitchGroup: SwitchItem(label?, description?, name, defaultChecked?), e.g. SwitchItem("Email alerts", "Get a message when a build fails", "email-alerts", true). name is the key submitted with the form; description is an optional one-line explanation under the label; defaultChecked starts it on.',
   component: () => null,
 });
 
 export const SwitchGroup = defineComponent({
   name: "SwitchGroup",
   props: createSwitchGroupSchema(SwitchItem),
-  description: "Group of switch toggles",
+  description:
+    "A list of on/off switches inside a FormControl, for independent settings or preferences that each turn on or off: SwitchGroup(name, items, value?). value binds a $variable holding { name: boolean }. It has no frame of its own; put it in a Card when it needs one. To pick items from a list use CheckBoxGroup, and for one choice among several use RadioGroup.",
   component: ({ props }) => {
     const isStreaming = useIsStreaming();
 
@@ -52,7 +54,7 @@ export const SwitchGroup = defineComponent({
     const aggregate = getAggregate();
 
     return (
-      <OpenUISwitchGroup variant={(props.variant as any) || "clear"}>
+      <OpenUISwitchGroup variant="clear">
         {items.map((item, i) => (
           <OpenUISwitchItem
             key={i}

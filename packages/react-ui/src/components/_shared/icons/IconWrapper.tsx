@@ -1,9 +1,10 @@
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getFallbackIconName } from "./categoryFallbacks";
+
 import { getIconImport } from "./dynamicIconImports";
 
 const cachedIcons = new Map<string, LucideIcon>();
+const UNKNOWN_ICON_NAME = "circle";
 
 export type IconWrapperProps = {
   name: string;
@@ -12,7 +13,8 @@ export type IconWrapperProps = {
   className?: string;
 };
 
-export const IconWrapper = ({ name, category, ...props }: IconWrapperProps) => {
+// `category` is accepted for wire compatibility but no longer picks a fallback.
+export const IconWrapper = ({ name, category: _category, ...props }: IconWrapperProps) => {
   const [IconComponent, setIconComponent] = useState<LucideIcon | null>(
     () => cachedIcons.get(name) || null,
   );
@@ -52,7 +54,8 @@ export const IconWrapper = ({ name, category, ...props }: IconWrapperProps) => {
 
       const loaded = await loadIcon(name);
       if (!loaded && !cancelled) {
-        const fallbackName = getFallbackIconName(category);
+        // An unknown name renders a plain circle, never a guessed topical icon.
+        const fallbackName = UNKNOWN_ICON_NAME;
         if (cachedIcons.has(fallbackName)) {
           setIconComponent(cachedIcons.get(fallbackName) as LucideIcon);
         } else {
@@ -65,7 +68,7 @@ export const IconWrapper = ({ name, category, ...props }: IconWrapperProps) => {
     return () => {
       cancelled = true;
     };
-  }, [name, category]);
+  }, [name]);
 
   if (!IconComponent) {
     return null;

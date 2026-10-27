@@ -1,0 +1,84 @@
+@use "../../cssUtils" as cssUtils;
+
+// The leading matches the two-line text block (a 24px title over a 20px
+// subtitle) at 44px. Vertical stacks a larger 48px leading over the text.
+.openui-entity-title {
+  --openui-entity-title-leading: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+
+  &--vertical {
+    --openui-entity-title-leading: 48px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  &__leading {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--openui-entity-title-leading);
+    height: var(--openui-entity-title-leading);
+    color: cssUtils.$text-neutral-primary;
+
+    > .openui-avatar {
+      // A circle keeps 1px all round for its outside ring (see avatar.scss),
+      // so it fits the slot; a rounded logo fills it.
+      width: 100%;
+      height: 100%;
+      &.openui-avatar--circle {
+        width: calc(100% - 2px);
+        height: calc(100% - 2px);
+      }
+      vertical-align: 0;
+    }
+    // At 44-48px the inline avatar's 70% glyph reads too big; half the
+    // badge with a lighter stroke keeps it in proportion with the text.
+    > .openui-avatar .openui-avatar__icon {
+      width: 50%;
+      height: 50%;
+      svg {
+        stroke-width: 1.75px;
+      }
+    }
+    // An emoji on its own reads at about 70% of the box.
+    > .openui-emoji {
+      font-size: calc(var(--openui-entity-title-leading) * 0.7);
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__title {
+    @include cssUtils.typography(body, heavy);
+    line-height: 24px;
+    color: cssUtils.$text-neutral-primary;
+    overflow-wrap: anywhere;
+  }
+
+  &__subtitle {
+    @include cssUtils.typography(body, small);
+    line-height: 20px;
+    color: cssUtils.$text-neutral-secondary;
+    overflow-wrap: anywhere;
+
+    // Composed content (Tag, Metric, Link, LeadingText) sits on one 20px
+    // line, a small step below the title.
+    &--composed {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      min-height: 20px;
+      margin-top: 2px;
+    }
+  }
+}

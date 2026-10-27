@@ -22,7 +22,7 @@
   background: cssUtils.$foreground;
   color: cssUtils.$text-neutral-primary;
   border: 1px solid cssUtils.$border-default;
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
@@ -51,13 +51,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: cssUtils.$space-m;
-  border-bottom: 1px solid cssUtils.$border-default;
+  gap: cssUtils.$space-m;
+  // No rule under the header; the title sits on the same 20px inset as the
+  // body, with the close button pulled into the corner.
+  padding: 20px 14px 0 20px;
 }
 
+// The same 22px Bold as Text "h2".
 .openui-modal-title {
-  @include cssUtils.typography(body, heavy);
   margin: 0;
+  font: #{cssUtils.$font-weight-bold} 22px / #{cssUtils.$line-height-heading}
+    #{cssUtils.$font-heading};
+  letter-spacing: -0.012em;
 }
 
 .openui-modal-close {
@@ -77,12 +82,13 @@
 }
 
 .openui-modal-body {
-  padding: cssUtils.$space-m;
+  // 16px under the title, 20px between body pieces (text, then buttons).
+  padding: 16px 20px 20px;
   overflow-y: auto;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: cssUtils.$space-m;
+  gap: 20px;
 }
 
 .openui-modal-sr-only {

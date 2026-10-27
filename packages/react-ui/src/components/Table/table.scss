@@ -10,9 +10,12 @@
   border-radius: cssUtils.$radius-2xl;
 }
 
+// Size to content (at least full width) so headers stay on one line;
+// wider tables scroll natively in the container.
 .openui-table {
   @include cssUtils.typography(body, small);
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   caption-side: bottom;
   border-collapse: collapse;
 }
@@ -34,11 +37,17 @@
   color: cssUtils.$text-neutral-primary;
 }
 
+// Header row is quieter than the body: 13px Medium labels (between the 12px
+// and 14px tokens) and 10px vertical padding, so it reads as a label row.
 .openui-table-head {
   border-bottom: 1px solid cssUtils.$border-default;
+  padding-top: 10px;
+  padding-bottom: 10px;
 
   & .openui-table-head-label {
-    @include cssUtils.typography(body, small);
+    @include cssUtils.typography(label, extra-small-heavy);
+    font-size: 13px;
+    line-height: 16px;
     color: cssUtils.$text-neutral-secondary;
     display: inline-flex;
     flex-grow: 1;
@@ -60,9 +69,6 @@
 }
 
 .openui-table-row {
-  &:nth-child(even) {
-    background-color: cssUtils.$highlight-subtle;
-  }
   border-bottom: 1px solid cssUtils.$border-default;
   &:last-child {
     border-bottom: 0;
@@ -95,45 +101,5 @@
 
   .openui-table-head-label {
     justify-content: center;
-  }
-}
-
-// ─── ScrollableTable ───
-
-.openui-scrollable-table-wrapper {
-  position: relative;
-  width: 100%;
-  outline: none;
-}
-
-.openui-scrollable-table-scroll-container {
-  overflow: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.openui-scrollable-table-control {
-  position: absolute;
-  top: cssUtils.$space-s;
-  z-index: 2;
-  width: fit-content;
-  height: fit-content;
-  border-radius: cssUtils.$radius-s;
-  background-color: cssUtils.$foreground;
-
-  &-left {
-    left: cssUtils.$space-s;
-  }
-
-  &-right {
-    right: cssUtils.$space-s;
-  }
-
-  &-disabled {
-    display: none;
   }
 }

@@ -1,13 +1,17 @@
 @use "../../cssUtils" as cssUtils;
+@use "../_shared/cards/clickable";
 
 .openui-overview-card {
   display: flex;
   flex-direction: column;
   width: 100%;
   min-width: 158px;
-  padding: cssUtils.$space-s-m;
-  border: 1px solid cssUtils.$border-default;
-  border-radius: cssUtils.$radius-2xl;
+  // Same insets as the horizontal ValueCard (12px, 18px on the right where
+  // text ends), with a little more below the hero value.
+  padding: 12px 18px 14px 12px;
+  // Matches the horizontal ValueCard: no outline, sunk tint, 14px radius.
+  border: none;
+  border-radius: 14px;
   background-color: cssUtils.$sunk-light;
   transition:
     background-color 0.2s ease,
@@ -15,21 +19,9 @@
     box-shadow 0.2s ease,
     transform 0.2s ease;
 
+  // Clickable cards keep the sunk tint and gain the hover wash and lift.
   &--clickable {
-    background-color: cssUtils.$foreground;
-    border-color: cssUtils.$border-interactive;
-    box-shadow: cssUtils.$shadow-m;
-    cursor: pointer;
-
-    &:hover {
-      box-shadow: none;
-      transform: scale(0.995);
-    }
-
-    &:focus-visible {
-      outline: 2px solid cssUtils.$border-accent;
-      outline-offset: 2px;
-    }
+    @include clickable.clickable-card;
   }
 }
 
@@ -37,8 +29,10 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  justify-content: space-between;
-  gap: cssUtils.$space-l;
+  // The value follows the label at a fixed gap, so it never floats down when
+  // a neighbour in the row is taller.
+  justify-content: flex-start;
+  gap: 8px;
   min-width: 0;
   min-height: 0;
 }
@@ -71,14 +65,110 @@
   min-width: 0;
   width: auto;
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
   gap: cssUtils.$space-s;
-  min-height: cssUtils.$space-xl;
+  // Labels sit at the top at their own height; values line up across a row
+  // because the card pushes them to the bottom (space-between above).
+  align-items: flex-start;
 }
 
 .openui-overview-card__slot--bottom {
   display: flex;
   flex-direction: column;
   gap: cssUtils.$space-2xs;
+}
+
+// Vertical ValueCard label: the leading and title on one line, the way a
+// LeadingText reads, with the subtitle always on its own line below, above
+// the hero value.
+.openui-value-card-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375em;
+  min-width: 0;
+  @include cssUtils.typography(body, small);
+  // A step below body text so the label reads as a caption to the value.
+  font-size: 13px;
+  line-height: 18px;
+  color: cssUtils.$text-neutral-primary;
+
+  &__leading {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    // Icon at the text's icon size and stroke; an Avatar or Emoji keeps its
+    // inline size.
+    > svg {
+      width: 1em;
+      height: 1em;
+      stroke-width: 1.5;
+    }
+    // Inline avatars track the smaller text too.
+    > .openui-avatar {
+      width: calc(1em + 4px);
+      height: calc(1em + 4px);
+    }
+  }
+
+  &__text {
+    display: contents;
+  }
+
+  // In the vertical card the subtitle never shares the title's line, so every
+  // card in a row reads the same whatever the title length. It starts at the
+  // card's left edge, like the leading and the value, so only the title sits
+  // beside the leading.
+  .openui-overview-card & {
+    row-gap: 0;
+
+    .openui-value-card-label__subtitle {
+      flex-basis: 100%;
+    }
+  }
+
+  &__subtitle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375em;
+    color: cssUtils.$text-neutral-secondary;
+  }
+
+  // Horizontal card with a subtitle: title over subtitle, and a 36px leading
+  // (two 18px lines) instead of the inline one.
+  &--stacked {
+    flex-wrap: nowrap;
+    gap: 10px;
+
+    .openui-value-card-label__text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .openui-value-card-label__leading {
+      width: 36px;
+      height: 36px;
+      justify-content: center;
+
+      > .openui-avatar {
+        // A circle keeps 1px all round for its outside ring (see avatar.scss),
+        // so it fits the slot; a rounded logo fills it.
+        width: 100%;
+        height: 100%;
+        &.openui-avatar--circle {
+          width: calc(100% - 2px);
+          height: calc(100% - 2px);
+        }
+        vertical-align: 0;
+      }
+      > .openui-avatar .openui-avatar__icon {
+        width: 50%;
+        height: 50%;
+      }
+      > .openui-emoji {
+        font-size: 24px;
+      }
+    }
+  }
 }

@@ -16,6 +16,6 @@ export function createSelectSchema(SelectItem: RefComponent) {
     placeholder: z.string().optional(),
     rules: rulesSchema,
     value: reactive(z.string().optional()),
-    size: z.enum(["small", "medium", "large"]).optional(),
+    variant: z.enum(["default", "inline"]).optional(),
   });
 }

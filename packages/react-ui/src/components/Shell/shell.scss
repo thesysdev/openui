@@ -1,0 +1,153 @@
+@use "../../cssUtils" as cssUtils;
+@use "../_shared/bleed";
+
+// A framed dashboard: an outlined frame with the shared breakout, so it is
+// wider than the chat column.
+.openui-shell {
+  @include bleed.breakout;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  // Even 16px inset so the title and the 14px cards inside line up; a 20px
+  // outer radius, softer than the cards without reading pill-like.
+  padding: 16px;
+  border: 1px solid cssUtils.$border-default;
+  border-radius: 20px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 28px;
+  }
+
+  // 12px secondary label.
+  &__title {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: var(--openui-font-weight-medium);
+    font-variation-settings: var(--openui-font-variation-medium);
+    color: cssUtils.$text-neutral-secondary;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // Ghost button: the tertiary IconButton's own hover wash, nothing more.
+  &__button {
+    flex: none;
+  }
+
+  &__body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+// ─── Full-screen lightbox ───
+
+.openui-shell-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    background: cssUtils.$overlay;
+    animation: openui-shell-fade 200ms ease-out both;
+  }
+
+  &__panel {
+    position: absolute;
+    inset: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    // Same inset and radius as the inline frame.
+    padding: 16px;
+    box-sizing: border-box;
+    border-radius: 20px;
+    background: cssUtils.$foreground;
+    color: cssUtils.$text-neutral-primary;
+    box-shadow: 0 16px 48px oklch(0 0 0 / 0.2);
+    animation: openui-shell-zoom 200ms ease-out both;
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  // The panel's own scroll; the page behind stays locked.
+  &__body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &--closing {
+    .openui-shell-lightbox__backdrop {
+      animation: openui-shell-fade-out 200ms ease-in both;
+    }
+    .openui-shell-lightbox__panel {
+      animation: openui-shell-zoom-out 200ms ease-in both;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .openui-shell-lightbox__backdrop,
+    .openui-shell-lightbox__panel {
+      animation: none !important;
+    }
+  }
+}
+
+@keyframes openui-shell-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes openui-shell-zoom {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes openui-shell-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes openui-shell-zoom-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+// A Section spaces itself from what follows (its bottom padding), so one that
+// follows a Grid or Card gets only the body's 12px above it. Top it up to the
+// same 36px a Section leaves under itself.
+.openui-shell__body,
+.openui-shell-lightbox__body {
+  > :not(.openui-section) + .openui-section {
+    padding-top: 24px;
+  }
+}

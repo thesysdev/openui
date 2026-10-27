@@ -101,7 +101,7 @@ function ChipsRenderer({ props, renderNode }: ComponentRenderProps<ChipsProps>) 
       items={items.map((item) => ({
         value: item.props.value,
         label: item.props.label,
-        icon: item.props.icon ? renderNode(item.props.icon) : undefined,
+        leading: item.props.leading ? renderNode(item.props.leading) : undefined,
         disabled: item.props.disabled,
       }))}
     />
@@ -112,6 +112,6 @@ export const Chips = defineComponent({
   name: "Chips",
   props: ChipsSchema,
   description:
-    "A form field of compact selectable chips for choosing one or many short options; the selection is stored under `name`.",
+    'A form field of compact selectable pills, inside a FormControl, for choosing one or many short options: Chips(name, "single" | "multiple", [ChipItem(...), ...], rules?, defaultValue?). A selected chip shows a checkmark at the end. Use it for short labels (1–3 words) such as tags, amenities or tools; for choices that need a description use OptionCards. The selection is stored under `name`.',
   component: ChipsRenderer,
 });

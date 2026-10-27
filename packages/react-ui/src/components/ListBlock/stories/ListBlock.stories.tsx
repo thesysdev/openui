@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ChevronRight, User } from "lucide-react";
+import { Avatar } from "../../Avatar";
 import { ListItem } from "../../ListItem";
 import { ListBlock } from "../ListBlock";
 
@@ -27,7 +28,7 @@ const meta: Meta<typeof ListBlock> = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["number", "icon", "image"],
+      options: ["number", "plain"],
       description: "Controls the indicator type for every ListItem in the list.",
       table: { category: "Appearance", defaultValue: { summary: "number" } },
     },
@@ -94,29 +95,41 @@ export const NumberClickable: Story = {
 
 export const IconWithSubtitle: Story = {
   render: () => (
-    <ListBlock variant="icon">
-      <ListItem icon={<User size={16} />} title="John Doe" subtitle="Software Engineer" />
-      <ListItem icon={<User size={16} />} title="Jane Smith" subtitle="Product Designer" />
-      <ListItem icon={<User size={16} />} title="Ankit Das" subtitle="Software Developer" />
+    <ListBlock variant="plain">
+      <ListItem
+        leading={<Avatar name="User" icon={<User />} />}
+        title="John Doe"
+        subtitle="Software Engineer"
+      />
+      <ListItem
+        leading={<Avatar name="User" icon={<User />} />}
+        title="Jane Smith"
+        subtitle="Product Designer"
+      />
+      <ListItem
+        leading={<Avatar name="User" icon={<User />} />}
+        title="Ankit Das"
+        subtitle="Software Developer"
+      />
     </ListBlock>
   ),
 };
 
 export const IconNoSubtitle: Story = {
   render: () => (
-    <ListBlock variant="icon">
-      <ListItem icon={<User size={16} />} title="John Doe" />
-      <ListItem icon={<User size={16} />} title="Jane Smith" />
-      <ListItem icon={<User size={16} />} title="Ankit Das" />
+    <ListBlock variant="plain">
+      <ListItem leading={<Avatar name="User" icon={<User />} />} title="John Doe" />
+      <ListItem leading={<Avatar name="User" icon={<User />} />} title="Jane Smith" />
+      <ListItem leading={<Avatar name="User" icon={<User />} />} title="Ankit Das" />
     </ListBlock>
   ),
 };
 
 export const IconClickable: Story = {
   render: () => (
-    <ListBlock variant="icon">
+    <ListBlock variant="plain">
       <ListItem
-        icon={<User size={16} />}
+        leading={<Avatar name="User" icon={<User />} />}
         title="John Doe"
         subtitle="Software Engineer"
         actionLabel="View Profile"
@@ -124,7 +137,7 @@ export const IconClickable: Story = {
         onClick={() => alert("John Doe")}
       />
       <ListItem
-        icon={<User size={16} />}
+        leading={<Avatar name="User" icon={<User />} />}
         title="Jane Smith"
         subtitle="Product Designer"
         actionLabel="View Profile"
@@ -132,7 +145,7 @@ export const IconClickable: Story = {
         onClick={() => alert("Jane Smith")}
       />
       <ListItem
-        icon={<User size={16} />}
+        leading={<Avatar name="User" icon={<User />} />}
         title="Ankit Das"
         subtitle="Software Developer"
         actionLabel="View Profile"
@@ -145,19 +158,19 @@ export const IconClickable: Story = {
 
 export const ImageWithSubtitle: Story = {
   render: () => (
-    <ListBlock variant="image">
+    <ListBlock variant="plain">
       <ListItem
-        image={{ src: "https://i.pravatar.cc/40?img=1", alt: "John" }}
+        leading={<Avatar name="John" src="https://i.pravatar.cc/40?img=1" icon={<User />} />}
         title="John Doe"
         subtitle="Software Engineer"
       />
       <ListItem
-        image={{ src: "https://i.pravatar.cc/40?img=2", alt: "Jane" }}
+        leading={<Avatar name="Jane" src="https://i.pravatar.cc/40?img=2" icon={<User />} />}
         title="Jane Smith"
         subtitle="Product Designer"
       />
       <ListItem
-        image={{ src: "https://i.pravatar.cc/40?img=3", alt: "Ankit" }}
+        leading={<Avatar name="Ankit" src="https://i.pravatar.cc/40?img=3" icon={<User />} />}
         title="Ankit Das"
         subtitle="Software Developer"
       />
@@ -167,33 +180,42 @@ export const ImageWithSubtitle: Story = {
 
 export const ImageNoSubtitle: Story = {
   render: () => (
-    <ListBlock variant="image">
-      <ListItem image={{ src: "https://i.pravatar.cc/40?img=1", alt: "John" }} title="John Doe" />
-      <ListItem image={{ src: "https://i.pravatar.cc/40?img=2", alt: "Jane" }} title="Jane Smith" />
-      <ListItem image={{ src: "https://i.pravatar.cc/40?img=3", alt: "Ankit" }} title="Ankit Das" />
+    <ListBlock variant="plain">
+      <ListItem
+        leading={<Avatar name="John" src="https://i.pravatar.cc/40?img=1" icon={<User />} />}
+        title="John Doe"
+      />
+      <ListItem
+        leading={<Avatar name="Jane" src="https://i.pravatar.cc/40?img=2" icon={<User />} />}
+        title="Jane Smith"
+      />
+      <ListItem
+        leading={<Avatar name="Ankit" src="https://i.pravatar.cc/40?img=3" icon={<User />} />}
+        title="Ankit Das"
+      />
     </ListBlock>
   ),
 };
 
 export const ImageClickable: Story = {
   render: () => (
-    <ListBlock variant="image">
+    <ListBlock variant="plain">
       <ListItem
-        image={{ src: "https://i.pravatar.cc/40?img=1", alt: "John" }}
+        leading={<Avatar name="John" src="https://i.pravatar.cc/40?img=1" icon={<User />} />}
         title="John Doe"
         subtitle="Software Engineer"
         actionIcon={<ChevronRight size={16} />}
         onClick={() => alert("John Doe")}
       />
       <ListItem
-        image={{ src: "https://i.pravatar.cc/40?img=2", alt: "Jane" }}
+        leading={<Avatar name="Jane" src="https://i.pravatar.cc/40?img=2" icon={<User />} />}
         title="Jane Smith"
         subtitle="Product Designer"
         actionIcon={<ChevronRight size={16} />}
         onClick={() => alert("Jane Smith")}
       />
       <ListItem
-        image={{ src: "https://i.pravatar.cc/40?img=3", alt: "Ankit" }}
+        leading={<Avatar name="Ankit" src="https://i.pravatar.cc/40?img=3" icon={<User />} />}
         title="Ankit Das"
         subtitle="Software Developer"
         actionIcon={<ChevronRight size={16} />}

@@ -12,7 +12,7 @@ vi.mock("@assistant-ui/react", () => ({
 }));
 
 const FORM = `root = Card([title, form])
-title = TextContent("Contact Us", "large-heavy")
+title = Text("Contact Us", "h3")
 form = Form("contact", btns, [nameField, emailField])
 nameField = FormControl("Name", Input("name", "Your name", "text", { required: true, minLength: 2 }))
 emailField = FormControl("Email", Input("email", "you@example.com", "email", { required: true, email: true }))
@@ -259,7 +259,7 @@ describe("OpenUIPrompt", () => {
   });
 
   it("does not show the fallback for a warning when the program renders", async () => {
-    const args = { ui: 'card = Card([h])\nh = CardHeader("Entry", "B")' };
+    const args = { ui: 'card = Card([h])\nh = Heading("Entry", "B")' };
     await renderPrompt(makeProps({ args, argsText: JSON.stringify(args) }));
 
     expect(container.textContent).toContain("Entry");

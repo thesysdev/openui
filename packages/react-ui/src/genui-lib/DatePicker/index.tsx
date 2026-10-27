@@ -7,6 +7,7 @@ import {
   useIsStreaming,
   useStateField,
 } from "@openuidev/react-lang";
+import clsx from "clsx";
 import React from "react";
 import { DatePicker as OpenUIDatePicker } from "../../components/DatePicker";
 import { DatePickerSchema } from "./schema";
@@ -16,7 +17,8 @@ export { DatePickerSchema } from "./schema";
 export const DatePicker = defineComponent({
   name: "DatePicker",
   props: DatePickerSchema,
-  description: "",
+  description:
+    'A date field with a calendar inside a FormControl: DatePicker(name, mode?, rules?, value?, variant?), e.g. DatePicker("travel-dates", "range", { required: true }). mode "single" (default) picks one date; "range" picks a start and end, for trips, bookings or report periods. value binds a $variable. variant "inline" is borderless until hover or focus, for table cells and dense rows; use "default" everywhere else.',
   component: ({ props }) => {
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
@@ -41,9 +43,14 @@ export const DatePicker = defineComponent({
       }
     };
 
+    const className = clsx("openui-genui-date-picker", {
+      "openui-genui-date-picker--inline": props.variant === "inline",
+    });
+
     if (mode === "range") {
       return (
         <OpenUIDatePicker
+          className={className}
           mode="range"
           selectedRangeDates={field.value as any}
           setSelectedRangeDates={handleChange}
@@ -53,6 +60,7 @@ export const DatePicker = defineComponent({
 
     return (
       <OpenUIDatePicker
+        className={className}
         mode="single"
         selectedSingleDate={field.value as any}
         setSelectedSingleDate={handleChange}

@@ -11,29 +11,26 @@
     border: 1px solid transparent;
     box-shadow: none;
     padding: 0;
-    .openui-accordion-trigger {
-      box-shadow: none;
-      padding-left: 0;
-      padding-right: 0;
-      padding-top: cssUtils.$space-l;
-      padding-bottom: cssUtils.$space-l;
-    }
+    // Every row is the same height: equal padding above and below each
+    // trigger, a 1px rule between rows and none after the last. An open row's
+    // content ends with the same space, so both ends of the list match.
     .openui-accordion-item {
-      &:first-child {
-        .openui-accordion-trigger {
-          padding-top: 0;
-        }
-      }
+      overflow: visible;
       &:last-child {
         border-bottom-left-radius: 0px;
         border-bottom-right-radius: 0px;
-        border-bottom: 1px solid transparent;
+        border-bottom: none;
       }
+    }
+    .openui-accordion-item .openui-accordion-trigger,
+    .openui-accordion-item:first-child .openui-accordion-trigger {
+      box-shadow: none;
+      padding: calc(cssUtils.$space-m + 2px) 0;
     }
     .openui-accordion-content {
       &-wrapper {
         padding: 0;
-        padding-bottom: cssUtils.$space-l;
+        padding-bottom: calc(cssUtils.$space-m + 2px);
         gap: cssUtils.$space-m;
       }
     }
@@ -107,7 +104,8 @@
       z-index: 1;
     }
   }
-  &-header {
+  // Scoped so host heading styles (h3 margins) never add space under a row.
+  & &-header {
     display: flex;
     margin-block-start: 0;
     margin-block-end: 0;
@@ -117,7 +115,8 @@
   &-trigger {
     border: none;
     box-sizing: border-box;
-    @include cssUtils.typography("body", "default");
+    // Section titles in Medium, same size as before.
+    @include cssUtils.typography("body", "heavy");
     background-color: transparent;
     padding: cssUtils.$space-l 0;
     width: 100%;
@@ -127,18 +126,34 @@
     justify-content: space-between;
     color: cssUtils.$text-neutral-primary;
     cursor: pointer;
+    border-radius: cssUtils.$radius-m;
+
+    &:focus {
+      outline: none;
+    }
+    &:focus-visible {
+      outline: 2px solid cssUtils.$border-interactive-emphasis;
+      outline-offset: 2px;
+    }
 
     &-content {
       display: flex;
       align-items: center;
       color: cssUtils.$text-neutral-primary;
-      gap: cssUtils.$space-xs;
+      gap: 0.5em;
+      // Leading: an Icon at the text's icon size, or an inline Avatar or Emoji.
       &-icon {
-        display: flex;
+        display: inline-flex;
+        flex: none;
         align-items: center;
         justify-content: center;
-        height: 16px;
-        width: 16px;
+        min-width: 1.15em;
+
+        > svg {
+          width: 1.15em;
+          height: 1.15em;
+          stroke-width: 1.5;
+        }
       }
     }
 
@@ -156,6 +171,10 @@
   }
   &-content {
     overflow: hidden;
+    // Circle avatars draw a 1px ring outside their box; this 1px of room
+    // keeps a flush-left one from losing its edge to the clip.
+    padding-inline: 1px;
+    margin-inline: -1px;
     color: cssUtils.$text-neutral-primary;
     @include cssUtils.typography("body", "default");
 

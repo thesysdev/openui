@@ -1,15 +1,20 @@
 import { z } from "zod/v4";
 
+import { Avatar } from "./Avatar";
+import { AvatarStack } from "./AvatarStack";
 import { Callout } from "./Callout";
-import { CardHeader } from "./CardHeader";
 import { CodeBlock } from "./CodeBlock";
+import { EntityTitle } from "./EntityTitle";
+import { Heading } from "./Heading";
 import { Image } from "./Image";
-import { ImageBlock } from "./ImageBlock";
 import { ImageGallery } from "./ImageGallery";
-import { MarkDownRenderer } from "./MarkDownRenderer";
+import { ImageTitle } from "./ImageTitle";
+import { LeadingText } from "./LeadingText";
+import { Link } from "./Link";
+import { Markdown } from "./Markdown";
+import { Metric } from "./Metric";
 import { Separator } from "./Separator";
-import { TextCallout } from "./TextCallout";
-import { TextContent } from "./TextContent";
+import { Text } from "./Text";
 
 import {
   AreaChartCondensed,
@@ -30,30 +35,36 @@ import { TagBlock } from "./TagBlock";
 import { Buttons } from "./Buttons";
 import { Form } from "./Form";
 
+import { Checklist } from "./Checklist";
 import { Steps } from "./Steps";
+import { Timeline } from "./Timeline";
 
 import { FollowUpBlock } from "./FollowUpBlock";
 import { ListBlock } from "./ListBlock";
 import { SectionBlock } from "./SectionBlock";
 
 import { CompositeCardBlock } from "./CompositeCardBlock";
-import { ContextCardBlock } from "./ContextCardBlock";
 import { EditableTable } from "./EditableTable";
 import { EntityList } from "./EntityList";
-import { InlineHeader } from "./InlineHeader";
-import { OverviewCardBlock } from "./OverviewCardBlock";
-import { SnippetCardBlock } from "./SnippetCardBlock";
-import { VisualCardBlock } from "./VisualCardBlock";
+import { ImageCard } from "./ImageCard";
+import { InsightCard } from "./InsightCard";
+import { ValueCard } from "./ValueCard";
+import { ValueLayout } from "./ValueLayout";
 
 export const ContentChildUnion = z.union([
-  TextContent.ref,
-  MarkDownRenderer.ref,
-  CardHeader.ref,
+  Text.ref,
+  Markdown.ref,
+  Link.ref,
+  Metric.ref,
+  Avatar.ref,
+  AvatarStack.ref,
+  Heading.ref,
+  LeadingText.ref,
+  EntityTitle.ref,
+  ImageTitle.ref,
   Callout.ref,
-  TextCallout.ref,
   CodeBlock.ref,
   Image.ref,
-  ImageBlock.ref,
   ImageGallery.ref,
   Separator.ref,
   HorizontalBarChart.ref,
@@ -71,19 +82,20 @@ export const ContentChildUnion = z.union([
   Buttons.ref,
   IconButton.ref,
   Steps.ref,
-  InlineHeader.ref,
+  Timeline.ref,
+  Checklist.ref,
   EntityList.ref,
   EditableTable.ref,
-  SnippetCardBlock.ref,
-  OverviewCardBlock.ref,
-  ContextCardBlock.ref,
+  ValueCard.ref,
+  ValueLayout.ref,
+  InsightCard.ref,
   CompositeCardBlock.ref,
-  VisualCardBlock.ref,
+  ImageCard.ref,
 ]);
 
 // Chat-specific content union — no Stack, adds ListBlock / FollowUpBlock / SectionBlock
 // (conversational features with no place in the base library). Everything else
-// (InlineHeader, EntityList, EditableTable, card blocks) now lives in the base
+// (EntityList, EditableTable, card blocks) now lives in the base
 // ContentChildUnion above and is inherited here via the spread.
 // Note: Tabs and Carousel are NOT included here to avoid circular deps (Tabs/schema.ts imports ContentChildUnion).
 // ChatCardChildUnion (which adds Tabs + Carousel) is defined in openuiChatLibrary.tsx.

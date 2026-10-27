@@ -1,0 +1,31 @@
+@use "../../cssUtils" as cssUtils;
+
+// An image over a stack of composed content. Spacing is in em off 16px.
+.openui-image-title {
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+  // In a row (Stack, grid) items share the width evenly instead of
+  // collapsing to their text, and wrap below 10em.
+  flex: 1 1 10em;
+  min-width: 10em;
+
+  &__image {
+    margin-bottom: 0.5em;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    // No extra gap: lines sit flush like EntityTitle's title and subtitle.
+    gap: 0;
+    min-width: 0;
+
+    // A row of pills needs a little air from the text above it.
+    > .openui-tag-block,
+    > .openui-inline-group:has(> .openui-tag) {
+      margin-top: 0.375em;
+    }
+  }
+}

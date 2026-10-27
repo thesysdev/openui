@@ -1,0 +1,93 @@
+@use "../../cssUtils" as cssUtils;
+
+// Collapsed section that closes a reply (Related queries, Sources).
+.openui-disclosure-section {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  &__trigger {
+    @include cssUtils.button-reset;
+    @include cssUtils.typography(label, small-heavy);
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: cssUtils.$space-xs;
+    min-height: 28px;
+    padding: cssUtils.$space-3xs cssUtils.$space-xs cssUtils.$space-3xs cssUtils.$space-2xs;
+    margin-inline-start: calc(-1 * #{cssUtils.$space-2xs});
+    border-radius: cssUtils.$radius-m;
+    color: cssUtils.$text-neutral-secondary;
+    cursor: pointer;
+    transition:
+      background-color 0.12s ease,
+      color 0.12s ease;
+
+    &:hover {
+      background-color: cssUtils.$highlight-subtle;
+      color: cssUtils.$text-neutral-primary;
+    }
+    &:focus {
+      outline: none;
+    }
+    &:focus-visible {
+      outline: 2px solid cssUtils.$border-interactive-emphasis;
+      outline-offset: 1px;
+    }
+  }
+
+  &__chevron {
+    flex-shrink: 0;
+    color: cssUtils.$text-neutral-tertiary;
+    transition: transform 0.16s ease;
+  }
+  &--open &__chevron {
+    transform: rotate(90deg);
+  }
+
+  &__count {
+    @include cssUtils.typography(label, small);
+    color: cssUtils.$text-neutral-tertiary;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__preview {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  // Opens to the content's height (grid rows 0fr → 1fr).
+  &__panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 0.18s ease,
+      opacity 0.14s ease;
+  }
+  &--open &__panel {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  &__panel-inner {
+    min-height: 0;
+    overflow: hidden;
+    // Room for the 1px ring circle avatars draw outside their box.
+    padding-inline: 1px;
+    margin-inline: -1px;
+  }
+  // Inside the clipped wrapper, so the gap folds away with the content.
+  &__content {
+    padding-top: cssUtils.$space-xs;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &__trigger,
+    &__chevron,
+    &__panel {
+      transition: none;
+    }
+  }
+}

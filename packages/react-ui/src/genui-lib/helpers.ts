@@ -65,3 +65,25 @@ export function buildSliceData(slices: unknown): Record<string, string | number>
     value: s.props["value"] as number,
   }));
 }
+
+// "1. ", "2) ", "#3 " or "Step 4: " at the start of a title. A bare
+// "2024: " is left alone, since a Timeline title can lead with its year.
+const OWN_NUMBER = /^\s*(?:step\s+\d+\s*[.):]?|\d+\s*[.)]|#\d+)\s+/i;
+
+/**
+ * Drops a number the model typed at the start of a title ("1. Collect")
+ * when the component numbers its rows itself, so the row doesn't read
+ * "① 1. Collect". Handles a plain string, a Text-like node with a `text`
+ * prop, and the first piece of an array.
+ */
+export function withoutOwnNumber(title: unknown): unknown {
+  if (typeof title === "string") return title.replace(OWN_NUMBER, "");
+  if (Array.isArray(title)) {
+    return title.length ? [withoutOwnNumber(title[0]), ...title.slice(1)] : title;
+  }
+  const [node] = asElementNodes(title);
+  if (node && typeof node.props["text"] === "string") {
+    return { ...node, props: { ...node.props, text: node.props["text"].replace(OWN_NUMBER, "") } };
+  }
+  return title;
+}

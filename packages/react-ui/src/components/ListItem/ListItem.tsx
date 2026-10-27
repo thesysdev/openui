@@ -1,22 +1,25 @@
 import clsx from "clsx";
 import React, { CSSProperties, ReactNode } from "react";
 
-export type ListItemVariant = "icon" | "image" | "number";
-export type ListItemSize = "default" | "small";
+/** number shows a small accent number inline with the title; plain shows none. */
+export type ListItemVariant = "number" | "plain";
 
 export interface ListItemProps {
   className?: string;
   style?: CSSProperties;
+  /** A string, or composed content such as Text, a Link or a Tag. */
   title?: ReactNode;
+  /** A string, or composed content such as a Metric, Tag or LeadingText. */
   subtitle?: ReactNode;
   variant?: ListItemVariant;
-  size?: ListItemSize;
-  icon?: ReactNode;
-  image?: { src?: string; alt: string };
+  /** A visual before the text, usually an Avatar (photo, logo or icon badge). */
+  leading?: ReactNode;
   index?: number;
   listHasSubtitle?: boolean;
   actionLabel?: ReactNode;
   actionIcon?: ReactNode;
+  /** Controls on the right (a Button, Buttons or IconButton), in place of the chevron. */
+  actionSlot?: ReactNode;
   onClick?: () => void;
 }
 
@@ -25,27 +28,26 @@ const ListItem = React.forwardRef<HTMLDivElement, ListItemProps>((props, ref) =>
     className,
     style,
     variant = "number",
-    size = "default",
-    icon,
-    image,
+    leading,
     index = 0,
     listHasSubtitle,
     title,
     subtitle,
     actionIcon,
     actionLabel,
+    actionSlot,
     onClick,
     ...rest
   } = props;
 
   const hasAction = !!onClick;
+  const composed = (value: ReactNode) => value != null && typeof value !== "string";
 
   return (
     <div
       ref={ref}
       className={clsx(
         "openui-list-item-wrapper",
-        size === "small" && "openui-list-item-wrapper--small",
         hasAction && "openui-list-item-wrapper-with-action",
         className,
       )}
@@ -58,29 +60,45 @@ const ListItem = React.forwardRef<HTMLDivElement, ListItemProps>((props, ref) =>
         role={hasAction ? "button" : undefined}
         tabIndex={hasAction ? 0 : undefined}
       >
-        <div
-          className={clsx(
-            "openui-list-item-indicator",
-            !listHasSubtitle && "openui-list-item-indicator-no-subtitle",
-            hasAction && "openui-list-item-indicator-clickable",
-          )}
-        >
-          {variant === "number" && (
-            <div className="openui-list-item-indicator-number">{index + 1}</div>
-          )}
-          {variant === "icon" && icon}
-          {variant === "image" && image && (image.src || image.alt) && (
-            <div className="openui-list-item-indicator-image">
-              <img src={image.src} alt={image.alt} width={40} height={40} />
-            </div>
-          )}
-        </div>
+        {leading && (
+          <div
+            className={clsx(
+              "openui-list-item-leading",
+              !listHasSubtitle && "openui-list-item-leading-no-subtitle",
+            )}
+          >
+            {leading}
+          </div>
+        )}
+        {/* A leading visual already marks the row, so the number only shows without one. */}
+        {variant === "number" && !leading && (
+          <span className="openui-list-item-number">{index + 1}</span>
+        )}
         <div className="openui-list-item-content-wrapper">
           <div className="openui-list-item-content">
-            {title && <div className="openui-list-item-title">{title}</div>}
-            {subtitle && <div className="openui-list-item-subtitle">{subtitle}</div>}
+            {title && (
+              <div
+                className={clsx(
+                  "openui-list-item-title",
+                  composed(title) && "openui-list-item-title--composed",
+                )}
+              >
+                {title}
+              </div>
+            )}
+            {subtitle && (
+              <div
+                className={clsx(
+                  "openui-list-item-subtitle",
+                  composed(subtitle) && "openui-list-item-subtitle--composed",
+                )}
+              >
+                {subtitle}
+              </div>
+            )}
           </div>
-          {hasAction && (actionIcon || actionLabel) && (
+          {actionSlot && <div className="openui-list-item-action-slot">{actionSlot}</div>}
+          {!actionSlot && hasAction && (actionIcon || actionLabel) && (
             <div className="openui-list-item-action">
               {actionLabel && <div className="openui-list-item-action-label">{actionLabel}</div>}
               {actionIcon && <div className="openui-list-item-action-icon">{actionIcon}</div>}

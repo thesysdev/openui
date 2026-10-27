@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { ChevronRight } from "lucide-react";
 import { forwardRef, type CSSProperties, type ReactNode } from "react";
 import { CardBlockLayout, cardKeyDownHandler } from "../_shared/cards/CardBlockLayout";
 import { toCssUrl } from "../_shared/utils";
@@ -48,11 +47,6 @@ export const VisualCard = forwardRef<HTMLDivElement, VisualCardProps>((props, re
     >
       <div className="openui-visual-first-card__top">
         <div className="openui-visual-first-card__tag">{tag ?? null}</div>
-        {clickable && (
-          <div className="openui-visual-first-card__action" aria-hidden="true">
-            <ChevronRight size={16} />
-          </div>
-        )}
       </div>
       {body ? <div className="openui-visual-first-card__bottom">{body}</div> : null}
     </div>

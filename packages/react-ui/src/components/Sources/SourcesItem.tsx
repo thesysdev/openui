@@ -33,11 +33,13 @@ export const ListedSourceItem = memo((props: SourcesItemComponentProps) => {
     >
       <div className="openui-listed-source-item__header">
         <div className="openui-listed-source-item__logo">
-          <SourceFaviconImage url={faviconUrl} alt={sourceName} width={20} height={20} />
+          <SourceFaviconImage url={faviconUrl} alt="" width={14} height={14} />
         </div>
         <span className="openui-listed-source-item__source-name">{sourceName}</span>
       </div>
-      <div className="openui-listed-source-item__title">{title}</div>
+      <div className="openui-listed-source-item__title" title={title}>
+        {title}
+      </div>
     </div>
   );
 });

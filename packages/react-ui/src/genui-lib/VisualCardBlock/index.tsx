@@ -37,7 +37,7 @@ function VisualCardBlockRenderer({
     if (!item || !props.action || isStreaming) return;
 
     const { id, body, tag, bgImageSrc, bgImageAlt } = item.props;
-    const bodyValue = body?.props?.value;
+    const bodyValue = body?.props?.title;
     const tagText = tag?.props?.text;
     triggerAction(
       bodyValue || tagText || id || `Visual card ${index + 1}`,
@@ -47,7 +47,7 @@ function VisualCardBlockRenderer({
         itemId: id,
         itemTag: tagText,
         itemBody: bodyValue,
-        itemBodySubtext: body?.props?.subtext,
+        itemBodySubtext: body?.props?.description,
         itemBgImageSrc: bgImageSrc,
         itemBgImageAlt: bgImageAlt,
       }),

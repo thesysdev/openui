@@ -11,7 +11,6 @@ export const EditableSelectCell: React.FC<CellRendererProps> = (props) => {
     columnId,
     isSelected,
     isEditing,
-    onSelect,
     onStartEdit,
     onFinishEdit,
     onNavigate,
@@ -81,11 +80,8 @@ export const EditableSelectCell: React.FC<CellRendererProps> = (props) => {
   );
 
   const handleClick = () => {
-    if (!isSelected && !isEditing) {
-      onSelect(rowIndex, columnId);
-    } else if (isSelected && !isEditing) {
-      onStartEdit(rowIndex, columnId);
-    }
+    // One click opens the menu; keyboard navigation still selects without editing.
+    if (!isEditing) onStartEdit(rowIndex, columnId);
   };
 
   const handleValueChange = (newValue: string) => {
@@ -105,7 +101,7 @@ export const EditableSelectCell: React.FC<CellRendererProps> = (props) => {
   return (
     <div
       ref={cellRef}
-      className="openui-editable-table-cell-base"
+      className="openui-editable-table-cell-base openui-editable-table-cell-base--control"
       onClick={handleClick}
       onKeyDown={handleKeyDownWithSelect}
       tabIndex={0}
@@ -118,7 +114,10 @@ export const EditableSelectCell: React.FC<CellRendererProps> = (props) => {
         open={isEditing}
         onOpenChange={handleOpenChange}
       >
-        <SelectTrigger className="openui-editable-table-select-trigger">
+        <SelectTrigger
+          // Inline variant: borderless until hover or focus, 32px tall.
+          className="openui-genui-select openui-genui-select--inline openui-editable-table-select-trigger"
+        >
           <SelectValue placeholder="Select an option" />
         </SelectTrigger>
         <SelectContent>

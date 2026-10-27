@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { ChevronRight } from "lucide-react";
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
 import { CardBlockLayout, cardKeyDownHandler } from "../_shared/cards/CardBlockLayout";
 import { MetricIndicatorInline, type MetricIndicatorInlineProps } from "../MetricIndicator";
@@ -12,6 +11,8 @@ export interface OverviewCardBlockItem {
   top?: ReactNode;
   /** Bottom metric rendered with MetricIndicatorInline. */
   bottom?: Omit<MetricIndicatorInlineProps, "className">;
+  /** Bottom content to render as-is (e.g. a Metric); takes precedence over `bottom`. */
+  bottomContent?: ReactNode;
 }
 
 export interface OverviewCardBlockProps extends Omit<HTMLAttributes<HTMLDivElement>, "onClick"> {
@@ -69,15 +70,10 @@ const OverviewCardBlock = forwardRef<HTMLDivElement, OverviewCardBlockProps>((pr
                   {item.top}
                 </div>
               )}
-              {isClickable && (
-                <div className="openui-overview-card__chevron" aria-hidden="true">
-                  <ChevronRight size={14} />
-                </div>
-              )}
             </div>
-            {item.bottom && (
+            {(item.bottomContent || item.bottom) && (
               <div className="openui-overview-card__slot openui-overview-card__slot--bottom">
-                <MetricIndicatorInline {...item.bottom} />
+                {item.bottomContent ?? (item.bottom && <MetricIndicatorInline {...item.bottom} />)}
               </div>
             )}
           </div>

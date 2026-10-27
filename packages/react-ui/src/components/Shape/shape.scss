@@ -1,0 +1,41 @@
+@use "../../cssUtils" as cssUtils;
+
+// Solid fill in the shared palette's primary (foreground) color. Hosts size
+// it like an Icon; standalone it is 1em.
+.openui-shape {
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  stroke: none !important;
+
+  &--neutral {
+    color: cssUtils.$text-neutral-secondary;
+  }
+  &--info {
+    color: cssUtils.$text-info-primary;
+  }
+  &--success {
+    color: cssUtils.$text-success-primary;
+  }
+  &--warning {
+    color: cssUtils.$text-alert-primary;
+  }
+  &--danger {
+    color: cssUtils.$text-danger-primary;
+  }
+  &--purple {
+    color: cssUtils.$text-purple-primary;
+  }
+  &--pink {
+    color: cssUtils.$text-pink-primary;
+  }
+  &--inverted {
+    color: cssUtils.$text-neutral-primary;
+  }
+}
+
+// Inside a tinted Avatar the shape takes the avatar's foreground color.
+.openui-avatar__icon .openui-shape {
+  color: inherit;
+}

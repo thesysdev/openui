@@ -147,3 +147,64 @@
     padding: calc(cssUtils.$space-s-m - 1px) cssUtils.$space-m;
   }
 }
+
+// ─── Agent (genui) buttons ───
+// Pills in two sizes. Scoped to .openui-genui-button so app chrome that uses
+// the base Button (composer, menus, dialogs) keeps its own sizes and colors.
+.openui-button-base.openui-genui-button {
+  justify-content: center;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: none;
+  // A leading icon sits a little closer to the edge than the label would.
+  &:has(> svg:first-child) {
+    padding-left: 12px;
+  }
+
+  &--default {
+    height: 32px;
+    padding: 0 14px;
+    gap: 6px;
+    @include cssUtils.typography(label, small-heavy);
+    & svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &--large {
+    height: 40px;
+    padding: 0 20px;
+    gap: 8px;
+    @include cssUtils.typography(label, heavy);
+    & svg {
+      width: 18px;
+      height: 18px;
+    }
+    &:has(> svg:first-child) {
+      padding-left: 16px;
+    }
+  }
+
+  // Primary is the black inverted fill (white in dark mode), like the user's
+  // chat bubble, instead of the accent blue.
+  &.openui-button-base-primary {
+    background-color: cssUtils.$inverted-background;
+    border-color: cssUtils.$inverted-background;
+    color: cssUtils.$background;
+    &:not(:disabled):hover {
+      background-color: cssUtils.$inverted-background;
+      opacity: 0.85;
+    }
+    &:not(:disabled):active {
+      opacity: 0.75;
+    }
+    &:disabled {
+      opacity: 0.4;
+    }
+  }
+
+  &.openui-button-base-secondary {
+    box-shadow: none;
+  }
+}

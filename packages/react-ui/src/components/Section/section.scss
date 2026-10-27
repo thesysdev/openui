@@ -1,0 +1,19 @@
+@use "../../cssUtils" as cssUtils;
+
+// Spacing is in em off the 16px body size, so it scales with the theme.
+.openui-section {
+  display: flex;
+  flex-direction: column;
+  // 16px between children; a Heading child adds its own 0.25em below it.
+  gap: 1em;
+  min-width: 0;
+  font-size: var(--openui-font-size-md);
+  color: cssUtils.$text-neutral-primary;
+  // Bottom-only, so each part is spaced from the next and the first needs
+  // nothing on top. The last one leaves the bottom to its parent's padding.
+  padding-bottom: 2.25em;
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}

@@ -6,7 +6,8 @@ export type ChipsSelectionType = "single" | "multiple";
 export interface ChipsItem {
   value: string;
   label: string;
-  icon?: ReactNode;
+  /** Icon, Avatar or Emoji before the label. */
+  leading?: ReactNode;
   disabled?: boolean;
 }
 
@@ -61,8 +62,22 @@ const Chips = forwardRef<HTMLDivElement, ChipsProps>((props, ref) => {
             )}
             onClick={() => onToggle?.(item.value)}
           >
-            {item.icon ? <span className="openui-chip-item__icon">{item.icon}</span> : null}
+            {item.leading ? (
+              <span className="openui-chip-item__leading">{item.leading}</span>
+            ) : null}
             <span className="openui-chip-item__text">{item.label}</span>
+            <span aria-hidden className="openui-chip-item__check">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 6 9 17l-5-5" pathLength={1} />
+              </svg>
+            </span>
           </button>
         );
       })}

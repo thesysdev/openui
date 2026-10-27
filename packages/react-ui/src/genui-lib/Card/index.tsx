@@ -1,58 +1,28 @@
 "use client";
 
 import { defineComponent } from "@openuidev/react-lang";
-import { Card as OpenUICard } from "../../components/Card";
+import { CardHeading, Card as OpenUICard } from "../../components/Card";
 import { CardSchema } from "./schema";
 
 export { CardSchema } from "./schema";
 
-const gapMap: Record<string, string> = {
-  none: "0",
-  xs: "var(--openui-space-xs)",
-  s: "var(--openui-space-s)",
-  m: "var(--openui-space-m)",
-  l: "var(--openui-space-l)",
-  xl: "var(--openui-space-xl)",
-  "2xl": "var(--openui-space-2xl)",
-};
-
-const alignMap: Record<string, string> = {
-  start: "flex-start",
-  center: "center",
-  end: "flex-end",
-  stretch: "stretch",
-  baseline: "baseline",
-};
-
-const justifyMap: Record<string, string> = {
-  start: "flex-start",
-  center: "center",
-  end: "flex-end",
-  between: "space-between",
-  around: "space-around",
-  evenly: "space-evenly",
-};
-
 export const Card = defineComponent({
   name: "Card",
   props: CardSchema,
-  description:
-    'Styled container. variant: "card" (default, elevated) | "sunk" (recessed) | "clear" (transparent). Always full width. Accepts all Stack flex params (default: direction "column"). Cards flex to share space in row/wrap layouts.',
+  description: `Styled container, never borderless. variant: "outlined" (default, a thin border on a transparent background) | "lifted" (white, with the same border plus a soft shadow, to raise it off the page) | "sunk" (a light grey fill, no border or shadow, for a recessed group). Use "outlined" for ordinary groups such as a chart or a set of KPIs; "lifted" sparingly, for the one block that should stand out, such as a recommended option or a summary; "sunk" for secondary or nested content, such as a card inside another card or supporting notes. There is no borderless Card: to group content without a frame, use Stack (or Section for a part of the response). Never put a Table or EditableTable inside a Card: a table draws its own frame, so a Card around it doubles the border. Place it directly in a Section, TabItem or AccordionItem, with a Heading or Text title above it if it needs one. Optional title and subtitle (3rd and 4th, after variant) render as the card's own small header, 14px over 13px secondary like our other cards; use them instead of a Heading child, e.g. Card([chart], null, "Revenue by quarter", "USD thousands"). Always full width. Children stack top to bottom by default; to customise the layout (a row, a wrap, other gaps), pass a single Stack as the child, e.g. Card([Stack([a, b], "row")]). Cards flex to share space in a row Stack.`,
   component: ({ props, renderNode }) => (
     <OpenUICard
-      variant={(props.variant as "card" | "sunk" | "clear") ?? "card"}
+      variant={(props.variant as "outlined" | "lifted" | "sunk") ?? "outlined"}
       width="full"
       style={{
         flex: 1,
         minWidth: 0,
         display: "flex",
-        flexDirection: (props.direction as "row" | "column") || "column",
-        flexWrap: props.wrap ? "wrap" : "nowrap",
-        gap: gapMap[(props.gap as string) || "m"] || gapMap["m"],
-        alignItems: alignMap[(props.align as string) || "stretch"] || "stretch",
-        justifyContent: justifyMap[(props.justify as string) || "start"] || "flex-start",
+        flexDirection: "column",
+        gap: "var(--openui-space-m)",
       }}
     >
+      <CardHeading title={props.title} subtitle={props.subtitle} />
       {renderNode(props.children)}
     </OpenUICard>
   ),

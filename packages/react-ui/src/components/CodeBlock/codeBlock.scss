@@ -1,5 +1,14 @@
 @use "../../cssUtils" as cssUtils;
 
+// 14px outer radius. The 28px copy button sits 7px in from the top and right
+// with a 7px radius, so its corner is concentric with the block's; on a
+// one-line block (12px padding + 18px line) that same inset centers it.
+$code-radius: 14px;
+$code-padding-y: 12px;
+$code-padding-x: 16px;
+$button-inset: 7px;
+$button-size: 28px;
+
 /* Code Block Styles */
 .openui-code-block-wrapper {
   position: relative;
@@ -12,8 +21,8 @@
 
   .openui-code-block-copy-button {
     position: absolute;
-    right: 0.5rem;
-    top: 0.5rem;
+    right: $button-inset;
+    top: $button-inset;
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
     &.openui-code-block-copy-button-copied {
@@ -22,8 +31,41 @@
     }
   }
 
+  // Doubled class to outrank IconButton's own size radius.
+  .openui-code-block-copy-button.openui-code-block-copy-button {
+    border-radius: $code-radius - $button-inset;
+  }
+
+  &--single-line .openui-code-block-copy-button {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  // Prism themes set padding, margin and font inline, hence !important.
   .openui-code-block-syntax-highlighter {
     margin: 0 !important;
-    border-radius: 0.5rem;
+    padding: $code-padding-y ($button-size + $button-inset * 2) $code-padding-y $code-padding-x !important;
+    border-radius: $code-radius !important;
+    &,
+    & code {
+      font-family: cssUtils.$font-code !important;
+      font-size: 12px !important;
+      line-height: 18px !important;
+    }
+  }
+
+  // Shell blocks lead with a terminal glyph, aligned to the first line.
+  .openui-code-block-shell-icon {
+    position: absolute;
+    left: $code-padding-x;
+    top: $code-padding-y + 2px;
+    width: 14px;
+    height: 14px;
+    color: cssUtils.$text-neutral-secondary;
+    pointer-events: none;
+  }
+
+  &--shell .openui-code-block-syntax-highlighter {
+    padding-left: $code-padding-x + 14px + 8px !important;
   }
 }

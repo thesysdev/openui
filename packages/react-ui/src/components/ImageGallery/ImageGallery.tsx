@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import React, { useCallback, useMemo, useState } from "react";
-import { Button } from "../Button";
 import { GalleryModal } from "./GalleryModal";
 
 export interface ImageItem {
@@ -29,27 +28,28 @@ const getLayoutClassName = (imageCount: number): string => {
   }
 };
 
-export const ImageGallery: React.FC<OpenUIGalleryProps> = ({ images }) => {
-  const [showAll, setShowAll] = useState(false);
+export const ImageGallery: React.FC<OpenUIGalleryProps> = ({ images: allImages }) => {
+  // Skip images without a src yet (mid-stream or empty): src="" is invalid.
+  const images = useMemo(() => allImages.filter((image) => !!image?.src), [allImages]);
+  // Clicking any tile opens the lightbox, which browses every image, including
+  // ones past the first five that the grid doesn't show.
+  const [isOpen, setIsOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   // Memoize layout class to prevent recalculation
   const layoutClass = useMemo(() => getLayoutClassName(images.length), [images.length]);
 
-  // Memoize whether to show button
-  const shouldShowButton = useMemo(() => images.length > MAX_GRID_IMAGES, [images.length]);
-
   // Memoize visible images
   const visibleImages = useMemo(() => images.slice(0, MAX_GRID_IMAGES), [images]);
 
   // Memoize callbacks
-  const toggleShowAll = useCallback(() => {
-    setShowAll((prev) => !prev);
+  const closeModal = useCallback(() => {
+    setIsOpen(false);
   }, []);
 
   const handleImageClick = useCallback((index: number) => {
     setSelectedImageIndex(index);
-    setShowAll(true);
+    setIsOpen(true);
   }, []);
 
   const setSelectedImageIndexMemoized = useCallback((index: number) => {
@@ -68,21 +68,14 @@ export const ImageGallery: React.FC<OpenUIGalleryProps> = ({ images }) => {
             <img src={image.src} alt={image.alt || `Gallery image ${index + 1}`} />
           </div>
         ))}
-        {shouldShowButton && (
-          <div className="openui-gallery__show-all-button">
-            <Button variant="primary" size="small" onClick={toggleShowAll}>
-              Show All
-            </Button>
-          </div>
-        )}
       </div>
 
-      {showAll && (
+      {isOpen && (
         <GalleryModal
           images={images}
           selectedImageIndex={selectedImageIndex}
           setSelectedImageIndex={setSelectedImageIndexMemoized}
-          onClose={toggleShowAll}
+          onClose={closeModal}
         />
       )}
     </div>

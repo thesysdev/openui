@@ -17,23 +17,22 @@
   flex-shrink: 0;
   height: 16px;
   width: 24px;
-  margin-top: cssUtils.$space-2xs;
+  margin-top: 1px;
   cursor: pointer;
   border-radius: cssUtils.$radius-full;
   padding: cssUtils.$space-3xs;
-  border: 1px solid cssUtils.$border-default;
-  background-color: cssUtils.$sunk;
+  border: 1px solid transparent;
+  background-color: cssUtils.$highlight-strong;
   transition-property: background-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 
   &:not([data-disabled], [data-state="checked"]):hover {
-    border: 1px solid cssUtils.$border-interactive;
+    background-color: cssUtils.$border-interactive-emphasis;
   }
 
   &[data-state="checked"] {
-    background-color: cssUtils.$interactive-accent-default;
-    border: 1px solid cssUtils.$border-accent;
+    background-color: cssUtils.$inverted-background;
   }
 
   &[data-disabled] {
@@ -62,16 +61,22 @@
   }
 }
 
+.openui-switch-item-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .openui-switch-item-label {
   flex: 1;
-  @include cssUtils.typography(body, default);
+  @include cssUtils.typography(label, small-heavy);
   color: cssUtils.$text-neutral-primary;
   &:disabled {
-    color: cssUtils.$text-neutral-tertiary;
+    opacity: 0.5;
   }
 }
 
 .openui-switch-item-description {
-  @include cssUtils.typography(body, default);
+  @include cssUtils.typography(body, small);
   color: cssUtils.$text-neutral-secondary;
 }

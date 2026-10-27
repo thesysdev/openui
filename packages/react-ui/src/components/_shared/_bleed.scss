@@ -1,0 +1,13 @@
+// Breakout shared by Shell and Bleed: wider than the chat column, growing
+// into the gutters on both sides up to --openui-bleed-max-width, keeping 24px
+// from the edge of the nearest size container (the viewport when the host
+// declares none). Never narrower than its column.
+@mixin breakout {
+  --openui-bleed-width: max(100%, min(var(--openui-bleed-max-width, 1120px), calc(100cqw - 48px)));
+  width: var(--openui-bleed-width);
+  margin-inline: calc((100% - var(--openui-bleed-width)) / 2);
+  // Always leaves room before whatever follows, even as the last block.
+  margin-bottom: 24px;
+  min-width: 0;
+  box-sizing: border-box;
+}

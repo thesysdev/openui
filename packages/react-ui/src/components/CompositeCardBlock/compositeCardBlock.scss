@@ -1,39 +1,88 @@
 @use "../../cssUtils" as cssUtils;
+@use "../_shared/cards/clickable";
 
 .openui-composite-card__wrapper {
   height: 100%;
 }
 
 .openui-composite-card {
+  // Images inside a composite card keep the tighter radius they had.
+  --openui-image-radius: #{cssUtils.$radius-m};
   display: flex;
   flex-direction: column;
   gap: cssUtils.$space-m;
   min-width: 15rem;
   height: 100%;
-  padding: cssUtils.$space-m;
+  // Our card insets (12px, 18px on the right where text ends).
+  padding: 12px 18px 14px 12px;
+  // A white card with a hairline outline and a soft, low shadow.
   border: 1px solid cssUtils.$border-default;
-  border-radius: cssUtils.$radius-3xl;
+  border-radius: 14px;
   box-sizing: border-box;
-  background: cssUtils.$sunk-light;
+  $soft-shadow:
+    0 1px 2px oklch(0 0 0 / 0.04),
+    0 4px 16px -4px oklch(0 0 0 / 0.08);
+  background: cssUtils.$foreground;
+  box-shadow: $soft-shadow;
 
   &--clickable {
-    background: cssUtils.$foreground;
-    border-color: cssUtils.$border-interactive;
-    box-shadow: cssUtils.$shadow-m;
-    cursor: pointer;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+    @include clickable.clickable-card;
 
+    // Keep the soft shadow under the hover and press wash.
     &:hover {
-      transform: scale(0.995);
-      box-shadow: none;
+      box-shadow:
+        inset 0 0 0 999px oklch(from #{cssUtils.$text-neutral-primary} l c h / 0.03),
+        $soft-shadow;
     }
+    &:active {
+      box-shadow:
+        inset 0 0 0 999px oklch(from #{cssUtils.$text-neutral-primary} l c h / 0.06),
+        $soft-shadow;
+    }
+  }
+}
 
-    &:focus-visible {
-      outline: 2px solid cssUtils.$border-accent;
-      outline-offset: 2px;
-    }
+// Body copy: 14px on a 20px line in Regular, secondary for supporting text;
+// emphasized Text stays primary in Medium. Headings (h1-h3) keep their own
+// size. !important is needed to beat the Text component's inline font var.
+.openui-composite-card__text > div {
+  --openui-text-body-default: #{cssUtils.$font-weight-regular} 14px/20px #{cssUtils.$font-body} !important;
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.openui-composite-card .openui-composite-card__text .openui-markdown-renderer,
+.openui-composite-card .openui-composite-card__text .openui-markdown-renderer p {
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.openui-composite-card .openui-composite-card__text--emphasis .openui-markdown-renderer,
+.openui-composite-card .openui-composite-card__text--emphasis .openui-markdown-renderer p {
+  color: cssUtils.$text-neutral-primary;
+}
+
+.openui-composite-card__text--emphasis > div {
+  --openui-text-body-default: #{cssUtils.$font-weight-medium} 14px/20px #{cssUtils.$font-body} !important;
+  color: cssUtils.$text-neutral-primary;
+}
+
+// Media bleeds to the card's edges: pulled out by the card's padding, with
+// the top corners following the card's inner radius (14px less the 1px
+// border) and no frame border of its own.
+.openui-composite-card__media {
+  flex-shrink: 0;
+  margin: -12px -18px 0 -12px;
+  --openui-image-radius: 13px 13px 0 0;
+
+  .openui-image-frame {
+    border: none;
+  }
+
+  // A chart fills the same edge-to-edge band on a faint tint, inset so its
+  // axes stay clear of the card edge.
+  &--chart {
+    padding: 12px 12px 4px;
+    border-radius: 13px 13px 0 0;
+    background-color: oklch(from #{cssUtils.$text-neutral-primary} l c h / 0.03);
   }
 }
 
@@ -44,12 +93,23 @@
   flex-shrink: 0;
 }
 
+// A Text title in the header sits 4px above the body, the same as a title
+// at the top of the body (12px card gap less 8px).
+.openui-composite-card__header:has(> div > .openui-text-content) + .openui-composite-card__body {
+  margin-top: -8px;
+}
+
 .openui-composite-card__body {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: cssUtils.$space-m;
+  // 8px between body pieces; the title sits 4px above its description.
+  gap: 8px;
   min-height: 0;
+
+  > :first-child + .openui-composite-card__text {
+    margin-top: -4px;
+  }
 }
 
 // Markdown emphasis must follow the surrounding slot's text sizing — the
@@ -89,6 +149,8 @@
   display: flex;
   flex-shrink: 0;
   margin-top: auto;
+  // A little extra air between the body and the price/actions.
+  padding-top: 4px;
 
   & > * {
     width: 100%;
@@ -98,6 +160,50 @@
 .openui-composite-card__footer-content {
   display: flex;
   flex-direction: column;
-  gap: cssUtils.$space-s;
+  // 12px between the price and the actions.
+  gap: cssUtils.$space-m;
   width: 100%;
+
+  // IconButtons: price on the left, the icons in a row on the right.
+  &--icons {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.openui-composite-card__icon-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-inline-start: auto;
+}
+
+// Block widths. A grid splits the block into two equal columns; a lone last
+// card keeps that half width instead of stretching across the row. Carousel
+// cards are 360px (288px in a narrow container).
+.openui-medium-card-block--composite-card {
+  .openui-medium-card-block__row--1:not(:only-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .openui-medium-card-block__grid--odd-count {
+    @container (max-width: 48rem) {
+      .openui-medium-card-block__row:last-child > .openui-medium-card-block__item:last-child {
+        grid-column: auto;
+      }
+    }
+  }
+
+  .openui-medium-card-block__carousel-item {
+    width: 22.5rem;
+  }
+
+  .openui-medium-card-block__carousel--responsive {
+    @container (max-width: 30rem) {
+      .openui-medium-card-block__carousel-item {
+        width: 18rem;
+      }
+    }
+  }
 }

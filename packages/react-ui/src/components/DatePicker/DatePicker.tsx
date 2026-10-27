@@ -3,6 +3,7 @@ import { DateRange } from "react-day-picker";
 import { useLayoutContext } from "../../context/LayoutContext";
 import { FloatingDatePickerRenderer } from "./helpers/components/FloatingDatePickerRenderer";
 import { DatePickerProvider } from "./helpers/context/DatePickerContext";
+import { toDate, toDateRange } from "./helpers/utils/helperFn";
 
 export interface DatePickerProps {
   mode?: "single" | "range";
@@ -21,8 +22,8 @@ const DatePicker = (props: DatePickerProps) => {
 
   const {
     mode = "single",
-    selectedSingleDate,
-    selectedRangeDates,
+    selectedSingleDate: rawSingleDate,
+    selectedRangeDates: rawRangeDates,
     setSelectedSingleDate,
     setSelectedRangeDates,
     isOpen,
@@ -30,6 +31,10 @@ const DatePicker = (props: DatePickerProps) => {
     className,
     style,
   } = props;
+
+  // Callers may pass strings, timestamps or partial ranges; see toDate.
+  const selectedSingleDate = toDate(rawSingleDate);
+  const selectedRangeDates = toDateRange(rawRangeDates);
 
   const [internalSelectedDate, setInternalSelectedDate] = useState<Date | undefined>(
     selectedSingleDate,

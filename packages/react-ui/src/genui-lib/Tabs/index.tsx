@@ -9,6 +9,7 @@ import {
   TabsList as OpenUITabsList,
   TabsTrigger as OpenUITabsTrigger,
 } from "../../components/Tabs";
+import { renderIconSlot } from "../iconSlot";
 import { TabItemSchema } from "./schema";
 
 export { TabItemSchema } from "./schema";
@@ -16,12 +17,18 @@ export { TabItemSchema } from "./schema";
 export const TabItem = defineComponent({
   name: "TabItem",
   props: TabItemSchema,
-  description: "value is unique id, trigger is tab label, content is array of components",
+  description:
+    'One tab: TabItem(value, trigger, content, leading?), e.g. TabItem("growth", "User growth", [growthChart], Icon("trending-up", "charts")). value is a unique id; trigger is the short pill label, one to three words; content is what the tab shows. leading is optional: an Icon per view, an inline Avatar (with an icon) for a person\'s tab, or an Emoji only in rare expressive content. Give every tab a leading or none of them.',
   component: () => null,
 });
 
 type TabsRenderProps = ComponentRenderProps<{
-  items: SubComponentOf<{ value: string; trigger: string; content: unknown[] }>[];
+  items: SubComponentOf<{
+    value: string;
+    trigger: string;
+    content: unknown[];
+    leading?: unknown;
+  }>[];
 }>;
 
 /** Shared renderer — also used by the chat library's Tabs variant (wider content union). */
@@ -68,13 +75,14 @@ export const TabsRenderer = ({ props, renderNode }: TabsRenderProps) => {
   if (!items.length) return null;
 
   return (
-    <OpenUITabs value={activeTab} onValueChange={handleValueChange}>
+    <OpenUITabs className="openui-genui-tabs" value={activeTab} onValueChange={handleValueChange}>
       <OpenUITabsList>
         {items.map((item) => (
           <OpenUITabsTrigger
             key={item.props.value}
             value={item.props.value}
             text={item.props.trigger}
+            icon={item.props.leading ? renderIconSlot(item.props.leading) : undefined}
           />
         ))}
       </OpenUITabsList>
@@ -92,6 +100,7 @@ export const Tabs = defineComponent({
   props: z.object({
     items: z.array(TabItem.ref),
   }),
-  description: "Tabbed container",
+  description:
+    "Pill tabs that switch between alternative views of the same thing, such as one dataset as a chart and a table, or the same plan by season: Tabs([tab1, tab2]). Only one view shows at a time, so never hide primary information that the reader needs to compare side by side in a tab. Keep it to 2–5 tabs with short labels. For distinct parts of a response use Sections, and for supplementary on-demand detail use Accordion.",
   component: TabsRenderer,
 });

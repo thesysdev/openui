@@ -11,14 +11,13 @@ export * from "./schema";
 export const TagBlock = defineComponent({
   name: "TagBlock",
   props: TagBlockSchema,
-  description: "tags is an array of strings; optional size sm | md | lg",
+  description: "tags is an array of strings, each shown as a 24px Tag pill",
   component: ({ props }) => {
     const tags = asArray(props.tags) as string[];
-    const size = props.size as "sm" | "md" | "lg" | undefined;
     return (
       <OpenUITagBlock>
         {tags.map((tag, i) => (
-          <OpenUITag key={i} text={tag} size={size} />
+          <OpenUITag key={i} text={tag} />
         ))}
       </OpenUITagBlock>
     );

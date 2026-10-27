@@ -12,7 +12,8 @@
   width: 100%;
   display: flex;
   gap: cssUtils.$space-s;
-  overflow: hidden;
+  // Not clipped: Bleed and full-width cards break out past the column on purpose.
+  min-width: 0;
 
   // When detailed view is active, minimize spacing and hide logo
   .openui-agent-thread-container--detailed-view-active & {
@@ -23,7 +24,7 @@
     display: flex;
     flex-direction: column;
     gap: cssUtils.$space-s;
-    overflow: hidden;
+    min-width: 0;
     overflow-wrap: break-word;
     flex-grow: 1;
   }

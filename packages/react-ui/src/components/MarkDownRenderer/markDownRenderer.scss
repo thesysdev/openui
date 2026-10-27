@@ -1,22 +1,15 @@
 @use "../../cssUtils" as cssUtils;
 
 .openui-markdown-renderer-code {
-  border-radius: 4px;
-  padding: 2px 4px;
+  border-radius: 6px;
+  // ~20px pill inside the 24px body line; inline padding doesn't change line height.
+  padding: 3px 5px;
+  // line-height 1 keeps the smaller mono line from growing the 24px line box.
+  line-height: 1;
   background-color: cssUtils.$sunk;
-  border: 1px solid cssUtils.$border-default;
   color: cssUtils.$text-neutral-primary;
-  @include cssUtils.typography(body, link);
-}
-
-.openui-markdown-renderer-code::after {
-  content: "";
-  display: hidden;
-}
-
-.openui-markdown-renderer-code::before {
-  content: "";
-  display: hidden;
+  font-family: cssUtils.$font-code;
+  font-size: 12px;
 }
 
 /* Card Styles */
@@ -33,170 +26,271 @@
 }
 
 /* Link Styles */
+// typeset: links keep the text color, set in Medium with a faint underline
+// that darkens on hover.
 .openui-markdown-renderer-link {
-  color: cssUtils.$text-info-primary;
+  color: inherit;
+  font-weight: cssUtils.$font-weight-medium;
+  font-variation-settings: cssUtils.$font-variation-medium;
   cursor: pointer;
-  text-decoration: none;
-  transition: color 0.2s ease-in-out;
-  @include cssUtils.typography(body, link);
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in oklab, currentColor 18%, transparent);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 0.2s ease-in-out;
   &:hover {
-    text-decoration: underline;
+    text-decoration-color: currentColor;
+  }
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 0.125em;
+  }
+  :is(h1, h2, h3, h4, h5, h6) & {
+    font-weight: inherit;
+    font-variation-settings: inherit;
   }
 }
 
 /* generic tag styles */
+// Prose rhythm adapted from shadcn/typeset: blocks only take space ABOVE them
+// (append-safe while streaming), spacing is in em so it scales with the body
+// size, and headings own the space below them. Headings use typeset's em scale
+// (h1 1.75em / h2 1.25em / h3 1.125em) in Medium with -1.2% tracking.
+$md-flow: 1.25em;
+$md-heading-tracking: -0.012em;
+// Embedded components opt out with .not-markdown or data-not-markdown.
+$md-skip: ".not-markdown, [data-not-markdown], .not-markdown *, [data-not-markdown] *";
+
+// Element selector scoped to markdown content. Keeps element specificity
+// (0,1,1) so host page styles like `main h1` don't win.
+@mixin md($selector) {
+  #{$selector} {
+    &:not(:where(#{$md-skip})) {
+      @content;
+    }
+  }
+}
+
+// The font shorthand resets font-variation-settings, so every rule that sets
+// `font` sets the "wght" axis right after it. Text passes its weight in
+// through --openui-text-variation.
+$md-body-variation: var(--openui-text-variation, #{cssUtils.$font-variation-regular});
+
+// Headings are Bold ("wght" 640, font-weight 600 fallback); Medium is kept
+// for links and actions.
+@mixin md-heading($size, $line-height) {
+  font: cssUtils.$font-weight-bold #{$size}/#{$line-height} cssUtils.$font-heading;
+  font-variation-settings: cssUtils.$font-variation-bold;
+  letter-spacing: $md-heading-tracking;
+  color: cssUtils.$text-neutral-primary;
+}
+
 .openui-markdown-renderer {
   color: cssUtils.$text-neutral-primary;
   @include cssUtils.typography(body, default);
+  font-variation-settings: $md-body-variation;
   max-width: none;
+  overflow-wrap: break-word;
 
-  /* Heading Styles */
-  & h1,
-  & h2,
-  & h3,
-  & h4,
-  & h5,
-  & h6 {
-    @include cssUtils.typography(heading, extra-small);
-    color: cssUtils.$text-neutral-primary;
-    margin-bottom: 18px;
-    &:has(+ p) {
-      margin-bottom: 8px;
-    }
-    + strong {
-      @include cssUtils.typography(heading, extra-small);
-    }
+  @include md("p, ul, ol, blockquote, :where(.openui-table-container), details, figure, img") {
+    margin-block: $md-flow 0;
   }
-  /* Paragraph Styles */
-  & p {
-    color: cssUtils.$text-neutral-primary;
+  @include md("p") {
     @include cssUtils.typography(body, default);
-    margin-bottom: 0;
-    &:has(+ p) {
-      margin-bottom: 18px;
-    }
-  }
-
-  & strong {
+    font-variation-settings: $md-body-variation;
     color: cssUtils.$text-neutral-primary;
-    @include cssUtils.typography(body, heavy);
   }
 
-  & li {
-    margin-bottom: 8px;
-    @include cssUtils.typography(body, default);
-    :last-child {
-      margin-bottom: 0;
-    }
-    &::marker {
-      @include cssUtils.typography(body, default);
-      color: cssUtils.$text-neutral-secondary;
-    }
+  // Headings: more space above than the flow, and they own the space below.
+  @include md("h1") {
+    @include md-heading(1.75em, 1.3);
+    margin-block: $md-flow 0;
   }
-  & li ul {
-    margin-top: 8px;
+  @include md("h2") {
+    @include md-heading(1.25em, 1.4);
+    margin-block: calc(#{$md-flow} * 1.4) 0;
+  }
+  @include md("h3") {
+    @include md-heading(1.125em, 1.45);
+    margin-block: $md-flow 0;
+  }
+  @include md("h4") {
+    @include md-heading(1em, 1.5);
+    margin-block: $md-flow 0;
+  }
+  @include md("h5") {
+    @include md-heading(0.875em, 1.5);
+    color: cssUtils.$text-neutral-secondary;
+    margin-block: calc(#{$md-flow} / 0.875) 0;
+  }
+  @include md("h6") {
+    @include md-heading(0.8125em, 1.5);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: cssUtils.$text-neutral-secondary;
+    margin-block: calc(#{$md-flow} / 0.8125) 0;
+  }
+  @include md("h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + *") {
+    margin-block-start: 1em;
+  }
+  @include md(":is(h1, h2, h3, h4) code") {
+    font-size: 0.9em;
   }
 
-  & li li {
-    margin-top: 8px;
-  }
-  & li ol {
-    margin-top: 8px;
-  }
-  & ol {
-    list-style-type: decimal;
-    padding-left: 20px;
-    margin-bottom: 20px;
-    @include cssUtils.typography(body, default);
+  @include md("strong, b") {
+    font-weight: cssUtils.$font-weight-medium;
+    font-variation-settings: cssUtils.$font-variation-medium;
     color: cssUtils.$text-neutral-primary;
-    :last-child {
-      margin-bottom: 0;
-    }
+  }
+  @include md(":is(h1, h2, h3, h4, h5, h6) :is(strong, b)") {
+    font-weight: inherit;
+    font-variation-settings: inherit;
   }
 
-  & ul {
+  // ==key phrase== highlight: soft green pill behind the text, text stays
+  // primary. clone keeps the rounded ends on every line when it wraps.
+  // The success green is re-alphaed: 20% reads on white, dark needs 30% to
+  // stay visible against the dark surface.
+  @include md("mark") {
+    background-color: cssUtils.$success-background;
+    background-color: oklch(from cssUtils.$success-background l c h / 0.2);
+    color: cssUtils.$text-neutral-primary;
+    border-radius: 4px;
+    padding: 0.05em 0.2em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    @media (forced-colors: active) {
+      background-color: Mark;
+      color: MarkText;
+    }
+  }
+  &.openui-markdown-renderer--dark mark:not(:where(#{$md-skip})) {
+    background-color: oklch(from cssUtils.$success-background l c h / 0.3);
+  }
+
+  // Lists: tighter rhythm inside, markers in secondary.
+  @include md("ul, ol") {
+    @include cssUtils.typography(body, default);
+    font-variation-settings: $md-body-variation;
+    color: cssUtils.$text-neutral-primary;
+    padding-inline-start: 1.5em;
+  }
+  @include md("ul") {
     list-style-type: disc;
-    padding-left: 20px;
-    margin-bottom: 24px;
-    @include cssUtils.typography(body, default);
-    color: cssUtils.$text-neutral-primary;
-    :last-child {
-      margin-bottom: 0;
+  }
+  @include md("ul ul") {
+    list-style-type: circle;
+  }
+  @include md("ul ul ul") {
+    list-style-type: square;
+  }
+  @include md("ol") {
+    list-style-type: decimal;
+  }
+  @include md("li") {
+    margin-block-start: 0.5em;
+    padding-inline-start: 0.4em;
+  }
+  & li:not(:where(#{$md-skip}))::marker {
+    color: cssUtils.$text-neutral-secondary;
+  }
+  @include md("li > p, li > ul, li > ol, li > blockquote, li > :where(.openui-table-container)") {
+    margin-block-start: 0.5em;
+  }
+
+  // GFM task lists keep the list indent: the checkmark hangs in the marker
+  // gutter so task text lines up with bullet and numbered item text.
+  @include md("ul.contains-task-list") {
+    list-style-type: none;
+  }
+  & .task-list-item {
+    position: relative;
+    // Round 16px checkmark in place of the native square box.
+    > input[type="checkbox"] {
+      appearance: none;
+      position: absolute;
+      top: calc((1lh - 16px) / 2);
+      left: calc(-16px - 0.15em);
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      border: 1px solid cssUtils.$border-interactive;
+      border-radius: 50%;
+      background-color: transparent;
+
+      &:checked {
+        // Primary fill with a background-colored check: black on light,
+        // inverted to white in dark mode.
+        border-color: cssUtils.$text-neutral-primary;
+        background-color: cssUtils.$text-neutral-primary;
+
+        &::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background-color: cssUtils.$background;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M4 7.2l2 2L10 5' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+            center / contain no-repeat;
+        }
+      }
     }
   }
 
-  & .openui-code-block-syntax-highlighter {
-    padding: 25px !important;
-    margin-top: 8px !important;
-    margin-bottom: 8px !important;
+  @include md("del, s") {
+    color: cssUtils.$text-neutral-secondary;
+  }
 
-    &:first-child {
-      margin-top: 0 !important;
+  // Fenced code renders as pre > CodeBlock; the pre carries the flow margin.
+  @include md("pre") {
+    font: inherit;
+    font-variation-settings: inherit;
+    margin-block: $md-flow 0;
+  }
+
+  // Code block padding, radius and font come from the CodeBlock component.
+
+  @include md("hr") {
+    border: 0;
+    border-block-start: 1px solid cssUtils.$border-default;
+    margin-block: calc(#{$md-flow} * 2.4) 0;
+  }
+  @include md("hr + h1, hr + h2, hr + h3, hr + h4") {
+    margin-block-start: $md-flow;
+  }
+
+  // typeset: a plain rule on the left, text stays in the body color.
+  @include md("blockquote") {
+    border-inline-start: 2px solid cssUtils.$border-default;
+    margin-inline: 0;
+    padding-inline-start: 1em;
+  }
+
+  // Tables use the Table component's own styles. Only header alignment is
+  // adjusted: th centers by default, so start-align unless GFM sets an
+  // inline alignment, and let the label flow as text so that applies.
+  & .openui-table-head {
+    text-align: start;
+    .openui-table-head-content {
+      display: block;
     }
-
-    &:last-child {
-      margin-bottom: 0 !important;
+    .openui-table-head-label {
+      display: inline;
     }
   }
 
-  & hr {
-    margin-top: 48px;
-    margin-bottom: 48px;
-    + * {
-      margin-top: 0;
-    }
+  @include md("img") {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+  }
+  @include md("p img") {
+    margin-block-start: 0;
   }
 
-  /* Blockquote Styles */
-  & blockquote {
-    color: cssUtils.$text-neutral-primary;
-    border-left: 4px solid color-mix(in oklab, cssUtils.$text-neutral-primary 70%, transparent);
-    padding: 0px 0 0px 8px;
-    margin-left: 1rem;
-    font-style: italic;
-    margin-left: 0;
-    margin-top: 25px;
-    margin-bottom: 25px;
-    padding-left: 16px;
-    quotes: "\201C" "\201D" "\2018" "\2019";
-    line-height: 1.625;
-  }
-
-  & blockquote strong {
-    @include cssUtils.typography(body, heavy);
-  }
-
-  & blockquote > *:first-child::before {
-    content: open-quote;
-    font-size: 1em;
-    line-height: 1;
-    vertical-align: top;
-    margin-right: 0.2em;
-  }
-
-  & blockquote > *:last-child::after {
-    content: close-quote;
-    font-size: 1em;
-    line-height: 1.5;
-    vertical-align: top;
-    margin-left: 0.2em;
-  }
-
-  & blockquote * {
-    font-style: inherit;
-    color: inherit;
-    line-height: inherit;
-  }
-
-  & .openui-table-container {
-    margin-bottom: 20px;
-  }
-
-  > *:first-child {
-    margin-top: 0;
-  }
-
-  > *:last-child {
-    margin-bottom: 0;
+  // First child adds no space above; last so it wins ties.
+  & > :where(:first-child),
+  & > :where(:first-child) > :where(:first-child),
+  & :where(li, blockquote, td, th, figure) > :where(:first-child) {
+    margin-block-start: 0 !important;
   }
 }

@@ -7,4 +7,5 @@ export const DatePickerSchema = z.object({
   mode: z.enum(["single", "range"]).optional(),
   rules: rulesSchema,
   value: reactive(z.unknown().optional()),
+  variant: z.enum(["default", "inline"]).optional(),
 });

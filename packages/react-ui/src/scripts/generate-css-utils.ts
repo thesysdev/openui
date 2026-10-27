@@ -47,8 +47,8 @@ lines.push("$chat-container-bg: $background;");
 lines.push("");
 lines.push(`\
 // $variation picks the Inter "wght" axis token: regular or medium for the
-// theme's Regular/Medium styles, null for fixed weights (600/700, code), where
-// the font shorthand's reset leaves font-weight in charge.
+// theme's Regular/Medium styles, bold for headings, null for code and other
+// fixed weights, where the font shorthand's reset leaves font-weight in charge.
 @function typography($font-name, $variation: null) {
   $axis: null;
   @if $variation {
@@ -87,11 +87,11 @@ $typography: (
     2-extra-small-heavy: typography(openui-text-label-xs-heavy, medium),
   ),
   heading: (
-    xl: typography(openui-text-heading-xl),
-    large: typography(openui-text-heading-lg),
-    medium: typography(openui-text-heading-md),
-    small: typography(openui-text-heading-sm),
-    extra-small: typography(openui-text-heading-xs),
+    xl: typography(openui-text-heading-xl, bold),
+    large: typography(openui-text-heading-lg, bold),
+    medium: typography(openui-text-heading-md, bold),
+    small: typography(openui-text-heading-sm, bold),
+    extra-small: typography(openui-text-heading-xs, bold),
   ),
   number: (
     large: typography(openui-text-numbers-lg, regular),

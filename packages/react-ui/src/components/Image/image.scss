@@ -1,14 +1,70 @@
 @use "../../cssUtils.scss" as cssUtils;
 
+// The frame owns the border and radius and clips the image, so the hover
+// zoom (clickable cards only) scales the picture without growing the frame.
+// Radius defaults to 14px. Host components override it internally by setting
+// --openui-image-radius; it is not a prop, so the agent can't change it.
+.openui-image-frame {
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: var(--openui-image-radius, 14px);
+  border: 1px solid cssUtils.$border-default;
+  background-color: cssUtils.$foreground;
+
+  // The hover zoom is a click affordance, so it runs only when a clickable
+  // card holds the image; a plain Image stays still.
+  [class*="--clickable"]:hover & .openui-image {
+    transform: scale(1.04);
+  }
+
+  // Until the image loads: a soft shimmer in the frame, the image hidden.
+  // An "auto" frame has no height yet, so it holds a 3:2 box meanwhile.
+  &--loading {
+    background-image: linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in oklab, cssUtils.$text-neutral-primary 6%, transparent) 50%,
+      transparent 80%
+    );
+    background-color: cssUtils.$sunk;
+    background-size: 200% 100%;
+    animation: openui-image-shimmer 1.4s ease-in-out infinite;
+
+    .openui-image {
+      opacity: 0;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+  &--loading.openui-image-frame--auto {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+@keyframes openui-image-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
 .openui-image {
   display: flex;
   box-sizing: border-box;
   max-width: 100%;
   height: auto;
   overflow: clip;
-  border-radius: cssUtils.$radius-m;
-  border: 1px solid cssUtils.$border-default;
-  background-color: cssUtils.$foreground;
+  transition:
+    transform 300ms ease-out,
+    opacity 200ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    transform: none !important;
+  }
 
   &-fit {
     object-fit: contain;
@@ -20,6 +76,12 @@
     object-fit: cover;
     width: 100%;
     height: 100%;
+  }
+
+  // Natural proportions: full width, height from the image itself.
+  &--auto {
+    width: 100%;
+    height: auto;
   }
 
   &--error {

@@ -59,15 +59,72 @@
   }
 }
 
+// The 18px round check shared by OptionCards and Chips (and drawn the same
+// way as Checklist's): an empty ring, filled black once selected.
+.openui-selection-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 1.5px solid cssUtils.$border-interactive-emphasis;
+  color: cssUtils.$background;
+  transition:
+    background-color 0.16s ease-out,
+    border-color 0.16s ease-out,
+    transform 0.16s ease-out;
+
+  svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  // The stroke draws itself once the ring has filled.
+  path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.18s ease-out 0.06s;
+  }
+
+  &--checked {
+    border-color: cssUtils.$inverted-background;
+    background-color: cssUtils.$inverted-background;
+    animation: openui-selection-check-pop 0.2s ease-out;
+
+    path {
+      stroke-dashoffset: 0;
+    }
+  }
+}
+
+@keyframes openui-selection-check-pop {
+  0% {
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .openui-option-card {
+  // Images on an option card keep the tighter radius they had.
+  --openui-image-radius: #{cssUtils.$radius-m};
   @include cssUtils.button-reset;
+  @include cssUtils.typography(body, small);
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: cssUtils.$space-s-m;
+  padding: 1.143em;
   border: 1px solid cssUtils.$border-interactive;
   border-radius: cssUtils.$radius-2xl;
   background: transparent;
@@ -76,20 +133,31 @@
   transition:
     opacity 0.16s ease-out,
     border-color 0.16s ease-out,
-    background-color 0.16s ease-out;
+    background-color 0.16s ease-out,
+    transform 0.16s ease-out;
 
-  &:hover:not(:disabled):not(.openui-option-card--selected) {
+  &:hover:not(:disabled) {
     border-color: cssUtils.$border-interactive-emphasis;
+    background-color: cssUtils.$sunk;
+    transform: scale(1.01);
+  }
+
+  &:active:not(:disabled) {
+    background-color: cssUtils.$highlight-strong;
+    transform: scale(0.98);
+    transition-duration: 0.08s;
   }
 
   &:focus-visible {
-    outline: 2px solid cssUtils.$border-accent;
+    outline: 2px solid cssUtils.$inverted-background;
     outline-offset: 2px;
   }
 
-  &--selected {
-    background: cssUtils.$sunk;
-    border-color: cssUtils.$border-interactive-selected;
+  // Selected: a grey fill in place of the outline, plus the check.
+  &--selected,
+  &--selected:hover:not(:disabled) {
+    border-color: transparent;
+    background-color: cssUtils.$highlight-strong;
   }
 
   &--disabled {
@@ -98,16 +166,25 @@
   }
 }
 
+// The check sits in the top-right corner; the content keeps clear of it.
+.openui-option-card__check {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+}
+
 .openui-option-card__content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: cssUtils.$space-m;
+  gap: 0.857em;
   width: 100%;
+  padding-right: 1.714em;
+  box-sizing: border-box;
 }
 
-.openui-option-card__top {
+.openui-option-card__leading {
   align-self: flex-start;
   flex-shrink: 0;
 
@@ -115,11 +192,34 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: cssUtils.$radius-s;
-    background: cssUtils.$sunk;
+    min-width: 2rem;
+    min-height: 2rem;
+    border-radius: 999px;
     color: cssUtils.$text-neutral-primary;
+
+    // A bare Icon or Emoji gets a round sunk tile; an Avatar fills the same
+    // 2rem circle on its own.
+    &:has(> svg),
+    &:has(> .openui-emoji) {
+      width: 2rem;
+      height: 2rem;
+      background: cssUtils.$sunk;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    .openui-emoji {
+      font-size: 1.125rem;
+      line-height: 1;
+    }
+
+    .openui-avatar {
+      width: 2rem;
+      height: 2rem;
+    }
   }
 
   &--image {
@@ -139,7 +239,7 @@
 .openui-option-card__text {
   display: flex;
   flex-direction: column;
-  gap: cssUtils.$space-3xs;
+  gap: 0.143em;
   min-width: 0;
 }
 
@@ -147,7 +247,7 @@
   color: cssUtils.$text-neutral-primary;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  @include cssUtils.typography(body, heavy);
+  @include cssUtils.typography(label, small-heavy);
 }
 
 .openui-option-card__subtitle {
@@ -155,11 +255,25 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   @include cssUtils.typography(body, small);
+
+  // A composed Text keeps the subtitle's size and secondary color.
+  .openui-text-content,
+  .openui-markdown-renderer,
+  .openui-markdown-renderer p {
+    margin: 0;
+    font: inherit;
+    letter-spacing: inherit;
+    font-variation-settings: inherit;
+    color: inherit;
+  }
 }
 
-.openui-option-card--disabled {
-  .openui-option-card__title,
-  .openui-option-card__subtitle {
-    color: cssUtils.$text-neutral-tertiary;
+@media (prefers-reduced-motion: reduce) {
+  .openui-option-card,
+  .openui-selection-check,
+  .openui-selection-check path {
+    transition: none;
+    animation: none;
+    transform: none !important;
   }
 }

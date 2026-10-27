@@ -1,5 +1,7 @@
+@use "sass:list";
 @use "../../cssUtils" as cssUtils;
 @use "../_shared/chatUtils" as chatUtils;
+@use "../_shared/cards/clickable";
 
 .openui-context-card {
   display: flex;
@@ -7,9 +9,14 @@
   justify-content: space-between;
   width: 100%;
   min-width: 196px;
-  padding: cssUtils.$space-m;
+  // A tall, expressive tile: the title sits at the top and the body
+  // settles at the bottom, with room between them for a background image.
+  min-height: 280px;
+  // Same insets as the vertical ValueCard (18px on the right, 14px under
+  // the body) and our 14px card radius.
+  padding: 12px 18px 14px 12px;
   border: none;
-  border-radius: cssUtils.$radius-xl;
+  border-radius: 14px;
   box-sizing: border-box;
   overflow: hidden;
   position: relative;
@@ -20,16 +27,7 @@
 
   &--clickable {
     background-color: cssUtils.$highlight;
-    cursor: pointer;
-
-    &:hover {
-      transform: scale(0.995);
-    }
-
-    &:focus-visible {
-      outline: 2px solid cssUtils.$border-accent;
-      outline-offset: 2px;
-    }
+    @include clickable.clickable-card;
   }
 
   &--static {
@@ -37,105 +35,185 @@
     box-shadow: none;
   }
 
-  &--variant-gray {
-    background-color: cssUtils.$highlight;
-    color: cssUtils.$text-neutral-primary;
-  }
+  // Shared palette tints: each colour sets its background and a matching
+  // text colour for the title, subtitle and body.
+  $tints: (
+    "neutral": (
+      cssUtils.$highlight,
+      cssUtils.$text-neutral-primary,
+    ),
+    "gray": (
+      cssUtils.$highlight,
+      cssUtils.$text-neutral-primary,
+    ),
+    "info": (
+      cssUtils.$info-background,
+      cssUtils.$text-info-primary,
+    ),
+    "success": (
+      cssUtils.$success-background,
+      cssUtils.$text-success-primary,
+    ),
+    "warning": (
+      cssUtils.$alert-background,
+      cssUtils.$text-alert-primary,
+    ),
+    "danger": (
+      cssUtils.$danger-background,
+      cssUtils.$text-danger-primary,
+    ),
+    "purple": (
+      cssUtils.$purple-background,
+      cssUtils.$text-purple-primary,
+    ),
+    "pink": (
+      cssUtils.$pink-background,
+      cssUtils.$text-pink-primary,
+    ),
+    "inverted": (
+      cssUtils.$inverted-background,
+      cssUtils.$background,
+    ),
+  );
+  @each $name, $pair in $tints {
+    &--variant-#{$name} {
+      --openui-context-card-tint: #{list.nth($pair, 1)};
+      background-color: list.nth($pair, 1);
+      color: list.nth($pair, 2);
 
-  &--variant-info {
-    background-color: cssUtils.$info-background;
-    color: cssUtils.$text-info-primary;
-
-    .openui-context-card__title-text {
-      color: cssUtils.$text-info-primary;
-      opacity: 0.8;
-    }
-
-    .openui-context-card__body-text {
-      color: cssUtils.$text-info-primary;
-    }
-
-    .openui-context-card__tag {
-      background-color: cssUtils.$elevated;
-    }
-  }
-
-  &--variant-success {
-    background-color: cssUtils.$success-background;
-    color: cssUtils.$text-success-primary;
-
-    .openui-context-card__title-text {
-      color: cssUtils.$text-success-primary;
-      opacity: 0.8;
-    }
-
-    .openui-context-card__body-text {
-      color: cssUtils.$text-success-primary;
-    }
-
-    .openui-context-card__tag {
-      background-color: cssUtils.$elevated;
-    }
-  }
-
-  &--variant-warning {
-    background-color: cssUtils.$alert-background;
-    color: cssUtils.$text-alert-primary;
-
-    .openui-context-card__title-text {
-      color: cssUtils.$text-alert-primary;
-      opacity: 0.8;
-    }
-
-    .openui-context-card__body-text {
-      color: cssUtils.$text-alert-primary;
-    }
-
-    .openui-context-card__tag {
-      background-color: cssUtils.$elevated;
-    }
-  }
-
-  &--variant-danger {
-    background-color: cssUtils.$danger-background;
-    color: cssUtils.$text-danger-primary;
-
-    .openui-context-card__title-text {
-      color: cssUtils.$text-danger-primary;
-      opacity: 0.8;
-    }
-
-    .openui-context-card__body-text {
-      color: cssUtils.$text-danger-primary;
-    }
-
-    .openui-context-card__tag {
-      background-color: cssUtils.$elevated;
+      .openui-context-card__title-text,
+      .openui-context-card__title,
+      .openui-context-card__body-text {
+        color: list.nth($pair, 2);
+      }
+      .openui-context-card__title-text,
+      .openui-context-card__overline,
+      .openui-context-card__subtitle {
+        color: list.nth($pair, 2);
+        opacity: 0.75;
+      }
     }
   }
 
   &--variant-image {
-    background-position: center;
-    background-size: cover;
     color: cssUtils.$text-white;
+    background-color: cssUtils.$sunk;
+
+    // The photo layer, under the scrim (::before) and the content. On a
+    // clickable card it zooms gently on hover while the frame, scrim and text
+    // stay put; a card with no action stays still.
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-image: var(--openui-context-card-image);
+      background-position: center;
+      background-size: cover;
+      transition: transform 0.4s ease;
+      pointer-events: none;
+    }
+
+    &.openui-context-card--clickable:hover::after {
+      transform: scale(1.05);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &::after {
+        transition: none;
+      }
+      &.openui-context-card--clickable:hover::after {
+        transform: none;
+      }
+    }
 
     .openui-context-card__title-text {
       color: cssUtils.$text-white;
       opacity: 0.6;
     }
 
+    .openui-context-card__title {
+      color: cssUtils.$text-white;
+    }
+    .openui-context-card__overline,
+    .openui-context-card__subtitle {
+      color: cssUtils.$text-white;
+      opacity: 0.7;
+    }
+
+    // Whatever the agent composes on a photo (Text, Markdown, Metric,
+    // LeadingText, Link, Tag text, Metric deltas, icons) takes the on-image
+    // colour: white, with the subtitle at 75%. Components set their own
+    // colours, so every descendant inherits instead.
+    .openui-context-card__slot--top,
+    .openui-context-card__slot--bottom {
+      color: cssUtils.$text-white;
+
+      * {
+        color: inherit;
+      }
+    }
+    .openui-context-card__slot--bottom .openui-context-card__subtitle {
+      opacity: 1;
+      color: rgb(255 255 255 / 75%);
+    }
+
+    // On a photo, Tags and top-right IconButtons become frosted dark glass
+    // with white content so they read over any image.
+    .openui-context-card__subtitle .openui-tag.openui-tag,
+    .openui-context-card__subtitle .openui-tag-block .openui-tag.openui-tag,
+    .openui-context-card__top-right .openui-icon-button.openui-icon-button,
     .openui-context-card__tag .openui-tag {
       background-color: rgb(0 0 0 / 40%);
       color: cssUtils.$text-white;
-      backdrop-filter: blur(2px);
-      -webkit-backdrop-filter: blur(2px);
+      border-color: transparent;
+      backdrop-filter: blur(8px);
+    }
+    .openui-context-card__top-right .openui-icon-button.openui-icon-button:hover {
+      background-color: rgb(0 0 0 / 55%);
     }
 
+    // The overline becomes a frosted pill the same height as the top-right
+    // IconButtons, so both top corners match.
+    .openui-context-card__overline {
+      align-self: flex-start;
+      height: 32px;
+      margin: -4px 0 0 -4px;
+      padding: 0 12px 0 10px;
+      border-radius: 999px;
+      background-color: rgb(0 0 0 / 40%);
+      backdrop-filter: blur(8px);
+      opacity: 1;
+    }
+
+    // Eased scrims behind the text instead of a flat dim: a light one under
+    // the overline at the top and a deeper one under the title at the
+    // bottom, each fading out on an ease curve so the photo stays clear in
+    // the middle.
     &::before {
       content: "";
       position: absolute;
       inset: 0;
-      background: cssUtils.$overlay;
+      background:
+        linear-gradient(
+          to bottom,
+          rgb(0 0 0 / 0.45) 0%,
+          rgb(0 0 0 / 0.38) 6%,
+          rgb(0 0 0 / 0.26) 14%,
+          rgb(0 0 0 / 0.14) 22%,
+          rgb(0 0 0 / 0.05) 30%,
+          rgb(0 0 0 / 0) 38%
+        ),
+        linear-gradient(
+          to top,
+          rgb(0 0 0 / 0.75) 0%,
+          rgb(0 0 0 / 0.66) 10%,
+          rgb(0 0 0 / 0.5) 22%,
+          rgb(0 0 0 / 0.32) 34%,
+          rgb(0 0 0 / 0.16) 46%,
+          rgb(0 0 0 / 0.05) 56%,
+          rgb(0 0 0 / 0) 64%
+        );
       z-index: chatUtils.$z-content;
     }
 
@@ -149,6 +227,8 @@
 .openui-context-card__vertical {
   display: flex;
   flex: 1;
+  // Fill the card's height so the body sits at the bottom.
+  align-self: stretch;
   flex-direction: column;
   justify-content: space-between;
   min-width: 0;
@@ -202,4 +282,93 @@
 
 .openui-context-card__tag {
   border: none;
+}
+
+// Top: the overline, a small label with an optional inline leading.
+.openui-context-card__overline {
+  display: flex;
+  align-items: center;
+  gap: 0.375em;
+  min-width: 0;
+  @include cssUtils.typography(body, small);
+  color: cssUtils.$text-neutral-secondary;
+}
+
+.openui-context-card__overline-leading {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+
+  > svg {
+    width: 1.15em;
+    height: 1.15em;
+    stroke-width: 1.5;
+  }
+}
+
+// Bottom: the title in our 22px h2 size, with the composable subtitle under it.
+.openui-context-card__title {
+  font: cssUtils.$font-weight-bold 22px/28px cssUtils.$font-heading;
+  font-variation-settings: cssUtils.$font-variation-bold;
+  letter-spacing: -0.012em;
+  color: cssUtils.$text-neutral-primary;
+}
+
+.openui-context-card__subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375em;
+  margin-top: 4px;
+  @include cssUtils.typography(body, small);
+  color: cssUtils.$text-neutral-secondary;
+}
+
+// Top-right controls (IconButtons) on an image card.
+.openui-context-card__top-right {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  margin: -4px -8px 0 0;
+}
+
+// InsightCard tiles carry no photo, so they size to their text: overline,
+// title and subtitle stack tightly instead of spreading over a tall tile.
+// Each tint shows as a coloured outline on a transparent tile: the variant
+// sets the text colour, and the border is that colour at 15%.
+.openui-insight-card-block {
+  .openui-context-card {
+    min-height: 0;
+  }
+
+  .openui-context-card:not(.openui-context-card--variant-inverted) {
+    background-color: transparent;
+    border: 1px solid color-mix(in oklch, currentColor 15%, transparent);
+  }
+
+  // Clickable tiles fill with their tint on hover instead of the shared
+  // grey wash, and don't grow.
+  .openui-context-card--clickable:not(.openui-context-card--variant-inverted):hover {
+    background-color: var(--openui-context-card-tint);
+    box-shadow: none;
+    transform: none;
+  }
+
+  .openui-context-card__vertical {
+    justify-content: flex-start;
+    gap: cssUtils.$space-s;
+  }
+
+  // The overline keeps the tint's full colour, not the 75% fade the shared
+  // tints give it.
+  .openui-context-card__overline {
+    opacity: 1;
+  }
+
+  // The headline reads at Regular weight on a tint; size stays at 22px.
+  .openui-context-card__title {
+    font-weight: cssUtils.$font-weight-regular;
+    font-variation-settings: cssUtils.$font-variation-regular;
+  }
 }

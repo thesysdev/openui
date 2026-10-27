@@ -1,4 +1,5 @@
 @use "../../cssUtils" as cssUtils;
+@use "./genuiField" as field;
 
 .openui-input {
   @include cssUtils.typography(body, default);
@@ -58,5 +59,33 @@
       border-color: cssUtils.$border-danger-emphasis;
       box-shadow: 0 0 0 2.5px cssUtils.$border-danger;
     }
+  }
+}
+
+// ─── Agent (genui) input ───
+// A pill wrapper carries the surface so a leading icon can sit beside the
+// bare <input>. See ./_genuiField.scss.
+.openui-genui-input {
+  @include field.pill;
+  display: flex;
+  align-items: center;
+  gap: 0.571em;
+  width: 100%;
+
+  &__icon {
+    @include field.icon;
+  }
+
+  &__control {
+    @include field.control;
+  }
+
+  &--inline {
+    @include field.inline;
+  }
+
+  &--error,
+  &--error:focus-within {
+    @include field.error;
   }
 }

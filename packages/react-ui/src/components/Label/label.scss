@@ -14,3 +14,8 @@
 .openui-label-required-asterisk {
   margin-left: cssUtils.$space-3xs;
 }
+
+// Agent (genui) field labels: 14px Medium.
+.openui-label.openui-genui-label {
+  @include cssUtils.typography(label, small-heavy);
+}

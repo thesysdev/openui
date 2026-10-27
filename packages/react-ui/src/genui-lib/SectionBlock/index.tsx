@@ -88,6 +88,6 @@ export const SectionBlock = defineComponent({
     isFoldable: z.boolean().optional(),
   }),
   description:
-    "Collapsible accordion sections. Auto-opens sections as they stream in. Use SectionItem for each section.",
+    "Collapsible accordion sections, auto-opened as they stream in, for parts the reader opens on demand: an FAQ, a long report, supporting detail. Use a SectionItem for each one, and place the SectionBlock inside a Section like any other content; the always-visible parts of a response are Sections themselves.",
   component: SectionBlockRenderer,
 });

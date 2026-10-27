@@ -9,6 +9,15 @@
   @include cssUtils.typography(body, small);
 }
 
+// Cells that host an inline Select or DatePicker: the control brings its own
+// 8px inset, so the cell pads 4px to land the value on the same 12px line as
+// text cells. The 32px control centres in the 44px row.
+.openui-editable-table-cell-base--control {
+  display: flex;
+  align-items: center;
+  padding: 0 cssUtils.$space-2xs;
+}
+
 .openui-editable-table-cell-input {
   height: 100%;
   width: 100%;

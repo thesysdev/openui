@@ -5,7 +5,8 @@ import { rulesSchema } from "../rules";
 export const InputSchema = z.object({
   name: z.string(),
   placeholder: z.string().optional(),
-  type: z.enum(["text", "email", "password", "number", "url"]).optional(),
+  type: z.enum(["text", "email", "password", "number", "url", "search", "tel"]).optional(),
   rules: rulesSchema,
   value: reactive(z.string().optional()),
+  variant: z.enum(["default", "inline"]).optional(),
 });

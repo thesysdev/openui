@@ -60,15 +60,18 @@ export { mergeStatements } from "@openuidev/lang-core";
 // openui-lang context hooks (for use inside component renderers)
 export {
   FormNameContext,
+  OpenUIContext,
   useFormName,
   useGetFieldValue,
   useIsQueryLoading,
   useIsStreaming,
+  useOpenUI,
   useRenderNode,
   useSetDefaultValue,
   useSetFieldValue,
   useTriggerAction,
 } from "./context";
+export type { OpenUIContextValue } from "./context";
 
 // Runtime — reactive bindings, store, evaluator, query manager, field binding
 export { ToolNotFoundError, extractToolResult, isReactiveAssign } from "@openuidev/lang-core";

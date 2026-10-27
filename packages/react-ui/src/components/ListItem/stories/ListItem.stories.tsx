@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ChevronRight, User } from "lucide-react";
+import { Avatar } from "../../Avatar";
 import { ListItem } from "../ListItem";
 
 const meta: Meta<typeof ListItem> = {
@@ -24,13 +25,12 @@ const meta: Meta<typeof ListItem> = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["number", "icon", "image"],
+      options: ["number", "plain"],
       table: { category: "Appearance", defaultValue: { summary: "number" } },
     },
     title: { control: "text", table: { category: "Content" } },
     subtitle: { control: "text", table: { category: "Content" } },
-    icon: { control: false, table: { category: "Content" } },
-    image: { control: false, table: { category: "Content" } },
+    leading: { control: false, table: { category: "Content" } },
     index: { control: "number", table: { category: "Behavior" } },
     listHasSubtitle: { control: "boolean", table: { category: "Behavior" } },
     actionLabel: { control: "text", table: { category: "Content" } },
@@ -67,8 +67,8 @@ export const NumberClickable: Story = {
 
 export const Icon: Story = {
   args: {
-    variant: "icon",
-    icon: <User size={16} />,
+    variant: "plain",
+    leading: <Avatar name="User" icon={<User />} />,
     listHasSubtitle: true,
     title: "Icon List Item",
     subtitle: "The indicator shows an icon",
@@ -77,8 +77,8 @@ export const Icon: Story = {
 
 export const IconClickable: Story = {
   args: {
-    variant: "icon",
-    icon: <User size={16} />,
+    variant: "plain",
+    leading: <Avatar name="User" icon={<User />} />,
     listHasSubtitle: true,
     title: "Clickable Icon Item",
     subtitle: "Click me to trigger an action",
@@ -90,8 +90,8 @@ export const IconClickable: Story = {
 
 export const Image: Story = {
   args: {
-    variant: "image",
-    image: { src: "https://i.pravatar.cc/40", alt: "Avatar" },
+    variant: "plain",
+    leading: <Avatar name="Avatar" src="https://i.pravatar.cc/40" icon={<User />} />,
     listHasSubtitle: true,
     title: "Image List Item",
     subtitle: "The indicator shows a thumbnail",
@@ -100,8 +100,8 @@ export const Image: Story = {
 
 export const ImageClickable: Story = {
   args: {
-    variant: "image",
-    image: { src: "https://i.pravatar.cc/40", alt: "Avatar" },
+    variant: "plain",
+    leading: <Avatar name="Avatar" src="https://i.pravatar.cc/40" icon={<User />} />,
     listHasSubtitle: true,
     title: "Clickable Image Item",
     subtitle: "Click me to trigger an action",

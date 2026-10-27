@@ -1,55 +1,105 @@
 @use "../../cssUtils" as cssUtils;
 
+// Notion-style callout: a tinted block with an icon on the first line and
+// the content beside it (an optional title sits above the content).
 .openui-callout {
   display: flex;
-  flex-direction: column;
-  padding: cssUtils.$space-000 calc(cssUtils.$space-m + 2px);
-  box-sizing: border-box;
+  flex-direction: row;
   align-items: flex-start;
-  border-left: 2px solid;
+  gap: 0.6em;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border-radius: 14px;
+  color: cssUtils.$text-neutral-primary;
+  // 14px on a 20px line. Set through the body token, so the Markdown content
+  // and the icon frame (which reads the same token) both take it.
+  --openui-text-body-default: #{cssUtils.$font-weight-regular} 14px/20px #{cssUtils.$font-body};
 
+  // Tints are the semantic backgrounds at 60% of their alpha, lighter than
+  // the token, so a callout reads as a soft note in light and dark.
   &-info {
-    border-color: cssUtils.$border-info-emphasis;
-    & .openui-callout-title {
-      color: cssUtils.$text-info-primary;
-    }
+    background-color: cssUtils.$info-background;
+    background-color: oklch(from cssUtils.$info-background l c h / calc(alpha * 0.6));
+    --openui-callout-icon: #{cssUtils.$text-info-primary};
   }
-
   &-danger {
-    border-color: cssUtils.$border-danger-emphasis;
-    & .openui-callout-title {
-      color: cssUtils.$text-danger-primary;
-    }
+    background-color: cssUtils.$danger-background;
+    background-color: oklch(from cssUtils.$danger-background l c h / calc(alpha * 0.6));
+    --openui-callout-icon: #{cssUtils.$text-danger-primary};
   }
-
   &-warning {
-    border-color: cssUtils.$border-alert-emphasis;
-    & .openui-callout-title {
-      color: cssUtils.$text-alert-primary;
-    }
+    background-color: cssUtils.$alert-background;
+    background-color: oklch(from cssUtils.$alert-background l c h / calc(alpha * 0.6));
+    --openui-callout-icon: #{cssUtils.$text-alert-primary};
   }
-
   &-success {
-    border-color: cssUtils.$border-success-emphasis;
-    & .openui-callout-title {
-      color: cssUtils.$text-success-primary;
+    background-color: cssUtils.$success-background;
+    background-color: oklch(from cssUtils.$success-background l c h / calc(alpha * 0.6));
+    --openui-callout-icon: #{cssUtils.$text-success-primary};
+  }
+  &-neutral {
+    background-color: cssUtils.$sunk;
+    background-color: oklch(from cssUtils.$sunk l c h / calc(alpha * 0.6));
+    --openui-callout-icon: #{cssUtils.$text-neutral-secondary};
+  }
+
+  &-purple {
+    background-color: cssUtils.$purple-background;
+    background-color: oklch(from cssUtils.$purple-background l c h / calc(alpha * 0.6));
+    --openui-callout-icon: #{cssUtils.$text-purple-primary};
+  }
+  &-pink {
+    background-color: cssUtils.$pink-background;
+    background-color: oklch(from cssUtils.$pink-background l c h / calc(alpha * 0.6));
+    --openui-callout-icon: #{cssUtils.$text-pink-primary};
+  }
+  // Inverted is solid, with the content in the page background color.
+  &-inverted {
+    background-color: cssUtils.$inverted-background;
+    color: cssUtils.$background;
+    --openui-callout-icon: #{cssUtils.$background};
+    .openui-callout-title,
+    .openui-callout-description,
+    .openui-callout-description .openui-markdown-renderer :is(p, li, strong, a) {
+      color: cssUtils.$background;
     }
   }
 
-  &-neutral {
-    border-color: cssUtils.$border-interactive-selected;
-    & .openui-callout-title {
-      color: cssUtils.$text-neutral-primary;
+  // Frame one content line tall, so the icon centers on the first line.
+  &-icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    @include cssUtils.typography(body, default);
+    height: 1lh;
+    color: var(--openui-callout-icon);
+    svg {
+      width: 1.15em;
+      height: 1.15em;
+      stroke-width: 1.5;
     }
+  }
+
+  &-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
   }
 
   &-title {
     @include cssUtils.typography(body, heavy);
+    color: cssUtils.$text-neutral-primary;
   }
 
   &-description {
     @include cssUtils.typography(body, default);
     color: cssUtils.$text-neutral-primary;
+    // Markdown content sits flush: no outer paragraph spacing.
+    .openui-markdown-renderer > :first-child {
+      margin-top: 0;
+    }
   }
 
   &-autodismiss {

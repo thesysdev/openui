@@ -7,8 +7,8 @@ import {
   useIsStreaming,
   useStateField,
 } from "@openuidev/react-lang";
+import clsx from "clsx";
 import React from "react";
-import { TextArea as OpenUITextArea } from "../../components/TextArea";
 import { TextAreaSchema } from "./schema";
 
 export { TextAreaSchema } from "./schema";
@@ -16,7 +16,8 @@ export { TextAreaSchema } from "./schema";
 export const TextArea = defineComponent({
   name: "TextArea",
   props: TextAreaSchema,
-  description: "",
+  description:
+    'A multi-line text field inside a FormControl, for free-form notes or messages: TextArea(name, placeholder?, rows?, rules?, value?, variant?), e.g. TextArea("notes", "Dietary needs, accessibility, special requests…", 4). rows sets the visible height; 3–5 is typical. Never require it when leaving it blank is a valid answer. variant "inline" is borderless until hover or focus, for table cells and dense rows; use "default" everywhere else. For a one-line answer use Input.',
   component: ({ props }) => {
     const isStreaming = useIsStreaming();
     const formValidation = useFormValidation();
@@ -34,10 +35,14 @@ export const TextArea = defineComponent({
     }, [field.name, field.value, formValidation, hasRules, isStreaming, rules]);
 
     return (
-      <OpenUITextArea
+      <textarea
+        className={clsx("openui-genui-textarea", {
+          "openui-genui-textarea--inline": props.variant === "inline",
+          "openui-genui-textarea--error": !!formValidation?.errors[field.name],
+        })}
         name={field.name}
         placeholder={(props.placeholder as string) || ""}
-        rows={(props.rows as number) || 3}
+        rows={(props.rows as number) || (props.variant === "inline" ? 1 : 3)}
         value={field.value ?? ""}
         onFocus={() => formValidation?.clearFieldError(field.name)}
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {

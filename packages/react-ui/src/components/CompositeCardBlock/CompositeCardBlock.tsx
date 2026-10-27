@@ -4,11 +4,17 @@ import { CardBlockLayout, cardKeyDownHandler } from "../_shared/cards/CardBlockL
 
 export interface CompositeCardBlockItem {
   id?: string;
+  /** A photo shown edge to edge across the top of the card. */
+  media?: ReactNode;
+  /** chart media gets an inset tinted panel; image media bleeds to the edges. */
+  mediaKind?: "image" | "chart";
   header?: ReactNode;
   body?: ReactNode[];
   footer?: {
     price?: ReactNode;
     button?: ReactNode;
+    /** button holds IconButtons: they sit in a row to the right of the price. */
+    iconActions?: boolean;
   };
 }
 
@@ -22,7 +28,7 @@ export interface CompositeCardProps {
 /** A bordered card with header, stacked body content and a price/button footer. */
 export const CompositeCard = forwardRef<HTMLDivElement, CompositeCardProps>((props, ref) => {
   const { item, clickable = false, onClick, className } = props;
-  const { header, body, footer } = item;
+  const { media, mediaKind, header, body, footer } = item;
   const bodyItems = body ?? [];
   const hasFooter = Boolean(footer?.price || footer?.button);
 
@@ -40,15 +46,35 @@ export const CompositeCard = forwardRef<HTMLDivElement, CompositeCardProps>((pro
         onClick={clickable ? onClick : undefined}
         onKeyDown={clickable && onClick ? cardKeyDownHandler(onClick) : undefined}
       >
+        {media && (
+          <div
+            className={clsx(
+              "openui-composite-card__media",
+              mediaKind === "chart" && "openui-composite-card__media--chart",
+            )}
+          >
+            {media}
+          </div>
+        )}
+
         {header && <div className="openui-composite-card__header">{header}</div>}
 
         {bodyItems.length > 0 && <div className="openui-composite-card__body">{bodyItems}</div>}
 
         {hasFooter && (
           <div className="openui-composite-card__footer">
-            <div className="openui-composite-card__footer-content">
+            <div
+              className={clsx(
+                "openui-composite-card__footer-content",
+                footer?.iconActions && "openui-composite-card__footer-content--icons",
+              )}
+            >
               {footer?.price ?? null}
-              {footer?.button ?? null}
+              {footer?.iconActions ? (
+                <div className="openui-composite-card__icon-actions">{footer.button}</div>
+              ) : (
+                (footer?.button ?? null)
+              )}
             </div>
           </div>
         )}

@@ -23,7 +23,6 @@ export const TextBaseEditableCell: React.FC<TextBaseEditableCellProps> = ({
   columnId,
   isSelected,
   isEditing,
-  onSelect,
   onStartEdit,
   onFinishEdit,
   onNavigate,
@@ -87,11 +86,8 @@ export const TextBaseEditableCell: React.FC<TextBaseEditableCellProps> = ({
     // Let the url cell's anchor handle its own click.
     if ((e.target as HTMLElement).closest("a")) return;
     e.stopPropagation();
-    if (!isSelected && !isEditing) {
-      onSelect(rowIndex, columnId);
-    } else {
-      onStartEdit(rowIndex, columnId);
-    }
+    // One click edits; keyboard navigation still selects without editing.
+    if (!isEditing) onStartEdit(rowIndex, columnId);
   };
 
   const handleContainerBlur = (e: React.FocusEvent<HTMLDivElement>) => {

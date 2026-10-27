@@ -1,12 +1,14 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod/v4";
+import { Avatar } from "../Avatar";
+import { Emoji } from "../Emoji";
 import { Icon } from "../Icon";
 import { rulesSchema } from "../rules";
 
 export const ChipItemSchema = z.object({
   value: z.string(),
   label: z.string(),
-  icon: z.optional(Icon.ref),
+  leading: z.optional(z.union([Icon.ref, Avatar.ref, Emoji.ref])),
   disabled: z.boolean().optional(),
 });
 
@@ -16,7 +18,7 @@ export const ChipItem = defineComponent({
   name: "ChipItem",
   props: ChipItemSchema,
   description:
-    "A single selectable chip inside a Chips group, with a value, label and optional icon.",
+    'One selectable pill: ChipItem(value, label, leading?, disabled?), e.g. ChipItem("hotel", "Hotel", Icon("building", "buildings")). label is 1–3 words; leading is an optional Icon, an Avatar for a person or company, or a rare Emoji. Give every chip a leading or none of them.',
   component: () => null,
 });
 

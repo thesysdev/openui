@@ -16,7 +16,10 @@ export const Buttons = defineComponent({
   props: ButtonsSchema,
   description: 'Group of Button components. direction: "row" (default) | "column".',
   component: ({ props, renderNode }) => (
-    <OpenUIButtons variant={directionToVariant[props.direction as string] ?? "horizontal"}>
+    <OpenUIButtons
+      variant={directionToVariant[props.direction as string] ?? "horizontal"}
+      className="openui-genui-buttons"
+    >
       {renderNode(props.buttons) as ButtonsProps["children"]}
     </OpenUIButtons>
   ),

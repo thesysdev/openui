@@ -1,26 +1,43 @@
 import { defineComponent } from "@openuidev/react-lang";
 import { z } from "zod/v4";
+import { Avatar } from "../Avatar";
+import { Emoji } from "../Emoji";
 import { Icon } from "../Icon";
 import { Image } from "../Image";
+import { LeadingText } from "../LeadingText";
+import { Link } from "../Link";
+import { Metric } from "../Metric";
+import { oneOrMany } from "../oneOrMany";
 import { rulesSchema } from "../rules";
+import { Tag } from "../Tag";
+import { TagBlock } from "../TagBlock";
+import { Text } from "../Text";
 
 export const OptionCardSchema = z.object({
   value: z.string(),
   title: z.string(),
-  subtitle: z.string().optional(),
-  topContent: z.union([Icon.ref, Image.ref]).optional(),
+  subtitle: oneOrMany(
+    z.string(),
+    Text.ref,
+    Metric.ref,
+    Tag.ref,
+    TagBlock.ref,
+    LeadingText.ref,
+    Link.ref,
+  ).optional(),
+  leading: z.union([Icon.ref, Avatar.ref, Emoji.ref, Image.ref]).optional(),
   disabled: z.boolean().optional(),
 });
 
 export type OptionCardProps = z.infer<typeof OptionCardSchema>;
 
-export type OptionCardTopContent = NonNullable<OptionCardProps["topContent"]>;
+export type OptionCardLeading = NonNullable<OptionCardProps["leading"]>;
 
 export const OptionCard = defineComponent({
   name: "OptionCard",
   props: OptionCardSchema,
   description:
-    "A single selectable card inside an OptionCards group, with a value, title, optional subtitle and an optional Icon or Image on top.",
+    'One selectable card: OptionCard(value, title, subtitle?, leading?, disabled?), e.g. OptionCard("adventure", "Adventure", "Hiking, trekking & outdoor activities", Icon("mountain", "nature")). subtitle is one line of context: a string, or a Text, Metric, Tag, TagBlock, LeadingText or Link, or an array of them on one line, such as a price Metric for a plan. leading is an Icon for a concept, an Avatar for a person or company, a real Image, or a rare Emoji.',
   component: () => null,
 });
 

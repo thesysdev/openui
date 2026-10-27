@@ -6,17 +6,15 @@
   display: flex;
   flex-direction: row;
   gap: cssUtils.$space-s;
-  padding: cssUtils.$space-s cssUtils.$space-s cssUtils.$space-s cssUtils.$space-m;
+  // No fill, border or shadow: the bar sits directly on the card surface.
+  padding: cssUtils.$space-s 0 0;
   justify-content: space-between;
   align-items: center;
-  background-color: cssUtils.$elevated;
-  border-radius: cssUtils.$radius-xl;
-  border: 1px solid cssUtils.$border-default;
-  box-shadow: cssUtils.$shadow-s;
 }
 
 .openui-editable-table-changes-count {
   @include cssUtils.typography(body, default);
+  color: cssUtils.$text-neutral-secondary;
 }
 
 .openui-editable-table-changes-buttons {

@@ -4,6 +4,7 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { remarkCitations } from "../_shared/remark/remarkCitations";
+import { remarkHighlight } from "../_shared/remark/remarkHighlight";
 import { TextContentCitation } from "../Citation";
 import { InlineHeader } from "../InlineHeader";
 import { MarkDownRenderer } from "../MarkDownRenderer";
@@ -66,6 +67,7 @@ export const TextContentWrapper = memo((props: TextContentWrapperProps) => {
             [remarkMath, { singleDollarTextMath: false }],
             [remarkBreaks, { breaks: true }],
             remarkCitations,
+            remarkHighlight,
           ],
           rehypePlugins: rehypeKatex ? [rehypeKatex] : [],
           components: {

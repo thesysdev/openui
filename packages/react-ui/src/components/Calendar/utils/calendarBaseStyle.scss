@@ -3,9 +3,9 @@
 /* Base calendar surface and shared dimensions */
 .openui-calendar-root {
   --openui-calendar-day-size: calc(#{cssUtils.$space-2xl} + #{cssUtils.$space-2xs});
-  --openui-calendar-cell-radius: #{cssUtils.$radius-m};
+  --openui-calendar-cell-radius: #{cssUtils.$radius-full};
 
-  @include cssUtils.typography(body, default);
+  @include cssUtils.typography(body, small);
   width: fit-content;
   max-width: 100%;
   box-sizing: border-box;
@@ -63,7 +63,7 @@
 }
 
 .openui-calendar-chevron {
-  fill: cssUtils.$interactive-accent-default;
+  fill: cssUtils.$text-neutral-primary;
 }
 
 /* Grid setup */
@@ -100,7 +100,7 @@
 
 .openui-calendar-single-day-button,
 .openui-calendar-range-day-button {
-  @include cssUtils.typography(label, default);
+  @include cssUtils.typography(label, small);
   width: 100%;
   height: 100%;
   margin: 0;
@@ -123,12 +123,12 @@
   }
 
   &:focus-visible {
-    outline: 2px solid cssUtils.$border-accent;
+    outline: 2px solid cssUtils.$inverted-background;
     outline-offset: cssUtils.$space-3xs;
   }
 
   &:not(:disabled):hover {
-    background-color: cssUtils.$highlight-subtle;
+    background-color: cssUtils.$sunk;
   }
 
   &:disabled {
@@ -156,15 +156,15 @@
 }
 
 .openui-calendar-single-day-selected {
-  background: cssUtils.$interactive-accent-default;
-  color: cssUtils.$text-accent-primary;
+  background: cssUtils.$inverted-background;
+  color: cssUtils.$foreground;
   border-radius: var(--openui-calendar-cell-radius);
 }
 
 /* Range states apply on day container cells */
 .openui-calendar-range-start {
-  background: cssUtils.$interactive-accent-default;
-  color: cssUtils.$text-accent-primary;
+  background: cssUtils.$inverted-background;
+  color: cssUtils.$foreground;
   border-top-left-radius: var(--openui-calendar-cell-radius);
   border-bottom-left-radius: var(--openui-calendar-cell-radius);
 }
@@ -174,8 +174,8 @@
 }
 
 .openui-calendar-range-end {
-  background: cssUtils.$interactive-accent-default;
-  color: cssUtils.$text-accent-primary;
+  background: cssUtils.$inverted-background;
+  color: cssUtils.$foreground;
   border-top-right-radius: var(--openui-calendar-cell-radius);
   border-bottom-right-radius: var(--openui-calendar-cell-radius);
 }

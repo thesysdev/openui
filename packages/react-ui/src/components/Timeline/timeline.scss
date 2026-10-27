@@ -1,0 +1,221 @@
+@use "../../cssUtils.scss" as cssUtils;
+
+// One grid for the whole list so every time label shares a column width.
+// Items are display: contents; each row's rail cell stretches to the row's
+// height so the connector runs down to the next marker.
+.openui-timeline {
+  --openui-timeline-line: 1.5em;
+  --openui-timeline-rail: 1em;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: [rail] var(--openui-timeline-rail) [content] minmax(0, 1fr);
+  column-gap: 0.75em;
+  width: 100%;
+
+  &--with-time {
+    grid-template-columns:
+      [time] max-content [rail] var(--openui-timeline-rail)
+      [content] minmax(0, 1fr);
+  }
+
+  // Avatars, icon badges, emoji and ListBlock's number chip take a 24px slot
+  // instead of the dot.
+  &--number,
+  &--with-leading {
+    --openui-timeline-rail: 1.5em;
+  }
+
+  &__item {
+    display: contents;
+  }
+
+  &__time {
+    grid-column: time;
+    // Sized to its content rather than stretched to the row, so a Tag or
+    // other composed time centers on the title's first 24px line.
+    align-self: start;
+    max-width: 9em;
+    padding-bottom: 1.25em;
+    color: cssUtils.$text-neutral-secondary;
+    // 12px text on the title's 24px line box, so time, dot and title share
+    // one center line.
+    @include cssUtils.typography(label, extra-small);
+    line-height: 2em;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    overflow-wrap: break-word;
+
+    &--composed {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+      align-content: flex-start;
+      gap: 0.375em;
+      min-height: 2em;
+    }
+  }
+
+  &__rail {
+    grid-column: rail;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  // Centers the dot or leading visual on the title's first line.
+  &__marker {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: var(--openui-timeline-line);
+
+    > .openui-avatar {
+      width: 1.5em;
+      height: 1.5em;
+      vertical-align: 0;
+    }
+    > .openui-avatar .openui-avatar__icon {
+      width: 50%;
+      height: 50%;
+      svg {
+        stroke-width: 1.75px;
+      }
+    }
+    > .openui-emoji {
+      font-size: 1.05em;
+    }
+
+    // ListBlock's chip, centered in the marker rather than nudged down.
+    > .openui-list-item-number {
+      margin-top: 0;
+    }
+  }
+
+  &__dot {
+    width: 0.625em;
+    height: 0.625em;
+    box-sizing: border-box;
+    border-radius: 999px;
+    border: 1.5px solid cssUtils.$text-neutral-secondary;
+    background-color: transparent;
+  }
+
+  // Dashed, the same as EntityList's row rules and the tool timeline.
+  &__connector {
+    flex: 1;
+    width: 0;
+    min-height: 0.75em;
+    margin-block: 0.25em;
+    border-inline-start: 1px dashed cssUtils.$border-interactive;
+  }
+
+  &__item:last-child &__connector {
+    visibility: hidden;
+  }
+
+  &__content {
+    grid-column: content;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding-bottom: 1.25em;
+  }
+
+  &__item:last-child &__content,
+  &__item:last-child &__time {
+    padding-bottom: 0;
+  }
+
+  &__title {
+    min-width: 0;
+    color: cssUtils.$text-neutral-primary;
+    @include cssUtils.typography(body, default);
+  }
+
+  &__subtitle {
+    color: cssUtils.$text-neutral-secondary;
+    @include cssUtils.typography(body, default);
+  }
+
+  &__title--composed,
+  &__subtitle--composed {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375em;
+    min-height: var(--openui-timeline-line);
+  }
+
+  // Checklist: a checkbox instead of the dot, no connector, tighter rows.
+  // A checked item fills the box and strikes its title through.
+  &--check {
+    --openui-timeline-rail: 1.5em;
+  }
+
+  &--check &__connector {
+    display: none;
+  }
+
+  &--check &__content {
+    padding-bottom: 0.75em;
+  }
+
+  // The check button is only a focus target around the shared 18px
+  // SelectionCheck (OptionCards, Chips); the whole row is the hit area.
+  &__check-button {
+    @include cssUtils.button-reset;
+    display: inline-flex;
+    border-radius: 999px;
+    cursor: inherit;
+
+    &:focus-visible {
+      outline: 1.5px solid cssUtils.$text-neutral-primary;
+      outline-offset: 2px;
+    }
+  }
+
+  &__item--toggleable &__rail,
+  &__item--toggleable &__content {
+    cursor: pointer;
+  }
+
+  &__item--toggleable:hover .openui-selection-check:not(.openui-selection-check--checked) {
+    border-color: cssUtils.$text-neutral-primary;
+  }
+
+  &__item--disabled &__rail,
+  &__item--disabled &__content {
+    cursor: default;
+  }
+
+  &--check &__title {
+    transition: color 0.16s ease-out;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  &__item--checked &__title {
+    color: cssUtils.$text-neutral-secondary;
+    text-decoration: line-through;
+  }
+
+  // Status: done fills the dot, current adds a halo, upcoming quiets the title.
+  &__item--done &__dot,
+  &__item--current &__dot {
+    border-color: cssUtils.$text-neutral-primary;
+    background-color: cssUtils.$text-neutral-primary;
+  }
+
+  &__item--current &__dot {
+    box-shadow: 0 0 0 0.1875em cssUtils.$sunk;
+  }
+
+  &__item--upcoming &__title {
+    color: cssUtils.$text-neutral-secondary;
+  }
+}
