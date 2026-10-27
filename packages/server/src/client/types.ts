@@ -17,7 +17,7 @@ export interface ArtifactLibrary {
 /** A data tool, as you pass it to `createInterpreter`. Only what generation needs is sent, never `execute`. */
 export type ArtifactTool = Omit<ToolDefinition, "name"> & { execute?: unknown };
 
-interface CreateArtifactBase {
+export interface CreateArtifactBase {
   /** A short title, such as "Q3 sales by region". */
   title: string;
   /** One sentence on what the artifact shows. */
@@ -41,11 +41,17 @@ export interface CreateLiveArtifactParams extends CreateArtifactBase {
 
 export interface CreateStaticArtifactParams extends CreateArtifactBase {
   library: ArtifactLibrary;
+  tools?: never;
 }
 
-export type CreateSlidesParams = CreateArtifactBase;
+/** Slides use built-in components and no data tools. */
+export interface CreateSlidesParams extends CreateArtifactBase {
+  library?: never;
+  tools?: never;
+}
 
-export type CreateReportParams = CreateArtifactBase;
+/** Reports use built-in components and no data tools. */
+export type CreateReportParams = CreateSlidesParams;
 
 interface EditArtifactBase {
   id: string;
