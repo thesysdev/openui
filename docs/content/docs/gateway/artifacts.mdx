@@ -405,9 +405,8 @@ export function DashboardOutput({ toolResult }) {
 }
 ```
 
-By default, this shows a preview card with the dashboard's title in the chat. Clicking it opens the dashboard in a
-fullscreen overlay, which closes on Escape or a click outside. The open dashboard sits in a chrome: a frame with
-a bar showing its title and a close button.
+By default, this shows a preview card with the dashboard's title in the chat. Clicking it opens the dashboard right under the
+card, in a chrome: a frame with a bar showing its title and a close button.
 
 While the artifact is being generated, the renderer attaches to its stream and shows it as it comes in. It can
 attach at any time: after a reload, or when the user opens it later, it shows everything generated so far, then
@@ -427,7 +426,7 @@ Props customize what the renderer shows, and the renderer stays in control of it
 | `library`                                 | Your dashboard library from step 1                                                                                                                                                                                                                 |
 | `interpreter`                             | Where the artifact's data tools run: a config object for your endpoint, such as `{ url: "/api/interpreter" }`, or an async function. See [step 4](#4-add-an-interpreter)                                                                           |
 | `preview`                                 | Optional. Defaults to `true`: show a preview card that opens the artifact. Pass `false` for standalone mode, which renders the whole artifact inline. See [Two modes](#two-modes)                                                                  |
-| `renderInHtmlElement`                     | Optional. The element the artifact opens in. Defaults to a fullscreen overlay                                                                                                                                                                      |
+| `renderInHtmlElement`                     | Optional. The element the artifact opens in. Defaults to under the card                                                                                                                                                                            |
 | `isOpen`, `onOpenChange`                  | Optional. Control whether the artifact is open. Without them, the renderer manages it                                                                                                                                                              |
 | `defaultOpen`                             | Optional. Start open, when the renderer manages the open state                                                                                                                                                                                     |
 | `className`                               | Optional. Added to the artifact's root element                                                                                                                                                                                                     |
@@ -453,8 +452,8 @@ For standalone mode, pass `preview={false}`:
 
 ### Open the artifact in your own element
 
-Pass `renderInHtmlElement` to open the artifact somewhere in your layout, such as a side panel, instead of the
-overlay. Add `isOpen` and `onOpenChange` to control it yourself, for example to close it when the user switches
+Pass `renderInHtmlElement` to open the artifact somewhere in your layout, such as a side panel, instead of under
+the card. Add `isOpen` and `onOpenChange` to control it yourself, for example to close it when the user switches
 conversations:
 
 ```tsx
@@ -484,7 +483,7 @@ slot works three ways:
 - **Pass children:** your children replace the default entirely, and you are in control. Read the state you need
   with `useArtifactRenderer()`.
 
-Children win over props, and a dev warning fires if you pass both.
+Children win over props.
 
 The renderer has two regions, `Preview` and `Chrome`, and each has its own parts. Pass regions at the top level, and
 parts only inside their region:
@@ -506,7 +505,7 @@ LiveArtifactRenderer
 ```
 
 When you pass a slot children, only what you place renders, so place the default parts you want to keep. A part
-outside its region renders nothing, and a dev warning fires.
+outside its region renders nothing.
 
 In standalone mode there is no chrome: the renderer shows only the chrome's `Content`, with its `Loading` and
 `Error`.
