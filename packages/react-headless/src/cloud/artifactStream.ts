@@ -60,6 +60,11 @@ const ERROR_CODES = new Set<string>(["not-found", "generation-failed", "network-
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// `crypto.randomUUID` only exists in secure contexts; a dev server on a LAN IP isn't one.
+const runId = (): string =>
+  globalThis.crypto?.randomUUID?.() ??
+  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+
 const streamError = (code: ArtifactStreamErrorCode, message: string): ArtifactStreamError => ({
   source: "artifact",
   code,
@@ -159,7 +164,7 @@ class ArtifactStreamStore {
     const controller = new AbortController();
     entry.controller = controller;
     entry.run ??= {
-      id: crypto.randomUUID(),
+      id: runId(),
       startedAt: Date.now(),
       reconnects: 0,
       resumed: entry.lastEventId !== undefined,
