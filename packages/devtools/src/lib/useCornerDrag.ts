@@ -34,10 +34,11 @@ export function useCornerDrag(onSnap: (corner: DevtoolsPosition) => void) {
     const from = dropRect.current;
     if (!el || !from) return;
     dropRect.current = null;
+    el.style.transition = "none";
+    el.style.transform = "";
     const to = el.getBoundingClientRect();
     const dx = from.left - to.left;
     const dy = from.top - to.top;
-    el.style.transition = "none";
     el.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
       el.style.transform = "";
@@ -60,13 +61,17 @@ export function useCornerDrag(onSnap: (corner: DevtoolsPosition) => void) {
     const origin = start.current;
     const el = ref.current;
     if (!origin || !el || origin.id !== event.pointerId) return;
-    const x = event.clientX - origin.x;
-    const y = event.clientY - origin.y;
     if (!dragged.current) {
-      if (Math.hypot(x, y) < DRAG_THRESHOLD) return;
+      if (Math.hypot(event.clientX - origin.x, event.clientY - origin.y) < DRAG_THRESHOLD) return;
       dragged.current = true;
       setDragging(true);
+      // Pick it up from where it is on screen, even mid-glide.
+      const { m41, m42 } = new DOMMatrix(getComputedStyle(el).transform);
+      origin.x -= m41;
+      origin.y -= m42;
     }
+    const x = event.clientX - origin.x;
+    const y = event.clientY - origin.y;
     cancelAnimationFrame(frame.current);
     frame.current = requestAnimationFrame(() => {
       el.style.transition = "none";
