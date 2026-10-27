@@ -25,7 +25,7 @@ import {
   RUNS_TOTAL,
   tokens,
 } from "@/lib/benchmark-data";
-import { BASE_URL } from "@/lib/source";
+import { BASE_URL } from "@/lib/site-url";
 
 export const BENCHMARK_CANONICAL_URL = `${BASE_URL}/benchmarks`;
 export const BENCHMARK_DATASET_NAME = "OpenUI Generative UI Benchmark";
