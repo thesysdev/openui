@@ -19,6 +19,12 @@ const CASES: [string, string][] = [
   ["no fence at all", program],
   ["prose with inline code before an unfenced program", "Use `x` or ```y``` here\n" + program],
   [
+    "a program followed by ```js script blocks",
+    program +
+      '\n\n```js sales_total\nasync ({ tools }) => {\n  const s = "```";\n  return 1;\n}\n```\n```javascript other\nasync () => 2\n```',
+  ],
+  ["a program fenced as js", "```js\n" + program + "\n```"],
+  [
     "an opener with words after the tag",
     "```openui lang\n" + program + "\n```\nHope this helps (really).",
   ],

@@ -326,9 +326,35 @@ function sameLineCode(text: string): string | null {
   return untagged !== text && STATEMENT_START.test(untagged) ? untagged : null;
 }
 
+const SCRIPT_OPENER = /^[ \t]*```[ \t]*(?:js|javascript)\b/i;
+const FENCE_CLOSE = /^[ \t]*```[ \t]*\r?$/;
+
+/** Drop ```js blocks (scripts written after the program), unless the block holds an OpenUI program. */
+function dropScriptBlocks(input: string): string {
+  if (!/^[ \t]*```[ \t]*(?:js|javascript)\b/im.test(input)) return input;
+  const lines = input.split("\n");
+  const out: string[] = [];
+  for (let n = 0; n < lines.length; n++) {
+    if (!SCRIPT_OPENER.test(lines[n]!)) {
+      out.push(lines[n]!);
+      continue;
+    }
+    let end = n + 1;
+    while (end < lines.length && !FENCE_CLOSE.test(lines[end]!)) end++;
+    const first = lines.slice(n + 1, end).find((line) => line.trim() !== "");
+    if (first !== undefined && STATEMENT_START.test(first)) {
+      out.push(lines[n]!);
+      continue;
+    }
+    n = end;
+  }
+  return out.join("\n");
+}
+
 /** Extract code from markdown fences, or return as-is if no fences found.
  *  String-context-aware: skips ``` inside double-quoted strings. */
-export function stripFences(input: string): string {
+export function stripFences(raw: string): string {
+  const input = dropScriptBlocks(raw);
   const blocks: string[] = [];
   let i = 0;
 
