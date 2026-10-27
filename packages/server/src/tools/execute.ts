@@ -2,12 +2,13 @@ import { abortable } from "../shared/abort";
 import { THESYS_API_BASE_URL } from "../shared/constants";
 import {
   ToolExecutionError,
-  type RegisteredTools,
+  type Interpreter,
+  type InterpreterExecuteOptions,
+  type InterpreterOptions,
+  type InterpreterRequest,
   type ScriptToolCall,
   type ScriptToolResult,
-  type ToolExecutionOptions,
-  type ToolExecutionRequest,
-  type ToolExecutorOptions,
+  type ToolDefinition,
 } from "./types";
 
 const MAX_ROUNDS = 8;
@@ -21,25 +22,37 @@ function invalidResponse(): never {
   throw new ToolExecutionError("Invalid script execution response", "invalid_response", 502);
 }
 
-/** Register server tools once, then execute direct tools or generated script loops. */
-export function createToolExecutor<Context = undefined>(
-  options: ToolExecutorOptions<Context>,
-): RegisteredTools<Context> {
-  const entries = Object.entries(options.tools);
-  const tools = Object.fromEntries(entries.map(([name, tool]) => [name, tool.execute]));
-  const definitions = entries.map(([name, { description, parameters, output }]) => ({
+/** What generation sees of your tools: everything but `execute`. */
+export function toToolDefinitions(
+  tools: Record<string, Omit<ToolDefinition, "name">>,
+): ToolDefinition[] {
+  return Object.entries(tools).map(([name, { description, parameters, output }]) => ({
     name,
     parameters,
     ...(description !== undefined && { description }),
     ...(output !== undefined && { output }),
   }));
+}
+
+/**
+ * Runs an artifact's data tools on your server. Register your tools once, then
+ * call `execute` with each request the renderer sends: direct tool calls run
+ * here, and generated scripts run in OpenUI Cloud, calling back into your tools.
+ */
+export function createInterpreter<Context = undefined>(
+  options: InterpreterOptions<Context>,
+): Interpreter<Context> {
+  const tools = Object.fromEntries(
+    Object.entries(options.tools).map(([name, tool]) => [name, tool.execute]),
+  );
+  const definitions = toToolDefinitions(options.tools);
   const endpoint = `${(options.apiBaseUrl ?? THESYS_API_BASE_URL).replace(/\/+$/, "")}/v1/app/execute`;
   const fetchFn = options.fetch ?? globalThis.fetch;
   const apiKey = options.apiKey;
 
   async function execute(
-    input: ToolExecutionRequest,
-    executionOptions?: ToolExecutionOptions<Context>,
+    input: InterpreterRequest,
+    executionOptions?: InterpreterExecuteOptions<Context>,
   ): Promise<unknown> {
     if (!input || typeof input.name !== "string" || !input.name) {
       throw new ToolExecutionError("A tool name is required", "invalid_input");
@@ -69,7 +82,7 @@ export function createToolExecutor<Context = undefined>(
       }
       return abortable(
         Promise.resolve().then(() =>
-          tools[name]!(toolArgs, { context: executionOptions?.context as Context, signal }),
+          tools[name]!(executionOptions?.context as Context, toolArgs, { signal }),
         ),
         signal,
       );
@@ -77,9 +90,16 @@ export function createToolExecutor<Context = undefined>(
 
     try {
       if (Object.hasOwn(tools, input.name)) return await dispatch(input.name, args);
-      if (typeof input.response !== "string" || !input.response.trim()) {
+      // Generated scripts run from the artifact: its content when you store it, else its id.
+      const source =
+        typeof input.response === "string" && input.response.trim()
+          ? { response: input.response }
+          : typeof input.id === "string" && input.id
+            ? { id: input.id }
+            : null;
+      if (!source) {
         throw new ToolExecutionError(
-          `Unknown tool: ${input.name}. Supply a complete OpenUI response for script execution.`,
+          `Unknown tool: ${input.name}. Send the artifact's id or content for script execution.`,
           "tool_not_found",
           404,
         );
@@ -87,7 +107,7 @@ export function createToolExecutor<Context = undefined>(
 
       if (!apiKey?.trim()) {
         throw new ToolExecutionError(
-          "Pass apiKey to createToolExecutor to execute generated scripts",
+          "Pass apiKey to createInterpreter to execute generated scripts",
           "missing_api_key",
         );
       }
@@ -100,7 +120,7 @@ export function createToolExecutor<Context = undefined>(
         const response = await abortable(
           executeRound(
             {
-              response: input.response,
+              ...source,
               name: input.name,
               arguments: args,
               tool_results: toolResults,
