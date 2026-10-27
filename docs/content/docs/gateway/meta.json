@@ -4,6 +4,7 @@
   "pages": [
     "index",
     "generate-openui-lang",
+    "artifacts",
     "authentication",
     "models",
     "reliability",

@@ -1,0 +1,839 @@
+---
+title: Artifacts in your chat app
+description: Let your agent create and edit artifacts, then render, list, pin and delete them in your own UI.
+---
+
+Artifacts are UIs, such as dashboards, slides and reports, that your agent creates and edits during a conversation.
+You add them to your agent as tools you write, and render them with React components.
+
+There are four kinds:
+
+| Kind   | What it is                                                                           | Create with    | Render with              |
+| ------ | ------------------------------------------------------------------------------------ | -------------- | ------------------------ |
+| Live   | Built from your components, with live data from your tools. For example, a dashboard | `createLive`   | `LiveArtifactRenderer`   |
+| Static | Built from your components, without tools                                            | `createStatic` | `StaticArtifactRenderer` |
+| Slides | A slide deck, built from the built-in slides components                              | `createSlides` | `SlidesRenderer`         |
+| Report | A report, built from the built-in report components                                  | `createReport` | `ReportRenderer`         |
+
+This guide builds a live dashboard. The other kinds work the same way, with fewer pieces: see
+[Other kinds of artifact](#other-kinds-of-artifact).
+
+Artifacts are available on OpenUI Cloud only.
+
+## Before you start
+
+You need:
+
+- An OpenUI Cloud API key, set as `THESYS_API_KEY` on your server
+- A chat app with a server-side agent and a React frontend
+
+Install the packages:
+
+```bash
+npm install @openuidev/server @openuidev/react-ui @openuidev/react-headless @openuidev/react-lang
+```
+
+`@openuidev/server` has one client for everything OpenUI Cloud does on your server. `@openuidev/react-ui/cloud` has
+the React renderers, provider and hooks.
+
+## Steps
+
+1. [Create your dashboard library](#1-create-your-dashboard-library)
+2. [Define your data tools](#2-define-your-data-tools)
+3. [Add the artifact tools to your agent](#3-add-the-artifact-tools-to-your-agent)
+4. [Add an interpreter](#4-add-an-interpreter)
+5. [Add a frontend token endpoint](#5-add-a-frontend-token-endpoint)
+6. [Wrap your app in `OpenUICloudProvider`](#6-wrap-your-app-in-openuicloudprovider)
+7. [Render artifacts in your chat](#7-render-artifacts-in-your-chat)
+8. [Add an artifacts page](#8-add-an-artifacts-page)
+
+## 1. Create your dashboard library
+
+A dashboard is built from a component library. Start from OpenUI's built-in library and add your own components to
+it:
+
+```ts title="src/libraries/dashboard.ts"
+import { defineAction } from "@openuidev/react-lang";
+import { openuiLibrary as base } from "@openuidev/react-ui/genui-lib";
+import { z } from "zod/v4";
+import { RevenueCard } from "@/components/revenue-card";
+
+// A custom action your app handles in the browser (step 7).
+export const copyToClipboard = defineAction({
+  name: "CopyToClipboard",
+  description: "Copies text to the clipboard",
+  params: z.object({ text: z.string() }),
+});
+
+export const dashboardLibrary = base.extend({
+  components: { add: [RevenueCard] },
+  actions: { add: [copyToClipboard] },
+});
+```
+
+You can also [build a library from scratch](/docs/openui-lang/defining-components) with your own components. Add
+[custom actions](/docs/openui-lang/actions) for anything that should happen in the browser, such as copying text. Your
+server uses the library to tell the model which components it can use, and your browser renders with it.
+
+## 2. Define your data tools
+
+Live artifacts load data from your own tools, so a sales dashboard stays current. Each tool has a description, its
+parameters, an example of its output, and the function that runs it. `execute` receives the `context` your
+interpreter passes (step 4), the tool's arguments, and an abort `signal` that fires when the call is cancelled or
+times out:
+
+```ts title="server/data-tools.ts"
+// What your interpreter passes to every tool (step 4), such as who the user is.
+export type ToolContext = { userId: string };
+
+export const dataTools = {
+  get_sales: {
+    description: "Sales for a region and period",
+    parameters: salesParametersSchema,
+    output: exampleSalesResult,
+    execute: (context: ToolContext, args, { signal }) => getSales(context.userId, args, { signal }),
+  },
+};
+```
+
+### Tools from an MCP server
+
+Tools from an MCP server, such as Composio, work the same way. List them, and wrap each one in an `execute` that calls
+it with the signed-in user's credentials:
+
+```ts title="server/mcp-tools.ts"
+import type { ToolContext } from "./data-tools";
+// Your helper: a connected MCP client, such as `Client` from `@modelcontextprotocol/sdk`.
+// Given a user's id, it connects with that user's credentials.
+import { mcpClient } from "./mcp";
+
+export async function mcpDataTools() {
+  const { tools } = await (await mcpClient()).listTools();
+  return Object.fromEntries(
+    tools
+      // Artifacts call their tools whenever they render, so register only the ones they should call.
+      .filter((tool) => tool.annotations?.readOnlyHint)
+      .map((tool) => [
+        tool.name,
+        {
+          description: tool.description,
+          parameters: tool.inputSchema,
+          execute: async (context: ToolContext, args, { signal }) => {
+            const mcp = await mcpClient(context.userId);
+            const result = await mcp.callTool({ name: tool.name, arguments: args }, undefined, {
+              signal,
+            });
+            // MCP reports failures in the result. Throw, so the artifact shows a tool error.
+            if (result.isError) throw new Error(`${tool.name} failed`);
+            return result.structuredContent ?? result.content;
+          },
+        },
+      ]),
+  );
+}
+```
+
+Then add them to `dataTools`, so your artifacts (step 3) and your interpreter (step 4) get them too:
+
+```ts title="server/data-tools.ts"
+export const dataTools = {
+  get_sales: {/* as above */},
+  ...(await mcpDataTools()),
+};
+```
+
+MCP tools don't come with an example output. For the ones your dashboards use most, add `output` yourself, so the
+subagent knows what the data looks like.
+
+## 3. Add the artifact tools to your agent
+
+Create one OpenUI client for your server. It reads your API key from `THESYS_API_KEY`:
+
+```ts title="server/openui.ts"
+import { OpenUIClient } from "@openuidev/server";
+
+export const openui = new OpenUIClient();
+```
+
+Then add two tools to your agent: one to create dashboards and one to edit them. Each has a name, a description,
+input and output schemas, and an `execute` function that calls `openui.artifacts`. Adapt the shape to your agent
+framework's tool format:
+
+```ts title="server/dashboard-tools.ts"
+import { dashboardLibrary } from "@/libraries/dashboard";
+import { dataTools } from "./data-tools";
+import { openui } from "./openui";
+
+// What both tools return: a short response for your agent, which also identifies the artifact.
+const artifactResponseSchema = {
+  type: "string",
+  description: "The artifact's id and title. Use the id to edit this dashboard later.",
+};
+
+export function dashboardTools(userId: string) {
+  return [
+    {
+      name: "createDashboard",
+      description:
+        "Create a live dashboard that shows data from the app's tools. The dashboard is built from `prompt` " +
+        "alone, so include everything it needs, including any data from the conversation. Returns right away " +
+        "with the dashboard's id while it is generated.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: 'A short title, such as "Q3 sales by region".' },
+          description: {
+            type: "string",
+            description: "Optional. One sentence on what the dashboard shows.",
+          },
+          prompt: {
+            type: "string",
+            description:
+              "What to build: the metrics, charts and filters, and any data from the conversation.",
+          },
+        },
+        required: ["title", "prompt"],
+      },
+      outputSchema: artifactResponseSchema,
+      execute: async ({ title, description, prompt }) => {
+        const { toolResponse } = await openui.artifacts.createLive({
+          title,
+          description,
+          prompt,
+          userId,
+          library: dashboardLibrary,
+          tools: dataTools,
+        });
+        return toolResponse;
+      },
+    },
+    {
+      name: "editDashboard",
+      description:
+        "Edit a dashboard you created, such as adding a chart or changing a filter. Returns right away while the " +
+        "change is generated.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "The id of the dashboard to edit." },
+          prompt: { type: "string", description: "The change to make, and any data it needs." },
+        },
+        required: ["id", "prompt"],
+      },
+      outputSchema: artifactResponseSchema,
+      execute: async ({ id, prompt }) => {
+        const { toolResponse } = await openui.artifacts.edit({
+          id,
+          prompt,
+          userId,
+          library: dashboardLibrary,
+          tools: dataTools,
+        });
+        return toolResponse;
+      },
+    },
+  ];
+}
+```
+
+Create the tools on each chat request, with the signed-in user's `id`, and mount them next to your agent's other
+tools.
+
+<Callout type="info">
+  Always take `userId` from your authenticated session, never from the model or the browser. Each
+  user can only read and edit their own artifacts.
+</Callout>
+
+Each artifact is built by a subagent in OpenUI Cloud. It sees only the `prompt`, not your conversation, so your
+tool description tells your agent to put everything the artifact needs in it, including any data. While it builds,
+the subagent reads your data tools' descriptions and example outputs; your tools run only when the artifact renders.
+
+### The tool response
+
+Your tools return right away, as soon as the artifact has an `id`. `toolResponse` is a short string for your agent,
+with the artifact's `id` and `title`, in a format the renderer also understands. Your agent doesn't wait for the
+artifact to be generated, and carries on with its reply.
+
+Return `toolResponse` as is, and pass the same string to the renderer (step 7). You don't need to parse it. The
+artifact keeps generating in OpenUI Cloud, and the renderer streams it in directly. The string is saved with your
+chat messages like any other tool result, and it is all the renderer needs, during generation and after.
+
+### Editing
+
+Your agent edits a dashboard by calling `editDashboard` with its `id`, for example after the user asks to "add a
+chart for Europe". To edit the dashboard the user has open, include its `id` in the request you send to your agent.
+The edit also returns right away. While the edit is generated, every renderer showing the dashboard keeps showing the
+current version, with `isStreaming` true, then switches to the edited version once it is ready. The edit replaces
+the artifact in place.
+
+## 4. Add an interpreter
+
+When a live artifact loads data, it calls your data tools through an interpreter, which runs them on your server.
+Add it as an endpoint or as an async function, and pass it to the renderer as `interpreter` (step 7). Both use
+`createInterpreter` with the same `dataTools`.
+
+### As an endpoint
+
+```ts title="app/api/interpreter/route.ts"
+import { createInterpreter } from "@openuidev/server";
+import { dataTools, type ToolContext } from "@/server/data-tools";
+
+const interpreter = createInterpreter<ToolContext>({
+  apiKey: process.env.THESYS_API_KEY,
+  tools: dataTools,
+});
+
+export async function POST(request: Request) {
+  const session = await getSession(request);
+  const result = await interpreter.execute(await request.json(), {
+    context: { userId: session.user.id },
+    signal: request.signal,
+  });
+  return Response.json({ result });
+}
+```
+
+Pass the renderer a config object with the endpoint's URL:
+
+```tsx
+<LiveArtifactRenderer interpreter={{ url: "/api/interpreter" }} />
+```
+
+| Field     | Description                                                         |
+| --------- | ------------------------------------------------------------------- |
+| `url`     | Your interpreter endpoint                                           |
+| `headers` | Optional. Headers to send with each request, such as an auth header |
+
+### As an async function
+
+The function receives the same request the renderer would send to an endpoint, and returns the result. For
+example, a server action:
+
+```ts title="app/actions/interpreter.ts"
+"use server";
+
+import { createInterpreter } from "@openuidev/server";
+import { dataTools, type ToolContext } from "@/server/data-tools";
+
+const interpreter = createInterpreter<ToolContext>({
+  apiKey: process.env.THESYS_API_KEY,
+  tools: dataTools,
+});
+
+export async function runInterpreter(request) {
+  const session = await getSession();
+  return interpreter.execute(request, { context: { userId: session.user.id } });
+}
+```
+
+Pass the function to the renderer:
+
+```tsx
+<LiveArtifactRenderer interpreter={runInterpreter} />
+```
+
+Whatever you pass as `context` reaches every tool's `execute`. Put in what your tools need to authorize the call,
+such as the user's `id` or an access token, and take it from your session, never from the request body.
+
+Register every tool your artifacts call in the interpreter: artifacts don't run tools in the browser. For
+something that should happen in the browser, such as copying text, use a custom action (step 7). Only live
+artifacts need an interpreter.
+
+## 5. Add a frontend token endpoint
+
+The browser streams and loads artifacts directly from OpenUI Cloud with a short-lived token. Add an endpoint that mints one for
+the signed-in user and returns `{ token, expires_at }`:
+
+```ts title="app/api/frontend-token/route.ts"
+export async function POST(request: Request) {
+  const session = await getSession(request);
+  const response = await fetch("https://api.thesys.dev/v1/frontend-tokens", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.THESYS_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ user_id: session.user.id }),
+  });
+  const { token, expires_at } = await response.json();
+  return Response.json({ token, expires_at });
+}
+```
+
+If you already use [Conversations](/docs/gateway/api/conversations), reuse the endpoint you have. See
+[Mint a frontend token](/docs/gateway/authentication#mint-a-frontend-token) for details.
+
+## 6. Wrap your app in `OpenUICloudProvider`
+
+```tsx title="app/providers.tsx"
+import { OpenUICloudProvider } from "@openuidev/react-ui/cloud";
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return <OpenUICloudProvider token="/api/frontend-token">{children}</OpenUICloudProvider>;
+}
+```
+
+| Prop                 | Description                                                                                                                                        |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `token`              | URL of your token endpoint, or a function that returns a fresh token. With a URL, the provider caches the token and refreshes it before it expires |
+| `apiBaseUrl`         | Optional. The OpenUI Cloud API origin. Defaults to `https://api.thesys.dev`                                                                        |
+| `fetch`              | Optional. A custom `fetch`, for example in tests or server rendering. Defaults to the global `fetch`                                               |
+| `refreshSkewSeconds` | Optional. With a URL `token`, how many seconds before expiry to refresh it. Defaults to `60`                                                       |
+
+These match the options of `useOpenuiCloudStorage`. If you already use it, pass the same values.
+
+## 7. Render artifacts in your chat
+
+Wherever your chat shows the dashboard tools' output, render it with `LiveArtifactRenderer`. Pass the tool's
+result, unchanged, as `response`:
+
+```tsx title="components/dashboard-output.tsx"
+import { LiveArtifactRenderer } from "@openuidev/react-ui/cloud";
+import { dashboardLibrary } from "@/libraries/dashboard";
+
+export function DashboardOutput({ toolResult }) {
+  return (
+    <LiveArtifactRenderer
+      response={toolResult}
+      library={dashboardLibrary}
+      interpreter={{ url: "/api/interpreter" }}
+      onAction={(event) => {
+        if (event.type === "CopyToClipboard") void navigator.clipboard.writeText(event.params.text);
+      }}
+    />
+  );
+}
+```
+
+By default, this shows a preview card with the dashboard's title in the chat. Clicking it opens the dashboard in a
+fullscreen overlay, which closes on Escape or a click outside. The open dashboard sits in a chrome: a frame with
+a bar showing its title and a close button.
+
+While the artifact is being generated, the renderer attaches to its stream and shows it as it comes in. It can
+attach at any time: after a reload, or when the user opens it later, it shows everything generated so far, then
+continues live. Once the artifact is done, the renderer loads it by `id`. During an edit, it keeps showing the
+current version until the edited one is ready.
+
+### Customize it with props
+
+Props customize what the renderer shows, and the renderer stays in control of it. To replace parts of it, see
+[Customize or replace parts](#customize-or-replace-parts).
+
+| Prop                                      | Description                                                                                                                                                                                                                                        |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `response`                                | The tool's result, as is. The renderer reads the artifact from it                                                                                                                                                                                  |
+| `id`                                      | Instead of `response`, the artifact's `id`, such as from `useArtifactList` (step 8)                                                                                                                                                                |
+| `content`                                 | Optional. The artifact's saved content, if you [use your own storage](#use-your-own-storage)                                                                                                                                                       |
+| `library`                                 | Your dashboard library from step 1                                                                                                                                                                                                                 |
+| `interpreter`                             | Where the artifact's data tools run: a config object for your endpoint, such as `{ url: "/api/interpreter" }`, or an async function. See [step 4](#4-add-an-interpreter)                                                                           |
+| `preview`                                 | Optional. Defaults to `true`: show a preview card that opens the artifact. Pass `false` for standalone mode, which renders the whole artifact inline. See [Two modes](#two-modes)                                                                  |
+| `renderInHtmlElement`                     | Optional. The element the artifact opens in. Defaults to a fullscreen overlay                                                                                                                                                                      |
+| `isOpen`, `onOpenChange`                  | Optional. Control whether the artifact is open. Without them, the renderer manages it                                                                                                                                                              |
+| `defaultOpen`                             | Optional. Start open, when the renderer manages the open state                                                                                                                                                                                     |
+| `className`                               | Optional. Added to the artifact's root element                                                                                                                                                                                                     |
+| `onAction`, `onError`, `onStateUpdate`, … | `LiveArtifactRenderer` extends [`Renderer`](/docs/openui-lang/renderer), so it takes the same props. Handle your [custom actions](/docs/openui-lang/actions) with `onAction`. `onError` also receives the artifact's errors: see [Errors](#errors) |
+
+### Two modes
+
+| Mode                     | Shows                                  | Use it for                 |
+| ------------------------ | -------------------------------------- | -------------------------- |
+| With a preview (default) | A preview card that opens the artifact | Chat messages              |
+| Standalone               | The whole artifact, inline             | Side panels and full pages |
+
+For standalone mode, pass `preview={false}`:
+
+```tsx
+<LiveArtifactRenderer
+  response={toolResult}
+  preview={false}
+  library={dashboardLibrary}
+  interpreter={{ url: "/api/interpreter" }}
+/>
+```
+
+### Open the artifact in your own element
+
+Pass `renderInHtmlElement` to open the artifact somewhere in your layout, such as a side panel, instead of the
+overlay. Add `isOpen` and `onOpenChange` to control it yourself, for example to close it when the user switches
+conversations:
+
+```tsx
+const [panel, setPanel] = useState<HTMLElement | null>(null);
+const [isOpen, setIsOpen] = useState(false);
+
+<>
+  <LiveArtifactRenderer
+    response={toolResult}
+    library={dashboardLibrary}
+    interpreter={{ url: "/api/interpreter" }}
+    renderInHtmlElement={panel}
+    isOpen={isOpen}
+    onOpenChange={setIsOpen}
+  />
+  <aside ref={setPanel} />
+</>;
+```
+
+### Customize or replace parts
+
+Like [`AgentInterface`](/docs/agent/reference/components), the renderer has slots, which you pass as children. Each
+slot works three ways:
+
+- **Omit it:** the built-in default renders.
+- **Pass props:** the default renders with your values. The renderer stays in control.
+- **Pass children:** your children replace the default entirely, and you are in control. Read the state you need
+  with `useArtifactRenderer()`.
+
+Children win over props, and a dev warning fires if you pass both.
+
+The renderer has two regions, `Preview` and `Chrome`, and each has its own parts. Pass regions at the top level, and
+parts only inside their region:
+
+```
+LiveArtifactRenderer
+├── Preview              the card in the chat
+│   ├── PreviewTitle
+│   ├── PreviewDescription
+│   └── PreviewLoader
+└── Chrome               the frame around the open artifact
+    ├── ChromeTitle
+    ├── ChromeLoader
+    ├── ChromeActions
+    │   └── CloseButton
+    └── Content          the artifact itself
+        ├── Loading
+        └── Error
+```
+
+When you pass a slot children, only what you place renders, so place the default parts you want to keep. A part
+outside its region renders nothing, and a dev warning fires.
+
+In standalone mode there is no chrome: the renderer shows only the chrome's `Content`, with its `Loading` and
+`Error`.
+
+| Region    | Default                                                             | Props                               |
+| --------- | ------------------------------------------------------------------- | ----------------------------------- |
+| `Preview` | A card with the artifact's title, description and a loader          | `title`, `description`, `className` |
+| `Chrome`  | A bar with the title, a loader and actions, with the artifact below | `title`, `actions`, `className`     |
+
+| Part                 | In                                                | Default                                                                      | Props       |
+| -------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------- | ----------- |
+| `PreviewTitle`       | `Preview`                                         | The artifact's title                                                         | `className` |
+| `PreviewDescription` | `Preview`                                         | Its description                                                              | `className` |
+| `PreviewLoader`      | `Preview`                                         | A loader while the artifact loads                                            | `label`     |
+| `ChromeTitle`        | `Chrome`                                          | The artifact's title                                                         | `className` |
+| `ChromeLoader`       | `Chrome`                                          | A loader while the artifact loads                                            | `label`     |
+| `ChromeActions`      | `Chrome`                                          | Any `actions` you pass to `Chrome`, then the close button                    | `className` |
+| `CloseButton`        | `ChromeActions`, or anywhere in your own `Chrome` | A button that closes the artifact                                            | `label`     |
+| `Content`            | `Chrome`                                          | The artifact, with a loader over it while it loads and a message if it fails | `className` |
+| `Loading`            | `Content`                                         | A loader over the artifact while it loads                                    | `label`     |
+| `Error`              | `Content`                                         | A message and, when the error can be retried, a retry button                 | `message`   |
+
+All slots are on `LiveArtifactRenderer`, such as `LiveArtifactRenderer.PreviewLoader`.
+
+### Customize a region with props
+
+```tsx
+import { LiveArtifactRenderer, useArtifactRenderer } from "@openuidev/react-ui/cloud";
+
+function OpenInPage() {
+  const { id } = useArtifactRenderer();
+  return <a href={`/dashboards/${id}`}>Open in page</a>;
+}
+
+<LiveArtifactRenderer
+  response={toolResult}
+  library={dashboardLibrary}
+  interpreter={{ url: "/api/interpreter" }}
+>
+  {/* The default preview, with your title */}
+  <LiveArtifactRenderer.Preview title="Q3 sales" />
+  {/* The default chrome, with a link before the close button */}
+  <LiveArtifactRenderer.Chrome actions={<OpenInPage />} />
+</LiveArtifactRenderer>;
+```
+
+### Replace a region with its parts
+
+Pass a region children, and place its parts where you want them. Each part has the same three modes:
+
+```tsx
+function DashboardCard() {
+  const { isOpen, open, close } = useArtifactRenderer();
+  return (
+    <button className="dashboard-card" onClick={isOpen ? close : open}>
+      <ChartIcon />
+      <LiveArtifactRenderer.PreviewTitle />
+      <LiveArtifactRenderer.PreviewLoader label="Building…" />
+    </button>
+  );
+}
+
+function DashboardTitle() {
+  const { title, isStreaming } = useArtifactRenderer();
+  return (
+    <h2>
+      {title}
+      {isStreaming && <small> · writing</small>}
+    </h2>
+  );
+}
+
+function DashboardChrome() {
+  return (
+    <div className="dashboard-frame">
+      <header>
+        <LiveArtifactRenderer.ChromeTitle>
+          <DashboardTitle />
+        </LiveArtifactRenderer.ChromeTitle>
+        <LiveArtifactRenderer.ChromeLoader />
+        <LiveArtifactRenderer.CloseButton />
+      </header>
+      <LiveArtifactRenderer.Content className="dashboard-body">
+        <LiveArtifactRenderer.Loading label="Building your dashboard…" />
+        <LiveArtifactRenderer.Error message="This dashboard isn't available." />
+      </LiveArtifactRenderer.Content>
+    </div>
+  );
+}
+
+<LiveArtifactRenderer
+  response={toolResult}
+  library={dashboardLibrary}
+  interpreter={{ url: "/api/interpreter" }}
+>
+  <LiveArtifactRenderer.Preview>
+    <DashboardCard />
+  </LiveArtifactRenderer.Preview>
+  <LiveArtifactRenderer.Chrome>
+    <DashboardChrome />
+  </LiveArtifactRenderer.Chrome>
+</LiveArtifactRenderer>;
+```
+
+### `useArtifactRenderer()`
+
+One hook gives your own parts the renderer's state and controls. Call it anywhere inside a renderer:
+
+| Field                        | Description                                                                                               |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `id`, `title`, `description` | The artifact                                                                                              |
+| `isStreaming`                | True while the artifact's content is being generated                                                      |
+| `isFetching`                 | True while its tools are running, to load live data                                                       |
+| `isLoading`                  | True while either is happening                                                                            |
+| `error`, `retry`             | If the artifact can't be shown, the error, and a function that retries what failed. See [Errors](#errors) |
+| `isOpen`, `open`, `close`    | Whether the artifact is open from its preview, and functions to open and close it                         |
+| `preview`                    | Whether the renderer shows a preview, or is in standalone mode                                            |
+
+### Errors
+
+When an artifact can't be shown, `useArtifactRenderer()` returns an `error` with the same shape as `Renderer`'s
+errors: a `source`, a `code` and a `message`. `retry` retries whatever failed:
+
+| `source`   | `code`              | What happened                                      | `retry`                                                                                  |
+| ---------- | ------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `artifact` | `not-found`         | The artifact was deleted, or the user can't see it | Not available. The default `Error` shows that the artifact is gone, with no retry button |
+| `artifact` | `generation-failed` | The subagent couldn't build the artifact           | Generates it again, from the same prompt                                                 |
+| `artifact` | `network-error`     | The renderer couldn't reach OpenUI Cloud           | Connects again                                                                           |
+| `query`    | `tool-error`        | One of its data tools failed                       | Runs the failed tool calls again. The rest of the artifact stays on screen               |
+
+`onError` receives these along with `Renderer`'s own parse and query errors, and is called with `[]` once they
+clear. For the details of a failed data call, `useRendererQuery()` works as it does in `Renderer`.
+
+## 8. Add an artifacts page
+
+Use `useArtifactList` from `@openuidev/react-ui/cloud` to build a page where users browse their dashboards. The list
+returns each artifact's `id`, `title` and `description`, which is enough for your cards. Mount the renderer with the
+`id` when the user opens one; it loads the artifact itself.
+
+```tsx title="app/dashboards/page.tsx"
+"use client";
+
+import { useState } from "react";
+import { LiveArtifactRenderer, useArtifactList } from "@openuidev/react-ui/cloud";
+import { dashboardLibrary } from "@/libraries/dashboard";
+
+export default function DashboardsPage() {
+  const [pinnedOnly, setPinnedOnly] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const { artifacts, isLoading, hasMore, loadMore, pin, unpin, deleteArtifact } = useArtifactList({
+    filter: { type: "live", pinned: pinnedOnly || undefined, limit: 20 },
+  });
+
+  if (isLoading) return <Spinner />;
+
+  return (
+    <>
+      <Tabs value={pinnedOnly} onChange={setPinnedOnly} />
+      {artifacts.map((artifact) => (
+        <ArtifactCard
+          key={artifact.id}
+          title={artifact.title}
+          description={artifact.description}
+          pinned={artifact.pinned}
+          onOpen={() => setOpenId(artifact.id)}
+          onPin={() => (artifact.pinned ? unpin(artifact.id) : pin(artifact.id))}
+          onDelete={() => deleteArtifact(artifact.id)}
+        />
+      ))}
+      {hasMore && <button onClick={loadMore}>Load more</button>}
+
+      {openId && (
+        <Panel onClose={() => setOpenId(null)}>
+          <LiveArtifactRenderer
+            id={openId}
+            preview={false}
+            library={dashboardLibrary}
+            interpreter={{ url: "/api/interpreter" }}
+          />
+        </Panel>
+      )}
+    </>
+  );
+}
+```
+
+Pins and deletes show up immediately everywhere the artifact appears; you don't need to refetch.
+
+### `useArtifactList()`
+
+| Field                                        | Description                                                                  |
+| -------------------------------------------- | ---------------------------------------------------------------------------- |
+| `artifacts`, `isLoading`, `error`            | The current page of artifacts                                                |
+| `hasMore`, `loadMore`                        | Whether there are more, and a function to load the next page                 |
+| `pin(id)`, `unpin(id)`, `deleteArtifact(id)` | Change an artifact. The list and every renderer showing it update right away |
+
+`filter` takes `type`, `pinned`, `search` and `limit`.
+
+### The artifact object
+
+| Field                    | Description                                                              |
+| ------------------------ | ------------------------------------------------------------------------ |
+| `id`                     | The artifact's `id`                                                      |
+| `type`                   | `live`, `static`, `slides` or `report`                                   |
+| `title`, `description`   | From the create call                                                     |
+| `summary`                | What the subagent built, once it finishes. If it failed, what went wrong |
+| `pinned`                 | Whether the user pinned it                                               |
+| `createdAt`, `updatedAt` | Timestamps. `updatedAt` changes with every edit                          |
+
+## Use your own storage
+
+With OpenUI Cloud storage, the renderer loads each artifact by `id` and `useArtifactList` lists them. To keep
+artifacts in your own database instead, pass `store: false`. OpenUI Cloud then keeps an artifact only
+while it is being generated, so the renderer can stream it, and hands you the finished artifact to save.
+
+|                            | OpenUI Cloud storage          | Your own storage                             |
+| -------------------------- | ----------------------------- | -------------------------------------------- |
+| Where artifacts live       | OpenUI Cloud                  | Your database                                |
+| Saving                     | Automatic                     | You save the artifact when it's done         |
+| Editing                    | `edit` with the `id`          | `edit` with the `id` and the saved `content` |
+| Rendering after generation | The renderer loads it by `id` | You pass the saved `content` to the renderer |
+| Listing, pinning, deleting | `useArtifactList`             | Your own queries                             |
+
+### Save the artifact when it's done
+
+With `store: false`, `createLive` also returns `done`, which resolves with the finished artifact. Return
+`toolResponse` right away as usual, and save the artifact when `done` resolves:
+
+```ts title="server/dashboard-tools.ts"
+execute: async ({ title, description, prompt }) => {
+  const { toolResponse, done } = await openui.artifacts.createLive({
+    title,
+    description,
+    prompt,
+    userId,
+    library: dashboardLibrary,
+    tools: dataTools,
+    store: false,
+  });
+
+  // Runs after the tool has returned. On serverless, keep the function alive until it settles,
+  // for example with `after()` in Next.js or `waitUntil()`.
+  after(async () => {
+    const artifact = await done;
+    await db.artifacts.save(artifact);
+  });
+
+  return toolResponse;
+},
+```
+
+`done` resolves with:
+
+| Field                                | Description                                            |
+| ------------------------------------ | ------------------------------------------------------ |
+| `id`, `type`, `title`, `description` | The artifact                                           |
+| `content`                            | The generated artifact. Save it as is                  |
+| `summary`                            | What the subagent built. If it failed, what went wrong |
+| `error`                              | Only if it failed: the error, as in [Errors](#errors)  |
+
+### Edit with your saved content
+
+OpenUI Cloud doesn't have the artifact, so pass its saved `content` to `edit`, and save the result again:
+
+```ts
+execute: async ({ id, prompt }) => {
+  const saved = await db.artifacts.get(id, userId);
+  const { toolResponse, done } = await openui.artifacts.edit({
+    id,
+    prompt,
+    userId,
+    library: dashboardLibrary,
+    tools: dataTools,
+    content: saved.content,
+    store: false,
+  });
+  after(async () => db.artifacts.save(await done));
+  return toolResponse;
+},
+```
+
+### Render your saved content
+
+While the artifact is being generated, the renderer streams it from OpenUI Cloud as usual. After that, pass the
+`content` you saved:
+
+```tsx
+<LiveArtifactRenderer
+  response={toolResult}
+  content={savedArtifact?.content}
+  library={dashboardLibrary}
+  interpreter={{ url: "/api/interpreter" }}
+/>
+```
+
+With `content`, the renderer renders it directly and never loads the artifact from OpenUI Cloud. For live
+artifacts, it sends the content with each interpreter request, so data still runs through your interpreter.
+
+On your own artifacts page, list artifacts from your database and render each one with its `id` and `content`.
+`useArtifactList` only lists artifacts stored in OpenUI Cloud.
+
+## Other kinds of artifact
+
+Static artifacts, slides and reports work like live ones, with fewer pieces. What you pass depends on the kind:
+
+| Kind           | `library`           | `tools` |
+| -------------- | ------------------- | ------- |
+| Live           | Yours               | Yours   |
+| Static         | Yours               | None    |
+| Slides, Report | None: they use ours | None    |
+
+None of them use data tools, so they need no interpreter (step 4), and their renderers take no `interpreter`:
+
+| Kind   | Create                                                                           | Edit                                                     | Render                                        |
+| ------ | -------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------- |
+| Static | `openui.artifacts.createStatic({ title, description, prompt, userId, library })` | `openui.artifacts.edit({ id, prompt, userId, library })` | `<StaticArtifactRenderer response library />` |
+| Slides | `openui.artifacts.createSlides({ title, description, prompt, userId })`          | `openui.artifacts.edit({ id, prompt, userId })`          | `<SlidesRenderer response />`                 |
+| Report | `openui.artifacts.createReport({ title, description, prompt, userId })`          | `openui.artifacts.edit({ id, prompt, userId })`          | `<ReportRenderer response />`                 |
+
+`StaticArtifactRenderer` comes from the same place as `LiveArtifactRenderer`. The slides and report renderers come
+from `@openuidev/cloud-sdk`:
+
+```tsx
+import { StaticArtifactRenderer } from "@openuidev/react-ui/cloud";
+import { SlidesRenderer } from "@openuidev/cloud-sdk/slides";
+import { ReportRenderer } from "@openuidev/cloud-sdk/report";
+```
+
+All of them return a `toolResponse`, and their renderers have the same two modes, slots and `useArtifactRenderer()` as
+`LiveArtifactRenderer`.
