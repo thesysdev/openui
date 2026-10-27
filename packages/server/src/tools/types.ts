@@ -7,45 +7,54 @@ export interface ToolDefinition {
   output?: unknown;
 }
 
-/** Registered customer tools execute on the host server with trusted context. */
+/**
+ * Runs a data tool on your server. `context` is whatever you pass to
+ * `interpreter.execute`, untouched, such as the signed-in user.
+ */
 export type ToolHandler<Context = undefined> = (
+  context: Context,
   args: Record<string, unknown>,
-  options: { context: Context; signal: AbortSignal },
+  options: { signal: AbortSignal },
 ) => unknown | Promise<unknown>;
 
-export type ToolRegistration<Context = undefined> = Omit<ToolDefinition, "name"> & {
+/** A data tool: what generation sees, plus the handler that runs it. */
+export type DataTool<Context = undefined> = Omit<ToolDefinition, "name"> & {
   execute: ToolHandler<Context>;
 };
 
-export interface ToolExecutionRequest {
+/** What the renderer sends your interpreter for each data tool call. */
+export interface InterpreterRequest {
+  /** The query or tool to run. */
   name: string;
   arguments?: Record<string, unknown>;
-  /** Complete generated response. Required for script names, optional for direct tools. */
+  /** The artifact the call is for. Generated scripts run from its stored content. */
+  id?: string;
+  /** The artifact's content, for artifacts kept in your own storage. Takes precedence over `id`. */
   response?: string;
 }
 
-export type ToolExecutionOptions<Context = undefined> = {
+export type InterpreterExecuteOptions<Context = undefined> = {
   signal?: AbortSignal;
-  /** Total execution budget, including customer tools. Default: 60 seconds. */
+  /** Total execution budget, including your tools. Default: 60 seconds. */
   timeoutMs?: number;
 } & (undefined extends Context ? { context?: Context } : { context: Context });
 
-export interface ToolExecutorOptions<Context = undefined> {
-  tools: Record<string, ToolRegistration<Context>>;
-  /** Required for generated scripts. Direct registered tools do not need a Gateway key. */
+export interface InterpreterOptions<Context = undefined> {
+  tools: Record<string, DataTool<Context>>;
+  /** Required for generated scripts. Direct tool calls do not need a key. */
   apiKey?: string;
-  /** Gateway origin, without /v1. Defaults to https://api.thesys.dev. */
+  /** OpenUI Cloud origin, without /v1. Defaults to https://api.thesys.dev. */
   apiBaseUrl?: string;
   fetch?: typeof globalThis.fetch;
 }
 
-export interface RegisteredTools<Context = undefined> {
+export interface Interpreter<Context = undefined> {
   definitions: ToolDefinition[];
   execute(
-    input: ToolExecutionRequest,
+    request: InterpreterRequest,
     ...options: undefined extends Context
-      ? [options?: ToolExecutionOptions<Context>]
-      : [options: ToolExecutionOptions<Context>]
+      ? [options?: InterpreterExecuteOptions<Context>]
+      : [options: InterpreterExecuteOptions<Context>]
   ): Promise<unknown>;
 }
 
