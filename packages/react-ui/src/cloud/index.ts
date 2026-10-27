@@ -20,7 +20,6 @@ export type {
 export { useArtifactRenderer } from "../components/CloudArtifact/contexts";
 export type { ArtifactRendererState } from "../components/CloudArtifact/contexts";
 export { createArtifactRenderer } from "../components/CloudArtifact/createArtifactRenderer";
-export type { CreateArtifactRendererOptions } from "../components/CloudArtifact/createArtifactRenderer";
 export type { ArtifactError, ArtifactErrorCode } from "../components/CloudArtifact/errors";
 export {
   LiveArtifactRenderer,
