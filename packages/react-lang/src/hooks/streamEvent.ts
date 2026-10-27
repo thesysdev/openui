@@ -10,7 +10,10 @@ export type StreamEventKind = typeof STREAM_EVENT_KIND;
 
 export const STREAM_PHASE_STREAMING = "streaming" as const;
 export const STREAM_PHASE_SETTLED = "settled" as const;
-export type StreamPhase = typeof STREAM_PHASE_STREAMING | typeof STREAM_PHASE_SETTLED;
+/** The Renderer unmounted while streaming, so the stream will never settle. */
+export const STREAM_PHASE_UNMOUNTED = "unmounted" as const;
+export type StreamPhase =
+  typeof STREAM_PHASE_STREAMING | typeof STREAM_PHASE_SETTLED | typeof STREAM_PHASE_UNMOUNTED;
 
 export interface StreamParserMetadata {
   incomplete: boolean;

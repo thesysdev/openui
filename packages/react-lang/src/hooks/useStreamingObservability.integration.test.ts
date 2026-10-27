@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import type { OpenUIError, ParseResult, QuerySnapshot } from "@openuidev/lang-core";
 import { observability, type ObservabilityEvent } from "@openuidev/observability";
-import { act, createElement, useRef } from "react";
+import { act, createElement, StrictMode, useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Library } from "../library";
@@ -192,5 +192,61 @@ describe("streaming observability integration", () => {
     expect(settled[1]?.level).toBe("error");
     expect(settled[1]?.detail["errors"]).toEqual([queryError]);
     expect(settled[1]?.detail["response"]).toBe(response);
+  });
+
+  it("publishes unmounted when the Renderer unmounts mid-stream", () => {
+    const events: ObservabilityEvent[] = [];
+    const removeListener = observability.listenAll((event) => {
+      if (event.detail.kind === "react-lang:stream") events.push(event);
+    });
+
+    act(() =>
+      root.render(
+        createElement(Harness, { isStreaming: true, queryErrors: [], currentResponse: "root = " }),
+      ),
+    );
+    act(() => root.render(null));
+    removeListener();
+
+    expect(events.map((event) => event.detail["phase"])).toEqual(["streaming", "unmounted"]);
+    expect(events[1]?.level).toBe("warning");
+    expect(events[1]?.detail.id).toBe(events[0]?.detail.id);
+    expect(events[1]?.detail["response"]).toBe("root = ");
+    expect(events[1]?.detail["message"]).toBe("Renderer unmounted midway");
+  });
+
+  it("does not publish unmounted after the stream settled", () => {
+    const events: ObservabilityEvent[] = [];
+    const removeListener = observability.listenAll((event) => {
+      if (event.detail.kind === "react-lang:stream") events.push(event);
+    });
+
+    act(() => root.render(createElement(Harness, { isStreaming: true, queryErrors: [] })));
+    act(() => root.render(createElement(Harness, { isStreaming: false, queryErrors: [] })));
+    act(() => root.render(null));
+    removeListener();
+
+    expect(events.map((event) => event.detail["phase"])).toEqual(["streaming", "settled"]);
+  });
+
+  it("resumes streaming after a StrictMode effect replay", () => {
+    const events: ObservabilityEvent[] = [];
+    const removeListener = observability.listenAll((event) => {
+      if (event.detail.kind === "react-lang:stream") events.push(event);
+    });
+
+    act(() =>
+      root.render(
+        createElement(
+          StrictMode,
+          null,
+          createElement(Harness, { isStreaming: true, queryErrors: [] }),
+        ),
+      ),
+    );
+    removeListener();
+
+    expect(events.at(-1)?.detail["phase"]).toBe("streaming");
+    expect(new Set(events.map((event) => event.detail.id)).size).toBe(1);
   });
 });
