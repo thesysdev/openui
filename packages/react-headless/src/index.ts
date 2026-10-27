@@ -1,5 +1,40 @@
+export { parseArtifactReference } from "./cloud/artifactReference";
+export type { ArtifactReference } from "./cloud/artifactReference";
+export { useArtifactStream } from "./cloud/artifactStream";
+export type {
+  ArtifactStreamError,
+  ArtifactStreamErrorCode,
+  ArtifactStreamSnapshot,
+  ArtifactStreamState,
+  UseArtifactStreamOptions,
+} from "./cloud/artifactStream";
+export {
+  FRONTEND_TOKEN_HEADER,
+  createFctFetch,
+  createFrontendTokenManager,
+  toFrontendTokenManager,
+} from "./cloud/frontendTokenManager";
+export type {
+  FrontendTokenManager,
+  FrontendTokenManagerOptions,
+  FrontendTokenSource,
+  MintFrontendTokenResponse,
+} from "./cloud/frontendTokenManager";
+export { createInterpreterToolProvider } from "./cloud/interpreter";
+export type {
+  Interpreter,
+  InterpreterConfig,
+  InterpreterFunction,
+  InterpreterRequest,
+  InterpreterToolProvider,
+  InterpreterToolProviderOptions,
+} from "./cloud/interpreter";
 export { useOpenuiCloudStorage } from "./cloud/openuiCloud";
 export type { OpenuiCloudFeatures, OpenuiCloudOptions } from "./cloud/openuiCloud";
+export { OpenUICloudProvider } from "./cloud/OpenUICloudProvider";
+export type { OpenUICloudProviderProps } from "./cloud/OpenUICloudProvider";
+export { cloudRequest, nextCursorOf } from "./cloud/wire";
+export type { CloudListEnvelope } from "./cloud/wire";
 export { useActiveDetailedView } from "./hooks/useActiveDetailedView";
 export { useArtifactList } from "./hooks/useArtifactList";
 export type { ArtifactListFilter } from "./hooks/useArtifactList";
@@ -20,7 +55,7 @@ export {
   useArtifactRendererRegistry,
 } from "./store/ArtifactRenderersContext";
 export { defineArtifactRenderer } from "./store/artifactRendererTypes";
-export { useArtifactStorage } from "./store/ArtifactStorageContext";
+export { ArtifactStorageProvider, useArtifactStorage } from "./store/ArtifactStorageContext";
 export { artifactViewId, parseArtifactViewId } from "./store/artifactViewId";
 export { ChatProvider } from "./store/ChatProvider";
 export { DetailedViewContext, useDetailedViewStore } from "./store/DetailedViewContext";
@@ -51,6 +86,8 @@ export type {
   ArtifactCategory,
   ArtifactListParams,
   ArtifactStorage,
+  ArtifactStreamEvent,
+  ArtifactStreamOptions,
   ArtifactSummary,
   ChatLLM,
   ChatStorage,
