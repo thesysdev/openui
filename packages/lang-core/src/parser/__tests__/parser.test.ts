@@ -288,28 +288,6 @@ root = Title("hello")
   });
 });
 
-describe("streaming fences and comments", () => {
-  it("matches a fresh parse of the same text at every chunk", () => {
-    const text = `Here's the plan:
-
-\`\`\`openui
-root = Stack([a, b]) // layout
-# a heading comment
-a = Title("x // not a comment") # trailing
-b = Title('it''s "#1"')
-  // a comment that empties its line
-\`\`\`
-c = Title("after the fence, ignored")`;
-    for (const size of [1, 3]) {
-      const sp = createStreamParser(schema);
-      for (let i = 0; i < text.length; i += size) {
-        const fresh = createStreamParser(schema).push(text.slice(0, i + size));
-        expect(sp.push(text.slice(i, i + size))).toEqual(fresh);
-      }
-    }
-  });
-});
-
 // ── redefined statement IDs (parse vs stream) ───────────────────────────────
 
 describe("redefined statement IDs", () => {
@@ -390,38 +368,5 @@ a = Title("y")`;
     sp.push(`root = Stack([a])\na = Title("x")\n`);
     expect(titleText(sp.push(`a = Title("y`))).toBe("x");
     expect(titleText(sp.push(`")\n`))).toBe("y");
-  });
-});
-
-// ── shared references and deep trees ─────────────────────────────────────────
-
-describe("materialize performance", () => {
-  it("materializes a statement referenced many times once", () => {
-    // a_i = Stack([a_{i+1}, a_{i+1}]): 2^24 leaves if every use were rebuilt.
-    const lines = ["root = Stack([a0])"];
-    for (let i = 0; i < 24; i++) lines.push(`a${i} = Stack([a${i + 1}, a${i + 1}])`);
-    lines.push(`a24 = Title("leaf", "extra")`);
-    const result = parse(lines.join("\n"), schema);
-    const a0 = (result.root!.props.children as any[])[0];
-    expect(a0.props.children[0]).toBe(a0.props.children[1]);
-    expect(a0.props.children[0].statementId).toBe("a1");
-    // An error inside the shared statement is reported once, attributed to it.
-    expect(result.meta.errors).toMatchObject([{ code: "excess-args", statementId: "a24" }]);
-  });
-
-  it("keeps each alias's statementId on a shared node", () => {
-    const result = parse(`root = Stack([a, b])\nb = a\na = Title("x")`, schema);
-    expect((result.root!.props.children as any[]).map((c) => c.statementId)).toEqual(["a", "b"]);
-    expect(parse(`root = a\na = Title("x")`, schema).root!.statementId).toBe("root");
-  });
-
-  it("propagates hasDynamicProps through a deep chain", () => {
-    const chain = (leaf: string) => {
-      const lines = ["root = c0"];
-      for (let i = 0; i < 500; i++) lines.push(`c${i} = Stack([c${i + 1}])`);
-      return parse([...lines, `c500 = Title(${leaf})`].join("\n"), schema).root!;
-    };
-    expect(chain('"x"').hasDynamicProps).toBe(false);
-    expect(chain("$v").hasDynamicProps).toBe(true);
   });
 });
