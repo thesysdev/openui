@@ -22,6 +22,13 @@ own components**, so it does not depend on `@openuidev/react-components`.
 
 ```ts
 import { library, promptOptions } from "@openuidev/intelligent-kit/lib";
+```
+
+Both entrypoints pull the stylesheets in, so under a bundler the components are
+styled with no extra import. Hosts without a bundler can load the concatenated
+sheet instead:
+
+```ts
 import "@openuidev/intelligent-kit/styles.css";
 ```
 

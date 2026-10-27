@@ -1,5 +1,14 @@
 "use client";
 
+// The stylesheets, so the root entrypoint behaves like ./lib: importing a
+// component from here styles it. Without this, `import { Card } from
+// "@openuidev/intelligent-kit"` renders unstyled, because only library.ts
+// pulls the sheets in. Listed in package.json "sideEffects" so bundlers keep
+// them; non-bundler hosts can load dist/styles.css instead.
+import "./lib/components/theme.css";
+import "./lib/components/components.css";
+import "./lib/components/map/map.css";
+
 // Host configuration: where SearchImage and Map fetch from.
 export {
   configureIntelligentKit,
