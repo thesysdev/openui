@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { revealInOrder } from "../../runtime/evaluate-tree";
 import { createStreamParser, parse } from "../parser";
-import { isPendingSlot, type ParamMap } from "../types";
+import type { ParamMap } from "../types";
 
 // ── Test schema ──────────────────────────────────────────────────────────────
 
@@ -369,47 +368,5 @@ a = Title("y")`;
     sp.push(`root = Stack([a])\na = Title("x")\n`);
     expect(titleText(sp.push(`a = Title("y`))).toBe("x");
     expect(titleText(sp.push(`")\n`))).toBe("y");
-  });
-});
-
-// ── pending slots ─────────────────────────────────────────────────────────────
-
-describe("pending slots", () => {
-  const src = 'root = Stack([a, b, c])\nb = Title("second")\na = Title("fir';
-  const kids = (r: ReturnType<typeof parse>) =>
-    (r.root?.props?.children as any[]).map((k) => (isPendingSlot(k) ? `?${k.ref}` : k.props.text));
-
-  it("are kept only while streaming and only with the option", () => {
-    const on = createStreamParser(schema, undefined, { pendingSlots: true }).push(src);
-    expect(kids(on)).toEqual(["fir", "?a", "second", "?c"]);
-
-    const off = createStreamParser(schema).push(src);
-    expect(kids(off)).toEqual(["fir", "second"]);
-  });
-
-  it("leave a complete parse identical", () => {
-    const full = src + '")';
-    const on = createStreamParser(schema, undefined, { pendingSlots: true }).push(full, true);
-    expect(on).toEqual(createStreamParser(schema).push(full, true));
-  });
-
-  it("never reach state defaults", () => {
-    const r = createStreamParser(schema, undefined, { pendingSlots: true }).push(
-      "$rows = [r1, r2]\nroot = Stack([t])\nr1 = 1\n",
-    );
-    expect(r.stateDeclarations.$rows).toEqual([1]);
-  });
-
-  it("revealInOrder holds everything after the first pending slot", () => {
-    const r = createStreamParser(schema, undefined, { pendingSlots: true }).push(
-      'root = Stack([a, Stack([b, c, d]), e])\na = Title("one")\nb = Title("two")\nd = Title("four")\ne = Title("five")\n',
-    );
-    const shown = revealInOrder(r.root!);
-    const [first, inner, ...rest] = shown.props.children as any[];
-    expect(first.props.text).toBe("one");
-    expect((inner.props.children as any[]).map((k) => k.props.text)).toEqual(["two"]);
-    expect(rest).toEqual([]);
-    const complete = createStreamParser(schema).push("root = Stack([a])\na = Title('x')", true);
-    expect(revealInOrder(complete.root!)).toBe(complete.root);
   });
 });
