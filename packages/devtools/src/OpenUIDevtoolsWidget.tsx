@@ -14,6 +14,7 @@ import {
 import {
   addOrReplaceEvent,
   isLibraryEvent,
+  useCornerDrag,
   useDevtoolsConfig,
   useDevtoolsSingleton,
   type DevtoolsConfig,
@@ -97,6 +98,7 @@ export function OpenUIDevtoolsWidget({
     setConfig,
   });
   const styles = uiStyles(theme(mode));
+  const drag = useCornerDrag((position) => setConfig({ position }));
 
   // Read configRef inside the (stable) subscription without re-subscribing.
   useEffect(() => {
@@ -158,15 +160,28 @@ export function OpenUIDevtoolsWidget({
   return (
     <DevtoolsModeProvider mode={mode}>
       <style>{INTER_FONT_FACE}</style>
-      <DeployHint position={corner} hidden={open || debug.trayOpen} />
-      <div style={{ ...styles.toggleWrap, ...rootStyle(mode), ...positionStyles[corner] }}>
+      <DeployHint position={corner} hidden={open || debug.trayOpen || drag.dragging} />
+      <div
+        style={{
+          ...styles.toggleWrap,
+          ...rootStyle(mode),
+          ...positionStyles[corner],
+          ...(drag.offset
+            ? { transform: `translate(${drag.offset.x}px, ${drag.offset.y}px)` }
+            : null),
+        }}
+      >
         <button
           style={{
             ...styles.toggle,
             ...(errorCount > 0 ? styles.toggleError : null),
             ...(toggleHovered ? styles.toggleHover : null),
+            ...(drag.dragging ? styles.toggleDragging : null),
           }}
-          onClick={() => setOpen(true)}
+          {...drag.handlers}
+          onClick={() => {
+            if (!drag.consumeDrag()) setOpen(true);
+          }}
           onMouseEnter={() => setToggleHovered(true)}
           onMouseLeave={() => setToggleHovered(false)}
           aria-label="Open OpenUI Inspect"
@@ -416,9 +431,14 @@ function uiStyles(t: ThemeTokens) {
       boxShadow: t.toggleShadow,
       fontFamily: FONT,
       padding: 0,
+      touchAction: "none",
       transition: "background 150ms ease, box-shadow 150ms ease, transform 150ms ease",
     },
     toggleHover: {
+      transform: "scale(1.08)",
+    },
+    toggleDragging: {
+      cursor: "grabbing",
       transform: "scale(1.08)",
     },
     // Errors swap the mark for a count on a red disc, held inside a light puck so
