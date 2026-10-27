@@ -45,9 +45,9 @@ export type { DevtoolsPosition, OpenUIDevtoolsProps, OpenUIDevtoolsWidgetProps }
 const MENU_ROW_HEIGHT = 28;
 
 /**
- * Tray geometry. The two trays together fill a block anchored to the bottom
- * right — 85% of the viewport, capped so it stops growing on very large
- * displays. Inspect keeps a fixed width and Debug takes whatever is left,
+ * Tray geometry. The two trays together fill a block anchored to the
+ * launcher's corner — 85% of the viewport, capped so it stops growing on very
+ * large displays. Inspect keeps a fixed width and Debug takes whatever is left,
  * overlapping Inspect rather than collapsing once it hits its floor.
  */
 const TRAY_EDGE = 12;
@@ -127,23 +127,27 @@ export function OpenUIDevtoolsWidget({
   const errorCount = events.filter((event) => event.level === "error").length;
   const visibleEvents = onlyErrors ? events.filter((event) => event.level !== "info") : events;
 
-  // Inspect is pinned to the right edge; Debug fills the rest of the block and
-  // slides over to reclaim Inspect's slot whenever Inspect is out.
+  // Inspect is pinned to the launcher's side; Debug fills the rest of the
+  // block and slides over to reclaim Inspect's slot whenever Inspect is out.
+  const side = corner.endsWith("left") ? "left" : "right";
+  const edge = corner.startsWith("top") ? "top" : "bottom";
   const inspectSlot = open ? INSPECT_WIDTH + TRAY_GAP : 0;
   const inspectTray: CSSProperties = {
-    right: TRAY_EDGE,
-    bottom: TRAY_EDGE,
+    [side]: TRAY_EDGE,
+    [edge]: TRAY_EDGE,
     height: BLOCK_H,
     width: `min(${INSPECT_WIDTH}px, calc(100vw - ${TRAY_EDGE * 2}px))`,
-    transform: open ? "translateX(0)" : `translateX(calc(100% + ${TRAY_EDGE}px))`,
+    transform: open
+      ? "translateX(0)"
+      : `translateX(calc((100% + ${TRAY_EDGE}px) * ${side === "left" ? -1 : 1}))`,
   };
   // Debug is a workspace rather than a peek at the app behind it: it fills
   // everything Inspect leaves (left/right edges rather than a width, so the
   // inset matches top and bottom) and cuts straight in instead of sliding.
   // Overrides the shared UI, so it is spread last.
   const debugTray: CSSProperties = {
-    right: TRAY_EDGE + inspectSlot,
-    bottom: TRAY_EDGE,
+    [side]: TRAY_EDGE + inspectSlot,
+    [edge]: TRAY_EDGE,
     height: BLOCK_H,
     width: `max(${DEBUG_MIN_WIDTH}px, calc(${BLOCK_W} - ${inspectSlot}px))`,
     transform: "none",
@@ -438,7 +442,7 @@ function uiStyles(t: ThemeTokens) {
       fontWeight: 700,
       lineHeight: 1,
     },
-    // Geometry (right/width/transform) is per-tray and set inline; this is the
+    // Geometry (side/width/transform) is per-tray and set inline; this is the
     // shared UI. Each tray hides itself when closed so the other can stay open
     // without a retracted tray remaining focusable.
     drawer: {
@@ -459,13 +463,13 @@ function uiStyles(t: ThemeTokens) {
       fontSize: 13,
       visibility: "hidden",
       transition:
-        "transform 220ms cubic-bezier(0.32, 0.72, 0, 1), right 260ms cubic-bezier(0.32, 0.72, 0, 1), width 260ms cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 220ms",
+        "transform 220ms cubic-bezier(0.32, 0.72, 0, 1), right 260ms cubic-bezier(0.32, 0.72, 0, 1), left 260ms cubic-bezier(0.32, 0.72, 0, 1), width 260ms cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 220ms",
       overflow: "hidden",
     },
     drawerOpen: {
       visibility: "visible",
       transition:
-        "transform 220ms cubic-bezier(0.32, 0.72, 0, 1), right 260ms cubic-bezier(0.32, 0.72, 0, 1), width 260ms cubic-bezier(0.32, 0.72, 0, 1), visibility 0s",
+        "transform 220ms cubic-bezier(0.32, 0.72, 0, 1), right 260ms cubic-bezier(0.32, 0.72, 0, 1), left 260ms cubic-bezier(0.32, 0.72, 0, 1), width 260ms cubic-bezier(0.32, 0.72, 0, 1), visibility 0s",
     },
     debugHost: {
       flex: 1,
