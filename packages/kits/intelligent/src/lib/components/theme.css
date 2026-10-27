@@ -87,6 +87,24 @@
 :root[data-openui-theme="dark"],
 [data-theme="dark"] {
   color-scheme: dark;
+
+  /* Neutral fallbacks for dark.
+
+     The neutrals read through to the host's OpenUI theme, which is what makes
+     these components match the Agent Interface. Their fallbacks, however, were
+     light-only, so a host that renders this library WITHOUT an OpenUI theme --
+     which a published kit must support, since it does not depend on
+     @openuidev/react-ui -- got dark status colours on white cards.
+
+     The var() indirection is kept, so a host that does set the OpenUI tokens
+     still wins; only the fallback changes. Everything else derives from these
+     through color-mix (borders, surfaces, hover, focus, ranges), so the rest of
+     the scale follows automatically. */
+  --iui-canvas: var(--openui-foreground, #171717);
+  --iui-ink: var(--openui-text-neutral-primary, #ececec);
+  --iui-on-ink: var(--openui-foreground, #171717);
+  --iui-muted: var(--openui-text-neutral-secondary, rgb(255 255 255 / 60%));
+  --iui-faint: var(--openui-text-neutral-secondary, rgb(255 255 255 / 60%));
   --iui-shadow: 0 4px 20px rgb(0 0 0 / 35%);
   --iui-shadow-sm: 0 1px 3px rgb(0 0 0 / 30%);
   --iui-info: var(--iui-ink);

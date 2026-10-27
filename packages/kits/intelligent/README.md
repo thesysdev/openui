@@ -66,6 +66,45 @@ configureIntelligentKit({
 
 Any subset may be replaced. Call it once, before rendering.
 
+## Theming
+
+Light is the default. Switch to dark with either attribute:
+
+```html
+<!-- on any ancestor of the rendered output -->
+<div data-theme="dark">…</div>
+
+<!-- or on the document, which is what AgentInterface sets -->
+<html data-openui-theme="dark">
+```
+
+`data-theme` works on any element; `data-openui-theme` is matched as
+`:root[data-openui-theme="dark"]`, so it only takes effect on `<html>`.
+
+Colours are CSS custom properties in `theme.css` (`--iui-*`). Only the base
+neutrals and the status, chart and map colours are set directly; borders,
+surfaces, hover, focus and range tracks are derived from
+`--iui-ink` and `--iui-canvas` with `color-mix`, so re-pointing those two
+re-tunes the whole scale.
+
+### With an OpenUI theme
+
+The neutrals read through to the OpenUI theme variables:
+
+```css
+--iui-ink: var(--openui-text-neutral-primary, #0d0d0d);
+--iui-canvas: var(--openui-foreground, #ffffff);
+```
+
+So in an app that already has an OpenUI theme — `AgentInterface` or
+`ThemeProvider` from `@openuidev/react-ui`, or `--openui-*` set by hand — these
+components pick it up and match the chat around them, in both modes.
+
+Without one, the fallbacks apply, and they are correct in both modes: this kit
+has no `@openuidev/react-ui` dependency, so `data-theme="dark"` alone gives a
+fully dark surface. Set the OpenUI variables only when you want the components
+to follow a theme you already have.
+
 ## What it registers
 
 Root `Col`, 55 components in 6 groups, 59 `@functions`, 1 action
