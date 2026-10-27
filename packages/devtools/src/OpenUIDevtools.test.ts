@@ -375,10 +375,9 @@ describe("OpenUIDevtools", () => {
       }),
     );
 
-    expect(container.textContent).not.toContain("OpenUI Lang stream");
-    expect(container.textContent?.match(/Stream interrupted/g)).toHaveLength(1);
+    expect(container.textContent?.match(/OpenUI Lang stream/g)).toHaveLength(1);
     expect(container.textContent).not.toContain("Streaming");
-    expect(container.textContent).toContain("Unmounted");
+    expect(container.textContent).toContain("Interrupted");
     expect(container.textContent).toContain("1.5s");
   });
 

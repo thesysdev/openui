@@ -126,9 +126,7 @@ export function ReactLangStreamEventRow({
         <div style={styles.rowHeader}>
           <div style={styles.badgeGroup}>
             <LevelIcon level={event.level} />
-            <span style={styles.kind}>
-              {isUnmounted ? "Stream interrupted" : "OpenUI Lang stream"}
-            </span>
+            <span style={styles.kind}>OpenUI Lang stream</span>
             {isStreaming ? (
               <span style={{ ...styles.badge, ...styles.badgeStreaming }}>Streaming</span>
             ) : null}
@@ -137,7 +135,7 @@ export function ReactLangStreamEventRow({
                 style={{ ...styles.badge, ...styles.badgeUnmounted }}
                 title="The Renderer unmounted before the stream settled"
               >
-                Unmounted
+                Interrupted
               </span>
             ) : null}
           </div>
