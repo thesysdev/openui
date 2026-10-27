@@ -1,0 +1,63 @@
+{
+  "name": "@openuidev/intelligent-kit",
+  "version": "0.0.0-beta.0",
+  "description": "OpenUI Intelligent UI component library: primitives a model arranges itself, with maps, drawing and generic @functions",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./lib": {
+      "import": {
+        "types": "./dist/lib/index.d.mts",
+        "default": "./dist/lib/index.mjs"
+      },
+      "require": {
+        "types": "./dist/lib/index.d.cts",
+        "default": "./dist/lib/index.cjs"
+      }
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsdown && node scripts/bundle-css.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "katex": "^0.16.44",
+    "lucide-react": "^0.562.0",
+    "maplibre-gl": "^6.13.0"
+  },
+  "peerDependencies": {
+    "@openuidev/lang-core": ">=1.0.0 <2.0.0",
+    "@openuidev/react-lang": ">=1.0.1 <2.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.25.76 || ^4.0.0"
+  },
+  "devDependencies": {
+    "@openuidev/lang-core": "workspace:^",
+    "@openuidev/react-lang": "workspace:^",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "catalog:"
+  }
+}

@@ -1,0 +1,385 @@
+/* Component styles in the Open Intelligent UI design: quiet 20px panels,
+   pill controls, a 24px range track, soft status tints. Tokens: theme.css. */
+
+/* Weights are set with font-weight (Inter 440 / 560 / 640), so drop the
+   "wght" variation the page body sets for react-ui text. */
+[class*="iui-"] { font-variation-settings: normal; }
+
+/* Layout */
+.iui-col, .iui-box { display: flex; flex-direction: column; min-width: 0; }
+.iui-row { display: flex; flex-direction: row; align-items: center; gap: 8px; min-width: 0; }
+.iui-row > * { min-width: 0; }
+.iui-grid { display: grid; min-width: 0; }
+.iui-grid > * { min-width: 0; }
+.iui-spacer { flex: 1 1 auto; }
+.iui-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  padding: 20px;
+  border: 1px solid var(--iui-border);
+  border-radius: var(--iui-radius-xl);
+  background: var(--iui-canvas);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.iui-card-soft { border-color: transparent; background: var(--iui-surface); padding: 20px; }
+.iui-card .iui-card { border-radius: var(--iui-radius-lg); padding: 16px; }
+/* A small or medium title that opens a card reads as the card title: 14/20 Medium, with a 13/18 secondary subtitle. */
+.iui-card > :is(.iui-title-sm, .iui-title-md):first-child, .iui-card > .iui-row:first-child :is(.iui-title-sm, .iui-title-md) { font-size: 14px; line-height: 20px; font-weight: 560; }
+.iui-card > :is(.iui-title-sm, .iui-title-md):first-child + :is(.iui-caption, .iui-text), .iui-card > .iui-row:first-child :is(.iui-title-sm, .iui-title-md) + :is(.iui-caption, .iui-text) { margin-top: 2px; color: var(--iui-muted); font-size: 13px; line-height: 18px; }
+.iui-divider { width: 100%; height: 0; margin: 4px 0; border: 0; border-top: 1px solid var(--iui-border); }
+.iui-form { display: flex; flex-direction: column; gap: var(--iui-field-gap); min-width: 0; }
+.iui-form > .iui-row:last-child:has(> .iui-button), .iui-form > .iui-button:last-child { margin-top: calc(var(--iui-action-gap) - var(--iui-field-gap)); }
+
+/* Text */
+.iui-title { color: var(--iui-ink); font-weight: 640; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.iui-title-sm { font-size: 15px; line-height: 1.5; }
+.iui-title-md { font-size: 17px; line-height: 1.4; letter-spacing: -0.2px; }
+.iui-title-lg { font-size: 21px; line-height: 1.3; letter-spacing: -0.55px; }
+.iui-title-xl { font-size: 25px; line-height: 1.2; font-weight: 640; letter-spacing: -0.8px; }
+.iui-title-2xl { font-size: 32px; line-height: 1.15; font-weight: 640; letter-spacing: -1px; }
+.iui-title-3xl { font-size: 40px; line-height: 1.1; font-weight: 640; letter-spacing: -1.4px; }
+.iui-text { margin: 0; overflow-wrap: anywhere; line-height: 1.6; white-space: pre-line; }
+.iui-inline { display: inline-flex; vertical-align: -0.15em; margin: 0 1px; }
+.iui-inline > .iui-badge { vertical-align: 0.1em; }
+.iui-text-xs { font-size: 12px; line-height: 1.6; }
+.iui-text-sm { font-size: 14px; line-height: 1.55; }
+.iui-text-md { font-size: 16px; line-height: 1.6; }
+.iui-text-lg { font-size: 18px; line-height: 1.55; }
+.iui-weight-normal { font-weight: 440; }
+.iui-weight-medium { font-weight: 560; }
+.iui-weight-semibold { font-weight: 640; }
+.iui-clamp { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+.iui-text strong, .iui-caption strong, .iui-markdown strong, .iui-list strong { font-weight: 640; }
+.iui-caption { margin: 0; color: var(--iui-muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.iui-label { color: var(--iui-ink); font-size: 14px; line-height: 1.4; font-weight: 560; }
+.iui-code { padding: 1px 5px; border-radius: 5px; background: var(--iui-surface); font-family: var(--iui-mono); font-size: 0.88em; }
+.iui-code-block { margin: 0; padding: 14px 16px; overflow-x: auto; border-radius: var(--iui-radius-md); background: var(--iui-surface); font: 13px/1.6 var(--iui-mono); }
+.iui-link { color: inherit; text-decoration: underline; text-decoration-color: var(--iui-border-strong); text-underline-offset: 3px; }
+.iui-link:hover { text-decoration-color: currentColor; }
+.iui-link-arrow { display: inline; width: 0.85em; height: 0.85em; margin-left: 2px; vertical-align: -0.05em; }
+.iui-badge { display: inline-flex; align-items: center; align-self: flex-start; gap: 5px; width: fit-content; max-width: 100%; min-height: 26px; padding: 3px 10px; border-radius: 999px; background: var(--iui-badge-neutral-soft); color: var(--iui-ink); font-size: 13px; line-height: 18px; font-weight: 560; white-space: nowrap; }
+.iui-badge > svg { flex: none; margin-left: -2px; }
+.iui-row > .iui-badge { align-self: center; flex: none; }
+/* Badges stay calm: info is the neutral grey pill, and the other tones are soft tints with same-hue text. */
+.iui-badge-info { background: var(--iui-info-soft); color: var(--iui-info); }
+.iui-badge-success { background: var(--iui-badge-success-soft); color: var(--iui-badge-success); }
+.iui-badge-warning { background: var(--iui-badge-warning-soft); color: var(--iui-badge-warning); }
+.iui-badge-danger { background: var(--iui-badge-danger-soft); color: var(--iui-badge-danger); }
+.iui-badge-purple { background: var(--iui-badge-purple-soft); color: var(--iui-badge-purple); }
+.iui-badge-pink { background: var(--iui-badge-pink-soft); color: var(--iui-badge-pink); }
+.iui-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; line-height: 0; }
+
+/* Lists: dots, ink number circles, or a text lane (times); timeline joins them. */
+.iui-list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.iui-list > li { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr); column-gap: 12px; align-items: start; }
+.iui-list-bullet:not(.iui-timeline):not(.iui-list-wide) > li { grid-template-columns: 14px minmax(0, 1fr); column-gap: 8px; }
+.iui-list-none > li { grid-template-columns: minmax(0, 1fr); }
+.iui-list-none .iui-list-marker:empty { display: none; }
+.iui-list-wide > li { grid-template-columns: 76px minmax(0, 1fr); column-gap: 16px; }
+.iui-list-rich { padding-bottom: 4px; }
+.iui-list-marker { display: flex; align-items: center; justify-content: center; height: 1.55em; color: var(--iui-muted); }
+.iui-list-bullet .iui-list-marker:empty::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--iui-faint); }
+.iui-list-number .iui-list-marker:not(.iui-list-marker-text) { align-self: start; width: 24px; height: 24px; border-radius: 50%; background: var(--iui-ink); color: var(--iui-on-ink); font-size: 13px; line-height: 1; font-variant-numeric: tabular-nums; }
+/* Short custom markers ("1", "2", "A") read as steps: white numerals on an ink chip. */
+.iui-list-marker-chip > span { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--iui-ink); color: var(--iui-on-ink); font-size: 12px; line-height: 1; font-weight: 560; font-variant-numeric: tabular-nums; }
+.iui-list:has(.iui-list-marker-chip):not(.iui-list-wide) > li { grid-template-columns: 24px minmax(0, 1fr); column-gap: 12px; }
+.iui-list-marker-text { justify-content: flex-start; color: var(--iui-muted); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.iui-list-rich .iui-list-title { font-weight: 560; }
+.iui-list-description { margin-top: 2px; color: var(--iui-muted); font-size: 0.93em; line-height: 1.55; }
+.iui-list-children { margin-top: 8px; }
+.iui-timeline { gap: 0; }
+.iui-timeline > li { padding-bottom: 18px; }
+.iui-timeline > li:last-child { padding-bottom: 0; }
+.iui-timeline > li:not(:last-child)::after { content: ""; position: absolute; top: 1.7em; bottom: 0.15em; left: 11.5px; width: 1px; background: var(--iui-border-strong); }
+.iui-timeline.iui-list-wide > li:not(:last-child)::after { left: auto; right: calc(100% - 76px - 8px); }
+.iui-timeline.iui-list-none:not(.iui-list-wide) > li::after { content: none; }
+.iui-timeline.iui-list-bullet .iui-list-marker:empty::before { width: 9px; height: 9px; background: var(--iui-canvas); box-shadow: inset 0 0 0 2px var(--iui-ink); }
+.iui-timeline.iui-list-wide .iui-list-marker-text::after { content: ""; position: absolute; left: calc(76px + 4px); top: 0.55em; width: 9px; height: 9px; border-radius: 50%; background: var(--iui-canvas); box-shadow: inset 0 0 0 2px var(--iui-ink); }
+.iui-timeline.iui-list-wide > li { grid-template-columns: 76px minmax(0, 1fr); column-gap: 24px; }
+
+/* Markdown prose */
+/* Markdown prose: a ChatGPT-like rhythm. Paragraphs 16/1.65 with 12px between
+   blocks, more air above a heading than below it, lists tucked under their lead-in. */
+.iui-markdown { display: flex; flex-direction: column; min-width: 0; font-size: 16px; line-height: 1.65; overflow-wrap: anywhere; }
+.iui-markdown > * { margin: 0; }
+.iui-markdown > * + * { margin-top: 12px; }
+.iui-markdown > p + :is(ul, ol) { margin-top: 6px; }
+.iui-markdown > * + .iui-md-h { margin-top: 26px; }
+.iui-markdown > .iui-md-h + * { margin-top: 8px; }
+.iui-markdown ul, .iui-markdown ol { padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; }
+.iui-markdown li { padding-left: 2px; }
+.iui-markdown li::marker { color: var(--iui-muted); }
+.iui-markdown ol > li::marker { font-variant-numeric: tabular-nums; font-weight: 560; }
+.iui-markdown blockquote { padding: 12px 16px; border-left: 3px solid var(--iui-border-strong); border-radius: 0 12px 12px 0; background: var(--iui-surface); color: var(--iui-ink); }
+.iui-markdown hr { width: 100%; border: 0; border-top: 1px solid var(--iui-border); margin-block: 20px; }
+.iui-md-h { font-weight: 640; color: var(--iui-ink); }
+.iui-md-h1 { font-size: 22px; letter-spacing: -0.5px; line-height: 1.3; }
+.iui-md-h2 { font-size: 19px; letter-spacing: -0.3px; line-height: 1.35; }
+.iui-md-h3, .iui-md-h4 { font-size: 16px; line-height: 1.4; }
+
+/* Buttons */
+.iui-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; align-self: flex-start; flex: none; min-height: 36px; padding: 8px 16px; border: 1px solid transparent; border-radius: 999px; font-size: 14px; line-height: 1.2; font-weight: 560; white-space: nowrap; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+.iui-row > .iui-button { align-self: center; }
+.iui-button-sm { min-height: 32px; padding: 6px 12px; font-size: 13px; }
+.iui-button-lg { min-height: 44px; padding: 10px 20px; font-size: 15px; }
+.iui-button-solid { background: var(--iui-ink); color: var(--iui-on-ink); }
+.iui-button-solid:not(:disabled):hover { background: var(--iui-ink-hover); }
+.iui-button-outline { border-color: var(--iui-border); background: var(--iui-canvas); color: var(--iui-ink); }
+.iui-button-soft { background: var(--iui-surface); color: var(--iui-ink); }
+.iui-button-ghost { background: transparent; color: var(--iui-ink); padding-inline: 10px; }
+:is(.iui-button-outline, .iui-button-ghost):not(:disabled):hover { background: var(--iui-hover); }
+.iui-button-soft:not(:disabled):hover, :is(.iui-button-outline, .iui-button-ghost):not(:disabled):active { background: var(--iui-pressed); }
+.iui-button-solid.iui-button-danger { background: var(--iui-danger); color: #fff; }
+.iui-button-solid.iui-button-success { background: var(--iui-success); color: #fff; }
+:is(:root[data-openui-theme="dark"], [data-theme="dark"]) .iui-button-solid:is(.iui-button-danger, .iui-button-success) { color: #121212; }
+.iui-button-solid:is(.iui-button-danger, .iui-button-success):not(:disabled):hover { filter: brightness(1.08); }
+:is(.iui-button-outline, .iui-button-soft, .iui-button-ghost).iui-button-danger { color: var(--iui-danger); }
+:is(.iui-button-outline, .iui-button-soft, .iui-button-ghost).iui-button-success { color: var(--iui-success); }
+.iui-button:disabled { opacity: .4; cursor: not-allowed; }
+.iui-block { width: 100%; align-self: stretch; }
+.iui-icon-button { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border: 1px solid var(--iui-border); border-radius: 50%; background: var(--iui-canvas); color: var(--iui-ink); cursor: pointer; transition: background .15s; }
+.iui-icon-button-ghost { border-color: transparent; background: transparent; color: var(--iui-muted); }
+.iui-icon-button-solid { border-color: var(--iui-ink); background: var(--iui-ink); color: var(--iui-on-ink); }
+.iui-icon-button:not(:disabled):hover { background: var(--iui-hover); color: var(--iui-ink); }
+.iui-icon-button:not(:disabled):active { background: var(--iui-pressed); }
+.iui-icon-button-solid:not(:disabled):hover { background: var(--iui-ink-hover); color: var(--iui-on-ink); }
+.iui-icon-button:disabled { opacity: .4; cursor: not-allowed; }
+
+/* The hover and selection rings are outlines drawn inside the tile (painted over
+   its content), so a scrolling row, a clipped Box or a Table cell never cuts them off. */
+/* Pressable: an ink wash on hover (5%) and press (8%) with a small scale; a selected tile
+   keeps a light wash, a hairline ring and a check badge instead of a heavy outline. */
+.iui-pressable { position: relative; display: flex; flex-direction: column; min-width: 0; border-radius: var(--iui-radius-lg); cursor: pointer; outline: none; transition: transform 120ms ease-out, box-shadow 120ms ease-out; }
+.iui-pressable::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--iui-ink); opacity: 0; pointer-events: none; transition: opacity 120ms ease-out; }
+.iui-pressable:not([aria-disabled="true"]):hover { transform: scale(1.01); }
+.iui-pressable:not([aria-disabled="true"]):hover::after { opacity: 0.05; }
+.iui-pressable:not([aria-disabled="true"]):active { transform: scale(0.98); }
+.iui-pressable:not([aria-disabled="true"]):active::after { opacity: 0.08; }
+.iui-pressable.is-selected { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--iui-ink) 20%, transparent); }
+.iui-pressable.is-selected::after { opacity: 0.06; }
+/* A row (a checklist line) shows its own check icon, so selected adds no fill,
+   ring or badge: the row keeps its size and its text stays readable. */
+.iui-pressable.is-selected:has(> .iui-row) { box-shadow: none; }
+.iui-pressable.is-selected:has(> .iui-row)::after { opacity: 0; }
+.iui-pressable .iui-text[style*="line-through"] { color: var(--iui-muted); }
+/* Rows in a list keep still: the wash alone shows hover and press. */
+.iui-pressable:has(> .iui-row):not([aria-disabled="true"]):is(:hover, :active) { transform: none; }
+.iui-pressable.is-selected:not(:has(> .iui-row))::before { content: ""; position: absolute; top: 8px; right: 8px; z-index: 1; width: 18px; height: 18px; border-radius: 50%; background: var(--iui-ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5'/%3E%3C/svg%3E") center / 12px no-repeat; }
+:root[data-openui-theme="dark"] .iui-pressable.is-selected:not(:has(> .iui-row))::before, [data-theme="dark"] .iui-pressable.is-selected:not(:has(> .iui-row))::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23171717' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5'/%3E%3C/svg%3E"); }
+.iui-pressable[aria-disabled="true"] { cursor: default; }
+.iui-pressable:focus-visible { outline: 2px solid var(--iui-focus); outline-offset: 2px; }
+
+/* Fields */
+.iui-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.iui-input { width: 100%; min-width: 0; min-height: 42px; padding: 10px 12px; border: 1px solid var(--iui-border-strong); border-radius: var(--iui-radius-md); background: var(--iui-canvas); color: var(--iui-ink); font-size: 16px; line-height: 1.4; font-variant-numeric: tabular-nums; outline: none; transition: border-color .15s, box-shadow .15s; }
+.iui-input::placeholder { color: var(--iui-faint); opacity: 1; }
+.iui-input:focus, .iui-input:focus-visible { border-color: var(--iui-focus); box-shadow: 0 0 0 2px color-mix(in srgb, var(--iui-focus) 18%, transparent); outline: none; }
+.iui-textarea { min-height: 96px; resize: vertical; }
+.iui-select { appearance: none; padding-right: 38px; cursor: pointer; background: var(--iui-canvas) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23676767' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E") no-repeat right 12px center / 16px; }
+:is(:root[data-openui-theme="dark"], [data-theme="dark"]) .iui-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ababab' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E"); }
+.iui-date::-webkit-calendar-picker-indicator { opacity: .55; cursor: pointer; }
+
+.iui-segmented { display: inline-flex; align-self: flex-start; gap: 2px; max-width: 100%; padding: 3px; overflow-x: auto; border-radius: 999px; background: var(--iui-surface); scrollbar-width: none; }
+.iui-segmented.iui-block { display: flex; }
+.iui-segmented > button { flex: 1 0 auto; padding: 6px 14px; border: 0; border-radius: 999px; background: transparent; color: var(--iui-muted); font-size: 13px; line-height: 1.4; white-space: nowrap; cursor: pointer; transition: background .2s, color .2s; }
+.iui-segmented > button:hover:not(.is-selected) { color: var(--iui-ink); }
+.iui-segmented > button.is-selected { background: var(--iui-canvas); color: var(--iui-ink); font-weight: 560; box-shadow: var(--iui-shadow-sm), 0 0 0 1px var(--iui-border); }
+:root[data-openui-theme="dark"] .iui-segmented > button.is-selected, [data-theme="dark"] .iui-segmented > button.is-selected { background: var(--iui-surface-strong); }
+
+/* Range: a 24px pill track with an 18px thumb inside a 40px hit area. */
+.iui-slider { display: flex; flex-direction: column; min-width: 0; }
+.iui-timer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; min-width: 0; padding: 12px 16px; border: 1px solid var(--iui-border); border-radius: var(--iui-radius-lg); }
+.iui-timer-read { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.iui-timer-time { font-size: 32px; line-height: 1.1; font-weight: 640; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.iui-timer.is-running .iui-timer-time { color: var(--iui-ink); }
+.iui-timer.is-done .iui-timer-time { color: var(--iui-success); }
+.iui-timer-actions { display: flex; gap: 8px; }
+.iui-slider-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 13px; line-height: 1.4; }
+.iui-slider-head > label { color: var(--iui-ink); overflow-wrap: anywhere; }
+.iui-slider-head > output { color: var(--iui-ink); font-size: 12px; font-weight: 560; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.iui-range { appearance: none; -webkit-appearance: none; display: block; width: 100%; min-width: 0; height: 40px; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.iui-range::-webkit-slider-runnable-track { height: 24px; border: 3px solid transparent; border-radius: 999px; background: var(--iui-range-track); }
+.iui-range::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; margin: 0; border: 0; border-radius: 50%; background: var(--iui-range-thumb); }
+.iui-range::-moz-range-track { height: 24px; border-radius: 999px; background: var(--iui-range-track); }
+.iui-range::-moz-range-thumb { width: 18px; height: 18px; border: 0; border-radius: 50%; background: var(--iui-range-thumb); }
+.iui-range::-moz-range-progress { background: transparent; }
+.iui-range:focus-visible { outline: 2px solid var(--iui-focus); outline-offset: 2px; border-radius: 12px; }
+.iui-slider-marks { position: relative; height: 18px; margin-top: -2px; color: var(--iui-muted); font-size: 11px; line-height: 18px; }
+.iui-slider-marks > span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.iui-slider-marks > span.is-start { transform: translateX(-9px); }
+.iui-slider-marks > span.is-end { transform: translateX(calc(-100% + 9px)); }
+
+.iui-check { display: inline-flex; align-items: center; gap: 9px; min-height: 28px; color: var(--iui-ink); cursor: pointer; }
+.iui-check > input { flex: none; width: 17px; height: 17px; margin: 0; accent-color: var(--iui-ink); cursor: pointer; }
+.iui-check > span { transition: color .15s; }
+.iui-check.is-done > span { color: var(--iui-muted); text-decoration: line-through; }
+.iui-radio-group { display: flex; flex-direction: column; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.iui-radio-group > legend { padding: 0; margin-bottom: 10px; }
+.iui-radio-group > div { display: flex; flex-direction: column; gap: 2px; }
+.iui-choice-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* Short choices are pills; explanatory choices are quiet cards */
+.iui-radio-pills > div { flex-direction: row; flex-wrap: wrap; gap: var(--iui-control-gap); }
+.iui-radio-cards > div { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: var(--iui-control-gap); }
+.iui-choice { position: relative; display: flex; align-items: center; min-height: 42px; padding: 9px 16px; border: 1px solid var(--iui-border); border-radius: 999px; background: transparent; color: var(--iui-ink); font-size: 15px; line-height: 22px; cursor: pointer; transition: background .15s, border-color .15s; }
+.iui-choice > input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.iui-choice:hover { background: var(--iui-hover); }
+.iui-radio-pills .iui-choice.is-selected { border-color: var(--iui-ink); background: var(--iui-ink); color: var(--iui-on-ink); }
+.iui-radio-cards .iui-choice { align-items: flex-start; padding: 14px 16px; border-radius: 14px; }
+.iui-radio-cards .iui-choice.is-selected { border-color: var(--iui-ink); background: var(--iui-pressed); box-shadow: inset 0 0 0 1px var(--iui-ink); }
+.iui-radio-cards .iui-choice > .iui-choice-text > span:first-child { font-weight: 560; }
+.iui-choice-description { color: var(--iui-muted); font-size: 14px; line-height: 21px; }
+.iui-choice:has(:focus-visible) { outline: 2px solid var(--iui-focus); outline-offset: 2px; }
+
+/* Media and data */
+.iui-image { position: relative; display: grid; place-items: center; width: 100%; min-width: 0; overflow: hidden; background: var(--iui-photo-empty); }
+.iui-image:not(.is-loaded)::before { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--iui-canvas) 55%, transparent) 50%, transparent 70%) 0 0 / 220% 100%; animation: iui-shimmer 1.4s linear infinite; }
+.iui-image:has(.iui-image-empty)::before { display: none; }
+@keyframes iui-shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+.iui-image > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s ease; }
+.iui-image.is-contain > img { object-fit: contain; }
+.iui-image.is-loaded > img { opacity: 1; }
+.iui-image-empty { width: 26px; height: 26px; color: var(--iui-photo-empty-icon); }
+
+/* A framed table: 14px corners, a surface header row, hover rows. */
+.iui-table-scroll { width: 100%; min-width: 0; overflow-x: auto; border: 1px solid var(--iui-border); border-radius: 14px; }
+.iui-table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.5; }
+.iui-table th, .iui-table td { padding: 13px 16px; border-bottom: 1px solid var(--iui-border); text-align: left; vertical-align: middle; }
+.iui-table th { padding-block: 11px; background: var(--iui-surface); color: var(--iui-ink); font-size: 13px; font-weight: 560; white-space: nowrap; }
+.iui-table tbody tr { transition: background .15s; }
+.iui-table tbody tr:hover { background: color-mix(in srgb, var(--iui-surface) 70%, transparent); }
+.iui-table .is-numeric { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.iui-table tbody tr:last-child td { border-bottom: 0; }
+
+.iui-chart { position: relative; width: 100%; min-width: 0; margin: 0; }
+.iui-chart-plot { position: relative; }
+.iui-chart svg { display: block; overflow: visible; touch-action: pan-y; }
+.iui-chart-grid { stroke: var(--iui-border); }
+.iui-chart-tick { fill: var(--iui-faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+.iui-chart-category { fill: var(--iui-muted); font-size: 12px; }
+.iui-chart-hover { fill: var(--iui-surface); }
+.iui-chart-guide { stroke: var(--iui-border-strong); stroke-dasharray: 3 3; }
+.iui-chart-tooltip { position: absolute; z-index: 2; display: flex; flex-direction: column; gap: 3px; min-width: 110px; padding: 10px 12px; transform: translateX(-50%); border: 1px solid var(--iui-border); border-radius: var(--iui-radius-lg); background: var(--iui-canvas); box-shadow: var(--iui-shadow); font-size: 12px; pointer-events: none; }
+.iui-chart-tooltip > strong { font-weight: 640; }
+.iui-chart-tooltip > span { display: flex; align-items: center; gap: 6px; color: var(--iui-muted); }
+.iui-chart-tooltip b { margin-left: auto; padding-left: 8px; color: var(--iui-ink); font-weight: 560; font-variant-numeric: tabular-nums; }
+.iui-chart-tooltip i, .iui-chart-legend i, .iui-pie-legend i { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+.iui-chart-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; color: var(--iui-muted); font-size: 12px; }
+.iui-chart-legend > span { display: inline-flex; align-items: center; gap: 7px; }
+.iui-pie { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+.iui-pie-legend { display: flex; flex-direction: column; gap: 9px; flex: 1 1 160px; min-width: 0; font-size: 13px; }
+.iui-pie-legend > div { display: flex; align-items: center; gap: 8px; }
+.iui-pie-legend span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.iui-pie-legend b { font-weight: 560; font-variant-numeric: tabular-nums; }
+
+.iui-svg { display: block; max-width: 100%; height: auto; margin-inline: auto; overflow: visible; color: var(--iui-ink); }
+
+.iui-html-view { position: relative; width: 100%; min-width: 0; overflow: hidden; border: 1px solid var(--iui-border); border-radius: var(--iui-radius-lg); background: var(--iui-canvas); }
+.iui-html-view > iframe { display: block; width: 100%; height: 100%; border: 0; background: transparent; }
+.iui-html-view-wait { display: grid; place-items: center; height: 100%; color: var(--iui-muted); font-size: 13px; }
+
+/* Carousel, popover, code, quote, math, video, flashcard, confetti */
+/* Items keep their borders and rings inside themselves; the track's 4px block
+   padding (pulled back with a negative margin) leaves room for focus rings. */
+.iui-carousel { position: relative; min-width: 0; }
+.iui-carousel-track { display: flex; gap: 12px; margin-block: -4px; padding-block: 4px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.iui-carousel-track::-webkit-scrollbar { display: none; }
+.iui-carousel-item { flex: none; max-width: 85%; min-width: 0; scroll-snap-align: start; display: flex; flex-direction: column; }
+.iui-carousel-item > .iui-card, .iui-carousel-item > .iui-pressable { height: 100%; }
+.iui-carousel-nav { position: absolute; top: 50%; z-index: 2; display: grid; place-items: center; width: 34px; height: 34px; margin-top: -17px; border: 1px solid var(--iui-border); border-radius: 50%; background: var(--iui-canvas); color: var(--iui-ink); box-shadow: 0 1px 3px rgb(0 0 0 / 14%); cursor: pointer; }
+/* Same frosted glass as the map controls, since these sit over photos. */
+.iui-carousel-nav { border-color: transparent; background: var(--iui-glass); backdrop-filter: blur(12px) saturate(1.4); box-shadow: inset 0 0 0 1px var(--iui-glass-ring), 0 2px 12px rgb(0 0 0 / 8%); transition: background-color 120ms ease-out, box-shadow 120ms ease-out, opacity 120ms ease-out; }
+.iui-carousel-nav:hover { background: var(--iui-glass-hover); }
+@media (prefers-reduced-motion: reduce) { .iui-carousel-nav { transition: none; } }
+.iui-carousel-nav.is-prev { left: 8px; }
+.iui-carousel-nav.is-next { right: 8px; }
+.iui-carousel-nav:hover { background: var(--iui-surface); }
+@media (hover: none) { .iui-carousel-nav { display: none; } }
+
+.iui-popover-trigger { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.iui-popover-trigger:hover { color: var(--iui-muted); }
+.iui-popover { position: fixed; z-index: 2000; display: flex; flex-direction: column; gap: 8px; width: max-content; max-width: min(280px, calc(100vw - 24px)); padding: 12px 14px; border: 1px solid var(--iui-border); border-radius: var(--iui-radius-lg); background: var(--iui-canvas); color: var(--iui-ink); box-shadow: var(--iui-shadow); font: 440 14px/1.5 var(--iui-font); }
+
+.iui-codeblock { min-width: 0; overflow: hidden; border: 1px solid var(--iui-border); border-radius: var(--iui-radius-lg); background: var(--iui-surface); }
+.iui-codeblock-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 6px 14px; border-bottom: 1px solid var(--iui-border); color: var(--iui-muted); font-size: 12px; }
+.iui-codeblock-head button { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; cursor: pointer; }
+.iui-codeblock-head button:hover { background: var(--iui-hover); color: var(--iui-ink); }
+.iui-codeblock pre { margin: 0; padding: 14px 16px; overflow-x: auto; font: 13px/1.6 var(--iui-mono); }
+
+.iui-quote { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 14px 16px; border-left: 3px solid var(--iui-ink); border-radius: 0 12px 12px 0; background: var(--iui-surface); }
+.iui-quote > p { margin: 0; font-size: 16px; line-height: 1.6; }
+.iui-quote > cite { color: var(--iui-muted); font-size: 13px; font-style: normal; }
+
+.iui-math.is-block { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+.iui-math .katex { font-size: 1.12em; }
+.iui-math.is-block .katex-display { margin: 0; }
+
+.iui-video { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--iui-radius-lg); background: #000; }
+.iui-video > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+.iui-flashcard { display: block; width: 100%; min-height: 168px; padding: 0; border: 0; background: none; color: var(--iui-ink); font: inherit; text-align: center; cursor: pointer; perspective: 900px; }
+.iui-flashcard-inner { position: relative; display: grid; width: 100%; height: 100%; min-height: inherit; transition: transform .45s cubic-bezier(.3, .7, .3, 1); transform-style: preserve-3d; }
+.iui-flashcard.is-flipped .iui-flashcard-inner { transform: rotateY(180deg); }
+.iui-flashcard-face { grid-area: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 20px 18px 30px; border: 1px solid var(--iui-border); border-radius: var(--iui-radius-xl); background: var(--iui-canvas); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.iui-flashcard-face.is-back { transform: rotateY(180deg); background: var(--iui-surface); }
+.iui-flashcard:hover .iui-flashcard-face { border-color: var(--iui-border-strong); }
+.iui-flashcard-word { font-size: 21px; line-height: 1.3; font-weight: 640; letter-spacing: -0.4px; }
+.iui-flashcard-face.is-back .iui-flashcard-word { font-size: 16px; font-weight: 560; letter-spacing: 0; }
+.iui-flashcard-hint { position: absolute; bottom: 10px; color: var(--iui-faint); font-size: 11px; }
+.iui-flashcard:focus-visible { outline: 2px solid var(--iui-focus); outline-offset: 3px; border-radius: var(--iui-radius-xl); }
+
+.iui-confetti { position: fixed; inset: 0; z-index: 3000; overflow: hidden; pointer-events: none; }
+.iui-confetti > i { position: absolute; top: -12px; width: 8px; height: 12px; border-radius: 2px; animation: iui-confetti 1.6s cubic-bezier(.2, .6, .4, 1) forwards; }
+@keyframes iui-confetti { to { transform: translate(var(--x), 105vh) rotate(var(--r)); opacity: .7; } }
+
+/* Focus and motion */
+:is(.iui-button, .iui-icon-button, .iui-pressable, .iui-segmented > button, .iui-link, .iui-check > input):focus-visible { outline: 2px solid var(--iui-focus); outline-offset: 3px; }
+
+@media (max-width: 640px) {
+  .iui-card { padding: 16px; }
+  .iui-table th, .iui-table td { padding: 11px 12px; }
+  .iui-card-soft { padding: 16px; }
+  .iui-title-lg { font-size: 19px; }
+  .iui-title-2xl { font-size: 28px; }
+  .iui-title-3xl { font-size: 34px; }
+  .iui-list-wide > li, .iui-timeline.iui-list-wide > li { grid-template-columns: 64px minmax(0, 1fr); column-gap: 20px; }
+  .iui-timeline.iui-list-wide > li:not(:last-child)::after { right: calc(100% - 64px - 10px); }
+  .iui-timeline.iui-list-wide .iui-list-marker-text::after { left: calc(64px + 6px); }
+  .iui-segmented > button { padding: 6px 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iui-pressable, .iui-pressable::after { transition: none; }
+  .iui-pressable:not([aria-disabled="true"]):hover, .iui-pressable:not([aria-disabled="true"]):active { transform: none; }
+  .iui-image > img { transition: none; }
+  .iui-image::before { animation: none; }
+  .iui-flashcard-inner { transition: none; }
+  .iui-confetti { display: none; }
+}
+
+/* Spacing comes last so its margins win over the components' own margin resets. */
+/* Spacing system. One scale (4/8/12/16/24px, tokens in theme.css) in three
+   tiers that always nest: inner < group < section.
+   - section (24px): every block of a page-level Col without gap.
+   - group (12px): blocks inside a card, grid cell or nested Col, and a heading
+     to the block it introduces.
+   - inner (8px): a title to its own subtitle, tags or paragraph; tight (4px)
+     for an eyebrow caption above a title. */
+.iui-flow > * + * { margin-top: var(--iui-space-section); }
+.iui-flow > .iui-title + * { margin-top: var(--iui-space-group); }
+:is(.iui-flow .iui-flow, .iui-card.iui-flow) > * + * { margin-top: var(--iui-space-group); }
+.iui-flow > .iui-text + .iui-text { margin-top: var(--iui-space-group); }
+.iui-flow > .iui-title + :is(.iui-text, .iui-caption, .iui-row:has(> .iui-badge)) { margin-top: var(--iui-space-inner); }
+.iui-flow > .iui-caption + .iui-title { margin-top: var(--iui-space-tight); }
+
+/* Inside a card or a grid cell, titles are card-sized (18/24) and body text is 15/22. */
+:is(.iui-card, .iui-grid > .iui-flow, .iui-carousel-item > .iui-flow) > :is(.iui-title-lg, .iui-title-xl, .iui-title-2xl, .iui-title-3xl) { font-size: 18px; line-height: 24px; letter-spacing: -0.3px; }
+:is(.iui-card, .iui-grid > .iui-flow, .iui-carousel-item > .iui-flow) > .iui-text:not(.iui-text-xs, .iui-text-sm, .iui-text-lg) { font-size: 15px; line-height: 22px; }
+
+/* Media row: a photo beside text. The photo is a fixed 4:3, a third of the row
+   (120-200px), 16px from text that starts at the photo's top edge. */
+.iui-row:has(> :is(.iui-image, .iui-box:has(> .iui-image:only-child))) { align-items: flex-start !important; gap: var(--iui-space-group-lg) !important; }
+.iui-row > :is(.iui-image, .iui-box:has(> .iui-image:only-child)) { flex: none !important; width: clamp(120px, 33%, 200px) !important; }
+.iui-row > .iui-box:has(> .iui-image:only-child) > .iui-image, .iui-row > .iui-image { aspect-ratio: 4 / 3 !important; height: auto !important; }
