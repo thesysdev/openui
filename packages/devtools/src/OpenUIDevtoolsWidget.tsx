@@ -28,10 +28,16 @@ import {
   type ThemeTokens,
 } from "./theme";
 import type { DevtoolsPosition, OpenUIDevtoolsWidgetProps } from "./types";
-import { ErrorBoundary, IconButton, INTER_FONT_FACE, ShiroLogo, ThemeSegmented } from "./ui";
+import {
+  ErrorBoundary,
+  IconButton,
+  INTER_FONT_FACE,
+  PositionSegmented,
+  ShiroLogo,
+  ThemeSegmented,
+} from "./ui";
 import { DeployBanner, DeployHint } from "./ui/DeployHint";
 import ReliabilityBanner from "./ui/ReliabilityBanner";
-import { useAvoidHostControls } from "./ui/avoidHostControls";
 
 export type { DevtoolsPosition, OpenUIDevtoolsProps, OpenUIDevtoolsWidgetProps } from "./types";
 
@@ -77,12 +83,13 @@ export function OpenUIDevtoolsWidget({
       autoOpen: autoOpenOnError,
       onlyErrors: errorsOnly,
       theme: DEFAULT_COLOR_MODE,
+      position,
       helpSeen: false,
       editorPct: DEFAULT_EDITOR_PCT,
     },
     { theme: themeProp },
   );
-  const { onlyErrors, theme: mode } = config;
+  const { onlyErrors, theme: mode, position: corner } = config;
   const debug = useDebug({
     theme: mode,
     helpSeen: config.helpSeen,
@@ -114,12 +121,6 @@ export function OpenUIDevtoolsWidget({
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, debug.trayOpen, debug.retract]);
-
-  // Keep the launcher off the host app's own controls (e.g. a chat Send button
-  // on a narrow window) by moving it along its anchored edge.
-  const toggleRef = useRef<HTMLDivElement>(null);
-  const anchor = position.startsWith("top") ? "top" : "bottom";
-  const lift = useAvoidHostControls(toggleRef, anchor, isEnabled && isSingleton);
 
   if (!isEnabled || !isSingleton) return null;
 
@@ -153,16 +154,8 @@ export function OpenUIDevtoolsWidget({
   return (
     <DevtoolsModeProvider mode={mode}>
       <style>{INTER_FONT_FACE}</style>
-      <DeployHint position={position} hidden={open || debug.trayOpen} />
-      <div
-        ref={toggleRef}
-        style={{
-          ...styles.toggleWrap,
-          ...rootStyle(mode),
-          ...positionStyles[position],
-          ...(lift ? { [anchor]: 16 + lift } : null),
-        }}
-      >
+      <DeployHint position={corner} hidden={open || debug.trayOpen} />
+      <div style={{ ...styles.toggleWrap, ...rootStyle(mode), ...positionStyles[corner] }}>
         <button
           style={{
             ...styles.toggle,
@@ -373,6 +366,14 @@ function SettingsMenu({
           <div style={styles.menuRow}>
             <span style={styles.menuLabel}>Theme</span>
             <ThemeSegmented value={config.theme} onChange={(theme) => onChange({ theme })} />
+          </div>
+          <div style={styles.menuDivider} />
+          <div style={styles.menuRow}>
+            <span style={styles.menuLabel}>Position</span>
+            <PositionSegmented
+              value={config.position}
+              onChange={(position) => onChange({ position })}
+            />
           </div>
         </div>
       ) : null}
