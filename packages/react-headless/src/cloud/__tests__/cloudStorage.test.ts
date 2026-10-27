@@ -187,7 +187,16 @@ describe("cloud artifacts", () => {
       "https://cloud.example.com/v1/artifacts?name=Q2+%26+Q3&kind=slides&kind=report&after=a0&limit=25",
     );
     expect(result).toEqual({
-      artifacts: [{ id: "a/1", title: "Q2", type: "report", threadId: "c1", updatedAt: 200000 }],
+      artifacts: [
+        {
+          id: "a/1",
+          title: "Q2",
+          type: "report",
+          threadId: "c1",
+          updatedAt: 200000,
+          createdAt: 100000,
+        },
+      ],
       nextCursor: "a/1",
     });
     expect(result.artifacts[0]).not.toHaveProperty("content");
@@ -222,6 +231,7 @@ describe("cloud artifacts", () => {
       type: "report",
       threadId: "c1",
       updatedAt: 100000,
+      createdAt: 100000,
       content: artifact.content,
     });
     expect(fetch.mock.calls[0]![0]).toBe("https://cloud.example.com/v1/artifacts/a%2F1");
