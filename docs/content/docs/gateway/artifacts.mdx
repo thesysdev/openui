@@ -98,52 +98,27 @@ export const dataTools = {
 
 ### Tools from an MCP server
 
-Tools from an MCP server, such as Composio, work the same way. List them, and wrap each one in an `execute` that calls
-it with the signed-in user's credentials:
-
-```ts title="server/mcp-tools.ts"
-import type { ToolContext } from "./data-tools";
-// Your helper: a connected MCP client, such as `Client` from `@modelcontextprotocol/sdk`.
-// Given a user's id, it connects with that user's credentials.
-import { mcpClient } from "./mcp";
-
-export async function mcpDataTools() {
-  const { tools } = await (await mcpClient()).listTools();
-  return Object.fromEntries(
-    tools
-      // Artifacts call their tools whenever they render, so register only the ones they should call.
-      .filter((tool) => tool.annotations?.readOnlyHint)
-      .map((tool) => [
-        tool.name,
-        {
-          description: tool.description,
-          parameters: tool.inputSchema,
-          execute: async (context: ToolContext, args, { signal }) => {
-            const mcp = await mcpClient(context.userId);
-            const result = await mcp.callTool({ name: tool.name, arguments: args }, undefined, {
-              signal,
-            });
-            // MCP reports failures in the result. Throw, so the artifact shows a tool error.
-            if (result.isError) throw new Error(`${tool.name} failed`);
-            return result.structuredContent ?? result.content;
-          },
-        },
-      ]),
-  );
-}
-```
-
-Then add them to `dataTools`, so your artifacts (step 3) and your interpreter (step 4) get them too:
+Tools from an MCP server, such as Composio, work the same way. `mcpTools` lists them and turns each one into a data
+tool that calls it with the signed-in user's credentials:
 
 ```ts title="server/data-tools.ts"
+import { mcpTools } from "@openuidev/server";
+// Your MCP clients, such as `Client` from `@modelcontextprotocol/sdk`.
+import { mcp, mcpClientFor } from "./mcp";
+
 export const dataTools = {
   get_sales: {/* as above */},
-  ...(await mcpDataTools()),
+  ...(await mcpTools<ToolContext>(mcp, {
+    // Artifacts call their tools whenever they render, so expose only the ones they should call.
+    include: (tool) => tool.annotations?.readOnlyHint === true,
+    connect: (context) => mcpClientFor(context.userId),
+  })),
 };
 ```
 
-MCP tools don't come with an example output. For the ones your dashboards use most, add `output` yourself, so the
-subagent knows what the data looks like.
+`mcp` lists the tools once. `connect` returns the client each call goes through, here one with the user's credentials
+from `context`; without it, calls use `mcp`. MCP tools don't come with an example output, so pass
+`outputs: { get_orders: exampleOrders }` for the ones your dashboards use most.
 
 ## 3. Add the artifact tools to your agent
 
