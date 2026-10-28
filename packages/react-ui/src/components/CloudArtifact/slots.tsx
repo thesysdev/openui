@@ -92,11 +92,9 @@ export function PreviewTitle({ className, children }: PartProps) {
 
 export function PreviewDescription({ className, children }: PartProps) {
   const inside = useInRegion("preview");
-  const state = useArtifactRenderer();
-  const overrides = useContext(PreviewOverridesContext);
+  const { description } = useContext(PreviewOverridesContext);
   if (!inside) return null;
   if (children !== undefined) return <>{children}</>;
-  const description = overrides.description ?? state.description;
   if (!description) return null;
   return (
     <span className={clsx("openui-artifact-preview-description", className)}>{description}</span>

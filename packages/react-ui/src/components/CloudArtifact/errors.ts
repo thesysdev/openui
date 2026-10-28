@@ -1,21 +1,11 @@
+import type { ArtifactStreamError, ArtifactStreamErrorCode } from "@openuidev/react-headless";
 import type { OpenUIError } from "@openuidev/react-lang";
 
-/** Why an artifact, or its live data, can't be shown. */
-export type ArtifactErrorCode = "not-found" | "generation-failed" | "network-error" | "tool-error";
+/** Why an artifact can't be shown, with `source: "artifact"`. */
+export type ArtifactError = ArtifactStreamError;
+export type ArtifactErrorCode = ArtifactStreamErrorCode;
 
-/** An error the renderer reports, in the same shape as `Renderer`'s errors. */
-export interface ArtifactError extends OpenUIError {
-  source: "artifact" | "query";
-  code: ArtifactErrorCode;
-}
-
-export function artifactError(
-  code: Exclude<ArtifactErrorCode, "tool-error">,
-  message: string,
-): ArtifactError {
-  return { source: "artifact", code, message };
-}
-
-export function toolError(toolName: string, message: string): ArtifactError {
+/** A failed data tool, in the same shape as `Renderer`'s query errors. */
+export function toolError(toolName: string, message: string): OpenUIError {
   return { source: "query", code: "tool-error", message, toolName };
 }
