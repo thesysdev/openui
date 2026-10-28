@@ -11,6 +11,7 @@ import {
   type ElementNode,
   type MaterializeCtx,
   type ParamDef,
+  type ValidationError,
 } from "./types";
 import {
   buildParamsSignature,
@@ -49,6 +50,82 @@ export function withStatementId(el: ElementNode, id: string): ElementNode {
   return { ...el, statementId: id };
 }
 
+/** A ref read while materializing a statement; `rt` marks a Query/Mutation, kept as its AST. */
+interface RefRead {
+  ref: string;
+  mode: "value" | "expr";
+  value: unknown;
+  rt?: true;
+}
+
+/** What a statement's materialization did, in order: its own errors and the refs it read. */
+type StatementLog = (ValidationError | RefRead)[];
+
+interface CachedStatement {
+  ast: ASTNode;
+  value: unknown;
+  log: StatementLog;
+}
+
+/**
+ * Keeps statement values across stream parser passes, so an unchanged statement gives the
+ * same object on every chunk. A value is reused while its statement's AST object is the same
+ * (the stream parser keeps completed statements), the pass has the same `partial`, and every
+ * ref it read gives the same value again; reusing it replays its errors in order and its reads.
+ * Not kept: a statement that hit an unresolved or cyclic ref, a statement still being written,
+ * and anything that read one.
+ */
+export interface StatementReuse {
+  /** Kept across passes, keyed by `${partial}:${mode}:${name}`. */
+  entries: Map<string, unknown>;
+  /** Statements still being written. */
+  streaming: ReadonlySet<string>;
+  /** Per pass: logs of the statements being materialized, innermost last; null while replaying. */
+  frames: ({ log: StatementLog; mark: number } | null)[];
+  /** Per pass: counts reads of statements still being written. */
+  volatile: number;
+  /** Per pass: whether an entry can be reused. */
+  fresh: Map<string, boolean>;
+}
+
+export function createStatementReuse(
+  entries: Map<string, unknown>,
+  streaming: ReadonlySet<string>,
+): StatementReuse {
+  return { entries, streaming, frames: [], volatile: 0, fresh: new Map() };
+}
+
+/** The errors the frame's statement pushed itself since its last nested read. */
+function flushErrors(frame: { log: StatementLog; mark: number }, ctx: MaterializeCtx): void {
+  for (let i = frame.mark; i < ctx.errors.length; i++) frame.log.push(ctx.errors[i]!);
+  frame.mark = ctx.errors.length;
+}
+
+function isFresh(key: string, name: string, ctx: MaterializeCtx, reuse: StatementReuse): boolean {
+  const known = reuse.fresh.get(key);
+  if (known !== undefined) return known;
+  const entry = reuse.entries.get(key) as CachedStatement | undefined;
+  let ok = !!entry && entry.ast === ctx.syms.get(name) && !reuse.streaming.has(name);
+  for (let i = 0; ok && i < entry!.log.length; i++) {
+    const read = entry!.log[i]!;
+    if (!("ref" in read)) continue;
+    if (reuse.streaming.has(read.ref)) ok = false;
+    else if (read.rt) ok = ctx.syms.get(read.ref) === read.value;
+    else {
+      const memoKey = `${read.mode}:${read.ref}`;
+      if (ctx.memo?.has(memoKey)) ok = ctx.memo.get(memoKey) === read.value;
+      else {
+        const depKey = key.slice(0, 2) + memoKey;
+        ok =
+          (reuse.entries.get(depKey) as CachedStatement | undefined)?.value === read.value &&
+          isFresh(depKey, read.ref, ctx, reuse);
+      }
+    }
+  }
+  reuse.fresh.set(key, ok);
+  return ok;
+}
+
 /**
  * Resolve a Ref node: inline from symbol table, detect cycles, emit RuntimeRef
  * for Query/Mutation declarations. Shared by materializeValue and materializeExpr.
@@ -57,40 +134,78 @@ export function withStatementId(el: ElementNode, id: string): ElementNode {
  * are otherwise exponential). Skipped when the subtree hit an unresolved or cyclic
  * ref (context-dependent). Use-site validation copies on write, so a shared result is
  * never pruned in place. Errors inside a memoized statement are reported once.
+ * With `ctx.reuse`, results are also kept across passes (see StatementReuse).
  */
 function resolveRef(name: string, ctx: MaterializeCtx, mode: "value" | "expr"): unknown | ASTNode {
-  if (ctx.visited.has(name)) {
-    ctx.unres.push(name);
-    return mode === "expr" ? { k: "Ph", n: name } : null;
-  }
-  if (!ctx.syms.has(name)) {
+  if (ctx.visited.has(name) || !ctx.syms.has(name)) {
     ctx.unres.push(name);
     return mode === "expr" ? { k: "Ph", n: name } : null;
   }
   const target = ctx.syms.get(name)!;
   ctx.unreached?.delete(name);
+  const reuse = ctx.reuse;
+  const parent = reuse?.frames[reuse.frames.length - 1];
+  if (reuse?.streaming.has(name)) reuse.volatile++;
+  if (parent) flushErrors(parent, ctx);
   // Query/Mutation declarations → RuntimeRef (resolved at runtime by evaluator)
   if (target.k === "Comp" && isReservedCall(target.name)) {
     const refType =
       target.name === RESERVED_CALLS.Mutation ? ("mutation" as const) : ("query" as const);
+    parent?.log.push({ ref: name, mode, value: target, rt: true });
     return { k: "RuntimeRef", n: name, refType };
   }
   const key = `${mode}:${name}`;
   const memo = (ctx.memo ??= new Map());
-  if (memo.has(key)) return memo.get(key);
-  ctx.visited.add(name);
-  const prevStatementId = ctx.currentStatementId;
-  ctx.currentStatementId = name;
-  const unresBefore = ctx.unres.length;
-  try {
-    let result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
-    if (mode === "value" && isElementNode(result)) result = withStatementId(result, name);
-    if (ctx.unres.length === unresBefore) memo.set(key, result);
-    return result;
-  } finally {
-    ctx.currentStatementId = prevStatementId;
-    ctx.visited.delete(name);
+  let result: unknown;
+  if (memo.has(key)) result = memo.get(key);
+  else {
+    const cacheKey = (ctx.partial ? "1:" : "0:") + key;
+    const prevStatementId = ctx.currentStatementId;
+    ctx.currentStatementId = name;
+    ctx.visited.add(name);
+    try {
+      if (reuse && isFresh(cacheKey, name, ctx, reuse)) {
+        const entry = reuse.entries.get(cacheKey) as CachedStatement;
+        reuse.frames.push(null);
+        try {
+          for (const item of entry.log) {
+            if ("ref" in item) resolveRef(item.ref, ctx, item.mode);
+            else ctx.errors.push({ ...item });
+          }
+        } finally {
+          reuse.frames.pop();
+        }
+        result = entry.value;
+        memo.set(key, result);
+      } else {
+        const unresBefore = ctx.unres.length;
+        const volatileBefore = reuse?.volatile;
+        const frame = reuse && { log: [] as StatementLog, mark: ctx.errors.length };
+        if (frame) reuse!.frames.push(frame);
+        try {
+          result = mode === "value" ? materializeValue(target, ctx) : materializeExpr(target, ctx);
+        } finally {
+          if (frame) reuse!.frames.pop();
+        }
+        if (mode === "value" && isElementNode(result)) result = withStatementId(result, name);
+        if (ctx.unres.length === unresBefore) {
+          memo.set(key, result);
+          if (frame && reuse!.volatile === volatileBefore && !reuse!.streaming.has(name)) {
+            flushErrors(frame, ctx);
+            reuse!.entries.set(cacheKey, { ast: target, value: result, log: frame.log });
+          }
+        }
+      }
+    } finally {
+      ctx.currentStatementId = prevStatementId;
+      ctx.visited.delete(name);
+    }
   }
+  if (parent) {
+    parent.mark = ctx.errors.length;
+    parent.log.push({ ref: name, mode, value: result });
+  }
+  return result;
 }
 
 /** Registry calls (functions and steps) and reserved calls stay AST for the runtime. */

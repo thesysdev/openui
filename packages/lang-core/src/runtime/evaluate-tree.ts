@@ -28,7 +28,16 @@ export interface EvalContext {
   store: Store | null;
   /** Runtime errors collected during prop evaluation (optional — populated by evaluateElementProps). */
   errors?: OpenUIError[];
+  /**
+   * Reuses an element's evaluation when the same element object is evaluated again, so an
+   * unchanged element keeps its identity. Use one memo per state: a new one whenever the
+   * store, query results, context or library change.
+   */
+  memo?: EvalMemo;
 }
+
+/** See `EvalContext.memo`: an element's result and the runtime errors evaluating it reported. */
+export type EvalMemo = WeakMap<ElementNode, { result: ElementNode; errors?: OpenUIError[] }>;
 
 /**
  * Evaluate all AST nodes in an ElementNode tree's props.
@@ -38,7 +47,21 @@ export interface EvalContext {
  */
 export function evaluateElementProps(el: ElementNode, evalCtx: EvalContext): ElementNode {
   if (el.hasDynamicProps === false) return el;
+  const memo = evalCtx.memo;
+  if (!memo) return evaluateElement(el, evalCtx);
+  const hit = memo.get(el);
+  // A result computed without collecting errors cannot replay them
+  if (hit && (hit.errors || !evalCtx.errors)) {
+    if (hit.errors) for (const e of hit.errors) evalCtx.errors!.push({ ...e });
+    return hit.result;
+  }
+  const errorsBefore = evalCtx.errors?.length ?? 0;
+  const result = evaluateElement(el, evalCtx);
+  memo.set(el, { result, errors: evalCtx.errors?.slice(errorsBefore) });
+  return result;
+}
 
+function evaluateElement(el: ElementNode, evalCtx: EvalContext): ElementNode {
   const schemaCtx: SchemaContext = { library: evalCtx.library };
   const def = evalCtx.library.components[el.typeName];
   const evaluated: Record<string, unknown> = {};

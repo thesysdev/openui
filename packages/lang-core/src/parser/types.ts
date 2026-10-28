@@ -1,4 +1,5 @@
 import type { ASTNode } from "./ast";
+import type { StatementReuse } from "./materialize";
 
 export type JSONSchemaProperty = Record<string, unknown>;
 /** A JSON Schema object; keywords are added as libraries use them (anyOf: the ActionExpression union). */
@@ -146,6 +147,8 @@ export interface MaterializeCtx {
   unreached?: Set<string>;
   /** Per-pass cache of resolved refs, keyed by `${mode}:${name}`. */
   memo?: Map<string, unknown>;
+  /** Stream parser: statement values kept across passes. */
+  reuse?: StatementReuse;
 }
 
 /**

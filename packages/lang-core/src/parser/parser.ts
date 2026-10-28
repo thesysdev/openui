@@ -8,7 +8,13 @@ import { isASTNode, walkAST } from "./ast";
 import { ACTION_DEFS, BUILTIN_CALLS, isBuiltin, isReservedCall, RESERVED_CALLS } from "./builtins";
 import { parseExpression } from "./expressions";
 import { tokenize } from "./lexer";
-import { materializeValue, nameRawCallArgs, withStatementId } from "./materialize";
+import {
+  createStatementReuse,
+  materializeValue,
+  nameRawCallArgs,
+  withStatementId,
+  type StatementReuse,
+} from "./materialize";
 import { autoClose, split, type RawStmt } from "./statements";
 import { T } from "./tokens";
 import {
@@ -215,6 +221,7 @@ function buildResult(
   cat: ParamMap | undefined,
   rootName?: string,
   partialRef?: PartialRef,
+  reuse?: StatementReuse,
 ): ParseResult {
   const entry = pickEntry(stmtMap, rootName);
 
@@ -241,6 +248,7 @@ function buildResult(
     partial: wasIncomplete,
     currentStatementId: entry?.id,
     unreached,
+    reuse,
   };
 
   let root: ElementNode | null = null;
@@ -529,6 +537,10 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
 
   let completedCount = 0;
 
+  // Statement values kept across passes (see StatementReuse); valid while their ASTs are.
+  const reused = new Map<string, unknown>();
+  const NONE: ReadonlySet<string> = new Set();
+
   // Incremental preprocess: `stripper.out` is the comment-stripped output of stripFences(buf),
   // extended per chunk while the fence state allows it (see FenceTail), else rebuilt.
   let fenceTail: FenceTail = "other";
@@ -571,6 +583,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       completedEnd = 0;
       completedStmtMap.clear();
       completedCount = 0;
+      reused.clear();
     }
     cleaned = next;
   }
@@ -650,6 +663,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         completedCount,
         cat,
         rootName,
+        undefined,
+        createStatementReuse(reused, NONE),
       );
     }
 
@@ -667,6 +682,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
         completedCount,
         cat,
         rootName,
+        undefined,
+        createStatementReuse(reused, NONE),
       );
     }
 
@@ -701,6 +718,8 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
       cat,
       rootName,
       tailName ? { name: tailName, stmts: pendingStmts } : undefined,
+      // Pending statements, also those not replacing a completed one yet, are still being written
+      createStatementReuse(reused, new Set(stmts.map((s) => s.id))),
     );
   }
 
@@ -711,6 +730,7 @@ export function createStreamParser(cat: ParamMap, rootName?: string): StreamPars
     completedStmtMap.clear();
     completedCount = 0;
     fenceTail = "other";
+    reused.clear();
   }
 
   return {

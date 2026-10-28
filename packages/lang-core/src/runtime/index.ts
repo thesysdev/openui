@@ -15,7 +15,7 @@ export type {
 } from "./queryManager";
 
 export { evaluateElementProps, evaluateRoot } from "./evaluate-tree";
-export type { EvalContext } from "./evaluate-tree";
+export type { EvalContext, EvalMemo } from "./evaluate-tree";
 
 export { resolveStateField } from "./state-field";
 export type { InferStateFieldValue, StateField } from "./state-field";

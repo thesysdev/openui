@@ -72,7 +72,7 @@ export { isReactiveSchema, markReactive } from "./reactive";
 
 // ── Runtime ──
 export { evaluateElementProps, evaluateRoot } from "./runtime/evaluate-tree";
-export type { EvalContext } from "./runtime/evaluate-tree";
+export type { EvalContext, EvalMemo } from "./runtime/evaluate-tree";
 export { evaluate, isReactiveAssign, stripReactiveAssign } from "./runtime/evaluator";
 export type { EvaluationContext, ReactiveAssign } from "./runtime/evaluator";
 export { McpToolError, extractToolResult } from "./runtime/mcp";
