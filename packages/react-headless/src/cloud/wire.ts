@@ -37,12 +37,7 @@ export interface CloudArtifact {
   /** Absent for artifacts created outside a conversation. */
   conversation_id?: string;
   kind: string; // 'slides' | 'report' | 'live' | 'static'
-  /** Chat-created artifacts carry `name`; standalone ones `title`. */
   name?: string;
-  title?: string;
-  description?: string;
-  summary?: string;
-  pinned?: boolean;
   version?: string; // server bumps via String(Date.now()) when omitted
   /** Absent from list responses. */
   content?: string;
