@@ -3,12 +3,12 @@ import { ARTIFACT_ID_HEADER, FRONTEND_TOKEN_HEADER } from "../shared/constants";
 import { readSSE } from "../shared/sse";
 import { toToolDefinitions } from "../tools/execute";
 import { apiError, isRecord, type CloudApi } from "./api";
+import { createFrontendToken } from "./frontend-token";
 import {
   OpenUIApiError,
   type ArtifactError,
   type ArtifactLibrary,
   type ArtifactPromptOptions,
-  type ArtifactRequestOptions,
   type ArtifactResult,
   type ArtifactResultFor,
   type ArtifactTool,
@@ -17,6 +17,7 @@ import {
   type EditLiveArtifactParams,
   type EditStaticArtifactParams,
   type GeneratedArtifact,
+  type RequestOptions,
 } from "./types";
 
 type ArtifactKind = "live" | "static";
@@ -62,12 +63,6 @@ function cloudConfig(input: {
       error instanceof Error ? error.message : String(error),
       "invalid_library",
     );
-  }
-}
-
-function requireUser(userId: unknown): void {
-  if (typeof userId !== "string" || !userId.trim()) {
-    invalidInput("userId is required: take it from your authenticated session");
   }
 }
 
@@ -117,7 +112,7 @@ export class Artifacts {
   /** Your components, with live data from your tools. */
   async createLive<P extends CreateLiveArtifactParams>(
     params: P,
-    options?: ArtifactRequestOptions,
+    options?: RequestOptions,
   ): Promise<ArtifactResultFor<P>> {
     return this.create("live", params, options);
   }
@@ -125,7 +120,7 @@ export class Artifacts {
   /** Your components, no data tools. */
   async createStatic<P extends CreateStaticArtifactParams>(
     params: P,
-    options?: ArtifactRequestOptions,
+    options?: RequestOptions,
   ): Promise<ArtifactResultFor<P>> {
     rejectTools(params);
     return this.create("static", params, options);
@@ -137,7 +132,7 @@ export class Artifacts {
    */
   async editLive<P extends EditLiveArtifactParams>(
     params: P,
-    options?: ArtifactRequestOptions,
+    options?: RequestOptions,
   ): Promise<ArtifactResultFor<P>> {
     return this.edit(params, options);
   }
@@ -145,7 +140,7 @@ export class Artifacts {
   /** Edits a static artifact in place, with the library it was created with. */
   async editStatic<P extends EditStaticArtifactParams>(
     params: P,
-    options?: ArtifactRequestOptions,
+    options?: RequestOptions,
   ): Promise<ArtifactResultFor<P>> {
     rejectTools(params);
     return this.edit(params, options);
@@ -153,11 +148,10 @@ export class Artifacts {
 
   private async edit<P extends EditLiveArtifactParams | EditStaticArtifactParams>(
     params: P,
-    { signal }: ArtifactRequestOptions = {},
+    { signal }: RequestOptions = {},
   ): Promise<ArtifactResultFor<P>> {
     const { id, prompt, userId, library, tools, promptOptions, content, store, model } = params;
     if (typeof id !== "string" || !id) invalidInput("id is required");
-    requireUser(userId);
     requireModel(model);
     if (store === false && typeof content !== "string") {
       invalidInput("With store: false, pass the artifact's saved content");
@@ -177,11 +171,10 @@ export class Artifacts {
   private async create<P extends CreateLiveArtifactParams | CreateStaticArtifactParams>(
     kind: ArtifactKind,
     params: P,
-    { signal }: ArtifactRequestOptions = {},
+    { signal }: RequestOptions = {},
   ): Promise<ArtifactResultFor<P>> {
     const { title, description, prompt, userId, library, tools, promptOptions, store, model } =
       params;
-    requireUser(userId);
     requireModel(model);
     const id = await this.start({
       userId,
@@ -211,10 +204,7 @@ export class Artifacts {
     thesys,
     signal,
   }: GenerationInput): Promise<string> {
-    const { token } = await this.api.post("/v1/frontend-tokens", { user_id: userId }, signal);
-    if (typeof token !== "string" || !token) {
-      throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
-    }
+    const { token } = await createFrontendToken(this.api, userId, signal);
     const response = await this.api.request("/v1/artifact/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", [FRONTEND_TOKEN_HEADER]: token },
