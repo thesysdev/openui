@@ -334,9 +334,14 @@ function dropScriptBlocks(input: string): string {
   if (!/^[ \t]*```[ \t]*(?:js|javascript)\b/im.test(input)) return input;
   const lines = input.split("\n");
   const out: string[] = [];
+  let inString = false; // a line that starts inside a "..." string is never an opener
   for (let n = 0; n < lines.length; n++) {
-    if (!SCRIPT_OPENER.test(lines[n]!)) {
+    if (inString || !SCRIPT_OPENER.test(lines[n]!)) {
       out.push(lines[n]!);
+      for (let i = 0; i < lines[n]!.length; i++) {
+        if (lines[n]![i] === "\\" && inString) i++;
+        else if (lines[n]![i] === '"') inString = !inString;
+      }
       continue;
     }
     let end = n + 1;
