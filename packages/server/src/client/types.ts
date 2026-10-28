@@ -6,6 +6,8 @@ export interface OpenUIClientOptions {
   apiKey?: string;
   /** OpenUI Cloud origin, without /v1. Defaults to https://api.thesys.dev. */
   apiBaseUrl?: string;
+  /** The model that generates artifacts, as `provider/model`. Defaults to `anthropic/claude-sonnet-4.6`. */
+  model?: string;
   fetch?: typeof globalThis.fetch;
 }
 
@@ -26,6 +28,8 @@ export interface CreateArtifactBase {
   prompt: string;
   /** The signed-in user, from your session. Users only read and edit their own artifacts. */
   userId: string;
+  /** Overrides the client's `model` for this artifact. */
+  model?: string;
   /**
    * `false` keeps the artifact out of OpenUI Cloud storage: the result also has
    * `done`, which resolves with the finished artifact for you to save. Default `true`.
@@ -70,6 +74,8 @@ interface EditArtifactBase {
   tools?: Record<string, ArtifactTool>;
   /** With `library`: extend the prompt, as when creating. */
   promptOptions?: ArtifactPromptOptions;
+  /** Overrides the client's `model` for this edit. */
+  model?: string;
   signal?: AbortSignal;
 }
 
