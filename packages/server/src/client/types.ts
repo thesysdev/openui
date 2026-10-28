@@ -35,10 +35,23 @@ export interface CreateArtifactBase {
   store?: boolean;
 }
 
-/** How to make a create or edit call, apart from what it asks for. */
-export interface ArtifactRequestOptions {
-  /** Cancels the call while it waits for the artifact's id. */
+/** How to make a call, apart from what it asks for. */
+export interface RequestOptions {
+  /** Cancels the call while it waits for OpenUI Cloud. */
   signal?: AbortSignal;
+}
+
+export interface CreateFrontendTokenParams {
+  /** The signed-in user, from your session. The token reads only their artifacts. */
+  userId: string;
+}
+
+/** A user's frontend token, in the shape the browser's `createFrontendTokenManager` reads. */
+export interface FrontendToken {
+  /** `fct_…`, for the `x-thesys-frontend-token` header. */
+  token: string;
+  /** When it expires, in unix seconds. */
+  expires_at: number;
 }
 
 /** Extend the prompt built from your library: `examples`, `preamble`, `additionalRules`. */

@@ -2,7 +2,13 @@ import { createInterpreter } from "../tools/execute";
 import type { Interpreter, InterpreterOptions } from "../tools/types";
 import { createCloudApi, type CloudApi } from "./api";
 import { Artifacts } from "./artifacts";
-import type { OpenUIClientOptions } from "./types";
+import { createFrontendToken } from "./frontend-token";
+import type {
+  CreateFrontendTokenParams,
+  FrontendToken,
+  OpenUIClientOptions,
+  RequestOptions,
+} from "./types";
 
 /**
  * One client for OpenUI Cloud on your server. Reads your API key from
@@ -23,5 +29,13 @@ export class OpenUIClient {
     options: InterpreterOptions<Context>,
   ): Interpreter<Context> {
     return createInterpreter(this.api, options);
+  }
+
+  /** Mints the signed-in user's frontend token. Return it from your token endpoint as is. */
+  createFrontendToken(
+    params: CreateFrontendTokenParams,
+    options?: RequestOptions,
+  ): Promise<FrontendToken> {
+    return createFrontendToken(this.api, params.userId, options?.signal);
   }
 }
