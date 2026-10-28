@@ -62,7 +62,7 @@ function resultOf(result: McpCallToolResult): unknown {
 }
 
 /**
- * Data tools from an MCP server, ready for `createInterpreter` and
+ * Data tools from an MCP server, ready for `openui.createInterpreter` and
  * `openui.artifacts`. Lists the server's tools once; each call goes through
  * `connect(context)`, or the client you pass.
  *
