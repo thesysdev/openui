@@ -64,7 +64,7 @@ function cloudConfig(input: {
       library: input.library.toSpec(),
       ...(input.promptOptions && { promptOptions: input.promptOptions }),
       ...(input.tools && { script: { tools: toToolDefinitions(input.tools) } }),
-      ...(input.content !== undefined && { incrementalEdit: input.content }),
+      ...(input.content !== undefined && { baseResponse: input.content }),
       ...(input.title !== undefined && { meta: { name: input.title } }),
     });
   } catch (error) {
