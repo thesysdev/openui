@@ -95,7 +95,7 @@ export function createInterpreter<Context = undefined>(
         typeof input.response === "string" && input.response.trim()
           ? { response: input.response }
           : typeof input.id === "string" && input.id
-            ? { id: input.id }
+            ? { artifact_id: input.id }
             : null;
       if (!source) {
         throw new ToolExecutionError(
