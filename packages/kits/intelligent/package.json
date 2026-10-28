@@ -55,6 +55,7 @@
   },
   "peerDependencies": {
     "@openuidev/lang-core": ">=1.0.0 <2.0.0",
+    "@openuidev/react-components": "0.0.0-beta.0",
     "@openuidev/react-lang": ">=1.0.1 <2.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -62,6 +63,7 @@
   },
   "devDependencies": {
     "@openuidev/lang-core": "workspace:^",
+    "@openuidev/react-components": "workspace:^",
     "@openuidev/react-lang": "workspace:^",
     "@types/node": "catalog:",
     "@types/react": "catalog:",

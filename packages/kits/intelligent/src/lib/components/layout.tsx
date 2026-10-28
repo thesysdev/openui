@@ -138,12 +138,6 @@ export const Card = defineComponent({
   ),
 });
 
-export const Divider = defineComponent({
-  name: "Divider",
-  props: z.object({}),
-  description: "",
-  component: () => <hr className="iui-divider" />,
-});
 
 export const Spacer = defineComponent({
   name: "Spacer",

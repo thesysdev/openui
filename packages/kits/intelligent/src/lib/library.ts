@@ -4,29 +4,26 @@ import { functions } from "./functions";
 import "./components/theme.css";
 import "./components/components.css";
 import "./components/map/map.css";
-import { Chart } from "./components/chart";
-import { Carousel, Celebration, Code, Flashcard, MathBlock, Popover, Quote, YouTube } from "./components/extra";
-import {
-  Button,
-  Checkbox,
-  DatePicker,
-  IconButton,
-  Input,
-  Pressable,
-  RadioGroup,
-  SegmentedControl,
-  Select,
-  Slider,
-  TextArea,
-  Timer,
-} from "./components/controls";
+import { Chart } from "./components/Chart";
+import { Carousel, Celebration, Flashcard, MathBlock, Popover, Quote, YouTube } from "./components/extra";
+import { Code } from "./components/Code";
+import { Button, IconButton, Pressable, SegmentedControl, Slider, Timer } from "./components/controls";
+import { Input } from "./components/Input";
+import { TextArea } from "./components/TextArea";
+import { Select } from "./components/Select";
+import { Checkbox } from "./components/Checkbox";
+import { DatePicker } from "./components/DatePicker";
+import { RadioGroup } from "./components/RadioGroup";
 import { HtmlView } from "./components/html-view";
-import { Box, Card, Col, Divider, Form, Grid, Row, Spacer } from "./components/layout";
+import { Box, Card, Col, Form, Grid, Row, Spacer } from "./components/layout";
+import { Divider } from "./components/Divider";
 import { MapMarker, MapView } from "./components/map/map";
 import { Icon, Image, SearchImage } from "./components/media";
 import { svgComponents } from "./components/svg";
 import { Table } from "./components/table";
-import { Badge, Caption, Label, Link, List, ListItem, Markdown, Text, Title } from "./components/text";
+import { Badge, Caption, Link, List, ListItem, Text, Title } from "./components/text";
+import { Label } from "./components/Label";
+import { Markdown } from "./components/Markdown";
 
 /**
  * Primitives the model arranges itself, plus a few widgets for what a model

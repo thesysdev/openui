@@ -127,3 +127,7 @@ export const cx = (...names: (string | false | null | undefined)[]) => names.fil
 
 /** A short plain-text name for an element, from its rendered text, for action messages. */
 export const textOf = (element: HTMLElement | null) => (element?.innerText ?? "").replace(/\s+/g, " ").trim().slice(0, 120);
+
+/** Coerce a prop to a string; null and undefined become "". Shared by the
+    extracted component directories, which cannot reach text.tsx's local copy. */
+export const str = (value: unknown) => (value == null ? "" : String(value));

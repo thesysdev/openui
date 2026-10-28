@@ -7,7 +7,7 @@ import { Check, ChevronLeft, ChevronRight, Copy } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { z } from "zod/v4";
-import { inline } from "./markdown";
+import { inline } from "./markdownBlocks";
 import { children, cx } from "./style";
 
 const str = (value: unknown) => (value == null ? "" : String(value));
@@ -122,34 +122,6 @@ export const Popover = defineComponent({
 });
 
 // Code, quote, math
-export const Code = defineComponent({
-  name: "Code",
-  props: z.object({ code: z.string(), language: z.string().optional() }),
-  description: "Code block with a copy button.",
-  component: function CodeView({ props }) {
-    const [copied, setCopied] = useState(false);
-    const code = str(props.code);
-    const copy = () =>
-      void navigator.clipboard?.writeText(code).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      });
-    return (
-      <div className="iui-codeblock">
-        <div className="iui-codeblock-head">
-          <span>{str(props.language) || "code"}</span>
-          <button type="button" onClick={copy} aria-label="Copy code">
-            {copied ? <Check size={14} /> : <Copy size={14} />}
-            {copied ? "Copied" : "Copy"}
-          </button>
-        </div>
-        <pre>
-          <code>{code}</code>
-        </pre>
-      </div>
-    );
-  },
-});
 
 export const Quote = defineComponent({
   name: "Quote",

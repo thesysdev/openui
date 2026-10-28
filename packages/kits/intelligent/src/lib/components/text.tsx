@@ -5,7 +5,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Fragment } from "react";
 import { z } from "zod/v4";
 import { Glyph } from "./glyph";
-import { inline, MarkdownBlocks } from "./markdown";
+import { inline, MarkdownBlocks } from "./markdownBlocks";
 import { children, color, cx, fg, webUrl } from "./style";
 
 const str = (value: unknown) => (value == null ? "" : String(value));
@@ -80,12 +80,7 @@ export const Caption = defineComponent({
   ),
 });
 
-export const Label = defineComponent({
-  name: "Label",
-  props: z.object({ text: z.string() }),
-  description: "Field or group label.",
-  component: ({ props }) => <span className="iui-label">{str(props.text)}</span>,
-});
+
 
 export const Badge = defineComponent({
   name: "Badge",
@@ -176,13 +171,3 @@ export const List = defineComponent({
   },
 });
 
-export const Markdown = defineComponent({
-  name: "Markdown",
-  props: z.object({ text: z.string() }),
-  description: "Prose with headings, lists, quotes, code and tables.",
-  component: ({ props }) => (
-    <div className="iui-markdown">
-      <MarkdownBlocks text={str(props.text)} />
-    </div>
-  ),
-});

@@ -11,41 +11,9 @@ import {
 } from "@openuidev/react-lang";
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { z } from "zod/v4";
+import { choice, choiceList, Field, numberText, optionList, options, useFieldName, useRunAction } from "./controlHelpers";
 import { Glyph } from "./glyph";
 import { bg, children, color, onColor, cx, option, radius, radiusSchema, space, textOf, toOption, type Option } from "./style";
-
-type Plan = Parameters<ReturnType<typeof useTriggerAction>>[2];
-
-/** Runs an action prop. With no action, a button sends its label to the assistant. */
-function useRunAction() {
-  const trigger = useTriggerAction();
-  const formName = useFormName();
-  return (message: string, plan: unknown, sendLabel: boolean) => {
-    if (plan) void trigger(message, formName, plan as Plan);
-    else if (sendLabel) void trigger(message, formName);
-  };
-}
-
-/** The state key of a control: its label, its statement name, or a generated id. */
-function useFieldName(label: unknown, statementId?: string) {
-  const id = useId();
-  return (typeof label === "string" && label) || statementId || id;
-}
-
-const numberText = (value: unknown) => {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "";
-  return value.toLocaleString("en-US", { maximumFractionDigits: 2 });
-};
-
-function Field({ label, children: content }: { label?: string; children: ReactNode }) {
-  if (!label) return <>{content}</>;
-  return (
-    <label className="iui-field">
-      <span className="iui-label">{label}</span>
-      {content}
-    </label>
-  );
-}
 
 // Actions
 export const Button = defineComponent({
@@ -160,105 +128,32 @@ export const Pressable = defineComponent({
 });
 
 // Inputs
-export const Input = defineComponent({
-  name: "Input",
-  props: z.object({
-    value: reactive(z.union([z.string(), z.number()])),
-    label: z.string().optional(),
-    type: z.enum(["text", "number"]).optional(),
-    placeholder: z.string().optional(),
-  }),
-  description: "Text or number field; a number field stores numbers.",
-  component: function InputView({ props, statementId }) {
-    const field = useStateField(useFieldName(props.label, statementId), props.value);
-    const numeric = props.type === "number";
-    // A number field shows what is typed ("1." or "-") until it parses.
-    const [draft, setDraft] = useState<string | null>(null);
-    const shown = draft ?? (numeric ? (typeof field.value === "number" ? String(field.value) : String(field.value ?? "")) : String(field.value ?? ""));
-    return (
-      <Field label={props.label}>
-        <input
-          className="iui-input"
-          type="text"
-          inputMode={numeric ? "decimal" : undefined}
-          value={shown}
-          placeholder={props.placeholder}
-          aria-label={props.label ? undefined : props.placeholder}
-          onChange={(event) => {
-            const text = event.target.value;
-            if (!numeric) return field.setValue(text);
-            setDraft(text);
-            const parsed = Number(text.replace(/,/g, ""));
-            if (text.trim() === "") field.setValue(null as unknown as number);
-            else if (Number.isFinite(parsed)) field.setValue(parsed);
-          }}
-          onBlur={() => setDraft(null)}
-        />
-      </Field>
-    );
-  },
-});
 
-export const TextArea = defineComponent({
-  name: "TextArea",
-  props: z.object({
-    value: reactive(z.string()),
-    label: z.string().optional(),
-    placeholder: z.string().optional(),
-    rows: z.number().optional(),
-  }),
-  description: "",
-  component: ({ props, statementId }) => {
-    const field = useStateField(useFieldName(props.label, statementId), props.value);
-    return (
-      <Field label={props.label}>
-        <textarea
-          className="iui-input iui-textarea"
-          rows={Math.min(20, Math.max(2, Math.round(props.rows ?? 3)))}
-          value={String(field.value ?? "")}
-          placeholder={props.placeholder}
-          aria-label={props.label ? undefined : props.placeholder}
-          onChange={(event) => field.setValue(event.target.value)}
-        />
-      </Field>
-    );
-  },
-});
 
-const options = z.array(option);
-const optionList = (value: unknown) => (Array.isArray(value) ? (value.flat() as Option[]).filter((o) => o != null).map(toOption) : []);
 
-export const Select = defineComponent({
-  name: "Select",
-  props: z.object({
-    value: reactive(z.string()),
-    options,
-    label: z.string().optional(),
-    placeholder: z.string().optional(),
-  }),
-  description: "Dropdown, for long option lists.",
-  component: ({ props, statementId }) => {
-    const field = useStateField(useFieldName(props.label, statementId), props.value);
-    const choices = optionList(props.options);
-    const value = field.value == null ? "" : String(field.value);
-    return (
-      <Field label={props.label}>
-        <select className="iui-input iui-select" value={value} aria-label={props.label ? undefined : props.placeholder} onChange={(event) => field.setValue(event.target.value)}>
-          {(props.placeholder || !choices.some((o) => o.value === value)) && (
-            <option value="" disabled>
-              {props.placeholder ?? "Choose…"}
-            </option>
-          )}
-          {choices.map((o, i) => (
-            <option key={`${o.value}-${i}`} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </Field>
-    );
-  },
-});
+
+
+
+
+
+
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+
+const clock = (seconds: number) => {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const mm = h ? String(m).padStart(2, "0") : String(m);
+  return `${h ? `${h}:` : ""}${mm}:${String(s).padStart(2, "0")}`;
+};
+
+
+
+
+
+
+
 
 export const SegmentedControl = defineComponent({
   name: "SegmentedControl",
@@ -285,6 +180,7 @@ export const SegmentedControl = defineComponent({
     );
   },
 });
+
 
 export const Slider = defineComponent({
   name: "Slider",
@@ -347,97 +243,11 @@ export const Slider = defineComponent({
   },
 });
 
-export const Checkbox = defineComponent({
-  name: "Checkbox",
-  props: z.object({ checked: reactive(z.boolean()), label: z.string(), lineThrough: z.boolean().optional() }),
-  description: "lineThrough strikes the label when checked, for to-do lists.",
-  component: ({ props, statementId }) => {
-    const field = useStateField(useFieldName(props.label, statementId), props.checked);
-    const checked = field.value === true;
-    return (
-      <label className={cx("iui-check", checked && props.lineThrough && "is-done")}>
-        <input type="checkbox" checked={checked} onChange={(event) => field.setValue(event.target.checked)} />
-        <span>{String(props.label ?? "")}</span>
-      </label>
-    );
-  },
-});
 
-const choice = z.union([z.string(), z.object({ value: z.string(), label: z.string(), description: z.string().optional() })]);
-type Choice = { value: string; label: string; description?: string };
-const choiceList = (value: unknown): Choice[] =>
-  Array.isArray(value) ? (value.flat() as (string | Choice)[]).filter((o) => o != null).map((o) => (typeof o === "string" ? { value: o, label: o } : o)) : [];
 
-export const RadioGroup = defineComponent({
-  name: "RadioGroup",
-  props: z.object({
-    value: reactive(z.string()),
-    options: z.array(choice),
-    label: z.string().optional(),
-    variant: z.enum(["list", "pills", "cards"]).optional(),
-  }),
-  description: "pills for short choices; cards for choices that need a description line.",
-  component: function RadioGroupView({ props, statementId }) {
-    const field = useStateField(useFieldName(props.label, statementId), props.value);
-    const name = useId();
-    const value = field.value == null ? "" : String(field.value);
-    const variant = props.variant ?? "list";
-    return (
-      <fieldset className={cx("iui-radio-group", `iui-radio-${variant}`)}>
-        {props.label ? <legend className="iui-label">{props.label}</legend> : null}
-        <div>
-          {choiceList(props.options).map((o, i) => (
-            <label key={`${o.value}-${i}`} className={cx(variant === "list" ? "iui-check" : "iui-choice", o.value === value && "is-selected")}>
-              <input type="radio" name={name} checked={o.value === value} onChange={() => field.setValue(o.value)} />
-              <span className="iui-choice-text">
-                <span>{o.label}</span>
-                {o.description ? <span className="iui-choice-description">{o.description}</span> : null}
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-    );
-  },
-});
 
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-export const DatePicker = defineComponent({
-  name: "DatePicker",
-  props: z.object({
-    value: reactive(z.string()),
-    label: z.string().optional(),
-    min: z.string().optional(),
-    max: z.string().optional(),
-  }),
-  description: 'Dates are "YYYY-MM-DD".',
-  component: ({ props, statementId }) => {
-    const field = useStateField(useFieldName(props.label, statementId), props.value);
-    const value = typeof field.value === "string" && DATE.test(field.value) ? field.value : "";
-    return (
-      <Field label={props.label}>
-        <input
-          className="iui-input iui-date"
-          type="date"
-          value={value}
-          min={props.min && DATE.test(props.min) ? props.min : undefined}
-          max={props.max && DATE.test(props.max) ? props.max : undefined}
-          aria-label={props.label ? undefined : "Date"}
-          onChange={(event) => field.setValue(event.target.value)}
-        />
-      </Field>
-    );
-  },
-});
 
-const clock = (seconds: number) => {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  const mm = h ? String(m).padStart(2, "0") : String(m);
-  return `${h ? `${h}:` : ""}${mm}:${String(s).padStart(2, "0")}`;
-};
 
 export const Timer = defineComponent({
   name: "Timer",
