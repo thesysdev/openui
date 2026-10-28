@@ -10,7 +10,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@openuidev/lang-core": "1.0.1",
+    "@openuidev/lang-core": "1.0.2",
     "next": "^15.5.27",
     "openai": "^6.22.0",
     "react": "^19.0.0",
@@ -18,7 +18,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.6.0",
+    "@openuidev/cli": "0.6.1",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
     "@types/react-dom": "^19",

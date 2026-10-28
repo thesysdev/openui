@@ -9,7 +9,7 @@ const STATIC_PATHS = [
   "/integrations",
   "/chat",
   "/demo/f1-dashboard",
-  "/demo/trip-planner",
+  "/demo/trip-planner/planner",
   "/demo/intelligent-ui",
   "/demo/github",
   "/pricing",

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MAX_EDITOR_PCT, MIN_EDITOR_PCT } from "../debug/DebugUI";
 import type { ColorMode } from "../theme";
+import type { DevtoolsPosition } from "../types";
 
 const STORAGE_KEY = "openui.devtools.config";
 
@@ -8,6 +9,8 @@ export type DevtoolsConfig = {
   autoOpen: boolean;
   onlyErrors: boolean;
   theme: ColorMode;
+  /** Corner the launcher sits in. */
+  position: DevtoolsPosition;
   /** Set once the Debug help dialog has been dismissed, so it only greets once. */
   helpSeen: boolean;
   /** Editor column width in OpenUI Debug, as a percentage of the split. */
@@ -18,11 +21,21 @@ function isColorMode(value: unknown): value is ColorMode {
   return value === "light" || value === "dark";
 }
 
+function isPosition(value: unknown): value is DevtoolsPosition {
+  return (
+    value === "top-left" ||
+    value === "top-right" ||
+    value === "bottom-left" ||
+    value === "bottom-right"
+  );
+}
+
 function sanitize(patch: Partial<DevtoolsConfig>): Partial<DevtoolsConfig> {
   const next: Partial<DevtoolsConfig> = {};
   if (typeof patch.autoOpen === "boolean") next.autoOpen = patch.autoOpen;
   if (typeof patch.onlyErrors === "boolean") next.onlyErrors = patch.onlyErrors;
   if (isColorMode(patch.theme)) next.theme = patch.theme;
+  if (isPosition(patch.position)) next.position = patch.position;
   if (typeof patch.helpSeen === "boolean") next.helpSeen = patch.helpSeen;
   if (typeof patch.editorPct === "number" && Number.isFinite(patch.editorPct)) {
     next.editorPct = Math.min(MAX_EDITOR_PCT, Math.max(MIN_EDITOR_PCT, patch.editorPct));

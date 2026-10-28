@@ -1,5 +1,6 @@
 import { blog } from "@/lib/source";
 import { ArrowUpRight, ImageIcon } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { PageHero, PageHeroAccent } from "../(home)/components/PageHero/PageHero";
@@ -192,6 +193,12 @@ function RegularCard({ card }: { card: BlogCardData }) {
     </Link>
   );
 }
+
+export const metadata: Metadata = {
+  title: "Generative UI blog",
+  description:
+    "Articles on Generative UI from the OpenUI team: OpenUI Lang, agent interfaces, benchmarks, and building apps that respond with UI.",
+};
 
 export default function BlogIndex() {
   const localCards: BlogCardData[] = blog.getPages().map((post) => {

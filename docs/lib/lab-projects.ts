@@ -251,7 +251,7 @@ export const labProjects: ProjectItem[] = [
       },
       {
         label: "Docs",
-        href: "/docs/openui-lang/examples/app-frameworks/react-native",
+        href: "/integrations/react-native",
         external: true,
       },
     ],

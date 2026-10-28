@@ -10,4 +10,5 @@ export {
 } from "./libraryRegistry";
 export { withDevtoolsAttribution } from "./links";
 export { useDevtoolsSingleton } from "./singleton";
+export { cornerToward, useCornerDrag } from "./useCornerDrag";
 export { useDevtoolsConfig, type DevtoolsConfig } from "./useDevtoolsConfig";

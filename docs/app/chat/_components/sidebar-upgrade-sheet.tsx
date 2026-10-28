@@ -92,7 +92,7 @@ export function SidebarUpgradeFooter({ forkRegistry }: SidebarUpgradeFooterProps
               <h2 className={styles.upgradeSheetTitle}>12 reasons to switch to Cloud</h2>
               <div className={styles.upgradeSheetActions}>
                 <Link
-                  href="/docs/agent/getting-started/openui-cloud"
+                  href="/docs/agent/getting-started/quickstart"
                   prefetch={false}
                   className={`${styles.upgradeSheetCta} ${styles.upgradeSheetCtaDesktop}`}
                   data-attribute-element="upgrade-cta"
@@ -119,7 +119,7 @@ export function SidebarUpgradeFooter({ forkRegistry }: SidebarUpgradeFooterProps
             </div>
             <CloudFeatureMarquee />
             <Link
-              href="/docs/agent/getting-started/openui-cloud"
+              href="/docs/agent/getting-started/quickstart"
               prefetch={false}
               className={`${styles.upgradeSheetCta} ${styles.upgradeSheetCtaMobile}`}
               data-attribute-element="upgrade-cta"

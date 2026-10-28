@@ -250,7 +250,7 @@ function ViewComparisonTray({ pair }: { pair: ComparisonPair }) {
               </div>
             ))}
             <Link
-              href="/docs/agent/getting-started/openui-cloud"
+              href="/docs/agent/getting-started/quickstart"
               prefetch={false}
               className={styles.comparisonCta}
             >

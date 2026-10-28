@@ -63,6 +63,8 @@ export const NESTED_DOCS_SECTIONS: Record<NestedDocsRoot, NestedSection> = {
 
 export const API_REFERENCE_URL = "/docs/api-reference";
 export const COOKBOOKS_URL = "/cookbooks";
+// The Cookbooks overview is temporarily removed and /cookbooks redirects here; link to it directly.
+export const COOKBOOKS_ENTRY_URL = "/cookbooks/conversational-analytics";
 export const INTEGRATIONS_URL = "/docs/integrations";
 export const DEMOS_URL = "/demos";
 
@@ -101,7 +103,7 @@ export const GLOBAL_DOCS_TREE: PageTree.Root = {
       name: NESTED_DOCS_SECTIONS["build-agents"].title,
       url: NESTED_DOCS_SECTIONS["build-agents"].entryUrl,
     },
-    { type: "page", name: "Cookbooks", url: COOKBOOKS_URL },
+    { type: "page", name: "Cookbooks", url: COOKBOOKS_ENTRY_URL },
     { type: "separator", name: "Production" },
     { type: "page", name: "Overview", url: "/docs/production" },
     {
