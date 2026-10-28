@@ -149,7 +149,7 @@ export interface MaterializeCtx {
 /**
  * Error sources across the openui-lang pipeline.
  */
-export type OpenUIErrorSource = "parser" | "runtime" | "query" | "mutation" | "artifact";
+export type OpenUIErrorSource = "parser" | "runtime" | "query" | "mutation";
 
 /**
  * Machine-readable error codes for the openui-lang pipeline.
@@ -158,7 +158,6 @@ export type OpenUIErrorSource = "parser" | "runtime" | "query" | "mutation" | "a
  *   "excess-args", "type-mismatch", "unknown-function", "no-root", "parse-exception", "parse-failed"
  * - Runtime: "runtime-error" (prop evaluation), "render-error" (React render)
  * - Query/Mutation: "tool-not-found", "tool-error", "mcp-error"
- * - Artifact: "not-found" (deleted, or not the user's), "generation-failed", "network-error"
  */
 export type OpenUIErrorCode =
   | ValidationErrorCode
@@ -168,10 +167,7 @@ export type OpenUIErrorCode =
   | "parse-failed"
   | "tool-not-found"
   | "tool-error"
-  | "mcp-error"
-  | "not-found"
-  | "generation-failed"
-  | "network-error";
+  | "mcp-error";
 
 /**
  * Structured, LLM-friendly error from the openui-lang pipeline.
@@ -179,8 +175,7 @@ export type OpenUIErrorCode =
  * Designed for an automated correction loop: send these to the LLM so it can
  * generate patches. Only includes errors that are fixable by changing the
  * openui-lang code — transient streaming errors, network failures, and tool
- * execution errors are excluded. The exception is `source: "artifact"`, which
- * reports why an OpenUI Cloud artifact couldn't be loaded, not a code fix.
+ * execution errors are excluded.
  */
 export interface OpenUIError {
   /** Where the error originated. */
