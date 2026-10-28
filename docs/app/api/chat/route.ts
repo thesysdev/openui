@@ -287,17 +287,14 @@ export async function POST(req: NextRequest) {
       ? tools
       : tools.filter((tool) => toolNames.includes(tool.function.name as ToolName));
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.THESYS_API_KEY;
   if (!apiKey) {
-    return Response.json(
-      { error: { message: "OPENROUTER_API_KEY not configured" } },
-      { status: 500 },
-    );
+    return Response.json({ error: { message: "THESYS_API_KEY not configured" } }, { status: 500 });
   }
 
   const client = new OpenAI({
     apiKey,
-    baseURL: "https://openrouter.ai/api/v1",
+    baseURL: "https://api.thesys.dev/v1/embed",
   });
   const MODEL = "google/gemini-3.6-flash";
 
@@ -410,7 +407,7 @@ export async function POST(req: NextRequest) {
       runner.on("chunk", (chunk: any) => {
         // Keep credit handling to non-2xx responses. Provider-specific mid-stream
         // chunks are intentionally ignored because they are harder to maintain
-        // across OpenRouter/OpenAI streaming shape changes.
+        // across streaming shape changes.
         const choice = chunk.choices?.[0];
         const delta = choice?.delta;
         if (!delta) return;

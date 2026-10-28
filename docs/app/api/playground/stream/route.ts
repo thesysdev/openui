@@ -2,7 +2,6 @@ import {
   createDemoCreditsExhaustedResponse,
   isDemoCreditsExhaustedError,
 } from "@/lib/demo-credits";
-import { BASE_URL } from "@/lib/source";
 import { generateSystemPrompt, type LibrarySpec } from "@openuidev/lang-core";
 import { openuiExamples } from "@openuidev/react-ui/genui-lib/prompt-options";
 import { readFileSync } from "fs";
@@ -25,13 +24,11 @@ export async function POST(req: NextRequest) {
 
   conversationLog.push({ role: "user", content: prompt });
 
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  const res = await fetch("https://api.thesys.dev/v1/embed/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      Authorization: `Bearer ${process.env.THESYS_API_KEY}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": `${BASE_URL}/demos`,
-      "X-Title": "OpenUI Playground",
     },
     body: JSON.stringify({
       model,
@@ -53,7 +50,7 @@ export async function POST(req: NextRequest) {
     return Response.json(
       {
         error: (err as { error?: { message?: string } }).error ?? {
-          message: `OpenRouter error ${res.status}`,
+          message: `Gateway error ${res.status}`,
         },
       },
       { status: res.status },
@@ -62,7 +59,7 @@ export async function POST(req: NextRequest) {
 
   // Keep credit handling to provider 4xx responses. Provider-specific mid-stream
   // error chunks are intentionally passed through because they are harder to
-  // maintain across OpenRouter/OpenAI streaming shape changes.
+  // maintain across streaming shape changes.
   const [streamForClient, streamForLog] = res.body!.tee();
 
   const reader = streamForLog.getReader();
