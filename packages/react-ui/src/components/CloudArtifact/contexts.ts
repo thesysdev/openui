@@ -1,3 +1,4 @@
+import type { OpenUIError } from "@openuidev/react-lang";
 import { createContext, useContext, type ReactNode } from "react";
 import type { ArtifactError } from "./errors";
 
@@ -5,15 +6,14 @@ import type { ArtifactError } from "./errors";
 export interface ArtifactRendererState {
   id: string | null;
   title?: string;
-  description?: string;
   /** The artifact's content is being generated. */
   isStreaming: boolean;
   /** Its data tools are running. */
   isFetching: boolean;
   /** Either of the two. */
   isLoading: boolean;
-  /** Why the artifact can't be shown, if it can't. */
-  error: ArtifactError | null;
+  /** Why the artifact can't be shown (`source: "artifact"`), or a data tool's failure (`source: "query"`). */
+  error: ArtifactError | OpenUIError | null;
   /** Retries what failed. Undefined when there's nothing to retry. */
   retry?: () => void;
   /** Whether the artifact is open from its preview. */
