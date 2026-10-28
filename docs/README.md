@@ -19,8 +19,7 @@ pnpm --filter @openuidev/docs build
 
 ### Chat and comparison demo configuration
 
-`/chat` remains the standalone OpenUI OSS and Cloud chat and starts in **OpenUI OSS** mode. Its
-selected mode is not stored across reloads.
+`/chat` is the standalone OpenUI Cloud chat.
 
 `/compare` compares two visible response modes at a time and defaults to **Rendered Markdown vs
 OpenUI Cloud**. Use its page-level switcher to show **Markdown vs OSS** or **OSS vs Cloud**. The
