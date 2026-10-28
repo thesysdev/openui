@@ -9,6 +9,7 @@ import {
   type ActionEvent,
   type ActionPlan,
   type EvalContext,
+  type EvalMemo,
   type EvaluationContext,
   type OpenUIError,
   type ParseResult,
@@ -64,6 +65,11 @@ export interface OpenUIState {
   /** Failed queries whose fallback values must not be presented as current data. */
   queryErrors: OpenUIError[];
   retryQueries: () => void;
+  /**
+   * Changes when the store, query results, context or library change: anything a component
+   * can read besides its props. Unchanged elements keep their identity until it changes.
+   */
+  renderRevision: unknown;
 }
 
 /**
@@ -466,12 +472,18 @@ export function useOpenUIState(
 
   // ─── Evaluate props ───
   const runtimeErrorsRef = useRef<OpenUIError[]>([]);
+  // Evaluations are reused while nothing they read can change, so an element unchanged
+  // by a chunk keeps its identity and its RenderNode skips rendering.
+  const evalMemo = useMemo<EvalMemo>(
+    () => new WeakMap(),
+    [evaluationContext, library, store, storeSnapshot, querySnapshot],
+  );
 
   const evaluatedResult = useMemo<ParseResult | null>(() => {
     if (!result?.root && !result?.rootExpression) return result;
     // Fresh errors array each pass — avoids mutating memoized context
     const errors: OpenUIError[] = [];
-    const evalCtx: EvalContext = { ctx: evaluationContext, library, store, errors };
+    const evalCtx: EvalContext = { ctx: evaluationContext, library, store, errors, memo: evalMemo };
     try {
       const evaluatedRoot = evaluateRoot(result, evalCtx);
       runtimeErrorsRef.current = errors;
@@ -487,7 +499,7 @@ export function useOpenUIState(
       runtimeErrorsRef.current = errors;
       return result;
     }
-  }, [result, evaluationContext, library, store, storeSnapshot, querySnapshot]);
+  }, [result, evaluationContext, library, store, evalMemo]);
 
   const contextValue = useMemo<OpenUIContextValue>(
     () => ({
@@ -548,5 +560,6 @@ export function useOpenUIState(
     isQueryLoading,
     queryErrors,
     retryQueries,
+    renderRevision: evalMemo,
   };
 }

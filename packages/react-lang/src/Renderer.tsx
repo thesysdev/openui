@@ -164,21 +164,71 @@ function renderDeep(value: unknown): React.ReactNode {
   return null;
 }
 
+/** See OpenUIState.renderRevision: every RenderNode re-renders when it changes. */
+const RenderRevisionContext = createContext<unknown>(null);
+
 /**
- * Renders a single ElementNode.
+ * True when two values render the same: equal plain data, with elements compared on what
+ * RenderNodeInner reads (typeName, statementId, props). `partial` is skipped: the parser sets
+ * it on every element of a pass, so it flips for finished elements while later ones stream.
  */
-function RenderNode({ node }: { node: ElementNode }) {
-  const { library, reportError } = useOpenUI();
-  const Comp = library.components[node.typeName]?.component;
-
-  if (!Comp) return null;
-
-  return (
-    <ElementErrorBoundary componentName={node.typeName} onError={reportError}>
-      <RenderNodeInner el={node} Comp={Comp} />
-    </ElementErrorBoundary>
-  );
+function rendersSame(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (!rendersSame(a[i], b[i])) return false;
+    return true;
+  }
+  if (Array.isArray(b)) return false;
+  const ea = a as ElementNode;
+  const eb = b as ElementNode;
+  // Elements as renderDeep tells them apart
+  if (ea.type === "element" || eb.type === "element") {
+    return (
+      ea.type === eb.type &&
+      ea.typeName === eb.typeName &&
+      ea.statementId === eb.statementId &&
+      rendersSame(ea.props, eb.props)
+    );
+  }
+  // Class instances (dates, maps, values from library functions) compare by identity
+  const proto = Object.getPrototypeOf(a);
+  if (proto !== Object.getPrototypeOf(b) || (proto !== Object.prototype && proto !== null)) {
+    return false;
+  }
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  for (const k of keys) {
+    if (!Object.prototype.hasOwnProperty.call(b, k)) return false;
+    if (!rendersSame((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k])) {
+      return false;
+    }
+  }
+  return true;
 }
+
+/**
+ * Renders a single ElementNode. Memoized: an element a chunk leaves unchanged keeps its
+ * identity (lang-core reuses unchanged statements and their evaluations), so it skips
+ * rendering; a store, query or context change re-renders every node.
+ */
+const RenderNode = React.memo(
+  function RenderNode({ node }: { node: ElementNode }) {
+    useContext(RenderRevisionContext);
+    const { library, reportError } = useOpenUI();
+    const Comp = library.components[node.typeName]?.component;
+
+    if (!Comp) return null;
+
+    return (
+      <ElementErrorBoundary componentName={node.typeName} onError={reportError}>
+        <RenderNodeInner el={node} Comp={Comp} />
+      </ElementErrorBoundary>
+    );
+  },
+  (prev, next) => rendersSame(prev.node, next.node),
+);
 
 /**
  * Renders a resolved element using its renderer.
@@ -236,22 +286,29 @@ function RendererRoot<L extends Library = Library>({
   });
   const resolvedToolProvider = toolProvider != null ? stableToolProvider.current : null;
 
-  const { result, parseResult, contextValue, isQueryLoading, queryErrors, retryQueries } =
-    useOpenUIState(
-      {
-        response,
-        library,
-        isStreaming,
-        // The hook builds plain ActionEvents; LibraryActionEvent<L> is the same shape, narrowed.
-        onAction: onAction as ((event: ActionEvent) => void) | undefined,
-        onStateUpdate,
-        initialState,
-        toolProvider: resolvedToolProvider,
-        onError,
-        publishObservability,
-      },
-      renderDeep,
-    );
+  const {
+    result,
+    parseResult,
+    contextValue,
+    isQueryLoading,
+    queryErrors,
+    retryQueries,
+    renderRevision,
+  } = useOpenUIState(
+    {
+      response,
+      library,
+      isStreaming,
+      // The hook builds plain ActionEvents; LibraryActionEvent<L> is the same shape, narrowed.
+      onAction: onAction as ((event: ActionEvent) => void) | undefined,
+      onStateUpdate,
+      initialState,
+      toolProvider: resolvedToolProvider,
+      onError,
+      publishObservability,
+    },
+    renderDeep,
+  );
 
   // Fire onParseResult with the RAW parse result (not evaluated),
   // so hosts only see changes when the parser output actually changes.
@@ -273,7 +330,9 @@ function RendererRoot<L extends Library = Library>({
 
   return (
     <OpenUIContext.Provider value={contextValue}>
-      <RendererContext.Provider value={value}>{children}</RendererContext.Provider>
+      <RenderRevisionContext.Provider value={renderRevision}>
+        <RendererContext.Provider value={value}>{children}</RendererContext.Provider>
+      </RenderRevisionContext.Provider>
     </OpenUIContext.Provider>
   );
 }
