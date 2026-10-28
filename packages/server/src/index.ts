@@ -5,19 +5,18 @@ export type {
   ArtifactError,
   ArtifactLibrary,
   ArtifactPromptOptions,
+  ArtifactRequestOptions,
   ArtifactResult,
   ArtifactResultFor,
   ArtifactTool,
   CreateLiveArtifactParams,
-  CreateReportParams,
-  CreateSlidesParams,
   CreateStaticArtifactParams,
-  EditArtifactParams,
+  EditLiveArtifactParams,
+  EditStaticArtifactParams,
   GeneratedArtifact,
   OpenUIClientOptions,
   UnstoredArtifactResult,
 } from "./client/types";
-export { createInterpreter } from "./tools/execute";
 export { mcpTools } from "./tools/mcp";
 export type { McpCallToolResult, McpToolClient, McpToolInfo, McpToolsOptions } from "./tools/mcp";
 export { ToolExecutionError } from "./tools/types";

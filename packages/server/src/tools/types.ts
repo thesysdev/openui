@@ -41,11 +41,6 @@ export type InterpreterExecuteOptions<Context = undefined> = {
 
 export interface InterpreterOptions<Context = undefined> {
   tools: Record<string, DataTool<Context>>;
-  /** Required for generated scripts. Direct tool calls do not need a key. */
-  apiKey?: string;
-  /** OpenUI Cloud origin, without /v1. Defaults to https://api.thesys.dev. */
-  apiBaseUrl?: string;
-  fetch?: typeof globalThis.fetch;
 }
 
 export interface Interpreter<Context = undefined> {

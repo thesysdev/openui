@@ -1,25 +1,27 @@
-import { DEFAULT_ARTIFACT_MODEL } from "../shared/constants";
-import { createCloudApi } from "./api";
+import { createInterpreter } from "../tools/execute";
+import type { Interpreter, InterpreterOptions } from "../tools/types";
+import { createCloudApi, type CloudApi } from "./api";
 import { Artifacts } from "./artifacts";
 import type { OpenUIClientOptions } from "./types";
 
 /**
  * One client for OpenUI Cloud on your server. Reads your API key from
  * `THESYS_API_KEY` unless you pass `apiKey`.
- *
- * ```ts
- * const openui = new OpenUIClient();
- * const { toolResponse } = await openui.artifacts.createLive({ … });
- * ```
  */
 export class OpenUIClient {
   /** Create and edit artifacts. */
   readonly artifacts: Artifacts;
+  private readonly api: CloudApi;
 
   constructor(options: OpenUIClientOptions = {}) {
-    this.artifacts = new Artifacts(
-      createCloudApi(options),
-      options.model ?? DEFAULT_ARTIFACT_MODEL,
-    );
+    this.api = createCloudApi(options);
+    this.artifacts = new Artifacts(this.api);
+  }
+
+  /** Runs an artifact's data tools on your server.*/
+  createInterpreter<Context = undefined>(
+    options: InterpreterOptions<Context>,
+  ): Interpreter<Context> {
+    return createInterpreter(this.api, options);
   }
 }

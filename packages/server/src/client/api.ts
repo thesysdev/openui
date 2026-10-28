@@ -1,28 +1,26 @@
-import {
-  ARTIFACT_ID_HEADER,
-  FRONTEND_TOKEN_HEADER,
-  THESYS_API_BASE_URL,
-} from "../shared/constants";
+import { THESYS_API_BASE_URL } from "../shared/constants";
 import { OpenUIApiError, type OpenUIClientOptions } from "./types";
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
-/** Authenticated requests to OpenUI Cloud with the API key. */
-export interface CloudApi {
-  post(path: string, body: unknown, signal?: AbortSignal): Promise<Record<string, unknown>>;
-  stream(path: string, options: { lastEventId?: string; signal?: AbortSignal }): Promise<Response>;
-  /**
-   * Starts an artifact generation in the background, owned by the user the
-   * frontend token is for. Resolves with the artifact's id as soon as it has one.
-   */
-  generate(
-    body: unknown,
-    options: { frontendToken: string; signal?: AbortSignal },
-  ): Promise<string>;
+export interface CloudRequest {
+  method?: "GET" | "POST";
+  headers?: Record<string, string>;
+  body?: string;
+  signal?: AbortSignal;
 }
 
-async function apiError(response: Response): Promise<OpenUIApiError> {
+/** Authenticated requests to OpenUI Cloud with the API key. */
+export interface CloudApi {
+  /** Sends a request with the API key and resolves with the response as is. */
+  request(path: string, init?: CloudRequest): Promise<Response>;
+  /** POSTs JSON and resolves with the JSON object OpenUI Cloud returns. */
+  post(path: string, body: unknown, signal?: AbortSignal): Promise<Record<string, unknown>>;
+}
+
+/** The error a failed OpenUI Cloud response describes. */
+export async function apiError(response: Response): Promise<OpenUIApiError> {
   let result: unknown;
   try {
     result = await response.json();
@@ -60,11 +58,20 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
     return `Bearer ${apiKey}`;
   };
 
+  async function request(path: string, { headers, ...init }: CloudRequest = {}) {
+    return fetchFn(`${base}${path}`, {
+      ...init,
+      headers: { ...headers, Authorization: authorization() },
+    });
+  }
+
   return {
+    request,
+
     async post(path, body, signal) {
-      const response = await fetchFn(`${base}${path}`, {
+      const response = await request(path, {
         method: "POST",
-        headers: { Authorization: authorization(), "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
         signal,
       });
@@ -79,40 +86,6 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
         throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
       }
       return result;
-    },
-
-    async stream(path, { lastEventId, signal }) {
-      const headers: Record<string, string> = {
-        Authorization: authorization(),
-        Accept: "text/event-stream",
-      };
-      if (lastEventId) headers["Last-Event-ID"] = lastEventId;
-      return fetchFn(`${base}${path}`, { headers, signal });
-    },
-
-    async generate(body, { frontendToken, signal }) {
-      const response = await fetchFn(`${base}/v1/artifact/chat/completions`, {
-        method: "POST",
-        headers: {
-          Authorization: authorization(),
-          "Content-Type": "application/json",
-          [FRONTEND_TOKEN_HEADER]: frontendToken,
-        },
-        body: JSON.stringify(body),
-        signal,
-      });
-      if (!response.ok) throw await apiError(response);
-      const id = response.headers.get(ARTIFACT_ID_HEADER);
-      // The generation carries on in OpenUI Cloud; renderers read it from there.
-      await response.body?.cancel().catch(() => undefined);
-      if (!id) {
-        throw new OpenUIApiError(
-          "OpenUI Cloud didn't start a background artifact",
-          "invalid_response",
-          502,
-        );
-      }
-      return id;
     },
   };
 }
