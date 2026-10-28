@@ -31,14 +31,10 @@ export interface CloudArtifactStorageOptions {
 function toSummary(artifact: CloudArtifact): ArtifactSummary {
   return {
     id: artifact.id,
-    title: artifact.title ?? artifact.name ?? artifact.id,
+    title: artifact.name ?? artifact.id,
     type: artifact.kind,
     threadId: artifact.conversation_id ?? "",
     updatedAt: (artifact.updated_at ?? artifact.created_at) * 1000,
-    createdAt: artifact.created_at * 1000,
-    ...(artifact.description !== undefined && { description: artifact.description }),
-    ...(artifact.summary !== undefined && { summary: artifact.summary }),
-    ...(artifact.pinned !== undefined && { pinned: artifact.pinned }),
   };
 }
 
@@ -57,7 +53,6 @@ export function cloudArtifactStorage({
       const query = new URLSearchParams();
       if (params?.name !== undefined && params.name !== "") query.set("name", params.name);
       for (const type of params?.type ?? []) query.append("kind", type);
-      if (params?.pinned !== undefined) query.set("pinned", String(params.pinned));
       if (params?.cursor !== undefined) query.set("after", params.cursor);
       query.set("limit", String(params?.limit ?? pageLimit));
       const res = await request(`/v1/artifacts?${query.toString()}`);
@@ -88,25 +83,6 @@ export function cloudArtifactStorage({
       return toSummary((await res.json()) as CloudArtifact);
     },
 
-    /** POST /v1/artifacts/:id/pin. */
-    async pin(id: string): Promise<ArtifactSummary> {
-      const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/pin`, { method: "POST" });
-      return toSummary((await res.json()) as CloudArtifact);
-    },
-
-    /** POST /v1/artifacts/:id/unpin. */
-    async unpin(id: string): Promise<ArtifactSummary> {
-      const res = await request(`/v1/artifacts/${encodeURIComponent(id)}/unpin`, {
-        method: "POST",
-      });
-      return toSummary((await res.json()) as CloudArtifact);
-    },
-
-    /** DELETE /v1/artifacts/:id. */
-    async delete(id: string): Promise<void> {
-      await request(`/v1/artifacts/${encodeURIComponent(id)}`, { method: "DELETE" });
-    },
-
     /** GET /v1/artifacts/:id/stream (SSE). Replays a finished artifact the
      *  same way; `Last-Event-ID` resumes a dropped stream. */
     async *stream(
@@ -123,6 +99,17 @@ export function cloudArtifactStorage({
         yield {
           type: "error",
           data: { code: "not-found", message: "This artifact was deleted, or you can't see it." },
+        };
+        return;
+      }
+      // A 401 already got a fresh token (createFctFetch); retrying won't change either.
+      if (res.status === 401 || res.status === 403) {
+        yield {
+          type: "error",
+          data: {
+            code: "unauthorized",
+            message: "Your session expired, or you can't see this artifact.",
+          },
         };
         return;
       }
