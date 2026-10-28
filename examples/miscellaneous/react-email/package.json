@@ -15,10 +15,10 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@openuidev/lang-core": "1.0.1",
+    "@openuidev/lang-core": "1.0.2",
     "@openuidev/react-email": "0.4.0",
     "@openuidev/react-headless": "0.18.1",
-    "@openuidev/react-lang": "1.0.1",
+    "@openuidev/react-lang": "1.0.2",
     "@react-email/components": "^0.0.41",
     "@react-email/render": "^1.0.6",
     "lucide-react": "^0.562.0",
@@ -30,7 +30,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.6.0",
+    "@openuidev/cli": "0.6.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.32",
     "@types/react": "^19",
@@ -41,7 +41,7 @@
     "typescript": "^5"
   },
   "overrides": {
-    "@openuidev/react-lang": "1.0.1"
+    "@openuidev/react-lang": "1.0.2"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

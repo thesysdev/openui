@@ -21,7 +21,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@openuidev/cli": "0.6.0",
+    "@openuidev/cli": "0.6.1",
     "@tailwindcss/vite": "^4",
     "jiti": "^2.0.0",
     "nuxt": "^3.17.0",

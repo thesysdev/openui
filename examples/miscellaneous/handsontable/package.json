@@ -16,10 +16,10 @@
   },
   "dependencies": {
     "@handsontable/react-wrapper": "^17.0.1",
-    "@openuidev/cli": "0.6.0",
-    "@openuidev/lang-core": "1.0.1",
+    "@openuidev/cli": "0.6.1",
+    "@openuidev/lang-core": "1.0.2",
     "@openuidev/react-headless": "0.18.1",
-    "@openuidev/react-lang": "1.0.1",
+    "@openuidev/react-lang": "1.0.2",
     "@openuidev/react-ui": "0.18.1",
     "handsontable": "^17.0.1",
     "hyperformula": "^3.2.0",
