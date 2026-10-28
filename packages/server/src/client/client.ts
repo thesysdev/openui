@@ -1,3 +1,4 @@
+import { DEFAULT_ARTIFACT_MODEL } from "../shared/constants";
 import { createCloudApi } from "./api";
 import { Artifacts } from "./artifacts";
 import type { OpenUIClientOptions } from "./types";
@@ -16,6 +17,9 @@ export class OpenUIClient {
   readonly artifacts: Artifacts;
 
   constructor(options: OpenUIClientOptions = {}) {
-    this.artifacts = new Artifacts(createCloudApi(options));
+    this.artifacts = new Artifacts(
+      createCloudApi(options),
+      options.model ?? DEFAULT_ARTIFACT_MODEL,
+    );
   }
 }

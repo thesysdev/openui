@@ -1,4 +1,8 @@
-import { THESYS_API_BASE_URL } from "../shared/constants";
+import {
+  ARTIFACT_ID_HEADER,
+  FRONTEND_TOKEN_HEADER,
+  THESYS_API_BASE_URL,
+} from "../shared/constants";
 import { OpenUIApiError, type OpenUIClientOptions } from "./types";
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -8,6 +12,30 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
 export interface CloudApi {
   post(path: string, body: unknown, signal?: AbortSignal): Promise<Record<string, unknown>>;
   stream(path: string, options: { lastEventId?: string; signal?: AbortSignal }): Promise<Response>;
+  /**
+   * Starts an artifact generation in the background, owned by the user the
+   * frontend token is for. Resolves with the artifact's id as soon as it has one.
+   */
+  generate(
+    body: unknown,
+    options: { frontendToken: string; signal?: AbortSignal },
+  ): Promise<string>;
+}
+
+async function apiError(response: Response): Promise<OpenUIApiError> {
+  let result: unknown;
+  try {
+    result = await response.json();
+  } catch {
+    result = undefined;
+  }
+  const error = isRecord(result) && isRecord(result["error"]) ? result["error"] : undefined;
+  const message = error?.["message"] ?? (isRecord(result) ? result["message"] : undefined);
+  return new OpenUIApiError(
+    typeof message === "string" ? message : `OpenUI Cloud request failed: HTTP ${response.status}`,
+    typeof error?.["code"] === "string" ? error["code"] : "http_error",
+    response.status,
+  );
 }
 
 const envApiKey = (): string | undefined =>
@@ -40,21 +68,12 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
         body: JSON.stringify(body),
         signal,
       });
+      if (!response.ok) throw await apiError(response);
       let result: unknown;
       try {
         result = await response.json();
       } catch {
         result = undefined;
-      }
-      if (!response.ok) {
-        const error = isRecord(result) && isRecord(result["error"]) ? result["error"] : undefined;
-        throw new OpenUIApiError(
-          typeof error?.["message"] === "string"
-            ? error["message"]
-            : `OpenUI Cloud request failed: HTTP ${response.status}`,
-          typeof error?.["code"] === "string" ? error["code"] : "http_error",
-          response.status,
-        );
       }
       if (!isRecord(result)) {
         throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
@@ -69,6 +88,31 @@ export function createCloudApi(options: OpenUIClientOptions): CloudApi {
       };
       if (lastEventId) headers["Last-Event-ID"] = lastEventId;
       return fetchFn(`${base}${path}`, { headers, signal });
+    },
+
+    async generate(body, { frontendToken, signal }) {
+      const response = await fetchFn(`${base}/v1/artifact/chat/completions`, {
+        method: "POST",
+        headers: {
+          Authorization: authorization(),
+          "Content-Type": "application/json",
+          [FRONTEND_TOKEN_HEADER]: frontendToken,
+        },
+        body: JSON.stringify(body),
+        signal,
+      });
+      if (!response.ok) throw await apiError(response);
+      const id = response.headers.get(ARTIFACT_ID_HEADER);
+      // The generation carries on in OpenUI Cloud; renderers read it from there.
+      await response.body?.cancel().catch(() => undefined);
+      if (!id) {
+        throw new OpenUIApiError(
+          "OpenUI Cloud didn't start a background artifact",
+          "invalid_response",
+          502,
+        );
+      }
+      return id;
     },
   };
 }

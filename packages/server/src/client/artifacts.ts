@@ -81,9 +81,47 @@ function requireUser(userId: unknown): void {
   }
 }
 
+/**
+ * What a tool returns to the model: a sentence, then the artifact's header line
+ * for the renderer. A new `version` tells renderers there's a newer revision.
+ */
+function toolResponse(
+  id: string,
+  kind: ArtifactKind | undefined,
+  title: string | undefined,
+): string {
+  const version = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+  const header = {
+    artifact_id: id,
+    ...(kind && { type: kind }),
+    ...(title && { name: title }),
+    version,
+  };
+  const sentence = kind
+    ? `Started the ${kind} artifact${title ? ` "${title}"` : ""}; the user sees it as it's generated.`
+    : "Editing the artifact; the user sees the new version when it's ready.";
+  return `${sentence}\n]]>openui:artifact ${JSON.stringify(header)}\n`;
+}
+
+/** What a generation request carries besides the prompt. */
+interface GenerationInput {
+  userId: string;
+  prompt: string;
+  model: string | undefined;
+  /** The config block from your library, tools and prompt options. */
+  config?: string;
+  /** The previous version, for an edit of an artifact in your own storage. */
+  previous?: string;
+  thesys: Record<string, unknown>;
+  signal?: AbortSignal;
+}
+
 /** Create and edit artifacts. Each call returns as soon as the artifact has an id. */
 export class Artifacts {
-  constructor(private readonly api: CloudApi) {}
+  constructor(
+    private readonly api: CloudApi,
+    private readonly model: string,
+  ) {}
 
   /** Your components, with live data from your tools. */
   async createLive<P extends CreateLiveArtifactParams>(params: P): Promise<ArtifactResultFor<P>> {
@@ -112,7 +150,8 @@ export class Artifacts {
 
   /** Edits an artifact in place. Renderers keep the current version until the edit is ready. */
   async edit<P extends EditArtifactParams>(params: P): Promise<ArtifactResultFor<P>> {
-    const { id, prompt, userId, library, tools, promptOptions, content, store, signal } = params;
+    const { id, prompt, userId, library, tools, promptOptions, content, store, model, signal } =
+      params;
     if (typeof id !== "string" || !id) invalidInput("id is required");
     requireUser(userId);
     if (store === false && typeof content !== "string") {
@@ -121,54 +160,91 @@ export class Artifacts {
     if (!library && (tools || promptOptions)) {
       invalidInput("tools and promptOptions need the artifact's library");
     }
-    const response = await this.api.post(
-      `/v1/artifacts/${encodeURIComponent(id)}/edit`,
-      {
-        prompt,
-        user_id: userId,
-        // Your library's artifacts carry the previous version in the config;
-        // slides and reports send it as is.
-        ...(library
-          ? { config: cloudConfig({ library, tools, promptOptions, content }) }
-          : content !== undefined && { content }),
-        ...(store !== undefined && { store }),
-      },
+    // OpenUI Cloud edits the version it stores; your own storage sends it along:
+    // in the config for your library's artifacts, as is for slides and reports.
+    const started = await this.start({
+      userId,
+      prompt,
+      model,
+      ...(library && { config: cloudConfig({ library, tools, promptOptions, content }) }),
+      ...(!library && content !== undefined && { previous: content }),
+      thesys: { id, ...(store !== undefined && { store }) },
       signal,
-    );
-    return this.result<P>(response, store);
+    });
+    return this.result<P>(started, undefined, undefined, store);
   }
 
   private async create<P extends CreateParams>(
     kind: ArtifactKind,
     params: P,
   ): Promise<ArtifactResultFor<P>> {
-    const { title, description, prompt, userId, library, tools, promptOptions, store, signal } =
-      params;
+    const {
+      title,
+      description,
+      prompt,
+      userId,
+      library,
+      tools,
+      promptOptions,
+      store,
+      model,
+      signal,
+    } = params;
     requireUser(userId);
-    const response = await this.api.post(
-      "/v1/artifacts",
-      {
-        kind,
+    const id = await this.start({
+      userId,
+      prompt,
+      model,
+      // Slides and reports use built-in libraries: no config.
+      ...(library && { config: cloudConfig({ library, tools, promptOptions, title }) }),
+      thesys: {
+        c1_artifact_type: kind,
         title,
         ...(description !== undefined && { description }),
-        prompt,
-        user_id: userId,
-        // Slides and reports use built-in libraries: no config.
-        ...(library && { config: cloudConfig({ library, tools, promptOptions, title }) }),
         ...(store !== undefined && { store }),
       },
       signal,
-    );
-    return this.result<P>(response, store);
+    });
+    return this.result<P>(id, kind, title, store);
   }
 
-  private result<P>(response: Record<string, unknown>, store?: boolean): ArtifactResultFor<P> {
-    const id = response["id"];
-    const toolResponse = response["tool_response"];
-    if (typeof id !== "string" || !id || typeof toolResponse !== "string") {
+  /** Mints the user's frontend token, so the artifact is theirs, and starts generating. */
+  private async start({
+    userId,
+    prompt,
+    model,
+    config,
+    previous,
+    thesys,
+    signal,
+  }: GenerationInput) {
+    const { token } = await this.api.post("/v1/frontend-tokens", { user_id: userId }, signal);
+    if (typeof token !== "string" || !token) {
       throw new OpenUIApiError("Invalid OpenUI Cloud response", "invalid_response", 502);
     }
-    const result: ArtifactResult = { id, toolResponse };
+    return this.api.generate(
+      {
+        model: model ?? this.model,
+        stream: true,
+        messages: [
+          ...(config ? [{ role: "system", content: config }] : []),
+          ...(previous ? [{ role: "assistant", content: previous }] : []),
+          { role: "user", content: prompt },
+        ],
+        // Chat completions metadata values are strings.
+        metadata: { thesys: JSON.stringify(thesys) },
+      },
+      { frontendToken: token, signal },
+    );
+  }
+
+  private result<P>(
+    id: string,
+    kind: ArtifactKind | undefined,
+    title: string | undefined,
+    store: boolean | undefined,
+  ): ArtifactResultFor<P> {
+    const result: ArtifactResult = { id, toolResponse: toolResponse(id, kind, title) };
     // Start following right away: an unstored artifact only lives while it's generated.
     return (
       store === false ? { ...result, done: follow(this.api, id) } : result
