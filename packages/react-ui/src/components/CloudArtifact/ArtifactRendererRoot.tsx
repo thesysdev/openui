@@ -3,7 +3,6 @@
 import {
   createInterpreterToolProvider,
   parseArtifactReference,
-  useArtifactStorage,
   useArtifactStream,
   type Interpreter,
 } from "@openuidev/react-headless";
@@ -18,19 +17,17 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
   type ReactElement,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { cacheFor } from "./artifactCache";
 import {
   ContentConfigContext,
   RendererStateContext,
   type ArtifactRendererState,
   type ContentConfig,
 } from "./contexts";
-import { artifactError, toolError, type ArtifactError } from "./errors";
+import { toolError, type ArtifactError } from "./errors";
 import {
   Chrome,
   ChromeActions,
@@ -51,7 +48,7 @@ import {
 export interface ArtifactRendererBaseProps {
   /** The tool's result, unchanged. The renderer reads the artifact from it. */
   response?: string | null;
-  /** Instead of `response`, the artifact's id, such as from `useArtifactList`. */
+  /** Instead of `response`, the artifact's id. */
   id?: string;
   /** The artifact's saved content, if you keep artifacts in your own storage. */
   content?: string;
@@ -66,8 +63,8 @@ export interface ArtifactRendererBaseProps {
   defaultOpen?: boolean;
   /** Added to the artifact's root element. */
   className?: string;
-  /** Receives the artifact's errors, with `Renderer`'s own. */
-  onError?: (errors: OpenUIError[]) => void;
+  /** Receives the artifact's error, if any, with `Renderer`'s own. */
+  onError?: (errors: Array<OpenUIError | ArtifactError>) => void;
   /** Slots: `Preview` and `Chrome`. */
   children?: ReactNode;
 }
@@ -90,8 +87,11 @@ export interface ArtifactRendererRootProps extends ArtifactRendererBaseProps {
   renderContent: (args: RenderContentArgs) => ReactNode;
 }
 
-const NO_ID_ERROR = artifactError("not-found", "This response doesn’t reference an artifact.");
-const DELETED_ERROR = artifactError("not-found", "This artifact was deleted.");
+const NO_ID_ERROR: ArtifactError = {
+  source: "artifact",
+  code: "not-found",
+  message: "This response doesn’t reference an artifact.",
+};
 
 /** Top-level children: only the first `Preview` and `Chrome` count, as in AgentInterface. */
 function extractRegions(children: ReactNode) {
@@ -127,9 +127,6 @@ function findContent(node: ReactNode): ReactElement | null {
   return found;
 }
 
-const noopSubscribe = () => () => {};
-const notDeleted = () => false;
-
 /** The shared renderer: streaming, live data, errors, open state, slots and layout. */
 export function ArtifactRendererRoot({
   response,
@@ -150,16 +147,6 @@ export function ArtifactRendererRoot({
   const id = idProp ?? reference?.id ?? null;
   const ownStorage = content !== undefined;
   const stream = useArtifactStream({ id, version: reference?.version, content });
-
-  // A delete from `useArtifactList` reaches every renderer showing the artifact.
-  const storage = useArtifactStorage();
-  const cache = storage ? cacheFor(storage) : null;
-  const isDeleted = useSyncExternalStore(
-    cache?.subscribe ?? noopSubscribe,
-    cache && id ? () => cache.isDeleted(id) : notDeleted,
-    notDeleted,
-  );
-  const summary = cache && id ? cache.get(id) : undefined;
 
   // ── Live data: in-flight calls and failures, from the interpreter ──
   const [inFlight, setInFlight] = useState(0);
@@ -192,14 +179,15 @@ export function ArtifactRendererRoot({
   );
 
   // ── Errors and retry ──
+  // The artifact's own error is the stream's, as is, so it keeps its identity
+  // across renders. It wins over a failed data tool.
+  const artifactError = !id && !ownStorage ? NO_ID_ERROR : stream.error;
   const [failedTool, failedMessage] = Object.entries(toolErrors)[0] ?? [];
-  const streamError = stream.error;
-  const error = useMemo<ArtifactError | null>(() => {
-    if (!id && !ownStorage) return NO_ID_ERROR;
-    if (isDeleted) return DELETED_ERROR;
-    if (streamError) return artifactError(streamError.code, streamError.message);
-    return failedTool && failedMessage ? toolError(failedTool, failedMessage) : null;
-  }, [id, ownStorage, isDeleted, streamError, failedTool, failedMessage]);
+  const error = useMemo<ArtifactError | OpenUIError | null>(
+    () =>
+      artifactError ?? (failedTool && failedMessage ? toolError(failedTool, failedMessage) : null),
+    [artifactError, failedTool, failedMessage],
+  );
 
   const streamRetry = stream.retry;
   const retry = useMemo(() => {
@@ -218,21 +206,20 @@ export function ArtifactRendererRoot({
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
   const rendererErrorsRef = useRef<OpenUIError[]>([]);
-  const artifactErrorsRef = useRef<OpenUIError[]>([]);
+  const artifactErrorsRef = useRef<ArtifactError[]>([]);
   const handleRendererErrors = useCallback((errors: OpenUIError[]) => {
     rendererErrorsRef.current = errors;
     onErrorRef.current?.([...artifactErrorsRef.current, ...errors]);
   }, []);
   const reportedErrorRef = useRef<ArtifactError | null>(null);
-  // Only artifact-level errors are added: `Renderer` already reports failed
+  // Only the artifact's own error is added: `Renderer` already reports failed
   // data tools to `onError` itself.
-  const artifactLevelError = error?.source === "artifact" ? error : null;
   useEffect(() => {
-    artifactErrorsRef.current = artifactLevelError ? [artifactLevelError] : [];
-    if (artifactLevelError === reportedErrorRef.current) return;
-    reportedErrorRef.current = artifactLevelError;
+    artifactErrorsRef.current = artifactError ? [artifactError] : [];
+    if (artifactError === reportedErrorRef.current) return;
+    reportedErrorRef.current = artifactError;
     onErrorRef.current?.([...artifactErrorsRef.current, ...rendererErrorsRef.current]);
-  }, [artifactLevelError]);
+  }, [artifactError]);
 
   // ── Open state ──
   const [openState, setOpenState] = useState(defaultOpen);
@@ -253,13 +240,11 @@ export function ArtifactRendererRoot({
   // ── State for useArtifactRenderer() ──
   const isStreaming = stream.isStreaming;
   const isFetching = inFlight > 0;
-  const title = stream.title ?? reference?.title ?? summary?.title;
-  const description = stream.description ?? summary?.description;
+  const title = stream.title ?? reference?.title;
   const state = useMemo<ArtifactRendererState>(
     () => ({
       id,
       title,
-      description,
       isStreaming,
       isFetching,
       isLoading: isStreaming || isFetching,
@@ -270,10 +255,10 @@ export function ArtifactRendererRoot({
       close,
       preview,
     }),
-    [id, title, description, isStreaming, isFetching, error, retry, isOpen, open, close, preview],
+    [id, title, isStreaming, isFetching, error, retry, isOpen, open, close, preview],
   );
 
-  const program = isDeleted ? null : stream.program;
+  const program = stream.program;
   const contentConfig = useMemo<ContentConfig>(
     () => ({
       isEmpty: !program,
